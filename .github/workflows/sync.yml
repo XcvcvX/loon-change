@@ -1,10 +1,11 @@
 name: Sync R-Store Adblock (QuanX -> Loon)
 
+# 上游 zirawell/R-Store 每天更新一次，这里每天同步两次做容错
 on:
   schedule:
     - cron: '0 1 * * *'      # UTC 01:00 = 北京时间 09:00
     - cron: '0 13 * * *'     # UTC 13:00 = 北京时间 21:00
-  workflow_dispatch:
+  workflow_dispatch:         # 也可在 Actions 页面手动点「Run workflow」立即同步
 
 permissions:
   contents: write
@@ -21,19 +22,27 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: 拉取上游规则并转换为 Loon 插件
+      # 重写规则 -> allAdRewrite.plugin
+      - name: 转换重写规则
         run: python3 convert_qx2loon.py -o allAdRewrite.plugin
+
+      # 分流规则 -> allAdBlock-Loon.list / .plugin
+      - name: 转换分流规则
+        run: |
+          python3 convert_filter_qx2loon.py \
+            --list allAdBlock-Loon.list \
+            --plugin allAdBlock-Loon.plugin
 
       - name: 检查是否有变化
         id: diff
         run: |
-          if git diff --quiet -- allAdRewrite.plugin; then
+          if git diff --quiet -- allAdRewrite.plugin allAdBlock-Loon.list allAdBlock-Loon.plugin; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "上游无更新，跳过提交"
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
             echo "检测到更新："
-            git diff --stat -- allAdRewrite.plugin
+            git diff --stat
           fi
 
       - name: 提交并推送
@@ -41,6 +50,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add allAdRewrite.plugin
+          git add allAdRewrite.plugin allAdBlock-Loon.list allAdBlock-Loon.plugin
           git commit -m "chore: sync upstream rules $(date -u +%Y-%m-%d)"
           git push
