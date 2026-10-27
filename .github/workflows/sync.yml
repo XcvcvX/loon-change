@@ -1,0 +1,46 @@
+name: Sync R-Store Adblock (QuanX -> Loon)
+
+on:
+  schedule:
+    - cron: '0 1 * * *'      # UTC 01:00 = 北京时间 09:00
+    - cron: '0 13 * * *'     # UTC 13:00 = 北京时间 21:00
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出仓库
+        uses: actions/checkout@v4
+
+      - name: 准备 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 拉取上游规则并转换为 Loon 插件
+        run: python3 convert_qx2loon.py -o allAdRewrite.plugin
+
+      - name: 检查是否有变化
+        id: diff
+        run: |
+          if git diff --quiet -- allAdRewrite.plugin; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "上游无更新，跳过提交"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "检测到更新："
+            git diff --stat -- allAdRewrite.plugin
+          fi
+
+      - name: 提交并推送
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add allAdRewrite.plugin
+          git commit -m "chore: sync upstream rules $(date -u +%Y-%m-%d)"
+          git push
