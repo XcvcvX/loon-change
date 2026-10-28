@@ -91,6 +91,19 @@ def make_tag(code):
     return code if tag_count[code] == 1 else '%s-%d' % (code, tag_count[code])
 
 
+def upstream_302_fix(s, urlre, target):
+    """定向修正上游已知缺陷（仅匹配特征，不污染通用逻辑）。
+    Spotify artistview 规则上游用了原子组 (?>...) 当子域名，而原子组不捕获，
+    导致 $1 实际是端口组 (:443)?、$2 才是 artist，拼出 https://.spotify.com/... 非法URL。
+    改为显式捕获子域名、端口组改非捕获，使 $1=子域名、$2=artist。"""
+    if 'spotify' in s and 'artistview' in s and 'platform=iphone' in s:
+        urlre = (r'^https?:\/\/(gae2-spclient|guc3-spclient|spclient\.wg)'
+                 r'\.spotify\.com(?::443)?\/artistview\/v1\/artist\/(.*)&platform=iphone')
+        target = 'https://$1.spotify.com/artistview/v1/artist/$2&platform=ipad'
+        return urlre, target
+    return urlre, target
+
+
 for line in lines:
     s = line.strip()
 
@@ -191,6 +204,7 @@ for line in lines:
     m = re.match(r'^302\s+(\S+)$', rest)
     if m:
         target = m.group(1)
+        urlre, target = upstream_302_fix(s, urlre, target)
         n = len(re.findall(r'\(\?:(?!\?)|(?<!\\)\((?!\?)', urlre))
         target = re.sub(r'\$(\d)', r'${m.\1}', target)
         if '$' in target:
@@ -414,6 +428,36 @@ def sample_host_regex(hre):
 HOST_RE_LIST = rule_host_regexes()
 HOST_SAMPLES = [(r, sample_host_regex(r)) for r in HOST_RE_LIST]
 
+# 记录“缺 TLD 主机名 -> 补全后主机名”的修复，便于核对
+repaired_hosts = {}
+
+
+def _collect_rule_hosts():
+    """从规则正则枚举全部具体域名（用于补全上游缺 TLD 的 hostname）"""
+    out = set()
+    for hre in HOST_RE_LIST:
+        ex = expand_host_regex(hre)
+        if ex:
+            for c in ex:
+                c = c.rstrip('.')
+                if HOST_OK.match(c) and not is_public_suffix(c):
+                    out.add(c)
+    return out
+
+
+RULE_CONCRETE_HOSTS = _collect_rule_hosts()
+
+
+def repair_missing_tld(h):
+    """上游个别 hostname 缺 TLD（如 img.yun.01zhuanche，应为 img.yun.01zhuanche.com）。
+    真实 TLD 只含字母，故末段含数字即判定为缺 TLD。
+    若规则里存在唯一的、以该串为前缀的具体域名，则补全；否则返回 None。"""
+    cands = sorted(c for c in RULE_CONCRETE_HOSTS if c.startswith(h + '.'))
+    if len(cands) == 1:
+        repaired_hosts[h] = cands[0]
+        return cands[0]
+    return None
+
 
 def concrete_from_rules(glob):
     """以源通配 hostname 作 glob，从规则正则展开具体域名。
@@ -450,7 +494,13 @@ def norm_host(h):
             return []                  # 含 ? 以外的非法字符，丢弃
         if '.' not in h:
             return [h]
-        return [] if is_public_suffix(h) else [h]
+        if is_public_suffix(h):
+            return []
+        if not HOST_OK.match(h):
+            # 末段不是合法 TLD（如 img.yun.01zhuanche 缺 .com）：尝试从规则补全
+            fixed = repair_missing_tld(h)
+            return [fixed] if fixed else []
+        return [h]
     if h.startswith('*.') and '*' not in h[2:] and '?' not in h[2:]:
         return [] if is_public_suffix(h[2:]) else [h]
     # 中间/后缀通配（含 ? 单字符通配）：1) 先试从规则正则展开具体域名
@@ -566,8 +616,11 @@ print('Script  条目: %d' % len(scripts))
 print('MitM  域名数: %d (原始 %d, 丢弃 %d)' % (len(hosts), len(mitm_hosts), len(dropped_hosts)))
 for h in dropped_hosts:
     print('   [MitM 丢弃] %s  <- 无法安全收敛（避免误伤全域）' % h)
+for h, fixed in sorted(repaired_hosts.items()):
+    print('   [MitM 修复] %s  ->  %s  （上游缺 TLD，已从规则补全）' % (h, fixed))
 for h, ent in derived_hosts.items():
     print('   [MitM 收敛] %s  ->  %s' % (h, ', '.join(ent)))
 print('跳过/异常  : %d' % len(skipped))
 for s, why in skipped:
     print('   [跳过] %s  <- %s' % (why, s[:100]))
+#（注：内容由AI生成）
