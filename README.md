@@ -106,6 +106,11 @@ python3 convert_qx2loon.py -i allAdRewrite.conf -o allAdRewrite.plugin
 - **原子组降级**：`(?>...)` 在 Loon（ICU 正则）中不被支持，全部转为 `(?:...)`。
 - **脚本移出 rewrite**：Loon 的脚本是 `[Script]` 段的 `http-response` / `http-request`，
   不是 QuanX 那种写在 rewrite 行内的 `url script-response-body`。
+- **二进制脚本加 `binary-body-mode`**：Loon 给脚本的 `$response.body` 默认是字符串，
+  只有声明 `binary-body-mode=true` 才是 `Uint8Array`。protobuf 类脚本（`youtube`、
+  `bilibiliProtoA`、`tiebaProto`、`spotify`、`baiduMap`）按字节读取，若拿到字符串会
+  解析失败、放空响应，表现为 App 一直转圈（如 YouTube 首页刷不出新视频）。转换器会
+  自动为这 5 个脚本加 `binary-body-mode=true`，并对内容做启发式扫描以覆盖未来新增。
 - **jq / mock / 302 走新语法**：legacy 语法按空格切分参数，而 jq 表达式必然含空格，
   用 `\x20` 不可靠；Loon 官方文档明确允许新旧语法在同一 `[Rewrite]` 段混用。
 - **MITM 域名收敛**：Loon 只支持 `*.` 前缀通配，中间通配符统一收敛为 `*.主域`。
@@ -113,7 +118,8 @@ python3 convert_qx2loon.py -i allAdRewrite.conf -o allAdRewrite.plugin
   应为 `img.yun.01zhuanche.com`）。真实 TLD 只含字母，故末段含数字即判定为缺 TLD，
   转换器会从规则里找到对应的完整域名补全；无法补全的丢弃，避免写入无效 hostname。
 - **生成后自检**：`validate_plugin.py` 会独立校验产物（非法 hostname / 裸公共后缀 /
-  未知动作），工作流中一旦发现硬错误即失败，阻止错误产物被提交。
+  未知动作 / 二进制脚本是否带 `binary-body-mode`），工作流中一旦发现硬错误即失败，
+  阻止错误产物被提交。
 
 ### 分流规则的转换
 
@@ -175,3 +181,9 @@ GitHub 定时是“尽力而为”，可能延迟或漏跑，手动触发也不�
 **4. 个别脚本（如网易云）报 `$utils.ungzip` 相关错误**
 
 该 API 需 Loon Build ≥ 988，升级 Loon 即可，不影响其他脚本。
+
+**5. 某 App 一直转圈、刷不出新内容（如 YouTube 首页只有缓存图）**
+
+多为 protobuf 脚本没拿到二进制 body。已通过给 `youtube` / `bilibiliProtoA` /
+`tiebaProto` / `spotify` / `baiduMap` 加 `binary-body-mode=true` 解决。若你是旧版
+插件，更新到最新即可；更新后仍异常，先在 Loon 里关掉该插件确认是否由它引起。

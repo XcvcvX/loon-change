@@ -37,6 +37,13 @@ PUBLIC_SUFFIX_2L = {
     'co.th', 'co.id',
 }
 
+# 已知按二进制 protobuf 处理 body 的脚本，其插件行必须带 binary-body-mode=true，
+# 否则 Loon 给字符串、脚本解析失败放空响应，App 会一直转圈
+BINARY_BODY_SCRIPTS = {
+    'youtube.js', 'bilibiliProtoA.js', 'tiebaProto.js',
+    'spotify.js', 'baiduMap.js',
+}
+
 
 def is_public_suffix(d):
     labels = d.split('.')
@@ -112,6 +119,20 @@ def main(path):
         if len(toks) >= 2 and toks[1] not in LEGACY_ACTIONS:
             errors.append('未知 Rewrite 动作 %r: %s' % (toks[1], s))
 
+    # ---- [Script]：二进制脚本必须声明 binary-body-mode ----
+    for line in sec.get('Script', []):
+        s = line.strip()
+        if not s or s.startswith('#'):
+            continue
+        m = re.search(r'script-path=(\S+)', s)
+        if not m:
+            continue
+        base = m.group(1).rsplit('/', 1)[-1]
+        if base in BINARY_BODY_SCRIPTS and not re.search(
+                r'(?<![A-Za-z-])binary-body-mode\s*=\s*true', s):
+            errors.append('二进制脚本 %s 缺少 binary-body-mode=true（会导致 App 转圈）: %s'
+                          % (base, s))
+
     # ---- 报告 ----
     for w in warnings:
         print('[警告] ' + w)
@@ -125,4 +146,3 @@ if __name__ == '__main__':
     if len(sys.argv) != 2:
         raise SystemExit('用法: python3 validate_plugin.py <file.plugin>')
     sys.exit(main(sys.argv[1]))
-#（注：内容由AI生成）

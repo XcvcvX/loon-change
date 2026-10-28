@@ -50,6 +50,64 @@ else:
     if raw is None:
         raise SystemExit('上游规则获取失败: %s' % last_err)
 
+# ================= 二进制 body 脚本识别 =================
+# Loon 中 http-response 脚本拿到的 $response.body 默认是字符串；
+# 只有声明 binary-body-mode=true 时才是 Uint8Array。
+# protobuf 类脚本（直接按字节 slice / DataView / fromBinary）若拿到字符串，
+# 会解析失败、$done({}) 放空响应，导致 App 一直转圈（如 YouTube 首页刷不出）。
+# 这些脚本需要 binary-body-mode=true：
+BINARY_BODY_SCRIPTS = {
+    'youtube.js',        # 自定义 protobuf 框架，fromBinary 要求 Uint8Array
+    'bilibiliProtoA.js',  # protobuf，按字节 slice + ungzip
+    'tiebaProto.js',      # 非 QuanX 分支直接把 $response.body 当字节
+    'spotify.js',         # 同上
+    'baiduMap.js',        # 同上，DataView 读取
+}
+
+# 内容启发式（强特征，命中即判定需二进制），用于覆盖未来新增的同类脚本
+_BIN_PATTERNS = [
+    re.compile(r'isQuanX\s*\?\s*new\s+Uint8Array\(\s*\$response\.bodyBytes\s*\)'
+               r'\s*:\s*\$response\.body'),
+    re.compile(r'can not get binaryBody'),
+]
+
+
+def _script_mirror(u):
+    """raw.githubusercontent.com 不可达时，回退到 jsDelivr 取脚本内容"""
+    m = re.match(r'^https?://raw\.githubusercontent\.com/([^/]+/[^/]+)/[^/]+/(.+)$', u)
+    if not m:
+        return None
+    return 'https://cdn.jsdelivr.net/gh/%s@%s' % (m.group(1), m.group(2))
+
+
+def detect_binary_scripts():
+    """结合"已知名单 + 内容启发式"，返回需要二进制 body 的脚本【文件名】集合。
+    脚本下载为尽力而为：失败则只依赖已知名单，绝不阻塞转换。"""
+    need = set(BINARY_BODY_SCRIPTS)
+    js_urls = set(re.findall(
+        r'script-(?:response|request)-(?:body|header)\s+(\S+)', raw))
+    for u in sorted(js_urls):
+        content, got = None, None
+        for cand in [u, _script_mirror(u)]:
+            if not cand:
+                continue
+            try:
+                content = fetch(cand, timeout=15)
+                got = cand
+                break
+            except Exception as e:
+                last = e
+        if content is None:
+            print('[binary] 探测失败，跳过启发式: %s' % u, file=sys.stderr)
+            continue
+        if any(p.search(content) for p in _BIN_PATTERNS):
+            need.add(os.path.basename(u))
+            print('[binary] 启发式判定需二进制: %s (%s)' % (os.path.basename(u), got))
+    return need
+
+
+BINARY_NEEDED = detect_binary_scripts()
+
 lines = raw.split('\n')
 
 rewrite, scripts, skipped = [], [], []
@@ -165,8 +223,9 @@ for line in lines:
         else:
             phase = 'http-request'
         tag = make_tag(cur_code)
-        scripts.append('%s %s script-path=%s,tag=%s,requires-body=true'
-                       % (phase, urlre, js, tag))
+        binflag = ',binary-body-mode=true' if os.path.basename(js) in BINARY_NEEDED else ''
+        scripts.append('%s %s script-path=%s,tag=%s,requires-body=true%s'
+                       % (phase, urlre, js, tag, binflag))
         stats[kind + ' -> ' + phase] += 1
         continue
 
@@ -574,6 +633,8 @@ HEAD = """#!name = 全部-广告拦截合集(Loon)
 #      reject/reject-200/reject-img/reject-dict/reject-array -> 同名动作(移至正则之后)
 #      script-response-body      -> [Script] http-response  ... requires-body=true
 #      script-request-body       -> [Script] http-request   ... requires-body=true
+#        protobuf 类脚本（youtube/bilibiliProtoA/tiebaProto/spotify/baiduMap）
+#        额外加 binary-body-mode=true，否则拿到字符串、解析失败会放空响应导致转圈
 #      script-response-header    -> [Script] http-response
 #      script-request-header     -> [Script] http-request
 #      response-body A response-body B   -> response-body-replace-regex A B
@@ -623,4 +684,3 @@ for h, ent in derived_hosts.items():
 print('跳过/异常  : %d' % len(skipped))
 for s, why in skipped:
     print('   [跳过] %s  <- %s' % (why, s[:100]))
-#（注：内容由AI生成）
