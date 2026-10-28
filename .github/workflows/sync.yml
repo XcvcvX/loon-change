@@ -33,6 +33,10 @@ jobs:
             --list allAdBlock-Loon.list \
             --plugin allAdBlock-Loon.plugin
 
+      # 产物自检：发现非法主机名/未知动作即失败，阻止错误产物被提交
+      - name: 校验重写插件
+        run: python3 validate_plugin.py allAdRewrite.plugin
+
       - name: 检查是否有变化
         id: diff
         run: |
@@ -53,3 +57,4 @@ jobs:
           git add allAdRewrite.plugin allAdBlock-Loon.list allAdBlock-Loon.plugin
           git commit -m "chore: sync upstream rules $(date -u +%Y-%m-%d)"
           git push
+#（注：内容由AI生成）
