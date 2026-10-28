@@ -3,8 +3,8 @@ name: Sync R-Store Adblock (QuanX -> Loon)
 # 上游 zirawell/R-Store 每天更新一次，这里每天同步两次做容错
 on:
   schedule:
-    - cron: '0 1 * * *'      # UTC 01:00 = 北京时间 09:00
-    - cron: '0 13 * * *'     # UTC 13:00 = 北京时间 21:00
+    - cron: '7 1 * * *'      # UTC 01:07 = 北京时间 09:07
+    - cron: '23 13 * * *'     # UTC 13:23 = 北京时间 21:23
   workflow_dispatch:         # 也可在 Actions 页面手动点「Run workflow」立即同步
 
 permissions:
