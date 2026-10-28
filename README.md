@@ -52,6 +52,7 @@ FINAL,DIRECT
    allAdBlock-Loon.plugin
    convert_qx2loon.py                # 重写规则转换
    convert_filter_qx2loon.py         # 分流规则转换
+   validate_plugin.py                # 产物自检（工作流会调用）
    .github/workflows/sync.yml
    README.md
    ```
@@ -61,8 +62,11 @@ FINAL,DIRECT
 
 3. （可选）立即跑一次：Actions → *Sync R-Store Adblock* → **Run workflow**。
 
-之后每天北京时间 09:00 / 21:00 自动检查上游；**有变化才提交**，
-没变化则跳过，不会产生空提交。
+之后每天北京时间 **09:07 / 21:23** 自动检查上游（已错开整点，降低被延迟概率）；
+**有变化才提交**，没变化则跳过，不会产生空提交。
+
+> 注意：GitHub 的定时任务是“尽力而为”，整点高负载时可能延迟、偶尔漏跑；
+> 手动触发（Run workflow）与定时互不影响。一天两次 + 手动兜底，不会长期不更新。
 
 ### 订阅地址
 
@@ -105,6 +109,11 @@ python3 convert_qx2loon.py -i allAdRewrite.conf -o allAdRewrite.plugin
 - **jq / mock / 302 走新语法**：legacy 语法按空格切分参数，而 jq 表达式必然含空格，
   用 `\x20` 不可靠；Loon 官方文档明确允许新旧语法在同一 `[Rewrite]` 段混用。
 - **MITM 域名收敛**：Loon 只支持 `*.` 前缀通配，中间通配符统一收敛为 `*.主域`。
+- **缺 TLD 主机名自动修复**：上游个别 hostname 漏写顶级域（如 `img.yun.01zhuanche`，
+  应为 `img.yun.01zhuanche.com`）。真实 TLD 只含字母，故末段含数字即判定为缺 TLD，
+  转换器会从规则里找到对应的完整域名补全；无法补全的丢弃，避免写入无效 hostname。
+- **生成后自检**：`validate_plugin.py` 会独立校验产物（非法 hostname / 裸公共后缀 /
+  未知动作），工作流中一旦发现硬错误即失败，阻止错误产物被提交。
 
 ### 分流规则的转换
 
@@ -130,6 +139,39 @@ QuanX 用**小写**类型名和策略，Loon 用 Surge 风格的**大写**：
 
 - QuanX 的 `reject` 返回 404，Loon 的 `reject` 是直接断开连接。
   若某 App 弹出网络错误，把对应条目改成 `reject-200`。
-- 脚本文件本身仍是上游的 QuanX 版 JS，少数用到 `$prefs`、`$notification` 等
-  QuanX 特有 API 的可能报错，可在 Loon 日志中查看。
+- 脚本文件本身仍是上游的 QuanX 版 JS，但绝大多数内嵌了跨平台适配层（MagicJS 或
+  等价框架），在 Loon 下会自动走 `$persistentStore` / `$httpClient` /
+  `$notification` / `$done`；`$prefs`、`$task`、`$notify` 等 QuanX 专属调用
+  只存在于 `isQuanX` 分支或 `typeof $task` 守卫内，Loon 下不会执行。
+  个别 protobuf 脚本（如网易云）用到 `$utils.ungzip`，需 Loon Build ≥ 988，
+  旧版报错时升级 Loon 即可。
+- Spotify artistview 302 规则上游把原子组当子域名捕获（`$1` 实际是端口组），
+  转换器已定向修正为显式捕获子域名、端口组非捕获。
 - 有 1 条 `url-and-header` 复合匹配规则 Loon 无对应动作，已注释保留在文件末尾。
+
+## 六、常见问题
+
+**1. 添加插件时报 `Code=261 未能使用文本编码 UTF-8 打开文件 …lpx`**
+
+插件文件本身没问题，是 Loon 本地缓存的那份下载坏了（大文件下载被截断，或一次
+偶发的网络/代理干扰）。Loon 按 URL 哈希缓存，会复用坏文件。解决办法任选：
+
+- 删掉该插件，**彻底关闭 Loon 后重开**，再添加；
+- 或换一种 raw URL 形式（哈希不同，强制重新下载），把
+  `.../refs/heads/main/allAdRewrite.plugin` 改成 `.../main/allAdRewrite.plugin`，
+  二者内容完全相同、都不影响更新；
+- 最稳：把插件存到 iCloud 云盘的 `Loon/Plugins/` 目录，添加时直接填文件名。
+
+**2. 到点没看到自动运行**
+
+GitHub 定时是“尽力而为”，可能延迟或漏跑，手动触发也不影响定时。已把时间错开
+整点（09:07 / 21:23）；若仍不放心，可在 Actions 页面手动 **Run workflow**。
+
+**3. 多个去广告插件是否冲突**
+
+本合集已覆盖高德、百度地图、拼多多、滴滴等，若你另外单独装了这些 App 的插件，
+属于重复（一般无害，只是重复处理、增加开销），可按需禁用，避免互相覆盖。
+
+**4. 个别脚本（如网易云）报 `$utils.ungzip` 相关错误**
+
+该 API 需 Loon Build ≥ 988，升级 Loon 即可，不影响其他脚本。
