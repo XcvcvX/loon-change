@@ -1,95 +1,119 @@
-# R-Store 去广告规则 · Loon 版
+# R-Store × blockAdsV2 去广告净化合集 · Loon 版
 
-把 [zirawell/R-Store](https://github.com/zirawell/R-Store) 的 Quantumult X 去广告规则
-按 **Loon 原生语法**转换，并通过 GitHub Actions 跟随上游自动更新。
+把两套去广告规则融合成**一个** Loon 原生插件，并通过 GitHub Actions 跟随上游自动更新：
 
-上游有两套规则，本仓库产出两套各自独立的 Loon 产物：
+- [zirawell/R-Store](https://github.com/zirawell/R-Store) 的 **Quantumult X** 规则（重写 + 独立分流），先按 Loon 原生语法转换（作为 base）；
+- [fmz200/wool_scripts](https://github.com/zirawell/R-Store) 的 **blockAdsV2.plugin**（本身已是 Loon 格式），再合并去重。
 
-| 上游（QuanX） | 本仓库产物 | 作用 |
+> **只装一个 `allAdRewrite.plugin` 就够了。** blockAdsV2 的 Rewrite/Script/Rule/Argument/MITM
+> 已全部并入，R-Store 独立分流的规则也已补进 `[Rule]`，无需再装 blockAdsV2 或任何独立分流。
+
+## 产物一览
+
+| 文件 | 来源 | 作用 |
 |---|---|---|
-| `rewrite/allAdRewrite.conf` | `allAdRewrite.plugin` | 重写 + 脚本（拦内容层广告） |
-| `filter/allAdBlock.list` | `allAdBlock-Loon.list` / `.plugin` | 分流规则（拦域名/IP 层广告） |
+| `allAdRewrite.plugin` | R-Store 转换 + blockAdsV2 合并 + 分流补全 | 单插件自包含：开关 + 分流 + 重写 + 脚本 + MITM |
+
+`allAdRewrite.plugin` 内含五个段：`[Argument]`（74 个开关）、`[Rule]`（3446 条）、
+`[Rewrite]`、`[Script]`、`[MITM]`（1336 个主机）。
 
 ## 一、直接使用（不用自己搭仓库）
-
-### 重写规则插件
 
 ```
 https://raw.githubusercontent.com/<用户名>/<仓库名>/main/allAdRewrite.plugin
 ```
 
-Loon 里：**插件 → 右上角「+」→ 通过 URL 添加** → 粘贴上面的地址。
+Loon 里：**插件 → 右上角「+」→ 通过 URL 添加** → 粘贴地址。
 
-> 必须开启 MitM 并信任 CA 证书，否则所有重写/脚本规则都不生效。
+> 必须开启 MitM 并信任 CA 证书，否则重写/脚本规则不生效。
+> `[Rule]` 里的域名/IP 拦截属于连接层规则，不依赖 MitM 也会生效。
 
-### 分流规则
-
-分流规则**不需要 MitM**，两种方式任选：
-
-**方式 A：规则订阅（推荐，位置可控）**
-
-在 Loon 主配置的 `[Rule]` 段里加一行，**放在 FINAL 之前**：
-
-```ini
-[Rule]
-https://raw.githubusercontent.com/<用户名>/<仓库名>/main/allAdBlock-Loon.list,REJECT
-...
-FINAL,DIRECT
-```
-
-**方式 B：插件**
-
-把 `allAdBlock-Loon.plugin` 也按上面的方式添加为插件，规则会自动合并。
-（方式 A 能自己决定规则先后顺序，更稳妥。）
+**不需要再单独订阅任何分流**：`[Rule]` 已 100% 覆盖 R-Store 原独立分流的 1435 条规则
+（见第四节覆盖验证），装这一个插件即可，没有第二个文件要配。
 
 ## 二、自己搭一个自动更新的仓库
 
-1. **新建 GitHub 仓库**（Public），把本目录下所有内容上传：
+1. **新建 GitHub 仓库**（Public），上传本目录内容：
 
    ```
    allAdRewrite.plugin
-   allAdBlock-Loon.list
-   allAdBlock-Loon.plugin
-   convert_qx2loon.py                # 重写规则转换
-   convert_filter_qx2loon.py         # 分流规则转换
-   validate_plugin.py                # 产物自检（工作流会调用）
+   convert_qx2loon.py            # R-Store QuanX 重写 -> Loon（base 转换）
+   merge_plugins.py              # 合并 blockAdsV2、去重、补全 R-Store 分流到 [Rule]
+   validate_plugin.py            # 产物自检（工作流调用）
+   sources/blockAdsV2.plugin     # blockAdsV2 本地副本（运行时默认在线抓取）
    .github/workflows/sync.yml
    README.md
    ```
 
-2. **开启 Actions**：仓库 → Settings → Actions → General →
-   勾选 *Read and write permissions*，保存。
+   > `convert_filter_qx2loon.py` 已废弃——独立分流的转换与补全已并入 `merge_plugins.py`，
+   > 工作流不再引用它，可删除。
 
-3. （可选）立即跑一次：Actions → *Sync R-Store Adblock* → **Run workflow**。
+2. **开启 Actions**：Settings → Actions → General → 勾选 *Read and write permissions*。
 
-之后每天北京时间 **09:07 / 21:23** 自动检查上游（已错开整点，降低被延迟概率）；
-**有变化才提交**，没变化则跳过，不会产生空提交。
+3. （可选）立即跑一次：Actions → *Sync R-Store + blockAdsV2* → **Run workflow**。
 
-> 注意：GitHub 的定时任务是“尽力而为”，整点高负载时可能延迟、偶尔漏跑；
-> 手动触发（Run workflow）与定时互不影响。一天两次 + 手动兜底，不会长期不更新。
+工作流每天北京时间 **09:07 / 21:23** 执行，步骤为：**转换 R-Store 重写 → 在线抓取
+blockAdsV2 与 R-Store 分流、合并去重并补全 `[Rule]` → 自检 → 有变化才提交**。
+没变化则跳过，不产生空提交。
 
-### 订阅地址
-
-```
-https://raw.githubusercontent.com/<你的用户名>/<你的仓库名>/main/allAdRewrite.plugin
-```
+> GitHub 定时是“尽力而为”，整点高负载可能延迟、偶尔漏跑；手动触发与定时互不影响，
+> 一天两次 + 手动兜底，不会长期不更新。
 
 ## 三、手动更新
 
 ```bash
-# 拉取上游最新规则并转换
+# 1) R-Store QuanX 重写 -> Loon（base）
 python3 convert_qx2loon.py -o allAdRewrite.plugin
 
-# 或转换本地已有的 QuanX 规则文件
-python3 convert_qx2loon.py -i allAdRewrite.conf -o allAdRewrite.plugin
+# 2) 合并 blockAdsV2 并补全 R-Store 分流（均在线抓取，含镜像回退），覆盖回写
+python3 merge_plugins.py --base allAdRewrite.plugin --extra fetch --filter fetch --out allAdRewrite.plugin
+
+# 3) 自检
+python3 validate_plugin.py allAdRewrite.plugin
 ```
 
-转换脚本只依赖 Python 标准库。上游 `raw.githubusercontent.com` 不可达时，
-会自动回退到 jsDelivr 镜像。
+`merge_plugins.py` 的 `--filter` 可选：`fetch`（默认，在线补全分流）、本地路径、
+`none`（不补全 `[Rule]`）。所有脚本只依赖 Python 标准库；`raw.githubusercontent.com`
+不可达时自动回退 jsDelivr 镜像。
 
-## 四、转换做了什么
+## 四、合并、去重与分流补全
 
-不是简单的字段顺序调换，而是按 Loon 语法做语义级映射：
+### 4.1 Rewrite / Script 合并（Loon ↔ Loon）
+
+以 R-Store 转换产物为 base，blockAdsV2 只做补充：
+
+- **同正则 base 优先**：建立 base 全部 URL 正则集合（Rewrite + Script 一起），
+  blockAdsV2 命中的正则一律跳过，仅补充 base 没有的；段内、跨段冲突统一处理。
+- **正确识别 v1 脚本正则**：`http-response ^PAT ...` 的正则取第二个 token，
+  不会被首词 `http-response` 折叠，保证跨新旧语法去重准确。
+- **完全相同的行折叠**：逐字重复行只保留第一条，最终 `[Rule]`/Rewrite/Script 均无重复行。
+- **blockAdsV2 残留 7 行 QuanX 旧写法分类处理**：3 行转 v2（beehive `reject_dict(200)`、
+  vgtime/zhihu 两条 `redirect(302, ...)`），4 行丢弃（base 已覆盖或源损坏）。
+- **MITM 主机收敛**：中间/前缀通配退化为 `*.最长字面后缀`；`souhu→sohu` 拼写纠错；
+  裸 IP、通配 TLD、源损坏等 23 个无法安全收敛的主机丢弃，最终 1336 个主机全部合法。
+
+### 4.2 分流补全到 `[Rule]`（替代独立分流）
+
+blockAdsV2 自带的 `[Rule]` 并不完整覆盖 R-Store 独立分流，因此合并时额外做了一步：
+
+1. 抓取 R-Store `allAdBlock.list`，转换为 Loon 规则（小写类型 → 大写、IP 类加 `no-resolve`）；
+2. 对每条规则按**语义覆盖**判定是否已被当前 `[Rule]` 包含：
+   - `DOMAIN`：精确相等，或被某条 `DOMAIN-SUFFIX`（含父后缀）/ `DOMAIN-KEYWORD` 覆盖；
+   - `DOMAIN-SUFFIX`：存在相等或更宽的父后缀；
+   - `DOMAIN-KEYWORD`：关键字相等；
+   - `IP-CIDR` / `IP-CIDR6`：网段被相等或更宽的网段包含（`subnet_of`）；
+3. 只追加未覆盖的规则，并动态更新索引以处理规则间的包含关系。
+
+**实测结果**：R-Store 分流 1435 条，其中 856 条本就被 blockAdsV2 覆盖，**补入 579 条**；
+最终 `[Rule]` 共 3446 条。独立复核（按段重新解析、不依赖固定行号）确认 1435 条
+**100% 被覆盖、0 缺口**，故独立分流产物已停止生成、可安全删除。
+
+最近一次合并量：Rewrite 1789 + 新增 869（跳过 524）；Script 304 + 新增 140（跳过 78）；
+Rule 3446（含分流补入 579）；Argument 74；MITM 1336。
+
+## 五、R-Store 重写转换做了什么（QuanX → Loon）
+
+语义级映射，不是简单调换字段顺序：
 
 | Quantumult X | Loon |
 |---|---|
@@ -101,95 +125,54 @@ python3 convert_qx2loon.py -i allAdRewrite.conf -o allAdRewrite.plugin
 | `^re url 302 URL`（含 `$1`） | `... as m then redirect(302, "...${m.1}...")` |
 | `^re url request-header A request-header B` | `^re header-replace-regex <头名> ^.*$ <值>` |
 
-几个关键点：
+关键点：
 
-- **原子组降级**：`(?>...)` 在 Loon（ICU 正则）中不被支持，全部转为 `(?:...)`。
-- **脚本移出 rewrite**：Loon 的脚本是 `[Script]` 段的 `http-response` / `http-request`，
-  不是 QuanX 那种写在 rewrite 行内的 `url script-response-body`。
-- **二进制脚本加 `binary-body-mode`**：Loon 给脚本的 `$response.body` 默认是字符串，
-  只有声明 `binary-body-mode=true` 才是 `Uint8Array`。protobuf 类脚本（`youtube`、
-  `bilibiliProtoA`、`tiebaProto`、`spotify`、`baiduMap`）按字节读取，若拿到字符串会
-  解析失败、放空响应，表现为 App 一直转圈（如 YouTube 首页刷不出新视频）。转换器会
-  自动为这 5 个脚本加 `binary-body-mode=true`，并对内容做启发式扫描以覆盖未来新增。
-- **jq / mock / 302 走新语法**：legacy 语法按空格切分参数，而 jq 表达式必然含空格，
-  用 `\x20` 不可靠；Loon 官方文档明确允许新旧语法在同一 `[Rewrite]` 段混用。
-- **MITM 域名收敛**：Loon 只支持 `*.` 前缀通配，中间通配符统一收敛为 `*.主域`。
-- **缺 TLD 主机名自动修复**：上游个别 hostname 漏写顶级域（如 `img.yun.01zhuanche`，
-  应为 `img.yun.01zhuanche.com`）。真实 TLD 只含字母，故末段含数字即判定为缺 TLD，
-  转换器会从规则里找到对应的完整域名补全；无法补全的丢弃，避免写入无效 hostname。
-- **hostname 拼写纠错 + 漏写补全**：规则写了但 hostname 没覆盖到对应主机时，规则会
-  静默失效。转换器做两件事：① 当某 hostname 不匹配任何规则、且存在唯一的“单字符
-  编辑”版本能匹配规则时自动纠错（如上游把 `*.sohu.com` 误写成 `*.souhu.com`，把
-  `waimai-guide.ele.me` 误写成 `aimai-guide.ele.me`）；② 若某条规则展开的所有主机
-  都没被覆盖，且上游没有标注“可能导致功能异常”，则补全这些主机（如顺丰、飞猪、
-  到家、苏宁、搜狐等）。只覆盖了“或”组部分变体的规则（防御性写法）不改动。
-- **生成后自检**：`validate_plugin.py` 会独立校验产物（非法 hostname / 裸公共后缀 /
-  未知动作 / 二进制脚本是否带 `binary-body-mode` / 已知 typo 是否复现 / 已修复主机
-  是否被覆盖），工作流中一旦发现硬错误即失败，阻止错误产物被提交。
+- **原子组降级**：`(?>...)` ICU 不支持，全部转 `(?:...)`。
+- **脚本移出 rewrite**：Loon 脚本在 `[Script]` 段，用 `http-response` / `http-request`。
+- **二进制脚本加 `binary-body-mode`**：`$response.body` 默认是字符串，声明
+  `binary-body-mode=true` 才是 `Uint8Array`。protobuf 类脚本（`youtube`、`bilibiliProtoA`、
+  `tiebaProto`、`spotify`、`baiduMap`）按字节读取，拿到字符串会解析失败、放空响应，
+  表现为 App 一直转圈（如 YouTube 首页刷不出新视频）。转换器自动为这 5 个脚本加标记，
+  并做启发式扫描覆盖未来新增。
+- **新旧语法同段混用**：Loon 官方允许 Rewrite/Script 新旧语法共存，已验证规则保留原写法。
+- **缺 TLD / 拼写纠错 / 漏写补全**：末段含数字判定缺 TLD 并从规则补全；单字符编辑
+  可匹配规则时自动纠错（如 `*.souhu.com→*.sohu.com`、`aimai-guide.ele.me→waimai-guide.ele.me`）；
+  规则主机未被 hostname 覆盖时补全（顺丰、飞猪、到家、苏宁等）。
+- **生成后自检**：`validate_plugin.py` 独立校验非法 hostname、裸公共后缀、未知动作、
+  二进制脚本标记、typo 复现、主机覆盖；发现硬错误即失败，阻止错误产物提交。
 
-### 分流规则的转换
+## 六、已知差异
 
-QuanX 用**小写**类型名和策略，Loon 用 Surge 风格的**大写**：
+- QuanX `reject` 返回 404，Loon `reject` 是直接断开；App 弹网络错误可改 `reject-200`。
+- 脚本文件多为上游 QuanX 版 JS，但内嵌跨平台适配层（MagicJS 等），Loon 下自动走
+  `$persistentStore` / `$httpClient` / `$notification` / `$done`；QuanX 专属调用在
+  `isQuanX` 分支或类型守卫内，不会执行。个别 protobuf 脚本用到 `$utils.ungzip`，
+  需 Loon Build ≥ 988。
+- Spotify artistview 302 上游把原子组当子域名捕获，转换器已定向修正为显式捕获子域名。
+- 1 条 `url-and-header` 复合匹配 Loon 无对应动作，已跳过。
 
-| Quantumult X | Loon |
-|---|---|
-| `host, x.com, reject` | `DOMAIN, x.com, REJECT` |
-| `host-suffix, x.com, reject` | `DOMAIN-SUFFIX, x.com, REJECT` |
-| `host-keyword, kw, reject` | `DOMAIN-KEYWORD, kw, REJECT` |
-| `ip-cidr, 1.2.3.4/32, reject` | `IP-CIDR, 1.2.3.4/32, REJECT, no-resolve` |
-| `ip6-cidr, ::/128, reject` | `IP-CIDR6, ::/128, REJECT, no-resolve` |
+## 七、常见问题
 
-**为什么直接导入 QuanX 版识别不全**：Loon 不认识 `host` / `host-suffix` /
-`ip-cidr` 这类小写类型名，整条规则会被忽略。
+**1. 添加插件报 `Code=261 未能使用 UTF-8 打开 …lpx`**
 
-**为什么不直接照抄作者自己的 Surge 版**：Surge 版每条规则都带
-`extended-matching, pre-matching`，这两个是 **Surge 专有参数，Loon 并不支持**，
-照抄同样会导致规则解析失败。这里只保留 Loon 官方文档明确支持的 `no-resolve`
-（用于 IP 类规则，避免多余的 DNS 查询）。
-
-## 五、已知差异
-
-- QuanX 的 `reject` 返回 404，Loon 的 `reject` 是直接断开连接。
-  若某 App 弹出网络错误，把对应条目改成 `reject-200`。
-- 脚本文件本身仍是上游的 QuanX 版 JS，但绝大多数内嵌了跨平台适配层（MagicJS 或
-  等价框架），在 Loon 下会自动走 `$persistentStore` / `$httpClient` /
-  `$notification` / `$done`；`$prefs`、`$task`、`$notify` 等 QuanX 专属调用
-  只存在于 `isQuanX` 分支或 `typeof $task` 守卫内，Loon 下不会执行。
-  个别 protobuf 脚本（如网易云）用到 `$utils.ungzip`，需 Loon Build ≥ 988，
-  旧版报错时升级 Loon 即可。
-- Spotify artistview 302 规则上游把原子组当子域名捕获（`$1` 实际是端口组），
-  转换器已定向修正为显式捕获子域名、端口组非捕获。
-- 有 1 条 `url-and-header` 复合匹配规则 Loon 无对应动作，已注释保留在文件末尾。
-
-## 六、常见问题
-
-**1. 添加插件时报 `Code=261 未能使用文本编码 UTF-8 打开文件 …lpx`**
-
-插件文件本身没问题，是 Loon 本地缓存的那份下载坏了（大文件下载被截断，或一次
-偶发的网络/代理干扰）。Loon 按 URL 哈希缓存，会复用坏文件。解决办法任选：
-
-- 删掉该插件，**彻底关闭 Loon 后重开**，再添加；
-- 或换一种 raw URL 形式（哈希不同，强制重新下载），把
-  `.../refs/heads/main/allAdRewrite.plugin` 改成 `.../main/allAdRewrite.plugin`，
-  二者内容完全相同、都不影响更新；
-- 最稳：把插件存到 iCloud 云盘的 `Loon/Plugins/` 目录，添加时直接填文件名。
+文件本身没问题，是 Loon 本地缓存的下载坏了（大文件被截断）。解决：删除插件并彻底重启
+Loon 再添加；或换 raw URL 形式（哈希不同强制重下），`.../refs/heads/main/x.plugin` 与
+`.../main/x.plugin` 内容相同、不影响更新；最稳是放进 iCloud 的 `Loon/Plugins/` 目录直接填文件名。
 
 **2. 到点没看到自动运行**
 
-GitHub 定时是“尽力而为”，可能延迟或漏跑，手动触发也不影响定时。已把时间错开
-整点（09:07 / 21:23）；若仍不放心，可在 Actions 页面手动 **Run workflow**。
+定时“尽力而为”，可能延迟漏跑，手动触发不影响定时；可在 Actions 手动 Run workflow。
 
-**3. 多个去广告插件是否冲突**
+**3. 我需要同时装 blockAdsV2 和这个合集吗？**
 
-本合集已覆盖高德、百度地图、拼多多、滴滴等，若你另外单独装了这些 App 的插件，
-属于重复（一般无害，只是重复处理、增加开销），可按需禁用，避免互相覆盖。
+不需要。blockAdsV2 已完整并入，再装属于重复（一般无害，仅增加 MITM/脚本开销），
+保留 `allAdRewrite.plugin` 一个即可。
 
-**4. 个别脚本（如网易云）报 `$utils.ungzip` 相关错误**
+**4. 某 App 一直转圈、刷不出新内容（如 YouTube 首页只有缓存图）**
 
-该 API 需 Loon Build ≥ 988，升级 Loon 即可，不影响其他脚本。
+多为 protobuf 脚本没拿到二进制 body，已通过 `binary-body-mode=true` 解决；更新到最新
+插件即可，仍异常就先关掉该插件确认是否由它引起。
 
-**5. 某 App 一直转圈、刷不出新内容（如 YouTube 首页只有缓存图）**
+**5. 个别脚本报 `$utils.ungzip` 错误**
 
-多为 protobuf 脚本没拿到二进制 body。已通过给 `youtube` / `bilibiliProtoA` /
-`tiebaProto` / `spotify` / `baiduMap` 加 `binary-body-mode=true` 解决。若你是旧版
-插件，更新到最新即可；更新后仍异常，先在 Loon 里关掉该插件确认是否由它引起。
+需 Loon Build ≥ 988，升级即可，不影响其他脚本。
