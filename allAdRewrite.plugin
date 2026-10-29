@@ -5,7 +5,7 @@
 #!icon = https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Icon/Filter/AdBlock.png
 #!system = iOS,iPadOS,macOS
 #!loon_version = 3.5.1(978)
-#!date = 2026-10-27 08:43:37
+#!date = 2026-10-29 14:53:37
 #!tag = 去广告
 #!type = normal
 #  支持约656个App/小程序
@@ -3172,7 +3172,6 @@ response if ${url} ~= /^https?:\/\/wx(app)?\.api\.ke\.com\/pt\/pt-xcx-php\/index
 
 # > 微快递<微信小程序> - WEIKUAIDI
 ^https?:\/\/api\.kuaidihelp\.com\/g_order_core\/v\d\/mina\/User\/getBannerList reject-dict
-
 
 
 # ---------- 以下规则无法 1:1 映射，已保留原文供手动处理 ----------
