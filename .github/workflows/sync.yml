@@ -1,10 +1,11 @@
-name: Sync R-Store Adblock (QuanX -> Loon)
+name: Sync R-Store + blockAdsV2 (QuanX -> Loon)
 
-# 上游 zirawell/R-Store 每天更新一次，这里每天同步两次做容错
+# 上游 zirawell/R-Store 与 fmz200/blockAdsV2 每天更新，这里每天同步两次做容错
 on:
+  # 错开整点：GitHub 定时任务在整点（尤其 0 分）全球高负载，最容易被延迟或丢弃
   schedule:
     - cron: '7 1 * * *'      # UTC 01:07 = 北京时间 09:07
-    - cron: '23 13 * * *'     # UTC 13:23 = 北京时间 21:23
+    - cron: '23 13 * * *'    # UTC 13:23 = 北京时间 21:23
   workflow_dispatch:         # 也可在 Actions 页面手动点「Run workflow」立即同步
 
 permissions:
@@ -22,16 +23,14 @@ jobs:
         with:
           python-version: '3.11'
 
-      # 重写规则 -> allAdRewrite.plugin
+      # 重写规则 -> allAdRewrite.plugin（R-Store 转换产物，作为合并 base）
       - name: 转换重写规则
         run: python3 convert_qx2loon.py -o allAdRewrite.plugin
 
-      # 分流规则 -> allAdBlock-Loon.list / .plugin
-      - name: 转换分流规则
-        run: |
-          python3 convert_filter_qx2loon.py \
-            --list allAdBlock-Loon.list \
-            --plugin allAdBlock-Loon.plugin
+      # 合并 blockAdsV2 并补全分流：抓取两个上游，按 URL 正则去重（R-Store 优先），
+      # 再把 R-Store 独立分流中未覆盖的规则补进 [Rule]，覆盖回写，单插件自包含
+      - name: 合并 blockAdsV2 与分流规则
+        run: python3 merge_plugins.py --base allAdRewrite.plugin --extra fetch --filter fetch --out allAdRewrite.plugin
 
       # 产物自检：发现非法主机名/未知动作即失败，阻止错误产物被提交
       - name: 校验重写插件
@@ -40,7 +39,7 @@ jobs:
       - name: 检查是否有变化
         id: diff
         run: |
-          if git diff --quiet -- allAdRewrite.plugin allAdBlock-Loon.list allAdBlock-Loon.plugin; then
+          if git diff --quiet -- allAdRewrite.plugin; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "上游无更新，跳过提交"
           else
@@ -54,7 +53,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add allAdRewrite.plugin allAdBlock-Loon.list allAdBlock-Loon.plugin
+          git add allAdRewrite.plugin
           git commit -m "chore: sync upstream rules $(date -u +%Y-%m-%d)"
           git push
-#（注：内容由AI生成）
