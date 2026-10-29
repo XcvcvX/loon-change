@@ -117,9 +117,15 @@ python3 convert_qx2loon.py -i allAdRewrite.conf -o allAdRewrite.plugin
 - **缺 TLD 主机名自动修复**：上游个别 hostname 漏写顶级域（如 `img.yun.01zhuanche`，
   应为 `img.yun.01zhuanche.com`）。真实 TLD 只含字母，故末段含数字即判定为缺 TLD，
   转换器会从规则里找到对应的完整域名补全；无法补全的丢弃，避免写入无效 hostname。
+- **hostname 拼写纠错 + 漏写补全**：规则写了但 hostname 没覆盖到对应主机时，规则会
+  静默失效。转换器做两件事：① 当某 hostname 不匹配任何规则、且存在唯一的“单字符
+  编辑”版本能匹配规则时自动纠错（如上游把 `*.sohu.com` 误写成 `*.souhu.com`，把
+  `waimai-guide.ele.me` 误写成 `aimai-guide.ele.me`）；② 若某条规则展开的所有主机
+  都没被覆盖，且上游没有标注“可能导致功能异常”，则补全这些主机（如顺丰、飞猪、
+  到家、苏宁、搜狐等）。只覆盖了“或”组部分变体的规则（防御性写法）不改动。
 - **生成后自检**：`validate_plugin.py` 会独立校验产物（非法 hostname / 裸公共后缀 /
-  未知动作 / 二进制脚本是否带 `binary-body-mode`），工作流中一旦发现硬错误即失败，
-  阻止错误产物被提交。
+  未知动作 / 二进制脚本是否带 `binary-body-mode` / 已知 typo 是否复现 / 已修复主机
+  是否被覆盖），工作流中一旦发现硬错误即失败，阻止错误产物被提交。
 
 ### 分流规则的转换
 

@@ -44,6 +44,26 @@ BINARY_BODY_SCRIPTS = {
     'spotify.js', 'baiduMap.js',
 }
 
+# 上游 hostname 中已确认的拼写错误（片段 -> 正确片段）：产物中一旦出现，
+# 即说明转换器的 typo 修复未生效（会导致对应规则静默失效）
+HOSTNAME_TYPOS = {
+    'souhu': 'sohu',                  # *.souhu.com 应为 *.sohu.com（11 条搜狐规则）
+    'aimai-guide': 'waimai-guide',    # 饿了么 aimai-guide 应为 waimai-guide
+}
+
+# 已确认“规则存在、但上游 hostname 漏写/拼错”的主机，必须被 MITM 覆盖
+# （精确或 *.后缀 通配），否则对应规则不会触发
+REQUIRED_COVERED_HOSTS = {
+    'mcs-mimp-web.sf-express.com',
+    'ucmp-static.sf-express.com',
+    'outfliggys.m.taobao.com',
+    'suyun-guest.daojia.com',
+    'image.suning.cn',
+    's1.api.tv.itc.cn',
+    'api.k.sohu.com',                 # 代表搜狐整族（*.sohu.com 覆盖）
+    'waimai-guide.ele.me',
+}
+
 
 def is_public_suffix(d):
     labels = d.split('.')
@@ -88,12 +108,23 @@ def check_hostname(errors, warnings, host):
         errors.append('hostname 不是合法域名（疑似缺 TLD）: %s' % raw)
 
 
+def host_covered(h, hostset):
+    """具体主机 h 是否被 hostname 集合覆盖（精确或 *.后缀 通配）"""
+    for x in hostset:
+        if x == h:
+            return True
+        if x.startswith('*.') and (h == x[2:] or h.endswith('.' + x[2:])):
+            return True
+    return False
+
+
 def main(path):
     text = open(path, encoding='utf-8').read()
     sec = sections(text)
     errors, warnings = [], []
 
     # ---- [MITM] ----
+    mitm_hostset = set()
     for line in sec.get('MITM', []):
         if '=' not in line:
             continue
@@ -101,7 +132,25 @@ def main(path):
         for h in val.split(','):
             h = h.strip()
             if h:
+                mitm_hostset.add(h)
                 check_hostname(errors, warnings, h)
+
+    # ---- [MITM] 已知 hostname typo 不得出现（按完整标签匹配，避免子串误报）----
+    def _contains_typo(host, bad):
+        core = host[2:] if host.startswith('*.') else host
+        core = core[1:] if core.startswith('-') else core
+        hl, bl = core.split('.'), bad.split('.')
+        return any(hl[k:k + len(bl)] == bl for k in range(len(hl) - len(bl) + 1))
+
+    for h in sorted(mitm_hostset):
+        for bad, good in HOSTNAME_TYPOS.items():
+            if _contains_typo(h, bad):
+                errors.append('hostname 含已确认的拼写错误 %r（应为 %r）: %s' % (bad, good, h))
+
+    # ---- [MITM] 已修复主机必须被覆盖（否则规则静默失效）----
+    for h in sorted(REQUIRED_COVERED_HOSTS):
+        if not host_covered(h, mitm_hostset):
+            errors.append('规则主机 %s 未被 MITM 覆盖（对应规则不会触发）' % h)
 
     # ---- [Rewrite] ----
     for line in sec.get('Rewrite', []):

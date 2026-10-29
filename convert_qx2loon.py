@@ -110,6 +110,10 @@ BINARY_NEEDED = detect_binary_scripts()
 
 lines = raw.split('\n')
 
+# 上游标注"⚠️域名[xxx]可能导致功能异常，请自行选择"的主机：默认不自动补全，
+# 交由用户自行决定是否启用（属于上游故意默认关闭，不是缺口）
+WARNING_HOSTS = set(re.findall(r'域名\[([A-Za-z0-9.\-]+)\]', raw))
+
 rewrite, scripts, skipped = [], [], []
 mitm_hosts = []
 stats = collections.Counter()
@@ -344,7 +348,8 @@ def rule_host_regexes():
             continue
         rest = l[m.end():]
         idx = [x for x in (rest.find('\\/'), rest.find(' ')) if x >= 0]
-        out.append(rest[:min(idx)] if idx else rest)
+        # 原子组 (?>...) 先降级为 (?:...)，便于后续枚举“或”分支
+        out.append(fix_re(rest[:min(idx)] if idx else rest))
     return out
 
 
@@ -392,8 +397,10 @@ def expand_host_regex(hre, limit=12):
             if depth:
                 return None
             inner = hre[i + 1:j - 1]
-            if inner.startswith('?'):
-                return None              # (?:...) / (?i) 等，host 里罕见，保守放弃
+            if inner.startswith('?:'):
+                inner = inner[2:]        # 非捕获组：枚举“或”分支方式与捕获组相同
+            elif inner.startswith('?'):
+                return None              # (?i) 等其它扩展，host 里罕见，保守放弃
             opts = []
             for a in split_top(inner):
                 ea = expand_host_regex(a, limit)
@@ -487,6 +494,89 @@ def sample_host_regex(hre):
 HOST_RE_LIST = rule_host_regexes()
 HOST_SAMPLES = [(r, sample_host_regex(r)) for r in HOST_RE_LIST]
 
+
+def _concrete_of(hre):
+    """一条 host 正则能枚举到的具体主机；不可枚举（\\d/\\w 等）返回 None"""
+    ex = expand_host_regex(hre)
+    if not ex:
+        return None
+    out = []
+    for c in ex:
+        c = c.rstrip('.')
+        if HOST_OK.match(c) and not is_public_suffix(c) and c not in out:
+            out.append(c)
+    return out or None
+
+
+# 每条规则的“全部具体主机”（含“或”组的所有分支），用于可靠判断 hostname 是否匹配规则
+HOST_CONCRETE = [(r, _concrete_of(r)) for r in HOST_RE_LIST]
+
+# 全部可枚举规则主机的集合（O(1) 查找），用于快速筛选 typo 候选
+ALL_RULE_HOSTS = set()
+for _, concrete in HOST_CONCRETE:
+    if concrete:
+        ALL_RULE_HOSTS.update(concrete)
+
+
+def _glob_matches_samples(glob):
+    """hostname glob（如 *.sohu.com）是否匹配至少一条规则。
+    可枚举规则检查其【全部】具体主机（避免只取“或”组首分支导致误判），
+    不可枚举规则退而检查其样本串。"""
+    gre = re.compile('^' + re.escape(glob)
+                     .replace(r'\*', '.*').replace(r'\?', '.') + '$', re.I)
+    for hre, concrete in HOST_CONCRETE:
+        if concrete:
+            if any(gre.match(c) for c in concrete):
+                return True
+        else:
+            sample = dict(HOST_SAMPLES)[hre]
+            if gre.match(sample):
+                return True
+    return False
+
+
+# 记录“hostname 拼写错误 -> 修正后”的修复，便于核对
+typo_hosts = {}
+
+
+def repair_hostname_typo(h):
+    """修正上游 hostname 中的拼写错误（如 *.souhu.com 应为 *.sohu.com）。
+    判定极保守：仅当该 hostname 不匹配任何规则、且存在唯一的“单字符编辑”
+    （删除/替换/插入一个字母）版本能匹配规则时才修复；否则返回 None。
+    候选筛选走 O(1) 集合查找，仅对最终候选做一次完整复核。"""
+    pre, body = '', h
+    if body.startswith('*.'):
+        pre, body = '*.', body[2:]
+    if '*' in body or '?' in body or not body:
+        return None
+
+    def _fast_match(c):
+        """c（无通配的域名部分）是否对应到规则主机：通配候选看后缀，具体看集合"""
+        if pre == '*.':
+            return any(x == c or x.endswith('.' + c) for x in ALL_RULE_HOSTS)
+        return c in ALL_RULE_HOSTS
+
+    # 廉价集合初判；集合未命中（可能是不可枚举规则）再做一次完整检查
+    if _fast_match(body) or _glob_matches_samples(h):
+        return None
+
+    cands = set()
+    for i in range(len(body)):
+        cands.add(body[:i] + body[i + 1:])              # 删除
+        for ch in 'abcdefghijklmnopqrstuvwxyz':
+            if ch != body[i]:
+                cands.add(body[:i] + ch + body[i + 1:])  # 替换
+    for i in range(len(body) + 1):
+        for ch in 'abcdefghijklmnopqrstuvwxyz':
+            cands.add(body[:i] + ch + body[i:])          # 插入
+    good = sorted(c for c in cands if _fast_match(c))
+    if len(good) == 1:
+        final = pre + good[0]
+        if _glob_matches_samples(final):                # 最终候选完整复核一次
+            typo_hosts[h] = final
+            return final
+    return None
+
 # 记录“缺 TLD 主机名 -> 补全后主机名”的修复，便于核对
 repaired_hosts = {}
 
@@ -545,6 +635,10 @@ def norm_host(h):
     h = h.strip().strip('.')
     if not h:
         return []
+    # 先修正 hostname 拼写错误（如 *.souhu.com -> *.sohu.com）
+    fixed_typo = repair_hostname_typo(h)
+    if fixed_typo:
+        h = fixed_typo.strip('.')
     if h.endswith('.*'):
         h = h[:-2]
     if '*' not in h and '?' not in h:
@@ -599,6 +693,40 @@ for h in mitm_hosts:
         if n not in seen:
             seen.add(n)
             hosts.append(n)
+
+
+def _host_is_covered(h):
+    """具体主机 h 是否被已有 hostname（精确或 *.后缀 通配）覆盖"""
+    for x in seen:
+        if x == h:
+            return True
+        if x.startswith('*.') and (h == x[2:] or h.endswith('.' + x[2:])):
+            return True
+    return False
+
+
+# ================= 补全“规则里有、但 hostname 整条缺失”的主机 =================
+# 按【整条规则正则】判断：展开该正则的所有具体主机，
+#   - 只要有一个已被覆盖，说明上游作者有意选择了部分变体（防御性写法），整条不碰；
+#   - 全部未覆盖且不在警告名单 -> 上游漏写 hostname，补全，使规则真正生效。
+auto_added = {}
+for hre in HOST_RE_LIST:
+    ex = expand_host_regex(hre)
+    if not ex:
+        continue
+    concrete = []
+    for c in ex:
+        c = c.rstrip('.')
+        if HOST_OK.match(c) and not is_public_suffix(c):
+            concrete.append(c)
+    if not concrete or any(_host_is_covered(c) for c in concrete):
+        continue
+    for c in concrete:
+        if c in WARNING_HOSTS or c in seen:
+            continue
+        seen.add(c)
+        hosts.append(c)
+        auto_added[c] = hre
 
 
 # ================= 输出 =================
@@ -679,6 +807,10 @@ for h in dropped_hosts:
     print('   [MitM 丢弃] %s  <- 无法安全收敛（避免误伤全域）' % h)
 for h, fixed in sorted(repaired_hosts.items()):
     print('   [MitM 修复] %s  ->  %s  （上游缺 TLD，已从规则补全）' % (h, fixed))
+for h, fixed in sorted(typo_hosts.items()):
+    print('   [MitM 纠错] %s  ->  %s  （上游 hostname 拼写错误，已按规则修正）' % (h, fixed))
+for c in sorted(auto_added):
+    print('   [MitM 补全] %s  （规则存在但 hostname 漏写，已补全）' % c)
 for h, ent in derived_hosts.items():
     print('   [MitM 收敛] %s  ->  %s' % (h, ', '.join(ent)))
 print('跳过/异常  : %d' % len(skipped))
