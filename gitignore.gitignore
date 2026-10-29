@@ -1,0 +1,9 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# 工具临时目录
+.tmp-tool-results/
+
+# macOS
+.DS_Store
