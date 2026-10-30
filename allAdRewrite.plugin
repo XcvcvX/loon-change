@@ -2,7 +2,7 @@
 #!desc=合并 zirawell/R-Store 与 fmz200/blockAdsV2（约730款 App/小程序），按 URL 正则去重，R-Store 优先；[Rule] 已含两套上游分流，单插件自包含
 #!author=zirawell / fmz200（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-10-29 18:59 UTC
+#!merged-at=2026-10-30 01:53 UTC
 #!note=R-Store 规则保留原始写法，blockAdsV2 为 Rewrite/Script v2；Loon 支持新旧语法同段混用。
 #!sources=R-Store rewrite+filter(QuanX->Loon) + fmz200/wool_scripts blockAdsV2
 
@@ -3177,7 +3177,9 @@ DOMAIN,meta.pinduoduo.com,REJECT
 DOMAIN,meta.yangkeduo.com,REJECT
 DOMAIN,mllog.jd.com,REJECT
 DOMAIN,mobiledc.stable.alipay.net,REJECT
+DOMAIN,mobs.dl.bankcomm.com,REJECT
 DOMAIN,mon11-misc.fqnovel.com,REJECT
+DOMAIN,monitor.bankcomm.cn,REJECT
 DOMAIN,msmp.abchina.com.cn,REJECT
 DOMAIN,mssdk.zijieapi.com,REJECT
 DOMAIN,news.ssp.qq.com,REJECT
