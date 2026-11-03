@@ -18,7 +18,7 @@
   python3 merge_plugins.py --base allAdRewrite.plugin --extra sources/blockAdsV2.plugin --out x.plugin
   # --filter 控制 R-Store 分流来源：fetch（默认）/ 本地路径 / none（不补全）
 """
-import argparse, datetime, ipaddress, re, sys, urllib.request
+import argparse, datetime, ipaddress, os, re, sys, urllib.request
 
 BLOCKV2_URL = ('https://raw.githubusercontent.com/fmz200/wool_scripts/refs/heads/'
                 'main/Loon/plugin/blockAdsV2.plugin')
@@ -63,6 +63,9 @@ ap.add_argument('--extra', required=True,
                 help='blockAdsV2 路径；传 fetch 则从上游拉取（含镜像回退）')
 ap.add_argument('--filter', default='fetch',
                 help='R-Store 分流来源：fetch（默认，含镜像）/ 本地路径 / none（不补全 [Rule]）')
+ap.add_argument('--apps', default=None,
+                help='Thelongdarkorg/loon-plugins 仓库目录（可选）；遍历其中去广告插件并入，'
+                     '仅识别 *_ad_block.plugin / *_splash_ad_block.plugin，跳过 ai_auto_node')
 ap.add_argument('--out', required=True, help='合并输出路径')
 args = ap.parse_args()
 
@@ -93,6 +96,17 @@ def split_sections(text):
         else:
             out[cur].append(line)
     return header, out
+
+
+def iter_app_plugins(appdir):
+    """遍历 Thelongdarkorg/loon-plugins 目录，产出所有去广告插件 (文件名, 文本)。
+    仅识别 *_ad_block.plugin / *_splash_ad_block.plugin；跳过 ai_auto_node（分流类）。"""
+    names = sorted(x for x in os.listdir(appdir)
+                   if x.endswith('.plugin')
+                   and (x.endswith('_ad_block.plugin') or x.endswith('_splash_ad_block.plugin'))
+                   and not x.startswith('ai_auto_node'))
+    for n in names:
+        yield n, open(os.path.join(appdir, n), encoding='utf-8').read()
 
 
 def real_lines(ls):
@@ -291,6 +305,16 @@ def rule_is_covered(line, idx):
     return False   # DOMAIN-WILDCARD 等其它类型保守处理
 
 
+# AND/OR 逻辑规则里的域名类子规则（如 AND,((DOMAIN,pan.baidu.com),(PROTOCOL,QUIC)),REJECT）
+_AND_DOMAIN_RE = re.compile(
+    r'(?:DOMAIN|DOMAIN-SUFFIX|DOMAIN-KEYWORD),([A-Za-z0-9\-\.\*]+)')
+
+
+def and_rule_domains(line):
+    """提取 AND/OR 规则中所有域名类子规则的值（用于判断 base 是否已覆盖其域名维度）"""
+    return _AND_DOMAIN_RE.findall(line)
+
+
 # ---------------- 读取两个插件 ----------------
 base_text = open(args.base, encoding='utf-8').read()
 if args.extra == 'fetch':
@@ -390,6 +414,46 @@ for sec, key in (('Rewrite', 'rw'), ('Script', 'sc')):
 # ---- Argument：仅 extra，内部按参数名去重 ----
 arg_items = dedup_keep_order(real_lines(extra_sec.get('Argument', [])))
 
+# ---- 并入 Thelongdarkorg 去广告插件 ----
+# 这些插件是标准 Loon v1 传统写法（^正则 动作），零 Script/Argument；
+# 不与 blockAdsV2 走同一 legacy 转换路径，直接按规范化 URL 正则与 base 去重（base 优先），
+# 保留原始行（含 jq/del/replace/header/mock/reject 家族动作）。仅取 Rewrite/Script/Rule/MITM。
+apps_stats = {'n': 0, 'rw_added': 0, 'rw_dup': 0, 'rule_added': 0, 'rule_dup': 0,
+              'mitm_added': 0, 'mitm_dup': 0, 'rw_total': 0, 'rule_total': 0}
+app_rewrite_lines, app_script_lines, app_rule_lines, app_mitm_hosts = [], [], [], []
+if args.apps:
+    for fname, atext in iter_app_plugins(args.apps):
+        apps_stats['n'] += 1
+        _, a_sec = split_sections(atext)
+        app_rewrite_lines.append((fname, a_sec.get('Rewrite', [])))
+        app_script_lines.append((fname, a_sec.get('Script', [])))
+        app_rule_lines.append((fname, a_sec.get('Rule', [])))
+        for l in a_sec.get('MITM', []):
+            if '=' in l:
+                app_mitm_hosts += [x.strip() for x in l.split('=', 1)[1].split(',') if x.strip()]
+
+    # [Rewrite]：base 优先，按规范化正则去重
+    for fname, lines in app_rewrite_lines:
+        for l in real_lines(lines):
+            apps_stats['rw_total'] += 1
+            r = entry_regex(l)
+            if r and r in base_regex:
+                apps_stats['rw_dup'] += 1
+                continue
+            merged['Rewrite'].append(l)
+            if r:
+                base_regex.add(r)          # 防 apps 插件间 / 与 extra 重复
+            apps_stats['rw_added'] += 1
+    # [Script]：apps 无 Script，仅防御式并入（保持为空）
+    for fname, lines in app_script_lines:
+        for l in real_lines(lines):
+            r = entry_regex(l)
+            if r and r in base_regex:
+                continue
+            merged['Script'].append(l)
+            if r:
+                base_regex.add(r)
+
 # ---- Rule：blockAdsV2 规则 + R-Store 分流中未覆盖的规则 ----
 rule_items = dedup_keep_order(real_lines(extra_sec.get('Rule', [])))
 fstats = {'total': 0, 'covered': 0, 'added': 0}
@@ -421,7 +485,29 @@ if args.filter != 'none':
             fstats['added'] += 1
     rule_items = dedup_keep_order(rule_items + added)
 
-# ---- MITM：base 主机（已规范） + extra 收敛后主机，合并去重 ----
+# ---- 并入 Thelongdarkorg 的 [Rule] ----
+# 常规规则（DOMAIN/SUFFIX/KEYWORD/IP-CIDR）用语义覆盖判定，base/extra/filter 已覆盖则跳过；
+# AND/OR/URL-REGEX 等组合逻辑规则无法用域名索引判定整体覆盖，且多数是 QUIC 阻断等新增语义，
+# 保守处理：精确字符串去重后全部保留（避免误删）。
+if args.apps:
+    idx = build_rule_index(rule_items)
+    for fname, lines in app_rule_lines:
+        for l in real_lines(lines):
+            apps_stats['rule_total'] += 1
+            if l in rule_items:
+                apps_stats['rule_dup'] += 1
+                continue
+            if l.split(',')[0] in ('DOMAIN', 'DOMAIN-SUFFIX', 'DOMAIN-KEYWORD',
+                                   'IP-CIDR', 'IP-CIDR6'):
+                if rule_is_covered(l, idx):
+                    apps_stats['rule_dup'] += 1
+                    continue
+                add_to_index(l, idx)
+            rule_items.append(l)
+            apps_stats['rule_added'] += 1
+    rule_items = dedup_keep_order(rule_items)
+
+# ---- MITM：base 主机（已规范） + extra 收敛后主机 + apps 主机，合并去重 ----
 mitm = []
 for l in base_sec.get('MITM', []):
     if '=' in l:
@@ -437,18 +523,27 @@ for h in extra_raw:
         extra_dropped.append(h)
     else:
         mitm += got
+if args.apps:
+    app_mitm_raw = list(app_mitm_hosts)
+    for h in app_mitm_raw:
+        got = normalize_extra_host(h)   # 裸 IP / 损坏 host 丢弃，标准域名/通配保留
+        if not got:
+            continue
+        mitm += got
 mitm = dedup_keep_order(mitm)
 
 # ---------------- 输出 ----------------
 today = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
+_apps_note = (' + Thelongdarkorg/loon-plugins 去广告插件' if args.apps else '')
 header = [
     '#!name=R-Store × 奶思 blockAdsV2 去广告净化合集',
-    '#!desc=合并 zirawell/R-Store 与 fmz200/blockAdsV2（约730款 App/小程序），按 URL 正则去重，R-Store 优先；[Rule] 已含两套上游分流，单插件自包含',
-    '#!author=zirawell / fmz200（本仓库自动合并）',
+    '#!desc=合并 zirawell/R-Store、fmz200/blockAdsV2%s；按 URL 正则去重，R-Store 优先；[Rule] 已含多套上游分流，单插件自包含' % _apps_note,
+    '#!author=zirawell / fmz200 / FFDNS（本仓库自动合并）',
     '#!homepage=https://github.com/XcvcvX/loon-change',
     '#!merged-at=%s' % today,
     '#!note=R-Store 规则保留原始写法，blockAdsV2 为 Rewrite/Script v2；Loon 支持新旧语法同段混用。',
-    '#!sources=R-Store rewrite+filter(QuanX->Loon) + fmz200/wool_scripts blockAdsV2',
+    '#!sources=R-Store rewrite+filter(QuanX->Loon) + fmz200/wool_scripts blockAdsV2%s'
+    % (' + Thelongdarkorg/loon-plugins' if args.apps else ''),
     '',
 ]
 out = list(header)
@@ -476,3 +571,10 @@ print('  旧行   ：转换 %d，丢弃 %d（base 已覆盖或不可靠）'
 print('  MITM   ：%d 个主机（blockAdsV2 无法收敛丢弃 %d）' % (len(mitm), len(extra_dropped)))
 if extra_dropped:
     print('  丢弃的 extra hostname：', ', '.join(extra_dropped[:20]))
+if args.apps:
+    print('  Apps   ：并入 %d 个 Thelongdarkorg 去广告插件'
+          % apps_stats['n'])
+    print('            Rewrite 新增 %d（去重跳过 %d，共 %d）；Rule 新增 %d（去重跳过 %d，共 %d）'
+          % (apps_stats['rw_added'], apps_stats['rw_dup'], apps_stats['rw_total'],
+             apps_stats['rule_added'], apps_stats['rule_dup'], apps_stats['rule_total']))
+#（注：内容由AI生成）

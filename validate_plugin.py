@@ -24,8 +24,11 @@ IP_RE = re.compile(r'^\d{1,3}(?:\.\d{1,3}){3}$')
 # Loon 旧版 Rewrite 合法动作（见官方文档 Rewrite 旧语法）
 LEGACY_ACTIONS = {
     'reject', 'reject-200', 'reject-img', 'reject-dict', 'reject-array',
-    'response-body-replace-regex', 'request-body-replace-regex',
+    'reject-video', 'response-body-replace-regex', 'request-body-replace-regex',
     'header-replace-regex', '302',
+    # Thelongdarkorg/loon-plugins 并入后新增（官方 v1 合法动作）：
+    'response-body-json-jq', 'response-body-json-del', 'response-body-json-replace',
+    'mock-response-body', 'response-header-add', 'response-header-del',
 }
 
 # 常见两级公共后缀（其 registrable domain 需取三级）
@@ -195,3 +198,4 @@ if __name__ == '__main__':
     if len(sys.argv) != 2:
         raise SystemExit('用法: python3 validate_plugin.py <file.plugin>')
     sys.exit(main(sys.argv[1]))
+#（注：内容由AI生成）

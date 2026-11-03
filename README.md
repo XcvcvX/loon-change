@@ -1,21 +1,23 @@
-# R-Store × blockAdsV2 去广告净化合集 · Loon 版
+# R-Store × blockAdsV2 × Thelongdarkorg 去广告净化合集 · Loon 版
 
-把两套去广告规则融合成**一个** Loon 原生插件，并通过 GitHub Actions 跟随上游自动更新：
+把三套去广告规则融合成**一个** Loon 原生插件，并通过 GitHub Actions 跟随上游自动更新：
 
 - [zirawell/R-Store](https://github.com/zirawell/R-Store) 的 **Quantumult X** 规则（重写 + 独立分流），先按 Loon 原生语法转换（作为 base）；
-- [fmz200/wool_scripts](https://github.com/zirawell/R-Store) 的 **blockAdsV2.plugin**（本身已是 Loon 格式），再合并去重。
+- [fmz200/wool_scripts](https://github.com/fmz200/wool_scripts) 的 **blockAdsV2.plugin**（本身已是 Loon 格式），再合并去重；
+- [Thelongdarkorg/loon-plugins](https://github.com/Thelongdarkorg/loon-plugins) 的 **29 个细分 App 去广告插件**（京东/淘宝/知乎/B站/微信/QQ音乐/微博/小红书/闲鱼/酷安/雪球/豆瓣/网易云/酷狗/腾讯视频/优酷/东财/天天基金/中国移动/联通/拼多多/水印相机/美柚/金十/懂车帝/红果/百度网盘/CMSPlayer/途虎），最后并入去重。
 
-> **只装一个 `allAdRewrite.plugin` 就够了。** blockAdsV2 的 Rewrite/Script/Rule/Argument/MITM
-> 已全部并入，R-Store 独立分流的规则也已补进 `[Rule]`，无需再装 blockAdsV2 或任何独立分流。
+> **只装一个 `allAdRewrite.plugin` 就够了。** blockAdsV2 与 Thelongdarkorg 的
+> Rewrite/Script/Rule/Argument/MITM 已全部并入，R-Store 独立分流的规则也已补进 `[Rule]`，
+> 无需再装 blockAdsV2、任何细分 App 插件或独立分流。
 
 ## 产物一览
 
 | 文件 | 来源 | 作用 |
 |---|---|---|
-| `allAdRewrite.plugin` | R-Store 转换 + blockAdsV2 合并 + 分流补全 | 单插件自包含：开关 + 分流 + 重写 + 脚本 + MITM |
+| `allAdRewrite.plugin` | R-Store 转换 + blockAdsV2 合并 + Thelongdarkorg 并入 + 分流补全 | 单插件自包含：开关 + 分流 + 重写 + 脚本 + MITM |
 
-`allAdRewrite.plugin` 内含五个段：`[Argument]`（74 个开关）、`[Rule]`（3446 条）、
-`[Rewrite]`、`[Script]`、`[MITM]`（1336 个主机）。
+`allAdRewrite.plugin` 内含五个段：`[Argument]`（74 个开关）、`[Rule]`（3558 条）、
+`[Rewrite]`（2924 条）、`[Script]`（446 条）、`[MITM]`（1379 个主机）。
 
 ## 一、直接使用（不用自己搭仓库）
 
@@ -38,7 +40,7 @@ Loon 里：**插件 → 右上角「+」→ 通过 URL 添加** → 粘贴地址
    ```
    allAdRewrite.plugin
    convert_qx2loon.py            # R-Store QuanX 重写 -> Loon（base 转换）
-   merge_plugins.py              # 合并 blockAdsV2、去重、补全 R-Store 分流到 [Rule]
+   merge_plugins.py              # 合并 blockAdsV2 + Thelongdarkorg、去重、补全 R-Store 分流到 [Rule]
    validate_plugin.py            # 产物自检（工作流调用）
    sources/blockAdsV2.plugin     # blockAdsV2 本地副本（运行时默认在线抓取）
    .github/workflows/sync.yml
@@ -53,44 +55,54 @@ Loon 里：**插件 → 右上角「+」→ 通过 URL 添加** → 粘贴地址
 3. （可选）立即跑一次：Actions → *Sync R-Store + blockAdsV2* → **Run workflow**。
 
 工作流每天北京时间 **09:07 / 21:23** 执行，步骤为：**转换 R-Store 重写 → 在线抓取
-blockAdsV2 与 R-Store 分流、合并去重并补全 `[Rule]` → 自检 → 有变化才提交**。
-没变化则跳过，不产生空提交。
+blockAdsV2、clone Thelongdarkorg、抓取 R-Store 分流，合并去重并补全 `[Rule]` → 自检 →
+有变化才提交**。没变化则跳过，不产生空提交。
 
 > GitHub 定时是“尽力而为”，整点高负载可能延迟、偶尔漏跑；手动触发与定时互不影响，
-> 一天两次 + 手动兜底，不会长期不更新。
+> 一天两次 + 手动兜底，不会长期不更新。若 clone 失败，整个合并会失败并阻止提交（不会
+> 静默产出缺 Thelongdarkorg 的版本）。
 
 ## 三、手动更新
 
 ```bash
+# 0) 拉取 Thelongdarkorg/loon-plugins（29 个细分 App 去广告插件）
+git clone --depth 1 https://github.com/Thelongdarkorg/loon-plugins.git /tmp/loon-plugins
+
 # 1) R-Store QuanX 重写 -> Loon（base）
 python3 convert_qx2loon.py -o allAdRewrite.plugin
 
-# 2) 合并 blockAdsV2 并补全 R-Store 分流（均在线抓取，含镜像回退），覆盖回写
-python3 merge_plugins.py --base allAdRewrite.plugin --extra fetch --filter fetch --out allAdRewrite.plugin
+# 2) 合并 blockAdsV2 + Thelongdarkorg 并补全 R-Store 分流（在线抓取，含镜像回退），覆盖回写
+python3 merge_plugins.py --base allAdRewrite.plugin --extra fetch --filter fetch --apps /tmp/loon-plugins --out allAdRewrite.plugin
 
 # 3) 自检
 python3 validate_plugin.py allAdRewrite.plugin
 ```
 
 `merge_plugins.py` 的 `--filter` 可选：`fetch`（默认，在线补全分流）、本地路径、
-`none`（不补全 `[Rule]`）。所有脚本只依赖 Python 标准库；`raw.githubusercontent.com`
-不可达时自动回退 jsDelivr 镜像。
+`none`（不补全 `[Rule]`）；`--apps` 指定 Thelongdarkorg 仓库目录（可选，缺省不并入）。
+所有脚本只依赖 Python 标准库；`raw.githubusercontent.com` 不可达时自动回退 jsDelivr 镜像。
 
 ## 四、合并、去重与分流补全
 
 ### 4.1 Rewrite / Script 合并（Loon ↔ Loon）
 
-以 R-Store 转换产物为 base，blockAdsV2 只做补充：
+以 R-Store 转换产物为 base，blockAdsV2 与 Thelongdarkorg 只做补充：
 
 - **同正则 base 优先**：建立 base 全部 URL 正则集合（Rewrite + Script 一起），
-  blockAdsV2 命中的正则一律跳过，仅补充 base 没有的；段内、跨段冲突统一处理。
+  blockAdsV2 / Thelongdarkorg 命中的正则一律跳过，仅补充 base 没有的；段内、跨段冲突统一处理。
 - **正确识别 v1 脚本正则**：`http-response ^PAT ...` 的正则取第二个 token，
   不会被首词 `http-response` 折叠，保证跨新旧语法去重准确。
 - **完全相同的行折叠**：逐字重复行只保留第一条，最终 `[Rule]`/Rewrite/Script 均无重复行。
 - **blockAdsV2 残留 7 行 QuanX 旧写法分类处理**：3 行转 v2（beehive `reject_dict(200)`、
   vgtime/zhihu 两条 `redirect(302, ...)`），4 行丢弃（base 已覆盖或源损坏）。
+- **Thelongdarkorg 保持原生 v1 写法**：这 29 个插件是标准 Loon v1 传统写法
+  （`^正则 动作`，零远程脚本），**不转 v2、保留原始行**；按规范化 URL 正则与
+  base/blockAdsV2 去重（base 优先），仅并入 base 没有的 App 专属接口。用到的
+  `response-body-json-jq / -del / -replace / mock-response-body / response-header-add / -del`
+  均为 Loon v1 合法动作，已在校验器白名单登记。
 - **MITM 主机收敛**：中间/前缀通配退化为 `*.最长字面后缀`；`souhu→sohu` 拼写纠错；
-  裸 IP、通配 TLD、源损坏等 23 个无法安全收敛的主机丢弃，最终 1336 个主机全部合法。
+  裸 IP、通配 TLD、源损坏等无法安全收敛的主机丢弃；Thelongdarkorg 的 MITM 同样收敛去重
+  （雪球 9 个 HTTPDNS 裸 IP 属无法收敛项，会丢弃——若需覆盖直连场景可手动补回 hostname）。
 
 ### 4.2 分流补全到 `[Rule]`（替代独立分流）
 
@@ -105,11 +117,22 @@ blockAdsV2 自带的 `[Rule]` 并不完整覆盖 R-Store 独立分流，因此�
 3. 只追加未覆盖的规则，并动态更新索引以处理规则间的包含关系。
 
 **实测结果**：R-Store 分流 1435 条，其中 856 条本就被 blockAdsV2 覆盖，**补入 579 条**；
-最终 `[Rule]` 共 3446 条。独立复核（按段重新解析、不依赖固定行号）确认 1435 条
+最终 `[Rule]` 共 3558 条。独立复核（按段重新解析、不依赖固定行号）确认 1435 条
 **100% 被覆盖、0 缺口**，故独立分流产物已停止生成、可安全删除。
 
-最近一次合并量：Rewrite 1789 + 新增 869（跳过 524）；Script 304 + 新增 140（跳过 78）；
-Rule 3446（含分流补入 579）；Argument 74；MITM 1336。
+最近一次合并量：Rewrite 1792 + 新增 870（跳过 523）；Script 305 + 新增 140（跳过 78）；
+Rule 3558（含分流补入 579）；Argument 74；MITM 1379（blockAdsV2 收敛丢弃 23）。
+Thelongdarkorg 29 个插件并入：Rewrite 新增 274（跳过 57，共 331）、Rule 新增 112（跳过 169，共 281）。
+
+### 4.3 Thelongdarkorg [Rule] 并入策略
+
+Thelongdarkorg 各 App 插件的 `[Rule]` 并入遵循与分流补全一致的**语义覆盖判定**：
+
+- 常规规则（`DOMAIN` / `DOMAIN-SUFFIX` / `DOMAIN-KEYWORD` / `IP-CIDR` / `IP-CIDR6`）：
+  用同一索引判定，已被 base/blockAdsV2/分流补全覆盖的跳过，只补新增；
+- 组合逻辑规则（`AND` / `OR` / `URL-REGEX`）：因含 `PROTOCOL`（QUIC 阻断）等无法用域名
+  索引判定的维度，保守处理——**精确字符串去重后全部保留**，不因判不出覆盖而误删；
+- 与源文件防护注释保持一致，不做凭条数/字符串的简单去重。
 
 ## 五、R-Store 重写转换做了什么（QuanX → Loon）
 
@@ -163,10 +186,10 @@ Loon 再添加；或换 raw URL 形式（哈希不同强制重下），`.../refs
 
 定时“尽力而为”，可能延迟漏跑，手动触发不影响定时；可在 Actions 手动 Run workflow。
 
-**3. 我需要同时装 blockAdsV2 和这个合集吗？**
+**3. 我需要同时装 blockAdsV2 或细分 App 插件和这个合集吗？**
 
-不需要。blockAdsV2 已完整并入，再装属于重复（一般无害，仅增加 MITM/脚本开销），
-保留 `allAdRewrite.plugin` 一个即可。
+不需要。blockAdsV2 与 Thelongdarkorg 的 29 个细分 App 去广告插件都已完整并入，
+再装属于重复（一般无害，仅增加 MITM/脚本开销），保留 `allAdRewrite.plugin` 一个即可。
 
 **4. 某 App 一直转圈、刷不出新内容（如 YouTube 首页只有缓存图）**
 
