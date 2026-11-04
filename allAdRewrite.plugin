@@ -2,7 +2,7 @@
 #!desc=合并 zirawell/R-Store、fmz200/blockAdsV2；按 URL 正则去重，R-Store 优先；[Rule] 已含多套上游分流，单插件自包含
 #!author=zirawell / fmz200 / FFDNS（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-03 20:09 UTC
+#!merged-at=2026-11-04 07:26 UTC
 #!note=R-Store 规则保留原始写法，blockAdsV2 为 Rewrite/Script v2；Loon 支持新旧语法同段混用。
 #!sources=R-Store rewrite+filter(QuanX->Loon) + fmz200/wool_scripts blockAdsV2
 
@@ -5300,6 +5300,7 @@ response if ${url} ~= /^https?:\/\/wx(app)?\.api\.ke\.com\/pt\/pt-xcx-php\/index
 ^https?:\/\/cappapi\.alittle-tea\.com\/open\?method=catering\.set\.ad\.initial reject-dict
 ^https?:\/\/alittle-tea\.oss-cn-shanghai\.aliyuncs\.com\/images\/platform\/alittle reject-dict
 ^https?:\/\/ocrifs\.ejoy\.sinopec\.com\/advertitfs\/advert reject-200
+^https?:\/\/ocrifs\.ejoy\.sinopec\.com\/csr\/getCustInvoice reject-dict
 ^https?:\/\/egw\.ejoy\.sinopec\.com\/api\/interface\/queryEffectiveBulletin reject-dict
 ^https?:\/\/misc-api-prd-mx\.wandafilm\.com\/commend\/common_banner_batch\.api\?bannerInfos=%5B%7B%22cinemaI response-body-replace-regex "WX_index_mp-&-boxAD" "WX_index_mp-&-boxAD0"
 ^https?:\/\/new\.wwldz\.com\/wechat\/ad\/ reject-dict
