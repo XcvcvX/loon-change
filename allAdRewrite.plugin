@@ -2,7 +2,7 @@
 #!desc=合并 zirawell/R-Store、fmz200/blockAdsV2；按 URL 正则去重，R-Store 优先；[Rule] 已含多套上游分流，单插件自包含
 #!author=zirawell / fmz200 / FFDNS（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-04 20:27 UTC
+#!merged-at=2026-11-05 07:51 UTC
 #!note=R-Store 规则保留原始写法，blockAdsV2 为 Rewrite/Script v2；Loon 支持新旧语法同段混用。
 #!sources=R-Store rewrite+filter(QuanX->Loon) + fmz200/wool_scripts blockAdsV2
 
@@ -2977,6 +2977,7 @@ IP-CIDR,183.201.213.194/24,REJECT,no-resolve
 IP-CIDR,186.76.76.200/32,REJECT,no-resolve
 IP-CIDR,203.119.212.22/32,REJECT,no-resolve
 IP-CIDR,203.119.238.164/32,REJECT,no-resolve
+IP-CIDR,203.119.238.25/32,REJECT,no-resolve
 IP-CIDR,203.119.238.63/32,REJECT,no-resolve
 IP-CIDR,210.13.85.204/32,REJECT,no-resolve
 IP-CIDR,43.160.156.164/32,REJECT,no-resolve
@@ -3181,11 +3182,13 @@ DOMAIN,mon11-misc.fqnovel.com,REJECT
 DOMAIN,msmp.abchina.com.cn,REJECT
 DOMAIN,mssdk.zijieapi.com,REJECT
 DOMAIN,news.ssp.qq.com,REJECT
+DOMAIN,o.alicdn.com,REJECT
 DOMAIN,ocsp.pki.goog,REJECT
 DOMAIN,open-pixon.ads-pixiv.net,REJECT
 DOMAIN,open.kuaishou.com,REJECT
 DOMAIN,pageviewp.icbc.com.cn,REJECT
 DOMAIN,perf.m.jd.com,REJECT
+DOMAIN,pigeon.alicdn.com,REJECT
 DOMAIN,pl.cp31.ott.cibntv.net,REJECT
 DOMAIN,polaris.zijieapi.com,REJECT
 DOMAIN,popup.dushu365.com,REJECT
