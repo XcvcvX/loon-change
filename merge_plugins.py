@@ -532,6 +532,50 @@ if args.apps:
         mitm += got
 mitm = dedup_keep_order(mitm)
 
+# ---- MITM 自愈：从最终 Rewrite 的 URL 守卫反向提取 host，补全未覆盖的合法域名 ----
+# 修复上游漏写 / 源损坏（如 blockAdsV2 的 hostname 粘连、漏写）导致 HTTPS 规则静默失效。
+# 只取 then 之前的守卫部分（排除 jq body 内引用的资源 URL），只补 HOST_OK 通过的完整域名，
+# 自动排除裸 IP；仅走明确 http:// 的 host 不补。
+def _mitm_covered(host, hostset):
+    if host in hostset:
+        return True
+    return any(m.startswith('*.') and (host == m[2:] or host.endswith('.' + m[2:]))
+               for m in hostset)
+
+# 真实 TLD 白名单：用于排除从可选组/OR 组截断出的残缺 host（如 www.flyert(rip)? 提取出 www.flyert）
+_KNOWN_TLD = {
+    'com', 'net', 'org', 'gov', 'edu', 'mil', 'asia', 'app', 'io', 'me', 'cc', 'tv', 'co', 'info',
+    'xyz', 'top', 'vip', 'shop', 'site', 'online', 'store', 'tech', 'dev', 'ai', 'cloud', 'live',
+    'press', 'pro', 'name', 'mobi', 'biz', 'club', 'fun', 'games', 'news', 'blog', 'wiki', 'link',
+    'run', 'space', 'today', 'work', 'design', 'media', 'world', 'life', 'health', 'art', 'photo',
+    'video', 'chat', 'plus', 'one', 'cn', 'hk', 'tw', 'jp', 'us', 'uk', 'de', 'fr', 'kr', 'sg',
+    'au', 'ca', 'ru', 'br', 'in', 'it', 'es', 'nl', 'se', 'no', 'fi', 'dk', 'ch', 'at', 'be',
+    'nz', 'ie', 'pt', 'gr', 'pl', 'tr', 'mx', 'ar', 'za', 'th', 'vn', 'my', 'ph', 'id', 'il',
+    'sa', 'ae', 'cz', 'hu', 'ro', 'sk', 'bg', 'hr', 'lt', 'lv', 'ee', 'si', 'is', 'lu', 'mt',
+}
+
+_rw_https, _rw_http_only = set(), set()
+for _l in merged['Rewrite']:
+    _head = _l.split(' then ', 1)[0]          # 只看 URL 守卫，排除 then 后的脚本 body
+    _clean = _head.replace('\\/', '/').replace('\\.', '.')
+    for _proto, _m in re.findall(r'(https?\??)://([A-Za-z0-9.\-]+)', _clean):
+        if not HOST_OK.match(_m) or _m.rsplit('.', 1)[-1] not in _KNOWN_TLD:
+            continue
+        if _proto == 'http':
+            _rw_http_only.add(_m)
+        else:                                 # https 或 https?：可能走 TLS
+            _rw_https.add(_m)
+            _rw_http_only.discard(_m)
+
+_rw_hostset = _rw_https - _rw_http_only
+
+mitm_healed = []
+for _h in sorted(_rw_hostset):
+    if not _mitm_covered(_h, set(mitm)):
+        mitm.append(_h)
+        mitm_healed.append(_h)
+mitm = dedup_keep_order(mitm)
+
 # ---------------- 输出 ----------------
 today = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
 _apps_note = (' + Thelongdarkorg/loon-plugins 去广告插件' if args.apps else '')
@@ -569,6 +613,8 @@ if args.filter != 'none':
 print('  旧行   ：转换 %d，丢弃 %d（base 已覆盖或不可靠）'
       % (stats['legacy_conv'], stats['legacy_drop']))
 print('  MITM   ：%d 个主机（blockAdsV2 无法收敛丢弃 %d）' % (len(mitm), len(extra_dropped)))
+if mitm_healed:
+    print('  MITM 自愈补全 %d 个：%s' % (len(mitm_healed), ', '.join(mitm_healed)))
 if extra_dropped:
     print('  丢弃的 extra hostname：', ', '.join(extra_dropped[:20]))
 if args.apps:
