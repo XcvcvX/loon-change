@@ -27,10 +27,17 @@ jobs:
       - name: 转换重写规则
         run: python3 convert_qx2loon.py -o allAdRewrite.plugin
 
-      # 合并 blockAdsV2 并补全分流：抓取两个上游，按 URL 正则去重（R-Store 优先），
+      # 拉取 Thelongdarkorg/loon-plugins（29 个细分 App 去广告插件），供并入去重
+      - name: 拉取 Thelongdarkorg 去广告插件
+        run: |
+          git clone --depth 1 https://github.com/Thelongdarkorg/loon-plugins.git /tmp/loon-plugins
+          ls /tmp/loon-plugins/*_ad_block.plugin /tmp/loon-plugins/*_splash_ad_block.plugin | wc -l
+
+      # 合并 blockAdsV2 + Thelongdarkorg + adultraplus 并补全分流：抓取上游，按 URL 正则去重（R-Store 优先），
+      # adultraplus 清洗（只取去广告 reject+v2，剔除重定向/破解私货）后并入；
       # 再把 R-Store 独立分流中未覆盖的规则补进 [Rule]，覆盖回写，单插件自包含
-      - name: 合并 blockAdsV2 与分流规则
-        run: python3 merge_plugins.py --base allAdRewrite.plugin --extra fetch --filter fetch --out allAdRewrite.plugin
+      - name: 合并 blockAdsV2、adultraplus 与分流规则
+        run: python3 merge_plugins.py --base allAdRewrite.plugin --extra fetch --filter fetch --apps /tmp/loon-plugins --mix fetch --out allAdRewrite.plugin
 
       # 产物自检：发现非法主机名/未知动作即失败，阻止错误产物被提交
       - name: 校验重写插件
