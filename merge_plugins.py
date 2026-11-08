@@ -34,6 +34,9 @@ FILTER_MIRRORS = [
     'https://cdn.jsdelivr.net/gh/zirawell/R-Store@main/Rule/QuanX/Adblock/All/filter/allAdBlock.list',
     'https://fastly.jsdelivr.net/gh/zirawell/R-Store@main/Rule/QuanX/Adblock/All/filter/allAdBlock.list',
 ]
+
+# 第三方融合插件（APP启动页去广告ultra+）：QuanX/Shadowrocket 段名，需清洗后并入去重
+MIX_URL = 'https://yfamilys.com/plugin/adultraplus.plugin'
 # QuanX filter 类型/策略 -> Loon
 QX_TYPE_MAP = {
     'host': 'DOMAIN', 'host-suffix': 'DOMAIN-SUFFIX', 'host-keyword': 'DOMAIN-KEYWORD',
@@ -57,6 +60,18 @@ PUBLIC_SUFFIX_2L = {
 HOST_OK = re.compile(r'^(?:[A-Za-z0-9](?:[A-Za-z0-9\-]*[A-Za-z0-9])?\.)+[A-Za-z]{2,}$')
 IP_OK = re.compile(r'^\d{1,3}(?:\.\d{1,3}){3}$')
 
+# 真实 TLD 白名单：用于 hostname 收敛时排除缺 TLD 的非法项、可选组截断的残缺 host
+_KNOWN_TLD = {
+    'com', 'net', 'org', 'gov', 'edu', 'mil', 'asia', 'app', 'io', 'me', 'cc', 'tv', 'co', 'info',
+    'xyz', 'top', 'vip', 'shop', 'site', 'online', 'store', 'tech', 'dev', 'ai', 'cloud', 'live',
+    'press', 'pro', 'name', 'mobi', 'biz', 'club', 'fun', 'games', 'news', 'blog', 'wiki', 'link',
+    'run', 'space', 'today', 'work', 'design', 'media', 'world', 'life', 'health', 'art', 'photo',
+    'video', 'chat', 'plus', 'one', 'cn', 'hk', 'tw', 'jp', 'us', 'uk', 'de', 'fr', 'kr', 'sg',
+    'au', 'ca', 'ru', 'br', 'in', 'it', 'es', 'nl', 'se', 'no', 'fi', 'dk', 'ch', 'at', 'be',
+    'nz', 'ie', 'pt', 'gr', 'pl', 'tr', 'mx', 'ar', 'za', 'th', 'vn', 'my', 'ph', 'id', 'il',
+    'sa', 'ae', 'cz', 'hu', 'ro', 'sk', 'bg', 'hr', 'lt', 'lv', 'ee', 'si', 'is', 'lu', 'mt',
+}
+
 ap = argparse.ArgumentParser()
 ap.add_argument('--base', required=True, help='base 插件（R-Store 产物）')
 ap.add_argument('--extra', required=True,
@@ -66,6 +81,9 @@ ap.add_argument('--filter', default='fetch',
 ap.add_argument('--apps', default=None,
                 help='Thelongdarkorg/loon-plugins 仓库目录（可选）；遍历其中去广告插件并入，'
                      '仅识别 *_ad_block.plugin / *_splash_ad_block.plugin，跳过 ai_auto_node')
+ap.add_argument('--mix', default=None,
+                help='第三方融合插件（adultraplus）：fetch/URL/本地路径；清洗（只取去广告 reject+v2，'
+                     '剔除重定向/破解私货）后按正则去重并入')
 ap.add_argument('--out', required=True, help='合并输出路径')
 args = ap.parse_args()
 
@@ -81,6 +99,40 @@ def fetch(url, timeout=60):
     req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
     with urllib.request.urlopen(req, timeout=timeout) as r:
         return r.read().decode('utf-8')
+
+
+def fetch_mix(url, retries=12):
+    """adultraplus 站走 Cloudflare、连接易随机切断且忽略 Range（无法断点续传），
+    需多次重试，直到某次完整读取（read 不抛异常）。"""
+    import gzip, time
+    last = None
+    for i in range(retries):
+        try:
+            req = urllib.request.Request(url, headers={
+                'User-Agent': 'Mozilla/5.0', 'Accept-Encoding': 'gzip', 'Connection': 'close'})
+            with urllib.request.urlopen(req, timeout=120) as r:
+                raw = r.read()
+                if r.headers.get('Content-Encoding') == 'gzip':
+                    raw = gzip.decompress(raw)
+            return raw.decode('utf-8')
+        except Exception as e:
+            last = e
+            time.sleep(2)
+    raise RuntimeError('mix 下载失败: %s' % last)
+
+
+def parse_mix_sections(text):
+    """宽松段名解析，识别 [URL Rewrite] 等含空格段名（split_sections 只认单词段），
+    返回 {段名: [行]}（不含空行/注释）。"""
+    out, cur = {}, None
+    for line in text.split('\n'):
+        m = re.match(r'^\[(.+?)\]\s*$', line)
+        if m:
+            cur = m.group(1).strip()
+            out[cur] = []
+        elif cur is not None and line.strip() and not line.lstrip().startswith('#'):
+            out[cur].append(line)
+    return out
 
 
 def split_sections(text):
@@ -152,10 +204,64 @@ def entry_regex(line):
     return norm_regex(line.split()[0])
 
 
+# ---------------- hostname 守卫反查（通配 TLD 收敛） ----------------
+def guard_hosts_from_lines(lines):
+    """从 Rewrite/Script 守卫提取 Loon 合法 hostname 集合：
+    - 完整明确 host：要求 HOST_OK 且最后标签在真实 TLD 白名单；
+    - 含通配/OR 的守卫：退化为 *.末尾连续字面标签（只取纯字面标签，不臆造）；
+    只取 then/script-path 之前的守卫（排除 jq body 与脚本资源地址）；
+    自动排除裸 IP、通配 IP 与仅 http:// 的 host。"""
+    https, http_only = set(), set()
+    for l in lines:
+        head = l.split(' then ', 1)[0].split('script-path=', 1)[0]
+        clean = head.replace('\\/', '/').replace('\\.', '.')
+        for proto, zone in re.findall(r'(https?\??)://([^/\s]+)', clean):
+            result = None
+            # 1) 完整字面 host
+            if HOST_OK.match(zone) and zone.rsplit('.', 1)[-1] in _KNOWN_TLD:
+                result = zone
+            else:
+                # 2) 含通配/OR：取末尾连续纯字面标签，构造 *.后缀
+                lit = []
+                for lab in reversed(zone.split('.')):
+                    if not lab or not re.match(r'^[A-Za-z0-9\-]+$', lab):
+                        break
+                    lit.append(lab)
+                lit = lit[::-1]
+                need = 3 if '.'.join(lit[-2:]).lower() in PUBLIC_SUFFIX_2L else 2
+                if (len(lit) >= need and lit[-1] in _KNOWN_TLD
+                        and not is_public_suffix('.'.join(lit[-need:]))):
+                    result = '*.' + '.'.join(lit)
+            if not result:
+                continue
+            if proto == 'http':
+                http_only.add(result)
+            else:                                 # https 或 https?：可能走 TLS
+                https.add(result)
+                http_only.discard(result)
+    return https - http_only
+
+
+def host_wildcard_resolve(pattern, guard_hosts):
+    """把含通配的 hostname 用标签级通配在守卫真实 host 中反查，返回命中的真实 host。
+    * 匹配标签内任意字符（不跨点），? 匹配单个字符；不臆造 TLD。"""
+    rx = ''
+    for ch in pattern:
+        if ch == '*':
+            rx += '[^.]*'
+        elif ch == '?':
+            rx += '[^.]'
+        else:
+            rx += re.escape(ch)
+    r = re.compile('^' + rx + '$', re.IGNORECASE)
+    return sorted(h for h in guard_hosts if r.match(h))
+
+
 # ---------------- blockAdsV2 hostname 收敛 ----------------
-def normalize_extra_host(h):
-    """blockAdsV2 的 hostname -> Loon 合法 hostname 列表；无法安全收敛返回 []。
-    保留 - 前缀排除项（对收敛后的主体重新加 -）。"""
+def normalize_extra_host(h, guard_hosts=None):
+    """hostname -> Loon 合法 hostname 列表；无法安全收敛返回 []。
+    保留 - 前缀排除项（对收敛后的主体重新加 -）。
+    裸 IP / 通配 IP 丢弃；缺 TLD / 通配 TLD 项先字符串收敛，失败再用守卫真实 host 反查。"""
     h = h.strip().strip('.')
     neg = False
     if h.startswith('-'):
@@ -167,37 +273,45 @@ def normalize_extra_host(h):
     # 裸 IP / 通配 IP：Loon hostname 不按 IP 处理，丢弃
     if IP_OK.match(h) or (h.replace('.', '').replace('*', '').isdigit() and '*' in h):
         return []
-    # 通配 TLD（*.xxx.* / xxx.*）：去掉末尾 .*
+    # 保留原始通配模式（含末尾 TLD 通配），供守卫反查使用
+    guard_pat = h
+    # 通配 TLD（*.xxx.* / xxx.*）：去掉末尾 .*，尝试字符串收敛
     if h.endswith('.*'):
         h = h[:-2].strip('.')
     # 已知 typo（按完整标签）：souhu -> sohu
     h = re.sub(r'(^|\.)souhu(\.|$)', r'\1sohu\2', h)
     if not h:
         return []
+
+    def has_real_tld(x):
+        return x.rsplit('.', 1)[-1] in _KNOWN_TLD
+
+    out = []
     # 具体域名
     if '*' not in h and '?' not in h:
-        if not HOST_OK.match(h):
-            return []                       # 缺 TLD 等无法安全补全，丢弃
-        out = [] if is_public_suffix(h) else [h]
-        return ['-' + x for x in out] if neg else out
+        if HOST_OK.match(h) and has_real_tld(h) and not is_public_suffix(h):
+            out = [h]
     # 标准 *.后缀
-    if h.startswith('*.') and '*' not in h[2:] and '?' not in h[2:]:
-        out = [] if is_public_suffix(h[2:]) else [h]
-        return ['-' + x for x in out] if neg else out
+    elif h.startswith('*.') and '*' not in h[2:] and '?' not in h[2:]:
+        if HOST_OK.match(h[2:]) and has_real_tld(h) and not is_public_suffix(h[2:]):
+            out = [h]
     # 中间/前缀通配（m*.amap.com、*-spclient、*default...）：退化为 *.最长字面后缀
-    lit = []
-    for lab in reversed([x for x in h.split('.') if x]):
-        if '*' in lab or '?' in lab:
-            break
-        lit.append(lab)
-    lit = lit[::-1]
-    if len(lit) < 2:
-        return []
-    need = 3 if '.'.join(lit[-2:]).lower() in PUBLIC_SUFFIX_2L else 2
-    if len(lit) < need or is_public_suffix('.'.join(lit[-need:])):
-        return []
-    res = '*.' + '.'.join(lit)
-    out = [res] if re.match(r'^\*\.[A-Za-z0-9\-\.]+$', res) else []
+    else:
+        lit = []
+        for lab in reversed([x for x in h.split('.') if x]):
+            if '*' in lab or '?' in lab:
+                break
+            lit.append(lab)
+        lit = lit[::-1]
+        need = 3 if '.'.join(lit[-2:]).lower() in PUBLIC_SUFFIX_2L else 2
+        res = '*.' + '.'.join(lit)
+        if (len(lit) >= need and re.match(r'^\*\.[A-Za-z0-9\-\.]+$', res)
+                and has_real_tld(res) and not is_public_suffix('.'.join(lit[-need:]))):
+            out = [res]
+
+    # 字符串无法安全收敛（缺 TLD 等）：用守卫真实 host 反查，不臆造 TLD
+    if not out and guard_hosts:
+        out = host_wildcard_resolve(guard_pat, guard_hosts)
     return ['-' + x for x in out] if neg else out
 
 
@@ -454,6 +568,70 @@ if args.apps:
             if r:
                 base_regex.add(r)
 
+# ---- 并入第三方融合插件 adultraplus（清洗：只取去广告，剔除重定向/破解私货） ----
+mix_stats = {'rw_added': 0, 'rw_dup': 0, 'sc_added': 0, 'sc_dup': 0,
+             'non_ad_drop': 0, 'mix_mitm': []}
+mix_guard_lines = []
+if args.mix:
+    if args.mix == 'fetch':
+        mtext = fetch_mix(MIX_URL)
+        print('[fetch] 已获取 adultraplus（含重试）')
+    elif args.mix.startswith('http'):
+        mtext = fetch_mix(args.mix)
+        print('[fetch] 已获取 mix:', args.mix)
+    else:
+        mtext = open(args.mix, encoding='utf-8').read()
+    mix_sec = parse_mix_sections(mtext)
+
+    # mix 自己的守卫行（用于其 MITM 通配项反查）
+    mix_guard_lines = (real_lines(mix_sec.get('URL Rewrite', []))
+                       + real_lines(mix_sec.get('Rewrite', []))
+                       + real_lines(mix_sec.get('Script', [])))
+
+    # [URL Rewrite]：只取 reject 家族（去广告）转 v2；67 个重定向/捕获组私货剔除
+    for l in real_lines(mix_sec.get('URL Rewrite', [])):
+        toks = l.strip().split()
+        if len(toks) != 2 or toks[1] not in _LEGACY_REJECT:
+            mix_stats['non_ad_drop'] += 1
+            continue
+        conv = convert_legacy_line(l)
+        r = entry_regex(conv)
+        if r and r in base_regex:
+            mix_stats['rw_dup'] += 1
+            continue
+        merged['Rewrite'].append(conv)
+        if r:
+            base_regex.add(r)
+        mix_stats['rw_added'] += 1
+
+    # [Rewrite]：标准 v2，直接保留去重
+    for l in real_lines(mix_sec.get('Rewrite', [])):
+        r = entry_regex(l)
+        if r and r in base_regex:
+            mix_stats['rw_dup'] += 1
+            continue
+        merged['Rewrite'].append(l)
+        if r:
+            base_regex.add(r)
+        mix_stats['rw_added'] += 1
+
+    # [Script]：传统 http-response v1 写法，保留原始行去重
+    for l in real_lines(mix_sec.get('Script', [])):
+        r = entry_regex(l)
+        if r and r in base_regex:
+            mix_stats['sc_dup'] += 1
+            continue
+        merged['Script'].append(l)
+        if r:
+            base_regex.add(r)
+        mix_stats['sc_added'] += 1
+
+    # MITM 原始项收集（在 MITM 段统一收敛）
+    for l in mix_sec.get('MITM', []):
+        if '=' in l:
+            mix_stats['mix_mitm'] += [x.strip()
+                                      for x in l.split('=', 1)[1].split(',') if x.strip()]
+
 # ---- Rule：blockAdsV2 规则 + R-Store 分流中未覆盖的规则 ----
 rule_items = dedup_keep_order(real_lines(extra_sec.get('Rule', [])))
 fstats = {'total': 0, 'covered': 0, 'added': 0}
@@ -516,9 +694,21 @@ extra_raw = []
 for l in extra_sec.get('MITM', []):
     if '=' in l:
         extra_raw += [x.strip() for x in l.split('=', 1)[1].split(',') if x.strip()]
+# 构建 extra + apps 守卫真实 host 集合，用于通配 TLD / 缺 TLD 项反查
+_guard_lines = list(real_lines(extra_sec.get('Rewrite', []))) + \
+               list(real_lines(extra_sec.get('Script', [])))
+if args.apps:
+    for _fn, _ls in app_rewrite_lines:
+        _guard_lines += real_lines(_ls)
+    for _fn, _ls in app_script_lines:
+        _guard_lines += real_lines(_ls)
+if args.mix:
+    _guard_lines += mix_guard_lines
+guard_real = guard_hosts_from_lines(_guard_lines)
+
 extra_dropped = []
 for h in extra_raw:
-    got = normalize_extra_host(h)
+    got = normalize_extra_host(h, guard_real)
     if not got:
         extra_dropped.append(h)
     else:
@@ -526,8 +716,16 @@ for h in extra_raw:
 if args.apps:
     app_mitm_raw = list(app_mitm_hosts)
     for h in app_mitm_raw:
-        got = normalize_extra_host(h)   # 裸 IP / 损坏 host 丢弃，标准域名/通配保留
+        got = normalize_extra_host(h, guard_real)   # 裸 IP / 损坏 host 丢弃，通配项反查
         if not got:
+            continue
+        mitm += got
+if args.mix:
+    mix_dropped = []
+    for h in mix_stats['mix_mitm']:
+        got = normalize_extra_host(h, guard_real)   # 裸 IP/IPv6 丢弃，通配 TLD 用守卫反查
+        if not got:
+            mix_dropped.append(h)
             continue
         mitm += got
 mitm = dedup_keep_order(mitm)
@@ -542,32 +740,8 @@ def _mitm_covered(host, hostset):
     return any(m.startswith('*.') and (host == m[2:] or host.endswith('.' + m[2:]))
                for m in hostset)
 
-# 真实 TLD 白名单：用于排除从可选组/OR 组截断出的残缺 host（如 www.flyert(rip)? 提取出 www.flyert）
-_KNOWN_TLD = {
-    'com', 'net', 'org', 'gov', 'edu', 'mil', 'asia', 'app', 'io', 'me', 'cc', 'tv', 'co', 'info',
-    'xyz', 'top', 'vip', 'shop', 'site', 'online', 'store', 'tech', 'dev', 'ai', 'cloud', 'live',
-    'press', 'pro', 'name', 'mobi', 'biz', 'club', 'fun', 'games', 'news', 'blog', 'wiki', 'link',
-    'run', 'space', 'today', 'work', 'design', 'media', 'world', 'life', 'health', 'art', 'photo',
-    'video', 'chat', 'plus', 'one', 'cn', 'hk', 'tw', 'jp', 'us', 'uk', 'de', 'fr', 'kr', 'sg',
-    'au', 'ca', 'ru', 'br', 'in', 'it', 'es', 'nl', 'se', 'no', 'fi', 'dk', 'ch', 'at', 'be',
-    'nz', 'ie', 'pt', 'gr', 'pl', 'tr', 'mx', 'ar', 'za', 'th', 'vn', 'my', 'ph', 'id', 'il',
-    'sa', 'ae', 'cz', 'hu', 'ro', 'sk', 'bg', 'hr', 'lt', 'lv', 'ee', 'si', 'is', 'lu', 'mt',
-}
-
-_rw_https, _rw_http_only = set(), set()
-for _l in merged['Rewrite']:
-    _head = _l.split(' then ', 1)[0]          # 只看 URL 守卫，排除 then 后的脚本 body
-    _clean = _head.replace('\\/', '/').replace('\\.', '.')
-    for _proto, _m in re.findall(r'(https?\??)://([A-Za-z0-9.\-]+)', _clean):
-        if not HOST_OK.match(_m) or _m.rsplit('.', 1)[-1] not in _KNOWN_TLD:
-            continue
-        if _proto == 'http':
-            _rw_http_only.add(_m)
-        else:                                 # https 或 https?：可能走 TLS
-            _rw_https.add(_m)
-            _rw_http_only.discard(_m)
-
-_rw_hostset = _rw_https - _rw_http_only
+# 从最终 Rewrite 守卫提取真实 host（与 hostname 收敛同一口径），用于自愈补全
+_rw_hostset = guard_hosts_from_lines(merged['Rewrite'])
 
 mitm_healed = []
 for _h in sorted(_rw_hostset):
@@ -579,15 +753,17 @@ mitm = dedup_keep_order(mitm)
 # ---------------- 输出 ----------------
 today = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
 _apps_note = (' + Thelongdarkorg/loon-plugins 去广告插件' if args.apps else '')
+_mix_note = (' + yfamilys adultraplus（清洗去广告）' if args.mix else '')
 header = [
     '#!name=R-Store × 奶思 blockAdsV2 去广告净化合集',
-    '#!desc=合并 zirawell/R-Store、fmz200/blockAdsV2%s；按 URL 正则去重，R-Store 优先；[Rule] 已含多套上游分流，单插件自包含' % _apps_note,
-    '#!author=zirawell / fmz200 / FFDNS（本仓库自动合并）',
+    '#!desc=合并 zirawell/R-Store、fmz200/blockAdsV2%s%s；按 URL 正则去重，R-Store 优先；[Rule] 已含多套上游分流，单插件自包含' % (_apps_note, _mix_note),
+    '#!author=zirawell / fmz200 / FFDNS / Mixed（本仓库自动合并）',
     '#!homepage=https://github.com/XcvcvX/loon-change',
     '#!merged-at=%s' % today,
     '#!note=R-Store 规则保留原始写法，blockAdsV2 为 Rewrite/Script v2；Loon 支持新旧语法同段混用。',
-    '#!sources=R-Store rewrite+filter(QuanX->Loon) + fmz200/wool_scripts blockAdsV2%s'
-    % (' + Thelongdarkorg/loon-plugins' if args.apps else ''),
+    '#!sources=R-Store rewrite+filter(QuanX->Loon) + fmz200/wool_scripts blockAdsV2%s%s'
+    % (' + Thelongdarkorg/loon-plugins' if args.apps else '',
+       ' + yfamilys/adultraplus' if args.mix else ''),
     '',
 ]
 out = list(header)
@@ -623,4 +799,12 @@ if args.apps:
     print('            Rewrite 新增 %d（去重跳过 %d，共 %d）；Rule 新增 %d（去重跳过 %d，共 %d）'
           % (apps_stats['rw_added'], apps_stats['rw_dup'], apps_stats['rw_total'],
              apps_stats['rule_added'], apps_stats['rule_dup'], apps_stats['rule_total']))
-#（注：内容由AI生成）
+if args.mix:
+    print('  Mix    ：adultraplus 清洗并入')
+    print('            Rewrite 新增 %d（去重跳过 %d）；Script 新增 %d（去重跳过 %d）；'
+          '非去广告私货剔除 %d'
+          % (mix_stats['rw_added'], mix_stats['rw_dup'],
+             mix_stats['sc_added'], mix_stats['sc_dup'], mix_stats['non_ad_drop']))
+    if mix_dropped:
+        print('            Mix MITM 丢弃（裸 IP/IPv6/无法收敛）%d 个：%s'
+              % (len(mix_dropped), ', '.join(mix_dropped[:20])))
