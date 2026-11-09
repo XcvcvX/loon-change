@@ -40,7 +40,7 @@ base / blockAdsV2 / adultraplus 的对应行。数字小 = 优先级高：
 |---|---|
 | `allAdRewrite.plugin` | 单插件自包含：开关 + 分流 + 重写 + 脚本 + MITM |
 
-当前 `allAdRewrite.plugin` 含五个段：`[Argument]`（91 个开关）、`[Rule]`（3452 条）、
+当前 `allAdRewrite.plugin` 含五个段：`[Argument]`（91 个开关）、`[Rule]`（3446 条）、
 `[Rewrite]`（3535 条）、`[Script]`（957 条）、`[MITM]`（1762 个主机）。
 
 ## 一、直接使用（不用自己搭仓库）
@@ -182,6 +182,11 @@ python3 validate_plugin.py allAdRewrite.plugin
 - 脚本文件多为上游 QuanX 版 JS，内嵌跨平台适配层（MagicJS 等），Loon 下自动走
   `$persistentStore` / `$httpClient` / `$notification` / `$done`。
 - 部分无守卫的 MITM hostname 是上游规则被去重后的残留声明，仅多解密、无规则动作，不影响去广告。
+- **Frontier 长连接一律放行**：Frontier 是字节系 WebSocket 长连接网关（如
+  `wss://frontier-im.douyin.com/ws/v2`），抖音私信/实时消息走这条长连接，不是广告域名。
+  上游 blockAdsV2 与 R-Store filter 原本会 REJECT 共 6 条 frontier 规则，导致私信无法收发
+  （APNs 推送走苹果系统通道、不受影响，表现为"有推送却收发不了消息"）。merge 在
+  `add_rule` 用 `is_frontier_guard`（含 frontier 即保护）跳过这些规则，脚本层生效、自动更新不回退。
 
 ## 七、常见问题
 
@@ -213,3 +218,11 @@ python3 validate_plugin.py allAdRewrite.plugin
 
 会。提交判定看最终合并产物 `allAdRewrite.plugin` 的整体变化，任一来源（含 zmjde、瓜子等）
 让它变化都会提交，不要求 base 单独变化；全部来源都无变化才跳过。
+
+**7. 抖音私信收发不了、但有推送通知**
+
+是 Frontier 长连接被误杀（见"六、已知差异与边界"）。更新到含 `is_frontier_guard` 保护的
+最新插件后，在 Loon 重新加载插件并彻底重启抖音即可；APNs 推送正常正是系统通道与 App
+长连接相互独立的典型表现。
+
+> （注：部分内容由豆包 AI 生成）

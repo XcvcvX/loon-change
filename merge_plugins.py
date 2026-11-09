@@ -829,8 +829,20 @@ rule_idx = build_rule_index([])
 rule_counts = collections.Counter()
 
 
+# ---------------- 功能长连接保护（避免误伤抖音私信等实时消息）----------------
+# Frontier 是字节系 WebSocket 长连接网关（如 wss://frontier-im.douyin.com/ws/v2），
+# 抖音私信/实时消息走这条长连接，不是广告域名；拦截会导致私信无法收发，
+# 但 APNs 推送走苹果系统通道、不受影响，表现为"有推送却收发不了消息"。
+# 故凡拦截目标是 Frontier 长连接的规则一律放行（含 frontier 即保护，覆盖精确域名与 AND/KEYWORD 组合）。
+def is_frontier_guard(line):
+    return 'frontier' in line.lower()
+
+
 def add_rule(line, src):
     line = normalize_rule(line)
+    if is_frontier_guard(line):
+        rule_counts[src + '_keep'] += 1
+        return
     if line in rule_result:
         rule_counts[src + '_dup'] += 1
         return
@@ -964,4 +976,3 @@ if dropped:
     print('  丢弃的 hostname：', ', '.join(dropped[:20]))
 if args.mix:
     print('  Mix    ：adultraplus 清洗，非去广告私货剔除 %d' % mix_stats['non_ad_drop'])
-#（注：内容由AI生成）
