@@ -41,7 +41,7 @@ base / blockAdsV2 / adultraplus 的对应行。数字小 = 优先级高：
 | `allAdRewrite.plugin` | 单插件自包含：开关 + 分流 + 重写 + 脚本 + MITM |
 
 当前 `allAdRewrite.plugin` 含五个段：`[Argument]`（91 个开关）、`[Rule]`（3446 条）、
-`[Rewrite]`（3535 条）、`[Script]`（957 条）、`[MITM]`（1762 个主机）。
+`[Rewrite]`（3535 条）、`[Script]`（957 条）、`[MITM]`（1760 个主机）。
 
 ## 一、直接使用（不用自己搭仓库）
 
@@ -134,7 +134,12 @@ python3 validate_plugin.py allAdRewrite.plugin
   避免合法域名被误丢导致 HTTPS 规则静默失效。
 - **自愈扫描 Rewrite + Script**：从最终 Rewrite/Script 守卫反提取 host，凡未被 MITM
   覆盖的一律补全。脚本段（`http(s)-request/response`）守卫同样需要 MITM，不可漏扫。
-- 反向核查口径：**所有最终守卫 host 必须被 MITM 覆盖，0 缺口**（当前 1407 个守卫全覆盖）。
+- 反向核查口径：**最终守卫 host 除主动放行的证书绑定域（`*.amemv.com`）外，必须被 MITM
+  覆盖，0 缺口**（当前 1407 个守卫中，1406 全覆盖，1 个 amemv 主动 pass，见 4.2 末尾）。
+- **证书绑定域主动 pass**：`amemv.com` 做了 SSL Pinning，强制 MITM 会握手失败（请求记录
+  "MITM Failed"、0 字节），导致抖音核心 API 与长连接全断、私信无法收发。脚本用
+  `_MITM_SKIP_DOMAINS` + `mitm_skip_host` 在收集与自愈环节统一过滤，amemv 整体不进 MITM
+  （从源头 pass，不用负向 `-` 语法），相关域名直连、私信恢复。
 
 ### 4.3 分流补全到 `[Rule]`
 
@@ -182,11 +187,17 @@ python3 validate_plugin.py allAdRewrite.plugin
 - 脚本文件多为上游 QuanX 版 JS，内嵌跨平台适配层（MagicJS 等），Loon 下自动走
   `$persistentStore` / `$httpClient` / `$notification` / `$done`。
 - 部分无守卫的 MITM hostname 是上游规则被去重后的残留声明，仅多解密、无规则动作，不影响去广告。
-- **Frontier 长连接一律放行**：Frontier 是字节系 WebSocket 长连接网关（如
-  `wss://frontier-im.douyin.com/ws/v2`），抖音私信/实时消息走这条长连接，不是广告域名。
-  上游 blockAdsV2 与 R-Store filter 原本会 REJECT 共 6 条 frontier 规则，导致私信无法收发
-  （APNs 推送走苹果系统通道、不受影响，表现为"有推送却收发不了消息"）。merge 在
-  `add_rule` 用 `is_frontier_guard`（含 frontier 即保护）跳过这些规则，脚本层生效、自动更新不回退。
+- **抖音私信故障的两层修复**（现象：能收到 APNs 推送、但收发不了实时消息——推送走苹果
+  系统通道、不经过 App 长连接）：
+  1. **Rule 层 frontier 放行**：Frontier 是字节系 WebSocket 长连接网关（如
+     `wss://frontier-im.douyin.com/ws/v2`），不是广告域名。上游 blockAdsV2 与 R-Store
+     filter 原本 REJECT 共 6 条 frontier 规则，merge 在 `add_rule` 用 `is_frontier_guard`
+     （含 frontier 即保护）跳过。
+  2. **MITM 层 amemv 源头 pass（真正根因）**：`amemv.com`（含 `api.amemv.com` 核心 API 与
+     `frontier-aweme-*.amemv.com` 长连接）做了 SSL Pinning，上游 hostname 与守卫退化出的
+     `amemv.com`、`*.amemv.com` 强制 MITM 会握手失败（请求记录 "MITM Failed"、0 字节），
+     核心功能全断。merge 用 `mitm_skip_host` 在收集与自愈环节统一过滤，amemv 整体不进
+     MITM、直连恢复。两层均脚本层生效、自动更新不回退。
 
 ## 七、常见问题
 
@@ -221,8 +232,7 @@ python3 validate_plugin.py allAdRewrite.plugin
 
 **7. 抖音私信收发不了、但有推送通知**
 
-是 Frontier 长连接被误杀（见"六、已知差异与边界"）。更新到含 `is_frontier_guard` 保护的
-最新插件后，在 Loon 重新加载插件并彻底重启抖音即可；APNs 推送正常正是系统通道与 App
-长连接相互独立的典型表现。
-
-> （注：部分内容由豆包 AI 生成）
+根因是 `amemv.com` 证书绑定（SSL Pinning）被强制 MITM 导致握手失败，另有 frontier 长连接
+REJECT 规则的误杀（两层修复见"六、已知差异与边界"）。更新到含 `mitm_skip_host` 与
+`is_frontier_guard` 保护的最新插件后，**移除本地 `-*.amemv.com` 临时绕过**，在 Loon 重新
+加载插件并彻底重启抖音即可验证；APNs 推送正常正是系统通道与 App 长连接相互独立的典型表现。

@@ -76,6 +76,23 @@ _KNOWN_TLD = {
     'sa', 'ae', 'cz', 'hu', 'ro', 'sk', 'bg', 'hr', 'lt', 'lv', 'ee', 'si', 'is', 'lu', 'mt',
 }
 
+# MITM 跳过域名（证书绑定/私有长连接，强制解密会握手失败，MITM Failed、0 字节）：
+# 现象为有 APNs 推送但核心功能（如抖音私信）不可用。任何主体等于该域或其子域/通配的
+# hostname 都在收集与自愈环节直接 pass，从源头不进 [MITM]，不使用负向 - 语法；自动更新不回退。
+_MITM_SKIP_DOMAINS = (
+    'amemv.com',   # 抖音核心 API（api.amemv.com）与 Frontier 长连接，SSL Pinning
+)
+
+
+def mitm_skip_host(host):
+    """hostname（可能含 *. 通配、- 排除前缀、中间通配）是否落在 MITM 跳过域内。"""
+    h = host.strip().lstrip('-').strip('.').lower()
+    if h.startswith('*.'):
+        h = h[2:]
+    h = h.replace('*', '').replace('?', '').strip('.')
+    return any(h == d or h.endswith('.' + d) for d in _MITM_SKIP_DOMAINS)
+
+
 ap = argparse.ArgumentParser()
 ap.add_argument('--base', required=True, help='base 插件（R-Store 产物）')
 ap.add_argument('--extra', required=True,
@@ -902,7 +919,8 @@ rule_items = dedup_keep_order(rule_result)
 mitm = []
 for l in base_sec.get('MITM', []):
     if '=' in l:
-        mitm += [x.strip() for x in l.split('=', 1)[1].split(',') if x.strip()]
+        mitm += [x.strip() for x in l.split('=', 1)[1].split(',')
+                 if x.strip() and not mitm_skip_host(x)]
 # 守卫真实 host：用最终 Rewrite/Script（含全部来源），供通配 TLD/缺 TLD 反查
 guard_real = guard_hosts_from_lines(merged_rw + merged_sc)
 extra_raw = []
@@ -912,6 +930,8 @@ for l in extra_sec.get('MITM', []):
 dropped = []
 for h in extra_raw + thelong_mitm + ao_mitm + zmj_app_mitm + zmj_gen_mitm + qxapp_mitm + mix_mitm:
     got = normalize_extra_host(h, guard_real)
+    # 跳过证书绑定域（如 amemv）：从源头不进 MITM，不使用负向语法
+    got = [x for x in got if not mitm_skip_host(x)]
     if not got:
         dropped.append(h)
     else:
@@ -929,6 +949,9 @@ def _mitm_covered(host, hostset):
 mitm_healed = []
 # 必须同时扫描 Rewrite + Script（Script 段的 http(s)-request/response 守卫同样需要 MITM）
 for _h in sorted(guard_hosts_from_lines(merged_rw + merged_sc)):
+    # 证书绑定域（如 amemv）整体 pass：守卫退化出的 *.amemv.com 不补进 MITM
+    if mitm_skip_host(_h):
+        continue
     if not _mitm_covered(_h, set(mitm)):
         mitm.append(_h)
         mitm_healed.append(_h)
@@ -976,3 +999,4 @@ if dropped:
     print('  丢弃的 hostname：', ', '.join(dropped[:20]))
 if args.mix:
     print('  Mix    ：adultraplus 清洗，非去广告私货剔除 %d' % mix_stats['non_ad_drop'])
+#（注：内容由AI生成）
