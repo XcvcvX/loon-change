@@ -119,8 +119,9 @@ ap.add_argument('--aoomee', default=None,
                 help='aoomee/Loon-Adblock-Plugins 仓库目录（工作流 clone 后传入）；遍历其中 '
                      '.plugin/.lpx 独立 App 插件并入，独立 App 插件优先级最高（同正则替换其他来源）')
 ap.add_argument('--zmjde', default=None,
-                help='zmjde/loon-plugins 仓库目录（工作流 clone 后传入）；读取其中 4 个指定 .lpx：'
-                     'DiDi/PinDuoDuo 作为 App 高优先级完整并入，Block_HTTPDNS/BlockAdvertisers 以 base 优先只补不覆盖')
+                help='zmjde/loon-plugins 仓库目录（工作流 clone 后传入）；读取 8 个指定 .lpx：'
+                     'DiDi/PinDuoDuo/闲鱼/淘宝/什么值得买作为 App 高优先级完整并入，'
+                     'Block_HTTPDNS/BlockAdvertisers/可莉广告过滤器以 base 优先只补不覆盖')
 ap.add_argument('--qxapp', action='append', default=None,
                 help='QuanX 单文件 App 插件（.conf，如瓜子影视）本地路径，可重复传入；'
                      '脚本内解析 hostname 并把 qx 规则转为 Loon v2，按专属 App 高优先级完整并入')
@@ -294,12 +295,17 @@ def guard_hosts_from_lines(lines):
     - 完整明确 host：要求 HOST_OK 且最后标签在真实 TLD 白名单；
     - 含通配/OR 的守卫：退化为 *.末尾连续字面标签（只取纯字面标签，不臆造）；
     只取 then/script-path 之前的守卫（排除 jq body 与脚本资源地址）；
-    自动排除裸 IP、通配 IP 与仅 http:// 的 host。"""
-    https, http_only = set(), set()
+    自动排除裸 IP、通配 IP 与仅 http:// 的 host。
+    顺序无关：同一 host 只要被任一 https/https? 规则守卫就纳入（即使同时存在纯 http 规则），
+    仅被纯 http 规则守卫的 host 不纳入。"""
+    https = set()
     for l in lines:
         head = l.split(' then ', 1)[0].split('script-path=', 1)[0]
         clean = head.replace('\\/', '/').replace('\\.', '.')
         for proto, zone in re.findall(r'(https?\??)://([^/\s]+)', clean):
+            if proto == 'http':
+                # 纯明文 HTTP 不需解密；不参与 https 集合（顺序无关，不污染同 host 的 https 守卫）
+                continue
             result = None
             # 1) 完整字面 host
             if HOST_OK.match(zone) and zone.rsplit('.', 1)[-1] in _KNOWN_TLD:
@@ -316,14 +322,9 @@ def guard_hosts_from_lines(lines):
                 if (len(lit) >= need and lit[-1] in _KNOWN_TLD
                         and not is_public_suffix('.'.join(lit[-need:]))):
                     result = '*.' + '.'.join(lit)
-            if not result:
-                continue
-            if proto == 'http':
-                http_only.add(result)
-            else:                                 # https 或 https?：可能走 TLS
+            if result:
                 https.add(result)
-                http_only.discard(result)
-    return https - http_only
+    return https
 
 
 def host_wildcard_resolve(pattern, guard_hosts):
@@ -509,10 +510,10 @@ def and_rule_domains(line):
 
 # ============================================================================
 # 主流程：统一优先级合并
-# 优先级（数字小=高）：zmjde App(0) > aoomee(1) > Thelongdarkorg(2) > base/R-Store(3)
-#                     > blockAdsV2(4) > zmjde 通用(5) > adultraplus(6)
-# DiDi/PinDuoDuo（zmjde App）完整并入、同正则替换其他来源；
-# Block_HTTPDNS/BlockAdvertisers（zmjde 通用）低于 base，只补 base 没有的。
+# 优先级（数字小=高）：zmjde App(0) > qx 单文件 App(1) > aoomee(2) > Thelongdarkorg(3)
+#                     > base/R-Store(4) > blockAdsV2(5) > zmjde 通用(6) > adultraplus(7)
+# zmjde App（DiDi/PinDuoDuo/闲鱼/淘宝/什么值得买）完整并入、同正则替换其他来源；
+# zmjde 通用（Block_HTTPDNS/BlockAdvertisers/可莉广告过滤器）低于 base，只补 base 没有的。
 # ============================================================================
 import collections
 
@@ -723,11 +724,12 @@ if args.mix:
         if '=' in l:
             mix_mitm += [x.strip() for x in l.split('=', 1)[1].split(',') if x.strip()]
 
-# ---------------- zmjde 四个指定插件 ----------------
-# DiDi/PinDuoDuo：App 高优先级（完整并入，同正则替换其他来源）；
-# Block_HTTPDNS/BlockAdvertisers：base 优先，只补 base 没有的（不覆盖）。
-_ZMJ_APP = ('DiDi_remove_ads.lpx', 'PinDuoDuo_remove_ads.lpx')
-_ZMJ_GENERAL = ('Block_HTTPDNS.lpx', 'BlockAdvertisers.lpx')
+# ---------------- zmjde 指定插件 ----------------
+# App 高优先级（完整并入，同正则替换其他来源）：DiDi/PinDuoDuo + 闲鱼/淘宝/什么值得买；
+# 通用 base 优先，只补 base 没有的（不覆盖）：Block_HTTPDNS/BlockAdvertisers + 可莉广告过滤器。
+_ZMJ_APP = ('DiDi_remove_ads.lpx', 'PinDuoDuo_remove_ads.lpx',
+            'FleaMarket_remove_ads.lpx', 'Taobao_remove_ads.lpx', 'smzdm_remove_ads.lpx')
+_ZMJ_GENERAL = ('Block_HTTPDNS.lpx', 'BlockAdvertisers.lpx', 'Remove_ads_by_keli.lpx')
 zmj_app_rw, zmj_app_sc, zmj_app_rule, zmj_app_mitm = [], [], [], []
 zmj_gen_rw, zmj_gen_sc, zmj_gen_rule, zmj_gen_mitm = [], [], [], []
 

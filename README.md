@@ -6,7 +6,7 @@
 - [fmz200/wool_scripts](https://github.com/fmz200/wool_scripts) 的 **blockAdsV2.plugin**（本身已是 Loon 格式），合并去重；
 - [Thelongdarkorg/loon-plugins](https://github.com/Thelongdarkorg/loon-plugins) 的 **29 个细分 App 去广告插件**（标准 Loon v1、零远程脚本），并入去重；
 - [aoomee/Loon-Adblock-Plugins](https://github.com/aoomee/Loon-Adblock-Plugins) 的 **27 个独立 App 插件**（`.plugin`/`.lpx`，含远程脚本与 `[Argument]`），并入去重；
-- [zmjde/loon-plugins](https://github.com/zmjde/loon-plugins) 的 **4 个 `.lpx`**：滴滴、拼多多 App 插件（完整并入、替换重复），HTTPDNS 拦截器、广告平台拦截器（以 base 优先、只补不覆盖）；
+- [zmjde/loon-plugins](https://github.com/zmjde/loon-plugins) 的 **8 个 `.lpx`**：滴滴、拼多多、闲鱼、淘宝、什么值得买 5 个 App 插件（完整并入、替换重复），HTTPDNS 拦截器、广告平台拦截器、可莉广告过滤器（以 base 优先、只补不覆盖）；
 - [ddgksf2013 墨鱼手记](https://ddgksf2013.top/rewrite/GuaZiVideoAds.conf) 的 **瓜子影视 `.conf`**（QuanX 单文件，脚本内转 Loon，专属 App 完整并入、24 host 纳入 MITM）；
 - yfamilys 的 **adultraplus**（清洗后只取 reject 家族，剔除破解/重定向私货）。
 
@@ -20,13 +20,13 @@ base / blockAdsV2 / adultraplus 的对应行。数字小 = 优先级高：
 
 | 优先级 | 来源 | 说明 |
 |---|---|---|
-| 0 | **zmjde App（滴滴/拼多多）** | 完整并入，同正则覆盖 aoomee |
+| 0 | **zmjde App（滴滴/拼多多/闲鱼/淘宝/什么值得买）** | 完整并入，同正则覆盖 aoomee |
 | 1 | **qx 单文件 App（瓜子影视）** | 脚本内转 Loon，完整并入 |
 | 2 | **aoomee** | 同正则覆盖 Thelongdarkorg |
 | 3 | **Thelongdarkorg** | 独立 App 插件 |
 | 4 | R-Store（base） | QuanX → Loon 转换产物 |
 | 5 | blockAdsV2 | 综合源 |
-| 6 | **zmjde 通用（HTTPDNS/广告平台）** | base 优先，只补不覆盖 |
+| 6 | **zmjde 通用（HTTPDNS/广告平台/可莉过滤器）** | base 优先，只补不覆盖 |
 | 7 | adultraplus | 清洗后只取 reject 家族 |
 
 - **同正则同动作**：按优先级保留高优先级那条，其余替换。
@@ -40,8 +40,8 @@ base / blockAdsV2 / adultraplus 的对应行。数字小 = 优先级高：
 |---|---|
 | `allAdRewrite.plugin` | 单插件自包含：开关 + 分流 + 重写 + 脚本 + MITM |
 
-当前 `allAdRewrite.plugin` 含五个段：`[Argument]`（91 个开关）、`[Rule]`（3446 条）、
-`[Rewrite]`（3535 条）、`[Script]`（957 条）、`[MITM]`（1475 个主机）。
+当前 `allAdRewrite.plugin` 含五个段：`[Argument]`（91 个开关）、`[Rule]`（3450 条）、
+`[Rewrite]`（3646 条）、`[Script]`（959 条）、`[MITM]`（1488 个主机，具体 1405 + 标准通配 83）。
 
 ## 一、直接使用（不用自己搭仓库）
 
@@ -140,8 +140,8 @@ python3 validate_plugin.py allAdRewrite.plugin
   避免合法域名被误丢。
 - **自愈只补具体 host**：扫描最终 Rewrite + Script 守卫，对未覆盖的**具体 host** 补全
   （脚本段 `http(s)-request/response` 同样扫描，不漏段）；守卫退化出的整域通配**不补**。
-- **覆盖口径**：当前 3858 条 HTTPS 路径规则被 MITM 覆盖；192 条仅整域通配守卫的规则
-  主动放弃（对应 49 个 `*.域`，全为广告/埋点路径）。这些域若 Pinning，旧机制本就 MITM
+- **覆盖口径**：当前 3933 条 HTTPS 路径规则被 MITM 覆盖；194 条仅整域通配守卫的规则
+  主动放弃（对应 50 个 `*.域`，全为广告/埋点路径）。这些域若 Pinning，旧机制本就 MITM
   失败、规则无法生效，放弃零损失；若不 Pinning，则仅这部分路径广告不拦截，App 功能不受影响。
 - **证书绑定域主动 pass**：`amemv.com` 做了 SSL Pinning，强制 MITM 会握手失败（请求记录
   "MITM Failed"、0 字节），导致抖音核心 API 与长连接全断、私信无法收发。脚本用
@@ -162,6 +162,14 @@ python3 validate_plugin.py allAdRewrite.plugin
   反向裁剪——移除不服务任何规则、仅解密的冗余 hostname（上游规则被去重后的残留声明）。已验证裁剪
   不新增任何覆盖缺口（守卫具体 host 仍被覆盖），非 MITM 四段 md5 不变。综合上述 pass，MITM
   1708→1475（具体 1392 + 标准通配 83）。
+- **闲鱼/淘宝/什么值得买/可莉并入**：3 个 App 插件的 16 个具体 host 全部纳入 MITM；可莉过滤器的
+  中间通配（`pangolin-sdk-toutiao*`、`api-mifit*`）经守卫反查命中具体 host 保留，`lfd?`/`sfd?`
+  等无对应规则的残留通配反查为空、安全丢弃（自动裁剪亦兜底）。
+- **守卫提取顺序无关化**：修复 `guard_hosts_from_lines` 的一个顺序敏感缺陷——同一 host 同时存在
+  `https?` 规则与纯 `http` 规则时，旧逻辑可能因后处理的纯 http 规则把该 host 误判为"仅明文"而从
+  TLS 守卫集合排除，导致其 HTTPS 广告规则漏生效。改为纯 http 规则不参与 https 集合，只要被任一
+  https/https? 规则守卫就纳入。本轮 MITM 1475→1488（具体 1405 + 标准通配 83），0 非标准通配、
+  既有 pinning 域零回归。
 
 ### 4.3 分流补全到 `[Rule]`
 
@@ -239,7 +247,7 @@ python3 validate_plugin.py allAdRewrite.plugin
 
 **3. 我需要同时装独立 App 插件和这个合集吗？**
 
-不需要。zmjde（滴滴/拼多多）、瓜子影视、aoomee、Thelongdarkorg 等独立 App 插件都已按优先级完整并入，
+不需要。zmjde（滴滴/拼多多/闲鱼/淘宝/什么值得买）、瓜子影视、aoomee、Thelongdarkorg 等独立 App 插件都已按优先级完整并入，
 再装属于重复（一般无害，仅增加 MITM/脚本开销），保留 `allAdRewrite.plugin` 一个即可。
 
 **4. 某 App 一直转圈、刷不出内容**
@@ -278,5 +286,10 @@ MITM / 可能导致功能不可用」警告，最新插件已把它们源头 pas
 冗余 host（MITM 1708→1475）。这些域的开屏/广告规则在 pinning 下本就不生效，pass 零广告损失。
 若某 App 仍异常，可在 Loon 请求记录里看是否有对应域名 "MITM Failed"，把具体域名反馈以便补充
 `_MITM_SKIP_DOMAINS`；不建议自行整域 `-` 以免误伤其他不 pinning 的子域。
+
+**10. 闲鱼 / 淘宝 / 什么值得买去广告怎么生效？**
+
+三者的 App 插件已作为最高优先级完整并入（含远程脚本、jq 文件），更新到最新插件后重新加载即可，
+无需再装独立插件。可莉广告过滤器则按"去重补充"并入——只补合集里没有的规则，已覆盖的不重复添加。
 
 > （注：部分内容由豆包 AI 生成）
