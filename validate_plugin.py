@@ -21,14 +21,24 @@ HOST_RE = re.compile(
     r'^(?:[A-Za-z0-9](?:[A-Za-z0-9\-]*[A-Za-z0-9])?\.)+[A-Za-z]{2,}$')
 IP_RE = re.compile(r'^\d{1,3}(?:\.\d{1,3}){3}$')
 
-# Loon 旧版 Rewrite 合法动作（见官方文档 Rewrite 旧语法）
+# Loon 旧版 Rewrite 合法动作（见官方文档 Rewrite 旧语法，按动作族完整收录）
 LEGACY_ACTIONS = {
+    # 直接拒绝 / 重定向
     'reject', 'reject-200', 'reject-img', 'reject-dict', 'reject-array',
-    'reject-video', 'response-body-replace-regex', 'request-body-replace-regex',
-    'header-replace-regex', '302',
-    # Thelongdarkorg/loon-plugins 并入后新增（官方 v1 合法动作）：
-    'response-body-json-jq', 'response-body-json-del', 'response-body-json-replace',
-    'mock-response-body', 'response-header-add', 'response-header-del',
+    'reject-video', '302', '307',
+    # 请求 Header
+    'header-add', 'header-del', 'header-replace', 'header-replace-regex',
+    # 请求 Body（含 jq）
+    'request-body-replace-regex', 'request-body-json-add',
+    'request-body-json-replace', 'request-body-json-del',
+    'request-body-json-jq', 'mock-request-body',
+    # 响应 Header
+    'response-header-add', 'response-header-del',
+    'response-header-replace', 'response-header-replace-regex',
+    # 响应 Body（含 jq）
+    'response-body-replace-regex', 'response-body-json-add',
+    'response-body-json-replace', 'response-body-json-del',
+    'response-body-json-jq', 'mock-response-body',
 }
 
 # 常见两级公共后缀（其 registrable domain 需取三级）

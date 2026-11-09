@@ -37,6 +37,9 @@ FILTER_MIRRORS = [
 
 # 第三方融合插件（APP启动页去广告ultra+）：QuanX/Shadowrocket 段名，需清洗后并入去重
 MIX_URL = 'https://yfamilys.com/plugin/adultraplus.plugin'
+
+# aoomee 独立 App 去广告插件仓库（工作流 clone 到本地后传入目录）
+AOOMEE_REPO = 'https://github.com/aoomee/Loon-Adblock-Plugins.git'
 # QuanX filter 类型/策略 -> Loon
 QX_TYPE_MAP = {
     'host': 'DOMAIN', 'host-suffix': 'DOMAIN-SUFFIX', 'host-keyword': 'DOMAIN-KEYWORD',
@@ -63,6 +66,7 @@ IP_OK = re.compile(r'^\d{1,3}(?:\.\d{1,3}){3}$')
 # 真实 TLD 白名单：用于 hostname 收敛时排除缺 TLD 的非法项、可选组截断的残缺 host
 _KNOWN_TLD = {
     'com', 'net', 'org', 'gov', 'edu', 'mil', 'asia', 'app', 'io', 'me', 'cc', 'tv', 'co', 'info',
+    'so', 'group', 'ltd',
     'xyz', 'top', 'vip', 'shop', 'site', 'online', 'store', 'tech', 'dev', 'ai', 'cloud', 'live',
     'press', 'pro', 'name', 'mobi', 'biz', 'club', 'fun', 'games', 'news', 'blog', 'wiki', 'link',
     'run', 'space', 'today', 'work', 'design', 'media', 'world', 'life', 'health', 'art', 'photo',
@@ -84,6 +88,12 @@ ap.add_argument('--apps', default=None,
 ap.add_argument('--mix', default=None,
                 help='第三方融合插件（adultraplus）：fetch/URL/本地路径；清洗（只取去广告 reject+v2，'
                      '剔除重定向/破解私货）后按正则去重并入')
+ap.add_argument('--aoomee', default=None,
+                help='aoomee/Loon-Adblock-Plugins 仓库目录（工作流 clone 后传入）；遍历其中 '
+                     '.plugin/.lpx 独立 App 插件并入，独立 App 插件优先级最高（同正则替换其他来源）')
+ap.add_argument('--zmjde', default=None,
+                help='zmjde/loon-plugins 仓库目录（工作流 clone 后传入）；读取其中 4 个指定 .lpx：'
+                     'DiDi/PinDuoDuo 作为 App 高优先级完整并入，Block_HTTPDNS/BlockAdvertisers 以 base 优先只补不覆盖')
 ap.add_argument('--out', required=True, help='合并输出路径')
 args = ap.parse_args()
 
@@ -159,6 +169,50 @@ def iter_app_plugins(appdir):
                    and not x.startswith('ai_auto_node'))
     for n in names:
         yield n, open(os.path.join(appdir, n), encoding='utf-8').read()
+
+
+def parse_loose_sections(text):
+    """归一化段解析：识别含空格段名（URL Rewrite），并把 MitM/Mitm/MITM 三种大小写
+    统一为 MITM；返回 {段名: [非空非注释行]}。"""
+    out, cur = {}, None
+    for line in text.split('\n'):
+        m = re.match(r'^\[(.+?)\]\s*$', line)
+        if m:
+            raw = m.group(1).strip()
+            cur = 'MITM' if raw.lower() == 'mitm' else raw
+            out.setdefault(cur, [])
+        elif cur is not None and line.strip() and not line.lstrip().startswith('#'):
+            out[cur].append(line.strip())
+    return out
+
+
+def iter_aoomee(aoomee_dir):
+    """遍历 aoomee/Loon-Adblock-Plugins，产出 (文件名, 归一化段dict)。
+    兼容传入仓库根目录（含 plugins/）或直接传入 plugins 目录；
+    识别 .plugin/.lpx（均为文本），跳过 .js 等非插件文件。"""
+    pdir = os.path.join(aoomee_dir, 'plugins')
+    if not os.path.isdir(pdir):
+        pdir = aoomee_dir
+    names = sorted(x for x in os.listdir(pdir)
+                   if x.endswith('.plugin') or x.endswith('.lpx'))
+    for n in names:
+        text = open(os.path.join(pdir, n), encoding='utf-8').read()
+        yield n, parse_loose_sections(text)
+
+
+def generic_script_url(line):
+    """提取 generic 行的脚本 URL（script-path= 或 script("...")）；非 generic 返回 None。"""
+    if not line.strip().startswith('generic'):
+        return None
+    m = re.search(r'script\("([^"]+)"', line)
+    if m:
+        return m.group(1)
+    m = re.search(r'script-path=([^,]+)', line)
+    return m.group(1) if m else None
+
+
+def is_v2_line(line):
+    return bool(re.match(r'^(request|response|generic)\b', line.strip())) and ' then ' in line
 
 
 def real_lines(ls):
@@ -429,7 +483,17 @@ def and_rule_domains(line):
     return _AND_DOMAIN_RE.findall(line)
 
 
-# ---------------- 读取两个插件 ----------------
+
+# ============================================================================
+# 主流程：统一优先级合并
+# 优先级（数字小=高）：zmjde App(0) > aoomee(1) > Thelongdarkorg(2) > base/R-Store(3)
+#                     > blockAdsV2(4) > zmjde 通用(5) > adultraplus(6)
+# DiDi/PinDuoDuo（zmjde App）完整并入、同正则替换其他来源；
+# Block_HTTPDNS/BlockAdvertisers（zmjde 通用）低于 base，只补 base 没有的。
+# ============================================================================
+import collections
+
+# ---------------- 读取 base / extra ----------------
 base_text = open(args.base, encoding='utf-8').read()
 if args.extra == 'fetch':
     extra_text, last_err = None, None
@@ -449,16 +513,7 @@ else:
 _, base_sec = split_sections(base_text)
 _, extra_sec = split_sections(extra_text)
 
-# base 全部 URL 正则（Rewrite + Script），用于跨段去重
-base_regex = set()
-for sec in ('Rewrite', 'Script'):
-    for l in real_lines(base_sec.get(sec, [])):
-        r = entry_regex(l)
-        if r:
-            base_regex.add(r)
-
-# ---------------- blockAdsV2 残留 QuanX 旧行处理 ----------------
-# 旧 reject 动作 -> v2（status 取官方映射）
+# ---------------- legacy 旧行转换（blockAdsV2 / adultraplus 复用）----------------
 _LEGACY_REJECT = {
     'reject': 'reject(404)', 'reject-200': 'reject(200)',
     'reject-img': 'reject_img(200)', 'reject-dict': 'reject_dict(200)',
@@ -467,111 +522,159 @@ _LEGACY_REJECT = {
 
 
 def convert_legacy_line(line):
-    """把 blockAdsV2 中残留的 QuanX 旧写法转成 Loon v2；无法安全转换返回 None（丢弃）。
-    覆盖本源实际出现的三类：裸 reject、两种 302；其余（header、v1 脚本、302 到文件、
-    损坏行）base 已覆盖或不可靠，统一丢弃。"""
+    """把 QuanX 旧写法转成 Loon v2；无法安全转换返回 None（丢弃）。"""
     s = line.strip()
     toks = s.split()
-
-    # 1) 裸 reject 家族：^PAT reject-dict
     if len(toks) == 2 and toks[1] in _LEGACY_REJECT:
         return ('request if ${url} ~= /%s/ then %s'
                 % (toks[0], _LEGACY_REJECT[toks[1]]))
-
-    # 2) vgtime：^(... )false(...) $1true$2 302（末尾 302）
     if s.endswith(' 302') and 'close_ad=' in s:
         m = re.match(r'^(\^.+?)\s+\$1true\$2\s+302$', s)
         if m:
             return ('request if ${url} ~= /%s/ as m then redirect(302, "${m.1}true${m.2}")'
                     % m.group(1))
-
-    # 3) zhihu：^PAT 302 http://$1（302 后接目标）
     m = re.match(r'^(\^.+?)\s+302\s+(\S+)$', s)
     if m and 'zhihu' in s:
         tgt = m.group(2).replace('$1', '${m.1}')
         return ('request if ${url} ~= /%s/ as m then redirect(302, "%s")'
                 % (m.group(1), tgt))
-
-    # 其余旧写法（header / http-response 脚本 / 302 到文件 / 损坏）：丢弃
     return None
 
 
-# ---- 合并 Rewrite / Script：base 原文 + extra 中 base 未覆盖的正则 ----
-merged = {}
-stats = {'rw_added': 0, 'sc_added': 0, 'rw_dup': 0, 'sc_dup': 0,
-         'legacy_conv': 0, 'legacy_drop': 0, 'rw_exact_drop': 0, 'sc_exact_drop': 0}
-for sec, key in (('Rewrite', 'rw'), ('Script', 'sc')):
-    bl = real_lines(base_sec.get(sec, []))
-    added = []
-    for l in real_lines(extra_sec.get(sec, [])):
-        is_v2 = bool(re.match(r'^(request|response)\b', l.strip()))
-        if not is_v2:
-            conv = convert_legacy_line(l)
-            if conv is None:
-                stats['legacy_drop'] += 1
+# ---------------- 无 URL 守卫行（generic / cron）识别 ----------------
+def unguarded_key(line):
+    g = generic_script_url(line)
+    if g is not None:
+        return ('generic', g)
+    st = line.strip()
+    if re.match(r'^cron\b', st):
+        m = re.search(r'script-path=([^,]+)', st) or re.search(r'script\("([^"]+)"', st)
+        return ('cron', m.group(1) if m else st)
+    return None
+
+
+# ---------------- 动作签名：区分"拒绝家族折叠"与"互补动作并存" ----------------
+def split_action(line):
+    """返回 (v2/v1, 动作部分)。v2 取 then 之后；v1 去掉首段正则。"""
+    s = line.strip()
+    if re.match(r'^(request|response)\b', s) and ' then ' in s:
+        return 'v2', s.split(' then ', 1)[1].strip()
+    head = s.split(None, 1)[0]
+    return 'v1', s[len(head):].strip()
+
+
+def action_key(line):
+    """拒绝家族（reject/reject-*/reject(_*)）同正则折叠为一个签名；
+    其余动作按 (动作名, 完整动作) 独立，互补动作（jq+header-del 等）得以并存。"""
+    _, action = split_action(line)
+    if re.match(r'^reject', action):
+        return ('REJECT',)
+    name = re.split(r'[\s(]', action, 1)[0]
+    return (name, action)
+
+
+# ---------------- 统一优先级合并器 ----------------
+def priority_merge(feeds):
+    """feeds: 按【输出位置顺序】喂入的 (prio, 行列表)。
+    去重单元 = (正则, 动作签名)：同单元取 prio 最小（同级 v2 优先）；
+    同正则不同动作（互补）各自保留；新单元按首次出现定位；
+    generic/cron 无守卫行按 (类型,脚本URL) 去重单独返回。"""
+    units, uprio, order, unguarded = {}, {}, [], {}
+    for prio, lines in feeds:
+        for l in lines:
+            uk = unguarded_key(l)
+            if uk is not None:
+                old = unguarded.get(uk)
+                if old is None or (is_v2_line(l) and not is_v2_line(old)):
+                    unguarded[uk] = l
                 continue
-            l = conv
-            stats['legacy_conv'] += 1
-        r = entry_regex(l)
-        if r and r in base_regex:
-            stats[key + '_dup'] += 1
-            continue
-        added.append(l)
-        if r:
-            base_regex.add(r)               # 防止 extra 内部重复
-    stats[key + '_added'] = len(added)
-    combined = bl + added
-    deduped = dedup_keep_order(combined)   # 折叠完全相同的行（base 内部 12 组）
-    stats[key + '_exact_drop'] = len(combined) - len(deduped)
-    merged[sec] = deduped
+            r = entry_regex(l)
+            if not r:
+                continue
+            key = (r, action_key(l))
+            if key in units:
+                if (prio < uprio[key]
+                        or (prio == uprio[key] and is_v2_line(l) and not is_v2_line(units[key]))):
+                    units[key], uprio[key] = l, prio
+            else:
+                units[key], uprio[key] = l, prio
+                order.append(key)
+    return [units[k] for k in order], list(unguarded.values())
 
-# ---- Argument：仅 extra，内部按参数名去重 ----
-arg_items = dedup_keep_order(real_lines(extra_sec.get('Argument', [])))
 
-# ---- 并入 Thelongdarkorg 去广告插件 ----
-# 这些插件是标准 Loon v1 传统写法（^正则 动作），零 Script/Argument；
-# 不与 blockAdsV2 走同一 legacy 转换路径，直接按规范化 URL 正则与 base 去重（base 优先），
-# 保留原始行（含 jq/del/replace/header/mock/reject 家族动作）。仅取 Rewrite/Script/Rule/MITM。
-apps_stats = {'n': 0, 'rw_added': 0, 'rw_dup': 0, 'rule_added': 0, 'rule_dup': 0,
-              'mitm_added': 0, 'mitm_dup': 0, 'rw_total': 0, 'rule_total': 0}
-app_rewrite_lines, app_script_lines, app_rule_lines, app_mitm_hosts = [], [], [], []
+def prep_block_lines(ls):
+    """blockAdsV2：v2 直接收，旧行走 convert_legacy_line。"""
+    out = []
+    for l in real_lines(ls):
+        if re.match(r'^(request|response)\b', l.strip()):
+            out.append(l)
+        else:
+            c = convert_legacy_line(l)
+            if c:
+                out.append(c)
+    return out
+
+
+# Shadowrocket 风格 "^regex url reject(-dict)"：Loon 旧版无 url 关键字，去掉即可
+_SR_URL_RE = re.compile(r'^(\^.*?)\s+url\s+(reject(?:-dict)?)$')
+# 旧版动作名大小写归一（官方文档一律小写）
+_LEGACY_UPPER = {
+    'REJECT': 'reject', 'REJECT-200': 'reject-200', 'REJECT-IMG': 'reject-img',
+    'REJECT-DICT': 'reject-dict', 'REJECT-ARRAY': 'reject-array',
+    'REJECT-VIDEO': 'reject-video',
+}
+
+
+def convert_shadowrocket_line(line):
+    s = line.strip()
+    m = _SR_URL_RE.match(s)
+    if m:
+        s = '%s %s' % (m.group(1), m.group(2))
+    toks = s.split()
+    if len(toks) >= 2 and toks[1] in _LEGACY_UPPER:
+        s = s.replace(toks[1], _LEGACY_UPPER[toks[1]], 1)
+    return s
+
+
+# ---------------- 准备各来源 Rewrite / Script ----------------
+# base（R-Store 转换产物，原始写法）
+base_rw = real_lines(base_sec.get('Rewrite', []))
+base_sc = real_lines(base_sec.get('Script', []))
+# blockAdsV2
+block_rw = prep_block_lines(extra_sec.get('Rewrite', []))
+block_sc = prep_block_lines(extra_sec.get('Script', []))
+# Thelongdarkorg（标准 v1，直接保留）
+thelong_rw, thelong_sc = [], []
+thelong_rule, thelong_mitm = [], []
 if args.apps:
     for fname, atext in iter_app_plugins(args.apps):
-        apps_stats['n'] += 1
-        _, a_sec = split_sections(atext)
-        app_rewrite_lines.append((fname, a_sec.get('Rewrite', [])))
-        app_script_lines.append((fname, a_sec.get('Script', [])))
-        app_rule_lines.append((fname, a_sec.get('Rule', [])))
-        for l in a_sec.get('MITM', []):
+        _, s = split_sections(atext)
+        thelong_rw += real_lines(s.get('Rewrite', []))
+        thelong_sc += real_lines(s.get('Script', []))
+        thelong_rule += real_lines(s.get('Rule', []))
+        for l in s.get('MITM', []):
             if '=' in l:
-                app_mitm_hosts += [x.strip() for x in l.split('=', 1)[1].split(',') if x.strip()]
-
-    # [Rewrite]：base 优先，按规范化正则去重
-    for fname, lines in app_rewrite_lines:
-        for l in real_lines(lines):
-            apps_stats['rw_total'] += 1
-            r = entry_regex(l)
-            if r and r in base_regex:
-                apps_stats['rw_dup'] += 1
-                continue
-            merged['Rewrite'].append(l)
-            if r:
-                base_regex.add(r)          # 防 apps 插件间 / 与 extra 重复
-            apps_stats['rw_added'] += 1
-    # [Script]：apps 无 Script，仅防御式并入（保持为空）
-    for fname, lines in app_script_lines:
-        for l in real_lines(lines):
-            r = entry_regex(l)
-            if r and r in base_regex:
-                continue
-            merged['Script'].append(l)
-            if r:
-                base_regex.add(r)
-
-# ---- 并入第三方融合插件 adultraplus（清洗：只取去广告，剔除重定向/破解私货） ----
-mix_stats = {'rw_added': 0, 'rw_dup': 0, 'sc_added': 0, 'sc_dup': 0,
-             'non_ad_drop': 0, 'mix_mitm': []}
+                thelong_mitm += [x.strip() for x in l.split('=', 1)[1].split(',') if x.strip()]
+# aoomee（v1/v2 混合；URL Rewrite 的 reject 并入 Rewrite；generic/cron 由合并器识别）
+ao_rw, ao_sc, ao_rule, ao_mitm = [], [], [], []
+if args.aoomee:
+    for fname, s in iter_aoomee(args.aoomee):
+        ao_rw += [convert_shadowrocket_line(l)
+                  for l in real_lines(s.get('Rewrite', []))]
+        for l in real_lines(s.get('URL Rewrite', [])):
+            toks = l.split()
+            if len(toks) == 2 and toks[1] in _LEGACY_REJECT:
+                ao_rw.append(l)
+        ao_sc += [convert_shadowrocket_line(l)
+                  for l in real_lines(s.get('Script', []))]
+        ao_rule += real_lines(s.get('Rule', []))
+        for l in s.get('MITM', []):
+            if '=' in l:
+                ao_mitm += [x.strip() for x in l.split('=', 1)[1].split(',') if x.strip()]
+# adultraplus（清洗：只取去广告 reject+v2，剔除私货）
+mix_rw, mix_sc, mix_mitm = [], [], []
 mix_guard_lines = []
+mix_stats = {'rw_added': 0, 'sc_added': 0, 'non_ad_drop': 0}
 if args.mix:
     if args.mix == 'fetch':
         mtext = fetch_mix(MIX_URL)
@@ -582,58 +685,131 @@ if args.mix:
     else:
         mtext = open(args.mix, encoding='utf-8').read()
     mix_sec = parse_mix_sections(mtext)
-
-    # mix 自己的守卫行（用于其 MITM 通配项反查）
     mix_guard_lines = (real_lines(mix_sec.get('URL Rewrite', []))
                        + real_lines(mix_sec.get('Rewrite', []))
                        + real_lines(mix_sec.get('Script', [])))
-
-    # [URL Rewrite]：只取 reject 家族（去广告）转 v2；67 个重定向/捕获组私货剔除
     for l in real_lines(mix_sec.get('URL Rewrite', [])):
-        toks = l.strip().split()
+        toks = l.split()
         if len(toks) != 2 or toks[1] not in _LEGACY_REJECT:
             mix_stats['non_ad_drop'] += 1
             continue
-        conv = convert_legacy_line(l)
-        r = entry_regex(conv)
-        if r and r in base_regex:
-            mix_stats['rw_dup'] += 1
-            continue
-        merged['Rewrite'].append(conv)
-        if r:
-            base_regex.add(r)
-        mix_stats['rw_added'] += 1
-
-    # [Rewrite]：标准 v2，直接保留去重
-    for l in real_lines(mix_sec.get('Rewrite', [])):
-        r = entry_regex(l)
-        if r and r in base_regex:
-            mix_stats['rw_dup'] += 1
-            continue
-        merged['Rewrite'].append(l)
-        if r:
-            base_regex.add(r)
-        mix_stats['rw_added'] += 1
-
-    # [Script]：传统 http-response v1 写法，保留原始行去重
-    for l in real_lines(mix_sec.get('Script', [])):
-        r = entry_regex(l)
-        if r and r in base_regex:
-            mix_stats['sc_dup'] += 1
-            continue
-        merged['Script'].append(l)
-        if r:
-            base_regex.add(r)
-        mix_stats['sc_added'] += 1
-
-    # MITM 原始项收集（在 MITM 段统一收敛）
+        mix_rw.append(convert_legacy_line(l))
+    mix_rw += real_lines(mix_sec.get('Rewrite', []))
+    mix_sc += real_lines(mix_sec.get('Script', []))
     for l in mix_sec.get('MITM', []):
         if '=' in l:
-            mix_stats['mix_mitm'] += [x.strip()
-                                      for x in l.split('=', 1)[1].split(',') if x.strip()]
+            mix_mitm += [x.strip() for x in l.split('=', 1)[1].split(',') if x.strip()]
 
-# ---- Rule：blockAdsV2 规则 + R-Store 分流中未覆盖的规则 ----
-rule_items = dedup_keep_order(real_lines(extra_sec.get('Rule', [])))
+# ---------------- zmjde 四个指定插件 ----------------
+# DiDi/PinDuoDuo：App 高优先级（完整并入，同正则替换其他来源）；
+# Block_HTTPDNS/BlockAdvertisers：base 优先，只补 base 没有的（不覆盖）。
+_ZMJ_APP = ('DiDi_remove_ads.lpx', 'PinDuoDuo_remove_ads.lpx')
+_ZMJ_GENERAL = ('Block_HTTPDNS.lpx', 'BlockAdvertisers.lpx')
+zmj_app_rw, zmj_app_sc, zmj_app_rule, zmj_app_mitm = [], [], [], []
+zmj_gen_rw, zmj_gen_sc, zmj_gen_rule, zmj_gen_mitm = [], [], [], []
+
+
+def _zmj_collect(s):
+    rw, sc, rule = list(s.get('Rewrite', [])), list(s.get('Script', [])), list(s.get('Rule', []))
+    hm = []
+    for l in s.get('MITM', []):
+        if '=' in l:
+            hm += [x.strip() for x in l.split('=', 1)[1].split(',') if x.strip()]
+    return rw, sc, rule, hm
+
+
+if args.zmjde:
+    pdir = os.path.join(args.zmjde, 'Plugin')
+    if not os.path.isdir(pdir):
+        pdir = args.zmjde
+    for name, bucket in ([(n, 'app') for n in _ZMJ_APP]
+                         + [(n, 'gen') for n in _ZMJ_GENERAL]):
+        path = os.path.join(pdir, name)
+        if not os.path.exists(path):
+            raise SystemExit('zmjde 缺少插件文件: %s' % name)
+        s = parse_loose_sections(open(path, encoding='utf-8').read())
+        rw, sc, rule, hm = _zmj_collect(s)
+        if bucket == 'app':
+            zmj_app_rw += rw; zmj_app_sc += sc; zmj_app_rule += rule; zmj_app_mitm += hm
+        else:
+            zmj_gen_rw += rw; zmj_gen_sc += sc; zmj_gen_rule += rule; zmj_gen_mitm += hm
+
+# ---------------- 执行优先级合并 ----------------
+# 位置顺序：base 骨架 -> block -> zmjde通用 -> mix -> thelong -> aoomee -> zmjdeApp；
+# 同正则由 prio 决定覆盖（zmjde App 最高，zmjde 通用低于 base、只补不覆盖）
+rw_feeds = [('base', 3, base_rw), ('block', 4, block_rw), ('zmjgen', 5, zmj_gen_rw),
+            ('mix', 6, mix_rw), ('thelong', 2, thelong_rw), ('aoomee', 1, ao_rw),
+            ('zmjapp', 0, zmj_app_rw)]
+sc_feeds = [('base', 3, base_sc), ('block', 4, block_sc), ('zmjgen', 5, zmj_gen_sc),
+            ('mix', 6, mix_sc), ('thelong', 2, thelong_sc), ('aoomee', 1, ao_sc),
+            ('zmjapp', 0, zmj_app_sc)]
+merged_rw, rw_unguarded = priority_merge([(p, x) for _, p, x in rw_feeds])
+merged_sc, sc_unguarded = priority_merge([(p, x) for _, p, x in sc_feeds])
+# 无守卫行（generic/cron）归入 Script 段末尾，再整体去重
+merged_sc = dedup_keep_order(merged_sc + rw_unguarded + sc_unguarded)
+merged_rw = dedup_keep_order(merged_rw)
+
+# ---------------- Argument：blockAdsV2 + aoomee（YouTube 增强）----------------
+arg_items = dedup_keep_order(real_lines(extra_sec.get('Argument', [])))
+if args.aoomee:
+    for fname, s in iter_aoomee(args.aoomee):
+        arg_items += real_lines(s.get('Argument', []))
+arg_items = dedup_keep_order(arg_items)
+
+# ---------------- Rule：App 优先（aoomee -> thelong），再综合（block -> filter）----------------
+_RT_NORM = {'domain': 'DOMAIN', 'ip-cidr': 'IP-CIDR', 'domainsuffix': 'DOMAIN-SUFFIX'}
+_POL_NORM = {'reject': 'REJECT', 'direct': 'DIRECT'}
+
+
+def normalize_rule(line):
+    """归一化 aoomee 小写类型/策略，IP-CIDR 补 no-resolve；组合规则原样返回。"""
+    parts = [p.strip() for p in line.split(',')]
+    t = _RT_NORM.get(parts[0].lower(), parts[0])
+    if t not in ('DOMAIN', 'DOMAIN-SUFFIX', 'DOMAIN-KEYWORD', 'IP-CIDR', 'IP-CIDR6'):
+        return line
+    pol = _POL_NORM.get(parts[2].lower(), parts[2])
+    rest = parts[3:]
+    if t in ('IP-CIDR', 'IP-CIDR6') and 'no-resolve' not in rest:
+        rest.append('no-resolve')
+    return ','.join([t, parts[1], pol] + rest)
+
+
+rule_result = []
+rule_idx = build_rule_index([])
+rule_counts = collections.Counter()
+
+
+def add_rule(line, src):
+    line = normalize_rule(line)
+    if line in rule_result:
+        rule_counts[src + '_dup'] += 1
+        return
+    t = line.split(',')[0]
+    if t in ('DOMAIN', 'DOMAIN-SUFFIX', 'DOMAIN-KEYWORD', 'IP-CIDR', 'IP-CIDR6'):
+        if rule_is_covered(line, rule_idx):
+            rule_counts[src + '_dup'] += 1
+            return
+        add_to_index(line, rule_idx)
+    rule_result.append(line)
+    rule_counts[src + '_add'] += 1
+
+
+if args.zmjde:
+    for l in zmj_app_rule:
+        add_rule(l, 'zmjapp')
+if args.aoomee:
+    for l in ao_rule:
+        add_rule(l, 'aoomee')
+if args.apps:
+    for l in thelong_rule:
+        add_rule(l, 'thelong')
+for l in real_lines(extra_sec.get('Rule', [])):
+    add_rule(l, 'block')
+if args.zmjde:
+    # 通用拦截器：以已有 Rule 为基础，语义覆盖判定后只补未覆盖项（不覆盖 base）
+    for l in zmj_gen_rule:
+        add_rule(l, 'zmjgen')
+# R-Store 独立分流（filter），未覆盖才补
 fstats = {'total': 0, 'covered': 0, 'added': 0}
 if args.filter != 'none':
     if args.filter == 'fetch':
@@ -650,101 +826,47 @@ if args.filter != 'none':
             raise SystemExit('R-Store filter 获取失败: %s' % f_err)
     else:
         ftext = open(args.filter, encoding='utf-8').read()
-    f_rules = dedup_keep_order(parse_qx_filter(ftext))
-    idx = build_rule_index(rule_items)
-    added = []
-    for fr in f_rules:
+    for fr in dedup_keep_order(parse_qx_filter(ftext)):
         fstats['total'] += 1
-        if rule_is_covered(fr, idx):
+        before = len(rule_result)
+        add_rule(fr, 'filter')
+        if len(rule_result) == before:
             fstats['covered'] += 1
         else:
-            added.append(fr)
-            add_to_index(fr, idx)
             fstats['added'] += 1
-    rule_items = dedup_keep_order(rule_items + added)
+rule_items = dedup_keep_order(rule_result)
 
-# ---- 并入 Thelongdarkorg 的 [Rule] ----
-# 常规规则（DOMAIN/SUFFIX/KEYWORD/IP-CIDR）用语义覆盖判定，base/extra/filter 已覆盖则跳过；
-# AND/OR/URL-REGEX 等组合逻辑规则无法用域名索引判定整体覆盖，且多数是 QUIC 阻断等新增语义，
-# 保守处理：精确字符串去重后全部保留（避免误删）。
-if args.apps:
-    idx = build_rule_index(rule_items)
-    for fname, lines in app_rule_lines:
-        for l in real_lines(lines):
-            apps_stats['rule_total'] += 1
-            if l in rule_items:
-                apps_stats['rule_dup'] += 1
-                continue
-            if l.split(',')[0] in ('DOMAIN', 'DOMAIN-SUFFIX', 'DOMAIN-KEYWORD',
-                                   'IP-CIDR', 'IP-CIDR6'):
-                if rule_is_covered(l, idx):
-                    apps_stats['rule_dup'] += 1
-                    continue
-                add_to_index(l, idx)
-            rule_items.append(l)
-            apps_stats['rule_added'] += 1
-    rule_items = dedup_keep_order(rule_items)
-
-# ---- MITM：base 主机（已规范） + extra 收敛后主机 + apps 主机，合并去重 ----
+# ---------------- MITM：base 主机 + 各来源收敛（守卫反查），再自愈 ----------------
 mitm = []
 for l in base_sec.get('MITM', []):
     if '=' in l:
         mitm += [x.strip() for x in l.split('=', 1)[1].split(',') if x.strip()]
+# 守卫真实 host：用最终 Rewrite/Script（含全部来源），供通配 TLD/缺 TLD 反查
+guard_real = guard_hosts_from_lines(merged_rw + merged_sc)
 extra_raw = []
 for l in extra_sec.get('MITM', []):
     if '=' in l:
         extra_raw += [x.strip() for x in l.split('=', 1)[1].split(',') if x.strip()]
-# 构建 extra + apps 守卫真实 host 集合，用于通配 TLD / 缺 TLD 项反查
-_guard_lines = list(real_lines(extra_sec.get('Rewrite', []))) + \
-               list(real_lines(extra_sec.get('Script', [])))
-if args.apps:
-    for _fn, _ls in app_rewrite_lines:
-        _guard_lines += real_lines(_ls)
-    for _fn, _ls in app_script_lines:
-        _guard_lines += real_lines(_ls)
-if args.mix:
-    _guard_lines += mix_guard_lines
-guard_real = guard_hosts_from_lines(_guard_lines)
-
-extra_dropped = []
-for h in extra_raw:
+dropped = []
+for h in extra_raw + thelong_mitm + ao_mitm + zmj_app_mitm + zmj_gen_mitm + mix_mitm:
     got = normalize_extra_host(h, guard_real)
     if not got:
-        extra_dropped.append(h)
+        dropped.append(h)
     else:
-        mitm += got
-if args.apps:
-    app_mitm_raw = list(app_mitm_hosts)
-    for h in app_mitm_raw:
-        got = normalize_extra_host(h, guard_real)   # 裸 IP / 损坏 host 丢弃，通配项反查
-        if not got:
-            continue
-        mitm += got
-if args.mix:
-    mix_dropped = []
-    for h in mix_stats['mix_mitm']:
-        got = normalize_extra_host(h, guard_real)   # 裸 IP/IPv6 丢弃，通配 TLD 用守卫反查
-        if not got:
-            mix_dropped.append(h)
-            continue
         mitm += got
 mitm = dedup_keep_order(mitm)
 
-# ---- MITM 自愈：从最终 Rewrite 的 URL 守卫反向提取 host，补全未覆盖的合法域名 ----
-# 修复上游漏写 / 源损坏（如 blockAdsV2 的 hostname 粘连、漏写）导致 HTTPS 规则静默失效。
-# 只取 then 之前的守卫部分（排除 jq body 内引用的资源 URL），只补 HOST_OK 通过的完整域名，
-# 自动排除裸 IP；仅走明确 http:// 的 host 不补。
+
 def _mitm_covered(host, hostset):
     if host in hostset:
         return True
     return any(m.startswith('*.') and (host == m[2:] or host.endswith('.' + m[2:]))
                for m in hostset)
 
-# 从最终 Rewrite 守卫提取真实 host（与 hostname 收敛同一口径），用于自愈补全
-_rw_hostset = guard_hosts_from_lines(merged['Rewrite'])
 
 mitm_healed = []
-for _h in sorted(_rw_hostset):
+# 必须同时扫描 Rewrite + Script（Script 段的 http(s)-request/response 守卫同样需要 MITM）
+for _h in sorted(guard_hosts_from_lines(merged_rw + merged_sc)):
     if not _mitm_covered(_h, set(mitm)):
         mitm.append(_h)
         mitm_healed.append(_h)
@@ -752,18 +874,15 @@ mitm = dedup_keep_order(mitm)
 
 # ---------------- 输出 ----------------
 today = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
-_apps_note = (' + Thelongdarkorg/loon-plugins 去广告插件' if args.apps else '')
-_mix_note = (' + yfamilys adultraplus（清洗去广告）' if args.mix else '')
 header = [
-    '#!name=R-Store × 奶思 blockAdsV2 去广告净化合集',
-    '#!desc=合并 zirawell/R-Store、fmz200/blockAdsV2%s%s；按 URL 正则去重，R-Store 优先；[Rule] 已含多套上游分流，单插件自包含' % (_apps_note, _mix_note),
-    '#!author=zirawell / fmz200 / FFDNS / Mixed（本仓库自动合并）',
+    '#!name=R-Store × blockAdsV2 × 独立 App 去广告净化合集',
+    '#!desc=合并 R-Store、blockAdsV2、Thelongdarkorg、aoomee、adultraplus；按 URL 正则去重，'
+    '独立 App 插件优先（aoomee>Thelongdarkorg），同正则替换综合源；[Rule] 已含多套分流，单插件自包含',
+    '#!author=zirawell / fmz200 / Thelongdarkorg / aoomee / yfamilys（本仓库自动合并）',
     '#!homepage=https://github.com/XcvcvX/loon-change',
     '#!merged-at=%s' % today,
-    '#!note=R-Store 规则保留原始写法，blockAdsV2 为 Rewrite/Script v2；Loon 支持新旧语法同段混用。',
-    '#!sources=R-Store rewrite+filter(QuanX->Loon) + fmz200/wool_scripts blockAdsV2%s%s'
-    % (' + Thelongdarkorg/loon-plugins' if args.apps else '',
-       ' + yfamilys/adultraplus' if args.mix else ''),
+    '#!note=独立 App 插件（aoomee/Thelongdarkorg）优先级最高；新旧语法同段混用，Loon 均支持。',
+    '#!sources=R-Store(QuanX->Loon)+blockAdsV2+Thelongdarkorg+aoomee/Loon-Adblock-Plugins+yfamilys/adultraplus',
     '',
 ]
 out = list(header)
@@ -771,40 +890,28 @@ if arg_items:
     out += ['[Argument]'] + arg_items + ['']
 if rule_items:
     out += ['[Rule]'] + rule_items + ['']
-out += ['[Rewrite]'] + merged['Rewrite'] + ['']
-out += ['[Script]'] + merged['Script'] + ['']
+out += ['[Rewrite]'] + merged_rw + ['']
+out += ['[Script]'] + merged_sc + ['']
 out += ['[MITM]', 'hostname = ' + ', '.join(mitm), '']
-
 open(args.out, 'w', encoding='utf-8').write('\n'.join(out))
 
 print('\n[merge] 输出:', args.out)
-print('  Rewrite：base %d + 新增 %d（去重跳过 %d）'
-      % (len(real_lines(base_sec.get('Rewrite', []))), stats['rw_added'], stats['rw_dup']))
-print('  Script ：base %d + 新增 %d（去重跳过 %d）'
-      % (len(real_lines(base_sec.get('Script', []))), stats['sc_added'], stats['sc_dup']))
+print('  Rewrite：%d 条；Script：%d 条（含 generic/cron 无守卫行）'
+      % (len(merged_rw), len(merged_sc)))
 print('  Rule   ：%d 条；Argument：%d 个开关' % (len(rule_items), len(arg_items)))
+print('  Rule 来源：aoomee 新增 %d（跳过 %d）；thelong 新增 %d（跳过 %d）；'
+      'block 新增 %d（跳过 %d）'
+      % (rule_counts['aoomee_add'], rule_counts['aoomee_dup'],
+         rule_counts['thelong_add'], rule_counts['thelong_dup'],
+         rule_counts['block_add'], rule_counts['block_dup']))
 if args.filter != 'none':
-    print('  分流补全：R-Store %d 条，已覆盖 %d，补入 %d（独立分流可废弃）'
+    print('  分流补全：R-Store %d 条，已覆盖 %d，补入 %d'
           % (fstats['total'], fstats['covered'], fstats['added']))
-print('  旧行   ：转换 %d，丢弃 %d（base 已覆盖或不可靠）'
-      % (stats['legacy_conv'], stats['legacy_drop']))
-print('  MITM   ：%d 个主机（blockAdsV2 无法收敛丢弃 %d）' % (len(mitm), len(extra_dropped)))
+print('  MITM   ：%d 个主机（无法收敛丢弃 %d）' % (len(mitm), len(dropped)))
 if mitm_healed:
-    print('  MITM 自愈补全 %d 个：%s' % (len(mitm_healed), ', '.join(mitm_healed)))
-if extra_dropped:
-    print('  丢弃的 extra hostname：', ', '.join(extra_dropped[:20]))
-if args.apps:
-    print('  Apps   ：并入 %d 个 Thelongdarkorg 去广告插件'
-          % apps_stats['n'])
-    print('            Rewrite 新增 %d（去重跳过 %d，共 %d）；Rule 新增 %d（去重跳过 %d，共 %d）'
-          % (apps_stats['rw_added'], apps_stats['rw_dup'], apps_stats['rw_total'],
-             apps_stats['rule_added'], apps_stats['rule_dup'], apps_stats['rule_total']))
+    print('  MITM 自愈补全 %d 个：%s' % (len(mitm_healed), ', '.join(mitm_healed[:15])))
+if dropped:
+    print('  丢弃的 hostname：', ', '.join(dropped[:20]))
 if args.mix:
-    print('  Mix    ：adultraplus 清洗并入')
-    print('            Rewrite 新增 %d（去重跳过 %d）；Script 新增 %d（去重跳过 %d）；'
-          '非去广告私货剔除 %d'
-          % (mix_stats['rw_added'], mix_stats['rw_dup'],
-             mix_stats['sc_added'], mix_stats['sc_dup'], mix_stats['non_ad_drop']))
-    if mix_dropped:
-        print('            Mix MITM 丢弃（裸 IP/IPv6/无法收敛）%d 个：%s'
-              % (len(mix_dropped), ', '.join(mix_dropped[:20])))
+    print('  Mix    ：adultraplus 清洗，非去广告私货剔除 %d' % mix_stats['non_ad_drop'])
+#（注：内容由AI生成）

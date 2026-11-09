@@ -1,23 +1,45 @@
-# R-Store × blockAdsV2 × Thelongdarkorg 去广告净化合集 · Loon 版
+# R-Store × blockAdsV2 × 独立 App 去广告净化合集 · Loon 版
 
-把三套去广告规则融合成**一个** Loon 原生插件，并通过 GitHub Actions 跟随上游自动更新：
+把多套去广告规则融合成**一个** Loon 原生插件，并通过 GitHub Actions 跟随上游自动更新：
 
-- [zirawell/R-Store](https://github.com/zirawell/R-Store) 的 **Quantumult X** 规则（重写 + 独立分流），先按 Loon 原生语法转换（作为 base）；
-- [fmz200/wool_scripts](https://github.com/fmz200/wool_scripts) 的 **blockAdsV2.plugin**（本身已是 Loon 格式），再合并去重；
-- [Thelongdarkorg/loon-plugins](https://github.com/Thelongdarkorg/loon-plugins) 的 **29 个细分 App 去广告插件**（京东/淘宝/知乎/B站/微信/QQ音乐/微博/小红书/闲鱼/酷安/雪球/豆瓣/网易云/酷狗/腾讯视频/优酷/东财/天天基金/中国移动/联通/拼多多/水印相机/美柚/金十/懂车帝/红果/百度网盘/CMSPlayer/途虎），最后并入去重。
+- [zirawell/R-Store](https://github.com/zirawell/R-Store) 的 **Quantumult X** 规则（重写 + 独立分流），先按 Loon 原生语法转换，作为合并 **base**；
+- [fmz200/wool_scripts](https://github.com/fmz200/wool_scripts) 的 **blockAdsV2.plugin**（本身已是 Loon 格式），合并去重；
+- [Thelongdarkorg/loon-plugins](https://github.com/Thelongdarkorg/loon-plugins) 的 **29 个细分 App 去广告插件**（标准 Loon v1、零远程脚本），并入去重；
+- [aoomee/Loon-Adblock-Plugins](https://github.com/aoomee/Loon-Adblock-Plugins) 的 **27 个独立 App 插件**（`.plugin`/`.lpx`，含远程脚本与 `[Argument]`），并入去重；
+- [zmjde/loon-plugins](https://github.com/zmjde/loon-plugins) 的 **4 个 `.lpx`**：滴滴、拼多多 App 插件（完整并入、替换重复），HTTPDNS 拦截器、广告平台拦截器（以 base 优先、只补不覆盖）；
+- yfamilys 的 **adultraplus**（清洗后只取 reject 家族，剔除破解/重定向私货）。
 
-> **只装一个 `allAdRewrite.plugin` 就够了。** blockAdsV2 与 Thelongdarkorg 的
-> Rewrite/Script/Rule/Argument/MITM 已全部并入，R-Store 独立分流的规则也已补进 `[Rule]`，
-> 无需再装 blockAdsV2、任何细分 App 插件或独立分流。
+> **只装一个 `allAdRewrite.plugin` 就够了。** 各来源的 Rewrite/Script/Rule/Argument/MITM
+> 已全部并入，R-Store 独立分流也已补进 `[Rule]`，无需再装任何独立 App 插件或单独分流。
+
+## 优先级（核心规则）
+
+以 R-Store 转换产物为 base，但**独立 App 插件优先级最高**；同正则重复时，App 插件替换
+base / blockAdsV2 / adultraplus 的对应行。数字小 = 优先级高：
+
+| 优先级 | 来源 | 说明 |
+|---|---|---|
+| 0 | **zmjde App（滴滴/拼多多）** | 完整并入，同正则覆盖 aoomee |
+| 1 | **aoomee** | 同正则覆盖 Thelongdarkorg |
+| 2 | **Thelongdarkorg** | 独立 App 插件 |
+| 3 | R-Store（base） | QuanX → Loon 转换产物 |
+| 4 | blockAdsV2 | 综合源 |
+| 5 | **zmjde 通用（HTTPDNS/广告平台）** | base 优先，只补不覆盖 |
+| 6 | adultraplus | 清洗后只取 reject 家族 |
+
+- **同正则同动作**：按优先级保留高优先级那条，其余替换。
+- **同正则互补动作**：不同动作（如 jq 改 body + header-del 删响应头）**并存**，不互相覆盖。
+- 拒绝家族（reject / reject-200 / reject-dict / reject-img 等）视为同一语义签名折叠。
+- zmjde 通用插件即使字符串不同，若已被更宽的 `DOMAIN-SUFFIX`/`IP-CIDR` 规则语义覆盖也去重（实测 67 条全部已覆盖、0 真缺失）。
 
 ## 产物一览
 
-| 文件 | 来源 | 作用 |
-|---|---|---|
-| `allAdRewrite.plugin` | R-Store 转换 + blockAdsV2 合并 + Thelongdarkorg 并入 + 分流补全 | 单插件自包含：开关 + 分流 + 重写 + 脚本 + MITM |
+| 文件 | 作用 |
+|---|---|
+| `allAdRewrite.plugin` | 单插件自包含：开关 + 分流 + 重写 + 脚本 + MITM |
 
-`allAdRewrite.plugin` 内含五个段：`[Argument]`（74 个开关）、`[Rule]`（3558 条）、
-`[Rewrite]`（2924 条）、`[Script]`（446 条）、`[MITM]`（1379 个主机）。
+当前 `allAdRewrite.plugin` 含五个段：`[Argument]`（91 个开关）、`[Rule]`（3452 条）、
+`[Rewrite]`（3530 条）、`[Script]`（957 条）、`[MITM]`（1738 个主机）。
 
 ## 一、直接使用（不用自己搭仓库）
 
@@ -27,11 +49,8 @@ https://raw.githubusercontent.com/<用户名>/<仓库名>/main/allAdRewrite.plug
 
 Loon 里：**插件 → 右上角「+」→ 通过 URL 添加** → 粘贴地址。
 
-> 必须开启 MitM 并信任 CA 证书，否则重写/脚本规则不生效。
+> 必须开启 MitM 并信任 CA 证书，否则 HTTPS 重写/脚本规则不生效。
 > `[Rule]` 里的域名/IP 拦截属于连接层规则，不依赖 MitM 也会生效。
-
-**不需要再单独订阅任何分流**：`[Rule]` 已 100% 覆盖 R-Store 原独立分流的 1435 条规则
-（见第四节覆盖验证），装这一个插件即可，没有第二个文件要配。
 
 ## 二、自己搭一个自动更新的仓库
 
@@ -40,99 +59,88 @@ Loon 里：**插件 → 右上角「+」→ 通过 URL 添加** → 粘贴地址
    ```
    allAdRewrite.plugin
    convert_qx2loon.py            # R-Store QuanX 重写 -> Loon（base 转换）
-   merge_plugins.py              # 合并 blockAdsV2 + Thelongdarkorg、去重、补全 R-Store 分流到 [Rule]
+   merge_plugins.py              # 多来源合并、优先级去重、分流补全、MITM 自愈
    validate_plugin.py            # 产物自检（工作流调用）
-   sources/blockAdsV2.plugin     # blockAdsV2 本地副本（运行时默认在线抓取）
    .github/workflows/sync.yml
    README.md
    ```
 
-   > `convert_filter_qx2loon.py` 已废弃——独立分流的转换与补全已并入 `merge_plugins.py`，
-   > 工作流不再引用它，可删除。
-
 2. **开启 Actions**：Settings → Actions → General → 勾选 *Read and write permissions*。
 
-3. （可选）立即跑一次：Actions → *Sync R-Store + blockAdsV2* → **Run workflow**。
+3. （可选）立即跑一次：Actions → *Sync multi-source ad-block plugins* → **Run workflow**。
 
-工作流每天北京时间 **09:07 / 21:23** 执行，步骤为：**转换 R-Store 重写 → 在线抓取
-blockAdsV2、clone Thelongdarkorg、抓取 R-Store 分流，合并去重并补全 `[Rule]` → 自检 →
-有变化才提交**。没变化则跳过，不产生空提交。
+工作流每天北京时间 **09:07 / 21:23** 执行，步骤为：**转换 R-Store 重写 → clone
+Thelongdarkorg、clone aoomee、clone zmjde、在线抓取 blockAdsV2/adultraplus/R-Store 分流，
+按优先级合并去重并补全 `[Rule]` → 自检 → 有变化才提交**。没变化则跳过，不产生空提交。
 
-> GitHub 定时是“尽力而为”，整点高负载可能延迟、偶尔漏跑；手动触发与定时互不影响，
-> 一天两次 + 手动兜底，不会长期不更新。若 clone 失败，整个合并会失败并阻止提交（不会
-> 静默产出缺 Thelongdarkorg 的版本）。
+> 每次运行都重新 `git clone --depth 1` 拉取 aoomee、Thelongdarkorg、zmjde 最新版本，
+> 因此独立 App 插件的更新会自动并入。若 clone 失败，整个合并失败并阻止提交，
+> 不会静默产出缺来源的版本。
+>
+> **提交触发看最终合并产物**：`git diff` 判定对象是 `allAdRewrite.plugin` 整体，
+> 任一来源（含 zmjde）导致它变化都会提交，**不要求 base 单独变化**。
 
 ## 三、手动更新
 
 ```bash
-# 0) 拉取 Thelongdarkorg/loon-plugins（29 个细分 App 去广告插件）
+# 0) 拉取独立 App 插件
 git clone --depth 1 https://github.com/Thelongdarkorg/loon-plugins.git /tmp/loon-plugins
+git clone --depth 1 https://github.com/aoomee/Loon-Adblock-Plugins.git /tmp/aoomee
+git clone --depth 1 https://github.com/zmjde/loon-plugins.git /tmp/zmjde
 
 # 1) R-Store QuanX 重写 -> Loon（base）
 python3 convert_qx2loon.py -o allAdRewrite.plugin
 
-# 2) 合并 blockAdsV2 + Thelongdarkorg 并补全 R-Store 分流（在线抓取，含镜像回退），覆盖回写
-python3 merge_plugins.py --base allAdRewrite.plugin --extra fetch --filter fetch --apps /tmp/loon-plugins --out allAdRewrite.plugin
+# 2) 按优先级合并全部来源并补全 R-Store 分流（在线抓取，含镜像回退），覆盖回写
+python3 merge_plugins.py --base allAdRewrite.plugin --extra fetch --filter fetch \
+  --apps /tmp/loon-plugins --aoomee /tmp/aoomee --zmjde /tmp/zmjde \
+  --mix fetch --out allAdRewrite.plugin
 
 # 3) 自检
 python3 validate_plugin.py allAdRewrite.plugin
 ```
 
-`merge_plugins.py` 的 `--filter` 可选：`fetch`（默认，在线补全分流）、本地路径、
-`none`（不补全 `[Rule]`）；`--apps` 指定 Thelongdarkorg 仓库目录（可选，缺省不并入）。
+`merge_plugins.py` 常用参数：`--extra`（blockAdsV2：`fetch` 或本地路径）、
+`--filter`（R-Store 分流：`fetch` 默认 / 本地路径 / `none`）、`--apps`（Thelongdarkorg 目录）、
+`--aoomee`（aoomee 目录）、`--zmjde`（zmjde 目录）、`--mix`（adultraplus：`fetch` 或本地路径）。
 所有脚本只依赖 Python 标准库；`raw.githubusercontent.com` 不可达时自动回退 jsDelivr 镜像。
 
-## 四、合并、去重与分流补全
+## 四、合并、去重与 MITM 自愈
 
-### 4.1 Rewrite / Script 合并（Loon ↔ Loon）
+### 4.1 Rewrite / Script 优先级合并
 
-以 R-Store 转换产物为 base，blockAdsV2 与 Thelongdarkorg 只做补充：
+- **统一优先级合并器**：七来源按位置顺序（base→block→zmjde通用→mix→Thelongdarkorg→aoomee→zmjdeApp）
+  喂入，按规范化 URL 正则 + 动作签名判定覆盖；App 插件（zmjde App>aoomee>Thelongdarkorg）同正则替换综合源。
+- **互补动作并存**：拒绝家族折叠为一个签名；其余动作按 `(动作名, 完整动作)` 独立存储，
+  同正则的 jq 改 body、header-del 等不同动作全部保留。
+- **正确识别 v1/v2 语法**：v1（`^正则 动作`）与 v2（`... then ...`）的正则统一归一化，
+  跨语法去重准确；`http-response ^PAT ...` 的正则取第二个 token，不被首词折叠。
+- **Shadowrocket 风格转换**：`^regex url reject` / `url reject-dict` 去掉 Loon 不支持的
+  `url` 关键字；大写旧动作（REJECT/REJECT-DICT 等）归一为官方小写。
+- **无守卫行保留**：`generic` / `cron` 全局脚本（无 URL 守卫）按脚本 URL 独立保留，
+  不参与正则去重。
 
-- **同正则 base 优先**：建立 base 全部 URL 正则集合（Rewrite + Script 一起），
-  blockAdsV2 / Thelongdarkorg 命中的正则一律跳过，仅补充 base 没有的；段内、跨段冲突统一处理。
-- **正确识别 v1 脚本正则**：`http-response ^PAT ...` 的正则取第二个 token，
-  不会被首词 `http-response` 折叠，保证跨新旧语法去重准确。
-- **完全相同的行折叠**：逐字重复行只保留第一条，最终 `[Rule]`/Rewrite/Script 均无重复行。
-- **blockAdsV2 残留 7 行 QuanX 旧写法分类处理**：3 行转 v2（beehive `reject_dict(200)`、
-  vgtime/zhihu 两条 `redirect(302, ...)`），4 行丢弃（base 已覆盖或源损坏）。
-- **Thelongdarkorg 保持原生 v1 写法**：这 29 个插件是标准 Loon v1 传统写法
-  （`^正则 动作`，零远程脚本），**不转 v2、保留原始行**；按规范化 URL 正则与
-  base/blockAdsV2 去重（base 优先），仅并入 base 没有的 App 专属接口。用到的
-  `response-body-json-jq / -del / -replace / mock-response-body / response-header-add / -del`
-  均为 Loon v1 合法动作，已在校验器白名单登记。
-- **MITM 主机收敛**：中间/前缀通配退化为 `*.最长字面后缀`；`souhu→sohu` 拼写纠错；
-  裸 IP、通配 TLD、源损坏等无法安全收敛的主机丢弃；Thelongdarkorg 的 MITM 同样收敛去重
-  （雪球 9 个 HTTPDNS 裸 IP 属无法收敛项，会丢弃——若需覆盖直连场景可手动补回 hostname）。
+### 4.2 MITM 收敛与自愈
 
-### 4.2 分流补全到 `[Rule]`（替代独立分流）
+- 各来源 hostname 做格式校验（`HOST_OK`）、中间/前缀通配退化为 `*.最长字面后缀`，
+  裸 IP、通配 TLD、源损坏等无法安全收敛的主机丢弃。
+- **TLD 白名单**：静态白名单覆盖常见 TLD，并已补入实际出现的 `so` / `group` / `ltd`，
+  避免合法域名被误丢导致 HTTPS 规则静默失效。
+- **自愈扫描 Rewrite + Script**：从最终 Rewrite/Script 守卫反提取 host，凡未被 MITM
+  覆盖的一律补全。脚本段（`http(s)-request/response`）守卫同样需要 MITM，不可漏扫。
+- 反向核查口径：**所有最终守卫 host 必须被 MITM 覆盖，0 缺口**（当前 1407 个守卫全覆盖）。
 
-blockAdsV2 自带的 `[Rule]` 并不完整覆盖 R-Store 独立分流，因此合并时额外做了一步：
+### 4.3 分流补全到 `[Rule]`
 
 1. 抓取 R-Store `allAdBlock.list`，转换为 Loon 规则（小写类型 → 大写、IP 类加 `no-resolve`）；
 2. 对每条规则按**语义覆盖**判定是否已被当前 `[Rule]` 包含：
-   - `DOMAIN`：精确相等，或被某条 `DOMAIN-SUFFIX`（含父后缀）/ `DOMAIN-KEYWORD` 覆盖；
+   - `DOMAIN`：精确相等，或被 `DOMAIN-SUFFIX`（含父后缀）/ `DOMAIN-KEYWORD` 覆盖；
    - `DOMAIN-SUFFIX`：存在相等或更宽的父后缀；
    - `DOMAIN-KEYWORD`：关键字相等；
    - `IP-CIDR` / `IP-CIDR6`：网段被相等或更宽的网段包含（`subnet_of`）；
-3. 只追加未覆盖的规则，并动态更新索引以处理规则间的包含关系。
-
-**实测结果**：R-Store 分流 1435 条，其中 856 条本就被 blockAdsV2 覆盖，**补入 579 条**；
-最终 `[Rule]` 共 3558 条。独立复核（按段重新解析、不依赖固定行号）确认 1435 条
-**100% 被覆盖、0 缺口**，故独立分流产物已停止生成、可安全删除。
-
-最近一次合并量：Rewrite 1792 + 新增 870（跳过 523）；Script 305 + 新增 140（跳过 78）；
-Rule 3558（含分流补入 579）；Argument 74；MITM 1379（blockAdsV2 收敛丢弃 23）。
-Thelongdarkorg 29 个插件并入：Rewrite 新增 274（跳过 57，共 331）、Rule 新增 112（跳过 169，共 281）。
-
-### 4.3 Thelongdarkorg [Rule] 并入策略
-
-Thelongdarkorg 各 App 插件的 `[Rule]` 并入遵循与分流补全一致的**语义覆盖判定**：
-
-- 常规规则（`DOMAIN` / `DOMAIN-SUFFIX` / `DOMAIN-KEYWORD` / `IP-CIDR` / `IP-CIDR6`）：
-  用同一索引判定，已被 base/blockAdsV2/分流补全覆盖的跳过，只补新增；
-- 组合逻辑规则（`AND` / `OR` / `URL-REGEX`）：因含 `PROTOCOL`（QUIC 阻断）等无法用域名
-  索引判定的维度，保守处理——**精确字符串去重后全部保留**，不因判不出覆盖而误删；
-- 与源文件防护注释保持一致，不做凭条数/字符串的简单去重。
+3. 组合逻辑（`AND` / `OR` / `URL-REGEX`）保守处理，精确去重后全部保留。
+- aoomee 的小写规则类型/策略（`domain`/`ip-cidr`/`reject`/`direct` 等）统一归一化；
+  IP-CIDR（/32）缺 `no-resolve` 自动补全。
 
 ## 五、R-Store 重写转换做了什么（QuanX → Loon）
 
@@ -144,7 +152,6 @@ Thelongdarkorg 各 App 插件的 `[Rule]` 并入遵循与分流补全一致的**
 | `^re url script-response-body <js>` | `[Script] http-response ^re script-path=<js>,requires-body=true` |
 | `^re url response-body A response-body B` | `^re response-body-replace-regex A B` |
 | `^re url jsonjq-response-body 'jq'` | `response if ${url} ~= /re/ then response.json.jq(\`jq\`)` |
-| `^re url echo-response json echo-response URL` | `... then response.body.mock_file("json", "URL", 200)` |
 | `^re url 302 URL`（含 `$1`） | `... as m then redirect(302, "...${m.1}...")` |
 | `^re url request-header A request-header B` | `^re header-replace-regex <头名> ^.*$ <值>` |
 
@@ -152,50 +159,51 @@ Thelongdarkorg 各 App 插件的 `[Rule]` 并入遵循与分流补全一致的**
 
 - **原子组降级**：`(?>...)` ICU 不支持，全部转 `(?:...)`。
 - **脚本移出 rewrite**：Loon 脚本在 `[Script]` 段，用 `http-response` / `http-request`。
-- **二进制脚本加 `binary-body-mode`**：`$response.body` 默认是字符串，声明
-  `binary-body-mode=true` 才是 `Uint8Array`。protobuf 类脚本（`youtube`、`bilibiliProtoA`、
-  `tiebaProto`、`spotify`、`baiduMap`）按字节读取，拿到字符串会解析失败、放空响应，
-  表现为 App 一直转圈（如 YouTube 首页刷不出新视频）。转换器自动为这 5 个脚本加标记，
-  并做启发式扫描覆盖未来新增。
-- **新旧语法同段混用**：Loon 官方允许 Rewrite/Script 新旧语法共存，已验证规则保留原写法。
-- **缺 TLD / 拼写纠错 / 漏写补全**：末段含数字判定缺 TLD 并从规则补全；单字符编辑
-  可匹配规则时自动纠错（如 `*.souhu.com→*.sohu.com`、`aimai-guide.ele.me→waimai-guide.ele.me`）；
-  规则主机未被 hostname 覆盖时补全（顺丰、飞猪、到家、苏宁等）。
+- **二进制脚本加 `binary-body-mode`**：protobuf 类脚本按字节读取，声明
+  `binary-body-mode=true` 才是 `Uint8Array`，否则解析失败、放空响应、App 一直转圈。
+- **新旧语法同段混用**：Loon 官方允许 Rewrite/Script 新旧语法共存。
 - **生成后自检**：`validate_plugin.py` 独立校验非法 hostname、裸公共后缀、未知动作、
-  二进制脚本标记、typo 复现、主机覆盖；发现硬错误即失败，阻止错误产物提交。
+  二进制脚本标记、主机覆盖；发现硬错误即失败，阻止错误产物提交。
 
-## 六、已知差异
+## 六、已知差异与边界
 
 - QuanX `reject` 返回 404，Loon `reject` 是直接断开；App 弹网络错误可改 `reject-200`。
-- 脚本文件多为上游 QuanX 版 JS，但内嵌跨平台适配层（MagicJS 等），Loon 下自动走
-  `$persistentStore` / `$httpClient` / `$notification` / `$done`；QuanX 专属调用在
-  `isQuanX` 分支或类型守卫内，不会执行。个别 protobuf 脚本用到 `$utils.ungzip`，
-  需 Loon Build ≥ 988。
-- Spotify artistview 302 上游把原子组当子域名捕获，转换器已定向修正为显式捕获子域名。
-- 1 条 `url-and-header` 复合匹配 Loon 无对应动作，已跳过。
+- **裸 IP / IP 段**：官方 MITM hostname 只认域名（靠 SNI 判断解密），不接受 IP。
+  官方 `[IP Rewrite]`（Build 1007+）是 TUN 层整 IPv4 精确匹配（不接受 CIDR/IPv6），
+  动作仅 reflect/reject/drop，不能跑脚本、不能按路径/端口，无法等价替代
+  「IP + 路径 + reject-dict/脚本」。故保留 21 条 IP 守卫（明文 HTTP 可命中，
+  HTTPS 直连难解密但无害），不往 MITM 塞非法 IP。
+- 脚本文件多为上游 QuanX 版 JS，内嵌跨平台适配层（MagicJS 等），Loon 下自动走
+  `$persistentStore` / `$httpClient` / `$notification` / `$done`。
+- 部分无守卫的 MITM hostname 是上游规则被去重后的残留声明，仅多解密、无规则动作，不影响去广告。
 
 ## 七、常见问题
 
 **1. 添加插件报 `Code=261 未能使用 UTF-8 打开 …lpx`**
 
-文件本身没问题，是 Loon 本地缓存的下载坏了（大文件被截断）。解决：删除插件并彻底重启
-Loon 再添加；或换 raw URL 形式（哈希不同强制重下），`.../refs/heads/main/x.plugin` 与
-`.../main/x.plugin` 内容相同、不影响更新；最稳是放进 iCloud 的 `Loon/Plugins/` 目录直接填文件名。
+文件本身没问题，是 Loon 本地缓存下载坏了（大文件被截断）。删除插件并彻底重启 Loon
+再添加；或换 raw URL 形式强制重下；最稳是放进 iCloud 的 `Loon/Plugins/` 目录直接填文件名。
 
 **2. 到点没看到自动运行**
 
 定时“尽力而为”，可能延迟漏跑，手动触发不影响定时；可在 Actions 手动 Run workflow。
 
-**3. 我需要同时装 blockAdsV2 或细分 App 插件和这个合集吗？**
+**3. 我需要同时装独立 App 插件和这个合集吗？**
 
-不需要。blockAdsV2 与 Thelongdarkorg 的 29 个细分 App 去广告插件都已完整并入，
+不需要。zmjde（滴滴/拼多多）、aoomee、Thelongdarkorg 等独立 App 插件都已按优先级完整并入，
 再装属于重复（一般无害，仅增加 MITM/脚本开销），保留 `allAdRewrite.plugin` 一个即可。
 
-**4. 某 App 一直转圈、刷不出新内容（如 YouTube 首页只有缓存图）**
+**4. 某 App 一直转圈、刷不出内容**
 
 多为 protobuf 脚本没拿到二进制 body，已通过 `binary-body-mode=true` 解决；更新到最新
 插件即可，仍异常就先关掉该插件确认是否由它引起。
 
-**5. 个别脚本报 `$utils.ungzip` 错误**
+**5. 自动更新会拉取 aoomee、zmjde 吗？**
 
-需 Loon Build ≥ 988，升级即可，不影响其他脚本。
+会。工作流每次运行都重新 clone aoomee、Thelongdarkorg、zmjde 最新仓库，并通过
+`--aoomee` / `--apps` / `--zmjde` 传入合并，独立 App 插件的更新自动生效。
+
+**6. base 没更新、但其他来源更新了，会提交吗？**
+
+会。提交判定看最终合并产物 `allAdRewrite.plugin` 的整体变化，任一来源（含 zmjde 等）
+让它变化都会提交，不要求 base 单独变化；全部来源都无变化才跳过。
