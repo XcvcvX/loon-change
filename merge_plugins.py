@@ -82,6 +82,15 @@ _KNOWN_TLD = {
 _MITM_SKIP_DOMAINS = (
     'amemv.com',   # 抖音核心 API（api.amemv.com）与 Frontier 长连接，SSL Pinning
     'ios.chat.openai.com',  # ChatGPT App 证书校验，强制 MITM 致新版本无法使用（R-Store 源已明示警告）
+    # 以下 7 个为 R-Store 源自带「⚠️ 已无法 MITM / 可能导致 App 功能不可用」警告的证书绑定域，
+    # 承载的规则均为开屏/广告拦截，pinning 下握手本就失败、规则不生效，源头 pass 零广告损失并避免 App 故障。
+    'mobilepaas.abchina.com.cn',  # 农行；无规则动作、纯解密，上游标注「已无法 MITM」
+    'images.cib.com.cn',          # 兴业银行；上游标注「已无法 MITM」
+    'elife.icbc.com.cn',          # 工行；开屏广告守卫，可能致 App 功能不可用
+    'openapi.boc.cn',             # 中行；广告列表守卫，可能致中行 App 异常
+    'res.cc.cmbimg.com',          # 招行；body 替换守卫，可能致功能不可用
+    'wcmp.189.cn',                # 中国电信；广告项守卫，可能致功能不可用
+    'm.ctrip.com',                # 携程；上游提示「可能存在无法 MITM，需要使用时关闭 MITM」
 )
 
 
@@ -954,6 +963,33 @@ for _h in sorted(guard_hosts_from_lines(merged_rw + merged_sc)):
         mitm_healed.append(_h)
 mitm = dedup_keep_order(mitm)
 
+
+def prune_unused_mitm(mitm_hosts, guard_hosts):
+    """裁剪不服务任何最终 Rewrite/Script 守卫的 MITM host（无规则动作、仅解密的上游 hostname 残留）。
+    guard_hosts：guard_hosts_from_lines 输出的「需要集合」（具体 host + 标准 *.通配）。
+    具体 host 保留当它在守卫具体集合、或被守卫通配覆盖；通配保留当它覆盖守卫具体 host、或与守卫通配同后缀。"""
+    g_conc = {h for h in guard_hosts if not h.startswith('*.')}
+    g_wild = {h for h in guard_hosts if h.startswith('*.')}
+
+    def keep(m):
+        if m.startswith('*.'):
+            suf = m[2:]
+            if any(h == suf or h.endswith('.' + suf) for h in g_conc):
+                return True
+            return any(suf == w[2:] or suf.endswith('.' + w[2:])
+                       or w[2:].endswith('.' + suf) for w in g_wild)
+        if m in g_conc:
+            return True
+        return any(m == w[2:] or m.endswith('.' + w[2:]) for w in g_wild)
+
+    return [m for m in mitm_hosts if keep(m)]
+
+
+# 自动裁剪：移除不服务任何最终规则、仅解密的冗余 MITM host；已 pass 的 pinning 域不在 guard_real 内，自然被裁。
+_mitm_before_prune = len(mitm)
+mitm = prune_unused_mitm(mitm, guard_real)
+mitm_pruned = _mitm_before_prune - len(mitm)
+
 # ---------------- 输出 ----------------
 today = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
 header = [
@@ -989,7 +1025,10 @@ print('  Rule 来源：aoomee 新增 %d（跳过 %d）；thelong 新增 %d（跳
 if args.filter != 'none':
     print('  分流补全：R-Store %d 条，已覆盖 %d，补入 %d'
           % (fstats['total'], fstats['covered'], fstats['added']))
-print('  MITM   ：%d 个主机（无法收敛丢弃 %d）' % (len(mitm), len(dropped)))
+print('  MITM   ：%d 个主机（无法收敛丢弃 %d，自动裁剪无动作 %d）'
+      % (len(mitm), len(dropped), mitm_pruned))
+if mitm_pruned:
+    print('  MITM 自动裁剪：移除 %d 个不服务任何规则、仅解密的冗余 host' % mitm_pruned)
 if mitm_healed:
     print('  MITM 自愈补全 %d 个：%s' % (len(mitm_healed), ', '.join(mitm_healed[:15])))
 if dropped:

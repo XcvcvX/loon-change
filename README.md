@@ -41,7 +41,7 @@ base / blockAdsV2 / adultraplus 的对应行。数字小 = 优先级高：
 | `allAdRewrite.plugin` | 单插件自包含：开关 + 分流 + 重写 + 脚本 + MITM |
 
 当前 `allAdRewrite.plugin` 含五个段：`[Argument]`（91 个开关）、`[Rule]`（3446 条）、
-`[Rewrite]`（3535 条）、`[Script]`（957 条）、`[MITM]`（1708 个主机）。
+`[Rewrite]`（3535 条）、`[Script]`（957 条）、`[MITM]`（1475 个主机）。
 
 ## 一、直接使用（不用自己搭仓库）
 
@@ -151,7 +151,17 @@ python3 validate_plugin.py allAdRewrite.plugin
   "可能导致新版本无法使用"。该 host 进 MITM 后，ChatGPT App 证书校验失败、弹"网络配置问题"
   且无法对话（系统 CA 已信任，属 App 层校验）。已把 `ios.chat.openai.com` 加入
   `_MITM_SKIP_DOMAINS`，从收集与自愈环节 pass、直连恢复；原 `app_support_status` 规则保留
-  但 HTTPS 下不生效、无害。MITM 1709→1708，其余四段不变。
+  但 HTTPS 下不生效、无害。
+- **7 个上游警告域批量源头 pass**：R-Store 源对多个证书绑定域自带「⚠️ 已无法 MITM / 可能导致
+  App 功能不可用」警告。已将 7 个具体 host 加入 `_MITM_SKIP_DOMAINS`：`mobilepaas.abchina.com.cn`
+  （农行，0 规则动作、纯解密）、`images.cib.com.cn`（兴业）、`elife.icbc.com.cn`（工行）、
+  `openapi.boc.cn`（中行）、`res.cc.cmbimg.com`（招行）、`wcmp.189.cn`（电信）、`m.ctrip.com`
+  （携程）。这些域 pinning，开屏/广告规则在握手失败下本就不生效，pass 零广告损失并避免手机银行、
+  携程、电信 App 故障；对应规则保留但 HTTPS 下不生效、无害。
+- **无动作 host 自动裁剪**：新增 `prune_unused_mitm`，在自愈后按最终 Rewrite/Script 守卫集合
+  反向裁剪——移除不服务任何规则、仅解密的冗余 hostname（上游规则被去重后的残留声明）。已验证裁剪
+  不新增任何覆盖缺口（守卫具体 host 仍被覆盖），非 MITM 四段 md5 不变。综合上述 pass，MITM
+  1708→1475（具体 1392 + 标准通配 83）。
 
 ### 4.3 分流补全到 `[Rule]`
 
@@ -198,7 +208,8 @@ python3 validate_plugin.py allAdRewrite.plugin
   HTTPS 直连难解密但无害），不往 MITM 塞非法 IP。
 - 脚本文件多为上游 QuanX 版 JS，内嵌跨平台适配层（MagicJS 等），Loon 下自动走
   `$persistentStore` / `$httpClient` / `$notification` / `$done`。
-- 部分无守卫的 MITM hostname 是上游规则被去重后的残留声明，仅多解密、无规则动作，不影响去广告。
+- 无守卫的 MITM hostname（上游规则被去重后的残留声明，仅多解密、无规则动作）已由
+  `prune_unused_mitm` 在合并时自动裁剪，不进入最终产物；详见 4.2 节。
 - **整域通配不凭空补**：脚本不再把通配守卫（`.+\.x.com`、`m*.x.com`）退化成整域
   `*.x.com` 强制 MITM，也不通过自愈补这类整域通配。仅保留上游明确写的标准 `*.后缀`，
   其余用守卫反查具体 host、查不到即丢弃。这样从根本上避免 Pinning 域被强制解密而握手失败
@@ -259,5 +270,13 @@ REJECT 规则的误杀（两层修复见"六、已知差异与边界"）。更�
 "可能导致新版本无法使用"的警告）。更新到把该域加入 `_MITM_SKIP_DOMAINS` 的最新插件后，
 **移除本地 `-*.openai.com` 临时绕过**，重新加载并彻底重启 ChatGPT 即可；可先关闭整个 MITM
 验证，能对话即确认是该域名问题。
+
+**9. 手机银行/银联/携程/电信 App 异常，或担心多余解密**
+
+R-Store 上游对 7 个证书绑定域（农行、兴业、工行、中行、招行、电信、携程）自带「⚠️ 已无法
+MITM / 可能导致功能不可用」警告，最新插件已把它们源头 pass，并自动裁剪所有不服务规则、仅解密的
+冗余 host（MITM 1708→1475）。这些域的开屏/广告规则在 pinning 下本就不生效，pass 零广告损失。
+若某 App 仍异常，可在 Loon 请求记录里看是否有对应域名 "MITM Failed"，把具体域名反馈以便补充
+`_MITM_SKIP_DOMAINS`；不建议自行整域 `-` 以免误伤其他不 pinning 的子域。
 
 > （注：部分内容由豆包 AI 生成）
