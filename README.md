@@ -41,7 +41,7 @@ base / blockAdsV2 / adultraplus 的对应行。数字小 = 优先级高：
 | `allAdRewrite.plugin` | 单插件自包含：开关 + 分流 + 重写 + 脚本 + MITM |
 
 当前 `allAdRewrite.plugin` 含五个段：`[Argument]`（91 个开关）、`[Rule]`（3446 条）、
-`[Rewrite]`（3535 条）、`[Script]`（957 条）、`[MITM]`（1760 个主机）。
+`[Rewrite]`（3535 条）、`[Script]`（957 条）、`[MITM]`（1709 个主机）。
 
 ## 一、直接使用（不用自己搭仓库）
 
@@ -126,16 +126,23 @@ python3 validate_plugin.py allAdRewrite.plugin
 - **无守卫行保留**：`generic` / `cron` 全局脚本（无 URL 守卫）按脚本 URL 独立保留，
   不参与正则去重。
 
-### 4.2 MITM 收敛与自愈
+### 4.2 MITM 收敛与自愈（只收明确 host，不凭空整域通配）
 
-- 各来源 hostname 做格式校验（`HOST_OK`）、中间/前缀通配退化为 `*.最长字面后缀`，
-  裸 IP、通配 TLD、源损坏等无法安全收敛的主机丢弃。
-- **TLD 白名单**：静态白名单覆盖常见 TLD，并已补入实际出现的 `so` / `group` / `ltd`，
-  避免合法域名被误丢导致 HTTPS 规则静默失效。
-- **自愈扫描 Rewrite + Script**：从最终 Rewrite/Script 守卫反提取 host，凡未被 MITM
-  覆盖的一律补全。脚本段（`http(s)-request/response`）守卫同样需要 MITM，不可漏扫。
-- 反向核查口径：**最终守卫 host 除主动放行的证书绑定域（`*.amemv.com`）外，必须被 MITM
-  覆盖，0 缺口**（当前 1407 个守卫中，1406 全覆盖，1 个 amemv 主动 pass，见 4.2 末尾）。
+- **只接受两类明确 host**：① 具体域名（无通配）；② 上游明确声明的标准 `*.后缀`
+  （开头 `*.`、其余无通配）。均通过 `HOST_OK` 格式校验与真实 TLD 白名单。
+- **不做中间/前缀通配的整域退化**：形如 `m*.amap.com`、`*.xima.*` 的守卫，不再退化成
+  `*.域` 整域通配。整域通配会把"窄路径规则"扩大成对整域所有子域强制 MITM，一旦该域
+  SSL Pinning 就会握手失败、搞挂核心功能（amemv 故障即源于此，见本节末尾）。
+- **无法安全收敛的条目**：用守卫真实 host 反查（`host_wildcard_resolve`，标签级匹配、
+  不臆造 TLD），**只接受具体 host、过滤通配结果**，反查到几个就保留几个；查不到则丢弃。
+  裸 IP、通配 IP、源损坏截断条目同样丢弃。
+- **TLD 白名单**：静态白名单覆盖常见 TLD，并补入实际出现的 `so` / `group` / `ltd`，
+  避免合法域名被误丢。
+- **自愈只补具体 host**：扫描最终 Rewrite + Script 守卫，对未覆盖的**具体 host** 补全
+  （脚本段 `http(s)-request/response` 同样扫描，不漏段）；守卫退化出的整域通配**不补**。
+- **覆盖口径**：当前 3858 条 HTTPS 路径规则被 MITM 覆盖；192 条仅整域通配守卫的规则
+  主动放弃（对应 49 个 `*.域`，全为广告/埋点路径）。这些域若 Pinning，旧机制本就 MITM
+  失败、规则无法生效，放弃零损失；若不 Pinning，则仅这部分路径广告不拦截，App 功能不受影响。
 - **证书绑定域主动 pass**：`amemv.com` 做了 SSL Pinning，强制 MITM 会握手失败（请求记录
   "MITM Failed"、0 字节），导致抖音核心 API 与长连接全断、私信无法收发。脚本用
   `_MITM_SKIP_DOMAINS` + `mitm_skip_host` 在收集与自愈环节统一过滤，amemv 整体不进 MITM
@@ -187,6 +194,10 @@ python3 validate_plugin.py allAdRewrite.plugin
 - 脚本文件多为上游 QuanX 版 JS，内嵌跨平台适配层（MagicJS 等），Loon 下自动走
   `$persistentStore` / `$httpClient` / `$notification` / `$done`。
 - 部分无守卫的 MITM hostname 是上游规则被去重后的残留声明，仅多解密、无规则动作，不影响去广告。
+- **整域通配不凭空补**：脚本不再把通配守卫（`.+\.x.com`、`m*.x.com`）退化成整域
+  `*.x.com` 强制 MITM，也不通过自愈补这类整域通配。仅保留上游明确写的标准 `*.后缀`，
+  其余用守卫反查具体 host、查不到即丢弃。这样从根本上避免 Pinning 域被强制解密而握手失败
+  （amemv 故障的架构成因）；代价是 192 条整域通配广告路径不拦截，App 核心功能不受影响。
 - **抖音私信故障的两层修复**（现象：能收到 APNs 推送、但收发不了实时消息——推送走苹果
   系统通道、不经过 App 长连接）：
   1. **Rule 层 frontier 放行**：Frontier 是字节系 WebSocket 长连接网关（如

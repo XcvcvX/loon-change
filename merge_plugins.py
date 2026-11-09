@@ -335,7 +335,8 @@ def host_wildcard_resolve(pattern, guard_hosts):
 def normalize_extra_host(h, guard_hosts=None):
     """hostname -> Loon 合法 hostname 列表；无法安全收敛返回 []。
     保留 - 前缀排除项（对收敛后的主体重新加 -）。
-    裸 IP / 通配 IP 丢弃；缺 TLD / 通配 TLD 项先字符串收敛，失败再用守卫真实 host 反查。"""
+    裸 IP / 通配 IP 丢弃；只接受具体域名与上游明确的标准 *.后缀，
+    不做中间通配的整域退化；其余用守卫真实 host 反查、只取具体 host，查不到即丢弃。"""
     h = h.strip().strip('.')
     neg = False
     if h.startswith('-'):
@@ -365,27 +366,19 @@ def normalize_extra_host(h, guard_hosts=None):
     if '*' not in h and '?' not in h:
         if HOST_OK.match(h) and has_real_tld(h) and not is_public_suffix(h):
             out = [h]
-    # 标准 *.后缀
+    # 标准 *.后缀（上游明确声明，保留）
     elif h.startswith('*.') and '*' not in h[2:] and '?' not in h[2:]:
         if HOST_OK.match(h[2:]) and has_real_tld(h) and not is_public_suffix(h[2:]):
             out = [h]
-    # 中间/前缀通配（m*.amap.com、*-spclient、*default...）：退化为 *.最长字面后缀
-    else:
-        lit = []
-        for lab in reversed([x for x in h.split('.') if x]):
-            if '*' in lab or '?' in lab:
-                break
-            lit.append(lab)
-        lit = lit[::-1]
-        need = 3 if '.'.join(lit[-2:]).lower() in PUBLIC_SUFFIX_2L else 2
-        res = '*.' + '.'.join(lit)
-        if (len(lit) >= need and re.match(r'^\*\.[A-Za-z0-9\-\.]+$', res)
-                and has_real_tld(res) and not is_public_suffix('.'.join(lit[-need:]))):
-            out = [res]
+    # 中间/前缀通配（m*.amap.com、*-spclient、*default...）：不做整域退化。
+    # 整域退化会把窄路径规则扩大成 *.域 强制 MITM，pinning 下会重蹈 amemv 故障，
+    # 故统一交给下方守卫反查，只接受真实出现的具体 host。
 
-    # 字符串无法安全收敛（缺 TLD 等）：用守卫真实 host 反查，不臆造 TLD
+    # 字符串无法安全收敛（缺 TLD/中间通配）：用守卫真实 host 反查，
+    # 只取具体 host（不含通配），不臆造 TLD、不扩大整域；查不到则丢弃。
     if not out and guard_hosts:
-        out = host_wildcard_resolve(guard_pat, guard_hosts)
+        out = [x for x in host_wildcard_resolve(guard_pat, guard_hosts)
+               if '*' not in x and '?' not in x]
     return ['-' + x for x in out] if neg else out
 
 
@@ -951,6 +944,9 @@ mitm_healed = []
 for _h in sorted(guard_hosts_from_lines(merged_rw + merged_sc)):
     # 证书绑定域（如 amemv）整体 pass：守卫退化出的 *.amemv.com 不补进 MITM
     if mitm_skip_host(_h):
+        continue
+    # 只补具体 host：守卫退化出的整域通配（*.域）不补，避免 pinning 域被强制 MITM 而握手失败
+    if '*' in _h or '?' in _h:
         continue
     if not _mitm_covered(_h, set(mitm)):
         mitm.append(_h)
