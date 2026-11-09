@@ -94,6 +94,9 @@ ap.add_argument('--aoomee', default=None,
 ap.add_argument('--zmjde', default=None,
                 help='zmjde/loon-plugins 仓库目录（工作流 clone 后传入）；读取其中 4 个指定 .lpx：'
                      'DiDi/PinDuoDuo 作为 App 高优先级完整并入，Block_HTTPDNS/BlockAdvertisers 以 base 优先只补不覆盖')
+ap.add_argument('--qxapp', action='append', default=None,
+                help='QuanX 单文件 App 插件（.conf，如瓜子影视）本地路径，可重复传入；'
+                     '脚本内解析 hostname 并把 qx 规则转为 Loon v2，按专属 App 高优先级完整并入')
 ap.add_argument('--out', required=True, help='合并输出路径')
 args = ap.parse_args()
 
@@ -734,14 +737,61 @@ if args.zmjde:
         else:
             zmj_gen_rw += rw; zmj_gen_sc += sc; zmj_gen_rule += rule; zmj_gen_mitm += hm
 
+# ---------------- QuanX 单文件 App 插件（.conf，可重复，如瓜子影视）----------------
+qxapp_rw, qxapp_mitm = [], []
+
+
+def _qx_relit(s):
+    """QuanX 正则 -> Loon v2 正则字面量 /pattern/，未转义的 / 转义"""
+    out, i, n = [], 0, len(s)
+    while i < n:
+        if s[i] == '\\' and i + 1 < n:
+            out.append(s[i:i + 2]); i += 2
+        elif s[i] == '/':
+            out.append(r'\/'); i += 1
+        else:
+            out.append(s[i]); i += 1
+    return '/' + ''.join(out) + '/'
+
+
+def parse_qx_app_file(path):
+    """解析单个 QuanX .conf：返回 (Loon v2 规则行, MITM host)。
+    目前覆盖该类文件实际出现的 jsonjq-response-body；未识别的动作跳过（不静默乱转）。"""
+    hosts, out = [], []
+    for raw in open(path, encoding='utf-8').read().split('\n'):
+        line = raw.strip()
+        if not line or line.startswith('//') or line.startswith('#'):
+            continue
+        if line.startswith('hostname'):
+            hosts += [h.strip() for h in line.split('=', 1)[1].split(',') if h.strip()]
+            continue
+        if line.startswith('^http'):
+            m = re.match(r'^(\S+)\s+url\s+(.+)$', line)
+            if not m:
+                continue
+            jm = re.match(r"^jsonjq-response-body\s+'(.*)'\s*$", m.group(2))
+            if jm:
+                jq = jm.group(1).replace('`', '``')
+                out.append('response if ${url} ~= %s then response.json.jq(`%s`)'
+                           % (_qx_relit(m.group(1)), jq))
+    return out, hosts
+
+
+if args.qxapp:
+    for path in args.qxapp:
+        if not os.path.exists(path):
+            raise SystemExit('qxapp 缺少文件: %s' % path)
+        rw, hm = parse_qx_app_file(path)
+        qxapp_rw += rw; qxapp_mitm += hm
+
 # ---------------- 执行优先级合并 ----------------
-# 位置顺序：base 骨架 -> block -> zmjde通用 -> mix -> thelong -> aoomee -> zmjdeApp；
-# 同正则由 prio 决定覆盖（zmjde App 最高，zmjde 通用低于 base、只补不覆盖）
-rw_feeds = [('base', 3, base_rw), ('block', 4, block_rw), ('zmjgen', 5, zmj_gen_rw),
-            ('mix', 6, mix_rw), ('thelong', 2, thelong_rw), ('aoomee', 1, ao_rw),
-            ('zmjapp', 0, zmj_app_rw)]
-sc_feeds = [('base', 3, base_sc), ('block', 4, block_sc), ('zmjgen', 5, zmj_gen_sc),
-            ('mix', 6, mix_sc), ('thelong', 2, thelong_sc), ('aoomee', 1, ao_sc),
+# 位置顺序：base 骨架 -> block -> zmjde通用 -> mix -> thelong -> aoomee -> qx单文件App -> zmjdeApp；
+# 同正则由 prio 决定覆盖（zmjde App 最高，qx 专属 App 次之；zmjde 通用低于 base、只补不覆盖）
+rw_feeds = [('base', 4, base_rw), ('block', 5, block_rw), ('zmjgen', 6, zmj_gen_rw),
+            ('mix', 7, mix_rw), ('thelong', 3, thelong_rw), ('aoomee', 2, ao_rw),
+            ('qxapp', 1, qxapp_rw), ('zmjapp', 0, zmj_app_rw)]
+sc_feeds = [('base', 4, base_sc), ('block', 5, block_sc), ('zmjgen', 6, zmj_gen_sc),
+            ('mix', 7, mix_sc), ('thelong', 3, thelong_sc), ('aoomee', 2, ao_sc),
             ('zmjapp', 0, zmj_app_sc)]
 merged_rw, rw_unguarded = priority_merge([(p, x) for _, p, x in rw_feeds])
 merged_sc, sc_unguarded = priority_merge([(p, x) for _, p, x in sc_feeds])
@@ -848,7 +898,7 @@ for l in extra_sec.get('MITM', []):
     if '=' in l:
         extra_raw += [x.strip() for x in l.split('=', 1)[1].split(',') if x.strip()]
 dropped = []
-for h in extra_raw + thelong_mitm + ao_mitm + zmj_app_mitm + zmj_gen_mitm + mix_mitm:
+for h in extra_raw + thelong_mitm + ao_mitm + zmj_app_mitm + zmj_gen_mitm + qxapp_mitm + mix_mitm:
     got = normalize_extra_host(h, guard_real)
     if not got:
         dropped.append(h)
@@ -876,13 +926,13 @@ mitm = dedup_keep_order(mitm)
 today = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
 header = [
     '#!name=R-Store × blockAdsV2 × 独立 App 去广告净化合集',
-    '#!desc=合并 R-Store、blockAdsV2、Thelongdarkorg、aoomee、adultraplus；按 URL 正则去重，'
-    '独立 App 插件优先（aoomee>Thelongdarkorg），同正则替换综合源；[Rule] 已含多套分流，单插件自包含',
-    '#!author=zirawell / fmz200 / Thelongdarkorg / aoomee / yfamilys（本仓库自动合并）',
+    '#!desc=合并 R-Store、blockAdsV2、Thelongdarkorg、aoomee、zmjde、ddgksf2013 瓜子、adultraplus；'
+    '按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含',
+    '#!author=zirawell / fmz200 / Thelongdarkorg / aoomee / zmjde / ddgksf2013 / yfamilys（本仓库自动合并）',
     '#!homepage=https://github.com/XcvcvX/loon-change',
     '#!merged-at=%s' % today,
-    '#!note=独立 App 插件（aoomee/Thelongdarkorg）优先级最高；新旧语法同段混用，Loon 均支持。',
-    '#!sources=R-Store(QuanX->Loon)+blockAdsV2+Thelongdarkorg+aoomee/Loon-Adblock-Plugins+yfamilys/adultraplus',
+    '#!note=专属 App 插件（zmjde/qx 单文件/aoomee/Thelongdarkorg）优先级最高；新旧语法同段混用，Loon 均支持。',
+    '#!sources=R-Store(QuanX->Loon)+blockAdsV2+Thelongdarkorg+aoomee+zmjde+ddgksf2013/GuaZiVideoAds+yfamilys/adultraplus',
     '',
 ]
 out = list(header)
