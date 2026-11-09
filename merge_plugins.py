@@ -81,6 +81,7 @@ _KNOWN_TLD = {
 # hostname 都在收集与自愈环节直接 pass，从源头不进 [MITM]，不使用负向 - 语法；自动更新不回退。
 _MITM_SKIP_DOMAINS = (
     'amemv.com',   # 抖音核心 API（api.amemv.com）与 Frontier 长连接，SSL Pinning
+    'ios.chat.openai.com',  # ChatGPT App 证书校验，强制 MITM 致新版本无法使用（R-Store 源已明示警告）
 )
 
 
@@ -995,4 +996,3 @@ if dropped:
     print('  丢弃的 hostname：', ', '.join(dropped[:20]))
 if args.mix:
     print('  Mix    ：adultraplus 清洗，非去广告私货剔除 %d' % mix_stats['non_ad_drop'])
-#（注：内容由AI生成）

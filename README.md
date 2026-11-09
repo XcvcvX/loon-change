@@ -41,7 +41,7 @@ base / blockAdsV2 / adultraplus 的对应行。数字小 = 优先级高：
 | `allAdRewrite.plugin` | 单插件自包含：开关 + 分流 + 重写 + 脚本 + MITM |
 
 当前 `allAdRewrite.plugin` 含五个段：`[Argument]`（91 个开关）、`[Rule]`（3446 条）、
-`[Rewrite]`（3535 条）、`[Script]`（957 条）、`[MITM]`（1709 个主机）。
+`[Rewrite]`（3535 条）、`[Script]`（957 条）、`[MITM]`（1708 个主机）。
 
 ## 一、直接使用（不用自己搭仓库）
 
@@ -147,6 +147,11 @@ python3 validate_plugin.py allAdRewrite.plugin
   "MITM Failed"、0 字节），导致抖音核心 API 与长连接全断、私信无法收发。脚本用
   `_MITM_SKIP_DOMAINS` + `mitm_skip_host` 在收集与自愈环节统一过滤，amemv 整体不进 MITM
   （从源头 pass，不用负向 `-` 语法），相关域名直连、私信恢复。
+- **ChatGPT 故障同样源头 pass**：R-Store 源在 `ios.chat.openai.com` 规则上已自带警告
+  "可能导致新版本无法使用"。该 host 进 MITM 后，ChatGPT App 证书校验失败、弹"网络配置问题"
+  且无法对话（系统 CA 已信任，属 App 层校验）。已把 `ios.chat.openai.com` 加入
+  `_MITM_SKIP_DOMAINS`，从收集与自愈环节 pass、直连恢复；原 `app_support_status` 规则保留
+  但 HTTPS 下不生效、无害。MITM 1709→1708，其余四段不变。
 
 ### 4.3 分流补全到 `[Rule]`
 
@@ -247,3 +252,12 @@ python3 validate_plugin.py allAdRewrite.plugin
 REJECT 规则的误杀（两层修复见"六、已知差异与边界"）。更新到含 `mitm_skip_host` 与
 `is_frontier_guard` 保护的最新插件后，**移除本地 `-*.amemv.com` 临时绕过**，在 Loon 重新
 加载插件并彻底重启抖音即可验证；APNs 推送正常正是系统通道与 App 长连接相互独立的典型表现。
+
+**8. ChatGPT 弹"网络配置问题"、无法对话**
+
+根因是 `ios.chat.openai.com` 被强制 MITM，App 层证书校验失败（R-Store 源对该域名本就有
+"可能导致新版本无法使用"的警告）。更新到把该域加入 `_MITM_SKIP_DOMAINS` 的最新插件后，
+**移除本地 `-*.openai.com` 临时绕过**，重新加载并彻底重启 ChatGPT 即可；可先关闭整个 MITM
+验证，能对话即确认是该域名问题。
+
+> （注：部分内容由豆包 AI 生成）
