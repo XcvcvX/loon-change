@@ -99,9 +99,9 @@ class MergeIntegrationTests(unittest.TestCase):
 
     def test_wildcard_mitm_does_not_cover_apex_domain(self):
         output = self.run_merge(
-            "[Rewrite]\\n^https://example.com/ad reject\\n"
-            "[MITM]\\nhostname = *.example.com\\n",
-            "[Rewrite]\\n[MITM]\\nhostname = \\n")
+            "[Rewrite]\n^https://example.com/ad reject\n"
+            "[MITM]\nhostname = *.example.com\n",
+            "[Rewrite]\n[MITM]\nhostname = \n")
         mitm_line = next(line for line in output.splitlines()
                          if line.strip().startswith("hostname ="))
         self.assertIn("example.com", mitm_line)
