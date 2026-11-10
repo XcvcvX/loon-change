@@ -31,11 +31,11 @@ class SourceGuardTests(unittest.TestCase):
 
     def test_blockv2_requires_sections_and_rules(self):
         text = "[Rewrite]\n" + "\n".join("^https://a.example.com/%d reject" % i for i in range(5))
-        text += "\n[MITM]\nhostname = a.example.com\n"
+        text += "\n[MITM]\nhostname = a.example.com\n# " + "x" * 150
         self.assertEqual(validate_blockv2(text)["rule_entries"], 5)
 
     def test_myblockads_requires_rewrite_content(self):
-        text = "[Rewrite]\n" + "\n".join("^https://a.example.com/%d reject" % i for i in range(5))
+        text = "[Rewrite]\n" + "\n".join("^https://a.example.com/%d reject" % i for i in range(5)) + "\n# " + "x" * 150
         self.assertEqual(validate_myblockads(text)["rule_entries"], 5)
 
     def test_clone_preflight_requires_all_expected_inputs(self):
