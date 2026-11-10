@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - 'validate_plugin.py'
+      - 'merge_plugins.py'
+      - 'test_merge_plugins.py'
       - 'test_validate_plugin.py'
       - '.github/workflows/sync.yml'
       - 'README.md'
@@ -16,7 +18,23 @@ permissions:
   contents: write
 
 jobs:
+  pull-request-check:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出仓库
+        uses: actions/checkout@v4
+      - name: 准备 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 编译检查
+        run: python3 -m py_compile merge_plugins.py validate_plugin.py convert_qx2loon.py convert_filter_qx2loon.py
+      - name: 运行单元与合并集成测试
+        run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_merge_plugins.py
+
   sync:
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: 检出仓库
