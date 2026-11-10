@@ -511,8 +511,8 @@ if args.myblockads == 'fetch':
 elif args.myblockads != 'none':
     mb_text = open(args.myblockads, encoding='utf-8').read()
     validate_myblockads(mb_text)
-if mb_text is None and args.myblockads not in ('none', 'fetch'):
-    raise SystemExit('MyBlockAds 本地来源不可用')
+if mb_text is None and args.myblockads != 'none':
+    raise SystemExit('MyBlockAds 在线来源与本地缓存/文件均不可用，拒绝静默跳过该来源')
 
 _, base_sec = split_sections(base_text)
 _, extra_sec = split_sections(extra_text)
