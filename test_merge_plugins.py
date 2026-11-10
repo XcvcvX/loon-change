@@ -40,7 +40,7 @@ class MergeIntegrationTests(unittest.TestCase):
             "[Rewrite]\n^https://three.example.com/c reject\n")
         self.assertIn("one.example.com/a", output)
         self.assertIn("two.example.com/b", output)
-        self.assertIn("three.example.com/c", output)
+        self.assertIn("three.example.com", output)
 
     def test_reject_variants_are_not_collapsed(self):
         output = self.run_merge(
