@@ -1097,48 +1097,37 @@ def materialize_host(z):
 
 
 def prune_unused_mitm(mitm_hosts, rule_lines, host_origins, rules_by_src):
-    """用最终规则完整 host 正则直接匹配，裁剪不服务规则的 host（替代旧的守卫退化判定，消除假阴性）。
-    负向排除项（-host，Loon 官方支持）原样保留；具体 host 被其来源自身窄模式匹配即保留，
-    来源为空（自愈补全）的 host 用全部规则判定；标准通配覆盖被保留具体 host、或与窄模式后缀对应即保留。"""
-    narrow = compiled_narrow_hosts(rule_lines)
-    src_narrow = {src: compiled_narrow_hosts(rls) for src, rls in rules_by_src.items()}
+    """仅按最终合并后的规则判断 MITM 是否仍有用途。
 
-    # 各来源窄模式的可信 materialize 样本（仅保留原模式确实匹配的）
+    hostname 可能由来源 A 声明，却被来源 B 的规则实际使用；按 hostname 来源限制
+    对应规则会误删这种共享主机。MITM 是最终插件的全局解密清单，因此必须以最终
+    Rewrite/Script 规则为准：只要任一最终规则的 host 正则匹配，就保留。
+    """
+    narrow = compiled_narrow_hosts(rule_lines)
+
     def trusted_samples(zdict):
         out = set()
-        for z, rc in zdict.items():
+        for z in zdict:
             out |= materialize_hosts(z)
         return out
-    src_samples = {src: trusted_samples(zd) for src, zd in src_narrow.items()}
+
     all_samples = trusted_samples(narrow)
-
-    def conc_needed(h):
-        origins = host_origins.get(h, [])
-        if not origins:  # 自愈补全：来源为空，用全部规则
-            return any(rc.match(h) for rc in narrow.values())
-        return any(rc.match(h) for src in origins for rc in src_narrow.get(src, {}).values())
-
-    kept_conc = [h for h in mitm_hosts
-                 if not h.startswith('*.') and not h.startswith('-') and conc_needed(h)]
+    kept_conc = [
+        h for h in mitm_hosts
+        if not h.startswith('*.') and not h.startswith('-')
+        and any(rc.match(h) for rc in narrow.values())
+    ]
     kept_conc_set = set(kept_conc)
 
     kept_wild = []
-    for m in mitm_hosts:
-        if not m.startswith('*.'):
+    for pattern in mitm_hosts:
+        if not pattern.startswith('*.'):
             continue
-        suf = m[2:]
-        # 1) 覆盖已保留的具体 host
-        if any(h == suf or h.endswith('.' + suf) for h in kept_conc_set):
-            kept_wild.append(m)
-            continue
-        # 2) 来源窄模式的可信样本落在该域子域（规则作用于子域）；无来源（自愈）用全部样本
-        origins = host_origins.get(m, [])
-        if origins:
-            pool = set().union(*(src_samples.get(s, set()) for s in origins))
-        else:
-            pool = all_samples
-        if any(s == suf or s.endswith('.' + suf) for s in pool):
-            kept_wild.append(m)
+        suffix = pattern[2:]
+        # 通配项只有在最终规则样本确实落入该后缀时才保留。
+        if any(sample == suffix or sample.endswith('.' + suffix)
+               for sample in all_samples):
+            kept_wild.append(pattern)
 
     neg = [h for h in mitm_hosts if h.startswith('-')]
     return kept_conc + kept_wild + neg
