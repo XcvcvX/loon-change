@@ -63,7 +63,7 @@ PUBLIC_SUFFIX_2L = {
     'co.uk', 'org.uk', 'ac.uk', 'co.kr', 'or.kr', 'co.in', 'co.nz',
     'co.th', 'co.id',
 }
-HOST_OK = re.compile(r'^(?:[A-Za-z0-9](?:[A-Za-z0-9\-]*[A-Za-z0-9])?\.)+[A-Za-z]{2,}$')
+HOST_OK = re.compile(r'^(?=.{1,253}$)(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$')
 IP_OK = re.compile(r'^\d{1,3}(?:\.\d{1,3}){3}$')
 
 # 真实 TLD 白名单：用于 hostname 收敛时排除缺 TLD 的非法项、可选组截断的残缺 host
@@ -152,7 +152,7 @@ def split_sections(text):
         m = re.match(r'^\[([A-Za-z]+)\]\s*$', line)
         if m:
             cur = m.group(1)
-            out[cur] = []
+            out.setdefault(cur, [])
         elif cur is None:
             header.append(line)
         else:
@@ -277,7 +277,7 @@ def guard_hosts_from_lines(lines):
                 continue
             result = None
             # 1) 完整字面 host
-            if HOST_OK.match(zone) and zone.rsplit('.', 1)[-1] in _KNOWN_TLD:
+            if HOST_OK.match(zone):
                 result = zone
             else:
                 # 2) 含通配/OR：取末尾连续纯字面标签，构造 *.后缀
@@ -288,7 +288,7 @@ def guard_hosts_from_lines(lines):
                     lit.append(lab)
                 lit = lit[::-1]
                 need = 3 if '.'.join(lit[-2:]).lower() in PUBLIC_SUFFIX_2L else 2
-                if (len(lit) >= need and lit[-1] in _KNOWN_TLD
+                if (len(lit) >= need and not is_public_suffix('.'.join(lit[-need:])) and HOST_OK.match('.'.join(lit))):
                         and not is_public_suffix('.'.join(lit[-need:]))):
                     result = '*.' + '.'.join(lit)
             if result:
@@ -339,8 +339,8 @@ def normalize_extra_host(h, guard_hosts=None):
         return []
 
     def has_real_tld(x):
-        return x.rsplit('.', 1)[-1] in _KNOWN_TLD
-
+        # 只验证 DNS 名称结构，不用不完整的 TLD 白名单拒绝合法新顶级域名。
+        return bool(HOST_OK.match(x))
     out = []
     # 具体域名
     if '*' not in h and '?' not in h:
@@ -589,9 +589,10 @@ def action_key(line):
     """拒绝家族（reject/reject-*/reject(_*)）同正则折叠为一个签名；
     其余动作按 (动作名, 完整动作) 独立，互补动作（jq+header-del 等）得以并存。"""
     _, action = split_action(line)
-    if re.match(r'^reject', action):
-        return ('REJECT',)
-    name = re.split(r'[\s(]', action, 1)[0]
+    # 不把 reject / reject(200) / reject_img / reject_dict 等折叠成同一类。
+    # 它们的响应状态与 body 语义不同；误合并会丢掉其他来源的有效动作。
+    name = re.split(r'[\s(]', action, 1)[0].lower()
+    return (name, action)
     return (name, action)
 
 
@@ -1162,7 +1163,7 @@ _src_host_lists = {
              for x in l.split('=', 1)[1].split(',') if x.strip()],
     'block': extra_raw, 'thelong': thelong_mitm, 'aoomee': ao_mitm,
     'zmj_app': zmj_app_mitm, 'zmj_gen': zmj_gen_mitm,
-    'qxapp': qxapp_mitm,
+    'qxapp': qxapp_mitm, 'myblockads': mb_mitm,
 }
 host_origins = {}
 for _src, _hl in _src_host_lists.items():
@@ -1176,7 +1177,7 @@ rules_by_src = {
     'base': base_rw + base_sc, 'block': block_rw + block_sc,
     'thelong': thelong_rw + thelong_sc, 'aoomee': ao_rw + ao_sc,
     'zmj_app': zmj_app_rw + zmj_app_sc, 'zmj_gen': zmj_gen_rw + zmj_gen_sc,
-    'qxapp': qxapp_rw,
+    'qxapp': qxapp_rw, 'myblockads': mb_rw + mb_sc,
 }
 _mitm_before_prune = len(mitm)
 mitm = prune_unused_mitm(mitm, merged_rw + merged_sc, host_origins, rules_by_src)
