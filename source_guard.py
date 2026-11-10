@@ -129,7 +129,7 @@ def check_clones(thelong, aoomee, zmjde, qxapp, previous_report=None):
             except Exception as exc:
                 raise ValueError("无法读取来源文件 %s: %s" % (path, exc))
             blocks = re.findall(
-                r"(?ms)^\\[(?:Rewrite|Script|Rule)\\]\\s*\\n(.*?)(?=^\\[|\\Z)",
+                r"(?ms)^\[(?:Rewrite|Script|Rule)\]\s*\n(.*?)(?=^\[|\Z)",
                 content)
             total += sum(len(real_lines(block)) for block in blocks)
         return total
