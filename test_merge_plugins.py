@@ -99,7 +99,6 @@ class MergeIntegrationTests(unittest.TestCase):
     def test_lowercase_domain_suffix_rule_is_normalized(self):
         output = self.run_merge(
             "[Rewrite]\\n[MITM]\\nhostname = \\n",
-            "[Rewrite]\\n[MITM]\\nhostname = \\n",
             "[Rewrite]\\n[Rule]\\ndomain-suffix,anythinktech.com,reject\\n"
             "[MITM]\\nhostname = \\n")
         self.assertIn("DOMAIN-SUFFIX,anythinktech.com,REJECT", output)
