@@ -1108,11 +1108,17 @@ def compiled_host_patterns(rule_lines):
     """编译 host 正则；遇到 Python 无法解析的模式时返回不确定标记，禁止激进裁剪。"""
     out, uncertain = {}, False
     for line in rule_lines:
+        if re.match(r'^(?:generic|cron)\\b', line.strip()):
+            continue
         rx = entry_regex(line)
         if not rx:
+            if re.search(r'https?://', line):
+                uncertain = True
             continue
         zone = host_zone_from_regex(rx)
         if not zone:
+            if re.search(r'https?://', rx):
+                uncertain = True
             continue
         try:
             out.setdefault(zone, re.compile('^(?:%s)$' % zone, re.IGNORECASE))
