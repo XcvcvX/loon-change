@@ -7,6 +7,7 @@
 - [Thelongdarkorg/loon-plugins](https://github.com/Thelongdarkorg/loon-plugins) 的细分 App 去广告插件；
 - [aoomee/Loon-Adblock-Plugins](https://github.com/aoomee/Loon-Adblock-Plugins) 的独立 App 插件（含远程脚本与 Argument）；
 - [zmjde/loon-plugins](https://github.com/zmjde/loon-plugins) 的 App 插件与通用过滤规则；
+- [RuCu6 高德地图插件](https://rucu6.pages.dev/Plugins/amap.lpx)（通过 Romeo GitHub 镜像同步；JS/JQ 依赖缓存到 `sources/amap/`，合并后使用仓库内资源地址）；
 - [ddgksf2013 墨鱼手记](https://ddgksf2013.top/rewrite/GuaZiVideoAds.conf) 的瓜子影视规则；
 - [RuCu6 MyBlockAds](https://rucu6.pages.dev/Plugins/myblockads.lpx)（在线失败回退仓库缓存）。
 
@@ -14,7 +15,7 @@
 
 ## 优先级（核心规则）
 
-以 R-Store 转换产物为 base，独立 App 插件优先级更高；同正则重复时按合并器的来源优先级处理。不同动作可能互补并存，不应仅凭相同 URL 正则就直接删除。
+以 R-Store 转换产物为 base，独立 App 插件优先级更高。高德地图设为 `priority=-1`（最高），其次为 zmjde App `0`、QuanX 单文件 App `1`、aoomee `2`、Thelongdarkorg `3`；通用源按既有顺序。相同 URL 正则且动作等价时由高优先级来源胜出；不同动作（例如 JSON 字段删除与 reject）作为互补动作保留。高德的 `*.amap.com` 仅在确有规则守卫时保留，不加入裸 IP MITM。
 
 ## 产物一览
 
@@ -24,7 +25,8 @@
 | validate_plugin.py | 静态质量门禁：结构、MITM、动作、Argument、重复触发器与风险提示 |
 | test_source_guard.py | 上游来源防损坏测试：空响应、HTML、规则数量、必需插件 |
 | test_validate_plugin.py | 校验器单元测试 |
-| test_merge_plugins.py | 合并器集成测试：重复区块、reject 动作、TLD hostname |
+| test_merge_plugins.py | 合并器集成测试：重复区块、reject 动作、TLD hostname、高德最高优先级与互补动作 |
+| sources/amap/ | 高德上游插件、JS 与 3 份 JQ 依赖的可追溯缓存 |
 | source_guard.py | 上游响应/仓库结构完整性门禁，阻止 HTML 错误页、空文件和缺失源 |
 | audit_plugin.py | 只读审计全局 UDP/443、MITM 通配覆盖候选、Script URL 与错放 Rewrite Action，不自动删改规则 |
 
@@ -47,7 +49,7 @@
 
 GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉取独立 App 来源 → 合并去重 → 静态校验 → 更新本节统计 → 有变化才提交。
 
-同步前会检查 R-Store、blockAdsV2、MyBlockAds 的有效内容量与区块结构，并核对 Thelongdarkorg、aoomee、zmjde、瓜子影视来源文件。HTML 错误页、空/截断响应、缺失必需插件或规则量相对上次报告下降超过 60% 时会触发 fail-closed。构建先写入临时目录，完整合并并通过插件校验后才替换正式产物；失败不会覆盖上一版有效插件。`source-report.json` 记录克隆仓库的 commit SHA 与来源文件数量，便于追溯。
+同步前会检查 R-Store、blockAdsV2、MyBlockAds 的有效内容量与区块结构，并核对 Thelongdarkorg、aoomee、zmjde、瓜子影视和高德插件来源文件；高德依赖脚本/JQ 同步镜像至 `sources/amap/`，防止远程依赖失效。HTML 错误页、空/截断响应、缺失必需插件或规则量相对上次报告下降超过 60% 时会触发 fail-closed。构建先写入临时目录，完整合并并通过插件校验后才替换正式产物；失败不会覆盖上一版有效插件。`source-report.json` 记录克隆仓库的 commit SHA 与来源文件数量，便于追溯。
 
 如果校验发现硬错误，工作流会失败并阻止提交。警告（例如重复触发器、全局 UDP/443、远程脚本风险）不会擅自删除规则，也不会阻止更新，需结合 Loon 实际运行情况判断。
 
