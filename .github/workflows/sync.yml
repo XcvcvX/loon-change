@@ -31,7 +31,7 @@ jobs:
       - name: 编译检查
         run: python3 -m py_compile merge_plugins.py validate_plugin.py convert_qx2loon.py convert_filter_qx2loon.py
       - name: 运行单元与合并集成测试
-        run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_merge_plugins.py
+        run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py
 
   sync:
     if: github.event_name != 'pull_request'
@@ -46,7 +46,7 @@ jobs:
           python-version: '3.11'
 
       - name: 测试校验器
-        run: python3 -m unittest -v test_validate_plugin.py
+        run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py
 
       - name: 转换重写规则
         run: python3 convert_qx2loon.py -o allAdRewrite.plugin
