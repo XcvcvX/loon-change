@@ -575,11 +575,20 @@ def split_action(line):
 
 
 def action_key(line):
-    """按动作名和完整参数生成签名，避免把不同 reject 变体错误折叠。"""
+    """规范化旧版/新版拒绝动作别名；不同响应类型和状态码保持不同签名。"""
     _, action = split_action(line)
+    aliases = {
+        'reject': 'reject(404)',
+        'reject-200': 'reject(200)',
+        'reject-img': 'reject_img(200)',
+        'reject-dict': 'reject_dict(200)',
+        'reject-array': 'reject_array(200)',
+        'reject-video': 'reject_video(200)',
+    }
+    action = aliases.get(action, action)
     name = re.split(r'[\s(]', action, 1)[0].lower()
     if name in ('reject', 'reject_img', 'reject_dict', 'reject_array', 'reject_video'):
-        return ('REJECT', name)
+        return ('REJECT', name, action)
     return (name, action)
 
 
