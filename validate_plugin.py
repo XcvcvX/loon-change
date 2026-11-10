@@ -3,6 +3,7 @@
 """Loon 插件静态质量门禁。只检查和报告，不自动删改规则。"""
 import argparse
 import concurrent.futures
+import ipaddress
 import re
 import sys
 import urllib.request
@@ -47,6 +48,11 @@ def check_hostname(host):
         return '空 hostname / 排除项'
     if IP_RE.fullmatch(candidate):
         return '裸 IPv4 不应放入 MITM hostname'
+    try:
+        ipaddress.ip_address(candidate.strip('[]'))
+        return '裸 IPv6 不应放入 MITM hostname'
+    except ValueError:
+        pass
     if '*' in candidate or '?' in candidate:
         if not re.fullmatch(r'\*\.[A-Za-z0-9.-]+', candidate):
             return '非标准通配符；仅允许 *.后缀'

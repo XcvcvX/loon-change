@@ -13,6 +13,9 @@ class ValidatorTests(unittest.TestCase):
         self.assertIsNone(vp.check_hostname('-ads.example.com'))
         self.assertIsNotNone(vp.check_hostname('*.com'))
         self.assertIsNotNone(vp.check_hostname('bad*host.example.com'))
+        self.assertIsNotNone(vp.check_hostname('103.37.155.60'))
+        self.assertIsNotNone(vp.check_hostname('2001:db8::1'))
+        self.assertIsNotNone(vp.check_hostname('[2001:db8::1]'))
 
     def test_wildcard_coverage(self):
         self.assertTrue(vp.host_covered('a.b.example.com', {'*.example.com'}))

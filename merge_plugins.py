@@ -249,6 +249,34 @@ def entry_regex(line):
 
 
 # ---------------- hostname 守卫反查（通配 TLD 收敛） ----------------
+def is_ip_literal_host(host):
+    """识别裸 IPv4/IPv6 及明显的 IP 通配形式；接受 MITM 负向前缀和 IPv6 方括号。"""
+    candidate = host.strip()
+    if candidate.startswith('-'):
+        candidate = candidate[1:].strip()
+    if candidate.startswith('['):
+        closing = candidate.find(']')
+        if closing >= 0:
+            candidate = candidate[1:closing]
+    elif candidate.count(':') == 1:
+        # IPv4 URL 可能带端口；只剥离明确的 :数字 后缀。
+        address, port = candidate.rsplit(':', 1)
+        if port.isdigit():
+            candidate = address
+    # 有效或格式错误的四段数字地址都不应伪装成域名。
+    labels = candidate.split('.')
+    if len(labels) == 4 and all(part.isdigit() for part in labels):
+        return True
+    # 通配 IPv4（例如 10.1.*.*）同样不是 MITM 域名。
+    if '.' in candidate and all(ch in '0123456789.*?' for ch in candidate):
+        return True
+    try:
+        ipaddress.ip_address(candidate)
+        return True
+    except ValueError:
+        return False
+
+
 def guard_hosts_from_lines(lines):
     """从 Rewrite/Script 守卫提取 Loon 合法 hostname 集合：
     - 完整明确 host：要求 HOST_OK 且最后标签在真实 TLD 白名单；
@@ -957,6 +985,12 @@ for _h in sorted(guard_hosts_from_lines(merged_rw + merged_sc)):
         mitm.append(_h)
         mitm_healed.append(_h)
 mitm = dedup_keep_order(mitm)
+# 最终输出前统一清理所有来源（包括 base 原有声明及自愈结果）中的 IP literal。
+mitm_ip_dropped = [h for h in mitm if is_ip_literal_host(h)]
+if mitm_ip_dropped:
+    mitm = [h for h in mitm if not is_ip_literal_host(h)]
+if any(is_ip_literal_host(h) for h in mitm):
+    raise RuntimeError('MITM hostname invariant failed: IP literal remained')
 
 
 def host_zone_from_regex(rx):
@@ -1208,8 +1242,8 @@ print('  Rule 来源：aoomee 新增 %d（跳过 %d）；thelong 新增 %d（跳
 if args.filter != 'none':
     print('  分流补全：R-Store %d 条，已覆盖 %d，补入 %d'
           % (fstats['total'], fstats['covered'], fstats['added']))
-print('  MITM   ：%d 个主机（无法收敛丢弃 %d，自动裁剪无动作 %d）'
-      % (len(mitm), len(dropped), mitm_pruned))
+print('  MITM   ：%d 个主机（无法收敛丢弃 %d，IP 地址清理 %d，自动裁剪无动作 %d）'
+      % (len(mitm), len(dropped), len(mitm_ip_dropped), mitm_pruned))
 if mitm_pruned:
     print('  MITM 自动裁剪：移除 %d 个不服务任何规则、仅解密的冗余 host' % mitm_pruned)
 if mitm_healed:

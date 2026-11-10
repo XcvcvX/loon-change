@@ -72,6 +72,31 @@ class MergeIntegrationTests(unittest.TestCase):
             "[Rewrite]\n[MITM]\nhostname = \n")
         self.assertIn("ads.example.com", output)
 
+    def test_ip_literals_are_never_added_to_mitm_but_rewrite_rules_remain(self):
+        output = self.run_merge(
+            "[Rewrite]\n^https://103.37.155.60/ad reject\n"
+            "^https://[2001:db8::1]/track reject\n"
+            "[MITM]\nhostname = 103.37.155.60,[2001:db8::1],ads.example.com\n",
+            "[Rewrite]\n^https://118.178.214.118/config reject\n"
+            "[MITM]\nhostname = 118.178.214.118\n")
+        mitm_line = next(line for line in output.splitlines()
+                         if line.strip().startswith("hostname ="))
+        self.assertNotIn("103.37.155.60", mitm_line)
+        self.assertNotIn("118.178.214.118", mitm_line)
+        self.assertNotIn("2001:db8::1", mitm_line)
+        # 只过滤 MITM hostname，不删除原有 IP 目标 Rewrite 拦截规则。
+        self.assertIn("103.37.155.60/ad", output)
+        self.assertIn("118.178.214.118", output)
+        self.assertIn("/config", output)
+        self.assertIn("2001:db8::1", output)
+
+    def test_standard_wildcard_domain_is_still_preserved(self):
+        output = self.run_merge(
+            "[Rewrite]\n^https://ads.example.com/ad reject\n"
+            "[MITM]\nhostname = *.example.com\n",
+            "[Rewrite]\n[MITM]\nhostname = \n")
+        self.assertIn("*.example.com", output)
+
     def test_valid_unlisted_tld_is_not_dropped_from_mitm(self):
         output = self.run_merge(
             "[Rewrite]\n[MITM]\nhostname = \n",
