@@ -25,7 +25,7 @@ def extract_script_url(line):
     match = re.search(r'script-path=(https?://[^,\s]+)', line, re.I)
     if match:
         return match.group(1).rstrip(',')
-    match = re.search(r'''script\(\s*(["'])(https?://.*?)\1\s*\)''', line, re.I)
+    match = re.search(r'''script\(\s*(["'])(https?://.*?)\1''', line, re.I)
     return match.group(2).rstrip(',') if match else None
 
 
@@ -154,12 +154,22 @@ def main():
     parser = argparse.ArgumentParser(description='Read-only Loon plugin runtime risk audit')
     parser.add_argument('plugin')
     parser.add_argument('--output', help='可选 JSON 报告路径')
+    parser.add_argument('--summary-only', action='store_true',
+                        help='只打印摘要和少量风险样例，适合 CI 日志')
     args = parser.parse_args()
     report = audit_plugin(args.plugin)
     rendered = json.dumps(report, ensure_ascii=False, indent=2)
     if args.output:
         Path(args.output).write_text(rendered + '\n', encoding='utf-8')
-    print(rendered)
+    if args.summary_only:
+        print(json.dumps(report['summary'], ensure_ascii=False, indent=2))
+        print('全局 UDP/443 规则：')
+        for item in report['global_udp_443_rules']:
+            print('  line %s: %s' % (item['line'], item['rule']))
+        print('MITM 通配覆盖候选（前 15 项）：%s' %
+              ', '.join(report['mitm_wildcard_overlap_candidates'][:15]))
+    else:
+        print(rendered)
 
 
 if __name__ == '__main__':
