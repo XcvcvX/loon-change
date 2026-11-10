@@ -1096,7 +1096,18 @@ def materialize_host(z):
     return s
 
 
-def prune_unused_mitm(mitm_hosts, rule_lines, host_origins, rules_by_src):
+def compiled_host_patterns(rule_lines):
+    """编译所有可识别的 host 正则；宽泛模式也用于验证已声明 MITM 主机。"""
+    out = {}
+    for line in rule_lines:
+        rx = entry_regex(line)
+        if not rx:
+            continue
+        zone = host_zone_from_regex(rx)
+        if not zone:
+            continue
+        try:
+            out.setdefault(zone, re.compile('^(?:%s)
     """仅按最终合并后的规则判断 MITM 是否仍有用途。
 
     hostname 可能由来源 A 声明，却被来源 B 的规则实际使用；按 hostname 来源限制
@@ -1104,6 +1115,120 @@ def prune_unused_mitm(mitm_hosts, rule_lines, host_origins, rules_by_src):
     Rewrite/Script 规则为准：只要任一最终规则的 host 正则匹配，就保留。
     """
     narrow = compiled_narrow_hosts(rule_lines)
+
+    def trusted_samples(zdict):
+        out = set()
+        for z in zdict:
+            out |= materialize_hosts(z)
+        return out
+
+    all_samples = trusted_samples(narrow)
+    kept_conc = [
+        h for h in mitm_hosts
+        if not h.startswith('*.') and not h.startswith('-')
+        and any(rc.match(h) for rc in narrow.values())
+    ]
+    kept_conc_set = set(kept_conc)
+
+    kept_wild = []
+    for pattern in mitm_hosts:
+        if not pattern.startswith('*.'):
+            continue
+        suffix = pattern[2:]
+        # 通配项只有在最终规则样本确实落入该后缀时才保留。
+        if any(sample == suffix or sample.endswith('.' + suffix)
+               for sample in all_samples):
+            kept_wild.append(pattern)
+
+    neg = [h for h in mitm_hosts if h.startswith('-')]
+    return kept_conc + kept_wild + neg
+
+
+# 自动裁剪：用最终规则完整 host 正则直接匹配，移除不服务任何规则、仅解密的冗余 host。
+# 构建 host -> 来源集合（对来源原始 host 做与收集环节一致的 normalize），及各来源规则。
+_src_host_lists = {
+    'base': [x.strip() for l in base_sec.get('MITM', []) if '=' in l
+             for x in l.split('=', 1)[1].split(',') if x.strip()],
+    'block': extra_raw, 'thelong': thelong_mitm, 'aoomee': ao_mitm,
+    'zmj_app': zmj_app_mitm, 'zmj_gen': zmj_gen_mitm,
+    'qxapp': qxapp_mitm, 'myblockads': mb_mitm,
+}
+host_origins = {}
+for _src, _hl in _src_host_lists.items():
+    for _raw_h in _hl:
+        for _nh in normalize_extra_host(_raw_h, guard_real):
+            if not mitm_skip_host(_nh):
+                host_origins.setdefault(_nh, [])
+                if _src not in host_origins[_nh]:
+                    host_origins[_nh].append(_src)
+rules_by_src = {
+    'base': base_rw + base_sc, 'block': block_rw + block_sc,
+    'thelong': thelong_rw + thelong_sc, 'aoomee': ao_rw + ao_sc,
+    'zmj_app': zmj_app_rw + zmj_app_sc, 'zmj_gen': zmj_gen_rw + zmj_gen_sc,
+    'qxapp': qxapp_rw, 'myblockads': mb_rw + mb_sc,
+}
+_mitm_before_prune = len(mitm)
+mitm = prune_unused_mitm(mitm, merged_rw + merged_sc, host_origins, rules_by_src)
+mitm_pruned = _mitm_before_prune - len(mitm)
+
+# ---------------- 输出 ----------------
+today = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
+header = [
+    '#!name=R-Store × blockAdsV2 × 独立 App 去广告净化合集',
+    '#!desc=合并 R-Store、blockAdsV2、Thelongdarkorg、aoomee、zmjde、ddgksf2013 瓜子；'
+    '按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含',
+    '#!author=zirawell / fmz200 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）',
+    '#!homepage=https://github.com/XcvcvX/loon-change',
+    '#!merged-at=%s' % today,
+    '#!note=专属 App 插件（zmjde/qx 单文件/aoomee/Thelongdarkorg）优先级最高；新旧语法同段混用，Loon 均支持。',
+    '#!sources=R-Store(QuanX->Loon)+blockAdsV2+Thelongdarkorg+aoomee+zmjde+ddgksf2013/GuaZiVideoAds',
+    '',
+]
+out = list(header)
+if arg_items:
+    out += ['[Argument]'] + arg_items + ['']
+if rule_items:
+    out += ['[Rule]'] + rule_items + ['']
+out += ['[Rewrite]'] + merged_rw + ['']
+out += ['[Script]'] + merged_sc + ['']
+out += ['[MITM]', 'hostname = ' + ', '.join(mitm), '']
+open(args.out, 'w', encoding='utf-8').write('\n'.join(out))
+
+print('\n[merge] 输出:', args.out)
+print('  Rewrite：%d 条；Script：%d 条（含 generic/cron 无守卫行）'
+      % (len(merged_rw), len(merged_sc)))
+print('  Rule   ：%d 条；Argument：%d 个开关' % (len(rule_items), len(arg_items)))
+print('  Rule 来源：aoomee 新增 %d（跳过 %d）；thelong 新增 %d（跳过 %d）；'
+      'block 新增 %d（跳过 %d）'
+      % (rule_counts['aoomee_add'], rule_counts['aoomee_dup'],
+         rule_counts['thelong_add'], rule_counts['thelong_dup'],
+         rule_counts['block_add'], rule_counts['block_dup']))
+if args.filter != 'none':
+    print('  分流补全：R-Store %d 条，已覆盖 %d，补入 %d'
+          % (fstats['total'], fstats['covered'], fstats['added']))
+print('  MITM   ：%d 个主机（无法收敛丢弃 %d，自动裁剪无动作 %d）'
+      % (len(mitm), len(dropped), mitm_pruned))
+if mitm_pruned:
+    print('  MITM 自动裁剪：移除 %d 个不服务任何规则、仅解密的冗余 host' % mitm_pruned)
+if mitm_healed:
+    print('  MITM 自愈补全 %d 个：%s' % (len(mitm_healed), ', '.join(mitm_healed[:15])))
+if dropped:
+    print('  丢弃的 hostname：', ', '.join(dropped[:20]))
+ % zone, re.IGNORECASE))
+        except re.error:
+            pass
+    return out
+
+
+def prune_unused_mitm(mitm_hosts, rule_lines, host_origins, rules_by_src):
+    """仅按最终合并后的规则判断 MITM 是否仍有用途。
+
+    hostname 可能由来源 A 声明，却被来源 B 的规则实际使用；按 hostname 来源限制
+    对应规则会误删这种共享主机。MITM 是最终插件的全局解密清单，因此必须以最终
+    Rewrite/Script 规则为准：只要任一最终规则的 host 正则匹配，就保留。
+    """
+    all_patterns = compiled_host_patterns(rule_lines)
+    narrow = {z: rc for z, rc in all_patterns.items() if is_narrow_host_pattern(z)}
 
     def trusted_samples(zdict):
         out = set()
