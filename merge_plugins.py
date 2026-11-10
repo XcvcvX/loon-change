@@ -1144,31 +1144,9 @@ def compiled_host_patterns(rule_lines):
     return kept_conc + kept_wild + neg
 
 
-# 自动裁剪：用最终规则完整 host 正则直接匹配，移除不服务任何规则、仅解密的冗余 host。
-# 构建 host -> 来源集合（对来源原始 host 做与收集环节一致的 normalize），及各来源规则。
-_src_host_lists = {
-    'base': [x.strip() for l in base_sec.get('MITM', []) if '=' in l
-             for x in l.split('=', 1)[1].split(',') if x.strip()],
-    'block': extra_raw, 'thelong': thelong_mitm, 'aoomee': ao_mitm,
-    'zmj_app': zmj_app_mitm, 'zmj_gen': zmj_gen_mitm,
-    'qxapp': qxapp_mitm, 'myblockads': mb_mitm,
-}
-host_origins = {}
-for _src, _hl in _src_host_lists.items():
-    for _raw_h in _hl:
-        for _nh in normalize_extra_host(_raw_h, guard_real):
-            if not mitm_skip_host(_nh):
-                host_origins.setdefault(_nh, [])
-                if _src not in host_origins[_nh]:
-                    host_origins[_nh].append(_src)
-rules_by_src = {
-    'base': base_rw + base_sc, 'block': block_rw + block_sc,
-    'thelong': thelong_rw + thelong_sc, 'aoomee': ao_rw + ao_sc,
-    'zmj_app': zmj_app_rw + zmj_app_sc, 'zmj_gen': zmj_gen_rw + zmj_gen_sc,
-    'qxapp': qxapp_rw, 'myblockads': mb_rw + mb_sc,
-}
+# 自动裁剪：只依据最终合并后的 Rewrite/Script host 正则，避免跨来源共享域名误删。
 _mitm_before_prune = len(mitm)
-mitm = prune_unused_mitm(mitm, merged_rw + merged_sc, host_origins, rules_by_src)
+mitm = prune_unused_mitm(mitm, merged_rw + merged_sc)
 mitm_pruned = _mitm_before_prune - len(mitm)
 
 # ---------------- 输出 ----------------
@@ -1220,7 +1198,7 @@ if dropped:
     return out
 
 
-def prune_unused_mitm(mitm_hosts, rule_lines, host_origins, rules_by_src):
+def prune_unused_mitm(mitm_hosts, rule_lines):
     """按最终合并后的规则判断 MITM 用途，避免跨来源共享主机被误裁剪。"""
     all_patterns = compiled_host_patterns(rule_lines)
     narrow = {z: rc for z, rc in all_patterns.items() if is_narrow_host_pattern(z)}
