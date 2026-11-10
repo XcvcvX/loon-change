@@ -19,6 +19,7 @@ class ValidatorTests(unittest.TestCase):
 
     def test_wildcard_coverage(self):
         self.assertTrue(vp.host_covered('a.b.example.com', {'*.example.com'}))
+        self.assertFalse(vp.host_covered('example.com', {'*.example.com'}))
         self.assertFalse(vp.host_covered('example.net', {'*.example.com'}))
         self.assertFalse(vp.host_covered('a.example.com', {'-*.example.com'}))
 
