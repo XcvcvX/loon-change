@@ -288,8 +288,8 @@ def guard_hosts_from_lines(lines):
                     lit.append(lab)
                 lit = lit[::-1]
                 need = 3 if '.'.join(lit[-2:]).lower() in PUBLIC_SUFFIX_2L else 2
-                if (len(lit) >= need and not is_public_suffix('.'.join(lit[-need:])) and HOST_OK.match('.'.join(lit))):
-                        and not is_public_suffix('.'.join(lit[-need:]))):
+                if (len(lit) >= need and not is_public_suffix('.'.join(lit[-need:]))
+                        and HOST_OK.match('.'.join(lit))):
                     result = '*.' + '.'.join(lit)
             if result:
                 https.add(result)
@@ -586,13 +586,12 @@ def split_action(line):
 
 
 def action_key(line):
-    """拒绝家族（reject/reject-*/reject(_*)）同正则折叠为一个签名；
-    其余动作按 (动作名, 完整动作) 独立，互补动作（jq+header-del 等）得以并存。"""
+    """按动作名和完整参数生成签名，避免把不同 reject 变体错误折叠。"""
+
     _, action = split_action(line)
     # 不把 reject / reject(200) / reject_img / reject_dict 等折叠成同一类。
     # 它们的响应状态与 body 语义不同；误合并会丢掉其他来源的有效动作。
     name = re.split(r'[\s(]', action, 1)[0].lower()
-    return (name, action)
     return (name, action)
 
 
