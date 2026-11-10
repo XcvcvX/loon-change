@@ -94,6 +94,13 @@ class MergeIntegrationTests(unittest.TestCase):
         self.assertIn("/config", output)
         self.assertIn("2001:db8::1", output)
 
+    def test_lowercase_domain_suffix_rule_is_normalized(self):
+        output = self.run_merge(
+            "[Rewrite]\\n[MITM]\\nhostname = \\n",
+            "[Rule]\\nDOMAIN-suffix,anythinktech.com,reject\\n")
+        self.assertIn("DOMAIN-SUFFIX,anythinktech.com,REJECT", output)
+        self.assertNotIn("DOMAIN-suffix", output)
+
     def test_standard_wildcard_domain_is_still_preserved(self):
         output = self.run_merge(
             "[Rewrite]\n^https://ads.example.com/ad reject\n"
