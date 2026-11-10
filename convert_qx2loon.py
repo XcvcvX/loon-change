@@ -13,6 +13,7 @@ Quantumult X rewrite (allAdRewrite.conf) -> Loon 原生插件(.plugin)
   python3 convert_qx2loon.py -i local.conf -o out.plugin
 """
 import argparse, collections, datetime, os, re, sys, urllib.request
+from source_guard import validate_rstore_rewrite
 
 # 上游 Quantumult X 规则源（zirawell/R-Store）
 UPSTREAM = ('https://raw.githubusercontent.com/zirawell/R-Store/main/'
@@ -37,12 +38,14 @@ def fetch(url, timeout=60):
 
 if args.input:
     raw = open(args.input, encoding='utf-8').read()
+    validate_rstore_rewrite(raw)
 else:
     raw, last_err = None, None
     for u in [UPSTREAM] + MIRRORS:
         try:
             raw = fetch(u)
-            print('[fetch] 已获取:', u)
+            validate_rstore_rewrite(raw)
+            print('[fetch] 已获取并通过完整性检查:', u)
             break
         except Exception as e:
             last_err = e
