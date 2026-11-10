@@ -13,7 +13,7 @@ Quantumult X rewrite (allAdRewrite.conf) -> Loon 原生插件(.plugin)
   python3 convert_qx2loon.py -i local.conf -o out.plugin
 """
 import argparse, collections, datetime, os, re, sys, urllib.request
-from source_guard import validate_rstore_rewrite
+from source_guard import validate_rstore_rewrite, fetch_validated
 
 # 上游 Quantumult X 规则源（zirawell/R-Store）
 UPSTREAM = ('https://raw.githubusercontent.com/zirawell/R-Store/main/'
@@ -40,18 +40,12 @@ if args.input:
     raw = open(args.input, encoding='utf-8').read()
     validate_rstore_rewrite(raw)
 else:
-    raw, last_err = None, None
-    for u in [UPSTREAM] + MIRRORS:
-        try:
-            raw = fetch(u)
-            validate_rstore_rewrite(raw)
-            print('[fetch] 已获取并通过完整性检查:', u)
-            break
-        except Exception as e:
-            last_err = e
-            print('[fetch] 失败:', u, e, file=sys.stderr)
-    if raw is None:
-        raise SystemExit('上游规则获取失败: %s' % last_err)
+    try:
+        raw, used_url, _ = fetch_validated(
+            [UPSTREAM] + MIRRORS, fetch, validate_rstore_rewrite, 'R-Store rewrite')
+        print('[fetch] 已获取并通过完整性检查:', used_url)
+    except Exception as e:
+        raise SystemExit('上游规则获取失败: %s' % e)
 
 # ================= 二进制 body 脚本识别 =================
 # Loon 中 http-response 脚本拿到的 $response.body 默认是字符串；
@@ -703,7 +697,7 @@ def _host_is_covered(h):
     for x in seen:
         if x == h:
             return True
-        if x.startswith('*.') and (h == x[2:] or h.endswith('.' + x[2:])):
+        if x.startswith('*.') and h.endswith('.' + x[2:]):
             return True
     return False
 

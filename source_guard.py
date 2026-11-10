@@ -58,13 +58,47 @@ def validate_rstore_rewrite(text):
 
 def validate_filter(text):
     stats = validate_source(text, "R-Store filter", min_bytes=500, min_entries=20)
-    count = sum(1 for line in real_lines(text)
-                if len([p for p in line.split(",")]) >= 3
-                and not line.lower().startswith("hostname"))
+    supported_types = {"host", "host-suffix", "host-keyword", "host-wildcard",
+                       "ip-cidr", "ip6-cidr"}
+    supported_policies = {"reject", "reject-200", "reject-img", "reject-dict",
+                          "reject-array", "reject-drop"}
+    count = 0
+    for line in real_lines(text):
+        parts = [part.strip().lower() for part in line.split(",")]
+        if len(parts) >= 3 and parts[0] in supported_types and parts[2] in supported_policies:
+            count += 1
     if count < 20:
-        raise ValueError("R-Store filter: 可识别规则仅 %d 条（要求至少 20）" % count)
+        raise ValueError("R-Store filter: 可转换规则仅 %d 条（要求至少 20）" % count)
     stats["rules"] = count
     return stats
+
+
+def fetch_validated(urls, fetcher, validator, source):
+    """按顺序尝试来源；只有下载且通过完整性校验的候选内容才会被返回。"""
+    errors = []
+    for url in urls:
+        try:
+            candidate = fetcher(url)
+            stats = validator(candidate)
+            return candidate, url, stats
+        except Exception as exc:
+            errors.append("%s: %s" % (url, exc))
+            print("[fetch] %s 失败: %s" % (source, errors[-1]))
+    detail = "; ".join(errors) if errors else "没有可用来源"
+    raise ValueError("%s 获取失败: %s" % (source, detail))
+
+
+def validate_plugin_file(path, source):
+    """逐文件检查克隆插件，避免单个 HTML/空文件被来源总量掩盖。"""
+    text = Path(path).read_text(encoding="utf-8-sig")
+    validate_source(text, source, min_bytes=20, min_entries=1)
+    blocks = re.findall(r"(?ms)^\[([^\]]+)\]\s*\n(.*?)(?=^\[|\Z)", text)
+    action_entries = sum(
+        len(real_lines(body)) for name, body in blocks
+        if name.strip().lower() in {"rewrite", "url rewrite", "script", "rule"})
+    if action_entries < 1:
+        raise ValueError("%s: 未发现有效 Rewrite/URL Rewrite/Script/Rule 内容" % source)
+    return action_entries
 
 
 def validate_blockv2(text):
@@ -125,13 +159,9 @@ def check_clones(thelong, aoomee, zmjde, qxapp, previous_report=None):
         total = 0
         for path in paths:
             try:
-                content = path.read_text(encoding="utf-8-sig")
+                total += validate_plugin_file(path, "%s/%s" % (path.parent, path.name))
             except Exception as exc:
-                raise ValueError("无法读取来源文件 %s: %s" % (path, exc))
-            blocks = re.findall(
-                r"(?ms)^\[(?:Rewrite|Script|Rule)\]\s*\n(.*?)(?=^\[|\Z)",
-                content)
-            total += sum(len(real_lines(block)) for block in blocks)
+                raise ValueError("来源插件逐文件校验失败 %s: %s" % (path, exc))
         return total
 
     zm_files = [zm_dir / name for name in REQUIRED_ZMJDE]

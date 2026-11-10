@@ -75,7 +75,7 @@ def host_covered(host, hostset):
             continue
         if value == host:
             return True
-        if value.startswith('*.') and (host == value[2:] or host.endswith('.' + value[2:])):
+        if value.startswith('*.') and host.endswith('.' + value[2:]):
             return True
     return False
 
@@ -91,6 +91,15 @@ def parse_argument_names(lines):
         if match:
             names.add(match.group(1))
     return names
+
+
+def extract_script_url(line):
+    """提取 Loon Script 行中的远程脚本 URL，兼容 script-path= 与 script("URL")。"""
+    match = re.search(r"script-path=(https?://[^, ]+)", line, re.I)
+    if match:
+        return match.group(1).rstrip(',')
+    match = re.search(r"""script[(][ ]*["'](https?://[^"']+)["'][ ]*[)]""", line, re.I)
+    return match.group(1).rstrip(',') if match else None
 
 
 def inspect_plugin(path):
@@ -184,15 +193,13 @@ def inspect_plugin(path):
             continue
         if not re.match(r'^(?:http-request|http-response|cron\b|generic\b|request\s+if\b|response\s+if\b)', value):
             warnings.append('Script 第 %d 行无法识别脚本触发器：%s' % (number, value[:140]))
-        match = re.search(r'script-path=(https?://[^,\s]+)', value)
-        if match:
-            url = match.group(1).rstrip(',')
-            if url.startswith(('https://','http://')):
-                script_urls.add(url)
+        url = extract_script_url(value)
+        if url:
+            script_urls.add(url)
             base = url.split('?',1)[0].rsplit('/',1)[-1]
-            if base in BINARY_BODY_SCRIPTS and not re.search(r'\bbinary-body-mode\s*=\s*true\b', value):
+            if base in BINARY_BODY_SCRIPTS and not re.search(r'binary-body-mode[ ]*=[ ]*true([ ]|$)', value, re.I):
                 errors.append('Script 第 %d 行二进制脚本 %s 缺少 binary-body-mode=true' % (number, base))
-            trigger = re.match(r'^(http-request|http-response)\s+(\S+)', value)
+            trigger = re.match(r'^(http-request|http-response)[ ]+([^ ]+)', value)
             if trigger:
                 key = (trigger.group(1), trigger.group(2), url)
                 if key in script_seen:
@@ -278,9 +285,9 @@ def main():
         sections, _ = parse_sections(Path(args.plugin).read_text(encoding='utf-8-sig'))
         urls = set()
         for _, line in sections.get('Script', []):
-            match = re.search(r'script-path=(https?://[^,\s]+)', line)
-            if match:
-                urls.add(match.group(1).rstrip(','))
+            url = extract_script_url(line)
+            if url:
+                urls.add(url)
         check_remote_scripts(urls)
     return 1 if errors else 0
 

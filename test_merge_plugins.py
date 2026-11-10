@@ -11,7 +11,7 @@ MERGER = Path(__file__).with_name("merge_plugins.py")
 
 
 class MergeIntegrationTests(unittest.TestCase):
-    def run_merge(self, base_text, extra_text, myblockads_text=None):
+    def run_merge(self, base_text, extra_text, myblockads_text=None, return_stdout=False):
         tmp = tempfile.TemporaryDirectory()
         self.addCleanup(tmp.cleanup)
         root = Path(tmp.name)
@@ -31,7 +31,8 @@ class MergeIntegrationTests(unittest.TestCase):
             command,
             capture_output=True, text=True, timeout=30)
         self.assertEqual(result.returncode, 0, result.stdout + "\n" + result.stderr)
-        return out.read_text(encoding="utf-8")
+        output = out.read_text(encoding="utf-8")
+        return (output, result.stdout) if return_stdout else output
 
     def test_repeated_sections_are_accumulated(self):
         output = self.run_merge(
@@ -73,22 +74,31 @@ class MergeIntegrationTests(unittest.TestCase):
         self.assertIn("ads.example.com", output)
 
     def test_ip_literals_are_never_added_to_mitm_but_rewrite_rules_remain(self):
-        output = self.run_merge(
+        output, stdout = self.run_merge(
             "[Rewrite]\n^https://103.37.155.60/ad reject\n"
             "^https://[2001:db8::1]/track reject\n"
             "[MITM]\nhostname = 103.37.155.60,[2001:db8::1],ads.example.com\n",
             "[Rewrite]\n^https://118.178.214.118/config reject\n"
-            "[MITM]\nhostname = 118.178.214.118\n")
+            "[MITM]\nhostname = 118.178.214.118\n",
+            return_stdout=True)
         mitm_line = next(line for line in output.splitlines()
                          if line.strip().startswith("hostname ="))
         self.assertNotIn("103.37.155.60", mitm_line)
         self.assertNotIn("118.178.214.118", mitm_line)
         self.assertNotIn("2001:db8::1", mitm_line)
+        self.assertIn("MITM 自愈补全 0 个", stdout)
         # 只过滤 MITM hostname，不删除原有 IP 目标 Rewrite 拦截规则。
         self.assertIn("103.37.155.60/ad", output)
         self.assertIn("118.178.214.118", output)
         self.assertIn("/config", output)
         self.assertIn("2001:db8::1", output)
+
+    def test_lowercase_domain_suffix_rule_is_normalized(self):
+        output = self.run_merge(
+            "[Rewrite]\n[MITM]\nhostname = \n",
+            "[Rule]\nDOMAIN-suffix,anythinktech.com,reject\n")
+        self.assertIn("DOMAIN-SUFFIX,anythinktech.com,REJECT", output)
+        self.assertNotIn("DOMAIN-suffix", output)
 
     def test_standard_wildcard_domain_is_still_preserved(self):
         output = self.run_merge(
@@ -96,6 +106,15 @@ class MergeIntegrationTests(unittest.TestCase):
             "[MITM]\nhostname = *.example.com\n",
             "[Rewrite]\n[MITM]\nhostname = \n")
         self.assertIn("*.example.com", output)
+
+    def test_wildcard_mitm_does_not_cover_apex_domain(self):
+        output = self.run_merge(
+            "[Rewrite]\n^https://example.com/ad reject\n"
+            "[MITM]\nhostname = *.example.com\n",
+            "[Rewrite]\n[MITM]\nhostname = \n")
+        mitm_line = next(line for line in output.splitlines()
+                         if line.strip().startswith("hostname ="))
+        self.assertIn("example.com", mitm_line)
 
     def test_valid_unlisted_tld_is_not_dropped_from_mitm(self):
         output = self.run_merge(

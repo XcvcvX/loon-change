@@ -17,8 +17,16 @@ class ValidatorTests(unittest.TestCase):
         self.assertIsNotNone(vp.check_hostname('2001:db8::1'))
         self.assertIsNotNone(vp.check_hostname('[2001:db8::1]'))
 
+    def test_extract_script_url_supports_both_syntaxes(self):
+        path_line = 'http-response ^https://a.example.com script-path=https://cdn.example.com/a.js,tag=A'
+        call_line = 'response then script("https://cdn.example.com/b.js")'
+        self.assertEqual(vp.extract_script_url(path_line), 'https://cdn.example.com/a.js')
+        self.assertEqual(vp.extract_script_url(call_line), 'https://cdn.example.com/b.js')
+        self.assertIsNone(vp.extract_script_url('response then reject(404)'))
+
     def test_wildcard_coverage(self):
         self.assertTrue(vp.host_covered('a.b.example.com', {'*.example.com'}))
+        self.assertFalse(vp.host_covered('example.com', {'*.example.com'}))
         self.assertFalse(vp.host_covered('example.net', {'*.example.com'}))
         self.assertFalse(vp.host_covered('a.example.com', {'-*.example.com'}))
 
