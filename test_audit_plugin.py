@@ -33,7 +33,8 @@ AND,((PROTOCOL,UDP),(DEST-PORT,443)),REJECT
 AND,((DOMAIN-SUFFIX,example.com),(PROTOCOL,UDP),(DEST-PORT,443)),REJECT
 [Script]
 response if ${url} ~= /x/ then script("https://cdn.example/a.js", {x=1})
-http-response ^https://a.example script-path=https://cdn.example/b.js,tag=A
+http-response ^https://a.example script-path = https://cdn.example/b.js,tag=A
+request if ${url} ~= /ad/ then reject_dict(200)
 [MITM]
 hostname = *.example.com, api.example.com, example.net
 '''
