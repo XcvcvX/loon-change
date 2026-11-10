@@ -26,7 +26,7 @@
 | test_validate_plugin.py | 校验器单元测试 |
 | test_merge_plugins.py | 合并器集成测试：重复区块、reject 动作、TLD hostname |
 | source_guard.py | 上游响应/仓库结构完整性门禁，阻止 HTML 错误页、空文件和缺失源 |
-| audit_plugin.py | 只读审计全局 UDP/443、MITM 通配覆盖候选与 Script 触发器，不自动删改规则 |
+| audit_plugin.py | 只读审计全局 UDP/443、MITM 通配覆盖候选、Script URL 与错放 Rewrite Action，不自动删改规则 |
 
 当前产物统计由工作流自动维护：
 
@@ -40,7 +40,7 @@
 | [Rewrite] | 3256 |
 | [Script] | 586 |
 | [MITM] hostname 条目 | 1468 |
-| 唯一远程脚本 URL | 183 |
+| 唯一远程脚本 URL | 189 |
 <!-- AUTO_PLUGIN_STATS:END -->
 
 ## 自动更新
@@ -60,7 +60,7 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
     python3 validate_plugin.py allAdRewrite.plugin --check-remote
     python3 audit_plugin.py allAdRewrite.plugin --summary-only
 
---check-remote 会对最多 80 个唯一远程脚本 URL 发起 HEAD 检查，仅输出警告，不代表脚本逻辑已通过测试；部分 CDN 不支持 HEAD 或会限流。`audit_plugin.py` 只输出全局 UDP/443、MITM 通配重叠候选与 Script 触发器统计，不自动修改规则。
+--check-remote 会对最多 80 个唯一远程脚本 URL 发起 HEAD 检查，仅输出警告，不代表脚本逻辑已通过测试；部分 CDN 不支持 HEAD 或会限流。`audit_plugin.py` 输出全局 UDP/443、MITM 通配重叠候选、Script URL 与错放 Action 统计，不自动修改规则。
 
 ## 安全边界
 
