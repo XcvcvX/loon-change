@@ -20,7 +20,7 @@ class ValidatorTests(unittest.TestCase):
     def test_extract_script_url_supports_both_syntaxes(self):
         path_line = 'http-response ^https://a.example.com script-path=https://cdn.example.com/a.js,tag=A'
         spaced_path_line = 'http-response ^https://b.example.com script-path = https://cdn.example.com/spaced.js,tag=B'
-        call_line = 'response then script("https://cdn.example.com/b.js")'
+        call_line = 'response then script("https://cdn.example.com/b.js", {enabled})'
         self.assertEqual(vp.extract_script_url(path_line), 'https://cdn.example.com/a.js')
         self.assertEqual(vp.extract_script_url(spaced_path_line), 'https://cdn.example.com/spaced.js')
         self.assertEqual(vp.extract_script_url(call_line), 'https://cdn.example.com/b.js')
