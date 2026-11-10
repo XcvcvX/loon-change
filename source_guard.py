@@ -4,6 +4,7 @@
 import argparse
 import json
 import re
+import subprocess
 from pathlib import Path
 
 REQUIRED_ZMJDE = (
@@ -112,10 +113,18 @@ def check_clones(thelong, aoomee, zmjde, qxapp):
                                min_entries=1, require_hostname=True)
     if not re.search(r"(?m)^\s*\^https?\S*\s+url\s+", qx):
         raise ValueError("GuaZiVideoAds: 未发现可识别的 QuanX URL 规则")
+    def revision(path):
+        try:
+            return subprocess.check_output(
+                ["git", "-C", str(path), "rev-parse", "HEAD"],
+                text=True, stderr=subprocess.DEVNULL).strip()
+        except Exception:
+            return "unknown"
+
     report.update({
-        "thelongdarkorg": {"plugin_files": len(tl)},
-        "aoomee": {"plugin_files": len(ao)},
-        "zmjde": {"required_plugins": len(REQUIRED_ZMJDE)},
+        "thelongdarkorg": {"commit": revision(thelong), "plugin_files": len(tl)},
+        "aoomee": {"commit": revision(aoomee), "plugin_files": len(ao)},
+        "zmjde": {"commit": revision(zmjde), "required_plugins": len(REQUIRED_ZMJDE)},
         "GuaZiVideoAds": qx_stats,
     })
     return report
