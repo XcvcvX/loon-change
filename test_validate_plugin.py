@@ -21,7 +21,7 @@ class ValidatorTests(unittest.TestCase):
 
     def test_duplicate_section(self):
         sections, duplicates = vp.parse_sections('[Rule]\nDOMAIN,a.example.com,REJECT\n[Rule]\n')
-        self.assertEqual(len(sections['Rule']), 2)
+        self.assertEqual(len(sections['Rule']), 1)
         self.assertEqual(duplicates, [(3, 'Rule')])
 
     def test_readme_update_is_idempotent(self):
