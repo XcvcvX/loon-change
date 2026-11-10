@@ -116,6 +116,8 @@ ap.add_argument('--zmjde', default=None,
 ap.add_argument('--qxapp', action='append', default=None,
                 help='QuanX 单文件 App 插件（.conf，如瓜子影视）本地路径，可重复传入；'
                      '脚本内解析 hostname 并把 qx 规则转为 Loon v2，按专属 App 高优先级完整并入')
+ap.add_argument('--amap', default=None,
+                help='RuCu6/sooyaaabo 高德地图独立 Loon 插件（经来源校验的本地 .lpx 文件）；最高 App 优先级')
 ap.add_argument('--myblockads', default='fetch',
                 help='MyBlockAds 来源：fetch（默认，在线抓取失败回退 sources/myblockads.lpx 缓存）'
                      '/ 本地路径 / none（不并入）')
@@ -539,6 +541,23 @@ if mb_text is None and args.myblockads != 'none':
 
 _, base_sec = split_sections(base_text)
 _, extra_sec = split_sections(extra_text)
+amap_sec = parse_loose_sections(open(args.amap, encoding='utf-8').read()) if args.amap else {}
+amap_rw = real_lines(amap_sec.get('Rewrite', []))
+amap_sc = real_lines(amap_sec.get('Script', []))
+amap_rule = real_lines(amap_sec.get('Rule', []))
+amap_mitm = []
+for l in amap_sec.get('MITM', []):
+    if '=' in l:
+        amap_mitm += [x.strip() for x in l.split('=', 1)[1].split(',') if x.strip()]
+# 将第三方脚本/JQ 依赖纳入仓库本地镜像，避免上游临时不可用或 kelee.one 403。
+_AMAP_ASSET_BASE = 'https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/'
+if args.amap:
+    amap_rw = [l.replace('https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/sooyaaabo/Amap/rucu6_amap.js', _AMAP_ASSET_BASE + 'rucu6_amap.js')
+                 .replace('https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/sooyaaabo/Amap/loon_Amap.recommend.jq', _AMAP_ASSET_BASE + 'loon_Amap.recommend.jq')
+                 .replace('https://kelee.one/Resource/JQLang/Amap/updatable.jq', _AMAP_ASSET_BASE + 'updatable.jq')
+                 .replace('https://kelee.one/Resource/JQLang/Amap/search_poi_detail.jq', _AMAP_ASSET_BASE + 'search_poi_detail.jq')
+                 for l in amap_rw]
+amap_sc = [l.replace('https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/sooyaaabo/Amap/rucu6_amap.js', _AMAP_ASSET_BASE + 'rucu6_amap.js') for l in amap_sc]
 
 # ---------------- legacy 旧行转换（blockAdsV2 / qx 单文件等复用）----------------
 _LEGACY_REJECT = {
@@ -831,8 +850,8 @@ if args.qxapp:
         qxapp_rw += rw; qxapp_mitm += hm
 
 # ---------------- 执行优先级合并 ----------------
-# 位置顺序：base 骨架 -> block -> zmjde通用 -> thelong -> aoomee -> qx单文件App -> zmjdeApp；
-# 同正则由 prio 决定覆盖（zmjde App 最高，qx 专属 App 次之；zmjde 通用低于 base、只补不覆盖）
+# 位置顺序：base 骨架 -> block -> zmjde通用 -> thelong -> aoomee -> qx单文件App -> amapApp -> zmjdeApp；
+# 数字越小优先级越高：amap App=-1（最高），zmjde App=0，qx 专属 App=1；通用源按既有顺序。
 # MyBlockAds（标准 Loon v2，综合大合集）：prio=7 最低，只补现有源没有的规则，零回归。
 if mb_text is not None:
     mb_sec = parse_loose_sections(mb_text)
@@ -847,11 +866,11 @@ else:
     mb_rw, mb_sc, mb_rule, mb_mitm = [], [], [], []
 rw_feeds = [('base', 4, base_rw), ('block', 5, block_rw), ('zmjgen', 6, zmj_gen_rw),
             ('thelong', 3, thelong_rw), ('aoomee', 2, ao_rw),
-            ('qxapp', 1, qxapp_rw), ('zmjapp', 0, zmj_app_rw),
+            ('qxapp', 1, qxapp_rw), ('amap', -1, amap_rw), ('zmjapp', 0, zmj_app_rw),
             ('myblockads', 7, mb_rw)]
 sc_feeds = [('base', 4, base_sc), ('block', 5, block_sc), ('zmjgen', 6, zmj_gen_sc),
             ('thelong', 3, thelong_sc), ('aoomee', 2, ao_sc),
-            ('zmjapp', 0, zmj_app_sc), ('myblockads', 7, mb_sc)]
+            ('amap', -1, amap_sc), ('zmjapp', 0, zmj_app_sc), ('myblockads', 7, mb_sc)]
 merged_rw, rw_unguarded = priority_merge([(p, x) for _, p, x in rw_feeds])
 merged_sc, sc_unguarded = priority_merge([(p, x) for _, p, x in sc_feeds])
 # 无守卫行（generic/cron）归入 Script 段末尾，再整体去重
@@ -920,6 +939,9 @@ def add_rule(line, src):
     rule_counts[src + '_add'] += 1
 
 
+if args.amap:
+    for l in amap_rule:
+        add_rule(l, 'amap')
 if args.zmjde:
     for l in zmj_app_rule:
         add_rule(l, 'zmjapp')
@@ -978,7 +1000,7 @@ for l in extra_sec.get('MITM', []):
     if '=' in l:
         extra_raw += [x.strip() for x in l.split('=', 1)[1].split(',') if x.strip()]
 dropped = []
-for h in extra_raw + thelong_mitm + ao_mitm + zmj_app_mitm + zmj_gen_mitm + qxapp_mitm + mb_mitm:
+for h in extra_raw + thelong_mitm + ao_mitm + amap_mitm + zmj_app_mitm + zmj_gen_mitm + qxapp_mitm + mb_mitm:
     got = normalize_extra_host(h, guard_real)
     # 跳过证书绑定域（如 amemv）：从源头不进 MITM，不使用负向语法
     got = [x for x in got if not mitm_skip_host(x)]
@@ -1234,13 +1256,13 @@ mitm_pruned = _mitm_before_prune - len(mitm)
 today = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
 header = [
     '#!name=R-Store × blockAdsV2 × 独立 App 去广告净化合集',
-    '#!desc=合并 R-Store、blockAdsV2、Thelongdarkorg、aoomee、zmjde、ddgksf2013 瓜子；'
+    '#!desc=合并 R-Store、blockAdsV2、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；'
     '按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含',
     '#!author=zirawell / fmz200 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）',
     '#!homepage=https://github.com/XcvcvX/loon-change',
     '#!merged-at=%s' % today,
-    '#!note=专属 App 插件（zmjde/qx 单文件/aoomee/Thelongdarkorg）优先级最高；新旧语法同段混用，Loon 均支持。',
-    '#!sources=R-Store(QuanX->Loon)+blockAdsV2+Thelongdarkorg+aoomee+zmjde+ddgksf2013/GuaZiVideoAds',
+    '#!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。',
+    '#!sources=R-Store(QuanX->Loon)+blockAdsV2+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds',
     '',
 ]
 out = list(header)
@@ -1257,6 +1279,9 @@ print('\n[merge] 输出:', args.out)
 print('  Rewrite：%d 条；Script：%d 条（含 generic/cron 无守卫行）'
       % (len(merged_rw), len(merged_sc)))
 print('  Rule   ：%d 条；Argument：%d 个开关' % (len(rule_items), len(arg_items)))
+if args.amap:
+    print('  高德 App：Rewrite %d / Script %d / Rule %d / MITM %d（priority=-1，最高）'
+          % (len(amap_rw), len(amap_sc), len(amap_rule), len(amap_mitm)))
 print('  Rule 来源：aoomee 新增 %d（跳过 %d）；thelong 新增 %d（跳过 %d）；'
       'block 新增 %d（跳过 %d）'
       % (rule_counts['aoomee_add'], rule_counts['aoomee_dup'],
