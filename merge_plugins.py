@@ -663,6 +663,35 @@ def prep_block_lines(ls):
     return out
 
 
+def prep_block_sections(rewrite_lines, script_lines):
+    """按 Loon 官方区块语义整理 blockAdsV2。
+    上游偶尔把 reject 等 Rewrite Action 放进 [Script]；这类行应移到 [Rewrite]，
+    不能生成无 script(...) Action 的 Script 指令。旧版 script-path 行仍留在 [Script]。
+    """
+    rewrite = prep_block_lines(rewrite_lines)
+    script = []
+    for line in real_lines(script_lines):
+        is_http = bool(re.match(r'^(request|response)\b', line)
+                       and ' then ' in line)
+        has_script = bool(re.search(r'\bscript\s*\(', line, re.I)
+                          or re.search(r'\bscript-path\s*=', line, re.I))
+        is_legacy_http_script = bool(
+            re.match(r'^(http-request|http-response)\b', line)
+            and re.search(r'\bscript-path\s*=', line, re.I))
+        is_unguarded_script = bool(
+            re.match(r'^(cron|network-changed|generic)\b', line)
+            and has_script)
+        if (is_http and has_script) or is_legacy_http_script or is_unguarded_script:
+            script.append(line)
+        elif is_http:
+            rewrite.append(line)
+        else:
+            converted = convert_legacy_line(line)
+            if converted:
+                rewrite.append(converted)
+    return rewrite, script
+
+
 # Shadowrocket 风格 "^regex url reject(-dict)"：Loon 旧版无 url 关键字，去掉即可
 _SR_URL_RE = re.compile(r'^(\^.*?)\s+url\s+(reject(?:-dict)?)$')
 # 旧版动作名大小写归一（官方文档一律小写）
@@ -689,8 +718,8 @@ def convert_shadowrocket_line(line):
 base_rw = real_lines(base_sec.get('Rewrite', []))
 base_sc = real_lines(base_sec.get('Script', []))
 # blockAdsV2
-block_rw = prep_block_lines(extra_sec.get('Rewrite', []))
-block_sc = prep_block_lines(extra_sec.get('Script', []))
+block_rw, block_sc = prep_block_sections(
+    extra_sec.get('Rewrite', []), extra_sec.get('Script', []))
 # Thelongdarkorg（标准 v1，直接保留）
 thelong_rw, thelong_sc = [], []
 thelong_rule, thelong_mitm = [], []
