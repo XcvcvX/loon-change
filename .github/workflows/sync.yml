@@ -9,6 +9,8 @@ on:
       - 'test_merge_plugins.py'
       - 'test_validate_plugin.py'
       - 'test_source_guard.py'
+      - 'audit_plugin.py'
+      - 'test_audit_plugin.py'
       - '.github/workflows/sync.yml'
       - 'README.md'
   schedule:
@@ -31,9 +33,11 @@ jobs:
         with:
           python-version: '3.11'
       - name: 编译检查
-        run: python3 -m py_compile merge_plugins.py validate_plugin.py source_guard.py convert_qx2loon.py convert_filter_qx2loon.py
+        run: python3 -m py_compile merge_plugins.py validate_plugin.py source_guard.py audit_plugin.py convert_qx2loon.py convert_filter_qx2loon.py
       - name: 运行单元与合并集成测试
-        run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py
+        run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py
+      - name: 审计当前插件风险摘要
+        run: python3 audit_plugin.py allAdRewrite.plugin --summary-only
 
   sync:
     if: github.event_name != 'pull_request'
@@ -50,7 +54,7 @@ jobs:
           python-version: '3.11'
 
       - name: 测试校验器
-        run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py
+        run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py
 
       - name: 创建隔离构建目录
         run: mkdir -p /tmp/loon-build
@@ -88,6 +92,9 @@ jobs:
 
       - name: 校验临时产物并同步 README 统计
         run: python3 validate_plugin.py /tmp/loon-build/allAdRewrite.plugin --update-readme README.md
+
+      - name: 只读审计 UDP、MITM 与 Script 风险
+        run: python3 audit_plugin.py /tmp/loon-build/allAdRewrite.plugin --summary-only
 
       - name: 校验通过后替换正式产物
         run: cp /tmp/loon-build/allAdRewrite.plugin allAdRewrite.plugin.tmp && mv allAdRewrite.plugin.tmp allAdRewrite.plugin

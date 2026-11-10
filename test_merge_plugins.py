@@ -50,6 +50,21 @@ class MergeIntegrationTests(unittest.TestCase):
         self.assertIn("^https://same.example.com/ad reject", output)
         self.assertIn("reject_img(200)", output)
 
+    def test_rewrite_actions_misplaced_in_block_script_are_moved_to_rewrite(self):
+        output = self.run_merge(
+            "[Rewrite]\n[Script]\n[MITM]\nhostname = beehiveapi.58.com\n",
+            "[Script]\n"
+            "request if ${url} ~= /^https?:\\/\\/beehiveapi\\.58\\.com\\/adplace\\/zcm/ then reject_dict(200)\n"
+            "^https?:\\/\\/legacy\\.example\\.com\\/ad reject-dict\n"
+            "response if ${url} ~= /^https:\\/\\/api\\.example\\.com/ then script(\"https://cdn.example/script.js\")\n")
+        rewrite_pos = output.index("[Rewrite]")
+        script_pos = output.index("[Script]")
+        self.assertLess(rewrite_pos, script_pos)
+        self.assertEqual(output[:script_pos].count("then reject_dict(200)"), 2)
+        self.assertIn("legacy\\.example\\.com", output[:script_pos])
+        self.assertIn('script("https://cdn.example/script.js")', output[script_pos:])
+        self.assertNotIn("then reject_dict(200)", output[script_pos:])
+
 
 
     def test_legacy_and_v2_alias_of_same_reject_action_deduplicate(self):
