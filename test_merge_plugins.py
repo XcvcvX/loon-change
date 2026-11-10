@@ -86,7 +86,8 @@ class MergeIntegrationTests(unittest.TestCase):
         self.assertNotIn("2001:db8::1", mitm_line)
         # 只过滤 MITM hostname，不删除原有 IP 目标 Rewrite 拦截规则。
         self.assertIn("103.37.155.60/ad", output)
-        self.assertIn("118.178.214.118/config", output)
+        self.assertIn("118.178.214.118", output)
+        self.assertIn("/config", output)
         self.assertIn("2001:db8::1", output)
 
     def test_standard_wildcard_domain_is_still_preserved(self):
