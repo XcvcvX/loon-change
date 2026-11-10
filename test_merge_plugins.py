@@ -40,28 +40,30 @@ class MergeIntegrationTests(unittest.TestCase):
 
 
     def test_amap_app_has_highest_priority_and_keeps_distinct_actions(self):
-        base = (
-            "[Rule]\\nDOMAIN,amap.com,DIRECT\\n"
-            "[Rewrite]\\n"
-            "request if ${url} ~= /^https:\\\\/\\\\/m5\\\\.amap\\\\.com\\\\/same\\?/i then reject_dict(200)\\n"
-            "response if ${url} ~= /^https:\\\\/\\\\/m5\\\\.amap\\\\.com\\\\/edit\\?/i then response.json.delete(\\"legacy\\")\\n"
-            "[MITM]\\nhostname = m5.amap.com\\n")
-        amap = (
-            "[Rule]\\nDOMAIN,amap.com,REJECT\\n"
-            "[Rewrite]\\n"
-            "request if ${url} ~= /^https:\\\\/\\\\/m5\\\\.amap\\\\.com\\\\/same\\?/ then reject_dict(200)\\n"
-            "response if ${url} ~= /^https:\\\\/\\\\/m5\\\\.amap\\\\.com\\\\/edit\\?/ then response.json.delete(\\"promotion\\")\\n"
-            "[Script]\\n"
-            "response if ${url} ~= /^https:\\\\/\\\\/m5\\\\.amap\\\\.com\\\\/script\\?/ then script(\\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/sooyaaabo/Amap/rucu6_amap.js\\")\\n"
-            "[MitM]\\nhostname = *.amap.com\\n")
-        output = self.run_merge(base, "[Rewrite]\\n[MITM]\\nhostname = \\n", amap_text=amap)
+        base = r"""[Rule]
+DOMAIN,amap.com,DIRECT
+[Rewrite]
+request if ${url} ~= /^https:\/\/m5\.amap\.com\/same\?/i then reject_dict(200)
+response if ${url} ~= /^https:\/\/m5\.amap\.com\/edit\?/i then response.json.delete("legacy")
+[MITM]
+hostname = m5.amap.com
+"""
+        amap = r"""[Rule]
+DOMAIN,amap.com,REJECT
+[Rewrite]
+request if ${url} ~= /^https:\/\/m5\.amap\.com\/same\?/ then reject_dict(200)
+response if ${url} ~= /^https:\/\/m5\.amap\.com\/edit\?/ then response.json.delete("promotion")
+[Script]
+response if ${url} ~= /^https:\/\/m5\.amap\.com\/script\?/ then script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/sooyaaabo/Amap/rucu6_amap.js")
+[MitM]
+hostname = *.amap.com
+"""
+        output = self.run_merge(base, "[Rewrite]\n[MITM]\nhostname = \n", amap_text=amap)
         rewrite = output.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
         script = output.split("[Script]", 1)[1].split("[MITM]", 1)[0]
-        # Equal regex + equal action: dedicated App source wins (no /i suffix from base).
         same = [line for line in rewrite.splitlines() if "/same" in line]
         self.assertEqual(len(same), 1)
         self.assertNotIn("/i then", same[0])
-        # Same URL regex but a different response action is complementary and retained.
         edit = [line for line in rewrite.splitlines() if "/edit" in line]
         self.assertEqual(len(edit), 2)
         self.assertTrue(any('delete("legacy")' in line for line in edit))
