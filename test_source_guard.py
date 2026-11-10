@@ -47,7 +47,7 @@ class SourceGuardTests(unittest.TestCase):
             (ao / "plugins" / "sample.plugin").write_text("[Rewrite]\n", encoding="utf-8")
             for name in REQUIRED_ZMJDE:
                 (zm / "Plugin" / name).write_text("[Rewrite]\n", encoding="utf-8")
-            qx.write_text("hostname = ads.example.com\n^https://ads.example.com/ad url reject\n", encoding="utf-8")
+            qx.write_text("hostname = ads.example.com\n^https://ads.example.com/ad url reject\n# " + "x" * 120, encoding="utf-8")
             report = check_clones(str(tl), str(ao), str(zm), str(qx))
             self.assertEqual(report["zmjde"]["required_plugins"], len(REQUIRED_ZMJDE))
 
