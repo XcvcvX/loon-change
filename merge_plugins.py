@@ -19,6 +19,7 @@
   # --filter 控制 R-Store 分流来源：fetch（默认）/ 本地路径 / none（不补全）
 """
 import argparse, datetime, ipaddress, os, re, sys, urllib.request
+from source_guard import validate_blockv2, validate_filter, validate_myblockads
 
 BLOCKV2_URL = ('https://raw.githubusercontent.com/fmz200/wool_scripts/refs/heads/'
                 'main/Loon/plugin/blockAdsV2.plugin')
@@ -482,7 +483,8 @@ if args.extra == 'fetch':
     for u in [BLOCKV2_URL] + BLOCKV2_MIRRORS:
         try:
             extra_text = fetch(u)
-            print('[fetch] 已获取 blockAdsV2:', u)
+            validate_blockv2(extra_text)
+            print('[fetch] 已获取并通过完整性检查 blockAdsV2:', u)
             break
         except Exception as e:
             last_err = e
@@ -491,20 +493,24 @@ if args.extra == 'fetch':
         raise SystemExit('blockAdsV2 获取失败: %s' % last_err)
 else:
     extra_text = open(args.extra, encoding='utf-8').read()
+    validate_blockv2(extra_text)
 
 # ---------------- MyBlockAds：在线抓取，失败回退仓库内置缓存 ----------------
 mb_text = None
 if args.myblockads == 'fetch':
     try:
         mb_text = fetch(MYBLOCKADS_URL)
-        print('[fetch] 已获取 MyBlockAds:', MYBLOCKADS_URL)
+        validate_myblockads(mb_text)
+        print('[fetch] 已获取并通过完整性检查 MyBlockAds:', MYBLOCKADS_URL)
     except Exception as e:
         print('[fetch] MyBlockAds 在线抓取失败，回退内置缓存:', e, file=sys.stderr)
         if os.path.exists(MYBLOCKADS_CACHE):
             mb_text = open(MYBLOCKADS_CACHE, encoding='utf-8').read()
-            print('[fetch] 已使用 MyBlockAds 缓存:', MYBLOCKADS_CACHE)
+            validate_myblockads(mb_text)
+            print('[fetch] 已使用并通过完整性检查 MyBlockAds 缓存:', MYBLOCKADS_CACHE)
 elif args.myblockads != 'none':
     mb_text = open(args.myblockads, encoding='utf-8').read()
+    validate_myblockads(mb_text)
 if mb_text is None and args.myblockads not in ('none', 'fetch'):
     raise SystemExit('MyBlockAds 本地来源不可用')
 
@@ -880,7 +886,8 @@ if args.filter != 'none':
         for u in [FILTER_URL] + FILTER_MIRRORS:
             try:
                 ftext = fetch(u)
-                print('[fetch] 已获取 R-Store filter:', u)
+                validate_filter(ftext)
+                print('[fetch] 已获取并通过完整性检查 R-Store filter:', u)
                 break
             except Exception as e:
                 f_err = e
@@ -889,6 +896,7 @@ if args.filter != 'none':
             raise SystemExit('R-Store filter 获取失败: %s' % f_err)
     else:
         ftext = open(args.filter, encoding='utf-8').read()
+        validate_filter(ftext)
     for fr in dedup_keep_order(parse_qx_filter(ftext)):
         fstats['total'] += 1
         before = len(rule_result)
