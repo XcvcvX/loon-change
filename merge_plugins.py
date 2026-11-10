@@ -1242,8 +1242,8 @@ print('  Rule 来源：aoomee 新增 %d（跳过 %d）；thelong 新增 %d（跳
 if args.filter != 'none':
     print('  分流补全：R-Store %d 条，已覆盖 %d，补入 %d'
           % (fstats['total'], fstats['covered'], fstats['added']))
-print('  MITM   ：%d 个主机（无法收敛丢弃 %d，自动裁剪无动作 %d）'
-      % (len(mitm), len(dropped), mitm_pruned))
+print('  MITM   ：%d 个主机（无法收敛丢弃 %d，IP 地址清理 %d，自动裁剪无动作 %d）'
+      % (len(mitm), len(dropped), len(mitm_ip_dropped), mitm_pruned))
 if mitm_pruned:
     print('  MITM 自动裁剪：移除 %d 个不服务任何规则、仅解密的冗余 host' % mitm_pruned)
 if mitm_healed:
