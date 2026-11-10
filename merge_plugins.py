@@ -1240,7 +1240,7 @@ print('  MITM   ：%d 个主机（无法收敛丢弃 %d，IP 地址清理 %d，�
       % (len(mitm), len(dropped), len(mitm_ip_dropped), mitm_pruned))
 if mitm_pruned:
     print('  MITM 自动裁剪：移除 %d 个不服务任何规则、仅解密的冗余 host' % mitm_pruned)
-if mitm_healed:
-    print('  MITM 自愈补全 %d 个：%s' % (len(mitm_healed), ', '.join(mitm_healed[:15])))
+print('  MITM 自愈补全 %d 个%s' % (
+    len(mitm_healed), '：' + ', '.join(mitm_healed[:15]) if mitm_healed else ''))
 if dropped:
     print('  丢弃的 hostname：', ', '.join(dropped[:20]))
