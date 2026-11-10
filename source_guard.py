@@ -89,7 +89,7 @@ def validate_myblockads(text):
     return stats
 
 
-def check_clones(thelong, aoomee, zmjde, qxapp):
+def check_clones(thelong, aoomee, zmjde, qxapp, previous_report=None):
     report = {}
     tl = list(Path(thelong).glob("*_ad_block.plugin")) + list(
         Path(thelong).glob("*_splash_ad_block.plugin"))
@@ -121,12 +121,38 @@ def check_clones(thelong, aoomee, zmjde, qxapp):
         except Exception:
             return "unknown"
 
+    def rule_lines(paths):
+        total = 0
+        for path in paths:
+            try:
+                content = path.read_text(encoding="utf-8-sig")
+            except Exception as exc:
+                raise ValueError("无法读取来源文件 %s: %s" % (path, exc))
+            blocks = re.findall(
+                r"(?ms)^\\[(?:Rewrite|Script|Rule)\\]\\s*\\n(.*?)(?=^\\[|\\Z)",
+                content)
+            total += sum(len(real_lines(block)) for block in blocks)
+        return total
+
+    zm_files = [zm_dir / name for name in REQUIRED_ZMJDE]
     report.update({
-        "thelongdarkorg": {"commit": revision(thelong), "plugin_files": len(tl)},
-        "aoomee": {"commit": revision(aoomee), "plugin_files": len(ao)},
-        "zmjde": {"commit": revision(zmjde), "required_plugins": len(REQUIRED_ZMJDE)},
+        "thelongdarkorg": {"commit": revision(thelong), "plugin_files": len(tl),
+                           "rule_lines": rule_lines(tl)},
+        "aoomee": {"commit": revision(aoomee), "plugin_files": len(ao),
+                   "rule_lines": rule_lines(ao)},
+        "zmjde": {"commit": revision(zmjde), "required_plugins": len(REQUIRED_ZMJDE),
+                  "rule_lines": rule_lines(zm_files)},
         "GuaZiVideoAds": qx_stats,
     })
+    if previous_report and Path(previous_report).is_file():
+        previous = json.loads(Path(previous_report).read_text(encoding="utf-8"))
+        for source in ("thelongdarkorg", "aoomee", "zmjde"):
+            old_count = previous.get(source, {}).get("rule_lines", 0)
+            new_count = report[source]["rule_lines"]
+            if old_count >= 20 and new_count < old_count * 0.40:
+                raise ValueError(
+                    "%s 规则量异常下降：%d -> %d（下降超过 60%%）；拒绝自动发布，请人工核实上游变化"
+                    % (source, old_count, new_count))
     return report
 
 
@@ -137,9 +163,10 @@ def main():
     parser.add_argument("--zmjde")
     parser.add_argument("--qxapp")
     parser.add_argument("--report")
+    parser.add_argument("--previous-report")
     args = parser.parse_args()
     try:
-        report = check_clones(args.thelong, args.aoomee, args.zmjde, args.qxapp)
+        report = check_clones(args.thelong, args.aoomee, args.zmjde, args.qxapp, args.previous_report)
         if args.report:
             Path(args.report).write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n",
                                          encoding="utf-8")
