@@ -22,7 +22,7 @@ def parse_sections(text):
 
 def extract_script_url(line):
     """支持 script-path=URL 与 script("URL", ...) 两种写法。"""
-    match = re.search(r'script-path=(https?://[^,\s]+)', line, re.I)
+    match = re.search(r'script-path\s*=\s*(https?://[^,\s]+)', line, re.I)
     if match:
         return match.group(1).rstrip(',')
     match = re.search(r'''script\(\s*(["'])(https?://.*?)\1''', line, re.I)
@@ -98,7 +98,7 @@ def audit_plugin(path):
         )
         kind = re.sub(r'\s+', ' ', match.group(1).lower()) if match else 'unclassified'
         trigger_types[kind] += 1
-        if re.search(r'script-path\\s*=', line, re.I):
+        if re.search(r'script-path\s*=', line, re.I):
             script_path_lines += 1
         if re.search(r'script\s*\(', line, re.I):
             script_call_lines += 1
@@ -120,10 +120,10 @@ def audit_plugin(path):
     non_script_actions = [
         {'line': number, 'entry': line}
         for number, line in script_rows
-        if re.match(r'^(?:request|response)\\s+if\\b', line)
+        if re.match(r'^(?:request|response)\s+if\b', line)
         and ' then ' in line
-        and not re.search(r'\\bscript\\s*\\(', line, re.I)
-        and not re.search(r'\\bscript-path\\s*=', line, re.I)
+        and not re.search(r'\bscript\s*\(', line, re.I)
+        and not re.search(r'\bscript-path\s*=', line, re.I)
     ]
 
     return {
