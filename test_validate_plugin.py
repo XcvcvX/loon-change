@@ -29,9 +29,9 @@ class ValidatorTests(unittest.TestCase):
     def test_script_section_rejects_rewrite_action(self):
         hosts = ','.join(sorted(vp.REQUIRED_COVERED_HOSTS))
         fixture = (
-            '[Argument]\\n[Rule]\\n[Rewrite]\\n[Script]\\n'
-            'request if ${url} ~= /^https:\\\\/\\\\/ads\\.example\\.com/ then reject_dict(200)\\n'
-            '[MITM]\\nhostname = ' + hosts + '\\n'
+            '[Argument]\n[Rule]\n[Rewrite]\n[Script]\n'
+            'request if ${url} ~= /^https:\\\\/\\\\/ads\\.example\\.com/ then reject_dict(200)\n'
+            '[MITM]\nhostname = ' + hosts + '\n'
         )
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / 'invalid.plugin'
