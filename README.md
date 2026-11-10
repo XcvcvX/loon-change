@@ -38,11 +38,11 @@
 | 区块 | 条目数 |
 |---|---:|
 | [Argument] | 91 |
-| [Rule] | 3497 |
-| [Rewrite] | 3306 |
-| [Script] | 603 |
-| [MITM] hostname 条目 | 1481 |
-| 唯一远程脚本 URL | 198 |
+| [Rule] | 3498 |
+| [Rewrite] | 3326 |
+| [Script] | 616 |
+| [MITM] hostname 条目 | 1484 |
+| 唯一远程脚本 URL | 199 |
 <!-- AUTO_PLUGIN_STATS:END -->
 
 ## 自动更新

@@ -1,4 +1,22 @@
 {
+  "Amap": {
+    "bytes": 15000,
+    "entries": 48,
+    "sections": {
+      "Rule": 4,
+      "Rewrite": 26,
+      "Script": 13
+    },
+    "mitm_hosts": [
+      "*.amap.com"
+    ],
+    "required_assets": [
+      "rucu6_amap.js",
+      "loon_Amap.recommend.jq",
+      "updatable.jq",
+      "search_poi_detail.jq"
+    ]
+  },
   "thelongdarkorg": {
     "commit": "dc6c094c8b7a764b379c2c5af2edaba175b1b3df",
     "plugin_files": 52,
