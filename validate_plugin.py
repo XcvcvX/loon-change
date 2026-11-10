@@ -98,7 +98,7 @@ def extract_script_url(line):
     match = re.search(r"script-path\s*=\s*(https?://[^,\s]+)", line, re.I)
     if match:
         return match.group(1).rstrip(',')
-    match = re.search(r"""script[(][ ]*["'](https?://[^"']+)["'][ ]*[)]""", line, re.I)
+    match = re.search(r'''script\(\s*(["'])(https?://.*?)\1''', line, re.I)
     return match.group(1).rstrip(',') if match else None
 
 
