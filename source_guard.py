@@ -71,7 +71,7 @@ def validate_blockv2(text):
     stats = validate_source(text, "blockAdsV2", min_bytes=300, min_entries=5,
                             required_sections=("Rewrite", "MITM"))
     count = sum(len(real_lines(x)) for x in re.findall(
-        r"(?ms)^\[(?:Rewrite|Script|Rule)\]\s*\n(.*?)(?=^\[|\Z)", text))
+        r"(?ms)^\[(?:Rewrite|URL Rewrite|Script|Rule)\]\s*\n(.*?)(?=^\[|\Z)", text))
     if count < 5:
         raise ValueError("blockAdsV2: Rewrite/Script/Rule 有效条目仅 %d 条" % count)
     stats["rule_entries"] = count
@@ -135,13 +135,22 @@ def check_clones(thelong, aoomee, zmjde, qxapp, previous_report=None):
         return total
 
     zm_files = [zm_dir / name for name in REQUIRED_ZMJDE]
+    counts = {
+        "thelongdarkorg": rule_lines(tl),
+        "aoomee": rule_lines(ao),
+        "zmjde": rule_lines(zm_files),
+    }
+    for source, count in counts.items():
+        if count < 10:
+            raise ValueError("%s 可识别规则量仅 %d 行（要求至少 10），拒绝把异常空源写入基线"
+                             % (source, count))
     report.update({
         "thelongdarkorg": {"commit": revision(thelong), "plugin_files": len(tl),
-                           "rule_lines": rule_lines(tl)},
+                           "rule_lines": counts["thelongdarkorg"]},
         "aoomee": {"commit": revision(aoomee), "plugin_files": len(ao),
-                   "rule_lines": rule_lines(ao)},
+                   "rule_lines": counts["aoomee"]},
         "zmjde": {"commit": revision(zmjde), "required_plugins": len(REQUIRED_ZMJDE),
-                  "rule_lines": rule_lines(zm_files)},
+                  "rule_lines": counts["zmjde"]},
         "GuaZiVideoAds": qx_stats,
     })
     if previous_report and Path(previous_report).is_file():
