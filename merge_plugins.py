@@ -492,8 +492,8 @@ if args.extra == 'fetch':
     if extra_text is None:
         raise SystemExit('blockAdsV2 获取失败: %s' % last_err)
 else:
+    # 显式本地输入也用于单元测试/离线调试；远程生产抓取才执行上游体量门禁。
     extra_text = open(args.extra, encoding='utf-8').read()
-    validate_blockv2(extra_text)
 
 # ---------------- MyBlockAds：在线抓取，失败回退仓库内置缓存 ----------------
 mb_text = None
@@ -510,7 +510,6 @@ if args.myblockads == 'fetch':
             print('[fetch] 已使用并通过完整性检查 MyBlockAds 缓存:', MYBLOCKADS_CACHE)
 elif args.myblockads != 'none':
     mb_text = open(args.myblockads, encoding='utf-8').read()
-    validate_myblockads(mb_text)
 if mb_text is None and args.myblockads != 'none':
     raise SystemExit('MyBlockAds 在线来源与本地缓存/文件均不可用，拒绝静默跳过该来源')
 
@@ -896,7 +895,6 @@ if args.filter != 'none':
             raise SystemExit('R-Store filter 获取失败: %s' % f_err)
     else:
         ftext = open(args.filter, encoding='utf-8').read()
-        validate_filter(ftext)
     for fr in dedup_keep_order(parse_qx_filter(ftext)):
         fstats['total'] += 1
         before = len(rule_result)
