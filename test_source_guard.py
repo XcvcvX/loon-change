@@ -65,6 +65,11 @@ class SourceGuardTests(unittest.TestCase):
         self.assertGreaterEqual(stats["sections"]["Rewrite"], 20)
         self.assertGreaterEqual(stats["sections"]["Script"], 10)
         self.assertIn("*.amap.com", stats["mitm_hosts"])
+        for name in ("rucu6_amap.js", "loon_Amap.recommend.jq",
+                     "updatable.jq", "search_poi_detail.jq"):
+            asset = source.parent / name
+            self.assertTrue(asset.is_file(), name)
+            self.assertGreater(asset.stat().st_size, 100, name)
 
     def test_amap_source_rejects_missing_mitm(self):
         source = Path(__file__).with_name("sources") / "amap" / "Amap.lpx"
