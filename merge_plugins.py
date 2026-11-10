@@ -1221,12 +1221,7 @@ if dropped:
 
 
 def prune_unused_mitm(mitm_hosts, rule_lines, host_origins, rules_by_src):
-    """仅按最终合并后的规则判断 MITM 是否仍有用途。
-
-    hostname 可能由来源 A 声明，却被来源 B 的规则实际使用；按 hostname 来源限制
-    对应规则会误删这种共享主机。MITM 是最终插件的全局解密清单，因此必须以最终
-    Rewrite/Script 规则为准：只要任一最终规则的 host 正则匹配，就保留。
-    """
+    """按最终合并后的规则判断 MITM 用途，避免跨来源共享主机被误裁剪。"""
     all_patterns = compiled_host_patterns(rule_lines)
     narrow = {z: rc for z, rc in all_patterns.items() if is_narrow_host_pattern(z)}
 
@@ -1240,23 +1235,22 @@ def prune_unused_mitm(mitm_hosts, rule_lines, host_origins, rules_by_src):
     kept_conc = [
         h for h in mitm_hosts
         if not h.startswith('*.') and not h.startswith('-')
-        and any(rc.match(h) for rc in narrow.values())
+        and any(rc.match(h) for rc in all_patterns.values())
     ]
-    kept_conc_set = set(kept_conc)
 
     kept_wild = []
     for pattern in mitm_hosts:
         if not pattern.startswith('*.'):
             continue
         suffix = pattern[2:]
-        # 通配项只有在最终规则样本确实落入该后缀时才保留。
-        if any(sample == suffix or sample.endswith('.' + suffix)
-               for sample in all_samples):
+        probes = (suffix, 'probe.' + suffix, 'probe.probe.' + suffix)
+        if (any(sample == suffix or sample.endswith('.' + suffix)
+                for sample in all_samples)
+                or any(rc.match(probe) for rc in all_patterns.values() for probe in probes)):
             kept_wild.append(pattern)
 
     neg = [h for h in mitm_hosts if h.startswith('-')]
     return kept_conc + kept_wild + neg
-
 
 # 自动裁剪：用最终规则完整 host 正则直接匹配，移除不服务任何规则、仅解密的冗余 host。
 # 构建 host -> 来源集合（对来源原始 host 做与收集环节一致的 normalize），及各来源规则。
