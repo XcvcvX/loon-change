@@ -1144,7 +1144,7 @@ def prune_unused_mitm(mitm_hosts, rule_lines):
 
 # 自动裁剪：仅按最终合并后的 Rewrite/Script host 正则判断，避免跨来源共享域名误删。
 _mitm_before_prune = len(mitm)
-mitm = prune_unused_mitm(mitm, merged_rw + merged_sc, {}, {})
+mitm = prune_unused_mitm(mitm, merged_rw + merged_sc)
 mitm_pruned = _mitm_before_prune - len(mitm)
 
 # ---------------- 输出 ----------------
