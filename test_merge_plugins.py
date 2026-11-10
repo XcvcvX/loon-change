@@ -71,7 +71,9 @@ hostname = *.amap.com
         self.assertIn("DOMAIN,amap.com,REJECT", output)
         self.assertIn("https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js", script)
         mitm = output.split("[MITM]", 1)[1]
-        self.assertIn("*.amap.com", mitm)
+        # The broad upstream wildcard is narrowed to the concrete HTTPS hosts actually guarded.
+        self.assertIn("m5.amap.com", mitm)
+        self.assertNotIn("*.amap.com", mitm)
         self.assertNotIn("hostname = 103.", mitm)
 
     def test_repeated_sections_are_accumulated(self):
