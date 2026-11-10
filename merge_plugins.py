@@ -66,18 +66,7 @@ PUBLIC_SUFFIX_2L = {
 HOST_OK = re.compile(r'^(?=.{1,253}$)(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$')
 IP_OK = re.compile(r'^\d{1,3}(?:\.\d{1,3}){3}$')
 
-# 真实 TLD 白名单：用于 hostname 收敛时排除缺 TLD 的非法项、可选组截断的残缺 host
-_KNOWN_TLD = {
-    'com', 'net', 'org', 'gov', 'edu', 'mil', 'asia', 'app', 'io', 'me', 'cc', 'tv', 'co', 'info',
-    'so', 'group', 'ltd',
-    'xyz', 'top', 'vip', 'shop', 'site', 'online', 'store', 'tech', 'dev', 'ai', 'cloud', 'live',
-    'press', 'pro', 'name', 'mobi', 'biz', 'club', 'fun', 'games', 'news', 'blog', 'wiki', 'link',
-    'run', 'space', 'today', 'work', 'design', 'media', 'world', 'life', 'health', 'art', 'photo',
-    'video', 'chat', 'plus', 'one', 'cn', 'hk', 'tw', 'jp', 'us', 'uk', 'de', 'fr', 'kr', 'sg',
-    'au', 'ca', 'ru', 'br', 'in', 'it', 'es', 'nl', 'se', 'no', 'fi', 'dk', 'ch', 'at', 'be',
-    'nz', 'ie', 'pt', 'gr', 'pl', 'tr', 'mx', 'ar', 'za', 'th', 'vn', 'my', 'ph', 'id', 'il',
-    'sa', 'ae', 'cz', 'hu', 'ro', 'sk', 'bg', 'hr', 'lt', 'lv', 'ee', 'si', 'is', 'lu', 'mt',
-}
+# 不维护不完整的 TLD 白名单；HOST_OK 负责 DNS 标签格式，公共后缀表仅用于避免过宽通配。
 
 # MITM 跳过域名（证书绑定/私有长连接，强制解密会握手失败，MITM Failed、0 字节）：
 # 现象为有 APNs 推送但核心功能（如抖音私信）不可用。任何主体等于该域或其子域/通配的
