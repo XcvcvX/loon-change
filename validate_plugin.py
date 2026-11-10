@@ -178,7 +178,7 @@ def inspect_plugin(path):
             continue
         if not re.match(r'^(?:http-request|http-response|cron\b|generic\b|request\s+if\b|response\s+if\b)', value):
             warnings.append('Script 第 %d 行无法识别脚本触发器：%s' % (number, value[:140]))
-        match = re.search(r'script-path=(\S+)', value)
+        match = re.search(r'script-path=(https?://[^,\s]+)', value)
         if match:
             url = match.group(1).rstrip(',')
             if url.startswith(('https://','http://')):
@@ -272,7 +272,7 @@ def main():
         sections, _ = parse_sections(Path(args.plugin).read_text(encoding='utf-8-sig'))
         urls = set()
         for _, line in sections.get('Script', []):
-            match = re.search(r'script-path=(https?://\S+)', line)
+            match = re.search(r'script-path=(https?://[^,\s]+)', line)
             if match:
                 urls.add(match.group(1).rstrip(','))
         check_remote_scripts(urls)
