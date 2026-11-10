@@ -33,7 +33,7 @@ jobs:
       - name: 编译检查
         run: python3 -m py_compile merge_plugins.py validate_plugin.py source_guard.py convert_qx2loon.py convert_filter_qx2loon.py
       - name: 运行单元与合并集成测试
-        run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py
+        run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_source_guard.py
 
   sync:
     if: github.event_name != 'pull_request'
@@ -81,7 +81,7 @@ jobs:
 
       - name: 校验克隆来源并生成来源报告
         run: |
-          python3 source_guard.py --thelong /tmp/loon-plugins --aoomee /tmp/aoomee --zmjde /tmp/zmjde --qxapp /tmp/GuaZiVideoAds.conf --report source-report.json
+          python3 source_guard.py --thelong /tmp/loon-plugins --aoomee /tmp/aoomee --zmjde /tmp/zmjde --qxapp /tmp/GuaZiVideoAds.conf --previous-report source-report.json --report source-report.json
 
       - name: 合并各来源去广告规则（临时目录）
         run: python3 merge_plugins.py --base /tmp/loon-build/allAdRewrite.plugin --extra fetch --filter fetch --apps /tmp/loon-plugins --aoomee /tmp/aoomee --zmjde /tmp/zmjde --qxapp /tmp/GuaZiVideoAds.conf --myblockads fetch --out /tmp/loon-build/allAdRewrite.plugin
