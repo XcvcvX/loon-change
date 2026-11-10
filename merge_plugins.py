@@ -19,6 +19,7 @@
   # --filter 控制 R-Store 分流来源：fetch（默认）/ 本地路径 / none（不补全）
 """
 import argparse, datetime, ipaddress, os, re, sys, urllib.request
+from source_guard import validate_blockv2, validate_filter, validate_myblockads
 
 BLOCKV2_URL = ('https://raw.githubusercontent.com/fmz200/wool_scripts/refs/heads/'
                 'main/Loon/plugin/blockAdsV2.plugin')
@@ -63,21 +64,10 @@ PUBLIC_SUFFIX_2L = {
     'co.uk', 'org.uk', 'ac.uk', 'co.kr', 'or.kr', 'co.in', 'co.nz',
     'co.th', 'co.id',
 }
-HOST_OK = re.compile(r'^(?:[A-Za-z0-9](?:[A-Za-z0-9\-]*[A-Za-z0-9])?\.)+[A-Za-z]{2,}$')
+HOST_OK = re.compile(r'^(?=.{1,253}$)(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$')
 IP_OK = re.compile(r'^\d{1,3}(?:\.\d{1,3}){3}$')
 
-# 真实 TLD 白名单：用于 hostname 收敛时排除缺 TLD 的非法项、可选组截断的残缺 host
-_KNOWN_TLD = {
-    'com', 'net', 'org', 'gov', 'edu', 'mil', 'asia', 'app', 'io', 'me', 'cc', 'tv', 'co', 'info',
-    'so', 'group', 'ltd',
-    'xyz', 'top', 'vip', 'shop', 'site', 'online', 'store', 'tech', 'dev', 'ai', 'cloud', 'live',
-    'press', 'pro', 'name', 'mobi', 'biz', 'club', 'fun', 'games', 'news', 'blog', 'wiki', 'link',
-    'run', 'space', 'today', 'work', 'design', 'media', 'world', 'life', 'health', 'art', 'photo',
-    'video', 'chat', 'plus', 'one', 'cn', 'hk', 'tw', 'jp', 'us', 'uk', 'de', 'fr', 'kr', 'sg',
-    'au', 'ca', 'ru', 'br', 'in', 'it', 'es', 'nl', 'se', 'no', 'fi', 'dk', 'ch', 'at', 'be',
-    'nz', 'ie', 'pt', 'gr', 'pl', 'tr', 'mx', 'ar', 'za', 'th', 'vn', 'my', 'ph', 'id', 'il',
-    'sa', 'ae', 'cz', 'hu', 'ro', 'sk', 'bg', 'hr', 'lt', 'lv', 'ee', 'si', 'is', 'lu', 'mt',
-}
+# 不使用不完整的 TLD 白名单拒绝域名；公共后缀表只用于避免过宽通配。
 
 # MITM 跳过域名（证书绑定/私有长连接，强制解密会握手失败，MITM Failed、0 字节）：
 # 现象为有 APNs 推送但核心功能（如抖音私信）不可用。任何主体等于该域或其子域/通配的
@@ -152,7 +142,7 @@ def split_sections(text):
         m = re.match(r'^\[([A-Za-z]+)\]\s*$', line)
         if m:
             cur = m.group(1)
-            out[cur] = []
+            out.setdefault(cur, [])
         elif cur is None:
             header.append(line)
         else:
@@ -277,7 +267,7 @@ def guard_hosts_from_lines(lines):
                 continue
             result = None
             # 1) 完整字面 host
-            if HOST_OK.match(zone) and zone.rsplit('.', 1)[-1] in _KNOWN_TLD:
+            if HOST_OK.match(zone):
                 result = zone
             else:
                 # 2) 含通配/OR：取末尾连续纯字面标签，构造 *.后缀
@@ -288,8 +278,8 @@ def guard_hosts_from_lines(lines):
                     lit.append(lab)
                 lit = lit[::-1]
                 need = 3 if '.'.join(lit[-2:]).lower() in PUBLIC_SUFFIX_2L else 2
-                if (len(lit) >= need and lit[-1] in _KNOWN_TLD
-                        and not is_public_suffix('.'.join(lit[-need:]))):
+                if (len(lit) >= need and not is_public_suffix('.'.join(lit[-need:]))
+                        and HOST_OK.match('.'.join(lit))):
                     result = '*.' + '.'.join(lit)
             if result:
                 https.add(result)
@@ -339,7 +329,7 @@ def normalize_extra_host(h, guard_hosts=None):
         return []
 
     def has_real_tld(x):
-        return x.rsplit('.', 1)[-1] in _KNOWN_TLD
+        return bool(HOST_OK.match(x))
 
     out = []
     # 具体域名
@@ -493,7 +483,8 @@ if args.extra == 'fetch':
     for u in [BLOCKV2_URL] + BLOCKV2_MIRRORS:
         try:
             extra_text = fetch(u)
-            print('[fetch] 已获取 blockAdsV2:', u)
+            validate_blockv2(extra_text)
+            print('[fetch] 已获取并通过完整性检查 blockAdsV2:', u)
             break
         except Exception as e:
             last_err = e
@@ -501,6 +492,7 @@ if args.extra == 'fetch':
     if extra_text is None:
         raise SystemExit('blockAdsV2 获取失败: %s' % last_err)
 else:
+    # 显式本地输入也用于单元测试/离线调试；远程生产抓取才执行上游体量门禁。
     extra_text = open(args.extra, encoding='utf-8').read()
 
 # ---------------- MyBlockAds：在线抓取，失败回退仓库内置缓存 ----------------
@@ -508,16 +500,18 @@ mb_text = None
 if args.myblockads == 'fetch':
     try:
         mb_text = fetch(MYBLOCKADS_URL)
-        print('[fetch] 已获取 MyBlockAds:', MYBLOCKADS_URL)
+        validate_myblockads(mb_text)
+        print('[fetch] 已获取并通过完整性检查 MyBlockAds:', MYBLOCKADS_URL)
     except Exception as e:
         print('[fetch] MyBlockAds 在线抓取失败，回退内置缓存:', e, file=sys.stderr)
         if os.path.exists(MYBLOCKADS_CACHE):
             mb_text = open(MYBLOCKADS_CACHE, encoding='utf-8').read()
-            print('[fetch] 已使用 MyBlockAds 缓存:', MYBLOCKADS_CACHE)
+            validate_myblockads(mb_text)
+            print('[fetch] 已使用并通过完整性检查 MyBlockAds 缓存:', MYBLOCKADS_CACHE)
 elif args.myblockads != 'none':
     mb_text = open(args.myblockads, encoding='utf-8').read()
-if mb_text is None and args.myblockads not in ('none', 'fetch'):
-    raise SystemExit('MyBlockAds 本地来源不可用')
+if mb_text is None and args.myblockads != 'none':
+    raise SystemExit('MyBlockAds 在线来源与本地缓存/文件均不可用，拒绝静默跳过该来源')
 
 _, base_sec = split_sections(base_text)
 _, extra_sec = split_sections(extra_text)
@@ -575,7 +569,7 @@ def unguarded_key(line):
     return None
 
 
-# ---------------- 动作签名：区分"拒绝家族折叠"与"互补动作并存" ----------------
+# ---------------- 动作签名：保留 reject 的不同响应类型，互补动作并存 ----------------
 def split_action(line):
     """返回 (v2/v1, 动作部分)。v2 取 then 之后；v1 去掉首段正则。"""
     s = line.strip()
@@ -586,12 +580,20 @@ def split_action(line):
 
 
 def action_key(line):
-    """拒绝家族（reject/reject-*/reject(_*)）同正则折叠为一个签名；
-    其余动作按 (动作名, 完整动作) 独立，互补动作（jq+header-del 等）得以并存。"""
+    """规范化旧版/新版拒绝动作别名；不同响应类型和状态码保持不同签名。"""
     _, action = split_action(line)
-    if re.match(r'^reject', action):
-        return ('REJECT',)
-    name = re.split(r'[\s(]', action, 1)[0]
+    aliases = {
+        'reject': 'reject(404)',
+        'reject-200': 'reject(200)',
+        'reject-img': 'reject_img(200)',
+        'reject-dict': 'reject_dict(200)',
+        'reject-array': 'reject_array(200)',
+        'reject-video': 'reject_video(200)',
+    }
+    action = aliases.get(action, action)
+    name = re.split(r'[\s(]', action, 1)[0].lower()
+    if name in ('reject', 'reject_img', 'reject_dict', 'reject_array', 'reject_video'):
+        return ('REJECT', name, action)
     return (name, action)
 
 
@@ -883,7 +885,8 @@ if args.filter != 'none':
         for u in [FILTER_URL] + FILTER_MIRRORS:
             try:
                 ftext = fetch(u)
-                print('[fetch] 已获取 R-Store filter:', u)
+                validate_filter(ftext)
+                print('[fetch] 已获取并通过完整性检查 R-Store filter:', u)
                 break
             except Exception as e:
                 f_err = e
@@ -1107,79 +1110,67 @@ def materialize_host(z):
     return s
 
 
-def prune_unused_mitm(mitm_hosts, rule_lines, host_origins, rules_by_src):
-    """用最终规则完整 host 正则直接匹配，裁剪不服务规则的 host（替代旧的守卫退化判定，消除假阴性）。
-    负向排除项（-host，Loon 官方支持）原样保留；具体 host 被其来源自身窄模式匹配即保留，
-    来源为空（自愈补全）的 host 用全部规则判定；标准通配覆盖被保留具体 host、或与窄模式后缀对应即保留。"""
-    narrow = compiled_narrow_hosts(rule_lines)
-    src_narrow = {src: compiled_narrow_hosts(rls) for src, rls in rules_by_src.items()}
+def compiled_host_patterns(rule_lines):
+    """编译 host 正则；遇到 Python 无法解析的模式时返回不确定标记，禁止激进裁剪。"""
+    out, uncertain = {}, False
+    for line in rule_lines:
+        if re.match(r'^(?:generic|cron)\b', line.strip()):
+            continue
+        rx = entry_regex(line)
+        if not rx:
+            if re.search(r'https?://', line):
+                uncertain = True
+            continue
+        zone = host_zone_from_regex(rx)
+        if not zone:
+            if re.search(r'https?://', rx):
+                uncertain = True
+            continue
+        try:
+            out.setdefault(zone, re.compile('^(?:%s)$' % zone, re.IGNORECASE))
+        except re.error:
+            uncertain = True
+    return out, uncertain
 
-    # 各来源窄模式的可信 materialize 样本（仅保留原模式确实匹配的）
+
+def prune_unused_mitm(mitm_hosts, rule_lines):
+    """按最终合并后的规则判断 MITM 用途，避免跨来源共享域名被误裁剪。"""
+    all_patterns, uncertain = compiled_host_patterns(rule_lines)
+    if uncertain:
+        # Python re 与 Loon/ICU 不完全同构；无法解析时宁可保留 MITM，不冒险误删。
+        return list(mitm_hosts)
+    narrow = {z: rc for z, rc in all_patterns.items() if is_narrow_host_pattern(z)}
+
     def trusted_samples(zdict):
         out = set()
-        for z, rc in zdict.items():
+        for z in zdict:
             out |= materialize_hosts(z)
         return out
-    src_samples = {src: trusted_samples(zd) for src, zd in src_narrow.items()}
+
     all_samples = trusted_samples(narrow)
-
-    def conc_needed(h):
-        origins = host_origins.get(h, [])
-        if not origins:  # 自愈补全：来源为空，用全部规则
-            return any(rc.match(h) for rc in narrow.values())
-        return any(rc.match(h) for src in origins for rc in src_narrow.get(src, {}).values())
-
-    kept_conc = [h for h in mitm_hosts
-                 if not h.startswith('*.') and not h.startswith('-') and conc_needed(h)]
-    kept_conc_set = set(kept_conc)
+    kept_conc = [
+        h for h in mitm_hosts
+        if not h.startswith('*.') and not h.startswith('-')
+        and any(rc.match(h) for rc in all_patterns.values())
+    ]
 
     kept_wild = []
-    for m in mitm_hosts:
-        if not m.startswith('*.'):
+    for pattern in mitm_hosts:
+        if not pattern.startswith('*.'):
             continue
-        suf = m[2:]
-        # 1) 覆盖已保留的具体 host
-        if any(h == suf or h.endswith('.' + suf) for h in kept_conc_set):
-            kept_wild.append(m)
-            continue
-        # 2) 来源窄模式的可信样本落在该域子域（规则作用于子域）；无来源（自愈）用全部样本
-        origins = host_origins.get(m, [])
-        if origins:
-            pool = set().union(*(src_samples.get(s, set()) for s in origins))
-        else:
-            pool = all_samples
-        if any(s == suf or s.endswith('.' + suf) for s in pool):
-            kept_wild.append(m)
+        suffix = pattern[2:]
+        probes = (suffix, 'probe.' + suffix, 'probe.probe.' + suffix)
+        if (any(sample == suffix or sample.endswith('.' + suffix)
+                for sample in all_samples)
+                or any(rc.match(probe) for rc in all_patterns.values() for probe in probes)):
+            kept_wild.append(pattern)
 
     neg = [h for h in mitm_hosts if h.startswith('-')]
     return kept_conc + kept_wild + neg
 
-
-# 自动裁剪：用最终规则完整 host 正则直接匹配，移除不服务任何规则、仅解密的冗余 host。
-# 构建 host -> 来源集合（对来源原始 host 做与收集环节一致的 normalize），及各来源规则。
-_src_host_lists = {
-    'base': [x.strip() for l in base_sec.get('MITM', []) if '=' in l
-             for x in l.split('=', 1)[1].split(',') if x.strip()],
-    'block': extra_raw, 'thelong': thelong_mitm, 'aoomee': ao_mitm,
-    'zmj_app': zmj_app_mitm, 'zmj_gen': zmj_gen_mitm,
-    'qxapp': qxapp_mitm,
-}
-host_origins = {}
-for _src, _hl in _src_host_lists.items():
-    for _raw_h in _hl:
-        for _nh in normalize_extra_host(_raw_h, guard_real):
-            if not mitm_skip_host(_nh):
-                host_origins.setdefault(_nh, [])
-                if _src not in host_origins[_nh]:
-                    host_origins[_nh].append(_src)
-rules_by_src = {
-    'base': base_rw + base_sc, 'block': block_rw + block_sc,
-    'thelong': thelong_rw + thelong_sc, 'aoomee': ao_rw + ao_sc,
-    'zmj_app': zmj_app_rw + zmj_app_sc, 'zmj_gen': zmj_gen_rw + zmj_gen_sc,
-    'qxapp': qxapp_rw,
-}
+# 自动裁剪：仅按最终合并后的 Rewrite/Script host 正则判断，避免跨来源共享域名误删。
 _mitm_before_prune = len(mitm)
-mitm = prune_unused_mitm(mitm, merged_rw + merged_sc, host_origins, rules_by_src)
+mitm = prune_unused_mitm(mitm, merged_rw + merged_sc)
 mitm_pruned = _mitm_before_prune - len(mitm)
 
 # ---------------- 输出 ----------------
