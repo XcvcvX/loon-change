@@ -7,7 +7,7 @@ from pathlib import Path
 
 from source_guard import (
     validate_source, validate_rstore_rewrite, validate_filter,
-    validate_blockv2, validate_myblockads, check_clones, REQUIRED_ZMJDE,
+    validate_blockv2, validate_myblockads, validate_amap, check_clones, REQUIRED_ZMJDE,
 )
 
 
@@ -58,6 +58,19 @@ class SourceGuardTests(unittest.TestCase):
     def test_myblockads_requires_rewrite_content(self):
         text = "[Rewrite]\n" + "\n".join("^https://a.example.com/%d reject" % i for i in range(5)) + "\n# " + "x" * 150
         self.assertEqual(validate_myblockads(text)["rule_entries"], 5)
+
+    def test_vendored_amap_source_has_expected_sections_and_dependencies(self):
+        source = Path(__file__).with_name("sources") / "amap" / "Amap.lpx"
+        stats = validate_amap(source.read_text(encoding="utf-8"))
+        self.assertGreaterEqual(stats["sections"]["Rewrite"], 20)
+        self.assertGreaterEqual(stats["sections"]["Script"], 10)
+        self.assertIn("*.amap.com", stats["mitm_hosts"])
+
+    def test_amap_source_rejects_missing_mitm(self):
+        source = Path(__file__).with_name("sources") / "amap" / "Amap.lpx"
+        text = source.read_text(encoding="utf-8").replace("hostname = *.amap.com", "hostname = ")
+        with self.assertRaisesRegex(ValueError, "MITM"):
+            validate_amap(text)
 
     def test_clone_preflight_requires_all_expected_inputs(self):
         with tempfile.TemporaryDirectory() as tmp:
