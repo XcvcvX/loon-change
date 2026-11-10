@@ -101,6 +101,38 @@ def validate_plugin_file(path, source):
     return action_entries
 
 
+def validate_amap(text):
+    """Fail closed on incomplete/changed Amap plugin structure and its external assets."""
+    stats = validate_source(
+        text, "Amap", min_bytes=5000, min_entries=30,
+        required_sections=("Rule", "Rewrite", "Script", "MitM"),
+        require_hostname=True)
+    blocks = {name.strip().lower(): body for name, body in re.findall(
+        r"(?ms)^\\[([^\\]]+)\\]\\s*\\n(.*?)(?=^\\[|\\Z)", text)}
+    counts = {name: len(real_lines(blocks.get(name.lower(), "")))
+              for name in ("Rule", "Rewrite", "Script")}
+    limits = {"Rule": 3, "Rewrite": 20, "Script": 10}
+    for name, minimum in limits.items():
+        if counts[name] < minimum:
+            raise ValueError("Amap [%s] 有效条目仅 %d 条（要求至少 %d）" %
+                             (name, counts[name], minimum))
+    mitm = re.search(r"(?mi)^\\s*hostname\\s*=\\s*(.+)$", blocks.get("mitm", ""))
+    hosts = [x.strip() for x in mitm.group(1).split(",")] if mitm else []
+    if "*.amap.com" not in hosts:
+        raise ValueError("Amap: 缺少预期的 *.amap.com MITM 声明")
+    if any(re.fullmatch(r"(?:\\d{1,3}\\.){3}\\d{1,3}|\\[[0-9a-fA-F:]+\\]", h) for h in hosts):
+        raise ValueError("Amap: MITM 中出现裸 IP，拒绝自动合并")
+    required_assets = (
+        "rucu6_amap.js", "loon_Amap.recommend.jq",
+        "updatable.jq", "search_poi_detail.jq")
+    missing = [asset for asset in required_assets if asset not in text]
+    if missing:
+        raise ValueError("Amap: 缺少预期的远程依赖引用: " + ", ".join(missing))
+    stats.update({"sections": counts, "mitm_hosts": hosts,
+                  "required_assets": list(required_assets)})
+    return stats
+
+
 def validate_blockv2(text):
     stats = validate_source(text, "blockAdsV2", min_bytes=300, min_entries=5,
                             required_sections=("Rewrite", "MITM"))
@@ -123,7 +155,7 @@ def validate_myblockads(text):
     return stats
 
 
-def check_clones(thelong, aoomee, zmjde, qxapp, previous_report=None):
+def check_clones(thelong, aoomee, zmjde, qxapp, previous_report=None, amap=None):
     report = {}
     tl = list(Path(thelong).glob("*_ad_block.plugin")) + list(
         Path(thelong).glob("*_splash_ad_block.plugin"))
@@ -174,6 +206,9 @@ def check_clones(thelong, aoomee, zmjde, qxapp, previous_report=None):
         if count < 10:
             raise ValueError("%s 可识别规则量仅 %d 行（要求至少 10），拒绝把异常空源写入基线"
                              % (source, count))
+    if amap:
+        amap_text = Path(amap).read_text(encoding="utf-8-sig")
+        report["Amap"] = validate_amap(amap_text)
     report.update({
         "thelongdarkorg": {"commit": revision(thelong), "plugin_files": len(tl),
                            "rule_lines": counts["thelongdarkorg"]},
@@ -201,11 +236,12 @@ def main():
     parser.add_argument("--aoomee")
     parser.add_argument("--zmjde")
     parser.add_argument("--qxapp")
+    parser.add_argument("--amap", help="RuCu6 高德地图独立 Loon 插件路径")
     parser.add_argument("--report")
     parser.add_argument("--previous-report")
     args = parser.parse_args()
     try:
-        report = check_clones(args.thelong, args.aoomee, args.zmjde, args.qxapp, args.previous_report)
+        report = check_clones(args.thelong, args.aoomee, args.zmjde, args.qxapp, args.previous_report, args.amap)
         if args.report:
             Path(args.report).write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n",
                                          encoding="utf-8")
