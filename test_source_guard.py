@@ -44,10 +44,11 @@ class SourceGuardTests(unittest.TestCase):
             root = Path(tmp)
             tl, ao, zm, qx = (root / n for n in ("tl", "ao", "zm", "qx.conf"))
             tl.mkdir(); ao.mkdir(); (ao / "plugins").mkdir(); zm.mkdir(); (zm / "Plugin").mkdir()
-            (tl / "sample_ad_block.plugin").write_text("[Rewrite]\n", encoding="utf-8")
-            (ao / "plugins" / "sample.plugin").write_text("[Rewrite]\n", encoding="utf-8")
+            rule_fixture = "[Rewrite]\n" + "\n".join("^https://ads.example.com/%d reject" % i for i in range(10)) + "\n"
+            (tl / "sample_ad_block.plugin").write_text(rule_fixture, encoding="utf-8")
+            (ao / "plugins" / "sample.plugin").write_text(rule_fixture, encoding="utf-8")
             for name in REQUIRED_ZMJDE:
-                (zm / "Plugin" / name).write_text("[Rewrite]\n", encoding="utf-8")
+                (zm / "Plugin" / name).write_text(rule_fixture, encoding="utf-8")
             qx.write_text("hostname = ads.example.com\n^https://ads.example.com/ad url reject\n# " + "x" * 120, encoding="utf-8")
             report = check_clones(str(tl), str(ao), str(zm), str(qx))
             self.assertEqual(report["zmjde"]["required_plugins"], len(REQUIRED_ZMJDE))
