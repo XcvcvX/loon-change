@@ -1110,7 +1110,7 @@ def compiled_host_patterns(rule_lines):
     return out
 
 
-def prune_unused_mitm(mitm_hosts, rule_lines, host_origins, rules_by_src):
+def prune_unused_mitm(mitm_hosts, rule_lines):
     """按最终合并后的规则判断 MITM 用途，避免跨来源共享域名被误裁剪。"""
     all_patterns = compiled_host_patterns(rule_lines)
     narrow = {z: rc for z, rc in all_patterns.items() if is_narrow_host_pattern(z)}
