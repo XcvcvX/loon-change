@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、Thelongdarkorg、aoomee、zmjde、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-10 15:47 UTC
+#!merged-at=2026-11-10 15:50 UTC
 #!note=专属 App 插件（zmjde/qx 单文件/aoomee/Thelongdarkorg）优先级最高；新旧语法同段混用，Loon 均支持。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+Thelongdarkorg+aoomee+zmjde+ddgksf2013/GuaZiVideoAds
 
