@@ -56,7 +56,8 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
     python3 -m py_compile merge_plugins.py validate_plugin.py source_guard.py audit_plugin.py convert_qx2loon.py convert_filter_qx2loon.py
     python3 validate_plugin.py allAdRewrite.plugin
     python3 validate_plugin.py allAdRewrite.plugin --update-readme README.md
-    python3 validate_plugin.py allAdRewrite.plugin --check-remote\n    python3 audit_plugin.py allAdRewrite.plugin --summary-only
+    python3 validate_plugin.py allAdRewrite.plugin --check-remote
+    python3 audit_plugin.py allAdRewrite.plugin --summary-only
 
 --check-remote 会对最多 80 个唯一远程脚本 URL 发起 HEAD 检查，仅输出警告，不代表脚本逻辑已通过测试；部分 CDN 不支持 HEAD 或会限流。`audit_plugin.py` 只输出全局 UDP/443、MITM 通配重叠候选与 Script 触发器统计，不自动修改规则。
 
