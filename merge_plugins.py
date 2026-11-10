@@ -501,8 +501,9 @@ def and_rule_domains(line):
 
 # ============================================================================
 # 主流程：统一优先级合并
-# 优先级（数字小=高）：zmjde App(0) > qx 单文件 App(1) > aoomee(2) > Thelongdarkorg(3)
-#                     > base/R-Store(4) > blockAdsV2(5) > zmjde 通用(6)
+# 优先级（数字小=高）：高德 App(-1) > zmjde App(0) > qx 单文件 App(1) > aoomee(2) > Thelongdarkorg(3)
+#                     > base/R-Store(4) > blockAdsV2(5) > zmjde 通用(6) > MyBlockAds(7)
+# 高德 App 独立完整并入、同正则同动作替换其他来源；不同动作作为互补行为保留。
 # zmjde App（DiDi/PinDuoDuo/闲鱼/淘宝/什么值得买）完整并入、同正则替换其他来源；
 # zmjde 通用（Block_HTTPDNS/BlockAdvertisers/可莉广告过滤器）低于 base，只补 base 没有的。
 # ============================================================================
