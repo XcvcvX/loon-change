@@ -25,7 +25,8 @@
 | test_source_guard.py | 上游来源防损坏测试：空响应、HTML、规则数量、必需插件 |
 | test_validate_plugin.py | 校验器单元测试 |
 | test_merge_plugins.py | 合并器集成测试：重复区块、reject 动作、TLD hostname |
-| source_guard.py | 上游响应/仓库结构完整性门禁，阻止 HTML 错误页、空文件和缺失源 |\n| audit_plugin.py | 只读审计全局 UDP/443、MITM 通配覆盖候选与 Script 触发器，不自动删改规则 |
+| source_guard.py | 上游响应/仓库结构完整性门禁，阻止 HTML 错误页、空文件和缺失源 |
+| audit_plugin.py | 只读审计全局 UDP/443、MITM 通配覆盖候选与 Script 触发器，不自动删改规则 |
 
 当前产物统计由工作流自动维护：
 
