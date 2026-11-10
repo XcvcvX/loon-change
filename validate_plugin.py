@@ -99,7 +99,7 @@ def extract_script_url(line):
     if match:
         return match.group(1).rstrip(',')
     match = re.search(r'''script\(\s*(["'])(https?://.*?)\1''', line, re.I)
-    return match.group(1).rstrip(',') if match else None
+    return match.group(2).rstrip(',') if match else None
 
 
 def inspect_plugin(path):
