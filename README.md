@@ -7,7 +7,8 @@
 - [Thelongdarkorg/loon-plugins](https://github.com/Thelongdarkorg/loon-plugins) 的 **29 个细分 App 去广告插件**（标准 Loon v1、零远程脚本），并入去重；
 - [aoomee/Loon-Adblock-Plugins](https://github.com/aoomee/Loon-Adblock-Plugins) 的 **27 个独立 App 插件**（`.plugin`/`.lpx`，含远程脚本与 `[Argument]`），并入去重；
 - [zmjde/loon-plugins](https://github.com/zmjde/loon-plugins) 的 **8 个 `.lpx`**：滴滴、拼多多、闲鱼、淘宝、什么值得买 5 个 App 插件（完整并入、替换重复），HTTPDNS 拦截器、广告平台拦截器、可莉广告过滤器（以 base 优先、只补不覆盖）；
-- [ddgksf2013 墨鱼手记](https://ddgksf2013.top/rewrite/GuaZiVideoAds.conf) 的 **瓜子影视 `.conf`**（QuanX 单文件，脚本内转 Loon，专属 App 完整并入、24 host 纳入 MITM）。
+- [ddgksf2013 墨鱼手记](https://ddgksf2013.top/rewrite/GuaZiVideoAds.conf) 的 **瓜子影视 `.conf`**（QuanX 单文件，脚本内转 Loon，专属 App 完整并入、24 host 纳入 MITM）；
+- [RuCu6 MyBlockAds](https://rucu6.pages.dev/Plugins/myblockads.lpx)（Walalala 自用去广告大合集，标准 Loon v2，仅经 Cloudflare Pages 发布、无公开 GitHub 源；以最低优先级只补不覆盖，在线失败回退内置缓存）。
 
 > **只装一个 `allAdRewrite.plugin` 就够了。** 各来源的 Rewrite/Script/Rule/Argument/MITM
 > 已全部并入，R-Store 独立分流也已补进 `[Rule]`，无需再装任何独立 App 插件或单独分流。
@@ -26,6 +27,7 @@ base / blockAdsV2 的对应行。数字小 = 优先级高：
 | 4 | R-Store（base） | QuanX → Loon 转换产物 |
 | 5 | blockAdsV2 | 综合源 |
 | 6 | **zmjde 通用（HTTPDNS/广告平台/可莉过滤器）** | base 优先，只补不覆盖 |
+| 7 | MyBlockAds（RuCu6 综合大合集） | 最低优先级，只补不覆盖，在线失败回退缓存 |
 
 - **同正则同动作**：按优先级保留高优先级那条，其余替换。
 - **同正则互补动作**：不同动作（如 jq 改 body + header-del 删响应头）**并存**，不互相覆盖。
@@ -38,8 +40,8 @@ base / blockAdsV2 的对应行。数字小 = 优先级高：
 |---|---|
 | `allAdRewrite.plugin` | 单插件自包含：开关 + 分流 + 重写 + 脚本 + MITM |
 
-当前 `allAdRewrite.plugin` 含五个段：`[Argument]`（91 个开关）、`[Rule]`（3450 条）、
-`[Rewrite]`（3836 条）、`[Script]`（959 条）、`[MITM]`（1615 个主机，具体 1516 + 标准通配 99）。
+当前 `allAdRewrite.plugin` 含五个段：`[Argument]`（91 个开关）、`[Rule]`（3500 条）、
+`[Rewrite]`（3885 条）、`[Script]`（976 条）、`[MITM]`（1627 个主机）。
 
 ## 一、直接使用（不用自己搭仓库）
 
@@ -95,7 +97,7 @@ python3 convert_qx2loon.py -o allAdRewrite.plugin
 # 2) 按优先级合并全部来源并补全 R-Store 分流（在线抓取，含镜像回退），覆盖回写
 python3 merge_plugins.py --base allAdRewrite.plugin --extra fetch --filter fetch \
   --apps /tmp/loon-plugins --aoomee /tmp/aoomee --zmjde /tmp/zmjde \
-  --qxapp /tmp/GuaZiVideoAds.conf --out allAdRewrite.plugin
+  --qxapp /tmp/GuaZiVideoAds.conf --myblockads fetch --out allAdRewrite.plugin
 
 # 3) 自检
 python3 validate_plugin.py allAdRewrite.plugin
@@ -103,15 +105,16 @@ python3 validate_plugin.py allAdRewrite.plugin
 
 `merge_plugins.py` 常用参数：`--extra`（blockAdsV2：`fetch` 或本地路径）、
 `--filter`（R-Store 分流：`fetch` 默认 / 本地路径 / `none`）、`--apps`（Thelongdarkorg 目录）、
-`--aoomee`（aoomee 目录）、`--zmjde`（zmjde 目录）、`--qxapp`（QuanX 单文件 .conf，可重复）。
+`--aoomee`（aoomee 目录）、`--zmjde`（zmjde 目录）、`--qxapp`（QuanX 单文件 .conf，可重复）、
+`--myblockads`（MyBlockAds：`fetch` 默认，在线失败回退 `sources/myblockads.lpx` 缓存 / 本地路径 / `none`）。
 所有脚本只依赖 Python 标准库；`raw.githubusercontent.com` 不可达时自动回退 jsDelivr 镜像。
 
 ## 四、合并、去重与 MITM 自愈
 
 ### 4.1 Rewrite / Script 优先级合并
 
-- **统一优先级合并器**：七来源按位置顺序（base→block→zmjde通用→Thelongdarkorg→aoomee→qx单文件→zmjdeApp）
-  喂入，按规范化 URL 正则 + 动作签名判定覆盖；App 插件（zmjde App>qx 单文件>aoomee>Thelongdarkorg）同正则替换综合源。
+- **统一优先级合并器**：八来源按位置顺序（base→block→zmjde通用→Thelongdarkorg→aoomee→qx单文件→zmjdeApp→MyBlockAds）
+  喂入，按规范化 URL 正则 + 动作签名判定覆盖；App 插件（zmjde App>qx 单文件>aoomee>Thelongdarkorg）同正则替换综合源，MyBlockAds 优先级最低、只补不覆盖。
 - **QuanX 单文件 App（.conf）**：解析 `hostname=` 与 `^PAT url ...` 行，把 `jsonjq-response-body 'jq'`
   转成 Loon `response if ... then response.json.jq(`jq`)`，正则 relit 成 `/.../`、反引号转义；未识别动作不乱转。
 - **互补动作并存**：拒绝家族折叠为一个签名；其余动作按 `(动作名, 完整动作)` 独立存储，
@@ -196,6 +199,12 @@ python3 validate_plugin.py allAdRewrite.plugin
   工作流同步删除 `--mix` 与相关注释。验证：移除前后**规则 key 集合完全一致（4794 = 4794）**，产物仅头部
   元数据少了该来源、条数不变（Rewrite 3836 / Script 959 / Rule 3450 / MITM 1615），validate 0 错误 0 警告，
   零丢失；同时少处理 2120 条全重复规则与 67 条待剔除私货，构建更干净、更新不再受该不稳定源影响。
+- **并入 RuCu6 MyBlockAds（真实新增，缓存兜底保证更新不报错）**：该插件是标准 Loon v2 综合大合集，
+  仅经 Cloudflare Pages 发布、无公开 GitHub 源（作者仓库私有，经 CF-Workers-Raw/Pages 暴露）。试合并量化其
+  独有规则非 0：**Rule +50、Rewrite +49、Script +17、MITM +12**（覆盖 12306、阿里云盘、豆瓣、美团、
+  墨迹、下厨房、微信、小米商城、迅雷、云闪付、邮储等），故以 **prio=7 最低优先级只补不覆盖**，零回归。
+  在线抓取失败（机房代理 504/SSL eof）时自动回退仓库内置 `sources/myblockads.lpx`，既不中断任务、独有规则
+  也不丢失；已验证 fetch/本地路径/`none` 三种模式与两次产物幂等，validate 0 错误 0 警告。
 
 ### 4.3 分流补全到 `[Rule]`
 

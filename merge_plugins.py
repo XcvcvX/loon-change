@@ -35,6 +35,12 @@ FILTER_MIRRORS = [
     'https://fastly.jsdelivr.net/gh/zirawell/R-Store@main/Rule/QuanX/Adblock/All/filter/allAdBlock.list',
 ]
 
+# MyBlockAds（RuCu6/Walalala 自用去广告大合集）：仅经 Cloudflare Pages 发布，无公开 GitHub 源。
+# 在线抓取失败时回退到仓库内置缓存 sources/myblockads.lpx，保证自动更新不中断、独有规则不丢失。
+MYBLOCKADS_URL = 'https://rucu6.pages.dev/Plugins/myblockads.lpx'
+MYBLOCKADS_CACHE = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), 'sources', 'myblockads.lpx')
+
 # aoomee 独立 App 去广告插件仓库（工作流 clone 到本地后传入目录）
 AOOMEE_REPO = 'https://github.com/aoomee/Loon-Adblock-Plugins.git'
 # QuanX filter 类型/策略 -> Loon
@@ -119,6 +125,9 @@ ap.add_argument('--zmjde', default=None,
 ap.add_argument('--qxapp', action='append', default=None,
                 help='QuanX 单文件 App 插件（.conf，如瓜子影视）本地路径，可重复传入；'
                      '脚本内解析 hostname 并把 qx 规则转为 Loon v2，按专属 App 高优先级完整并入')
+ap.add_argument('--myblockads', default='fetch',
+                help='MyBlockAds 来源：fetch（默认，在线抓取失败回退 sources/myblockads.lpx 缓存）'
+                     '/ 本地路径 / none（不并入）')
 ap.add_argument('--out', required=True, help='合并输出路径')
 args = ap.parse_args()
 
@@ -494,6 +503,22 @@ if args.extra == 'fetch':
 else:
     extra_text = open(args.extra, encoding='utf-8').read()
 
+# ---------------- MyBlockAds：在线抓取，失败回退仓库内置缓存 ----------------
+mb_text = None
+if args.myblockads == 'fetch':
+    try:
+        mb_text = fetch(MYBLOCKADS_URL)
+        print('[fetch] 已获取 MyBlockAds:', MYBLOCKADS_URL)
+    except Exception as e:
+        print('[fetch] MyBlockAds 在线抓取失败，回退内置缓存:', e, file=sys.stderr)
+        if os.path.exists(MYBLOCKADS_CACHE):
+            mb_text = open(MYBLOCKADS_CACHE, encoding='utf-8').read()
+            print('[fetch] 已使用 MyBlockAds 缓存:', MYBLOCKADS_CACHE)
+elif args.myblockads != 'none':
+    mb_text = open(args.myblockads, encoding='utf-8').read()
+if mb_text is None and args.myblockads not in ('none', 'fetch'):
+    raise SystemExit('MyBlockAds 本地来源不可用')
+
 _, base_sec = split_sections(base_text)
 _, extra_sec = split_sections(extra_text)
 
@@ -753,12 +778,25 @@ if args.qxapp:
 # ---------------- 执行优先级合并 ----------------
 # 位置顺序：base 骨架 -> block -> zmjde通用 -> thelong -> aoomee -> qx单文件App -> zmjdeApp；
 # 同正则由 prio 决定覆盖（zmjde App 最高，qx 专属 App 次之；zmjde 通用低于 base、只补不覆盖）
+# MyBlockAds（标准 Loon v2，综合大合集）：prio=7 最低，只补现有源没有的规则，零回归。
+if mb_text is not None:
+    mb_sec = parse_loose_sections(mb_text)
+    mb_rw = real_lines(mb_sec.get('Rewrite', []))
+    mb_sc = real_lines(mb_sec.get('Script', []))
+    mb_rule = real_lines(mb_sec.get('Rule', []))
+    mb_mitm = []
+    for l in mb_sec.get('MITM', []):
+        if '=' in l:
+            mb_mitm += [x.strip() for x in l.split('=', 1)[1].split(',') if x.strip()]
+else:
+    mb_rw, mb_sc, mb_rule, mb_mitm = [], [], [], []
 rw_feeds = [('base', 4, base_rw), ('block', 5, block_rw), ('zmjgen', 6, zmj_gen_rw),
             ('thelong', 3, thelong_rw), ('aoomee', 2, ao_rw),
-            ('qxapp', 1, qxapp_rw), ('zmjapp', 0, zmj_app_rw)]
+            ('qxapp', 1, qxapp_rw), ('zmjapp', 0, zmj_app_rw),
+            ('myblockads', 7, mb_rw)]
 sc_feeds = [('base', 4, base_sc), ('block', 5, block_sc), ('zmjgen', 6, zmj_gen_sc),
             ('thelong', 3, thelong_sc), ('aoomee', 2, ao_sc),
-            ('zmjapp', 0, zmj_app_sc)]
+            ('zmjapp', 0, zmj_app_sc), ('myblockads', 7, mb_sc)]
 merged_rw, rw_unguarded = priority_merge([(p, x) for _, p, x in rw_feeds])
 merged_sc, sc_unguarded = priority_merge([(p, x) for _, p, x in sc_feeds])
 # 无守卫行（generic/cron）归入 Script 段末尾，再整体去重
@@ -862,6 +900,8 @@ if args.filter != 'none':
             fstats['covered'] += 1
         else:
             fstats['added'] += 1
+for l in mb_rule:
+    add_rule(l, 'myblockads')
 rule_items = dedup_keep_order(rule_result)
 
 # ---------------- MITM：base 主机 + 各来源收敛（守卫反查），再自愈 ----------------
@@ -883,7 +923,7 @@ for l in extra_sec.get('MITM', []):
     if '=' in l:
         extra_raw += [x.strip() for x in l.split('=', 1)[1].split(',') if x.strip()]
 dropped = []
-for h in extra_raw + thelong_mitm + ao_mitm + zmj_app_mitm + zmj_gen_mitm + qxapp_mitm:
+for h in extra_raw + thelong_mitm + ao_mitm + zmj_app_mitm + zmj_gen_mitm + qxapp_mitm + mb_mitm:
     got = normalize_extra_host(h, guard_real)
     # 跳过证书绑定域（如 amemv）：从源头不进 MITM，不使用负向语法
     got = [x for x in got if not mitm_skip_host(x)]
