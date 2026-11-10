@@ -30,7 +30,7 @@ class ValidatorTests(unittest.TestCase):
         hosts = ','.join(sorted(vp.REQUIRED_COVERED_HOSTS))
         fixture = (
             '[Argument]\n[Rule]\n[Rewrite]\n[Script]\n'
-            'request if ${url} ~= /^https:\\\\/\\\\/ads\\.example\\.com/ then reject_dict(200)\n'
+            'request if ${url} ~= /^https://ads\\.example\\.com/ then reject_dict(200)\\n'
             '[MITM]\nhostname = ' + hosts + '\n'
         )
         with tempfile.TemporaryDirectory() as tmp:
