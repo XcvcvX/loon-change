@@ -64,6 +64,14 @@ class MergeIntegrationTests(unittest.TestCase):
             "[Rewrite]\n[MITM]\nhostname = shared.example.com\n")
         self.assertIn("shared.example.com", output)
 
+
+    def test_unparseable_host_regex_disables_aggressive_mitm_pruning(self):
+        output = self.run_merge(
+            "[Rewrite]\n^https://(?<host>[^.]+)\\.example\\.com/ad reject\n"
+            "[MITM]\nhostname = ads.example.com\n",
+            "[Rewrite]\n[MITM]\nhostname = \n")
+        self.assertIn("ads.example.com", output)
+
     def test_valid_unlisted_tld_is_not_dropped_from_mitm(self):
         output = self.run_merge(
             "[Rewrite]\n[MITM]\nhostname = \n",
