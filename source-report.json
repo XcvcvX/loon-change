@@ -1,0 +1,21 @@
+{
+  "thelongdarkorg": {
+    "commit": "dc6c094c8b7a764b379c2c5af2edaba175b1b3df",
+    "plugin_files": 52,
+    "rule_lines": 991
+  },
+  "aoomee": {
+    "commit": "370a13085514ccca924f43d13c6d3acfa5671dbe",
+    "plugin_files": 27,
+    "rule_lines": 420
+  },
+  "zmjde": {
+    "commit": "3e79a9798f1b996f5c05b1a42be5d286890f3f60",
+    "required_plugins": 8,
+    "rule_lines": 766
+  },
+  "GuaZiVideoAds": {
+    "bytes": 3448,
+    "entries": 6
+  }
+}

@@ -30,7 +30,16 @@
 当前产物统计由工作流自动维护：
 
 <!-- AUTO_PLUGIN_STATS:START -->
-统计将在下一次 GitHub Actions 构建时生成。
+**由 GitHub Actions 自动更新的最新产物统计**
+
+| 区块 | 条目数 |
+|---|---:|
+| [Argument] | 91 |
+| [Rule] | 3450 |
+| [Rewrite] | 3256 |
+| [Script] | 586 |
+| [MITM] hostname 条目 | 1468 |
+| 唯一远程脚本 URL | 115 |
 <!-- AUTO_PLUGIN_STATS:END -->
 
 ## 自动更新
