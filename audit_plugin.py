@@ -98,7 +98,7 @@ def audit_plugin(path):
         )
         kind = re.sub(r'\s+', ' ', match.group(1).lower()) if match else 'unclassified'
         trigger_types[kind] += 1
-        if re.search(r'script-path=', line, re.I):
+        if re.search(r'script-path\\s*=', line, re.I):
             script_path_lines += 1
         if re.search(r'script\s*\(', line, re.I):
             script_call_lines += 1
@@ -117,6 +117,14 @@ def audit_plugin(path):
         for key, line_numbers in sorted(trigger_groups.items())
         if len(line_numbers) > 1
     ]
+    non_script_actions = [
+        {'line': number, 'entry': line}
+        for number, line in script_rows
+        if re.match(r'^(?:request|response)\\s+if\\b', line)
+        and ' then ' in line
+        and not re.search(r'\\bscript\\s*\\(', line, re.I)
+        and not re.search(r'\\bscript-path\\s*=', line, re.I)
+    ]
 
     return {
         'plugin': str(path),
@@ -133,13 +141,13 @@ def audit_plugin(path):
             'script_call_lines': script_call_lines,
             'unique_remote_script_urls': len(urls),
             'script_lines_without_remote_url': len(script_rows) - lines_with_remote_url,
-            'duplicate_script_trigger_groups': len(duplicate_triggers),
+            'duplicate_script_trigger_groups': len(duplicate_triggers),\n            'script_entries_without_script_action': len(non_script_actions),
         },
         'global_udp_443_rules': global_udp,
         'mitm_wildcard_overlap_candidates': overlaps,
         'mitm_wildcard_apex_not_explicit': wildcard_apex_missing,
         'script_trigger_types': dict(sorted(trigger_types.items())),
-        'duplicate_script_triggers': duplicate_triggers,
+        'duplicate_script_triggers': duplicate_triggers,\n        'script_entries_without_script_action': non_script_actions,
         'unique_remote_script_urls': sorted(urls),
         'notes': [
             '本报告只提供审计线索，不自动删除或改写任何规则。',
