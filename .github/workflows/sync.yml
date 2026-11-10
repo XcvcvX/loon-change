@@ -1,6 +1,12 @@
 name: Sync multi-source ad-block plugins (QuanX -> Loon)
 
 on:
+  pull_request:
+    paths:
+      - 'validate_plugin.py'
+      - 'test_validate_plugin.py'
+      - '.github/workflows/sync.yml'
+      - 'README.md'
   schedule:
     - cron: '7 1 * * *'
     - cron: '23 13 * * *'
