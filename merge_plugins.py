@@ -985,6 +985,12 @@ for _h in sorted(guard_hosts_from_lines(merged_rw + merged_sc)):
         mitm.append(_h)
         mitm_healed.append(_h)
 mitm = dedup_keep_order(mitm)
+# 最终输出前统一清理所有来源（包括 base 原有声明及自愈结果）中的 IP literal。
+mitm_ip_dropped = [h for h in mitm if is_ip_literal_host(h)]
+if mitm_ip_dropped:
+    mitm = [h for h in mitm if not is_ip_literal_host(h)]
+if any(is_ip_literal_host(h) for h in mitm):
+    raise RuntimeError('MITM hostname invariant failed: IP literal remained')
 
 
 def host_zone_from_regex(rx):
