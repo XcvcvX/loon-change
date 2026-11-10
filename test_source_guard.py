@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -50,6 +51,14 @@ class SourceGuardTests(unittest.TestCase):
             qx.write_text("hostname = ads.example.com\n^https://ads.example.com/ad url reject\n# " + "x" * 120, encoding="utf-8")
             report = check_clones(str(tl), str(ao), str(zm), str(qx))
             self.assertEqual(report["zmjde"]["required_plugins"], len(REQUIRED_ZMJDE))
+            previous = root / "previous-report.json"
+            previous.write_text(json.dumps({
+                "thelongdarkorg": {"rule_lines": 100},
+                "aoomee": {"rule_lines": 100},
+                "zmjde": {"rule_lines": 100},
+            }), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "下降超过 60%"):
+                check_clones(str(tl), str(ao), str(zm), str(qx), str(previous))
 
 
 if __name__ == "__main__":
