@@ -95,7 +95,7 @@ def parse_argument_names(lines):
 
 def extract_script_url(line):
     """提取 Loon Script 行中的远程脚本 URL，兼容 script-path= 与 script("URL")。"""
-    match = re.search(r"script-path\\s*=\\s*(https?://[^,\\s]+)", line, re.I)
+    match = re.search(r"script-path\s*=\s*(https?://[^,\s]+)", line, re.I)
     if match:
         return match.group(1).rstrip(',')
     match = re.search(r"""script[(][ ]*["'](https?://[^"']+)["'][ ]*[)]""", line, re.I)
@@ -193,10 +193,10 @@ def inspect_plugin(path):
             continue
         if not re.match(r'^(?:http-request|http-response|cron\b|generic\b|request\s+if\b|response\s+if\b)', value):
             warnings.append('Script 第 %d 行无法识别脚本触发器：%s' % (number, value[:140]))
-        if (re.match(r'^(?:request|response)\\s+if\\b', value)
+        if (re.match(r'^(?:request|response)\s+if\b', value)
                 and ' then ' in value
-                and not re.search(r'\\bscript\\s*\\(', value, re.I)
-                and not re.search(r'\\bscript-path\\s*=', value, re.I)):
+                and not re.search(r'\bscript\s*\(', value, re.I)
+                and not re.search(r'\bscript-path\s*=', value, re.I)):
             errors.append('Script 第 %d 行是 Rewrite Action 而不是 Script 调用；应移入 [Rewrite]：%s'
                           % (number, value[:140]))
         url = extract_script_url(value)
