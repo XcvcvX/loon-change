@@ -24,7 +24,7 @@ class RuntimeAuditTests(unittest.TestCase):
             extract_script_url('response if ${url} ~= /x/ then script("https://cdn.example/a.js", {x=1})'),
             'https://cdn.example/a.js')
         self.assertEqual(
-            extract_script_url('http-response ^https://a.example script-path=https://cdn.example/b.js,tag=A'),
+            extract_script_url('http-response ^https://a.example script-path = https://cdn.example/b.js,tag=A'),
             'https://cdn.example/b.js')
 
     def test_audit_report_is_read_only_and_counts_candidates(self):
@@ -44,6 +44,9 @@ hostname = *.example.com, api.example.com, example.net
         self.assertEqual(report['summary']['global_udp_443_rules'], 1)
         self.assertEqual(report['summary']['mitm_exact_hosts_covered_by_wildcards'], 1)
         self.assertEqual(report['summary']['unique_remote_script_urls'], 2)
+        self.assertEqual(report['summary']['script_path_lines'], 1)
+        self.assertEqual(report['summary']['script_entries_without_script_action'], 1)
+        self.assertEqual(report['summary']['script_lines_without_remote_url'], 1)
         self.assertEqual(report['mitm_wildcard_overlap_candidates'], ['api.example.com'])
 
 
