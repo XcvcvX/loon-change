@@ -11,7 +11,7 @@ MERGER = Path(__file__).with_name("merge_plugins.py")
 
 
 class MergeIntegrationTests(unittest.TestCase):
-    def run_merge(self, base_text, extra_text):
+    def run_merge(self, base_text, extra_text, myblockads_text=None):
         tmp = tempfile.TemporaryDirectory()
         self.addCleanup(tmp.cleanup)
         root = Path(tmp.name)
@@ -20,10 +20,15 @@ class MergeIntegrationTests(unittest.TestCase):
         out = root / "merged.plugin"
         base.write_text(base_text, encoding="utf-8")
         extra.write_text(extra_text, encoding="utf-8")
+        command = [sys.executable, str(MERGER), "--base", str(base),
+                   "--extra", str(extra), "--filter", "none",
+                   "--myblockads", "none", "--out", str(out)]
+        if myblockads_text is not None:
+            myblockads = root / "myblockads.lpx"
+            myblockads.write_text(myblockads_text, encoding="utf-8")
+            command[command.index("--myblockads") + 1] = str(myblockads)
         result = subprocess.run(
-            [sys.executable, str(MERGER), "--base", str(base),
-             "--extra", str(extra), "--filter", "none",
-             "--myblockads", "none", "--out", str(out)],
+            command,
             capture_output=True, text=True, timeout=30)
         self.assertEqual(result.returncode, 0, result.stdout + "\n" + result.stderr)
         return out.read_text(encoding="utf-8")
@@ -43,6 +48,14 @@ class MergeIntegrationTests(unittest.TestCase):
             "[Rewrite]\n^https://same.example.com/ad reject-img\n")
         self.assertIn("^https://same.example.com/ad reject", output)
         self.assertIn("reject_img(200)", output)
+
+
+    def test_mitm_host_declared_by_one_source_is_kept_for_another_sources_rule(self):
+        output = self.run_merge(
+            "[Rewrite]\\n^https://shared.example.com/ad reject\\n[MITM]\\nhostname = \\n",
+            "[Rewrite]\\n[MITM]\\nhostname = \\n",
+            "[Rewrite]\\n[MITM]\\nhostname = shared.example.com\\n")
+        self.assertIn("shared.example.com", output)
 
     def test_valid_unlisted_tld_is_not_dropped_from_mitm(self):
         output = self.run_merge(
