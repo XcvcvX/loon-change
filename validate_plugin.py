@@ -75,7 +75,7 @@ def host_covered(host, hostset):
             continue
         if value == host:
             return True
-        if value.startswith('*.') and (host == value[2:] or host.endswith('.' + value[2:])):
+        if value.startswith('*.') and host.endswith('.' + value[2:]):
             return True
     return False
 
