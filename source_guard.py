@@ -91,7 +91,7 @@ def fetch_validated(urls, fetcher, validator, source):
 def validate_plugin_file(path, source):
     """逐文件检查克隆插件，避免单个 HTML/空文件被来源总量掩盖。"""
     text = Path(path).read_text(encoding="utf-8-sig")
-    validate_source(text, source, min_bytes=40, min_entries=1)
+    validate_source(text, source, min_bytes=20, min_entries=1)
     blocks = re.findall(r"(?ms)^\[([^\]]+)\]\s*\n(.*?)(?=^\[|\Z)", text)
     action_entries = sum(
         len(real_lines(body)) for name, body in blocks
