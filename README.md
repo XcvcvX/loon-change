@@ -22,7 +22,7 @@
 |---|---|
 | allAdRewrite.plugin | 单插件自包含：开关 + 分流 + 重写 + 脚本 + MITM |
 | validate_plugin.py | 静态质量门禁：结构、MITM、动作、Argument、重复触发器与风险提示 |
-| test_validate_plugin.py | 校验器单元测试 |
+| test_validate_plugin.py | 校验器单元测试 |\n| test_merge_plugins.py | 合并器集成测试：重复区块、reject 动作、TLD hostname |
 
 当前产物统计由工作流自动维护：
 
@@ -38,7 +38,7 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 
 ## 本地检查
 
-    python3 -m unittest -v test_validate_plugin.py
+    python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py\n    python3 -m py_compile merge_plugins.py validate_plugin.py convert_qx2loon.py convert_filter_qx2loon.py
     python3 validate_plugin.py allAdRewrite.plugin
     python3 validate_plugin.py allAdRewrite.plugin --update-readme README.md
     python3 validate_plugin.py allAdRewrite.plugin --check-remote
