@@ -97,6 +97,15 @@ class MergeIntegrationTests(unittest.TestCase):
             "[Rewrite]\n[MITM]\nhostname = \n")
         self.assertIn("*.example.com", output)
 
+    def test_wildcard_mitm_does_not_cover_apex_domain(self):
+        output = self.run_merge(
+            "[Rewrite]\\n^https://example.com/ad reject\\n"
+            "[MITM]\\nhostname = *.example.com\\n",
+            "[Rewrite]\\n[MITM]\\nhostname = \\n")
+        mitm_line = next(line for line in output.splitlines()
+                         if line.strip().startswith("hostname ="))
+        self.assertIn("example.com", mitm_line)
+
     def test_valid_unlisted_tld_is_not_dropped_from_mitm(self):
         output = self.run_merge(
             "[Rewrite]\n[MITM]\nhostname = \n",
