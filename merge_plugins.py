@@ -837,7 +837,12 @@ if args.aoomee:
 arg_items = dedup_keep_order(arg_items)
 
 # ---------------- Rule：App 优先（aoomee -> thelong），再综合（block -> filter）----------------
-_RT_NORM = {'domain': 'DOMAIN', 'ip-cidr': 'IP-CIDR', 'domainsuffix': 'DOMAIN-SUFFIX'}
+_RT_NORM = {
+    'domain': 'DOMAIN',
+    'domain-suffix': 'DOMAIN-SUFFIX',
+    'domainsuffix': 'DOMAIN-SUFFIX',  # 兼容历史无连字符写法
+    'ip-cidr': 'IP-CIDR',
+}
 _POL_NORM = {'reject': 'REJECT', 'direct': 'DIRECT'}
 
 
