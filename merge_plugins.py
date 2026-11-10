@@ -1108,7 +1108,7 @@ def compiled_host_patterns(rule_lines):
     """编译 host 正则；遇到 Python 无法解析的模式时返回不确定标记，禁止激进裁剪。"""
     out, uncertain = {}, False
     for line in rule_lines:
-        if re.match(r'^(?:generic|cron)\\b', line.strip()):
+        if re.match(r'^(?:generic|cron)\b', line.strip()):
             continue
         rx = entry_regex(line)
         if not rx:
