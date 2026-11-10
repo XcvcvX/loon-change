@@ -108,7 +108,7 @@ def validate_amap(text):
         required_sections=("Rule", "Rewrite", "Script", "MitM"),
         require_hostname=True)
     blocks = {name.strip().lower(): body for name, body in re.findall(
-        r"(?ms)^\\[([^\\]]+)\\]\\s*\\n(.*?)(?=^\\[|\\Z)", text)}
+        r"(?ms)^\[([^\]]+)\]\s*\n(.*?)(?=^\[|\Z)", text)}
     counts = {name: len(real_lines(blocks.get(name.lower(), "")))
               for name in ("Rule", "Rewrite", "Script")}
     limits = {"Rule": 3, "Rewrite": 20, "Script": 10}
@@ -116,11 +116,12 @@ def validate_amap(text):
         if counts[name] < minimum:
             raise ValueError("Amap [%s] 有效条目仅 %d 条（要求至少 %d）" %
                              (name, counts[name], minimum))
-    mitm = re.search(r"(?mi)^\\s*hostname\\s*=\\s*(.+)$", blocks.get("mitm", ""))
+    mitm = re.search(r"(?mi)^\s*hostname\s*=\s*(.+)$", blocks.get("mitm", ""))
     hosts = [x.strip() for x in mitm.group(1).split(",")] if mitm else []
     if "*.amap.com" not in hosts:
         raise ValueError("Amap: 缺少预期的 *.amap.com MITM 声明")
-    if any(re.fullmatch(r"(?:\\d{1,3}\\.){3}\\d{1,3}|\\[[0-9a-fA-F:]+\\]", h) for h in hosts):
+    if any(re.fullmatch(r"(?:\d{1,3}\.){3}\d{1,3}|\[[0-9a-fA-F:]+\]", h)
+           for h in hosts):
         raise ValueError("Amap: MITM 中出现裸 IP，拒绝自动合并")
     required_assets = (
         "rucu6_amap.js", "loon_Amap.recommend.jq",
@@ -131,7 +132,6 @@ def validate_amap(text):
     stats.update({"sections": counts, "mitm_hosts": hosts,
                   "required_assets": list(required_assets)})
     return stats
-
 
 def validate_blockv2(text):
     stats = validate_source(text, "blockAdsV2", min_bytes=300, min_entries=5,
