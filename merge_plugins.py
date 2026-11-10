@@ -309,7 +309,9 @@ def guard_hosts_from_lines(lines):
                 if (len(lit) >= need and not is_public_suffix('.'.join(lit[-need:]))
                         and HOST_OK.match('.'.join(lit))):
                     result = '*.' + '.'.join(lit)
-            if result:
+            # HOST_OK 也会匹配四段数字形式（例如 103.37.155.60），
+            # 因此必须在守卫提取阶段排除 IP，避免把它们计入 MITM 自愈候选。
+            if result and not is_ip_literal_host(result):
                 https.add(result)
     return https
 
