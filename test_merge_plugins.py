@@ -50,6 +50,13 @@ class MergeIntegrationTests(unittest.TestCase):
         self.assertIn("reject_img(200)", output)
 
 
+
+    def test_legacy_and_v2_alias_of_same_reject_action_deduplicate(self):
+        output = self.run_merge(
+            "[Rewrite]\\n^https://same.example.com/image reject-img\\n[MITM]\\nhostname = same.example.com\\n",
+            "[Rewrite]\\n^https://same.example.com/image reject-img\\n")
+        self.assertEqual(output.count("same.example.com/image"), 1)
+
     def test_mitm_host_declared_by_one_source_is_kept_for_another_sources_rule(self):
         output = self.run_merge(
             "[Rewrite]\n^https://shared.example.com/ad reject\n[MITM]\nhostname = \n",
