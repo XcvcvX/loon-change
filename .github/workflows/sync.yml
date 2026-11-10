@@ -33,7 +33,7 @@ jobs:
       - name: 编译检查
         run: python3 -m py_compile merge_plugins.py validate_plugin.py source_guard.py convert_qx2loon.py convert_filter_qx2loon.py
       - name: 运行单元与合并集成测试
-        run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py
+        run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py
 
   sync:
     if: github.event_name != 'pull_request'
@@ -90,7 +90,7 @@ jobs:
         run: python3 validate_plugin.py /tmp/loon-build/allAdRewrite.plugin --update-readme README.md
 
       - name: 校验通过后替换正式产物
-        run: cp /tmp/loon-build/allAdRewrite.plugin allAdRewrite.plugin
+        run: cp /tmp/loon-build/allAdRewrite.plugin allAdRewrite.plugin.tmp && mv allAdRewrite.plugin.tmp allAdRewrite.plugin
 
       # 可选网络检查：仅输出警告，不因上游短暂限流阻断规则同步。
       # 本地排查远程脚本：python3 validate_plugin.py allAdRewrite.plugin --check-remote
