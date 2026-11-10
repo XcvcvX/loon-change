@@ -41,7 +41,7 @@ base / blockAdsV2 / adultraplus 的对应行。数字小 = 优先级高：
 | `allAdRewrite.plugin` | 单插件自包含：开关 + 分流 + 重写 + 脚本 + MITM |
 
 当前 `allAdRewrite.plugin` 含五个段：`[Argument]`（91 个开关）、`[Rule]`（3450 条）、
-`[Rewrite]`（3646 条）、`[Script]`（959 条）、`[MITM]`（1488 个主机，具体 1405 + 标准通配 83）。
+`[Rewrite]`（3836 条）、`[Script]`（959 条）、`[MITM]`（1615 个主机，具体 1516 + 标准通配 99）。
 
 ## 一、直接使用（不用自己搭仓库）
 
@@ -168,8 +168,30 @@ python3 validate_plugin.py allAdRewrite.plugin
 - **守卫提取顺序无关化**：修复 `guard_hosts_from_lines` 的一个顺序敏感缺陷——同一 host 同时存在
   `https?` 规则与纯 `http` 规则时，旧逻辑可能因后处理的纯 http 规则把该 host 误判为"仅明文"而从
   TLS 守卫集合排除，导致其 HTTPS 广告规则漏生效。改为纯 http 规则不参与 https 集合，只要被任一
-  https/https? 规则守卫就纳入。本轮 MITM 1475→1488（具体 1405 + 标准通配 83），0 非标准通配、
-  既有 pinning 域零回归。
+  https/https? 规则守卫就纳入。
+- **瓜子影视 host 防误裁**：修复 `prune_unused_mitm` 的一个假阴性——瓜子规则守卫是
+  `(?:api|sdapi|newapi|hyperf|oldapi)\.[a-z0-9]+\.com`（OR + 随机域名），守卫提取无法静态解析出
+  具体 host，导致 24 个 host 被误判为"无动作"裁剪、规则在却无法解密而失效。已验证 24 个 host 都被
+  规则守卫匹配，在构造需要集合时把 qxapp 权威 hostname 补入，裁剪不再误删。本轮 MITM 1475→1512
+  （具体 1429 + 标准通配 83），0 非标准通配、既有 pinning 域零回归。
+- **裸斜杠截断修复（系统性，影响 359 条规则）**：adultraplus 原始 URL Rewrite 含裸 `/`（如
+  `^https?://app\.api\.ke\.com/.../bootpage reject`），旧 `convert_legacy_line` 把它包进 v2
+  `/.../` 时未转义内部裸 `/`，而 `_read_v2_regex` 遇到第一个裸 `/` 即认为模式结束，导致这 359 条
+  规则全部坍缩成同一 key `^https?:`、被优先级合并去重成一条而静默丢失。新增 `escape_slash_for_v2`
+  转义裸 `/`→`\/`（保留已有转义），三处构造 `/.../` 全部应用；Rewrite 3646→3836（+190）。
+- **prune 重构为正则匹配 + materialize（消除守卫退化假阴性）**：旧裁剪依赖 `guard_hosts_from_lines`
+  退化集合，对端口分组 `(:\d+)?`、OR 分组、字符类随机域名（瓜子同款）假阴性，误裁具体 host 与标准
+  通配。重构后用每条规则的完整 host 正则直接 fullmatch 候选 host；区分窄模式（含长度≥3 字面标签，
+  先剔除字符类防否定字符类伪窄）与宽泛模式（`.*`/`.+?`/纯结构，不参与判定）。新增 `materialize_host`
+  把正则通配替换成合法占位、并用原模式验证生成可信样本（OR 分组经 `expand_or_patterns` 全分支展开，
+  可靠率 99.9%，损坏/IP 跳过）；标准通配 `*.X` 覆盖被保留具体 host、或其来源窄模式样本落在 X 子域
+  即保留。重构后具体 host 零误裁，6 个被误裁通配（ahhhhfs/xbwpys/fuliapps/pipiapps/xiangjiaoapps/
+  xiangxiangapps）恢复，qyfxgd/hitv 仅被否定字符类伪窄匹配、正确裁剪。
+- **全量内容级零丢失复核**：以生产相同口径对全部源文件逐条做语义对比（非字符串级）。Rewrite/Script：
+  源 6954 条 → 最终 4795 条，按 `(entry_regex, action_key)` 对比 **0 缺失**，2159 条差异全部是等价
+  去重；Rule：源 3947 条 → 3450 条，精确保留 3386、语义覆盖 556、frontier 有意放行 5（保护抖音私信）、
+  **真丢失 0**。除上述两个已修复的系统性 bug 外，无其他影响去广告的规则被静默精简。本轮 MITM 1512→1615
+  （具体 1516 + 标准通配 99），validate 0 错误 0 警告，合法负向项 `-i.vip.iqiyi.com` 保留。
 
 ### 4.3 分流补全到 `[Rule]`
 

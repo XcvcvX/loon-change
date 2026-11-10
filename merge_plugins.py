@@ -545,23 +545,36 @@ _LEGACY_REJECT = {
 }
 
 
+def escape_slash_for_v2(pat):
+    """转义正则内部的裸斜杠（/ -> \\/），保留已有转义；确保包进 v2 `/.../` 后能被完整读回。"""
+    out, i = [], 0
+    while i < len(pat):
+        if pat[i] == '\\' and i + 1 < len(pat):
+            out.append(pat[i:i + 2]); i += 2
+        elif pat[i] == '/':
+            out.append('\\/'); i += 1
+        else:
+            out.append(pat[i]); i += 1
+    return ''.join(out)
+
+
 def convert_legacy_line(line):
     """把 QuanX 旧写法转成 Loon v2；无法安全转换返回 None（丢弃）。"""
     s = line.strip()
     toks = s.split()
     if len(toks) == 2 and toks[1] in _LEGACY_REJECT:
         return ('request if ${url} ~= /%s/ then %s'
-                % (toks[0], _LEGACY_REJECT[toks[1]]))
+                % (escape_slash_for_v2(toks[0]), _LEGACY_REJECT[toks[1]]))
     if s.endswith(' 302') and 'close_ad=' in s:
         m = re.match(r'^(\^.+?)\s+\$1true\$2\s+302$', s)
         if m:
             return ('request if ${url} ~= /%s/ as m then redirect(302, "${m.1}true${m.2}")'
-                    % m.group(1))
+                    % escape_slash_for_v2(m.group(1)))
     m = re.match(r'^(\^.+?)\s+302\s+(\S+)$', s)
     if m and 'zhihu' in s:
         tgt = m.group(2).replace('$1', '${m.1}')
         return ('request if ${url} ~= /%s/ as m then redirect(302, "%s")'
-                % (m.group(1), tgt))
+                % (escape_slash_for_v2(m.group(1)), tgt))
     return None
 
 
@@ -928,6 +941,12 @@ for l in base_sec.get('MITM', []):
                  if x.strip() and not mitm_skip_host(x)]
 # 守卫真实 host：用最终 Rewrite/Script（含全部来源），供通配 TLD/缺 TLD 反查
 guard_real = guard_hosts_from_lines(merged_rw + merged_sc)
+# qxapp 单文件（如瓜子影视）的规则守卫含 OR + 随机域名（[a-z0-9]+），guard 提取无法静态
+# 解析出具体 host；其 hostname 行是权威声明，且这些 host 已验证被规则守卫匹配，
+# 故补入需要集合，避免被 prune_unused_mitm 误判为无动作 host 而裁剪、导致 HTTPS 规则失效。
+if args.qxapp:
+    guard_real = set(guard_real) | {
+        h for h in qxapp_mitm if not mitm_skip_host(h) and '*' not in h and '?' not in h}
 extra_raw = []
 for l in extra_sec.get('MITM', []):
     if '=' in l:
@@ -966,30 +985,230 @@ for _h in sorted(guard_hosts_from_lines(merged_rw + merged_sc)):
 mitm = dedup_keep_order(mitm)
 
 
-def prune_unused_mitm(mitm_hosts, guard_hosts):
-    """裁剪不服务任何最终 Rewrite/Script 守卫的 MITM host（无规则动作、仅解密的上游 hostname 残留）。
-    guard_hosts：guard_hosts_from_lines 输出的「需要集合」（具体 host + 标准 *.通配）。
-    具体 host 保留当它在守卫具体集合、或被守卫通配覆盖；通配保留当它覆盖守卫具体 host、或与守卫通配同后缀。"""
-    g_conc = {h for h in guard_hosts if not h.startswith('*.')}
-    g_wild = {h for h in guard_hosts if h.startswith('*.')}
-
-    def keep(m):
-        if m.startswith('*.'):
-            suf = m[2:]
-            if any(h == suf or h.endswith('.' + suf) for h in g_conc):
-                return True
-            return any(suf == w[2:] or suf.endswith('.' + w[2:])
-                       or w[2:].endswith('.' + suf) for w in g_wild)
-        if m in g_conc:
-            return True
-        return any(m == w[2:] or m.endswith('.' + w[2:]) for w in g_wild)
-
-    return [m for m in mitm_hosts if keep(m)]
+def host_zone_from_regex(rx):
+    """从 entry_regex 输出提取 host 部分（起始 ^ 可选），无法提取返回 None。"""
+    m = re.match(r'\^?https?\??://', rx)
+    if not m:
+        return None
+    rest = rx[m.end():]
+    out, i = [], 0
+    while i < len(rest):
+        if rest[i] == '\\' and i + 1 < len(rest):
+            out.append(rest[i:i + 2]); i += 2
+        elif rest[i] == '/':
+            break
+        else:
+            out.append(rest[i]); i += 1
+    return ''.join(out)
 
 
-# 自动裁剪：移除不服务任何最终规则、仅解密的冗余 MITM host；已 pass 的 pinning 域不在 guard_real 内，自然被裁。
+def is_narrow_host_pattern(pat):
+    """含长度>=3 的连续字母数字字面片段即视为针对性窄模式；否则为匹配一切的宽泛模式。
+    先剔除字符类 [...]（否定字符类里的字母并非字面序列），避免伪窄模式。"""
+    stripped = re.sub(r'\[.*?\]', '', pat)
+    return any(len(x) >= 3 for x in re.findall(r'[A-Za-z0-9]+', stripped))
+
+
+def compiled_narrow_hosts(rule_lines):
+    """从规则行提取编译后的窄 host 正则（去重，跳过不可编译模式）。"""
+    out = {}
+    for l in rule_lines:
+        rx = entry_regex(l)
+        if not rx:
+            continue
+        z = host_zone_from_regex(rx)
+        if not z or not is_narrow_host_pattern(z):
+            continue
+        try:
+            out.setdefault(z, re.compile('^(?:%s)$' % z, re.IGNORECASE))
+        except re.error:
+            pass
+    return out
+
+
+def strip_host_port(p):
+    """剥离 host 模式末尾端口部分（:1234 / :\\d+ / :\\d{4} / \\:\\w+ / (?::443)?）。"""
+    p = re.sub(r'\(:?\\?:?\d+\)\?', '', p)
+    p = re.sub(r'\\?:[\w\\+{}]+$', '', p)
+    return p
+
+
+def expand_or_patterns(z, limit=64):
+    """展开 OR 分组为多个模式（笛卡尔积，上限 limit），返回模式列表；可选分组先取其内容。
+    含裸 | 但无匹配括号的损坏模式不展开；无进展即终止，避免无限循环。"""
+    s = z.replace('?:', '')
+    s = re.sub(r'\(([^()]*)\)\?', r'\1', s)
+    out = [s]
+    while any('|' in x for x in out):
+        if len(out) >= limit:
+            break
+        nxt = []
+        changed = False
+        for p in out:
+            m = re.search(r'\(([^()|]*\|[^()]*)\)', p)
+            if not m:
+                nxt.append(p)
+                continue
+            changed = True
+            for opt in m.group(1).split('|'):
+                nxt.append(p[:m.start()] + opt + p[m.end():])
+        if not changed:
+            break
+        out = nxt
+    return out[:limit]
+
+
+def materialize_hosts(z):
+    """展开 OR 全分支，对每个无 OR 模式生成可信样本，返回去重样本集合。"""
+    res = set()
+    for p in expand_or_patterns(z):
+        zc = strip_host_port(p)
+        if '(' in zc or ')' in zc:
+            continue
+        try:
+            samp = materialize_host(p)
+            if re.compile('^(?:%s)$' % zc, re.IGNORECASE).match(samp):
+                res.add(samp)
+        except (re.error, TypeError):
+            pass
+    return res
+
+
+def materialize_host(z):
+    """把 host 正则里的通配构造替换成合法占位，生成该模式确实能匹配的一个具体样本 host（用原模式验证）。
+    用于判断标准通配 *.X 是否被规则需要：规则样本是 X 的子域则通配需保留。"""
+    s = z.replace('?:', '')
+    s = re.sub(r'\(:?\\?:?\d+\)\?', '', s)
+    s = re.sub(r'\\?:[\w\\+{}]+$', '', s)
+    prev = None
+    while prev != s:
+        prev = s
+        s = re.sub(r'\(([^()]*)\)\?', r'\1', s)
+        s = re.sub(r'\(([^()|]*\|[^()]*)\)', lambda m: m.group(1).split('|')[0], s)
+
+    def wrep(m):
+        n = m.group(1)
+        if n in ('+', '*', ''):
+            return 'aaa'
+        if ',' in n:
+            lo = n.split(',')[0]
+            return 'a' * (int(lo) if lo else 1)
+        return 'a' * int(n)
+    s = re.sub(r'\\w\{(\d+(?:,\d+)?)\}', wrep, s)
+    s = re.sub(r'\\w[+*]', 'aaa', s)
+    s = re.sub(r'\\w', 'a', s)
+
+    def drep(m):
+        n = m.group(1)
+        if n in ('+', '*', '?', ''):
+            return '1'
+        if ',' in n:
+            lo = n.split(',')[0]
+            return '1' * (int(lo) if lo else 1)
+        return '1' * int(n)
+    s = re.sub(r'\\d\{(\d+(?:,\d+)?)\}', drep, s)
+    s = re.sub(r'\\d[+*?]?', '1', s)
+
+    def crep(m):
+        content, quant = m.group(1), m.group(2)
+        length = 1
+        if quant and quant.isdigit():
+            length = int(quant)
+        elif quant and ',' in quant:
+            lo = quant.split(',')[0]
+            length = int(lo) if lo else 1
+        chars = re.sub(r'[^\w]', '', content)
+        ch = chars[0] if chars else ('1' if re.match(r'^[\d\-]+$', content) else 'a')
+        return (ch * length) if length > 1 else ch
+    s = re.sub(r'\[([^\]]*)\](?:\{(\d+(?:,\d+)?)\}|([+*?]))?', crep, s)
+
+    def dot_rep(m):
+        nxt = s[m.end():m.end() + 2]
+        # 后紧跟转义点则用纯标签；否则带点，生成点分离子域（避免前缀粘连成不同域）
+        return 'abc' if nxt == '\\.' else 'abc.'
+    s = re.sub(r'\.\*|\.\+\??', dot_rep, s)
+    s = re.sub(r'\{\d+(?:,\d+)?\}', '', s)
+    s = re.sub(r'(?<=[A-Za-z0-9)])[?+*]', '', s)
+    s = s.replace('\\.', '.').replace('\\-', '-')
+    s = re.sub(r'[(){}]', '', s)
+    s = re.sub(r':.*$', '', s)
+    s = re.sub(r'\.+', '.', s).strip('.')
+    return s
+
+
+def prune_unused_mitm(mitm_hosts, rule_lines, host_origins, rules_by_src):
+    """用最终规则完整 host 正则直接匹配，裁剪不服务规则的 host（替代旧的守卫退化判定，消除假阴性）。
+    负向排除项（-host，Loon 官方支持）原样保留；具体 host 被其来源自身窄模式匹配即保留，
+    来源为空（自愈补全）的 host 用全部规则判定；标准通配覆盖被保留具体 host、或与窄模式后缀对应即保留。"""
+    narrow = compiled_narrow_hosts(rule_lines)
+    src_narrow = {src: compiled_narrow_hosts(rls) for src, rls in rules_by_src.items()}
+
+    # 各来源窄模式的可信 materialize 样本（仅保留原模式确实匹配的）
+    def trusted_samples(zdict):
+        out = set()
+        for z, rc in zdict.items():
+            out |= materialize_hosts(z)
+        return out
+    src_samples = {src: trusted_samples(zd) for src, zd in src_narrow.items()}
+    all_samples = trusted_samples(narrow)
+
+    def conc_needed(h):
+        origins = host_origins.get(h, [])
+        if not origins:  # 自愈补全：来源为空，用全部规则
+            return any(rc.match(h) for rc in narrow.values())
+        return any(rc.match(h) for src in origins for rc in src_narrow.get(src, {}).values())
+
+    kept_conc = [h for h in mitm_hosts
+                 if not h.startswith('*.') and not h.startswith('-') and conc_needed(h)]
+    kept_conc_set = set(kept_conc)
+
+    kept_wild = []
+    for m in mitm_hosts:
+        if not m.startswith('*.'):
+            continue
+        suf = m[2:]
+        # 1) 覆盖已保留的具体 host
+        if any(h == suf or h.endswith('.' + suf) for h in kept_conc_set):
+            kept_wild.append(m)
+            continue
+        # 2) 来源窄模式的可信样本落在该域子域（规则作用于子域）；无来源（自愈）用全部样本
+        origins = host_origins.get(m, [])
+        if origins:
+            pool = set().union(*(src_samples.get(s, set()) for s in origins))
+        else:
+            pool = all_samples
+        if any(s == suf or s.endswith('.' + suf) for s in pool):
+            kept_wild.append(m)
+
+    neg = [h for h in mitm_hosts if h.startswith('-')]
+    return kept_conc + kept_wild + neg
+
+
+# 自动裁剪：用最终规则完整 host 正则直接匹配，移除不服务任何规则、仅解密的冗余 host。
+# 构建 host -> 来源集合（对来源原始 host 做与收集环节一致的 normalize），及各来源规则。
+_src_host_lists = {
+    'base': [x.strip() for l in base_sec.get('MITM', []) if '=' in l
+             for x in l.split('=', 1)[1].split(',') if x.strip()],
+    'block': extra_raw, 'thelong': thelong_mitm, 'aoomee': ao_mitm,
+    'zmj_app': zmj_app_mitm, 'zmj_gen': zmj_gen_mitm,
+    'qxapp': qxapp_mitm, 'mix': mix_mitm,
+}
+host_origins = {}
+for _src, _hl in _src_host_lists.items():
+    for _raw_h in _hl:
+        for _nh in normalize_extra_host(_raw_h, guard_real):
+            if not mitm_skip_host(_nh):
+                host_origins.setdefault(_nh, [])
+                if _src not in host_origins[_nh]:
+                    host_origins[_nh].append(_src)
+rules_by_src = {
+    'base': base_rw + base_sc, 'block': block_rw + block_sc,
+    'thelong': thelong_rw + thelong_sc, 'aoomee': ao_rw + ao_sc,
+    'zmj_app': zmj_app_rw + zmj_app_sc, 'zmj_gen': zmj_gen_rw + zmj_gen_sc,
+    'qxapp': qxapp_rw, 'mix': mix_rw + mix_sc,
+}
 _mitm_before_prune = len(mitm)
-mitm = prune_unused_mitm(mitm, guard_real)
+mitm = prune_unused_mitm(mitm, merged_rw + merged_sc, host_origins, rules_by_src)
 mitm_pruned = _mitm_before_prune - len(mitm)
 
 # ---------------- 输出 ----------------
@@ -1037,3 +1256,4 @@ if dropped:
     print('  丢弃的 hostname：', ', '.join(dropped[:20]))
 if args.mix:
     print('  Mix    ：adultraplus 清洗，非去广告私货剔除 %d' % mix_stats['non_ad_drop'])
+#（注：内容由AI生成）
