@@ -1,6 +1,14 @@
 name: Sync multi-source ad-block plugins (QuanX -> Loon)
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'merge_plugins.py'
+      - 'source_guard.py'
+      - 'convert_qx2loon.py'
+      - 'convert_filter_qx2loon.py'
+      - '.github/workflows/sync.yml'
   pull_request:
     paths:
       - 'validate_plugin.py'
