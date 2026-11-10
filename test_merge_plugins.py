@@ -87,7 +87,9 @@ class MergeIntegrationTests(unittest.TestCase):
         self.assertNotIn("118.178.214.118", mitm_line)
         self.assertNotIn("2001:db8::1", mitm_line)
         # IP 不应进入 MITM 自愈候选，也不应被计入“自愈补全”数量。
-        self.assertIn("MITM 自愈补全 0 个", stdout)
+        self.assertNotIn("MITM 自愈补全", stdout)
+        self.assertNotIn("103.37.155.60", stdout)
+        self.assertNotIn("118.178.214.118", stdout)
         # 只过滤 MITM hostname，不删除原有 IP 目标 Rewrite 拦截规则。
         self.assertIn("103.37.155.60/ad", output)
         self.assertIn("118.178.214.118", output)
@@ -97,7 +99,9 @@ class MergeIntegrationTests(unittest.TestCase):
     def test_lowercase_domain_suffix_rule_is_normalized(self):
         output = self.run_merge(
             "[Rewrite]\\n[MITM]\\nhostname = \\n",
-            "[Rule]\\nDOMAIN-suffix,anythinktech.com,reject\\n")
+            "[Rewrite]\\n[MITM]\\nhostname = \\n",
+            "[Rewrite]\\n[Rule]\\ndomain-suffix,anythinktech.com,reject\\n"
+            "[MITM]\\nhostname = \\n")
         self.assertIn("DOMAIN-SUFFIX,anythinktech.com,REJECT", output)
         self.assertNotIn("DOMAIN-suffix", output)
 
