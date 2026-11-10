@@ -9,7 +9,7 @@ import urllib.request
 from collections import defaultdict
 from pathlib import Path
 
-HOST_RE = re.compile(r'^(?=.{1,253}$)(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?
+HOST_RE = re.compile(r'^(?=.{1,253}\Z)(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\Z')
 IP_RE = re.compile(r'^\d{1,3}(?:\.\d{1,3}){3}$')
 PUBLIC_SUFFIX_2L = {'com.cn','net.cn','org.cn','gov.cn','edu.cn','ac.cn','mil.cn','com.hk','com.tw','com.au','com.sg','com.my','com.vn','com.ph','com.br','com.mx','com.tr','co.jp','or.jp','ne.jp','ac.jp','co.uk','org.uk','ac.uk','co.kr','or.kr','co.in','co.nz','co.th','co.id'}
 LEGACY_ACTIONS = {'reject','reject-200','reject-img','reject-dict','reject-array','reject-video','302','307','header-add','header-del','header-replace','header-replace-regex','request-body-replace-regex','request-body-json-add','request-body-json-replace','request-body-json-del','request-body-json-jq','mock-request-body','response-header-add','response-header-del','response-header-replace','response-header-replace-regex','response-body-replace-regex','response-body-json-add','response-body-json-replace','response-body-json-del','response-body-json-jq','mock-response-body'}
