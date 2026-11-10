@@ -564,7 +564,7 @@ def unguarded_key(line):
     return None
 
 
-# ---------------- 动作签名：区分"拒绝家族折叠"与"互补动作并存" ----------------
+# ---------------- 动作签名：保留 reject 的不同响应类型，互补动作并存 ----------------
 def split_action(line):
     """返回 (v2/v1, 动作部分)。v2 取 then 之后；v1 去掉首段正则。"""
     s = line.strip()
@@ -578,6 +578,8 @@ def action_key(line):
     """按动作名和完整参数生成签名，避免把不同 reject 变体错误折叠。"""
     _, action = split_action(line)
     name = re.split(r'[\s(]', action, 1)[0].lower()
+    if name in ('reject', 'reject_img', 'reject_dict', 'reject_array', 'reject_video'):
+        return ('REJECT', name)
     return (name, action)
 
 
@@ -1094,8 +1096,8 @@ def materialize_host(z):
 
 
 def compiled_host_patterns(rule_lines):
-    """编译所有可识别的 host 正则；宽泛模式也用于验证已声明 MITM 主机。"""
-    out = {}
+    """编译 host 正则；遇到 Python 无法解析的模式时返回不确定标记，禁止激进裁剪。"""
+    out, uncertain = {}, False
     for line in rule_lines:
         rx = entry_regex(line)
         if not rx:
@@ -1106,13 +1108,16 @@ def compiled_host_patterns(rule_lines):
         try:
             out.setdefault(zone, re.compile('^(?:%s)$' % zone, re.IGNORECASE))
         except re.error:
-            pass
-    return out
+            uncertain = True
+    return out, uncertain
 
 
 def prune_unused_mitm(mitm_hosts, rule_lines):
     """按最终合并后的规则判断 MITM 用途，避免跨来源共享域名被误裁剪。"""
-    all_patterns = compiled_host_patterns(rule_lines)
+    all_patterns, uncertain = compiled_host_patterns(rule_lines)
+    if uncertain:
+        # Python re 与 Loon/ICU 不完全同构；无法解析时宁可保留 MITM，不冒险误删。
+        return list(mitm_hosts)
     narrow = {z: rc for z, rc in all_patterns.items() if is_narrow_host_pattern(z)}
 
     def trusted_samples(zdict):
