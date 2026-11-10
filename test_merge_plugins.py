@@ -52,9 +52,9 @@ class MergeIntegrationTests(unittest.TestCase):
 
     def test_mitm_host_declared_by_one_source_is_kept_for_another_sources_rule(self):
         output = self.run_merge(
-            "[Rewrite]\\n^https://shared.example.com/ad reject\\n[MITM]\\nhostname = \\n",
-            "[Rewrite]\\n[MITM]\\nhostname = \\n",
-            "[Rewrite]\\n[MITM]\\nhostname = shared.example.com\\n")
+            "[Rewrite]\n^https://shared.example.com/ad reject\n[MITM]\nhostname = \n",
+            "[Rewrite]\n[MITM]\nhostname = \n",
+            "[Rewrite]\n[MITM]\nhostname = shared.example.com\n")
         self.assertIn("shared.example.com", output)
 
     def test_valid_unlisted_tld_is_not_dropped_from_mitm(self):
