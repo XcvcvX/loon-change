@@ -4,9 +4,11 @@ on:
   pull_request:
     paths:
       - 'validate_plugin.py'
+      - 'source_guard.py'
       - 'merge_plugins.py'
       - 'test_merge_plugins.py'
       - 'test_validate_plugin.py'
+      - 'test_source_guard.py'
       - '.github/workflows/sync.yml'
       - 'README.md'
   schedule:
@@ -29,7 +31,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: 编译检查
-        run: python3 -m py_compile merge_plugins.py validate_plugin.py convert_qx2loon.py convert_filter_qx2loon.py
+        run: python3 -m py_compile merge_plugins.py validate_plugin.py source_guard.py convert_qx2loon.py convert_filter_qx2loon.py
       - name: 运行单元与合并集成测试
         run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py
 
@@ -50,8 +52,11 @@ jobs:
       - name: 测试校验器
         run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py
 
-      - name: 转换重写规则
-        run: python3 convert_qx2loon.py -o allAdRewrite.plugin
+      - name: 创建隔离构建目录
+        run: mkdir -p /tmp/loon-build
+
+      - name: 转换重写规则（先写入临时产物）
+        run: python3 convert_qx2loon.py -o /tmp/loon-build/allAdRewrite.plugin
 
       - name: 拉取 Thelongdarkorg 去广告插件
         run: |
@@ -74,18 +79,25 @@ jobs:
             https://ddgksf2013.top/rewrite/GuaZiVideoAds.conf -o /tmp/GuaZiVideoAds.conf
           wc -c /tmp/GuaZiVideoAds.conf
 
-      - name: 合并各来源去广告插件与分流规则
-        run: python3 merge_plugins.py --base allAdRewrite.plugin --extra fetch --filter fetch --apps /tmp/loon-plugins --aoomee /tmp/aoomee --zmjde /tmp/zmjde --qxapp /tmp/GuaZiVideoAds.conf --myblockads fetch --out allAdRewrite.plugin
+      - name: 校验克隆来源并生成来源报告
+        run: |
+          python3 source_guard.py --thelong /tmp/loon-plugins --aoomee /tmp/aoomee --zmjde /tmp/zmjde --qxapp /tmp/GuaZiVideoAds.conf --report source-report.json
 
-      - name: 校验重写插件并同步 README 统计
-        run: python3 validate_plugin.py allAdRewrite.plugin --update-readme README.md
+      - name: 合并各来源去广告规则（临时目录）
+        run: python3 merge_plugins.py --base /tmp/loon-build/allAdRewrite.plugin --extra fetch --filter fetch --apps /tmp/loon-plugins --aoomee /tmp/aoomee --zmjde /tmp/zmjde --qxapp /tmp/GuaZiVideoAds.conf --myblockads fetch --out /tmp/loon-build/allAdRewrite.plugin
+
+      - name: 校验临时产物并同步 README 统计
+        run: python3 validate_plugin.py /tmp/loon-build/allAdRewrite.plugin --update-readme README.md
+
+      - name: 校验通过后替换正式产物
+        run: cp /tmp/loon-build/allAdRewrite.plugin allAdRewrite.plugin
 
       # 可选网络检查：仅输出警告，不因上游短暂限流阻断规则同步。
       # 本地排查远程脚本：python3 validate_plugin.py allAdRewrite.plugin --check-remote
       - name: 检查是否有变化
         id: diff
         run: |
-          if git diff --quiet -- allAdRewrite.plugin README.md; then
+          if git diff --quiet -- allAdRewrite.plugin README.md source-report.json; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "合并产物与统计均无变化，跳过提交"
           else
@@ -98,6 +110,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add allAdRewrite.plugin README.md
+          git add allAdRewrite.plugin README.md source-report.json
           git commit -m "chore: sync upstream rules and plugin stats $(date -u +%Y-%m-%d)"
           git push
