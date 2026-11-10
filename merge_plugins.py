@@ -35,9 +35,6 @@ FILTER_MIRRORS = [
     'https://fastly.jsdelivr.net/gh/zirawell/R-Store@main/Rule/QuanX/Adblock/All/filter/allAdBlock.list',
 ]
 
-# 第三方融合插件（APP启动页去广告ultra+）：QuanX/Shadowrocket 段名，需清洗后并入去重
-MIX_URL = 'https://yfamilys.com/plugin/adultraplus.plugin'
-
 # aoomee 独立 App 去广告插件仓库（工作流 clone 到本地后传入目录）
 AOOMEE_REPO = 'https://github.com/aoomee/Loon-Adblock-Plugins.git'
 # QuanX filter 类型/策略 -> Loon
@@ -112,9 +109,6 @@ ap.add_argument('--filter', default='fetch',
 ap.add_argument('--apps', default=None,
                 help='Thelongdarkorg/loon-plugins 仓库目录（可选）；遍历其中去广告插件并入，'
                      '仅识别 *_ad_block.plugin / *_splash_ad_block.plugin，跳过 ai_auto_node')
-ap.add_argument('--mix', default=None,
-                help='第三方融合插件（adultraplus）：fetch/URL/本地路径；清洗（只取去广告 reject+v2，'
-                     '剔除重定向/破解私货）后按正则去重并入')
 ap.add_argument('--aoomee', default=None,
                 help='aoomee/Loon-Adblock-Plugins 仓库目录（工作流 clone 后传入）；遍历其中 '
                      '.plugin/.lpx 独立 App 插件并入，独立 App 插件优先级最高（同正则替换其他来源）')
@@ -140,40 +134,6 @@ def fetch(url, timeout=60):
     req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
     with urllib.request.urlopen(req, timeout=timeout) as r:
         return r.read().decode('utf-8')
-
-
-def fetch_mix(url, retries=12):
-    """adultraplus 站走 Cloudflare、连接易随机切断且忽略 Range（无法断点续传），
-    需多次重试，直到某次完整读取（read 不抛异常）。"""
-    import gzip, time
-    last = None
-    for i in range(retries):
-        try:
-            req = urllib.request.Request(url, headers={
-                'User-Agent': 'Mozilla/5.0', 'Accept-Encoding': 'gzip', 'Connection': 'close'})
-            with urllib.request.urlopen(req, timeout=120) as r:
-                raw = r.read()
-                if r.headers.get('Content-Encoding') == 'gzip':
-                    raw = gzip.decompress(raw)
-            return raw.decode('utf-8')
-        except Exception as e:
-            last = e
-            time.sleep(2)
-    raise RuntimeError('mix 下载失败: %s' % last)
-
-
-def parse_mix_sections(text):
-    """宽松段名解析，识别 [URL Rewrite] 等含空格段名（split_sections 只认单词段），
-    返回 {段名: [行]}（不含空行/注释）。"""
-    out, cur = {}, None
-    for line in text.split('\n'):
-        m = re.match(r'^\[(.+?)\]\s*$', line)
-        if m:
-            cur = m.group(1).strip()
-            out[cur] = []
-        elif cur is not None and line.strip() and not line.lstrip().startswith('#'):
-            out[cur].append(line)
-    return out
 
 
 def split_sections(text):
@@ -511,7 +471,7 @@ def and_rule_domains(line):
 # ============================================================================
 # 主流程：统一优先级合并
 # 优先级（数字小=高）：zmjde App(0) > qx 单文件 App(1) > aoomee(2) > Thelongdarkorg(3)
-#                     > base/R-Store(4) > blockAdsV2(5) > zmjde 通用(6) > adultraplus(7)
+#                     > base/R-Store(4) > blockAdsV2(5) > zmjde 通用(6)
 # zmjde App（DiDi/PinDuoDuo/闲鱼/淘宝/什么值得买）完整并入、同正则替换其他来源；
 # zmjde 通用（Block_HTTPDNS/BlockAdvertisers/可莉广告过滤器）低于 base，只补 base 没有的。
 # ============================================================================
@@ -537,7 +497,7 @@ else:
 _, base_sec = split_sections(base_text)
 _, extra_sec = split_sections(extra_text)
 
-# ---------------- legacy 旧行转换（blockAdsV2 / adultraplus 复用）----------------
+# ---------------- legacy 旧行转换（blockAdsV2 / qx 单文件等复用）----------------
 _LEGACY_REJECT = {
     'reject': 'reject(404)', 'reject-200': 'reject(200)',
     'reject-img': 'reject_img(200)', 'reject-dict': 'reject_dict(200)',
@@ -708,35 +668,6 @@ if args.aoomee:
         for l in s.get('MITM', []):
             if '=' in l:
                 ao_mitm += [x.strip() for x in l.split('=', 1)[1].split(',') if x.strip()]
-# adultraplus（清洗：只取去广告 reject+v2，剔除私货）
-mix_rw, mix_sc, mix_mitm = [], [], []
-mix_guard_lines = []
-mix_stats = {'rw_added': 0, 'sc_added': 0, 'non_ad_drop': 0}
-if args.mix:
-    if args.mix == 'fetch':
-        mtext = fetch_mix(MIX_URL)
-        print('[fetch] 已获取 adultraplus（含重试）')
-    elif args.mix.startswith('http'):
-        mtext = fetch_mix(args.mix)
-        print('[fetch] 已获取 mix:', args.mix)
-    else:
-        mtext = open(args.mix, encoding='utf-8').read()
-    mix_sec = parse_mix_sections(mtext)
-    mix_guard_lines = (real_lines(mix_sec.get('URL Rewrite', []))
-                       + real_lines(mix_sec.get('Rewrite', []))
-                       + real_lines(mix_sec.get('Script', [])))
-    for l in real_lines(mix_sec.get('URL Rewrite', [])):
-        toks = l.split()
-        if len(toks) != 2 or toks[1] not in _LEGACY_REJECT:
-            mix_stats['non_ad_drop'] += 1
-            continue
-        mix_rw.append(convert_legacy_line(l))
-    mix_rw += real_lines(mix_sec.get('Rewrite', []))
-    mix_sc += real_lines(mix_sec.get('Script', []))
-    for l in mix_sec.get('MITM', []):
-        if '=' in l:
-            mix_mitm += [x.strip() for x in l.split('=', 1)[1].split(',') if x.strip()]
-
 # ---------------- zmjde 指定插件 ----------------
 # App 高优先级（完整并入，同正则替换其他来源）：DiDi/PinDuoDuo + 闲鱼/淘宝/什么值得买；
 # 通用 base 优先，只补 base 没有的（不覆盖）：Block_HTTPDNS/BlockAdvertisers + 可莉广告过滤器。
@@ -820,13 +751,13 @@ if args.qxapp:
         qxapp_rw += rw; qxapp_mitm += hm
 
 # ---------------- 执行优先级合并 ----------------
-# 位置顺序：base 骨架 -> block -> zmjde通用 -> mix -> thelong -> aoomee -> qx单文件App -> zmjdeApp；
+# 位置顺序：base 骨架 -> block -> zmjde通用 -> thelong -> aoomee -> qx单文件App -> zmjdeApp；
 # 同正则由 prio 决定覆盖（zmjde App 最高，qx 专属 App 次之；zmjde 通用低于 base、只补不覆盖）
 rw_feeds = [('base', 4, base_rw), ('block', 5, block_rw), ('zmjgen', 6, zmj_gen_rw),
-            ('mix', 7, mix_rw), ('thelong', 3, thelong_rw), ('aoomee', 2, ao_rw),
+            ('thelong', 3, thelong_rw), ('aoomee', 2, ao_rw),
             ('qxapp', 1, qxapp_rw), ('zmjapp', 0, zmj_app_rw)]
 sc_feeds = [('base', 4, base_sc), ('block', 5, block_sc), ('zmjgen', 6, zmj_gen_sc),
-            ('mix', 7, mix_sc), ('thelong', 3, thelong_sc), ('aoomee', 2, ao_sc),
+            ('thelong', 3, thelong_sc), ('aoomee', 2, ao_sc),
             ('zmjapp', 0, zmj_app_sc)]
 merged_rw, rw_unguarded = priority_merge([(p, x) for _, p, x in rw_feeds])
 merged_sc, sc_unguarded = priority_merge([(p, x) for _, p, x in sc_feeds])
@@ -952,7 +883,7 @@ for l in extra_sec.get('MITM', []):
     if '=' in l:
         extra_raw += [x.strip() for x in l.split('=', 1)[1].split(',') if x.strip()]
 dropped = []
-for h in extra_raw + thelong_mitm + ao_mitm + zmj_app_mitm + zmj_gen_mitm + qxapp_mitm + mix_mitm:
+for h in extra_raw + thelong_mitm + ao_mitm + zmj_app_mitm + zmj_gen_mitm + qxapp_mitm:
     got = normalize_extra_host(h, guard_real)
     # 跳过证书绑定域（如 amemv）：从源头不进 MITM，不使用负向语法
     got = [x for x in got if not mitm_skip_host(x)]
@@ -1191,7 +1122,7 @@ _src_host_lists = {
              for x in l.split('=', 1)[1].split(',') if x.strip()],
     'block': extra_raw, 'thelong': thelong_mitm, 'aoomee': ao_mitm,
     'zmj_app': zmj_app_mitm, 'zmj_gen': zmj_gen_mitm,
-    'qxapp': qxapp_mitm, 'mix': mix_mitm,
+    'qxapp': qxapp_mitm,
 }
 host_origins = {}
 for _src, _hl in _src_host_lists.items():
@@ -1205,7 +1136,7 @@ rules_by_src = {
     'base': base_rw + base_sc, 'block': block_rw + block_sc,
     'thelong': thelong_rw + thelong_sc, 'aoomee': ao_rw + ao_sc,
     'zmj_app': zmj_app_rw + zmj_app_sc, 'zmj_gen': zmj_gen_rw + zmj_gen_sc,
-    'qxapp': qxapp_rw, 'mix': mix_rw + mix_sc,
+    'qxapp': qxapp_rw,
 }
 _mitm_before_prune = len(mitm)
 mitm = prune_unused_mitm(mitm, merged_rw + merged_sc, host_origins, rules_by_src)
@@ -1215,13 +1146,13 @@ mitm_pruned = _mitm_before_prune - len(mitm)
 today = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
 header = [
     '#!name=R-Store × blockAdsV2 × 独立 App 去广告净化合集',
-    '#!desc=合并 R-Store、blockAdsV2、Thelongdarkorg、aoomee、zmjde、ddgksf2013 瓜子、adultraplus；'
+    '#!desc=合并 R-Store、blockAdsV2、Thelongdarkorg、aoomee、zmjde、ddgksf2013 瓜子；'
     '按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含',
-    '#!author=zirawell / fmz200 / Thelongdarkorg / aoomee / zmjde / ddgksf2013 / yfamilys（本仓库自动合并）',
+    '#!author=zirawell / fmz200 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）',
     '#!homepage=https://github.com/XcvcvX/loon-change',
     '#!merged-at=%s' % today,
     '#!note=专属 App 插件（zmjde/qx 单文件/aoomee/Thelongdarkorg）优先级最高；新旧语法同段混用，Loon 均支持。',
-    '#!sources=R-Store(QuanX->Loon)+blockAdsV2+Thelongdarkorg+aoomee+zmjde+ddgksf2013/GuaZiVideoAds+yfamilys/adultraplus',
+    '#!sources=R-Store(QuanX->Loon)+blockAdsV2+Thelongdarkorg+aoomee+zmjde+ddgksf2013/GuaZiVideoAds',
     '',
 ]
 out = list(header)
@@ -1254,6 +1185,3 @@ if mitm_healed:
     print('  MITM 自愈补全 %d 个：%s' % (len(mitm_healed), ', '.join(mitm_healed[:15])))
 if dropped:
     print('  丢弃的 hostname：', ', '.join(dropped[:20]))
-if args.mix:
-    print('  Mix    ：adultraplus 清洗，非去广告私货剔除 %d' % mix_stats['non_ad_drop'])
-#（注：内容由AI生成）

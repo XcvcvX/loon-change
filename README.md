@@ -7,8 +7,7 @@
 - [Thelongdarkorg/loon-plugins](https://github.com/Thelongdarkorg/loon-plugins) 的 **29 个细分 App 去广告插件**（标准 Loon v1、零远程脚本），并入去重；
 - [aoomee/Loon-Adblock-Plugins](https://github.com/aoomee/Loon-Adblock-Plugins) 的 **27 个独立 App 插件**（`.plugin`/`.lpx`，含远程脚本与 `[Argument]`），并入去重；
 - [zmjde/loon-plugins](https://github.com/zmjde/loon-plugins) 的 **8 个 `.lpx`**：滴滴、拼多多、闲鱼、淘宝、什么值得买 5 个 App 插件（完整并入、替换重复），HTTPDNS 拦截器、广告平台拦截器、可莉广告过滤器（以 base 优先、只补不覆盖）；
-- [ddgksf2013 墨鱼手记](https://ddgksf2013.top/rewrite/GuaZiVideoAds.conf) 的 **瓜子影视 `.conf`**（QuanX 单文件，脚本内转 Loon，专属 App 完整并入、24 host 纳入 MITM）；
-- yfamilys 的 **adultraplus**（清洗后只取 reject 家族，剔除破解/重定向私货）。
+- [ddgksf2013 墨鱼手记](https://ddgksf2013.top/rewrite/GuaZiVideoAds.conf) 的 **瓜子影视 `.conf`**（QuanX 单文件，脚本内转 Loon，专属 App 完整并入、24 host 纳入 MITM）。
 
 > **只装一个 `allAdRewrite.plugin` 就够了。** 各来源的 Rewrite/Script/Rule/Argument/MITM
 > 已全部并入，R-Store 独立分流也已补进 `[Rule]`，无需再装任何独立 App 插件或单独分流。
@@ -16,7 +15,7 @@
 ## 优先级（核心规则）
 
 以 R-Store 转换产物为 base，但**独立 App 插件优先级最高**；同正则重复时，App 插件替换
-base / blockAdsV2 / adultraplus 的对应行。数字小 = 优先级高：
+base / blockAdsV2 的对应行。数字小 = 优先级高：
 
 | 优先级 | 来源 | 说明 |
 |---|---|---|
@@ -27,7 +26,6 @@ base / blockAdsV2 / adultraplus 的对应行。数字小 = 优先级高：
 | 4 | R-Store（base） | QuanX → Loon 转换产物 |
 | 5 | blockAdsV2 | 综合源 |
 | 6 | **zmjde 通用（HTTPDNS/广告平台/可莉过滤器）** | base 优先，只补不覆盖 |
-| 7 | adultraplus | 清洗后只取 reject 家族 |
 
 - **同正则同动作**：按优先级保留高优先级那条，其余替换。
 - **同正则互补动作**：不同动作（如 jq 改 body + header-del 删响应头）**并存**，不互相覆盖。
@@ -72,7 +70,7 @@ Loon 里：**插件 → 右上角「+」→ 通过 URL 添加** → 粘贴地址
 3. （可选）立即跑一次：Actions → *Sync multi-source ad-block plugins* → **Run workflow**。
 
 工作流每天北京时间 **09:07 / 21:23** 执行，步骤为：**转换 R-Store 重写 → clone
-Thelongdarkorg、clone aoomee、clone zmjde、下载瓜子 .conf、在线抓取 blockAdsV2/adultraplus/R-Store 分流，
+Thelongdarkorg、clone aoomee、clone zmjde、下载瓜子 .conf、在线抓取 blockAdsV2/R-Store 分流，
 按优先级合并去重并补全 `[Rule]` → 自检 → 有变化才提交**。没变化则跳过，不产生空提交。
 
 > 每次运行都重新 `git clone --depth 1` 拉取 aoomee、Thelongdarkorg、zmjde，并重新下载瓜子 .conf，
@@ -97,7 +95,7 @@ python3 convert_qx2loon.py -o allAdRewrite.plugin
 # 2) 按优先级合并全部来源并补全 R-Store 分流（在线抓取，含镜像回退），覆盖回写
 python3 merge_plugins.py --base allAdRewrite.plugin --extra fetch --filter fetch \
   --apps /tmp/loon-plugins --aoomee /tmp/aoomee --zmjde /tmp/zmjde \
-  --qxapp /tmp/GuaZiVideoAds.conf --mix fetch --out allAdRewrite.plugin
+  --qxapp /tmp/GuaZiVideoAds.conf --out allAdRewrite.plugin
 
 # 3) 自检
 python3 validate_plugin.py allAdRewrite.plugin
@@ -105,15 +103,14 @@ python3 validate_plugin.py allAdRewrite.plugin
 
 `merge_plugins.py` 常用参数：`--extra`（blockAdsV2：`fetch` 或本地路径）、
 `--filter`（R-Store 分流：`fetch` 默认 / 本地路径 / `none`）、`--apps`（Thelongdarkorg 目录）、
-`--aoomee`（aoomee 目录）、`--zmjde`（zmjde 目录）、`--qxapp`（QuanX 单文件 .conf，可重复）、
-`--mix`（adultraplus：`fetch` 或本地路径）。
+`--aoomee`（aoomee 目录）、`--zmjde`（zmjde 目录）、`--qxapp`（QuanX 单文件 .conf，可重复）。
 所有脚本只依赖 Python 标准库；`raw.githubusercontent.com` 不可达时自动回退 jsDelivr 镜像。
 
 ## 四、合并、去重与 MITM 自愈
 
 ### 4.1 Rewrite / Script 优先级合并
 
-- **统一优先级合并器**：八来源按位置顺序（base→block→zmjde通用→mix→Thelongdarkorg→aoomee→qx单文件→zmjdeApp）
+- **统一优先级合并器**：七来源按位置顺序（base→block→zmjde通用→Thelongdarkorg→aoomee→qx单文件→zmjdeApp）
   喂入，按规范化 URL 正则 + 动作签名判定覆盖；App 插件（zmjde App>qx 单文件>aoomee>Thelongdarkorg）同正则替换综合源。
 - **QuanX 单文件 App（.conf）**：解析 `hostname=` 与 `^PAT url ...` 行，把 `jsonjq-response-body 'jq'`
   转成 Loon `response if ... then response.json.jq(`jq`)`，正则 relit 成 `/.../`、反引号转义；未识别动作不乱转。
@@ -174,7 +171,7 @@ python3 validate_plugin.py allAdRewrite.plugin
   具体 host，导致 24 个 host 被误判为"无动作"裁剪、规则在却无法解密而失效。已验证 24 个 host 都被
   规则守卫匹配，在构造需要集合时把 qxapp 权威 hostname 补入，裁剪不再误删。本轮 MITM 1475→1512
   （具体 1429 + 标准通配 83），0 非标准通配、既有 pinning 域零回归。
-- **裸斜杠截断修复（系统性，影响 359 条规则）**：adultraplus 原始 URL Rewrite 含裸 `/`（如
+- **裸斜杠截断修复（系统性，影响 359 条规则）**：部分原始 URL Rewrite 含裸 `/`（如
   `^https?://app\.api\.ke\.com/.../bootpage reject`），旧 `convert_legacy_line` 把它包进 v2
   `/.../` 时未转义内部裸 `/`，而 `_read_v2_regex` 遇到第一个裸 `/` 即认为模式结束，导致这 359 条
   规则全部坍缩成同一 key `^https?:`、被优先级合并去重成一条而静默丢失。新增 `escape_slash_for_v2`
@@ -192,6 +189,13 @@ python3 validate_plugin.py allAdRewrite.plugin
   去重；Rule：源 3947 条 → 3450 条，精确保留 3386、语义覆盖 556、frontier 有意放行 5（保护抖音私信）、
   **真丢失 0**。除上述两个已修复的系统性 bug 外，无其他影响去广告的规则被静默精简。本轮 MITM 1512→1615
   （具体 1516 + 标准通配 99），validate 0 错误 0 警告，合法负向项 `-i.vip.iqiyi.com` 保留。
+- **彻底移除 adultraplus 源（独有规则为 0，自动更新不再依赖它）**：该源 `yfamilys.com` 走 Cloudflare，
+  对 GitHub Actions 数据中心 IP 直接返回 **403**、连接随机切断（`unexpected eof`，无法断点续传），曾导致
+  自动更新连续失败。量化其清洗后保留的 **2120 条 reject 规则，独有规则 = 0**（全部已被更高优先级源覆盖），
+  因此把整套逻辑从脚本移除（`MIX_URL`/`fetch_mix`/`parse_mix_sections`/mix 变量/优先级 7/`--mix` 参数），
+  工作流同步删除 `--mix` 与相关注释。验证：移除前后**规则 key 集合完全一致（4794 = 4794）**，产物仅头部
+  元数据少了该来源、条数不变（Rewrite 3836 / Script 959 / Rule 3450 / MITM 1615），validate 0 错误 0 警告，
+  零丢失；同时少处理 2120 条全重复规则与 67 条待剔除私货，构建更干净、更新不再受该不稳定源影响。
 
 ### 4.3 分流补全到 `[Rule]`
 
