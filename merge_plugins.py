@@ -19,7 +19,8 @@
   # --filter 控制 R-Store 分流来源：fetch（默认）/ 本地路径 / none（不补全）
 """
 import argparse, datetime, ipaddress, os, re, sys, urllib.request
-from source_guard import validate_blockv2, validate_filter, validate_myblockads
+from source_guard import (validate_blockv2, validate_filter, validate_myblockads,
+                          fetch_validated)
 
 BLOCKV2_URL = ('https://raw.githubusercontent.com/fmz200/wool_scripts/refs/heads/'
                 'main/Loon/plugin/blockAdsV2.plugin')
@@ -40,7 +41,7 @@ FILTER_MIRRORS = [
 # 在线抓取失败时回退到仓库内置缓存 sources/myblockads.lpx，保证自动更新不中断、独有规则不丢失。
 MYBLOCKADS_URL = 'https://rucu6.pages.dev/Plugins/myblockads.lpx'
 MYBLOCKADS_CACHE = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), 'sources', 'myblockads.lpx')
+    os.path.dirname(os.path.abspath(__file__)), 'myblockads.lpx')
 
 # aoomee 独立 App 去广告插件仓库（工作流 clone 到本地后传入目录）
 AOOMEE_REPO = 'https://github.com/aoomee/Loon-Adblock-Plugins.git'
@@ -507,18 +508,12 @@ import collections
 # ---------------- 读取 base / extra ----------------
 base_text = open(args.base, encoding='utf-8').read()
 if args.extra == 'fetch':
-    extra_text, last_err = None, None
-    for u in [BLOCKV2_URL] + BLOCKV2_MIRRORS:
-        try:
-            extra_text = fetch(u)
-            validate_blockv2(extra_text)
-            print('[fetch] 已获取并通过完整性检查 blockAdsV2:', u)
-            break
-        except Exception as e:
-            last_err = e
-            print('[fetch] 失败:', u, e, file=sys.stderr)
-    if extra_text is None:
-        raise SystemExit('blockAdsV2 获取失败: %s' % last_err)
+    try:
+        extra_text, used_url, _ = fetch_validated(
+            [BLOCKV2_URL] + BLOCKV2_MIRRORS, fetch, validate_blockv2, 'blockAdsV2')
+        print('[fetch] 已获取并通过完整性检查 blockAdsV2:', used_url)
+    except Exception as e:
+        raise SystemExit('blockAdsV2 获取失败: %s' % e)
 else:
     # 显式本地输入也用于单元测试/离线调试；远程生产抓取才执行上游体量门禁。
     extra_text = open(args.extra, encoding='utf-8').read()
@@ -909,18 +904,12 @@ if args.zmjde:
 fstats = {'total': 0, 'covered': 0, 'added': 0}
 if args.filter != 'none':
     if args.filter == 'fetch':
-        ftext, f_err = None, None
-        for u in [FILTER_URL] + FILTER_MIRRORS:
-            try:
-                ftext = fetch(u)
-                validate_filter(ftext)
-                print('[fetch] 已获取并通过完整性检查 R-Store filter:', u)
-                break
-            except Exception as e:
-                f_err = e
-                print('[fetch] 失败:', u, e, file=sys.stderr)
-        if ftext is None:
-            raise SystemExit('R-Store filter 获取失败: %s' % f_err)
+        try:
+            ftext, used_url, _ = fetch_validated(
+                [FILTER_URL] + FILTER_MIRRORS, fetch, validate_filter, 'R-Store filter')
+            print('[fetch] 已获取并通过完整性检查 R-Store filter:', used_url)
+        except Exception as e:
+            raise SystemExit('R-Store filter 获取失败: %s' % e)
     else:
         ftext = open(args.filter, encoding='utf-8').read()
     for fr in dedup_keep_order(parse_qx_filter(ftext)):
@@ -968,7 +957,7 @@ mitm = dedup_keep_order(mitm)
 def _mitm_covered(host, hostset):
     if host in hostset:
         return True
-    return any(m.startswith('*.') and (host == m[2:] or host.endswith('.' + m[2:]))
+    return any(m.startswith('*.') and host.endswith('.' + m[2:])
                for m in hostset)
 
 
@@ -1194,9 +1183,8 @@ def prune_unused_mitm(mitm_hosts, rule_lines):
             continue
         suffix = pattern[2:]
         probes = (suffix, 'probe.' + suffix, 'probe.probe.' + suffix)
-        if (any(sample == suffix or sample.endswith('.' + suffix)
-                for sample in all_samples)
-                or any(rc.match(probe) for rc in all_patterns.values() for probe in probes)):
+        if (any(sample.endswith('.' + suffix) for sample in all_samples)
+                or any(rc.match(probe) for rc in all_patterns.values() for probe in probes[1:])):
             kept_wild.append(pattern)
 
     neg = [h for h in mitm_hosts if h.startswith('-')]
