@@ -39,9 +39,9 @@ class SourceGuardTests(unittest.TestCase):
         from source_guard import fetch_validated
         responses = {
             "bad": "<!doctype html><html>error</html>" + " " * 300,
-            "good": "# " + "x" * 120 + "\\n" + "\\n".join(
+            "good": "# " + "x" * 120 + "\n" + "\n".join(
                 "^https://ads.example.com/%d url reject" % i for i in range(20))
-                + "\\nhostname = ads.example.com\\n",
+                + "\nhostname = ads.example.com\n",
         }
         data, url, stats = fetch_validated(
             ["bad", "good"], lambda key: responses[key],
@@ -81,7 +81,7 @@ class SourceGuardTests(unittest.TestCase):
             bad.unlink()
 
             (zm / "Plugin" / REQUIRED_ZMJDE[0]).write_text(
-                "[Rewrite]\\n# empty plugin\\n", encoding="utf-8")
+                "[Rewrite]\n# empty plugin\n", encoding="utf-8")
             with self.assertRaisesRegex(ValueError, "未发现有效"):
                 check_clones(str(tl), str(ao), str(zm), str(qx))
             (zm / "Plugin" / REQUIRED_ZMJDE[0]).write_text(rule_fixture, encoding="utf-8")
