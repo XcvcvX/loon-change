@@ -1,0 +1,40 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+import tempfile
+import unittest
+from pathlib import Path
+import validate_plugin as vp
+
+
+class ValidatorTests(unittest.TestCase):
+    def test_hostnames(self):
+        self.assertIsNone(vp.check_hostname('ads.example.com'))
+        self.assertIsNone(vp.check_hostname('*.example.com'))
+        self.assertIsNone(vp.check_hostname('-ads.example.com'))
+        self.assertIsNotNone(vp.check_hostname('*.com'))
+        self.assertIsNotNone(vp.check_hostname('bad*host.example.com'))
+
+    def test_wildcard_coverage(self):
+        self.assertTrue(vp.host_covered('a.b.example.com', {'*.example.com'}))
+        self.assertFalse(vp.host_covered('example.net', {'*.example.com'}))
+        self.assertFalse(vp.host_covered('a.example.com', {'-*.example.com'}))
+
+    def test_duplicate_section(self):
+        sections, duplicates = vp.parse_sections('[Rule]\nDOMAIN,a.example.com,REJECT\n[Rule]\n')
+        self.assertEqual(len(sections['Rule']), 2)
+        self.assertEqual(duplicates, [(3, 'Rule')])
+
+    def test_readme_update_is_idempotent(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'README.md'
+            path.write_text('当前产物统计由工作流自动维护：\n', encoding='utf-8')
+            stats = {'Argument':1,'Rule':2,'Rewrite':3,'Script':4,'mitm_hostnames':5,'unique_script_urls':6}
+            vp.update_readme(path, stats)
+            first = path.read_text(encoding='utf-8')
+            vp.update_readme(path, stats)
+            self.assertEqual(first, path.read_text(encoding='utf-8'))
+            self.assertIn('| [Rule] | 2 |', first)
+
+
+if __name__ == '__main__':
+    unittest.main()
