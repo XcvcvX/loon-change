@@ -1779,6 +1779,11 @@ for _host in mitm:
         # request hostname that requires MITM coverage.
         if re.match(r'^(?:generic|cron|network-changed)\b', _line.strip(), re.IGNORECASE):
             continue
+        # MITM 只服务 HTTPS 请求；纯 HTTP matcher 即使 host 提取成宽泛捕获组
+        #（例如 ^http://(.*)/...）也不能据此保留任意 HTTPS 解密主机。
+        # 对 HTTPS matcher 仍执行下方精确/保守匹配。
+        if not matcher_may_use_https(_line):
+            continue
         _rx = entry_regex(_line)
         if not _rx:
             if matcher_may_use_https(_line):

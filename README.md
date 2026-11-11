@@ -110,3 +110,13 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 增加 HTTPS 能力判断：区分纯 `http://` 与 `https://`、`https?://` 等可匹配 HTTPS 的写法；同时仅检查触发器部分，排除 `then` 后和 `script-path` 中的脚本下载 URL。
 - 继续对无法解析且可能匹配 HTTPS 的 matcher fail-closed；不改变 Rewrite/Script 规则及动作。
 - 增加回归测试：纯 HTTP 捕获组不再阻止无关 MITM 清理；HTTPS 捕获组仍保留保守保护。
+
+
+## 第七阶段第九批：避免纯 HTTP 宽泛捕获组误保留 MITM
+
+- 生产验收发现：纯 HTTP 捕获组若位于 URL authority（例如 `^http://(.*)/...`），host 提取器会得到可匹配任意主机的 `(.*)`；特殊主机保留逻辑此前未先判断协议，导致无关 MITM 主机仍被保留。
+- 特殊主机引用判断现在先确认 matcher 可能匹配 HTTPS，再检查 host；纯 HTTP matcher 不需要 TLS 解密，不能作为保留 MITM 的理由。
+- 对 HTTPS 宽泛捕获组继续保守保留，避免误删可能实际使用的 MITM hostname。
+- 增加 HTTP/HTTPS authority 捕获组正反向回归测试；不改变任何 Rewrite/Script 规则及动作。
+
+- 本批验收要求：必须以 main 分支正式同步生成的 `allAdRewrite.plugin` 为准，确认目标主机确实移除且 HTTPS 真实引用仍保留。
