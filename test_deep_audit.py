@@ -191,5 +191,16 @@ hostname = *.example.com, api.example.com, unused.test
                          'nested_quantifier')
 
 
+    def test_rewrite_overlap_legacy_phase_is_ambiguous(self):
+        from deep_audit import audit_rewrite_overlaps
+        rows = [
+            (1, r'^https:\/\/api\.example\.com\/ad reject'),
+            (2, r'request if %URL% ~= /^https:\/\/api\.example\.com\/ad/ then reject(404)'),
+        ]
+        report = audit_rewrite_overlaps([(n, line.replace("%URL%", "$"+"{url}")) for n, line in rows])
+        self.assertTrue(any(x['overlap_type'] == 'phase_ambiguous_overlap'
+                            for x in report['rewrite_overlap_candidate_groups']))
+
+
 if __name__ == '__main__':
     unittest.main()
