@@ -24,8 +24,8 @@ class RuntimeDeepAuditTests(unittest.TestCase):
     def test_read_only_report_flags_candidates_not_rules(self):
         fixture = '''[Rewrite]
 .* reject
-^https://api.example.com/ad/ reject
-^https://api.example.com/ad/ reject-200
+^https?:\\/\\/api\\.example\\.com/ad/ reject
+^https?:\\/\\/api\\.example\\.com/ad/ reject-200
 [Script]
 http-request ^https://api.example.com/ad script-path=https://cdn.example/a.js
 http-request ^https://api.example.com/ad script-path=https://cdn.example/a.js
