@@ -101,3 +101,12 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 保留无法静态判断且可能匹配目标主机的 HTTP matcher，继续 fail-closed；不改变任何 Rewrite、Script、Rule、优先级或其他 MITM 主机。
 - 增加生产型回归测试：在存在 ICU 正则导致通用裁剪器保守保留的情况下，Generic/Cron/Network Changed 的远程脚本 URL 不再阻止三个已确认孤立主机的清理；其他主机仍保留。
 
+
+
+## 第七阶段第八批：修复纯 HTTP 捕获组导致的 MITM 误保留
+
+- 生产同步日志显示 MITM 自动裁剪数为 0；进一步定位到一条仅匹配 `http://www.vgtime.com` 的捕获组重定向规则。
+- 旧逻辑只要在无法提取主机的 matcher 中发现 `http://`，就将其视为可能需要 MITM，错误保留了与该规则无关的三个涨乐财富通主机。
+- 增加 HTTPS 能力判断：区分纯 `http://` 与 `https://`、`https?://` 等可匹配 HTTPS 的写法；同时仅检查触发器部分，排除 `then` 后和 `script-path` 中的脚本下载 URL。
+- 继续对无法解析且可能匹配 HTTPS 的 matcher fail-closed；不改变 Rewrite/Script 规则及动作。
+- 增加回归测试：纯 HTTP 捕获组不再阻止无关 MITM 清理；HTTPS 捕获组仍保留保守保护。
