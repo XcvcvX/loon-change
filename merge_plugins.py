@@ -1009,7 +1009,7 @@ _ZHANGLE_UNUSED_ACTION = ('REJECT', 'reject_dict', 'reject_dict(200)')
 zhangle_rewrite_exclusions = []
 _zhangle_rw_kept = []
 for _line in base_rw:
-    if r'c\.zhangle\.com/pic/mktg/diversity/' not in _line:
+    if r'c\.zhangle\.com\/pic\/mktg\/diversity\/' not in _line:
         _zhangle_rw_kept.append(_line)
         continue
     if (entry_regex(_line) != _ZHANGLE_UNUSED_MATCHER
