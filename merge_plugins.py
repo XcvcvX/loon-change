@@ -1357,6 +1357,9 @@ if args.provenance_out:
                 source_rows = []
                 for candidate in matches:
                     row = dict(candidate)
+                    origin = source_origins.get((candidate['source'], candidate['input_section'], candidate['source_entry_index']))
+                    if origin:
+                        row.update(origin)
                     row['disposition'] = (
                         'selected' if candidate is winner else 'duplicate_same_semantics'
                     )
@@ -1373,6 +1376,84 @@ if args.provenance_out:
             })
         return records
 
+    # Multi-file upstream sources: retain exact plugin filename and original 1-based line.
+    # Indices mirror the flattened feeds assembled above; no rule ordering is changed.
+    source_origins = {}
+
+    def _record_origin(source, section, index, filename, line_number, raw_line):
+        source_origins[(source, section, index)] = {
+            'source_file': filename,
+            'source_line_number': line_number,
+            'source_raw_line': raw_line,
+        }
+
+    def _raw_rows(path):
+        current = None
+        with open(path, encoding='utf-8') as source_handle:
+            for line_number, raw in enumerate(source_handle, 1):
+                match = re.match(r"^\[(.+?)\]\s*$", raw)
+                if match:
+                    current = match.group(1).strip()
+                    continue
+                value = raw.strip()
+                if current and value and not value.startswith(('#', '//')):
+                    yield current, line_number, value
+
+    if args.apps:
+        indices = {'Rewrite': 0, 'Script': 0, 'Rule': 0}
+        for filename in sorted(x for x in os.listdir(args.apps)
+                               if x.endswith('.plugin')
+                               and (x.endswith('_ad_block.plugin') or x.endswith('_splash_ad_block.plugin'))
+                               and not x.startswith('ai_auto_node')):
+            path = os.path.join(args.apps, filename)
+            for section, line_number, raw_line in _raw_rows(path):
+                if section not in indices:
+                    continue
+                _record_origin('thelong', section, indices[section], filename,
+                               line_number, raw_line)
+                indices[section] += 1
+
+    if args.aoomee:
+        pdir = os.path.join(args.aoomee, 'plugins')
+        if not os.path.isdir(pdir):
+            pdir = args.aoomee
+        indices = {'Rewrite': 0, 'Script': 0, 'Rule': 0}
+        for filename in sorted(x for x in os.listdir(pdir)
+                               if x.endswith('.plugin') or x.endswith('.lpx')):
+            path = os.path.join(pdir, filename)
+            for section, line_number, raw_line in _raw_rows(path):
+                target_section = section
+                if section in ('Rewrite', 'Script'):
+                    converted = convert_shadowrocket_line(raw_line)
+                    if converted is None:
+                        continue
+                elif section == 'URL Rewrite':
+                    tokens = raw_line.split()
+                    if len(tokens) != 2 or tokens[1] not in _LEGACY_REJECT:
+                        continue
+                    target_section = 'Rewrite'
+                elif section != 'Rule':
+                    continue
+                _record_origin('aoomee', target_section, indices[target_section],
+                               ('plugins/' if pdir.endswith('/plugins') else '') + filename,
+                               line_number, raw_line)
+                indices[target_section] += 1
+
+    if args.zmjde:
+        pdir = os.path.join(args.zmjde, 'Plugin')
+        if not os.path.isdir(pdir):
+            pdir = args.zmjde
+        indices = {'Rewrite': 0, 'Script': 0, 'Rule': 0}
+        for filename in _ZMJ_APP:
+            path = os.path.join(pdir, filename)
+            for section, line_number, raw_line in _raw_rows(path):
+                if section not in indices:
+                    continue
+                _record_origin('zmjapp', section, indices[section],
+                               ('Plugin/' if pdir.endswith('/Plugin') else '') + filename,
+                               line_number, raw_line)
+                indices[section] += 1
+
     rw_provenance_feeds = [(source, priority, lines, 'Rewrite')
                            for source, priority, lines in rw_feeds]
     sc_provenance_feeds = [(source, priority, lines, 'Script')
@@ -1388,6 +1469,9 @@ if args.provenance_out:
         sc_provenance_feeds, merged_sc, 'Script')
     rule_output_index = {line: index for index, line in enumerate(rule_items, 1)}
     for event in rule_provenance_events:
+        origin = source_origins.get((event.get('source'), 'Rule', event.get('source_entry_index')))
+        if origin:
+            event.update(origin)
         if event.get('status') == 'included':
             event['output_entry_index'] = rule_output_index.get(event['output_line'])
     upstream_revisions = {}
@@ -1404,7 +1488,7 @@ if args.provenance_out:
         'scope': ['Rewrite', 'Script', 'Rule'],
         'limitations': [
             'source_entry_index is the ordinal within the extracted source feed, not the original upstream file line number',
-            'multi-file sources are grouped by source repository; exact upstream filename/line attribution is a later enhancement',
+            'exact source filename and 1-based line attribution is included for Thelongdarkorg, aoomee, and zmjde App plugin feeds; other sources retain feed indices until their source mapping is added',
             'normalization and source conversion may mean input_line differs from upstream raw text',
             'MITM hostname provenance and Argument provenance are not included in this first batch',
             'provenance does not prove that a rule is effective or safe at runtime'
