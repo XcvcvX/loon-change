@@ -1684,6 +1684,17 @@ def materialize_host(z):
     return s
 
 
+def matcher_may_use_https(text):
+    """判断 URL matcher 是否可能匹配 HTTPS；纯 HTTP 嵌入捕获组不需要 MITM。"""
+    # 仅检查触发器部分，排除 script-path / then 后的远程脚本资源 URL。
+    head = text.split(' then ', 1)[0].split('script-path=', 1)[0]
+    normalized = head.replace(r'\\/', '/')
+    return bool(re.search(
+        r'https://|https\\?://|http\\(s\\)\\?://|http\\(\\?:s\\)\\?://|http\\[s\\]\\?://',
+        normalized, re.IGNORECASE
+    ))
+
+
 def compiled_host_patterns(rule_lines):
     """编译 host 正则；遇到 Python 无法解析的模式时返回不确定标记，禁止激进裁剪。"""
     out, uncertain = {}, False
@@ -1692,12 +1703,12 @@ def compiled_host_patterns(rule_lines):
             continue
         rx = entry_regex(line)
         if not rx:
-            if re.search(r'https?://', line):
+            if matcher_may_use_https(line):
                 uncertain = True
             continue
         zone = host_zone_from_regex(rx)
         if not zone:
-            if re.search(r'https?://', rx):
+            if matcher_may_use_https(rx):
                 uncertain = True
             continue
         try:
@@ -1770,13 +1781,13 @@ for _host in mitm:
             continue
         _rx = entry_regex(_line)
         if not _rx:
-            if re.search(r'https?://', _line, re.IGNORECASE):
+            if matcher_may_use_https(_line):
                 _could_be_referenced = True
                 break
             continue
         _zone = host_zone_from_regex(_rx)
         if not _zone:
-            if re.search(r'https?://', _rx, re.IGNORECASE):
+            if matcher_may_use_https(_rx):
                 _could_be_referenced = True
                 break
             continue

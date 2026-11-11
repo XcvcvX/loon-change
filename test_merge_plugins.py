@@ -173,6 +173,35 @@ hostname = *.amap.com
         self.assertIn("geetest.htsc.com", shared_mitm)
         self.assertIn(r"geetest\.htsc\.com\/health", shared)
 
+    def test_http_only_capture_group_does_not_disable_mitm_pruning(self):
+        # A pure-HTTP redirect matcher with a capturing group cannot be parsed
+        # by host_zone_from_regex. It must not be mistaken for HTTPS coverage.
+        base = (
+            "[Rewrite]\\n"
+            r'request if ${url} ~= /^(http:\\/\\/www\\.vgtime\\.com\\/app\\/topic\\/\\d+\\.jhtml\\?.*?&close_ad=)false(&page=\\d&sign=\\w+&timestamp=\\d+&font_size=\\d$)/ then redirect(302, "${m.1}true${m.2}")' + "\\n"
+            r"^https?:\\/\\/other\\.example\\.com\\/ad reject" + "\\n"
+            "[MITM]\\nhostname = c.zhangle.com, live.inst-service.htsc.com, geetest.htsc.com, other.example.com\\n"
+        )
+        output = self.run_merge(base, "[Rewrite]\\n[MITM]\\nhostname = \\n")
+        mitm_line = next(line for line in output.splitlines()
+                         if line.strip().startswith("hostname ="))
+        for host in ("c.zhangle.com", "live.inst-service.htsc.com", "geetest.htsc.com"):
+            self.assertNotIn(host, mitm_line)
+        self.assertIn("other.example.com", mitm_line)
+
+    def test_https_capture_group_still_fails_closed_for_mitm(self):
+        # The same unparseable capture-group form is retained when its scheme
+        # can match HTTPS; do not weaken the conservative safety boundary.
+        base = (
+            "[Rewrite]\\n"
+            r'request if ${url} ~= /^(https:\\/\\/www\\.example\\.com\\/path\\/)(.*)$/ then reject(404)' + "\\n"
+            "[MITM]\\nhostname = ads.example.com\\n"
+        )
+        output = self.run_merge(base, "[Rewrite]\\n[MITM]\\nhostname = \\n")
+        mitm_line = next(line for line in output.splitlines()
+                         if line.strip().startswith("hostname ="))
+        self.assertIn("ads.example.com", mitm_line)
+
     def test_orphan_zhangle_mitm_hosts_are_removed_when_global_pruner_fails_closed(self):
         # ICU Unicode-property syntax is valid for Loon but not Python re, so the
         # generic MITM pruner conservatively keeps the full list. Only the three
