@@ -67,7 +67,7 @@ jobs:
           python-version: '3.11'
 
       - name: 测试校验器
-        run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py
+        run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py
 
       - name: 创建隔离构建目录
         run: mkdir -p /tmp/loon-build
