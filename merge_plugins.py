@@ -801,19 +801,14 @@ _QQMUSIC_BLOCK_HOST_DECLARATION = (
     '# hostname = us.l.qq.com, y.gtimg.cn, music.y.qq.com'
 )
 _QQMUSIC_BLOCK_GENERIC = (
-    r'https?:\\/\\/.+?\\/music\\/common\\/upload\\/t_splash_info\\/'
-)
-_QQMUSIC_BLOCK_SCOPED = (
-    r'https?:\\/\\/(?:y\\.gtimg\\.cn|music\\.y\\.qq\\.com)'
-    r'\\/music\\/common\\/upload\\/t_splash_info\\/'
-)
-_QQMUSIC_THELONG_GENERIC = (
     r'https?:\/\/.+?\/music\/common\/upload\/t_splash_info\/'
 )
-_QQMUSIC_THELONG_SCOPED = (
+_QQMUSIC_BLOCK_SCOPED = (
     r'https?:\/\/(?:y\.gtimg\.cn|music\.y\.qq\.com)'
     r'\/music\/common\/upload\/t_splash_info\/'
 )
+_QQMUSIC_THELONG_GENERIC = _QQMUSIC_BLOCK_GENERIC
+_QQMUSIC_THELONG_SCOPED = _QQMUSIC_BLOCK_SCOPED
 _QQMUSIC_THELONG_MITM = 'hostname = y.gtimg.cn, music.y.qq.com'
 
 
@@ -833,7 +828,7 @@ def validate_qqmusic_sources(block_text, thelong_text=None):
     block_section = block_text[marker_index:section_end]
     if (_QQMUSIC_BLOCK_HOST_DECLARATION not in block_section
             or _QQMUSIC_BLOCK_GENERIC not in block_section
-            or r'y\\.gtimg\\.cn\\/music\\/common\\/upload\\/t_splash_info\\/' not in block_section
+            or r'y\.gtimg\.cn\/music\/common\/upload\/t_splash_info\/' not in block_section
             or 'reject' not in block_section):
         raise RuntimeError(
             'QQ音乐 blockAdsV2 hostname/matcher/action 已变化，停止构建并要求复核'
