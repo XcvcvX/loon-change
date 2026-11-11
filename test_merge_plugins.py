@@ -189,6 +189,29 @@ hostname = *.amap.com
             self.assertNotIn(host, mitm_line)
         self.assertIn("magev6.if.qidian.com", mitm_line)
 
+    def test_request_script_with_fixed_port_keeps_mitm_hostname(self):
+        # MITM hostname entries contain only the hostname, never the URL port.
+        # The upstream MyBlockAds ABC script uses HTTPS :441; the port must not
+        # prevent its business host from being recognized as a real MITM reference.
+        base = "[Rewrite]\n[Script]\n[MITM]\nhostname = \n"
+        myblockads = (
+            "[Script]\n"
+            r'request if ${url} ~= /^https:\/\/mobilepaas\.abchina\.com\.cn:441\/mgw\.htm$/i then script("https://rucu6.pages.dev/Scripts/header.js") with tag="abchina"' + "\n"
+            "[MITM]\n"
+            "hostname = mobilepaas.abchina.com.cn, orphan.example.com\n"
+        )
+        output = self.run_merge(
+            base, "[Rewrite]\n[MITM]\nhostname = \n",
+            myblockads_text=myblockads,
+        )
+        script = output.split("[Script]", 1)[1].split("[MITM]", 1)[0]
+        mitm_line = next(line for line in output.splitlines()
+                         if line.strip().startswith("hostname ="))
+        self.assertIn("mobilepaas.abchina.com.cn:441", script)
+        self.assertIn("mobilepaas.abchina.com.cn", mitm_line)
+        self.assertNotIn("orphan.example.com", mitm_line)
+
+
     def test_slash_inside_host_character_class_is_not_path_boundary(self):
         # The pangle matcher uses [^\s/] in its authority. The slash belongs
         # to the character class; parsing it as the path boundary produced an
