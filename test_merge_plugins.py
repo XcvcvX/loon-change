@@ -43,7 +43,10 @@ class MergeIntegrationTests(unittest.TestCase):
         result = subprocess.run(
             command,
             capture_output=True, text=True, timeout=30)
-        self.assertEqual(result.returncode, 0, result.stdout + "\n" + result.stderr)
+        if expect_failure:
+            self.assertNotEqual(result.returncode, 0, result.stdout + "\\n" + result.stderr)
+            return result.stdout + "\\n" + result.stderr
+        self.assertEqual(result.returncode, 0, result.stdout + "\\n" + result.stderr)
         output = out.read_text(encoding="utf-8")
         if return_provenance:
             return output, json.loads(provenance.read_text(encoding="utf-8"))
@@ -240,6 +243,8 @@ hostname = *.amap.com
         broad = r'[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+){1,3}(:\d+)?'
         extra = (
             "[Rewrite]\n"
+            "# > 555影视\\n"
+            "# hostname = vip7.fzwdyy.cn, *.qyfxgd.cn, *.weilai555.com, *.ecoliving168.com\\n"
             r"request if ${url} ~= /^https?:\/\/vip7\.fzwdyy\.cn:8083\/api\/(getAdvertInfo|getGOOGAdvert)/ then reject(200)" + "\n"
             r"request if ${url} ~= /^https?:\/\//" + broad + r"\/api\/v\d\/advert/ then reject(404)" + "\n"
             "[Script]\n"
