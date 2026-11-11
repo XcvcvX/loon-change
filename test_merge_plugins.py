@@ -175,11 +175,11 @@ hostname = *.amap.com
 
     def test_orphan_zhangle_mitm_hosts_are_removed_when_global_pruner_fails_closed(self):
         # ICU Unicode-property syntax is valid for Loon but not Python re, so the
-        # generic MITM pruner conservatively keeps the full list. The explicit
-        # ZhangLe cleanup must still remove only the three exact orphan hosts.
+        # generic MITM pruner conservatively keeps the full list. Only the three
+        # exact ZhangLe hosts should be removed; unrelated hosts remain.
         base = (
             "[Rewrite]\n"
-            r"^https?:\/\/\p{L}+\.other\.example\.com\/ad reject" + "\n"
+            r"^https?:\\/\\/\\p{L}+\\.other\\.example\\.com\\/ad reject" + "\n"
             "[MITM]\nhostname = c.zhangle.com, live.inst-service.htsc.com, geetest.htsc.com, other.example.com\n"
         )
         output, report = self.run_merge(
@@ -191,19 +191,18 @@ hostname = *.amap.com
         for host in ("c.zhangle.com", "live.inst-service.htsc.com", "geetest.htsc.com"):
             self.assertNotIn(host, mitm_line)
         self.assertIn("other.example.com", mitm_line)
-        exclusions = report.get("mitm_exclusions", [])
-        removed = {x["hostname"] for x in exclusions
+        removed = {x["hostname"] for x in report.get("mitm_exclusions", [])
                    if x.get("source") == "merged_mitm"}
         self.assertEqual(removed, {
             "c.zhangle.com", "live.inst-service.htsc.com", "geetest.htsc.com"
         })
 
     def test_zhangle_mitm_host_is_retained_if_unsupported_pattern_may_match_it(self):
-        # This ICU matcher cannot be compiled by Python re, but its literal
-        # suffix proves it may target geetest.htsc.com; that MITM host must stay.
+        # The ICU matcher is not understood by Python re, but its literal suffix
+        # proves it may target geetest.htsc.com; retain that MITM host.
         base = (
             "[Rewrite]\n"
-            r"^https?:\/\/\p{L}+\.htsc\.com\/health reject" + "\n"
+            r"^https?:\\/\\/\\p{L}+\\.htsc\\.com\\/health reject" + "\n"
             "[MITM]\nhostname = geetest.htsc.com, c.zhangle.com\n"
         )
         output = self.run_merge(base, "[Rewrite]\n[MITM]\nhostname = \n")
