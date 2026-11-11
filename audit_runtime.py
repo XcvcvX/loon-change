@@ -94,7 +94,7 @@ def audit_runtime(path):
             continue
         pattern, action = parsed
         parsed_rewrites.append((number, pattern, action, line))
-        phase_match = re.match(r'^(request|response)\\s+if\\b', line, re.I)
+        phase_match = re.match(r'^(request|response)\s+if\b', line, re.I)
         phase = phase_match.group(1).lower() if phase_match else 'rewrite'
         pattern_actions[(phase, pattern)].append({'line': number, 'phase': phase, 'action': action, 'entry': line})
         if is_broad_reject(pattern, action):
@@ -109,7 +109,7 @@ def audit_runtime(path):
     # 从 Rewrite/Script 守卫中提取可识别的 URL hostname；只作为 MITM 覆盖候选依据。
     guarded_hosts = set()
     for _, line in rewrite_rows + script_rows:
-        normalized_line = line.replace('\\\\/', '/')
+        normalized_line = line.replace('\\/', '/')
         for host in URL_RE.findall(normalized_line.split(' then ', 1)[0]):
             host = host.lower().rstrip('.')
             if host and not host.replace('.', '').isdigit():
@@ -140,9 +140,12 @@ def audit_runtime(path):
     for number, line in script_rows:
         for url in extract_remote_urls(line):
             remote_urls.add(url)
-        match = re.match(r'^(http-request|http-response)\s+(\S+)', line, re.I)
+        match = re.match(r'^(http-request|http-response|request|response)\b', line, re.I)
         if match:
-            key = (match.group(1).lower(), match.group(2), tuple(extract_remote_urls(line)))
+            phase = match.group(1).lower().replace('http-', '')
+            guard = re.search(r'~=?\s*/((?:\\.|[^/])*)/', line, re.I)
+            pattern = guard.group(1).replace('\\/', '/') if guard else line.split(' then ', 1)[0]
+            key = (phase, pattern, tuple(extract_remote_urls(line)))
             trigger_counts[key].append(number)
     duplicate_script_triggers = [
         {'phase': key[0], 'url_pattern': key[1], 'script_urls': list(key[2]), 'lines': lines}
