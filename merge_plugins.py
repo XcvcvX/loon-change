@@ -2004,7 +2004,7 @@ if args.provenance_out:
         'repository': 'XcvcvX/loon-change',
         'scope': ['Rewrite', 'Script', 'Rule'],
         'rewrite_exclusions': zhangle_rewrite_exclusions + zhangle_block_rewrite_exclusions + block_rewrite_exclusions + lite_advertising_rewrite_exclusions,
-        'mitm_exclusions': block_mitm_exclusions + zhangle_mitm_exclusions
+        'mitm_exclusions': block_mitm_exclusions + zhangle_mitm_exclusions,
         'scope_adjustments': block_scope_adjustments,
         'limitations': [
             'source_entry_index is the ordinal within the extracted source feed, not the original upstream file line number',
