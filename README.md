@@ -257,3 +257,11 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 现在来源索引直接按去重后、与实际 Rewrite feed 同步保留的来源列表枚举；再通过文件、原始段名和段内序号反查物理行号。
 - 新增回归测试：在 PDD HTTPDNS 规则前放置两条精确命中既有语义去重清单的 AOOMEE 规则，验证 PDD 来源仍准确指向 pdd.lpx 第 2 行。
 - 不修改任何生产 Rewrite、Script、Rule、MITM、动作或优先级；不扩大语义去重范围，保留来源一致性 fail-closed 门禁。
+
+
+## 第七阶段第二十六批：统一 PR 与正式同步的 CI 覆盖
+
+- PR 检查和正式同步统一使用相同的 Python 编译模块与测试模块清单，避免只在 PR 阶段或只在正式同步阶段覆盖关键审计逻辑。
+- 正式同步补跑 `compare_rule_provenance.py`、`source_health_guard.py` 的编译检查，并执行 `test_compare_rule_provenance.py`、`test_source_health_guard.py`、`test_rule_risk_history.py`。
+- 移除 PR 测试命令中重复列出的 `test_rule_risk_history.py`，每个测试模块只执行一次。
+- 本批只调整 CI 校验覆盖，不修改 `allAdRewrite.plugin`、任何 Rewrite/Script/Rule、MITM hostname、动作或优先级。
