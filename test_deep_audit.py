@@ -39,10 +39,10 @@ request if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/ad/ then reject-dict
         self.assertTrue(broad_reasons('^https?://'))
         self.assertEqual(classify_rewrite_scope('^https?://'), 'url_without_domain')
 
-        fixture = '''[Rewrite]
-request if \${url} ~= /^https?:\\\\/\\\\/api\\\\.example\\\\.com\\\\/ad\\\\/.* / then reject
-request if \${url} ~= /^https?:\\\\/\\\\/.*\\\\.xima.*\\\\.com\\\\/ad/ then reject
-request if \${url} ~= /^https?:\\\\/\\\\/api\\\\.example\\\\.com\\\\/assets\\\\/.* / then reject
+        fixture = r'''[Rewrite]
+^https?:\/\/api\.example\.com\/ad\/.* reject
+^https?:\/\/.*\.xima.*\.com\/ad reject
+^https?:\/\/api\.example\.com\/assets\/.* reject
 '''
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / 'scope.plugin'
