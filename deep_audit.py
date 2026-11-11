@@ -406,26 +406,32 @@ def extract_literal_matcher_host(matcher):
     if not authority:
         return None, 'empty_authority'
     if re.search(r'[\[\]()*+?{}|\\]', authority):
+        meta_positions = [authority.rfind(ch) for ch in r'[]()*+?{}|\\']
+        tail = authority[max(meta_positions) + 1:].lstrip('.')
+        labels = tail.split('.')
+        if len(labels) >= 2 and all(re.fullmatch(r'[a-z0-9-]+', x) for x in labels[-2:]):
+            return '.'.join(labels[-2:]), 'regex_host_suffix'
         return None, 'regex_host_authority'
     if not re.fullmatch(r'[a-z0-9-]+(?:\.[a-z0-9-]+)+', authority):
         return None, 'non_literal_or_invalid_host'
     return authority, 'literal_host'
 
 
-def host_matches_mitm(host, positive_hosts, negative_hosts):
+def host_matches_mitm(host, positive_hosts, negative_hosts, dynamic_suffix=False):
     """Return coverage state using exact entries and *.suffix entries."""
     host = host.lower().rstrip('.')
     def matches(entry):
         entry = entry.lower().rstrip('.')
         if entry.startswith('*.'):
-            return host.endswith('.' + entry[2:])
-        return host == entry
+            suffix = entry[2:]
+            return (host == suffix or host.endswith('.' + suffix)) if dynamic_suffix else host.endswith('.' + suffix)
+        return False if dynamic_suffix else host == entry
     excluded = sorted(x for x in negative_hosts if matches(x))
     covered_by = sorted(x for x in positive_hosts if matches(x))
     if excluded:
         return 'negative_excluded', covered_by, excluded
     if covered_by:
-        return 'covered', covered_by, []
+        return ('covered_by_parent_wildcard' if dynamic_suffix else 'covered'), covered_by, []
     return 'not_listed', [], []
 
 
@@ -471,16 +477,19 @@ def audit_mitm_script_coverage(rewrite_rows, script_rows, mitm_rows):
                 ambiguous.append({'source': source, 'line': number,
                                   'matcher': matcher[:200], 'reason': reason})
                 continue
-            state, covered_by, excluded_by = host_matches_mitm(host, positive, negative)
+            dynamic_suffix = reason == 'regex_host_suffix'
+            state, covered_by, excluded_by = host_matches_mitm(host, positive, negative, dynamic_suffix)
             references.append({
                 'source': source, 'line': number, 'phase': phase,
-                'host': host, 'coverage': state,
+                'matcher': matcher[:240], 'host': host,
+                'host_kind': 'regex_suffix_candidate' if dynamic_suffix else 'literal',
+                'action': action if source == 'rewrite' else None, 'coverage': state,
                 'mitm_entries': covered_by, 'negative_exclusions': excluded_by
             })
 
     missing = [x for x in references if x['coverage'] == 'not_listed']
     excluded = [x for x in references if x['coverage'] == 'negative_excluded']
-    covered = [x for x in references if x['coverage'] == 'covered']
+    covered = [x for x in references if x['coverage'] in {'covered', 'covered_by_parent_wildcard'}]
     referenced_hosts = {x['host'] for x in references}
     unreferenced = []
     for entry in sorted(positive):
@@ -495,9 +504,14 @@ def audit_mitm_script_coverage(rewrite_rows, script_rows, mitm_rows):
             'negative_entries': len(negative),
             'literal_references': len(references),
             'covered_references': len(covered),
+            'dynamic_suffix_references': sum(x['host_kind'] == 'regex_suffix_candidate' for x in references),
+            'missing_rewrite_references': sum(x['source'] == 'rewrite' for x in missing),
+            'missing_script_trigger_references': sum(x['source'] == 'script_trigger' for x in missing),
             'missing_mitm_references': len(missing),
             'negative_excluded_references': len(excluded),
             'ambiguous_references': len(ambiguous),
+            'ambiguous_rewrite_references': sum(x['source'] == 'rewrite' for x in ambiguous),
+            'ambiguous_script_trigger_references': sum(x['source'] == 'script_trigger' for x in ambiguous),
             'unreferenced_positive_entries': len(unreferenced)
         },
         'mitm_missing_rewrite_script_coverage': missing,
@@ -696,9 +710,14 @@ def render_markdown(report):
         'script_generic_trigger_candidates':'通用/条件触发器候选',
         'literal_references':'MITM 关联字面主机引用',
         'covered_references':'MITM 已覆盖引用',
+        'dynamic_suffix_references':'动态主机后缀候选',
+        'missing_rewrite_references':'Rewrite 未覆盖引用',
+        'missing_script_trigger_references':'Script 触发器未覆盖引用',
         'missing_mitm_references':'MITM 未覆盖引用候选',
         'negative_excluded_references':'被负向 MITM 排除的引用',
         'ambiguous_references':'无法静态识别的主机引用',
+        'ambiguous_rewrite_references':'无法识别主机的 Rewrite',
+        'ambiguous_script_trigger_references':'无法识别主机的 Script 触发器',
         'unreferenced_positive_entries':'未关联到字面触发器的 MITM 正向项候选'
     }
     lines = ['# Loon 插件深度只读审计报告', '',
