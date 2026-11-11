@@ -865,7 +865,7 @@ hostname = *.amap.com
             return_provenance=True, apps_files=apps,
         )
         record = next(x for x in report["rewrite"]
-                      if "ads.example.com" in x["output_line"])
+                      if "/launch" in x["output_line"])
         source = next(x for x in record["sources"] if x["source"] == "thelong")
         self.assertEqual(source["source_file"], "z_sample_ad_block.plugin")
         self.assertEqual(source["source_line_number"], 3)
