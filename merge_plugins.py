@@ -123,6 +123,7 @@ ap.add_argument('--myblockads', default='fetch',
                      '/ 本地路径 / none（不并入）')
 ap.add_argument('--out', required=True, help='合并输出路径')
 ap.add_argument('--provenance-out', default=None, help='可选：输出逐条规则来源追溯 JSON')
+ap.add_argument('--source-report', default=None, help='可选：将 source-report.json 上游版本信息附入来源追溯')
 args = ap.parse_args()
 
 
@@ -1313,13 +1314,16 @@ if args.provenance_out:
 
     def _section_provenance(feeds, output_lines, section):
         candidates = collections.defaultdict(list)
-        for source, priority, lines in feeds:
+        for source, priority, lines, input_section in feeds:
             for index, line in enumerate(lines):
                 key = _provenance_key(line)
-                if key[0] == 'unguarded' or section != 'Script':
+                eligible = (input_section == section or
+                            (section == 'Script' and input_section == 'Rewrite'
+                             and key[0] == 'unguarded'))
+                if eligible:
                     candidates[key].append({
                         'source': source, 'priority': priority,
-                        'source_entry_index': index, 'input_section': section,
+                        'source_entry_index': index, 'input_section': input_section,
                         'input_line': line,
                     })
         records = []
@@ -1358,19 +1362,33 @@ if args.provenance_out:
             })
         return records
 
-    sc_provenance_feeds = list(sc_feeds)
+    rw_provenance_feeds = [(source, priority, lines, 'Rewrite')
+                           for source, priority, lines in rw_feeds]
+    sc_provenance_feeds = [(source, priority, lines, 'Script')
+                           for source, priority, lines in sc_feeds]
     sc_provenance_feeds += [
-        (source, priority, [line for line in lines if unguarded_key(line) is not None])
+        (source, priority,
+         [line for line in lines if unguarded_key(line) is not None], 'Rewrite')
         for source, priority, lines in rw_feeds
     ]
-    rewrite_provenance = _section_provenance(rw_feeds, merged_rw, 'Rewrite')
-    script_provenance = _section_provenance(sc_provenance_feeds, merged_sc, 'Script')
+    rewrite_provenance = _section_provenance(
+        rw_provenance_feeds, merged_rw, 'Rewrite')
+    script_provenance = _section_provenance(
+        sc_provenance_feeds, merged_sc, 'Script')
     rule_output_index = {line: index for index, line in enumerate(rule_items, 1)}
     for event in rule_provenance_events:
         if event.get('status') == 'included':
             event['output_entry_index'] = rule_output_index.get(event['output_line'])
+    upstream_revisions = {}
+    if args.source_report and os.path.isfile(args.source_report):
+        try:
+            with open(args.source_report, encoding='utf-8') as source_file:
+                upstream_revisions = json.load(source_file)
+        except (OSError, ValueError) as exc:
+            raise SystemExit('来源追溯无法读取 source-report: %s' % exc)
     rule_report = {
         'schema_version': 1,
+        'upstream_revisions': upstream_revisions,
         'generated_at_utc': datetime.datetime.now(datetime.timezone.utc).isoformat(),
         'repository': 'XcvcvX/loon-change',
         'scope': ['Rewrite', 'Script', 'Rule'],
