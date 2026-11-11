@@ -2184,23 +2184,47 @@ if args.provenance_out:
         for filename in sorted(x for x in os.listdir(pdir)
                                if x.endswith('.plugin') or x.endswith('.lpx')):
             path = os.path.join(pdir, filename)
-            for section, line_number, raw_line in _raw_rows(path):
-                target_section = section
-                if section in ('Rewrite', 'Script'):
-                    converted = convert_shadowrocket_line(raw_line)
-                    if converted is None:
+            # parse_loose_sections() groups repeated sections by section name.
+            # AOOMEE feeds are flattened in a fixed per-file order: Rewrite,
+            # URL Rewrite, Script, then Rule. Physical file order can differ
+            # when URL Rewrite precedes Rewrite, shifting all later origins.
+            rows_by_section = {}
+            current_section = None
+            with open(path, encoding='utf-8') as source_handle:
+                for line_number, raw in enumerate(source_handle, 1):
+                    section_match = re.match(r'^\[(.+?)\]\s*$', raw)
+                    if section_match:
+                        current_section = section_match.group(1).strip()
+                        rows_by_section.setdefault(current_section, [])
+                    elif current_section:
+                        value = raw.strip()
+                        if value and not value.startswith('#'):
+                            rows_by_section.setdefault(current_section, []).append(
+                                (line_number, value)
+                            )
+
+            # Consume line-numbered rows in exactly the same order as
+            # iter_aoomee() and the ao_rw/ao_sc/ao_rule feed construction.
+            for section in ('Rewrite', 'URL Rewrite', 'Script', 'Rule'):
+                for line_number, raw_line in rows_by_section.get(section, []):
+                    target_section = section
+                    if section in ('Rewrite', 'Script'):
+                        converted = convert_shadowrocket_line(raw_line)
+                        if converted is None:
+                            continue
+                    elif section == 'URL Rewrite':
+                        tokens = raw_line.split()
+                        if len(tokens) != 2 or tokens[1] not in _LEGACY_REJECT:
+                            continue
+                        target_section = 'Rewrite'
+                    elif section != 'Rule':
                         continue
-                elif section == 'URL Rewrite':
-                    tokens = raw_line.split()
-                    if len(tokens) != 2 or tokens[1] not in _LEGACY_REJECT:
-                        continue
-                    target_section = 'Rewrite'
-                elif section != 'Rule':
-                    continue
-                _record_origin('aoomee', target_section, indices[target_section],
-                               ('plugins/' if pdir.endswith('/plugins') else '') + filename,
-                               line_number, raw_line, original_section=section)
-                indices[target_section] += 1
+                    _record_origin(
+                        'aoomee', target_section, indices[target_section],
+                        ('plugins/' if pdir.endswith('/plugins') else '') + filename,
+                        line_number, raw_line, original_section=section
+                    )
+                    indices[target_section] += 1
 
     if args.zmjde:
         pdir = os.path.join(args.zmjde, 'Plugin')
