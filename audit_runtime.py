@@ -109,7 +109,7 @@ def audit_runtime(path):
     # 从 Rewrite/Script 守卫中提取可识别的 URL hostname；只作为 MITM 覆盖候选依据。
     guarded_hosts = set()
     for _, line in rewrite_rows + script_rows:
-        normalized_line = line.replace('\\/', '/')
+        normalized_line = line.replace('\\/', '/').replace('\\.', '.')
         for host in URL_RE.findall(normalized_line.split(' then ', 1)[0]):
             host = host.lower().rstrip('.')
             if host and not host.replace('.', '').isdigit():
