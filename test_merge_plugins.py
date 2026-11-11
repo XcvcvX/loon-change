@@ -845,18 +845,18 @@ hostname = *.amap.com
     def test_thelong_provenance_tracks_origins_after_rewrite_filtering(self):
         base = (
             "[Rewrite]\n"
-            r"^https?:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=lite_advertising reject" + "\n"
+            r"^https?://api\\.m\\.jd\\.com/client\\.action\\?functionId=lite_advertising reject" + "\n"
             "[Script]\n[MITM]\nhostname = api.m.jd.com, ads.example.com\n"
         )
         apps = {
             "a_jd_splash_ad_block.plugin": (
                 "#!name=JD\n[Rewrite]\n"
-                r"^https?:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=lite_advertising response-body-replace-regex jdLiteAdvertisingVO sooyaaabo" + "\n"
+                r"^https?://api\\.m\\.jd\\.com/client\\.action\\?functionId=lite_advertising response-body-replace-regex jdLiteAdvertisingVO sooyaaabo" + "\n"
                 "[MITM]\nhostname = api.m.jd.com\n"
             ),
             "z_sample_ad_block.plugin": (
                 "#!name=Sample\n[Rewrite]\n"
-                r"^https?:\\/\\/ads\\.example\\.com\\/launch reject" + "\n"
+                r"^https?://ads\\.example\\.com/launch reject" + "\n"
                 "[MITM]\nhostname = ads.example.com\n"
             ),
         }
@@ -870,7 +870,7 @@ hostname = *.amap.com
         self.assertEqual(source["source_file"], "z_sample_ad_block.plugin")
         self.assertEqual(source["source_line_number"], 3)
         self.assertEqual(source["source_raw_line"], source["input_line"])
-        self.assertEqual(source["input_line"], r"^https?:\\/\\/ads\\.example\\.com\\/launch reject")
+        self.assertEqual(source["input_line"], r"^https?://ads\\.example\\.com/launch reject")
 
     def test_rule_provenance_identifies_semantic_coverage_source(self):
         base = "[Rewrite]\n[MITM]\nhostname = \n"
