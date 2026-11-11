@@ -21,6 +21,8 @@ on:
       - 'test_audit_plugin.py'
       - 'deep_audit.py'
       - 'test_deep_audit.py'
+      - 'amap_dependency_guard.py'
+      - 'test_amap_dependency_guard.py'
       - '.github/workflows/sync.yml'
       - 'README.md'
       - 'sources/amap/**'
