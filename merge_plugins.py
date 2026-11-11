@@ -714,6 +714,57 @@ def prep_block_sections(rewrite_lines, script_lines):
     return rewrite, script
 
 
+
+# 555影视：上游注释明确声明的业务主机范围。通配项只匹配其子域，不包含根域。
+_555_GENERIC_HOST = r'[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+){1,3}(:\\d+)?'
+_555_SCOPED_HOST = (
+    r'(?:vip7\\.fzwdyy\\.cn|(?:[A-Za-z0-9-]+\\.)+qyfxgd\\.cn|'
+    r'(?:[A-Za-z0-9-]+\\.)+weilai555\\.com|'
+    r'(?:[A-Za-z0-9-]+\\.)+ecoliving168\\.com)(?::\\d+)?'
+)
+
+
+def narrow_555_scope(rewrite_lines, script_lines):
+    """将 555影视两条泛主机触发器限制到上游明确声明的四组主机。"""
+    adjustments = []
+
+    def narrow(line, section):
+        is_555_advert = (
+            section == 'Rewrite'
+            and r'/api\\/v\\d\\/advert' in line
+            and 'reject(404)' in line
+        )
+        is_555_script = (
+            section == 'Script'
+            and '555Ad.js' in line
+            and r'/api\\/v\\d\\/movie\\/index_recommend' in line
+        )
+        if not (is_555_advert or is_555_script):
+            return line
+        if _555_SCOPED_HOST in line:
+            return line
+        if _555_GENERIC_HOST not in line:
+            raise RuntimeError(
+                '555影视上游 matcher 已变化，拒绝静默跳过域名收敛；'
+                '请先人工复核：' + line
+            )
+        updated = line.replace(_555_GENERIC_HOST, _555_SCOPED_HOST, 1)
+        adjustments.append({
+            'source': 'block',
+            'section': section,
+            'reason': 'Narrow generic host matcher to the four hosts declared in the 555影视 source comment',
+            'original_line': line,
+            'output_line': updated,
+        })
+        return updated
+
+    return (
+        [narrow(line, 'Rewrite') for line in rewrite_lines],
+        [narrow(line, 'Script') for line in script_lines],
+        adjustments,
+    )
+
+
 # Shadowrocket 风格 "^regex url reject(-dict)"：Loon 旧版无 url 关键字，去掉即可
 _SR_URL_RE = re.compile(r'^(\^.*?)\s+url\s+(reject(?:-dict)?)$')
 # 旧版动作名大小写归一（官方文档一律小写）
@@ -742,6 +793,8 @@ base_sc = real_lines(base_sec.get('Script', []))
 # blockAdsV2
 block_rw, block_sc = prep_block_sections(
     extra_sec.get('Rewrite', []), extra_sec.get('Script', []))
+block_rw, block_sc, block_scope_adjustments = narrow_555_scope(
+    block_rw, block_sc)
 
 
 # Tencent Cloud HTTPDNS safety exclusion:
@@ -1545,6 +1598,7 @@ if args.provenance_out:
         'scope': ['Rewrite', 'Script', 'Rule'],
         'rewrite_exclusions': block_rewrite_exclusions,
         'mitm_exclusions': block_mitm_exclusions,
+        'scope_adjustments': block_scope_adjustments,
         'limitations': [
             'source_entry_index is the ordinal within the extracted source feed, not the original upstream file line number',
             'exact source filename and 1-based line attribution is included for Thelongdarkorg, aoomee, and zmjde App plugin feeds; other sources retain feed indices until their source mapping is added',
