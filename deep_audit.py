@@ -52,12 +52,34 @@ def normalize_regex_literals(pattern):
     return re.sub(r'\\+([./])', r'\1', pattern)
 
 
+def extract_url_authority(pattern):
+    """Read URL authority without treating regex character-class slashes as path separators."""
+    marker = pattern.find('://')
+    remainder = pattern[marker + 3:] if marker >= 0 else pattern
+    chars, in_class, escaped = [], False, False
+    for char in remainder:
+        if escaped:
+            chars.append(char)
+            escaped = False
+            continue
+        if char == '\\':
+            chars.append(char)
+            escaped = True
+            continue
+        if char == '[':
+            in_class = True
+        elif char == ']':
+            in_class = False
+        elif char == '/' and not in_class:
+            break
+        chars.append(char)
+    return ''.join(chars)
+
+
 def has_domain_constraint(pattern):
     """Recognize literal domains, constrained regex hostnames and explicit IP hosts."""
     normalized = normalize_regex_literals(pattern)
-    scheme_marker = normalized.find('://')
-    authority = normalized[scheme_marker + 3:] if scheme_marker >= 0 else normalized
-    authority = authority.split('/', 1)[0]
+    authority = extract_url_authority(normalized)
 
     literal_domain = re.search(
         r'[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}', authority, re.I
@@ -67,7 +89,7 @@ def has_domain_constraint(pattern):
         authority, re.I
     )
     tld_alternation = re.search(
-        r'\.\((?:com|cn|net|org|info|biz|tv|cc|io|app|me|co|xyz|top|site|online|mobi|name|pro|edu|gov|uk|jp|de|ru|ai|so|fun|club|live|store|tech|world|asia)(?:\|(?:com|cn|net|org|info|biz|tv|cc|io|app|me|co|xyz|top|site|online|mobi|name|pro|edu|gov|uk|jp|de|ru|ai|so|fun|club|live|store|tech|world|asia))+\)',
+        r'\.\((?:\?:)?(?:com|cn|net|org|info|biz|tv|cc|io|app|me|co|xyz|top|site|online|mobi|name|pro|edu|gov|uk|jp|de|ru|ai|so|fun|club|live|store|tech|world|asia)(?:\|(?:com|cn|net|org|info|biz|tv|cc|io|app|me|co|xyz|top|site|online|mobi|name|pro|edu|gov|uk|jp|de|ru|ai|so|fun|club|live|store|tech|world|asia))+\)',
         authority, re.I
     )
     ipv4_literal = re.search(
@@ -91,12 +113,9 @@ def classify_rewrite_scope(pattern):
             return 'short_unscoped'
         return 'unscoped_other'
 
-    authority = ''
-    remainder = normalized
+    authority = extract_url_authority(normalized)
     scheme_marker = normalized.find('://')
-    if scheme_marker >= 0:
-        remainder = normalized[scheme_marker + 3:]
-        authority = remainder.split('/', 1)[0]
+    remainder = normalized[scheme_marker + 3:] if scheme_marker >= 0 else normalized
     if '.*' in authority or '.+' in authority or re.search(r'\([^)]*\)[*+]', authority):
         return 'domain_scoped_subdomain_wildcard'
     path_part = remainder[len(authority):] if scheme_marker >= 0 else remainder
