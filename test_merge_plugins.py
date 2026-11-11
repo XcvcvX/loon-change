@@ -338,6 +338,100 @@ hostname = *.amap.com
                      "dapis.mting.info.evil.test"):
             self.assertNotRegex(host, host_re)
 
+    def test_qqmusic_fallback_cdn_matcher_is_limited_to_declared_mitm_hosts(self):
+        broad = r'https?:\\/\\/.+?\\/music\\/common\\/upload\\/t_splash_info\\/'
+        extra = (
+            "[Rewrite]\\n"
+            "# > QQ音乐\\n"
+            "# hostname = us.l.qq.com, y.gtimg.cn, music.y.qq.com\\n"
+            r"^https?:\\/\\/y\\.gtimg\\.cn\\/music\\/common\\/upload\\/t_splash_info\\/ reject" + "\\n"
+            r"^https?:\\/\\/.+?\\/music\\/common\\/upload\\/t_splash_info\\/ reject" + "\\n"
+            r"request if ${url} ~= /^https?:\\/\\/((25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\.){3}(25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\/music\\/common\\/upload\\/t_splash_info\\/ then reject(404)" + "\\n"
+            "[MITM]\\nhostname = y.gtimg.cn, music.y.qq.com\\n"
+        )
+        thelong = (
+            "#!name=QQ音乐\\n[Rewrite]\\n"
+            "# 开屏广告图\\n"
+            r"^https?:\\/\\/y\\.gtimg\\.cn\\/music\\/common\\/upload\\/t_splash_info\\/ reject" + "\\n"
+            "# 同上，覆盖其他 CDN / IP 直连返回同一路径的情况（该主机需在 MITM 列表内才会生效，故本行实际对上面两个域名同样命中）\\n"
+            r"^https?:\\/\\/.+?\\/music\\/common\\/upload\\/t_splash_info\\/ reject" + "\\n"
+            "[MITM]\\nhostname = y.gtimg.cn, music.y.qq.com\\n"
+        )
+        output, report = self.run_merge(
+            "[Rewrite]\\n[Script]\\n[MITM]\\nhostname = \\n",
+            extra,
+            return_provenance=True,
+            apps_files={"qqmusic_splash_ad_block.plugin": thelong},
+        )
+        rewrite = output.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
+        scoped = [line for line in rewrite.splitlines()
+                  if "t_splash_info" in line and "(?:y\\\\.gtimg" in line]
+        self.assertEqual(len(scoped), 1)
+        self.assertIn("y\\\\.gtimg\\\\.cn|music\\\\.y\\\\.qq\\\\.com", scoped[0])
+        self.assertIn("reject", scoped[0])
+        self.assertIn("t_splash_info", rewrite)
+        # blockAdsV2 的独立 IPv4 规则不受本次域名收敛影响。
+        self.assertIn("25[0-5]", rewrite)
+        self.assertIn("reject(404)", rewrite)
+        self.assertNotIn(broad, scoped[0])
+
+        record = next(x for x in report["rewrite"]
+                      if "t_splash_info" in x["output_line"]
+                      and "(?:y\\\\.gtimg" in x["output_line"])
+        self.assertEqual({x["source"] for x in record["sources"]},
+                         {"block", "thelong"})
+        adjustments = [x for x in report["scope_adjustments"]
+                       if "t_splash_info" in x["output_line"]]
+        self.assertEqual({x["source"] for x in adjustments},
+                         {"block", "thelong"})
+        self.assertEqual(len(adjustments), 2)
+
+        import re
+        host_re = re.compile(r"^(?:y\\.gtimg\\.cn|music\\.y\\.qq\\.com)$", re.I)
+        for host in ("y.gtimg.cn", "music.y.qq.com"):
+            self.assertRegex(host, host_re)
+        for host in ("other.example.com", "cdn.evil.test", "us.l.qq.com",
+                     "y.gtimg.cn.evil.test"):
+            self.assertNotRegex(host, host_re)
+
+
+    def test_qqmusic_block_host_declaration_drift_fails_closed(self):
+        extra = (
+            "[Rewrite]\\n# > QQ音乐\\n"
+            "# hostname = us.l.qq.com, y.gtimg.cn, changed.example.com\\n"
+            r"^https?:\\/\\/.+?\\/music\\/common\\/upload\\/t_splash_info\\/ reject" + "\\n"
+            "[MITM]\\nhostname = \\n"
+        )
+        result = self.run_merge(
+            "[Rewrite]\\n[Script]\\n[MITM]\\nhostname = \\n",
+            extra,
+            expect_failure=True,
+        )
+        self.assertIn("QQ音乐 blockAdsV2 hostname/matcher/action 已变化", result)
+
+
+    def test_qqmusic_thelong_mitm_declaration_drift_fails_closed(self):
+        extra = (
+            "[Rewrite]\\n# > QQ音乐\\n"
+            "# hostname = us.l.qq.com, y.gtimg.cn, music.y.qq.com\\n"
+            r"^https?:\\/\\/.+?\\/music\\/common\\/upload\\/t_splash_info\\/ reject" + "\\n"
+            "[MITM]\\nhostname = \\n"
+        )
+        thelong = (
+            "#!name=QQ音乐\\n[Rewrite]\\n"
+            "# 同上，覆盖其他 CDN / IP 直连返回同一路径的情况（该主机需在 MITM 列表内才会生效）\\n"
+            r"^https?:\\/\\/.+?\\/music\\/common\\/upload\\/t_splash_info\\/ reject" + "\\n"
+            "[MITM]\\nhostname = y.gtimg.cn, changed.example.com\\n"
+        )
+        result = self.run_merge(
+            "[Rewrite]\\n[Script]\\n[MITM]\\nhostname = \\n",
+            extra,
+            apps_files={"qqmusic_splash_ad_block.plugin": thelong},
+            expect_failure=True,
+        )
+        self.assertIn("Thelong QQ音乐 MITM/备用 CDN 规则声明已变化", result)
+
+
     def test_lanrentingshu_host_declaration_drift_fails_closed(self):
         extra = (
             "[Rewrite]\n"
