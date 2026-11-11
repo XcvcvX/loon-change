@@ -29,6 +29,8 @@
 | sources/amap/ | 高德上游插件、JS 与 3 份 JQ 依赖的可追溯缓存 |
 | source_guard.py | 上游响应/仓库结构完整性门禁，阻止 HTML 错误页、空文件和缺失源 |
 | audit_plugin.py | 只读审计全局 UDP/443、MITM 通配覆盖候选、Script URL 与错放 Rewrite Action，不自动删改规则 |
+| audit_runtime.py | 深度只读审计 Rewrite 宽泛/冲突候选、MITM 无字面守卫候选、Script 重复触发器与远程脚本健康检查 |
+| test_audit_runtime.py | 深度运行时审计器单元测试 |
 
 当前产物统计由工作流自动维护：
 
@@ -55,14 +57,16 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 
 ## 本地检查
 
-    python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py
-    python3 -m py_compile merge_plugins.py validate_plugin.py source_guard.py audit_plugin.py convert_qx2loon.py convert_filter_qx2loon.py
+    python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_audit_runtime.py
+    python3 -m py_compile merge_plugins.py validate_plugin.py source_guard.py audit_plugin.py audit_runtime.py convert_qx2loon.py convert_filter_qx2loon.py
     python3 validate_plugin.py allAdRewrite.plugin
     python3 validate_plugin.py allAdRewrite.plugin --update-readme README.md
     python3 validate_plugin.py allAdRewrite.plugin --check-remote
     python3 audit_plugin.py allAdRewrite.plugin --summary-only
+    python3 audit_runtime.py allAdRewrite.plugin --output runtime-audit.json
+    python3 audit_runtime.py allAdRewrite.plugin --check-remote --limit 80 --output runtime-audit-remote.json
 
---check-remote 会对最多 80 个唯一远程脚本 URL 发起 HEAD 检查，仅输出警告，不代表脚本逻辑已通过测试；部分 CDN 不支持 HEAD 或会限流。`audit_plugin.py` 输出全局 UDP/443、MITM 通配重叠候选、Script URL 与错放 Action 统计，不自动修改规则。
+--check-remote 会对最多 80 个唯一远程脚本 URL 发起 HEAD 检查，仅输出警告，不代表脚本逻辑已通过测试；部分 CDN 不支持 HEAD 或会限流。`audit_plugin.py` 输出全局 UDP/443、MITM 通配重叠候选、Script URL 与错放 Action 统计，不自动修改规则。`audit_runtime.py` 补充宽泛/冲突 Rewrite、MITM 无字面守卫候选、重复 Script 触发器审计；可选 `--check-remote` 对最多 80 个唯一脚本 URL 发起 HEAD 检查。深度报告由 Actions 作为 `loon-runtime-audit-report` artifact 上传。所有结果均为待人工复核的候选，不自动改写生产规则。
 
 ## 安全边界
 
