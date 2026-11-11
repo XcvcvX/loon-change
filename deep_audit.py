@@ -57,7 +57,7 @@ def has_domain_constraint(pattern):
     normalized = normalize_regex_literals(pattern)
     scheme = re.search(r'https(?:\?|s?)://', normalized, re.I)
     authority = normalized[scheme.end():] if scheme else normalized
-    authority = authority.split('/', 1)[0].split('?', 1)[0].split('#', 1)[0]
+    authority = authority.split('/', 1)[0]
 
     literal_domain = re.search(
         r'[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}', authority, re.I
@@ -96,7 +96,7 @@ def classify_rewrite_scope(pattern):
     scheme = re.search(r'https(?:\?|s?)://', normalized, re.I)
     if scheme:
         remainder = normalized[scheme.end():]
-        authority = remainder.split('/', 1)[0].split('?', 1)[0].split('#', 1)[0]
+        authority = remainder.split('/', 1)[0]
     if '.*' in authority or '.+' in authority or re.search(r'\([^)]*\)[*+]', authority):
         return 'domain_scoped_subdomain_wildcard'
     path_part = remainder[len(authority):] if scheme else remainder
