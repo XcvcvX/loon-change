@@ -1128,6 +1128,8 @@ for _block_index, _block_line in enumerate(block_rw):
     else:
         _mgtv_block_rw_kept.append(_block_line)
 block_rw = _mgtv_block_rw_kept
+
+if _lite_advertising_guard_present:
     _kept_block_rw = []
     for _line in block_rw:
         if entry_regex(_line) == _LITE_ADVERTISING_MATCHER:
