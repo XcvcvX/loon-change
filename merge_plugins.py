@@ -795,6 +795,88 @@ def narrow_lanrentingshu_scope(rewrite_lines, source_present):
     return output, adjustments
 
 
+# QQ音乐开屏素材：仅允许专用插件 MITM 声明的两个 HTTPS 主机。
+_QQMUSIC_MARKER = '# > QQ音乐'
+_QQMUSIC_BLOCK_HOST_DECLARATION = (
+    '# hostname = us.l.qq.com, y.gtimg.cn, music.y.qq.com'
+)
+_QQMUSIC_GENERIC = (
+    r'https?:\\/\\/.+?\\/music\\/common\\/upload\\/t_splash_info\\/'
+)
+_QQMUSIC_SCOPED = (
+    r'https?:\\/\\/(?:y\\.gtimg\\.cn|music\\.y\\.qq\\.com)'
+    r'\\/music\\/common\\/upload\\/t_splash_info\\/'
+)
+_QQMUSIC_THELONG_MITM = 'hostname = y.gtimg.cn, music.y.qq.com'
+
+
+def validate_qqmusic_sources(block_text, thelong_text=None):
+    """核实 block 与 Thelong QQ音乐来源的 hostname/MITM 声明和原始广告规则。"""
+    marker_index = block_text.find(_QQMUSIC_MARKER)
+    if marker_index < 0:
+        return False, False
+    next_app = re.search(
+        r'(?m)^#\\s*>\\s*',
+        block_text[marker_index + len(_QQMUSIC_MARKER):],
+    )
+    section_end = (
+        marker_index + len(_QQMUSIC_MARKER) + next_app.start()
+        if next_app else len(block_text)
+    )
+    block_section = block_text[marker_index:section_end]
+    if (_QQMUSIC_BLOCK_HOST_DECLARATION not in block_section
+            or _QQMUSIC_GENERIC not in block_section
+            or r'y\\.gtimg\\.cn\\/music\\/common\\/upload\\/t_splash_info\\/' not in block_section
+            or 't_splash_info' not in block_section):
+        raise RuntimeError(
+            'QQ音乐 blockAdsV2 hostname/matcher/action 已变化，停止构建并要求复核'
+        )
+
+    if thelong_text is None:
+        return True, False
+    mitm_section = thelong_text.split('[MITM]', 1)
+    if (len(mitm_section) != 2
+            or _QQMUSIC_THELONG_MITM not in mitm_section[1]
+            or _QQMUSIC_GENERIC not in thelong_text
+            or r'y\\.gtimg\\.cn\\/music\\/common\\/upload\\/t_splash_info\\/' not in thelong_text
+            or '该主机需在 MITM 列表内才会生效' not in thelong_text):
+        raise RuntimeError(
+            'Thelong QQ音乐 MITM/备用 CDN 规则声明已变化，停止构建并要求复核'
+        )
+    return True, True
+
+
+def narrow_qqmusic_scope(rewrite_lines, source):
+    """将 QQ音乐备用 CDN 的全主机 matcher 收敛到其专用 MITM 主机。"""
+    output, adjustments = [], []
+    for line in rewrite_lines:
+        is_target = (
+            'music\\\\/common\\\\/upload\\\\/t_splash_info' in line
+            and 'reject' in line
+            and _QQMUSIC_GENERIC in line
+        )
+        if not is_target:
+            output.append(line)
+            continue
+        if _QQMUSIC_SCOPED in line:
+            output.append(line)
+            continue
+        updated = line.replace(_QQMUSIC_GENERIC, _QQMUSIC_SCOPED, 1)
+        if updated == line:
+            raise RuntimeError('QQ音乐宽泛 t_splash_info matcher 无法安全收敛：' + line)
+        adjustments.append({
+            'source': source,
+            'section': 'Rewrite',
+            'reason': 'Limit fallback CDN matcher to y.gtimg.cn and music.y.qq.com, the two hosts explicitly declared by the dedicated QQ音乐 MITM source; retain the separate IPv4 rule',
+            'original_line': line,
+            'output_line': updated,
+        })
+        output.append(updated)
+    if not adjustments:
+        raise RuntimeError('QQ音乐来源存在但未找到待收敛的备用 CDN matcher')
+    return output, adjustments
+
+
 # 555影视：上游明确声明的业务主机范围。通配项只匹配子域，不包含根域。
 _555_GENERIC_HOST = r'[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+){1,3}(:\d+)?'
 _555_SCOPED_HOST = (
@@ -879,6 +961,10 @@ lanrentingshu_source_present = validate_lanrentingshu_source(extra_text)
 block_rw, lanrentingshu_scope_adjustments = narrow_lanrentingshu_scope(
     block_rw, lanrentingshu_source_present)
 block_scope_adjustments.extend(lanrentingshu_scope_adjustments)
+qqmusic_block_present, _ = validate_qqmusic_sources(extra_text)
+if qqmusic_block_present:
+    block_rw, qqmusic_block_adjustments = narrow_qqmusic_scope(block_rw, 'block')
+    block_scope_adjustments.extend(qqmusic_block_adjustments)
 
 
 # Tencent Cloud HTTPDNS safety exclusion:
@@ -926,7 +1012,14 @@ thelong_rule, thelong_mitm = [], []
 if args.apps:
     for fname, atext in iter_app_plugins(args.apps):
         _, s = split_sections(atext)
-        thelong_rw += real_lines(s.get('Rewrite', []))
+        app_rewrite_lines = real_lines(s.get('Rewrite', []))
+        if fname == 'qqmusic_splash_ad_block.plugin':
+            _, qqmusic_thelong_present = validate_qqmusic_sources(extra_text, atext)
+            if qqmusic_thelong_present:
+                app_rewrite_lines, qqmusic_thelong_adjustments = narrow_qqmusic_scope(
+                    app_rewrite_lines, 'thelong')
+                block_scope_adjustments.extend(qqmusic_thelong_adjustments)
+        thelong_rw += app_rewrite_lines
         thelong_sc += real_lines(s.get('Script', []))
         thelong_rule += real_lines(s.get('Rule', []))
         for l in s.get('MITM', []):
