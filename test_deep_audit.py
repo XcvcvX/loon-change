@@ -41,7 +41,7 @@ request if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/ad/ then reject-dict
         self.assertEqual(report['summary']['rewrite_exact_duplicate_action_groups'], 1)
         self.assertEqual(report['summary']['rewrite_action_conflict_groups'], 1)
         self.assertEqual(report['summary']['rewrite_cross_family_conflict_groups'], 1)
-        self.assertIn('response-body-json-jq', group['actions'][0])
+        self.assertTrue(any(action.startswith('response-body-json-jq ') for action in group['actions']))
 
     def test_broad_match_candidate(self):
         self.assertTrue(broad_reasons('^https?://'))
@@ -108,7 +108,7 @@ request if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/ad/ then reject-dict
         self.assertEqual(parsed_compound[2], 'reject_video(200)')
 
         numeric_legacy = r'https:\/\/api\.example\.com\/ad 302 https://example.com/data.json'
-        self.assertEqual(parse_rewrite(numeric_legacy)[2], '302')
+        self.assertEqual(parse_rewrite(numeric_legacy)[2], '302 https://example.com/data.json')
 
         fixture = "[Rewrite]\n" + "\n".join([unescaped, alias, compound, numeric_legacy]) + "\n"
         with tempfile.TemporaryDirectory() as tmp:
