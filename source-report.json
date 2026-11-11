@@ -17,7 +17,7 @@
       "search_poi_detail.jq"
     ],
     "upstream_repository": "https://github.com/ifflagged/Romeo",
-    "upstream_commit": "3d542ed8c60ae68fdb579df2a090fddaae5015e7",
+    "upstream_commit": "c4a52554e01aac55667a54fa5b526db00d6b3e81",
     "assets": {
       "rucu6_amap.js": {
         "bytes": 23517,
