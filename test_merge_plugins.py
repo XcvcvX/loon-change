@@ -207,7 +207,7 @@ hostname = *.amap.com
         script = output.split("[Script]", 1)[1].split("[MITM]", 1)[0]
         mitm_line = next(line for line in output.splitlines()
                          if line.strip().startswith("hostname ="))
-        self.assertIn(r"mobilepaas\.abchina\.com\.cn:441", script)
+        self.assertIn(":441/mgw.htm", script)
         self.assertIn("mobilepaas.abchina.com.cn", mitm_line)
         self.assertNotIn("orphan.example.com", mitm_line)
 
