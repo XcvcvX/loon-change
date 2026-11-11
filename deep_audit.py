@@ -154,6 +154,85 @@ def broad_reasons(pattern):
     return reasons
 
 
+
+ACTION_FAMILIES = {
+    'block': {
+        'reject', 'reject-200', 'reject-img', 'reject-dict', 'reject-array',
+        'reject-video', 'reject_dict', 'reject_img', 'reject_video'
+    },
+    'redirect': {'302', '307', 'redirect'},
+    'response_mock': {
+        'response.body.mock', 'response.body.mock_file', 'mock-response-body'
+    },
+    'response_body_rewrite': {
+        'response.body.replace', 'response-body-replace-regex'
+    },
+    'response_json_rewrite': {
+        'response.json.delete', 'response.json.replace', 'response.json.jq',
+        'response.json.jq_file', 'response-body-json-add',
+        'response-body-json-replace', 'response-body-json-del',
+        'response-body-json-delete', 'response-body-json-jq'
+    },
+    'request_body_rewrite': {'request-body-replace-regex'},
+    'header_rewrite': {
+        'header-add', 'header-del', 'header-replace', 'header-replace-regex',
+        'response.header.add', 'response.header.del', 'response.header.replace',
+        'response-header-add', 'response-header-del', 'response-header-replace',
+        'response-header-replace-regex'
+    }
+}
+
+ACTION_REVIEW = {
+    'response_mock': ('high_review', '替换或模拟整个响应，需确认状态码、内容结构和目标 App 兼容性'),
+    'response_body_rewrite': ('high_review', '直接改写响应正文，需确认替换范围不会误伤正常内容'),
+    'request_body_rewrite': ('high_review', '改写请求正文，可能改变请求参数或业务行为'),
+    'response_json_rewrite': ('medium_review', '修改响应 JSON 字段或结构，需确认字段路径和空值/类型处理'),
+    'header_rewrite': ('medium_review', '修改请求或响应头，需确认不会影响缓存、鉴权、内容协商或协议行为'),
+    'redirect': ('medium_review', '重定向请求，需确认目标地址、参数保留及跳转范围')
+}
+
+
+def classify_rewrite_action(action):
+    """Return a conservative semantic family for old and modern Loon action syntax."""
+    value = action.strip()
+    # Modern rules may chain multiple operations with '|'. Find known action
+    # identifiers anywhere in the expression; jq expressions themselves are not
+    # classified as Loon actions unless they match one of these exact identifiers.
+    known = sorted(
+        (name for names in ACTION_FAMILIES.values() for name in names),
+        key=len, reverse=True
+    )
+    found = []
+    for name in known:
+        if re.search(r'(?<![A-Za-z0-9_.-])' + re.escape(name) +
+                     r'(?![A-Za-z0-9_.-])', value, re.I):
+            found.append(name)
+    if not found:
+        # Legacy parser returns the action token only, while modern parser returns
+        # the full action expression. Preserve unknown actions for manual review.
+        token = re.match(r'^([A-Za-z0-9_.-]+)', value)
+        found = [token.group(1).lower()] if token else []
+    families = sorted({
+        family for family, names in ACTION_FAMILIES.items()
+        if any(name.lower() in {x.lower() for x in found} for name in names)
+    })
+    if not families:
+        return {'families': ['unknown'], 'operations': found or ['<unrecognized>']}
+    return {'families': families, 'operations': sorted(found)}
+
+
+def action_review_priority(families):
+    priorities = [ACTION_REVIEW[x][0] for x in families if x in ACTION_REVIEW]
+    if 'high_review' in priorities:
+        return 'high_review'
+    if 'medium_review' in priorities:
+        return 'medium_review'
+    return 'no_special_review'
+
+
+def action_review_reasons(families):
+    return [ACTION_REVIEW[x][1] for x in families if x in ACTION_REVIEW]
+
 def audit_deep(path):
     text = Path(path).read_text(encoding='utf-8-sig')
     sec = parse_sections(text)
