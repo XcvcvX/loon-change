@@ -82,7 +82,7 @@ def classify_rewrite_scope(pattern):
 
     authority = ''
     remainder = normalized
-    scheme = re.search(r'https?://', normalized, re.I)
+    scheme = re.search(r'https(?:\\?|s?)://', normalized, re.I)
     if scheme:
         remainder = normalized[scheme.end():]
         authority = remainder.split('/', 1)[0].split('?', 1)[0].split('#', 1)[0]
