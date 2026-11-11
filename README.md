@@ -118,3 +118,5 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 特殊主机引用判断现在先确认 matcher 可能匹配 HTTPS，再检查 host；纯 HTTP matcher 不需要 TLS 解密，不能作为保留 MITM 的理由。
 - 对 HTTPS 宽泛捕获组继续保守保留，避免误删可能实际使用的 MITM hostname。
 - 增加 HTTP/HTTPS authority 捕获组正反向回归测试；不改变任何 Rewrite/Script 规则及动作。
+
+- 本批验收要求：必须以 main 分支正式同步生成的 `allAdRewrite.plugin` 为准，确认目标主机确实移除且 HTTPS 真实引用仍保留。
