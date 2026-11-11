@@ -280,6 +280,23 @@ def build_overlap_sample(pattern):
     return value
 
 
+def infer_rewrite_phase(phase, action):
+    """Infer legacy request/response phase only when the action semantics are explicit."""
+    if phase in {'request', 'response'}:
+        return phase
+    info = classify_rewrite_action(action)
+    families = set(info['families'])
+    if families & {'response_mock', 'response_body_rewrite', 'response_json_rewrite'}:
+        return 'response'
+    if families & {'block', 'redirect', 'request_body_rewrite'}:
+        return 'request'
+    token = action.strip().lower()
+    if token.startswith(('response-header-', 'response.header.')):
+        return 'response'
+    # Generic header edits and unknown legacy actions do not identify a phase safely.
+    return 'legacy'
+
+
 def audit_rewrite_overlaps(rewrite_rows, sample_cap=600, candidate_cap=500):
     """Sample-driven overlap hints; deliberately not a proof of regex intersection."""
     rules, skipped = [], []
@@ -289,6 +306,7 @@ def audit_rewrite_overlaps(rewrite_rows, sample_cap=600, candidate_cap=500):
             skipped.append({'line': line_no, 'reason': 'unparsed_rule'})
             continue
         phase, matcher, action = parsed
+        phase = infer_rewrite_phase(phase, action)
         safe, reason = overlap_pattern_is_safe(matcher)
         if not safe:
             skipped.append({'line': line_no, 'phase': phase, 'pattern': matcher,
