@@ -1776,7 +1776,7 @@ for _host in mitm:
                 break
             continue
         try:
-            if re.compile(r'^(?:%s)
+            if re.compile('^(?:' + _zone + ')
 # ---------------- 输出 ----------------
 today = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
 header = [
@@ -2042,7 +2042,7 @@ print('  MITM 自愈补全 %d 个%s' % (
     len(mitm_healed), '：' + ', '.join(mitm_healed[:15]) if mitm_healed else ''))
 if dropped:
     print('  丢弃的 hostname：', ', '.join(dropped[:20]))
- % _zone, re.IGNORECASE).match(_host_lower):
+, re.IGNORECASE).match(_host_lower):
                 _could_be_referenced = True
                 break
         except re.error:
