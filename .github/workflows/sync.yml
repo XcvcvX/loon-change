@@ -8,6 +8,7 @@ on:
       - 'source_guard.py'
       - 'amap_dependency_guard.py'
       - 'compare_rule_provenance.py'
+      - 'source_health_guard.py'
       - 'convert_qx2loon.py'
       - 'convert_filter_qx2loon.py'
       - '.github/workflows/sync.yml'
@@ -27,6 +28,8 @@ on:
       - 'test_amap_dependency_guard.py'
       - 'compare_rule_provenance.py'
       - 'test_compare_rule_provenance.py'
+      - 'source_health_guard.py'
+      - 'test_source_health_guard.py'
       - '.github/workflows/sync.yml'
       - 'README.md'
       - 'sources/amap/**'
@@ -50,9 +53,9 @@ jobs:
         with:
           python-version: '3.11'
       - name: 编译检查
-        run: python3 -m py_compile merge_plugins.py validate_plugin.py source_guard.py audit_plugin.py deep_audit.py amap_dependency_guard.py compare_rule_provenance.py convert_qx2loon.py convert_filter_qx2loon.py
+        run: python3 -m py_compile merge_plugins.py validate_plugin.py source_guard.py audit_plugin.py deep_audit.py amap_dependency_guard.py compare_rule_provenance.py source_health_guard.py convert_qx2loon.py convert_filter_qx2loon.py
       - name: 运行单元与合并集成测试
-        run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_amap_dependency_guard.py test_compare_rule_provenance.py
+        run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_amap_dependency_guard.py test_compare_rule_provenance.py test_source_health_guard.py
       - name: 审计当前插件风险摘要
         run: |
           python3 audit_plugin.py allAdRewrite.plugin --summary-only
@@ -90,6 +93,11 @@ jobs:
       - name: 创建隔离构建目录
         run: |
           mkdir -p /tmp/loon-build
+          if [ -s source-report.json ]; then
+            cp source-report.json /tmp/loon-build/source-report.previous.json
+          else
+            printf '{}' > /tmp/loon-build/source-report.previous.json
+          fi
           if [ -s rule-provenance.json ]; then
             cp rule-provenance.json /tmp/loon-build/rule-provenance.previous.json
           else
@@ -149,6 +157,10 @@ jobs:
       - name: 自动比较上游规则新增、删除与动作变化
         run: python3 compare_rule_provenance.py --previous /tmp/loon-build/rule-provenance.previous.json --current /tmp/loon-build/rule-provenance.json --out /tmp/loon-build/rule-diff.json
 
+      - name: 来源可靠性评分与异常更新发布门禁
+        run: |
+          python3 source_health_guard.py --previous-sources /tmp/loon-build/source-report.previous.json --current-sources source-report.json --previous-provenance /tmp/loon-build/rule-provenance.previous.json --current-provenance /tmp/loon-build/rule-provenance.json --diff /tmp/loon-build/rule-diff.json --out /tmp/loon-build/source-health.json
+
       - name: 只读审计 UDP、MITM 与 Script 风险
         run: |
           python3 audit_plugin.py /tmp/loon-build/allAdRewrite.plugin --summary-only
@@ -171,6 +183,14 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+      - name: 上传来源可靠性与异常检测报告
+        uses: actions/upload-artifact@v4
+        with:
+          name: source-health-${{ github.run_id }}
+          path: /tmp/loon-build/source-health.json
+          if-no-files-found: error
+          retention-days: 30
+
       - name: 上传同步构建深度审计报告
         uses: actions/upload-artifact@v4
         with:
@@ -186,13 +206,14 @@ jobs:
           cp /tmp/loon-build/allAdRewrite.plugin allAdRewrite.plugin.tmp && mv allAdRewrite.plugin.tmp allAdRewrite.plugin
           cp /tmp/loon-build/rule-provenance.json rule-provenance.json
           cp /tmp/loon-build/rule-diff.json rule-diff.json
+          cp /tmp/loon-build/source-health.json source-health.json
 
       # 可选网络检查：仅输出警告，不因上游短暂限流阻断规则同步。
       # 本地排查远程脚本：python3 validate_plugin.py allAdRewrite.plugin --check-remote
       - name: 检查是否有变化
         id: diff
         run: |
-          if git diff --quiet -- allAdRewrite.plugin README.md source-report.json rule-provenance.json rule-diff.json sources/amap/; then
+          if git diff --quiet -- allAdRewrite.plugin README.md source-report.json rule-provenance.json rule-diff.json source-health.json sources/amap/; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "合并产物与统计均无变化，跳过提交"
           else
@@ -205,6 +226,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add allAdRewrite.plugin README.md source-report.json rule-provenance.json rule-diff.json sources/amap/
+          git add allAdRewrite.plugin README.md source-report.json rule-provenance.json rule-diff.json source-health.json sources/amap/
           git commit -m "chore: sync upstream rules and plugin stats $(date -u +%Y-%m-%d)"
           git push
