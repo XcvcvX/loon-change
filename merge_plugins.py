@@ -755,6 +755,47 @@ def validate_lanrentingshu_source(source_text):
     return True
 
 
+def narrow_lanrentingshu_base_scope(rewrite_lines, source_present):
+    """将 R-Store 转换产物中的同接口旧式全主机规则限制到已核实的业务主机。"""
+    if not source_present:
+        return rewrite_lines, []
+    generic = (
+        r'^https?:\\/\\/.*\\/yyting\\/advertclient\\/ClientAdvertList.action'
+    )
+    scoped = (
+        r'^https?:\\/\\/(?:118\\.178\\.214\\.118|dapis\\.mting\\.info)'
+        r'\\/yyting\\/advertclient\\/ClientAdvertList.action'
+    )
+    adjustments = []
+    output = []
+    for line in rewrite_lines:
+        is_target = (
+            '/yyting\\/advertclient\\/ClientAdvertList.action' in line
+            and re.search(r'\\s+reject(?:\\s|$)', line)
+        )
+        if not is_target:
+            output.append(line)
+            continue
+        if scoped in line:
+            output.append(line)
+            continue
+        if generic not in line:
+            raise RuntimeError(
+                'R-Store 懒人听书 ClientAdvertList matcher 已变化，'
+                '拒绝静默保留未知主机范围：' + line
+            )
+        updated = line.replace(generic, scoped, 1)
+        adjustments.append({
+            'source': 'base',
+            'section': 'Rewrite',
+            'reason': 'Narrow the legacy R-Store ClientAdvertList matcher to the two business hosts corroborated by the dedicated blockAdsV2 hostname declaration',
+            'original_line': line,
+            'output_line': updated,
+        })
+        output.append(updated)
+    return output, adjustments
+
+
 def narrow_lanrentingshu_scope(rewrite_lines, source_present):
     """将懒人听书 ClientAdvertList 的全主机匹配限制到上游声明的两个主机。"""
     if not source_present:
@@ -971,6 +1012,9 @@ block_rw, block_sc = prep_block_sections(
 block_rw, block_sc, block_scope_adjustments = narrow_555_scope(
     block_rw, block_sc)
 lanrentingshu_source_present = validate_lanrentingshu_source(extra_text)
+base_rw, lanrentingshu_base_adjustments = narrow_lanrentingshu_base_scope(
+    base_rw, lanrentingshu_source_present)
+block_scope_adjustments.extend(lanrentingshu_base_adjustments)
 block_rw, lanrentingshu_scope_adjustments = narrow_lanrentingshu_scope(
     block_rw, lanrentingshu_source_present)
 block_scope_adjustments.extend(lanrentingshu_scope_adjustments)
