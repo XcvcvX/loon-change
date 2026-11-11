@@ -417,6 +417,8 @@ def audit_deep(path):
         if reasons:
             broad.append({'line': n, 'phase': phase, 'pattern': matcher,
                           'action': action, 'reasons': reasons, 'scope': scope})
+    overlap_report = audit_rewrite_overlaps(rewrite)
+
     duplicates, conflicts = [], []
     for (phase, matcher), entries in sorted(groups.items()):
         actions = sorted({x['action'] for x in entries})
@@ -484,6 +486,11 @@ def audit_deep(path):
             'rewrite_action_family_counts': dict(sorted(action_family_counts.items())),
             'rewrite_action_semantic_review_candidates': len(action_review_candidates),
             'rewrite_unknown_action_candidates': len(unknown_action_candidates),
+            'rewrite_overlap_sampled_rules': overlap_report['rewrite_overlap_sampled_rules'],
+            'rewrite_overlap_sampled_urls': overlap_report['rewrite_overlap_sampled_urls'],
+            'rewrite_overlap_candidate_groups': len(overlap_report['rewrite_overlap_candidate_groups']),
+            'rewrite_overlap_manual_review_candidates': len(overlap_report['rewrite_overlap_manual_review_candidates']),
+            'rewrite_overlap_skipped_rules': overlap_report['rewrite_overlap_skipped_rules'],
             'mitm_positive_unique_hosts': len(positive),
             'mitm_wildcards': len(wild),
             'mitm_exact_hosts_covered_by_wildcards': len(overlaps),
@@ -501,6 +508,12 @@ def audit_deep(path):
         'rewrite_action_conflict_groups': conflicts,
         'rewrite_action_semantic_review_candidates': action_review_candidates,
         'rewrite_unknown_action_candidates': unknown_action_candidates,
+        'rewrite_overlap_candidate_groups': overlap_report['rewrite_overlap_candidate_groups'],
+        'rewrite_overlap_manual_review_candidates': overlap_report['rewrite_overlap_manual_review_candidates'],
+        'rewrite_overlap_sample_cap': overlap_report['rewrite_overlap_sample_cap'],
+        'rewrite_overlap_sampled_rules': overlap_report['rewrite_overlap_sampled_rules'],
+        'rewrite_overlap_sampled_urls': overlap_report['rewrite_overlap_sampled_urls'],
+        'rewrite_overlap_skipped_rules': overlap_report['rewrite_overlap_skipped_rules'],
         'rewrite_unparsed_entries': unknown,
         'mitm_wildcard_overlap_candidates': overlaps,
         'mitm_wildcard_apex_not_explicit': apex_missing,
@@ -530,6 +543,8 @@ def render_markdown(report):
         'rewrite_action_conflict_groups':'同匹配器多动作组',
         'rewrite_action_semantic_review_candidates':'动作语义复核候选',
         'rewrite_unknown_action_candidates':'未分类动作候选',
+        'rewrite_overlap_candidate_groups':'交叉命中候选组',
+        'rewrite_overlap_manual_review_candidates':'跳过/人工复核候选',
         'mitm_positive_unique_hosts':'MITM 正向唯一主机',
         'mitm_wildcards':'MITM 通配主机',
         'mitm_exact_hosts_covered_by_wildcards':'被通配覆盖的精确主机候选',
@@ -550,6 +565,8 @@ def render_markdown(report):
         ('rewrite_action_conflict_groups','同匹配器多动作候选'),
         ('rewrite_action_semantic_review_candidates','Rewrite 动作语义复核候选'),
         ('rewrite_unknown_action_candidates','未分类 Rewrite 动作候选'),
+        ('rewrite_overlap_candidate_groups','Rewrite 样本交叉命中候选'),
+        ('rewrite_overlap_manual_review_candidates','Rewrite 交叉审计跳过/人工复核候选'),
         ('mitm_without_obvious_literal_guard','未发现明显字面守卫的 MITM 候选'),
         ('script_repeated_remote_urls','重复使用的远程脚本 URL'),
         ('script_generic_trigger_candidates','通用/条件触发器候选')
@@ -559,6 +576,13 @@ def render_markdown(report):
         lines += ['- ' + json.dumps(x, ensure_ascii=False) for x in values[:100]] if values else ['未发现。']
         if len(values) > 100:
             lines.append('其余 %d 项见 JSON 报告。' % (len(values) - 100))
+    lines += ['', '## Rewrite 交叉命中审计说明', '',
+              '本节基于有限代表性 URL 样本；不是正则交集的数学证明。仅对受限安全子集执行匹配，复杂表达式跳过并列入人工复核。请求与响应阶段分开标记；同 URL 命中不代表 Loon 执行顺序或真实冲突。', '',
+              '| 指标 | 数量 |', '|---|---:|',
+              '| 可采样规则 | %s |' % report['rewrite_overlap_sampled_rules'],
+              '| 唯一样本 URL | %s |' % report['rewrite_overlap_sampled_urls'],
+              '| 命中候选组 | %s |' % report['summary']['rewrite_overlap_candidate_groups'],
+              '| 跳过/人工复核规则 | %s |' % report['rewrite_overlap_skipped_rules']]
     lines += ['', '## Rewrite 动作语义分类', '',
               '| 动作类别 | 条目数 |', '|---|---:|']
     for family, count in report['summary']['rewrite_action_family_counts'].items():
