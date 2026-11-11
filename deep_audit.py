@@ -54,9 +54,16 @@ def normalize_regex_literals(pattern):
 
 def has_domain_constraint(pattern):
     normalized = normalize_regex_literals(pattern)
-    return bool(re.search(
+    literal_domain = re.search(
         r'[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}', normalized, re.I
-    ))
+    )
+    wildcard_label_domain = re.search(
+        r'[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.\*[^/]*\.[A-Za-z]{2,}', normalized, re.I
+    )
+    tld_alternation = re.search(
+        r'[A-Za-z0-9-]+\.\(\?:[A-Za-z]{2,}\|[A-Za-z]{2,}\)', normalized, re.I
+    )
+    return bool(literal_domain or wildcard_label_domain or tld_alternation)
 
 
 def classify_rewrite_scope(pattern):
