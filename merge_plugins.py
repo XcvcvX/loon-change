@@ -1766,7 +1766,7 @@ for _host in mitm:
         # Generic/Cron/Network Changed scripts are manual or event/schedule
         # actions. Their script-path URLs identify downloaded code, not an HTTP
         # request hostname that requires MITM coverage.
-        if re.match(r'^(?:generic|cron|network-changed)\\b', _line.strip(), re.IGNORECASE):
+        if re.match(r'^(?:generic|cron|network-changed)\b', _line.strip(), re.IGNORECASE):
             continue
         _rx = entry_regex(_line)
         if not _rx:
