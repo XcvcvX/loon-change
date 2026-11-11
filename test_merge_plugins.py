@@ -95,21 +95,21 @@ class MergeIntegrationTests(unittest.TestCase):
             self.assertEqual(source["source_original_section"], "Rewrite")
 
     def test_aoomee_provenance_matches_feed_order_when_url_rewrite_precedes_rewrite(self):
-        base = "[Rule]\\n[Rewrite]\\n[MITM]\\nhostname = \\n"
-        extra = "[Rule]\\n[Rewrite]\\n[MITM]\\nhostname = \\n"
+        base = "[Rule]\n[Rewrite]\n[MITM]\nhostname = \n"
+        extra = "[Rule]\n[Rewrite]\n[MITM]\nhostname = \n"
         aoomee_files = {
             # parse_loose_sections() stores section buckets, and ao_rw appends
             # Rewrite before URL Rewrite regardless of their physical order.
             # Provenance must use that same flattening order, not raw file order.
             "a_legacy.lpx": (
-                "[URL Rewrite]\\n"
-                "^https://legacy.example/legacy reject\\n"
-                "[Rewrite]\\n"
-                "^https://native.example/native reject\\n"
+                "[URL Rewrite]\n"
+                "^https://legacy.example/legacy reject\n"
+                "[Rewrite]\n"
+                "^https://native.example/native reject\n"
             ),
             "pdd.lpx": (
-                "[Rewrite]\\n"
-                "^http://139.196.12.179:8053/httpdns/ reject\\n"
+                "[Rewrite]\n"
+                "^http://139.196.12.179:8053/httpdns/ reject\n"
             ),
         }
         _, provenance = self.run_merge(
