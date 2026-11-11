@@ -177,3 +177,12 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 新增正向集成回归测试，覆盖普通与否定字符类中首位 `]` 的情况，确保 `foo.pangle.cn` 保留、三个无关涨乐财富通主机被清理。
 - 不修改任何广告 Rewrite/Script 规则、动作或 MITM 声明；无法安全解析的 HTTPS matcher 仍维持 fail-closed。
 - 正式验收以 PR CI 和合并后的生产同步日志/产物为准。
+
+
+## 第七阶段第十六批：修复固定端口 Script 触发器漏保留 MITM 主机
+
+- 正式深度审计发现中国农业银行请求脚本触发器明确匹配 `https://mobilepaas.abchina.com.cn:441/mgw.htm`，上游 MyBlockAds 也声明了 `mobilepaas.abchina.com.cn`，但合并后的 MITM 裁剪器因将 `:441` 当作主机的一部分而误删该 hostname。
+- 修复 MITM 覆盖分析：比较业务 URL 主机时剥离固定数字端口，同时保留已有动态/可选端口处理；MITM 输出本身仍只写 hostname，不带端口。
+- 新增集成回归测试：确认带固定 `:441` 的 HTTPS Request Script 能保留对应 MITM 主机，同时无引用的孤立主机仍被裁剪。
+- 不修改请求脚本、脚本 URL、广告动作、规则优先级或其他 MITM 声明；仅修复 MITM 主机引用分析。
+- 正式验收以 PR CI 与合并后同步产物为准，确认 `mobilepaas.abchina.com.cn` 进入最终 MITM 列表。
