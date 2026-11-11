@@ -104,9 +104,9 @@ def audit_deep(path):
     overlaps = sorted(h for h in exact if any(h.endswith('.' + w[2:]) for w in wild))
     apex_missing = sorted(w[2:] for w in wild if w[2:] not in exact)
 
-    guard_text = '\n'.join(x for _, x in rewrite + script)
+    guard_text = '\n'.join(x for _, x in rewrite + script).replace(r'\.', '.')
     literal_hosts = set(re.findall(
-        r'(?<![A-Za-z0-9_-])(?:[A-Za-z0-9-]+(?:\\\.)?)+[A-Za-z]{2,}(?![A-Za-z0-9_-])',
+        r'(?<![A-Za-z0-9_-])(?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,}(?![A-Za-z0-9_-])',
         guard_text, re.I
     ))
     unreferenced = sorted(h for h in positive if not any(
