@@ -714,6 +714,87 @@ def prep_block_sections(rewrite_lines, script_lines):
     return rewrite, script
 
 
+# 懒人听书：只允许上游该接口明确声明的两个业务主机。
+_LANRENTINGSHU_MARKER = '# > 懒人听书'
+_LANRENTINGSHU_HOST_DECLARATION = (
+    '# hostname = 118.178.214.118, dapis.mting.info, display.wting.info'
+)
+_LANRENTINGSHU_GENERIC = (
+    r'https?:\/\/.*\/yyting\/advertclient\/ClientAdvertList.action'
+)
+_LANRENTINGSHU_SCOPED = (
+    r'https?:\/\/(?:118\.178\.214\.118|dapis\.mting\.info)'
+    r'\/yyting\/advertclient\/ClientAdvertList.action'
+)
+
+
+def validate_lanrentingshu_source(source_text):
+    """若上游包含懒人听书区块，确认接口主机声明与宽泛规则未漂移。"""
+    marker_index = source_text.find(_LANRENTINGSHU_MARKER)
+    if marker_index < 0:
+        return False
+    next_app = re.search(
+        r'(?m)^#\s*>\s*',
+        source_text[marker_index + len(_LANRENTINGSHU_MARKER):],
+    )
+    section_end = (
+        marker_index + len(_LANRENTINGSHU_MARKER) + next_app.start()
+        if next_app else len(source_text)
+    )
+    section = source_text[marker_index:section_end]
+    if _LANRENTINGSHU_HOST_DECLARATION not in section:
+        raise RuntimeError(
+            '懒人听书上游 hostname 声明已变化，停止构建并要求复核'
+        )
+    if (_LANRENTINGSHU_GENERIC not in section
+            or 'reject(404)' not in section):
+        raise RuntimeError(
+            '懒人听书 ClientAdvertList 上游 matcher/action 已变化，'
+            '停止构建并要求复核'
+        )
+    return True
+
+
+def narrow_lanrentingshu_scope(rewrite_lines, source_present):
+    """将懒人听书 ClientAdvertList 的全主机匹配限制到上游声明的两个主机。"""
+    if not source_present:
+        return rewrite_lines, []
+    adjustments = []
+    output = []
+    for line in rewrite_lines:
+        is_target = (
+            '/yyting\\/advertclient\\/ClientAdvertList.action' in line
+            and 'reject(404)' in line
+        )
+        if not is_target:
+            output.append(line)
+            continue
+        if _LANRENTINGSHU_SCOPED in line:
+            output.append(line)
+            continue
+        if _LANRENTINGSHU_GENERIC not in line:
+            raise RuntimeError(
+                '懒人听书 ClientAdvertList matcher 已变化，拒绝静默跳过域名收敛：'
+                + line
+            )
+        updated = line.replace(
+            _LANRENTINGSHU_GENERIC, _LANRENTINGSHU_SCOPED, 1
+        )
+        adjustments.append({
+            'source': 'block',
+            'section': 'Rewrite',
+            'reason': 'Narrow 懒人听书 ClientAdvertList to its two explicitly declared hosts',
+            'original_line': line,
+            'output_line': updated,
+        })
+        output.append(updated)
+    if not adjustments:
+        raise RuntimeError(
+            '检测到懒人听书上游区块，但未找到待收敛的 ClientAdvertList 规则'
+        )
+    return output, adjustments
+
+
 # 555影视：上游明确声明的业务主机范围。通配项只匹配子域，不包含根域。
 _555_GENERIC_HOST = r'[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+){1,3}(:\d+)?'
 _555_SCOPED_HOST = (
@@ -794,6 +875,10 @@ block_rw, block_sc = prep_block_sections(
     extra_sec.get('Rewrite', []), extra_sec.get('Script', []))
 block_rw, block_sc, block_scope_adjustments = narrow_555_scope(
     block_rw, block_sc)
+lanrentingshu_source_present = validate_lanrentingshu_source(extra_text)
+block_rw, lanrentingshu_scope_adjustments = narrow_lanrentingshu_scope(
+    block_rw, lanrentingshu_source_present)
+block_scope_adjustments.extend(lanrentingshu_scope_adjustments)
 
 
 # Tencent Cloud HTTPDNS safety exclusion:
