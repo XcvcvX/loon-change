@@ -1005,7 +1005,34 @@ base_sc = real_lines(base_sec.get('Script', []))
 # The user does not use 涨乐财富通. R-Store places this exact image rule
 # under "# > 涨乐财富通 - ZHANGLE"; provenance confirms no other Rewrite
 # or Script rule references c.zhangle.com. Remove only this app-specific rule.
-_ZHANGLE_UNUSED_MATCHER = r'^https?://c\\.zhangle\\.com/pic/mktg/diversity/.+\\.jpg
+_ZHANGLE_UNUSED_MATCHER = r'^https?://c\.zhangle\.com/pic/mktg/diversity/.+\.jpg$'
+_ZHANGLE_UNUSED_ACTION = ('REJECT', 'reject_dict', 'reject_dict(200)')
+zhangle_rewrite_exclusions = []
+_zhangle_rw_kept = []
+for _line in base_rw:
+    if 'c\.zhangle\.com/pic/mktg/diversity/' not in _line:
+        _zhangle_rw_kept.append(_line)
+        continue
+    if (entry_regex(_line) != _ZHANGLE_UNUSED_MATCHER
+            or action_key(_line) != _ZHANGLE_UNUSED_ACTION):
+        raise RuntimeError(
+            'R-Store 涨乐财富通专属规则发生变化，拒绝静默保留或扩大排除范围：'
+            + _line
+        )
+    zhangle_rewrite_exclusions.append({
+        'source': 'base',
+        'source_catalog': 'R-Store / 涨乐财富通 - ZHANGLE',
+        'input_line': _line,
+        'matcher': _ZHANGLE_UNUSED_MATCHER,
+        'action': 'reject-dict(200)',
+        'reason': 'User confirmed they do not use 涨乐财富通; R-Store labels this exact rule in its dedicated ZHANGLE section, and no other Rewrite/Script rule references c.zhangle.com.',
+        'status': 'excluded_unused_app',
+    })
+    # The host is pruned from MITM later if no remaining rule uses it.
+    # A separate rule on this host from another app/source keeps it alive.
+    _zhangle_rw_kept.append(_line) if False else None
+base_rw = [line for line in _zhangle_rw_kept if line not in ()]
+
 # blockAdsV2
 block_rw, block_sc = prep_block_sections(
     extra_sec.get('Rewrite', []), extra_sec.get('Script', []))
