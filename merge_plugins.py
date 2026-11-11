@@ -1688,9 +1688,9 @@ def matcher_may_use_https(text):
     """判断 URL matcher 是否可能匹配 HTTPS；纯 HTTP 嵌入捕获组不需要 MITM。"""
     # 仅检查触发器部分，排除 script-path / then 后的远程脚本资源 URL。
     head = text.split(' then ', 1)[0].split('script-path=', 1)[0]
-    normalized = head.replace(r'\\/', '/')
+    normalized = head.replace(r'\/', '/')
     return bool(re.search(
-        r'https://|https\\?://|http\\(s\\)\\?://|http\\(\\?:s\\)\\?://|http\\[s\\]\\?://',
+        r'https://|https\?://|http\(s\)\?://|http\(\?:s\)\?://|http\[s\]\?://',
         normalized, re.IGNORECASE
     ))
 

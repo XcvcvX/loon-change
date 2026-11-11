@@ -177,12 +177,12 @@ hostname = *.amap.com
         # A pure-HTTP redirect matcher with a capturing group cannot be parsed
         # by host_zone_from_regex. It must not be mistaken for HTTPS coverage.
         base = (
-            "[Rewrite]\\n"
-            r'request if ${url} ~= /^(http:\\/\\/www\\.vgtime\\.com\\/app\\/topic\\/\\d+\\.jhtml\\?.*?&close_ad=)false(&page=\\d&sign=\\w+&timestamp=\\d+&font_size=\\d$)/ then redirect(302, "${m.1}true${m.2}")' + "\\n"
-            r"^https?:\\/\\/other\\.example\\.com\\/ad reject" + "\\n"
-            "[MITM]\\nhostname = c.zhangle.com, live.inst-service.htsc.com, geetest.htsc.com, other.example.com\\n"
+            "[Rewrite]\n"
+            r'request if ' + '$' + '{url}' + r' ~= /^(http:\/\/www\.vgtime\.com\/app\/topic\/\d+\.jhtml\?.*?&close_ad=)false(&page=\d&sign=\w+&timestamp=\d+&font_size=\d$)/ then reject(404)' + "\n"
+            r"^https?:\/\/other\.example\.com\/ad reject" + "\n"
+            "[MITM]\nhostname = c.zhangle.com, live.inst-service.htsc.com, geetest.htsc.com, other.example.com\n"
         )
-        output = self.run_merge(base, "[Rewrite]\\n[MITM]\\nhostname = \\n")
+        output = self.run_merge(base, "[Rewrite]\n[MITM]\nhostname = \n")
         mitm_line = next(line for line in output.splitlines()
                          if line.strip().startswith("hostname ="))
         for host in ("c.zhangle.com", "live.inst-service.htsc.com", "geetest.htsc.com"):
@@ -193,11 +193,11 @@ hostname = *.amap.com
         # The same unparseable capture-group form is retained when its scheme
         # can match HTTPS; do not weaken the conservative safety boundary.
         base = (
-            "[Rewrite]\\n"
-            r'request if ${url} ~= /^(https:\\/\\/www\\.example\\.com\\/path\\/)(.*)$/ then reject(404)' + "\\n"
-            "[MITM]\\nhostname = ads.example.com\\n"
+            "[Rewrite]\n"
+            r'request if ' + '$' + '{url}' + r' ~= /^(https:\/\/www\.example\.com\/path\/)(.*)$/ then reject(404)' + "\n"
+            "[MITM]\nhostname = ads.example.com\n"
         )
-        output = self.run_merge(base, "[Rewrite]\\n[MITM]\\nhostname = \\n")
+        output = self.run_merge(base, "[Rewrite]\n[MITM]\nhostname = \n")
         mitm_line = next(line for line in output.splitlines()
                          if line.strip().startswith("hostname ="))
         self.assertIn("ads.example.com", mitm_line)
