@@ -1773,32 +1773,34 @@ for _host in mitm:
         _kept_zhangle_mitm.append(_host)
         continue
     _could_be_referenced = False
+    _reference_reason = None
     for _line in merged_rw + merged_sc:
         # Generic/Cron/Network Changed scripts are manual or event/schedule
         # actions. Their script-path URLs identify downloaded code, not an HTTP
         # request hostname that requires MITM coverage.
         if re.match(r'^(?:generic|cron|network-changed)\b', _line.strip(), re.IGNORECASE):
             continue
-        # MITM 只服务 HTTPS 请求；纯 HTTP matcher 即使 host 提取成宽泛捕获组
-        #（例如 ^http://(.*)/...）也不能据此保留任意 HTTPS 解密主机。
-        # 对 HTTPS matcher 仍执行下方精确/保守匹配。
+        # MITM only serves HTTPS requests; HTTP-only matchers cannot justify TLS hosts.
         if not matcher_may_use_https(_line):
             continue
         _rx = entry_regex(_line)
         if not _rx:
             if matcher_may_use_https(_line):
                 _could_be_referenced = True
+                _reference_reason = ('unparsed_https_matcher', _line.strip(), '')
                 break
             continue
         _zone = host_zone_from_regex(_rx)
         if not _zone:
             if matcher_may_use_https(_rx):
                 _could_be_referenced = True
+                _reference_reason = ('unextractable_https_host', _line.strip(), _rx)
                 break
             continue
         try:
             if re.compile('^(?:' + _zone + ')$', re.IGNORECASE).match(_host_lower):
                 _could_be_referenced = True
+                _reference_reason = ('host_regex_match', _line.strip(), _zone)
                 break
         except re.error:
             # Python may not understand ICU constructs such as \p{L}.
@@ -1811,8 +1813,13 @@ for _host in mitm:
                     or _host_lower == _suffix_match.group(1)
                     or _host_lower.endswith('.' + _suffix_match.group(1))):
                 _could_be_referenced = True
+                _reference_reason = ('python_regex_fallback', _line.strip(), _zone)
                 break
     if _could_be_referenced:
+        print('  [MITM 保留诊断] %s <- %s | %s | %s' % (
+            _host, _reference_reason[0], _reference_reason[2],
+            _reference_reason[1][:240]
+        ))
         _kept_zhangle_mitm.append(_host)
         continue
     zhangle_mitm_exclusions.append({
