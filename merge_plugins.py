@@ -1541,13 +1541,40 @@ def host_zone_from_regex(rx):
     rest = rx[m.end():]
     out, i = [], 0
     while i < len(rest):
+        # Loon matcher commonly escapes URL separators as \/. They still end
+        # the authority; consuming them can pull path groups into the host regex.
+        if rest[i] == '\\' and i + 1 < len(rest) and rest[i + 1] == '/':
+            break
         if rest[i] == '\\' and i + 1 < len(rest):
             out.append(rest[i:i + 2]); i += 2
         elif rest[i] == '/':
             break
         else:
             out.append(rest[i]); i += 1
-    return ''.join(out)
+    zone = ''.join(out)
+    # A path may begin inside an optional group, e.g. (\/mkt)?.
+    # The opening parenthesis belongs to the path, not the authority.
+    # Remove only unmatched trailing open groups; balanced host groups remain intact.
+    while zone.endswith('('):
+        depth, escaped, in_class = 0, False, False
+        for ch in zone:
+            if escaped:
+                escaped = False
+                continue
+            if ch == '\\':
+                escaped = True
+            elif ch == '[':
+                in_class = True
+            elif ch == ']':
+                in_class = False
+            elif not in_class and ch == '(':
+                depth += 1
+            elif not in_class and ch == ')':
+                depth -= 1
+        if depth <= 0:
+            break
+        zone = zone[:-1]
+    return zone
 
 
 def is_narrow_host_pattern(pat):

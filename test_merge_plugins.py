@@ -253,6 +253,19 @@ hostname = *.amap.com
             "c.zhangle.com", "live.inst-service.htsc.com", "geetest.htsc.com"
         })
 
+    def test_escaped_path_separator_does_not_expand_host_zone(self):
+        base = (
+            "[Rewrite]\n"
+            r"^https?:\/\/(mkt-)?gateway\.tuhu\.cn(\/mkt)?\/mkt-cms\/circle\/recommend\/ reject" + "\n"
+            "[MITM]\nhostname = c.zhangle.com, live.inst-service.htsc.com, geetest.htsc.com, gateway.tuhu.cn\n"
+        )
+        output = self.run_merge(base, "[Rewrite]\n[MITM]\nhostname = \n")
+        mitm_line = next(line for line in output.splitlines()
+                         if line.strip().startswith("hostname ="))
+        for host in ("c.zhangle.com", "live.inst-service.htsc.com", "geetest.htsc.com"):
+            self.assertNotIn(host, mitm_line)
+        self.assertIn("gateway.tuhu.cn", mitm_line)
+
     def test_zhangle_mitm_host_is_retained_if_unsupported_pattern_may_match_it(self):
         # The ICU matcher is not understood by Python re, but its literal suffix
         # proves it may target geetest.htsc.com; retain that MITM host.
