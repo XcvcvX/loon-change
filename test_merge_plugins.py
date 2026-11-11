@@ -189,6 +189,22 @@ hostname = *.amap.com
             self.assertNotIn(host, mitm_line)
         self.assertIn("magev6.if.qidian.com", mitm_line)
 
+    def test_slash_inside_host_character_class_is_not_path_boundary(self):
+        # The pangle matcher uses [^\s/] in its authority. The slash belongs
+        # to the character class; parsing it as the path boundary produced an
+        # invalid "[^\s" host regex and conservatively retained unrelated MITM.
+        base = (
+            "[Rewrite]\n"
+            + r"^https?:\/\/[^\s/]*\.pangle\.cn\/advertisement\/ reject" + "\n"
+            + "[MITM]\nhostname = c.zhangle.com, live.inst-service.htsc.com, geetest.htsc.com, foo.pangle.cn\n"
+        )
+        output = self.run_merge(base, "[Rewrite]\n[MITM]\nhostname = \n")
+        mitm_line = next(line for line in output.splitlines()
+                         if line.strip().startswith("hostname ="))
+        for host in ("c.zhangle.com", "live.inst-service.htsc.com", "geetest.htsc.com"):
+            self.assertNotIn(host, mitm_line)
+        self.assertIn("foo.pangle.cn", mitm_line)
+
     def test_http_only_capture_group_does_not_disable_mitm_pruning(self):
         # A pure-HTTP redirect matcher with a capturing group cannot be parsed
         # by host_zone_from_regex. It must not be mistaken for HTTPS coverage.
