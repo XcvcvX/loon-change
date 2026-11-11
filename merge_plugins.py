@@ -747,7 +747,7 @@ block_rw, block_sc = prep_block_sections(
 # The broad upstream matcher also catches the current HTTPDNS endpoints
 # 119.29.29.98 (HTTP) and 119.29.29.99 (HTTPS), not just the retired .29 endpoint.
 # Keep the exclusion exact: do not suppress other paths, IPs, or actions.
-_BLOCK_HTTPDNS_MATCHER = r'^https?://119\\.29\\.29\\.\\d+/d'
+_BLOCK_HTTPDNS_MATCHER = r'^https?://119\.29\.29\.\d+/d'
 _BLOCK_HTTPDNS_ACTION = ('REJECT', 'reject', 'reject(200)')
 block_rewrite_exclusions = []
 _block_rw_kept = []
@@ -757,7 +757,31 @@ for _block_index, _block_line in enumerate(block_rw):
         _source_line_number = None
         _section = None
         for _line_number, _raw_line in enumerate(extra_text.splitlines(), 1):
-            _section_match = re.match(r'^\\[([A-Za-z]+)\\]\\s*# Thelongdarkorg（标准 v1，直接保留）
+            _section_match = re.match(r'^\[([A-Za-z]+)\]\s*$', _raw_line)
+            if _section_match:
+                _section = _section_match.group(1)
+            elif _section == 'Rewrite' and _raw_line.strip() == _block_line.strip():
+                _source_line_number = _line_number
+                break
+        block_rewrite_exclusions.append({
+            'source': 'block',
+            'source_catalog': 'fmz200/wool_scripts blockAdsV2',
+            'source_entry_index': _block_index,
+            'source_line_number': _source_line_number,
+            'input_line': _block_line,
+            'matcher': _BLOCK_HTTPDNS_MATCHER,
+            'action': 'reject(200)',
+            'reason': (
+                'Overbroad HTTPDNS path block: matcher catches active Tencent Cloud '
+                'HTTPDNS endpoints 119.29.29.98 (HTTP) and 119.29.29.99 (HTTPS); '
+                'the legacy 119.29.29.29 endpoint was retired.'
+            ),
+            'status': 'excluded_safety_guard',
+        })
+    else:
+        _block_rw_kept.append(_block_line)
+block_rw = _block_rw_kept
+# Thelongdarkorg（标准 v1，直接保留）
 thelong_rw, thelong_sc = [], []
 thelong_rule, thelong_mitm = [], []
 if args.apps:
