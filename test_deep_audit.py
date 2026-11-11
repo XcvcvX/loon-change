@@ -304,23 +304,23 @@ hostname = *.example.test
         from deep_audit import extract_literal_matcher_host
 
         cases = [
-            (r'^https?:\\/\\/gateway\\.example\\.com(:\\d+)?\\/app',
+            (r'^https?:\/\/gateway\.example\.com(:\d+)?\/app',
              ('gateway.example.com', 'literal_host')),
-            (r'^https?:\\/\\/gateway\\.example\\.com(?::443)?\\/app',
+            (r'^https?:\/\/gateway\.example\.com(?::443)?\/app',
              ('gateway.example.com', 'literal_host')),
-            (r'^https?:\\/\\/gateway\\.example\\.com\\:\\w+\\/app',
+            (r'^https?:\/\/gateway\.example\.com\:\w+\/app',
              ('gateway.example.com', 'literal_host')),
-            (r'^https?:\\/\\/(?:api|www)\\.example\\.com\\/ad',
+            (r'^https?:\/\/(?:api|www)\.example\.com\/ad',
              ('example.com', 'regex_host_suffix')),
-            (r'^https?:\\/\\/(?:www\\.)?youtube\\.com\\/api',
+            (r'^https?:\/\/(?:www\.)?youtube\.com\/api',
              ('youtube.com', 'regex_host_suffix')),
-            (r'^https?:\\/\\/(?:[A-Za-z0-9-]+\\.)*chelaile\\.net\\.cn\\/ad',
+            (r'^https?:\/\/(?:[A-Za-z0-9-]+\.)*chelaile\.net\.cn\/ad',
              ('chelaile.net.cn', 'regex_host_suffix')),
-            (r'^https?:\\/\\/api\\d?\\.futunn\\.com\\/ad',
+            (r'^https?:\/\/api\d?\.futunn\.com\/ad',
              ('futunn.com', 'regex_host_suffix')),
-            (r'^https?:\\/\\/(?:api|www).example\\.com\\/ad',
+            (r'^https?:\/\/(?:api|www).example\.com\/ad',
              (None, 'regex_host_authority')),
-            (r'^https?:\\/\\/(?:a|b)\\.com\\.cn\\/ad',
+            (r'^https?:\/\/(?:a|b)\.com\.cn\/ad',
              (None, 'regex_host_authority')),
         ]
         for matcher, expected in cases:
@@ -332,10 +332,9 @@ hostname = *.example.test
 
         # A regex alternative inside a label with no stable domain suffix must
         # remain ambiguous; do not infer a broad public-suffix MITM entry.
-        matcher = r'^https?:\\/\\/mrobot\\.(?:pcauto|pconline)\\.com\\.cn\\/ad'
+        matcher = r'^https?:\/\/mrobot\.(?:pcauto|pconline)\.com\.cn\/ad'
         self.assertEqual(extract_literal_matcher_host(matcher),
                          (None, 'regex_host_authority'))
-
 
 if __name__ == '__main__':
     unittest.main()
