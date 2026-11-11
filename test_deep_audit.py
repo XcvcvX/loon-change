@@ -304,6 +304,8 @@ hostname = *.example.test
         from deep_audit import extract_literal_matcher_host
 
         cases = [
+            (r'^https?:\/\/gateway\.example\.com:8080\/app',
+             ('gateway.example.com', 'literal_host')),
             (r'^https?:\/\/gateway\.example\.com(:\d+)?\/app',
              ('gateway.example.com', 'literal_host')),
             (r'^https?:\/\/gateway\.example\.com(?::443)?\/app',
