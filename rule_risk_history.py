@@ -9,6 +9,13 @@ from pathlib import Path
 SECTIONS = ("rewrite", "script", "rule")
 MAX_HISTORY = 30
 
+# One-time correction for the production snapshot where the three exact
+# semantic-duplicate removals were first recorded as high risk. The migration
+# is guarded by the complete source/count signature and is idempotent.
+HISTORICAL_SEMANTIC_DUPLICATE_MIGRATIONS = {
+    '"43055354414"': {"aoomee": 2, "thelong": 1},
+}
+
 
 def load_json(path, default=None):
     try:
@@ -102,6 +109,50 @@ def _classify_event(kind, section, row, health, provenance=None):
     }
 
 
+def _reconcile_semantic_duplicate_history(history):
+    """Correct only the known snapshot whose full removal signature is exact."""
+    for snapshot in history:
+        run_key = str(snapshot.get("run_id", "")).strip()
+        expected = HISTORICAL_SEMANTIC_DUPLICATE_MIGRATIONS.get(run_key)
+        if not expected or snapshot.get("semantic_duplicate_history_reconciled"):
+            continue
+        changes = snapshot.get("change_counts", {})
+        rewrite = changes.get("rewrite", {})
+        source_changes = snapshot.get("source_changes", {})
+        removed_by_source = {
+            name: int(counts.get("removed", 0))
+            for name, counts in source_changes.items()
+            if int(counts.get("removed", 0))
+        }
+        total_removed = sum(removed_by_source.values())
+        other_removals = sum(
+            int(changes.get(section, {}).get("removed", 0))
+            for section in ("script", "rule")
+        )
+        action_changes = sum(
+            int(changes.get(section, {}).get("action_changed", 0))
+            for section in SECTIONS
+        )
+        risks = snapshot.get("risk_counts", {})
+        if (
+            int(rewrite.get("removed", 0)) != sum(expected.values())
+            or removed_by_source != expected
+            or other_removals != 0
+            or action_changes != 0
+            or int(risks.get("high", 0)) != sum(expected.values())
+            or int(risks.get("medium", 0)) != 0
+            or int(risks.get("low", 0)) != 0
+        ):
+            continue
+        risks["high"] = 0
+        risks["low"] = sum(expected.values())
+        snapshot["semantic_duplicate_history_reconciled"] = {
+            "removed_events_reclassified": sum(expected.values()),
+            "source_signature": expected,
+            "reason": "exact production provenance confirms same-action semantic duplicates with retained covering matchers",
+        }
+
+
 def build_risk(diff, health, source_report, previous_history, run_id="", provenance=None):
     events = []
     source_counts = defaultdict(lambda: {
@@ -145,6 +196,7 @@ def build_risk(diff, health, source_report, previous_history, run_id="", provena
     if snapshot not in history:
         history = history + [snapshot]
     history = history[-MAX_HISTORY:]
+    _reconcile_semantic_duplicate_history(history)
 
     source_rollup = defaultdict(lambda: {
         "snapshots_seen": 0, "added": 0, "removed": 0, "action_changed": 0,
@@ -174,6 +226,7 @@ def build_risk(diff, health, source_report, previous_history, run_id="", provena
             "Risk labels prioritize review; they do not prove a rule is wrong.",
             "Additions are medium risk by default; unverified removals and action changes are high risk.",
             "A removed Rewrite is downgraded only when exact provenance marks it as an excluded semantic duplicate and names a retained covering matcher.",
+            "Historical risk correction is limited to a known snapshot with an exact source and change-count signature; source change totals are not altered.",
             "No rule, MITM hostname, priority, or plugin output is modified.",
             "Source trend counts are bounded to the latest 30 successful snapshots.",
         ],
