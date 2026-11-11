@@ -173,8 +173,12 @@ class MergeIntegrationTests(unittest.TestCase):
         ]
         self.assertEqual(len(aoomee_exclusions), 2)
         self.assertEqual(
-            {item["source_line_number"] for item in aoomee_exclusions},
-            {2, 3}
+            {item["source_section_entry_index"] for item in aoomee_exclusions},
+            {0, 1}
+        )
+        self.assertEqual(
+            {item["source_file"] for item in aoomee_exclusions},
+            {"plugins/a_legacy.lpx"}
         )
 
     def test_amap_app_has_highest_priority_and_keeps_distinct_actions(self):
