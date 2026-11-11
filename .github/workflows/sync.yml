@@ -58,7 +58,7 @@ jobs:
       - name: 编译检查
         run: python3 -m py_compile merge_plugins.py validate_plugin.py source_guard.py audit_plugin.py deep_audit.py amap_dependency_guard.py compare_rule_provenance.py source_health_guard.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py
       - name: 运行单元与合并集成测试
-        run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_amap_dependency_guard.py test_rule_risk_history.py test_rule_risk_history.py test_compare_rule_provenance.py test_source_health_guard.py test_rule_risk_history.py
+        run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_amap_dependency_guard.py test_compare_rule_provenance.py test_source_health_guard.py test_rule_risk_history.py test_compare_rule_provenance.py test_source_health_guard.py test_rule_risk_history.py
       - name: 审计当前插件风险摘要
         run: |
           python3 audit_plugin.py allAdRewrite.plugin --summary-only
@@ -88,7 +88,7 @@ jobs:
           python-version: '3.11'
 
       - name: 编译检查
-        run: python3 -m py_compile merge_plugins.py validate_plugin.py source_guard.py audit_plugin.py deep_audit.py amap_dependency_guard.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py
+        run: python3 -m py_compile merge_plugins.py validate_plugin.py source_guard.py audit_plugin.py deep_audit.py amap_dependency_guard.py compare_rule_provenance.py source_health_guard.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py
 
       - name: 测试校验器与来源依赖门禁
         run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_amap_dependency_guard.py
