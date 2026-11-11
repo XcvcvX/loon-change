@@ -12,7 +12,7 @@ MERGER = Path(__file__).with_name("merge_plugins.py")
 
 
 class MergeIntegrationTests(unittest.TestCase):
-    def run_merge(self, base_text, extra_text, myblockads_text=None, return_stdout=False, amap_text=None, return_provenance=False, apps_files=None):
+    def run_merge(self, base_text, extra_text, myblockads_text=None, return_stdout=False, amap_text=None, return_provenance=False, apps_files=None, expect_failure=False):
         tmp = tempfile.TemporaryDirectory()
         self.addCleanup(tmp.cleanup)
         root = Path(tmp.name)
@@ -290,6 +290,22 @@ hostname = *.amap.com
             {x["section"] for x in report["scope_adjustments"]},
             {"Rewrite", "Script"},
         )
+
+
+    def test_555_host_declaration_drift_fails_closed(self):
+        extra = (
+            "[Rewrite]\n"
+            "# > 555影视\n"
+            "# hostname = vip7.fzwdyy.cn, *.qyfxgd.cn, *.new555.example\n"
+            "[Script]\n"
+            'response if ${url} ~= /^https?:\/\/vip7\.fzwdyy\.cn\/api\/v1\/movie\/index_recommend/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/555Ad.js") with enable=555_enable\n'
+        )
+        result = self.run_merge(
+            "[Rewrite]\n[Script]\n[MITM]\nhostname = \n",
+            extra,
+            expect_failure=True,
+        )
+        self.assertIn("555影视上游 hostname 声明缺失或发生变化", result)
 
 
     def test_rule_provenance_records_winner_duplicates_and_rule_events(self):
