@@ -198,10 +198,12 @@ hostname = *.amap.com
             "c.zhangle.com", "live.inst-service.htsc.com", "geetest.htsc.com"
         })
 
-    def test_zhangle_mitm_host_is_retained_if_any_final_rule_still_references_it(self):
+    def test_zhangle_mitm_host_is_retained_if_unsupported_pattern_may_match_it(self):
+        # This ICU matcher cannot be compiled by Python re, but its literal
+        # suffix proves it may target geetest.htsc.com; that MITM host must stay.
         base = (
             "[Rewrite]\n"
-            r"^https?:\/\/geetest\.htsc\.com\/health reject" + "\n"
+            r"^https?:\/\/\p{L}+\.htsc\.com\/health reject" + "\n"
             "[MITM]\nhostname = geetest.htsc.com, c.zhangle.com\n"
         )
         output = self.run_merge(base, "[Rewrite]\n[MITM]\nhostname = \n")
