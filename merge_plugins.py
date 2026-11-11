@@ -1148,11 +1148,1052 @@ for _block_index, _block_line in enumerate(block_rw):
 block_rw = _block_rw_kept
 # Thelongdarkorg（标准 v1，直接保留）
 thelong_rw, thelong_sc = [], []
+thelong_rw_origins = []
 thelong_rule, thelong_mitm = [], []
 if args.apps:
     for fname, atext in iter_app_plugins(args.apps):
         _, s = split_sections(atext)
         app_rewrite_lines = real_lines(s.get('Rewrite', []))
+        # Build Rewrite origins from this exact file before any source-specific filtering.
+        # The flattened source_entry_index is assigned after filtering, so a second raw
+        # directory scan cannot safely reconstruct origins by the unfiltered index.
+        app_rewrite_origins = []
+        _origin_section = None
+        for _line_number, _raw_line in enumerate(atext.splitlines(), 1):
+            _section_match = re.match(r'^\\[([A-Za-z]+)\\]\\s*
+            _kept_app_rewrite_lines = []
+            _source_section = None
+            _source_line_numbers = {}
+            for _line_number, _raw_line in enumerate(atext.splitlines(), 1):
+                _section_match = re.match(r'^\[(.+?)\]\s*$', _raw_line)
+                if _section_match:
+                    _source_section = _section_match.group(1).strip()
+                elif _source_section == 'Rewrite' and _raw_line.strip():
+                    _source_line_numbers.setdefault(_raw_line.strip(), _line_number)
+            _kept_app_rewrite_origins = []
+            for _line, _origin in zip(app_rewrite_lines, app_rewrite_origins):
+                if entry_regex(_line) == _LITE_ADVERTISING_MATCHER:
+                    if _line != _LITE_ADVERTISING_THELONG_RESPONSE:
+                        raise RuntimeError('Thelong JD Lite 上游响应规则发生变化，拒绝扩大排除范围：' + _line)
+                    lite_advertising_rewrite_exclusions.append({
+                        'source': 'thelong',
+                        'source_catalog': 'Thelongdarkorg/loon-plugins',
+                        'source_file': fname,
+                        'source_line_number': _source_line_numbers.get(_line),
+                        'input_line': _line,
+                        'matcher': _LITE_ADVERTISING_MATCHER,
+                        'action': 'response-body-replace-regex jdLiteAdvertisingVO sooyaaabo',
+                        'reason': 'The retained base request-phase reject terminates this URL before an upstream response exists; this response-body rewrite is unreachable and adds no ad-blocking effect.',
+                        'status': 'excluded_unreachable_response_rule',
+                    })
+                else:
+                    _kept_app_rewrite_lines.append(_line)
+                    _kept_app_rewrite_origins.append(_origin)
+            app_rewrite_lines = _kept_app_rewrite_lines
+            app_rewrite_origins = _kept_app_rewrite_origins
+        if fname == 'qqmusic_splash_ad_block.plugin':
+            _, qqmusic_thelong_present = validate_qqmusic_sources(extra_text, atext)
+            if qqmusic_thelong_present:
+                app_rewrite_lines, qqmusic_thelong_adjustments = narrow_qqmusic_scope(
+                    app_rewrite_lines, 'thelong')
+                block_scope_adjustments.extend(qqmusic_thelong_adjustments)
+        thelong_rw += app_rewrite_lines
+        thelong_rw_origins += app_rewrite_origins
+        thelong_sc += real_lines(s.get('Script', []))
+        thelong_rule += real_lines(s.get('Rule', []))
+        for l in s.get('MITM', []):
+            if '=' in l:
+                thelong_mitm += [x.strip() for x in l.split('=', 1)[1].split(',') if x.strip()]
+# aoomee（v1/v2 混合；URL Rewrite 的 reject 并入 Rewrite；generic/cron 由合并器识别）
+ao_rw, ao_sc, ao_rule, ao_mitm = [], [], [], []
+if args.aoomee:
+    for fname, s in iter_aoomee(args.aoomee):
+        ao_rw += [convert_shadowrocket_line(l)
+                  for l in real_lines(s.get('Rewrite', []))]
+        for l in real_lines(s.get('URL Rewrite', [])):
+            toks = l.split()
+            if len(toks) == 2 and toks[1] in _LEGACY_REJECT:
+                ao_rw.append(l)
+        ao_sc += [convert_shadowrocket_line(l)
+                  for l in real_lines(s.get('Script', []))]
+        ao_rule += real_lines(s.get('Rule', []))
+        for l in s.get('MITM', []):
+            if '=' in l:
+                ao_mitm += [x.strip() for x in l.split('=', 1)[1].split(',') if x.strip()]
+# ---------------- zmjde 指定插件 ----------------
+# App 高优先级（完整并入，同正则替换其他来源）：DiDi/PinDuoDuo + 闲鱼/淘宝/什么值得买；
+# 通用 base 优先，只补 base 没有的（不覆盖）：Block_HTTPDNS/BlockAdvertisers + 可莉广告过滤器。
+_ZMJ_APP = ('DiDi_remove_ads.lpx', 'PinDuoDuo_remove_ads.lpx',
+            'FleaMarket_remove_ads.lpx', 'Taobao_remove_ads.lpx', 'smzdm_remove_ads.lpx')
+_ZMJ_GENERAL = ('Block_HTTPDNS.lpx', 'BlockAdvertisers.lpx', 'Remove_ads_by_keli.lpx')
+zmj_app_rw, zmj_app_sc, zmj_app_rule, zmj_app_mitm = [], [], [], []
+zmj_gen_rw, zmj_gen_sc, zmj_gen_rule, zmj_gen_mitm = [], [], [], []
+
+
+def _zmj_collect(s):
+    rw, sc, rule = list(s.get('Rewrite', [])), list(s.get('Script', [])), list(s.get('Rule', []))
+    hm = []
+    for l in s.get('MITM', []):
+        if '=' in l:
+            hm += [x.strip() for x in l.split('=', 1)[1].split(',') if x.strip()]
+    return rw, sc, rule, hm
+
+
+if args.zmjde:
+    pdir = os.path.join(args.zmjde, 'Plugin')
+    if not os.path.isdir(pdir):
+        pdir = args.zmjde
+    for name, bucket in ([(n, 'app') for n in _ZMJ_APP]
+                         + [(n, 'gen') for n in _ZMJ_GENERAL]):
+        path = os.path.join(pdir, name)
+        if not os.path.exists(path):
+            raise SystemExit('zmjde 缺少插件文件: %s' % name)
+        s = parse_loose_sections(open(path, encoding='utf-8').read())
+        rw, sc, rule, hm = _zmj_collect(s)
+        if bucket == 'app':
+            zmj_app_rw += rw; zmj_app_sc += sc; zmj_app_rule += rule; zmj_app_mitm += hm
+        else:
+            zmj_gen_rw += rw; zmj_gen_sc += sc; zmj_gen_rule += rule; zmj_gen_mitm += hm
+
+# ---------------- QuanX 单文件 App 插件（.conf，可重复，如瓜子影视）----------------
+qxapp_rw, qxapp_mitm = [], []
+
+
+def _qx_relit(s):
+    """QuanX 正则 -> Loon v2 正则字面量 /pattern/，未转义的 / 转义"""
+    out, i, n = [], 0, len(s)
+    while i < n:
+        if s[i] == '\\' and i + 1 < n:
+            out.append(s[i:i + 2]); i += 2
+        elif s[i] == '/':
+            out.append(r'\/'); i += 1
+        else:
+            out.append(s[i]); i += 1
+    return '/' + ''.join(out) + '/'
+
+
+def parse_qx_app_file(path):
+    """解析单个 QuanX .conf：返回 (Loon v2 规则行, MITM host)。
+    目前覆盖该类文件实际出现的 jsonjq-response-body；未识别的动作跳过（不静默乱转）。"""
+    hosts, out = [], []
+    for raw in open(path, encoding='utf-8').read().split('\n'):
+        line = raw.strip()
+        if not line or line.startswith('//') or line.startswith('#'):
+            continue
+        if line.startswith('hostname'):
+            hosts += [h.strip() for h in line.split('=', 1)[1].split(',') if h.strip()]
+            continue
+        if line.startswith('^http'):
+            m = re.match(r'^(\S+)\s+url\s+(.+)$', line)
+            if not m:
+                continue
+            jm = re.match(r"^jsonjq-response-body\s+'(.*)'\s*$", m.group(2))
+            if jm:
+                jq = jm.group(1).replace('`', '``')
+                out.append('response if ${url} ~= %s then response.json.jq(`%s`)'
+                           % (_qx_relit(m.group(1)), jq))
+    return out, hosts
+
+
+if args.qxapp:
+    for path in args.qxapp:
+        if not os.path.exists(path):
+            raise SystemExit('qxapp 缺少文件: %s' % path)
+        rw, hm = parse_qx_app_file(path)
+        qxapp_rw += rw; qxapp_mitm += hm
+
+# ---------------- 执行优先级合并 ----------------
+# 位置顺序：base 骨架 -> block -> zmjde通用 -> thelong -> aoomee -> qx单文件App -> amapApp -> zmjdeApp；
+# 数字越小优先级越高：amap App=-1（最高），zmjde App=0，qx 专属 App=1；通用源按既有顺序。
+# MyBlockAds（标准 Loon v2，综合大合集）：prio=7 最低，只补现有源没有的规则，零回归。
+if mb_text is not None:
+    mb_sec = parse_loose_sections(mb_text)
+    mb_rw = real_lines(mb_sec.get('Rewrite', []))
+    mb_sc = real_lines(mb_sec.get('Script', []))
+    mb_rule = real_lines(mb_sec.get('Rule', []))
+    mb_mitm = []
+    for l in mb_sec.get('MITM', []):
+        if '=' in l:
+            mb_mitm += [x.strip() for x in l.split('=', 1)[1].split(',') if x.strip()]
+else:
+    mb_rw, mb_sc, mb_rule, mb_mitm = [], [], [], []
+rw_feeds = [('base', 4, base_rw), ('block', 5, block_rw), ('zmjgen', 6, zmj_gen_rw),
+            ('thelong', 3, thelong_rw), ('aoomee', 2, ao_rw),
+            ('qxapp', 1, qxapp_rw), ('amap', -1, amap_rw), ('zmjapp', 0, zmj_app_rw),
+            ('myblockads', 7, mb_rw)]
+sc_feeds = [('base', 4, base_sc), ('block', 5, block_sc), ('zmjgen', 6, zmj_gen_sc),
+            ('thelong', 3, thelong_sc), ('aoomee', 2, ao_sc),
+            ('amap', -1, amap_sc), ('zmjapp', 0, zmj_app_sc), ('myblockads', 7, mb_sc)]
+merged_rw, rw_unguarded = priority_merge([(p, x) for _, p, x in rw_feeds])
+merged_sc, sc_unguarded = priority_merge([(p, x) for _, p, x in sc_feeds])
+# 无守卫行（generic/cron）归入 Script 段末尾，再整体去重
+merged_sc = dedup_keep_order(merged_sc + rw_unguarded + sc_unguarded)
+merged_rw = dedup_keep_order(merged_rw)
+
+# ---------------- Argument：blockAdsV2 + aoomee（YouTube 增强）----------------
+arg_items = dedup_keep_order(real_lines(extra_sec.get('Argument', [])))
+if args.aoomee:
+    for fname, s in iter_aoomee(args.aoomee):
+        arg_items += real_lines(s.get('Argument', []))
+arg_items = dedup_keep_order(arg_items)
+
+# ---------------- Rule：App 优先（aoomee -> thelong），再综合（block -> filter）----------------
+_RT_NORM = {
+    'domain': 'DOMAIN',
+    'domain-suffix': 'DOMAIN-SUFFIX',
+    'domainsuffix': 'DOMAIN-SUFFIX',  # 兼容历史无连字符写法
+    'ip-cidr': 'IP-CIDR',
+}
+_POL_NORM = {'reject': 'REJECT', 'direct': 'DIRECT'}
+
+
+def normalize_rule(line):
+    """归一化 aoomee 小写类型/策略，IP-CIDR 补 no-resolve；组合规则原样返回。"""
+    parts = [p.strip() for p in line.split(',')]
+    t = _RT_NORM.get(parts[0].lower(), parts[0])
+    if t not in ('DOMAIN', 'DOMAIN-SUFFIX', 'DOMAIN-KEYWORD', 'IP-CIDR', 'IP-CIDR6'):
+        return line
+    pol = _POL_NORM.get(parts[2].lower(), parts[2])
+    rest = parts[3:]
+    if t in ('IP-CIDR', 'IP-CIDR6') and 'no-resolve' not in rest:
+        rest.append('no-resolve')
+    return ','.join([t, parts[1], pol] + rest)
+
+
+rule_result = []
+rule_idx = build_rule_index([])
+rule_counts = collections.Counter()
+rule_provenance_events = []
+rule_source_indices = collections.Counter()
+
+
+# ---------------- 功能长连接保护（避免误伤抖音私信等实时消息）----------------
+# Frontier 是字节系 WebSocket 长连接网关（如 wss://frontier-im.douyin.com/ws/v2），
+# 抖音私信/实时消息走这条长连接，不是广告域名；拦截会导致私信无法收发，
+# 但 APNs 推送走苹果系统通道、不受影响，表现为"有推送却收发不了消息"。
+# 故凡拦截目标是 Frontier 长连接的规则一律放行（含 frontier 即保护，覆盖精确域名与 AND/KEYWORD 组合）。
+def is_frontier_guard(line):
+    return 'frontier' in line.lower()
+
+
+def add_rule(line, src):
+    original_line = line
+    line = normalize_rule(line)
+    source_index = rule_source_indices[src]
+    rule_source_indices[src] += 1
+    event = {
+        'source': src,
+        'source_entry_index': source_index,
+        'original_input_line': original_line,
+        'normalized_line': line,
+    }
+    if is_frontier_guard(line):
+        event.update({'status': 'excluded_safety_guard',
+                      'reason': 'Frontier/WebSocket long-connection protection'})
+        rule_provenance_events.append(event)
+        rule_counts[src + '_keep'] += 1
+        return
+    if line in rule_result:
+        previous = next((item for item in reversed(rule_provenance_events)
+                         if item.get('status') == 'included'
+                         and item.get('output_line') == line), None)
+        event.update({'status': 'duplicate_exact', 'duplicate_of': line,
+                      'duplicate_of_source': previous.get('source') if previous else None})
+        rule_provenance_events.append(event)
+        rule_counts[src + '_dup'] += 1
+        return
+    t = line.split(',')[0]
+    if t in ('DOMAIN', 'DOMAIN-SUFFIX', 'DOMAIN-KEYWORD', 'IP-CIDR', 'IP-CIDR6'):
+        if rule_is_covered(line, rule_idx):
+            covering = None
+            for existing in rule_result:
+                if rule_is_covered(line, build_rule_index([existing])):
+                    covering = existing
+                    break
+            previous = next((item for item in reversed(rule_provenance_events)
+                             if item.get('status') == 'included'
+                             and item.get('output_line') == covering), None)
+            event.update({
+                'status': 'covered_by_existing_rule',
+                'covered_by': covering,
+                'covered_by_source': previous.get('source') if previous else None,
+            })
+            rule_provenance_events.append(event)
+            rule_counts[src + '_dup'] += 1
+            return
+        add_to_index(line, rule_idx)
+    rule_result.append(line)
+    event.update({'status': 'included', 'output_line': line})
+    rule_provenance_events.append(event)
+    rule_counts[src + '_add'] += 1
+
+
+if args.amap:
+    for l in amap_rule:
+        add_rule(l, 'amap')
+if args.zmjde:
+    for l in zmj_app_rule:
+        add_rule(l, 'zmjapp')
+if args.aoomee:
+    for l in ao_rule:
+        add_rule(l, 'aoomee')
+if args.apps:
+    for l in thelong_rule:
+        add_rule(l, 'thelong')
+for l in real_lines(extra_sec.get('Rule', [])):
+    add_rule(l, 'block')
+if args.zmjde:
+    # 通用拦截器：以已有 Rule 为基础，语义覆盖判定后只补未覆盖项（不覆盖 base）
+    for l in zmj_gen_rule:
+        add_rule(l, 'zmjgen')
+# R-Store 独立分流（filter），未覆盖才补
+fstats = {'total': 0, 'covered': 0, 'added': 0}
+if args.filter != 'none':
+    if args.filter == 'fetch':
+        try:
+            ftext, used_url, _ = fetch_validated(
+                [FILTER_URL] + FILTER_MIRRORS, fetch, validate_filter, 'R-Store filter')
+            print('[fetch] 已获取并通过完整性检查 R-Store filter:', used_url)
+        except Exception as e:
+            raise SystemExit('R-Store filter 获取失败: %s' % e)
+    else:
+        ftext = open(args.filter, encoding='utf-8').read()
+    for fr in dedup_keep_order(parse_qx_filter(ftext)):
+        fstats['total'] += 1
+        before = len(rule_result)
+        add_rule(fr, 'filter')
+        if len(rule_result) == before:
+            fstats['covered'] += 1
+        else:
+            fstats['added'] += 1
+for l in mb_rule:
+    add_rule(l, 'myblockads')
+rule_items = dedup_keep_order(rule_result)
+
+# ---------------- MITM：base 主机 + 各来源收敛（守卫反查），再自愈 ----------------
+mitm = []
+for l in base_sec.get('MITM', []):
+    if '=' in l:
+        mitm += [x.strip() for x in l.split('=', 1)[1].split(',')
+                 if x.strip() and not mitm_skip_host(x)]
+# 守卫真实 host：用最终 Rewrite/Script（含全部来源），供通配 TLD/缺 TLD 反查
+guard_real = guard_hosts_from_lines(merged_rw + merged_sc)
+# qxapp 单文件（如瓜子影视）的规则守卫含 OR + 随机域名（[a-z0-9]+），guard 提取无法静态
+# 解析出具体 host；其 hostname 行是权威声明，且这些 host 已验证被规则守卫匹配，
+# 故补入需要集合，避免被 prune_unused_mitm 误判为无动作 host 而裁剪、导致 HTTPS 规则失效。
+if args.qxapp:
+    guard_real = set(guard_real) | {
+        h for h in qxapp_mitm if not mitm_skip_host(h) and '*' not in h and '?' not in h}
+extra_raw = []
+for l in extra_sec.get('MITM', []):
+    if '=' in l:
+        extra_raw += [x.strip() for x in l.split('=', 1)[1].split(',') if x.strip()]
+# The 119.29.29.* MITM wildcard is declared only by the unused ZhangLe Cai Fu Tong
+# app-specific feed alongside its HTTPDNS blocking rule. Remove this source's
+# declaration, but allow another independent source to retain it if needed.
+_block_mitm_kept = []
+for _host in extra_raw:
+    if _host.lower() == '119.29.29.*':
+        block_mitm_exclusions.append({
+            'source': 'block',
+            'source_catalog': 'fmz200/wool_scripts blockAdsV2 / ZhangLeCaiFuTong',
+            'hostname': _host,
+            'reason': 'Only declared by the unused ZhangLe Cai Fu Tong app-specific ad feed; its paired HTTPDNS blocking Rewrite is excluded.',
+            'status': 'excluded_unused_app',
+        })
+    else:
+        _block_mitm_kept.append(_host)
+extra_raw = _block_mitm_kept
+dropped = []
+for h in extra_raw + thelong_mitm + ao_mitm + amap_mitm + zmj_app_mitm + zmj_gen_mitm + qxapp_mitm + mb_mitm:
+    got = normalize_extra_host(h, guard_real)
+    # 跳过证书绑定域（如 amemv）：从源头不进 MITM，不使用负向语法
+    got = [x for x in got if not mitm_skip_host(x)]
+    if not got:
+        dropped.append(h)
+    else:
+        mitm += got
+mitm = dedup_keep_order(mitm)
+
+
+def _mitm_covered(host, hostset):
+    if host in hostset:
+        return True
+    return any(m.startswith('*.') and host.endswith('.' + m[2:])
+               for m in hostset)
+
+
+mitm_healed = []
+# 必须同时扫描 Rewrite + Script（Script 段的 http(s)-request/response 守卫同样需要 MITM）
+for _h in sorted(guard_hosts_from_lines(merged_rw + merged_sc)):
+    # 证书绑定域（如 amemv）整体 pass：守卫退化出的 *.amemv.com 不补进 MITM
+    if mitm_skip_host(_h):
+        continue
+    # 只补具体 host：守卫退化出的整域通配（*.域）不补，避免 pinning 域被强制 MITM 而握手失败
+    if '*' in _h or '?' in _h:
+        continue
+    if not _mitm_covered(_h, set(mitm)):
+        mitm.append(_h)
+        mitm_healed.append(_h)
+mitm = dedup_keep_order(mitm)
+# 最终输出前统一清理所有来源（包括 base 原有声明及自愈结果）中的 IP literal。
+mitm_ip_dropped = [h for h in mitm if is_ip_literal_host(h)]
+if mitm_ip_dropped:
+    mitm = [h for h in mitm if not is_ip_literal_host(h)]
+if any(is_ip_literal_host(h) for h in mitm):
+    raise RuntimeError('MITM hostname invariant failed: IP literal remained')
+
+
+def host_zone_from_regex(rx):
+    """从 entry_regex 输出提取 host 部分（起始 ^ 可选），无法提取返回 None。"""
+    # Accept both common scheme spellings: https?:// and http[s]?://.
+    m = re.match(r'\^?(?:https?\??|http\[s\]\??)://', rx)
+    if not m:
+        return None
+    rest = rx[m.end():]
+    out, i, in_class, class_first = [], 0, False, False
+    while i < len(rest):
+        ch = rest[i]
+        if ch == '\\' and i + 1 < len(rest):
+            # Escaped brackets are literals and must not change class state.
+            if rest[i + 1] == '/' and not in_class:
+                break
+            out.append(rest[i:i + 2])
+            if in_class:
+                class_first = False
+            i += 2
+            continue
+        if not in_class:
+            if ch == '/':
+                break
+            if ch == '[':
+                in_class, class_first = True, True
+            out.append(ch)
+            i += 1
+            continue
+
+        # In a character class, a leading ']' (after optional '^') is a
+        # literal member, not the closing delimiter: e.g. []/] and [^]/].
+        if class_first and ch == '^':
+            out.append(ch)
+            i += 1
+            continue
+        if ch == ']' and class_first:
+            out.append(ch)
+            class_first = False
+            i += 1
+            continue
+        if ch == ']':
+            in_class = False
+            out.append(ch)
+            i += 1
+            continue
+        # ICU/POSIX-style nested class operators [:...:], [. ... .], [=...=]
+        # contain their own closing bracket; do not close the outer class.
+        if ch == '[' and i + 1 < len(rest) and rest[i + 1] in ':.=':
+            marker = rest[i + 1]
+            end = rest.find(marker + ']', i + 2)
+            if end >= 0:
+                out.append(rest[i:end + 2])
+                class_first = False
+                i = end + 2
+                continue
+        out.append(ch)
+        class_first = False
+        i += 1
+    zone = ''.join(out)
+    # A path may begin inside an optional group, e.g. (\/mkt)?.
+    # The opening parenthesis belongs to the path, not the authority.
+    # Remove only unmatched trailing open groups; balanced host groups remain intact.
+    while zone.endswith('('):
+        depth, escaped, in_class = 0, False, False
+        for ch in zone:
+            if escaped:
+                escaped = False
+                continue
+            if ch == '\\':
+                escaped = True
+            elif ch == '[':
+                in_class = True
+            elif ch == ']':
+                in_class = False
+            elif not in_class and ch == '(':
+                depth += 1
+            elif not in_class and ch == ')':
+                depth -= 1
+        if depth <= 0:
+            break
+        zone = zone[:-1]
+    return zone
+
+
+def is_narrow_host_pattern(pat):
+    """含长度>=3 的连续字母数字字面片段即视为针对性窄模式；否则为匹配一切的宽泛模式。
+    先剔除字符类 [...]（否定字符类里的字母并非字面序列），避免伪窄模式。"""
+    stripped = re.sub(r'\[.*?\]', '', pat)
+    return any(len(x) >= 3 for x in re.findall(r'[A-Za-z0-9]+', stripped))
+
+
+def compiled_narrow_hosts(rule_lines):
+    """从规则行提取编译后的窄 host 正则（去重，跳过不可编译模式）。"""
+    out = {}
+    for l in rule_lines:
+        rx = entry_regex(l)
+        if not rx:
+            continue
+        z = host_zone_from_regex(rx)
+        if not z or not is_narrow_host_pattern(z):
+            continue
+        try:
+            out.setdefault(z, re.compile('^(?:%s)$' % z, re.IGNORECASE))
+        except re.error:
+            pass
+    return out
+
+
+def strip_host_port(p):
+    """剥离 host 模式末尾端口部分（:1234 / :\\d+ / :\\d{4} / \\:\\w+ / (?::443)?）。"""
+    p = re.sub(r'\(:?\\?:?\d+\)\?', '', p)
+    p = re.sub(r'\\?:[\w\\+{}]+$', '', p)
+    return p
+
+
+def expand_or_patterns(z, limit=64):
+    """展开 OR 分组为多个模式（笛卡尔积，上限 limit），返回模式列表；可选分组先取其内容。
+    含裸 | 但无匹配括号的损坏模式不展开；无进展即终止，避免无限循环。"""
+    s = z.replace('?:', '')
+    s = re.sub(r'\(([^()]*)\)\?', r'\1', s)
+    out = [s]
+    while any('|' in x for x in out):
+        if len(out) >= limit:
+            break
+        nxt = []
+        changed = False
+        for p in out:
+            m = re.search(r'\(([^()|]*\|[^()]*)\)', p)
+            if not m:
+                nxt.append(p)
+                continue
+            changed = True
+            for opt in m.group(1).split('|'):
+                nxt.append(p[:m.start()] + opt + p[m.end():])
+        if not changed:
+            break
+        out = nxt
+    return out[:limit]
+
+
+def materialize_hosts(z):
+    """展开 OR 全分支，对每个无 OR 模式生成可信样本，返回去重样本集合。"""
+    res = set()
+    for p in expand_or_patterns(z):
+        zc = strip_host_port(p)
+        if '(' in zc or ')' in zc:
+            continue
+        try:
+            samp = materialize_host(p)
+            if re.compile('^(?:%s)$' % zc, re.IGNORECASE).match(samp):
+                res.add(samp)
+        except (re.error, TypeError):
+            pass
+    return res
+
+
+def materialize_host(z):
+    """把 host 正则里的通配构造替换成合法占位，生成该模式确实能匹配的一个具体样本 host（用原模式验证）。
+    用于判断标准通配 *.X 是否被规则需要：规则样本是 X 的子域则通配需保留。"""
+    s = z.replace('?:', '')
+    s = re.sub(r'\(:?\\?:?\d+\)\?', '', s)
+    s = re.sub(r'\\?:[\w\\+{}]+$', '', s)
+    prev = None
+    while prev != s:
+        prev = s
+        s = re.sub(r'\(([^()]*)\)\?', r'\1', s)
+        s = re.sub(r'\(([^()|]*\|[^()]*)\)', lambda m: m.group(1).split('|')[0], s)
+
+    def wrep(m):
+        n = m.group(1)
+        if n in ('+', '*', ''):
+            return 'aaa'
+        if ',' in n:
+            lo = n.split(',')[0]
+            return 'a' * (int(lo) if lo else 1)
+        return 'a' * int(n)
+    s = re.sub(r'\\w\{(\d+(?:,\d+)?)\}', wrep, s)
+    s = re.sub(r'\\w[+*]', 'aaa', s)
+    s = re.sub(r'\\w', 'a', s)
+
+    def drep(m):
+        n = m.group(1)
+        if n in ('+', '*', '?', ''):
+            return '1'
+        if ',' in n:
+            lo = n.split(',')[0]
+            return '1' * (int(lo) if lo else 1)
+        return '1' * int(n)
+    s = re.sub(r'\\d\{(\d+(?:,\d+)?)\}', drep, s)
+    s = re.sub(r'\\d[+*?]?', '1', s)
+
+    def crep(m):
+        content, quant = m.group(1), m.group(2)
+        length = 1
+        if quant and quant.isdigit():
+            length = int(quant)
+        elif quant and ',' in quant:
+            lo = quant.split(',')[0]
+            length = int(lo) if lo else 1
+        chars = re.sub(r'[^\w]', '', content)
+        ch = chars[0] if chars else ('1' if re.match(r'^[\d\-]+$', content) else 'a')
+        return (ch * length) if length > 1 else ch
+    s = re.sub(r'\[([^\]]*)\](?:\{(\d+(?:,\d+)?)\}|([+*?]))?', crep, s)
+
+    def dot_rep(m):
+        nxt = s[m.end():m.end() + 2]
+        # 后紧跟转义点则用纯标签；否则带点，生成点分离子域（避免前缀粘连成不同域）
+        return 'abc' if nxt == '\\.' else 'abc.'
+    s = re.sub(r'\.\*|\.\+\??', dot_rep, s)
+    s = re.sub(r'\{\d+(?:,\d+)?\}', '', s)
+    s = re.sub(r'(?<=[A-Za-z0-9)])[?+*]', '', s)
+    s = s.replace('\\.', '.').replace('\\-', '-')
+    s = re.sub(r'[(){}]', '', s)
+    s = re.sub(r':.*$', '', s)
+    s = re.sub(r'\.+', '.', s).strip('.')
+    return s
+
+
+def matcher_may_use_https(text):
+    """判断 URL matcher 是否可能匹配 HTTPS；纯 HTTP 嵌入捕获组不需要 MITM。"""
+    # 仅检查触发器部分，排除 script-path / then 后的远程脚本资源 URL。
+    head = text.split(' then ', 1)[0].split('script-path=', 1)[0]
+    normalized = head.replace(r'\/', '/')
+    return bool(re.search(
+        r'https://|https\?://|http\(s\)\?://|http\(\?:s\)\?://|http\[s\]\?://',
+        normalized, re.IGNORECASE
+    ))
+
+
+def compiled_host_patterns(rule_lines):
+    """编译 host 正则；遇到 Python 无法解析的模式时返回不确定标记，禁止激进裁剪。"""
+    out, uncertain = {}, False
+    for line in rule_lines:
+        if re.match(r'^(?:generic|cron)\b', line.strip()):
+            continue
+        rx = entry_regex(line)
+        if not rx:
+            if matcher_may_use_https(line):
+                uncertain = True
+            continue
+        zone = host_zone_from_regex(rx)
+        if not zone:
+            if matcher_may_use_https(rx):
+                uncertain = True
+            continue
+        try:
+            out.setdefault(zone, re.compile('^(?:%s)$' % zone, re.IGNORECASE))
+        except re.error:
+            uncertain = True
+    return out, uncertain
+
+
+def prune_unused_mitm(mitm_hosts, rule_lines):
+    """按最终合并后的规则判断 MITM 用途，避免跨来源共享域名被误裁剪。"""
+    all_patterns, uncertain = compiled_host_patterns(rule_lines)
+    if uncertain:
+        # Python re 与 Loon/ICU 不完全同构；无法解析时宁可保留 MITM，不冒险误删。
+        return list(mitm_hosts)
+    narrow = {z: rc for z, rc in all_patterns.items() if is_narrow_host_pattern(z)}
+
+    def trusted_samples(zdict):
+        out = set()
+        for z in zdict:
+            out |= materialize_hosts(z)
+        return out
+
+    all_samples = trusted_samples(narrow)
+    kept_conc = [
+        h for h in mitm_hosts
+        if not h.startswith('*.') and not h.startswith('-')
+        and any(rc.match(h) for rc in all_patterns.values())
+    ]
+
+    kept_wild = []
+    for pattern in mitm_hosts:
+        if not pattern.startswith('*.'):
+            continue
+        suffix = pattern[2:]
+        probes = (suffix, 'probe.' + suffix, 'probe.probe.' + suffix)
+        if (any(sample.endswith('.' + suffix) for sample in all_samples)
+                or any(rc.match(probe) for rc in all_patterns.values() for probe in probes[1:])):
+            kept_wild.append(pattern)
+
+    neg = [h for h in mitm_hosts if h.startswith('-')]
+    return kept_conc + kept_wild + neg
+
+# 自动裁剪：仅按最终合并后的 Rewrite/Script host 正则判断，避免跨来源共享域名误删。
+_mitm_before_prune = len(mitm)
+mitm = prune_unused_mitm(mitm, merged_rw + merged_sc)
+mitm_pruned = _mitm_before_prune - len(mitm)
+# The three exact ZhangLe hosts become orphaned after all dedicated Rewrite rules
+# are excluded. The general MITM pruner intentionally fails closed when any
+# host pattern cannot be analyzed; remove only these exact app-specific hosts
+# after checking whether any final Rewrite/Script matcher could target them.
+_ZHANGLE_UNUSED_MITM_HOSTS = {
+    'c.zhangle.com',
+    'live.inst-service.htsc.com',
+    'geetest.htsc.com',
+}
+zhangle_mitm_exclusions = []
+_kept_zhangle_mitm = []
+for _host in mitm:
+    _host_lower = _host.lower()
+    if _host_lower not in _ZHANGLE_UNUSED_MITM_HOSTS:
+        _kept_zhangle_mitm.append(_host)
+        continue
+    _could_be_referenced = False
+    _reference_reason = None
+    for _line in merged_rw + merged_sc:
+        # Generic/Cron/Network Changed scripts are manual or event/schedule
+        # actions. Their script-path URLs identify downloaded code, not an HTTP
+        # request hostname that requires MITM coverage.
+        if re.match(r'^(?:generic|cron|network-changed)\b', _line.strip(), re.IGNORECASE):
+            continue
+        # MITM only serves HTTPS requests; HTTP-only matchers cannot justify TLS hosts.
+        if not matcher_may_use_https(_line):
+            continue
+        _rx = entry_regex(_line)
+        if not _rx:
+            if matcher_may_use_https(_line):
+                _could_be_referenced = True
+                _reference_reason = ('unparsed_https_matcher', _line.strip(), '')
+                break
+            continue
+        _zone = host_zone_from_regex(_rx)
+        if not _zone:
+            if matcher_may_use_https(_rx):
+                _could_be_referenced = True
+                _reference_reason = ('unextractable_https_host', _line.strip(), _rx)
+                break
+            continue
+        try:
+            if re.compile('^(?:' + _zone + ')$', re.IGNORECASE).match(_host_lower):
+                _could_be_referenced = True
+                _reference_reason = ('host_regex_match', _line.strip(), _zone)
+                break
+        except re.error:
+            # ICU's \cX escape denotes a control character. Control characters
+            # cannot occur in a DNS hostname, so this matcher cannot reference
+            # any valid MITM host even though Python re rejects the syntax.
+            if re.search(r'\\c[A-Za-z]', _zone):
+                continue
+            # Python may not understand ICU constructs such as \p{L}.
+            # Use a literal suffix as a conservative host-level fallback.
+            _normalized_zone = _zone.lower().replace(r'\.', '.')
+            _suffix_match = re.search(
+                r'([a-z0-9-]+(?:\.[a-z0-9-]+)+)$', _normalized_zone
+            )
+            if (_host_lower in _normalized_zone or not _suffix_match
+                    or _host_lower == _suffix_match.group(1)
+                    or _host_lower.endswith('.' + _suffix_match.group(1))):
+                _could_be_referenced = True
+                _reference_reason = ('python_regex_fallback', _line.strip(), _zone)
+                break
+    if _could_be_referenced:
+        print('  [MITM 保留诊断] %s <- %s | %s | %s' % (
+            _host, _reference_reason[0], _reference_reason[2],
+            _reference_reason[1][:240]
+        ))
+        _kept_zhangle_mitm.append(_host)
+        continue
+    zhangle_mitm_exclusions.append({
+        'source': 'merged_mitm',
+        'source_catalog': 'R-Store / blockAdsV2 / merged app MITM',
+        'hostname': _host,
+        'reason': (
+            'The three ZhangLe-only Rewrite rules are excluded and no final '
+            'Rewrite/Script matcher can be shown to target this exact host; '
+            'retaining it would add unused TLS interception without ad-blocking effect.'
+        ),
+        'status': 'excluded_unused_app',
+    })
+mitm = _kept_zhangle_mitm
+
+
+# ---------------- 输出 ----------------
+today = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
+header = [
+    '#!name=R-Store × blockAdsV2 × 独立 App 去广告净化合集',
+    '#!desc=合并 R-Store、blockAdsV2、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；'
+    '按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含',
+    '#!author=zirawell / fmz200 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）',
+    '#!homepage=https://github.com/XcvcvX/loon-change',
+    '#!merged-at=%s' % today,
+    '#!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。',
+    '#!sources=R-Store(QuanX->Loon)+blockAdsV2+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds',
+    '',
+]
+out = list(header)
+if arg_items:
+    out += ['[Argument]'] + arg_items + ['']
+if rule_items:
+    out += ['[Rule]'] + rule_items + ['']
+out += ['[Rewrite]'] + merged_rw + ['']
+out += ['[Script]'] + merged_sc + ['']
+out += ['[MITM]', 'hostname = ' + ', '.join(mitm), '']
+
+if args.provenance_out:
+    def _provenance_key(line):
+        uk = unguarded_key(line)
+        if uk is not None:
+            return ('unguarded',) + tuple(uk)
+        rx = entry_regex(line)
+        if not rx:
+            return ('unparsed', line.strip())
+        return ('guarded', rx, action_key(line))
+
+    def _section_provenance(feeds, output_lines, section):
+        candidates = collections.defaultdict(list)
+        for source, priority, lines, input_section in feeds:
+            for index, line in enumerate(lines):
+                key = _provenance_key(line)
+                eligible = (input_section == section or
+                            (section == 'Script' and input_section == 'Rewrite'
+                             and key[0] == 'unguarded'))
+                if eligible:
+                    candidates[key].append({
+                        'source': source, 'priority': priority,
+                        'source_entry_index': index, 'input_section': input_section,
+                        'input_line': line,
+                    })
+        records = []
+        for output_index, output_line in enumerate(output_lines, 1):
+            key = _provenance_key(output_line)
+            matches = candidates.get(key, [])
+            if matches:
+                if key[0] == 'unguarded':
+                    winner = matches[0]
+                    for candidate in matches[1:]:
+                        if (is_v2_line(candidate['input_line'])
+                                and not is_v2_line(winner['input_line'])):
+                            winner = candidate
+                else:
+                    winner = sorted(
+                        matches,
+                        key=lambda item: (item['priority'],
+                                          0 if is_v2_line(item['input_line']) else 1)
+                    )[0]
+                source_rows = []
+                for candidate in matches:
+                    row = dict(candidate)
+                    origin = source_origins.get((candidate['source'], candidate['input_section'], candidate['source_entry_index']))
+                    if origin:
+                        row.update(origin)
+                    row['disposition'] = (
+                        'selected' if candidate is winner else 'duplicate_same_semantics'
+                    )
+                    source_rows.append(row)
+            else:
+                source_rows = []
+            records.append({
+                'section': section,
+                'output_entry_index': output_index,
+                'output_line': output_line,
+                'canonical_key': repr(key),
+                'sources': source_rows,
+                'trace_status': 'mapped' if source_rows else 'unmapped_or_generated',
+            })
+        return records
+
+    # Multi-file upstream sources: retain exact plugin filename and original 1-based line.
+    # Indices mirror the flattened feeds assembled above; no rule ordering is changed.
+    source_origins = {}
+
+    def _record_origin(source, section, index, filename, line_number, raw_line):
+        source_origins[(source, section, index)] = {
+            'source_file': filename,
+            'source_line_number': line_number,
+            'source_raw_line': raw_line,
+        }
+
+    def _raw_rows(path):
+        current = None
+        with open(path, encoding='utf-8') as source_handle:
+            for line_number, raw in enumerate(source_handle, 1):
+                match = re.match(r"^\[(.+?)\]\s*$", raw)
+                if match:
+                    current = match.group(1).strip()
+                    continue
+                value = raw.strip()
+                if current and value and not value.startswith(('#', '//')):
+                    yield current, line_number, value
+
+    if args.apps:
+        for index, (filename, line_number, raw_line) in enumerate(thelong_rw_origins):
+            _record_origin('thelong', 'Rewrite', index, filename, line_number, raw_line)
+        indices = {'Rewrite': 0, 'Script': 0, 'Rule': 0}
+        for filename in sorted(x for x in os.listdir(args.apps)
+                               if x.endswith('.plugin')
+                               and (x.endswith('_ad_block.plugin') or x.endswith('_splash_ad_block.plugin'))
+                               and not x.startswith('ai_auto_node')):
+            path = os.path.join(args.apps, filename)
+            for section, line_number, raw_line in _raw_rows(path):
+                # Rewrite origins were recorded alongside the filtered feed above.
+                if section not in indices or section == 'Rewrite':
+                    continue
+                _record_origin('thelong', section, indices[section], filename,
+                               line_number, raw_line)
+                indices[section] += 1
+
+    if args.aoomee:
+        pdir = os.path.join(args.aoomee, 'plugins')
+        if not os.path.isdir(pdir):
+            pdir = args.aoomee
+        indices = {'Rewrite': 0, 'Script': 0, 'Rule': 0}
+        for filename in sorted(x for x in os.listdir(pdir)
+                               if x.endswith('.plugin') or x.endswith('.lpx')):
+            path = os.path.join(pdir, filename)
+            for section, line_number, raw_line in _raw_rows(path):
+                target_section = section
+                if section in ('Rewrite', 'Script'):
+                    converted = convert_shadowrocket_line(raw_line)
+                    if converted is None:
+                        continue
+                elif section == 'URL Rewrite':
+                    tokens = raw_line.split()
+                    if len(tokens) != 2 or tokens[1] not in _LEGACY_REJECT:
+                        continue
+                    target_section = 'Rewrite'
+                elif section != 'Rule':
+                    continue
+                _record_origin('aoomee', target_section, indices[target_section],
+                               ('plugins/' if pdir.endswith('/plugins') else '') + filename,
+                               line_number, raw_line)
+                indices[target_section] += 1
+
+    if args.zmjde:
+        pdir = os.path.join(args.zmjde, 'Plugin')
+        if not os.path.isdir(pdir):
+            pdir = args.zmjde
+        indices = {'Rewrite': 0, 'Script': 0, 'Rule': 0}
+        for filename in _ZMJ_APP:
+            path = os.path.join(pdir, filename)
+            for section, line_number, raw_line in _raw_rows(path):
+                if section not in indices:
+                    continue
+                _record_origin('zmjapp', section, indices[section],
+                               ('Plugin/' if pdir.endswith('/Plugin') else '') + filename,
+                               line_number, raw_line)
+                indices[section] += 1
+
+    rw_provenance_feeds = [(source, priority, lines, 'Rewrite')
+                           for source, priority, lines in rw_feeds]
+    sc_provenance_feeds = [(source, priority, lines, 'Script')
+                           for source, priority, lines in sc_feeds]
+    sc_provenance_feeds += [
+        (source, priority,
+         [line for line in lines if unguarded_key(line) is not None], 'Rewrite')
+        for source, priority, lines in rw_feeds
+    ]
+    rewrite_provenance = _section_provenance(
+        rw_provenance_feeds, merged_rw, 'Rewrite')
+    script_provenance = _section_provenance(
+        sc_provenance_feeds, merged_sc, 'Script')
+    rule_output_index = {line: index for index, line in enumerate(rule_items, 1)}
+    for event in rule_provenance_events:
+        origin = source_origins.get((event.get('source'), 'Rule', event.get('source_entry_index')))
+        if origin:
+            event.update(origin)
+        if event.get('status') == 'included':
+            event['output_entry_index'] = rule_output_index.get(event['output_line'])
+    upstream_revisions = {}
+    if args.source_report and os.path.isfile(args.source_report):
+        try:
+            with open(args.source_report, encoding='utf-8') as source_file:
+                upstream_revisions = json.load(source_file)
+        except (OSError, ValueError) as exc:
+            raise SystemExit('来源追溯无法读取 source-report: %s' % exc)
+    rule_report = {
+        'schema_version': 1,
+        'upstream_revisions': upstream_revisions,
+        'repository': 'XcvcvX/loon-change',
+        'scope': ['Rewrite', 'Script', 'Rule'],
+        'rewrite_exclusions': zhangle_rewrite_exclusions + zhangle_block_rewrite_exclusions + block_rewrite_exclusions + lite_advertising_rewrite_exclusions,
+        'mitm_exclusions': block_mitm_exclusions + zhangle_mitm_exclusions,
+        'scope_adjustments': block_scope_adjustments,
+        'limitations': [
+            'source_entry_index is the ordinal within the extracted source feed, not the original upstream file line number',
+            'exact source filename and 1-based line attribution is included for Thelongdarkorg, aoomee, and zmjde App plugin feeds; other sources retain feed indices until their source mapping is added',
+            'normalization and source conversion may mean input_line differs from upstream raw text',
+            'MITM hostname provenance and Argument provenance are not included in this first batch',
+            'provenance does not prove that a rule is effective or safe at runtime'
+        ],
+        'source_catalog': {
+            'base': 'R-Store converted rewrite source',
+            'block': 'fmz200/wool_scripts blockAdsV2',
+            'zmjgen': 'zmjde/loon-plugins general plugins',
+            'thelong': 'Thelongdarkorg/loon-plugins',
+            'aoomee': 'aoomee/Loon-Adblock-Plugins',
+            'qxapp': 'QuanX single-file app source (GuaZiVideoAds)',
+            'amap': 'ifflagged/Romeo / RuCu6 Amap plugin',
+            'zmjapp': 'zmjde/loon-plugins app plugins',
+            'myblockads': 'RuCu6 MyBlockAds',
+            'filter': 'zirawell/R-Store allAdBlock filter'
+        },
+        'summary': {
+            'rewrite_output_entries': len(rewrite_provenance),
+            'script_output_entries': len(script_provenance),
+            'rule_output_entries': len(rule_items),
+            'rule_source_events': len(rule_provenance_events),
+            'rule_included_events': sum(1 for event in rule_provenance_events
+                                        if event['status'] == 'included'),
+            'rule_covered_or_duplicate_events': sum(
+                1 for event in rule_provenance_events
+                if event['status'] in ('duplicate_exact', 'covered_by_existing_rule')),
+            'rule_safety_excluded_events': sum(
+                1 for event in rule_provenance_events
+                if event['status'] == 'excluded_safety_guard'),
+        },
+        'rewrite': rewrite_provenance,
+        'script': script_provenance,
+        'rule_events': rule_provenance_events,
+    }
+    with open(args.provenance_out, 'w', encoding='utf-8') as provenance_file:
+        json.dump(rule_report, provenance_file, ensure_ascii=False, indent=2)
+        provenance_file.write('\n')
+    print('[provenance] 已生成逐条来源追溯:', args.provenance_out)
+
+open(args.out, 'w', encoding='utf-8').write('\n'.join(out))
+
+print('\n[merge] 输出:', args.out)
+print('  Rewrite：%d 条；Script：%d 条（含 generic/cron 无守卫行）'
+      % (len(merged_rw), len(merged_sc)))
+print('  Rule   ：%d 条；Argument：%d 个开关' % (len(rule_items), len(arg_items)))
+if args.amap:
+    print('  高德 App：Rewrite %d / Script %d / Rule %d / MITM %d（priority=-1，最高）'
+          % (len(amap_rw), len(amap_sc), len(amap_rule), len(amap_mitm)))
+print('  Rule 来源：aoomee 新增 %d（跳过 %d）；thelong 新增 %d（跳过 %d）；'
+      'block 新增 %d（跳过 %d）'
+      % (rule_counts['aoomee_add'], rule_counts['aoomee_dup'],
+         rule_counts['thelong_add'], rule_counts['thelong_dup'],
+         rule_counts['block_add'], rule_counts['block_dup']))
+if args.filter != 'none':
+    print('  分流补全：R-Store %d 条，已覆盖 %d，补入 %d'
+          % (fstats['total'], fstats['covered'], fstats['added']))
+print('  MITM   ：%d 个主机（无法收敛丢弃 %d，IP 地址清理 %d，自动裁剪无动作 %d）'
+      % (len(mitm), len(dropped), len(mitm_ip_dropped), mitm_pruned))
+if mitm_pruned:
+    print('  MITM 自动裁剪：移除 %d 个不服务任何规则、仅解密的冗余 host' % mitm_pruned)
+print('  MITM 自愈补全 %d 个%s' % (
+    len(mitm_healed), '：' + ', '.join(mitm_healed[:15]) if mitm_healed else ''))
+if dropped:
+    print('  丢弃的 hostname：', ', '.join(dropped[:20]))
+, _raw_line)
+            if _section_match:
+                _origin_section = _section_match.group(1)
+            elif (_origin_section == 'Rewrite' and _raw_line.strip()
+                  and not _raw_line.lstrip().startswith('#')):
+                app_rewrite_origins.append((fname, _line_number, _raw_line.strip()))
+        if len(app_rewrite_origins) != len(app_rewrite_lines):
+            raise RuntimeError('Thelong Rewrite source-origin alignment failed: ' + fname)
         if _lite_advertising_guard_present and fname == 'jd_splash_ad_block.plugin':
             _kept_app_rewrite_lines = []
             _source_section = None
