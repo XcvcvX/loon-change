@@ -217,7 +217,7 @@ hostname = *.amap.com
         # referenced when the general pruner fails closed on ICU syntax.
         base = (
             "[Rewrite]\n"
-            r"^https?:\\/\\/\\p{L}+\\.other\\.example\\.com\\/ad reject" + "\n"
+            r"^https?:\/\/\p{L}+\.other\.example\.com\/ad reject" + "\n"
             "[Script]\n"
             'generic script-path=https://raw.githubusercontent.com/example/qunar.js,tag=Manual\n'
             'cron "0 * * * *" script-path=https://raw.githubusercontent.com/example/youtube.js,tag=Scheduled\n'
