@@ -135,6 +135,52 @@ class MergeIntegrationTests(unittest.TestCase):
             self.assertEqual(source["source_raw_line"], output_line)
             self.assertEqual(source["input_line"], output_line)
 
+    def test_aoomee_provenance_uses_retained_feed_indexes_after_semantic_exclusions(self):
+        base = "[Rule]\n[Rewrite]\n[MITM]\nhostname = \n"
+        extra = "[Rule]\n[Rewrite]\n[MITM]\nhostname = \n"
+        aoomee_files = {
+            "a_legacy.lpx": (
+                "[Rewrite]\n"
+                "^https://ssp\\.soulapp\\.cn/api/q reject-dict\n"
+                "^https?://hweb-manager\\.huazhu\\.com/notice/getAppPopupNotifyAlert(?:\\?.*)?$ reject-dict\n"
+                "^https://native.example/native reject\n"
+                "[URL Rewrite]\n"
+                "^https://legacy.example/legacy reject\n"
+            ),
+            "pdd.lpx": (
+                "[Rewrite]\n"
+                "^http://139.196.12.179:8053/httpdns/ reject\n"
+            ),
+        }
+        _, provenance = self.run_merge(
+            base, extra, aoomee_files=aoomee_files, return_provenance=True
+        )
+        by_output = {row["output_line"]: row for row in provenance["rewrite"]}
+        pdd = next(
+            item for item in by_output[
+                "^http://139.196.12.179:8053/httpdns/ reject"
+            ]["sources"] if item["source"] == "aoomee"
+        )
+        self.assertEqual(pdd["source_file"], "plugins/pdd.lpx")
+        self.assertEqual(pdd["source_line_number"], 2)
+        self.assertEqual(
+            pdd["source_raw_line"],
+            "^http://139.196.12.179:8053/httpdns/ reject"
+        )
+        exclusions = provenance["rewrite_exclusions"]
+        aoomee_exclusions = [
+            item for item in exclusions if item.get("source") == "aoomee"
+        ]
+        self.assertEqual(len(aoomee_exclusions), 2)
+        self.assertEqual(
+            {item["source_section_entry_index"] for item in aoomee_exclusions},
+            {0, 1}
+        )
+        self.assertEqual(
+            {item["source_file"] for item in aoomee_exclusions},
+            {"a_legacy.lpx"}
+        )
+
     def test_amap_app_has_highest_priority_and_keeps_distinct_actions(self):
         base = r"""[Rule]
 DOMAIN,amap.com,DIRECT

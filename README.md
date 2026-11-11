@@ -248,3 +248,12 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 来源行号现在先按段名分组，再严格按合并器实际顺序（Rewrite、URL Rewrite、Script、Rule）生成，保持每条规则的文件、原始行号和原文一致。
 - 增加跨文件回归测试，覆盖 URL Rewrite 先于 Rewrite、并验证后续 pdd.lpx HTTPDNS 规则来源准确。
 - 不修改任何生产 Rewrite、Script、Rule、MITM、动作或优先级；保留来源一致性 fail-closed 门禁。
+
+
+## 第七阶段第二十五批：修复 AOOMEE 去重后来源索引漂移
+
+- PR #57 修复了段落展平顺序，但正式同步仍在 PDD HTTPDNS Rewrite 触发来源错配。
+- 根因是来源索引生成时机：AOOMEE 两条已审计语义重复 Rewrite 会在去重阶段从实际 feed 移除，但旧来源扫描仍按未过滤的上游原始行计数，导致后续来源索引整体偏移。
+- 现在来源索引直接按去重后、与实际 Rewrite feed 同步保留的来源列表枚举；再通过文件、原始段名和段内序号反查物理行号。
+- 新增回归测试：在 PDD HTTPDNS 规则前放置两条精确命中既有语义去重清单的 AOOMEE 规则，验证 PDD 来源仍准确指向 pdd.lpx 第 2 行。
+- 不修改任何生产 Rewrite、Script、Rule、MITM、动作或优先级；不扩大语义去重范围，保留来源一致性 fail-closed 门禁。
