@@ -60,6 +60,40 @@ class MergeIntegrationTests(unittest.TestCase):
         return (output, result.stdout) if return_stdout else output
 
 
+    def test_aoomee_provenance_keeps_alignment_across_double_slash_rows_and_files(self):
+        base = "[Rule]\\n[Rewrite]\\n[MITM]\\nhostname = \\n"
+        extra = "[Rule]\\n[Rewrite]\\n[MITM]\\nhostname = \\n"
+        aoomee_files = {
+            "a.lpx": (
+                "[Rewrite]\\n"
+                "^https://a.example/first reject-dict\\n"
+                "// upstream note retained by the section parser\\n"
+                "^https://a.example/second reject-dict\\n"
+            ),
+            "b.lpx": (
+                "[Rewrite]\\n"
+                "^https://b.example/third reject-dict\\n"
+            ),
+        }
+        _, provenance = self.run_merge(
+            base, extra, aoomee_files=aoomee_files, return_provenance=True)
+
+        by_output = {row["output_line"]: row for row in provenance["rewrite"]}
+        expected = {
+            "^https://a.example/first reject-dict": ("plugins/a.lpx", 2),
+            "^https://a.example/second reject-dict": ("plugins/a.lpx", 4),
+            "^https://b.example/third reject-dict": ("plugins/b.lpx", 2),
+        }
+        for output_line, (source_file, line_number) in expected.items():
+            source = next(
+                item for item in by_output[output_line]["sources"]
+                if item["source"] == "aoomee")
+            self.assertEqual(source["source_file"], source_file)
+            self.assertEqual(source["source_line_number"], line_number)
+            self.assertEqual(source["source_raw_line"], output_line)
+            self.assertEqual(source["input_line"], output_line)
+            self.assertEqual(source["source_original_section"], "Rewrite")
+
     def test_amap_app_has_highest_priority_and_keeps_distinct_actions(self):
         base = r"""[Rule]
 DOMAIN,amap.com,DIRECT
