@@ -38,3 +38,8 @@ Also remove the exact `119.29.29.*` MITM hostname declaration contributed by the
 ## Review and rollback
 
 This PR changes runtime rule behavior and must be reviewed by the repository owner before merging. To roll back, revert this PR; the upstream source remains unchanged and the exclusion can be removed from the merger.
+
+
+## User-specific scope confirmation
+
+The upstream Loon source places the Rewrite matcher and 119.29.29.* MITM declaration in the ZhangLeCaiFuTong.lpx feed. The merged blockAdsV2 copy is grouped under # > 涨乐财富通. The user confirmed they do not use this app, so both contributions are excluded. The MITM filter is source-specific: an identical hostname contributed by another independent source remains eligible for inclusion.
