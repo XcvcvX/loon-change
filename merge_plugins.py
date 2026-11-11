@@ -1778,12 +1778,7 @@ def compiled_host_patterns(rule_lines):
                 uncertain = True
             continue
         # MITM hostname 不包含端口；URL matcher 的 authority 需先归一化到 hostname。
-        zone = re.sub(r':\\d+' + '
-            out.setdefault(zone, re.compile('^(?:%s)$' % zone, re.IGNORECASE))
-        except re.error:
-            uncertain = True
-    return out, uncertain
-, '', strip_host_port(zone))
+        zone = re.sub(r':\\d+\\Z', '', strip_host_port(zone))
         try:
             out.setdefault(zone, re.compile('^(?:%s)$' % zone, re.IGNORECASE))
         except re.error:
