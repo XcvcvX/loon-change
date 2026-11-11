@@ -6,6 +6,7 @@ on:
     paths:
       - 'merge_plugins.py'
       - 'source_guard.py'
+      - 'amap_dependency_guard.py'
       - 'convert_qx2loon.py'
       - 'convert_filter_qx2loon.py'
       - '.github/workflows/sync.yml'
@@ -21,6 +22,8 @@ on:
       - 'test_audit_plugin.py'
       - 'deep_audit.py'
       - 'test_deep_audit.py'
+      - 'amap_dependency_guard.py'
+      - 'test_amap_dependency_guard.py'
       - '.github/workflows/sync.yml'
       - 'README.md'
       - 'sources/amap/**'
@@ -44,9 +47,9 @@ jobs:
         with:
           python-version: '3.11'
       - name: 编译检查
-        run: python3 -m py_compile merge_plugins.py validate_plugin.py source_guard.py audit_plugin.py deep_audit.py convert_qx2loon.py convert_filter_qx2loon.py
+        run: python3 -m py_compile merge_plugins.py validate_plugin.py source_guard.py audit_plugin.py deep_audit.py amap_dependency_guard.py convert_qx2loon.py convert_filter_qx2loon.py
       - name: 运行单元与合并集成测试
-        run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py
+        run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_amap_dependency_guard.py
       - name: 审计当前插件风险摘要
         run: |
           python3 audit_plugin.py allAdRewrite.plugin --summary-only
@@ -105,21 +108,24 @@ jobs:
             https://ddgksf2013.top/rewrite/GuaZiVideoAds.conf -o /tmp/GuaZiVideoAds.conf
           wc -c /tmp/GuaZiVideoAds.conf
 
-      - name: 下载高德插件及全部远程依赖
+      - name: 固定 Romeo 上游版本并下载高德插件及依赖
         run: |
           mkdir -p /tmp/amap sources/amap
-          base=https://raw.githubusercontent.com/ifflagged/Romeo/main/Modules
-          curl -fsSL --retry 5 --retry-all-errors "$base/Loon/sooyaaabo/Amap.lpx" -o /tmp/amap/Amap.lpx
-          curl -fsSL --retry 5 --retry-all-errors "$base/JavaScript/sooyaaabo/Amap/rucu6_amap.js" -o /tmp/amap/rucu6_amap.js
-          curl -fsSL --retry 5 --retry-all-errors "$base/JavaScript/sooyaaabo/Amap/loon_Amap.recommend.jq" -o /tmp/amap/loon_Amap.recommend.jq
-          curl -fsSL --retry 5 --retry-all-errors "$base/JavaScript/Kelee/Amap_remove_ads/kelee_updatable.jq" -o /tmp/amap/updatable.jq
-          curl -fsSL --retry 5 --retry-all-errors "$base/JavaScript/Kelee/Amap_remove_ads/kelee_search_poi_detail.jq" -o /tmp/amap/search_poi_detail.jq
-          for f in /tmp/amap/*; do test -s "$f"; done
+          git clone --depth 1 https://github.com/ifflagged/Romeo.git /tmp/romeo
+          ROMEO_SHA="$(git -C /tmp/romeo rev-parse HEAD)"
+          echo "ROMEO_SHA=$ROMEO_SHA" >> "$GITHUB_ENV"
+          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/sooyaaabo/Amap.lpx" > /tmp/amap/Amap.lpx
+          git -C /tmp/romeo show "$ROMEO_SHA:Modules/JavaScript/sooyaaabo/Amap/rucu6_amap.js" > /tmp/amap/rucu6_amap.js
+          git -C /tmp/romeo show "$ROMEO_SHA:Modules/JavaScript/sooyaaabo/Amap/loon_Amap.recommend.jq" > /tmp/amap/loon_Amap.recommend.jq
+          git -C /tmp/romeo show "$ROMEO_SHA:Modules/JavaScript/Kelee/Amap_remove_ads/kelee_updatable.jq" > /tmp/amap/updatable.jq
+          git -C /tmp/romeo show "$ROMEO_SHA:Modules/JavaScript/Kelee/Amap_remove_ads/kelee_search_poi_detail.jq" > /tmp/amap/search_poi_detail.jq
+          echo "Romeo pinned commit: $ROMEO_SHA"
           wc -c /tmp/amap/*
 
       - name: 校验克隆来源并生成来源报告
         run: |
           python3 source_guard.py --thelong /tmp/loon-plugins --aoomee /tmp/aoomee --zmjde /tmp/zmjde --qxapp /tmp/GuaZiVideoAds.conf --amap /tmp/amap/Amap.lpx --previous-report source-report.json --report source-report.json
+          python3 amap_dependency_guard.py --assets /tmp/amap --plugin /tmp/amap/Amap.lpx --commit "$ROMEO_SHA" --report source-report.json
           cp /tmp/amap/* sources/amap/
 
       - name: 合并各来源去广告规则（临时目录）
