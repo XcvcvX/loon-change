@@ -156,3 +156,13 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 新增集成回归测试：七猫主机仍被正确保留，三个无关涨乐财富通主机不再因该 matcher 被保留。
 - 其他无法安全解析的 HTTPS matcher 仍维持 fail-closed。
 - 正式验收以同步日志和生产 \`allAdRewrite.plugin\` 为准。
+
+
+## 第七阶段第十四批：识别主机字符类中的斜杠
+
+- 第十三批合并后的正式同步已成功，但三个涨乐财富通专属 MITM 主机仍被一条穿山甲规则误保留。
+- 生产诊断显示该规则的 host matcher 使用 \`[^\s/]*\.pangle\.cn\`；host 解析器此前把字符类内部的 \`/\` 错当成 URL path 起点，截断为不完整的 \`[^\s\`，触发 Python 正则失败和保守保留。
+- 本批让 host 解析器跟踪正则字符类状态：只有字符类外的未转义或转义斜杠才作为 authority/path 边界。
+- 增加集成回归测试：保留真实的 \`foo.pangle.cn\` MITM 引用，同时移除三个无关的涨乐财富通主机。
+- 不修改穿山甲规则、广告动作或其他 MITM 声明；其他无法安全解析的 HTTPS matcher 仍 fail-closed。
+- 正式验收以同步日志和生产 \`allAdRewrite.plugin\` 为准。
