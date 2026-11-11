@@ -76,7 +76,7 @@ request if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/ad/ then reject-dict
         self.assertEqual(parsed[1], r'^https?://ssp\.dzh\.com\.cn/v2api/adgroupjson')
         self.assertEqual(parsed[2], 'reject(404)')
 
-        alias = r'request if ${url} ~= /^https:\/\/api\.example\.com\/artist\/(.*)\/ as m then redirect(302, "${m.1}")'
+        alias = r'request if ${url} ~= /^https:\/\/api\.example\.com\/artist\/(.*)/ as m then redirect(302, "${m.1}")'
         parsed_alias = parse_rewrite(alias)
         self.assertEqual(parsed_alias[1], r'^https:\/\/api\.example\.com\/artist\/(.*)')
         self.assertTrue(parsed_alias[2].startswith('redirect(302'))
@@ -112,19 +112,13 @@ if __name__ == '__main__':
         numeric_legacy = r'^https?:\/\/api\.example\.com\/ad 302 https://example.com/data.json'
         self.assertEqual(parse_rewrite(numeric_legacy)[2], '302')
 
-        fixture = '''[Rewrite]
-request if ${url} ~= /^https?://ssp\\.dzh\\.com\\.cn/v2api/adgroupjson/ then reject(404)
-request if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/artist\\/(.*)\\/ as m then redirect(302, "${m.1}")
-request if ${url} ~= /^https:\\/\\/www\\.googlevideo\\.com\\/initplayback(?:\\?[^#]*)?$/i && ${request.method} == "POST" then reject_video(200)
-^https?:\\/\\/api\\.example\\.com\\/ad 302 https://example.com/data.json
-'''
+        fixture = "[Rewrite]\n" + "\n".join([unescaped, alias, compound, numeric_legacy]) + "\n"
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / 'modern.plugin'
             path.write_text(fixture, encoding='utf-8')
             report = audit_deep(path)
         self.assertEqual(report['summary']['rewrite_entries'], 4)
         self.assertEqual(report['summary']['rewrite_unparsed'], 0)
-
     def test_mitm_and_script_candidates(self):
         fixture = '''[Rewrite]
 ^https://api.example.com/ad reject
