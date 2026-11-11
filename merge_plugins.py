@@ -1830,6 +1830,11 @@ for _host in mitm:
                 _reference_reason = ('host_regex_match', _line.strip(), _zone)
                 break
         except re.error:
+            # ICU's \cX escape denotes a control character. Control characters
+            # cannot occur in a DNS hostname, so this matcher cannot reference
+            # any valid MITM host even though Python re rejects the syntax.
+            if re.search(r'\\c[A-Za-z]', _zone):
+                continue
             # Python may not understand ICU constructs such as \p{L}.
             # Use a literal suffix as a conservative host-level fallback.
             _normalized_zone = _zone.lower().replace(r'\.', '.')

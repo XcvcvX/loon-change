@@ -137,3 +137,12 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 根因是 host 提取器只把未转义的 / 识别为 URL 路径起点；Loon 常见的 \/ 被当作主机正则继续读取，连同路径中的可选分组一起纳入 host 正则，最终触发过宽的保守回退。
 - 本批让 host 提取器同时识别 / 和 \/ 为 authority/path 分界；新增集成回归测试，验证 gateway.tuhu.cn 仍保留、三个无关主机被移除。
 - 不改变任何 Rewrite/Script 规则及动作；正式验收仍以同步生成的 allAdRewrite.plugin 为准。
+
+
+## 第七阶段第十二批：排除不可能匹配 DNS 主机的 ICU 控制字符规则
+
+- 第十一批正式同步后，三个目标主机仍被一条 KFC 广告路径 matcher 错误保留；生产诊断显示其 host zone 为 `res\\.kfc\\.com.\\cn`，Python 因不支持 ICU 的 `\\cX` 控制字符转义而进入保守回退。
+- Loon 使用的 ICU 正则中，`\\cX` 表示控制字符；控制字符不可能出现在合法 DNS hostname 中，因此该 host matcher 不可能引用任何 MITM 主机。
+- 仅在三个历史遗留主机的只读保留诊断中识别这一种 DNS 不可能匹配的控制字符形式；其他 Python/ICU 不兼容表达式（例如 `\\p{L}`）继续保守保留。
+- 不修改 KFC 或其他任何广告 Rewrite/Script 规则及动作；增加集成回归测试，验证控制字符模式不再误保留三个目标主机，同时既有 ICU Unicode 属性模式仍保留真实可能命中的主机。
+- 正式验收以同步日志及 main 分支生成的 `allAdRewrite.plugin` 为准。
