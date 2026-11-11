@@ -46,7 +46,8 @@ def extract_regex_and_action(line):
     if match:
         pattern = match.group(1).replace('\\/', '/')
         tail = line[match.end():].strip()
-        tail_parts = tail.split()
+        action_text = tail.split(' | ', 1)[0].strip()
+        tail_parts = action_text.split()
         action = (tail_parts[1] if len(tail_parts) > 1 and tail_parts[0].lower() == 'then'
                   else (tail_parts[0] if tail_parts else '')).lower()
         return pattern, action
@@ -93,20 +94,23 @@ def audit_runtime(path):
             continue
         pattern, action = parsed
         parsed_rewrites.append((number, pattern, action, line))
-        pattern_actions[pattern].append({'line': number, 'action': action, 'entry': line})
+        phase_match = re.match(r'^(request|response)\\s+if\\b', line, re.I)
+        phase = phase_match.group(1).lower() if phase_match else 'rewrite'
+        pattern_actions[(phase, pattern)].append({'line': number, 'phase': phase, 'action': action, 'entry': line})
         if is_broad_reject(pattern, action):
             broad_rejects.append({'line': number, 'pattern': pattern, 'action': action, 'entry': line})
 
     rewrite_conflicts = []
-    for pattern, entries in sorted(pattern_actions.items()):
+    for (phase, pattern), entries in sorted(pattern_actions.items()):
         actions = sorted({entry['action'] for entry in entries})
         if len(actions) > 1:
-            rewrite_conflicts.append({'pattern': pattern, 'actions': actions, 'entries': entries})
+            rewrite_conflicts.append({'phase': phase, 'pattern': pattern, 'actions': actions, 'entries': entries})
 
     # 从 Rewrite/Script 守卫中提取可识别的 URL hostname；只作为 MITM 覆盖候选依据。
     guarded_hosts = set()
     for _, line in rewrite_rows + script_rows:
-        for host in URL_RE.findall(line.split(' then ', 1)[0]):
+        normalized_line = line.replace('\\\\/', '/')
+        for host in URL_RE.findall(normalized_line.split(' then ', 1)[0]):
             host = host.lower().rstrip('.')
             if host and not host.replace('.', '').isdigit():
                 guarded_hosts.add(host)
