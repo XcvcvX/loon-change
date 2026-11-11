@@ -81,9 +81,9 @@ request if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/ad/ then reject-dict
         self.assertEqual(parsed_alias[1], r'^https:\/\/api\.example\.com\/artist\/(.*)')
         self.assertTrue(parsed_alias[2].startswith('redirect(302'))
 
-        compound = r'request if ${url} ~= /^https:\/\/www\.googlevideo\.com\/initplayback(?:\?[^#]*)?$/i && ${request.method} == "POST" then reject_video(200)'
+        compound = r'request if ${url} ~= /^https:\/\/api\.example\.com\/ad$/i && ${request.method} == "POST" then reject_video(200)'
         parsed_compound = parse_rewrite(compound)
-        self.assertEqual(parsed_compound[1], r'^https:\/\/www\.googlevideo\.com\/initplayback(?:\?[^#]*)?
+        self.assertEqual(parsed_compound[1], r'^https:\/\/api\.example\.com\/ad
         fixture = '''[Rewrite]
 ^https://api.example.com/ad reject
 [Script]
