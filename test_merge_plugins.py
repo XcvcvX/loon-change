@@ -110,15 +110,15 @@ hostname = *.amap.com
         base = "[Rewrite]\n[MITM]\nhostname = \n"
         extra = (
             "[Rewrite]\n"
-            r"request if " + "${url}" + r" ~= /^https?:\\/\\/119\\.29\\.29\\.\\d+\\/d/ then reject(200)" + "\n"
+            r"request if " + "${url}" + r" ~= /^https?:\/\/119\.29\.29\.\d+\/d/ then reject(200)" + "\n"
             # An upstream spelling change to the default reject alias must not bypass the guard.
-            r"request if " + "${url}" + r" ~= /^https?:\\/\\/119\\.29\\.29\\.\\d+\\/d/ then reject" + "\n"
-            r"request if " + "${url}" + r" ~= /^https?:\\/\\/119\\.29\\.29\\.98\\/health/ then reject(200)" + "\n"
-            "[MITM]\\nhostname = \\n"
+            r"request if " + "${url}" + r" ~= /^https?:\/\/119\.29\.29\.\d+\/d/ then reject" + "\n"
+            r"request if " + "${url}" + r" ~= /^https?:\/\/119\.29\.29\.98\/health/ then reject(200)" + "\n"
+            "[MITM]\nhostname = \n"
         )
         output, report = self.run_merge(base, extra, return_provenance=True)
-        self.assertNotIn(r"119\\.29\\.29\\.\\d+\\/d", output)
-        self.assertIn(r"119\\.29\\.29\\.98\\/health", output)
+        self.assertNotIn(r"119\.29\.29\.\d+\/d", output)
+        self.assertIn(r"119\.29\.29\.98\/health", output)
         exclusions = report.get("rewrite_exclusions", [])
         self.assertEqual(len(exclusions), 2)
         self.assertEqual({x["source"] for x in exclusions}, {"block"})
