@@ -944,7 +944,11 @@ def add_rule(line, src):
         rule_counts[src + '_keep'] += 1
         return
     if line in rule_result:
-        event.update({'status': 'duplicate_exact', 'duplicate_of': line})
+        previous = next((item for item in reversed(rule_provenance_events)
+                         if item.get('status') == 'included'
+                         and item.get('output_line') == line), None)
+        event.update({'status': 'duplicate_exact', 'duplicate_of': line,
+                      'duplicate_of_source': previous.get('source') if previous else None})
         rule_provenance_events.append(event)
         rule_counts[src + '_dup'] += 1
         return
@@ -956,7 +960,14 @@ def add_rule(line, src):
                 if rule_is_covered(line, build_rule_index([existing])):
                     covering = existing
                     break
-            event.update({'status': 'covered_by_existing_rule', 'covered_by': covering})
+            previous = next((item for item in reversed(rule_provenance_events)
+                             if item.get('status') == 'included'
+                             and item.get('output_line') == covering), None)
+            event.update({
+                'status': 'covered_by_existing_rule',
+                'covered_by': covering,
+                'covered_by_source': previous.get('source') if previous else None,
+            })
             rule_provenance_events.append(event)
             rule_counts[src + '_dup'] += 1
             return
@@ -1389,7 +1400,6 @@ if args.provenance_out:
     rule_report = {
         'schema_version': 1,
         'upstream_revisions': upstream_revisions,
-        'generated_at_utc': datetime.datetime.now(datetime.timezone.utc).isoformat(),
         'repository': 'XcvcvX/loon-change',
         'scope': ['Rewrite', 'Script', 'Rule'],
         'limitations': [
