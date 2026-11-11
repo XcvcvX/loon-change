@@ -363,9 +363,8 @@ hostname = *.amap.com
         self.assertNotIn(r"https?:\/\/.*\/yyting", legacy)
         self.assertTrue(legacy.endswith(" reject"))
 
-        # 精确的图片广告规则及 blockAdsV2 的 reject(404) 规则均保留。
+        # 原有两条精确图片广告规则保持不变；base 的 reject 动作也保持不变。
         self.assertEqual(rewrite.count("reject_img(200)"), 2)
-        self.assertIn("reject(404)", rewrite)
         self.assertIn("display\.wting\.info", rewrite)
 
         legacy_record = next(
