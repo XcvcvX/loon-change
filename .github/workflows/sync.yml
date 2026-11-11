@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'merge_plugins.py'
+      - 'mitm_policy.py'
       - 'source_guard.py'
       - 'amap_dependency_guard.py'
       - 'compare_rule_provenance.py'
@@ -18,6 +19,8 @@ on:
       - 'validate_plugin.py'
       - 'source_guard.py'
       - 'merge_plugins.py'
+      - 'mitm_policy.py'
+      - 'test_mitm_policy.py'
       - 'test_merge_plugins.py'
       - 'test_validate_plugin.py'
       - 'test_source_guard.py'
