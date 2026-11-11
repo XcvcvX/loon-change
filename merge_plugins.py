@@ -1763,7 +1763,7 @@ for _host in mitm:
         _kept_zhangle_mitm.append(_host)
         continue
     _literal_reference = any(
-        _host_lower in _line.lower().replace(r'\\.', '.')
+        _host_lower in _line.lower().replace(r'\.', '.')
         for _line in merged_rw + merged_sc
     )
     if _literal_reference:
