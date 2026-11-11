@@ -68,6 +68,63 @@ request if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/ad/ then reject-dict
             'domain_scoped_subdomain_wildcard'), 1)
         self.assertEqual(report['summary']['rewrite_scope_review_candidates'], 3)
 
+    def test_modern_rewrite_with_unescaped_slashes_alias_and_conditions(self):
+        # Some upstream rules use URL slashes without escaping them inside /.../.
+        unescaped = r'request if ${url} ~= /^https?://ssp\.dzh\.com\.cn/v2api/adgroupjson/ then reject(404)'
+        parsed = parse_rewrite(unescaped)
+        self.assertEqual(parsed[0], 'request')
+        self.assertEqual(parsed[1], r'^https?://ssp\.dzh\.com\.cn/v2api/adgroupjson')
+        self.assertEqual(parsed[2], 'reject(404)')
+
+        alias = r'request if ${url} ~= /^https:\/\/api\.example\.com\/artist\/(.*)\/ as m then redirect(302, "${m.1}")'
+        parsed_alias = parse_rewrite(alias)
+        self.assertEqual(parsed_alias[1], r'^https:\/\/api\.example\.com\/artist\/(.*)')
+        self.assertTrue(parsed_alias[2].startswith('redirect(302'))
+
+        compound = r'request if ${url} ~= /^https:\/\/www\.googlevideo\.com\/initplayback(?:\?[^#]*)?$/i && ${request.method} == "POST" then reject_video(200)'
+        parsed_compound = parse_rewrite(compound)
+        self.assertEqual(parsed_compound[1], r'^https:\/\/www\.googlevideo\.com\/initplayback(?:\?[^#]*)?
+        fixture = '''[Rewrite]
+^https://api.example.com/ad reject
+[Script]
+http-request ^https://api.example.com script-path=https://cdn.example/a.js
+http-response ^https://api.example.com script-path=https://cdn.example/a.js
+generic script-path=https://cdn.example/generic.js
+[MITM]
+hostname = *.example.com, api.example.com, unused.test
+'''
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'sample.plugin'
+            path.write_text(fixture, encoding='utf-8')
+            report = audit_deep(path)
+        self.assertEqual(report['summary']['mitm_exact_hosts_covered_by_wildcards'], 1)
+        self.assertEqual(report['summary']['script_urls_reused'], 1)
+        self.assertIn('unused.test', report['mitm_without_obvious_literal_guard'])
+        self.assertEqual(report['summary']['script_generic_trigger_candidates'], 1)
+        self.assertTrue(any('只读' in x for x in report['safety_notes']))
+
+
+if __name__ == '__main__':
+    unittest.main()
+)
+        self.assertEqual(parsed_compound[2], 'reject_video(200)')
+
+        numeric_legacy = r'^https?:\/\/api\.example\.com\/ad 302 https://example.com/data.json'
+        self.assertEqual(parse_rewrite(numeric_legacy)[2], '302')
+
+        fixture = '''[Rewrite]
+request if ${url} ~= /^https?://ssp\\.dzh\\.com\\.cn/v2api/adgroupjson/ then reject(404)
+request if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/artist\\/(.*)\\/ as m then redirect(302, "${m.1}")
+request if ${url} ~= /^https:\\/\\/www\\.googlevideo\\.com\\/initplayback(?:\\?[^#]*)?$/i && ${request.method} == "POST" then reject_video(200)
+^https?:\\/\\/api\\.example\\.com\\/ad 302 https://example.com/data.json
+'''
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'modern.plugin'
+            path.write_text(fixture, encoding='utf-8')
+            report = audit_deep(path)
+        self.assertEqual(report['summary']['rewrite_entries'], 4)
+        self.assertEqual(report['summary']['rewrite_unparsed'], 0)
+
     def test_mitm_and_script_candidates(self):
         fixture = '''[Rewrite]
 ^https://api.example.com/ad reject
