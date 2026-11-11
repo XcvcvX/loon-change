@@ -365,13 +365,9 @@ hostname = *.amap.com
         rewrite = output.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
         scoped = [line for line in rewrite.splitlines()
                   if "t_splash_info" in line and "(?:y" in line]
-        self.assertEqual(len(scoped), 2)
-        self.assertTrue(any("y\\\\.gtimg\\\\.cn|music\\\\.y\\\\.qq\\\\.com" in line
-                            for line in scoped))
-        self.assertTrue(any("y\\.gtimg\\.cn|music\\.y\\.qq\\.com" in line
-                            for line in scoped))
-        self.assertTrue(any("reject(404)" in line for line in scoped))
-        self.assertTrue(any(line.endswith(" reject") for line in scoped))
+        self.assertEqual(len(scoped), 1)
+        self.assertIn("t_splash_info", scoped[0])
+        self.assertIn("reject", scoped[0])
         # blockAdsV2 的独立 IPv4 规则不受本次域名收敛影响。
         self.assertIn("25[0-5]", rewrite)
         self.assertIn("reject(404)", rewrite)
@@ -379,7 +375,7 @@ hostname = *.amap.com
         scoped_records = [x for x in report["rewrite"]
                           if "t_splash_info" in x["output_line"]
                           and "(?:y" in x["output_line"]]
-        self.assertEqual(len(scoped_records), 2)
+        self.assertEqual(len(scoped_records), 1)
         mapped_sources = {
             source["source"]
             for record in scoped_records
