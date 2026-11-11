@@ -82,3 +82,13 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 全局 UDP/443 拦截可能影响 HTTP/3/QUIC。是否移除应结合实际网络和 App 测试决定；本次不会擅自改变用户已有规则。
 - MITM hostname 检查覆盖格式、重复、已知必需主机；复杂 URL 正则的 MITM 覆盖关系仍需 Loon 日志和真实设备验证。
 - 正则使用 Loon/ICU 语法，Python re 编译只作辅助提示，不能代替 Loon 解析器。
+
+
+## 第七阶段第二批：QQ音乐备用 CDN 匹配范围收敛
+
+- 将 QQ音乐 `music/common/upload/t_splash_info` 的备用 CDN 全主机 Rewrite 限制到专用 QQ音乐插件明确声明的 `y.gtimg.cn` 与 `music.y.qq.com`。
+- 同时处理 blockAdsV2 与 Thelongdarkorg 两个重复来源，避免高优先级来源仍保留宽泛 matcher。
+- 保留原有 `reject` 动作、精确 `y.gtimg.cn` 规则，以及 blockAdsV2 独立 IPv4 直连拦截规则。
+- 不新增 MITM hostname，不改 Script、Rule、优先级或其他 App 规则。
+- 增加正向/负向 host 测试，并在上游 hostname/MITM 声明漂移时 fail-closed。
+- 静态测试不替代 QQ音乐真机启动页验证。
