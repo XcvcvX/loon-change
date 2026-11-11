@@ -19,6 +19,8 @@ on:
       - 'test_source_guard.py'
       - 'audit_plugin.py'
       - 'test_audit_plugin.py'
+      - 'audit_runtime.py'
+      - 'test_audit_runtime.py'
       - '.github/workflows/sync.yml'
       - 'README.md'
       - 'sources/amap/**'
@@ -42,11 +44,19 @@ jobs:
         with:
           python-version: '3.11'
       - name: 编译检查
-        run: python3 -m py_compile merge_plugins.py validate_plugin.py source_guard.py audit_plugin.py convert_qx2loon.py convert_filter_qx2loon.py
+        run: python3 -m py_compile merge_plugins.py validate_plugin.py source_guard.py audit_plugin.py audit_runtime.py convert_qx2loon.py convert_filter_qx2loon.py
       - name: 运行单元与合并集成测试
-        run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py
+        run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_audit_runtime.py
       - name: 审计当前插件风险摘要
         run: python3 audit_plugin.py allAdRewrite.plugin --summary-only
+      - name: 深度运行时风险审计（只读）
+        run: python3 audit_runtime.py allAdRewrite.plugin --output /tmp/loon-runtime-audit.json
+      - name: 上传深度审计报告
+        uses: actions/upload-artifact@v4
+        with:
+          name: loon-runtime-audit-report
+          path: /tmp/loon-runtime-audit.json
+          if-no-files-found: error
 
   sync:
     if: github.event_name != 'pull_request'
@@ -117,6 +127,16 @@ jobs:
 
       - name: 只读审计 UDP、MITM 与 Script 风险
         run: python3 audit_plugin.py /tmp/loon-build/allAdRewrite.plugin --summary-only
+
+      - name: 深度运行时风险审计（只读）
+        run: python3 audit_runtime.py /tmp/loon-build/allAdRewrite.plugin --output /tmp/loon-runtime-audit.json
+
+      - name: 上传深度审计报告
+        uses: actions/upload-artifact@v4
+        with:
+          name: loon-runtime-audit-report
+          path: /tmp/loon-runtime-audit.json
+          if-no-files-found: error
 
       - name: 校验通过后替换正式产物
         run: cp /tmp/loon-build/allAdRewrite.plugin allAdRewrite.plugin.tmp && mv allAdRewrite.plugin.tmp allAdRewrite.plugin
