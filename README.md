@@ -239,3 +239,4 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 现在来源扫描与规则解析使用相同的行计数口径，并记录原始段名。
 - 对每条 aoomee Rewrite 来源，在发布报告前重新执行对应转换并与实际输入规则逐条核对；任何错位都会 fail closed，阻止错误来源报告发布。
 - 新增跨文件、含 `//` 行的集成回归测试。不修改任何生产 Rewrite、Script、Rule、MITM、动作或优先级。
+\n\n## 第七阶段第二十四批：修复 AOOMEE URL Rewrite 来源索引顺序漂移\n\n- 正式同步在 AOOMEE PDD 插件来源校验处失败：原始行与合并 feed 的来源索引不一致，导致 `pdd.lpx` 第 34 行被错误映射到另一条 HTTPDNS Rewrite。\n- 根因是 AOOMEE 合并器按 `Rewrite` 后 `URL Rewrite` 的分组顺序展平规则，但来源追溯却按文件物理行顺序扫描；当上游文件把 `[URL Rewrite]` 放在 `[Rewrite]` 前面时，后续来源索引发生偏移。\n- 来源行号现在先按段名分组，再严格按合并器实际顺序（`Rewrite`、`URL Rewrite`、`Script`、`Rule`）生成，保持每条规则的文件、原始行号和原文一致。\n- 增加跨文件回归测试，覆盖 `URL Rewrite` 先于 `Rewrite`、并验证后续 `pdd.lpx` HTTPDNS 规则来源准确。\n- 不修改任何生产 Rewrite、Script、Rule、MITM、动作或优先级；保留来源一致性 fail-closed 门禁。
