@@ -194,7 +194,7 @@ hostname = *.example.com, api.example.com, unused.test
     def test_rewrite_overlap_legacy_phase_is_ambiguous(self):
         from deep_audit import audit_rewrite_overlaps
         rows = [
-            (1, r'^https:\/\/api\.example\.com\/ad reject'),
+            (1, r'^https:\/\/api\.example\.com\/ad header-add X-Test 1'),
             (2, r'request if %URL% ~= /^https:\/\/api\.example\.com\/ad/ then reject(404)'),
         ]
         report = audit_rewrite_overlaps([(n, line.replace("%URL%", "$"+"{url}")) for n, line in rows])
