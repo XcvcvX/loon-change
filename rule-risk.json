@@ -3,7 +3,7 @@
     "rewrite": {
       "action_changed": 0,
       "added": 0,
-      "removed": 3
+      "removed": 0
     },
     "rule": {
       "action_changed": 0,
@@ -16,78 +16,18 @@
       "removed": 0
     }
   },
-  "events": [
-    {
-      "after": null,
-      "before": {
-        "line": "^https:\\/\\/ssp\\.soulapp\\.cn\\/api\\/q reject-dict",
-        "section": "rewrite",
-        "sources": [
-          "aoomee"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "rewrite",
-      "source_scores": {
-        "aoomee": 100
-      },
-      "sources": [
-        "aoomee"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "^https?:\\/\\/hweb-manager\\.huazhu\\.com\\/notice\\/getAppPopupNotifyAlert(?:\\?.*)?$ reject-dict",
-        "section": "rewrite",
-        "sources": [
-          "aoomee"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "rewrite",
-      "source_scores": {
-        "aoomee": 100
-      },
-      "sources": [
-        "aoomee"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "^https?:\\/\\/vv\\.video\\.qq\\.com\\/(diff|get)vmind reject-dict",
-        "section": "rewrite",
-        "sources": [
-          "thelong"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "rewrite",
-      "source_scores": {
-        "thelong": 0
-      },
-      "sources": [
-        "thelong"
-      ]
-    }
-  ],
-  "overall_risk": "high",
+  "events": [],
+  "overall_risk": "low",
   "risk_counts": {
-    "high": 3,
+    "high": 0,
     "low": 0,
     "medium": 0
   },
-  "run_id": "\"43055354414\"",
+  "run_id": "\"43056277505\"",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
-    "Additions are medium risk by default; removals and action changes are high risk.",
+    "Additions are medium risk by default; unverified removals and action changes are high risk.",
+    "A removed Rewrite is downgraded only when exact provenance marks it as an excluded semantic duplicate and names a retained covering matcher.",
     "No rule, MITM hostname, priority, or plugin output is modified.",
     "Source trend counts are bounded to the latest 30 successful snapshots."
   ],

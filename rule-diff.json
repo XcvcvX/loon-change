@@ -129,29 +129,7 @@
     "rewrite": {
       "action_changed": [],
       "added": [],
-      "removed": [
-        {
-          "line": "^https:\\/\\/ssp\\.soulapp\\.cn\\/api\\/q reject-dict",
-          "section": "rewrite",
-          "sources": [
-            "aoomee"
-          ]
-        },
-        {
-          "line": "^https?:\\/\\/hweb-manager\\.huazhu\\.com\\/notice\\/getAppPopupNotifyAlert(?:\\?.*)?$ reject-dict",
-          "section": "rewrite",
-          "sources": [
-            "aoomee"
-          ]
-        },
-        {
-          "line": "^https?:\\/\\/vv\\.video\\.qq\\.com\\/(diff|get)vmind reject-dict",
-          "section": "rewrite",
-          "sources": [
-            "thelong"
-          ]
-        }
-      ]
+      "removed": []
     },
     "rule": {
       "action_changed": [],
@@ -168,7 +146,7 @@
     "rewrite": {
       "action_changed": 0,
       "added": 0,
-      "removed": 3
+      "removed": 0
     },
     "rule": {
       "action_changed": 0,
@@ -180,7 +158,7 @@
       "added": 0,
       "removed": 0
     },
-    "total_changes": 3
+    "total_changes": 0
   },
   "upstream_revision_changes": []
 }
