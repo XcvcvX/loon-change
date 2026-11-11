@@ -94,6 +94,47 @@ class MergeIntegrationTests(unittest.TestCase):
             self.assertEqual(source["input_line"], output_line)
             self.assertEqual(source["source_original_section"], "Rewrite")
 
+    def test_aoomee_provenance_matches_feed_order_when_url_rewrite_precedes_rewrite(self):
+        base = "[Rule]\\n[Rewrite]\\n[MITM]\\nhostname = \\n"
+        extra = "[Rule]\\n[Rewrite]\\n[MITM]\\nhostname = \\n"
+        aoomee_files = {
+            # parse_loose_sections() stores section buckets, and ao_rw appends
+            # Rewrite before URL Rewrite regardless of their physical order.
+            # Provenance must use that same flattening order, not raw file order.
+            "a_legacy.lpx": (
+                "[URL Rewrite]\\n"
+                "^https://legacy.example/legacy reject\\n"
+                "[Rewrite]\\n"
+                "^https://native.example/native reject\\n"
+            ),
+            "pdd.lpx": (
+                "[Rewrite]\\n"
+                "^http://139.196.12.179:8053/httpdns/ reject\\n"
+            ),
+        }
+        _, provenance = self.run_merge(
+            base, extra, aoomee_files=aoomee_files, return_provenance=True
+        )
+        by_output = {row["output_line"]: row for row in provenance["rewrite"]}
+        expected = {
+            "^https://native.example/native reject":
+                ("plugins/a_legacy.lpx", 4, "Rewrite"),
+            "^https://legacy.example/legacy reject":
+                ("plugins/a_legacy.lpx", 2, "URL Rewrite"),
+            "^http://139.196.12.179:8053/httpdns/ reject":
+                ("plugins/pdd.lpx", 2, "Rewrite"),
+        }
+        for output_line, (source_file, line_number, section) in expected.items():
+            source = next(
+                item for item in by_output[output_line]["sources"]
+                if item["source"] == "aoomee"
+            )
+            self.assertEqual(source["source_file"], source_file)
+            self.assertEqual(source["source_line_number"], line_number)
+            self.assertEqual(source["source_original_section"], section)
+            self.assertEqual(source["source_raw_line"], output_line)
+            self.assertEqual(source["input_line"], output_line)
+
     def test_amap_app_has_highest_priority_and_keeps_distinct_actions(self):
         base = r"""[Rule]
 DOMAIN,amap.com,DIRECT
