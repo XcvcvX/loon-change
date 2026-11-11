@@ -348,7 +348,9 @@ def audit_rewrite_overlaps(rewrite_rows, sample_cap=600, candidate_cap=500):
             family for left, right in same_phase_pairs
             for family in left['families'] + right['families']
         }
-        if not same_phase_pairs:
+        if not same_phase_pairs and 'legacy' in {x['phase'] for x in matched}:
+            kind = 'phase_ambiguous_overlap'
+        elif not same_phase_pairs:
             kind = 'cross_phase_only'
         elif len(same_phase_families) > 1:
             kind = 'cross_action_overlap'
