@@ -7,6 +7,8 @@ import re
 from collections import Counter, defaultdict
 from pathlib import Path
 
+from mitm_policy import mitm_skip_match
+
 
 def parse_sections(text):
     sections, current = defaultdict(list), None
@@ -556,18 +558,24 @@ def audit_mitm_script_coverage(rewrite_rows, script_rows, mitm_rows):
                 state, covered_by, excluded_by = host_matches_mitm(host, positive, negative, dynamic_suffix)
                 if dynamic_suffix and state == 'not_listed':
                     state = 'dynamic_unresolved'
+            skip_policy = mitm_skip_match(host) if state == 'not_listed' else None
+            if skip_policy:
+                state = 'intentionally_skipped_pinning'
             reference = {
                 'source': source, 'line': number, 'phase': phase,
                 'matcher': matcher[:240], 'host': host, 'scheme': scheme,
                 'host_kind': 'regex_suffix_candidate' if dynamic_suffix else ('ipv4_literal' if is_ipv4_literal(host) else 'literal'),
                 'action': action if source == 'rewrite' else None, 'coverage': state,
-                'mitm_entries': covered_by, 'negative_exclusions': excluded_by
+                'mitm_entries': covered_by, 'negative_exclusions': excluded_by,
+                'mitm_skip_domain': skip_policy[0] if skip_policy else None,
+                'mitm_skip_reason': skip_policy[1] if skip_policy else None,
             }
             references.append(reference)
             if state == 'dynamic_unresolved':
                 ambiguous.append({**reference, 'reason': 'regex_host_suffix_without_matching_wildcard'})
 
     missing = [x for x in references if x['coverage'] == 'not_listed']
+    intentionally_skipped = [x for x in references if x['coverage'] == 'intentionally_skipped_pinning']
     excluded = [x for x in references if x['coverage'] == 'negative_excluded']
     covered = [x for x in references if x['coverage'] in {'covered', 'covered_by_parent_wildcard'}]
     http_only = [x for x in references if x['coverage'] == 'http_only_no_mitm_required']
@@ -592,6 +600,7 @@ def audit_mitm_script_coverage(rewrite_rows, script_rows, mitm_rows):
             'missing_rewrite_references': sum(x['source'] == 'rewrite' for x in missing),
             'missing_script_trigger_references': sum(x['source'] == 'script_trigger' for x in missing),
             'missing_mitm_references': len(missing),
+            'intentionally_skipped_references': len(intentionally_skipped),
             'negative_excluded_references': len(excluded),
             'ambiguous_references': len(ambiguous),
             'ambiguous_rewrite_references': sum(x['source'] == 'rewrite' for x in ambiguous),
@@ -599,6 +608,7 @@ def audit_mitm_script_coverage(rewrite_rows, script_rows, mitm_rows):
             'unreferenced_positive_entries': len(unreferenced)
         },
         'mitm_missing_rewrite_script_coverage': missing,
+        'mitm_intentionally_skipped_references': intentionally_skipped,
         'mitm_negative_excluded_rewrite_script_coverage': excluded,
         'mitm_http_only_no_mitm_references': http_only,
         'mitm_ip_literal_not_for_mitm_references': ip_literals,
@@ -686,6 +696,13 @@ def audit_mitm_necessity(mitm_rows, coverage_report, rewrite_rows, script_rows):
             row['evidence'] = '协议或 matcher 范围不够明确，不能直接判定必须补入 MITM'
         missing_classified.append(row)
 
+    intentionally_skipped_classified = []
+    for ref in coverage_report['mitm_intentionally_skipped_references']:
+        row = dict(ref)
+        row['classification'] = 'intentionally_skipped_pinning'
+        row['evidence'] = '共享 MITM 跳过策略明确排除此域：' + str(ref.get('mitm_skip_reason') or '')
+        intentionally_skipped_classified.append(row)
+
     counts = Counter(x['classification'] for x in classified)
     return {
         'mitm_necessity_summary': {
@@ -697,10 +714,12 @@ def audit_mitm_necessity(mitm_rows, coverage_report, rewrite_rows, script_rows):
             'no_literal_reference_candidates': counts['no_literal_reference_candidate'],
             'https_literal_missing': sum(x['classification'] == 'https_literal_missing' for x in missing_classified),
             'scheme_or_matcher_ambiguous_missing': sum(x['classification'] == 'scheme_or_matcher_ambiguous_missing' for x in missing_classified),
+            'intentionally_skipped_pinning_references': len(intentionally_skipped_classified),
             'generic_script_triggers': len(generic_script)
         },
         'mitm_necessity_classifications': classified,
         'mitm_missing_necessity_classifications': missing_classified,
+        'mitm_intentionally_skipped_classifications': intentionally_skipped_classified,
         'mitm_generic_script_trigger_context': generic_script,
         'mitm_necessity_safety_note': '未发现字面引用不等于 MITM 冗余；本分类不建议自动删除、添加或调整任何 hostname。'
     }
@@ -899,6 +918,7 @@ def audit_deep(path):
         'script_entries_without_detected_url': no_url,
         'script_generic_trigger_candidates': generic,
         'mitm_missing_rewrite_script_coverage': coverage_report['mitm_missing_rewrite_script_coverage'],
+        'mitm_intentionally_skipped_references': coverage_report['mitm_intentionally_skipped_references'],
         'mitm_negative_excluded_rewrite_script_coverage': coverage_report['mitm_negative_excluded_rewrite_script_coverage'],
         'mitm_http_only_no_mitm_references': coverage_report['mitm_http_only_no_mitm_references'],
         'mitm_ip_literal_not_for_mitm_references': coverage_report['mitm_ip_literal_not_for_mitm_references'],
@@ -907,6 +927,7 @@ def audit_deep(path):
         'mitm_literal_rewrite_script_host_references': coverage_report['mitm_literal_rewrite_script_host_references'],
         'mitm_necessity_classifications': necessity_report['mitm_necessity_classifications'],
         'mitm_missing_necessity_classifications': necessity_report['mitm_missing_necessity_classifications'],
+        'mitm_intentionally_skipped_classifications': necessity_report['mitm_intentionally_skipped_classifications'],
         'mitm_generic_script_trigger_context': necessity_report['mitm_generic_script_trigger_context'],
         'mitm_necessity_safety_note': necessity_report['mitm_necessity_safety_note'],
         'safety_notes': [
@@ -914,6 +935,7 @@ def audit_deep(path):
             '宽泛正则、同匹配器多动作和未发现字面守卫均为人工复核候选，不等于错误。',
             'MITM 可能由复杂正则、变量或间接脚本引用；未发现字面域名不代表无用。',
             'MITM 必要性分级只区分证据强弱；未发现字面引用不等于冗余，绝不自动删除或补入 hostname。',
+            '证书绑定/已知不兼容域由共享 MITM 跳过策略标记为 intentional skip，不应作为漏配直接补入。',
             '重复脚本 URL 不等于重复执行有害；需结合触发频率和 Loon 日志。',
             '静态审计无法测量真实耗电、温度或延迟，也不能替代 iPhone 真机回归。',
             '远程脚本 HEAD 失败可能是 CDN 不支持或限流，不应据此直接删除脚本。'
@@ -950,7 +972,8 @@ def render_markdown(report):
         'dynamic_suffix_references':'动态主机后缀候选',
         'missing_rewrite_references':'Rewrite 未覆盖引用',
         'missing_script_trigger_references':'Script 触发器未覆盖引用',
-        'missing_mitm_references':'MITM 未覆盖引用候选',
+        'missing_mitm_references':'未解释的 MITM 未覆盖引用',
+        'intentionally_skipped_references':'按证书绑定策略主动跳过的引用',
         'negative_excluded_references':'被负向 MITM 排除的引用',
         'ambiguous_references':'无法静态识别的主机引用',
         'ambiguous_rewrite_references':'无法识别主机的 Rewrite',
@@ -972,7 +995,8 @@ def render_markdown(report):
         ('mitm_without_obvious_literal_guard','未发现明显字面守卫的 MITM 候选'),
         ('script_repeated_remote_urls','重复使用的远程脚本 URL'),
         ('script_generic_trigger_candidates','通用/条件触发器候选'),
-        ('mitm_missing_rewrite_script_coverage','MITM 未覆盖的 Rewrite/Script 触发器'),
+        ('mitm_missing_rewrite_script_coverage','未解释的 MITM 未覆盖 Rewrite/Script 触发器'),
+        ('mitm_intentionally_skipped_references','按证书绑定策略主动跳过的 Rewrite/Script 触发器'),
         ('mitm_negative_excluded_rewrite_script_coverage','被负向 MITM 排除的 Rewrite/Script 触发器'),
         ('mitm_http_only_no_mitm_references','纯 HTTP 引用（无需 MITM）'),
         ('mitm_ip_literal_not_for_mitm_references','裸 IPv4 引用（不建议加入 MITM）'),
