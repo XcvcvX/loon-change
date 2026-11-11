@@ -56,12 +56,14 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 
 ## 本地检查
 
-    python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py
+    python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_audit_runtime.py test_deep_audit.py
     python3 -m py_compile merge_plugins.py validate_plugin.py source_guard.py audit_plugin.py deep_audit.py convert_qx2loon.py convert_filter_qx2loon.py
     python3 validate_plugin.py allAdRewrite.plugin
     python3 validate_plugin.py allAdRewrite.plugin --update-readme README.md
     python3 validate_plugin.py allAdRewrite.plugin --check-remote
     python3 audit_plugin.py allAdRewrite.plugin --summary-only
+    python3 audit_runtime.py allAdRewrite.plugin --output runtime-audit.json
+    python3 audit_runtime.py allAdRewrite.plugin --check-remote --limit 80 --output runtime-audit-remote.json
     python3 deep_audit.py allAdRewrite.plugin --summary-only
     python3 deep_audit.py allAdRewrite.plugin --json deep-audit.json --markdown deep-audit.md
 
