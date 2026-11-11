@@ -18,7 +18,7 @@ on:
       - 'test_validate_plugin.py'
       - 'test_source_guard.py'
       - 'audit_plugin.py'
-      - 'test_audit_plugin.py'
+      - 'test_audit_plugin.py'\n      - 'deep_audit.py'\n      - 'test_deep_audit.py'
       - '.github/workflows/sync.yml'
       - 'README.md'
       - 'sources/amap/**'
@@ -42,9 +42,9 @@ jobs:
         with:
           python-version: '3.11'
       - name: 编译检查
-        run: python3 -m py_compile merge_plugins.py validate_plugin.py source_guard.py audit_plugin.py convert_qx2loon.py convert_filter_qx2loon.py
+        run: python3 -m py_compile merge_plugins.py validate_plugin.py source_guard.py audit_plugin.py deep_audit.py convert_qx2loon.py convert_filter_qx2loon.py
       - name: 运行单元与合并集成测试
-        run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py
+        run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py
       - name: 审计当前插件风险摘要
         run: python3 audit_plugin.py allAdRewrite.plugin --summary-only
 
