@@ -254,11 +254,11 @@ hostname = *.example.test
     def test_mitm_necessity_classification_is_conservative(self):
         from deep_audit import audit_mitm_script_coverage, audit_mitm_necessity
         rewrite = [
-            (10, r'request if \${url} ~= /^https:\/\/api\.used\.test\/ad/ then reject(404)'),
-            (11, r'request if \${url} ~= /^https:\/\/api\.used\.test\/config/ then reject(404)'),
-            (12, r'request if \${url} ~= /^https:\/\/missing\.test\/ad/ then reject(404)'),
-            (13, r'request if \${url} ~= /^http:\/\/plain\.test\/ad/ then reject(404)'),
-            (14, r'request if \${url} ~= /^https:\/\/192\.0\.2\.9\/ad/ then reject(404)'),
+            (10, r'request if ${url} ~= /^https:\/\/api\.used\.test\/ad/ then reject(404)'),
+            (11, r'request if ${url} ~= /^https:\/\/api\.used\.test\/config/ then reject(404)'),
+            (12, r'request if ${url} ~= /^https:\/\/missing\.test\/ad/ then reject(404)'),
+            (13, r'request if ${url} ~= /^http:\/\/plain\.test\/ad/ then reject(404)'),
+            (14, r'request if ${url} ~= /^https:\/\/192\.0\.2\.9\/ad/ then reject(404)'),
         ]
         scripts = [
             (20, r'http-response ^https:\/\/api\.used\.test\/v1 script-path=https://cdn.test/a.js'),
@@ -287,7 +287,7 @@ hostname = *.example.test
 
     def test_mitm_necessity_marks_embedded_host_as_indirect_not_required(self):
         from deep_audit import audit_mitm_script_coverage, audit_mitm_necessity
-        rewrite = [(10, r'request if \${url} ~= /^https:\/\/api\.used\.test\/ad/ then reject(404)')]
+        rewrite = [(10, r'request if ${url} ~= /^https:\/\/api\.used\.test\/ad/ then reject(404)')]
         scripts = [(20, r'http-response ^https:\/\/other\.test script-path=https://cdn.only.test/a.js')]
         mitm = [(30, 'hostname = cdn.only.test, api.used.test')]
         coverage = audit_mitm_script_coverage(rewrite, scripts, mitm)
