@@ -18,7 +18,7 @@
   python3 merge_plugins.py --base allAdRewrite.plugin --extra sources/blockAdsV2.plugin --out x.plugin
   # --filter 控制 R-Store 分流来源：fetch（默认）/ 本地路径 / none（不补全）
 """
-import argparse, datetime, ipaddress, os, re, sys, urllib.request
+import argparse, datetime, ipaddress, json, os, re, sys, urllib.request
 from source_guard import (validate_blockv2, validate_filter, validate_myblockads,
                           fetch_validated)
 
@@ -122,6 +122,7 @@ ap.add_argument('--myblockads', default='fetch',
                 help='MyBlockAds 来源：fetch（默认，在线抓取失败回退 sources/myblockads.lpx 缓存）'
                      '/ 本地路径 / none（不并入）')
 ap.add_argument('--out', required=True, help='合并输出路径')
+ap.add_argument('--provenance-out', default=None, help='可选：输出逐条规则来源追溯 JSON')
 args = ap.parse_args()
 
 
@@ -911,6 +912,8 @@ def normalize_rule(line):
 rule_result = []
 rule_idx = build_rule_index([])
 rule_counts = collections.Counter()
+rule_provenance_events = []
+rule_source_indices = collections.Counter()
 
 
 # ---------------- 功能长连接保护（避免误伤抖音私信等实时消息）----------------
@@ -923,20 +926,43 @@ def is_frontier_guard(line):
 
 
 def add_rule(line, src):
+    original_line = line
     line = normalize_rule(line)
+    source_index = rule_source_indices[src]
+    rule_source_indices[src] += 1
+    event = {
+        'source': src,
+        'source_entry_index': source_index,
+        'original_input_line': original_line,
+        'normalized_line': line,
+    }
     if is_frontier_guard(line):
+        event.update({'status': 'excluded_safety_guard',
+                      'reason': 'Frontier/WebSocket long-connection protection'})
+        rule_provenance_events.append(event)
         rule_counts[src + '_keep'] += 1
         return
     if line in rule_result:
+        event.update({'status': 'duplicate_exact', 'duplicate_of': line})
+        rule_provenance_events.append(event)
         rule_counts[src + '_dup'] += 1
         return
     t = line.split(',')[0]
     if t in ('DOMAIN', 'DOMAIN-SUFFIX', 'DOMAIN-KEYWORD', 'IP-CIDR', 'IP-CIDR6'):
         if rule_is_covered(line, rule_idx):
+            covering = None
+            for existing in rule_result:
+                if rule_is_covered(line, build_rule_index([existing])):
+                    covering = existing
+                    break
+            event.update({'status': 'covered_by_existing_rule', 'covered_by': covering})
+            rule_provenance_events.append(event)
             rule_counts[src + '_dup'] += 1
             return
         add_to_index(line, rule_idx)
     rule_result.append(line)
+    event.update({'status': 'included', 'output_line': line})
+    rule_provenance_events.append(event)
     rule_counts[src + '_add'] += 1
 
 
@@ -1274,6 +1300,122 @@ if rule_items:
 out += ['[Rewrite]'] + merged_rw + ['']
 out += ['[Script]'] + merged_sc + ['']
 out += ['[MITM]', 'hostname = ' + ', '.join(mitm), '']
+
+if args.provenance_out:
+    def _provenance_key(line):
+        uk = unguarded_key(line)
+        if uk is not None:
+            return ('unguarded',) + tuple(uk)
+        rx = entry_regex(line)
+        if not rx:
+            return ('unparsed', line.strip())
+        return ('guarded', rx, action_key(line))
+
+    def _section_provenance(feeds, output_lines, section):
+        candidates = collections.defaultdict(list)
+        for source, priority, lines in feeds:
+            for index, line in enumerate(lines):
+                key = _provenance_key(line)
+                if key[0] == 'unguarded' or section != 'Script':
+                    candidates[key].append({
+                        'source': source, 'priority': priority,
+                        'source_entry_index': index, 'input_section': section,
+                        'input_line': line,
+                    })
+        records = []
+        for output_index, output_line in enumerate(output_lines, 1):
+            key = _provenance_key(output_line)
+            matches = candidates.get(key, [])
+            if matches:
+                if key[0] == 'unguarded':
+                    winner = matches[0]
+                    for candidate in matches[1:]:
+                        if (is_v2_line(candidate['input_line'])
+                                and not is_v2_line(winner['input_line'])):
+                            winner = candidate
+                else:
+                    winner = sorted(
+                        matches,
+                        key=lambda item: (item['priority'],
+                                          0 if is_v2_line(item['input_line']) else 1)
+                    )[0]
+                source_rows = []
+                for candidate in matches:
+                    row = dict(candidate)
+                    row['disposition'] = (
+                        'selected' if candidate is winner else 'duplicate_same_semantics'
+                    )
+                    source_rows.append(row)
+            else:
+                source_rows = []
+            records.append({
+                'section': section,
+                'output_entry_index': output_index,
+                'output_line': output_line,
+                'canonical_key': repr(key),
+                'sources': source_rows,
+                'trace_status': 'mapped' if source_rows else 'unmapped_or_generated',
+            })
+        return records
+
+    sc_provenance_feeds = list(sc_feeds)
+    sc_provenance_feeds += [
+        (source, priority, [line for line in lines if unguarded_key(line) is not None])
+        for source, priority, lines in rw_feeds
+    ]
+    rewrite_provenance = _section_provenance(rw_feeds, merged_rw, 'Rewrite')
+    script_provenance = _section_provenance(sc_provenance_feeds, merged_sc, 'Script')
+    rule_output_index = {line: index for index, line in enumerate(rule_items, 1)}
+    for event in rule_provenance_events:
+        if event.get('status') == 'included':
+            event['output_entry_index'] = rule_output_index.get(event['output_line'])
+    rule_report = {
+        'schema_version': 1,
+        'generated_at_utc': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        'repository': 'XcvcvX/loon-change',
+        'scope': ['Rewrite', 'Script', 'Rule'],
+        'limitations': [
+            'source_entry_index is the ordinal within the extracted source feed, not the original upstream file line number',
+            'multi-file sources are grouped by source repository; exact upstream filename/line attribution is a later enhancement',
+            'normalization and source conversion may mean input_line differs from upstream raw text',
+            'MITM hostname provenance and Argument provenance are not included in this first batch',
+            'provenance does not prove that a rule is effective or safe at runtime'
+        ],
+        'source_catalog': {
+            'base': 'R-Store converted rewrite source',
+            'block': 'fmz200/wool_scripts blockAdsV2',
+            'zmjgen': 'zmjde/loon-plugins general plugins',
+            'thelong': 'Thelongdarkorg/loon-plugins',
+            'aoomee': 'aoomee/Loon-Adblock-Plugins',
+            'qxapp': 'QuanX single-file app source (GuaZiVideoAds)',
+            'amap': 'ifflagged/Romeo / RuCu6 Amap plugin',
+            'zmjapp': 'zmjde/loon-plugins app plugins',
+            'myblockads': 'RuCu6 MyBlockAds',
+            'filter': 'zirawell/R-Store allAdBlock filter'
+        },
+        'summary': {
+            'rewrite_output_entries': len(rewrite_provenance),
+            'script_output_entries': len(script_provenance),
+            'rule_output_entries': len(rule_items),
+            'rule_source_events': len(rule_provenance_events),
+            'rule_included_events': sum(1 for event in rule_provenance_events
+                                        if event['status'] == 'included'),
+            'rule_covered_or_duplicate_events': sum(
+                1 for event in rule_provenance_events
+                if event['status'] in ('duplicate_exact', 'covered_by_existing_rule')),
+            'rule_safety_excluded_events': sum(
+                1 for event in rule_provenance_events
+                if event['status'] == 'excluded_safety_guard'),
+        },
+        'rewrite': rewrite_provenance,
+        'script': script_provenance,
+        'rule_events': rule_provenance_events,
+    }
+    with open(args.provenance_out, 'w', encoding='utf-8') as provenance_file:
+        json.dump(rule_report, provenance_file, ensure_ascii=False, indent=2)
+        provenance_file.write('\n')
+    print('[provenance] 已生成逐条来源追溯:', args.provenance_out)
+
 open(args.out, 'w', encoding='utf-8').write('\n'.join(out))
 
 print('\n[merge] 输出:', args.out)
