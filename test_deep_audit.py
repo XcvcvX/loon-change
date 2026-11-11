@@ -25,6 +25,34 @@ request if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/ad/ then reject-dict
         self.assertTrue(broad_reasons('^https?://'))
         self.assertFalse(broad_reasons(r'^https://api\.example\.com/ad'))
 
+    def test_rewrite_scope_normalizes_escaped_domains(self):
+        from deep_audit import classify_rewrite_scope
+
+        escaped_domain = r'^https?:\\/\\/api\\.example\\.com\\/ad\\/.*'
+        wildcard_subdomain = r'^https?:\\/\\/.*\\.xima.*\\.com\\/ad'
+        path_wildcard = r'^https?:\\/\\/api\\.example\\.com\\/assets\\/.*'
+        self.assertFalse(broad_reasons(escaped_domain))
+        self.assertEqual(classify_rewrite_scope(escaped_domain), 'domain_scoped_path_wildcard')
+        self.assertEqual(classify_rewrite_scope(wildcard_subdomain),
+                         'domain_scoped_subdomain_wildcard')
+        self.assertEqual(classify_rewrite_scope(path_wildcard), 'domain_scoped_path_wildcard')
+        self.assertTrue(broad_reasons('^https?://'))
+        self.assertEqual(classify_rewrite_scope('^https?://'), 'url_without_domain')
+
+        fixture = '''[Rewrite]
+request if \${url} ~= /^https?:\\\\/\\\\/api\\\\.example\\\\.com\\\\/ad\\\\/.* / then reject
+request if \${url} ~= /^https?:\\\\/\\\\/.*\\\\.xima.*\\\\.com\\\\/ad/ then reject
+request if \${url} ~= /^https?:\\\\/\\\\/api\\\\.example\\\\.com\\\\/assets\\\\/.* / then reject
+'''
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'scope.plugin'
+            path.write_text(fixture, encoding='utf-8')
+            report = audit_deep(path)
+        self.assertEqual(report['summary']['rewrite_broad_candidates'], 0)
+        self.assertEqual(report['summary']['rewrite_scope_counts'].get(
+            'domain_scoped_subdomain_wildcard'), 1)
+        self.assertEqual(report['summary']['rewrite_scope_review_candidates'], 3)
+
     def test_mitm_and_script_candidates(self):
         fixture = '''[Rewrite]
 ^https://api.example.com/ad reject
