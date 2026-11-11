@@ -751,6 +751,7 @@ block_rw, block_sc = prep_block_sections(
 _BLOCK_HTTPDNS_MATCHER = r'^https?://119\.29\.29\.\d+/d'
 _BLOCK_HTTPDNS_ACTION = ('REJECT', 'reject', 'reject(200)')
 block_rewrite_exclusions = []
+block_mitm_exclusions = []
 _block_rw_kept = []
 for _block_index, _block_line in enumerate(block_rw):
     if (entry_regex(_block_line) == _BLOCK_HTTPDNS_MATCHER
@@ -1078,6 +1079,22 @@ extra_raw = []
 for l in extra_sec.get('MITM', []):
     if '=' in l:
         extra_raw += [x.strip() for x in l.split('=', 1)[1].split(',') if x.strip()]
+# The 119.29.29.* MITM wildcard is declared only by the unused ZhangLe Cai Fu Tong
+# app-specific feed alongside its HTTPDNS blocking rule. Remove this source's
+# declaration, but allow another independent source to retain it if needed.
+_block_mitm_kept = []
+for _host in extra_raw:
+    if _host.lower() == '119.29.29.*':
+        block_mitm_exclusions.append({
+            'source': 'block',
+            'source_catalog': 'fmz200/wool_scripts blockAdsV2 / ZhangLeCaiFuTong',
+            'hostname': _host,
+            'reason': 'Only declared by the unused ZhangLe Cai Fu Tong app-specific ad feed; its paired HTTPDNS blocking Rewrite is excluded.',
+            'status': 'excluded_unused_app',
+        })
+    else:
+        _block_mitm_kept.append(_host)
+extra_raw = _block_mitm_kept
 dropped = []
 for h in extra_raw + thelong_mitm + ao_mitm + amap_mitm + zmj_app_mitm + zmj_gen_mitm + qxapp_mitm + mb_mitm:
     got = normalize_extra_host(h, guard_real)
@@ -1527,6 +1544,7 @@ if args.provenance_out:
         'repository': 'XcvcvX/loon-change',
         'scope': ['Rewrite', 'Script', 'Rule'],
         'rewrite_exclusions': block_rewrite_exclusions,
+        'mitm_exclusions': block_mitm_exclusions,
         'limitations': [
             'source_entry_index is the ordinal within the extracted source feed, not the original upstream file line number',
             'exact source filename and 1-based line attribution is included for Thelongdarkorg, aoomee, and zmjde App plugin feeds; other sources retain feed indices until their source mapping is added',
