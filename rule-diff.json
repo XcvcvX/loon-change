@@ -131,14 +131,29 @@
       "added": [],
       "removed": [
         {
-          "line": "^https?:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=lite_advertising response-body-replace-regex jdLiteAdvertisingVO sooyaaabo",
+          "line": "^https?:\\/\\/geetest\\.htsc\\.com:\\d+\\/pre_get_token reject-200",
           "section": "rewrite",
           "sources": [
-            "thelong"
+            "base"
           ]
         },
         {
-          "line": "response if ${url} ~= /^https?:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=lite_advertising/ then response.body.replace(/jdLiteAdvertisingVO/, \"fmz200\")",
+          "line": "^https?:\\/\\/live\\.inst-service\\.htsc\\.com\\/live reject-dict",
+          "section": "rewrite",
+          "sources": [
+            "base",
+            "block"
+          ]
+        },
+        {
+          "line": "request if ${url} ~= /^https?:\\/\\/c\\.zhangle\\.com\\/pic\\/mktg\\/diversity\\/.+\\.jpg$/ then reject_dict(200)",
+          "section": "rewrite",
+          "sources": [
+            "block"
+          ]
+        },
+        {
+          "line": "request if ${url} ~= /^https?:\\/\\/geetest\\.htsc\\.com:8888\\/pre_get_token/ then reject(200)",
           "section": "rewrite",
           "sources": [
             "block"
@@ -161,7 +176,7 @@
     "rewrite": {
       "action_changed": 0,
       "added": 0,
-      "removed": 2
+      "removed": 4
     },
     "rule": {
       "action_changed": 0,
@@ -173,7 +188,7 @@
       "added": 0,
       "removed": 0
     },
-    "total_changes": 2
+    "total_changes": 4
   },
   "upstream_revision_changes": []
 }

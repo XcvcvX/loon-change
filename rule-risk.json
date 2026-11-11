@@ -3,7 +3,7 @@
     "rewrite": {
       "action_changed": 0,
       "added": 0,
-      "removed": 2
+      "removed": 4
     },
     "rule": {
       "action_changed": 0,
@@ -20,10 +20,10 @@
     {
       "after": null,
       "before": {
-        "line": "^https?:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=lite_advertising response-body-replace-regex jdLiteAdvertisingVO sooyaaabo",
+        "line": "^https?:\\/\\/geetest\\.htsc\\.com:\\d+\\/pre_get_token reject-200",
         "section": "rewrite",
         "sources": [
-          "thelong"
+          "base"
         ]
       },
       "change_type": "removed",
@@ -31,16 +31,59 @@
       "risk": "high",
       "section": "rewrite",
       "source_scores": {
-        "thelong": 0
+        "base": 0
       },
       "sources": [
-        "thelong"
+        "base"
       ]
     },
     {
       "after": null,
       "before": {
-        "line": "response if ${url} ~= /^https?:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=lite_advertising/ then response.body.replace(/jdLiteAdvertisingVO/, \"fmz200\")",
+        "line": "^https?:\\/\\/live\\.inst-service\\.htsc\\.com\\/live reject-dict",
+        "section": "rewrite",
+        "sources": [
+          "base",
+          "block"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "source_scores": {
+        "base": 0,
+        "block": 0
+      },
+      "sources": [
+        "base",
+        "block"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "request if ${url} ~= /^https?:\\/\\/c\\.zhangle\\.com\\/pic\\/mktg\\/diversity\\/.+\\.jpg$/ then reject_dict(200)",
+        "section": "rewrite",
+        "sources": [
+          "block"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "source_scores": {
+        "block": 0
+      },
+      "sources": [
+        "block"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "request if ${url} ~= /^https?:\\/\\/geetest\\.htsc\\.com:8888\\/pre_get_token/ then reject(200)",
         "section": "rewrite",
         "sources": [
           "block"
@@ -60,11 +103,11 @@
   ],
   "overall_risk": "high",
   "risk_counts": {
-    "high": 2,
+    "high": 4,
     "low": 0,
     "medium": 0
   },
-  "run_id": "\"42992750274\"",
+  "run_id": "\"42993819169\"",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; removals and action changes are high risk.",
@@ -80,14 +123,14 @@
     "base": {
       "action_changed": 0,
       "added": 0,
-      "removed": 1,
-      "snapshots_seen": 1
+      "removed": 3,
+      "snapshots_seen": 2
     },
     "block": {
       "action_changed": 0,
       "added": 4,
-      "removed": 5,
-      "snapshots_seen": 5
+      "removed": 8,
+      "snapshots_seen": 6
     },
     "thelong": {
       "action_changed": 0,
