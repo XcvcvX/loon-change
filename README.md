@@ -274,3 +274,13 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 报告保留被跳过的具体规则、域名和原因；不自动补入 MITM，不自动删除规则。
 - 增加策略匹配、子域匹配、真实漏配区分测试，并把新模块与测试纳入 PR 和正式同步 CI。
 - 本批不修改任何生产 Rewrite、Script、Rule、MITM hostname、动作或优先级。
+
+
+## 第七阶段第二十八批：修复天天基金开屏接口请求拒绝与响应改写冲突
+
+- 深度审计发现 appactive.1234567.com.cn/.../GetAppStartImg 同时存在请求阶段 reject 与响应阶段 JSON 改写。
+- 核对 Thelongdarkorg 的 tiantianjijin_splash_ad_block.plugin 原始说明：基于多次 App 6.8.13 真机抓包，该接口应保留 resultCode=0 响应信封、仅将 datas 清空；硬拒绝会触发 App 本地缓存回退，且使响应改写不可达。
+- 仅当 Thelong 天天基金插件仍包含完全一致的 response-body-json-jq '.datas = []' 规则时，才从 base 与 blockAdsV2 中排除该接口完全相同的请求阶段 reject；动作或响应规则发生变化即 fail closed。
+- 保留响应 JSON 改写、GetAppHome 改写、响应头处理和 QUIC 规则，不扩大域名/路径范围。
+- 增加回归测试覆盖双来源冲突消除、缺少响应规则时不误删、请求动作漂移和响应规则漂移时失败保护。
+- 本批仅调整该接口的冲突规则筛选，不改变其他 App 的 Rewrite、Script、Rule、MITM hostname、动作或优先级。

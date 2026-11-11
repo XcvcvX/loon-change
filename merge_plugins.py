@@ -1304,6 +1304,71 @@ if args.apps:
                 thelong_mitm += [x.strip() for x in l.split('=', 1)[1].split(',') if x.strip()]
 thelong_rw, thelong_rw_origins, thelong_duplicate_exclusions = exclude_audited_semantic_duplicates(
     thelong_rw, thelong_rw_origins, 'thelong')
+
+# 天天基金 GetAppStartImg：保留响应信封并清空 datas，不能同时保留请求阶段硬拒绝。
+# 上游 tiantianjijin_splash_ad_block.plugin 有抓包说明：App 需要 resultCode=0 的响应信封；
+# reject/reject-dict 会让 App 走本地缓存回退，且请求被终止后响应 JSON 改写根本不会执行。
+# 只有 Thelong 精确响应规则仍存在时，才排除 base 与 block 两路的精确 request reject。
+_TTJJ_START_IMAGE_MATCHER = (
+    r'^https?://appactive\.1234567\.com\.cn/AppoperationApi/OperationService/GetAppStartImg'
+)
+_TTJJ_START_IMAGE_RESPONSE = (
+    r"^https?:\/\/appactive\.1234567\.com\.cn\/AppoperationApi\/OperationService\/GetAppStartImg "
+    r"response-body-json-jq '.datas = []'"
+)
+_TTJJ_START_IMAGE_REQUEST_ACTION = ('REJECT', 'reject', 'reject(404)')
+ttjj_start_image_rewrite_exclusions = []
+_ttjj_response_rows = [
+    (index, line) for index, line in enumerate(thelong_rw)
+    if entry_regex(line) == _TTJJ_START_IMAGE_MATCHER
+]
+if _ttjj_response_rows:
+    if len(_ttjj_response_rows) != 1 or _ttjj_response_rows[0][1] != _TTJJ_START_IMAGE_RESPONSE:
+        raise RuntimeError(
+            'Thelong 天天基金 GetAppStartImg 响应规则发生变化，拒绝自动移除请求规则：'
+            + '; '.join(line for _, line in _ttjj_response_rows)
+        )
+
+    _ttjj_reason = (
+        'Thelong 天天基金插件基于 App 6.8.13 多次真机抓包，明确要求保留 resultCode=0 '
+        '响应信封并仅清空 datas；请求阶段 reject 会终止请求、触发本地缓存回退，'
+        '并使该响应 JSON 改写不可达。仅保留经上游原文确认的响应改写。'
+    )
+
+    def _exclude_ttjj_request_rejects(lines, source):
+        kept = []
+        for index, line in enumerate(lines):
+            if entry_regex(line) != _TTJJ_START_IMAGE_MATCHER:
+                kept.append(line)
+                continue
+            if action_key(line) != _TTJJ_START_IMAGE_REQUEST_ACTION:
+                raise RuntimeError(
+                    source + ' 天天基金 GetAppStartImg 请求动作发生变化，拒绝扩大排除范围：' + line
+                )
+            record = {
+                'source': source,
+                'source_entry_index': index,
+                'input_line': line,
+                'matcher': _TTJJ_START_IMAGE_MATCHER,
+                'action': split_action(line)[1],
+                'preserved_response_rule': _TTJJ_START_IMAGE_RESPONSE,
+                'reason': _ttjj_reason,
+                'status': 'excluded_conflicting_request_reject',
+            }
+            if source == 'base':
+                record['source_catalog'] = 'R-Store converted Rewrite source'
+            else:
+                record['source_catalog'] = 'fmz200/wool_scripts blockAdsV2'
+                record['source_line_number'] = next(
+                    (number for number, raw in enumerate(extra_text.splitlines(), 1)
+                     if raw.strip() == line.strip()),
+                    None,
+                )
+            ttjj_start_image_rewrite_exclusions.append(record)
+        return kept
+
+    base_rw = _exclude_ttjj_request_rejects(base_rw, 'base')
+    block_rw = _exclude_ttjj_request_rejects(block_rw, 'block')
 # aoomee（v1/v2 混合；URL Rewrite 的 reject 并入 Rewrite；generic/cron 由合并器识别）
 ao_rw, ao_sc, ao_rule, ao_mitm = [], [], [], []
 ao_rw_origins = []
@@ -2260,7 +2325,7 @@ if args.provenance_out:
         'upstream_revisions': upstream_revisions,
         'repository': 'XcvcvX/loon-change',
         'scope': ['Rewrite', 'Script', 'Rule'],
-        'rewrite_exclusions': zhangle_rewrite_exclusions + zhangle_block_rewrite_exclusions + mgtv_unused_indexes_rewrite_exclusions + block_rewrite_exclusions + lite_advertising_rewrite_exclusions + thelong_duplicate_exclusions + aoomee_duplicate_exclusions,
+        'rewrite_exclusions': zhangle_rewrite_exclusions + zhangle_block_rewrite_exclusions + mgtv_unused_indexes_rewrite_exclusions + block_rewrite_exclusions + lite_advertising_rewrite_exclusions + ttjj_start_image_rewrite_exclusions + thelong_duplicate_exclusions + aoomee_duplicate_exclusions,
         'mitm_exclusions': block_mitm_exclusions + zhangle_mitm_exclusions,
         'scope_adjustments': block_scope_adjustments,
         'limitations': [
