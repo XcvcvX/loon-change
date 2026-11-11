@@ -53,17 +53,28 @@ def normalize_regex_literals(pattern):
 
 
 def has_domain_constraint(pattern):
+    """Recognize literal domains, constrained regex hostnames and explicit IP hosts."""
     normalized = normalize_regex_literals(pattern)
+    scheme = re.search(r'https(?:\?|s?)://', normalized, re.I)
+    authority = normalized[scheme.end():] if scheme else normalized
+    authority = authority.split('/', 1)[0].split('?', 1)[0].split('#', 1)[0]
+
     literal_domain = re.search(
-        r'[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}', normalized, re.I
+        r'[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}', authority, re.I
     )
-    wildcard_label_domain = re.search(
-        r'[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.\*[^/]*\.[A-Za-z]{2,}', normalized, re.I
+    known_tld = re.search(
+        r'\.(?:com|cn|net|org|info|biz|tv|cc|io|app|me|co|xyz|top|site|online|mobi|name|pro|edu|gov|uk|jp|de|ru|ai|so|fun|club|live|store|tech|world|asia)(?=$|[:?#])',
+        authority, re.I
     )
     tld_alternation = re.search(
-        r'[A-Za-z0-9-]+\.\(\?:[A-Za-z]{2,}\|[A-Za-z]{2,}\)', normalized, re.I
+        r'\.\((?:com|cn|net|org|info|biz|tv|cc|io|app|me|co|xyz|top|site|online|mobi|name|pro|edu|gov|uk|jp|de|ru|ai|so|fun|club|live|store|tech|world|asia)(?:\|(?:com|cn|net|org|info|biz|tv|cc|io|app|me|co|xyz|top|site|online|mobi|name|pro|edu|gov|uk|jp|de|ru|ai|so|fun|club|live|store|tech|world|asia))+\)',
+        authority, re.I
     )
-    return bool(literal_domain or wildcard_label_domain or tld_alternation)
+    ipv4_literal = re.search(
+        r'(?<![A-Za-z0-9])(?:\d{1,3}\.){3}\d{1,3}(?::\d+)?(?=$|[:?#])',
+        authority
+    )
+    return bool(literal_domain or known_tld or tld_alternation or ipv4_literal)
 
 
 def classify_rewrite_scope(pattern):
