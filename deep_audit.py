@@ -406,16 +406,21 @@ def extract_literal_matcher_host(matcher):
     authority = extract_url_authority(scheme_normalized).lstrip('^')
     authority = authority.split('@')[-1].lower().rstrip('.')
 
-    # Optional/variable ports do not make the hostname itself dynamic.
-    port_suffixes = sorted((
-        r'(?::\d+)?', r'(:\d+)?', r'(?::443)?', r'(:443)?',
-        r'(?::\d{2,5})?', r'(:\d{2,5})?',
-        r'\:\w+', r':\w+', r'\:\d+', r':\d+'
-    ), key=len, reverse=True)
-    for suffix in port_suffixes:
-        if authority.endswith(suffix):
-            authority = authority[:-len(suffix)]
-            break
+    # Literal numeric ports and regex-based optional/variable ports do not
+    # make the hostname itself dynamic.
+    literal_port = re.search(r':\d{1,5}$', authority)
+    if literal_port:
+        authority = authority[:literal_port.start()]
+    else:
+        port_suffixes = sorted((
+            r'(?::\d+)?', r'(:\d+)?', r'(?::443)?', r'(:443)?',
+            r'(?::\d{2,5})?', r'(:\d{2,5})?',
+            r'\:\w+', r':\w+', r'\:\d+', r':\d+'
+        ), key=len, reverse=True)
+        for suffix in port_suffixes:
+            if authority.endswith(suffix):
+                authority = authority[:-len(suffix)]
+                break
     authority = authority.rstrip('.')
     if not authority:
         return None, 'empty_authority'
