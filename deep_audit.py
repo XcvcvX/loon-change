@@ -106,7 +106,7 @@ def audit_deep(path):
 
     guard_text = '\n'.join(x for _, x in rewrite + script)
     literal_hosts = set(re.findall(
-        r'(?<![A-Za-z0-9_-])(?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,}(?![A-Za-z0-9_-})]',
+        r'(?<![A-Za-z0-9_-])(?:[A-Za-z0-9-]+(?:\\\.)?)+[A-Za-z]{2,}(?![A-Za-z0-9_-])',
         guard_text, re.I
     ))
     unreferenced = sorted(h for h in positive if not any(
