@@ -3,7 +3,7 @@
     "rewrite": {
       "action_changed": 0,
       "added": 0,
-      "removed": 0
+      "removed": 1
     },
     "rule": {
       "action_changed": 0,
@@ -16,14 +16,38 @@
       "removed": 0
     }
   },
-  "events": [],
-  "overall_risk": "low",
+  "events": [
+    {
+      "after": null,
+      "before": {
+        "line": "^https?:\\/\\/[\\d\\.]+:\\d{5}\\/\\?cmd=indexes reject",
+        "section": "rewrite",
+        "sources": [
+          "base",
+          "block"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "source_scores": {
+        "base": 0,
+        "block": 0
+      },
+      "sources": [
+        "base",
+        "block"
+      ]
+    }
+  ],
+  "overall_risk": "high",
   "risk_counts": {
-    "high": 0,
+    "high": 1,
     "low": 0,
     "medium": 0
   },
-  "run_id": "\"43048924973\"",
+  "run_id": "\"43053521545\"",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; removals and action changes are high risk.",
@@ -39,14 +63,14 @@
     "base": {
       "action_changed": 0,
       "added": 0,
-      "removed": 3,
-      "snapshots_seen": 2
+      "removed": 4,
+      "snapshots_seen": 3
     },
     "block": {
       "action_changed": 0,
       "added": 49,
-      "removed": 48,
-      "snapshots_seen": 7
+      "removed": 49,
+      "snapshots_seen": 8
     },
     "thelong": {
       "action_changed": 0,
