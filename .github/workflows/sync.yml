@@ -132,7 +132,7 @@ jobs:
           cp /tmp/amap/* sources/amap/
 
       - name: 合并各来源去广告规则（临时目录）
-        run: python3 merge_plugins.py --base /tmp/loon-build/allAdRewrite.plugin --extra fetch --filter fetch --apps /tmp/loon-plugins --aoomee /tmp/aoomee --zmjde /tmp/zmjde --qxapp /tmp/GuaZiVideoAds.conf --amap /tmp/amap/Amap.lpx --myblockads fetch --out /tmp/loon-build/allAdRewrite.plugin
+        run: python3 merge_plugins.py --base /tmp/loon-build/allAdRewrite.plugin --extra fetch --filter fetch --apps /tmp/loon-plugins --aoomee /tmp/aoomee --zmjde /tmp/zmjde --qxapp /tmp/GuaZiVideoAds.conf --amap /tmp/amap/Amap.lpx --myblockads fetch --out /tmp/loon-build/allAdRewrite.plugin --provenance-out /tmp/loon-build/rule-provenance.json --source-report source-report.json
 
       - name: 校验临时产物并同步 README 统计
         run: python3 validate_plugin.py /tmp/loon-build/allAdRewrite.plugin --update-readme README.md
@@ -142,6 +142,14 @@ jobs:
           python3 audit_plugin.py /tmp/loon-build/allAdRewrite.plugin --summary-only
           python3 deep_audit.py /tmp/loon-build/allAdRewrite.plugin --summary-only
           python3 deep_audit.py /tmp/loon-build/allAdRewrite.plugin --json /tmp/deep-audit-sync.json --markdown /tmp/deep-audit-sync.md
+
+      - name: 上传同步构建规则来源追溯报告
+        uses: actions/upload-artifact@v4
+        with:
+          name: rule-provenance-${{ github.run_id }}
+          path: /tmp/loon-build/rule-provenance.json
+          if-no-files-found: error
+          retention-days: 30
 
       - name: 上传同步构建深度审计报告
         uses: actions/upload-artifact@v4
@@ -154,14 +162,16 @@ jobs:
           retention-days: 14
 
       - name: 校验通过后替换正式产物
-        run: cp /tmp/loon-build/allAdRewrite.plugin allAdRewrite.plugin.tmp && mv allAdRewrite.plugin.tmp allAdRewrite.plugin
+        run: |
+          cp /tmp/loon-build/allAdRewrite.plugin allAdRewrite.plugin.tmp && mv allAdRewrite.plugin.tmp allAdRewrite.plugin
+          cp /tmp/loon-build/rule-provenance.json rule-provenance.json
 
       # 可选网络检查：仅输出警告，不因上游短暂限流阻断规则同步。
       # 本地排查远程脚本：python3 validate_plugin.py allAdRewrite.plugin --check-remote
       - name: 检查是否有变化
         id: diff
         run: |
-          if git diff --quiet -- allAdRewrite.plugin README.md source-report.json sources/amap/; then
+          if git diff --quiet -- allAdRewrite.plugin README.md source-report.json rule-provenance.json sources/amap/; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "合并产物与统计均无变化，跳过提交"
           else
@@ -174,6 +184,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add allAdRewrite.plugin README.md source-report.json sources/amap/
+          git add allAdRewrite.plugin README.md source-report.json rule-provenance.json sources/amap/
           git commit -m "chore: sync upstream rules and plugin stats $(date -u +%Y-%m-%d)"
           git push
