@@ -1010,7 +1010,7 @@ _ZHANGLE_UNUSED_ACTION = ('REJECT', 'reject_dict', 'reject_dict(200)')
 zhangle_rewrite_exclusions = []
 _zhangle_rw_kept = []
 for _line in base_rw:
-    if 'c\.zhangle\.com/pic/mktg/diversity/' not in _line:
+    if r'c\.zhangle\.com/pic/mktg/diversity/' not in _line:
         _zhangle_rw_kept.append(_line)
         continue
     if (entry_regex(_line) != _ZHANGLE_UNUSED_MATCHER
@@ -1030,8 +1030,7 @@ for _line in base_rw:
     })
     # The host is pruned from MITM later if no remaining rule uses it.
     # A separate rule on this host from another app/source keeps it alive.
-    _zhangle_rw_kept.append(_line) if False else None
-base_rw = [line for line in _zhangle_rw_kept if line not in ()]
+base_rw = _zhangle_rw_kept
 
 # blockAdsV2
 block_rw, block_sc = prep_block_sections(
