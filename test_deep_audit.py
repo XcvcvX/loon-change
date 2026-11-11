@@ -38,6 +38,12 @@ request if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/ad/ then reject-dict
         self.assertEqual(classify_rewrite_scope(path_wildcard), 'domain_scoped_path_wildcard')
         self.assertTrue(broad_reasons('^https?://'))
         self.assertEqual(classify_rewrite_scope('^https?://'), 'url_without_domain')
+        self.assertFalse(broad_reasons(r'^https?:\/\/ap\.(dongqiudi|dongdianqiu)\.com\/ad'))
+        self.assertEqual(classify_rewrite_scope(r'^https?:\/\/ap\.(dongqiudi|dongdianqiu)\.com\/ad'),
+                         'domain_scoped')
+        self.assertFalse(broad_reasons(r'^https?:\/\/101\.91\.69\.26:8080\/ad'))
+        self.assertEqual(classify_rewrite_scope(r'^https?:\/\/101\.91\.69\.26:8080\/ad'),
+                         'domain_scoped')
 
         fixture = r'''[Rewrite]
 ^https?:\/\/api\.example\.com\/ad\/.* reject
