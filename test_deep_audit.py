@@ -208,6 +208,8 @@ hostname = *.example.com, api.example.com, unused.test
             (10, r'request if %URL% ~= /^https:\/\/api\.covered\.test\/ad/ then reject(404)'),
             (11, r'request if %URL% ~= /^https:\/\/missing\.test\/ad/ then reject(404)'),
             (12, r'request if %URL% ~= /^https:\/\/excluded\.test\/ad/ then reject(404)'),
+            (13, r'request if %URL% ~= /^http:\/\/plain\.test\/ad/ then reject(404)'),
+            (14, r'request if %URL% ~= /^https:\/\/192\.0\.2\.1\/ad/ then reject(404)'),
         ]
         scripts = [
             (20, r'http-response ^https:\/\/script\.covered\.test\/api script-path=https://cdn.test/a.js'),
@@ -222,6 +224,8 @@ hostname = *.example.com, api.example.com, unused.test
         self.assertEqual(summary['negative_excluded_references'], 1)
         self.assertEqual(summary['ambiguous_references'], 1)
         self.assertEqual(summary['dynamic_suffix_references'], 1)
+        self.assertEqual(summary['http_only_references'], 1)
+        self.assertEqual(summary['ip_literal_references'], 1)
         self.assertEqual(report['mitm_ambiguous_rewrite_script_references'][0]['reason'],
                          'regex_host_suffix_without_matching_wildcard')
         self.assertEqual(report['mitm_missing_rewrite_script_coverage'][0]['host'],
