@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-11 08:36 UTC
+#!merged-at=2026-11-11 08:50 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -4884,7 +4884,7 @@ response if ${url} ~= /^https?:\/\/bd-api\.kuwo\.cn\/api\/voice\/room\/v\d\/side
 ^https?:\/\/api-wanda\.liepin\.com\/api\/com\.liepin\.cbp\.baizhong\.op\.v\d-show-4app reject-200
 ^https?:\/\/118\.178\.214\.118\/yyting\/advertclient\/ClientAdvertList\.action reject-img
 ^https?:\/\/dapis\.mting\.info\/yyting\/advertclient\/ClientAdvertList\.action reject-img
-^https?:\/\/.*\/yyting\/advertclient\/ClientAdvertList.action reject
+^https?:\/\/(?:118\.178\.214\.118|dapis\.mting\.info)\/yyting\/advertclient\/ClientAdvertList.action reject
 ^https?:\/\/display\.wting\.info\/.*.jpeg reject-200
 ^https?:\/\/helper\.2bulu\.com(\/v\d)?\/advert reject
 ^https?:\/\/helper\.2bulu\.com\/get(?:Version|AgreementUpdate)Info reject-dict
@@ -5728,7 +5728,6 @@ request if ${url} ~= /^https?:\/\/api.gotokeep.com/cauchy/growth/init/ then reje
 request if ${url} ~= /^https?:\/\/api\.gotokeep\.com\/ads\/v\d\/ads\/preload/ then reject(404)
 request if ${url} ~= /^https:\/\/(?:gmp|wallet)\.lakala\.com\/(?:gmp\/openapi\/v2\/resource_space\/getResourceSpace|m\/(?:a\/lama\/mgt\/activity\/biz\/query\/byMerInfo|lama\/mgt\/activity\/(?:bank|biz)\/query\/list))/ then reject_dict(200)
 request if ${url} ~= /^https?:\/\/(mobile|shop)\.laichon\.com\/api\/(v1\/goods\/goodsList|exposureAdvStatistics|getWebAdvList)/ then reject(404)
-request if ${url} ~= /^https?:\/\/(?:118\.178\.214\.118|dapis\.mting\.info)\/yyting\/advertclient\/ClientAdvertList.action/ then reject(404)
 request if ${url} ~= /^https?:\/\/ios\.lantouzi\.com\/api\/startpage/ then reject(404)
 request if ${url} ~= /^https?:\/\/tbgapplet\.carlsberg\.asia\/tuborg\/banner\/(loading|index)/ then reject_dict(200)
 request if ${url} ~= /^https:\/\/dl-cu-hz\.lechange\.cn\/oms-online\/advertisementPush/ then reject(404)

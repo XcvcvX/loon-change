@@ -2,7 +2,7 @@
   "change_counts": {
     "rewrite": {
       "action_changed": 0,
-      "added": 1,
+      "added": 0,
       "removed": 1
     },
     "rule": {
@@ -18,36 +18,12 @@
   },
   "events": [
     {
-      "after": {
-        "line": "^https?:\\/\\/(?:y\\.gtimg\\.cn|music\\.y\\.qq\\.com)\\/music\\/common\\/upload\\/t_splash_info\\/ reject",
-        "section": "rewrite",
-        "sources": [
-          "block",
-          "thelong"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "rewrite",
-      "source_scores": {
-        "block": 0,
-        "thelong": 0
-      },
-      "sources": [
-        "block",
-        "thelong"
-      ]
-    },
-    {
       "after": null,
       "before": {
-        "line": "^https?:\\/\\/.+?\\/music\\/common\\/upload\\/t_splash_info\\/ reject",
+        "line": "^https?:\\/\\/.*\\/yyting\\/advertclient\\/ClientAdvertList.action reject",
         "section": "rewrite",
         "sources": [
-          "block",
-          "thelong"
+          "base"
         ]
       },
       "change_type": "removed",
@@ -55,12 +31,10 @@
       "risk": "high",
       "section": "rewrite",
       "source_scores": {
-        "block": 0,
-        "thelong": 0
+        "base": 0
       },
       "sources": [
-        "block",
-        "thelong"
+        "base"
       ]
     }
   ],
@@ -68,9 +42,9 @@
   "risk_counts": {
     "high": 1,
     "low": 0,
-    "medium": 1
+    "medium": 0
   },
-  "run_id": "\"42988340543\"",
+  "run_id": "\"42990207376\"",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; removals and action changes are high risk.",
@@ -83,6 +57,12 @@
   "source_health_status": "pass",
   "source_health_warnings": [],
   "source_trends_last_30_snapshots": {
+    "base": {
+      "action_changed": 0,
+      "added": 0,
+      "removed": 1,
+      "snapshots_seen": 1
+    },
     "block": {
       "action_changed": 0,
       "added": 4,
