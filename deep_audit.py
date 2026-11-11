@@ -578,7 +578,7 @@ def audit_mitm_necessity(mitm_rows, coverage_report, rewrite_rows, script_rows):
     references = coverage_report['mitm_literal_rewrite_script_host_references']
     ambiguous = coverage_report['mitm_ambiguous_rewrite_script_references']
     source_rows = rewrite_rows + script_rows
-    source_text = chr(10).join(line for _, line in source_rows)
+    source_text = re.sub(r'\\+([.])', r'\1', chr(10).join(line for _, line in source_rows))
     generic_script = [
         {'line': number, 'entry': line[:200]}
         for number, line in script_rows
@@ -605,12 +605,12 @@ def audit_mitm_necessity(mitm_rows, coverage_report, rewrite_rows, script_rows):
             token = re.compile(r'(?<![A-Za-z0-9_-])' + re.escape(host) +
                                r'(?![A-Za-z0-9_-])', re.I)
             mentioned = bool(token.search(source_text))
-            related_ambiguous = [
-                ref for ref in ambiguous
-                if host in (ref.get('matcher', '') + ' ' + ref.get('entry', '')).lower()
-                or (host.startswith('*.') and host[2:] in
-                    (ref.get('matcher', '') + ' ' + ref.get('entry', '')).lower())
-            ]
+            related_ambiguous = []
+            for ref in ambiguous:
+                context = re.sub(r'\\+([.])', r'\1',
+                                 (ref.get('matcher', '') + ' ' + ref.get('entry', '')).lower())
+                if host in context or (host.startswith('*.') and host[2:] in context):
+                    related_ambiguous.append(ref)
             if mentioned:
                 item['classification'] = 'possible_indirect_or_embedded_reference'
                 item['evidence'] = '在规则文本中出现，但未能证明是业务触发器主机（可能是脚本/CDN/响应地址）'
