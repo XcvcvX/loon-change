@@ -2180,51 +2180,40 @@ if args.provenance_out:
         pdir = os.path.join(args.aoomee, 'plugins')
         if not os.path.isdir(pdir):
             pdir = args.aoomee
-        indices = {'Rewrite': 0, 'Script': 0, 'Rule': 0}
+
+        # Use the retained origin list after semantic duplicate filtering.
+        # Recounting all upstream rows here would include excluded entries and
+        # shift every later source index, even though ao_rw no longer contains them.
+        line_lookup = {}
         for filename in sorted(x for x in os.listdir(pdir)
                                if x.endswith('.plugin') or x.endswith('.lpx')):
             path = os.path.join(pdir, filename)
-            # parse_loose_sections() groups repeated sections by section name.
-            # AOOMEE feeds are flattened in a fixed per-file order: Rewrite,
-            # URL Rewrite, Script, then Rule. Physical file order can differ
-            # when URL Rewrite precedes Rewrite, shifting all later origins.
-            rows_by_section = {}
             current_section = None
+            section_indices = collections.defaultdict(int)
             with open(path, encoding='utf-8') as source_handle:
                 for line_number, raw in enumerate(source_handle, 1):
                     section_match = re.match(r'^\[(.+?)\]\s*$', raw)
                     if section_match:
                         current_section = section_match.group(1).strip()
-                        rows_by_section.setdefault(current_section, [])
-                    elif current_section:
-                        value = raw.strip()
-                        if value and not value.startswith('#'):
-                            rows_by_section.setdefault(current_section, []).append(
-                                (line_number, value)
-                            )
-
-            # Consume line-numbered rows in exactly the same order as
-            # iter_aoomee() and the ao_rw/ao_sc/ao_rule feed construction.
-            for section in ('Rewrite', 'URL Rewrite', 'Script', 'Rule'):
-                for line_number, raw_line in rows_by_section.get(section, []):
-                    target_section = section
-                    if section in ('Rewrite', 'Script'):
-                        converted = convert_shadowrocket_line(raw_line)
-                        if converted is None:
-                            continue
-                    elif section == 'URL Rewrite':
-                        tokens = raw_line.split()
-                        if len(tokens) != 2 or tokens[1] not in _LEGACY_REJECT:
-                            continue
-                        target_section = 'Rewrite'
-                    elif section != 'Rule':
                         continue
-                    _record_origin(
-                        'aoomee', target_section, indices[target_section],
-                        ('plugins/' if pdir.endswith('/plugins') else '') + filename,
-                        line_number, raw_line, original_section=section
-                    )
-                    indices[target_section] += 1
+                    value = raw.strip()
+                    if current_section and value and not value.startswith('#'):
+                        section_index = section_indices[current_section]
+                        line_lookup[(filename, current_section, section_index)] = line_number
+                        section_indices[current_section] += 1
+
+        for feed_index, (filename, original_section, section_index, raw_line) in enumerate(ao_rw_origins):
+            line_number = line_lookup.get((filename, original_section, section_index))
+            if line_number is None:
+                raise RuntimeError(
+                    'aoomee Rewrite provenance cannot locate retained source row: '
+                    + filename + ':' + original_section + ':' + str(section_index)
+                )
+            _record_origin(
+                'aoomee', 'Rewrite', feed_index,
+                ('plugins/' if pdir.endswith('/plugins') else '') + filename,
+                line_number, raw_line, original_section=original_section
+            )
 
     if args.zmjde:
         pdir = os.path.join(args.zmjde, 'Plugin')
