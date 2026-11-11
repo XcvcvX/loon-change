@@ -106,6 +106,40 @@ hostname = *.amap.com
         self.assertIn("two.example.com/b", output)
         self.assertIn("three.example.com", output)
 
+    def test_mgtv_unused_indexes_probe_is_excluded_without_removing_ad_endpoints(self):
+        base = (
+            "[Rewrite]\n"
+            r"^https?:\/\/[\d\.]+:\d{5}\/\?cmd=indexes reject" + "\n"
+            r"^https?:\/\/[\d\.]+:\d{5}\/\?cmd=indexes reject-200" + "\n"
+            r"^https?:\/\/[\d\.]+:\d{5}\/\?cmd=health reject" + "\n"
+            r"^https?:\/\/[\d\.]+\/odin\/c\d\/(channel\/ads|skin\/config)\? reject-dict" + "\n"
+            "[MITM]\nhostname = \n"
+        )
+        extra = (
+            "[Rewrite]\n"
+            r"request if " + "$" + "{url}" + r" ~= /^https?:\/\/[\d\.]+:\d{5}\/\?cmd=indexes/ then reject(404)" + "\n"
+            r"request if " + "$" + "{url}" + r" ~= /^https?:\/\/[\d\.]+:\d{5}\/\?cmd=indexes/ then reject" + "\n"
+            r"request if " + "$" + "{url}" + r" ~= /^https?:\/\/[\d\.]+:\d{5}\/\?cmd=health/ then reject(404)" + "\n"
+            r"request if " + "$" + "{url}" + r" ~= /^https?:\/\/[\d\.]+\/odin\/c1\/(channel\/ads|skin\/config)\?/ then reject_dict(200)" + "\n"
+            "[MITM]\nhostname = \n"
+        )
+        output, report = self.run_merge(base, extra, return_provenance=True)
+        self.assertNotIn(r"cmd=indexes", output)
+        self.assertIn(r"cmd=health", output)
+        self.assertIn(r"odin\/c\d", output)
+        exclusions = [
+            item for item in report.get("rewrite_exclusions", [])
+            if item.get("status") == "excluded_non_ad_probe"
+        ]
+        self.assertEqual(len(exclusions), 4)
+        self.assertEqual({item["source"] for item in exclusions}, {"base", "block"})
+        self.assertEqual(
+            {item["action"] for item in exclusions},
+            {"reject", "reject-200", "reject(404)"},
+        )
+        self.assertTrue(all(item["matcher"] == r"^https?://[\d\.]+:\d{5}/\?cmd=indexes"
+                            for item in exclusions))
+
     def test_active_tencent_httpdns_endpoints_are_not_blocked_by_broad_ip_rule(self):
         base = "[Rewrite]\n[MITM]\nhostname = \n"
         extra = (

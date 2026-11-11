@@ -193,3 +193,10 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 现在对该精确宽泛 matcher 不依赖动作别名，任何动作形式均记录为安全排除；仍保留其他 IP、其他路径和其他 matcher。
 - 新增回归测试：`reject(200)` 与 `reject` 两种动作均被排除，`119.29.29.98/health` 等非目标路径仍按原逻辑保留。
 - 本批不改动其他广告规则、MITM hostname、Script、Rule 或优先级；目的在于防止上游动作格式变化意外恢复对 HTTPDNS 的拦截。
+## 第七阶段第十八批：排除芒果 TV 的宽泛非广告探测请求
+
+- 复核 blockAdsV2 的芒果 TV 规则上下文：/?cmd=indexes 被上游明确标注为“无用请求”，而不是广告接口；其 matcher 却覆盖任意数字 IP、任意五位端口，可能误拒绝其他 App 使用相同路径的请求。
+- 该 matcher 同时存在于 R-Store 转换基础规则和 blockAdsV2。现在仅按精确 matcher 排除两路来源，不依赖动作别名，避免上游调整为 reject、reject(404) 等形式后重新进入产物。
+- 保留芒果 TV odin 的 channel/ads 与 skin/config 广告/配置接口，以及其他 cmd 路径；不扩大到其他 IP、端口或路径。
+- 新增集成测试覆盖 base 与 block 两种来源、多种动作别名，并验证 cmd=health 和 odin 规则仍保留。
+- 本批不修改 MITM hostname、Script、Rule 或其他广告规则；正式验收以 PR CI 和合并后的 main 分支产物为准。

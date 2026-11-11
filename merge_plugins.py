@@ -1027,6 +1027,33 @@ for _line in base_rw:
     })
 base_rw = _zhangle_rw_kept
 
+# Mango TV upstream labels this broad IP/port matcher as "无用请求", not an ad endpoint.
+# It can reject the same path on unrelated apps' arbitrary IPv4:five-digit-port hosts.
+# Exclude only this exact matcher from both base and block feeds; keep the distinct odin ad APIs.
+_MGTV_UNUSED_INDEXES_MATCHER = r'^https?://[\d\.]+:\d{5}/\?cmd=indexes'
+mgtv_unused_indexes_rewrite_exclusions = []
+_mgtv_base_rw_kept = []
+for _base_index, _base_line in enumerate(base_rw):
+    if entry_regex(_base_line) == _MGTV_UNUSED_INDEXES_MATCHER:
+        mgtv_unused_indexes_rewrite_exclusions.append({
+            'source': 'base',
+            'source_catalog': 'R-Store converted Rewrite source',
+            'source_entry_index': _base_index,
+            'input_line': _base_line,
+            'matcher': _MGTV_UNUSED_INDEXES_MATCHER,
+            'action': split_action(_base_line)[1],
+            'reason': (
+                'The upstream Mango TV section labels this broad IPv4/five-digit-port '
+                'cmd=indexes request as "无用请求", not an ad endpoint. Excluding the '
+                'exact matcher avoids rejecting unrelated apps while preserving the '
+                'separate Mango TV odin ad/config endpoints.'
+            ),
+            'status': 'excluded_non_ad_probe',
+        })
+    else:
+        _mgtv_base_rw_kept.append(_base_line)
+base_rw = _mgtv_base_rw_kept
+
 # JD Lite 开屏广告：base 的请求阶段 reject 会终止请求，不会产生响应供后续 response Rewrite 修改。
 # 仅在该终止请求规则仍存在时，排除 blockAdsV2 / Thelong 的两条不可达响应改写。
 _LITE_ADVERTISING_MATCHER = r'^https?://api\.m\.jd\.com/client\.action\?functionId=lite_advertising'
@@ -1073,6 +1100,34 @@ for _line in block_rw:
         'status': 'excluded_unused_app',
     })
 block_rw = _zhangle_block_kept
+
+_mgtv_block_rw_kept = []
+for _block_index, _block_line in enumerate(block_rw):
+    if entry_regex(_block_line) == _MGTV_UNUSED_INDEXES_MATCHER:
+        _source_line_number = None
+        for _line_number, _raw_line in enumerate(extra_text.splitlines(), 1):
+            if _raw_line.strip() == _block_line.strip():
+                _source_line_number = _line_number
+                break
+        mgtv_unused_indexes_rewrite_exclusions.append({
+            'source': 'block',
+            'source_catalog': 'fmz200/wool_scripts blockAdsV2 / 芒果TV',
+            'source_entry_index': _block_index,
+            'source_line_number': _source_line_number,
+            'input_line': _block_line,
+            'matcher': _MGTV_UNUSED_INDEXES_MATCHER,
+            'action': split_action(_block_line)[1],
+            'reason': (
+                'The upstream Mango TV section explicitly labels this broad '
+                'IPv4/five-digit-port cmd=indexes request as "无用请求", not an ad '
+                'endpoint. Excluding the exact matcher avoids rejecting unrelated '
+                'apps while preserving the separate Mango TV odin ad/config endpoints.'
+            ),
+            'status': 'excluded_non_ad_probe',
+        })
+    else:
+        _mgtv_block_rw_kept.append(_block_line)
+block_rw = _mgtv_block_rw_kept
 
 if _lite_advertising_guard_present:
     _kept_block_rw = []
@@ -2122,7 +2177,7 @@ if args.provenance_out:
         'upstream_revisions': upstream_revisions,
         'repository': 'XcvcvX/loon-change',
         'scope': ['Rewrite', 'Script', 'Rule'],
-        'rewrite_exclusions': zhangle_rewrite_exclusions + zhangle_block_rewrite_exclusions + block_rewrite_exclusions + lite_advertising_rewrite_exclusions,
+        'rewrite_exclusions': zhangle_rewrite_exclusions + zhangle_block_rewrite_exclusions + mgtv_unused_indexes_rewrite_exclusions + block_rewrite_exclusions + lite_advertising_rewrite_exclusions,
         'mitm_exclusions': block_mitm_exclusions + zhangle_mitm_exclusions,
         'scope_adjustments': block_scope_adjustments,
         'limitations': [
