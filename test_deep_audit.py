@@ -21,6 +21,28 @@ request if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/ad/ then reject-dict
         self.assertEqual(report['summary']['rewrite_action_conflict_groups'], 1)
         self.assertEqual(report['summary']['rewrite_duplicate_matcher_groups'], 1)
 
+
+    def test_legacy_rewrite_preserves_full_action_arguments_for_duplicate_analysis(self):
+        fixture = '''[Rewrite]
+^https:\\/\\/api\\.example\\.com\\/feed response-body-json-jq '.data |= map(select(.type == "card"))'
+^https:\\/\\/api\\.example\\.com\\/feed response-body-json-jq '.data |= map(select(.id != "ad"))'
+^https:\\/\\/api\\.example\\.com\\/feed reject-dict
+^https:\\/\\/api\\.example\\.com\\/feed reject-dict
+'''
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'legacy-actions.plugin'
+            path.write_text(fixture, encoding='utf-8')
+            report = audit_deep(path)
+
+        group = report['rewrite_duplicate_matcher_groups'][0]
+        self.assertEqual(len(group['entries']), 4)
+        self.assertEqual(len(group['actions']), 3)
+        self.assertEqual(len(group['exact_duplicate_actions']), 1)
+        self.assertEqual(report['summary']['rewrite_exact_duplicate_action_groups'], 1)
+        self.assertEqual(report['summary']['rewrite_action_conflict_groups'], 1)
+        self.assertEqual(report['summary']['rewrite_cross_family_conflict_groups'], 1)
+        self.assertIn('response-body-json-jq', group['actions'][0])
+
     def test_broad_match_candidate(self):
         self.assertTrue(broad_reasons('^https?://'))
         self.assertFalse(broad_reasons(r'^https://api\.example\.com/ad'))
