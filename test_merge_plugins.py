@@ -266,6 +266,21 @@ hostname = *.amap.com
             self.assertNotIn(host, mitm_line)
         self.assertIn("gateway.tuhu.cn", mitm_line)
 
+    def test_icu_control_escape_cannot_match_dns_host_or_keep_unrelated_zhangle_mitm(self):
+        # ICU \cX denotes a control character. The malformed KFC host zone
+        # contains \cn, so it cannot match a valid DNS hostname; unlike broad
+        # ICU constructs such as \p{L}, it must not retain unrelated MITM hosts.
+        base = (
+            "[Rewrite]\n"
+            r"^https?:\/\/res\.kfc\.com.\cn\/advertisement\/ reject" + "\n"
+            "[MITM]\nhostname = c.zhangle.com, live.inst-service.htsc.com, geetest.htsc.com\n"
+        )
+        output = self.run_merge(base, "[Rewrite]\n[MITM]\nhostname = \n")
+        mitm_line = next(line for line in output.splitlines()
+                         if line.strip().startswith("hostname ="))
+        for host in ("c.zhangle.com", "live.inst-service.htsc.com", "geetest.htsc.com"):
+            self.assertNotIn(host, mitm_line)
+
     def test_zhangle_mitm_host_is_retained_if_unsupported_pattern_may_match_it(self):
         # The ICU matcher is not understood by Python re, but its literal suffix
         # proves it may target geetest.htsc.com; retain that MITM host.
