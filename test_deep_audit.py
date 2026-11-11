@@ -258,12 +258,12 @@ hostname = *.example.com, api.example.com, unused.test
     def test_mitm_coverage_distinguishes_shared_pinning_skips_from_real_gaps(self):
         from deep_audit import audit_mitm_script_coverage, audit_mitm_necessity
         rewrite = [
-            (10, r'request if ${url} ~= /^https:\\/\\/openapi\\.boc\\.cn\\/unlogin\\/app\\/cbsp\\/query_ad_list/ then reject(200)'),
-            (11, r'request if ${url} ~= /^https:\\/\\/pv\\.elife\\.icbc\\.com\\.cn\\/OFSTPV\\/utm\\.gif/ then reject(200)'),
-            (12, r'request if ${url} ~= /^https:\\/\\/missing\\.example\\/ad/ then reject(404)'),
-            (13, r'request if ${url} ~= /^https:\\/\\/ios\\.chat\\.openai\\.com\\/public-api/ then reject-dict'),
+            (10, r'request if %URL% ~= /^https:\/\/openapi\.boc\.cn\/unlogin\/app\/cbsp\/query_ad_list/ then reject(200)'),
+            (11, r'request if %URL% ~= /^https:\/\/pv\.elife\.icbc\.com\.cn\/OFSTPV\/utm\.gif/ then reject(200)'),
+            (12, r'request if %URL% ~= /^https:\/\/missing\.example\/ad/ then reject(404)'),
+            (13, r'request if %URL% ~= /^https:\/\/ios\.chat\.openai\.com\/public-api/ then reject-dict'),
         ]
-        rows = [(n, line.replace('${url}', chr(36) + '{url}')) for n, line in rewrite]
+        rows = [(n, line.replace('%URL%', chr(36) + '{url}')) for n, line in rewrite]
         coverage = audit_mitm_script_coverage(rows, [], [])
         summary = coverage['mitm_script_coverage_summary']
         self.assertEqual(summary['intentionally_skipped_references'], 3)
