@@ -134,9 +134,7 @@ hostname = *.amap.com
             "[MITM]\nhostname = c.zhangle.com\n"
         )
         extra = "[Rewrite]\n[MITM]\nhostname = \n"
-        output, report = self.run_merge(
-            base, extra, return_provenance=True,
-        )
+        output, report = self.run_merge(base, extra, return_provenance=True)
         self.assertNotIn(r"c\.zhangle\.com\/pic\/mktg\/diversity", output)
         mitm_line = next(
             line for line in output.splitlines()
