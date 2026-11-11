@@ -1,0 +1,117 @@
+{
+  "average_source_reliability_score": 100.0,
+  "blockers": [],
+  "deployment_allowed": true,
+  "policy": {
+    "action_changes_block_percent_of_previous_section": 10,
+    "addition_spike_warning_percent_of_previous_section": 100,
+    "automatic_rule_or_mitm_edits": false,
+    "removed_rules_block_percent_of_previous_section": 25,
+    "section_output_shrink_block_percent": 30,
+    "source_count_drop_block_percent": 60
+  },
+  "provenance_coverage": {
+    "coverage_percent": 100.0,
+    "entries": 7440,
+    "missing_source": 0
+  },
+  "safety_notes": [
+    "Reliability scores summarize source evidence; they do not prove runtime correctness.",
+    "Large destructive diffs are held for review rather than silently published.",
+    "No rule, MITM hostname, priority, or plugin output is modified by this guard."
+  ],
+  "schema_version": 1,
+  "section_changes": {
+    "rewrite": {
+      "action_changed": 0,
+      "added": 0,
+      "current_entries": 3326,
+      "net_shrink_percent": 0.0,
+      "previous_entries": 3326,
+      "removed": 0,
+      "removed_percent": 0.0
+    },
+    "rule": {
+      "action_changed": 0,
+      "added": 0,
+      "current_entries": 3498,
+      "net_shrink_percent": 0.0,
+      "previous_entries": 3498,
+      "removed": 0,
+      "removed_percent": 0.0
+    },
+    "script": {
+      "action_changed": 0,
+      "added": 0,
+      "current_entries": 616,
+      "net_shrink_percent": 0.0,
+      "previous_entries": 616,
+      "removed": 0,
+      "removed_percent": 0.0
+    }
+  },
+  "source_scores": {
+    "Amap": {
+      "current_count": 48,
+      "evidence": {
+        "asset_integrity": "4 sha256 hashes",
+        "content_volume": "present_bytes_and_entries",
+        "historical_continuity": "within_existing_60_percent_drop_guard",
+        "revision_identity": "present"
+      },
+      "max_score": 100,
+      "previous_count": 48,
+      "score": 100
+    },
+    "GuaZiVideoAds": {
+      "current_count": 6,
+      "evidence": {
+        "asset_integrity": "not_applicable",
+        "content_volume": "present_bytes_and_entries",
+        "historical_continuity": "within_existing_60_percent_drop_guard",
+        "revision_identity": "present"
+      },
+      "max_score": 100,
+      "previous_count": 6,
+      "score": 100
+    },
+    "aoomee": {
+      "current_count": 422,
+      "evidence": {
+        "asset_integrity": "not_applicable",
+        "content_volume": "present_rule_lines",
+        "historical_continuity": "within_existing_60_percent_drop_guard",
+        "revision_identity": "present"
+      },
+      "max_score": 100,
+      "previous_count": 422,
+      "score": 100
+    },
+    "thelongdarkorg": {
+      "current_count": 991,
+      "evidence": {
+        "asset_integrity": "not_applicable",
+        "content_volume": "present_rule_lines",
+        "historical_continuity": "within_existing_60_percent_drop_guard",
+        "revision_identity": "present"
+      },
+      "max_score": 100,
+      "previous_count": 991,
+      "score": 100
+    },
+    "zmjde": {
+      "current_count": 766,
+      "evidence": {
+        "asset_integrity": "not_applicable",
+        "content_volume": "present_rule_lines",
+        "historical_continuity": "within_existing_60_percent_drop_guard",
+        "revision_identity": "present"
+      },
+      "max_score": 100,
+      "previous_count": 766,
+      "score": 100
+    }
+  },
+  "status": "pass",
+  "warnings": []
+}
