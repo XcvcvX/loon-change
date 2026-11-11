@@ -55,8 +55,8 @@ def normalize_regex_literals(pattern):
 def has_domain_constraint(pattern):
     """Recognize literal domains, constrained regex hostnames and explicit IP hosts."""
     normalized = normalize_regex_literals(pattern)
-    scheme = re.search(r'https(?:\?|s?)://', normalized, re.I)
-    authority = normalized[scheme.end():] if scheme else normalized
+    scheme_marker = normalized.find('://')
+    authority = normalized[scheme_marker + 3:] if scheme_marker >= 0 else normalized
     authority = authority.split('/', 1)[0]
 
     literal_domain = re.search(
@@ -93,13 +93,13 @@ def classify_rewrite_scope(pattern):
 
     authority = ''
     remainder = normalized
-    scheme = re.search(r'https(?:\?|s?)://', normalized, re.I)
-    if scheme:
-        remainder = normalized[scheme.end():]
+    scheme_marker = normalized.find('://')
+    if scheme_marker >= 0:
+        remainder = normalized[scheme_marker + 3:]
         authority = remainder.split('/', 1)[0]
     if '.*' in authority or '.+' in authority or re.search(r'\([^)]*\)[*+]', authority):
         return 'domain_scoped_subdomain_wildcard'
-    path_part = remainder[len(authority):] if scheme else remainder
+    path_part = remainder[len(authority):] if scheme_marker >= 0 else remainder
     if '.*' in path_part or '.+' in path_part or re.search(r'\([^)]*\)[*+]', path_part):
         return 'domain_scoped_path_wildcard'
     return 'domain_scoped'
