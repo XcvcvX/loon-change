@@ -162,7 +162,9 @@ jobs:
           retention-days: 14
 
       - name: 校验通过后替换正式产物
-        run: cp /tmp/loon-build/allAdRewrite.plugin allAdRewrite.plugin.tmp && mv allAdRewrite.plugin.tmp allAdRewrite.plugin
+        run: |
+          cp /tmp/loon-build/allAdRewrite.plugin allAdRewrite.plugin.tmp && mv allAdRewrite.plugin.tmp allAdRewrite.plugin
+          cp /tmp/loon-build/rule-provenance.json rule-provenance.json
 
       # 可选网络检查：仅输出警告，不因上游短暂限流阻断规则同步。
       # 本地排查远程脚本：python3 validate_plugin.py allAdRewrite.plugin --check-remote
