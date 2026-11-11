@@ -53,11 +53,11 @@ DOMAIN,amap.com,REJECT
 [Rewrite]
 request if ${url} ~= /^https:\/\/m5\.amap\.com\/same\?/ then reject_dict(200)
 response if ${url} ~= /^https:\/\/m5\.amap\.com\/edit\?/ then response.json.delete("promotion")
-[Script]
-response if ${url} ~= /^https:\/\/m5\.amap\.com\/script\?/ then script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/sooyaaabo/Amap/rucu6_amap.js")
 response if ${url} ~= /^https:\/\/m5\.amap\.com\/recommend\?/ then response.json.jq_file("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/sooyaaabo/Amap/loon_Amap.recommend.jq")
 response if ${url} ~= /^https:\/\/m5\.amap\.com\/updatable\?/ then response.json.jq_file("https://kelee.one/Resource/JQLang/Amap/updatable.jq")
 response if ${url} ~= /^https:\/\/m5\.amap\.com\/poi\?/ then response.json.jq_file("https://kelee.one/Resource/JQLang/Amap/search_poi_detail.jq")
+[Script]
+response if ${url} ~= /^https:\/\/m5\.amap\.com\/script\?/ then script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/sooyaaabo/Amap/rucu6_amap.js")
 [MitM]
 hostname = *.amap.com
 """
