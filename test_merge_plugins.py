@@ -211,6 +211,34 @@ hostname = *.amap.com
         self.assertIn("geetest.htsc.com", mitm_line)
         self.assertNotIn("c.zhangle.com", mitm_line)
 
+    def test_non_http_script_download_urls_do_not_keep_orphan_zhangle_mitm_hosts(self):
+        # Generic/Cron/Network Changed script URLs are downloaded script sources,
+        # not HTTP trigger matchers. They must not make unrelated MITM hosts look
+        # referenced when the general pruner fails closed on ICU syntax.
+        base = (
+            "[Rewrite]\n"
+            r"^https?:\\/\\/\\p{L}+\\.other\\.example\\.com\\/ad reject" + "\n"
+            "[Script]\n"
+            'generic script-path=https://raw.githubusercontent.com/example/qunar.js,tag=Manual\n'
+            'cron "0 * * * *" script-path=https://raw.githubusercontent.com/example/youtube.js,tag=Scheduled\n'
+            'network-changed script-path=https://raw.githubusercontent.com/example/network.js,tag=Network\n'
+            "[MITM]\nhostname = c.zhangle.com, live.inst-service.htsc.com, geetest.htsc.com, other.example.com\n"
+        )
+        output, report = self.run_merge(
+            base, "[Rewrite]\n[Script]\n[MITM]\nhostname = \n",
+            return_provenance=True,
+        )
+        mitm_line = next(line for line in output.splitlines()
+                         if line.strip().startswith("hostname ="))
+        for host in ("c.zhangle.com", "live.inst-service.htsc.com", "geetest.htsc.com"):
+            self.assertNotIn(host, mitm_line)
+        self.assertIn("other.example.com", mitm_line)
+        removed = {x["hostname"] for x in report.get("mitm_exclusions", [])
+                   if x.get("source") == "merged_mitm"}
+        self.assertEqual(removed, {
+            "c.zhangle.com", "live.inst-service.htsc.com", "geetest.htsc.com"
+        })
+
     def test_zhangle_block_rule_drift_fails_closed(self):
         base = "[Rewrite]\n[MITM]\nhostname = \n"
         changed = (

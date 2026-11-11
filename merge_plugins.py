@@ -1763,6 +1763,11 @@ for _host in mitm:
         continue
     _could_be_referenced = False
     for _line in merged_rw + merged_sc:
+        # Generic/Cron/Network Changed scripts are manual or event/schedule
+        # actions. Their script-path URLs identify downloaded code, not an HTTP
+        # request hostname that requires MITM coverage.
+        if re.match(r'^(?:generic|cron|network-changed)\\b', _line.strip(), re.IGNORECASE):
+            continue
         _rx = entry_regex(_line)
         if not _rx:
             if re.search(r'https?://', _line, re.IGNORECASE):

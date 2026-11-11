@@ -92,3 +92,12 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 不新增 MITM hostname，不改 Script、Rule、优先级或其他 App 规则。
 - 增加正向/负向 host 测试，并在上游 hostname/MITM 声明漂移时 fail-closed。
 - 静态测试不替代 QQ音乐真机启动页验证。
+
+## 第七阶段第七批：修复孤立 MITM 主机清理的误保留
+
+- 生产审计发现第六批目标的三个涨乐财富通专属主机仍留在 MITM：原因是合并器将 Generic、Cron 等非 HTTP 脚本的远程脚本下载 URL 误判为业务请求主机引用。
+- Loon 官方 Script 语义中，Generic 为手动执行，Cron 按计划执行，Network Changed 在网络变化时执行；它们的 script-path 是脚本资源地址，不是 HTTP URL 触发器。
+- 清理判断跳过 generic、cron、network-changed 非 HTTP 触发类型；继续检查 HTTP Rewrite / Request / Response Script 的 URL matcher。
+- 保留无法静态判断且可能匹配目标主机的 HTTP matcher，继续 fail-closed；不改变任何 Rewrite、Script、Rule、优先级或其他 MITM 主机。
+- 增加生产型回归测试：在存在 ICU 正则导致通用裁剪器保守保留的情况下，Generic/Cron/Network Changed 的远程脚本 URL 不再阻止三个已确认孤立主机的清理；其他主机仍保留。
+
