@@ -340,18 +340,18 @@ hostname = *.amap.com
 
     def test_lanrentingshu_legacy_rstore_matcher_is_also_limited(self):
         base = (
-            "[Rewrite]\\n"
-            r"^https?:\\/\\/.*\\/yyting\\/advertclient\\/ClientAdvertList.action reject" + "\\n"
-            "[Script]\\n[MITM]\\nhostname = \\n"
+            "[Rewrite]\n"
+            r"^https?:\\/\\/.*\\/yyting\\/advertclient\\/ClientAdvertList.action reject" + "\n"
+            "[Script]\n[MITM]\nhostname = \n"
         )
         extra = (
-            "[Rewrite]\\n"
-            "# > 懒人听书\\n"
-            "# hostname = 118.178.214.118, dapis.mting.info, display.wting.info\\n"
-            r"request if ${url} ~= /^https?:\\/\\/118\\.178\\.214\\.118\\/yyting\\/advertclient\\/ClientAdvertList\\.action/ then reject_img(200)" + "\\n"
-            r"request if ${url} ~= /^https?:\\/\\/dapis\\.mting\\.info\\/yyting\\/advertclient\\/ClientAdvertList\\.action/ then reject_img(200)" + "\\n"
-            r"request if ${url} ~= /^https?:\\/\\/.*\\/yyting\\/advertclient\\/ClientAdvertList.action/ then reject(404)" + "\\n"
-            "[Script]\\n[MITM]\\nhostname = 118.178.214.118, dapis.mting.info, display.wting.info\\n"
+            "[Rewrite]\n"
+            "# > 懒人听书\n"
+            "# hostname = 118.178.214.118, dapis.mting.info, display.wting.info\n"
+            r"request if ${url} ~= /^https?:\\/\\/118\\.178\\.214\\.118\\/yyting\\/advertclient\\/ClientAdvertList\\.action/ then reject_img(200)" + "\n"
+            r"request if ${url} ~= /^https?:\\/\\/dapis\\.mting\\.info\\/yyting\\/advertclient\\/ClientAdvertList\\.action/ then reject_img(200)" + "\n"
+            r"request if ${url} ~= /^https?:\\/\\/.*\\/yyting\\/advertclient\\/ClientAdvertList.action/ then reject(404)" + "\n"
+            "[Script]\n[MITM]\nhostname = 118.178.214.118, dapis.mting.info, display.wting.info\n"
         )
         output, report = self.run_merge(
             base, extra, return_provenance=True,
@@ -367,7 +367,7 @@ hostname = *.amap.com
         self.assertEqual(rewrite.count("reject_img(200)"), 2)
         self.assertTrue(any("ClientAdvertList" in line and line.endswith("reject(404)")
                             for line in rewrite.splitlines()))
-        self.assertIn("display\\\\.wting\\\\.info", rewrite)
+        self.assertIn("display\\.wting\\.info", rewrite)
 
         legacy_record = next(
             item for item in report["rewrite"]
@@ -379,7 +379,7 @@ hostname = *.amap.com
             item for item in report["scope_adjustments"]
             if item["source"] == "base" and "ClientAdvertList" in item["output_line"]
         )
-        self.assertIn("118\\\\.178\\\\.214\\\\.118|dapis\\\\.mting\\\\.info",
+        self.assertIn("118\\.178\\.214\\.118|dapis\\.mting\\.info",
                       adjustment["output_line"])
 
         import re
