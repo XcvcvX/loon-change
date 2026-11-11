@@ -435,6 +435,22 @@ def host_matches_mitm(host, positive_hosts, negative_hosts, dynamic_suffix=False
     return 'not_listed', [], []
 
 
+def matcher_scheme_kind(matcher):
+    normalized = normalize_regex_literals(matcher).lower()
+    prefix = normalized.split('://', 1)[0]
+    if 'https?' in prefix:
+        return 'http_or_https'
+    if 'https' in prefix:
+        return 'https_only'
+    if 'http' in prefix:
+        return 'http_only'
+    return 'unknown'
+
+
+def is_ipv4_literal(host):
+    return bool(re.fullmatch(r'(?:[0-9]{1,3}\.){3}[0-9]{1,3}', host))
+
+
 def audit_mitm_script_coverage(rewrite_rows, script_rows, mitm_rows):
     """Correlate literal Rewrite/Script trigger hosts with MITM entries; read-only."""
     positive, negative = set(), set()
@@ -478,13 +494,19 @@ def audit_mitm_script_coverage(rewrite_rows, script_rows, mitm_rows):
                                   'matcher': matcher[:200], 'reason': reason})
                 continue
             dynamic_suffix = reason == 'regex_host_suffix'
-            state, covered_by, excluded_by = host_matches_mitm(host, positive, negative, dynamic_suffix)
-            if dynamic_suffix and state == 'not_listed':
-                state = 'dynamic_unresolved'
+            scheme = matcher_scheme_kind(matcher)
+            if scheme == 'http_only':
+                state, covered_by, excluded_by = 'http_only_no_mitm_required', [], []
+            elif is_ipv4_literal(host):
+                state, covered_by, excluded_by = 'ip_literal_not_for_mitm', [], []
+            else:
+                state, covered_by, excluded_by = host_matches_mitm(host, positive, negative, dynamic_suffix)
+                if dynamic_suffix and state == 'not_listed':
+                    state = 'dynamic_unresolved'
             reference = {
                 'source': source, 'line': number, 'phase': phase,
-                'matcher': matcher[:240], 'host': host,
-                'host_kind': 'regex_suffix_candidate' if dynamic_suffix else 'literal',
+                'matcher': matcher[:240], 'host': host, 'scheme': scheme,
+                'host_kind': 'regex_suffix_candidate' if dynamic_suffix else ('ipv4_literal' if is_ipv4_literal(host) else 'literal'),
                 'action': action if source == 'rewrite' else None, 'coverage': state,
                 'mitm_entries': covered_by, 'negative_exclusions': excluded_by
             }
@@ -495,6 +517,8 @@ def audit_mitm_script_coverage(rewrite_rows, script_rows, mitm_rows):
     missing = [x for x in references if x['coverage'] == 'not_listed']
     excluded = [x for x in references if x['coverage'] == 'negative_excluded']
     covered = [x for x in references if x['coverage'] in {'covered', 'covered_by_parent_wildcard'}]
+    http_only = [x for x in references if x['coverage'] == 'http_only_no_mitm_required']
+    ip_literals = [x for x in references if x['coverage'] == 'ip_literal_not_for_mitm']
     referenced_hosts = {x['host'] for x in references}
     unreferenced = []
     for entry in sorted(positive):
@@ -509,6 +533,8 @@ def audit_mitm_script_coverage(rewrite_rows, script_rows, mitm_rows):
             'negative_entries': len(negative),
             'literal_references': len(references),
             'covered_references': len(covered),
+            'http_only_references': len(http_only),
+            'ip_literal_references': len(ip_literals),
             'dynamic_suffix_references': sum(x['host_kind'] == 'regex_suffix_candidate' for x in references),
             'missing_rewrite_references': sum(x['source'] == 'rewrite' for x in missing),
             'missing_script_trigger_references': sum(x['source'] == 'script_trigger' for x in missing),
@@ -521,6 +547,8 @@ def audit_mitm_script_coverage(rewrite_rows, script_rows, mitm_rows):
         },
         'mitm_missing_rewrite_script_coverage': missing,
         'mitm_negative_excluded_rewrite_script_coverage': excluded,
+        'mitm_http_only_no_mitm_references': http_only,
+        'mitm_ip_literal_not_for_mitm_references': ip_literals,
         'mitm_ambiguous_rewrite_script_references': ambiguous,
         'mitm_unreferenced_positive_candidates': unreferenced,
         'mitm_literal_rewrite_script_host_references': references
@@ -715,6 +743,8 @@ def render_markdown(report):
         'script_generic_trigger_candidates':'通用/条件触发器候选',
         'literal_references':'MITM 关联字面主机引用',
         'covered_references':'MITM 已覆盖引用',
+        'http_only_references':'纯 HTTP 无需 MITM 的引用',
+        'ip_literal_references':'裸 IPv4 不建议加入 MITM 的引用',
         'dynamic_suffix_references':'动态主机后缀候选',
         'missing_rewrite_references':'Rewrite 未覆盖引用',
         'missing_script_trigger_references':'Script 触发器未覆盖引用',
@@ -742,6 +772,8 @@ def render_markdown(report):
         ('script_generic_trigger_candidates','通用/条件触发器候选'),
         ('mitm_missing_rewrite_script_coverage','MITM 未覆盖的 Rewrite/Script 触发器'),
         ('mitm_negative_excluded_rewrite_script_coverage','被负向 MITM 排除的 Rewrite/Script 触发器'),
+        ('mitm_http_only_no_mitm_references','纯 HTTP 引用（无需 MITM）'),
+        ('mitm_ip_literal_not_for_mitm_references','裸 IPv4 引用（不建议加入 MITM）'),
         ('mitm_ambiguous_rewrite_script_references','无法静态识别主机的 Rewrite/Script 引用'),
         ('mitm_unreferenced_positive_candidates','未关联到字面触发器的 MITM 正向项候选')
     ]:
