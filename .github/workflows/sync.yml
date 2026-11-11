@@ -141,6 +141,17 @@ jobs:
         run: |
           python3 audit_plugin.py /tmp/loon-build/allAdRewrite.plugin --summary-only
           python3 deep_audit.py /tmp/loon-build/allAdRewrite.plugin --summary-only
+          python3 deep_audit.py /tmp/loon-build/allAdRewrite.plugin --json /tmp/deep-audit-sync.json --markdown /tmp/deep-audit-sync.md
+
+      - name: 上传同步构建深度审计报告
+        uses: actions/upload-artifact@v4
+        with:
+          name: deep-audit-sync-${{ github.run_id }}
+          path: |
+            /tmp/deep-audit-sync.json
+            /tmp/deep-audit-sync.md
+          if-no-files-found: error
+          retention-days: 14
 
       - name: 校验通过后替换正式产物
         run: cp /tmp/loon-build/allAdRewrite.plugin allAdRewrite.plugin.tmp && mv allAdRewrite.plugin.tmp allAdRewrite.plugin
