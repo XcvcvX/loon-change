@@ -1264,6 +1264,7 @@ def exclude_audited_semantic_duplicates(lines, origins, source):
 thelong_rw, thelong_sc = [], []
 thelong_rw_origins = []
 thelong_rule, thelong_mitm = [], []
+thelong_duplicate_exclusions = []
 if args.apps:
     for fname, atext in iter_app_plugins(args.apps):
         _, s = split_sections(atext)
@@ -1324,22 +1325,30 @@ if args.apps:
         for l in s.get('MITM', []):
             if '=' in l:
                 thelong_mitm += [x.strip() for x in l.split('=', 1)[1].split(',') if x.strip()]
+thelong_rw, thelong_rw_origins, thelong_duplicate_exclusions = exclude_audited_semantic_duplicates(
+    thelong_rw, thelong_rw_origins, 'thelong')
 # aoomee（v1/v2 混合；URL Rewrite 的 reject 并入 Rewrite；generic/cron 由合并器识别）
 ao_rw, ao_sc, ao_rule, ao_mitm = [], [], [], []
+ao_rw_origins = []
+aoomee_duplicate_exclusions = []
 if args.aoomee:
     for fname, s in iter_aoomee(args.aoomee):
-        ao_rw += [convert_shadowrocket_line(l)
-                  for l in real_lines(s.get('Rewrite', []))]
-        for l in real_lines(s.get('URL Rewrite', [])):
+        for _source_index, l in enumerate(real_lines(s.get('Rewrite', []))):
+            ao_rw.append(convert_shadowrocket_line(l))
+            ao_rw_origins.append((fname, 'Rewrite', _source_index, l))
+        for _source_index, l in enumerate(real_lines(s.get('URL Rewrite', []))):
             toks = l.split()
             if len(toks) == 2 and toks[1] in _LEGACY_REJECT:
                 ao_rw.append(l)
+                ao_rw_origins.append((fname, 'URL Rewrite', _source_index, l))
         ao_sc += [convert_shadowrocket_line(l)
                   for l in real_lines(s.get('Script', []))]
         ao_rule += real_lines(s.get('Rule', []))
         for l in s.get('MITM', []):
             if '=' in l:
                 ao_mitm += [x.strip() for x in l.split('=', 1)[1].split(',') if x.strip()]
+ao_rw, ao_rw_origins, aoomee_duplicate_exclusions = exclude_audited_semantic_duplicates(
+    ao_rw, ao_rw_origins, 'aoomee')
 # ---------------- zmjde 指定插件 ----------------
 # App 高优先级（完整并入，同正则替换其他来源）：DiDi/PinDuoDuo + 闲鱼/淘宝/什么值得买；
 # 通用 base 优先，只补 base 没有的（不覆盖）：Block_HTTPDNS/BlockAdvertisers + 可莉广告过滤器。
