@@ -25,13 +25,29 @@ def rows(items):
 
 
 def parse_rewrite(line):
+    # Modern conditional Rewrite: the regex body may contain unescaped URL slashes.
+    # A closing delimiter is recognized by its syntactic context (flags/alias followed
+    # by &&, ||, or then), rather than by stopping at the first slash.
     modern = re.match(
-        r'^(request|response)\s+if\s+\$\{url\}\s*~=?\s*/((?:\\.|[^/])*)/\s+then\s+(.+)$',
+        r'^(request|response)\s+if\s+\$\{url\}\s*~=?\s*/',
         line, re.I
     )
     if modern:
-        return modern.group(1).lower(), modern.group(2), modern.group(3).strip()
-    legacy = re.match(r'^(\S+)\s+([A-Za-z][A-Za-z0-9_-]*)(?:\s+(.*))?$', line)
+        start = modern.end()
+        closing = re.search(
+            r'/([A-Za-z]*)\s+(?:(?:as\s+[A-Za-z_]\w*)\s+)?(?=(?:then\b|&&|\|\|))',
+            line[start:], re.I
+        )
+        if closing:
+            tail = line[start + closing.end():]
+            action = re.search(r'\bthen\s+(.+)$', tail, re.I)
+            if action:
+                matcher = line[start:start + closing.start()]
+                return modern.group(1).lower(), matcher, action.group(1).strip()
+
+    # Legacy form: <matcher> <action> [argument]. Numeric actions such as 302
+    # are valid and must not be rejected by an alphabetic-only token pattern.
+    legacy = re.match(r'^(\S+)\s+([A-Za-z0-9_-]+)(?:\s+(.*))?$', line)
     actions = {
         'reject','reject-200','reject-img','reject-dict','reject-array','reject-video',
         '302','307','header-add','header-del','header-replace','header-replace-regex',
@@ -45,7 +61,6 @@ def parse_rewrite(line):
     if legacy and legacy.group(2).lower() in actions:
         return 'legacy', legacy.group(1), legacy.group(2).lower()
     return None
-
 
 def normalize_regex_literals(pattern):
     """Normalize escaped URL separators for conservative scope inspection only."""
