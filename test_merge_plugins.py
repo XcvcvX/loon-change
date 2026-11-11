@@ -12,7 +12,7 @@ MERGER = Path(__file__).with_name("merge_plugins.py")
 
 
 class MergeIntegrationTests(unittest.TestCase):
-    def run_merge(self, base_text, extra_text, myblockads_text=None, return_stdout=False, amap_text=None, return_provenance=False, apps_files=None):
+    def run_merge(self, base_text, extra_text, myblockads_text=None, return_stdout=False, amap_text=None, return_provenance=False, apps_files=None, expect_failure=False):
         tmp = tempfile.TemporaryDirectory()
         self.addCleanup(tmp.cleanup)
         root = Path(tmp.name)
@@ -43,6 +43,9 @@ class MergeIntegrationTests(unittest.TestCase):
         result = subprocess.run(
             command,
             capture_output=True, text=True, timeout=30)
+        if expect_failure:
+            self.assertNotEqual(result.returncode, 0, result.stdout + "\n" + result.stderr)
+            return result.stdout + "\n" + result.stderr
         self.assertEqual(result.returncode, 0, result.stdout + "\n" + result.stderr)
         output = out.read_text(encoding="utf-8")
         if return_provenance:
