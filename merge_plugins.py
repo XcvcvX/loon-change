@@ -1148,11 +1148,24 @@ for _block_index, _block_line in enumerate(block_rw):
 block_rw = _block_rw_kept
 # Thelongdarkorg（标准 v1，直接保留）
 thelong_rw, thelong_sc = [], []
+thelong_rw_origins = []
 thelong_rule, thelong_mitm = [], []
 if args.apps:
     for fname, atext in iter_app_plugins(args.apps):
         _, s = split_sections(atext)
         app_rewrite_lines = real_lines(s.get('Rewrite', []))
+        # Capture origins before filtering so flattened indexes remain aligned with retained rules.
+        app_rewrite_origins = []
+        _origin_section = None
+        for _line_number, _raw_line in enumerate(atext.splitlines(), 1):
+            _section_match = re.match(r'^\[([A-Za-z]+)\]\s*\Z', _raw_line)
+            if _section_match:
+                _origin_section = _section_match.group(1)
+            elif (_origin_section == 'Rewrite' and _raw_line.strip()
+                  and not _raw_line.lstrip().startswith('#')):
+                app_rewrite_origins.append((fname, _line_number, _raw_line.strip()))
+        if len(app_rewrite_origins) != len(app_rewrite_lines):
+            raise RuntimeError('Thelong Rewrite source-origin alignment failed: ' + fname)
         if _lite_advertising_guard_present and fname == 'jd_splash_ad_block.plugin':
             _kept_app_rewrite_lines = []
             _source_section = None
@@ -1163,7 +1176,8 @@ if args.apps:
                     _source_section = _section_match.group(1).strip()
                 elif _source_section == 'Rewrite' and _raw_line.strip():
                     _source_line_numbers.setdefault(_raw_line.strip(), _line_number)
-            for _line in app_rewrite_lines:
+            _kept_app_rewrite_origins = []
+            for _line, _origin in zip(app_rewrite_lines, app_rewrite_origins):
                 if entry_regex(_line) == _LITE_ADVERTISING_MATCHER:
                     if _line != _LITE_ADVERTISING_THELONG_RESPONSE:
                         raise RuntimeError('Thelong JD Lite 上游响应规则发生变化，拒绝扩大排除范围：' + _line)
@@ -1180,7 +1194,9 @@ if args.apps:
                     })
                 else:
                     _kept_app_rewrite_lines.append(_line)
+                    _kept_app_rewrite_origins.append(_origin)
             app_rewrite_lines = _kept_app_rewrite_lines
+            app_rewrite_origins = _kept_app_rewrite_origins
         if fname == 'qqmusic_splash_ad_block.plugin':
             _, qqmusic_thelong_present = validate_qqmusic_sources(extra_text, atext)
             if qqmusic_thelong_present:
@@ -1188,6 +1204,7 @@ if args.apps:
                     app_rewrite_lines, 'thelong')
                 block_scope_adjustments.extend(qqmusic_thelong_adjustments)
         thelong_rw += app_rewrite_lines
+        thelong_rw_origins += app_rewrite_origins
         thelong_sc += real_lines(s.get('Script', []))
         thelong_rule += real_lines(s.get('Rule', []))
         for l in s.get('MITM', []):
@@ -2016,6 +2033,8 @@ if args.provenance_out:
                     yield current, line_number, value
 
     if args.apps:
+        for index, (filename, line_number, raw_line) in enumerate(thelong_rw_origins):
+            _record_origin('thelong', 'Rewrite', index, filename, line_number, raw_line)
         indices = {'Rewrite': 0, 'Script': 0, 'Rule': 0}
         for filename in sorted(x for x in os.listdir(args.apps)
                                if x.endswith('.plugin')
@@ -2023,7 +2042,7 @@ if args.provenance_out:
                                and not x.startswith('ai_auto_node')):
             path = os.path.join(args.apps, filename)
             for section, line_number, raw_line in _raw_rows(path):
-                if section not in indices:
+                if section not in indices or section == 'Rewrite':
                     continue
                 _record_origin('thelong', section, indices[section], filename,
                                line_number, raw_line)
