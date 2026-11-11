@@ -2235,7 +2235,7 @@ if args.provenance_out:
         'upstream_revisions': upstream_revisions,
         'repository': 'XcvcvX/loon-change',
         'scope': ['Rewrite', 'Script', 'Rule'],
-        'rewrite_exclusions': zhangle_rewrite_exclusions + zhangle_block_rewrite_exclusions + mgtv_unused_indexes_rewrite_exclusions + block_rewrite_exclusions + lite_advertising_rewrite_exclusions,
+        'rewrite_exclusions': zhangle_rewrite_exclusions + zhangle_block_rewrite_exclusions + mgtv_unused_indexes_rewrite_exclusions + block_rewrite_exclusions + lite_advertising_rewrite_exclusions + thelong_duplicate_exclusions + aoomee_duplicate_exclusions,
         'mitm_exclusions': block_mitm_exclusions + zhangle_mitm_exclusions,
         'scope_adjustments': block_scope_adjustments,
         'limitations': [
