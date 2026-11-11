@@ -242,6 +242,7 @@ def audit_deep(path):
 
     groups, broad, unknown = defaultdict(list), [], []
     scope_counts, scope_candidates = Counter(), []
+    action_family_counts, action_review_candidates, unknown_action_candidates = Counter(), [], []
     for n, line in rewrite:
         parsed = parse_rewrite(line)
         if not parsed:
@@ -249,6 +250,22 @@ def audit_deep(path):
             continue
         phase, matcher, action = parsed
         groups[(phase, matcher)].append({'line': n, 'action': action})
+        action_info = classify_rewrite_action(action)
+        families = action_info['families']
+        for family in families:
+            action_family_counts[family] += 1
+        priority = action_review_priority(families)
+        if priority != 'no_special_review':
+            action_review_candidates.append({
+                'line': n, 'phase': phase, 'pattern': matcher, 'action': action,
+                'action_families': families, 'operations': action_info['operations'],
+                'review_priority': priority,
+                'reasons': action_review_reasons(families)
+            })
+        if 'unknown' in families:
+            unknown_action_candidates.append({
+                'line': n, 'phase': phase, 'pattern': matcher, 'action': action
+            })
         scope = classify_rewrite_scope(matcher)
         scope_counts[scope] += 1
         if scope != 'domain_scoped':
@@ -322,6 +339,9 @@ def audit_deep(path):
             'rewrite_scope_review_candidates': len(scope_candidates),
             'rewrite_duplicate_matcher_groups': len(duplicates),
             'rewrite_action_conflict_groups': len(conflicts),
+            'rewrite_action_family_counts': dict(sorted(action_family_counts.items())),
+            'rewrite_action_semantic_review_candidates': len(action_review_candidates),
+            'rewrite_unknown_action_candidates': len(unknown_action_candidates),
             'mitm_positive_unique_hosts': len(positive),
             'mitm_wildcards': len(wild),
             'mitm_exact_hosts_covered_by_wildcards': len(overlaps),
@@ -337,6 +357,8 @@ def audit_deep(path):
         'rewrite_scope_review_candidates': scope_candidates,
         'rewrite_duplicate_matcher_groups': duplicates,
         'rewrite_action_conflict_groups': conflicts,
+        'rewrite_action_semantic_review_candidates': action_review_candidates,
+        'rewrite_unknown_action_candidates': unknown_action_candidates,
         'rewrite_unparsed_entries': unknown,
         'mitm_wildcard_overlap_candidates': overlaps,
         'mitm_wildcard_apex_not_explicit': apex_missing,
