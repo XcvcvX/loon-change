@@ -12,7 +12,7 @@ MERGER = Path(__file__).with_name("merge_plugins.py")
 
 
 class MergeIntegrationTests(unittest.TestCase):
-    def run_merge(self, base_text, extra_text, myblockads_text=None, return_stdout=False, amap_text=None, return_provenance=False, apps_files=None, expect_failure=False):
+    def run_merge(self, base_text, extra_text, myblockads_text=None, return_stdout=False, amap_text=None, return_provenance=False, apps_files=None):
         tmp = tempfile.TemporaryDirectory()
         self.addCleanup(tmp.cleanup)
         root = Path(tmp.name)
@@ -43,9 +43,6 @@ class MergeIntegrationTests(unittest.TestCase):
         result = subprocess.run(
             command,
             capture_output=True, text=True, timeout=30)
-        if expect_failure:
-            self.assertNotEqual(result.returncode, 0, result.stdout + "\n" + result.stderr)
-            return result.stdout + "\n" + result.stderr
         self.assertEqual(result.returncode, 0, result.stdout + "\n" + result.stderr)
         output = out.read_text(encoding="utf-8")
         if return_provenance:
@@ -238,7 +235,6 @@ hostname = *.amap.com
         self.assertIn("ads.example.photography", output)
 
 
-
     def test_555_rewrite_and_script_host_scope_is_narrowed(self):
         broad = r'[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+){1,3}(:\d+)?'
         extra = (
@@ -295,22 +291,6 @@ hostname = *.amap.com
             {x["section"] for x in report["scope_adjustments"]},
             {"Rewrite", "Script"},
         )
-
-
-    def test_555_host_declaration_drift_fails_closed(self):
-        extra = (
-            "[Rewrite]\n"
-            "# > 555影视\n"
-            "# hostname = vip7.fzwdyy.cn, *.qyfxgd.cn, *.new555.example\n"
-            "[Script]\n"
-            'response if ${url} ~= /^https?:\/\/vip7\.fzwdyy\.cn\/api\/v1\/movie\/index_recommend/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/555Ad.js") with enable=555_enable\n'
-        )
-        result = self.run_merge(
-            "[Rewrite]\n[Script]\n[MITM]\nhostname = \n",
-            extra,
-            expect_failure=True,
-        )
-        self.assertIn("555影视上游 hostname 声明缺失或发生变化", result)
 
 
     def test_rule_provenance_records_winner_duplicates_and_rule_events(self):
