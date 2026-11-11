@@ -4511,9 +4511,9 @@
           "source_entry_index": 148,
           "input_section": "Rewrite",
           "input_line": "^https?:\\/\\/vv\\.video\\.qq\\.com\\/getvinfo request-body-replace-regex &sppreviewtype=\\d(.*)&spsrt=\\d &sppreviewtype=0$1&spsrt=0",
-          "source_file": "taobao_splash_ad_block.plugin",
-          "source_line_number": 47,
-          "source_raw_line": "^https?:\\/\\/gw\\.alicdn\\.com\\/imgextra\\/i\\d+\\/[^\\/]+_!!\\d+-\\d+-tps-(720-1280|1080-1920|1125-1602|1242-2208)\\.(jpg|png|jpeg)_[^\\/]+\\.webp reject-dict",
+          "source_file": "tencentvideo_splash_ad_block.plugin",
+          "source_line_number": 85,
+          "source_raw_line": "^https?:\\/\\/vv\\.video\\.qq\\.com\\/getvinfo request-body-replace-regex &sppreviewtype=\\d(.*)&spsrt=\\d &sppreviewtype=0$1&spsrt=0",
           "disposition": "selected"
         }
       ],
@@ -4540,8 +4540,8 @@
           "input_section": "Rewrite",
           "input_line": "^https?:\\/\\/apd-vlive\\.apdcdn\\.tc\\.qq\\.com\\/vmind\\.qqvideo\\.tc\\.qq\\.com\\/\\w+ reject",
           "source_file": "tencentvideo_splash_ad_block.plugin",
-          "source_line_number": 93,
-          "source_raw_line": "^http:\\/\\/[\\d\\.:]*\\/?(defaultts\\.tc|vmind\\.qqvideo\\.tc|finderpdd\\.video)\\.qq\\.com\\/\\w+ reject",
+          "source_line_number": 97,
+          "source_raw_line": "^https?:\\/\\/apd-vlive\\.apdcdn\\.tc\\.qq\\.com\\/vmind\\.qqvideo\\.tc\\.qq\\.com\\/\\w+ reject",
           "disposition": "selected"
         }
       ],
@@ -4568,8 +4568,8 @@
           "input_section": "Rewrite",
           "input_line": "^https?:\\/\\/apd-\\w+\\.v\\.smtcdns\\.com\\/(defaultts|omts|vmind\\.qqvideo)\\.tc\\.qq\\.com\\/ reject",
           "source_file": "tencentvideo_splash_ad_block.plugin",
-          "source_line_number": 97,
-          "source_raw_line": "^https?:\\/\\/apd-vlive\\.apdcdn\\.tc\\.qq\\.com\\/vmind\\.qqvideo\\.tc\\.qq\\.com\\/\\w+ reject",
+          "source_line_number": 99,
+          "source_raw_line": "^https?:\\/\\/apd-\\w+\\.v\\.smtcdns\\.com\\/(defaultts|omts|vmind\\.qqvideo)\\.tc\\.qq\\.com\\/ reject",
           "disposition": "selected"
         }
       ],
@@ -4596,8 +4596,8 @@
           "input_section": "Rewrite",
           "input_line": "^https?:\\/\\/ossgw\\.alicdn\\.com\\/creatives-assets\\/prod\\/feupload\\/user reject",
           "source_file": "tencentvideo_splash_ad_block.plugin",
-          "source_line_number": 99,
-          "source_raw_line": "^https?:\\/\\/apd-\\w+\\.v\\.smtcdns\\.com\\/(defaultts|omts|vmind\\.qqvideo)\\.tc\\.qq\\.com\\/ reject",
+          "source_line_number": 103,
+          "source_raw_line": "^https?:\\/\\/ossgw\\.alicdn\\.com\\/creatives-assets\\/prod\\/feupload\\/user reject",
           "disposition": "selected"
         }
       ],
@@ -14005,9 +14005,9 @@
           "source_entry_index": 158,
           "input_section": "Rewrite",
           "input_line": "^https?://api\\.sogaha\\.cn/ssp/ad/get\\?ip reject-dict",
-          "source_file": "tuhu_splash_ad_block.plugin",
-          "source_line_number": 44,
-          "source_raw_line": "response if ${url} ~= /^https?:\\/\\/gateway\\.tuhu\\.cn\\/mkt\\/mkt-scene-marketing-service\\/api\\/scene\\/queryScheme(?:\\?.*)?$/ then response.json.jq(`. as $o | try (if ((.data.pageId? // \"\") == \"/launch\") then (.data.moduleActionList = [] | .data.dsl = null) else . end) catch $o`)",
+          "source_file": "watermark_camera_splash_ad_block.plugin",
+          "source_line_number": 10,
+          "source_raw_line": "^https?://api\\.sogaha\\.cn/ssp/ad/get\\?ip reject-dict",
           "disposition": "selected"
         }
       ],
@@ -18580,8 +18580,8 @@
           "input_section": "Rewrite",
           "input_line": "^https?:\\/\\/y\\.gtimg\\.cn\\/music\\/common\\/upload\\/kg_ad reject-img",
           "source_file": "qqmusic_splash_ad_block.plugin",
-          "source_line_number": 82,
-          "source_raw_line": "^https?:\\/\\/.+?\\/music\\/common\\/upload\\/t_splash_info\\/ reject",
+          "source_line_number": 84,
+          "source_raw_line": "^https?:\\/\\/y\\.gtimg\\.cn\\/music\\/common\\/upload\\/kg_ad reject-img",
           "disposition": "selected"
         }
       ],
@@ -18616,8 +18616,8 @@
           "input_section": "Rewrite",
           "input_line": "^https?:\\/\\/y\\.gtimg\\.cn\\/music\\/common\\/upload\\/targeted_ads reject-img",
           "source_file": "qqmusic_splash_ad_block.plugin",
-          "source_line_number": 84,
-          "source_raw_line": "^https?:\\/\\/y\\.gtimg\\.cn\\/music\\/common\\/upload\\/kg_ad reject-img",
+          "source_line_number": 86,
+          "source_raw_line": "^https?:\\/\\/y\\.gtimg\\.cn\\/music\\/common\\/upload\\/targeted_ads reject-img",
           "disposition": "selected"
         }
       ],
@@ -20902,8 +20902,8 @@
           "input_section": "Rewrite",
           "input_line": "^https?:\\/\\/www\\.xiaohongshu\\.com\\/api\\/marketing\\/box\\/trigger\\? reject-dict",
           "source_file": "xiaohongshu_splash_ad_block.plugin",
-          "source_line_number": 29,
-          "source_raw_line": "^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v1\\/surprisebox\\/(?:get_style|open|submit_action) reject-dict",
+          "source_line_number": 30,
+          "source_raw_line": "^https?:\\/\\/www\\.xiaohongshu\\.com\\/api\\/marketing\\/box\\/trigger\\? reject-dict",
           "disposition": "selected"
         }
       ],
@@ -34757,9 +34757,9 @@
           "source_entry_index": 134,
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.alibaba\\.advertisementservice\\.getadv reject-dict",
-          "source_file": "snowball_splash_ad_block.plugin",
-          "source_line_number": 63,
-          "source_raw_line": "^https:\\/\\/open\\.xueqiu\\.com\\/mpaas\\/config\\/content\\?.*timeline_tab_name response-body-json-del data.im_notice_show data.request_notice_show data.timeline_tab_name data.profileMenuConfig_anonymous_V12 data.trade_open_account_promotion_url data.trade_unify_open_account_list data.community_ad_download_msg data.home_tab_dynamic data.home_tab_dynamic_before data.home_tab_dynamic_after data.isitor_page_login_config data.open_wechat_mini_app_config data.user_guide_contact_config data.brokers_router_config data.my_page_right_items",
+          "source_file": "taobao_splash_ad_block.plugin",
+          "source_line_number": 23,
+          "source_raw_line": "^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.alibaba\\.advertisementservice\\.getadv reject-dict",
           "disposition": "duplicate_same_semantics"
         },
         {
@@ -34805,8 +34805,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.alimama\\.etao\\.config\\.query\\/.+?etao_advertise reject-dict",
           "source_file": "taobao_splash_ad_block.plugin",
-          "source_line_number": 23,
-          "source_raw_line": "^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.alibaba\\.advertisementservice\\.getadv reject-dict",
+          "source_line_number": 25,
+          "source_raw_line": "^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.alimama\\.etao\\.config\\.query\\/.+?etao_advertise reject-dict",
           "disposition": "duplicate_same_semantics"
         },
         {
@@ -34852,8 +34852,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.alimusic\\.common\\.mobileservice\\.startinit reject-dict",
           "source_file": "taobao_splash_ad_block.plugin",
-          "source_line_number": 33,
-          "source_raw_line": "^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.idlecommerce\\.splash\\.ads reject-dict",
+          "source_line_number": 35,
+          "source_raw_line": "^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.alimusic\\.common\\.mobileservice\\.startinit reject-dict",
           "disposition": "duplicate_same_semantics"
         },
         {
@@ -34899,8 +34899,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.etao\\.noah\\.query\\/.+tao_splash reject-dict",
           "source_file": "taobao_splash_ad_block.plugin",
-          "source_line_number": 25,
-          "source_raw_line": "^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.alimama\\.etao\\.config\\.query\\/.+?etao_advertise reject-dict",
+          "source_line_number": 27,
+          "source_raw_line": "^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.etao\\.noah\\.query\\/.+tao_splash reject-dict",
           "disposition": "duplicate_same_semantics"
         },
         {
@@ -34946,8 +34946,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.film\\.mtopadvertiseapi\\.queryadvertise reject-dict",
           "source_file": "taobao_splash_ad_block.plugin",
-          "source_line_number": 35,
-          "source_raw_line": "^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.alimusic\\.common\\.mobileservice\\.startinit reject-dict",
+          "source_line_number": 37,
+          "source_raw_line": "^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.film\\.mtopadvertiseapi\\.queryadvertise reject-dict",
           "disposition": "duplicate_same_semantics"
         },
         {
@@ -34993,8 +34993,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.o2o\\.ad\\.gateway\\.get reject-dict",
           "source_file": "taobao_splash_ad_block.plugin",
-          "source_line_number": 27,
-          "source_raw_line": "^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.etao\\.noah\\.query\\/.+tao_splash reject-dict",
+          "source_line_number": 29,
+          "source_raw_line": "^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.o2o\\.ad\\.gateway\\.get reject-dict",
           "disposition": "duplicate_same_semantics"
         },
         {
@@ -35040,8 +35040,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.idle\\.home\\.welcome reject-dict",
           "source_file": "taobao_splash_ad_block.plugin",
-          "source_line_number": 29,
-          "source_raw_line": "^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.o2o\\.ad\\.gateway\\.get reject-dict",
+          "source_line_number": 31,
+          "source_raw_line": "^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.idle\\.home\\.welcome reject-dict",
           "disposition": "duplicate_same_semantics"
         },
         {
@@ -35132,8 +35132,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.cainiao\\.adx\\.flyad\\.getad reject-dict",
           "source_file": "taobao_splash_ad_block.plugin",
-          "source_line_number": 37,
-          "source_raw_line": "^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.film\\.mtopadvertiseapi\\.queryadvertise reject-dict",
+          "source_line_number": 39,
+          "source_raw_line": "^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.cainiao\\.adx\\.flyad\\.getad reject-dict",
           "disposition": "selected"
         },
         {
@@ -43693,9 +43693,9 @@
           "source_entry_index": 110,
           "input_section": "Rewrite",
           "input_line": "^https?:\\/\\/y\\.gtimg\\.cn\\/music\\/common\\/upload\\/t_splash_info\\/ reject",
-          "source_file": "pinduoduo_splash_ad_block.plugin",
-          "source_line_number": 17,
-          "source_raw_line": "^https?://api\\.(pinduoduo|yangkeduo)\\.com/api/cappuccino/splash reject-200",
+          "source_file": "qqmusic_splash_ad_block.plugin",
+          "source_line_number": 80,
+          "source_raw_line": "^https?:\\/\\/y\\.gtimg\\.cn\\/music\\/common\\/upload\\/t_splash_info\\/ reject",
           "disposition": "selected"
         }
       ],
@@ -43722,8 +43722,8 @@
           "input_section": "Rewrite",
           "input_line": "^https?:\\/\\/(?:y\\.gtimg\\.cn|music\\.y\\.qq\\.com)\\/music\\/common\\/upload\\/t_splash_info\\/ reject",
           "source_file": "qqmusic_splash_ad_block.plugin",
-          "source_line_number": 80,
-          "source_raw_line": "^https?:\\/\\/y\\.gtimg\\.cn\\/music\\/common\\/upload\\/t_splash_info\\/ reject",
+          "source_line_number": 82,
+          "source_raw_line": "^https?:\\/\\/.+?\\/music\\/common\\/upload\\/t_splash_info\\/ reject",
           "disposition": "selected"
         }
       ],
@@ -43784,8 +43784,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/music\\.y\\.qq\\.com\\/maproxy\\/getPbCompressAd reject",
           "source_file": "qqmusic_splash_ad_block.plugin",
-          "source_line_number": 86,
-          "source_raw_line": "^https?:\\/\\/y\\.gtimg\\.cn\\/music\\/common\\/upload\\/targeted_ads reject-img",
+          "source_line_number": 90,
+          "source_raw_line": "^https:\\/\\/music\\.y\\.qq\\.com\\/maproxy\\/getPbCompressAd reject",
           "disposition": "selected"
         }
       ],
@@ -48132,8 +48132,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/open\\.xueqiu\\.com\\/mpaas\\/config\\/content\\?.+home_visitor_relation_config reject-dict",
           "source_file": "snowball_splash_ad_block.plugin",
-          "source_line_number": 55,
-          "source_raw_line": "^https:\\/\\/api\\.xueqiu\\.com\\/ucprofile\\/api\\/user\\/batchGetUserBasicInfo\\.json reject-dict",
+          "source_line_number": 57,
+          "source_raw_line": "^https:\\/\\/open\\.xueqiu\\.com\\/mpaas\\/config\\/content\\?.+home_visitor_relation_config reject-dict",
           "disposition": "selected"
         }
       ],
@@ -48194,8 +48194,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.xueqiu\\.com\\/ucprofile\\/api\\/user\\/batchGetUserBasicInfo\\.json reject-dict",
           "source_file": "snowball_splash_ad_block.plugin",
-          "source_line_number": 51,
-          "source_raw_line": "^https:\\/\\/fund\\.xueqiu\\.com\\/fundx\\/activity\\/x\\/web\\/c\\/index\\/dataByCode\\? reject-dict",
+          "source_line_number": 55,
+          "source_raw_line": "^https:\\/\\/api\\.xueqiu\\.com\\/ucprofile\\/api\\/user\\/batchGetUserBasicInfo\\.json reject-dict",
           "disposition": "selected"
         }
       ],
@@ -48239,8 +48239,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.xueqiu\\.com\\/lightsnow\\/optional\\/banner\\/query\\.json reject-dict",
           "source_file": "snowball_splash_ad_block.plugin",
-          "source_line_number": 17,
-          "source_raw_line": "^https:\\/\\/api\\.xueqiu\\.com\\/lightsnow\\/launch\\/plan\\/bee\\/query\\.json\\? reject-dict",
+          "source_line_number": 21,
+          "source_raw_line": "^https:\\/\\/api\\.xueqiu\\.com\\/lightsnow\\/optional\\/banner\\/query\\.json reject-dict",
           "disposition": "selected"
         }
       ],
@@ -48267,8 +48267,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/open\\.xueqiu\\.com\\/mpaas\\/config\\/content\\?.+cube_detail_bottom_operation_trade_button reject-dict",
           "source_file": "snowball_splash_ad_block.plugin",
-          "source_line_number": 57,
-          "source_raw_line": "^https:\\/\\/open\\.xueqiu\\.com\\/mpaas\\/config\\/content\\?.+home_visitor_relation_config reject-dict",
+          "source_line_number": 59,
+          "source_raw_line": "^https:\\/\\/open\\.xueqiu\\.com\\/mpaas\\/config\\/content\\?.+cube_detail_bottom_operation_trade_button reject-dict",
           "disposition": "selected"
         }
       ],
@@ -48295,8 +48295,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.xueqiu\\.com\\/recommend-proxy\\/card\\/zj_card\\.json\\?feed_id=207 reject-dict",
           "source_file": "snowball_splash_ad_block.plugin",
-          "source_line_number": 21,
-          "source_raw_line": "^https:\\/\\/api\\.xueqiu\\.com\\/lightsnow\\/optional\\/banner\\/query\\.json reject-dict",
+          "source_line_number": 23,
+          "source_raw_line": "^https:\\/\\/api\\.xueqiu\\.com\\/recommend-proxy\\/card\\/zj_card\\.json\\?feed_id=207 reject-dict",
           "disposition": "selected"
         }
       ],
@@ -48323,8 +48323,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.xueqiu\\.com\\/recommend-proxy\\/card\\/portfolio_tab_symbol\\.json reject-dict",
           "source_file": "snowball_splash_ad_block.plugin",
-          "source_line_number": 23,
-          "source_raw_line": "^https:\\/\\/api\\.xueqiu\\.com\\/recommend-proxy\\/card\\/zj_card\\.json\\?feed_id=207 reject-dict",
+          "source_line_number": 25,
+          "source_raw_line": "^https:\\/\\/api\\.xueqiu\\.com\\/recommend-proxy\\/card\\/portfolio_tab_symbol\\.json reject-dict",
           "disposition": "selected"
         }
       ],
@@ -48368,8 +48368,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.xueqiu\\.com\\/livestream\\/structure\\/live\\/hotCard\\.json reject-dict",
           "source_file": "snowball_splash_ad_block.plugin",
-          "source_line_number": 27,
-          "source_raw_line": "^https:\\/\\/stock\\.xueqiu\\.com\\/v\\d\\/stock\\/group\\/recommend\\/default\\/list\\.json reject-dict",
+          "source_line_number": 29,
+          "source_raw_line": "^https:\\/\\/api\\.xueqiu\\.com\\/livestream\\/structure\\/live\\/hotCard\\.json reject-dict",
           "disposition": "selected"
         }
       ],
@@ -53221,8 +53221,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=basicConfig response-body-json-replace data.JDMessage.socketmonitor.isSocketEstablishedAhead 0 data.JDMessage.socketmonitor.isSocketReport 0 data.JDHttpToolKit.httpdns.httpdns 0",
           "source_file": "jd_splash_ad_block.plugin",
-          "source_line_number": 31,
-          "source_raw_line": "^https?:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=lite_advertising response-body-replace-regex jdLiteAdvertisingVO sooyaaabo",
+          "source_line_number": 33,
+          "source_raw_line": "^https:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=basicConfig response-body-json-replace data.JDMessage.socketmonitor.isSocketEstablishedAhead 0 data.JDMessage.socketmonitor.isSocketReport 0 data.JDHttpToolKit.httpdns.httpdns 0",
           "disposition": "selected"
         }
       ],
@@ -53241,8 +53241,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=cart response-body-json-del cartLocationMap.loc_emptyCartFloor2 emptyCartRecommendFloor",
           "source_file": "jd_splash_ad_block.plugin",
-          "source_line_number": 33,
-          "source_raw_line": "^https:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=basicConfig response-body-json-replace data.JDMessage.socketmonitor.isSocketEstablishedAhead 0 data.JDMessage.socketmonitor.isSocketReport 0 data.JDHttpToolKit.httpdns.httpdns 0",
+          "source_line_number": 35,
+          "source_raw_line": "^https:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=cart response-body-json-del cartLocationMap.loc_emptyCartFloor2 emptyCartRecommendFloor",
           "disposition": "selected"
         }
       ],
@@ -53261,8 +53261,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=(?:cartCouponRecommendGoods|intelligentRecommendSku|obtainGrowingInfo|recommendShop|searchBoxWord|stationPullService|uniformRecommend) reject-dict",
           "source_file": "jd_splash_ad_block.plugin",
-          "source_line_number": 35,
-          "source_raw_line": "^https:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=cart response-body-json-del cartLocationMap.loc_emptyCartFloor2 emptyCartRecommendFloor",
+          "source_line_number": 37,
+          "source_raw_line": "^https:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=(?:cartCouponRecommendGoods|intelligentRecommendSku|obtainGrowingInfo|recommendShop|searchBoxWord|stationPullService|uniformRecommend) reject-dict",
           "disposition": "selected"
         }
       ],
@@ -53281,8 +53281,8 @@
           "input_section": "Rewrite",
           "input_line": "^https?:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=start response-body-json-jq '. as $o | try ((if (.images|type)==\"array\" then .images=[] else . end) | (if (.showTimesDaily|type)==\"number\" then .showTimesDaily=0 else . end)) catch $o'",
           "source_file": "jd_splash_ad_block.plugin",
-          "source_line_number": 37,
-          "source_raw_line": "^https:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=(?:cartCouponRecommendGoods|intelligentRecommendSku|obtainGrowingInfo|recommendShop|searchBoxWord|stationPullService|uniformRecommend) reject-dict",
+          "source_line_number": 40,
+          "source_raw_line": "^https?:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=start response-body-json-jq '. as $o | try ((if (.images|type)==\"array\" then .images=[] else . end) | (if (.showTimesDaily|type)==\"number\" then .showTimesDaily=0 else . end)) catch $o'",
           "disposition": "selected"
         }
       ],
@@ -53301,8 +53301,8 @@
           "input_section": "Rewrite",
           "input_line": "^https?:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=welcomeHome response-body-json-jq '. as $o | try ((if (.floorList|type)==\"array\" then .floorList |= map(select(.type as $t | $t == null or ([\"bottomXview\",\"float\",\"photoCeiling\",\"ruleFloat\",\"searchIcon\",\"topRotate\",\"tabBarAtmosphere\"] | index($t) | not))) else . end) | (if (.webViewFloorList|type)==\"array\" then .webViewFloorList=[] else . end)) catch $o'",
           "source_file": "jd_splash_ad_block.plugin",
-          "source_line_number": 40,
-          "source_raw_line": "^https?:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=start response-body-json-jq '. as $o | try ((if (.images|type)==\"array\" then .images=[] else . end) | (if (.showTimesDaily|type)==\"number\" then .showTimesDaily=0 else . end)) catch $o'",
+          "source_line_number": 42,
+          "source_raw_line": "^https?:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=welcomeHome response-body-json-jq '. as $o | try ((if (.floorList|type)==\"array\" then .floorList |= map(select(.type as $t | $t == null or ([\"bottomXview\",\"float\",\"photoCeiling\",\"ruleFloat\",\"searchIcon\",\"topRotate\",\"tabBarAtmosphere\"] | index($t) | not))) else . end) | (if (.webViewFloorList|type)==\"array\" then .webViewFloorList=[] else . end)) catch $o'",
           "disposition": "selected"
         }
       ],
@@ -53321,8 +53321,8 @@
           "input_section": "Rewrite",
           "input_line": "^https?:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=deliverLayer response-body-json-jq '. as $o | try ((del(.bannerInfo)) | (if (.floors|type)==\"array\" then .floors |= map(select(.mId as $m | $m == null or ([\"banner\",\"jdDeliveryBanner\"] | index($m) | not))) else . end)) catch $o'",
           "source_file": "jd_splash_ad_block.plugin",
-          "source_line_number": 42,
-          "source_raw_line": "^https?:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=welcomeHome response-body-json-jq '. as $o | try ((if (.floorList|type)==\"array\" then .floorList |= map(select(.type as $t | $t == null or ([\"bottomXview\",\"float\",\"photoCeiling\",\"ruleFloat\",\"searchIcon\",\"topRotate\",\"tabBarAtmosphere\"] | index($t) | not))) else . end) | (if (.webViewFloorList|type)==\"array\" then .webViewFloorList=[] else . end)) catch $o'",
+          "source_line_number": 44,
+          "source_raw_line": "^https?:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=deliverLayer response-body-json-jq '. as $o | try ((del(.bannerInfo)) | (if (.floors|type)==\"array\" then .floors |= map(select(.mId as $m | $m == null or ([\"banner\",\"jdDeliveryBanner\"] | index($m) | not))) else . end)) catch $o'",
           "disposition": "selected"
         }
       ],
@@ -53340,9 +53340,9 @@
           "source_entry_index": 70,
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/jad-api\\.jin10\\.com\\/ad reject-dict",
-          "source_file": "jd_splash_ad_block.plugin",
-          "source_line_number": 44,
-          "source_raw_line": "^https?:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=deliverLayer response-body-json-jq '. as $o | try ((del(.bannerInfo)) | (if (.floors|type)==\"array\" then .floors |= map(select(.mId as $m | $m == null or ([\"banner\",\"jdDeliveryBanner\"] | index($m) | not))) else . end)) catch $o'",
+          "source_file": "jin10_splash_ad_block.plugin",
+          "source_line_number": 10,
+          "source_raw_line": "^https:\\/\\/jad-api\\.jin10\\.com\\/ad reject-dict",
           "disposition": "selected"
         }
       ],
@@ -53361,8 +53361,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/common-open-api\\.jin10\\.com\\/configuration\\/getById\\?id=1493$ reject-dict",
           "source_file": "jin10_splash_ad_block.plugin",
-          "source_line_number": 10,
-          "source_raw_line": "^https:\\/\\/jad-api\\.jin10\\.com\\/ad reject-dict",
+          "source_line_number": 14,
+          "source_raw_line": "^https:\\/\\/common-open-api\\.jin10\\.com\\/configuration\\/getById\\?id=1493$ reject-dict",
           "disposition": "selected"
         }
       ],
@@ -53381,8 +53381,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/search-open-api\\.jin10\\.com\\/search\\/getHotWords$ reject-dict",
           "source_file": "jin10_splash_ad_block.plugin",
-          "source_line_number": 14,
-          "source_raw_line": "^https:\\/\\/common-open-api\\.jin10\\.com\\/configuration\\/getById\\?id=1493$ reject-dict",
+          "source_line_number": 16,
+          "source_raw_line": "^https:\\/\\/search-open-api\\.jin10\\.com\\/search\\/getHotWords$ reject-dict",
           "disposition": "selected"
         }
       ],
@@ -53401,8 +53401,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/cdn\\.jin10\\.com\\/json\\/index\\/hits_rank\\.json\\? reject-dict",
           "source_file": "jin10_splash_ad_block.plugin",
-          "source_line_number": 16,
-          "source_raw_line": "^https:\\/\\/search-open-api\\.jin10\\.com\\/search\\/getHotWords$ reject-dict",
+          "source_line_number": 18,
+          "source_raw_line": "^https:\\/\\/cdn\\.jin10\\.com\\/json\\/index\\/hits_rank\\.json\\? reject-dict",
           "disposition": "selected"
         }
       ],
@@ -53421,8 +53421,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/[0-9a-z]+\\.z3c\\.jin10\\.com\\/api\\/home\\/search\\/hot$ reject-dict",
           "source_file": "jin10_splash_ad_block.plugin",
-          "source_line_number": 18,
-          "source_raw_line": "^https:\\/\\/cdn\\.jin10\\.com\\/json\\/index\\/hits_rank\\.json\\? reject-dict",
+          "source_line_number": 20,
+          "source_raw_line": "^https:\\/\\/[0-9a-z]+\\.z3c\\.jin10\\.com\\/api\\/home\\/search\\/hot$ reject-dict",
           "disposition": "selected"
         }
       ],
@@ -53441,8 +53441,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/jad-api\\.jin10\\.com\\/mult\\/list_unread\\? reject-dict",
           "source_file": "jin10_splash_ad_block.plugin",
-          "source_line_number": 20,
-          "source_raw_line": "^https:\\/\\/[0-9a-z]+\\.z3c\\.jin10\\.com\\/api\\/home\\/search\\/hot$ reject-dict",
+          "source_line_number": 24,
+          "source_raw_line": "^https:\\/\\/jad-api\\.jin10\\.com\\/mult\\/list_unread\\? reject-dict",
           "disposition": "selected"
         }
       ],
@@ -53460,9 +53460,9 @@
           "source_entry_index": 76,
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/fx\\.service\\.kugou\\.com\\/mfx-kugoulive\\/ad\\/ reject-dict",
-          "source_file": "jin10_splash_ad_block.plugin",
-          "source_line_number": 24,
-          "source_raw_line": "^https:\\/\\/jad-api\\.jin10\\.com\\/mult\\/list_unread\\? reject-dict",
+          "source_file": "kugou_splash_ad_block.plugin",
+          "source_line_number": 94,
+          "source_raw_line": "^https:\\/\\/fx\\.service\\.kugou\\.com\\/mfx-kugoulive\\/ad\\/ reject-dict",
           "disposition": "selected"
         }
       ],
@@ -53481,8 +53481,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/adp\\/ad\\/ reject-dict",
           "source_file": "kugou_splash_ad_block.plugin",
-          "source_line_number": 94,
-          "source_raw_line": "^https:\\/\\/fx\\.service\\.kugou\\.com\\/mfx-kugoulive\\/ad\\/ reject-dict",
+          "source_line_number": 96,
+          "source_raw_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/adp\\/ad\\/ reject-dict",
           "disposition": "selected"
         }
       ],
@@ -53501,8 +53501,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/ads\\.gateway\\/ reject-dict",
           "source_file": "kugou_splash_ad_block.plugin",
-          "source_line_number": 96,
-          "source_raw_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/adp\\/ad\\/ reject-dict",
+          "source_line_number": 97,
+          "source_raw_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/ads\\.gateway\\/ reject-dict",
           "disposition": "selected"
         }
       ],
@@ -53521,8 +53521,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/v\\d\\/feeds\\/follow_feed_fallback reject-dict",
           "source_file": "kugou_splash_ad_block.plugin",
-          "source_line_number": 97,
-          "source_raw_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/ads\\.gateway\\/ reject-dict",
+          "source_line_number": 99,
+          "source_raw_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/v\\d\\/feeds\\/follow_feed_fallback reject-dict",
           "disposition": "selected"
         }
       ],
@@ -53541,8 +53541,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/mstc\\/musicsymbol\\/v\\d\\/system\\/profile reject-dict",
           "source_file": "kugou_splash_ad_block.plugin",
-          "source_line_number": 99,
-          "source_raw_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/v\\d\\/feeds\\/follow_feed_fallback reject-dict",
+          "source_line_number": 101,
+          "source_raw_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/mstc\\/musicsymbol\\/v\\d\\/system\\/profile reject-dict",
           "disposition": "selected"
         }
       ],
@@ -53561,8 +53561,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/searchnofocus\\/v\\d\\/search_no_focus_word reject-dict",
           "source_file": "kugou_splash_ad_block.plugin",
-          "source_line_number": 101,
-          "source_raw_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/mstc\\/musicsymbol\\/v\\d\\/system\\/profile reject-dict",
+          "source_line_number": 103,
+          "source_raw_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/searchnofocus\\/v\\d\\/search_no_focus_word reject-dict",
           "disposition": "selected"
         }
       ],
@@ -53581,8 +53581,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/adp\\/bubble\\/v\\d\\/song_play reject-dict",
           "source_file": "kugou_splash_ad_block.plugin",
-          "source_line_number": 103,
-          "source_raw_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/searchnofocus\\/v\\d\\/search_no_focus_word reject-dict",
+          "source_line_number": 105,
+          "source_raw_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/adp\\/bubble\\/v\\d\\/song_play reject-dict",
           "disposition": "selected"
         }
       ],
@@ -53601,8 +53601,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/singerdiscuss\\/v\\d\\/entrance\\/comment reject-dict",
           "source_file": "kugou_splash_ad_block.plugin",
-          "source_line_number": 105,
-          "source_raw_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/adp\\/bubble\\/v\\d\\/song_play reject-dict",
+          "source_line_number": 107,
+          "source_raw_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/singerdiscuss\\/v\\d\\/entrance\\/comment reject-dict",
           "disposition": "selected"
         }
       ],
@@ -53621,8 +53621,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/r\\/v\\d\\/general\\/putin\\/midad reject-dict",
           "source_file": "kugou_splash_ad_block.plugin",
-          "source_line_number": 107,
-          "source_raw_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/singerdiscuss\\/v\\d\\/entrance\\/comment reject-dict",
+          "source_line_number": 109,
+          "source_raw_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/r\\/v\\d\\/general\\/putin\\/midad reject-dict",
           "disposition": "selected"
         }
       ],
@@ -53641,8 +53641,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/ocean\\/v\\d\\/sound\\/banner reject-dict",
           "source_file": "kugou_splash_ad_block.plugin",
-          "source_line_number": 109,
-          "source_raw_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/r\\/v\\d\\/general\\/putin\\/midad reject-dict",
+          "source_line_number": 111,
+          "source_raw_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/ocean\\/v\\d\\/sound\\/banner reject-dict",
           "disposition": "selected"
         }
       ],
@@ -53661,8 +53661,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/gzacshow\\.kugou\\.com\\/mfanxing-home\\/cdn\\/room\\/index\\/list_v2 reject-dict",
           "source_file": "kugou_splash_ad_block.plugin",
-          "source_line_number": 111,
-          "source_raw_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/ocean\\/v\\d\\/sound\\/banner reject-dict",
+          "source_line_number": 113,
+          "source_raw_line": "^https:\\/\\/gzacshow\\.kugou\\.com\\/mfanxing-home\\/cdn\\/room\\/index\\/list_v2 reject-dict",
           "disposition": "selected"
         }
       ],
@@ -53681,8 +53681,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/gzacshow\\.kugou\\.com\\/mfx-rt-show\\/cdn\\/mo\\/show\\/headline reject-dict",
           "source_file": "kugou_splash_ad_block.plugin",
-          "source_line_number": 113,
-          "source_raw_line": "^https:\\/\\/gzacshow\\.kugou\\.com\\/mfanxing-home\\/cdn\\/room\\/index\\/list_v2 reject-dict",
+          "source_line_number": 115,
+          "source_raw_line": "^https:\\/\\/gzacshow\\.kugou\\.com\\/mfx-rt-show\\/cdn\\/mo\\/show\\/headline reject-dict",
           "disposition": "selected"
         }
       ],
@@ -53701,8 +53701,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/m1fxgroup\\.kugou\\.com\\/fxsing\\/yqc\\/alongInfo\\/getUserAlongInfo reject-dict",
           "source_file": "kugou_splash_ad_block.plugin",
-          "source_line_number": 115,
-          "source_raw_line": "^https:\\/\\/gzacshow\\.kugou\\.com\\/mfx-rt-show\\/cdn\\/mo\\/show\\/headline reject-dict",
+          "source_line_number": 117,
+          "source_raw_line": "^https:\\/\\/m1fxgroup\\.kugou\\.com\\/fxsing\\/yqc\\/alongInfo\\/getUserAlongInfo reject-dict",
           "disposition": "selected"
         }
       ],
@@ -53721,8 +53721,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/hwstore\\.kugou\\.com\\/v\\d\\/get_store_data reject-dict",
           "source_file": "kugou_splash_ad_block.plugin",
-          "source_line_number": 117,
-          "source_raw_line": "^https:\\/\\/m1fxgroup\\.kugou\\.com\\/fxsing\\/yqc\\/alongInfo\\/getUserAlongInfo reject-dict",
+          "source_line_number": 119,
+          "source_raw_line": "^https:\\/\\/hwstore\\.kugou\\.com\\/v\\d\\/get_store_data reject-dict",
           "disposition": "selected"
         }
       ],
@@ -53741,8 +53741,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/ep\\.kugou\\.com\\/v\\d\\/album_shop\\/get_entrance_info reject-dict",
           "source_file": "kugou_splash_ad_block.plugin",
-          "source_line_number": 119,
-          "source_raw_line": "^https:\\/\\/hwstore\\.kugou\\.com\\/v\\d\\/get_store_data reject-dict",
+          "source_line_number": 120,
+          "source_raw_line": "^https:\\/\\/ep\\.kugou\\.com\\/v\\d\\/album_shop\\/get_entrance_info reject-dict",
           "disposition": "selected"
         }
       ],
@@ -53761,8 +53761,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/ocean\\/v\\d\\/tab\\/list_v\\d response-body-json-jq 'def namesToRemove:[\"AI帮唱\",\"长相思2\",\"K歌\",\"小说\",\"游戏\"];def hit:if type==\"object\"then (.name as $n|(namesToRemove|index($n))!=null)else false end;def r:if type==\"array\"then map(if hit then empty else r end)elif type==\"object\"then with_entries(select(.value|hit|not))|map_values(r)else . end;. as $o|try (r) catch $o'",
           "source_file": "kugou_splash_ad_block.plugin",
-          "source_line_number": 120,
-          "source_raw_line": "^https:\\/\\/ep\\.kugou\\.com\\/v\\d\\/album_shop\\/get_entrance_info reject-dict",
+          "source_line_number": 124,
+          "source_raw_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/ocean\\/v\\d\\/tab\\/list_v\\d response-body-json-jq 'def namesToRemove:[\"AI帮唱\",\"长相思2\",\"K歌\",\"小说\",\"游戏\"];def hit:if type==\"object\"then (.name as $n|(namesToRemove|index($n))!=null)else false end;def r:if type==\"array\"then map(if hit then empty else r end)elif type==\"object\"then with_entries(select(.value|hit|not))|map_values(r)else . end;. as $o|try (r) catch $o'",
           "disposition": "selected"
         }
       ],
@@ -53780,9 +53780,9 @@
           "source_entry_index": 92,
           "input_section": "Rewrite",
           "input_line": "^https?:\\/\\/axxd\\.xmseeyouyima\\.com\\/ad reject-dict",
-          "source_file": "kugou_splash_ad_block.plugin",
-          "source_line_number": 124,
-          "source_raw_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/ocean\\/v\\d\\/tab\\/list_v\\d response-body-json-jq 'def namesToRemove:[\"AI帮唱\",\"长相思2\",\"K歌\",\"小说\",\"游戏\"];def hit:if type==\"object\"then (.name as $n|(namesToRemove|index($n))!=null)else false end;def r:if type==\"array\"then map(if hit then empty else r end)elif type==\"object\"then with_entries(select(.value|hit|not))|map_values(r)else . end;. as $o|try (r) catch $o'",
+          "source_file": "meiyou_splash_ad_block.plugin",
+          "source_line_number": 14,
+          "source_raw_line": "^https?:\\/\\/axxd\\.xmseeyouyima\\.com\\/ad reject-dict",
           "disposition": "selected"
         }
       ],
@@ -53801,8 +53801,8 @@
           "input_section": "Rewrite",
           "input_line": "^https?:\\/\\/axxd\\.xmseeyouyima\\.com\\/.*getad\\? reject-dict",
           "source_file": "meiyou_splash_ad_block.plugin",
-          "source_line_number": 14,
-          "source_raw_line": "^https?:\\/\\/axxd\\.xmseeyouyima\\.com\\/ad reject-dict",
+          "source_line_number": 16,
+          "source_raw_line": "^https?:\\/\\/axxd\\.xmseeyouyima\\.com\\/.*getad\\? reject-dict",
           "disposition": "selected"
         }
       ],
@@ -53821,8 +53821,8 @@
           "input_section": "Rewrite",
           "input_line": "^https?:\\/\\/x\\.seeyouyima\\.com\\/adx\\/staticstics\\? reject-200",
           "source_file": "meiyou_splash_ad_block.plugin",
-          "source_line_number": 16,
-          "source_raw_line": "^https?:\\/\\/axxd\\.xmseeyouyima\\.com\\/.*getad\\? reject-dict",
+          "source_line_number": 18,
+          "source_raw_line": "^https?:\\/\\/x\\.seeyouyima\\.com\\/adx\\/staticstics\\? reject-200",
           "disposition": "selected"
         }
       ],
@@ -53841,8 +53841,8 @@
           "input_section": "Rewrite",
           "input_line": "^https?:\\/\\/circle\\.(?:xm)?seeyouyima\\.com\\/v\\d\\/article_recommend\\? reject-dict",
           "source_file": "meiyou_splash_ad_block.plugin",
-          "source_line_number": 18,
-          "source_raw_line": "^https?:\\/\\/x\\.seeyouyima\\.com\\/adx\\/staticstics\\? reject-200",
+          "source_line_number": 20,
+          "source_raw_line": "^https?:\\/\\/circle\\.(?:xm)?seeyouyima\\.com\\/v\\d\\/article_recommend\\? reject-dict",
           "disposition": "selected"
         }
       ],
@@ -53861,8 +53861,8 @@
           "input_section": "Rewrite",
           "input_line": "^https?:\\/\\/common\\.seeyouyima\\.com\\/v2\\/conf_list$ response-body-json-del data.confList.Minor_mode_card",
           "source_file": "meiyou_splash_ad_block.plugin",
-          "source_line_number": 20,
-          "source_raw_line": "^https?:\\/\\/circle\\.(?:xm)?seeyouyima\\.com\\/v\\d\\/article_recommend\\? reject-dict",
+          "source_line_number": 22,
+          "source_raw_line": "^https?:\\/\\/common\\.seeyouyima\\.com\\/v2\\/conf_list$ response-body-json-del data.confList.Minor_mode_card",
           "disposition": "selected"
         }
       ],
@@ -53880,9 +53880,9 @@
           "source_entry_index": 97,
           "input_section": "Rewrite",
           "input_line": "^https?:\\/\\/interface\\d*\\.music\\.163\\.com\\/e?api\\/(?:ocpc\\/)?ad\\/ mock-response-body data-type=text",
-          "source_file": "meiyou_splash_ad_block.plugin",
-          "source_line_number": 22,
-          "source_raw_line": "^https?:\\/\\/common\\.seeyouyima\\.com\\/v2\\/conf_list$ response-body-json-del data.confList.Minor_mode_card",
+          "source_file": "netease_cloudmusic_splash_ad_block.plugin",
+          "source_line_number": 33,
+          "source_raw_line": "^https?:\\/\\/interface\\d*\\.music\\.163\\.com\\/e?api\\/(?:ocpc\\/)?ad\\/ mock-response-body data-type=text",
           "disposition": "selected"
         }
       ],
@@ -53901,8 +53901,8 @@
           "input_section": "Rewrite",
           "input_line": "^https?:\\/\\/interface\\d*\\.music\\.163\\.com\\/w?e?api\\/search\\/default mock-response-body data-type=text",
           "source_file": "netease_cloudmusic_splash_ad_block.plugin",
-          "source_line_number": 33,
-          "source_raw_line": "^https?:\\/\\/interface\\d*\\.music\\.163\\.com\\/e?api\\/(?:ocpc\\/)?ad\\/ mock-response-body data-type=text",
+          "source_line_number": 35,
+          "source_raw_line": "^https?:\\/\\/interface\\d*\\.music\\.163\\.com\\/w?e?api\\/search\\/default mock-response-body data-type=text",
           "disposition": "selected"
         }
       ],
@@ -53921,8 +53921,8 @@
           "input_section": "Rewrite",
           "input_line": "^https?:\\/\\/interface\\d*\\.music\\.163\\.com\\/eapi\\/(?:delivery\\/(batch-)?deliver|moment\\/tab\\/info\\/|side-bar\\/mini-program\\/music-service\\/account|yunbei\\/account\\/entrance\\/) reject-dict",
           "source_file": "netease_cloudmusic_splash_ad_block.plugin",
-          "source_line_number": 35,
-          "source_raw_line": "^https?:\\/\\/interface\\d*\\.music\\.163\\.com\\/w?e?api\\/search\\/default mock-response-body data-type=text",
+          "source_line_number": 39,
+          "source_raw_line": "^https?:\\/\\/interface\\d*\\.music\\.163\\.com\\/eapi\\/(?:delivery\\/(batch-)?deliver|moment\\/tab\\/info\\/|side-bar\\/mini-program\\/music-service\\/account|yunbei\\/account\\/entrance\\/) reject-dict",
           "disposition": "selected"
         }
       ],
@@ -53941,8 +53941,8 @@
           "input_section": "Rewrite",
           "input_line": "^https?:\\/\\/interface\\d*\\.music\\.163\\.com\\/eapi\\/(?:community\\/friends\\/fans-group\\/artist\\/group\\/|mine\\/applet\\/redpoint|music\\/songshare\\/text\\/recommend\\/|resniche\\/position\\/play\\/new\\/|resniche\\/tspopup\\/show|resource\\/comments?\\/musiciansaid\\/|user\\/sub\\/artist) reject-dict",
           "source_file": "netease_cloudmusic_splash_ad_block.plugin",
-          "source_line_number": 39,
-          "source_raw_line": "^https?:\\/\\/interface\\d*\\.music\\.163\\.com\\/eapi\\/(?:delivery\\/(batch-)?deliver|moment\\/tab\\/info\\/|side-bar\\/mini-program\\/music-service\\/account|yunbei\\/account\\/entrance\\/) reject-dict",
+          "source_line_number": 41,
+          "source_raw_line": "^https?:\\/\\/interface\\d*\\.music\\.163\\.com\\/eapi\\/(?:community\\/friends\\/fans-group\\/artist\\/group\\/|mine\\/applet\\/redpoint|music\\/songshare\\/text\\/recommend\\/|resniche\\/position\\/play\\/new\\/|resniche\\/tspopup\\/show|resource\\/comments?\\/musiciansaid\\/|user\\/sub\\/artist) reject-dict",
           "disposition": "selected"
         }
       ],
@@ -53961,8 +53961,8 @@
           "input_section": "Rewrite",
           "input_line": "^https?:\\/\\/interface\\d*\\.music\\.163\\.com\\/eapi\\/(?:ios\\/version|mlivestream\\/entrance\\/playpage\\/|link\\/position\\/show\\/strategy|link\\/scene\\/show\\/resource|v1\\/content\\/exposure\\/comment\\/banner\\/) reject-dict",
           "source_file": "netease_cloudmusic_splash_ad_block.plugin",
-          "source_line_number": 41,
-          "source_raw_line": "^https?:\\/\\/interface\\d*\\.music\\.163\\.com\\/eapi\\/(?:community\\/friends\\/fans-group\\/artist\\/group\\/|mine\\/applet\\/redpoint|music\\/songshare\\/text\\/recommend\\/|resniche\\/position\\/play\\/new\\/|resniche\\/tspopup\\/show|resource\\/comments?\\/musiciansaid\\/|user\\/sub\\/artist) reject-dict",
+          "source_line_number": 43,
+          "source_raw_line": "^https?:\\/\\/interface\\d*\\.music\\.163\\.com\\/eapi\\/(?:ios\\/version|mlivestream\\/entrance\\/playpage\\/|link\\/position\\/show\\/strategy|link\\/scene\\/show\\/resource|v1\\/content\\/exposure\\/comment\\/banner\\/) reject-dict",
           "disposition": "selected"
         }
       ],
@@ -53981,8 +53981,8 @@
           "input_section": "Rewrite",
           "input_line": "^https?:\\/\\/interface\\d*\\.music\\.163\\.com\\/w?eapi\\/(?:activity\\/bonus\\/playpage\\/time\\/query|resource-exposure\\/|search\\/(?:chart|specialkeyword|rcmd\\/keyword)(?:\\/|\\?|$)) reject-dict",
           "source_file": "netease_cloudmusic_splash_ad_block.plugin",
-          "source_line_number": 43,
-          "source_raw_line": "^https?:\\/\\/interface\\d*\\.music\\.163\\.com\\/eapi\\/(?:ios\\/version|mlivestream\\/entrance\\/playpage\\/|link\\/position\\/show\\/strategy|link\\/scene\\/show\\/resource|v1\\/content\\/exposure\\/comment\\/banner\\/) reject-dict",
+          "source_line_number": 45,
+          "source_raw_line": "^https?:\\/\\/interface\\d*\\.music\\.163\\.com\\/w?eapi\\/(?:activity\\/bonus\\/playpage\\/time\\/query|resource-exposure\\/|search\\/(?:chart|specialkeyword|rcmd\\/keyword)(?:\\/|\\?|$)) reject-dict",
           "disposition": "selected"
         }
       ],
@@ -54001,8 +54001,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/interface\\d*\\.music\\.163\\.com\\/eapi\\/my\\/podcast\\/tab\\/recommend reject-dict",
           "source_file": "netease_cloudmusic_splash_ad_block.plugin",
-          "source_line_number": 45,
-          "source_raw_line": "^https?:\\/\\/interface\\d*\\.music\\.163\\.com\\/w?eapi\\/(?:activity\\/bonus\\/playpage\\/time\\/query|resource-exposure\\/|search\\/(?:chart|specialkeyword|rcmd\\/keyword)(?:\\/|\\?|$)) reject-dict",
+          "source_line_number": 47,
+          "source_raw_line": "^https:\\/\\/interface\\d*\\.music\\.163\\.com\\/eapi\\/my\\/podcast\\/tab\\/recommend reject-dict",
           "disposition": "selected"
         }
       ],
@@ -54021,8 +54021,8 @@
           "input_section": "Rewrite",
           "input_line": "^https?:\\/\\/interface\\d*\\.music\\.163\\.com\\/w?e?api\\/comment\\/feed\\/inserted reject-dict",
           "source_file": "netease_cloudmusic_splash_ad_block.plugin",
-          "source_line_number": 47,
-          "source_raw_line": "^https:\\/\\/interface\\d*\\.music\\.163\\.com\\/eapi\\/my\\/podcast\\/tab\\/recommend reject-dict",
+          "source_line_number": 51,
+          "source_raw_line": "^https?:\\/\\/interface\\d*\\.music\\.163\\.com\\/w?e?api\\/comment\\/feed\\/inserted reject-dict",
           "disposition": "selected"
         }
       ],
@@ -54041,8 +54041,8 @@
           "input_section": "Rewrite",
           "input_line": "^https?:\\/\\/interface\\d*\\.music\\.163\\.com\\/w?e?api\\/hotcomment\\/collect reject-dict",
           "source_file": "netease_cloudmusic_splash_ad_block.plugin",
-          "source_line_number": 51,
-          "source_raw_line": "^https?:\\/\\/interface\\d*\\.music\\.163\\.com\\/w?e?api\\/comment\\/feed\\/inserted reject-dict",
+          "source_line_number": 53,
+          "source_raw_line": "^https?:\\/\\/interface\\d*\\.music\\.163\\.com\\/w?e?api\\/hotcomment\\/collect reject-dict",
           "disposition": "selected"
         }
       ],
@@ -54061,8 +54061,8 @@
           "input_section": "Rewrite",
           "input_line": "^https?:\\/\\/interface\\d*\\.music\\.163\\.com\\/w?e?api\\/tips\\/v\\d\\/get reject-dict",
           "source_file": "netease_cloudmusic_splash_ad_block.plugin",
-          "source_line_number": 53,
-          "source_raw_line": "^https?:\\/\\/interface\\d*\\.music\\.163\\.com\\/w?e?api\\/hotcomment\\/collect reject-dict",
+          "source_line_number": 55,
+          "source_raw_line": "^https?:\\/\\/interface\\d*\\.music\\.163\\.com\\/w?e?api\\/tips\\/v\\d\\/get reject-dict",
           "disposition": "selected"
         }
       ],
@@ -54081,8 +54081,8 @@
           "input_section": "Rewrite",
           "input_line": "^https?:\\/\\/interface\\d*\\.music\\.163\\.com\\/w?e?api\\/vipcenter\\/tspopup\\/get reject-dict",
           "source_file": "netease_cloudmusic_splash_ad_block.plugin",
-          "source_line_number": 55,
-          "source_raw_line": "^https?:\\/\\/interface\\d*\\.music\\.163\\.com\\/w?e?api\\/tips\\/v\\d\\/get reject-dict",
+          "source_line_number": 57,
+          "source_raw_line": "^https?:\\/\\/interface\\d*\\.music\\.163\\.com\\/w?e?api\\/vipcenter\\/tspopup\\/get reject-dict",
           "disposition": "selected"
         }
       ],
@@ -54101,8 +54101,8 @@
           "input_section": "Rewrite",
           "input_line": "^https?:\\/\\/interface\\d*\\.music\\.163\\.com\\/w?e?api\\/zone\\/songplay\\/entry\\/get reject-dict",
           "source_file": "netease_cloudmusic_splash_ad_block.plugin",
-          "source_line_number": 57,
-          "source_raw_line": "^https?:\\/\\/interface\\d*\\.music\\.163\\.com\\/w?e?api\\/vipcenter\\/tspopup\\/get reject-dict",
+          "source_line_number": 59,
+          "source_raw_line": "^https?:\\/\\/interface\\d*\\.music\\.163\\.com\\/w?e?api\\/zone\\/songplay\\/entry\\/get reject-dict",
           "disposition": "selected"
         }
       ],
@@ -54120,9 +54120,9 @@
           "source_entry_index": 109,
           "input_section": "Rewrite",
           "input_line": "^https?://api\\.(pinduoduo|yangkeduo)\\.com/api/cappuccino/splash reject-200",
-          "source_file": "netease_cloudmusic_splash_ad_block.plugin",
-          "source_line_number": 59,
-          "source_raw_line": "^https?:\\/\\/interface\\d*\\.music\\.163\\.com\\/w?e?api\\/zone\\/songplay\\/entry\\/get reject-dict",
+          "source_file": "pinduoduo_splash_ad_block.plugin",
+          "source_line_number": 17,
+          "source_raw_line": "^https?://api\\.(pinduoduo|yangkeduo)\\.com/api/cappuccino/splash reject-200",
           "disposition": "selected"
         }
       ],
@@ -54140,9 +54140,9 @@
           "source_entry_index": 115,
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.xueqiu\\.com\\/snowpard\\/launch_strategy\\/query\\.json\\? reject-dict",
-          "source_file": "qqmusic_splash_ad_block.plugin",
-          "source_line_number": 90,
-          "source_raw_line": "^https:\\/\\/music\\.y\\.qq\\.com\\/maproxy\\/getPbCompressAd reject",
+          "source_file": "snowball_splash_ad_block.plugin",
+          "source_line_number": 15,
+          "source_raw_line": "^https:\\/\\/api\\.xueqiu\\.com\\/snowpard\\/launch_strategy\\/query\\.json\\? reject-dict",
           "disposition": "selected"
         }
       ],
@@ -54161,8 +54161,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.xueqiu\\.com\\/lightsnow\\/launch\\/plan\\/bee\\/query\\.json\\? reject-dict",
           "source_file": "snowball_splash_ad_block.plugin",
-          "source_line_number": 15,
-          "source_raw_line": "^https:\\/\\/api\\.xueqiu\\.com\\/snowpard\\/launch_strategy\\/query\\.json\\? reject-dict",
+          "source_line_number": 17,
+          "source_raw_line": "^https:\\/\\/api\\.xueqiu\\.com\\/lightsnow\\/launch\\/plan\\/bee\\/query\\.json\\? reject-dict",
           "disposition": "selected"
         }
       ],
@@ -54181,8 +54181,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/stock\\.xueqiu\\.com\\/v\\d\\/stock\\/group\\/recommend\\/default\\/list\\.json reject-dict",
           "source_file": "snowball_splash_ad_block.plugin",
-          "source_line_number": 25,
-          "source_raw_line": "^https:\\/\\/api\\.xueqiu\\.com\\/recommend-proxy\\/card\\/portfolio_tab_symbol\\.json reject-dict",
+          "source_line_number": 27,
+          "source_raw_line": "^https:\\/\\/stock\\.xueqiu\\.com\\/v\\d\\/stock\\/group\\/recommend\\/default\\/list\\.json reject-dict",
           "disposition": "selected"
         }
       ],
@@ -54201,8 +54201,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.xueqiu\\.com\\/snowflake-theme\\/query\\/v1\\/hot_event\\/rich_tag_new\\.json\\? reject-dict",
           "source_file": "snowball_splash_ad_block.plugin",
-          "source_line_number": 29,
-          "source_raw_line": "^https:\\/\\/api\\.xueqiu\\.com\\/livestream\\/structure\\/live\\/hotCard\\.json reject-dict",
+          "source_line_number": 33,
+          "source_raw_line": "^https:\\/\\/api\\.xueqiu\\.com\\/snowflake-theme\\/query\\/v1\\/hot_event\\/rich_tag_new\\.json\\? reject-dict",
           "disposition": "selected"
         }
       ],
@@ -54221,8 +54221,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.xueqiu\\.com\\/query\\/v1\\/hot_event\\/tag\\.json\\? reject-dict",
           "source_file": "snowball_splash_ad_block.plugin",
-          "source_line_number": 33,
-          "source_raw_line": "^https:\\/\\/api\\.xueqiu\\.com\\/snowflake-theme\\/query\\/v1\\/hot_event\\/rich_tag_new\\.json\\? reject-dict",
+          "source_line_number": 35,
+          "source_raw_line": "^https:\\/\\/api\\.xueqiu\\.com\\/query\\/v1\\/hot_event\\/tag\\.json\\? reject-dict",
           "disposition": "selected"
         }
       ],
@@ -54241,8 +54241,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.xueqiu\\.com\\/query\\/search\\/ai\\/v2\\/recommend_search\\.json\\? reject-dict",
           "source_file": "snowball_splash_ad_block.plugin",
-          "source_line_number": 35,
-          "source_raw_line": "^https:\\/\\/api\\.xueqiu\\.com\\/query\\/v1\\/hot_event\\/tag\\.json\\? reject-dict",
+          "source_line_number": 37,
+          "source_raw_line": "^https:\\/\\/api\\.xueqiu\\.com\\/query\\/search\\/ai\\/v2\\/recommend_search\\.json\\? reject-dict",
           "disposition": "selected"
         }
       ],
@@ -54261,8 +54261,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.xueqiu\\.com\\/brand\\/search\\/ reject-dict",
           "source_file": "snowball_splash_ad_block.plugin",
-          "source_line_number": 37,
-          "source_raw_line": "^https:\\/\\/api\\.xueqiu\\.com\\/query\\/search\\/ai\\/v2\\/recommend_search\\.json\\? reject-dict",
+          "source_line_number": 39,
+          "source_raw_line": "^https:\\/\\/api\\.xueqiu\\.com\\/brand\\/search\\/ reject-dict",
           "disposition": "selected"
         }
       ],
@@ -54281,8 +54281,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/(?:api|promo)\\.xueqiu\\.com\\/promotion\\/(?:display_cache|display_ad|feed_display|search_ad) reject-dict",
           "source_file": "snowball_splash_ad_block.plugin",
-          "source_line_number": 39,
-          "source_raw_line": "^https:\\/\\/api\\.xueqiu\\.com\\/brand\\/search\\/ reject-dict",
+          "source_line_number": 43,
+          "source_raw_line": "^https:\\/\\/(?:api|promo)\\.xueqiu\\.com\\/promotion\\/(?:display_cache|display_ad|feed_display|search_ad) reject-dict",
           "disposition": "selected"
         }
       ],
@@ -54301,8 +54301,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.xueqiu\\.com\\/analysis\\/status\\/v4\\/underlying_product\\.json\\? reject-dict",
           "source_file": "snowball_splash_ad_block.plugin",
-          "source_line_number": 43,
-          "source_raw_line": "^https:\\/\\/(?:api|promo)\\.xueqiu\\.com\\/promotion\\/(?:display_cache|display_ad|feed_display|search_ad) reject-dict",
+          "source_line_number": 47,
+          "source_raw_line": "^https:\\/\\/api\\.xueqiu\\.com\\/analysis\\/status\\/v4\\/underlying_product\\.json\\? reject-dict",
           "disposition": "selected"
         }
       ],
@@ -54321,8 +54321,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.xueqiu\\.com\\/rainbow\\/ai\\/question\\/generate\\/status_question\\.json\\? reject-dict",
           "source_file": "snowball_splash_ad_block.plugin",
-          "source_line_number": 47,
-          "source_raw_line": "^https:\\/\\/api\\.xueqiu\\.com\\/analysis\\/status\\/v4\\/underlying_product\\.json\\? reject-dict",
+          "source_line_number": 49,
+          "source_raw_line": "^https:\\/\\/api\\.xueqiu\\.com\\/rainbow\\/ai\\/question\\/generate\\/status_question\\.json\\? reject-dict",
           "disposition": "selected"
         }
       ],
@@ -54341,8 +54341,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/fund\\.xueqiu\\.com\\/fundx\\/activity\\/x\\/web\\/c\\/index\\/dataByCode\\? reject-dict",
           "source_file": "snowball_splash_ad_block.plugin",
-          "source_line_number": 49,
-          "source_raw_line": "^https:\\/\\/api\\.xueqiu\\.com\\/rainbow\\/ai\\/question\\/generate\\/status_question\\.json\\? reject-dict",
+          "source_line_number": 51,
+          "source_raw_line": "^https:\\/\\/fund\\.xueqiu\\.com\\/fundx\\/activity\\/x\\/web\\/c\\/index\\/dataByCode\\? reject-dict",
           "disposition": "selected"
         }
       ],
@@ -54361,8 +54361,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/open\\.xueqiu\\.com\\/mpaas\\/config\\/content\\?.*timeline_tab_name response-body-json-del data.im_notice_show data.request_notice_show data.timeline_tab_name data.profileMenuConfig_anonymous_V12 data.trade_open_account_promotion_url data.trade_unify_open_account_list data.community_ad_download_msg data.home_tab_dynamic data.home_tab_dynamic_before data.home_tab_dynamic_after data.isitor_page_login_config data.open_wechat_mini_app_config data.user_guide_contact_config data.brokers_router_config data.my_page_right_items",
           "source_file": "snowball_splash_ad_block.plugin",
-          "source_line_number": 59,
-          "source_raw_line": "^https:\\/\\/open\\.xueqiu\\.com\\/mpaas\\/config\\/content\\?.+cube_detail_bottom_operation_trade_button reject-dict",
+          "source_line_number": 63,
+          "source_raw_line": "^https:\\/\\/open\\.xueqiu\\.com\\/mpaas\\/config\\/content\\?.*timeline_tab_name response-body-json-del data.im_notice_show data.request_notice_show data.timeline_tab_name data.profileMenuConfig_anonymous_V12 data.trade_open_account_promotion_url data.trade_unify_open_account_list data.community_ad_download_msg data.home_tab_dynamic data.home_tab_dynamic_before data.home_tab_dynamic_after data.isitor_page_login_config data.open_wechat_mini_app_config data.user_guide_contact_config data.brokers_router_config data.my_page_right_items",
           "disposition": "selected"
         }
       ],
@@ -54381,8 +54381,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.idlecommerce\\.splash\\.ads reject-dict",
           "source_file": "taobao_splash_ad_block.plugin",
-          "source_line_number": 31,
-          "source_raw_line": "^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.idle\\.home\\.welcome reject-dict",
+          "source_line_number": 33,
+          "source_raw_line": "^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.idlecommerce\\.splash\\.ads reject-dict",
           "disposition": "selected"
         }
       ],
@@ -54401,8 +54401,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.wireless\\.home\\.splash\\.awesome\\.get reject-dict",
           "source_file": "taobao_splash_ad_block.plugin",
-          "source_line_number": 39,
-          "source_raw_line": "^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.cainiao\\.adx\\.flyad\\.getad reject-dict",
+          "source_line_number": 41,
+          "source_raw_line": "^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.wireless\\.home\\.splash\\.awesome\\.get reject-dict",
           "disposition": "selected"
         }
       ],
@@ -54421,8 +54421,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/heic\\.alicdn\\.com\\/imgextra\\/i\\d\\/[A-Za-z0-9_!]+-\\d+-tps-\\d+-\\d+\\.png_\\d+x\\d*q\\d+\\.jpg_\\.heic$ reject-dict",
           "source_file": "taobao_splash_ad_block.plugin",
-          "source_line_number": 41,
-          "source_raw_line": "^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.wireless\\.home\\.splash\\.awesome\\.get reject-dict",
+          "source_line_number": 44,
+          "source_raw_line": "^https:\\/\\/heic\\.alicdn\\.com\\/imgextra\\/i\\d\\/[A-Za-z0-9_!]+-\\d+-tps-\\d+-\\d+\\.png_\\d+x\\d*q\\d+\\.jpg_\\.heic$ reject-dict",
           "disposition": "duplicate_same_semantics"
         },
         {
@@ -54452,8 +54452,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/heic\\.alicdn\\.com\\/imgextra\\/i\\d\\/[A-Za-z0-9_!]+-\\d+-tps-\\d+-\\d+\\.jpg_\\d+x\\d*q\\d+\\.jpg_\\.heic$ reject-dict",
           "source_file": "taobao_splash_ad_block.plugin",
-          "source_line_number": 44,
-          "source_raw_line": "^https:\\/\\/heic\\.alicdn\\.com\\/imgextra\\/i\\d\\/[A-Za-z0-9_!]+-\\d+-tps-\\d+-\\d+\\.png_\\d+x\\d*q\\d+\\.jpg_\\.heic$ reject-dict",
+          "source_line_number": 45,
+          "source_raw_line": "^https:\\/\\/heic\\.alicdn\\.com\\/imgextra\\/i\\d\\/[A-Za-z0-9_!]+-\\d+-tps-\\d+-\\d+\\.jpg_\\d+x\\d*q\\d+\\.jpg_\\.heic$ reject-dict",
           "disposition": "duplicate_same_semantics"
         },
         {
@@ -54483,8 +54483,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/heic\\.alicdn\\.com\\/imgextra\\/i\\d\\/\\d*\\/?[\\w!]+-\\d-(?:octopus|tps)-(?:1080|1125)-\\d{4}\\.(?:jpg|png)_(?:1\\d{3}|9\\d{2})x(?:\\d|1\\d{3}|9\\d{2})q[59]0 reject-dict",
           "source_file": "taobao_splash_ad_block.plugin",
-          "source_line_number": 45,
-          "source_raw_line": "^https:\\/\\/heic\\.alicdn\\.com\\/imgextra\\/i\\d\\/[A-Za-z0-9_!]+-\\d+-tps-\\d+-\\d+\\.jpg_\\d+x\\d*q\\d+\\.jpg_\\.heic$ reject-dict",
+          "source_line_number": 46,
+          "source_raw_line": "^https:\\/\\/heic\\.alicdn\\.com\\/imgextra\\/i\\d\\/\\d*\\/?[\\w!]+-\\d-(?:octopus|tps)-(?:1080|1125)-\\d{4}\\.(?:jpg|png)_(?:1\\d{3}|9\\d{2})x(?:\\d|1\\d{3}|9\\d{2})q[59]0 reject-dict",
           "disposition": "selected"
         }
       ],
@@ -54503,8 +54503,8 @@
           "input_section": "Rewrite",
           "input_line": "^https?:\\/\\/gw\\.alicdn\\.com\\/imgextra\\/i\\d+\\/[^\\/]+_!!\\d+-\\d+-tps-(720-1280|1080-1920|1125-1602|1242-2208)\\.(jpg|png|jpeg)_[^\\/]+\\.webp reject-dict",
           "source_file": "taobao_splash_ad_block.plugin",
-          "source_line_number": 46,
-          "source_raw_line": "^https:\\/\\/heic\\.alicdn\\.com\\/imgextra\\/i\\d\\/\\d*\\/?[\\w!]+-\\d-(?:octopus|tps)-(?:1080|1125)-\\d{4}\\.(?:jpg|png)_(?:1\\d{3}|9\\d{2})x(?:\\d|1\\d{3}|9\\d{2})q[59]0 reject-dict",
+          "source_line_number": 47,
+          "source_raw_line": "^https?:\\/\\/gw\\.alicdn\\.com\\/imgextra\\/i\\d+\\/[^\\/]+_!!\\d+-\\d+-tps-(720-1280|1080-1920|1125-1602|1242-2208)\\.(jpg|png|jpeg)_[^\\/]+\\.webp reject-dict",
           "disposition": "duplicate_same_semantics"
         },
         {
@@ -54534,8 +54534,8 @@
           "input_section": "Rewrite",
           "input_line": "^https?:\\/\\/vv\\.video\\.qq\\.com\\/(diff|get)vmind reject-dict",
           "source_file": "tencentvideo_splash_ad_block.plugin",
-          "source_line_number": 85,
-          "source_raw_line": "^https?:\\/\\/vv\\.video\\.qq\\.com\\/getvinfo request-body-replace-regex &sppreviewtype=\\d(.*)&spsrt=\\d &sppreviewtype=0$1&spsrt=0",
+          "source_line_number": 89,
+          "source_raw_line": "^https?:\\/\\/vv\\.video\\.qq\\.com\\/(diff|get)vmind reject-dict",
           "disposition": "selected"
         }
       ],
@@ -54554,8 +54554,8 @@
           "input_section": "Rewrite",
           "input_line": "^http:\\/\\/[\\d\\.:]*\\/?(defaultts\\.tc|vmind\\.qqvideo\\.tc|finderpdd\\.video)\\.qq\\.com\\/\\w+ reject",
           "source_file": "tencentvideo_splash_ad_block.plugin",
-          "source_line_number": 89,
-          "source_raw_line": "^https?:\\/\\/vv\\.video\\.qq\\.com\\/(diff|get)vmind reject-dict",
+          "source_line_number": 93,
+          "source_raw_line": "^http:\\/\\/[\\d\\.:]*\\/?(defaultts\\.tc|vmind\\.qqvideo\\.tc|finderpdd\\.video)\\.qq\\.com\\/\\w+ reject",
           "disposition": "selected"
         }
       ],
@@ -54573,9 +54573,9 @@
           "source_entry_index": 154,
           "input_section": "Rewrite",
           "input_line": "^https?:\\/\\/appactive\\.1234567\\.com\\.cn\\/AppoperationApi\\/OperationService\\/GetAppStartImg response-body-json-jq '.datas = []'",
-          "source_file": "tencentvideo_splash_ad_block.plugin",
-          "source_line_number": 103,
-          "source_raw_line": "^https?:\\/\\/ossgw\\.alicdn\\.com\\/creatives-assets\\/prod\\/feupload\\/user reject",
+          "source_file": "tiantianjijin_splash_ad_block.plugin",
+          "source_line_number": 195,
+          "source_raw_line": "^https?:\\/\\/appactive\\.1234567\\.com\\.cn\\/AppoperationApi\\/OperationService\\/GetAppStartImg response-body-json-jq '.datas = []'",
           "disposition": "selected"
         }
       ],
@@ -54594,8 +54594,8 @@
           "input_section": "Rewrite",
           "input_line": "^https?:\\/\\/appconfig2\\.1234567\\.com\\.cn\\/config\\/GetAppHome(?:\\?.*)?$ response-body-json-jq '. as $o | try ((.datas.SpecialModules |= map(select((.ModuldType? // 0) != 94 and (.ModuldType? // 0) != 85005))) | (.datas.Modules |= map(select((.ModuleCode? // \"\") != \"HeadSudokuProduct\")))) catch $o'",
           "source_file": "tiantianjijin_splash_ad_block.plugin",
-          "source_line_number": 195,
-          "source_raw_line": "^https?:\\/\\/appactive\\.1234567\\.com\\.cn\\/AppoperationApi\\/OperationService\\/GetAppStartImg response-body-json-jq '.datas = []'",
+          "source_line_number": 203,
+          "source_raw_line": "^https?:\\/\\/appconfig2\\.1234567\\.com\\.cn\\/config\\/GetAppHome(?:\\?.*)?$ response-body-json-jq '. as $o | try ((.datas.SpecialModules |= map(select((.ModuldType? // 0) != 94 and (.ModuldType? // 0) != 85005))) | (.datas.Modules |= map(select((.ModuleCode? // \"\") != \"HeadSudokuProduct\")))) catch $o'",
           "disposition": "selected"
         }
       ],
@@ -54614,8 +54614,8 @@
           "input_section": "Rewrite",
           "input_line": "^https?:\\/\\/appconfig2\\.1234567\\.com\\.cn\\/config\\/GetAppHome(?:\\?.*)?$ response-header-del Content-MD5 ETag Last-Modified",
           "source_file": "tiantianjijin_splash_ad_block.plugin",
-          "source_line_number": 203,
-          "source_raw_line": "^https?:\\/\\/appconfig2\\.1234567\\.com\\.cn\\/config\\/GetAppHome(?:\\?.*)?$ response-body-json-jq '. as $o | try ((.datas.SpecialModules |= map(select((.ModuldType? // 0) != 94 and (.ModuldType? // 0) != 85005))) | (.datas.Modules |= map(select((.ModuleCode? // \"\") != \"HeadSudokuProduct\")))) catch $o'",
+          "source_line_number": 204,
+          "source_raw_line": "^https?:\\/\\/appconfig2\\.1234567\\.com\\.cn\\/config\\/GetAppHome(?:\\?.*)?$ response-header-del Content-MD5 ETag Last-Modified",
           "disposition": "selected"
         }
       ],
@@ -54633,9 +54633,9 @@
           "source_entry_index": 157,
           "input_section": "Rewrite",
           "input_line": "response if ${url} ~= /^https?:\\/\\/gateway\\.tuhu\\.cn\\/mkt\\/mkt-scene-marketing-service\\/api\\/scene\\/queryScheme(?:\\?.*)?$/ then response.json.jq(`. as $o | try (if ((.data.pageId? // \"\") == \"/launch\") then (.data.moduleActionList = [] | .data.dsl = null) else . end) catch $o`)",
-          "source_file": "tiantianjijin_splash_ad_block.plugin",
-          "source_line_number": 204,
-          "source_raw_line": "^https?:\\/\\/appconfig2\\.1234567\\.com\\.cn\\/config\\/GetAppHome(?:\\?.*)?$ response-header-del Content-MD5 ETag Last-Modified",
+          "source_file": "tuhu_splash_ad_block.plugin",
+          "source_line_number": 44,
+          "source_raw_line": "response if ${url} ~= /^https?:\\/\\/gateway\\.tuhu\\.cn\\/mkt\\/mkt-scene-marketing-service\\/api\\/scene\\/queryScheme(?:\\?.*)?$/ then response.json.jq(`. as $o | try (if ((.data.pageId? // \"\") == \"/launch\") then (.data.moduleActionList = [] | .data.dsl = null) else . end) catch $o`)",
           "disposition": "selected"
         }
       ],
@@ -54654,8 +54654,8 @@
           "input_section": "Rewrite",
           "input_line": "^https?://api-access\\.pangolin-sdk-toutiao\\.com/api/ad/union/sdk reject-200",
           "source_file": "watermark_camera_splash_ad_block.plugin",
-          "source_line_number": 10,
-          "source_raw_line": "^https?://api\\.sogaha\\.cn/ssp/ad/get\\?ip reject-dict",
+          "source_line_number": 12,
+          "source_raw_line": "^https?://api-access\\.pangolin-sdk-toutiao\\.com/api/ad/union/sdk reject-200",
           "disposition": "selected"
         }
       ],
@@ -54674,8 +54674,8 @@
           "input_section": "Rewrite",
           "input_line": "^https?://[^\\s/]*\\.pangle\\.cn/(api/ad|ad|splash|material).* reject-200",
           "source_file": "watermark_camera_splash_ad_block.plugin",
-          "source_line_number": 12,
-          "source_raw_line": "^https?://api-access\\.pangolin-sdk-toutiao\\.com/api/ad/union/sdk reject-200",
+          "source_line_number": 14,
+          "source_raw_line": "^https?://[^\\s/]*\\.pangle\\.cn/(api/ad|ad|splash|material).* reject-200",
           "disposition": "selected"
         }
       ],
@@ -54693,9 +54693,9 @@
           "source_entry_index": 161,
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/mp\\.weixin\\.qq\\.com\\/mp\\/(cps_product_info|getappmsgad|jsmonitor|masonryfeed|relatedarticle)\\? reject-dict",
-          "source_file": "watermark_camera_splash_ad_block.plugin",
-          "source_line_number": 14,
-          "source_raw_line": "^https?://[^\\s/]*\\.pangle\\.cn/(api/ad|ad|splash|material).* reject-200",
+          "source_file": "wechat_ad_block.plugin",
+          "source_line_number": 47,
+          "source_raw_line": "^https:\\/\\/mp\\.weixin\\.qq\\.com\\/mp\\/(cps_product_info|getappmsgad|jsmonitor|masonryfeed|relatedarticle)\\? reject-dict",
           "disposition": "selected"
         }
       ],
@@ -54714,8 +54714,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/mp\\.weixin\\.qq\\.com\\/mp\\/relatedsearchword reject-dict",
           "source_file": "wechat_ad_block.plugin",
-          "source_line_number": 47,
-          "source_raw_line": "^https:\\/\\/mp\\.weixin\\.qq\\.com\\/mp\\/(cps_product_info|getappmsgad|jsmonitor|masonryfeed|relatedarticle)\\? reject-dict",
+          "source_line_number": 51,
+          "source_raw_line": "^https:\\/\\/mp\\.weixin\\.qq\\.com\\/mp\\/relatedsearchword reject-dict",
           "disposition": "selected"
         }
       ],
@@ -54733,9 +54733,9 @@
           "source_entry_index": 163,
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/bootrealtime\\.uve\\.weibo\\.com\\/v[23]\\/ad\\/realtime reject-dict",
-          "source_file": "wechat_ad_block.plugin",
-          "source_line_number": 51,
-          "source_raw_line": "^https:\\/\\/mp\\.weixin\\.qq\\.com\\/mp\\/relatedsearchword reject-dict",
+          "source_file": "weibo_splash_ad_block.plugin",
+          "source_line_number": 11,
+          "source_raw_line": "^https:\\/\\/bootrealtime\\.uve\\.weibo\\.com\\/v[23]\\/ad\\/realtime reject-dict",
           "disposition": "selected"
         }
       ],
@@ -54754,8 +54754,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/sdkapp\\.uve\\.weibo\\.com\\/interface\\/sdk\\/sdkad\\.php reject-dict",
           "source_file": "weibo_splash_ad_block.plugin",
-          "source_line_number": 11,
-          "source_raw_line": "^https:\\/\\/bootrealtime\\.uve\\.weibo\\.com\\/v[23]\\/ad\\/realtime reject-dict",
+          "source_line_number": 13,
+          "source_raw_line": "^https:\\/\\/sdkapp\\.uve\\.weibo\\.com\\/interface\\/sdk\\/sdkad\\.php reject-dict",
           "disposition": "selected"
         }
       ],
@@ -54774,8 +54774,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/wbapp\\.uve\\.weibo\\.com\\/(?:preload\\/get_ad|wbapplua\\/wbpullad\\.lua) reject-dict",
           "source_file": "weibo_splash_ad_block.plugin",
-          "source_line_number": 13,
-          "source_raw_line": "^https:\\/\\/sdkapp\\.uve\\.weibo\\.com\\/interface\\/sdk\\/sdkad\\.php reject-dict",
+          "source_line_number": 15,
+          "source_raw_line": "^https:\\/\\/wbapp\\.uve\\.weibo\\.com\\/(?:preload\\/get_ad|wbapplua\\/wbpullad\\.lua) reject-dict",
           "disposition": "selected"
         }
       ],
@@ -54794,8 +54794,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/ad\\.weibo\\.com\\/.*$ reject-200",
           "source_file": "weibo_splash_ad_block.plugin",
-          "source_line_number": 15,
-          "source_raw_line": "^https:\\/\\/wbapp\\.uve\\.weibo\\.com\\/(?:preload\\/get_ad|wbapplua\\/wbpullad\\.lua) reject-dict",
+          "source_line_number": 17,
+          "source_raw_line": "^https:\\/\\/ad\\.weibo\\.com\\/.*$ reject-200",
           "disposition": "selected"
         }
       ],
@@ -54814,8 +54814,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/img\\.tuicool\\.com\\/.*ad.*$ reject-200",
           "source_file": "weibo_splash_ad_block.plugin",
-          "source_line_number": 17,
-          "source_raw_line": "^https:\\/\\/ad\\.weibo\\.com\\/.*$ reject-200",
+          "source_line_number": 18,
+          "source_raw_line": "^https:\\/\\/img\\.tuicool\\.com\\/.*ad.*$ reject-200",
           "disposition": "selected"
         }
       ],
@@ -54834,8 +54834,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.weibo\\.cn\\/2\\/search\\/container_discover\\? reject-dict",
           "source_file": "weibo_splash_ad_block.plugin",
-          "source_line_number": 18,
-          "source_raw_line": "^https:\\/\\/img\\.tuicool\\.com\\/.*ad.*$ reject-200",
+          "source_line_number": 21,
+          "source_raw_line": "^https:\\/\\/api\\.weibo\\.cn\\/2\\/search\\/container_discover\\? reject-dict",
           "disposition": "selected"
         }
       ],
@@ -54854,8 +54854,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.weibo\\.cn\\/2\\/hot\\/hours_spotlight\\? reject-dict",
           "source_file": "weibo_splash_ad_block.plugin",
-          "source_line_number": 21,
-          "source_raw_line": "^https:\\/\\/api\\.weibo\\.cn\\/2\\/search\\/container_discover\\? reject-dict",
+          "source_line_number": 22,
+          "source_raw_line": "^https:\\/\\/api\\.weibo\\.cn\\/2\\/hot\\/hours_spotlight\\? reject-dict",
           "disposition": "selected"
         }
       ],
@@ -54874,8 +54874,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.weibo\\.cn\\/2\\/video\\/redpacket\\? reject-dict",
           "source_file": "weibo_splash_ad_block.plugin",
-          "source_line_number": 22,
-          "source_raw_line": "^https:\\/\\/api\\.weibo\\.cn\\/2\\/hot\\/hours_spotlight\\? reject-dict",
+          "source_line_number": 23,
+          "source_raw_line": "^https:\\/\\/api\\.weibo\\.cn\\/2\\/video\\/redpacket\\? reject-dict",
           "disposition": "selected"
         }
       ],
@@ -54894,8 +54894,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.weibo\\.cn\\/2\\/!\\/(?:sug\\/list\\/finderchange|was\\/finder\\/searchbarchange)\\? reject-dict",
           "source_file": "weibo_splash_ad_block.plugin",
-          "source_line_number": 23,
-          "source_raw_line": "^https:\\/\\/api\\.weibo\\.cn\\/2\\/video\\/redpacket\\? reject-dict",
+          "source_line_number": 24,
+          "source_raw_line": "^https:\\/\\/api\\.weibo\\.cn\\/2\\/!\\/(?:sug\\/list\\/finderchange|was\\/finder\\/searchbarchange)\\? reject-dict",
           "disposition": "selected"
         }
       ],
@@ -54914,8 +54914,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.weibo\\.cn\\/2\\/statuses\\/(?:container_positive|push_info) reject-dict",
           "source_file": "weibo_splash_ad_block.plugin",
-          "source_line_number": 24,
-          "source_raw_line": "^https:\\/\\/api\\.weibo\\.cn\\/2\\/!\\/(?:sug\\/list\\/finderchange|was\\/finder\\/searchbarchange)\\? reject-dict",
+          "source_line_number": 27,
+          "source_raw_line": "^https:\\/\\/api\\.weibo\\.cn\\/2\\/statuses\\/(?:container_positive|push_info) reject-dict",
           "disposition": "selected"
         }
       ],
@@ -54934,8 +54934,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.weibo\\.cn\\/2\\/!\\/live\\/media_homelist\\? reject-dict",
           "source_file": "weibo_splash_ad_block.plugin",
-          "source_line_number": 27,
-          "source_raw_line": "^https:\\/\\/api\\.weibo\\.cn\\/2\\/statuses\\/(?:container_positive|push_info) reject-dict",
+          "source_line_number": 28,
+          "source_raw_line": "^https:\\/\\/api\\.weibo\\.cn\\/2\\/!\\/live\\/media_homelist\\? reject-dict",
           "disposition": "selected"
         }
       ],
@@ -54954,8 +54954,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.weibo\\.cn\\/2\\/comments\\/bullet_screens\\? reject-dict",
           "source_file": "weibo_splash_ad_block.plugin",
-          "source_line_number": 28,
-          "source_raw_line": "^https:\\/\\/api\\.weibo\\.cn\\/2\\/!\\/live\\/media_homelist\\? reject-dict",
+          "source_line_number": 31,
+          "source_raw_line": "^https:\\/\\/api\\.weibo\\.cn\\/2\\/comments\\/bullet_screens\\? reject-dict",
           "disposition": "selected"
         }
       ],
@@ -54974,8 +54974,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.weibo\\.cn\\/2\\/photo\\/info\\? reject-dict",
           "source_file": "weibo_splash_ad_block.plugin",
-          "source_line_number": 31,
-          "source_raw_line": "^https:\\/\\/api\\.weibo\\.cn\\/2\\/comments\\/bullet_screens\\? reject-dict",
+          "source_line_number": 32,
+          "source_raw_line": "^https:\\/\\/api\\.weibo\\.cn\\/2\\/photo\\/info\\? reject-dict",
           "disposition": "selected"
         }
       ],
@@ -54994,8 +54994,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.weibo\\.cn\\/2\\/vote\\/get_vote_detail\\? reject-dict",
           "source_file": "weibo_splash_ad_block.plugin",
-          "source_line_number": 32,
-          "source_raw_line": "^https:\\/\\/api\\.weibo\\.cn\\/2\\/photo\\/info\\? reject-dict",
+          "source_line_number": 33,
+          "source_raw_line": "^https:\\/\\/api\\.weibo\\.cn\\/2\\/vote\\/get_vote_detail\\? reject-dict",
           "disposition": "selected"
         }
       ],
@@ -55014,8 +55014,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.weibo\\.cn\\/2\\/!\\/chaohua\\/discovery\\/home_bottom\\/switch\\? reject-dict",
           "source_file": "weibo_splash_ad_block.plugin",
-          "source_line_number": 33,
-          "source_raw_line": "^https:\\/\\/api\\.weibo\\.cn\\/2\\/vote\\/get_vote_detail\\? reject-dict",
+          "source_line_number": 36,
+          "source_raw_line": "^https:\\/\\/api\\.weibo\\.cn\\/2\\/!\\/chaohua\\/discovery\\/home_bottom\\/switch\\? reject-dict",
           "disposition": "selected"
         }
       ],
@@ -55034,8 +55034,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.weibo\\.cn\\/2\\/!\\/huati\\/(?:discovery_home_bottom_getdotinfo|mobile_discovery_searchchange) reject-dict",
           "source_file": "weibo_splash_ad_block.plugin",
-          "source_line_number": 36,
-          "source_raw_line": "^https:\\/\\/api\\.weibo\\.cn\\/2\\/!\\/chaohua\\/discovery\\/home_bottom\\/switch\\? reject-dict",
+          "source_line_number": 37,
+          "source_raw_line": "^https:\\/\\/api\\.weibo\\.cn\\/2\\/!\\/huati\\/(?:discovery_home_bottom_getdotinfo|mobile_discovery_searchchange) reject-dict",
           "disposition": "selected"
         }
       ],
@@ -55054,8 +55054,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.weibo\\.cn\\/2\\/!\\/wbox\\/\\w+\\/(?:home_bottom_modal|interest_category) reject-dict",
           "source_file": "weibo_splash_ad_block.plugin",
-          "source_line_number": 37,
-          "source_raw_line": "^https:\\/\\/api\\.weibo\\.cn\\/2\\/!\\/huati\\/(?:discovery_home_bottom_getdotinfo|mobile_discovery_searchchange) reject-dict",
+          "source_line_number": 38,
+          "source_raw_line": "^https:\\/\\/api\\.weibo\\.cn\\/2\\/!\\/wbox\\/\\w+\\/(?:home_bottom_modal|interest_category) reject-dict",
           "disposition": "selected"
         }
       ],
@@ -55074,8 +55074,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/card\\.weibo\\.com\\/article\\/m\\/aj\\/(?:reward|uvead) reject-dict",
           "source_file": "weibo_splash_ad_block.plugin",
-          "source_line_number": 38,
-          "source_raw_line": "^https:\\/\\/api\\.weibo\\.cn\\/2\\/!\\/wbox\\/\\w+\\/(?:home_bottom_modal|interest_category) reject-dict",
+          "source_line_number": 41,
+          "source_raw_line": "^https:\\/\\/card\\.weibo\\.com\\/article\\/m\\/aj\\/(?:reward|uvead) reject-dict",
           "disposition": "selected"
         }
       ],
@@ -55094,8 +55094,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/weibo\\.com\\/ttarticle\\/x\\/m\\/aj\\/(?:reward|uvead) reject-dict",
           "source_file": "weibo_splash_ad_block.plugin",
-          "source_line_number": 41,
-          "source_raw_line": "^https:\\/\\/card\\.weibo\\.com\\/article\\/m\\/aj\\/(?:reward|uvead) reject-dict",
+          "source_line_number": 42,
+          "source_raw_line": "^https:\\/\\/weibo\\.com\\/ttarticle\\/x\\/m\\/aj\\/(?:reward|uvead) reject-dict",
           "disposition": "selected"
         }
       ],
@@ -55113,9 +55113,9 @@
           "source_entry_index": 182,
           "input_section": "Rewrite",
           "input_line": "^https?:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlecommerce\\.splash\\.ads\\/.* reject-200",
-          "source_file": "weibo_splash_ad_block.plugin",
-          "source_line_number": 42,
-          "source_raw_line": "^https:\\/\\/weibo\\.com\\/ttarticle\\/x\\/m\\/aj\\/(?:reward|uvead) reject-dict",
+          "source_file": "xianyu_splash_ad_block.plugin",
+          "source_line_number": 34,
+          "source_raw_line": "^https?:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlecommerce\\.splash\\.ads\\/.* reject-200",
           "disposition": "selected"
         }
       ],
@@ -55134,8 +55134,8 @@
           "input_section": "Rewrite",
           "input_line": "^https?:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlecommerce\\.splash\\.async\\.ads\\/.* reject-200",
           "source_file": "xianyu_splash_ad_block.plugin",
-          "source_line_number": 34,
-          "source_raw_line": "^https?:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlecommerce\\.splash\\.ads\\/.* reject-200",
+          "source_line_number": 36,
+          "source_raw_line": "^https?:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlecommerce\\.splash\\.async\\.ads\\/.* reject-200",
           "disposition": "selected"
         }
       ],
@@ -55154,8 +55154,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.wireless\\.home\\.splash\\.awesome\\.get reject-200",
           "source_file": "xianyu_splash_ad_block.plugin",
-          "source_line_number": 36,
-          "source_raw_line": "^https?:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlecommerce\\.splash\\.async\\.ads\\/.* reject-200",
+          "source_line_number": 38,
+          "source_raw_line": "^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.wireless\\.home\\.splash\\.awesome\\.get reject-200",
           "disposition": "selected"
         }
       ],
@@ -55174,8 +55174,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.idlecommerce\\.splash\\.ads reject-200",
           "source_file": "xianyu_splash_ad_block.plugin",
-          "source_line_number": 38,
-          "source_raw_line": "^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.wireless\\.home\\.splash\\.awesome\\.get reject-200",
+          "source_line_number": 40,
+          "source_raw_line": "^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.idlecommerce\\.splash\\.ads reject-200",
           "disposition": "selected"
         }
       ],
@@ -55193,9 +55193,9 @@
           "source_entry_index": 186,
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d\\/system_service\\/splash_config response-body-json-jq '. as $o | try (if (.data|type)==\"object\" then ((.data.ads_groups//[])|=map(if type==\"object\" then (.start_time=3818332800|.end_time=3818419199|(if (.ads|type)==\"array\" then .ads|=map(if type==\"object\" then (.start_time=3818332800|.end_time=3818419199) else . end) else . end)) else . end)) else . end) catch $o'",
-          "source_file": "xianyu_splash_ad_block.plugin",
-          "source_line_number": 40,
-          "source_raw_line": "^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.idlecommerce\\.splash\\.ads reject-200",
+          "source_file": "xiaohongshu_splash_ad_block.plugin",
+          "source_line_number": 21,
+          "source_raw_line": "^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d\\/system_service\\/splash_config response-body-json-jq '. as $o | try (if (.data|type)==\"object\" then ((.data.ads_groups//[])|=map(if type==\"object\" then (.start_time=3818332800|.end_time=3818419199|(if (.ads|type)==\"array\" then .ads|=map(if type==\"object\" then (.start_time=3818332800|.end_time=3818419199) else . end) else . end)) else . end)) else . end) catch $o'",
           "disposition": "selected"
         }
       ],
@@ -55214,8 +55214,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d\\/system_service\\/config\\? response-body-json-jq '. as $o | try (if (.data|type)==\"object\" then del(.data.app_theme, .data.loading_img, .data.splash, .data.store) else . end) catch $o'",
           "source_file": "xiaohongshu_splash_ad_block.plugin",
-          "source_line_number": 21,
-          "source_raw_line": "^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d\\/system_service\\/splash_config response-body-json-jq '. as $o | try (if (.data|type)==\"object\" then ((.data.ads_groups//[])|=map(if type==\"object\" then (.start_time=3818332800|.end_time=3818419199|(if (.ads|type)==\"array\" then .ads|=map(if type==\"object\" then (.start_time=3818332800|.end_time=3818419199) else . end) else . end)) else . end)) else . end) catch $o'",
+          "source_line_number": 23,
+          "source_raw_line": "^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d\\/system_service\\/config\\? response-body-json-jq '. as $o | try (if (.data|type)==\"object\" then del(.data.app_theme, .data.loading_img, .data.splash, .data.store) else . end) catch $o'",
           "disposition": "selected"
         }
       ],
@@ -55234,8 +55234,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d\\/system\\/service\\/ui\\/config response-body-json-jq '. as $o | try (if (.data|type)==\"object\" then del(.data.sideConfigHomepage.componentConfig.sidebar_config_cny_2025, .data.sideConfigPersonalPage.componentConfig.sidebar_config_cny_2025) else . end) catch $o'",
           "source_file": "xiaohongshu_splash_ad_block.plugin",
-          "source_line_number": 23,
-          "source_raw_line": "^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d\\/system_service\\/config\\? response-body-json-jq '. as $o | try (if (.data|type)==\"object\" then del(.data.app_theme, .data.loading_img, .data.splash, .data.store) else . end) catch $o'",
+          "source_line_number": 25,
+          "source_raw_line": "^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d\\/system\\/service\\/ui\\/config response-body-json-jq '. as $o | try (if (.data|type)==\"object\" then del(.data.sideConfigHomepage.componentConfig.sidebar_config_cny_2025, .data.sideConfigPersonalPage.componentConfig.sidebar_config_cny_2025) else . end) catch $o'",
           "disposition": "selected"
         }
       ],
@@ -55254,8 +55254,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v1\\/surprisebox\\/(?:get_style|open|submit_action) reject-dict",
           "source_file": "xiaohongshu_splash_ad_block.plugin",
-          "source_line_number": 25,
-          "source_raw_line": "^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d\\/system\\/service\\/ui\\/config response-body-json-jq '. as $o | try (if (.data|type)==\"object\" then del(.data.sideConfigHomepage.componentConfig.sidebar_config_cny_2025, .data.sideConfigPersonalPage.componentConfig.sidebar_config_cny_2025) else . end) catch $o'",
+          "source_line_number": 29,
+          "source_raw_line": "^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v1\\/surprisebox\\/(?:get_style|open|submit_action) reject-dict",
           "disposition": "selected"
         }
       ],
@@ -55274,8 +55274,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/(?:v\\d\\/guide\\/user_banner|v\\d\\/note\\/guide) reject-dict",
           "source_file": "xiaohongshu_splash_ad_block.plugin",
-          "source_line_number": 30,
-          "source_raw_line": "^https?:\\/\\/www\\.xiaohongshu\\.com\\/api\\/marketing\\/box\\/trigger\\? reject-dict",
+          "source_line_number": 32,
+          "source_raw_line": "^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/(?:v\\d\\/guide\\/user_banner|v\\d\\/note\\/guide) reject-dict",
           "disposition": "selected"
         }
       ],
@@ -55294,8 +55294,8 @@
           "input_section": "Rewrite",
           "input_line": "^https?:\\/\\/www\\.xiaohongshu\\.com\\/api\\/sns\\/(?:v1\\/ads\\/resource|v\\d\\/hey\\/\\w+\\/hey_gallery) reject-dict",
           "source_file": "xiaohongshu_splash_ad_block.plugin",
-          "source_line_number": 32,
-          "source_raw_line": "^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/(?:v\\d\\/guide\\/user_banner|v\\d\\/note\\/guide) reject-dict",
+          "source_line_number": 34,
+          "source_raw_line": "^https?:\\/\\/www\\.xiaohongshu\\.com\\/api\\/sns\\/(?:v1\\/ads\\/resource|v\\d\\/hey\\/\\w+\\/hey_gallery) reject-dict",
           "disposition": "selected"
         }
       ],
@@ -55314,8 +55314,8 @@
           "input_section": "Rewrite",
           "input_line": "^https?:\\/\\/www\\.xiaohongshu\\.com\\/api\\/sns\\/v1\\/ads\\/apple\\/record reject",
           "source_file": "xiaohongshu_splash_ad_block.plugin",
-          "source_line_number": 34,
-          "source_raw_line": "^https?:\\/\\/www\\.xiaohongshu\\.com\\/api\\/sns\\/(?:v1\\/ads\\/resource|v\\d\\/hey\\/\\w+\\/hey_gallery) reject-dict",
+          "source_line_number": 36,
+          "source_raw_line": "^https?:\\/\\/www\\.xiaohongshu\\.com\\/api\\/sns\\/v1\\/ads\\/apple\\/record reject",
           "disposition": "selected"
         }
       ],
@@ -55334,8 +55334,8 @@
           "input_section": "Rewrite",
           "input_line": "^https?:\\/\\/www\\.xiaohongshu\\.com\\/api\\/sns\\/v1\\/tag\\/ads_engage reject",
           "source_file": "xiaohongshu_splash_ad_block.plugin",
-          "source_line_number": 36,
-          "source_raw_line": "^https?:\\/\\/www\\.xiaohongshu\\.com\\/api\\/sns\\/v1\\/ads\\/apple\\/record reject",
+          "source_line_number": 37,
+          "source_raw_line": "^https?:\\/\\/www\\.xiaohongshu\\.com\\/api\\/sns\\/v1\\/tag\\/ads_engage reject",
           "disposition": "selected"
         }
       ],
@@ -55354,8 +55354,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d\\/note\\/widgets response-body-json-jq '. as $o | try (if (.data|type)==\"object\" then del(.data.cooperate_binds, .data.generic, .data.note_next_step, .data.widget_list, .data.widgets_nbb, .data.widgets_ncb, .data.widgets_ndb) else . end) catch $o'",
           "source_file": "xiaohongshu_splash_ad_block.plugin",
-          "source_line_number": 37,
-          "source_raw_line": "^https?:\\/\\/www\\.xiaohongshu\\.com\\/api\\/sns\\/v1\\/tag\\/ads_engage reject",
+          "source_line_number": 39,
+          "source_raw_line": "^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d\\/note\\/widgets response-body-json-jq '. as $o | try (if (.data|type)==\"object\" then del(.data.cooperate_binds, .data.generic, .data.note_next_step, .data.widget_list, .data.widgets_nbb, .data.widgets_ncb, .data.widgets_ndb) else . end) catch $o'",
           "disposition": "selected"
         }
       ],
@@ -55374,8 +55374,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d\\/search\\/banner_list$ response-body-json-jq '. as $o | try (if (.data|type)==\"object\" then .data={} else . end) catch $o'",
           "source_file": "xiaohongshu_splash_ad_block.plugin",
-          "source_line_number": 39,
-          "source_raw_line": "^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d\\/note\\/widgets response-body-json-jq '. as $o | try (if (.data|type)==\"object\" then del(.data.cooperate_binds, .data.generic, .data.note_next_step, .data.widget_list, .data.widgets_nbb, .data.widgets_ncb, .data.widgets_ndb) else . end) catch $o'",
+          "source_line_number": 42,
+          "source_raw_line": "^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d\\/search\\/banner_list$ response-body-json-jq '. as $o | try (if (.data|type)==\"object\" then .data={} else . end) catch $o'",
           "disposition": "selected"
         }
       ],
@@ -55394,8 +55394,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d\\/search\\/hot_list$ response-body-json-jq '. as $o | try (if (.data|type)==\"object\" then .data.items=[] else . end) catch $o'",
           "source_file": "xiaohongshu_splash_ad_block.plugin",
-          "source_line_number": 42,
-          "source_raw_line": "^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d\\/search\\/banner_list$ response-body-json-jq '. as $o | try (if (.data|type)==\"object\" then .data={} else . end) catch $o'",
+          "source_line_number": 43,
+          "source_raw_line": "^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d\\/search\\/hot_list$ response-body-json-jq '. as $o | try (if (.data|type)==\"object\" then .data.items=[] else . end) catch $o'",
           "disposition": "selected"
         }
       ],
@@ -55414,8 +55414,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d\\/search\\/hint response-body-json-jq '. as $o | try (if (.data|type)==\"object\" then .data.hint_words=[] else . end) catch $o'",
           "source_file": "xiaohongshu_splash_ad_block.plugin",
-          "source_line_number": 43,
-          "source_raw_line": "^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d\\/search\\/hot_list$ response-body-json-jq '. as $o | try (if (.data|type)==\"object\" then .data.items=[] else . end) catch $o'",
+          "source_line_number": 44,
+          "source_raw_line": "^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d\\/search\\/hint response-body-json-jq '. as $o | try (if (.data|type)==\"object\" then .data.hint_words=[] else . end) catch $o'",
           "disposition": "selected"
         }
       ],
@@ -55434,8 +55434,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d\\/search\\/trending\\? response-body-json-jq '. as $o | try (if (.data|type)==\"object\" then (.data.queries=[]|.data.hint_word={}) else . end) catch $o'",
           "source_file": "xiaohongshu_splash_ad_block.plugin",
-          "source_line_number": 44,
-          "source_raw_line": "^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d\\/search\\/hint response-body-json-jq '. as $o | try (if (.data|type)==\"object\" then .data.hint_words=[] else . end) catch $o'",
+          "source_line_number": 45,
+          "source_raw_line": "^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d\\/search\\/trending\\? response-body-json-jq '. as $o | try (if (.data|type)==\"object\" then (.data.queries=[]|.data.hint_word={}) else . end) catch $o'",
           "disposition": "selected"
         }
       ],
@@ -55454,8 +55454,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/(?:edith|so)\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/search\\/notes\\? response-body-json-jq '. as $o | try (if (.data|type)==\"object\" then (if (.data.items|type)==\"array\" then .data.items|=map(select(if type==\"object\" then (.model_type==\"note\") else false end)) else . end) else . end) catch $o'",
           "source_file": "xiaohongshu_splash_ad_block.plugin",
-          "source_line_number": 45,
-          "source_raw_line": "^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d\\/search\\/trending\\? response-body-json-jq '. as $o | try (if (.data|type)==\"object\" then (.data.queries=[]|.data.hint_word={}) else . end) catch $o'",
+          "source_line_number": 47,
+          "source_raw_line": "^https:\\/\\/(?:edith|so)\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/search\\/notes\\? response-body-json-jq '. as $o | try (if (.data|type)==\"object\" then (if (.data.items|type)==\"array\" then .data.items|=map(select(if type==\"object\" then (.model_type==\"note\") else false end)) else . end) else . end) catch $o'",
           "disposition": "selected"
         }
       ],
@@ -55474,8 +55474,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/(?:edith|rec|www)\\.xiaohongshu\\.com\\/api\\/sns\\/v1\\/note\\/imagefeed response-body-json-jq 'def u: (if type==\"object\" then ((if (.function_switch|type)==\"array\" then .function_switch|=map(if type==\"object\" then (if .enable==false then (.enable=true|.reason=\"\") else . end) else . end) else . end)|(if has(\"media_save_config\") then .media_save_config|=(.disable_save=false|.disable_watermark=true|.disable_weibo_cover=true) else . end)|(if ((.share_info.function_entries|type)==\"array\") and ((.share_info.function_entries|length)>0) then .share_info.function_entries|=(if (map(select(if type==\"object\" then (.type==\"video_download\") else false end))|length)>0 then (map(select(if type==\"object\" then (.type==\"video_download\") else false end)))+(map(select(if type==\"object\" then (.type!=\"video_download\") else false end))) else [{\"type\":\"video_download\"}]+. end) else . end)) else . end); . as $o | try (if (.data|type)==\"array\" then (if ((.data[0].note_list|type)==\"array\") then .data[0].note_list|=map(u) else . end) elif (.data|type)==\"object\" then (if ((.data.note_list|type)==\"array\") then .data.note_list|=map(u) else . end) else . end) catch $o'",
           "source_file": "xiaohongshu_splash_ad_block.plugin",
-          "source_line_number": 47,
-          "source_raw_line": "^https:\\/\\/(?:edith|so)\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/search\\/notes\\? response-body-json-jq '. as $o | try (if (.data|type)==\"object\" then (if (.data.items|type)==\"array\" then .data.items|=map(select(if type==\"object\" then (.model_type==\"note\") else false end)) else . end) else . end) catch $o'",
+          "source_line_number": 53,
+          "source_raw_line": "^https:\\/\\/(?:edith|rec|www)\\.xiaohongshu\\.com\\/api\\/sns\\/v1\\/note\\/imagefeed response-body-json-jq 'def u: (if type==\"object\" then ((if (.function_switch|type)==\"array\" then .function_switch|=map(if type==\"object\" then (if .enable==false then (.enable=true|.reason=\"\") else . end) else . end) else . end)|(if has(\"media_save_config\") then .media_save_config|=(.disable_save=false|.disable_watermark=true|.disable_weibo_cover=true) else . end)|(if ((.share_info.function_entries|type)==\"array\") and ((.share_info.function_entries|length)>0) then .share_info.function_entries|=(if (map(select(if type==\"object\" then (.type==\"video_download\") else false end))|length)>0 then (map(select(if type==\"object\" then (.type==\"video_download\") else false end)))+(map(select(if type==\"object\" then (.type!=\"video_download\") else false end))) else [{\"type\":\"video_download\"}]+. end) else . end)) else . end); . as $o | try (if (.data|type)==\"array\" then (if ((.data[0].note_list|type)==\"array\") then .data[0].note_list|=map(u) else . end) elif (.data|type)==\"object\" then (if ((.data.note_list|type)==\"array\") then .data.note_list|=map(u) else . end) else . end) catch $o'",
           "disposition": "selected"
         }
       ],
@@ -55494,8 +55494,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/(?:edith|rec|www)\\.xiaohongshu\\.com\\/api\\/sns\\/v2\\/note\\/feed response-body-json-jq 'def u: (if type==\"object\" then ((if (.function_switch|type)==\"array\" then .function_switch|=map(if type==\"object\" then (if .enable==false then (.enable=true|.reason=\"\") else . end) else . end) else . end)|(if has(\"media_save_config\") then .media_save_config|=(.disable_save=false|.disable_watermark=true|.disable_weibo_cover=true) else . end)|(if ((.share_info.function_entries|type)==\"array\") and ((.share_info.function_entries|length)>0) then .share_info.function_entries|=(if (map(select(if type==\"object\" then (.type==\"video_download\") else false end))|length)>0 then (map(select(if type==\"object\" then (.type==\"video_download\") else false end)))+(map(select(if type==\"object\" then (.type!=\"video_download\") else false end))) else [{\"type\":\"video_download\"}]+. end) else . end)) else . end); . as $o | try (if (.data|type)==\"array\" then (if ((.data[0].note_list|type)==\"array\") then .data[0].note_list|=map(u) else . end) elif (.data|type)==\"object\" then (if ((.data.note_list|type)==\"array\") then .data.note_list|=map(u) else . end) else . end) catch $o'",
           "source_file": "xiaohongshu_splash_ad_block.plugin",
-          "source_line_number": 53,
-          "source_raw_line": "^https:\\/\\/(?:edith|rec|www)\\.xiaohongshu\\.com\\/api\\/sns\\/v1\\/note\\/imagefeed response-body-json-jq 'def u: (if type==\"object\" then ((if (.function_switch|type)==\"array\" then .function_switch|=map(if type==\"object\" then (if .enable==false then (.enable=true|.reason=\"\") else . end) else . end) else . end)|(if has(\"media_save_config\") then .media_save_config|=(.disable_save=false|.disable_watermark=true|.disable_weibo_cover=true) else . end)|(if ((.share_info.function_entries|type)==\"array\") and ((.share_info.function_entries|length)>0) then .share_info.function_entries|=(if (map(select(if type==\"object\" then (.type==\"video_download\") else false end))|length)>0 then (map(select(if type==\"object\" then (.type==\"video_download\") else false end)))+(map(select(if type==\"object\" then (.type!=\"video_download\") else false end))) else [{\"type\":\"video_download\"}]+. end) else . end)) else . end); . as $o | try (if (.data|type)==\"array\" then (if ((.data[0].note_list|type)==\"array\") then .data[0].note_list|=map(u) else . end) elif (.data|type)==\"object\" then (if ((.data.note_list|type)==\"array\") then .data.note_list|=map(u) else . end) else . end) catch $o'",
+          "source_line_number": 55,
+          "source_raw_line": "^https:\\/\\/(?:edith|rec|www)\\.xiaohongshu\\.com\\/api\\/sns\\/v2\\/note\\/feed response-body-json-jq 'def u: (if type==\"object\" then ((if (.function_switch|type)==\"array\" then .function_switch|=map(if type==\"object\" then (if .enable==false then (.enable=true|.reason=\"\") else . end) else . end) else . end)|(if has(\"media_save_config\") then .media_save_config|=(.disable_save=false|.disable_watermark=true|.disable_weibo_cover=true) else . end)|(if ((.share_info.function_entries|type)==\"array\") and ((.share_info.function_entries|length)>0) then .share_info.function_entries|=(if (map(select(if type==\"object\" then (.type==\"video_download\") else false end))|length)>0 then (map(select(if type==\"object\" then (.type==\"video_download\") else false end)))+(map(select(if type==\"object\" then (.type!=\"video_download\") else false end))) else [{\"type\":\"video_download\"}]+. end) else . end)) else . end); . as $o | try (if (.data|type)==\"array\" then (if ((.data[0].note_list|type)==\"array\") then .data[0].note_list|=map(u) else . end) elif (.data|type)==\"object\" then (if ((.data.note_list|type)==\"array\") then .data.note_list|=map(u) else . end) else . end) catch $o'",
           "disposition": "selected"
         }
       ],
@@ -55514,8 +55514,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/(?:edith|rec|www)\\.xiaohongshu\\.com\\/api\\/sns\\/v3\\/note\\/videofeed response-body-json-jq 'def u: (if type==\"object\" then ((if (.function_switch|type)==\"array\" then .function_switch|=map(if type==\"object\" then (if .enable==false then (.enable=true|.reason=\"\") else . end) else . end) else . end)|(if has(\"media_save_config\") then .media_save_config|=(.disable_save=false|.disable_watermark=true|.disable_weibo_cover=true) else . end)|(if ((.share_info.function_entries|type)==\"array\") and ((.share_info.function_entries|length)>0) then .share_info.function_entries|=(if (map(select(if type==\"object\" then (.type==\"video_download\") else false end))|length)>0 then (map(select(if type==\"object\" then (.type==\"video_download\") else false end)))+(map(select(if type==\"object\" then (.type!=\"video_download\") else false end))) else [{\"type\":\"video_download\"}]+. end) else . end)) else . end); . as $o | try (if (.data|type)==\"array\" then .data|=map(u) else . end) catch $o'",
           "source_file": "xiaohongshu_splash_ad_block.plugin",
-          "source_line_number": 55,
-          "source_raw_line": "^https:\\/\\/(?:edith|rec|www)\\.xiaohongshu\\.com\\/api\\/sns\\/v2\\/note\\/feed response-body-json-jq 'def u: (if type==\"object\" then ((if (.function_switch|type)==\"array\" then .function_switch|=map(if type==\"object\" then (if .enable==false then (.enable=true|.reason=\"\") else . end) else . end) else . end)|(if has(\"media_save_config\") then .media_save_config|=(.disable_save=false|.disable_watermark=true|.disable_weibo_cover=true) else . end)|(if ((.share_info.function_entries|type)==\"array\") and ((.share_info.function_entries|length)>0) then .share_info.function_entries|=(if (map(select(if type==\"object\" then (.type==\"video_download\") else false end))|length)>0 then (map(select(if type==\"object\" then (.type==\"video_download\") else false end)))+(map(select(if type==\"object\" then (.type!=\"video_download\") else false end))) else [{\"type\":\"video_download\"}]+. end) else . end)) else . end); . as $o | try (if (.data|type)==\"array\" then (if ((.data[0].note_list|type)==\"array\") then .data[0].note_list|=map(u) else . end) elif (.data|type)==\"object\" then (if ((.data.note_list|type)==\"array\") then .data.note_list|=map(u) else . end) else . end) catch $o'",
+          "source_line_number": 57,
+          "source_raw_line": "^https:\\/\\/(?:edith|rec|www)\\.xiaohongshu\\.com\\/api\\/sns\\/v3\\/note\\/videofeed response-body-json-jq 'def u: (if type==\"object\" then ((if (.function_switch|type)==\"array\" then .function_switch|=map(if type==\"object\" then (if .enable==false then (.enable=true|.reason=\"\") else . end) else . end) else . end)|(if has(\"media_save_config\") then .media_save_config|=(.disable_save=false|.disable_watermark=true|.disable_weibo_cover=true) else . end)|(if ((.share_info.function_entries|type)==\"array\") and ((.share_info.function_entries|length)>0) then .share_info.function_entries|=(if (map(select(if type==\"object\" then (.type==\"video_download\") else false end))|length)>0 then (map(select(if type==\"object\" then (.type==\"video_download\") else false end)))+(map(select(if type==\"object\" then (.type!=\"video_download\") else false end))) else [{\"type\":\"video_download\"}]+. end) else . end)) else . end); . as $o | try (if (.data|type)==\"array\" then .data|=map(u) else . end) catch $o'",
           "disposition": "selected"
         }
       ],
@@ -55534,8 +55534,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/(?:edith|rec|www)\\.xiaohongshu\\.com\\/api\\/sns\\/v4\\/note\\/videofeed response-body-json-jq 'def u: (if type==\"object\" then ((if (.function_switch|type)==\"array\" then .function_switch|=map(if type==\"object\" then (if .enable==false then (.enable=true|.reason=\"\") else . end) else . end) else . end)|(if has(\"media_save_config\") then .media_save_config|=(.disable_save=false|.disable_watermark=true|.disable_weibo_cover=true) else . end)|(if ((.share_info.function_entries|type)==\"array\") and ((.share_info.function_entries|length)>0) then .share_info.function_entries|=(if (map(select(if type==\"object\" then (.type==\"video_download\") else false end))|length)>0 then (map(select(if type==\"object\" then (.type==\"video_download\") else false end)))+(map(select(if type==\"object\" then (.type!=\"video_download\") else false end))) else [{\"type\":\"video_download\"}]+. end) else . end)) else . end); . as $o | try (if (.data|type)==\"array\" then .data|=map(select(if type==\"object\" then ((.model_type==\"note\") and (has(\"ad\")|not)) else false end)|u) else . end) catch $o'",
           "source_file": "xiaohongshu_splash_ad_block.plugin",
-          "source_line_number": 57,
-          "source_raw_line": "^https:\\/\\/(?:edith|rec|www)\\.xiaohongshu\\.com\\/api\\/sns\\/v3\\/note\\/videofeed response-body-json-jq 'def u: (if type==\"object\" then ((if (.function_switch|type)==\"array\" then .function_switch|=map(if type==\"object\" then (if .enable==false then (.enable=true|.reason=\"\") else . end) else . end) else . end)|(if has(\"media_save_config\") then .media_save_config|=(.disable_save=false|.disable_watermark=true|.disable_weibo_cover=true) else . end)|(if ((.share_info.function_entries|type)==\"array\") and ((.share_info.function_entries|length)>0) then .share_info.function_entries|=(if (map(select(if type==\"object\" then (.type==\"video_download\") else false end))|length)>0 then (map(select(if type==\"object\" then (.type==\"video_download\") else false end)))+(map(select(if type==\"object\" then (.type!=\"video_download\") else false end))) else [{\"type\":\"video_download\"}]+. end) else . end)) else . end); . as $o | try (if (.data|type)==\"array\" then .data|=map(u) else . end) catch $o'",
+          "source_line_number": 59,
+          "source_raw_line": "^https:\\/\\/(?:edith|rec|www)\\.xiaohongshu\\.com\\/api\\/sns\\/v4\\/note\\/videofeed response-body-json-jq 'def u: (if type==\"object\" then ((if (.function_switch|type)==\"array\" then .function_switch|=map(if type==\"object\" then (if .enable==false then (.enable=true|.reason=\"\") else . end) else . end) else . end)|(if has(\"media_save_config\") then .media_save_config|=(.disable_save=false|.disable_watermark=true|.disable_weibo_cover=true) else . end)|(if ((.share_info.function_entries|type)==\"array\") and ((.share_info.function_entries|length)>0) then .share_info.function_entries|=(if (map(select(if type==\"object\" then (.type==\"video_download\") else false end))|length)>0 then (map(select(if type==\"object\" then (.type==\"video_download\") else false end)))+(map(select(if type==\"object\" then (.type!=\"video_download\") else false end))) else [{\"type\":\"video_download\"}]+. end) else . end)) else . end); . as $o | try (if (.data|type)==\"array\" then .data|=map(select(if type==\"object\" then ((.model_type==\"note\") and (has(\"ad\")|not)) else false end)|u) else . end) catch $o'",
           "disposition": "selected"
         }
       ],
@@ -55554,8 +55554,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/(?:edith|rec)\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/homefeed\\? response-body-json-jq '. as $o | try (if (.data|type)==\"array\" then .data|=map(select(if type==\"object\" then ((.model_type!=\"live_v2\") and (has(\"ads_info\")|not) and (has(\"card_icon\")|not) and (has(\"note_attributes\")|not) and (.has_related_goods!=true)) else false end)|(if type==\"object\" then del(.related_ques) else . end)) else . end) catch $o'",
           "source_file": "xiaohongshu_splash_ad_block.plugin",
-          "source_line_number": 59,
-          "source_raw_line": "^https:\\/\\/(?:edith|rec|www)\\.xiaohongshu\\.com\\/api\\/sns\\/v4\\/note\\/videofeed response-body-json-jq 'def u: (if type==\"object\" then ((if (.function_switch|type)==\"array\" then .function_switch|=map(if type==\"object\" then (if .enable==false then (.enable=true|.reason=\"\") else . end) else . end) else . end)|(if has(\"media_save_config\") then .media_save_config|=(.disable_save=false|.disable_watermark=true|.disable_weibo_cover=true) else . end)|(if ((.share_info.function_entries|type)==\"array\") and ((.share_info.function_entries|length)>0) then .share_info.function_entries|=(if (map(select(if type==\"object\" then (.type==\"video_download\") else false end))|length)>0 then (map(select(if type==\"object\" then (.type==\"video_download\") else false end)))+(map(select(if type==\"object\" then (.type!=\"video_download\") else false end))) else [{\"type\":\"video_download\"}]+. end) else . end)) else . end); . as $o | try (if (.data|type)==\"array\" then .data|=map(select(if type==\"object\" then ((.model_type==\"note\") and (has(\"ad\")|not)) else false end)|u) else . end) catch $o'",
+          "source_line_number": 63,
+          "source_raw_line": "^https:\\/\\/(?:edith|rec)\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/homefeed\\? response-body-json-jq '. as $o | try (if (.data|type)==\"array\" then .data|=map(select(if type==\"object\" then ((.model_type!=\"live_v2\") and (has(\"ads_info\")|not) and (has(\"card_icon\")|not) and (has(\"note_attributes\")|not) and (.has_related_goods!=true)) else false end)|(if type==\"object\" then del(.related_ques) else . end)) else . end) catch $o'",
           "disposition": "selected"
         }
       ],
@@ -55574,8 +55574,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/(?:edith|rec)\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/followfeed\\? response-body-json-jq '. as $o | try (if (.data|type)==\"object\" then (if ((.data.items|type)==\"array\") then .data.items|=map(select(if type==\"object\" then (.recommend_reason!=\"recommend_user\") else false end)) else . end) else . end) catch $o'",
           "source_file": "xiaohongshu_splash_ad_block.plugin",
-          "source_line_number": 63,
-          "source_raw_line": "^https:\\/\\/(?:edith|rec)\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/homefeed\\? response-body-json-jq '. as $o | try (if (.data|type)==\"array\" then .data|=map(select(if type==\"object\" then ((.model_type!=\"live_v2\") and (has(\"ads_info\")|not) and (has(\"card_icon\")|not) and (has(\"note_attributes\")|not) and (.has_related_goods!=true)) else false end)|(if type==\"object\" then del(.related_ques) else . end)) else . end) catch $o'",
+          "source_line_number": 65,
+          "source_raw_line": "^https:\\/\\/(?:edith|rec)\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/followfeed\\? response-body-json-jq '. as $o | try (if (.data|type)==\"object\" then (if ((.data.items|type)==\"array\") then .data.items|=map(select(if type==\"object\" then (.recommend_reason!=\"recommend_user\") else false end)) else . end) else . end) catch $o'",
           "disposition": "selected"
         }
       ],
@@ -55594,8 +55594,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/(?:edith|rec)\\.xiaohongshu\\.com\\/api\\/sns\\/v2\\/user\\/followings\\/followfeed response-body-json-jq '. as $o | try (if (.data|type)==\"object\" then (if ((.data.items|type)==\"array\") then .data.items|=map(select(if type==\"object\" then (.recommend_reason==\"friend_post\") else false end)) else . end) else . end) catch $o'",
           "source_file": "xiaohongshu_splash_ad_block.plugin",
-          "source_line_number": 65,
-          "source_raw_line": "^https:\\/\\/(?:edith|rec)\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/followfeed\\? response-body-json-jq '. as $o | try (if (.data|type)==\"object\" then (if ((.data.items|type)==\"array\") then .data.items|=map(select(if type==\"object\" then (.recommend_reason!=\"recommend_user\") else false end)) else . end) else . end) catch $o'",
+          "source_line_number": 67,
+          "source_raw_line": "^https:\\/\\/(?:edith|rec)\\.xiaohongshu\\.com\\/api\\/sns\\/v2\\/user\\/followings\\/followfeed response-body-json-jq '. as $o | try (if (.data|type)==\"object\" then (if ((.data.items|type)==\"array\") then .data.items|=map(select(if type==\"object\" then (.recommend_reason==\"friend_post\") else false end)) else . end) else . end) catch $o'",
           "disposition": "selected"
         }
       ],
@@ -55614,8 +55614,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/(?:edith|rec)\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/recommend\\/user\\/follow_recommend response-body-json-jq '. as $o | try (if (.data|type)==\"object\" then (if (((.data.rec_users|type)==\"array\") and ((.data.rec_users|length)>0)) then .data={} else . end) else . end) catch $o'",
           "source_file": "xiaohongshu_splash_ad_block.plugin",
-          "source_line_number": 67,
-          "source_raw_line": "^https:\\/\\/(?:edith|rec)\\.xiaohongshu\\.com\\/api\\/sns\\/v2\\/user\\/followings\\/followfeed response-body-json-jq '. as $o | try (if (.data|type)==\"object\" then (if ((.data.items|type)==\"array\") then .data.items|=map(select(if type==\"object\" then (.recommend_reason==\"friend_post\") else false end)) else . end) else . end) catch $o'",
+          "source_line_number": 69,
+          "source_raw_line": "^https:\\/\\/(?:edith|rec)\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/recommend\\/user\\/follow_recommend response-body-json-jq '. as $o | try (if (.data|type)==\"object\" then (if (((.data.rec_users|type)==\"array\") and ((.data.rec_users|length)>0)) then .data={} else . end) else . end) catch $o'",
           "disposition": "selected"
         }
       ],
@@ -55634,8 +55634,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/ci\\.xiaohongshu\\.com\\/system_config\\/watermark reject-img",
           "source_file": "xiaohongshu_splash_ad_block.plugin",
-          "source_line_number": 69,
-          "source_raw_line": "^https:\\/\\/(?:edith|rec)\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/recommend\\/user\\/follow_recommend response-body-json-jq '. as $o | try (if (.data|type)==\"object\" then (if (((.data.rec_users|type)==\"array\") and ((.data.rec_users|length)>0)) then .data={} else . end) else . end) catch $o'",
+          "source_line_number": 73,
+          "source_raw_line": "^https:\\/\\/ci\\.xiaohongshu\\.com\\/system_config\\/watermark reject-img",
           "disposition": "selected"
         }
       ],
@@ -55654,8 +55654,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/note\\/comment\\/list response-body-json-jq 'def c: (if type==\"object\" then ((if .comment_type==3 then .comment_type=2 else . end)|(if .media_source_type==1 then .media_source_type=0 else . end)) else . end); . as $o | try (if (.data|type)==\"object\" then (if ((.data.comments|type)==\"array\") then .data.comments|=map(c|(if ((.sub_comments|type)==\"array\") then .sub_comments|=map(c) else . end)) else . end) else . end) catch $o'",
           "source_file": "xiaohongshu_splash_ad_block.plugin",
-          "source_line_number": 73,
-          "source_raw_line": "^https:\\/\\/ci\\.xiaohongshu\\.com\\/system_config\\/watermark reject-img",
+          "source_line_number": 75,
+          "source_raw_line": "^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/note\\/comment\\/list response-body-json-jq 'def c: (if type==\"object\" then ((if .comment_type==3 then .comment_type=2 else . end)|(if .media_source_type==1 then .media_source_type=0 else . end)) else . end); . as $o | try (if (.data|type)==\"object\" then (if ((.data.comments|type)==\"array\") then .data.comments|=map(c|(if ((.sub_comments|type)==\"array\") then .sub_comments|=map(c) else . end)) else . end) else . end) catch $o'",
           "disposition": "selected"
         }
       ],
@@ -55673,9 +55673,9 @@
           "source_entry_index": 211,
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/un-acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.play\\.ups\\.appinfo\\.get(\\/|\\?) response-body-json-jq '. as $o | try (if ((.data.data|type)==\"object\") then del(.data.data.ad, .data.data.watermark, .data.data.ykad) else . end) catch $o'",
-          "source_file": "xiaohongshu_splash_ad_block.plugin",
-          "source_line_number": 75,
-          "source_raw_line": "^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/note\\/comment\\/list response-body-json-jq 'def c: (if type==\"object\" then ((if .comment_type==3 then .comment_type=2 else . end)|(if .media_source_type==1 then .media_source_type=0 else . end)) else . end); . as $o | try (if (.data|type)==\"object\" then (if ((.data.comments|type)==\"array\") then .data.comments|=map(c|(if ((.sub_comments|type)==\"array\") then .sub_comments|=map(c) else . end)) else . end) else . end) catch $o'",
+          "source_file": "youku_splash_ad_block.plugin",
+          "source_line_number": 105,
+          "source_raw_line": "^https:\\/\\/un-acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.play\\.ups\\.appinfo\\.get(\\/|\\?) response-body-json-jq '. as $o | try (if ((.data.data|type)==\"object\") then del(.data.data.ad, .data.data.watermark, .data.data.ykad) else . end) catch $o'",
           "disposition": "selected"
         }
       ],
@@ -55694,8 +55694,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/push\\.m\\.youku\\.com\\/collect-api\\/get_push_interval_config_wx\\? response-body-json-jq '. as $o | try (if ((.data|type)==\"object\") then del(.data.tipContent, .data.tipContentNew) else . end) catch $o'",
           "source_file": "youku_splash_ad_block.plugin",
-          "source_line_number": 105,
-          "source_raw_line": "^https:\\/\\/un-acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.play\\.ups\\.appinfo\\.get(\\/|\\?) response-body-json-jq '. as $o | try (if ((.data.data|type)==\"object\") then del(.data.data.ad, .data.data.watermark, .data.data.ykad) else . end) catch $o'",
+          "source_line_number": 109,
+          "source_raw_line": "^https:\\/\\/push\\.m\\.youku\\.com\\/collect-api\\/get_push_interval_config_wx\\? response-body-json-jq '. as $o | try (if ((.data|type)==\"object\") then del(.data.tipContent, .data.tipContentNew) else . end) catch $o'",
           "disposition": "selected"
         }
       ],
@@ -55714,8 +55714,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.columbus\\.gateway\\.new\\.execute(\\/|\\?) response-body-json-jq '. as $o | try (if (.data|type)!=\"object\" then . elif (.data[\"2019030100\"].data|type)!=\"object\" then . else (.data[\"2019030100\"].data |= ((if (.data.global.PHONE_DETAIL_TOP_TAB.pageTabs|type)==\"array\" then .data.global.PHONE_DETAIL_TOP_TAB.pageTabs |= map(if (type!=\"object\") then . elif ((.code==\"detail\") or (.code==\"planet\")) then . else empty end) else . end) | (if (.nodes|type)==\"array\" then (if (.nodes|length)==1 then .nodes |= map(if (type!=\"object\") then . elif (.nodes|type)!=\"array\" then . elif (.typeName==\"NORMAL\") then .nodes |= map(if (type!=\"object\") then . elif ((.typeName==\"PHONE_CHD_AGE_DETAIL_2\") or (.typeName==\"PHONE_CHILD_SERIES_A\") or (.typeName==\"PHONE_CHILD_STAR_A\") or (.typeName==\"PHONE_DEFALT_SCROLL_C\") or (.typeName==\"Phone运营banner\") or (.typeName==\"播放页触达组件\") or (.typeName==\"播放页广告组件\") or (.typeName==\"播放页会员引导组件\") or (.typeName==\"播放页活动组件\") or (.typeName==\"播放页全屏播后推荐组件\") or (.typeName==\"播放页少儿品牌专区组件\") or (.typeName==\"播放页推荐组件\") or (.typeName==\"播放页用户触达组件\") or (.typeName==\"播放页有料不能停组件\") or (.typeName==\"球区自动化组件\") or (.typeName==\"优酷购\")) then empty else . end) elif ((.typeName==\"FEED_CHILD_DRAWER_PAGINATION\") or (.typeName==\"FEED_DRAWER_PAGINATION\")) then .nodes=[] else . end) else .nodes=[] end) else . end))) end) catch $o'",
           "source_file": "youku_splash_ad_block.plugin",
-          "source_line_number": 109,
-          "source_raw_line": "^https:\\/\\/push\\.m\\.youku\\.com\\/collect-api\\/get_push_interval_config_wx\\? response-body-json-jq '. as $o | try (if ((.data|type)==\"object\") then del(.data.tipContent, .data.tipContentNew) else . end) catch $o'",
+          "source_line_number": 113,
+          "source_raw_line": "^https:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.columbus\\.gateway\\.new\\.execute(\\/|\\?) response-body-json-jq '. as $o | try (if (.data|type)!=\"object\" then . elif (.data[\"2019030100\"].data|type)!=\"object\" then . else (.data[\"2019030100\"].data |= ((if (.data.global.PHONE_DETAIL_TOP_TAB.pageTabs|type)==\"array\" then .data.global.PHONE_DETAIL_TOP_TAB.pageTabs |= map(if (type!=\"object\") then . elif ((.code==\"detail\") or (.code==\"planet\")) then . else empty end) else . end) | (if (.nodes|type)==\"array\" then (if (.nodes|length)==1 then .nodes |= map(if (type!=\"object\") then . elif (.nodes|type)!=\"array\" then . elif (.typeName==\"NORMAL\") then .nodes |= map(if (type!=\"object\") then . elif ((.typeName==\"PHONE_CHD_AGE_DETAIL_2\") or (.typeName==\"PHONE_CHILD_SERIES_A\") or (.typeName==\"PHONE_CHILD_STAR_A\") or (.typeName==\"PHONE_DEFALT_SCROLL_C\") or (.typeName==\"Phone运营banner\") or (.typeName==\"播放页触达组件\") or (.typeName==\"播放页广告组件\") or (.typeName==\"播放页会员引导组件\") or (.typeName==\"播放页活动组件\") or (.typeName==\"播放页全屏播后推荐组件\") or (.typeName==\"播放页少儿品牌专区组件\") or (.typeName==\"播放页推荐组件\") or (.typeName==\"播放页用户触达组件\") or (.typeName==\"播放页有料不能停组件\") or (.typeName==\"球区自动化组件\") or (.typeName==\"优酷购\")) then empty else . end) elif ((.typeName==\"FEED_CHILD_DRAWER_PAGINATION\") or (.typeName==\"FEED_DRAWER_PAGINATION\")) then .nodes=[] else . end) else .nodes=[] end) else . end))) end) catch $o'",
           "disposition": "selected"
         }
       ],
@@ -55734,8 +55734,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.columbus\\.home\\.feed(\\/|\\?) response-body-json-jq '. as $o | try (if (.data|type)!=\"object\" then . elif (.data[\"2019061000\"].data|type)!=\"object\" then . else (.data[\"2019061000\"].data |= (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif ((.typeName==\"PHONE_FEED_CARD_GROUP\") and ((.nodes|type)==\"array\")) then .nodes |= map(if (type!=\"object\") then . elif ((.typeName==\"PHONE_FEED_CARD_S_AD\") or (.typeName==\"PHONE_H_UC_AD\")) then empty else . end) else . end) else . end)) end) catch $o'",
           "source_file": "youku_splash_ad_block.plugin",
-          "source_line_number": 113,
-          "source_raw_line": "^https:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.columbus\\.gateway\\.new\\.execute(\\/|\\?) response-body-json-jq '. as $o | try (if (.data|type)!=\"object\" then . elif (.data[\"2019030100\"].data|type)!=\"object\" then . else (.data[\"2019030100\"].data |= ((if (.data.global.PHONE_DETAIL_TOP_TAB.pageTabs|type)==\"array\" then .data.global.PHONE_DETAIL_TOP_TAB.pageTabs |= map(if (type!=\"object\") then . elif ((.code==\"detail\") or (.code==\"planet\")) then . else empty end) else . end) | (if (.nodes|type)==\"array\" then (if (.nodes|length)==1 then .nodes |= map(if (type!=\"object\") then . elif (.nodes|type)!=\"array\" then . elif (.typeName==\"NORMAL\") then .nodes |= map(if (type!=\"object\") then . elif ((.typeName==\"PHONE_CHD_AGE_DETAIL_2\") or (.typeName==\"PHONE_CHILD_SERIES_A\") or (.typeName==\"PHONE_CHILD_STAR_A\") or (.typeName==\"PHONE_DEFALT_SCROLL_C\") or (.typeName==\"Phone运营banner\") or (.typeName==\"播放页触达组件\") or (.typeName==\"播放页广告组件\") or (.typeName==\"播放页会员引导组件\") or (.typeName==\"播放页活动组件\") or (.typeName==\"播放页全屏播后推荐组件\") or (.typeName==\"播放页少儿品牌专区组件\") or (.typeName==\"播放页推荐组件\") or (.typeName==\"播放页用户触达组件\") or (.typeName==\"播放页有料不能停组件\") or (.typeName==\"球区自动化组件\") or (.typeName==\"优酷购\")) then empty else . end) elif ((.typeName==\"FEED_CHILD_DRAWER_PAGINATION\") or (.typeName==\"FEED_DRAWER_PAGINATION\")) then .nodes=[] else . end) else .nodes=[] end) else . end))) end) catch $o'",
+          "source_line_number": 117,
+          "source_raw_line": "^https:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.columbus\\.home\\.feed(\\/|\\?) response-body-json-jq '. as $o | try (if (.data|type)!=\"object\" then . elif (.data[\"2019061000\"].data|type)!=\"object\" then . else (.data[\"2019061000\"].data |= (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif ((.typeName==\"PHONE_FEED_CARD_GROUP\") and ((.nodes|type)==\"array\")) then .nodes |= map(if (type!=\"object\") then . elif ((.typeName==\"PHONE_FEED_CARD_S_AD\") or (.typeName==\"PHONE_H_UC_AD\")) then empty else . end) else . end) else . end)) end) catch $o'",
           "disposition": "selected"
         }
       ],
@@ -55754,8 +55754,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.columbus\\.home\\.query(\\/|\\?) response-body-json-jq '. as $o | try (if (.data|type)!=\"object\" then . elif (.data[\"2019061000\"].data|type)!=\"object\" then . else (.data[\"2019061000\"].data |= ((if (.data.indexPositionResult|type)==\"array\" then .data.indexPositionResult=[] else . end) | (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif ((.data|type)==\"object\") then (if ((.data.nodeKey==\"CHILD\") or (.data.nodeKey==\"COMIC2\") or (.data.nodeKey==\"20230929GREATWORKMFK\")) then empty else ((if (.data|type)==\"object\" then ((if (.data.indexPositionResult|type)==\"array\" then .data.indexPositionResult=[] else . end) | del(.data.refreshImg)) else . end) | (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif ((.typeName==\"UC广告抽屉\") or (.typeName==\"橱窗广告\")) then empty elif (.id==31476) then (if (.data|type)==\"object\" then del(.data.keywords) else . end) elif ((.id==35505) or (.id==37335)) then empty else ((if (.data|type)==\"object\" then del(.data.crmSale) else . end) | (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif ((.typeName==\"PHONE_FEED_CARD_B_AD\") or (.typeName==\"PHONE_FEED_CARD_S_AD\") or (.typeName==\"PHONE_H_UC_AD\") or (.typeName==\"PHONE_IMG_A\") or (.typeName==\"PHONE_YK_AD_BANNER\")) then empty else (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif (.typeName==\"PHONE_FEED_CARD_S_AD\") then empty elif ((.data|type)==\"object\") then (if (.data|has(\"ad\")) then empty else . end) else . end) else . end) end) else . end)) end) else . end)) end) else ((if (.data|type)==\"object\" then ((if (.data.indexPositionResult|type)==\"array\" then .data.indexPositionResult=[] else . end) | del(.data.refreshImg)) else . end) | (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif ((.typeName==\"UC广告抽屉\") or (.typeName==\"橱窗广告\")) then empty elif (.id==31476) then (if (.data|type)==\"object\" then del(.data.keywords) else . end) elif ((.id==35505) or (.id==37335)) then empty else ((if (.data|type)==\"object\" then del(.data.crmSale) else . end) | (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif ((.typeName==\"PHONE_FEED_CARD_B_AD\") or (.typeName==\"PHONE_FEED_CARD_S_AD\") or (.typeName==\"PHONE_H_UC_AD\") or (.typeName==\"PHONE_IMG_A\") or (.typeName==\"PHONE_YK_AD_BANNER\")) then empty else (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif (.typeName==\"PHONE_FEED_CARD_S_AD\") then empty elif ((.data|type)==\"object\") then (if (.data|has(\"ad\")) then empty else . end) else . end) else . end) end) else . end)) end) else . end)) end) else . end))) end) catch $o'",
           "source_file": "youku_splash_ad_block.plugin",
-          "source_line_number": 117,
-          "source_raw_line": "^https:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.columbus\\.home\\.feed(\\/|\\?) response-body-json-jq '. as $o | try (if (.data|type)!=\"object\" then . elif (.data[\"2019061000\"].data|type)!=\"object\" then . else (.data[\"2019061000\"].data |= (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif ((.typeName==\"PHONE_FEED_CARD_GROUP\") and ((.nodes|type)==\"array\")) then .nodes |= map(if (type!=\"object\") then . elif ((.typeName==\"PHONE_FEED_CARD_S_AD\") or (.typeName==\"PHONE_H_UC_AD\")) then empty else . end) else . end) else . end)) end) catch $o'",
+          "source_line_number": 121,
+          "source_raw_line": "^https:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.columbus\\.home\\.query(\\/|\\?) response-body-json-jq '. as $o | try (if (.data|type)!=\"object\" then . elif (.data[\"2019061000\"].data|type)!=\"object\" then . else (.data[\"2019061000\"].data |= ((if (.data.indexPositionResult|type)==\"array\" then .data.indexPositionResult=[] else . end) | (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif ((.data|type)==\"object\") then (if ((.data.nodeKey==\"CHILD\") or (.data.nodeKey==\"COMIC2\") or (.data.nodeKey==\"20230929GREATWORKMFK\")) then empty else ((if (.data|type)==\"object\" then ((if (.data.indexPositionResult|type)==\"array\" then .data.indexPositionResult=[] else . end) | del(.data.refreshImg)) else . end) | (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif ((.typeName==\"UC广告抽屉\") or (.typeName==\"橱窗广告\")) then empty elif (.id==31476) then (if (.data|type)==\"object\" then del(.data.keywords) else . end) elif ((.id==35505) or (.id==37335)) then empty else ((if (.data|type)==\"object\" then del(.data.crmSale) else . end) | (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif ((.typeName==\"PHONE_FEED_CARD_B_AD\") or (.typeName==\"PHONE_FEED_CARD_S_AD\") or (.typeName==\"PHONE_H_UC_AD\") or (.typeName==\"PHONE_IMG_A\") or (.typeName==\"PHONE_YK_AD_BANNER\")) then empty else (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif (.typeName==\"PHONE_FEED_CARD_S_AD\") then empty elif ((.data|type)==\"object\") then (if (.data|has(\"ad\")) then empty else . end) else . end) else . end) end) else . end)) end) else . end)) end) else ((if (.data|type)==\"object\" then ((if (.data.indexPositionResult|type)==\"array\" then .data.indexPositionResult=[] else . end) | del(.data.refreshImg)) else . end) | (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif ((.typeName==\"UC广告抽屉\") or (.typeName==\"橱窗广告\")) then empty elif (.id==31476) then (if (.data|type)==\"object\" then del(.data.keywords) else . end) elif ((.id==35505) or (.id==37335)) then empty else ((if (.data|type)==\"object\" then del(.data.crmSale) else . end) | (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif ((.typeName==\"PHONE_FEED_CARD_B_AD\") or (.typeName==\"PHONE_FEED_CARD_S_AD\") or (.typeName==\"PHONE_H_UC_AD\") or (.typeName==\"PHONE_IMG_A\") or (.typeName==\"PHONE_YK_AD_BANNER\")) then empty else (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif (.typeName==\"PHONE_FEED_CARD_S_AD\") then empty elif ((.data|type)==\"object\") then (if (.data|has(\"ad\")) then empty else . end) else . end) else . end) end) else . end)) end) else . end)) end) else . end))) end) catch $o'",
           "disposition": "selected"
         }
       ],
@@ -55774,8 +55774,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.columbus\\.uc\\.query(\\/|\\?) response-body-json-jq '. as $o | try (if (.data|type)!=\"object\" then . elif (.data[\"2019061000\"].data|type)!=\"object\" then . else (.data[\"2019061000\"].data |= (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif (.nodes|type)!=\"array\" then . else .nodes |= map(if (type!=\"object\") then . elif (.id==32133) then empty elif (.id==32775) then empty elif (.id==22570) then empty elif (.id==35942) then empty elif (.id==36014) then empty elif (.id==38466) then empty elif (.id==28912) then (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif (.id==110429) then empty else . end) else . end) elif (.id==36015) then (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif (.nodes|type)!=\"array\" then . else .nodes |= map(if (type!=\"object\") then . elif ((.id==683367) or (.id==683368) or (.id==683372) or (.id==683502)) then . else empty end) end) else . end) else . end) end) else . end)) end) catch $o'",
           "source_file": "youku_splash_ad_block.plugin",
-          "source_line_number": 121,
-          "source_raw_line": "^https:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.columbus\\.home\\.query(\\/|\\?) response-body-json-jq '. as $o | try (if (.data|type)!=\"object\" then . elif (.data[\"2019061000\"].data|type)!=\"object\" then . else (.data[\"2019061000\"].data |= ((if (.data.indexPositionResult|type)==\"array\" then .data.indexPositionResult=[] else . end) | (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif ((.data|type)==\"object\") then (if ((.data.nodeKey==\"CHILD\") or (.data.nodeKey==\"COMIC2\") or (.data.nodeKey==\"20230929GREATWORKMFK\")) then empty else ((if (.data|type)==\"object\" then ((if (.data.indexPositionResult|type)==\"array\" then .data.indexPositionResult=[] else . end) | del(.data.refreshImg)) else . end) | (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif ((.typeName==\"UC广告抽屉\") or (.typeName==\"橱窗广告\")) then empty elif (.id==31476) then (if (.data|type)==\"object\" then del(.data.keywords) else . end) elif ((.id==35505) or (.id==37335)) then empty else ((if (.data|type)==\"object\" then del(.data.crmSale) else . end) | (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif ((.typeName==\"PHONE_FEED_CARD_B_AD\") or (.typeName==\"PHONE_FEED_CARD_S_AD\") or (.typeName==\"PHONE_H_UC_AD\") or (.typeName==\"PHONE_IMG_A\") or (.typeName==\"PHONE_YK_AD_BANNER\")) then empty else (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif (.typeName==\"PHONE_FEED_CARD_S_AD\") then empty elif ((.data|type)==\"object\") then (if (.data|has(\"ad\")) then empty else . end) else . end) else . end) end) else . end)) end) else . end)) end) else ((if (.data|type)==\"object\" then ((if (.data.indexPositionResult|type)==\"array\" then .data.indexPositionResult=[] else . end) | del(.data.refreshImg)) else . end) | (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif ((.typeName==\"UC广告抽屉\") or (.typeName==\"橱窗广告\")) then empty elif (.id==31476) then (if (.data|type)==\"object\" then del(.data.keywords) else . end) elif ((.id==35505) or (.id==37335)) then empty else ((if (.data|type)==\"object\" then del(.data.crmSale) else . end) | (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif ((.typeName==\"PHONE_FEED_CARD_B_AD\") or (.typeName==\"PHONE_FEED_CARD_S_AD\") or (.typeName==\"PHONE_H_UC_AD\") or (.typeName==\"PHONE_IMG_A\") or (.typeName==\"PHONE_YK_AD_BANNER\")) then empty else (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif (.typeName==\"PHONE_FEED_CARD_S_AD\") then empty elif ((.data|type)==\"object\") then (if (.data|has(\"ad\")) then empty else . end) else . end) else . end) end) else . end)) end) else . end)) end) else . end))) end) catch $o'",
+          "source_line_number": 125,
+          "source_raw_line": "^https:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.columbus\\.uc\\.query(\\/|\\?) response-body-json-jq '. as $o | try (if (.data|type)!=\"object\" then . elif (.data[\"2019061000\"].data|type)!=\"object\" then . else (.data[\"2019061000\"].data |= (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif (.nodes|type)!=\"array\" then . else .nodes |= map(if (type!=\"object\") then . elif (.id==32133) then empty elif (.id==32775) then empty elif (.id==22570) then empty elif (.id==35942) then empty elif (.id==36014) then empty elif (.id==38466) then empty elif (.id==28912) then (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif (.id==110429) then empty else . end) else . end) elif (.id==36015) then (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif (.nodes|type)!=\"array\" then . else .nodes |= map(if (type!=\"object\") then . elif ((.id==683367) or (.id==683368) or (.id==683372) or (.id==683502)) then . else empty end) end) else . end) else . end) end) else . end)) end) catch $o'",
           "disposition": "selected"
         }
       ],
@@ -55794,8 +55794,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.columbus\\.ycp\\.query(\\/|\\?) response-body-json-jq '. as $o | try (if (.data|type)!=\"object\" then . elif (.data[\"2019061000\"].data|type)!=\"object\" then . else (.data[\"2019061000\"].data |= (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif (.nodes|type)!=\"array\" then . else .nodes |= map(if (type!=\"object\") then . elif (.id==23242) then (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif ((.typeName==\"COMPONENT_YCP_NOTICE\") or (.id==113941)) then empty else . end) else . end) elif (.id==23243) then (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif (.id==-1000) then empty else . end) else . end) else . end) end) else . end)) end) catch $o'",
           "source_file": "youku_splash_ad_block.plugin",
-          "source_line_number": 125,
-          "source_raw_line": "^https:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.columbus\\.uc\\.query(\\/|\\?) response-body-json-jq '. as $o | try (if (.data|type)!=\"object\" then . elif (.data[\"2019061000\"].data|type)!=\"object\" then . else (.data[\"2019061000\"].data |= (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif (.nodes|type)!=\"array\" then . else .nodes |= map(if (type!=\"object\") then . elif (.id==32133) then empty elif (.id==32775) then empty elif (.id==22570) then empty elif (.id==35942) then empty elif (.id==36014) then empty elif (.id==38466) then empty elif (.id==28912) then (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif (.id==110429) then empty else . end) else . end) elif (.id==36015) then (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif (.nodes|type)!=\"array\" then . else .nodes |= map(if (type!=\"object\") then . elif ((.id==683367) or (.id==683368) or (.id==683372) or (.id==683502)) then . else empty end) end) else . end) else . end) end) else . end)) end) catch $o'",
+          "source_line_number": 129,
+          "source_raw_line": "^https:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.columbus\\.ycp\\.query(\\/|\\?) response-body-json-jq '. as $o | try (if (.data|type)!=\"object\" then . elif (.data[\"2019061000\"].data|type)!=\"object\" then . else (.data[\"2019061000\"].data |= (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif (.nodes|type)!=\"array\" then . else .nodes |= map(if (type!=\"object\") then . elif (.id==23242) then (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif ((.typeName==\"COMPONENT_YCP_NOTICE\") or (.id==113941)) then empty else . end) else . end) elif (.id==23243) then (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif (.id==-1000) then empty else . end) else . end) else . end) end) else . end)) end) catch $o'",
           "disposition": "selected"
         }
       ],
@@ -55814,8 +55814,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.haidai\\.lantern\\.appconfig\\.get(\\/|\\?) response-body-json-jq '. as $o | try (if (.data|type)!=\"object\" then . elif (.data.model|type)!=\"object\" then . elif (.data.model.configInfo.bottomNavigate.data.bottomTabList|type)!=\"array\" then . else (.data.model.configInfo.bottomNavigate.data.bottomTabList |= (map(if (type!=\"object\") then . elif ((.type==\"HOME\") or (.type==\"NEW_UCENTER\") or (.type==\"VIP_MEMBER\")) then . else empty end) | to_entries | map(if (.value|type)==\"object\" then (.value + {\"menuIndex\":(.key+1)}) else .value end))) end) catch $o'",
           "source_file": "youku_splash_ad_block.plugin",
-          "source_line_number": 129,
-          "source_raw_line": "^https:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.columbus\\.ycp\\.query(\\/|\\?) response-body-json-jq '. as $o | try (if (.data|type)!=\"object\" then . elif (.data[\"2019061000\"].data|type)!=\"object\" then . else (.data[\"2019061000\"].data |= (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif (.nodes|type)!=\"array\" then . else .nodes |= map(if (type!=\"object\") then . elif (.id==23242) then (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif ((.typeName==\"COMPONENT_YCP_NOTICE\") or (.id==113941)) then empty else . end) else . end) elif (.id==23243) then (if (.nodes|type)==\"array\" then .nodes |= map(if (type!=\"object\") then . elif (.id==-1000) then empty else . end) else . end) else . end) end) else . end)) end) catch $o'",
+          "source_line_number": 133,
+          "source_raw_line": "^https:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.haidai\\.lantern\\.appconfig\\.get(\\/|\\?) response-body-json-jq '. as $o | try (if (.data|type)!=\"object\" then . elif (.data.model|type)!=\"object\" then . elif (.data.model.configInfo.bottomNavigate.data.bottomTabList|type)!=\"array\" then . else (.data.model.configInfo.bottomNavigate.data.bottomTabList |= (map(if (type!=\"object\") then . elif ((.type==\"HOME\") or (.type==\"NEW_UCENTER\") or (.type==\"VIP_MEMBER\")) then . else empty end) | to_entries | map(if (.value|type)==\"object\" then (.value + {\"menuIndex\":(.key+1)}) else .value end))) end) catch $o'",
           "disposition": "selected"
         }
       ],
@@ -55834,8 +55834,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.huluwa\\.dispatcher\\.youthmode\\.config2(\\/|\\?) response-body-json-jq '. as $o | try (if (.data|type)!=\"object\" then . elif ((.data.result|type)==\"object\") then (.data.result={}) else . end) catch $o'",
           "source_file": "youku_splash_ad_block.plugin",
-          "source_line_number": 133,
-          "source_raw_line": "^https:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.haidai\\.lantern\\.appconfig\\.get(\\/|\\?) response-body-json-jq '. as $o | try (if (.data|type)!=\"object\" then . elif (.data.model|type)!=\"object\" then . elif (.data.model.configInfo.bottomNavigate.data.bottomTabList|type)!=\"array\" then . else (.data.model.configInfo.bottomNavigate.data.bottomTabList |= (map(if (type!=\"object\") then . elif ((.type==\"HOME\") or (.type==\"NEW_UCENTER\") or (.type==\"VIP_MEMBER\")) then . else empty end) | to_entries | map(if (.value|type)==\"object\" then (.value + {\"menuIndex\":(.key+1)}) else .value end))) end) catch $o'",
+          "source_line_number": 137,
+          "source_raw_line": "^https:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.huluwa\\.dispatcher\\.youthmode\\.config2(\\/|\\?) response-body-json-jq '. as $o | try (if (.data|type)!=\"object\" then . elif ((.data.result|type)==\"object\") then (.data.result={}) else . end) catch $o'",
           "disposition": "selected"
         }
       ],
@@ -55854,8 +55854,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.soku\\.yksearch(\\/|\\?) response-body-json-jq '. as $o | try (if (.data|type)!=\"object\" then . elif (.data.nodes|type)!=\"array\" then . else (.data.nodes |= map(if (type!=\"object\") then empty elif (has(\"data\")) then . else empty end)) end) catch $o'",
           "source_file": "youku_splash_ad_block.plugin",
-          "source_line_number": 137,
-          "source_raw_line": "^https:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.huluwa\\.dispatcher\\.youthmode\\.config2(\\/|\\?) response-body-json-jq '. as $o | try (if (.data|type)!=\"object\" then . elif ((.data.result|type)==\"object\") then (.data.result={}) else . end) catch $o'",
+          "source_line_number": 141,
+          "source_raw_line": "^https:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.soku\\.yksearch(\\/|\\?) response-body-json-jq '. as $o | try (if (.data|type)!=\"object\" then . elif (.data.nodes|type)!=\"array\" then . else (.data.nodes |= map(if (type!=\"object\") then empty elif (has(\"data\")) then . else empty end)) end) catch $o'",
           "disposition": "selected"
         }
       ],
@@ -55874,8 +55874,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.(pisp\\.scripts\\.get|xspace\\.play\\.position\\.preload\\.query|xspace\\.poplayer\\.position\\.query)(\\/|\\?) reject-dict",
           "source_file": "youku_splash_ad_block.plugin",
-          "source_line_number": 141,
-          "source_raw_line": "^https:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.soku\\.yksearch(\\/|\\?) response-body-json-jq '. as $o | try (if (.data|type)!=\"object\" then . elif (.data.nodes|type)!=\"array\" then . else (.data.nodes |= map(if (type!=\"object\") then empty elif (has(\"data\")) then . else empty end)) end) catch $o'",
+          "source_line_number": 145,
+          "source_raw_line": "^https:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.(pisp\\.scripts\\.get|xspace\\.play\\.position\\.preload\\.query|xspace\\.poplayer\\.position\\.query)(\\/|\\?) reject-dict",
           "disposition": "selected"
         }
       ],
@@ -55893,9 +55893,9 @@
           "source_entry_index": 222,
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.zhihu\\.com\\/commercial_api\\/ reject-dict",
-          "source_file": "youku_splash_ad_block.plugin",
-          "source_line_number": 145,
-          "source_raw_line": "^https:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.(pisp\\.scripts\\.get|xspace\\.play\\.position\\.preload\\.query|xspace\\.poplayer\\.position\\.query)(\\/|\\?) reject-dict",
+          "source_file": "zhihu_splash_ad_block.plugin",
+          "source_line_number": 10,
+          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/commercial_api\\/ reject-dict",
           "disposition": "selected"
         },
         {
@@ -55905,8 +55905,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.zhihu\\.com\\/commercial_api\\/ reject-dict",
           "source_file": "zhihu_splash_ad_block.plugin",
-          "source_line_number": 16,
-          "source_raw_line": "^https:\\/\\/m-cloud\\.zhihu\\.com\\/api\\/cloud\\/zhihu\\/config\\/all\\? response-body-json-jq 'def drop_keys: {\"km_httpdns_new_config_tars\":true,\"preFetchHttpDns\":true,\"httpdns_detector_use_concurrent\":true,\"httpdns_use_memory_cache\":true,\"httpdns_new_config_tars\":true,\"coreNetworkConf_useTars\":true,\"km_coreNetworkConf_useTars\":true,\"sugarQuicConfig\":true,\"quic_dns_detect_enable\":true,\"quicMixAB\":true,\"quic_downgrade_enable\":true,\"quic_priority_strategy\":true,\"quic_check_health_enable\":true,\"tquic_configuration\":true,\"networkExprimentList\":true,\"tars_ab_list\":true,\"zaSetExtraRequestHeader\":true}; .data.configs |= map(select((drop_keys[.configKey] // false) | not) | if (.configValue | type) == \"object\" then del(.configValue.delayHttpdns, .configValue.dnsParser, .configValue.HTTPDNS) else . end)'",
+          "source_line_number": 17,
+          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/commercial_api\\/ reject-dict",
           "disposition": "duplicate_same_semantics"
         }
       ],
@@ -55925,8 +55925,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.zhihu\\.com\\/fringe\\/ad reject-200",
           "source_file": "zhihu_splash_ad_block.plugin",
-          "source_line_number": 10,
-          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/commercial_api\\/ reject-dict",
+          "source_line_number": 12,
+          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/fringe\\/ad reject-200",
           "disposition": "selected"
         }
       ],
@@ -55945,8 +55945,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.zhihu\\.com\\/ad reject-200",
           "source_file": "zhihu_splash_ad_block.plugin",
-          "source_line_number": 12,
-          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/fringe\\/ad reject-200",
+          "source_line_number": 13,
+          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/ad reject-200",
           "disposition": "selected"
         }
       ],
@@ -55965,8 +55965,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/m-cloud\\.zhihu\\.com\\/api\\/cloud\\/zhihu\\/config\\/all\\? response-body-json-jq 'def drop_keys: {\"km_httpdns_new_config_tars\":true,\"preFetchHttpDns\":true,\"httpdns_detector_use_concurrent\":true,\"httpdns_use_memory_cache\":true,\"httpdns_new_config_tars\":true,\"coreNetworkConf_useTars\":true,\"km_coreNetworkConf_useTars\":true,\"sugarQuicConfig\":true,\"quic_dns_detect_enable\":true,\"quicMixAB\":true,\"quic_downgrade_enable\":true,\"quic_priority_strategy\":true,\"quic_check_health_enable\":true,\"tquic_configuration\":true,\"networkExprimentList\":true,\"tars_ab_list\":true,\"zaSetExtraRequestHeader\":true}; .data.configs |= map(select((drop_keys[.configKey] // false) | not) | if (.configValue | type) == \"object\" then del(.configValue.delayHttpdns, .configValue.dnsParser, .configValue.HTTPDNS) else . end)'",
           "source_file": "zhihu_splash_ad_block.plugin",
-          "source_line_number": 13,
-          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/ad reject-200",
+          "source_line_number": 16,
+          "source_raw_line": "^https:\\/\\/m-cloud\\.zhihu\\.com\\/api\\/cloud\\/zhihu\\/config\\/all\\? response-body-json-jq 'def drop_keys: {\"km_httpdns_new_config_tars\":true,\"preFetchHttpDns\":true,\"httpdns_detector_use_concurrent\":true,\"httpdns_use_memory_cache\":true,\"httpdns_new_config_tars\":true,\"coreNetworkConf_useTars\":true,\"km_coreNetworkConf_useTars\":true,\"sugarQuicConfig\":true,\"quic_dns_detect_enable\":true,\"quicMixAB\":true,\"quic_downgrade_enable\":true,\"quic_priority_strategy\":true,\"quic_check_health_enable\":true,\"tquic_configuration\":true,\"networkExprimentList\":true,\"tars_ab_list\":true,\"zaSetExtraRequestHeader\":true}; .data.configs |= map(select((drop_keys[.configKey] // false) | not) | if (.configValue | type) == \"object\" then del(.configValue.delayHttpdns, .configValue.dnsParser, .configValue.HTTPDNS) else . end)'",
           "disposition": "selected"
         }
       ],
@@ -55985,8 +55985,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.zhihu\\.com\\/root\\/tab\\/v\\d(?:\\?.+)?$ response-body-json-jq '.tab_list |= map(select(.tab_type == \"follow\" or .tab_type == \"recommend\" or .tab_type == \"hot\" or .tab_type == \"ring_tab\"))'",
           "source_file": "zhihu_splash_ad_block.plugin",
-          "source_line_number": 17,
-          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/commercial_api\\/ reject-dict",
+          "source_line_number": 18,
+          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/root\\/tab\\/v\\d(?:\\?.+)?$ response-body-json-jq '.tab_list |= map(select(.tab_type == \"follow\" or .tab_type == \"recommend\" or .tab_type == \"hot\" or .tab_type == \"ring_tab\"))'",
           "disposition": "selected"
         }
       ],
@@ -56005,8 +56005,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.zhihu\\.com\\/topstory\\/recommend\\? response-body-json-jq '.data |= map(select(.type == \"ComponentCard\"))'",
           "source_file": "zhihu_splash_ad_block.plugin",
-          "source_line_number": 18,
-          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/root\\/tab\\/v\\d(?:\\?.+)?$ response-body-json-jq '.tab_list |= map(select(.tab_type == \"follow\" or .tab_type == \"recommend\" or .tab_type == \"hot\" or .tab_type == \"ring_tab\"))'",
+          "source_line_number": 19,
+          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/topstory\\/recommend\\? response-body-json-jq '.data |= map(select(.type == \"ComponentCard\"))'",
           "disposition": "selected"
         }
       ],
@@ -56025,8 +56025,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.zhihu\\.com\\/questions\\/\\d+\\/feeds\\? response-body-json-del ad_info",
           "source_file": "zhihu_splash_ad_block.plugin",
-          "source_line_number": 19,
-          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/topstory\\/recommend\\? response-body-json-jq '.data |= map(select(.type == \"ComponentCard\"))'",
+          "source_line_number": 20,
+          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/questions\\/\\d+\\/feeds\\? response-body-json-del ad_info",
           "disposition": "selected"
         }
       ],
@@ -56045,8 +56045,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.zhihu\\.com\\/next-render\\?id=\\d+&type=answer reject-dict",
           "source_file": "zhihu_splash_ad_block.plugin",
-          "source_line_number": 20,
-          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/questions\\/\\d+\\/feeds\\? response-body-json-del ad_info",
+          "source_line_number": 21,
+          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/next-render\\?id=\\d+&type=answer reject-dict",
           "disposition": "selected"
         }
       ],
@@ -56065,8 +56065,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.zhihu\\.com\\/comment_v\\d\\/(answers|pins)\\/\\d+\\/root_comment\\? response-body-json-del atmosphere_voting_config",
           "source_file": "zhihu_splash_ad_block.plugin",
-          "source_line_number": 21,
-          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/next-render\\?id=\\d+&type=answer reject-dict",
+          "source_line_number": 22,
+          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/comment_v\\d\\/(answers|pins)\\/\\d+\\/root_comment\\? response-body-json-del atmosphere_voting_config",
           "disposition": "selected"
         }
       ],
@@ -56085,8 +56085,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/(api|page-info)(?:\\.zhihu)?\\.com\\/answers\\/v\\d\\/\\d+(?:\\?.*)?$ response-body-json-del third_business float_search_word",
           "source_file": "zhihu_splash_ad_block.plugin",
-          "source_line_number": 22,
-          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/comment_v\\d\\/(answers|pins)\\/\\d+\\/root_comment\\? response-body-json-del atmosphere_voting_config",
+          "source_line_number": 23,
+          "source_raw_line": "^https:\\/\\/(api|page-info)(?:\\.zhihu)?\\.com\\/answers\\/v\\d\\/\\d+(?:\\?.*)?$ response-body-json-del third_business float_search_word",
           "disposition": "selected"
         }
       ],
@@ -56105,8 +56105,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/(api|page-info)(?:\\.zhihu)?\\.com\\/answers\\/v\\d\\/\\d+(?:\\?.*)?$ response-body-json-jq '.structured_content.segments |= map(select(.type != \"card\"))'",
           "source_file": "zhihu_splash_ad_block.plugin",
-          "source_line_number": 23,
-          "source_raw_line": "^https:\\/\\/(api|page-info)(?:\\.zhihu)?\\.com\\/answers\\/v\\d\\/\\d+(?:\\?.*)?$ response-body-json-del third_business float_search_word",
+          "source_line_number": 24,
+          "source_raw_line": "^https:\\/\\/(api|page-info)(?:\\.zhihu)?\\.com\\/answers\\/v\\d\\/\\d+(?:\\?.*)?$ response-body-json-jq '.structured_content.segments |= map(select(.type != \"card\"))'",
           "disposition": "selected"
         }
       ],
@@ -56125,8 +56125,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.zhihu\\.com\\/topstory\\/recommend\\? response-body-json-jq '.data[]?.children |= (if type == \"array\" then map(select(.id != \"ring\")) else . end)'",
           "source_file": "zhihu_splash_ad_block.plugin",
-          "source_line_number": 24,
-          "source_raw_line": "^https:\\/\\/(api|page-info)(?:\\.zhihu)?\\.com\\/answers\\/v\\d\\/\\d+(?:\\?.*)?$ response-body-json-jq '.structured_content.segments |= map(select(.type != \"card\"))'",
+          "source_line_number": 25,
+          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/topstory\\/recommend\\? response-body-json-jq '.data[]?.children |= (if type == \"array\" then map(select(.id != \"ring\")) else . end)'",
           "disposition": "selected"
         }
       ],
@@ -56145,8 +56145,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.zhihu\\.com\\/(articles|answers|pins)\\/v\\d\\/\\d+\\? response-body-json-del third_business ring_info interaction_bar_plugins",
           "source_file": "zhihu_splash_ad_block.plugin",
-          "source_line_number": 25,
-          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/topstory\\/recommend\\? response-body-json-jq '.data[]?.children |= (if type == \"array\" then map(select(.id != \"ring\")) else . end)'",
+          "source_line_number": 26,
+          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/(articles|answers|pins)\\/v\\d\\/\\d+\\? response-body-json-del third_business ring_info interaction_bar_plugins",
           "disposition": "selected"
         }
       ],
@@ -56165,8 +56165,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.zhihu\\.com\\/comment_v\\d\\/answers\\/\\d+\\/list-headers$ response-body-json-del continuous_consumption_module",
           "source_file": "zhihu_splash_ad_block.plugin",
-          "source_line_number": 26,
-          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/(articles|answers|pins)\\/v\\d\\/\\d+\\? response-body-json-del third_business ring_info interaction_bar_plugins",
+          "source_line_number": 27,
+          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/comment_v\\d\\/answers\\/\\d+\\/list-headers$ response-body-json-del continuous_consumption_module",
           "disposition": "selected"
         }
       ],
@@ -56185,8 +56185,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.zhihu\\.com\\/podcasts\\/hub\\/v\\d$ response-body-json-del banners",
           "source_file": "zhihu_splash_ad_block.plugin",
-          "source_line_number": 27,
-          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/comment_v\\d\\/answers\\/\\d+\\/list-headers$ response-body-json-del continuous_consumption_module",
+          "source_line_number": 28,
+          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/podcasts\\/hub\\/v\\d$ response-body-json-del banners",
           "disposition": "selected"
         }
       ],
@@ -56205,8 +56205,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.zhihu\\.com\\/search\\/preset_words\\? reject-dict",
           "source_file": "zhihu_splash_ad_block.plugin",
-          "source_line_number": 28,
-          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/podcasts\\/hub\\/v\\d$ response-body-json-del banners",
+          "source_line_number": 29,
+          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/search\\/preset_words\\? reject-dict",
           "disposition": "selected"
         }
       ],
@@ -56225,8 +56225,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.zhihu\\.com\\/search\\/related_queries\\/question\\/\\d+$  reject-dict",
           "source_file": "zhihu_splash_ad_block.plugin",
-          "source_line_number": 29,
-          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/search\\/preset_words\\? reject-dict",
+          "source_line_number": 30,
+          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/search\\/related_queries\\/question\\/\\d+$  reject-dict",
           "disposition": "selected"
         }
       ],
@@ -56245,8 +56245,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.zhihu\\.com\\/search\\/recommend_query\\/v\\d\\? response-body-json-jq '.recommend_queries.queries |= map(select(.type == \"normal\"))'",
           "source_file": "zhihu_splash_ad_block.plugin",
-          "source_line_number": 30,
-          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/search\\/related_queries\\/question\\/\\d+$  reject-dict",
+          "source_line_number": 31,
+          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/search\\/recommend_query\\/v\\d\\? response-body-json-jq '.recommend_queries.queries |= map(select(.type == \"normal\"))'",
           "disposition": "selected"
         }
       ],
@@ -56265,8 +56265,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.zhihu\\.com\\/search_v\\d\\? response-body-json-del pendant",
           "source_file": "zhihu_splash_ad_block.plugin",
-          "source_line_number": 31,
-          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/search\\/recommend_query\\/v\\d\\? response-body-json-jq '.recommend_queries.queries |= map(select(.type == \"normal\"))'",
+          "source_line_number": 32,
+          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/search_v\\d\\? response-body-json-del pendant",
           "disposition": "selected"
         }
       ],
@@ -56285,8 +56285,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.zhihu\\.com\\/search\\/tabs\\? response-body-json-jq '.data |= map(select(.t | IN(\"general\", \"ai_zhida\", \"recent\", \"people\", \"zvideo\", \"ring\", \"topic\", \"podcast\", \"column\", \"pin\", \"favlist\")))'",
           "source_file": "zhihu_splash_ad_block.plugin",
-          "source_line_number": 32,
-          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/search_v\\d\\? response-body-json-del pendant",
+          "source_line_number": 33,
+          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/search\\/tabs\\? response-body-json-jq '.data |= map(select(.t | IN(\"general\", \"ai_zhida\", \"recent\", \"people\", \"zvideo\", \"ring\", \"topic\", \"podcast\", \"column\", \"pin\", \"favlist\")))'",
           "disposition": "selected"
         }
       ],
@@ -56305,8 +56305,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/zhida\\.zhihu\\.com\\/ai_ingress\\/knowledge\\/square\\/categories\\/feeds\\?categoryId=1%7D$ reject-dict",
           "source_file": "zhihu_splash_ad_block.plugin",
-          "source_line_number": 33,
-          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/search\\/tabs\\? response-body-json-jq '.data |= map(select(.t | IN(\"general\", \"ai_zhida\", \"recent\", \"people\", \"zvideo\", \"ring\", \"topic\", \"podcast\", \"column\", \"pin\", \"favlist\")))'",
+          "source_line_number": 34,
+          "source_raw_line": "^https:\\/\\/zhida\\.zhihu\\.com\\/ai_ingress\\/knowledge\\/square\\/categories\\/feeds\\?categoryId=1%7D$ reject-dict",
           "disposition": "selected"
         }
       ],
@@ -56325,8 +56325,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/zhida\\.zhihu\\.com\\/ai_ingress\\/ai_chat\\/guidance$ reject-dict",
           "source_file": "zhihu_splash_ad_block.plugin",
-          "source_line_number": 34,
-          "source_raw_line": "^https:\\/\\/zhida\\.zhihu\\.com\\/ai_ingress\\/knowledge\\/square\\/categories\\/feeds\\?categoryId=1%7D$ reject-dict",
+          "source_line_number": 35,
+          "source_raw_line": "^https:\\/\\/zhida\\.zhihu\\.com\\/ai_ingress\\/ai_chat\\/guidance$ reject-dict",
           "disposition": "selected"
         }
       ],
@@ -56345,8 +56345,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.zhihu\\.com\\/content-distribution-core\\/bubble\\/common\\/show$ reject-dict",
           "source_file": "zhihu_splash_ad_block.plugin",
-          "source_line_number": 35,
-          "source_raw_line": "^https:\\/\\/zhida\\.zhihu\\.com\\/ai_ingress\\/ai_chat\\/guidance$ reject-dict",
+          "source_line_number": 36,
+          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/content-distribution-core\\/bubble\\/common\\/show$ reject-dict",
           "disposition": "selected"
         }
       ],
@@ -56365,8 +56365,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/www\\.zhihu\\.com\\/api\\/v\\d\\/members\\/homepage_card$ reject-dict",
           "source_file": "zhihu_splash_ad_block.plugin",
-          "source_line_number": 36,
-          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/content-distribution-core\\/bubble\\/common\\/show$ reject-dict",
+          "source_line_number": 37,
+          "source_raw_line": "^https:\\/\\/www\\.zhihu\\.com\\/api\\/v\\d\\/members\\/homepage_card$ reject-dict",
           "disposition": "selected"
         }
       ],
@@ -56385,8 +56385,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.zhihu\\.com\\/people\\/homepage_entry_v\\d$ reject-dict",
           "source_file": "zhihu_splash_ad_block.plugin",
-          "source_line_number": 37,
-          "source_raw_line": "^https:\\/\\/www\\.zhihu\\.com\\/api\\/v\\d\\/members\\/homepage_card$ reject-dict",
+          "source_line_number": 38,
+          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/people\\/homepage_entry_v\\d$ reject-dict",
           "disposition": "selected"
         }
       ],
@@ -56405,8 +56405,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.zhihu\\.com\\/kvip\\/right\\/my_card\\? reject-dict",
           "source_file": "zhihu_splash_ad_block.plugin",
-          "source_line_number": 38,
-          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/people\\/homepage_entry_v\\d$ reject-dict",
+          "source_line_number": 39,
+          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/kvip\\/right\\/my_card\\? reject-dict",
           "disposition": "selected"
         }
       ],
@@ -56425,8 +56425,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.zhihu\\.com\\/people\\/self$ response-body-json-del vip_info.entrance_new.right_button vip_info.entrance_v2",
           "source_file": "zhihu_splash_ad_block.plugin",
-          "source_line_number": 39,
-          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/kvip\\/right\\/my_card\\? reject-dict",
+          "source_line_number": 40,
+          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/people\\/self$ response-body-json-del vip_info.entrance_new.right_button vip_info.entrance_v2",
           "disposition": "selected"
         }
       ],
@@ -56445,8 +56445,8 @@
           "input_section": "Rewrite",
           "input_line": "^https:\\/\\/api\\.zhihu\\.com\\/unlimited\\/go\\/my_card\\/v\\d\\? reject-dict",
           "source_file": "zhihu_splash_ad_block.plugin",
-          "source_line_number": 40,
-          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/people\\/self$ response-body-json-del vip_info.entrance_new.right_button vip_info.entrance_v2",
+          "source_line_number": 41,
+          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/unlimited\\/go\\/my_card\\/v\\d\\? reject-dict",
           "disposition": "selected"
         }
       ],
