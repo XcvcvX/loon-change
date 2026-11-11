@@ -1541,6 +1541,10 @@ def host_zone_from_regex(rx):
     rest = rx[m.end():]
     out, i = [], 0
     while i < len(rest):
+        # Loon matcher commonly escapes URL separators as \/. They still end
+        # the authority; consuming them can pull path groups into the host regex.
+        if rest[i] == '\\' and i + 1 < len(rest) and rest[i + 1] == '/':
+            break
         if rest[i] == '\\' and i + 1 < len(rest):
             out.append(rest[i:i + 2]); i += 2
         elif rest[i] == '/':
