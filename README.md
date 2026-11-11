@@ -30,6 +30,8 @@
 | source_guard.py | 上游响应/仓库结构完整性门禁，阻止 HTML 错误页、空文件和缺失源 |
 | rule-provenance.json | 逐条 Rewrite/Script/Rule 来源、合并胜出/重复/覆盖关系与上游版本追溯 |
 | rule-diff.json | 与上次生产追溯基线比较，记录规则新增、删除、动作变化及上游版本变化 |
+| source_health_guard.py | 上游来源可靠性评分、来源追溯完整度与异常更新发布门禁 |
+| source-health.json | 每次生产同步的来源健康评分、规则变化幅度、警告与阻断原因报告 |
 | audit_plugin.py | 基础只读审计全局 UDP/443、MITM 通配覆盖候选、Script URL 与错放 Rewrite Action |
 | deep_audit.py | 深度只读审计 Rewrite 宽泛匹配/动作冲突、MITM 字面守卫候选、Script URL 复用与触发类型，可输出 JSON/Markdown |
 
@@ -52,7 +54,7 @@
 
 GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉取独立 App 来源 → 合并去重 → 静态校验 → 更新本节统计 → 有变化才提交。
 
-同步前会检查 R-Store、blockAdsV2、MyBlockAds 的有效内容量与区块结构，并核对 Thelongdarkorg、aoomee、zmjde、瓜子影视和高德插件来源文件；高德依赖脚本/JQ 同步镜像至 `sources/amap/`，防止远程依赖失效。HTML 错误页、空/截断响应、缺失必需插件或规则量相对上次报告下降超过 60% 时会触发 fail-closed。构建先写入临时目录，完整合并并通过插件校验后才替换正式产物；失败不会覆盖上一版有效插件。`source-report.json` 记录克隆仓库的 commit SHA 与来源文件数量，便于追溯。第六阶段第一批新增 `rule-provenance.json`：逐条记录 Rewrite/Script 规则的来源组、优先级、最终输出位置及同语义重复来源；Rule 记录新增、精确重复、语义覆盖和 Frontier 安全保护排除原因，并附上游版本报告。第六阶段第二批为 Thelongdarkorg、aoomee、zmjde App 多文件来源补充了精确插件文件名、原始 1-based 行号和原始行文本；其他来源暂保留提取序号，后续再逐类补齐。第六阶段第三批新增 `compare_rule_provenance.py`，每次同步前将新生成的追溯报告与上次已提交的报告比较，分别识别 Rewrite、Script、Rule 的新增、删除和可确定的动作变化，并记录上游 commit 变化。只有同一 matcher 在前后版本都唯一且动作不同，才归类为动作变化；多动作歧义会保守列为新增/删除，不猜测。差异报告以 `rule-diff.json` 保留并上传 Actions artifact，比较过程不修改规则或 MITM。该报告只描述合并过程，不证明规则在设备上的实际效果，也不改变正式 MITM/规则行为。
+同步前会检查 R-Store、blockAdsV2、MyBlockAds 的有效内容量与区块结构，并核对 Thelongdarkorg、aoomee、zmjde、瓜子影视和高德插件来源文件；高德依赖脚本/JQ 同步镜像至 `sources/amap/`，防止远程依赖失效。HTML 错误页、空/截断响应、缺失必需插件或规则量相对上次报告下降超过 60% 时会触发 fail-closed。构建先写入临时目录，完整合并并通过插件校验后才替换正式产物；失败不会覆盖上一版有效插件。`source-report.json` 记录克隆仓库的 commit SHA 与来源文件数量，便于追溯。第六阶段第一批新增 `rule-provenance.json`：逐条记录 Rewrite/Script 规则的来源组、优先级、最终输出位置及同语义重复来源；Rule 记录新增、精确重复、语义覆盖和 Frontier 安全保护排除原因，并附上游版本报告。第六阶段第二批为 Thelongdarkorg、aoomee、zmjde App 多文件来源补充了精确插件文件名、原始 1-based 行号和原始行文本；其他来源暂保留提取序号，后续再逐类补齐。第六阶段第三批新增 `compare_rule_provenance.py`，每次同步前将新生成的追溯报告与上次已提交的报告比较，分别识别 Rewrite、Script、Rule 的新增、删除和可确定的动作变化，并记录上游 commit 变化。只有同一 matcher 在前后版本都唯一且动作不同，才归类为动作变化；多动作歧义会保守列为新增/删除，不猜测。差异报告以 `rule-diff.json` 保留并上传 Actions artifact，比较过程不修改规则或 MITM。该报告只描述合并过程，不证明规则在设备上的实际效果，也不改变正式 MITM/规则行为。第六阶段第四批增加来源可靠性评分与异常更新门禁：检查关键来源是否齐全、内容量与历史基线是否连续、高德依赖 SHA-256 是否完整、逐条来源追溯覆盖率，以及规则删除/动作变化/输出骤减幅度。高风险破坏性变化会暂停本轮发布并保留上一版正式插件；新增量异常只提示复核。`source-health.json` 随生产运行上传并提交，评分仅表示来源证据质量，不代表规则运行效果。该门禁不自动修改规则、MITM 或优先级。
 
 如果校验发现硬错误，工作流会失败并阻止提交。警告（例如重复触发器、全局 UDP/443、远程脚本风险）不会擅自删除规则，也不会阻止更新，需结合 Loon 实际运行情况判断。
 
@@ -60,8 +62,8 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 
 ## 本地检查
 
-    python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_amap_dependency_guard.py test_compare_rule_provenance.py
-    python3 -m py_compile merge_plugins.py validate_plugin.py source_guard.py audit_plugin.py deep_audit.py amap_dependency_guard.py compare_rule_provenance.py convert_qx2loon.py convert_filter_qx2loon.py
+    python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_amap_dependency_guard.py test_compare_rule_provenance.py test_source_health_guard.py
+    python3 -m py_compile merge_plugins.py validate_plugin.py source_guard.py audit_plugin.py deep_audit.py amap_dependency_guard.py compare_rule_provenance.py source_health_guard.py convert_qx2loon.py convert_filter_qx2loon.py
     python3 validate_plugin.py allAdRewrite.plugin
     python3 validate_plugin.py allAdRewrite.plugin --update-readme README.md
     python3 validate_plugin.py allAdRewrite.plugin --check-remote
