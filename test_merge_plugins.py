@@ -305,6 +305,7 @@ hostname = *.amap.com
             r"request if ${url} ~= /^https?:\/\/dapis\.mting\.info\/yyting\/advertclient\/ClientAdvertList\.action/ then reject_img(200)" + "\n"
             r"request if ${url} ~= /^https?:\/\/.*\/yyting\/advertclient\/ClientAdvertList.action/ then reject(404)" + "\n"
             r"request if ${url} ~= /^https?:\/\/display\.wting\.info\/.*.jpeg/ then reject(200)" + "\n"
+            r"request if ${url} ~= /^https?:\/\/display\.wting\.info\/.*.jpeg/ then reject(200)" + "\n"
             "[Script]\n[MITM]\nhostname = 118.178.214.118, dapis.mting.info, display.wting.info\n"
         )
         output, report = self.run_merge(
