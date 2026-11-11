@@ -154,6 +154,85 @@ def broad_reasons(pattern):
     return reasons
 
 
+
+ACTION_FAMILIES = {
+    'block': {
+        'reject', 'reject-200', 'reject-img', 'reject-dict', 'reject-array',
+        'reject-video', 'reject_dict', 'reject_img', 'reject_video'
+    },
+    'redirect': {'302', '307', 'redirect'},
+    'response_mock': {
+        'response.body.mock', 'response.body.mock_file', 'mock-response-body'
+    },
+    'response_body_rewrite': {
+        'response.body.replace', 'response-body-replace-regex'
+    },
+    'response_json_rewrite': {
+        'response.json.delete', 'response.json.replace', 'response.json.jq',
+        'response.json.jq_file', 'response-body-json-add',
+        'response-body-json-replace', 'response-body-json-del',
+        'response-body-json-delete', 'response-body-json-jq'
+    },
+    'request_body_rewrite': {'request-body-replace-regex'},
+    'header_rewrite': {
+        'header-add', 'header-del', 'header-replace', 'header-replace-regex',
+        'response.header.add', 'response.header.del', 'response.header.replace',
+        'response-header-add', 'response-header-del', 'response-header-replace',
+        'response-header-replace-regex'
+    }
+}
+
+ACTION_REVIEW = {
+    'response_mock': ('high_review', '替换或模拟整个响应，需确认状态码、内容结构和目标 App 兼容性'),
+    'response_body_rewrite': ('high_review', '直接改写响应正文，需确认替换范围不会误伤正常内容'),
+    'request_body_rewrite': ('high_review', '改写请求正文，可能改变请求参数或业务行为'),
+    'response_json_rewrite': ('medium_review', '修改响应 JSON 字段或结构，需确认字段路径和空值/类型处理'),
+    'header_rewrite': ('medium_review', '修改请求或响应头，需确认不会影响缓存、鉴权、内容协商或协议行为'),
+    'redirect': ('medium_review', '重定向请求，需确认目标地址、参数保留及跳转范围')
+}
+
+
+def classify_rewrite_action(action):
+    """Return a conservative semantic family for old and modern Loon action syntax."""
+    value = action.strip()
+    # Modern rules may chain multiple operations with '|'. Find known action
+    # identifiers anywhere in the expression; jq expressions themselves are not
+    # classified as Loon actions unless they match one of these exact identifiers.
+    known = sorted(
+        (name for names in ACTION_FAMILIES.values() for name in names),
+        key=len, reverse=True
+    )
+    found = []
+    for name in known:
+        if re.search(r'(?<![A-Za-z0-9_.-])' + re.escape(name) +
+                     r'(?![A-Za-z0-9_.-])', value, re.I):
+            found.append(name)
+    if not found:
+        # Legacy parser returns the action token only, while modern parser returns
+        # the full action expression. Preserve unknown actions for manual review.
+        token = re.match(r'^([A-Za-z0-9_.-]+)', value)
+        found = [token.group(1).lower()] if token else []
+    families = sorted({
+        family for family, names in ACTION_FAMILIES.items()
+        if any(name.lower() in {x.lower() for x in found} for name in names)
+    })
+    if not families:
+        return {'families': ['unknown'], 'operations': found or ['<unrecognized>']}
+    return {'families': families, 'operations': sorted(found)}
+
+
+def action_review_priority(families):
+    priorities = [ACTION_REVIEW[x][0] for x in families if x in ACTION_REVIEW]
+    if 'high_review' in priorities:
+        return 'high_review'
+    if 'medium_review' in priorities:
+        return 'medium_review'
+    return 'no_special_review'
+
+
+def action_review_reasons(families):
+    return [ACTION_REVIEW[x][1] for x in families if x in ACTION_REVIEW]
+
 def audit_deep(path):
     text = Path(path).read_text(encoding='utf-8-sig')
     sec = parse_sections(text)
@@ -163,6 +242,7 @@ def audit_deep(path):
 
     groups, broad, unknown = defaultdict(list), [], []
     scope_counts, scope_candidates = Counter(), []
+    action_family_counts, action_review_candidates, unknown_action_candidates = Counter(), [], []
     for n, line in rewrite:
         parsed = parse_rewrite(line)
         if not parsed:
@@ -170,6 +250,22 @@ def audit_deep(path):
             continue
         phase, matcher, action = parsed
         groups[(phase, matcher)].append({'line': n, 'action': action})
+        action_info = classify_rewrite_action(action)
+        families = action_info['families']
+        for family in families:
+            action_family_counts[family] += 1
+        priority = action_review_priority(families)
+        if priority != 'no_special_review':
+            action_review_candidates.append({
+                'line': n, 'phase': phase, 'pattern': matcher, 'action': action,
+                'action_families': families, 'operations': action_info['operations'],
+                'review_priority': priority,
+                'reasons': action_review_reasons(families)
+            })
+        if 'unknown' in families:
+            unknown_action_candidates.append({
+                'line': n, 'phase': phase, 'pattern': matcher, 'action': action
+            })
         scope = classify_rewrite_scope(matcher)
         scope_counts[scope] += 1
         if scope != 'domain_scoped':
@@ -243,6 +339,9 @@ def audit_deep(path):
             'rewrite_scope_review_candidates': len(scope_candidates),
             'rewrite_duplicate_matcher_groups': len(duplicates),
             'rewrite_action_conflict_groups': len(conflicts),
+            'rewrite_action_family_counts': dict(sorted(action_family_counts.items())),
+            'rewrite_action_semantic_review_candidates': len(action_review_candidates),
+            'rewrite_unknown_action_candidates': len(unknown_action_candidates),
             'mitm_positive_unique_hosts': len(positive),
             'mitm_wildcards': len(wild),
             'mitm_exact_hosts_covered_by_wildcards': len(overlaps),
@@ -258,6 +357,8 @@ def audit_deep(path):
         'rewrite_scope_review_candidates': scope_candidates,
         'rewrite_duplicate_matcher_groups': duplicates,
         'rewrite_action_conflict_groups': conflicts,
+        'rewrite_action_semantic_review_candidates': action_review_candidates,
+        'rewrite_unknown_action_candidates': unknown_action_candidates,
         'rewrite_unparsed_entries': unknown,
         'mitm_wildcard_overlap_candidates': overlaps,
         'mitm_wildcard_apex_not_explicit': apex_missing,
@@ -285,6 +386,8 @@ def render_markdown(report):
         'rewrite_broad_candidates':'宽泛匹配候选',
         'rewrite_duplicate_matcher_groups':'重复匹配器组',
         'rewrite_action_conflict_groups':'同匹配器多动作组',
+        'rewrite_action_semantic_review_candidates':'动作语义复核候选',
+        'rewrite_unknown_action_candidates':'未分类动作候选',
         'mitm_positive_unique_hosts':'MITM 正向唯一主机',
         'mitm_wildcards':'MITM 通配主机',
         'mitm_exact_hosts_covered_by_wildcards':'被通配覆盖的精确主机候选',
@@ -303,6 +406,8 @@ def render_markdown(report):
     for key, title in [
         ('rewrite_broad_candidates','宽泛 Rewrite 候选'),
         ('rewrite_action_conflict_groups','同匹配器多动作候选'),
+        ('rewrite_action_semantic_review_candidates','Rewrite 动作语义复核候选'),
+        ('rewrite_unknown_action_candidates','未分类 Rewrite 动作候选'),
         ('mitm_without_obvious_literal_guard','未发现明显字面守卫的 MITM 候选'),
         ('script_repeated_remote_urls','重复使用的远程脚本 URL'),
         ('script_generic_trigger_candidates','通用/条件触发器候选')
@@ -312,6 +417,10 @@ def render_markdown(report):
         lines += ['- ' + json.dumps(x, ensure_ascii=False) for x in values[:100]] if values else ['未发现。']
         if len(values) > 100:
             lines.append('其余 %d 项见 JSON 报告。' % (len(values) - 100))
+    lines += ['', '## Rewrite 动作语义分类', '',
+              '| 动作类别 | 条目数 |', '|---|---:|']
+    for family, count in report['summary']['rewrite_action_family_counts'].items():
+        lines.append('| %s | %s |' % (family, count))
     lines += ['', '## Rewrite 匹配范围分类', '',
               '| 分类 | 数量 |', '|---|---:|']
     for scope, count in report['summary']['rewrite_scope_counts'].items():

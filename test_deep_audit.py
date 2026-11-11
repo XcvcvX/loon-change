@@ -95,6 +95,41 @@ request if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/ad/ then reject-dict
             report = audit_deep(path)
         self.assertEqual(report['summary']['rewrite_entries'], 4)
         self.assertEqual(report['summary']['rewrite_unparsed'], 0)
+    def test_rewrite_action_semantic_classification(self):
+        from deep_audit import classify_rewrite_action
+        self.assertEqual(classify_rewrite_action('reject(404)')['families'], ['block'])
+        self.assertEqual(classify_rewrite_action('response.json.delete("data.ad")')['families'],
+                         ['response_json_rewrite'])
+        self.assertEqual(classify_rewrite_action('response.body.mock_file("json", "https://x")')['families'],
+                         ['response_mock'])
+        self.assertEqual(classify_rewrite_action('redirect(302, "https://x")')['families'],
+                         ['redirect'])
+
+        fixture = '''[Rewrite]
+request if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/ad/ then reject(404)
+response if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/config/ then response.json.delete("data.ad") | response.json.replace("data.banner", [])
+response if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/bootstrap/ then response.body.mock_file("json", "https://cdn.example/config.json", 200)
+response if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/payload/ then response.body.replace(/ad/, "")
+request if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/submit/ then request-body-replace-regex ad clean
+request if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/artist/ then redirect(302, "https://example.com")
+^https:\\/\\/api\\.example\\.com\\/header response-header-add X-Test 1
+'''
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'actions.plugin'
+            path.write_text(fixture, encoding='utf-8')
+            report = audit_deep(path)
+        counts = report['summary']['rewrite_action_family_counts']
+        self.assertEqual(counts['block'], 1)
+        self.assertEqual(counts['response_json_rewrite'], 1)
+        self.assertEqual(counts['response_mock'], 1)
+        self.assertEqual(counts['response_body_rewrite'], 1)
+        self.assertEqual(counts['request_body_rewrite'], 1)
+        self.assertEqual(counts['redirect'], 1)
+        self.assertEqual(counts['header_rewrite'], 1)
+        self.assertEqual(report['summary']['rewrite_action_semantic_review_candidates'], 6)
+        self.assertEqual(report['summary']['rewrite_unknown_action_candidates'], 0)
+        self.assertTrue(any(x['review_priority'] == 'high_review'
+                            for x in report['rewrite_action_semantic_review_candidates']))
     def test_mitm_and_script_candidates(self):
         fixture = '''[Rewrite]
 ^https://api.example.com/ad reject
