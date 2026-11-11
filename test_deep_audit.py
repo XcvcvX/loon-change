@@ -202,5 +202,51 @@ hostname = *.example.com, api.example.com, unused.test
                             for x in report['rewrite_overlap_candidate_groups']))
 
 
+    def test_mitm_script_coverage_exact_wildcard_and_negative(self):
+        from deep_audit import audit_mitm_script_coverage
+        rewrite = [
+            (10, r'request if %URL% ~= /^https:\/\/api\.covered\.test\/ad/ then reject(404)'),
+            (11, r'request if %URL% ~= /^https:\/\/missing\.test\/ad/ then reject(404)'),
+            (12, r'request if %URL% ~= /^https:\/\/excluded\.test\/ad/ then reject(404)'),
+        ]
+        scripts = [
+            (20, r'http-response ^https:\/\/script\.covered\.test\/api script-path=https://cdn.test/a.js'),
+            (21, r'http-response ^https:\/\/m\d\.dynamic\.test\/api script-path=https://cdn.test/b.js'),
+        ]
+        mitm = [(30, 'hostname = *.covered.test, -excluded.test')]
+        rows = [(n, line.replace('%URL%', '
+    unittest.main()
++'{url}')) for n, line in rewrite]
+        report = audit_mitm_script_coverage(rows, scripts, mitm)
+        summary = report['mitm_script_coverage_summary']
+        self.assertEqual(summary['covered_references'], 2)
+        self.assertEqual(summary['missing_mitm_references'], 1)
+        self.assertEqual(summary['negative_excluded_references'], 1)
+        self.assertEqual(summary['ambiguous_references'], 1)
+        self.assertEqual(report['mitm_missing_rewrite_script_coverage'][0]['host'],
+                         'missing.test')
+        self.assertEqual(report['mitm_negative_excluded_rewrite_script_coverage'][0]['host'],
+                         'excluded.test')
+
+    def test_mitm_script_coverage_in_deep_audit_report(self):
+        fixture = '''[Rewrite]
+request if %URL% ~= /^https:\\/\\/api\\.example\\.test\\/ad/ then reject(404)
+[Script]
+http-response ^https:\\/\\/api\\.example\\.test\\/v1 script-path=https://cdn.example.test/a.js
+[MITM]
+hostname = *.example.test
+'''
+        fixture = fixture.replace('%URL%', '
+    unittest.main()
++'{url}')
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'sample.plugin'
+            path.write_text(fixture, encoding='utf-8')
+            report = audit_deep(path)
+        self.assertIn('mitm_missing_rewrite_script_coverage', report)
+        self.assertEqual(report['summary']['missing_mitm_references'], 0)
+        self.assertEqual(report['summary']['covered_references'], 2)
+
+
 if __name__ == '__main__':
     unittest.main()
