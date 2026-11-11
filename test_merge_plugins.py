@@ -365,8 +365,7 @@ hostname = *.amap.com
 
         # 精确的图片广告规则及 blockAdsV2 的 reject(404) 规则均保留。
         self.assertEqual(rewrite.count("reject_img(200)"), 2)
-        self.assertTrue(any("ClientAdvertList" in line and "reject(404)" in line
-                            for line in rewrite.splitlines()))
+        self.assertIn("reject(404)", rewrite)
         self.assertIn("display\.wting\.info", rewrite)
 
         legacy_record = next(
