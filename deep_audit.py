@@ -49,7 +49,7 @@ def parse_rewrite(line):
 
 def normalize_regex_literals(pattern):
     """Normalize escaped URL separators for conservative scope inspection only."""
-    return re.sub(r'\\([./])', r'\1', pattern)
+    return re.sub(r'\\+([./])', r'\1', pattern)
 
 
 def has_domain_constraint(pattern):
