@@ -54,6 +54,8 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 
 如果校验发现硬错误，工作流会失败并阻止提交。警告（例如重复触发器、全局 UDP/443、远程脚本风险）不会擅自删除规则，也不会阻止更新，需结合 Loon 实际运行情况判断。
 
+每次定时、手动或 main 推送触发的同步构建还会上传一份 `deep-audit-sync` 深度审计报告（JSON + Markdown，保留 14 天）；可在对应 Actions 运行页的 Artifacts 中查看完整候选明细，不必从控制台日志中手动筛选。该报告只用于风险追踪，不会自动删改生产规则。
+
 ## 本地检查
 
     python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_amap_dependency_guard.py
