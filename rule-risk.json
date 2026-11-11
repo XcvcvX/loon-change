@@ -1,0 +1,40 @@
+{
+  "change_counts": {
+    "rewrite": {
+      "action_changed": 0,
+      "added": 0,
+      "removed": 0
+    },
+    "rule": {
+      "action_changed": 0,
+      "added": 0,
+      "removed": 0
+    },
+    "script": {
+      "action_changed": 0,
+      "added": 0,
+      "removed": 0
+    }
+  },
+  "events": [],
+  "overall_risk": "low",
+  "risk_counts": {
+    "high": 0,
+    "low": 0,
+    "medium": 0
+  },
+  "run_id": "\"42979786593\"",
+  "safety_notes": [
+    "Risk labels prioritize review; they do not prove a rule is wrong.",
+    "Additions are medium risk by default; removals and action changes are high risk.",
+    "No rule, MITM hostname, priority, or plugin output is modified.",
+    "Source trend counts are bounded to the latest 30 successful snapshots."
+  ],
+  "schema_version": 1,
+  "source_health_blockers": [],
+  "source_health_score": 100.0,
+  "source_health_status": "pass",
+  "source_health_warnings": [],
+  "source_trends_last_30_snapshots": {},
+  "upstream_revision_changes": []
+}
