@@ -189,6 +189,32 @@ hostname = *.amap.com
             self.assertNotIn(host, mitm_line)
         self.assertIn("other.example.com", mitm_line)
 
+    def test_http_only_authority_capture_group_does_not_keep_unrelated_mitm_hosts(self):
+        # host_zone_from_regex can extract (.*) from ^http://(.*)/...
+        # but HTTP-only rules do not require TLS interception.
+        base = (
+            "[Rewrite]\\n"
+            r"^http:\\/\\/(.*)\\/ad reject" + "\\n"
+            "[MITM]\\nhostname = c.zhangle.com, live.inst-service.htsc.com, geetest.htsc.com\\n"
+        )
+        output = self.run_merge(base, "[Rewrite]\\n[MITM]\\nhostname = \\n")
+        mitm_line = next(line for line in output.splitlines()
+                         if line.strip().startswith("hostname ="))
+        for host in ("c.zhangle.com", "live.inst-service.htsc.com", "geetest.htsc.com"):
+            self.assertNotIn(host, mitm_line)
+
+    def test_https_authority_capture_group_keeps_mitm_hosts_conservatively(self):
+        # The same broad authority capture is potentially HTTPS and must fail closed.
+        base = (
+            "[Rewrite]\\n"
+            r"^https:\\/\\/(.*)\\/ad reject" + "\\n"
+            "[MITM]\\nhostname = c.zhangle.com\\n"
+        )
+        output = self.run_merge(base, "[Rewrite]\\n[MITM]\\nhostname = \\n")
+        mitm_line = next(line for line in output.splitlines()
+                         if line.strip().startswith("hostname ="))
+        self.assertIn("c.zhangle.com", mitm_line)
+
     def test_https_capture_group_still_fails_closed_for_mitm(self):
         # The same unparseable capture-group form is retained when its scheme
         # can match HTTPS; do not weaken the conservative safety boundary.
