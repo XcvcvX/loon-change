@@ -1746,6 +1746,42 @@ _mitm_before_prune = len(mitm)
 mitm = prune_unused_mitm(mitm, merged_rw + merged_sc)
 mitm_pruned = _mitm_before_prune - len(mitm)
 
+# The three exact ZhangLe hosts become orphaned after all dedicated Rewrite rules
+# are excluded. The general MITM pruner intentionally fails closed when any
+# host pattern cannot be analyzed; remove only these exact app-specific hosts
+# after verifying no final Rewrite/Script line still names them.
+_ZHANGLE_UNUSED_MITM_HOSTS = {
+    'c.zhangle.com',
+    'live.inst-service.htsc.com',
+    'geetest.htsc.com',
+}
+zhangle_mitm_exclusions = []
+_kept_zhangle_mitm = []
+for _host in mitm:
+    _host_lower = _host.lower()
+    if _host_lower not in _ZHANGLE_UNUSED_MITM_HOSTS:
+        _kept_zhangle_mitm.append(_host)
+        continue
+    _literal_reference = any(
+        _host_lower in _line.lower().replace(r'\\.', '.')
+        for _line in merged_rw + merged_sc
+    )
+    if _literal_reference:
+        _kept_zhangle_mitm.append(_host)
+        continue
+    zhangle_mitm_exclusions.append({
+        'source': 'merged_mitm',
+        'source_catalog': 'R-Store / blockAdsV2 / merged app MITM',
+        'hostname': _host,
+        'reason': (
+            'The three ZhangLe-only Rewrite rules are excluded and no final '
+            'Rewrite/Script matcher contains this exact hostname; retaining '
+            'it would add unused TLS interception without ad-blocking effect.'
+        ),
+        'status': 'excluded_unused_app',
+    })
+mitm = _kept_zhangle_mitm
+
 # ---------------- 输出 ----------------
 today = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
 header = [
@@ -1942,7 +1978,7 @@ if args.provenance_out:
         'repository': 'XcvcvX/loon-change',
         'scope': ['Rewrite', 'Script', 'Rule'],
         'rewrite_exclusions': zhangle_rewrite_exclusions + zhangle_block_rewrite_exclusions + block_rewrite_exclusions + lite_advertising_rewrite_exclusions,
-        'mitm_exclusions': block_mitm_exclusions,
+        'mitm_exclusions': block_mitm_exclusions + zhangle_mitm_exclusions,
         'scope_adjustments': block_scope_adjustments,
         'limitations': [
             'source_entry_index is the ordinal within the extracted source feed, not the original upstream file line number',
