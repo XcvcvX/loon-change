@@ -221,6 +221,9 @@ hostname = *.example.com, api.example.com, unused.test
         self.assertEqual(summary['missing_mitm_references'], 1)
         self.assertEqual(summary['negative_excluded_references'], 1)
         self.assertEqual(summary['ambiguous_references'], 1)
+        self.assertEqual(summary['dynamic_suffix_references'], 1)
+        self.assertEqual(report['mitm_ambiguous_rewrite_script_references'][0]['reason'],
+                         'regex_host_suffix_without_matching_wildcard')
         self.assertEqual(report['mitm_missing_rewrite_script_coverage'][0]['host'],
                          'missing.test')
         self.assertEqual(report['mitm_negative_excluded_rewrite_script_coverage'][0]['host'],
