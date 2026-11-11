@@ -151,5 +151,44 @@ hostname = *.example.com, api.example.com, unused.test
         self.assertTrue(any('只读' in x for x in report['safety_notes']))
 
 
+    def test_rewrite_overlap_cross_action_and_same_family(self):
+        from deep_audit import audit_rewrite_overlaps
+        rows = [
+            (1, r'request if ${url} ~= /^https:\/\/api\.example\.com\/ad/ then reject(404)'),
+            (2, r'request if ${url} ~= /^https:\/\/api\.example\.com\/.*/ then redirect(302, "https://example.com")'),
+            (3, r'response if ${url} ~= /^https:\/\/api\.example\.com\/ad/ then response.json.delete("ad")'),
+        ]
+        report = audit_rewrite_overlaps(rows)
+        self.assertGreaterEqual(report['rewrite_overlap_sampled_rules'], 3)
+        self.assertTrue(any(x['overlap_type'] == 'cross_action_overlap'
+                            for x in report['rewrite_overlap_candidate_groups']))
+        self.assertTrue(any(x['overlap_type'] == 'cross_phase_only'
+                            for x in report['rewrite_overlap_candidate_groups']))
+
+    def test_rewrite_overlap_same_action_family(self):
+        from deep_audit import audit_rewrite_overlaps
+        rows = [
+            (1, r'request if ${url} ~= /^https:\/\/api\.example\.com\/ad/ then reject(404)'),
+            (2, r'request if ${url} ~= /^https:\/\/api\.example\.com\/.*/ then reject(200)'),
+        ]
+        report = audit_rewrite_overlaps(rows)
+        self.assertTrue(any(x['overlap_type'] == 'likely_duplicate_overlap'
+                            for x in report['rewrite_overlap_candidate_groups']))
+
+    def test_rewrite_overlap_complex_pattern_is_skipped_and_sample_cap(self):
+        from deep_audit import audit_rewrite_overlaps
+        rows = [
+            (1, r'request if ${url} ~= /^https:\/\/api\.example\.com\/(a+)+$/ then reject'),
+            (2, r'request if ${url} ~= /^https:\/\/api\.example\.com\/ad/ then reject'),
+            (3, r'request if ${url} ~= /^https:\/\/api\.example\.com\/.*/ then reject'),
+        ]
+        report = audit_rewrite_overlaps(rows, sample_cap=1)
+        self.assertEqual(report['rewrite_overlap_sample_cap'], 1)
+        self.assertEqual(report['rewrite_overlap_sampled_urls'], 1)
+        self.assertEqual(report['rewrite_overlap_skipped_rules'], 1)
+        self.assertEqual(report['rewrite_overlap_manual_review_candidates'][0]['reason'],
+                         'nested_quantifier')
+
+
 if __name__ == '__main__':
     unittest.main()
