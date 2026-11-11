@@ -171,7 +171,7 @@ hostname = *.amap.com
         shared = self.run_merge(shared_base, block)
         shared_mitm = next(line for line in shared.splitlines() if line.strip().startswith("hostname ="))
         self.assertIn("geetest.htsc.com", shared_mitm)
-        self.assertIn(r"geetest\.htsc\.com\\/health", shared)
+        self.assertIn(r"geetest\.htsc\.com\/health", shared)
 
     def test_zhangle_block_rule_drift_fails_closed(self):
         base = "[Rewrite]\n[MITM]\nhostname = \n"
