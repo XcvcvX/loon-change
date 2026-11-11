@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-11 08:06 UTC
+#!merged-at=2026-11-11 08:15 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -5388,7 +5388,7 @@ request if ${url} ~= /^https?:\/\/ad\.life\.360\.cn\/v2\/app\/advertisement\/con
 request if ${url} ~= /^https?:\/\/evs\.500\.com\/esinfo\/loading\/loading/ then reject(404)
 request if ${url} ~= /^https?:\/\/api\.u51\.com\/(generic-config-gateway|rs-resys)\/api\/v\d\/(creditpage-config|recommend)/ then reject(200)
 request if ${url} ~= /^https?:\/\/vip7\.fzwdyy\.cn:8083\/api\/(getAdvertInfo|getGOOGAdvert)/ then reject(200)
-request if ${url} ~= /^https?:\/\/[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+){1,3}(:\d+)?\/api\/v\d\/advert/ then reject(404)
+request if ${url} ~= /^https?:\/\/(?:vip7\.fzwdyy\.cn|(?:[A-Za-z0-9-]+\.)+qyfxgd\.cn|(?:[A-Za-z0-9-]+\.)+weilai555\.com|(?:[A-Za-z0-9-]+\.)+ecoliving168\.com)(?::\d+)?\/api\/v\d\/advert/ then reject(404)
 request if ${url} ~= /^https:\/\/acs\.m\.taobao\.com\/gw\/mtop\.fliggy\.crm\.screen\.(allresource|predict)/i then reject_dict(200)
 request if ${url} ~= /^https:\/\/acs\.m\.taobao\.com\/gw\/mtop\.alibaba\.advertisementservice\.getadv/i then reject_dict(200)
 request if ${url} ~= /^https:\/\/acs\.m\.taobao\.com\/gw\/mtop\.alimama\.etao\.config\.query\/.+?etao_advertise/i then reject_dict(200)
@@ -7235,7 +7235,7 @@ http-response ^https?:\/\/kaoshi\.wjx\.top\/wjx\/join\/completemobile script-pat
 request if ${url} ~= /^https?:\/\/ad\.12306\.cn\/ad\/ser\/getAdList/i then script("https://raw.githubusercontent.com/kokoryh/Script/master/js/12306.js") with enable=12306_enable, tag="12306", timeout=60, requires_body=true
 response if ${url} ~= /^https?:\/\/api\.u51\.com\/liabilitygateway\/api\/v\d\/homepage\/liabilityline/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/51card.js") with enable=51xyk_enable, tag="51信用卡管家", timeout=60, requires_body=true
 response if ${url} ~= /^https?:\/\/api\.u51\.com\/generic-config-gateway\/api\/v\d\/guanjia\/me-tab2\/config/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/51card.js") with enable=51xyk_enable, tag="51信用卡管家", timeout=60, requires_body=true
-response if ${url} ~= /^https?:\/\/[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+){1,3}(:\d+)?\/api\/v\d\/movie\/index_recommend/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/555Ad.js") with enable=555_enable, tag="555影视广告", timeout=60, requires_body=true
+response if ${url} ~= /^https?:\/\/(?:vip7\.fzwdyy\.cn|(?:[A-Za-z0-9-]+\.)+qyfxgd\.cn|(?:[A-Za-z0-9-]+\.)+weilai555\.com|(?:[A-Za-z0-9-]+\.)+ecoliving168\.com)(?::\d+)?\/api\/v\d\/movie\/index_recommend/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/555Ad.js") with enable=555_enable, tag="555影视广告", timeout=60, requires_body=true
 response if ${url} ~= /^https:\/\/guide-acs\.m\.taobao\.com\/gw\/mtop\.cainiao\.guoguo\.nbnetflow\.ads\.mshow/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cainiao/cainiao.js") with enable=albb_enable, tag="阿里巴巴广告", timeout=60, requires_body=true
 response if ${url} ~= /^https:\/\/guide-acs\.m\.taobao\.com\/gw\/mtop\.taobao\.(cloudvideo\.video\.query|wireless\.home\.splash\.awesome\.get)/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/myBlockAds.js") with enable=albb_enable, tag="阿里巴巴广告", timeout=60, requires_body=true
 response if ${url} ~= /^https:\/\/poplayer\.template\.alibaba\.com\/\w+\.json/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/myBlockAds.js") with enable=albb_enable, tag="myBlockAds", timeout=60, requires_body=true

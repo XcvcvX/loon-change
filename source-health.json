@@ -24,10 +24,10 @@
   "section_changes": {
     "rewrite": {
       "action_changed": 0,
-      "added": 0,
+      "added": 1,
       "current_entries": 3325,
-      "net_shrink_percent": 0.03,
-      "previous_entries": 3326,
+      "net_shrink_percent": 0.0,
+      "previous_entries": 3325,
       "removed": 1,
       "removed_percent": 0.03
     },
@@ -42,12 +42,12 @@
     },
     "script": {
       "action_changed": 0,
-      "added": 0,
+      "added": 1,
       "current_entries": 616,
       "net_shrink_percent": 0.0,
       "previous_entries": 616,
-      "removed": 0,
-      "removed_percent": 0.0
+      "removed": 1,
+      "removed_percent": 0.162
     }
   },
   "source_scores": {

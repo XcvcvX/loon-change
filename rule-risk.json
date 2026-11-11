@@ -2,7 +2,7 @@
   "change_counts": {
     "rewrite": {
       "action_changed": 0,
-      "added": 0,
+      "added": 1,
       "removed": 1
     },
     "rule": {
@@ -12,15 +12,35 @@
     },
     "script": {
       "action_changed": 0,
-      "added": 0,
-      "removed": 0
+      "added": 1,
+      "removed": 1
     }
   },
   "events": [
     {
+      "after": {
+        "line": "request if ${url} ~= /^https?:\\/\\/(?:vip7\\.fzwdyy\\.cn|(?:[A-Za-z0-9-]+\\.)+qyfxgd\\.cn|(?:[A-Za-z0-9-]+\\.)+weilai555\\.com|(?:[A-Za-z0-9-]+\\.)+ecoliving168\\.com)(?::\\d+)?\\/api\\/v\\d\\/advert/ then reject(404)",
+        "section": "rewrite",
+        "sources": [
+          "block"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "source_scores": {
+        "block": 0
+      },
+      "sources": [
+        "block"
+      ]
+    },
+    {
       "after": null,
       "before": {
-        "line": "request if ${url} ~= /^https?:\\/\\/119\\.29\\.29\\.\\d+\\/d/ then reject(200)",
+        "line": "request if ${url} ~= /^https?:\\/\\/[a-zA-Z0-9-]+(\\.[a-zA-Z0-9-]+){1,3}(:\\d+)?\\/api\\/v\\d\\/advert/ then reject(404)",
         "section": "rewrite",
         "sources": [
           "block"
@@ -36,15 +56,55 @@
       "sources": [
         "block"
       ]
+    },
+    {
+      "after": {
+        "line": "response if ${url} ~= /^https?:\\/\\/(?:vip7\\.fzwdyy\\.cn|(?:[A-Za-z0-9-]+\\.)+qyfxgd\\.cn|(?:[A-Za-z0-9-]+\\.)+weilai555\\.com|(?:[A-Za-z0-9-]+\\.)+ecoliving168\\.com)(?::\\d+)?\\/api\\/v\\d\\/movie\\/index_recommend/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/555Ad.js\") with enable=555_enable, tag=\"555影视广告\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "block"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "script",
+      "source_scores": {
+        "block": 0
+      },
+      "sources": [
+        "block"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "response if ${url} ~= /^https?:\\/\\/[a-zA-Z0-9-]+(\\.[a-zA-Z0-9-]+){1,3}(:\\d+)?\\/api\\/v\\d\\/movie\\/index_recommend/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/555Ad.js\") with enable=555_enable, tag=\"555影视广告\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "block"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "script",
+      "source_scores": {
+        "block": 0
+      },
+      "sources": [
+        "block"
+      ]
     }
   ],
   "overall_risk": "high",
   "risk_counts": {
-    "high": 1,
+    "high": 2,
     "low": 0,
-    "medium": 0
+    "medium": 2
   },
-  "run_id": "\"42984300222\"",
+  "run_id": "\"42985462322\"",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; removals and action changes are high risk.",
@@ -59,9 +119,9 @@
   "source_trends_last_30_snapshots": {
     "block": {
       "action_changed": 0,
-      "added": 0,
-      "removed": 1,
-      "snapshots_seen": 1
+      "added": 2,
+      "removed": 3,
+      "snapshots_seen": 2
     }
   },
   "upstream_revision_changes": []
