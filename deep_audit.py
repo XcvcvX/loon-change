@@ -752,6 +752,7 @@ def audit_deep(path):
             generic.append({'line': n, 'type': kind, 'entry': line[:200]})
     repeated = [{'url': u, 'count': c} for u, c in sorted(url_counts.items()) if c > 1]
     coverage_report = audit_mitm_script_coverage(rewrite, script, mitm)
+    necessity_report = audit_mitm_necessity(mitm, coverage_report, rewrite, script)
 
     report = {
         'plugin': str(path),
@@ -781,7 +782,8 @@ def audit_deep(path):
             'script_urls_reused': len(repeated),
             'script_entries_without_detected_url': len(no_url),
             'script_generic_trigger_candidates': len(generic),
-            **coverage_report['mitm_script_coverage_summary']
+            **coverage_report['mitm_script_coverage_summary'],
+            **necessity_report['mitm_necessity_summary']
         },
         'rewrite_broad_candidates': broad,
         'rewrite_scope_review_candidates': scope_candidates,
@@ -811,10 +813,15 @@ def audit_deep(path):
         'mitm_ambiguous_rewrite_script_references': coverage_report['mitm_ambiguous_rewrite_script_references'],
         'mitm_unreferenced_positive_candidates': coverage_report['mitm_unreferenced_positive_candidates'],
         'mitm_literal_rewrite_script_host_references': coverage_report['mitm_literal_rewrite_script_host_references'],
+        'mitm_necessity_classifications': necessity_report['mitm_necessity_classifications'],
+        'mitm_missing_necessity_classifications': necessity_report['mitm_missing_necessity_classifications'],
+        'mitm_generic_script_trigger_context': necessity_report['mitm_generic_script_trigger_context'],
+        'mitm_necessity_safety_note': necessity_report['mitm_necessity_safety_note'],
         'safety_notes': [
             '本报告只读，不会删除、改写或禁用任何规则。',
             '宽泛正则、同匹配器多动作和未发现字面守卫均为人工复核候选，不等于错误。',
             'MITM 可能由复杂正则、变量或间接脚本引用；未发现字面域名不代表无用。',
+            'MITM 必要性分级只区分证据强弱；未发现字面引用不等于冗余，绝不自动删除或补入 hostname。',
             '重复脚本 URL 不等于重复执行有害；需结合触发频率和 Loon 日志。',
             '静态审计无法测量真实耗电、温度或延迟，也不能替代 iPhone 真机回归。',
             '远程脚本 HEAD 失败可能是 CDN 不支持或限流，不应据此直接删除脚本。'
