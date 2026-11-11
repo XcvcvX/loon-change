@@ -61,18 +61,18 @@ class MergeIntegrationTests(unittest.TestCase):
 
 
     def test_aoomee_provenance_keeps_alignment_across_double_slash_rows_and_files(self):
-        base = "[Rule]\\n[Rewrite]\\n[MITM]\\nhostname = \\n"
-        extra = "[Rule]\\n[Rewrite]\\n[MITM]\\nhostname = \\n"
+        base = "[Rule]\n[Rewrite]\n[MITM]\nhostname = \n"
+        extra = "[Rule]\n[Rewrite]\n[MITM]\nhostname = \n"
         aoomee_files = {
             "a.lpx": (
-                "[Rewrite]\\n"
-                "^https://a.example/first reject-dict\\n"
-                "// upstream note retained by the section parser\\n"
-                "^https://a.example/second reject-dict\\n"
+                "[Rewrite]\n"
+                "^https://a.example/first reject-dict\n"
+                "// upstream note retained by the section parser\n"
+                "^https://a.example/second reject-dict\n"
             ),
             "b.lpx": (
-                "[Rewrite]\\n"
-                "^https://b.example/third reject-dict\\n"
+                "[Rewrite]\n"
+                "^https://b.example/third reject-dict\n"
             ),
         }
         _, provenance = self.run_merge(
