@@ -759,19 +759,14 @@ def narrow_lanrentingshu_base_scope(rewrite_lines, source_present):
     """将 R-Store 转换产物中的同接口旧式全主机规则限制到已核实的业务主机。"""
     if not source_present:
         return rewrite_lines, []
-    generic = (
-        r'^https?:\\/\\/.*\\/yyting\\/advertclient\\/ClientAdvertList.action'
-    )
-    scoped = (
-        r'^https?:\\/\\/(?:118\\.178\\.214\\.118|dapis\\.mting\\.info)'
-        r'\\/yyting\\/advertclient\\/ClientAdvertList.action'
-    )
+    generic = _LANRENTINGSHU_GENERIC
+    scoped = _LANRENTINGSHU_SCOPED
     adjustments = []
     output = []
     for line in rewrite_lines:
         is_target = (
-            '/yyting\\/advertclient\\/ClientAdvertList.action' in line
-            and re.search(r'\s+reject(?:\s|$)', line)
+            'ClientAdvertList.action' in line
+            and line.endswith(' reject')
         )
         if not is_target:
             output.append(line)
