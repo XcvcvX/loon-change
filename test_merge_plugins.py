@@ -1100,5 +1100,89 @@ hostname = *.amap.com
         self.assertEqual(event["covered_by_source"], "block")
 
 
+    def test_tiantianjijin_start_image_preserves_response_envelope_over_request_rejects(self):
+        matcher = r"^https?:\/\/appactive\.1234567\.com\.cn\/AppoperationApi\/OperationService\/GetAppStartImg"
+        base_reject = matcher + " reject"
+        block_reject = (
+            r"request if \${url} ~= /^https?:\/\/appactive\.1234567\.com\.cn\/AppoperationApi\/OperationService\/GetAppStartImg/ "
+            r"then reject(404)"
+        )
+        response_rule = matcher + " response-body-json-jq '.datas = []'"
+        base = (
+            "[Rewrite]\n" + base_reject + "\n"
+            "[MITM]\nhostname = appactive.1234567.com.cn\n"
+        )
+        extra = (
+            "[Rewrite]\n" + block_reject + "\n"
+            "[MITM]\nhostname = appactive.1234567.com.cn\n"
+        )
+        apps_files = {
+            "tiantianjijin_splash_ad_block.plugin": (
+                "[Rewrite]\n"
+                + response_rule + "\n"
+                + "[MITM]\nhostname = appactive.1234567.com.cn\n"
+            )
+        }
+
+        output, provenance = self.run_merge(
+            base, extra, apps_files=apps_files, return_provenance=True
+        )
+        self.assertNotIn(base_reject, output)
+        self.assertNotIn(block_reject, output)
+        self.assertIn(response_rule, output)
+
+        exclusions = [
+            row for row in provenance["rewrite_exclusions"]
+            if row.get("status") == "excluded_conflicting_request_reject"
+        ]
+        self.assertEqual({row["source"] for row in exclusions}, {"base", "block"})
+        self.assertEqual(len(exclusions), 2)
+        self.assertTrue(all(row["preserved_response_rule"] == response_rule
+                            for row in exclusions))
+
+    def test_tiantianjijin_start_image_keeps_request_reject_when_response_rule_is_absent(self):
+        matcher = r"^https?:\/\/appactive\.1234567\.com\.cn\/AppoperationApi\/OperationService\/GetAppStartImg"
+        base_reject = matcher + " reject"
+        base = "[Rewrite]\n" + base_reject + "\n[MITM]\nhostname = \n"
+        extra = "[Rewrite]\n[MITM]\nhostname = \n"
+        output = self.run_merge(base, extra)
+        self.assertIn(base_reject, output)
+
+    def test_tiantianjijin_start_image_action_drift_fails_closed(self):
+        matcher = r"^https?:\/\/appactive\.1234567\.com\.cn\/AppoperationApi\/OperationService\/GetAppStartImg"
+        base = "[Rewrite]\n" + matcher + " reject\n[MITM]\nhostname = \n"
+        changed_block = (
+            r"request if \${url} ~= /^https?:\/\/appactive\.1234567\.com\.cn\/AppoperationApi\/OperationService\/GetAppStartImg/ "
+            r"then reject-dict"
+        )
+        extra = "[Rewrite]\n" + changed_block + "\n[MITM]\nhostname = \n"
+        response_rule = matcher + " response-body-json-jq '.datas = []'"
+        apps_files = {
+            "tiantianjijin_splash_ad_block.plugin": (
+                "[Rewrite]\n" + response_rule + "\n[MITM]\nhostname = \n"
+            )
+        }
+        message = self.run_merge(
+            base, extra, apps_files=apps_files, expect_failure=True
+        )
+        self.assertIn("天天基金 GetAppStartImg 请求动作发生变化", message)
+
+    def test_tiantianjijin_start_image_response_rule_drift_fails_closed(self):
+        matcher = r"^https?:\/\/appactive\.1234567\.com\.cn\/AppoperationApi\/OperationService\/GetAppStartImg"
+        base = "[Rewrite]\n" + matcher + " reject\n[MITM]\nhostname = \n"
+        extra = "[Rewrite]\n[MITM]\nhostname = \n"
+        changed_response = matcher + " response-body-json-jq '.datas = {}'"
+        apps_files = {
+            "tiantianjijin_splash_ad_block.plugin": (
+                "[Rewrite]\n" + changed_response + "\n[MITM]\nhostname = \n"
+            )
+        }
+        message = self.run_merge(
+            base, extra, apps_files=apps_files, expect_failure=True
+        )
+        self.assertIn("Thelong 天天基金 GetAppStartImg 响应规则发生变化", message)
+
+
+
 if __name__ == "__main__":
     unittest.main()
