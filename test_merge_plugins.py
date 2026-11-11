@@ -210,7 +210,7 @@ hostname = *.amap.com
         # The slash remains inside the class until the final closing bracket.
         base = (
             "[Rewrite]\n"
-            + r"^https?:\/\/[]/]*\.pangle\.cn\/advertisement\/ reject" + "\n"
+            + r"^https?:\/\/[]/a-z]*\.pangle\.cn\/advertisement\/ reject" + "\n"
             + "[MITM]\nhostname = c.zhangle.com, live.inst-service.htsc.com, geetest.htsc.com, foo.pangle.cn\n"
         )
         output = self.run_merge(base, "[Rewrite]\n[MITM]\nhostname = \n")
