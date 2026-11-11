@@ -64,6 +64,50 @@ class RuleRiskHistoryTests(unittest.TestCase):
         risk, _ = build_risk(diff, self.health, {}, {}, "uncovered", provenance)
         self.assertEqual(risk["risk_counts"]["high"], 1)
 
+    def test_known_historical_semantic_duplicate_snapshot_is_reconciled_once(self):
+        previous = {"snapshots": [{
+            "run_id": '"43055354414"',
+            "change_counts": {
+                "rewrite": {"removed": 3, "added": 0, "action_changed": 0},
+                "script": {"removed": 0, "added": 0, "action_changed": 0},
+                "rule": {"removed": 0, "added": 0, "action_changed": 0},
+            },
+            "source_changes": {
+                "aoomee": {"removed": 2, "added": 0, "action_changed": 0},
+                "thelong": {"removed": 1, "added": 0, "action_changed": 0},
+            },
+            "risk_counts": {"high": 3, "medium": 0, "low": 0},
+        }]}
+        empty = {"sections": {}, "current_upstream_revisions": {},
+                 "upstream_revision_changes": []}
+        _, history = build_risk(
+            empty, self.health, {}, previous, "new", {"rewrite_exclusions": []}
+        )
+        snapshot = history["snapshots"][0]
+        self.assertEqual(snapshot["risk_counts"], {"high": 0, "medium": 0, "low": 3})
+        self.assertEqual(snapshot["source_changes"]["aoomee"]["removed"], 2)
+        self.assertEqual(snapshot["source_changes"]["thelong"]["removed"], 1)
+        self.assertEqual(snapshot["semantic_duplicate_history_reconciled"]["removed_events_reclassified"], 3)
+
+        # A second run must not apply the migration again.
+        _, again = build_risk(
+            empty, self.health, {}, history, "newer", {"rewrite_exclusions": []}
+        )
+        self.assertEqual(again["snapshots"][0]["risk_counts"]["low"], 3)
+
+    def test_historical_migration_rejects_mismatched_source_signature(self):
+        previous = {"snapshots": [{
+            "run_id": '"43055354414"',
+            "change_counts": {"rewrite": {"removed": 3}, "script": {}, "rule": {}},
+            "source_changes": {"aoomee": {"removed": 3}},
+            "risk_counts": {"high": 3, "medium": 0, "low": 0},
+        }]}
+        empty = {"sections": {}, "current_upstream_revisions": {},
+                 "upstream_revision_changes": []}
+        _, history = build_risk(empty, self.health, {}, previous, "new")
+        self.assertEqual(history["snapshots"][0]["risk_counts"]["high"], 3)
+        self.assertNotIn("semantic_duplicate_history_reconciled", history["snapshots"][0])
+
     def test_low_source_score_escalates_addition(self):
         self.diff["sections"]["rewrite"]["removed"] = []
         self.diff["sections"]["rewrite"]["action_changed"] = []
