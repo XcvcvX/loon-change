@@ -1108,17 +1108,18 @@ if qqmusic_block_present:
 
 
 # Tencent Cloud HTTPDNS safety exclusion:
-# The broad upstream matcher also catches the current HTTPDNS endpoints
-# 119.29.29.98 (HTTP) and 119.29.29.99 (HTTPS), not just the retired .29 endpoint.
-# Keep the exclusion exact: do not suppress other paths, IPs, or actions.
+# Tencent's current HTTP and HTTPS API endpoints are 119.29.29.98 and .99;
+# both use the /d API path. The old .29 endpoint was retired.
+# The exact broad matcher is not an ad-removal rule: any action on it can break DNS.
+# Exclude it independent of action spelling so an upstream action change cannot bypass the guard.
+# Official docs: https://cloud.tencent.com/document/product/379/95497
+# https://cloud.tencent.com/document/product/379/56885
 _BLOCK_HTTPDNS_MATCHER = r'^https?://119\.29\.29\.\d+/d'
-_BLOCK_HTTPDNS_ACTION = ('REJECT', 'reject', 'reject(200)')
 block_rewrite_exclusions = []
 block_mitm_exclusions = []
 _block_rw_kept = []
 for _block_index, _block_line in enumerate(block_rw):
-    if (entry_regex(_block_line) == _BLOCK_HTTPDNS_MATCHER
-            and action_key(_block_line) == _BLOCK_HTTPDNS_ACTION):
+    if entry_regex(_block_line) == _BLOCK_HTTPDNS_MATCHER:
         _source_line_number = None
         _section = None
         for _line_number, _raw_line in enumerate(extra_text.splitlines(), 1):
@@ -1135,7 +1136,7 @@ for _block_index, _block_line in enumerate(block_rw):
             'source_line_number': _source_line_number,
             'input_line': _block_line,
             'matcher': _BLOCK_HTTPDNS_MATCHER,
-            'action': 'reject(200)',
+            'action': split_action(_block_line)[1],
             'reason': (
                 'Overbroad HTTPDNS path block: matcher catches active Tencent Cloud '
                 'HTTPDNS endpoints 119.29.29.98 (HTTP) and 119.29.29.99 (HTTPS); '
