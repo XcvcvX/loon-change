@@ -200,3 +200,10 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 保留芒果 TV odin 的 channel/ads 与 skin/config 广告/配置接口，以及其他 cmd 路径；不扩大到其他 IP、端口或路径。
 - 新增集成测试覆盖 base 与 block 两种来源、多种动作别名，并验证 cmd=health 和 odin 规则仍保留。
 - 本批不修改 MITM hostname、Script、Rule 或其他广告规则；正式验收以 PR CI 和合并后的 main 分支产物为准。
+## 第七阶段第十九批：清理已被同动作规则完整覆盖的语义重复项
+
+- 深度审计发现 3 条跨来源 Rewrite：Thelong 的 `vv.video.qq.com/(diff|get)vmind` 与 base 的 `(?:diff|get)` 等价；aoomee 的 Soul `https` 子集与 Huazhu 可选 query 子集，均已被 base 同动作规则完整覆盖。
+- 仅在来源规则 matcher 与 `reject-dict` 动作均精确符合审计白名单时排除；若动作发生变化则构建失败并要求复核，不做通用正则包含关系推断。
+- 保留 base 的覆盖规则，不改变拒绝动作、HTTP/HTTPS 覆盖范围或 MITM；把源文件、来源段索引、原始行、覆盖 matcher 和原因写入来源追溯报告。
+- 新增集成测试验证三条重复项被排除、三条 base 规则仍保留，并验证上游动作改变时触发失败保护。
+- 本批不调整其他 Rewrite、Script、Rule、MITM 或优先级。

@@ -1202,10 +1202,69 @@ for _block_index, _block_line in enumerate(block_rw):
     else:
         _block_rw_kept.append(_block_line)
 block_rw = _block_rw_kept
+# Only remove source rules whose complete match set is already covered by a retained
+# higher-priority rule with the same reject action. These are exact audited cases,
+# not a general regex-subsumption heuristic.
+_SEMANTIC_DUPLICATE_REWRITE_RULES = {
+    'thelong': {
+        r'^https?://vv\.video\.qq\.com/(diff|get)vmind': {
+            'action_key': ('REJECT', 'reject_dict', 'reject_dict(200)'),
+            'covered_by': r'^https?://vv\.video\.qq\.com/(?:diff|get)vmind',
+            'reason': 'The retained base matcher uses a non-capturing group for the same diff/get paths and the same reject-dict action.',
+        },
+    },
+    'aoomee': {
+        r'^https://ssp\.soulapp\.cn/api/q': {
+            'action_key': ('REJECT', 'reject_dict', 'reject_dict(200)'),
+            'covered_by': r'^https?://ssp\.soulapp\.cn/api/q',
+            'reason': 'The retained base matcher covers both HTTP and HTTPS for the same path with the same reject-dict action.',
+        },
+        r'^https?://hweb-manager\.huazhu\.com/notice/getAppPopupNotifyAlert(?:\?.*)?$': {
+            'action_key': ('REJECT', 'reject_dict', 'reject_dict(200)'),
+            'covered_by': r'^https?://hweb-manager\.huazhu\.com/notice/getAppPopupNotifyAlert',
+            'reason': 'The retained base prefix matcher already covers the narrower optional-query form with the same reject-dict action.',
+        },
+    },
+}
+
+def exclude_audited_semantic_duplicates(lines, origins, source):
+    specs = _SEMANTIC_DUPLICATE_REWRITE_RULES.get(source, {})
+    kept_lines, kept_origins, exclusions = [], [], []
+    if len(lines) != len(origins):
+        raise RuntimeError(source + ' Rewrite source-origin alignment failed during duplicate filtering')
+    for index, (line, origin) in enumerate(zip(lines, origins)):
+        matcher = entry_regex(line)
+        spec = specs.get(matcher)
+        if spec is None:
+            kept_lines.append(line)
+            kept_origins.append(origin)
+            continue
+        if action_key(line) != spec['action_key']:
+            raise RuntimeError(source + ' audited duplicate matcher action changed; manual review required: ' + line)
+        record = {
+            'source': source,
+            'source_entry_index': index,
+            'input_line': line,
+            'matcher': matcher,
+            'action': split_action(line)[1],
+            'covered_by': spec['covered_by'],
+            'reason': spec['reason'],
+            'status': 'excluded_semantic_duplicate',
+        }
+        if source == 'thelong':
+            record['source_file'], record['source_line_number'], record['source_raw_line'] = origin
+            record['source_catalog'] = 'Thelongdarkorg/loon-plugins'
+        else:
+            record['source_file'], record['source_section'], record['source_section_entry_index'], record['source_raw_line'] = origin
+            record['source_catalog'] = 'aoomee/Loon-Adblock-Plugins'
+        exclusions.append(record)
+    return kept_lines, kept_origins, exclusions
+
 # Thelongdarkorg（标准 v1，直接保留）
 thelong_rw, thelong_sc = [], []
 thelong_rw_origins = []
 thelong_rule, thelong_mitm = [], []
+thelong_duplicate_exclusions = []
 if args.apps:
     for fname, atext in iter_app_plugins(args.apps):
         _, s = split_sections(atext)
@@ -1266,22 +1325,30 @@ if args.apps:
         for l in s.get('MITM', []):
             if '=' in l:
                 thelong_mitm += [x.strip() for x in l.split('=', 1)[1].split(',') if x.strip()]
+thelong_rw, thelong_rw_origins, thelong_duplicate_exclusions = exclude_audited_semantic_duplicates(
+    thelong_rw, thelong_rw_origins, 'thelong')
 # aoomee（v1/v2 混合；URL Rewrite 的 reject 并入 Rewrite；generic/cron 由合并器识别）
 ao_rw, ao_sc, ao_rule, ao_mitm = [], [], [], []
+ao_rw_origins = []
+aoomee_duplicate_exclusions = []
 if args.aoomee:
     for fname, s in iter_aoomee(args.aoomee):
-        ao_rw += [convert_shadowrocket_line(l)
-                  for l in real_lines(s.get('Rewrite', []))]
-        for l in real_lines(s.get('URL Rewrite', [])):
+        for _source_index, l in enumerate(real_lines(s.get('Rewrite', []))):
+            ao_rw.append(convert_shadowrocket_line(l))
+            ao_rw_origins.append((fname, 'Rewrite', _source_index, l))
+        for _source_index, l in enumerate(real_lines(s.get('URL Rewrite', []))):
             toks = l.split()
             if len(toks) == 2 and toks[1] in _LEGACY_REJECT:
                 ao_rw.append(l)
+                ao_rw_origins.append((fname, 'URL Rewrite', _source_index, l))
         ao_sc += [convert_shadowrocket_line(l)
                   for l in real_lines(s.get('Script', []))]
         ao_rule += real_lines(s.get('Rule', []))
         for l in s.get('MITM', []):
             if '=' in l:
                 ao_mitm += [x.strip() for x in l.split('=', 1)[1].split(',') if x.strip()]
+ao_rw, ao_rw_origins, aoomee_duplicate_exclusions = exclude_audited_semantic_duplicates(
+    ao_rw, ao_rw_origins, 'aoomee')
 # ---------------- zmjde 指定插件 ----------------
 # App 高优先级（完整并入，同正则替换其他来源）：DiDi/PinDuoDuo + 闲鱼/淘宝/什么值得买；
 # 通用 base 优先，只补 base 没有的（不覆盖）：Block_HTTPDNS/BlockAdvertisers + 可莉广告过滤器。
@@ -2177,7 +2244,7 @@ if args.provenance_out:
         'upstream_revisions': upstream_revisions,
         'repository': 'XcvcvX/loon-change',
         'scope': ['Rewrite', 'Script', 'Rule'],
-        'rewrite_exclusions': zhangle_rewrite_exclusions + zhangle_block_rewrite_exclusions + mgtv_unused_indexes_rewrite_exclusions + block_rewrite_exclusions + lite_advertising_rewrite_exclusions,
+        'rewrite_exclusions': zhangle_rewrite_exclusions + zhangle_block_rewrite_exclusions + mgtv_unused_indexes_rewrite_exclusions + block_rewrite_exclusions + lite_advertising_rewrite_exclusions + thelong_duplicate_exclusions + aoomee_duplicate_exclusions,
         'mitm_exclusions': block_mitm_exclusions + zhangle_mitm_exclusions,
         'scope_adjustments': block_scope_adjustments,
         'limitations': [

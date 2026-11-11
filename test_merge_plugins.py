@@ -12,7 +12,7 @@ MERGER = Path(__file__).with_name("merge_plugins.py")
 
 
 class MergeIntegrationTests(unittest.TestCase):
-    def run_merge(self, base_text, extra_text, myblockads_text=None, return_stdout=False, amap_text=None, return_provenance=False, apps_files=None, expect_failure=False):
+    def run_merge(self, base_text, extra_text, myblockads_text=None, return_stdout=False, amap_text=None, return_provenance=False, apps_files=None, aoomee_files=None, expect_failure=False):
         tmp = tempfile.TemporaryDirectory()
         self.addCleanup(tmp.cleanup)
         root = Path(tmp.name)
@@ -40,6 +40,13 @@ class MergeIntegrationTests(unittest.TestCase):
             for filename, content in apps_files.items():
                 (apps / filename).write_text(content, encoding="utf-8")
             command += ["--apps", str(apps)]
+        if aoomee_files is not None:
+            aoomee = root / "aoomee"
+            plugins = aoomee / "plugins"
+            plugins.mkdir(parents=True)
+            for filename, content in aoomee_files.items():
+                (plugins / filename).write_text(content, encoding="utf-8")
+            command += ["--aoomee", str(aoomee)]
         result = subprocess.run(
             command,
             capture_output=True, text=True, timeout=30)
@@ -105,6 +112,58 @@ hostname = *.amap.com
         self.assertIn("one.example.com/a", output)
         self.assertIn("two.example.com/b", output)
         self.assertIn("three.example.com", output)
+
+    def test_audited_semantic_duplicate_rewrites_are_removed_but_covered_base_rules_remain(self):
+        base = (
+            "[Rewrite]\n"
+            r"^https?:\/\/vv\.video\.qq\.com\/(?:diff|get)vmind reject-dict" + "\n"
+            r"^https?:\/\/ssp\.soulapp\.cn\/api\/q reject-dict" + "\n"
+            r"^https?:\/\/hweb-manager\.huazhu\.com\/notice\/getAppPopupNotifyAlert reject-dict" + "\n"
+            "[MITM]\nhostname = \n"
+        )
+        apps = {
+            "video_ad_block.plugin": (
+                "[Rewrite]\n"
+                r"^https?:\/\/vv\.video\.qq\.com\/(diff|get)vmind reject-dict" + "\n"
+                "[MITM]\nhostname = \n"
+            )
+        }
+        aoomee = {
+            "soul.plugin": (
+                "[Rewrite]\n"
+                r"^https:\/\/ssp\.soulapp\.cn\/api\/q reject-dict" + "\n"
+                r"^https?:\/\/hweb-manager\.huazhu\.com\/notice\/getAppPopupNotifyAlert(?:\?.*)?$ reject-dict" + "\n"
+                "[MITM]\nhostname = \n"
+            )
+        }
+        output, report = self.run_merge(
+            base, "[Rewrite]\n[MITM]\nhostname = \n",
+            apps_files=apps, aoomee_files=aoomee, return_provenance=True)
+        self.assertIn(r"vv\.video\.qq\.com\/(?:diff|get)vmind reject-dict", output)
+        self.assertNotIn(r"vv\.video\.qq\.com\/(diff|get)vmind reject-dict", output)
+        self.assertIn(r"ssp\.soulapp\.cn\/api\/q reject-dict", output)
+        self.assertNotIn(r"^https:\/\/ssp\.soulapp\.cn\/api\/q reject-dict", output)
+        self.assertIn(r"hweb-manager\.huazhu\.com\/notice\/getAppPopupNotifyAlert reject-dict", output)
+        self.assertNotIn(r"getAppPopupNotifyAlert(?:\?.*)?$", output)
+        exclusions = [
+            item for item in report.get("rewrite_exclusions", [])
+            if item.get("status") == "excluded_semantic_duplicate"
+        ]
+        self.assertEqual(len(exclusions), 3, exclusions)
+        self.assertEqual({item["source"] for item in exclusions}, {"thelong", "aoomee"})
+        self.assertEqual({item["action"] for item in exclusions}, {"reject-dict"})
+        self.assertTrue(all(item.get("covered_by") for item in exclusions))
+
+        changed_action_apps = {
+            "video_ad_block.plugin": (
+                "[Rewrite]\n"
+                r"^https?:\/\/vv\.video\.qq\.com\/(diff|get)vmind reject" + "\n"
+                "[MITM]\nhostname = \n"
+            )
+        }
+        self.run_merge(
+            base, "[Rewrite]\n[MITM]\nhostname = \n",
+            apps_files=changed_action_apps, expect_failure=True)
 
     def test_mgtv_unused_indexes_probe_is_excluded_without_removing_ad_endpoints(self):
         base = (
