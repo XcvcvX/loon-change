@@ -179,7 +179,7 @@ hostname = *.amap.com
         # exact ZhangLe hosts should be removed; unrelated hosts remain.
         base = (
             "[Rewrite]\n"
-            r"^https?:\\/\\/\\p{L}+\\.other\\.example\\.com\\/ad reject" + "\n"
+            r"^https?:\/\/\p{L}+\.other\.example\.com\/ad reject" + "\n"
             "[MITM]\nhostname = c.zhangle.com, live.inst-service.htsc.com, geetest.htsc.com, other.example.com\n"
         )
         output, report = self.run_merge(
@@ -202,7 +202,7 @@ hostname = *.amap.com
         # proves it may target geetest.htsc.com; retain that MITM host.
         base = (
             "[Rewrite]\n"
-            r"^https?:\\/\\/\\p{L}+\\.htsc\\.com\\/health reject" + "\n"
+            r"^https?:\/\/\p{L}+\.htsc\.com\/health reject" + "\n"
             "[MITM]\nhostname = geetest.htsc.com, c.zhangle.com\n"
         )
         output = self.run_merge(base, "[Rewrite]\n[MITM]\nhostname = \n")
