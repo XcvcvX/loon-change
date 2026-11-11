@@ -40,7 +40,7 @@
       }
     },
     "thelongdarkorg": {
-      "commit": "dc6c094c8b7a764b379c2c5af2edaba175b1b3df",
+      "commit": "2d0443ce1ecec36cf173634e77ba52224efbdc38",
       "plugin_files": 52,
       "rule_lines": 991
     },
@@ -13945,8 +13945,8 @@
           "input_section": "Rewrite",
           "input_line": "^https?://api\\.sogaha\\.cn/ssp/ad/get\\?ip reject-dict",
           "source_file": "tuhu_splash_ad_block.plugin",
-          "source_line_number": 13,
-          "source_raw_line": "^https?://gateway\\.tuhu\\.cn/mkt/mkt-scene-marketing-service/api/scene/queryScheme response-body-json-jq '. as $o | try (if (.data.pageId==\"/launch\") then (.data.moduleActionList=[]) else . end) catch $o'",
+          "source_line_number": 44,
+          "source_raw_line": "response if ${url} ~= /^https?:\\/\\/gateway\\.tuhu\\.cn\\/mkt\\/mkt-scene-marketing-service\\/api\\/scene\\/queryScheme(?:\\?.*)?$/ then response.json.jq(`. as $o | try (if ((.data.pageId? // \"\") == \"/launch\") then (.data.moduleActionList = [] | .data.dsl = null) else . end) catch $o`)",
           "disposition": "selected"
         }
       ],
@@ -54576,15 +54576,15 @@
     {
       "section": "Rewrite",
       "output_entry_index": 2887,
-      "output_line": "^https?://gateway\\.tuhu\\.cn/mkt/mkt-scene-marketing-service/api/scene/queryScheme response-body-json-jq '. as $o | try (if (.data.pageId==\"/launch\") then (.data.moduleActionList=[]) else . end) catch $o'",
-      "canonical_key": "('guarded', '^https?://gateway\\\\.tuhu\\\\.cn/mkt/mkt-scene-marketing-service/api/scene/queryScheme', ('response-body-json-jq', 'response-body-json-jq \\'. as $o | try (if (.data.pageId==\"/launch\") then (.data.moduleActionList=[]) else . end) catch $o\\''))",
+      "output_line": "response if ${url} ~= /^https?:\\/\\/gateway\\.tuhu\\.cn\\/mkt\\/mkt-scene-marketing-service\\/api\\/scene\\/queryScheme(?:\\?.*)?$/ then response.json.jq(`. as $o | try (if ((.data.pageId? // \"\") == \"/launch\") then (.data.moduleActionList = [] | .data.dsl = null) else . end) catch $o`)",
+      "canonical_key": "('guarded', '^https?://gateway\\\\.tuhu\\\\.cn/mkt/mkt-scene-marketing-service/api/scene/queryScheme(?:\\\\?.*)?$', ('response.json.jq', 'response.json.jq(`. as $o | try (if ((.data.pageId? // \"\") == \"/launch\") then (.data.moduleActionList = [] | .data.dsl = null) else . end) catch $o`)'))",
       "sources": [
         {
           "source": "thelong",
           "priority": 3,
           "source_entry_index": 157,
           "input_section": "Rewrite",
-          "input_line": "^https?://gateway\\.tuhu\\.cn/mkt/mkt-scene-marketing-service/api/scene/queryScheme response-body-json-jq '. as $o | try (if (.data.pageId==\"/launch\") then (.data.moduleActionList=[]) else . end) catch $o'",
+          "input_line": "response if ${url} ~= /^https?:\\/\\/gateway\\.tuhu\\.cn\\/mkt\\/mkt-scene-marketing-service\\/api\\/scene\\/queryScheme(?:\\?.*)?$/ then response.json.jq(`. as $o | try (if ((.data.pageId? // \"\") == \"/launch\") then (.data.moduleActionList = [] | .data.dsl = null) else . end) catch $o`)",
           "source_file": "tiantianjijin_splash_ad_block.plugin",
           "source_line_number": 204,
           "source_raw_line": "^https?:\\/\\/appconfig2\\.1234567\\.com\\.cn\\/config\\/GetAppHome(?:\\?.*)?$ response-header-del Content-MD5 ETag Last-Modified",
@@ -78689,7 +78689,7 @@
       "status": "included",
       "output_line": "AND,((DOMAIN,gateway.tuhu.cn),(PROTOCOL,QUIC)),REJECT",
       "source_file": "tuhu_splash_ad_block.plugin",
-      "source_line_number": 8,
+      "source_line_number": 39,
       "source_raw_line": "AND,((DOMAIN,gateway.tuhu.cn),(PROTOCOL,QUIC)),REJECT",
       "output_entry_index": 358
     },

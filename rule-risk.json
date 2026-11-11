@@ -2,8 +2,8 @@
   "change_counts": {
     "rewrite": {
       "action_changed": 0,
-      "added": 0,
-      "removed": 4
+      "added": 1,
+      "removed": 1
     },
     "rule": {
       "action_changed": 0,
@@ -18,33 +18,32 @@
   },
   "events": [
     {
-      "after": null,
-      "before": {
-        "line": "^https?:\\/\\/geetest\\.htsc\\.com:\\d+\\/pre_get_token reject-200",
+      "after": {
+        "line": "response if ${url} ~= /^https?:\\/\\/gateway\\.tuhu\\.cn\\/mkt\\/mkt-scene-marketing-service\\/api\\/scene\\/queryScheme(?:\\?.*)?$/ then response.json.jq(`. as $o | try (if ((.data.pageId? // \"\") == \"/launch\") then (.data.moduleActionList = [] | .data.dsl = null) else . end) catch $o`)",
         "section": "rewrite",
         "sources": [
-          "base"
+          "thelong"
         ]
       },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
       "section": "rewrite",
       "source_scores": {
-        "base": 0
+        "thelong": 0
       },
       "sources": [
-        "base"
+        "thelong"
       ]
     },
     {
       "after": null,
       "before": {
-        "line": "^https?:\\/\\/live\\.inst-service\\.htsc\\.com\\/live reject-dict",
+        "line": "^https?://gateway\\.tuhu\\.cn/mkt/mkt-scene-marketing-service/api/scene/queryScheme response-body-json-jq '. as $o | try (if (.data.pageId==\"/launch\") then (.data.moduleActionList=[]) else . end) catch $o'",
         "section": "rewrite",
         "sources": [
-          "base",
-          "block"
+          "thelong"
         ]
       },
       "change_type": "removed",
@@ -52,62 +51,20 @@
       "risk": "high",
       "section": "rewrite",
       "source_scores": {
-        "base": 0,
-        "block": 0
+        "thelong": 0
       },
       "sources": [
-        "base",
-        "block"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "request if ${url} ~= /^https?:\\/\\/c\\.zhangle\\.com\\/pic\\/mktg\\/diversity\\/.+\\.jpg$/ then reject_dict(200)",
-        "section": "rewrite",
-        "sources": [
-          "block"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "rewrite",
-      "source_scores": {
-        "block": 0
-      },
-      "sources": [
-        "block"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "request if ${url} ~= /^https?:\\/\\/geetest\\.htsc\\.com:8888\\/pre_get_token/ then reject(200)",
-        "section": "rewrite",
-        "sources": [
-          "block"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "rewrite",
-      "source_scores": {
-        "block": 0
-      },
-      "sources": [
-        "block"
+        "thelong"
       ]
     }
   ],
   "overall_risk": "high",
   "risk_counts": {
-    "high": 4,
+    "high": 1,
     "low": 0,
-    "medium": 0
+    "medium": 1
   },
-  "run_id": "\"42993819169\"",
+  "run_id": "\"42998409163\"",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; removals and action changes are high risk.",
@@ -134,10 +91,16 @@
     },
     "thelong": {
       "action_changed": 0,
-      "added": 1,
-      "removed": 2,
-      "snapshots_seen": 2
+      "added": 2,
+      "removed": 3,
+      "snapshots_seen": 3
     }
   },
-  "upstream_revision_changes": []
+  "upstream_revision_changes": [
+    {
+      "current_commit": "2d0443ce1ecec36cf173634e77ba52224efbdc38",
+      "previous_commit": "dc6c094c8b7a764b379c2c5af2edaba175b1b3df",
+      "source": "thelongdarkorg"
+    }
+  ]
 }

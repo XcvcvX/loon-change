@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-11 09:17 UTC
+#!merged-at=2026-11-11 09:50 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -6486,7 +6486,7 @@ response if ${url} ~= /^https?:\/\/api\.fenxianglife\.com\/njia\/index\/popup\/v
 ^https?:\/\/appactive\.1234567\.com\.cn\/AppoperationApi\/OperationService\/GetAppStartImg response-body-json-jq '.datas = []'
 ^https?:\/\/appconfig2\.1234567\.com\.cn\/config\/GetAppHome(?:\?.*)?$ response-body-json-jq '. as $o | try ((.datas.SpecialModules |= map(select((.ModuldType? // 0) != 94 and (.ModuldType? // 0) != 85005))) | (.datas.Modules |= map(select((.ModuleCode? // "") != "HeadSudokuProduct")))) catch $o'
 ^https?:\/\/appconfig2\.1234567\.com\.cn\/config\/GetAppHome(?:\?.*)?$ response-header-del Content-MD5 ETag Last-Modified
-^https?://gateway\.tuhu\.cn/mkt/mkt-scene-marketing-service/api/scene/queryScheme response-body-json-jq '. as $o | try (if (.data.pageId=="/launch") then (.data.moduleActionList=[]) else . end) catch $o'
+response if ${url} ~= /^https?:\/\/gateway\.tuhu\.cn\/mkt\/mkt-scene-marketing-service\/api\/scene\/queryScheme(?:\?.*)?$/ then response.json.jq(`. as $o | try (if ((.data.pageId? // "") == "/launch") then (.data.moduleActionList = [] | .data.dsl = null) else . end) catch $o`)
 ^https?://api-access\.pangolin-sdk-toutiao\.com/api/ad/union/sdk reject-200
 ^https?://[^\s/]*\.pangle\.cn/(api/ad|ad|splash|material).* reject-200
 ^https:\/\/mp\.weixin\.qq\.com\/mp\/(cps_product_info|getappmsgad|jsmonitor|masonryfeed|relatedarticle)\? reject-dict
