@@ -214,9 +214,7 @@ hostname = *.example.com, api.example.com, unused.test
             (21, r'http-response ^https:\/\/m\d\.dynamic\.test\/api script-path=https://cdn.test/b.js'),
         ]
         mitm = [(30, 'hostname = *.covered.test, -excluded.test')]
-        rows = [(n, line.replace('%URL%', '
-    unittest.main()
-+'{url}')) for n, line in rewrite]
+        rows = [(n, line.replace('%URL%', chr(36) + '{url}') for n, line in rewrite]
         report = audit_mitm_script_coverage(rows, scripts, mitm)
         summary = report['mitm_script_coverage_summary']
         self.assertEqual(summary['covered_references'], 2)
@@ -236,8 +234,7 @@ http-response ^https:\\/\\/api\\.example\\.test\\/v1 script-path=https://cdn.exa
 [MITM]
 hostname = *.example.test
 '''
-        fixture = fixture.replace('%URL%', '
-    unittest.main()
+        fixture = fixture.replace('%URL%', chr(36) + '{url}')
 +'{url}')
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / 'sample.plugin'
