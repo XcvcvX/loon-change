@@ -2,8 +2,8 @@
   "change_counts": {
     "rewrite": {
       "action_changed": 0,
-      "added": 1,
-      "removed": 1
+      "added": 0,
+      "removed": 0
     },
     "rule": {
       "action_changed": 0,
@@ -16,55 +16,14 @@
       "removed": 0
     }
   },
-  "events": [
-    {
-      "after": {
-        "line": "response if ${url} ~= /^https?:\\/\\/gateway\\.tuhu\\.cn\\/mkt\\/mkt-scene-marketing-service\\/api\\/scene\\/queryScheme(?:\\?.*)?$/ then response.json.jq(`. as $o | try (if ((.data.pageId? // \"\") == \"/launch\") then (.data.moduleActionList = [] | .data.dsl = null) else . end) catch $o`)",
-        "section": "rewrite",
-        "sources": [
-          "thelong"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "rewrite",
-      "source_scores": {
-        "thelong": 0
-      },
-      "sources": [
-        "thelong"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "^https?://gateway\\.tuhu\\.cn/mkt/mkt-scene-marketing-service/api/scene/queryScheme response-body-json-jq '. as $o | try (if (.data.pageId==\"/launch\") then (.data.moduleActionList=[]) else . end) catch $o'",
-        "section": "rewrite",
-        "sources": [
-          "thelong"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "rewrite",
-      "source_scores": {
-        "thelong": 0
-      },
-      "sources": [
-        "thelong"
-      ]
-    }
-  ],
-  "overall_risk": "high",
+  "events": [],
+  "overall_risk": "low",
   "risk_counts": {
-    "high": 1,
+    "high": 0,
     "low": 0,
-    "medium": 1
+    "medium": 0
   },
-  "run_id": "\"42998409163\"",
+  "run_id": "\"42999913990\"",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; removals and action changes are high risk.",
@@ -96,11 +55,5 @@
       "snapshots_seen": 3
     }
   },
-  "upstream_revision_changes": [
-    {
-      "current_commit": "2d0443ce1ecec36cf173634e77ba52224efbdc38",
-      "previous_commit": "dc6c094c8b7a764b379c2c5af2edaba175b1b3df",
-      "source": "thelongdarkorg"
-    }
-  ]
+  "upstream_revision_changes": []
 }
