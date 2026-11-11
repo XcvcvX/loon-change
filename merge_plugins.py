@@ -716,11 +716,11 @@ def prep_block_sections(rewrite_lines, script_lines):
 
 
 # 555影视：上游注释明确声明的业务主机范围。通配项只匹配其子域，不包含根域。
-_555_GENERIC_HOST = r'[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+){1,3}(:\\d+)?'
+_555_GENERIC_HOST = r'[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+){1,3}(:\d+)?'
 _555_SCOPED_HOST = (
-    r'(?:vip7\\.fzwdyy\\.cn|(?:[A-Za-z0-9-]+\\.)+qyfxgd\\.cn|'
-    r'(?:[A-Za-z0-9-]+\\.)+weilai555\\.com|'
-    r'(?:[A-Za-z0-9-]+\\.)+ecoliving168\\.com)(?::\\d+)?'
+    r'(?:vip7\.fzwdyy\.cn|(?:[A-Za-z0-9-]+\.)+qyfxgd\.cn|'
+    r'(?:[A-Za-z0-9-]+\.)+weilai555\.com|'
+    r'(?:[A-Za-z0-9-]+\.)+ecoliving168\.com)(?::\d+)?'
 )
 
 
@@ -731,13 +731,13 @@ def narrow_555_scope(rewrite_lines, script_lines):
     def narrow(line, section):
         is_555_advert = (
             section == 'Rewrite'
-            and r'/api\\/v\\d\\/advert' in line
+            and r'/api\/v\d\/advert' in line
             and 'reject(404)' in line
         )
         is_555_script = (
             section == 'Script'
             and '555Ad.js' in line
-            and r'/api\\/v\\d\\/movie\\/index_recommend' in line
+            and r'/api\/v\d\/movie\/index_recommend' in line
         )
         if not (is_555_advert or is_555_script):
             return line
