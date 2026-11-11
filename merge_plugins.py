@@ -2136,11 +2136,13 @@ if args.provenance_out:
     # Indices mirror the flattened feeds assembled above; no rule ordering is changed.
     source_origins = {}
 
-    def _record_origin(source, section, index, filename, line_number, raw_line):
+    def _record_origin(source, section, index, filename, line_number, raw_line,
+                       original_section=None):
         source_origins[(source, section, index)] = {
             'source_file': filename,
             'source_line_number': line_number,
             'source_raw_line': raw_line,
+            'source_original_section': original_section or section,
         }
 
     def _raw_rows(path):
@@ -2152,7 +2154,10 @@ if args.provenance_out:
                     current = match.group(1).strip()
                     continue
                 value = raw.strip()
-                if current and value and not value.startswith(('#', '//')):
+                # Match parse_loose_sections()/real_lines(): only '#' is currently
+                # treated as a comment. Even a '//' row occupies a feed index.
+                # Skipping it here shifts all later source origins.
+                if current and value and not value.startswith('#'):
                     yield current, line_number, value
 
     if args.apps:
@@ -2194,7 +2199,7 @@ if args.provenance_out:
                     continue
                 _record_origin('aoomee', target_section, indices[target_section],
                                ('plugins/' if pdir.endswith('/plugins') else '') + filename,
-                               line_number, raw_line)
+                               line_number, raw_line, original_section=section)
                 indices[target_section] += 1
 
     if args.zmjde:
@@ -2225,6 +2230,27 @@ if args.provenance_out:
         rw_provenance_feeds, merged_rw, 'Rewrite')
     script_provenance = _section_provenance(
         sc_provenance_feeds, merged_sc, 'Script')
+    # Fail closed if an AOOMEE source origin no longer describes the exact
+    # flattened feed entry. This catches line-index drift before publication.
+    for provenance_record in rewrite_provenance:
+        for source_row in provenance_record.get('sources', []):
+            if source_row.get('source') != 'aoomee':
+                continue
+            raw_line = source_row.get('source_raw_line')
+            input_line = source_row.get('input_line')
+            original_section = source_row.get('source_original_section')
+            if not raw_line or not input_line or not original_section:
+                raise RuntimeError('aoomee Rewrite provenance is missing source-origin fields: '
+                                   + provenance_record.get('output_line', ''))
+            expected_line = (convert_shadowrocket_line(raw_line)
+                             if original_section == 'Rewrite' else raw_line.strip())
+            if expected_line != input_line:
+                raise RuntimeError(
+                    'aoomee Rewrite provenance source-origin mismatch: '
+                    + str(source_row.get('source_file')) + ':'
+                    + str(source_row.get('source_line_number')) + ' -> '
+                    + provenance_record.get('output_line', '')
+                )
     rule_output_index = {line: index for index, line in enumerate(rule_items, 1)}
     for event in rule_provenance_events:
         origin = source_origins.get((event.get('source'), 'Rule', event.get('source_entry_index')))
