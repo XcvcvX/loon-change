@@ -3,7 +3,7 @@
     "rewrite": {
       "action_changed": 0,
       "added": 0,
-      "removed": 0
+      "removed": 1
     },
     "rule": {
       "action_changed": 0,
@@ -16,14 +16,35 @@
       "removed": 0
     }
   },
-  "events": [],
-  "overall_risk": "low",
+  "events": [
+    {
+      "after": null,
+      "before": {
+        "line": "request if ${url} ~= /^https?:\\/\\/119\\.29\\.29\\.\\d+\\/d/ then reject(200)",
+        "section": "rewrite",
+        "sources": [
+          "block"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "source_scores": {
+        "block": 0
+      },
+      "sources": [
+        "block"
+      ]
+    }
+  ],
+  "overall_risk": "high",
   "risk_counts": {
-    "high": 0,
+    "high": 1,
     "low": 0,
     "medium": 0
   },
-  "run_id": "\"42979786593\"",
+  "run_id": "\"42984300222\"",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; removals and action changes are high risk.",
@@ -35,6 +56,13 @@
   "source_health_score": 100.0,
   "source_health_status": "pass",
   "source_health_warnings": [],
-  "source_trends_last_30_snapshots": {},
+  "source_trends_last_30_snapshots": {
+    "block": {
+      "action_changed": 0,
+      "added": 0,
+      "removed": 1,
+      "snapshots_seen": 1
+    }
+  },
   "upstream_revision_changes": []
 }

@@ -129,7 +129,15 @@
     "rewrite": {
       "action_changed": [],
       "added": [],
-      "removed": []
+      "removed": [
+        {
+          "line": "request if ${url} ~= /^https?:\\/\\/119\\.29\\.29\\.\\d+\\/d/ then reject(200)",
+          "section": "rewrite",
+          "sources": [
+            "block"
+          ]
+        }
+      ]
     },
     "rule": {
       "action_changed": [],
@@ -146,7 +154,7 @@
     "rewrite": {
       "action_changed": 0,
       "added": 0,
-      "removed": 0
+      "removed": 1
     },
     "rule": {
       "action_changed": 0,
@@ -158,7 +166,7 @@
       "added": 0,
       "removed": 0
     },
-    "total_changes": 0
+    "total_changes": 1
   },
   "upstream_revision_changes": []
 }
