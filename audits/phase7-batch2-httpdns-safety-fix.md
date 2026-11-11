@@ -2,7 +2,7 @@
 
 ## Proposed change
 
-Exclude exactly this blockAdsV2 Rewrite rule from the merged output:
+Exclude the ZhangLe Cai Fu Tong app-specific HTTPDNS block from the merged output, because the user does not use that app:
 
 \`\`\`loon
 request if ${url} ~= /^https?:\/\/119\.29\.29\.\d+\/d/ then reject(200)
@@ -25,11 +25,13 @@ Official references:
 - https://cloud.tencent.com/document/product/379/95497
 - https://cloud.tencent.com.cn/document/product/379/3522
 
+Also remove the exact `119.29.29.*` MITM hostname declaration contributed by the same blockAdsV2 source section. The merger records this separately as `mitm_exclusions`; if another independent source declares the same hostname, that other source is not filtered.
+
 ## Exact scope and safety
 
 - Only the exact normalized matcher \`^https?://119\\.29\\.29\\.\\d+/d\` with action \`reject(200)\` from the blockAdsV2 Rewrite feed is excluded.
 - Other paths on \`119.29.29.98\`, other IP addresses, and different actions are not excluded.
-- No MITM hostname, other Rewrite, Script, Rule, source priority, or plugin setting is changed.
+- The paired `119.29.29.*` MITM wildcard is removed only from the blockAdsV2 source contribution; no other source's hostname declaration, other Rewrite, Script, Rule, source priority, or plugin setting is changed.
 - The exclusion is recorded in \`rule-provenance.json\` under \`rewrite_exclusions\`, including the original line and source line number.
 - A regression test verifies that the broad HTTPDNS matcher disappears while an unrelated path on the same IP remains.
 
