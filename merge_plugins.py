@@ -1535,7 +1535,7 @@ if any(is_ip_literal_host(h) for h in mitm):
 
 def host_zone_from_regex(rx):
     """从 entry_regex 输出提取 host 部分（起始 ^ 可选），无法提取返回 None。"""
-    m = re.match(r'\^?https?\??://', rx)
+    m = re.match(r'\^?http(?:s|\[s\])?\??://', rx)
     if not m:
         return None
     rest = rx[m.end():]

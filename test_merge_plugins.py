@@ -145,6 +145,26 @@ hostname = *.amap.com
         self.assertIn("jdLiteAdvertisingVO", no_guard)
         self.assertIn("response-body-replace-regex jdLiteAdvertisingVO sooyaaabo", no_guard)
 
+    def test_http_optional_s_character_class_scheme_does_not_keep_unrelated_zhangle_mitm(self):
+        # Thelong's magev6 matcher uses http[s]?:// rather than https?://.
+        # It is a valid narrow hostname pattern, but must not be treated as
+        # an unextractable HTTPS matcher that keeps unrelated ZhangLe hosts.
+        extra = (
+            "[Rewrite]\n"
+            r"^http[s]?://magev6\.if\.qidian\.com/argus/api/v1/bookshelf/refresh reject_dict(200)" + "\n"
+            "[MITM]\nhostname = c.zhangle.com, live.inst-service.htsc.com, geetest.htsc.com\n"
+        )
+        output, report = self.run_merge(
+            "[Rewrite]\n[Script]\n[MITM]\nhostname = \n",
+            extra,
+            return_provenance=True,
+        )
+        mitm_line = next(line for line in output.splitlines()
+                         if line.strip().startswith("hostname ="))
+        for host in ("c.zhangle.com", "live.inst-service.htsc.com", "geetest.htsc.com"):
+            self.assertNotIn(host, mitm_line)
+        self.assertIn(r"magev6\.if\.qidian\.com", output)
+
     def test_unused_zhangle_rules_are_removed_from_base_and_block_with_shared_mitm_safety(self):
         base = (
             "[Rewrite]\n"

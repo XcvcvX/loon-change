@@ -146,3 +146,12 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 仅在三个历史遗留主机的只读保留诊断中识别这一种 DNS 不可能匹配的控制字符形式；其他 Python/ICU 不兼容表达式（例如 `\\p{L}`）继续保守保留。
 - 不修改 KFC 或其他任何广告 Rewrite/Script 规则及动作；增加集成回归测试，验证控制字符模式不再误保留三个目标主机，同时既有 ICU Unicode 属性模式仍保留真实可能命中的主机。
 - 正式验收以同步日志及 main 分支生成的 `allAdRewrite.plugin` 为准。
+
+
+## 第七阶段第十三批：兼容 http[s]?:// 协议前缀
+
+- 第十二批正式同步后，三个历史遗留 MITM 主机仍被保留；生产日志定位到 `^http[s]?://magev6\\.if\\.qidian\\.com/...` matcher。
+- 该规则使用合法的正则字符类协议写法 `http[s]?://`，此前 `host_zone_from_regex()` 只识别 `https?://`，将其误判为无法提取主机的 HTTPS matcher，触发 fail-closed 保留。
+- 扩展协议前缀识别，同时兼容 `https?://` 与 `http[s]?://`；不改变 URL matcher 本身、不改变任何广告动作。
+- 增加集成回归测试，确保 magev6 的精确 host 正常解析、不会误保留三个无关 ZhangLe 主机；无法解析的宽泛 HTTPS matcher 仍保持 fail-closed。
+- 正式验收以同步日志和 main 分支生成的 `allAdRewrite.plugin` 为准。
