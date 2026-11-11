@@ -205,6 +205,35 @@ hostname = *.amap.com
             self.assertNotIn(host, mitm_line)
         self.assertIn("foo.pangle.cn", mitm_line)
 
+    def test_leading_literal_closing_bracket_does_not_end_host_character_class(self):
+        # In []/], the first closing bracket is a literal class member.
+        # The slash remains inside the class until the final closing bracket.
+        base = (
+            "[Rewrite]\n"
+            + r"^https?:\/\/[]/]*\.pangle\.cn\/advertisement\/ reject" + "\n"
+            + "[MITM]\nhostname = c.zhangle.com, live.inst-service.htsc.com, geetest.htsc.com, foo.pangle.cn\n"
+        )
+        output = self.run_merge(base, "[Rewrite]\n[MITM]\nhostname = \n")
+        mitm_line = next(line for line in output.splitlines()
+                         if line.strip().startswith("hostname ="))
+        for host in ("c.zhangle.com", "live.inst-service.htsc.com", "geetest.htsc.com"):
+            self.assertNotIn(host, mitm_line)
+        self.assertIn("foo.pangle.cn", mitm_line)
+
+    def test_negated_class_with_leading_literal_closing_bracket_keeps_slash_inside(self):
+        # In [^]/], ']' is also a literal first member after the negation.
+        base = (
+            "[Rewrite]\n"
+            + r"^https?:\/\/[^]/]*\.pangle\.cn\/advertisement\/ reject" + "\n"
+            + "[MITM]\nhostname = c.zhangle.com, live.inst-service.htsc.com, geetest.htsc.com, foo.pangle.cn\n"
+        )
+        output = self.run_merge(base, "[Rewrite]\n[MITM]\nhostname = \n")
+        mitm_line = next(line for line in output.splitlines()
+                         if line.strip().startswith("hostname ="))
+        for host in ("c.zhangle.com", "live.inst-service.htsc.com", "geetest.htsc.com"):
+            self.assertNotIn(host, mitm_line)
+        self.assertIn("foo.pangle.cn", mitm_line)
+
     def test_http_only_capture_group_does_not_disable_mitm_pruning(self):
         # A pure-HTTP redirect matcher with a capturing group cannot be parsed
         # by host_zone_from_regex. It must not be mistaken for HTTPS coverage.
