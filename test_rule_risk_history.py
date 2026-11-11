@@ -34,6 +34,36 @@ class RuleRiskHistoryTests(unittest.TestCase):
         self.assertEqual(risk["overall_risk"], "high")
         self.assertEqual(risk["risk_counts"], {"high": 2, "medium": 1, "low": 0})
 
+    def test_proven_semantic_duplicate_removal_is_low_risk_only_with_exact_coverage(self):
+        diff = {
+            "sections": {
+                "rewrite": {
+                    "removed": [{
+                        "line": "^https://a.example/ad reject-dict",
+                        "sources": ["alpha"],
+                    }]
+                }
+            },
+            "current_upstream_revisions": {},
+            "upstream_revision_changes": [],
+        }
+        provenance = {
+            "rewrite_exclusions": [{
+                "status": "excluded_semantic_duplicate",
+                "source_raw_line": "^https://a.example/ad reject-dict",
+                "covered_by": "^https://a.example/(?:ad|promo)",
+                "reason": "same matcher and action",
+            }]
+        }
+        risk, _ = build_risk(diff, self.health, {}, {}, "semantic", provenance)
+        self.assertEqual(risk["risk_counts"], {"high": 0, "medium": 0, "low": 1})
+        self.assertIn("covered_by", risk["events"][0]["semantic_duplicate_coverage"])
+
+        # Similar wording or a different source line must not be enough.
+        provenance["rewrite_exclusions"][0]["source_raw_line"] = "^https://a.example/other reject-dict"
+        risk, _ = build_risk(diff, self.health, {}, {}, "uncovered", provenance)
+        self.assertEqual(risk["risk_counts"]["high"], 1)
+
     def test_low_source_score_escalates_addition(self):
         self.diff["sections"]["rewrite"]["removed"] = []
         self.diff["sections"]["rewrite"]["action_changed"] = []

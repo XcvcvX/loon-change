@@ -171,7 +171,7 @@ jobs:
 
       - name: 规则变更风险分级与来源历史趋势
         run: |
-          python3 rule_risk_history.py --diff /tmp/loon-build/rule-diff.json --health /tmp/loon-build/source-health.json --source-report source-report.json --previous-history /tmp/loon-build/rule-history.previous.json --run-id \"$GITHUB_RUN_ID\" --risk-out /tmp/loon-build/rule-risk.json --history-out /tmp/loon-build/rule-history.json
+          python3 rule_risk_history.py --diff /tmp/loon-build/rule-diff.json --health /tmp/loon-build/source-health.json --source-report source-report.json --provenance /tmp/loon-build/rule-provenance.json --previous-history /tmp/loon-build/rule-history.previous.json --run-id \"$GITHUB_RUN_ID\" --risk-out /tmp/loon-build/rule-risk.json --history-out /tmp/loon-build/rule-history.json
 
       - name: 只读审计 UDP、MITM 与 Script 风险
         run: |
