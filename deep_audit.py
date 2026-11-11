@@ -479,13 +479,18 @@ def audit_mitm_script_coverage(rewrite_rows, script_rows, mitm_rows):
                 continue
             dynamic_suffix = reason == 'regex_host_suffix'
             state, covered_by, excluded_by = host_matches_mitm(host, positive, negative, dynamic_suffix)
-            references.append({
+            if dynamic_suffix and state == 'not_listed':
+                state = 'dynamic_unresolved'
+            reference = {
                 'source': source, 'line': number, 'phase': phase,
                 'matcher': matcher[:240], 'host': host,
                 'host_kind': 'regex_suffix_candidate' if dynamic_suffix else 'literal',
                 'action': action if source == 'rewrite' else None, 'coverage': state,
                 'mitm_entries': covered_by, 'negative_exclusions': excluded_by
-            })
+            }
+            references.append(reference)
+            if state == 'dynamic_unresolved':
+                ambiguous.append({**reference, 'reason': 'regex_host_suffix_without_matching_wildcard'})
 
     missing = [x for x in references if x['coverage'] == 'not_listed']
     excluded = [x for x in references if x['coverage'] == 'negative_excluded']
