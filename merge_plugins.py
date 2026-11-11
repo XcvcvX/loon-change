@@ -742,6 +742,47 @@ base_sc = real_lines(base_sec.get('Script', []))
 # blockAdsV2
 block_rw, block_sc = prep_block_sections(
     extra_sec.get('Rewrite', []), extra_sec.get('Script', []))
+
+
+# Tencent Cloud HTTPDNS safety exclusion:
+# The broad upstream matcher also catches the current HTTPDNS endpoints
+# 119.29.29.98 (HTTP) and 119.29.29.99 (HTTPS), not just the retired .29 endpoint.
+# Keep the exclusion exact: do not suppress other paths, IPs, or actions.
+_BLOCK_HTTPDNS_MATCHER = r'^https?://119\.29\.29\.\d+/d'
+_BLOCK_HTTPDNS_ACTION = ('REJECT', 'reject', 'reject(200)')
+block_rewrite_exclusions = []
+block_mitm_exclusions = []
+_block_rw_kept = []
+for _block_index, _block_line in enumerate(block_rw):
+    if (entry_regex(_block_line) == _BLOCK_HTTPDNS_MATCHER
+            and action_key(_block_line) == _BLOCK_HTTPDNS_ACTION):
+        _source_line_number = None
+        _section = None
+        for _line_number, _raw_line in enumerate(extra_text.splitlines(), 1):
+            _section_match = re.match(r'^\[([A-Za-z]+)\]\s*$', _raw_line)
+            if _section_match:
+                _section = _section_match.group(1)
+            elif _section == 'Rewrite' and _raw_line.strip() == _block_line.strip():
+                _source_line_number = _line_number
+                break
+        block_rewrite_exclusions.append({
+            'source': 'block',
+            'source_catalog': 'fmz200/wool_scripts blockAdsV2',
+            'source_entry_index': _block_index,
+            'source_line_number': _source_line_number,
+            'input_line': _block_line,
+            'matcher': _BLOCK_HTTPDNS_MATCHER,
+            'action': 'reject(200)',
+            'reason': (
+                'Overbroad HTTPDNS path block: matcher catches active Tencent Cloud '
+                'HTTPDNS endpoints 119.29.29.98 (HTTP) and 119.29.29.99 (HTTPS); '
+                'the legacy 119.29.29.29 endpoint was retired.'
+            ),
+            'status': 'excluded_safety_guard',
+        })
+    else:
+        _block_rw_kept.append(_block_line)
+block_rw = _block_rw_kept
 # Thelongdarkorg（标准 v1，直接保留）
 thelong_rw, thelong_sc = [], []
 thelong_rule, thelong_mitm = [], []
@@ -1038,6 +1079,22 @@ extra_raw = []
 for l in extra_sec.get('MITM', []):
     if '=' in l:
         extra_raw += [x.strip() for x in l.split('=', 1)[1].split(',') if x.strip()]
+# The 119.29.29.* MITM wildcard is declared only by the unused ZhangLe Cai Fu Tong
+# app-specific feed alongside its HTTPDNS blocking rule. Remove this source's
+# declaration, but allow another independent source to retain it if needed.
+_block_mitm_kept = []
+for _host in extra_raw:
+    if _host.lower() == '119.29.29.*':
+        block_mitm_exclusions.append({
+            'source': 'block',
+            'source_catalog': 'fmz200/wool_scripts blockAdsV2 / ZhangLeCaiFuTong',
+            'hostname': _host,
+            'reason': 'Only declared by the unused ZhangLe Cai Fu Tong app-specific ad feed; its paired HTTPDNS blocking Rewrite is excluded.',
+            'status': 'excluded_unused_app',
+        })
+    else:
+        _block_mitm_kept.append(_host)
+extra_raw = _block_mitm_kept
 dropped = []
 for h in extra_raw + thelong_mitm + ao_mitm + amap_mitm + zmj_app_mitm + zmj_gen_mitm + qxapp_mitm + mb_mitm:
     got = normalize_extra_host(h, guard_real)
@@ -1486,6 +1543,8 @@ if args.provenance_out:
         'upstream_revisions': upstream_revisions,
         'repository': 'XcvcvX/loon-change',
         'scope': ['Rewrite', 'Script', 'Rule'],
+        'rewrite_exclusions': block_rewrite_exclusions,
+        'mitm_exclusions': block_mitm_exclusions,
         'limitations': [
             'source_entry_index is the ordinal within the extracted source feed, not the original upstream file line number',
             'exact source filename and 1-based line attribution is included for Thelongdarkorg, aoomee, and zmjde App plugin feeds; other sources retain feed indices until their source mapping is added',

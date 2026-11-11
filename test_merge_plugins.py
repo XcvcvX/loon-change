@@ -103,6 +103,42 @@ hostname = *.amap.com
         self.assertIn("two.example.com/b", output)
         self.assertIn("three.example.com", output)
 
+    def test_active_tencent_httpdns_endpoints_are_not_blocked_by_broad_ip_rule(self):
+        base = "[Rewrite]\n[MITM]\nhostname = \n"
+        extra = (
+            "[Rewrite]\n"
+            r"request if " + "${url}" + r" ~= /^https?:\/\/119\.29\.29\.\d+\/d/ then reject(200)" + "\n"
+            r"request if " + "${url}" + r" ~= /^https?:\/\/119\.29\.29\.98\/health/ then reject(200)" + "\n"
+            "[MITM]\nhostname = \n"
+        )
+        output, report = self.run_merge(
+            base, extra, return_provenance=True
+        )
+        self.assertNotIn(r"119\.29\.29\.\d+\/d", output)
+        self.assertIn(r"119\.29\.29\.98\/health", output)
+        exclusions = report.get("rewrite_exclusions", [])
+        self.assertEqual(len(exclusions), 1)
+        self.assertEqual(exclusions[0]["source"], "block")
+        self.assertEqual(exclusions[0]["status"], "excluded_safety_guard")
+        self.assertEqual(exclusions[0]["action"], "reject(200)")
+        self.assertIn("119.29.29.98", exclusions[0]["reason"])
+        self.assertIn("119.29.29.99", exclusions[0]["reason"])
+
+    def test_unused_zhangle_app_httpdns_mitm_wildcard_is_removed(self):
+        base = "[Rewrite]\n[MITM]\nhostname = \n"
+        extra = (
+            "[Rewrite]\n"
+            r"request if " + "${url}" + r" ~= /^https?:\\/\\/119\\.29\\.29\\.\\d+\\/d/ then reject(200)" + "\n"
+            "[MITM]\nhostname = 119.29.29.*\n"
+        )
+        output, report = self.run_merge(base, extra, return_provenance=True)
+        mitm_line = next(line for line in output.splitlines() if line.strip().startswith("hostname ="))
+        self.assertNotIn("119.29.29.*", mitm_line)
+        exclusions = report.get("mitm_exclusions", [])
+        self.assertEqual(len(exclusions), 1)
+        self.assertEqual(exclusions[0]["hostname"], "119.29.29.*")
+        self.assertEqual(exclusions[0]["status"], "excluded_unused_app")
+
     def test_reject_variants_are_not_collapsed(self):
         output = self.run_merge(
             "[Rewrite]\n^https://same.example.com/ad reject\n[MITM]\nhostname = same.example.com\n",
