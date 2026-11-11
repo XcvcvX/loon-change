@@ -845,13 +845,13 @@ hostname = *.amap.com
     def test_thelong_provenance_tracks_origins_after_rewrite_filtering(self):
         base = (
             "[Rewrite]\n"
-            r"^https?://api\.m\.jd\.com/client\.action\\?functionId=lite_advertising reject" + "\n"
+            r"^https?://api\.m\.jd\.com/client\.action\?functionId=lite_advertising reject" + "\n"
             "[Script]\n[MITM]\nhostname = api.m.jd.com, ads.example.com\n"
         )
         apps = {
             "a_jd_splash_ad_block.plugin": (
                 "#!name=JD\n[Rewrite]\n"
-                r"^https?://api\.m\.jd\.com/client\.action\\?functionId=lite_advertising response-body-replace-regex jdLiteAdvertisingVO sooyaaabo" + "\n"
+                r"^https?://api\.m\.jd\.com/client\.action\?functionId=lite_advertising response-body-replace-regex jdLiteAdvertisingVO sooyaaabo" + "\n"
                 "[MITM]\nhostname = api.m.jd.com\n"
             ),
             "z_sample_ad_block.plugin": (
