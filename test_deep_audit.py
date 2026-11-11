@@ -8,11 +8,11 @@ from deep_audit import audit_deep, broad_reasons, parse_rewrite
 
 class DeepAuditTests(unittest.TestCase):
     def test_modern_rewrite_and_conflicting_actions(self):
-        line = r'request if \${url} ~= /^https:\/\/api\.example\.com\/ad/ then reject'
+        line = r'request if ${url} ~= /^https:\/\/api\.example\.com\/ad/ then reject'
         self.assertEqual(parse_rewrite(line)[0], 'request')
         fixture = '''[Rewrite]
-request if \${url} ~= /^https:\\/\\/api\\.example\\.com\\/ad/ then reject
-request if \${url} ~= /^https:\\/\\/api\\.example\\.com\\/ad/ then reject-dict
+request if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/ad/ then reject
+request if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/ad/ then reject-dict
 '''
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / 'sample.plugin'
