@@ -68,6 +68,33 @@ request if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/ad/ then reject-dict
             'domain_scoped_subdomain_wildcard'), 1)
         self.assertEqual(report['summary']['rewrite_scope_review_candidates'], 3)
 
+    def test_modern_rewrite_with_unescaped_slashes_alias_and_conditions(self):
+        unescaped = r'request if ${url} ~= /http://ssp\.dzh\.com\.cn/v2api/adgroupjson/ then reject(404)'
+        parsed = parse_rewrite(unescaped)
+        self.assertEqual(parsed[0], 'request')
+        self.assertEqual(parsed[1], r'http://ssp\.dzh\.com\.cn/v2api/adgroupjson')
+        self.assertEqual(parsed[2], 'reject(404)')
+
+        alias = r'request if ${url} ~= /http:\/\/api\.example\.com\/artist\/(.*)/ as m then redirect(302, "${m.1}")'
+        parsed_alias = parse_rewrite(alias)
+        self.assertEqual(parsed_alias[1], r'http:\/\/api\.example\.com\/artist\/(.*)')
+        self.assertTrue(parsed_alias[2].startswith('redirect(302'))
+
+        compound = r'request if ${url} ~= /https:\/\/api\.example\.com\/ad/i && ${request.method} == "POST" then reject_video(200)'
+        parsed_compound = parse_rewrite(compound)
+        self.assertEqual(parsed_compound[1], r'https:\/\/api\.example\.com\/ad')
+        self.assertEqual(parsed_compound[2], 'reject_video(200)')
+
+        numeric_legacy = r'https:\/\/api\.example\.com\/ad 302 https://example.com/data.json'
+        self.assertEqual(parse_rewrite(numeric_legacy)[2], '302')
+
+        fixture = "[Rewrite]\n" + "\n".join([unescaped, alias, compound, numeric_legacy]) + "\n"
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'modern.plugin'
+            path.write_text(fixture, encoding='utf-8')
+            report = audit_deep(path)
+        self.assertEqual(report['summary']['rewrite_entries'], 4)
+        self.assertEqual(report['summary']['rewrite_unparsed'], 0)
     def test_mitm_and_script_candidates(self):
         fixture = '''[Rewrite]
 ^https://api.example.com/ad reject
