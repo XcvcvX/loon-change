@@ -125,11 +125,11 @@ hostname = *.amap.com
         self.assertIn("119.29.29.99", exclusions[0]["reason"])
 
     def test_unused_zhangle_app_httpdns_mitm_wildcard_is_removed(self):
-        base = "[Rewrite]\\n[MITM]\\nhostname = \\n"
+        base = "[Rewrite]\n[MITM]\nhostname = \n"
         extra = (
-            "[Rewrite]\\n"
-            r"request if " + "${url}" + r" ~= /^https?:\\/\\/119\\.29\\.29\\.\\d+\\/d/ then reject(200)" + "\\n"
-            "[MITM]\\nhostname = 119.29.29.*\\n"
+            "[Rewrite]\n"
+            r"request if " + "${url}" + r" ~= /^https?:\\/\\/119\\.29\\.29\\.\\d+\\/d/ then reject(200)" + "\n"
+            "[MITM]\nhostname = 119.29.29.*\n"
         )
         output, report = self.run_merge(base, extra, return_provenance=True)
         mitm_line = next(line for line in output.splitlines() if line.strip().startswith("hostname ="))
