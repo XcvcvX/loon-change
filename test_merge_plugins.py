@@ -127,6 +127,43 @@ hostname = *.amap.com
         self.assertIn("119.29.29.98", exclusions[0]["reason"])
         self.assertIn("119.29.29.99", exclusions[0]["reason"])
 
+    def test_unused_zhangle_app_specific_rule_and_mitm_are_removed(self):
+        base = (
+            "[Rewrite]\n"
+            r"^https?:\/\/c\.zhangle\.com\/pic\/mktg\/diversity\/.+\.jpg$ reject-dict" + "\n"
+            "[MITM]\nhostname = c.zhangle.com\n"
+        )
+        extra = "[Rewrite]\n[MITM]\nhostname = \n"
+        output, report = self.run_merge(base, extra, return_provenance=True)
+        self.assertNotIn(r"c\.zhangle\.com\/pic\/mktg\/diversity", output)
+        mitm_line = next(
+            line for line in output.splitlines()
+            if line.strip().startswith("hostname =")
+        )
+        self.assertNotIn("c.zhangle.com", mitm_line)
+        exclusions = [
+            item for item in report["rewrite_exclusions"]
+            if item["source_catalog"] == "R-Store / 涨乐财富通 - ZHANGLE"
+        ]
+        self.assertEqual(len(exclusions), 1)
+        self.assertEqual(exclusions[0]["status"], "excluded_unused_app")
+        self.assertEqual(exclusions[0]["action"], "reject-dict(200)")
+
+        # If another retained rule independently uses this host, MITM must remain.
+        shared_base = (
+            "[Rewrite]\n"
+            r"^https?:\/\/c\.zhangle\.com\/pic\/mktg\/diversity\/.+\.jpg$ reject-dict" + "\n"
+            r"^https?:\/\/c\.zhangle\.com\/health reject" + "\n"
+            "[MITM]\nhostname = c.zhangle.com\n"
+        )
+        shared = self.run_merge(shared_base, extra)
+        shared_mitm = next(
+            line for line in shared.splitlines()
+            if line.strip().startswith("hostname =")
+        )
+        self.assertIn("c.zhangle.com", shared_mitm)
+        self.assertIn(r"c\.zhangle\.com\/health", shared)
+
     def test_unused_zhangle_app_httpdns_mitm_wildcard_is_removed(self):
         base = "[Rewrite]\n[MITM]\nhostname = \n"
         extra = (

@@ -1001,6 +1001,36 @@ def convert_shadowrocket_line(line):
 # base（R-Store 转换产物，原始写法）
 base_rw = real_lines(base_sec.get('Rewrite', []))
 base_sc = real_lines(base_sec.get('Script', []))
+# The user does not use 涨乐财富通. R-Store labels this exact rule
+# under "# > 涨乐财富通 - ZHANGLE"; current provenance shows no other
+# Rewrite or Script rule references c.zhangle.com.
+_ZHANGLE_UNUSED_MATCHER = r'^https?://c\.zhangle\.com/pic/mktg/diversity/.+\.jpg$'
+_ZHANGLE_UNUSED_ACTION = ('REJECT', 'reject_dict', 'reject_dict(200)')
+zhangle_rewrite_exclusions = []
+_zhangle_rw_kept = []
+for _line in base_rw:
+    if r'c\.zhangle\.com\/pic\/mktg\/diversity\/' not in _line:
+        _zhangle_rw_kept.append(_line)
+        continue
+    if (entry_regex(_line) != _ZHANGLE_UNUSED_MATCHER
+            or action_key(_line) != _ZHANGLE_UNUSED_ACTION):
+        raise RuntimeError(
+            'R-Store 涨乐财富通专属规则发生变化，拒绝静默保留或扩大排除范围：'
+            + _line
+        )
+    zhangle_rewrite_exclusions.append({
+        'source': 'base',
+        'source_catalog': 'R-Store / 涨乐财富通 - ZHANGLE',
+        'input_line': _line,
+        'matcher': _ZHANGLE_UNUSED_MATCHER,
+        'action': 'reject-dict(200)',
+        'reason': 'User confirmed they do not use 涨乐财富通; R-Store labels this exact rule in its dedicated ZHANGLE section, and no other Rewrite/Script rule references c.zhangle.com.',
+        'status': 'excluded_unused_app',
+    })
+# Unused c.zhangle.com is removed by prune_unused_mitm; independent uses retain it.
+base_rw = _zhangle_rw_kept
+
+
 # blockAdsV2
 block_rw, block_sc = prep_block_sections(
     extra_sec.get('Rewrite', []), extra_sec.get('Script', []))
@@ -1825,7 +1855,7 @@ if args.provenance_out:
         'upstream_revisions': upstream_revisions,
         'repository': 'XcvcvX/loon-change',
         'scope': ['Rewrite', 'Script', 'Rule'],
-        'rewrite_exclusions': block_rewrite_exclusions,
+        'rewrite_exclusions': zhangle_rewrite_exclusions + block_rewrite_exclusions,
         'mitm_exclusions': block_mitm_exclusions,
         'scope_adjustments': block_scope_adjustments,
         'limitations': [
