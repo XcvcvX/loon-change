@@ -173,6 +173,44 @@ hostname = *.amap.com
         self.assertIn("geetest.htsc.com", shared_mitm)
         self.assertIn(r"geetest\.htsc\.com\/health", shared)
 
+    def test_orphan_zhangle_mitm_hosts_are_removed_when_global_pruner_fails_closed(self):
+        # ICU Unicode-property syntax is valid for Loon but not Python re, so the
+        # generic MITM pruner conservatively keeps the full list. Only the three
+        # exact ZhangLe hosts should be removed; unrelated hosts remain.
+        base = (
+            "[Rewrite]\n"
+            r"^https?:\/\/\p{L}+\.other\.example\.com\/ad reject" + "\n"
+            "[MITM]\nhostname = c.zhangle.com, live.inst-service.htsc.com, geetest.htsc.com, other.example.com\n"
+        )
+        output, report = self.run_merge(
+            base, "[Rewrite]\n[MITM]\nhostname = \n",
+            return_provenance=True,
+        )
+        mitm_line = next(line for line in output.splitlines()
+                         if line.strip().startswith("hostname ="))
+        for host in ("c.zhangle.com", "live.inst-service.htsc.com", "geetest.htsc.com"):
+            self.assertNotIn(host, mitm_line)
+        self.assertIn("other.example.com", mitm_line)
+        removed = {x["hostname"] for x in report.get("mitm_exclusions", [])
+                   if x.get("source") == "merged_mitm"}
+        self.assertEqual(removed, {
+            "c.zhangle.com", "live.inst-service.htsc.com", "geetest.htsc.com"
+        })
+
+    def test_zhangle_mitm_host_is_retained_if_unsupported_pattern_may_match_it(self):
+        # The ICU matcher is not understood by Python re, but its literal suffix
+        # proves it may target geetest.htsc.com; retain that MITM host.
+        base = (
+            "[Rewrite]\n"
+            r"^https?:\/\/\p{L}+\.htsc\.com\/health reject" + "\n"
+            "[MITM]\nhostname = geetest.htsc.com, c.zhangle.com\n"
+        )
+        output = self.run_merge(base, "[Rewrite]\n[MITM]\nhostname = \n")
+        mitm_line = next(line for line in output.splitlines()
+                         if line.strip().startswith("hostname ="))
+        self.assertIn("geetest.htsc.com", mitm_line)
+        self.assertNotIn("c.zhangle.com", mitm_line)
+
     def test_zhangle_block_rule_drift_fails_closed(self):
         base = "[Rewrite]\n[MITM]\nhostname = \n"
         changed = (

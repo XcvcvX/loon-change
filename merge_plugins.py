@@ -1745,6 +1745,68 @@ def prune_unused_mitm(mitm_hosts, rule_lines):
 _mitm_before_prune = len(mitm)
 mitm = prune_unused_mitm(mitm, merged_rw + merged_sc)
 mitm_pruned = _mitm_before_prune - len(mitm)
+# The three exact ZhangLe hosts become orphaned after all dedicated Rewrite rules
+# are excluded. The general MITM pruner intentionally fails closed when any
+# host pattern cannot be analyzed; remove only these exact app-specific hosts
+# after checking whether any final Rewrite/Script matcher could target them.
+_ZHANGLE_UNUSED_MITM_HOSTS = {
+    'c.zhangle.com',
+    'live.inst-service.htsc.com',
+    'geetest.htsc.com',
+}
+zhangle_mitm_exclusions = []
+_kept_zhangle_mitm = []
+for _host in mitm:
+    _host_lower = _host.lower()
+    if _host_lower not in _ZHANGLE_UNUSED_MITM_HOSTS:
+        _kept_zhangle_mitm.append(_host)
+        continue
+    _could_be_referenced = False
+    for _line in merged_rw + merged_sc:
+        _rx = entry_regex(_line)
+        if not _rx:
+            if re.search(r'https?://', _line, re.IGNORECASE):
+                _could_be_referenced = True
+                break
+            continue
+        _zone = host_zone_from_regex(_rx)
+        if not _zone:
+            if re.search(r'https?://', _rx, re.IGNORECASE):
+                _could_be_referenced = True
+                break
+            continue
+        try:
+            if re.compile('^(?:' + _zone + ')$', re.IGNORECASE).match(_host_lower):
+                _could_be_referenced = True
+                break
+        except re.error:
+            # Python may not understand ICU constructs such as \p{L}.
+            # Use a literal suffix as a conservative host-level fallback.
+            _normalized_zone = _zone.lower().replace(r'\.', '.')
+            _suffix_match = re.search(
+                r'([a-z0-9-]+(?:\.[a-z0-9-]+)+)$', _normalized_zone
+            )
+            if (_host_lower in _normalized_zone or not _suffix_match
+                    or _host_lower == _suffix_match.group(1)
+                    or _host_lower.endswith('.' + _suffix_match.group(1))):
+                _could_be_referenced = True
+                break
+    if _could_be_referenced:
+        _kept_zhangle_mitm.append(_host)
+        continue
+    zhangle_mitm_exclusions.append({
+        'source': 'merged_mitm',
+        'source_catalog': 'R-Store / blockAdsV2 / merged app MITM',
+        'hostname': _host,
+        'reason': (
+            'The three ZhangLe-only Rewrite rules are excluded and no final '
+            'Rewrite/Script matcher can be shown to target this exact host; '
+            'retaining it would add unused TLS interception without ad-blocking effect.'
+        ),
+        'status': 'excluded_unused_app',
+    })
+mitm = _kept_zhangle_mitm
+
 
 # ---------------- 输出 ----------------
 today = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
@@ -1942,7 +2004,7 @@ if args.provenance_out:
         'repository': 'XcvcvX/loon-change',
         'scope': ['Rewrite', 'Script', 'Rule'],
         'rewrite_exclusions': zhangle_rewrite_exclusions + zhangle_block_rewrite_exclusions + block_rewrite_exclusions + lite_advertising_rewrite_exclusions,
-        'mitm_exclusions': block_mitm_exclusions,
+        'mitm_exclusions': block_mitm_exclusions + zhangle_mitm_exclusions,
         'scope_adjustments': block_scope_adjustments,
         'limitations': [
             'source_entry_index is the ordinal within the extracted source feed, not the original upstream file line number',
