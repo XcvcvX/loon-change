@@ -122,7 +122,7 @@ hostname = *.amap.com
             "[MITM]\nhostname = \n"
         )
         apps = {
-            "video.plugin": (
+            "video_ad_block.plugin": (
                 "[Rewrite]\n"
                 r"^https?:\/\/vv\.video\.qq\.com\/(diff|get)vmind reject-dict" + "\n"
                 "[MITM]\nhostname = \n"
@@ -155,7 +155,7 @@ hostname = *.amap.com
         self.assertTrue(all(item.get("covered_by") for item in exclusions))
 
         changed_action_apps = {
-            "video.plugin": (
+            "video_ad_block.plugin": (
                 "[Rewrite]\n"
                 r"^https?:\/\/vv\.video\.qq\.com\/(diff|get)vmind reject" + "\n"
                 "[MITM]\nhostname = \n"
