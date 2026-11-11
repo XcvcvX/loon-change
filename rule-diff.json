@@ -1,0 +1,164 @@
+{
+  "comparison": "previous rule-provenance.json vs current generated rule-provenance.json",
+  "current_upstream_revisions": {
+    "Amap": {
+      "assets": {
+        "loon_Amap.recommend.jq": {
+          "bytes": 10743,
+          "sha256": "0ab7e100686443a41b6df2b44c39c70c2e2af037bdf48c170d05171e7b5ca2c9"
+        },
+        "rucu6_amap.js": {
+          "bytes": 23517,
+          "sha256": "90be0dca3a927df667c805470c31f75e2abd9a7d1c7903dd40e17ecb12c54004"
+        },
+        "search_poi_detail.jq": {
+          "bytes": 11158,
+          "sha256": "7def102b752835f8cbe63167b75dbe19997cb532f7e35d8283de4eeb5f2d4eb6"
+        },
+        "updatable.jq": {
+          "bytes": 10810,
+          "sha256": "dba0888e3e4491e282ce58e547e3a4125f6fd96057d0d5eaf878450fa40bd647"
+        }
+      },
+      "bytes": 15000,
+      "entries": 48,
+      "mitm_hosts": [
+        "*.amap.com"
+      ],
+      "required_assets": [
+        "rucu6_amap.js",
+        "loon_Amap.recommend.jq",
+        "updatable.jq",
+        "search_poi_detail.jq"
+      ],
+      "sections": {
+        "Rewrite": 26,
+        "Rule": 4,
+        "Script": 13
+      },
+      "upstream_commit": "f50b8524e3bfd9d3ca9e2accebdfbd5b2eb91286",
+      "upstream_repository": "https://github.com/ifflagged/Romeo"
+    },
+    "GuaZiVideoAds": {
+      "bytes": 3448,
+      "entries": 6
+    },
+    "aoomee": {
+      "commit": "370a13085514ccca924f43d13c6d3acfa5671dbe",
+      "plugin_files": 27,
+      "rule_lines": 422
+    },
+    "thelongdarkorg": {
+      "commit": "dc6c094c8b7a764b379c2c5af2edaba175b1b3df",
+      "plugin_files": 52,
+      "rule_lines": 991
+    },
+    "zmjde": {
+      "commit": "3e79a9798f1b996f5c05b1a42be5d286890f3f60",
+      "required_plugins": 8,
+      "rule_lines": 766
+    }
+  },
+  "previous_upstream_revisions": {
+    "Amap": {
+      "assets": {
+        "loon_Amap.recommend.jq": {
+          "bytes": 10743,
+          "sha256": "0ab7e100686443a41b6df2b44c39c70c2e2af037bdf48c170d05171e7b5ca2c9"
+        },
+        "rucu6_amap.js": {
+          "bytes": 23517,
+          "sha256": "90be0dca3a927df667c805470c31f75e2abd9a7d1c7903dd40e17ecb12c54004"
+        },
+        "search_poi_detail.jq": {
+          "bytes": 11158,
+          "sha256": "7def102b752835f8cbe63167b75dbe19997cb532f7e35d8283de4eeb5f2d4eb6"
+        },
+        "updatable.jq": {
+          "bytes": 10810,
+          "sha256": "dba0888e3e4491e282ce58e547e3a4125f6fd96057d0d5eaf878450fa40bd647"
+        }
+      },
+      "bytes": 15000,
+      "entries": 48,
+      "mitm_hosts": [
+        "*.amap.com"
+      ],
+      "required_assets": [
+        "rucu6_amap.js",
+        "loon_Amap.recommend.jq",
+        "updatable.jq",
+        "search_poi_detail.jq"
+      ],
+      "sections": {
+        "Rewrite": 26,
+        "Rule": 4,
+        "Script": 13
+      },
+      "upstream_commit": "f50b8524e3bfd9d3ca9e2accebdfbd5b2eb91286",
+      "upstream_repository": "https://github.com/ifflagged/Romeo"
+    },
+    "GuaZiVideoAds": {
+      "bytes": 3448,
+      "entries": 6
+    },
+    "aoomee": {
+      "commit": "370a13085514ccca924f43d13c6d3acfa5671dbe",
+      "plugin_files": 27,
+      "rule_lines": 422
+    },
+    "thelongdarkorg": {
+      "commit": "dc6c094c8b7a764b379c2c5af2edaba175b1b3df",
+      "plugin_files": 52,
+      "rule_lines": 991
+    },
+    "zmjde": {
+      "commit": "3e79a9798f1b996f5c05b1a42be5d286890f3f60",
+      "required_plugins": 8,
+      "rule_lines": 766
+    }
+  },
+  "safety_notes": [
+    "This is a deterministic text/semantic comparison, not proof of runtime behavior.",
+    "Action changes are inferred only for a unique matcher with one unmatched old and one unmatched new action.",
+    "Ambiguous multi-action matchers are reported as additions/removals, not guessed as action changes.",
+    "No rule, MITM hostname, or plugin output is modified by this report."
+  ],
+  "schema_version": 1,
+  "sections": {
+    "rewrite": {
+      "action_changed": [],
+      "added": [],
+      "removed": []
+    },
+    "rule": {
+      "action_changed": [],
+      "added": [],
+      "removed": []
+    },
+    "script": {
+      "action_changed": [],
+      "added": [],
+      "removed": []
+    }
+  },
+  "summary": {
+    "rewrite": {
+      "action_changed": 0,
+      "added": 0,
+      "removed": 0
+    },
+    "rule": {
+      "action_changed": 0,
+      "added": 0,
+      "removed": 0
+    },
+    "script": {
+      "action_changed": 0,
+      "added": 0,
+      "removed": 0
+    },
+    "total_changes": 0
+  },
+  "upstream_revision_changes": []
+}
