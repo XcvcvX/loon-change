@@ -19,7 +19,7 @@ class RuntimeDeepAuditTests(unittest.TestCase):
             ('url', 'reject'))
         self.assertEqual(
             extract_regex_and_action('request  https://x.test/ ~= /^https?:\\/\\/x\\.test\\/ad/ then reject(200)'),
-            ('^https?://x\\.test\\/ad', 'then'))
+            ('^https?://x\\.test/ad', 'reject(200)'))
 
     def test_read_only_report_flags_candidates_not_rules(self):
         fixture = '''[Rewrite]
