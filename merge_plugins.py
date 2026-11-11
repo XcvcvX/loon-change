@@ -2184,23 +2184,188 @@ if args.provenance_out:
         for filename in sorted(x for x in os.listdir(pdir)
                                if x.endswith('.plugin') or x.endswith('.lpx')):
             path = os.path.join(pdir, filename)
+            # parse_loose_sections() groups repeated sections by section name.
+            # The AOOMEE feeds below are flattened in a fixed per-file order:
+            # Rewrite, then URL Rewrite, then Script and Rule. Walking physical
+            # file order here is not equivalent when URL Rewrite precedes Rewrite
+            # in an upstream file, and shifts every later source-origin index.
+            # Build line-numbered rows per section first, then consume them in
+            # exactly the same order as iter_aoomee()/ao_rw/ao_sc/ao_rule.
+            rows_by_section = {}
+            current_section = None
+            with open(path, encoding='utf-8') as source_handle:
+                for line_number, raw in enumerate(source_handle, 1):
+                    section_match = re.match(r'^\\[(.+?)\\]\\s*
+
+    if args.zmjde:
+        pdir = os.path.join(args.zmjde, 'Plugin')
+        if not os.path.isdir(pdir):
+            pdir = args.zmjde
+        indices = {'Rewrite': 0, 'Script': 0, 'Rule': 0}
+        for filename in _ZMJ_APP:
+            path = os.path.join(pdir, filename)
             for section, line_number, raw_line in _raw_rows(path):
-                target_section = section
-                if section in ('Rewrite', 'Script'):
-                    converted = convert_shadowrocket_line(raw_line)
-                    if converted is None:
-                        continue
-                elif section == 'URL Rewrite':
-                    tokens = raw_line.split()
-                    if len(tokens) != 2 or tokens[1] not in _LEGACY_REJECT:
-                        continue
-                    target_section = 'Rewrite'
-                elif section != 'Rule':
+                if section not in indices:
                     continue
-                _record_origin('aoomee', target_section, indices[target_section],
-                               ('plugins/' if pdir.endswith('/plugins') else '') + filename,
-                               line_number, raw_line, original_section=section)
-                indices[target_section] += 1
+                _record_origin('zmjapp', section, indices[section],
+                               ('Plugin/' if pdir.endswith('/Plugin') else '') + filename,
+                               line_number, raw_line)
+                indices[section] += 1
+
+    rw_provenance_feeds = [(source, priority, lines, 'Rewrite')
+                           for source, priority, lines in rw_feeds]
+    sc_provenance_feeds = [(source, priority, lines, 'Script')
+                           for source, priority, lines in sc_feeds]
+    sc_provenance_feeds += [
+        (source, priority,
+         [line for line in lines if unguarded_key(line) is not None], 'Rewrite')
+        for source, priority, lines in rw_feeds
+    ]
+    rewrite_provenance = _section_provenance(
+        rw_provenance_feeds, merged_rw, 'Rewrite')
+    script_provenance = _section_provenance(
+        sc_provenance_feeds, merged_sc, 'Script')
+    # Fail closed if an AOOMEE source origin no longer describes the exact
+    # flattened feed entry. This catches line-index drift before publication.
+    for provenance_record in rewrite_provenance:
+        for source_row in provenance_record.get('sources', []):
+            if source_row.get('source') != 'aoomee':
+                continue
+            raw_line = source_row.get('source_raw_line')
+            input_line = source_row.get('input_line')
+            original_section = source_row.get('source_original_section')
+            if not raw_line or not input_line or not original_section:
+                raise RuntimeError('aoomee Rewrite provenance is missing source-origin fields: '
+                                   + provenance_record.get('output_line', ''))
+            expected_line = (convert_shadowrocket_line(raw_line)
+                             if original_section == 'Rewrite' else raw_line.strip())
+            if expected_line != input_line:
+                raise RuntimeError(
+                    'aoomee Rewrite provenance source-origin mismatch: '
+                    + str(source_row.get('source_file')) + ':'
+                    + str(source_row.get('source_line_number')) + ' -> '
+                    + provenance_record.get('output_line', '')
+                )
+    rule_output_index = {line: index for index, line in enumerate(rule_items, 1)}
+    for event in rule_provenance_events:
+        origin = source_origins.get((event.get('source'), 'Rule', event.get('source_entry_index')))
+        if origin:
+            event.update(origin)
+        if event.get('status') == 'included':
+            event['output_entry_index'] = rule_output_index.get(event['output_line'])
+    upstream_revisions = {}
+    if args.source_report and os.path.isfile(args.source_report):
+        try:
+            with open(args.source_report, encoding='utf-8') as source_file:
+                upstream_revisions = json.load(source_file)
+        except (OSError, ValueError) as exc:
+            raise SystemExit('来源追溯无法读取 source-report: %s' % exc)
+    rule_report = {
+        'schema_version': 1,
+        'upstream_revisions': upstream_revisions,
+        'repository': 'XcvcvX/loon-change',
+        'scope': ['Rewrite', 'Script', 'Rule'],
+        'rewrite_exclusions': zhangle_rewrite_exclusions + zhangle_block_rewrite_exclusions + mgtv_unused_indexes_rewrite_exclusions + block_rewrite_exclusions + lite_advertising_rewrite_exclusions + thelong_duplicate_exclusions + aoomee_duplicate_exclusions,
+        'mitm_exclusions': block_mitm_exclusions + zhangle_mitm_exclusions,
+        'scope_adjustments': block_scope_adjustments,
+        'limitations': [
+            'source_entry_index is the ordinal within the extracted source feed, not the original upstream file line number',
+            'exact source filename and 1-based line attribution is included for Thelongdarkorg, aoomee, and zmjde App plugin feeds; other sources retain feed indices until their source mapping is added',
+            'normalization and source conversion may mean input_line differs from upstream raw text',
+            'MITM hostname provenance and Argument provenance are not included in this first batch',
+            'provenance does not prove that a rule is effective or safe at runtime'
+        ],
+        'source_catalog': {
+            'base': 'R-Store converted rewrite source',
+            'block': 'fmz200/wool_scripts blockAdsV2',
+            'zmjgen': 'zmjde/loon-plugins general plugins',
+            'thelong': 'Thelongdarkorg/loon-plugins',
+            'aoomee': 'aoomee/Loon-Adblock-Plugins',
+            'qxapp': 'QuanX single-file app source (GuaZiVideoAds)',
+            'amap': 'ifflagged/Romeo / RuCu6 Amap plugin',
+            'zmjapp': 'zmjde/loon-plugins app plugins',
+            'myblockads': 'RuCu6 MyBlockAds',
+            'filter': 'zirawell/R-Store allAdBlock filter'
+        },
+        'summary': {
+            'rewrite_output_entries': len(rewrite_provenance),
+            'script_output_entries': len(script_provenance),
+            'rule_output_entries': len(rule_items),
+            'rule_source_events': len(rule_provenance_events),
+            'rule_included_events': sum(1 for event in rule_provenance_events
+                                        if event['status'] == 'included'),
+            'rule_covered_or_duplicate_events': sum(
+                1 for event in rule_provenance_events
+                if event['status'] in ('duplicate_exact', 'covered_by_existing_rule')),
+            'rule_safety_excluded_events': sum(
+                1 for event in rule_provenance_events
+                if event['status'] == 'excluded_safety_guard'),
+        },
+        'rewrite': rewrite_provenance,
+        'script': script_provenance,
+        'rule_events': rule_provenance_events,
+    }
+    with open(args.provenance_out, 'w', encoding='utf-8') as provenance_file:
+        json.dump(rule_report, provenance_file, ensure_ascii=False, indent=2)
+        provenance_file.write('\n')
+    print('[provenance] 已生成逐条来源追溯:', args.provenance_out)
+
+open(args.out, 'w', encoding='utf-8').write('\n'.join(out))
+
+print('\n[merge] 输出:', args.out)
+print('  Rewrite：%d 条；Script：%d 条（含 generic/cron 无守卫行）'
+      % (len(merged_rw), len(merged_sc)))
+print('  Rule   ：%d 条；Argument：%d 个开关' % (len(rule_items), len(arg_items)))
+if args.amap:
+    print('  高德 App：Rewrite %d / Script %d / Rule %d / MITM %d（priority=-1，最高）'
+          % (len(amap_rw), len(amap_sc), len(amap_rule), len(amap_mitm)))
+print('  Rule 来源：aoomee 新增 %d（跳过 %d）；thelong 新增 %d（跳过 %d）；'
+      'block 新增 %d（跳过 %d）'
+      % (rule_counts['aoomee_add'], rule_counts['aoomee_dup'],
+         rule_counts['thelong_add'], rule_counts['thelong_dup'],
+         rule_counts['block_add'], rule_counts['block_dup']))
+if args.filter != 'none':
+    print('  分流补全：R-Store %d 条，已覆盖 %d，补入 %d'
+          % (fstats['total'], fstats['covered'], fstats['added']))
+print('  MITM   ：%d 个主机（无法收敛丢弃 %d，IP 地址清理 %d，自动裁剪无动作 %d）'
+      % (len(mitm), len(dropped), len(mitm_ip_dropped), mitm_pruned))
+if mitm_pruned:
+    print('  MITM 自动裁剪：移除 %d 个不服务任何规则、仅解密的冗余 host' % mitm_pruned)
+print('  MITM 自愈补全 %d 个%s' % (
+    len(mitm_healed), '：' + ', '.join(mitm_healed[:15]) if mitm_healed else ''))
+if dropped:
+    print('  丢弃的 hostname：', ', '.join(dropped[:20]))
+, raw)
+                    if section_match:
+                        current_section = section_match.group(1).strip()
+                        rows_by_section.setdefault(current_section, [])
+                    elif current_section:
+                        value = raw.strip()
+                        if value and not value.startswith('#'):
+                            rows_by_section.setdefault(current_section, []).append(
+                                (line_number, value)
+                            )
+
+            for section in ('Rewrite', 'URL Rewrite', 'Script', 'Rule'):
+                for line_number, raw_line in rows_by_section.get(section, []):
+                    target_section = section
+                    if section in ('Rewrite', 'Script'):
+                        converted = convert_shadowrocket_line(raw_line)
+                        if converted is None:
+                            continue
+                    elif section == 'URL Rewrite':
+                        tokens = raw_line.split()
+                        if len(tokens) != 2 or tokens[1] not in _LEGACY_REJECT:
+                            continue
+                        target_section = 'Rewrite'
+                    elif section != 'Rule':
+                        continue
+                    _record_origin(
+                        'aoomee', target_section, indices[target_section],
+                        ('plugins/' if pdir.endswith('/plugins') else '') + filename,
+                        line_number, raw_line, original_section=section
+                    )
+                    indices[target_section] += 1
 
     if args.zmjde:
         pdir = os.path.join(args.zmjde, 'Plugin')
