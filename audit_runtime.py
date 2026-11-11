@@ -110,6 +110,7 @@ def audit_runtime(path):
     guarded_hosts = set()
     for _, line in rewrite_rows + script_rows:
         normalized_line = line.replace('\\/', '/').replace('\\.', '.')
+        normalized_line = normalized_line.replace('https?:', 'https:').replace('http?:', 'http:')
         for host in URL_RE.findall(normalized_line.split(' then ', 1)[0]):
             host = host.lower().rstrip('.')
             if host and not host.replace('.', '').isdigit():
