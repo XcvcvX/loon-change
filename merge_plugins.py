@@ -771,7 +771,7 @@ def narrow_lanrentingshu_base_scope(rewrite_lines, source_present):
     for line in rewrite_lines:
         is_target = (
             '/yyting\\/advertclient\\/ClientAdvertList.action' in line
-            and re.search(r'\\s+reject(?:\\s|$)', line)
+            and re.search(r'\s+reject(?:\s|$)', line)
         )
         if not is_target:
             output.append(line)
