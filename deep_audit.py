@@ -386,6 +386,8 @@ def render_markdown(report):
         'rewrite_broad_candidates':'宽泛匹配候选',
         'rewrite_duplicate_matcher_groups':'重复匹配器组',
         'rewrite_action_conflict_groups':'同匹配器多动作组',
+        'rewrite_action_semantic_review_candidates':'动作语义复核候选',
+        'rewrite_unknown_action_candidates':'未分类动作候选',
         'mitm_positive_unique_hosts':'MITM 正向唯一主机',
         'mitm_wildcards':'MITM 通配主机',
         'mitm_exact_hosts_covered_by_wildcards':'被通配覆盖的精确主机候选',
@@ -404,6 +406,8 @@ def render_markdown(report):
     for key, title in [
         ('rewrite_broad_candidates','宽泛 Rewrite 候选'),
         ('rewrite_action_conflict_groups','同匹配器多动作候选'),
+        ('rewrite_action_semantic_review_candidates','Rewrite 动作语义复核候选'),
+        ('rewrite_unknown_action_candidates','未分类 Rewrite 动作候选'),
         ('mitm_without_obvious_literal_guard','未发现明显字面守卫的 MITM 候选'),
         ('script_repeated_remote_urls','重复使用的远程脚本 URL'),
         ('script_generic_trigger_candidates','通用/条件触发器候选')
@@ -413,6 +417,10 @@ def render_markdown(report):
         lines += ['- ' + json.dumps(x, ensure_ascii=False) for x in values[:100]] if values else ['未发现。']
         if len(values) > 100:
             lines.append('其余 %d 项见 JSON 报告。' % (len(values) - 100))
+    lines += ['', '## Rewrite 动作语义分类', '',
+              '| 动作类别 | 条目数 |', '|---|---:|']
+    for family, count in report['summary']['rewrite_action_family_counts'].items():
+        lines.append('| %s | %s |' % (family, count))
     lines += ['', '## Rewrite 匹配范围分类', '',
               '| 分类 | 数量 |', '|---|---:|']
     for scope, count in report['summary']['rewrite_scope_counts'].items():
