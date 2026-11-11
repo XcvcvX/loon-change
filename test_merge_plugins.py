@@ -249,13 +249,13 @@ hostname = *.amap.com
 
 
     def test_multi_file_sources_include_exact_filename_and_original_line(self):
-        base = "[Rewrite]\\n[Script]\\n[MITM]\\nhostname = \\n"
-        extra = "[Rewrite]\\n[MITM]\\nhostname = \\n"
+        base = "[Rewrite]\n[Script]\n[MITM]\nhostname = \n"
+        extra = "[Rewrite]\n[MITM]\nhostname = \n"
         apps = {
             "sample_ad_block.plugin": (
-                "# sample source\\n[Rule]\\nDOMAIN,ads.example.com,REJECT\\n"
-                "[Rewrite]\\n^https://ads.example.com/ad reject\\n"
-                "[Script]\\nhttp-response ^https://ads.example.com/config script-path=https://cdn.example/a.js\\n"
+                "# sample source\n[Rule]\nDOMAIN,ads.example.com,REJECT\n"
+                "[Rewrite]\n^https://ads.example.com/ad reject\n"
+                "[Script]\nhttp-response ^https://ads.example.com/config script-path=https://cdn.example/a.js\n"
             )
         }
         _, report = self.run_merge(base, extra, return_provenance=True, apps_files=apps)
