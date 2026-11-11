@@ -707,6 +707,8 @@ def audit_deep(path):
         'script_generic_trigger_candidates': generic,
         'mitm_missing_rewrite_script_coverage': coverage_report['mitm_missing_rewrite_script_coverage'],
         'mitm_negative_excluded_rewrite_script_coverage': coverage_report['mitm_negative_excluded_rewrite_script_coverage'],
+        'mitm_http_only_no_mitm_references': coverage_report['mitm_http_only_no_mitm_references'],
+        'mitm_ip_literal_not_for_mitm_references': coverage_report['mitm_ip_literal_not_for_mitm_references'],
         'mitm_ambiguous_rewrite_script_references': coverage_report['mitm_ambiguous_rewrite_script_references'],
         'mitm_unreferenced_positive_candidates': coverage_report['mitm_unreferenced_positive_candidates'],
         'mitm_literal_rewrite_script_host_references': coverage_report['mitm_literal_rewrite_script_host_references'],
