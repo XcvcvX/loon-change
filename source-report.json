@@ -15,7 +15,27 @@
       "loon_Amap.recommend.jq",
       "updatable.jq",
       "search_poi_detail.jq"
-    ]
+    ],
+    "upstream_repository": "https://github.com/ifflagged/Romeo",
+    "upstream_commit": "2eca40e0ffb8dae791484bee2a1e8e2eec5fea2b",
+    "assets": {
+      "rucu6_amap.js": {
+        "bytes": 23517,
+        "sha256": "90be0dca3a927df667c805470c31f75e2abd9a7d1c7903dd40e17ecb12c54004"
+      },
+      "loon_Amap.recommend.jq": {
+        "bytes": 10743,
+        "sha256": "0ab7e100686443a41b6df2b44c39c70c2e2af037bdf48c170d05171e7b5ca2c9"
+      },
+      "updatable.jq": {
+        "bytes": 10810,
+        "sha256": "dba0888e3e4491e282ce58e547e3a4125f6fd96057d0d5eaf878450fa40bd647"
+      },
+      "search_poi_detail.jq": {
+        "bytes": 11158,
+        "sha256": "7def102b752835f8cbe63167b75dbe19997cb532f7e35d8283de4eeb5f2d4eb6"
+      }
+    }
   },
   "thelongdarkorg": {
     "commit": "dc6c094c8b7a764b379c2c5af2edaba175b1b3df",
