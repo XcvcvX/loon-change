@@ -235,9 +235,24 @@ hostname = *.amap.com
         self.assertEqual(len(included), 2)
         self.assertEqual(included[0]["status"], "included")
         self.assertEqual(included[1]["status"], "duplicate_exact")
+        self.assertEqual(included[1]["duplicate_of_source"], "block")
         self.assertEqual(report["summary"]["rule_output_entries"], 1)
         self.assertIn("source_entry_index", included[0])
         self.assertTrue(report["limitations"])
+
+
+    def test_rule_provenance_identifies_semantic_coverage_source(self):
+        base = "[Rewrite]\n[MITM]\nhostname = \n"
+        extra = "[Rule]\nDOMAIN-SUFFIX,example.com,REJECT\n"
+        myblockads = "[Rule]\nDOMAIN,ads.example.com,REJECT\n"
+        _, report = self.run_merge(
+            base, extra, myblockads_text=myblockads, return_provenance=True
+        )
+        event = next(item for item in report["rule_events"]
+                     if item["normalized_line"] == "DOMAIN,ads.example.com,REJECT")
+        self.assertEqual(event["status"], "covered_by_existing_rule")
+        self.assertEqual(event["covered_by"], "DOMAIN-SUFFIX,example.com,REJECT")
+        self.assertEqual(event["covered_by_source"], "block")
 
 
 if __name__ == "__main__":
