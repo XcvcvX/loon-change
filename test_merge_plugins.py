@@ -53,6 +53,9 @@ DOMAIN,amap.com,REJECT
 [Rewrite]
 request if ${url} ~= /^https:\/\/m5\.amap\.com\/same\?/ then reject_dict(200)
 response if ${url} ~= /^https:\/\/m5\.amap\.com\/edit\?/ then response.json.delete("promotion")
+response if ${url} ~= /^https:\/\/m5\.amap\.com\/recommend\?/ then response.json.jq_file("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/sooyaaabo/Amap/loon_Amap.recommend.jq")
+response if ${url} ~= /^https:\/\/m5\.amap\.com\/updatable\?/ then response.json.jq_file("https://kelee.one/Resource/JQLang/Amap/updatable.jq")
+response if ${url} ~= /^https:\/\/m5\.amap\.com\/poi\?/ then response.json.jq_file("https://kelee.one/Resource/JQLang/Amap/search_poi_detail.jq")
 [Script]
 response if ${url} ~= /^https:\/\/m5\.amap\.com\/script\?/ then script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/sooyaaabo/Amap/rucu6_amap.js")
 [MitM]
@@ -70,6 +73,10 @@ hostname = *.amap.com
         self.assertTrue(any('delete("promotion")' in line for line in edit))
         self.assertIn("DOMAIN,amap.com,REJECT", output)
         self.assertIn("https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js", script)
+        for asset in ("rucu6_amap.js", "loon_Amap.recommend.jq", "updatable.jq", "search_poi_detail.jq"):
+            self.assertIn("https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/" + asset, output)
+        self.assertNotIn("github.com/ifflagged/Romeo/raw/main", output)
+        self.assertNotIn("kelee.one/Resource/JQLang/Amap", output)
         mitm = output.split("[MITM]", 1)[1]
         # The broad upstream wildcard is narrowed to the concrete HTTPS hosts actually guarded.
         self.assertIn("m5.amap.com", mitm)
