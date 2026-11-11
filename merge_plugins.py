@@ -1031,9 +1031,46 @@ for _line in base_rw:
 base_rw = _zhangle_rw_kept
 
 
+# JD Lite 开屏广告：base 的请求阶段 reject 会终止请求，不会产生响应供后续 response Rewrite 修改。
+# 仅在该终止请求规则仍存在时，排除 blockAdsV2 / Thelong 的两条不可达响应改写。
+_LITE_ADVERTISING_MATCHER = r'^https?://api\.m\.jd\.com/client\.action\?functionId=lite_advertising'
+_LITE_ADVERTISING_REQUEST_ACTION = ('REJECT', 'reject', 'reject(404)')
+_LITE_ADVERTISING_BLOCK_RESPONSE = (
+    r'response if ${url} ~= /^https?:\/\/api\.m\.jd\.com\/client\.action\?functionId=lite_advertising/ '
+    r'then response.body.replace(/jdLiteAdvertisingVO/, "fmz200")'
+)
+_LITE_ADVERTISING_THELONG_RESPONSE = (
+    r'^https?:\/\/api\.m\.jd\.com\/client\.action\?functionId=lite_advertising '
+    r'response-body-replace-regex jdLiteAdvertisingVO sooyaaabo'
+)
+lite_advertising_rewrite_exclusions = []
+_lite_advertising_guard_present = any(
+    entry_regex(line) == _LITE_ADVERTISING_MATCHER
+    and action_key(line) == _LITE_ADVERTISING_REQUEST_ACTION
+    for line in base_rw
+)
+
 # blockAdsV2
 block_rw, block_sc = prep_block_sections(
     extra_sec.get('Rewrite', []), extra_sec.get('Script', []))
+if _lite_advertising_guard_present:
+    _kept_block_rw = []
+    for _line in block_rw:
+        if entry_regex(_line) == _LITE_ADVERTISING_MATCHER:
+            if _line != _LITE_ADVERTISING_BLOCK_RESPONSE:
+                raise RuntimeError('JD Lite 上游响应规则发生变化，拒绝扩大排除范围：' + _line)
+            lite_advertising_rewrite_exclusions.append({
+                'source': 'block',
+                'source_catalog': 'fmz200/wool_scripts blockAdsV2',
+                'input_line': _line,
+                'matcher': _LITE_ADVERTISING_MATCHER,
+                'action': 'response.body.replace(/jdLiteAdvertisingVO/, "fmz200")',
+                'reason': 'The retained base request-phase reject terminates this URL before an upstream response exists; this response-body rewrite is unreachable and adds no ad-blocking effect.',
+                'status': 'excluded_unreachable_response_rule',
+            })
+        else:
+            _kept_block_rw.append(_line)
+    block_rw = _kept_block_rw
 block_rw, block_sc, block_scope_adjustments = narrow_555_scope(
     block_rw, block_sc)
 lanrentingshu_source_present = validate_lanrentingshu_source(extra_text)
@@ -1095,6 +1132,34 @@ if args.apps:
     for fname, atext in iter_app_plugins(args.apps):
         _, s = split_sections(atext)
         app_rewrite_lines = real_lines(s.get('Rewrite', []))
+        if _lite_advertising_guard_present and fname == 'jd_splash_ad_block.plugin':
+            _kept_app_rewrite_lines = []
+            _source_section = None
+            _source_line_numbers = {}
+            for _line_number, _raw_line in enumerate(atext.splitlines(), 1):
+                _section_match = re.match(r'^\[(.+?)\]\s*$', _raw_line)
+                if _section_match:
+                    _source_section = _section_match.group(1).strip()
+                elif _source_section == 'Rewrite' and _raw_line.strip():
+                    _source_line_numbers.setdefault(_raw_line.strip(), _line_number)
+            for _line in app_rewrite_lines:
+                if entry_regex(_line) == _LITE_ADVERTISING_MATCHER:
+                    if _line != _LITE_ADVERTISING_THELONG_RESPONSE:
+                        raise RuntimeError('Thelong JD Lite 上游响应规则发生变化，拒绝扩大排除范围：' + _line)
+                    lite_advertising_rewrite_exclusions.append({
+                        'source': 'thelong',
+                        'source_catalog': 'Thelongdarkorg/loon-plugins',
+                        'source_file': fname,
+                        'source_line_number': _source_line_numbers.get(_line),
+                        'input_line': _line,
+                        'matcher': _LITE_ADVERTISING_MATCHER,
+                        'action': 'response-body-replace-regex jdLiteAdvertisingVO sooyaaabo',
+                        'reason': 'The retained base request-phase reject terminates this URL before an upstream response exists; this response-body rewrite is unreachable and adds no ad-blocking effect.',
+                        'status': 'excluded_unreachable_response_rule',
+                    })
+                else:
+                    _kept_app_rewrite_lines.append(_line)
+            app_rewrite_lines = _kept_app_rewrite_lines
         if fname == 'qqmusic_splash_ad_block.plugin':
             _, qqmusic_thelong_present = validate_qqmusic_sources(extra_text, atext)
             if qqmusic_thelong_present:
@@ -1855,7 +1920,7 @@ if args.provenance_out:
         'upstream_revisions': upstream_revisions,
         'repository': 'XcvcvX/loon-change',
         'scope': ['Rewrite', 'Script', 'Rule'],
-        'rewrite_exclusions': zhangle_rewrite_exclusions + block_rewrite_exclusions,
+        'rewrite_exclusions': zhangle_rewrite_exclusions + block_rewrite_exclusions + lite_advertising_rewrite_exclusions,
         'mitm_exclusions': block_mitm_exclusions,
         'scope_adjustments': block_scope_adjustments,
         'limitations': [
