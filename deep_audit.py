@@ -59,7 +59,10 @@ def parse_rewrite(line):
         'response-body-json-jq','mock-response-body'
     }
     if legacy and legacy.group(2).lower() in actions:
-        return 'legacy', legacy.group(1), legacy.group(2).lower()
+        action = legacy.group(2).lower()
+        if legacy.group(3):
+            action += ' ' + legacy.group(3).strip()
+        return 'legacy', legacy.group(1), action
     return None
 
 def normalize_regex_literals(pattern):
@@ -748,15 +751,50 @@ def audit_deep(path):
                           'action': action, 'reasons': reasons, 'scope': scope})
     overlap_report = audit_rewrite_overlaps(rewrite)
 
-    duplicates, conflicts = [], []
+    duplicates, conflicts, exact_action_duplicates, cross_family_conflicts = [], [], [], []
     for (phase, matcher), entries in sorted(groups.items()):
-        actions = sorted({x['action'] for x in entries})
+        action_counts = Counter(x['action'] for x in entries)
+        actions = sorted(action_counts)
+        families = sorted({
+            family
+            for entry in entries
+            for family in classify_rewrite_action(entry['action'])['families']
+        })
+        detail = [
+            {
+                'line': entry['line'],
+                'action': entry['action'],
+                'action_families': classify_rewrite_action(entry['action'])['families'],
+                'operations': classify_rewrite_action(entry['action'])['operations']
+            }
+            for entry in entries
+        ]
         if len(entries) > 1:
-            duplicates.append({'phase': phase, 'pattern': matcher, 'actions': actions,
-                               'lines': [x['line'] for x in entries]})
+            duplicates.append({
+                'phase': phase, 'pattern': matcher, 'actions': actions,
+                'lines': [x['line'] for x in entries], 'entries': detail,
+                'exact_duplicate_actions': sorted(
+                    action for action, count in action_counts.items() if count > 1
+                ),
+                'action_families': families
+            })
+        if any(count > 1 for count in action_counts.values()):
+            exact_action_duplicates.append({
+                'phase': phase, 'pattern': matcher,
+                'actions': sorted(action for action, count in action_counts.items() if count > 1),
+                'lines': [x['line'] for x in entries]
+            })
         if len(actions) > 1:
-            conflicts.append({'phase': phase, 'pattern': matcher, 'actions': actions,
-                              'lines': [x['line'] for x in entries]})
+            conflicts.append({
+                'phase': phase, 'pattern': matcher, 'actions': actions,
+                'lines': [x['line'] for x in entries], 'entries': detail,
+                'action_families': families
+            })
+            if len(families) > 1:
+                cross_family_conflicts.append({
+                    'phase': phase, 'pattern': matcher, 'actions': actions,
+                    'lines': [x['line'] for x in entries], 'action_families': families
+                })
 
     positive, negative = set(), []
     for n, line in mitm:
@@ -814,6 +852,8 @@ def audit_deep(path):
             'rewrite_scope_review_candidates': len(scope_candidates),
             'rewrite_duplicate_matcher_groups': len(duplicates),
             'rewrite_action_conflict_groups': len(conflicts),
+            'rewrite_exact_duplicate_action_groups': len(exact_action_duplicates),
+            'rewrite_cross_family_conflict_groups': len(cross_family_conflicts),
             'rewrite_action_family_counts': dict(sorted(action_family_counts.items())),
             'rewrite_action_semantic_review_candidates': len(action_review_candidates),
             'rewrite_unknown_action_candidates': len(unknown_action_candidates),
@@ -839,6 +879,8 @@ def audit_deep(path):
         'rewrite_scope_review_candidates': scope_candidates,
         'rewrite_duplicate_matcher_groups': duplicates,
         'rewrite_action_conflict_groups': conflicts,
+        'rewrite_exact_duplicate_action_groups': exact_action_duplicates,
+        'rewrite_cross_family_conflict_groups': cross_family_conflicts,
         'rewrite_action_semantic_review_candidates': action_review_candidates,
         'rewrite_unknown_action_candidates': unknown_action_candidates,
         'rewrite_overlap_candidate_groups': overlap_report['rewrite_overlap_candidate_groups'],
@@ -885,7 +927,9 @@ def render_markdown(report):
         'rewrite_entries':'Rewrite 条目','rewrite_unparsed':'未解析 Rewrite',
         'rewrite_broad_candidates':'宽泛匹配候选',
         'rewrite_duplicate_matcher_groups':'重复匹配器组',
-        'rewrite_action_conflict_groups':'同匹配器多动作组',
+        'rewrite_action_conflict_groups':'同匹配器多操作组',
+        'rewrite_exact_duplicate_action_groups':'同匹配器完全重复动作组',
+        'rewrite_cross_family_conflict_groups':'同匹配器跨动作类别冲突组',
         'rewrite_action_semantic_review_candidates':'动作语义复核候选',
         'rewrite_unknown_action_candidates':'未分类动作候选',
         'rewrite_overlap_candidate_groups':'交叉命中候选组',
