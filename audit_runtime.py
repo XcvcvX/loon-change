@@ -46,7 +46,8 @@ def extract_regex_and_action(line):
     if match:
         pattern = match.group(1).replace('\\/', '/')
         tail = line[match.end():].strip()
-        action = tail.split()[0].lower() if tail else ''
+        action_match = re.search(r'\\bthen\\s+([A-Za-z0-9_-]+(?:\\([^)]*\\))?)', tail, re.I)
+        action = action_match.group(1).lower() if action_match else (tail.split()[0].lower() if tail else '')
         return pattern, action
     # 旧式 Rewrite：pattern action
     parts = line.split()
