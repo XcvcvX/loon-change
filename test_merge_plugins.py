@@ -127,6 +127,26 @@ hostname = *.amap.com
         self.assertIn("119.29.29.98", exclusions[0]["reason"])
         self.assertIn("119.29.29.99", exclusions[0]["reason"])
 
+    def test_jd_lite_unreachable_response_rewrites_are_excluded_only_with_terminal_request_guard(self):
+        matcher = r'^https?:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=lite_advertising'
+        request_guard = r'^https?:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=lite_advertising reject'
+        block_response = r'response if ${url} ~= /^https?:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=lite_advertising/ then response.body.replace(/jdLiteAdvertisingVO/, "fmz200")'
+        thelong_response = r'^https?:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=lite_advertising response-body-replace-regex jdLiteAdvertisingVO sooyaaabo'
+        base = "[Rewrite]\\n" + request_guard + "\\n[MITM]\\nhostname = api.m.jd.com\\n"
+        extra = "[Rewrite]\\n" + block_response + "\\n[MITM]\\nhostname = api.m.jd.com\\n"
+        apps = {"jd_splash_ad_block.plugin": "[Rewrite]\\n" + thelong_response + "\\n[MITM]\\nhostname = api.m.jd.com\\n"}
+        output, report = self.run_merge(base, extra, apps_files=apps, return_provenance=True)
+        self.assertIn("lite_advertising reject", output)
+        self.assertNotIn("jdLiteAdvertisingVO", output)
+        exclusions = [x for x in report["rewrite_exclusions"] if x.get("status") == "excluded_unreachable_response_rule"]
+        self.assertEqual({x["source"] for x in exclusions}, {"block", "thelong"})
+        self.assertTrue(all(x["matcher"].endswith("lite_advertising'") for x in exclusions))
+
+        # Without the terminal request-phase guard, response rewrites remain effective and untouched.
+        no_guard = self.run_merge("[Rewrite]\\n[MITM]\\nhostname = api.m.jd.com\\n", extra, apps_files=apps)
+        self.assertIn("jdLiteAdvertisingVO", no_guard)
+        self.assertIn("response-body-replace-regex jdLiteAdvertisingVO sooyaaabo", no_guard)
+
     def test_unused_zhangle_app_specific_rule_and_mitm_are_removed(self):
         base = (
             "[Rewrite]\n"
