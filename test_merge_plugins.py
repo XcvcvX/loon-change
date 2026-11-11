@@ -1104,7 +1104,7 @@ hostname = *.amap.com
         matcher = r"^https?:\/\/appactive\.1234567\.com\.cn\/AppoperationApi\/OperationService\/GetAppStartImg"
         base_reject = matcher + " reject"
         block_reject = (
-            r"request if \${url} ~= /^https?:\/\/appactive\.1234567\.com\.cn\/AppoperationApi\/OperationService\/GetAppStartImg/ "
+            r"request if ${url} ~= /^https?:\/\/appactive\.1234567\.com\.cn\/AppoperationApi\/OperationService\/GetAppStartImg/ "
             r"then reject(404)"
         )
         response_rule = matcher + " response-body-json-jq '.datas = []'"
@@ -1152,7 +1152,7 @@ hostname = *.amap.com
         matcher = r"^https?:\/\/appactive\.1234567\.com\.cn\/AppoperationApi\/OperationService\/GetAppStartImg"
         base = "[Rewrite]\n" + matcher + " reject\n[MITM]\nhostname = \n"
         changed_block = (
-            r"request if \${url} ~= /^https?:\/\/appactive\.1234567\.com\.cn\/AppoperationApi\/OperationService\/GetAppStartImg/ "
+            r"request if ${url} ~= /^https?:\/\/appactive\.1234567\.com\.cn\/AppoperationApi\/OperationService\/GetAppStartImg/ "
             r"then reject-dict"
         )
         extra = "[Rewrite]\n" + changed_block + "\n[MITM]\nhostname = \n"
