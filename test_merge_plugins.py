@@ -305,6 +305,7 @@ hostname = *.amap.com
             r"request if ${url} ~= /^https?:\/\/dapis\.mting\.info\/yyting\/advertclient\/ClientAdvertList\.action/ then reject_img(200)" + "\n"
             r"request if ${url} ~= /^https?:\/\/.*\/yyting\/advertclient\/ClientAdvertList.action/ then reject(404)" + "\n"
             r"request if ${url} ~= /^https?:\/\/display\.wting\.info\/.*.jpeg/ then reject(200)" + "\n"
+            r"request if ${url} ~= /^https?:\/\/display\.wting\.info\/.*.jpeg/ then reject(200)" + "\n"
             "[Script]\n[MITM]\nhostname = 118.178.214.118, dapis.mting.info, display.wting.info\n"
         )
         output, report = self.run_merge(
@@ -337,6 +338,58 @@ hostname = *.amap.com
         for host in ("other.example.com", "display.wting.info",
                      "dapis.mting.info.evil.test"):
             self.assertNotRegex(host, host_re)
+
+    def test_lanrentingshu_legacy_rstore_matcher_is_also_limited(self):
+        base = (
+            "[Rewrite]\n"
+            r"^https?:\/\/.*\/yyting\/advertclient\/ClientAdvertList.action reject" + "\n"
+            "[Script]\n[MITM]\nhostname = \n"
+        )
+        extra = (
+            "[Rewrite]\n"
+            "# > 懒人听书\n"
+            "# hostname = 118.178.214.118, dapis.mting.info, display.wting.info\n"
+            r"request if ${url} ~= /^https?:\/\/118\.178\.214\.118\/yyting\/advertclient\/ClientAdvertList\.action/ then reject_img(200)" + "\n"
+            r"request if ${url} ~= /^https?:\/\/dapis\.mting\.info\/yyting\/advertclient\/ClientAdvertList\.action/ then reject_img(200)" + "\n"
+            r"request if ${url} ~= /^https?:\/\/.*\/yyting\/advertclient\/ClientAdvertList.action/ then reject(404)" + "\n"
+            r"request if ${url} ~= /^https?:\/\/display\.wting\.info\/.*.jpeg/ then reject(200)" + "\n"
+            "[Script]\n[MITM]\nhostname = 118.178.214.118, dapis.mting.info, display.wting.info\n"
+        )
+        output, report = self.run_merge(
+            base, extra, return_provenance=True,
+        )
+        rewrite = output.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
+        legacy = next(line for line in rewrite.splitlines()
+                      if "ClientAdvertList" in line and line.endswith(" reject"))
+        self.assertIn(r"(?:118\.178\.214\.118|dapis\.mting\.info)", legacy)
+        self.assertNotIn(r"https?:\/\/.*\/yyting", legacy)
+        self.assertTrue(legacy.endswith(" reject"))
+
+        # 原有两条精确图片广告规则保持不变；base 的 reject 动作也保持不变。
+        self.assertEqual(rewrite.count("reject_img(200)"), 2)
+        self.assertIn("display\.wting\.info", rewrite)
+
+        legacy_record = next(
+            item for item in report["rewrite"]
+            if "ClientAdvertList" in item["output_line"]
+            and item["output_line"].endswith(" reject")
+        )
+        self.assertEqual(legacy_record["sources"][0]["source"], "base")
+        adjustment = next(
+            item for item in report["scope_adjustments"]
+            if item["source"] == "base" and "ClientAdvertList" in item["output_line"]
+        )
+        self.assertIn("118\.178\.214\.118|dapis\.mting\.info",
+                      adjustment["output_line"])
+
+        import re
+        host_re = re.compile(r"^(?:118\.178\.214\.118|dapis\.mting\.info)$", re.I)
+        for host in ("118.178.214.118", "dapis.mting.info"):
+            self.assertRegex(host, host_re)
+        for host in ("other.example.com", "display.wting.info",
+                     "dapis.mting.info.evil.test"):
+            self.assertNotRegex(host, host_re)
+
 
     def test_qqmusic_fallback_cdn_matcher_is_limited_to_declared_mitm_hosts(self):
         extra = (
