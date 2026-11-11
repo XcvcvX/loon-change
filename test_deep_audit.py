@@ -255,6 +255,35 @@ hostname = *.example.com, api.example.com, unused.test
         self.assertEqual(report['mitm_negative_excluded_rewrite_script_coverage'][0]['host'],
                          'excluded.test')
 
+    def test_mitm_coverage_distinguishes_shared_pinning_skips_from_real_gaps(self):
+        from deep_audit import audit_mitm_script_coverage, audit_mitm_necessity
+        rewrite = [
+            (10, r'request if %URL% ~= /^https:\/\/openapi\.boc\.cn\/unlogin\/app\/cbsp\/query_ad_list/ then reject(200)'),
+            (11, r'request if %URL% ~= /^https:\/\/pv\.elife\.icbc\.com\.cn\/OFSTPV\/utm\.gif/ then reject(200)'),
+            (12, r'request if %URL% ~= /^https:\/\/missing\.example\/ad/ then reject(404)'),
+            (13, r'request if %URL% ~= /^https:\/\/ios\.chat\.openai\.com\/public-api/ then reject-dict'),
+        ]
+        rows = [(n, line.replace('%URL%', chr(36) + '{url}')) for n, line in rewrite]
+        coverage = audit_mitm_script_coverage(rows, [], [])
+        summary = coverage['mitm_script_coverage_summary']
+        self.assertEqual(summary['intentionally_skipped_references'], 3)
+        self.assertEqual(summary['missing_mitm_references'], 1)
+        skipped = coverage['mitm_intentionally_skipped_references']
+        self.assertEqual({x['mitm_skip_domain'] for x in skipped}, {
+            'openapi.boc.cn', 'elife.icbc.com.cn', 'ios.chat.openai.com'
+        })
+        self.assertEqual(coverage['mitm_missing_rewrite_script_coverage'][0]['host'],
+                         'missing.example')
+        necessity = audit_mitm_necessity([], coverage, rows, [])
+        self.assertEqual(
+            necessity['mitm_necessity_summary']['intentionally_skipped_pinning_references'],
+            3
+        )
+        self.assertEqual(
+            necessity['mitm_necessity_summary']['https_literal_missing'], 1
+        )
+
+
     def test_mitm_script_coverage_in_deep_audit_report(self):
         fixture = '''[Rewrite]
 request if %URL% ~= /^https:\\/\\/api\\.example\\.test\\/ad/ then reject(404)

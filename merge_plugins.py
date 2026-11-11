@@ -21,6 +21,7 @@
 import argparse, datetime, ipaddress, json, os, re, sys, urllib.request
 from source_guard import (validate_blockv2, validate_filter, validate_myblockads,
                           fetch_validated)
+from mitm_policy import mitm_skip_host
 
 BLOCKV2_URL = ('https://raw.githubusercontent.com/fmz200/wool_scripts/refs/heads/'
                 'main/Loon/plugin/blockAdsV2.plugin')
@@ -70,31 +71,7 @@ IP_OK = re.compile(r'^\d{1,3}(?:\.\d{1,3}){3}$')
 
 # 不使用不完整的 TLD 白名单拒绝域名；公共后缀表只用于避免过宽通配。
 
-# MITM 跳过域名（证书绑定/私有长连接，强制解密会握手失败，MITM Failed、0 字节）：
-# 现象为有 APNs 推送但核心功能（如抖音私信）不可用。任何主体等于该域或其子域/通配的
-# hostname 都在收集与自愈环节直接 pass，从源头不进 [MITM]，不使用负向 - 语法；自动更新不回退。
-_MITM_SKIP_DOMAINS = (
-    'amemv.com',   # 抖音核心 API（api.amemv.com）与 Frontier 长连接，SSL Pinning
-    'ios.chat.openai.com',  # ChatGPT App 证书校验，强制 MITM 致新版本无法使用（R-Store 源已明示警告）
-    # 以下 7 个为 R-Store 源自带「⚠️ 已无法 MITM / 可能导致 App 功能不可用」警告的证书绑定域，
-    # 承载的规则均为开屏/广告拦截，pinning 下握手本就失败、规则不生效，源头 pass 零广告损失并避免 App 故障。
-    'mobilepaas.abchina.com.cn',  # 农行；无规则动作、纯解密，上游标注「已无法 MITM」
-    'images.cib.com.cn',          # 兴业银行；上游标注「已无法 MITM」
-    'elife.icbc.com.cn',          # 工行；开屏广告守卫，可能致 App 功能不可用
-    'openapi.boc.cn',             # 中行；广告列表守卫，可能致中行 App 异常
-    'res.cc.cmbimg.com',          # 招行；body 替换守卫，可能致功能不可用
-    'wcmp.189.cn',                # 中国电信；广告项守卫，可能致功能不可用
-    'm.ctrip.com',                # 携程；上游提示「可能存在无法 MITM，需要使用时关闭 MITM」
-)
-
-
-def mitm_skip_host(host):
-    """hostname（可能含 *. 通配、- 排除前缀、中间通配）是否落在 MITM 跳过域内。"""
-    h = host.strip().lstrip('-').strip('.').lower()
-    if h.startswith('*.'):
-        h = h[2:]
-    h = h.replace('*', '').replace('?', '').strip('.')
-    return any(h == d or h.endswith('.' + d) for d in _MITM_SKIP_DOMAINS)
+# MITM skip policy is shared with deep_audit.py to prevent false missing-host alarms.
 
 
 ap = argparse.ArgumentParser()
