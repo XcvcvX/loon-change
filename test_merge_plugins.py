@@ -12,7 +12,7 @@ MERGER = Path(__file__).with_name("merge_plugins.py")
 
 
 class MergeIntegrationTests(unittest.TestCase):
-    def run_merge(self, base_text, extra_text, myblockads_text=None, return_stdout=False, amap_text=None, return_provenance=False):
+    def run_merge(self, base_text, extra_text, myblockads_text=None, return_stdout=False, amap_text=None, return_provenance=False, apps_files=None):
         tmp = tempfile.TemporaryDirectory()
         self.addCleanup(tmp.cleanup)
         root = Path(tmp.name)
@@ -34,6 +34,12 @@ class MergeIntegrationTests(unittest.TestCase):
             amap = root / "Amap.lpx"
             amap.write_text(amap_text, encoding="utf-8")
             command += ["--amap", str(amap)]
+        if apps_files is not None:
+            apps = root / "apps"
+            apps.mkdir()
+            for filename, content in apps_files.items():
+                (apps / filename).write_text(content, encoding="utf-8")
+            command += ["--apps", str(apps)]
         result = subprocess.run(
             command,
             capture_output=True, text=True, timeout=30)
@@ -240,6 +246,27 @@ hostname = *.amap.com
         self.assertIn("source_entry_index", included[0])
         self.assertTrue(report["limitations"])
 
+
+
+    def test_multi_file_sources_include_exact_filename_and_original_line(self):
+        base = "[Rewrite]\\n[Script]\\n[MITM]\\nhostname = \\n"
+        extra = "[Rewrite]\\n[MITM]\\nhostname = \\n"
+        apps = {
+            "sample_ad_block.plugin": (
+                "# sample source\\n[Rule]\\nDOMAIN,ads.example.com,REJECT\\n"
+                "[Rewrite]\\n^https://ads.example.com/ad reject\\n"
+                "[Script]\\nhttp-response ^https://ads.example.com/config script-path=https://cdn.example/a.js\\n"
+            )
+        }
+        _, report = self.run_merge(base, extra, return_provenance=True, apps_files=apps)
+        rewrite = next(x for x in report["rewrite"] if "ads.example.com/ad" in x["output_line"])
+        source = next(x for x in rewrite["sources"] if x["source"] == "thelong")
+        self.assertEqual(source["source_file"], "sample_ad_block.plugin")
+        self.assertEqual(source["source_line_number"], 5)
+        self.assertEqual(source["source_raw_line"], "^https://ads.example.com/ad reject")
+        rule = next(x for x in report["rule_events"] if x["source"] == "thelong")
+        self.assertEqual(rule["source_file"], "sample_ad_block.plugin")
+        self.assertEqual(rule["source_line_number"], 3)
 
     def test_rule_provenance_identifies_semantic_coverage_source(self):
         base = "[Rewrite]\n[MITM]\nhostname = \n"
