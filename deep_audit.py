@@ -81,13 +81,15 @@ def classify_rewrite_scope(pattern):
         return 'unscoped_other'
 
     authority = ''
+    remainder = normalized
     scheme = re.search(r'https?://', normalized, re.I)
     if scheme:
-        authority = re.split(r'[/\?#]', normalized[scheme.end():], maxsplit=1)[0]
-    if re.search(r'\.\*|\.\+|\([^)]*\)[*+]', authority):
+        remainder = normalized[scheme.end():]
+        authority = remainder.split('/', 1)[0].split('?', 1)[0].split('#', 1)[0]
+    if '.*' in authority or '.+' in authority or re.search(r'\([^)]*\)[*+]', authority):
         return 'domain_scoped_subdomain_wildcard'
-    remainder = normalized[scheme.end():] if scheme else normalized
-    if re.search(r'\.\*|\.\+|\([^)]*\)[*+]', remainder):
+    path_part = remainder[len(authority):] if scheme else remainder
+    if '.*' in path_part or '.+' in path_part or re.search(r'\([^)]*\)[*+]', path_part):
         return 'domain_scoped_path_wildcard'
     return 'domain_scoped'
 
