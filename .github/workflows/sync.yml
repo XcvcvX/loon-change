@@ -6,6 +6,7 @@ on:
     paths:
       - 'merge_plugins.py'
       - 'source_guard.py'
+      - 'amap_dependency_guard.py'
       - 'convert_qx2loon.py'
       - 'convert_filter_qx2loon.py'
       - '.github/workflows/sync.yml'
