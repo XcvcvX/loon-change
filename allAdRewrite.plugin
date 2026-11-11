@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-11 08:15 UTC
+#!merged-at=2026-11-11 08:23 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -5728,6 +5728,7 @@ request if ${url} ~= /^https?:\/\/api.gotokeep.com/cauchy/growth/init/ then reje
 request if ${url} ~= /^https?:\/\/api\.gotokeep\.com\/ads\/v\d\/ads\/preload/ then reject(404)
 request if ${url} ~= /^https:\/\/(?:gmp|wallet)\.lakala\.com\/(?:gmp\/openapi\/v2\/resource_space\/getResourceSpace|m\/(?:a\/lama\/mgt\/activity\/biz\/query\/byMerInfo|lama\/mgt\/activity\/(?:bank|biz)\/query\/list))/ then reject_dict(200)
 request if ${url} ~= /^https?:\/\/(mobile|shop)\.laichon\.com\/api\/(v1\/goods\/goodsList|exposureAdvStatistics|getWebAdvList)/ then reject(404)
+request if ${url} ~= /^https?:\/\/(?:118\.178\.214\.118|dapis\.mting\.info)\/yyting\/advertclient\/ClientAdvertList.action/ then reject(404)
 request if ${url} ~= /^https?:\/\/ios\.lantouzi\.com\/api\/startpage/ then reject(404)
 request if ${url} ~= /^https?:\/\/tbgapplet\.carlsberg\.asia\/tuborg\/banner\/(loading|index)/ then reject_dict(200)
 request if ${url} ~= /^https:\/\/dl-cu-hz\.lechange\.cn\/oms-online\/advertisementPush/ then reject(404)
