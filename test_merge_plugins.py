@@ -343,9 +343,9 @@ hostname = *.amap.com
             "[Rewrite]\n"
             "# > QQ音乐\n"
             "# hostname = us.l.qq.com, y.gtimg.cn, music.y.qq.com\n"
-            r"request if \${url} ~= /^https?:\\/\\/y\\.gtimg\\.cn\\/music\\/common\\/upload\\/t_splash_info\\// then reject(404)" + "\n"
-            r"request if \${url} ~= /^https?:\\/\\/.+?\\/music\\/common\\/upload\\/t_splash_info\\// then reject(404)" + "\n"
-            r"request if \${url} ~= /^https?:\\/\\/((25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\.){3}(25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\/music\\/common\\/upload\\/t_splash_info\\// then reject(404)" + "\n"
+            r"request if ${url} ~= /^https?:\\/\\/y\\.gtimg\\.cn\\/music\\/common\\/upload\\/t_splash_info\\// then reject(404)" + "\n"
+            r"request if ${url} ~= /^https?:\\/\\/.+?\\/music\\/common\\/upload\\/t_splash_info\\// then reject(404)" + "\n"
+            r"request if ${url} ~= /^https?:\\/\\/((25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\.){3}(25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\/music\\/common\\/upload\\/t_splash_info\\// then reject(404)" + "\n"
             "[MITM]\nhostname = y.gtimg.cn, music.y.qq.com\n"
         )
         thelong = (
@@ -403,13 +403,14 @@ hostname = *.amap.com
 
     def test_qqmusic_block_host_declaration_drift_fails_closed(self):
         extra = (
-            "[Rewrite]\\n# > QQ音乐\\n"
-            "# hostname = us.l.qq.com, y.gtimg.cn, changed.example.com\\n"
-            r"^https?:\\/\\/.+?\\/music\\/common\\/upload\\/t_splash_info\\/ reject" + "\\n"
-            "[MITM]\\nhostname = \\n"
+            "[Rewrite]\n# > QQ音乐\n"
+            "# hostname = us.l.qq.com, y.gtimg.cn, changed.example.com\n"
+            r"^https?:\\/\\/y\\.gtimg\\.cn\\/music\\/common\\/upload\\/t_splash_info\\/ reject" + "\n"
+            r"^https?:\\/\\/.+?\\/music\\/common\\/upload\\/t_splash_info\\/ reject" + "\n"
+            "[MITM]\nhostname = \n"
         )
         result = self.run_merge(
-            "[Rewrite]\\n[Script]\\n[MITM]\\nhostname = \\n",
+            "[Rewrite]\n[Script]\n[MITM]\nhostname = \n",
             extra,
             expect_failure=True,
         )
@@ -418,19 +419,21 @@ hostname = *.amap.com
 
     def test_qqmusic_thelong_mitm_declaration_drift_fails_closed(self):
         extra = (
-            "[Rewrite]\\n# > QQ音乐\\n"
-            "# hostname = us.l.qq.com, y.gtimg.cn, music.y.qq.com\\n"
-            r"^https?:\\/\\/.+?\\/music\\/common\\/upload\\/t_splash_info\\/ reject" + "\\n"
-            "[MITM]\\nhostname = \\n"
+            "[Rewrite]\n# > QQ音乐\n"
+            "# hostname = us.l.qq.com, y.gtimg.cn, music.y.qq.com\n"
+            r"request if ${url} ~= /^https?:\\/\\/y\\.gtimg\\.cn\\/music\\/common\\/upload\\/t_splash_info\\// then reject(404)" + "\n"
+            r"request if ${url} ~= /^https?:\\/\\/.+?\\/music\\/common\\/upload\\/t_splash_info\\// then reject(404)" + "\n"
+            "[MITM]\nhostname = \n"
         )
         thelong = (
-            "#!name=QQ音乐\\n[Rewrite]\\n"
-            "# 同上，覆盖其他 CDN / IP 直连返回同一路径的情况（该主机需在 MITM 列表内才会生效）\\n"
-            r"^https?:\\/\\/.+?\\/music\\/common\\/upload\\/t_splash_info\\/ reject" + "\\n"
-            "[MITM]\\nhostname = y.gtimg.cn, changed.example.com\\n"
+            "#!name=QQ音乐\n[Rewrite]\n"
+            r"^https?:\/\/y\.gtimg\.cn\/music\/common\/upload\/t_splash_info\/ reject" + "\n"
+            "# 同上，覆盖其他 CDN / IP 直连返回同一路径的情况（该主机需在 MITM 列表内才会生效）\n"
+            r"^https?:\/\/.+?\/music\/common\/upload\/t_splash_info\/ reject" + "\n"
+            "[MITM]\nhostname = y.gtimg.cn, changed.example.com\n"
         )
         result = self.run_merge(
-            "[Rewrite]\\n[Script]\\n[MITM]\\nhostname = \\n",
+            "[Rewrite]\n[Script]\n[MITM]\nhostname = \n",
             extra,
             apps_files={"qqmusic_splash_ad_block.plugin": thelong},
             expect_failure=True,
