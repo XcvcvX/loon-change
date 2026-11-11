@@ -151,7 +151,7 @@ hostname = *.amap.com
         # an unextractable HTTPS matcher that keeps unrelated ZhangLe hosts.
         extra = (
             "[Rewrite]\n"
-            r"^http[s]?://magev6\.if\.qidian\.com/argus/api/v1/bookshelf/refresh reject_dict(200)" + "\n"
+            r"^http[s]?://magev6\.if\.qidian\.com/argus/api/v1/bookshelf/refresh reject" + "\n"
             "[MITM]\nhostname = c.zhangle.com, live.inst-service.htsc.com, geetest.htsc.com\n"
         )
         output, report = self.run_merge(
