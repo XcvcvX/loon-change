@@ -28,7 +28,8 @@
 | test_merge_plugins.py | 合并器集成测试：重复区块、reject 动作、TLD hostname、高德最高优先级与互补动作 |
 | sources/amap/ | 高德上游插件、JS 与 3 份 JQ 依赖的可追溯缓存 |
 | source_guard.py | 上游响应/仓库结构完整性门禁，阻止 HTML 错误页、空文件和缺失源 |
-| audit_plugin.py | 只读审计全局 UDP/443、MITM 通配覆盖候选、Script URL 与错放 Rewrite Action，不自动删改规则 |
+| audit_plugin.py | 基础只读审计全局 UDP/443、MITM 通配覆盖候选、Script URL 与错放 Rewrite Action |
+| deep_audit.py | 深度只读审计 Rewrite 宽泛匹配/动作冲突、MITM 字面守卫候选、Script URL 复用与触发类型，可输出 JSON/Markdown |
 
 当前产物统计由工作流自动维护：
 
@@ -55,14 +56,16 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 
 ## 本地检查
 
-    python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py
-    python3 -m py_compile merge_plugins.py validate_plugin.py source_guard.py audit_plugin.py convert_qx2loon.py convert_filter_qx2loon.py
+    python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py
+    python3 -m py_compile merge_plugins.py validate_plugin.py source_guard.py audit_plugin.py deep_audit.py convert_qx2loon.py convert_filter_qx2loon.py
     python3 validate_plugin.py allAdRewrite.plugin
     python3 validate_plugin.py allAdRewrite.plugin --update-readme README.md
     python3 validate_plugin.py allAdRewrite.plugin --check-remote
     python3 audit_plugin.py allAdRewrite.plugin --summary-only
+    python3 deep_audit.py allAdRewrite.plugin --summary-only
+    python3 deep_audit.py allAdRewrite.plugin --json deep-audit.json --markdown deep-audit.md
 
---check-remote 会对最多 80 个唯一远程脚本 URL 发起 HEAD 检查，仅输出警告，不代表脚本逻辑已通过测试；部分 CDN 不支持 HEAD 或会限流。`audit_plugin.py` 输出全局 UDP/443、MITM 通配重叠候选、Script URL 与错放 Action 统计，不自动修改规则。
+--check-remote 会对最多 80 个唯一远程脚本 URL 发起 HEAD 检查，仅输出警告，不代表脚本逻辑已通过测试；部分 CDN 不支持 HEAD 或会限流。`audit_plugin.py` 输出基础运行风险统计。`deep_audit.py` 进一步输出 Rewrite 宽泛匹配、同匹配器多动作、MITM 未发现明显字面守卫的候选，以及 Script 触发器类型和远程 URL 复用报告；结果均为人工复核线索，不自动删改规则。
 
 ## 安全边界
 
