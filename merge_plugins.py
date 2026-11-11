@@ -801,7 +801,8 @@ def convert_shadowrocket_line(line):
 base_rw = real_lines(base_sec.get('Rewrite', []))
 base_sc = real_lines(base_sec.get('Script', []))
 # blockAdsV2
-validate_555_host_declaration(extra_text)
+if '555_enable' in extra_text or '555Ad.js' in extra_text:
+    validate_555_host_declaration(extra_text)
 block_rw, block_sc = prep_block_sections(
     extra_sec.get('Rewrite', []), extra_sec.get('Script', []))
 block_rw, block_sc, block_scope_adjustments = narrow_555_scope(
