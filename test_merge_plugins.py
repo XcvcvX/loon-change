@@ -149,7 +149,7 @@ hostname = *.amap.com
             item for item in report.get("rewrite_exclusions", [])
             if item.get("status") == "excluded_semantic_duplicate"
         ]
-        self.assertEqual(len(exclusions), 3)
+        self.assertEqual(len(exclusions), 3, exclusions)
         self.assertEqual({item["source"] for item in exclusions}, {"thelong", "aoomee"})
         self.assertEqual({item["action"] for item in exclusions}, {"reject-dict"})
         self.assertTrue(all(item.get("covered_by") for item in exclusions))
