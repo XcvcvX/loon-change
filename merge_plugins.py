@@ -1105,9 +1105,29 @@ _mgtv_block_rw_kept = []
 for _block_index, _block_line in enumerate(block_rw):
     if entry_regex(_block_line) == _MGTV_UNUSED_INDEXES_MATCHER:
         _source_line_number = None
-        _section = None
         for _line_number, _raw_line in enumerate(extra_text.splitlines(), 1):
-            _section_match = re.match(r'^\[([A-Za-z]+)\]\s*
+            if _raw_line.strip() == _block_line.strip():
+                _source_line_number = _line_number
+                break
+        mgtv_unused_indexes_rewrite_exclusions.append({
+            'source': 'block',
+            'source_catalog': 'fmz200/wool_scripts blockAdsV2 / 芒果TV',
+            'source_entry_index': _block_index,
+            'source_line_number': _source_line_number,
+            'input_line': _block_line,
+            'matcher': _MGTV_UNUSED_INDEXES_MATCHER,
+            'action': split_action(_block_line)[1],
+            'reason': (
+                'The upstream Mango TV section explicitly labels this broad '
+                'IPv4/five-digit-port cmd=indexes request as "无用请求", not an ad '
+                'endpoint. Excluding the exact matcher avoids rejecting unrelated '
+                'apps while preserving the separate Mango TV odin ad/config endpoints.'
+            ),
+            'status': 'excluded_non_ad_probe',
+        })
+    else:
+        _mgtv_block_rw_kept.append(_block_line)
+block_rw = _mgtv_block_rw_kept
     _kept_block_rw = []
     for _line in block_rw:
         if entry_regex(_line) == _LITE_ADVERTISING_MATCHER:
