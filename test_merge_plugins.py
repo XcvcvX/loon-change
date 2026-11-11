@@ -253,6 +253,13 @@ hostname = *.amap.com
             "c.zhangle.com", "live.inst-service.htsc.com", "geetest.htsc.com"
         })
 
+    def test_host_zone_discards_unmatched_optional_path_group_opener(self):
+        rx = r"^https?://(mkt-)?gateway\.tuhu\.cn(\/mkt)?\/mkt-cms\/circle\/recommend\/"
+        self.assertEqual(
+            merge_module.host_zone_from_regex(rx),
+            r"(mkt-)?gateway\.tuhu\.cn",
+        )
+
     def test_escaped_path_separator_does_not_expand_host_zone(self):
         base = (
             "[Rewrite]\n"

@@ -1551,7 +1551,30 @@ def host_zone_from_regex(rx):
             break
         else:
             out.append(rest[i]); i += 1
-    return ''.join(out)
+    zone = ''.join(out)
+    # A path may begin inside an optional group, e.g. (\/mkt)?.
+    # The opening parenthesis belongs to the path, not the authority.
+    # Remove only unmatched trailing open groups; balanced host groups remain intact.
+    while zone.endswith('('):
+        depth, escaped, in_class = 0, False, False
+        for ch in zone:
+            if escaped:
+                escaped = False
+                continue
+            if ch == '\\':
+                escaped = True
+            elif ch == '[':
+                in_class = True
+            elif ch == ']':
+                in_class = False
+            elif not in_class and ch == '(':
+                depth += 1
+            elif not in_class and ch == ')':
+                depth -= 1
+        if depth <= 0:
+            break
+        zone = zone[:-1]
+    return zone
 
 
 def is_narrow_host_pattern(pat):
