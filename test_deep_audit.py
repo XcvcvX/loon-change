@@ -162,8 +162,9 @@ hostname = *.example.com, api.example.com, unused.test
         self.assertGreaterEqual(report['rewrite_overlap_sampled_rules'], 3)
         self.assertTrue(any(x['overlap_type'] == 'cross_action_overlap'
                             for x in report['rewrite_overlap_candidate_groups']))
+        phase_only = audit_rewrite_overlaps([rows[0], rows[2]])
         self.assertTrue(any(x['overlap_type'] == 'cross_phase_only'
-                            for x in report['rewrite_overlap_candidate_groups']))
+                            for x in phase_only['rewrite_overlap_candidate_groups']))
 
     def test_rewrite_overlap_same_action_family(self):
         from deep_audit import audit_rewrite_overlaps
