@@ -104,18 +104,18 @@ hostname = *.amap.com
         self.assertIn("three.example.com", output)
 
     def test_active_tencent_httpdns_endpoints_are_not_blocked_by_broad_ip_rule(self):
-        base = "[Rewrite]\\n[MITM]\\nhostname = \\n"
+        base = "[Rewrite]\n[MITM]\nhostname = \n"
         extra = (
-            "[Rewrite]\\n"
-            r"request if ${url} ~= /^https?:\\/\\/119\\.29\\.29\\.\\d+\\/d/ then reject(200)" + "\\n"
-            r"request if ${url} ~= /^https?:\\/\\/119\\.29\\.29\\.98\\/health/ then reject(200)" + "\\n"
-            "[MITM]\\nhostname = \\n"
+            "[Rewrite]\n"
+            r"request if " + "${url}" + r" ~= /^https?:\/\/119\.29\.29\.\d+\/d/ then reject(200)" + "\n"
+            r"request if " + "${url}" + r" ~= /^https?:\/\/119\.29\.29\.98\/health/ then reject(200)" + "\n"
+            "[MITM]\nhostname = \n"
         )
         output, report = self.run_merge(
             base, extra, return_provenance=True
         )
-        self.assertNotIn(r"119\\.29\\.29\\.\\d+\\/d", output)
-        self.assertIn(r"119\\.29\\.29\\.98\\/health", output)
+        self.assertNotIn(r"119\.29\.29\.\d+\/d", output)
+        self.assertIn(r"119\.29\.29\.98\/health", output)
         exclusions = report.get("rewrite_exclusions", [])
         self.assertEqual(len(exclusions), 1)
         self.assertEqual(exclusions[0]["source"], "block")
