@@ -178,12 +178,12 @@ hostname = *.amap.com
         # generic MITM pruner conservatively keeps the full list. The explicit
         # ZhangLe cleanup must still remove only the three exact orphan hosts.
         base = (
-            "[Rewrite]\\n"
-            r"^https?:\\/\\/\\p{L}+\\.other\\.example\\.com\\/ad reject" + "\\n"
-            "[MITM]\\nhostname = c.zhangle.com, live.inst-service.htsc.com, geetest.htsc.com, other.example.com\\n"
+            "[Rewrite]\n"
+            r"^https?:\/\/\p{L}+\.other\.example\.com\/ad reject" + "\n"
+            "[MITM]\nhostname = c.zhangle.com, live.inst-service.htsc.com, geetest.htsc.com, other.example.com\n"
         )
         output, report = self.run_merge(
-            base, "[Rewrite]\\n[MITM]\\nhostname = \\n",
+            base, "[Rewrite]\n[MITM]\nhostname = \n",
             return_provenance=True,
         )
         mitm_line = next(line for line in output.splitlines()
@@ -200,11 +200,11 @@ hostname = *.amap.com
 
     def test_zhangle_mitm_host_is_retained_if_any_final_rule_still_references_it(self):
         base = (
-            "[Rewrite]\\n"
-            r"^https?:\\/\\/geetest\\.htsc\\.com\\/health reject" + "\\n"
-            "[MITM]\\nhostname = geetest.htsc.com, c.zhangle.com\\n"
+            "[Rewrite]\n"
+            r"^https?:\/\/geetest\.htsc\.com\/health reject" + "\n"
+            "[MITM]\nhostname = geetest.htsc.com, c.zhangle.com\n"
         )
-        output = self.run_merge(base, "[Rewrite]\\n[MITM]\\nhostname = \\n")
+        output = self.run_merge(base, "[Rewrite]\n[MITM]\nhostname = \n")
         mitm_line = next(line for line in output.splitlines()
                          if line.strip().startswith("hostname ="))
         self.assertIn("geetest.htsc.com", mitm_line)
