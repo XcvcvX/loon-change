@@ -173,6 +173,22 @@ hostname = *.amap.com
         self.assertIn("geetest.htsc.com", shared_mitm)
         self.assertIn(r"geetest\.htsc\.com\/health", shared)
 
+    def test_bracketed_optional_https_scheme_is_parsed_for_mitm_pruning(self):
+        # Some upstream Loon rules spell the scheme as http[s]? rather than https?.
+        # The host extractor must identify the same HTTPS authority and not let
+        # this unrelated Qidian matcher retain ZhangLe-only MITM hosts.
+        base = (
+            "[Rewrite]\n"
+            r"^http[s]?://magev6\.if\.qidian\.com/argus/api/v1/bookshelf/refresh reject" + "\n"
+            "[MITM]\nhostname = c.zhangle.com, live.inst-service.htsc.com, geetest.htsc.com, magev6.if.qidian.com\n"
+        )
+        output = self.run_merge(base, "[Rewrite]\n[MITM]\nhostname = \n")
+        mitm_line = next(line for line in output.splitlines()
+                         if line.strip().startswith("hostname ="))
+        for host in ("c.zhangle.com", "live.inst-service.htsc.com", "geetest.htsc.com"):
+            self.assertNotIn(host, mitm_line)
+        self.assertIn("magev6.if.qidian.com", mitm_line)
+
     def test_http_only_capture_group_does_not_disable_mitm_pruning(self):
         # A pure-HTTP redirect matcher with a capturing group cannot be parsed
         # by host_zone_from_regex. It must not be mistaken for HTTPS coverage.
