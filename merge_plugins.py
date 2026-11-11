@@ -1469,6 +1469,9 @@ if args.provenance_out:
         sc_provenance_feeds, merged_sc, 'Script')
     rule_output_index = {line: index for index, line in enumerate(rule_items, 1)}
     for event in rule_provenance_events:
+        origin = source_origins.get((event.get('source'), 'Rule', event.get('source_entry_index')))
+        if origin:
+            event.update(origin)
         if event.get('status') == 'included':
             event['output_entry_index'] = rule_output_index.get(event['output_line'])
     upstream_revisions = {}
@@ -1485,7 +1488,7 @@ if args.provenance_out:
         'scope': ['Rewrite', 'Script', 'Rule'],
         'limitations': [
             'source_entry_index is the ordinal within the extracted source feed, not the original upstream file line number',
-            'multi-file sources are grouped by source repository; exact upstream filename/line attribution is a later enhancement',
+            'exact source filename and 1-based line attribution is included for Thelongdarkorg, aoomee, and zmjde App plugin feeds; other sources retain feed indices until their source mapping is added',
             'normalization and source conversion may mean input_line differs from upstream raw text',
             'MITM hostname provenance and Argument provenance are not included in this first batch',
             'provenance does not prove that a rule is effective or safe at runtime'
