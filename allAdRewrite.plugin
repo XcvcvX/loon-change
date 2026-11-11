@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-11 09:01 UTC
+#!merged-at=2026-11-11 09:09 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -5697,7 +5697,6 @@ request if ${url} ~= /^https?:\/\/api\.m\.jd\.com\/client\.action\?functionId=st
 request if ${url} ~= /^https?:\/\/ms\.jr\.jd\.com\/gw\/generic\/aladdin\/(new)?na\/m\/getLoadingPicture/ then reject(404)
 request if ${url} ~= /^https?:\/\/appconf\.mail\.163\.com\/mmad\// then reject(404)
 request if ${url} ~= /^https?:\/\/support\.you\.163\.com\/xhr\/boot\/getBootMedia\.json/ then reject(404)
-response if ${url} ~= /^https?:\/\/api\.m\.jd\.com\/client\.action\?functionId=lite_advertising/ then response.body.replace(/jdLiteAdvertisingVO/, "fmz200")
 response if ${url} ~= /^https?:\/\/api\.m\.jd\.com\/client\.action\?functionId=lite_SmartPush/ then response.body.replace(/pushData/, "fmz200")
 request if ${url} ~= /^https?:\/\/www\.oschina\.net\/action\/apiv2\/get_launcher/ then reject_img(200)
 request if ${url} ~= /^https:\/\/bp-api\.bestv\.com\.cn\/cms\/api\/free\/open\/advertisingV2/ then reject_dict(200)
@@ -6422,7 +6421,6 @@ response if ${url} ~= /^https?:\/\/api\.fenxianglife\.com\/njia\/index\/popup\/v
 ^https?:\/\/api\.m\.jd\.com\/client\.action\?functionId=queryMaterialAdverts reject-dict
 ^https?:\/\/(bdsp-x|dsp-x)\.jd\.com\/adx\/ reject
 ^https?:\/\/m\.360buyimg\.com\/mobilecms\/s1125x2436_jfs reject-200
-^https?:\/\/api\.m\.jd\.com\/client\.action\?functionId=lite_advertising response-body-replace-regex jdLiteAdvertisingVO sooyaaabo
 ^https:\/\/api\.m\.jd\.com\/client\.action\?functionId=basicConfig response-body-json-replace data.JDMessage.socketmonitor.isSocketEstablishedAhead 0 data.JDMessage.socketmonitor.isSocketReport 0 data.JDHttpToolKit.httpdns.httpdns 0
 ^https:\/\/api\.m\.jd\.com\/client\.action\?functionId=cart response-body-json-del cartLocationMap.loc_emptyCartFloor2 emptyCartRecommendFloor
 ^https:\/\/api\.m\.jd\.com\/client\.action\?functionId=(?:cartCouponRecommendGoods|intelligentRecommendSku|obtainGrowingInfo|recommendShop|searchBoxWord|stationPullService|uniformRecommend) reject-dict

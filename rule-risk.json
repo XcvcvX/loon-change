@@ -3,7 +3,7 @@
     "rewrite": {
       "action_changed": 0,
       "added": 0,
-      "removed": 0
+      "removed": 2
     },
     "rule": {
       "action_changed": 0,
@@ -16,14 +16,55 @@
       "removed": 0
     }
   },
-  "events": [],
-  "overall_risk": "low",
+  "events": [
+    {
+      "after": null,
+      "before": {
+        "line": "^https?:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=lite_advertising response-body-replace-regex jdLiteAdvertisingVO sooyaaabo",
+        "section": "rewrite",
+        "sources": [
+          "thelong"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "source_scores": {
+        "thelong": 0
+      },
+      "sources": [
+        "thelong"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "response if ${url} ~= /^https?:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=lite_advertising/ then response.body.replace(/jdLiteAdvertisingVO/, \"fmz200\")",
+        "section": "rewrite",
+        "sources": [
+          "block"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "source_scores": {
+        "block": 0
+      },
+      "sources": [
+        "block"
+      ]
+    }
+  ],
+  "overall_risk": "high",
   "risk_counts": {
-    "high": 0,
+    "high": 2,
     "low": 0,
     "medium": 0
   },
-  "run_id": "\"42991590168\"",
+  "run_id": "\"42992750274\"",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; removals and action changes are high risk.",
@@ -45,14 +86,14 @@
     "block": {
       "action_changed": 0,
       "added": 4,
-      "removed": 4,
-      "snapshots_seen": 4
+      "removed": 5,
+      "snapshots_seen": 5
     },
     "thelong": {
       "action_changed": 0,
       "added": 1,
-      "removed": 1,
-      "snapshots_seen": 1
+      "removed": 2,
+      "snapshots_seen": 2
     }
   },
   "upstream_revision_changes": []

@@ -129,7 +129,22 @@
     "rewrite": {
       "action_changed": [],
       "added": [],
-      "removed": []
+      "removed": [
+        {
+          "line": "^https?:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=lite_advertising response-body-replace-regex jdLiteAdvertisingVO sooyaaabo",
+          "section": "rewrite",
+          "sources": [
+            "thelong"
+          ]
+        },
+        {
+          "line": "response if ${url} ~= /^https?:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=lite_advertising/ then response.body.replace(/jdLiteAdvertisingVO/, \"fmz200\")",
+          "section": "rewrite",
+          "sources": [
+            "block"
+          ]
+        }
+      ]
     },
     "rule": {
       "action_changed": [],
@@ -146,7 +161,7 @@
     "rewrite": {
       "action_changed": 0,
       "added": 0,
-      "removed": 0
+      "removed": 2
     },
     "rule": {
       "action_changed": 0,
@@ -158,7 +173,7 @@
       "added": 0,
       "removed": 0
     },
-    "total_changes": 0
+    "total_changes": 2
   },
   "upstream_revision_changes": []
 }
