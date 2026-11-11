@@ -25,6 +25,49 @@ request if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/ad/ then reject-dict
         self.assertTrue(broad_reasons('^https?://'))
         self.assertFalse(broad_reasons(r'^https://api\.example\.com/ad'))
 
+    def test_rewrite_scope_normalizes_escaped_domains(self):
+        from deep_audit import classify_rewrite_scope
+
+        escaped_domain = r'^https?:\\/\\/api\\.example\\.com\\/ad\\/.*'
+        wildcard_subdomain = r'^https?:\\/\\/.*\\.xima.*\\.com\\/ad'
+        path_wildcard = r'^https?:\\/\\/api\\.example\\.com\\/assets\\/.*'
+        self.assertFalse(broad_reasons(escaped_domain))
+        self.assertEqual(classify_rewrite_scope(escaped_domain), 'domain_scoped_path_wildcard')
+        self.assertEqual(classify_rewrite_scope(wildcard_subdomain),
+                         'domain_scoped_subdomain_wildcard')
+        self.assertEqual(classify_rewrite_scope(path_wildcard), 'domain_scoped_path_wildcard')
+        self.assertTrue(broad_reasons('^https?://'))
+        self.assertEqual(classify_rewrite_scope('^https?://'), 'url_without_domain')
+        self.assertFalse(broad_reasons(r'^https?:\/\/ap\.(dongqiudi|dongdianqiu)\.com\/ad'))
+        self.assertEqual(classify_rewrite_scope(r'^https?:\/\/ap\.(dongqiudi|dongdianqiu)\.com\/ad'),
+                         'domain_scoped')
+        self.assertFalse(broad_reasons(r'^https?:\/\/101\.91\.69\.26:8080\/ad'))
+        self.assertEqual(classify_rewrite_scope(r'^https?:\/\/101\.91\.69\.26:8080\/ad'),
+                         'domain_scoped')
+
+        wildcard_tld = r'^https?:\/\/.*\.boohee\.(?:cn|com).*\/ad'
+        class_slash = r'^https?:\/\/[^\s/]*\.pangle\.cn\/api\/ad'
+        self.assertFalse(broad_reasons(wildcard_tld))
+        self.assertEqual(classify_rewrite_scope(wildcard_tld),
+                         'domain_scoped_subdomain_wildcard')
+        self.assertFalse(broad_reasons(class_slash))
+        self.assertEqual(classify_rewrite_scope(class_slash),
+                         'domain_scoped_subdomain_wildcard')
+
+        fixture = r'''[Rewrite]
+^https?:\/\/api\.example\.com\/ad\/.* reject
+^https?:\/\/.*\.xima.*\.com\/ad reject
+^https?:\/\/api\.example\.com\/assets\/.* reject
+'''
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'scope.plugin'
+            path.write_text(fixture, encoding='utf-8')
+            report = audit_deep(path)
+        self.assertEqual(report['summary']['rewrite_broad_candidates'], 0)
+        self.assertEqual(report['summary']['rewrite_scope_counts'].get(
+            'domain_scoped_subdomain_wildcard'), 1)
+        self.assertEqual(report['summary']['rewrite_scope_review_candidates'], 3)
+
     def test_mitm_and_script_candidates(self):
         fixture = '''[Rewrite]
 ^https://api.example.com/ad reject
