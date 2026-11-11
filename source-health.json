@@ -12,7 +12,7 @@
   },
   "provenance_coverage": {
     "coverage_percent": 100.0,
-    "entries": 7433,
+    "entries": 7438,
     "missing_source": 0
   },
   "safety_notes": [
@@ -24,12 +24,12 @@
   "section_changes": {
     "rewrite": {
       "action_changed": 0,
-      "added": 0,
-      "current_entries": 3319,
-      "net_shrink_percent": 0.0,
+      "added": 39,
+      "current_entries": 3322,
+      "net_shrink_percent": -0.09,
       "previous_entries": 3319,
-      "removed": 0,
-      "removed_percent": 0.0
+      "removed": 36,
+      "removed_percent": 1.085
     },
     "rule": {
       "action_changed": 0,
@@ -42,12 +42,12 @@
     },
     "script": {
       "action_changed": 0,
-      "added": 0,
-      "current_entries": 616,
-      "net_shrink_percent": 0.0,
+      "added": 6,
+      "current_entries": 618,
+      "net_shrink_percent": -0.325,
       "previous_entries": 616,
-      "removed": 0,
-      "removed_percent": 0.0
+      "removed": 4,
+      "removed_percent": 0.649
     }
   },
   "source_scores": {
