@@ -49,7 +49,7 @@
 | [Rule] | 3498 |
 | [Rewrite] | 3322 |
 | [Script] | 618 |
-| [MITM] hostname 条目 | 1485 |
+| [MITM] hostname 条目 | 1482 |
 | 唯一远程脚本 URL | 199 |
 <!-- AUTO_PLUGIN_STATS:END -->
 

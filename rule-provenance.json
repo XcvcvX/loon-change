@@ -162,6 +162,27 @@
       "hostname": "119.29.29.*",
       "reason": "Only declared by the unused ZhangLe Cai Fu Tong app-specific ad feed; its paired HTTPDNS blocking Rewrite is excluded.",
       "status": "excluded_unused_app"
+    },
+    {
+      "source": "merged_mitm",
+      "source_catalog": "R-Store / blockAdsV2 / merged app MITM",
+      "hostname": "c.zhangle.com",
+      "reason": "The three ZhangLe-only Rewrite rules are excluded and no final Rewrite/Script matcher can be shown to target this exact host; retaining it would add unused TLS interception without ad-blocking effect.",
+      "status": "excluded_unused_app"
+    },
+    {
+      "source": "merged_mitm",
+      "source_catalog": "R-Store / blockAdsV2 / merged app MITM",
+      "hostname": "live.inst-service.htsc.com",
+      "reason": "The three ZhangLe-only Rewrite rules are excluded and no final Rewrite/Script matcher can be shown to target this exact host; retaining it would add unused TLS interception without ad-blocking effect.",
+      "status": "excluded_unused_app"
+    },
+    {
+      "source": "merged_mitm",
+      "source_catalog": "R-Store / blockAdsV2 / merged app MITM",
+      "hostname": "geetest.htsc.com",
+      "reason": "The three ZhangLe-only Rewrite rules are excluded and no final Rewrite/Script matcher can be shown to target this exact host; retaining it would add unused TLS interception without ad-blocking effect.",
+      "status": "excluded_unused_app"
     }
   ],
   "scope_adjustments": [
