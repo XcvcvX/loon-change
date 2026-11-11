@@ -1540,24 +1540,56 @@ def host_zone_from_regex(rx):
     if not m:
         return None
     rest = rx[m.end():]
-    out, i, in_class = [], 0, False
+    out, i, in_class, class_first = [], 0, False, False
     while i < len(rest):
-        # A slash inside a regex character class (for example [^\s/])
-        # is a class member, not the URL path boundary.
-        if rest[i] == '\\' and i + 1 < len(rest):
+        ch = rest[i]
+        if ch == '\\' and i + 1 < len(rest):
+            # Escaped brackets are literals and must not change class state.
             if rest[i + 1] == '/' and not in_class:
                 break
-            out.append(rest[i:i + 2]); i += 2
-        elif rest[i] == '[' and not in_class:
-            in_class = True
-            out.append(rest[i]); i += 1
-        elif rest[i] == ']' and in_class:
+            out.append(rest[i:i + 2])
+            if in_class:
+                class_first = False
+            i += 2
+            continue
+        if not in_class:
+            if ch == '/':
+                break
+            if ch == '[':
+                in_class, class_first = True, True
+            out.append(ch)
+            i += 1
+            continue
+
+        # In a character class, a leading ']' (after optional '^') is a
+        # literal member, not the closing delimiter: e.g. []/] and [^]/].
+        if class_first and ch == '^':
+            out.append(ch)
+            i += 1
+            continue
+        if ch == ']' and class_first:
+            out.append(ch)
+            class_first = False
+            i += 1
+            continue
+        if ch == ']':
             in_class = False
-            out.append(rest[i]); i += 1
-        elif rest[i] == '/' and not in_class:
-            break
-        else:
-            out.append(rest[i]); i += 1
+            out.append(ch)
+            i += 1
+            continue
+        # ICU/POSIX-style nested class operators [:...:], [. ... .], [=...=]
+        # contain their own closing bracket; do not close the outer class.
+        if ch == '[' and i + 1 < len(rest) and rest[i + 1] in ':.=':
+            marker = rest[i + 1]
+            end = rest.find(marker + ']', i + 2)
+            if end >= 0:
+                out.append(rest[i:end + 2])
+                class_first = False
+                i = end + 2
+                continue
+        out.append(ch)
+        class_first = False
+        i += 1
     zone = ''.join(out)
     # A path may begin inside an optional group, e.g. (\/mkt)?.
     # The opening parenthesis belongs to the path, not the authority.
