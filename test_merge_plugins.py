@@ -189,6 +189,7 @@ hostname = *.amap.com
             self.assertNotIn(host, mitm_line)
         self.assertIn("other.example.com", mitm_line)
 
+    # Protocol-specific authority captures exercise the exact production false-positive path.
     def test_http_only_authority_capture_group_does_not_keep_unrelated_mitm_hosts(self):
         # host_zone_from_regex can extract (.*) from ^http://(.*)/...
         # but HTTP-only rules do not require TLS interception.
