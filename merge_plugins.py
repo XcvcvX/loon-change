@@ -1391,105 +1391,7 @@ if args.provenance_out:
         current = None
         with open(path, encoding='utf-8') as source_handle:
             for line_number, raw in enumerate(source_handle, 1):
-                match = re.match(r'^\\[(.+?)\\]\\s*                           for source, priority, lines in rw_feeds]
-    sc_provenance_feeds = [(source, priority, lines, 'Script')
-                           for source, priority, lines in sc_feeds]
-    sc_provenance_feeds += [
-        (source, priority,
-         [line for line in lines if unguarded_key(line) is not None], 'Rewrite')
-        for source, priority, lines in rw_feeds
-    ]
-    rewrite_provenance = _section_provenance(
-        rw_provenance_feeds, merged_rw, 'Rewrite')
-    script_provenance = _section_provenance(
-        sc_provenance_feeds, merged_sc, 'Script')
-    rule_output_index = {line: index for index, line in enumerate(rule_items, 1)}
-    for event in rule_provenance_events:
-        origin = source_origins.get((event.get('source'), 'Rule', event.get('source_entry_index')))
-        if origin:
-            event.update(origin)
-        if event.get('status') == 'included':
-            event['output_entry_index'] = rule_output_index.get(event['output_line'])
-    upstream_revisions = {}
-    if args.source_report and os.path.isfile(args.source_report):
-        try:
-            with open(args.source_report, encoding='utf-8') as source_file:
-                upstream_revisions = json.load(source_file)
-        except (OSError, ValueError) as exc:
-            raise SystemExit('来源追溯无法读取 source-report: %s' % exc)
-    rule_report = {
-        'schema_version': 1,
-        'upstream_revisions': upstream_revisions,
-        'repository': 'XcvcvX/loon-change',
-        'scope': ['Rewrite', 'Script', 'Rule'],
-        'limitations': [
-            'source_entry_index is the ordinal within the extracted source feed, not the original upstream file line number',
-            'exact source filename and 1-based line attribution is included for Thelongdarkorg, aoomee, and zmjde App plugin feeds; other sources retain feed indices until their source mapping is added',
-            'normalization and source conversion may mean input_line differs from upstream raw text',
-            'MITM hostname provenance and Argument provenance are not included in this first batch',
-            'provenance does not prove that a rule is effective or safe at runtime'
-        ],
-        'source_catalog': {
-            'base': 'R-Store converted rewrite source',
-            'block': 'fmz200/wool_scripts blockAdsV2',
-            'zmjgen': 'zmjde/loon-plugins general plugins',
-            'thelong': 'Thelongdarkorg/loon-plugins',
-            'aoomee': 'aoomee/Loon-Adblock-Plugins',
-            'qxapp': 'QuanX single-file app source (GuaZiVideoAds)',
-            'amap': 'ifflagged/Romeo / RuCu6 Amap plugin',
-            'zmjapp': 'zmjde/loon-plugins app plugins',
-            'myblockads': 'RuCu6 MyBlockAds',
-            'filter': 'zirawell/R-Store allAdBlock filter'
-        },
-        'summary': {
-            'rewrite_output_entries': len(rewrite_provenance),
-            'script_output_entries': len(script_provenance),
-            'rule_output_entries': len(rule_items),
-            'rule_source_events': len(rule_provenance_events),
-            'rule_included_events': sum(1 for event in rule_provenance_events
-                                        if event['status'] == 'included'),
-            'rule_covered_or_duplicate_events': sum(
-                1 for event in rule_provenance_events
-                if event['status'] in ('duplicate_exact', 'covered_by_existing_rule')),
-            'rule_safety_excluded_events': sum(
-                1 for event in rule_provenance_events
-                if event['status'] == 'excluded_safety_guard'),
-        },
-        'rewrite': rewrite_provenance,
-        'script': script_provenance,
-        'rule_events': rule_provenance_events,
-    }
-    with open(args.provenance_out, 'w', encoding='utf-8') as provenance_file:
-        json.dump(rule_report, provenance_file, ensure_ascii=False, indent=2)
-        provenance_file.write('\n')
-    print('[provenance] 已生成逐条来源追溯:', args.provenance_out)
-
-open(args.out, 'w', encoding='utf-8').write('\n'.join(out))
-
-print('\n[merge] 输出:', args.out)
-print('  Rewrite：%d 条；Script：%d 条（含 generic/cron 无守卫行）'
-      % (len(merged_rw), len(merged_sc)))
-print('  Rule   ：%d 条；Argument：%d 个开关' % (len(rule_items), len(arg_items)))
-if args.amap:
-    print('  高德 App：Rewrite %d / Script %d / Rule %d / MITM %d（priority=-1，最高）'
-          % (len(amap_rw), len(amap_sc), len(amap_rule), len(amap_mitm)))
-print('  Rule 来源：aoomee 新增 %d（跳过 %d）；thelong 新增 %d（跳过 %d）；'
-      'block 新增 %d（跳过 %d）'
-      % (rule_counts['aoomee_add'], rule_counts['aoomee_dup'],
-         rule_counts['thelong_add'], rule_counts['thelong_dup'],
-         rule_counts['block_add'], rule_counts['block_dup']))
-if args.filter != 'none':
-    print('  分流补全：R-Store %d 条，已覆盖 %d，补入 %d'
-          % (fstats['total'], fstats['covered'], fstats['added']))
-print('  MITM   ：%d 个主机（无法收敛丢弃 %d，IP 地址清理 %d，自动裁剪无动作 %d）'
-      % (len(mitm), len(dropped), len(mitm_ip_dropped), mitm_pruned))
-if mitm_pruned:
-    print('  MITM 自动裁剪：移除 %d 个不服务任何规则、仅解密的冗余 host' % mitm_pruned)
-print('  MITM 自愈补全 %d 个%s' % (
-    len(mitm_healed), '：' + ', '.join(mitm_healed[:15]) if mitm_healed else ''))
-if dropped:
-    print('  丢弃的 hostname：', ', '.join(dropped[:20]))
-, raw)
+                match = re.match(r"^\[(.+?)\]\s*$", raw)
                 if match:
                     current = match.group(1).strip()
                     continue
@@ -1520,16 +1422,16 @@ if dropped:
                                if x.endswith('.plugin') or x.endswith('.lpx')):
             path = os.path.join(pdir, filename)
             for section, line_number, raw_line in _raw_rows(path):
-                target_section, converted = section, raw_line
-                if section == 'Rewrite':
+                target_section = section
+                if section in ('Rewrite', 'Script'):
                     converted = convert_shadowrocket_line(raw_line)
+                    if converted is None:
+                        continue
                 elif section == 'URL Rewrite':
                     tokens = raw_line.split()
                     if len(tokens) != 2 or tokens[1] not in _LEGACY_REJECT:
                         continue
                     target_section = 'Rewrite'
-                elif section == 'Script':
-                    converted = convert_shadowrocket_line(raw_line)
                 elif section != 'Rule':
                     continue
                 _record_origin('aoomee', target_section, indices[target_section],
