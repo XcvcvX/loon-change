@@ -235,6 +235,63 @@ hostname = *.amap.com
         self.assertIn("ads.example.photography", output)
 
 
+
+    def test_555_rewrite_and_script_host_scope_is_narrowed(self):
+        broad = r'[a-zA-Z0-9-]+(\\.[a-zA-Z0-9-]+){1,3}(:\\d+)?'
+        extra = (
+            "[Rewrite]\n"
+            r"request if \${url} ~= /^https?:\\/\\/vip7\\.fzwdyy\\.cn:8083\\/api\\/(getAdvertInfo|getGOOGAdvert)/ then reject(200)" + "\n"
+            r"request if \${url} ~= /^https?:\\/\\/" + broad + r"\\/api\\/v\\d\\/advert/ then reject(404)" + "\n"
+            "[Script]\n"
+            r'response if \${url} ~= /^https?:\\/\\/' + broad + r'\\/api\\/v\\d\\/movie\\/index_recommend/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/555Ad.js") with enable=555_enable, tag="555影视广告", timeout=60, requires_body=true' + "\n"
+            "[MITM]\n"
+            "hostname = vip7.fzwdyy.cn, *.qyfxgd.cn, *.weilai555.com, *.ecoliving168.com\n"
+        )
+        output, report = self.run_merge(
+            "[Rewrite]\n[Script]\n[MITM]\nhostname = \n",
+            extra,
+            return_provenance=True,
+        )
+        rewrite = output.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
+        script = output.split("[Script]", 1)[1].split("[MITM]", 1)[0]
+        vip_rule = next(line for line in rewrite.splitlines()
+                        if "getAdvertInfo" in line)
+        advert_rule = next(line for line in rewrite.splitlines()
+                           if "/api\\\\/v\\\\d\\\\/advert" in line)
+        script_rule = next(line for line in script.splitlines()
+                           if "555Ad.js" in line)
+        self.assertIn("vip7\\\\.fzwdyy\\\\.cn:8083", vip_rule)
+        self.assertNotIn(broad, advert_rule)
+        self.assertNotIn(broad, script_rule)
+        self.assertIn("555_enable", script_rule)
+        self.assertIn("555Ad.js", script_rule)
+        self.assertIn("vip7\\\\.fzwdyy\\\\.cn", advert_rule)
+        self.assertIn("qyfxgd\\\\.cn", advert_rule)
+        self.assertIn("weilai555\\\\.com", script_rule)
+        self.assertIn("ecoliving168\\\\.com", script_rule)
+
+        host_pattern = (
+            r'(?:vip7\\.fzwdyy\\.cn|(?:[A-Za-z0-9-]+\\.)+qyfxgd\\.cn|'
+            r'(?:[A-Za-z0-9-]+\\.)+weilai555\\.com|'
+            r'(?:[A-Za-z0-9-]+\\.)+ecoliving168\\.com)(?::\\d+)?'
+        )
+        host_re = __import__("re").compile(r"^(?:" + host_pattern + r")$", __import__("re").I)
+        for host in (
+            "vip7.fzwdyy.cn", "api.qyfxgd.cn", "a.b.weilai555.com",
+            "app.ecoliving168.com:8080",
+        ):
+            self.assertRegex(host, host_re)
+        for host in ("other.example.com", "api.qyfxgd.cn.evil.test",
+                     "qyfxgd.cn", "weilai555.com"):
+            self.assertNotRegex(host, host_re)
+
+        self.assertEqual(len(report["scope_adjustments"]), 2)
+        self.assertEqual(
+            {x["section"] for x in report["scope_adjustments"]},
+            {"Rewrite", "Script"},
+        )
+
+
     def test_rule_provenance_records_winner_duplicates_and_rule_events(self):
         base = (
             "[Rewrite]\n"
