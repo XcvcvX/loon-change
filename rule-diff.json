@@ -95,7 +95,7 @@
         "Rule": 4,
         "Script": 13
       },
-      "upstream_commit": "f50b8524e3bfd9d3ca9e2accebdfbd5b2eb91286",
+      "upstream_commit": "28d2b5ae29adb47bec969fb0aaf2dd4200c34741",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
     "GuaZiVideoAds": {
@@ -160,11 +160,5 @@
     },
     "total_changes": 0
   },
-  "upstream_revision_changes": [
-    {
-      "current_commit": "28d2b5ae29adb47bec969fb0aaf2dd4200c34741",
-      "previous_commit": "f50b8524e3bfd9d3ca9e2accebdfbd5b2eb91286",
-      "source": "Amap"
-    }
-  ]
+  "upstream_revision_changes": []
 }
