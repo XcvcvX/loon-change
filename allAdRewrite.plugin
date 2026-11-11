@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-11 08:23 UTC
+#!merged-at=2026-11-11 08:36 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -5896,7 +5896,7 @@ request if ${url} ~= /^https?:\/\/facade-api\.black-unique\.com\/advertise\/v1\/
 request if ${url} ~= /^https?:\/\/us\.l\.qq\.com\/exapp\?spsa=\d/ then reject(404)
 request if ${url} ~= /^https?:\/\/m\.qianbao\.qq\.com\/pages\/walletHome\?invisible/ then reject(404)
 ^https?:\/\/y\.gtimg\.cn\/music\/common\/upload\/t_splash_info\/ reject
-^https?:\/\/.+?\/music\/common\/upload\/t_splash_info\/ reject
+^https?:\/\/(?:y\.gtimg\.cn|music\.y\.qq\.com)\/music\/common\/upload\/t_splash_info\/ reject
 request if ${url} ~= /^https?:\/\/y\.gtimg\.cn\/music\/common\/\/upload\/kg_ad/.*?\d{4}\.jpg/ then reject_img(200)
 request if ${url} ~= /^https?:\/\/((25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.){3}(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\/music\/common\/upload\/t_splash_info\// then reject(404)
 ^https:\/\/music\.y\.qq\.com\/maproxy\/getPbCompressAd reject

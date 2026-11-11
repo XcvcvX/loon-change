@@ -3,7 +3,7 @@
     "rewrite": {
       "action_changed": 0,
       "added": 1,
-      "removed": 0
+      "removed": 1
     },
     "rule": {
       "action_changed": 0,
@@ -19,10 +19,11 @@
   "events": [
     {
       "after": {
-        "line": "request if ${url} ~= /^https?:\\/\\/(?:118\\.178\\.214\\.118|dapis\\.mting\\.info)\\/yyting\\/advertclient\\/ClientAdvertList.action/ then reject(404)",
+        "line": "^https?:\\/\\/(?:y\\.gtimg\\.cn|music\\.y\\.qq\\.com)\\/music\\/common\\/upload\\/t_splash_info\\/ reject",
         "section": "rewrite",
         "sources": [
-          "block"
+          "block",
+          "thelong"
         ]
       },
       "before": null,
@@ -31,20 +32,45 @@
       "risk": "medium",
       "section": "rewrite",
       "source_scores": {
-        "block": 0
+        "block": 0,
+        "thelong": 0
       },
       "sources": [
-        "block"
+        "block",
+        "thelong"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "^https?:\\/\\/.+?\\/music\\/common\\/upload\\/t_splash_info\\/ reject",
+        "section": "rewrite",
+        "sources": [
+          "block",
+          "thelong"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "source_scores": {
+        "block": 0,
+        "thelong": 0
+      },
+      "sources": [
+        "block",
+        "thelong"
       ]
     }
   ],
-  "overall_risk": "medium",
+  "overall_risk": "high",
   "risk_counts": {
-    "high": 0,
+    "high": 1,
     "low": 0,
     "medium": 1
   },
-  "run_id": "\"42986584795\"",
+  "run_id": "\"42988340543\"",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; removals and action changes are high risk.",
@@ -59,9 +85,15 @@
   "source_trends_last_30_snapshots": {
     "block": {
       "action_changed": 0,
-      "added": 3,
-      "removed": 3,
-      "snapshots_seen": 3
+      "added": 4,
+      "removed": 4,
+      "snapshots_seen": 4
+    },
+    "thelong": {
+      "action_changed": 0,
+      "added": 1,
+      "removed": 1,
+      "snapshots_seen": 1
     }
   },
   "upstream_revision_changes": []

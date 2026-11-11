@@ -130,14 +130,24 @@
       "action_changed": [],
       "added": [
         {
-          "line": "request if ${url} ~= /^https?:\\/\\/(?:118\\.178\\.214\\.118|dapis\\.mting\\.info)\\/yyting\\/advertclient\\/ClientAdvertList.action/ then reject(404)",
+          "line": "^https?:\\/\\/(?:y\\.gtimg\\.cn|music\\.y\\.qq\\.com)\\/music\\/common\\/upload\\/t_splash_info\\/ reject",
           "section": "rewrite",
           "sources": [
-            "block"
+            "block",
+            "thelong"
           ]
         }
       ],
-      "removed": []
+      "removed": [
+        {
+          "line": "^https?:\\/\\/.+?\\/music\\/common\\/upload\\/t_splash_info\\/ reject",
+          "section": "rewrite",
+          "sources": [
+            "block",
+            "thelong"
+          ]
+        }
+      ]
     },
     "rule": {
       "action_changed": [],
@@ -154,7 +164,7 @@
     "rewrite": {
       "action_changed": 0,
       "added": 1,
-      "removed": 0
+      "removed": 1
     },
     "rule": {
       "action_changed": 0,
@@ -166,7 +176,7 @@
       "added": 0,
       "removed": 0
     },
-    "total_changes": 1
+    "total_changes": 2
   },
   "upstream_revision_changes": []
 }
