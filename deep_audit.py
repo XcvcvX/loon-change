@@ -555,6 +555,105 @@ def audit_mitm_script_coverage(rewrite_rows, script_rows, mitm_rows):
     }
 
 
+
+
+
+def audit_mitm_necessity(mitm_rows, coverage_report, rewrite_rows, script_rows):
+    """Classify MITM entries by evidence strength; never infer deletion safety."""
+    entries = {}
+    for number, line in mitm_rows:
+        match = re.match(r'^hostname\s*=\s*(.*)', line, re.I)
+        if not match:
+            continue
+        for raw in match.group(1).split(','):
+            host = raw.strip().lower().rstrip('.')
+            if not host:
+                continue
+            negative = host.startswith('-')
+            key = host[1:] if negative else host
+            item = entries.setdefault((negative, key), {'host': key, 'negative': negative,
+                                                         'lines': [], 'references': []})
+            item['lines'].append(number)
+
+    references = coverage_report['mitm_literal_rewrite_script_host_references']
+    ambiguous = coverage_report['mitm_ambiguous_rewrite_script_references']
+    source_rows = rewrite_rows + script_rows
+    source_text = re.sub(r'\\+([.])', r'\1', chr(10).join(line for _, line in source_rows))
+    generic_script = [
+        {'line': number, 'entry': line[:200]}
+        for number, line in script_rows
+        if re.match(r'^(?:generic|cron)\b', line, re.I)
+    ]
+
+    classified = []
+    for (negative, host), item in sorted(entries.items()):
+        if negative:
+            item['classification'] = 'negative_exclusion'
+            item['evidence'] = '显式负向 hostname；需结合业务意图核对'
+            classified.append(item)
+            continue
+
+        matched = [ref for ref in references if host in ref.get('mitm_entries', [])]
+        item['references'] = [
+            {'source': ref['source'], 'line': ref['line'], 'host': ref['host'],
+             'coverage': ref['coverage']} for ref in matched
+        ]
+        if matched:
+            item['classification'] = 'referenced_by_literal_trigger'
+            item['evidence'] = '至少一个 Rewrite/Script 业务触发器明确由该 MITM 项覆盖'
+        else:
+            token = re.compile(r'(?<![A-Za-z0-9_-])' + re.escape(host) +
+                               r'(?![A-Za-z0-9_-])', re.I)
+            mentioned = bool(token.search(source_text))
+            related_ambiguous = []
+            for ref in ambiguous:
+                context = re.sub(r'\\+([.])', r'\1',
+                                 (ref.get('matcher', '') + ' ' + ref.get('entry', '')).lower())
+                if host in context or (host.startswith('*.') and host[2:] in context):
+                    related_ambiguous.append(ref)
+            if mentioned:
+                item['classification'] = 'possible_indirect_or_embedded_reference'
+                item['evidence'] = '在规则文本中出现，但未能证明是业务触发器主机（可能是脚本/CDN/响应地址）'
+            elif related_ambiguous or (host.startswith('*.') and generic_script):
+                item['classification'] = 'insufficient_dynamic_or_generic_evidence'
+                item['evidence'] = '通配域或相关动态/通用触发器可能存在静态分析无法解析的引用'
+            else:
+                item['classification'] = 'no_literal_reference_candidate'
+                item['evidence'] = '当前可识别的 Rewrite/Script 文本中未发现字面触发器引用；不构成可删除结论'
+        classified.append(item)
+
+    missing_classified = []
+    for ref in coverage_report['mitm_missing_rewrite_script_coverage']:
+        row = dict(ref)
+        if ref['scheme'] == 'https_only':
+            row['classification'] = 'https_literal_missing'
+            row['evidence'] = 'HTTPS 字面触发器未被正向 MITM 覆盖；仍需确认 Loon 语法、证书与实际请求'
+        else:
+            row['classification'] = 'scheme_or_matcher_ambiguous_missing'
+            row['evidence'] = '协议或 matcher 范围不够明确，不能直接判定必须补入 MITM'
+        missing_classified.append(row)
+
+    counts = Counter(x['classification'] for x in classified)
+    return {
+        'mitm_necessity_summary': {
+            'positive_entries': sum(not x['negative'] for x in classified),
+            'negative_entries': sum(x['negative'] for x in classified),
+            'referenced_by_literal_trigger': counts['referenced_by_literal_trigger'],
+            'possible_indirect_or_embedded_reference': counts['possible_indirect_or_embedded_reference'],
+            'insufficient_dynamic_or_generic_evidence': counts['insufficient_dynamic_or_generic_evidence'],
+            'no_literal_reference_candidates': counts['no_literal_reference_candidate'],
+            'https_literal_missing': sum(x['classification'] == 'https_literal_missing' for x in missing_classified),
+            'scheme_or_matcher_ambiguous_missing': sum(x['classification'] == 'scheme_or_matcher_ambiguous_missing' for x in missing_classified),
+            'generic_script_triggers': len(generic_script)
+        },
+        'mitm_necessity_classifications': classified,
+        'mitm_missing_necessity_classifications': missing_classified,
+        'mitm_generic_script_trigger_context': generic_script,
+        'mitm_necessity_safety_note': '未发现字面引用不等于 MITM 冗余；本分类不建议自动删除、添加或调整任何 hostname。'
+    }
+
+
+
 def audit_deep(path):
     text = Path(path).read_text(encoding='utf-8-sig')
     sec = parse_sections(text)
@@ -653,6 +752,7 @@ def audit_deep(path):
             generic.append({'line': n, 'type': kind, 'entry': line[:200]})
     repeated = [{'url': u, 'count': c} for u, c in sorted(url_counts.items()) if c > 1]
     coverage_report = audit_mitm_script_coverage(rewrite, script, mitm)
+    necessity_report = audit_mitm_necessity(mitm, coverage_report, rewrite, script)
 
     report = {
         'plugin': str(path),
@@ -682,7 +782,8 @@ def audit_deep(path):
             'script_urls_reused': len(repeated),
             'script_entries_without_detected_url': len(no_url),
             'script_generic_trigger_candidates': len(generic),
-            **coverage_report['mitm_script_coverage_summary']
+            **coverage_report['mitm_script_coverage_summary'],
+            **necessity_report['mitm_necessity_summary']
         },
         'rewrite_broad_candidates': broad,
         'rewrite_scope_review_candidates': scope_candidates,
@@ -712,10 +813,15 @@ def audit_deep(path):
         'mitm_ambiguous_rewrite_script_references': coverage_report['mitm_ambiguous_rewrite_script_references'],
         'mitm_unreferenced_positive_candidates': coverage_report['mitm_unreferenced_positive_candidates'],
         'mitm_literal_rewrite_script_host_references': coverage_report['mitm_literal_rewrite_script_host_references'],
+        'mitm_necessity_classifications': necessity_report['mitm_necessity_classifications'],
+        'mitm_missing_necessity_classifications': necessity_report['mitm_missing_necessity_classifications'],
+        'mitm_generic_script_trigger_context': necessity_report['mitm_generic_script_trigger_context'],
+        'mitm_necessity_safety_note': necessity_report['mitm_necessity_safety_note'],
         'safety_notes': [
             '本报告只读，不会删除、改写或禁用任何规则。',
             '宽泛正则、同匹配器多动作和未发现字面守卫均为人工复核候选，不等于错误。',
             'MITM 可能由复杂正则、变量或间接脚本引用；未发现字面域名不代表无用。',
+            'MITM 必要性分级只区分证据强弱；未发现字面引用不等于冗余，绝不自动删除或补入 hostname。',
             '重复脚本 URL 不等于重复执行有害；需结合触发频率和 Loon 日志。',
             '静态审计无法测量真实耗电、温度或延迟，也不能替代 iPhone 真机回归。',
             '远程脚本 HEAD 失败可能是 CDN 不支持或限流，不应据此直接删除脚本。'

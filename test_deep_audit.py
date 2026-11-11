@@ -251,5 +251,54 @@ hostname = *.example.test
         self.assertEqual(report['summary']['covered_references'], 2)
 
 
+    def test_mitm_necessity_classification_is_conservative(self):
+        from deep_audit import audit_mitm_script_coverage, audit_mitm_necessity
+        rewrite = [
+            (10, r'request if ${url} ~= /^https:\/\/api\.used\.test\/ad/ then reject(404)'),
+            (11, r'request if ${url} ~= /^https:\/\/api\.used\.test\/config/ then reject(404)'),
+            (12, r'request if ${url} ~= /^https:\/\/missing\.test\/ad/ then reject(404)'),
+            (13, r'request if ${url} ~= /^http:\/\/plain\.test\/ad/ then reject(404)'),
+            (14, r'request if ${url} ~= /^https:\/\/192\.0\.2\.9\/ad/ then reject(404)'),
+        ]
+        scripts = [
+            (20, r'http-response ^https:\/\/api\.used\.test\/v1 script-path=https://cdn.test/a.js'),
+            (21, 'generic script-path=https://cdn.test/generic.js'),
+            (22, r'http-request ^https:\/\/m\\d\.dynamic\.test\/v1 script-path=https://cdn.test/d.js'),
+        ]
+        mitm = [
+            (30, 'hostname = api.used.test, unused.test, *.wild.test, *.dynamic.test'),
+            (31, 'hostname = -blocked.test'),
+        ]
+        coverage = audit_mitm_script_coverage(rewrite, scripts, mitm)
+        report = audit_mitm_necessity(mitm, coverage, rewrite, scripts)
+        by_host = {x['host']: x for x in report['mitm_necessity_classifications']}
+        self.assertEqual(by_host['api.used.test']['classification'],
+                         'referenced_by_literal_trigger')
+        self.assertEqual(by_host['unused.test']['classification'],
+                         'no_literal_reference_candidate')
+        self.assertEqual(by_host['*.wild.test']['classification'],
+                         'insufficient_dynamic_or_generic_evidence')
+        self.assertEqual(by_host['*.dynamic.test']['classification'],
+                         'referenced_by_literal_trigger')
+        self.assertEqual(by_host['blocked.test']['classification'], 'negative_exclusion')
+        self.assertEqual(report['mitm_necessity_summary']['https_literal_missing'], 1)
+        self.assertEqual(report['mitm_necessity_summary']['scheme_or_matcher_ambiguous_missing'], 0)
+        self.assertIn('不等于', report['mitm_necessity_safety_note'])
+
+    def test_mitm_necessity_marks_embedded_host_as_indirect_not_required(self):
+        from deep_audit import audit_mitm_script_coverage, audit_mitm_necessity
+        rewrite = [(10, r'request if ${url} ~= /^https:\/\/api\.used\.test\/ad/ then reject(404)')]
+        scripts = [(20, r'http-response ^https:\/\/other\.test script-path=https://cdn.only.test/a.js')]
+        mitm = [(30, 'hostname = cdn.only.test, api.used.test')]
+        coverage = audit_mitm_script_coverage(rewrite, scripts, mitm)
+        report = audit_mitm_necessity(mitm, coverage, rewrite, scripts)
+        by_host = {x['host']: x for x in report['mitm_necessity_classifications']}
+        self.assertEqual(by_host['cdn.only.test']['classification'],
+                         'possible_indirect_or_embedded_reference')
+        self.assertEqual(by_host['api.used.test']['classification'],
+                         'referenced_by_literal_trigger')
+
+
+
 if __name__ == '__main__':
     unittest.main()
