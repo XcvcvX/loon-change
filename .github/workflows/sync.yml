@@ -19,6 +19,8 @@ on:
       - 'test_source_guard.py'
       - 'audit_plugin.py'
       - 'test_audit_plugin.py'
+      - 'audit_runtime.py'
+      - 'test_audit_runtime.py'
       - 'deep_audit.py'
       - 'test_deep_audit.py'
       - '.github/workflows/sync.yml'
@@ -46,7 +48,7 @@ jobs:
       - name: 编译检查
         run: python3 -m py_compile merge_plugins.py validate_plugin.py source_guard.py audit_plugin.py deep_audit.py convert_qx2loon.py convert_filter_qx2loon.py
       - name: 运行单元与合并集成测试
-        run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py
+        run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_audit_runtime.py test_deep_audit.py
       - name: 审计当前插件风险摘要
         run: |
           python3 audit_plugin.py allAdRewrite.plugin --summary-only
