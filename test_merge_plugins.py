@@ -343,9 +343,9 @@ hostname = *.amap.com
             "[Rewrite]\n"
             "# > QQ音乐\n"
             "# hostname = us.l.qq.com, y.gtimg.cn, music.y.qq.com\n"
-            r"request if ${url} ~= /^https?:\\/\\/y\\.gtimg\\.cn\\/music\\/common\\/upload\\/t_splash_info\\// then reject(404)" + "\n"
-            r"request if ${url} ~= /^https?:\\/\\/.+?\\/music\\/common\\/upload\\/t_splash_info\\// then reject(404)" + "\n"
-            r"request if ${url} ~= /^https?:\\/\\/((25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\.){3}(25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\/music\\/common\\/upload\\/t_splash_info\\// then reject(404)" + "\n"
+            r"request if ${url} ~= /^https?:\/\/y\.gtimg\.cn\/music\/common\/upload\/t_splash_info\// then reject(404)" + "\n"
+            r"request if ${url} ~= /^https?:\/\/.+?\/music\/common\/upload\/t_splash_info\// then reject(404)" + "\n"
+            r"request if ${url} ~= /^https?:\/\/((25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.){3}(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\/music\/common\/upload\/t_splash_info\// then reject(404)" + "\n"
             "[MITM]\nhostname = y.gtimg.cn, music.y.qq.com\n"
         )
         thelong = (
@@ -371,7 +371,7 @@ hostname = *.amap.com
         # blockAdsV2 的独立 IPv4 规则不受本次域名收敛影响。
         self.assertIn("25[0-5]", rewrite)
         self.assertIn("reject(404)", rewrite)
-        self.assertNotIn(r"https?:\\/\\/.+?\\/music\\/common\\/upload\\/t_splash_info\\/", "\n".join(scoped))
+        self.assertNotIn(r"https?:\/\/.+?\/music\/common\/upload\/t_splash_info\/", "\n".join(scoped))
         scoped_records = [x for x in report["rewrite"]
                           if "t_splash_info" in x["output_line"]
                           and "(?:y" in x["output_line"]]
@@ -401,8 +401,8 @@ hostname = *.amap.com
         extra = (
             "[Rewrite]\n# > QQ音乐\n"
             "# hostname = us.l.qq.com, y.gtimg.cn, changed.example.com\n"
-            r"^https?:\\/\\/y\\.gtimg\\.cn\\/music\\/common\\/upload\\/t_splash_info\\/ reject" + "\n"
-            r"^https?:\\/\\/.+?\\/music\\/common\\/upload\\/t_splash_info\\/ reject" + "\n"
+            r"^https?:\/\/y\.gtimg\.cn\/music\/common\/upload\/t_splash_info\/ reject" + "\n"
+            r"^https?:\/\/.+?\/music\/common\/upload\/t_splash_info\/ reject" + "\n"
             "[MITM]\nhostname = \n"
         )
         result = self.run_merge(
@@ -417,8 +417,8 @@ hostname = *.amap.com
         extra = (
             "[Rewrite]\n# > QQ音乐\n"
             "# hostname = us.l.qq.com, y.gtimg.cn, music.y.qq.com\n"
-            r"request if ${url} ~= /^https?:\\/\\/y\\.gtimg\\.cn\\/music\\/common\\/upload\\/t_splash_info\\// then reject(404)" + "\n"
-            r"request if ${url} ~= /^https?:\\/\\/.+?\\/music\\/common\\/upload\\/t_splash_info\\// then reject(404)" + "\n"
+            r"request if ${url} ~= /^https?:\/\/y\.gtimg\.cn\/music\/common\/upload\/t_splash_info\// then reject(404)" + "\n"
+            r"request if ${url} ~= /^https?:\/\/.+?\/music\/common\/upload\/t_splash_info\// then reject(404)" + "\n"
             "[MITM]\nhostname = \n"
         )
         thelong = (
