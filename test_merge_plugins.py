@@ -197,11 +197,15 @@ hostname = *.amap.com
         base = (
             "[Rewrite]\n"
             "^https://same.example.com/ad reject\n"
-            "[MITM]\nhostname = same.example.com\n"
+            "[Script]\n"
+            'response if ${url} ~= /^https:\\/\\/script.example.com\\/config/ then script("https://cdn.example/script.js")\n'
+            "[MITM]\nhostname = same.example.com,script.example.com\n"
         )
         extra = (
             "[Rewrite]\n"
             "^https://same.example.com/ad reject\n"
+            "[Script]\n"
+            'response if ${url} ~= /^https:\\/\\/script.example.com\\/config/ then script("https://cdn.example/script.js")\n'
             "[Rule]\nDOMAIN,ads.example.com,REJECT\n"
         )
         myblockads = "[Rule]\nDOMAIN,ads.example.com,REJECT\n"
@@ -218,6 +222,13 @@ hostname = *.amap.com
         self.assertEqual(
             rewrite["sources"][1]["disposition"], "duplicate_same_semantics"
         )
+
+        script = next(item for item in report["script"]
+                      if "script.example.com/config" in item["output_line"])
+        self.assertEqual(len(script["sources"]), 2)
+        self.assertEqual(script["sources"][0]["source"], "base")
+        self.assertEqual(script["sources"][0]["disposition"], "selected")
+        self.assertEqual(script["sources"][1]["source"], "block")
 
         included = [event for event in report["rule_events"]
                     if event["normalized_line"] == "DOMAIN,ads.example.com,REJECT"]
