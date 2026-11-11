@@ -1004,32 +1004,28 @@ base_sc = real_lines(base_sec.get('Script', []))
 # The user does not use 涨乐财富通. R-Store labels this exact rule
 # under "# > 涨乐财富通 - ZHANGLE"; current provenance shows no other
 # Rewrite or Script rule references c.zhangle.com.
-_ZHANGLE_UNUSED_MATCHER = r'^https?://c\.zhangle\.com/pic/mktg/diversity/.+\.jpg$'
-_ZHANGLE_UNUSED_ACTION = ('REJECT', 'reject_dict', 'reject_dict(200)')
+_ZHANGLE_UNUSED_RULES = {
+    r'^https?://c\.zhangle\.com/pic/mktg/diversity/.+\.jpg$': {'action_key': ('REJECT', 'reject_dict', 'reject_dict(200)'), 'action': 'reject-dict(200)', 'label': 'c.zhangle.com splash image'},
+    r'^https?://live\.inst-service\.htsc\.com/live': {'action_key': ('REJECT', 'reject_dict', 'reject_dict(200)'), 'action': 'reject-dict(200)', 'label': 'live.inst-service.htsc.com Live endpoint'},
+    r'^https?://geetest\.htsc\.com:\d+/pre_get_token': {'action_key': ('REJECT', 'reject', 'reject(200)'), 'action': 'reject-200', 'label': 'geetest.htsc.com verification endpoint'},
+}
 zhangle_rewrite_exclusions = []
 _zhangle_rw_kept = []
 for _line in base_rw:
-    if r'c\.zhangle\.com\/pic\/mktg\/diversity\/' not in _line:
+    _matcher = entry_regex(_line)
+    if _matcher not in _ZHANGLE_UNUSED_RULES:
         _zhangle_rw_kept.append(_line)
         continue
-    if (entry_regex(_line) != _ZHANGLE_UNUSED_MATCHER
-            or action_key(_line) != _ZHANGLE_UNUSED_ACTION):
-        raise RuntimeError(
-            'R-Store 涨乐财富通专属规则发生变化，拒绝静默保留或扩大排除范围：'
-            + _line
-        )
+    _spec = _ZHANGLE_UNUSED_RULES[_matcher]
+    if action_key(_line) != _spec['action_key']:
+        raise RuntimeError('R-Store 涨乐财富通专属规则发生变化，拒绝扩大排除范围：' + _line)
     zhangle_rewrite_exclusions.append({
-        'source': 'base',
-        'source_catalog': 'R-Store / 涨乐财富通 - ZHANGLE',
-        'input_line': _line,
-        'matcher': _ZHANGLE_UNUSED_MATCHER,
-        'action': 'reject-dict(200)',
-        'reason': 'User confirmed they do not use 涨乐财富通; R-Store labels this exact rule in its dedicated ZHANGLE section, and no other Rewrite/Script rule references c.zhangle.com.',
-        'status': 'excluded_unused_app',
+        'source': 'base', 'source_catalog': 'R-Store / 涨乐财富通 - ZHANGLE',
+        'input_line': _line, 'matcher': _matcher, 'action': _spec['action'],
+        'reason': 'User confirmed they do not use 涨乐财富通; R-Store places this exact rule in its dedicated ZHANGLE section.',
+        'status': 'excluded_unused_app', 'label': _spec['label'],
     })
-# Unused c.zhangle.com is removed by prune_unused_mitm; independent uses retain it.
 base_rw = _zhangle_rw_kept
-
 
 # JD Lite 开屏广告：base 的请求阶段 reject 会终止请求，不会产生响应供后续 response Rewrite 修改。
 # 仅在该终止请求规则仍存在时，排除 blockAdsV2 / Thelong 的两条不可达响应改写。
@@ -1053,6 +1049,31 @@ _lite_advertising_guard_present = any(
 # blockAdsV2
 block_rw, block_sc = prep_block_sections(
     extra_sec.get('Rewrite', []), extra_sec.get('Script', []))
+_ZHANGLE_BLOCK_RULES = {
+    r'^https?://c\.zhangle\.com/pic/mktg/diversity/.+\.jpg$': (r'request if ${url} ~= /^https?:\/\/c\.zhangle\.com\/pic\/mktg\/diversity\/.+\.jpg$/ then reject_dict(200)', ('REJECT', 'reject_dict', 'reject_dict(200)'), 'reject_dict(200)'),
+    r'^https?://live\.inst-service\.htsc\.com/live': (r'request if ${url} ~= /^https?:\/\/live\.inst-service\.htsc\.com\/live/ then reject_dict(200)', ('REJECT', 'reject_dict', 'reject_dict(200)'), 'reject_dict(200)'),
+    r'^https?://geetest\.htsc\.com:8888/pre_get_token': (r'request if ${url} ~= /^https?:\/\/geetest\.htsc\.com:8888\/pre_get_token/ then reject(200)', ('REJECT', 'reject', 'reject(200)'), 'reject(200)'),
+}
+zhangle_block_rewrite_exclusions = []
+_zhangle_block_kept = []
+for _line in block_rw:
+    _matcher = entry_regex(_line)
+    if _matcher not in _ZHANGLE_BLOCK_RULES:
+        if any(host in _line.lower() for host in ('zhangle.com', 'inst-service.htsc.com', 'geetest.htsc.com')):
+            raise RuntimeError('blockAdsV2 涨乐财富通规则发生变化，拒绝扩大排除范围：' + _line)
+        _zhangle_block_kept.append(_line)
+        continue
+    _expected_line, _expected_action, _action_label = _ZHANGLE_BLOCK_RULES[_matcher]
+    if _line != _expected_line or action_key(_line) != _expected_action:
+        raise RuntimeError('blockAdsV2 涨乐财富通规则发生变化，拒绝扩大排除范围：' + _line)
+    zhangle_block_rewrite_exclusions.append({
+        'source': 'block', 'source_catalog': 'fmz200/wool_scripts blockAdsV2',
+        'input_line': _line, 'matcher': _matcher, 'action': _action_label,
+        'reason': 'User confirmed they do not use 涨乐财富通; blockAdsV2 groups this exact rule with the ZHANGLE host set.',
+        'status': 'excluded_unused_app',
+    })
+block_rw = _zhangle_block_kept
+
 if _lite_advertising_guard_present:
     _kept_block_rw = []
     for _line in block_rw:
@@ -1920,7 +1941,7 @@ if args.provenance_out:
         'upstream_revisions': upstream_revisions,
         'repository': 'XcvcvX/loon-change',
         'scope': ['Rewrite', 'Script', 'Rule'],
-        'rewrite_exclusions': zhangle_rewrite_exclusions + block_rewrite_exclusions + lite_advertising_rewrite_exclusions,
+        'rewrite_exclusions': zhangle_rewrite_exclusions + zhangle_block_rewrite_exclusions + block_rewrite_exclusions + lite_advertising_rewrite_exclusions,
         'mitm_exclusions': block_mitm_exclusions,
         'scope_adjustments': block_scope_adjustments,
         'limitations': [

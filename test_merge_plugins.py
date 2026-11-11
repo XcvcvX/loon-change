@@ -145,42 +145,43 @@ hostname = *.amap.com
         self.assertIn("jdLiteAdvertisingVO", no_guard)
         self.assertIn("response-body-replace-regex jdLiteAdvertisingVO sooyaaabo", no_guard)
 
-    def test_unused_zhangle_app_specific_rule_and_mitm_are_removed(self):
+    def test_unused_zhangle_rules_are_removed_from_base_and_block_with_shared_mitm_safety(self):
         base = (
             "[Rewrite]\n"
             r"^https?:\/\/c\.zhangle\.com\/pic\/mktg\/diversity\/.+\.jpg$ reject-dict" + "\n"
-            "[MITM]\nhostname = c.zhangle.com\n"
+            r"^https?:\/\/live\.inst-service\.htsc\.com\/live reject-dict" + "\n"
+            r"^https?:\/\/geetest\.htsc\.com:\d+\/pre_get_token reject-200" + "\n"
+            "[MITM]\nhostname = c.zhangle.com, live.inst-service.htsc.com, geetest.htsc.com\n"
         )
-        extra = "[Rewrite]\n[MITM]\nhostname = \n"
-        output, report = self.run_merge(base, extra, return_provenance=True)
-        self.assertNotIn(r"c\.zhangle\.com\/pic\/mktg\/diversity", output)
-        mitm_line = next(
-            line for line in output.splitlines()
-            if line.strip().startswith("hostname =")
-        )
-        self.assertNotIn("c.zhangle.com", mitm_line)
-        exclusions = [
-            item for item in report["rewrite_exclusions"]
-            if item["source_catalog"] == "R-Store / 涨乐财富通 - ZHANGLE"
-        ]
-        self.assertEqual(len(exclusions), 1)
-        self.assertEqual(exclusions[0]["status"], "excluded_unused_app")
-        self.assertEqual(exclusions[0]["action"], "reject-dict(200)")
-
-        # If another retained rule independently uses this host, MITM must remain.
-        shared_base = (
+        block = (
             "[Rewrite]\n"
-            r"^https?:\/\/c\.zhangle\.com\/pic\/mktg\/diversity\/.+\.jpg$ reject-dict" + "\n"
-            r"^https?:\/\/c\.zhangle\.com\/health reject" + "\n"
-            "[MITM]\nhostname = c.zhangle.com\n"
-        )
-        shared = self.run_merge(shared_base, extra)
-        shared_mitm = next(
-            line for line in shared.splitlines()
-            if line.strip().startswith("hostname =")
-        )
-        self.assertIn("c.zhangle.com", shared_mitm)
-        self.assertIn(r"c\.zhangle\.com\/health", shared)
+            r"request if @URL@ ~= /^https?:\/\/c\.zhangle\.com\/pic\/mktg\/diversity\/.+\.jpg$/ then reject_dict(200)" + "\n"
+            r"request if @URL@ ~= /^https?:\/\/live\.inst-service\.htsc\.com\/live/ then reject_dict(200)" + "\n"
+            r"request if @URL@ ~= /^https?:\/\/geetest\.htsc\.com:8888\/pre_get_token/ then reject(200)" + "\n"
+            "[MITM]\nhostname = c.zhangle.com, live.inst-service.htsc.com, geetest.htsc.com\n"
+        ).replace("@URL@", "$"+"{url}")
+        output, report = self.run_merge(base, block, return_provenance=True)
+        for host in ("c.zhangle.com", "live.inst-service.htsc.com", "geetest.htsc.com"):
+            self.assertNotIn(host, output)
+        exclusions = [x for x in report["rewrite_exclusions"] if x.get("status") == "excluded_unused_app"]
+        self.assertEqual(len(exclusions), 6)
+        self.assertEqual({x["source"] for x in exclusions}, {"base", "block"})
+
+        shared_base = base.replace("[Rewrite]\n", "[Rewrite]\n" + r"^https?:\/\/geetest\.htsc\.com\/health reject" + "\n")
+        shared = self.run_merge(shared_base, block)
+        shared_mitm = next(line for line in shared.splitlines() if line.strip().startswith("hostname ="))
+        self.assertIn("geetest.htsc.com", shared_mitm)
+        self.assertIn(r"geetest\.htsc\.com\/health", shared)
+
+    def test_zhangle_block_rule_drift_fails_closed(self):
+        base = "[Rewrite]\n[MITM]\nhostname = \n"
+        changed = (
+            "[Rewrite]\n"
+            r"request if @URL@ ~= /^https?:\/\/live\.inst-service\.htsc\.com\/live/ then reject(404)" + "\n"
+            "[MITM]\nhostname = live.inst-service.htsc.com\n"
+        ).replace("@URL@", "$"+"{url}")
+        error = self.run_merge(base, changed, expect_failure=True)
+        self.assertIn("涨乐财富通规则发生变化", error)
 
     def test_unused_zhangle_app_httpdns_mitm_wildcard_is_removed(self):
         base = "[Rewrite]\n[MITM]\nhostname = \n"
