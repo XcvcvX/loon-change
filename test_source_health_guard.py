@@ -46,6 +46,15 @@ class SourceHealthGuardTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "missing required sources"):
             build_health(sources(), current, provenance(), provenance(), diff())
 
+    def test_cloned_plugin_sources_use_rule_lines_without_bytes(self):
+        current = sources()
+        for name in ("thelongdarkorg", "aoomee", "zmjde"):
+            current[name].pop("bytes")
+        report = build_health(sources(), current, provenance(), provenance(), diff())
+        self.assertTrue(report["deployment_allowed"])
+        self.assertEqual(report["source_scores"]["aoomee"]["evidence"]["content_volume"],
+                         "present_rule_lines")
+
     def test_unattributed_provenance_blocks(self):
         current = provenance()
         current["rewrite"][0]["sources"] = []

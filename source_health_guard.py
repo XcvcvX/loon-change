@@ -68,9 +68,16 @@ def build_health(previous_sources, current_sources, previous_provenance,
         current = current_sources[name]
         old = previous_sources.get(name, {})
         score, evidence = 0, {}
-        if _source_count(current) > 0 and int(current.get("bytes", 0) or 0) > 0:
+        # Source reports use byte counts for single-file feeds and rule_lines
+        # for cloned plugin collections. Either validated measure is sufficient.
+        byte_count = int(current.get("bytes", 0) or 0)
+        content_count = _source_count(current)
+        if content_count > 0 and (byte_count > 0 or "rule_lines" in current):
             score += 30
-            evidence["content_volume"] = "present"
+            evidence["content_volume"] = (
+                "present_bytes_and_entries" if byte_count > 0
+                else "present_rule_lines"
+            )
         else:
             evidence["content_volume"] = "missing"
             blockers.append("%s has no validated content volume" % name)
