@@ -408,9 +408,9 @@ def extract_literal_matcher_host(matcher):
 
     # Optional/variable ports do not make the hostname itself dynamic.
     port_suffixes = sorted((
-        r'(?::\\d+)?', r'(:\\d+)?', r'(?::443)?', r'(:443)?',
-        r'(?::\\d{2,5})?', r'(:\\d{2,5})?',
-        r'\\:\\w+', r':\\w+', r'\\:\\d+', r':\\d+'
+        r'(?::\d+)?', r'(:\d+)?', r'(?::443)?', r'(:443)?',
+        r'(?::\d{2,5})?', r'(:\d{2,5})?',
+        r'\:\w+', r':\w+', r'\:\d+', r':\d+'
     ), key=len, reverse=True)
     for suffix in port_suffixes:
         if authority.endswith(suffix):
@@ -421,22 +421,22 @@ def extract_literal_matcher_host(matcher):
         return None, 'empty_authority'
 
     normalized_authority = normalize_regex_literals(authority)
-    has_regex_meta = bool(re.search(r'[\\[\\]()*+?{}|\\\\]', normalized_authority))
+    has_regex_meta = bool(re.search(r'[\[\]()*+?{}|\\]', normalized_authority))
     if not has_regex_meta:
-        if re.fullmatch(r'[a-z0-9-]+(?:\\.[a-z0-9-]+)+', normalized_authority):
+        if re.fullmatch(r'[a-z0-9-]+(?:\.[a-z0-9-]+)+', normalized_authority):
             return normalized_authority, 'literal_host'
         return None, 'non_literal_or_invalid_host'
 
     # Use a sentinel for escaped dots. Only these are safe label boundaries;
     # unescaped regex dots remain wildcards and cannot establish MITM coverage.
-    separator = '\\x01'
-    safe_authority = re.sub(r'\\\\+([.])', separator, authority)
+    separator = '\x01'
+    safe_authority = re.sub(r'\\+([.])', separator, authority)
 
     # Remove only leading regex groups that explicitly contribute a complete
-    # optional/repeated subdomain label, e.g. (?:www\\.)? or (?:label\\.)*.
+    # optional/repeated subdomain label, e.g. (?:www\.)? or (?:label\.)*.
     while True:
         prefix = re.match(
-            r'^\\((?:\\?:)?[^()]*' + re.escape(separator) + r'\\)[*+?]?',
+            r'^\((?:\?:)?[^()]*' + re.escape(separator) + r'\)[*+?]?',
             safe_authority
         )
         if not prefix:
