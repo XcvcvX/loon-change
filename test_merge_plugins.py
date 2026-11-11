@@ -293,6 +293,64 @@ hostname = *.amap.com
         )
 
 
+    def test_lanrentingshu_broad_rewrite_is_limited_to_declared_hosts(self):
+        extra = (
+            "[Rewrite]\n"
+            "# > 懒人听书\n"
+            "# hostname = 118.178.214.118, dapis.mting.info, display.wting.info\n"
+            r"request if ${url} ~= /^https?:\/\/118\.178\.214\.118\/yyting\/advertclient\/ClientAdvertList\.action/ then reject_img(200)" + "\n"
+            r"request if ${url} ~= /^https?:\/\/dapis\.mting\.info\/yyting\/advertclient\/ClientAdvertList\.action/ then reject_img(200)" + "\n"
+            r"request if ${url} ~= /^https?:\/\/.*\/yyting\/advertclient\/ClientAdvertList.action/ then reject(404)" + "\n"
+            r"request if ${url} ~= /^https?:\/\/display\.wting\.info\/.*.jpeg/ then reject(200)" + "\n"
+            "[Script]\n[MITM]\nhostname = 118.178.214.118, dapis.mting.info, display.wting.info\n"
+        )
+        output, report = self.run_merge(
+            "[Rewrite]\n[Script]\n[MITM]\nhostname = \n",
+            extra,
+            return_provenance=True,
+        )
+        rewrite = output.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
+        broad = next(line for line in rewrite.splitlines()
+                     if "ClientAdvertList" in line and "reject(404)" in line)
+        self.assertIn(r"(?:118\.178\.214\.118|dapis\.mting\.info)", broad)
+        self.assertNotIn(r"https?:\/\/.*\/yyting", broad)
+        self.assertIn("reject(404)", broad)
+
+        # 两条原有精确图片广告拦截与 display.wting.info 图片规则均保持原样。
+        self.assertEqual(rewrite.count("reject_img(200)"), 2)
+        self.assertIn("display\\.wting\\.info", rewrite)
+        self.assertEqual(len(report["scope_adjustments"]), 1)
+        adjustment = report["scope_adjustments"][0]
+        self.assertEqual(adjustment["section"], "Rewrite")
+        self.assertIn("118\\.178\\.214\\.118|dapis\\.mting\\.info",
+                      adjustment["output_line"])
+
+        host_re = __import__("re").compile(
+            r"^(?:118\.178\.214\.118|dapis\.mting\.info)$",
+            __import__("re").I,
+        )
+        for host in ("118.178.214.118", "dapis.mting.info"):
+            self.assertRegex(host, host_re)
+        for host in ("other.example.com", "display.wting.info",
+                     "dapis.mting.info.evil.test"):
+            self.assertNotRegex(host, host_re)
+
+    def test_lanrentingshu_host_declaration_drift_fails_closed(self):
+        extra = (
+            "[Rewrite]\n"
+            "# > 懒人听书\n"
+            "# hostname = 118.178.214.118, dapis.mting.info, new.example.com\n"
+            r"request if ${url} ~= /^https?:\/\/.*\/yyting\/advertclient\/ClientAdvertList.action/ then reject(404)" + "\n"
+            "[Script]\n[MITM]\nhostname = \n"
+        )
+        result = self.run_merge(
+            "[Rewrite]\n[Script]\n[MITM]\nhostname = \n",
+            extra,
+            expect_failure=True,
+        )
+        self.assertIn("懒人听书上游 hostname 声明已变化", result)
+
+
     def test_rule_provenance_records_winner_duplicates_and_rule_events(self):
         base = (
             "[Rewrite]\n"
