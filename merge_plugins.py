@@ -1219,7 +1219,7 @@ _SEMANTIC_DUPLICATE_REWRITE_RULES = {
             'covered_by': r'^https?://ssp\.soulapp\.cn/api/q',
             'reason': 'The retained base matcher covers both HTTP and HTTPS for the same path with the same reject-dict action.',
         },
-        r'^https?://hweb-manager\.huazhu\.com/notice/getAppPopupNotifyAlert(?:\?.*)?: {
+        r'^https?://hweb-manager\.huazhu\.com/notice/getAppPopupNotifyAlert(?:\?.*)?$': {
             'action_key': ('REJECT', 'reject_dict', 'reject_dict(200)'),
             'covered_by': r'^https?://hweb-manager\.huazhu\.com/notice/getAppPopupNotifyAlert',
             'reason': 'The retained base prefix matcher already covers the narrower optional-query form with the same reject-dict action.',
