@@ -800,12 +800,19 @@ _QQMUSIC_MARKER = '# > QQ音乐'
 _QQMUSIC_BLOCK_HOST_DECLARATION = (
     '# hostname = us.l.qq.com, y.gtimg.cn, music.y.qq.com'
 )
-_QQMUSIC_GENERIC = (
+_QQMUSIC_BLOCK_GENERIC = (
     r'https?:\\/\\/.+?\\/music\\/common\\/upload\\/t_splash_info\\/'
 )
-_QQMUSIC_SCOPED = (
+_QQMUSIC_BLOCK_SCOPED = (
     r'https?:\\/\\/(?:y\\.gtimg\\.cn|music\\.y\\.qq\\.com)'
     r'\\/music\\/common\\/upload\\/t_splash_info\\/'
+)
+_QQMUSIC_THELONG_GENERIC = (
+    r'https?:\/\/.+?\/music\/common\/upload\/t_splash_info\/'
+)
+_QQMUSIC_THELONG_SCOPED = (
+    r'https?:\/\/(?:y\.gtimg\.cn|music\.y\.qq\.com)'
+    r'\/music\/common\/upload\/t_splash_info\/'
 )
 _QQMUSIC_THELONG_MITM = 'hostname = y.gtimg.cn, music.y.qq.com'
 
@@ -816,7 +823,7 @@ def validate_qqmusic_sources(block_text, thelong_text=None):
     if marker_index < 0:
         return False, False
     next_app = re.search(
-        r'(?m)^#\\s*>\\s*',
+        r'(?m)^#\s*>\s*',
         block_text[marker_index + len(_QQMUSIC_MARKER):],
     )
     section_end = (
@@ -825,9 +832,9 @@ def validate_qqmusic_sources(block_text, thelong_text=None):
     )
     block_section = block_text[marker_index:section_end]
     if (_QQMUSIC_BLOCK_HOST_DECLARATION not in block_section
-            or _QQMUSIC_GENERIC not in block_section
+            or _QQMUSIC_BLOCK_GENERIC not in block_section
             or r'y\\.gtimg\\.cn\\/music\\/common\\/upload\\/t_splash_info\\/' not in block_section
-            or 't_splash_info' not in block_section):
+            or 'reject' not in block_section):
         raise RuntimeError(
             'QQ音乐 blockAdsV2 hostname/matcher/action 已变化，停止构建并要求复核'
         )
@@ -837,9 +844,10 @@ def validate_qqmusic_sources(block_text, thelong_text=None):
     mitm_section = thelong_text.split('[MITM]', 1)
     if (len(mitm_section) != 2
             or _QQMUSIC_THELONG_MITM not in mitm_section[1]
-            or _QQMUSIC_GENERIC not in thelong_text
-            or r'y\\.gtimg\\.cn\\/music\\/common\\/upload\\/t_splash_info\\/' not in thelong_text
-            or '该主机需在 MITM 列表内才会生效' not in thelong_text):
+            or _QQMUSIC_THELONG_GENERIC not in thelong_text
+            or r'y\.gtimg\.cn\/music\/common\/upload\/t_splash_info\/' not in thelong_text
+            or '该主机需在 MITM 列表内才会生效' not in thelong_text
+            or 'reject' not in thelong_text):
         raise RuntimeError(
             'Thelong QQ音乐 MITM/备用 CDN 规则声明已变化，停止构建并要求复核'
         )
@@ -848,20 +856,20 @@ def validate_qqmusic_sources(block_text, thelong_text=None):
 
 def narrow_qqmusic_scope(rewrite_lines, source):
     """将 QQ音乐备用 CDN 的全主机 matcher 收敛到其专用 MITM 主机。"""
+    generic = (_QQMUSIC_BLOCK_GENERIC if source == 'block'
+               else _QQMUSIC_THELONG_GENERIC)
+    scoped = (_QQMUSIC_BLOCK_SCOPED if source == 'block'
+              else _QQMUSIC_THELONG_SCOPED)
     output, adjustments = [], []
     for line in rewrite_lines:
-        is_target = (
-            'music\\\\/common\\\\/upload\\\\/t_splash_info' in line
-            and 'reject' in line
-            and _QQMUSIC_GENERIC in line
-        )
+        is_target = 't_splash_info' in line and 'reject' in line and generic in line
         if not is_target:
             output.append(line)
             continue
-        if _QQMUSIC_SCOPED in line:
+        if scoped in line:
             output.append(line)
             continue
-        updated = line.replace(_QQMUSIC_GENERIC, _QQMUSIC_SCOPED, 1)
+        updated = line.replace(generic, scoped, 1)
         if updated == line:
             raise RuntimeError('QQ音乐宽泛 t_splash_info matcher 无法安全收敛：' + line)
         adjustments.append({
