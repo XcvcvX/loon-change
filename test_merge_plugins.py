@@ -198,14 +198,14 @@ hostname = *.amap.com
             "[Rewrite]\n"
             "^https://same.example.com/ad reject\n"
             "[Script]\n"
-            'response if ${url} ~= /^https?:\\/\\/script\\.example\\.com\\/config/ then script("https://cdn.example/script.js")\n'
+            'http-response ^https://script.example.com/config script-path=https://cdn.example/script.js\n'
             "[MITM]\nhostname = same.example.com,script.example.com\n"
         )
         extra = (
             "[Rewrite]\n"
             "^https://same.example.com/ad reject\n"
             "[Script]\n"
-            'response if ${url} ~= /^https?:\\/\\/script\\.example\\.com\\/config/ then script("https://cdn.example/script.js")\n'
+            'http-response ^https://script.example.com/config script-path=https://cdn.example/script.js\n'
             "[Rule]\nDOMAIN,ads.example.com,REJECT\n"
         )
         myblockads = "[Rule]\nDOMAIN,ads.example.com,REJECT\n"
