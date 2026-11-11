@@ -396,26 +396,76 @@ def audit_rewrite_overlaps(rewrite_rows, sample_cap=600, candidate_cap=500):
 
 
 def extract_literal_matcher_host(matcher):
-    """Return a literal hostname only when the matcher authority has no regex syntax."""
-    normalized = normalize_regex_literals(matcher)
-    if '://' not in normalized:
+    """Return a literal hostname or a conservative stable suffix from a URL matcher."""
+    # Normalize escaped scheme/path slashes, but preserve escaped dots so a regex
+    # wildcard dot can never be mistaken for a literal hostname label separator.
+    scheme_normalized = re.sub(r'\\+/', '/', matcher)
+    if '://' not in scheme_normalized:
         return None, 'no_explicit_scheme'
-    authority = extract_url_authority(normalized).lstrip('^')
-    authority = authority.split('#', 1)[0].split('?', 1)[0].split('/', 1)[0]
-    authority = authority.split('@')[-1].split(':')[0].lower().rstrip('.')
+
+    authority = extract_url_authority(scheme_normalized).lstrip('^')
+    authority = authority.split('@')[-1].lower().rstrip('.')
+
+    # Literal numeric ports and regex-based optional/variable ports do not
+    # make the hostname itself dynamic.
+    literal_port = re.search(r':\d{1,5}$', authority)
+    if literal_port:
+        authority = authority[:literal_port.start()]
+    else:
+        port_suffixes = sorted((
+            r'(?::\d+)?', r'(:\d+)?', r'(?::443)?', r'(:443)?',
+            r'(?::\d{2,5})?', r'(:\d{2,5})?',
+            r'\:\w+', r':\w+', r'\:\d+', r':\d+'
+        ), key=len, reverse=True)
+        for suffix in port_suffixes:
+            if authority.endswith(suffix):
+                authority = authority[:-len(suffix)]
+                break
+    authority = authority.rstrip('.')
     if not authority:
         return None, 'empty_authority'
-    if re.search(r'[\[\]()*+?{}|\\]', authority):
-        meta_positions = [authority.rfind(ch) for ch in r'[]()*+?{}|\\']
-        tail = authority[max(meta_positions) + 1:].lstrip('.')
-        labels = tail.split('.')
-        if len(labels) >= 2 and all(re.fullmatch(r'[a-z0-9-]+', x) for x in labels[-2:]):
-            return '.'.join(labels[-2:]), 'regex_host_suffix'
-        return None, 'regex_host_authority'
-    if not re.fullmatch(r'[a-z0-9-]+(?:\.[a-z0-9-]+)+', authority):
-        return None, 'non_literal_or_invalid_host'
-    return authority, 'literal_host'
 
+    normalized_authority = normalize_regex_literals(authority)
+    has_regex_meta = bool(re.search(r'[\[\]()*+?{}|\\]', normalized_authority))
+    if not has_regex_meta:
+        if re.fullmatch(r'[a-z0-9-]+(?:\.[a-z0-9-]+)+', normalized_authority):
+            return normalized_authority, 'literal_host'
+        return None, 'non_literal_or_invalid_host'
+
+    # Use a sentinel for escaped dots. Only these are safe label boundaries;
+    # unescaped regex dots remain wildcards and cannot establish MITM coverage.
+    separator = '\x01'
+    safe_authority = re.sub(r'\\+([.])', separator, authority)
+
+    # Remove only leading regex groups that explicitly contribute a complete
+    # optional/repeated subdomain label, e.g. (?:www\.)? or (?:label\.)*.
+    while True:
+        prefix = re.match(
+            r'^\((?:\?:)?[^()]*' + re.escape(separator) + r'\)[*+?]?',
+            safe_authority
+        )
+        if not prefix:
+            break
+        safe_authority = safe_authority[prefix.end():]
+
+    suffix_pattern = (
+        r'(?:^|' + re.escape(separator) + r')'
+        r'((?:[a-z0-9-]+' + re.escape(separator) + r')+[a-z]{2,})$'
+    )
+    candidates = list(re.finditer(suffix_pattern, safe_authority, re.I))
+    if candidates:
+        suffix = candidates[-1].group(1).replace(separator, '.').lower().rstrip('.')
+        public_suffixes = {
+            'com.cn', 'net.cn', 'org.cn', 'gov.cn', 'edu.cn', 'ac.cn', 'mil.cn',
+            'com.hk', 'com.tw', 'com.au', 'com.sg', 'com.my', 'com.vn', 'com.ph',
+            'com.br', 'com.mx', 'com.tr', 'co.jp', 'or.jp', 'ne.jp', 'ac.jp',
+            'co.uk', 'org.uk', 'ac.uk', 'co.kr', 'or.kr', 'co.in', 'co.nz',
+            'co.th', 'co.id'
+        }
+        if len(suffix.split('.')) >= 2 and suffix not in public_suffixes:
+            return suffix, 'regex_host_suffix'
+
+    return None, 'regex_host_authority'
 
 def host_matches_mitm(host, positive_hosts, negative_hosts, dynamic_suffix=False):
     """Return coverage state using exact entries and *.suffix entries."""
