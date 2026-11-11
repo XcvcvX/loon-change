@@ -265,3 +265,12 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 正式同步补跑 `compare_rule_provenance.py`、`source_health_guard.py` 的编译检查，并执行 `test_compare_rule_provenance.py`、`test_source_health_guard.py`、`test_rule_risk_history.py`。
 - 移除 PR 测试命令中重复列出的 `test_rule_risk_history.py`，每个测试模块只执行一次。
 - 本批只调整 CI 校验覆盖，不修改 `allAdRewrite.plugin`、任何 Rewrite/Script/Rule、MITM hostname、动作或优先级。
+
+
+## 第七阶段第二十七批：统一 MITM 证书绑定跳过策略与深度审计
+
+- 将证书绑定/已知 MITM 不兼容域及逐域原因抽取到共享的 `mitm_policy.py`，合并器与深度审计共用同一策略，避免两处名单漂移。
+- 深度审计将命中该策略的 HTTPS Rewrite/Script 主机标记为“按策略主动跳过”，不再误报为未解释的 MITM 漏配；真正未覆盖的主机仍单独列为待核查项。
+- 报告保留被跳过的具体规则、域名和原因；不自动补入 MITM，不自动删除规则。
+- 增加策略匹配、子域匹配、真实漏配区分测试，并把新模块与测试纳入 PR 和正式同步 CI。
+- 本批不修改任何生产 Rewrite、Script、Rule、MITM hostname、动作或优先级。
