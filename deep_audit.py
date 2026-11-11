@@ -47,16 +47,55 @@ def parse_rewrite(line):
     return None
 
 
+def normalize_regex_literals(pattern):
+    """Normalize escaped URL separators for conservative scope inspection only."""
+    return re.sub(r'\\([./])', r'\1', pattern)
+
+
+def has_domain_constraint(pattern):
+    normalized = normalize_regex_literals(pattern)
+    return bool(re.search(
+        r'[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}', normalized, re.I
+    ))
+
+
+def classify_rewrite_scope(pattern):
+    """Classify matcher scope; this is a review hint, never a rule-validity verdict."""
+    normalized = normalize_regex_literals(pattern)
+    if normalized.strip() in {'.*', '.+', '^.*$', '^.+$'}:
+        return 'global_like'
+    if not has_domain_constraint(pattern):
+        if normalized.startswith(('^https://', '^http://', '^https?://')):
+            return 'url_without_domain'
+        if '.*' in normalized or '.+' in normalized:
+            return 'unscoped_wildcard'
+        if len(normalized) <= 5:
+            return 'short_unscoped'
+        return 'unscoped_other'
+
+    authority = ''
+    scheme = re.search(r'https?://', normalized, re.I)
+    if scheme:
+        authority = re.split(r'[/\?#]', normalized[scheme.end():], maxsplit=1)[0]
+    if re.search(r'\.\*|\.\+|\([^)]*\)[*+]', authority):
+        return 'domain_scoped_subdomain_wildcard'
+    remainder = normalized[scheme.end():] if scheme else normalized
+    if re.search(r'\.\*|\.\+|\([^)]*\)[*+]', remainder):
+        return 'domain_scoped_path_wildcard'
+    return 'domain_scoped'
+
+
 def broad_reasons(pattern):
     reasons = []
-    domain = re.search(r'[A-Za-z0-9-]+\.[A-Za-z]{2,}', pattern)
-    if pattern.strip() in {'.*', '.+', '^.*$', '^.+$'}:
+    normalized = normalize_regex_literals(pattern)
+    domain = has_domain_constraint(pattern)
+    if normalized.strip() in {'.*', '.+', '^.*$', '^.+$'}:
         reasons.append('近似全量匹配')
-    if len(pattern) <= 5 and not domain:
+    if len(normalized) <= 5 and not domain:
         reasons.append('表达式很短且没有明显域名约束')
-    if '.*' in pattern and not domain:
+    if ('.*' in normalized or '.+' in normalized) and not domain:
         reasons.append('含未限定域名的贪婪通配')
-    if pattern.startswith('^https?://') and not domain:
+    if normalized.startswith(('^https://', '^http://', '^https?://')) and not domain:
         reasons.append('协议级 URL 匹配未见明确域名')
     return reasons
 
@@ -69,6 +108,7 @@ def audit_deep(path):
     mitm = rows(sec.get('MITM', []))
 
     groups, broad, unknown = defaultdict(list), [], []
+    scope_counts, scope_candidates = Counter(), []
     for n, line in rewrite:
         parsed = parse_rewrite(line)
         if not parsed:
@@ -76,10 +116,15 @@ def audit_deep(path):
             continue
         phase, matcher, action = parsed
         groups[(phase, matcher)].append({'line': n, 'action': action})
+        scope = classify_rewrite_scope(matcher)
+        scope_counts[scope] += 1
+        if scope != 'domain_scoped':
+            scope_candidates.append({'line': n, 'phase': phase, 'pattern': matcher,
+                                     'action': action, 'scope': scope})
         reasons = broad_reasons(matcher)
         if reasons:
             broad.append({'line': n, 'phase': phase, 'pattern': matcher,
-                          'action': action, 'reasons': reasons})
+                          'action': action, 'reasons': reasons, 'scope': scope})
     duplicates, conflicts = [], []
     for (phase, matcher), entries in sorted(groups.items()):
         actions = sorted({x['action'] for x in entries})
@@ -140,6 +185,8 @@ def audit_deep(path):
             'rewrite_entries': len(rewrite),
             'rewrite_unparsed': len(unknown),
             'rewrite_broad_candidates': len(broad),
+            'rewrite_scope_counts': dict(sorted(scope_counts.items())),
+            'rewrite_scope_review_candidates': len(scope_candidates),
             'rewrite_duplicate_matcher_groups': len(duplicates),
             'rewrite_action_conflict_groups': len(conflicts),
             'mitm_positive_unique_hosts': len(positive),
@@ -154,6 +201,7 @@ def audit_deep(path):
             'script_generic_trigger_candidates': len(generic)
         },
         'rewrite_broad_candidates': broad,
+        'rewrite_scope_review_candidates': scope_candidates,
         'rewrite_duplicate_matcher_groups': duplicates,
         'rewrite_action_conflict_groups': conflicts,
         'rewrite_unparsed_entries': unknown,
@@ -210,6 +258,15 @@ def render_markdown(report):
         lines += ['- ' + json.dumps(x, ensure_ascii=False) for x in values[:100]] if values else ['未发现。']
         if len(values) > 100:
             lines.append('其余 %d 项见 JSON 报告。' % (len(values) - 100))
+    lines += ['', '## Rewrite 匹配范围分类', '',
+              '| 分类 | 数量 |', '|---|---:|']
+    for scope, count in report['summary']['rewrite_scope_counts'].items():
+        lines.append('| %s | %s |' % (scope, count))
+    lines += ['', '## Rewrite 范围复核候选（前 100 项）', '']
+    candidates = report['rewrite_scope_review_candidates']
+    lines += ['- ' + json.dumps(x, ensure_ascii=False) for x in candidates[:100]] if candidates else ['未发现范围复核候选。']
+    if len(candidates) > 100:
+        lines.append('其余 %d 项见 JSON 报告。' % (len(candidates) - 100))
     lines += ['', '## 安全边界', ''] + ['- ' + x for x in report['safety_notes']]
     return '\n'.join(lines) + '\n'
 
