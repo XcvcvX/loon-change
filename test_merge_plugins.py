@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Integration tests for merge_plugins.py; all inputs are local fixtures."""
+import json
 import subprocess
 import sys
 import tempfile
@@ -11,18 +12,20 @@ MERGER = Path(__file__).with_name("merge_plugins.py")
 
 
 class MergeIntegrationTests(unittest.TestCase):
-    def run_merge(self, base_text, extra_text, myblockads_text=None, return_stdout=False, amap_text=None):
+    def run_merge(self, base_text, extra_text, myblockads_text=None, return_stdout=False, amap_text=None, return_provenance=False):
         tmp = tempfile.TemporaryDirectory()
         self.addCleanup(tmp.cleanup)
         root = Path(tmp.name)
         base = root / "base.plugin"
         extra = root / "extra.plugin"
         out = root / "merged.plugin"
+        provenance = root / "rule-provenance.json"
         base.write_text(base_text, encoding="utf-8")
         extra.write_text(extra_text, encoding="utf-8")
         command = [sys.executable, str(MERGER), "--base", str(base),
                    "--extra", str(extra), "--filter", "none",
-                   "--myblockads", "none", "--out", str(out)]
+                   "--myblockads", "none", "--out", str(out),
+                   "--provenance-out", str(provenance)]
         if myblockads_text is not None:
             myblockads = root / "myblockads.lpx"
             myblockads.write_text(myblockads_text, encoding="utf-8")
@@ -36,6 +39,8 @@ class MergeIntegrationTests(unittest.TestCase):
             capture_output=True, text=True, timeout=30)
         self.assertEqual(result.returncode, 0, result.stdout + "\n" + result.stderr)
         output = out.read_text(encoding="utf-8")
+        if return_provenance:
+            return output, json.loads(provenance.read_text(encoding="utf-8"))
         return (output, result.stdout) if return_stdout else output
 
 
@@ -186,6 +191,42 @@ hostname = *.amap.com
             "[Rewrite]\n^https://ads.example.photography/ad reject\n"
             "[MITM]\nhostname = ads.example.photography\n")
         self.assertIn("ads.example.photography", output)
+
+
+    def test_rule_provenance_records_winner_duplicates_and_rule_events(self):
+        base = (
+            "[Rewrite]\n"
+            "^https://same.example.com/ad reject\n"
+            "[MITM]\nhostname = same.example.com\n"
+        )
+        extra = (
+            "[Rewrite]\n"
+            "^https://same.example.com/ad reject\n"
+            "[Rule]\nDOMAIN,ads.example.com,REJECT\n"
+        )
+        myblockads = "[Rule]\nDOMAIN,ads.example.com,REJECT\n"
+        output, report = self.run_merge(
+            base, extra, myblockads_text=myblockads, return_provenance=True
+        )
+
+        rewrite = next(item for item in report["rewrite"]
+                       if "same.example.com/ad" in item["output_line"])
+        self.assertEqual(len(rewrite["sources"]), 2)
+        self.assertEqual(rewrite["sources"][0]["source"], "base")
+        self.assertEqual(rewrite["sources"][0]["disposition"], "selected")
+        self.assertEqual(rewrite["sources"][1]["source"], "block")
+        self.assertEqual(
+            rewrite["sources"][1]["disposition"], "duplicate_same_semantics"
+        )
+
+        included = [event for event in report["rule_events"]
+                    if event["normalized_line"] == "DOMAIN,ads.example.com,REJECT"]
+        self.assertEqual(len(included), 2)
+        self.assertEqual(included[0]["status"], "included")
+        self.assertEqual(included[1]["status"], "duplicate_exact")
+        self.assertEqual(report["summary"]["rule_output_entries"], 1)
+        self.assertIn("source_entry_index", included[0])
+        self.assertTrue(report["limitations"])
 
 
 if __name__ == "__main__":
