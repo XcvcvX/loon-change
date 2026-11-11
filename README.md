@@ -67,7 +67,7 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
     python3 deep_audit.py allAdRewrite.plugin --summary-only
     python3 deep_audit.py allAdRewrite.plugin --json deep-audit.json --markdown deep-audit.md
 
---check-remote 会对最多 80 个唯一远程脚本 URL 发起 HEAD 检查，仅输出警告，不代表脚本逻辑已通过测试；部分 CDN 不支持 HEAD 或会限流。`audit_plugin.py` 输出基础运行风险统计。`deep_audit.py` 进一步输出 Rewrite 宽泛匹配、同匹配器多动作、MITM 未发现明显字面守卫的候选，以及 Script 触发器类型和远程 URL 复用报告；第五阶段第二批规范化正则中的转义 URL 分隔符，并区分域名限定、子域名通配、路径通配和无明确域名约束的 Rewrite，减少正常域名规则的误报。第五阶段第三批补充现代条件式 Rewrite 的正则边界识别，兼容未转义 URL 斜杠、正则 flags、`as m` 捕获别名、`&&`/`||` 条件以及数字型旧式动作（如 `302`），并继续保留无法识别的条目供人工复核。分类与解析结果仅用于审计，不自动删改规则。
+--check-remote 会对最多 80 个唯一远程脚本 URL 发起 HEAD 检查，仅输出警告，不代表脚本逻辑已通过测试；部分 CDN 不支持 HEAD 或会限流。`audit_plugin.py` 输出基础运行风险统计。`deep_audit.py` 进一步输出 Rewrite 宽泛匹配、同匹配器多动作、MITM 未发现明显字面守卫的候选，以及 Script 触发器类型和远程 URL 复用报告；第五阶段第二批规范化正则中的转义 URL 分隔符，并区分域名限定、子域名通配、路径通配和无明确域名约束的 Rewrite，减少正常域名规则的误报。第五阶段第三批补充现代条件式 Rewrite 的正则边界识别，兼容未转义 URL 斜杠、正则 flags、`as m` 捕获别名、`&&`/`||` 条件以及数字型旧式动作（如 `302`），并继续保留无法识别的条目供人工复核。分类与解析结果仅用于审计，不自动删改规则。第五阶段第四批进一步按语义归类 Rewrite 动作，覆盖拒绝、重定向、响应模拟、响应正文改写、JSON 修改、请求正文改写和 Header 修改，并为可能改变业务响应/请求行为的动作生成复核优先级与原因。动作分类是人工检查线索，不代表规则有错；不自动删改规则。
 
 ## 安全边界
 
