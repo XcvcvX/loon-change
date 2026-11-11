@@ -23,11 +23,12 @@
     "low": 0,
     "medium": 0
   },
-  "run_id": "\"43056277505\"",
+  "run_id": "43057064785",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
     "A removed Rewrite is downgraded only when exact provenance marks it as an excluded semantic duplicate and names a retained covering matcher.",
+    "Historical risk correction is limited to a known snapshot with an exact source and change-count signature; source change totals are not altered.",
     "No rule, MITM hostname, priority, or plugin output is modified.",
     "Source trend counts are bounded to the latest 30 successful snapshots."
   ],
