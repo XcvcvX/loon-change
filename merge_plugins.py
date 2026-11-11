@@ -813,23 +813,33 @@ _QQMUSIC_THELONG_MITM = 'hostname = y.gtimg.cn, music.y.qq.com'
 
 
 def validate_qqmusic_sources(block_text, thelong_text=None):
-    """核实 block 与 Thelong QQ音乐来源的 hostname/MITM 声明和原始广告规则。"""
-    marker_index = block_text.find(_QQMUSIC_MARKER)
-    if marker_index < 0:
+    """核实两个上游 QQ音乐区块中的 matcher、hostname 与 MITM 声明。"""
+    marker_positions = [
+        match.start()
+        for match in re.finditer(re.escape(_QQMUSIC_MARKER), block_text)
+    ]
+    if not marker_positions:
         return False, False
-    next_app = re.search(
-        r'(?m)^#\s*>\s*',
-        block_text[marker_index + len(_QQMUSIC_MARKER):],
-    )
-    section_end = (
-        marker_index + len(_QQMUSIC_MARKER) + next_app.start()
-        if next_app else len(block_text)
-    )
-    block_section = block_text[marker_index:section_end]
-    if (_QQMUSIC_BLOCK_HOST_DECLARATION not in block_section
-            or _QQMUSIC_BLOCK_GENERIC not in block_section
-            or r'y\.gtimg\.cn\/music\/common\/upload\/t_splash_info\/' not in block_section
-            or 'reject' not in block_section):
+
+    block_section = None
+    for marker_index in marker_positions:
+        next_app = re.search(
+            r'(?m)^# > (?!>)[^\r\n]*',
+            block_text[marker_index + len(_QQMUSIC_MARKER):],
+        )
+        section_end = (
+            marker_index + len(_QQMUSIC_MARKER) + next_app.start()
+            if next_app else len(block_text)
+        )
+        candidate = block_text[marker_index:section_end]
+        if (_QQMUSIC_BLOCK_HOST_DECLARATION in candidate
+                and _QQMUSIC_BLOCK_GENERIC in candidate
+                and r'y\.gtimg\.cn\/music\/common\/upload\/t_splash_info\/' in candidate
+                and 'reject' in candidate):
+            block_section = candidate
+            break
+
+    if block_section is None:
         raise RuntimeError(
             'QQ音乐 blockAdsV2 hostname/matcher/action 已变化，停止构建并要求复核'
         )
