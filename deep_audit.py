@@ -605,6 +605,7 @@ def audit_deep(path):
         if kind in {'generic', 'request if', 'response if'}:
             generic.append({'line': n, 'type': kind, 'entry': line[:200]})
     repeated = [{'url': u, 'count': c} for u, c in sorted(url_counts.items()) if c > 1]
+    coverage_report = audit_mitm_script_coverage(rewrite, script, mitm)
 
     report = {
         'plugin': str(path),
@@ -633,7 +634,8 @@ def audit_deep(path):
             'script_unique_remote_urls': len(url_counts),
             'script_urls_reused': len(repeated),
             'script_entries_without_detected_url': len(no_url),
-            'script_generic_trigger_candidates': len(generic)
+            'script_generic_trigger_candidates': len(generic),
+            **coverage_report['mitm_script_coverage_summary']
         },
         'rewrite_broad_candidates': broad,
         'rewrite_scope_review_candidates': scope_candidates,
@@ -656,6 +658,11 @@ def audit_deep(path):
         'script_repeated_remote_urls': repeated,
         'script_entries_without_detected_url': no_url,
         'script_generic_trigger_candidates': generic,
+        'mitm_missing_rewrite_script_coverage': coverage_report['mitm_missing_rewrite_script_coverage'],
+        'mitm_negative_excluded_rewrite_script_coverage': coverage_report['mitm_negative_excluded_rewrite_script_coverage'],
+        'mitm_ambiguous_rewrite_script_references': coverage_report['mitm_ambiguous_rewrite_script_references'],
+        'mitm_unreferenced_positive_candidates': coverage_report['mitm_unreferenced_positive_candidates'],
+        'mitm_literal_rewrite_script_host_references': coverage_report['mitm_literal_rewrite_script_host_references'],
         'safety_notes': [
             '本报告只读，不会删除、改写或禁用任何规则。',
             '宽泛正则、同匹配器多动作和未发现字面守卫均为人工复核候选，不等于错误。',
@@ -686,7 +693,13 @@ def render_markdown(report):
         'script_entries':'Script 条目','script_unique_remote_urls':'唯一远程脚本 URL',
         'script_urls_reused':'被多个触发器复用的脚本 URL',
         'script_entries_without_detected_url':'未识别远程 URL 的 Script 条目',
-        'script_generic_trigger_candidates':'通用/条件触发器候选'
+        'script_generic_trigger_candidates':'通用/条件触发器候选',
+        'literal_references':'MITM 关联字面主机引用',
+        'covered_references':'MITM 已覆盖引用',
+        'missing_mitm_references':'MITM 未覆盖引用候选',
+        'negative_excluded_references':'被负向 MITM 排除的引用',
+        'ambiguous_references':'无法静态识别的主机引用',
+        'unreferenced_positive_entries':'未关联到字面触发器的 MITM 正向项候选'
     }
     lines = ['# Loon 插件深度只读审计报告', '',
              '本报告只提供人工复核线索，不会自动修改任何规则。', '',
@@ -702,7 +715,11 @@ def render_markdown(report):
         ('rewrite_overlap_manual_review_candidates','Rewrite 交叉审计跳过/人工复核候选'),
         ('mitm_without_obvious_literal_guard','未发现明显字面守卫的 MITM 候选'),
         ('script_repeated_remote_urls','重复使用的远程脚本 URL'),
-        ('script_generic_trigger_candidates','通用/条件触发器候选')
+        ('script_generic_trigger_candidates','通用/条件触发器候选'),
+        ('mitm_missing_rewrite_script_coverage','MITM 未覆盖的 Rewrite/Script 触发器'),
+        ('mitm_negative_excluded_rewrite_script_coverage','被负向 MITM 排除的 Rewrite/Script 触发器'),
+        ('mitm_ambiguous_rewrite_script_references','无法静态识别主机的 Rewrite/Script 引用'),
+        ('mitm_unreferenced_positive_candidates','未关联到字面触发器的 MITM 正向项候选')
     ]:
         lines += ['', '## ' + title, '']
         values = report[key]
