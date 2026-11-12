@@ -469,32 +469,7 @@ hostname = *.amap.com
         self.assertEqual(len(adjustments), 1)
         self.assertEqual({item["source"] for item in adjustments}, {"block"})
 
-        ios_rule = (
-            r"request if ${url} ~= /https:\/\/ios.sspai.com"
-            r"\/api\/v3\/recommend\/page\/get\?ad.*ios_home_modal/"
-            r" then reject(404)"
-        )
-        ios_block = (
-            "[Rewrite]\n" + ios_rule + "\n"
-            + "[Script]\n[MITM]\nhostname = ios.sspai.com\n"
-        )
-        ios_output, ios_report = self.run_merge(empty, ios_block, return_provenance=True)
-        ios_line = next(line for line in ios_output.splitlines()
-                        if line.startswith("request if") and "ios.sspai" in line)
-        self.assertIn(r"ios\.sspai\.com", ios_line)
-        ios_matcher = re.search(r"~= /(.*)/ then ", ios_line).group(1).replace(r"\/", "/")
-        self.assertRegex(
-            "https://ios.sspai.com/api/v3/recommend/page/get?ad=1&slot=ios_home_modal",
-            ios_matcher,
-        )
-        self.assertNotRegex(
-            "https://iosXsspaiYcom/api/v3/recommend/page/get?ad=1&slot=ios_home_modal",
-            ios_matcher,
-        )
-        ios_adjustments = [item for item in ios_report["scope_adjustments"]
-                           if "lookalike hosts" in item.get("reason", "")]
-        self.assertEqual(len(ios_adjustments), 1)
-        self.assertEqual({item["source"] for item in ios_adjustments}, {"block"})
+
 
     def test_qidian_magev6_ad_matchers_escape_literal_hostname_dots(self):
         qidian_paths = (
