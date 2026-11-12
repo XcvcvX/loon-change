@@ -68,11 +68,11 @@ class MergeIntegrationTests(unittest.TestCase):
 
     def test_grcbank_splash_image_extension_dot_is_literal(self):
         base = (
-            "[Rewrite]\n"
-            + r"^https?:\/\/mbank\.grcbank\.com\/ydyh\/resources\/startpage\/.*.(?:jpg|png) reject-200"
-            + "\n[MITM]\nhostname = \n"
+            "[Rewrite]\\n"
+            + r"^https?:\\/\\/mbank\\.grcbank\\.com\\/ydyh\\/resources\\/startpage\\/.*.(?:jpg|png) reject-200"
+            + "\\n[MITM]\\nhostname = \\n"
         )
-        extra = "[Rewrite]\n[MITM]\nhostname = \n"
+        extra = "[Rewrite]\\n[MITM]\\nhostname = \\n"
         output, provenance = self.run_merge(base, extra, return_provenance=True)
         line = next(line for line in output.splitlines() if "mbank" in line)
         matcher = re.compile(line.split()[0])
@@ -95,16 +95,16 @@ class MergeIntegrationTests(unittest.TestCase):
         ]
         self.assertEqual(len(changes), 1)
         self.assertEqual(changes[0]["source"], "base")
-        self.assertEqual(changes[0]["original_line"], base.split("[Rewrite]\n", 1)[1].split("\n", 1)[0])
+        self.assertEqual(changes[0]["original_line"], base.split("[Rewrite]\\n", 1)[1].split("\\n", 1)[0])
         self.assertEqual(changes[0]["output_line"], line)
 
     def test_grcbank_splash_image_guard_fails_closed_on_action_drift(self):
         base = (
-            "[Rewrite]\n"
-            + r"^https?:\/\/mbank\.grcbank\.com\/ydyh\/resources\/startpage\/.*.(?:jpg|png) reject"
-            + "\n[MITM]\nhostname = \n"
+            "[Rewrite]\\n"
+            + r"^https?:\\/\\/mbank\\.grcbank\\.com\\/ydyh\\/resources\\/startpage\\/.*.(?:jpg|png) reject"
+            + "\\n[MITM]\\nhostname = \\n"
         )
-        extra = "[Rewrite]\n[MITM]\nhostname = \n"
+        extra = "[Rewrite]\\n[MITM]\\nhostname = \\n"
         output = self.run_merge(base, extra, expect_failure=True)
         self.assertIn("广发银行移动端开屏图片 图片规则动作已变化", output)
 
@@ -556,8 +556,8 @@ class MergeIntegrationTests(unittest.TestCase):
         aoomee_files = {
             "a_legacy.lpx": (
                 "[Rewrite]\n"
-                "^https://ssp\.soulapp\.cn/api/q reject-dict\n"
-                "^https?://hweb-manager\.huazhu\.com/notice/getAppPopupNotifyAlert(?:\\?.*)?$ reject-dict\n"
+                "^https://ssp\\.soulapp\\.cn/api/q reject-dict\n"
+                "^https?://hweb-manager\\.huazhu\\.com/notice/getAppPopupNotifyAlert(?:\\?.*)?$ reject-dict\n"
                 "^https://native.example/native reject\n"
                 "[URL Rewrite]\n"
                 "^https://legacy.example/legacy reject\n"
@@ -1579,7 +1579,7 @@ hostname = *.amap.com
         base = "[Rewrite]\n[MITM]\nhostname = \n"
         extra = (
             "[Rewrite]\n"
-            r"request if " + "${url}" + r" ~= /^https?:\/\/119\.29\.29\.\\d+\/d/ then reject(200)" + "\n"
+            r"request if " + "${url}" + r" ~= /^https?:\\/\\/119\\.29\\.29\\.\\d+\\/d/ then reject(200)" + "\n"
             "[MITM]\nhostname = 119.29.29.*\n"
         )
         output, report = self.run_merge(base, extra, return_provenance=True)
@@ -1601,14 +1601,14 @@ hostname = *.amap.com
         output = self.run_merge(
             "[Rewrite]\n[Script]\n[MITM]\nhostname = beehiveapi.58.com\n",
             "[Script]\n"
-            "request if ${url} ~= /^https?:\/\/beehiveapi\.58\.com\/adplace\/zcm/ then reject_dict(200)\n"
-            "^https?:\/\/legacy\.example\.com\/ad reject-dict\n"
-            "response if ${url} ~= /^https:\/\/api\.example\.com/ then script(\"https://cdn.example/script.js\")\n")
+            "request if ${url} ~= /^https?:\\/\\/beehiveapi\\.58\\.com\\/adplace\\/zcm/ then reject_dict(200)\n"
+            "^https?:\\/\\/legacy\\.example\\.com\\/ad reject-dict\n"
+            "response if ${url} ~= /^https:\\/\\/api\\.example\\.com/ then script(\"https://cdn.example/script.js\")\n")
         rewrite_pos = output.index("[Rewrite]")
         script_pos = output.index("[Script]")
         self.assertLess(rewrite_pos, script_pos)
         self.assertEqual(output[:script_pos].count("then reject_dict(200)"), 2)
-        self.assertIn("legacy\.example\.com", output[:script_pos])
+        self.assertIn("legacy\\.example\\.com", output[:script_pos])
         self.assertIn('script("https://cdn.example/script.js")', output[script_pos:])
         self.assertNotIn("then reject_dict(200)", output[script_pos:])
 
@@ -1630,7 +1630,7 @@ hostname = *.amap.com
 
     def test_unparseable_host_regex_disables_aggressive_mitm_pruning(self):
         output = self.run_merge(
-            "[Rewrite]\n^https://(?<host>[^.]+)\.example\.com/ad reject\n"
+            "[Rewrite]\n^https://(?<host>[^.]+)\\.example\\.com/ad reject\n"
             "[MITM]\nhostname = ads.example.com\n",
             "[Rewrite]\n[MITM]\nhostname = \n")
         self.assertIn("ads.example.com", output)
@@ -1709,18 +1709,18 @@ hostname = *.amap.com
         vip_rule = next(line for line in rewrite.splitlines()
                         if "getAdvertInfo" in line)
         advert_rule = next(line for line in rewrite.splitlines()
-                           if "/api\/v\\d\/advert" in line)
+                           if "/api\\/v\\d\\/advert" in line)
         script_rule = next(line for line in script.splitlines()
                            if "555Ad.js" in line)
-        self.assertIn("vip7\.fzwdyy\.cn:8083", vip_rule)
+        self.assertIn("vip7\\.fzwdyy\\.cn:8083", vip_rule)
         self.assertNotIn(broad, advert_rule)
         self.assertNotIn(broad, script_rule)
         self.assertIn("555_enable", script_rule)
         self.assertIn("555Ad.js", script_rule)
-        self.assertIn("vip7\.fzwdyy\.cn", advert_rule)
-        self.assertIn("qyfxgd\.cn", advert_rule)
-        self.assertIn("weilai555\.com", script_rule)
-        self.assertIn("ecoliving168\.com", script_rule)
+        self.assertIn("vip7\\.fzwdyy\\.cn", advert_rule)
+        self.assertIn("qyfxgd\\.cn", advert_rule)
+        self.assertIn("weilai555\\.com", script_rule)
+        self.assertIn("ecoliving168\\.com", script_rule)
 
         host_pattern = (
             r'(?:vip7\.fzwdyy\.cn|(?:[A-Za-z0-9-]+\.)+qyfxgd\.cn|'
@@ -1770,11 +1770,11 @@ hostname = *.amap.com
 
         # 两条原有精确图片广告拦截与 display.wting.info 图片规则均保持原样。
         self.assertEqual(rewrite.count("reject_img(200)"), 2)
-        self.assertIn("display\.wting\.info", rewrite)
+        self.assertIn("display\\.wting\\.info", rewrite)
         self.assertEqual(len(report["scope_adjustments"]), 1)
         adjustment = report["scope_adjustments"][0]
         self.assertEqual(adjustment["section"], "Rewrite")
-        self.assertIn("118\.178\.214\.118|dapis\.mting\.info",
+        self.assertIn("118\\.178\\.214\\.118|dapis\\.mting\\.info",
                       adjustment["output_line"])
 
         host_re = __import__("re").compile(
