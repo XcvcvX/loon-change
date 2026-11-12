@@ -446,5 +446,51 @@ hostname = *.example.test
         )
 
 
+    def test_action_classifier_ignores_operator_names_inside_arguments(self):
+        from deep_audit import classify_rewrite_action
+
+        action = '''response-body-json-jq '.data |= map(select(
+            .kind != "reject" and .header != "header-del"
+        ))' '''
+        self.assertEqual(
+            classify_rewrite_action(action),
+            {'families': ['response_json_rewrite'],
+             'operations': ['response-body-json-jq']}
+        )
+
+    def test_action_classifier_splits_pipeline_outside_quoted_jq(self):
+        from deep_audit import classify_rewrite_action
+
+        action = '''response-body-json-jq '.data |= map(select(
+            .kind == "reject" | .name == "header-del"
+        ))' | response-header-del Content-MD5'''
+        self.assertEqual(
+            classify_rewrite_action(action),
+            {'families': ['header_rewrite', 'response_json_rewrite'],
+             'operations': ['response-body-json-jq', 'response-header-del']}
+        )
+
+    def test_action_classifier_preserves_unknown_leading_operator(self):
+        from deep_audit import classify_rewrite_action
+
+        self.assertEqual(
+            classify_rewrite_action('future-action "reject header-del"'),
+            {'families': ['unknown'], 'operations': ['future-action']}
+        )
+
+
+
+    def test_action_classifier_keeps_backtick_jq_pipeline_as_argument(self):
+        from deep_audit import classify_rewrite_action
+
+        action = 'response.json.jq(`if (.data | map(select(.kind == "reject"))) then .data else [] end`)'
+        self.assertEqual(
+            classify_rewrite_action(action),
+            {'families': ['response_json_rewrite'],
+             'operations': ['response.json.jq']}
+        )
+
+
+
 if __name__ == '__main__':
     unittest.main()
