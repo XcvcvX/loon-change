@@ -456,7 +456,7 @@ hostname = *.amap.com
         empty = "[Rewrite]\n[Script]\n[MITM]\nhostname = \n"
         output, report = self.run_merge(empty, block, return_provenance=True)
         rules = [line for line in output.splitlines()
-                 if "dili.sqcosmos.com" in line or "ios.sspai.com" in line]
+                 if "dili" in line or "ios.sspai" in line]
         self.assertEqual(len(rules), 2, repr(rules))
         for rule in rules:
             self.assertIn(r"\.", rule)
