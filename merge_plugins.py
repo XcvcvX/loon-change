@@ -695,7 +695,7 @@ def prep_block_sections(rewrite_lines, script_lines):
 _QIDIAN_MAGEV6_PATHS = (
     '/argus/api/v1/client/iosad',
     '/argus/api/v1/bookshelf/getad',
-    '/argus/api/v4/client/getsplashscreen?',
+    '/argus/api/v4/client/getsplashscreen',
 )
 
 
