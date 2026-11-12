@@ -872,7 +872,7 @@ def narrow_baidunetdisk_cdn_subdomains(rewrite_lines, source):
     for original, narrowed in targets.items():
         candidates = [
             line for line in rewrite_lines
-            if (r'.*\.vlion\.cn/.+' in line if 'vlion.cn' in original
+            if (r'.*\.vlion\.cn/.+' in line if 'advlion' not in original
                 else r'.*\.advlion\.com/.+' in line)
         ]
         if len(candidates) != 1 or candidates[0] != original:
@@ -883,7 +883,7 @@ def narrow_baidunetdisk_cdn_subdomains(rewrite_lines, source):
         matcher = entry_regex(narrowed)
         expected = (
             r'^https://(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+'
-            + (r'vlion\.cn/.+' if 'vlion.cn' in original else r'advlion\.com/.+')
+            + (r'vlion\.cn/.+' if 'advlion' not in original else r'advlion\.com/.+')
         )
         if matcher != expected:
             raise RuntimeError(source + ' 百度网盘 CDN 子域名 matcher 校验失败：' + original)
