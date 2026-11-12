@@ -1001,8 +1001,8 @@ def audit_deep(path):
         'mitm_necessity_safety_note': necessity_report['mitm_necessity_safety_note'],
         'safety_notes': [
             '本报告只读，不会删除、改写或禁用任何规则。',
-            '宽泛正则、同匹配器多动作和未发现字面守卫均为人工复核候选，不等于错误。',
-            '同匹配器多动作可能是互斥动作、同层顺序处理或正文/响应头互补操作；分类仅用于缩小复核范围，不推断 Loon 执行顺序，也不自动删除规则。',
+            '宽泛正则、同匹配器多动作和未发现字面守卫均为自动诊断候选，不等于错误。',
+            '同匹配器多动作可能是互斥动作、同层顺序处理或正文/响应头互补操作；分类仅用于自动化风险分层，不推断 Loon 执行顺序，也不自动删除规则。',
             'MITM 可能由复杂正则、变量或间接脚本引用；未发现字面域名不代表无用。',
             'MITM 必要性分级只区分证据强弱；未发现字面引用不等于冗余，绝不自动删除或补入 hostname。',
             '证书绑定/已知不兼容域由共享 MITM 跳过策略标记为 intentional skip，不应作为漏配直接补入。',
@@ -1029,7 +1029,7 @@ def render_markdown(report):
         'rewrite_action_semantic_review_candidates':'动作语义复核候选',
         'rewrite_unknown_action_candidates':'未分类动作候选',
         'rewrite_overlap_candidate_groups':'交叉命中候选组',
-        'rewrite_overlap_manual_review_candidates':'跳过/人工复核候选',
+        'rewrite_overlap_manual_review_candidates':'跳过/自动诊断警告候选',
         'mitm_positive_unique_hosts':'MITM 正向唯一主机',
         'mitm_wildcards':'MITM 通配主机',
         'mitm_exact_hosts_covered_by_wildcards':'被通配覆盖的精确主机候选',
@@ -1055,7 +1055,7 @@ def render_markdown(report):
         'unreferenced_positive_entries':'未关联到字面触发器的 MITM 正向项候选'
     }
     lines = ['# Loon 插件深度只读审计报告', '',
-             '本报告只提供人工复核线索，不会自动修改任何规则。', '',
+             '本报告提供自动诊断线索与兼容性警告；不会要求用户人工处理，也不会自动修改任何规则。', '',
              '| 检查项 | 数量 |', '|---|---:|']
     for key, label in labels.items():
         lines.append('| %s | %s |' % (label, report['summary'][key]))
@@ -1070,7 +1070,7 @@ def render_markdown(report):
         ('rewrite_action_semantic_review_candidates','Rewrite 动作语义复核候选'),
         ('rewrite_unknown_action_candidates','未分类 Rewrite 动作候选'),
         ('rewrite_overlap_candidate_groups','Rewrite 样本交叉命中候选'),
-        ('rewrite_overlap_manual_review_candidates','Rewrite 交叉审计跳过/人工复核候选'),
+        ('rewrite_overlap_manual_review_candidates','Rewrite 交叉审计跳过/自动诊断警告候选'),
         ('mitm_without_obvious_literal_guard','未发现明显字面守卫的 MITM 候选'),
         ('script_repeated_remote_urls','重复使用的远程脚本 URL'),
         ('script_generic_trigger_candidates','通用/条件触发器候选'),
@@ -1088,12 +1088,12 @@ def render_markdown(report):
         if len(values) > 100:
             lines.append('其余 %d 项见 JSON 报告。' % (len(values) - 100))
     lines += ['', '## Rewrite 交叉命中审计说明', '',
-              '本节基于有限代表性 URL 样本；不是正则交集的数学证明。仅对受限安全子集执行匹配，复杂表达式跳过并列入人工复核。请求与响应阶段分开标记；同 URL 命中不代表 Loon 执行顺序或真实冲突。', '',
+              '本节基于有限代表性 URL 样本；不是正则交集的数学证明。仅对受限安全子集执行匹配，复杂表达式跳过并记录为自动诊断警告，不要求用户人工处理。请求与响应阶段分开标记；同 URL 命中不代表 Loon 执行顺序或真实冲突。', '',
               '| 指标 | 数量 |', '|---|---:|',
               '| 可采样规则 | %s |' % report['rewrite_overlap_sampled_rules'],
               '| 唯一样本 URL | %s |' % report['rewrite_overlap_sampled_urls'],
               '| 命中候选组 | %s |' % report['summary']['rewrite_overlap_candidate_groups'],
-              '| 跳过/人工复核规则 | %s |' % report['rewrite_overlap_skipped_rules']]
+              '| 跳过/自动诊断警告规则 | %s |' % report['rewrite_overlap_skipped_rules']]
     lines += ['', '## Rewrite 动作语义分类', '',
               '| 动作类别 | 条目数 |', '|---|---:|']
     for family, count in report['summary']['rewrite_action_family_counts'].items():
