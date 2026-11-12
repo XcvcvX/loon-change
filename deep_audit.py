@@ -188,12 +188,12 @@ ACTION_FAMILIES = {
 }
 
 ACTION_REVIEW = {
-    'response_mock': ('high_review', '替换或模拟整个响应，需确认状态码、内容结构和目标 App 兼容性'),
-    'response_body_rewrite': ('high_review', '直接改写响应正文，需确认替换范围不会误伤正常内容'),
-    'request_body_rewrite': ('high_review', '改写请求正文，可能改变请求参数或业务行为'),
-    'response_json_rewrite': ('medium_review', '修改响应 JSON 字段或结构，需确认字段路径和空值/类型处理'),
-    'header_rewrite': ('medium_review', '修改请求或响应头，需确认不会影响缓存、鉴权、内容协商或协议行为'),
-    'redirect': ('medium_review', '重定向请求，需确认目标地址、参数保留及跳转范围'),
+    'response_mock': ('high_diagnostic', '自动诊断提示：该动作会替换或模拟整个响应，重点关注状态码、内容结构和目标 App 兼容性'),
+    'response_body_rewrite': ('high_diagnostic', '自动诊断提示：该动作直接改写响应正文，存在影响正常内容的可能'),
+    'request_body_rewrite': ('high_diagnostic', '自动诊断提示：该动作改写请求正文，可能改变请求参数或业务行为'),
+    'response_json_rewrite': ('medium_diagnostic', '自动诊断提示：该动作修改响应 JSON 字段或结构，关注字段路径及空值/类型处理'),
+    'header_rewrite': ('medium_diagnostic', '自动诊断提示：该动作修改请求或响应头，可能影响缓存、鉴权、内容协商或协议行为'),
+    'redirect': ('medium_diagnostic', '自动诊断提示：该动作会重定向请求，关注目标地址、参数保留及跳转范围'),
     'unknown': ('automated_warning', '自动审计无法识别该 Rewrite 操作符；保留原规则，不自动改写或删除，也不要求用户人工处理')
 }
 
@@ -263,13 +263,13 @@ def classify_rewrite_action(action):
 
 def action_review_priority(families):
     priorities = [ACTION_REVIEW[x][0] for x in families if x in ACTION_REVIEW]
-    if 'high_review' in priorities:
-        return 'high_review'
-    if 'medium_review' in priorities:
-        return 'medium_review'
+    if 'high_diagnostic' in priorities:
+        return 'high_diagnostic'
+    if 'medium_diagnostic' in priorities:
+        return 'medium_diagnostic'
     if 'automated_warning' in priorities:
         return 'automated_warning'
-    return 'no_special_review'
+    return 'no_special_diagnostic'
 
 
 def action_review_reasons(families):
@@ -785,7 +785,7 @@ def audit_deep(path):
         for family in families:
             action_family_counts[family] += 1
         priority = action_review_priority(families)
-        if priority != 'no_special_review':
+        if priority != 'no_special_diagnostic':
             action_review_candidates.append({
                 'line': n, 'phase': phase, 'pattern': matcher, 'action': action,
                 'action_families': families, 'operations': action_info['operations'],
@@ -1014,6 +1014,28 @@ def audit_deep(path):
     return report
 
 
+def markdown_diagnostic_item(value):
+    """Render legacy-compatible audit data with user-facing automated-diagnostic labels."""
+    if isinstance(value, list):
+        return [markdown_diagnostic_item(item) for item in value]
+    if isinstance(value, dict):
+        result = {}
+        for key, item in value.items():
+            display_key = 'diagnostic_priority' if key == 'review_priority' else key
+            if key == 'review_priority':
+                item = {
+                    'high_diagnostic': 'high',
+                    'medium_diagnostic': 'medium',
+                    'automated_warning': 'warning',
+                    'no_special_diagnostic': 'none'
+                }.get(item, item)
+            if key == 'classification' and isinstance(item, str):
+                item = item.replace('_review', '_diagnostic')
+            result[display_key] = markdown_diagnostic_item(item)
+        return result
+    return value
+
+
 def render_markdown(report):
     labels = {
         'rewrite_entries':'Rewrite 条目','rewrite_unparsed':'未解析 Rewrite',
@@ -1022,11 +1044,11 @@ def render_markdown(report):
         'rewrite_action_conflict_groups':'同匹配器多操作组',
         'rewrite_exact_duplicate_action_groups':'同匹配器完全重复动作组',
         'rewrite_block_action_variant_groups':'同匹配器拦截动作变体组',
-        'rewrite_same_family_multi_operation_groups':'同动作类别多操作复核组',
+        'rewrite_same_family_multi_operation_groups':'同动作类别多操作自动诊断组',
         'rewrite_cross_layer_composable_groups':'响应正文与响应头互补操作组',
         'rewrite_cross_family_conflict_groups':'同匹配器跨动作类别潜在冲突组',
-        'rewrite_unclassified_multi_action_groups':'未分类多动作复核组',
-        'rewrite_action_semantic_review_candidates':'动作语义复核候选',
+        'rewrite_unclassified_multi_action_groups':'未分类多动作自动诊断组',
+        'rewrite_action_semantic_review_candidates':'动作语义自动诊断候选',
         'rewrite_unknown_action_candidates':'未分类动作候选',
         'rewrite_overlap_candidate_groups':'交叉命中候选组',
         'rewrite_overlap_manual_review_candidates':'跳过/自动诊断警告候选',
@@ -1061,13 +1083,13 @@ def render_markdown(report):
         lines.append('| %s | %s |' % (label, report['summary'][key]))
     for key, title in [
         ('rewrite_broad_candidates','宽泛 Rewrite 候选'),
-        ('rewrite_action_conflict_groups','同匹配器多动作复核候选（包含互补操作，不等同真实冲突）'),
-        ('rewrite_block_action_variant_groups','同匹配器拦截动作变体复核'),
-        ('rewrite_same_family_multi_operation_groups','同动作类别多操作复核'),
+        ('rewrite_action_conflict_groups','同匹配器多操作诊断（包含互补操作，不等同真实冲突）'),
+        ('rewrite_block_action_variant_groups','同匹配器拦截动作变体诊断'),
+        ('rewrite_same_family_multi_operation_groups','同动作类别多操作诊断'),
         ('rewrite_cross_layer_composable_groups','响应正文与响应头互补操作'),
         ('rewrite_cross_family_conflict_groups','跨动作类别潜在冲突'),
-        ('rewrite_unclassified_multi_action_groups','未分类多动作复核'),
-        ('rewrite_action_semantic_review_candidates','Rewrite 动作语义复核候选'),
+        ('rewrite_unclassified_multi_action_groups','未分类多动作自动诊断'),
+        ('rewrite_action_semantic_review_candidates','Rewrite 动作语义自动诊断候选'),
         ('rewrite_unknown_action_candidates','未分类 Rewrite 动作候选'),
         ('rewrite_overlap_candidate_groups','Rewrite 样本交叉命中候选'),
         ('rewrite_overlap_manual_review_candidates','Rewrite 交叉审计跳过/自动诊断警告候选'),
@@ -1084,7 +1106,7 @@ def render_markdown(report):
     ]:
         lines += ['', '## ' + title, '']
         values = report[key]
-        lines += ['- ' + json.dumps(x, ensure_ascii=False) for x in values[:100]] if values else ['未发现。']
+        lines += ['- ' + json.dumps(markdown_diagnostic_item(x), ensure_ascii=False) for x in values[:100]] if values else ['未发现。']
         if len(values) > 100:
             lines.append('其余 %d 项见 JSON 报告。' % (len(values) - 100))
     lines += ['', '## Rewrite 交叉命中审计说明', '',
@@ -1102,9 +1124,9 @@ def render_markdown(report):
               '| 分类 | 数量 |', '|---|---:|']
     for scope, count in report['summary']['rewrite_scope_counts'].items():
         lines.append('| %s | %s |' % (scope, count))
-    lines += ['', '## Rewrite 范围复核候选（前 100 项）', '']
+    lines += ['', '## Rewrite 匹配范围自动诊断候选（前 100 项）', '']
     candidates = report['rewrite_scope_review_candidates']
-    lines += ['- ' + json.dumps(x, ensure_ascii=False) for x in candidates[:100]] if candidates else ['未发现范围复核候选。']
+    lines += ['- ' + json.dumps(markdown_diagnostic_item(x), ensure_ascii=False) for x in candidates[:100]] if candidates else ['未发现匹配范围自动诊断候选。']
     if len(candidates) > 100:
         lines.append('其余 %d 项见 JSON 报告。' % (len(candidates) - 100))
     lines += ['', '## 安全边界', ''] + ['- ' + x for x in report['safety_notes']]
