@@ -93,12 +93,6 @@ class MergeIntegrationTests(unittest.TestCase):
         self.assertEqual(duplicate_events[0]["status"], "duplicate_exact")
         self.assertEqual(duplicate_events[0]["duplicate_reason"],
                          "whitespace_only_outside_quoted_literals")
-        self.assertEqual(
-            next(item for item in provenance["rule_events"]
-                 if item.get("status") == "duplicate_exact"
-                 and item.get("original_input_line") == retained)["duplicate_reason"],
-            "exact_text_duplicate",
-        )
         self.assertEqual(duplicate_events[0]["duplicate_of"], retained)
 
     def test_unscoped_udp_443_reject_is_excluded_but_scoped_quic_reject_is_kept(self):
@@ -2400,6 +2394,7 @@ hostname = *.amap.com
         self.assertEqual(included[0]["status"], "included")
         self.assertEqual(included[1]["status"], "duplicate_exact")
         self.assertEqual(included[1]["duplicate_of_source"], "block")
+        self.assertEqual(included[1]["duplicate_reason"], "exact_text_duplicate")
         self.assertEqual(report["summary"]["rule_output_entries"], 1)
         self.assertIn("source_entry_index", included[0])
         self.assertTrue(report["limitations"])
