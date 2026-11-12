@@ -422,6 +422,30 @@ hostname = *.amap.com
         self.assertIn("geetest.htsc.com", shared_mitm)
         self.assertIn(r"geetest\.htsc\.com\/health", shared)
 
+    def test_g1_163_madfeedback_matcher_escapes_literal_hostname_dots(self):
+        base = (
+            "[Rewrite]\n"
+            + r"^https?:\\/\\/g1.163.com\\/madfeedback reject" + "\n"
+            + "[Script]\n[MITM]\nhostname = g1.163.com\n"
+        )
+        block = (
+            "[Rewrite]\n"
+            + r"request if ${url} ~= /^https?:\\/\\/g1.163.com\\/madfeedback/ then reject(404)" + "\n"
+            + "[Script]\n[MITM]\nhostname = g1.163.com\n"
+        )
+        output, report = self.run_merge(base, block, return_provenance=True)
+        rule = next(line for line in output.splitlines() if "madfeedback" in line)
+        self.assertIn(r"g1\\.163\\.com", rule)
+        self.assertNotIn("g1.163.com", rule.replace(r"g1\\.163\\.com", ""))
+        matcher = rule.split()[0].replace(r"\\/", "/")
+        self.assertRegex("https://g1.163.com/madfeedback", matcher)
+        self.assertNotRegex("https://g1x163xcom/madfeedback", matcher)
+        self.assertEqual(
+            {item["source"] for item in report["scope_adjustments"]
+             if "g1.163.com" in item.get("reason", "")},
+            {"base", "block"},
+        )
+
     def test_qidian_magev6_ad_matchers_escape_literal_hostname_dots(self):
         qidian_paths = (
             "/argus/api/v1/client/iosad",
