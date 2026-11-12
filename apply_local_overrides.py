@@ -28,7 +28,7 @@ HELLOBIKE_SCRIPT_RULES = (
     f"http-response ^https:\\/\\/api\\.hellobike\\.com(?::443)?\\/secretkey(?:\\?|$) script-path={HELLOBIKE_JS}, requires-body=true, timeout=60, tag=easybike-ad",
     f"http-request ^https?:\\/\\/(?:api|marketingapi|entertainment)\\.hellobike\\.com(?::\\d+)?\\/api(?:\\?|$) script-path={HELLOBIKE_JS}, requires-body=true, timeout=60, tag=easybike-ad",
     f"http-response ^https?:\\/\\/(?:api|marketingapi|entertainment)\\.hellobike\\.com(?::\\d+)?\\/api(?:\\?|$) script-path={HELLOBIKE_JS}, requires-body=true, timeout=60, tag=easybike-ad",
-    f"response if ${url} ~= /^https:\\/\\/taxiapi\\.hellobike\\.com(?::443)?\\/api(?:\\?|$)/i && ${request.method} == \"POST\" && ${request.header['action']} == \"hitch.driver.journeyList\" then script(\"{HELLOBIKE_JS}\") with requires_body=true, timeout=60, tag=\"easybike-ad\"",
+    f"response if ${{url}} ~= /^https:\\/\\/taxiapi\\.hellobike\\.com(?::443)?\\/api(?:\\?|$)/i && ${{request.method}} == \"POST\" && ${{request.header['action']}} == \"hitch.driver.journeyList\" then script(\"{HELLOBIKE_JS}\") with requires_body=true, timeout=60, tag=\"easybike-ad\"",
 )
 
 HELLOBIKE_MITM_HOSTS = {
