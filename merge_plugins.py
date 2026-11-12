@@ -755,11 +755,20 @@ _TARGETED_AD_HOST_MATCHERS = (
         'action_key': ('REJECT', 'reject_dict', 'reject_dict(200)'),
         'reason': 'Escape literal dots in the dili.sqcosmos.com end-page ad endpoint matcher.',
     },
+    {
+        'host': 'dili.sqcosmos.com',
+        'marker': r'/jiekou/mains/p\d+.html',
+        'action_key': (
+            'response.json.jq',
+            'response.json.jq(`.album |= map(select(.id != "4154" and .id != "4165"))`)',
+        ),
+        'reason': 'Escape literal dots in the Dili daily-selection response matcher without changing its JSON filter.',
+    },
 )
 
 
 def escape_targeted_ad_hosts(rewrite_lines, source):
-    """只收紧已确认的两个广告接口主机名，不改变路径与拦截动作。"""
+    """只收紧已确认的 Dili 广告/响应主机 matcher，不改变路径与动作。"""
     output = []
     adjustments = []
     for line in rewrite_lines:
@@ -772,6 +781,10 @@ def escape_targeted_ad_hosts(rewrite_lines, source):
             if not normalized or spec['marker'] not in normalized:
                 continue
             if escaped_host in normalized:
+                if action_key(line) != spec['action_key']:
+                    raise RuntimeError(
+                        source + ' 广告接口动作已变化，拒绝自动改写：' + line
+                    )
                 continue
             if host not in normalized:
                 raise RuntimeError(
@@ -779,7 +792,7 @@ def escape_targeted_ad_hosts(rewrite_lines, source):
                 )
             if action_key(line) != spec['action_key']:
                 raise RuntimeError(
-                    source + ' 广告接口拦截动作已变化，拒绝自动改写：' + line
+                    source + ' 广告接口动作已变化，拒绝自动改写：' + line
                 )
             updated_line = updated_line.replace(host, escaped_host, 1)
             updated_matcher = entry_regex(updated_line)
