@@ -26,6 +26,7 @@ HELLOBIKE_MITM_HOSTS = {
 }
 
 SPOTIFY_SCRIPT_TAGS = ("Spotify search ads", "Spotify home ads", "Spotify scroll ads")
+SPOTIFY_RULES = {"DOMAIN,aet.spotify.com,REJECT"}
 SPOTIFY_MITM_HOSTS = {"spclient.wg.spotify.com", "*spclient.spotify.com"}
 
 
@@ -57,7 +58,11 @@ def _append_section(text: str, name: str, additions: list[str]) -> str:
     return "\n".join(lines)
 
 
-def _spotify_additions(source_text: str) -> tuple[list[str], list[str], set[str]]:
+def _spotify_additions(source_text: str) -> tuple[list[str], list[str], list[str], set[str]]:
+    rules = [line.strip() for line in _section(source_text, "Rule")
+             if line.strip() in SPOTIFY_RULES]
+    if rules != sorted(SPOTIFY_RULES):
+        raise ValueError("Spotify upstream ad-tracking domain rule missing or ambiguous")
     rewrite = [line.strip() for line in _section(source_text, "Rewrite")
                if line.strip().startswith("^https") and "ad-logic" in line
                and "premium-marketing" in line]
@@ -86,12 +91,12 @@ def _spotify_additions(source_text: str) -> tuple[list[str], list[str], set[str]
     hosts = {host.strip() for host in mitm.split("=", 1)[1].split(",") if host.strip()}
     if not SPOTIFY_MITM_HOSTS.issubset(hosts):
         raise ValueError("Spotify upstream MITM host list changed unexpectedly")
-    return rewrite, rewritten, hosts
+    return rules, rewrite, rewritten, hosts
 
 
 def apply(text: str, spotify_source: str | None = None) -> str:
-    if "[Script]" not in text or "[MITM]" not in text or "[Rewrite]" not in text:
-        raise ValueError("plugin missing [Rewrite], [Script] or [MITM] section")
+    if any(section not in text for section in ("[Rule]", "[Rewrite]", "[Script]", "[MITM]")):
+        raise ValueError("plugin missing [Rule], [Rewrite], [Script] or [MITM] section")
     lines = text.splitlines()
     mitm_index = lines.index("[MITM]")
     hostname_index = next((i for i in range(mitm_index + 1, len(lines))
@@ -112,7 +117,7 @@ def apply(text: str, spotify_source: str | None = None) -> str:
         if not SPOTIFY_SOURCE.exists():
             raise ValueError("Spotify upstream snapshot missing")
         source_text = SPOTIFY_SOURCE.read_text(encoding="utf-8")
-    spotify_rewrite, spotify_scripts, spotify_hosts = _spotify_additions(source_text)
+    spotify_rules, spotify_rewrite, spotify_scripts, spotify_hosts = _spotify_additions(source_text)
     for host in sorted(spotify_hosts):
         if host not in hosts:
             hosts.append(host)
@@ -123,6 +128,7 @@ def apply(text: str, spotify_source: str | None = None) -> str:
     if additions:
         pos = result.index("[MITM]")
         result = result[:pos].rstrip() + "\n" + "\n".join(additions) + "\n\n" + result[pos:]
+    result = _append_section(result, "Rule", spotify_rules)
     result = _append_section(result, "Rewrite", spotify_rewrite)
     result = _append_section(result, "Script", spotify_scripts)
     return result
