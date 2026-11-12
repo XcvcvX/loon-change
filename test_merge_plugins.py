@@ -9,7 +9,6 @@ import tempfile
 import unittest
 from pathlib import Path
 
-import merge_plugins
 
 MERGER = Path(__file__).with_name("merge_plugins.py")
 
@@ -449,38 +448,41 @@ hostname = *.amap.com
         )
 
     def test_targeted_ad_matchers_escape_literal_hostname_dots(self):
+        empty = "[Rewrite]\n[Script]\n[MITM]\nhostname = \n"
         dili_rule = (
-            r"request if ${url} ~= /http:\/\/dili.sqcosmos.com"
+            r"request if \${url} ~= /http:\/\/dili.sqcosmos.com"
             r"\/jiekou\/endpage\/ad/ then reject_dict(200)"
         )
-        block = (
+        dili_block = (
             "[Rewrite]\n" + dili_rule + "\n"
             + "[Script]\n[MITM]\nhostname = dili.sqcosmos.com\n"
         )
-        empty = "[Rewrite]\n[Script]\n[MITM]\nhostname = \n"
-        output, report = self.run_merge(empty, block, return_provenance=True)
-        rule = next(line for line in output.splitlines()
-                    if line.startswith("request if") and "dili" in line)
-        self.assertIn(r"dili\.sqcosmos\.com", rule)
-        matcher = re.search(r"~= /(.*)/ then ", rule).group(1).replace(r"\/", "/")
-        self.assertRegex("http://dili.sqcosmos.com/jiekou/endpage/ad", matcher)
-        self.assertNotRegex("http://diliXsqcosmosYcom/jiekou/endpage/ad", matcher)
+        output, report = self.run_merge(empty, dili_block, return_provenance=True)
+        dili_output = next(line for line in output.splitlines()
+                           if line.startswith("request if") and "dili" in line)
+        self.assertIn(r"dili\.sqcosmos\.com", dili_output)
+        dili_matcher = re.search(r"~= /(.*)/ then ", dili_output).group(1).replace(r"\/", "/")
+        self.assertRegex("http://dili.sqcosmos.com/jiekou/endpage/ad", dili_matcher)
+        self.assertNotRegex("http://diliXsqcosmosYcom/jiekou/endpage/ad", dili_matcher)
         adjustments = [item for item in report["scope_adjustments"]
                        if "lookalike hosts" in item.get("reason", "")]
         self.assertEqual(len(adjustments), 1)
         self.assertEqual({item["source"] for item in adjustments}, {"block"})
 
         ios_rule = (
-            r"request if ${url} ~= /https:\/\/ios.sspai.com"
+            r"request if \${url} ~= /https:\/\/ios.sspai.com"
             r"\/api\/v3\/recommend\/page\/get\?ad.*ios_home_modal/"
             r" then reject(404)"
         )
-        ios_output, ios_adjustments = merge_plugins.escape_targeted_ad_hosts(
-            [ios_rule], "block"
+        ios_block = (
+            "[Rewrite]\n" + ios_rule + "\n"
+            + "[Script]\n[MITM]\nhostname = ios.sspai.com\n"
         )
-        self.assertIn(r"ios\.sspai\.com", ios_output[0])
-        self.assertEqual(len(ios_adjustments), 1)
-        ios_matcher = re.search(r"~= /(.*)/ then ", ios_output[0]).group(1).replace(r"\/", "/")
+        ios_output, ios_report = self.run_merge(empty, ios_block, return_provenance=True)
+        ios_line = next(line for line in ios_output.splitlines()
+                        if line.startswith("request if") and "ios.sspai" in line)
+        self.assertIn(r"ios\.sspai\.com", ios_line)
+        ios_matcher = re.search(r"~= /(.*)/ then ", ios_line).group(1).replace(r"\/", "/")
         self.assertRegex(
             "https://ios.sspai.com/api/v3/recommend/page/get?ad=1&slot=ios_home_modal",
             ios_matcher,
@@ -489,6 +491,10 @@ hostname = *.amap.com
             "https://iosXsspaiYcom/api/v3/recommend/page/get?ad=1&slot=ios_home_modal",
             ios_matcher,
         )
+        ios_adjustments = [item for item in ios_report["scope_adjustments"]
+                           if "lookalike hosts" in item.get("reason", "")]
+        self.assertEqual(len(ios_adjustments), 1)
+        self.assertEqual({item["source"] for item in ios_adjustments}, {"block"})
 
     def test_qidian_magev6_ad_matchers_escape_literal_hostname_dots(self):
         qidian_paths = (
