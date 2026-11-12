@@ -66,6 +66,65 @@ class MergeIntegrationTests(unittest.TestCase):
         return (output, result.stdout) if return_stdout else output
 
 
+    def test_tencentvideo_ad_segment_ip_prefix_is_valid_ipv4_only(self):
+        plugin = (
+            "[Rewrite]\n"
+            + r"^http:\/\/[\d\.:]*\/?(defaultts\.tc|vmind\.qqvideo\.tc|finderpdd\.video)\.qq\.com\/\w+ reject"
+            + "\n[MITM]\nhostname = \n"
+        )
+        base = "[Rewrite]\n[MITM]\nhostname = \n"
+        extra = "[Rewrite]\n[MITM]\nhostname = \n"
+        output, provenance = self.run_merge(
+            base, extra, apps_files={"tencentvideo_splash_ad_block.plugin": plugin},
+            return_provenance=True,
+        )
+        line = next(line for line in output.splitlines() if "defaultts" in line)
+        matcher = re.compile(line.split()[0])
+        valid_urls = (
+            "http://1.2.3.4:80/defaultts.tc.qq.com/segment001",
+            "http://255.255.255.255:65535/vmind.qqvideo.tc.qq.com/segment002",
+            "http://10.0.0.1/finderpdd.video.qq.com/segment003",
+            "http://defaultts.tc.qq.com/segment004",
+        )
+        invalid_urls = (
+            "http://999.1.2.3:80/defaultts.tc.qq.com/segment001",
+            "http://1.2.3:80/defaultts.tc.qq.com/segment001",
+            "http://1.2.3.4.5:80/defaultts.tc.qq.com/segment001",
+            "http://1..2.3:80/defaultts.tc.qq.com/segment001",
+        )
+        for url in valid_urls:
+            with self.subTest(url=url):
+                self.assertRegex(url, matcher)
+        for url in invalid_urls:
+            with self.subTest(url=url):
+                self.assertNotRegex(url, matcher)
+        changes = [
+            item for item in provenance["scope_adjustments"]
+            if item.get("source_file") == "tencentvideo_splash_ad_block.plugin"
+            and "Tencent Video plugin documents this HTTP ad-segment form" in item.get("reason", "")
+        ]
+        self.assertEqual(len(changes), 1)
+        self.assertEqual(changes[0]["source"], "thelong")
+        self.assertEqual(changes[0]["source_line_number"], 93)
+        self.assertEqual(changes[0]["source_entry_index"], 149)
+        self.assertEqual(changes[0]["original_line"], plugin.split("[Rewrite]\n", 1)[1].split("\n", 1)[0])
+        self.assertEqual(changes[0]["output_line"], line)
+
+    def test_tencentvideo_segment_ip_guard_fails_closed_on_action_drift(self):
+        plugin = (
+            "[Rewrite]\n"
+            + r"^http:\/\/[\d\.:]*\/?(defaultts\.tc|vmind\.qqvideo\.tc|finderpdd\.video)\.qq\.com\/\w+ reject-dict"
+            + "\n[MITM]\nhostname = \n"
+        )
+        base = "[Rewrite]\n[MITM]\nhostname = \n"
+        extra = "[Rewrite]\n[MITM]\nhostname = \n"
+        output = self.run_merge(
+            base, extra, apps_files={"tencentvideo_splash_ad_block.plugin": plugin},
+            expect_failure=True,
+        )
+        self.assertIn("腾讯视频广告分片 IP matcher 范围或动作已变化", output)
+
+
     def test_odin_numeric_hosts_are_restricted_to_valid_ipv4_and_keep_ad_paths(self):
         base = (
             "[Rewrite]\n"
