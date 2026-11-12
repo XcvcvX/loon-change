@@ -50,6 +50,28 @@ HELLOBIKE_SCRIPT_MARKERS = (
 SOUL_TEENAGER_CONFIG_BROAD_RULE = r"^https?:\/\/api-account\.soulapp\.cn\/teenager\/config reject-dict"
 SOUL_TEENAGER_CONFIG_HTTPS_RULE = r"^https:\/\/api-account\.soulapp\.cn\/teenager\/config reject-dict"
 
+PEOPLEAPP_HOME_AD_BROAD_RULE = r"^https?:\/\/app\.peopleapp\.com\/Api\/\d+/HomeApi\/(?:adv|getAdvertImage) reject"
+PEOPLEAPP_HOME_AD_SHADOW_RULE = r"request if \${url} ~= /^https?:\/\/app\.peopleapp\.com\/Api\/\d+\/HomeApi\/(adv|getAdvertImage)/ then reject(404)"
+PEOPLEAPP_IMAGE_AD_BROAD_RULE = r"^https?:\/\/adstatic\.peopleapp\.com\/upload\/AppLoad\/.*\.(?:jpg|png) reject-200"
+PEOPLEAPP_IMAGE_AD_SHADOW_RULE = r"request if \${url} ~= /^https?:\/\/adstatic\.peopleapp\.com\/upload\/AppLoad\/.*\.(jpg|png)/ then reject(200)"
+
+def remove_shadowed_peopleapp_rules(lines):
+    output, home_broad_seen, image_broad_seen, removed = [], False, False, 0
+    for line in lines:
+        value = line.strip()
+        if value == PEOPLEAPP_HOME_AD_BROAD_RULE:
+            home_broad_seen = True
+        if value == PEOPLEAPP_IMAGE_AD_BROAD_RULE:
+            image_broad_seen = True
+        if value == PEOPLEAPP_HOME_AD_SHADOW_RULE and home_broad_seen:
+            removed += 1
+            continue
+        if value == PEOPLEAPP_IMAGE_AD_SHADOW_RULE and image_broad_seen:
+            removed += 1
+            continue
+        output.append(line)
+    return output, removed
+
 def remove_subsumed_soul_teenager_rule(lines):
     output, broad_seen, removed = [], False, 0
     for line in lines:
@@ -147,6 +169,7 @@ def apply(text: str) -> str:
             if section == "Rewrite":
                 rewrite_lines, _ = merge_adjacent_response_json_rewrites(rewrite_lines)
                 rewrite_lines, _ = remove_subsumed_soul_teenager_rule(rewrite_lines)
+                rewrite_lines, _ = remove_shadowed_peopleapp_rules(rewrite_lines)
                 result_lines.extend(rewrite_lines); rewrite_lines = []
             section = line[1:-1]; result_lines.append(line)
         elif section == "Rewrite": rewrite_lines.append(line)
@@ -154,6 +177,7 @@ def apply(text: str) -> str:
     if section == "Rewrite":
         rewrite_lines, _ = merge_adjacent_response_json_rewrites(rewrite_lines)
         rewrite_lines, _ = remove_subsumed_soul_teenager_rule(rewrite_lines)
+        rewrite_lines, _ = remove_shadowed_peopleapp_rules(rewrite_lines)
         result_lines.extend(rewrite_lines)
     result = "\n".join(result_lines)
     # Keep the unrelated Bankcomm override in [Script], idempotently.
