@@ -36,7 +36,8 @@ def selected_source(source):
     parsed = sections(source)
     rules = [x.strip() for x in parsed.get("rule", [])
              if x.strip() == "DOMAIN,aet.spotify.com,REJECT"]
-    rewrites = [x.strip() for x in parsed.get("rewrite", [])
+    rewrites = [re.sub(r"\\|premium-marketing\\?/upsellOffer", "", x.strip())
+                for x in parsed.get("rewrite", [])
                 if x.strip() and not x.lstrip().startswith("#")
                 and AD_REWRITE.search(x) and re.search(r"\breject\b", x)]
     scripts = {}
