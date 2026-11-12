@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-12 08:23 UTC
+#!merged-at=2026-11-12 08:27 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -5500,7 +5500,7 @@ request if ${url} ~= /^https?:\/\/api\.chelaile\.net\.cn\/goocity\/advert\// the
 request if ${url} ~= /^https?:\/\/atrace\.chelaile\.net\.cn\/adpub\// then reject_img(200)
 request if ${url} ~= /^https?:\/\/web\.chelaile\.net\.cn\/api\/adpub\/ad/ then reject(404)
 request if ${url} ~= /^https:\/\/gw\.chuangkit\.com\/team\/app\/common\/ad\// then reject_dict(200)
-request if ${url} ~= /^https?:\/\/js-ad\.ayximgs\.com\.ad-universe-cdn\.hzhcbkj\.cn\/xgapp\.php\/v2\/top_notice/ then reject(404)
+request if ${url} ~= /^https?:\/\/js-ad\.ayximgs\.com\.ad-universe-cdn\.hzhcbkj\.cn\/xgapp\.php\/v2\/top_notice(?:\?|$|\/)/ then reject(404)
 response if ${url} ~= /^https?:\/\/beta-api\.crunchyroll\.com\/cms/ then response.body.replace(/offset_ms":\d+/, "offset_ms":99999999999999")
 request if ${url} ~= /^https?:\/\/app-gw\.csdn\.net\/abtesting\/v2\/getList?/ then reject(404)
 request if ${url} ~= /^https?:\/\/delivery-api\.imdada\.cn\/v2_0\/dada\/promote\/imax\?privacyParam/ then reject_dict(200)
