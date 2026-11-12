@@ -234,25 +234,30 @@ def classify_rewrite_action(action):
         for names in ACTION_FAMILIES.values()
         for name in names
     }
-    found = []
+    found, unknown = [], []
     for segment in _split_action_pipeline(action.strip()):
         # Loon action names are the leading operator token of each pipeline
         # segment. Searching the whole segment would mistake JQ predicates,
         # string literals, header values, or URLs for executable actions.
         token = re.match(r'^([A-Za-z0-9_.-]+)', segment)
-        if token and token.group(1).lower() in known:
-            found.append(token.group(1).lower())
-    if not found:
-        # Preserve an unknown leading operator for manual review.
-        token = re.match(r'^([A-Za-z0-9_.-]+)', action.strip())
-        found = [token.group(1).lower()] if token else []
+        if not token:
+            continue
+        name = token.group(1).lower()
+        if name in known:
+            found.append(name)
+        else:
+            # Do not hide an unrecognized pipeline stage merely because another
+            # stage is known. Mixed known/unknown chains need manual review.
+            unknown.append(name)
     families = sorted({
         family for family, names in ACTION_FAMILIES.items()
         if any(name.lower() in found for name in names)
     })
+    if unknown:
+        families.append('unknown')
     if not families:
-        return {'families': ['unknown'], 'operations': found or ['<unrecognized>']}
-    return {'families': families, 'operations': sorted(set(found))}
+        return {'families': ['unknown'], 'operations': unknown or ['<unrecognized>']}
+    return {'families': families, 'operations': sorted(set(found + unknown))}
 
 
 def action_review_priority(families):
