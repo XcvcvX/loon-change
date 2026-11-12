@@ -831,6 +831,141 @@ hostname = *.amap.com
                 self.assertEqual(adjustments[0]["original_line"], rule)
                 self.assertEqual(adjustments[0]["output_line"], result)
 
+    def test_known_ad_and_splash_image_extension_dots_are_literal_across_sources(self):
+        base_lines = (
+            r"^https?:\/\/static\.95508\.com\/icppweb\/images\/modelMaterial\/(advertising|accurate)\/202\d{5}\/.*.(?:png|jpg) reject-200",
+            r"^https?:\/\/l[0-9]{1}\.51fanli\.net\/app\/images\/splash\/2022\/0[4-9]{1}\/.*.jpg reject-200",
+            r"^https?:\/\/l[0-9]{1}\.51fanli\.net\/app\/images\/splash\/2022\/1[0-2]{1}\/.*.jpg reject-200",
+            r"^https?:\/\/l[0-9]{1}\.51fanli\.net\/app\/images\/splash\/202\d{1}\/\d{2}\/.*.jpg reject-200",
+        )
+        block_templates = (
+            r"request if @@URL@@ ~= /^https?:\/\/img\.admobile\.top\/admobile-adRequest\/.*.(jpg|png)/ then reject(200)",
+            r"request if @@URL@@ ~= /^https?:\/\/img\.gdoil\.cn\/upload\/ad\/.*.(jpg|png)/ then reject(200)",
+            r"request if @@URL@@ ~= /^https?:\/\/img\.wukongtv\.com\/wkremote\/AD\/iOS\/.*.(jpg|png|jpeg)/ then reject(200)",
+            r"request if @@URL@@ ~= /^https?:\/\/ads\.iconntech\.com\/resource-delivery\/*\/.*.(jpg|png)/ then reject(200)",
+            r"request if @@URL@@ ~= /^https?:\/\/static\.xyzq\.cn\/image\/splash\/opera3.*.jpg/ then reject(200)",
+            r"request if @@URL@@ ~= /^https?:\/\/static\.95508\.com\/icppweb\/images\/modelMaterial\/accurate\/202\d{5}\/.*.(png|jpg)/ then reject(200)",
+            r"request if @@URL@@ ~= /^https?:\/\/static\.95508\.com\/icppweb\/images\/modelMaterial\/advertising\/202\d{5}\/.*.(png|jpg)/ then reject(200)",
+            r"request if @@URL@@ ~= /^https?:\/\/l[0-9]{1}\.51fanli\.net\/app\/images\/splash\/2022\/0[4-9]{1}\/.*.jpg/ then reject(200)",
+            r"request if @@URL@@ ~= /^https?:\/\/l[0-9]{1}\.51fanli\.net\/app\/images\/splash\/2022\/1[0-2]{1}\/.*.jpg/ then reject(200)",
+            r"request if @@URL@@ ~= /^https?:\/\/l[0-9]{1}\.51fanli\.net\/app\/images\/splash\/202\d{1}\/\d{2}\/.*.jpg/ then reject(200)",
+        )
+        block_lines = [
+            template.replace("@@URL@@", "$" + "{url}")
+            for template in block_templates
+        ]
+        base_text = (
+            "[Rewrite]\n" + "\n".join(base_lines) + "\n"
+            + "[Script]\n[MITM]\nhostname = \n"
+        )
+        extra_text = (
+            "[Rewrite]\n" + "\n".join(block_lines) + "\n"
+            + "[Script]\n[MITM]\nhostname = \n"
+        )
+        output, report = self.run_merge(
+            base_text, extra_text, return_provenance=True
+        )
+
+        def matcher_for(fragment):
+            line = next(line for line in output.splitlines() if fragment in line)
+            if line.startswith("request if"):
+                matcher = re.search(r"~= /(.*)/ then ", line).group(1)
+            else:
+                matcher = line.split()[0]
+            return re.compile(matcher)
+
+        cases = (
+            (
+                "img.admobile.top",
+                "https://img.admobile.top/admobile-adRequest/2026/banner.jpg",
+                "https://img.admobile.top/admobile-adRequest/2026/bannerxjpg",
+            ),
+            (
+                "img.gdoil.cn",
+                "https://img.gdoil.cn/upload/ad/banner.png",
+                "https://img.gdoil.cn/upload/ad/bannerxpng",
+            ),
+            (
+                "img.wukongtv.com",
+                "https://img.wukongtv.com/wkremote/AD/iOS/banner.jpeg",
+                "https://img.wukongtv.com/wkremote/AD/iOS/bannerxjpeg",
+            ),
+            (
+                "ads.iconntech.com",
+                "https://ads.iconntech.com/resource-delivery/slot/banner.jpg",
+                "https://ads.iconntech.com/resource-delivery/slot/bannerxjpg",
+            ),
+            (
+                "static.xyzq.cn",
+                "https://static.xyzq.cn/image/splash/opera3.abc.jpg",
+                "https://static.xyzq.cn/image/splash/opera3.abcXjpg",
+            ),
+            (
+                "static.95508.com",
+                "https://static.95508.com/icppweb/images/modelMaterial/advertising/20261112/banner.png",
+                "https://static.95508.com/icppweb/images/modelMaterial/advertising/20261112/bannerXpng",
+            ),
+            (
+                "51fanli.net",
+                "https://l1.51fanli.net/app/images/splash/2022/04/banner.jpg",
+                "https://l1.51fanli.net/app/images/splash/2022/04/bannerXjpg",
+            ),
+        )
+        for fragment, valid_url, invalid_url in cases:
+            with self.subTest(target=fragment):
+                matcher = matcher_for(fragment)
+                self.assertRegex(valid_url, matcher)
+                self.assertNotRegex(invalid_url, matcher)
+
+        target_names = {
+            "叮嗒出行 admobile 广告图片",
+            "加油广东广告图片",
+            "悟空遥控器 AD/iOS 图片",
+            "杭州市民广告投放素材",
+            "优理宝开屏图片",
+            "广发银行 advertising/accurate 图片素材",
+            "返利网开屏图片",
+        }
+        adjustments = [
+            item for item in report["scope_adjustments"]
+            if item.get("target") in target_names
+        ]
+        self.assertEqual(len(adjustments), 14)
+        self.assertEqual(sum(item["source"] == "base" for item in adjustments), 4)
+        self.assertEqual(sum(item["source"] == "block" for item in adjustments), 10)
+        for item in adjustments:
+            self.assertIn(r".*\.", item["output_line"])
+            self.assertNotEqual(item["original_line"], item["output_line"])
+
+    def test_known_ad_image_extension_helper_is_idempotent_for_already_escaped_rules(self):
+        base_text = (
+            "[Rewrite]\n"
+            + r"^https?:\/\/static\.95508\.com\/icppweb\/images\/modelMaterial\/advertising\/20261112\/.*\.(?:png|jpg) reject-200"
+            + "\n[Script]\n[MITM]\nhostname = \n"
+        )
+        extra_text = (
+            "[Rewrite]\n"
+            + r"request if @@URL@@ ~= /^https?:\/\/img\.gdoil\.cn\/upload\/ad\/.*\.(jpg|png)/ then reject(200)"
+            + "\n[Script]\n[MITM]\nhostname = \n"
+        ).replace("@@URL@@", "$" + "{url}")
+        _, report = self.run_merge(base_text, extra_text, return_provenance=True)
+        target_adjustments = [
+            item for item in report["scope_adjustments"]
+            if item.get("target")
+        ]
+        self.assertEqual(target_adjustments, [])
+
+    def test_known_ad_image_extension_guard_fails_closed_on_action_drift(self):
+        base_text = (
+            "[Rewrite]\n"
+            + r"^https?:\/\/img\.gdoil\.cn\/upload\/ad\/.*.(jpg|png) reject-dict"
+            + "\n[Script]\n[MITM]\nhostname = \n"
+        )
+        extra_text = "[Rewrite]\n[Script]\n[MITM]\nhostname = \n"
+        output = self.run_merge(base_text, extra_text, expect_failure=True)
+        self.assertIn("加油广东广告图片 图片规则动作已变化", output)
+
+
     def test_gamersky_list_response_filter_has_exact_host_and_path_scope(self):
         empty = "[Rewrite]\n[Script]\n[MITM]\nhostname = \n"
         jq_action = (
