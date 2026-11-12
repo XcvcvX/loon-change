@@ -26,6 +26,7 @@ class LocalOverrideTests(unittest.TestCase):
         result = apply(BASE)
         self.assertNotIn("scripts/hellobike-clean.js", result)
         self.assertNotIn("哈啰净化-接口", result)
+        self.assertNotIn("action=static&ms=1&version=css_page_2@0", result)
         for rule in HELLOBIKE_REWRITE_RULES:
             self.assertIn(rule, result.split("[Rewrite]", 1)[1].split("[Script]", 1)[0])
         for rule in HELLOBIKE_SCRIPT_RULES:
