@@ -66,6 +66,64 @@ class MergeIntegrationTests(unittest.TestCase):
         return (output, result.stdout) if return_stdout else output
 
 
+    def test_baidunetdisk_ad_image_fallback_is_limited_to_declared_mitm_host(self):
+        base = "[Rewrite]\n[MITM]\nhostname = \n"
+        extra = "[Rewrite]\n[MITM]\nhostname = \n"
+        plugin = (
+            "#!name=百度网盘\n"
+            "[Rewrite]\n"
+            r"^https://.*\.baidu\.com.*ad/.* reject-200" + "\n"
+            "[MITM]\nhostname = pan.baidu.com, *.vlion.cn, *.advlion.com\n"
+        )
+        output, report = self.run_merge(
+            base, extra,
+            return_provenance=True,
+            apps_files={"baidunetdisk_splash_ad_block.plugin": plugin},
+        )
+        result = next(
+            line for line in output.splitlines()
+            if line.startswith("^https://pan\\\\.baidu\\\\.com") and "reject-200" in line
+        )
+        matcher = re.search(r"^(.*?)\\s+reject-200$", result).group(1)
+        for url in (
+            "https://pan.baidu.com/ad/image.jpg",
+            "https://pan.baidu.com/api/v1/ad/banner.png",
+        ):
+            self.assertRegex(url, matcher)
+        for url in (
+            "https://evil.baidu.com/ad/image.jpg",
+            "https://pan.baidu.com.evil.test/ad/image.jpg",
+            "https://panXbaidu.com/ad/image.jpg",
+            "http://pan.baidu.com/ad/image.jpg",
+        ):
+            self.assertNotRegex(url, matcher)
+        changes = [
+            item for item in report["scope_adjustments"]
+            if "Baidu Netdisk plugin declares only pan.baidu.com" in item.get("reason", "")
+        ]
+        self.assertEqual(len(changes), 1)
+        self.assertEqual(changes[0]["source"], "thelong")
+        self.assertEqual(changes[0]["source_file"], "baidunetdisk_splash_ad_block.plugin")
+        self.assertEqual(changes[0]["original_line"], r"^https://.*\\.baidu\\.com.*ad/.* reject-200")
+        self.assertEqual(changes[0]["output_line"], result)
+
+    def test_baidunetdisk_ad_image_guard_fails_closed_on_action_drift(self):
+        base = "[Rewrite]\n[MITM]\nhostname = \n"
+        extra = "[Rewrite]\n[MITM]\nhostname = \n"
+        plugin = (
+            "#!name=百度网盘\n"
+            "[Rewrite]\n"
+            r"^https://.*\\.baidu\\.com.*ad/.* reject-dict" + "\n"
+            "[MITM]\nhostname = pan.baidu.com\n"
+        )
+        output = self.run_merge(
+            base, extra,
+            apps_files={"baidunetdisk_splash_ad_block.plugin": plugin},
+            expect_failure=True,
+        )
+        self.assertIn("百度网盘广告图 CDN 规则数量、范围或动作已变化", output)
+
+
     def test_aoomee_provenance_keeps_alignment_across_double_slash_rows_and_files(self):
         base = "[Rule]\n[Rewrite]\n[MITM]\nhostname = \n"
         extra = "[Rule]\n[Rewrite]\n[MITM]\nhostname = \n"
