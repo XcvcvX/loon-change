@@ -1011,7 +1011,41 @@ def audit_deep(path):
             '远程脚本 HEAD 失败可能是 CDN 不支持或限流，不应据此直接删除脚本。'
         ]
     }
+    report['automated_diagnostics'] = build_automated_diagnostics(report)
     return report
+
+
+def build_automated_diagnostics(report):
+    """Expose stable, user-facing diagnostic names without breaking legacy JSON consumers."""
+    summary = report['summary']
+    candidate_sources = {
+        'rewrite_scope': 'rewrite_scope_review_candidates',
+        'rewrite_action_semantics': 'rewrite_action_semantic_review_candidates',
+        'rewrite_overlap_skipped_or_ambiguous': 'rewrite_overlap_manual_review_candidates',
+        'rewrite_block_action_variants': 'rewrite_block_action_variant_groups',
+        'rewrite_same_family_multi_operation': 'rewrite_same_family_multi_operation_groups',
+        'rewrite_unclassified_multi_action': 'rewrite_unclassified_multi_action_groups'
+    }
+    summary_sources = {
+        'rewrite_scope_diagnostics': 'rewrite_scope_review_candidates',
+        'rewrite_action_semantic_diagnostics': 'rewrite_action_semantic_review_candidates',
+        'rewrite_overlap_skipped_or_ambiguous_diagnostics': 'rewrite_overlap_manual_review_candidates'
+    }
+    return {
+        'schema_version': 1,
+        'summary': {
+            display_key: summary.get(source_key, 0)
+            for display_key, source_key in summary_sources.items()
+        },
+        'candidates': {
+            display_key: markdown_diagnostic_item(report.get(source_key, []))
+            for display_key, source_key in candidate_sources.items()
+        },
+        'compatibility': (
+            'Additive automated-diagnostics view. Legacy top-level fields and values '
+            'remain unchanged for existing consumers.'
+        )
+    }
 
 
 def markdown_diagnostic_item(value):
