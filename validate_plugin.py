@@ -3,6 +3,7 @@
 """Loon 插件静态质量门禁。只检查和报告，不自动删改规则。"""
 import argparse
 import concurrent.futures
+import fnmatch
 import ipaddress
 import re
 import sys
@@ -54,12 +55,20 @@ def check_hostname(host):
     except ValueError:
         pass
     if '*' in candidate or '?' in candidate:
-        if not re.fullmatch(r'\*\.[A-Za-z0-9.-]+', candidate):
-            return '非标准通配符；仅允许 *.后缀'
-        suffix = candidate[2:]
-        if not HOST_RE.fullmatch(suffix):
-            return '通配 hostname 后缀格式非法'
-        if is_public_suffix(suffix):
+        # Loon 官方 MITM 语法支持 * 与 ? 通配符，不限于左侧的 "*."。
+        # 用占位字符验证域名结构，同时禁止通配符出现在顶级标签，
+        # 并继续阻止 *.com、*.co.uk 等公共后缀范围。
+        labels = candidate.rstrip('.').split('.')
+        if not labels or any(not label for label in labels):
+            return '通配 hostname 域名标签为空'
+        if '*' in labels[-1] or '?' in labels[-1]:
+            return '通配 hostname 不允许覆盖顶级域名标签'
+        normalized = candidate.replace('*', 'x').replace('?', 'x')
+        if not HOST_RE.fullmatch(normalized):
+            return '通配 hostname 格式非法'
+        suffix = '.'.join(labels[-2:]) if len(labels) >= 2 else labels[-1]
+        suffix = suffix.replace('*', '').replace('?', '').lstrip('.')
+        if not suffix or is_public_suffix(suffix):
             return '通配 hostname 是公共后缀'
         return None
     if not HOST_RE.fullmatch(candidate):
@@ -73,9 +82,7 @@ def host_covered(host, hostset):
         value = item.lower().strip()
         if value.startswith('-'):
             continue
-        if value == host:
-            return True
-        if value.startswith('*.') and host.endswith('.' + value[2:]):
+        if fnmatch.fnmatchcase(host, value):
             return True
     return False
 

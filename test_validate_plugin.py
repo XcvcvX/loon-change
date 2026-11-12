@@ -10,9 +10,14 @@ class ValidatorTests(unittest.TestCase):
     def test_hostnames(self):
         self.assertIsNone(vp.check_hostname('ads.example.com'))
         self.assertIsNone(vp.check_hostname('*.example.com'))
+        self.assertIsNone(vp.check_hostname('*spclient.spotify.com'))
+        self.assertIsNone(vp.check_hostname('api-?spclient.spotify.com'))
         self.assertIsNone(vp.check_hostname('-ads.example.com'))
         self.assertIsNotNone(vp.check_hostname('*.com'))
-        self.assertIsNotNone(vp.check_hostname('bad*host.example.com'))
+        self.assertIsNotNone(vp.check_hostname('*.co.uk'))
+        self.assertIsNotNone(vp.check_hostname('*.example.*'))
+        self.assertIsNone(vp.check_hostname('bad*host.example.com'))
+        self.assertIsNotNone(vp.check_hostname('bad*host..example.com'))
         self.assertIsNotNone(vp.check_hostname('103.37.155.60'))
         self.assertIsNotNone(vp.check_hostname('2001:db8::1'))
         self.assertIsNotNone(vp.check_hostname('[2001:db8::1]'))
@@ -46,6 +51,7 @@ class ValidatorTests(unittest.TestCase):
     def test_wildcard_coverage(self):
         self.assertTrue(vp.host_covered('a.b.example.com', {'*.example.com'}))
         self.assertFalse(vp.host_covered('example.com', {'*.example.com'}))
+        self.assertTrue(vp.host_covered('foo-spclient.spotify.com', {'*spclient.spotify.com'}))
         self.assertFalse(vp.host_covered('example.net', {'*.example.com'}))
         self.assertFalse(vp.host_covered('a.example.com', {'-*.example.com'}))
 
