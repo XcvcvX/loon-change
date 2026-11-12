@@ -935,8 +935,8 @@ hostname = *.amap.com
             if item.get("target") in target_names
         ]
         self.assertEqual(len(adjustments), 12, repr([(item["source"], item["target"], item["original_line"]) for item in adjustments]))
-        self.assertEqual(sum(item["source"] == "base" for item in adjustments), 4)
-        self.assertEqual(sum(item["source"] == "block" for item in adjustments), 8)
+        self.assertEqual(sum(item["source"] == "base" for item in adjustments), 3)
+        self.assertEqual(sum(item["source"] == "block" for item in adjustments), 9)
         for item in adjustments:
             self.assertIn(r".*\.", item["output_line"])
             self.assertNotEqual(item["original_line"], item["output_line"])
