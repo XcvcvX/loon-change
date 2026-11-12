@@ -621,7 +621,7 @@ request if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/ad$/ then future-action
         from deep_audit import automated_diagnostics_handling, render_automated_diagnostics_handling
 
         handling = automated_diagnostics_handling()
-        rendered = '\\n'.join(render_automated_diagnostics_handling())
+        rendered = '\n'.join(render_automated_diagnostics_handling())
         self.assertEqual(handling, {
             'mode': 'informational_only',
             'user_action_required': False,
