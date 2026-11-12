@@ -381,6 +381,14 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 本批不修改 `allAdRewrite.plugin` 的现有规则、MITM、优先级或其他广告拦截范围。
 
 
+## 第八阶段第五批：收敛拼多多 IPv4 HTTPDNS 路径边界
+
+- 生产插件已有 IPv4 HTTPDNS 规则，并且同时要求拼多多 User-Agent；保留这一应用范围约束，不扩大到其他 App 或全局 DNS 流量。
+- 将路径后缀从宽松的 `/d(\d)?` 收敛为 `/d(\d)?(?:\?|$)`，只匹配 `/d`、`/d4?` 等 HTTPDNS 查询路径，不再误匹配 `/download`、`/d4extra` 等普通路径。
+- IPv6 规则原本已有查询边界，保持不变；不修改 DNS 地址范围、MITM、其他 Rule、Rewrite、Script 或优先级。
+- 两处重复来源规则同步应用相同修正；若上游 matcher 形态漂移，CI fail-closed，不猜测改写。
+- 增加正向/负向回归测试，并验证覆盖逻辑幂等。
+
 ## 第八阶段第四批：移除破坏 DIRECT 连通性的全局 UDP/443 拒绝
 
 - 生产插件审计确认存在无域名、无应用范围限制的 `AND,((PROTOCOL,UDP),(DEST-PORT,443)),REJECT`。
