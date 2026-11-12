@@ -1,5 +1,5 @@
 import unittest
-from apply_local_overrides import apply, RULE
+from apply_local_overrides import apply, RULE, HELLOBIKE_RULES, HELLOBIKE_MITM_HOSTS
 
 BASE = """#!name=test
 [Script]
@@ -13,6 +13,14 @@ class LocalOverrideTests(unittest.TestCase):
         result = apply(BASE)
         self.assertIn(RULE, result)
         self.assertIn("creditcardapp.bankcomm.cn", result)
+        self.assertEqual(apply(result), result)
+
+    def test_adds_hellobike_rules_and_required_mitm_hosts(self):
+        result = apply(BASE)
+        for rule in HELLOBIKE_RULES:
+            self.assertIn(rule, result)
+        for host in HELLOBIKE_MITM_HOSTS:
+            self.assertIn(host, result)
         self.assertEqual(apply(result), result)
 
     def test_requires_target_mitm_hosts(self):
