@@ -17,10 +17,10 @@ HELLOBIKE_JS = (
 )
 
 HELLOBIKE_REWRITE_RULES = (
-    r"^https?:\\/\\/api-htp\\.beizi\\.biz\\/mb\\/sdk0\\/json(?:\\?|$) reject-200",
-    r"^https?:\\/\\/adservice\\.sigmob\\.cn\\/(?:hb\\/v2\\/ad|ad\\/v4)(?:\\?|$) reject-200",
-    r"^https?:\\/\\/tm\\.sigmob\\.cn\\/(?:waterfall\\/v1|strategy\\/v6)(?:\\?|$) reject-200",
-    r"^https?:\\/\\/(?:mi|v2mi)\\.gdt\\.qq\\.com\\/(?:gdt_mview\\.fcg|server_bidding2)(?:\\?|$) reject-200",
+    r"^https?:\/\/api-htp\.beizi\.biz\/mb\/sdk0\/json(?:\?|$) reject-200",
+    r"^https?:\/\/adservice\.sigmob\.cn\/(?:hb\/v2\/ad|ad\/v4)(?:\?|$) reject-200",
+    r"^https?:\/\/tm\.sigmob\.cn\/(?:waterfall\/v1|strategy\/v6)(?:\?|$) reject-200",
+    r"^https?:\/\/(?:mi|v2mi)\.gdt\.qq\.com\/(?:gdt_mview\.fcg|server_bidding2)(?:\?|$) reject-200",
 )
 
 HELLOBIKE_SCRIPT_RULES = (
