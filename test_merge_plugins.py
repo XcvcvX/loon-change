@@ -539,8 +539,8 @@ hostname = *.amap.com
                     line for line in output.splitlines()
                     if line.startswith("request if") and "adstatic" in line
                 )
-                self.assertIn(r".*\\.(?:jpg|png)" if source == "base"
-                              else r".*\\.(jpg|png)", result)
+                self.assertIn(r".*\.(?:jpg|png)" if source == "base"
+                              else r".*\.(jpg|png)", result)
                 matcher = re.search(r"~= /(.*)/ then ", result).group(1).replace(r"\/", "/")
                 self.assertRegex(
                     "https://adstatic.peopleapp.com/upload/AppLoad/banner.jpg",
