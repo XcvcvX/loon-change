@@ -391,8 +391,8 @@ hostname = *.example.test
 
     def test_same_matcher_body_and_header_rewrites_are_classified_as_complementary(self):
         fixture = '''[Rewrite]
-^https:\\\\/\\\\/api\\\\.example\\\\.com\\\\/home response-body-json-jq '.data.banners |= []'
-^https:\\\\/\\\\/api\\\\.example\\\\.com\\\\/home response-header-del Content-MD5 ETag
+^https:\\/\\/api\\.example\\.com\\/home response-body-json-jq '.data.banners |= []'
+^https:\\/\\/api\\.example\\.com\\/home response-header-del Content-MD5 ETag
 '''
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / 'complementary.plugin'
@@ -413,8 +413,8 @@ hostname = *.example.test
 
     def test_same_family_json_operations_are_reviewed_without_claiming_conflict(self):
         fixture = '''[Rewrite]
-^https:\\\\/\\\\/api\\\\.example\\\\.com\\\\/feed response-body-json-jq '.data |= map(select(.type != "ad"))'
-^https:\\\\/\\\\/api\\\\.example\\\\.com\\\\/feed response-body-json-del data.tracking
+^https:\\/\\/api\\.example\\.com\\/feed response-body-json-jq '.data |= map(select(.type != "ad"))'
+^https:\\/\\/api\\.example\\.com\\/feed response-body-json-del data.tracking
 '''
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / 'ordered-json.plugin'
@@ -430,8 +430,8 @@ hostname = *.example.test
 
     def test_block_action_variants_remain_conflict_candidates(self):
         fixture = '''[Rewrite]
-^https:\\\\/\\\\/api\\\\.example\\\\.com\\\\/ad reject
-^https:\\\\/\\\\/api\\\\.example\\\\.com\\\\/ad reject-dict
+^https:\\/\\/api\\.example\\.com\\/ad reject
+^https:\\/\\/api\\.example\\.com\\/ad reject-dict
 '''
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / 'block-variants.plugin'
