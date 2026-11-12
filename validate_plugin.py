@@ -66,8 +66,14 @@ def check_hostname(host):
         normalized = candidate.replace('*', 'x').replace('?', 'x')
         if not HOST_RE.fullmatch(normalized):
             return '通配 hostname 格式非法'
-        suffix = '.'.join(labels[-2:]) if len(labels) >= 2 else labels[-1]
-        suffix = suffix.replace('*', '').replace('?', '').lstrip('.')
+        # 对标准左侧整标签通配符，判断其覆盖的基础域名本身是否为公共后缀。
+        # 例如 *.net.cn 应拒绝，但 *.chelaile.net.cn 是单一注册域名下的子域，
+        # 不能仅因末尾两段恰好是 net.cn 就误判为公共后缀。
+        if candidate.startswith('*.'):
+            suffix = candidate[2:]
+        else:
+            suffix = '.'.join(labels[-2:]) if len(labels) >= 2 else labels[-1]
+            suffix = suffix.replace('*', '').replace('?', '').lstrip('.')
         if not suffix or is_public_suffix(suffix):
             return '通配 hostname 是公共后缀'
         return None
