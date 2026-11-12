@@ -645,6 +645,7 @@
     "source_entry_index is the ordinal within the extracted source feed, not the original upstream file line number",
     "exact source filename and 1-based line attribution is included for Thelongdarkorg, aoomee, and zmjde App plugin feeds; other sources retain feed indices until their source mapping is added",
     "normalization and source conversion may mean input_line differs from upstream raw text",
+    "MyBlockAds source_entry_index is the ordinal within its extracted section feed; source line numbers are not yet emitted because the online source may differ from the checked-in fallback cache",
     "MITM hostname provenance and Argument provenance are not included in this first batch",
     "provenance does not prove that a rule is effective or safe at runtime"
   ],
@@ -657,7 +658,14 @@
     "qxapp": "QuanX single-file app source (GuaZiVideoAds)",
     "amap": "ifflagged/Romeo / RuCu6 Amap plugin",
     "zmjapp": "zmjde/loon-plugins app plugins",
-    "myblockads": "RuCu6 MyBlockAds",
+    "myblockads": {
+      "name": "RuCu6 MyBlockAds",
+      "url": "https://rucu6.pages.dev/Plugins/myblockads.lpx",
+      "cache": "myblockads.lpx",
+      "update_policy": "fetch_online_then_fallback_to_validated_repository_cache",
+      "merge_priority": 7,
+      "policy": "supplement_only; existing higher-priority rules are retained"
+    },
     "filter": "zirawell/R-Store allAdBlock filter"
   },
   "summary": {
@@ -668,7 +676,19 @@
     "rule_included_events": 3497,
     "rule_covered_or_duplicate_events": 2117,
     "rule_safety_excluded_events": 11,
-    "rule_scope_adjustments": 1
+    "rule_scope_adjustments": 1,
+    "myblockads_input_entries": {
+      "rewrite": 62,
+      "script": 17,
+      "rule": 232,
+      "mitm_hosts_declared": 53
+    },
+    "myblockads_rule_dispositions": {
+      "included": 49,
+      "duplicate_exact": 148,
+      "covered_by_existing_rule": 35,
+      "excluded_safety_guard": 0
+    }
   },
   "rewrite": [
     {
