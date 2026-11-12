@@ -128,42 +128,20 @@
   "sections": {
     "rewrite": {
       "action_changed": [],
+      "added": [],
+      "removed": []
+    },
+    "rule": {
+      "action_changed": [],
       "added": [
         {
-          "line": "^https://(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\.)+advlion\\.com/.+ reject-200",
-          "section": "rewrite",
-          "sources": [
-            "thelong"
-          ]
-        },
-        {
-          "line": "^https://(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\.)+vlion\\.cn/.+ reject-200",
-          "section": "rewrite",
+          "line": "AND,((DOMAIN-SUFFIX,advlion.com),(PROTOCOL,QUIC)),REJECT",
+          "section": "rule",
           "sources": [
             "thelong"
           ]
         }
       ],
-      "removed": [
-        {
-          "line": "^https://.*\\.advlion\\.com/.+ reject-200",
-          "section": "rewrite",
-          "sources": [
-            "thelong"
-          ]
-        },
-        {
-          "line": "^https://.*\\.vlion\\.cn/.+ reject-200",
-          "section": "rewrite",
-          "sources": [
-            "thelong"
-          ]
-        }
-      ]
-    },
-    "rule": {
-      "action_changed": [],
-      "added": [],
       "removed": []
     },
     "script": {
@@ -175,12 +153,12 @@
   "summary": {
     "rewrite": {
       "action_changed": 0,
-      "added": 2,
-      "removed": 2
+      "added": 0,
+      "removed": 0
     },
     "rule": {
       "action_changed": 0,
-      "added": 0,
+      "added": 1,
       "removed": 0
     },
     "script": {
@@ -188,7 +166,7 @@
       "added": 0,
       "removed": 0
     },
-    "total_changes": 4
+    "total_changes": 1
   },
   "upstream_revision_changes": []
 }
