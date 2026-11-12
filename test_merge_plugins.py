@@ -66,6 +66,31 @@ class MergeIntegrationTests(unittest.TestCase):
         return (output, result.stdout) if return_stdout else output
 
 
+    def test_unscoped_udp_443_reject_is_excluded_but_scoped_quic_reject_is_kept(self):
+        global_reject = "AND,((PROTOCOL,UDP),(DEST-PORT,443)),REJECT"
+        scoped_reject = "AND,((DOMAIN-SUFFIX,example.com),(PROTOCOL,UDP),(DEST-PORT,443)),REJECT"
+        global_direct = "AND,((PROTOCOL,UDP),(DEST-PORT,443)),DIRECT"
+        base = "[Rewrite]\\n[MITM]\\nhostname = \\n"
+        extra = (
+            "[Rule]\\n"
+            + global_reject + "\\n"
+            + scoped_reject + "\\n"
+            + global_direct + "\\n"
+            + "[Rewrite]\\n[MITM]\\nhostname = \\n"
+        )
+        output, provenance = self.run_merge(base, extra, return_provenance=True)
+        self.assertNotIn(global_reject, output)
+        self.assertIn(scoped_reject, output)
+        self.assertIn(global_direct, output)
+        exclusions = [
+            item for item in provenance["rule_events"]
+            if item.get("original_input_line") == global_reject
+        ]
+        self.assertEqual(len(exclusions), 1)
+        self.assertEqual(exclusions[0]["status"], "excluded_safety_guard")
+        self.assertIn("DIRECT connectivity", exclusions[0]["reason"])
+
+
     def test_grcbank_splash_image_extension_dot_is_literal(self):
         base = (
             "[Rewrite]\n"
