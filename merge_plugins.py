@@ -737,6 +737,49 @@ def narrow_clicli_top_notice_path(rewrite_lines, source):
     return output, adjustments
 
 
+
+_CSDN_OPEN_SCREEN_AD_MATCHER = r'^https?://app-gw\.csdn\.net/silkroad-api/api/v\d/assemble/list/pub/channel/app_open_screen_ad'
+_CSDN_OPEN_SCREEN_AD_BOUNDARY = r'(?:\?|$|/)'
+
+
+def narrow_csdn_open_screen_ad_path(rewrite_lines, source):
+    """只为 blockAdsV2 明确标注的 CSDN 开屏接口补齐路径终止边界。"""
+    output = []
+    adjustments = []
+    for line in rewrite_lines:
+        matcher = entry_regex(line)
+        if matcher != _CSDN_OPEN_SCREEN_AD_MATCHER:
+            if matcher and matcher.startswith(_CSDN_OPEN_SCREEN_AD_MATCHER):
+                if matcher == _CSDN_OPEN_SCREEN_AD_MATCHER + _CSDN_OPEN_SCREEN_AD_BOUNDARY:
+                    output.append(line)
+                    continue
+                raise RuntimeError(
+                    source + ' CSDN app_open_screen_ad matcher 已变化，拒绝自动扩大或猜测路径边界：' + line
+                )
+            output.append(line)
+            continue
+        if action_key(line) != ('REJECT', 'reject', 'reject(404)'):
+            raise RuntimeError(
+                source + ' CSDN app_open_screen_ad 动作已变化，拒绝自动改写：' + line
+            )
+        updated_matcher = matcher + _CSDN_OPEN_SCREEN_AD_BOUNDARY
+        source_matcher = matcher.replace('/', r'\/')
+        source_updated_matcher = updated_matcher.replace('/', r'\/')
+        updated = line.replace(source_matcher, source_updated_matcher, 1)
+        if entry_regex(updated) != updated_matcher:
+            raise RuntimeError(source + ' CSDN app_open_screen_ad 边界修正后校验失败：' + line)
+        adjustments.append({
+            'source': source,
+            'section': 'Rewrite',
+            'target': 'CSDN app_open_screen_ad 接口路径边界',
+            'reason': 'Keep the explicitly declared app-gw.csdn.net host, CSDN open-screen ad endpoint and reject(404) action, but require a query, slash, or URL end after the endpoint so similarly prefixed paths are not rejected.',
+            'original_line': line,
+            'output_line': updated,
+        })
+        output.append(updated)
+    return output, adjustments
+
+
 _PZOAP_TOP_NOTICE_MATCHER = r'^https?://pzoap\.moedot\.net/xgapp\.php/v2/top_notice'
 _PZOAP_TOP_NOTICE_BOUNDARY = r'(?:\?|$|/)'
 
@@ -2011,6 +2054,9 @@ block_scope_adjustments.extend(pzoap_top_notice_adjustments)
 block_rw, clicli_top_notice_adjustments = narrow_clicli_top_notice_path(
     block_rw, 'blockAdsV2')
 block_scope_adjustments.extend(clicli_top_notice_adjustments)
+block_rw, csdn_open_screen_ad_adjustments = narrow_csdn_open_screen_ad_path(
+    block_rw, 'blockAdsV2')
+block_scope_adjustments.extend(csdn_open_screen_ad_adjustments)
 block_scope_adjustments.extend(odin_base_adjustments)
 block_scope_adjustments.extend(odin_block_adjustments)
 block_scope_adjustments.extend(block_qidian_adjustments)
