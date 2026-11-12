@@ -691,7 +691,7 @@ def prep_block_sections(rewrite_lines, script_lines):
     return rewrite, script
 
 
-_OMOFUN_TOP_NOTICE_MATCHER = r'^https?://103\\.91\\.210\\.141\\:2515/xgapp\\.php/v2/top_notice'
+_OMOFUN_TOP_NOTICE_MATCHER = r'^https?://103\.91\.210\.141\:2515/xgapp\.php/v2/top_notice'
 _OMOFUN_TOP_NOTICE_BOUNDARY = r'(?:\?|$|/)'
 
 
