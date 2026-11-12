@@ -820,7 +820,7 @@ def narrow_gamersky_statistic_ad_host(rewrite_lines, source):
     )
     narrowed = (
         r"request if ${url} ~= /^https:\/\/(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}"
-        r"[A-Za-z0-9])?\.)+gamersky\.com\/v1\/statisticAd(?:[/?#]|$)/"
+        r"[A-Za-z0-9])?\.)+gamersky\.com\/v1\/statisticAd(?:\/|\?|#|$)/"
         r" then reject_dict(200)"
     )
     for line in rewrite_lines:
@@ -835,7 +835,7 @@ def narrow_gamersky_statistic_ad_host(rewrite_lines, source):
         updated_normalized = updated_matcher.replace(r'\/', '/') if updated_matcher else updated_matcher
         expected = (
             r'^https://(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+'
-            r'gamersky\.com/v1/statisticAd(?:[/?#]|$)'
+            r'gamersky\.com/v1/statisticAd(?:/|\?|#|$)'
         )
         if updated_normalized != expected:
             raise RuntimeError(source + ' 游民星空 statisticAd 正则收敛后校验失败：' + line)
