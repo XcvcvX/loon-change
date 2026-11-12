@@ -85,6 +85,38 @@ def remove_subsumed_soul_teenager_rule(lines):
     return output, removed
 
 
+SHADOWED_TERMINAL_BLOCK_RULE_PAIRS = (
+    (r"^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.idlecommerce\\.splash\\.ads reject-dict", r"^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.idlecommerce\\.splash\\.ads reject-200"),
+    (r"^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.wireless\\.home\\.splash\\.awesome\\.get reject-dict", r"^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.wireless\\.home\\.splash\\.awesome\\.get reject-200"),
+    (r"^https?:\\/\\/(bdsp-x|dsp-x)\\.jd\\.com\\/adx\\/ reject-200", r"^https?:\\/\\/(bdsp-x|dsp-x)\\.jd\\.com\\/adx\\/ reject"),
+    (r"^https?:\\/\\/axxd\\.xmseeyouyima\\.com\\/.*getad\\? reject", r"^https?:\\/\\/axxd\\.xmseeyouyima\\.com\\/.*getad\\? reject-dict"),
+    (r"^https?:\\/\\/axxd\\.xmseeyouyima\\.com\\/ad reject", r"^https?:\\/\\/axxd\\.xmseeyouyima\\.com\\/ad reject-dict"),
+    (r"^https?:\\/\\/c\\.m\\.163\\.com\\/nc\\/gl\\/ reject", r"^https?:\\/\\/c\\.m\\.163\\.com\\/nc\\/gl\\/ reject-200"),
+    (r"^https?:\\/\\/cdn1\\.mbs\\.boc\\.cn\\/ubas-mgateway-static\\/images\\/theme\\/ reject-200", r"^https?:\\/\\/cdn1\\.mbs\\.boc\\.cn\\/ubas-mgateway-static\\/images\\/theme\\/ reject-dict"),
+    (r"^https?:\\/\\/mbs\\.boc\\.cn\\/ubas-mgateway-static\\/images\\/theme\\/ reject-200", r"^https?:\\/\\/mbs\\.boc\\.cn\\/ubas-mgateway-static\\/images\\/theme\\/ reject-dict"),
+    (r"^https?:\\/\\/support\\.you\\.163\\.com\\/xhr\\/boot\\/getBootMedia reject", r"^https?:\\/\\/support\\.you\\.163\\.com\\/xhr\\/boot\\/getBootMedia reject-200"),
+    (r"^https?:\\/\\/us\\.l\\.qq\\.com\\/exapp reject-200", r"^https?:\\/\\/us\\.l\\.qq\\.com\\/exapp reject"),
+    (r"^https?:\\/\\/x\\.seeyouyima\\.com\\/adx\\/staticstics\\? reject", r"^https?:\\/\\/x\\.seeyouyima\\.com\\/adx\\/staticstics\\? reject-200"),
+    (r"request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.idle\\.home\\.welcome/i then reject_dict(200)", r"request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.idle\\.home\\.welcome/i then reject(404)"),
+    (r"request if ${url} ~= /^https?:\\/\\/adx-cn\\.anythinktech\\.com\\/bid/ then reject_dict(200)", r"request if ${url} ~= /^https?:\\/\\/adx-cn\\.anythinktech\\.com\\/bid/ then reject(200)"),
+    (r"request if ${url} ~= /^https?:\\/\\/mime\\.baidu\\.com\\/v5\\/start_screen_ads\\/list/ then reject(404)", r"request if ${url} ~= /^https?:\\/\\/mime\\.baidu\\.com\\/v5\\/start_screen_ads\\/list/ then reject_dict(200)"),
+)
+
+def remove_shadowed_terminal_block_rules(lines):
+    guards = {guard for guard, _ in SHADOWED_TERMINAL_BLOCK_RULE_PAIRS}
+    shadow_to_guard = {shadow: guard for guard, shadow in SHADOWED_TERMINAL_BLOCK_RULE_PAIRS}
+    output, seen_guards, removed = [], set(), 0
+    for line in lines:
+        value = line.strip()
+        guard = shadow_to_guard.get(value)
+        if guard is not None and guard in seen_guards:
+            removed += 1
+            continue
+        if value in guards:
+            seen_guards.add(value)
+        output.append(line)
+    return output, removed
+
 def split_response_json_rewrite(line: str):
     match = re.match(r'^(response if .+?) then (.+)', line)
     if not match: return None
@@ -170,6 +202,7 @@ def apply(text: str) -> str:
                 rewrite_lines, _ = merge_adjacent_response_json_rewrites(rewrite_lines)
                 rewrite_lines, _ = remove_subsumed_soul_teenager_rule(rewrite_lines)
                 rewrite_lines, _ = remove_shadowed_peopleapp_rules(rewrite_lines)
+                rewrite_lines, _ = remove_shadowed_terminal_block_rules(rewrite_lines)
                 result_lines.extend(rewrite_lines); rewrite_lines = []
             section = line[1:-1]; result_lines.append(line)
         elif section == "Rewrite": rewrite_lines.append(line)
@@ -178,6 +211,7 @@ def apply(text: str) -> str:
         rewrite_lines, _ = merge_adjacent_response_json_rewrites(rewrite_lines)
         rewrite_lines, _ = remove_subsumed_soul_teenager_rule(rewrite_lines)
         rewrite_lines, _ = remove_shadowed_peopleapp_rules(rewrite_lines)
+        rewrite_lines, _ = remove_shadowed_terminal_block_rules(rewrite_lines)
         result_lines.extend(rewrite_lines)
     result = "\n".join(result_lines)
     # Keep the unrelated Bankcomm override in [Script], idempotently.
