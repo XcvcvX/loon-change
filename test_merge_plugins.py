@@ -583,7 +583,7 @@ hostname = *.amap.com
             if line.startswith("request if") and "statisticAd" in line
         )
         self.assertIn(r"^https:\/\/", result)
-        self.assertIn(r"gamersky\.com\/v1\/statisticAd(?:[/?#]|$)", result)
+        self.assertIn(r"gamersky\.com\/v1\/statisticAd(?:\/|\?|#|$)", result)
         matcher = re.search(r"~= /(.*)/ then ", result).group(1).replace(r"\/", "/")
         for url in (
             "https://a.gamersky.com/v1/statisticAd",
