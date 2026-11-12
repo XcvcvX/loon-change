@@ -46,7 +46,7 @@
 | 区块 | 条目数 |
 |---|---:|
 | [Argument] | 91 |
-| [Rule] | 3499 |
+| [Rule] | 3497 |
 | [Rewrite] | 3317 |
 | [Script] | 618 |
 | [MITM] hostname 条目 | 1482 |

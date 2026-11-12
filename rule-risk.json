@@ -8,7 +8,7 @@
     "rule": {
       "action_changed": 0,
       "added": 0,
-      "removed": 0
+      "removed": 2
     },
     "script": {
       "action_changed": 0,
@@ -16,14 +16,57 @@
       "removed": 0
     }
   },
-  "events": [],
-  "overall_risk": "low",
+  "events": [
+    {
+      "after": null,
+      "before": {
+        "line": "IP-CIDR,119.29.29.98/32,REJECT,no-resolve",
+        "section": "rule",
+        "sources": [
+          "zmjgen"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rule",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "zmjgen": 0
+      },
+      "sources": [
+        "zmjgen"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "IP-CIDR,119.29.29.99/32,REJECT,no-resolve",
+        "section": "rule",
+        "sources": [
+          "zmjgen"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rule",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "zmjgen": 0
+      },
+      "sources": [
+        "zmjgen"
+      ]
+    }
+  ],
+  "overall_risk": "high",
   "risk_counts": {
-    "high": 0,
+    "high": 2,
     "low": 0,
     "medium": 0
   },
-  "run_id": "43139812699",
+  "run_id": "43140910687",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -67,6 +110,12 @@
       "added": 1,
       "removed": 3,
       "snapshots_seen": 3
+    },
+    "zmjgen": {
+      "action_changed": 0,
+      "added": 0,
+      "removed": 2,
+      "snapshots_seen": 1
     }
   },
   "upstream_revision_changes": []
