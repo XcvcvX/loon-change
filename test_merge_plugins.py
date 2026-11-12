@@ -570,7 +570,7 @@ hostname = *.amap.com
     def test_gamersky_statistic_ad_rule_has_valid_regex_and_exact_scope(self):
         empty = "[Rewrite]\n[Script]\n[MITM]\nhostname = \n"
         rule = (
-            r"request if ${url} ~= /https:\/\/.+\.gamersky\.com\/v1\/statisticAd/"
+            r"request if ${url} ~= /https:\/\/.+\.gamersky.com\/v1\/statisticAd/"
             r" then reject_dict(200)"
         )
         extra = (
@@ -596,6 +596,7 @@ hostname = *.amap.com
             "http://a.gamersky.com/v1/statisticAd",
             "https://gamersky.com/v1/statisticAd",
             "https://evilgamersky.com/v1/statisticAd",
+            "https://a.gamerskyXcom/v1/statisticAd",
             "https://a.gamersky.com.evil.test/v1/statisticAd",
             "https://a..gamersky.com/v1/statisticAd",
             "https://a.gamersky.com/v1/statisticAdx",
@@ -614,7 +615,7 @@ hostname = *.amap.com
     def test_gamersky_statistic_ad_guard_fails_closed_on_action_drift(self):
         empty = "[Rewrite]\n[Script]\n[MITM]\nhostname = \n"
         rule = (
-            r"request if ${url} ~= /https:\/\/.+\.gamersky\.com\/v1\/statisticAd/"
+            r"request if ${url} ~= /https:\/\/.+\.gamersky.com\/v1\/statisticAd/"
             r" then reject(404)"
         )
         extra = (
