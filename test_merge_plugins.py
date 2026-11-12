@@ -570,7 +570,7 @@ hostname = *.amap.com
     def test_gamersky_ad_system_rule_is_limited_to_valid_declared_subdomains(self):
         empty = "[Rewrite]\n[Script]\n[MITM]\nhostname = \n"
         rule = (
-            r"request if \${url} ~= /^http:\/\/.+\.gamersky\.com\/.+"
+            r"request if ${url} ~= /^http:\/\/.+\.gamersky\.com\/.+"
             r"\/adSystem\/ad\/.+/ then reject_dict(200)"
         )
         extra = (
@@ -612,7 +612,7 @@ hostname = *.amap.com
     def test_gamersky_ad_system_guard_fails_closed_on_action_drift(self):
         empty = "[Rewrite]\n[Script]\n[MITM]\nhostname = \n"
         rule = (
-            r"request if \${url} ~= /^http:\/\/.+\.gamersky\.com\/.+"
+            r"request if ${url} ~= /^http:\/\/.+\.gamersky\.com\/.+"
             r"\/adSystem\/ad\/.+/ then reject(404)"
         )
         extra = (
