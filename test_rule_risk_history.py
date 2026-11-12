@@ -64,6 +64,41 @@ class RuleRiskHistoryTests(unittest.TestCase):
         risk, _ = build_risk(diff, self.health, {}, {}, "uncovered", provenance)
         self.assertEqual(risk["risk_counts"]["high"], 1)
 
+    def test_whitespace_only_rule_removal_is_low_risk_only_with_exact_retained_provenance(self):
+        diff = {
+            "sections": {
+                "rewrite": {"added": [], "removed": [], "action_changed": []},
+                "script": {"added": [], "removed": [], "action_changed": []},
+                "rule": {"added": [], "removed": [{
+                    "line": 'AND,((USER-AGENT,"com.example App"),(DOMAIN-SUFFIX,example.com)),REJECT',
+                    "sources": ["block"],
+                }], "action_changed": []},
+            },
+            "current_upstream_revisions": {},
+            "upstream_revision_changes": [],
+        }
+        retained = 'AND, ((USER-AGENT, "com.example App"), (DOMAIN-SUFFIX, example.com)), REJECT'
+        provenance = {"rule_events": [
+            {"status": "included", "output_line": retained, "source": "base"},
+            {
+                "status": "duplicate_exact",
+                "original_input_line": diff["sections"]["rule"]["removed"][0]["line"],
+                "duplicate_of": retained,
+                "source": "block",
+                "duplicate_reason": "whitespace_only_outside_quoted_literals",
+            },
+        ]}
+        risk, _ = build_risk(diff, self.health, {}, {}, "rule-duplicate", provenance)
+        self.assertEqual(risk["risk_counts"], {"high": 0, "medium": 0, "low": 1})
+        self.assertEqual(risk["events"][0]["semantic_duplicate_coverage"]["covered_by"], retained)
+
+        # A similarly worded but non-identical quoted literal must not be downgraded.
+        provenance["rule_events"][1]["original_input_line"] = (
+            'AND,((USER-AGENT,"com.example  App"),(DOMAIN-SUFFIX,example.com)),REJECT'
+        )
+        risk, _ = build_risk(diff, self.health, {}, {}, "rule-not-duplicate", provenance)
+        self.assertEqual(risk["risk_counts"]["high"], 1)
+
     def test_known_historical_semantic_duplicate_snapshot_is_reconciled_once(self):
         previous = {"snapshots": [{
             "run_id": '"43055354414"',
