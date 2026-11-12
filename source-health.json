@@ -24,12 +24,12 @@
   "section_changes": {
     "rewrite": {
       "action_changed": 0,
-      "added": 3,
+      "added": 0,
       "current_entries": 3317,
       "net_shrink_percent": 0.0,
       "previous_entries": 3317,
-      "removed": 3,
-      "removed_percent": 0.09
+      "removed": 0,
+      "removed_percent": 0.0
     },
     "rule": {
       "action_changed": 0,
