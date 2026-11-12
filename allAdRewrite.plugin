@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-11 23:52 UTC
+#!merged-at=2026-11-12 00:00 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -3858,7 +3858,6 @@ response if ${url} ~= /^https?:\/\/mobile\.cmbchina\.com\/dcardmanage\/salary-we
 ^https?:\/\/nr-op\.elemecdn\.com\/eleme\/transformer\/templates\/\w_eleme_home_yolo_popup reject
 ^https?:\/\/(?:nr-op|cube)\.elemecdn\.com\/image\/.*\.(png|jpeg|jpg|gif)\?x-oss-process=image\/resize,m_fill,w_180,h_180\/($|format,webp\/$) reject-img
 ^https?:\/\/j5\.dfcfw\.com\/WG\/(app)?conf\/202[0-9]{5}/.*.(?:jpg|png) reject-200
-^https?:\/\/appactive\.1234567\.com\.cn\/AppoperationApi\/OperationService\/GetAppStartImg reject
 ^https?:\/\/www\.tailgdd\.com\/v\d\/smart\/app\/config\/get$ response-body-replace-regex footResource footResource0
 ^https?:\/\/t1\.market\.xiaomi\.com\/thumbnail\/webp\/w1170q100\/ reject
 ^https?:\/\/api\.jr\.mi\.com\/jr\/api\/playScreen reject
