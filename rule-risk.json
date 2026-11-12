@@ -23,7 +23,7 @@
     "low": 0,
     "medium": 0
   },
-  "run_id": "43139469128",
+  "run_id": "43139812699",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -47,8 +47,8 @@
     "base": {
       "action_changed": 0,
       "added": 0,
-      "removed": 5,
-      "snapshots_seen": 4
+      "removed": 4,
+      "snapshots_seen": 3
     },
     "block": {
       "action_changed": 0,
