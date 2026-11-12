@@ -130,7 +130,14 @@
       "action_changed": [],
       "added": [
         {
-          "line": "^https://pan\\.baidu\\.com/.*ad/.* reject-200",
+          "line": "^https://(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\.)+advlion\\.com/.+ reject-200",
+          "section": "rewrite",
+          "sources": [
+            "thelong"
+          ]
+        },
+        {
+          "line": "^https://(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\.)+vlion\\.cn/.+ reject-200",
           "section": "rewrite",
           "sources": [
             "thelong"
@@ -139,7 +146,14 @@
       ],
       "removed": [
         {
-          "line": "^https://.*\\.baidu\\.com.*ad/.* reject-200",
+          "line": "^https://.*\\.advlion\\.com/.+ reject-200",
+          "section": "rewrite",
+          "sources": [
+            "thelong"
+          ]
+        },
+        {
+          "line": "^https://.*\\.vlion\\.cn/.+ reject-200",
           "section": "rewrite",
           "sources": [
             "thelong"
@@ -161,8 +175,8 @@
   "summary": {
     "rewrite": {
       "action_changed": 0,
-      "added": 1,
-      "removed": 1
+      "added": 2,
+      "removed": 2
     },
     "rule": {
       "action_changed": 0,
@@ -174,7 +188,7 @@
       "added": 0,
       "removed": 0
     },
-    "total_changes": 2
+    "total_changes": 4
   },
   "upstream_revision_changes": []
 }

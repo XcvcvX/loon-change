@@ -2,8 +2,8 @@
   "change_counts": {
     "rewrite": {
       "action_changed": 0,
-      "added": 1,
-      "removed": 1
+      "added": 2,
+      "removed": 2
     },
     "rule": {
       "action_changed": 0,
@@ -19,7 +19,28 @@
   "events": [
     {
       "after": {
-        "line": "^https://pan\\.baidu\\.com/.*ad/.* reject-200",
+        "line": "^https://(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\.)+advlion\\.com/.+ reject-200",
+        "section": "rewrite",
+        "sources": [
+          "thelong"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "thelong": 0
+      },
+      "sources": [
+        "thelong"
+      ]
+    },
+    {
+      "after": {
+        "line": "^https://(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\.)+vlion\\.cn/.+ reject-200",
         "section": "rewrite",
         "sources": [
           "thelong"
@@ -41,7 +62,28 @@
     {
       "after": null,
       "before": {
-        "line": "^https://.*\\.baidu\\.com.*ad/.* reject-200",
+        "line": "^https://.*\\.advlion\\.com/.+ reject-200",
+        "section": "rewrite",
+        "sources": [
+          "thelong"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "thelong": 0
+      },
+      "sources": [
+        "thelong"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "^https://.*\\.vlion\\.cn/.+ reject-200",
         "section": "rewrite",
         "sources": [
           "thelong"
@@ -62,11 +104,11 @@
   ],
   "overall_risk": "high",
   "risk_counts": {
-    "high": 1,
+    "high": 2,
     "low": 0,
-    "medium": 1
+    "medium": 2
   },
-  "run_id": "43169318572",
+  "run_id": "43170102989",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -107,9 +149,9 @@
     },
     "thelong": {
       "action_changed": 0,
-      "added": 1,
-      "removed": 2,
-      "snapshots_seen": 2
+      "added": 3,
+      "removed": 4,
+      "snapshots_seen": 3
     },
     "zmjgen": {
       "action_changed": 0,
