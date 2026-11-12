@@ -215,7 +215,7 @@ def _split_action_pipeline(value):
             if char == quote:
                 quote = None
             continue
-        if char in ("'", '"'):
+        if char in ("'", '"', '`'):
             quote = char
             current.append(char)
         elif char == '|':
