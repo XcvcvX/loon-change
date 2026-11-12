@@ -908,6 +908,67 @@ def narrow_baidunetdisk_cdn_subdomains(rewrite_lines, source):
     return output, adjustments
 
 
+def add_baidunetdisk_advlion_quic_rule(rule_lines, mitm_lines, source):
+    """补齐百度网盘 *.advlion.com MITM 主机对应的 QUIC 拦截，保留既有 .cn 规则。"""
+    expected_cn = "AND,((DOMAIN-SUFFIX,advlion.cn),(PROTOCOL,QUIC)),REJECT"
+    expected_com = "AND,((DOMAIN-SUFFIX,advlion.com),(PROTOCOL,QUIC)),REJECT"
+    mitm_hosts = []
+    for line in mitm_lines:
+        if '=' in line:
+            mitm_hosts.extend(
+                host.strip().lower()
+                for host in line.split('=', 1)[1].split(',')
+                if host.strip()
+            )
+    if '*.advlion.com' not in mitm_hosts:
+        raise RuntimeError(
+            source + ' 百度网盘 advlion.com QUIC 补齐守卫缺少对应 MITM 声明，拒绝自动添加'
+        )
+
+    cn_candidates = [
+        line for line in rule_lines
+        if 'advlion.cn' in line.lower() and 'protocol' in line.lower()
+    ]
+    com_candidates = [
+        line for line in rule_lines
+        if 'advlion.com' in line.lower() and 'protocol' in line.lower()
+    ]
+    if len(cn_candidates) > 1 or any(line != expected_cn for line in cn_candidates):
+        raise RuntimeError(
+            source + ' 百度网盘 advlion.cn QUIC 规则范围或动作已变化，拒绝自动补齐：'
+            + repr(cn_candidates)
+        )
+    if len(com_candidates) > 1 or any(line != expected_com for line in com_candidates):
+        raise RuntimeError(
+            source + ' 百度网盘 advlion.com QUIC 规则范围或动作已变化，拒绝自动补齐：'
+            + repr(com_candidates)
+        )
+    if com_candidates:
+        return list(rule_lines), [], []
+
+    if len(cn_candidates) != 1:
+        raise RuntimeError(
+            source + ' 百度网盘 QUIC 配套规则基线已变化，拒绝猜测补齐：'
+            + repr(cn_candidates)
+        )
+    adjustment = {
+        'source': source,
+        'source_file': 'baidunetdisk_splash_ad_block.plugin',
+        'section': 'Rule',
+        'change_type': 'add_missing_quic_coverage',
+        'reason': (
+            'The upstream Baidu Netdisk plugin declares *.advlion.com in MITM and '
+            'uses advlion.com for its ad-image fallback, but its QUIC companion rule '
+            'covers advlion.cn instead. Add the matching advlion.com QUIC REJECT while '
+            'preserving the separate existing advlion.cn rule.'
+        ),
+        'related_existing_rule': expected_cn,
+        'mitm_host': '*.advlion.com',
+        'output_line': expected_com,
+    }
+    return list(rule_lines), [expected_com], [adjustment]
+
+
 def narrow_baidunetdisk_ad_image_host(rewrite_lines, source):
     """将百度网盘广告图兜底规则限制到插件实际声明 MITM 的 pan.baidu.com。"""
     output = []
@@ -1711,6 +1772,8 @@ def exclude_audited_semantic_duplicates(lines, origins, source):
 thelong_rw, thelong_sc = [], []
 thelong_rw_origins = []
 thelong_rule, thelong_mitm = [], []
+thelong_rule_generated = []
+rule_scope_adjustments = []
 thelong_duplicate_exclusions = []
 if args.apps:
     for fname, atext in iter_app_plugins(args.apps):
@@ -1775,10 +1838,19 @@ if args.apps:
         thelong_rw += app_rewrite_lines
         thelong_rw_origins += app_rewrite_origins
         thelong_sc += real_lines(s.get('Script', []))
-        thelong_rule += real_lines(s.get('Rule', []))
+        app_rule_lines = real_lines(s.get('Rule', []))
+        if fname == 'baidunetdisk_splash_ad_block.plugin':
+            app_rule_lines, generated_rules, adjustments = add_baidunetdisk_advlion_quic_rule(
+                app_rule_lines, s.get('MITM', []), 'thelong')
+            thelong_rule_generated.extend(generated_rules)
+            rule_scope_adjustments.extend(adjustments)
+        thelong_rule += app_rule_lines
         for l in s.get('MITM', []):
             if '=' in l:
                 thelong_mitm += [x.strip() for x in l.split('=', 1)[1].split(',') if x.strip()]
+# Generated parity rules are appended only after all upstream Rule rows so their
+# synthetic source indexes cannot shift the exact origin mapping of later plugins.
+thelong_rule.extend(thelong_rule_generated)
 thelong_rw, thelong_rw_origins, thelong_duplicate_exclusions = exclude_audited_semantic_duplicates(
     thelong_rw, thelong_rw_origins, 'thelong')
 
@@ -2814,6 +2886,23 @@ if args.provenance_out:
             event.update(origin)
         if event.get('status') == 'included':
             event['output_entry_index'] = rule_output_index.get(event['output_line'])
+    for adjustment in rule_scope_adjustments:
+        matches = [
+            event for event in rule_provenance_events
+            if event.get('source') == adjustment['source']
+            and event.get('original_input_line') == adjustment['output_line']
+        ]
+        if len(matches) != 1:
+            raise RuntimeError(
+                '百度网盘 advlion.com QUIC 补充规则来源追溯不唯一：'
+                + adjustment['output_line']
+            )
+        matches[0].update({
+            'source_file': adjustment['source_file'],
+            'source_original_section': 'MITM-derived Rule',
+            'generated_from_mitm_host': adjustment['mitm_host'],
+            'generated_from_related_rule': adjustment['related_existing_rule'],
+        })
     upstream_revisions = {}
     if args.source_report and os.path.isfile(args.source_report):
         try:
@@ -2829,6 +2918,7 @@ if args.provenance_out:
         'rewrite_exclusions': zhangle_rewrite_exclusions + zhangle_block_rewrite_exclusions + mgtv_unused_indexes_rewrite_exclusions + block_rewrite_exclusions + lite_advertising_rewrite_exclusions + ttjj_start_image_rewrite_exclusions + thelong_duplicate_exclusions + aoomee_duplicate_exclusions,
         'mitm_exclusions': block_mitm_exclusions + zhangle_mitm_exclusions,
         'scope_adjustments': block_scope_adjustments,
+        'rule_scope_adjustments': rule_scope_adjustments,
         'limitations': [
             'source_entry_index is the ordinal within the extracted source feed, not the original upstream file line number',
             'exact source filename and 1-based line attribution is included for Thelongdarkorg, aoomee, and zmjde App plugin feeds; other sources retain feed indices until their source mapping is added',
@@ -2861,6 +2951,7 @@ if args.provenance_out:
             'rule_safety_excluded_events': sum(
                 1 for event in rule_provenance_events
                 if event['status'] == 'excluded_safety_guard'),
+            'rule_scope_adjustments': len(rule_scope_adjustments),
         },
         'rewrite': rewrite_provenance,
         'script': script_provenance,

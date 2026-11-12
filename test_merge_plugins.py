@@ -71,6 +71,8 @@ class MergeIntegrationTests(unittest.TestCase):
         extra = "[Rewrite]\n[MITM]\nhostname = \n"
         plugin = (
             "#!name=百度网盘\n"
+            "[Rule]\n"
+            "AND,((DOMAIN-SUFFIX,advlion.cn),(PROTOCOL,QUIC)),REJECT\n"
             "[Rewrite]\n"
             r"^https://.*\.baidu\.com.*ad/.* reject-200" + "\n"
             r"^https://.*\.vlion\.cn/.+ reject-200" + "\n"
@@ -125,11 +127,131 @@ class MergeIntegrationTests(unittest.TestCase):
             },
         )
 
+    def test_baidunetdisk_advlion_com_mitm_host_gets_matching_quic_reject(self):
+        base = "[Rule]\n[Rewrite]\n[MITM]\nhostname = \n"
+        extra = "[Rule]\n[Rewrite]\n[MITM]\nhostname = \n"
+        cn_rule = "AND,((DOMAIN-SUFFIX,advlion.cn),(PROTOCOL,QUIC)),REJECT"
+        com_rule = "AND,((DOMAIN-SUFFIX,advlion.com),(PROTOCOL,QUIC)),REJECT"
+        plugin = (
+            "#!name=百度网盘\n"
+            "[Rule]\n"
+            + cn_rule + "\n"
+            + "[Rewrite]\n"
+            + r"^https://.*\.baidu\.com.*ad/.* reject-200" + "\n"
+            
+            + r"^https://pan\.baidu\.com/buy/ad/conf reject-dict" + "\n"
+            + r"^https://.*\.vlion\.cn/.+ reject-200" + "\n"
+            + r"^https://.*\.advlion\.com/.+ reject-200" + "\n"
+            + "[MITM]\nhostname = pan.baidu.com, *.vlion.cn, *.advlion.com\n"
+        )
+        output, provenance = self.run_merge(
+            base, extra,
+            return_provenance=True,
+            apps_files={"baidunetdisk_splash_ad_block.plugin": plugin},
+        )
+        output_rules = [
+            line for line in output.splitlines()
+            if line.startswith("AND,((DOMAIN-SUFFIX,advlion.")
+        ]
+        self.assertIn(cn_rule, output_rules)
+        self.assertIn(com_rule, output_rules)
+        self.assertEqual(output_rules.count(com_rule), 1)
+
+        adjustments = provenance["rule_scope_adjustments"]
+        self.assertEqual(len(adjustments), 1)
+        self.assertEqual(adjustments[0]["source"], "thelong")
+        self.assertEqual(adjustments[0]["source_file"], "baidunetdisk_splash_ad_block.plugin")
+        self.assertEqual(adjustments[0]["section"], "Rule")
+        self.assertEqual(adjustments[0]["related_existing_rule"], cn_rule)
+        self.assertEqual(adjustments[0]["mitm_host"], "*.advlion.com")
+        self.assertEqual(adjustments[0]["output_line"], com_rule)
+
+        generated_event = next(
+            event for event in provenance["rule_events"]
+            if event.get("source") == "thelong"
+            and event.get("original_input_line") == com_rule
+        )
+        self.assertEqual(generated_event["status"], "included")
+        self.assertEqual(generated_event["source_file"], "baidunetdisk_splash_ad_block.plugin")
+        self.assertEqual(generated_event["source_original_section"], "MITM-derived Rule")
+        self.assertEqual(generated_event["generated_from_mitm_host"], "*.advlion.com")
+        self.assertIsNotNone(generated_event["output_entry_index"])
+
+    def test_baidunetdisk_advlion_com_quic_rule_is_not_duplicated_when_upstream_fixes_it(self):
+        base = "[Rule]\n[Rewrite]\n[MITM]\nhostname = \n"
+        extra = "[Rule]\n[Rewrite]\n[MITM]\nhostname = \n"
+        cn_rule = "AND,((DOMAIN-SUFFIX,advlion.cn),(PROTOCOL,QUIC)),REJECT"
+        com_rule = "AND,((DOMAIN-SUFFIX,advlion.com),(PROTOCOL,QUIC)),REJECT"
+        plugin = (
+            "#!name=百度网盘\n"
+            "[Rule]\n" + cn_rule + "\n" + com_rule + "\n"
+            "[Rewrite]\n"
+            + r"^https://.*\.baidu\.com.*ad/.* reject-200" + "\n"
+            
+            + r"^https://pan\.baidu\.com/buy/ad/conf reject-dict" + "\n"
+            + r"^https://.*\.vlion\.cn/.+ reject-200" + "\n"
+            + r"^https://.*\.advlion\.com/.+ reject-200" + "\n"
+            + "[MITM]\nhostname = pan.baidu.com, *.advlion.com\n"
+        )
+        output, provenance = self.run_merge(
+            base, extra, return_provenance=True,
+            apps_files={"baidunetdisk_splash_ad_block.plugin": plugin},
+        )
+        self.assertEqual(output.splitlines().count(com_rule), 1)
+        self.assertEqual(provenance["rule_scope_adjustments"], [])
+
+    def test_baidunetdisk_advlion_quic_guard_fails_closed_when_mitm_host_is_missing(self):
+        base = "[Rule]\n[Rewrite]\n[MITM]\nhostname = \n"
+        extra = "[Rule]\n[Rewrite]\n[MITM]\nhostname = \n"
+        plugin = (
+            "#!name=百度网盘\n"
+            "[Rule]\n"
+            "AND,((DOMAIN-SUFFIX,advlion.cn),(PROTOCOL,QUIC)),REJECT\n"
+            "[Rewrite]\n"
+            + r"^https://.*\.baidu\.com.*ad/.* reject-200" + "\n"
+            
+            + r"^https://pan\.baidu\.com/buy/ad/conf reject-dict" + "\n"
+            + r"^https://.*\.vlion\.cn/.+ reject-200" + "\n"
+            + r"^https://.*\.advlion\.com/.+ reject-200" + "\n"
+            "[MITM]\nhostname = pan.baidu.com, *.vlion.cn\n"
+        )
+        output = self.run_merge(
+            base, extra,
+            apps_files={"baidunetdisk_splash_ad_block.plugin": plugin},
+            expect_failure=True,
+        )
+        self.assertIn("百度网盘 advlion.com QUIC 补齐守卫缺少对应 MITM 声明", output)
+
+    def test_baidunetdisk_advlion_quic_guard_fails_closed_on_action_drift(self):
+        base = "[Rule]\n[Rewrite]\n[MITM]\nhostname = \n"
+        extra = "[Rule]\n[Rewrite]\n[MITM]\nhostname = \n"
+        plugin = (
+            "#!name=百度网盘\n"
+            "[Rule]\n"
+            "AND,((DOMAIN-SUFFIX,advlion.cn),(PROTOCOL,QUIC)),DIRECT\n"
+            "[Rewrite]\n"
+            + r"^https://.*\.baidu\.com.*ad/.* reject-200" + "\n"
+            
+            + r"^https://pan\.baidu\.com/buy/ad/conf reject-dict" + "\n"
+            + r"^https://.*\.vlion\.cn/.+ reject-200" + "\n"
+            + r"^https://.*\.advlion\.com/.+ reject-200" + "\n"
+            "[MITM]\nhostname = pan.baidu.com, *.advlion.com\n"
+        )
+        output = self.run_merge(
+            base, extra,
+            apps_files={"baidunetdisk_splash_ad_block.plugin": plugin},
+            expect_failure=True,
+        )
+        self.assertIn("百度网盘 advlion.cn QUIC 规则范围或动作已变化", output)
+
+
     def test_baidunetdisk_cdn_subdomain_guard_fails_closed_on_action_drift(self):
         base = "[Rewrite]\n[MITM]\nhostname = \n"
         extra = "[Rewrite]\n[MITM]\nhostname = \n"
         plugin = (
             "#!name=百度网盘\n"
+            "[Rule]\n"
+            "AND,((DOMAIN-SUFFIX,advlion.cn),(PROTOCOL,QUIC)),REJECT\n"
             "[Rewrite]\n"
             r"^https://.*\.baidu\.com.*ad/.* reject-200" + "\n"
             r"^https://.*\.vlion\.cn/.+ reject-dict" + "\n"
@@ -149,6 +271,8 @@ class MergeIntegrationTests(unittest.TestCase):
         extra = "[Rewrite]\n[MITM]\nhostname = \n"
         plugin = (
             "#!name=百度网盘\n"
+            "[Rule]\n"
+            "AND,((DOMAIN-SUFFIX,advlion.cn),(PROTOCOL,QUIC)),REJECT\n"
             "[Rewrite]\n"
             r"^https://.*\.baidu\.com.*ad/.* reject-200" + "\n"
             r"^https://.*\.vlion\.cn/.+ reject-200" + "\n"
@@ -192,6 +316,8 @@ class MergeIntegrationTests(unittest.TestCase):
         extra = "[Rewrite]\n[MITM]\nhostname = \n"
         plugin = (
             "#!name=百度网盘\n"
+            "[Rule]\n"
+            "AND,((DOMAIN-SUFFIX,advlion.cn),(PROTOCOL,QUIC)),REJECT\n"
             "[Rewrite]\n"
             r"^https://.*\.baidu\.com.*ad/.* reject-dict" + "\n"
             "[MITM]\nhostname = pan.baidu.com\n"
