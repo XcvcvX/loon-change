@@ -588,6 +588,7 @@ hostname = *.amap.com
         for url in (
             "https://a.gamersky.com/v1/statisticAd",
             "https://a-b.gamersky.com/v1/statisticAd?from=app",
+            "https://a.gamersky.com/v1/statisticAd#source=app",
             "https://a.b.gamersky.com/v1/statisticAd/collect",
         ):
             self.assertRegex(url, matcher)
