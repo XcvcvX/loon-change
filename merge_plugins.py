@@ -711,11 +711,10 @@ def escape_qidian_magev6_host(rewrite_lines, source):
             continue
         raw_host = 'magev6.if.qidian.com'
         escaped_host = r'magev6\.if\.qidian\.com'
-        raw_prefix = '^https?://' + raw_host
-        escaped_prefix = '^https?://' + escaped_host
-        if normalized.startswith(escaped_prefix):
+        if escaped_host in normalized:
             output.append(line)
             continue
+        raw_prefix = '^https?://' + raw_host
         if not normalized.startswith(raw_prefix):
             raise RuntimeError(
                 source + ' 起点读书 magev6 广告 matcher 已变化，拒绝静默放宽主机匹配：' + line
