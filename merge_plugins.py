@@ -755,12 +755,6 @@ _TARGETED_AD_HOST_MATCHERS = (
         'action_key': ('REJECT', 'reject_dict', 'reject_dict(200)'),
         'reason': 'Escape literal dots in the dili.sqcosmos.com end-page ad endpoint matcher.',
     },
-    {
-        'host': 'ios.sspai.com',
-        'marker': '/api/v3/recommend/page/get',
-        'action_key': ('REJECT', 'reject', 'reject(404)'),
-        'reason': 'Escape literal dots in the ios.sspai.com ad recommendation matcher.',
-    },
 )
 
 
