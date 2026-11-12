@@ -95,7 +95,7 @@
         "Rule": 4,
         "Script": 13
       },
-      "upstream_commit": "c4a52554e01aac55667a54fa5b526db00d6b3e81",
+      "upstream_commit": "f72638b9c8794aa21caf93fe491c8ccecccd8b42",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
     "GuaZiVideoAds": {
@@ -130,7 +130,7 @@
       "action_changed": [],
       "added": [
         {
-          "line": "request if ${url} ~= /http:\\/\\/dili\\.sqcosmos\\.com\\/jiekou\\/endpage\\/ad/ then reject_dict(200)",
+          "line": "request if ${url} ~= /^https?:\\/\\/api\\.xiaoyi\\.com\\/v5\\/app\\/mobile\\/ads/ then reject(404)",
           "section": "rewrite",
           "sources": [
             "block"
@@ -139,7 +139,7 @@
       ],
       "removed": [
         {
-          "line": "request if ${url} ~= /http:\\/\\/dili.sqcosmos.com\\/jiekou\\/endpage\\/ad/ then reject_dict(200)",
+          "line": "request if ${url} ~= /^https?:\\/\\/api.xiaoyi.com\\/v5\\/app\\/mobile\\/ads/ then reject(404)",
           "section": "rewrite",
           "sources": [
             "block"
@@ -176,11 +176,5 @@
     },
     "total_changes": 2
   },
-  "upstream_revision_changes": [
-    {
-      "current_commit": "f72638b9c8794aa21caf93fe491c8ccecccd8b42",
-      "previous_commit": "c4a52554e01aac55667a54fa5b526db00d6b3e81",
-      "source": "Amap"
-    }
-  ]
+  "upstream_revision_changes": []
 }

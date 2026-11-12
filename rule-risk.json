@@ -19,7 +19,7 @@
   "events": [
     {
       "after": {
-        "line": "request if ${url} ~= /http:\\/\\/dili\\.sqcosmos\\.com\\/jiekou\\/endpage\\/ad/ then reject_dict(200)",
+        "line": "request if ${url} ~= /^https?:\\/\\/api\\.xiaoyi\\.com\\/v5\\/app\\/mobile\\/ads/ then reject(404)",
         "section": "rewrite",
         "sources": [
           "block"
@@ -41,7 +41,7 @@
     {
       "after": null,
       "before": {
-        "line": "request if ${url} ~= /http:\\/\\/dili.sqcosmos.com\\/jiekou\\/endpage\\/ad/ then reject_dict(200)",
+        "line": "request if ${url} ~= /^https?:\\/\\/api.xiaoyi.com\\/v5\\/app\\/mobile\\/ads/ then reject(404)",
         "section": "rewrite",
         "sources": [
           "block"
@@ -66,7 +66,7 @@
     "low": 0,
     "medium": 1
   },
-  "run_id": "43147031535",
+  "run_id": "43156680837",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -95,9 +95,9 @@
     },
     "block": {
       "action_changed": 0,
-      "added": 50,
-      "removed": 47,
-      "snapshots_seen": 6
+      "added": 51,
+      "removed": 48,
+      "snapshots_seen": 7
     },
     "filter": {
       "action_changed": 0,
@@ -118,11 +118,5 @@
       "snapshots_seen": 1
     }
   },
-  "upstream_revision_changes": [
-    {
-      "current_commit": "f72638b9c8794aa21caf93fe491c8ccecccd8b42",
-      "previous_commit": "c4a52554e01aac55667a54fa5b526db00d6b3e81",
-      "source": "Amap"
-    }
-  ]
+  "upstream_revision_changes": []
 }

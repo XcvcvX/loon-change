@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-12 03:16 UTC
+#!merged-at=2026-11-12 04:44 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -6111,7 +6111,7 @@ response if ${url} ~= /^https?:\/\/mall\.meituan\.com\/api\/c\/homepage\/bubble\
 request if ${url} ~= /^https:\/\/spamblocker-api\.zeekstudio\.com\/profile/ then reject_dict(200)
 request if ${url} ~= /^https:\/\/spamblocker-api\.zeekstudio\.com\/checkVersion/ then reject_dict(200)
 request if ${url} ~= /^https:\/\/www\.xiaoxiongmeishu\.com\/api\/(home\/v1\/config\/appInit|s\/v1\/popup\/createCouponPopup)/ then reject(404)
-request if ${url} ~= /^https?:\/\/api.xiaoyi.com\/v5\/app\/mobile\/ads/ then reject(404)
+request if ${url} ~= /^https?:\/\/api\.xiaoyi\.com\/v5\/app\/mobile\/ads/ then reject(404)
 request if ${url} ~= /^https?:\/\/api.xiaoyi.com\/v5\/app\/config\?userid=.*/ then reject(404)
 response if ${url} ~= /^https?:\/\/api\.xiaoyuzhoufm\.com\/v1\/discovery-feed\/list/ then response.json.jq(`.data |= map(select(.type != "DISCOVERY_HEADER" and .type != "DISCOVERY_BANNER"))`)
 response if ${url} ~= /^https?:\/\/api\.xiaoyuzhoufm\.com\/v1\/(related-episode|operation-resource)\/list/ then response.json.jq(`.data = []`)
