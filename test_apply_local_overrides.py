@@ -5,6 +5,7 @@ from apply_local_overrides import (
 )
 
 BASE = """#!name=test
+#!sources=existing
 [Rewrite]
 ^https?:\\/\\/example\\.com reject
 [Script]
