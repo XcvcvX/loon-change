@@ -70,15 +70,17 @@ class MergeIntegrationTests(unittest.TestCase):
         retained = 'AND, ((USER-AGENT, "com.example App"), (DOMAIN-SUFFIX, example.com)), REJECT'
         duplicate = 'AND,((USER-AGENT,"com.example App"),(DOMAIN-SUFFIX,example.com)),REJECT'
         distinct_literal = 'AND,((USER-AGENT,"com.example  App"),(DOMAIN-SUFFIX,example.com)),REJECT'
-        base = "[Rule]\n" + retained + "\n[Rewrite]\n[MITM]\nhostname = \n"
-        extra = (
+        base = "[Rewrite]\n[MITM]\nhostname = \n"
+        extra = "[Rule]\n" + retained + "\n[Rewrite]\n[MITM]\nhostname = \n"
+        myblockads = (
             "[Rule]\n" + duplicate + "\n" + distinct_literal
             + "\n[Rewrite]\n[MITM]\nhostname = \n"
         )
-        output, provenance = self.run_merge(base, extra, return_provenance=True)
+        output, provenance = self.run_merge(
+            base, extra, myblockads_text=myblockads, return_provenance=True
+        )
         rule_lines = [line for line in output.splitlines() if line.startswith("AND,")]
         self.assertEqual(len(rule_lines), 2)
-        self.assertEqual(len({re.sub(r"\s+", "", line) for line in rule_lines}), 2)
         self.assertIn(retained, output)
         self.assertIn(distinct_literal, output)
         self.assertNotIn(duplicate, output)
@@ -87,6 +89,7 @@ class MergeIntegrationTests(unittest.TestCase):
             if item.get("original_input_line") == duplicate
         ]
         self.assertEqual(len(duplicate_events), 1)
+        self.assertEqual(duplicate_events[0]["source"], "myblockads")
         self.assertEqual(duplicate_events[0]["status"], "duplicate_exact")
         self.assertEqual(duplicate_events[0]["duplicate_reason"],
                          "whitespace_only_outside_quoted_literals")
