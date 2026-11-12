@@ -815,11 +815,11 @@ def narrow_gamersky_ad_system_host(rewrite_lines, source):
     output = []
     adjustments = []
     original = (
-        r"request if \${url} ~= /^http:\/\/.+\.gamersky\.com\/.+"
+        r"request if ${url} ~= /^http:\/\/.+\.gamersky\.com\/.+"
         r"\/adSystem\/ad\/.+/ then reject_dict(200)"
     )
     narrowed = (
-        r"request if \${url} ~= /^http:\/\/(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}"
+        r"request if ${url} ~= /^http:\/\/(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}"
         r"[A-Za-z0-9])?\.)+gamersky\.com\/.+\/adSystem\/ad\/.+/"
         r" then reject_dict(200)"
     )
