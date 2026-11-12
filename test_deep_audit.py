@@ -600,6 +600,12 @@ request if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/ad$/ then future-action
         diagnostics = build_automated_diagnostics(report)
         self.assertEqual(report['rewrite_action_semantic_review_candidates'][0], legacy_candidate)
         self.assertEqual(diagnostics['schema_version'], 1)
+        self.assertEqual(diagnostics['handling'], {
+            'mode': 'informational_only',
+            'user_action_required': False,
+            'automatic_rule_changes': False,
+            'uncertain_rules': 'preserve_original'
+        })
         self.assertEqual(diagnostics['summary']['rewrite_scope_diagnostics'], 2)
         self.assertEqual(diagnostics['summary']['rewrite_action_semantic_diagnostics'], 1)
         candidate = diagnostics['candidates']['rewrite_action_semantics'][0]

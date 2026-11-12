@@ -1041,6 +1041,12 @@ def build_automated_diagnostics(report):
             display_key: markdown_diagnostic_item(report.get(source_key, []))
             for display_key, source_key in candidate_sources.items()
         },
+        'handling': {
+            'mode': 'informational_only',
+            'user_action_required': False,
+            'automatic_rule_changes': False,
+            'uncertain_rules': 'preserve_original'
+        },
         'compatibility': (
             'Additive automated-diagnostics view. Legacy top-level fields and values '
             'remain unchanged for existing consumers.'
