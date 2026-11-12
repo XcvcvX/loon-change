@@ -66,6 +66,49 @@ class MergeIntegrationTests(unittest.TestCase):
         return (output, result.stdout) if return_stdout else output
 
 
+    def test_grcbank_splash_image_extension_dot_is_literal(self):
+        base = (
+            "[Rewrite]\\n"
+            + r"^https?:\\/\\/mbank\\.grcbank\\.com\\/ydyh\\/resources\\/startpage\\/.*.(?:jpg|png) reject-200"
+            + "\\n[MITM]\\nhostname = \\n"
+        )
+        extra = "[Rewrite]\\n[MITM]\\nhostname = \\n"
+        output, provenance = self.run_merge(base, extra, return_provenance=True)
+        line = next(line for line in output.splitlines() if "mbank" in line)
+        matcher = re.compile(line.split()[0])
+        for url in (
+            "https://mbank.grcbank.com/ydyh/resources/startpage/banner.jpg",
+            "http://mbank.grcbank.com/ydyh/resources/startpage/banner.png",
+        ):
+            with self.subTest(url=url):
+                self.assertRegex(url, matcher)
+        for url in (
+            "https://mbank.grcbank.com/ydyh/resources/startpage/bannerxjpg",
+            "https://mbank.grcbank.com/ydyh/resources/startpage/banner.webp",
+            "https://mbankXgrcbank.com/ydyh/resources/startpage/banner.jpg",
+        ):
+            with self.subTest(url=url):
+                self.assertNotRegex(url, matcher)
+        changes = [
+            item for item in provenance["scope_adjustments"]
+            if item.get("target") == "广发银行移动端开屏图片"
+        ]
+        self.assertEqual(len(changes), 1)
+        self.assertEqual(changes[0]["source"], "base")
+        self.assertEqual(changes[0]["original_line"], base.split("[Rewrite]\\n", 1)[1].split("\\n", 1)[0])
+        self.assertEqual(changes[0]["output_line"], line)
+
+    def test_grcbank_splash_image_guard_fails_closed_on_action_drift(self):
+        base = (
+            "[Rewrite]\\n"
+            + r"^https?:\\/\\/mbank\\.grcbank\\.com\\/ydyh\\/resources\\/startpage\\/.*.(?:jpg|png) reject"
+            + "\\n[MITM]\\nhostname = \\n"
+        )
+        extra = "[Rewrite]\\n[MITM]\\nhostname = \\n"
+        output = self.run_merge(base, extra, expect_failure=True)
+        self.assertIn("广发银行移动端开屏图片 图片规则动作已变化", output)
+
+
     def test_tencentvideo_ad_segment_ip_prefix_is_valid_ipv4_only(self):
         plugin = (
             "[Rewrite]\n"
