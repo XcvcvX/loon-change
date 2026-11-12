@@ -47,7 +47,7 @@ HELLOBIKE_SCRIPT_MARKERS = (
 )
 
 # 两条完全相同的 Soul 青少年配置拒绝规则只保留首条；不触碰其他近似 matcher。
-SOUL_TEENAGER_CONFIG_DUPLICATE = String.raw`^https?:\/\/api-account\.soulapp\.cn\/teenager\/config reject-dict`
+SOUL_TEENAGER_CONFIG_DUPLICATE = r"^https?:\\/\\/api-account\\.soulapp\\.cn\\/teenager\\/config reject-dict"
 
 def dedupe_exact_soul_teenager_rule(lines):
     output, seen, removed = [], False, 0
