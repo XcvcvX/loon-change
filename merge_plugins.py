@@ -2621,6 +2621,39 @@ _RT_NORM = {
 _POL_NORM = {'reject': 'REJECT', 'direct': 'DIRECT'}
 
 
+def canonical_rule_key(line):
+    """Collapse insignificant whitespace outside quoted Rule literals for dedup only.
+
+    The emitted rule text is never rewritten by this helper. Quoted User-Agent,
+    URL-REGEX and other literal values retain their exact whitespace.
+    """
+    output = []
+    quote = None
+    escaped = False
+    for char in line.strip():
+        if escaped:
+            output.append(char)
+            escaped = False
+            continue
+        if char == "\\\\":
+            output.append(char)
+            escaped = True
+            continue
+        if quote:
+            output.append(char)
+            if char == quote:
+                quote = None
+            continue
+        if char in ("'", '"', "`"):
+            quote = char
+            output.append(char)
+            continue
+        if char.isspace():
+            continue
+        output.append(char)
+    return "".join(output)
+
+
 def normalize_rule(line):
     """归一化 aoomee 小写类型/策略，IP-CIDR 补 no-resolve；组合规则原样返回。"""
     parts = [p.strip() for p in line.split(',')]
@@ -2635,6 +2668,7 @@ def normalize_rule(line):
 
 
 rule_result = []
+rule_key_index = {}
 rule_idx = build_rule_index([])
 rule_counts = collections.Counter()
 rule_provenance_events = []
@@ -2709,12 +2743,15 @@ def add_rule(line, src):
         rule_provenance_events.append(event)
         rule_counts[src + '_keep'] += 1
         return
-    if line in rule_result:
+    rule_key = canonical_rule_key(line)
+    if rule_key in rule_key_index:
+        previous_line = rule_key_index[rule_key]
         previous = next((item for item in reversed(rule_provenance_events)
                          if item.get('status') == 'included'
-                         and item.get('output_line') == line), None)
-        event.update({'status': 'duplicate_exact', 'duplicate_of': line,
-                      'duplicate_of_source': previous.get('source') if previous else None})
+                         and item.get('output_line') == previous_line), None)
+        event.update({'status': 'duplicate_exact', 'duplicate_of': previous_line,
+                      'duplicate_of_source': previous.get('source') if previous else None,
+                      'duplicate_reason': 'whitespace_only_outside_quoted_literals'})
         rule_provenance_events.append(event)
         rule_counts[src + '_dup'] += 1
         return
@@ -2739,6 +2776,7 @@ def add_rule(line, src):
             return
         add_to_index(line, rule_idx)
     rule_result.append(line)
+    rule_key_index[rule_key] = line
     event.update({'status': 'included', 'output_line': line})
     rule_provenance_events.append(event)
     rule_counts[src + '_add'] += 1
