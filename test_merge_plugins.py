@@ -66,6 +66,49 @@ class MergeIntegrationTests(unittest.TestCase):
         return (output, result.stdout) if return_stdout else output
 
 
+    def test_odin_numeric_hosts_are_restricted_to_valid_ipv4_and_keep_ad_paths(self):
+        base = (
+            "[Rewrite]\n"
+            + r"^https?:\/\/[\d\.]+\/odin\/c\d\/(channel\/ads|skin\/config)\? reject-dict"
+            + "\n[Script]\n[MITM]\nhostname = \n"
+        )
+        extra = (
+            "[Rewrite]\n"
+            + 'request if @@URL@@ ~= /^https?:\/\/[\d\.]+\/odin\/c1\/(channel\/ads|skin\/config)\?/ then reject_dict(200)'
+            + "\n[Script]\n[MITM]\nhostname = \n"
+        ).replace("@@URL@@", "$" + "{url}")
+        output, provenance = self.run_merge(base, extra, return_provenance=True)
+        lines = [line for line in output.splitlines() if "odin" in line]
+        self.assertEqual(len(lines), 2)
+        for line in lines:
+            if line.startswith("request if"):
+                pattern = re.search(r"~= /(.*)/ then ", line).group(1)
+            else:
+                pattern = line.split()[0]
+            compiled = re.compile(pattern)
+            path = "/odin/c1/channel/ads?x=1" if "request if" in line else "/odin/c9/skin/config?x=1"
+            for host in ("1.2.3.4", "0.0.0.0", "255.255.255.255"):
+                self.assertIsNotNone(compiled.search("https://" + host + path), line)
+            for host in ("999.1.2.3", "1.2.3", "1.2.3.4.5", "1..2.3"):
+                self.assertIsNone(compiled.search("https://" + host + path), line)
+        changes = [
+            item for item in provenance["scope_adjustments"]
+            if "Odin ad/config endpoint matcher" in item.get("reason", "")
+        ]
+        self.assertEqual({item["source"] for item in changes}, {"base", "block"})
+        self.assertEqual({item["source_entry_index"] for item in changes}, {621, 626})
+
+    def test_odin_numeric_host_guard_fails_closed_on_scope_or_action_drift(self):
+        base = (
+            "[Rewrite]\n"
+            + r"^https?:\/\/[\d\.]+\/odin\/c\d\/(channel\/ads|skin\/config)\? reject"
+            + "\n[Script]\n[MITM]\nhostname = \n"
+        )
+        extra = "[Rewrite]\n[Script]\n[MITM]\nhostname = \n"
+        output = self.run_merge(base, extra, expect_failure=True)
+        self.assertIn("Odin numeric-host rule count/scope/action drift", output)
+
+
     def test_baidunetdisk_cdn_fallbacks_match_valid_mitm_subdomains_only(self):
         base = "[Rewrite]\n[MITM]\nhostname = \n"
         extra = "[Rewrite]\n[MITM]\nhostname = \n"
