@@ -193,7 +193,8 @@ ACTION_REVIEW = {
     'request_body_rewrite': ('high_review', '改写请求正文，可能改变请求参数或业务行为'),
     'response_json_rewrite': ('medium_review', '修改响应 JSON 字段或结构，需确认字段路径和空值/类型处理'),
     'header_rewrite': ('medium_review', '修改请求或响应头，需确认不会影响缓存、鉴权、内容协商或协议行为'),
-    'redirect': ('medium_review', '重定向请求，需确认目标地址、参数保留及跳转范围')
+    'redirect': ('medium_review', '重定向请求，需确认目标地址、参数保留及跳转范围'),
+    'unknown': ('high_review', '无法识别的 Rewrite 操作符必须人工核对 Loon 语义，不应按普通规则静默放过')
 }
 
 
