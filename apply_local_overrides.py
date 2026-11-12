@@ -24,6 +24,10 @@ HELLOBIKE_ADDED_MITM_HOSTS = {
 PDD_HTTPDNS_MARKER = "com.xunmeng.pinduoduo"
 PDD_HTTPDNS_OLD_SUFFIX = r"\/d(\d)?"
 PDD_HTTPDNS_NEW_SUFFIX = r"\/d(\d)?(?:\?|$)"
+PDD_HTTPDNS_IPV4_MARKER = r"(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}"
+PDD_HTTPDNS_IPV6_MARKER = r"\[[0-9a-fA-F:]+\]"
+PDD_HTTPDNS_IPV6_SUFFIX = r"\/d(\d)?\?"
+PDD_HTTPDNS_IPV6_PREVIOUS_BAD_SUFFIX = PDD_HTTPDNS_NEW_SUFFIX + r"\?"
 
 REQUIRED_BANKCOMM_MITM_HOSTS = {
     "creditcard.bankcomm.cn", "creditcard.bankcomm.com",
@@ -65,12 +69,22 @@ def apply(text: str) -> str:
                        if item != HELLOBIKE_SOURCE]
             line = "#!sources=" + "+".join(sources)
         if section == "Rule" and PDD_HTTPDNS_MARKER in line and "URL-REGEX" in line:
-            if PDD_HTTPDNS_NEW_SUFFIX in line:
-                pass
-            elif PDD_HTTPDNS_OLD_SUFFIX in line:
-                line = line.replace(PDD_HTTPDNS_OLD_SUFFIX, PDD_HTTPDNS_NEW_SUFFIX)
+            if PDD_HTTPDNS_IPV6_MARKER in line:
+                # IPv6 HTTPDNS already had its own query boundary. Repair the
+                # accidental suffix introduced by the prior broad IPv4 match.
+                if PDD_HTTPDNS_IPV6_PREVIOUS_BAD_SUFFIX in line:
+                    line = line.replace(PDD_HTTPDNS_IPV6_PREVIOUS_BAD_SUFFIX, PDD_HTTPDNS_IPV6_SUFFIX)
+                elif PDD_HTTPDNS_IPV6_SUFFIX not in line:
+                    raise ValueError("拼多多 IPv6 HTTPDNS matcher changed; refusing an unreviewed rewrite")
+            elif PDD_HTTPDNS_IPV4_MARKER in line:
+                if PDD_HTTPDNS_NEW_SUFFIX in line:
+                    pass
+                elif PDD_HTTPDNS_OLD_SUFFIX in line:
+                    line = line.replace(PDD_HTTPDNS_OLD_SUFFIX, PDD_HTTPDNS_NEW_SUFFIX)
+                else:
+                    raise ValueError("拼多多 IPv4 HTTPDNS matcher changed; refusing an unreviewed rewrite")
             else:
-                raise ValueError("拼多多 IPv4 HTTPDNS matcher changed; refusing an unreviewed rewrite")
+                raise ValueError("拼多多 HTTPDNS address-family matcher changed; refusing an unreviewed rewrite")
         if section == "MITM" and line.strip().lower().startswith("hostname") and "=" in line:
             key, value = line.split("=", 1)
             hosts = [host.strip() for host in value.split(",") if host.strip()]
