@@ -197,33 +197,62 @@ ACTION_REVIEW = {
 }
 
 
+def _split_action_pipeline(value):
+    """Split action chains on unquoted pipes, preserving pipes inside JQ/string arguments."""
+    segments, current = [], []
+    quote, escaped = None, False
+    for char in value:
+        if escaped:
+            current.append(char)
+            escaped = False
+            continue
+        if char == '\\\\':
+            current.append(char)
+            escaped = True
+            continue
+        if quote:
+            current.append(char)
+            if char == quote:
+                quote = None
+            continue
+        if char in ("'", '"'):
+            quote = char
+            current.append(char)
+        elif char == '|':
+            segments.append(''.join(current).strip())
+            current = []
+        else:
+            current.append(char)
+    segments.append(''.join(current).strip())
+    return [segment for segment in segments if segment]
+
+
 def classify_rewrite_action(action):
-    """Return a conservative semantic family for old and modern Loon action syntax."""
-    value = action.strip()
-    # Modern rules may chain multiple operations with '|'. Find known action
-    # identifiers anywhere in the expression; jq expressions themselves are not
-    # classified as Loon actions unless they match one of these exact identifiers.
-    known = sorted(
-        (name for names in ACTION_FAMILIES.values() for name in names),
-        key=len, reverse=True
-    )
+    """Classify action operators only; never infer actions from their arguments."""
+    known = {
+        name.lower()
+        for names in ACTION_FAMILIES.values()
+        for name in names
+    }
     found = []
-    for name in known:
-        if re.search(r'(?<![A-Za-z0-9_.-])' + re.escape(name) +
-                     r'(?![A-Za-z0-9_.-])', value, re.I):
-            found.append(name)
+    for segment in _split_action_pipeline(action.strip()):
+        # Loon action names are the leading operator token of each pipeline
+        # segment. Searching the whole segment would mistake JQ predicates,
+        # string literals, header values, or URLs for executable actions.
+        token = re.match(r'^([A-Za-z0-9_.-]+)', segment)
+        if token and token.group(1).lower() in known:
+            found.append(token.group(1).lower())
     if not found:
-        # Legacy parser returns the action token only, while modern parser returns
-        # the full action expression. Preserve unknown actions for manual review.
-        token = re.match(r'^([A-Za-z0-9_.-]+)', value)
+        # Preserve an unknown leading operator for manual review.
+        token = re.match(r'^([A-Za-z0-9_.-]+)', action.strip())
         found = [token.group(1).lower()] if token else []
     families = sorted({
         family for family, names in ACTION_FAMILIES.items()
-        if any(name.lower() in {x.lower() for x in found} for name in names)
+        if any(name.lower() in found for name in names)
     })
     if not families:
         return {'families': ['unknown'], 'operations': found or ['<unrecognized>']}
-    return {'families': families, 'operations': sorted(found)}
+    return {'families': families, 'operations': sorted(set(found))}
 
 
 def action_review_priority(families):
