@@ -35,10 +35,10 @@
       "action_changed": 0,
       "added": 0,
       "current_entries": 3497,
-      "net_shrink_percent": 0.029,
-      "previous_entries": 3498,
-      "removed": 1,
-      "removed_percent": 0.029
+      "net_shrink_percent": 0.0,
+      "previous_entries": 3497,
+      "removed": 0,
+      "removed_percent": 0.0
     },
     "script": {
       "action_changed": 0,

@@ -8,7 +8,7 @@
     "rule": {
       "action_changed": 0,
       "added": 0,
-      "removed": 1
+      "removed": 0
     },
     "script": {
       "action_changed": 0,
@@ -16,36 +16,14 @@
       "removed": 0
     }
   },
-  "events": [
-    {
-      "after": null,
-      "before": {
-        "line": "AND,((PROTOCOL,UDP),(DEST-PORT,443)),REJECT",
-        "section": "rule",
-        "sources": [
-          "aoomee"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "rule",
-      "semantic_duplicate_coverage": null,
-      "source_scores": {
-        "aoomee": 100
-      },
-      "sources": [
-        "aoomee"
-      ]
-    }
-  ],
-  "overall_risk": "high",
+  "events": [],
+  "overall_risk": "low",
   "risk_counts": {
-    "high": 1,
+    "high": 0,
     "low": 0,
     "medium": 0
   },
-  "run_id": "43197534686",
+  "run_id": "43220167323",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -91,5 +69,11 @@
       "snapshots_seen": 1
     }
   },
-  "upstream_revision_changes": []
+  "upstream_revision_changes": [
+    {
+      "current_commit": "08805bfeb027293c3857ddf405744b9d3f1e72a5",
+      "previous_commit": "f72638b9c8794aa21caf93fe491c8ccecccd8b42",
+      "source": "Amap"
+    }
+  ]
 }

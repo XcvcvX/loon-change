@@ -25,39 +25,6 @@
         "low": 0,
         "medium": 0
       },
-      "run_id": "43138813802",
-      "source_changes": {},
-      "upstream_revisions": {
-        "Amap": "c4a52554e01aac55667a54fa5b526db00d6b3e81",
-        "GuaZiVideoAds": "",
-        "aoomee": "370a13085514ccca924f43d13c6d3acfa5671dbe",
-        "thelongdarkorg": "2d0443ce1ecec36cf173634e77ba52224efbdc38",
-        "zmjde": "3e79a9798f1b996f5c05b1a42be5d286890f3f60"
-      }
-    },
-    {
-      "change_counts": {
-        "rewrite": {
-          "action_changed": 0,
-          "added": 0,
-          "removed": 0
-        },
-        "rule": {
-          "action_changed": 0,
-          "added": 0,
-          "removed": 0
-        },
-        "script": {
-          "action_changed": 0,
-          "added": 0,
-          "removed": 0
-        }
-      },
-      "risk_counts": {
-        "high": 0,
-        "low": 0,
-        "medium": 0
-      },
       "run_id": "43139469128",
       "source_changes": {},
       "upstream_revisions": {
@@ -1161,6 +1128,39 @@
       },
       "upstream_revisions": {
         "Amap": "f72638b9c8794aa21caf93fe491c8ccecccd8b42",
+        "GuaZiVideoAds": "",
+        "aoomee": "370a13085514ccca924f43d13c6d3acfa5671dbe",
+        "thelongdarkorg": "2d0443ce1ecec36cf173634e77ba52224efbdc38",
+        "zmjde": "3e79a9798f1b996f5c05b1a42be5d286890f3f60"
+      }
+    },
+    {
+      "change_counts": {
+        "rewrite": {
+          "action_changed": 0,
+          "added": 0,
+          "removed": 0
+        },
+        "rule": {
+          "action_changed": 0,
+          "added": 0,
+          "removed": 0
+        },
+        "script": {
+          "action_changed": 0,
+          "added": 0,
+          "removed": 0
+        }
+      },
+      "risk_counts": {
+        "high": 0,
+        "low": 0,
+        "medium": 0
+      },
+      "run_id": "43220167323",
+      "source_changes": {},
+      "upstream_revisions": {
+        "Amap": "08805bfeb027293c3857ddf405744b9d3f1e72a5",
         "GuaZiVideoAds": "",
         "aoomee": "370a13085514ccca924f43d13c6d3acfa5671dbe",
         "thelongdarkorg": "2d0443ce1ecec36cf173634e77ba52224efbdc38",
