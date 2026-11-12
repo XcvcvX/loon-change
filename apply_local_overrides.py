@@ -26,8 +26,6 @@ HELLOBIKE_REWRITE_RULES = (
 HELLOBIKE_SCRIPT_RULES = (
     f"http-request ^https:\\/\\/resource\\.51downapp\\.cn\\/f414fbc17c411b4e986ba8891c738a49\\.json\\?(?:[^#]*&)?md5=e5230c919f7e3f3af3256161fbfaa0e2&(?:[^#]*&)?hbe_qx_ui=1\\.3$ script-path={HELLOBIKE_JS}, timeout=60, tag=easybike-ad",
     f"http-response ^https:\\/\\/api\\.hellobike\\.com(?::443)?\\/secretkey(?:\\?|$) script-path={HELLOBIKE_JS}, requires-body=true, timeout=60, tag=easybike-ad",
-    f"http-request ^https?:\\/\\/(?:api|marketingapi|entertainment)\\.hellobike\\.com(?::\\d+)?\\/api(?:\\?|$) script-path={HELLOBIKE_JS}, requires-body=true, timeout=60, tag=easybike-ad",
-    f"http-response ^https?:\\/\\/(?:api|marketingapi|entertainment)\\.hellobike\\.com(?::\\d+)?\\/api(?:\\?|$) script-path={HELLOBIKE_JS}, requires-body=true, timeout=60, tag=easybike-ad",
     f"response if ${{url}} ~= /^https:\\/\\/taxiapi\\.hellobike\\.com(?::443)?\\/api(?:\\?|$)/i && ${{request.method}} == \"POST\" && ${{request.header['action']}} == \"hitch.driver.journeyList\" then script(\"{HELLOBIKE_JS}\") with requires_body=true, timeout=60, tag=\"easybike-ad\"",
 )
 
@@ -45,6 +43,8 @@ HELLOBIKE_MITM_HOSTS = {
 }
 
 LEGACY_HELLOBIKE_MARKER = "scripts/hellobike-clean.js"
+BAIDU_BROKEN_STATIC_MARKERS = ("www.baidu.com", "action=static&ms=1&version=css_page_2@0")
+HELLOBIKE_HIGH_FREQUENCY_MARKERS = ("api.hellobike.com", "marketingapi.hellobike.com", "entertainment.hellobike.com", "taxiapi.hellobike.com")
 HELLOBIKE_SOURCE = "ZenmoFeiShi-Qx-HelloBike(ScriptHub-Loon)"
 
 
@@ -67,8 +67,16 @@ def apply(text: str) -> str:
 
     # Remove the PR #121 hand-written HelloBike integration, which is not
     # equivalent to the upstream QX script and was reported ineffective.
-    lines = [line for line in text.splitlines()
-             if LEGACY_HELLOBIKE_MARKER not in line]
+    lines = []
+    for line in text.splitlines():
+        if LEGACY_HELLOBIKE_MARKER in line:
+            continue
+        if all(marker in line for marker in BAIDU_BROKEN_STATIC_MARKERS) and line.rstrip().endswith("reject"):
+            continue
+        if "tag=easybike-ad" in line and any(host in line for host in HELLOBIKE_HIGH_FREQUENCY_MARKERS):
+            if "/secretkey" not in line and "resource" not in line:
+                continue
+        lines.append(line)
 
     mitm_index = lines.index("[MITM]")
     hostname_index = next((i for i in range(mitm_index + 1, len(lines))
