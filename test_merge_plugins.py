@@ -311,13 +311,13 @@ class MergeIntegrationTests(unittest.TestCase):
 
     def test_dasixiong_version_endpoints_require_path_boundary_for_base_and_block(self):
         lines = (
-            r'request if ${url} ~= /^https?:\\/\\/sdk\\.alibaba\\.com\\.ailbaba\\.me\\/xgapp\\.php\\/v\\d\\/version/ then reject(200)',
-            r'request if ${url} ~= /^https?:\\/\\/sdk\\.alibaba\\.com\\.ailbaba\\.me\\/(dsx|xgapp)\\.php\\/v\\d\\/(top_notice\\?|version|advert\\?position=[^2]+)/ then reject(200)',
+            r'request if ${url} ~= /^https?:\/\/sdk\.alibaba\.com\.ailbaba\.me\/xgapp\.php\/v\d\/version/ then reject(200)',
+            r'request if ${url} ~= /^https?:\/\/sdk\.alibaba\.com\.ailbaba\.me\/(dsx|xgapp)\.php\/v\d\/(top_notice\?|version|advert\?position=[^2]+)/ then reject(200)',
         )
-        base = '[Rewrite]\\n' + '\\n'.join(lines) + '\\n[MITM]\\nhostname = \\n'
-        extra = '[Rewrite]\\n# > 大师兄\\n# hostname = sdk.alibaba.com.ailbaba.me, adservice.sigmob.cn\\n' + '\\n'.join(lines) + '\\n[MITM]\\nhostname = \\n'
+        base = '[Rewrite]\n' + '\n'.join(lines) + '\n[MITM]\nhostname = \n'
+        extra = '[Rewrite]\n# > 大师兄\n# hostname = sdk.alibaba.com.ailbaba.me, adservice.sigmob.cn\n' + '\n'.join(lines) + '\n[MITM]\nhostname = \n'
         output, provenance = self.run_merge(base, extra, return_provenance=True)
-        matched = [line for line in output.splitlines() if 'sdk\\\\.alibaba' in line and '/version' in line]
+        matched = [line for line in output.splitlines() if 'sdk\\.alibaba' in line and '/version' in line]
         self.assertEqual(len(matched), 2)
         patterns = [re.compile(line.split(' ~= ', 1)[1].split(' then ', 1)[0].strip().strip('/')) for line in matched]
         for url in (
@@ -339,11 +339,11 @@ class MergeIntegrationTests(unittest.TestCase):
         self.assertEqual({item['source'] for item in changes}, {'base', 'blockAdsV2'})
 
     def test_dasixiong_version_guard_fails_closed_on_action_or_matcher_drift(self):
-        base = '[Rewrite]\\n[MITM]\\nhostname = \\n'
-        bad_action = '[Rewrite]\\n' + r'request if ${url} ~= /^https?:\\/\\/sdk\\.alibaba\\.com\\.ailbaba\\.me\\/xgapp\\.php\\/v\\d\\/version/ then reject(404)' + '\\n[MITM]\\nhostname = \\n'
+        base = '[Rewrite]\n[MITM]\nhostname = \n'
+        bad_action = '[Rewrite]\n' + r'request if ${url} ~= /^https?:\/\/sdk\.alibaba\.com\.ailbaba\.me\/xgapp\.php\/v\d\/version/ then reject(404)' + '\n[MITM]\nhostname = \n'
         output = self.run_merge(base, bad_action, expect_failure=True)
         self.assertIn('大师兄 version 动作已变化', output)
-        bad_path = '[Rewrite]\\n' + r'request if ${url} ~= /^https?:\\/\\/sdk\\.alibaba\\.com\\.ailbaba\\.me\\/xgapp\\.php\\/v\\d\\/version.*/ then reject(200)' + '\\n[MITM]\\nhostname = \\n'
+        bad_path = '[Rewrite]\n' + r'request if ${url} ~= /^https?:\/\/sdk\.alibaba\.com\.ailbaba\.me\/xgapp\.php\/v\d\/version.*/ then reject(200)' + '\n[MITM]\nhostname = \n'
         output = self.run_merge(base, bad_path, expect_failure=True)
         self.assertIn('大师兄 version matcher 已变化', output)
 
