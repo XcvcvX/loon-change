@@ -389,5 +389,62 @@ hostname = *.example.test
         self.assertEqual(extract_literal_matcher_host(matcher),
                          (None, 'regex_host_authority'))
 
+    def test_same_matcher_body_and_header_rewrites_are_classified_as_complementary(self):
+        fixture = '''[Rewrite]
+^https:\\/\\/api\\.example\\.com\\/home response-body-json-jq '.data.banners |= []'
+^https:\\/\\/api\\.example\\.com\\/home response-header-del Content-MD5 ETag
+'''
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'complementary.plugin'
+            path.write_text(fixture, encoding='utf-8')
+            report = audit_deep(path)
+
+        self.assertEqual(report['summary']['rewrite_action_conflict_groups'], 1)
+        self.assertEqual(report['summary']['rewrite_cross_layer_composable_groups'], 1)
+        self.assertEqual(report['summary']['rewrite_cross_family_conflict_groups'], 0)
+        group = report['rewrite_cross_layer_composable_groups'][0]
+        self.assertEqual(
+            group['classification'], 'complementary_response_body_and_header'
+        )
+        self.assertEqual(
+            set(group['action_families']),
+            {'header_rewrite', 'response_json_rewrite'}
+        )
+
+    def test_same_family_json_operations_are_reviewed_without_claiming_conflict(self):
+        fixture = '''[Rewrite]
+^https:\\/\\/api\\.example\\.com\\/feed response-body-json-jq '.data |= map(select(.type != "ad"))'
+^https:\\/\\/api\\.example\\.com\\/feed response-body-json-del data.tracking
+'''
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'ordered-json.plugin'
+            path.write_text(fixture, encoding='utf-8')
+            report = audit_deep(path)
+
+        self.assertEqual(report['summary']['rewrite_same_family_multi_operation_groups'], 1)
+        self.assertEqual(report['summary']['rewrite_cross_family_conflict_groups'], 0)
+        self.assertEqual(
+            report['rewrite_same_family_multi_operation_groups'][0]['classification'],
+            'same_layer_order_sensitive_review'
+        )
+
+    def test_block_action_variants_remain_conflict_candidates(self):
+        fixture = '''[Rewrite]
+^https:\\/\\/api\\.example\\.com\\/ad reject
+^https:\\/\\/api\\.example\\.com\\/ad reject-dict
+'''
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'block-variants.plugin'
+            path.write_text(fixture, encoding='utf-8')
+            report = audit_deep(path)
+
+        self.assertEqual(report['summary']['rewrite_block_action_variant_groups'], 1)
+        self.assertEqual(report['summary']['rewrite_cross_family_conflict_groups'], 0)
+        self.assertEqual(
+            report['rewrite_block_action_variant_groups'][0]['classification'],
+            'blocking_action_variant_review'
+        )
+
+
 if __name__ == '__main__':
     unittest.main()
