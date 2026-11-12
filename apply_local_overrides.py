@@ -13,7 +13,7 @@ RULE = ('response if ${url} ~= /^https?:\\/\\/creditcard\\.bankcomm\\.(?:cn|com)
 HELLOBIKE_JS = (
     "http://script.hub/convert/_start_/"
     "https://raw.githubusercontent.com/ZenmoFeiShi/Qx/refs/heads/main/easybike-ad.js"
-    "/_end_/easybike-ad.js?type=qx-script&target=loon-script&wrap_response=true"
+    "/_end_/easybike-ad.js?type=qx-script&target=loon-script&wrap_response=true&headers="
 )
 
 HELLOBIKE_REWRITE_RULES = (
@@ -45,6 +45,7 @@ HELLOBIKE_MITM_HOSTS = {
 }
 
 LEGACY_HELLOBIKE_MARKER = "scripts/hellobike-clean.js"
+HELLOBIKE_SOURCE = "ZenmoFeiShi-Qx-HelloBike(ScriptHub-Loon)"
 
 
 def append_to_section(lines, section, entries):
@@ -87,6 +88,12 @@ def apply(text: str) -> str:
 
     append_to_section(lines, "Rewrite", HELLOBIKE_REWRITE_RULES)
     append_to_section(lines, "Script", HELLOBIKE_SCRIPT_RULES)
+
+    # Make the converted upstream source visible in plugin metadata.
+    for index, line in enumerate(lines):
+        if line.startswith("#!sources=") and HELLOBIKE_SOURCE not in line:
+            lines[index] = line + "+" + HELLOBIKE_SOURCE
+            break
 
     # Keep the unrelated Bankcomm override in [Script], idempotently.
     result = "\n".join(lines)
