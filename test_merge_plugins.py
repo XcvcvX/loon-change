@@ -428,8 +428,10 @@ hostname = *.amap.com
             "/argus/api/v1/bookshelf/getad",
             "/argus/api/v4/client/getsplashscreen?",
         )
-        base = (
+        extra = (
             "[Rewrite]\n"
+            "# > 起点读书\n"
+            "# hostname = qidian.qpic.cn, mage.if.qidian.com, magev6.if.qidian.com\n"
             + "".join(
                 "request if " + "$" + "{url} ~= /^https?:\/\/magev6.if.qidian.com"
                 + path.replace("/", r"\/")
@@ -439,7 +441,7 @@ hostname = *.amap.com
             + "[MITM]\nhostname = magev6.if.qidian.com\n"
         )
         empty = "[Rule]\n[Rewrite]\n[MITM]\nhostname = \n"
-        output = self.run_merge(base, empty)
+        output = self.run_merge(empty, extra)
         qidian_rules = [
             line for line in output.splitlines()
             if line.startswith("request if ") and "magev6" in line
