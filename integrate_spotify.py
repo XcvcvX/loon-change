@@ -15,7 +15,7 @@ SCRIPT_FILES = {
     "spot-NoHomeAd.js": "Spotify home ads",
     "spot-NoScrollAd.js": "Spotify scroll ads",
 }
-AD_REWRITE = re.compile(r"/(?:ads/|ad-logic/|[^?#]*/ad-on-app-open)")
+AD_REWRITE = re.compile(r"(?:ads|ad-logic)\\?/|ad-on-app-open")
 MITM_HOSTS = ("spclient.wg.spotify.com", "*spclient.spotify.com")
 
 
