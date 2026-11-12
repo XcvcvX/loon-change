@@ -885,6 +885,15 @@ def narrow_odin_numeric_host_rules(rewrite_lines, source):
     originals = [line for line in rewrite_lines if line == original]
     narrowed_rows = [line for line in rewrite_lines if line == narrowed]
     if len(originals) == 0 and len(narrowed_rows) <= 1:
+        related = [
+            line for line in rewrite_lines
+            if 'odin' in line and '(channel' in line and 'skin' in line
+        ]
+        if related and not narrowed_rows:
+            raise RuntimeError(
+                source + ' Odin numeric-host rule count/scope/action drift; refusing to guess: '
+                + repr(related)
+            )
         return list(rewrite_lines), []
     if len(originals) != 1 or narrowed_rows:
         raise RuntimeError(
