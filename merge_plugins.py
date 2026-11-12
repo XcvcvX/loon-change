@@ -2661,6 +2661,12 @@ def is_tencent_httpdns_service_ip_block(line):
     )
 
 
+def is_global_udp_443_reject(line):
+    """Exclude the unscoped UDP/443 blanket reject; it breaks some DIRECT paths."""
+    normalized = re.sub(r'\\s+', '', line).upper()
+    return normalized == 'AND,((PROTOCOL,UDP),(DEST-PORT,443)),REJECT'
+
+
 def add_rule(line, src):
     original_line = line
     line = normalize_rule(line)
@@ -2680,6 +2686,18 @@ def add_rule(line, src):
                 'Tencent Cloud documents 119.29.29.98 as its active HTTP HTTPDNS '
                 'endpoint and 119.29.29.99 as its active HTTPS HTTPDNS endpoint; '
                 'an exact-IP REJECT rule would disable those DNS resolution paths.'
+            ),
+        })
+        rule_provenance_events.append(event)
+        rule_counts[src + '_keep'] += 1
+        return
+    if is_global_udp_443_reject(line):
+        event.update({
+            'status': 'excluded_safety_guard',
+            'reason': (
+                'Unscoped UDP/443 REJECT breaks confirmed DIRECT connectivity; '
+                'keep only app/domain-scoped QUIC blocks so unrelated UDP services '
+                'and direct network paths are not globally disabled.'
             ),
         })
         rule_provenance_events.append(event)
