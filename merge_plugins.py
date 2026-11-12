@@ -1107,8 +1107,6 @@ block_rw, block_sc = prep_block_sections(
     extra_sec.get('Rewrite', []), extra_sec.get('Script', []))
 base_rw, base_qidian_adjustments = escape_qidian_magev6_host(
     base_rw, 'base')
-block_rw, block_qidian_adjustments = escape_qidian_magev6_host(
-    block_rw, 'block')
 _ZHANGLE_BLOCK_RULES = {
     r'^https?://c\.zhangle\.com/pic/mktg/diversity/.+\.jpg$': (r'request if ${url} ~= /^https?:\/\/c\.zhangle\.com\/pic\/mktg\/diversity\/.+\.jpg$/ then reject_dict(200)', ('REJECT', 'reject_dict', 'reject_dict(200)'), 'reject_dict(200)'),
     r'^https?://live\.inst-service\.htsc\.com/live': (r'request if ${url} ~= /^https?:\/\/live\.inst-service\.htsc\.com\/live/ then reject_dict(200)', ('REJECT', 'reject_dict', 'reject_dict(200)'), 'reject_dict(200)'),
@@ -1183,7 +1181,6 @@ if _lite_advertising_guard_present:
 block_rw, block_sc, block_scope_adjustments = narrow_555_scope(
     block_rw, block_sc)
 block_scope_adjustments.extend(base_qidian_adjustments)
-block_scope_adjustments.extend(block_qidian_adjustments)
 lanrentingshu_source_present = validate_lanrentingshu_source(extra_text)
 base_rw, lanrentingshu_base_adjustments = narrow_lanrentingshu_base_scope(
     base_rw, lanrentingshu_source_present)
