@@ -309,6 +309,56 @@ class MergeIntegrationTests(unittest.TestCase):
         self.assertIn("clicli top_notice matcher 已变化", output)
 
 
+    def test_ticketstar_app_start_page_requires_endpoint_path_boundary(self):
+        source_line = (
+            r"request if \${url} ~= /^https:\/\/appapi\.caiyicloud\.com\/cyy_gatewayapi\/home\/pub\/v3\/banners\/app_start_page/ then reject_dict(200)"
+        )
+        base = "[Rewrite]\n[MITM]\nhostname = \n"
+        extra = (
+            "[Rewrite]\n# > 票星球\n# hostname = appapi.caiyicloud.com\n"
+            + source_line + "\n[MITM]\nhostname = \n"
+        )
+        output, provenance = self.run_merge(base, extra, return_provenance=True)
+        line = next(line for line in output.splitlines() if "appapi\\.caiyicloud" in line)
+        matcher = re.compile(line.split(" ~= ", 1)[1].split(" then ", 1)[0].strip().strip("/"))
+        for url in (
+            "https://appapi.caiyicloud.com/cyy_gatewayapi/home/pub/v3/banners/app_start_page",
+            "https://appapi.caiyicloud.com/cyy_gatewayapi/home/pub/v3/banners/app_start_page?channel=home",
+            "https://appapi.caiyicloud.com/cyy_gatewayapi/home/pub/v3/banners/app_start_page/extra",
+        ):
+            self.assertRegex(url, matcher)
+        for url in (
+            "https://appapi.caiyicloud.com/cyy_gatewayapi/home/pub/v3/banners/app_start_page_extra",
+            "https://appapi.caiyicloud.com/cyy_gatewayapi/home/pub/v3/banners/app_start_page2",
+            "https://appapiXcaiyicloud.com/cyy_gatewayapi/home/pub/v3/banners/app_start_page",
+        ):
+            self.assertNotRegex(url, matcher)
+        changes = [
+            item for item in provenance["scope_adjustments"]
+            if item.get("target") == "票星球 app_start_page 开屏接口路径边界"
+        ]
+        self.assertEqual(len(changes), 1)
+        self.assertEqual(changes[0]["source"], "blockAdsV2")
+        self.assertEqual(changes[0]["output_line"], line)
+
+    def test_ticketstar_app_start_guard_fails_closed_on_action_or_matcher_drift(self):
+        base = "[Rewrite]\n[MITM]\nhostname = \n"
+        bad_action = (
+            "[Rewrite]\n"
+            + r"request if \${url} ~= /^https:\/\/appapi\.caiyicloud\.com\/cyy_gatewayapi\/home\/pub\/v3\/banners\/app_start_page/ then reject(404)"
+            + "\n[MITM]\nhostname = \n"
+        )
+        output = self.run_merge(base, bad_action, expect_failure=True)
+        self.assertIn("票星球 app_start_page 动作已变化", output)
+        bad_path = (
+            "[Rewrite]\n"
+            + r"request if \${url} ~= /^https:\/\/appapi\.caiyicloud\.com\/cyy_gatewayapi\/home\/pub\/v3\/banners\/app_start_page.*/ then reject_dict(200)"
+            + "\n[MITM]\nhostname = \n"
+        )
+        output = self.run_merge(base, bad_path, expect_failure=True)
+        self.assertIn("票星球 app_start_page matcher 已变化", output)
+
+
     def test_dasixiong_version_endpoints_require_path_boundary_for_base_and_block(self):
         lines = (
             r'request if ${url} ~= /^https?:\/\/sdk\.alibaba\.com\.ailbaba\.me\/xgapp\.php\/v\d\/version/ then reject(200)',
