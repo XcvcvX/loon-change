@@ -970,6 +970,82 @@ def narrow_tencentvideo_segment_ip_prefix(rewrite_lines, source):
 
 
 
+def exclude_odin_c1_semantic_duplicate(base_lines, block_lines, extra_text):
+    """当 base 的 c\\d 广告规则已完整覆盖 block 的 c1 子集时，移除重复 block matcher。"""
+    octet = r'(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)'
+    ipv4 = r'(?:' + octet + r'\.){3}' + octet
+    base_matcher = r'^https?://' + ipv4 + r'/odin/c\d/(channel/ads|skin/config)\?'
+    block_matcher = r'^https?://' + ipv4 + r'/odin/c1/(channel/ads|skin/config)\?'
+    expected_action = ('REJECT', 'reject_dict', 'reject_dict(200)')
+
+    base_rows = [line for line in base_lines if entry_regex(line) == base_matcher]
+    block_rows = [
+        (index, line) for index, line in enumerate(block_lines)
+        if entry_regex(line) == block_matcher
+    ]
+    if not block_rows:
+        related_block = [
+            line for line in block_lines
+            if 'odin' in line and 'c1' in line and 'channel' in line and 'skin' in line
+        ]
+        if related_block:
+            raise RuntimeError('Odin c1 redundant matcher shape changed; refusing semantic dedup: ' + repr(related_block))
+        return list(block_lines), []
+
+    if len(block_rows) != 1:
+        raise RuntimeError('Odin c1 redundant matcher count changed; refusing semantic dedup: ' + repr(block_rows))
+    block_index, block_line = block_rows[0]
+    if action_key(block_line) != expected_action:
+        raise RuntimeError('Odin c1 redundant matcher action changed; refusing semantic dedup: ' + block_line)
+
+    if not base_rows:
+        related_base = [
+            line for line in base_lines
+            if 'odin' in line and 'channel' in line and 'skin' in line
+        ]
+        if related_base:
+            raise RuntimeError('Odin broad base matcher shape changed; refusing semantic dedup: ' + repr(related_base))
+        return list(block_lines), []
+    if len(base_rows) != 1 or action_key(base_rows[0]) != expected_action:
+        raise RuntimeError('Odin broad base matcher count/action changed; refusing semantic dedup: ' + repr(base_rows))
+
+    base_re = re.compile(base_matcher)
+    block_re = re.compile(block_matcher)
+    for host in ('1.2.3.4', '255.255.255.255'):
+        for path in ('channel/ads', 'skin/config'):
+            c1_url = 'https://' + host + '/odin/c1/' + path + '?x=1'
+            c2_url = 'https://' + host + '/odin/c2/' + path + '?x=1'
+            if not base_re.search(c1_url) or not block_re.search(c1_url):
+                raise RuntimeError('Odin c1 semantic coverage proof failed: ' + c1_url)
+            if not base_re.search(c2_url) or block_re.search(c2_url):
+                raise RuntimeError('Odin c1 subset proof failed: ' + c2_url)
+
+    source_line_number = next(
+        (number for number, raw in enumerate(extra_text.splitlines(), 1)
+         if raw.strip() == block_line.strip()),
+        None,
+    )
+    exclusion = {
+        'source': 'block',
+        'source_catalog': 'fmz200/wool_scripts blockAdsV2',
+        'source_file': 'blockAdsV2.plugin',
+        'source_entry_index': block_index,
+        'source_line_number': source_line_number,
+        'input_line': block_line,
+        'matcher': block_matcher,
+        'action': split_action(block_line)[1],
+        'covered_by': base_rows[0],
+        'reason': (
+            'The retained R-Store base matcher uses c\\\\d and therefore covers the exact c1 subset '
+            'for both channel/ads and skin/config paths. action_key confirms both rules produce '
+            'reject_dict(200); removing the narrower duplicate does not reduce ad coverage.'
+        ),
+        'status': 'excluded_semantic_duplicate_covered_by_base',
+    }
+    return [line for line in block_lines if line != block_line], [exclusion]
+
+
+
 def narrow_baidunetdisk_cdn_subdomains(rewrite_lines, source):
     """将百度网盘广告图片 CDN 兜底规则限制到 MITM 声明的合法子域名。"""
     output = []
@@ -1904,6 +1980,9 @@ if qqmusic_block_present:
 _BLOCK_HTTPDNS_MATCHER = r'^https?://119\.29\.29\.\d+/d'
 block_rewrite_exclusions = []
 block_mitm_exclusions = []
+block_rw, odin_duplicate_exclusions = exclude_odin_c1_semantic_duplicate(
+    base_rw, block_rw, extra_text)
+block_rewrite_exclusions.extend(odin_duplicate_exclusions)
 _block_rw_kept = []
 for _block_index, _block_line in enumerate(block_rw):
     if entry_regex(_block_line) == _BLOCK_HTTPDNS_MATCHER:
