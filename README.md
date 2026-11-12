@@ -151,21 +151,21 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 ## 第七阶段第十三批：兼容 http[s]? 协议前缀
 
 - 第十二批正式同步后，三个目标 MITM 主机仍被七猫小说的一条无关 matcher 误保留。
-- 生产日志确认 matcher 为 \`^http[s]?://magev6\\.if\\.qidian\\.com/...\`；现有主机提取器只识别 \`https?://\` 文本形式，未识别等价的 \`http[s]?://\` 写法，导致返回无法提取主机的保守分支。
-- 扩展协议前缀识别，同时兼容 \`https?://\` 与 \`http[s]?://\`；不改变 URL matcher 本身或广告动作。
+- 生产日志确认 matcher 为 `^http[s]?://magev6\\.if\\.qidian\\.com/...`；现有主机提取器只识别 `https?://` 文本形式，未识别等价的 `http[s]?://` 写法，导致返回无法提取主机的保守分支。
+- 扩展协议前缀识别，同时兼容 `https?://` 与 `http[s]?://`；不改变 URL matcher 本身或广告动作。
 - 新增集成回归测试：七猫主机仍被正确保留，三个无关涨乐财富通主机不再因该 matcher 被保留。
 - 其他无法安全解析的 HTTPS matcher 仍维持 fail-closed。
-- 正式验收以同步日志和生产 \`allAdRewrite.plugin\` 为准。
+- 正式验收以同步日志和生产 `allAdRewrite.plugin` 为准。
 
 
 ## 第七阶段第十四批：识别主机字符类中的斜杠
 
 - 第十三批合并后的正式同步已成功，但三个涨乐财富通专属 MITM 主机仍被一条穿山甲规则误保留。
-- 生产诊断显示该规则的 host matcher 使用 \`[^\s/]*\.pangle\.cn\`；host 解析器此前把字符类内部的 \`/\` 错当成 URL path 起点，截断为不完整的 \`[^\s\`，触发 Python 正则失败和保守保留。
+- 生产诊断显示该规则的 host matcher 使用 `[^\s/]*\.pangle\.cn`；host 解析器此前把字符类内部的 `/` 错当成 URL path 起点，截断为不完整的 `[^\s`，触发 Python 正则失败和保守保留。
 - 本批让 host 解析器跟踪正则字符类状态：只有字符类外的未转义或转义斜杠才作为 authority/path 边界。
-- 增加集成回归测试：保留真实的 \`foo.pangle.cn\` MITM 引用，同时移除三个无关的涨乐财富通主机。
+- 增加集成回归测试：保留真实的 `foo.pangle.cn` MITM 引用，同时移除三个无关的涨乐财富通主机。
 - 不修改穿山甲规则、广告动作或其他 MITM 声明；其他无法安全解析的 HTTPS matcher 仍 fail-closed。
-- 正式验收以同步日志和生产 \`allAdRewrite.plugin\` 为准。
+- 正式验收以同步日志和生产 `allAdRewrite.plugin` 为准。
 
 
 ## 第七阶段第十五批：识别字符类开头的字面右方括号
@@ -330,8 +330,8 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 
 ## 第七阶段第三十六批：增加兼容旧版 JSON 的标准化自动诊断视图
 
-- 第三十五批已统一 Markdown 报告展示，但 JSON 为兼容既有消费者仍保留 \`review_priority\`、\`high_review\` 等历史字段；新消费者若直接读取这些字段，仍可能把诊断误解为用户待办。
-- 在深度审计 JSON 中新增版本化的 \`automated_diagnostics\` 视图，统一使用 \`diagnostic_priority\`、\`high/medium/warning/none\` 和 \`_diagnostic\` 分类；同时提供标准化候选分组与数量摘要。
+- 第三十五批已统一 Markdown 报告展示，但 JSON 为兼容既有消费者仍保留 `review_priority`、`high_review` 等历史字段；新消费者若直接读取这些字段，仍可能把诊断误解为用户待办。
+- 在深度审计 JSON 中新增版本化的 `automated_diagnostics` 视图，统一使用 `diagnostic_priority`、`high/medium/warning/none` 和 `_diagnostic` 分类；同时提供标准化候选分组与数量摘要。
 - 原有 JSON 顶层字段、历史 key 和原始值全部保持不变；新视图为纯附加字段，避免破坏旧消费者。
 - 新增单元测试，验证旧字段未被修改、新视图版本稳定，且新视图不泄漏历史人工复核术语。
 - 本批只修改深度审计 JSON 展示层、测试和文档，不修改任何生产 Rewrite、Script、Rule、MITM hostname、动作、优先级或插件输出。
