@@ -513,7 +513,7 @@ hostname = *.example.test
 
     def test_unknown_action_is_high_priority_semantic_review_candidate(self):
         fixture = '''[Rewrite]
-^https://api.example.com/ad future-action value
+request if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/ad$/ then future-action value
 '''
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / 'unknown-action.plugin'
@@ -524,8 +524,8 @@ hostname = *.example.test
         self.assertEqual(report['summary']['rewrite_action_semantic_review_candidates'], 1)
         candidate = report['rewrite_action_semantic_review_candidates'][0]
         self.assertEqual(candidate['action_families'], ['unknown'])
-        self.assertEqual(candidate['review_priority'], 'high_review')
-        self.assertIn('无法识别', candidate['reasons'][0])
+        self.assertEqual(candidate['review_priority'], 'automated_warning')
+        self.assertIn('不要求用户人工处理', candidate['reasons'][0])
 
 
 
