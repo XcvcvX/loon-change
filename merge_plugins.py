@@ -1304,6 +1304,10 @@ _AD_IMAGE_EXTENSION_TARGETS = (
         'name': '返利网开屏图片',
         'prefix': r'^https?://l[0-9]{1}\.51fanli\.net/app/images/splash/2022/',
     },
+    {
+        'name': '广发银行移动端开屏图片',
+        'prefix': r'^https?://mbank\.grcbank\.com/ydyh/resources/startpage/',
+    },
 )
 _AD_IMAGE_EXTENSION_VARIANTS = (
     ('.*.(?:jpg|png)', r'.*\.(?:jpg|png)'),
