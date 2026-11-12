@@ -79,7 +79,7 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 ## 安全边界
 
 - 校验器只报告问题，不自动删改广告规则、QUIC 规则或 MITM hostname，避免静态工具造成漏拦截或 App 故障。
-- 全局 UDP/443 拦截可能影响 HTTP/3/QUIC。是否移除应结合实际网络和 App 测试决定；本次不会擅自改变用户已有规则。
+- 不允许无域名/应用范围限制的全局 UDP/443 REJECT：它会直接切断部分 DIRECT 网络路径；只保留有明确广告主机或 App 范围的 QUIC 拦截，并通过来源追溯记录安全排除。
 - MITM hostname 检查覆盖格式、重复、已知必需主机；复杂 URL 正则的 MITM 覆盖关系仍需 Loon 日志和真实设备验证。
 - 正则使用 Loon/ICU 语法，Python re 编译只作辅助提示，不能代替 Loon 解析器。
 
@@ -379,3 +379,13 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 同步修正仓库内独立转换产物，并加入本地 fixture 回归测试，覆盖 .98/.99 拒绝规则、.90 保留、.98 DIRECT 保留及其他网段保留。
 - 更新 PR CI 路径触发和测试清单，避免转换器或回归测试变更绕过自动验证。
 - 本批不修改 `allAdRewrite.plugin` 的现有规则、MITM、优先级或其他广告拦截范围。
+
+
+## 第八阶段第四批：移除破坏 DIRECT 连通性的全局 UDP/443 拒绝
+
+- 生产插件审计确认存在无域名、无应用范围限制的 `AND,((PROTOCOL,UDP),(DEST-PORT,443)),REJECT`。
+- 用户实测该规则导致 DIRECT 无法上网，而代理节点可正常上网；这属于真实网络故障，不再仅作为 QUIC 兼容性警告处理。
+- 在统一 Rule 合并入口精确排除此条全局拒绝规则，并在 `rule-provenance.json` 中记录原始来源、输入行及安全排除原因。
+- 保留所有带 DOMAIN / DOMAIN-SUFFIX 等明确目标范围的 UDP/443 或 QUIC 拦截规则；不改其他 Rule、MITM、Rewrite、Script 或优先级。
+- 增加集成回归测试：全局 UDP/443 REJECT 不进入正式产物，域名限定的 QUIC REJECT 和非 REJECT 动作继续保留。
+- 通过完整 CI、来源追溯和深度审计后再合并；生产同步后再次确认最终插件不含该全局拒绝规则。
