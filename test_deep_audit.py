@@ -492,5 +492,25 @@ hostname = *.example.test
 
 
 
+    def test_action_classifier_keeps_unknown_pipeline_stage_with_known_action(self):
+        from deep_audit import classify_rewrite_action
+
+        self.assertEqual(
+            classify_rewrite_action('response-header-del Content-MD5 | future-action value'),
+            {'families': ['header_rewrite', 'unknown'],
+             'operations': ['future-action', 'response-header-del']}
+        )
+
+    def test_action_classifier_keeps_known_pipeline_stage_with_unknown_first_action(self):
+        from deep_audit import classify_rewrite_action
+
+        self.assertEqual(
+            classify_rewrite_action('future-action value | reject'),
+            {'families': ['block', 'unknown'],
+             'operations': ['future-action', 'reject']}
+        )
+
+
+
 if __name__ == '__main__':
     unittest.main()
