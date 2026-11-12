@@ -152,7 +152,7 @@ class MergeIntegrationTests(unittest.TestCase):
             "[Rewrite]\n"
             r"^https://.*\.baidu\.com.*ad/.* reject-200" + "\n"
             r"^https://.*\.vlion\.cn/.+ reject-200" + "\n"
-            r"^https://.*\.vlion\.cn/.+ reject-200" + "\n"
+            r"^https://.*\.advlion\.com/.+ reject-200" + "\n"
             "[MITM]\nhostname = pan.baidu.com, *.vlion.cn, *.advlion.com\n"
         )
         output, report = self.run_merge(
