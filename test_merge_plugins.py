@@ -471,6 +471,48 @@ hostname = *.amap.com
 
 
 
+    def test_dili_daily_selection_response_matcher_escapes_hostname_dots(self):
+        empty = "[Rewrite]\\n[Script]\\n[MITM]\\nhostname = \\n"
+        response_rule = (
+            r"response if ${url} ~= /http:\\/\\/dili.sqcosmos.com"
+            r"\\/jiekou\\/mains\\/p\\d+.html/ then "
+            'response.json.jq(`.album |= map(select(.id != "4154" and .id != "4165"))`)'
+        )
+        extra = (
+            "[Rewrite]\\n" + response_rule + "\\n"
+            + "[Script]\\n[MITM]\\nhostname = dili.sqcosmos.com\\n"
+        )
+        output, report = self.run_merge(empty, extra, return_provenance=True)
+        line = next(row for row in output.splitlines()
+                    if row.startswith("response if") and "/mains/" in row)
+        self.assertIn(r"dili\\.sqcosmos\\.com", line)
+        self.assertIn('response.json.jq(`.album |= map(select(.id != "4154" and .id != "4165"))`)', line)
+        matcher = re.search(r"~= /(.*)/ then ", line).group(1).replace(r"\\/", "/")
+        self.assertRegex("http://dili.sqcosmos.com/jiekou/mains/p123.html", matcher)
+        self.assertNotRegex("http://diliXsqcosmosYcom/jiekou/mains/p123.html", matcher)
+        adjustments = [
+            item for item in report["scope_adjustments"]
+            if "daily-selection response matcher" in item.get("reason", "")
+        ]
+        self.assertEqual(len(adjustments), 1)
+        self.assertEqual(adjustments[0]["source"], "block")
+        self.assertEqual(adjustments[0]["original_line"], response_rule)
+        self.assertEqual(adjustments[0]["output_line"], line)
+
+    def test_dili_daily_selection_action_drift_fails_closed(self):
+        empty = "[Rewrite]\\n[Script]\\n[MITM]\\nhostname = \\n"
+        changed_rule = (
+            r"response if ${url} ~= /http:\\/\\/dili.sqcosmos.com"
+            r"\\/jiekou\\/mains\\/p\\d+.html/ then "
+            'response.json.jq(`.album |= map(select(.id != "9999"))`)'
+        )
+        extra = (
+            "[Rewrite]\\n" + changed_rule + "\\n"
+            + "[Script]\\n[MITM]\\nhostname = dili.sqcosmos.com\\n"
+        )
+        failure = self.run_merge(empty, extra, expect_failure=True)
+        self.assertIn("广告接口动作已变化", failure)
+
     def test_qidian_magev6_ad_matchers_escape_literal_hostname_dots(self):
         qidian_paths = (
             "/argus/api/v1/client/iosad",
