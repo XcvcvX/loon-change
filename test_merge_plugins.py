@@ -117,7 +117,7 @@ class MergeIntegrationTests(unittest.TestCase):
         extra = "[Rewrite]\n# > omofun\n# hostname = 103.91.210.141\n" + source_line + "\n[MITM]\nhostname = \n"
         output, provenance = self.run_merge(base, extra, return_provenance=True)
         line = next(line for line in output.splitlines() if "xgapp.php" in line)
-        matcher = re.compile(line.split(" ~= ", 1)[1].split(" then ", 1)[0].strip("/"))
+        matcher = re.compile(line.split(" ~= ", 1)[1].split(" then ", 1)[0].strip().strip("/"))
         for url in (
             "https://103.91.210.141:2515/xgapp.php/v2/top_notice",
             "https://103.91.210.141:2515/xgapp.php/v2/top_notice?channel=home",
