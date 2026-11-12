@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-12 07:26 UTC
+#!merged-at=2026-11-12 07:32 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -6482,7 +6482,7 @@ response if ${url} ~= /^https?:\/\/api\.fenxianglife\.com\/njia\/index\/popup\/v
 ^https:\/\/heic\.alicdn\.com\/imgextra\/i\d\/[A-Za-z0-9_!]+-\d+-tps-\d+-\d+\.jpg_\d+x\d*q\d+\.jpg_\.heic$ reject-dict
 ^https:\/\/heic\.alicdn\.com\/imgextra\/i\d\/\d*\/?[\w!]+-\d-(?:octopus|tps)-(?:1080|1125)-\d{4}\.(?:jpg|png)_(?:1\d{3}|9\d{2})x(?:\d|1\d{3}|9\d{2})q[59]0 reject-dict
 ^https?:\/\/gw\.alicdn\.com\/imgextra\/i\d+\/[^\/]+_!!\d+-\d+-tps-(720-1280|1080-1920|1125-1602|1242-2208)\.(jpg|png|jpeg)_[^\/]+\.webp reject-dict
-^http:\/\/[\d\.:]*\/?(defaultts\.tc|vmind\.qqvideo\.tc|finderpdd\.video)\.qq\.com\/\w+ reject
+^http:\/\/(?:(?:(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)(?::\d+)?)?\/?(defaultts\.tc|vmind\.qqvideo\.tc|finderpdd\.video)\.qq\.com\/\w+ reject
 ^https?:\/\/appactive\.1234567\.com\.cn\/AppoperationApi\/OperationService\/GetAppStartImg response-body-json-jq '.datas = []'
 ^https?:\/\/appconfig2\.1234567\.com\.cn\/config\/GetAppHome(?:\?.*)?$ response-body-json-jq '. as $o | try ((.datas.SpecialModules |= map(select((.ModuldType? // 0) != 94 and (.ModuldType? // 0) != 85005))) | (.datas.Modules |= map(select((.ModuleCode? // "") != "HeadSudokuProduct")))) catch $o'
 ^https?:\/\/appconfig2\.1234567\.com\.cn\/config\/GetAppHome(?:\?.*)?$ response-header-del Content-MD5 ETag Last-Modified

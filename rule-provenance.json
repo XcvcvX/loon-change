@@ -529,6 +529,16 @@
       "reason": "Limit fallback CDN matcher to y.gtimg.cn and music.y.qq.com, the two hosts explicitly declared by the dedicated QQ音乐 MITM source; retain the separate IPv4 rule",
       "original_line": "^https?:\\/\\/.+?\\/music\\/common\\/upload\\/t_splash_info\\/ reject",
       "output_line": "^https?:\\/\\/(?:y\\.gtimg\\.cn|music\\.y\\.qq\\.com)\\/music\\/common\\/upload\\/t_splash_info\\/ reject"
+    },
+    {
+      "source": "thelong",
+      "source_file": "tencentvideo_splash_ad_block.plugin",
+      "source_entry_index": 149,
+      "source_line_number": 93,
+      "section": "Rewrite",
+      "reason": "The upstream Tencent Video plugin documents this HTTP ad-segment form as IP:port / ad-domain / segment. Restrict its optional numeric prefix to a valid IPv4 address with an optional numeric port; preserve the optional prefix, HTTP scheme, three ad-domain alternatives, path, and reject action.",
+      "original_line": "^http:\\/\\/[\\d\\.:]*\\/?(defaultts\\.tc|vmind\\.qqvideo\\.tc|finderpdd\\.video)\\.qq\\.com\\/\\w+ reject",
+      "output_line": "^http:\\/\\/(?:(?:(?:25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\.){3}(?:25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)(?::\\d+)?)?\\/?(defaultts\\.tc|vmind\\.qqvideo\\.tc|finderpdd\\.video)\\.qq\\.com\\/\\w+ reject"
     }
   ],
   "rule_scope_adjustments": [
@@ -54974,15 +54984,15 @@
     {
       "section": "Rewrite",
       "output_entry_index": 2883,
-      "output_line": "^http:\\/\\/[\\d\\.:]*\\/?(defaultts\\.tc|vmind\\.qqvideo\\.tc|finderpdd\\.video)\\.qq\\.com\\/\\w+ reject",
-      "canonical_key": "('guarded', '^http://[\\\\d\\\\.:]*/?(defaultts\\\\.tc|vmind\\\\.qqvideo\\\\.tc|finderpdd\\\\.video)\\\\.qq\\\\.com/\\\\w+', ('REJECT', 'reject', 'reject(404)'))",
+      "output_line": "^http:\\/\\/(?:(?:(?:25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\.){3}(?:25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)(?::\\d+)?)?\\/?(defaultts\\.tc|vmind\\.qqvideo\\.tc|finderpdd\\.video)\\.qq\\.com\\/\\w+ reject",
+      "canonical_key": "('guarded', '^http://(?:(?:(?:25[0-5]|2[0-4]\\\\d|1\\\\d{2}|[1-9]?\\\\d)\\\\.){3}(?:25[0-5]|2[0-4]\\\\d|1\\\\d{2}|[1-9]?\\\\d)(?::\\\\d+)?)?/?(defaultts\\\\.tc|vmind\\\\.qqvideo\\\\.tc|finderpdd\\\\.video)\\\\.qq\\\\.com/\\\\w+', ('REJECT', 'reject', 'reject(404)'))",
       "sources": [
         {
           "source": "thelong",
           "priority": 3,
           "source_entry_index": 149,
           "input_section": "Rewrite",
-          "input_line": "^http:\\/\\/[\\d\\.:]*\\/?(defaultts\\.tc|vmind\\.qqvideo\\.tc|finderpdd\\.video)\\.qq\\.com\\/\\w+ reject",
+          "input_line": "^http:\\/\\/(?:(?:(?:25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\.){3}(?:25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)(?::\\d+)?)?\\/?(defaultts\\.tc|vmind\\.qqvideo\\.tc|finderpdd\\.video)\\.qq\\.com\\/\\w+ reject",
           "source_file": "tencentvideo_splash_ad_block.plugin",
           "source_line_number": 93,
           "source_raw_line": "^http:\\/\\/[\\d\\.:]*\\/?(defaultts\\.tc|vmind\\.qqvideo\\.tc|finderpdd\\.video)\\.qq\\.com\\/\\w+ reject",

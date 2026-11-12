@@ -2,8 +2,8 @@
   "change_counts": {
     "rewrite": {
       "action_changed": 0,
-      "added": 2,
-      "removed": 2
+      "added": 1,
+      "removed": 1
     },
     "rule": {
       "action_changed": 0,
@@ -19,10 +19,10 @@
   "events": [
     {
       "after": {
-        "line": "^https?:\\/\\/((25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\.){3}(25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\/odin\\/c\\d\\/(channel\\/ads|skin\\/config)\\? reject-dict",
+        "line": "^http:\\/\\/(?:(?:(?:25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\.){3}(?:25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)(?::\\d+)?)?\\/?(defaultts\\.tc|vmind\\.qqvideo\\.tc|finderpdd\\.video)\\.qq\\.com\\/\\w+ reject",
         "section": "rewrite",
         "sources": [
-          "base"
+          "thelong"
         ]
       },
       "before": null,
@@ -32,40 +32,19 @@
       "section": "rewrite",
       "semantic_duplicate_coverage": null,
       "source_scores": {
-        "base": 0
+        "thelong": 0
       },
       "sources": [
-        "base"
-      ]
-    },
-    {
-      "after": {
-        "line": "request if ${url} ~= /^https?:\\/\\/((25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\.){3}(25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\/odin\\/c1\\/(channel\\/ads|skin\\/config)\\?/ then reject_dict(200)",
-        "section": "rewrite",
-        "sources": [
-          "block"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "rewrite",
-      "semantic_duplicate_coverage": null,
-      "source_scores": {
-        "block": 0
-      },
-      "sources": [
-        "block"
+        "thelong"
       ]
     },
     {
       "after": null,
       "before": {
-        "line": "^https?:\\/\\/[\\d\\.]+\\/odin\\/c\\d\\/(channel\\/ads|skin\\/config)\\? reject-dict",
+        "line": "^http:\\/\\/[\\d\\.:]*\\/?(defaultts\\.tc|vmind\\.qqvideo\\.tc|finderpdd\\.video)\\.qq\\.com\\/\\w+ reject",
         "section": "rewrite",
         "sources": [
-          "base"
+          "thelong"
         ]
       },
       "change_type": "removed",
@@ -74,41 +53,20 @@
       "section": "rewrite",
       "semantic_duplicate_coverage": null,
       "source_scores": {
-        "base": 0
+        "thelong": 0
       },
       "sources": [
-        "base"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "request if ${url} ~= /^https?:\\/\\/[\\d\\.]+\\/odin\\/c1\\/(channel\\/ads|skin\\/config)\\?/ then reject_dict(200)",
-        "section": "rewrite",
-        "sources": [
-          "block"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "rewrite",
-      "semantic_duplicate_coverage": null,
-      "source_scores": {
-        "block": 0
-      },
-      "sources": [
-        "block"
+        "thelong"
       ]
     }
   ],
   "overall_risk": "high",
   "risk_counts": {
-    "high": 2,
+    "high": 1,
     "low": 0,
-    "medium": 2
+    "medium": 1
   },
-  "run_id": "43175181084",
+  "run_id": "43175930557",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -123,12 +81,6 @@
   "source_health_status": "pass",
   "source_health_warnings": [],
   "source_trends_last_30_snapshots": {
-    "aoomee": {
-      "action_changed": 0,
-      "added": 0,
-      "removed": 2,
-      "snapshots_seen": 1
-    },
     "base": {
       "action_changed": 0,
       "added": 6,
@@ -149,7 +101,7 @@
     },
     "thelong": {
       "action_changed": 0,
-      "added": 4,
+      "added": 5,
       "removed": 4,
       "snapshots_seen": 4
     },
