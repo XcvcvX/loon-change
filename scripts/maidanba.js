@@ -41,12 +41,21 @@ function imageSize(b) {
       i+=len;
     }
   }
-  // WebP VP8X
+  // WebP VP8X / VP8L / VP8
   if (b.length>=30 && b[0]===82 && b[1]===73 && b[2]===70 && b[3]===70 &&
-      b[8]===87 && b[9]===69 && b[10]===66 && b[11]===80 &&
-      String.fromCharCode(b[12],b[13],b[14],b[15])==="VP8X") {
-    const u24=i=>b[i]+(b[i+1]<<8)+(b[i+2]<<16)+1;
-    return {format:"WebP", width:u24(24), height:u24(27)};
+      b[8]===87 && b[9]===69 && b[10]===66 && b[11]===80) {
+    const type=String.fromCharCode(b[12],b[13],b[14],b[15]);
+    if (type==="VP8X") {
+      const u24=i=>b[i]+(b[i+1]<<8)+(b[i+2]<<16)+1;
+      return {format:"WebP", width:u24(24), height:u24(27)};
+    }
+    if (type==="VP8L" && b.length>=25 && b[20]===0x2F) {
+      const bits=(b[21]|(b[22]<<8)|(b[23]<<16)|(b[24]<<24))>>>0;
+      return {format:"WebP", width:(bits&0x3FFF)+1, height:((bits>>>14)&0x3FFF)+1};
+    }
+    if (type==="VP8 " && b.length>=30 && b[23]===0x9D && b[24]===0x01 && b[25]===0x2A) {
+      return {format:"WebP", width:(b[26]|(b[27]<<8))&0x3FFF, height:(b[28]|(b[29]<<8))&0x3FFF};
+    }
   }
   return null;
 }
