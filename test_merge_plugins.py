@@ -570,7 +570,7 @@ hostname = *.amap.com
     def test_gamersky_statistic_ad_rule_has_valid_regex_and_exact_scope(self):
         empty = "[Rewrite]\n[Script]\n[MITM]\nhostname = \n"
         rule = (
-            r"request if ${url} ~= /https://.+\.gamersky\.com/v1/statisticAd/"
+            r"request if ${url} ~= /https:\/\/.+\.gamersky\.com\/v1\/statisticAd/"
             r" then reject_dict(200)"
         )
         extra = (
@@ -583,7 +583,7 @@ hostname = *.amap.com
             if line.startswith("request if") and "statisticAd" in line
         )
         self.assertIn(r"^https:\/\/", result)
-        self.assertIn(r"gamersky\.com\/v1\/statisticAd\/", result)
+        self.assertIn(r"gamersky\.com\/v1\/statisticAd(?:[/?#]|$)", result)
         matcher = re.search(r"~= /(.*)/ then ", result).group(1).replace(r"\/", "/")
         for url in (
             "https://a.gamersky.com/v1/statisticAd",
@@ -592,11 +592,11 @@ hostname = *.amap.com
         ):
             self.assertRegex(url, matcher)
         for url in (
-            "http://a.gamersky.com/v1/statisticAd/",
-            "https://gamersky.com/v1/statisticAd/",
-            "https://evilgamersky.com/v1/statisticAd/",
-            "https://a.gamersky.com.evil.test/v1/statisticAd/",
-            "https://a..gamersky.com/v1/statisticAd/",
+            "http://a.gamersky.com/v1/statisticAd",
+            "https://gamersky.com/v1/statisticAd",
+            "https://evilgamersky.com/v1/statisticAd",
+            "https://a.gamersky.com.evil.test/v1/statisticAd",
+            "https://a..gamersky.com/v1/statisticAd",
             "https://a.gamersky.com/v1/statisticAdx",
             "https://a.gamersky.com/other/statisticAd",
         ):
@@ -613,7 +613,7 @@ hostname = *.amap.com
     def test_gamersky_statistic_ad_guard_fails_closed_on_action_drift(self):
         empty = "[Rewrite]\n[Script]\n[MITM]\nhostname = \n"
         rule = (
-            r"request if ${url} ~= /https://.+\.gamersky\.com/v1/statisticAd/"
+            r"request if ${url} ~= /https:\/\/.+\.gamersky\.com\/v1\/statisticAd/"
             r" then reject(404)"
         )
         extra = (
