@@ -42,6 +42,63 @@ def _source_score(name, health):
     return int(record.get("score", 0))
 
 
+def _canonical_rule_key(line):
+    """Normalize only insignificant whitespace outside quoted Rule literals."""
+    output = []
+    quote = None
+    escaped = False
+    for char in line.strip():
+        if escaped:
+            output.append(char)
+            escaped = False
+            continue
+        if char == "\\\\":
+            output.append(char)
+            escaped = True
+            continue
+        if quote:
+            output.append(char)
+            if char == quote:
+                quote = None
+            continue
+        if char in ("'", '"', "`"):
+            quote = char
+            output.append(char)
+            continue
+        if char.isspace():
+            continue
+        output.append(char)
+    return "".join(output)
+
+
+def _rule_duplicate_coverage(row, provenance):
+    """Downgrade a removed Rule only with exact duplicate and retained-rule evidence."""
+    line = row.get("line", "").strip()
+    if not line:
+        return None
+    target = _canonical_rule_key(line)
+    events = provenance.get("rule_events", [])
+    retained = {
+        _canonical_rule_key(item.get("output_line", ""))
+        for item in events
+        if item.get("status") == "included" and item.get("output_line")
+    }
+    for event in events:
+        if event.get("status") != "duplicate_exact":
+            continue
+        original = event.get("original_input_line")
+        covered_by = event.get("duplicate_of")
+        if (isinstance(original, str) and _canonical_rule_key(original) == target
+                and isinstance(covered_by, str)
+                and _canonical_rule_key(covered_by) in retained):
+            return {
+                "covered_by": covered_by,
+                "reason": "精确来源追溯确认该 Rule 仅在引号外存在空白差异，且等价规则仍保留",
+                "source": event.get("source", "unknown"),
+            }
+    return None
+
+
 def _semantic_duplicate_coverage(row, provenance):
     """Return exact, provenance-backed coverage for a removed rewrite."""
     line = row.get("line", "").strip()
@@ -69,10 +126,11 @@ def _semantic_duplicate_coverage(row, provenance):
 
 
 def _classify_event(kind, section, row, health, provenance=None):
-    coverage = (
-        _semantic_duplicate_coverage(row, provenance or {})
-        if kind == "removed" and section == "rewrite" else None
-    )
+    coverage = None
+    if kind == "removed" and section == "rewrite":
+        coverage = _semantic_duplicate_coverage(row, provenance or {})
+    elif kind == "removed" and section == "rule":
+        coverage = _rule_duplicate_coverage(row, provenance or {})
     if kind == "action_changed":
         level = "high"
         reason = "规则动作发生变化，可能改变请求/响应处理结果"
@@ -80,7 +138,8 @@ def _classify_event(kind, section, row, health, provenance=None):
     elif kind == "removed" and coverage:
         level = "low"
         reason = (
-            "已由来源追溯证明为同动作语义重复项；保留覆盖规则："
+            ("已由来源追溯证明为同动作语义重复项；保留覆盖规则：" if section == "rewrite"
+             else "已由来源追溯证明为引号外空白差异的重复 Rule；保留规则：")
             + coverage["covered_by"]
         )
         names = _names(row)
@@ -226,6 +285,7 @@ def build_risk(diff, health, source_report, previous_history, run_id="", provena
             "Risk labels prioritize review; they do not prove a rule is wrong.",
             "Additions are medium risk by default; unverified removals and action changes are high risk.",
             "A removed Rewrite is downgraded only when exact provenance marks it as an excluded semantic duplicate and names a retained covering matcher.",
+            "A removed Rule is downgraded only when its exact source line is recorded as a whitespace-only duplicate outside quoted literals and the retained Rule is present in current provenance.",
             "Historical risk correction is limited to a known snapshot with an exact source and change-count signature; source change totals are not altered.",
             "No rule, MITM hostname, priority, or plugin output is modified.",
             "Source trend counts are bounded to the latest 30 successful snapshots.",
