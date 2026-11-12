@@ -82,9 +82,9 @@ class MergeIntegrationTests(unittest.TestCase):
         )
         result = next(
             line for line in output.splitlines()
-            if line.startswith("^https://pan\\\\.baidu\\\\.com") and "reject-200" in line
+            if line.startswith(r"^https://pan\.baidu\.com") and "reject-200" in line
         )
-        matcher = re.search(r"^(.*?)\\s+reject-200$", result).group(1)
+        matcher = re.search(r"^(.*?)\s+reject-200$", result).group(1)
         for url in (
             "https://pan.baidu.com/ad/image.jpg",
             "https://pan.baidu.com/api/v1/ad/banner.png",
@@ -104,7 +104,7 @@ class MergeIntegrationTests(unittest.TestCase):
         self.assertEqual(len(changes), 1)
         self.assertEqual(changes[0]["source"], "thelong")
         self.assertEqual(changes[0]["source_file"], "baidunetdisk_splash_ad_block.plugin")
-        self.assertEqual(changes[0]["original_line"], r"^https://.*\\.baidu\\.com.*ad/.* reject-200")
+        self.assertEqual(changes[0]["original_line"], r"^https://.*\.baidu\.com.*ad/.* reject-200")
         self.assertEqual(changes[0]["output_line"], result)
 
     def test_baidunetdisk_ad_image_guard_fails_closed_on_action_drift(self):
@@ -113,7 +113,7 @@ class MergeIntegrationTests(unittest.TestCase):
         plugin = (
             "#!name=百度网盘\n"
             "[Rewrite]\n"
-            r"^https://.*\\.baidu\\.com.*ad/.* reject-dict" + "\n"
+            r"^https://.*\.baidu\.com.*ad/.* reject-dict" + "\n"
             "[MITM]\nhostname = pan.baidu.com\n"
         )
         output = self.run_merge(
