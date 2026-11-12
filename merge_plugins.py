@@ -754,22 +754,22 @@ def escape_g1_163_madfeedback_host(rewrite_lines, source):
     adjustments = []
     for line in rewrite_lines:
         matcher = entry_regex(line)
-        normalized = matcher.replace(r'\\/', '/') if matcher else matcher
+        normalized = matcher.replace(r'\/', '/') if matcher else matcher
         if not matcher or not normalized.startswith(_G1_163_MADFEEDBACK_PREFIX):
             output.append(line)
             continue
-        if r'g1\\.163\\.com' in normalized:
+        if r'g1\.163\.com' in normalized:
             output.append(line)
             continue
         if action_key(line)[0] != 'REJECT':
             raise RuntimeError(
                 source + ' 网易 g1.163.com matcher 动作已变化，拒绝自动改写：' + line
             )
-        updated = line.replace(_G1_163_MADFEEDBACK_HOST, r'g1\\.163\\.com', 1)
+        updated = line.replace(_G1_163_MADFEEDBACK_HOST, r'g1\.163\.com', 1)
         updated_matcher = entry_regex(updated)
-        updated_normalized = updated_matcher.replace(r'\\/', '/') if updated_matcher else updated_matcher
+        updated_normalized = updated_matcher.replace(r'\/', '/') if updated_matcher else updated_matcher
         if updated_normalized != normalized.replace(
-                _G1_163_MADFEEDBACK_HOST, r'g1\\.163\\.com', 1):
+                _G1_163_MADFEEDBACK_HOST, r'g1\.163\.com', 1):
             raise RuntimeError(source + ' 网易 g1.163.com matcher 修正后语义校验失败：' + line)
         adjustments.append({
             'source': source,
