@@ -312,6 +312,20 @@
     {
       "source": "base",
       "section": "Rewrite",
+      "reason": "Escape literal dots in g1.163.com so the ad-feedback matcher cannot match lookalike hosts.",
+      "original_line": "^https?:\\/\\/g1.163.com\\/madfeedback reject",
+      "output_line": "^https?:\\/\\/g1\\.163\\.com\\/madfeedback reject"
+    },
+    {
+      "source": "block",
+      "section": "Rewrite",
+      "reason": "Escape literal dots in g1.163.com so the ad-feedback matcher cannot match lookalike hosts.",
+      "original_line": "request if ${url} ~= /^https?:\\/\\/g1.163.com\\/madfeedback/ then reject(404)",
+      "output_line": "request if ${url} ~= /^https?:\\/\\/g1\\.163\\.com\\/madfeedback/ then reject(404)"
+    },
+    {
+      "source": "base",
+      "section": "Rewrite",
       "reason": "Narrow the legacy R-Store ClientAdvertList matcher to the two business hosts corroborated by the dedicated blockAdsV2 hostname declaration",
       "original_line": "^https?:\\/\\/.*\\/yyting\\/advertclient\\/ClientAdvertList.action reject",
       "output_line": "^https?:\\/\\/(?:118\\.178\\.214\\.118|dapis\\.mting\\.info)\\/yyting\\/advertclient\\/ClientAdvertList.action reject"
@@ -10307,15 +10321,15 @@
     {
       "section": "Rewrite",
       "output_entry_index": 502,
-      "output_line": "^https?:\\/\\/g1.163.com\\/madfeedback reject",
-      "canonical_key": "('guarded', '^https?://g1.163.com/madfeedback', ('REJECT', 'reject', 'reject(404)'))",
+      "output_line": "^https?:\\/\\/g1\\.163\\.com\\/madfeedback reject",
+      "canonical_key": "('guarded', '^https?://g1\\\\.163\\\\.com/madfeedback', ('REJECT', 'reject', 'reject(404)'))",
       "sources": [
         {
           "source": "base",
           "priority": 4,
           "source_entry_index": 502,
           "input_section": "Rewrite",
-          "input_line": "^https?:\\/\\/g1.163.com\\/madfeedback reject",
+          "input_line": "^https?:\\/\\/g1\\.163\\.com\\/madfeedback reject",
           "disposition": "selected"
         },
         {
@@ -10323,7 +10337,7 @@
           "priority": 5,
           "source_entry_index": 1010,
           "input_section": "Rewrite",
-          "input_line": "request if ${url} ~= /^https?:\\/\\/g1.163.com\\/madfeedback/ then reject(404)",
+          "input_line": "request if ${url} ~= /^https?:\\/\\/g1\\.163\\.com\\/madfeedback/ then reject(404)",
           "disposition": "duplicate_same_semantics"
         }
       ],

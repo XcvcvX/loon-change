@@ -128,8 +128,26 @@
   "sections": {
     "rewrite": {
       "action_changed": [],
-      "added": [],
-      "removed": []
+      "added": [
+        {
+          "line": "^https?:\\/\\/g1\\.163\\.com\\/madfeedback reject",
+          "section": "rewrite",
+          "sources": [
+            "base",
+            "block"
+          ]
+        }
+      ],
+      "removed": [
+        {
+          "line": "^https?:\\/\\/g1.163.com\\/madfeedback reject",
+          "section": "rewrite",
+          "sources": [
+            "base",
+            "block"
+          ]
+        }
+      ]
     },
     "rule": {
       "action_changed": [],
@@ -145,8 +163,8 @@
   "summary": {
     "rewrite": {
       "action_changed": 0,
-      "added": 0,
-      "removed": 0
+      "added": 1,
+      "removed": 1
     },
     "rule": {
       "action_changed": 0,
@@ -158,7 +176,7 @@
       "added": 0,
       "removed": 0
     },
-    "total_changes": 0
+    "total_changes": 2
   },
   "upstream_revision_changes": []
 }
