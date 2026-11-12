@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -573,6 +574,41 @@ request if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/ad$/ then future-action
         self.assertNotIn('复核候选', rendered)
         self.assertNotIn('review_priority', rendered)
         self.assertNotIn('high_review', rendered)
+
+
+    def test_automated_diagnostics_json_is_additive_and_uses_canonical_names(self):
+        from deep_audit import build_automated_diagnostics
+
+        legacy_candidate = {
+            'line': 4, 'review_priority': 'high_review',
+            'classification': 'blocking_action_variant_review'
+        }
+        report = {
+            'summary': {
+                'rewrite_scope_review_candidates': 2,
+                'rewrite_action_semantic_review_candidates': 1,
+                'rewrite_overlap_manual_review_candidates': 3
+            },
+            'rewrite_scope_review_candidates': [{'line': 1, 'scope': 'global_like'}],
+            'rewrite_action_semantic_review_candidates': [legacy_candidate],
+            'rewrite_overlap_manual_review_candidates': [{'line': 9, 'reason': 'nested_quantifier'}],
+            'rewrite_block_action_variant_groups': [legacy_candidate],
+            'rewrite_same_family_multi_operation_groups': [],
+            'rewrite_unclassified_multi_action_groups': []
+        }
+
+        diagnostics = build_automated_diagnostics(report)
+        self.assertEqual(report['rewrite_action_semantic_review_candidates'][0], legacy_candidate)
+        self.assertEqual(diagnostics['schema_version'], 1)
+        self.assertEqual(diagnostics['summary']['rewrite_scope_diagnostics'], 2)
+        self.assertEqual(diagnostics['summary']['rewrite_action_semantic_diagnostics'], 1)
+        candidate = diagnostics['candidates']['rewrite_action_semantics'][0]
+        self.assertEqual(candidate['diagnostic_priority'], 'high')
+        self.assertEqual(candidate['classification'], 'blocking_action_variant_diagnostic')
+        serialized = json.dumps(diagnostics, ensure_ascii=False)
+        self.assertNotIn('review_priority', serialized)
+        self.assertNotIn('high_review', serialized)
+        self.assertNotIn('review_candidates', serialized)
 
 
 if __name__ == '__main__':
