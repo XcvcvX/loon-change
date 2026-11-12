@@ -1209,7 +1209,7 @@ def escape_known_ad_image_extension_delimiters(rewrite_lines, source):
     expected_action = ('REJECT', 'reject', 'reject(200)')
     for line in rewrite_lines:
         matcher = entry_regex(line)
-        normalized = matcher.replace(r'\\/', '/') if matcher else matcher
+        normalized = matcher.replace(r'\/', '/') if matcher else matcher
         target = next(
             (item for item in _AD_IMAGE_EXTENSION_TARGETS
              if normalized and normalized.startswith(item['prefix'])),
@@ -1235,7 +1235,7 @@ def escape_known_ad_image_extension_delimiters(rewrite_lines, source):
             updated = line.replace(raw, escaped, 1)
             updated_matcher = entry_regex(updated)
             updated_normalized = (
-                updated_matcher.replace(r'\\/', '/') if updated_matcher else updated_matcher
+                updated_matcher.replace(r'\/', '/') if updated_matcher else updated_matcher
             )
             if updated_normalized != normalized.replace(raw, escaped, 1):
                 raise RuntimeError(
