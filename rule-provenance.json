@@ -297,6 +297,14 @@
       "output_line": "request if ${url} ~= /^https?:\\/\\/103\\.91\\.210\\.141\\:2515\\/xgapp\\.php\\/v2\\/top_notice(?:\\?|$|\\/)/ then reject(404)"
     },
     {
+      "source": "blockAdsV2",
+      "section": "Rewrite",
+      "target": "稀饭动漫 top_notice 接口路径边界",
+      "reason": "Keep the explicitly declared pzoap.moedot.net host, endpoint path and reject(404) action, but require a query, slash, or URL end after /v2/top_notice so similarly prefixed paths are not rejected.",
+      "original_line": "request if ${url} ~= /^https?:\\/\\/pzoap\\.moedot\\.net\\/xgapp\\.php\\/v2\\/top_notice/ then reject(404)",
+      "output_line": "request if ${url} ~= /^https?:\\/\\/pzoap\\.moedot\\.net\\/xgapp\\.php\\/v2\\/top_notice(?:\\?|$|\\/)/ then reject(404)"
+    },
+    {
       "source": "base",
       "source_file": "R-Store converted Rewrite",
       "source_entry_index": 626,
@@ -46610,15 +46618,15 @@
     {
       "section": "Rewrite",
       "output_entry_index": 2433,
-      "output_line": "request if ${url} ~= /^https?:\\/\\/pzoap\\.moedot\\.net\\/xgapp\\.php\\/v2\\/top_notice/ then reject(404)",
-      "canonical_key": "('guarded', '^https?://pzoap\\\\.moedot\\\\.net/xgapp\\\\.php/v2/top_notice', ('REJECT', 'reject', 'reject(404)'))",
+      "output_line": "request if ${url} ~= /^https?:\\/\\/pzoap\\.moedot\\.net\\/xgapp\\.php\\/v2\\/top_notice(?:\\?|$|\\/)/ then reject(404)",
+      "canonical_key": "('guarded', '^https?://pzoap\\\\.moedot\\\\.net/xgapp\\\\.php/v2/top_notice(?:\\\\?|$|/)', ('REJECT', 'reject', 'reject(404)'))",
       "sources": [
         {
           "source": "block",
           "priority": 5,
           "source_entry_index": 1061,
           "input_section": "Rewrite",
-          "input_line": "request if ${url} ~= /^https?:\\/\\/pzoap\\.moedot\\.net\\/xgapp\\.php\\/v2\\/top_notice/ then reject(404)",
+          "input_line": "request if ${url} ~= /^https?:\\/\\/pzoap\\.moedot\\.net\\/xgapp\\.php\\/v2\\/top_notice(?:\\?|$|\\/)/ then reject(404)",
           "disposition": "selected"
         }
       ],

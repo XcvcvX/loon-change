@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-12 08:11 UTC
+#!merged-at=2026-11-12 08:23 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -6032,7 +6032,7 @@ request if ${url} ~= /^https?:\/\/lchttpapi\.xczim\.com\/1\.1\/functions\/getLau
 request if ${url} ~= /^https:\/\/vapp\.tmuyun\.com\/api\/app_start_page\/list\/new/ then reject_dict(200)
 request if ${url} ~= /^https:\/\/vapp\.tmuyun\.com\/api\/buoy\/list/ then reject_dict(200)
 request if ${url} ~= /^https?:\/\/cstore-en-public-tx\.seewo\.com\/easinote5_public/ then reject_dict(200)
-request if ${url} ~= /^https?:\/\/pzoap\.moedot\.net\/xgapp\.php\/v2\/top_notice/ then reject(404)
+request if ${url} ~= /^https?:\/\/pzoap\.moedot\.net\/xgapp\.php\/v2\/top_notice(?:\?|$|\/)/ then reject(404)
 request if ${url} ~= /^https:\/\/(search|searchwsa)\.ximalaya\.com\/hub\/(guideWord|hotWord)V\d\// then reject_dict(200)
 response if ${url} ~= /^https:\/\/(mobile|mobilehera|mobwsa)\.ximalaya\.com\/discovery-feed\/v\d\/mix\// then response.json.jq(`.heData |= map(select(.item.list[].bizType != "SceneListenCard"))`)
 request if ${url} ~= /^https:\/\/(mobile|mobilehera|mobwsa)\.ximalaya\.com\/discovery-feed\/v\d\/scene\/listen\/refresh\?/ then reject_dict(200)

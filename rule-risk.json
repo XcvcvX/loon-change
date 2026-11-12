@@ -19,7 +19,7 @@
   "events": [
     {
       "after": {
-        "line": "request if ${url} ~= /^https?:\\/\\/103\\.91\\.210\\.141\\:2515\\/xgapp\\.php\\/v2\\/top_notice(?:\\?|$|\\/)/ then reject(404)",
+        "line": "request if ${url} ~= /^https?:\\/\\/pzoap\\.moedot\\.net\\/xgapp\\.php\\/v2\\/top_notice(?:\\?|$|\\/)/ then reject(404)",
         "section": "rewrite",
         "sources": [
           "block"
@@ -41,7 +41,7 @@
     {
       "after": null,
       "before": {
-        "line": "request if ${url} ~= /^https?:\\/\\/103\\.91\\.210\\.141\\:2515\\/xgapp\\.php\\/v2\\/top_notice/ then reject(404)",
+        "line": "request if ${url} ~= /^https?:\\/\\/pzoap\\.moedot\\.net\\/xgapp\\.php\\/v2\\/top_notice/ then reject(404)",
         "section": "rewrite",
         "sources": [
           "block"
@@ -66,7 +66,7 @@
     "low": 0,
     "medium": 1
   },
-  "run_id": "43180825529",
+  "run_id": "43182378240",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -89,9 +89,9 @@
     },
     "block": {
       "action_changed": 0,
-      "added": 21,
-      "removed": 22,
-      "snapshots_seen": 13
+      "added": 22,
+      "removed": 23,
+      "snapshots_seen": 14
     },
     "filter": {
       "action_changed": 0,
