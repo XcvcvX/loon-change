@@ -421,3 +421,11 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 本批仅合并 Rewrite 区块中相邻（允许中间为空行）、阶段均为 response、条件文本完全相同、且所有 Action 都是 `response.json.*` 的规则；保持原 Action 顺序。
 - 不跨越其他有效 Rewrite、注释或不同条件，不合并 request、reject、mock、Header 或混合类型 Action；不能确认安全的组继续保留。
 - 增加回归测试覆盖操作顺序、不同条件不合并和覆盖幂等性。该优化只改变配置表达形式，不改变 URL 匹配范围、JSON 操作内容、MITM、Script 或 Rule。
+
+
+## 第八阶段第九批：移除 Soul 青少年配置的精确重复拦截
+
+- 深度审计在正式产物中发现 `api-account.soulapp.cn/teenager/config` 存在两条逐字符完全相同的 request `reject-dict` 规则，匹配器、阶段和动作均一致。
+- 本地覆盖仅对这条完整规则去重，保留首次出现的位置；不按域名或路径做模糊去重，也不改变任何相似规则。
+- 回归测试验证重复项只保留一条、动作不同的近似规则仍保留，并验证覆盖幂等。
+- 本批不调整 Soul 其他接口、MITM hostname、Script、Rule 或其他 App 规则。
