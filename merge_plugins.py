@@ -692,11 +692,11 @@ def prep_block_sections(rewrite_lines, script_lines):
 
 
 # 起点读书 magev6 主机：点号必须按 DNS 标签分隔符精确匹配。
-_QIDIAN_MAGEV6_TARGETS = {
-    r'^https?://magev6.if.qidian.com/argus/api/v1/client/iosad': ('REJECT', 'reject', 'reject(404)'),
-    r'^https?://magev6.if.qidian.com/argus/api/v1/bookshelf/getad': ('REJECT', 'reject', 'reject(404)'),
-    r'^https?://magev6.if.qidian.com/argus/api/v4/client/getsplashscreen?': ('REJECT', 'reject', 'reject(404)'),
-}
+_QIDIAN_MAGEV6_PATHS = (
+    '/argus/api/v1/client/iosad',
+    '/argus/api/v1/bookshelf/getad',
+    '/argus/api/v4/client/getsplashscreen?',
+)
 
 
 def escape_qidian_magev6_host(rewrite_lines, source):
@@ -705,27 +705,38 @@ def escape_qidian_magev6_host(rewrite_lines, source):
     adjustments = []
     for line in rewrite_lines:
         matcher = entry_regex(line)
-        normalized = matcher.replace(r'\\/', '/') if matcher else matcher
+        normalized = matcher.replace(r'\/', '/') if matcher else matcher
         if not matcher or 'magev6' not in normalized or '/argus/api/' not in normalized:
             output.append(line)
             continue
-        expected_action = _QIDIAN_MAGEV6_TARGETS.get(normalized)
-        if expected_action is None:
+        raw_host = 'magev6.if.qidian.com'
+        escaped_host = r'magev6\.if\.qidian\.com'
+        raw_prefix = '^https?://' + raw_host + '/argus/api/'
+        escaped_prefix = '^https?://' + escaped_host + '/argus/api/'
+        if normalized.startswith(raw_prefix):
+            host_is_escaped = False
+        elif normalized.startswith(escaped_prefix):
+            host_is_escaped = True
+        else:
             raise RuntimeError(
                 source + ' 起点读书 magev6 广告 matcher 已变化，拒绝静默放宽主机匹配：' + line
             )
-        if action_key(line) != expected_action:
+        path = normalized[len(raw_prefix if not host_is_escaped else escaped_prefix):]
+        if not any(path.startswith(target.lstrip('/')) for target in _QIDIAN_MAGEV6_PATHS):
+            raise RuntimeError(
+                source + ' 起点读书 magev6 广告路径已变化，拒绝自动改写：' + line
+            )
+        if action_key(line) != ('REJECT', 'reject', 'reject(404)'):
             raise RuntimeError(
                 source + ' 起点读书 magev6 广告动作已变化，拒绝自动改写：' + line
             )
-        if r'magev6\\.if\\.qidian\\.com' in line:
+        if host_is_escaped:
             output.append(line)
             continue
-        if 'magev6.if.qidian.com' not in line:
-            raise RuntimeError(source + ' 起点读书 magev6 主机表达式无法安全识别：' + line)
-        updated = line.replace('magev6.if.qidian.com', r'magev6\\.if\\.qidian\\.com', 1)
-        if entry_regex(updated).replace(r'\\/', '/') != normalized.replace(
-                'magev6.if.qidian.com', r'magev6\\.if\\.qidian\\.com', 1):
+        updated = line.replace(raw_host, escaped_host, 1)
+        updated_matcher = entry_regex(updated)
+        updated_normalized = updated_matcher.replace(r'\/', '/') if updated_matcher else updated_matcher
+        if updated_normalized != normalized.replace(raw_host, escaped_host, 1):
             raise RuntimeError(source + ' 起点读书 magev6 matcher 修正后语义校验失败：' + line)
         adjustments.append({
             'source': source,
