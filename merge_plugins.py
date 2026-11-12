@@ -810,6 +810,50 @@ def escape_targeted_ad_hosts(rewrite_lines, source):
     return output, adjustments
 
 
+def narrow_gamersky_list_response_host(rewrite_lines, source):
+    """将游民星空列表广告响应过滤限制到合法子域名与明确接口路径。"""
+    output = []
+    adjustments = []
+    original = (
+        r'response if ${url} ~= /http:\/\/.+\.gamersky.com\/.+\/lists\/getListElements/ '
+        r'then response.json.jq(\`.listElements |= map(select(has("adCategory") | not))\`)'
+    )
+    narrowed = (
+        r'response if ${url} ~= /^http:\/\/(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}'
+        r'[A-Za-z0-9])?\.)+gamersky\.com\/.+\/lists\/getListElements(?:\/|\?|#|$)/ '
+        r'then response.json.jq(\`.listElements |= map(select(has("adCategory") | not))\`)'
+    )
+    for line in rewrite_lines:
+        if 'gamersky' not in line or 'getListElements' not in line:
+            output.append(line)
+            continue
+        if line != original:
+            raise RuntimeError(
+                source + ' 游民星空列表广告响应规则范围或过滤动作已变化，拒绝自动改写：' + line
+            )
+        updated_matcher = entry_regex(narrowed)
+        updated_normalized = updated_matcher.replace(r'\/', '/') if updated_matcher else updated_matcher
+        expected = (
+            r'^http://(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+'
+            r'gamersky\.com/.+/lists/getListElements(?:/|\?|#|$)'
+        )
+        if updated_normalized != expected:
+            raise RuntimeError(source + ' 游民星空列表广告响应 matcher 收敛后校验失败：' + line)
+        adjustments.append({
+            'source': source,
+            'section': 'Rewrite',
+            'reason': (
+                'Constrain the Gamersky list-ad response filter to valid declared subdomains, '
+                'a literal gamersky.com suffix, and the explicit getListElements endpoint; '
+                'preserve the original HTTP scheme and JSON adCategory filter.'
+            ),
+            'original_line': line,
+            'output_line': narrowed,
+        })
+        output.append(narrowed)
+    return output, adjustments
+
+
 def narrow_gamersky_statistic_ad_host(rewrite_lines, source):
     """将游民星空 statisticAd 规则锚定到合法子域名与明确接口路径。"""
     output = []
@@ -1376,6 +1420,8 @@ block_rw, gamersky_block_adjustments = narrow_gamersky_ad_system_host(
     block_rw, 'block')
 block_rw, gamersky_statistic_block_adjustments = narrow_gamersky_statistic_ad_host(
     block_rw, 'block')
+block_rw, gamersky_list_block_adjustments = narrow_gamersky_list_response_host(
+    block_rw, 'block')
 _ZHANGLE_BLOCK_RULES = {
     r'^https?://c\.zhangle\.com/pic/mktg/diversity/.+\.jpg$': (r'request if ${url} ~= /^https?:\/\/c\.zhangle\.com\/pic\/mktg\/diversity\/.+\.jpg$/ then reject_dict(200)', ('REJECT', 'reject_dict', 'reject_dict(200)'), 'reject_dict(200)'),
     r'^https?://live\.inst-service\.htsc\.com/live': (r'request if ${url} ~= /^https?:\/\/live\.inst-service\.htsc\.com\/live/ then reject_dict(200)', ('REJECT', 'reject_dict', 'reject_dict(200)'), 'reject_dict(200)'),
@@ -1455,6 +1501,7 @@ block_scope_adjustments.extend(peopleapp_base_adjustments)
 block_scope_adjustments.extend(peopleapp_block_adjustments)
 block_scope_adjustments.extend(gamersky_block_adjustments)
 block_scope_adjustments.extend(gamersky_statistic_block_adjustments)
+block_scope_adjustments.extend(gamersky_list_block_adjustments)
 block_scope_adjustments.extend(g1_163_block_adjustments)
 block_scope_adjustments.extend(targeted_ad_host_adjustments)
 lanrentingshu_source_present = validate_lanrentingshu_source(extra_text)

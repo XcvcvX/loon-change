@@ -567,6 +567,65 @@ hostname = *.amap.com
                 self.assertEqual(adjustments[0]["original_line"], rule)
                 self.assertEqual(adjustments[0]["output_line"], result)
 
+    def test_gamersky_list_response_filter_has_exact_host_and_path_scope(self):
+        empty = "[Rewrite]\n[Script]\n[MITM]\nhostname = \n"
+        rule = (
+            r'response if ${url} ~= /http:\/\/.+\.gamersky.com\/.+\/lists\/getListElements/ '
+            r'then response.json.jq(\`.listElements |= map(select(has("adCategory") | not))\`)'
+        )
+        extra = (
+            "[Rewrite]\n" + rule + "\n"
+            + "[MITM]\nhostname = api.gamersky.com\n"
+        )
+        output, report = self.run_merge(empty, extra, return_provenance=True)
+        result = next(
+            line for line in output.splitlines()
+            if line.startswith("response if") and "getListElements" in line
+        )
+        self.assertIn(r"^http:\/\/", result)
+        self.assertIn(r"gamersky\.com\/.+\/lists\/getListElements(?:\/|\?|#|$)", result)
+        self.assertIn('response.json.jq(\`.listElements |= map(select(has("adCategory") | not))\`)', result)
+        matcher = re.search(r"~= /(.*)/ then ", result).group(1).replace(r"\/", "/")
+        for url in (
+            "http://a.gamersky.com/api/v1/lists/getListElements",
+            "http://a-b.gamersky.com/api/v1/lists/getListElements?channel=app",
+            "http://a.b.gamersky.com/api/v1/lists/getListElements/items",
+        ):
+            self.assertRegex(url, matcher)
+        for url in (
+            "https://a.gamersky.com/api/v1/lists/getListElements",
+            "http://gamersky.com/api/v1/lists/getListElements",
+            "http://evilgamersky.com/api/v1/lists/getListElements",
+            "http://a.gamerskyXcom/api/v1/lists/getListElements",
+            "http://a.gamersky.com.evil.test/api/v1/lists/getListElements",
+            "http://a..gamersky.com/api/v1/lists/getListElements",
+            "http://a.gamersky.com/api/v1/lists/getListElementsExtra",
+        ):
+            self.assertNotRegex(url, matcher)
+        changes = [
+            item for item in report["scope_adjustments"]
+            if "Gamersky list-ad response filter" in item.get("reason", "")
+        ]
+        self.assertEqual(len(changes), 1)
+        self.assertEqual(changes[0]["source"], "block")
+        self.assertEqual(changes[0]["original_line"], rule)
+        self.assertEqual(changes[0]["output_line"], result)
+
+    def test_gamersky_list_response_guard_fails_closed_on_source_drift(self):
+        empty = "[Rewrite]\n[Script]\n[MITM]\nhostname = \n"
+        rule = (
+            r'response if ${url} ~= /http:\/\/.+\.gamersky.com\/.+\/lists\/getListElements/ '
+            r'then response.json.jq(\`.listElements |= map(select(has("adCategory") | not))\`)'
+        )
+        changed = rule.replace('has("adCategory")', 'has("sponsored")')
+        extra = (
+            "[Rewrite]\n" + changed + "\n"
+            + "[MITM]\nhostname = api.gamersky.com\n"
+        )
+        output = self.run_merge(empty, extra, expect_failure=True)
+        self.assertIn("游民星空列表广告响应规则范围或过滤动作已变化", output)
+
+
     def test_gamersky_statistic_ad_rule_has_valid_regex_and_exact_scope(self):
         empty = "[Rewrite]\n[Script]\n[MITM]\nhostname = \n"
         rule = (
