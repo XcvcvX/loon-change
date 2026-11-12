@@ -71,6 +71,8 @@ class MergeIntegrationTests(unittest.TestCase):
         extra = "[Rewrite]\n[MITM]\nhostname = \n"
         plugin = (
             "#!name=百度网盘\n"
+            "[Rule]\n"
+            "AND,((DOMAIN-SUFFIX,advlion.cn),(PROTOCOL,QUIC)),REJECT\\n"
             "[Rewrite]\n"
             r"^https://.*\.baidu\.com.*ad/.* reject-200" + "\n"
             r"^https://.*\.vlion\.cn/.+ reject-200" + "\n"
@@ -135,6 +137,8 @@ class MergeIntegrationTests(unittest.TestCase):
             "[Rule]\n"
             + cn_rule + "\n"
             + "[Rewrite]\n"
+            + r"^https://.*\\.baidu\\.com.*ad/.* reject-200" + "\\n"
+            
             + r"^https://pan\.baidu\.com/buy/ad/conf reject-dict" + "\n"
             + r"^https://.*\.vlion\.cn/.+ reject-200" + "\n"
             + r"^https://.*\.advlion\.com/.+ reject-200" + "\n"
@@ -182,6 +186,8 @@ class MergeIntegrationTests(unittest.TestCase):
             "#!name=百度网盘\n"
             "[Rule]\n" + cn_rule + "\n" + com_rule + "\n"
             "[Rewrite]\n"
+            + r"^https://.*\\.baidu\\.com.*ad/.* reject-200" + "\\n"
+            
             + r"^https://pan\.baidu\.com/buy/ad/conf reject-dict" + "\n"
             + "[MITM]\nhostname = pan.baidu.com, *.advlion.com\n"
         )
@@ -200,6 +206,8 @@ class MergeIntegrationTests(unittest.TestCase):
             "[Rule]\n"
             "AND,((DOMAIN-SUFFIX,advlion.cn),(PROTOCOL,QUIC)),REJECT\n"
             "[Rewrite]\n"
+            + r"^https://.*\\.baidu\\.com.*ad/.* reject-200" + "\\n"
+            
             + r"^https://pan\.baidu\.com/buy/ad/conf reject-dict" + "\n"
             "[MITM]\nhostname = pan.baidu.com, *.vlion.cn\n"
         )
@@ -218,6 +226,8 @@ class MergeIntegrationTests(unittest.TestCase):
             "[Rule]\n"
             "AND,((DOMAIN-SUFFIX,advlion.cn),(PROTOCOL,QUIC)),DIRECT\n"
             "[Rewrite]\n"
+            + r"^https://.*\\.baidu\\.com.*ad/.* reject-200" + "\\n"
+            
             + r"^https://pan\.baidu\.com/buy/ad/conf reject-dict" + "\n"
             "[MITM]\nhostname = pan.baidu.com, *.advlion.com\n"
         )
@@ -234,6 +244,8 @@ class MergeIntegrationTests(unittest.TestCase):
         extra = "[Rewrite]\n[MITM]\nhostname = \n"
         plugin = (
             "#!name=百度网盘\n"
+            "[Rule]\n"
+            "AND,((DOMAIN-SUFFIX,advlion.cn),(PROTOCOL,QUIC)),REJECT\\n"
             "[Rewrite]\n"
             r"^https://.*\.baidu\.com.*ad/.* reject-200" + "\n"
             r"^https://.*\.vlion\.cn/.+ reject-dict" + "\n"
@@ -253,6 +265,8 @@ class MergeIntegrationTests(unittest.TestCase):
         extra = "[Rewrite]\n[MITM]\nhostname = \n"
         plugin = (
             "#!name=百度网盘\n"
+            "[Rule]\n"
+            "AND,((DOMAIN-SUFFIX,advlion.cn),(PROTOCOL,QUIC)),REJECT\\n"
             "[Rewrite]\n"
             r"^https://.*\.baidu\.com.*ad/.* reject-200" + "\n"
             r"^https://.*\.vlion\.cn/.+ reject-200" + "\n"
@@ -296,6 +310,8 @@ class MergeIntegrationTests(unittest.TestCase):
         extra = "[Rewrite]\n[MITM]\nhostname = \n"
         plugin = (
             "#!name=百度网盘\n"
+            "[Rule]\n"
+            "AND,((DOMAIN-SUFFIX,advlion.cn),(PROTOCOL,QUIC)),REJECT\\n"
             "[Rewrite]\n"
             r"^https://.*\.baidu\.com.*ad/.* reject-dict" + "\n"
             "[MITM]\nhostname = pan.baidu.com\n"
