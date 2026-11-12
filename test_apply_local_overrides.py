@@ -155,6 +155,44 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         result = apply(reversed_order)
         self.assertIn(PEOPLEAPP_HOME_AD_SHADOW_RULE, result)
 
+
+    def test_removes_only_later_terminal_block_action_variants(self):
+        from apply_local_overrides import SHADOWED_TERMINAL_BLOCK_RULE_PAIRS
+        expected = (
+            (r"^https:\/\/acs\.m\.taobao\.com\/gw\/mtop\.taobao\.idlecommerce\.splash\.ads reject-dict", r"^https:\/\/acs\.m\.taobao\.com\/gw\/mtop\.taobao\.idlecommerce\.splash\.ads reject-200"),
+            (r"^https:\/\/guide-acs\.m\.taobao\.com\/gw\/mtop\.taobao\.wireless\.home\.splash\.awesome\.get reject-dict", r"^https:\/\/guide-acs\.m\.taobao\.com\/gw\/mtop\.taobao\.wireless\.home\.splash\.awesome\.get reject-200"),
+            (r"^https?:\/\/(bdsp-x|dsp-x)\.jd\.com\/adx\/ reject-200", r"^https?:\/\/(bdsp-x|dsp-x)\.jd\.com\/adx\/ reject"),
+            (r"^https?:\/\/axxd\.xmseeyouyima\.com\/.*getad\? reject", r"^https?:\/\/axxd\.xmseeyouyima\.com\/.*getad\? reject-dict"),
+            (r"^https?:\/\/axxd\.xmseeyouyima\.com\/ad reject", r"^https?:\/\/axxd\.xmseeyouyima\.com\/ad reject-dict"),
+            (r"^https?:\/\/c\.m\.163\.com\/nc\/gl\/ reject", r"^https?:\/\/c\.m\.163\.com\/nc\/gl\/ reject-200"),
+            (r"^https?:\/\/cdn1\.mbs\.boc\.cn\/ubas-mgateway-static\/images\/theme\/ reject-200", r"^https?:\/\/cdn1\.mbs\.boc\.cn\/ubas-mgateway-static\/images\/theme\/ reject-dict"),
+            (r"^https?:\/\/mbs\.boc\.cn\/ubas-mgateway-static\/images\/theme\/ reject-200", r"^https?:\/\/mbs\.boc\.cn\/ubas-mgateway-static\/images\/theme\/ reject-dict"),
+            (r"^https?:\/\/support\.you\.163\.com\/xhr\/boot\/getBootMedia reject", r"^https?:\/\/support\.you\.163\.com\/xhr\/boot\/getBootMedia reject-200"),
+            (r"^https?:\/\/us\.l\.qq\.com\/exapp reject-200", r"^https?:\/\/us\.l\.qq\.com\/exapp reject"),
+            (r"^https?:\/\/x\.seeyouyima\.com\/adx\/staticstics\? reject", r"^https?:\/\/x\.seeyouyima\.com\/adx\/staticstics\? reject-200"),
+            (r"request if ${url} ~= /^https:\/\/acs\.m\.taobao\.com\/gw\/mtop\.taobao\.idle\.home\.welcome/i then reject_dict(200)", r"request if ${url} ~= /^https:\/\/acs\.m\.taobao\.com\/gw\/mtop\.taobao\.idle\.home\.welcome/i then reject(404)"),
+            (r"request if ${url} ~= /^https?:\/\/adx-cn\.anythinktech\.com\/bid/ then reject_dict(200)", r"request if ${url} ~= /^https?:\/\/adx-cn\.anythinktech\.com\/bid/ then reject(200)"),
+            (r"request if ${url} ~= /^https?:\/\/mime\.baidu\.com\/v5\/start_screen_ads\/list/ then reject(404)", r"request if ${url} ~= /^https?:\/\/mime\.baidu\.com\/v5\/start_screen_ads\/list/ then reject_dict(200)"),
+        )
+        self.assertEqual(SHADOWED_TERMINAL_BLOCK_RULE_PAIRS, expected)
+        fixture_rules = "\n".join(line for pair in expected for line in pair)
+        base = BASE.replace("[Rewrite]", "[Rewrite]\n" + fixture_rules)
+        result = apply(base)
+        rewrite = result.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
+        for guard, shadow in expected:
+            self.assertIn(guard, rewrite)
+            self.assertNotIn(shadow, {item.strip() for item in rewrite.splitlines()})
+        self.assertEqual(apply(result), result)
+
+    def test_preserves_terminal_variant_if_it_precedes_its_guard(self):
+        from apply_local_overrides import SHADOWED_TERMINAL_BLOCK_RULE_PAIRS
+        guard, shadow = SHADOWED_TERMINAL_BLOCK_RULE_PAIRS[0]
+        base = BASE.replace("[Rewrite]", "[Rewrite]\n" + shadow + "\n" + guard)
+        result = apply(base)
+        rewrite = result.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
+        self.assertIn(guard, rewrite)
+        self.assertIn(shadow, rewrite)
+
     def test_requires_bankcomm_mitm_hosts(self):
         with self.assertRaises(ValueError):
             apply(BASE.replace("creditcard.bankcomm.com, ", ""))
