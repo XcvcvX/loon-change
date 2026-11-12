@@ -919,6 +919,57 @@ def narrow_odin_numeric_host_rules(rewrite_lines, source):
     return [narrowed if line == original else line for line in rewrite_lines], adjustments
 
 
+def narrow_tencentvideo_segment_ip_prefix(rewrite_lines, source):
+    """按腾讯视频上游注释，将广告分片 URL 的可选数字前缀限制为合法 IPv4[:port]。"""
+    original = r'^http:\/\/[\d\.:]*\/?(defaultts\.tc|vmind\.qqvideo\.tc|finderpdd\.video)\.qq\.com\/\w+ reject'
+    octet = r'(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)'
+    ipv4 = r'(?:' + octet + r'\.){3}' + octet
+    narrowed = (
+        r'^http:\/\/(?:' + ipv4 + r'(?::\d+)?)?\/?'
+        r'(defaultts\.tc|vmind\.qqvideo\.tc|finderpdd\.video)\.qq\.com\/\w+ reject'
+    )
+    originals = [line for line in rewrite_lines if line == original]
+    narrowed_rows = [line for line in rewrite_lines if line == narrowed]
+    if len(originals) == 0 and len(narrowed_rows) == 1:
+        return list(rewrite_lines), []
+    if len(originals) == 0:
+        related = [
+            line for line in rewrite_lines
+            if ('defaultts' in line and 'vmind' in line and 'finderpdd' in line)
+        ]
+        if related:
+            raise RuntimeError(
+                source + ' 腾讯视频广告分片 IP matcher 范围或动作已变化，拒绝猜测改写：'
+                + repr(related)
+            )
+        return list(rewrite_lines), []
+    if len(originals) != 1 or narrowed_rows:
+        raise RuntimeError(
+            source + ' 腾讯视频广告分片 IP matcher 数量或范围异常，拒绝自动改写：'
+            + repr({'original': originals, 'narrowed': narrowed_rows})
+        )
+    matcher = entry_regex(narrowed)
+    if matcher is None:
+        raise RuntimeError(source + ' 腾讯视频广告分片 IPv4 matcher 无法解析')
+    adjustment = {
+        'source': source,
+        'source_file': 'tencentvideo_splash_ad_block.plugin',
+        'source_entry_index': 149,
+        'source_line_number': 93,
+        'section': 'Rewrite',
+        'reason': (
+            'The upstream Tencent Video plugin documents this HTTP ad-segment form as '
+            'IP:port / ad-domain / segment. Restrict its optional numeric prefix to a '
+            'valid IPv4 address with an optional numeric port; preserve the optional '
+            'prefix, HTTP scheme, three ad-domain alternatives, path, and reject action.'
+        ),
+        'original_line': original,
+        'output_line': narrowed,
+    }
+    return [narrowed if line == original else line for line in rewrite_lines], [adjustment]
+
+
+
 def narrow_baidunetdisk_cdn_subdomains(rewrite_lines, source):
     """将百度网盘广告图片 CDN 兜底规则限制到 MITM 声明的合法子域名。"""
     output = []
@@ -1964,6 +2015,10 @@ if args.apps:
                 app_rewrite_origins.append((fname, _line_number, _raw_line.strip()))
         if len(app_rewrite_origins) != len(app_rewrite_lines):
             raise RuntimeError('Thelong Rewrite source-origin alignment failed: ' + fname)
+        if fname == 'tencentvideo_splash_ad_block.plugin':
+            app_rewrite_lines, tencentvideo_segment_adjustments = narrow_tencentvideo_segment_ip_prefix(
+                app_rewrite_lines, 'thelong')
+            block_scope_adjustments.extend(tencentvideo_segment_adjustments)
         if fname == 'baidunetdisk_splash_ad_block.plugin':
             app_rewrite_lines, baidu_netdisk_adjustments = narrow_baidunetdisk_ad_image_host(
                 app_rewrite_lines, 'thelong')
