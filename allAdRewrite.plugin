@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-12 08:49 UTC
+#!merged-at=2026-11-12 08:57 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -5821,7 +5821,7 @@ request if ${url} ~= /^https?:\/\/v3\.wufazhuce\.com:8000\/api\/adpreloadlist/ t
 request if ${url} ~= /^https?:\/\/api\.21ec74\.com\/v2\.5\/ad/ then reject(404)
 request if ${url} ~= /^https?:\/\/slapi\.oray\.net\/client\/ad/ then reject(404)
 request if ${url} ~= /^https?:\/\/slapi\.oray\.net\/adver/ then reject(404)
-request if ${url} ~= /^https:\/\/appapi\.caiyicloud\.com\/cyy_gatewayapi\/home\/pub\/v3\/banners\/app_start_page/ then reject_dict(200)
+request if ${url} ~= /^https:\/\/appapi\.caiyicloud\.com\/cyy_gatewayapi\/home\/pub\/v3\/banners\/app_start_page(?:\?|$|\/)/ then reject_dict(200)
 request if ${url} ~= /^https?:\/\/api\.pinduoduo\.com\/api\/aquarius\/hungary\/global\/homepage\?/ then reject_dict(200)
 response if ${url} ~= /^https?:\/\/mobile\.yangkeduo\.com\/proxy\/api\/api\/express\/post\/waybill\/red_packet\/goods_list$/ then response.body.replace(/"list":\[.+\]/, "list":[])
 request if ${url} ~= /^https?:\/\/iobs\.pingan\.com\.cn\/download\/icore-aops-base-dmz-prd\/(YourSystemName|icore-apps-ad)/ then reject(200)

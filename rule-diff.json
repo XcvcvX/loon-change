@@ -130,14 +130,7 @@
       "action_changed": [],
       "added": [
         {
-          "line": "request if ${url} ~= /^https?:\\/\\/sdk\\.alibaba\\.com\\.ailbaba\\.me\\/(dsx|xgapp)\\.php\\/v\\d\\/(top_notice\\?|version(?:\\?|$|\\/)|advert\\?position=[^2]+)/ then reject(200)",
-          "section": "rewrite",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "request if ${url} ~= /^https?:\\/\\/sdk\\.alibaba\\.com\\.ailbaba\\.me\\/xgapp\\.php\\/v\\d\\/version(?:\\?|$|\\/)/ then reject(200)",
+          "line": "request if ${url} ~= /^https:\\/\\/appapi\\.caiyicloud\\.com\\/cyy_gatewayapi\\/home\\/pub\\/v3\\/banners\\/app_start_page(?:\\?|$|\\/)/ then reject_dict(200)",
           "section": "rewrite",
           "sources": [
             "block"
@@ -146,14 +139,7 @@
       ],
       "removed": [
         {
-          "line": "request if ${url} ~= /^https?:\\/\\/sdk\\.alibaba\\.com\\.ailbaba\\.me\\/(dsx|xgapp)\\.php\\/v\\d\\/(top_notice\\?|version|advert\\?position=[^2]+)/ then reject(200)",
-          "section": "rewrite",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "request if ${url} ~= /^https?:\\/\\/sdk\\.alibaba\\.com\\.ailbaba\\.me\\/xgapp\\.php\\/v\\d\\/version/ then reject(200)",
+          "line": "request if ${url} ~= /^https:\\/\\/appapi\\.caiyicloud\\.com\\/cyy_gatewayapi\\/home\\/pub\\/v3\\/banners\\/app_start_page/ then reject_dict(200)",
           "section": "rewrite",
           "sources": [
             "block"
@@ -175,8 +161,8 @@
   "summary": {
     "rewrite": {
       "action_changed": 0,
-      "added": 2,
-      "removed": 2
+      "added": 1,
+      "removed": 1
     },
     "rule": {
       "action_changed": 0,
@@ -188,7 +174,7 @@
       "added": 0,
       "removed": 0
     },
-    "total_changes": 4
+    "total_changes": 2
   },
   "upstream_revision_changes": []
 }
