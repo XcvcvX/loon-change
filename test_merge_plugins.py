@@ -309,6 +309,44 @@ class MergeIntegrationTests(unittest.TestCase):
         self.assertIn("clicli top_notice matcher 已变化", output)
 
 
+    def test_dasixiong_version_endpoints_require_path_boundary_for_base_and_block(self):
+        lines = (
+            r'request if ${url} ~= /^https?:\/\/sdk\.alibaba\.com\.ailbaba\.me\/xgapp\.php\/v\d\/version/ then reject(200)',
+            r'request if ${url} ~= /^https?:\/\/sdk\.alibaba\.com\.ailbaba\.me\/(dsx|xgapp)\.php\/v\d\/(top_notice\?|version|advert\?position=[^2]+)/ then reject(200)',
+        )
+        base = '[Rewrite]\n' + '\n'.join(lines) + '\n[MITM]\nhostname = \n'
+        extra = '[Rewrite]\n# > 大师兄\n# hostname = sdk.alibaba.com.ailbaba.me, adservice.sigmob.cn\n' + '\n'.join(lines) + '\n[MITM]\nhostname = \n'
+        output, provenance = self.run_merge(base, extra, return_provenance=True)
+        matched = [line for line in output.splitlines() if 'sdk\\.alibaba' in line and 'version' in line]
+        self.assertEqual(len(matched), 2)
+        patterns = [re.compile(line.split(' ~= ', 1)[1].split(' then ', 1)[0].strip().strip('/')) for line in matched]
+        for url in (
+            'https://sdk.alibaba.com.ailbaba.me/xgapp.php/v1/version',
+            'https://sdk.alibaba.com.ailbaba.me/xgapp.php/v2/version?platform=ios',
+            'http://sdk.alibaba.com.ailbaba.me/dsx.php/v3/version/extra',
+            'https://sdk.alibaba.com.ailbaba.me/xgapp.php/v1/version/',
+        ):
+            self.assertTrue(any(pattern.search(url) for pattern in patterns), url)
+        for url in (
+            'https://sdk.alibaba.com.ailbaba.me/xgapp.php/v1/versionExtra',
+            'https://sdk.alibaba.com.ailbaba.me/xgapp.php/v1/version2',
+            'https://sdk.alibaba.com.ailbaba.me/dsx.php/v1/versionExtra',
+            'https://sdkXalibaba.com.ailbaba.me/xgapp.php/v1/version',
+        ):
+            self.assertFalse(any(pattern.search(url) for pattern in patterns), url)
+        changes = [item for item in provenance['scope_adjustments'] if item.get('target') == '大师兄 version 接口路径边界']
+        self.assertEqual(len(changes), 4)
+        self.assertEqual({item['source'] for item in changes}, {'base', 'blockAdsV2'})
+
+    def test_dasixiong_version_guard_fails_closed_on_action_or_matcher_drift(self):
+        base = '[Rewrite]\n[MITM]\nhostname = \n'
+        bad_action = '[Rewrite]\n' + r'request if ${url} ~= /^https?:\/\/sdk\.alibaba\.com\.ailbaba\.me\/xgapp\.php\/v\d\/version/ then reject(404)' + '\n[MITM]\nhostname = \n'
+        output = self.run_merge(base, bad_action, expect_failure=True)
+        self.assertIn('大师兄 version 动作已变化', output)
+        bad_path = '[Rewrite]\n' + r'request if ${url} ~= /^https?:\/\/sdk\.alibaba\.com\.ailbaba\.me\/xgapp\.php\/v\d\/version.*/ then reject(200)' + '\n[MITM]\nhostname = \n'
+        output = self.run_merge(base, bad_path, expect_failure=True)
+        self.assertIn('大师兄 version matcher 已变化', output)
+
     def test_pzoap_top_notice_requires_endpoint_path_boundary(self):
         source_line = (
             r"request if ${url} ~= /^https?:\/\/pzoap\.moedot\.net\/xgapp\.php\/v2\/top_notice/ then reject(404)"
