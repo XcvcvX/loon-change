@@ -5,6 +5,8 @@ from apply_local_overrides import (
 )
 
 BASE = """#!name=test
+[Rule]
+DOMAIN,example.com,REJECT
 [Rewrite]
 ^https?:\\/\\/example\\.com/old reject
 [Script]
@@ -33,6 +35,7 @@ class LocalOverrideTests(unittest.TestCase):
 
     def test_spotify_extracts_only_ad_rules_and_three_response_filters(self):
         result = apply(BASE, self.spotify_source)
+        self.assertIn("DOMAIN,aet.spotify.com,REJECT", result)
         self.assertIn("premium-marketing\\/upsellOffer", result)
         for tag in SPOTIFY_SCRIPT_TAGS:
             self.assertIn("tag=" + tag, result)
