@@ -2054,6 +2054,9 @@ block_scope_adjustments.extend(pzoap_top_notice_adjustments)
 block_rw, clicli_top_notice_adjustments = narrow_clicli_top_notice_path(
     block_rw, 'blockAdsV2')
 block_scope_adjustments.extend(clicli_top_notice_adjustments)
+base_rw, csdn_base_open_screen_ad_adjustments = narrow_csdn_open_screen_ad_path(
+    base_rw, 'base')
+block_scope_adjustments.extend(csdn_base_open_screen_ad_adjustments)
 block_rw, csdn_open_screen_ad_adjustments = narrow_csdn_open_screen_ad_path(
     block_rw, 'blockAdsV2')
 block_scope_adjustments.extend(csdn_open_screen_ad_adjustments)
