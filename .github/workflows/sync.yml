@@ -39,6 +39,8 @@ on:
       - 'test_source_health_guard.py'
       - 'rule_risk_history.py'
       - 'test_rule_risk_history.py'
+      - 'convert_filter_qx2loon.py'
+      - 'test_convert_filter_qx2loon.py'
       - '.github/workflows/sync.yml'
       - 'README.md'
       - 'sources/amap/**'
