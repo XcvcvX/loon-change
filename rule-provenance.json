@@ -333,6 +333,13 @@
     {
       "source": "block",
       "section": "Rewrite",
+      "reason": "Constrain the Gamersky adSystem endpoint to syntactically valid subdomains of the declared *.gamersky.com MITM scope, while preserving the HTTP scheme, ad path, and reject_dict(200) action.",
+      "original_line": "request if ${url} ~= /^http:\\/\\/.+\\.gamersky\\.com\\/.+\\/adSystem\\/ad\\/.+/ then reject_dict(200)",
+      "output_line": "request if ${url} ~= /^http:\\/\\/(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\.)+gamersky\\.com\\/.+\\/adSystem\\/ad\\/.+/ then reject_dict(200)"
+    },
+    {
+      "source": "block",
+      "section": "Rewrite",
       "reason": "Escape literal dots in g1.163.com so the ad-feedback matcher cannot match lookalike hosts.",
       "original_line": "request if ${url} ~= /^https?:\\/\\/g1.163.com\\/madfeedback/ then reject(404)",
       "output_line": "request if ${url} ~= /^https?:\\/\\/g1\\.163\\.com\\/madfeedback/ then reject(404)"
@@ -49130,15 +49137,15 @@
     {
       "section": "Rewrite",
       "output_entry_index": 2583,
-      "output_line": "request if ${url} ~= /^http:\\/\\/.+\\.gamersky\\.com\\/.+\\/adSystem\\/ad\\/.+/ then reject_dict(200)",
-      "canonical_key": "('guarded', '^http://.+\\\\.gamersky\\\\.com/.+/adSystem/ad/.+', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
+      "output_line": "request if ${url} ~= /^http:\\/\\/(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\.)+gamersky\\.com\\/.+\\/adSystem\\/ad\\/.+/ then reject_dict(200)",
+      "canonical_key": "('guarded', '^http://(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\\\.)+gamersky\\\\.com/.+/adSystem/ad/.+', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
       "sources": [
         {
           "source": "block",
           "priority": 5,
           "source_entry_index": 1254,
           "input_section": "Rewrite",
-          "input_line": "request if ${url} ~= /^http:\\/\\/.+\\.gamersky\\.com\\/.+\\/adSystem\\/ad\\/.+/ then reject_dict(200)",
+          "input_line": "request if ${url} ~= /^http:\\/\\/(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\.)+gamersky\\.com\\/.+\\/adSystem\\/ad\\/.+/ then reject_dict(200)",
           "disposition": "selected"
         }
       ],

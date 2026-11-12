@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-12 04:48 UTC
+#!merged-at=2026-11-12 06:07 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -6181,7 +6181,7 @@ request if ${url} ~= /^https?:\/\/static.psbc.com:8090\/mbank_f\/images\/[0-9]+\
 request if ${url} ~= /^https?:\/\/mcc.psbc.com:9090\/mcc\/resources\/[0-9]+\.(jpg|png)/ then reject(200)
 request if ${url} ~= /^https?:\/\/d\.psbc\.com:9091\/mcc\/resources\/[0-9]+\.(jpg|png|jpeg)/ then reject(200)
 request if ${url} ~= /^https?:\/\/static\.mobile-bank\.psbc\.com\/mgs/ then reject(404)
-request if ${url} ~= /^http:\/\/.+\.gamersky\.com\/.+\/adSystem\/ad\/.+/ then reject_dict(200)
+request if ${url} ~= /^http:\/\/(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+gamersky\.com\/.+\/adSystem\/ad\/.+/ then reject_dict(200)
 request if ${url} ~= /https:\/\/.+\.gamersky.com\/v1\/statisticAd/ then reject_dict(200)
 response if ${url} ~= /http:\/\/.+\.gamersky.com\/.+\/lists\/getListElements/ then response.json.jq(`.listElements |= map(select(has("adCategory") | not))`)
 request if ${url} ~= /^https?:\/\/app02\.vgtime\.com:8080\/vgtime-app\/api\/v2\/init\/ad\.json$/ then reject_dict(200)

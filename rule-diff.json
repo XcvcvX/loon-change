@@ -130,14 +130,7 @@
       "action_changed": [],
       "added": [
         {
-          "line": "^https?:\\/\\/adstatic\\.peopleapp\\.com\\/upload\\/AppLoad\\/.*\\.(?:jpg|png) reject-200",
-          "section": "rewrite",
-          "sources": [
-            "base"
-          ]
-        },
-        {
-          "line": "request if ${url} ~= /^https?:\\/\\/adstatic\\.peopleapp\\.com\\/upload\\/AppLoad\\/.*\\.(jpg|png)/ then reject(200)",
+          "line": "request if ${url} ~= /^http:\\/\\/(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\.)+gamersky\\.com\\/.+\\/adSystem\\/ad\\/.+/ then reject_dict(200)",
           "section": "rewrite",
           "sources": [
             "block"
@@ -146,14 +139,7 @@
       ],
       "removed": [
         {
-          "line": "^https?:\\/\\/adstatic\\.peopleapp\\.com\\/upload\\/AppLoad\\/.*.(?:jpg|png) reject-200",
-          "section": "rewrite",
-          "sources": [
-            "base"
-          ]
-        },
-        {
-          "line": "request if ${url} ~= /^https?:\\/\\/adstatic\\.peopleapp\\.com\\/upload\\/AppLoad\\/.*.(jpg|png)/ then reject(200)",
+          "line": "request if ${url} ~= /^http:\\/\\/.+\\.gamersky\\.com\\/.+\\/adSystem\\/ad\\/.+/ then reject_dict(200)",
           "section": "rewrite",
           "sources": [
             "block"
@@ -175,8 +161,8 @@
   "summary": {
     "rewrite": {
       "action_changed": 0,
-      "added": 2,
-      "removed": 2
+      "added": 1,
+      "removed": 1
     },
     "rule": {
       "action_changed": 0,
@@ -188,7 +174,7 @@
       "added": 0,
       "removed": 0
     },
-    "total_changes": 4
+    "total_changes": 2
   },
   "upstream_revision_changes": []
 }
