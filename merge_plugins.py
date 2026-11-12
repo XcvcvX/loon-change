@@ -738,6 +738,44 @@ def narrow_clicli_top_notice_path(rewrite_lines, source):
 
 
 
+_DASIXIONG_VERSION_MATCHERS = {
+    r'^https?://sdk\\.alibaba\\.com\\.ailbaba\\.me/xgapp\\.php/v\\d/version':
+        r'^https?://sdk\\.alibaba\\.com\\.ailbaba\\.me/xgapp\\.php/v\\d/version(?:\\?|$|/)',
+    r'^https?://sdk\\.alibaba\\.com\\.ailbaba\\.me/(dsx|xgapp)\\.php/v\\d/(top_notice\\?|version|advert\\?position=[^2]+)':
+        r'^https?://sdk\\.alibaba\\.com\\.ailbaba\\.me/(dsx|xgapp)\\.php/v\\d/(top_notice\\?|version(?:\\?|$|/)|advert\\?position=[^2]+)',
+}
+
+
+def narrow_dasixiong_version_path(rewrite_lines, source):
+    """为大师兄明确声明的 version 接口补齐路径终止边界。"""
+    output = []
+    adjustments = []
+    for line in rewrite_lines:
+        matcher = entry_regex(line)
+        updated_matcher = _DASIXIONG_VERSION_MATCHERS.get(matcher)
+        if updated_matcher is None:
+            if matcher and 'sdk\\.alibaba\\.com\\.ailbaba\\.me' in matcher and '/version' in matcher:
+                raise RuntimeError(source + ' 大师兄 version matcher 已变化，拒绝自动扩大或猜测路径边界：' + line)
+            output.append(line)
+            continue
+        if action_key(line) != ('REJECT', 'reject', 'reject(200)'):
+            raise RuntimeError(source + ' 大师兄 version 动作已变化，拒绝自动改写：' + line)
+        source_matcher = matcher.replace('/', r'\\/')
+        source_updated_matcher = updated_matcher.replace('/', r'\\/')
+        updated = line.replace(source_matcher, source_updated_matcher, 1)
+        if entry_regex(updated) != updated_matcher:
+            raise RuntimeError(source + ' 大师兄 version 边界修正后校验失败：' + line)
+        adjustments.append({
+            'source': source,
+            'section': 'Rewrite',
+            'target': '大师兄 version 接口路径边界',
+            'reason': 'Keep the upstream-declared sdk.alibaba.com.ailbaba.me host, version endpoint and reject(200) action, while requiring a query, slash, or URL end after the version path segment to avoid matching similarly prefixed paths.',
+            'original_line': line,
+            'output_line': updated,
+        })
+        output.append(updated)
+    return output, adjustments
+
 _CSDN_OPEN_SCREEN_AD_MATCHER = r'^https?://app-gw\.csdn\.net/silkroad-api/api/v\d/assemble/list/pub/channel/app_open_screen_ad'
 _CSDN_OPEN_SCREEN_AD_BOUNDARY = r'(?:\?|$|/)'
 
@@ -2054,6 +2092,12 @@ block_scope_adjustments.extend(pzoap_top_notice_adjustments)
 block_rw, clicli_top_notice_adjustments = narrow_clicli_top_notice_path(
     block_rw, 'blockAdsV2')
 block_scope_adjustments.extend(clicli_top_notice_adjustments)
+base_rw, dasixiong_base_version_adjustments = narrow_dasixiong_version_path(
+    base_rw, 'base')
+block_scope_adjustments.extend(dasixiong_base_version_adjustments)
+block_rw, dasixiong_block_version_adjustments = narrow_dasixiong_version_path(
+    block_rw, 'blockAdsV2')
+block_scope_adjustments.extend(dasixiong_block_version_adjustments)
 base_rw, csdn_base_open_screen_ad_adjustments = narrow_csdn_open_screen_ad_path(
     base_rw, 'base')
 block_scope_adjustments.extend(csdn_base_open_screen_ad_adjustments)
