@@ -70,15 +70,15 @@ class MergeIntegrationTests(unittest.TestCase):
         retained = 'AND, ((USER-AGENT, "com.example App"), (DOMAIN-SUFFIX, example.com)), REJECT'
         duplicate = 'AND,((USER-AGENT,"com.example App"),(DOMAIN-SUFFIX,example.com)),REJECT'
         distinct_literal = 'AND,((USER-AGENT,"com.example  App"),(DOMAIN-SUFFIX,example.com)),REJECT'
-        base = "[Rule]\\n" + retained + "\\n[Rewrite]\\n[MITM]\\nhostname = \\n"
+        base = "[Rule]\n" + retained + "\n[Rewrite]\n[MITM]\nhostname = \n"
         extra = (
-            "[Rule]\\n" + duplicate + "\\n" + distinct_literal
-            + "\\n[Rewrite]\\n[MITM]\\nhostname = \\n"
+            "[Rule]\n" + duplicate + "\n" + distinct_literal
+            + "\n[Rewrite]\n[MITM]\nhostname = \n"
         )
         output, provenance = self.run_merge(base, extra, return_provenance=True)
         rule_lines = [line for line in output.splitlines() if line.startswith("AND,")]
         self.assertEqual(len(rule_lines), 2)
-        self.assertEqual(len({re.sub(r"\\s+", "", line) for line in rule_lines}), 2)
+        self.assertEqual(len({re.sub(r"\s+", "", line) for line in rule_lines}), 2)
         self.assertIn(retained, output)
         self.assertIn(distinct_literal, output)
         self.assertNotIn(duplicate, output)
