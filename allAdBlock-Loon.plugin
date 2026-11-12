@@ -17,6 +17,7 @@
 #   ip6-cidr     -> IP-CIDR6  (+ no-resolve)
 #   reject       -> REJECT
 # 未使用 Surge 专有的 extended-matching / pre-matching，Loon 不支持这两个参数。
+# 安全排除：腾讯云 HTTPDNS 正式入口 119.29.29.98/32、119.29.29.99/32 的 REJECT 规则。
 
 [Rule]
 IP-CIDR,1.202.85.193/32,REJECT,no-resolve
@@ -35,8 +36,6 @@ IP-CIDR,114.80.56.98/32,REJECT,no-resolve
 IP-CIDR,118.89.204.198/32,REJECT,no-resolve
 IP-CIDR,119.29.126.137/32,REJECT,no-resolve
 IP-CIDR,119.29.29.90/32,REJECT,no-resolve
-IP-CIDR,119.29.29.98/32,REJECT,no-resolve
-IP-CIDR,119.29.29.99/32,REJECT,no-resolve
 IP-CIDR,120.240.95.37/32,REJECT,no-resolve
 IP-CIDR,120.27.235.201/32,REJECT,no-resolve
 IP-CIDR,121.196.197.147/32,REJECT,no-resolve
