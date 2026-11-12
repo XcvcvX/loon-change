@@ -183,7 +183,8 @@ for path, content in ((args.list, list_out), (args.plugin, plugin_out)):
 print('\n=== 转换统计 ===')
 for k, v in sorted(stats.items(), key=lambda x: -x[1]):
     print('%6d  %s' % (v, k))
-print('HTTPDNS 安全排除规则: %d' % len(httpdns_excluded))\nprint('规则总数: %d' % len(rules))
+print('HTTPDNS 安全排除规则: %d' % len(httpdns_excluded))
+print('规则总数: %d' % len(rules))
 if unknown:
     print('跳过/异常: %d' % len(unknown))
     for s, why in unknown[:10]:
