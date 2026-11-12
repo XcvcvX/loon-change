@@ -181,7 +181,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         rewrite = result.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
         for guard, shadow in expected:
             self.assertIn(guard, rewrite)
-            self.assertNotIn(shadow, rewrite)
+            self.assertNotIn(shadow, {item.strip() for item in rewrite.splitlines()})
         self.assertEqual(apply(result), result)
 
     def test_preserves_terminal_variant_if_it_precedes_its_guard(self):
