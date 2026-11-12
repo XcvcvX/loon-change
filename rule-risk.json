@@ -2,8 +2,8 @@
   "change_counts": {
     "rewrite": {
       "action_changed": 0,
-      "added": 1,
-      "removed": 0
+      "added": 0,
+      "removed": 1
     },
     "rule": {
       "action_changed": 0,
@@ -18,34 +18,34 @@
   },
   "events": [
     {
-      "after": {
-        "line": "request if ${url} ~= /^https?:\\/\\/app-gw\\.csdn\\.net\\/silkroad-api\\/api\\/v\\d\\/assemble\\/list\\/pub\\/channel\\/app_open_screen_ad(?:\\?|$|\\/)/ then reject(404)",
+      "after": null,
+      "before": {
+        "line": "^https?:\\/\\/app-gw\\.csdn\\.net\\/silkroad-api\\/api\\/v\\d\\/assemble\\/list\\/pub\\/channel\\/app_open_screen_ad reject",
         "section": "rewrite",
         "sources": [
-          "block"
+          "base"
         ]
       },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
       "section": "rewrite",
       "semantic_duplicate_coverage": null,
       "source_scores": {
-        "block": 0
+        "base": 0
       },
       "sources": [
-        "block"
+        "base"
       ]
     }
   ],
-  "overall_risk": "medium",
+  "overall_risk": "high",
   "risk_counts": {
-    "high": 0,
+    "high": 1,
     "low": 0,
-    "medium": 1
+    "medium": 0
   },
-  "run_id": "43183784295",
+  "run_id": "43184437297",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -63,8 +63,8 @@
     "base": {
       "action_changed": 0,
       "added": 7,
-      "removed": 8,
-      "snapshots_seen": 6
+      "removed": 9,
+      "snapshots_seen": 7
     },
     "block": {
       "action_changed": 0,

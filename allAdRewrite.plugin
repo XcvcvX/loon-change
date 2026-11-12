@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-12 08:33 UTC
+#!merged-at=2026-11-12 08:37 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -4374,7 +4374,7 @@ response if ${url} ~= /^https?:\/\/apisvr\.iyunmai\.com\/api\/ios\/apps\/get-onl
 ^https?:\/\/guide-acs\.m\.taobao\.com\/gw\/mtop\.cainiao\.guoguo\.nbnetflow\.ads reject-dict
 ^https?:\/\/netflow-mtop\.cainiao\.com\/gw\/mtop\.cainiao\.guoguo\.nbnetflow\.ads reject-dict
 ^https?:\/\/ios\.chat\.openai\.com\/public-api\/mobile\/app_support_status reject-dict
-^https?:\/\/app-gw\.csdn\.net\/silkroad-api\/api\/v\d\/assemble\/list\/pub\/channel\/app_open_screen_ad reject
+^https?:\/\/app-gw\.csdn\.net\/silkroad-api\/api\/v\d\/assemble\/list\/pub\/channel\/app_open_screen_ad(?:\?|$|\/) reject
 ^https?:\/\/app-gw\.csdn\.net\/abtesting\/v\d\/getList? reject
 ^https?:\/\/gw\.csdn\.net\/cms-app\/v\d+\/home_page\/open_advertisement reject
 ^https?:\/\/api\.caijingmobile\.com\/(ad|advert)\/ reject
@@ -5502,7 +5502,6 @@ request if ${url} ~= /^https?:\/\/web\.chelaile\.net\.cn\/api\/adpub\/ad/ then r
 request if ${url} ~= /^https:\/\/gw\.chuangkit\.com\/team\/app\/common\/ad\// then reject_dict(200)
 request if ${url} ~= /^https?:\/\/js-ad\.ayximgs\.com\.ad-universe-cdn\.hzhcbkj\.cn\/xgapp\.php\/v2\/top_notice(?:\?|$|\/)/ then reject(404)
 response if ${url} ~= /^https?:\/\/beta-api\.crunchyroll\.com\/cms/ then response.body.replace(/offset_ms":\d+/, "offset_ms":99999999999999")
-request if ${url} ~= /^https?:\/\/app-gw\.csdn\.net\/silkroad-api\/api\/v\d\/assemble\/list\/pub\/channel\/app_open_screen_ad(?:\?|$|\/)/ then reject(404)
 request if ${url} ~= /^https?:\/\/app-gw\.csdn\.net\/abtesting\/v2\/getList?/ then reject(404)
 request if ${url} ~= /^https?:\/\/delivery-api\.imdada\.cn\/v2_0\/dada\/promote\/imax\?privacyParam/ then reject_dict(200)
 request if ${url} ~= /^https?:\/\/delivery-api\.imdada\.cn\/v1_0\/transporter\/screen\/ads_list/ then reject_dict(200)
