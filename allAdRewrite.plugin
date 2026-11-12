@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、RuCu6 MyBlockAds、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / RuCu6 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-12 21:42 UTC
+#!merged-at=2026-11-12 21:46 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+RuCu6-MyBlockAds+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -5683,8 +5683,7 @@ request if ${url} ~= /^https:\/\/images\.pinduoduo\.com\/mrk\// then reject(404)
 request if ${url} ~= /^https:\/\/images\.pinduoduo\.com\/marketing_api\// then reject(404)
 request if ${url} ~= /^https?:\/\/api\.kkmh\.com\/v\d\/ad\/show/ then reject(200)
 request if ${url} ~= /^https?:\/\/api\.kkmh\.com\/v\d\/advertisement\// then reject(200)
-response if ${url} ~= /^https:\/\/(apissl|az2-api(-js|-idc)?)\.(gifshow|ksapisrv)\.com\/rest\/system\/startup\?/ then response.json.delete("reskinConfig") | response.json.delete("sidebarExSquareStyle.moreList") | response.json.delete("sidebarExSquareStyle.topList")
-response if ${url} ~= /^https:\/\/(apissl|az2-api(-js|-idc)?)\.(gifshow|ksapisrv)\.com\/rest\/system\/startup\?/ then response.json.jq(`.sidebarExSquareStyle.commonlyUsedList |= map(select(.title == "设置" or .title == "历史记录" or .title == "草稿箱" or .title == "我的钱包" or .title == "小程序" or .title == "未成年人模式" or .title == "官方客服" or .title == "内容偏好" or .title == "离线模式" or .title == "稍后再看" or .title == "举报中心" or .title == "挂件"))`)
+response if ${url} ~= /^https:\/\/(apissl|az2-api(-js|-idc)?)\.(gifshow|ksapisrv)\.com\/rest\/system\/startup\?/ then response.json.delete("reskinConfig") | response.json.delete("sidebarExSquareStyle.moreList") | response.json.delete("sidebarExSquareStyle.topList") | response.json.jq(`.sidebarExSquareStyle.commonlyUsedList |= map(select(.title == "设置" or .title == "历史记录" or .title == "草稿箱" or .title == "我的钱包" or .title == "小程序" or .title == "未成年人模式" or .title == "官方客服" or .title == "内容偏好" or .title == "离线模式" or .title == "稍后再看" or .title == "举报中心" or .title == "挂件"))`)
 response if ${url} ~= /^https:\/\/az2-live\.ksapisrv\.com\/rest\/n\/live\/feed\/square\/refresh\?/ then response.json.delete("data.banners")
 request if ${url} ~= /^https:\/\/az2-api\.ksapisrv\.com\/rest\/n\/taskCenter\/task\/report\?/ then reject_dict(200)
 request if ${url} ~= /^https:\/\/az2-api\.ksapisrv\.com\/rest\/n\/ad\// then reject_dict(200)
@@ -6817,17 +6816,14 @@ request if ${url} ~= /^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.i
 request if ${url} ~= /^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlemtopsearch\.search\.shade\//i then reject_dict(200)
 response if ${url} ~= /^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlehome\.home\.circle\.list\//i then response.json.jq(".data.circleList[]?.showInfo |= del(.titleImage, .atmosphereImageUrl) | .data.next.headList |= map(select(.bizCode == \"main\" or .bizCode == \"market\" or .bizCode == \"IDLE_CIRCLE\")) | del(.data.next.headList[]?.showInfo.rightTagImage)")
 response if ${url} ~= /^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlehome\.magic\.home\.page\.list\//i then response.json.delete("data.topList")
-response if ${url} ~= /^https:\/\/g-acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlemtopsearch\.search\//i then response.json.jq(".data.resultList |= map(if .data.item.main.exContent.dislikeFeedback.clickParam.args.bizType == \"ad\" then empty else . end)")
-response if ${url} ~= /^https:\/\/g-acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlemtopsearch\.search\//i then response.json.delete("data.resultPrefixBar")
+response if ${url} ~= /^https:\/\/g-acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlemtopsearch\.search\//i then response.json.jq(".data.resultList |= map(if .data.item.main.exContent.dislikeFeedback.clickParam.args.bizType == \"ad\" then empty else . end)") | response.json.delete("data.resultPrefixBar")
 response if ${url} ~= /^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlemtopsearch\.search\.discover\//i then response.json.jq(".data.resultList |= map(select(.type != \"MarketHotSpot\"))")
 response if ${url} ~= /^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlemtopsearch\.item\.search\.activate\//i then response.json.jq(".data.cardList |= map(if has(\"cardData\") and (.cardData | has(\"hotwords\")) then .cardData |= del(.hotwords) else . end)")
 request if ${url} ~= /^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.playboy\.recommend\//i then reject_dict(200)
 response if ${url} ~= /^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.trade\.full\.info\//i then response.json.jq(".data.components |= map(select(.render | . == \"orderStatusVO\" or . == \"addressInfoVO\" or . == \"orderInfoVO\"))")
 request if ${url} ~= /^https:\/\/(?:gw|heic)\.alicdn\.com\/imgextra\/i\d\/\d*\/?[\w!]+-\d-(?:octopus|tps)-(?:1080|1125)-\d{4}\.(?:jpg|png)_(?:1\d{3}|9\d{2})x(?:\d|1\d{3}|9\d{2})q[59]0/i then reject_dict(200)
 request if ${url} ~= /^https:\/\/app-api\.smzdm\.com\/util\/loading\?/i then reject_dict(200)
-response if ${url} ~= /^https:\/\/app-api\.smzdm\.com\/util\/update$/i then response.json.replace(["data.silence_local_push", "data.baichuan_redirect_switch"], [0, 0])
-response if ${url} ~= /^https:\/\/app-api\.smzdm\.com\/util\/update$/i then response.json.delete(["data.silence_local_push_msg", "data.video_cache_num_configs", "data.haojia_widget", "data.widget", "data.operation_float"])
-response if ${url} ~= /^https:\/\/app-api\.smzdm\.com\/util\/update$/i then response.json.jq("def r: if type==\"object\" then if has(\"ad_campaign_name\") and (.ad_campaign_name|type==\"string\") and (.ad_campaign_name|test(\"\\\\S\")) then empty else . end elif type==\"array\" then map(r) else . end; .data.operation_float |= map(map(r))")
+response if ${url} ~= /^https:\/\/app-api\.smzdm\.com\/util\/update$/i then response.json.replace(["data.silence_local_push", "data.baichuan_redirect_switch"], [0, 0]) | response.json.delete(["data.silence_local_push_msg", "data.video_cache_num_configs", "data.haojia_widget", "data.widget", "data.operation_float"]) | response.json.jq("def r: if type==\"object\" then if has(\"ad_campaign_name\") and (.ad_campaign_name|type==\"string\") and (.ad_campaign_name|test(\"\\\\S\")) then empty else . end elif type==\"array\" then map(r) else . end; .data.operation_float |= map(map(r))")
 response if ${url} ~= /^https:\/\/homepage-api\.smzdm\.com\/v3\/home\?/i then response.json.jq_file("https://raw.githubusercontent.com/zmjde/loon-plugins/main/JQ/smzdm/home_smzdm_remove_ads.jq")
 request if ${url} ~= /^https:\/\/app-api\.smzdm\.com\/mychannel\/list$/i then reject_dict(200)
 request if ${url} ~= /^https:\/\/h5\.smzdm\.com\/user\/coupon\/coupon_list\?/i then reject(404)
