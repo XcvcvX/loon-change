@@ -2494,5 +2494,63 @@ hostname = *.amap.com
 
 
 
+    def test_bestv_advertising_v2_requires_endpoint_path_boundary(self):
+        source_line = (
+            r"request if ${url} ~= /^https:\/\/bp-api\.bestv\.com\.cn\/cms\/api\/free\/open\/advertisingV2/ then reject_dict(200)"
+        )
+        base = "[Rewrite]\n[MITM]\nhostname = \n"
+        extra = (
+            "[Rewrite]\n# > 看东方（百视TV）\n"
+            "# hostname = bp-api.bestv.com.cn, bp-api.bestv.cn\n"
+            + source_line + "\n[MITM]\nhostname = \n"
+        )
+        output, provenance = self.run_merge(base, extra, return_provenance=True)
+        line = next(line for line in output.splitlines() if "advertisingV2" in line)
+        matcher = re.compile(line.split(" ~= ", 1)[1].split(" then ", 1)[0].strip().strip("/"))
+        for url in (
+            "https://bp-api.bestv.com.cn/cms/api/free/open/advertisingV2",
+            "https://bp-api.bestv.com.cn/cms/api/free/open/advertisingV2?channel=home",
+            "https://bp-api.bestv.com.cn/cms/api/free/open/advertisingV2/extra",
+        ):
+            with self.subTest(url=url):
+                self.assertRegex(url, matcher)
+        for url in (
+            "https://bp-api.bestv.com.cn/cms/api/free/open/advertisingV2Extra",
+            "https://bp-api.bestv.com.cn/cms/api/free/open/advertisingV20",
+            "https://bp-api.bestvXcom.cn/cms/api/free/open/advertisingV2",
+            "https://bp-api.bestv.cn/cms/api/free/open/advertisingV2",
+        ):
+            with self.subTest(url=url):
+                self.assertNotRegex(url, matcher)
+        self.assertTrue(line.endswith("then reject_dict(200)"))
+        changes = [
+            item for item in provenance["scope_adjustments"]
+            if item.get("target") == "看东方（百视TV）advertisingV2 开屏接口路径边界"
+        ]
+        self.assertEqual(len(changes), 1)
+        self.assertEqual(changes[0]["source"], "blockAdsV2")
+        self.assertEqual(changes[0]["original_line"], source_line)
+        self.assertEqual(changes[0]["output_line"], line)
+
+    def test_bestv_advertising_v2_guard_fails_closed_on_action_or_path_drift(self):
+        base = "[Rewrite]\n[MITM]\nhostname = \n"
+        extra_action = (
+            "[Rewrite]\n"
+            + r"request if ${url} ~= /^https:\/\/bp-api\.bestv\.com\.cn\/cms\/api\/free\/open\/advertisingV2/ then reject(404)"
+            + "\n[MITM]\nhostname = \n"
+        )
+        output = self.run_merge(base, extra_action, expect_failure=True)
+        self.assertIn("看东方 advertisingV2 动作已变化", output)
+
+        extra_path = (
+            "[Rewrite]\n"
+            + r"request if ${url} ~= /^https:\/\/bp-api\.bestv\.com\.cn\/cms\/api\/free\/open\/advertisingV2.*/ then reject_dict(200)"
+            + "\n[MITM]\nhostname = \n"
+        )
+        output = self.run_merge(base, extra_path, expect_failure=True)
+        self.assertIn("看东方 advertisingV2 matcher 已变化", output)
+
+
+
 if __name__ == "__main__":
     unittest.main()

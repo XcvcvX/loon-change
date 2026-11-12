@@ -818,6 +818,48 @@ def narrow_dasixiong_version_path(rewrite_lines, source):
         output.append(updated)
     return output, adjustments
 
+_BESTV_ADVERTISING_V2_MATCHER = r'^https://bp-api\.bestv\.com\.cn/cms/api/free/open/advertisingV2'
+_BESTV_ADVERTISING_V2_BOUNDARY = r'(?:\?|$|/)'
+
+
+def narrow_bestv_advertising_v2_path(rewrite_lines, source):
+    """为看东方（百视TV）明确声明的开屏广告接口补齐路径终止边界。"""
+    output = []
+    adjustments = []
+    for line in rewrite_lines:
+        matcher = entry_regex(line)
+        if matcher != _BESTV_ADVERTISING_V2_MATCHER:
+            if matcher and matcher.startswith(_BESTV_ADVERTISING_V2_MATCHER):
+                if matcher == _BESTV_ADVERTISING_V2_MATCHER + _BESTV_ADVERTISING_V2_BOUNDARY:
+                    output.append(line)
+                    continue
+                raise RuntimeError(
+                    source + ' 看东方 advertisingV2 matcher 已变化，拒绝自动扩大或猜测路径边界：' + line
+                )
+            output.append(line)
+            continue
+        if action_key(line) != ('REJECT', 'reject_dict', 'reject_dict(200)'):
+            raise RuntimeError(
+                source + ' 看东方 advertisingV2 动作已变化，拒绝自动改写：' + line
+            )
+        updated_matcher = matcher + _BESTV_ADVERTISING_V2_BOUNDARY
+        source_matcher = matcher.replace('/', r'\/')
+        source_updated_matcher = updated_matcher.replace('/', r'\/')
+        updated = line.replace(source_matcher, source_updated_matcher, 1)
+        if entry_regex(updated) != updated_matcher:
+            raise RuntimeError(source + ' 看东方 advertisingV2 边界修正后校验失败：' + line)
+        adjustments.append({
+            'source': source,
+            'section': 'Rewrite',
+            'target': '看东方（百视TV）advertisingV2 开屏接口路径边界',
+            'reason': 'Keep the upstream-declared bp-api.bestv.com.cn host, advertisingV2 endpoint and reject_dict(200) action, while requiring a query, slash, or URL end after the endpoint path to avoid matching similarly prefixed paths.',
+            'original_line': line,
+            'output_line': updated,
+        })
+        output.append(updated)
+    return output, adjustments
+
+
 _CSDN_OPEN_SCREEN_AD_MATCHER = r'^https?://app-gw\.csdn\.net/silkroad-api/api/v\d/assemble/list/pub/channel/app_open_screen_ad'
 _CSDN_OPEN_SCREEN_AD_BOUNDARY = r'(?:\?|$|/)'
 
@@ -2143,6 +2185,9 @@ block_scope_adjustments.extend(dasixiong_block_version_adjustments)
 block_rw, ticketstar_app_start_adjustments = narrow_ticketstar_app_start_path(
     block_rw, 'blockAdsV2')
 block_scope_adjustments.extend(ticketstar_app_start_adjustments)
+block_rw, bestv_advertising_v2_adjustments = narrow_bestv_advertising_v2_path(
+    block_rw, 'blockAdsV2')
+block_scope_adjustments.extend(bestv_advertising_v2_adjustments)
 base_rw, csdn_base_open_screen_ad_adjustments = narrow_csdn_open_screen_ad_path(
     base_rw, 'base')
 block_scope_adjustments.extend(csdn_base_open_screen_ad_adjustments)
