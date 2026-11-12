@@ -21,10 +21,11 @@ HELLOBIKE_ADDED_MITM_HOSTS = {
     "v2mi.gdt.qq.com",
 }
 HELLOBIKE_REWRITE_MARKERS = (
-    "api-htp\\.beizi\\.biz",
-    "adservice\\.sigmob\\.cn",
-    "tm\\.sigmob\\.cn",
-    "mi|v2mi",
+    "api-htp.beizi.biz",
+    "adservice.sigmob.cn",
+    "tm.sigmob.cn",
+    "mi.gdt.qq.com",
+    "v2mi.gdt.qq.com",
 )
 HELLOBIKE_SCRIPT_MARKERS = (
     "script.hub/convert/_start_/",
