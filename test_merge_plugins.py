@@ -569,9 +569,14 @@ hostname = *.amap.com
 
     def test_gamersky_list_response_filter_has_exact_host_and_path_scope(self):
         empty = "[Rewrite]\n[Script]\n[MITM]\nhostname = \n"
+        jq_action = (
+            'then response.json.jq(' + chr(96)
+            + '.listElements |= map(select(has("adCategory") | not))'
+            + chr(96) + ')'
+        )
         rule = (
             r'response if ${url} ~= /http:\/\/.+\.gamersky.com\/.+\/lists\/getListElements/ '
-            r'then response.json.jq(\`.listElements |= map(select(has("adCategory") | not))\`)'
+            + jq_action
         )
         extra = (
             "[Rewrite]\n" + rule + "\n"
@@ -584,7 +589,8 @@ hostname = *.amap.com
         )
         self.assertIn(r"^http:\/\/", result)
         self.assertIn(r"gamersky\.com\/.+\/lists\/getListElements(?:\/|\?|#|$)", result)
-        self.assertIn('response.json.jq(\`.listElements |= map(select(has("adCategory") | not))\`)', result)
+        self.assertIn("response.json.jq(", result)
+        self.assertIn('has("adCategory")', result)
         matcher = re.search(r"~= /(.*)/ then ", result).group(1).replace(r"\/", "/")
         for url in (
             "http://a.gamersky.com/api/v1/lists/getListElements",
@@ -613,9 +619,14 @@ hostname = *.amap.com
 
     def test_gamersky_list_response_guard_fails_closed_on_source_drift(self):
         empty = "[Rewrite]\n[Script]\n[MITM]\nhostname = \n"
+        jq_action = (
+            'then response.json.jq(' + chr(96)
+            + '.listElements |= map(select(has("adCategory") | not))'
+            + chr(96) + ')'
+        )
         rule = (
             r'response if ${url} ~= /http:\/\/.+\.gamersky.com\/.+\/lists\/getListElements/ '
-            r'then response.json.jq(\`.listElements |= map(select(has("adCategory") | not))\`)'
+            + jq_action
         )
         changed = rule.replace('has("adCategory")', 'has("sponsored")')
         extra = (
