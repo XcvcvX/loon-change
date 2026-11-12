@@ -169,10 +169,13 @@ class MergeIntegrationTests(unittest.TestCase):
         base = "[Rewrite]\n" + source_line + "\n[MITM]\nhostname = \n"
         extra = "[Rewrite]\n[MITM]\nhostname = \n"
         output, provenance = self.run_merge(base, extra, return_provenance=True)
-        line = next(
+        csdn_lines = [
             line for line in output.splitlines()
-            if "app_open_screen_ad" in line and line.endswith(" reject")
-        )
+            if "app_open_screen_ad" in line
+        ]
+        self.assertEqual(len(csdn_lines), 1)
+        line = csdn_lines[0]
+        self.assertTrue(line.endswith(" reject"))
         matcher = re.compile(line.split()[0])
         for url in (
             "https://app-gw.csdn.net/silkroad-api/api/v1/assemble/list/pub/channel/app_open_screen_ad",
