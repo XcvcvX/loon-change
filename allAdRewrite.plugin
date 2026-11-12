@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-12 02:35 UTC
+#!merged-at=2026-11-12 02:38 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -5850,9 +5850,9 @@ request if ${url} ~= /^https?:\/\/(?>webapi|miniapp)\.qmai\.cn\/web\/cmk-center\
 request if ${url} ~= /^https?:\/\/qidian\.qpic\.cn\/qidian_common/ then reject_img(200)
 request if ${url} ~= /^https?:\/\/mage\.if\.qidian\.com\/Atom\.axd\/Api\/Client\/GetConfIOS/ then reject_img(200)
 request if ${url} ~= /^https?:\/\/mage\.if\.qidian\.com\/argus\/api\/v\d\/client\/getsplashscreen/ then reject(404)
-request if ${url} ~= /^https?:\/\/magev6.if.qidian.com\/argus\/api\/v1\/client\/iosad/ then reject(404)
-request if ${url} ~= /^https?:\/\/magev6.if.qidian.com\/argus\/api\/v1\/bookshelf\/getad/ then reject(404)
-request if ${url} ~= /^https?:\/\/magev6.if.qidian.com\/argus\/api\/v4\/client\/getsplashscreen?/ then reject(404)
+request if ${url} ~= /^https?:\/\/magev6\.if\.qidian\.com\/argus\/api\/v1\/client\/iosad/ then reject(404)
+request if ${url} ~= /^https?:\/\/magev6\.if\.qidian\.com\/argus\/api\/v1\/bookshelf\/getad/ then reject(404)
+request if ${url} ~= /^https?:\/\/magev6\.if\.qidian\.com\/argus\/api\/v4\/client\/getsplashscreen?/ then reject(404)
 request if ${url} ~= /^https?:\/\/magev6\.if\.qidian\.com\/argus\/api\/v1\/adv/ then reject_dict(200)
 request if ${url} ~= /^https?:\/\/magev6\.if\.qidian\.com\/argus\/api\/v1\/followsubscribe/ then reject_dict(200)
 request if ${url} ~= /^http[s]?:\/\/magev6\.if\.qidian\.com\/argus\/api\/v1\/bookshelf\/refresh/ then reject_dict(200)

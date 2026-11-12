@@ -128,8 +128,52 @@
   "sections": {
     "rewrite": {
       "action_changed": [],
-      "added": [],
-      "removed": []
+      "added": [
+        {
+          "line": "request if ${url} ~= /^https?:\\/\\/magev6\\.if\\.qidian\\.com\\/argus\\/api\\/v1\\/bookshelf\\/getad/ then reject(404)",
+          "section": "rewrite",
+          "sources": [
+            "block"
+          ]
+        },
+        {
+          "line": "request if ${url} ~= /^https?:\\/\\/magev6\\.if\\.qidian\\.com\\/argus\\/api\\/v1\\/client\\/iosad/ then reject(404)",
+          "section": "rewrite",
+          "sources": [
+            "block"
+          ]
+        },
+        {
+          "line": "request if ${url} ~= /^https?:\\/\\/magev6\\.if\\.qidian\\.com\\/argus\\/api\\/v4\\/client\\/getsplashscreen?/ then reject(404)",
+          "section": "rewrite",
+          "sources": [
+            "block"
+          ]
+        }
+      ],
+      "removed": [
+        {
+          "line": "request if ${url} ~= /^https?:\\/\\/magev6.if.qidian.com\\/argus\\/api\\/v1\\/bookshelf\\/getad/ then reject(404)",
+          "section": "rewrite",
+          "sources": [
+            "block"
+          ]
+        },
+        {
+          "line": "request if ${url} ~= /^https?:\\/\\/magev6.if.qidian.com\\/argus\\/api\\/v1\\/client\\/iosad/ then reject(404)",
+          "section": "rewrite",
+          "sources": [
+            "block"
+          ]
+        },
+        {
+          "line": "request if ${url} ~= /^https?:\\/\\/magev6.if.qidian.com\\/argus\\/api\\/v4\\/client\\/getsplashscreen?/ then reject(404)",
+          "section": "rewrite",
+          "sources": [
+            "block"
+          ]
+        }
+      ]
     },
     "rule": {
       "action_changed": [],
@@ -145,8 +189,8 @@
   "summary": {
     "rewrite": {
       "action_changed": 0,
-      "added": 0,
-      "removed": 0
+      "added": 3,
+      "removed": 3
     },
     "rule": {
       "action_changed": 0,
@@ -158,7 +202,7 @@
       "added": 0,
       "removed": 0
     },
-    "total_changes": 0
+    "total_changes": 6
   },
   "upstream_revision_changes": []
 }

@@ -2,8 +2,8 @@
   "change_counts": {
     "rewrite": {
       "action_changed": 0,
-      "added": 0,
-      "removed": 0
+      "added": 3,
+      "removed": 3
     },
     "rule": {
       "action_changed": 0,
@@ -16,14 +16,141 @@
       "removed": 0
     }
   },
-  "events": [],
-  "overall_risk": "low",
+  "events": [
+    {
+      "after": {
+        "line": "request if ${url} ~= /^https?:\\/\\/magev6\\.if\\.qidian\\.com\\/argus\\/api\\/v1\\/bookshelf\\/getad/ then reject(404)",
+        "section": "rewrite",
+        "sources": [
+          "block"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "block": 0
+      },
+      "sources": [
+        "block"
+      ]
+    },
+    {
+      "after": {
+        "line": "request if ${url} ~= /^https?:\\/\\/magev6\\.if\\.qidian\\.com\\/argus\\/api\\/v1\\/client\\/iosad/ then reject(404)",
+        "section": "rewrite",
+        "sources": [
+          "block"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "block": 0
+      },
+      "sources": [
+        "block"
+      ]
+    },
+    {
+      "after": {
+        "line": "request if ${url} ~= /^https?:\\/\\/magev6\\.if\\.qidian\\.com\\/argus\\/api\\/v4\\/client\\/getsplashscreen?/ then reject(404)",
+        "section": "rewrite",
+        "sources": [
+          "block"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "block": 0
+      },
+      "sources": [
+        "block"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "request if ${url} ~= /^https?:\\/\\/magev6.if.qidian.com\\/argus\\/api\\/v1\\/bookshelf\\/getad/ then reject(404)",
+        "section": "rewrite",
+        "sources": [
+          "block"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "block": 0
+      },
+      "sources": [
+        "block"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "request if ${url} ~= /^https?:\\/\\/magev6.if.qidian.com\\/argus\\/api\\/v1\\/client\\/iosad/ then reject(404)",
+        "section": "rewrite",
+        "sources": [
+          "block"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "block": 0
+      },
+      "sources": [
+        "block"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "request if ${url} ~= /^https?:\\/\\/magev6.if.qidian.com\\/argus\\/api\\/v4\\/client\\/getsplashscreen?/ then reject(404)",
+        "section": "rewrite",
+        "sources": [
+          "block"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "block": 0
+      },
+      "sources": [
+        "block"
+      ]
+    }
+  ],
+  "overall_risk": "high",
   "risk_counts": {
-    "high": 0,
+    "high": 3,
     "low": 0,
-    "medium": 0
+    "medium": 3
   },
-  "run_id": "43142396734",
+  "run_id": "43142712259",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -47,12 +174,12 @@
     "base": {
       "action_changed": 0,
       "added": 0,
-      "removed": 4,
-      "snapshots_seen": 3
+      "removed": 2,
+      "snapshots_seen": 2
     },
     "block": {
       "action_changed": 0,
-      "added": 45,
+      "added": 48,
       "removed": 45,
       "snapshots_seen": 4
     },
