@@ -509,6 +509,78 @@ hostname = *.amap.com
         self.assertIn("广告接口拦截动作已变化", output)
 
 
+    def test_peopleapp_ad_image_extension_dot_is_literal_for_base_and_block_sources(self):
+        empty = "[Rewrite]\n[Script]\n[MITM]\nhostname = \n"
+        cases = (
+            (
+                "base",
+                r"request if @@URL@@ ~= /^https?:\/\/adstatic\.peopleapp\.com\/upload\/AppLoad\/.*.(?:jpg|png)/ then reject(200)",
+            ),
+            (
+                "block",
+                r"request if @@URL@@ ~= /^https?:\/\/adstatic\.peopleapp\.com\/upload\/AppLoad\/.*.(jpg|png)/ then reject(200)",
+            ),
+        )
+        for source, template in cases:
+            with self.subTest(source=source):
+                rule = template.replace("@@URL@@", "$"+"{url}")
+                base_text = (
+                    "[Rewrite]\n" + (rule + "\n" if source == "base" else "")
+                    + "[Script]\n[MITM]\nhostname = \n"
+                )
+                extra_text = (
+                    "[Rewrite]\n" + (rule + "\n" if source == "block" else "")
+                    + "[Script]\n[MITM]\nhostname = adstatic.peopleapp.com\n"
+                )
+                output, report = self.run_merge(
+                    base_text, extra_text, return_provenance=True
+                )
+                result = next(
+                    line for line in output.splitlines()
+                    if line.startswith("request if") and "adstatic" in line
+                )
+                self.assertIn(r".*\.(?:jpg|png)" if source == "base"
+                              else r".*\.(jpg|png)", result)
+                matcher = re.search(r"~= /(.*)/ then ", result).group(1).replace(r"\/", "/")
+                self.assertRegex(
+                    "https://adstatic.peopleapp.com/upload/AppLoad/banner.jpg",
+                    matcher,
+                )
+                self.assertRegex(
+                    "https://adstatic.peopleapp.com/upload/AppLoad/banner.png",
+                    matcher,
+                )
+                self.assertNotRegex(
+                    "https://adstatic.peopleapp.com/upload/AppLoad/bannerxjpg",
+                    matcher,
+                )
+                self.assertNotRegex(
+                    "https://adstatic.peopleapp.com/upload/AppLoad/bannerxpng",
+                    matcher,
+                )
+                adjustments = [
+                    item for item in report["scope_adjustments"]
+                    if "PeopleApp AppLoad ad-image" in item.get("reason", "")
+                ]
+                self.assertEqual(len(adjustments), 1)
+                self.assertEqual({item["source"] for item in adjustments}, {source})
+                self.assertEqual(adjustments[0]["original_line"], rule)
+                self.assertEqual(adjustments[0]["output_line"], result)
+
+    def test_peopleapp_ad_image_extension_guard_fails_closed_on_action_drift(self):
+        empty = "[Rewrite]\n[Script]\n[MITM]\nhostname = \n"
+        rule = (
+            r"request if @@URL@@ ~= /^https?:\/\/adstatic\.peopleapp\.com"
+            r"\/upload\/AppLoad\/.*.(jpg|png)/ then reject_dict(200)"
+        ).replace("@@URL@@", "$"+"{url}")
+        extra = (
+            "[Rewrite]\n" + rule + "\n"
+            + "[Script]\n[MITM]\nhostname = adstatic.peopleapp.com\n"
+        )
+        output = self.run_merge(empty, extra, expect_failure=True)
+        self.assertIn("PeopleApp 图片广告拦截动作已变化", output)
+
+
     def test_qidian_magev6_ad_matchers_escape_literal_hostname_dots(self):
         qidian_paths = (
             "/argus/api/v1/client/iosad",

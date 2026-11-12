@@ -810,6 +810,72 @@ def escape_targeted_ad_hosts(rewrite_lines, source):
     return output, adjustments
 
 
+def escape_adstatic_peopleapp_image_extension(rewrite_lines, source):
+    """将 PeopleApp 开屏广告图片扩展名分隔点收紧为字面点，不改变文件类型与动作。"""
+    output = []
+    adjustments = []
+    host_prefix = r'^https?://adstatic\.peopleapp\.com/upload/AppLoad/'
+    variants = (
+        ('.*.(?:jpg|png)', r'.*\.(?:jpg|png)'),
+        ('.*.(jpg|png)', r'.*\.(jpg|png)'),
+    )
+    for line in rewrite_lines:
+        matcher = entry_regex(line)
+        normalized = matcher.replace(r'\/', '/') if matcher else matcher
+        if not normalized or '/upload/AppLoad/' not in normalized:
+            output.append(line)
+            continue
+        if r'adstatic\.peopleapp\.com' not in normalized:
+            if 'adstatic.peopleapp.com' in normalized:
+                raise RuntimeError(
+                    source + ' PeopleApp 图片广告主机 matcher 已变化，拒绝自动改写：' + line
+                )
+            output.append(line)
+            continue
+        if not normalized.startswith(host_prefix):
+            raise RuntimeError(
+                source + ' PeopleApp 图片广告主机/路径范围已变化，拒绝自动改写：' + line
+            )
+        if action_key(line) != ('REJECT', 'reject', 'reject(200)'):
+            raise RuntimeError(
+                source + ' PeopleApp 图片广告拦截动作已变化，拒绝自动改写：' + line
+            )
+        matched_variant = next(
+            ((raw, escaped) for raw, escaped in variants if raw in normalized),
+            None,
+        )
+        if matched_variant is None:
+            if any(escaped in normalized for _, escaped in variants):
+                output.append(line)
+                continue
+            raise RuntimeError(
+                source + ' PeopleApp 图片广告扩展名 matcher 已变化，拒绝自动改写：' + line
+            )
+        raw, escaped = matched_variant
+        updated = line.replace(raw, escaped, 1)
+        updated_matcher = entry_regex(updated)
+        updated_normalized = (
+            updated_matcher.replace(r'\/', '/') if updated_matcher else updated_matcher
+        )
+        expected = normalized.replace(raw, escaped, 1)
+        if updated_normalized != expected:
+            raise RuntimeError(
+                source + ' PeopleApp 图片广告 matcher 修正后语义校验失败：' + line
+            )
+        adjustments.append({
+            'source': source,
+            'section': 'Rewrite',
+            'reason': (
+                'Escape the literal file-extension dot in the PeopleApp AppLoad '
+                'ad-image matcher so non-image suffix lookalikes are not rejected.'
+            ),
+            'original_line': line,
+            'output_line': updated,
+        })
+        output.append(updated)
+    return output, adjustments
+
+
 def escape_g1_163_madfeedback_host(rewrite_lines, source):
     """只转义网易 g1.163.com 广告反馈接口的字面主机名点号。"""
     output = []
@@ -1157,6 +1223,8 @@ for _line in base_rw:
     })
 base_rw = _zhangle_rw_kept
 base_rw, g1_163_base_adjustments = escape_g1_163_madfeedback_host(base_rw, 'base')
+base_rw, peopleapp_base_adjustments = escape_adstatic_peopleapp_image_extension(
+    base_rw, 'base')
 
 # Mango TV upstream labels this broad IP/port matcher as "无用请求", not an ad endpoint.
 # It can reject the same path on unrelated apps' arbitrary IPv4:five-digit-port hosts.
@@ -1211,6 +1279,8 @@ block_rw, block_qidian_adjustments = escape_qidian_magev6_host(
     block_rw, 'block')
 block_rw, g1_163_block_adjustments = escape_g1_163_madfeedback_host(block_rw, 'block')
 block_rw, targeted_ad_host_adjustments = escape_targeted_ad_hosts(
+    block_rw, 'block')
+block_rw, peopleapp_block_adjustments = escape_adstatic_peopleapp_image_extension(
     block_rw, 'block')
 _ZHANGLE_BLOCK_RULES = {
     r'^https?://c\.zhangle\.com/pic/mktg/diversity/.+\.jpg$': (r'request if ${url} ~= /^https?:\/\/c\.zhangle\.com\/pic\/mktg\/diversity\/.+\.jpg$/ then reject_dict(200)', ('REJECT', 'reject_dict', 'reject_dict(200)'), 'reject_dict(200)'),
@@ -1287,6 +1357,8 @@ block_rw, block_sc, block_scope_adjustments = narrow_555_scope(
     block_rw, block_sc)
 block_scope_adjustments.extend(block_qidian_adjustments)
 block_scope_adjustments.extend(g1_163_base_adjustments)
+block_scope_adjustments.extend(peopleapp_base_adjustments)
+block_scope_adjustments.extend(peopleapp_block_adjustments)
 block_scope_adjustments.extend(g1_163_block_adjustments)
 block_scope_adjustments.extend(targeted_ad_host_adjustments)
 lanrentingshu_source_present = validate_lanrentingshu_source(extra_text)
