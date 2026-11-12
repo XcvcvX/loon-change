@@ -87,7 +87,8 @@ else:
         raise SystemExit('上游规则获取失败: %s' % last_err)
 
 
-rules, unknown, stats = [], [], {}\nhttpdns_excluded = []
+rules, unknown, stats = [], [], {}
+httpdns_excluded = []
 upstream_date, upstream_count = '', ''
 csv = {}
 
