@@ -810,6 +810,53 @@ def escape_targeted_ad_hosts(rewrite_lines, source):
     return output, adjustments
 
 
+def narrow_gamersky_ad_system_host(rewrite_lines, source):
+    """将游民星空广告接口限制为合法的 gamersky.com 子域名，不改变路径与动作。"""
+    output = []
+    adjustments = []
+    original = (
+        r"request if ${url} ~= /^http:\/\/.+\.gamersky\.com\/.+"
+        r"\/adSystem\/ad\/.+/ then reject_dict(200)"
+    )
+    narrowed = (
+        r"request if ${url} ~= /^http:\/\/(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}"
+        r"[A-Za-z0-9])?\.)+gamersky\.com\/.+\/adSystem\/ad\/.+/"
+        r" then reject_dict(200)"
+    )
+    for line in rewrite_lines:
+        matcher = entry_regex(line)
+        normalized = matcher.replace(r'\/', '/') if matcher else matcher
+        if not normalized or 'gamersky' not in normalized or '/adSystem/ad/' not in normalized:
+            output.append(line)
+            continue
+        if line != original or action_key(line) != ('REJECT', 'reject_dict', 'reject_dict(200)'):
+            raise RuntimeError(
+                source + ' 游民星空 adSystem 广告规则范围或动作已变化，拒绝自动改写：' + line
+            )
+        updated_matcher = entry_regex(narrowed)
+        updated_normalized = updated_matcher.replace(r'\/', '/') if updated_matcher else updated_matcher
+        expected = normalized.replace(
+            r'.+\.gamersky\.com',
+            r'(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+gamersky\.com',
+            1,
+        )
+        if updated_normalized != expected:
+            raise RuntimeError(source + ' 游民星空广告主机收紧后语义校验失败：' + line)
+        adjustments.append({
+            'source': source,
+            'section': 'Rewrite',
+            'reason': (
+                'Constrain the Gamersky adSystem endpoint to syntactically valid '
+                'subdomains of the declared *.gamersky.com MITM scope, while preserving '
+                'the HTTP scheme, ad path, and reject_dict(200) action.'
+            ),
+            'original_line': line,
+            'output_line': narrowed,
+        })
+        output.append(narrowed)
+    return output, adjustments
+
+
 def escape_adstatic_peopleapp_image_extension(rewrite_lines, source):
     """将 PeopleApp 开屏广告图片扩展名分隔点收紧为字面点，不改变文件类型与动作。"""
     output = []
@@ -1282,6 +1329,8 @@ block_rw, targeted_ad_host_adjustments = escape_targeted_ad_hosts(
     block_rw, 'block')
 block_rw, peopleapp_block_adjustments = escape_adstatic_peopleapp_image_extension(
     block_rw, 'block')
+block_rw, gamersky_block_adjustments = narrow_gamersky_ad_system_host(
+    block_rw, 'block')
 _ZHANGLE_BLOCK_RULES = {
     r'^https?://c\.zhangle\.com/pic/mktg/diversity/.+\.jpg$': (r'request if ${url} ~= /^https?:\/\/c\.zhangle\.com\/pic\/mktg\/diversity\/.+\.jpg$/ then reject_dict(200)', ('REJECT', 'reject_dict', 'reject_dict(200)'), 'reject_dict(200)'),
     r'^https?://live\.inst-service\.htsc\.com/live': (r'request if ${url} ~= /^https?:\/\/live\.inst-service\.htsc\.com\/live/ then reject_dict(200)', ('REJECT', 'reject_dict', 'reject_dict(200)'), 'reject_dict(200)'),
@@ -1359,6 +1408,7 @@ block_scope_adjustments.extend(block_qidian_adjustments)
 block_scope_adjustments.extend(g1_163_base_adjustments)
 block_scope_adjustments.extend(peopleapp_base_adjustments)
 block_scope_adjustments.extend(peopleapp_block_adjustments)
+block_scope_adjustments.extend(gamersky_block_adjustments)
 block_scope_adjustments.extend(g1_163_block_adjustments)
 block_scope_adjustments.extend(targeted_ad_host_adjustments)
 lanrentingshu_source_present = validate_lanrentingshu_source(extra_text)
