@@ -859,6 +859,55 @@ def narrow_gamersky_list_response_host(rewrite_lines, source):
     return output, adjustments
 
 
+def narrow_baidunetdisk_cdn_subdomains(rewrite_lines, source):
+    """将百度网盘广告图片 CDN 兜底规则限制到 MITM 声明的合法子域名。"""
+    output = []
+    adjustments = []
+    targets = {
+        r'^https://.*\.vlion\.cn/.+ reject-200':
+            r'^https://(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+vlion\.cn/.+ reject-200',
+        r'^https://.*\.advlion\.com/.+ reject-200':
+            r'^https://(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+advlion\.com/.+ reject-200',
+    }
+    for original, narrowed in targets.items():
+        candidates = [
+            line for line in rewrite_lines
+            if (r'.*\.vlion\.cn/.+' in line if 'vlion.cn' in original
+                else r'.*\.advlion\.com/.+' in line)
+        ]
+        if len(candidates) != 1 or candidates[0] != original:
+            raise RuntimeError(
+                source + ' 百度网盘 CDN 子域名规则范围或动作已变化，拒绝自动改写：'
+                + repr(candidates)
+            )
+        matcher = entry_regex(narrowed)
+        expected = (
+            r'^https://(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+'
+            + (r'vlion\.cn/.+' if 'vlion.cn' in original else r'advlion\.com/.+')
+        )
+        if matcher != expected:
+            raise RuntimeError(source + ' 百度网盘 CDN 子域名 matcher 校验失败：' + original)
+    for line in rewrite_lines:
+        if line in targets:
+            narrowed = targets[line]
+            adjustments.append({
+                'source': source,
+                'source_file': 'baidunetdisk_splash_ad_block.plugin',
+                'section': 'Rewrite',
+                'reason': (
+                    'Constrain the Baidu Netdisk CDN image fallback to syntactically valid '
+                    'subdomains of the already-declared *.vlion.cn / *.advlion.com MITM hosts; '
+                    'preserve HTTPS, the image-path pattern, and reject-200.'
+                ),
+                'original_line': line,
+                'output_line': narrowed,
+            })
+            output.append(narrowed)
+        else:
+            output.append(line)
+    return output, adjustments
+
+
 def narrow_baidunetdisk_ad_image_host(rewrite_lines, source):
     """将百度网盘广告图兜底规则限制到插件实际声明 MITM 的 pan.baidu.com。"""
     output = []
@@ -1683,6 +1732,9 @@ if args.apps:
             app_rewrite_lines, baidu_netdisk_adjustments = narrow_baidunetdisk_ad_image_host(
                 app_rewrite_lines, 'thelong')
             block_scope_adjustments.extend(baidu_netdisk_adjustments)
+            app_rewrite_lines, baidu_cdn_adjustments = narrow_baidunetdisk_cdn_subdomains(
+                app_rewrite_lines, 'thelong')
+            block_scope_adjustments.extend(baidu_cdn_adjustments)
         if _lite_advertising_guard_present and fname == 'jd_splash_ad_block.plugin':
             _kept_app_rewrite_lines = []
             _source_section = None
