@@ -52,7 +52,7 @@ def _canonical_rule_key(line):
             output.append(char)
             escaped = False
             continue
-        if char == "\\\\":
+        if char == "\\":
             output.append(char)
             escaped = True
             continue
@@ -61,7 +61,7 @@ def _canonical_rule_key(line):
             if char == quote:
                 quote = None
             continue
-        if char in ("'", '"', "`"):
+        if char in ("'", '"'):
             quote = char
             output.append(char)
             continue
