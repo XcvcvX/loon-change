@@ -45,7 +45,7 @@ class SpotifyIntegrationTests(unittest.TestCase):
             second = plugin.read_text(encoding="utf-8")
             self.assertEqual(first, second)
             self.assertIn("DOMAIN,aet.spotify.com,REJECT", second)
-            self.assertIn("/ads\\\\/|ad-logic", second)
+            self.assertIn(r"ads\\/|ad-logic\\/", second)
             self.assertNotIn("premium-marketing", second)
             self.assertNotIn("spot-proto-ev3", second)
             self.assertIn("scripts/spotify/spot-NoHomeAd.js", second)
