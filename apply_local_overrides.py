@@ -72,7 +72,7 @@ def apply(text: str) -> str:
     # Keep the unrelated Bankcomm override in [Script], idempotently.
     if RULE not in result:
         pos = result.index("[MITM]")
-        result = result[:pos].rstrip() + "\n" + RULE + "\\n\\n" + result[pos:]
+        result = result[:pos].rstrip() + "\n" + RULE + "\n\n" + result[pos:]
     return result + ("\n" if text.endswith("\n") and not result.endswith("\n") else "")
 
 
