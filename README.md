@@ -335,3 +335,11 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 原有 JSON 顶层字段、历史 key 和原始值全部保持不变；新视图为纯附加字段，避免破坏旧消费者。
 - 新增单元测试，验证旧字段未被修改、新视图版本稳定，且新视图不泄漏历史人工复核术语。
 - 本批只修改深度审计 JSON 展示层、测试和文档，不修改任何生产 Rewrite、Script、Rule、MITM hostname、动作、优先级或插件输出。
+
+
+## 第七阶段第三十七批：明确自动诊断的机器可读处理策略
+
+- 第三十六批已提供标准化 JSON 诊断视图，但下游程序仍需自行推断诊断是否要求用户采取行动、是否允许自动修改规则。
+- 为 `automated_diagnostics` 增加稳定的 `handling` 契约：`informational_only`、`user_action_required=false`、`automatic_rule_changes=false`、`uncertain_rules=preserve_original`。
+- 新增回归断言，确保该策略明确表达“只提供信息、不生成用户待办、不自动改动规则；无法可靠判断时保留原规则”。
+- 保留现有 JSON schema_version 和历史字段；本批只修改深度审计报告、测试与文档，不修改任何生产 Rewrite、Script、Rule、MITM hostname、动作、优先级或插件输出。
