@@ -6,6 +6,9 @@ on:
     paths:
       - 'merge_plugins.py'
       - 'mitm_policy.py'
+      - 'validate_plugin.py'
+      - 'audit_plugin.py'
+      - 'deep_audit.py'
       - 'source_guard.py'
       - 'amap_dependency_guard.py'
       - 'compare_rule_provenance.py'
