@@ -70,13 +70,13 @@ class MergeIntegrationTests(unittest.TestCase):
         global_reject = "AND,((PROTOCOL,UDP),(DEST-PORT,443)),REJECT"
         scoped_reject = "AND,((DOMAIN-SUFFIX,example.com),(PROTOCOL,UDP),(DEST-PORT,443)),REJECT"
         global_direct = "AND,((PROTOCOL,UDP),(DEST-PORT,443)),DIRECT"
-        base = "[Rewrite]\\n[MITM]\\nhostname = \\n"
+        base = "[Rewrite]\n[MITM]\nhostname = \n"
         extra = (
-            "[Rule]\\n"
-            + global_reject + "\\n"
-            + scoped_reject + "\\n"
-            + global_direct + "\\n"
-            + "[Rewrite]\\n[MITM]\\nhostname = \\n"
+            "[Rule]\n"
+            + global_reject + "\n"
+            + scoped_reject + "\n"
+            + global_direct + "\n"
+            + "[Rewrite]\n[MITM]\nhostname = \n"
         )
         output, provenance = self.run_merge(base, extra, return_provenance=True)
         self.assertNotIn(global_reject, output)
