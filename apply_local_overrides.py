@@ -46,6 +46,145 @@ HELLOBIKE_SCRIPT_MARKERS = (
 )
 
 
+
+def split_response_json_rewrite(line: str):
+    """Return exact condition prefix and action for a modern response JSON Rewrite."""
+    match = re.match(r'^(response if .+?) then (.+)
+    if "[Script]" not in text or "[MITM]" not in text or "[Rewrite]" not in text:
+        raise ValueError("plugin missing [Rewrite], [Script] or [MITM] section")
+
+    lines = []
+    section = ""
+    for line in text.splitlines():
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            lines.append(line)
+            continue
+
+        if LEGACY_HELLOBIKE_MARKER in line:
+            continue
+        if section == "Rewrite" and any(marker in line for marker in HELLOBIKE_REWRITE_MARKERS):
+            continue
+        if section == "Script" and any(marker in line for marker in HELLOBIKE_SCRIPT_MARKERS):
+            continue
+        if line.startswith("#!sources="):
+            sources = [item for item in line[len("#!sources="):].split("+")
+                       if item != HELLOBIKE_SOURCE]
+            line = "#!sources=" + "+".join(sources)
+        if section == "Rule" and PDD_HTTPDNS_MARKER in line and "URL-REGEX" in line:
+            if PDD_HTTPDNS_IPV6_MARKER in line:
+                # IPv6 HTTPDNS already had its own query boundary. Repair the
+                # accidental suffix introduced by the prior broad IPv4 match.
+                if PDD_HTTPDNS_IPV6_PREVIOUS_BAD_SUFFIX in line:
+                    line = line.replace(PDD_HTTPDNS_IPV6_PREVIOUS_BAD_SUFFIX, PDD_HTTPDNS_IPV6_SUFFIX)
+                elif PDD_HTTPDNS_IPV6_SUFFIX not in line:
+                    raise ValueError("拼多多 IPv6 HTTPDNS matcher changed; refusing an unreviewed rewrite")
+            elif PDD_HTTPDNS_IPV4_MARKER in line:
+                if PDD_HTTPDNS_NEW_SUFFIX in line:
+                    pass
+                elif PDD_HTTPDNS_OLD_SUFFIX in line:
+                    line = line.replace(PDD_HTTPDNS_OLD_SUFFIX, PDD_HTTPDNS_NEW_SUFFIX)
+                else:
+                    raise ValueError("拼多多 IPv4 HTTPDNS matcher changed; refusing an unreviewed rewrite")
+            else:
+                raise ValueError("拼多多 HTTPDNS address-family matcher changed; refusing an unreviewed rewrite")
+        if section == "MITM" and line.strip().lower().startswith("hostname") and "=" in line:
+            key, value = line.split("=", 1)
+            hosts = [host.strip() for host in value.split(",") if host.strip()]
+            if not REQUIRED_BANKCOMM_MITM_HOSTS.issubset(set(hosts)):
+                raise ValueError("required Bankcomm image hosts missing from MITM")
+            hosts = [host for host in hosts if host not in HELLOBIKE_ADDED_MITM_HOSTS]
+            line = key + "= " + ", ".join(hosts)
+        lines.append(line)
+
+    # Coalesce only consecutive response JSON operations with an identical
+    # condition. Loon executes same-phase entries in order and pipe actions
+    # left-to-right, so this preserves behavior without reordering other rules.
+    merged_lines = []
+    section = ""
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            if section == "Rewrite":
+                merged_lines, _ = merge_adjacent_response_json_rewrites(merged_lines)
+            section = line[1:-1]
+            lines_for_section = []
+            merged_lines.append(line)
+            continue
+        if section == "Rewrite":
+            lines_for_section.append(line)
+        else:
+            merged_lines.append(line)
+    if section == "Rewrite":
+        merged_lines, _ = merge_adjacent_response_json_rewrites(lines_for_section)
+    result = "\n".join(merged_lines)
+    # Keep the unrelated Bankcomm override in [Script], idempotently.
+    if RULE not in result:
+        pos = result.index("[MITM]")
+        result = result[:pos].rstrip() + "\n" + RULE + "\n\n" + result[pos:]
+    return result + ("\n" if text.endswith("\n") and not result.endswith("\n") else "")
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--plugin", required=True)
+    args = ap.parse_args()
+    path = Path(args.plugin)
+    path.write_text(apply(path.read_text(encoding="utf-8")), encoding="utf-8")
+    print("已应用买单吧覆盖规则；已移除 PR #129 引入的哈啰整合规则")
+
+
+if __name__ == "__main__":
+    main()
+, line)
+    if not match:
+        return None
+    prefix, actions = match.groups()
+    parts = re.split(r'\s+\|\s+', actions)
+    if not parts or any(not action.startswith("response.json.") for action in parts):
+        return None
+    return prefix, parts
+
+
+def merge_adjacent_response_json_rewrites(lines):
+    """Coalesce only adjacent same-condition JSON actions, preserving execution order."""
+    output = []
+    index = 0
+    merged_groups = 0
+    while index < len(lines):
+        current = lines[index]
+        parsed = split_response_json_rewrite(current.strip())
+        if not parsed:
+            output.append(current)
+            index += 1
+            continue
+
+        prefix, actions = parsed
+        lookahead = index + 1
+        blank_lines = []
+        while lookahead < len(lines) and not lines[lookahead].strip():
+            blank_lines.append(lines[lookahead])
+            lookahead += 1
+
+        group_count = 1
+        while lookahead < len(lines):
+            candidate = split_response_json_rewrite(lines[lookahead].strip())
+            if not candidate or candidate[0] != prefix:
+                break
+            actions.extend(candidate[1])
+            group_count += 1
+            lookahead += 1
+            while lookahead < len(lines) and not lines[lookahead].strip():
+                lookahead += 1
+
+        if group_count > 1:
+            output.append(prefix + " then " + " | ".join(actions))
+            merged_groups += 1
+            index = lookahead
+        else:
+            output.append(current)
+            index += 1
+    return output, merged_groups
+
 def apply(text: str) -> str:
     if "[Script]" not in text or "[MITM]" not in text or "[Rewrite]" not in text:
         raise ValueError("plugin missing [Rewrite], [Script] or [MITM] section")
