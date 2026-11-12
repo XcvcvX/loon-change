@@ -743,6 +743,45 @@ def escape_qidian_magev6_host(rewrite_lines, source):
         output.append(updated)
     return output, adjustments
 
+
+_G1_163_MADFEEDBACK_HOST = 'g1.163.com'
+_G1_163_MADFEEDBACK_PREFIX = '^https?://' + _G1_163_MADFEEDBACK_HOST + '/madfeedback'
+
+
+def escape_g1_163_madfeedback_host(rewrite_lines, source):
+    """只转义网易 g1.163.com 广告反馈接口的字面主机名点号。"""
+    output = []
+    adjustments = []
+    for line in rewrite_lines:
+        matcher = entry_regex(line)
+        normalized = matcher.replace(r'\/', '/') if matcher else matcher
+        if not matcher or not normalized.startswith(_G1_163_MADFEEDBACK_PREFIX):
+            output.append(line)
+            continue
+        if r'g1\.163\.com' in normalized:
+            output.append(line)
+            continue
+        if action_key(line)[0] != 'REJECT':
+            raise RuntimeError(
+                source + ' 网易 g1.163.com matcher 动作已变化，拒绝自动改写：' + line
+            )
+        updated = line.replace(_G1_163_MADFEEDBACK_HOST, r'g1\.163\.com', 1)
+        updated_matcher = entry_regex(updated)
+        updated_normalized = updated_matcher.replace(r'\/', '/') if updated_matcher else updated_matcher
+        if updated_normalized != normalized.replace(
+                _G1_163_MADFEEDBACK_HOST, r'g1\.163\.com', 1):
+            raise RuntimeError(source + ' 网易 g1.163.com matcher 修正后语义校验失败：' + line)
+        adjustments.append({
+            'source': source,
+            'section': 'Rewrite',
+            'reason': 'Escape literal dots in g1.163.com so the ad-feedback matcher cannot match lookalike hosts.',
+            'original_line': line,
+            'output_line': updated,
+        })
+        output.append(updated)
+    return output, adjustments
+
+
 # 懒人听书：只允许上游该接口明确声明的两个业务主机。
 _LANRENTINGSHU_MARKER = '# > 懒人听书'
 _LANRENTINGSHU_HOST_DECLARATION = (
@@ -1055,6 +1094,7 @@ for _line in base_rw:
         'status': 'excluded_unused_app', 'label': _spec['label'],
     })
 base_rw = _zhangle_rw_kept
+base_rw, g1_163_base_adjustments = escape_g1_163_madfeedback_host(base_rw, 'base')
 
 # Mango TV upstream labels this broad IP/port matcher as "无用请求", not an ad endpoint.
 # It can reject the same path on unrelated apps' arbitrary IPv4:five-digit-port hosts.
@@ -1107,6 +1147,7 @@ block_rw, block_sc = prep_block_sections(
     extra_sec.get('Rewrite', []), extra_sec.get('Script', []))
 block_rw, block_qidian_adjustments = escape_qidian_magev6_host(
     block_rw, 'block')
+block_rw, g1_163_block_adjustments = escape_g1_163_madfeedback_host(block_rw, 'block')
 _ZHANGLE_BLOCK_RULES = {
     r'^https?://c\.zhangle\.com/pic/mktg/diversity/.+\.jpg$': (r'request if ${url} ~= /^https?:\/\/c\.zhangle\.com\/pic\/mktg\/diversity\/.+\.jpg$/ then reject_dict(200)', ('REJECT', 'reject_dict', 'reject_dict(200)'), 'reject_dict(200)'),
     r'^https?://live\.inst-service\.htsc\.com/live': (r'request if ${url} ~= /^https?:\/\/live\.inst-service\.htsc\.com\/live/ then reject_dict(200)', ('REJECT', 'reject_dict', 'reject_dict(200)'), 'reject_dict(200)'),
@@ -1181,6 +1222,8 @@ if _lite_advertising_guard_present:
 block_rw, block_sc, block_scope_adjustments = narrow_555_scope(
     block_rw, block_sc)
 block_scope_adjustments.extend(block_qidian_adjustments)
+block_scope_adjustments.extend(g1_163_base_adjustments)
+block_scope_adjustments.extend(g1_163_block_adjustments)
 lanrentingshu_source_present = validate_lanrentingshu_source(extra_text)
 base_rw, lanrentingshu_base_adjustments = narrow_lanrentingshu_base_scope(
     base_rw, lanrentingshu_source_present)
