@@ -9,6 +9,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+
 MERGER = Path(__file__).with_name("merge_plugins.py")
 
 
@@ -445,6 +446,30 @@ hostname = *.amap.com
              if "g1.163.com" in item.get("reason", "")},
             {"base", "block"},
         )
+
+    def test_targeted_ad_matchers_escape_literal_hostname_dots(self):
+        empty = "[Rewrite]\n[Script]\n[MITM]\nhostname = \n"
+        dili_rule = (
+            r"request if ${url} ~= /http:\/\/dili.sqcosmos.com"
+            r"\/jiekou\/endpage\/ad/ then reject_dict(200)"
+        )
+        dili_block = (
+            "[Rewrite]\n" + dili_rule + "\n"
+            + "[Script]\n[MITM]\nhostname = dili.sqcosmos.com\n"
+        )
+        output, report = self.run_merge(empty, dili_block, return_provenance=True)
+        dili_output = next(line for line in output.splitlines()
+                           if line.startswith("request if") and "dili" in line)
+        self.assertIn(r"dili\.sqcosmos\.com", dili_output)
+        dili_matcher = re.search(r"~= /(.*)/ then ", dili_output).group(1).replace(r"\/", "/")
+        self.assertRegex("http://dili.sqcosmos.com/jiekou/endpage/ad", dili_matcher)
+        self.assertNotRegex("http://diliXsqcosmosYcom/jiekou/endpage/ad", dili_matcher)
+        adjustments = [item for item in report["scope_adjustments"]
+                       if "lookalike hosts" in item.get("reason", "")]
+        self.assertEqual(len(adjustments), 1)
+        self.assertEqual({item["source"] for item in adjustments}, {"block"})
+
+
 
     def test_qidian_magev6_ad_matchers_escape_literal_hostname_dots(self):
         qidian_paths = (

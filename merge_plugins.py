@@ -748,6 +748,62 @@ _G1_163_MADFEEDBACK_HOST = 'g1.163.com'
 _G1_163_MADFEEDBACK_PREFIX = '^https?://' + _G1_163_MADFEEDBACK_HOST + '/madfeedback'
 
 
+_TARGETED_AD_HOST_MATCHERS = (
+    {
+        'host': 'dili.sqcosmos.com',
+        'marker': '/jiekou/endpage/ad',
+        'action_key': ('REJECT', 'reject_dict', 'reject_dict(200)'),
+        'reason': 'Escape literal dots in the dili.sqcosmos.com end-page ad endpoint matcher.',
+    },
+)
+
+
+def escape_targeted_ad_hosts(rewrite_lines, source):
+    """只收紧已确认的两个广告接口主机名，不改变路径与拦截动作。"""
+    output = []
+    adjustments = []
+    for line in rewrite_lines:
+        matcher = entry_regex(line)
+        normalized = matcher.replace(r'\/', '/') if matcher else matcher
+        updated_line = line
+        for spec in _TARGETED_AD_HOST_MATCHERS:
+            host = spec['host']
+            escaped_host = host.replace('.', r'\.')
+            if not normalized or spec['marker'] not in normalized:
+                continue
+            if escaped_host in normalized:
+                continue
+            if host not in normalized:
+                raise RuntimeError(
+                    source + ' 广告接口主机 matcher 已变化，拒绝自动改写：' + line
+                )
+            if action_key(line) != spec['action_key']:
+                raise RuntimeError(
+                    source + ' 广告接口拦截动作已变化，拒绝自动改写：' + line
+                )
+            updated_line = updated_line.replace(host, escaped_host, 1)
+            updated_matcher = entry_regex(updated_line)
+            updated_normalized = (
+                updated_matcher.replace(r'\/', '/')
+                if updated_matcher else updated_matcher
+            )
+            expected = normalized.replace(host, escaped_host, 1)
+            if updated_normalized != expected:
+                raise RuntimeError(
+                    source + ' 广告接口 matcher 修正后语义校验失败：' + line
+                )
+            adjustments.append({
+                'source': source,
+                'section': 'Rewrite',
+                'reason': spec['reason'] + ' This prevents lookalike hosts from being rejected.',
+                'original_line': line,
+                'output_line': updated_line,
+            })
+            normalized = updated_normalized
+        output.append(updated_line)
+    return output, adjustments
+
+
 def escape_g1_163_madfeedback_host(rewrite_lines, source):
     """只转义网易 g1.163.com 广告反馈接口的字面主机名点号。"""
     output = []
@@ -1148,6 +1204,8 @@ block_rw, block_sc = prep_block_sections(
 block_rw, block_qidian_adjustments = escape_qidian_magev6_host(
     block_rw, 'block')
 block_rw, g1_163_block_adjustments = escape_g1_163_madfeedback_host(block_rw, 'block')
+block_rw, targeted_ad_host_adjustments = escape_targeted_ad_hosts(
+    block_rw, 'block')
 _ZHANGLE_BLOCK_RULES = {
     r'^https?://c\.zhangle\.com/pic/mktg/diversity/.+\.jpg$': (r'request if ${url} ~= /^https?:\/\/c\.zhangle\.com\/pic\/mktg\/diversity\/.+\.jpg$/ then reject_dict(200)', ('REJECT', 'reject_dict', 'reject_dict(200)'), 'reject_dict(200)'),
     r'^https?://live\.inst-service\.htsc\.com/live': (r'request if ${url} ~= /^https?:\/\/live\.inst-service\.htsc\.com\/live/ then reject_dict(200)', ('REJECT', 'reject_dict', 'reject_dict(200)'), 'reject_dict(200)'),
@@ -1224,6 +1282,7 @@ block_rw, block_sc, block_scope_adjustments = narrow_555_scope(
 block_scope_adjustments.extend(block_qidian_adjustments)
 block_scope_adjustments.extend(g1_163_base_adjustments)
 block_scope_adjustments.extend(g1_163_block_adjustments)
+block_scope_adjustments.extend(targeted_ad_host_adjustments)
 lanrentingshu_source_present = validate_lanrentingshu_source(extra_text)
 base_rw, lanrentingshu_base_adjustments = narrow_lanrentingshu_base_scope(
     base_rw, lanrentingshu_source_present)
