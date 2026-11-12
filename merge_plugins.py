@@ -1163,6 +1163,107 @@ def escape_adstatic_peopleapp_image_extension(rewrite_lines, source):
     return output, adjustments
 
 
+_AD_IMAGE_EXTENSION_TARGETS = (
+    {
+        'name': '叮嗒出行 admobile 广告图片',
+        'prefix': r'^https?://img\\.admobile\\.top/admobile-adRequest/',
+    },
+    {
+        'name': '加油广东广告图片',
+        'prefix': r'^https?://img\\.gdoil\\.cn/upload/ad/',
+    },
+    {
+        'name': '悟空遥控器 AD/iOS 图片',
+        'prefix': r'^https?://img\\.wukongtv\\.com/wkremote/AD/iOS/',
+    },
+    {
+        'name': '杭州市民广告投放素材',
+        'prefix': r'^https?://ads\\.iconntech\\.com/resource-delivery',
+    },
+    {
+        'name': '优理宝开屏图片',
+        'prefix': r'^https?://static\\.xyzq\\.cn/image/splash/opera3',
+    },
+    {
+        'name': '广发银行 advertising/accurate 图片素材',
+        'prefix': r'^https?://static\\.95508\\.com/icppweb/images/modelMaterial/',
+    },
+    {
+        'name': '返利网开屏图片',
+        'prefix': r'^https?://l[0-9]{1}\\.51fanli\\.net/app/images/splash/2022/',
+    },
+)
+_AD_IMAGE_EXTENSION_VARIANTS = (
+    ('.*.(?:jpg|png)', r'.*\\.(?:jpg|png)'),
+    ('.*.(png|jpg)', r'.*\\.(png|jpg)'),
+    ('.*.(jpg|png)', r'.*\\.(jpg|png)'),
+    ('.*.(jpg|png|jpeg)', r'.*\\.(jpg|png|jpeg)'),
+    ('.*.jpg', r'.*\\.jpg'),
+)
+
+
+def escape_known_ad_image_extension_delimiters(rewrite_lines, source):
+    """只转义已核实广告/开屏图片路径中，文件扩展名前的字面点。"""
+    output = []
+    adjustments = []
+    expected_action = ('REJECT', 'reject', 'reject(200)')
+    for line in rewrite_lines:
+        matcher = entry_regex(line)
+        normalized = matcher.replace(r'\\/', '/') if matcher else matcher
+        target = next(
+            (item for item in _AD_IMAGE_EXTENSION_TARGETS
+             if normalized and normalized.startswith(item['prefix'])),
+            None,
+        )
+        if target is None:
+            output.append(line)
+            continue
+        if action_key(line) != expected_action:
+            raise RuntimeError(
+                source + ' ' + target['name'] + ' 图片规则动作已变化，拒绝自动改写：' + line
+            )
+        raw_variants = [
+            (raw, escaped) for raw, escaped in _AD_IMAGE_EXTENSION_VARIANTS
+            if raw in normalized
+        ]
+        escaped_variants = [
+            escaped for _, escaped in _AD_IMAGE_EXTENSION_VARIANTS
+            if escaped in normalized
+        ]
+        if len(raw_variants) == 1 and not escaped_variants:
+            raw, escaped = raw_variants[0]
+            updated = line.replace(raw, escaped, 1)
+            updated_matcher = entry_regex(updated)
+            updated_normalized = (
+                updated_matcher.replace(r'\\/', '/') if updated_matcher else updated_matcher
+            )
+            if updated_normalized != normalized.replace(raw, escaped, 1):
+                raise RuntimeError(
+                    source + ' ' + target['name'] + ' 图片扩展名 matcher 修正后语义校验失败：'
+                    + line
+                )
+            adjustments.append({
+                'source': source,
+                'section': 'Rewrite',
+                'target': target['name'],
+                'reason': (
+                    'Escape only the literal dot immediately before the image extension; '
+                    'keep the original host, path, extension allowlist, and reject(200) action.'
+                ),
+                'original_line': line,
+                'output_line': updated,
+            })
+            output.append(updated)
+        elif not raw_variants and len(escaped_variants) == 1:
+            output.append(line)
+        else:
+            raise RuntimeError(
+                source + ' ' + target['name'] + ' 图片扩展名 matcher 已变化，拒绝自动改写：'
+                + line
+            )
+    return output, adjustments
+
+
 def escape_g1_163_madfeedback_host(rewrite_lines, source):
     """只转义网易 g1.163.com 广告反馈接口的字面主机名点号。"""
     output = []
@@ -1512,6 +1613,8 @@ base_rw = _zhangle_rw_kept
 base_rw, g1_163_base_adjustments = escape_g1_163_madfeedback_host(base_rw, 'base')
 base_rw, peopleapp_base_adjustments = escape_adstatic_peopleapp_image_extension(
     base_rw, 'base')
+base_rw, ad_image_extension_base_adjustments = escape_known_ad_image_extension_delimiters(
+    base_rw, 'base')
 
 # Mango TV upstream labels this broad IP/port matcher as "无用请求", not an ad endpoint.
 # It can reject the same path on unrelated apps' arbitrary IPv4:five-digit-port hosts.
@@ -1568,6 +1671,8 @@ block_rw, g1_163_block_adjustments = escape_g1_163_madfeedback_host(block_rw, 'b
 block_rw, targeted_ad_host_adjustments = escape_targeted_ad_hosts(
     block_rw, 'block')
 block_rw, peopleapp_block_adjustments = escape_adstatic_peopleapp_image_extension(
+    block_rw, 'block')
+block_rw, ad_image_extension_block_adjustments = escape_known_ad_image_extension_delimiters(
     block_rw, 'block')
 block_rw, gamersky_block_adjustments = narrow_gamersky_ad_system_host(
     block_rw, 'block')
@@ -1652,6 +1757,8 @@ block_scope_adjustments.extend(block_qidian_adjustments)
 block_scope_adjustments.extend(g1_163_base_adjustments)
 block_scope_adjustments.extend(peopleapp_base_adjustments)
 block_scope_adjustments.extend(peopleapp_block_adjustments)
+block_scope_adjustments.extend(ad_image_extension_base_adjustments)
+block_scope_adjustments.extend(ad_image_extension_block_adjustments)
 block_scope_adjustments.extend(gamersky_block_adjustments)
 block_scope_adjustments.extend(gamersky_statistic_block_adjustments)
 block_scope_adjustments.extend(gamersky_list_block_adjustments)
