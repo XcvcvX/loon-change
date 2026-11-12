@@ -188,12 +188,12 @@ ACTION_FAMILIES = {
 }
 
 ACTION_REVIEW = {
-    'response_mock': ('high_diagnostic', '自动诊断提示：该动作会替换或模拟整个响应，重点关注状态码、内容结构和目标 App 兼容性'),
-    'response_body_rewrite': ('high_diagnostic', '自动诊断提示：该动作直接改写响应正文，存在影响正常内容的可能'),
-    'request_body_rewrite': ('high_diagnostic', '自动诊断提示：该动作改写请求正文，可能改变请求参数或业务行为'),
-    'response_json_rewrite': ('medium_diagnostic', '自动诊断提示：该动作修改响应 JSON 字段或结构，关注字段路径及空值/类型处理'),
-    'header_rewrite': ('medium_diagnostic', '自动诊断提示：该动作修改请求或响应头，可能影响缓存、鉴权、内容协商或协议行为'),
-    'redirect': ('medium_diagnostic', '自动诊断提示：该动作会重定向请求，关注目标地址、参数保留及跳转范围'),
+    'response_mock': ('high_review', '自动诊断提示：该动作会替换或模拟整个响应，重点关注状态码、内容结构和目标 App 兼容性'),
+    'response_body_rewrite': ('high_review', '自动诊断提示：该动作直接改写响应正文，存在影响正常内容的可能'),
+    'request_body_rewrite': ('high_review', '自动诊断提示：该动作改写请求正文，可能改变请求参数或业务行为'),
+    'response_json_rewrite': ('medium_review', '自动诊断提示：该动作修改响应 JSON 字段或结构，关注字段路径及空值/类型处理'),
+    'header_rewrite': ('medium_review', '自动诊断提示：该动作修改请求或响应头，可能影响缓存、鉴权、内容协商或协议行为'),
+    'redirect': ('medium_review', '自动诊断提示：该动作会重定向请求，关注目标地址、参数保留及跳转范围'),
     'unknown': ('automated_warning', '自动审计无法识别该 Rewrite 操作符；保留原规则，不自动改写或删除，也不要求用户人工处理')
 }
 
@@ -263,13 +263,13 @@ def classify_rewrite_action(action):
 
 def action_review_priority(families):
     priorities = [ACTION_REVIEW[x][0] for x in families if x in ACTION_REVIEW]
-    if 'high_diagnostic' in priorities:
-        return 'high_diagnostic'
-    if 'medium_diagnostic' in priorities:
-        return 'medium_diagnostic'
+    if 'high_review' in priorities:
+        return 'high_review'
+    if 'medium_review' in priorities:
+        return 'medium_review'
     if 'automated_warning' in priorities:
         return 'automated_warning'
-    return 'no_special_diagnostic'
+    return 'no_special_review'
 
 
 def action_review_reasons(families):
@@ -785,7 +785,7 @@ def audit_deep(path):
         for family in families:
             action_family_counts[family] += 1
         priority = action_review_priority(families)
-        if priority != 'no_special_diagnostic':
+        if priority != 'no_special_review':
             action_review_candidates.append({
                 'line': n, 'phase': phase, 'pattern': matcher, 'action': action,
                 'action_families': families, 'operations': action_info['operations'],
@@ -1024,10 +1024,10 @@ def markdown_diagnostic_item(value):
             display_key = 'diagnostic_priority' if key == 'review_priority' else key
             if key == 'review_priority':
                 item = {
-                    'high_diagnostic': 'high',
-                    'medium_diagnostic': 'medium',
+                    'high_review': 'high',
+                    'medium_review': 'medium',
                     'automated_warning': 'warning',
-                    'no_special_diagnostic': 'none'
+                    'no_special_review': 'none'
                 }.get(item, item)
             if key == 'classification' and isinstance(item, str):
                 item = item.replace('_review', '_diagnostic')
