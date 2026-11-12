@@ -86,20 +86,20 @@ def remove_subsumed_soul_teenager_rule(lines):
 
 
 SHADOWED_TERMINAL_BLOCK_RULE_PAIRS = (
-    (r"^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.idlecommerce\\.splash\\.ads reject-dict", r"^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.idlecommerce\\.splash\\.ads reject-200"),
-    (r"^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.wireless\\.home\\.splash\\.awesome\\.get reject-dict", r"^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.wireless\\.home\\.splash\\.awesome\\.get reject-200"),
-    (r"^https?:\\/\\/(bdsp-x|dsp-x)\\.jd\\.com\\/adx\\/ reject-200", r"^https?:\\/\\/(bdsp-x|dsp-x)\\.jd\\.com\\/adx\\/ reject"),
-    (r"^https?:\\/\\/axxd\\.xmseeyouyima\\.com\\/.*getad\\? reject", r"^https?:\\/\\/axxd\\.xmseeyouyima\\.com\\/.*getad\\? reject-dict"),
-    (r"^https?:\\/\\/axxd\\.xmseeyouyima\\.com\\/ad reject", r"^https?:\\/\\/axxd\\.xmseeyouyima\\.com\\/ad reject-dict"),
-    (r"^https?:\\/\\/c\\.m\\.163\\.com\\/nc\\/gl\\/ reject", r"^https?:\\/\\/c\\.m\\.163\\.com\\/nc\\/gl\\/ reject-200"),
-    (r"^https?:\\/\\/cdn1\\.mbs\\.boc\\.cn\\/ubas-mgateway-static\\/images\\/theme\\/ reject-200", r"^https?:\\/\\/cdn1\\.mbs\\.boc\\.cn\\/ubas-mgateway-static\\/images\\/theme\\/ reject-dict"),
-    (r"^https?:\\/\\/mbs\\.boc\\.cn\\/ubas-mgateway-static\\/images\\/theme\\/ reject-200", r"^https?:\\/\\/mbs\\.boc\\.cn\\/ubas-mgateway-static\\/images\\/theme\\/ reject-dict"),
-    (r"^https?:\\/\\/support\\.you\\.163\\.com\\/xhr\\/boot\\/getBootMedia reject", r"^https?:\\/\\/support\\.you\\.163\\.com\\/xhr\\/boot\\/getBootMedia reject-200"),
-    (r"^https?:\\/\\/us\\.l\\.qq\\.com\\/exapp reject-200", r"^https?:\\/\\/us\\.l\\.qq\\.com\\/exapp reject"),
-    (r"^https?:\\/\\/x\\.seeyouyima\\.com\\/adx\\/staticstics\\? reject", r"^https?:\\/\\/x\\.seeyouyima\\.com\\/adx\\/staticstics\\? reject-200"),
-    (r"request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.idle\\.home\\.welcome/i then reject_dict(200)", r"request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.idle\\.home\\.welcome/i then reject(404)"),
-    (r"request if ${url} ~= /^https?:\\/\\/adx-cn\\.anythinktech\\.com\\/bid/ then reject_dict(200)", r"request if ${url} ~= /^https?:\\/\\/adx-cn\\.anythinktech\\.com\\/bid/ then reject(200)"),
-    (r"request if ${url} ~= /^https?:\\/\\/mime\\.baidu\\.com\\/v5\\/start_screen_ads\\/list/ then reject(404)", r"request if ${url} ~= /^https?:\\/\\/mime\\.baidu\\.com\\/v5\\/start_screen_ads\\/list/ then reject_dict(200)"),
+    (r"^https:\/\/acs\.m\.taobao\.com\/gw\/mtop\.taobao\.idlecommerce\.splash\.ads reject-dict", r"^https:\/\/acs\.m\.taobao\.com\/gw\/mtop\.taobao\.idlecommerce\.splash\.ads reject-200"),
+    (r"^https:\/\/guide-acs\.m\.taobao\.com\/gw\/mtop\.taobao\.wireless\.home\.splash\.awesome\.get reject-dict", r"^https:\/\/guide-acs\.m\.taobao\.com\/gw\/mtop\.taobao\.wireless\.home\.splash\.awesome\.get reject-200"),
+    (r"^https?:\/\/(bdsp-x|dsp-x)\.jd\.com\/adx\/ reject-200", r"^https?:\/\/(bdsp-x|dsp-x)\.jd\.com\/adx\/ reject"),
+    (r"^https?:\/\/axxd\.xmseeyouyima\.com\/.*getad\? reject", r"^https?:\/\/axxd\.xmseeyouyima\.com\/.*getad\? reject-dict"),
+    (r"^https?:\/\/axxd\.xmseeyouyima\.com\/ad reject", r"^https?:\/\/axxd\.xmseeyouyima\.com\/ad reject-dict"),
+    (r"^https?:\/\/c\.m\.163\.com\/nc\/gl\/ reject", r"^https?:\/\/c\.m\.163\.com\/nc\/gl\/ reject-200"),
+    (r"^https?:\/\/cdn1\.mbs\.boc\.cn\/ubas-mgateway-static\/images\/theme\/ reject-200", r"^https?:\/\/cdn1\.mbs\.boc\.cn\/ubas-mgateway-static\/images\/theme\/ reject-dict"),
+    (r"^https?:\/\/mbs\.boc\.cn\/ubas-mgateway-static\/images\/theme\/ reject-200", r"^https?:\/\/mbs\.boc\.cn\/ubas-mgateway-static\/images\/theme\/ reject-dict"),
+    (r"^https?:\/\/support\.you\.163\.com\/xhr\/boot\/getBootMedia reject", r"^https?:\/\/support\.you\.163\.com\/xhr\/boot\/getBootMedia reject-200"),
+    (r"^https?:\/\/us\.l\.qq\.com\/exapp reject-200", r"^https?:\/\/us\.l\.qq\.com\/exapp reject"),
+    (r"^https?:\/\/x\.seeyouyima\.com\/adx\/staticstics\? reject", r"^https?:\/\/x\.seeyouyima\.com\/adx\/staticstics\? reject-200"),
+    (r"request if ${url} ~= /^https:\/\/acs\.m\.taobao\.com\/gw\/mtop\.taobao\.idle\.home\.welcome/i then reject_dict(200)", r"request if ${url} ~= /^https:\/\/acs\.m\.taobao\.com\/gw\/mtop\.taobao\.idle\.home\.welcome/i then reject(404)"),
+    (r"request if ${url} ~= /^https?:\/\/adx-cn\.anythinktech\.com\/bid/ then reject_dict(200)", r"request if ${url} ~= /^https?:\/\/adx-cn\.anythinktech\.com\/bid/ then reject(200)"),
+    (r"request if ${url} ~= /^https?:\/\/mime\.baidu\.com\/v5\/start_screen_ads\/list/ then reject(404)", r"request if ${url} ~= /^https?:\/\/mime\.baidu\.com\/v5\/start_screen_ads\/list/ then reject_dict(200)"),
 )
 
 def remove_shadowed_terminal_block_rules(lines):
