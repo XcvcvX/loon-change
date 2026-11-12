@@ -57,6 +57,27 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertEqual(result.count(r"\/d(\d)?(?:\?|$)"), 2)
         self.assertEqual(apply(result), result)
 
+    def test_pdd_httpdns_ipv6_query_boundary_is_preserved_and_repaired(self):
+        original = r"""#!name=test
+[Rule]
+AND, ((URL-REGEX, "^http:\/\/\[[0-9a-fA-F:]+\]\/d(\d)?\?"), (USER-AGENT, "*com.xunmeng.pinduoduo*")), REJECT
+[Rewrite]
+^https?:\/\/example\.com reject
+[Script]
+[MITM]
+hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankcomm.cn, creditcardapp.bankcomm.com
+"""
+        result = apply(original)
+        self.assertIn(r"\/d(\d)?\?", result)
+        self.assertNotIn(r"\/d(\d)?(?:\?|$)\?", result)
+        self.assertEqual(apply(result), result)
+
+        # Repair the exact malformed IPv6 form emitted by the previous override.
+        previous_bad = original.replace(r"\/d(\d)?\?", r"\/d(\d)?(?:\?|$)\?")
+        repaired = apply(previous_bad)
+        self.assertIn(r"\/d(\d)?\?", repaired)
+        self.assertNotIn(r"\/d(\d)?(?:\?|$)\?", repaired)
+
     def test_pdd_httpdns_rule_drift_fails_closed(self):
         marker_line = 'AND, ((URL-REGEX, "changed"), (USER-AGENT, "*com.xunmeng.pinduoduo*")), REJECT'
         base = BASE.replace("[Rewrite]", "[Rule]\n" + marker_line + "\n[Rewrite]")

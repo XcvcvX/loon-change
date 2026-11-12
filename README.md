@@ -381,6 +381,14 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 本批不修改 `allAdRewrite.plugin` 的现有规则、MITM、优先级或其他广告拦截范围。
 
 
+## 第八阶段第六批：修复拼多多 IPv6 HTTPDNS 边界被 IPv4 覆盖误改
+
+- 生产产物复核发现，第五批本地覆盖按通用 `/d(\\d)?` 后缀替换时，也命中了 IPv6 URL-REGEX；IPv6 原有的单个查询分隔符被改成了不正确的 `(?:\\?|$)\\?`。
+- 本批按地址族分别识别：IPv4 继续使用 `/d(\\d)?(?:\\?|$)`；IPv6 恢复上游原始 `/d(\\d)?\\?`，不扩大 IPv6 匹配范围。
+- 同时兼容修复上一批已生成的精确错误 IPv6 后缀；若 IPv4/IPv6 matcher 结构漂移或无法识别，则 fail-closed。
+- 新增测试覆盖原始 IPv6、错误后缀修复、IPv4 仍收敛及覆盖幂等性。
+- 不修改拼多多 User-Agent 限制、其他 App 规则、MITM、Script、优先级或其他 Rule。
+
 ## 第八阶段第五批：收敛拼多多 IPv4 HTTPDNS 路径边界
 
 - 生产插件已有 IPv4 HTTPDNS 规则，并且同时要求拼多多 User-Agent；保留这一应用范围约束，不扩大到其他 App 或全局 DNS 流量。
