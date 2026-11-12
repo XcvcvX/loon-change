@@ -66,6 +66,35 @@ class MergeIntegrationTests(unittest.TestCase):
         return (output, result.stdout) if return_stdout else output
 
 
+    def test_rule_whitespace_only_duplicates_are_removed_without_changing_quoted_literals(self):
+        retained = 'AND, ((USER-AGENT, "com.example App"), (DOMAIN-SUFFIX, example.com)), REJECT'
+        duplicate = 'AND,((USER-AGENT,"com.example App"),(DOMAIN-SUFFIX,example.com)),REJECT'
+        distinct_literal = 'AND,((USER-AGENT,"com.example  App"),(DOMAIN-SUFFIX,example.com)),REJECT'
+        base = "[Rewrite]\n[MITM]\nhostname = \n"
+        extra = "[Rule]\n" + retained + "\n[Rewrite]\n[MITM]\nhostname = \n"
+        myblockads = (
+            "[Rule]\n" + duplicate + "\n" + distinct_literal
+            + "\n[Rewrite]\n[MITM]\nhostname = \n"
+        )
+        output, provenance = self.run_merge(
+            base, extra, myblockads_text=myblockads, return_provenance=True
+        )
+        rule_lines = [line for line in output.splitlines() if line.startswith("AND,")]
+        self.assertEqual(len(rule_lines), 2)
+        self.assertIn(retained, output)
+        self.assertIn(distinct_literal, output)
+        self.assertNotIn(duplicate, output)
+        duplicate_events = [
+            item for item in provenance["rule_events"]
+            if item.get("original_input_line") == duplicate
+        ]
+        self.assertEqual(len(duplicate_events), 1)
+        self.assertEqual(duplicate_events[0]["source"], "myblockads")
+        self.assertEqual(duplicate_events[0]["status"], "duplicate_exact")
+        self.assertEqual(duplicate_events[0]["duplicate_reason"],
+                         "whitespace_only_outside_quoted_literals")
+        self.assertEqual(duplicate_events[0]["duplicate_of"], retained)
+
     def test_unscoped_udp_443_reject_is_excluded_but_scoped_quic_reject_is_kept(self):
         global_reject = "AND,((PROTOCOL,UDP),(DEST-PORT,443)),REJECT"
         scoped_reject = "AND,((DOMAIN-SUFFIX,example.com),(PROTOCOL,UDP),(DEST-PORT,443)),REJECT"
