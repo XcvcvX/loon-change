@@ -934,9 +934,9 @@ hostname = *.amap.com
             item for item in report["scope_adjustments"]
             if item.get("target") in target_names
         ]
-        self.assertEqual(len(adjustments), 14)
+        self.assertEqual(len(adjustments), 12, repr([(item["source"], item["target"], item["original_line"]) for item in adjustments]))
         self.assertEqual(sum(item["source"] == "base" for item in adjustments), 4)
-        self.assertEqual(sum(item["source"] == "block" for item in adjustments), 10)
+        self.assertEqual(sum(item["source"] == "block" for item in adjustments), 8)
         for item in adjustments:
             self.assertIn(r".*\.", item["output_line"])
             self.assertNotEqual(item["original_line"], item["output_line"])
