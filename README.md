@@ -370,3 +370,12 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - base 与 blockAdsV2 两个输入来源同时执行相同修正；动作仍为原来的 `reject(404)`，不改变路径、MITM hostname 或其他起点规则。
 - 若上游 matcher 或动作变化，自动构建失败，不会静默套用修正。
 - 新增集成测试验证三个真实主机路径继续命中，而相似但不相同的主机名不再命中。
+
+
+## 第八阶段第三批：补齐独立 R-Store 分流产物的 HTTPDNS 安全保护
+
+- 第八阶段第一批已保护合并主插件 `allAdRewrite.plugin`，但独立转换产物 `allAdBlock-Loon.list` / `allAdBlock-Loon.plugin` 仍保留了腾讯云 HTTPDNS 正式入口 `119.29.29.98/32`、`119.29.29.99/32` 的 REJECT 规则。
+- 在 `convert_filter_qx2loon.py` 中增加精确安全排除：只排除这两个 /32 的拒绝动作（包括转换后等价为 REJECT 的 reject-200）；不排除 DIRECT、其他动作、其他 IP 或更宽网段。
+- 同步修正仓库内独立转换产物，并加入本地 fixture 回归测试，覆盖 .98/.99 拒绝规则、.90 保留、.98 DIRECT 保留及其他网段保留。
+- 更新 PR CI 路径触发和测试清单，避免转换器或回归测试变更绕过自动验证。
+- 本批不修改 `allAdRewrite.plugin` 的现有规则、MITM、优先级或其他广告拦截范围。
