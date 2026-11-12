@@ -125,6 +125,54 @@ class MergeIntegrationTests(unittest.TestCase):
         self.assertIn("腾讯视频广告分片 IP matcher 范围或动作已变化", output)
 
 
+    def test_odin_c1_subset_rule_is_removed_only_when_base_rule_covers_same_action(self):
+        octet = r"(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)"
+        ipv4 = r"(?:" + octet + r"\.){3}" + octet
+        base_rule = r"^https?:\/\/" + ipv4 + r"\/odin\/c\d\/(channel\/ads|skin\/config)\? reject-dict"
+        block_rule = (
+            'request if @@URL@@ ~= /^https?:\/\/' + ipv4
+            + r"\/odin\/c1\/(channel\/ads|skin\/config)\?/ then reject_dict(200)"
+        ).replace("@@URL@@", chr(36) + "{url}")
+        base = "[Rewrite]\n" + base_rule + "\n[MITM]\nhostname = \n"
+        extra = "[Rewrite]\n" + block_rule + "\n[MITM]\nhostname = \n"
+        output, provenance = self.run_merge(base, extra, return_provenance=True)
+        output_lines = [line for line in output.splitlines() if "odin" in line]
+        self.assertEqual(output_lines, [base_rule])
+        exclusions = [
+            item for item in provenance["rewrite_exclusions"]
+            if item.get("status") == "excluded_semantic_duplicate_covered_by_base"
+        ]
+        self.assertEqual(len(exclusions), 1)
+        self.assertEqual(exclusions[0]["source"], "block")
+        self.assertEqual(exclusions[0]["source_line_number"], 2)
+        self.assertEqual(exclusions[0]["covered_by"], base_rule)
+
+    def test_odin_c1_rule_is_retained_when_broad_base_rule_is_absent(self):
+        octet = r"(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)"
+        ipv4 = r"(?:" + octet + r"\.){3}" + octet
+        block_rule = (
+            'request if @@URL@@ ~= /^https?:\/\/' + ipv4
+            + r"\/odin\/c1\/(channel\/ads|skin\/config)\?/ then reject_dict(200)"
+        ).replace("@@URL@@", chr(36) + "{url}")
+        base = "[Rewrite]\n[MITM]\nhostname = \n"
+        extra = "[Rewrite]\n" + block_rule + "\n[MITM]\nhostname = \n"
+        output = self.run_merge(base, extra)
+        self.assertIn(block_rule, output)
+
+    def test_odin_c1_semantic_dedup_fails_closed_on_action_drift(self):
+        octet = r"(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)"
+        ipv4 = r"(?:" + octet + r"\.){3}" + octet
+        base_rule = r"^https?:\/\/" + ipv4 + r"\/odin\/c\d\/(channel\/ads|skin\/config)\? reject-dict"
+        block_rule = (
+            'request if @@URL@@ ~= /^https?:\/\/' + ipv4
+            + r"\/odin\/c1\/(channel\/ads|skin\/config)\?/ then reject(404)"
+        ).replace("@@URL@@", chr(36) + "{url}")
+        base = "[Rewrite]\n" + base_rule + "\n[MITM]\nhostname = \n"
+        extra = "[Rewrite]\n" + block_rule + "\n[MITM]\nhostname = \n"
+        output = self.run_merge(base, extra, expect_failure=True)
+        self.assertIn("Odin c1 redundant matcher action changed", output)
+
+
     def test_odin_numeric_hosts_are_restricted_to_valid_ipv4_and_keep_ad_paths(self):
         base = (
             "[Rewrite]\n"
