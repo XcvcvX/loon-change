@@ -32,6 +32,15 @@ class LocalOverrideTests(unittest.TestCase):
         self.assertIn("creditcardapp.bankcomm.cn", result)
         self.assertEqual(apply(result), result)
 
+    def test_maidanba_rule_has_valid_single_escaped_url_pattern(self):
+        expected = r"^https?:\\/\\/creditcard\\.bankcomm\\.(?:cn|com)\\/tofimg\\/bucket-pj-btss-tfcn-dmz\\/OSS-F\\/.+/i"
+        self.assertIn(expected, RULE)
+        self.assertNotIn(r"^https?:\\\\/\\\\/", RULE)
+        result = apply(BASE)
+        script_section = result.split("[Script]", 1)[1].split("[MITM]", 1)[0]
+        self.assertIn(RULE, script_section)
+        self.assertIn("binary_body_mode=true", RULE)
+
     def test_requires_bankcomm_mitm_hosts(self):
         with self.assertRaises(ValueError):
             apply(BASE.replace("creditcard.bankcomm.com, ", ""))
