@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """Integration tests for merge_plugins.py; all inputs are local fixtures."""
 import json
+import re
 import subprocess
 import sys
 import tempfile
