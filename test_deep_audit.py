@@ -480,5 +480,17 @@ hostname = *.example.test
 
 
 
+    def test_action_classifier_keeps_backtick_jq_pipeline_as_argument(self):
+        from deep_audit import classify_rewrite_action
+
+        action = 'response.json.jq(`if (.data | map(select(.kind == "reject"))) then .data else [] end`)'
+        self.assertEqual(
+            classify_rewrite_action(action),
+            {'families': ['response_json_rewrite'],
+             'operations': ['response.json.jq']}
+        )
+
+
+
 if __name__ == '__main__':
     unittest.main()
