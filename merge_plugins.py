@@ -738,6 +738,48 @@ def narrow_clicli_top_notice_path(rewrite_lines, source):
 
 
 
+_TICKETSTAR_APP_START_MATCHER = r'^https://appapi\.caiyicloud\.com/cyy_gatewayapi/home/pub/v3/banners/app_start_page'
+_TICKETSTAR_APP_START_BOUNDARY = r'(?:\?|$|/)'
+
+
+def narrow_ticketstar_app_start_path(rewrite_lines, source):
+    """为票星球明确声明的开屏广告接口补齐路径终止边界。"""
+    output = []
+    adjustments = []
+    for line in rewrite_lines:
+        matcher = entry_regex(line)
+        if matcher != _TICKETSTAR_APP_START_MATCHER:
+            if matcher and matcher.startswith(_TICKETSTAR_APP_START_MATCHER):
+                if matcher == _TICKETSTAR_APP_START_MATCHER + _TICKETSTAR_APP_START_BOUNDARY:
+                    output.append(line)
+                    continue
+                raise RuntimeError(
+                    source + ' 票星球 app_start_page matcher 已变化，拒绝自动扩大或猜测路径边界：' + line
+                )
+            output.append(line)
+            continue
+        if action_key(line) != ('REJECT', 'reject_dict', 'reject_dict(200)'):
+            raise RuntimeError(
+                source + ' 票星球 app_start_page 动作已变化，拒绝自动改写：' + line
+            )
+        updated_matcher = matcher + _TICKETSTAR_APP_START_BOUNDARY
+        source_matcher = matcher.replace('/', r'\/')
+        source_updated_matcher = updated_matcher.replace('/', r'\/')
+        updated = line.replace(source_matcher, source_updated_matcher, 1)
+        if entry_regex(updated) != updated_matcher:
+            raise RuntimeError(source + ' 票星球 app_start_page 边界修正后校验失败：' + line)
+        adjustments.append({
+            'source': source,
+            'section': 'Rewrite',
+            'target': '票星球 app_start_page 开屏接口路径边界',
+            'reason': 'Keep the upstream-declared appapi.caiyicloud.com host, app_start_page endpoint and reject_dict(200) action, while requiring a query, slash, or URL end after the endpoint path to avoid matching similarly prefixed paths.',
+            'original_line': line,
+            'output_line': updated,
+        })
+        output.append(updated)
+    return output, adjustments
+
+
 _DASIXIONG_VERSION_MATCHERS = {
     r'^https?://sdk\.alibaba\.com\.ailbaba\.me/xgapp\.php/v\d/version':
         r'^https?://sdk\.alibaba\.com\.ailbaba\.me/xgapp\.php/v\d/version(?:\?|$|/)',
@@ -2098,6 +2140,9 @@ block_scope_adjustments.extend(dasixiong_base_version_adjustments)
 block_rw, dasixiong_block_version_adjustments = narrow_dasixiong_version_path(
     block_rw, 'blockAdsV2')
 block_scope_adjustments.extend(dasixiong_block_version_adjustments)
+block_rw, ticketstar_app_start_adjustments = narrow_ticketstar_app_start_path(
+    block_rw, 'blockAdsV2')
+block_scope_adjustments.extend(ticketstar_app_start_adjustments)
 base_rw, csdn_base_open_screen_ad_adjustments = narrow_csdn_open_screen_ad_path(
     base_rw, 'base')
 block_scope_adjustments.extend(csdn_base_open_screen_ad_adjustments)
