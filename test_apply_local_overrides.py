@@ -8,8 +8,11 @@ BASE = """#!name=test
 #!sources=existing
 [Rewrite]
 ^https?:\\/\\/example\\.com reject
+^https?:\\/\\/www\.baidu\.com\/?action=static&ms=1&version=css_page_2@0.*? reject
 [Script]
 response if ${url} ~= /^https?:\\/\\/example\\.com/ then reject
+http-request ^https?:\\/\\/(?:api|marketingapi|entertainment)\\.hellobike\\.com(?::\\d+)?\\/api(?:\\?|$) script-path=https://example/easybike-ad.js, requires-body=true, tag=easybike-ad
+http-response ^https?:\\/\\/(?:api|marketingapi|entertainment)\\.hellobike\\.com(?::\\d+)?\\/api(?:\\?|$) script-path=https://example/easybike-ad.js, requires-body=true, tag=easybike-ad
 response if ${url} ~= /^https?:\\/\\/api\\.hellobike\\.com/ then script("https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/hellobike-clean.js") with tag="哈啰净化-接口", requires_body=true
 [MITM]
 hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankcomm.cn, creditcardapp.bankcomm.com
