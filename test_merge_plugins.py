@@ -421,6 +421,49 @@ hostname = *.amap.com
         self.assertIn("geetest.htsc.com", shared_mitm)
         self.assertIn(r"geetest\.htsc\.com\/health", shared)
 
+    def test_qidian_magev6_ad_matchers_escape_literal_hostname_dots(self):
+        qidian_paths = (
+            "/argus/api/v1/client/iosad/",
+            "/argus/api/v1/bookshelf/getad/",
+            "/argus/api/v4/client/getsplashscreen",
+        )
+        base = (
+            "[Rewrite]\\n"
+            + "".join(
+                "request if " + "$" + "{url} ~= /^https?:\\\\/\\\\/magev6.if.qidian.com"
+                + path.replace("/", r"\\/")
+                + r"/ then reject(404)" + "\\n"
+                for path in qidian_paths
+            )
+            + "[MITM]\\nhostname = magev6.if.qidian.com\\n"
+        )
+        extra = (
+            "[Rewrite]\\n"
+            "# > 起点读书\\n"
+            "# hostname = qidian.qpic.cn, mage.if.qidian.com, magev6.if.qidian.com\\n"
+            + "".join(
+                "request if " + "$" + "{url} ~= /^https?://magev6.if.qidian.com"
+                + path + " then reject(404)\\n"
+                for path in qidian_paths
+            )
+            + "[MITM]\\nhostname = magev6.if.qidian.com\\n"
+        )
+        output = self.run_merge(base, extra)
+        qidian_rules = [
+            line for line in output.splitlines()
+            if line.startswith("request if ") and "magev6" in line
+        ]
+        self.assertEqual(len(qidian_rules), 3)
+        for line, path in zip(qidian_rules, qidian_paths):
+            self.assertIn(r"magev6\\.if\\.qidian\\.com", line)
+            self.assertNotIn("magev6.if.qidian.com", line.replace(
+                r"magev6\\.if\\.qidian\\.com", ""))
+            matcher = line.split(" ~= /", 1)[1].split("/ then", 1)[0]
+            matcher = matcher.replace(r"\\/", "/")
+            compiled = re.compile(matcher)
+            self.assertIsNotNone(compiled.search("https://magev6.if.qidian.com" + path))
+            self.assertIsNone(compiled.search("https://magev6XifYqidianZcom" + path))
+
     def test_bracketed_optional_https_scheme_is_parsed_for_mitm_pruning(self):
         # Some upstream Loon rules spell the scheme as http[s]? rather than https?.
         # The host extractor must identify the same HTTPS authority and not let
