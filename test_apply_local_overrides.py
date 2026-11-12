@@ -33,6 +33,10 @@ class LocalOverrideTests(unittest.TestCase):
         self.assertIn("wrap_response=true&headers=", HELLOBIKE_JS)
         self.assertIn("ZenmoFeiShi-Qx-HelloBike(ScriptHub-Loon)", result)
         self.assertIn("type=qx-script&target=loon-script", HELLOBIKE_JS)
+        taxi_rule = next(rule for rule in HELLOBIKE_SCRIPT_RULES if "taxiapi" in rule)
+        self.assertIn('${request.method} == "POST"', taxi_rule)
+        self.assertIn("${request.header['action']} == \"hitch.driver.journeyList\"", taxi_rule)
+        self.assertNotIn("http-response ^https:", taxi_rule)
         for host in HELLOBIKE_MITM_HOSTS:
             self.assertIn(host, result)
         self.assertEqual(apply(result), result)
