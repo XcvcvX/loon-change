@@ -347,12 +347,15 @@ hostname = *.amap.com
 
     def test_active_tencent_httpdns_ip_endpoints_are_excluded_from_exact_reject_rules(self):
         base = "[Rule]\n[Rewrite]\n[MITM]\nhostname = \n"
-        extra = "[Rule]\n[Rewrite]\n[MITM]\nhostname = \n"
+        extra = (
+            "[Rule]\n"
+            "IP-CIDR,119.29.29.98/32,DIRECT\n"
+            "[Rewrite]\n[MITM]\nhostname = \n"
+        )
         filter_text = (
             "IP-CIDR,119.29.29.98/32,REJECT\n"
             "IP-CIDR,119.29.29.99/32,REJECT\n"
             "IP-CIDR,119.29.29.90/32,REJECT\n"
-            "IP-CIDR,119.29.29.98/32,DIRECT\n"
         )
         output, report = self.run_merge(
             base, extra, filter_text=filter_text, return_provenance=True)
