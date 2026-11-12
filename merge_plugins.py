@@ -859,6 +859,66 @@ def narrow_gamersky_list_response_host(rewrite_lines, source):
     return output, adjustments
 
 
+
+def narrow_odin_numeric_host_rules(rewrite_lines, source):
+    """将 Odin 广告接口的数字主机匹配限制为合法 IPv4，避免匹配畸形数字/点串。"""
+    expected = {
+        'base': (
+            r'^https?:\/\/[\d\.]+\/odin\/c\d\/(channel\/ads|skin\/config)\? reject-dict',
+            r'^https?:\/\/((25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.){3}(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\/odin\/c\d\/(channel\/ads|skin\/config)\? reject-dict',
+            626,
+            'R-Store converted Rewrite',
+        ),
+        'block': (
+            'request if @@URL@@ ~= /^https?:\/\/[\d\.]+\/odin\/c1\/(channel\/ads|skin\/config)\?/ then reject_dict(200)',
+            'request if @@URL@@ ~= /^https?:\/\/((25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.){3}(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\/odin\/c1\/(channel\/ads|skin\/config)\?/ then reject_dict(200)',
+            621,
+            'blockAdsV2.plugin',
+        ),
+    }
+    if source not in expected:
+        raise RuntimeError('Odin IPv4 scope guard received unknown source: ' + str(source))
+    original, narrowed, source_index, source_file = expected[source]
+    url_token = chr(36) + '{url}'
+    original = original.replace('@@URL@@', url_token)
+    narrowed = narrowed.replace('@@URL@@', url_token)
+    originals = [line for line in rewrite_lines if line == original]
+    narrowed_rows = [line for line in rewrite_lines if line == narrowed]
+    if len(originals) == 0 and len(narrowed_rows) <= 1:
+        related = [
+            line for line in rewrite_lines
+            if 'odin' in line and '(channel' in line and 'skin' in line
+        ]
+        if related and not narrowed_rows:
+            raise RuntimeError(
+                source + ' Odin numeric-host rule count/scope/action drift; refusing to guess: '
+                + repr(related)
+            )
+        return list(rewrite_lines), []
+    if len(originals) != 1 or narrowed_rows:
+        raise RuntimeError(
+            source + ' Odin numeric-host rule count/scope/action drift; refusing to guess: '
+            + repr({'original': originals, 'narrowed': narrowed_rows})
+        )
+    matcher = entry_regex(narrowed)
+    if matcher is None:
+        raise RuntimeError(source + ' Odin IPv4 matcher could not be parsed')
+    adjustments = [{
+        'source': source,
+        'source_file': source_file,
+        'source_entry_index': source_index,
+        'section': 'Rewrite',
+        'reason': (
+            'The original [\\d\\.] host accepts malformed numeric/dotted strings. '
+            'Restrict only this Odin ad/config endpoint matcher to four valid IPv4 octets; '
+            'preserve protocol, path alternatives, query boundary, and reject action.'
+        ),
+        'original_line': original,
+        'output_line': narrowed,
+    }]
+    return [narrowed if line == original else line for line in rewrite_lines], adjustments
+
+
 def narrow_baidunetdisk_cdn_subdomains(rewrite_lines, source):
     """将百度网盘广告图片 CDN 兜底规则限制到 MITM 声明的合法子域名。"""
     output = []
@@ -1617,6 +1677,7 @@ base_rw, peopleapp_base_adjustments = escape_adstatic_peopleapp_image_extension(
     base_rw, 'base')
 base_rw, ad_image_extension_base_adjustments = escape_known_ad_image_extension_delimiters(
     base_rw, 'base')
+base_rw, odin_base_adjustments = narrow_odin_numeric_host_rules(base_rw, 'base')
 
 # Mango TV upstream labels this broad IP/port matcher as "无用请求", not an ad endpoint.
 # It can reject the same path on unrelated apps' arbitrary IPv4:five-digit-port hosts.
@@ -1676,6 +1737,7 @@ block_rw, peopleapp_block_adjustments = escape_adstatic_peopleapp_image_extensio
     block_rw, 'block')
 block_rw, ad_image_extension_block_adjustments = escape_known_ad_image_extension_delimiters(
     block_rw, 'block')
+block_rw, odin_block_adjustments = narrow_odin_numeric_host_rules(block_rw, 'block')
 block_rw, gamersky_block_adjustments = narrow_gamersky_ad_system_host(
     block_rw, 'block')
 block_rw, gamersky_statistic_block_adjustments = narrow_gamersky_statistic_ad_host(
@@ -1755,6 +1817,8 @@ if _lite_advertising_guard_present:
     block_rw = _kept_block_rw
 block_rw, block_sc, block_scope_adjustments = narrow_555_scope(
     block_rw, block_sc)
+block_scope_adjustments.extend(odin_base_adjustments)
+block_scope_adjustments.extend(odin_block_adjustments)
 block_scope_adjustments.extend(block_qidian_adjustments)
 block_scope_adjustments.extend(g1_163_base_adjustments)
 block_scope_adjustments.extend(peopleapp_base_adjustments)
