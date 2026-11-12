@@ -428,25 +428,25 @@ hostname = *.amap.com
             "/argus/api/v4/client/getsplashscreen",
         )
         base = (
-            "[Rewrite]\\n"
+            "[Rewrite]\n"
             + "".join(
-                "request if " + "$" + "{url} ~= /^https?:\\\\/\\\\/magev6.if.qidian.com"
-                + path.replace("/", r"\\/")
-                + r"/ then reject(404)" + "\\n"
+                "request if " + "$" + "{url} ~= /^https?:\/\/magev6.if.qidian.com"
+                + path.replace("/", r"\/")
+                + r"/ then reject(404)" + "\n"
                 for path in qidian_paths
             )
-            + "[MITM]\\nhostname = magev6.if.qidian.com\\n"
+            + "[MITM]\nhostname = magev6.if.qidian.com\n"
         )
         extra = (
-            "[Rewrite]\\n"
-            "# > 起点读书\\n"
-            "# hostname = qidian.qpic.cn, mage.if.qidian.com, magev6.if.qidian.com\\n"
+            "[Rewrite]\n"
+            "# > 起点读书\n"
+            "# hostname = qidian.qpic.cn, mage.if.qidian.com, magev6.if.qidian.com\n"
             + "".join(
                 "request if " + "$" + "{url} ~= /^https?://magev6.if.qidian.com"
-                + path + " then reject(404)\\n"
+                + path + " then reject(404)\n"
                 for path in qidian_paths
             )
-            + "[MITM]\\nhostname = magev6.if.qidian.com\\n"
+            + "[MITM]\nhostname = magev6.if.qidian.com\n"
         )
         output = self.run_merge(base, extra)
         qidian_rules = [
@@ -455,11 +455,11 @@ hostname = *.amap.com
         ]
         self.assertEqual(len(qidian_rules), 3)
         for line, path in zip(qidian_rules, qidian_paths):
-            self.assertIn(r"magev6\\.if\\.qidian\\.com", line)
+            self.assertIn(r"magev6\.if\.qidian\.com", line)
             self.assertNotIn("magev6.if.qidian.com", line.replace(
-                r"magev6\\.if\\.qidian\\.com", ""))
+                r"magev6\.if\.qidian\.com", ""))
             matcher = line.split(" ~= /", 1)[1].split("/ then", 1)[0]
-            matcher = matcher.replace(r"\\/", "/")
+            matcher = matcher.replace(r"\/", "/")
             compiled = re.compile(matcher)
             self.assertIsNotNone(compiled.search("https://magev6.if.qidian.com" + path))
             self.assertIsNone(compiled.search("https://magev6XifYqidianZcom" + path))
