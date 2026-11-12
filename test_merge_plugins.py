@@ -311,7 +311,7 @@ class MergeIntegrationTests(unittest.TestCase):
 
     def test_ticketstar_app_start_page_requires_endpoint_path_boundary(self):
         source_line = (
-            r"request if \${url} ~= /^https:\/\/appapi\.caiyicloud\.com\/cyy_gatewayapi\/home\/pub\/v3\/banners\/app_start_page/ then reject_dict(200)"
+            r"request if ${url} ~= /^https:\/\/appapi\.caiyicloud\.com\/cyy_gatewayapi\/home\/pub\/v3\/banners\/app_start_page/ then reject_dict(200)"
         )
         base = "[Rewrite]\n[MITM]\nhostname = \n"
         extra = (
@@ -345,14 +345,14 @@ class MergeIntegrationTests(unittest.TestCase):
         base = "[Rewrite]\n[MITM]\nhostname = \n"
         bad_action = (
             "[Rewrite]\n"
-            + r"request if \${url} ~= /^https:\/\/appapi\.caiyicloud\.com\/cyy_gatewayapi\/home\/pub\/v3\/banners\/app_start_page/ then reject(404)"
+            + r"request if ${url} ~= /^https:\/\/appapi\.caiyicloud\.com\/cyy_gatewayapi\/home\/pub\/v3\/banners\/app_start_page/ then reject(404)"
             + "\n[MITM]\nhostname = \n"
         )
         output = self.run_merge(base, bad_action, expect_failure=True)
         self.assertIn("票星球 app_start_page 动作已变化", output)
         bad_path = (
             "[Rewrite]\n"
-            + r"request if \${url} ~= /^https:\/\/appapi\.caiyicloud\.com\/cyy_gatewayapi\/home\/pub\/v3\/banners\/app_start_page.*/ then reject_dict(200)"
+            + r"request if ${url} ~= /^https:\/\/appapi\.caiyicloud\.com\/cyy_gatewayapi\/home\/pub\/v3\/banners\/app_start_page.*/ then reject_dict(200)"
             + "\n[MITM]\nhostname = \n"
         )
         output = self.run_merge(base, bad_path, expect_failure=True)
