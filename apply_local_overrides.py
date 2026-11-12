@@ -20,6 +20,11 @@ HELLOBIKE_ADDED_MITM_HOSTS = {
     "mi.gdt.qq.com",
     "v2mi.gdt.qq.com",
 }
+# 拼多多 HTTPDNS IPv4 规则必须以查询路径边界结束：/d、/d4? 可命中，/download 不应命中。
+PDD_HTTPDNS_MARKER = "com.xunmeng.pinduoduo"
+PDD_HTTPDNS_OLD_SUFFIX = r"\/d(\d)?"
+PDD_HTTPDNS_NEW_SUFFIX = r"\/d(\d)?(?:\?|$)"
+
 REQUIRED_BANKCOMM_MITM_HOSTS = {
     "creditcard.bankcomm.cn", "creditcard.bankcomm.com",
     "creditcardapp.bankcomm.cn", "creditcardapp.bankcomm.com",
@@ -59,6 +64,13 @@ def apply(text: str) -> str:
             sources = [item for item in line[len("#!sources="):].split("+")
                        if item != HELLOBIKE_SOURCE]
             line = "#!sources=" + "+".join(sources)
+        if section == "Rule" and PDD_HTTPDNS_MARKER in line and "URL-REGEX" in line:
+            if PDD_HTTPDNS_NEW_SUFFIX in line:
+                pass
+            elif PDD_HTTPDNS_OLD_SUFFIX in line:
+                line = line.replace(PDD_HTTPDNS_OLD_SUFFIX, PDD_HTTPDNS_NEW_SUFFIX)
+            else:
+                raise ValueError("拼多多 IPv4 HTTPDNS matcher changed; refusing an unreviewed rewrite")
         if section == "MITM" and line.strip().lower().startswith("hostname") and "=" in line:
             key, value = line.split("=", 1)
             hosts = [host.strip() for host in value.split(",") if host.strip()]
