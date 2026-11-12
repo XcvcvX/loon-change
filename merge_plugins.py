@@ -755,11 +755,17 @@ _TARGETED_AD_HOST_MATCHERS = (
         'action_key': ('REJECT', 'reject_dict', 'reject_dict(200)'),
         'reason': 'Escape literal dots in the dili.sqcosmos.com end-page ad endpoint matcher.',
     },
+    {
+        'host': 'api.xiaoyi.com',
+        'marker': '/v5/app/mobile/ads',
+        'action_key': ('REJECT', 'reject', 'reject(404)'),
+        'reason': 'Escape literal dots in the api.xiaoyi.com mobile ads endpoint matcher.',
+    },
 )
 
 
 def escape_targeted_ad_hosts(rewrite_lines, source):
-    """只收紧已确认的两个广告接口主机名，不改变路径与拦截动作。"""
+    """只收紧已确认广告接口的字面主机名点号，不改变路径与拦截动作。"""
     output = []
     adjustments = []
     for line in rewrite_lines:
