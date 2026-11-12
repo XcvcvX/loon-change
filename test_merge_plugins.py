@@ -475,14 +475,13 @@ hostname = *.amap.com
             r"request if ${url} ~= /^https?:\/\/api.xiaoyi.com"
             r"\/v5\/app\/mobile\/ads/ then reject(404)"
         )
-        rule = rule.replace("${url}", "${url}")
         block = (
             "[Rewrite]\n" + rule + "\n"
             + "[Script]\n[MITM]\nhostname = api.xiaoyi.com\n"
         )
         output, report = self.run_merge(empty, block, return_provenance=True)
         result = next(line for line in output.splitlines()
-                      if line.startswith("request if") and "api.xiaoyi.com" in line)
+                      if line.startswith("request if") and "xiaoyi" in line)
         self.assertIn(r"api\.xiaoyi\.com", result)
         matcher = re.search(r"~= /(.*)/ then ", result).group(1).replace(r"\/", "/")
         self.assertRegex("https://api.xiaoyi.com/v5/app/mobile/ads", matcher)
@@ -497,12 +496,17 @@ hostname = *.amap.com
         self.assertEqual(adjustments[0]["output_line"], result)
 
     def test_xiaoyi_mobile_ads_matcher_fails_closed_on_action_drift(self):
+        empty = "[Rewrite]\n[Script]\n[MITM]\nhostname = \n"
         rule = (
-            r"request if ${url} ~= /^https?:\/\/api.xiaoyi.com"
+            r"request if @@URL@@ ~= /^https?:\/\/api.xiaoyi.com"
             r"\/v5\/app\/mobile\/ads/ then reject_dict(200)"
-        ).replace("${url}", "${url}")
-        with self.assertRaisesRegex(RuntimeError, "拦截动作已变化"):
-            __import__("merge_plugins").escape_targeted_ad_hosts([rule], "block")
+        ).replace("@@URL@@", "$"+"{url}")
+        extra = (
+            "[Rewrite]\n" + rule + "\n"
+            + "[Script]\n[MITM]\nhostname = api.xiaoyi.com\n"
+        )
+        output = self.run_merge(empty, extra, expect_failure=True)
+        self.assertIn("广告接口拦截动作已变化", output)
 
 
     def test_qidian_magev6_ad_matchers_escape_literal_hostname_dots(self):
