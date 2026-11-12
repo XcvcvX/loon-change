@@ -24,8 +24,8 @@ class LocalOverrideTests(unittest.TestCase):
         self.assertNotIn("script.hub/convert", result)
         self.assertNotIn("easybike-ad", result)
         self.assertNotIn("hellobike-clean.js", result)
-        self.assertNotIn("api-htp\\\\.beizi", result)
-        self.assertNotIn("adservice\\\\.sigmob", result)
+        self.assertNotIn("api-htp.beizi.biz", result)
+        self.assertNotIn("adservice.sigmob.cn", result)
         self.assertIn("api.hellobike.com", result)  # existed before PR #129
         for host in HELLOBIKE_ADDED_MITM_HOSTS:
             self.assertNotIn(host, result)
