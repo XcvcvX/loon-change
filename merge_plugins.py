@@ -814,14 +814,19 @@ def narrow_gamersky_list_response_host(rewrite_lines, source):
     """将游民星空列表广告响应过滤限制到合法子域名与明确接口路径。"""
     output = []
     adjustments = []
+    jq_action = (
+        'then response.json.jq(' + chr(96)
+        + '.listElements |= map(select(has("adCategory") | not))'
+        + chr(96) + ')'
+    )
     original = (
         r'response if ${url} ~= /http:\/\/.+\.gamersky.com\/.+\/lists\/getListElements/ '
-        r'then response.json.jq(\`.listElements |= map(select(has("adCategory") | not))\`)'
+        + jq_action
     )
     narrowed = (
         r'response if ${url} ~= /^http:\/\/(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}'
         r'[A-Za-z0-9])?\.)+gamersky\.com\/.+\/lists\/getListElements(?:\/|\?|#|$)/ '
-        r'then response.json.jq(\`.listElements |= map(select(has("adCategory") | not))\`)'
+        + jq_action
     )
     for line in rewrite_lines:
         if 'gamersky' not in line or 'getListElements' not in line:
