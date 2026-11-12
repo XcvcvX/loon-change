@@ -867,7 +867,11 @@ hostname = *.amap.com
         )
 
         def matcher_for(fragment):
-            line = next(line for line in output.splitlines() if fragment in line)
+            line = next(
+                line for line in output.splitlines()
+                if (line.startswith("request if") or line.startswith("^https?"))
+                and fragment in line.replace(r"\.", ".")
+            )
             if line.startswith("request if"):
                 matcher = re.search(r"~= /(.*)/ then ", line).group(1)
             else:
