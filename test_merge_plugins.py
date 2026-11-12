@@ -470,20 +470,21 @@ hostname = *.amap.com
         self.assertEqual({item["source"] for item in adjustments}, {"block"})
 
     def test_xiaoyi_mobile_ads_matcher_escapes_literal_hostname_dots(self):
-        empty = "[Rewrite]\\n[Script]\\n[MITM]\\nhostname = \\n"
+        empty = "[Rewrite]\n[Script]\n[MITM]\nhostname = \n"
         rule = (
-            r"request if ${url} ~= /^https?:\\/\\/api.xiaoyi.com"
-            r"\\/v5\\/app\\/mobile\\/ads/ then reject(404)"
+            r"request if ${url} ~= /^https?:\/\/api.xiaoyi.com"
+            r"\/v5\/app\/mobile\/ads/ then reject(404)"
         )
+        rule = rule.replace("${url}", "${url}")
         block = (
-            "[Rewrite]\\n" + rule + "\\n"
-            + "[Script]\\n[MITM]\\nhostname = api.xiaoyi.com\\n"
+            "[Rewrite]\n" + rule + "\n"
+            + "[Script]\n[MITM]\nhostname = api.xiaoyi.com\n"
         )
         output, report = self.run_merge(empty, block, return_provenance=True)
         result = next(line for line in output.splitlines()
                       if line.startswith("request if") and "api.xiaoyi.com" in line)
-        self.assertIn(r"api\\.xiaoyi\\.com", result)
-        matcher = re.search(r"~= /(.*)/ then ", result).group(1).replace(r"\\/", "/")
+        self.assertIn(r"api\.xiaoyi\.com", result)
+        matcher = re.search(r"~= /(.*)/ then ", result).group(1).replace(r"\/", "/")
         self.assertRegex("https://api.xiaoyi.com/v5/app/mobile/ads", matcher)
         self.assertNotRegex("https://apiXxiaoyiYcom/v5/app/mobile/ads", matcher)
         adjustments = [
@@ -497,9 +498,9 @@ hostname = *.amap.com
 
     def test_xiaoyi_mobile_ads_matcher_fails_closed_on_action_drift(self):
         rule = (
-            r"request if ${url} ~= /^https?:\\/\\/api.xiaoyi.com"
-            r"\\/v5\\/app\\/mobile\\/ads/ then reject_dict(200)"
-        )
+            r"request if ${url} ~= /^https?:\/\/api.xiaoyi.com"
+            r"\/v5\/app\/mobile\/ads/ then reject_dict(200)"
+        ).replace("${url}", "${url}")
         with self.assertRaisesRegex(RuntimeError, "拦截动作已变化"):
             __import__("merge_plugins").escape_targeted_ad_hosts([rule], "block")
 
