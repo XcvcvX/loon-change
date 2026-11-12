@@ -13,7 +13,7 @@ hide_ai_dj = switch,true
 AND,((DOMAIN-SUFFIX, spotify.com), (PROTOCOL, QUIC)),REJECT
 DOMAIN,aet.spotify.com,REJECT
 [Rewrite]
-^https:\/\/(?:spclient\.wg|[\w-]+-spclient)\.spotify\.com(?::443)?\/(?:ads\/|ad-logic\/|[^?#]*\/ad-on-app-open) reject
+^https:\/\/(?:spclient\.wg|[\w-]+-spclient)\.spotify\.com(?::443)?\/(?:ads\/|ad-logic\/|[^?#]*\/ad-on-app-open|premium-marketing\/upsellOffer) reject
 ^https:\/\/spclient\.wg\.spotify\.com\/premium-marketing\/upsellOffer reject
 [Mitm]
 hostname = spclient.wg.spotify.com, *spclient.spotify.com
@@ -45,7 +45,8 @@ class SpotifyIntegrationTests(unittest.TestCase):
             second = plugin.read_text(encoding="utf-8")
             self.assertEqual(first, second)
             self.assertIn("DOMAIN,aet.spotify.com,REJECT", second)
-            self.assertIn(r"ads\\/|ad-logic\\/", second)
+            self.assertIn("ad-logic", second)
+            self.assertIn("ad-on-app-open", second)
             self.assertNotIn("premium-marketing", second)
             self.assertNotIn("spot-proto-ev3", second)
             self.assertIn("scripts/spotify/spot-NoHomeAd.js", second)
