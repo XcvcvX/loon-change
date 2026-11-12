@@ -164,7 +164,7 @@ class MergeIntegrationTests(unittest.TestCase):
 
     def test_clicli_top_notice_requires_endpoint_path_boundary(self):
         source_line = (
-            r"request if \${url} ~= /^https?:\/\/js-ad\.ayximgs\.com\.ad-universe-cdn\.hzhcbkj\.cn\/xgapp\.php\/v2\/top_notice/ then reject(404)"
+            r"request if ${url} ~= /^https?:\/\/js-ad\.ayximgs\.com\.ad-universe-cdn\.hzhcbkj\.cn\/xgapp\.php\/v2\/top_notice/ then reject(404)"
         )
         base = "[Rewrite]\n[MITM]\nhostname = \n"
         extra = (
@@ -202,7 +202,7 @@ class MergeIntegrationTests(unittest.TestCase):
         base = "[Rewrite]\n[MITM]\nhostname = \n"
         extra_action = (
             "[Rewrite]\n"
-            + r"request if \${url} ~= /^https?:\/\/js-ad\.ayximgs\.com\.ad-universe-cdn\.hzhcbkj\.cn\/xgapp\.php\/v2\/top_notice/ then reject(200)"
+            + r"request if ${url} ~= /^https?:\/\/js-ad\.ayximgs\.com\.ad-universe-cdn\.hzhcbkj\.cn\/xgapp\.php\/v2\/top_notice/ then reject(200)"
             + "\n[MITM]\nhostname = \n"
         )
         output = self.run_merge(base, extra_action, expect_failure=True)
@@ -210,7 +210,7 @@ class MergeIntegrationTests(unittest.TestCase):
 
         extra_path = (
             "[Rewrite]\n"
-            + r"request if \${url} ~= /^https?:\/\/js-ad\.ayximgs\.com\.ad-universe-cdn\.hzhcbkj\.cn\/xgapp\.php\/v2\/top_notice.*/ then reject(404)"
+            + r"request if ${url} ~= /^https?:\/\/js-ad\.ayximgs\.com\.ad-universe-cdn\.hzhcbkj\.cn\/xgapp\.php\/v2\/top_notice.*/ then reject(404)"
             + "\n[MITM]\nhostname = \n"
         )
         output = self.run_merge(base, extra_path, expect_failure=True)
