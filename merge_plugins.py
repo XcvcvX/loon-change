@@ -770,11 +770,11 @@ def escape_targeted_ad_hosts(rewrite_lines, source):
     adjustments = []
     for line in rewrite_lines:
         matcher = entry_regex(line)
-        normalized = matcher.replace(r'\\/', '/') if matcher else matcher
+        normalized = matcher.replace(r'\/', '/') if matcher else matcher
         updated_line = line
         for spec in _TARGETED_AD_HOST_MATCHERS:
             host = spec['host']
-            escaped_host = host.replace('.', r'\\.')
+            escaped_host = host.replace('.', r'\.')
             if not normalized or spec['marker'] not in normalized:
                 continue
             if escaped_host in normalized:
@@ -790,7 +790,7 @@ def escape_targeted_ad_hosts(rewrite_lines, source):
             updated_line = updated_line.replace(host, escaped_host, 1)
             updated_matcher = entry_regex(updated_line)
             updated_normalized = (
-                updated_matcher.replace(r'\\/', '/')
+                updated_matcher.replace(r'\/', '/')
                 if updated_matcher else updated_matcher
             )
             expected = normalized.replace(host, escaped_host, 1)
