@@ -3,7 +3,7 @@
 from pathlib import Path
 import argparse
 
-RULE = ('response if ${url} ~= /^https?:\\/\\/creditcard\\.bankcomm\\.(?:cn|com)\\/tofimg\\/bucket-pj-btss-tfcn-dmz\\/OSS-F\\/.+/i '
+RULE = ('response if ${url} ~= /^https?:\\\\/\\\\/creditcard\\\\.bankcomm\\\\.(?:cn|com)\\\\/tofimg\\\\/bucket-pj-btss-tfcn-dmz\\\\/OSS-F\\\\/.+/i '
         'then script("https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/maidanba.js") '
         'with tag="买单吧开屏广告", requires_body=true, binary_body_mode=true')
 
@@ -19,6 +19,10 @@ HELLOBIKE_ADDED_MITM_HOSTS = {
     "tm.sigmob.cn",
     "mi.gdt.qq.com",
     "v2mi.gdt.qq.com",
+}
+REQUIRED_BANKCOMM_MITM_HOSTS = {
+    "creditcard.bankcomm.cn", "creditcard.bankcomm.com",
+    "creditcardapp.bankcomm.cn", "creditcardapp.bankcomm.com",
 }
 HELLOBIKE_REWRITE_MARKERS = (
     "api-htp.beizi.biz",
@@ -58,16 +62,18 @@ def apply(text: str) -> str:
         if section == "MITM" and line.strip().lower().startswith("hostname") and "=" in line:
             key, value = line.split("=", 1)
             hosts = [host.strip() for host in value.split(",") if host.strip()]
+            if not REQUIRED_BANKCOMM_MITM_HOSTS.issubset(set(hosts)):
+                raise ValueError("required Bankcomm image hosts missing from MITM")
             hosts = [host for host in hosts if host not in HELLOBIKE_ADDED_MITM_HOSTS]
             line = key + "= " + ", ".join(hosts)
         lines.append(line)
 
-    result = "\n".join(lines)
+    result = "\\n".join(lines)
     # Keep the unrelated Bankcomm override in [Script], idempotently.
     if RULE not in result:
         pos = result.index("[MITM]")
-        result = result[:pos].rstrip() + "\n" + RULE + "\n\n" + result[pos:]
-    return result + ("\n" if text.endswith("\n") and not result.endswith("\n") else "")
+        result = result[:pos].rstrip() + "\\n" + RULE + "\\n\\n" + result[pos:]
+    return result + ("\\n" if text.endswith("\\n") and not result.endswith("\\n") else "")
 
 
 def main():
