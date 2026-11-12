@@ -824,9 +824,7 @@ def narrow_gamersky_statistic_ad_host(rewrite_lines, source):
         r" then reject_dict(200)"
     )
     for line in rewrite_lines:
-        matcher = entry_regex(line)
-        normalized = matcher.replace(r'\/', '/') if matcher else matcher
-        if not normalized or 'gamersky' not in normalized or 'statisticAd' not in normalized:
+        if 'gamersky' not in line or 'statisticAd' not in line:
             output.append(line)
             continue
         if line != original or action_key(line) != ('REJECT', 'reject_dict', 'reject_dict(200)'):
