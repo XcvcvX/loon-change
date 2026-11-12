@@ -1104,6 +1104,7 @@ def escape_adstatic_peopleapp_image_extension(rewrite_lines, source):
     host_prefix = r'^https?://adstatic\.peopleapp\.com/upload/AppLoad/'
     variants = (
         ('.*.(?:jpg|png)', r'.*\.(?:jpg|png)'),
+    ('.*.(?:png|jpg)', r'.*\.(?:png|jpg)'),
         ('.*.(jpg|png)', r'.*\.(jpg|png)'),
     )
     for line in rewrite_lines:
