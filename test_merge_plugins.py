@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """Integration tests for merge_plugins.py; all inputs are local fixtures."""
 import json
+import re
 import subprocess
 import sys
 import tempfile
@@ -420,6 +421,44 @@ hostname = *.amap.com
         shared_mitm = next(line for line in shared.splitlines() if line.strip().startswith("hostname ="))
         self.assertIn("geetest.htsc.com", shared_mitm)
         self.assertIn(r"geetest\.htsc\.com\/health", shared)
+
+    def test_qidian_magev6_ad_matchers_escape_literal_hostname_dots(self):
+        qidian_paths = (
+            "/argus/api/v1/client/iosad",
+            "/argus/api/v1/bookshelf/getad",
+            "/argus/api/v4/client/getsplashscreen?",
+        )
+        base = (
+            "[Rewrite]\n"
+            + "".join(
+                "request if " + "$" + "{url} ~= /^https?:\/\/magev6.if.qidian.com"
+                + path.replace("/", r"\/")
+                + r"/ then reject(404)" + "\n"
+                for path in qidian_paths
+            )
+            + "[MITM]\nhostname = magev6.if.qidian.com\n"
+        )
+        empty = "[Rule]\n[Rewrite]\n[MITM]\nhostname = \n"
+        output = self.run_merge(base, empty)
+        qidian_rules = [
+            line for line in output.splitlines()
+            if line.startswith("request if ") and "magev6" in line
+        ]
+        self.assertEqual(len(qidian_rules), 3, repr(qidian_rules))
+        url_paths = (
+            "/argus/api/v1/client/iosad/",
+            "/argus/api/v1/bookshelf/getad/",
+            "/argus/api/v4/client/getsplashscreen",
+        )
+        for line, path in zip(qidian_rules, url_paths):
+            self.assertIn(r"magev6\.if\.qidian\.com", line)
+            self.assertNotIn("magev6.if.qidian.com", line.replace(
+                r"magev6\.if\.qidian\.com", ""))
+            matcher = line.split(" ~= /", 1)[1].split("/ then", 1)[0]
+            matcher = matcher.replace(r"\/", "/")
+            compiled = re.compile(matcher)
+            self.assertIsNotNone(compiled.search("https://magev6.if.qidian.com" + path))
+            self.assertIsNone(compiled.search("https://magev6XifYqidianZcom" + path))
 
     def test_bracketed_optional_https_scheme_is_parsed_for_mitm_pruning(self):
         # Some upstream Loon rules spell the scheme as http[s]? rather than https?.

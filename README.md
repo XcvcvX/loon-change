@@ -361,3 +361,12 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 在规则合并入口增加精确安全排除：只排除这两个 IP 的 `/32`、`REJECT` 规则，并在 `rule-provenance.json` 记录来源、原始规则、IP 和排除原因。
 - 保留 `.90`、其他地址、其他掩码及非 REJECT 动作，不扩大排除范围；不改 MITM、Rewrite、Script、其他 Rule 或优先级。
 - 新增集成测试验证 `.98/.99` 的拦截规则被排除、`.90` 与 DIRECT 规则仍保留。
+
+
+## 第八阶段第二批：修正起点读书 magev6 广告规则的主机匹配精度
+
+- 生产 `allAdRewrite.plugin` 中，起点读书 3 条广告接口规则将 `magev6.if.qidian.com` 的点号写成正则通配符，导致规则可匹配点号以外的字符组合。
+- 只对三个已确认的广告路径（`/argus/api/v1/client/iosad`、`/argus/api/v1/bookshelf/getad`、`/argus/api/v4/client/getsplashscreen`）精确转义域名点号。
+- base 与 blockAdsV2 两个输入来源同时执行相同修正；动作仍为原来的 `reject(404)`，不改变路径、MITM hostname 或其他起点规则。
+- 若上游 matcher 或动作变化，自动构建失败，不会静默套用修正。
+- 新增集成测试验证三个真实主机路径继续命中，而相似但不相同的主机名不再命中。

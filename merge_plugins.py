@@ -691,6 +691,58 @@ def prep_block_sections(rewrite_lines, script_lines):
     return rewrite, script
 
 
+# 起点读书 magev6 主机：点号必须按 DNS 标签分隔符精确匹配。
+_QIDIAN_MAGEV6_PATHS = (
+    '/argus/api/v1/client/iosad',
+    '/argus/api/v1/bookshelf/getad',
+    '/argus/api/v4/client/getsplashscreen',
+)
+
+
+def escape_qidian_magev6_host(rewrite_lines, source):
+    """只修正已知起点广告接口 matcher 中未转义的域名点号。"""
+    output = []
+    adjustments = []
+    for line in rewrite_lines:
+        matcher = entry_regex(line)
+        normalized = matcher.replace(r'\/', '/') if matcher else matcher
+        if not matcher or 'magev6' not in normalized or '/argus/api/' not in normalized:
+            output.append(line)
+            continue
+        raw_host = 'magev6.if.qidian.com'
+        escaped_host = r'magev6\.if\.qidian\.com'
+        if escaped_host in normalized:
+            output.append(line)
+            continue
+        raw_prefix = '^https?://' + raw_host
+        if not normalized.startswith(raw_prefix):
+            raise RuntimeError(
+                source + ' 起点读书 magev6 广告 matcher 已变化，拒绝静默放宽主机匹配：' + line
+            )
+        path = normalized[len(raw_prefix):]
+        if not any(path.startswith(target) for target in _QIDIAN_MAGEV6_PATHS):
+            raise RuntimeError(
+                source + ' 起点读书 magev6 广告路径已变化，拒绝自动改写：' + line
+            )
+        if action_key(line) != ('REJECT', 'reject', 'reject(404)'):
+            raise RuntimeError(
+                source + ' 起点读书 magev6 广告动作已变化，拒绝自动改写：' + line
+            )
+        updated = line.replace(raw_host, escaped_host, 1)
+        updated_matcher = entry_regex(updated)
+        updated_normalized = updated_matcher.replace(r'\/', '/') if updated_matcher else updated_matcher
+        if updated_normalized != normalized.replace(raw_host, escaped_host, 1):
+            raise RuntimeError(source + ' 起点读书 magev6 matcher 修正后语义校验失败：' + line)
+        adjustments.append({
+            'source': source,
+            'section': 'Rewrite',
+            'reason': 'Escape the literal dots in the declared magev6.if.qidian.com hostname so the matcher cannot accept lookalike hosts.',
+            'original_line': line,
+            'output_line': updated,
+        })
+        output.append(updated)
+    return output, adjustments
+
 # 懒人听书：只允许上游该接口明确声明的两个业务主机。
 _LANRENTINGSHU_MARKER = '# > 懒人听书'
 _LANRENTINGSHU_HOST_DECLARATION = (
@@ -1053,6 +1105,8 @@ _lite_advertising_guard_present = any(
 # blockAdsV2
 block_rw, block_sc = prep_block_sections(
     extra_sec.get('Rewrite', []), extra_sec.get('Script', []))
+base_rw, base_qidian_adjustments = escape_qidian_magev6_host(
+    base_rw, 'base')
 _ZHANGLE_BLOCK_RULES = {
     r'^https?://c\.zhangle\.com/pic/mktg/diversity/.+\.jpg$': (r'request if ${url} ~= /^https?:\/\/c\.zhangle\.com\/pic\/mktg\/diversity\/.+\.jpg$/ then reject_dict(200)', ('REJECT', 'reject_dict', 'reject_dict(200)'), 'reject_dict(200)'),
     r'^https?://live\.inst-service\.htsc\.com/live': (r'request if ${url} ~= /^https?:\/\/live\.inst-service\.htsc\.com\/live/ then reject_dict(200)', ('REJECT', 'reject_dict', 'reject_dict(200)'), 'reject_dict(200)'),
@@ -1126,6 +1180,7 @@ if _lite_advertising_guard_present:
     block_rw = _kept_block_rw
 block_rw, block_sc, block_scope_adjustments = narrow_555_scope(
     block_rw, block_sc)
+block_scope_adjustments.extend(base_qidian_adjustments)
 lanrentingshu_source_present = validate_lanrentingshu_source(extra_text)
 base_rw, lanrentingshu_base_adjustments = narrow_lanrentingshu_base_scope(
     base_rw, lanrentingshu_source_present)
