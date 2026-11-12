@@ -130,7 +130,14 @@
       "action_changed": [],
       "added": [
         {
-          "line": "request if ${url} ~= /^https?:\\/\\/api\\.xiaoyi\\.com\\/v5\\/app\\/mobile\\/ads/ then reject(404)",
+          "line": "^https?:\\/\\/adstatic\\.peopleapp\\.com\\/upload\\/AppLoad\\/.*\\.(?:jpg|png) reject-200",
+          "section": "rewrite",
+          "sources": [
+            "base"
+          ]
+        },
+        {
+          "line": "request if ${url} ~= /^https?:\\/\\/adstatic\\.peopleapp\\.com\\/upload\\/AppLoad\\/.*\\.(jpg|png)/ then reject(200)",
           "section": "rewrite",
           "sources": [
             "block"
@@ -139,7 +146,14 @@
       ],
       "removed": [
         {
-          "line": "request if ${url} ~= /^https?:\\/\\/api.xiaoyi.com\\/v5\\/app\\/mobile\\/ads/ then reject(404)",
+          "line": "^https?:\\/\\/adstatic\\.peopleapp\\.com\\/upload\\/AppLoad\\/.*.(?:jpg|png) reject-200",
+          "section": "rewrite",
+          "sources": [
+            "base"
+          ]
+        },
+        {
+          "line": "request if ${url} ~= /^https?:\\/\\/adstatic\\.peopleapp\\.com\\/upload\\/AppLoad\\/.*.(jpg|png)/ then reject(200)",
           "section": "rewrite",
           "sources": [
             "block"
@@ -161,8 +175,8 @@
   "summary": {
     "rewrite": {
       "action_changed": 0,
-      "added": 1,
-      "removed": 1
+      "added": 2,
+      "removed": 2
     },
     "rule": {
       "action_changed": 0,
@@ -174,7 +188,7 @@
       "added": 0,
       "removed": 0
     },
-    "total_changes": 2
+    "total_changes": 4
   },
   "upstream_revision_changes": []
 }

@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-12 04:44 UTC
+#!merged-at=2026-11-12 04:48 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -3601,7 +3601,7 @@ DOMAIN,yandexmetrica.com,REJECT
 [Rewrite]
 ^https?:\/\/app\.peopleapp\.com\/Api\/\d+/HomeApi\/(?:adv|getAdvertImage) reject
 ^https?:\/\/stat\.peopleapp\.com\/ reject
-^https?:\/\/adstatic\.peopleapp\.com\/upload\/AppLoad\/.*.(?:jpg|png) reject-200
+^https?:\/\/adstatic\.peopleapp\.com\/upload\/AppLoad\/.*\.(?:jpg|png) reject-200
 ^https?:\/\/capi\.lkcoffee\.com\/resource\/m\/sys\/app\/adposNew reject
 ^https?:\/\/(?:ec|c)api\.lkcoffee\.com\/resource\/m\/eorder\/product\/popAppTagProductList reject-200
 ^https?:\/\/m\.lkcoffee\.com\/ecapi\/resource\/m\/member\/exchange\/page response-body-replace-regex \{.+\} {"status":"SUCCESS"}
@@ -5887,7 +5887,7 @@ request if ${url} ~= /^https?:\/\/y\.gtimg\.cn\/music\/common\/\/upload\/kg_ad\/
 request if ${url} ~= /^https?:\/\/((25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.){3}(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\/music\/common\/upload\/t_splash_info\// then reject(404)
 ^https:\/\/music\.y\.qq\.com\/maproxy\/getPbCompressAd reject
 request if ${url} ~= /^https?:\/\/app\.peopleapp\.com\/Api\/\d+\/HomeApi\/(adv|getAdvertImage)/ then reject(404)
-request if ${url} ~= /^https?:\/\/adstatic\.peopleapp\.com\/upload\/AppLoad\/.*.(jpg|png)/ then reject(200)
+request if ${url} ~= /^https?:\/\/adstatic\.peopleapp\.com\/upload\/AppLoad\/.*\.(jpg|png)/ then reject(200)
 request if ${url} ~= /https:\/\/api.rr.tv\/storage\/business\/rootName\/app\/homePage\?dataType=JSON/ then reject_dict(200)
 request if ${url} ~= /^https?:\/\/oneapph5\.dongfeng-nissan\.com\.cn\/mb-gw\/vmsp-discover\/rest\/business-service\/v1\/advert\/advertinfo/ then reject_dict(200)
 request if ${url} ~= /^https?:\/\/cms\.daydaycook\.com\.cn\/api\/cms\/advertisement\// then reject(404)

@@ -2,8 +2,8 @@
   "change_counts": {
     "rewrite": {
       "action_changed": 0,
-      "added": 1,
-      "removed": 1
+      "added": 2,
+      "removed": 2
     },
     "rule": {
       "action_changed": 0,
@@ -19,7 +19,28 @@
   "events": [
     {
       "after": {
-        "line": "request if ${url} ~= /^https?:\\/\\/api\\.xiaoyi\\.com\\/v5\\/app\\/mobile\\/ads/ then reject(404)",
+        "line": "^https?:\\/\\/adstatic\\.peopleapp\\.com\\/upload\\/AppLoad\\/.*\\.(?:jpg|png) reject-200",
+        "section": "rewrite",
+        "sources": [
+          "base"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "base": 0
+      },
+      "sources": [
+        "base"
+      ]
+    },
+    {
+      "after": {
+        "line": "request if ${url} ~= /^https?:\\/\\/adstatic\\.peopleapp\\.com\\/upload\\/AppLoad\\/.*\\.(jpg|png)/ then reject(200)",
         "section": "rewrite",
         "sources": [
           "block"
@@ -41,7 +62,28 @@
     {
       "after": null,
       "before": {
-        "line": "request if ${url} ~= /^https?:\\/\\/api.xiaoyi.com\\/v5\\/app\\/mobile\\/ads/ then reject(404)",
+        "line": "^https?:\\/\\/adstatic\\.peopleapp\\.com\\/upload\\/AppLoad\\/.*.(?:jpg|png) reject-200",
+        "section": "rewrite",
+        "sources": [
+          "base"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "base": 0
+      },
+      "sources": [
+        "base"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "request if ${url} ~= /^https?:\\/\\/adstatic\\.peopleapp\\.com\\/upload\\/AppLoad\\/.*.(jpg|png)/ then reject(200)",
         "section": "rewrite",
         "sources": [
           "block"
@@ -62,11 +104,11 @@
   ],
   "overall_risk": "high",
   "risk_counts": {
-    "high": 1,
+    "high": 2,
     "low": 0,
-    "medium": 1
+    "medium": 2
   },
-  "run_id": "43156680837",
+  "run_id": "43157148067",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -89,15 +131,15 @@
     },
     "base": {
       "action_changed": 0,
-      "added": 1,
-      "removed": 3,
-      "snapshots_seen": 3
+      "added": 2,
+      "removed": 4,
+      "snapshots_seen": 4
     },
     "block": {
       "action_changed": 0,
-      "added": 51,
-      "removed": 48,
-      "snapshots_seen": 7
+      "added": 52,
+      "removed": 49,
+      "snapshots_seen": 8
     },
     "filter": {
       "action_changed": 0,
