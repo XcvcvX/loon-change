@@ -66,6 +66,84 @@ class MergeIntegrationTests(unittest.TestCase):
         return (output, result.stdout) if return_stdout else output
 
 
+    def test_baidunetdisk_cdn_fallbacks_match_valid_mitm_subdomains_only(self):
+        base = "[Rewrite]\n[MITM]\nhostname = \n"
+        extra = "[Rewrite]\n[MITM]\nhostname = \n"
+        plugin = (
+            "#!name=百度网盘\n"
+            "[Rewrite]\n"
+            r"^https://.*\.baidu\.com.*ad/.* reject-200" + "\n"
+            r"^https://.*\.vlion\.cn/.+ reject-200" + "\n"
+            r"^https://.*\.advlion\.com/.+ reject-200" + "\n"
+            "[MITM]\nhostname = pan.baidu.com, *.vlion.cn, *.advlion.com\n"
+        )
+        output, report = self.run_merge(
+            base, extra,
+            return_provenance=True,
+            apps_files={"baidunetdisk_splash_ad_block.plugin": plugin},
+        )
+        vlion = next(line for line in output.splitlines() if "vlion" in line and "reject-200" in line)
+        advlion = next(line for line in output.splitlines() if "advlion" in line and "reject-200" in line)
+        vlion_matcher = re.search(r"^(.*?)\s+reject-200$", vlion).group(1)
+        advlion_matcher = re.search(r"^(.*?)\s+reject-200$", advlion).group(1)
+        for url in (
+            "https://img.vlion.cn/ads/banner.jpg",
+            "https://a.b.vlion.cn/ads/banner.jpg",
+        ):
+            self.assertRegex(url, vlion_matcher)
+        for url in (
+            "https://vlion.cn/ads/banner.jpg",
+            "https://a..vlion.cn/ads/banner.jpg",
+            "https://-bad.vlion.cn/ads/banner.jpg",
+            "https://img.vlion.cn.evil.test/ads/banner.jpg",
+            "http://img.vlion.cn/ads/banner.jpg",
+        ):
+            self.assertNotRegex(url, vlion_matcher)
+        for url in (
+            "https://img.advlion.com/ads/banner.jpg",
+            "https://a.b.advlion.com/ads/banner.jpg",
+        ):
+            self.assertRegex(url, advlion_matcher)
+        for url in (
+            "https://advlion.com/ads/banner.jpg",
+            "https://a..advlion.com/ads/banner.jpg",
+            "https://img.advlion.com.evil.test/ads/banner.jpg",
+            "http://img.advlion.com/ads/banner.jpg",
+        ):
+            self.assertNotRegex(url, advlion_matcher)
+        changes = [
+            item for item in report["scope_adjustments"]
+            if "Constrain the Baidu Netdisk CDN image fallback" in item.get("reason", "")
+        ]
+        self.assertEqual(len(changes), 2)
+        self.assertEqual({item["source_file"] for item in changes}, {"baidunetdisk_splash_ad_block.plugin"})
+        self.assertEqual(
+            {item["original_line"] for item in changes},
+            {
+                r"^https://.*\.vlion\.cn/.+ reject-200",
+                r"^https://.*\.advlion\.com/.+ reject-200",
+            },
+        )
+
+    def test_baidunetdisk_cdn_subdomain_guard_fails_closed_on_action_drift(self):
+        base = "[Rewrite]\n[MITM]\nhostname = \n"
+        extra = "[Rewrite]\n[MITM]\nhostname = \n"
+        plugin = (
+            "#!name=百度网盘\n"
+            "[Rewrite]\n"
+            r"^https://.*\.baidu\.com.*ad/.* reject-200" + "\n"
+            r"^https://.*\.vlion\.cn/.+ reject-dict" + "\n"
+            r"^https://.*\.advlion\.com/.+ reject-200" + "\n"
+            "[MITM]\nhostname = pan.baidu.com, *.vlion.cn, *.advlion.com\n"
+        )
+        output = self.run_merge(
+            base, extra,
+            apps_files={"baidunetdisk_splash_ad_block.plugin": plugin},
+            expect_failure=True,
+        )
+        self.assertIn("百度网盘 CDN 子域名规则范围或动作已变化", output)
+
+
     def test_baidunetdisk_ad_image_fallback_is_limited_to_declared_mitm_host(self):
         base = "[Rewrite]\n[MITM]\nhostname = \n"
         extra = "[Rewrite]\n[MITM]\nhostname = \n"
@@ -73,6 +151,8 @@ class MergeIntegrationTests(unittest.TestCase):
             "#!name=百度网盘\n"
             "[Rewrite]\n"
             r"^https://.*\.baidu\.com.*ad/.* reject-200" + "\n"
+            r"^https://.*\.vlion\.cn/.+ reject-200" + "\n"
+            r"^https://.*\.advlion\.com/.+ reject-200" + "\n"
             "[MITM]\nhostname = pan.baidu.com, *.vlion.cn, *.advlion.com\n"
         )
         output, report = self.run_merge(
