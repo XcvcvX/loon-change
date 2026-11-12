@@ -153,7 +153,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    rewrites = [re.sub(r"\\|premium-marketing\\?/upsellOffer", "", x.strip())
-                for x in parsed.get("rewrite", [])
-                if x.strip() and not x.lstrip().startswith("#")
-                and AD_REWRITE.search(x) and re.search(r"\breject\b", x)]
