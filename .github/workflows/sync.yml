@@ -18,6 +18,7 @@ on:
       - 'convert_filter_qx2loon.py'
       - 'apply_local_overrides.py'
       - 'scripts/**'
+      - 'sources/spotify/**'
       - '.github/workflows/sync.yml'
   pull_request:
     paths:
@@ -46,6 +47,7 @@ on:
       - '.github/workflows/sync.yml'
       - 'README.md'
       - 'sources/amap/**'
+      - 'sources/spotify/**'
       - 'scripts/**'
       - 'apply_local_overrides.py'
       - 'test_apply_local_overrides.py'
@@ -75,6 +77,9 @@ jobs:
       - name: 应用并测试本地插件覆盖
         run: |
           python3 -m unittest -v test_apply_local_overrides.py
+          node --check scripts/spotify/spot-NoSearchAd.js
+          node --check scripts/spotify/spot-NoHomeAd.js
+          node --check scripts/spotify/spot-NoScrollAd.js
           python3 apply_local_overrides.py --plugin allAdRewrite.plugin
       - name: 审计当前插件风险摘要
         run: |
@@ -105,7 +110,7 @@ jobs:
           python-version: '3.11'
 
       - name: 编译检查
-        run: python3 -m py_compile merge_plugins.py mitm_policy.py validate_plugin.py source_guard.py audit_plugin.py deep_audit.py amap_dependency_guard.py compare_rule_provenance.py source_health_guard.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py
+        run: python3 -m py_compile merge_plugins.py mitm_policy.py validate_plugin.py source_guard.py audit_plugin.py deep_audit.py amap_dependency_guard.py compare_rule_provenance.py source_health_guard.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py apply_local_overrides.py
 
       - name: 测试校验器与来源依赖门禁
         run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_compare_rule_provenance.py test_source_health_guard.py test_rule_risk_history.py
@@ -167,6 +172,23 @@ jobs:
           echo "Romeo pinned commit: $ROMEO_SHA"
           wc -c /tmp/amap/*
 
+      - name: 拉取 Spotify 上游去广告规则与脚本
+        run: |
+          git clone --depth 1 https://github.com/devchristian1337/loon-plugins.git /tmp/spotify-upstream
+          SPOTIFY_SHA="$(git -C /tmp/spotify-upstream rev-parse HEAD)"
+          mkdir -p sources/spotify scripts/spotify
+          cp /tmp/spotify-upstream/Plugins/Spotify.lpx sources/spotify/Spotify.lpx
+          cp /tmp/spotify-upstream/Scripts/Spotify/spot-NoSearchAd.js scripts/spotify/
+          cp /tmp/spotify-upstream/Scripts/Spotify/spot-NoHomeAd.js scripts/spotify/
+          cp /tmp/spotify-upstream/Scripts/Spotify/spot-NoScrollAd.js scripts/spotify/
+          printf '%s\n' "$SPOTIFY_SHA" > sources/spotify/UPSTREAM_COMMIT
+          echo "Spotify upstream commit: $SPOTIFY_SHA"
+          wc -c sources/spotify/Spotify.lpx scripts/spotify/*.js
+          python3 -m unittest -v test_apply_local_overrides.py
+          node --check scripts/spotify/spot-NoSearchAd.js
+          node --check scripts/spotify/spot-NoHomeAd.js
+          node --check scripts/spotify/spot-NoScrollAd.js
+
       - name: 校验克隆来源并生成来源报告
         run: |
           python3 source_guard.py --thelong /tmp/loon-plugins --aoomee /tmp/aoomee --zmjde /tmp/zmjde --qxapp /tmp/GuaZiVideoAds.conf --amap /tmp/amap/Amap.lpx --previous-report source-report.json --report source-report.json
@@ -177,7 +199,7 @@ jobs:
         run: python3 merge_plugins.py --base /tmp/loon-build/allAdRewrite.plugin --extra fetch --filter fetch --apps /tmp/loon-plugins --aoomee /tmp/aoomee --zmjde /tmp/zmjde --qxapp /tmp/GuaZiVideoAds.conf --amap /tmp/amap/Amap.lpx --myblockads fetch --out /tmp/loon-build/allAdRewrite.plugin --provenance-out /tmp/loon-build/rule-provenance.json --source-report source-report.json
 
       - name: 应用本地 App 规则覆盖（防止上游合并时丢失）
-        run: python3 apply_local_overrides.py --plugin /tmp/loon-build/allAdRewrite.plugin
+        run: python3 apply_local_overrides.py --plugin /tmp/loon-build/allAdRewrite.plugin --spotify-source sources/spotify/Spotify.lpx
 
       - name: 校验临时产物并同步 README 统计
         run: python3 validate_plugin.py /tmp/loon-build/allAdRewrite.plugin --update-readme README.md
@@ -257,7 +279,7 @@ jobs:
       - name: 检查是否有变化
         id: diff
         run: |
-          if git diff --quiet -- allAdRewrite.plugin README.md source-report.json rule-provenance.json rule-diff.json source-health.json rule-risk.json rule-history.json sources/amap/; then
+          if git diff --quiet -- allAdRewrite.plugin README.md source-report.json rule-provenance.json rule-diff.json source-health.json rule-risk.json rule-history.json sources/amap/ sources/spotify/ scripts/spotify/; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "合并产物与统计均无变化，跳过提交"
           else
@@ -270,6 +292,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add allAdRewrite.plugin README.md source-report.json rule-provenance.json rule-diff.json source-health.json rule-risk.json rule-history.json sources/amap/
+          git add allAdRewrite.plugin README.md source-report.json rule-provenance.json rule-diff.json source-health.json rule-risk.json rule-history.json sources/amap/ sources/spotify/ scripts/spotify/
           git commit -m "chore: sync upstream rules and plugin stats $(date -u +%Y-%m-%d)"
           git push
