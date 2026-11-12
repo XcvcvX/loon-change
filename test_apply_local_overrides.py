@@ -123,6 +123,34 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         rewrite = result.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
         self.assertEqual(sum(item.strip() == SOUL_TEENAGER_CONFIG_HTTPS_RULE for item in rewrite.splitlines()), 1)
 
+
+    def test_removes_peopleapp_rules_shadowed_by_earlier_legacy_rejects(self):
+        from apply_local_overrides import (
+            PEOPLEAPP_HOME_AD_BROAD_RULE, PEOPLEAPP_HOME_AD_SHADOW_RULE,
+            PEOPLEAPP_IMAGE_AD_BROAD_RULE, PEOPLEAPP_IMAGE_AD_SHADOW_RULE,
+        )
+        base = BASE.replace(
+            "[Rewrite]",
+            "[Rewrite]\n" + PEOPLEAPP_HOME_AD_BROAD_RULE + "\n" + PEOPLEAPP_HOME_AD_SHADOW_RULE
+            + "\n" + PEOPLEAPP_IMAGE_AD_BROAD_RULE + "\n" + PEOPLEAPP_IMAGE_AD_SHADOW_RULE
+        )
+        result = apply(base)
+        rewrite = result.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
+        self.assertEqual(sum(x.strip() == PEOPLEAPP_HOME_AD_BROAD_RULE for x in rewrite.splitlines()), 1)
+        self.assertEqual(sum(x.strip() == PEOPLEAPP_HOME_AD_SHADOW_RULE for x in rewrite.splitlines()), 0)
+        self.assertEqual(sum(x.strip() == PEOPLEAPP_IMAGE_AD_BROAD_RULE for x in rewrite.splitlines()), 1)
+        self.assertEqual(sum(x.strip() == PEOPLEAPP_IMAGE_AD_SHADOW_RULE for x in rewrite.splitlines()), 0)
+        self.assertEqual(apply(result), result)
+
+    def test_preserves_peopleapp_shadow_rules_when_legacy_guard_is_missing_or_later(self):
+        from apply_local_overrides import PEOPLEAPP_HOME_AD_BROAD_RULE, PEOPLEAPP_HOME_AD_SHADOW_RULE
+        without_broad = BASE.replace("[Rewrite]", "[Rewrite]\n" + PEOPLEAPP_HOME_AD_SHADOW_RULE)
+        result = apply(without_broad)
+        self.assertIn(PEOPLEAPP_HOME_AD_SHADOW_RULE, result)
+        reversed_order = BASE.replace("[Rewrite]", "[Rewrite]\n" + PEOPLEAPP_HOME_AD_SHADOW_RULE + "\n" + PEOPLEAPP_HOME_AD_BROAD_RULE)
+        result = apply(reversed_order)
+        self.assertIn(PEOPLEAPP_HOME_AD_SHADOW_RULE, result)
+
     def test_requires_bankcomm_mitm_hosts(self):
         with self.assertRaises(ValueError):
             apply(BASE.replace("creditcard.bankcomm.com, ", ""))
