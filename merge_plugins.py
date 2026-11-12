@@ -814,7 +814,7 @@ def escape_adstatic_peopleapp_image_extension(rewrite_lines, source):
     """将 PeopleApp 开屏广告图片扩展名分隔点收紧为字面点，不改变文件类型与动作。"""
     output = []
     adjustments = []
-    host_prefix = r'^https?:\/\/adstatic\.peopleapp\.com\/upload\/AppLoad\/'
+    host_prefix = r'^https?://adstatic\.peopleapp\.com/upload/AppLoad/'
     variants = (
         ('.*.(?:jpg|png)', r'.*\.(?:jpg|png)'),
         ('.*.(jpg|png)', r'.*\.(jpg|png)'),
