@@ -511,6 +511,23 @@ hostname = *.example.test
         )
 
 
+    def test_unknown_action_is_automated_warning_without_user_review(self):
+        fixture = '''[Rewrite]
+request if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/ad$/ then future-action value
+'''
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'unknown-action.plugin'
+            path.write_text(fixture, encoding='utf-8')
+            report = audit_deep(path)
+
+        self.assertEqual(report['summary']['rewrite_unknown_action_candidates'], 1)
+        self.assertEqual(report['summary']['rewrite_action_semantic_review_candidates'], 1)
+        candidate = report['rewrite_action_semantic_review_candidates'][0]
+        self.assertEqual(candidate['action_families'], ['unknown'])
+        self.assertEqual(candidate['review_priority'], 'automated_warning')
+        self.assertIn('不要求用户人工处理', candidate['reasons'][0])
+
+
 
 if __name__ == '__main__':
     unittest.main()
