@@ -575,7 +575,7 @@ hostname = *.amap.com
         )
         extra = (
             "[Rewrite]\n" + rule + "\n"
-            + "[MITM]\nhostname = *.gamersky.com\n"
+            + "[MITM]\nhostname = api.gamersky.com\n"
         )
         output, report = self.run_merge(empty, extra, return_provenance=True)
         result = next(
@@ -618,7 +618,7 @@ hostname = *.amap.com
         )
         extra = (
             "[Rewrite]\n" + rule + "\n"
-            + "[MITM]\nhostname = *.gamersky.com\n"
+            + "[MITM]\nhostname = api.gamersky.com\n"
         )
         output = self.run_merge(empty, extra, expect_failure=True)
         self.assertIn("游民星空 statisticAd 广告规则范围或动作已变化", output)
@@ -632,7 +632,7 @@ hostname = *.amap.com
         )
         extra = (
             "[Rewrite]\n" + rule + "\n"
-            + "[MITM]\nhostname = *.gamersky.com\n"
+            + "[MITM]\nhostname = api.gamersky.com\n"
         )
         output, report = self.run_merge(empty, extra, return_provenance=True)
         result = next(
@@ -674,7 +674,7 @@ hostname = *.amap.com
         )
         extra = (
             "[Rewrite]\n" + rule + "\n"
-            + "[MITM]\nhostname = *.gamersky.com\n"
+            + "[MITM]\nhostname = api.gamersky.com\n"
         )
         output = self.run_merge(empty, extra, expect_failure=True)
         self.assertIn("游民星空 adSystem 广告规则范围或动作已变化", output)
