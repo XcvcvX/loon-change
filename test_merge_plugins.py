@@ -126,19 +126,19 @@ class MergeIntegrationTests(unittest.TestCase):
         )
 
     def test_baidunetdisk_advlion_com_mitm_host_gets_matching_quic_reject(self):
-        base = "[Rule]\\n[Rewrite]\\n[MITM]\\nhostname = \\n"
-        extra = "[Rule]\\n[Rewrite]\\n[MITM]\\nhostname = \\n"
+        base = "[Rule]\n[Rewrite]\n[MITM]\nhostname = \n"
+        extra = "[Rule]\n[Rewrite]\n[MITM]\nhostname = \n"
         cn_rule = "AND,((DOMAIN-SUFFIX,advlion.cn),(PROTOCOL,QUIC)),REJECT"
         com_rule = "AND,((DOMAIN-SUFFIX,advlion.com),(PROTOCOL,QUIC)),REJECT"
         plugin = (
-            "#!name=百度网盘\\n"
-            "[Rule]\\n"
-            + cn_rule + "\\n"
-            + "[Rewrite]\\n"
-            + r"^https://pan\\.baidu\\.com/buy/ad/conf reject-dict" + "\\n"
-            + r"^https://.*\\.vlion\\.cn/.+ reject-200" + "\\n"
-            + r"^https://.*\\.advlion\\.com/.+ reject-200" + "\\n"
-            + "[MITM]\\nhostname = pan.baidu.com, *.vlion.cn, *.advlion.com\\n"
+            "#!name=百度网盘\n"
+            "[Rule]\n"
+            + cn_rule + "\n"
+            + "[Rewrite]\n"
+            + r"^https://pan\.baidu\.com/buy/ad/conf reject-dict" + "\n"
+            + r"^https://.*\.vlion\.cn/.+ reject-200" + "\n"
+            + r"^https://.*\.advlion\.com/.+ reject-200" + "\n"
+            + "[MITM]\nhostname = pan.baidu.com, *.vlion.cn, *.advlion.com\n"
         )
         output, provenance = self.run_merge(
             base, extra,
@@ -174,16 +174,16 @@ class MergeIntegrationTests(unittest.TestCase):
         self.assertIsNotNone(generated_event["output_entry_index"])
 
     def test_baidunetdisk_advlion_com_quic_rule_is_not_duplicated_when_upstream_fixes_it(self):
-        base = "[Rule]\\n[Rewrite]\\n[MITM]\\nhostname = \\n"
-        extra = "[Rule]\\n[Rewrite]\\n[MITM]\\nhostname = \\n"
+        base = "[Rule]\n[Rewrite]\n[MITM]\nhostname = \n"
+        extra = "[Rule]\n[Rewrite]\n[MITM]\nhostname = \n"
         cn_rule = "AND,((DOMAIN-SUFFIX,advlion.cn),(PROTOCOL,QUIC)),REJECT"
         com_rule = "AND,((DOMAIN-SUFFIX,advlion.com),(PROTOCOL,QUIC)),REJECT"
         plugin = (
-            "#!name=百度网盘\\n"
-            "[Rule]\\n" + cn_rule + "\\n" + com_rule + "\\n"
-            "[Rewrite]\\n"
-            + r"^https://pan\\.baidu\\.com/buy/ad/conf reject-dict" + "\\n"
-            + "[MITM]\\nhostname = pan.baidu.com, *.advlion.com\\n"
+            "#!name=百度网盘\n"
+            "[Rule]\n" + cn_rule + "\n" + com_rule + "\n"
+            "[Rewrite]\n"
+            + r"^https://pan\.baidu\.com/buy/ad/conf reject-dict" + "\n"
+            + "[MITM]\nhostname = pan.baidu.com, *.advlion.com\n"
         )
         output, provenance = self.run_merge(
             base, extra, return_provenance=True,
@@ -193,15 +193,15 @@ class MergeIntegrationTests(unittest.TestCase):
         self.assertEqual(provenance["rule_scope_adjustments"], [])
 
     def test_baidunetdisk_advlion_quic_guard_fails_closed_when_mitm_host_is_missing(self):
-        base = "[Rule]\\n[Rewrite]\\n[MITM]\\nhostname = \\n"
-        extra = "[Rule]\\n[Rewrite]\\n[MITM]\\nhostname = \\n"
+        base = "[Rule]\n[Rewrite]\n[MITM]\nhostname = \n"
+        extra = "[Rule]\n[Rewrite]\n[MITM]\nhostname = \n"
         plugin = (
-            "#!name=百度网盘\\n"
-            "[Rule]\\n"
-            "AND,((DOMAIN-SUFFIX,advlion.cn),(PROTOCOL,QUIC)),REJECT\\n"
-            "[Rewrite]\\n"
-            + r"^https://pan\\.baidu\\.com/buy/ad/conf reject-dict" + "\\n"
-            "[MITM]\\nhostname = pan.baidu.com, *.vlion.cn\\n"
+            "#!name=百度网盘\n"
+            "[Rule]\n"
+            "AND,((DOMAIN-SUFFIX,advlion.cn),(PROTOCOL,QUIC)),REJECT\n"
+            "[Rewrite]\n"
+            + r"^https://pan\.baidu\.com/buy/ad/conf reject-dict" + "\n"
+            "[MITM]\nhostname = pan.baidu.com, *.vlion.cn\n"
         )
         output = self.run_merge(
             base, extra,
@@ -211,15 +211,15 @@ class MergeIntegrationTests(unittest.TestCase):
         self.assertIn("百度网盘 advlion.com QUIC 补齐守卫缺少对应 MITM 声明", output)
 
     def test_baidunetdisk_advlion_quic_guard_fails_closed_on_action_drift(self):
-        base = "[Rule]\\n[Rewrite]\\n[MITM]\\nhostname = \\n"
-        extra = "[Rule]\\n[Rewrite]\\n[MITM]\\nhostname = \\n"
+        base = "[Rule]\n[Rewrite]\n[MITM]\nhostname = \n"
+        extra = "[Rule]\n[Rewrite]\n[MITM]\nhostname = \n"
         plugin = (
-            "#!name=百度网盘\\n"
-            "[Rule]\\n"
-            "AND,((DOMAIN-SUFFIX,advlion.cn),(PROTOCOL,QUIC)),DIRECT\\n"
-            "[Rewrite]\\n"
-            + r"^https://pan\\.baidu\\.com/buy/ad/conf reject-dict" + "\\n"
-            "[MITM]\\nhostname = pan.baidu.com, *.advlion.com\\n"
+            "#!name=百度网盘\n"
+            "[Rule]\n"
+            "AND,((DOMAIN-SUFFIX,advlion.cn),(PROTOCOL,QUIC)),DIRECT\n"
+            "[Rewrite]\n"
+            + r"^https://pan\.baidu\.com/buy/ad/conf reject-dict" + "\n"
+            "[MITM]\nhostname = pan.baidu.com, *.advlion.com\n"
         )
         output = self.run_merge(
             base, extra,
