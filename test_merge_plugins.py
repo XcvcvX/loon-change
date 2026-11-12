@@ -12,7 +12,7 @@ MERGER = Path(__file__).with_name("merge_plugins.py")
 
 
 class MergeIntegrationTests(unittest.TestCase):
-    def run_merge(self, base_text, extra_text, myblockads_text=None, return_stdout=False, amap_text=None, return_provenance=False, apps_files=None, aoomee_files=None, expect_failure=False):
+    def run_merge(self, base_text, extra_text, myblockads_text=None, return_stdout=False, amap_text=None, return_provenance=False, apps_files=None, aoomee_files=None, expect_failure=False, filter_text=None):
         tmp = tempfile.TemporaryDirectory()
         self.addCleanup(tmp.cleanup)
         root = Path(tmp.name)
@@ -26,6 +26,10 @@ class MergeIntegrationTests(unittest.TestCase):
                    "--extra", str(extra), "--filter", "none",
                    "--myblockads", "none", "--out", str(out),
                    "--provenance-out", str(provenance)]
+        if filter_text is not None:
+            filter_file = root / "filter.list"
+            filter_file.write_text(filter_text, encoding="utf-8")
+            command[command.index("--filter") + 1] = str(filter_file)
         if myblockads_text is not None:
             myblockads = root / "myblockads.lpx"
             myblockads.write_text(myblockads_text, encoding="utf-8")
@@ -340,6 +344,36 @@ hostname = *.amap.com
         self.assertEqual({x["action"] for x in exclusions}, {"reject(200)", "reject"})
         self.assertIn("119.29.29.98", exclusions[0]["reason"])
         self.assertIn("119.29.29.99", exclusions[0]["reason"])
+
+    def test_active_tencent_httpdns_ip_endpoints_are_excluded_from_exact_reject_rules(self):
+        base = "[Rule]\n[Rewrite]\n[MITM]\nhostname = \n"
+        extra = (
+            "[Rule]\n"
+            "IP-CIDR,119.29.29.98/32,DIRECT\n"
+            "[Rewrite]\n[MITM]\nhostname = \n"
+        )
+        filter_text = (
+            "IP-CIDR,119.29.29.98/32,REJECT\n"
+            "IP-CIDR,119.29.29.99/32,REJECT\n"
+            "IP-CIDR,119.29.29.90/32,REJECT\n"
+        )
+        output, report = self.run_merge(
+            base, extra, filter_text=filter_text, return_provenance=True)
+        self.assertNotIn("IP-CIDR,119.29.29.98/32,REJECT", output)
+        self.assertNotIn("IP-CIDR,119.29.29.99/32,REJECT", output)
+        self.assertIn("IP-CIDR,119.29.29.90/32,REJECT", output)
+        self.assertIn("IP-CIDR,119.29.29.98/32,DIRECT", output)
+        exclusions = [
+            item for item in report["rule_events"]
+            if item.get("status") == "excluded_safety_guard"
+        ]
+        self.assertEqual(len(exclusions), 2)
+        self.assertEqual({item["source"] for item in exclusions}, {"filter"})
+        self.assertEqual(
+            {item["matched_ip"] for item in exclusions},
+            {"119.29.29.98", "119.29.29.99"},
+        )
+        self.assertTrue(all("HTTPDNS" in item["reason"] for item in exclusions))
 
     def test_jd_lite_unreachable_response_rewrites_are_excluded_only_with_terminal_request_guard(self):
         request_guard = r'^https?:\/\/api\.m\.jd\.com\/client\.action\?functionId=lite_advertising reject'

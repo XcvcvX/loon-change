@@ -1547,6 +1547,17 @@ def is_frontier_guard(line):
     return 'frontier' in line.lower()
 
 
+def is_tencent_httpdns_service_ip_block(line):
+    """Protect Tencent's active HTTPDNS service IPs from exact-IP REJECT rules."""
+    parts = [part.strip() for part in line.split(',')]
+    return (
+        len(parts) >= 3
+        and parts[0] == 'IP-CIDR'
+        and parts[1] in {'119.29.29.98/32', '119.29.29.99/32'}
+        and parts[2] == 'REJECT'
+    )
+
+
 def add_rule(line, src):
     original_line = line
     line = normalize_rule(line)
@@ -1558,6 +1569,19 @@ def add_rule(line, src):
         'original_input_line': original_line,
         'normalized_line': line,
     }
+    if is_tencent_httpdns_service_ip_block(line):
+        event.update({
+            'status': 'excluded_safety_guard',
+            'matched_ip': line.split(',')[1].split('/')[0],
+            'reason': (
+                'Tencent Cloud documents 119.29.29.98 as its active HTTP HTTPDNS '
+                'endpoint and 119.29.29.99 as its active HTTPS HTTPDNS endpoint; '
+                'an exact-IP REJECT rule would disable those DNS resolution paths.'
+            ),
+        })
+        rule_provenance_events.append(event)
+        rule_counts[src + '_keep'] += 1
+        return
     if is_frontier_guard(line):
         event.update({'status': 'excluded_safety_guard',
                       'reason': 'Frontier/WebSocket long-connection protection'})

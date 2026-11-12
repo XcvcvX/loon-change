@@ -352,3 +352,12 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 明确展示：只提供信息、不要求用户操作、不允许自动修改规则；无法可靠判断时保留原规则。
 - 新增回归测试，逐项锁定机器可读契约及 Markdown 展示内容。
 - 保留 JSON schema_version、所有历史 JSON 字段与值；不修改生产 Rewrite、Rule、Script、MITM hostname、动作、优先级或插件输出。
+
+ 
+## 第八阶段第一批：保护腾讯云 HTTPDNS 正式服务入口
+
+- 生产插件审计发现，R-Store filter 的 IP-CIDR 列表包含 `119.29.29.98/32` 与 `119.29.29.99/32` 的 REJECT 规则。
+- 腾讯云官方文档明确：`.98` 是 HTTP HTTPDNS 服务入口，`.99` 是 HTTPS HTTPDNS 服务入口；直接拒绝这两个 IP 会阻断使用相应入口的域名解析请求。
+- 在规则合并入口增加精确安全排除：只排除这两个 IP 的 `/32`、`REJECT` 规则，并在 `rule-provenance.json` 记录来源、原始规则、IP 和排除原因。
+- 保留 `.90`、其他地址、其他掩码及非 REJECT 动作，不扩大排除范围；不改 MITM、Rewrite、Script、其他 Rule 或优先级。
+- 新增集成测试验证 `.98/.99` 的拦截规则被排除、`.90` 与 DIRECT 规则仍保留。
