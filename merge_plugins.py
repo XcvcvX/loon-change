@@ -718,8 +718,8 @@ def narrow_omofun_top_notice_path(rewrite_lines, source):
         updated_matcher = matcher + _OMOFUN_TOP_NOTICE_BOUNDARY
         # entry_regex() normalizes escaped slashes for comparison; restore the
         # source line's \\/ spelling when replacing the matcher in-place.
-        source_matcher = matcher.replace('/', r'\\/')
-        source_updated_matcher = updated_matcher.replace('/', r'\\/')
+        source_matcher = matcher.replace('/', r'\/')
+        source_updated_matcher = updated_matcher.replace('/', r'\/')
         updated = line.replace(source_matcher, source_updated_matcher, 1)
         if entry_regex(updated) != updated_matcher:
             raise RuntimeError(source + ' Omofun top_notice 边界修正后校验失败：' + line)
