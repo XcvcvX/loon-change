@@ -68,14 +68,14 @@ class MergeIntegrationTests(unittest.TestCase):
 
     def test_odin_numeric_hosts_are_restricted_to_valid_ipv4_and_keep_ad_paths(self):
         base = (
-            "[Rewrite]\\n"
-            + r"^https?:\\/\\/[\\d\\.]+\\/odin\\/c\\d\\/(channel\\/ads|skin\\/config)\\? reject-dict"
-            + "\\n[MITM]\\nhostname = \\n"
+            "[Rewrite]\n"
+            + r"^https?:\/\/[\d\.]+\/odin\/c\d\/(channel\/ads|skin\/config)\? reject-dict"
+            + "\n[MITM]\nhostname = \n"
         )
         extra = (
-            "[Rewrite]\\n"
-            + r"request if \\u0024{url} ~= /^https?:\\/\\/[\\d\\.]+\\/odin\\/c1\\/(channel\\/ads|skin\\/config)\\?/ then reject_dict(200)"
-            + "\\n[MITM]\\nhostname = \\n"
+            "[Rewrite]\n"
+            + r"request if ${url} ~= /^https?:\/\/[\d\.]+\/odin\/c1\/(channel\/ads|skin\/config)\?/ then reject_dict(200)"
+            + "\n[MITM]\nhostname = \n"
         )
         output, provenance = self.run_merge(base, extra, return_provenance=True)
         lines = [line for line in output.splitlines() if "odin" in line]
@@ -100,11 +100,11 @@ class MergeIntegrationTests(unittest.TestCase):
 
     def test_odin_numeric_host_guard_fails_closed_on_scope_or_action_drift(self):
         base = (
-            "[Rewrite]\\n"
-            + r"^https?:\\/\\/[\\d\\.]+\\/odin\\/c\\d\\/(channel\\/ads|skin\\/config)\\? reject"
-            + "\\n[MITM]\\nhostname = \\n"
+            "[Rewrite]\n"
+            + r"^https?:\/\/[\d\.]+\/odin\/c\d\/(channel\/ads|skin\/config)\? reject"
+            + "\n[MITM]\nhostname = \n"
         )
-        extra = "[Rewrite]\\n[MITM]\\nhostname = \\n"
+        extra = "[Rewrite]\n[MITM]\nhostname = \n"
         output = self.run_merge(base, extra, expect_failure=True)
         self.assertIn("Odin numeric-host rule count/scope/action drift", output)
 
