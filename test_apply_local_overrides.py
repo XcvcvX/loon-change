@@ -103,6 +103,17 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertEqual(count, 0)
         self.assertEqual(result, [a, b])
 
+    def test_removes_only_exact_duplicate_soul_teenager_reject_rule(self):
+        from apply_local_overrides import SOUL_TEENAGER_CONFIG_DUPLICATE
+        duplicate = SOUL_TEENAGER_CONFIG_DUPLICATE
+        similar = duplicate.replace("reject-dict", "reject")
+        base = BASE.replace("[Rewrite]", "[Rewrite]\n" + duplicate + "\n" + duplicate + "\n" + similar)
+        result = apply(base)
+        rewrite = result.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
+        self.assertEqual(rewrite.count(duplicate), 1)
+        self.assertEqual(sum(item.strip() == similar for item in rewrite.splitlines()), 1)
+        self.assertEqual(apply(result), result)
+
     def test_requires_bankcomm_mitm_hosts(self):
         with self.assertRaises(ValueError):
             apply(BASE.replace("creditcard.bankcomm.com, ", ""))
