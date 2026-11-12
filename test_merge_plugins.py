@@ -581,7 +581,7 @@ hostname = *.amap.com
         result = next(
             line for line in output.splitlines()
             if line.startswith("request if") and "gamersky" in line
-            and "/adSystem/" in line
+            and "adSystem" in line
         )
         self.assertIn(r"(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+", result)
         matcher = re.search(r"~= /(.*)/ then ", result).group(1).replace(r"\/", "/")
