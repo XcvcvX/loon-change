@@ -110,7 +110,7 @@ function hbeRequestMeta(hbeRequest) {
     try {
         if (!hbeAPIHost(hbeRequest) || String(hbeRequest.method || "").toUpperCase() !== "POST") return false;
         var hbeHeaderAction = hbeHeader(hbeRequest.headers, "action");
-        if (hbeHeaderAction && ["adx.ssp.show", "homepage.startup.popupWindow", "homepage.feeds.data", "homepage.feeds.second.data", "homepage.waterfall.module.data", "homepage.module.newdata", "homepage.shortcut.scene.perception", "lego.bff.data"].indexOf(hbeHeaderAction) === -1) return false;
+        if (hbeHeaderAction && ["homepage.startup.popupWindow", "homepage.feeds.data", "homepage.feeds.second.data", "homepage.waterfall.module.data", "homepage.module.newdata", "lego.bff.data"].indexOf(hbeHeaderAction) === -1) return false;
         if (typeof hbeRequest.body !== "string" || !hbeRequest.body) return null;
         if (hbeRequest.body.length > 1048576) return false;
         var hbeBody = hbeOpenBody(hbeRequest.body, hbeResponseSecrets(hbeRequest.headers), true);
@@ -130,7 +130,7 @@ function hbeContextKey(hbeID) {
 }
 function hbeValidMeta(hbeMeta, hbeRequest) {
     if (!hbeMeta || typeof hbeMeta !== "object" || Array.isArray(hbeMeta) || !["action", "host", "method", "time"].every(function (hbeKey) { return Object.prototype.hasOwnProperty.call(hbeMeta, hbeKey); })) return false;
-    var hbeActions = ["adx.ssp.show", "homepage.startup.popupWindow", "homepage.feeds.data", "homepage.feeds.second.data", "homepage.waterfall.module.data", "homepage.module.newdata", "homepage.shortcut.scene.perception", "lego.bff.data"];
+    var hbeActions = ["homepage.startup.popupWindow", "homepage.feeds.data", "homepage.feeds.second.data", "homepage.waterfall.module.data", "homepage.module.newdata", "lego.bff.data"];
     var hbeNow = Date.now();
     if (hbeActions.indexOf(hbeMeta.action) === -1 || hbeMeta.host !== hbeAPIHost(hbeRequest) || hbeMeta.method !== "POST" || String(hbeRequest.method || "").toUpperCase() !== "POST" || typeof hbeMeta.time !== "number" || !isFinite(hbeMeta.time) || hbeNow < hbeMeta.time || hbeNow - hbeMeta.time >= 180000) return false;
     var hbeHeaderAction = hbeHeader(hbeRequest.headers, "action");
