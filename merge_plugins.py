@@ -864,7 +864,7 @@ def narrow_baidunetdisk_ad_image_host(rewrite_lines, source):
     output = []
     adjustments = []
     original = r'^https://.*\.baidu\.com.*ad/.* reject-200'
-    narrowed = r'^https://pan\.baidu\.com.*ad/.* reject-200'
+    narrowed = r'^https://pan\.baidu\.com/.*ad/.* reject-200'
     candidates = [
         line for line in rewrite_lines
         if r'.*\.baidu\.com.*ad/.*' in line
@@ -879,7 +879,7 @@ def narrow_baidunetdisk_ad_image_host(rewrite_lines, source):
             output.append(line)
             continue
         matcher = entry_regex(narrowed)
-        if matcher != r'^https://pan\.baidu\.com.*ad/.*':
+        if matcher != r'^https://pan\.baidu\.com/.*ad/.*':
             raise RuntimeError(source + ' 百度网盘广告图 CDN 主机收敛后校验失败：' + line)
         adjustments.append({
             'source': source,
