@@ -864,14 +864,14 @@ def narrow_odin_numeric_host_rules(rewrite_lines, source):
     """将 Odin 广告接口的数字主机匹配限制为合法 IPv4，避免匹配畸形数字/点串。"""
     expected = {
         'base': (
-            r'^https?:\\/\\/[\\d\\.]+\\/odin\\/c\\d\\/(channel\\/ads|skin\\/config)\\? reject-dict',
-            r'^https?:\\/\\/((25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\.){3}(25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\/odin\\/c\\d\\/(channel\\/ads|skin\\/config)\\? reject-dict',
+            r'^https?:\/\/[\d\.]+\/odin\/c\d\/(channel\/ads|skin\/config)\? reject-dict',
+            r'^https?:\/\/((25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.){3}(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\/odin\/c\d\/(channel\/ads|skin\/config)\? reject-dict',
             626,
             'R-Store converted Rewrite',
         ),
         'block': (
-            r'request if \\u0024{url} ~= /^https?:\\/\\/[\\d\\.]+\\/odin\\/c1\\/(channel\\/ads|skin\\/config)\\?/ then reject_dict(200)',
-            r'request if \\u0024{url} ~= /^https?:\\/\\/((25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\.){3}(25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\/odin\\/c1\\/(channel\\/ads|skin\\/config)\\?/ then reject_dict(200)',
+            r'request if ${url} ~= /^https?:\/\/[\d\.]+\/odin\/c1\/(channel\/ads|skin\/config)\?/ then reject_dict(200)',
+            r'request if ${url} ~= /^https?:\/\/((25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.){3}(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\/odin\/c1\/(channel\/ads|skin\/config)\?/ then reject_dict(200)',
             621,
             'blockAdsV2.plugin',
         ),
@@ -898,7 +898,7 @@ def narrow_odin_numeric_host_rules(rewrite_lines, source):
         'source_entry_index': source_index,
         'section': 'Rewrite',
         'reason': (
-            'The original [\\\\d\\\\.]+ host accepts malformed numeric/dotted strings. '
+            'The original [\\d\\.]+ host accepts malformed numeric/dotted strings. '
             'Restrict only this Odin ad/config endpoint matcher to four valid IPv4 octets; '
             'preserve protocol, path alternatives, query boundary, and reject action.'
         ),
