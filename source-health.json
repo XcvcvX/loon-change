@@ -33,10 +33,10 @@
     },
     "rule": {
       "action_changed": 0,
-      "added": 1,
+      "added": 0,
       "current_entries": 3499,
-      "net_shrink_percent": -0.029,
-      "previous_entries": 3498,
+      "net_shrink_percent": 0.0,
+      "previous_entries": 3499,
       "removed": 0,
       "removed_percent": 0.0
     },

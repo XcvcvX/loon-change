@@ -7,7 +7,7 @@
     },
     "rule": {
       "action_changed": 0,
-      "added": 1,
+      "added": 0,
       "removed": 0
     },
     "script": {
@@ -16,36 +16,14 @@
       "removed": 0
     }
   },
-  "events": [
-    {
-      "after": {
-        "line": "DOMAIN,mobileapm.icbc.com.cn,REJECT",
-        "section": "rule",
-        "sources": [
-          "filter"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "rule",
-      "semantic_duplicate_coverage": null,
-      "source_scores": {
-        "filter": 0
-      },
-      "sources": [
-        "filter"
-      ]
-    }
-  ],
-  "overall_risk": "medium",
+  "events": [],
+  "overall_risk": "low",
   "risk_counts": {
     "high": 0,
     "low": 0,
-    "medium": 1
+    "medium": 0
   },
-  "run_id": "43135802189",
+  "run_id": "43136480942",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -75,8 +53,8 @@
     "block": {
       "action_changed": 0,
       "added": 49,
-      "removed": 50,
-      "snapshots_seen": 9
+      "removed": 49,
+      "snapshots_seen": 8
     },
     "filter": {
       "action_changed": 0,
