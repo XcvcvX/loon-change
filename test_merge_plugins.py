@@ -109,6 +109,59 @@ class MergeIntegrationTests(unittest.TestCase):
         self.assertIn("广发银行移动端开屏图片 图片规则动作已变化", output)
 
 
+    def test_omofun_top_notice_requires_endpoint_path_boundary(self):
+        source_line = (
+            r"request if ${url} ~= /^https?:\/\/103\.91\.210\.141\:2515\/xgapp\.php\/v2\/top_notice/ then reject(404)"
+        )
+        base = "[Rewrite]\n[MITM]\nhostname = \n"
+        extra = "[Rewrite]\n# > omofun\n# hostname = 103.91.210.141\n" + source_line + "\n[MITM]\nhostname = \n"
+        output, provenance = self.run_merge(base, extra, return_provenance=True)
+        line = next(line for line in output.splitlines() if "xgapp.php" in line)
+        matcher = re.compile(line.split(" ~= ", 1)[1].split(" then ", 1)[0].strip("/"))
+        for url in (
+            "https://103.91.210.141:2515/xgapp.php/v2/top_notice",
+            "https://103.91.210.141:2515/xgapp.php/v2/top_notice?channel=home",
+            "http://103.91.210.141:2515/xgapp.php/v2/top_notice/extra",
+        ):
+            with self.subTest(url=url):
+                self.assertRegex(url, matcher)
+        for url in (
+            "https://103.91.210.141:2515/xgapp.php/v2/top_notice_extra",
+            "https://103.91.210.141:2515/xgapp.php/v2/top_notice2",
+            "https://103.91.210.141:2515/xgappXphp/v2/top_notice",
+            "https://103.91.210.142:2515/xgapp.php/v2/top_notice",
+            "https://103.91.210.141:2516/xgapp.php/v2/top_notice",
+        ):
+            with self.subTest(url=url):
+                self.assertNotRegex(url, matcher)
+        changes = [
+            item for item in provenance["scope_adjustments"]
+            if item.get("target") == "Omofun top_notice 接口路径边界"
+        ]
+        self.assertEqual(len(changes), 1)
+        self.assertEqual(changes[0]["source"], "blockAdsV2")
+        self.assertEqual(changes[0]["original_line"], source_line)
+        self.assertEqual(changes[0]["output_line"], line)
+
+    def test_omofun_top_notice_guard_fails_closed_on_action_or_path_drift(self):
+        base = "[Rewrite]\n[MITM]\nhostname = \n"
+        extra_action = (
+            "[Rewrite]\n"
+            + r"request if ${url} ~= /^https?:\/\/103\.91\.210\.141\:2515\/xgapp\.php\/v2\/top_notice/ then reject(200)"
+            + "\n[MITM]\nhostname = \n"
+        )
+        output = self.run_merge(base, extra_action, expect_failure=True)
+        self.assertIn("Omofun top_notice 动作已变化", output)
+
+        extra_path = (
+            "[Rewrite]\n"
+            + r"request if ${url} ~= /^https?:\/\/103\.91\.210\.141\:2515\/xgapp\.php\/v2\/top_notice.*/ then reject(404)"
+            + "\n[MITM]\nhostname = \n"
+        )
+        output = self.run_merge(base, extra_path, expect_failure=True)
+        self.assertIn("Omofun top_notice matcher 已变化", output)
+
+
     def test_tencentvideo_ad_segment_ip_prefix_is_valid_ipv4_only(self):
         plugin = (
             "[Rewrite]\n"
