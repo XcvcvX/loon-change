@@ -129,10 +129,14 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
             PEOPLEAPP_HOME_AD_BROAD_RULE, PEOPLEAPP_HOME_AD_SHADOW_RULE,
             PEOPLEAPP_IMAGE_AD_BROAD_RULE, PEOPLEAPP_IMAGE_AD_SHADOW_RULE,
         )
+        expected_home_shadow = r"request if ${url} ~= /^https?:\/\/app\.peopleapp\.com\/Api\/\d+\/HomeApi\/(adv|getAdvertImage)/ then reject(404)"
+        expected_image_shadow = r"request if ${url} ~= /^https?:\/\/adstatic\.peopleapp\.com\/upload\/AppLoad\/.*\.(jpg|png)/ then reject(200)"
+        self.assertEqual(PEOPLEAPP_HOME_AD_SHADOW_RULE, expected_home_shadow)
+        self.assertEqual(PEOPLEAPP_IMAGE_AD_SHADOW_RULE, expected_image_shadow)
         base = BASE.replace(
             "[Rewrite]",
-            "[Rewrite]\n" + PEOPLEAPP_HOME_AD_BROAD_RULE + "\n" + PEOPLEAPP_HOME_AD_SHADOW_RULE
-            + "\n" + PEOPLEAPP_IMAGE_AD_BROAD_RULE + "\n" + PEOPLEAPP_IMAGE_AD_SHADOW_RULE
+            "[Rewrite]\n" + PEOPLEAPP_HOME_AD_BROAD_RULE + "\n" + expected_home_shadow
+            + "\n" + PEOPLEAPP_IMAGE_AD_BROAD_RULE + "\n" + expected_image_shadow
         )
         result = apply(base)
         rewrite = result.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
