@@ -2,8 +2,8 @@
   "change_counts": {
     "rewrite": {
       "action_changed": 0,
-      "added": 1,
-      "removed": 1
+      "added": 2,
+      "removed": 2
     },
     "rule": {
       "action_changed": 0,
@@ -19,10 +19,10 @@
   "events": [
     {
       "after": {
-        "line": "^http:\\/\\/(?:(?:(?:25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\.){3}(?:25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)(?::\\d+)?)?\\/?(defaultts\\.tc|vmind\\.qqvideo\\.tc|finderpdd\\.video)\\.qq\\.com\\/\\w+ reject",
+        "line": "^https?:\\/\\/mbank\\.grcbank\\.com\\/ydyh\\/resources\\/startpage\\/.*\\.(?:jpg|png) reject-200",
         "section": "rewrite",
         "sources": [
-          "thelong"
+          "base"
         ]
       },
       "before": null,
@@ -32,19 +32,40 @@
       "section": "rewrite",
       "semantic_duplicate_coverage": null,
       "source_scores": {
-        "thelong": 0
+        "base": 0
       },
       "sources": [
-        "thelong"
+        "base"
+      ]
+    },
+    {
+      "after": {
+        "line": "request if ${url} ~= /^https?:\\/\\/mbank\\.grcbank\\.com\\/ydyh\\/resources\\/startpage\\/.*\\.(jpg|png)/ then reject(200)",
+        "section": "rewrite",
+        "sources": [
+          "block"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "block": 0
+      },
+      "sources": [
+        "block"
       ]
     },
     {
       "after": null,
       "before": {
-        "line": "^http:\\/\\/[\\d\\.:]*\\/?(defaultts\\.tc|vmind\\.qqvideo\\.tc|finderpdd\\.video)\\.qq\\.com\\/\\w+ reject",
+        "line": "^https?:\\/\\/mbank\\.grcbank\\.com\\/ydyh\\/resources\\/startpage\\/.*.(?:jpg|png) reject-200",
         "section": "rewrite",
         "sources": [
-          "thelong"
+          "base"
         ]
       },
       "change_type": "removed",
@@ -53,20 +74,41 @@
       "section": "rewrite",
       "semantic_duplicate_coverage": null,
       "source_scores": {
-        "thelong": 0
+        "base": 0
       },
       "sources": [
-        "thelong"
+        "base"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "request if ${url} ~= /^https?:\\/\\/mbank\\.grcbank\\.com\\/ydyh\\/resources\\/startpage\\/.*.(jpg|png)/ then reject(200)",
+        "section": "rewrite",
+        "sources": [
+          "block"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "block": 0
+      },
+      "sources": [
+        "block"
       ]
     }
   ],
   "overall_risk": "high",
   "risk_counts": {
-    "high": 1,
+    "high": 2,
     "low": 0,
-    "medium": 1
+    "medium": 2
   },
-  "run_id": "43175930557",
+  "run_id": "43177203283",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -83,15 +125,15 @@
   "source_trends_last_30_snapshots": {
     "base": {
       "action_changed": 0,
-      "added": 6,
-      "removed": 7,
-      "snapshots_seen": 5
+      "added": 7,
+      "removed": 8,
+      "snapshots_seen": 6
     },
     "block": {
       "action_changed": 0,
-      "added": 19,
-      "removed": 20,
-      "snapshots_seen": 11
+      "added": 20,
+      "removed": 21,
+      "snapshots_seen": 12
     },
     "filter": {
       "action_changed": 0,

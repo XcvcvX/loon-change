@@ -130,19 +130,33 @@
       "action_changed": [],
       "added": [
         {
-          "line": "^http:\\/\\/(?:(?:(?:25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\.){3}(?:25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)(?::\\d+)?)?\\/?(defaultts\\.tc|vmind\\.qqvideo\\.tc|finderpdd\\.video)\\.qq\\.com\\/\\w+ reject",
+          "line": "^https?:\\/\\/mbank\\.grcbank\\.com\\/ydyh\\/resources\\/startpage\\/.*\\.(?:jpg|png) reject-200",
           "section": "rewrite",
           "sources": [
-            "thelong"
+            "base"
+          ]
+        },
+        {
+          "line": "request if ${url} ~= /^https?:\\/\\/mbank\\.grcbank\\.com\\/ydyh\\/resources\\/startpage\\/.*\\.(jpg|png)/ then reject(200)",
+          "section": "rewrite",
+          "sources": [
+            "block"
           ]
         }
       ],
       "removed": [
         {
-          "line": "^http:\\/\\/[\\d\\.:]*\\/?(defaultts\\.tc|vmind\\.qqvideo\\.tc|finderpdd\\.video)\\.qq\\.com\\/\\w+ reject",
+          "line": "^https?:\\/\\/mbank\\.grcbank\\.com\\/ydyh\\/resources\\/startpage\\/.*.(?:jpg|png) reject-200",
           "section": "rewrite",
           "sources": [
-            "thelong"
+            "base"
+          ]
+        },
+        {
+          "line": "request if ${url} ~= /^https?:\\/\\/mbank\\.grcbank\\.com\\/ydyh\\/resources\\/startpage\\/.*.(jpg|png)/ then reject(200)",
+          "section": "rewrite",
+          "sources": [
+            "block"
           ]
         }
       ]
@@ -161,8 +175,8 @@
   "summary": {
     "rewrite": {
       "action_changed": 0,
-      "added": 1,
-      "removed": 1
+      "added": 2,
+      "removed": 2
     },
     "rule": {
       "action_changed": 0,
@@ -174,7 +188,7 @@
       "added": 0,
       "removed": 0
     },
-    "total_changes": 2
+    "total_changes": 4
   },
   "upstream_revision_changes": []
 }
