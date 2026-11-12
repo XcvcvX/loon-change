@@ -19,10 +19,10 @@
   "events": [
     {
       "after": {
-        "line": "response if ${url} ~= /^http:\\/\\/(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\.)+gamersky\\.com\\/.+\\/lists\\/getListElements(?:\\/|\\?|#|$)/ then response.json.jq(`.listElements |= map(select(has(\"adCategory\") | not))`)",
+        "line": "^https://pan\\.baidu\\.com/.*ad/.* reject-200",
         "section": "rewrite",
         "sources": [
-          "block"
+          "thelong"
         ]
       },
       "before": null,
@@ -32,19 +32,19 @@
       "section": "rewrite",
       "semantic_duplicate_coverage": null,
       "source_scores": {
-        "block": 0
+        "thelong": 0
       },
       "sources": [
-        "block"
+        "thelong"
       ]
     },
     {
       "after": null,
       "before": {
-        "line": "response if ${url} ~= /http:\\/\\/.+\\.gamersky.com\\/.+\\/lists\\/getListElements/ then response.json.jq(`.listElements |= map(select(has(\"adCategory\") | not))`)",
+        "line": "^https://.*\\.baidu\\.com.*ad/.* reject-200",
         "section": "rewrite",
         "sources": [
-          "block"
+          "thelong"
         ]
       },
       "change_type": "removed",
@@ -53,10 +53,10 @@
       "section": "rewrite",
       "semantic_duplicate_coverage": null,
       "source_scores": {
-        "block": 0
+        "thelong": 0
       },
       "sources": [
-        "block"
+        "thelong"
       ]
     }
   ],
@@ -66,7 +66,7 @@
     "low": 0,
     "medium": 1
   },
-  "run_id": "43168601768",
+  "run_id": "43169318572",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -107,9 +107,9 @@
     },
     "thelong": {
       "action_changed": 0,
-      "added": 0,
-      "removed": 1,
-      "snapshots_seen": 1
+      "added": 1,
+      "removed": 2,
+      "snapshots_seen": 2
     },
     "zmjgen": {
       "action_changed": 0,

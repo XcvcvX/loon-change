@@ -130,19 +130,19 @@
       "action_changed": [],
       "added": [
         {
-          "line": "response if ${url} ~= /^http:\\/\\/(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\.)+gamersky\\.com\\/.+\\/lists\\/getListElements(?:\\/|\\?|#|$)/ then response.json.jq(`.listElements |= map(select(has(\"adCategory\") | not))`)",
+          "line": "^https://pan\\.baidu\\.com/.*ad/.* reject-200",
           "section": "rewrite",
           "sources": [
-            "block"
+            "thelong"
           ]
         }
       ],
       "removed": [
         {
-          "line": "response if ${url} ~= /http:\\/\\/.+\\.gamersky.com\\/.+\\/lists\\/getListElements/ then response.json.jq(`.listElements |= map(select(has(\"adCategory\") | not))`)",
+          "line": "^https://.*\\.baidu\\.com.*ad/.* reject-200",
           "section": "rewrite",
           "sources": [
-            "block"
+            "thelong"
           ]
         }
       ]

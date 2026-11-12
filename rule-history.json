@@ -25,39 +25,6 @@
         "low": 0,
         "medium": 0
       },
-      "run_id": "\"43044234428\"",
-      "source_changes": {},
-      "upstream_revisions": {
-        "Amap": "3d542ed8c60ae68fdb579df2a090fddaae5015e7",
-        "GuaZiVideoAds": "",
-        "aoomee": "370a13085514ccca924f43d13c6d3acfa5671dbe",
-        "thelongdarkorg": "2d0443ce1ecec36cf173634e77ba52224efbdc38",
-        "zmjde": "3e79a9798f1b996f5c05b1a42be5d286890f3f60"
-      }
-    },
-    {
-      "change_counts": {
-        "rewrite": {
-          "action_changed": 0,
-          "added": 0,
-          "removed": 0
-        },
-        "rule": {
-          "action_changed": 0,
-          "added": 0,
-          "removed": 0
-        },
-        "script": {
-          "action_changed": 0,
-          "added": 0,
-          "removed": 0
-        }
-      },
-      "risk_counts": {
-        "high": 0,
-        "low": 0,
-        "medium": 0
-      },
       "run_id": "\"43045445975\"",
       "source_changes": {},
       "upstream_revisions": {
@@ -1102,6 +1069,45 @@
         "thelongdarkorg": "2d0443ce1ecec36cf173634e77ba52224efbdc38",
         "zmjde": "3e79a9798f1b996f5c05b1a42be5d286890f3f60"
       }
+    },
+    {
+      "change_counts": {
+        "rewrite": {
+          "action_changed": 0,
+          "added": 1,
+          "removed": 1
+        },
+        "rule": {
+          "action_changed": 0,
+          "added": 0,
+          "removed": 0
+        },
+        "script": {
+          "action_changed": 0,
+          "added": 0,
+          "removed": 0
+        }
+      },
+      "risk_counts": {
+        "high": 1,
+        "low": 0,
+        "medium": 1
+      },
+      "run_id": "43169318572",
+      "source_changes": {
+        "thelong": {
+          "action_changed": 0,
+          "added": 1,
+          "removed": 1
+        }
+      },
+      "upstream_revisions": {
+        "Amap": "f72638b9c8794aa21caf93fe491c8ccecccd8b42",
+        "GuaZiVideoAds": "",
+        "aoomee": "370a13085514ccca924f43d13c6d3acfa5671dbe",
+        "thelongdarkorg": "2d0443ce1ecec36cf173634e77ba52224efbdc38",
+        "zmjde": "3e79a9798f1b996f5c05b1a42be5d286890f3f60"
+      }
     }
   ],
   "source_trends_last_30_snapshots": {
@@ -1131,9 +1137,9 @@
     },
     "thelong": {
       "action_changed": 0,
-      "added": 0,
-      "removed": 1,
-      "snapshots_seen": 1
+      "added": 1,
+      "removed": 2,
+      "snapshots_seen": 2
     },
     "zmjgen": {
       "action_changed": 0,
