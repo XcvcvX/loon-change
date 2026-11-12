@@ -448,21 +448,22 @@ hostname = *.amap.com
             )
             + "[MITM]\nhostname = magev6.if.qidian.com\n"
         )
-        output = self.run_merge(base, extra)
-        qidian_rules = [
-            line for line in output.splitlines()
-            if line.startswith("request if ") and "magev6" in line
-        ]
-        self.assertEqual(len(qidian_rules), 3)
-        for line, path in zip(qidian_rules, qidian_paths):
-            self.assertIn(r"magev6\.if\.qidian\.com", line)
-            self.assertNotIn("magev6.if.qidian.com", line.replace(
-                r"magev6\.if\.qidian\.com", ""))
-            matcher = line.split(" ~= /", 1)[1].split("/ then", 1)[0]
-            matcher = matcher.replace(r"\/", "/")
-            compiled = re.compile(matcher)
-            self.assertIsNotNone(compiled.search("https://magev6.if.qidian.com" + path))
-            self.assertIsNone(compiled.search("https://magev6XifYqidianZcom" + path))
+        empty = "[Rule]\n[Rewrite]\n[MITM]\nhostname = \n"
+        for output in (self.run_merge(base, empty), self.run_merge(empty, extra)):
+            qidian_rules = [
+                line for line in output.splitlines()
+                if line.startswith("request if ") and "magev6" in line
+            ]
+            self.assertEqual(len(qidian_rules), 3, repr(qidian_rules))
+            for line, path in zip(qidian_rules, qidian_paths):
+                self.assertIn(r"magev6\.if\.qidian\.com", line)
+                self.assertNotIn("magev6.if.qidian.com", line.replace(
+                    r"magev6\.if\.qidian\.com", ""))
+                matcher = line.split(" ~= /", 1)[1].split("/ then", 1)[0]
+                matcher = matcher.replace(r"\/", "/")
+                compiled = re.compile(matcher)
+                self.assertIsNotNone(compiled.search("https://magev6.if.qidian.com" + path))
+                self.assertIsNone(compiled.search("https://magev6XifYqidianZcom" + path))
 
     def test_bracketed_optional_https_scheme_is_parsed_for_mitm_pruning(self):
         # Some upstream Loon rules spell the scheme as http[s]? rather than https?.
