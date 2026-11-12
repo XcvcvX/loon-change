@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-12 07:42 UTC
+#!merged-at=2026-11-12 08:11 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -5816,7 +5816,7 @@ request if ${url} ~= /^https?:\/\/supportda\.ofo\.com\/adaction\?/ then reject(4
 request if ${url} ~= /^https?:\/\/ma\.ofo\.com\/adImage\// then reject(404)
 request if ${url} ~= /^https?:\/\/ma\.ofo\.com\/ads/ then reject(404)
 request if ${url} ~= /^https?:\/\/activity2\.api\.ofo\.com\/ofo\/Api\/v2\/ads/ then reject(404)
-request if ${url} ~= /^https?:\/\/103\.91\.210\.141\:2515\/xgapp\.php\/v2\/top_notice/ then reject(404)
+request if ${url} ~= /^https?:\/\/103\.91\.210\.141\:2515\/xgapp\.php\/v2\/top_notice(?:\?|$|\/)/ then reject(404)
 request if ${url} ~= /^https?:\/\/v3\.wufazhuce\.com:8000\/api\/adpreloadlist/ then reject_dict(200)
 request if ${url} ~= /^https?:\/\/api\.21ec74\.com\/v2\.5\/ad/ then reject(404)
 request if ${url} ~= /^https?:\/\/slapi\.oray\.net\/client\/ad/ then reject(404)
