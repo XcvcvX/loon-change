@@ -586,8 +586,8 @@ hostname = *.amap.com
         self.assertIn(r"gamersky\.com\/v1\/statisticAd\/", result)
         matcher = re.search(r"~= /(.*)/ then ", result).group(1).replace(r"\/", "/")
         for url in (
-            "https://a.gamersky.com/v1/statisticAd/",
-            "https://a-b.gamersky.com/v1/statisticAd/?from=app",
+            "https://a.gamersky.com/v1/statisticAd",
+            "https://a-b.gamersky.com/v1/statisticAd?from=app",
             "https://a.b.gamersky.com/v1/statisticAd/collect",
         ):
             self.assertRegex(url, matcher)
@@ -597,8 +597,8 @@ hostname = *.amap.com
             "https://evilgamersky.com/v1/statisticAd/",
             "https://a.gamersky.com.evil.test/v1/statisticAd/",
             "https://a..gamersky.com/v1/statisticAd/",
-            "https://a.gamersky.com/v1/statisticAdx/",
-            "https://a.gamersky.com/other/statisticAd/",
+            "https://a.gamersky.com/v1/statisticAdx",
+            "https://a.gamersky.com/other/statisticAd",
         ):
             self.assertNotRegex(url, matcher)
         changes = [
