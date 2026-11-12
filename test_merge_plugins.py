@@ -162,6 +162,61 @@ class MergeIntegrationTests(unittest.TestCase):
         self.assertIn("Omofun top_notice matcher 已变化", output)
 
 
+    def test_pzoap_top_notice_requires_endpoint_path_boundary(self):
+        source_line = (
+            r"request if ${url} ~= /^https?:\/\/pzoap\.moedot\.net\/xgapp\.php\/v2\/top_notice/ then reject(404)"
+        )
+        base = "[Rewrite]\n[MITM]\nhostname = \n"
+        extra = (
+            "[Rewrite]\n# > 稀饭动漫\n# hostname = pzoap.moedot.net\n"
+            + source_line + "\n[MITM]\nhostname = \n"
+        )
+        output, provenance = self.run_merge(base, extra, return_provenance=True)
+        line = next(line for line in output.splitlines() if "pzoap" in line)
+        matcher = re.compile(line.split(" ~= ", 1)[1].split(" then ", 1)[0].strip().strip("/"))
+        for url in (
+            "https://pzoap.moedot.net/xgapp.php/v2/top_notice",
+            "https://pzoap.moedot.net/xgapp.php/v2/top_notice?channel=home",
+            "http://pzoap.moedot.net/xgapp.php/v2/top_notice/extra",
+        ):
+            with self.subTest(url=url):
+                self.assertRegex(url, matcher)
+        for url in (
+            "https://pzoap.moedot.net/xgapp.php/v2/top_notice_extra",
+            "https://pzoap.moedot.net/xgapp.php/v2/top_notice2",
+            "https://pzoapXmoedot.net/xgapp.php/v2/top_notice",
+            "https://pzoap.moedot.net/xgappXphp/v2/top_notice",
+        ):
+            with self.subTest(url=url):
+                self.assertNotRegex(url, matcher)
+        changes = [
+            item for item in provenance["scope_adjustments"]
+            if item.get("target") == "稀饭动漫 top_notice 接口路径边界"
+        ]
+        self.assertEqual(len(changes), 1)
+        self.assertEqual(changes[0]["source"], "blockAdsV2")
+        self.assertEqual(changes[0]["original_line"], source_line)
+        self.assertEqual(changes[0]["output_line"], line)
+
+    def test_pzoap_top_notice_guard_fails_closed_on_action_or_path_drift(self):
+        base = "[Rewrite]\n[MITM]\nhostname = \n"
+        extra_action = (
+            "[Rewrite]\n"
+            + r"request if ${url} ~= /^https?:\/\/pzoap\.moedot\.net\/xgapp\.php\/v2\/top_notice/ then reject(200)"
+            + "\n[MITM]\nhostname = \n"
+        )
+        output = self.run_merge(base, extra_action, expect_failure=True)
+        self.assertIn("稀饭动漫 top_notice 动作已变化", output)
+
+        extra_path = (
+            "[Rewrite]\n"
+            + r"request if ${url} ~= /^https?:\/\/pzoap\.moedot\.net\/xgapp\.php\/v2\/top_notice.*/ then reject(404)"
+            + "\n[MITM]\nhostname = \n"
+        )
+        output = self.run_merge(base, extra_path, expect_failure=True)
+        self.assertIn("稀饭动漫 top_notice matcher 已变化", output)
+
+
     def test_tencentvideo_ad_segment_ip_prefix_is_valid_ipv4_only(self):
         plugin = (
             "[Rewrite]\n"

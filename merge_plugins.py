@@ -694,6 +694,49 @@ def prep_block_sections(rewrite_lines, script_lines):
 _OMOFUN_TOP_NOTICE_MATCHER = r'^https?://103\.91\.210\.141\:2515/xgapp\.php/v2/top_notice'
 _OMOFUN_TOP_NOTICE_BOUNDARY = r'(?:\?|$|/)'
 
+_PZOAP_TOP_NOTICE_MATCHER = r'^https?://pzoap\.moedot\.net/xgapp\.php/v2/top_notice'
+_PZOAP_TOP_NOTICE_BOUNDARY = r'(?:\?|$|/)'
+
+
+def narrow_pzoap_top_notice_path(rewrite_lines, source):
+    """只为 blockAdsV2 明确标注的稀饭动漫 top_notice 接口补齐路径终止边界。"""
+    output = []
+    adjustments = []
+    for line in rewrite_lines:
+        matcher = entry_regex(line)
+        if matcher != _PZOAP_TOP_NOTICE_MATCHER:
+            if matcher and matcher.startswith(_PZOAP_TOP_NOTICE_MATCHER):
+                if matcher == _PZOAP_TOP_NOTICE_MATCHER + _PZOAP_TOP_NOTICE_BOUNDARY:
+                    output.append(line)
+                    continue
+                raise RuntimeError(
+                    source + ' 稀饭动漫 top_notice matcher 已变化，拒绝自动扩大或猜测路径边界：' + line
+                )
+            output.append(line)
+            continue
+        if action_key(line) != ('REJECT', 'reject', 'reject(404)'):
+            raise RuntimeError(
+                source + ' 稀饭动漫 top_notice 动作已变化，拒绝自动改写：' + line
+            )
+        updated_matcher = matcher + _PZOAP_TOP_NOTICE_BOUNDARY
+        source_matcher = matcher.replace('/', r'\/')
+        source_updated_matcher = updated_matcher.replace('/', r'\/')
+        updated = line.replace(source_matcher, source_updated_matcher, 1)
+        if entry_regex(updated) != updated_matcher:
+            raise RuntimeError(source + ' 稀饭动漫 top_notice 边界修正后校验失败：' + line)
+        adjustments.append({
+            'source': source,
+            'section': 'Rewrite',
+            'target': '稀饭动漫 top_notice 接口路径边界',
+            'reason': 'Keep the explicitly declared pzoap.moedot.net host, endpoint path and reject(404) action, but require a query, slash, or URL end after /v2/top_notice so similarly prefixed paths are not rejected.',
+            'original_line': line,
+            'output_line': updated,
+        })
+        output.append(updated)
+    return output, adjustments
+
+
+
 
 def narrow_omofun_top_notice_path(rewrite_lines, source):
     """只为 blockAdsV2 明确标注的 Omofun top_notice 接口补齐路径终止边界。"""
@@ -1919,6 +1962,9 @@ block_rw, block_sc, block_scope_adjustments = narrow_555_scope(
 block_rw, omofun_top_notice_adjustments = narrow_omofun_top_notice_path(
     block_rw, 'blockAdsV2')
 block_scope_adjustments.extend(omofun_top_notice_adjustments)
+block_rw, pzoap_top_notice_adjustments = narrow_pzoap_top_notice_path(
+    block_rw, 'blockAdsV2')
+block_scope_adjustments.extend(pzoap_top_notice_adjustments)
 block_scope_adjustments.extend(odin_base_adjustments)
 block_scope_adjustments.extend(odin_block_adjustments)
 block_scope_adjustments.extend(block_qidian_adjustments)
