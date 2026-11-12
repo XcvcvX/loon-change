@@ -39,7 +39,7 @@ FILTER_MIRRORS = [
 ]
 
 # MyBlockAds（RuCu6/Walalala 自用去广告大合集）：仅经 Cloudflare Pages 发布，无公开 GitHub 源。
-# 在线抓取失败时回退到仓库内置缓存 sources/myblockads.lpx，保证自动更新不中断、独有规则不丢失。
+# 在线抓取失败时回退到仓库内置缓存 myblockads.lpx，保证自动更新不中断、独有规则不丢失。
 MYBLOCKADS_URL = 'https://rucu6.pages.dev/Plugins/myblockads.lpx'
 MYBLOCKADS_CACHE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), 'myblockads.lpx')
@@ -3237,14 +3237,14 @@ mitm = _kept_zhangle_mitm
 # ---------------- 输出 ----------------
 today = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
 header = [
-    '#!name=R-Store × blockAdsV2 × 独立 App 去广告净化合集',
-    '#!desc=合并 R-Store、blockAdsV2、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；'
+    '#!name=R-Store × blockAdsV2 × MyBlockAds × 独立 App 去广告净化合集',
+    '#!desc=合并 R-Store、blockAdsV2、RuCu6 MyBlockAds、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；'
     '按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含',
-    '#!author=zirawell / fmz200 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）',
+    '#!author=zirawell / fmz200 / RuCu6 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）',
     '#!homepage=https://github.com/XcvcvX/loon-change',
     '#!merged-at=%s' % today,
     '#!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。',
-    '#!sources=R-Store(QuanX->Loon)+blockAdsV2+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds',
+    '#!sources=R-Store(QuanX->Loon)+blockAdsV2+RuCu6-MyBlockAds+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds',
     '',
 ]
 out = list(header)
@@ -3495,6 +3495,7 @@ if args.provenance_out:
             'source_entry_index is the ordinal within the extracted source feed, not the original upstream file line number',
             'exact source filename and 1-based line attribution is included for Thelongdarkorg, aoomee, and zmjde App plugin feeds; other sources retain feed indices until their source mapping is added',
             'normalization and source conversion may mean input_line differs from upstream raw text',
+            'MyBlockAds source_entry_index is the ordinal within its extracted section feed; source line numbers are not yet emitted because the online source may differ from the checked-in fallback cache',
             'MITM hostname provenance and Argument provenance are not included in this first batch',
             'provenance does not prove that a rule is effective or safe at runtime'
         ],
@@ -3507,7 +3508,14 @@ if args.provenance_out:
             'qxapp': 'QuanX single-file app source (GuaZiVideoAds)',
             'amap': 'ifflagged/Romeo / RuCu6 Amap plugin',
             'zmjapp': 'zmjde/loon-plugins app plugins',
-            'myblockads': 'RuCu6 MyBlockAds',
+            'myblockads': {
+                'name': 'RuCu6 MyBlockAds',
+                'url': MYBLOCKADS_URL,
+                'cache': 'myblockads.lpx',
+                'update_policy': 'fetch_online_then_fallback_to_validated_repository_cache',
+                'merge_priority': 7,
+                'policy': 'supplement_only; existing higher-priority rules are retained',
+            },
             'filter': 'zirawell/R-Store allAdBlock filter'
         },
         'summary': {
@@ -3524,6 +3532,17 @@ if args.provenance_out:
                 1 for event in rule_provenance_events
                 if event['status'] == 'excluded_safety_guard'),
             'rule_scope_adjustments': len(rule_scope_adjustments),
+            'myblockads_input_entries': {
+                'rewrite': len(mb_rw), 'script': len(mb_sc), 'rule': len(mb_rule),
+                'mitm_hosts_declared': len(mb_mitm),
+            },
+            'myblockads_rule_dispositions': {
+                status: sum(1 for event in rule_provenance_events
+                            if event.get('source') == 'myblockads'
+                            and event.get('status') == status)
+                for status in ('included', 'duplicate_exact',
+                               'covered_by_existing_rule', 'excluded_safety_guard')
+            },
         },
         'rewrite': rewrite_provenance,
         'script': script_provenance,
