@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-12 06:58 UTC
+#!merged-at=2026-11-12 07:19 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -3650,7 +3650,7 @@ DOMAIN,yandexmetrica.com,REJECT
 ^https?:\/\/api\.gongkaoleida\.com\/api\/\w+\/sets\/getAppVersion reject
 ^https?:\/\/gsp\.gacmotor\.com\/gateway\/webapi\/baseinfo\/advertise\/getAdvertiseByPositionCode\?positionCode=1 reject-dict
 ^https?:\/\/gsp\.gacmotor\.com\/gateway\/app-api\/app\/version\/latestupdate\?flatform=2&innerVersion= reject-dict
-^https?:\/\/static\.95508\.com\/icppweb\/images\/modelMaterial\/(advertising|accurate)\/202\d{5}\/.*.(?:png|jpg) reject-200
+^https?:\/\/static\.95508\.com\/icppweb\/images\/modelMaterial\/(advertising|accurate)\/202\d{5}\/.*\.(?:png|jpg) reject-200
 ^https?:\/\/mps\.95508\.com\/mps\/club\/cardPortals\/adv\/\d{25}\.(?:png|jpg) reject-img
 ^https?:\/\/pv\.elife\.icbc\.com\.cn\/OFSTPV\/utm\.gif reject-200
 ^https?:\/\/elife\.icbc\.com\.cn\/OFSTNEWBASE\/floorinfo\/getStartupPages reject-dict
@@ -4022,8 +4022,8 @@ response if ${url} ~= /^https?:\/\/(?:a|s)\.ajmide\.com\/(?:v\d\/get_(?:radio_st
 ^https?:\/\/fm\.fenqile\.com\/routev\d\/other\/(startImg|getfloatAd)\.json reject-img
 ^https?:\/\/tiku\.fenbi\.com\/activity\/app\/(?:launcher|versions) reject-dict
 ^https?:\/\/market-api\.fenbi\.com\/iphone\/v\d\/assistant\/entrance\/show reject-dict
-^https?:\/\/l[0-9]{1}\.51fanli\.net\/app\/images\/splash\/2022\/0[4-9]{1}\/.*.jpg reject-200
-^https?:\/\/l[0-9]{1}\.51fanli\.net\/app\/images\/splash\/2022\/1[0-2]{1}\/.*.jpg reject-200
+^https?:\/\/l[0-9]{1}\.51fanli\.net\/app\/images\/splash\/2022\/0[4-9]{1}\/.*\.jpg reject-200
+^https?:\/\/l[0-9]{1}\.51fanli\.net\/app\/images\/splash\/2022\/1[0-2]{1}\/.*\.jpg reject-200
 ^https?:\/\/l[0-9]{1}\.51fanli\.net\/app\/images\/splash\/202\d{1}\/\d{2}\/.*.jpg reject-200
 ^https?:\/\/g(.*)\.dushu365\.com\/chief-orch\/config\/config\/v\d+\/(shortCut|appUpdateUnite|loadingAd|appConfig) reject
 ^https?:\/\/g(.*)\.dushu365\.com\/fandeng-orch\/dual2211\/config reject
@@ -5545,7 +5545,7 @@ request if ${url} ~= /^https?:\/\/adx-cn\.anythinktech\.com\/bid/ then reject_di
 request if ${url} ~= /^https?:\/\/capis(-?\w*)?\.didapinche\.com\/publish\/api\/upgrade/ then reject_dict(200)
 request if ${url} ~= /^https?:\/\/api\.gaoqingdianshi\.com\/api\/v\d\/ad\// then reject(404)
 request if ${url} ~= /^https?:\/\/cdn\.dianshihome\.com\/static\/ad\// then reject(404)
-request if ${url} ~= /^https?:\/\/img\.admobile\.top\/admobile-adRequest\/.*.(jpg|png)/ then reject(200)
+request if ${url} ~= /^https?:\/\/img\.admobile\.top\/admobile-adRequest\/.*\.(jpg|png)/ then reject(200)
 request if ${url} ~= /^https?:\/\/webcdn\.m\.qq\.com\/qiantu\/upload\/202[0-9]{5}\/.*.(jpg|png)/ then reject(200)
 response if ${url} ~= /^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/newDetails/ then response.body.replace(/suspension/, "fmz200")
 request if ${url} ~= /^https?:\/\/.*\.pglstatp-toutiao\.com\/.*ad.*/ then reject(404)
@@ -5625,8 +5625,8 @@ request if ${url} ~= /^https?:\/\/aag\.enmonster\.com\/apa\/index\/advert\/skin/
 request if ${url} ~= /^https?:\/\/guanyu\.longfor\.com\/app-server\/api\/v1\/main\/start/ then reject(404)
 request if ${url} ~= /^https?:\/\/mobile\.cebbank\.com\/cebclient\/ClientNoticeList/ then reject(200)
 request if ${url} ~= /^https?:\/\/yghsh\.cebbank\.com\/static\/picture\/.*.jpg/ then reject(200)
-request if ${url} ~= /^https?:\/\/static\.95508\.com\/icppweb\/images\/modelMaterial\/accurate\/202\d{5}\/.*.(png|jpg)/ then reject(200)
-request if ${url} ~= /^https?:\/\/static\.95508\.com\/icppweb\/images\/modelMaterial\/advertising\/202\d{5}\/.*.(png|jpg)/ then reject(200)
+request if ${url} ~= /^https?:\/\/static\.95508\.com\/icppweb\/images\/modelMaterial\/accurate\/202\d{5}\/.*\.(png|jpg)/ then reject(200)
+request if ${url} ~= /^https?:\/\/static\.95508\.com\/icppweb\/images\/modelMaterial\/advertising\/202\d{5}\/.*\.(png|jpg)/ then reject(200)
 request if ${url} ~= /^https?:\/\/mps\.95508\.com\/mps\/club\/cardPortals\/adv\/\d{25}\.(png|jpg)/ then reject_img(200)
 request if ${url} ~= /^https?:\/\/mbank\.grcbank\.com\/ydyh\/resources\/startpage\/.*.(jpg|png)/ then reject(200)
 request if ${url} ~= /^https?:\/\/prom\.mobile\.gome\.com\.cn\/mobile\/promotion\/promscms\/sale\w+\.jsp/ then reject(404)
@@ -5638,7 +5638,7 @@ request if ${url} ~= /^https?:\/\/pagead2\.googlesyndication\.com\/pagead\// the
 request if ${url} ~= /^https:\/\/emisdatacenteraws\.hafoo\.com\/ad\/api\/v2\/appMarket/ then reject_dict(200)
 request if ${url} ~= /^https:\/\/www\.haixue\.com\/advert\/app\/adInfo\/v1\/queryAdByPositionCode/ then reject_dict(200)
 request if ${url} ~= /^https?:\/\/.*\.townmalls\.cn:1890\/mossapi\/mossp\.BannerManager\/activityList.*/ then reject(404)
-request if ${url} ~= /^https?:\/\/ads\.iconntech\.com\/resource-delivery\/*\/.*.(jpg|png)/ then reject(200)
+request if ${url} ~= /^https?:\/\/ads\.iconntech\.com\/resource-delivery\/*\/.*\.(jpg|png)/ then reject(200)
 request if ${url} ~= /^https:\/\/oss\.umetrip\.com\/fs\/advert\/polite/ then reject(404)
 request if ${url} ~= /^http?:\/\/(discardrp|startup)\.umetrip\.com\/gateway\/api\/umetrip\/native/ then reject(404)
 request if ${url} ~= /^https?:\/\/notch\.qdaily\.com\/api\/v\d\/boot_ad/ then reject(404)
@@ -5665,7 +5665,7 @@ request if ${url} ~= /^https?:\/\/api\.huomao\.com\/channels\/loginAd/ then reje
 response if ${url} ~= /^https?:\/\/www\.i3zh\.com/ then response.body.replace(/cm-pop-up-banners/, "fmz200")
 request if ${url} ~= /^https?:\/\/www\.gcores\.com\/gapi\/v1\/app-start-pages\?page/ then reject_dict(200)
 request if ${url} ~= /^https?:\/\/explorer\.tratao\.com\/api\/client\/v4\/xtransfer\/ad\// then reject(404)
-request if ${url} ~= /^https?:\/\/img\.gdoil\.cn\/upload\/ad\/.*.(jpg|png)/ then reject(200)
+request if ${url} ~= /^https?:\/\/img\.gdoil\.cn\/upload\/ad\/.*\.(jpg|png)/ then reject(200)
 request if ${url} ~= /^https?:\/\/789\.kakamobi\.cn\/.+adver/ then reject_img(200)
 request if ${url} ~= /^https?:\/\/richmanrules\.ksedt\.com\/intellectWaterfall(Bidding)?\/find/ then reject(404)
 request if ${url} ~= /^https?:\/\/richmanapi\.jxedt\.com\/api\/(ad|adplus|banadplus)\// then reject(200)
@@ -6024,7 +6024,7 @@ request if ${url} ~= /^https?:\/\/api\.wfdata\.club\/v\d\/yesfeng\/(infoCenterAd
 response if ${url} ~= /^https?:\/\/mp\.weixin\.qq\.com\/mp\/getappmsgad/ then response.body.replace(/advertisement/, "fmz200")
 request if ${url} ~= /^https?:\/\/mp\.weixin\.qq\.com\/mp\/cps_product_info\?action/ then reject_dict(200)
 request if ${url} ~= /^https?:\/\/res-release\.wuta-cam\.com\/json\/ads_component_cache\.json/ then reject(404)
-request if ${url} ~= /^https?:\/\/img\.wukongtv\.com\/wkremote\/AD\/iOS\/.*.(jpg|png|jpeg)/ then reject(200)
+request if ${url} ~= /^https?:\/\/img\.wukongtv\.com\/wkremote\/AD\/iOS\/.*\.(jpg|png|jpeg)/ then reject(200)
 request if ${url} ~= /^https?:\/\/overseas\.weico\.cc\/portal\.php\?a=get_coopen_ads/ then reject(200)
 request if ${url} ~= /^https?:\/\/upload-bbs\.mihoyo\.com\/upload\/202[2-9]{1}\/[0-9]{2}\/[0-9]{2}\/[a-z0-9]{32}_[a-z0-9]{19}\.(jpg|png)$/ then reject(200)
 request if ${url} ~= /^https:\/\/mobileapi\.xiamenair\.com\/mobile-starter/ then reject(404)

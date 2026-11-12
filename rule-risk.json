@@ -2,12 +2,12 @@
   "change_counts": {
     "rewrite": {
       "action_changed": 0,
-      "added": 0,
-      "removed": 0
+      "added": 9,
+      "removed": 9
     },
     "rule": {
       "action_changed": 0,
-      "added": 1,
+      "added": 0,
       "removed": 0
     },
     "script": {
@@ -19,33 +19,402 @@
   "events": [
     {
       "after": {
-        "line": "AND,((DOMAIN-SUFFIX,advlion.com),(PROTOCOL,QUIC)),REJECT",
-        "section": "rule",
+        "line": "^https?:\\/\\/l[0-9]{1}\\.51fanli\\.net\\/app\\/images\\/splash\\/2022\\/0[4-9]{1}\\/.*\\.jpg reject-200",
+        "section": "rewrite",
         "sources": [
-          "thelong"
+          "base",
+          "block"
         ]
       },
       "before": null,
       "change_type": "added",
       "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
       "risk": "medium",
-      "section": "rule",
+      "section": "rewrite",
       "semantic_duplicate_coverage": null,
       "source_scores": {
-        "thelong": 0
+        "base": 0,
+        "block": 0
       },
       "sources": [
-        "thelong"
+        "base",
+        "block"
+      ]
+    },
+    {
+      "after": {
+        "line": "^https?:\\/\\/l[0-9]{1}\\.51fanli\\.net\\/app\\/images\\/splash\\/2022\\/1[0-2]{1}\\/.*\\.jpg reject-200",
+        "section": "rewrite",
+        "sources": [
+          "base",
+          "block"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "base": 0,
+        "block": 0
+      },
+      "sources": [
+        "base",
+        "block"
+      ]
+    },
+    {
+      "after": {
+        "line": "^https?:\\/\\/static\\.95508\\.com\\/icppweb\\/images\\/modelMaterial\\/(advertising|accurate)\\/202\\d{5}\\/.*\\.(?:png|jpg) reject-200",
+        "section": "rewrite",
+        "sources": [
+          "base"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "base": 0
+      },
+      "sources": [
+        "base"
+      ]
+    },
+    {
+      "after": {
+        "line": "request if ${url} ~= /^https?:\\/\\/ads\\.iconntech\\.com\\/resource-delivery\\/*\\/.*\\.(jpg|png)/ then reject(200)",
+        "section": "rewrite",
+        "sources": [
+          "block"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "block": 0
+      },
+      "sources": [
+        "block"
+      ]
+    },
+    {
+      "after": {
+        "line": "request if ${url} ~= /^https?:\\/\\/img\\.admobile\\.top\\/admobile-adRequest\\/.*\\.(jpg|png)/ then reject(200)",
+        "section": "rewrite",
+        "sources": [
+          "block"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "block": 0
+      },
+      "sources": [
+        "block"
+      ]
+    },
+    {
+      "after": {
+        "line": "request if ${url} ~= /^https?:\\/\\/img\\.gdoil\\.cn\\/upload\\/ad\\/.*\\.(jpg|png)/ then reject(200)",
+        "section": "rewrite",
+        "sources": [
+          "block"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "block": 0
+      },
+      "sources": [
+        "block"
+      ]
+    },
+    {
+      "after": {
+        "line": "request if ${url} ~= /^https?:\\/\\/img\\.wukongtv\\.com\\/wkremote\\/AD\\/iOS\\/.*\\.(jpg|png|jpeg)/ then reject(200)",
+        "section": "rewrite",
+        "sources": [
+          "block"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "block": 0
+      },
+      "sources": [
+        "block"
+      ]
+    },
+    {
+      "after": {
+        "line": "request if ${url} ~= /^https?:\\/\\/static\\.95508\\.com\\/icppweb\\/images\\/modelMaterial\\/accurate\\/202\\d{5}\\/.*\\.(png|jpg)/ then reject(200)",
+        "section": "rewrite",
+        "sources": [
+          "block"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "block": 0
+      },
+      "sources": [
+        "block"
+      ]
+    },
+    {
+      "after": {
+        "line": "request if ${url} ~= /^https?:\\/\\/static\\.95508\\.com\\/icppweb\\/images\\/modelMaterial\\/advertising\\/202\\d{5}\\/.*\\.(png|jpg)/ then reject(200)",
+        "section": "rewrite",
+        "sources": [
+          "block"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "block": 0
+      },
+      "sources": [
+        "block"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "^https?:\\/\\/l[0-9]{1}\\.51fanli\\.net\\/app\\/images\\/splash\\/2022\\/0[4-9]{1}\\/.*.jpg reject-200",
+        "section": "rewrite",
+        "sources": [
+          "base",
+          "block"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "base": 0,
+        "block": 0
+      },
+      "sources": [
+        "base",
+        "block"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "^https?:\\/\\/l[0-9]{1}\\.51fanli\\.net\\/app\\/images\\/splash\\/2022\\/1[0-2]{1}\\/.*.jpg reject-200",
+        "section": "rewrite",
+        "sources": [
+          "base",
+          "block"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "base": 0,
+        "block": 0
+      },
+      "sources": [
+        "base",
+        "block"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "^https?:\\/\\/static\\.95508\\.com\\/icppweb\\/images\\/modelMaterial\\/(advertising|accurate)\\/202\\d{5}\\/.*.(?:png|jpg) reject-200",
+        "section": "rewrite",
+        "sources": [
+          "base"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "base": 0
+      },
+      "sources": [
+        "base"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "request if ${url} ~= /^https?:\\/\\/ads\\.iconntech\\.com\\/resource-delivery\\/*\\/.*.(jpg|png)/ then reject(200)",
+        "section": "rewrite",
+        "sources": [
+          "block"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "block": 0
+      },
+      "sources": [
+        "block"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "request if ${url} ~= /^https?:\\/\\/img\\.admobile\\.top\\/admobile-adRequest\\/.*.(jpg|png)/ then reject(200)",
+        "section": "rewrite",
+        "sources": [
+          "block"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "block": 0
+      },
+      "sources": [
+        "block"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "request if ${url} ~= /^https?:\\/\\/img\\.gdoil\\.cn\\/upload\\/ad\\/.*.(jpg|png)/ then reject(200)",
+        "section": "rewrite",
+        "sources": [
+          "block"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "block": 0
+      },
+      "sources": [
+        "block"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "request if ${url} ~= /^https?:\\/\\/img\\.wukongtv\\.com\\/wkremote\\/AD\\/iOS\\/.*.(jpg|png|jpeg)/ then reject(200)",
+        "section": "rewrite",
+        "sources": [
+          "block"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "block": 0
+      },
+      "sources": [
+        "block"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "request if ${url} ~= /^https?:\\/\\/static\\.95508\\.com\\/icppweb\\/images\\/modelMaterial\\/accurate\\/202\\d{5}\\/.*.(png|jpg)/ then reject(200)",
+        "section": "rewrite",
+        "sources": [
+          "block"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "block": 0
+      },
+      "sources": [
+        "block"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "request if ${url} ~= /^https?:\\/\\/static\\.95508\\.com\\/icppweb\\/images\\/modelMaterial\\/advertising\\/202\\d{5}\\/.*.(png|jpg)/ then reject(200)",
+        "section": "rewrite",
+        "sources": [
+          "block"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "block": 0
+      },
+      "sources": [
+        "block"
       ]
     }
   ],
-  "overall_risk": "medium",
+  "overall_risk": "high",
   "risk_counts": {
-    "high": 0,
+    "high": 9,
     "low": 0,
-    "medium": 1
+    "medium": 9
   },
-  "run_id": "43171772243",
+  "run_id": "43174286820",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -68,15 +437,15 @@
     },
     "base": {
       "action_changed": 0,
-      "added": 2,
-      "removed": 4,
-      "snapshots_seen": 4
+      "added": 5,
+      "removed": 7,
+      "snapshots_seen": 5
     },
     "block": {
       "action_changed": 0,
-      "added": 10,
-      "removed": 12,
-      "snapshots_seen": 10
+      "added": 18,
+      "removed": 20,
+      "snapshots_seen": 11
     },
     "filter": {
       "action_changed": 0,
