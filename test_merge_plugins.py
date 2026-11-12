@@ -567,6 +567,62 @@ hostname = *.amap.com
                 self.assertEqual(adjustments[0]["original_line"], rule)
                 self.assertEqual(adjustments[0]["output_line"], result)
 
+    def test_gamersky_ad_system_rule_is_limited_to_valid_declared_subdomains(self):
+        empty = "[Rewrite]\n[Script]\n[MITM]\nhostname = \n"
+        rule = (
+            r"request if \${url} ~= /^http:\/\/.+\.gamersky\.com\/.+"
+            r"\/adSystem\/ad\/.+/ then reject_dict(200)"
+        )
+        extra = (
+            "[Rewrite]\n" + rule + "\n"
+            + "[MITM]\nhostname = *.gamersky.com\n"
+        )
+        output, report = self.run_merge(empty, extra, return_provenance=True)
+        result = next(
+            line for line in output.splitlines()
+            if line.startswith("request if") and "gamersky" in line
+            and "/adSystem/" in line
+        )
+        self.assertIn(r"(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+", result)
+        matcher = re.search(r"~= /(.*)/ then ", result).group(1).replace(r"\/", "/")
+        for url in (
+            "http://a.gamersky.com/api/adSystem/ad/banner",
+            "http://a-b.gamersky.com/api/adSystem/ad/banner",
+            "http://a.b.gamersky.com/api/adSystem/ad/banner",
+        ):
+            self.assertRegex(url, matcher)
+        for url in (
+            "http://gamersky.com/api/adSystem/ad/banner",
+            "http://evilgamersky.com/api/adSystem/ad/banner",
+            "http://a..gamersky.com/api/adSystem/ad/banner",
+            "http://-bad.gamersky.com/api/adSystem/ad/banner",
+            "http://a.gamersky.com.evil.test/api/adSystem/ad/banner",
+            "https://a.gamersky.com/api/adSystem/ad/banner",
+        ):
+            self.assertNotRegex(url, matcher)
+        changes = [
+            item for item in report["scope_adjustments"]
+            if "Gamersky adSystem endpoint" in item.get("reason", "")
+        ]
+        self.assertEqual(len(changes), 1)
+        self.assertEqual(changes[0]["source"], "block")
+        self.assertEqual(changes[0]["original_line"], rule)
+        self.assertEqual(changes[0]["output_line"], result)
+
+    def test_gamersky_ad_system_guard_fails_closed_on_action_drift(self):
+        empty = "[Rewrite]\n[Script]\n[MITM]\nhostname = \n"
+        rule = (
+            r"request if \${url} ~= /^http:\/\/.+\.gamersky\.com\/.+"
+            r"\/adSystem\/ad\/.+/ then reject(404)"
+        )
+        extra = (
+            "[Rewrite]\n" + rule + "\n"
+            + "[MITM]\nhostname = *.gamersky.com\n"
+        )
+        output = self.run_merge(empty, extra, expect_failure=True)
+        self.assertIn("游民星空 adSystem 广告规则范围或动作已变化", output)
+
+
     def test_peopleapp_ad_image_extension_guard_fails_closed_on_action_drift(self):
         empty = "[Rewrite]\n[Script]\n[MITM]\nhostname = \n"
         rule = (
