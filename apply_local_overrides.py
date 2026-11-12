@@ -72,7 +72,7 @@ def apply(text: str) -> str:
             continue
         if "taxiapi" in line and "script.hub" in line:
             continue
-        if "tag=easybike-ad" in line and any(host in line for host in HELLOBIKE_HIGH_FREQUENCY_MARKERS):
+        if "tag=easybike-ad" in line and ("marketingapi" in line or "entertainment" in line):
             if "/secretkey" not in line and "resource" not in line:
                 continue
         lines.append(line)
