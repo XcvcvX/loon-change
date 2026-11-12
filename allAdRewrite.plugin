@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、RuCu6 MyBlockAds、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / RuCu6 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-12 15:11 UTC
+#!merged-at=2026-11-12 15:30 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+RuCu6-MyBlockAds+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds+ZenmoFeiShi-Qx-HelloBike(ScriptHub-Loon)
 
@@ -7554,7 +7554,7 @@ http-request ^https:\/\/resource\.51downapp\.cn\/f414fbc17c411b4e986ba8891c738a4
 http-response ^https:\/\/api\.hellobike\.com(?::443)?\/secretkey(?:\?|$) script-path=http://script.hub/convert/_start_/https://raw.githubusercontent.com/ZenmoFeiShi/Qx/refs/heads/main/easybike-ad.js/_end_/easybike-ad.js?type=qx-script&target=loon-script&wrap_response=true&headers=, requires-body=true, timeout=60, tag=easybike-ad
 http-request ^https?:\/\/(?:api|marketingapi|entertainment)\.hellobike\.com(?::\d+)?\/api(?:\?|$) script-path=http://script.hub/convert/_start_/https://raw.githubusercontent.com/ZenmoFeiShi/Qx/refs/heads/main/easybike-ad.js/_end_/easybike-ad.js?type=qx-script&target=loon-script&wrap_response=true&headers=, requires-body=true, timeout=60, tag=easybike-ad
 http-response ^https?:\/\/(?:api|marketingapi|entertainment)\.hellobike\.com(?::\d+)?\/api(?:\?|$) script-path=http://script.hub/convert/_start_/https://raw.githubusercontent.com/ZenmoFeiShi/Qx/refs/heads/main/easybike-ad.js/_end_/easybike-ad.js?type=qx-script&target=loon-script&wrap_response=true&headers=, requires-body=true, timeout=60, tag=easybike-ad
-http-response ^https:\/\/taxiapi\.hellobike\.com(?::443)?\/api(?:\?|$) script-path=http://script.hub/convert/_start_/https://raw.githubusercontent.com/ZenmoFeiShi/Qx/refs/heads/main/easybike-ad.js/_end_/easybike-ad.js?type=qx-script&target=loon-script&wrap_response=true&headers=, requires-body=true, timeout=60, tag=easybike-ad
+response if ${url} ~= /^https:\/\/taxiapi\.hellobike\.com(?::443)?\/api(?:\?|$)/i && ${request.method} == "POST" && ${request.header['action']} == "hitch.driver.journeyList" then script("http://script.hub/convert/_start_/https://raw.githubusercontent.com/ZenmoFeiShi/Qx/refs/heads/main/easybike-ad.js/_end_/easybike-ad.js?type=qx-script&target=loon-script&wrap_response=true&headers=") with requires_body=true, timeout=60, tag="easybike-ad"
 response if ${url} ~= /^https?:\/\/creditcard\.bankcomm\.(?:cn|com)\/tofimg\/bucket-pj-btss-tfcn-dmz\/OSS-F\/.+/i then script("https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/maidanba.js") with tag="买单吧开屏广告", requires_body=true, binary_body_mode=true
 
 [MITM]
