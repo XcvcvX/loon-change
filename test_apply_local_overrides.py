@@ -89,9 +89,9 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         base = BASE.replace(
             "[Rewrite]",
             "[Rewrite]\n"
-            'response if \${url} ~= /^https:\/\/api\.example\.com/ then response.json.delete("data.ad1")\n'
+            'response if ${url} ~= /^https:\/\/api\.example\.com/ then response.json.delete("data.ad1")\n'
             '\n'
-            'response if \${url} ~= /^https:\/\/api\.example\.com/ then response.json.jq(".data.ad2 = []")\n'
+            'response if ${url} ~= /^https:\/\/api\.example\.com/ then response.json.jq(".data.ad2 = []")\n'
         )
         result = apply(base)
         self.assertIn(
@@ -105,10 +105,10 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         base = BASE.replace(
             "[Rewrite]",
             "[Rewrite]\n"
-            'response if \${url} ~= /^https:\/\/api\.example\.com/ then response.json.delete("data.a")\n'
-            'response if \${url} ~= /^https:\/\/other\.example\.com/ then response.json.delete("data.x")\n'
-            'response if \${url} ~= /^https:\/\/api\.example\.com/ then response.json.delete("data.b")\n'
-            'request if \${url} ~= /^https:\/\/api\.example\.com/ then request.header.del("Cookie")\n'
+            'response if ${url} ~= /^https:\/\/api\.example\.com/ then response.json.delete("data.a")\n'
+            'response if ${url} ~= /^https:\/\/other\.example\.com/ then response.json.delete("data.x")\n'
+            'response if ${url} ~= /^https:\/\/api\.example\.com/ then response.json.delete("data.b")\n'
+            'request if ${url} ~= /^https:\/\/api\.example\.com/ then request.header.del("Cookie")\n'
         )
         result = apply(base)
         self.assertIn('then response.json.delete("data.a")', result)
