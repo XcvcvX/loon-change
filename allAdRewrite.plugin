@@ -100,6 +100,7 @@ blockShorts=switch,false,tag=屏蔽Shorts按钮
 debug=switch,false,tag=启用调试模式
 
 [Rule]
+DOMAIN,aet.spotify.com,REJECT
 AND, ((URL-REGEX, "^http:\/\/.+\/amdc\/mobileDispatch"), (USER-AGENT, "AMapiPhone*")), REJECT
 DOMAIN,amap-aos-info-nogw.amap.com,REJECT
 DOMAIN,free-aos-cdn-image.amap.com,REJECT
