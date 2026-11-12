@@ -103,16 +103,25 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertEqual(count, 0)
         self.assertEqual(result, [a, b])
 
-    def test_removes_only_exact_duplicate_soul_teenager_reject_rule(self):
-        from apply_local_overrides import SOUL_TEENAGER_CONFIG_DUPLICATE
-        duplicate = SOUL_TEENAGER_CONFIG_DUPLICATE
-        similar = duplicate.replace("reject-dict", "reject")
-        base = BASE.replace("[Rewrite]", "[Rewrite]\n" + duplicate + "\n" + duplicate + "\n" + similar)
+    def test_removes_soul_https_rule_only_after_covering_http_rule(self):
+        from apply_local_overrides import SOUL_TEENAGER_CONFIG_BROAD_RULE, SOUL_TEENAGER_CONFIG_HTTPS_RULE
+        broad = SOUL_TEENAGER_CONFIG_BROAD_RULE
+        narrow = SOUL_TEENAGER_CONFIG_HTTPS_RULE
+        similar = narrow.replace("reject-dict", "reject")
+        base = BASE.replace("[Rewrite]", "[Rewrite]\n" + broad + "\n" + narrow + "\n" + similar)
         result = apply(base)
         rewrite = result.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
-        self.assertEqual(rewrite.count(duplicate), 1)
+        self.assertEqual(sum(item.strip() == broad for item in rewrite.splitlines()), 1)
+        self.assertEqual(sum(item.strip() == narrow for item in rewrite.splitlines()), 0)
         self.assertEqual(sum(item.strip() == similar for item in rewrite.splitlines()), 1)
         self.assertEqual(apply(result), result)
+
+    def test_preserves_soul_https_rule_if_broader_rule_comes_later(self):
+        from apply_local_overrides import SOUL_TEENAGER_CONFIG_BROAD_RULE, SOUL_TEENAGER_CONFIG_HTTPS_RULE
+        base = BASE.replace("[Rewrite]", "[Rewrite]\n" + SOUL_TEENAGER_CONFIG_HTTPS_RULE + "\n" + SOUL_TEENAGER_CONFIG_BROAD_RULE)
+        result = apply(base)
+        rewrite = result.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
+        self.assertEqual(sum(item.strip() == SOUL_TEENAGER_CONFIG_HTTPS_RULE for item in rewrite.splitlines()), 1)
 
     def test_requires_bankcomm_mitm_hosts(self):
         with self.assertRaises(ValueError):
