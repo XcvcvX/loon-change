@@ -711,18 +711,17 @@ def escape_qidian_magev6_host(rewrite_lines, source):
             continue
         raw_host = 'magev6.if.qidian.com'
         escaped_host = r'magev6\.if\.qidian\.com'
-        raw_prefix = '^https?://' + raw_host + '/argus/api/'
-        escaped_prefix = '^https?://' + escaped_host + '/argus/api/'
-        if normalized.startswith(raw_prefix):
-            host_is_escaped = False
-        elif normalized.startswith(escaped_prefix):
-            host_is_escaped = True
-        else:
+        raw_prefix = '^https?://' + raw_host
+        escaped_prefix = '^https?://' + escaped_host
+        if normalized.startswith(escaped_prefix):
+            output.append(line)
+            continue
+        if not normalized.startswith(raw_prefix):
             raise RuntimeError(
                 source + ' 起点读书 magev6 广告 matcher 已变化，拒绝静默放宽主机匹配：' + line
             )
-        path = normalized[len(raw_prefix if not host_is_escaped else escaped_prefix):]
-        if not any(path.startswith(target.lstrip('/')) for target in _QIDIAN_MAGEV6_PATHS):
+        path = normalized[len(raw_prefix):]
+        if not any(path.startswith(target) for target in _QIDIAN_MAGEV6_PATHS):
             raise RuntimeError(
                 source + ' 起点读书 magev6 广告路径已变化，拒绝自动改写：' + line
             )
@@ -730,9 +729,6 @@ def escape_qidian_magev6_host(rewrite_lines, source):
             raise RuntimeError(
                 source + ' 起点读书 magev6 广告动作已变化，拒绝自动改写：' + line
             )
-        if host_is_escaped:
-            output.append(line)
-            continue
         updated = line.replace(raw_host, escaped_host, 1)
         updated_matcher = entry_regex(updated)
         updated_normalized = updated_matcher.replace(r'\/', '/') if updated_matcher else updated_matcher
@@ -747,7 +743,6 @@ def escape_qidian_magev6_host(rewrite_lines, source):
         })
         output.append(updated)
     return output, adjustments
-
 
 # 懒人听书：只允许上游该接口明确声明的两个业务主机。
 _LANRENTINGSHU_MARKER = '# > 懒人听书'
