@@ -46,20 +46,21 @@ HELLOBIKE_SCRIPT_MARKERS = (
     "tag=easybike-ad",
 )
 
-# 两条完全相同的 Soul 青少年配置拒绝规则只保留首条；不触碰其他近似 matcher。
-SOUL_TEENAGER_CONFIG_DUPLICATE = r"^https?:\/\/api-account\.soulapp\.cn\/teenager\/config reject-dict"
+# Soul 青少年配置：较早的 http(s) 规则已覆盖后续仅 HTTPS 的同路径规则。
+SOUL_TEENAGER_CONFIG_BROAD_RULE = r"^https?:\/\/api-account\.soulapp\.cn\/teenager\/config reject-dict"
+SOUL_TEENAGER_CONFIG_HTTPS_RULE = r"^https:\/\/api-account\.soulapp\.cn\/teenager\/config reject-dict"
 
-def dedupe_exact_soul_teenager_rule(lines):
-    output, seen, removed = [], False, 0
+def remove_subsumed_soul_teenager_rule(lines):
+    output, broad_seen, removed = [], False, 0
     for line in lines:
-        if line.strip() == SOUL_TEENAGER_CONFIG_DUPLICATE:
-            if seen:
-                removed += 1
-                continue
-            seen = True
+        value = line.strip()
+        if value == SOUL_TEENAGER_CONFIG_BROAD_RULE:
+            broad_seen = True
+        if value == SOUL_TEENAGER_CONFIG_HTTPS_RULE and broad_seen:
+            removed += 1
+            continue
         output.append(line)
     return output, removed
-
 
 
 def split_response_json_rewrite(line: str):
@@ -145,14 +146,14 @@ def apply(text: str) -> str:
         if line.startswith("[") and line.endswith("]"):
             if section == "Rewrite":
                 rewrite_lines, _ = merge_adjacent_response_json_rewrites(rewrite_lines)
-                rewrite_lines, _ = dedupe_exact_soul_teenager_rule(rewrite_lines)
+                rewrite_lines, _ = remove_subsumed_soul_teenager_rule(rewrite_lines)
                 result_lines.extend(rewrite_lines); rewrite_lines = []
             section = line[1:-1]; result_lines.append(line)
         elif section == "Rewrite": rewrite_lines.append(line)
         else: result_lines.append(line)
     if section == "Rewrite":
         rewrite_lines, _ = merge_adjacent_response_json_rewrites(rewrite_lines)
-        rewrite_lines, _ = dedupe_exact_soul_teenager_rule(rewrite_lines)
+        rewrite_lines, _ = remove_subsumed_soul_teenager_rule(rewrite_lines)
         result_lines.extend(rewrite_lines)
     result = "\n".join(result_lines)
     # Keep the unrelated Bankcomm override in [Script], idempotently.
