@@ -450,7 +450,7 @@ hostname = *.amap.com
     def test_targeted_ad_matchers_escape_literal_hostname_dots(self):
         empty = "[Rewrite]\n[Script]\n[MITM]\nhostname = \n"
         dili_rule = (
-            r"request if \${url} ~= /http:\/\/dili.sqcosmos.com"
+            r"request if ${url} ~= /http:\/\/dili.sqcosmos.com"
             r"\/jiekou\/endpage\/ad/ then reject_dict(200)"
         )
         dili_block = (
@@ -470,7 +470,7 @@ hostname = *.amap.com
         self.assertEqual({item["source"] for item in adjustments}, {"block"})
 
         ios_rule = (
-            r"request if \${url} ~= /https:\/\/ios.sspai.com"
+            r"request if ${url} ~= /https:\/\/ios.sspai.com"
             r"\/api\/v3\/recommend\/page\/get\?ad.*ios_home_modal/"
             r" then reject(404)"
         )
