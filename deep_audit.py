@@ -1015,6 +1015,31 @@ def audit_deep(path):
     return report
 
 
+def automated_diagnostics_handling():
+    """Single source of truth for the no-user-action, fail-safe diagnostic contract."""
+    return {
+        'mode': 'informational_only',
+        'user_action_required': False,
+        'automatic_rule_changes': False,
+        'uncertain_rules': 'preserve_original'
+    }
+
+
+def render_automated_diagnostics_handling():
+    """Render the same machine-readable handling contract in the Markdown report."""
+    handling = automated_diagnostics_handling()
+    return [
+        '',
+        '## 自动诊断处理契约',
+        '',
+        '- 处理模式：`%s`' % handling['mode'],
+        '- 是否要求用户操作：%s' % ('是' if handling['user_action_required'] else '否'),
+        '- 是否允许自动修改规则：%s' % ('是' if handling['automatic_rule_changes'] else '否'),
+        '- 不确定规则的处理：`%s`' % handling['uncertain_rules'],
+        '- 处理原则：仅提供诊断信息；不生成用户待办、不自动修改规则；无法可靠判断时保留原规则。',
+    ]
+
+
 def build_automated_diagnostics(report):
     """Expose stable, user-facing diagnostic names without breaking legacy JSON consumers."""
     summary = report['summary']
@@ -1041,12 +1066,7 @@ def build_automated_diagnostics(report):
             display_key: markdown_diagnostic_item(report.get(source_key, []))
             for display_key, source_key in candidate_sources.items()
         },
-        'handling': {
-            'mode': 'informational_only',
-            'user_action_required': False,
-            'automatic_rule_changes': False,
-            'uncertain_rules': 'preserve_original'
-        },
+        'handling': automated_diagnostics_handling(),
         'compatibility': (
             'Additive automated-diagnostics view. Legacy top-level fields and values '
             'remain unchanged for existing consumers.'
@@ -1117,8 +1137,9 @@ def render_markdown(report):
         'unreferenced_positive_entries':'未关联到字面触发器的 MITM 正向项候选'
     }
     lines = ['# Loon 插件深度只读审计报告', '',
-             '本报告提供自动诊断线索与兼容性警告；不会要求用户人工处理，也不会自动修改任何规则。', '',
-             '| 检查项 | 数量 |', '|---|---:|']
+             '本报告提供自动诊断线索与兼容性警告；不会要求用户人工处理，也不会自动修改任何规则。']
+    lines += render_automated_diagnostics_handling()
+    lines += ['', '| 检查项 | 数量 |', '|---|---:|']
     for key, label in labels.items():
         lines.append('| %s | %s |' % (label, report['summary'][key]))
     for key, title in [
