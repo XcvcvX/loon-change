@@ -511,7 +511,7 @@ hostname = *.example.test
         )
 
 
-    def test_unknown_action_is_high_priority_semantic_review_candidate(self):
+    def test_unknown_action_is_automated_warning_without_user_review(self):
         fixture = '''[Rewrite]
 request if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/ad$/ then future-action value
 '''
