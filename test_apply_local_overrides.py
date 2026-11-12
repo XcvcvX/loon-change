@@ -80,7 +80,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
 
     def test_pdd_httpdns_rule_drift_fails_closed(self):
         marker_line = 'AND, ((URL-REGEX, "changed"), (USER-AGENT, "*com.xunmeng.pinduoduo*")), REJECT'
-        base = BASE.replace("[Rewrite]", "[Rewrite]\n" + duplicate + "\n" + duplicate + "\n" + similar)
+        base = BASE.replace("[Rewrite]", "[Rule]\n" + marker_line + "\n[Rewrite]")
         with self.assertRaises(ValueError):
             apply(base)
 
@@ -111,7 +111,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         result = apply(base)
         rewrite = result.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
         self.assertEqual(rewrite.count(duplicate), 1)
-        self.assertEqual(rewrite.count(similar), 1)
+        self.assertEqual(sum(item.strip() == similar for item in rewrite.splitlines()), 1)
         self.assertEqual(apply(result), result)
 
     def test_requires_bankcomm_mitm_hosts(self):
