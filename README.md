@@ -379,3 +379,12 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 同步修正仓库内独立转换产物，并加入本地 fixture 回归测试，覆盖 .98/.99 拒绝规则、.90 保留、.98 DIRECT 保留及其他网段保留。
 - 更新 PR CI 路径触发和测试清单，避免转换器或回归测试变更绕过自动验证。
 - 本批不修改 `allAdRewrite.plugin` 的现有规则、MITM、优先级或其他广告拦截范围。
+
+
+## 第八阶段第六批：收敛 Dili 每日精选响应规则主机匹配范围
+
+- 上游 blockAdsV2 明确将 `dili.sqcosmos.com` 的 `/jiekou/mains/p\d+.html` 用于每日精选页面响应 JSON 过滤；当前主机名点号未转义，可能让 lookalike 主机的响应也进入 JSON 改写。
+- 仅转义该响应 matcher 的主机名点号；保留原路径正则、`response.json.jq` 表达式及过滤的专辑 ID，不改变广告过滤逻辑。
+- 对应动作或 matcher 发生漂移时 fail-closed；即使上游已自行转义主机名，也继续校验响应动作签名。
+- 新增真实主机正向、lookalike 主机反向、JSON 改写动作保持及动作漂移失败保护测试。
+- 不修改 MITM hostname、其他 Dili 规则、其他 App 规则、Script、Rule 或优先级。
