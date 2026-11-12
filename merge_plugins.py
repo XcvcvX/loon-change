@@ -1166,39 +1166,39 @@ def escape_adstatic_peopleapp_image_extension(rewrite_lines, source):
 _AD_IMAGE_EXTENSION_TARGETS = (
     {
         'name': '叮嗒出行 admobile 广告图片',
-        'prefix': r'^https?://img\\.admobile\\.top/admobile-adRequest/',
+        'prefix': r'^https?://img\.admobile\.top/admobile-adRequest/',
     },
     {
         'name': '加油广东广告图片',
-        'prefix': r'^https?://img\\.gdoil\\.cn/upload/ad/',
+        'prefix': r'^https?://img\.gdoil\.cn/upload/ad/',
     },
     {
         'name': '悟空遥控器 AD/iOS 图片',
-        'prefix': r'^https?://img\\.wukongtv\\.com/wkremote/AD/iOS/',
+        'prefix': r'^https?://img\.wukongtv\.com/wkremote/AD/iOS/',
     },
     {
         'name': '杭州市民广告投放素材',
-        'prefix': r'^https?://ads\\.iconntech\\.com/resource-delivery',
+        'prefix': r'^https?://ads\.iconntech\.com/resource-delivery',
     },
     {
         'name': '优理宝开屏图片',
-        'prefix': r'^https?://static\\.xyzq\\.cn/image/splash/opera3',
+        'prefix': r'^https?://static\.xyzq\.cn/image/splash/opera3',
     },
     {
         'name': '广发银行 advertising/accurate 图片素材',
-        'prefix': r'^https?://static\\.95508\\.com/icppweb/images/modelMaterial/',
+        'prefix': r'^https?://static\.95508\.com/icppweb/images/modelMaterial/',
     },
     {
         'name': '返利网开屏图片',
-        'prefix': r'^https?://l[0-9]{1}\\.51fanli\\.net/app/images/splash/2022/',
+        'prefix': r'^https?://l[0-9]{1}\.51fanli\.net/app/images/splash/2022/',
     },
 )
 _AD_IMAGE_EXTENSION_VARIANTS = (
-    ('.*.(?:jpg|png)', r'.*\\.(?:jpg|png)'),
-    ('.*.(png|jpg)', r'.*\\.(png|jpg)'),
-    ('.*.(jpg|png)', r'.*\\.(jpg|png)'),
-    ('.*.(jpg|png|jpeg)', r'.*\\.(jpg|png|jpeg)'),
-    ('.*.jpg', r'.*\\.jpg'),
+    ('.*.(?:jpg|png)', r'.*\.(?:jpg|png)'),
+    ('.*.(png|jpg)', r'.*\.(png|jpg)'),
+    ('.*.(jpg|png)', r'.*\.(jpg|png)'),
+    ('.*.(jpg|png|jpeg)', r'.*\.(jpg|png|jpeg)'),
+    ('.*.jpg', r'.*\.jpg'),
 )
 
 
