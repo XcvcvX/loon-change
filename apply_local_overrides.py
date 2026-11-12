@@ -16,7 +16,7 @@ def apply(text: str) -> str:
         if line.strip().lower().startswith("hostname") and "=" in line:
             hosts.update(x.strip() for x in line.split("=", 1)[1].split(","))
             break
-    required = {"creditcard.bankcomm.cn", "creditcard.bankcomm.com"}
+    required = {"creditcard.bankcomm.cn", "creditcard.bankcomm.com", "creditcardapp.bankcomm.cn", "creditcardapp.bankcomm.com"}
     if not required.issubset(hosts):
         raise ValueError("required Bankcomm image hosts missing from MITM")
     if RULE in text:
