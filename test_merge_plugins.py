@@ -317,7 +317,7 @@ class MergeIntegrationTests(unittest.TestCase):
         base = '[Rewrite]\n' + '\n'.join(lines) + '\n[MITM]\nhostname = \n'
         extra = '[Rewrite]\n# > 大师兄\n# hostname = sdk.alibaba.com.ailbaba.me, adservice.sigmob.cn\n' + '\n'.join(lines) + '\n[MITM]\nhostname = \n'
         output, provenance = self.run_merge(base, extra, return_provenance=True)
-        matched = [line for line in output.splitlines() if 'sdk\\.alibaba' in line and '/version' in line]
+        matched = [line for line in output.splitlines() if 'sdk\\.alibaba' in line and 'version' in line]
         self.assertEqual(len(matched), 2)
         patterns = [re.compile(line.split(' ~= ', 1)[1].split(' then ', 1)[0].strip().strip('/')) for line in matched]
         for url in (
