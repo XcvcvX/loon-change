@@ -1668,6 +1668,7 @@ base_rw, peopleapp_base_adjustments = escape_adstatic_peopleapp_image_extension(
     base_rw, 'base')
 base_rw, ad_image_extension_base_adjustments = escape_known_ad_image_extension_delimiters(
     base_rw, 'base')
+base_rw, odin_base_adjustments = narrow_odin_numeric_host_rules(base_rw, 'base')
 
 # Mango TV upstream labels this broad IP/port matcher as "无用请求", not an ad endpoint.
 # It can reject the same path on unrelated apps' arbitrary IPv4:five-digit-port hosts.
@@ -1727,6 +1728,7 @@ block_rw, peopleapp_block_adjustments = escape_adstatic_peopleapp_image_extensio
     block_rw, 'block')
 block_rw, ad_image_extension_block_adjustments = escape_known_ad_image_extension_delimiters(
     block_rw, 'block')
+block_rw, odin_block_adjustments = narrow_odin_numeric_host_rules(block_rw, 'block')
 block_rw, gamersky_block_adjustments = narrow_gamersky_ad_system_host(
     block_rw, 'block')
 block_rw, gamersky_statistic_block_adjustments = narrow_gamersky_statistic_ad_host(
@@ -1806,6 +1808,8 @@ if _lite_advertising_guard_present:
     block_rw = _kept_block_rw
 block_rw, block_sc, block_scope_adjustments = narrow_555_scope(
     block_rw, block_sc)
+block_scope_adjustments.extend(odin_base_adjustments)
+block_scope_adjustments.extend(odin_block_adjustments)
 block_scope_adjustments.extend(block_qidian_adjustments)
 block_scope_adjustments.extend(g1_163_base_adjustments)
 block_scope_adjustments.extend(peopleapp_base_adjustments)
