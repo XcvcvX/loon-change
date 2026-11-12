@@ -859,6 +859,44 @@ def narrow_gamersky_list_response_host(rewrite_lines, source):
     return output, adjustments
 
 
+def narrow_baidunetdisk_ad_image_host(rewrite_lines, source):
+    """将百度网盘广告图兜底规则限制到插件实际声明 MITM 的 pan.baidu.com。"""
+    output = []
+    adjustments = []
+    original = r'^https://.*\.baidu\.com.*ad/.* reject-200'
+    narrowed = r'^https://pan\.baidu\.com.*ad/.* reject-200'
+    candidates = [
+        line for line in rewrite_lines
+        if r'.*\.baidu\.com.*ad/.*' in line
+    ]
+    if len(candidates) != 1 or candidates[0] != original:
+        raise RuntimeError(
+            source + ' 百度网盘广告图 CDN 规则数量、范围或动作已变化，拒绝自动改写：'
+            + repr(candidates)
+        )
+    for line in rewrite_lines:
+        if line != original:
+            output.append(line)
+            continue
+        matcher = entry_regex(narrowed)
+        if matcher != r'^https://pan\.baidu\.com.*ad/.*':
+            raise RuntimeError(source + ' 百度网盘广告图 CDN 主机收敛后校验失败：' + line)
+        adjustments.append({
+            'source': source,
+            'source_file': 'baidunetdisk_splash_ad_block.plugin',
+            'section': 'Rewrite',
+            'reason': (
+                'The upstream Baidu Netdisk plugin declares only pan.baidu.com in MITM; '
+                'limit this broad Baidu ad-image fallback matcher to that actual decrypted host '
+                'while preserving its HTTPS path pattern and reject-200 action.'
+            ),
+            'original_line': line,
+            'output_line': narrowed,
+        })
+        output.append(narrowed)
+    return output, adjustments
+
+
 def narrow_gamersky_statistic_ad_host(rewrite_lines, source):
     """将游民星空 statisticAd 规则锚定到合法子域名与明确接口路径。"""
     output = []
@@ -1641,6 +1679,10 @@ if args.apps:
                 app_rewrite_origins.append((fname, _line_number, _raw_line.strip()))
         if len(app_rewrite_origins) != len(app_rewrite_lines):
             raise RuntimeError('Thelong Rewrite source-origin alignment failed: ' + fname)
+        if fname == 'baidunetdisk_splash_ad_block.plugin':
+            app_rewrite_lines, baidu_netdisk_adjustments = narrow_baidunetdisk_ad_image_host(
+                app_rewrite_lines, 'thelong')
+            block_scope_adjustments.extend(baidu_netdisk_adjustments)
         if _lite_advertising_guard_present and fname == 'jd_splash_ad_block.plugin':
             _kept_app_rewrite_lines = []
             _source_section = None
