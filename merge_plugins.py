@@ -843,8 +843,8 @@ def narrow_gamersky_statistic_ad_host(rewrite_lines, source):
             'source': source,
             'section': 'Rewrite',
             'reason': (
-                'Repair the malformed slash-delimited Gamersky statisticAd regex and '
-                'anchor it to HTTPS, valid declared subdomains, and the explicit ad-statistics path.'
+                'Anchor the Gamersky statisticAd matcher and constrain its host/path boundary; '
+                'preserve HTTPS and reject only the explicit ad-statistics endpoint under valid declared subdomains.'
             ),
             'original_line': line,
             'output_line': narrowed,
