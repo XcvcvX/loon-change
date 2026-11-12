@@ -343,3 +343,12 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 为 `automated_diagnostics` 增加稳定的 `handling` 契约：`informational_only`、`user_action_required=false`、`automatic_rule_changes=false`、`uncertain_rules=preserve_original`。
 - 新增回归断言，确保该策略明确表达“只提供信息、不生成用户待办、不自动改动规则；无法可靠判断时保留原规则”。
 - 保留现有 JSON schema_version 和历史字段；本批只修改深度审计报告、测试与文档，不修改任何生产 Rewrite、Script、Rule、MITM hostname、动作、优先级或插件输出。
+
+
+## 第七阶段第三十八批：统一 JSON 与 Markdown 自动诊断处理契约
+
+- 将自动诊断处理策略提取为单一函数，避免 JSON 与 Markdown 各自维护一套可能漂移的安全口径。
+- 深度审计 Markdown 报告新增“自动诊断处理契约”章节，与 JSON 的 `automated_diagnostics.handling` 共用同一数据源。
+- 明确展示：只提供信息、不要求用户操作、不允许自动修改规则；无法可靠判断时保留原规则。
+- 新增回归测试，逐项锁定机器可读契约及 Markdown 展示内容。
+- 保留 JSON schema_version、所有历史 JSON 字段与值；不修改生产 Rewrite、Rule、Script、MITM hostname、动作、优先级或插件输出。
