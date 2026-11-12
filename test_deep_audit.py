@@ -570,6 +570,9 @@ request if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/ad$/ then future-action
         self.assertIn('不要求用户人工处理', rendered)
         self.assertIn('自动诊断警告', rendered)
         self.assertNotIn('人工复核', rendered)
+        self.assertNotIn('复核候选', rendered)
+        self.assertNotIn('review_priority', rendered)
+        self.assertNotIn('high_review', rendered)
 
 
 if __name__ == '__main__':
