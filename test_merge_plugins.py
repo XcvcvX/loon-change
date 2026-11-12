@@ -162,6 +162,61 @@ class MergeIntegrationTests(unittest.TestCase):
         self.assertIn("Omofun top_notice matcher 已变化", output)
 
 
+    def test_csdn_open_screen_ad_requires_endpoint_path_boundary(self):
+        source_line = (
+            r"request if ${url} ~= /^https?:\/\/app-gw\.csdn\.net\/silkroad-api\/api\/v\d\/assemble\/list\/pub\/channel\/app_open_screen_ad/ then reject(404)"
+        )
+        base = "[Rewrite]\n[MITM]\nhostname = \n"
+        extra = (
+            "[Rewrite]\n# > CSDN\n# hostname = app-gw.csdn.net, gw.csdn.net\n"
+            + source_line + "\n[MITM]\nhostname = \n"
+        )
+        output, provenance = self.run_merge(base, extra, return_provenance=True)
+        line = next(line for line in output.splitlines() if "app_open_screen_ad" in line)
+        matcher = re.compile(line.split(" ~= ", 1)[1].split(" then ", 1)[0].strip().strip("/"))
+        for url in (
+            "https://app-gw.csdn.net/silkroad-api/api/v1/assemble/list/pub/channel/app_open_screen_ad",
+            "http://app-gw.csdn.net/silkroad-api/api/v2/assemble/list/pub/channel/app_open_screen_ad?from=home",
+            "https://app-gw.csdn.net/silkroad-api/api/v3/assemble/list/pub/channel/app_open_screen_ad/extra",
+        ):
+            with self.subTest(url=url):
+                self.assertRegex(url, matcher)
+        for url in (
+            "https://app-gw.csdn.net/silkroad-api/api/v1/assemble/list/pub/channel/app_open_screen_ad_extra",
+            "https://app-gw.csdn.net/silkroad-api/api/v1/assemble/list/pub/channel/app_open_screen_ad2",
+            "https://app-gwXcsdn.net/silkroad-api/api/v1/assemble/list/pub/channel/app_open_screen_ad",
+            "https://gw.csdn.net/silkroad-api/api/v1/assemble/list/pub/channel/app_open_screen_ad",
+        ):
+            with self.subTest(url=url):
+                self.assertNotRegex(url, matcher)
+        changes = [
+            item for item in provenance["scope_adjustments"]
+            if item.get("target") == "CSDN app_open_screen_ad 接口路径边界"
+        ]
+        self.assertEqual(len(changes), 1)
+        self.assertEqual(changes[0]["source"], "blockAdsV2")
+        self.assertEqual(changes[0]["original_line"], source_line)
+        self.assertEqual(changes[0]["output_line"], line)
+
+    def test_csdn_open_screen_ad_guard_fails_closed_on_action_or_path_drift(self):
+        base = "[Rewrite]\n[MITM]\nhostname = \n"
+        extra_action = (
+            "[Rewrite]\n"
+            + r"request if ${url} ~= /^https?:\/\/app-gw\.csdn\.net\/silkroad-api\/api\/v\d\/assemble\/list\/pub\/channel\/app_open_screen_ad/ then reject(200)"
+            + "\n[MITM]\nhostname = \n"
+        )
+        output = self.run_merge(base, extra_action, expect_failure=True)
+        self.assertIn("CSDN app_open_screen_ad 动作已变化", output)
+
+        extra_path = (
+            "[Rewrite]\n"
+            + r"request if ${url} ~= /^https?:\/\/app-gw\.csdn\.net\/silkroad-api\/api\/v\d\/assemble\/list\/pub\/channel\/app_open_screen_ad.*/ then reject(404)"
+            + "\n[MITM]\nhostname = \n"
+        )
+        output = self.run_merge(base, extra_path, expect_failure=True)
+        self.assertIn("CSDN app_open_screen_ad matcher 已变化", output)
+
+
     def test_clicli_top_notice_requires_endpoint_path_boundary(self):
         source_line = (
             r"request if ${url} ~= /^https?:\/\/js-ad\.ayximgs\.com\.ad-universe-cdn\.hzhcbkj\.cn\/xgapp\.php\/v2\/top_notice/ then reject(404)"
