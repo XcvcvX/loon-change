@@ -815,7 +815,7 @@ def narrow_gamersky_statistic_ad_host(rewrite_lines, source):
     output = []
     adjustments = []
     original = (
-        r"request if ${url} ~= /https:\/\/.+\.gamersky\.com\/v1\/statisticAd/"
+        r"request if ${url} ~= /https:\/\/.+\.gamersky.com\/v1\/statisticAd/"
         r" then reject_dict(200)"
     )
     narrowed = (
