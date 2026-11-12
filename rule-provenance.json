@@ -340,6 +340,13 @@
     {
       "source": "block",
       "section": "Rewrite",
+      "reason": "Anchor the Gamersky statisticAd matcher and constrain its host/path boundary; preserve HTTPS and reject only the explicit ad-statistics endpoint under valid declared subdomains.",
+      "original_line": "request if ${url} ~= /https:\\/\\/.+\\.gamersky.com\\/v1\\/statisticAd/ then reject_dict(200)",
+      "output_line": "request if ${url} ~= /^https:\\/\\/(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\.)+gamersky\\.com\\/v1\\/statisticAd(?:\\/|\\?|#|$)/ then reject_dict(200)"
+    },
+    {
+      "source": "block",
+      "section": "Rewrite",
       "reason": "Escape literal dots in g1.163.com so the ad-feedback matcher cannot match lookalike hosts.",
       "original_line": "request if ${url} ~= /^https?:\\/\\/g1.163.com\\/madfeedback/ then reject(404)",
       "output_line": "request if ${url} ~= /^https?:\\/\\/g1\\.163\\.com\\/madfeedback/ then reject(404)"
@@ -49154,15 +49161,15 @@
     {
       "section": "Rewrite",
       "output_entry_index": 2584,
-      "output_line": "request if ${url} ~= /https:\\/\\/.+\\.gamersky.com\\/v1\\/statisticAd/ then reject_dict(200)",
-      "canonical_key": "('guarded', 'https://.+\\\\.gamersky.com/v1/statisticAd', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
+      "output_line": "request if ${url} ~= /^https:\\/\\/(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\.)+gamersky\\.com\\/v1\\/statisticAd(?:\\/|\\?|#|$)/ then reject_dict(200)",
+      "canonical_key": "('guarded', '^https://(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\\\.)+gamersky\\\\.com/v1/statisticAd(?:/|\\\\?|#|$)', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
       "sources": [
         {
           "source": "block",
           "priority": 5,
           "source_entry_index": 1255,
           "input_section": "Rewrite",
-          "input_line": "request if ${url} ~= /https:\\/\\/.+\\.gamersky.com\\/v1\\/statisticAd/ then reject_dict(200)",
+          "input_line": "request if ${url} ~= /^https:\\/\\/(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\.)+gamersky\\.com\\/v1\\/statisticAd(?:\\/|\\?|#|$)/ then reject_dict(200)",
           "disposition": "selected"
         }
       ],
