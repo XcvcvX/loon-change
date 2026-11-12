@@ -19,6 +19,7 @@ class LocalOverrideTests(unittest.TestCase):
         result = apply(BASE)
         self.assertIn(RULE, result)
         self.assertIn("creditcardapp.bankcomm.cn", result)
+        self.assertIn("ZenmoFeiShi-Qx-HelloBike(ScriptHub-Loon)", result)
         self.assertEqual(apply(result), result)
 
     def test_replaces_legacy_hellobike_with_script_hub_conversion(self):
@@ -29,7 +30,7 @@ class LocalOverrideTests(unittest.TestCase):
             self.assertIn(rule, result.split("[Rewrite]", 1)[1].split("[Script]", 1)[0])
         for rule in HELLOBIKE_SCRIPT_RULES:
             self.assertIn(rule, result.split("[Script]", 1)[1].split("[MITM]", 1)[0])
-        self.assertIn("wrap_response=true", HELLOBIKE_JS)
+        self.assertIn("wrap_response=true&headers=", HELLOBIKE_JS)
         self.assertIn("type=qx-script&target=loon-script", HELLOBIKE_JS)
         for host in HELLOBIKE_MITM_HOSTS:
             self.assertIn(host, result)
