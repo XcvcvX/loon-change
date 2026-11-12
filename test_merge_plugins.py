@@ -162,6 +162,40 @@ class MergeIntegrationTests(unittest.TestCase):
         self.assertIn("Omofun top_notice matcher 已变化", output)
 
 
+    def test_csdn_base_legacy_open_screen_ad_requires_endpoint_path_boundary(self):
+        source_line = (
+            r"^https?:\/\/app-gw\.csdn\.net\/silkroad-api\/api\/v\d\/assemble\/list\/pub\/channel\/app_open_screen_ad reject"
+        )
+        base = "[Rewrite]\n" + source_line + "\n[MITM]\nhostname = \n"
+        extra = "[Rewrite]\n[MITM]\nhostname = \n"
+        output, provenance = self.run_merge(base, extra, return_provenance=True)
+        line = next(
+            line for line in output.splitlines()
+            if "app_open_screen_ad" in line and line.endswith(" reject")
+        )
+        matcher = re.compile(line.split()[0])
+        for url in (
+            "https://app-gw.csdn.net/silkroad-api/api/v1/assemble/list/pub/channel/app_open_screen_ad",
+            "https://app-gw.csdn.net/silkroad-api/api/v2/assemble/list/pub/channel/app_open_screen_ad?from=home",
+            "https://app-gw.csdn.net/silkroad-api/api/v3/assemble/list/pub/channel/app_open_screen_ad/extra",
+        ):
+            with self.subTest(url=url):
+                self.assertRegex(url, matcher)
+        for url in (
+            "https://app-gw.csdn.net/silkroad-api/api/v1/assemble/list/pub/channel/app_open_screen_ad_extra",
+            "https://app-gw.csdn.net/silkroad-api/api/v1/assemble/list/pub/channel/app_open_screen_ad2",
+        ):
+            with self.subTest(url=url):
+                self.assertNotRegex(url, matcher)
+        changes = [
+            item for item in provenance["scope_adjustments"]
+            if item.get("target") == "CSDN app_open_screen_ad 接口路径边界"
+            and item.get("source") == "base"
+        ]
+        self.assertEqual(len(changes), 1)
+        self.assertEqual(changes[0]["original_line"], source_line)
+        self.assertEqual(changes[0]["output_line"], line)
+
     def test_csdn_open_screen_ad_requires_endpoint_path_boundary(self):
         source_line = (
             r"request if ${url} ~= /^https?:\/\/app-gw\.csdn\.net\/silkroad-api\/api\/v\d\/assemble\/list\/pub\/channel\/app_open_screen_ad/ then reject(404)"
