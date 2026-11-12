@@ -80,7 +80,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
 
     def test_pdd_httpdns_rule_drift_fails_closed(self):
         marker_line = 'AND, ((URL-REGEX, "changed"), (USER-AGENT, "*com.xunmeng.pinduoduo*")), REJECT'
-        base = BASE.replace("[Rewrite]", "[Rule]\n" + marker_line + "\n[Rewrite]")
+        base = BASE.replace("[Rewrite]", "[Rewrite]\n" + duplicate + "\n" + duplicate + "\n" + similar)
         with self.assertRaises(ValueError):
             apply(base)
 
@@ -107,7 +107,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         from apply_local_overrides import SOUL_TEENAGER_CONFIG_DUPLICATE
         duplicate = SOUL_TEENAGER_CONFIG_DUPLICATE
         similar = duplicate.replace("reject-dict", "reject")
-        base = BASE.replace("[Rewrite]", "[Rewrite]\\n" + duplicate + "\\n" + duplicate + "\\n" + similar)
+        base = BASE.replace("[Rewrite]", "[Rewrite]\n" + duplicate + "\n" + duplicate + "\n" + similar)
         result = apply(base)
         rewrite = result.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
         self.assertEqual(rewrite.count(duplicate), 1)
