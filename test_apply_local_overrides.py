@@ -84,6 +84,25 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         with self.assertRaises(ValueError):
             apply(base)
 
+
+    def test_merges_adjacent_same_condition_response_json_actions_in_order(self):
+        first = 'response if ${url} ~= /^https:\\/\\/api\\.example\\.com/ then response.json.delete("data.a")'
+        second = 'response if ${url} ~= /^https:\\/\\/api\\.example\\.com/ then response.json.jq(".data.b = []")'
+        from apply_local_overrides import merge_adjacent_response_json_rewrites
+        result, count = merge_adjacent_response_json_rewrites([first, "", second])
+        self.assertEqual(count, 1)
+        self.assertEqual(len(result), 1)
+        self.assertIn(" | ", result[0])
+        self.assertLess(result[0].index("data.a"), result[0].index("data.b"))
+
+    def test_does_not_merge_different_conditions_or_request_actions(self):
+        from apply_local_overrides import merge_adjacent_response_json_rewrites
+        a = 'response if ${url} ~= /api/ then response.json.delete("data.a")'
+        b = 'response if ${url} ~= /other/ then response.json.delete("data.b")'
+        result, count = merge_adjacent_response_json_rewrites([a, b])
+        self.assertEqual(count, 0)
+        self.assertEqual(result, [a, b])
+
     def test_requires_bankcomm_mitm_hosts(self):
         with self.assertRaises(ValueError):
             apply(BASE.replace("creditcard.bankcomm.com, ", ""))

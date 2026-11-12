@@ -2,6 +2,7 @@
 """Apply durable local Loon plugin overrides after upstream merge."""
 from pathlib import Path
 import argparse
+import re
 
 RULE = (r'response if ${url} ~= /^https?:\/\/creditcard\.bankcomm\.(?:cn|com)\/tofimg\/bucket-pj-btss-tfcn-dmz\/OSS-F\/.+/i '
         'then script("https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/maidanba.js") '
@@ -45,6 +46,36 @@ HELLOBIKE_SCRIPT_MARKERS = (
     "tag=easybike-ad",
 )
 
+
+
+def split_response_json_rewrite(line: str):
+    match = re.match(r'^(response if .+?) then (.+)', line)
+    if not match: return None
+    prefix, action_text = match.groups()
+    actions = re.split(r'\s+\|\s+', action_text)
+    if not actions or any(not action.startswith("response.json.") for action in actions): return None
+    return prefix, actions
+
+def merge_adjacent_response_json_rewrites(lines):
+    output, index, merged = [], 0, 0
+    while index < len(lines):
+        parsed = split_response_json_rewrite(lines[index].strip())
+        if not parsed:
+            output.append(lines[index]); index += 1; continue
+        prefix, actions = parsed
+        look = index + 1
+        while look < len(lines) and not lines[look].strip(): look += 1
+        count = 1
+        while look < len(lines):
+            candidate = split_response_json_rewrite(lines[look].strip())
+            if not candidate or candidate[0] != prefix: break
+            actions.extend(candidate[1]); count += 1; look += 1
+            while look < len(lines) and not lines[look].strip(): look += 1
+        if count > 1:
+            output.append(prefix + " then " + " | ".join(actions)); merged += 1; index = look
+        else:
+            output.append(lines[index]); index += 1
+    return output, merged
 
 def apply(text: str) -> str:
     if "[Script]" not in text or "[MITM]" not in text or "[Rewrite]" not in text:
@@ -94,7 +125,20 @@ def apply(text: str) -> str:
             line = key + "= " + ", ".join(hosts)
         lines.append(line)
 
-    result = "\n".join(lines)
+    result_lines, rewrite_lines = [], []
+    section = ""
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            if section == "Rewrite":
+                rewrite_lines, _ = merge_adjacent_response_json_rewrites(rewrite_lines)
+                result_lines.extend(rewrite_lines); rewrite_lines = []
+            section = line[1:-1]; result_lines.append(line)
+        elif section == "Rewrite": rewrite_lines.append(line)
+        else: result_lines.append(line)
+    if section == "Rewrite":
+        rewrite_lines, _ = merge_adjacent_response_json_rewrites(rewrite_lines)
+        result_lines.extend(rewrite_lines)
+    result = "\n".join(result_lines)
     # Keep the unrelated Bankcomm override in [Script], idempotently.
     if RULE not in result:
         pos = result.index("[MITM]")

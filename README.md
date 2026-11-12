@@ -415,3 +415,9 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 新增回归测试，覆盖空白格式差异、引号内单空格/双空格必须区分、来源追溯和风险分类正反向验证。
 - 不修改任何规则的匹配范围、动作、MITM hostname、Rewrite、Script 或优先级。
 
+## 第八阶段第八批：合并相邻同条件响应 JSON 操作
+
+- 按 Loon 3.5.1+ 官方执行规则，同一阶段的匹配项按配置顺序执行，单条 Rewrite 中的多个 Action 按 `|` 从左到右执行。
+- 本批仅合并 Rewrite 区块中相邻（允许中间为空行）、阶段均为 response、条件文本完全相同、且所有 Action 都是 `response.json.*` 的规则；保持原 Action 顺序。
+- 不跨越其他有效 Rewrite、注释或不同条件，不合并 request、reject、mock、Header 或混合类型 Action；不能确认安全的组继续保留。
+- 增加回归测试覆盖操作顺序、不同条件不合并和覆盖幂等性。该优化只改变配置表达形式，不改变 URL 匹配范围、JSON 操作内容、MITM、Script 或 Rule。
