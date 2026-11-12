@@ -811,16 +811,16 @@ def escape_targeted_ad_hosts(rewrite_lines, source):
 
 
 def narrow_gamersky_statistic_ad_host(rewrite_lines, source):
-    """修复游民星空 statisticAd 正则的分隔符，并限制到合法子域名与明确接口路径。"""
+    """将游民星空 statisticAd 规则锚定到合法子域名与明确接口路径。"""
     output = []
     adjustments = []
     original = (
-        r"request if ${url} ~= /https://.+\.gamersky\.com/v1/statisticAd/"
+        r"request if ${url} ~= /https:\/\/.+\.gamersky\.com\/v1\/statisticAd/"
         r" then reject_dict(200)"
     )
     narrowed = (
         r"request if ${url} ~= /^https:\/\/(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}"
-        r"[A-Za-z0-9])?\.)+gamersky\.com\/v1\/statisticAd\//"
+        r"[A-Za-z0-9])?\.)+gamersky\.com\/v1\/statisticAd(?:[/?#]|$)/"
         r" then reject_dict(200)"
     )
     for line in rewrite_lines:
@@ -835,16 +835,16 @@ def narrow_gamersky_statistic_ad_host(rewrite_lines, source):
         updated_normalized = updated_matcher.replace(r'\/', '/') if updated_matcher else updated_matcher
         expected = (
             r'^https://(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+'
-            r'gamersky\.com/v1/statisticAd/'
+            r'gamersky\.com/v1/statisticAd(?:[/?#]|$)'
         )
         if updated_normalized != expected:
-            raise RuntimeError(source + ' 游民星空 statisticAd 正则修正后校验失败：' + line)
+            raise RuntimeError(source + ' 游民星空 statisticAd 正则收敛后校验失败：' + line)
         adjustments.append({
             'source': source,
             'section': 'Rewrite',
             'reason': (
-                'Repair the malformed slash-delimited Gamersky statisticAd regex and '
-                'anchor it to HTTPS, valid declared subdomains, and the explicit ad-statistics path.'
+                'Anchor the Gamersky statisticAd matcher and constrain its host/path boundary; '
+                'preserve HTTPS and reject only the explicit ad-statistics endpoint under valid declared subdomains.'
             ),
             'original_line': line,
             'output_line': narrowed,
