@@ -189,6 +189,8 @@ class MergeIntegrationTests(unittest.TestCase):
             + r"^https://.*\.baidu\.com.*ad/.* reject-200" + "\n"
             
             + r"^https://pan\.baidu\.com/buy/ad/conf reject-dict" + "\n"
+            + r"^https://.*\.vlion\.cn/.+ reject-200" + "\n"
+            + r"^https://.*\.advlion\.com/.+ reject-200" + "\n"
             + "[MITM]\nhostname = pan.baidu.com, *.advlion.com\n"
         )
         output, provenance = self.run_merge(
@@ -209,6 +211,8 @@ class MergeIntegrationTests(unittest.TestCase):
             + r"^https://.*\.baidu\.com.*ad/.* reject-200" + "\n"
             
             + r"^https://pan\.baidu\.com/buy/ad/conf reject-dict" + "\n"
+            + r"^https://.*\.vlion\.cn/.+ reject-200" + "\n"
+            + r"^https://.*\.advlion\.com/.+ reject-200" + "\n"
             "[MITM]\nhostname = pan.baidu.com, *.vlion.cn\n"
         )
         output = self.run_merge(
@@ -229,6 +233,8 @@ class MergeIntegrationTests(unittest.TestCase):
             + r"^https://.*\.baidu\.com.*ad/.* reject-200" + "\n"
             
             + r"^https://pan\.baidu\.com/buy/ad/conf reject-dict" + "\n"
+            + r"^https://.*\.vlion\.cn/.+ reject-200" + "\n"
+            + r"^https://.*\.advlion\.com/.+ reject-200" + "\n"
             "[MITM]\nhostname = pan.baidu.com, *.advlion.com\n"
         )
         output = self.run_merge(
