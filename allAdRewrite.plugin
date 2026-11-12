@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、RuCu6 MyBlockAds、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / RuCu6 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-12 23:26 UTC
+#!merged-at=2026-11-12 23:31 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+RuCu6-MyBlockAds+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -4474,7 +4474,6 @@ response if ${url} ~= /^https?:\/\/dorangesource\.alicdn\.com\/\w+\.json$/ then 
 ^https?:\/\/slugger\.qunar\.com\/slugger-proxy\?qrt=home_notice_banner reject
 ^https?:\/\/slugger\.qunar\.com\/slugger-proxy\?qrt=p_feedlist_recommend reject-dict
 ^https?:\/\/slugger\.qunar\.com\/slugger-proxy\?qrt=content_api_common_feed_open_postList reject
-^https?:\/\/us\.l\.qq\.com\/exapp reject
 ^https?:\/\/open\.qyer\.com\/qyer\/startpage\/ reject-200
 ^https?:\/\/open\.qyer\.com\/qyer\/config\/get reject
 ^https?:\/\/media\.qyer\.com\/ad\/ reject
@@ -5076,7 +5075,6 @@ response if ${url} ~= /^https?:\/\/api\.u51\.com\/generic-config-gateway\/api\/v
 ^https?:\/\/interface\d?\.music\.163\.com\/w?e?api\/(comment\/(feed\/inserted)|hotcomment\/collect|tips\/v\d\/get|mlivestream\/entrance\/playpage|link\/(position\/show\/strategy|scene\/show)|ios\/version|v\d\/content\/exposure\/comment\/banner) reject-dict
 ^https?:\/\/interface\d?\.music\.163\.com\/w?e?api\/(resource\/comments?\/musiciansaid|community\/friends\/fans-group\/artist\/group\/get|user\/sub\/artist|music\/songshare\/text\/recommend\/get|mine\/applet\/redpoint|resniche\/position\/play\/new\/get) reject-dict
 ^https?:\/\/interface\d?\.music\.163\.com\/w?e?api\/(vipcenter\/tspopup\/get|vipauth\/app\/auth|music-vip-membership\/client\/vip\/info|zone\/songplay\/entry\/get) reject-dict
-^https?:\/\/c\.m\.163\.com\/nc\/gl\/ reject-200
 ^https?:\/\/kano\.guahao\.cn\/[a-zA-Z0-9]{12} reject-200
 ^https?:\/\/kano\.guahao\.cn\/.+?\?resize=\d{3}-\d{4} reject-img
 ^https?:\/\/app\.wy\.guahao\.com\/json\/white\/dayquestion\/getpopad reject
@@ -5119,7 +5117,6 @@ response if ${url} ~= /^https?:\/\/api\.u51\.com\/generic-config-gateway\/api\/v
 ^https?:\/\/jz\.wacaijizhang\.com\/api\/banners reject
 ^https?:\/\/lofter\.lf127\.net\/ad reject-200
 ^https?:\/\/cds\.wifi188\.com\/feeds\.sec reject-dict
-^https?:\/\/support\.you\.163\.com\/xhr\/boot\/getBootMedia reject-200
 ^https?:\/\/support\.you\.163\.com\/appversync\/check reject
 ^https?:\/\/m\.you\.163\.com\/activity\/popWindow reject
 ^https?:\/\/yanxuan\.nosdn\.127\.net\/.*\.mp4 reject
@@ -5397,7 +5394,6 @@ request if ${url} ~= /^https?:\/\/dss0\.bdstatic\.com\/.+\/tam-ogel\/.+\.(jpg|mp
 request if ${url} ~= /^https?:\/\/mime\.baidu\.com\/v5\/activity\/advertisementnonrealtime/ then reject(404)
 request if ${url} ~= /^https?:\/\/mime\.baidu\.com\/v5\/start_screen_ads\/list/ then reject(404)
 request if ${url} ~= /^https?:\/\/mime\.baidu\.com\/v5\/hotpatch\/check\?hotpatch/ then reject(404)
-request if ${url} ~= /^https?:\/\/mime\.baidu\.com\/v5\/start_screen_ads\/list/ then reject_dict(200)
 request if ${url} ~= /^https?:\/\/mime\.baidu\.com\/sapi\/v1\/lccorpus\/(applist|pannellist)/ then reject_dict(200)
 request if ${url} ~= /^https?:\/\/mime\.baidu\.com\/sapi\/v1\/circle\/joinedlist/ then reject_dict(200)
 request if ${url} ~= /^https?:\/\/mbd\.baidu\.com\/ccs\/v1\/start\/confsync\?appname=baidu_input/ then reject_dict(200)
@@ -6250,7 +6246,6 @@ request if ${url} ~= /^https?:\/\/app\.zhuanzhuan\.com\/zz\/v2\/zzlogic\/getOpen
 response if ${url} ~= /^https?:\/\/app\.zhuanzhuan\.com\/zz\/v2\/zzinfoshow\/getfeedflowinfo\?/ then response.body.replace(/userRed/, "fmz200")
 response if ${url} ~= /^https?:\/\/app\.zhuanzhuan\.com\/zz\/v2\/zzinfoshow\/getchoicegoodsinfos/ then response.body.replace(/infoData/, "fmz200")
 request if ${url} ~= /^https?:\/\/zjdr666\.com\/zjdr\.php\/v\d\/(version|top_notice\?|advert\?position=[^2]+)/ then reject(404)
-request if ${url} ~= /^https?:\/\/adx-cn\.anythinktech\.com\/bid/ then reject(200)
 request if ${url} ~= /^https?:\/\/.+\.(amemv|musical|snssdk|tiktokv)\.com\/(api|motor)\/ad\// then reject(200)
 request if ${url} ~= /^https?:\/\/.+\.snssdk\.com\/motor\/operation\/activity\/display\/config\/V2\// then reject(200)
 request if ${url} ~= /^https?:\/\/[\w-]+\.amemv\.com\/aweme\/v\d\/ad\// then reject(404)
@@ -6298,7 +6293,6 @@ request if ${url} ~= /^https:\/\/api\.(pinduoduo|yangkeduo)\.com\/api\/cappuccin
 request if ${url} ~= /^https:\/\/gw\.alicdn\.com\/mt\//i then reject(404)
 request if ${url} ~= /^https:\/\/gw\.alicdn\.com\/tfs\/.+\d{3,4}-\d{4}/i then reject(404)
 request if ${url} ~= /^https:\/\/gw\.alicdn\.com\/tps\/.+\d{3,4}-\d{4}/i then reject(404)
-request if ${url} ~= /^https:\/\/acs\.m\.taobao\.com\/gw\/mtop\.taobao\.idle\.home\.welcome/i then reject(404)
 request if ${url} ~= /^https:\/\/m\.qianbao\.qq\.com\/services\/walletHome\/getQQshopData\?/i then reject_dict(200)
 request if ${url} ~= /^https:\/\/m\.qianbao\.qq\.com\/services\/walletHome\/getGameData\?/i then reject_dict(200)
 request if ${url} ~= /^https:\/\/m\.qianbao\.qq\.com\/services\/walletHome\/getFootData\?/i then reject_dict(200)
@@ -6391,7 +6385,6 @@ response if ${url} ~= /^https?:\/\/api\.fenxianglife\.com\/njia\/index\/popup\/v
 ^https?:\/\/img\d+\.360buyimg\.com\/pop\/jfs\/t\d+\/\d+\/\d+\/\d+\/\d+\/[A-Za-z0-9]{10,40}\/[A-Za-z0-9]{10,40}\.jpg$ reject-dict
 ^https?://emdcadvertise(?:pj)?\.eastmoney\.com/infoService/v\d reject-200
 ^https?:\/\/api\.m\.jd\.com\/client\.action\?functionId=queryMaterialAdverts reject-dict
-^https?:\/\/(bdsp-x|dsp-x)\.jd\.com\/adx\/ reject
 ^https?:\/\/m\.360buyimg\.com\/mobilecms\/s1125x2436_jfs reject-200
 ^https:\/\/api\.m\.jd\.com\/client\.action\?functionId=basicConfig response-body-json-replace data.JDMessage.socketmonitor.isSocketEstablishedAhead 0 data.JDMessage.socketmonitor.isSocketReport 0 data.JDHttpToolKit.httpdns.httpdns 0
 ^https:\/\/api\.m\.jd\.com\/client\.action\?functionId=cart response-body-json-del cartLocationMap.loc_emptyCartFloor2 emptyCartRecommendFloor
@@ -6421,9 +6414,6 @@ response if ${url} ~= /^https?:\/\/api\.fenxianglife\.com\/njia\/index\/popup\/v
 ^https:\/\/hwstore\.kugou\.com\/v\d\/get_store_data reject-dict
 ^https:\/\/ep\.kugou\.com\/v\d\/album_shop\/get_entrance_info reject-dict
 ^https:\/\/gateway(retry)?\.kugou\.com\/ocean\/v\d\/tab\/list_v\d response-body-json-jq 'def namesToRemove:["AI帮唱","长相思2","K歌","小说","游戏"];def hit:if type=="object"then (.name as $n|(namesToRemove|index($n))!=null)else false end;def r:if type=="array"then map(if hit then empty else r end)elif type=="object"then with_entries(select(.value|hit|not))|map_values(r)else . end;. as $o|try (r) catch $o'
-^https?:\/\/axxd\.xmseeyouyima\.com\/ad reject-dict
-^https?:\/\/axxd\.xmseeyouyima\.com\/.*getad\? reject-dict
-^https?:\/\/x\.seeyouyima\.com\/adx\/staticstics\? reject-200
 ^https?:\/\/circle\.(?:xm)?seeyouyima\.com\/v\d\/article_recommend\? reject-dict
 ^https?:\/\/common\.seeyouyima\.com\/v2\/conf_list$ response-body-json-del data.confList.Minor_mode_card
 ^https?:\/\/interface\d*\.music\.163\.com\/e?api\/(?:ocpc\/)?ad\/ mock-response-body data-type=text
@@ -6487,8 +6477,6 @@ response if ${url} ~= /^https?:\/\/gateway\.tuhu\.cn\/mkt\/mkt-scene-marketing-s
 ^https:\/\/weibo\.com\/ttarticle\/x\/m\/aj\/(?:reward|uvead) reject-dict
 ^https?:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlecommerce\.splash\.ads\/.* reject-200
 ^https?:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlecommerce\.splash\.async\.ads\/.* reject-200
-^https:\/\/guide-acs\.m\.taobao\.com\/gw\/mtop\.taobao\.wireless\.home\.splash\.awesome\.get reject-200
-^https:\/\/acs\.m\.taobao\.com\/gw\/mtop\.taobao\.idlecommerce\.splash\.ads reject-200
 ^https:\/\/edith\.xiaohongshu\.com\/api\/sns\/v\d\/system_service\/splash_config response-body-json-jq '. as $o | try (if (.data|type)=="object" then ((.data.ads_groups//[])|=map(if type=="object" then (.start_time=3818332800|.end_time=3818419199|(if (.ads|type)=="array" then .ads|=map(if type=="object" then (.start_time=3818332800|.end_time=3818419199) else . end) else . end)) else . end)) else . end) catch $o'
 ^https:\/\/edith\.xiaohongshu\.com\/api\/sns\/v\d\/system_service\/config\? response-body-json-jq '. as $o | try (if (.data|type)=="object" then del(.data.app_theme, .data.loading_img, .data.splash, .data.store) else . end) catch $o'
 ^https:\/\/edith\.xiaohongshu\.com\/api\/sns\/v\d\/system\/service\/ui\/config response-body-json-jq '. as $o | try (if (.data|type)=="object" then del(.data.sideConfigHomepage.componentConfig.sidebar_config_cny_2025, .data.sideConfigPersonalPage.componentConfig.sidebar_config_cny_2025) else . end) catch $o'
@@ -6579,9 +6567,7 @@ request if ${url} ~= /^https:\/\/amap-aos-info-nogw\.amap\.com\/ws\/aos\/alimama
 ^https:\/\/m5-zb\.amap\.com\/ws\/fluorite\/resource reject-dict
 ^https:\/\/m5\.amap\.com\/ws\/aos\/activity\/bus\/sign\/task reject-dict
 ^https?:\/\/mbs\.boc\.cn\/ubas-mgateway-static\/images\/advertType\/.+\.jpg reject-dict
-^https?:\/\/mbs\.boc\.cn\/ubas-mgateway-static\/images\/theme\/ reject-dict
 ^https?:\/\/cdn1\.mbs\.boc\.cn\/ubas-mgateway-static\/images\/advertType\/.+\.jpg reject-dict
-^https?:\/\/cdn1\.mbs\.boc\.cn\/ubas-mgateway-static\/images\/theme\/ reject-dict
 ^https?:\/\/cdn1\.mbs\.boc\.cn\/ubas-mgateway-static\/images\/\/theme\/ reject-dict
 ^https?:\/\/(?:[A-Za-z0-9-]+\.)*chelaile(?:app)?\.cn\/(?:adpub|goocity\/advert|goocity\/flowPos\/home|feserver\/vip-page\/images\/).* reject
 ^https?:\/\/(?:[A-Za-z0-9-]+\.)*chelaile\.net\.cn\/adpub\/.* reject
