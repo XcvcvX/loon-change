@@ -8,7 +8,7 @@
     "rule": {
       "action_changed": 0,
       "added": 0,
-      "removed": 2
+      "removed": 0
     },
     "script": {
       "action_changed": 0,
@@ -16,57 +16,14 @@
       "removed": 0
     }
   },
-  "events": [
-    {
-      "after": null,
-      "before": {
-        "line": "IP-CIDR,119.29.29.98/32,REJECT,no-resolve",
-        "section": "rule",
-        "sources": [
-          "zmjgen"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "rule",
-      "semantic_duplicate_coverage": null,
-      "source_scores": {
-        "zmjgen": 0
-      },
-      "sources": [
-        "zmjgen"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "IP-CIDR,119.29.29.99/32,REJECT,no-resolve",
-        "section": "rule",
-        "sources": [
-          "zmjgen"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "rule",
-      "semantic_duplicate_coverage": null,
-      "source_scores": {
-        "zmjgen": 0
-      },
-      "sources": [
-        "zmjgen"
-      ]
-    }
-  ],
-  "overall_risk": "high",
+  "events": [],
+  "overall_risk": "low",
   "risk_counts": {
-    "high": 2,
+    "high": 0,
     "low": 0,
     "medium": 0
   },
-  "run_id": "43140910687",
+  "run_id": "43142396734",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -96,8 +53,8 @@
     "block": {
       "action_changed": 0,
       "added": 45,
-      "removed": 46,
-      "snapshots_seen": 5
+      "removed": 45,
+      "snapshots_seen": 4
     },
     "filter": {
       "action_changed": 0,
@@ -108,8 +65,8 @@
     "thelong": {
       "action_changed": 0,
       "added": 1,
-      "removed": 3,
-      "snapshots_seen": 3
+      "removed": 2,
+      "snapshots_seen": 2
     },
     "zmjgen": {
       "action_changed": 0,

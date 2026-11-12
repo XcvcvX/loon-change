@@ -134,22 +134,7 @@
     "rule": {
       "action_changed": [],
       "added": [],
-      "removed": [
-        {
-          "line": "IP-CIDR,119.29.29.98/32,REJECT,no-resolve",
-          "section": "rule",
-          "sources": [
-            "zmjgen"
-          ]
-        },
-        {
-          "line": "IP-CIDR,119.29.29.99/32,REJECT,no-resolve",
-          "section": "rule",
-          "sources": [
-            "zmjgen"
-          ]
-        }
-      ]
+      "removed": []
     },
     "script": {
       "action_changed": [],
@@ -166,14 +151,14 @@
     "rule": {
       "action_changed": 0,
       "added": 0,
-      "removed": 2
+      "removed": 0
     },
     "script": {
       "action_changed": 0,
       "added": 0,
       "removed": 0
     },
-    "total_changes": 2
+    "total_changes": 0
   },
   "upstream_revision_changes": []
 }
