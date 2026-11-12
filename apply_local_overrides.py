@@ -3,7 +3,7 @@
 from pathlib import Path
 import argparse
 
-RULE = ('response if ${url} ~= /^https?:\\\\/\\\\/creditcard\\\\.bankcomm\\\\.(?:cn|com)\\\\/tofimg\\\\/bucket-pj-btss-tfcn-dmz\\\\/OSS-F\\\\/.+/i '
+RULE = (r'response if ${url} ~= /^https?:\/\/creditcard\.bankcomm\.(?:cn|com)\/tofimg\/bucket-pj-btss-tfcn-dmz\/OSS-F\/.+/i '
         'then script("https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/maidanba.js") '
         'with tag="买单吧开屏广告", requires_body=true, binary_body_mode=true')
 
