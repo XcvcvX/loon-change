@@ -206,7 +206,7 @@ def _split_action_pipeline(value):
             current.append(char)
             escaped = False
             continue
-        if char == '\\\\':
+        if char == '\\':
             current.append(char)
             escaped = True
             continue
