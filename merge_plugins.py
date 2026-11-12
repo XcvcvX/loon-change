@@ -2663,7 +2663,7 @@ def is_tencent_httpdns_service_ip_block(line):
 
 def is_global_udp_443_reject(line):
     """Exclude the unscoped UDP/443 blanket reject; it breaks some DIRECT paths."""
-    normalized = re.sub(r'\\s+', '', line).upper()
+    normalized = re.sub(r'\s+', '', line).upper()
     return normalized == 'AND,((PROTOCOL,UDP),(DEST-PORT,443)),REJECT'
 
 
