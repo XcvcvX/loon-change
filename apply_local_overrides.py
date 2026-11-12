@@ -15,6 +15,7 @@ HELLOBIKE_RULES = (
 )
 
 HELLOBIKE_MITM_HOSTS = {
+    "api.hellobike.com",
     "taxiapi.hellobike.com",
     "marketingapi.hellobike.com",
     "entertainment.hellobike.com",
@@ -52,7 +53,7 @@ def main():
     args = ap.parse_args()
     path = Path(args.plugin)
     path.write_text(apply(path.read_text(encoding="utf-8")), encoding="utf-8")
-    print("已应用买单吧开屏本地覆盖规则")
+    print("已应用买单吧与哈啰本地插件覆盖规则")
 
 if __name__ == "__main__":
     main()
