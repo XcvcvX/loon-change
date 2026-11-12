@@ -130,7 +130,7 @@
       "action_changed": [],
       "added": [
         {
-          "line": "request if ${url} ~= /^https:\\/\\/appapi\\.caiyicloud\\.com\\/cyy_gatewayapi\\/home\\/pub\\/v3\\/banners\\/app_start_page(?:\\?|$|\\/)/ then reject_dict(200)",
+          "line": "request if ${url} ~= /^https:\\/\\/bp-api\\.bestv\\.com\\.cn\\/cms\\/api\\/free\\/open\\/advertisingV2(?:\\?|$|\\/)/ then reject_dict(200)",
           "section": "rewrite",
           "sources": [
             "block"
@@ -139,7 +139,7 @@
       ],
       "removed": [
         {
-          "line": "request if ${url} ~= /^https:\\/\\/appapi\\.caiyicloud\\.com\\/cyy_gatewayapi\\/home\\/pub\\/v3\\/banners\\/app_start_page/ then reject_dict(200)",
+          "line": "request if ${url} ~= /^https:\\/\\/bp-api\\.bestv\\.com\\.cn\\/cms\\/api\\/free\\/open\\/advertisingV2/ then reject_dict(200)",
           "section": "rewrite",
           "sources": [
             "block"
