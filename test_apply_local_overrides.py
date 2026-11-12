@@ -41,6 +41,28 @@ class LocalOverrideTests(unittest.TestCase):
         self.assertIn(RULE, script_section)
         self.assertIn("binary_body_mode=true", RULE)
 
+
+    def test_pdd_httpdns_ipv4_rule_requires_path_boundary(self):
+        base = r"""#!name=test
+[Rule]
+AND, ((URL-REGEX, "^http:\/\/((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\/d(\d)?"), (USER-AGENT, "*com.xunmeng.pinduoduo*")), REJECT
+AND,((URL-REGEX,"^http:\/\/((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\/d(\d)?"),(USER-AGENT,"*com.xunmeng.pinduoduo*")),REJECT
+[Rewrite]
+^https?:\/\/example\.com reject
+[Script]
+[MITM]
+hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankcomm.cn, creditcardapp.bankcomm.com
+"""
+        result = apply(base)
+        self.assertEqual(result.count(r"\/d(\d)?(?:\?|$)"), 2)
+        self.assertEqual(apply(result), result)
+
+    def test_pdd_httpdns_rule_drift_fails_closed(self):
+        marker_line = 'AND, ((URL-REGEX, "changed"), (USER-AGENT, "*com.xunmeng.pinduoduo*")), REJECT'
+        base = BASE.replace("[Rewrite]", "[Rule]\n" + marker_line + "\n[Rewrite]")
+        with self.assertRaises(ValueError):
+            apply(base)
+
     def test_requires_bankcomm_mitm_hosts(self):
         with self.assertRaises(ValueError):
             apply(BASE.replace("creditcard.bankcomm.com, ", ""))
