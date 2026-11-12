@@ -130,7 +130,7 @@
       "action_changed": [],
       "added": [
         {
-          "line": "request if ${url} ~= /^https:\\/\\/(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\.)+gamersky\\.com\\/v1\\/statisticAd(?:\\/|\\?|#|$)/ then reject_dict(200)",
+          "line": "response if ${url} ~= /^http:\\/\\/(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\.)+gamersky\\.com\\/.+\\/lists\\/getListElements(?:\\/|\\?|#|$)/ then response.json.jq(`.listElements |= map(select(has(\"adCategory\") | not))`)",
           "section": "rewrite",
           "sources": [
             "block"
@@ -139,7 +139,7 @@
       ],
       "removed": [
         {
-          "line": "request if ${url} ~= /https:\\/\\/.+\\.gamersky.com\\/v1\\/statisticAd/ then reject_dict(200)",
+          "line": "response if ${url} ~= /http:\\/\\/.+\\.gamersky.com\\/.+\\/lists\\/getListElements/ then response.json.jq(`.listElements |= map(select(has(\"adCategory\") | not))`)",
           "section": "rewrite",
           "sources": [
             "block"

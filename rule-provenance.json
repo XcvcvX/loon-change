@@ -347,6 +347,13 @@
     {
       "source": "block",
       "section": "Rewrite",
+      "reason": "Constrain the Gamersky list-ad response filter to valid declared subdomains, a literal gamersky.com suffix, and the explicit getListElements endpoint; preserve the original HTTP scheme and JSON adCategory filter.",
+      "original_line": "response if ${url} ~= /http:\\/\\/.+\\.gamersky.com\\/.+\\/lists\\/getListElements/ then response.json.jq(`.listElements |= map(select(has(\"adCategory\") | not))`)",
+      "output_line": "response if ${url} ~= /^http:\\/\\/(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\.)+gamersky\\.com\\/.+\\/lists\\/getListElements(?:\\/|\\?|#|$)/ then response.json.jq(`.listElements |= map(select(has(\"adCategory\") | not))`)"
+    },
+    {
+      "source": "block",
+      "section": "Rewrite",
       "reason": "Escape literal dots in g1.163.com so the ad-feedback matcher cannot match lookalike hosts.",
       "original_line": "request if ${url} ~= /^https?:\\/\\/g1.163.com\\/madfeedback/ then reject(404)",
       "output_line": "request if ${url} ~= /^https?:\\/\\/g1\\.163\\.com\\/madfeedback/ then reject(404)"
@@ -49178,15 +49185,15 @@
     {
       "section": "Rewrite",
       "output_entry_index": 2585,
-      "output_line": "response if ${url} ~= /http:\\/\\/.+\\.gamersky.com\\/.+\\/lists\\/getListElements/ then response.json.jq(`.listElements |= map(select(has(\"adCategory\") | not))`)",
-      "canonical_key": "('guarded', 'http://.+\\\\.gamersky.com/.+/lists/getListElements', ('response.json.jq', 'response.json.jq(`.listElements |= map(select(has(\"adCategory\") | not))`)'))",
+      "output_line": "response if ${url} ~= /^http:\\/\\/(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\.)+gamersky\\.com\\/.+\\/lists\\/getListElements(?:\\/|\\?|#|$)/ then response.json.jq(`.listElements |= map(select(has(\"adCategory\") | not))`)",
+      "canonical_key": "('guarded', '^http://(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\\\.)+gamersky\\\\.com/.+/lists/getListElements(?:/|\\\\?|#|$)', ('response.json.jq', 'response.json.jq(`.listElements |= map(select(has(\"adCategory\") | not))`)'))",
       "sources": [
         {
           "source": "block",
           "priority": 5,
           "source_entry_index": 1256,
           "input_section": "Rewrite",
-          "input_line": "response if ${url} ~= /http:\\/\\/.+\\.gamersky.com\\/.+\\/lists\\/getListElements/ then response.json.jq(`.listElements |= map(select(has(\"adCategory\") | not))`)",
+          "input_line": "response if ${url} ~= /^http:\\/\\/(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\.)+gamersky\\.com\\/.+\\/lists\\/getListElements(?:\\/|\\?|#|$)/ then response.json.jq(`.listElements |= map(select(has(\"adCategory\") | not))`)",
           "disposition": "selected"
         }
       ],
