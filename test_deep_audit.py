@@ -617,5 +617,22 @@ request if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/ad$/ then future-action
         self.assertNotIn('review_candidates', serialized)
 
 
+    def test_automated_diagnostics_markdown_uses_the_same_handling_contract(self):
+        from deep_audit import automated_diagnostics_handling, render_automated_diagnostics_handling
+
+        handling = automated_diagnostics_handling()
+        rendered = '\\n'.join(render_automated_diagnostics_handling())
+        self.assertEqual(handling, {
+            'mode': 'informational_only',
+            'user_action_required': False,
+            'automatic_rule_changes': False,
+            'uncertain_rules': 'preserve_original'
+        })
+        self.assertIn('`informational_only`', rendered)
+        self.assertIn('是否要求用户操作：否', rendered)
+        self.assertIn('是否允许自动修改规则：否', rendered)
+        self.assertIn('`preserve_original`', rendered)
+        self.assertIn('不生成用户待办', rendered)
+
 if __name__ == '__main__':
     unittest.main()
