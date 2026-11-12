@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-12 02:58 UTC
+#!merged-at=2026-11-12 03:16 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -5778,7 +5778,7 @@ request if ${url} ~= /^https?:\/\/mobileso\.bz\.mgtv\.com\/spotlight\/search\/v1
 request if ${url} ~= /^https:\/\/p0\.pipi\.cn\/adAdmin\/\w+\.jpg\?imageMogr2\/quality\// then reject_dict(200)
 request if ${url} ~= /^https:\/\/p0\.pipi\.cn\/adAdmin\/\w+\.(jpg|png)\?imageMogr2\/thumbnail\/(860x0|!165x165|!1049x1169)/ then reject_dict(200)
 response if ${url} ~= /http:\/\/dili.sqcosmos.com\/jiekou\/mains\/p\d+.html/ then response.json.jq(`.album |= map(select(.id != "4154" and .id != "4165"))`)
-request if ${url} ~= /http:\/\/dili.sqcosmos.com\/jiekou\/endpage\/ad/ then reject_dict(200)
+request if ${url} ~= /http:\/\/dili\.sqcosmos\.com\/jiekou\/endpage\/ad/ then reject_dict(200)
 request if ${url} ~= /^https?:\/\/j-image\.missfresh\.cn\/img_(.+)\.gif$/ then reject(404)
 request if ${url} ~= /^https?:\/\/j-image\.missfresh\.cn\/img_(.+)\.(jpg|jpeg|gif|png)\?iopcmd=convert&dst=webp&q=85$/ then reject(404)
 request if ${url} ~= /^https?:\/\/adui\.tg\.meitu\.com/ then reject_dict(200)

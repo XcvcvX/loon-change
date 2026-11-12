@@ -19,10 +19,9 @@
   "events": [
     {
       "after": {
-        "line": "^https?:\\/\\/g1\\.163\\.com\\/madfeedback reject",
+        "line": "request if ${url} ~= /http:\\/\\/dili\\.sqcosmos\\.com\\/jiekou\\/endpage\\/ad/ then reject_dict(200)",
         "section": "rewrite",
         "sources": [
-          "base",
           "block"
         ]
       },
@@ -33,21 +32,18 @@
       "section": "rewrite",
       "semantic_duplicate_coverage": null,
       "source_scores": {
-        "base": 0,
         "block": 0
       },
       "sources": [
-        "base",
         "block"
       ]
     },
     {
       "after": null,
       "before": {
-        "line": "^https?:\\/\\/g1.163.com\\/madfeedback reject",
+        "line": "request if ${url} ~= /http:\\/\\/dili.sqcosmos.com\\/jiekou\\/endpage\\/ad/ then reject_dict(200)",
         "section": "rewrite",
         "sources": [
-          "base",
           "block"
         ]
       },
@@ -57,11 +53,9 @@
       "section": "rewrite",
       "semantic_duplicate_coverage": null,
       "source_scores": {
-        "base": 0,
         "block": 0
       },
       "sources": [
-        "base",
         "block"
       ]
     }
@@ -72,7 +66,7 @@
     "low": 0,
     "medium": 1
   },
-  "run_id": "43144968484",
+  "run_id": "43147031535",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -101,9 +95,9 @@
     },
     "block": {
       "action_changed": 0,
-      "added": 49,
-      "removed": 46,
-      "snapshots_seen": 5
+      "added": 50,
+      "removed": 47,
+      "snapshots_seen": 6
     },
     "filter": {
       "action_changed": 0,
@@ -124,5 +118,11 @@
       "snapshots_seen": 1
     }
   },
-  "upstream_revision_changes": []
+  "upstream_revision_changes": [
+    {
+      "current_commit": "f72638b9c8794aa21caf93fe491c8ccecccd8b42",
+      "previous_commit": "c4a52554e01aac55667a54fa5b526db00d6b3e81",
+      "source": "Amap"
+    }
+  ]
 }

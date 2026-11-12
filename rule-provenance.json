@@ -19,7 +19,7 @@
         "search_poi_detail.jq"
       ],
       "upstream_repository": "https://github.com/ifflagged/Romeo",
-      "upstream_commit": "c4a52554e01aac55667a54fa5b526db00d6b3e81",
+      "upstream_commit": "f72638b9c8794aa21caf93fe491c8ccecccd8b42",
       "assets": {
         "rucu6_amap.js": {
           "bytes": 23517,
@@ -322,6 +322,13 @@
       "reason": "Escape literal dots in g1.163.com so the ad-feedback matcher cannot match lookalike hosts.",
       "original_line": "request if ${url} ~= /^https?:\\/\\/g1.163.com\\/madfeedback/ then reject(404)",
       "output_line": "request if ${url} ~= /^https?:\\/\\/g1\\.163\\.com\\/madfeedback/ then reject(404)"
+    },
+    {
+      "source": "block",
+      "section": "Rewrite",
+      "reason": "Escape literal dots in the dili.sqcosmos.com end-page ad endpoint matcher. This prevents lookalike hosts from being rejected.",
+      "original_line": "request if ${url} ~= /http:\\/\\/dili.sqcosmos.com\\/jiekou\\/endpage\\/ad/ then reject_dict(200)",
+      "output_line": "request if ${url} ~= /http:\\/\\/dili\\.sqcosmos\\.com\\/jiekou\\/endpage\\/ad/ then reject_dict(200)"
     },
     {
       "source": "base",
@@ -41931,15 +41938,15 @@
     {
       "section": "Rewrite",
       "output_entry_index": 2180,
-      "output_line": "request if ${url} ~= /http:\\/\\/dili.sqcosmos.com\\/jiekou\\/endpage\\/ad/ then reject_dict(200)",
-      "canonical_key": "('guarded', 'http://dili.sqcosmos.com/jiekou/endpage/ad', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
+      "output_line": "request if ${url} ~= /http:\\/\\/dili\\.sqcosmos\\.com\\/jiekou\\/endpage\\/ad/ then reject_dict(200)",
+      "canonical_key": "('guarded', 'http://dili\\\\.sqcosmos\\\\.com/jiekou/endpage/ad', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
       "sources": [
         {
           "source": "block",
           "priority": 5,
           "source_entry_index": 630,
           "input_section": "Rewrite",
-          "input_line": "request if ${url} ~= /http:\\/\\/dili.sqcosmos.com\\/jiekou\\/endpage\\/ad/ then reject_dict(200)",
+          "input_line": "request if ${url} ~= /http:\\/\\/dili\\.sqcosmos\\.com\\/jiekou\\/endpage\\/ad/ then reject_dict(200)",
           "disposition": "selected"
         }
       ],
