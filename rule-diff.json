@@ -134,7 +134,169 @@
     "rule": {
       "action_changed": [],
       "added": [],
-      "removed": []
+      "removed": [
+        {
+          "line": "AND, ((DOMAIN-KEYWORD, -ad-), (DOMAIN-SUFFIX, byteimg.com)), REJECT",
+          "section": "rule",
+          "sources": [
+            "block"
+          ]
+        },
+        {
+          "line": "AND, ((DOMAIN-KEYWORD, -ttam-), (DOMAIN-SUFFIX, ibyteimg.com)), REJECT",
+          "section": "rule",
+          "sources": [
+            "block"
+          ]
+        },
+        {
+          "line": "AND, ((DOMAIN-KEYWORD, ads), (DOMAIN-KEYWORD, -normal-lq), (DOMAIN-SUFFIX, zijieapi.com)), REJECT",
+          "section": "rule",
+          "sources": [
+            "block"
+          ]
+        },
+        {
+          "line": "AND, ((DOMAIN-KEYWORD, ads), (DOMAIN-KEYWORD, normal), (DOMAIN-SUFFIX, zijieapi.com)), REJECT",
+          "section": "rule",
+          "sources": [
+            "block"
+          ]
+        },
+        {
+          "line": "AND, ((DOMAIN-KEYWORD, api), (DOMAIN-KEYWORD, -access-), (DOMAIN-SUFFIX, pangle.io)), REJECT",
+          "section": "rule",
+          "sources": [
+            "block"
+          ]
+        },
+        {
+          "line": "AND, ((DOMAIN-KEYWORD, api), (DOMAIN-KEYWORD, -dual-event-), (DOMAIN-SUFFIX, pangle.io)), REJECT",
+          "section": "rule",
+          "sources": [
+            "block"
+          ]
+        },
+        {
+          "line": "AND, ((DOMAIN-KEYWORD, api), (DOMAIN-KEYWORD, -log-), (DOMAIN-SUFFIX, pangle.io)), REJECT",
+          "section": "rule",
+          "sources": [
+            "block"
+          ]
+        },
+        {
+          "line": "AND, ((DOMAIN-KEYWORD, api), (DOMAIN-KEYWORD, pangolin), (DOMAIN-SUFFIX, sgsnssdk.com)), REJECT",
+          "section": "rule",
+          "sources": [
+            "block"
+          ]
+        },
+        {
+          "line": "AND, ((DOMAIN-KEYWORD, if), (DOMAIN-KEYWORD, -analytics.bytescm.com)), REJECT",
+          "section": "rule",
+          "sources": [
+            "block"
+          ]
+        },
+        {
+          "line": "AND, ((DOMAIN-KEYWORD, lf), (DOMAIN-KEYWORD, -analytics.bytescm.com)), REJECT",
+          "section": "rule",
+          "sources": [
+            "block"
+          ]
+        },
+        {
+          "line": "AND, ((DOMAIN-KEYWORD, lf), (DOMAIN-KEYWORD, -short.bytetos.com)), REJECT",
+          "section": "rule",
+          "sources": [
+            "block"
+          ]
+        },
+        {
+          "line": "AND, ((DOMAIN-KEYWORD, pangolin), (DOMAIN-SUFFIX, sgsnssdk.com)), REJECT",
+          "section": "rule",
+          "sources": [
+            "block"
+          ]
+        },
+        {
+          "line": "AND, ((DOMAIN-KEYWORD, s), (DOMAIN-KEYWORD, -fe-scm.pglstatp-toutiao.com)), REJECT",
+          "section": "rule",
+          "sources": [
+            "block"
+          ]
+        },
+        {
+          "line": "AND, ((DOMAIN-KEYWORD, sf), (DOMAIN-KEYWORD, -be-pack.pglstatp-toutiao.com)), REJECT",
+          "section": "rule",
+          "sources": [
+            "block"
+          ]
+        },
+        {
+          "line": "AND, ((DOMAIN-KEYWORD, sf), (DOMAIN-KEYWORD, -static.i18n-pglstatp.com)), REJECT",
+          "section": "rule",
+          "sources": [
+            "block"
+          ]
+        },
+        {
+          "line": "AND, ((DOMAIN-KEYWORD, sf), (DOMAIN-KEYWORD, -ttcdn-tos.pstatp.com)), REJECT",
+          "section": "rule",
+          "sources": [
+            "block"
+          ]
+        },
+        {
+          "line": "AND, ((DOMAIN-KEYWORD, ssdk-), (DOMAIN-SUFFIX, pangle.io)), REJECT",
+          "section": "rule",
+          "sources": [
+            "block"
+          ]
+        },
+        {
+          "line": "AND, ((DOMAIN-KEYWORD, v), (DOMAIN-KEYWORD, -be-pack.pglstatp-toutiao.com)), REJECT",
+          "section": "rule",
+          "sources": [
+            "block"
+          ]
+        },
+        {
+          "line": "AND, ((PROTOCOL, QUIC), (DOMAIN-SUFFIX, xiaohongshu.com)), REJECT",
+          "section": "rule",
+          "sources": [
+            "block"
+          ]
+        },
+        {
+          "line": "AND,((DOMAIN,api.pinduoduo.com),(PROTOCOL,QUIC)),REJECT",
+          "section": "rule",
+          "sources": [
+            "thelong"
+          ]
+        },
+        {
+          "line": "AND,((URL-REGEX, \"^http:\\/\\/.+\\/amdc\\/mobileDispatch\"), (USER-AGENT, \"AMapiPhone*\")),REJECT",
+          "section": "rule",
+          "sources": [
+            "aoomee"
+          ]
+        },
+        {
+          "line": "AND,((URL-REGEX,\"^http:\\/\\/((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\/d(\\d)?\"),(USER-AGENT,\"*com.xunmeng.pinduoduo*\")),REJECT",
+          "section": "rule",
+          "sources": [
+            "thelong"
+          ]
+        },
+        {
+          "line": "AND,((URL-REGEX,\"^http:\\/\\/\\[[0-9a-fA-F:]+\\]\\/d(\\d)?\\?\"),(USER-AGENT,\"*com.xunmeng.pinduoduo*\")),REJECT",
+          "section": "rule",
+          "sources": [
+            "thelong"
+          ]
+        }
+      ]
     },
     "script": {
       "action_changed": [],
@@ -151,14 +313,14 @@
     "rule": {
       "action_changed": 0,
       "added": 0,
-      "removed": 0
+      "removed": 23
     },
     "script": {
       "action_changed": 0,
       "added": 0,
       "removed": 0
     },
-    "total_changes": 0
+    "total_changes": 23
   },
   "upstream_revision_changes": []
 }
