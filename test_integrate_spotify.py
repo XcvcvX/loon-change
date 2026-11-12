@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 import tempfile
 import unittest
+import sys
+from unittest.mock import patch
 from pathlib import Path
-from integrate_spotify import integrate
+from integrate_spotify import integrate, main
 
 
 SOURCE = r"""#!name=Spotify
@@ -27,6 +29,25 @@ http-response ^https:\/\/spclient\.wg\.spotify\.com\/bootstrap script-path=https
 
 
 class SpotifyIntegrationTests(unittest.TestCase):
+    def test_cli_entrypoint_runs_without_module_scope_name_error(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / 'Spotify.lpx'
+            source.write_text(SOURCE, encoding='utf-8')
+            source_scripts = root / 'upstream'
+            source_scripts.mkdir()
+            for name in ('spot-gabo.js', 'spot-NoSearchAd.js', 'spot-NoHomeAd.js', 'spot-NoScrollAd.js'):
+                (source_scripts / name).write_text('// upstream script\n' + 'x' * 200, encoding='utf-8')
+            plugin = root / 'allAdRewrite.plugin'
+            plugin.write_text('[Rule]\n[Rewrite]\n[Script]\n[MITM]\nhostname = example.com\n', encoding='utf-8')
+            meta = root / 'upstream.json'
+            argv = ['integrate_spotify.py', '--plugin', str(plugin), '--source-plugin', str(source),
+                    '--scripts-source', str(source_scripts), '--scripts-dest', str(root / 'scripts'),
+                    '--upstream-commit', 'abc123', '--metadata', str(meta)]
+            with patch.object(sys, 'argv', argv):
+                main()
+            self.assertTrue(meta.exists())
+            self.assertIn('DOMAIN,aet.spotify.com,REJECT', plugin.read_text(encoding='utf-8'))
     def test_extracts_only_ad_features_and_is_idempotent(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
