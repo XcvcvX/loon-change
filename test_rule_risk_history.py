@@ -92,7 +92,7 @@ class RuleRiskHistoryTests(unittest.TestCase):
         self.assertEqual(risk["risk_counts"], {"high": 0, "medium": 0, "low": 1})
         self.assertEqual(risk["events"][0]["semantic_duplicate_coverage"]["covered_by"], retained)
 
-        # A similarly worded but non-identical quoted literal must not be downgraded.
+        # A quoted literal with different internal whitespace is not equivalent.
         provenance["rule_events"][1]["original_input_line"] = (
             'AND,((USER-AGENT,"com.example  App"),(DOMAIN-SUFFIX,example.com)),REJECT'
         )
