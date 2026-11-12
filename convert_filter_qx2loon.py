@@ -54,6 +54,10 @@ POLICY_MAP = {
 # 只有 IP 类规则加 no-resolve：目标已是 IP，无需 DNS 解析
 NO_RESOLVE = {'IP-CIDR', 'IP-CIDR6', 'IP-ASN', 'GEOIP'}
 
+# Tencent Cloud HTTPDNS production endpoints. A global REJECT rule here
+# breaks HTTP/HTTPS DNS-over-HTTP requests; keep this exclusion exact.
+HTTPDNS_REJECT_EXCLUSIONS = {'119.29.29.98/32', '119.29.29.99/32'}
+
 ap = argparse.ArgumentParser()
 ap.add_argument('-i', '--input', help='本地 QuanX 规则文件；不指定则从上游拉取')
 ap.add_argument('--list', default='allAdBlock-Loon.list', help='纯规则行输出路径')
@@ -84,6 +88,7 @@ else:
 
 
 rules, unknown, stats = [], [], {}
+httpdns_excluded = []
 upstream_date, upstream_count = '', ''
 csv = {}
 
@@ -119,6 +124,13 @@ for line in raw.split('\n'):
         stats['未知策略'] = stats.get('未知策略', 0) + 1
         continue
 
+    if (ltype == 'IP-CIDR' and value in HTTPDNS_REJECT_EXCLUSIONS
+            and lpolicy == 'REJECT'):
+        httpdns_excluded.append(s)
+        stats['Tencent Cloud HTTPDNS safety exclusions'] = (
+            stats.get('Tencent Cloud HTTPDNS safety exclusions', 0) + 1)
+        continue
+
     extra = ',no-resolve' if ltype in NO_RESOLVE else ''
     rules.append('%s,%s,%s%s' % (ltype, value, lpolicy, extra))
     stats['%s -> %s' % (qtype, ltype)] = stats.get('%s -> %s' % (qtype, ltype), 0) + 1
@@ -133,6 +145,7 @@ list_out = [
     '# 上游版本: %s' % upstream_date,
     '# 用法: 在 Loon 主配置 [Rule] 段中加一行（放在 FINAL 之前）:',
     '#   <本文件 URL>,REJECT',
+    '# 安全排除：腾讯云 HTTPDNS 正式入口 119.29.29.98/32、119.29.29.99/32 的 REJECT 规则。',
     '',
 ] + rules
 
@@ -157,6 +170,7 @@ plugin_out = [
     '#   ip6-cidr     -> IP-CIDR6  (+ no-resolve)',
     '#   reject       -> REJECT',
     '# 未使用 Surge 专有的 extended-matching / pre-matching，Loon 不支持这两个参数。',
+    '# 安全排除：腾讯云 HTTPDNS 正式入口 119.29.29.98/32、119.29.29.99/32 的 REJECT 规则。',
     '',
     '[Rule]',
 ] + rules
@@ -171,6 +185,7 @@ for path, content in ((args.list, list_out), (args.plugin, plugin_out)):
 print('\n=== 转换统计 ===')
 for k, v in sorted(stats.items(), key=lambda x: -x[1]):
     print('%6d  %s' % (v, k))
+print('HTTPDNS 安全排除规则: %d' % len(httpdns_excluded))
 print('规则总数: %d' % len(rules))
 if unknown:
     print('跳过/异常: %d' % len(unknown))
