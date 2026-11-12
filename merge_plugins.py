@@ -1196,6 +1196,7 @@ _AD_IMAGE_EXTENSION_TARGETS = (
 )
 _AD_IMAGE_EXTENSION_VARIANTS = (
     ('.*.(?:jpg|png)', r'.*\.(?:jpg|png)'),
+    ('.*.(?:png|jpg)', r'.*\.(?:png|jpg)'),
     ('.*.(png|jpg)', r'.*\.(png|jpg)'),
     ('.*.(jpg|png)', r'.*\.(jpg|png)'),
     ('.*.(jpg|png|jpeg)', r'.*\.(jpg|png|jpeg)'),
