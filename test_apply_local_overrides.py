@@ -84,6 +84,37 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         with self.assertRaises(ValueError):
             apply(base)
 
+
+    def test_merges_adjacent_same_condition_response_json_actions_in_order(self):
+        base = BASE.replace(
+            "[Rewrite]",
+            "[Rewrite]\n"
+            'response if ${url} ~= /^https:\\/\\/api\\.example\\.com/ then response.json.delete("data.ad1")\n'
+            '\n'
+            'response if ${url} ~= /^https:\\/\\/api\\.example\\.com/ then response.json.jq(".data.ad2 = []")\n'
+        )
+        result = apply(base)
+        self.assertIn(
+            'then response.json.delete("data.ad1") | response.json.jq(".data.ad2 = []")',
+            result,
+        )
+        self.assertEqual(result.count("api\\\\.example"), 1)
+        self.assertEqual(apply(result), result)
+
+    def test_does_not_merge_non_adjacent_or_non_json_or_request_actions(self):
+        base = BASE.replace(
+            "[Rewrite]",
+            "[Rewrite]\n"
+            'response if ${url} ~= /^https:\\/\\/api\\.example\\.com/ then response.json.delete("data.a")\n'
+            'response if ${url} ~= /^https:\\/\\/other\\.example\\.com/ then response.json.delete("data.x")\n'
+            'response if ${url} ~= /^https:\\/\\/api\\.example\\.com/ then response.json.delete("data.b")\n'
+            'request if ${url} ~= /^https:\\/\\/api\\.example\\.com/ then request.header.del("Cookie")\n'
+        )
+        result = apply(base)
+        self.assertIn('then response.json.delete("data.a")', result)
+        self.assertIn('then response.json.delete("data.b")', result)
+        self.assertNotIn('data.a") | response.json.delete("data.b")', result)
+
     def test_requires_bankcomm_mitm_hosts(self):
         with self.assertRaises(ValueError):
             apply(BASE.replace("creditcard.bankcomm.com, ", ""))
