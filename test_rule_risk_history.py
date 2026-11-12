@@ -92,6 +92,17 @@ class RuleRiskHistoryTests(unittest.TestCase):
         self.assertEqual(risk["risk_counts"], {"high": 0, "medium": 0, "low": 1})
         self.assertEqual(risk["events"][0]["semantic_duplicate_coverage"]["covered_by"], retained)
 
+        # Exact textual duplicates are also safe when the retained item is proven.
+        provenance["rule_events"][1]["duplicate_reason"] = "exact_text_duplicate"
+        risk, _ = build_risk(diff, self.health, {}, {}, "exact-duplicate", provenance)
+        self.assertEqual(risk["risk_counts"], {"high": 0, "medium": 0, "low": 1})
+
+        # Unknown or inaccurate duplicate labels must not lower risk.
+        provenance["rule_events"][1]["duplicate_reason"] = "normalized_rule_duplicate"
+        risk, _ = build_risk(diff, self.health, {}, {}, "unknown-duplicate", provenance)
+        self.assertEqual(risk["risk_counts"]["high"], 1)
+        provenance["rule_events"][1]["duplicate_reason"] = "whitespace_only_outside_quoted_literals"
+
         # A quoted literal with different internal whitespace is not equivalent.
         provenance["rule_events"][1]["original_input_line"] = (
             'AND,((USER-AGENT,"com.example  App"),(DOMAIN-SUFFIX,example.com)),REJECT'

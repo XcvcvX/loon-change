@@ -88,12 +88,23 @@ def _rule_duplicate_coverage(row, provenance):
             continue
         original = event.get("original_input_line")
         covered_by = event.get("duplicate_of")
+        duplicate_reason = event.get("duplicate_reason")
+        if (duplicate_reason not in (
+                    "exact_text_duplicate",
+                    "whitespace_only_outside_quoted_literals",
+                )):
+            continue
         if (isinstance(original, str) and _canonical_rule_key(original) == target
                 and isinstance(covered_by, str)
                 and _canonical_rule_key(covered_by) in retained):
+            reason = (
+                "精确来源追溯确认该 Rule 与保留项文本完全相同"
+                if duplicate_reason == "exact_text_duplicate"
+                else "精确来源追溯确认该 Rule 仅在引号外存在空白差异，且等价规则仍保留"
+            )
             return {
                 "covered_by": covered_by,
-                "reason": "精确来源追溯确认该 Rule 仅在引号外存在空白差异，且等价规则仍保留",
+                "reason": reason,
                 "source": event.get("source", "unknown"),
             }
     return None

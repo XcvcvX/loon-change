@@ -2394,6 +2394,7 @@ hostname = *.amap.com
         self.assertEqual(included[0]["status"], "included")
         self.assertEqual(included[1]["status"], "duplicate_exact")
         self.assertEqual(included[1]["duplicate_of_source"], "block")
+        self.assertEqual(included[1]["duplicate_reason"], "exact_text_duplicate")
         self.assertEqual(report["summary"]["rule_output_entries"], 1)
         self.assertIn("source_entry_index", included[0])
         self.assertTrue(report["limitations"])

@@ -2749,9 +2749,13 @@ def add_rule(line, src):
         previous = next((item for item in reversed(rule_provenance_events)
                          if item.get('status') == 'included'
                          and item.get('output_line') == previous_line), None)
+        duplicate_reason = (
+            'exact_text_duplicate' if line == previous_line
+            else 'whitespace_only_outside_quoted_literals'
+        )
         event.update({'status': 'duplicate_exact', 'duplicate_of': previous_line,
                       'duplicate_of_source': previous.get('source') if previous else None,
-                      'duplicate_reason': 'whitespace_only_outside_quoted_literals'})
+                      'duplicate_reason': duplicate_reason})
         rule_provenance_events.append(event)
         rule_counts[src + '_dup'] += 1
         return
