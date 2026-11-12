@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "upstream_repository": "devchristian1337/loon-plugins",
+  "upstream_commit": "a9d979200ba633cadc79d193aef6f37d67cece96",
+  "upstream_plugin_sha256": "83d0558d421c1d60bbc3d3aeade9a60a233488b0853f9c3bb5e564ecde6fcc79",
+  "scripts_sha256": {
+    "spot-gabo.js": "cb33a793aaa1d004f4af2116d40e0a7b3f0f2a402fb526e9894ce34f586c5cf9",
+    "spot-NoSearchAd.js": "8e04c01e1ab86b6602a6a54b1d0ad27cf5b21a4c80f8c70f48ae6bb4489fdee2",
+    "spot-NoHomeAd.js": "800adfc18990dff80e8ef7d61369dbdc0ea6d361daa1a1407dd6898e045c7150",
+    "spot-NoScrollAd.js": "2f1182c83e3b2cf3cb6e4f62b1cddb9d643ab0b0a47f307c22e2161109339299"
+  },
+  "extracted": {
+    "rules": [
+      "DOMAIN,aet.spotify.com,REJECT"
+    ],
+    "rewrite_rules": [
+      "^https:\\/\\/(?:spclient\\.wg|[\\w-]+-spclient)\\.spotify\\.com(?::443)?\\/(?:ads\\/|ad-logic\\/|[^?#]*\\/ad-on-app-open) reject"
+    ],
+    "script_tags": [
+      "Spotify gabo",
+      "Spotify search ads",
+      "Spotify home ads",
+      "Spotify scroll ads"
+    ],
+    "mitm_hosts": [
+      "spclient.wg.spotify.com",
+      "*spclient.spotify.com"
+    ]
+  }
+}
