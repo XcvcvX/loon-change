@@ -527,6 +527,49 @@ request if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/ad$/ then future-action
         self.assertEqual(candidate['review_priority'], 'automated_warning')
         self.assertIn('不要求用户人工处理', candidate['reasons'][0])
 
+    def test_markdown_report_never_assigns_manual_review_to_user(self):
+        from deep_audit import render_markdown
+        report = {
+            'summary': {
+                'rewrite_entries': 1, 'rewrite_unparsed': 0,
+                'rewrite_broad_candidates': 0, 'rewrite_duplicate_matcher_groups': 0,
+                'rewrite_action_conflict_groups': 0, 'rewrite_exact_duplicate_action_groups': 0,
+                'rewrite_block_action_variant_groups': 0, 'rewrite_same_family_multi_operation_groups': 0,
+                'rewrite_cross_layer_composable_groups': 0, 'rewrite_cross_family_conflict_groups': 0,
+                'rewrite_unclassified_multi_action_groups': 0, 'rewrite_action_semantic_review_candidates': 0,
+                'rewrite_unknown_action_candidates': 0, 'rewrite_overlap_candidate_groups': 0,
+                'rewrite_overlap_manual_review_candidates': 0, 'mitm_positive_unique_hosts': 0,
+                'mitm_wildcards': 0, 'mitm_exact_hosts_covered_by_wildcards': 0,
+                'mitm_wildcard_apex_not_explicit': 0, 'mitm_without_obvious_literal_guard': 0,
+                'script_entries': 0, 'script_unique_remote_urls': 0, 'script_urls_reused': 0,
+                'script_entries_without_detected_url': 0, 'script_generic_trigger_candidates': 0,
+                'literal_references': 0, 'covered_references': 0, 'http_only_references': 0,
+                'ip_literal_references': 0, 'dynamic_suffix_references': 0,
+                'missing_rewrite_references': 0, 'missing_script_trigger_references': 0,
+                'missing_mitm_references': 0, 'intentionally_skipped_references': 0,
+                'negative_excluded_references': 0, 'ambiguous_references': 0,
+                'ambiguous_rewrite_references': 0, 'ambiguous_script_trigger_references': 0,
+                'unreferenced_positive_entries': 0, 'rewrite_scope_counts': {},
+                'rewrite_action_family_counts': {}
+            },
+            'rewrite_broad_candidates': [], 'rewrite_action_conflict_groups': [],
+            'rewrite_block_action_variant_groups': [], 'rewrite_same_family_multi_operation_groups': [],
+            'rewrite_cross_layer_composable_groups': [], 'rewrite_cross_family_conflict_groups': [],
+            'rewrite_unclassified_multi_action_groups': [], 'rewrite_action_semantic_review_candidates': [],
+            'rewrite_unknown_action_candidates': [], 'rewrite_overlap_candidate_groups': [],
+            'rewrite_overlap_manual_review_candidates': [], 'mitm_without_obvious_literal_guard': [],
+            'script_repeated_remote_urls': [], 'script_generic_trigger_candidates': [],
+            'mitm_missing_rewrite_script_coverage': [], 'mitm_intentionally_skipped_references': [],
+            'mitm_negative_excluded_rewrite_script_coverage': [], 'mitm_http_only_no_mitm_references': [],
+            'mitm_ip_literal_not_for_mitm_references': [], 'mitm_ambiguous_rewrite_script_references': [],
+            'mitm_unreferenced_positive_candidates': [], 'rewrite_overlap_sampled_rules': 0,
+            'rewrite_overlap_sampled_urls': 0, 'rewrite_overlap_skipped_rules': 0,
+            'rewrite_scope_review_candidates': [], 'safety_notes': []
+        }
+        rendered = render_markdown(report)
+        self.assertIn('不要求用户人工处理', rendered)
+        self.assertIn('自动诊断警告', rendered)
+        self.assertNotIn('人工复核', rendered)
 
 
 if __name__ == '__main__':
