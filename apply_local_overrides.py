@@ -2,6 +2,7 @@
 """Apply durable local Loon plugin overrides after upstream merge."""
 from pathlib import Path
 import argparse
+import re
 
 RULE = (r'response if ${url} ~= /^https?:\/\/creditcard\.bankcomm\.(?:cn|com)\/tofimg\/bucket-pj-btss-tfcn-dmz\/OSS-F\/.+/i '
         'then script("https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/maidanba.js") '
@@ -47,8 +48,9 @@ HELLOBIKE_SCRIPT_MARKERS = (
 
 
 
+
 def split_response_json_rewrite(line: str):
-    """Return exact condition prefix and action for a modern response JSON Rewrite."""
+    """Return exact condition prefix and actions for a modern response JSON Rewrite."""
     match = re.match(r'^(response if .+?) then (.+)
     if "[Script]" not in text or "[MITM]" not in text or "[Rewrite]" not in text:
         raise ValueError("plugin missing [Rewrite], [Script] or [MITM] section")
@@ -97,26 +99,28 @@ def split_response_json_rewrite(line: str):
             line = key + "= " + ", ".join(hosts)
         lines.append(line)
 
-    # Coalesce only consecutive response JSON operations with an identical
-    # condition. Loon executes same-phase entries in order and pipe actions
-    # left-to-right, so this preserves behavior without reordering other rules.
-    merged_lines = []
+    # Coalesce only consecutive response JSON operations with identical
+    # conditions. Loon runs same-phase entries in order and pipe actions
+    # left-to-right, so this preserves semantics without reordering other rules.
+    result_lines = []
+    rewrite_lines = []
     section = ""
     for line in lines:
         if line.startswith("[") and line.endswith("]"):
             if section == "Rewrite":
-                merged_lines, _ = merge_adjacent_response_json_rewrites(merged_lines)
+                rewrite_lines, _ = merge_adjacent_response_json_rewrites(rewrite_lines)
+                result_lines.extend(rewrite_lines)
+                rewrite_lines = []
             section = line[1:-1]
-            lines_for_section = []
-            merged_lines.append(line)
-            continue
-        if section == "Rewrite":
-            lines_for_section.append(line)
+            result_lines.append(line)
+        elif section == "Rewrite":
+            rewrite_lines.append(line)
         else:
-            merged_lines.append(line)
+            result_lines.append(line)
     if section == "Rewrite":
-        merged_lines, _ = merge_adjacent_response_json_rewrites(lines_for_section)
-    result = "\n".join(merged_lines)
+        rewrite_lines, _ = merge_adjacent_response_json_rewrites(rewrite_lines)
+        result_lines.extend(rewrite_lines)
+    result = "\n".join(result_lines)
     # Keep the unrelated Bankcomm override in [Script], idempotently.
     if RULE not in result:
         pos = result.index("[MITM]")
@@ -138,11 +142,11 @@ if __name__ == "__main__":
 , line)
     if not match:
         return None
-    prefix, actions = match.groups()
-    parts = re.split(r'\s+\|\s+', actions)
-    if not parts or any(not action.startswith("response.json.") for action in parts):
+    prefix, action_text = match.groups()
+    actions = re.split(r'\s+\|\s+', action_text)
+    if not actions or any(not action.startswith("response.json.") for action in actions):
         return None
-    return prefix, parts
+    return prefix, actions
 
 
 def merge_adjacent_response_json_rewrites(lines):
@@ -151,18 +155,15 @@ def merge_adjacent_response_json_rewrites(lines):
     index = 0
     merged_groups = 0
     while index < len(lines):
-        current = lines[index]
-        parsed = split_response_json_rewrite(current.strip())
+        parsed = split_response_json_rewrite(lines[index].strip())
         if not parsed:
-            output.append(current)
+            output.append(lines[index])
             index += 1
             continue
 
         prefix, actions = parsed
         lookahead = index + 1
-        blank_lines = []
         while lookahead < len(lines) and not lines[lookahead].strip():
-            blank_lines.append(lines[lookahead])
             lookahead += 1
 
         group_count = 1
@@ -181,7 +182,7 @@ def merge_adjacent_response_json_rewrites(lines):
             merged_groups += 1
             index = lookahead
         else:
-            output.append(current)
+            output.append(lines[index])
             index += 1
     return output, merged_groups
 
