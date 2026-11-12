@@ -289,6 +289,24 @@
       "output_line": "response if ${url} ~= /^https?:\\/\\/(?:vip7\\.fzwdyy\\.cn|(?:[A-Za-z0-9-]+\\.)+qyfxgd\\.cn|(?:[A-Za-z0-9-]+\\.)+weilai555\\.com|(?:[A-Za-z0-9-]+\\.)+ecoliving168\\.com)(?::\\d+)?\\/api\\/v\\d\\/movie\\/index_recommend/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/555Ad.js\") with enable=555_enable, tag=\"555影视广告\", timeout=60, requires_body=true"
     },
     {
+      "source": "base",
+      "source_file": "R-Store converted Rewrite",
+      "source_entry_index": 626,
+      "section": "Rewrite",
+      "reason": "The original [\\d\\.] host accepts malformed numeric/dotted strings. Restrict only this Odin ad/config endpoint matcher to four valid IPv4 octets; preserve protocol, path alternatives, query boundary, and reject action.",
+      "original_line": "^https?:\\/\\/[\\d\\.]+\\/odin\\/c\\d\\/(channel\\/ads|skin\\/config)\\? reject-dict",
+      "output_line": "^https?:\\/\\/((25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\.){3}(25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\/odin\\/c\\d\\/(channel\\/ads|skin\\/config)\\? reject-dict"
+    },
+    {
+      "source": "block",
+      "source_file": "blockAdsV2.plugin",
+      "source_entry_index": 621,
+      "section": "Rewrite",
+      "reason": "The original [\\d\\.] host accepts malformed numeric/dotted strings. Restrict only this Odin ad/config endpoint matcher to four valid IPv4 octets; preserve protocol, path alternatives, query boundary, and reject action.",
+      "original_line": "request if ${url} ~= /^https?:\\/\\/[\\d\\.]+\\/odin\\/c1\\/(channel\\/ads|skin\\/config)\\?/ then reject_dict(200)",
+      "output_line": "request if ${url} ~= /^https?:\\/\\/((25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\.){3}(25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\/odin\\/c1\\/(channel\\/ads|skin\\/config)\\?/ then reject_dict(200)"
+    },
+    {
       "source": "block",
       "section": "Rewrite",
       "reason": "Escape the literal dots in the declared magev6.if.qidian.com hostname so the matcher cannot accept lookalike hosts.",
@@ -12891,15 +12909,15 @@
     {
       "section": "Rewrite",
       "output_entry_index": 626,
-      "output_line": "^https?:\\/\\/[\\d\\.]+\\/odin\\/c\\d\\/(channel\\/ads|skin\\/config)\\? reject-dict",
-      "canonical_key": "('guarded', '^https?://[\\\\d\\\\.]+/odin/c\\\\d/(channel/ads|skin/config)\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
+      "output_line": "^https?:\\/\\/((25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\.){3}(25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\/odin\\/c\\d\\/(channel\\/ads|skin\\/config)\\? reject-dict",
+      "canonical_key": "('guarded', '^https?://((25[0-5]|2[0-4]\\\\d|1\\\\d{2}|[1-9]?\\\\d)\\\\.){3}(25[0-5]|2[0-4]\\\\d|1\\\\d{2}|[1-9]?\\\\d)/odin/c\\\\d/(channel/ads|skin/config)\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
       "sources": [
         {
           "source": "base",
           "priority": 4,
           "source_entry_index": 626,
           "input_section": "Rewrite",
-          "input_line": "^https?:\\/\\/[\\d\\.]+\\/odin\\/c\\d\\/(channel\\/ads|skin\\/config)\\? reject-dict",
+          "input_line": "^https?:\\/\\/((25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\.){3}(25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\/odin\\/c\\d\\/(channel\\/ads|skin\\/config)\\? reject-dict",
           "disposition": "selected"
         }
       ],
@@ -42003,15 +42021,15 @@
     {
       "section": "Rewrite",
       "output_entry_index": 2174,
-      "output_line": "request if ${url} ~= /^https?:\\/\\/[\\d\\.]+\\/odin\\/c1\\/(channel\\/ads|skin\\/config)\\?/ then reject_dict(200)",
-      "canonical_key": "('guarded', '^https?://[\\\\d\\\\.]+/odin/c1/(channel/ads|skin/config)\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
+      "output_line": "request if ${url} ~= /^https?:\\/\\/((25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\.){3}(25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\/odin\\/c1\\/(channel\\/ads|skin\\/config)\\?/ then reject_dict(200)",
+      "canonical_key": "('guarded', '^https?://((25[0-5]|2[0-4]\\\\d|1\\\\d{2}|[1-9]?\\\\d)\\\\.){3}(25[0-5]|2[0-4]\\\\d|1\\\\d{2}|[1-9]?\\\\d)/odin/c1/(channel/ads|skin/config)\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
       "sources": [
         {
           "source": "block",
           "priority": 5,
           "source_entry_index": 621,
           "input_section": "Rewrite",
-          "input_line": "request if ${url} ~= /^https?:\\/\\/[\\d\\.]+\\/odin\\/c1\\/(channel\\/ads|skin\\/config)\\?/ then reject_dict(200)",
+          "input_line": "request if ${url} ~= /^https?:\\/\\/((25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\.){3}(25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\/odin\\/c1\\/(channel\\/ads|skin\\/config)\\?/ then reject_dict(200)",
           "disposition": "selected"
         }
       ],

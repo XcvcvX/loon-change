@@ -130,65 +130,14 @@
       "action_changed": [],
       "added": [
         {
-          "line": "^https?:\\/\\/l[0-9]{1}\\.51fanli\\.net\\/app\\/images\\/splash\\/2022\\/0[4-9]{1}\\/.*\\.jpg reject-200",
-          "section": "rewrite",
-          "sources": [
-            "base",
-            "block"
-          ]
-        },
-        {
-          "line": "^https?:\\/\\/l[0-9]{1}\\.51fanli\\.net\\/app\\/images\\/splash\\/2022\\/1[0-2]{1}\\/.*\\.jpg reject-200",
-          "section": "rewrite",
-          "sources": [
-            "base",
-            "block"
-          ]
-        },
-        {
-          "line": "^https?:\\/\\/static\\.95508\\.com\\/icppweb\\/images\\/modelMaterial\\/(advertising|accurate)\\/202\\d{5}\\/.*\\.(?:png|jpg) reject-200",
+          "line": "^https?:\\/\\/((25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\.){3}(25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\/odin\\/c\\d\\/(channel\\/ads|skin\\/config)\\? reject-dict",
           "section": "rewrite",
           "sources": [
             "base"
           ]
         },
         {
-          "line": "request if ${url} ~= /^https?:\\/\\/ads\\.iconntech\\.com\\/resource-delivery\\/*\\/.*\\.(jpg|png)/ then reject(200)",
-          "section": "rewrite",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "request if ${url} ~= /^https?:\\/\\/img\\.admobile\\.top\\/admobile-adRequest\\/.*\\.(jpg|png)/ then reject(200)",
-          "section": "rewrite",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "request if ${url} ~= /^https?:\\/\\/img\\.gdoil\\.cn\\/upload\\/ad\\/.*\\.(jpg|png)/ then reject(200)",
-          "section": "rewrite",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "request if ${url} ~= /^https?:\\/\\/img\\.wukongtv\\.com\\/wkremote\\/AD\\/iOS\\/.*\\.(jpg|png|jpeg)/ then reject(200)",
-          "section": "rewrite",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "request if ${url} ~= /^https?:\\/\\/static\\.95508\\.com\\/icppweb\\/images\\/modelMaterial\\/accurate\\/202\\d{5}\\/.*\\.(png|jpg)/ then reject(200)",
-          "section": "rewrite",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "request if ${url} ~= /^https?:\\/\\/static\\.95508\\.com\\/icppweb\\/images\\/modelMaterial\\/advertising\\/202\\d{5}\\/.*\\.(png|jpg)/ then reject(200)",
+          "line": "request if ${url} ~= /^https?:\\/\\/((25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\.){3}(25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\/odin\\/c1\\/(channel\\/ads|skin\\/config)\\?/ then reject_dict(200)",
           "section": "rewrite",
           "sources": [
             "block"
@@ -197,65 +146,14 @@
       ],
       "removed": [
         {
-          "line": "^https?:\\/\\/l[0-9]{1}\\.51fanli\\.net\\/app\\/images\\/splash\\/2022\\/0[4-9]{1}\\/.*.jpg reject-200",
-          "section": "rewrite",
-          "sources": [
-            "base",
-            "block"
-          ]
-        },
-        {
-          "line": "^https?:\\/\\/l[0-9]{1}\\.51fanli\\.net\\/app\\/images\\/splash\\/2022\\/1[0-2]{1}\\/.*.jpg reject-200",
-          "section": "rewrite",
-          "sources": [
-            "base",
-            "block"
-          ]
-        },
-        {
-          "line": "^https?:\\/\\/static\\.95508\\.com\\/icppweb\\/images\\/modelMaterial\\/(advertising|accurate)\\/202\\d{5}\\/.*.(?:png|jpg) reject-200",
+          "line": "^https?:\\/\\/[\\d\\.]+\\/odin\\/c\\d\\/(channel\\/ads|skin\\/config)\\? reject-dict",
           "section": "rewrite",
           "sources": [
             "base"
           ]
         },
         {
-          "line": "request if ${url} ~= /^https?:\\/\\/ads\\.iconntech\\.com\\/resource-delivery\\/*\\/.*.(jpg|png)/ then reject(200)",
-          "section": "rewrite",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "request if ${url} ~= /^https?:\\/\\/img\\.admobile\\.top\\/admobile-adRequest\\/.*.(jpg|png)/ then reject(200)",
-          "section": "rewrite",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "request if ${url} ~= /^https?:\\/\\/img\\.gdoil\\.cn\\/upload\\/ad\\/.*.(jpg|png)/ then reject(200)",
-          "section": "rewrite",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "request if ${url} ~= /^https?:\\/\\/img\\.wukongtv\\.com\\/wkremote\\/AD\\/iOS\\/.*.(jpg|png|jpeg)/ then reject(200)",
-          "section": "rewrite",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "request if ${url} ~= /^https?:\\/\\/static\\.95508\\.com\\/icppweb\\/images\\/modelMaterial\\/accurate\\/202\\d{5}\\/.*.(png|jpg)/ then reject(200)",
-          "section": "rewrite",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "request if ${url} ~= /^https?:\\/\\/static\\.95508\\.com\\/icppweb\\/images\\/modelMaterial\\/advertising\\/202\\d{5}\\/.*.(png|jpg)/ then reject(200)",
+          "line": "request if ${url} ~= /^https?:\\/\\/[\\d\\.]+\\/odin\\/c1\\/(channel\\/ads|skin\\/config)\\?/ then reject_dict(200)",
           "section": "rewrite",
           "sources": [
             "block"
@@ -277,8 +175,8 @@
   "summary": {
     "rewrite": {
       "action_changed": 0,
-      "added": 9,
-      "removed": 9
+      "added": 2,
+      "removed": 2
     },
     "rule": {
       "action_changed": 0,
@@ -290,7 +188,7 @@
       "added": 0,
       "removed": 0
     },
-    "total_changes": 18
+    "total_changes": 4
   },
   "upstream_revision_changes": []
 }
