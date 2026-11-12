@@ -76,7 +76,7 @@ class MergeIntegrationTests(unittest.TestCase):
             "[Rewrite]\n"
             + 'request if @@URL@@ ~= /^https?:\/\/[\d\.]+\/odin\/c1\/(channel\/ads|skin\/config)\?/ then reject_dict(200)'
             + "\n[Script]\n[MITM]\nhostname = \n"
-        ).replace("@@URL@@", "$" + "{url}")
+        ).replace("@@URL@@", chr(36) + "{url}")
         output, provenance = self.run_merge(base, extra, return_provenance=True)
         lines = [line for line in output.splitlines() if "odin" in line]
         self.assertEqual(len(lines), 2)
