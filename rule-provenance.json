@@ -313,6 +313,22 @@
       "output_line": "request if ${url} ~= /^https?:\\/\\/js-ad\\.ayximgs\\.com\\.ad-universe-cdn\\.hzhcbkj\\.cn\\/xgapp\\.php\\/v2\\/top_notice(?:\\?|$|\\/)/ then reject(404)"
     },
     {
+      "source": "blockAdsV2",
+      "section": "Rewrite",
+      "target": "大师兄 version 接口路径边界",
+      "reason": "Keep the upstream-declared sdk.alibaba.com.ailbaba.me host, version endpoint and reject(200) action, while requiring a query, slash, or URL end after the version path segment to avoid matching similarly prefixed paths.",
+      "original_line": "request if ${url} ~= /^https?:\\/\\/sdk\\.alibaba\\.com\\.ailbaba\\.me\\/xgapp\\.php\\/v\\d\\/version/ then reject(200)",
+      "output_line": "request if ${url} ~= /^https?:\\/\\/sdk\\.alibaba\\.com\\.ailbaba\\.me\\/xgapp\\.php\\/v\\d\\/version(?:\\?|$|\\/)/ then reject(200)"
+    },
+    {
+      "source": "blockAdsV2",
+      "section": "Rewrite",
+      "target": "大师兄 version 接口路径边界",
+      "reason": "Keep the upstream-declared sdk.alibaba.com.ailbaba.me host, version endpoint and reject(200) action, while requiring a query, slash, or URL end after the version path segment to avoid matching similarly prefixed paths.",
+      "original_line": "request if ${url} ~= /^https?:\\/\\/sdk\\.alibaba\\.com\\.ailbaba\\.me\\/(dsx|xgapp)\\.php\\/v\\d\\/(top_notice\\?|version|advert\\?position=[^2]+)/ then reject(200)",
+      "output_line": "request if ${url} ~= /^https?:\\/\\/sdk\\.alibaba\\.com\\.ailbaba\\.me\\/(dsx|xgapp)\\.php\\/v\\d\\/(top_notice\\?|version(?:\\?|$|\\/)|advert\\?position=[^2]+)/ then reject(200)"
+    },
+    {
       "source": "base",
       "section": "Rewrite",
       "target": "CSDN app_open_screen_ad 接口路径边界",
@@ -37490,15 +37506,15 @@
     {
       "section": "Rewrite",
       "output_entry_index": 1909,
-      "output_line": "request if ${url} ~= /^https?:\\/\\/sdk\\.alibaba\\.com\\.ailbaba\\.me\\/xgapp\\.php\\/v\\d\\/version/ then reject(200)",
-      "canonical_key": "('guarded', '^https?://sdk\\\\.alibaba\\\\.com\\\\.ailbaba\\\\.me/xgapp\\\\.php/v\\\\d/version', ('REJECT', 'reject', 'reject(200)'))",
+      "output_line": "request if ${url} ~= /^https?:\\/\\/sdk\\.alibaba\\.com\\.ailbaba\\.me\\/xgapp\\.php\\/v\\d\\/version(?:\\?|$|\\/)/ then reject(200)",
+      "canonical_key": "('guarded', '^https?://sdk\\\\.alibaba\\\\.com\\\\.ailbaba\\\\.me/xgapp\\\\.php/v\\\\d/version(?:\\\\?|$|/)', ('REJECT', 'reject', 'reject(200)'))",
       "sources": [
         {
           "source": "block",
           "priority": 5,
           "source_entry_index": 202,
           "input_section": "Rewrite",
-          "input_line": "request if ${url} ~= /^https?:\\/\\/sdk\\.alibaba\\.com\\.ailbaba\\.me\\/xgapp\\.php\\/v\\d\\/version/ then reject(200)",
+          "input_line": "request if ${url} ~= /^https?:\\/\\/sdk\\.alibaba\\.com\\.ailbaba\\.me\\/xgapp\\.php\\/v\\d\\/version(?:\\?|$|\\/)/ then reject(200)",
           "disposition": "selected"
         }
       ],
@@ -37541,15 +37557,15 @@
     {
       "section": "Rewrite",
       "output_entry_index": 1912,
-      "output_line": "request if ${url} ~= /^https?:\\/\\/sdk\\.alibaba\\.com\\.ailbaba\\.me\\/(dsx|xgapp)\\.php\\/v\\d\\/(top_notice\\?|version|advert\\?position=[^2]+)/ then reject(200)",
-      "canonical_key": "('guarded', '^https?://sdk\\\\.alibaba\\\\.com\\\\.ailbaba\\\\.me/(dsx|xgapp)\\\\.php/v\\\\d/(top_notice\\\\?|version|advert\\\\?position=[^2]+)', ('REJECT', 'reject', 'reject(200)'))",
+      "output_line": "request if ${url} ~= /^https?:\\/\\/sdk\\.alibaba\\.com\\.ailbaba\\.me\\/(dsx|xgapp)\\.php\\/v\\d\\/(top_notice\\?|version(?:\\?|$|\\/)|advert\\?position=[^2]+)/ then reject(200)",
+      "canonical_key": "('guarded', '^https?://sdk\\\\.alibaba\\\\.com\\\\.ailbaba\\\\.me/(dsx|xgapp)\\\\.php/v\\\\d/(top_notice\\\\?|version(?:\\\\?|$|/)|advert\\\\?position=[^2]+)', ('REJECT', 'reject', 'reject(200)'))",
       "sources": [
         {
           "source": "block",
           "priority": 5,
           "source_entry_index": 205,
           "input_section": "Rewrite",
-          "input_line": "request if ${url} ~= /^https?:\\/\\/sdk\\.alibaba\\.com\\.ailbaba\\.me\\/(dsx|xgapp)\\.php\\/v\\d\\/(top_notice\\?|version|advert\\?position=[^2]+)/ then reject(200)",
+          "input_line": "request if ${url} ~= /^https?:\\/\\/sdk\\.alibaba\\.com\\.ailbaba\\.me\\/(dsx|xgapp)\\.php\\/v\\d\\/(top_notice\\?|version(?:\\?|$|\\/)|advert\\?position=[^2]+)/ then reject(200)",
           "disposition": "selected"
         }
       ],

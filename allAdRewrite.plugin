@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-12 08:37 UTC
+#!merged-at=2026-11-12 08:49 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -5508,10 +5508,10 @@ request if ${url} ~= /^https?:\/\/delivery-api\.imdada\.cn\/v1_0\/transporter\/s
 request if ${url} ~= /^https?:\/\/delivery-api\.imdada\.cn\/v1_0\/transporter\/ad/ then reject_dict(200)
 request if ${url} ~= /^https:\/\/se-api\.djiits\.com\/api\/components\/launch_ad\.json\?abbrv_url=1&country=cn&language=zh-CN/ then reject_dict(200)
 request if ${url} ~= /^https?:\/\/acs\.m\.taobao\.com\/gw\/mtop\.damai\.wireless\.home\.welcome/ then reject(200)
-request if ${url} ~= /^https?:\/\/sdk\.alibaba\.com\.ailbaba\.me\/xgapp\.php\/v\d\/version/ then reject(200)
+request if ${url} ~= /^https?:\/\/sdk\.alibaba\.com\.ailbaba\.me\/xgapp\.php\/v\d\/version(?:\?|$|\/)/ then reject(200)
 request if ${url} ~= /^https?:\/\/sdk\.alibaba\.com\.ailbaba\.me\/xgapp\.php\/v\d\/advert\?position=[^2]+/ then reject(200)
 request if ${url} ~= /^https?:\/\/sdk\.alibaba\.com\.ailbaba\.me\/xgapp\.php\/v\d\/top_notice\?/ then reject(200)
-request if ${url} ~= /^https?:\/\/sdk\.alibaba\.com\.ailbaba\.me\/(dsx|xgapp)\.php\/v\d\/(top_notice\?|version|advert\?position=[^2]+)/ then reject(200)
+request if ${url} ~= /^https?:\/\/sdk\.alibaba\.com\.ailbaba\.me\/(dsx|xgapp)\.php\/v\d\/(top_notice\?|version(?:\?|$|\/)|advert\?position=[^2]+)/ then reject(200)
 response if ${url} ~= /^https?:\/\/adservice\.sigmob\.cn\/extconfig/ then response.body.replace(/false/, "true")
 request if ${url} ~= /^https?:\/\/103\.37\.155\.60\/fetch -/ then reject(404)
 request if ${url} ~= /^https?:\/\/catdot\.dianping\.com\/broker-service\/hijack -/ then reject(404)
