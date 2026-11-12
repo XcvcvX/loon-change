@@ -770,7 +770,9 @@ def audit_deep(path):
                           'action': action, 'reasons': reasons, 'scope': scope})
     overlap_report = audit_rewrite_overlaps(rewrite)
 
-    duplicates, conflicts, exact_action_duplicates, cross_family_conflicts = [], [], [], []
+    duplicates, conflicts, exact_action_duplicates = [], [], []
+    block_action_variant_groups, same_family_multi_operation_groups = [], []
+    cross_layer_composable_groups, cross_family_conflicts, unclassified_multi_action_groups = [], [], []
     for (phase, matcher), entries in sorted(groups.items()):
         action_counts = Counter(x['action'] for x in entries)
         actions = sorted(action_counts)
@@ -804,15 +806,37 @@ def audit_deep(path):
                 'lines': [x['line'] for x in entries]
             })
         if len(actions) > 1:
-            conflicts.append({
+            group = {
                 'phase': phase, 'pattern': matcher, 'actions': actions,
                 'lines': [x['line'] for x in entries], 'entries': detail,
                 'action_families': families
-            })
-            if len(families) > 1:
+            }
+            conflicts.append(group)
+            operations = {operation for entry in detail for operation in entry['operations']}
+            if families == ['block']:
+                block_action_variant_groups.append({
+                    **group, 'classification': 'blocking_action_variant_review'
+                })
+            elif families == ['response_json_rewrite']:
+                same_family_multi_operation_groups.append({
+                    **group, 'classification': 'same_layer_order_sensitive_review'
+                })
+            elif (
+                families == ['header_rewrite', 'response_json_rewrite']
+                and operations == {'response-body-json-jq', 'response-header-del'}
+            ):
+                cross_layer_composable_groups.append({
+                    **group,
+                    'classification': 'complementary_response_body_and_header',
+                    'reason': '同一响应匹配器分别修改 JSON 正文与响应头，属于不同响应层操作；审计不将其判定为互斥冲突。'
+                })
+            elif len(families) > 1:
                 cross_family_conflicts.append({
-                    'phase': phase, 'pattern': matcher, 'actions': actions,
-                    'lines': [x['line'] for x in entries], 'action_families': families
+                    **group, 'classification': 'cross_family_conflict_review'
+                })
+            else:
+                unclassified_multi_action_groups.append({
+                    **group, 'classification': 'unclassified_multi_action_review'
                 })
 
     positive, negative = set(), []
@@ -872,7 +896,11 @@ def audit_deep(path):
             'rewrite_duplicate_matcher_groups': len(duplicates),
             'rewrite_action_conflict_groups': len(conflicts),
             'rewrite_exact_duplicate_action_groups': len(exact_action_duplicates),
+            'rewrite_block_action_variant_groups': len(block_action_variant_groups),
+            'rewrite_same_family_multi_operation_groups': len(same_family_multi_operation_groups),
+            'rewrite_cross_layer_composable_groups': len(cross_layer_composable_groups),
             'rewrite_cross_family_conflict_groups': len(cross_family_conflicts),
+            'rewrite_unclassified_multi_action_groups': len(unclassified_multi_action_groups),
             'rewrite_action_family_counts': dict(sorted(action_family_counts.items())),
             'rewrite_action_semantic_review_candidates': len(action_review_candidates),
             'rewrite_unknown_action_candidates': len(unknown_action_candidates),
@@ -899,7 +927,11 @@ def audit_deep(path):
         'rewrite_duplicate_matcher_groups': duplicates,
         'rewrite_action_conflict_groups': conflicts,
         'rewrite_exact_duplicate_action_groups': exact_action_duplicates,
+        'rewrite_block_action_variant_groups': block_action_variant_groups,
+        'rewrite_same_family_multi_operation_groups': same_family_multi_operation_groups,
+        'rewrite_cross_layer_composable_groups': cross_layer_composable_groups,
         'rewrite_cross_family_conflict_groups': cross_family_conflicts,
+        'rewrite_unclassified_multi_action_groups': unclassified_multi_action_groups,
         'rewrite_action_semantic_review_candidates': action_review_candidates,
         'rewrite_unknown_action_candidates': unknown_action_candidates,
         'rewrite_overlap_candidate_groups': overlap_report['rewrite_overlap_candidate_groups'],
@@ -933,6 +965,7 @@ def audit_deep(path):
         'safety_notes': [
             '本报告只读，不会删除、改写或禁用任何规则。',
             '宽泛正则、同匹配器多动作和未发现字面守卫均为人工复核候选，不等于错误。',
+            '同匹配器多动作可能是互斥动作、同层顺序处理或正文/响应头互补操作；分类仅用于缩小复核范围，不推断 Loon 执行顺序，也不自动删除规则。',
             'MITM 可能由复杂正则、变量或间接脚本引用；未发现字面域名不代表无用。',
             'MITM 必要性分级只区分证据强弱；未发现字面引用不等于冗余，绝不自动删除或补入 hostname。',
             '证书绑定/已知不兼容域由共享 MITM 跳过策略标记为 intentional skip，不应作为漏配直接补入。',
@@ -951,7 +984,11 @@ def render_markdown(report):
         'rewrite_duplicate_matcher_groups':'重复匹配器组',
         'rewrite_action_conflict_groups':'同匹配器多操作组',
         'rewrite_exact_duplicate_action_groups':'同匹配器完全重复动作组',
-        'rewrite_cross_family_conflict_groups':'同匹配器跨动作类别冲突组',
+        'rewrite_block_action_variant_groups':'同匹配器拦截动作变体组',
+        'rewrite_same_family_multi_operation_groups':'同动作类别多操作复核组',
+        'rewrite_cross_layer_composable_groups':'响应正文与响应头互补操作组',
+        'rewrite_cross_family_conflict_groups':'同匹配器跨动作类别潜在冲突组',
+        'rewrite_unclassified_multi_action_groups':'未分类多动作复核组',
         'rewrite_action_semantic_review_candidates':'动作语义复核候选',
         'rewrite_unknown_action_candidates':'未分类动作候选',
         'rewrite_overlap_candidate_groups':'交叉命中候选组',
@@ -987,7 +1024,12 @@ def render_markdown(report):
         lines.append('| %s | %s |' % (label, report['summary'][key]))
     for key, title in [
         ('rewrite_broad_candidates','宽泛 Rewrite 候选'),
-        ('rewrite_action_conflict_groups','同匹配器多动作候选'),
+        ('rewrite_action_conflict_groups','同匹配器多动作复核候选（包含互补操作，不等同真实冲突）'),
+        ('rewrite_block_action_variant_groups','同匹配器拦截动作变体复核'),
+        ('rewrite_same_family_multi_operation_groups','同动作类别多操作复核'),
+        ('rewrite_cross_layer_composable_groups','响应正文与响应头互补操作'),
+        ('rewrite_cross_family_conflict_groups','跨动作类别潜在冲突'),
+        ('rewrite_unclassified_multi_action_groups','未分类多动作复核'),
         ('rewrite_action_semantic_review_candidates','Rewrite 动作语义复核候选'),
         ('rewrite_unknown_action_candidates','未分类 Rewrite 动作候选'),
         ('rewrite_overlap_candidate_groups','Rewrite 样本交叉命中候选'),
