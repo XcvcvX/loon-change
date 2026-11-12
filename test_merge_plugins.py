@@ -448,19 +448,19 @@ hostname = *.amap.com
 
     def test_targeted_ad_matchers_escape_literal_hostname_dots(self):
         block = (
-            "[Rewrite]\\n"
-            + r"request if ${url} ~= /http:\\/\\/dili.sqcosmos.com\\/jiekou\\/endpage\\/ad/ then reject_dict(200)" + "\\n"
-            + r"request if ${url} ~= /https:\\/\\/ios.sspai.com\\/api\\/v3\\/recommend\\/page\\/get\\?ad.*ios_home_modal/ then reject(404)" + "\\n"
-            + "[MITM]\\nhostname = dili.sqcosmos.com, ios.sspai.com\\n"
+            "[Rewrite]\n"
+            + r"request if ${url} ~= /http:\/\/dili.sqcosmos.com\/jiekou\/endpage\/ad/ then reject_dict(200)" + "\n"
+            + r"request if ${url} ~= /https:\/\/ios.sspai.com\/api\/v3\/recommend\/page\/get\?ad.*ios_home_modal/ then reject(404)" + "\n"
+            + "[MITM]\nhostname = dili.sqcosmos.com, ios.sspai.com\n"
         )
-        empty = "[Rewrite]\\n[MITM]\\nhostname = \\n"
+        empty = "[Rewrite]\n[MITM]\nhostname = \n"
         output, report = self.run_merge(empty, block, return_provenance=True)
         rules = [line for line in output.splitlines()
                  if "dili.sqcosmos.com" in line or "ios.sspai.com" in line]
         self.assertEqual(len(rules), 2, repr(rules))
         for rule in rules:
-            self.assertIn(r"\\.", rule)
-            matcher = re.search(r"~= /(.*)/ then ", rule).group(1).replace(r"\\/", "/")
+            self.assertIn(r"\.", rule)
+            matcher = re.search(r"~= /(.*)/ then ", rule).group(1).replace(r"\/", "/")
             if "dili" in rule:
                 self.assertRegex("http://dili.sqcosmos.com/jiekou/endpage/ad", matcher)
                 self.assertNotRegex("http://diliXsqcosmosYcom/jiekou/endpage/ad", matcher)
