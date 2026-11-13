@@ -130,29 +130,14 @@
       "action_changed": [],
       "added": [
         {
-          "line": "^https?:\\/\\/\\w+\\.eastmoney\\.com\\/ads\\/ reject-dict",
-          "section": "rewrite",
-          "sources": [
-            "base"
-          ]
-        },
-        {
-          "line": "^https?:\\/\\/\\w+\\.eastmoney\\.com\\/busservice\\/api\\/api\\/Config\\/GetUpNoticeInfo reject-dict",
+          "line": "request if ${url} ~= /^https?:\\/\\/.*\\/yyting\\/advertclient\\/ClientAdvertList.action/ then reject(404)",
           "section": "rewrite",
           "sources": [
             "base"
           ]
         }
       ],
-      "removed": [
-        {
-          "line": "^https?:\\/\\/choicegw\\.eastmoney\\.com\\/ads\\/ reject-dict",
-          "section": "rewrite",
-          "sources": [
-            "base"
-          ]
-        }
-      ]
+      "removed": []
     },
     "rule": {
       "action_changed": [],
@@ -160,7 +145,178 @@
       "removed": []
     },
     "script": {
-      "action_changed": [],
+      "action_changed": [
+        {
+          "after": {
+            "line": "http-request ^https?:\\/\\/\\w+\\.umetrip\\.com(\\.cn){0,1}\\/gateway\\/api\\/umetrip\\/native script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/umetrip.js,tag=UMETRIP",
+            "section": "script",
+            "sources": [
+              "base"
+            ]
+          },
+          "before": {
+            "line": "http-request ^https?:\\/\\/\\w+\\.umetrip\\.com(\\.cn){0,1}\\/gateway\\/api\\/umetrip\\/native script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/umetrip.js,tag=UMETRIP,requires-body=true",
+            "section": "script",
+            "sources": [
+              "base"
+            ]
+          },
+          "section": "script"
+        },
+        {
+          "after": {
+            "line": "http-request ^https?:\\/\\/autoload\\.bank\\.ecitic\\.com\\/imcslego\\/cloud\\/\\w+\\.jpg\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ecitic.js,tag=ECITIC",
+            "section": "script",
+            "sources": [
+              "base"
+            ]
+          },
+          "before": {
+            "line": "http-request ^https?:\\/\\/autoload\\.bank\\.ecitic\\.com\\/imcslego\\/cloud\\/\\w+\\.jpg\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ecitic.js,tag=ECITIC,requires-body=true",
+            "section": "script",
+            "sources": [
+              "base"
+            ]
+          },
+          "section": "script"
+        },
+        {
+          "after": {
+            "line": "http-request ^https?:\\/\\/m2\\.cmbwinglungbank\\.com(:\\d+)?\\/mgw script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=CMBWL",
+            "section": "script",
+            "sources": [
+              "base"
+            ]
+          },
+          "before": {
+            "line": "http-request ^https?:\\/\\/m2\\.cmbwinglungbank\\.com(:\\d+)?\\/mgw script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=CMBWL,requires-body=true",
+            "section": "script",
+            "sources": [
+              "base"
+            ]
+          },
+          "section": "script"
+        },
+        {
+          "after": {
+            "line": "http-response ^https?:\\/\\/8\\.95508\\.com\\/creditbank\\/mgs\\/mgw\\.htm$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=95508",
+            "section": "script",
+            "sources": [
+              "base"
+            ]
+          },
+          "before": {
+            "line": "http-response ^https?:\\/\\/8\\.95508\\.com\\/creditbank\\/mgs\\/mgw\\.htm$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=95508,requires-body=true",
+            "section": "script",
+            "sources": [
+              "base"
+            ]
+          },
+          "section": "script"
+        },
+        {
+          "after": {
+            "line": "http-response ^https?:\\/\\/amdc\\.m\\.taobao\\.com\\/amdc\\/mobileDispatch$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amdc.js,tag=ALIBABA",
+            "section": "script",
+            "sources": [
+              "base"
+            ]
+          },
+          "before": {
+            "line": "http-response ^https?:\\/\\/amdc\\.m\\.taobao\\.com\\/amdc\\/mobileDispatch$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amdc.js,tag=ALIBABA,requires-body=true",
+            "section": "script",
+            "sources": [
+              "base"
+            ]
+          },
+          "section": "script"
+        },
+        {
+          "after": {
+            "line": "http-response ^https?:\\/\\/m\\.airchina\\.com\\.cn\\/airchina\\/gateway\\/v\\d(\\.\\d)*\\/api\\/services script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/airchina.js,tag=AIRCHINA",
+            "section": "script",
+            "sources": [
+              "base"
+            ]
+          },
+          "before": {
+            "line": "http-response ^https?:\\/\\/m\\.airchina\\.com\\.cn\\/airchina\\/gateway\\/v\\d(\\.\\d)*\\/api\\/services script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/airchina.js,tag=AIRCHINA,requires-body=true",
+            "section": "script",
+            "sources": [
+              "base"
+            ]
+          },
+          "section": "script"
+        },
+        {
+          "after": {
+            "line": "http-response ^https?:\\/\\/mgs1\\.bosc\\.cn(:\\d+)?\\/mgw script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=BOSCLIFE",
+            "section": "script",
+            "sources": [
+              "base"
+            ]
+          },
+          "before": {
+            "line": "http-response ^https?:\\/\\/mgs1\\.bosc\\.cn(:\\d+)?\\/mgw script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=BOSCLIFE,requires-body=true",
+            "section": "script",
+            "sources": [
+              "base"
+            ]
+          },
+          "section": "script"
+        },
+        {
+          "after": {
+            "line": "http-response ^https?:\\/\\/mobile\\.12306\\.cn\\/otsmobile\\/app\\/mgs\\/mgw\\.htm$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=12306",
+            "section": "script",
+            "sources": [
+              "base"
+            ]
+          },
+          "before": {
+            "line": "http-response ^https?:\\/\\/mobile\\.12306\\.cn\\/otsmobile\\/app\\/mgs\\/mgw\\.htm$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=12306,requires-body=true",
+            "section": "script",
+            "sources": [
+              "base"
+            ]
+          },
+          "section": "script"
+        },
+        {
+          "after": {
+            "line": "http-response ^https?:\\/\\/pmbservice\\.bosc\\.cn:\\d+\\/mgw script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=BOSC",
+            "section": "script",
+            "sources": [
+              "base"
+            ]
+          },
+          "before": {
+            "line": "http-response ^https?:\\/\\/pmbservice\\.bosc\\.cn:\\d+\\/mgw script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=BOSC,requires-body=true",
+            "section": "script",
+            "sources": [
+              "base"
+            ]
+          },
+          "section": "script"
+        },
+        {
+          "after": {
+            "line": "http-response ^https?:\\/\\/sec\\.sginput\\.qq\\.com\\/q script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/sougou.js,tag=SOGOU",
+            "section": "script",
+            "sources": [
+              "base"
+            ]
+          },
+          "before": {
+            "line": "http-response ^https?:\\/\\/sec\\.sginput\\.qq\\.com\\/q script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/sougou.js,tag=SOGOU,requires-body=true",
+            "section": "script",
+            "sources": [
+              "base"
+            ]
+          },
+          "section": "script"
+        }
+      ],
       "added": [],
       "removed": []
     }
@@ -168,8 +324,8 @@
   "summary": {
     "rewrite": {
       "action_changed": 0,
-      "added": 2,
-      "removed": 1
+      "added": 1,
+      "removed": 0
     },
     "rule": {
       "action_changed": 0,
@@ -177,11 +333,11 @@
       "removed": 0
     },
     "script": {
-      "action_changed": 0,
+      "action_changed": 10,
       "added": 0,
       "removed": 0
     },
-    "total_changes": 3
+    "total_changes": 11
   },
   "upstream_revision_changes": []
 }

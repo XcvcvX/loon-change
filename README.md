@@ -47,9 +47,9 @@
 |---|---:|
 | [Argument] | 91 |
 | [Rule] | 3475 |
-| [Rewrite] | 3297 |
+| [Rewrite] | 3305 |
 | [Script] | 623 |
-| [MITM] hostname 条目 | 1482 |
+| [MITM] hostname 条目 | 1495 |
 | 唯一远程脚本 URL | 204 |
 <!-- AUTO_PLUGIN_STATS:END -->
 

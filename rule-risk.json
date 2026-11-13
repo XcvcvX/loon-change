@@ -2,8 +2,8 @@
   "change_counts": {
     "rewrite": {
       "action_changed": 0,
-      "added": 2,
-      "removed": 1
+      "added": 1,
+      "removed": 0
     },
     "rule": {
       "action_changed": 0,
@@ -11,7 +11,7 @@
       "removed": 0
     },
     "script": {
-      "action_changed": 0,
+      "action_changed": 10,
       "added": 0,
       "removed": 0
     }
@@ -19,7 +19,7 @@
   "events": [
     {
       "after": {
-        "line": "^https?:\\/\\/\\w+\\.eastmoney\\.com\\/ads\\/ reject-dict",
+        "line": "request if ${url} ~= /^https?:\\/\\/.*\\/yyting\\/advertclient\\/ClientAdvertList.action/ then reject(404)",
         "section": "rewrite",
         "sources": [
           "base"
@@ -40,17 +40,23 @@
     },
     {
       "after": {
-        "line": "^https?:\\/\\/\\w+\\.eastmoney\\.com\\/busservice\\/api\\/api\\/Config\\/GetUpNoticeInfo reject-dict",
-        "section": "rewrite",
+        "line": "http-request ^https?:\\/\\/\\w+\\.umetrip\\.com(\\.cn){0,1}\\/gateway\\/api\\/umetrip\\/native script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/umetrip.js,tag=UMETRIP",
+        "section": "script",
         "sources": [
           "base"
         ]
       },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "rewrite",
+      "before": {
+        "line": "http-request ^https?:\\/\\/\\w+\\.umetrip\\.com(\\.cn){0,1}\\/gateway\\/api\\/umetrip\\/native script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/umetrip.js,tag=UMETRIP,requires-body=true",
+        "section": "script",
+        "sources": [
+          "base"
+        ]
+      },
+      "change_type": "action_changed",
+      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "risk": "high",
+      "section": "script",
       "semantic_duplicate_coverage": null,
       "source_scores": {
         "base": 0
@@ -60,18 +66,240 @@
       ]
     },
     {
-      "after": null,
-      "before": {
-        "line": "^https?:\\/\\/choicegw\\.eastmoney\\.com\\/ads\\/ reject-dict",
-        "section": "rewrite",
+      "after": {
+        "line": "http-request ^https?:\\/\\/autoload\\.bank\\.ecitic\\.com\\/imcslego\\/cloud\\/\\w+\\.jpg\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ecitic.js,tag=ECITIC",
+        "section": "script",
         "sources": [
           "base"
         ]
       },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "before": {
+        "line": "http-request ^https?:\\/\\/autoload\\.bank\\.ecitic\\.com\\/imcslego\\/cloud\\/\\w+\\.jpg\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ecitic.js,tag=ECITIC,requires-body=true",
+        "section": "script",
+        "sources": [
+          "base"
+        ]
+      },
+      "change_type": "action_changed",
+      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
       "risk": "high",
-      "section": "rewrite",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "base": 0
+      },
+      "sources": [
+        "base"
+      ]
+    },
+    {
+      "after": {
+        "line": "http-request ^https?:\\/\\/m2\\.cmbwinglungbank\\.com(:\\d+)?\\/mgw script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=CMBWL",
+        "section": "script",
+        "sources": [
+          "base"
+        ]
+      },
+      "before": {
+        "line": "http-request ^https?:\\/\\/m2\\.cmbwinglungbank\\.com(:\\d+)?\\/mgw script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=CMBWL,requires-body=true",
+        "section": "script",
+        "sources": [
+          "base"
+        ]
+      },
+      "change_type": "action_changed",
+      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "base": 0
+      },
+      "sources": [
+        "base"
+      ]
+    },
+    {
+      "after": {
+        "line": "http-response ^https?:\\/\\/8\\.95508\\.com\\/creditbank\\/mgs\\/mgw\\.htm$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=95508",
+        "section": "script",
+        "sources": [
+          "base"
+        ]
+      },
+      "before": {
+        "line": "http-response ^https?:\\/\\/8\\.95508\\.com\\/creditbank\\/mgs\\/mgw\\.htm$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=95508,requires-body=true",
+        "section": "script",
+        "sources": [
+          "base"
+        ]
+      },
+      "change_type": "action_changed",
+      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "base": 0
+      },
+      "sources": [
+        "base"
+      ]
+    },
+    {
+      "after": {
+        "line": "http-response ^https?:\\/\\/amdc\\.m\\.taobao\\.com\\/amdc\\/mobileDispatch$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amdc.js,tag=ALIBABA",
+        "section": "script",
+        "sources": [
+          "base"
+        ]
+      },
+      "before": {
+        "line": "http-response ^https?:\\/\\/amdc\\.m\\.taobao\\.com\\/amdc\\/mobileDispatch$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amdc.js,tag=ALIBABA,requires-body=true",
+        "section": "script",
+        "sources": [
+          "base"
+        ]
+      },
+      "change_type": "action_changed",
+      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "base": 0
+      },
+      "sources": [
+        "base"
+      ]
+    },
+    {
+      "after": {
+        "line": "http-response ^https?:\\/\\/m\\.airchina\\.com\\.cn\\/airchina\\/gateway\\/v\\d(\\.\\d)*\\/api\\/services script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/airchina.js,tag=AIRCHINA",
+        "section": "script",
+        "sources": [
+          "base"
+        ]
+      },
+      "before": {
+        "line": "http-response ^https?:\\/\\/m\\.airchina\\.com\\.cn\\/airchina\\/gateway\\/v\\d(\\.\\d)*\\/api\\/services script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/airchina.js,tag=AIRCHINA,requires-body=true",
+        "section": "script",
+        "sources": [
+          "base"
+        ]
+      },
+      "change_type": "action_changed",
+      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "base": 0
+      },
+      "sources": [
+        "base"
+      ]
+    },
+    {
+      "after": {
+        "line": "http-response ^https?:\\/\\/mgs1\\.bosc\\.cn(:\\d+)?\\/mgw script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=BOSCLIFE",
+        "section": "script",
+        "sources": [
+          "base"
+        ]
+      },
+      "before": {
+        "line": "http-response ^https?:\\/\\/mgs1\\.bosc\\.cn(:\\d+)?\\/mgw script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=BOSCLIFE,requires-body=true",
+        "section": "script",
+        "sources": [
+          "base"
+        ]
+      },
+      "change_type": "action_changed",
+      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "base": 0
+      },
+      "sources": [
+        "base"
+      ]
+    },
+    {
+      "after": {
+        "line": "http-response ^https?:\\/\\/mobile\\.12306\\.cn\\/otsmobile\\/app\\/mgs\\/mgw\\.htm$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=12306",
+        "section": "script",
+        "sources": [
+          "base"
+        ]
+      },
+      "before": {
+        "line": "http-response ^https?:\\/\\/mobile\\.12306\\.cn\\/otsmobile\\/app\\/mgs\\/mgw\\.htm$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=12306,requires-body=true",
+        "section": "script",
+        "sources": [
+          "base"
+        ]
+      },
+      "change_type": "action_changed",
+      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "base": 0
+      },
+      "sources": [
+        "base"
+      ]
+    },
+    {
+      "after": {
+        "line": "http-response ^https?:\\/\\/pmbservice\\.bosc\\.cn:\\d+\\/mgw script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=BOSC",
+        "section": "script",
+        "sources": [
+          "base"
+        ]
+      },
+      "before": {
+        "line": "http-response ^https?:\\/\\/pmbservice\\.bosc\\.cn:\\d+\\/mgw script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=BOSC,requires-body=true",
+        "section": "script",
+        "sources": [
+          "base"
+        ]
+      },
+      "change_type": "action_changed",
+      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "base": 0
+      },
+      "sources": [
+        "base"
+      ]
+    },
+    {
+      "after": {
+        "line": "http-response ^https?:\\/\\/sec\\.sginput\\.qq\\.com\\/q script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/sougou.js,tag=SOGOU",
+        "section": "script",
+        "sources": [
+          "base"
+        ]
+      },
+      "before": {
+        "line": "http-response ^https?:\\/\\/sec\\.sginput\\.qq\\.com\\/q script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/sougou.js,tag=SOGOU,requires-body=true",
+        "section": "script",
+        "sources": [
+          "base"
+        ]
+      },
+      "change_type": "action_changed",
+      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "risk": "high",
+      "section": "script",
       "semantic_duplicate_coverage": null,
       "source_scores": {
         "base": 0
@@ -83,11 +311,11 @@
   ],
   "overall_risk": "high",
   "risk_counts": {
-    "high": 1,
+    "high": 10,
     "low": 0,
-    "medium": 2
+    "medium": 1
   },
-  "run_id": "43344673023",
+  "run_id": "43359853448",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -110,16 +338,16 @@
       "snapshots_seen": 2
     },
     "base": {
-      "action_changed": 0,
-      "added": 2,
+      "action_changed": 10,
+      "added": 3,
       "removed": 2,
-      "snapshots_seen": 2
+      "snapshots_seen": 3
     },
     "block": {
       "action_changed": 0,
-      "added": 5,
+      "added": 4,
       "removed": 23,
-      "snapshots_seen": 5
+      "snapshots_seen": 4
     },
     "thelong": {
       "action_changed": 0,
