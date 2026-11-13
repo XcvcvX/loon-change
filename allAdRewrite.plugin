@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、RuCu6 MyBlockAds、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / RuCu6 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-12 23:31 UTC
+#!merged-at=2026-11-13 00:03 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+RuCu6-MyBlockAds+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -6736,7 +6736,7 @@ request if ${url} ~= /^https:\/\/res\.xiaojukeji\.com\/resapi\/activity\/mget\?/
 request if ${url} ~= /^https:\/\/res\.xiaojukeji\.com\/resapi\/activity\/mget$/i then reject_dict(200)
 response if ${url} ~= /^https:\/\/conf\.diditaxi\.com\.cn\/homepage\/v\d\/other\/fast\?/i then response.json.delete(["data.disorder_cards.guess_card", "data.disorder_cards.scene_list_card"])
 response if ${url} ~= /^https:\/\/api\.udache\.com\/gulfstream\/porsche\/v\d\/dache_homepage_layout\?/i then response.json.delete("data.instances.dache_main_core_icon")
-response if ${url} ~= /^https:\/\/api\.udache\.com\/gulfstream\/porsche\/v\d\/dache_homepage_layout\?/i then response.json.jq(".data |= (.instances |= (to_entries | map(select(.key | test(\"feed_back_|dache_main_member|order_container_|dache_main_core_icon|dache_main_card_\"))) | from_entries))")
+response if ${url} ~= /^https:\/\/api\.udache\.com\/gulfstream\/porsche\/v\d\/dache_homepage_layout\?/i then response.json.jq(".data |= (.instances |= (to_entries | map(select(.key | test(\"feed_back_|dache_main_member|order_container_|dache_main_card_\"))) | from_entries))")
 response if ${url} ~= /^https:\/\/api\.udache\.com\/intercity\/ticket\/api\/v\d\/core\/getFullPageInfoLayout\?/i then response.json.jq(".data.disorder_components |= (map(select(.name == \"history_order_card\" or .name == \"inprogress_order_card\" or .name == \"station_calendar\" or .name == \"main_card_v2\" or .name == \"user_history_order\")))")
 request if ${url} ~= /^https:\/\/daijia\.kuaidadi\.com(:443)?\/gateway\?api=prado\.cms\.delivery\.batch/i then reject_dict(200)
 request if ${url} ~= /^https:\/\/daijia\.kuaidadi\.com(:443)?\/gateway\?api=prado\.cms\.AggregateDeliveryRemoteService\.aggregateDelivery/i then reject_dict(200)
