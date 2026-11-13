@@ -188,15 +188,17 @@ jobs:
           echo "Romeo pinned commit: $ROMEO_SHA"
           wc -c /tmp/amap/*
 
-      - name: 拉取 Spotify 广告规则上游及脚本
+      - name: 从固定 Romeo commit 获取 Spotify 官方插件及四个脚本
         run: |
-          git clone --depth 1 https://github.com/devchristian1337/loon-plugins.git /tmp/spotify-upstream
-          SPOTIFY_SHA="$(git -C /tmp/spotify-upstream rev-parse HEAD)"
-          echo "SPOTIFY_SHA=$SPOTIFY_SHA" >> "$GITHUB_ENV"
-          mkdir -p sources/spotify scripts/spotify
-          cp /tmp/spotify-upstream/Plugins/Spotify.lpx sources/spotify/Spotify.lpx
-          echo "Spotify upstream pinned for this sync: $SPOTIFY_SHA"
-          wc -c sources/spotify/Spotify.lpx /tmp/spotify-upstream/Scripts/Spotify/spot-gabo.js /tmp/spotify-upstream/Scripts/Spotify/spot-NoSearchAd.js /tmp/spotify-upstream/Scripts/Spotify/spot-NoHomeAd.js /tmp/spotify-upstream/Scripts/Spotify/spot-NoScrollAd.js
+          mkdir -p sources/spotify scripts/spotify /tmp/spotify-scripts
+          # 与瓜子影视、高德、MyBlockAds 共用同一 ROMEO_SHA，确保一次同步内来源版本一致。
+          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/devchristian1337/Official/Spotify.lpx" > sources/spotify/Spotify.lpx
+          git -C /tmp/romeo show "$ROMEO_SHA:Modules/JavaScript/devchristian1337/Spotify/devchristian1337_spot-gabo.js" > /tmp/spotify-scripts/spot-gabo.js
+          git -C /tmp/romeo show "$ROMEO_SHA:Modules/JavaScript/devchristian1337/Spotify/devchristian1337_spot-NoSearchAd.js" > /tmp/spotify-scripts/spot-NoSearchAd.js
+          git -C /tmp/romeo show "$ROMEO_SHA:Modules/JavaScript/devchristian1337/Spotify/devchristian1337_spot-NoHomeAd.js" > /tmp/spotify-scripts/spot-NoHomeAd.js
+          git -C /tmp/romeo show "$ROMEO_SHA:Modules/JavaScript/devchristian1337/Spotify/devchristian1337_spot-NoScrollAd.js" > /tmp/spotify-scripts/spot-NoScrollAd.js
+          echo "Spotify upstream: ifflagged/Romeo@$ROMEO_SHA"
+          wc -c sources/spotify/Spotify.lpx /tmp/spotify-scripts/*.js
 
       - name: 校验克隆来源并生成来源报告
         run: |
@@ -224,7 +226,7 @@ jobs:
 
       - name: 提取并整合 Spotify 去广告规则（随上游每日更新）
         run: |
-          python3 integrate_spotify.py --plugin /tmp/loon-build/allAdRewrite.plugin --source-plugin sources/spotify/Spotify.lpx --scripts-source /tmp/spotify-upstream/Scripts/Spotify --scripts-dest scripts/spotify --upstream-commit "$SPOTIFY_SHA" --metadata sources/spotify/upstream.json
+          python3 integrate_spotify.py --plugin /tmp/loon-build/allAdRewrite.plugin --source-plugin sources/spotify/Spotify.lpx --scripts-source /tmp/spotify-scripts --scripts-dest scripts/spotify --upstream-commit "$SPOTIFY_SHA" --metadata sources/spotify/upstream.json
 
       - name: 应用本地 App 规则覆盖（防止上游合并时丢失）
         run: python3 apply_local_overrides.py --plugin /tmp/loon-build/allAdRewrite.plugin
