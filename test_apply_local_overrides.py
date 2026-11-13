@@ -216,6 +216,35 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
             self.assertEqual(removed, 0)
             self.assertEqual(result, list(fixture))
 
+    def test_merges_didi_fast_homepage_json_deletes_without_losing_paths(self):
+        from apply_local_overrides import (
+            DIDI_FAST_HOME_DELETE_FIRST, DIDI_FAST_HOME_DELETE_SECOND,
+            merge_didi_fast_homepage_json_deletes,
+        )
+        result, count = merge_didi_fast_homepage_json_deletes([
+            DIDI_FAST_HOME_DELETE_FIRST,
+            'response if ${url} ~= /^https:\\/\\/other\\.example\\/x/i then response.json.delete("data.other")',
+            DIDI_FAST_HOME_DELETE_SECOND,
+        ])
+        self.assertEqual(count, 1)
+        self.assertEqual(len(result), 2)
+        self.assertIn("data.disorder_cards.communicate_card", result[0])
+        self.assertIn("data.disorder_cards.guess_card", result[0])
+        self.assertIn("data.disorder_cards.scene_list_card", result[0])
+        self.assertEqual(merge_didi_fast_homepage_json_deletes(result)[1], 0)
+
+    def test_preserves_didi_rules_when_order_or_same_matcher_intervening_rule_changes(self):
+        from apply_local_overrides import (
+            DIDI_FAST_HOME_DELETE_FIRST, DIDI_FAST_HOME_DELETE_SECOND,
+            DIDI_FAST_HOME_MATCHER_PREFIX, merge_didi_fast_homepage_json_deletes,
+        )
+        reversed_rules = [DIDI_FAST_HOME_DELETE_SECOND, DIDI_FAST_HOME_DELETE_FIRST]
+        self.assertEqual(merge_didi_fast_homepage_json_deletes(reversed_rules), (reversed_rules, 0))
+        intervening = [DIDI_FAST_HOME_DELETE_FIRST, DIDI_FAST_HOME_MATCHER_PREFIX + 'response.json.delete("data.extra")', DIDI_FAST_HOME_DELETE_SECOND]
+        self.assertEqual(merge_didi_fast_homepage_json_deletes(intervening), (intervening, 0))
+        missing_guard = [DIDI_FAST_HOME_DELETE_SECOND]
+        self.assertEqual(merge_didi_fast_homepage_json_deletes(missing_guard), (missing_guard, 0))
+
     def test_requires_bankcomm_mitm_hosts(self):
         with self.assertRaises(ValueError):
             apply(BASE.replace("creditcard.bankcomm.com, ", ""))
