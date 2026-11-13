@@ -15,6 +15,7 @@ Loon 并不支持，照抄反而会让规则解析失败。这里只加 Loon 官
   python3 convert_filter_qx2loon.py -i local.list
 """
 import argparse, datetime, os, re, sys, urllib.request
+from source_guard import fetch_validated, validate_filter
 
 UPSTREAM = ('https://raw.githubusercontent.com/zirawell/R-Store/main/'
             'Rule/QuanX/Adblock/All/filter/allAdBlock.list')
@@ -76,18 +77,14 @@ def fetch(url, timeout=60):
 
 if args.input:
     raw = open(args.input, encoding='utf-8').read()
+    validate_filter(raw)
 else:
-    raw, last_err = None, None
-    for u in [UPSTREAM] + MIRRORS:
-        try:
-            raw = fetch(u)
-            print('[fetch] 已获取:', u)
-            break
-        except Exception as e:
-            last_err = e
-            print('[fetch] 失败:', u, e, file=sys.stderr)
-    if raw is None:
-        raise SystemExit('上游规则获取失败: %s' % last_err)
+    try:
+        raw, used_url, stats_source = fetch_validated(
+            [UPSTREAM] + MIRRORS, fetch, validate_filter, 'R-Store filter')
+        print('[fetch] 已获取并通过完整性检查:', used_url, stats_source)
+    except Exception as e:
+        raise SystemExit('上游规则获取失败: %s' % e)
 
 
 rules, unknown, stats = [], [], {}
