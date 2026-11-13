@@ -29,7 +29,7 @@ class FilterConverterTests(unittest.TestCase):
             "host-suffix,fixture%02d.example.com,reject" % index
             for index in range(20)
         )
-        source = "\\n".join(source_lines) + "\\n"
+        source = "\n".join(source_lines) + "\n"
 
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
