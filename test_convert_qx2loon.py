@@ -20,7 +20,7 @@ class RewriteConverterTests(unittest.TestCase):
                 % index
             )
         lines.extend(extra_lines)
-        return "\\n".join(lines) + "\\n"
+        return "\n".join(lines) + "\n"
 
     def test_wildcards_are_preserved_and_public_suffix_wildcards_are_dropped(self):
         source = self.valid_source(
