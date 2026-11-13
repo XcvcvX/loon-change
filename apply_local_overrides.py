@@ -149,6 +149,28 @@ def remove_redundant_dache_core_icon_filter(lines):
         output.append(line)
     return output, removed
 
+DIDI_FAST_HOME_DELETE_FIRST = r'response if ${url} ~= /^https:\/\/conf\.diditaxi\.com\.cn\/homepage\/v\d\/other\/fast\?/i then response.json.delete(["data.disorder_cards.communicate_card", "data.disorder_cards.not_login_bottom_bar", "data.disorder_cards.riding_code_card", "data.order_cards", "data.disorder_cards.car_icon.data.icon_info_new_agreement"])'
+DIDI_FAST_HOME_DELETE_SECOND = r'response if ${url} ~= /^https:\/\/conf\.diditaxi\.com\.cn\/homepage\/v\d\/other\/fast\?/i then response.json.delete(["data.disorder_cards.guess_card", "data.disorder_cards.scene_list_card"])'
+DIDI_FAST_HOME_MATCHER_PREFIX = r'response if ${url} ~= /^https:\/\/conf\.diditaxi\.com\.cn\/homepage\/v\d\/other\/fast\?/i then '
+
+def merge_didi_fast_homepage_json_deletes(lines):
+    """Coalesce the two exact Didi homepage delete lists without crossing same-matcher actions."""
+    first_positions = [i for i, line in enumerate(lines) if line.strip() == DIDI_FAST_HOME_DELETE_FIRST]
+    second_positions = [i for i, line in enumerate(lines) if line.strip() == DIDI_FAST_HOME_DELETE_SECOND]
+    if len(first_positions) != 1 or len(second_positions) != 1:
+        return list(lines), 0
+    first, second = first_positions[0], second_positions[0]
+    if first >= second:
+        return list(lines), 0
+    if any(line.strip().startswith(DIDI_FAST_HOME_MATCHER_PREFIX)
+           for line in lines[first + 1:second]):
+        return list(lines), 0
+    merged = r'response if ${url} ~= /^https:\/\/conf\.diditaxi\.com\.cn\/homepage\/v\d\/other\/fast\?/i then response.json.delete(["data.disorder_cards.communicate_card", "data.disorder_cards.not_login_bottom_bar", "data.disorder_cards.riding_code_card", "data.order_cards", "data.disorder_cards.car_icon.data.icon_info_new_agreement", "data.disorder_cards.guess_card", "data.disorder_cards.scene_list_card"])'
+    output = list(lines)
+    output[first] = merged
+    del output[second]
+    return output, 1
+
 def merge_adjacent_response_json_rewrites(lines):
     output, index, merged = [], 0, 0
     while index < len(lines):
@@ -224,6 +246,7 @@ def apply(text: str) -> str:
         if line.startswith("[") and line.endswith("]"):
             if section == "Rewrite":
                 rewrite_lines, _ = remove_redundant_dache_core_icon_filter(rewrite_lines)
+                rewrite_lines, _ = merge_didi_fast_homepage_json_deletes(rewrite_lines)
                 rewrite_lines, _ = merge_adjacent_response_json_rewrites(rewrite_lines)
                 rewrite_lines, _ = remove_subsumed_soul_teenager_rule(rewrite_lines)
                 rewrite_lines, _ = remove_shadowed_peopleapp_rules(rewrite_lines)
@@ -234,6 +257,7 @@ def apply(text: str) -> str:
         else: result_lines.append(line)
     if section == "Rewrite":
         rewrite_lines, _ = remove_redundant_dache_core_icon_filter(rewrite_lines)
+        rewrite_lines, _ = merge_didi_fast_homepage_json_deletes(rewrite_lines)
         rewrite_lines, _ = merge_adjacent_response_json_rewrites(rewrite_lines)
         rewrite_lines, _ = remove_subsumed_soul_teenager_rule(rewrite_lines)
         rewrite_lines, _ = remove_shadowed_peopleapp_rules(rewrite_lines)
