@@ -23,7 +23,7 @@
     "low": 0,
     "medium": 0
   },
-  "run_id": "43333778768",
+  "run_id": "43336333443",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -53,9 +53,9 @@
     },
     "block": {
       "action_changed": 0,
-      "added": 8,
-      "removed": 26,
-      "snapshots_seen": 8
+      "added": 7,
+      "removed": 25,
+      "snapshots_seen": 7
     },
     "thelong": {
       "action_changed": 0,
@@ -64,5 +64,11 @@
       "snapshots_seen": 1
     }
   },
-  "upstream_revision_changes": []
+  "upstream_revision_changes": [
+    {
+      "current_commit": "61ed86d0b14bb5871abb0a078d5725f67e7f15a9",
+      "previous_commit": "ff69bead021d16fd9b107a33b75379fda1472554",
+      "source": "Amap"
+    }
+  ]
 }
