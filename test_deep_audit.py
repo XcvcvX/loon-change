@@ -46,8 +46,8 @@ request if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/ad/ then reject-dict
 
     def test_duplicate_json_delete_paths_are_reported_without_modifying_rules(self):
         fixture = '''[Rewrite]
-response if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/home/ then response.json.delete(["data.ad", "data.banner", "data.ad"])
-response if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/other/ then response.json.delete(["data.one", "data.two"])
+response if ${url} ~= /api.example.com/ then response.json.delete(["data.ad", "data.banner", "data.ad"])
+response if ${url} ~= /api.example.com/ then response.json.delete(["data.one", "data.two"])
 '''
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / 'duplicate-delete-paths.plugin'
@@ -61,8 +61,8 @@ response if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/other/ then response.j
 
     def test_duplicate_delete_path_audit_ignores_single_path_and_non_delete_actions(self):
         fixture = '''[Rewrite]
-response if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/single/ then response.json.delete("data.ad")
-response if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/jq/ then response.json.jq("del(.data.ad)")
+response if ${url} ~= /api.example.com/ then response.json.delete("data.ad")
+response if ${url} ~= /api.example.com/ then response.json.jq("del(.data.ad)")
 '''
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / 'no-duplicate-delete-paths.plugin'
