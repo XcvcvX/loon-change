@@ -774,11 +774,11 @@ def audit_duplicate_json_delete_paths(rewrite_rows):
         phase, matcher, action = parsed
         if phase != 'response':
             continue
-        match = re.search(r'response\\.json\\.delete\\s*\\(\\s*\\[(.*?)\\]\\s*\\)', action)
+        match = re.search(r'response\.json\.delete\s*\(\s*\[(.*?)\]\s*\)', action)
         if not match:
             continue
         try:
-            paths = [json.loads(token) for token in re.findall(r'"(?:\\\\.|[^"\\\\])*"', match.group(1))]
+            paths = [json.loads(token) for token in re.findall(r'"(?:\\.|[^"\\])*"', match.group(1))]
         except (ValueError, TypeError):
             continue
         counts = Counter(paths)
