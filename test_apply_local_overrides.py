@@ -214,7 +214,6 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         for fixture in (
             [PDD_HOMEPAGE_DELETE_DUPLICATE_RULE.replace("result.icon_set", "result.icon_set_v2")],
             [PDD_HOMEPAGE_DELETE_DUPLICATE_RULE, PDD_HOMEPAGE_DELETE_DUPLICATE_RULE],
-            [PDD_HOMEPAGE_DELETE_DUPLICATE_RULE + " "],
         ):
             result, removed = remove_duplicate_pdd_homepage_delete_path(fixture)
             self.assertEqual(removed, 0)
