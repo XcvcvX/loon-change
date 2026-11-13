@@ -1175,7 +1175,7 @@ def render_markdown(report):
     lines += render_automated_diagnostics_handling()
     lines += ['', '| 检查项 | 数量 |', '|---|---:|']
     for key, label in labels.items():
-        lines.append('| %s | %s |' % (label, report['summary'][key]))
+        lines.append('| %s | %s |' % (label, report['summary'].get(key, 0)))
     for key, title in [
         ('rewrite_json_delete_duplicate_paths','JSON 删除数组重复字段路径诊断'),
         ('rewrite_broad_candidates','宽泛 Rewrite 候选'),
