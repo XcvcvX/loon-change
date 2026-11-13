@@ -214,7 +214,7 @@ jobs:
               "upstream_commit": os.environ["ROMEO_SHA"],
               "upstream_path": "Modules/QuantumultX/ddgksf2013/Official/GuaZiVideoAds.conf",
           })
-          report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
+          report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
           PY
           python3 amap_dependency_guard.py --assets /tmp/amap --plugin /tmp/amap/Amap.lpx --commit "$ROMEO_SHA" --report source-report.json
           cp /tmp/amap/* sources/amap/
