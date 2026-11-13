@@ -195,7 +195,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
     def test_preserves_163_case_insensitive_variant_because_it_expands_match_scope(self):
         broad = r"request if ${url} ~= /^https?:\\/\\/appconf\\.mail\\.163\\.com\\/mailmaster\\/api\\/http\\/urlConfig\\.do$/ then reject(404)"
         case_insensitive = r"request if ${url} ~= /^https?:\\/\\/appconf\\.mail\\.163\\.com\\/mailmaster\\/api\\/http\\/urlConfig\\.do$/i then reject_dict(200)"
-        base = BASE.replace("[Rewrite]", "[Rewrite]\\n" + broad + "\\n" + case_insensitive)
+        base = BASE.replace("[Rewrite]", "[Rewrite]\n" + broad + "\n" + case_insensitive)
         result = apply(base)
         rewrite = result.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
         self.assertIn(broad, rewrite)
