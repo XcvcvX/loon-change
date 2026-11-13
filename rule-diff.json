@@ -41,7 +41,10 @@
     },
     "GuaZiVideoAds": {
       "bytes": 3448,
-      "entries": 6
+      "entries": 6,
+      "upstream_commit": "535f2e560079ca389f0040865af5d20738730f7c",
+      "upstream_path": "Modules/QuantumultX/ddgksf2013/Official/GuaZiVideoAds.conf",
+      "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
     "aoomee": {
       "commit": "370a13085514ccca924f43d13c6d3acfa5671dbe",
@@ -95,7 +98,7 @@
         "Rule": 4,
         "Script": 13
       },
-      "upstream_commit": "61ed86d0b14bb5871abb0a078d5725f67e7f15a9",
+      "upstream_commit": "535f2e560079ca389f0040865af5d20738730f7c",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
     "GuaZiVideoAds": {
@@ -163,8 +166,8 @@
   "upstream_revision_changes": [
     {
       "current_commit": "535f2e560079ca389f0040865af5d20738730f7c",
-      "previous_commit": "61ed86d0b14bb5871abb0a078d5725f67e7f15a9",
-      "source": "Amap"
+      "previous_commit": null,
+      "source": "GuaZiVideoAds"
     }
   ]
 }
