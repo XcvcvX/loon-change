@@ -7,23 +7,66 @@
     },
     "rule": {
       "action_changed": 0,
-      "added": 0,
+      "added": 1,
       "removed": 0
     },
     "script": {
       "action_changed": 0,
-      "added": 0,
+      "added": 1,
       "removed": 0
     }
   },
-  "events": [],
-  "overall_risk": "low",
+  "events": [
+    {
+      "after": {
+        "line": "http-response ^https?:\\/\\/(?:midc|mb-mbc)\\.cdn-static\\.abchina\\.com\\.cn\\/distributecenterimg\\/file\\/download script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/adImage.js,tag=ABCHINA,requires-body=true",
+        "section": "script",
+        "sources": [
+          "base"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "base": 0
+      },
+      "sources": [
+        "base"
+      ]
+    },
+    {
+      "after": {
+        "line": "DOMAIN,mb.cdn-static.abchina.com.cn,REJECT",
+        "section": "rule",
+        "sources": [
+          "filter"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rule",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "filter": 0
+      },
+      "sources": [
+        "filter"
+      ]
+    }
+  ],
+  "overall_risk": "medium",
   "risk_counts": {
     "high": 0,
     "low": 0,
-    "medium": 0
+    "medium": 2
   },
-  "run_id": "43395556138",
+  "run_id": "43502213424",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -47,14 +90,20 @@
     },
     "base": {
       "action_changed": 10,
-      "added": 3,
+      "added": 4,
       "removed": 1,
-      "snapshots_seen": 2
+      "snapshots_seen": 3
     },
     "block": {
       "action_changed": 0,
       "added": 0,
       "removed": 19,
+      "snapshots_seen": 1
+    },
+    "filter": {
+      "action_changed": 0,
+      "added": 1,
+      "removed": 0,
       "snapshots_seen": 1
     },
     "myblockads": {
@@ -70,5 +119,16 @@
       "snapshots_seen": 1
     }
   },
-  "upstream_revision_changes": []
+  "upstream_revision_changes": [
+    {
+      "current_commit": "42de4ced98d640bc40d385c71adf733fd4ccf107",
+      "previous_commit": "535f2e560079ca389f0040865af5d20738730f7c",
+      "source": "Amap"
+    },
+    {
+      "current_commit": "42de4ced98d640bc40d385c71adf733fd4ccf107",
+      "previous_commit": "535f2e560079ca389f0040865af5d20738730f7c",
+      "source": "GuaZiVideoAds"
+    }
+  ]
 }

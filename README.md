@@ -46,11 +46,11 @@
 | 区块 | 条目数 |
 |---|---:|
 | [Argument] | 91 |
-| [Rule] | 3475 |
+| [Rule] | 3476 |
 | [Rewrite] | 3298 |
-| [Script] | 623 |
-| [MITM] hostname 条目 | 1495 |
-| 唯一远程脚本 URL | 204 |
+| [Script] | 624 |
+| [MITM] hostname 条目 | 1496 |
+| 唯一远程脚本 URL | 205 |
 <!-- AUTO_PLUGIN_STATS:END -->
 
 ## 自动更新
