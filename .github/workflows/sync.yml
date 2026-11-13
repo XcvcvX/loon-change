@@ -44,6 +44,8 @@ on:
       - 'test_source_health_guard.py'
       - 'rule_risk_history.py'
       - 'test_rule_risk_history.py'
+      - 'convert_qx2loon.py'
+      - 'test_convert_qx2loon.py'
       - 'convert_filter_qx2loon.py'
       - 'test_convert_filter_qx2loon.py'
       - '.github/workflows/sync.yml'
@@ -77,7 +79,7 @@ jobs:
       - name: 编译检查
         run: python3 -m py_compile merge_plugins.py mitm_policy.py validate_plugin.py source_guard.py audit_plugin.py deep_audit.py amap_dependency_guard.py compare_rule_provenance.py source_health_guard.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py integrate_spotify.py apply_local_overrides.py
       - name: 运行单元与合并集成测试
-        run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_compare_rule_provenance.py test_source_health_guard.py test_rule_risk_history.py test_integrate_spotify.py test_convert_filter_qx2loon.py
+        run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_compare_rule_provenance.py test_source_health_guard.py test_rule_risk_history.py test_integrate_spotify.py test_convert_qx2loon.py test_convert_filter_qx2loon.py test_convert_qx2loon.py test_convert_filter_qx2loon.py
       - name: 应用并测试本地插件覆盖
         run: |
           python3 -m unittest -v test_apply_local_overrides.py test_integrate_spotify.py
@@ -137,6 +139,15 @@ jobs:
 
       - name: 转换重写规则（先写入临时产物）
         run: python3 convert_qx2loon.py -o /tmp/loon-build/allAdRewrite.plugin
+
+      - name: 转换独立分流规则（含 Frontier / HTTPDNS 安全排除）
+        run: |
+          curl -fsSL --retry 5 --retry-all-errors -A "Mozilla/5.0" \
+            https://raw.githubusercontent.com/zirawell/R-Store/main/Rule/QuanX/Adblock/All/filter/allAdBlock.list \
+            -o /tmp/loon-build/allAdBlock-source.list
+          python3 convert_filter_qx2loon.py -i /tmp/loon-build/allAdBlock-source.list \
+            --list /tmp/loon-build/allAdBlock-Loon.list \
+            --plugin /tmp/loon-build/allAdBlock-Loon.plugin
 
       - name: 拉取 Thelongdarkorg 去广告插件
         run: |
@@ -266,6 +277,8 @@ jobs:
       - name: 校验通过后替换正式产物
         run: |
           cp /tmp/loon-build/allAdRewrite.plugin allAdRewrite.plugin.tmp && mv allAdRewrite.plugin.tmp allAdRewrite.plugin
+          cp /tmp/loon-build/allAdBlock-Loon.plugin allAdBlock-Loon.plugin.tmp && mv allAdBlock-Loon.plugin.tmp allAdBlock-Loon.plugin
+          cp /tmp/loon-build/allAdBlock-Loon.list allAdBlock-Loon.list.tmp && mv allAdBlock-Loon.list.tmp allAdBlock-Loon.list
           cp /tmp/loon-build/rule-provenance.json rule-provenance.json
           cp /tmp/loon-build/rule-diff.json rule-diff.json
           cp /tmp/loon-build/source-health.json source-health.json
@@ -277,7 +290,7 @@ jobs:
       - name: 检查是否有变化
         id: diff
         run: |
-          if git diff --quiet -- allAdRewrite.plugin README.md source-report.json rule-provenance.json rule-diff.json source-health.json rule-risk.json rule-history.json sources/amap/ sources/spotify/ scripts/spotify/; then
+          if git diff --quiet -- allAdRewrite.plugin allAdBlock-Loon.plugin allAdBlock-Loon.list README.md source-report.json rule-provenance.json rule-diff.json source-health.json rule-risk.json rule-history.json sources/amap/ sources/spotify/ scripts/spotify/; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "合并产物与统计均无变化，跳过提交"
           else
@@ -290,6 +303,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add allAdRewrite.plugin README.md source-report.json rule-provenance.json rule-diff.json source-health.json rule-risk.json rule-history.json sources/amap/ sources/spotify/ scripts/spotify/
+          git add allAdRewrite.plugin allAdBlock-Loon.plugin allAdBlock-Loon.list README.md source-report.json rule-provenance.json rule-diff.json source-health.json rule-risk.json rule-history.json sources/amap/ sources/spotify/ scripts/spotify/
           git commit -m "chore: sync upstream rules and plugin stats $(date -u +%Y-%m-%d)"
           git push
