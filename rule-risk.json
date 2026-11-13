@@ -2,8 +2,8 @@
   "change_counts": {
     "rewrite": {
       "action_changed": 0,
-      "added": 0,
-      "removed": 0
+      "added": 2,
+      "removed": 1
     },
     "rule": {
       "action_changed": 0,
@@ -16,14 +16,78 @@
       "removed": 0
     }
   },
-  "events": [],
-  "overall_risk": "low",
+  "events": [
+    {
+      "after": {
+        "line": "^https?:\\/\\/\\w+\\.eastmoney\\.com\\/ads\\/ reject-dict",
+        "section": "rewrite",
+        "sources": [
+          "base"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "base": 0
+      },
+      "sources": [
+        "base"
+      ]
+    },
+    {
+      "after": {
+        "line": "^https?:\\/\\/\\w+\\.eastmoney\\.com\\/busservice\\/api\\/api\\/Config\\/GetUpNoticeInfo reject-dict",
+        "section": "rewrite",
+        "sources": [
+          "base"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "base": 0
+      },
+      "sources": [
+        "base"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "^https?:\\/\\/choicegw\\.eastmoney\\.com\\/ads\\/ reject-dict",
+        "section": "rewrite",
+        "sources": [
+          "base"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_scores": {
+        "base": 0
+      },
+      "sources": [
+        "base"
+      ]
+    }
+  ],
+  "overall_risk": "high",
   "risk_counts": {
-    "high": 0,
+    "high": 1,
     "low": 0,
-    "medium": 0
+    "medium": 2
   },
-  "run_id": "43337271268",
+  "run_id": "43344673023",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -47,15 +111,15 @@
     },
     "base": {
       "action_changed": 0,
-      "added": 0,
-      "removed": 1,
-      "snapshots_seen": 1
+      "added": 2,
+      "removed": 2,
+      "snapshots_seen": 2
     },
     "block": {
       "action_changed": 0,
-      "added": 6,
-      "removed": 24,
-      "snapshots_seen": 6
+      "added": 5,
+      "removed": 23,
+      "snapshots_seen": 5
     },
     "thelong": {
       "action_changed": 0,

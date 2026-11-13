@@ -128,8 +128,31 @@
   "sections": {
     "rewrite": {
       "action_changed": [],
-      "added": [],
-      "removed": []
+      "added": [
+        {
+          "line": "^https?:\\/\\/\\w+\\.eastmoney\\.com\\/ads\\/ reject-dict",
+          "section": "rewrite",
+          "sources": [
+            "base"
+          ]
+        },
+        {
+          "line": "^https?:\\/\\/\\w+\\.eastmoney\\.com\\/busservice\\/api\\/api\\/Config\\/GetUpNoticeInfo reject-dict",
+          "section": "rewrite",
+          "sources": [
+            "base"
+          ]
+        }
+      ],
+      "removed": [
+        {
+          "line": "^https?:\\/\\/choicegw\\.eastmoney\\.com\\/ads\\/ reject-dict",
+          "section": "rewrite",
+          "sources": [
+            "base"
+          ]
+        }
+      ]
     },
     "rule": {
       "action_changed": [],
@@ -145,8 +168,8 @@
   "summary": {
     "rewrite": {
       "action_changed": 0,
-      "added": 0,
-      "removed": 0
+      "added": 2,
+      "removed": 1
     },
     "rule": {
       "action_changed": 0,
@@ -158,7 +181,7 @@
       "added": 0,
       "removed": 0
     },
-    "total_changes": 0
+    "total_changes": 3
   },
   "upstream_revision_changes": []
 }
