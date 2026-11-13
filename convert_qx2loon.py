@@ -608,28 +608,6 @@ def repair_missing_tld(h):
     return None
 
 
-def concrete_from_rules(glob):
-    """以源通配 hostname 作 glob，从规则正则展开具体域名。
-    仅当【所有相关规则正则都可枚举】时才返回具体域名列表；
-    只要有相关正则不可枚举（如 m\\d\\.amap\\.com），返回 None 走通配兜底，
-    避免具体域名列表覆盖不全导致部分规则失效"""
-    gre = re.compile('^' + re.escape(glob)
-                     .replace(r'\*', '.*').replace(r'\?', '.') + '$', re.I)
-    found = []
-    for hre, sample in HOST_SAMPLES:
-        if not gre.match(sample):
-            continue                      # 与该通配无关的规则
-        ex = expand_host_regex(hre)
-        if ex is None:
-            return None                   # 有相关规则不可枚举 -> 通配兜底
-        for cand in ex:
-            c = cand.rstrip('.')
-            if HOST_OK.match(c) and not is_public_suffix(c) and gre.match(c) \
-                    and c not in found:
-                found.append(c)
-    return found or None
-
-
 def norm_host(h):
     """QuanX hostname -> Loon hostname 列表；无法安全收敛时返回空列表"""
     h = h.strip().strip('.')
