@@ -632,7 +632,7 @@
     "zmjapp": "zmjde/loon-plugins app plugins",
     "myblockads": {
       "name": "RuCu6 MyBlockAds",
-      "url": "https://rucu6.pages.dev/Plugins/myblockads.lpx",
+      "url": "https://raw.githubusercontent.com/ifflagged/Romeo/main/Modules/Loon/rucu6/myblockads.lpx",
       "cache": "myblockads.lpx",
       "update_policy": "fetch_online_then_fallback_to_validated_repository_cache",
       "merge_priority": 7,
@@ -63642,15 +63642,15 @@
     {
       "section": "Rewrite",
       "output_entry_index": 3297,
-      "output_line": "response if ${url} ~= /^https:\\/\\/gql(-fed)?\\.reddit\\.com/i then response.json.jq(\"jq-path=https://rucu6.pages.dev/JQLang/reddit.jq\")",
-      "canonical_key": "('guarded', '^https://gql(-fed)?\\\\.reddit\\\\.com', ('response.json.jq', 'response.json.jq(\"jq-path=https://rucu6.pages.dev/JQLang/reddit.jq\")'))",
+      "output_line": "response if ${url} ~= /^https:\\/\\/gql(-fed)?\\.reddit\\.com/i then response.json.jq(\"jq-path=https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_reddit.jq\")",
+      "canonical_key": "('guarded', '^https://gql(-fed)?\\\\.reddit\\\\.com', ('response.json.jq', 'response.json.jq(\"jq-path=https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_reddit.jq\")'))",
       "sources": [
         {
           "source": "myblockads",
           "priority": 7,
           "source_entry_index": 39,
           "input_section": "Rewrite",
-          "input_line": "response if ${url} ~= /^https:\\/\\/gql(-fed)?\\.reddit\\.com/i then response.json.jq(\"jq-path=https://rucu6.pages.dev/JQLang/reddit.jq\")",
+          "input_line": "response if ${url} ~= /^https:\\/\\/gql(-fed)?\\.reddit\\.com/i then response.json.jq(\"jq-path=https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_reddit.jq\")",
           "disposition": "selected"
         }
       ],
@@ -74217,15 +74217,15 @@
     {
       "section": "Script",
       "output_entry_index": 599,
-      "output_line": "request if ${url} ~= /^https:\\/\\/ad\\.12306\\.cn\\/ad\\/ser\\/getAdList$/i then script(\"https://rucu6.pages.dev/Scripts/12306.js\") with tag=\"12306_splash\", requires_body=true",
-      "canonical_key": "('guarded', '^https://ad\\\\.12306\\\\.cn/ad/ser/getAdList$', ('script', 'script(\"https://rucu6.pages.dev/Scripts/12306.js\") with tag=\"12306_splash\", requires_body=true'))",
+      "output_line": "request if ${url} ~= /^https:\\/\\/ad\\.12306\\.cn\\/ad\\/ser\\/getAdList$/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_12306.js\") with tag=\"12306_splash\", requires_body=true",
+      "canonical_key": "('guarded', '^https://ad\\\\.12306\\\\.cn/ad/ser/getAdList$', ('script', 'script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_12306.js\") with tag=\"12306_splash\", requires_body=true'))",
       "sources": [
         {
           "source": "myblockads",
           "priority": 7,
           "source_entry_index": 0,
           "input_section": "Script",
-          "input_line": "request if ${url} ~= /^https:\\/\\/ad\\.12306\\.cn\\/ad\\/ser\\/getAdList$/i then script(\"https://rucu6.pages.dev/Scripts/12306.js\") with tag=\"12306_splash\", requires_body=true",
+          "input_line": "request if ${url} ~= /^https:\\/\\/ad\\.12306\\.cn\\/ad\\/ser\\/getAdList$/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_12306.js\") with tag=\"12306_splash\", requires_body=true",
           "disposition": "selected"
         }
       ],
@@ -74234,15 +74234,15 @@
     {
       "section": "Script",
       "output_entry_index": 600,
-      "output_line": "request if ${url} ~= /^https:\\/\\/mobile\\.12306\\.cn\\/otsmobile\\/app\\/mgs\\/mgw\\.htm$/i then script(\"https://rucu6.pages.dev/Scripts/header.js\") with tag=\"12306_ads\"",
-      "canonical_key": "('guarded', '^https://mobile\\\\.12306\\\\.cn/otsmobile/app/mgs/mgw\\\\.htm$', ('script', 'script(\"https://rucu6.pages.dev/Scripts/header.js\") with tag=\"12306_ads\"'))",
+      "output_line": "request if ${url} ~= /^https:\\/\\/mobile\\.12306\\.cn\\/otsmobile\\/app\\/mgs\\/mgw\\.htm$/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_header.js\") with tag=\"12306_ads\"",
+      "canonical_key": "('guarded', '^https://mobile\\\\.12306\\\\.cn/otsmobile/app/mgs/mgw\\\\.htm$', ('script', 'script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_header.js\") with tag=\"12306_ads\"'))",
       "sources": [
         {
           "source": "myblockads",
           "priority": 7,
           "source_entry_index": 1,
           "input_section": "Script",
-          "input_line": "request if ${url} ~= /^https:\\/\\/mobile\\.12306\\.cn\\/otsmobile\\/app\\/mgs\\/mgw\\.htm$/i then script(\"https://rucu6.pages.dev/Scripts/header.js\") with tag=\"12306_ads\"",
+          "input_line": "request if ${url} ~= /^https:\\/\\/mobile\\.12306\\.cn\\/otsmobile\\/app\\/mgs\\/mgw\\.htm$/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_header.js\") with tag=\"12306_ads\"",
           "disposition": "selected"
         }
       ],
@@ -74251,15 +74251,15 @@
     {
       "section": "Script",
       "output_entry_index": 601,
-      "output_line": "response if ${url} ~= /^https:\\/\\/(biz)?api\\.alipan\\.com\\/apps\\/v\\d\\/users?\\/home\\/(?:news|widgets)/i then script(\"https://rucu6.pages.dev/Scripts/adrive.js\") with tag=\"aliyun_mine\", requires_body=true",
-      "canonical_key": "('guarded', '^https://(biz)?api\\\\.alipan\\\\.com/apps/v\\\\d/users?/home/(?:news|widgets)', ('script', 'script(\"https://rucu6.pages.dev/Scripts/adrive.js\") with tag=\"aliyun_mine\", requires_body=true'))",
+      "output_line": "response if ${url} ~= /^https:\\/\\/(biz)?api\\.alipan\\.com\\/apps\\/v\\d\\/users?\\/home\\/(?:news|widgets)/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_adrive.js\") with tag=\"aliyun_mine\", requires_body=true",
+      "canonical_key": "('guarded', '^https://(biz)?api\\\\.alipan\\\\.com/apps/v\\\\d/users?/home/(?:news|widgets)', ('script', 'script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_adrive.js\") with tag=\"aliyun_mine\", requires_body=true'))",
       "sources": [
         {
           "source": "myblockads",
           "priority": 7,
           "source_entry_index": 2,
           "input_section": "Script",
-          "input_line": "response if ${url} ~= /^https:\\/\\/(biz)?api\\.alipan\\.com\\/apps\\/v\\d\\/users?\\/home\\/(?:news|widgets)/i then script(\"https://rucu6.pages.dev/Scripts/adrive.js\") with tag=\"aliyun_mine\", requires_body=true",
+          "input_line": "response if ${url} ~= /^https:\\/\\/(biz)?api\\.alipan\\.com\\/apps\\/v\\d\\/users?\\/home\\/(?:news|widgets)/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_adrive.js\") with tag=\"aliyun_mine\", requires_body=true",
           "disposition": "selected"
         }
       ],
@@ -74268,15 +74268,15 @@
     {
       "section": "Script",
       "output_entry_index": 602,
-      "output_line": "response if ${url} ~= /^https:\\/\\/member\\.alipan\\.com\\/v1\\/users\\/onboard_list/i then script(\"https://rucu6.pages.dev/Scripts/adrive.js\") with tag=\"aliyun_board\", requires_body=true",
-      "canonical_key": "('guarded', '^https://member\\\\.alipan\\\\.com/v1/users/onboard_list', ('script', 'script(\"https://rucu6.pages.dev/Scripts/adrive.js\") with tag=\"aliyun_board\", requires_body=true'))",
+      "output_line": "response if ${url} ~= /^https:\\/\\/member\\.alipan\\.com\\/v1\\/users\\/onboard_list/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_adrive.js\") with tag=\"aliyun_board\", requires_body=true",
+      "canonical_key": "('guarded', '^https://member\\\\.alipan\\\\.com/v1/users/onboard_list', ('script', 'script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_adrive.js\") with tag=\"aliyun_board\", requires_body=true'))",
       "sources": [
         {
           "source": "myblockads",
           "priority": 7,
           "source_entry_index": 3,
           "input_section": "Script",
-          "input_line": "response if ${url} ~= /^https:\\/\\/member\\.alipan\\.com\\/v1\\/users\\/onboard_list/i then script(\"https://rucu6.pages.dev/Scripts/adrive.js\") with tag=\"aliyun_board\", requires_body=true",
+          "input_line": "response if ${url} ~= /^https:\\/\\/member\\.alipan\\.com\\/v1\\/users\\/onboard_list/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_adrive.js\") with tag=\"aliyun_board\", requires_body=true",
           "disposition": "selected"
         }
       ],
@@ -74285,15 +74285,15 @@
     {
       "section": "Script",
       "output_entry_index": 603,
-      "output_line": "response if ${url} ~= /^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.(?:cloudvideo\\.video\\.query|wireless\\.home\\.splash\\.awesome\\.get)/i then script(\"https://rucu6.pages.dev/Scripts/myblockads.js\") with tag=\"taobao_1\", requires_body=true",
-      "canonical_key": "('guarded', '^https://guide-acs\\\\.m\\\\.taobao\\\\.com/gw/mtop\\\\.taobao\\\\.(?:cloudvideo\\\\.video\\\\.query|wireless\\\\.home\\\\.splash\\\\.awesome\\\\.get)', ('script', 'script(\"https://rucu6.pages.dev/Scripts/myblockads.js\") with tag=\"taobao_1\", requires_body=true'))",
+      "output_line": "response if ${url} ~= /^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.(?:cloudvideo\\.video\\.query|wireless\\.home\\.splash\\.awesome\\.get)/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"taobao_1\", requires_body=true",
+      "canonical_key": "('guarded', '^https://guide-acs\\\\.m\\\\.taobao\\\\.com/gw/mtop\\\\.taobao\\\\.(?:cloudvideo\\\\.video\\\\.query|wireless\\\\.home\\\\.splash\\\\.awesome\\\\.get)', ('script', 'script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"taobao_1\", requires_body=true'))",
       "sources": [
         {
           "source": "myblockads",
           "priority": 7,
           "source_entry_index": 4,
           "input_section": "Script",
-          "input_line": "response if ${url} ~= /^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.(?:cloudvideo\\.video\\.query|wireless\\.home\\.splash\\.awesome\\.get)/i then script(\"https://rucu6.pages.dev/Scripts/myblockads.js\") with tag=\"taobao_1\", requires_body=true",
+          "input_line": "response if ${url} ~= /^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.(?:cloudvideo\\.video\\.query|wireless\\.home\\.splash\\.awesome\\.get)/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"taobao_1\", requires_body=true",
           "disposition": "selected"
         }
       ],
@@ -74302,15 +74302,15 @@
     {
       "section": "Script",
       "output_entry_index": 604,
-      "output_line": "response if ${url} ~= /^https:\\/\\/poplayer\\.template\\.alibaba\\.com\\/\\w+\\.json/i then script(\"https://rucu6.pages.dev/Scripts/myblockads.js\") with tag=\"taobao_2\", requires_body=true",
-      "canonical_key": "('guarded', '^https://poplayer\\\\.template\\\\.alibaba\\\\.com/\\\\w+\\\\.json', ('script', 'script(\"https://rucu6.pages.dev/Scripts/myblockads.js\") with tag=\"taobao_2\", requires_body=true'))",
+      "output_line": "response if ${url} ~= /^https:\\/\\/poplayer\\.template\\.alibaba\\.com\\/\\w+\\.json/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"taobao_2\", requires_body=true",
+      "canonical_key": "('guarded', '^https://poplayer\\\\.template\\\\.alibaba\\\\.com/\\\\w+\\\\.json', ('script', 'script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"taobao_2\", requires_body=true'))",
       "sources": [
         {
           "source": "myblockads",
           "priority": 7,
           "source_entry_index": 5,
           "input_section": "Script",
-          "input_line": "response if ${url} ~= /^https:\\/\\/poplayer\\.template\\.alibaba\\.com\\/\\w+\\.json/i then script(\"https://rucu6.pages.dev/Scripts/myblockads.js\") with tag=\"taobao_2\", requires_body=true",
+          "input_line": "response if ${url} ~= /^https:\\/\\/poplayer\\.template\\.alibaba\\.com\\/\\w+\\.json/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"taobao_2\", requires_body=true",
           "disposition": "selected"
         }
       ],
@@ -74319,15 +74319,15 @@
     {
       "section": "Script",
       "output_entry_index": 605,
-      "output_line": "response if ${url} ~= /^https:\\/\\/2023\\.redircdn\\.com\\/web\\/mob_post\\.js\\?/i then script(\"https://rucu6.pages.dev/Scripts/myblockads.js\") with tag=\"caoliu\", requires_body=true",
-      "canonical_key": "('guarded', '^https://2023\\\\.redircdn\\\\.com/web/mob_post\\\\.js\\\\?', ('script', 'script(\"https://rucu6.pages.dev/Scripts/myblockads.js\") with tag=\"caoliu\", requires_body=true'))",
+      "output_line": "response if ${url} ~= /^https:\\/\\/2023\\.redircdn\\.com\\/web\\/mob_post\\.js\\?/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"caoliu\", requires_body=true",
+      "canonical_key": "('guarded', '^https://2023\\\\.redircdn\\\\.com/web/mob_post\\\\.js\\\\?', ('script', 'script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"caoliu\", requires_body=true'))",
       "sources": [
         {
           "source": "myblockads",
           "priority": 7,
           "source_entry_index": 6,
           "input_section": "Script",
-          "input_line": "response if ${url} ~= /^https:\\/\\/2023\\.redircdn\\.com\\/web\\/mob_post\\.js\\?/i then script(\"https://rucu6.pages.dev/Scripts/myblockads.js\") with tag=\"caoliu\", requires_body=true",
+          "input_line": "response if ${url} ~= /^https:\\/\\/2023\\.redircdn\\.com\\/web\\/mob_post\\.js\\?/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"caoliu\", requires_body=true",
           "disposition": "selected"
         }
       ],
@@ -74336,15 +74336,15 @@
     {
       "section": "Script",
       "output_entry_index": 606,
-      "output_line": "response if ${url} ~= /^https:\\/\\/www\\.washpayer\\.com\\/user\\/message\\/equipmentPara\\?/i then script(\"https://rucu6.pages.dev/Scripts/changyuan.js\") with tag=\"changyuan\", requires_body=true",
-      "canonical_key": "('guarded', '^https://www\\\\.washpayer\\\\.com/user/message/equipmentPara\\\\?', ('script', 'script(\"https://rucu6.pages.dev/Scripts/changyuan.js\") with tag=\"changyuan\", requires_body=true'))",
+      "output_line": "response if ${url} ~= /^https:\\/\\/www\\.washpayer\\.com\\/user\\/message\\/equipmentPara\\?/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_changyuan.js\") with tag=\"changyuan\", requires_body=true",
+      "canonical_key": "('guarded', '^https://www\\\\.washpayer\\\\.com/user/message/equipmentPara\\\\?', ('script', 'script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_changyuan.js\") with tag=\"changyuan\", requires_body=true'))",
       "sources": [
         {
           "source": "myblockads",
           "priority": 7,
           "source_entry_index": 7,
           "input_section": "Script",
-          "input_line": "response if ${url} ~= /^https:\\/\\/www\\.washpayer\\.com\\/user\\/message\\/equipmentPara\\?/i then script(\"https://rucu6.pages.dev/Scripts/changyuan.js\") with tag=\"changyuan\", requires_body=true",
+          "input_line": "response if ${url} ~= /^https:\\/\\/www\\.washpayer\\.com\\/user\\/message\\/equipmentPara\\?/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_changyuan.js\") with tag=\"changyuan\", requires_body=true",
           "disposition": "selected"
         }
       ],
@@ -74353,15 +74353,15 @@
     {
       "section": "Script",
       "output_entry_index": 607,
-      "output_line": "response if ${url} ~= /^https:\\/\\/api\\.coolapk\\.com\\/v6\\/(?:feed\\/detail|feed\\/replyList|page\\/dataList|main\\/dataList|main\\/indexV8|main\\/init)/i then script(\"https://rucu6.pages.dev/Scripts/coolapk.js\") with tag=\"coolapk\", requires_body=true",
-      "canonical_key": "('guarded', '^https://api\\\\.coolapk\\\\.com/v6/(?:feed/detail|feed/replyList|page/dataList|main/dataList|main/indexV8|main/init)', ('script', 'script(\"https://rucu6.pages.dev/Scripts/coolapk.js\") with tag=\"coolapk\", requires_body=true'))",
+      "output_line": "response if ${url} ~= /^https:\\/\\/api\\.coolapk\\.com\\/v6\\/(?:feed\\/detail|feed\\/replyList|page\\/dataList|main\\/dataList|main\\/indexV8|main\\/init)/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_coolapk.js\") with tag=\"coolapk\", requires_body=true",
+      "canonical_key": "('guarded', '^https://api\\\\.coolapk\\\\.com/v6/(?:feed/detail|feed/replyList|page/dataList|main/dataList|main/indexV8|main/init)', ('script', 'script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_coolapk.js\") with tag=\"coolapk\", requires_body=true'))",
       "sources": [
         {
           "source": "myblockads",
           "priority": 7,
           "source_entry_index": 8,
           "input_section": "Script",
-          "input_line": "response if ${url} ~= /^https:\\/\\/api\\.coolapk\\.com\\/v6\\/(?:feed\\/detail|feed\\/replyList|page\\/dataList|main\\/dataList|main\\/indexV8|main\\/init)/i then script(\"https://rucu6.pages.dev/Scripts/coolapk.js\") with tag=\"coolapk\", requires_body=true",
+          "input_line": "response if ${url} ~= /^https:\\/\\/api\\.coolapk\\.com\\/v6\\/(?:feed\\/detail|feed\\/replyList|page\\/dataList|main\\/dataList|main\\/indexV8|main\\/init)/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_coolapk.js\") with tag=\"coolapk\", requires_body=true",
           "disposition": "selected"
         }
       ],
@@ -74370,15 +74370,15 @@
     {
       "section": "Script",
       "output_entry_index": 608,
-      "output_line": "response if ${url} ~= /^https:\\/\\/gateway\\.kugou\\.com\\/(?:adp\\/ad\\/v1\\/mine_top_banner|ads\\.gateway\\/v2\\/home_card)/i then script(\"https://rucu6.pages.dev/Scripts/kugou.js\") with tag=\"kg_gateway\", requires_body=true",
-      "canonical_key": "('guarded', '^https://gateway\\\\.kugou\\\\.com/(?:adp/ad/v1/mine_top_banner|ads\\\\.gateway/v2/home_card)', ('script', 'script(\"https://rucu6.pages.dev/Scripts/kugou.js\") with tag=\"kg_gateway\", requires_body=true'))",
+      "output_line": "response if ${url} ~= /^https:\\/\\/gateway\\.kugou\\.com\\/(?:adp\\/ad\\/v1\\/mine_top_banner|ads\\.gateway\\/v2\\/home_card)/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_kugou.js\") with tag=\"kg_gateway\", requires_body=true",
+      "canonical_key": "('guarded', '^https://gateway\\\\.kugou\\\\.com/(?:adp/ad/v1/mine_top_banner|ads\\\\.gateway/v2/home_card)', ('script', 'script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_kugou.js\") with tag=\"kg_gateway\", requires_body=true'))",
       "sources": [
         {
           "source": "myblockads",
           "priority": 7,
           "source_entry_index": 9,
           "input_section": "Script",
-          "input_line": "response if ${url} ~= /^https:\\/\\/gateway\\.kugou\\.com\\/(?:adp\\/ad\\/v1\\/mine_top_banner|ads\\.gateway\\/v2\\/home_card)/i then script(\"https://rucu6.pages.dev/Scripts/kugou.js\") with tag=\"kg_gateway\", requires_body=true",
+          "input_line": "response if ${url} ~= /^https:\\/\\/gateway\\.kugou\\.com\\/(?:adp\\/ad\\/v1\\/mine_top_banner|ads\\.gateway\\/v2\\/home_card)/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_kugou.js\") with tag=\"kg_gateway\", requires_body=true",
           "disposition": "selected"
         }
       ],
@@ -74387,15 +74387,15 @@
     {
       "section": "Script",
       "output_entry_index": 609,
-      "output_line": "response if ${url} ~= /^https?:\\/\\/adserviceretry\\.kglink\\.cn\\/v\\d\\/mobile\\w+/i then script(\"https://rucu6.pages.dev/Scripts/kugou.js\") with tag=\"kg_linkcn\", requires_body=true",
-      "canonical_key": "('guarded', '^https?://adserviceretry\\\\.kglink\\\\.cn/v\\\\d/mobile\\\\w+', ('script', 'script(\"https://rucu6.pages.dev/Scripts/kugou.js\") with tag=\"kg_linkcn\", requires_body=true'))",
+      "output_line": "response if ${url} ~= /^https?:\\/\\/adserviceretry\\.kglink\\.cn\\/v\\d\\/mobile\\w+/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_kugou.js\") with tag=\"kg_linkcn\", requires_body=true",
+      "canonical_key": "('guarded', '^https?://adserviceretry\\\\.kglink\\\\.cn/v\\\\d/mobile\\\\w+', ('script', 'script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_kugou.js\") with tag=\"kg_linkcn\", requires_body=true'))",
       "sources": [
         {
           "source": "myblockads",
           "priority": 7,
           "source_entry_index": 10,
           "input_section": "Script",
-          "input_line": "response if ${url} ~= /^https?:\\/\\/adserviceretry\\.kglink\\.cn\\/v\\d\\/mobile\\w+/i then script(\"https://rucu6.pages.dev/Scripts/kugou.js\") with tag=\"kg_linkcn\", requires_body=true",
+          "input_line": "response if ${url} ~= /^https?:\\/\\/adserviceretry\\.kglink\\.cn\\/v\\d\\/mobile\\w+/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_kugou.js\") with tag=\"kg_linkcn\", requires_body=true",
           "disposition": "selected"
         }
       ],
@@ -74404,15 +74404,15 @@
     {
       "section": "Script",
       "output_entry_index": 610,
-      "output_line": "response if ${url} ~= /^https\\:\\/\\/(?:weixin110\\.qq|security\\.wechat)\\.com\\/cgi-bin\\/mmspamsupport-bin\\/newredirectconfirmcgi\\?/i then script(\"https://rucu6.pages.dev/Scripts/wechat.js\") with tag=\"wechat\", requires_body=true",
-      "canonical_key": "('guarded', '^https\\\\://(?:weixin110\\\\.qq|security\\\\.wechat)\\\\.com/cgi-bin/mmspamsupport-bin/newredirectconfirmcgi\\\\?', ('script', 'script(\"https://rucu6.pages.dev/Scripts/wechat.js\") with tag=\"wechat\", requires_body=true'))",
+      "output_line": "response if ${url} ~= /^https\\:\\/\\/(?:weixin110\\.qq|security\\.wechat)\\.com\\/cgi-bin\\/mmspamsupport-bin\\/newredirectconfirmcgi\\?/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_wechat.js\") with tag=\"wechat\", requires_body=true",
+      "canonical_key": "('guarded', '^https\\\\://(?:weixin110\\\\.qq|security\\\\.wechat)\\\\.com/cgi-bin/mmspamsupport-bin/newredirectconfirmcgi\\\\?', ('script', 'script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_wechat.js\") with tag=\"wechat\", requires_body=true'))",
       "sources": [
         {
           "source": "myblockads",
           "priority": 7,
           "source_entry_index": 11,
           "input_section": "Script",
-          "input_line": "response if ${url} ~= /^https\\:\\/\\/(?:weixin110\\.qq|security\\.wechat)\\.com\\/cgi-bin\\/mmspamsupport-bin\\/newredirectconfirmcgi\\?/i then script(\"https://rucu6.pages.dev/Scripts/wechat.js\") with tag=\"wechat\", requires_body=true",
+          "input_line": "response if ${url} ~= /^https\\:\\/\\/(?:weixin110\\.qq|security\\.wechat)\\.com\\/cgi-bin\\/mmspamsupport-bin\\/newredirectconfirmcgi\\?/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_wechat.js\") with tag=\"wechat\", requires_body=true",
           "disposition": "selected"
         }
       ],
@@ -74421,15 +74421,15 @@
     {
       "section": "Script",
       "output_entry_index": 611,
-      "output_line": "response if ${url} ~= /^https:\\/\\/api\\.m\\.mi\\.com\\/v1\\/app\\/start/i then script(\"https://rucu6.pages.dev/Scripts/myblockads.js\") with tag=\"mi_mall\", requires_body=true",
-      "canonical_key": "('guarded', '^https://api\\\\.m\\\\.mi\\\\.com/v1/app/start', ('script', 'script(\"https://rucu6.pages.dev/Scripts/myblockads.js\") with tag=\"mi_mall\", requires_body=true'))",
+      "output_line": "response if ${url} ~= /^https:\\/\\/api\\.m\\.mi\\.com\\/v1\\/app\\/start/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"mi_mall\", requires_body=true",
+      "canonical_key": "('guarded', '^https://api\\\\.m\\\\.mi\\\\.com/v1/app/start', ('script', 'script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"mi_mall\", requires_body=true'))",
       "sources": [
         {
           "source": "myblockads",
           "priority": 7,
           "source_entry_index": 12,
           "input_section": "Script",
-          "input_line": "response if ${url} ~= /^https:\\/\\/api\\.m\\.mi\\.com\\/v1\\/app\\/start/i then script(\"https://rucu6.pages.dev/Scripts/myblockads.js\") with tag=\"mi_mall\", requires_body=true",
+          "input_line": "response if ${url} ~= /^https:\\/\\/api\\.m\\.mi\\.com\\/v1\\/app\\/start/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"mi_mall\", requires_body=true",
           "disposition": "selected"
         }
       ],
@@ -74438,15 +74438,15 @@
     {
       "section": "Script",
       "output_entry_index": 612,
-      "output_line": "response if ${url} ~= /^https:\\/\\/api-gateway-pan\\.xunlei\\.com\\/content\\/v1\\/aggregate\\/info\\?/i then script(\"https://rucu6.pages.dev/Scripts/myblockads.js\") with tag=\"thunder\", requires_body=true",
-      "canonical_key": "('guarded', '^https://api-gateway-pan\\\\.xunlei\\\\.com/content/v1/aggregate/info\\\\?', ('script', 'script(\"https://rucu6.pages.dev/Scripts/myblockads.js\") with tag=\"thunder\", requires_body=true'))",
+      "output_line": "response if ${url} ~= /^https:\\/\\/api-gateway-pan\\.xunlei\\.com\\/content\\/v1\\/aggregate\\/info\\?/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"thunder\", requires_body=true",
+      "canonical_key": "('guarded', '^https://api-gateway-pan\\\\.xunlei\\\\.com/content/v1/aggregate/info\\\\?', ('script', 'script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"thunder\", requires_body=true'))",
       "sources": [
         {
           "source": "myblockads",
           "priority": 7,
           "source_entry_index": 13,
           "input_section": "Script",
-          "input_line": "response if ${url} ~= /^https:\\/\\/api-gateway-pan\\.xunlei\\.com\\/content\\/v1\\/aggregate\\/info\\?/i then script(\"https://rucu6.pages.dev/Scripts/myblockads.js\") with tag=\"thunder\", requires_body=true",
+          "input_line": "response if ${url} ~= /^https:\\/\\/api-gateway-pan\\.xunlei\\.com\\/content\\/v1\\/aggregate\\/info\\?/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"thunder\", requires_body=true",
           "disposition": "selected"
         }
       ],
@@ -74455,15 +74455,15 @@
     {
       "section": "Script",
       "output_entry_index": 613,
-      "output_line": "request if ${url} ~= /^https:\\/\\/mobilepaas\\.abchina\\.com\\.cn:441\\/mgw\\.htm$/i then script(\"https://rucu6.pages.dev/Scripts/header.js\") with tag=\"abchina\"",
-      "canonical_key": "('guarded', '^https://mobilepaas\\\\.abchina\\\\.com\\\\.cn:441/mgw\\\\.htm$', ('script', 'script(\"https://rucu6.pages.dev/Scripts/header.js\") with tag=\"abchina\"'))",
+      "output_line": "request if ${url} ~= /^https:\\/\\/mobilepaas\\.abchina\\.com\\.cn:441\\/mgw\\.htm$/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_header.js\") with tag=\"abchina\"",
+      "canonical_key": "('guarded', '^https://mobilepaas\\\\.abchina\\\\.com\\\\.cn:441/mgw\\\\.htm$', ('script', 'script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_header.js\") with tag=\"abchina\"'))",
       "sources": [
         {
           "source": "myblockads",
           "priority": 7,
           "source_entry_index": 14,
           "input_section": "Script",
-          "input_line": "request if ${url} ~= /^https:\\/\\/mobilepaas\\.abchina\\.com\\.cn:441\\/mgw\\.htm$/i then script(\"https://rucu6.pages.dev/Scripts/header.js\") with tag=\"abchina\"",
+          "input_line": "request if ${url} ~= /^https:\\/\\/mobilepaas\\.abchina\\.com\\.cn:441\\/mgw\\.htm$/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_header.js\") with tag=\"abchina\"",
           "disposition": "selected"
         }
       ],
@@ -74472,15 +74472,15 @@
     {
       "section": "Script",
       "output_entry_index": 614,
-      "output_line": "response if ${url} ~= /^https:\\/\\/ad\\.mcloud\\.139\\.com\\/advertapi\\/adv-filter\\//i then script(\"https://rucu6.pages.dev/Scripts/cloud139.js\") with tag=\"cloud139_1\", requires_body=true",
-      "canonical_key": "('guarded', '^https://ad\\\\.mcloud\\\\.139\\\\.com/advertapi/adv-filter/', ('script', 'script(\"https://rucu6.pages.dev/Scripts/cloud139.js\") with tag=\"cloud139_1\", requires_body=true'))",
+      "output_line": "response if ${url} ~= /^https:\\/\\/ad\\.mcloud\\.139\\.com\\/advertapi\\/adv-filter\\//i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_cloud139.js\") with tag=\"cloud139_1\", requires_body=true",
+      "canonical_key": "('guarded', '^https://ad\\\\.mcloud\\\\.139\\\\.com/advertapi/adv-filter/', ('script', 'script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_cloud139.js\") with tag=\"cloud139_1\", requires_body=true'))",
       "sources": [
         {
           "source": "myblockads",
           "priority": 7,
           "source_entry_index": 15,
           "input_section": "Script",
-          "input_line": "response if ${url} ~= /^https:\\/\\/ad\\.mcloud\\.139\\.com\\/advertapi\\/adv-filter\\//i then script(\"https://rucu6.pages.dev/Scripts/cloud139.js\") with tag=\"cloud139_1\", requires_body=true",
+          "input_line": "response if ${url} ~= /^https:\\/\\/ad\\.mcloud\\.139\\.com\\/advertapi\\/adv-filter\\//i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_cloud139.js\") with tag=\"cloud139_1\", requires_body=true",
           "disposition": "selected"
         }
       ],
@@ -74489,15 +74489,15 @@
     {
       "section": "Script",
       "output_entry_index": 615,
-      "output_line": "response if ${url} ~= /^https:\\/\\/jzts\\.cmpassport\\.com\\/personalized\\/getPushContent/i then script(\"https://rucu6.pages.dev/Scripts/cloud139.js\") with tag=\"cloud139_2\", requires_body=true",
-      "canonical_key": "('guarded', '^https://jzts\\\\.cmpassport\\\\.com/personalized/getPushContent', ('script', 'script(\"https://rucu6.pages.dev/Scripts/cloud139.js\") with tag=\"cloud139_2\", requires_body=true'))",
+      "output_line": "response if ${url} ~= /^https:\\/\\/jzts\\.cmpassport\\.com\\/personalized\\/getPushContent/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_cloud139.js\") with tag=\"cloud139_2\", requires_body=true",
+      "canonical_key": "('guarded', '^https://jzts\\\\.cmpassport\\\\.com/personalized/getPushContent', ('script', 'script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_cloud139.js\") with tag=\"cloud139_2\", requires_body=true'))",
       "sources": [
         {
           "source": "myblockads",
           "priority": 7,
           "source_entry_index": 16,
           "input_section": "Script",
-          "input_line": "response if ${url} ~= /^https:\\/\\/jzts\\.cmpassport\\.com\\/personalized\\/getPushContent/i then script(\"https://rucu6.pages.dev/Scripts/cloud139.js\") with tag=\"cloud139_2\", requires_body=true",
+          "input_line": "response if ${url} ~= /^https:\\/\\/jzts\\.cmpassport\\.com\\/personalized\\/getPushContent/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_cloud139.js\") with tag=\"cloud139_2\", requires_body=true",
           "disposition": "selected"
         }
       ],
