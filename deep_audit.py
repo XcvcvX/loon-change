@@ -763,6 +763,36 @@ def audit_mitm_necessity(mitm_rows, coverage_report, rewrite_rows, script_rows):
 
 
 
+
+def audit_duplicate_json_delete_paths(rewrite_rows):
+    """Find repeated literal paths inside modern response.json.delete([...]) arrays."""
+    findings = []
+    for line_no, line in rewrite_rows:
+        parsed = parse_rewrite(line)
+        if not parsed:
+            continue
+        phase, matcher, action = parsed
+        if phase != 'response':
+            continue
+        match = re.search(r'response\\.json\\.delete\\s*\\(\\s*\\[(.*?)\\]\\s*\\)', action)
+        if not match:
+            continue
+        try:
+            paths = [json.loads(token) for token in re.findall(r'"(?:\\\\.|[^"\\\\])*"', match.group(1))]
+        except (ValueError, TypeError):
+            continue
+        counts = Counter(paths)
+        duplicates = [{'path': path, 'count': count}
+                      for path, count in counts.items() if count > 1]
+        if duplicates:
+            findings.append({
+                'line': line_no, 'phase': phase, 'pattern': matcher,
+                'duplicate_paths': duplicates, 'paths': paths,
+                'classification': 'exact_duplicate_delete_path_diagnostic'
+            })
+    return findings
+
+
 def audit_deep(path):
     text = Path(path).read_text(encoding='utf-8-sig')
     sec = parse_sections(text)
@@ -806,6 +836,7 @@ def audit_deep(path):
             broad.append({'line': n, 'phase': phase, 'pattern': matcher,
                           'action': action, 'reasons': reasons, 'scope': scope})
     overlap_report = audit_rewrite_overlaps(rewrite)
+    duplicate_json_delete_paths = audit_duplicate_json_delete_paths(rewrite)
 
     duplicates, conflicts, exact_action_duplicates = [], [], []
     block_action_variant_groups, same_family_multi_operation_groups = [], []
@@ -931,6 +962,7 @@ def audit_deep(path):
             'rewrite_scope_counts': dict(sorted(scope_counts.items())),
             'rewrite_scope_review_candidates': len(scope_candidates),
             'rewrite_duplicate_matcher_groups': len(duplicates),
+            'rewrite_json_delete_duplicate_paths': len(duplicate_json_delete_paths),
             'rewrite_action_conflict_groups': len(conflicts),
             'rewrite_exact_duplicate_action_groups': len(exact_action_duplicates),
             'rewrite_block_action_variant_groups': len(block_action_variant_groups),
@@ -962,6 +994,7 @@ def audit_deep(path):
         'rewrite_broad_candidates': broad,
         'rewrite_scope_review_candidates': scope_candidates,
         'rewrite_duplicate_matcher_groups': duplicates,
+        'rewrite_json_delete_duplicate_paths': duplicate_json_delete_paths,
         'rewrite_action_conflict_groups': conflicts,
         'rewrite_exact_duplicate_action_groups': exact_action_duplicates,
         'rewrite_block_action_variant_groups': block_action_variant_groups,
@@ -1101,6 +1134,7 @@ def render_markdown(report):
         'rewrite_entries':'Rewrite 条目','rewrite_unparsed':'未解析 Rewrite',
         'rewrite_broad_candidates':'宽泛匹配候选',
         'rewrite_duplicate_matcher_groups':'重复匹配器组',
+        'rewrite_json_delete_duplicate_paths':'JSON 删除数组重复字段路径',
         'rewrite_action_conflict_groups':'同匹配器多操作组',
         'rewrite_exact_duplicate_action_groups':'同匹配器完全重复动作组',
         'rewrite_block_action_variant_groups':'同匹配器拦截动作变体组',
@@ -1143,6 +1177,7 @@ def render_markdown(report):
     for key, label in labels.items():
         lines.append('| %s | %s |' % (label, report['summary'][key]))
     for key, title in [
+        ('rewrite_json_delete_duplicate_paths','JSON 删除数组重复字段路径诊断'),
         ('rewrite_broad_candidates','宽泛 Rewrite 候选'),
         ('rewrite_action_conflict_groups','同匹配器多操作诊断（包含互补操作，不等同真实冲突）'),
         ('rewrite_block_action_variant_groups','同匹配器拦截动作变体诊断'),
