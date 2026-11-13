@@ -23,7 +23,7 @@
     "low": 0,
     "medium": 0
   },
-  "run_id": "43393572941",
+  "run_id": "43395556138",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -42,8 +42,8 @@
     "aoomee": {
       "action_changed": 0,
       "added": 0,
-      "removed": 2,
-      "snapshots_seen": 2
+      "removed": 1,
+      "snapshots_seen": 1
     },
     "base": {
       "action_changed": 10,
@@ -70,11 +70,5 @@
       "snapshots_seen": 1
     }
   },
-  "upstream_revision_changes": [
-    {
-      "current_commit": "535f2e560079ca389f0040865af5d20738730f7c",
-      "previous_commit": null,
-      "source": "GuaZiVideoAds"
-    }
-  ]
+  "upstream_revision_changes": []
 }
