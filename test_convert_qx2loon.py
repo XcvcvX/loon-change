@@ -37,12 +37,15 @@ class RewriteConverterTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             plugin = out.read_text(encoding="utf-8")
             mitm = plugin.split("[MITM]", 1)[1]
-            self.assertIn("wanciwangdata.oss-cn-*.aliyuncs.com", mitm)
-            self.assertIn("m*.amap.com", mitm)
-            self.assertIn("api*.futunn.com", mitm)
-            self.assertNotIn("*.com.cn", mitm)
-            self.assertNotIn("*.com,", mitm)
-            self.assertNotIn("*.aliyuncs.com", mitm)
+            host_line = next(line for line in mitm.splitlines()
+                             if line.strip().startswith("hostname"))
+            hosts = [host.strip() for host in host_line.split("=", 1)[1].split(",")]
+            self.assertIn("wanciwangdata.oss-cn-*.aliyuncs.com", hosts)
+            self.assertIn("m*.amap.com", hosts)
+            self.assertIn("api*.futunn.com", hosts)
+            self.assertNotIn("*.com.cn", hosts)
+            self.assertNotIn("*.com", hosts)
+            self.assertNotIn("*.aliyuncs.com", hosts)
 
     def test_header_scripts_do_not_wait_for_body_and_body_scripts_do(self):
         with tempfile.TemporaryDirectory() as tmp:
