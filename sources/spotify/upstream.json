@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "upstream_repository": "devchristian1337/loon-plugins",
-  "upstream_commit": "a9d979200ba633cadc79d193aef6f37d67cece96",
+  "upstream_repository": "ifflagged/Romeo",
+  "upstream_commit": "535f2e560079ca389f0040865af5d20738730f7c",
   "upstream_plugin_sha256": "83d0558d421c1d60bbc3d3aeade9a60a233488b0853f9c3bb5e564ecde6fcc79",
   "scripts_sha256": {
     "spot-gabo.js": "cb33a793aaa1d004f4af2116d40e0a7b3f0f2a402fb526e9894ce34f586c5cf9",
