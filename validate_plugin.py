@@ -74,8 +74,18 @@ def check_hostname(host):
             if '*' in label or '?' in label
         )
         suffix = '.'.join(labels[wildcard_label + 1:])
-        if not suffix or is_public_suffix(suffix):
+        if not suffix:
             return '通配 hostname 是公共后缀'
+        if is_public_suffix(suffix):
+            # 公共后缀保护应拒绝直接在注册域名标签上做泛化匹配，
+            # 例如 51job*.com、foo.*.com；但若通配标签本身含固定前缀，
+            # 且其左侧还有明确的子域标签（cupid.51job*.com），
+            # 匹配范围仍被限定在该具体子域，不等同于 *.com。
+            wildcard_label_value = labels[wildcard_label]
+            literal_part = re.sub(r'[*?]', '', wildcard_label_value)
+            has_scoped_subdomain = wildcard_label > 0
+            if not (literal_part and has_scoped_subdomain):
+                return '通配 hostname 是公共后缀'
         return None
     if not HOST_RE.fullmatch(candidate):
         return '域名格式非法或缺少有效 TLD'
