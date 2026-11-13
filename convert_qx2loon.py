@@ -211,7 +211,12 @@ for line in lines:
 
     # ===== 1. reject 系列 =====
     if act in REJECTS and rest.strip() == act:
-        rewrite.append('%s %s' % (urlre, act))
+        if act == 'reject':
+            # QuanX 普通 reject 返回 404；Loon 旧版 reject 是断开连接，必须显式映射状态码。
+            rewrite.append('request if ${url} ~= %s then reject(404)' % relit(urlre))
+        else:
+            # reject-200 / reject-img / reject-dict / reject-array 保留各自的响应形态。
+            rewrite.append('%s %s' % (urlre, act))
         stats[act] += 1
         continue
 
@@ -224,9 +229,14 @@ for line in lines:
         else:
             phase = 'http-request'
         tag = make_tag(cur_code)
-        binflag = ',binary-body-mode=true' if os.path.basename(js) in BINARY_NEEDED else ''
-        scripts.append('%s %s script-path=%s,tag=%s,requires-body=true%s'
-                       % (phase, urlre, js, tag, binflag))
+        options = []
+        if kind.endswith('-body'):
+            options.append('requires-body=true')
+        if os.path.basename(js) in BINARY_NEEDED:
+            options.append('binary-body-mode=true')
+        option_text = ',' + ','.join(options) if options else ''
+        scripts.append('%s %s script-path=%s,tag=%s%s'
+                       % (phase, urlre, js, tag, option_text))
         stats[kind + ' -> ' + phase] += 1
         continue
 
@@ -304,15 +314,8 @@ for line in lines:
 
 
 # ================= MitM 主机名规范化 =================
-# Loon 的 hostname 仅支持：具体域名、*.后缀 通配、- 前缀排除。
-# QuanX 允许中间/后缀通配（如 i*.hoopchina.com.cn、*tieba*.baidu.com），必须做语义收敛：
-#   1) 优先从规则正则展开出具体域名
-#      （如 cupid\.51job(app)?\.com -> cupid.51job.com / cupid.51jobapp.com）
-#   2) 无法展开时退化为 *.最长字面后缀
-#      （如 interface*.music.163.com -> *.music.163.com）
-#   3) 绝不输出公共后缀（*.com.cn、*.net.cn 之类）——否则 Loon 会解密该后缀下
-#      所有域名的流量，iOS 系统服务（如 p203-contacts.icloud.com.cn）校验证书
-#      失败，就会弹“无法验证服务器身份”
+# Loon hostname 支持 *、? 通配符；原样保留源规则，禁止将中间通配符扩大成 *.suffix。
+# 仍执行公共后缀保护：不允许 *.com.cn、*.net.cn、*.com 等公共后缀级通配。
 
 # 常见两级公共后缀（其 registrable domain 需取三级）
 PUBLIC_SUFFIX_2L = {
@@ -636,8 +639,6 @@ def norm_host(h):
     fixed_typo = repair_hostname_typo(h)
     if fixed_typo:
         h = fixed_typo.strip('.')
-    if h.endswith('.*'):
-        h = h[:-2]
     if '*' not in h and '?' not in h:
         # 具体域名；单标签内部名（如 pangolin-sdk-toutiao）按源样保留
         if not re.match(r'^[A-Za-z0-9\-\.]+$', h):
@@ -651,26 +652,24 @@ def norm_host(h):
             fixed = repair_missing_tld(h)
             return [fixed] if fixed else []
         return [h]
-    if h.startswith('*.') and '*' not in h[2:] and '?' not in h[2:]:
-        return [] if is_public_suffix(h[2:]) else [h]
-    # 中间/后缀通配（含 ? 单字符通配）：1) 先试从规则正则展开具体域名
-    got = concrete_from_rules(h)
-    if got:
-        return got
-    # 2) 退化为 *.最长字面后缀（公共后缀感知，绝不产出公共后缀）
-    lit = []
-    for lab in reversed([x for x in h.split('.') if x]):
-        if '*' in lab or '?' in lab:
-            break
-        lit.append(lab)
-    lit = lit[::-1]
-    if len(lit) < 2:
-        return []
-    need = 3 if '.'.join(lit[-2:]).lower() in PUBLIC_SUFFIX_2L else 2
-    if len(lit) < need or is_public_suffix('.'.join(lit[-need:])):
-        return []
-    out = '*.' + '.'.join(lit)
-    return [out] if re.match(r'^\*\.[A-Za-z0-9\-\.]+$', out) else []
+    if '*' in h or '?' in h:
+        # Loon hostname 原生支持 *、?；保留源通配符，不做规则枚举或 *.suffix 兜底。
+        # 用占位字符验证 hostname 结构，再单独阻止公共后缀级通配（如 *.com.cn / *.com）。
+        candidate = h.replace('*', 'a').replace('?', 'a')
+        if not HOST_OK.match(candidate):
+            return []
+        labels = h.split('.')
+        literal_labels = [re.sub(r'[*?]', '', label) for label in labels]
+        literal_labels = [label for label in literal_labels if label]
+        if len(literal_labels) < 2:
+            return []
+        if len(labels) >= 2 and '.'.join(labels[-2:]).lower() in PUBLIC_SUFFIX_2L:
+            # 公共后缀前必须至少有一个固定注册域标签，不能只靠通配符覆盖整个后缀。
+            prefix_literals = [re.sub(r'[*?]', '', label) for label in labels[:-2]]
+            if not any(prefix_literals):
+                return []
+        return [h]
+
 
 
 seen, hosts, dropped_hosts, derived_hosts = set(), [], [], {}
@@ -755,9 +754,10 @@ HEAD = """#!name = 全部-广告拦截合集(Loon)
 # 1. 原子组 (?>...) 在 Loon(ICU 正则) 中不被支持，已全部降级为 (?:...)
 # 2. QuanX 的 rewrite 脚本已改写到 [Script] 段（http-response / http-request）
 # 3. 动作映射：
-#      reject/reject-200/reject-img/reject-dict/reject-array -> 同名动作(移至正则之后)
+#      reject -> 新语法 reject(404)；其它特殊 reject 动作保留原响应形态
 #      script-response-body      -> [Script] http-response  ... requires-body=true
 #      script-request-body       -> [Script] http-request   ... requires-body=true
+#      script-*-header           -> [Script] Header 阶段执行，不等待 Body
 #        protobuf 类脚本（youtube/bilibiliProtoA/tiebaProto/spotify/baiduMap）
 #        额外加 binary-body-mode=true，否则拿到字符串、解析失败会放空响应导致转圈
 #      script-response-header    -> [Script] http-response
