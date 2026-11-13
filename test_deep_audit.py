@@ -44,6 +44,33 @@ request if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/ad/ then reject-dict
         self.assertEqual(report['summary']['rewrite_cross_family_conflict_groups'], 1)
         self.assertTrue(any(action.startswith('response-body-json-jq ') for action in group['actions']))
 
+    def test_duplicate_json_delete_paths_are_reported_without_modifying_rules(self):
+        fixture = '''[Rewrite]
+response if ${url} ~= /api.example.com/ then response.json.delete(["data.ad", "data.banner", "data.ad"])
+response if ${url} ~= /api.example.com/ then response.json.delete(["data.one", "data.two"])
+'''
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'duplicate-delete-paths.plugin'
+            path.write_text(fixture, encoding='utf-8')
+            report = audit_deep(path)
+        self.assertEqual(report['summary']['rewrite_json_delete_duplicate_paths'], 1)
+        finding = report['rewrite_json_delete_duplicate_paths'][0]
+        self.assertEqual(finding['duplicate_paths'], [{'path': 'data.ad', 'count': 2}])
+        self.assertEqual(finding['paths'], ['data.ad', 'data.banner', 'data.ad'])
+        self.assertEqual(report['summary']['rewrite_entries'], 2)
+
+    def test_duplicate_delete_path_audit_ignores_single_path_and_non_delete_actions(self):
+        fixture = '''[Rewrite]
+response if ${url} ~= /api.example.com/ then response.json.delete("data.ad")
+response if ${url} ~= /api.example.com/ then response.json.jq("del(.data.ad)")
+'''
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'no-duplicate-delete-paths.plugin'
+            path.write_text(fixture, encoding='utf-8')
+            report = audit_deep(path)
+        self.assertEqual(report['summary']['rewrite_json_delete_duplicate_paths'], 0)
+        self.assertEqual(report['rewrite_json_delete_duplicate_paths'], [])
+
     def test_broad_match_candidate(self):
         self.assertTrue(broad_reasons('^https?://'))
         self.assertFalse(broad_reasons(r'^https://api\.example\.com/ad'))
