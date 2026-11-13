@@ -38,9 +38,10 @@ FILTER_MIRRORS = [
     'https://fastly.jsdelivr.net/gh/zirawell/R-Store@main/Rule/QuanX/Adblock/All/filter/allAdBlock.list',
 ]
 
-# MyBlockAds（RuCu6/Walalala 自用去广告大合集）：仅经 Cloudflare Pages 发布，无公开 GitHub 源。
-# 在线抓取失败时回退到仓库内置缓存 myblockads.lpx，保证自动更新不中断、独有规则不丢失。
-MYBLOCKADS_URL = 'https://rucu6.pages.dev/Plugins/myblockads.lpx'
+# MyBlockAds（RuCu6/Walalala 自用去广告大合集）：使用 ifflagged/Romeo 的 GitHub 镜像源。
+# 同步工作流会从本轮固定的 Romeo commit 更新仓库缓存；在线抓取失败时回退到该缓存。
+MYBLOCKADS_URL = ('https://raw.githubusercontent.com/ifflagged/Romeo/main/'
+                  'Modules/Loon/rucu6/myblockads.lpx')
 MYBLOCKADS_CACHE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), 'myblockads.lpx')
 
