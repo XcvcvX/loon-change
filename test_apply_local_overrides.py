@@ -194,6 +194,32 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertIn(shadow, rewrite)
 
 
+    def test_removes_only_the_duplicate_path_in_exact_pdd_homepage_delete_rule(self):
+        from apply_local_overrides import (
+            PDD_HOMEPAGE_DELETE_DUPLICATE_RULE, PDD_HOMEPAGE_DELETE_DEDUPED_RULE,
+            remove_duplicate_pdd_homepage_delete_path,
+        )
+        result, removed = remove_duplicate_pdd_homepage_delete_path([PDD_HOMEPAGE_DELETE_DUPLICATE_RULE])
+        self.assertEqual(removed, 1)
+        self.assertEqual(result, [PDD_HOMEPAGE_DELETE_DEDUPED_RULE])
+        self.assertEqual(result[0].count("result.dy_module.irregular_banner_dy"), 1)
+        self.assertIn("result.icon_set", result[0])
+        self.assertIn("result.search_bar_hot_query", result[0])
+        self.assertEqual(remove_duplicate_pdd_homepage_delete_path(result)[1], 0)
+
+    def test_preserves_pdd_homepage_rule_when_exact_source_text_changes(self):
+        from apply_local_overrides import (
+            PDD_HOMEPAGE_DELETE_DUPLICATE_RULE, remove_duplicate_pdd_homepage_delete_path,
+        )
+        for fixture in (
+            [PDD_HOMEPAGE_DELETE_DUPLICATE_RULE.replace("result.icon_set", "result.icon_set_v2")],
+            [PDD_HOMEPAGE_DELETE_DUPLICATE_RULE, PDD_HOMEPAGE_DELETE_DUPLICATE_RULE],
+            [PDD_HOMEPAGE_DELETE_DUPLICATE_RULE + " "],
+        ):
+            result, removed = remove_duplicate_pdd_homepage_delete_path(fixture)
+            self.assertEqual(removed, 0)
+            self.assertEqual(result, list(fixture))
+
     def test_removes_dache_core_icon_from_later_filter_only_after_explicit_delete(self):
         from apply_local_overrides import (
             DACHE_CORE_ICON_DELETE_GUARD, DACHE_CORE_ICON_FILTER_RULE,
