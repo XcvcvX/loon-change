@@ -12,18 +12,25 @@ CONVERTER = Path(__file__).with_name("convert_filter_qx2loon.py")
 
 class FilterConverterTests(unittest.TestCase):
     def test_httpdns_reject_endpoints_are_excluded_without_widening(self):
-        source = """#!date=2026-11-12
-#!count=5
-ip-cidr,119.29.29.98/32,reject
-host,toutiao-frontier.snssdk.com,reject
-host,toutiao-frontier.snssdk.com,reject-200
-host-suffix,snssdk.com,reject
-ip-cidr,119.29.29.99/32,reject-200
-ip-cidr,119.29.29.90/32,reject
-ip-cidr,119.29.29.98/32,direct
-ip-cidr,119.29.29.0/24,reject
-host-suffix,ads.example.com,reject
-"""
+        source_lines = [
+            "#!date=2026-11-12",
+            "#!count=27",
+            "ip-cidr,119.29.29.98/32,reject",
+            "host,toutiao-frontier.snssdk.com,reject",
+            "host,toutiao-frontier.snssdk.com,reject-200",
+            "host-suffix,snssdk.com,reject",
+            "ip-cidr,119.29.29.99/32,reject-200",
+            "ip-cidr,119.29.29.90/32,reject",
+            "ip-cidr,119.29.29.98/32,direct",
+            "ip-cidr,119.29.29.0/24,reject",
+            "host-suffix,ads.example.com,reject",
+        ]
+        source_lines.extend(
+            "host-suffix,fixture%02d.example.com,reject" % index
+            for index in range(20)
+        )
+        source = "\\n".join(source_lines) + "\\n"
+
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             input_file = root / "source.list"
