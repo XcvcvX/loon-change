@@ -156,7 +156,8 @@ list_out = [
     '# 上游版本: %s' % upstream_date,
     '# 用法: 在 Loon 主配置 [Rule] 段中加一行（放在 FINAL 之前）:',
     '#   <本文件 URL>,REJECT',
-    '# 安全排除：腾讯云 HTTPDNS 正式入口 119.29.29.98/32、119.29.29.99/32 的 REJECT 规则。\n    # 安全排除：toutiao-frontier.snssdk.com（头条 Frontier 长连接/WebSocket）。',
+    '# 安全排除：腾讯云 HTTPDNS 正式入口 119.29.29.98/32、119.29.29.99/32 的 REJECT 规则。
+    # 安全排除：toutiao-frontier.snssdk.com（头条 Frontier 长连接/WebSocket）。\n    # 安全排除：toutiao-frontier.snssdk.com（头条 Frontier 长连接/WebSocket）。',
     '',
 ] + rules
 
@@ -181,7 +182,8 @@ plugin_out = [
     '#   ip6-cidr     -> IP-CIDR6  (+ no-resolve)',
     '#   reject       -> REJECT',
     '# 未使用 Surge 专有的 extended-matching / pre-matching，Loon 不支持这两个参数。',
-    '# 安全排除：腾讯云 HTTPDNS 正式入口 119.29.29.98/32、119.29.29.99/32 的 REJECT 规则。',
+    '# 安全排除：腾讯云 HTTPDNS 正式入口 119.29.29.98/32、119.29.29.99/32 的 REJECT 规则。
+    # 安全排除：toutiao-frontier.snssdk.com（头条 Frontier 长连接/WebSocket）。',
     '',
     '[Rule]',
 ] + rules
