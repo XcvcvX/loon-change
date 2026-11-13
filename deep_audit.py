@@ -1201,7 +1201,7 @@ def render_markdown(report):
         ('mitm_unreferenced_positive_candidates','未关联到字面触发器的 MITM 正向项候选')
     ]:
         lines += ['', '## ' + title, '']
-        values = report[key]
+        values = report.get(key, [])
         lines += ['- ' + json.dumps(markdown_diagnostic_item(x), ensure_ascii=False) for x in values[:100]] if values else ['未发现。']
         if len(values) > 100:
             lines.append('其余 %d 项见 JSON 报告。' % (len(values) - 100))
