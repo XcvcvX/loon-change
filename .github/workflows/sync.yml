@@ -172,12 +172,16 @@ jobs:
             https://ddgksf2013.top/rewrite/GuaZiVideoAds.conf -o /tmp/GuaZiVideoAds.conf
           wc -c /tmp/GuaZiVideoAds.conf
 
-      - name: 固定 Romeo 上游版本并下载高德插件及依赖
+      - name: 固定 Romeo 上游版本并下载高德与 MyBlockAds 插件及依赖
         run: |
           mkdir -p /tmp/amap sources/amap
           git clone --depth 1 https://github.com/ifflagged/Romeo.git /tmp/romeo
           ROMEO_SHA="$(git -C /tmp/romeo rev-parse HEAD)"
           echo "ROMEO_SHA=$ROMEO_SHA" >> "$GITHUB_ENV"
+          # MyBlockAds 与高德共用同一固定 commit，避免 Pages 源失败后长期使用陈旧缓存。
+          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/rucu6/myblockads.lpx" > myblockads.lpx
+          python3 -c 'from pathlib import Path; from source_guard import validate_myblockads; p=Path("myblockads.lpx"); s=validate_myblockads(p.read_text(encoding="utf-8-sig")); print("MyBlockAds Romeo cache validated:", s)'
+          echo "MyBlockAds upstream: ifflagged/Romeo@$ROMEO_SHA:Modules/Loon/rucu6/myblockads.lpx"
           git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/sooyaaabo/Amap.lpx" > /tmp/amap/Amap.lpx
           git -C /tmp/romeo show "$ROMEO_SHA:Modules/JavaScript/sooyaaabo/Amap/rucu6_amap.js" > /tmp/amap/rucu6_amap.js
           git -C /tmp/romeo show "$ROMEO_SHA:Modules/JavaScript/sooyaaabo/Amap/loon_Amap.recommend.jq" > /tmp/amap/loon_Amap.recommend.jq
@@ -292,7 +296,7 @@ jobs:
       - name: 检查是否有变化
         id: diff
         run: |
-          if git diff --quiet -- allAdRewrite.plugin allAdBlock-Loon.plugin allAdBlock-Loon.list README.md source-report.json rule-provenance.json rule-diff.json source-health.json rule-risk.json rule-history.json sources/amap/ sources/spotify/ scripts/spotify/; then
+          if git diff --quiet -- allAdRewrite.plugin allAdBlock-Loon.plugin allAdBlock-Loon.list README.md myblockads.lpx source-report.json rule-provenance.json rule-diff.json source-health.json rule-risk.json rule-history.json sources/amap/ sources/spotify/ scripts/spotify/; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "合并产物与统计均无变化，跳过提交"
           else
@@ -305,6 +309,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add allAdRewrite.plugin allAdBlock-Loon.plugin allAdBlock-Loon.list README.md source-report.json rule-provenance.json rule-diff.json source-health.json rule-risk.json rule-history.json sources/amap/ sources/spotify/ scripts/spotify/
+          git add allAdRewrite.plugin allAdBlock-Loon.plugin allAdBlock-Loon.list README.md myblockads.lpx source-report.json rule-provenance.json rule-diff.json source-health.json rule-risk.json rule-history.json sources/amap/ sources/spotify/ scripts/spotify/
           git commit -m "chore: sync upstream rules and plugin stats $(date -u +%Y-%m-%d)"
           git push
