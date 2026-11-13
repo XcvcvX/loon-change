@@ -166,18 +166,16 @@ jobs:
           git clone --depth 1 https://github.com/zmjde/loon-plugins.git /tmp/zmjde
           ls /tmp/zmjde/Plugin | wc -l
 
-      - name: 下载瓜子影视去广告
-        run: |
-          curl -fsSL --retry 5 --retry-all-errors -A "surge" \
-            https://ddgksf2013.top/rewrite/GuaZiVideoAds.conf -o /tmp/GuaZiVideoAds.conf
-          wc -c /tmp/GuaZiVideoAds.conf
-
-      - name: 固定 Romeo 上游版本并下载高德与 MyBlockAds 插件及依赖
+      - name: 固定 Romeo 上游版本并下载瓜子影视、高德与 MyBlockAds 插件及依赖
         run: |
           mkdir -p /tmp/amap sources/amap
           git clone --depth 1 https://github.com/ifflagged/Romeo.git /tmp/romeo
           ROMEO_SHA="$(git -C /tmp/romeo rev-parse HEAD)"
           echo "ROMEO_SHA=$ROMEO_SHA" >> "$GITHUB_ENV"
+          # 瓜子影视使用 Romeo 收录的 ddgksf2013 官方 QuanX 源文件，继续走原有 QuanX -> Loon 转换链路。
+          git -C /tmp/romeo show "$ROMEO_SHA:Modules/QuantumultX/ddgksf2013/Official/GuaZiVideoAds.conf" > /tmp/GuaZiVideoAds.conf
+          wc -c /tmp/GuaZiVideoAds.conf
+          echo "GuaZiVideoAds upstream: ifflagged/Romeo@$ROMEO_SHA:Modules/QuantumultX/ddgksf2013/Official/GuaZiVideoAds.conf"
           # MyBlockAds 与高德共用同一固定 commit，避免 Pages 源失败后长期使用陈旧缓存。
           git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/rucu6/myblockads.lpx" > myblockads.lpx
           python3 -c 'from pathlib import Path; from source_guard import validate_myblockads; p=Path("myblockads.lpx"); s=validate_myblockads(p.read_text(encoding="utf-8-sig")); print("MyBlockAds Romeo cache validated:", s)'
@@ -203,6 +201,21 @@ jobs:
       - name: 校验克隆来源并生成来源报告
         run: |
           python3 source_guard.py --thelong /tmp/loon-plugins --aoomee /tmp/aoomee --zmjde /tmp/zmjde --qxapp /tmp/GuaZiVideoAds.conf --amap /tmp/amap/Amap.lpx --previous-report source-report.json --report source-report.json
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          report_path = Path("source-report.json")
+          report = json.loads(report_path.read_text(encoding="utf-8"))
+          source = report.get("GuaZiVideoAds")
+          if not isinstance(source, dict):
+              raise SystemExit("source-report.json 缺少 GuaZiVideoAds 校验结果")
+          source.update({
+              "upstream_repository": "https://github.com/ifflagged/Romeo",
+              "upstream_commit": os.environ["ROMEO_SHA"],
+              "upstream_path": "Modules/QuantumultX/ddgksf2013/Official/GuaZiVideoAds.conf",
+          })
+          report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
+          PY
           python3 amap_dependency_guard.py --assets /tmp/amap --plugin /tmp/amap/Amap.lpx --commit "$ROMEO_SHA" --report source-report.json
           cp /tmp/amap/* sources/amap/
 
