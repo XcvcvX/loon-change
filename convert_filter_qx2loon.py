@@ -15,6 +15,7 @@ Loon 并不支持，照抄反而会让规则解析失败。这里只加 Loon 官
   python3 convert_filter_qx2loon.py -i local.list
 """
 import argparse, datetime, os, re, sys, urllib.request
+from source_guard import fetch_validated, validate_filter
 
 UPSTREAM = ('https://raw.githubusercontent.com/zirawell/R-Store/main/'
             'Rule/QuanX/Adblock/All/filter/allAdBlock.list')
@@ -57,6 +58,9 @@ NO_RESOLVE = {'IP-CIDR', 'IP-CIDR6', 'IP-ASN', 'GEOIP'}
 # Tencent Cloud HTTPDNS production endpoints. A global REJECT rule here
 # breaks HTTP/HTTPS DNS-over-HTTP requests; keep this exclusion exact.
 HTTPDNS_REJECT_EXCLUSIONS = {'119.29.29.98/32', '119.29.29.99/32'}
+# This exact Frontier host carries the app's WebSocket/streaming channel;
+# rejecting it can break feed/connectivity behavior. Exclude it in standalone output too.
+FRONTIER_REJECT_EXCLUSIONS = {'toutiao-frontier.snssdk.com'}
 
 ap = argparse.ArgumentParser()
 ap.add_argument('-i', '--input', help='本地 QuanX 规则文件；不指定则从上游拉取')
@@ -73,22 +77,19 @@ def fetch(url, timeout=60):
 
 if args.input:
     raw = open(args.input, encoding='utf-8').read()
+    validate_filter(raw)
 else:
-    raw, last_err = None, None
-    for u in [UPSTREAM] + MIRRORS:
-        try:
-            raw = fetch(u)
-            print('[fetch] 已获取:', u)
-            break
-        except Exception as e:
-            last_err = e
-            print('[fetch] 失败:', u, e, file=sys.stderr)
-    if raw is None:
-        raise SystemExit('上游规则获取失败: %s' % last_err)
+    try:
+        raw, used_url, stats_source = fetch_validated(
+            [UPSTREAM] + MIRRORS, fetch, validate_filter, 'R-Store filter')
+        print('[fetch] 已获取并通过完整性检查:', used_url, stats_source)
+    except Exception as e:
+        raise SystemExit('上游规则获取失败: %s' % e)
 
 
 rules, unknown, stats = [], [], {}
 httpdns_excluded = []
+frontier_excluded = []
 upstream_date, upstream_count = '', ''
 csv = {}
 
@@ -131,6 +132,13 @@ for line in raw.split('\n'):
             stats.get('Tencent Cloud HTTPDNS safety exclusions', 0) + 1)
         continue
 
+    if (ltype == 'DOMAIN' and value.lower() in FRONTIER_REJECT_EXCLUSIONS
+            and lpolicy.startswith('REJECT')):
+        frontier_excluded.append(s)
+        stats['Toutiao Frontier WebSocket safety exclusions'] = (
+            stats.get('Toutiao Frontier WebSocket safety exclusions', 0) + 1)
+        continue
+
     extra = ',no-resolve' if ltype in NO_RESOLVE else ''
     rules.append('%s,%s,%s%s' % (ltype, value, lpolicy, extra))
     stats['%s -> %s' % (qtype, ltype)] = stats.get('%s -> %s' % (qtype, ltype), 0) + 1
@@ -145,7 +153,8 @@ list_out = [
     '# 上游版本: %s' % upstream_date,
     '# 用法: 在 Loon 主配置 [Rule] 段中加一行（放在 FINAL 之前）:',
     '#   <本文件 URL>,REJECT',
-    '# 安全排除：腾讯云 HTTPDNS 正式入口 119.29.29.98/32、119.29.29.99/32 的 REJECT 规则。',
+    '# 安全排除：腾讯云 HTTPDNS 正式入口 119.29.29.98/32、119.29.29.99/32 的 REJECT 规则.',
+    '# 安全排除：toutiao-frontier.snssdk.com（头条 Frontier 长连接/WebSocket）。',
     '',
 ] + rules
 
@@ -170,7 +179,8 @@ plugin_out = [
     '#   ip6-cidr     -> IP-CIDR6  (+ no-resolve)',
     '#   reject       -> REJECT',
     '# 未使用 Surge 专有的 extended-matching / pre-matching，Loon 不支持这两个参数。',
-    '# 安全排除：腾讯云 HTTPDNS 正式入口 119.29.29.98/32、119.29.29.99/32 的 REJECT 规则。',
+    '# 安全排除：腾讯云 HTTPDNS 正式入口 119.29.29.98/32、119.29.29.99/32 的 REJECT 规则.',
+    '# 安全排除：toutiao-frontier.snssdk.com（头条 Frontier 长连接/WebSocket）。',
     '',
     '[Rule]',
 ] + rules
@@ -186,6 +196,7 @@ print('\n=== 转换统计 ===')
 for k, v in sorted(stats.items(), key=lambda x: -x[1]):
     print('%6d  %s' % (v, k))
 print('HTTPDNS 安全排除规则: %d' % len(httpdns_excluded))
+print('Toutiao Frontier 安全排除规则: %d' % len(frontier_excluded))
 print('规则总数: %d' % len(rules))
 if unknown:
     print('跳过/异常: %d' % len(unknown))
