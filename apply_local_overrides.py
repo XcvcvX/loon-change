@@ -125,6 +125,30 @@ def split_response_json_rewrite(line: str):
     if not actions or any(not action.startswith("response.json.") for action in actions): return None
     return prefix, actions
 
+DACHE_CORE_ICON_DELETE_GUARD = r'response if ${url} ~= /^https:\/\/api\.udache\.com\/gulfstream\/porsche\/v\d\/dache_homepage_layout\?/i then response.json.delete("data.instances.dache_main_core_icon")'
+DACHE_CORE_ICON_FILTER_RULE = r'response if ${url} ~= /^https:\/\/api\.udache\.com\/gulfstream\/porsche\/v\d\/dache_homepage_layout\?/i then response.json.jq(".data |= (.instances |= (to_entries | map(select(.key | test(\"feed_back_|dache_main_member|order_container_|dache_main_core_icon|dache_main_card_\"))) | from_entries))")'
+
+def remove_redundant_dache_core_icon_filter(lines):
+    output, guard_seen, removed = [], False, 0
+    for line in lines:
+        value = line.strip()
+        if value == DACHE_CORE_ICON_DELETE_GUARD:
+            guard_seen = True
+        if value == DACHE_CORE_ICON_FILTER_RULE and guard_seen:
+            replacement = value.replace(
+                "order_container_|dache_main_core_icon|dache_main_card_",
+                "order_container_|dache_main_card_",
+                1,
+            )
+            if replacement == value:
+                output.append(line)
+            else:
+                output.append(replacement)
+                removed += 1
+            continue
+        output.append(line)
+    return output, removed
+
 def merge_adjacent_response_json_rewrites(lines):
     output, index, merged = [], 0, 0
     while index < len(lines):
@@ -199,6 +223,7 @@ def apply(text: str) -> str:
     for line in lines:
         if line.startswith("[") and line.endswith("]"):
             if section == "Rewrite":
+                rewrite_lines, _ = remove_redundant_dache_core_icon_filter(rewrite_lines)
                 rewrite_lines, _ = merge_adjacent_response_json_rewrites(rewrite_lines)
                 rewrite_lines, _ = remove_subsumed_soul_teenager_rule(rewrite_lines)
                 rewrite_lines, _ = remove_shadowed_peopleapp_rules(rewrite_lines)
@@ -208,6 +233,7 @@ def apply(text: str) -> str:
         elif section == "Rewrite": rewrite_lines.append(line)
         else: result_lines.append(line)
     if section == "Rewrite":
+        rewrite_lines, _ = remove_redundant_dache_core_icon_filter(rewrite_lines)
         rewrite_lines, _ = merge_adjacent_response_json_rewrites(rewrite_lines)
         rewrite_lines, _ = remove_subsumed_soul_teenager_rule(rewrite_lines)
         rewrite_lines, _ = remove_shadowed_peopleapp_rules(rewrite_lines)

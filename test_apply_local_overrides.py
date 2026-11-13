@@ -193,6 +193,29 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertIn(guard, rewrite)
         self.assertIn(shadow, rewrite)
 
+
+    def test_removes_dache_core_icon_from_later_filter_only_after_explicit_delete(self):
+        from apply_local_overrides import (
+            DACHE_CORE_ICON_DELETE_GUARD, DACHE_CORE_ICON_FILTER_RULE,
+            remove_redundant_dache_core_icon_filter,
+        )
+        expected_guard = r'response if ${url} ~= /^https:\/\/api\.udache\.com\/gulfstream\/porsche\/v\d\/dache_homepage_layout\?/i then response.json.delete("data.instances.dache_main_core_icon")'
+        expected_filter = r'response if ${url} ~= /^https:\/\/api\.udache\.com\/gulfstream\/porsche\/v\d\/dache_homepage_layout\?/i then response.json.jq(".data |= (.instances |= (to_entries | map(select(.key | test(\"feed_back_|dache_main_member|order_container_|dache_main_core_icon|dache_main_card_\"))) | from_entries))")'
+        self.assertEqual(DACHE_CORE_ICON_DELETE_GUARD, expected_guard)
+        self.assertEqual(DACHE_CORE_ICON_FILTER_RULE, expected_filter)
+        result, removed = remove_redundant_dache_core_icon_filter([expected_guard, expected_filter])
+        self.assertEqual(removed, 1)
+        self.assertIn("order_container_|dache_main_card_", result[1])
+        self.assertNotIn("dache_main_core_icon", result[1])
+        self.assertEqual(remove_redundant_dache_core_icon_filter(result)[1], 0)
+
+    def test_preserves_dache_filter_when_delete_guard_is_missing_or_later(self):
+        from apply_local_overrides import DACHE_CORE_ICON_DELETE_GUARD, DACHE_CORE_ICON_FILTER_RULE, remove_redundant_dache_core_icon_filter
+        for fixture in ([DACHE_CORE_ICON_FILTER_RULE], [DACHE_CORE_ICON_FILTER_RULE, DACHE_CORE_ICON_DELETE_GUARD]):
+            result, removed = remove_redundant_dache_core_icon_filter(fixture)
+            self.assertEqual(removed, 0)
+            self.assertEqual(result, list(fixture))
+
     def test_requires_bankcomm_mitm_hosts(self):
         with self.assertRaises(ValueError):
             apply(BASE.replace("creditcard.bankcomm.com, ", ""))
