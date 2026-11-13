@@ -125,6 +125,18 @@ def split_response_json_rewrite(line: str):
     if not actions or any(not action.startswith("response.json.") for action in actions): return None
     return prefix, actions
 
+PDD_HOMEPAGE_DELETE_DUPLICATE_RULE = r'response if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/alexa\/homepage\/hub\?/i then response.json.delete(["result.dy_module.irregular_banner_dy", "result.icon_set", "result.search_bar_hot_query", "result.dy_module.irregular_banner_dy"])'
+PDD_HOMEPAGE_DELETE_DEDUPED_RULE = r'response if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/alexa\/homepage\/hub\?/i then response.json.delete(["result.dy_module.irregular_banner_dy", "result.icon_set", "result.search_bar_hot_query"])'
+
+def remove_duplicate_pdd_homepage_delete_path(lines):
+    """Remove only the proven duplicate path in the exact Pinduoduo homepage delete action."""
+    if sum(line.strip() == PDD_HOMEPAGE_DELETE_DUPLICATE_RULE for line in lines) != 1:
+        return list(lines), 0
+    return [
+        PDD_HOMEPAGE_DELETE_DEDUPED_RULE if line.strip() == PDD_HOMEPAGE_DELETE_DUPLICATE_RULE else line
+        for line in lines
+    ], 1
+
 DACHE_CORE_ICON_DELETE_GUARD = r'response if ${url} ~= /^https:\/\/api\.udache\.com\/gulfstream\/porsche\/v\d\/dache_homepage_layout\?/i then response.json.delete("data.instances.dache_main_core_icon")'
 DACHE_CORE_ICON_FILTER_RULE = r'response if ${url} ~= /^https:\/\/api\.udache\.com\/gulfstream\/porsche\/v\d\/dache_homepage_layout\?/i then response.json.jq(".data |= (.instances |= (to_entries | map(select(.key | test(\"feed_back_|dache_main_member|order_container_|dache_main_core_icon|dache_main_card_\"))) | from_entries))")'
 
@@ -245,6 +257,7 @@ def apply(text: str) -> str:
     for line in lines:
         if line.startswith("[") and line.endswith("]"):
             if section == "Rewrite":
+                rewrite_lines, _ = remove_duplicate_pdd_homepage_delete_path(rewrite_lines)
                 rewrite_lines, _ = remove_redundant_dache_core_icon_filter(rewrite_lines)
                 rewrite_lines, _ = merge_didi_fast_homepage_json_deletes(rewrite_lines)
                 rewrite_lines, _ = merge_adjacent_response_json_rewrites(rewrite_lines)
@@ -256,6 +269,7 @@ def apply(text: str) -> str:
         elif section == "Rewrite": rewrite_lines.append(line)
         else: result_lines.append(line)
     if section == "Rewrite":
+        rewrite_lines, _ = remove_duplicate_pdd_homepage_delete_path(rewrite_lines)
         rewrite_lines, _ = remove_redundant_dache_core_icon_filter(rewrite_lines)
         rewrite_lines, _ = merge_didi_fast_homepage_json_deletes(rewrite_lines)
         rewrite_lines, _ = merge_adjacent_response_json_rewrites(rewrite_lines)
