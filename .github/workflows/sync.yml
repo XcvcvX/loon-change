@@ -60,6 +60,9 @@ on:
       - 'apply_local_overrides.py'
       - 'test_apply_local_overrides.py'
       - 'integrate_spotify.py'
+      - 'integrate_alipay.py'
+      - 'test_integrate_alipay.py'
+      - 'sources/alipay/**'
       - 'test_integrate_spotify.py'
       - 'sources/spotify/**'
   schedule:
