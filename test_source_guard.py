@@ -7,7 +7,8 @@ from pathlib import Path
 
 from source_guard import (
     validate_source, validate_rstore_rewrite, validate_filter,
-    validate_blockv2, validate_myblockads, validate_amap, check_clones, REQUIRED_ZMJDE,
+    validate_blockv2, validate_myblockads, validate_amap, validate_alipayadblock,
+    check_clones, REQUIRED_ZMJDE,
 )
 
 
@@ -58,6 +59,21 @@ class SourceGuardTests(unittest.TestCase):
     def test_myblockads_requires_rewrite_content(self):
         text = "[Rewrite]\n" + "\n".join("^https://a.example.com/%d reject" % i for i in range(5)) + "\n# " + "x" * 150
         self.assertEqual(validate_myblockads(text)["rule_entries"], 5)
+
+    def test_vendored_alipayadblock_source_has_expected_sections(self):
+        source = (Path(__file__).with_name("sources") / "alipayAdBlock"
+                  / "alipayAdBlock.lpx")
+        stats = validate_alipayadblock(source.read_text(encoding="utf-8"))
+        self.assertGreaterEqual(stats["sections"]["Rewrite"], 15)
+        self.assertGreaterEqual(stats["sections"]["Script"], 1)
+        self.assertIn("api.hellobike.com", stats["mitm_hosts"])
+
+    def test_alipayadblock_rejects_missing_required_script_section(self):
+        source = (Path(__file__).with_name("sources") / "alipayAdBlock"
+                  / "alipayAdBlock.lpx")
+        text = source.read_text(encoding="utf-8").replace("[Script]", "[DisabledScript]")
+        with self.assertRaisesRegex(ValueError, "缺少必要区块"):
+            validate_alipayadblock(text)
 
     def test_vendored_amap_source_has_expected_sections_and_dependencies(self):
         source = Path(__file__).with_name("sources") / "amap" / "Amap.lpx"
