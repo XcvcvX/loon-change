@@ -33,12 +33,12 @@
     },
     "rule": {
       "action_changed": 0,
-      "added": 1,
+      "added": 0,
       "current_entries": 3474,
-      "net_shrink_percent": 0.029,
-      "previous_entries": 3475,
-      "removed": 2,
-      "removed_percent": 0.058
+      "net_shrink_percent": 0.0,
+      "previous_entries": 3474,
+      "removed": 0,
+      "removed_percent": 0.0
     },
     "script": {
       "action_changed": 0,

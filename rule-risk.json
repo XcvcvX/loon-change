@@ -7,8 +7,8 @@
     },
     "rule": {
       "action_changed": 0,
-      "added": 1,
-      "removed": 2
+      "added": 0,
+      "removed": 0
     },
     "script": {
       "action_changed": 0,
@@ -16,78 +16,14 @@
       "removed": 0
     }
   },
-  "events": [
-    {
-      "after": {
-        "line": "DOMAIN-SUFFIX,tagtic.cn,REJECT",
-        "section": "rule",
-        "sources": [
-          "filter"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "rule",
-      "semantic_duplicate_coverage": null,
-      "source_scores": {
-        "filter": 0
-      },
-      "sources": [
-        "filter"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "DOMAIN,g1.tagtic.cn,REJECT",
-        "section": "rule",
-        "sources": [
-          "filter"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "rule",
-      "semantic_duplicate_coverage": null,
-      "source_scores": {
-        "filter": 0
-      },
-      "sources": [
-        "filter"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "DOMAIN,log.tagtic.cn,REJECT",
-        "section": "rule",
-        "sources": [
-          "filter"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "rule",
-      "semantic_duplicate_coverage": null,
-      "source_scores": {
-        "filter": 0
-      },
-      "sources": [
-        "filter"
-      ]
-    }
-  ],
-  "overall_risk": "high",
+  "events": [],
+  "overall_risk": "low",
   "risk_counts": {
-    "high": 2,
+    "high": 0,
     "low": 0,
-    "medium": 1
+    "medium": 0
   },
-  "run_id": "43571514518",
+  "run_id": "43601532734",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -142,13 +78,18 @@
   },
   "upstream_revision_changes": [
     {
-      "current_commit": "67352f5d18c447dd23d0610be536b5a4fe9e3903",
-      "previous_commit": "42de4ced98d640bc40d385c71adf733fd4ccf107",
+      "current_commit": "4cf487f337f029ba22f468a89fc2a55e355f0524",
+      "previous_commit": null,
+      "source": "AlipayAdBlock"
+    },
+    {
+      "current_commit": "4cf487f337f029ba22f468a89fc2a55e355f0524",
+      "previous_commit": "67352f5d18c447dd23d0610be536b5a4fe9e3903",
       "source": "Amap"
     },
     {
-      "current_commit": "67352f5d18c447dd23d0610be536b5a4fe9e3903",
-      "previous_commit": "42de4ced98d640bc40d385c71adf733fd4ccf107",
+      "current_commit": "4cf487f337f029ba22f468a89fc2a55e355f0524",
+      "previous_commit": "67352f5d18c447dd23d0610be536b5a4fe9e3903",
       "source": "GuaZiVideoAds"
     }
   ]

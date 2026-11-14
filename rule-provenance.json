@@ -19,7 +19,7 @@
         "search_poi_detail.jq"
       ],
       "upstream_repository": "https://github.com/ifflagged/Romeo",
-      "upstream_commit": "67352f5d18c447dd23d0610be536b5a4fe9e3903",
+      "upstream_commit": "4cf487f337f029ba22f468a89fc2a55e355f0524",
       "assets": {
         "rucu6_amap.js": {
           "bytes": 23517,
@@ -58,8 +58,31 @@
       "bytes": 3448,
       "entries": 6,
       "upstream_repository": "https://github.com/ifflagged/Romeo",
-      "upstream_commit": "67352f5d18c447dd23d0610be536b5a4fe9e3903",
+      "upstream_commit": "4cf487f337f029ba22f468a89fc2a55e355f0524",
       "upstream_path": "Modules/QuantumultX/ddgksf2013/Official/GuaZiVideoAds.conf"
+    },
+    "AlipayAdBlock": {
+      "bytes": 3652,
+      "entries": 30,
+      "sections": {
+        "Rule": 4,
+        "Rewrite": 20,
+        "Script": 1
+      },
+      "mitm_hosts": [
+        "api.hellobike.com",
+        "shopping.ele.me",
+        "waimai-guide.ele.me",
+        "guide-acs.m.taobao.com",
+        "mdn.alicdn.com",
+        "creditcardapp.bankcomm.com",
+        "aimai-guide.ele.me",
+        "alsc-buy2.ele.me",
+        "m5-zb.amap.com"
+      ],
+      "upstream_repository": "https://github.com/ifflagged/Romeo",
+      "upstream_commit": "4cf487f337f029ba22f468a89fc2a55e355f0524",
+      "upstream_path": "Modules/Loon/zirawell/Beta/alipayAdBlock.lpx"
     }
   },
   "repository": "XcvcvX/loon-change",
@@ -641,6 +664,14 @@
       "merge_priority": 7,
       "policy": "supplement_only; existing higher-priority rules are retained"
     },
+    "alipayadblock": {
+      "name": "zirawell AlipayAdBlock (Alipay miniapp multi-app rules)",
+      "url": "https://raw.githubusercontent.com/ifflagged/Romeo/main/Modules/Loon/zirawell/Beta/alipayAdBlock.lpx",
+      "cache": "sources/alipayAdBlock/alipayAdBlock.lpx",
+      "update_policy": "fixed_romeo_commit_repository_cache",
+      "merge_priority": 8,
+      "policy": "supplement_only; import only unique Loon v2 Rewrite lines; skip HelloBike, legacy mock-response-body, Rule, Script and MITM; higher-priority matcher wins"
+    },
     "filter": "zirawell/R-Store allAdBlock filter"
   },
   "summary": {
@@ -663,6 +694,13 @@
       "duplicate_exact": 148,
       "covered_by_existing_rule": 35,
       "excluded_safety_guard": 0
+    },
+    "alipayadblock_input_entries": {
+      "rewrite": 20,
+      "safe_unique_v2_rewrite_added": 0,
+      "script_skipped_existing_handler": 1,
+      "rule_skipped": 4,
+      "mitm_declared_not_imported": 1
     }
   },
   "rewrite": [
