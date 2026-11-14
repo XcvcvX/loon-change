@@ -2645,10 +2645,16 @@ if mb_text is not None:
             mb_mitm += [x.strip() for x in l.split('=', 1)[1].split(',') if x.strip()]
 else:
     mb_rw, mb_sc, mb_rule, mb_mitm = [], [], [], []
+alipay_raw_rw = real_lines(alipay_sec.get('Rewrite', []))
+alipay_higher_priority = (
+    base_rw + block_rw + zmj_gen_rw + thelong_rw + ao_rw
+    + qxapp_rw + amap_rw + zmj_app_rw + mb_rw
+)
+alipay_rw = prepare_alipayadblock_rewrite(alipay_raw_rw, alipay_higher_priority)
 rw_feeds = [('base', 4, base_rw), ('block', 5, block_rw), ('zmjgen', 6, zmj_gen_rw),
             ('thelong', 3, thelong_rw), ('aoomee', 2, ao_rw),
             ('qxapp', 1, qxapp_rw), ('amap', -1, amap_rw), ('zmjapp', 0, zmj_app_rw),
-            ('myblockads', 7, mb_rw)]
+            ('myblockads', 7, mb_rw), ('alipayadblock', 8, alipay_rw)]
 sc_feeds = [('base', 4, base_sc), ('block', 5, block_sc), ('zmjgen', 6, zmj_gen_sc),
             ('thelong', 3, thelong_sc), ('aoomee', 2, ao_sc),
             ('amap', -1, amap_sc), ('zmjapp', 0, zmj_app_sc), ('myblockads', 7, mb_sc)]
