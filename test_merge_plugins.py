@@ -2611,5 +2611,38 @@ hostname = *.amap.com
 
 
 
+    def test_alipayadblock_only_adds_unique_safe_v2_rules(self):
+        base = (
+            "[Rewrite]\n"
+            + r"request if \${url} ~= /^https?:\/\/api\.hellobike\.com\/api\?msg\.toast\.user/ then reject(404)" + "\n"
+            + r"request if \${url} ~= /^https?:\/\/guide-acs\.m\.taobao\.com\/gw\/mtop\.cainiao\.guoguo\.nbnetflow\.ads/ then reject(404)" + "\n"
+            + "[Script]\n"
+            + r"response if \${url} ~= /^https?:\/\/waimai-guide\.ele\.me\/h5\/mtop\.alsc\.eleme\.miniapp\.homepage/i then script(""https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/eleme.js"") with tag=""eleme"", requires_body=true"
+            + "\n[MITM]\nhostname = api.hellobike.com, waimai-guide.ele.me, shopping.ele.me, m5-zb.amap.com, guide-acs.m.taobao.com, creditcardapp.bankcomm.com, alsc-buy2.ele.me\n"
+        )
+        source_path = Path(__file__).with_name("sources") / "alipayAdBlock" / "alipayAdBlock.lpx"
+        source = source_path.read_text(encoding="utf-8")
+        output, provenance = self.run_merge(
+            base, "[Rewrite]\n[MITM]\nhostname = \n",
+            alipayadblock_text=source, return_provenance=True)
+        for token in (
+            "order.detail.miniapp.build", "getmainpageicon", "o2o\\.ad\\.exposure",
+            "promotion-web", "film\\.life", "getGuidePageAds",
+            "boss\\/end\\/recommend", "upp\\.tbet\\.send",
+        ):
+            with self.subTest(token=token):
+                self.assertIn(token, output)
+        self.assertNotIn("homepage.hitch.awareness", output)
+        self.assertNotIn("homepage.newWelfare.alipay", output)
+        self.assertNotIn("applet.homepage.medal.activity", output)
+        self.assertNotIn("zirawell_eleme.js", output)
+        self.assertEqual(output.count("miniapp\\.homepage"), 1)
+        self.assertNotIn("aimai-guide.ele.me", output)
+        self.assertEqual(output.count("msg\\.toast\\.user"), 1)
+        self.assertIn("msg\\.toast\\.user/ then reject(404)", output)
+        self.assertTrue(any(row.get("source") == "alipayadblock"
+                            for item in provenance["rewrite"]
+                            for row in item.get("sources", [])))
+
 if __name__ == "__main__":
     unittest.main()
