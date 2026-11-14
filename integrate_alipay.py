@@ -118,8 +118,13 @@ def integrate(plugin_path, source_path, js_path, repo_js_url, report_path=None, 
     stats["corrected_missing_hosts"] = sorted(REQUIRED_HOSTS - {x.lower() for x in declared_hosts})
 
     output = list(header)
+    while output and not output[-1].strip():
+        output.pop()
     for name, lines in current.items():
-        output.extend(["", f"[{name}]", *lines])
+        normalized_lines = list(lines)
+        while normalized_lines and not normalized_lines[-1].strip():
+            normalized_lines.pop()
+        output.extend(["", f"[{name}]", *normalized_lines])
     plugin_path.write_text("\n".join(output).rstrip() + "\n", encoding="utf-8")
 
     if report_path:
