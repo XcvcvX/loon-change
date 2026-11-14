@@ -20,7 +20,10 @@ on:
       - 'test_convert_filter_qx2loon.py'
       - 'apply_local_overrides.py'
       - 'integrate_spotify.py'
+      - 'integrate_alipay.py'
+      - 'sources/alipay/**'
       - 'test_integrate_spotify.py'
+      - 'test_integrate_alipay.py'
       - 'sources/spotify/**'
       - 'scripts/**'
       - '.github/workflows/sync.yml'
@@ -79,9 +82,9 @@ jobs:
         with:
           python-version: '3.11'
       - name: 编译检查
-        run: python3 -m py_compile merge_plugins.py mitm_policy.py validate_plugin.py source_guard.py audit_plugin.py deep_audit.py amap_dependency_guard.py compare_rule_provenance.py source_health_guard.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py integrate_spotify.py apply_local_overrides.py
+        run: python3 -m py_compile merge_plugins.py mitm_policy.py validate_plugin.py source_guard.py audit_plugin.py deep_audit.py amap_dependency_guard.py compare_rule_provenance.py source_health_guard.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py integrate_spotify.py integrate_alipay.py apply_local_overrides.py
       - name: 运行单元与合并集成测试
-        run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_compare_rule_provenance.py test_source_health_guard.py test_rule_risk_history.py test_integrate_spotify.py test_convert_qx2loon.py test_convert_filter_qx2loon.py
+        run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_compare_rule_provenance.py test_source_health_guard.py test_rule_risk_history.py test_integrate_spotify.py test_integrate_alipay.py test_convert_qx2loon.py test_convert_filter_qx2loon.py
       - name: 应用并测试本地插件覆盖
         run: |
           python3 -m unittest -v test_apply_local_overrides.py test_integrate_spotify.py
@@ -168,7 +171,7 @@ jobs:
 
       - name: 固定 Romeo 上游版本并下载瓜子影视、高德与 MyBlockAds 插件及依赖
         run: |
-          mkdir -p /tmp/amap sources/amap
+          mkdir -p /tmp/amap sources/amap sources/alipay
           git clone --depth 1 https://github.com/ifflagged/Romeo.git /tmp/romeo
           ROMEO_SHA="$(git -C /tmp/romeo rev-parse HEAD)"
           echo "ROMEO_SHA=$ROMEO_SHA" >> "$GITHUB_ENV"
@@ -180,6 +183,11 @@ jobs:
           git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/rucu6/myblockads.lpx" > myblockads.lpx
           python3 -c 'from pathlib import Path; from source_guard import validate_myblockads; p=Path("myblockads.lpx"); s=validate_myblockads(p.read_text(encoding="utf-8-sig")); print("MyBlockAds Romeo cache validated:", s)'
           echo "MyBlockAds upstream: ifflagged/Romeo@$ROMEO_SHA:Modules/Loon/rucu6/myblockads.lpx"
+          # zirawell 支付宝小程序广告合集及其饿了么脚本依赖：固定同一 Romeo commit 并缓存到仓库。
+          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/zirawell/Beta/alipayAdBlock.lpx" > sources/alipay/alipayAdBlock.lpx
+          git -C /tmp/romeo show "$ROMEO_SHA:Modules/JavaScript/zirawell/alipayAdBlock/zirawell_eleme.js" > sources/alipay/zirawell_eleme.js
+          test -s sources/alipay/alipayAdBlock.lpx && test -s sources/alipay/zirawell_eleme.js
+          echo "AlipayAdBlock upstream: ifflagged/Romeo@$ROMEO_SHA"
           git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/sooyaaabo/Amap.lpx" > /tmp/amap/Amap.lpx
           git -C /tmp/romeo show "$ROMEO_SHA:Modules/JavaScript/sooyaaabo/Amap/rucu6_amap.js" > /tmp/amap/rucu6_amap.js
           git -C /tmp/romeo show "$ROMEO_SHA:Modules/JavaScript/sooyaaabo/Amap/loon_Amap.recommend.jq" > /tmp/amap/loon_Amap.recommend.jq
@@ -223,6 +231,10 @@ jobs:
 
       - name: 合并各来源去广告规则（临时目录）
         run: python3 merge_plugins.py --base /tmp/loon-build/allAdRewrite.plugin --extra fetch --filter fetch --apps /tmp/loon-plugins --aoomee /tmp/aoomee --zmjde /tmp/zmjde --qxapp /tmp/GuaZiVideoAds.conf --amap /tmp/amap/Amap.lpx --myblockads fetch --out /tmp/loon-build/allAdRewrite.plugin --provenance-out /tmp/loon-build/rule-provenance.json --source-report source-report.json
+
+      - name: 整合支付宝小程序去广告规则（固定 Romeo 版本，脚本使用仓库缓存）
+        run: |
+          python3 integrate_alipay.py --plugin /tmp/loon-build/allAdRewrite.plugin --source sources/alipay/alipayAdBlock.lpx --js sources/alipay/zirawell_eleme.js --repo-js-url "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/main/sources/alipay/zirawell_eleme.js" --report source-report.json --commit "$ROMEO_SHA"
 
       - name: 提取并整合 Spotify 去广告规则（随上游每日更新）
         run: |
@@ -311,7 +323,7 @@ jobs:
       - name: 检查是否有变化
         id: diff
         run: |
-          if git diff --quiet -- allAdRewrite.plugin allAdBlock-Loon.plugin allAdBlock-Loon.list README.md myblockads.lpx source-report.json rule-provenance.json rule-diff.json source-health.json rule-risk.json rule-history.json sources/amap/ sources/spotify/ scripts/spotify/; then
+          if git diff --quiet -- allAdRewrite.plugin allAdBlock-Loon.plugin allAdBlock-Loon.list README.md myblockads.lpx source-report.json rule-provenance.json rule-diff.json source-health.json rule-risk.json rule-history.json sources/amap/ sources/alipay/ sources/spotify/ scripts/spotify/; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "合并产物与统计均无变化，跳过提交"
           else
@@ -324,6 +336,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add allAdRewrite.plugin allAdBlock-Loon.plugin allAdBlock-Loon.list README.md myblockads.lpx source-report.json rule-provenance.json rule-diff.json source-health.json rule-risk.json rule-history.json sources/amap/ sources/spotify/ scripts/spotify/
+          git add allAdRewrite.plugin allAdBlock-Loon.plugin allAdBlock-Loon.list README.md myblockads.lpx source-report.json rule-provenance.json rule-diff.json source-health.json rule-risk.json rule-history.json sources/amap/ sources/alipay/ sources/spotify/ scripts/spotify/
           git commit -m "chore: sync upstream rules and plugin stats $(date -u +%Y-%m-%d)"
           git push
