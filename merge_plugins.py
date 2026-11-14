@@ -3339,14 +3339,14 @@ mitm = _kept_zhangle_mitm
 # ---------------- 输出 ----------------
 today = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
 header = [
-    '#!name=R-Store × blockAdsV2 × MyBlockAds × 独立 App 去广告净化合集',
-    '#!desc=合并 R-Store、blockAdsV2、RuCu6 MyBlockAds、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；'
+    '#!name=R-Store × blockAdsV2 × MyBlockAds × AlipayAdBlock × 独立 App 去广告净化合集',
+    '#!desc=合并 R-Store、blockAdsV2、RuCu6 MyBlockAds、zirawell AlipayAdBlock、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；'
     '按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含',
     '#!author=zirawell / fmz200 / RuCu6 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）',
     '#!homepage=https://github.com/XcvcvX/loon-change',
     '#!merged-at=%s' % today,
     '#!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。',
-    '#!sources=R-Store(QuanX->Loon)+blockAdsV2+RuCu6-MyBlockAds+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds',
+    '#!sources=R-Store(QuanX->Loon)+blockAdsV2+RuCu6-MyBlockAds+zirawell-AlipayAdBlock+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds',
     '',
 ]
 out = list(header)
@@ -3618,6 +3618,14 @@ if args.provenance_out:
                 'merge_priority': 7,
                 'policy': 'supplement_only; existing higher-priority rules are retained',
             },
+            'alipayadblock': {
+                'name': 'zirawell AlipayAdBlock (Alipay miniapp multi-app rules)',
+                'url': ALIPAY_ADBLOCK_URL,
+                'cache': 'sources/alipayAdBlock/alipayAdBlock.lpx',
+                'update_policy': 'fixed_romeo_commit_repository_cache',
+                'merge_priority': 8,
+                'policy': 'supplement_only; import only unique Loon v2 Rewrite lines; skip HelloBike, legacy mock-response-body, Rule, Script and MITM; higher-priority matcher wins',
+            },
             'filter': 'zirawell/R-Store allAdBlock filter'
         },
         'summary': {
@@ -3644,6 +3652,13 @@ if args.provenance_out:
                             and event.get('status') == status)
                 for status in ('included', 'duplicate_exact',
                                'covered_by_existing_rule', 'excluded_safety_guard')
+            },
+            'alipayadblock_input_entries': {
+                'rewrite': len(alipay_raw_rw),
+                'safe_unique_v2_rewrite_added': len(alipay_rw),
+                'script_skipped_existing_handler': len(real_lines(alipay_sec.get('Script', []))),
+                'rule_skipped': len(real_lines(alipay_sec.get('Rule', []))),
+                'mitm_declared_not_imported': len(real_lines(alipay_sec.get('MITM', []))),
             },
         },
         'rewrite': rewrite_provenance,
