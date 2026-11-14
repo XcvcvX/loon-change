@@ -17,7 +17,7 @@
       "search_poi_detail.jq"
     ],
     "upstream_repository": "https://github.com/ifflagged/Romeo",
-    "upstream_commit": "42de4ced98d640bc40d385c71adf733fd4ccf107",
+    "upstream_commit": "67352f5d18c447dd23d0610be536b5a4fe9e3903",
     "assets": {
       "rucu6_amap.js": {
         "bytes": 23517,
@@ -56,7 +56,7 @@
     "bytes": 3448,
     "entries": 6,
     "upstream_repository": "https://github.com/ifflagged/Romeo",
-    "upstream_commit": "42de4ced98d640bc40d385c71adf733fd4ccf107",
+    "upstream_commit": "67352f5d18c447dd23d0610be536b5a4fe9e3903",
     "upstream_path": "Modules/QuantumultX/ddgksf2013/Official/GuaZiVideoAds.conf"
   }
 }

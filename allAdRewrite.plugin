@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、RuCu6 MyBlockAds、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / RuCu6 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-13 20:31 UTC
+#!merged-at=2026-11-14 07:32 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+RuCu6-MyBlockAds+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -3187,7 +3187,6 @@ DOMAIN,firebaseinstallations.googleapis.com,REJECT
 DOMAIN,firefly.abchina.com.cn,REJECT
 DOMAIN,flowplus.meituan.net,REJECT
 DOMAIN,fp-it.fengkongcloud.com,REJECT
-DOMAIN,g1.tagtic.cn,REJECT
 DOMAIN,gather.colorfulclouds.net,REJECT
 DOMAIN,gg.caixin.com,REJECT
 DOMAIN,h-adashx.ut.ele.me,REJECT
@@ -3210,7 +3209,6 @@ DOMAIN,live-monitor-broker.sankuai.com,REJECT
 DOMAIN,livep.l.t002.ottcn.com,REJECT
 DOMAIN,log.17gwx.com,REJECT
 DOMAIN,log.cmbchina.com,REJECT
-DOMAIN,log.tagtic.cn,REJECT
 DOMAIN,logs-bigdata.yeehaw.com.cn,REJECT
 DOMAIN,lwlog.laiwang.com,REJECT
 DOMAIN,lx0.meituan.com,REJECT
@@ -3449,6 +3447,7 @@ DOMAIN-SUFFIX,store.xl.api.3g.youku.com,REJECT
 DOMAIN-SUFFIX,strip.alicdn.com,REJECT
 DOMAIN-SUFFIX,t.sj.qq.com,REJECT
 DOMAIN-SUFFIX,ta.qq.com,REJECT
+DOMAIN-SUFFIX,tagtic.cn,REJECT
 DOMAIN-SUFFIX,tajs.qq.com,REJECT
 DOMAIN-SUFFIX,tcss.qq.com,REJECT
 DOMAIN-SUFFIX,tec73.com,REJECT

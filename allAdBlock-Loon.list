@@ -1,6 +1,6 @@
 # Loon 原生分流规则 · 由 Quantumult X 规则转换
 # 上游: https://github.com/zirawell/R-Store
-# 上游版本: 2026-11-13 20:15:22
+# 上游版本: 2026-11-14 11:34:11
 # 用法: 在 Loon 主配置 [Rule] 段中加一行（放在 FINAL 之前）:
 #   <本文件 URL>,REJECT
 # 安全排除：腾讯云 HTTPDNS 正式入口 119.29.29.98/32、119.29.29.99/32 的 REJECT 规则.
@@ -312,7 +312,6 @@ DOMAIN,flowplus.meituan.net,REJECT
 DOMAIN,fp-it.fengkongcloud.com,REJECT
 DOMAIN,free-aos-cdn-image.amap.com,REJECT
 DOMAIN,g1.163.com,REJECT
-DOMAIN,g1.tagtic.cn,REJECT
 DOMAIN,g3.letv.com,REJECT
 DOMAIN,gather.colorfulclouds.net,REJECT
 DOMAIN,gdfp.gifshow.com,REJECT
@@ -396,7 +395,6 @@ DOMAIN,livewebbs2pcdn.msstatic.com,REJECT
 DOMAIN,log-verify.mob.com,REJECT
 DOMAIN,log.17gwx.com,REJECT
 DOMAIN,log.cmbchina.com,REJECT
-DOMAIN,log.tagtic.cn,REJECT
 DOMAIN,log.web.kugou.com,REJECT
 DOMAIN,log.ycapp.yiche.com,REJECT
 DOMAIN,logs-bigdata.yeehaw.com.cn,REJECT
@@ -1250,6 +1248,7 @@ DOMAIN-SUFFIX,syndication.twitter.com,REJECT
 DOMAIN-SUFFIX,t.sj.qq.com,REJECT
 DOMAIN-SUFFIX,t7z.cupid.iqiyi.com,REJECT
 DOMAIN-SUFFIX,ta.qq.com,REJECT
+DOMAIN-SUFFIX,tagtic.cn,REJECT
 DOMAIN-SUFFIX,tajs.qq.com,REJECT
 DOMAIN-SUFFIX,tappx.com,REJECT
 DOMAIN-SUFFIX,tb060x.corp.youdao.com,REJECT
