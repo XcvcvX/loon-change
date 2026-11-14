@@ -155,6 +155,29 @@ def validate_myblockads(text):
     return stats
 
 
+def validate_alipayadblock(text):
+    """Fail closed on an incomplete zirawell Alipay-miniapp Loon source."""
+    stats = validate_source(
+        text, "AlipayAdBlock", min_bytes=1200, min_entries=20,
+        required_sections=("Rule", "Rewrite", "Script", "MITM"),
+        require_hostname=True)
+    blocks = {name.strip().lower(): body for name, body in re.findall(
+        r"(?ms)^\[([^\]]+)\]\s*\n(.*?)(?=^\[|\Z)", text)}
+    counts = {name: len(real_lines(blocks.get(name.lower(), "")))
+              for name in ("Rule", "Rewrite", "Script")}
+    if counts["Rewrite"] < 15:
+        raise ValueError("AlipayAdBlock: Rewrite 有效条目仅 %d 条（要求至少 15）" % counts["Rewrite"])
+    if counts["Script"] < 1:
+        raise ValueError("AlipayAdBlock: 缺少预期的 Eleme 响应脚本")
+    if "zirawell_eleme.js" not in text:
+        raise ValueError("AlipayAdBlock: 缺少预期的 zirawell_eleme.js 脚本引用")
+    mitm_match = re.search(r"(?mi)^\s*hostname\s*=\s*(.+)$", text)
+    hosts = ([item.strip() for item in mitm_match.group(1).split(",") if item.strip()]
+             if mitm_match else [])
+    stats.update({"sections": counts, "mitm_hosts": hosts})
+    return stats
+
+
 def check_clones(thelong, aoomee, zmjde, qxapp, previous_report=None, amap=None):
     report = {}
     tl = list(Path(thelong).glob("*_ad_block.plugin")) + list(
