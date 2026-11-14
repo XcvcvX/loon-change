@@ -2638,6 +2638,7 @@ hostname = *.amap.com
         self.assertNotIn("zirawell_eleme.js", output)
         self.assertEqual(output.count("miniapp\\.homepage"), 1)
         self.assertNotIn("aimai-guide.ele.me", output)
+        self.assertNotIn("abapi.hellobike.com", output)
         self.assertEqual(output.count("msg\\.toast\\.user"), 1)
         self.assertIn("msg\\.toast\\.user/ then reject(404)", output)
         self.assertTrue(any(row.get("source") == "alipayadblock"
