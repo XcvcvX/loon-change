@@ -22,6 +22,7 @@ on:
       - 'integrate_spotify.py'
       - 'test_integrate_spotify.py'
       - 'sources/spotify/**'
+      - 'sources/alipayAdBlock/**'
       - 'scripts/**'
       - '.github/workflows/sync.yml'
   pull_request:
@@ -53,6 +54,7 @@ on:
       - '.github/workflows/sync.yml'
       - 'README.md'
       - 'sources/amap/**'
+      - 'sources/alipayAdBlock/**'
       - 'scripts/**'
       - 'apply_local_overrides.py'
       - 'test_apply_local_overrides.py'
@@ -168,7 +170,7 @@ jobs:
 
       - name: 固定 Romeo 上游版本并下载瓜子影视、高德与 MyBlockAds 插件及依赖
         run: |
-          mkdir -p /tmp/amap sources/amap
+          mkdir -p /tmp/amap sources/amap sources/alipayAdBlock
           git clone --depth 1 https://github.com/ifflagged/Romeo.git /tmp/romeo
           ROMEO_SHA="$(git -C /tmp/romeo rev-parse HEAD)"
           echo "ROMEO_SHA=$ROMEO_SHA" >> "$GITHUB_ENV"
@@ -180,6 +182,10 @@ jobs:
           git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/rucu6/myblockads.lpx" > myblockads.lpx
           python3 -c 'from pathlib import Path; from source_guard import validate_myblockads; p=Path("myblockads.lpx"); s=validate_myblockads(p.read_text(encoding="utf-8-sig")); print("MyBlockAds Romeo cache validated:", s)'
           echo "MyBlockAds upstream: ifflagged/Romeo@$ROMEO_SHA:Modules/Loon/rucu6/myblockads.lpx"
+          # zirawell AlipayAdBlock：只缓存插件源；重复脚本由 base 已有 Eleme handler 覆盖，不另载入第二份脚本。
+          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/zirawell/Beta/alipayAdBlock.lpx" > sources/alipayAdBlock/alipayAdBlock.lpx
+          python3 -c 'from pathlib import Path; from source_guard import validate_alipayadblock; p=Path("sources/alipayAdBlock/alipayAdBlock.lpx"); print("AlipayAdBlock Romeo cache validated:", validate_alipayadblock(p.read_text(encoding="utf-8-sig")))'
+          echo "AlipayAdBlock upstream: ifflagged/Romeo@$ROMEO_SHA:Modules/Loon/zirawell/Beta/alipayAdBlock.lpx"
           git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/sooyaaabo/Amap.lpx" > /tmp/amap/Amap.lpx
           git -C /tmp/romeo show "$ROMEO_SHA:Modules/JavaScript/sooyaaabo/Amap/rucu6_amap.js" > /tmp/amap/rucu6_amap.js
           git -C /tmp/romeo show "$ROMEO_SHA:Modules/JavaScript/sooyaaabo/Amap/loon_Amap.recommend.jq" > /tmp/amap/loon_Amap.recommend.jq
@@ -208,6 +214,15 @@ jobs:
           from pathlib import Path
           report_path = Path("source-report.json")
           report = json.loads(report_path.read_text(encoding="utf-8"))
+          from source_guard import validate_alipayadblock
+          alipay_path = Path("sources/alipayAdBlock/alipayAdBlock.lpx")
+          alipay_source = validate_alipayadblock(alipay_path.read_text(encoding="utf-8-sig"))
+          alipay_source.update({
+              "upstream_repository": "https://github.com/ifflagged/Romeo",
+              "upstream_commit": os.environ["ROMEO_SHA"],
+              "upstream_path": "Modules/Loon/zirawell/Beta/alipayAdBlock.lpx",
+          })
+          report["AlipayAdBlock"] = alipay_source
           source = report.get("GuaZiVideoAds")
           if not isinstance(source, dict):
               raise SystemExit("source-report.json 缺少 GuaZiVideoAds 校验结果")
@@ -222,7 +237,7 @@ jobs:
           cp /tmp/amap/* sources/amap/
 
       - name: 合并各来源去广告规则（临时目录）
-        run: python3 merge_plugins.py --base /tmp/loon-build/allAdRewrite.plugin --extra fetch --filter fetch --apps /tmp/loon-plugins --aoomee /tmp/aoomee --zmjde /tmp/zmjde --qxapp /tmp/GuaZiVideoAds.conf --amap /tmp/amap/Amap.lpx --myblockads fetch --out /tmp/loon-build/allAdRewrite.plugin --provenance-out /tmp/loon-build/rule-provenance.json --source-report source-report.json
+        run: python3 merge_plugins.py --base /tmp/loon-build/allAdRewrite.plugin --extra fetch --filter fetch --apps /tmp/loon-plugins --aoomee /tmp/aoomee --zmjde /tmp/zmjde --qxapp /tmp/GuaZiVideoAds.conf --amap /tmp/amap/Amap.lpx --myblockads fetch --alipayadblock sources/alipayAdBlock/alipayAdBlock.lpx --out /tmp/loon-build/allAdRewrite.plugin --provenance-out /tmp/loon-build/rule-provenance.json --source-report source-report.json
 
       - name: 提取并整合 Spotify 去广告规则（随上游每日更新）
         run: |
@@ -311,7 +326,7 @@ jobs:
       - name: 检查是否有变化
         id: diff
         run: |
-          if git diff --quiet -- allAdRewrite.plugin allAdBlock-Loon.plugin allAdBlock-Loon.list README.md myblockads.lpx source-report.json rule-provenance.json rule-diff.json source-health.json rule-risk.json rule-history.json sources/amap/ sources/spotify/ scripts/spotify/; then
+          if git diff --quiet -- allAdRewrite.plugin allAdBlock-Loon.plugin allAdBlock-Loon.list README.md myblockads.lpx source-report.json rule-provenance.json rule-diff.json source-health.json rule-risk.json rule-history.json sources/amap/ sources/spotify/ sources/alipayAdBlock/ scripts/spotify/; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "合并产物与统计均无变化，跳过提交"
           else
@@ -324,6 +339,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add allAdRewrite.plugin allAdBlock-Loon.plugin allAdBlock-Loon.list README.md myblockads.lpx source-report.json rule-provenance.json rule-diff.json source-health.json rule-risk.json rule-history.json sources/amap/ sources/spotify/ scripts/spotify/
+          git add allAdRewrite.plugin allAdBlock-Loon.plugin allAdBlock-Loon.list README.md myblockads.lpx source-report.json rule-provenance.json rule-diff.json source-health.json rule-risk.json rule-history.json sources/amap/ sources/spotify/ sources/alipayAdBlock/ scripts/spotify/
           git commit -m "chore: sync upstream rules and plugin stats $(date -u +%Y-%m-%d)"
           git push

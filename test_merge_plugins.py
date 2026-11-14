@@ -14,7 +14,7 @@ MERGER = Path(__file__).with_name("merge_plugins.py")
 
 
 class MergeIntegrationTests(unittest.TestCase):
-    def run_merge(self, base_text, extra_text, myblockads_text=None, return_stdout=False, amap_text=None, return_provenance=False, apps_files=None, aoomee_files=None, expect_failure=False, filter_text=None):
+    def run_merge(self, base_text, extra_text, myblockads_text=None, return_stdout=False, amap_text=None, return_provenance=False, apps_files=None, aoomee_files=None, expect_failure=False, filter_text=None, alipayadblock_text=None):
         tmp = tempfile.TemporaryDirectory()
         self.addCleanup(tmp.cleanup)
         root = Path(tmp.name)
@@ -26,7 +26,7 @@ class MergeIntegrationTests(unittest.TestCase):
         extra.write_text(extra_text, encoding="utf-8")
         command = [sys.executable, str(MERGER), "--base", str(base),
                    "--extra", str(extra), "--filter", "none",
-                   "--myblockads", "none", "--out", str(out),
+                   "--myblockads", "none", "--alipayadblock", "none", "--out", str(out),
                    "--provenance-out", str(provenance)]
         if filter_text is not None:
             filter_file = root / "filter.list"
@@ -40,6 +40,10 @@ class MergeIntegrationTests(unittest.TestCase):
             amap = root / "Amap.lpx"
             amap.write_text(amap_text, encoding="utf-8")
             command += ["--amap", str(amap)]
+        if alipayadblock_text is not None:
+            alipayadblock = root / "alipayAdBlock.lpx"
+            alipayadblock.write_text(alipayadblock_text, encoding="utf-8")
+            command += ["--alipayadblock", str(alipayadblock)]
         if apps_files is not None:
             apps = root / "apps"
             apps.mkdir()
@@ -2606,6 +2610,44 @@ hostname = *.amap.com
         self.assertIn("看东方 advertisingV2 matcher 已变化", output)
 
 
+
+    def test_alipayadblock_only_adds_unique_safe_v2_rules(self):
+        base = (
+            "[Rewrite]\n"
+            + r"request if ${url} ~= /^https?:\/\/api\.hellobike\.com\/api\?msg\.toast\.user/ then reject(404)" + "\n"
+            + r"request if ${url} ~= /^https?:\/\/guide-acs\.m\.taobao\.com\/gw\/mtop\.cainiao\.guoguo\.nbnetflow\.ads/ then reject(404)" + "\n"
+            + "[Script]\n"
+            + r'response if ${url} ~= /^https?:\/\/waimai-guide\.ele\.me\/h5\/mtop\.alsc\.eleme\.miniapp\.homepage/i then script("https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/eleme.js") with tag="eleme", requires_body=true'
+            + "\n[MITM]\nhostname = api.hellobike.com, waimai-guide.ele.me, shopping.ele.me, m5-zb.amap.com, guide-acs.m.taobao.com, creditcardapp.bankcomm.com, alsc-buy2.ele.me\n"
+        )
+        source_path = Path(__file__).with_name("sources") / "alipayAdBlock" / "alipayAdBlock.lpx"
+        source = source_path.read_text(encoding="utf-8")
+        output, provenance = self.run_merge(
+            base, "[Rewrite]\n[MITM]\nhostname = \n",
+            alipayadblock_text=source, return_provenance=True)
+        for token in (
+            r"order\.detail\.miniapp\.build", "getmainpageicon", "o2o\\.ad\\.exposure",
+            "promotion-web", "film\\.life", "getGuidePageAds",
+            "boss\\/end\\/recommend", "upp\\.tbet\\.send",
+        ):
+            with self.subTest(token=token):
+                self.assertIn(token, output)
+        self.assertNotIn("homepage.hitch.awareness", output)
+        self.assertNotIn("homepage.newWelfare.alipay", output)
+        self.assertNotIn("applet.homepage.medal.activity", output)
+        self.assertNotIn("zirawell_eleme.js", output)
+        self.assertEqual(output.count("miniapp\\.homepage"), 1)
+        mitm_line = next(line for line in output.splitlines()
+                         if line.strip().lower().startswith("hostname"))
+        mitm_hosts = [host.strip() for host in mitm_line.split("=", 1)[1].split(",")]
+        self.assertNotIn("aimai-guide.ele.me", mitm_hosts)
+        self.assertIn("waimai-guide.ele.me", mitm_hosts)
+        self.assertNotIn("abapi.hellobike.com", output)
+        self.assertEqual(output.count("msg\\.toast\\.user"), 1)
+        self.assertIn("msg\\.toast\\.user/ then reject(404)", output)
+        self.assertTrue(any(row.get("source") == "alipayadblock"
+                            for item in provenance["rewrite"]
+                            for row in item.get("sources", [])))
 
 if __name__ == "__main__":
     unittest.main()

@@ -58,5 +58,28 @@
     "upstream_repository": "https://github.com/ifflagged/Romeo",
     "upstream_commit": "42de4ced98d640bc40d385c71adf733fd4ccf107",
     "upstream_path": "Modules/QuantumultX/ddgksf2013/Official/GuaZiVideoAds.conf"
+  },
+  "AlipayAdBlock": {
+    "bytes": 3652,
+    "entries": 30,
+    "sections": {
+      "Rule": 4,
+      "Rewrite": 20,
+      "Script": 1
+    },
+    "mitm_hosts": [
+      "api.hellobike.com",
+      "shopping.ele.me",
+      "waimai-guide.ele.me",
+      "guide-acs.m.taobao.com",
+      "mdn.alicdn.com",
+      "creditcardapp.bankcomm.com",
+      "aimai-guide.ele.me",
+      "alsc-buy2.ele.me",
+      "m5-zb.amap.com"
+    ],
+    "upstream_repository": "https://github.com/ifflagged/Romeo",
+    "upstream_commit": "bdb296507592efa0082dbb0bd0603850a0d652a7",
+    "upstream_path": "Modules/Loon/zirawell/Beta/alipayAdBlock.lpx"
   }
 }

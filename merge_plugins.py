@@ -19,8 +19,8 @@
   # --filter 控制 R-Store 分流来源：fetch（默认）/ 本地路径 / none（不补全）
 """
 import argparse, datetime, ipaddress, json, os, re, sys, urllib.request
-from source_guard import (validate_blockv2, validate_filter, validate_myblockads,
-                          fetch_validated)
+from source_guard import (validate_alipayadblock, validate_blockv2, validate_filter,
+                          validate_myblockads, fetch_validated)
 from mitm_policy import mitm_skip_host
 
 BLOCKV2_URL = ('https://raw.githubusercontent.com/fmz200/wool_scripts/refs/heads/'
@@ -44,6 +44,13 @@ MYBLOCKADS_URL = ('https://raw.githubusercontent.com/ifflagged/Romeo/main/'
                   'Modules/Loon/rucu6/myblockads.lpx')
 MYBLOCKADS_CACHE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), 'myblockads.lpx')
+
+# zirawell 支付宝小程序去广告合集：与 MyBlockAds 共用固定 Romeo commit。
+ALIPAY_ADBLOCK_URL = ('https://raw.githubusercontent.com/ifflagged/Romeo/main/'
+                      'Modules/Loon/zirawell/Beta/alipayAdBlock.lpx')
+ALIPAY_ADBLOCK_CACHE = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    'sources', 'alipayAdBlock', 'alipayAdBlock.lpx')
 
 # aoomee 独立 App 去广告插件仓库（工作流 clone 到本地后传入目录）
 AOOMEE_REPO = 'https://github.com/aoomee/Loon-Adblock-Plugins.git'
@@ -98,6 +105,9 @@ ap.add_argument('--amap', default=None,
                 help='RuCu6/sooyaaabo 高德地图独立 Loon 插件（经来源校验的本地 .lpx 文件）；最高 App 优先级')
 ap.add_argument('--myblockads', default='fetch',
                 help='MyBlockAds 来源：fetch（默认，在线抓取失败回退 sources/myblockads.lpx 缓存）'
+                     '/ 本地路径 / none（不并入）')
+ap.add_argument('--alipayadblock', default='fetch',
+                help='zirawell AlipayAdBlock 来源：fetch（默认，在线抓取失败回退 sources/alipayAdBlock 缓存）'
                      '/ 本地路径 / none（不并入）')
 ap.add_argument('--out', required=True, help='合并输出路径')
 ap.add_argument('--provenance-out', default=None, help='可选：输出逐条规则来源追溯 JSON')
@@ -229,6 +239,29 @@ def entry_regex(line):
         return norm_regex(m.group(1))
     # legacy rewrite：首个空白分隔 token
     return norm_regex(line.split()[0])
+
+
+def prepare_alipayadblock_rewrite(source_lines, higher_priority_lines):
+    """只补充安全、唯一的 Loon v2 Rewrite；不重新引入已移除的 HelloBike 代码。"""
+    occupied = {
+        entry_regex(line) for line in higher_priority_lines
+        if entry_regex(line)
+    }
+    selected = []
+    for line in real_lines(source_lines):
+        matcher = entry_regex(line)
+        # 旧式 mock-response-body 行不参与自动转换，避免宽泛图片规则。
+        if not matcher or not is_v2_line(line):
+            continue
+        # 用户此前要求移除新引入的 HelloBike 插件代码；该来源的 HelloBike 项全部跳过。
+        if re.search(r'api\.hellobike\.com', matcher, re.IGNORECASE):
+            continue
+        # 只按 matcher 去重：base/高优先级来源已处理该接口时，不追加不同动作的第二条规则。
+        if matcher in occupied:
+            continue
+        selected.append(line)
+        occupied.add(matcher)
+    return selected
 
 
 # ---------------- hostname 守卫反查（通配 TLD 收敛） ----------------
@@ -520,8 +553,28 @@ elif args.myblockads != 'none':
 if mb_text is None and args.myblockads != 'none':
     raise SystemExit('MyBlockAds 在线来源与本地缓存/文件均不可用，拒绝静默跳过该来源')
 
+# ---------------- zirawell AlipayAdBlock：固定上游缓存，仅读取可安全补充的 Rewrite ----------------
+alipay_text = None
+if args.alipayadblock == 'fetch':
+    try:
+        alipay_text = fetch(ALIPAY_ADBLOCK_URL)
+        validate_alipayadblock(alipay_text)
+        print('[fetch] 已获取并通过完整性检查 AlipayAdBlock:', ALIPAY_ADBLOCK_URL)
+    except Exception as e:
+        print('[fetch] AlipayAdBlock 在线抓取失败，回退内置缓存:', e, file=sys.stderr)
+        if os.path.exists(ALIPAY_ADBLOCK_CACHE):
+            alipay_text = open(ALIPAY_ADBLOCK_CACHE, encoding='utf-8').read()
+            validate_alipayadblock(alipay_text)
+            print('[fetch] 已使用并通过完整性检查 AlipayAdBlock 缓存:', ALIPAY_ADBLOCK_CACHE)
+elif args.alipayadblock != 'none':
+    alipay_text = open(args.alipayadblock, encoding='utf-8').read()
+    validate_alipayadblock(alipay_text)
+if alipay_text is None and args.alipayadblock != 'none':
+    raise SystemExit('AlipayAdBlock 在线来源与本地缓存/文件均不可用，拒绝静默跳过该来源')
+
 _, base_sec = split_sections(base_text)
 _, extra_sec = split_sections(extra_text)
+alipay_sec = parse_loose_sections(alipay_text) if alipay_text is not None else {}
 amap_sec = parse_loose_sections(open(args.amap, encoding='utf-8').read()) if args.amap else {}
 amap_rw = real_lines(amap_sec.get('Rewrite', []))
 amap_sc = real_lines(amap_sec.get('Script', []))
@@ -2592,10 +2645,16 @@ if mb_text is not None:
             mb_mitm += [x.strip() for x in l.split('=', 1)[1].split(',') if x.strip()]
 else:
     mb_rw, mb_sc, mb_rule, mb_mitm = [], [], [], []
+alipay_raw_rw = real_lines(alipay_sec.get('Rewrite', []))
+alipay_higher_priority = (
+    base_rw + block_rw + zmj_gen_rw + thelong_rw + ao_rw
+    + qxapp_rw + amap_rw + zmj_app_rw + mb_rw
+)
+alipay_rw = prepare_alipayadblock_rewrite(alipay_raw_rw, alipay_higher_priority)
 rw_feeds = [('base', 4, base_rw), ('block', 5, block_rw), ('zmjgen', 6, zmj_gen_rw),
             ('thelong', 3, thelong_rw), ('aoomee', 2, ao_rw),
             ('qxapp', 1, qxapp_rw), ('amap', -1, amap_rw), ('zmjapp', 0, zmj_app_rw),
-            ('myblockads', 7, mb_rw)]
+            ('myblockads', 7, mb_rw), ('alipayadblock', 8, alipay_rw)]
 sc_feeds = [('base', 4, base_sc), ('block', 5, block_sc), ('zmjgen', 6, zmj_gen_sc),
             ('thelong', 3, thelong_sc), ('aoomee', 2, ao_sc),
             ('amap', -1, amap_sc), ('zmjapp', 0, zmj_app_sc), ('myblockads', 7, mb_sc)]
@@ -3280,14 +3339,14 @@ mitm = _kept_zhangle_mitm
 # ---------------- 输出 ----------------
 today = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
 header = [
-    '#!name=R-Store × blockAdsV2 × MyBlockAds × 独立 App 去广告净化合集',
-    '#!desc=合并 R-Store、blockAdsV2、RuCu6 MyBlockAds、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；'
+    '#!name=R-Store × blockAdsV2 × MyBlockAds × AlipayAdBlock × 独立 App 去广告净化合集',
+    '#!desc=合并 R-Store、blockAdsV2、RuCu6 MyBlockAds、zirawell AlipayAdBlock、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；'
     '按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含',
     '#!author=zirawell / fmz200 / RuCu6 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）',
     '#!homepage=https://github.com/XcvcvX/loon-change',
     '#!merged-at=%s' % today,
     '#!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。',
-    '#!sources=R-Store(QuanX->Loon)+blockAdsV2+RuCu6-MyBlockAds+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds',
+    '#!sources=R-Store(QuanX->Loon)+blockAdsV2+RuCu6-MyBlockAds+zirawell-AlipayAdBlock+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds',
     '',
 ]
 out = list(header)
@@ -3559,6 +3618,14 @@ if args.provenance_out:
                 'merge_priority': 7,
                 'policy': 'supplement_only; existing higher-priority rules are retained',
             },
+            'alipayadblock': {
+                'name': 'zirawell AlipayAdBlock (Alipay miniapp multi-app rules)',
+                'url': ALIPAY_ADBLOCK_URL,
+                'cache': 'sources/alipayAdBlock/alipayAdBlock.lpx',
+                'update_policy': 'fixed_romeo_commit_repository_cache',
+                'merge_priority': 8,
+                'policy': 'supplement_only; import only unique Loon v2 Rewrite lines; skip HelloBike, legacy mock-response-body, Rule, Script and MITM; higher-priority matcher wins',
+            },
             'filter': 'zirawell/R-Store allAdBlock filter'
         },
         'summary': {
@@ -3585,6 +3652,13 @@ if args.provenance_out:
                             and event.get('status') == status)
                 for status in ('included', 'duplicate_exact',
                                'covered_by_existing_rule', 'excluded_safety_guard')
+            },
+            'alipayadblock_input_entries': {
+                'rewrite': len(alipay_raw_rw),
+                'safe_unique_v2_rewrite_added': len(alipay_rw),
+                'script_skipped_existing_handler': len(real_lines(alipay_sec.get('Script', []))),
+                'rule_skipped': len(real_lines(alipay_sec.get('Rule', []))),
+                'mitm_declared_not_imported': len(real_lines(alipay_sec.get('MITM', []))),
             },
         },
         'rewrite': rewrite_provenance,
