@@ -2626,7 +2626,7 @@ hostname = *.amap.com
             base, "[Rewrite]\n[MITM]\nhostname = \n",
             alipayadblock_text=source, return_provenance=True)
         for token in (
-            "order.detail.miniapp.build", "getmainpageicon", "o2o\\.ad\\.exposure",
+            r"order\.detail\.miniapp\.build", "getmainpageicon", "o2o\\.ad\\.exposure",
             "promotion-web", "film\\.life", "getGuidePageAds",
             "boss\\/end\\/recommend", "upp\\.tbet\\.send",
         ):
@@ -2637,7 +2637,11 @@ hostname = *.amap.com
         self.assertNotIn("applet.homepage.medal.activity", output)
         self.assertNotIn("zirawell_eleme.js", output)
         self.assertEqual(output.count("miniapp\\.homepage"), 1)
-        self.assertNotIn("aimai-guide.ele.me", output)
+        mitm_line = next(line for line in output.splitlines()
+                         if line.strip().lower().startswith("hostname"))
+        mitm_hosts = [host.strip() for host in mitm_line.split("=", 1)[1].split(",")]
+        self.assertNotIn("aimai-guide.ele.me", mitm_hosts)
+        self.assertIn("waimai-guide.ele.me", mitm_hosts)
         self.assertNotIn("abapi.hellobike.com", output)
         self.assertEqual(output.count("msg\\.toast\\.user"), 1)
         self.assertIn("msg\\.toast\\.user/ then reject(404)", output)
