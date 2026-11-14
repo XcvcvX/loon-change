@@ -14,7 +14,7 @@ MERGER = Path(__file__).with_name("merge_plugins.py")
 
 
 class MergeIntegrationTests(unittest.TestCase):
-    def run_merge(self, base_text, extra_text, myblockads_text=None, return_stdout=False, amap_text=None, return_provenance=False, apps_files=None, aoomee_files=None, expect_failure=False, filter_text=None):
+    def run_merge(self, base_text, extra_text, myblockads_text=None, return_stdout=False, amap_text=None, return_provenance=False, apps_files=None, aoomee_files=None, expect_failure=False, filter_text=None, alipayadblock_text=None):
         tmp = tempfile.TemporaryDirectory()
         self.addCleanup(tmp.cleanup)
         root = Path(tmp.name)
@@ -26,7 +26,7 @@ class MergeIntegrationTests(unittest.TestCase):
         extra.write_text(extra_text, encoding="utf-8")
         command = [sys.executable, str(MERGER), "--base", str(base),
                    "--extra", str(extra), "--filter", "none",
-                   "--myblockads", "none", "--out", str(out),
+                   "--myblockads", "none", "--alipayadblock", "none", "--out", str(out),
                    "--provenance-out", str(provenance)]
         if filter_text is not None:
             filter_file = root / "filter.list"
@@ -40,6 +40,10 @@ class MergeIntegrationTests(unittest.TestCase):
             amap = root / "Amap.lpx"
             amap.write_text(amap_text, encoding="utf-8")
             command += ["--amap", str(amap)]
+        if alipayadblock_text is not None:
+            alipayadblock = root / "alipayAdBlock.lpx"
+            alipayadblock.write_text(alipayadblock_text, encoding="utf-8")
+            command += ["--alipayadblock", str(alipayadblock)]
         if apps_files is not None:
             apps = root / "apps"
             apps.mkdir()
