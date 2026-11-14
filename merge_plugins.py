@@ -574,6 +574,7 @@ if alipay_text is None and args.alipayadblock != 'none':
 
 _, base_sec = split_sections(base_text)
 _, extra_sec = split_sections(extra_text)
+alipay_sec = parse_loose_sections(alipay_text) if alipay_text is not None else {}
 amap_sec = parse_loose_sections(open(args.amap, encoding='utf-8').read()) if args.amap else {}
 amap_rw = real_lines(amap_sec.get('Rewrite', []))
 amap_sc = real_lines(amap_sec.get('Script', []))
