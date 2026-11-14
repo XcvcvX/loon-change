@@ -64,6 +64,7 @@ class IntegrateAlipayTests(unittest.TestCase):
             result2 = plugin.read_text()
             self.assertEqual(result1, result2)
             self.assertGreater(first["added"]["Rewrite"], 0)
+            self.assertEqual(first["corrected_missing_hosts"], ["creditcardapp.bankcomm.com"])
             self.assertEqual(second["added"]["Rewrite"], 0)
             self.assertIn(url, result2)
             self.assertNotIn("github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/zirawell", result2)
