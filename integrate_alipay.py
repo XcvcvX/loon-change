@@ -10,6 +10,7 @@ from pathlib import Path
 EXPECTED = {"Rule": 4, "Rewrite": 18, "Script": 1}
 # aimai-guide.m.taobao.com is an upstream typo: no rule references it.
 SKIP_HOSTS = {"aimai-guide.m.taobao.com"}
+REQUIRED_HOSTS = {"creditcardapp.bankcomm.com"}  # 有明确 HTTPS Rewrite，但上游 MITM 漏列
 UPSTREAM_JS = "https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/zirawell/alipayAdBlock/zirawell_eleme.js"
 
 
@@ -100,8 +101,9 @@ def integrate(plugin_path, source_path, js_path, repo_js_url, report_path=None, 
 
     old_hosts = host_list(current["MITM"])
     known = {x.lower() for x in old_hosts}
-    incoming_hosts = [x for x in host_list(incoming.get("MITM", []))
+    declared_hosts = [x for x in host_list(incoming.get("MITM", []))
                       if x.lower() not in SKIP_HOSTS]
+    incoming_hosts = list(dict.fromkeys(declared_hosts + sorted(REQUIRED_HOSTS)))
     new_hosts = [x for x in incoming_hosts if x.lower() not in known]
     if new_hosts:
         # Keep a single hostname declaration for this source and do not rewrite existing entries.
@@ -112,7 +114,8 @@ def integrate(plugin_path, source_path, js_path, repo_js_url, report_path=None, 
         else:
             current["MITM"][idx] = current["MITM"][idx].rstrip() + ", " + ", ".join(new_hosts)
     stats["added"]["MITM"] = len(new_hosts)
-    stats["duplicates"]["MITM"] = len(incoming_hosts) - len(new_hosts)
+    stats["duplicates"]["MITM"] = sum(1 for x in incoming_hosts if x.lower() in known)
+    stats["corrected_missing_hosts"] = sorted(REQUIRED_HOSTS - {x.lower() for x in declared_hosts})
 
     output = list(header)
     for name, lines in current.items():
