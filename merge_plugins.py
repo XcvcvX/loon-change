@@ -19,8 +19,8 @@
   # --filter 控制 R-Store 分流来源：fetch（默认）/ 本地路径 / none（不补全）
 """
 import argparse, datetime, ipaddress, json, os, re, sys, urllib.request
-from source_guard import (validate_blockv2, validate_filter, validate_myblockads,
-                          fetch_validated)
+from source_guard import (validate_alipayadblock, validate_blockv2, validate_filter,
+                          validate_myblockads, fetch_validated)
 from mitm_policy import mitm_skip_host
 
 BLOCKV2_URL = ('https://raw.githubusercontent.com/fmz200/wool_scripts/refs/heads/'
@@ -44,6 +44,13 @@ MYBLOCKADS_URL = ('https://raw.githubusercontent.com/ifflagged/Romeo/main/'
                   'Modules/Loon/rucu6/myblockads.lpx')
 MYBLOCKADS_CACHE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), 'myblockads.lpx')
+
+# zirawell 支付宝小程序去广告合集：与 MyBlockAds 共用固定 Romeo commit。
+ALIPAY_ADBLOCK_URL = ('https://raw.githubusercontent.com/ifflagged/Romeo/main/'
+                      'Modules/Loon/zirawell/Beta/alipayAdBlock.lpx')
+ALIPAY_ADBLOCK_CACHE = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    'sources', 'alipayAdBlock', 'alipayAdBlock.lpx')
 
 # aoomee 独立 App 去广告插件仓库（工作流 clone 到本地后传入目录）
 AOOMEE_REPO = 'https://github.com/aoomee/Loon-Adblock-Plugins.git'
@@ -98,6 +105,9 @@ ap.add_argument('--amap', default=None,
                 help='RuCu6/sooyaaabo 高德地图独立 Loon 插件（经来源校验的本地 .lpx 文件）；最高 App 优先级')
 ap.add_argument('--myblockads', default='fetch',
                 help='MyBlockAds 来源：fetch（默认，在线抓取失败回退 sources/myblockads.lpx 缓存）'
+                     '/ 本地路径 / none（不并入）')
+ap.add_argument('--alipayadblock', default='fetch',
+                help='zirawell AlipayAdBlock 来源：fetch（默认，在线抓取失败回退 sources/alipayAdBlock 缓存）'
                      '/ 本地路径 / none（不并入）')
 ap.add_argument('--out', required=True, help='合并输出路径')
 ap.add_argument('--provenance-out', default=None, help='可选：输出逐条规则来源追溯 JSON')
@@ -229,6 +239,29 @@ def entry_regex(line):
         return norm_regex(m.group(1))
     # legacy rewrite：首个空白分隔 token
     return norm_regex(line.split()[0])
+
+
+def prepare_alipayadblock_rewrite(source_lines, higher_priority_lines):
+    """只补充安全、唯一的 Loon v2 Rewrite；不重新引入已移除的 HelloBike 代码。"""
+    occupied = {
+        entry_regex(line) for line in higher_priority_lines
+        if entry_regex(line)
+    }
+    selected = []
+    for line in real_lines(source_lines):
+        matcher = entry_regex(line)
+        # 旧式 mock-response-body 行不参与自动转换，避免宽泛图片规则。
+        if not matcher or not is_v2_line(line):
+            continue
+        # 用户此前要求移除新引入的 HelloBike 插件代码；该来源的 HelloBike 项全部跳过。
+        if re.search(r'api\.hellobike\.com', matcher, re.IGNORECASE):
+            continue
+        # 只按 matcher 去重：base/高优先级来源已处理该接口时，不追加不同动作的第二条规则。
+        if matcher in occupied:
+            continue
+        selected.append(line)
+        occupied.add(matcher)
+    return selected
 
 
 # ---------------- hostname 守卫反查（通配 TLD 收敛） ----------------
