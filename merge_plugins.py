@@ -553,6 +553,25 @@ elif args.myblockads != 'none':
 if mb_text is None and args.myblockads != 'none':
     raise SystemExit('MyBlockAds 在线来源与本地缓存/文件均不可用，拒绝静默跳过该来源')
 
+# ---------------- zirawell AlipayAdBlock：固定上游缓存，仅读取可安全补充的 Rewrite ----------------
+alipay_text = None
+if args.alipayadblock == 'fetch':
+    try:
+        alipay_text = fetch(ALIPAY_ADBLOCK_URL)
+        validate_alipayadblock(alipay_text)
+        print('[fetch] 已获取并通过完整性检查 AlipayAdBlock:', ALIPAY_ADBLOCK_URL)
+    except Exception as e:
+        print('[fetch] AlipayAdBlock 在线抓取失败，回退内置缓存:', e, file=sys.stderr)
+        if os.path.exists(ALIPAY_ADBLOCK_CACHE):
+            alipay_text = open(ALIPAY_ADBLOCK_CACHE, encoding='utf-8').read()
+            validate_alipayadblock(alipay_text)
+            print('[fetch] 已使用并通过完整性检查 AlipayAdBlock 缓存:', ALIPAY_ADBLOCK_CACHE)
+elif args.alipayadblock != 'none':
+    alipay_text = open(args.alipayadblock, encoding='utf-8').read()
+    validate_alipayadblock(alipay_text)
+if alipay_text is None and args.alipayadblock != 'none':
+    raise SystemExit('AlipayAdBlock 在线来源与本地缓存/文件均不可用，拒绝静默跳过该来源')
+
 _, base_sec = split_sections(base_text)
 _, extra_sec = split_sections(extra_text)
 amap_sec = parse_loose_sections(open(args.amap, encoding='utf-8').read()) if args.amap else {}
