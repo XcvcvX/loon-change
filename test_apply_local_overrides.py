@@ -32,6 +32,25 @@ class LocalOverrideTests(unittest.TestCase):
         self.assertIn("creditcardapp.bankcomm.cn", result)
         self.assertEqual(apply(result), result)
 
+    def test_preserves_mitm_for_non_hellobike_script_reference(self):
+        trigger = r"http-response ^https?:\\/\\/mi\\.gdt\\.qq\\.com\\/gdt_mview script-path=https://example.invalid/ad.js, tag=base-ad"
+        base = BASE.replace("[Script]", "[Script]\n" + trigger)
+        result = apply(base)
+        mitm = result.split("[MITM]", 1)[1]
+        self.assertIn("mi.gdt.qq.com", mitm)
+        self.assertIn(trigger, result)
+        self.assertNotIn("adservice.sigmob.cn", mitm)
+
+    def test_scopes_yyting_request_rule_to_known_hosts(self):
+        broad = r"request if ${url} ~= /^https?:\\/\\/.*\\/yyting\\/advertclient\\/ClientAdvertList.action/ then reject(404)"
+        base = BASE.replace("[Rewrite]", "[Rewrite]\n" + broad)
+        result = apply(base)
+        rewrite = result.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
+        self.assertNotIn(broad, rewrite)
+        self.assertIn(r"^https?:\\/\\/118\\.178\\.214\\.118\\/yyting\\/advertclient\\/ClientAdvertList\\.action", rewrite)
+        self.assertIn(r"^https?:\\/\\/dapis\\.mting\\.info\\/yyting\\/advertclient\\/ClientAdvertList\\.action", rewrite)
+        self.assertEqual(apply(result), result)
+
     def test_maidanba_rule_has_valid_single_escaped_url_pattern(self):
         expected = r"^https?:\/\/creditcard\.bankcomm\.(?:cn|com)\/tofimg\/bucket-pj-btss-tfcn-dmz\/OSS-F\/.+/i"
         self.assertIn(expected, RULE)
