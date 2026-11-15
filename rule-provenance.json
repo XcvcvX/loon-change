@@ -127349,7 +127349,7 @@
         "Rule": 4,
         "Script": 1
       },
-      "upstream_commit": "60634c08bd41893a35d6da345ea89a46f5d7d92a",
+      "upstream_commit": "513d1e581dc2e98f4a358e010b5543b37e900b47",
       "upstream_path": "Modules/Loon/zirawell/Beta/alipayAdBlock.lpx",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
@@ -127388,13 +127388,13 @@
         "Rule": 4,
         "Script": 13
       },
-      "upstream_commit": "60634c08bd41893a35d6da345ea89a46f5d7d92a",
+      "upstream_commit": "513d1e581dc2e98f4a358e010b5543b37e900b47",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
     "GuaZiVideoAds": {
       "bytes": 3448,
       "entries": 6,
-      "upstream_commit": "60634c08bd41893a35d6da345ea89a46f5d7d92a",
+      "upstream_commit": "513d1e581dc2e98f4a358e010b5543b37e900b47",
       "upstream_path": "Modules/QuantumultX/ddgksf2013/Official/GuaZiVideoAds.conf",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },

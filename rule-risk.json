@@ -12,82 +12,18 @@
     },
     "script": {
       "action_changed": 0,
-      "added": 2,
-      "removed": 1
+      "added": 0,
+      "removed": 0
     }
   },
-  "events": [
-    {
-      "after": {
-        "line": "http-response ^https?:\\/\\/mb-mbc\\.cdn-static\\.abchina\\.com\\.cn\\/image-server\\/getImage script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/abc.js,tag=ABCHINA-2,requires-body=true",
-        "section": "script",
-        "sources": [
-          "base"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_scores": {
-        "base": 0
-      },
-      "sources": [
-        "base"
-      ]
-    },
-    {
-      "after": {
-        "line": "http-response ^https?:\\/\\/midc\\.cdn-static\\.abchina\\.com\\.cn\\/distributecenterimg\\/file\\/download script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/abc.js,tag=ABCHINA,requires-body=true",
-        "section": "script",
-        "sources": [
-          "base"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_scores": {
-        "base": 0
-      },
-      "sources": [
-        "base"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "http-response ^https?:\\/\\/(?:midc|mb-mbc)\\.cdn-static\\.abchina\\.com\\.cn\\/distributecenterimg\\/file\\/download script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/adImage.js,tag=ABCHINA,requires-body=true",
-        "section": "script",
-        "sources": [
-          "base"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_scores": {
-        "base": 0
-      },
-      "sources": [
-        "base"
-      ]
-    }
-  ],
-  "overall_risk": "high",
+  "events": [],
+  "overall_risk": "low",
   "risk_counts": {
-    "high": 1,
+    "high": 0,
     "low": 0,
-    "medium": 2
+    "medium": 0
   },
-  "run_id": "43692999585",
+  "run_id": "43723663965",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -166,18 +102,18 @@
   },
   "upstream_revision_changes": [
     {
-      "current_commit": "60634c08bd41893a35d6da345ea89a46f5d7d92a",
-      "previous_commit": "e80b39ae0b5b225eeae68f3676aa87c0836641bd",
+      "current_commit": "513d1e581dc2e98f4a358e010b5543b37e900b47",
+      "previous_commit": "60634c08bd41893a35d6da345ea89a46f5d7d92a",
       "source": "AlipayAdBlock"
     },
     {
-      "current_commit": "60634c08bd41893a35d6da345ea89a46f5d7d92a",
-      "previous_commit": "e80b39ae0b5b225eeae68f3676aa87c0836641bd",
+      "current_commit": "513d1e581dc2e98f4a358e010b5543b37e900b47",
+      "previous_commit": "60634c08bd41893a35d6da345ea89a46f5d7d92a",
       "source": "Amap"
     },
     {
-      "current_commit": "60634c08bd41893a35d6da345ea89a46f5d7d92a",
-      "previous_commit": "e80b39ae0b5b225eeae68f3676aa87c0836641bd",
+      "current_commit": "513d1e581dc2e98f4a358e010b5543b37e900b47",
+      "previous_commit": "60634c08bd41893a35d6da345ea89a46f5d7d92a",
       "source": "GuaZiVideoAds"
     }
   ]
