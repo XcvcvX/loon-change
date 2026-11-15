@@ -130,7 +130,7 @@ def has_domain_constraint(pattern):
     # This upstream matcher permits an optional IPv4 prefix before a fixed
     # qqvideo hostname; the fixed service domain still constrains the host.
     optional_qqvideo_host = bool(re.search(
-        r'(?:defaultts|vmind|finderpdd)\.video\.qq\.com', normalized, re.I
+        r'(?:defaultts\.tc|vmind\.video\.tc|finderpdd\.video)\.qq\.com', normalized, re.I
     ))
     return bool(
         literal_domain or known_tld or tld_alternation
@@ -2400,7 +2400,7 @@ if __name__ == '__main__':
     authority = extract_url_authority(normalized)
     if has_ipv4_regex_constraint(authority):
         return 'ipv4_pattern'
-    if re.search(r'(?:defaultts|vmind|finderpdd)\.video\.qq\.com', normalized, re.I):
+    if re.search(r'(?:defaultts\.tc|vmind\.video\.tc|finderpdd\.video)\.qq\.com', normalized, re.I):
         return 'domain_scoped_optional_host_prefix'
     if not has_domain_constraint(pattern):
         if normalized.startswith(('^https://', '^http://', '^https?://')):
