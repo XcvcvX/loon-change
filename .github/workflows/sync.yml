@@ -126,6 +126,10 @@ jobs:
       - name: 测试校验器与来源依赖门禁
         run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_compare_rule_provenance.py test_source_health_guard.py test_finalize_provenance.py test_rule_risk_history.py test_integrate_spotify.py test_convert_qx2loon.py test_convert_filter_qx2loon.py
 
+      concurrency:
+        group: loon-change-main-sync
+        queue: max
+
       - name: 创建隔离构建目录
         run: |
           mkdir -p /tmp/loon-build
@@ -351,4 +355,21 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add allAdRewrite.plugin allAdBlock-Loon.plugin allAdBlock-Loon.list README.md myblockads.lpx source-report.json rule-provenance.json rule-diff.json source-health.json rule-risk.json rule-history.json sources/amap/ sources/spotify/ sources/alipayAdBlock/ scripts/spotify/
           git commit -m "chore: sync upstream rules and plugin stats $(date -u +%Y-%m-%d)"
-          git push
+          # Another workflow or a PR merge may advance main after checkout.
+          # Rebase the generated snapshot onto the latest main before pushing;
+          # never force-push or overwrite concurrent changes.
+          for attempt in 1 2 3; do
+            git fetch origin main
+            if ! git rebase origin/main; then
+              git rebase --abort || true
+              echo "::error::Sync commit conflicts with newer main; rerun the full sync from the latest revision."
+              exit 1
+            fi
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            echo "Push attempt $attempt rejected; refreshing main and retrying."
+            sleep 2
+          done
+          echo "::error::Could not push after 3 attempts."
+          exit 1
