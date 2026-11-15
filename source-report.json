@@ -17,7 +17,7 @@
       "search_poi_detail.jq"
     ],
     "upstream_repository": "https://github.com/ifflagged/Romeo",
-    "upstream_commit": "f5b55c3f687f07663b28db7c011be9c948c51ca7",
+    "upstream_commit": "e80b39ae0b5b225eeae68f3676aa87c0836641bd",
     "assets": {
       "rucu6_amap.js": {
         "bytes": 23517,
@@ -56,7 +56,7 @@
     "bytes": 3448,
     "entries": 6,
     "upstream_repository": "https://github.com/ifflagged/Romeo",
-    "upstream_commit": "f5b55c3f687f07663b28db7c011be9c948c51ca7",
+    "upstream_commit": "e80b39ae0b5b225eeae68f3676aa87c0836641bd",
     "upstream_path": "Modules/QuantumultX/ddgksf2013/Official/GuaZiVideoAds.conf"
   },
   "AlipayAdBlock": {
@@ -79,7 +79,7 @@
       "m5-zb.amap.com"
     ],
     "upstream_repository": "https://github.com/ifflagged/Romeo",
-    "upstream_commit": "f5b55c3f687f07663b28db7c011be9c948c51ca7",
+    "upstream_commit": "e80b39ae0b5b225eeae68f3676aa87c0836641bd",
     "upstream_path": "Modules/Loon/zirawell/Beta/alipayAdBlock.lpx"
   }
 }
