@@ -180,20 +180,21 @@
   "sections": {
     "rewrite": {
       "action_changed": [],
-      "added": [],
+      "added": [
+        {
+          "line": "^https?:\\/\\/zone\\.guiderank-app\\.com\\/guiderank-web\\/app\\/common\\/getInitData response-body-json-del data.SpecialSalePageMidTabConfig",
+          "section": "rewrite",
+          "sources": [
+            "local_overrides"
+          ]
+        }
+      ],
       "removed": [
         {
-          "line": "^https?:\\/\\/m\\.lkcoffee\\.com\\/ecapi\\/resource\\/m\\/member\\/exchange\\/page response-body-replace-regex \\{.+\\} {\"status\":\"SUCCESS\"}",
+          "line": "^https?:\\/\\/zone\\.guiderank-app\\.com\\/guiderank-web\\/app\\/common\\/getInitData response-body-replace-regex SpecialSalePageMidTabConfig random_body",
           "section": "rewrite",
           "sources": [
             "base"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https?:\\/\\/m\\.lkcoffee\\.com\\/ecapi\\/resource\\/m\\/member\\/exchange\\/page/ then response.body.replace(/\\{.+\\}/, \"{\"status\":\"SUCCESS\"}\")",
-          "section": "rewrite",
-          "sources": [
-            "block"
           ]
         }
       ]
@@ -212,8 +213,8 @@
   "summary": {
     "rewrite": {
       "action_changed": 0,
-      "added": 0,
-      "removed": 2
+      "added": 1,
+      "removed": 1
     },
     "rule": {
       "action_changed": 0,

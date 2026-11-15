@@ -2,8 +2,8 @@
   "change_counts": {
     "rewrite": {
       "action_changed": 0,
-      "added": 0,
-      "removed": 2
+      "added": 1,
+      "removed": 1
     },
     "rule": {
       "action_changed": 0,
@@ -18,9 +18,33 @@
   },
   "events": [
     {
+      "after": {
+        "line": "^https?:\\/\\/zone\\.guiderank-app\\.com\\/guiderank-web\\/app\\/common\\/getInitData response-body-json-del data.SpecialSalePageMidTabConfig",
+        "section": "rewrite",
+        "sources": [
+          "local_overrides"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "local_overrides": "unavailable"
+      },
+      "source_scores": {
+        "local_overrides": null
+      },
+      "sources": [
+        "local_overrides"
+      ]
+    },
+    {
       "after": null,
       "before": {
-        "line": "^https?:\\/\\/m\\.lkcoffee\\.com\\/ecapi\\/resource\\/m\\/member\\/exchange\\/page response-body-replace-regex \\{.+\\} {\"status\":\"SUCCESS\"}",
+        "line": "^https?:\\/\\/zone\\.guiderank-app\\.com\\/guiderank-web\\/app\\/common\\/getInitData response-body-replace-regex SpecialSalePageMidTabConfig random_body",
         "section": "rewrite",
         "sources": [
           "base"
@@ -40,39 +64,15 @@
       "sources": [
         "base"
       ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https?:\\/\\/m\\.lkcoffee\\.com\\/ecapi\\/resource\\/m\\/member\\/exchange\\/page/ then response.body.replace(/\\{.+\\}/, \"{\"status\":\"SUCCESS\"}\")",
-        "section": "rewrite",
-        "sources": [
-          "block"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "rewrite",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "block": "unavailable"
-      },
-      "source_scores": {
-        "block": null
-      },
-      "sources": [
-        "block"
-      ]
     }
   ],
   "overall_risk": "high",
   "risk_counts": {
-    "high": 2,
+    "high": 1,
     "low": 0,
-    "medium": 0
+    "medium": 1
   },
-  "run_id": "43771093377",
+  "run_id": "43772787402",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -103,8 +103,8 @@
     "base": {
       "action_changed": 10,
       "added": 6,
-      "removed": 6,
-      "snapshots_seen": 7
+      "removed": 7,
+      "snapshots_seen": 8
     },
     "block": {
       "action_changed": 0,
@@ -120,9 +120,9 @@
     },
     "local_overrides": {
       "action_changed": 0,
-      "added": 15,
+      "added": 16,
       "removed": 2,
-      "snapshots_seen": 3
+      "snapshots_seen": 4
     },
     "myblockads": {
       "action_changed": 18,
