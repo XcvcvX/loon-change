@@ -95,6 +95,16 @@ response if ${url} ~= /api.example.com/ then response.json.jq("del(.data.ad)")
         self.assertEqual(classify_rewrite_scope(r'^https?:\/\/101\.91\.69\.26:8080\/ad'),
                          'domain_scoped')
 
+        ipv4_regex = r'^https?:\/\/((25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.){3}(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\/odin\/c1\/channel\/ads\?'
+        ipv4_literal = r'^https?:\/\/103\.91\.210\.141:2515\/xgapp\.php\/v2\/top_notice(?:\?|$|\/)'
+        qq_fixed_suffix = r'^http:\/\/(?:(?:(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)(?::\d+)?)?\/?(defaultts\.tc|vmind\.qqvideo\.tc|finderpdd\.video)\.qq\.com\/\w+'
+        self.assertFalse(broad_reasons(ipv4_regex))
+        self.assertEqual(classify_rewrite_scope(ipv4_regex), 'domain_scoped_ipv4_pattern')
+        self.assertFalse(broad_reasons(ipv4_literal))
+        self.assertEqual(classify_rewrite_scope(ipv4_literal), 'domain_scoped')
+        self.assertFalse(broad_reasons(qq_fixed_suffix))
+        self.assertEqual(classify_rewrite_scope(qq_fixed_suffix), 'domain_scoped_fixed_suffix')
+
         wildcard_tld = r'^https?:\/\/.*\.boohee\.(?:cn|com).*\/ad'
         class_slash = r'^https?:\/\/[^\s/]*\.pangle\.cn\/api\/ad'
         self.assertFalse(broad_reasons(wildcard_tld))
