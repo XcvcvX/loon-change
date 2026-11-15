@@ -125,6 +125,19 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertIn(" | ", result[0])
         self.assertLess(result[0].index("data.a"), result[0].index("data.b"))
 
+    def test_merges_jq_actions_without_splitting_internal_pipe_operators(self):
+        from apply_local_overrides import merge_adjacent_response_json_rewrites
+        prefix = "response if ${url} ~= /api/ then "
+        first = prefix + 'response.json.delete("data.header")'
+        jq = prefix + "response.json.jq('.data.rows |= map(select(.type == \"card\")) | .data.banner')"
+        third = prefix + 'response.json.delete("data.footer")'
+        result, count = merge_adjacent_response_json_rewrites([first, jq, third])
+        self.assertEqual(count, 1)
+        self.assertEqual(len(result), 1)
+        self.assertIn("response.json.delete", result[0])
+        self.assertIn(".data.rows |= map(select(.type == \"card\")) | .data.banner", result[0])
+        self.assertEqual(merge_adjacent_response_json_rewrites(result)[1], 0)
+
     def test_does_not_merge_different_conditions_or_request_actions(self):
         from apply_local_overrides import merge_adjacent_response_json_rewrites
         a = 'response if ${url} ~= /api/ then response.json.delete("data.a")'

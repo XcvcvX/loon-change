@@ -128,7 +128,30 @@ def split_response_json_rewrite(line: str):
     match = re.match(r'^(response if .+?) then (.+)', line)
     if not match: return None
     prefix, action_text = match.groups()
-    actions = re.split(r'\s+\|\s+', action_text)
+    # Split only Loon's top-level action separator; JQ arguments can contain pipes.
+    actions = []
+    start = 0
+    quote = None
+    escaped = False
+    for position, char in enumerate(action_text):
+        if escaped:
+            escaped = False
+            continue
+        if quote is not None:
+            if char == chr(92):
+                escaped = True
+            elif char == quote:
+                quote = None
+            continue
+        if char in (chr(34), chr(39), chr(96)):
+            quote = char
+            continue
+        if (char == chr(124) and position > 0 and position + 1 < len(action_text)
+                and action_text[position - 1].isspace()
+                and action_text[position + 1].isspace()):
+            actions.append(action_text[start:position].strip())
+            start = position + 1
+    actions.append(action_text[start:].strip())
     if not actions or any(not action.startswith("response.json.") for action in actions): return None
     return prefix, actions
 
