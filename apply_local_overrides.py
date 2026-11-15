@@ -150,7 +150,7 @@ def remove_lkcoffee_member_exchange_success_overrides(lines):
 
 
 GUIDERANK_SPECIAL_SALE_MARKER = "zone.guiderank-app.com/guiderank-web/app/common/getInitData"
-GUIDERANK_SPECIAL_SALE_MATCHER = r"^https?://zone\.guiderank-app\.com/guiderank-web/app/common/getInitData"
+GUIDERANK_SPECIAL_SALE_MATCHER = "^https://zone.guiderank-app.com/guiderank-web/app/common/getInitData"
 GUIDERANK_SPECIAL_SALE_OLD_ACTION = "response-body-replace-regex SpecialSalePageMidTabConfig random_body"
 GUIDERANK_SPECIAL_SALE_NEW_ACTION = "response-body-json-del data.SpecialSalePageMidTabConfig"
 
@@ -158,7 +158,7 @@ def replace_guiderank_special_sale_random_body(lines):
     """Replace only the reviewed Guiderank promo-field randomization with JSON deletion."""
     output, replaced = [], 0
     for line in lines:
-        normalized = re.sub(r"\\+/", "/", line.strip())
+        normalized = re.sub(r"\\+", "", line.strip())
         if GUIDERANK_SPECIAL_SALE_MARKER.lower() not in normalized.lower():
             output.append(line)
             continue
