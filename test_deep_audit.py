@@ -108,24 +108,24 @@ response if ${url} ~= /api.example.com/ then response.json.jq("del(.data.ad)")
         from deep_audit import classify_rewrite_scope
 
         ipv4_ads = (
-            r'^https?:\\/\\/((25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\.){3}'
-            r'(25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\/odin\\/c\\d\\/'
-            r'(channel\\/ads|skin\\/config)\\?'
+            r'^https?:\/\/((25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.){3}'
+            r'(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\/odin\/c\d\/'
+            r'(channel\/ads|skin\/config)\?'
         )
         ipv4_splash = (
-            r'^https?:\\/\\/((25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\.){3}'
-            r'(25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\/music\\/common\\/'
-            r'upload\\/t_splash_info\\/'
+            r'^https?:\/\/((25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.){3}'
+            r'(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\/music\/common\/'
+            r'upload\/t_splash_info\/'
         )
         literal_ip_port = (
-            r'^https?:\\/\\/103\\.91\\.210\\.141\\:2515\\/xgapp\\.php'
-            r'\\/v2\\/top_notice(?:\\?|$|\\/)'
+            r'^https?:\/\/103\.91\.210\.141\:2515\/xgapp\.php'
+            r'\/v2\/top_notice(?:\?|$|\/)'
         )
         optional_qqvideo = (
-            r'^http:\\/\\/(?:(?:(?:25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\.){3}'
-            r'(?:25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)(?::\\d+)?)?\\/?'
-            r'(defaultts\\.tc|vmind\\.video\\.tc|finderpdd\\.video)\\.qq\\.com'
-            r'\\/\\w+'
+            r'^http:\/\/(?:(?:(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.){3}'
+            r'(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)(?::\d+)?)?\/?'
+            r'(defaultts\.tc|vmind\.video\.tc|finderpdd\.video)\.qq\.com'
+            r'\/\w+'
         )
         for pattern in (ipv4_ads, ipv4_splash, literal_ip_port, optional_qqvideo):
             self.assertFalse(broad_reasons(pattern), pattern)
@@ -136,7 +136,7 @@ response if ${url} ~= /api.example.com/ then response.json.jq("del(.data.ad)")
         self.assertEqual(classify_rewrite_scope(optional_qqvideo),
                          'domain_scoped_optional_host_prefix')
 
-        fixture = '[Rewrite]\\n' + '\\n'.join(
+        fixture = '[Rewrite]\n' + '\n'.join(
             f'{pattern} reject' for pattern in
             (ipv4_ads, ipv4_splash, literal_ip_port, optional_qqvideo)
         )
