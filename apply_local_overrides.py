@@ -225,7 +225,8 @@ def apply(text: str) -> str:
 
         if LEGACY_HELLOBIKE_MARKER in line:
             continue
-        if section == "Rewrite" and any(marker in line for marker in HELLOBIKE_REWRITE_MARKERS):
+        normalized_line = re.sub(r"\\+", "", line)
+        if section == "Rewrite" and any(marker in normalized_line for marker in HELLOBIKE_REWRITE_MARKERS):
             continue
         if section == "Script" and any(marker in line for marker in HELLOBIKE_SCRIPT_MARKERS):
             continue
