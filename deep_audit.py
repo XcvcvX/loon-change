@@ -158,9 +158,14 @@ def classify_rewrite_scope(pattern):
         return 'unscoped_other'
 
     authority = extract_url_authority(normalized)
+    # A quantified port expression (for example, :\\d+) is not a hostname
+    # wildcard. Restrict host-wildcard classification to the fixed IPv4 host.
+    host_authority = authority
+    if re.match(r'^(?:\\d{1,3}\\.){3}\\d{1,3}:', authority):
+        host_authority = authority.split(':', 1)[0]
     scheme_marker = normalized.find('://')
     remainder = normalized[scheme_marker + 3:] if scheme_marker >= 0 else normalized
-    if '*' in authority or '+' in authority or re.search(r'\([^)]*\)[*+]', authority):
+    if '*' in host_authority or '+' in host_authority or re.search(r'\\([^)]*\\)[*+]', host_authority):
         return 'domain_scoped_subdomain_wildcard'
     path_part = remainder[len(authority):] if scheme_marker >= 0 else remainder
     if '*' in path_part or '+' in path_part or re.search(r'\([^)]*\)[*+]', path_part):
