@@ -38,8 +38,12 @@ def _names(row, side=None):
 
 
 def _source_score(name, health):
+    """Return None when a source has no score; zero is a real score, not 'unknown'."""
     record = health.get("source_scores", {}).get(name, {})
-    return int(record.get("score", 0))
+    value = record.get("score") if isinstance(record, dict) else None
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    return value
 
 
 def _canonical_rule_key(line):
@@ -164,7 +168,8 @@ def _classify_event(kind, section, row, health, provenance=None):
         names = _names(row)
 
     scores = {name: _source_score(name, health) for name in names}
-    weak = [name for name, score in scores.items() if score and score < 70]
+    weak = [name for name, score in scores.items()
+            if score is not None and score < 70]
     if weak and level == "medium":
         level = "high"
         reason += "；来源可靠性评分偏低：" + ", ".join(weak)
@@ -172,6 +177,10 @@ def _classify_event(kind, section, row, health, provenance=None):
         "risk": level, "change_type": kind, "section": section,
         "sources": names, "source_scores": scores, "reason": reason,
         "semantic_duplicate_coverage": coverage,
+        "source_score_status": {
+            name: ("unavailable" if score is None else "scored")
+            for name, score in scores.items()
+        },
         "before": row.get("before") if kind == "action_changed" else (
             row if kind == "removed" else None),
         "after": row.get("after") if kind == "action_changed" else (
