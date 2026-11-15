@@ -172,6 +172,31 @@ def replace_guiderank_special_sale_random_body(lines):
         raise ValueError("Guiderank SpecialSalePageMidTabConfig rule changed; refusing an unreviewed rewrite")
     return output, replaced
 
+GUIDERANK_HOMEPAGE_SCRIPT_MARKER = "zone.guiderank-app.com/guiderank-web/app/home/getHomePageV"
+GUIDERANK_HOMEPAGE_SCRIPT_TRIGGER = r'http-response ^https?:\/\/zone\.guiderank-app\.com\/guiderank-web\/app\/home\/getHomePageV script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/guiderank.js,tag=GUIDERANK,requires-body=true'
+GUIDERANK_HOMEPAGE_NATIVE_RULE = r'response if ${url} ~= /^https?:\/\/zone\.guiderank-app\.com\/guiderank-web\/app\/home\/getHomePageV/ then response.json.delete(["data.countdownBanner", "data.newEvaluations", "data.freeToPayBannerPhotoUrl", "data.groupBuyingList", "data.multiCountdownBanner", "data.banners", "data.multiPlatformBanner", "data.specialSaleBannerPhotoUrl", "data.guide90Evaluation", "data.insurancePromotions"])'
+
+def remove_guiderank_homepage_script(lines):
+    """Replace only the reviewed Guiderank homepage response script trigger."""
+    output, removed, section = [], 0, ""
+    normalized_trigger = re.sub(r"\\+", "", GUIDERANK_HOMEPAGE_SCRIPT_TRIGGER.strip())
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            output.append(line)
+            continue
+        normalized = re.sub(r"\\+", "", line.strip())
+        if section != "Script" or GUIDERANK_HOMEPAGE_SCRIPT_MARKER.lower() not in normalized.lower():
+            output.append(line)
+            continue
+        if normalized == normalized_trigger:
+            removed += 1
+            continue
+        raise ValueError("Guiderank homepage script trigger changed; refusing an unreviewed conversion")
+    if removed > 1:
+        raise ValueError("duplicate Guiderank homepage script triggers; refusing ambiguous conversion")
+    return output, removed
+
 def split_response_json_rewrite(line: str):
     match = re.match(r'^(response if .+?) then (.+)', line)
     if not match: return None
@@ -358,6 +383,7 @@ def apply(text: str) -> str:
             candidate = key + "= " + ", ".join(hosts)
         normalized_lines.append(candidate)
     lines = normalized_lines
+    lines, guiderank_homepage_script_count = remove_guiderank_homepage_script(lines)
 
     result_lines, rewrite_lines = [], []
     section = ""
@@ -373,6 +399,8 @@ def apply(text: str) -> str:
                 rewrite_lines, _ = remove_shadowed_terminal_block_rules(rewrite_lines)
                 rewrite_lines, _ = remove_lkcoffee_member_exchange_success_overrides(rewrite_lines)
                 rewrite_lines, _ = replace_guiderank_special_sale_random_body(rewrite_lines)
+                if guiderank_homepage_script_count and GUIDERANK_HOMEPAGE_NATIVE_RULE not in [item.strip() for item in rewrite_lines]:
+                    rewrite_lines.append(GUIDERANK_HOMEPAGE_NATIVE_RULE)
                 result_lines.extend(rewrite_lines); rewrite_lines = []
             section = line[1:-1]; result_lines.append(line)
         elif section == "Rewrite": rewrite_lines.append(line)
@@ -387,6 +415,8 @@ def apply(text: str) -> str:
         rewrite_lines, _ = remove_shadowed_terminal_block_rules(rewrite_lines)
         rewrite_lines, _ = remove_lkcoffee_member_exchange_success_overrides(rewrite_lines)
         rewrite_lines, _ = replace_guiderank_special_sale_random_body(rewrite_lines)
+        if guiderank_homepage_script_count and GUIDERANK_HOMEPAGE_NATIVE_RULE not in [item.strip() for item in rewrite_lines]:
+            rewrite_lines.append(GUIDERANK_HOMEPAGE_NATIVE_RULE)
         result_lines.extend(rewrite_lines)
     result = "\n".join(result_lines)
     # Scope YYting to the two confirmed hosts. Upstream and generated plugin
