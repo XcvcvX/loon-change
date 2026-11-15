@@ -364,6 +364,34 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         with self.assertRaisesRegex(ValueError, "Guiderank SpecialSalePageMidTabConfig rule changed"):
             apply(BASE.replace("[Rewrite]", "[Rewrite]\n" + changed))
 
+    def test_replaces_guiderank_homepage_script_with_native_batch_json_delete(self):
+        from apply_local_overrides import GUIDERANK_HOMEPAGE_SCRIPT_TRIGGER, GUIDERANK_HOMEPAGE_NATIVE_RULE
+        fixture = BASE.replace("[Script]", "[Script]\n" + GUIDERANK_HOMEPAGE_SCRIPT_TRIGGER)
+        result = apply(fixture)
+        rewrite = result.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
+        script = result.split("[Script]", 1)[1].split("[MITM]", 1)[0]
+        self.assertIn(GUIDERANK_HOMEPAGE_NATIVE_RULE, rewrite)
+        self.assertNotIn("guiderank.js", script)
+        self.assertNotIn("getHomePageV", script)
+        for path in ("data.countdownBanner", "data.newEvaluations", "data.freeToPayBannerPhotoUrl", "data.groupBuyingList", "data.multiCountdownBanner", "data.banners", "data.multiPlatformBanner", "data.specialSaleBannerPhotoUrl", "data.guide90Evaluation", "data.insurancePromotions"):
+            self.assertIn(path, GUIDERANK_HOMEPAGE_NATIVE_RULE)
+        self.assertEqual(apply(result), result)
+
+    def test_fails_closed_when_guiderank_homepage_script_trigger_changes(self):
+        from apply_local_overrides import GUIDERANK_HOMEPAGE_SCRIPT_TRIGGER
+        changed = GUIDERANK_HOMEPAGE_SCRIPT_TRIGGER.replace("requires-body=true", "requires-body=false")
+        fixture = BASE.replace("[Script]", "[Script]\n" + changed)
+        with self.assertRaisesRegex(ValueError, "Guiderank homepage script trigger changed"):
+            apply(fixture)
+
+    def test_preserves_other_guiderank_script_triggers(self):
+        from apply_local_overrides import GUIDERANK_HOMEPAGE_SCRIPT_TRIGGER
+        other = r"http-response ^https?:\/\/zone\.guiderank-app\.com\/guiderank-web\/app\/home\/other script-path=https://example.invalid/other.js,tag=OTHER,requires-body=true"
+        fixture = BASE.replace("[Script]", "[Script]\n" + GUIDERANK_HOMEPAGE_SCRIPT_TRIGGER + "\n" + other)
+        result = apply(fixture)
+        self.assertIn(other, result)
+        self.assertNotIn("guiderank.js", result)
+
     def test_requires_bankcomm_mitm_hosts(self):
         with self.assertRaises(ValueError):
             apply(BASE.replace("creditcard.bankcomm.com, ", ""))
