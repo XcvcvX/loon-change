@@ -42,13 +42,24 @@ class LocalOverrideTests(unittest.TestCase):
         self.assertNotIn("adservice.sigmob.cn", mitm)
 
     def test_scopes_yyting_request_rule_to_known_hosts(self):
-        broad = r"request if ${url} ~= /^https?:\\/\\/.*\\/yyting\\/advertclient\\/ClientAdvertList.action/ then reject(404)"
+        # Exercise the exact single-backslash URL escaping found in allAdRewrite.plugin.
+        broad = r"request if \${url} ~= /^https?:\/\/.*\/yyting\/advertclient\/ClientAdvertList.action/ then reject(404)"
         base = BASE.replace("[Rewrite]", "[Rewrite]\n" + broad)
         result = apply(base)
         rewrite = result.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
         self.assertNotIn(broad, rewrite)
-        self.assertIn(r"^https?:\\/\\/118\\.178\\.214\\.118\\/yyting\\/advertclient\\/ClientAdvertList\\.action", rewrite)
-        self.assertIn(r"^https?:\\/\\/dapis\\.mting\\.info\\/yyting\\/advertclient\\/ClientAdvertList\\.action", rewrite)
+        self.assertIn(r"^https?:\/\/118\.178\.214\.118\/yyting\/advertclient\/ClientAdvertList\.action", rewrite)
+        self.assertIn(r"^https?:\/\/dapis\.mting\.info\/yyting\/advertclient\/ClientAdvertList\.action", rewrite)
+        self.assertEqual(apply(result), result)
+
+    def test_scopes_yyting_when_upstream_uses_repeated_slash_escapes(self):
+        broad = r"request if \${url} ~= /^https?:\\\\/\\\\/.*\\\\/yyting\\\\/advertclient\\\\/ClientAdvertList.action/ then reject(404)"
+        base = BASE.replace("[Rewrite]", "[Rewrite]\n" + broad)
+        result = apply(base)
+        rewrite = result.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
+        self.assertNotIn(broad, rewrite)
+        self.assertIn(r"^https?:\/\/118\.178\.214\.118\/yyting\/advertclient\/ClientAdvertList\.action", rewrite)
+        self.assertIn(r"^https?:\/\/dapis\.mting\.info\/yyting\/advertclient\/ClientAdvertList\.action", rewrite)
         self.assertEqual(apply(result), result)
 
     def test_maidanba_rule_has_valid_single_escaped_url_pattern(self):
