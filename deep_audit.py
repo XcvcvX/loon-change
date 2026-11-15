@@ -68,8 +68,8 @@ def parse_rewrite(line):
     return None
 
 def normalize_regex_literals(pattern):
-    """Normalize escaped URL separators for conservative scope inspection only."""
-    return re.sub(r'\\+([./])', r'\1', pattern)
+    """Normalize escaped URL separators and literal port delimiters for scope inspection only."""
+    return re.sub(r'\\+([./:])', r'\1', pattern)
 
 
 def extract_url_authority(pattern):
