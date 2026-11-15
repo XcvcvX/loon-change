@@ -178,11 +178,15 @@ GUIDERANK_HOMEPAGE_NATIVE_RULE = r'response if ${url} ~= /^https?:\/\/zone\.guid
 
 def remove_guiderank_homepage_script(lines):
     """Replace only the reviewed Guiderank homepage response script trigger."""
-    output, removed = [], 0
+    output, removed, section = [], 0, ""
     normalized_trigger = re.sub(r"\\+", "", GUIDERANK_HOMEPAGE_SCRIPT_TRIGGER.strip())
     for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            output.append(line)
+            continue
         normalized = re.sub(r"\\+", "", line.strip())
-        if GUIDERANK_HOMEPAGE_SCRIPT_MARKER.lower() not in normalized.lower():
+        if section != "Script" or GUIDERANK_HOMEPAGE_SCRIPT_MARKER.lower() not in normalized.lower():
             output.append(line)
             continue
         if normalized == normalized_trigger:
