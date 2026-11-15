@@ -154,6 +154,45 @@ class RuleRiskHistoryTests(unittest.TestCase):
         self.assertEqual(history["snapshots"][0]["risk_counts"]["high"], 3)
         self.assertNotIn("semantic_duplicate_history_reconciled", history["snapshots"][0])
 
+    def test_unscored_source_is_unknown_not_zero_reliability(self):
+        diff = {
+            "sections": {
+                "rewrite": {"added": [{
+                    "line": "new base rule", "sources": ["base"]
+                }], "removed": [], "action_changed": []},
+                "script": {"added": [], "removed": [], "action_changed": []},
+                "rule": {"added": [], "removed": [], "action_changed": []},
+            },
+            "current_upstream_revisions": {},
+            "upstream_revision_changes": [],
+        }
+        risk, _ = build_risk(diff, self.health, {}, {}, "unscored-base")
+        event = risk["events"][0]
+        self.assertEqual(event["risk"], "medium")
+        self.assertIsNone(event["source_scores"]["base"])
+        self.assertEqual(event["source_score_status"]["base"], "unavailable")
+        self.assertEqual(risk["risk_counts"], {"high": 0, "medium": 1, "low": 0})
+
+    def test_zero_source_score_is_a_real_low_score(self):
+        health = dict(self.health)
+        health["source_scores"] = {"zero": {"score": 0}}
+        diff = {
+            "sections": {
+                "rewrite": {"added": [{
+                    "line": "new weak rule", "sources": ["zero"]
+                }], "removed": [], "action_changed": []},
+                "script": {"added": [], "removed": [], "action_changed": []},
+                "rule": {"added": [], "removed": [], "action_changed": []},
+            },
+            "current_upstream_revisions": {},
+            "upstream_revision_changes": [],
+        }
+        risk, _ = build_risk(diff, health, {}, {}, "zero-score")
+        event = risk["events"][0]
+        self.assertEqual(event["risk"], "high")
+        self.assertEqual(event["source_scores"]["zero"], 0)
+        self.assertEqual(event["source_score_status"]["zero"], "scored")
+
     def test_low_source_score_escalates_addition(self):
         self.diff["sections"]["rewrite"]["removed"] = []
         self.diff["sections"]["rewrite"]["action_changed"] = []
