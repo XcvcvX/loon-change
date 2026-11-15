@@ -314,19 +314,26 @@ def apply(text: str) -> str:
         rewrite_lines, _ = remove_shadowed_terminal_block_rules(rewrite_lines)
         result_lines.extend(rewrite_lines)
     result = "\n".join(result_lines)
-    # Scope YYting to the two hosts already covered by neighboring legacy rules.
-    broad_yyting = r"request if ${url} ~= /^https?:\\/\\/.*\\/yyting\\/advertclient\\/ClientAdvertList.action/ then reject(404)"
+    # Scope YYting to the two confirmed hosts. Upstream and generated plugin
+    # text may encode URL slashes with one or multiple backslashes; normalize
+    # only slash escapes before comparing so the override matches real artifacts.
+    def normalize_url_slash_escapes(value):
+        return re.sub(r"\\+/", lambda _match: r"\/", value.strip())
+
+    broad_yyting = r"request if \${url} ~= /^https?:\/\/.*\/yyting\/advertclient\/ClientAdvertList.action/ then reject(404)"
     scoped_yyting = [
-        r"request if ${url} ~= /^https?:\\/\\/118\\.178\\.214\\.118\\/yyting\\/advertclient\\/ClientAdvertList\\.action/ then reject(404)",
-        r"request if ${url} ~= /^https?:\\/\\/dapis\\.mting\\.info\\/yyting\\/advertclient\\/ClientAdvertList\\.action/ then reject(404)",
+        r"request if \${url} ~= /^https?:\/\/118\.178\.214\.118\/yyting\/advertclient\/ClientAdvertList\.action/ then reject(404)",
+        r"request if \${url} ~= /^https?:\/\/dapis\.mting\.info\/yyting\/advertclient\/ClientAdvertList\.action/ then reject(404)",
     ]
+    normalized_broad_yyting = normalize_url_slash_escapes(broad_yyting)
     result_lines = []
     section = ""
     for candidate in result.splitlines():
         if candidate.startswith("[") and candidate.endswith("]"):
             section = candidate[1:-1]
             result_lines.append(candidate)
-        elif section == "Rewrite" and candidate.strip() == broad_yyting:
+        elif (section == "Rewrite"
+              and normalize_url_slash_escapes(candidate) == normalized_broad_yyting):
             result_lines.extend(scoped_yyting)
         else:
             result_lines.append(candidate)
