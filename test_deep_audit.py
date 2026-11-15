@@ -102,8 +102,8 @@ response if ${url} ~= /api.example.com/ then response.json.jq("del(.data.ad)")
         self.assertEqual(classify_rewrite_scope(ipv4_regex), 'domain_scoped_ipv4_pattern')
         self.assertFalse(broad_reasons(ipv4_literal))
         self.assertEqual(classify_rewrite_scope(ipv4_literal), 'domain_scoped')
-        escaped_ipv4_port = r'^https?:\\/\\/103\\.91\\.210\\.141\\:2515\\/xgapp\\.php\\/v2\\/top_notice(?:\\?|$|\\/)'
-        escaped_ipv4_dynamic_port = r'^https?:\\/\\/103\\.91\\.210\\.141\\:\\d+\\/xgapp\\.php\\/v2\\/top_notice'
+        escaped_ipv4_port = r'^https?:\/\/103\.91\.210\.141\:2515\/xgapp\.php\/v2\/top_notice(?:\?|$|\/)'
+        escaped_ipv4_dynamic_port = r'^https?:\/\/103\.91\.210\.141\:\d+\/xgapp\.php\/v2\/top_notice'
         self.assertFalse(broad_reasons(escaped_ipv4_port))
         self.assertEqual(classify_rewrite_scope(escaped_ipv4_port), 'domain_scoped')
         self.assertFalse(broad_reasons(escaped_ipv4_dynamic_port))
