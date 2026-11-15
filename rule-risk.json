@@ -23,7 +23,7 @@
     "low": 0,
     "medium": 0
   },
-  "run_id": "43723663965",
+  "run_id": "43723891988",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -100,21 +100,5 @@
       "snapshots_seen": 1
     }
   },
-  "upstream_revision_changes": [
-    {
-      "current_commit": "513d1e581dc2e98f4a358e010b5543b37e900b47",
-      "previous_commit": "60634c08bd41893a35d6da345ea89a46f5d7d92a",
-      "source": "AlipayAdBlock"
-    },
-    {
-      "current_commit": "513d1e581dc2e98f4a358e010b5543b37e900b47",
-      "previous_commit": "60634c08bd41893a35d6da345ea89a46f5d7d92a",
-      "source": "Amap"
-    },
-    {
-      "current_commit": "513d1e581dc2e98f4a358e010b5543b37e900b47",
-      "previous_commit": "60634c08bd41893a35d6da345ea89a46f5d7d92a",
-      "source": "GuaZiVideoAds"
-    }
-  ]
+  "upstream_revision_changes": []
 }
