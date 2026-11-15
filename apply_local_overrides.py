@@ -225,7 +225,8 @@ def apply(text: str) -> str:
 
         if LEGACY_HELLOBIKE_MARKER in line:
             continue
-        if section == "Rewrite" and any(marker in line for marker in HELLOBIKE_REWRITE_MARKERS):
+        normalized_line = re.sub(r"\\+", "", line)
+        if section == "Rewrite" and any(marker in normalized_line for marker in HELLOBIKE_REWRITE_MARKERS):
             continue
         if section == "Script" and any(marker in line for marker in HELLOBIKE_SCRIPT_MARKERS):
             continue
@@ -255,9 +256,37 @@ def apply(text: str) -> str:
             hosts = [host.strip() for host in value.split(",") if host.strip()]
             if not REQUIRED_BANKCOMM_MITM_HOSTS.issubset(set(hosts)):
                 raise ValueError("required Bankcomm image hosts missing from MITM")
-            hosts = [host for host in hosts if host not in HELLOBIKE_ADDED_MITM_HOSTS]
+            # Defer legacy HelloBike host removal until all surviving Rewrite/Script
+            # references are known. Some hosts are also used by unrelated base rules.
             line = key + "= " + ", ".join(hosts)
         lines.append(line)
+
+    # Preserve a legacy-listed MITM host whenever a non-HelloBike Rewrite or
+    # Script trigger still references it. Normalize regex escaping before lookup.
+    surviving_sections = []
+    active_section = ""
+    for candidate in lines:
+        if candidate.startswith("[") and candidate.endswith("]"):
+            active_section = candidate[1:-1]
+        elif active_section in ("Rewrite", "Script"):
+            surviving_sections.append(candidate)
+    surviving_text = re.sub(r"\\+", "", "\n".join(surviving_sections))
+    active_shared_hosts = {
+        host for host in HELLOBIKE_ADDED_MITM_HOSTS if host in surviving_text
+    }
+    normalized_lines = []
+    active_section = ""
+    for candidate in lines:
+        if candidate.startswith("[") and candidate.endswith("]"):
+            active_section = candidate[1:-1]
+        if active_section == "MITM" and candidate.strip().lower().startswith("hostname") and "=" in candidate:
+            key, value = candidate.split("=", 1)
+            hosts = [host.strip() for host in value.split(",") if host.strip()]
+            hosts = [host for host in hosts
+                     if host not in HELLOBIKE_ADDED_MITM_HOSTS or host in active_shared_hosts]
+            candidate = key + "= " + ", ".join(hosts)
+        normalized_lines.append(candidate)
+    lines = normalized_lines
 
     result_lines, rewrite_lines = [], []
     section = ""
@@ -284,6 +313,23 @@ def apply(text: str) -> str:
         rewrite_lines, _ = remove_shadowed_peopleapp_rules(rewrite_lines)
         rewrite_lines, _ = remove_shadowed_terminal_block_rules(rewrite_lines)
         result_lines.extend(rewrite_lines)
+    result = "\n".join(result_lines)
+    # Scope YYting to the two hosts already covered by neighboring legacy rules.
+    broad_yyting = r"request if ${url} ~= /^https?:\\/\\/.*\\/yyting\\/advertclient\\/ClientAdvertList.action/ then reject(404)"
+    scoped_yyting = [
+        r"request if ${url} ~= /^https?:\\/\\/118\\.178\\.214\\.118\\/yyting\\/advertclient\\/ClientAdvertList\\.action/ then reject(404)",
+        r"request if ${url} ~= /^https?:\\/\\/dapis\\.mting\\.info\\/yyting\\/advertclient\\/ClientAdvertList\\.action/ then reject(404)",
+    ]
+    result_lines = []
+    section = ""
+    for candidate in result.splitlines():
+        if candidate.startswith("[") and candidate.endswith("]"):
+            section = candidate[1:-1]
+            result_lines.append(candidate)
+        elif section == "Rewrite" and candidate.strip() == broad_yyting:
+            result_lines.extend(scoped_yyting)
+        else:
+            result_lines.append(candidate)
     result = "\n".join(result_lines)
     # Keep the unrelated Bankcomm override in [Script], idempotently.
     if RULE not in result:
