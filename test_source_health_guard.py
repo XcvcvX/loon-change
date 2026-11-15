@@ -12,6 +12,7 @@ def sources():
         "aoomee": {"bytes": 1000, "rule_lines": 100, "commit": "d" * 40},
         "zmjde": {"bytes": 1000, "rule_lines": 100, "commit": "e" * 40},
         "GuaZiVideoAds": {"bytes": 1000, "entries": 10},
+        "AlipayAdBlock": {"bytes": 3652, "entries": 30, "upstream_commit": "f" * 40},
     }
 
 
