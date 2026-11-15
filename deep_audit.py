@@ -104,7 +104,7 @@ def has_ipv4_regex_host(authority):
         and re.search(r'2\[0-4\]\\d', normalized)
         and re.search(r'1\\d\{2\}', normalized)
         and re.search(r'\[1-9\]\?\\d', normalized)
-        and authority.count('.') >= 3
+        and authority.count('.') >= 1
     )
 
 
