@@ -181,7 +181,22 @@
     "rewrite": {
       "action_changed": [],
       "added": [],
-      "removed": []
+      "removed": [
+        {
+          "line": "^https?:\\/\\/m\\.lkcoffee\\.com\\/ecapi\\/resource\\/m\\/member\\/exchange\\/page response-body-replace-regex \\{.+\\} {\"status\":\"SUCCESS\"}",
+          "section": "rewrite",
+          "sources": [
+            "base"
+          ]
+        },
+        {
+          "line": "response if ${url} ~= /^https?:\\/\\/m\\.lkcoffee\\.com\\/ecapi\\/resource\\/m\\/member\\/exchange\\/page/ then response.body.replace(/\\{.+\\}/, \"{\"status\":\"SUCCESS\"}\")",
+          "section": "rewrite",
+          "sources": [
+            "block"
+          ]
+        }
+      ]
     },
     "rule": {
       "action_changed": [],
@@ -198,7 +213,7 @@
     "rewrite": {
       "action_changed": 0,
       "added": 0,
-      "removed": 0
+      "removed": 2
     },
     "rule": {
       "action_changed": 0,
@@ -210,7 +225,7 @@
       "added": 0,
       "removed": 0
     },
-    "total_changes": 0
+    "total_changes": 2
   },
   "upstream_revision_changes": []
 }
