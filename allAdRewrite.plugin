@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、RuCu6 MyBlockAds、zirawell AlipayAdBlock、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / RuCu6 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-15 07:46 UTC
+#!merged-at=2026-11-15 08:07 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+RuCu6-MyBlockAds+zirawell-AlipayAdBlock+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -6915,7 +6915,8 @@ http-response ^https?:\/\/m-cloud\.zhihu\.com\/api\/cloud\/config\/all\? script-
 http-response ^https?:\/\/jzts\.cmpassport\.com\/personalized\/getPushContent script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mcloud.js,tag=MCLOUD,requires-body=true
 http-response ^https?:\/\/m\.airchina\.com\.cn\/airchina\/gateway\/v\d(\.\d)*\/api\/services script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/airchina.js,tag=AIRCHINA
 http-request ^https?:\/\/autoload\.bank\.ecitic\.com\/imcslego\/cloud\/\w+\.jpg\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ecitic.js,tag=ECITIC
-http-response ^https?:\/\/(?:midc|mb-mbc)\.cdn-static\.abchina\.com\.cn\/distributecenterimg\/file\/download script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/adImage.js,tag=ABCHINA,requires-body=true
+http-response ^https?:\/\/midc\.cdn-static\.abchina\.com\.cn\/distributecenterimg\/file\/download script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/abc.js,tag=ABCHINA,requires-body=true
+http-response ^https?:\/\/mb-mbc\.cdn-static\.abchina\.com\.cn\/image-server\/getImage script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/abc.js,tag=ABCHINA-2,requires-body=true
 http-request ^https?:\/\/m2\.cmbwinglungbank\.com(:\d+)?\/mgw script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=CMBWL
 http-response ^https?:\/\/app\.zhuanzhuan\.com\/zz\/transfer\/getmyprofilev script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhuanzhuan.js,tag=ZHUANZHUAN,requires-body=true
 http-response ^https?:\/\/zgrb\.epicc\.com\.cn\/G-HAPP\/a\/config\/homeInit script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/picc.js,tag=PICC,requires-body=true

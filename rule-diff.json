@@ -20,7 +20,7 @@
         "Rule": 4,
         "Script": 1
       },
-      "upstream_commit": "e80b39ae0b5b225eeae68f3676aa87c0836641bd",
+      "upstream_commit": "60634c08bd41893a35d6da345ea89a46f5d7d92a",
       "upstream_path": "Modules/Loon/zirawell/Beta/alipayAdBlock.lpx",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
@@ -59,13 +59,13 @@
         "Rule": 4,
         "Script": 13
       },
-      "upstream_commit": "e80b39ae0b5b225eeae68f3676aa87c0836641bd",
+      "upstream_commit": "60634c08bd41893a35d6da345ea89a46f5d7d92a",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
     "GuaZiVideoAds": {
       "bytes": 3448,
       "entries": 6,
-      "upstream_commit": "e80b39ae0b5b225eeae68f3676aa87c0836641bd",
+      "upstream_commit": "60634c08bd41893a35d6da345ea89a46f5d7d92a",
       "upstream_path": "Modules/QuantumultX/ddgksf2013/Official/GuaZiVideoAds.conf",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
@@ -105,7 +105,7 @@
         "Rule": 4,
         "Script": 1
       },
-      "upstream_commit": "f5b55c3f687f07663b28db7c011be9c948c51ca7",
+      "upstream_commit": "e80b39ae0b5b225eeae68f3676aa87c0836641bd",
       "upstream_path": "Modules/Loon/zirawell/Beta/alipayAdBlock.lpx",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
@@ -144,13 +144,13 @@
         "Rule": 4,
         "Script": 13
       },
-      "upstream_commit": "f5b55c3f687f07663b28db7c011be9c948c51ca7",
+      "upstream_commit": "e80b39ae0b5b225eeae68f3676aa87c0836641bd",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
     "GuaZiVideoAds": {
       "bytes": 3448,
       "entries": 6,
-      "upstream_commit": "f5b55c3f687f07663b28db7c011be9c948c51ca7",
+      "upstream_commit": "e80b39ae0b5b225eeae68f3676aa87c0836641bd",
       "upstream_path": "Modules/QuantumultX/ddgksf2013/Official/GuaZiVideoAds.conf",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
@@ -180,380 +180,75 @@
   "sections": {
     "rewrite": {
       "action_changed": [],
-      "added": [
-        {
-          "line": "^https:\\/\\/(?:spclient\\.wg|[\\w-]+-spclient)\\.spotify\\.com(?::443)?\\/(?:ads\\/|ad-logic\\/|[^?#]*\\/ad-on-app-open) reject",
-          "section": "rewrite",
-          "sources": [
-            "Spotify"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/(apissl|az2-api(-js|-idc)?)\\.(gifshow|ksapisrv)\\.com\\/rest\\/system\\/startup\\?/ then response.json.delete(\"reskinConfig\") | response.json.delete(\"sidebarExSquareStyle.moreList\") | response.json.delete(\"sidebarExSquareStyle.topList\") | response.json.jq(`.sidebarExSquareStyle.commonlyUsedList |= map(select(.title == \"设置\" or .title == \"历史记录\" or .title == \"草稿箱\" or .title == \"我的钱包\" or .title == \"小程序\" or .title == \"未成年人模式\" or .title == \"官方客服\" or .title == \"内容偏好\" or .title == \"离线模式\" or .title == \"稍后再看\" or .title == \"举报中心\" or .title == \"挂件\"))`)",
-          "section": "rewrite",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/homepage\\/hub\\?/i then response.json.delete([\"result.dy_module.irregular_banner_dy\", \"result.icon_set\", \"result.search_bar_hot_query\"])",
-          "section": "rewrite",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/api\\.udache\\.com\\/gulfstream\\/porsche\\/v\\d\\/dache_homepage_layout\\?/i then response.json.jq(\".data |= (.instances |= (to_entries | map(select(.key | test(\\\"feed_back_|dache_main_member|order_container_|dache_main_card_\\\"))) | from_entries))\")",
-          "section": "rewrite",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/app-api\\.smzdm\\.com\\/util\\/update$/i then response.json.replace([\"data.silence_local_push\", \"data.baichuan_redirect_switch\"], [0, 0]) | response.json.delete([\"data.silence_local_push_msg\", \"data.video_cache_num_configs\", \"data.haojia_widget\", \"data.widget\", \"data.operation_float\"]) | response.json.jq(\"def r: if type==\\\"object\\\" then if has(\\\"ad_campaign_name\\\") and (.ad_campaign_name|type==\\\"string\\\") and (.ad_campaign_name|test(\\\"\\\\\\\\S\\\")) then empty else . end elif type==\\\"array\\\" then map(r) else . end; .data.operation_float |= map(map(r))\")",
-          "section": "rewrite",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v\\d\\/other\\/fast\\?/i then response.json.delete([\"data.disorder_cards.communicate_card\", \"data.disorder_cards.not_login_bottom_bar\", \"data.disorder_cards.riding_code_card\", \"data.order_cards\", \"data.disorder_cards.car_icon.data.icon_info_new_agreement\", \"data.disorder_cards.guess_card\", \"data.disorder_cards.scene_list_card\"])",
-          "section": "rewrite",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/g-acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlemtopsearch\\.search\\//i then response.json.jq(\".data.resultList |= map(if .data.item.main.exContent.dislikeFeedback.clickParam.args.bizType == \\\"ad\\\" then empty else . end)\") | response.json.delete(\"data.resultPrefixBar\")",
-          "section": "rewrite",
-          "sources": [
-            "local_overrides"
-          ]
-        }
-      ],
-      "removed": [
-        {
-          "line": "^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.idlecommerce\\.splash\\.ads reject-200",
-          "section": "rewrite",
-          "sources": [
-            "thelong"
-          ]
-        },
-        {
-          "line": "^https:\\/\\/api-account\\.soulapp\\.cn\\/teenager\\/config reject-dict",
-          "section": "rewrite",
-          "sources": [
-            "aoomee"
-          ]
-        },
-        {
-          "line": "^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.wireless\\.home\\.splash\\.awesome\\.get reject-200",
-          "section": "rewrite",
-          "sources": [
-            "thelong"
-          ]
-        },
-        {
-          "line": "^https?:\\/\\/(bdsp-x|dsp-x)\\.jd\\.com\\/adx\\/ reject",
-          "section": "rewrite",
-          "sources": [
-            "thelong"
-          ]
-        },
-        {
-          "line": "^https?:\\/\\/cdn1\\.mbs\\.boc\\.cn\\/ubas-mgateway-static\\/images\\/theme\\/ reject-dict",
-          "section": "rewrite",
-          "sources": [
-            "aoomee"
-          ]
-        },
-        {
-          "line": "^https?:\\/\\/mbs\\.boc\\.cn\\/ubas-mgateway-static\\/images\\/theme\\/ reject-dict",
-          "section": "rewrite",
-          "sources": [
-            "aoomee"
-          ]
-        },
-        {
-          "line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.idle\\.home\\.welcome/i then reject(404)",
-          "section": "rewrite",
-          "sources": [
-            "zmjgen"
-          ]
-        },
-        {
-          "line": "request if ${url} ~= /^https?:\\/\\/182\\.92\\.244\\.70\\/d\\/json/ then reject_dict(200)",
-          "section": "rewrite",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "request if ${url} ~= /^https?:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.alimama\\.etao\\.config\\.query\\/.+?etao_advertise/ then reject_dict(200)",
-          "section": "rewrite",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "request if ${url} ~= /^https?:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.etao\\.noah\\.query\\/.+tao_splash/ then reject_dict(200)",
-          "section": "rewrite",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "request if ${url} ~= /^https?:\\/\\/adstatic\\.peopleapp\\.com\\/upload\\/AppLoad\\/.*\\.(jpg|png)/ then reject(200)",
-          "section": "rewrite",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "request if ${url} ~= /^https?:\\/\\/adx-cn\\.anythinktech\\.com\\/bid/ then reject(200)",
-          "section": "rewrite",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "request if ${url} ~= /^https?:\\/\\/api\\.douban\\.com\\/v\\d\\/app_ads\\// then reject_dict(200)",
-          "section": "rewrite",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "request if ${url} ~= /^https?:\\/\\/api\\.jr\\.mi\\.com\\/jr\\/api\\/playScreen/ then reject(200)",
-          "section": "rewrite",
-          "sources": [
-            "block",
-            "zmjgen"
-          ]
-        },
-        {
-          "line": "request if ${url} ~= /^https?:\\/\\/go\\.babytree\\.com\\/go_tool\\/api\\/feeding_record\\/get_home_banner_info/ then reject_dict(200)",
-          "section": "rewrite",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "request if ${url} ~= /^https?:\\/\\/mi\\.gdt\\.qq\\.com\\/gdt_mview\\.fcg/ then reject(404)",
-          "section": "rewrite",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "request if ${url} ~= /^https?:\\/\\/mi\\.gdt\\.qq\\.com\\/gdt_mview\\.fcg\\?posid=/ then reject_dict(200)",
-          "section": "rewrite",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "request if ${url} ~= /^https?:\\/\\/mime\\.baidu\\.com\\/v5\\/start_screen_ads\\/list/ then reject_dict(200)",
-          "section": "rewrite",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "request if ${url} ~= /^https?:\\/\\/p\\.kuaidi100\\.com\\/advertisement\\// then reject_dict(200)",
-          "section": "rewrite",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/(apissl|az2-api(-js|-idc)?)\\.(gifshow|ksapisrv)\\.com\\/rest\\/system\\/startup\\?/ then response.json.delete(\"reskinConfig\") | response.json.delete(\"sidebarExSquareStyle.moreList\") | response.json.delete(\"sidebarExSquareStyle.topList\")",
-          "section": "rewrite",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/(apissl|az2-api(-js|-idc)?)\\.(gifshow|ksapisrv)\\.com\\/rest\\/system\\/startup\\?/ then response.json.jq(`.sidebarExSquareStyle.commonlyUsedList |= map(select(.title == \"设置\" or .title == \"历史记录\" or .title == \"草稿箱\" or .title == \"我的钱包\" or .title == \"小程序\" or .title == \"未成年人模式\" or .title == \"官方客服\" or .title == \"内容偏好\" or .title == \"离线模式\" or .title == \"稍后再看\" or .title == \"举报中心\" or .title == \"挂件\"))`)",
-          "section": "rewrite",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/homepage\\/hub\\?/i then response.json.delete([\"result.dy_module.irregular_banner_dy\", \"result.icon_set\", \"result.search_bar_hot_query\", \"result.dy_module.irregular_banner_dy\"])",
-          "section": "rewrite",
-          "sources": [
-            "zmjapp"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/api\\.udache\\.com\\/gulfstream\\/porsche\\/v\\d\\/dache_homepage_layout\\?/i then response.json.jq(\".data |= (.instances |= (to_entries | map(select(.key | test(\\\"feed_back_|dache_main_member|order_container_|dache_main_core_icon|dache_main_card_\\\"))) | from_entries))\")",
-          "section": "rewrite",
-          "sources": [
-            "zmjapp"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/app-api\\.smzdm\\.com\\/util\\/update$/i then response.json.delete([\"data.silence_local_push_msg\", \"data.video_cache_num_configs\", \"data.haojia_widget\", \"data.widget\", \"data.operation_float\"])",
-          "section": "rewrite",
-          "sources": [
-            "zmjapp"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/app-api\\.smzdm\\.com\\/util\\/update$/i then response.json.jq(\"def r: if type==\\\"object\\\" then if has(\\\"ad_campaign_name\\\") and (.ad_campaign_name|type==\\\"string\\\") and (.ad_campaign_name|test(\\\"\\\\\\\\S\\\")) then empty else . end elif type==\\\"array\\\" then map(r) else . end; .data.operation_float |= map(map(r))\")",
-          "section": "rewrite",
-          "sources": [
-            "zmjapp"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/app-api\\.smzdm\\.com\\/util\\/update$/i then response.json.replace([\"data.silence_local_push\", \"data.baichuan_redirect_switch\"], [0, 0])",
-          "section": "rewrite",
-          "sources": [
-            "zmjapp"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v\\d\\/other\\/fast\\?/i then response.json.delete([\"data.disorder_cards.communicate_card\", \"data.disorder_cards.not_login_bottom_bar\", \"data.disorder_cards.riding_code_card\", \"data.order_cards\", \"data.disorder_cards.car_icon.data.icon_info_new_agreement\"])",
-          "section": "rewrite",
-          "sources": [
-            "zmjapp"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v\\d\\/other\\/fast\\?/i then response.json.delete([\"data.disorder_cards.guess_card\", \"data.disorder_cards.scene_list_card\"])",
-          "section": "rewrite",
-          "sources": [
-            "zmjapp"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/g-acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlemtopsearch\\.search\\//i then response.json.delete(\"data.resultPrefixBar\")",
-          "section": "rewrite",
-          "sources": [
-            "zmjapp"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/g-acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlemtopsearch\\.search\\//i then response.json.jq(\".data.resultList |= map(if .data.item.main.exContent.dislikeFeedback.clickParam.args.bizType == \\\"ad\\\" then empty else . end)\")",
-          "section": "rewrite",
-          "sources": [
-            "zmjapp"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https?:\\/\\/adservice\\.sigmob\\.cn\\/extconfig/ then response.body.replace(/false/, \"true\")",
-          "section": "rewrite",
-          "sources": [
-            "block"
-          ]
-        }
-      ]
+      "added": [],
+      "removed": []
     },
     "rule": {
       "action_changed": [],
-      "added": [
-        {
-          "line": "AND, ((URL-REGEX, \"^http:\\/\\/((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\/d(\\d)?(?:\\?|$)\"), (USER-AGENT, \"*com.xunmeng.pinduoduo*\")), REJECT",
-          "section": "rule",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "DOMAIN,aet.spotify.com,REJECT",
-          "section": "rule",
-          "sources": [
-            "Spotify"
-          ]
-        }
-      ],
-      "removed": [
-        {
-          "line": "AND, ((URL-REGEX, \"^http:\\/\\/((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\/d(\\d)?\"), (USER-AGENT, \"*com.xunmeng.pinduoduo*\")), REJECT",
-          "section": "rule",
-          "sources": [
-            "zmjapp"
-          ]
-        }
-      ]
+      "added": [],
+      "removed": []
     },
     "script": {
       "action_changed": [],
       "added": [
         {
-          "line": "http-request ^https:\\/\\/(.*-spclient\\.spotify\\.com(:443)?|spclient\\.wg\\.spotify\\.com)\\/gabo-receiver-service script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/spotify/spot-gabo.js, timeout=10, tag=Spotify gabo",
+          "line": "http-response ^https?:\\/\\/mb-mbc\\.cdn-static\\.abchina\\.com\\.cn\\/image-server\\/getImage script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/abc.js,tag=ABCHINA-2,requires-body=true",
           "section": "script",
           "sources": [
-            "Spotify"
+            "base"
           ]
         },
         {
-          "line": "http-response ^https:\\/\\/(spclient\\.wg\\.spotify\\.com|.*-spclient\\.spotify\\.com(:443)?)\\/browsita\\/v.\\/browse script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/spotify/spot-NoSearchAd.js, requires-body=true, binary-body-mode=true, timeout=10, tag=Spotify search ads",
+          "line": "http-response ^https?:\\/\\/midc\\.cdn-static\\.abchina\\.com\\.cn\\/distributecenterimg\\/file\\/download script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/abc.js,tag=ABCHINA,requires-body=true",
           "section": "script",
           "sources": [
-            "Spotify"
-          ]
-        },
-        {
-          "line": "http-response ^https:\\/\\/(spclient\\.wg\\.spotify\\.com|.*-spclient\\.spotify\\.com(:443)?)\\/casita\\/v.\\/home\\/ script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/spotify/spot-NoHomeAd.js, requires-body=true, binary-body-mode=true, timeout=10, tag=Spotify home ads",
-          "section": "script",
-          "sources": [
-            "Spotify"
-          ]
-        },
-        {
-          "line": "http-response ^https:\\/\\/(spclient\\.wg\\.spotify\\.com|.*-spclient\\.spotify\\.com(:443)?)\\/scrollsita\\/v.\\/scroll\\/spotify script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/spotify/spot-NoScrollAd.js, requires-body=true, binary-body-mode=true, timeout=10, tag=Spotify scroll ads",
-          "section": "script",
-          "sources": [
-            "Spotify"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https?:\\/\\/creditcard\\.bankcomm\\.(?:cn|com)\\/tofimg\\/bucket-pj-btss-tfcn-dmz\\/OSS-F\\/.+/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/maidanba.js\") with tag=\"买单吧开屏广告\", requires_body=true, binary_body_mode=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
+            "base"
           ]
         }
       ],
-      "removed": []
+      "removed": [
+        {
+          "line": "http-response ^https?:\\/\\/(?:midc|mb-mbc)\\.cdn-static\\.abchina\\.com\\.cn\\/distributecenterimg\\/file\\/download script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/adImage.js,tag=ABCHINA,requires-body=true",
+          "section": "script",
+          "sources": [
+            "base"
+          ]
+        }
+      ]
     }
   },
   "summary": {
     "rewrite": {
       "action_changed": 0,
-      "added": 7,
-      "removed": 31
+      "added": 0,
+      "removed": 0
     },
     "rule": {
+      "action_changed": 0,
+      "added": 0,
+      "removed": 0
+    },
+    "script": {
       "action_changed": 0,
       "added": 2,
       "removed": 1
     },
-    "script": {
-      "action_changed": 0,
-      "added": 5,
-      "removed": 0
-    },
-    "total_changes": 46
+    "total_changes": 3
   },
   "upstream_revision_changes": [
     {
-      "current_commit": "e80b39ae0b5b225eeae68f3676aa87c0836641bd",
-      "previous_commit": "f5b55c3f687f07663b28db7c011be9c948c51ca7",
+      "current_commit": "60634c08bd41893a35d6da345ea89a46f5d7d92a",
+      "previous_commit": "e80b39ae0b5b225eeae68f3676aa87c0836641bd",
       "source": "AlipayAdBlock"
     },
     {
-      "current_commit": "e80b39ae0b5b225eeae68f3676aa87c0836641bd",
-      "previous_commit": "f5b55c3f687f07663b28db7c011be9c948c51ca7",
+      "current_commit": "60634c08bd41893a35d6da345ea89a46f5d7d92a",
+      "previous_commit": "e80b39ae0b5b225eeae68f3676aa87c0836641bd",
       "source": "Amap"
     },
     {
-      "current_commit": "e80b39ae0b5b225eeae68f3676aa87c0836641bd",
-      "previous_commit": "f5b55c3f687f07663b28db7c011be9c948c51ca7",
+      "current_commit": "60634c08bd41893a35d6da345ea89a46f5d7d92a",
+      "previous_commit": "e80b39ae0b5b225eeae68f3676aa87c0836641bd",
       "source": "GuaZiVideoAds"
     }
   ]
