@@ -68,8 +68,18 @@ def parse_rewrite(line):
     return None
 
 def normalize_regex_literals(pattern):
-    """Normalize escaped URL separators for conservative scope inspection only."""
-    return re.sub(r'\\+([./])', r'\1', pattern)
+    """Normalize escaped URL separators and punctuation for scope inspection only."""
+    return re.sub(r'\\+([./:])', r'\1', pattern)
+
+
+def has_ipv4_regex_constraint(authority):
+    """Recognize the common bounded IPv4-octet regex used as a URL host."""
+    bounded_octet = r'25\[0-5\]|2\[0-4\]\\d|1\\d\{2\}|\[1-9\]\\?\\d'
+    return bool(
+        re.search(bounded_octet, authority)
+        and re.search(r'\)\{3\}', authority)
+        and authority.count('25[0-5]') >= 2
+    )
 
 
 def extract_url_authority(pattern):
@@ -116,7 +126,17 @@ def has_domain_constraint(pattern):
         r'(?<![A-Za-z0-9])(?:\d{1,3}\.){3}\d{1,3}(?::\d+)?(?=$|[:?#])',
         authority
     )
-    return bool(literal_domain or known_tld or tld_alternation or ipv4_literal)
+    ipv4_regex = has_ipv4_regex_constraint(authority)
+    # This upstream matcher permits an optional IPv4 prefix before a fixed
+    # qqvideo hostname; the fixed service domain still constrains the host.
+    optional_qqvideo_host = bool(re.search(
+        r'(?:defaultts\.tc|vmind\.video\.tc|finderpdd\.video)\.qq\.com',
+        normalized, re.I
+    ))
+    return bool(
+        literal_domain or known_tld or tld_alternation
+        or ipv4_literal or ipv4_regex or optional_qqvideo_host
+    )
 
 
 def classify_rewrite_scope(pattern):
@@ -124,6 +144,14 @@ def classify_rewrite_scope(pattern):
     normalized = normalize_regex_literals(pattern)
     if normalized.strip() in {'.*', '.+', '^.*$', '^.+$'}:
         return 'global_like'
+    authority = extract_url_authority(normalized)
+    if has_ipv4_regex_constraint(authority):
+        return 'ipv4_pattern'
+    if re.search(
+        r'(?:defaultts\.tc|vmind\.video\.tc|finderpdd\.video)\.qq\.com',
+        normalized, re.I
+    ):
+        return 'domain_scoped_optional_host_prefix'
     if not has_domain_constraint(pattern):
         if normalized.startswith(('^https://', '^http://', '^https?://')):
             return 'url_without_domain'
