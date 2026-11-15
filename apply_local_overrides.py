@@ -124,6 +124,29 @@ def remove_shadowed_terminal_block_rules(lines):
         output.append(line)
     return output, removed
 
+LKCOFFEE_MEMBER_EXCHANGE_MARKER = "m.lkcoffee.com/ecapi/resource/m/member/exchange/page"
+
+def remove_lkcoffee_member_exchange_success_overrides(lines):
+    """Drop only the known whole-response SUCCESS rewrites on the member exchange endpoint."""
+    output, removed = [], 0
+    for line in lines:
+        normalized = re.sub(r"\\+", "", line).lower()
+        if LKCOFFEE_MEMBER_EXCHANGE_MARKER not in normalized:
+            output.append(line)
+            continue
+        expected_operation = (
+            "response-body-replace-regex" in normalized
+            or "response.body.replace" in normalized
+        )
+        forced_success = '"status":"success"' in normalized
+        if expected_operation and forced_success:
+            removed += 1
+            continue
+        raise ValueError(
+            "Luckin member-exchange response rule changed; refusing an unreviewed override"
+        )
+    return output, removed
+
 def split_response_json_rewrite(line: str):
     match = re.match(r'^(response if .+?) then (.+)', line)
     if not match: return None
@@ -323,6 +346,7 @@ def apply(text: str) -> str:
                 rewrite_lines, _ = remove_subsumed_soul_teenager_rule(rewrite_lines)
                 rewrite_lines, _ = remove_shadowed_peopleapp_rules(rewrite_lines)
                 rewrite_lines, _ = remove_shadowed_terminal_block_rules(rewrite_lines)
+                rewrite_lines, _ = remove_lkcoffee_member_exchange_success_overrides(rewrite_lines)
                 result_lines.extend(rewrite_lines); rewrite_lines = []
             section = line[1:-1]; result_lines.append(line)
         elif section == "Rewrite": rewrite_lines.append(line)
@@ -335,6 +359,7 @@ def apply(text: str) -> str:
         rewrite_lines, _ = remove_subsumed_soul_teenager_rule(rewrite_lines)
         rewrite_lines, _ = remove_shadowed_peopleapp_rules(rewrite_lines)
         rewrite_lines, _ = remove_shadowed_terminal_block_rules(rewrite_lines)
+        rewrite_lines, _ = remove_lkcoffee_member_exchange_success_overrides(rewrite_lines)
         result_lines.extend(rewrite_lines)
     result = "\n".join(result_lines)
     # Scope YYting to the two confirmed hosts. Upstream and generated plugin
