@@ -964,6 +964,7 @@ def audit_deep(path):
 
     url_counts, trigger_types = Counter(), Counter()
     no_url, generic, conditional = [], [], []
+    manual_generic, scheduled = [], []
     for n, line in script:
         m = re.search(r'script-path\s*=\s*(https?://[^,\s]+)', line, re.I)
         if not m:
@@ -979,6 +980,10 @@ def audit_deep(path):
         candidate = {'line': n, 'type': kind, 'entry': line[:200]}
         if kind in {'generic', 'cron'}:
             generic.append(candidate)
+            if kind == 'generic':
+                manual_generic.append(candidate)
+            else:
+                scheduled.append(candidate)
         elif kind in {'request if', 'response if'}:
             conditional.append(candidate)
     repeated = [{'url': u, 'count': c} for u, c in sorted(url_counts.items()) if c > 1]
@@ -1020,6 +1025,8 @@ def audit_deep(path):
             'script_urls_reused': len(repeated),
             'script_entries_without_detected_url': len(no_url),
             'script_generic_trigger_candidates': len(generic),
+            'script_manual_generic_triggers': len(manual_generic),
+            'script_scheduled_triggers': len(scheduled),
             'script_conditional_trigger_candidates': len(conditional),
             **coverage_report['mitm_script_coverage_summary'],
             **necessity_report['mitm_necessity_summary']
@@ -1052,6 +1059,8 @@ def audit_deep(path):
         'script_repeated_remote_urls': repeated,
         'script_entries_without_detected_url': no_url,
         'script_generic_trigger_candidates': generic,
+        'script_manual_generic_triggers': manual_generic,
+        'script_scheduled_triggers': scheduled,
         'script_conditional_trigger_candidates': conditional,
         'mitm_missing_rewrite_script_coverage': coverage_report['mitm_missing_rewrite_script_coverage'],
         'mitm_intentionally_skipped_references': coverage_report['mitm_intentionally_skipped_references'],
@@ -1188,7 +1197,9 @@ def render_markdown(report):
         'script_entries':'Script 条目','script_unique_remote_urls':'唯一远程脚本 URL',
         'script_urls_reused':'被多个触发器复用的脚本 URL',
         'script_entries_without_detected_url':'未识别远程 URL 的 Script 条目',
-        'script_generic_trigger_candidates':'通用/条件触发器候选',
+        'script_generic_trigger_candidates':'通用/定时触发器候选（兼容汇总）',
+        'script_manual_generic_triggers':'手动 Generic 触发器',
+        'script_scheduled_triggers':'Cron 定时触发器',
         'literal_references':'MITM 关联字面主机引用',
         'covered_references':'MITM 已覆盖引用',
         'http_only_references':'纯 HTTP 无需 MITM 的引用',

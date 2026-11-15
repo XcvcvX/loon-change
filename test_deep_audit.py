@@ -215,6 +215,21 @@ http-request ^https:\/\/api\.example\.com script-path=https://cdn.example/http.j
         self.assertEqual(len(report['script_conditional_trigger_candidates']), 2)
         self.assertEqual(report['summary']['generic_script_triggers'], 2)
 
+    def test_generic_and_cron_script_triggers_are_separated(self):
+        fixture = '''[Script]
+generic script-path=https://cdn.example/manual.js,tag=Manual
+cron "0 * * * *" script-path=https://cdn.example/hourly.js,tag=Hourly
+'''
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'trigger-types.plugin'
+            path.write_text(fixture, encoding='utf-8')
+            report = audit_deep(path)
+        self.assertEqual(report['summary']['script_generic_trigger_candidates'], 2)
+        self.assertEqual(report['summary']['script_manual_generic_triggers'], 1)
+        self.assertEqual(report['summary']['script_scheduled_triggers'], 1)
+        self.assertEqual(report['script_manual_generic_triggers'][0]['type'], 'generic')
+        self.assertEqual(report['script_scheduled_triggers'][0]['type'], 'cron')
+
     def test_mitm_and_script_candidates(self):
         fixture = '''[Rewrite]
 ^https://api.example.com/ad reject
