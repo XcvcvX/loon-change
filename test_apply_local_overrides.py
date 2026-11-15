@@ -348,6 +348,22 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         with self.assertRaisesRegex(ValueError, "member-exchange response rule changed"):
             apply(base)
 
+    def test_converts_only_guiderank_special_sale_random_body_to_json_delete(self):
+        target = r'^https?:\\/\\/zone\\.guiderank-app\\.com\\/guiderank-web\\/app\\/common\\/getInitData response-body-replace-regex SpecialSalePageMidTabConfig random_body'
+        keep = r'^https?:\\/\\/zone\\.guiderank-app\\.com\\/guiderank-web\\/app\\/specialSale\\/pageRecommendedItems reject-dict'
+        result = apply(BASE.replace("[Rewrite]", "[Rewrite]\n" + target + "\n" + keep))
+        rewrite = result.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
+        expected = target.replace("response-body-replace-regex SpecialSalePageMidTabConfig random_body", "response-body-json-del data.SpecialSalePageMidTabConfig")
+        self.assertIn(expected, rewrite)
+        self.assertIn(keep, rewrite)
+        self.assertNotIn("random_body", rewrite)
+        self.assertEqual(apply(result), result)
+
+    def test_fails_closed_when_guiderank_special_sale_rule_changes(self):
+        changed = r'^https?:\\/\\/zone\\.guiderank-app\\.com\\/guiderank-web\\/app\\/common\\/getInitData response-body-replace-regex data random_body'
+        with self.assertRaisesRegex(ValueError, "Guiderank SpecialSalePageMidTabConfig rule changed"):
+            apply(BASE.replace("[Rewrite]", "[Rewrite]\n" + changed))
+
     def test_requires_bankcomm_mitm_hosts(self):
         with self.assertRaises(ValueError):
             apply(BASE.replace("creditcard.bankcomm.com, ", ""))
