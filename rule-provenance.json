@@ -15497,38 +15497,15 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://starplucker\\\\.cyapi\\\\.cn/v\\\\d/config', ('response.json.jq', 'response.json.jq(`del(.search_suggestions)?`)'))",
-      "output_entry_index": 788,
-      "output_line": "response if ${url} ~= /^https?:\\/\\/starplucker\\.cyapi\\.cn\\/v\\d\\/config/ then response.json.jq(`del(.search_suggestions)?`)",
-      "section": "Rewrite",
+      "output_line": "response if ${url} ~= /^https?:\\/\\/starplucker\\.cyapi\\.cn\\/v\\d\\/config/ then response.json.jq(`del(.search_suggestions)?`) | response.json.jq(`(.pic_page_card_orders[]?, .map_page_card_orders[]?) |= select(.name | test(\"^(A|C01)\") | not)`)",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https?:\\/\\/starplucker\\.cyapi\\.cn\\/v\\d\\/config/ then response.json.jq(`del(.search_suggestions)?`)",
-          "input_section": "Rewrite",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 788
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://starplucker\\\\.cyapi\\\\.cn/v\\\\d/config', ('response.json.jq', 'response.json.jq(`(.pic_page_card_orders[]?, .map_page_card_orders[]?) |= select(.name | test(\"^(A|C01)\") | not)`)'))",
-      "output_entry_index": 789,
-      "output_line": "response if ${url} ~= /^https?:\\/\\/starplucker\\.cyapi\\.cn\\/v\\d\\/config/ then response.json.jq(`(.pic_page_card_orders[]?, .map_page_card_orders[]?) |= select(.name | test(\"^(A|C01)\") | not)`)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https?:\\/\\/starplucker\\.cyapi\\.cn\\/v\\d\\/config/ then response.json.jq(`(.pic_page_card_orders[]?, .map_page_card_orders[]?) |= select(.name | test(\"^(A|C01)\") | not)`)",
-          "input_section": "Rewrite",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 789
-        }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
       "canonical_key": "('guarded', '^https?://webcdn\\\\.m\\\\.qq\\\\.com/qiantu/upload/202[0-9]{5}/.*.(?:jpg|png)', ('REJECT', 'reject', 'reject(200)'))",
@@ -60182,28 +60159,7 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://api\\\\.udache\\\\.com/gulfstream/porsche/v\\\\d/dache_homepage_layout\\\\?', ('response.json.delete', 'response.json.delete(\"data.instances.dache_main_core_icon\")'))",
-      "output_entry_index": 3178,
-      "output_line": "response if ${url} ~= /^https:\\/\\/api\\.udache\\.com\\/gulfstream\\/porsche\\/v\\d\\/dache_homepage_layout\\?/i then response.json.delete(\"data.instances.dache_main_core_icon\")",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/api\\.udache\\.com\\/gulfstream\\/porsche\\/v\\d\\/dache_homepage_layout\\?/i then response.json.delete(\"data.instances.dache_main_core_icon\")",
-          "input_section": "Rewrite",
-          "priority": 0,
-          "source": "zmjapp",
-          "source_entry_index": 8,
-          "source_file": "Plugin/DiDi_remove_ads.lpx",
-          "source_line_number": 35,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "response if ${url} ~= /^https:\\/\\/api\\.udache\\.com\\/gulfstream\\/porsche\\/v\\d\\/dache_homepage_layout\\?/i then response.json.delete(\"data.instances.dache_main_core_icon\")"
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "output_line": "response if ${url} ~= /^https:\\/\\/api\\.udache\\.com\\/gulfstream\\/porsche\\/v\\d\\/dache_homepage_layout\\?/i then response.json.jq(\".data |= (.instances |= (to_entries | map(select(.key | test(\\\"feed_back_|dache_main_member|order_container_|dache_main_card_\\\"))) | from_entries))\")",
+      "output_line": "response if ${url} ~= /^https:\\/\\/api\\.udache\\.com\\/gulfstream\\/porsche\\/v\\d\\/dache_homepage_layout\\?/i then response.json.delete(\"data.instances.dache_main_core_icon\") | response.json.jq(\".data |= (.instances |= (to_entries | map(select(.key | test(\\\"feed_back_|dache_main_member|order_container_|dache_main_card_\\\"))) | from_entries))\")",
       "provenance_kind": "post_merge_transform",
       "sources": [
         {
@@ -60970,7 +60926,7 @@
       "trace_status": "mapped"
     },
     {
-      "output_line": "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/homepage\\/hub\\?/i then response.json.delete([\"result.dy_module.irregular_banner_dy\", \"result.icon_set\", \"result.search_bar_hot_query\"])",
+      "output_line": "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/homepage\\/hub\\?/i then response.json.delete([\"result.dy_module.irregular_banner_dy\", \"result.icon_set\", \"result.search_bar_hot_query\"]) | response.json.jq(\".result.bottom_tabs? |= map(select(.link | IN(\\\"index.html\\\", \\\"chat_list.html\\\", \\\"personal.html\\\"))) | .result.buffer_bottom_tabs? |= map(select(.link | IN(\\\"index.html\\\", \\\"chat_list.html\\\", \\\"personal.html\\\"))) | .result.all_top_opts |= map(del(.selected_image, .image, .height, .width))\")",
       "provenance_kind": "post_merge_transform",
       "sources": [
         {
@@ -60979,27 +60935,6 @@
           "transform_stage": "local_overrides"
         }
       ]
-    },
-    {
-      "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/alexa/homepage/hub\\\\?', ('response.json.jq', 'response.json.jq(\".result.bottom_tabs? |= map(select(.link | IN(\\\\\"index.html\\\\\", \\\\\"chat_list.html\\\\\", \\\\\"personal.html\\\\\"))) | .result.buffer_bottom_tabs? |= map(select(.link | IN(\\\\\"index.html\\\\\", \\\\\"chat_list.html\\\\\", \\\\\"personal.html\\\\\"))) | .result.all_top_opts |= map(del(.selected_image, .image, .height, .width))\")'))",
-      "output_entry_index": 3217,
-      "output_line": "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/homepage\\/hub\\?/i then response.json.jq(\".result.bottom_tabs? |= map(select(.link | IN(\\\"index.html\\\", \\\"chat_list.html\\\", \\\"personal.html\\\"))) | .result.buffer_bottom_tabs? |= map(select(.link | IN(\\\"index.html\\\", \\\"chat_list.html\\\", \\\"personal.html\\\"))) | .result.all_top_opts |= map(del(.selected_image, .image, .height, .width))\")",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/homepage\\/hub\\?/i then response.json.jq(\".result.bottom_tabs? |= map(select(.link | IN(\\\"index.html\\\", \\\"chat_list.html\\\", \\\"personal.html\\\"))) | .result.buffer_bottom_tabs? |= map(select(.link | IN(\\\"index.html\\\", \\\"chat_list.html\\\", \\\"personal.html\\\"))) | .result.all_top_opts |= map(del(.selected_image, .image, .height, .width))\")",
-          "input_section": "Rewrite",
-          "priority": 0,
-          "source": "zmjapp",
-          "source_entry_index": 48,
-          "source_file": "Plugin/PinDuoDuo_remove_ads.lpx",
-          "source_line_number": 57,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/homepage\\/hub\\?/i then response.json.jq(\".result.bottom_tabs? |= map(select(.link | IN(\\\"index.html\\\", \\\"chat_list.html\\\", \\\"personal.html\\\"))) | .result.buffer_bottom_tabs? |= map(select(.link | IN(\\\"index.html\\\", \\\"chat_list.html\\\", \\\"personal.html\\\"))) | .result.all_top_opts |= map(del(.selected_image, .image, .height, .width))\")"
-        }
-      ],
-      "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/search\\\\?', ('response.json.delete', 'response.json.delete(\"expansion\")'))",
@@ -61725,46 +61660,15 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://haojia-api\\\\.smzdm\\\\.com/home/list\\\\?', ('response.json.delete', 'response.json.delete(\"data.header_operation.theme\")'))",
-      "output_entry_index": 3256,
-      "output_line": "response if ${url} ~= /^https:\\/\\/haojia-api\\.smzdm\\.com\\/home\\/list\\?/i then response.json.delete(\"data.header_operation.theme\")",
-      "section": "Rewrite",
+      "output_line": "response if ${url} ~= /^https:\\/\\/haojia-api\\.smzdm\\.com\\/home\\/list\\?/i then response.json.delete(\"data.header_operation.theme\") | response.json.jq(\".data.rows |= map(select(.cell_type == \\\"39001\\\")) | .data.banner_v2 |= map(select(.cell_type == \\\"21028\\\"))\")",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/haojia-api\\.smzdm\\.com\\/home\\/list\\?/i then response.json.delete(\"data.header_operation.theme\")",
-          "input_section": "Rewrite",
-          "priority": 0,
-          "source": "zmjapp",
-          "source_entry_index": 97,
-          "source_file": "Plugin/smzdm_remove_ads.lpx",
-          "source_line_number": 31,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "response if ${url} ~= /^https:\\/\\/haojia-api\\.smzdm\\.com\\/home\\/list\\?/i then response.json.delete(\"data.header_operation.theme\")"
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://haojia-api\\\\.smzdm\\\\.com/home/list\\\\?', ('response.json.jq', 'response.json.jq(\".data.rows |= map(select(.cell_type == \\\\\"39001\\\\\")) | .data.banner_v2 |= map(select(.cell_type == \\\\\"21028\\\\\"))\")'))",
-      "output_entry_index": 3257,
-      "output_line": "response if ${url} ~= /^https:\\/\\/haojia-api\\.smzdm\\.com\\/home\\/list\\?/i then response.json.jq(\".data.rows |= map(select(.cell_type == \\\"39001\\\")) | .data.banner_v2 |= map(select(.cell_type == \\\"21028\\\"))\")",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/haojia-api\\.smzdm\\.com\\/home\\/list\\?/i then response.json.jq(\".data.rows |= map(select(.cell_type == \\\"39001\\\")) | .data.banner_v2 |= map(select(.cell_type == \\\"21028\\\"))\")",
-          "input_section": "Rewrite",
-          "priority": 0,
-          "source": "zmjapp",
-          "source_entry_index": 98,
-          "source_file": "Plugin/smzdm_remove_ads.lpx",
-          "source_line_number": 33,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "response if ${url} ~= /^https:\\/\\/haojia-api\\.smzdm\\.com\\/home\\/list\\?/i then response.json.jq(\".data.rows |= map(select(.cell_type == \\\"39001\\\")) | .data.banner_v2 |= map(select(.cell_type == \\\"21028\\\"))\")"
-        }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
       "canonical_key": "('guarded', '^https://haojia\\\\.m\\\\.smzdm\\\\.com/detail_modul/user_related_modul\\\\?', ('response.json.delete', 'response.json.delete(\"data.super_coupon\")'))",
@@ -61914,46 +61818,15 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://s-api\\\\.smzdm\\\\.com/sou/filter/tags/hot_tags\\\\?', ('response.json.delete', 'response.json.delete([\"data.search_faxian\", \"data.tonglan\", \"data.hongbao\"])'))",
-      "output_entry_index": 3265,
-      "output_line": "response if ${url} ~= /^https:\\/\\/s-api\\.smzdm\\.com\\/sou\\/filter\\/tags\\/hot_tags\\?/i then response.json.delete([\"data.search_faxian\", \"data.tonglan\", \"data.hongbao\"])",
-      "section": "Rewrite",
+      "output_line": "response if ${url} ~= /^https:\\/\\/s-api\\.smzdm\\.com\\/sou\\/filter\\/tags\\/hot_tags\\?/i then response.json.delete([\"data.search_faxian\", \"data.tonglan\", \"data.hongbao\"]) | response.json.jq(\".data.hot_tab |= (if type == \\\"array\\\" then map(select(.search_method != \\\"热点主题榜\\\")) else . end) | if .data.hot_tab then .data.hot_tab |= map(if .search_method == \\\"热搜榜搜索热榜\\\" and .rows then .rows |= map(select(.pos != null and ((.pos | tonumber) != null))) else . end) else . end\")",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/s-api\\.smzdm\\.com\\/sou\\/filter\\/tags\\/hot_tags\\?/i then response.json.delete([\"data.search_faxian\", \"data.tonglan\", \"data.hongbao\"])",
-          "input_section": "Rewrite",
-          "priority": 0,
-          "source": "zmjapp",
-          "source_entry_index": 106,
-          "source_file": "Plugin/smzdm_remove_ads.lpx",
-          "source_line_number": 49,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "response if ${url} ~= /^https:\\/\\/s-api\\.smzdm\\.com\\/sou\\/filter\\/tags\\/hot_tags\\?/i then response.json.delete([\"data.search_faxian\", \"data.tonglan\", \"data.hongbao\"])"
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://s-api\\\\.smzdm\\\\.com/sou/filter/tags/hot_tags\\\\?', ('response.json.jq', 'response.json.jq(\".data.hot_tab |= (if type == \\\\\"array\\\\\" then map(select(.search_method != \\\\\"热点主题榜\\\\\")) else . end) | if .data.hot_tab then .data.hot_tab |= map(if .search_method == \\\\\"热搜榜搜索热榜\\\\\" and .rows then .rows |= map(select(.pos != null and ((.pos | tonumber) != null))) else . end) else . end\")'))",
-      "output_entry_index": 3266,
-      "output_line": "response if ${url} ~= /^https:\\/\\/s-api\\.smzdm\\.com\\/sou\\/filter\\/tags\\/hot_tags\\?/i then response.json.jq(\".data.hot_tab |= (if type == \\\"array\\\" then map(select(.search_method != \\\"热点主题榜\\\")) else . end) | if .data.hot_tab then .data.hot_tab |= map(if .search_method == \\\"热搜榜搜索热榜\\\" and .rows then .rows |= map(select(.pos != null and ((.pos | tonumber) != null))) else . end) else . end\")",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/s-api\\.smzdm\\.com\\/sou\\/filter\\/tags\\/hot_tags\\?/i then response.json.jq(\".data.hot_tab |= (if type == \\\"array\\\" then map(select(.search_method != \\\"热点主题榜\\\")) else . end) | if .data.hot_tab then .data.hot_tab |= map(if .search_method == \\\"热搜榜搜索热榜\\\" and .rows then .rows |= map(select(.pos != null and ((.pos | tonumber) != null))) else . end) else . end\")",
-          "input_section": "Rewrite",
-          "priority": 0,
-          "source": "zmjapp",
-          "source_entry_index": 107,
-          "source_file": "Plugin/smzdm_remove_ads.lpx",
-          "source_line_number": 51,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "response if ${url} ~= /^https:\\/\\/s-api\\.smzdm\\.com\\/sou\\/filter\\/tags\\/hot_tags\\?/i then response.json.jq(\".data.hot_tab |= (if type == \\\"array\\\" then map(select(.search_method != \\\"热点主题榜\\\")) else . end) | if .data.hot_tab then .data.hot_tab |= map(if .search_method == \\\"热搜榜搜索热榜\\\" and .rows then .rows |= map(select(.pos != null and ((.pos | tonumber) != null))) else . end) else . end\")"
-        }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
       "canonical_key": "('guarded', '^https://s-api\\\\.smzdm\\\\.com/sou/popup_coupon\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
@@ -127325,7 +127198,7 @@
       "included": 49
     },
     "post_transform_reconciled": true,
-    "rewrite_output_entries": 3296,
+    "rewrite_output_entries": 3291,
     "rule_covered_or_duplicate_events": 2140,
     "rule_included_events": 3474,
     "rule_output_entries": 3475,
