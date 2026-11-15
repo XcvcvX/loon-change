@@ -330,6 +330,24 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         missing_guard = [DIDI_FAST_HOME_DELETE_SECOND]
         self.assertEqual(merge_didi_fast_homepage_json_deletes(missing_guard), (missing_guard, 0))
 
+    def test_removes_only_lkcoffee_member_exchange_forced_success_rewrites(self):
+        legacy = r'^https?:\\/\\/m\\.lkcoffee\\.com\\/ecapi\\/resource\\/m\\/member\\/exchange\\/page response-body-replace-regex \\{.+\\} {"status":"SUCCESS"}'
+        modern = r'response if ${url} ~= /^https?:\\/\\/m\\.lkcoffee\\.com\\/ecapi\\/resource\\/m\\/member\\/exchange\\/page/ then response.body.replace(/\\{.+\\}/, \'{"status":"SUCCESS"}\')'
+        keep = r'^https?:\\/\\/capi\\.lkcoffee\\.com\\/resource\\/m\\/sys\\/app\\/adposNew reject-dict'
+        base = BASE.replace("[Rewrite]", "[Rewrite]\\n" + legacy + "\\n" + modern + "\\n" + keep)
+        result = apply(base)
+        rewrite = result.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
+        self.assertNotIn(legacy, rewrite)
+        self.assertNotIn(modern, rewrite)
+        self.assertIn(keep, rewrite)
+        self.assertEqual(apply(result), result)
+
+    def test_fails_closed_when_lkcoffee_member_exchange_rule_changes(self):
+        changed = r'response if ${url} ~= /^https?:\\/\\/m\\.lkcoffee\\.com\\/ecapi\\/resource\\/m\\/member\\/exchange\\/page/ then response.body.replace(/message/, "hidden")'
+        base = BASE.replace("[Rewrite]", "[Rewrite]\\n" + changed)
+        with self.assertRaisesRegex(ValueError, "member-exchange response rule changed"):
+            apply(base)
+
     def test_requires_bankcomm_mitm_hosts(self):
         with self.assertRaises(ValueError):
             apply(BASE.replace("creditcard.bankcomm.com, ", ""))
