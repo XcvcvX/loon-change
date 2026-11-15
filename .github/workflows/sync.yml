@@ -126,9 +126,9 @@ jobs:
       - name: 测试校验器与来源依赖门禁
         run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_compare_rule_provenance.py test_source_health_guard.py test_finalize_provenance.py test_rule_risk_history.py test_integrate_spotify.py test_convert_qx2loon.py test_convert_filter_qx2loon.py
 
-      concurrency:
-        group: loon-change-main-sync
-        queue: max
+    concurrency:
+      group: loon-change-main-sync
+      queue: max
 
       - name: 创建隔离构建目录
         run: |
