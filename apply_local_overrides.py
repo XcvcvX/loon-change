@@ -147,6 +147,31 @@ def remove_lkcoffee_member_exchange_success_overrides(lines):
         )
     return output, removed
 
+
+
+GUIDERANK_SPECIAL_SALE_MARKER = "zone.guiderank-app.com/guiderank-web/app/common/getInitData"
+GUIDERANK_SPECIAL_SALE_MATCHER = "^https?://zone.guiderank-app.com/guiderank-web/app/common/getInitData"
+GUIDERANK_SPECIAL_SALE_OLD_ACTION = "response-body-replace-regex SpecialSalePageMidTabConfig random_body"
+GUIDERANK_SPECIAL_SALE_NEW_ACTION = "response-body-json-del data.SpecialSalePageMidTabConfig"
+
+def replace_guiderank_special_sale_random_body(lines):
+    """Replace only the reviewed Guiderank promo-field randomization with JSON deletion."""
+    output, replaced = [], 0
+    for line in lines:
+        normalized = re.sub(r"\\+", "", line.strip())
+        if GUIDERANK_SPECIAL_SALE_MARKER.lower() not in normalized.lower():
+            output.append(line)
+            continue
+        if normalized == GUIDERANK_SPECIAL_SALE_MATCHER + " " + GUIDERANK_SPECIAL_SALE_OLD_ACTION:
+            output.append(line[:-len(GUIDERANK_SPECIAL_SALE_OLD_ACTION)] + GUIDERANK_SPECIAL_SALE_NEW_ACTION)
+            replaced += 1
+            continue
+        if normalized == GUIDERANK_SPECIAL_SALE_MATCHER + " " + GUIDERANK_SPECIAL_SALE_NEW_ACTION:
+            output.append(line)
+            continue
+        raise ValueError("Guiderank SpecialSalePageMidTabConfig rule changed; refusing an unreviewed rewrite")
+    return output, replaced
+
 def split_response_json_rewrite(line: str):
     match = re.match(r'^(response if .+?) then (.+)', line)
     if not match: return None
@@ -347,6 +372,7 @@ def apply(text: str) -> str:
                 rewrite_lines, _ = remove_shadowed_peopleapp_rules(rewrite_lines)
                 rewrite_lines, _ = remove_shadowed_terminal_block_rules(rewrite_lines)
                 rewrite_lines, _ = remove_lkcoffee_member_exchange_success_overrides(rewrite_lines)
+                rewrite_lines, _ = replace_guiderank_special_sale_random_body(rewrite_lines)
                 result_lines.extend(rewrite_lines); rewrite_lines = []
             section = line[1:-1]; result_lines.append(line)
         elif section == "Rewrite": rewrite_lines.append(line)
@@ -360,6 +386,7 @@ def apply(text: str) -> str:
         rewrite_lines, _ = remove_shadowed_peopleapp_rules(rewrite_lines)
         rewrite_lines, _ = remove_shadowed_terminal_block_rules(rewrite_lines)
         rewrite_lines, _ = remove_lkcoffee_member_exchange_success_overrides(rewrite_lines)
+        rewrite_lines, _ = replace_guiderank_special_sale_random_body(rewrite_lines)
         result_lines.extend(rewrite_lines)
     result = "\n".join(result_lines)
     # Scope YYting to the two confirmed hosts. Upstream and generated plugin

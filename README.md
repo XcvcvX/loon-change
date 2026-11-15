@@ -525,3 +525,12 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 覆盖器对该路径采用 fail-closed：只有识别到已审查的响应改写操作和 SUCCESS 替换内容才移除；若上游改变动作，则构建失败并要求重新审查。
 - 新增测试验证两条目标规则被移除、相邻广告规则保留、上游动作变化时拒绝静默处理及重复执行幂等。
 - 不修改 MITM、Script、Rule、其他 App 规则或任何其他瑞幸接口。
+
+ 
+## 第八阶段第二十批：将盖得排行特卖推广字段改为精确 JSON 删除
+
+- 复核发现 getInitData 对 data.SpecialSalePageMidTabConfig 使用 random_body 整体替换；独立规则来源将同一字段明确作为特卖推广配置，并使用 JSON 路径删除。
+- 将动作改为 response-body-json-del data.SpecialSalePageMidTabConfig，保留仓库现有 URL matcher，不擅自增加 .do 后缀限制；其他盖得排行接口规则保持不变。
+- 覆盖器仅接受精确 matcher 与旧动作组合，已转换规则保持幂等；同接口规则或动作发生变化时 fail-closed，要求重新审查。
+- 新增测试验证目标字段动作转换、相邻特卖商品接口规则保留、重复执行幂等及上游漂移保护。
+- 不修改 MITM、Script、Rule、其他应用规则或其他盖得排行接口。
