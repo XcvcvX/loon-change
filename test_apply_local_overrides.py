@@ -334,7 +334,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         legacy = r'^https?:\\/\\/m\\.lkcoffee\\.com\\/ecapi\\/resource\\/m\\/member\\/exchange\\/page response-body-replace-regex \\{.+\\} {"status":"SUCCESS"}'
         modern = r'response if ${url} ~= /^https?:\\/\\/m\\.lkcoffee\\.com\\/ecapi\\/resource\\/m\\/member\\/exchange\\/page/ then response.body.replace(/\\{.+\\}/, \'{"status":"SUCCESS"}\')'
         keep = r'^https?:\\/\\/capi\\.lkcoffee\\.com\\/resource\\/m\\/sys\\/app\\/adposNew reject-dict'
-        base = BASE.replace("[Rewrite]", "[Rewrite]\\n" + legacy + "\\n" + modern + "\\n" + keep)
+        base = BASE.replace("[Rewrite]", "[Rewrite]\n" + legacy + "\n" + modern + "\n" + keep)
         result = apply(base)
         rewrite = result.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
         self.assertNotIn(legacy, rewrite)
@@ -344,7 +344,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
 
     def test_fails_closed_when_lkcoffee_member_exchange_rule_changes(self):
         changed = r'response if ${url} ~= /^https?:\\/\\/m\\.lkcoffee\\.com\\/ecapi\\/resource\\/m\\/member\\/exchange\\/page/ then response.body.replace(/message/, "hidden")'
-        base = BASE.replace("[Rewrite]", "[Rewrite]\\n" + changed)
+        base = BASE.replace("[Rewrite]", "[Rewrite]\n" + changed)
         with self.assertRaisesRegex(ValueError, "member-exchange response rule changed"):
             apply(base)
 
