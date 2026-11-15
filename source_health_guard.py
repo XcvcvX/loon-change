@@ -5,7 +5,7 @@ import argparse
 import json
 from pathlib import Path
 
-REQUIRED_SOURCES = ("Amap", "thelongdarkorg", "aoomee", "zmjde", "GuaZiVideoAds")
+REQUIRED_SOURCES = ("Amap", "thelongdarkorg", "aoomee", "zmjde", "GuaZiVideoAds", "AlipayAdBlock")
 SECTIONS = ("rewrite", "script", "rule")
 
 
