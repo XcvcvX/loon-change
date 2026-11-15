@@ -12,6 +12,7 @@ def sources():
         "aoomee": {"bytes": 1000, "rule_lines": 100, "commit": "d" * 40},
         "zmjde": {"bytes": 1000, "rule_lines": 100, "commit": "e" * 40},
         "GuaZiVideoAds": {"bytes": 1000, "entries": 10},
+        "AlipayAdBlock": {"bytes": 3652, "entries": 30, "upstream_commit": "f" * 40},
     }
 
 
@@ -45,6 +46,18 @@ class SourceHealthGuardTests(unittest.TestCase):
         del current["aoomee"]
         with self.assertRaisesRegex(ValueError, "missing required sources"):
             build_health(sources(), current, provenance(), provenance(), diff())
+
+    def test_missing_alipay_source_blocks(self):
+        current = sources()
+        del current["AlipayAdBlock"]
+        with self.assertRaisesRegex(ValueError, "AlipayAdBlock"):
+            build_health(sources(), current, provenance(), provenance(), diff())
+
+    def test_alipay_source_has_revision_and_content_evidence(self):
+        report = build_health(sources(), sources(), provenance(), provenance(), diff())
+        evidence = report["source_scores"]["AlipayAdBlock"]["evidence"]
+        self.assertEqual(evidence["revision_identity"], "present")
+        self.assertEqual(evidence["content_volume"], "present_bytes_and_entries")
 
     def test_cloned_plugin_sources_use_rule_lines_without_bytes(self):
         current = sources()
