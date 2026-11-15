@@ -49,10 +49,10 @@
 |---|---:|
 | [Argument] | 91 |
 | [Rule] | 3475 |
-| [Rewrite] | 3289 |
-| [Script] | 625 |
+| [Rewrite] | 3290 |
+| [Script] | 624 |
 | [MITM] hostname 条目 | 1497 |
-| 唯一远程脚本 URL | 205 |
+| 唯一远程脚本 URL | 204 |
 <!-- AUTO_PLUGIN_STATS:END -->
 
 ## 自动更新

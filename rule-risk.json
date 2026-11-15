@@ -3,7 +3,7 @@
     "rewrite": {
       "action_changed": 0,
       "added": 1,
-      "removed": 1
+      "removed": 0
     },
     "rule": {
       "action_changed": 0,
@@ -13,13 +13,13 @@
     "script": {
       "action_changed": 0,
       "added": 0,
-      "removed": 0
+      "removed": 1
     }
   },
   "events": [
     {
       "after": {
-        "line": "^https?:\\/\\/zone\\.guiderank-app\\.com\\/guiderank-web\\/app\\/common\\/getInitData response-body-json-del data.SpecialSalePageMidTabConfig",
+        "line": "response if ${url} ~= /^https?:\\/\\/zone\\.guiderank-app\\.com\\/guiderank-web\\/app\\/home\\/getHomePageV/ then response.json.delete([\"data.countdownBanner\", \"data.newEvaluations\", \"data.freeToPayBannerPhotoUrl\", \"data.groupBuyingList\", \"data.multiCountdownBanner\", \"data.banners\", \"data.multiPlatformBanner\", \"data.specialSaleBannerPhotoUrl\", \"data.guide90Evaluation\", \"data.insurancePromotions\"])",
         "section": "rewrite",
         "sources": [
           "local_overrides"
@@ -44,8 +44,8 @@
     {
       "after": null,
       "before": {
-        "line": "^https?:\\/\\/zone\\.guiderank-app\\.com\\/guiderank-web\\/app\\/common\\/getInitData response-body-replace-regex SpecialSalePageMidTabConfig random_body",
-        "section": "rewrite",
+        "line": "http-response ^https?:\\/\\/zone\\.guiderank-app\\.com\\/guiderank-web\\/app\\/home\\/getHomePageV script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/guiderank.js,tag=GUIDERANK,requires-body=true",
+        "section": "script",
         "sources": [
           "base"
         ]
@@ -53,7 +53,7 @@
       "change_type": "removed",
       "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
       "risk": "high",
-      "section": "rewrite",
+      "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
         "base": "unavailable"
@@ -72,7 +72,7 @@
     "low": 0,
     "medium": 1
   },
-  "run_id": "43772787402",
+  "run_id": "43775595035",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -103,8 +103,8 @@
     "base": {
       "action_changed": 10,
       "added": 6,
-      "removed": 7,
-      "snapshots_seen": 8
+      "removed": 8,
+      "snapshots_seen": 9
     },
     "block": {
       "action_changed": 0,
@@ -120,9 +120,9 @@
     },
     "local_overrides": {
       "action_changed": 0,
-      "added": 16,
+      "added": 17,
       "removed": 2,
-      "snapshots_seen": 4
+      "snapshots_seen": 5
     },
     "myblockads": {
       "action_changed": 18,

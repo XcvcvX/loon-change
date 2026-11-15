@@ -62715,6 +62715,17 @@
           "transform_stage": "spotify_integration"
         }
       ]
+    },
+    {
+      "output_line": "response if ${url} ~= /^https?:\\/\\/zone\\.guiderank-app\\.com\\/guiderank-web\\/app\\/home\\/getHomePageV/ then response.json.delete([\"data.countdownBanner\", \"data.newEvaluations\", \"data.freeToPayBannerPhotoUrl\", \"data.groupBuyingList\", \"data.multiCountdownBanner\", \"data.banners\", \"data.multiPlatformBanner\", \"data.specialSaleBannerPhotoUrl\", \"data.guide90Evaluation\", \"data.insurancePromotions\"])",
+      "provenance_kind": "post_merge_transform",
+      "sources": [
+        {
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
+        }
+      ]
     }
   ],
   "rewrite_exclusions": [
@@ -116678,23 +116689,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://zone\\\\.guiderank-app\\\\.com/guiderank-web/app/home/getHomePageV', ('^https?:\\\\/\\\\/zone\\\\.guiderank-app\\\\.com\\\\/guiderank-web\\\\/app\\\\/home\\\\/gethomepagev', '^https?:\\\\/\\\\/zone\\\\.guiderank-app\\\\.com\\\\/guiderank-web\\\\/app\\\\/home\\\\/getHomePageV script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/guiderank.js,tag=GUIDERANK,requires-body=true'))",
-      "output_entry_index": 12,
-      "output_line": "http-response ^https?:\\/\\/zone\\.guiderank-app\\.com\\/guiderank-web\\/app\\/home\\/getHomePageV script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/guiderank.js,tag=GUIDERANK,requires-body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/zone\\.guiderank-app\\.com\\/guiderank-web\\/app\\/home\\/getHomePageV script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/guiderank.js,tag=GUIDERANK,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 11
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https?://www\\\\.gaoding\\\\.com/api/v\\\\d/oc/exhibitions/template/resources$', ('^https?:\\\\/\\\\/www\\\\.gaoding\\\\.com\\\\/api\\\\/v\\\\d\\\\/oc\\\\/exhibitions\\\\/template\\\\/resources$', '^https?:\\\\/\\\\/www\\\\.gaoding\\\\.com\\\\/api\\\\/v\\\\d\\\\/oc\\\\/exhibitions\\\\/template\\\\/resources$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/gaoding.js,tag=GAODING,requires-body=true'))",
       "output_entry_index": 13,
       "output_line": "http-response ^https?:\\/\\/www\\.gaoding\\.com\\/api\\/v\\d\\/oc\\/exhibitions\\/template\\/resources$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/gaoding.js,tag=GAODING,requires-body=true",
@@ -127158,14 +127152,14 @@
       "included": 49
     },
     "post_transform_reconciled": true,
-    "rewrite_output_entries": 3289,
+    "rewrite_output_entries": 3290,
     "rule_covered_or_duplicate_events": 2140,
     "rule_included_events": 3474,
     "rule_output_entries": 3475,
     "rule_safety_excluded_events": 11,
     "rule_scope_adjustments": 1,
     "rule_source_events": 5625,
-    "script_output_entries": 625
+    "script_output_entries": 624
   },
   "upstream_revisions": {
     "AlipayAdBlock": {
