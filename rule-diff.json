@@ -20,7 +20,7 @@
         "Rule": 4,
         "Script": 1
       },
-      "upstream_commit": "07bd491d18673e94285f2b86ece2af7e77c0414a",
+      "upstream_commit": "f5b55c3f687f07663b28db7c011be9c948c51ca7",
       "upstream_path": "Modules/Loon/zirawell/Beta/alipayAdBlock.lpx",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
@@ -59,13 +59,13 @@
         "Rule": 4,
         "Script": 13
       },
-      "upstream_commit": "07bd491d18673e94285f2b86ece2af7e77c0414a",
+      "upstream_commit": "f5b55c3f687f07663b28db7c011be9c948c51ca7",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
     "GuaZiVideoAds": {
       "bytes": 3448,
       "entries": 6,
-      "upstream_commit": "07bd491d18673e94285f2b86ece2af7e77c0414a",
+      "upstream_commit": "f5b55c3f687f07663b28db7c011be9c948c51ca7",
       "upstream_path": "Modules/QuantumultX/ddgksf2013/Official/GuaZiVideoAds.conf",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
@@ -105,7 +105,7 @@
         "Rule": 4,
         "Script": 1
       },
-      "upstream_commit": "4cf487f337f029ba22f468a89fc2a55e355f0524",
+      "upstream_commit": "07bd491d18673e94285f2b86ece2af7e77c0414a",
       "upstream_path": "Modules/Loon/zirawell/Beta/alipayAdBlock.lpx",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
@@ -144,13 +144,13 @@
         "Rule": 4,
         "Script": 13
       },
-      "upstream_commit": "4cf487f337f029ba22f468a89fc2a55e355f0524",
+      "upstream_commit": "07bd491d18673e94285f2b86ece2af7e77c0414a",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
     "GuaZiVideoAds": {
       "bytes": 3448,
       "entries": 6,
-      "upstream_commit": "4cf487f337f029ba22f468a89fc2a55e355f0524",
+      "upstream_commit": "07bd491d18673e94285f2b86ece2af7e77c0414a",
       "upstream_path": "Modules/QuantumultX/ddgksf2013/Official/GuaZiVideoAds.conf",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
@@ -214,18 +214,18 @@
   },
   "upstream_revision_changes": [
     {
-      "current_commit": "07bd491d18673e94285f2b86ece2af7e77c0414a",
-      "previous_commit": "4cf487f337f029ba22f468a89fc2a55e355f0524",
+      "current_commit": "f5b55c3f687f07663b28db7c011be9c948c51ca7",
+      "previous_commit": "07bd491d18673e94285f2b86ece2af7e77c0414a",
       "source": "AlipayAdBlock"
     },
     {
-      "current_commit": "07bd491d18673e94285f2b86ece2af7e77c0414a",
-      "previous_commit": "4cf487f337f029ba22f468a89fc2a55e355f0524",
+      "current_commit": "f5b55c3f687f07663b28db7c011be9c948c51ca7",
+      "previous_commit": "07bd491d18673e94285f2b86ece2af7e77c0414a",
       "source": "Amap"
     },
     {
-      "current_commit": "07bd491d18673e94285f2b86ece2af7e77c0414a",
-      "previous_commit": "4cf487f337f029ba22f468a89fc2a55e355f0524",
+      "current_commit": "f5b55c3f687f07663b28db7c011be9c948c51ca7",
+      "previous_commit": "07bd491d18673e94285f2b86ece2af7e77c0414a",
       "source": "GuaZiVideoAds"
     }
   ]
