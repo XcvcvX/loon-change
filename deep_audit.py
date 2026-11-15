@@ -144,10 +144,10 @@ def classify_rewrite_scope(pattern):
     if normalized.strip() in {'.*', '.+', '^.*$', '^.+$'}:
         return 'global_like'
     authority = extract_url_authority(normalized)
-    if has_ipv4_regex_host(authority):
-        return 'domain_scoped_ipv4_pattern'
     if has_fixed_domain_suffix(normalized):
         return 'domain_scoped_fixed_suffix'
+    if has_ipv4_regex_host(authority):
+        return 'domain_scoped_ipv4_pattern'
     if not has_domain_constraint(pattern):
         if normalized.startswith(('^https://', '^http://', '^https?://')):
             return 'url_without_domain'
