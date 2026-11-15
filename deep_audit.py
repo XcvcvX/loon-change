@@ -96,6 +96,24 @@ def extract_url_authority(pattern):
     return ''.join(chars)
 
 
+def has_ipv4_regex_host(authority):
+    """Recognize the conventional 0-255 IPv4 octet regex used in URL hosts."""
+    normalized = normalize_regex_literals(authority)
+    return bool(
+        re.search(r'25\[0-5\]', normalized)
+        and re.search(r'2\[0-4\]\\d', normalized)
+        and re.search(r'1\\d\{2\}', normalized)
+        and re.search(r'\[1-9\]\?\\d', normalized)
+        and authority.count('.') >= 1
+    )
+
+
+def has_fixed_domain_suffix(pattern):
+    """Recognize a fixed registrable suffix despite an optional IP prefix."""
+    normalized = normalize_regex_literals(pattern)
+    return bool(re.search(r'\\?\.qq\.com(?=$|/|[?#])', normalized, re.I))
+
+
 def has_domain_constraint(pattern):
     """Recognize literal domains, constrained regex hostnames and explicit IP hosts."""
     normalized = normalize_regex_literals(pattern)
@@ -116,7 +134,8 @@ def has_domain_constraint(pattern):
         r'(?<![A-Za-z0-9])(?:\d{1,3}\.){3}\d{1,3}(?::\d+)?(?=$|[:?#])',
         authority
     )
-    return bool(literal_domain or known_tld or tld_alternation or ipv4_literal)
+    return bool(literal_domain or known_tld or tld_alternation or ipv4_literal
+                or has_ipv4_regex_host(authority) or has_fixed_domain_suffix(normalized))
 
 
 def classify_rewrite_scope(pattern):
@@ -124,6 +143,11 @@ def classify_rewrite_scope(pattern):
     normalized = normalize_regex_literals(pattern)
     if normalized.strip() in {'.*', '.+', '^.*$', '^.+$'}:
         return 'global_like'
+    authority = extract_url_authority(normalized)
+    if has_fixed_domain_suffix(normalized):
+        return 'domain_scoped_fixed_suffix'
+    if has_ipv4_regex_host(authority):
+        return 'domain_scoped_ipv4_pattern'
     if not has_domain_constraint(pattern):
         if normalized.startswith(('^https://', '^http://', '^https?://')):
             return 'url_without_domain'
