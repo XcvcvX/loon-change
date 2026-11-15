@@ -320,10 +320,10 @@ def apply(text: str) -> str:
     def normalize_url_slash_escapes(value):
         return re.sub(r"\\+/", lambda _match: r"\/", value.strip())
 
-    broad_yyting = r"request if \${url} ~= /^https?:\/\/.*\/yyting\/advertclient\/ClientAdvertList.action/ then reject(404)"
+    broad_yyting = r"request if ${url} ~= /^https?:\/\/.*\/yyting\/advertclient\/ClientAdvertList.action/ then reject(404)"
     scoped_yyting = [
-        r"request if \${url} ~= /^https?:\/\/118\.178\.214\.118\/yyting\/advertclient\/ClientAdvertList\.action/ then reject(404)",
-        r"request if \${url} ~= /^https?:\/\/dapis\.mting\.info\/yyting\/advertclient\/ClientAdvertList\.action/ then reject(404)",
+        r"request if ${url} ~= /^https?:\/\/118\.178\.214\.118\/yyting\/advertclient\/ClientAdvertList\.action/ then reject(404)",
+        r"request if ${url} ~= /^https?:\/\/dapis\.mting\.info\/yyting\/advertclient\/ClientAdvertList\.action/ then reject(404)",
     ]
     normalized_broad_yyting = normalize_url_slash_escapes(broad_yyting)
     result_lines = []
