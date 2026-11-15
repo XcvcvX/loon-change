@@ -934,7 +934,7 @@ def audit_deep(path):
     ))
 
     url_counts, trigger_types = Counter(), Counter()
-    no_url, generic = [], []
+    no_url, generic, conditional = [], [], []
     for n, line in script:
         m = re.search(r'script-path\s*=\s*(https?://[^,\s]+)', line, re.I)
         if not m:
@@ -947,8 +947,11 @@ def audit_deep(path):
         t = re.match(r'^(http-request|http-response|cron|generic|request\s+if|response\s+if)\b', line, re.I)
         kind = re.sub(r'\s+', ' ', t.group(1).lower()) if t else 'unclassified'
         trigger_types[kind] += 1
-        if kind in {'generic', 'request if', 'response if'}:
-            generic.append({'line': n, 'type': kind, 'entry': line[:200]})
+        candidate = {'line': n, 'type': kind, 'entry': line[:200]}
+        if kind in {'generic', 'cron'}:
+            generic.append(candidate)
+        elif kind in {'request if', 'response if'}:
+            conditional.append(candidate)
     repeated = [{'url': u, 'count': c} for u, c in sorted(url_counts.items()) if c > 1]
     coverage_report = audit_mitm_script_coverage(rewrite, script, mitm)
     necessity_report = audit_mitm_necessity(mitm, coverage_report, rewrite, script)
@@ -988,6 +991,7 @@ def audit_deep(path):
             'script_urls_reused': len(repeated),
             'script_entries_without_detected_url': len(no_url),
             'script_generic_trigger_candidates': len(generic),
+            'script_conditional_trigger_candidates': len(conditional),
             **coverage_report['mitm_script_coverage_summary'],
             **necessity_report['mitm_necessity_summary']
         },
@@ -1019,6 +1023,7 @@ def audit_deep(path):
         'script_repeated_remote_urls': repeated,
         'script_entries_without_detected_url': no_url,
         'script_generic_trigger_candidates': generic,
+        'script_conditional_trigger_candidates': conditional,
         'mitm_missing_rewrite_script_coverage': coverage_report['mitm_missing_rewrite_script_coverage'],
         'mitm_intentionally_skipped_references': coverage_report['mitm_intentionally_skipped_references'],
         'mitm_negative_excluded_rewrite_script_coverage': coverage_report['mitm_negative_excluded_rewrite_script_coverage'],

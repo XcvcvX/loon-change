@@ -180,6 +180,24 @@ request if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/artist/ then redirect(3
         self.assertEqual(report['summary']['rewrite_unknown_action_candidates'], 0)
         self.assertTrue(any(x['review_priority'] == 'high_review'
                             for x in report['rewrite_action_semantic_review_candidates']))
+    def test_conditional_script_triggers_are_not_misclassified_as_generic(self):
+        fixture = '''[Script]
+request if \${url} ~= /^https:\/\/api\.example\.com\/ad/ then script("https://cdn.example/request.js")
+response if \${url} ~= /^https:\/\/api\.example\.com\/feed/ then script("https://cdn.example/response.js")
+generic script-path=https://cdn.example/generic.js
+cron "0 8 * * *" script-path=https://cdn.example/cron.js
+http-request ^https:\/\/api\.example\.com script-path=https://cdn.example/http.js
+'''
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'conditional-script.plugin'
+            path.write_text(fixture, encoding='utf-8')
+            report = audit_deep(path)
+        self.assertEqual(report['summary']['script_generic_trigger_candidates'], 2)
+        self.assertEqual(report['summary']['script_conditional_trigger_candidates'], 2)
+        self.assertEqual(len(report['script_generic_trigger_candidates']), 2)
+        self.assertEqual(len(report['script_conditional_trigger_candidates']), 2)
+        self.assertEqual(report['summary']['generic_script_triggers'], 2)
+
     def test_mitm_and_script_candidates(self):
         fixture = '''[Rewrite]
 ^https://api.example.com/ad reject
