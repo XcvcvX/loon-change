@@ -161,7 +161,7 @@ def classify_rewrite_scope(pattern):
     # A quantified port expression (for example, :\\d+) is not a hostname
     # wildcard. Restrict host-wildcard classification to the fixed IPv4 host.
     host_authority = authority
-    if re.match(r'^(?:\\d{1,3}\\.){3}\\d{1,3}:', authority):
+    if re.match(r'^(?:\d{1,3}\.){3}\d{1,3}:', authority):
         host_authority = authority.split(':', 1)[0]
     scheme_marker = normalized.find('://')
     remainder = normalized[scheme_marker + 3:] if scheme_marker >= 0 else normalized
