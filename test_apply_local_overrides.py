@@ -2035,7 +2035,7 @@ class ResponseJsonDeleteBatchTests(unittest.TestCase):
         unknown = self.base.replace(
             self.original[0],
             self.original[0] + "\n" +
-            r"""response if ${url} ~= /^https:\\/\\/(apissl|az2-api(-js|-idc)?)\\.(gifshow|ksapisrv)\\.com\\/rest\\/system\\/startup\\?/ then response.json.delete("newAdField")""",
+            r"""response if ${url} ~= /^https:\/\/(apissl|az2-api(-js|-idc)?)\.(gifshow|ksapisrv)\.com\/rest\/system\/startup\?/ then response.json.delete("newAdField")""",
             1,
         )
         with self.assertRaisesRegex(ValueError, "Same-matcher response JSON delete changed"):
