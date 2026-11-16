@@ -4046,6 +4046,111 @@ def migrate_wechat_applet_simple_endpoints(lines):
     return result, removed_count
 
 
+WEIBO_NATIVE_MIGRATIONS = (
+    (
+        "api.weibo.cn",
+        "2/messageflow/notice",
+        r"http-response ^https?:\/\/api\.weibo\.cn\/2\/messageflow\/notice\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-13,requires-body=true",
+        r'response if ${url} ~= /^https?:\/\/api\.weibo\.cn\/2\/messageflow\/notice\?/ then response.json.jq("if (.messages | type) == \"array\" then .messages |= map(select((.msg_card.ad_tag // false) != true)) else . end")',
+    ),
+    (
+        "api.weibo.cn",
+        "push/active",
+        r"http-response ^https?:\/\/api\.weibo\.cn\/2\/(push\/active)\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO,requires-body=true",
+        r'response if ${url} ~= /^https?:\/\/api\.weibo\.cn\/2\/push\/active\?/ then response.json.jq("if .feed_redpacket then .feed_redpacket.starttime = \"2208960000\" | .feed_redpacket.interval = \"31536000\" | .feed_redpacket.endtime = \"2209046399\" else . end")',
+    ),
+    (
+        "bootpreload.uve.weibo.com",
+        "ad/preload",
+        r"http-response ^https?:\/\/bootpreload\.uve\.weibo\.com\/v[12]\/ad\/preload script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-16,requires-body=true",
+        r'response if ${url} ~= /^https?:\/\/bootpreload\.uve\.weibo\.com\/v[12]\/ad\/preload/ then response.json.jq("if (.ads | type) == \"array\" and (.ads | length) > 0 then .ads |= map(.start_time = 3818332800 | .end_time = 3818419199 | .daily_display_cnt = 50 | .display_duration = 0) else . end")',
+    ),
+    (
+        "wbapp.uve.weibo.com",
+        "wbapplua/wbpullad.lua",
+        r"http-response ^https?:\/\/wbapp\.uve\.weibo\.com\/(preload\/get_ad|wbapplua\/wbpullad\.lua)\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-18,requires-body=true",
+        r'response if ${url} ~= /^https?:\/\/wbapp\.uve\.weibo\.com\/(?:preload\/get_ad|wbapplua\/wbpullad\.lua)\?/ then response.json.jq("if (.cached_ad.ads | type) == \"array\" and (.cached_ad.ads | length) > 0 then .cached_ad.ads |= map(.show_count = 50 | .duration = 0 | .start_date = 3818332800 | .end_date = 3818419199) else . end")',
+    ),
+    (
+        "new.vip.weibo.cn",
+        "aj/appicon/list",
+        r"http-response ^https?:\/\/new\.vip\.weibo\.cn\/aj\/appicon\/list\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-19,requires-body=true",
+        r'response if ${url} ~= /^https?:\/\/new\.vip\.weibo\.cn\/aj\/appicon\/list\?/ then response.json.jq("if (.data.list | type) == \"array\" and (.data.list | length) > 0 then .data.list |= map(if (.cardType != null and .cardType != false and .cardType != 0 and .cardType != "") then .cardType = 2 else . end) else . end")',
+    ),
+)
+
+
+def migrate_weibo_simple_endpoints(lines):
+    """Replace five fixed-shape Weibo JSON script branches with native jq response rewrites."""
+    output = list(lines)
+    section = ""
+    script_lines = []
+    rewrite_lines = []
+    for line in output:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+            continue
+        if section == "Script":
+            script_lines.append(stripped)
+        elif section == "Rewrite":
+            rewrite_lines.append(stripped)
+
+    removed = set()
+    native_rules = []
+    for host_marker, path_marker, trigger, replacement in WEIBO_NATIVE_MIGRATIONS:
+        candidates = [
+            line for line in script_lines
+            if "weibo.js" in line
+            and host_marker in re.sub(r"\\+", "", line)
+            and path_marker in re.sub(r"\\+", "", line)
+        ]
+        if not candidates:
+            continue
+        if len(candidates) != 1 or candidates[0] != trigger:
+            raise ValueError(
+                "Weibo trigger inventory changed; refusing native migration: "
+                + repr(candidates)
+            )
+        existing_native = [
+            line for line in rewrite_lines
+            if line.startswith("response if")
+            and host_marker in re.sub(r"\\+", "", line)
+            and path_marker.split("(")[0] in re.sub(r"\\+", "", line)
+        ]
+        if existing_native:
+            raise ValueError(
+                "Weibo native response rule already exists; refusing duplicate migration: "
+                + repr(existing_native)
+            )
+        removed.add(trigger)
+        native_rules.append(replacement)
+
+    if not removed:
+        return output, 0
+
+    result = []
+    section = ""
+    inserted = False
+    removed_count = 0
+    for line in output:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+            result.append(line)
+            if section == "Rewrite" and not inserted:
+                result.extend(native_rules)
+                inserted = True
+            continue
+        if section == "Script" and stripped in removed:
+            removed_count += 1
+            continue
+        result.append(line)
+    if not inserted or removed_count != len(removed):
+        raise ValueError("Weibo native migration count or Rewrite section mismatch")
+    return result, removed_count
+
+
 def apply(text: str) -> str:
     if "[Script]" not in text or "[MITM]" not in text or "[Rewrite]" not in text:
         raise ValueError("plugin missing [Rewrite], [Script] or [MITM] section")
@@ -4164,6 +4269,7 @@ def apply(text: str) -> str:
     lines, _ = remove_redundant_smzdm_homepage_script_trigger(lines)
     lines, _ = remove_redundant_smzdm_ads_script_triggers(lines)
     lines, _ = migrate_wechat_applet_simple_endpoints(lines)
+    lines, _ = migrate_weibo_simple_endpoints(lines)
 
     result_lines, rewrite_lines = [], []
     section = ""
