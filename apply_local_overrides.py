@@ -4318,6 +4318,12 @@ def optimize_bilibili_json_native_coverage(lines):
         elif section == "Rewrite":
             rewrite_lines.append(stripped)
 
+    rstore_json_lines = [
+        line for line in script_lines if "bilibiliJson.js" in line
+    ]
+    if not rstore_json_lines:
+        return output, 0
+
     fmz_live = [
         line for line in script_lines
         if "bilibili.json.js" in line and line.startswith("response if")
