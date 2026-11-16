@@ -2225,7 +2225,7 @@ def remove_douyin_content_cdn_overblocks(lines):
     if not saw_target:
         return list(lines), 0
     if unknown_overblocks:
-        raise ValueError("Douyin content CDN overblock inventory changed; refusing partial cleanup")
+        raise ValueError("Douyin content CDN overblock inventory changed; refusing partial cleanup: " + repr(unknown_overblocks))
     normalized_rewrite_text = "\n".join(normalized_rewrites)
     missing_ad_paths = [
         marker for marker in DOUYIN_CDN_REQUIRED_AD_PATH_MARKERS
@@ -4259,6 +4259,125 @@ def narrow_duplicate_bilibili_protobuf_triggers(lines):
     return result, changed
 
 
+BILIBILI_JSON_TRIGGER_PAIRS = (
+    (
+        "BAICIZHAN-8",
+        r"http-response ^https?:\/\/api\.live\.bilibili\.com\/xlive\/app-room\/v\d\/index\/getInfoByRoom\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-8,requires-body=true",
+        r"http-response ^https?:\/\/api\.live\.bilibili\.com\/xlive\/app-room\/v[2-9]\/index\/getInfoByRoom\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-8,requires-body=true",
+    ),
+    (
+        "BAICIZHAN-9",
+        r"http-response ^https?:\/\/app\.bilibili\.com\/x\/v\d\/(?:feed\/index(\/story)?|search\/square)\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-9,requires-body=true",
+        r"http-response ^https?:\/\/app\.bilibili\.com\/x\/v[13-9]\/(?:feed\/index(\/story)?|search\/square)\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-9,requires-body=true",
+    ),
+    (
+        "BAICIZHAN-10",
+        r"http-response ^https?:\/\/app\.bilibili\.com\/x\/resource\/(?:top\/activity|show\/tab\/v\d)\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-10,requires-body=true",
+        r"http-response ^https?:\/\/app\.bilibili\.com\/x\/resource\/show\/tab\/v\d\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-10,requires-body=true",
+    ),
+    (
+        "BAICIZHAN-11",
+        r"http-response ^https?:\/\/app\.bilibili\.com\/x\/v\d\/splash\/(?:brand\/list|event\/list2|list|show)\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-11,requires-body=true",
+        r"http-response ^https?:\/\/app\.bilibili\.com\/x\/v\d\/splash\/brand\/list\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-11,requires-body=true",
+    ),
+)
+BILIBILI_LIVE_FMZ_MARKER = "xlive/app-room/v1/index/getInfoBy(Room|User)"
+BILIBILI_NATIVE_RULE_REPLACEMENTS = (
+    (
+        r'response if ${url} ~= /^https:\/\/app\.bilibili\.com\/x\/v2\/feed\/index\?/ then response.json.jq(`if .data.items then .data.items |= map(select((.banner_item == null) and (.ad_info == null) and (.card_goto == "av") and (.card_type | IN("small_cover_v2", "large_cover_single_v9", "large_cover_v1")))) end`)',
+        r'response if ${url} ~= /^https:\/\/app\.bilibili\.com\/x\/v2\/feed\/index\?/ then response.json.jq(`if .data.items then .data.items |= map(select((.banner_item == null) and (.ad_info == null) and (.card_goto == "av") and (.card_type | IN("small_cover_v2", "large_cover_single_v9", "large_cover_v1")))) else . end | if .data.config.toast.has_toast then .data.config.toast.has_toast = false else . end`)',
+    ),
+    (
+        r'response if ${url} ~= /^https:\/\/app\.bilibili\.com\/x\/v2\/feed\/index\/story\?/ then response.json.jq(`if .data.items then .data.items |= map(select((.ad_info == null) and (.card_goto | IN("vertical_ad_av", "vertical_ad_live", "vertical_ad_picture") | not)) | del(.story_cart_icon, .free_flow_toast, .image_infos, .course_info, .game_info)) end`)',
+        r'response if ${url} ~= /^https:\/\/app\.bilibili\.com\/x\/v2\/feed\/index\/story\?/ then response.json.jq(`if .data.items then .data.items |= map(select((has("ad_info") | not) and (.card_goto | IN("vertical_ad_av", "vertical_live", "vertical_pgc", "vertical_ad_live", "vertical_ad_picture") | not)) | del(.creative_entrance, .story_cart_icon, .free_flow_toast, .image_infos, .course_info, .game_info)) else . end`)',
+    ),
+    (
+        r'response if ${url} ~= /^https:\/\/app\.bilibili\.com\/x\/v2\/splash\/(list|show|event\/list2)\?/ then response.json.jq(`.data |= with_entries(if .key | IN("show", "event_list") then .value = [] else . end)`)',
+        r'response if ${url} ~= /^https:\/\/app\.bilibili\.com\/x\/v2\/splash\/(list|show|event\/list2)\?/ then response.json.jq(`if (.data | type) == "object" then .data |= (del(.account, .event_list, .preload, .show) | if (.max_time != null and .max_time != false and .max_time != 0 and .max_time != "") then .max_time = 0 else . end | if (.min_interval != null and .min_interval != false and .min_interval != 0 and .min_interval != "") then .min_interval = 31536000 else . end | if (.pull_interval != null and .pull_interval != false and .pull_interval != 0 and .pull_interval != "") then .pull_interval = 31536000 else . end | if (.list | type) == "array" and (.list | length) > 0 then .list |= map(.duration = 0 | .enable_pre_download = false | .begin_time = 3818332800 | .end_time = 3818419199) else . end) else . end`)',
+    ),
+)
+BILIBILI_NATIVE_PREREQUISITE_MARKERS = (
+    "response if ${url} ~= /^https:\\/\\/app\\.bilibili\\.com\\/x\\/resource\\/top\\/activity\\?/ then response.body.mock",
+    "response if ${url} ~= /^https:\\/\\/app\\.bilibili\\.com\\/x\\/v2\\/search\\/square\\?/ then response.body.mock",
+)
+
+
+def optimize_bilibili_json_native_coverage(lines):
+    """Narrow R-Store JSON triggers where existing native/Sparkle handlers cover the same current endpoints."""
+    output = list(lines)
+    section = ""
+    script_lines = []
+    rewrite_lines = []
+    for line in output:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+            continue
+        if section == "Script":
+            script_lines.append(stripped)
+        elif section == "Rewrite":
+            rewrite_lines.append(stripped)
+
+    fmz_live = [
+        line for line in script_lines
+        if "bilibili.json.js" in line and line.startswith("response if")
+        and "api.live.bilibili.com" in line
+    ]
+    if len(fmz_live) != 1 or BILIBILI_LIVE_FMZ_MARKER not in re.sub(r"\\+", "", fmz_live[0]):
+        raise ValueError("Bilibili live JSON native coverage changed; refusing duplicate trigger narrowing")
+
+    for marker in BILIBILI_NATIVE_PREREQUISITE_MARKERS:
+        if not any(marker in line for line in rewrite_lines):
+            raise ValueError("Bilibili native response prerequisite missing; refusing trigger narrowing: " + marker)
+
+    trigger_replacements = {}
+    for tag, original, narrowed in BILIBILI_JSON_TRIGGER_PAIRS:
+        candidates = [
+            line for line in script_lines
+            if "bilibiliJson.js" in line and "tag=" + tag in line
+        ]
+        if len(candidates) != 1:
+            raise ValueError(
+                "Bilibili R-Store JSON trigger inventory changed; refusing narrowing: "
+                + repr(candidates)
+            )
+        current = candidates[0]
+        if current == original or current == narrowed:
+            trigger_replacements[current] = narrowed
+        else:
+            raise ValueError("Bilibili R-Store JSON trigger variant changed: " + current)
+
+    native_replacements = {}
+    for original, updated in BILIBILI_NATIVE_RULE_REPLACEMENTS:
+        if original in rewrite_lines:
+            if rewrite_lines.count(original) != 1:
+                raise ValueError("duplicate Bilibili native response rule: " + original)
+            native_replacements[original] = updated
+        elif updated in rewrite_lines:
+            if rewrite_lines.count(updated) != 1:
+                raise ValueError("duplicate optimized Bilibili native response rule: " + updated)
+        else:
+            raise ValueError("Bilibili native response rule changed; refusing trigger narrowing: " + original)
+
+    result = []
+    section = ""
+    for line in output:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+            result.append(line)
+            continue
+        if section == "Script" and stripped in trigger_replacements:
+            result.append(trigger_replacements[stripped])
+        elif section == "Rewrite" and stripped in native_replacements:
+            result.append(native_replacements[stripped])
+        else:
+            result.append(line)
+    changed = sum(1 for old, new in trigger_replacements.items() if old != new)
+    changed += sum(1 for old, new in native_replacements.items() if old != new)
+    return result, changed
+
+
 def apply(text: str) -> str:
     if "[Script]" not in text or "[MITM]" not in text or "[Rewrite]" not in text:
         raise ValueError("plugin missing [Rewrite], [Script] or [MITM] section")
@@ -4379,6 +4498,7 @@ def apply(text: str) -> str:
     lines, _ = migrate_wechat_applet_simple_endpoints(lines)
     lines, _ = migrate_weibo_simple_endpoints(lines)
     lines, _ = narrow_duplicate_bilibili_protobuf_triggers(lines)
+    lines, _ = optimize_bilibili_json_native_coverage(lines)
 
     result_lines, rewrite_lines = [], []
     section = ""
