@@ -28,7 +28,7 @@ hostname = *.amap.com
 
 
 class AmapLocalOverrideTests(unittest.TestCase):
-    def test_vendored_plugin_is_already_deduplicated(self):
+    def test_vendored_plugin_has_deduplicated_hotword_and_correct_marketing_field_path(self):
         plugin = Path(__file__).parent / "sources" / "amap" / "Amap.lpx"
         original = plugin.read_text(encoding="utf-8-sig")
         result, removed = apply(original)
