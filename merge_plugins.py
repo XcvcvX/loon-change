@@ -1479,17 +1479,11 @@ def narrow_baidunetdisk_ad_image_host(rewrite_lines, source):
 
 
 def narrow_gamersky_statistic_ad_host(rewrite_lines, source):
-    """将游民星空 statisticAd 规则锚定到合法子域名与明确接口路径，并保留 /i 标志。"""
+    """Anchor the Gamersky statisticAd rule and preserve only its known source flag variants."""
     output = []
     adjustments = []
-    original = (
-        r"request if ${url} ~= /https:\/\/.+\.gamersky.com\/v1\/statisticAd/"
-        r" then reject_dict(200)"
-    )
-    current_case_insensitive_original = (
-        r"request if ${url} ~= /https:\/\/.+\.gamersky\.com\/v1\/statisticAd/i"
-        r" then reject_dict(200)"
-    )
+    legacy_matcher = r"https://.+\.gamersky.com/v1/statisticAd"
+    current_matcher = r"https://.+\.gamersky\.com/v1/statisticAd"
     narrowed = (
         r"request if ${url} ~= /^https:\/\/(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}"
         r"[A-Za-z0-9])?\.)+gamersky\.com\/v1\/statisticAd(?:\/|\?|#|$)/"
@@ -1504,18 +1498,23 @@ def narrow_gamersky_statistic_ad_host(rewrite_lines, source):
         if 'gamersky' not in line or 'statisticAd' not in line:
             output.append(line)
             continue
-        if line == original:
-            replacement = narrowed
-        elif line == current_case_insensitive_original:
-            # 当前 fmz200 blockAds.plugin 已为该规则增加 /i；保留大小写不敏感语义。
-            replacement = narrowed_case_insensitive
-        else:
+        matcher = entry_regex(line)
+        normalized = matcher.replace(r'\/', '/') if matcher else matcher
+        has_i_flag = bool(re.search(r'/i\s+then\s+reject_dict\(200\)\s*$', line))
+        has_no_flag = bool(re.search(r'/\s+then\s+reject_dict\(200\)\s*$', line))
+        if (not line.startswith("request if ${url} ~= /")
+                or action_key(line) != ('REJECT', 'reject_dict', 'reject_dict(200)')):
             raise RuntimeError(
                 source + ' 游民星空 statisticAd 广告规则范围或动作已变化，拒绝自动改写：' + line
             )
-        if action_key(line) != ('REJECT', 'reject_dict', 'reject_dict(200)'):
+        if normalized == legacy_matcher and has_no_flag:
+            replacement = narrowed
+        elif normalized == current_matcher and has_i_flag:
+            # 当前上游 matcher 的域名点号写法不同，并带有 /i；仅接受此精确组合。
+            replacement = narrowed_case_insensitive
+        else:
             raise RuntimeError(
-                source + ' 游民星空 statisticAd 广告规则动作已变化，拒绝自动改写：' + line
+                source + ' 游民星空 statisticAd 广告规则范围或标志已变化，拒绝自动改写：' + line
             )
         updated_matcher = entry_regex(replacement)
         updated_normalized = updated_matcher.replace(r'\/', '/') if updated_matcher else updated_matcher
@@ -1530,7 +1529,7 @@ def narrow_gamersky_statistic_ad_host(rewrite_lines, source):
             'section': 'Rewrite',
             'reason': (
                 'Anchor the Gamersky statisticAd matcher and constrain its host/path boundary; '
-                'preserve HTTPS, case-sensitivity flag, and reject only the explicit ad-statistics endpoint under valid declared subdomains.'
+                'preserve HTTPS, the exact recognized case-sensitivity variant, and reject_dict(200).'
             ),
             'original_line': line,
             'output_line': replacement,
