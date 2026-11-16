@@ -1336,6 +1336,86 @@ def consolidate_meituan_scripts(lines):
     return output, len(MEITUAN_LEGACY_TRIGGERS)
 
 
+
+# Douyin / Hongguo boundary safety:
+# - dig.bdurl.net is ByteDance HTTPDNS, not an ad host.
+# - webcast-open.douyin.com supplies recommended live-room feeds, not ads.
+# - the broad "minigame" keyword can disable ByteDance mini-game runtime.
+DOUYIN_HONGGUO_UNSAFE_RULES = {
+    "DOMAIN,webcast-open.douyin.com,REJECT",
+    "DOMAIN-KEYWORD,minigame,REJECT",
+    "DOMAIN-SUFFIX,dig.bdurl.net,REJECT",
+}
+DOUYIN_LIVE_FEED_REWRITE_RULES = {
+    r"^https?:\/\/webcast-open\.douyin\.com\/webcast\/openapi\/feed\/ reject-dict",
+    r"request if ${url} ~= /^https:\/\/webcast-open\.douyin\.com\/webcast\/openapi\/feed\/\?/ then reject_dict(200)",
+}
+DOUYIN_LIVE_FEED_HOST = "webcast-open.douyin.com"
+
+
+def remove_douyin_hongguo_unsafe_rules(lines):
+    """Remove only the reviewed HTTPDNS/runtime/live-feed blocks and MITM host."""
+    section = ""
+    rule_counts = {rule: 0 for rule in DOUYIN_HONGGUO_UNSAFE_RULES}
+    rewrite_counts = {rule: 0 for rule in DOUYIN_LIVE_FEED_REWRITE_RULES}
+    live_feed_host_count = 0
+    unknown = []
+
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            continue
+        value = line.strip()
+        if section == "Rule":
+            if value in rule_counts:
+                rule_counts[value] += 1
+            elif any(marker in value for marker in (
+                "webcast-open.douyin.com", "dig.bdurl.net", "minigame"
+            )):
+                unknown.append((section, value))
+        elif section == "Rewrite":
+            if value in rewrite_counts:
+                rewrite_counts[value] += 1
+            elif "webcast-open.douyin.com" in value:
+                unknown.append((section, value))
+        elif section == "MITM" and value.lower().startswith("hostname") and "=" in value:
+            _, host_text = value.split("=", 1)
+            live_feed_host_count += sum(
+                host.strip().lower() == DOUYIN_LIVE_FEED_HOST
+                for host in host_text.split(",")
+            )
+        elif section == "MITM" and DOUYIN_LIVE_FEED_HOST in value.lower():
+            unknown.append((section, value))
+
+    counts = list(rule_counts.values()) + list(rewrite_counts.values())
+    if not any(counts) and live_feed_host_count == 0 and not unknown:
+        return list(lines), 0
+    if unknown or any(count != 1 for count in counts) or live_feed_host_count != 1:
+        raise ValueError(
+            "Douyin/Hongguo safety inventory changed; refusing partial, drifted or duplicated cleanup"
+        )
+
+    output = []
+    section = ""
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            output.append(line)
+            continue
+        value = line.strip()
+        if section == "Rule" and value in DOUYIN_HONGGUO_UNSAFE_RULES:
+            continue
+        if section == "Rewrite" and value in DOUYIN_LIVE_FEED_REWRITE_RULES:
+            continue
+        if section == "MITM" and value.lower().startswith("hostname") and "=" in value:
+            key, host_text = line.split("=", 1)
+            hosts = [host.strip() for host in host_text.split(",") if host.strip()]
+            hosts = [host for host in hosts if host.lower() != DOUYIN_LIVE_FEED_HOST]
+            line = key + "= " + ", ".join(hosts)
+        output.append(line)
+    return output, len(counts) + 1
+
+
 def apply(text: str) -> str:
     if "[Script]" not in text or "[MITM]" not in text or "[Rewrite]" not in text:
         raise ValueError("plugin missing [Rewrite], [Script] or [MITM] section")
@@ -1385,6 +1465,8 @@ def apply(text: str) -> str:
             # references are known. Some hosts are also used by unrelated base rules.
             line = key + "= " + ", ".join(hosts)
         lines.append(line)
+
+    lines, _ = remove_douyin_hongguo_unsafe_rules(lines)
 
     # Preserve a legacy-listed MITM host whenever a non-HelloBike Rewrite or
     # Script trigger still references it. Normalize regex escaping before lookup.

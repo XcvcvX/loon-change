@@ -638,3 +638,14 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 图片分支保留原请求头判断、尺寸例外和 204 返回语义；微信小程序分支保留 tabArea allowlist 与 oneCentBuy 删除；aoomee 分支保留信息流、个人中心、搜索、角标、购物车与开屏字段处理。
 - 新脚本增加空响应、JSON 解析异常、对象/数组类型保护；仅在响应确有变化时序列化。覆盖器要求 11 条上游触发器各唯一存在，未知同源脚本触发器、缺失、漂移、重复或新旧混杂时 fail-closed，并验证幂等。
 - 不修改美团 Rewrite、广告域名拦截、MITM、Rule、大众点评脚本或其他应用；不拦截正常商品、门店、订单和支付接口。
+
+
+## 第八阶段第三十三批：抖音与红果短剧广告边界、核心服务保护
+
+- 对照红果短剧现有三档字节广告链路规则，保留穿山甲专属域（pangolin-sdk-toutiao、pglstatp-toutiao 等）和 ads0-normal- 至 ads5-normal- 广告接口关键词；不引入 zijieapi.com、snssdk.com、pstatp.com 等整域拦截。
+- 移除宽泛的 DOMAIN-KEYWORD,minigame：它匹配字节小游戏运行时，不是广告专属主机，可能导致小游戏无法加载；不影响其他精确广告接口拦截。
+- 将 dig.bdurl.net 从全局 REJECT 中排除。该主机是字节 HTTPDNS 解析服务，不是广告接口；全局拦截会破坏抖音等字节应用的域名解析/登录链路。独立 R-Store 规则转换器和合并插件本地覆盖均加安全保护。
+- 移除 webcast-open.douyin.com 的整域拒绝、两条直播 feed 请求拒绝及对应 MITM 主机。抖音开放平台文档将 /openapi/feed/ 定义为获取推荐房间列表的服务接口；这不是广告接口，拒绝会影响直播推荐卡片。
+- 保留 ads0-normal- 至 ads5-normal- 广告关键词规则；保留 Pangle 专属域与 ad.toutiao.com 等明确广告域。beta-luna.douyin.com 的汽水音乐专属页面规则不属于本批目标，保持不变。
+- 新增精确库存与 fail-closed 测试：规则缺失、动作漂移、重复、未知直播 feed 变体或 MITM 主机变化时不静默修改；验证广告专属规则和无关汽水音乐规则保留。
+- 不修改普通视频播放、推荐内容主接口、账号登录、直播间播放、评论、发布或支付接口；不新增对 snssdk.com、zijieapi.com、pstatp.com 的整域拦截。
