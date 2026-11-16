@@ -1209,29 +1209,36 @@ def narrow_gamersky_list_response_host(rewrite_lines, source):
 
 
 def narrow_odin_numeric_host_rules(rewrite_lines, source):
-    """将 Odin 广告接口的数字主机匹配限制为合法 IPv4，避免匹配畸形数字/点串。"""
-    expected = {
-        'base': (
-            r'^https?:\/\/[\d\.]+\/odin\/c\d\/(channel\/ads|skin\/config)\? reject-dict',
-            r'^https?:\/\/((25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.){3}(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\/odin\/c\d\/(channel\/ads|skin\/config)\? reject-dict',
-            626,
-            'R-Store converted Rewrite',
-        ),
-        'block': (
-            'request if @@URL@@ ~= /^https?:\/\/[\d\.]+\/odin\/c1\/(channel\/ads|skin\/config)\?/ then reject_dict(200)',
-            'request if @@URL@@ ~= /^https?:\/\/((25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.){3}(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\/odin\/c1\/(channel\/ads|skin\/config)\?/ then reject_dict(200)',
-            621,
-            'blockAdsV2.plugin',
-        ),
-    }
-    if source not in expected:
-        raise RuntimeError('Odin IPv4 scope guard received unknown source: ' + str(source))
-    original, narrowed, source_index, source_file = expected[source]
+    """Restrict only the Odin ad/config numeric host to IPv4, preserving source case flags."""
     url_token = chr(36) + '{url}'
-    original = original.replace('@@URL@@', url_token)
-    narrowed = narrowed.replace('@@URL@@', url_token)
-    originals = [line for line in rewrite_lines if line == original]
-    narrowed_rows = [line for line in rewrite_lines if line == narrowed]
+    base_original = r'^https?:\/\/[\d\.]+\/odin\/c\d\/(channel\/ads|skin\/config)\? reject-dict'
+    base_narrowed = r'^https?:\/\/((25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.){3}(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\/odin\/c\d\/(channel\/ads|skin\/config)\? reject-dict'
+    block_original = 'request if @@URL@@ ~= /^https?:\\/\\/[\\d\\.]+\\/odin\\/c1\\/(channel\\/ads|skin\\/config)\\?/ then reject_dict(200)'
+    block_narrowed = 'request if @@URL@@ ~= /^https?:\\/\\/((25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\.){3}(25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\/odin\\/c1\\/(channel\\/ads|skin\\/config)\\?/ then reject_dict(200)'
+    block_current_original = 'request if @@URL@@ ~= /^https?:\\/\\/[\\d\\.]+\\/odin\\/c1\\/(channel\\/ads|skin\\/config)\\?/i then reject_dict(200)'
+    block_current_narrowed = 'request if @@URL@@ ~= /^https?:\\/\\/((25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\.){3}(25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\/odin\\/c1\\/(channel\\/ads|skin\\/config)\\?/i then reject_dict(200)'
+
+    if source == 'base':
+        variants = {
+            base_original: (base_narrowed, 626, 'R-Store converted Rewrite'),
+        }
+    elif source == 'block':
+        variants = {
+            block_original: (block_narrowed, 621, 'blockAdsV2.plugin'),
+            block_current_original: (block_current_narrowed, 1546, 'blockAds.plugin'),
+        }
+    else:
+        raise RuntimeError('Odin IPv4 scope guard received unknown source: ' + str(source))
+
+    variants = {
+        original.replace('@@URL@@', url_token): (
+            narrowed.replace('@@URL@@', url_token), index, filename
+        )
+        for original, (narrowed, index, filename) in variants.items()
+    }
+    originals = [line for line in rewrite_lines if line in variants]
+    narrowed_set = {value[0] for value in variants.values()}
+    narrowed_rows = [line for line in rewrite_lines if line in narrowed_set]
     if len(originals) == 0 and len(narrowed_rows) <= 1:
         related = [
             line for line in rewrite_lines
@@ -1248,6 +1255,9 @@ def narrow_odin_numeric_host_rules(rewrite_lines, source):
             source + ' Odin numeric-host rule count/scope/action drift; refusing to guess: '
             + repr({'original': originals, 'narrowed': narrowed_rows})
         )
+
+    original = originals[0]
+    narrowed, source_index, source_file = variants[original]
     matcher = entry_regex(narrowed)
     if matcher is None:
         raise RuntimeError(source + ' Odin IPv4 matcher could not be parsed')
@@ -1257,14 +1267,16 @@ def narrow_odin_numeric_host_rules(rewrite_lines, source):
         'source_entry_index': source_index,
         'section': 'Rewrite',
         'reason': (
-            'The original [\\d\\.] host accepts malformed numeric/dotted strings. '
+            'The original [\\\\d\\\\.] host accepts malformed numeric/dotted strings. '
             'Restrict only this Odin ad/config endpoint matcher to four valid IPv4 octets; '
-            'preserve protocol, path alternatives, query boundary, and reject action.'
+            'preserve protocol, path alternatives, query boundary, case flag, and reject action.'
         ),
         'original_line': original,
         'output_line': narrowed,
     }]
     return [narrowed if line == original else line for line in rewrite_lines], adjustments
+
+
 
 
 def narrow_tencentvideo_segment_ip_prefix(rewrite_lines, source):
