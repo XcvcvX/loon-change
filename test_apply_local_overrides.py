@@ -2698,6 +2698,67 @@ class CnftpNonAdTriggerPruningTests(unittest.TestCase):
         self.assertIn(self.ad_keep, result)
 
 
+class Dushu365NonAdTriggerPruningTests(unittest.TestCase):
+    def setUp(self):
+        from apply_local_overrides import (
+            DUSHU365_NON_AD_REMOVE_TRIGGERS,
+            DUSHU365_AD_AND_UNCERTAIN_KEEP_TRIGGERS,
+        )
+        self.remove = DUSHU365_NON_AD_REMOVE_TRIGGERS
+        self.keep = DUSHU365_AD_AND_UNCERTAIN_KEEP_TRIGGERS
+        self.fixture = ["[Script]", *self.remove, *self.keep, "[MITM]", "hostname = g.dushu365.com"]
+
+    def test_removes_four_layout_only_triggers_and_preserves_ad_and_uncertain_entries(self):
+        from apply_local_overrides import remove_dushu365_non_ad_triggers
+        result, removed = remove_dushu365_non_ad_triggers(self.fixture)
+        self.assertEqual(removed, 4)
+        for item in self.remove:
+            self.assertNotIn(item, result)
+        for item in self.keep:
+            self.assertEqual(result.count(item), 1)
+        self.assertEqual(remove_dushu365_non_ad_triggers(result), (result, 0))
+
+    def test_allows_independently_removed_upstream_entries(self):
+        from apply_local_overrides import remove_dushu365_non_ad_triggers
+        partial = [line for line in self.fixture if line != self.remove[0] and line != self.keep[0]]
+        result, removed = remove_dushu365_non_ad_triggers(partial)
+        self.assertEqual(removed, 3)
+        self.assertNotIn(self.remove[0], result)
+        self.assertNotIn(self.keep[0], result)
+        for item in self.keep[1:]:
+            self.assertIn(item, result)
+
+    def test_fails_closed_on_duplicates_unknown_same_script_or_section_drift(self):
+        from apply_local_overrides import remove_dushu365_non_ad_triggers
+        duplicate = ["[Script]", *self.remove, *self.keep, self.remove[0], "[MITM]"]
+        with self.assertRaisesRegex(ValueError, "duplicate Dushu365"):
+            remove_dushu365_non_ad_triggers(duplicate)
+
+        unknown = self.fixture.copy()
+        index = unknown.index(self.keep[0])
+        unknown.insert(index + 1, self.keep[0].replace("DUSHU365-2", "DUSHU365-2-UNKNOWN"))
+        with self.assertRaisesRegex(ValueError, "inventory changed"):
+            remove_dushu365_non_ad_triggers(unknown)
+
+        moved = ["[Rewrite]", self.remove[0], "[Script]", *self.keep, "[MITM]"]
+        with self.assertRaisesRegex(ValueError, "outside Script"):
+            remove_dushu365_non_ad_triggers(moved)
+
+    def test_checked_in_plugin_keeps_only_the_five_reviewed_entries(self):
+        from pathlib import Path
+        from apply_local_overrides import (
+            DUSHU365_NON_AD_REMOVE_TRIGGERS,
+            DUSHU365_AD_AND_UNCERTAIN_KEEP_TRIGGERS,
+            apply,
+        )
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        result = apply(plugin)
+        for item in DUSHU365_NON_AD_REMOVE_TRIGGERS:
+            self.assertNotIn(item, result)
+        for item in DUSHU365_AD_AND_UNCERTAIN_KEEP_TRIGGERS:
+            self.assertEqual(result.count(item), 1)
+
+
 class SameSourceResponseScriptDedupTests(unittest.TestCase):
     def setUp(self):
         from apply_local_overrides import (
