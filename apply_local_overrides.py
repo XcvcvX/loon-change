@@ -254,8 +254,8 @@ TAOBAO_REDUNDANT_SCRIPT_TRIGGERS = (
 
 def remove_redundant_taobao_scripts(lines):
     """Keep the two canonical R-Store Taobao triggers and remove eight equivalent duplicates."""
-    canonical = {re.sub(r"\\\\+", "", item.strip()): item for item in TAOBAO_CANONICAL_SCRIPT_TRIGGERS}
-    redundant = {re.sub(r"\\\\+", "", item.strip()): item for item in TAOBAO_REDUNDANT_SCRIPT_TRIGGERS}
+    canonical = {re.sub(r"\\+", "", item.strip()): item for item in TAOBAO_CANONICAL_SCRIPT_TRIGGERS}
+    redundant = {re.sub(r"\\+", "", item.strip()): item for item in TAOBAO_REDUNDANT_SCRIPT_TRIGGERS}
     counts = {item: 0 for item in (*TAOBAO_CANONICAL_SCRIPT_TRIGGERS, *TAOBAO_REDUNDANT_SCRIPT_TRIGGERS)}
     output, section, target_seen = [], "", False
     for line in lines:
