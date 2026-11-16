@@ -2022,6 +2022,20 @@ class RRTVNativeAdRewriteTests(unittest.TestCase):
         self.assertIn("^https:\\/\\/unrelated\\.example\\/keep reject", result)
         self.assertEqual(apply(result), result)
 
+    def test_raw_upstream_source_variants_are_also_replaced(self):
+        from apply_local_overrides import RRTV_RAW_SOURCE_TRIGGERS
+        raw_base = (
+            "#!name=rrtv-raw-native-test\n[Argument]\nrfrfuipk_enable = switch,true,false,tag=RRTV\n"
+            "[Rewrite]\n[Script]\n" + "\n".join(RRTV_RAW_SOURCE_TRIGGERS) +
+            "\n[MITM]\nhostname = api.rr.tv, creditcard.bankcomm.cn, creditcard.bankcomm.com, "
+            "creditcardapp.bankcomm.cn, creditcardapp.bankcomm.com\n"
+        )
+        result = apply(raw_base)
+        self.assertNotIn("rrtv_json.js", result)
+        for rule in self.native:
+            self.assertEqual(result.count(rule), 1)
+        self.assertEqual(apply(result), result)
+
     def test_allows_independently_missing_source_triggers(self):
         partial = self.base.replace(self.non_ad[0] + "\n", "", 1)
         result = apply(partial)
