@@ -10,7 +10,7 @@
 
 [Script]
 http-response ^https?:\/\/(?:slugger|minislugger|homefront|homeback|qbi|lang|qde|client)\.qunar\.com\/ script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/romeo_legacy/qunar-clean.js,requires-body=true,timeout=10,tag=去哪儿配套清理
-generic script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/qunar-clean.js,tag=去哪儿清理运行状态,timeout=10
+generic script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/romeo_legacy/qunar-clean.js,tag=去哪儿清理运行状态,timeout=10
 
 [MitM]
 hostname = slugger.qunar.com,minislugger.qunar.com,homefront.qunar.com,homeback.qunar.com,qbi.qunar.com,lang.qunar.com,qde.qunar.com,client.qunar.com
