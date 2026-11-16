@@ -2383,5 +2383,79 @@ class MoreResponseScriptDedupTests(unittest.TestCase):
             self.assertEqual(plugin.count(item), 1)
 
 
+
+    def test_xiaohongshu_native_ad_rewrites_replace_duplicate_body_scripts(self):
+        from apply_local_overrides import XHS_SCRIPT_TRIGGER_LINES, XHS_V4_VIDEO_AD_ONLY_RULE, optimize_xiaohongshu_response_cost
+        fixture = [
+            "[Argument]", "xhs_enable = switch,true,false,tag=小红书-脚本开关",
+            "[Rewrite]",
+            r"""^https?:\/\/ci\.xiaohongshu\.com\/system_config\/watermark reject-img""",
+            r"""^https:\/\/ci\.xiaohongshu\.com\/system_config\/watermark reject-img""",
+            r"""request if ${url} ~= /^https?:\/\/ci\.(xiaohongshu|rnote)\.com\/system_config\/watermark/ then reject_img(200)""",
+            r"""^https:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/v1\/note\/imagefeed response-body-json-jq 'disable_watermark video_download'""",
+            r"""^https:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/v2\/note\/feed response-body-json-jq 'disable_watermark video_download'""",
+            r"""^https:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/v3\/note\/videofeed response-body-json-jq 'disable_watermark video_download'""",
+            r"""^https:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/v4\/note\/videofeed response-body-json-jq 'disable_watermark video_download model_type has("ad")'""",
+            r"""^https:\/\/edith\.xiaohongshu\.com\/api\/sns\/v5\/note\/comment\/list response-body-json-jq 'comment_type media_source_type'""",
+            r"""^https:\/\/edith\.xiaohongshu\.com\/api\/sns\/v\d+\/system_service\/config response-body-json-jq 'del(.data.splash)'""",
+            "[Script]", *sorted(XHS_SCRIPT_TRIGGER_LINES),
+            r"""http-response ^https:\/\/api\.example\.com script-path=https://example.invalid/keep.js""",
+            "[MITM]", "hostname = edith.xiaohongshu.com",
+        ]
+        result, removed = optimize_xiaohongshu_response_cost(fixture)
+        self.assertEqual(removed, 23)
+        self.assertFalse(any("xiaohongshu" in line.lower() and ("script-path=" in line or 'script("' in line) for line in result))
+        self.assertNotIn("disable_watermark", "\n".join(result))
+        self.assertNotIn("video_download", "\n".join(result))
+        self.assertNotIn("comment_type", "\n".join(result))
+        self.assertIn(XHS_V4_VIDEO_AD_ONLY_RULE, result)
+        self.assertIn('has("ad")', XHS_V4_VIDEO_AD_ONLY_RULE)
+        self.assertFalse(any("videofeed" in line and "v3" in line for line in result))
+        self.assertTrue(any("system_service" in line for line in result))
+        self.assertTrue(any("example.invalid/keep.js" in line for line in result))
+        again, second_removed = optimize_xiaohongshu_response_cost(result)
+        self.assertEqual(second_removed, 0)
+        self.assertEqual(again, result)
+
+    def test_xiaohongshu_cleanup_fails_closed_on_trigger_drift(self):
+        from apply_local_overrides import XHS_SCRIPT_TRIGGER_LINES, optimize_xiaohongshu_response_cost
+        triggers = list(sorted(XHS_SCRIPT_TRIGGER_LINES))
+        triggers[0] = triggers[0].replace("requires-body=true", "requires-body=false")
+        fixture = [
+            "[Argument]", "xhs_enable = switch,true,false,tag=小红书-脚本开关",
+            "[Rewrite]",
+            r"""^https:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/v1\/note\/imagefeed response-body-json-jq 'disable_watermark video_download'""",
+            r"""^https:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/v2\/note\/feed response-body-json-jq 'disable_watermark video_download'""",
+            r"""^https:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/v3\/note\/videofeed response-body-json-jq 'disable_watermark video_download model_type has("ad")'""",
+            r"""^https:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/v4\/note\/videofeed response-body-json-jq 'disable_watermark video_download model_type has("ad")'""",
+            r"""^https:\/\/edith\.xiaohongshu\.com\/api\/sns\/v5\/note\/comment\/list response-body-json-jq 'comment_type media_source_type'""",
+            r"""^https:\/\/ci\.xiaohongshu\.com\/system_config\/watermark reject-img""",
+            r"""^https:\/\/ci\.xiaohongshu\.com\/system_config\/watermark reject-img""",
+            "[Script]", *triggers, "[MITM]", "hostname = edith.xiaohongshu.com",
+        ]
+        result, removed = optimize_xiaohongshu_response_cost(fixture)
+        self.assertEqual(removed, 0)
+        self.assertEqual(result, fixture)
+
+    def test_xiaohongshu_cleanup_requires_both_native_video_ad_filters(self):
+        from apply_local_overrides import XHS_SCRIPT_TRIGGER_LINES, optimize_xiaohongshu_response_cost
+        fixture = [
+            "[Argument]", "xhs_enable = switch,true,false,tag=小红书-脚本开关",
+            "[Rewrite]",
+            r"""^https:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/v1\/note\/imagefeed response-body-json-jq 'disable_watermark video_download'""",
+            r"""^https:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/v2\/note\/feed response-body-json-jq 'disable_watermark video_download'""",
+            r"""^https:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/v3\/note\/videofeed response-body-json-jq 'disable_watermark video_download model_type has("ad")'""",
+            r"""^https:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/v5\/note\/videofeed response-body-json-jq 'disable_watermark video_download model_type has("ad")'""",
+            r"""^https:\/\/edith\.xiaohongshu\.com\/api\/sns\/v5\/note\/comment\/list response-body-json-jq 'comment_type media_source_type'""",
+            r"""^https:\/\/ci\.xiaohongshu\.com\/system_config\/watermark reject-img""",
+            r"""^https:\/\/ci\.xiaohongshu\.com\/system_config\/watermark reject-img""",
+            "[Script]", *sorted(XHS_SCRIPT_TRIGGER_LINES), "[MITM]", "hostname = edith.xiaohongshu.com",
+        ]
+        result, removed = optimize_xiaohongshu_response_cost(fixture)
+        self.assertEqual(removed, 0)
+        self.assertEqual(result, fixture)
+
+
+
 if __name__ == "__main__":
     unittest.main()
