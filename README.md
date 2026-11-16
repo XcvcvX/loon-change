@@ -48,10 +48,10 @@
 | 区块 | 条目数 |
 |---|---:|
 | [Argument] | 91 |
-| [Rule] | 3477 |
-| [Rewrite] | 3284 |
+| [Rule] | 3474 |
+| [Rewrite] | 3282 |
 | [Script] | 543 |
-| [MITM] hostname 条目 | 1497 |
+| [MITM] hostname 条目 | 1496 |
 | 唯一远程脚本 URL | 194 |
 <!-- AUTO_PLUGIN_STATS:END -->
 

@@ -17197,23 +17197,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://webcast-open\\\\.douyin\\\\.com/webcast/openapi/feed/', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 876,
-      "output_line": "^https?:\\/\\/webcast-open\\.douyin\\.com\\/webcast\\/openapi\\/feed\\/ reject-dict",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "^https?:\\/\\/webcast-open\\.douyin\\.com\\/webcast\\/openapi\\/feed\\/ reject-dict",
-          "input_section": "Rewrite",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 876
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https?://lf-cdn-tos\\\\.bytescm\\\\.com/obj/static/ad/', ('REJECT', 'reject', 'reject(404)'))",
       "output_entry_index": 877,
       "output_line": "request if ${url} ~= /^https?:\\/\\/lf-cdn-tos\\.bytescm\\.com\\/obj\\/static\\/ad\\// then reject(404)",
@@ -42743,23 +42726,6 @@
           "priority": 5,
           "source": "block",
           "source_entry_index": 742
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://webcast-open\\\\.douyin\\\\.com/webcast/openapi/feed/\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 2264,
-      "output_line": "request if ${url} ~= /^https:\\/\\/webcast-open\\.douyin\\.com\\/webcast\\/openapi\\/feed\\/\\?/ then reject_dict(200)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https:\\/\\/webcast-open\\.douyin\\.com\\/webcast\\/openapi\\/feed\\/\\?/ then reject_dict(200)",
-          "input_section": "Rewrite",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 744
         }
       ],
       "trace_status": "mapped"
@@ -84214,15 +84180,6 @@
       "status": "included"
     },
     {
-      "normalized_line": "DOMAIN,webcast-open.douyin.com,REJECT",
-      "original_input_line": "DOMAIN,webcast-open.douyin.com,REJECT",
-      "output_entry_index": 47,
-      "output_line": "DOMAIN,webcast-open.douyin.com,REJECT",
-      "source": "aoomee",
-      "source_entry_index": 24,
-      "status": "included"
-    },
-    {
       "normalized_line": "DOMAIN,mssdk.volces.com,REJECT",
       "original_input_line": "DOMAIN,mssdk.volces.com,REJECT",
       "output_entry_index": 48,
@@ -86049,32 +86006,6 @@
       "source_line_number": 40,
       "source_original_section": "Rule",
       "source_raw_line": "DOMAIN-KEYWORD,ads5-normal-,REJECT",
-      "status": "included"
-    },
-    {
-      "normalized_line": "DOMAIN-KEYWORD,minigame,REJECT",
-      "original_input_line": "DOMAIN-KEYWORD,minigame,REJECT",
-      "output_entry_index": 229,
-      "output_line": "DOMAIN-KEYWORD,minigame,REJECT",
-      "source": "thelong",
-      "source_entry_index": 60,
-      "source_file": "hongguo_ad_block.plugin",
-      "source_line_number": 41,
-      "source_original_section": "Rule",
-      "source_raw_line": "DOMAIN-KEYWORD,minigame,REJECT",
-      "status": "included"
-    },
-    {
-      "normalized_line": "DOMAIN-SUFFIX,dig.bdurl.net,REJECT",
-      "original_input_line": "DOMAIN-SUFFIX,dig.bdurl.net,REJECT",
-      "output_entry_index": 230,
-      "output_line": "DOMAIN-SUFFIX,dig.bdurl.net,REJECT",
-      "source": "thelong",
-      "source_entry_index": 61,
-      "source_file": "hongguo_ad_block.plugin",
-      "source_line_number": 47,
-      "source_original_section": "Rule",
-      "source_raw_line": "DOMAIN-SUFFIX,dig.bdurl.net,REJECT",
       "status": "included"
     },
     {
@@ -125537,10 +125468,10 @@
       "included": 49
     },
     "post_transform_reconciled": true,
-    "rewrite_output_entries": 3284,
+    "rewrite_output_entries": 3282,
     "rule_covered_or_duplicate_events": 2140,
     "rule_included_events": 3476,
-    "rule_output_entries": 3477,
+    "rule_output_entries": 3474,
     "rule_safety_excluded_events": 11,
     "rule_scope_adjustments": 1,
     "rule_source_events": 5627,

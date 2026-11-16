@@ -5,6 +5,8 @@
 #   <本文件 URL>,REJECT
 # 安全排除：腾讯云 HTTPDNS 正式入口 119.29.29.98/32、119.29.29.99/32 的 REJECT 规则.
 # 安全排除：toutiao-frontier.snssdk.com（头条 Frontier 长连接/WebSocket）。
+# 安全排除：dig.bdurl.net（字节 HTTPDNS 域名解析服务）。
+# 安全排除：webcast-open.douyin.com（直播推荐房间列表接口）。
 
 IP-CIDR,1.202.85.193/32,REJECT,no-resolve
 IP-CIDR,101.124.19.122/32,REJECT,no-resolve
@@ -271,7 +273,6 @@ DOMAIN,datacollection.uve.weibo.com,REJECT
 DOMAIN,ddfs-public.ddimg.mobi,REJECT
 DOMAIN,dflow.bz.mgtv.com,REJECT
 DOMAIN,dgstatic.jd.com,REJECT
-DOMAIN,dig.bdurl.net,REJECT
 DOMAIN,dig.zjurl.cn,REJECT
 DOMAIN,discover.300hu.com,REJECT
 DOMAIN,djad.nmgyhxxkj.cn,REJECT
@@ -576,7 +577,6 @@ DOMAIN,vstlog.17usoft.com,REJECT
 DOMAIN,vv.video.qq.com,REJECT
 DOMAIN,wa.gtimg.com,REJECT
 DOMAIN,waapdg.jd.com,REJECT
-DOMAIN,webcast-open.douyin.com,REJECT
 DOMAIN,webproxy-advp.iad-apple.com,REJECT
 DOMAIN,webproxy-advp.iad-apple.com.akadns.net,REJECT
 DOMAIN,wgo.mmstat.com,REJECT
