@@ -3503,6 +3503,7 @@ RRTV_AD_SOURCE_TO_NATIVE = {
     RRTV_HOME_AD_SOURCE_TRIGGER: RRTV_HOME_NATIVE_REWRITE,
     RRTV_GETALL_AD_SOURCE_TRIGGER: RRTV_GETALL_NATIVE_REWRITE,
 }
+RRTV_NATIVE_REWRITES = (RRTV_HOME_NATIVE_REWRITE, RRTV_GETALL_NATIVE_REWRITE)
 
 def replace_rrtv_json_script_with_native_rewrites(lines):
     """Keep RRTV ad cleanup as native JSON rewrites and remove non-ad script work."""
