@@ -2225,7 +2225,7 @@ def remove_douyin_content_cdn_overblocks(lines):
     if not saw_target:
         return list(lines), 0
     if unknown_overblocks:
-        raise ValueError("Douyin content CDN overblock inventory changed; refusing partial cleanup")
+        raise ValueError("Douyin content CDN overblock inventory changed; refusing partial cleanup: " + repr(unknown_overblocks))
     normalized_rewrite_text = "\n".join(normalized_rewrites)
     missing_ad_paths = [
         marker for marker in DOUYIN_CDN_REQUIRED_AD_PATH_MARKERS
