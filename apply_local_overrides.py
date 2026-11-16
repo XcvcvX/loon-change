@@ -463,15 +463,20 @@ DIDI_HOME_SLOW_RESPONSE_PREFIX = r"response if ${url} ~= /^https:\/\/conf\.didit
 DIDI_HOME_FAST_RESPONSE_PREFIX = r"response if ${url} ~= /^https:\/\/conf\.diditaxi\.com\.cn\/homepage\/v\d\/other\/fast\?/i then response.json.delete("
 
 
+DIDI_HOME_CORE_LEGACY_REJECT = r"^https:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v\\d\\/core reject-dict"
+DIDI_HOME_CORE_RESPONSE_PREFIX = r"response if ${url} ~= /^https:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v\\d\\/core\\?/i then response.json.jq("
+
+
 def remove_didi_homepage_rejects_shadowing_field_cleaners(lines):
     """Remove exact whole-endpoint rejects only when precise field cleaners supersede them."""
     output = list(lines)
     removed = 0
     targets = (
         (DIDI_HOME_SLOW_LEGACY_REJECT, DIDI_HOME_SLOW_RESPONSE_PREFIX, "slow"),
-        (DIDI_HOME_FAST_LEGACY_REJECT, DIDI_HOME_FAST_RESPONSE_PREFIX, "fast"),
+        (DIDI_HOME_FAST_LEGACY_REJECT, DIDI_HOME_FAST_RESPONSE_PREFIX, "fast", "homepage/v1/other/fast"),
+        (DIDI_HOME_CORE_LEGACY_REJECT, DIDI_HOME_CORE_RESPONSE_PREFIX, "core", "homepage/v\\d/core"),
     )
-    for legacy_rule, response_prefix, label in targets:
+    for legacy_rule, response_prefix, label, drift_marker in targets:
         exact_positions = [i for i, line in enumerate(output) if line.strip() == legacy_rule]
         drifted = [
             line.strip() for line in output
