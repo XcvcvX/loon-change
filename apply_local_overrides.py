@@ -2349,6 +2349,64 @@ def scope_taobao_ossgw_ad_assets(lines):
     return output, broad_count + legacy_count
 
 
+# Tuhu's three endpoints mount legacy http-response and modern response scripts.
+# The modern matcher has /i and therefore covers the legacy case-sensitive scope.
+TUHU_SCRIPT_LEGACY_TRIGGERS = (
+    "http-response ^https?:\\/\\/(cl-)?gateway\\.tuhu\\.cn(\\/cl)?\\/cl-common-api\\/api\\/personalCenter\\/getCmsModuleList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/tuhu.js,tag=TUHU,requires-body=true",
+    "http-response ^https?:\\/\\/(cl-)?gateway\\.tuhu\\.cn(\\/cl)?\\/[a-z-]+\\/homePage\\/getHomePageInfo script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/tuhu.js,tag=TUHU-2,requires-body=true",
+    "http-response ^https?:\\/\\/(cl-)?gateway\\.tuhu\\.cn(\\/cl)?\\/cl-shop-api\\/shopTab\\/getModuleForC script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/tuhu.js,tag=TUHU-3,requires-body=true",
+)
+TUHU_SCRIPT_CANONICAL_TRIGGERS = (
+    "response if ${url} ~= /^https?:\\/\\/(cl-)?gateway\\.tuhu\\.cn(\\/cl)?\\/cl-common-api\\/api\\/personalCenter\\/getCmsModuleList/i then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/tuhu.js\") with tag=\"途虎养车去广告\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/(cl-)?gateway\\.tuhu\\.cn(\\/cl)?\\/[a-z-]+\\/homePage\\/getHomePageInfo/i then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/tuhu.js\") with tag=\"途虎养车去广告\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/(cl-)?gateway\\.tuhu\\.cn(\\/cl)?\\/cl-shop-api\\/shopTab\\/getModuleForC/i then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/tuhu.js\") with tag=\"途虎养车去广告\", timeout=60, requires_body=true",
+)
+
+
+def remove_duplicate_tuhu_scripts(lines):
+    """Keep the newer case-insensitive response triggers; remove legacy duplicates."""
+    normalize = lambda value: re.sub(r"\\+", "", value.strip())
+    canonical = {normalize(item): item for item in TUHU_SCRIPT_CANONICAL_TRIGGERS}
+    legacy = {normalize(item): item for item in TUHU_SCRIPT_LEGACY_TRIGGERS}
+    counts = {item: 0 for item in (*TUHU_SCRIPT_CANONICAL_TRIGGERS, *TUHU_SCRIPT_LEGACY_TRIGGERS)}
+    output, section, target_seen, removed = [], "", False, 0
+
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            output.append(line)
+            continue
+
+        normalized = normalize(line)
+        is_target = section == "Script" and "gateway.tuhu.cn" in normalized and "tuhu.js" in normalized
+        if not is_target:
+            output.append(line)
+            continue
+
+        target_seen = True
+        if normalized in canonical:
+            trigger = canonical[normalized]
+            counts[trigger] += 1
+            if counts[trigger] > 1:
+                raise ValueError("duplicate canonical Tuhu script trigger; refusing ambiguous cleanup")
+            output.append(line)
+            continue
+        if normalized in legacy:
+            trigger = legacy[normalized]
+            counts[trigger] += 1
+            if counts[trigger] > 1:
+                raise ValueError("duplicate legacy Tuhu script trigger; refusing ambiguous cleanup")
+            removed += 1
+            continue
+        raise ValueError("Tuhu script trigger inventory changed; refusing unreviewed consolidation")
+
+    if not target_seen:
+        return output, 0
+    if not all(counts[item] == 1 for item in TUHU_SCRIPT_CANONICAL_TRIGGERS):
+        raise ValueError("Tuhu canonical script inventory incomplete; refusing partial consolidation")
+    return output, removed
+
+
 def apply(text: str) -> str:
     if "[Script]" not in text or "[MITM]" not in text or "[Rewrite]" not in text:
         raise ValueError("plugin missing [Rewrite], [Script] or [MITM] section")
@@ -2448,6 +2506,7 @@ def apply(text: str) -> str:
     lines, _ = consolidate_goofish_script_triggers(lines)
     lines, _ = consolidate_jingdong_scripts(lines)
     lines, _ = consolidate_meituan_scripts(lines)
+    lines, _ = remove_duplicate_tuhu_scripts(lines)
     lines, _ = remove_redundant_dianping_scripts(lines)
     lines, _ = remove_redundant_baidumap_script(lines)
     lines, _ = remove_redundant_amap_legacy_scripts(lines)

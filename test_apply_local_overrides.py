@@ -2093,5 +2093,60 @@ class PinduoduoOrderEndpointSafetyTests(unittest.TestCase):
             remove_pdd_order_endpoint_blocks(["[Rewrite]", *self.targets[1:], drifted])
 
 
+class TuhuDuplicateResponseScriptTests(unittest.TestCase):
+    def setUp(self):
+        from apply_local_overrides import (
+            TUHU_SCRIPT_CANONICAL_TRIGGERS, TUHU_SCRIPT_LEGACY_TRIGGERS,
+        )
+        self.canonical = TUHU_SCRIPT_CANONICAL_TRIGGERS
+        self.legacy = TUHU_SCRIPT_LEGACY_TRIGGERS
+        self.unrelated = r'response if ${url} ~= /^https?:\\/\\/example\\.com\\/api/ then script("https://example.invalid/keep.js")'
+        self.fixture = [
+            "[Script]", *self.legacy, *self.canonical, self.unrelated,
+            "[Rewrite]", "^https?:\\\\/\\\\/gateway\\\\.tuhu\\\\.cn\\\\/unrelated reject(404)",
+            "[MITM]", "hostname = gateway.tuhu.cn, unrelated.example",
+        ]
+
+    def test_removes_three_duplicate_legacy_triggers_and_keeps_case_insensitive_canonical(self):
+        from apply_local_overrides import remove_duplicate_tuhu_scripts
+        result, removed = remove_duplicate_tuhu_scripts(self.fixture)
+        self.assertEqual(removed, 3)
+        for item in self.legacy:
+            self.assertNotIn(item, result)
+        for item in self.canonical:
+            self.assertEqual(result.count(item), 1)
+        self.assertIn(self.unrelated, result)
+        self.assertIn("^https?:\\\\/\\\\/gateway\\\\.tuhu\\\\.cn\\\\/unrelated reject(404)", result)
+        self.assertEqual(remove_duplicate_tuhu_scripts(result), (result, 0))
+
+    def test_preserves_already_consolidated_inventory(self):
+        from apply_local_overrides import remove_duplicate_tuhu_scripts
+        clean = ["[Script]", *self.canonical, "[MITM]"]
+        self.assertEqual(remove_duplicate_tuhu_scripts(clean), (clean, 0))
+
+    def test_fails_closed_on_missing_canonical_duplicate_or_unknown_variant(self):
+        from apply_local_overrides import remove_duplicate_tuhu_scripts
+        missing = [line for line in self.fixture if line != self.canonical[1]]
+        with self.assertRaisesRegex(ValueError, "canonical script inventory incomplete"):
+            remove_duplicate_tuhu_scripts(missing)
+
+        duplicate = ["[Script]", *self.canonical, self.canonical[0]]
+        with self.assertRaisesRegex(ValueError, "duplicate canonical Tuhu"):
+            remove_duplicate_tuhu_scripts(duplicate)
+
+        drifted = self.canonical[0].replace("getCmsModuleList", "changedEndpoint")
+        with self.assertRaisesRegex(ValueError, "inventory changed"):
+            remove_duplicate_tuhu_scripts(["[Script]", *self.canonical[1:], drifted])
+
+    def test_checked_in_plugin_snapshot_has_only_the_three_canonical_triggers(self):
+        from pathlib import Path
+        from apply_local_overrides import TUHU_SCRIPT_CANONICAL_TRIGGERS, TUHU_SCRIPT_LEGACY_TRIGGERS
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        for item in TUHU_SCRIPT_LEGACY_TRIGGERS:
+            self.assertNotIn(item, plugin)
+        for item in TUHU_SCRIPT_CANONICAL_TRIGGERS:
+            self.assertEqual(plugin.count(item), 1)
+
+
 if __name__ == "__main__":
     unittest.main()
