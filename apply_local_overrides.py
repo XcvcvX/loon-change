@@ -4021,7 +4021,7 @@ WEIBO_NATIVE_MIGRATIONS = (
     ),
     (
         "api.weibo.cn",
-        "2/(push/active)",
+        "push/active",
         r"http-response ^https?:\/\/api\.weibo\.cn\/2\/(push\/active)\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO,requires-body=true",
         r'response if ${url} ~= /^https?:\/\/api\.weibo\.cn\/2\/push\/active\?/ then response.json.jq("if .feed_redpacket then .feed_redpacket.starttime = \"2208960000\" | .feed_redpacket.interval = \"31536000\" | .feed_redpacket.endtime = \"2209046399\" else . end")',
     ),
@@ -4041,7 +4041,7 @@ WEIBO_NATIVE_MIGRATIONS = (
         "new.vip.weibo.cn",
         "aj/appicon/list",
         r"http-response ^https?:\/\/new\.vip\.weibo\.cn\/aj\/appicon\/list\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-19,requires-body=true",
-        r'response if ${url} ~= /^https?:\/\/new\.vip\.weibo\.cn\/aj\/appicon\/list\?/ then response.json.jq("if (.data.list | type) == \"array\" and (.data.list | length) > 0 then .data.list |= map(if .cardType then .cardType = 2 else . end) else . end")',
+        r'response if ${url} ~= /^https?:\/\/new\.vip\.weibo\.cn\/aj\/appicon\/list\?/ then response.json.jq("if (.data.list | type) == \"array\" and (.data.list | length) > 0 then .data.list |= map(if (.cardType != null and .cardType != false and .cardType != 0 and .cardType != "") then .cardType = 2 else . end) else . end")',
     ),
 )
 
