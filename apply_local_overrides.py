@@ -300,6 +300,53 @@ def remove_redundant_taobao_scripts(lines):
 
 
 
+
+
+# 滴滴个人中心 /usercenter/me 同时由 R-Store 与 FMZ 两个脚本处理。
+# 两个脚本在该分支的过滤字段与保留条件一致；保留 R-Store 触发器。
+DIDI_USERCENTER_CANONICAL_TRIGGER = r"http-response ^https?:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v\\d\\/usercenter\\/me script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI-3,requires-body=true"
+DIDI_USERCENTER_REDUNDANT_TRIGGER = r'response if ${url} ~= /^https?:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v\\d\\/usercenter\\/me/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js") with enable=didiiuxk_enable, tag="滴滴出行", timeout=60, requires_body=true'
+
+
+def remove_redundant_didi_usercenter_script(lines):
+    """Remove only the FMZ duplicate for the exact Didi user-center response endpoint."""
+    canonical = re.sub(r"\\\\+", "", DIDI_USERCENTER_CANONICAL_TRIGGER.strip())
+    redundant = re.sub(r"\\\\+", "", DIDI_USERCENTER_REDUNDANT_TRIGGER.strip())
+    output, section = [], ""
+    canonical_count = redundant_count = 0
+    target_seen = False
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            output.append(line)
+            continue
+        normalized = re.sub(r"\\\\+", "", line.strip())
+        is_target = section == "Script" and (
+            "common.diditaxi.com.cn/common/v" in normalized
+            and "/usercenter/me" in normalized
+        )
+        if not is_target:
+            output.append(line)
+            continue
+        target_seen = True
+        if normalized == canonical:
+            canonical_count += 1
+            output.append(line)
+            continue
+        if normalized == redundant:
+            redundant_count += 1
+            continue
+        raise ValueError("Didi user-center script trigger changed; refusing an unreviewed deduplication")
+    if not target_seen:
+        return output, 0
+    if canonical_count != 1:
+        raise ValueError("Didi user-center canonical trigger inventory changed; expected exactly one R-Store trigger")
+    if redundant_count > 1:
+        raise ValueError("duplicate Didi user-center FMZ trigger; refusing ambiguous deduplication")
+    return output, redundant_count
+
+
+
 DDQX_NEWDETAILS_MARKER = "maicai.api.ddxq.mobi/homeApi/newDetails"
 DDQX_NEWDETAILS_MATCHER = r"^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/newDetails"
 DDQX_NEWDETAILS_LEGACY_ACTION = "response-body-replace-regex suspension random_body"
