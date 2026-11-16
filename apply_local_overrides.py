@@ -3483,8 +3483,8 @@ RRTV_NON_AD_SOURCE_TRIGGERS = (
 )
 RRTV_HOME_AD_SOURCE_TRIGGER = "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/v3plus\\/index\\/channel\\?pageNum=1&position=CHANNEL_INDEX/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true"
 RRTV_GETALL_AD_SOURCE_TRIGGER = "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/ad\\/getAll/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true"
-RRTV_HOME_NATIVE_REWRITE = "response if ${rfrfuipk_enable} == true && ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/v3plus\\/index\\/channel\\?pageNum=1&position=CHANNEL_INDEX/i then response.json.jq(\".data.sections |= map(if .sectionType == \\\"AD\\\" or .sectionType == \\\"SINGLE_IMAGE\\\" or .sectionType == \\\"SHORT_VIDEO\\\" then null else . end)\")"
-RRTV_GETALL_NATIVE_REWRITE = "response if ${rfrfuipk_enable} == true && ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/ad\\/getAll/i then response.json.jq(\".data.adList = []\")"
+RRTV_HOME_NATIVE_REWRITE = "response if ${rfrfuipk_enable} == true && ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/v3plus\\/index\\/channel\\?pageNum=1&position=CHANNEL_INDEX/i then response.json.jq(\". as $original | try (.data.sections |= map(if .sectionType == \\\"AD\\\" or .sectionType == \\\"SINGLE_IMAGE\\\" or .sectionType == \\\"SHORT_VIDEO\\\" then null else . end)) catch $original\")"
+RRTV_GETALL_NATIVE_REWRITE = "response if ${rfrfuipk_enable} == true && ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/ad\\/getAll/i then response.json.jq(\". as $original | try (.data.adList = []) catch $original\")"
 RRTV_AD_SOURCE_TO_NATIVE = {
     RRTV_HOME_AD_SOURCE_TRIGGER: RRTV_HOME_NATIVE_REWRITE,
     RRTV_GETALL_AD_SOURCE_TRIGGER: RRTV_GETALL_NATIVE_REWRITE,
