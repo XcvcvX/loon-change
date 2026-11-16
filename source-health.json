@@ -26,10 +26,10 @@
       "action_changed": 0,
       "added": 0,
       "current_entries": 3266,
-      "net_shrink_percent": 0.488,
-      "previous_entries": 3282,
-      "removed": 16,
-      "removed_percent": 0.488
+      "net_shrink_percent": 0.0,
+      "previous_entries": 3266,
+      "removed": 0,
+      "removed_percent": 0.0
     },
     "rule": {
       "action_changed": 0,

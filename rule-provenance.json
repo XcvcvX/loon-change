@@ -62362,6 +62362,171 @@
       "source_section": "Rewrite",
       "source_section_entry_index": 0,
       "status": "excluded_semantic_duplicate"
+    },
+    {
+      "coverage_kind": "strict_https_subset",
+      "covered_by": "^https?:\\/\\/ep\\.kugou\\.com\\/v\\d\\/album_shop\\/get_entrance_info reject-dict",
+      "input_line": "^https:\\/\\/ep\\.kugou\\.com\\/v\\d\\/album_shop\\/get_entrance_info reject-dict",
+      "reason": "HTTPS-only matcher is a strict subset of the retained HTTP+HTTPS matcher with the same reject-dict action and path",
+      "source": "local_overrides",
+      "source_file": "apply_local_overrides.py",
+      "source_raw_line": "^https:\\/\\/ep\\.kugou\\.com\\/v\\d\\/album_shop\\/get_entrance_info reject-dict",
+      "status": "excluded_semantic_duplicate",
+      "transform_stage": "local_overrides"
+    },
+    {
+      "coverage_kind": "strict_https_subset",
+      "covered_by": "^https?:\\/\\/fx\\.service\\.kugou\\.com\\/mfx-kugoulive\\/ad\\/ reject-dict",
+      "input_line": "^https:\\/\\/fx\\.service\\.kugou\\.com\\/mfx-kugoulive\\/ad\\/ reject-dict",
+      "reason": "HTTPS-only matcher is a strict subset of the retained HTTP+HTTPS matcher with the same reject-dict action and path",
+      "source": "local_overrides",
+      "source_file": "apply_local_overrides.py",
+      "source_raw_line": "^https:\\/\\/fx\\.service\\.kugou\\.com\\/mfx-kugoulive\\/ad\\/ reject-dict",
+      "status": "excluded_semantic_duplicate",
+      "transform_stage": "local_overrides"
+    },
+    {
+      "coverage_kind": "strict_https_subset",
+      "covered_by": "^https?:\\/\\/gateway(retry)?\\.kugou\\.com\\/adp\\/ad\\/ reject-dict",
+      "input_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/adp\\/ad\\/ reject-dict",
+      "reason": "HTTPS-only matcher is a strict subset of the retained HTTP+HTTPS matcher with the same reject-dict action and path",
+      "source": "local_overrides",
+      "source_file": "apply_local_overrides.py",
+      "source_raw_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/adp\\/ad\\/ reject-dict",
+      "status": "excluded_semantic_duplicate",
+      "transform_stage": "local_overrides"
+    },
+    {
+      "coverage_kind": "strict_https_subset",
+      "covered_by": "^https?:\\/\\/gateway(retry)?\\.kugou\\.com\\/adp\\/bubble\\/v\\d\\/song_play reject-dict",
+      "input_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/adp\\/bubble\\/v\\d\\/song_play reject-dict",
+      "reason": "HTTPS-only matcher is a strict subset of the retained HTTP+HTTPS matcher with the same reject-dict action and path",
+      "source": "local_overrides",
+      "source_file": "apply_local_overrides.py",
+      "source_raw_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/adp\\/bubble\\/v\\d\\/song_play reject-dict",
+      "status": "excluded_semantic_duplicate",
+      "transform_stage": "local_overrides"
+    },
+    {
+      "coverage_kind": "strict_https_subset",
+      "covered_by": "^https?:\\/\\/gateway(retry)?\\.kugou\\.com\\/ads\\.gateway\\/ reject-dict",
+      "input_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/ads\\.gateway\\/ reject-dict",
+      "reason": "HTTPS-only matcher is a strict subset of the retained HTTP+HTTPS matcher with the same reject-dict action and path",
+      "source": "local_overrides",
+      "source_file": "apply_local_overrides.py",
+      "source_raw_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/ads\\.gateway\\/ reject-dict",
+      "status": "excluded_semantic_duplicate",
+      "transform_stage": "local_overrides"
+    },
+    {
+      "coverage_kind": "strict_https_subset",
+      "covered_by": "^https?:\\/\\/gateway(retry)?\\.kugou\\.com\\/mstc\\/musicsymbol\\/v\\d\\/system\\/profile reject-dict",
+      "input_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/mstc\\/musicsymbol\\/v\\d\\/system\\/profile reject-dict",
+      "reason": "HTTPS-only matcher is a strict subset of the retained HTTP+HTTPS matcher with the same reject-dict action and path",
+      "source": "local_overrides",
+      "source_file": "apply_local_overrides.py",
+      "source_raw_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/mstc\\/musicsymbol\\/v\\d\\/system\\/profile reject-dict",
+      "status": "excluded_semantic_duplicate",
+      "transform_stage": "local_overrides"
+    },
+    {
+      "coverage_kind": "strict_https_subset",
+      "covered_by": "^https?:\\/\\/gateway(retry)?\\.kugou\\.com\\/ocean\\/v\\d\\/sound\\/banner reject-dict",
+      "input_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/ocean\\/v\\d\\/sound\\/banner reject-dict",
+      "reason": "HTTPS-only matcher is a strict subset of the retained HTTP+HTTPS matcher with the same reject-dict action and path",
+      "source": "local_overrides",
+      "source_file": "apply_local_overrides.py",
+      "source_raw_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/ocean\\/v\\d\\/sound\\/banner reject-dict",
+      "status": "excluded_semantic_duplicate",
+      "transform_stage": "local_overrides"
+    },
+    {
+      "coverage_kind": "strict_https_subset",
+      "covered_by": "^https?:\\/\\/gateway(retry)?\\.kugou\\.com\\/r\\/v\\d\\/general\\/putin\\/midad reject-dict",
+      "input_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/r\\/v\\d\\/general\\/putin\\/midad reject-dict",
+      "reason": "HTTPS-only matcher is a strict subset of the retained HTTP+HTTPS matcher with the same reject-dict action and path",
+      "source": "local_overrides",
+      "source_file": "apply_local_overrides.py",
+      "source_raw_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/r\\/v\\d\\/general\\/putin\\/midad reject-dict",
+      "status": "excluded_semantic_duplicate",
+      "transform_stage": "local_overrides"
+    },
+    {
+      "coverage_kind": "strict_https_subset",
+      "covered_by": "^https?:\\/\\/gateway(retry)?\\.kugou\\.com\\/searchnofocus\\/v\\d\\/search_no_focus_word reject-dict",
+      "input_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/searchnofocus\\/v\\d\\/search_no_focus_word reject-dict",
+      "reason": "HTTPS-only matcher is a strict subset of the retained HTTP+HTTPS matcher with the same reject-dict action and path",
+      "source": "local_overrides",
+      "source_file": "apply_local_overrides.py",
+      "source_raw_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/searchnofocus\\/v\\d\\/search_no_focus_word reject-dict",
+      "status": "excluded_semantic_duplicate",
+      "transform_stage": "local_overrides"
+    },
+    {
+      "coverage_kind": "strict_https_subset",
+      "covered_by": "^https?:\\/\\/gateway(retry)?\\.kugou\\.com\\/singerdiscuss\\/v\\d\\/entrance\\/comment reject-dict",
+      "input_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/singerdiscuss\\/v\\d\\/entrance\\/comment reject-dict",
+      "reason": "HTTPS-only matcher is a strict subset of the retained HTTP+HTTPS matcher with the same reject-dict action and path",
+      "source": "local_overrides",
+      "source_file": "apply_local_overrides.py",
+      "source_raw_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/singerdiscuss\\/v\\d\\/entrance\\/comment reject-dict",
+      "status": "excluded_semantic_duplicate",
+      "transform_stage": "local_overrides"
+    },
+    {
+      "coverage_kind": "strict_https_subset",
+      "covered_by": "^https?:\\/\\/gateway(retry)?\\.kugou\\.com\\/v\\d\\/feeds\\/follow_feed_fallback reject-dict",
+      "input_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/v\\d\\/feeds\\/follow_feed_fallback reject-dict",
+      "reason": "HTTPS-only matcher is a strict subset of the retained HTTP+HTTPS matcher with the same reject-dict action and path",
+      "source": "local_overrides",
+      "source_file": "apply_local_overrides.py",
+      "source_raw_line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/v\\d\\/feeds\\/follow_feed_fallback reject-dict",
+      "status": "excluded_semantic_duplicate",
+      "transform_stage": "local_overrides"
+    },
+    {
+      "coverage_kind": "strict_https_subset",
+      "covered_by": "^https?:\\/\\/gzacshow\\.kugou\\.com\\/mfx-rt-show\\/cdn\\/mo\\/show\\/headline reject-dict",
+      "input_line": "^https:\\/\\/gzacshow\\.kugou\\.com\\/mfx-rt-show\\/cdn\\/mo\\/show\\/headline reject-dict",
+      "reason": "HTTPS-only matcher is a strict subset of the retained HTTP+HTTPS matcher with the same reject-dict action and path",
+      "source": "local_overrides",
+      "source_file": "apply_local_overrides.py",
+      "source_raw_line": "^https:\\/\\/gzacshow\\.kugou\\.com\\/mfx-rt-show\\/cdn\\/mo\\/show\\/headline reject-dict",
+      "status": "excluded_semantic_duplicate",
+      "transform_stage": "local_overrides"
+    },
+    {
+      "coverage_kind": "strict_https_subset",
+      "covered_by": "^https?:\\/\\/hwstore\\.kugou\\.com\\/v\\d\\/get_store_data reject-dict",
+      "input_line": "^https:\\/\\/hwstore\\.kugou\\.com\\/v\\d\\/get_store_data reject-dict",
+      "reason": "HTTPS-only matcher is a strict subset of the retained HTTP+HTTPS matcher with the same reject-dict action and path",
+      "source": "local_overrides",
+      "source_file": "apply_local_overrides.py",
+      "source_raw_line": "^https:\\/\\/hwstore\\.kugou\\.com\\/v\\d\\/get_store_data reject-dict",
+      "status": "excluded_semantic_duplicate",
+      "transform_stage": "local_overrides"
+    },
+    {
+      "coverage_kind": "strict_https_subset",
+      "covered_by": "^https?:\\/\\/m1fxgroup\\.kugou\\.com\\/fxsing\\/yqc\\/alongInfo\\/getUserAlongInfo reject-dict",
+      "input_line": "^https:\\/\\/m1fxgroup\\.kugou\\.com\\/fxsing\\/yqc\\/alongInfo\\/getUserAlongInfo reject-dict",
+      "reason": "HTTPS-only matcher is a strict subset of the retained HTTP+HTTPS matcher with the same reject-dict action and path",
+      "source": "local_overrides",
+      "source_file": "apply_local_overrides.py",
+      "source_raw_line": "^https:\\/\\/m1fxgroup\\.kugou\\.com\\/fxsing\\/yqc\\/alongInfo\\/getUserAlongInfo reject-dict",
+      "status": "excluded_semantic_duplicate",
+      "transform_stage": "local_overrides"
+    },
+    {
+      "coverage_kind": "request_terminates_before_response",
+      "covered_by": "request if ${url} ~= /^https?:\\/\\/jad-api\\.jin10\\.com\\/ad/ then reject(404)",
+      "input_line": "^https:\\/\\/jad-api\\.jin10\\.com\\/ad reject-dict",
+      "reason": "The exact request-phase reject(404) terminates this URL before a response-phase Rewrite can run",
+      "source": "local_overrides",
+      "source_file": "apply_local_overrides.py",
+      "source_raw_line": "^https:\\/\\/jad-api\\.jin10\\.com\\/ad reject-dict",
+      "status": "excluded_unreachable_response",
+      "transform_stage": "local_overrides"
     }
   ],
   "rule_events": [

@@ -181,120 +181,7 @@
     "rewrite": {
       "action_changed": [],
       "added": [],
-      "removed": [
-        {
-          "line": "^https:\\/\\/ep\\.kugou\\.com\\/v\\d\\/album_shop\\/get_entrance_info reject-dict",
-          "section": "rewrite",
-          "sources": [
-            "thelong"
-          ]
-        },
-        {
-          "line": "^https:\\/\\/fx\\.service\\.kugou\\.com\\/mfx-kugoulive\\/ad\\/ reject-dict",
-          "section": "rewrite",
-          "sources": [
-            "thelong"
-          ]
-        },
-        {
-          "line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/adp\\/ad\\/ reject-dict",
-          "section": "rewrite",
-          "sources": [
-            "thelong"
-          ]
-        },
-        {
-          "line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/adp\\/bubble\\/v\\d\\/song_play reject-dict",
-          "section": "rewrite",
-          "sources": [
-            "thelong"
-          ]
-        },
-        {
-          "line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/ads\\.gateway\\/ reject-dict",
-          "section": "rewrite",
-          "sources": [
-            "thelong"
-          ]
-        },
-        {
-          "line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/mstc\\/musicsymbol\\/v\\d\\/system\\/profile reject-dict",
-          "section": "rewrite",
-          "sources": [
-            "thelong"
-          ]
-        },
-        {
-          "line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/ocean\\/v\\d\\/sound\\/banner reject-dict",
-          "section": "rewrite",
-          "sources": [
-            "thelong"
-          ]
-        },
-        {
-          "line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/r\\/v\\d\\/general\\/putin\\/midad reject-dict",
-          "section": "rewrite",
-          "sources": [
-            "thelong"
-          ]
-        },
-        {
-          "line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/searchnofocus\\/v\\d\\/search_no_focus_word reject-dict",
-          "section": "rewrite",
-          "sources": [
-            "thelong"
-          ]
-        },
-        {
-          "line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/singerdiscuss\\/v\\d\\/entrance\\/comment reject-dict",
-          "section": "rewrite",
-          "sources": [
-            "thelong"
-          ]
-        },
-        {
-          "line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/v\\d\\/feeds\\/follow_feed_fallback reject-dict",
-          "section": "rewrite",
-          "sources": [
-            "thelong"
-          ]
-        },
-        {
-          "line": "^https:\\/\\/gzacshow\\.kugou\\.com\\/mfx-rt-show\\/cdn\\/mo\\/show\\/headline reject-dict",
-          "section": "rewrite",
-          "sources": [
-            "thelong"
-          ]
-        },
-        {
-          "line": "^https:\\/\\/hwstore\\.kugou\\.com\\/v\\d\\/get_store_data reject-dict",
-          "section": "rewrite",
-          "sources": [
-            "thelong"
-          ]
-        },
-        {
-          "line": "^https:\\/\\/jad-api\\.jin10\\.com\\/ad reject-dict",
-          "section": "rewrite",
-          "sources": [
-            "thelong"
-          ]
-        },
-        {
-          "line": "^https:\\/\\/m1fxgroup\\.kugou\\.com\\/fxsing\\/yqc\\/alongInfo\\/getUserAlongInfo reject-dict",
-          "section": "rewrite",
-          "sources": [
-            "thelong"
-          ]
-        },
-        {
-          "line": "^https?:\\/\\/gzacshow\\.kugou\\.com\\/mfanxing-home\\/cdn\\/room\\/index\\/list_v reject-dict",
-          "section": "rewrite",
-          "sources": [
-            "base"
-          ]
-        }
-      ]
+      "removed": []
     },
     "rule": {
       "action_changed": [],
@@ -311,7 +198,7 @@
     "rewrite": {
       "action_changed": 0,
       "added": 0,
-      "removed": 16
+      "removed": 0
     },
     "rule": {
       "action_changed": 0,
@@ -323,7 +210,7 @@
       "added": 0,
       "removed": 0
     },
-    "total_changes": 16
+    "total_changes": 0
   },
   "upstream_revision_changes": []
 }
