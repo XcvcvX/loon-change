@@ -242,9 +242,9 @@ TAOBAO_CANONICAL_SCRIPT_TRIGGERS = (
 )
 TAOBAO_REDUNDANT_SCRIPT_TRIGGERS = (
     r'response if ${url} ~= /^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.(cloudvideo\\.video\\.query|wireless\\.home\\.splash\\.awesome\\.get)/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/myBlockAds.js") with enable=albb_enable, tag="阿里巴巴广告", timeout=60, requires_body=true',
-    r'response if ${url} ~= /^https:\\/\\/poplayer\\.template\\.alibaba\\.com\\/\\w+\\.json/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/myBlockAds.js") with enable=albb_enable, tag="阿里巴巴广告", timeout=60, requires_body=true',
-    r'response if ${url} ~= /^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.(cloudvideo\\.video\\.query|wireless\\.home\\.splash\\.awesome\\.get)/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/myBlockAds.js") with enable=tcbc_enable, tag="淘宝", timeout=60, requires_body=true',
-    r'response if ${url} ~= /^https:\\/\\/poplayer\\.template\\.alibaba\\.com\\/\\w+\\.json/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/myBlockAds.js") with enable=tcbc_enable, tag="淘宝", timeout=60, requires_body=true',
+    r'response if ${url} ~= /^https:\\/\\/poplayer\\.template\\.alibaba\\.com\\/\\w+\\.json/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/myBlockAds.js") with enable=albb_enable, tag="myBlockAds", timeout=60, requires_body=true',
+    r'response if ${url} ~= /^https?:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.(cloudvideo\\.video\\.query|wireless\\.home\\.splash\\.awesome\\.get)/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/myBlockAds.js") with enable=tcbc_enable, tag="淘宝", timeout=60, requires_body=true',
+    r'response if ${url} ~= /^https?:\\/\\/poplayer\\.template\\.alibaba\\.com\\/\\w+\\.json/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/myBlockAds.js") with enable=tcbc_enable, tag="淘宝", timeout=60, requires_body=true',
     r'response if ${url} ~= /^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.(cloudvideo\\.video\\.query|wireless\\.home\\.splash\\.awesome\\.get)/i then script("https://raw.githubusercontent.com/zmjde/loon-plugins/main/JS/Taobao/Taobao_remove_ads.js") with tag="移除淘宝开屏广告", requires_body=true',
     r'response if ${url} ~= /^https:\\/\\/poplayer\\.template\\.alibaba\\.com\\/\\w+\\.json/i then script("https://raw.githubusercontent.com/zmjde/loon-plugins/main/JS/Taobao/Taobao_remove_ads.js") with tag="移除淘宝开屏广告", requires_body=true',
     r'response if ${url} ~= /^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.(?:cloudvideo\\.video\\.query|wireless\\.home\\.splash\\.awesome\\.get)/i then script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js") with tag="taobao_1", requires_body=true',
@@ -253,9 +253,9 @@ TAOBAO_REDUNDANT_SCRIPT_TRIGGERS = (
 
 
 def remove_redundant_taobao_scripts(lines):
-    """Keep the two canonical R-Store Taobao triggers and remove six equivalent duplicates."""
-    canonical = {re.sub(r"\\\\+", "", item.strip()): item for item in TAOBAO_CANONICAL_SCRIPT_TRIGGERS}
-    redundant = {re.sub(r"\\\\+", "", item.strip()): item for item in TAOBAO_REDUNDANT_SCRIPT_TRIGGERS}
+    """Keep the two canonical R-Store Taobao triggers and remove eight equivalent duplicates."""
+    canonical = {re.sub(r"\\+", "", item.strip()): item for item in TAOBAO_CANONICAL_SCRIPT_TRIGGERS}
+    redundant = {re.sub(r"\\+", "", item.strip()): item for item in TAOBAO_REDUNDANT_SCRIPT_TRIGGERS}
     counts = {item: 0 for item in (*TAOBAO_CANONICAL_SCRIPT_TRIGGERS, *TAOBAO_REDUNDANT_SCRIPT_TRIGGERS)}
     output, section, target_seen = [], "", False
     for line in lines:
@@ -263,7 +263,7 @@ def remove_redundant_taobao_scripts(lines):
             section = line[1:-1]
             output.append(line)
             continue
-        normalized = re.sub(r"\\\\+", "", line.strip())
+        normalized = re.sub(r"\\+", "", line.strip())
         is_target = section == "Script" and (
             ("guide-acs.m.taobao.com/gw/mtop.taobao." in normalized
              and ("cloudvideo.video.query" in normalized or "wireless.home.splash.awesome.get" in normalized))
@@ -297,6 +297,53 @@ def remove_redundant_taobao_scripts(lines):
     if missing:
         raise ValueError("Taobao splash script trigger inventory changed; expected each reviewed trigger exactly once")
     return output, len(TAOBAO_REDUNDANT_SCRIPT_TRIGGERS)
+
+
+
+
+
+# 滴滴个人中心 /usercenter/me 同时由 R-Store 与 FMZ 两个脚本处理。
+# 两个脚本在该分支的过滤字段与保留条件一致；保留 R-Store 触发器。
+DIDI_USERCENTER_CANONICAL_TRIGGER = r"http-response ^https?:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v\\d\\/usercenter\\/me script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI-3,requires-body=true"
+DIDI_USERCENTER_REDUNDANT_TRIGGER = r'response if ${url} ~= /^https?:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v\\d\\/usercenter\\/me/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js") with enable=didiiuxk_enable, tag="滴滴出行", timeout=60, requires_body=true'
+
+
+def remove_redundant_didi_usercenter_script(lines):
+    """Remove only the FMZ duplicate for the exact Didi user-center response endpoint."""
+    canonical = re.sub(r"\\+", "", DIDI_USERCENTER_CANONICAL_TRIGGER.strip())
+    redundant = re.sub(r"\\+", "", DIDI_USERCENTER_REDUNDANT_TRIGGER.strip())
+    output, section = [], ""
+    canonical_count = redundant_count = 0
+    target_seen = False
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            output.append(line)
+            continue
+        normalized = re.sub(r"\\+", "", line.strip())
+        is_target = section == "Script" and (
+            "common.diditaxi.com.cn/common/v" in normalized
+            and "/usercenter/me" in normalized
+        )
+        if not is_target:
+            output.append(line)
+            continue
+        target_seen = True
+        if normalized == canonical:
+            canonical_count += 1
+            output.append(line)
+            continue
+        if normalized == redundant:
+            redundant_count += 1
+            continue
+        raise ValueError("Didi user-center script trigger changed; refusing an unreviewed deduplication")
+    if not target_seen:
+        return output, 0
+    if canonical_count != 1:
+        raise ValueError("Didi user-center canonical trigger inventory changed; expected exactly one R-Store trigger")
+    if redundant_count > 1:
+        raise ValueError("duplicate Didi user-center FMZ trigger; refusing ambiguous deduplication")
+    return output, redundant_count
 
 
 
@@ -528,6 +575,7 @@ def apply(text: str) -> str:
     lines, guiderank_homepage_script_count = remove_guiderank_homepage_script(lines)
     lines, gaoding_converted_triggers = remove_gaoding_resource_scripts(lines)
     lines, _ = remove_redundant_taobao_scripts(lines)
+    lines, _ = remove_redundant_didi_usercenter_script(lines)
 
     result_lines, rewrite_lines = [], []
     section = ""

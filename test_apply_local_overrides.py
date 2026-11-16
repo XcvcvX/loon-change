@@ -495,5 +495,70 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
             apply(fixture)
 
 
+
+    def test_removes_only_duplicate_didi_usercenter_fmz_script(self):
+        from apply_local_overrides import (
+            DIDI_USERCENTER_CANONICAL_TRIGGER, DIDI_USERCENTER_REDUNDANT_TRIGGER,
+        )
+        unrelated = 'response if ${url} ~= /common.diditaxi.com.cn/common/v5/ then script("https://example.invalid/miniapp.js")'
+        fixture = BASE.replace(
+            "[Script]",
+            "[Script]\n" + DIDI_USERCENTER_CANONICAL_TRIGGER
+            + "\n" + DIDI_USERCENTER_REDUNDANT_TRIGGER
+            + "\n" + unrelated,
+        )
+        result = apply(fixture)
+        script = result.split("[Script]", 1)[1].split("[MITM]", 1)[0]
+        self.assertEqual(script.count(DIDI_USERCENTER_CANONICAL_TRIGGER), 1)
+        self.assertNotIn(DIDI_USERCENTER_REDUNDANT_TRIGGER, script)
+        self.assertIn(unrelated, script)
+        self.assertEqual(apply(result), result)
+
+    def test_fails_closed_when_didi_usercenter_trigger_drifts(self):
+        from apply_local_overrides import DIDI_USERCENTER_REDUNDANT_TRIGGER
+        changed = DIDI_USERCENTER_REDUNDANT_TRIGGER.replace("requires_body=true", "requires_body=false")
+        fixture = BASE.replace("[Script]", "[Script]\n" + changed)
+        with self.assertRaisesRegex(ValueError, "Didi user-center script trigger changed"):
+            apply(fixture)
+
+    def test_fails_closed_when_didi_usercenter_canonical_trigger_is_missing(self):
+        from apply_local_overrides import DIDI_USERCENTER_REDUNDANT_TRIGGER
+        fixture = BASE.replace("[Script]", "[Script]\n" + DIDI_USERCENTER_REDUNDANT_TRIGGER)
+        with self.assertRaisesRegex(ValueError, "Didi user-center canonical trigger inventory changed"):
+            apply(fixture)
+
+    def test_fails_closed_on_duplicate_didi_usercenter_fmz_trigger(self):
+        from apply_local_overrides import (
+            DIDI_USERCENTER_CANONICAL_TRIGGER, DIDI_USERCENTER_REDUNDANT_TRIGGER,
+        )
+        fixture = BASE.replace(
+            "[Script]",
+            "[Script]\n" + DIDI_USERCENTER_CANONICAL_TRIGGER
+            + "\n" + DIDI_USERCENTER_REDUNDANT_TRIGGER
+            + "\n" + DIDI_USERCENTER_REDUNDANT_TRIGGER,
+        )
+        with self.assertRaisesRegex(ValueError, "duplicate Didi user-center FMZ trigger"):
+            apply(fixture)
+
+
+
+    def test_taobao_deduplication_accepts_single_backslash_generated_plugin_escapes(self):
+        from apply_local_overrides import (
+            TAOBAO_CANONICAL_SCRIPT_TRIGGERS, TAOBAO_REDUNDANT_SCRIPT_TRIGGERS,
+        )
+        single_escape = lambda trigger: trigger.replace("\\\\\\\\", "\\\\")
+        triggers = tuple(single_escape(item) for item in (
+            *TAOBAO_CANONICAL_SCRIPT_TRIGGERS, *TAOBAO_REDUNDANT_SCRIPT_TRIGGERS,
+        ))
+        fixture = BASE.replace("[Script]", "[Script]\n" + "\n".join(triggers))
+        result = apply(fixture)
+        script = result.split("[Script]", 1)[1].split("[MITM]", 1)[0]
+        for trigger in triggers[:len(TAOBAO_CANONICAL_SCRIPT_TRIGGERS)]:
+            self.assertIn(trigger, script)
+        for trigger in triggers[len(TAOBAO_CANONICAL_SCRIPT_TRIGGERS):]:
+            self.assertNotIn(trigger, script)
+        self.assertEqual(apply(result), result)
+
+
 if __name__ == "__main__":
     unittest.main()
