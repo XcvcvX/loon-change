@@ -2018,6 +2018,16 @@ class ResponseJsonDeleteBatchTests(unittest.TestCase):
         self.assertIn("^https:\\/\\/unrelated\\.example\\/keep reject", result)
         self.assertEqual(apply(result), result)
 
+    def test_fails_closed_on_partial_or_duplicate_batched_output(self):
+        result = apply(self.base)
+        duplicate = result.replace(self.batched[0], self.batched[0] + "\\n" + self.batched[0], 1)
+        with self.assertRaisesRegex(ValueError, "Response JSON delete batch output inventory changed"):
+            apply(duplicate)
+
+        partial = result.replace(self.batched[1] + "\\n", "", 1)
+        with self.assertRaisesRegex(ValueError, "Response JSON delete batch output inventory changed"):
+            apply(partial)
+
     def test_fails_closed_on_missing_duplicate_or_drifted_inventory(self):
         missing = self.base.replace(self.original[0] + "\n", "", 1)
         with self.assertRaisesRegex(ValueError, "Response JSON delete batch inventory changed"):
