@@ -3,7 +3,7 @@
     "rewrite": {
       "action_changed": 0,
       "added": 0,
-      "removed": 0
+      "removed": 1
     },
     "rule": {
       "action_changed": 0,
@@ -13,234 +13,42 @@
     "script": {
       "action_changed": 0,
       "added": 0,
-      "removed": 9
+      "removed": 0
     }
   },
   "events": [
     {
       "after": null,
       "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.(?:cloudvideo\\.video\\.query|wireless\\.home\\.splash\\.awesome\\.get)/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"taobao_1\", requires_body=true",
-        "section": "script",
+        "line": "request if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search\\/new_hotword\\?/i then reject_dict(200)",
+        "section": "rewrite",
         "sources": [
-          "myblockads"
+          "amap"
         ]
       },
       "change_type": "removed",
       "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
       "risk": "high",
-      "section": "script",
+      "section": "rewrite",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "myblockads": "unavailable"
+        "amap": "unavailable"
       },
       "source_scores": {
-        "myblockads": null
+        "amap": null
       },
       "sources": [
-        "myblockads"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.(cloudvideo\\.video\\.query|wireless\\.home\\.splash\\.awesome\\.get)/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/myBlockAds.js\") with enable=albb_enable, tag=\"阿里巴巴广告\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "block"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "block": "unavailable"
-      },
-      "source_scores": {
-        "block": null
-      },
-      "sources": [
-        "block"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.(cloudvideo\\.video\\.query|wireless\\.home\\.splash\\.awesome\\.get)/i then script(\"https://raw.githubusercontent.com/zmjde/loon-plugins/main/JS/Taobao/Taobao_remove_ads.js\") with tag=\"移除淘宝开屏广告\", requires_body=true",
-        "section": "script",
-        "sources": [
-          "zmjapp"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "zmjapp": "unavailable"
-      },
-      "source_scores": {
-        "zmjapp": null
-      },
-      "sources": [
-        "zmjapp"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/poplayer\\.template\\.alibaba\\.com\\/\\w+\\.json/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"taobao_2\", requires_body=true",
-        "section": "script",
-        "sources": [
-          "myblockads"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "myblockads": "unavailable"
-      },
-      "source_scores": {
-        "myblockads": null
-      },
-      "sources": [
-        "myblockads"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/poplayer\\.template\\.alibaba\\.com\\/\\w+\\.json/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/myBlockAds.js\") with enable=albb_enable, tag=\"myBlockAds\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "block"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "block": "unavailable"
-      },
-      "source_scores": {
-        "block": null
-      },
-      "sources": [
-        "block"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/poplayer\\.template\\.alibaba\\.com\\/\\w+\\.json/i then script(\"https://raw.githubusercontent.com/zmjde/loon-plugins/main/JS/Taobao/Taobao_remove_ads.js\") with tag=\"移除淘宝开屏广告\", requires_body=true",
-        "section": "script",
-        "sources": [
-          "zmjapp"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "zmjapp": "unavailable"
-      },
-      "source_scores": {
-        "zmjapp": null
-      },
-      "sources": [
-        "zmjapp"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https?:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v\\d\\/usercenter\\/me/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "block"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "block": "unavailable"
-      },
-      "source_scores": {
-        "block": null
-      },
-      "sources": [
-        "block"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https?:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.(cloudvideo\\.video\\.query|wireless\\.home\\.splash\\.awesome\\.get)/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/myBlockAds.js\") with enable=tcbc_enable, tag=\"淘宝\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "block"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "block": "unavailable"
-      },
-      "source_scores": {
-        "block": null
-      },
-      "sources": [
-        "block"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https?:\\/\\/poplayer\\.template\\.alibaba\\.com\\/\\w+\\.json/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/myBlockAds.js\") with enable=tcbc_enable, tag=\"淘宝\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "block"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "block": "unavailable"
-      },
-      "source_scores": {
-        "block": null
-      },
-      "sources": [
-        "block"
+        "amap"
       ]
     }
   ],
   "overall_risk": "high",
   "risk_counts": {
-    "high": 9,
+    "high": 1,
     "low": 0,
     "medium": 0
   },
-  "run_id": "43787899420",
+  "run_id": "43788993648",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -260,6 +68,12 @@
       "action_changed": 0,
       "added": 6,
       "removed": 0,
+      "snapshots_seen": 1
+    },
+    "amap": {
+      "action_changed": 0,
+      "added": 0,
+      "removed": 1,
       "snapshots_seen": 1
     },
     "aoomee": {
