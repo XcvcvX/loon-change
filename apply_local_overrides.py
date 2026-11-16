@@ -4281,7 +4281,7 @@ BILIBILI_JSON_TRIGGER_PAIRS = (
         r"http-response ^https?:\/\/app\.bilibili\.com\/x\/v\d\/splash\/brand\/list\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-11,requires-body=true",
     ),
 )
-BILIBILI_LIVE_FMZ_MARKER = "xlive/app-room/v1/index/getInfoBy(Room|User)"
+BILIBILI_LIVE_FMZ_MARKER = "app-room/v1/index/getInfoBy(Room|User)"
 BILIBILI_NATIVE_RULE_REPLACEMENTS = (
     (
         r'response if ${url} ~= /^https:\/\/app\.bilibili\.com\/x\/v2\/feed\/index\?/ then response.json.jq(`if .data.items then .data.items |= map(select((.banner_item == null) and (.ad_info == null) and (.card_goto == "av") and (.card_type | IN("small_cover_v2", "large_cover_single_v9", "large_cover_v1")))) end`)',
