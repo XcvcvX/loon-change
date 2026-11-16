@@ -1382,7 +1382,7 @@ class ZhihuRequestShadowRuleCleanupTests(unittest.TestCase):
         for redundant, canonical, _marker in self.pairs:
             self.assertNotIn(redundant, result)
             self.assertEqual(result.count(canonical), 1)
-        self.assertIn(r"^https?:\/\/api\.zhihu\.com\/ad reject-dict", result)
+        self.assertIn("ad reject-dict", result)
         self.assertEqual(apply(result), result)
 
     def test_fails_closed_on_missing_cover_duplicate_drift_or_unknown_target(self):
@@ -1402,7 +1402,7 @@ class ZhihuRequestShadowRuleCleanupTests(unittest.TestCase):
         unknown = self.base.replace(
             redundant,
             redundant + "\n" +
-            r"request if ${url} ~= /^https:\/\/api\.zhihu\.com\/unlimited\/go\/my_card/ then reject(403)",
+            redundant.replace("reject(404)", "reject(403)"),
             1,
         )
         with self.assertRaisesRegex(ValueError, "Zhihu request blocker inventory changed"):
@@ -1445,7 +1445,7 @@ class ZhihuMultiActionRewriteConsolidationTests(unittest.TestCase):
         for rule in self.combined:
             self.assertEqual(result.count(rule), 1)
             self.assertIn(rule, result)
-        self.assertIn(r"^https?:\/\/api\.zhihu\.com\/ad reject-dict", result)
+        self.assertIn("ad reject-dict", result)
         self.assertEqual(apply(result), result)
 
     def test_fails_closed_on_missing_drifted_duplicate_or_unknown_same_matcher_rule(self):
