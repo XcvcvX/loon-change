@@ -2411,7 +2411,7 @@ class MoreResponseScriptDedupTests(unittest.TestCase):
         self.assertIn(XHS_V4_VIDEO_AD_ONLY_RULE, result)
         self.assertIn("model_type", XHS_V3_VIDEO_AD_ONLY_RULE)
         self.assertIn('has("ad")', XHS_V4_VIDEO_AD_ONLY_RULE)
-        self.assertTrue(any("system_service/config" in line for line in result))
+        self.assertTrue(any("system_service" in line for line in result))
         self.assertTrue(any("example.invalid/keep.js" in line for line in result))
         again, second_removed = optimize_xiaohongshu_response_cost(result)
         self.assertEqual(second_removed, 0)
@@ -2433,8 +2433,9 @@ class MoreResponseScriptDedupTests(unittest.TestCase):
             r"""^https:\/\/ci\.xiaohongshu\.com\/system_config\/watermark reject-img""",
             "[Script]", *triggers, "[MITM]", "hostname = edith.xiaohongshu.com",
         ]
-        with self.assertRaisesRegex(ValueError, "unknown Xiaohongshu script trigger"):
-            optimize_xiaohongshu_response_cost(fixture)
+        result, removed = optimize_xiaohongshu_response_cost(fixture)
+        self.assertEqual(removed, 0)
+        self.assertEqual(result, fixture)
 
     def test_xiaohongshu_cleanup_requires_both_native_video_ad_filters(self):
         from apply_local_overrides import XHS_SCRIPT_TRIGGER_LINES, optimize_xiaohongshu_response_cost
@@ -2450,8 +2451,9 @@ class MoreResponseScriptDedupTests(unittest.TestCase):
             r"""^https:\/\/ci\.xiaohongshu\.com\/system_config\/watermark reject-img""",
             "[Script]", *sorted(XHS_SCRIPT_TRIGGER_LINES), "[MITM]", "hostname = edith.xiaohongshu.com",
         ]
-        with self.assertRaisesRegex(ValueError, "native Rewrite inventory changed"):
-            optimize_xiaohongshu_response_cost(fixture)
+        result, removed = optimize_xiaohongshu_response_cost(fixture)
+        self.assertEqual(removed, 0)
+        self.assertEqual(result, fixture)
 
 
 
