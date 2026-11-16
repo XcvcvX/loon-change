@@ -2760,15 +2760,15 @@ CNFTP_MGTV_TRIGGER_REPLACEMENTS = dict(zip(
 
 
 def remove_duplicate_cnftp_scripts(lines):
-    """Collapse duplicate video response scripts while preserving broad MGTV coverage."""
+    """Collapse duplicate video response scripts and accept the already-combined iQIYI home state."""
     remove_counts = {item: 0 for item in CNFTP_DUPLICATE_REMOVE_TRIGGERS}
     source_counts = {item: 0 for item in CNFTP_DUPLICATE_KEEP_SOURCE_TRIGGERS}
-    output_counts = {item: 0 for item in CNFTP_DUPLICATE_KEEP_TRIGGERS}
+    home_source_counts = {item: 0 for item in CNFTP_IQIYI_HOME_SOURCE_TRIGGERS}
+    output_counts = {item: 0 for item in CNFTP_DUPLICATE_KEEP_TRIGGERS[4:]}
     remove_set = set(CNFTP_DUPLICATE_REMOVE_TRIGGERS)
-    source_set = set(CNFTP_DUPLICATE_KEEP_SOURCE_TRIGGERS)
-    output_set = set(CNFTP_DUPLICATE_KEEP_TRIGGERS)
     source_mode = any(item in lines for item in remove_set)
     output, section, target_seen, removed = [], "", False, 0
+    combined_home_count = 0
 
     for line in lines:
         if line.startswith("[") and line.endswith("]"):
@@ -2803,6 +2803,18 @@ def remove_duplicate_cnftp_scripts(lines):
                 continue
             raise ValueError("video script trigger inventory changed; refusing unreviewed consolidation")
 
+        if line == CNFTP_IQIYI_HOME_COMBINED_TRIGGER:
+            combined_home_count += 1
+            if combined_home_count > 1:
+                raise ValueError("duplicate combined iQIYI home trigger; refusing ambiguous cleanup")
+            output.append(line)
+            continue
+        if line in home_source_counts:
+            home_source_counts[line] += 1
+            if home_source_counts[line] > 1:
+                raise ValueError("duplicate iQIYI home source trigger; refusing ambiguous cleanup")
+            output.append(line)
+            continue
         if line in output_counts:
             output_counts[line] += 1
             if output_counts[line] > 1:
@@ -2820,6 +2832,12 @@ def remove_duplicate_cnftp_scripts(lines):
         if not all(count == 1 for count in source_counts.values()):
             raise ValueError("video source trigger inventory incomplete; refusing partial consolidation")
         return output, removed
+
+    if combined_home_count == 1:
+        if any(home_source_counts.values()):
+            raise ValueError("mixed combined and split iQIYI home triggers; refusing ambiguous cleanup")
+    elif not all(count == 1 for count in home_source_counts.values()):
+        raise ValueError("consolidated video iQIYI home trigger inventory incomplete; refusing partial consolidation")
 
     if not all(count == 1 for count in output_counts.values()):
         raise ValueError("consolidated video trigger inventory incomplete; refusing partial consolidation")
