@@ -2694,13 +2694,32 @@ class IdenticalScriptResponseDedupTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "inventory changed"):
             remove_identical_script_response_duplicates(["[Script]", *self.remove, *self.keep_source[1:], unknown])
 
+    def test_preserves_native_rrtv_ad_rewrites_with_remaining_soul_reddit_handlers(self):
+        from apply_local_overrides import (
+            RRTV_NATIVE_REWRITES,
+            IDENTICAL_SCRIPT_CURRENT_CANONICAL_TRIGGERS,
+            remove_identical_script_response_duplicates,
+        )
+        clean = [
+            "[Rewrite]", *RRTV_NATIVE_REWRITES,
+            "[Script]", *IDENTICAL_SCRIPT_CURRENT_CANONICAL_TRIGGERS[9:],
+            "[MITM]",
+        ]
+        self.assertEqual(remove_identical_script_response_duplicates(clean), (clean, 0))
+
     def test_checked_in_plugin_snapshot_has_only_the_canonical_handlers(self):
         from pathlib import Path
-        from apply_local_overrides import IDENTICAL_SCRIPT_CURRENT_CANONICAL_TRIGGERS, IDENTICAL_SCRIPT_REMOVE_TRIGGERS
+        from apply_local_overrides import (
+            IDENTICAL_SCRIPT_CURRENT_CANONICAL_TRIGGERS,
+            IDENTICAL_SCRIPT_REMOVE_TRIGGERS,
+            RRTV_NATIVE_REWRITES,
+        )
         plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
         for item in IDENTICAL_SCRIPT_REMOVE_TRIGGERS:
             self.assertNotIn(item, plugin)
-        for item in IDENTICAL_SCRIPT_CURRENT_CANONICAL_TRIGGERS:
+        for item in IDENTICAL_SCRIPT_CURRENT_CANONICAL_TRIGGERS[9:]:
+            self.assertEqual(plugin.count(item), 1)
+        for item in RRTV_NATIVE_REWRITES:
             self.assertEqual(plugin.count(item), 1)
 
 
