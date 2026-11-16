@@ -3986,7 +3986,6 @@ def migrate_wechat_applet_simple_endpoints(lines):
     output = list(lines)
     section = ""
     script_lines = []
-    rewrite_lines = []
     for line in output:
         stripped = line.strip()
         if stripped.startswith("[") and stripped.endswith("]"):
@@ -3994,8 +3993,6 @@ def migrate_wechat_applet_simple_endpoints(lines):
             continue
         if section == "Script":
             script_lines.append(stripped)
-        elif section == "Rewrite":
-            rewrite_lines.append(stripped)
 
     removed = set()
     native_rules = []
@@ -4333,7 +4330,7 @@ def optimize_bilibili_json_native_coverage(lines):
         raise ValueError("Bilibili live JSON native coverage changed; refusing duplicate trigger narrowing")
 
     for marker in BILIBILI_NATIVE_PREREQUISITE_MARKERS:
-        if not any(marker in line for line in rewrite_lines):
+        if not any(marker in line for line in script_lines):
             raise ValueError("Bilibili native response prerequisite missing; refusing trigger narrowing: " + marker)
 
     trigger_replacements = {}
@@ -4355,12 +4352,12 @@ def optimize_bilibili_json_native_coverage(lines):
 
     native_replacements = {}
     for original, updated in BILIBILI_NATIVE_RULE_REPLACEMENTS:
-        if original in rewrite_lines:
-            if rewrite_lines.count(original) != 1:
+        if original in script_lines:
+            if script_lines.count(original) != 1:
                 raise ValueError("duplicate Bilibili native response rule: " + original)
             native_replacements[original] = updated
-        elif updated in rewrite_lines:
-            if rewrite_lines.count(updated) != 1:
+        elif updated in script_lines:
+            if script_lines.count(updated) != 1:
                 raise ValueError("duplicate optimized Bilibili native response rule: " + updated)
         else:
             raise ValueError("Bilibili native response rule changed; refusing trigger narrowing: " + original)
@@ -4375,7 +4372,7 @@ def optimize_bilibili_json_native_coverage(lines):
             continue
         if section == "Script" and stripped in trigger_replacements:
             result.append(trigger_replacements[stripped])
-        elif section == "Rewrite" and stripped in native_replacements:
+        elif section == "Script" and stripped in native_replacements:
             result.append(native_replacements[stripped])
         else:
             result.append(line)
