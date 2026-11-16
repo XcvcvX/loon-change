@@ -2584,6 +2584,95 @@ def remove_duplicate_cnftp_scripts(lines):
     return output, 0
 
 
+# Same-URL response scripts duplicated across legacy and v2 syntax.
+SAME_SOURCE_DUPLICATE_REMOVE_TRIGGERS = (
+    "http-response ^https?:\\/\\/g\\.alicdn\\.com\\/.*o2o-ad script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/alicdn.js,tag=ALIBABA-2,requires-body=true",
+    "http-response ^https?:\\/\\/creditcardapp\\.bankcomm\\.(com|cn)\\/rcg\\/index\\.html\\?callbackurl=rcg\\/index\\.html&orclogin=1& script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mdb.js,tag=BANKCOMM,requires-body=true",
+    "http-response ^https?:\\/\\/maicai\\.api\\.ddxq\\.mobi\\/homeApi\\/(?:bottomNavi|homeFlowDetail) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ddxq.js,tag=DDXQ,requires-body=true",
+    "http-response ^https?:\\/\\/maicai\\.api\\.ddxq\\.mobi\\/tool\\/getConfig script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ddxq.js,tag=DDXQ-2,requires-body=true",
+    "http-response ^https?:\\/\\/user\\.api\\.ddxq\\.mobi\\/userportal-service\\/api\\/v\\d\\/user\\/queryMyPage script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ddxq.js,tag=DDXQ-3,requires-body=true",
+    "http-response ^https?:\\/\\/cupid\\.51job(app)?\\.com\\/open\\/noauth\\/recommend\\/job-tab-dynamic script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/51job.js,tag=51JOB,requires-body=true",
+    "http-response ^https?:\\/\\/cupid\\.51job(app)?\\.com\\/open\\/my-page\\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/51job.js,tag=51JOB-2,requires-body=true",
+    "http-response ^https?:\\/\\/manga\\.bilibili\\.com\\/twirp\\/user\\.v\\d\\.User\\/(?:UCenterConf|GetInitInfo) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliManga.js,tag=BILIBILIMANGA,requires-body=true",
+    "http-response ^https?:\\/\\/manga\\.bilibili\\.com\\/twirp\\/comic\\.v\\d\\.Home\\/HomeFeed script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliManga.js,tag=BILIBILIMANGA-2,requires-body=true",
+    "http-response ^https?:\\/\\/manga\\.bilibili\\.com\\/twirp\\/comic\\.v\\d\\.Comment\\/Main script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliManga.js,tag=BILIBILIMANGA-3,requires-body=true",
+    "http-response ^https?:\\/\\/apis\\.folidaymall\\.com\\/online\\/capi\\/component\\/getPageComponents script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/foliday.js,tag=FOLIDAY,requires-body=true",
+    "response if ${url} ~= /^https?:\\/\\/cupid\\.51job(app)?\\.com\\/open\\/noauth\\/recommend\\/job-tab-dynamic/i then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/51job.js\") with enable=51job_enable, tag=\"去哒\", timeout=60, requires_body=true",
+)
+SAME_SOURCE_DUPLICATE_KEEP_TRIGGERS = (
+    "http-response ^https?:\\/\\/manga\\.bilibili\\.com\\/twirp\\/comic\\.v\\d\\.Comic\\/GetCommonBanner script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliManga.js,tag=BILIBILIMANGA-4,requires-body=true",
+    "response if ${url} ~= /^https?:\\/\\/manga\\.bilibili\\.com\\/twirp\\/user\\.v\\d\\.User\\/UCenterConf/i then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliManga.js\") with enable=bilimanhua_enable, tag=\"哔哩哔哩漫画\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/manga\\.bilibili\\.com\\/twirp\\/user\\.v\\d\\.User\\/GetInitInfo/i then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliManga.js\") with enable=bilimanhua_enable, tag=\"哔哩哔哩漫画\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/manga\\.bilibili\\.com\\/twirp\\/comic\\.v\\d\\.Home\\/HomeFeed/i then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliManga.js\") with enable=bilimanhua_enable, tag=\"哔哩哔哩漫画\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/manga\\.bilibili\\.com\\/twirp\\/comic\\.v\\d\\.Comment\\/Main/i then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliManga.js\") with enable=bilimanhua_enable, tag=\"哔哩哔哩漫画\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/maicai\\.api\\.ddxq\\.mobi\\/homeApi\\/(?>bottomNavi|homeFlowDetail)/i then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ddxq.js\") with enable=ddmc_enable, tag=\"叮咚买菜\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/maicai\\.api\\.ddxq\\.mobi\\/tool\\/getConfig/i then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ddxq.js\") with enable=ddmc_enable, tag=\"叮咚买菜\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/user\\.api\\.ddxq\\.mobi\\/userportal-service\\/api\\/v\\d\\/user\\/queryMyPage/i then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ddxq.js\") with enable=ddmc_enable, tag=\"叮咚买菜\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/apis\\.folidaymall\\.com\\/online\\/capi\\/component\\/getPageComponents/i then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/foliday.js\") with tag=\"复游会微信小程序\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/g\\.alicdn\\.com\\/.*o2o-ad/i then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/alicdn.js\") with enable=jhsh_enable, tag=\"建行生活内置饿了么\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/creditcardapp\\.bankcomm\\.(com|cn)\\/rcg\\/index\\.html\\?callbackurl=rcg\\/index\\.html&orclogin=1&/i then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mdb.js\") with enable=mddjba_enable, tag=\"mdb\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/cupid\\.51job(app)?\\.com\\/open\\/noauth\\/recommend\\/job-tab-dynamic/i then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/51job.js\") with enable=51job_enable, tag=\"51job\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/cupid\\.51job(app)?\\.com\\/open\\/my-page\\//i then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/51job.js\") with enable=51job_enable, tag=\"去哒\", timeout=60, requires_body=true",
+)
+
+
+def remove_same_source_duplicate_response_scripts(lines):
+    """Remove exact duplicate entries that invoke the same script on the same response."""
+    remove_counts = {item: 0 for item in SAME_SOURCE_DUPLICATE_REMOVE_TRIGGERS}
+    keep_counts = {item: 0 for item in SAME_SOURCE_DUPLICATE_KEEP_TRIGGERS}
+    output, section, target_seen, removed = [], "", False, 0
+
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            output.append(line)
+            continue
+
+        normalized = line.replace("\\", "")
+        is_target = (
+            section == "Script"
+            and (
+                ("g.alicdn.com" in normalized and "o2o-ad" in normalized)
+                or ("creditcardapp.bankcomm." in normalized and "/rcg/index.html" in normalized)
+                or ("maicai.api.ddxq.mobi" in normalized and ("/homeApi/" in normalized or "/tool/getConfig" in normalized))
+                or ("user.api.ddxq.mobi" in normalized and "queryMyPage" in normalized)
+                or ("cupid.51job" in normalized and ("job-tab-dynamic" in normalized or "/open/my-page/" in normalized))
+                or ("manga.bilibili.com" in normalized and "bilibiliManga.js" in normalized)
+                or ("apis.folidaymall.com" in normalized and "getPageComponents" in normalized)
+            )
+        )
+        if not is_target:
+            output.append(line)
+            continue
+
+        target_seen = True
+        if line in remove_counts:
+            remove_counts[line] += 1
+            if remove_counts[line] > 1:
+                raise ValueError("duplicate same-source removal trigger; refusing ambiguous cleanup")
+            removed += 1
+            continue
+        if line in keep_counts:
+            keep_counts[line] += 1
+            if keep_counts[line] > 1:
+                raise ValueError("duplicate same-source retained trigger; refusing ambiguous cleanup")
+            output.append(line)
+            continue
+        raise ValueError("same-source response trigger inventory changed; refusing unreviewed consolidation")
+
+    if not target_seen:
+        return output, 0
+
+    keep_complete = all(count == 1 for count in keep_counts.values())
+    remove_absent = all(count == 0 for count in remove_counts.values())
+    remove_complete = all(count == 1 for count in remove_counts.values())
+    if keep_complete and remove_absent:
+        return output, 0
+    if not keep_complete or not remove_complete:
+        raise ValueError("same-source duplicate trigger inventory incomplete; refusing partial consolidation")
+    return output, removed
+
+
 def apply(text: str) -> str:
     if "[Script]" not in text or "[MITM]" not in text or "[Rewrite]" not in text:
         raise ValueError("plugin missing [Rewrite], [Script] or [MITM] section")
@@ -2685,6 +2774,7 @@ def apply(text: str) -> str:
     lines, _ = consolidate_meituan_scripts(lines)
     lines, _ = remove_duplicate_tuhu_scripts(lines)
     lines, _ = remove_duplicate_cnftp_scripts(lines)
+    lines, _ = remove_same_source_duplicate_response_scripts(lines)
     lines, _ = remove_redundant_dianping_scripts(lines)
     lines, _ = remove_redundant_baidumap_script(lines)
     lines, _ = remove_redundant_amap_legacy_scripts(lines)

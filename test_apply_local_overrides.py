@@ -2209,5 +2209,60 @@ class CnftpDuplicateScriptTests(unittest.TestCase):
             self.assertEqual(plugin.count(item), 1)
 
 
+class SameSourceResponseScriptDedupTests(unittest.TestCase):
+    def setUp(self):
+        from apply_local_overrides import (
+            SAME_SOURCE_DUPLICATE_KEEP_TRIGGERS, SAME_SOURCE_DUPLICATE_REMOVE_TRIGGERS,
+        )
+        self.keep = SAME_SOURCE_DUPLICATE_KEEP_TRIGGERS
+        self.remove = SAME_SOURCE_DUPLICATE_REMOVE_TRIGGERS
+        self.unrelated = 'response if ${url} ~= /^https?:\\/\\/example\\.com\\/api/ then script("https://example.invalid/keep.js")'
+        self.fixture = [
+            "[Script]", *self.remove, *self.keep, self.unrelated,
+            "[Rewrite]", "^https?:\\\\/\\\\/creditcardapp.bankcomm.com\\\\/unrelated reject(404)",
+            "[MITM]", "hostname = g.alicdn.com, creditcardapp.bankcomm.com, maicai.api.ddxq.mobi",
+        ]
+
+    def test_removes_12_same_script_duplicates_and_keeps_canonical_entries(self):
+        from apply_local_overrides import remove_same_source_duplicate_response_scripts
+        result, removed = remove_same_source_duplicate_response_scripts(self.fixture)
+        self.assertEqual(removed, 12)
+        for item in self.remove:
+            self.assertNotIn(item, result)
+        for item in self.keep:
+            self.assertEqual(result.count(item), 1)
+        self.assertIn(self.unrelated, result)
+        self.assertIn("^https?:\\\\/\\\\/creditcardapp.bankcomm.com\\\\/unrelated reject(404)", result)
+        self.assertEqual(remove_same_source_duplicate_response_scripts(result), (result, 0))
+
+    def test_preserves_already_consolidated_inventory(self):
+        from apply_local_overrides import remove_same_source_duplicate_response_scripts
+        clean = ["[Script]", *self.keep, "[MITM]"]
+        self.assertEqual(remove_same_source_duplicate_response_scripts(clean), (clean, 0))
+
+    def test_fails_closed_on_missing_duplicate_or_unknown_variant(self):
+        from apply_local_overrides import remove_same_source_duplicate_response_scripts
+        missing = [line for line in self.fixture if line != self.remove[0]]
+        with self.assertRaisesRegex(ValueError, "inventory incomplete"):
+            remove_same_source_duplicate_response_scripts(missing)
+
+        duplicate = ["[Script]", *self.remove, *self.keep, self.keep[0]]
+        with self.assertRaisesRegex(ValueError, "duplicate same-source retained"):
+            remove_same_source_duplicate_response_scripts(duplicate)
+
+        unknown = next(item for item in self.keep if "o2o-ad" in item).replace("o2o-ad", "o2o-ad-v2")
+        with self.assertRaisesRegex(ValueError, "inventory changed"):
+            remove_same_source_duplicate_response_scripts(["[Script]", *self.remove, *self.keep[1:], unknown])
+
+    def test_checked_in_plugin_snapshot_has_only_the_canonical_entries(self):
+        from pathlib import Path
+        from apply_local_overrides import SAME_SOURCE_DUPLICATE_KEEP_TRIGGERS, SAME_SOURCE_DUPLICATE_REMOVE_TRIGGERS
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        for item in SAME_SOURCE_DUPLICATE_REMOVE_TRIGGERS:
+            self.assertNotIn(item, plugin)
+        for item in SAME_SOURCE_DUPLICATE_KEEP_TRIGGERS:
+            self.assertEqual(plugin.count(item), 1)
+
+
 if __name__ == "__main__":
     unittest.main()
