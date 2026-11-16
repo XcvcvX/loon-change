@@ -1553,7 +1553,7 @@ class DouyinContentCdnScopeTests(unittest.TestCase):
         self.base = ["[Rule]", self.overblocks[0][1], self.overblocks[1][1],
                      "DOMAIN-SUFFIX,pangolin-sdk-toutiao.com,REJECT", "[Rewrite]",
                      *[rule for section, rule in self.overblocks if section == "Rewrite"],
-                     "request if ${url} ~= /^https?:\\/\\/.+\\.pstatp\\.com\\/(obj|img)\\/ad/ then reject(404)",
+                     r"request if ${url} ~= /^https?:\\/\\/.+\\.(pglstatp-toutiao|pstatp)\\.com\\/(obj|img)\\/(ad-app-package|ad)\\/.+/i then reject(404)",
                      "request if ${url} ~= /^https?:\\/\\/.+\\.pstatp\\.com\\/obj\\/ad-pattern\\/renderer/ then reject(404)",
                      "request if ${url} ~= /^https?:\\/\\/.+\\.snssdk\\.com\\/api\\/ad\\/.+/ then reject(404)",
                      "request if ${url} ~= /^https?:\\/\\/.+\\.pstatp\\.com\\/obj\\/mosaic-legacy\\/.+\\?from\\=ad/ then reject(404)",
@@ -1563,7 +1563,7 @@ class DouyinContentCdnScopeTests(unittest.TestCase):
     def test_removes_only_content_cdn_overblocks_and_keeps_ad_path_rules(self):
         from apply_local_overrides import remove_douyin_content_cdn_overblocks
         result, removed = remove_douyin_content_cdn_overblocks(self.base)
-        self.assertEqual(removed, 5)
+        self.assertEqual(removed, len(self.overblocks))
         for _, rule in self.overblocks:
             self.assertNotIn(rule, result)
         for marker in self.markers:
@@ -1571,19 +1571,37 @@ class DouyinContentCdnScopeTests(unittest.TestCase):
         self.assertIn("DOMAIN-SUFFIX,pangolin-sdk-toutiao.com,REJECT", result)
         self.assertEqual(remove_douyin_content_cdn_overblocks(result), (result, 0))
 
-    def test_fails_closed_on_partial_duplicate_or_unknown_origin_rules(self):
+    def test_handles_partial_inventory_but_fails_duplicate_or_unknown_origin_rules(self):
         from apply_local_overrides import remove_douyin_content_cdn_overblocks
         partial = [line for line in self.base if line != self.overblocks[0][1]]
-        with self.assertRaisesRegex(ValueError, "inventory changed"):
-            remove_douyin_content_cdn_overblocks(partial)
+        partial_result, partial_removed = remove_douyin_content_cdn_overblocks(partial)
+        self.assertEqual(partial_removed, len(self.overblocks) - 1)
+        self.assertNotIn(self.overblocks[1][1], partial_result)
+
         duplicate = self.base[:self.base.index("[Rewrite]")] + [self.overblocks[0][1]] + self.base[self.base.index("[Rewrite]"): ]
         with self.assertRaisesRegex(ValueError, "duplicate Douyin content CDN"):
             remove_douyin_content_cdn_overblocks(duplicate)
-        rewrite_index = self.base.index("[Rewrite]")
-        unknown_rule = self.overblocks[2][1].replace("p(b)?", "p9")
-        unknown = self.base[:rewrite_index + 1] + [unknown_rule] + self.base[rewrite_index + 1:]
+
+        unknown_rule = self.overblocks[2][1].replace(r"p\d", "p9")
+        unknown = [unknown_rule if line == self.overblocks[2][1] else line for line in self.base]
         with self.assertRaisesRegex(ValueError, "inventory changed"):
             remove_douyin_content_cdn_overblocks(unknown)
+
+    def test_current_fmz_source_inventory_is_supported(self):
+        from apply_local_overrides import DOUYIN_CONTENT_CDN_OVERBLOCKS, remove_douyin_content_cdn_overblocks
+        current_rules = [
+            DOUYIN_CONTENT_CDN_OVERBLOCKS[0][1],
+            DOUYIN_CONTENT_CDN_OVERBLOCKS[1][1],
+            DOUYIN_CONTENT_CDN_OVERBLOCKS[2][1],
+            DOUYIN_CONTENT_CDN_OVERBLOCKS[3][1],
+        ]
+        fixture = ["[Rule]", *current_rules[:2], "[Rewrite]", *current_rules[2:],
+                   *[line for line in self.base if line.startswith("request if") and "origin" not in line],
+                   "[Script]", "[MITM]"]
+        result, removed = remove_douyin_content_cdn_overblocks(fixture)
+        self.assertEqual(removed, 4)
+        for rule in current_rules:
+            self.assertNotIn(rule, result)
 
     def test_checked_in_plugin_snapshot_keeps_ad_paths_without_content_cdn_overblocks(self):
         from pathlib import Path
