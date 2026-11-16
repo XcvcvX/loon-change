@@ -6782,8 +6782,8 @@ response if ${url} ~= /^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/newDetails/
 response if ${url} ~= /^https?:\/\/zone\.guiderank-app\.com\/guiderank-web\/app\/home\/getHomePageV/ then response.json.delete(["data.countdownBanner", "data.newEvaluations", "data.freeToPayBannerPhotoUrl", "data.groupBuyingList", "data.multiCountdownBanner", "data.banners", "data.multiPlatformBanner", "data.specialSaleBannerPhotoUrl", "data.guide90Evaluation", "data.insurancePromotions"])
 response if ${url} ~= /^https?:\/\/www\.gaoding\.com\/api\/v\d\/oc\/exhibitions\/template\/resources$/ then response.json.delete("pits[0].delivery_materials")
 response if ${url} ~= /^https?:\/\/www\.gaoding\.com\/api\/v\d\/oc\/exhibitions\/app_mine\/resources/ then response.json.delete("pits[2].delivery_materials")
-response if ${rfrfuipk_enable} == true && ${url} ~= /^https?:\/\/api\.rr\.tv\/v3plus\/index\/channel\?pageNum=1&position=CHANNEL_INDEX/i then response.json.jq(".data.sections |= map(if .sectionType == \"AD\" or .sectionType == \"SINGLE_IMAGE\" or .sectionType == \"SHORT_VIDEO\" then null else . end)")
-response if ${rfrfuipk_enable} == true && ${url} ~= /^https?:\/\/api\.rr\.tv\/ad\/getAll/i then response.json.jq(".data.adList = []")
+response if ${rfrfuipk_enable} == true && ${url} ~= /^https?:\/\/api\.rr\.tv\/v3plus\/index\/channel\?pageNum=1&position=CHANNEL_INDEX/i then response.json.jq(". as $original | try (.data.sections |= map(if .sectionType == \"AD\" or .sectionType == \"SINGLE_IMAGE\" or .sectionType == \"SHORT_VIDEO\" then null else . end)) catch $original")
+response if ${rfrfuipk_enable} == true && ${url} ~= /^https?:\/\/api\.rr\.tv\/ad\/getAll/i then response.json.jq(". as $original | try (.data.adList = []) catch $original")
 [Script]
 http-response ^https?:\/\/api\.zhihu\.com\/commercial_api\/app_float_layer script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU,requires-body=true
 http-response ^https?:\/\/api\.zhihu\.com\/(moments_v\d|topstory\/recommend(_v\d)?) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU-2,requires-body=true
