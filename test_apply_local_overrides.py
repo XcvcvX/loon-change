@@ -2325,5 +2325,63 @@ class IdenticalScriptResponseDedupTests(unittest.TestCase):
             self.assertEqual(plugin.count(item), 1)
 
 
+class MoreResponseScriptDedupTests(unittest.TestCase):
+    def setUp(self):
+        from apply_local_overrides import (
+            MORE_RESPONSE_KEEP_SOURCE_TRIGGERS, MORE_RESPONSE_KEEP_TRIGGERS,
+            MORE_RESPONSE_REMOVE_TRIGGERS, MORE_RESPONSE_TRANSFORMS,
+        )
+        self.keep_source = MORE_RESPONSE_KEEP_SOURCE_TRIGGERS
+        self.keep = MORE_RESPONSE_KEEP_TRIGGERS
+        self.remove = MORE_RESPONSE_REMOVE_TRIGGERS
+        self.transforms = MORE_RESPONSE_TRANSFORMS
+        self.unrelated = 'response if ${url} ~= /^https?:\\/\\/example\\.com\\/api/ then script("https://example.invalid/keep.js")'
+        self.fixture = [
+            "[Script]", *self.remove, *self.keep_source, self.unrelated,
+            "[Rewrite]", "^https?:\\\\/\\\\/api.rr.tv\\\\/unrelated reject(404)",
+            "[MITM]", "hostname = kuwo.cn, napi.ithome.com, cn-acs.m.cainiao.com",
+        ]
+
+    def test_removes_11_duplicates_and_keeps_13_single_handlers(self):
+        from apply_local_overrides import remove_more_duplicate_response_scripts
+        result, removed = remove_more_duplicate_response_scripts(self.fixture)
+        self.assertEqual(removed, 11)
+        for item in self.remove:
+            self.assertNotIn(item, result)
+        for item in self.keep_source:
+            expected = self.transforms.get(item, item)
+            self.assertEqual(result.count(expected), 1)
+        self.assertIn(self.unrelated, result)
+        self.assertEqual(remove_more_duplicate_response_scripts(result), (result, 0))
+
+    def test_preserves_already_consolidated_inventory(self):
+        from apply_local_overrides import remove_more_duplicate_response_scripts
+        clean = ["[Script]", *self.keep, "[MITM]"]
+        self.assertEqual(remove_more_duplicate_response_scripts(clean), (clean, 0))
+
+    def test_fails_closed_on_missing_duplicate_or_unknown_variant(self):
+        from apply_local_overrides import remove_more_duplicate_response_scripts
+        missing = [line for line in self.fixture if line != self.remove[0]]
+        with self.assertRaisesRegex(ValueError, "legacy response inventory incomplete"):
+            remove_more_duplicate_response_scripts(missing)
+
+        duplicate = ["[Script]", *self.remove, *self.keep_source, self.keep_source[0]]
+        with self.assertRaisesRegex(ValueError, "duplicate retained response source"):
+            remove_more_duplicate_response_scripts(duplicate)
+
+        unknown = self.keep_source[0].replace("kuwo.js", "kuwo-next.js")
+        with self.assertRaisesRegex(ValueError, "inventory changed"):
+            remove_more_duplicate_response_scripts(["[Script]", *self.remove, *self.keep_source[1:], unknown])
+
+    def test_checked_in_plugin_snapshot_has_only_the_canonical_handlers(self):
+        from pathlib import Path
+        from apply_local_overrides import MORE_RESPONSE_KEEP_TRIGGERS, MORE_RESPONSE_REMOVE_TRIGGERS
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        for item in MORE_RESPONSE_REMOVE_TRIGGERS:
+            self.assertNotIn(item, plugin)
+        for item in MORE_RESPONSE_KEEP_TRIGGERS:
+            self.assertEqual(plugin.count(item), 1)
+
+
 if __name__ == "__main__":
     unittest.main()
