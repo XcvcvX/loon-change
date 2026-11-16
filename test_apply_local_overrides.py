@@ -2250,7 +2250,7 @@ class SameSourceResponseScriptDedupTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "duplicate same-source retained"):
             remove_same_source_duplicate_response_scripts(duplicate)
 
-        unknown = self.keep[0].replace("o2o-ad", "o2o-ad-v2")
+        unknown = next(item for item in self.keep if "o2o-ad" in item).replace("o2o-ad", "o2o-ad-v2")
         with self.assertRaisesRegex(ValueError, "inventory changed"):
             remove_same_source_duplicate_response_scripts(["[Script]", *self.remove, *self.keep[1:], unknown])
 
