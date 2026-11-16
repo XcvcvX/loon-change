@@ -3208,5 +3208,53 @@ class SmzdmHomepageScriptOptimizationTests(unittest.TestCase):
             remove_redundant_smzdm_homepage_script_trigger(duplicated)
 
 
+class SmzdmCoveredAdScriptOptimizationTests(unittest.TestCase):
+    def test_removes_three_fmz_ad_triggers_covered_by_rstore(self):
+        from apply_local_overrides import (
+            SMZDM_FMZ_ADS_DUPLICATE_PAIRS,
+            remove_redundant_smzdm_ads_script_triggers,
+        )
+        fixture = ["[Script]"]
+        for _, rstore, fmz in SMZDM_FMZ_ADS_DUPLICATE_PAIRS:
+            fixture.extend([rstore, fmz])
+        # The list_v10 FMZ trigger is intentionally retained: its R-Store matcher
+        # is not proven to cover this exact version/query shape.
+        list_v10 = (
+            r'response if ${url} ~= /^https?:\/\/s-api\.smzdm\.com\/sou\/list_v10\?/i '
+            r'then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/smzdm/smzdm_ads.js") '
+            r'with enable=smzdm_enable, tag="什么值得买去广告", timeout=60, requires_body=true'
+        )
+        fixture.append(list_v10)
+        fixture.extend(["[MITM]", "hostname = haojia.m.smzdm.com, haojia-api.smzdm.com, s-api.smzdm.com"])
+        result, changed = remove_redundant_smzdm_ads_script_triggers(fixture)
+        self.assertEqual(changed, 3)
+        for _, rstore, fmz in SMZDM_FMZ_ADS_DUPLICATE_PAIRS:
+            self.assertIn(rstore, result)
+            self.assertNotIn(fmz, result)
+        self.assertIn(list_v10, result)
+        again, second_changed = remove_redundant_smzdm_ads_script_triggers(result)
+        self.assertEqual(second_changed, 0)
+        self.assertEqual(again, result)
+
+    def test_preserves_fmz_ad_trigger_when_rstore_cover_is_missing(self):
+        from apply_local_overrides import (
+            SMZDM_FMZ_ADS_DUPLICATE_PAIRS, remove_redundant_smzdm_ads_script_triggers,
+        )
+        _, _, fmz = SMZDM_FMZ_ADS_DUPLICATE_PAIRS[0]
+        fixture = ["[Script]", fmz, "[MITM]", "hostname = haojia.m.smzdm.com"]
+        result, changed = remove_redundant_smzdm_ads_script_triggers(fixture)
+        self.assertEqual(changed, 0)
+        self.assertEqual(result, fixture)
+
+    def test_fails_closed_on_unreviewed_fmz_ad_trigger_variant(self):
+        from apply_local_overrides import (
+            SMZDM_FMZ_ADS_DUPLICATE_PAIRS, remove_redundant_smzdm_ads_script_triggers,
+        )
+        _, rstore, fmz = SMZDM_FMZ_ADS_DUPLICATE_PAIRS[0]
+        drifted = ["[Script]", rstore, fmz.replace("timeout=60", "timeout=30"), "[MITM]"]
+        with self.assertRaisesRegex(ValueError, "SMZDM FMZ ad trigger inventory changed"):
+            remove_redundant_smzdm_ads_script_triggers(drifted)
+
+
 if __name__ == "__main__":
     unittest.main()
