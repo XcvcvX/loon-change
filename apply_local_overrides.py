@@ -1729,6 +1729,74 @@ def remove_douyin_tnc_conflicting_rejects(lines):
         raise ValueError("Douyin TNC rule inventory changed; refusing partial cleanup or missing DIRECT guard")
     return output, sum(present)
 
+DOUYIN_CONTENT_CDN_OVERBLOCKS = (
+    ("Rule", "DOMAIN-KEYWORD,p3.pstatp.com,REJECT"),
+    ("Rule", "DOMAIN-KEYWORD,video-cn.snssdk.com,REJECT"),
+    ("Rewrite", "request if ${url} ~= /^https?:\\/\\/p(b)?\\d\\.pstatp.com\\/origin/ then reject(404)"),
+    ("Rewrite", "request if ${url} ~= /^https?:\\/\\/p\\d\\.pstatp.com\\/origin/ then reject(404)"),
+    ("Rewrite", "request if ${url} ~= /^https?:\\/\\/pb\\d\\.pstatp.com\\/origin/ then reject(404)"),
+)
+DOUYIN_CDN_REQUIRED_AD_PATH_MARKERS = (
+    "pstatp.com/(obj|img)/ad",
+    "/obj/ad-pattern/renderer",
+    "snssdk.com/api/ad/",
+    "from=ad",
+)
+
+
+def remove_douyin_content_cdn_overblocks(lines):
+    """Remove host-wide/content-path CDN blocks while retaining explicit ad paths."""
+    section = ""
+    output = []
+    counts = {item: 0 for item in DOUYIN_CONTENT_CDN_OVERBLOCKS}
+    saw_target = False
+    unknown_overblocks = []
+    normalized_rewrites = []
+
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            output.append(line)
+            continue
+        value = line.strip()
+        normalized = value.replace(chr(92), "")
+        if section == "Rule" and value:
+            parts = [part.strip() for part in value.split(",")]
+            if len(parts) >= 2 and parts[0].upper() in ("DOMAIN", "DOMAIN-SUFFIX", "DOMAIN-KEYWORD") and parts[1].lower() in ("p3.pstatp.com", "video-cn.snssdk.com"):
+                saw_target = True
+                if (section, value) not in DOUYIN_CONTENT_CDN_OVERBLOCKS:
+                    raise ValueError("Douyin content CDN domain rule changed; refusing unreviewed scope change: " + value)
+            if (section, value) in counts:
+                saw_target = True
+                counts[(section, value)] += 1
+                if counts[(section, value)] > 1:
+                    raise ValueError("duplicate Douyin content CDN overblock: " + value)
+                continue
+        if section == "Rewrite":
+            if "pstatp.com" in normalized or "snssdk.com" in normalized:
+                normalized_rewrites.append(normalized)
+            if "pstatp.com/origin" in normalized and "reject(404)" in normalized and (section, value) not in DOUYIN_CONTENT_CDN_OVERBLOCKS:
+                saw_target = True
+                unknown_overblocks.append(value)
+            if (section, value) in counts:
+                saw_target = True
+                counts[(section, value)] += 1
+                if counts[(section, value)] > 1:
+                    raise ValueError("duplicate Douyin content CDN origin Rewrite")
+                continue
+        output.append(line)
+
+    present = [count for count in counts.values() if count]
+    if not saw_target:
+        return list(lines), 0
+    if unknown_overblocks or (present and len(present) != len(DOUYIN_CONTENT_CDN_OVERBLOCKS)):
+        raise ValueError("Douyin content CDN overblock inventory changed; refusing partial cleanup")
+    normalized_rewrite_text = "\n".join(normalized_rewrites)
+    missing_ad_paths = [marker for marker in DOUYIN_CDN_REQUIRED_AD_PATH_MARKERS if marker not in normalized_rewrite_text]
+    if missing_ad_paths:
+        raise ValueError("Douyin path-scoped ad Rewrite coverage changed: " + ", ".join(missing_ad_paths))
+    return output, sum(present)
+
 # The merged plugin contains broad HTTP+HTTPS Kugou matchers plus HTTPS-only
 # copies of the same paths. The latter are strict subsets and cannot add coverage.
 KUGOU_REDUNDANT_HTTPS_REWRITES = {
@@ -2121,6 +2189,7 @@ def apply(text: str) -> str:
     lines, _ = remove_jd_core_service_domain_blocks(lines)
     lines, _ = scope_pdd_image_cdn_ad_rules(lines)
     lines, _ = remove_douyin_tnc_conflicting_rejects(lines)
+    lines, _ = remove_douyin_content_cdn_overblocks(lines)
     lines, _ = remove_douyin_hongguo_unsafe_rules(lines)
     lines, _ = remove_kugou_jin10_redundant_rewrites(lines)
     lines, _ = remove_pdd_order_endpoint_blocks(lines)

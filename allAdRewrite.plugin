@@ -951,7 +951,6 @@ DOMAIN-KEYWORD,p3-pack.byteimg.com,REJECT
 DOMAIN-KEYWORD,p6-pack.byteimg.com,REJECT
 DOMAIN-KEYWORD,apimg.qunliao.info,REJECT
 DOMAIN-KEYWORD,bds.snssdk.com,REJECT
-DOMAIN-KEYWORD,p3.pstatp.com,REJECT
 DOMAIN-SUFFIX,wan.douyu.com,REJECT
 DOMAIN-SUFFIX,dotcounter.douyutv.com,REJECT
 DOMAIN-SUFFIX,erebor.douban.com,REJECT
@@ -1322,7 +1321,6 @@ DOMAIN-KEYWORD,-ad-sign.byteimg.com,REJECT
 DOMAIN-KEYWORD,api-access.pangolin-sdk-toutiao,REJECT
 DOMAIN-KEYWORD,log-api.pangolin-sdk-toutiao,REJECT
 DOMAIN-KEYWORD,-ad.byteoversea.com,REJECT
-DOMAIN-KEYWORD,video-cn.snssdk.com,REJECT
 DOMAIN-KEYWORD,asiad.byteactivity,REJECT
 DOMAIN,huatuocode.huatuo.qq.com,REJECT
 DOMAIN,ios.bugly.qq.com,REJECT
@@ -4268,7 +4266,6 @@ request if ${url} ~= /^https?:\/\/sytgate\.jslife\.com\.cn\/base-gateway\/config
 request if ${url} ~= /^https?:\/\/sytgate\.jslife\.com\.cn\/data-report-gateway\/syt-data-report\/receive/ then reject(404)
 ^https?:\/\/ios\.jjwxc\.com\/appAdIos reject-dict
 ^https?:\/\/ios\.jjwxc\.com\/app\.jjwxc\/ios\/reading\/WapAdvertises reject-dict
-request if ${url} ~= /^https?:\/\/p(b)?\d\.pstatp.com\/origin/ then reject(404)
 ^https?:\/\/download1\.bankcomm\.com\/chngweb\/CHNRCSP\/media reject-200
 request if ${url} ~= /^https?:\/\/download1\.bankcomm\.com\/mobs6-inner\/offline\/static\/releaseConf/ then reject(404)
 request if ${url} ~= /^https?:\/\/download1\.bankcomm\.com\/_cdn\/mobs\/home\/oss\/pub\/file\/file\/public\/config\/pageConfig/ then reject(404)
@@ -5629,8 +5626,6 @@ response if ${url} ~= /^https?:\/\/yunbusiness\.ccb\.com\/basic_service\/txCtrl\
 response if ${url} ~= /^https?:\/\/yunbusiness\.ccb\.com\/basic_service\/txCtrl\?txcode=A3341AB05/ then response.body.mock_file("json", "https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/ccbLife/A3341AB05.json", 200)
 response if ${url} ~= /^https?:\/\/waimai-guide\.ele\.me\/\w+\/mtop\.venus\.shopresourceservice\.getshopresource/ then response.body.replace(/posterList/, "fmz200")
 request if ${url} ~= /^https?:\/\/mbank5\.jsbchina\.cn:443/ then reject_dict(200)
-request if ${url} ~= /^https?:\/\/p\d\.pstatp.com\/origin/ then reject(404)
-request if ${url} ~= /^https?:\/\/pb\d\.pstatp.com\/origin/ then reject(404)
 request if ${url} ~= /^https?:\/\/dict-mobile\.iciba\.com\/interface\/index\.php\?.+(c=ad|collectFeedsAdShowCount|KSFeedsAdCardViewController)/ then reject(404)
 request if ${url} ~= /^https?:\/\/\w+?\.kingsoft-office-service\.com\/ad/ then reject(200)
 request if ${url} ~= /^https?:\/\/.+?\.kingsoft-office-service\.com/ then reject(404)
