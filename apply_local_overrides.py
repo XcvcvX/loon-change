@@ -237,7 +237,7 @@ def remove_gaoding_resource_scripts(lines):
 # 拼多多首页由 R-Store 与 ishowshu 两份脚本重复处理同一响应。
 # 合并为仓库内单脚本，保留两份脚本及原生 JSON 规则的并集行为。
 PDD_RSTORE_HOMEPAGE_TRIGGER = r"http-response ^https?:\/\/api\.pinduoduo\.com\/api\/alexa\/\w+\/hub script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/pdd.js,tag=PDD-2,requires-body=true"
-PDD_LOCAL_HOMEPAGE_TRIGGER = r"http-response ^https?:\/\/api\.pinduoduo\.com\/api\/alexa\/\w+\/hub script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/pinduoduo/pdd-homepage.js,tag=PDD-2,requires-body=true"
+PDD_LOCAL_HOMEPAGE_TRIGGER = r"http-response ^https?:\/\/api\.pinduoduo\.com\/api\/alexa\/homepage\/hub script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/pinduoduo/pdd-homepage.js,tag=PDD-2,requires-body=true"
 PDD_ISHOWSHU_HOMEPAGE_TRIGGER = r"http-response ^https:\/\/api\.pinduoduo\.com\/api\/alexa\/homepage\/hub script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/pdd.js, requires-body = true, tag = 拼多多首页简化(底部菜单、顶部分类)"
 
 
