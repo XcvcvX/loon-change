@@ -2901,7 +2901,7 @@ def remove_more_duplicate_response_scripts(lines):
             output.append(line)
             continue
 
-        normalized = line.replace("\\\\", "")
+        normalized = line.replace("\\", "")
         action = "http-response " in line or "response if " in line
         is_target = (
             section == "Script"
