@@ -3406,7 +3406,7 @@ class BilibiliProtobufDuplicateTriggerTests(unittest.TestCase):
             BILIBILI_PROTOBUF_DUPLICATE_PAIRS, narrow_duplicate_bilibili_protobuf_triggers,
         )
         fmz_trigger = (
-            r'response if ${url} ~= /^https?:\/\/bilibili\.app\.dynamic\.v2\.Dynamic\/DynAll$/i '
+            r'response if ${url} ~= /^https?:\/\/(?:grpc\.biliapi\.net|app\.bilibili\.com)\/bilibili\.(?:app\.(?:dynamic\.v2\.Dynamic\/DynAll|view(unite)?\.v1\.View\/View)|community\.service\.dm\.v1\.DM\/DmView|polymer\.app\.search\.v1\.Search\/SearchAll)$/i '
             r'then script("https://raw.githubusercontent.com/kokoryh/Sparkle/refs/heads/master/dist/bilibili.protobuf.response.js") with tag="bilibili.protobuf", requires_body=true'
         )
         original = BILIBILI_PROTOBUF_DUPLICATE_PAIRS[0][1]
