@@ -1581,6 +1581,29 @@ MEITUAN_LEGACY_SCRIPT_MARKERS = (
 
 
 
+ZHIHU_RESPONSE_LEGACY_TRIGGERS = frozenset((
+    "response if ${url} ~= /^https:\\/\\/(?:api|page-info)\\.zhihu\\.com\\/(?:answers|articles)\\/v2\\/\\d+/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除首页推广\", requires_body=true",
+    "response if ${url} ~= /^https:\\/\\/api\\.zhihu\\.com\\/commercial_api\\/app_float_layer/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除首页推广\", requires_body=true",
+    "response if ${url} ~= /^https:\\/\\/api\\.zhihu\\.com\\/feed\\/render\\/tab\\/config\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除首页推广\", requires_body=true",
+    "response if ${url} ~= /^https:\\/\\/api\\.zhihu\\.com\\/(?:moments_v3|topstory\\/hot-lists\\/total|topstory\\/recommend)/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除首页推广\", requires_body=true",
+    "response if ${url} ~= /^https:\\/\\/api\\.zhihu\\.com\\/root\\/tab/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎精简顶部标签\", requires_body=true",
+    "response if ${url} ~= /^https:\\/\\/api\\.zhihu\\.com\\/v2\\/topstory\\/hot-lists\\/everyone-seeing\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除首页推广\", requires_body=true",
+    "response if ${url} ~= /^https:\\/\\/api\\.zhihu\\.com\\/bazaar\\/vip_tab\\/header\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除会员页面推广\", requires_body=true",
+    "response if ${url} ~= /^https:\\/\\/api\\.zhihu\\.com\\/next-(?:bff|data|render)/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除回答详情页推广\", requires_body=true",
+    "response if ${url} ~= /^https:\\/\\/api\\.zhihu\\.com\\/questions\\/\\d+(?:\\/answers|\\/feeds|\\?include=)/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除回答详情页推广\", requires_body=true",
+    "response if ${url} ~= /^https:\\/\\/www\\.zhihu\\.com\\/api\\/v4\\/(?:articles|answers)\\/\\d+\\/recommendations?\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除回答详情页推广\", requires_body=true",
+    "response if ${url} ~= /^https:\\/\\/appcloud2\\.zhihu\\.com\\/v3\\/config/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎拦截服务器推送配置\", requires_body=true",
+    "response if ${url} ~= /^https:\\/\\/m-cloud\\.zhihu\\.com\\/api\\/cloud\\/config\\/all\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎拦截服务器推送配置\", requires_body=true",
+))
+ZHIHU_RESPONSE_CANONICAL_TRIGGERS = (
+    "response if ${url} ~= /^https:\\/\\/(?:(?:api|page-info)\\.zhihu\\.com\\/(?:answers|articles)\\/v2\\/\\d+|api\\.zhihu\\.com\\/(?:commercial_api\\/app_float_layer|feed\\/render\\/tab\\/config\\?|moments_v3|topstory\\/hot-lists\\/total|topstory\\/recommend|v2\\/topstory\\/hot-lists\\/everyone-seeing\\?))/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除首页推广\", requires_body=true",
+    "response if ${url} ~= /^https:\\/\\/api\\.zhihu\\.com\\/root\\/tab/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎精简顶部标签\", requires_body=true",
+    "response if ${url} ~= /^https:\\/\\/api\\.zhihu\\.com\\/bazaar\\/vip_tab\\/header\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除会员页面推广\", requires_body=true",
+    "response if ${url} ~= /^https:\\/\\/(?:api\\.zhihu\\.com\\/(?:next-(?:bff|data|render)|questions\\/\\d+(?:\\/answers|\\/feeds|\\?include=))|www\\.zhihu\\.com\\/api\\/v4\\/(?:articles|answers)\\/\\d+\\/recommendations?\\?)/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除回答详情页推广\", requires_body=true",
+    "response if ${url} ~= /^https:\\/\\/(?:appcloud2\\.zhihu\\.com\\/v3\\/config|m-cloud\\.zhihu\\.com\\/api\\/cloud\\/config\\/all\\?)/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎拦截服务器推送配置\", requires_body=true",
+)
+ZHIHU_RESPONSE_SCRIPT_MARKER = "Scripts/zhihu/zhihu.js"
+
 def consolidate_soul_scripts(lines):
     """Collapse the 14 exact Soul response-body triggers into two case-safe matchers."""
     section = ""
@@ -3370,6 +3393,7 @@ def apply(text: str) -> str:
     lines, _ = remove_redundant_dianping_scripts(lines)
     lines, _ = remove_redundant_baidumap_script(lines)
     lines, _ = remove_redundant_amap_legacy_scripts(lines)
+    lines, _ = consolidate_zhihu_response_scripts(lines)
     lines, _ = optimize_xiaohongshu_response_cost(lines)
 
     result_lines, rewrite_lines = [], []
