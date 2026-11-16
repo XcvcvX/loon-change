@@ -4327,7 +4327,7 @@ def optimize_bilibili_json_native_coverage(lines):
     fmz_live = [
         line for line in script_lines
         if "bilibili.json.js" in line and line.startswith("response if")
-        and "api.live.bilibili.com" in line
+        and "api.live.bilibili.com" in re.sub(r"\\+", "", line)
     ]
     if len(fmz_live) != 1 or BILIBILI_LIVE_FMZ_MARKER not in re.sub(r"\\+", "", fmz_live[0]):
         raise ValueError("Bilibili live JSON native coverage changed; refusing duplicate trigger narrowing")
