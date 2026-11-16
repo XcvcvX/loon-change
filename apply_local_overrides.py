@@ -1416,6 +1416,69 @@ def remove_douyin_hongguo_unsafe_rules(lines):
     return output, len(counts) + 1
 
 
+
+
+
+# The merged plugin contains broad HTTP+HTTPS Kugou matchers plus HTTPS-only
+# copies of the same paths. The latter are strict subsets and cannot add coverage.
+KUGOU_REDUNDANT_HTTPS_REWRITES = {
+    "^https:\\/\\/fx\\.service\\.kugou\\.com\\/mfx-kugoulive\\/ad\\/ reject-dict",
+    "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/adp\\/ad\\/ reject-dict",
+    "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/ads\\.gateway\\/ reject-dict",
+    "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/v\\d\\/feeds\\/follow_feed_fallback reject-dict",
+    "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/mstc\\/musicsymbol\\/v\\d\\/system\\/profile reject-dict",
+    "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/searchnofocus\\/v\\d\\/search_no_focus_word reject-dict",
+    "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/adp\\/bubble\\/v\\d\\/song_play reject-dict",
+    "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/singerdiscuss\\/v\\d\\/entrance\\/comment reject-dict",
+    "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/r\\/v\\d\\/general\\/putin\\/midad reject-dict",
+    "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/ocean\\/v\\d\\/sound\\/banner reject-dict",
+    "^https:\\/\\/gzacshow\\.kugou\\.com\\/mfx-rt-show\\/cdn\\/mo\\/show\\/headline reject-dict",
+    "^https:\\/\\/m1fxgroup\\.kugou\\.com\\/fxsing\\/yqc\\/alongInfo\\/getUserAlongInfo reject-dict",
+    "^https:\\/\\/hwstore\\.kugou\\.com\\/v\\d\\/get_store_data reject-dict",
+    "^https:\\/\\/ep\\.kugou\\.com\\/v\\d\\/album_shop\\/get_entrance_info reject-dict",
+}
+KUGOU_OBSOLETE_ROOM_LIST_REWRITE = "^https?:\\/\\/gzacshow\\.kugou\\.com\\/mfanxing-home\\/cdn\\/room\\/index\\/list_v reject-dict"
+JIN10_REDUNDANT_AD_RESPONSE_REWRITE = "^https:\\/\\/jad-api\\.jin10\\.com\\/ad reject-dict"
+
+
+def remove_kugou_jin10_redundant_rewrites(lines):
+    section = ""
+    counts = {rule: 0 for rule in KUGOU_REDUNDANT_HTTPS_REWRITES}
+    obsolete_count = jin10_response_count = 0
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            continue
+        value = line.strip()
+        if section == "Rewrite":
+            if value in counts:
+                counts[value] += 1
+            elif value == KUGOU_OBSOLETE_ROOM_LIST_REWRITE:
+                obsolete_count += 1
+            elif value == JIN10_REDUNDANT_AD_RESPONSE_REWRITE:
+                jin10_response_count += 1
+    values = list(counts.values())
+    if all(count == 0 for count in values) and obsolete_count == 0 and jin10_response_count == 0:
+        return list(lines), 0
+    if any(count != 1 for count in values) or obsolete_count != 1 or jin10_response_count != 1:
+        raise ValueError("Kugou/Jin10 rewrite inventory changed; refusing partial or drifted deduplication")
+    output, section = [], ""
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            output.append(line)
+            continue
+        value = line.strip()
+        if section == "Rewrite" and (
+            value in KUGOU_REDUNDANT_HTTPS_REWRITES
+            or value in (KUGOU_OBSOLETE_ROOM_LIST_REWRITE, JIN10_REDUNDANT_AD_RESPONSE_REWRITE)
+        ):
+            continue
+        output.append(line)
+    return output, len(KUGOU_REDUNDANT_HTTPS_REWRITES) + 2
+
+
+
 def apply(text: str) -> str:
     if "[Script]" not in text or "[MITM]" not in text or "[Rewrite]" not in text:
         raise ValueError("plugin missing [Rewrite], [Script] or [MITM] section")
@@ -1467,6 +1530,7 @@ def apply(text: str) -> str:
         lines.append(line)
 
     lines, _ = remove_douyin_hongguo_unsafe_rules(lines)
+    lines, _ = remove_kugou_jin10_redundant_rewrites(lines)
 
     # Preserve a legacy-listed MITM host whenever a non-HelloBike Rewrite or
     # Script trigger still references it. Normalize regex escaping before lookup.
