@@ -1980,6 +1980,68 @@ class ZhihuMultiActionRewriteConsolidationTests(unittest.TestCase):
 
 
 
+
+class ResponseJsonDeleteBatchTests(unittest.TestCase):
+    def setUp(self):
+        from apply_local_overrides import (
+            KUAISHOU_STARTUP_SPLIT_DELETE_REWRITE,
+            KUAISHOU_STARTUP_BATCHED_DELETE_REWRITE,
+            XIMALAYA_FOOTBALL_SPLIT_DELETE_REWRITE,
+            XIMALAYA_FOOTBALL_BATCHED_DELETE_REWRITE,
+            XIMALAYA_PLAYPAGE_SPLIT_DELETE_REWRITE,
+            XIMALAYA_PLAYPAGE_BATCHED_DELETE_REWRITE,
+        )
+        self.original = (
+            KUAISHOU_STARTUP_SPLIT_DELETE_REWRITE,
+            XIMALAYA_FOOTBALL_SPLIT_DELETE_REWRITE,
+            XIMALAYA_PLAYPAGE_SPLIT_DELETE_REWRITE,
+        )
+        self.batched = (
+            KUAISHOU_STARTUP_BATCHED_DELETE_REWRITE,
+            XIMALAYA_FOOTBALL_BATCHED_DELETE_REWRITE,
+            XIMALAYA_PLAYPAGE_BATCHED_DELETE_REWRITE,
+        )
+        self.base = (
+            "#!name=response-delete-batch-test\n[Rule]\n[Rewrite]\n"
+            + "\n".join(self.original)
+            + "\n^https:\\/\\/unrelated\\.example\\/keep reject\n"
+            + "[Script]\n[MITM]\nhostname = apissl.gifshow.com, mobile.ximalaya.com, "
+            "mobwsa.ximalaya.com, unrelated.example\n"
+        )
+
+    def test_batches_only_the_exact_delete_operations_and_is_idempotent(self):
+        result = apply(self.base)
+        for rule in self.original:
+            self.assertNotIn(rule, result)
+        for rule in self.batched:
+            self.assertEqual(result.count(rule), 1)
+        self.assertIn("^https:\\/\\/unrelated\\.example\\/keep reject", result)
+        self.assertEqual(apply(result), result)
+
+    def test_fails_closed_on_missing_duplicate_or_drifted_inventory(self):
+        missing = self.base.replace(self.original[0] + "\n", "", 1)
+        with self.assertRaisesRegex(ValueError, "Response JSON delete batch inventory changed"):
+            apply(missing)
+
+        duplicate = self.base.replace(self.original[1], self.original[1] + "\n" + self.original[1], 1)
+        with self.assertRaisesRegex(ValueError, "Response JSON delete batch inventory changed"):
+            apply(duplicate)
+
+        drifted = self.base.replace(self.original[2], self.original[2].replace("defaultResource", "default_resource"), 1)
+        with self.assertRaisesRegex(ValueError, "Response JSON delete batch inventory changed"):
+            apply(drifted)
+
+    def test_fails_closed_on_unknown_same_matcher_response_action(self):
+        unknown = self.base.replace(
+            self.original[0],
+            self.original[0] + "\n" +
+            r"""response if ${url} ~= /^https:\\/\\/(apissl|az2-api(-js|-idc)?)\\.(gifshow|ksapisrv)\\.com\\/rest\\/system\\/startup\\?/ then response.json.delete("newAdField")""",
+            1,
+        )
+        with self.assertRaisesRegex(ValueError, "Same-matcher response JSON delete changed"):
+            apply(unknown)
+
+
 class XimalayaHomepageJsonConsolidationTests(unittest.TestCase):
     def setUp(self):
         from apply_local_overrides import (
