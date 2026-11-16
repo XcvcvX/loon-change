@@ -2673,6 +2673,165 @@ def remove_same_source_duplicate_response_scripts(lines):
     return output, removed
 
 
+# R-Store and fmz200 variants of RRTV, Soul and Reddit response scripts were code-identical
+# after removing comments/formatting. Keep one modern handler per response and retain broad paths.
+IDENTICAL_SCRIPT_REMOVE_TRIGGERS = (
+    "http-response ^https?:\\/\\/api\\.rr\\.tv\\/\\w{3}\\/level\\/info script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/rrtv.js,tag=RRTV,requires-body=true",
+    "http-response ^https?:\\/\\/api\\.rr\\.tv\\/v3plus\\/index\\/channel\\?pageNum=1&position=CHANNEL_MY script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/rrtv.js,tag=RRTV-2,requires-body=true",
+    "http-response ^https?:\\/\\/api\\.rr\\.tv\\/v3plus\\/index\\/channel\\?pageNum=1&position=CHANNEL_INDEX script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/rrtv.js,tag=RRTV-3,requires-body=true",
+    "http-response ^https?:\\/\\/api\\.rr\\.tv\\/ad\\/getAll script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/rrtv.js,tag=RRTV-4,requires-body=true",
+    "http-response ^https?:\\/\\/api\\.rr\\.tv\\/app\\/config\\/h5NativeBar script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/rrtv.js,tag=RRTV-5,requires-body=true",
+    "http-response ^https?:\\/\\/api\\.rr\\.tv\\/drama\\/app\\/get_combined_drama_detail script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/rrtv.js,tag=RRTV-6,requires-body=true",
+    "http-response ^https?:\\/\\/api\\.rr\\.tv\\/watch\\/v\\d script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/rrtv.js,tag=RRTV-7,requires-body=true",
+    "http-response ^https?:\\/\\/api\\.rr\\.tv\\/user\\/privilege\\/list script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/rrtv.js,tag=RRTV-8,requires-body=true",
+    "http-response ^https?:\\/\\/api\\.rr\\.tv\\/user\\/profile script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/rrtv.js,tag=RRTV-9,requires-body=true",
+    "http-response ^https?:\\/\\/api-a\\.soulapp\\.cn\\/v\\d\\/post\\/gift\\/list script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/soul.js,tag=SOUL,requires-body=true",
+    "http-response ^https?:\\/\\/api-a\\.soulapp\\.cn\\/official\\/scene\\/module script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/soul.js,tag=SOUL-2,requires-body=true",
+    "http-response ^https?:\\/\\/api-chat\\.soulapp\\.cn\\/chat\\/limitInfo script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/soul.js,tag=SOUL-3,requires-body=true",
+    "http-response ^https?:\\/\\/api-user\\.soulapp\\.cn\\/furion\\/position\\/content script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/soul.js,tag=SOUL-4,requires-body=true",
+    "http-response ^https?:\\/\\/post\\.soulapp\\.cn\\/hot\\/soul\\/rank script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/soul.js,tag=SOUL-7,requires-body=true",
+    "http-response ^https?:\\/\\/post\\.soulapp\\.cn\\/v\\d\\/post\\/homepage\\/guide\\/card script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/soul.js,tag=SOUL-8,requires-body=true",
+    "http-response ^https?:\\/\\/gateway-mobile-gray\\.soulapp\\.cn\\/mobile\\/app\\/version\\/queryIos script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/soul.js,tag=SOUL-9,requires-body=true",
+    "http-response ^https?:\\/\\/gql(-fed)?\\.reddit\\.com script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/reddit.js,tag=REDDIT,requires-body=true",
+)
+IDENTICAL_SCRIPT_KEEP_SOURCE_TRIGGERS = (
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/\\w{3}\\/level\\/info/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /https:\\/\\/api.rr.tv\\/v3plus\\/index\\/channel\\?pageNum=1&position=CHANNEL_INDEX/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/app\\/config\\/h5NativeBar/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/v3plus\\/index\\/channel\\?pageNum=1&position=CHANNEL_MY/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/user\\/privilege\\/list/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/ad\\/getAll/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/drama\\/app\\/get_combined_drama_detail/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /https:\\/\\/api.rr.tv\\/watch\\/v4/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /https:\\/\\/api.rr.tv\\/user\\/profile/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api-account\\.soulapp\\.cn\\/teenager\\/config/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api-a\\.soulapp\\.cn\\/v2\\/post\\/gift\\/list/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api-a\\.soulapp\\.cn\\/official\\/scene\\/module/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api-user\\.soulapp\\.cn\\/furion\\/position\\/content/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api-user\\.soulapp\\.cn\\/v\\d\\/planet\\/config/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api-chat\\.soulapp\\.cn\\/chat\\/limitInfo/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/post\\.soulapp\\.cn\\/hot\\/soul\\/rank/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/post\\.soulapp\\.cn\\/v\\d\\/post\\/homepage\\/guide\\/card/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/post\\.soulapp\\.cn\\/v\\d\\/post\\/recSquare\\/subTabs/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/chat-live\\.soulapp\\.cn\\/chatroom\\/chatClassifyRoomList/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/gateway-mobile-gray\\.soulapp\\.cn\\/mobile\\/app\\/version\\/queryIos/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/47\\.110\\.187\\.87\\/winterfell\\/v2\\/getIpByDomain/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/gql(-fed)?\\.reddit\\.com/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/reddit.js\") with enable=reddit_enable, tag=\"reddit\", timeout=60, requires_body=true",
+    "http-response ^https?:\\/\\/api-pay\\.soulapp\\.cn\\/vip\\/meet\\/userInfo script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/soul.js,tag=SOUL-5,requires-body=true",
+    "http-response ^https?:\\/\\/api-pay\\.soulapp\\.cn\\/privilege\\/supervip\\/status script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/soul.js,tag=SOUL-6,requires-body=true",
+)
+IDENTICAL_SCRIPT_KEEP_TRIGGERS = (
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/\\w{3}\\/level\\/info/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/v3plus\\/index\\/channel\\?pageNum=1&position=CHANNEL_INDEX/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/app\\/config\\/h5NativeBar/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/v3plus\\/index\\/channel\\?pageNum=1&position=CHANNEL_MY/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/user\\/privilege\\/list/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/ad\\/getAll/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/drama\\/app\\/get_combined_drama_detail/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/watch\\/v\\d/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/user\\/profile/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api-account\\.soulapp\\.cn\\/teenager\\/config/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api-a\\.soulapp\\.cn\\/v\\d\\/post\\/gift\\/list/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api-a\\.soulapp\\.cn\\/official\\/scene\\/module/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api-user\\.soulapp\\.cn\\/furion\\/position\\/content/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api-user\\.soulapp\\.cn\\/v\\d\\/planet\\/config/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api-chat\\.soulapp\\.cn\\/chat\\/limitInfo/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/post\\.soulapp\\.cn\\/hot\\/soul\\/rank/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/post\\.soulapp\\.cn\\/v\\d\\/post\\/homepage\\/guide\\/card/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/post\\.soulapp\\.cn\\/v\\d\\/post\\/recSquare\\/subTabs/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/chat-live\\.soulapp\\.cn\\/chatroom\\/chatClassifyRoomList/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/gateway-mobile-gray\\.soulapp\\.cn\\/mobile\\/app\\/version\\/queryIos/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/47\\.110\\.187\\.87\\/winterfell\\/v2\\/getIpByDomain/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/gql(-fed)?\\.reddit\\.com/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/reddit.js\") with enable=reddit_enable, tag=\"reddit\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api-pay\\.soulapp\\.cn\\/vip\\/meet\\/userInfo/ then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api-pay\\.soulapp\\.cn\\/privilege\\/supervip\\/status/ then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
+)
+IDENTICAL_SCRIPT_TRANSFORMS = {
+    "response if ${url} ~= /https:\\/\\/api.rr.tv\\/v3plus\\/index\\/channel\\?pageNum=1&position=CHANNEL_INDEX/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true": "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/v3plus\\/index\\/channel\\?pageNum=1&position=CHANNEL_INDEX/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /https:\\/\\/api.rr.tv\\/watch\\/v4/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true": "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/watch\\/v\\d/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /https:\\/\\/api.rr.tv\\/user\\/profile/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true": "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/user\\/profile/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api-a\\.soulapp\\.cn\\/v2\\/post\\/gift\\/list/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true": "response if ${url} ~= /^https?:\\/\\/api-a\\.soulapp\\.cn\\/v\\d\\/post\\/gift\\/list/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
+    "http-response ^https?:\\/\\/api-pay\\.soulapp\\.cn\\/vip\\/meet\\/userInfo script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/soul.js,tag=SOUL-5,requires-body=true": "response if ${url} ~= /^https?:\\/\\/api-pay\\.soulapp\\.cn\\/vip\\/meet\\/userInfo/ then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
+    "http-response ^https?:\\/\\/api-pay\\.soulapp\\.cn\\/privilege\\/supervip\\/status script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/soul.js,tag=SOUL-6,requires-body=true": "response if ${url} ~= /^https?:\\/\\/api-pay\\.soulapp\\.cn\\/privilege\\/supervip\\/status/ then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
+}
+
+
+def remove_identical_script_response_duplicates(lines):
+    """Use one code-identical response handler while preserving the broader legacy API paths."""
+    remove_counts = {item: 0 for item in IDENTICAL_SCRIPT_REMOVE_TRIGGERS}
+    source_counts = {item: 0 for item in IDENTICAL_SCRIPT_KEEP_SOURCE_TRIGGERS}
+    output_counts = {item: 0 for item in IDENTICAL_SCRIPT_KEEP_TRIGGERS}
+    remove_set = set(IDENTICAL_SCRIPT_REMOVE_TRIGGERS)
+    output, section, target_seen, removed = [], "", False, 0
+    source_mode = any(item in lines for item in remove_set)
+
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            output.append(line)
+            continue
+
+        normalized = line.replace("\\", "")
+        has_script_action = "http-response " in line or "response if " in line
+        soul_endpoint = (
+            ("api-a.soulapp.cn" in normalized and ("/post/gift/list" in normalized or "/official/scene/module" in normalized))
+            or ("api-chat.soulapp.cn" in normalized and "/chat/limitInfo" in normalized)
+            or ("api-user.soulapp.cn" in normalized and ("/furion/position/content" in normalized or "/planet/config" in normalized))
+            or ("api-pay.soulapp.cn" in normalized and ("/vip/meet/userInfo" in normalized or "/privilege/supervip/status" in normalized))
+            or ("post.soulapp.cn" in normalized and ("/hot/soul/rank" in normalized or "/post/homepage/guide/card" in normalized or "/post/recSquare/subTabs" in normalized))
+            or ("gateway-mobile-gray.soulapp.cn" in normalized and "/mobile/app/version/queryIos" in normalized)
+            or ("api-account.soulapp.cn" in normalized and "/teenager/config" in normalized)
+            or ("chat-live.soulapp.cn" in normalized and "/chatroom/chatClassifyRoomList" in normalized)
+            or ("47.110.187.87" in normalized and "/winterfell/v2/getIpByDomain" in normalized)
+        )
+        is_target = (
+            section == "Script"
+            and has_script_action
+            and ("api.rr.tv" in normalized or (soul_endpoint and "soul_qx.js" not in line) or ("reddit.com" in normalized and "gql" in normalized))
+        )
+        if not is_target:
+            output.append(line)
+            continue
+
+        target_seen = True
+        if source_mode:
+            if line in remove_counts:
+                remove_counts[line] += 1
+                if remove_counts[line] > 1:
+                    raise ValueError("duplicate legacy identical-script trigger; refusing ambiguous cleanup")
+                removed += 1
+                continue
+            if line in source_counts:
+                source_counts[line] += 1
+                if source_counts[line] > 1:
+                    raise ValueError("duplicate retained identical-script source trigger")
+                output.append(IDENTICAL_SCRIPT_TRANSFORMS.get(line, line))
+                continue
+            raise ValueError("RRTV/Soul/Reddit script inventory changed; refusing unreviewed consolidation")
+
+        if line in output_counts:
+            output_counts[line] += 1
+            if output_counts[line] > 1:
+                raise ValueError("duplicate consolidated identical-script trigger")
+            output.append(line)
+            continue
+        raise ValueError("consolidated RRTV/Soul/Reddit inventory changed; refusing unreviewed cleanup")
+
+    if not target_seen:
+        return output, 0
+
+    if source_mode:
+        if not all(count == 1 for count in remove_counts.values()):
+            raise ValueError("legacy identical-script inventory incomplete; refusing partial consolidation")
+        if not all(count == 1 for count in source_counts.values()):
+            raise ValueError("retained identical-script source inventory incomplete")
+        return output, removed
+
+    if not all(count == 1 for count in output_counts.values()):
+        raise ValueError("consolidated identical-script inventory incomplete; refusing partial consolidation")
+    return output, 0
+
+
 def apply(text: str) -> str:
     if "[Script]" not in text or "[MITM]" not in text or "[Rewrite]" not in text:
         raise ValueError("plugin missing [Rewrite], [Script] or [MITM] section")
@@ -2775,6 +2934,7 @@ def apply(text: str) -> str:
     lines, _ = remove_duplicate_tuhu_scripts(lines)
     lines, _ = remove_duplicate_cnftp_scripts(lines)
     lines, _ = remove_same_source_duplicate_response_scripts(lines)
+    lines, _ = remove_identical_script_response_duplicates(lines)
     lines, _ = remove_redundant_dianping_scripts(lines)
     lines, _ = remove_redundant_baidumap_script(lines)
     lines, _ = remove_redundant_amap_legacy_scripts(lines)
