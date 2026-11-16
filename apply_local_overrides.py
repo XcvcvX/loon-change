@@ -1780,8 +1780,8 @@ def remove_douyin_content_cdn_overblocks(lines):
                 unknown_overblocks.append(value)
             if (section, value) in counts:
                 saw_target = True
-                counts[value] += 1
-                if counts[value] > 1:
+                counts[(section, value)] += 1
+                if counts[(section, value)] > 1:
                     raise ValueError("duplicate Douyin content CDN origin Rewrite")
                 continue
         output.append(line)
