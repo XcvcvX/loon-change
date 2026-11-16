@@ -3256,5 +3256,50 @@ class SmzdmCoveredAdScriptOptimizationTests(unittest.TestCase):
             remove_redundant_smzdm_ads_script_triggers(drifted)
 
 
+class WechatAppletNativeMigrationTests(unittest.TestCase):
+    def test_migrates_only_five_simple_applet_handlers_to_native_rules(self):
+        from apply_local_overrides import (
+            WECHAT_APPLET_NATIVE_MIGRATIONS, migrate_wechat_applet_simple_endpoints,
+        )
+        fixture = ["[Rewrite]", "response if keep.example then response.json.delete('keep')", "[Script]"]
+        for _, _, trigger, _ in WECHAT_APPLET_NATIVE_MIGRATIONS:
+            fixture.append(trigger)
+        fixture.extend([
+            r"http-response ^https?:\/\/miniapp\.sexytea2013\.com\/cms\/slot\/queryByCodes\?codes=INDEX_TOP_BANNER script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/wechatApplet.js,tag=SEXYTEA,requires-body=true",
+            "[MITM]",
+            "hostname = wechat-api-dj.mstand.cn, coco-com.e.verystar.net, htwkop.xiaojukeji.com, minifm.maxxipoint.com, mapi.xiaotucc.com, miniapp.sexytea2013.com",
+        ])
+        result, changed = migrate_wechat_applet_simple_endpoints(fixture)
+        self.assertEqual(changed, 5)
+        for _, _, trigger, replacement in WECHAT_APPLET_NATIVE_MIGRATIONS:
+            self.assertNotIn(trigger, result)
+            replacements = replacement if isinstance(replacement, tuple) else (replacement,)
+            for rule in replacements:
+                self.assertIn(rule, result)
+        self.assertTrue(any("keep.example" in line for line in result))
+        self.assertTrue(any("SEXYTEA" in line for line in result))
+        self.assertEqual(sum(1 for line in result if line.startswith("response if") and "mapi" in line), 2)
+        again, second_changed = migrate_wechat_applet_simple_endpoints(result)
+        self.assertEqual(second_changed, 0)
+        self.assertEqual(again, result)
+
+    def test_noops_when_no_known_applet_script_trigger_exists(self):
+        from apply_local_overrides import migrate_wechat_applet_simple_endpoints
+        fixture = ["[Rewrite]", "[Script]", "http-response ^https?:\\/\\/unknown.example/ script-path=https://example.invalid/a.js", "[MITM]"]
+        result, changed = migrate_wechat_applet_simple_endpoints(fixture)
+        self.assertEqual(changed, 0)
+        self.assertEqual(result, fixture)
+
+    def test_fails_closed_on_unknown_applet_trigger_variant(self):
+        from apply_local_overrides import (
+            WECHAT_APPLET_NATIVE_MIGRATIONS, migrate_wechat_applet_simple_endpoints,
+        )
+        trigger = WECHAT_APPLET_NATIVE_MIGRATIONS[0][2]
+        drifted = trigger.replace("tag=MSTAND", "tag=MSTAND2")
+        fixture = ["[Rewrite]", "[Script]", drifted, "[MITM]"]
+        with self.assertRaisesRegex(ValueError, "WeChat applet trigger inventory changed"):
+            migrate_wechat_applet_simple_endpoints(fixture)
+
+
 if __name__ == "__main__":
     unittest.main()
