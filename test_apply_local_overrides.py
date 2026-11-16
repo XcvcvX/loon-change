@@ -1140,7 +1140,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertEqual(apply(result), result)
 
     def test_fails_closed_when_either_legacy_trigger_drifts_or_is_missing(self):
-        drifted = self.base.replace(self.rstore, self.rstore + " ")
+        drifted = self.base.replace("tag=JD,requires-body=true", "tag=JD-DRIFT,requires-body=true")
         with self.assertRaisesRegex(ValueError, "Jingdong legacy trigger inventory changed"):
             apply(drifted)
         missing = self.base.replace(self.fmz + "\n", "")
