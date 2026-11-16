@@ -1207,6 +1207,57 @@ def remove_redundant_amap_legacy_scripts(lines, expected_count=AMAP_LEGACY_SCRIP
 
 
 
+# Jingdong: R-Store and FMZ attach overlapping response cleaners to the same
+# client.action endpoints. Keep the union of the R-Store URL scope and execute
+# the two welcomeHome transformations in their original order in one script.
+JD_RSTORE_LEGACY_TRIGGER = r"http-response ^https?:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=(?:deliverLayer|getTabHomeInfo|myOrderInfo|orderTrackBusiness|personinfoBusiness|start|welcomeHome|readCustomSurfaceList) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/jd.js,tag=JD,requires-body=true"
+JD_FMZ_LEGACY_TRIGGER = r'response if ${url} ~= /^https:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=(deliverLayer|getTabHomeInfo|myOrderInfo|orderTrackBusiness|personinfoBusiness|start|welcomeHome)/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/jingdong/jingdong.js") with enable=jkds_enable, tag="京东", timeout=60, requires_body=true'
+JD_CANONICAL_TRIGGER = r"http-response ^https?:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=(?:deliverLayer|getTabHomeInfo|myOrderInfo|orderTrackBusiness|personinfoBusiness|start|welcomeHome|readCustomSurfaceList) script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/jingdong/jd.js,tag=JD-CONSOLIDATED,requires-body=true"
+
+
+def consolidate_jingdong_scripts(lines):
+    """Replace the two reviewed overlapping JD triggers with one local handler."""
+    section = ""
+    scoped = []
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+        elif section == "Script":
+            scoped.append(line.strip())
+
+    rstore_count = scoped.count(JD_RSTORE_LEGACY_TRIGGER)
+    fmz_count = scoped.count(JD_FMZ_LEGACY_TRIGGER)
+    canonical_count = scoped.count(JD_CANONICAL_TRIGGER)
+
+    if canonical_count:
+        if canonical_count == 1 and not rstore_count and not fmz_count:
+            return list(lines), 0
+        raise ValueError("Jingdong script trigger inventory is mixed or duplicated")
+    if rstore_count != 1 or fmz_count != 1:
+        raise ValueError(
+            "Jingdong legacy trigger inventory changed; expected one R-Store and one FMZ trigger"
+        )
+
+    output = []
+    section = ""
+    inserted = False
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            output.append(line)
+            continue
+        if section == "Script" and line.strip() == JD_RSTORE_LEGACY_TRIGGER:
+            output.append(JD_CANONICAL_TRIGGER)
+            inserted = True
+            continue
+        if section == "Script" and line.strip() == JD_FMZ_LEGACY_TRIGGER:
+            continue
+        output.append(line)
+    if not inserted:
+        raise ValueError("Jingdong canonical trigger insertion failed")
+    return output, 1
+
+
 def apply(text: str) -> str:
     if "[Script]" not in text or "[MITM]" not in text or "[Rewrite]" not in text:
         raise ValueError("plugin missing [Rewrite], [Script] or [MITM] section")
@@ -1290,6 +1341,7 @@ def apply(text: str) -> str:
     lines, _ = remove_redundant_taobao_scripts(lines)
     lines, _ = remove_redundant_didi_usercenter_script(lines)
     lines, _ = consolidate_goofish_script_triggers(lines)
+    lines, _ = consolidate_jingdong_scripts(lines)
     lines, _ = remove_redundant_dianping_scripts(lines)
     lines, _ = remove_redundant_baidumap_script(lines)
     lines, _ = remove_redundant_amap_legacy_scripts(lines)
