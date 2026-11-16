@@ -105,7 +105,7 @@
         "Rule": 4,
         "Script": 1
       },
-      "upstream_commit": "513d1e581dc2e98f4a358e010b5543b37e900b47",
+      "upstream_commit": "6ba781e550a7f560b3eb1924bef124ab74573a22",
       "upstream_path": "Modules/Loon/zirawell/Beta/alipayAdBlock.lpx",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
@@ -144,13 +144,13 @@
         "Rule": 4,
         "Script": 13
       },
-      "upstream_commit": "513d1e581dc2e98f4a358e010b5543b37e900b47",
+      "upstream_commit": "6ba781e550a7f560b3eb1924bef124ab74573a22",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
     "GuaZiVideoAds": {
       "bytes": 3448,
       "entries": 6,
-      "upstream_commit": "513d1e581dc2e98f4a358e010b5543b37e900b47",
+      "upstream_commit": "6ba781e550a7f560b3eb1924bef124ab74573a22",
       "upstream_path": "Modules/QuantumultX/ddgksf2013/Official/GuaZiVideoAds.conf",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
@@ -182,74 +182,80 @@
       "action_changed": [],
       "added": [
         {
-          "line": "response if ${url} ~= /^https?:\\/\\/maicai\\.api\\.ddxq\\.mobi\\/homeApi\\/newDetails/ then response.json.delete(\"data.suspension\")",
+          "line": "response if ${url} ~= /^https?:\\/\\/www\\.gaoding\\.com\\/api\\/v\\d\\/oc\\/exhibitions\\/app_mine\\/resources/ then response.json.delete(\"pits[2].delivery_materials\")",
+          "section": "rewrite",
+          "sources": [
+            "local_overrides"
+          ]
+        },
+        {
+          "line": "response if ${url} ~= /^https?:\\/\\/www\\.gaoding\\.com\\/api\\/v\\d\\/oc\\/exhibitions\\/template\\/resources$/ then response.json.delete(\"pits[0].delivery_materials\")",
           "section": "rewrite",
           "sources": [
             "local_overrides"
           ]
         }
       ],
+      "removed": []
+    },
+    "rule": {
+      "action_changed": [],
+      "added": [
+        {
+          "line": "DOMAIN,emapm.eastmoney.com,REJECT",
+          "section": "rule",
+          "sources": [
+            "filter"
+          ]
+        },
+        {
+          "line": "DOMAIN,swdlcdn.eastmoney.com,REJECT",
+          "section": "rule",
+          "sources": [
+            "filter"
+          ]
+        }
+      ],
+      "removed": []
+    },
+    "script": {
+      "action_changed": [],
+      "added": [],
       "removed": [
         {
-          "line": "^https?:\\/\\/maicai\\.api\\.ddxq\\.mobi\\/homeApi\\/newDetails response-body-replace-regex suspension random_body",
-          "section": "rewrite",
+          "line": "http-response ^https?:\\/\\/www\\.gaoding\\.com\\/api\\/v\\d\\/oc\\/exhibitions\\/app_mine\\/resources script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/gaoding.js,tag=GAODING-2,requires-body=true",
+          "section": "script",
           "sources": [
             "base"
           ]
         },
         {
-          "line": "response if ${url} ~= /^https?:\\/\\/maicai\\.api\\.ddxq\\.mobi\\/homeApi\\/newDetails/ then response.body.replace(/suspension/, \"fmz200\")",
-          "section": "rewrite",
+          "line": "http-response ^https?:\\/\\/www\\.gaoding\\.com\\/api\\/v\\d\\/oc\\/exhibitions\\/template\\/resources$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/gaoding.js,tag=GAODING,requires-body=true",
+          "section": "script",
           "sources": [
-            "block"
+            "base"
           ]
         }
       ]
-    },
-    "rule": {
-      "action_changed": [],
-      "added": [],
-      "removed": []
-    },
-    "script": {
-      "action_changed": [],
-      "added": [],
-      "removed": []
     }
   },
   "summary": {
     "rewrite": {
       "action_changed": 0,
-      "added": 1,
-      "removed": 2
+      "added": 2,
+      "removed": 0
     },
     "rule": {
       "action_changed": 0,
-      "added": 0,
+      "added": 2,
       "removed": 0
     },
     "script": {
       "action_changed": 0,
       "added": 0,
-      "removed": 0
+      "removed": 2
     },
-    "total_changes": 3
+    "total_changes": 6
   },
-  "upstream_revision_changes": [
-    {
-      "current_commit": "6ba781e550a7f560b3eb1924bef124ab74573a22",
-      "previous_commit": "513d1e581dc2e98f4a358e010b5543b37e900b47",
-      "source": "AlipayAdBlock"
-    },
-    {
-      "current_commit": "6ba781e550a7f560b3eb1924bef124ab74573a22",
-      "previous_commit": "513d1e581dc2e98f4a358e010b5543b37e900b47",
-      "source": "Amap"
-    },
-    {
-      "current_commit": "6ba781e550a7f560b3eb1924bef124ab74573a22",
-      "previous_commit": "513d1e581dc2e98f4a358e010b5543b37e900b47",
-      "source": "GuaZiVideoAds"
-    }
-  ]
+  "upstream_revision_changes": []
 }

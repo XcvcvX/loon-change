@@ -4,10 +4,10 @@
 #!homepage = https://github.com/zirawell/R-Store
 #!icon = https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Icon/Filter/AdBlock.png
 #!system = iOS,iPadOS,macOS
-#!date = 2026-11-14 11:34:11
+#!date = 2026-11-16 08:37:57
 #!tag = 去广告
 #!type = normal
-#  支持约1441个分流规则
+#  支持约1443个分流规则
 #
 # 转换说明:
 #   host         -> DOMAIN
@@ -308,6 +308,7 @@ DOMAIN,easytomessage.com,REJECT
 DOMAIN,eco.taobao.com,REJECT
 DOMAIN,ef-dongfeng.tanx.com,REJECT
 DOMAIN,effect.snssdk.com,REJECT
+DOMAIN,emapm.eastmoney.com,REJECT
 DOMAIN,emdcadvertise.eastmoney.com,REJECT
 DOMAIN,emdcadvertisepj.eastmoney.com,REJECT
 DOMAIN,emma-414870e223.huodonghezi.com,REJECT
@@ -536,6 +537,7 @@ DOMAIN,statistic.live.126.net,REJECT
 DOMAIN,stun1.douyucdn.cn,REJECT
 DOMAIN,stun1.qvb.qcloud.com,REJECT
 DOMAIN,sugar.zhihu.com,REJECT
+DOMAIN,swdlcdn.eastmoney.com,REJECT
 DOMAIN,switch.cup.com.cn,REJECT
 DOMAIN,t-ads.xiaohongshu.com,REJECT
 DOMAIN,t-dsp.pinduoduo.com,REJECT

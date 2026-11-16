@@ -1,6 +1,6 @@
 # Loon 原生分流规则 · 由 Quantumult X 规则转换
 # 上游: https://github.com/zirawell/R-Store
-# 上游版本: 2026-11-14 11:34:11
+# 上游版本: 2026-11-16 08:37:57
 # 用法: 在 Loon 主配置 [Rule] 段中加一行（放在 FINAL 之前）:
 #   <本文件 URL>,REJECT
 # 安全排除：腾讯云 HTTPDNS 正式入口 119.29.29.98/32、119.29.29.99/32 的 REJECT 规则.
@@ -293,6 +293,7 @@ DOMAIN,easytomessage.com,REJECT
 DOMAIN,eco.taobao.com,REJECT
 DOMAIN,ef-dongfeng.tanx.com,REJECT
 DOMAIN,effect.snssdk.com,REJECT
+DOMAIN,emapm.eastmoney.com,REJECT
 DOMAIN,emdcadvertise.eastmoney.com,REJECT
 DOMAIN,emdcadvertisepj.eastmoney.com,REJECT
 DOMAIN,emma-414870e223.huodonghezi.com,REJECT
@@ -521,6 +522,7 @@ DOMAIN,statistic.live.126.net,REJECT
 DOMAIN,stun1.douyucdn.cn,REJECT
 DOMAIN,stun1.qvb.qcloud.com,REJECT
 DOMAIN,sugar.zhihu.com,REJECT
+DOMAIN,swdlcdn.eastmoney.com,REJECT
 DOMAIN,switch.cup.com.cn,REJECT
 DOMAIN,t-ads.xiaohongshu.com,REJECT
 DOMAIN,t-dsp.pinduoduo.com,REJECT
