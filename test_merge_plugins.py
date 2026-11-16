@@ -1231,6 +1231,25 @@ hostname = *.amap.com
         )
         self.assertTrue(all("HTTPDNS" in item["reason"] for item in exclusions))
 
+    def test_jd_lite_unreachable_response_rule_preserves_upstream_case_flag(self):
+        request_guard = r'^https?:\/\/api\.m\.jd\.com\/client\.action\?functionId=lite_advertising reject'
+        block_response = (
+            r'response if ${url} ~= /^https?:\/\/api\.m\.jd\.com\/client\.action\?functionId=lite_advertising/i '
+            r'then response.body.replace(/jdLiteAdvertisingVO/, "fmz200")'
+        )
+        base = "[Rewrite]\n" + request_guard + "\n[MITM]\nhostname = api.m.jd.com\n"
+        extra = "[Rewrite]\n" + block_response + "\n[MITM]\nhostname = api.m.jd.com\n"
+        output, report = self.run_merge(base, extra, return_provenance=True)
+        self.assertIn("lite_advertising reject", output)
+        self.assertNotIn("jdLiteAdvertisingVO", output)
+        exclusions = [
+            item for item in report["rewrite_exclusions"]
+            if item.get("source") == "block"
+            and item.get("status") == "excluded_unreachable_response_rule"
+        ]
+        self.assertEqual(len(exclusions), 1)
+        self.assertEqual(exclusions[0]["input_line"], block_response)
+
     def test_jd_lite_unreachable_response_rewrites_are_excluded_only_with_terminal_request_guard(self):
         request_guard = r'^https?:\/\/api\.m\.jd\.com\/client\.action\?functionId=lite_advertising reject'
         block_response = r'response if ${url} ~= /^https?:\/\/api\.m\.jd\.com\/client\.action\?functionId=lite_advertising/ then response.body.replace(/jdLiteAdvertisingVO/, "fmz200")'

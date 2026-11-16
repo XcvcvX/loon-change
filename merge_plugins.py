@@ -2266,7 +2266,11 @@ if _lite_advertising_guard_present:
     _kept_block_rw = []
     for _line in block_rw:
         if entry_regex(_line) == _LITE_ADVERTISING_MATCHER:
-            if _line != _LITE_ADVERTISING_BLOCK_RESPONSE:
+            _lite_expected_variants = {
+                _LITE_ADVERTISING_BLOCK_RESPONSE,
+                _LITE_ADVERTISING_BLOCK_RESPONSE.replace(" then ", "i then ", 1),
+            }
+            if _line not in _lite_expected_variants:
                 raise RuntimeError('JD Lite 上游响应规则发生变化，拒绝扩大排除范围：' + _line)
             lite_advertising_rewrite_exclusions.append({
                 'source': 'block',
