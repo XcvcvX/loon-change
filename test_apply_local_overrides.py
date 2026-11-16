@@ -560,5 +560,73 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertEqual(apply(result), result)
 
 
+    def test_removes_didi_whole_homepage_rejects_when_field_cleaners_exist(self):
+        from apply_local_overrides import (
+            DIDI_HOME_SLOW_LEGACY_REJECT, DIDI_HOME_FAST_LEGACY_REJECT,
+            DIDI_HOME_SLOW_RESPONSE_PREFIX, DIDI_HOME_FAST_RESPONSE_PREFIX,
+            remove_didi_homepage_rejects_shadowing_field_cleaners,
+        )
+        slow_response = DIDI_HOME_SLOW_RESPONSE_PREFIX + '["data.order_cards.new_loss_banner_card"])'
+        fast_response = DIDI_HOME_FAST_RESPONSE_PREFIX + '["data.order_cards"])'
+        unrelated = r"^https:\/\/conf\.diditaxi\.com\.cn\/dynamic\/conf reject-dict"
+        fixture = [
+            DIDI_HOME_SLOW_LEGACY_REJECT, DIDI_HOME_FAST_LEGACY_REJECT,
+            unrelated, slow_response, fast_response,
+        ]
+        result, removed = remove_didi_homepage_rejects_shadowing_field_cleaners(fixture)
+        self.assertEqual(removed, 2)
+        self.assertNotIn(DIDI_HOME_SLOW_LEGACY_REJECT, result)
+        self.assertNotIn(DIDI_HOME_FAST_LEGACY_REJECT, result)
+        self.assertIn(unrelated, result)
+        self.assertIn(slow_response, result)
+        self.assertIn(fast_response, result)
+        self.assertEqual(remove_didi_homepage_rejects_shadowing_field_cleaners(result)[1], 0)
+
+    def test_preserves_didi_homepage_reject_if_field_cleaner_is_missing(self):
+        from apply_local_overrides import (
+            DIDI_HOME_FAST_LEGACY_REJECT,
+            remove_didi_homepage_rejects_shadowing_field_cleaners,
+        )
+        with self.assertRaisesRegex(ValueError, "field-level response cleaner inventory changed"):
+            remove_didi_homepage_rejects_shadowing_field_cleaners([DIDI_HOME_FAST_LEGACY_REJECT])
+
+    def test_fails_closed_when_didi_homepage_legacy_reject_drifts(self):
+        from apply_local_overrides import (
+            DIDI_HOME_SLOW_RESPONSE_PREFIX,
+            remove_didi_homepage_rejects_shadowing_field_cleaners,
+        )
+        drifted = r"^https:\/\/conf\.diditaxi\.com\.cn\/homepage\/v1\/other\/slow reject"
+        response = DIDI_HOME_SLOW_RESPONSE_PREFIX + '["data.banner"])'
+        with self.assertRaisesRegex(ValueError, "legacy reject changed"):
+            remove_didi_homepage_rejects_shadowing_field_cleaners([drifted, response])
+
+    def test_fails_closed_on_duplicate_didi_homepage_legacy_reject(self):
+        from apply_local_overrides import (
+            DIDI_HOME_FAST_LEGACY_REJECT, DIDI_HOME_FAST_RESPONSE_PREFIX,
+            remove_didi_homepage_rejects_shadowing_field_cleaners,
+        )
+        response = DIDI_HOME_FAST_RESPONSE_PREFIX + '["data.banner"])'
+        with self.assertRaisesRegex(ValueError, "duplicate Didi homepage fast"):
+            remove_didi_homepage_rejects_shadowing_field_cleaners(
+                [DIDI_HOME_FAST_LEGACY_REJECT, DIDI_HOME_FAST_LEGACY_REJECT, response]
+            )
+
+    def test_generated_plugin_does_not_reject_didi_homepage_before_field_cleaning(self):
+        from pathlib import Path
+        from apply_local_overrides import (
+            DIDI_HOME_SLOW_LEGACY_REJECT, DIDI_HOME_FAST_LEGACY_REJECT,
+            DIDI_HOME_SLOW_RESPONSE_PREFIX, DIDI_HOME_FAST_RESPONSE_PREFIX,
+        )
+        plugin = Path(__file__).parent / "allAdRewrite.plugin"
+        original = plugin.read_text(encoding="utf-8")
+        result = apply(original)
+        self.assertNotIn(DIDI_HOME_SLOW_LEGACY_REJECT, result)
+        self.assertNotIn(DIDI_HOME_FAST_LEGACY_REJECT, result)
+        self.assertIn(DIDI_HOME_SLOW_RESPONSE_PREFIX, result)
+        self.assertIn(DIDI_HOME_FAST_RESPONSE_PREFIX, result)
+        self.assertIn(r"^https:\/\/ct\.xiaojukeji\.com\/agent\/v3\/feeds reject-dict", result)
+
+
+
 if __name__ == "__main__":
     unittest.main()
