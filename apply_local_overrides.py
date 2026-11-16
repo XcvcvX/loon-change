@@ -3780,9 +3780,10 @@ def remove_redundant_smzdm_homepage_script_trigger(lines):
         if stripped.startswith("[") and stripped.endswith("]"):
             section = stripped[1:-1]
             continue
-        if section == "Script" and "homepage-api.smzdm.com" in stripped and "Smzdm.js" in stripped:
+        normalized = re.sub(r"\\\\+", "", stripped)
+        if section == "Script" and "homepage-api.smzdm.com" in normalized and "Smzdm.js" in stripped:
             sections.setdefault("fmz_candidates", []).append(stripped)
-        if section == "Script" and "homepage-api.smzdm.com" in stripped and "smzdm.js" in stripped:
+        if section == "Script" and "homepage-api.smzdm.com" in normalized and "smzdm.js" in stripped:
             sections.setdefault("rstore_candidates", []).append(stripped)
 
     fmz_candidates = sections.get("fmz_candidates", [])
