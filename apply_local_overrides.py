@@ -1482,7 +1482,7 @@ def remove_kugou_jin10_redundant_rewrites(lines):
 # rewrites for the same matcher. Preserve both field operations in one jq pass.
 ZHIHU_ANSWER_DELETE_REWRITE = r"^https:\/\/(api|page-info)(?:\.zhihu)?\.com\/answers\/v\d\/\d+(?:\?.*)?$ response-body-json-del third_business float_search_word"
 ZHIHU_ANSWER_CARD_REWRITE = r"""^https:\/\/(api|page-info)(?:\.zhihu)?\.com\/answers\/v\d\/\d+(?:\?.*)?$ response-body-json-jq '.structured_content.segments |= map(select(.type != "card"))'"""
-ZHIHU_ANSWER_COMBINED_REWRITE = r"""^https:\/\/(api|page-info)(?:\.zhihu)?\.com\/answers\/v\d\/\d+(?:\?.*)?$ response-body-json-jq 'del(.third_business, .float_search_word) | (.structured_content.segments |= map(select(.type != "card")))"""
+ZHIHU_ANSWER_COMBINED_REWRITE = r"""^https:\/\/(api|page-info)(?:\.zhihu)?\.com\/answers\/v\d\/\d+(?:\?.*)?$ response-body-json-jq 'del(.third_business, .float_search_word) | (.structured_content.segments |= map(select(.type != "card")))'"""
 
 ZHIHU_TOPSTORY_COMPONENTS_REWRITE = r"""^https:\/\/api\.zhihu\.com\/topstory\/recommend\? response-body-json-jq '.data |= map(select(.type == "ComponentCard"))'"""
 ZHIHU_TOPSTORY_RING_REWRITE = r"""^https:\/\/api\.zhihu\.com\/topstory\/recommend\? response-body-json-jq '.data[]?.children |= (if type == "array" then map(select(.id != "ring")) else . end)'"""
