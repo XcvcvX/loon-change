@@ -1165,6 +1165,21 @@ def merge_didi_fast_homepage_json_deletes(lines):
     del output[second]
     return output, 1
 
+STARPLUCKER_DOUBLE_JQ_RULE = "response if ${url} ~= /^https?:\\/\\/starplucker\\.cyapi\\.cn\\/v\\d\\/config/ then response.json.jq(`del(.search_suggestions)?`) | response.json.jq(`(.pic_page_card_orders[]?, .map_page_card_orders[]?) |= select(.name | test(\"^(A|C01)\") | not)`)"
+STARPLUCKER_SINGLE_JQ_RULE = "response if ${url} ~= /^https?:\\/\\/starplucker\\.cyapi\\.cn\\/v\\d\\/config/ then response.json.jq(`del(.search_suggestions)? | (.pic_page_card_orders[]?, .map_page_card_orders[]?) |= select(.name | test(\"^(A|C01)\") | not)`)"
+
+def consolidate_starplucker_config_jq(lines):
+    """Combine the two sequential jq parses for the same StarPlucker config response."""
+    output = list(lines)
+    matches = [i for i, line in enumerate(output) if "starplucker\\.cyapi" in line and "response.json.jq" in line]
+    if not matches:
+        return output, 0
+    if len(matches) != 1 or output[matches[0]].strip() != STARPLUCKER_DOUBLE_JQ_RULE:
+        raise ValueError("StarPlucker config jq rule changed or duplicated; refusing unsafe rewrite")
+    output[matches[0]] = STARPLUCKER_SINGLE_JQ_RULE
+    return output, 1
+
+
 def merge_adjacent_response_json_rewrites(lines):
     output, index, merged = [], 0, 0
     while index < len(lines):
@@ -3194,6 +3209,7 @@ def apply(text: str) -> str:
                 rewrite_lines, _ = merge_didi_fast_homepage_json_deletes(rewrite_lines)
                 rewrite_lines, _ = remove_didi_homepage_rejects_shadowing_field_cleaners(rewrite_lines)
                 rewrite_lines, _ = consolidate_ximalaya_homepage_json_rewrites(rewrite_lines)
+                rewrite_lines, _ = consolidate_starplucker_config_jq(rewrite_lines)
                 rewrite_lines, _ = merge_adjacent_response_json_rewrites(rewrite_lines)
                 rewrite_lines, _ = remove_redundant_zhihu_request_rules(rewrite_lines)
                 rewrite_lines, _ = consolidate_zhihu_multi_action_rewrites(rewrite_lines)
@@ -3222,6 +3238,7 @@ def apply(text: str) -> str:
         rewrite_lines, _ = merge_didi_fast_homepage_json_deletes(rewrite_lines)
         rewrite_lines, _ = remove_didi_homepage_rejects_shadowing_field_cleaners(rewrite_lines)
         rewrite_lines, _ = consolidate_ximalaya_homepage_json_rewrites(rewrite_lines)
+        rewrite_lines, _ = consolidate_starplucker_config_jq(rewrite_lines)
         rewrite_lines, _ = merge_adjacent_response_json_rewrites(rewrite_lines)
         rewrite_lines, _ = remove_redundant_zhihu_request_rules(rewrite_lines)
         rewrite_lines, _ = consolidate_zhihu_multi_action_rewrites(rewrite_lines)
