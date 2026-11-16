@@ -3461,6 +3461,98 @@ def remove_weibo_non_ad_response_triggers(lines):
     return output, len(WEIBO_NON_AD_TRIGGER_LINES) + 1
 
 
+RRTV_SOURCE_TRIGGERS = (
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/\\w{3}\\/level\\/info/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/v3plus\\/index\\/channel\\?pageNum=1&position=CHANNEL_INDEX/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/app\\/config\\/h5NativeBar/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/v3plus\\/index\\/channel\\?pageNum=1&position=CHANNEL_MY/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/user\\/privilege\\/list/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/ad\\/getAll/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/drama\\/app\\/get_combined_drama_detail/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/watch\\/v\\d/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/user\\/profile/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+)
+RRTV_NON_AD_SOURCE_TRIGGERS = (
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/\\w{3}\\/level\\/info/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/app\\/config\\/h5NativeBar/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/v3plus\\/index\\/channel\\?pageNum=1&position=CHANNEL_MY/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/user\\/privilege\\/list/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/drama\\/app\\/get_combined_drama_detail/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/watch\\/v\\d/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/user\\/profile/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+)
+RRTV_HOME_AD_SOURCE_TRIGGER = "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/v3plus\\/index\\/channel\\?pageNum=1&position=CHANNEL_INDEX/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true"
+RRTV_GETALL_AD_SOURCE_TRIGGER = "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/ad\\/getAll/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true"
+RRTV_HOME_NATIVE_REWRITE = "response if ${rfrfuipk_enable} == true && ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/v3plus\\/index\\/channel\\?pageNum=1&position=CHANNEL_INDEX/i then response.json.jq(\".data.sections |= map(if .sectionType == \\\"AD\\\" or .sectionType == \\\"SINGLE_IMAGE\\\" or .sectionType == \\\"SHORT_VIDEO\\\" then null else . end)\")"
+RRTV_GETALL_NATIVE_REWRITE = "response if ${rfrfuipk_enable} == true && ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/ad\\/getAll/i then response.json.jq(\".data.adList = []\")"
+RRTV_AD_SOURCE_TO_NATIVE = {
+    RRTV_HOME_AD_SOURCE_TRIGGER: RRTV_HOME_NATIVE_REWRITE,
+    RRTV_GETALL_AD_SOURCE_TRIGGER: RRTV_GETALL_NATIVE_REWRITE,
+}
+
+def replace_rrtv_json_script_with_native_rewrites(lines):
+    """Keep RRTV ad cleanup as native JSON rewrites and remove non-ad script work."""
+    source_set = set(RRTV_SOURCE_TRIGGERS)
+    native_set = {RRTV_HOME_NATIVE_REWRITE, RRTV_GETALL_NATIVE_REWRITE}
+    source_counts = {rule: sum(line.strip() == rule for line in lines) for rule in source_set}
+    native_counts = {rule: sum(line.strip() == rule for line in lines) for rule in native_set}
+
+    for rule, count in source_counts.items():
+        if count > 1:
+            raise ValueError("duplicate RRTV response script trigger; refusing ambiguous cleanup")
+    for rule, count in native_counts.items():
+        if count > 1:
+            raise ValueError("duplicate RRTV native rewrite; refusing ambiguous cleanup")
+
+    for source, native in RRTV_AD_SOURCE_TO_NATIVE.items():
+        if source_counts[source] and native_counts[native]:
+            raise ValueError("mixed RRTV script/native rule state; refusing ambiguous cleanup")
+
+    section = ""
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            continue
+        normalized = re.sub(r"\\+/", "/", line)
+        if section == "Script" and "api.rr.tv" in normalized and (
+            "rrtv_json.js" in line or "rfrfuipk_enable" in line
+        ) and line.strip() not in source_set:
+            raise ValueError("unknown RRTV script matcher; refusing unreviewed cleanup")
+        if section == "Rewrite" and "api.rr.tv" in normalized and (
+            "/v3plus/index/channel" in normalized or "/ad/getAll" in normalized
+        ) and "response.json." in line and line.strip() not in native_set:
+            raise ValueError("unknown RRTV native JSON action; refusing unreviewed cleanup")
+        if line.strip() in source_set and section != "Script":
+            raise ValueError("RRTV source trigger moved outside Script section; refusing cleanup")
+        if line.strip() in native_set and section != "Rewrite":
+            raise ValueError("RRTV native rewrite moved outside Rewrite section; refusing cleanup")
+
+    to_add = [
+        native for source, native in RRTV_AD_SOURCE_TO_NATIVE.items()
+        if source_counts[source] == 1 and native_counts[native] == 0
+    ]
+    output = []
+    section = ""
+    inserted = False
+    removed = 0
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            if line == "[Script]" and section == "Rewrite":
+                output.extend(to_add)
+                inserted = True
+            section = line[1:-1]
+            output.append(line)
+            continue
+        if section == "Script" and line.strip() in source_set:
+            removed += 1
+            continue
+        output.append(line)
+
+    if to_add and not inserted:
+        raise ValueError("RRTV native rewrites could not be placed in an existing Rewrite section")
+    return output, removed
+
+
 def apply(text: str) -> str:
     if "[Script]" not in text or "[MITM]" not in text or "[Rewrite]" not in text:
         raise ValueError("plugin missing [Rewrite], [Script] or [MITM] section")
@@ -3550,6 +3642,7 @@ def apply(text: str) -> str:
             candidate = key + "= " + ", ".join(hosts)
         normalized_lines.append(candidate)
     lines = normalized_lines
+    lines, _ = replace_rrtv_json_script_with_native_rewrites(lines)
     lines, _ = consolidate_wechat_unblock_url_scripts(lines)
     lines, _ = consolidate_pdd_homepage_script(lines)
     lines, _ = remove_redundant_pdd_oak_script_trigger(lines)
