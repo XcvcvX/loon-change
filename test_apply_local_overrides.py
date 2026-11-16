@@ -1233,11 +1233,9 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         from apply_local_overrides import MEITUAN_CANONICAL_TRIGGER
         script = (Path(__file__).parent / "scripts/meituan/meituan.js").read_text(encoding="utf-8")
         for marker in (
-            r"p\d\.meituan\.net", "aggroup/indexTab",
-            "lycoris/scene", "usercenter/display", "searchpage/defaultword",
-            "searchpage/hotword/city/divide/hotrecommend",
-            "assistant/getAppClientHornConfig", "shoppingCartEntry",
-            "entryModule/startupPicture", "api/miniprogram",
+            r"p\d\.meituan\.net", "cleanTabArea", "cleanFeed",
+            "cleanMine", "cleanDefaultWord", "cleanHotRecommend",
+            "cleanAiSkill", "clearArea", "cleanMiniProgram",
             "topBannerArea", "startupPicArea", "oneCentBuy",
             "JSON.parse(body)", "$done({ body: JSON.stringify(obj) })",
         ):
