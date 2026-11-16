@@ -2557,5 +2557,69 @@ class MoreResponseScriptDedupTests(unittest.TestCase):
 
 
 
+
+class WeiboNonAdResponseTriggerTests(unittest.TestCase):
+    def _fixture(self):
+        from apply_local_overrides import WEIBO_SCRIPT_TRIGGER_LINES
+        return [
+            "[Script]",
+            *sorted(WEIBO_SCRIPT_TRIGGER_LINES),
+            r"""http-response ^https:\/\/api\.example\.com\/keep script-path=https://example.invalid/keep.js""",
+            "[Rewrite]",
+            r"""^https:\/\/api\.example\.com\/ad response-body-json-jq '.data=[]'""",
+        ]
+
+    def test_removes_only_non_ad_weibo_triggers_and_narrows_mixed_home_matcher(self):
+        from apply_local_overrides import (
+            WEIBO_NON_AD_TRIGGER_LINES, WEIBO_PUSH_ACTIVE_TRIGGER,
+            remove_weibo_non_ad_response_triggers,
+        )
+        fixture = self._fixture()
+        result, changed = remove_weibo_non_ad_response_triggers(fixture)
+        self.assertEqual(changed, 5)
+        weibo = [
+            line.strip() for line in result
+            if "weibo.js" in line.lower()
+        ]
+        self.assertEqual(len(weibo), 15)
+        self.assertIn(WEIBO_PUSH_ACTIVE_TRIGGER, weibo)
+        self.assertFalse(any(line in WEIBO_NON_AD_TRIGGER_LINES for line in weibo))
+        self.assertTrue(any("example.invalid/keep.js" in line for line in result))
+        self.assertIn(r"""^https:\/\/api\.example\.com\/ad response-body-json-jq '.data=[]'""", result)
+        again, second_changed = remove_weibo_non_ad_response_triggers(result)
+        self.assertEqual(second_changed, 0)
+        self.assertEqual(again, result)
+
+    def test_fails_closed_on_weibo_trigger_drift_or_duplicate(self):
+        from apply_local_overrides import remove_weibo_non_ad_response_triggers
+        fixture = self._fixture()
+        drifted = list(fixture)
+        index = next(i for i, line in enumerate(drifted) if "friendships" in line)
+        drifted[index] = drifted[index].replace("create|destroy", "create|remove")
+        result, changed = remove_weibo_non_ad_response_triggers(drifted)
+        self.assertEqual(changed, 0)
+        self.assertEqual(result, drifted)
+
+        duplicated = self._fixture()
+        index = next(i for i, line in enumerate(duplicated) if "friendships" in line)
+        rewrite_index = duplicated.index("[Rewrite]")
+        duplicated.insert(rewrite_index, duplicated[index])
+        result, changed = remove_weibo_non_ad_response_triggers(duplicated)
+        self.assertEqual(changed, 0)
+        self.assertEqual(result, duplicated)
+
+
+
+class StarPluckerIdempotenceTests(unittest.TestCase):
+    def test_already_consolidated_starplucker_rule_is_a_safe_noop(self):
+        from apply_local_overrides import (
+            STARPLUCKER_SINGLE_JQ_RULE, consolidate_starplucker_config_jq,
+        )
+        fixture = ["[Rewrite]", STARPLUCKER_SINGLE_JQ_RULE, "[MITM]", "hostname = starplucker.cyapi.cn"]
+        result, changed = consolidate_starplucker_config_jq(fixture)
+        self.assertEqual(changed, 0)
+        self.assertEqual(result, fixture)
+
+
 if __name__ == "__main__":
     unittest.main()
