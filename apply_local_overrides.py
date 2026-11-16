@@ -3113,6 +3113,79 @@ def optimize_xiaohongshu_response_cost(lines):
     return output, len(XHS_SCRIPT_TRIGGER_LINES)
 
 
+WEIBO_SCRIPT_TRIGGER_LINES = frozenset((
+    "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/(checkin\\/show|client\\/publisher_list|push\\/active)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO,requires-body=true",
+    "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/groups\\/allgroups\\/v2\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-2,requires-body=true",
+    "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/(cardlist|page)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-3,requires-body=true",
+    "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/comments\\/build_comments\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-4,requires-body=true",
+    "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/(container\\/asyn|flowlist|flowpage)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-5,requires-body=true",
+    "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/friendships\\/(create|destroy)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-6,requires-body=true",
+    "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/profile\\/(container_timeline|dealatt|me|statuses\\/tab|userinfo)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-7,requires-body=true",
+    "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/statuses\\/(container_timeline(?:_hot|_topic|_topicpage|_unread)?|unread_hot_timeline)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-8,requires-body=true",
+    "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/statuses\\/(extend|show)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-9,requires-body=true",
+    "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/video\\/tiny_stream_video_list\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-10,requires-body=true",
+    "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/!\\/huati\\/discovery_home_bottom_channels\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-11,requires-body=true",
+    "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/direct_messages\\/user_list\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-12,requires-body=true",
+    "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/messageflow\\/notice\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-13,requires-body=true",
+    "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/search\\/(container_timeline|finder)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-14,requires-body=true",
+    "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/searchall\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-15,requires-body=true",
+    "http-response ^https?:\\/\\/bootpreload\\.uve\\.weibo\\.com\\/v[12]\\/ad\\/preload script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-16,requires-body=true",
+    "http-response ^https?:\\/\\/sdkapp\\.uve\\.weibo\\.com\\/interface\\/sdk\\/sdkad\\.php script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-17,requires-body=true",
+    "http-response ^https?:\\/\\/wbapp\\.uve\\.weibo\\.com\\/(preload\\/get_ad|wbapplua\\/wbpullad\\.lua)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-18,requires-body=true",
+    "http-response ^https?:\\/\\/new\\.vip\\.weibo\\.cn\\/aj\\/appicon\\/list\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-19,requires-body=true",
+))
+WEIBO_COMBINED_HOME_TRIGGER = "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/(checkin\\/show|client\\/publisher_list|push\\/active)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO,requires-body=true"
+WEIBO_PUSH_ACTIVE_TRIGGER = "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/(push\\/active)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO,requires-body=true"
+WEIBO_NON_AD_TRIGGER_LINES = frozenset((
+    "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/friendships\\/(create|destroy)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-6,requires-body=true",
+    "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/video\\/tiny_stream_video_list\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-10,requires-body=true",
+    "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/!\\/huati\\/discovery_home_bottom_channels\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-11,requires-body=true",
+    "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/direct_messages\\/user_list\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-12,requires-body=true",
+))
+
+WEIBO_OPTIMIZED_SCRIPT_TRIGGER_LINES = (
+    WEIBO_SCRIPT_TRIGGER_LINES - WEIBO_NON_AD_TRIGGER_LINES - {WEIBO_COMBINED_HOME_TRIGGER}
+) | {WEIBO_PUSH_ACTIVE_TRIGGER}
+
+
+def remove_weibo_non_ad_response_triggers(lines):
+    """Drop non-ad Weibo response handlers and narrow the mixed home matcher to its ad endpoint."""
+    original = list(lines)
+    section = ""
+    observed = []
+    for line in original:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+        elif section == "Script" and "weibo.js" in stripped.lower():
+            observed.append(stripped)
+
+    if len(observed) != len(set(observed)):
+        return original, 0
+    observed_set = set(observed)
+    if observed_set == WEIBO_OPTIMIZED_SCRIPT_TRIGGER_LINES:
+        return original, 0
+    if len(observed) != len(WEIBO_SCRIPT_TRIGGER_LINES) or observed_set != WEIBO_SCRIPT_TRIGGER_LINES:
+        return original, 0
+
+    output = []
+    section = ""
+    for line in original:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+            output.append(line)
+            continue
+        if section == "Script":
+            if stripped == WEIBO_COMBINED_HOME_TRIGGER:
+                output.append(WEIBO_PUSH_ACTIVE_TRIGGER)
+                continue
+            if stripped in WEIBO_NON_AD_TRIGGER_LINES:
+                continue
+        output.append(line)
+    return output, len(WEIBO_NON_AD_TRIGGER_LINES) + 1
+
+
 def apply(text: str) -> str:
     if "[Script]" not in text or "[MITM]" not in text or "[Rewrite]" not in text:
         raise ValueError("plugin missing [Rewrite], [Script] or [MITM] section")
@@ -3217,6 +3290,7 @@ def apply(text: str) -> str:
     lines, _ = remove_same_source_duplicate_response_scripts(lines)
     lines, _ = remove_identical_script_response_duplicates(lines)
     lines, _ = remove_more_duplicate_response_scripts(lines)
+    lines, _ = remove_weibo_non_ad_response_triggers(lines)
     lines, _ = remove_redundant_dianping_scripts(lines)
     lines, _ = remove_redundant_baidumap_script(lines)
     lines, _ = remove_redundant_amap_legacy_scripts(lines)
