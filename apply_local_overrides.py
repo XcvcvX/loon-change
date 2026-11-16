@@ -2480,11 +2480,12 @@ def remove_duplicate_cnftp_scripts(lines):
             output.append(line)
             continue
 
+        normalized_line = line.replace("\\", "")
         is_target = (
             section == "Script"
-            and any(host in line for host in ("iqiyi.com", "mgtv.com", "youku.com"))
+            and any(host in normalized_line for host in ("iqiyi.com", "mgtv.com", "youku.com"))
             and ("http-response " in line or "response if " in line)
-            and "mgesq.api.mgtv.com" not in line
+            and "mgesq.api.mgtv.com" not in normalized_line
         )
         if not is_target:
             output.append(line)
