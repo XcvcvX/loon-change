@@ -3744,7 +3744,7 @@ print('  Rule   ：%d 条；Argument：%d 个开关' % (len(rule_items), len(arg
 if args.amap:
     print('  高德 App：Rewrite %d / Script %d / Rule %d / MITM %d（priority=-1，最高）'
           % (len(amap_rw), len(amap_sc), len(amap_rule), len(amap_mitm)))
-print('  Rule 来源：aoomee 新增 %d（跳过 %d）；thelong 新增 %d（跳过 %d）；'
+print('  Rule 来源：Romeo 替代源新增 %d（跳过 %d）；thelong 新增 %d（跳过 %d）；'
       'block 新增 %d（跳过 %d）'
       % (rule_counts['aoomee_add'], rule_counts['aoomee_dup'],
          rule_counts['thelong_add'], rule_counts['thelong_dup'],
