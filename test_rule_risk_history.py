@@ -30,6 +30,7 @@ class RuleRiskHistoryTests(unittest.TestCase):
         }
 
 
+
     def test_unreachable_response_rewrite_is_low_only_with_exact_request_coverage(self):
         removed = "^https:\\/\\/jad-api\\.jin10\\.com\\/ad reject-dict"
         request = "request if ${url} ~= /^https?:\\/\\/jad-api\\.jin10\\.com\\/ad/ then reject(404)"
