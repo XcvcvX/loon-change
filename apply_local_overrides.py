@@ -1789,7 +1789,7 @@ def apply(text: str) -> str:
         rewrite_lines, _ = consolidate_ximalaya_homepage_json_rewrites(rewrite_lines)
         rewrite_lines, _ = merge_adjacent_response_json_rewrites(rewrite_lines)
         rewrite_lines, _ = remove_redundant_zhihu_request_rules(rewrite_lines)
-                rewrite_lines, _ = consolidate_zhihu_multi_action_rewrites(rewrite_lines)
+        rewrite_lines, _ = consolidate_zhihu_multi_action_rewrites(rewrite_lines)
         rewrite_lines, _ = remove_subsumed_soul_teenager_rule(rewrite_lines)
         rewrite_lines, _ = remove_shadowed_peopleapp_rules(rewrite_lines)
         rewrite_lines, _ = remove_shadowed_terminal_block_rules(rewrite_lines)
