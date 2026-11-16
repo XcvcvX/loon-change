@@ -257,7 +257,7 @@ def remove_redundant_taobao_scripts(lines):
     canonical = {re.sub(r"\\\\+", "", item.strip()): item for item in TAOBAO_CANONICAL_SCRIPT_TRIGGERS}
     redundant = {re.sub(r"\\\\+", "", item.strip()): item for item in TAOBAO_REDUNDANT_SCRIPT_TRIGGERS}
     counts = {item: 0 for item in (*TAOBAO_CANONICAL_SCRIPT_TRIGGERS, *TAOBAO_REDUNDANT_SCRIPT_TRIGGERS)}
-    output, section = [], ""
+    output, section, target_seen = [], "", False
     for line in lines:
         if line.startswith("[") and line.endswith("]"):
             section = line[1:-1]
@@ -272,6 +272,7 @@ def remove_redundant_taobao_scripts(lines):
         if not is_target:
             output.append(line)
             continue
+        target_seen = True
         if normalized in canonical:
             trigger = canonical[normalized]
             counts[trigger] += 1
@@ -286,6 +287,8 @@ def remove_redundant_taobao_scripts(lines):
                 raise ValueError("duplicate redundant Taobao script trigger; refusing ambiguous deduplication")
             continue
         raise ValueError("Taobao splash script trigger changed; refusing an unreviewed deduplication")
+    if not target_seen:
+        return output, 0
     missing = [trigger for trigger, count in counts.items() if count != 1]
     if missing:
         raise ValueError("Taobao splash script trigger inventory changed; expected each reviewed trigger exactly once")
