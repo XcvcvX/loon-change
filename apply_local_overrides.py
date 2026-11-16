@@ -569,6 +569,28 @@ def remove_redundant_dianping_scripts(lines):
     return output, removed
 
 
+
+BAIDUMAP_LEGACY_SCRIPT_RULE = ("http-response ^https?:\\/\\/newclient\\.map\\.baidu\\.com\\/client\\/phpui2\\/\\?qt=ads script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/baiduMap.js,tag=BAIDUMAP,requires-body=true,binary-body-mode=true", "response if ${url} ~= /^https?:\\/\\/newclient\\.map\\.baidu\\.com\\/client\\/phpui2\\/\\?qt=ads/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/baidumap.js\") with enable=bdduditu_enable, tag=\"百度地图广告\", timeout=60, requires_body=true", "newclient.map.baidu.com/qt=ads")
+
+
+def remove_redundant_baidumap_script(lines):
+    """Remove the unconditional legacy Baidu Maps ad trigger when its gated twin exists."""
+    output = list(lines)
+    legacy, gated, label = BAIDUMAP_LEGACY_SCRIPT_RULE
+    legacy_positions = [i for i, line in enumerate(output) if line.strip() == legacy]
+    gated_positions = [i for i, line in enumerate(output) if line.strip() == gated]
+    if len(legacy_positions) > 1:
+        raise ValueError("duplicate legacy Baidu Maps script trigger: " + label)
+    if len(gated_positions) > 1:
+        raise ValueError("duplicate gated Baidu Maps script trigger: " + label)
+    if not legacy_positions:
+        return output, 0
+    if not gated_positions:
+        raise ValueError("Baidu Maps gated script trigger missing or changed: " + label)
+    output = [line for line in output if line.strip() != legacy]
+    return output, 1
+
+
 def apply(text: str) -> str:
     if "[Script]" not in text or "[MITM]" not in text or "[Rewrite]" not in text:
         raise ValueError("plugin missing [Rewrite], [Script] or [MITM] section")
@@ -650,6 +672,7 @@ def apply(text: str) -> str:
     lines, _ = remove_redundant_taobao_scripts(lines)
     lines, _ = remove_redundant_didi_usercenter_script(lines)
     lines, _ = remove_redundant_dianping_scripts(lines)
+    lines, _ = remove_redundant_baidumap_script(lines)
 
     result_lines, rewrite_lines = [], []
     section = ""
