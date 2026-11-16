@@ -1391,10 +1391,11 @@ class DouyinTncDirectSafetyTests(unittest.TestCase):
         partial = [line for line in self.base if line != self.rejects[0]]
         with self.assertRaisesRegex(ValueError, "inventory changed"):
             remove_douyin_tnc_conflicting_rejects(partial)
-        duplicate = self.base + [self.rejects[0]]
+        rewrite_index = self.base.index("[Rewrite]")
+        duplicate = self.base[:rewrite_index] + [self.rejects[0]] + self.base[rewrite_index:]
         with self.assertRaisesRegex(ValueError, "duplicate Douyin TNC"):
             remove_douyin_tnc_conflicting_rejects(duplicate)
-        unknown = self.base + ["DOMAIN,tnc3-bjlgy.snssdk.com,REJECT"]
+        unknown = self.base[:rewrite_index] + ["DOMAIN,tnc3-bjlgy.snssdk.com,REJECT"] + self.base[rewrite_index:]
         with self.assertRaisesRegex(ValueError, "inventory changed"):
             remove_douyin_tnc_conflicting_rejects(unknown)
 
