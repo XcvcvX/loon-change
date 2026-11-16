@@ -181,7 +181,36 @@
     "rewrite": {
       "action_changed": [],
       "added": [],
-      "removed": []
+      "removed": [
+        {
+          "line": "^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/aristotle\\/query_order_list_tabs_element reject-dict",
+          "section": "rewrite",
+          "sources": [
+            "aoomee"
+          ]
+        },
+        {
+          "line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/aristotle\\/query_order_list_tabs_element\\?/i then reject_dict(200)",
+          "section": "rewrite",
+          "sources": [
+            "zmjapp"
+          ]
+        },
+        {
+          "line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/aristotle\\/unrated_order_for_unreceived_tab\\?/i then reject_dict(200)",
+          "section": "rewrite",
+          "sources": [
+            "zmjapp"
+          ]
+        },
+        {
+          "line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/caterham\\/v3\\/query\\/order_express_group\\?/i then reject_dict(200)",
+          "section": "rewrite",
+          "sources": [
+            "zmjapp"
+          ]
+        }
+      ]
     },
     "rule": {
       "action_changed": [],
@@ -191,22 +220,14 @@
     "script": {
       "action_changed": [],
       "added": [],
-      "removed": [
-        {
-          "line": "response if ${url} ~= /^https\\:\\/\\/(weixin110\\.qq|security.wechat)\\.com\\/cgi-bin\\/mmspamsupport-bin\\/newredirectconfirmcgi\\?/i then script(\"https://raw.githubusercontent.com/zZPiglet/Task/master/asset/UnblockURLinWeChat.js\") with enable=lmjpxmvi_enable, tag=\"UnblockURLinWeChat-解除微信链接限制\", timeout=60, requires_body=true",
-          "section": "script",
-          "sources": [
-            "block"
-          ]
-        }
-      ]
+      "removed": []
     }
   },
   "summary": {
     "rewrite": {
       "action_changed": 0,
       "added": 0,
-      "removed": 0
+      "removed": 4
     },
     "rule": {
       "action_changed": 0,
@@ -216,9 +237,9 @@
     "script": {
       "action_changed": 0,
       "added": 0,
-      "removed": 1
+      "removed": 0
     },
-    "total_changes": 1
+    "total_changes": 4
   },
   "upstream_revision_changes": []
 }

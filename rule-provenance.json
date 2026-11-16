@@ -57903,27 +57903,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/aristotle/query_order_list_tabs_element', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3103,
-      "output_line": "^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/aristotle\\/query_order_list_tabs_element reject-dict",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/aristotle\\/query_order_list_tabs_element reject-dict",
-          "input_section": "Rewrite",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 132,
-          "source_file": "plugins/pdd.lpx",
-          "source_line_number": 28,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/aristotle\\/query_order_list_tabs_element reject-dict"
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/philo/personal/hub', ('response-body-json-jq', \"response-body-json-jq 'del(.personal_center_style_v2_vo, .icon_set.top_personal_icons, .icon_set.icons, .personal_banner) | .monthly_card_entrance.display = false'\"))",
       "output_entry_index": 3104,
       "output_line": "^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/philo\\/personal\\/hub response-body-json-jq 'del(.personal_center_style_v2_vo, .icon_set.top_personal_icons, .icon_set.icons, .personal_banner) | .monthly_card_entrance.display = false'",
@@ -59737,69 +59716,6 @@
           "source_line_number": 70,
           "source_original_section": "Rewrite",
           "source_raw_line": "response if ${url} ~= /^https:\\/\\/common\\.diditaxi\\.com\\.cn\\/user_common\\/itineraryList\\?/i then response.json.jq(\"del(.data.tab_nav[]?.tab_param)\")"
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/aristotle/unrated_order_for_unreceived_tab\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3199,
-      "output_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/aristotle\\/unrated_order_for_unreceived_tab\\?/i then reject_dict(200)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/aristotle\\/unrated_order_for_unreceived_tab\\?/i then reject_dict(200)",
-          "input_section": "Rewrite",
-          "priority": 0,
-          "source": "zmjapp",
-          "source_entry_index": 27,
-          "source_file": "Plugin/PinDuoDuo_remove_ads.lpx",
-          "source_line_number": 33,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/aristotle\\/unrated_order_for_unreceived_tab\\?/i then reject_dict(200)"
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/aristotle/query_order_list_tabs_element\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3200,
-      "output_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/aristotle\\/query_order_list_tabs_element\\?/i then reject_dict(200)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/aristotle\\/query_order_list_tabs_element\\?/i then reject_dict(200)",
-          "input_section": "Rewrite",
-          "priority": 0,
-          "source": "zmjapp",
-          "source_entry_index": 28,
-          "source_file": "Plugin/PinDuoDuo_remove_ads.lpx",
-          "source_line_number": 34,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/aristotle\\/query_order_list_tabs_element\\?/i then reject_dict(200)"
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/caterham/v3/query/order_express_group\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3201,
-      "output_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/caterham\\/v3\\/query\\/order_express_group\\?/i then reject_dict(200)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/caterham\\/v3\\/query\\/order_express_group\\?/i then reject_dict(200)",
-          "input_section": "Rewrite",
-          "priority": 0,
-          "source": "zmjapp",
-          "source_entry_index": 30,
-          "source_file": "Plugin/PinDuoDuo_remove_ads.lpx",
-          "source_line_number": 36,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/caterham\\/v3\\/query\\/order_express_group\\?/i then reject_dict(200)"
         }
       ],
       "trace_status": "mapped"
@@ -125114,7 +125030,7 @@
       "included": 49
     },
     "post_transform_reconciled": true,
-    "rewrite_output_entries": 3258,
+    "rewrite_output_entries": 3254,
     "rule_covered_or_duplicate_events": 2140,
     "rule_included_events": 3476,
     "rule_output_entries": 3474,

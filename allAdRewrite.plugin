@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、RuCu6 MyBlockAds、zirawell AlipayAdBlock、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / RuCu6 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-16 08:26 UTC
+#!merged-at=2026-11-16 08:41 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+RuCu6-MyBlockAds+zirawell-AlipayAdBlock+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -6620,7 +6620,6 @@ request if ${url} ~= /^https?:\/\/res\.app\.coc\.10086\.cn\/qwhdcdn_cmcc-cs_cn\/
 ^https:\/\/api\.pinduoduo\.com\/api\/leporis\/notification\/clear_tab_red_dot reject-dict
 request if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/aquarius\/hungary\/global\/homepage\?/i then reject_dict(200)
 ^https:\/\/api\.pinduoduo\.com\/api\/zaire_biz\/chat\/resource\/get_list_data reject-dict
-^https:\/\/api\.pinduoduo\.com\/api\/aristotle\/query_order_list_tabs_element reject-dict
 ^https:\/\/api\.pinduoduo\.com\/api\/philo\/personal\/hub response-body-json-jq 'del(.personal_center_style_v2_vo, .icon_set.top_personal_icons, .icon_set.icons, .personal_banner) | .monthly_card_entrance.display = false'
 ^https:\/\/api\.pinduoduo\.com\/api\/growth\/nagato\/app\/index\/gather response-body-json-jq 'del(.newer_index_banner.data)'
 ^https:\/\/api\.pinduoduo\.com\/order\/\d+-\d+\/shipping response-body-json-jq 'del(.shipping.banner_above_recommend)'
@@ -6713,9 +6712,6 @@ request if ${url} ~= /^https:\/\/freight\.xiaojukeji\.com\/gateway\?api=freight\
 response if ${url} ~= /^https:\/\/poi\.map\.xiaojukeji\.com\/mapapi\/startinfo\?api_version/i then response.json.delete("rec_destination")
 response if ${url} ~= /^https:\/\/poi\.map\.xiaojukeji\.com\/mapapi\/poiinfo\?product_id/i then response.json.delete("rec_destination")
 response if ${url} ~= /^https:\/\/common\.diditaxi\.com\.cn\/user_common\/itineraryList\?/i then response.json.jq("del(.data.tab_nav[]?.tab_param)")
-request if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/aristotle\/unrated_order_for_unreceived_tab\?/i then reject_dict(200)
-request if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/aristotle\/query_order_list_tabs_element\?/i then reject_dict(200)
-request if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/caterham\/v3\/query\/order_express_group\?/i then reject_dict(200)
 request if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/search_hotquery\?/i then reject_dict(200)
 request if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/zaire_biz\/chat\/resource\/get_list_data\?/i then reject_dict(200)
 request if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/caterham\/v3\/query\/new_chat_group\?/i then reject_dict(200)

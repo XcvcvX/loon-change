@@ -49,7 +49,7 @@
 |---|---:|
 | [Argument] | 91 |
 | [Rule] | 3474 |
-| [Rewrite] | 3258 |
+| [Rewrite] | 3254 |
 | [Script] | 542 |
 | [MITM] hostname 条目 | 1496 |
 | 唯一远程脚本 URL | 193 |
