@@ -286,38 +286,41 @@ def consolidate_pdd_homepage_script(lines):
 # 统一保留最先生效的 404 拒绝行为，并使用大小写不敏感 matcher 覆盖原有大小写范围。
 PDD_SPLASH_OLD_CANONICAL_RULE = r"request if ${url} ~= /^https?:\/\/api\.(pinduoduo|yangkeduo)\.com\/api\/cappuccino\/splash/ then reject(404)"
 PDD_SPLASH_CANONICAL_RULE = r"request if ${url} ~= /^https?:\/\/api\.(pinduoduo|yangkeduo)\.com\/api\/cappuccino\/splash/i then reject(404)"
-PDD_SPLASH_REDUNDANT_RULES = (
-    r"request if ${url} ~= /^https:\/\/api\.(pinduoduo|yangkeduo)\.com\/api\/cappuccino\/splash/i then reject(404)",
+PDD_SPLASH_DUPLICATE_404_RULE = r"request if ${url} ~= /^https:\/\/api\.(pinduoduo|yangkeduo)\.com\/api\/cappuccino\/splash/i then reject(404)"
+PDD_SPLASH_DISTINCT_ACTION_RULES = (
     r"^https?://api\.(pinduoduo|yangkeduo)\.com/api/cappuccino/splash reject-200",
     r"^https:\/\/api\.pinduoduo\.com\/api\/cappuccino\/splash reject-dict",
 )
 
 
 def consolidate_pdd_splash_rules(lines):
-    """Collapse only the four audited PDD splash matchers into one equivalent request reject."""
+    """Collapse only the duplicate 404 matcher; preserve distinct response status/body actions."""
     old_count = sum(line.strip() == PDD_SPLASH_OLD_CANONICAL_RULE for line in lines)
     canonical_count = sum(line.strip() == PDD_SPLASH_CANONICAL_RULE for line in lines)
-    redundant_counts = [sum(line.strip() == rule for line in lines) for rule in PDD_SPLASH_REDUNDANT_RULES]
-    known = old_count + canonical_count + sum(redundant_counts)
+    duplicate_count = sum(line.strip() == PDD_SPLASH_DUPLICATE_404_RULE for line in lines)
+    distinct_counts = [sum(line.strip() == rule for line in lines) for rule in PDD_SPLASH_DISTINCT_ACTION_RULES]
+    known = old_count + canonical_count + duplicate_count + sum(distinct_counts)
     target = [line for line in lines if "cappuccino" in line and "splash" in line]
     if not target:
         return list(lines), 0
-    if old_count + canonical_count != 1 or any(count > 1 for count in redundant_counts):
+    if old_count + canonical_count != 1 or duplicate_count > 1 or any(count > 1 for count in distinct_counts):
         raise ValueError("Pinduoduo splash rule inventory changed or duplicated; refusing consolidation")
     if len(target) != known:
         raise ValueError("unknown Pinduoduo splash matcher found; refusing unreviewed consolidation")
-    if canonical_count == 1 and known == 1:
+    if canonical_count == 1 and duplicate_count == 0 and known == 3:
         return list(lines), 0
+    if not all(distinct_counts):
+        raise ValueError("Pinduoduo splash distinct action inventory missing; refusing consolidation")
     output = []
     for line in lines:
         stripped = line.strip()
         if stripped == PDD_SPLASH_OLD_CANONICAL_RULE:
             output.append(PDD_SPLASH_CANONICAL_RULE)
-        elif stripped in PDD_SPLASH_REDUNDANT_RULES:
+        elif stripped == PDD_SPLASH_DUPLICATE_404_RULE:
             continue
         else:
             output.append(line)
-    return output, len(target) - 1
+    return output, 1
 
 
 # 以下三个广告资源 URL 规则在上游合并时重复出现，且更宽的同动作规则已先行覆盖。
