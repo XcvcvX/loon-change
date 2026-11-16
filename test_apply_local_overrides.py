@@ -1364,6 +1364,51 @@ class KugouJin10RewriteDedupTests(unittest.TestCase):
             apply(drifted)
 
 
+class ZhihuRequestShadowRuleCleanupTests(unittest.TestCase):
+    def setUp(self):
+        from apply_local_overrides import ZHIHU_REQUEST_SHADOW_PAIRS
+        self.pairs = ZHIHU_REQUEST_SHADOW_PAIRS
+        self.base = (
+            "#!name=Zhihu-request-test\n[Rule]\n[Rewrite]\n"
+            + "\n".join(item for pair in self.pairs for item in pair[:2])
+            + "\n^https?:\\/\\/api\\.zhihu\\.com\\/ad reject-dict\n"
+            + "[Script]\n[MITM]\nhostname = api.zhihu.com, zhuanlan.zhihu.com, "
+            "zhstatic.zhihu.com, creditcard.bankcomm.cn, creditcard.bankcomm.com, "
+            "creditcardapp.bankcomm.cn, creditcardapp.bankcomm.com\n"
+        )
+
+    def test_removes_only_same_action_https_subsets_and_is_idempotent(self):
+        result = apply(self.base)
+        for redundant, canonical, _marker in self.pairs:
+            self.assertNotIn(redundant, result)
+            self.assertEqual(result.count(canonical), 1)
+        self.assertIn(r"^https?:\\/\\/api\\.zhihu\\.com\\/ad reject-dict", result)
+        self.assertEqual(apply(result), result)
+
+    def test_fails_closed_on_missing_cover_duplicate_drift_or_unknown_target(self):
+        redundant, canonical, _marker = self.pairs[0]
+        missing_cover = self.base.replace(canonical + "\n", "", 1)
+        with self.assertRaisesRegex(ValueError, "Zhihu covering request blocker missing"):
+            apply(missing_cover)
+
+        duplicate = self.base.replace(redundant, redundant + "\n" + redundant, 1)
+        with self.assertRaisesRegex(ValueError, "duplicate Zhihu request blocker"):
+            apply(duplicate)
+
+        drifted = self.base.replace(redundant, redundant.replace("reject(404)", "reject_dict(200)"), 1)
+        with self.assertRaisesRegex(ValueError, "Zhihu request blocker inventory changed"):
+            apply(drifted)
+
+        unknown = self.base.replace(
+            redundant,
+            redundant + "\n" +
+            r"request if ${url} ~= /^https:\\/\\/api\\.zhihu\\.com\\/unlimited\\/go\\/my_card\\/new/ then reject(404)",
+            1,
+        )
+        with self.assertRaisesRegex(ValueError, "Zhihu request blocker inventory changed"):
+            apply(unknown)
+
+
 class ZhihuMultiActionRewriteConsolidationTests(unittest.TestCase):
     def setUp(self):
         from apply_local_overrides import (
