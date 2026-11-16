@@ -1490,17 +1490,17 @@ ZHIHU_REQUEST_SHADOW_PAIRS = (
     (
         r"request if ${url} ~= /^https:\/\/api\.zhihu\.com\/ab\/api\/v1\/products\/zhihu\/platforms\/ios\/config/ then reject(404)",
         r"request if ${url} ~= /^https?:\/\/api\.zhihu\.com\/ab\/api\/v\d\/products\/zhihu\/platforms\/ios\/config/ then reject(404)",
-        "ab/api/v1/products/zhihu/platforms/ios/config",
+        "ab/api/",
     ),
     (
         r"request if ${url} ~= /^https:\/\/zhuanlan\.zhihu\.com\/api\/articles\/\d+\/recommendation/ then reject(404)",
         r"request if ${url} ~= /^https?:\/\/zhuanlan\.zhihu\.com\/api\/articles\/\d+\/recommendation/ then reject(404)",
-        "zhuanlan.zhihu.com/api/articles/",
+        "zhuanlan",
     ),
     (
         r"request if ${url} ~= /^https:\/\/zhstatic\.zhihu\.com\/brand-ad/ then reject(404)",
         r"request if ${url} ~= /^https?:\/\/zhstatic\.zhihu\.com\/brand-ad/ then reject(404)",
-        "zhstatic.zhihu.com/brand-ad",
+        "brand-ad",
     ),
 )
 
