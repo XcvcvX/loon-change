@@ -2771,7 +2771,7 @@ def remove_identical_script_response_duplicates(lines):
             output.append(line)
             continue
 
-        normalized = line.replace("\\\\", "")
+        normalized = line.replace("\\", "")
         has_script_action = "http-response " in line or "response if " in line
         is_target = (
             section == "Script"
