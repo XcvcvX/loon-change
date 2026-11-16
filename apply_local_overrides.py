@@ -1843,9 +1843,9 @@ def normalize_bilibili_non_ad_feature_overrides(lines):
 
     if not saw_target:
         return list(lines), 0
-    remove_present = [count for count in remove_counts.values() if count]
-    if remove_present and len(remove_present) != len(BILIBILI_NON_AD_FEATURE_RULES):
-        raise ValueError("Bilibili non-ad feature inventory is partial; refusing cleanup")
+    # Upstream feeds may prune already-reviewed non-ad feature rows independently.
+    # Remove only exact known rows that are still present; duplicate rows and changed
+    # variants remain fail-closed through the checks above and unknown_markers below.
     for old, new in BILIBILI_NON_AD_FEATURE_REPLACEMENTS:
         if old_counts[old] + new_counts[new] != 1:
             raise ValueError("Bilibili gRPC feature rule replacement inventory changed")
