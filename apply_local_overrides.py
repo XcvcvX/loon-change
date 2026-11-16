@@ -495,12 +495,12 @@ DDQX_NEWDETAILS_NATIVE_RULE = r'response if ${url} ~= /^https?:\/\/maicai\.api\.
 def replace_ddqx_newdetails_body_rewrites(lines):
     """Replace only the reviewed Duoduo Grocery suspension-field rewrites with JSON deletion."""
     output, converted, legacy_count, modern_count, native_count = [], 0, 0, 0, 0
-    normalized_matcher = re.sub(r"\+", "", DDQX_NEWDETAILS_MATCHER)
-    normalized_native = re.sub(r"\+", "", DDQX_NEWDETAILS_NATIVE_RULE)
+    normalized_matcher = re.sub(r"\\+", "", DDQX_NEWDETAILS_MATCHER)
+    normalized_native = re.sub(r"\\+", "", DDQX_NEWDETAILS_NATIVE_RULE)
     normalized_legacy = normalized_matcher + " " + DDQX_NEWDETAILS_LEGACY_ACTION
-    normalized_modern = re.sub(r"\+", "", DDQX_NEWDETAILS_MODERN_ACTION)
+    normalized_modern = re.sub(r"\\+", "", DDQX_NEWDETAILS_MODERN_ACTION)
     for line in lines:
-        normalized = re.sub(r"\+", "", line.strip())
+        normalized = re.sub(r"\\+", "", line.strip())
         if DDQX_NEWDETAILS_MARKER.lower() not in normalized.lower():
             output.append(line)
             continue
