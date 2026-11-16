@@ -236,9 +236,9 @@ def remove_gaoding_resource_scripts(lines):
 
 # 拼多多首页由 R-Store 与 ishowshu 两份脚本重复处理同一响应。
 # 合并为仓库内单脚本，保留两份脚本及原生 JSON 规则的并集行为。
-PDD_RSTORE_HOMEPAGE_TRIGGER = r"http-response ^https?:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/\\w+\\/hub script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/pdd.js,tag=PDD-2,requires-body=true"
-PDD_LOCAL_HOMEPAGE_TRIGGER = r"http-response ^https?:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/\\w+\\/hub script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/pinduoduo/pdd-homepage.js,tag=PDD-2,requires-body=true"
-PDD_ISHOWSHU_HOMEPAGE_TRIGGER = r"http-response ^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/homepage\\/hub script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/pdd.js, requires-body = true, tag = 拼多多首页简化(底部菜单、顶部分类)"
+PDD_RSTORE_HOMEPAGE_TRIGGER = r"http-response ^https?:\/\/api\.pinduoduo\.com\/api\/alexa\/\w+\/hub script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/pdd.js,tag=PDD-2,requires-body=true"
+PDD_LOCAL_HOMEPAGE_TRIGGER = r"http-response ^https?:\/\/api\.pinduoduo\.com\/api\/alexa\/\w+\/hub script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/pinduoduo/pdd-homepage.js,tag=PDD-2,requires-body=true"
+PDD_ISHOWSHU_HOMEPAGE_TRIGGER = r"http-response ^https:\/\/api\.pinduoduo\.com\/api\/alexa\/homepage\/hub script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/pdd.js, requires-body = true, tag = 拼多多首页简化(底部菜单、顶部分类)"
 
 
 def consolidate_pdd_homepage_script(lines):
@@ -246,9 +246,9 @@ def consolidate_pdd_homepage_script(lines):
     output, section = [], ""
     counts = {"rstore": 0, "local": 0, "ishowshu": 0}
     normalized_triggers = {
-        re.sub(r"\\\\+", "", PDD_RSTORE_HOMEPAGE_TRIGGER.strip()): "rstore",
-        re.sub(r"\\\\+", "", PDD_LOCAL_HOMEPAGE_TRIGGER.strip()): "local",
-        re.sub(r"\\\\+", "", PDD_ISHOWSHU_HOMEPAGE_TRIGGER.strip()): "ishowshu",
+        re.sub(r"\\+", "", PDD_RSTORE_HOMEPAGE_TRIGGER.strip()): "rstore",
+        re.sub(r"\\+", "", PDD_LOCAL_HOMEPAGE_TRIGGER.strip()): "local",
+        re.sub(r"\\+", "", PDD_ISHOWSHU_HOMEPAGE_TRIGGER.strip()): "ishowshu",
     }
     target_seen = False
     for line in lines:
@@ -256,7 +256,7 @@ def consolidate_pdd_homepage_script(lines):
             section = line[1:-1]
             output.append(line)
             continue
-        normalized = re.sub(r"\\\\+", "", line.strip())
+        normalized = re.sub(r"\\+", "", line.strip())
         is_target = section == "Script" and "api.pinduoduo.com/api/alexa/" in normalized
         if not is_target:
             output.append(line)
