@@ -796,7 +796,7 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 ## 第八阶段第四十九批：人人视频响应脚本改为原生广告 JSON 清理
 
 - 对照上游 `rrtv_json.js` 的 9 个响应入口逐分支审计：只有首页频道与 `/ad/getAll` 两个入口执行广告清理；其余 7 个入口修改导航、个人页、等级/特权资料或播放权限，并非广告清理。
-- 移除 7 个非广告响应脚本入口；首页广告数组清理与广告列表清空改为两条受原 `rfrfuipk_enable` 开关控制的原生 `response.json.jq` Rewrite。
+- 移除 7 个非广告响应脚本入口；首页广告数组清理与广告列表清空改为两条受原 `rfrfuipk_enable` 开关控制的原生 `response.json.jq` Rewrite，并用 JQ `try/catch` 在数据结构不符时保留原响应。
 - 保留首页 matcher 的原始 query 边界、广告列表接口 matcher 和原有开关；首页数组删除保持原脚本 `delete` 后序列化为 `null` 占位的结果，不扩大匹配范围。
 - 人人视频的响应脚本触发器由 9 条降为 0 条；两个广告响应由 JavaScript body script 改为原生 JSON Rewrite，不再加载约 25 KB 的 `rrtv_json.js` 执行脚本引擎、JS JSON.parse/循环/JSON.stringify。
 - 同时移除对 VIP 等级、特权、播放权限的非广告改写；不影响其他 App，不改 MITM 或请求/分流规则。
