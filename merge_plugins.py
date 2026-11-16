@@ -1522,16 +1522,25 @@ def narrow_gamersky_statistic_ad_host(rewrite_lines, source):
 
 
 def narrow_gamersky_ad_system_host(rewrite_lines, source):
-    """将游民星空广告接口限制为合法的 gamersky.com 子域名，不改变路径与动作。"""
+    """将游民星空广告接口限制为合法的 gamersky.com 子域名，并保留上游 /i 标志。"""
     output = []
     adjustments = []
     original = (
-        r"request if ${url} ~= /^http:\/\/.+\.gamersky\.com\/.+"
+        r"request if \${url} ~= /^http:\/\/.+\.gamersky\.com\/.+"
         r"\/adSystem\/ad\/.+/ then reject_dict(200)"
     )
+    current_case_insensitive_original = (
+        r"request if \${url} ~= /^http:\/\/.+\.gamersky\.com\/.+"
+        r"\/adSystem\/ad\/.+/i then reject_dict(200)"
+    )
     narrowed = (
-        r"request if ${url} ~= /^http:\/\/(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}"
+        r"request if \${url} ~= /^http:\/\/(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}"
         r"[A-Za-z0-9])?\.)+gamersky\.com\/.+\/adSystem\/ad\/.+/"
+        r" then reject_dict(200)"
+    )
+    narrowed_case_insensitive = (
+        r"request if \${url} ~= /^http:\/\/(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}"
+        r"[A-Za-z0-9])?\.)+gamersky\.com\/.+\/adSystem\/ad\/.+/i"
         r" then reject_dict(200)"
     )
     for line in rewrite_lines:
@@ -1540,11 +1549,20 @@ def narrow_gamersky_ad_system_host(rewrite_lines, source):
         if not normalized or 'gamersky' not in normalized or '/adSystem/ad/' not in normalized:
             output.append(line)
             continue
-        if line != original or action_key(line) != ('REJECT', 'reject_dict', 'reject_dict(200)'):
+        if line == original:
+            replacement = narrowed
+        elif line == current_case_insensitive_original:
+            # 当前 fmz200 blockAds.plugin 已为该规则增加 /i；保留大小写不敏感语义。
+            replacement = narrowed_case_insensitive
+        else:
             raise RuntimeError(
                 source + ' 游民星空 adSystem 广告规则范围或动作已变化，拒绝自动改写：' + line
             )
-        updated_matcher = entry_regex(narrowed)
+        if action_key(line) != ('REJECT', 'reject_dict', 'reject_dict(200)'):
+            raise RuntimeError(
+                source + ' 游民星空 adSystem 广告规则动作已变化，拒绝自动改写：' + line
+            )
+        updated_matcher = entry_regex(replacement)
         updated_normalized = updated_matcher.replace(r'\/', '/') if updated_matcher else updated_matcher
         expected = normalized.replace(
             r'.+\.gamersky\.com',
@@ -1559,12 +1577,12 @@ def narrow_gamersky_ad_system_host(rewrite_lines, source):
             'reason': (
                 'Constrain the Gamersky adSystem endpoint to syntactically valid '
                 'subdomains of the declared *.gamersky.com MITM scope, while preserving '
-                'the HTTP scheme, ad path, and reject_dict(200) action.'
+                'the HTTP scheme, ad path, case-sensitivity flag, and reject_dict(200) action.'
             ),
             'original_line': line,
-            'output_line': narrowed,
+            'output_line': replacement,
         })
-        output.append(narrowed)
+        output.append(replacement)
     return output, adjustments
 
 
