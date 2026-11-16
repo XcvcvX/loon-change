@@ -200,8 +200,8 @@ def remove_guiderank_homepage_script(lines):
 DDQX_NEWDETAILS_MARKER = "maicai.api.ddxq.mobi/homeApi/newDetails"
 DDQX_NEWDETAILS_MATCHER = r"^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/newDetails"
 DDQX_NEWDETAILS_LEGACY_ACTION = "response-body-replace-regex suspension random_body"
-DDQX_NEWDETAILS_MODERN_ACTION = r'response if \${url} ~= /^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/newDetails/ then response.body.replace(/suspension/, "fmz200")'
-DDQX_NEWDETAILS_NATIVE_RULE = r'response if \${url} ~= /^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/newDetails/ then response.json.delete("data.suspension")'
+DDQX_NEWDETAILS_MODERN_ACTION = r'response if ${url} ~= /^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/newDetails/ then response.body.replace(/suspension/, "fmz200")'
+DDQX_NEWDETAILS_NATIVE_RULE = r'response if ${url} ~= /^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/newDetails/ then response.json.delete("data.suspension")'
 
 
 def replace_ddqx_newdetails_body_rewrites(lines):
