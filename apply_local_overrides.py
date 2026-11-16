@@ -1727,6 +1727,107 @@ def remove_bilibili_core_service_overblocks(lines):
         raise ValueError("Bilibili path-scoped ad Rewrite coverage changed")
     return output, sum(present)
 
+BILIBILI_NON_AD_FEATURE_RULES = (
+    "^https?:\\/\\/(?:app\\.bilibili\\.com|grpc\\.biliapi\\.net)\\/bilibili\\.app\\.interface\\.v\\d\\.Search\\/DefaultWords reject-dict",
+    "response if ${url} ~= /^https:\\/\\/grpc\\.biliapi\\.net\\/bilibili\\.app\\.interface\\.v1\\.Teenagers\\/ModeStatus$/ then response.body.mock(\"text\", `AAAAABMKEQgCEgl0ZWVuYWdlcnMgAioA`, 200, true)",
+    "response if ${url} ~= /^https:\\/\\/grpc\\.biliapi\\.net\\/bilibili\\.app\\.interface\\.v1\\.Search\\/DefaultWords$/ then response.body.mock(\"text\", `AAAAACEaHeaQnOe0ouinhumikeOAgeeVquWJp+aIlnVw5Li7KAE=`, 200, true)",
+    "response if ${url} ~= /^https:\\/\\/api\\.bilibili\\.com\\/x\\/pd-proxy\\/tracker\\?/ then response.json.jq(`.data[][]?=\"stun.chat.bilibili.com:3478\"`)",
+    "response if ${url} ~= /^https:\\/\\/api\\.bilibili\\.com\\/pgc\\/view\\/v2\\/app\\/season\\?/ then response.json.jq(`del(.data.payment)`)",
+    "response if ${url} ~= /^https:\\/\\/app\\.bilibili\\.com\\/x\\/resource\\/show\\/skin\\?/ then response.json.delete(\"data.common_equip\")",
+    "response if ${url} ~= /^https:\\/\\/app\\.bilibili\\.com\\/x\\/resource\\/show\\/tab\\/v2\\?/ then response.json.jq_file(\"https://raw.githubusercontent.com/kokoryh/Sparkle/refs/heads/master/jq/bilibili.tab.jq\")",
+    "response if ${url} ~= /^https:\\/\\/app\\.bilibili\\.com\\/x\\/v2\\/account\\/myinfo\\?/ then response.json.jq(`.data.vip |= if . != null and .status == 0 then . + { status: 1, type: 2, due_date: 9005270400000, role: 15 } else . end`)",
+    "^https:\\/\\/api\\.live\\.bilibili\\.com\\/xlive\\/open-interface\\/v2\\/tracker\\/conf\\? response-body-json-jq '.data.domains=[\"wss://tracker.chat.bilibili.com\"]'",
+    "^https:\\/\\/api\\.bilibili\\.com\\/pgc\\/view\\/v2\\/app\\/season\\? response-body-json-jq 'del(.data.payment)'",
+    "^https:\\/\\/grpc\\.biliapi\\.net\\/bilibili\\.app\\.interface\\.v1\\.Teenagers\\/ModeStatus$ mock-response-body data-type=text data=\"AAAAABMKEQgCEgl0ZWVuYWdlcnMgAioA\" mock-data-is-base64=true",
+    "^https:\\/\\/grpc\\.biliapi\\.net\\/bilibili\\.app\\.interface\\.v1\\.Search\\/DefaultWords$ mock-response-body data-type=text data=\"AAAAACEaHeaQnOe0ouinhumikeOAgeeVquWJp+aIlnVw5Li7KAE=\" mock-data-is-base64=true",
+    "^https:\\/\\/api\\.bilibili\\.com\\/x\\/pd-proxy\\/tracker\\? response-body-json-jq '.data[][]?=\"stun.chat.bilibili.com:3478\"'",
+    "^https:\\/\\/app\\.bilibili\\.com\\/x\\/resource\\/show\\/skin\\? response-body-json-del data.common_equip",
+    "^https:\\/\\/app\\.bilibili\\.com\\/x\\/resource\\/show\\/tab\\/v2\\? response-body-json-jq '.data.tab = [ { pos: 1, id: 39, name: \"直播\", tab_id: \"直播tab\", uri: \"bilibili://live/home\" }, { pos: 2, id: 40, name: \"推荐\", tab_id: \"推荐tab\", uri: \"bilibili://pegasus/promo\", default_selected: 1 }, { pos: 3, id: 41, name: \"热门\", tab_id: \"hottopic\", uri: \"bilibili://pegasus/hottopic\" }, { pos: 4, id: 3502, name: \"动画\", tab_id: \"bangumi\", uri: \"bilibili://pgc/home\" }, { pos: 5, id: 3503, name: \"影视\", tab_id: \"bilibili://pgc/cinema-tab\", uri: \"bilibili://pgc/cinema-tab\" } ] | .data.top = [ { pos: 1, id: 3510, name: \"消息\", tab_id: \"消息Top\", uri: \"bilibili://link/im_home\", icon: \"http://i0.hdslb.com/bfs/archive/d43047538e72c9ed8fd8e4e34415fbe3a4f632cb.png\" } ] | .data.bottom = [ { pos: 1, id: 177, name: \"首页\", tab_id: \"home\", uri: \"bilibili://main/home/\", icon: \"http://i0.hdslb.com/bfs/archive/63d7ee88d471786c1af45af86e8cb7f607edf91b.png\", icon_selected: \"http://i0.hdslb.com/bfs/archive/e5106aa688dc729e7f0eafcbb80317feb54a43bd.png\" }, { pos: 2, id: 179, name: \"关注\", tab_id: \"dynamic\", uri: \"bilibili://following/home/\", icon: \"http://i0.hdslb.com/bfs/archive/86dfbe5fa32f11a8588b9ae0fccb77d3c27cedf6.png\", icon_selected: \"http://i0.hdslb.com/bfs/archive/25b658e1f6b6da57eecba328556101dbdcb4b53f.png\" }, { pos: 5, id: 181, name: \"我的\", tab_id: \"我的Bottom\", uri: \"bilibili://user_center/\", icon: \"http://i0.hdslb.com/bfs/archive/4b0b2c49ffeb4f0c2e6a4cceebeef0aab1c53fe1.png\", icon_selected: \"http://i0.hdslb.com/bfs/archive/a54a8009116cb896e64ef14dcf50e5cade401e00.png\" } ]'",
+)
+BILIBILI_NON_AD_FEATURE_REPLACEMENTS = (
+    ("response if ${url} ~= /^https:\\/\\/grpc\\.biliapi\\.net\\/bilibili\\.app\\.(interface\\.v1\\.(Teenagers\\/ModeStatus|Search\\/DefaultWords)|view\\.v1\\.View\\/TFInfo|viewunite\\.v1\\.View\\/ViewEndPage)$/ then response.header.add(\"grpc-status\", \"0\")", "response if ${url} ~= /^https:\\/\\/grpc\\.biliapi\\.net\\/bilibili\\.app\\.(view\\.v1\\.View\\/TFInfo|viewunite\\.v1\\.View\\/ViewEndPage)$/ then response.header.add(\"grpc-status\", \"0\")"),
+    ("^https:\\/\\/grpc\\.biliapi\\.net\\/bilibili\\.app\\.(interface\\.v1\\.(Teenagers\\/ModeStatus|Search\\/DefaultWords)|view\\.v1\\.View\\/TFInfo|viewunite\\.v1\\.View\\/(PlayPause|ViewEndPage))$ response-header-add grpc-status 0", "^https:\\/\\/grpc\\.biliapi\\.net\\/bilibili\\.app\\.(view\\.v1\\.View\\/TFInfo|viewunite\\.v1\\.View\\/ViewEndPage)$ response-header-add grpc-status 0"),
+    ("^https:\\/\\/grpc\\.biliapi\\.net\\/bilibili\\.app\\.(view\\.v1\\.View\\/TFInfo|viewunite\\.v1\\.View\\/(PlayPause|ViewEndPage))$ mock-response-body data-type=text data=\"AAAAAAA=\" mock-data-is-base64=true", "^https:\\/\\/grpc\\.biliapi\\.net\\/bilibili\\.app\\.(view\\.v1\\.View\\/TFInfo|viewunite\\.v1\\.View\\/ViewEndPage)$ mock-response-body data-type=text data=\"AAAAAAA=\" mock-data-is-base64=true"),
+)
+BILIBILI_AD_PATH_MARKERS = (
+    "app.bilibili.com/x/v2/splash/",
+    "app.bilibili.com/x/v2/feed/index",
+    "api.bilibili.com/pgc/activity/deliver",
+)
+
+
+def normalize_bilibili_non_ad_feature_overrides(lines):
+    """Remove non-ad VIP/paywall/teen-mode and network/UI mutations from the ad plugin."""
+    section = ""
+    output = []
+    remove_counts = {rule: 0 for rule in BILIBILI_NON_AD_FEATURE_RULES}
+    old_counts = {old: 0 for old, _ in BILIBILI_NON_AD_FEATURE_REPLACEMENTS}
+    new_counts = {new: 0 for _, new in BILIBILI_NON_AD_FEATURE_REPLACEMENTS}
+    saw_target = False
+    normalized_rewrites = []
+    unknown_markers = (
+        ("/x/v2/account/myinfo", "due_date"),
+        ("/pgc/view/v2/app/season", "payment"),
+        ("Teenagers/ModeStatus", "mock"),
+        ("Teenagers/ModeStatus", "grpc-status"),
+        ("Search/DefaultWords", "mock"),
+        ("Search/DefaultWords", "reject-dict"),
+        ("Search/DefaultWords", "grpc-status"),
+        ("/x/pd-proxy/tracker", "stun.chat.bilibili.com"),
+        ("/xlive/open-interface/v2/tracker/conf", "tracker.chat.bilibili.com"),
+        ("/x/resource/show/skin", "common_equip"),
+        ("/x/resource/show/tab/v2", "response"),
+        ("PlayPause", "mock-response-body"),
+    )
+
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            output.append(line)
+            continue
+        value = line.strip()
+        normalized = value.replace(chr(92), "")
+        if section == "Rewrite":
+            if value in remove_counts:
+                remove_counts[value] += 1
+                saw_target = True
+                if remove_counts[value] > 1:
+                    raise ValueError("duplicate Bilibili non-ad feature rule")
+                continue
+            replacement = dict(BILIBILI_NON_AD_FEATURE_REPLACEMENTS)
+            if value in old_counts:
+                old_counts[value] += 1
+                saw_target = True
+                if old_counts[value] > 1:
+                    raise ValueError("duplicate Bilibili non-ad feature replacement source")
+                output.append(replacement[value])
+                continue
+            if value in new_counts:
+                new_counts[value] += 1
+                saw_target = True
+                if new_counts[value] > 1:
+                    raise ValueError("duplicate Bilibili narrowed gRPC header/mock rule")
+                output.append(line)
+                continue
+            if any(marker in normalized and detail in normalized for marker, detail in unknown_markers):
+                raise ValueError("Bilibili non-ad feature rule changed; refusing unreviewed behavior: " + value)
+            if any(marker in normalized for marker in BILIBILI_AD_PATH_MARKERS):
+                normalized_rewrites.append(normalized)
+        output.append(line)
+
+    if not saw_target:
+        return list(lines), 0
+    remove_present = [count for count in remove_counts.values() if count]
+    if remove_present and len(remove_present) != len(BILIBILI_NON_AD_FEATURE_RULES):
+        raise ValueError("Bilibili non-ad feature inventory is partial; refusing cleanup")
+    for old, new in BILIBILI_NON_AD_FEATURE_REPLACEMENTS:
+        if old_counts[old] + new_counts[new] != 1:
+            raise ValueError("Bilibili gRPC feature rule replacement inventory changed")
+    normalized_text = "\n".join(normalized_rewrites)
+    if any(marker not in normalized_text for marker in BILIBILI_AD_PATH_MARKERS):
+        raise ValueError("Bilibili ad-path Rewrite coverage changed during feature cleanup")
+    return output, sum(remove_counts.values()) + sum(old_counts.values())
+
 def remove_douyin_hongguo_unsafe_rules(lines):
     """Remove only the reviewed HTTPDNS/runtime/live-feed blocks and MITM host."""
     section = ""
@@ -2304,6 +2405,7 @@ def apply(text: str) -> str:
     lines, _ = remove_douyin_content_cdn_overblocks(lines)
     lines, _ = remove_douyin_non_ad_service_host_blocks(lines)
     lines, _ = remove_bilibili_core_service_overblocks(lines)
+    lines, _ = normalize_bilibili_non_ad_feature_overrides(lines)
     lines, _ = remove_douyin_hongguo_unsafe_rules(lines)
     lines, _ = remove_kugou_jin10_redundant_rewrites(lines)
     lines, _ = remove_pdd_order_endpoint_blocks(lines)
