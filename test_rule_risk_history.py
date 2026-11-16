@@ -29,6 +29,53 @@ class RuleRiskHistoryTests(unittest.TestCase):
             },
         }
 
+
+    def test_unreachable_response_rewrite_is_low_only_with_exact_request_coverage(self):
+        removed = "^https:\\/\\/jad-api\\.jin10\\.com\\/ad reject-dict"
+        request = "request if ${url} ~= /^https?:\\/\\/jad-api\\.jin10\\.com\\/ad/ then reject(404)"
+        diff = {"sections": {"rewrite": {"removed": [{"line": removed, "sources": ["thelong"]}]}},
+                "current_upstream_revisions": {}, "upstream_revision_changes": []}
+        provenance = {"rewrite_exclusions": [{
+            "status": "excluded_unreachable_response",
+            "source_raw_line": removed,
+            "covered_by": request,
+            "coverage_kind": "request_terminates_before_response",
+            "reason": "request reject terminates first",
+        }]}
+        risk, _ = build_risk(diff, self.health, {}, {}, "jin10", provenance)
+        self.assertEqual(risk["risk_counts"], {"high": 0, "medium": 0, "low": 1})
+        self.assertIn("不可达", risk["events"][0]["reason"])
+
+    def test_pr196_history_migration_keeps_unverified_base_removal_high(self):
+        history = {"snapshots": [{
+            "run_id": "43820539762",
+            "change_counts": {
+                "rewrite": {"removed": 16, "added": 0, "action_changed": 0},
+                "rule": {"removed": 0, "added": 0, "action_changed": 0},
+                "script": {"removed": 0, "added": 0, "action_changed": 0},
+            },
+            "source_changes": {"base": {"removed": 1}, "thelong": {"removed": 15}},
+            "risk_counts": {"high": 16, "medium": 0, "low": 0},
+        }]}
+        empty = {"sections": {}, "current_upstream_revisions": {}, "upstream_revision_changes": []}
+        _, migrated = build_risk(empty, self.health, {}, history, "next")
+        snapshot = next(x for x in migrated["snapshots"] if x["run_id"] == "43820539762")
+        self.assertEqual(snapshot["risk_counts"], {"high": 1, "medium": 0, "low": 15})
+        self.assertEqual(snapshot["verified_rewrite_coverage_reconciled"]["remaining_high_risk"], 1)
+
+    def test_history_migration_does_not_apply_when_signature_changes(self):
+        history = {"snapshots": [{
+            "run_id": "43820539762",
+            "change_counts": {"rewrite": {"removed": 15}, "rule": {"removed": 0}, "script": {"removed": 0}},
+            "source_changes": {"base": {"removed": 1}, "thelong": {"removed": 14}},
+            "risk_counts": {"high": 15, "medium": 0, "low": 0},
+        }]}
+        empty = {"sections": {}, "current_upstream_revisions": {}, "upstream_revision_changes": []}
+        _, migrated = build_risk(empty, self.health, {}, history, "next")
+        snapshot = migrated["snapshots"][0]
+        self.assertNotIn("verified_rewrite_coverage_reconciled", snapshot)
+        self.assertEqual(snapshot["risk_counts"]["high"], 15)
+
     def test_additions_medium_removals_and_action_changes_high(self):
         risk, _ = build_risk(self.diff, self.health, self.source_report, {}, "1")
         self.assertEqual(risk["overall_risk"], "high")
