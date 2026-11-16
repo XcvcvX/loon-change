@@ -3444,8 +3444,8 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
             BILIBILI_NATIVE_RULE_REPLACEMENTS, optimize_bilibili_json_native_coverage,
         )
         fmz_live = (
-            r'response if ${url} ~= /^https?:\/\/api\.live\.bilibili\.com\/(?:app-interface\/v2\/index\/feed|xlive\/app-room\/v1\/index\/getInfoBy(Room|User))\?/ '
-            r'then script("https://raw.githubusercontent.com/kokoryh/Sparkle/refs/heads/master/dist/bilibili.json.js") with tag="bilibili.json", requires_body=true'
+            r'response if ${url} ~= /^https?:\/\/api\.live\.bilibili\.com\/xlive\/(app-interface\/v2\/index\/feed|app-room\/v1\/index\/getInfoBy(Room|User))\?/i '
+            r'then script("https://raw.githubusercontent.com/kokoryh/Sparkle/refs/heads/master/dist/bilibili.json.js") with tag="bilibili.live", requires_body=true'
         )
         account_trigger = (
             r"http-response ^https?:\/\/app\.bilibili\.com\/x\/v\d\/account\/(?:mine(\/ipad)?|myinfo)\? "
@@ -3484,8 +3484,8 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
             BILIBILI_NATIVE_RULE_REPLACEMENTS, optimize_bilibili_json_native_coverage,
         )
         fmz_live = (
-            r'response if ${url} ~= /^https?:\/\/api\.live\.bilibili\.com\/xlive\/app-room\/v1\/index\/getInfoBy(Room|User)\?/ '
-            r'then script("https://raw.githubusercontent.com/kokoryh/Sparkle/refs/heads/master/dist/bilibili.json.js") with tag="bilibili.json", requires_body=true'
+            r'response if ${url} ~= /^https?:\/\/api\.live\.bilibili\.com\/xlive\/(app-interface\/v2\/index\/feed|app-room\/v1\/index\/getInfoBy(Room|User))\?/i '
+            r'then script("https://raw.githubusercontent.com/kokoryh/Sparkle/refs/heads/master/dist/bilibili.json.js") with tag="bilibili.live", requires_body=true'
         )
         fixture = ["[Rewrite]", *BILIBILI_NATIVE_PREREQUISITE_MARKERS,
                    *(old for old, _ in BILIBILI_NATIVE_RULE_REPLACEMENTS),
