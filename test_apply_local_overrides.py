@@ -3437,5 +3437,61 @@ class BilibiliProtobufDuplicateTriggerTests(unittest.TestCase):
             narrow_duplicate_bilibili_protobuf_triggers(["[Script]", bad_fmz, original, "[MITM]"])
 
 
+class BilibiliJsonNativeCoverageTests(unittest.TestCase):
+    def test_narrows_only_native_covered_triggers_and_expands_native_filters(self):
+        from apply_local_overrides import (
+            BILIBILI_JSON_TRIGGER_PAIRS, BILIBILI_NATIVE_PREREQUISITE_MARKERS,
+            BILIBILI_NATIVE_RULE_REPLACEMENTS, optimize_bilibili_json_native_coverage,
+        )
+        fmz_live = (
+            r'response if ${url} ~= /^https?:\/\/api\.live\.bilibili\.com\/(?:app-interface\/v2\/index\/feed|xlive\/app-room\/v1\/index\/getInfoBy(Room|User))\?/ '
+            r'then script("https://raw.githubusercontent.com/kokoryh/Sparkle/refs/heads/master/dist/bilibili.json.js") with tag="bilibili.json", requires_body=true'
+        )
+        account_trigger = (
+            r"http-response ^https?:\/\/app\.bilibili\.com\/x\/v\d\/account\/(?:mine(\/ipad)?|myinfo)\? "
+            r"script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-12,requires-body=true"
+        )
+        fixture = ["[Rewrite]"]
+        fixture.extend(BILIBILI_NATIVE_PREREQUISITE_MARKERS)
+        fixture.extend(original for original, _ in BILIBILI_NATIVE_RULE_REPLACEMENTS)
+        fixture.append("[Script]")
+        fixture.append(fmz_live)
+        fixture.extend(original for _, original, _ in BILIBILI_JSON_TRIGGER_PAIRS)
+        fixture.extend([account_trigger, "[MITM]", "hostname = api.live.bilibili.com, app.bilibili.com"])
+        result, changed = optimize_bilibili_json_native_coverage(fixture)
+        self.assertEqual(changed, 7)
+        for _, original, narrowed in BILIBILI_JSON_TRIGGER_PAIRS:
+            self.assertNotIn(original, result)
+            self.assertIn(narrowed, result)
+        for original, updated in BILIBILI_NATIVE_RULE_REPLACEMENTS:
+            self.assertNotIn(original, result)
+            self.assertIn(updated, result)
+        self.assertIn(account_trigger, result)
+        again, second_changed = optimize_bilibili_json_native_coverage(result)
+        self.assertEqual(second_changed, 0)
+        self.assertEqual(again, result)
+
+    def test_fails_closed_when_native_or_sparkle_coverage_changes(self):
+        from apply_local_overrides import (
+            BILIBILI_JSON_TRIGGER_PAIRS, BILIBILI_NATIVE_PREREQUISITE_MARKERS,
+            BILIBILI_NATIVE_RULE_REPLACEMENTS, optimize_bilibili_json_native_coverage,
+        )
+        fmz_live = (
+            r'response if ${url} ~= /^https?:\/\/api\.live\.bilibili\.com\/xlive\/app-room\/v1\/index\/getInfoBy(Room|User)\?/ '
+            r'then script("https://raw.githubusercontent.com/kokoryh/Sparkle/refs/heads/master/dist/bilibili.json.js") with tag="bilibili.json", requires_body=true'
+        )
+        fixture = ["[Rewrite]", *BILIBILI_NATIVE_PREREQUISITE_MARKERS,
+                   *(old for old, _ in BILIBILI_NATIVE_RULE_REPLACEMENTS),
+                   "[Script]", fmz_live,
+                   *(old for _, old, _ in BILIBILI_JSON_TRIGGER_PAIRS), "[MITM]"]
+        changed_trigger = BILIBILI_JSON_TRIGGER_PAIRS[0][1].replace("tag=BAICIZHAN-8", "tag=BAICIZHAN-8-NEW")
+        drifted = [changed_trigger if line == BILIBILI_JSON_TRIGGER_PAIRS[0][1] else line for line in fixture]
+        with self.assertRaisesRegex(ValueError, "trigger inventory changed"):
+            optimize_bilibili_json_native_coverage(drifted)
+
+        missing_native = [line for line in fixture if line != BILIBILI_NATIVE_RULE_REPLACEMENTS[0][0]]
+        with self.assertRaisesRegex(ValueError, "native response rule changed"):
+            optimize_bilibili_json_native_coverage(missing_native)
+
 if __name__ == "__main__":
     unittest.main()
