@@ -1111,5 +1111,66 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
 
 
 
+class JingdongScriptConsolidationTests(unittest.TestCase):
+    def setUp(self):
+        from apply_local_overrides import (
+            JD_RSTORE_LEGACY_TRIGGER, JD_FMZ_LEGACY_TRIGGER,
+        )
+        self.rstore = JD_RSTORE_LEGACY_TRIGGER
+        self.fmz = JD_FMZ_LEGACY_TRIGGER
+        self.base = """#!name=jd-test
+[Rewrite]
+^https?:\\/\\/example\\.com reject
+[Script]
+""" + self.rstore + "\n" + self.fmz + """
+[MITM]
+hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankcomm.cn, creditcardapp.bankcomm.com
+"""
+
+    def test_consolidates_overlapping_jd_scripts_to_one_local_trigger(self):
+        from apply_local_overrides import JD_CANONICAL_TRIGGER
+        result = apply(self.base)
+        self.assertNotIn(self.rstore, result)
+        self.assertNotIn(self.fmz, result)
+        self.assertEqual(result.count(JD_CANONICAL_TRIGGER), 1)
+        self.assertIn("scripts/jingdong/jd.js", result)
+        self.assertEqual(apply(result), result)
+
+    def test_fails_closed_when_either_legacy_trigger_drifts_or_is_missing(self):
+        drifted = self.base.replace(self.rstore, self.rstore + " ")
+        with self.assertRaisesRegex(ValueError, "Jingdong legacy trigger inventory changed"):
+            apply(drifted)
+        missing = self.base.replace(self.fmz + "\n", "")
+        with self.assertRaisesRegex(ValueError, "Jingdong legacy trigger inventory changed"):
+            apply(missing)
+
+    def test_fails_closed_on_duplicate_or_mixed_jd_triggers(self):
+        duplicate = self.base.replace(self.fmz, self.fmz + "\n" + self.fmz)
+        with self.assertRaisesRegex(ValueError, "Jingdong legacy trigger inventory changed"):
+            apply(duplicate)
+        from apply_local_overrides import JD_CANONICAL_TRIGGER
+        mixed = self.base + "\n" + JD_CANONICAL_TRIGGER
+        with self.assertRaisesRegex(ValueError, "Jingdong script trigger inventory is mixed"):
+            apply(mixed)
+
+    def test_local_jd_script_preserves_reviewed_endpoints_and_safe_parse(self):
+        from pathlib import Path
+        script = (Path(__file__).parent / "scripts/jingdong/jd.js").read_text(encoding="utf-8")
+        for marker in (
+            "functionId=start", "functionId=welcomeHome",
+            "functionId=readCustomSurfaceList", "functionId=deliverLayer",
+            "functionId=orderTrackBusiness", "functionId=getTabHomeInfo",
+            "functionId=myOrderInfo", "functionId=personinfoBusiness",
+            "PERSON_INFO_BUSINESS_MID_EXCLUDE", "WELCOME_HOME_TYPE_INCLUDE",
+            "WELCOME_HOME_TYPE_EXCLUDE", "CUSTOM_SURFACE_NAME_INCLUDE",
+            "JSON.parse(body)", "$done({ body: JSON.stringify(obj) })",
+        ):
+            self.assertIn(marker, script)
+        self.assertIn("catch (_)", script)
+        self.assertNotIn("fetch(", script)
+        self.assertNotIn("XMLHttpRequest", script)
+
+
+
 if __name__ == "__main__":
     unittest.main()
