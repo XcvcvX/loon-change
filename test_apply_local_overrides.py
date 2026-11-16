@@ -455,6 +455,48 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
             apply(fixture)
 
 
+    def test_consolidates_pdd_homepage_scripts_and_preserves_unrelated_scripts(self):
+        from apply_local_overrides import (
+            PDD_RSTORE_HOMEPAGE_TRIGGER, PDD_LOCAL_HOMEPAGE_TRIGGER,
+            PDD_ISHOWSHU_HOMEPAGE_TRIGGER,
+        )
+        unrelated = 'response if \${url} ~= /api.example.com/ then script("https://example.invalid/keep.js")'
+        fixture = BASE.replace(
+            "[Script]",
+            "[Script]\n" + PDD_RSTORE_HOMEPAGE_TRIGGER + "\n"
+            + PDD_ISHOWSHU_HOMEPAGE_TRIGGER + "\n" + unrelated,
+        )
+        result = apply(fixture)
+        script = result.split("[Script]", 1)[1].split("[MITM]", 1)[0]
+        self.assertEqual(script.count(PDD_LOCAL_HOMEPAGE_TRIGGER), 1)
+        self.assertNotIn(PDD_RSTORE_HOMEPAGE_TRIGGER, script)
+        self.assertNotIn(PDD_ISHOWSHU_HOMEPAGE_TRIGGER, script)
+        self.assertIn(unrelated, script)
+        self.assertEqual(apply(result), result)
+
+    def test_pdd_homepage_consolidation_fails_closed_on_trigger_drift(self):
+        from apply_local_overrides import PDD_ISHOWSHU_HOMEPAGE_TRIGGER
+        changed = PDD_ISHOWSHU_HOMEPAGE_TRIGGER.replace("requires-body = true", "requires-body = false")
+        fixture = BASE.replace("[Script]", "[Script]\n" + changed)
+        with self.assertRaisesRegex(ValueError, "Pinduoduo homepage script trigger changed"):
+            apply(fixture)
+
+    def test_pdd_homepage_consolidation_requires_canonical_trigger(self):
+        from apply_local_overrides import PDD_ISHOWSHU_HOMEPAGE_TRIGGER
+        fixture = BASE.replace("[Script]", "[Script]\n" + PDD_ISHOWSHU_HOMEPAGE_TRIGGER)
+        with self.assertRaisesRegex(ValueError, "Pinduoduo canonical homepage script inventory changed"):
+            apply(fixture)
+
+    def test_pdd_homepage_consolidation_rejects_duplicate_triggers(self):
+        from apply_local_overrides import PDD_RSTORE_HOMEPAGE_TRIGGER, PDD_ISHOWSHU_HOMEPAGE_TRIGGER
+        fixture = BASE.replace(
+            "[Script]",
+            "[Script]\n" + PDD_RSTORE_HOMEPAGE_TRIGGER + "\n"
+            + PDD_RSTORE_HOMEPAGE_TRIGGER + "\n" + PDD_ISHOWSHU_HOMEPAGE_TRIGGER,
+        )
+        with self.assertRaisesRegex(ValueError, "duplicate Pinduoduo homepage script trigger"):
+            apply(fixture)
+
     def test_removes_duplicate_taobao_splash_scripts_and_keeps_canonical_rstore_triggers(self):
         from apply_local_overrides import (
             TAOBAO_CANONICAL_SCRIPT_TRIGGERS, TAOBAO_REDUNDANT_SCRIPT_TRIGGERS,
