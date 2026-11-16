@@ -1313,6 +1313,7 @@ def remove_redundant_jd_keyword_rules(lines):
     output = []
     keyword_counts = {host: 0 for host in JD_KEYWORD_SCOPE_HOSTS}
     suffix_counts = {host: 0 for host in JD_KEYWORD_SCOPE_HOSTS}
+    saw_target_rule = False
 
     for line in lines:
         if line.startswith("[") and line.endswith("]"):
@@ -1326,6 +1327,7 @@ def remove_redundant_jd_keyword_rules(lines):
             if len(parts) >= 2 and parts[0].upper() == "DOMAIN-KEYWORD":
                 host = parts[1].lower()
                 if host in JD_KEYWORD_SCOPE_RULES:
+                    saw_target_rule = True
                     if value != JD_KEYWORD_SCOPE_RULES[host]:
                         raise ValueError(
                             "Jingdong DOMAIN-KEYWORD rule changed; refusing unreviewed scope reduction: "
@@ -1336,6 +1338,7 @@ def remove_redundant_jd_keyword_rules(lines):
                         raise ValueError("duplicate Jingdong DOMAIN-KEYWORD rule: " + host)
                     continue
                 if any(target in host for target in JD_KEYWORD_SCOPE_HOSTS):
+                    saw_target_rule = True
                     raise ValueError(
                         "unknown Jingdong DOMAIN-KEYWORD variant; refusing unreviewed cleanup: "
                         + value
@@ -1344,11 +1347,15 @@ def remove_redundant_jd_keyword_rules(lines):
             if len(parts) >= 2 and parts[0].upper() == "DOMAIN-SUFFIX":
                 host = parts[1].lower()
                 if host in JD_SUFFIX_SCOPE_RULES:
+                    saw_target_rule = True
                     if value != JD_SUFFIX_SCOPE_RULES[host]:
                         raise ValueError("Jingdong DOMAIN-SUFFIX cover changed: " + value)
                     suffix_counts[host] += 1
 
         output.append(line)
+
+    if not saw_target_rule:
+        return list(lines), 0
 
     missing_covers = [host for host, count in suffix_counts.items() if count != 1]
     if missing_covers:
