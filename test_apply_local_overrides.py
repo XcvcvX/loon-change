@@ -672,6 +672,104 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
             self.assertNotIn(legacy, result)
             self.assertIn(gated, result)
 
+
+    def test_consolidates_didi_core_and_usercenter_rules_and_removes_noop_scripts(self):
+        from apply_local_overrides import (
+            DIDI_CORE_LEGACY_SCRIPT, DIDI_USERCENTER_LEGACY_SCRIPT,
+            DIDI_OTA_KEEP_SCRIPT, DIDI_PRESALE_KEEP_SCRIPT,
+            DIDI_CORE_LEGACY_JSON_RULE, DIDI_CORE_NATIVE_RULE_CURRENT, DIDI_CORE_NATIVE_RULE,
+            DIDI_USERCENTER_LAYOUT_LEGACY_JSON_RULE, DIDI_USERCENTER_LAYOUT_NATIVE_PREFIX,
+            DIDIADS_COMMON_V5_SCRIPT, DIDIADS_NOOP_SCRIPT_RULES,
+            apply_didi_script_and_homepage_cleanup,
+        )
+        fixture = [
+            "[Argument]", "[Rule]", "[Rewrite]",
+            DIDI_CORE_LEGACY_JSON_RULE, DIDI_CORE_NATIVE_RULE_CURRENT,
+            DIDI_USERCENTER_LAYOUT_LEGACY_JSON_RULE, DIDI_USERCENTER_LAYOUT_NATIVE_PREFIX + "[]",
+            "[Script]", DIDI_CORE_LEGACY_SCRIPT, DIDI_USERCENTER_LEGACY_SCRIPT,
+            *DIDIADS_NOOP_SCRIPT_RULES, DIDIADS_COMMON_V5_SCRIPT,
+            DIDI_OTA_KEEP_SCRIPT, DIDI_PRESALE_KEEP_SCRIPT, "[MITM]",
+        ]
+        result, removed = apply_didi_script_and_homepage_cleanup(fixture)
+        self.assertEqual(removed, len(DIDIADS_NOOP_SCRIPT_RULES))
+        self.assertIn(DIDI_CORE_NATIVE_RULE, result)
+        self.assertNotIn(DIDI_CORE_NATIVE_RULE_CURRENT, result)
+        self.assertNotIn(DIDI_CORE_LEGACY_JSON_RULE, result)
+        self.assertNotIn(DIDI_USERCENTER_LAYOUT_LEGACY_JSON_RULE, result)
+        self.assertNotIn(DIDI_CORE_LEGACY_SCRIPT, result)
+        self.assertNotIn(DIDI_USERCENTER_LEGACY_SCRIPT, result)
+        self.assertIn(DIDIADS_COMMON_V5_SCRIPT, result)
+        self.assertIn(DIDI_OTA_KEEP_SCRIPT, result)
+        self.assertIn(DIDI_PRESALE_KEEP_SCRIPT, result)
+        for legacy in DIDIADS_NOOP_SCRIPT_RULES:
+            self.assertNotIn(legacy, result)
+        second, second_removed = apply_didi_script_and_homepage_cleanup(result)
+        self.assertEqual(second, result)
+        self.assertEqual(second_removed, 0)
+
+    def test_fails_closed_when_didiads_noop_trigger_drifts(self):
+        from apply_local_overrides import DIDIADS_NOOP_SCRIPT_RULES, apply_didi_script_and_homepage_cleanup
+        fixture = [
+            "[Argument]", "[Rule]", "[Rewrite]",
+            "[Script]", DIDIADS_NOOP_SCRIPT_RULES[0].replace('tag="滴滴出行"', 'tag="changed"'),
+            DIDIADS_COMMON_V5_SCRIPT, DIDI_OTA_KEEP_SCRIPT, DIDI_PRESALE_KEEP_SCRIPT, "[MITM]",
+        ]
+        with self.assertRaisesRegex(ValueError, "no-op script trigger drifted"):
+            apply_didi_script_and_homepage_cleanup(fixture)
+
+    def test_fails_closed_when_didiads_common_v5_trigger_is_missing(self):
+        from apply_local_overrides import (
+            DIDI_CORE_NATIVE_RULE, DIDI_USERCENTER_LAYOUT_NATIVE_PREFIX,
+            DIDIADS_NOOP_SCRIPT_RULES, DIDI_OTA_KEEP_SCRIPT, DIDI_PRESALE_KEEP_SCRIPT,
+            apply_didi_script_and_homepage_cleanup,
+        )
+        fixture = [
+            "[Argument]", "[Rule]", "[Rewrite]", DIDI_CORE_NATIVE_RULE,
+            DIDI_USERCENTER_LAYOUT_NATIVE_PREFIX + "[]", "[Script]",
+            *DIDIADS_NOOP_SCRIPT_RULES, DIDI_OTA_KEEP_SCRIPT, DIDI_PRESALE_KEEP_SCRIPT, "[MITM]",
+        ]
+        with self.assertRaisesRegex(ValueError, "common/v5 canonical script trigger missing"):
+            apply_didi_script_and_homepage_cleanup(fixture)
+
+    def test_fails_closed_when_didi_core_or_usercenter_native_rule_is_missing(self):
+        from apply_local_overrides import (
+            DIDI_CORE_LEGACY_SCRIPT, DIDI_USERCENTER_LEGACY_SCRIPT,
+            DIDI_OTA_KEEP_SCRIPT, DIDI_PRESALE_KEEP_SCRIPT,
+            DIDI_USERCENTER_LAYOUT_NATIVE_PREFIX, DIDIADS_COMMON_V5_SCRIPT,
+            apply_didi_script_and_homepage_cleanup,
+        )
+        fixture = [
+            "[Argument]", "[Rule]", "[Rewrite]", DIDI_USERCENTER_LAYOUT_NATIVE_PREFIX + "[]",
+            "[Script]", DIDI_CORE_LEGACY_SCRIPT, DIDI_USERCENTER_LEGACY_SCRIPT,
+            DIDIADS_COMMON_V5_SCRIPT, DIDI_OTA_KEEP_SCRIPT, DIDI_PRESALE_KEEP_SCRIPT, "[MITM]",
+        ]
+        with self.assertRaisesRegex(ValueError, "core homepage native rule inventory changed"):
+            apply_didi_script_and_homepage_cleanup(fixture)
+
+    def test_generated_plugin_keeps_only_live_didi_scripts_and_native_homepage_cleaners(self):
+        from pathlib import Path
+        from apply_local_overrides import (
+            DIDI_CORE_LEGACY_SCRIPT, DIDI_USERCENTER_LEGACY_SCRIPT,
+            DIDI_OTA_KEEP_SCRIPT, DIDI_PRESALE_KEEP_SCRIPT,
+            DIDI_CORE_LEGACY_JSON_RULE, DIDI_CORE_NATIVE_RULE,
+            DIDI_USERCENTER_LAYOUT_LEGACY_JSON_RULE,
+            DIDIADS_COMMON_V5_SCRIPT, DIDIADS_NOOP_SCRIPT_RULES,
+            DIDI_HOME_FAST_LEGACY_REJECT, apply,
+        )
+        plugin = Path(__file__).parent / "allAdRewrite.plugin"
+        result = apply(plugin.read_text(encoding="utf-8"))
+        self.assertNotIn(DIDI_CORE_LEGACY_SCRIPT, result)
+        self.assertNotIn(DIDI_USERCENTER_LEGACY_SCRIPT, result)
+        self.assertNotIn(DIDI_CORE_LEGACY_JSON_RULE, result)
+        self.assertNotIn(DIDI_USERCENTER_LAYOUT_LEGACY_JSON_RULE, result)
+        self.assertNotIn(DIDI_HOME_FAST_LEGACY_REJECT, result)
+        self.assertIn(DIDI_CORE_NATIVE_RULE, result)
+        self.assertIn(DIDIADS_COMMON_V5_SCRIPT, result)
+        self.assertIn(DIDI_OTA_KEEP_SCRIPT, result)
+        self.assertIn(DIDI_PRESALE_KEEP_SCRIPT, result)
+        for legacy in DIDIADS_NOOP_SCRIPT_RULES:
+            self.assertNotIn(legacy, result)
+
     def test_removes_didi_core_homepage_reject_when_field_cleaner_exists(self):
         from apply_local_overrides import (
             DIDI_HOME_CORE_LEGACY_REJECT, DIDI_HOME_CORE_RESPONSE_PREFIX,
