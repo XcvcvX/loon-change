@@ -3513,9 +3513,9 @@ def replace_rrtv_json_script_with_native_rewrites(lines):
         if line.startswith("[") and line.endswith("]"):
             section = line[1:-1]
             continue
-        normalized = re.sub(r"\\+/", "/", line)
+        normalized = line.replace("\\", "")
         if section == "Script" and "api.rr.tv" in normalized and (
-            "rrtv_json.js" in line or "rfrfuipk_enable" in line
+            "response if " in line or "http-response " in line
         ) and line.strip() not in source_set:
             raise ValueError("unknown RRTV script matcher; refusing unreviewed cleanup")
         if section == "Rewrite" and "api.rr.tv" in normalized and (
