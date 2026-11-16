@@ -454,5 +454,39 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         with self.assertRaisesRegex(ValueError, "duplicate Gaoding resource script triggers"):
             apply(fixture)
 
+
+    def test_replaces_only_rrtv_adgetall_script_with_native_jq(self):
+        from apply_local_overrides import (
+            RRTV_ADGETALL_SCRIPT_TRIGGER, RRTV_ADGETALL_NATIVE_RULE,
+        )
+        unrelated = r"http-response ^https?:\\/\\/api\\.rr\\.tv\\/user\\/profile script-path=https://example.invalid/rrtv.js,tag=RRTV-OTHER,requires-body=true"
+        fixture = BASE.replace(
+            "[Script]",
+            "[Script]\n" + RRTV_ADGETALL_SCRIPT_TRIGGER + "\n" + unrelated,
+        )
+        result = apply(fixture)
+        rewrite = result.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
+        script = result.split("[Script]", 1)[1].split("[MITM]", 1)[0]
+        self.assertIn(RRTV_ADGETALL_NATIVE_RULE, rewrite)
+        self.assertNotIn("tag=RRTV-4", script)
+        self.assertIn(unrelated, script)
+        self.assertEqual(apply(result), result)
+
+    def test_rrtv_adgetall_trigger_drift_fails_closed(self):
+        from apply_local_overrides import RRTV_ADGETALL_SCRIPT_TRIGGER
+        changed = RRTV_ADGETALL_SCRIPT_TRIGGER.replace("requires-body=true", "requires-body=false")
+        fixture = BASE.replace("[Script]", "[Script]\n" + changed)
+        with self.assertRaisesRegex(ValueError, "RRTV ad/getAll script trigger changed"):
+            apply(fixture)
+
+    def test_duplicate_rrtv_adgetall_triggers_fail_closed(self):
+        from apply_local_overrides import RRTV_ADGETALL_SCRIPT_TRIGGER
+        fixture = BASE.replace(
+            "[Script]",
+            "[Script]\n" + RRTV_ADGETALL_SCRIPT_TRIGGER + "\n" + RRTV_ADGETALL_SCRIPT_TRIGGER,
+        )
+        with self.assertRaisesRegex(ValueError, "duplicate RRTV ad/getAll script triggers"):
+            apply(fixture)
+
 if __name__ == "__main__":
     unittest.main()
