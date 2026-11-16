@@ -16,6 +16,11 @@
     return;
   }
 
+  if (!obj || typeof obj !== "object" || Array.isArray(obj)) {
+    $done({});
+    return;
+  }
+
   const PERSON_INFO_BUSINESS_MID_EXCLUDE = [
     "bigSaleFloor",
     "buyOften",
@@ -34,15 +39,6 @@
     "login",
     "hybrid",
     "recommend",
-  ];
-  const WELCOME_HOME_TYPE_EXCLUDE = [
-    "bottomXview",
-    "float",
-    "photoCeiling",
-    "ruleFloat",
-    "searchIcon",
-    "topRotate",
-    "tabBarAtmosphere",
   ];
   const CUSTOM_SURFACE_NAME_INCLUDE = ["index", "messagenew", "cart", "home"];
 
@@ -91,14 +87,11 @@
       obj.floorList = obj.floorList.filter((item) =>
         WELCOME_HOME_TYPE_INCLUDE.includes(item && item.type)
       );
-      obj.floorList = obj.floorList.filter((item) =>
-        !WELCOME_HOME_TYPE_EXCLUDE.includes(item && item.type)
-      );
     }
     if (Array.isArray(obj.webViewFloorList) && obj.webViewFloorList.length > 0) {
       obj.webViewFloorList = [];
     }
-    delete obj.promotionTabs;
+    if (obj.promotionTabs) delete obj.promotionTabs;
   } else if (url.includes("functionId=readCustomSurfaceList")) {
     const modeMap = obj.result && obj.result.modeMap;
     ["dark", "normal"].forEach((mode) => {
@@ -110,7 +103,7 @@
       }
     });
   } else if (url.includes("functionId=deliverLayer") || url.includes("functionId=orderTrackBusiness")) {
-    delete obj.bannerInfo;
+    if (obj.bannerInfo) delete obj.bannerInfo;
     if (Array.isArray(obj.floors) && obj.floors.length > 0) {
       obj.floors = obj.floors.filter((item) =>
         !["banner", "jdDeliveryBanner"].includes(item && item.mId)
@@ -118,8 +111,8 @@
     }
   } else if (url.includes("functionId=getTabHomeInfo")) {
     if (obj.result && typeof obj.result === "object") {
-      delete obj.result.iconInfo;
-      delete obj.result.roofTop;
+      if (obj.result.iconInfo) delete obj.result.iconInfo;
+      if (obj.result.roofTop) delete obj.result.roofTop;
     }
   } else if (url.includes("functionId=myOrderInfo")) {
     if (Array.isArray(obj.floors) && obj.floors.length > 0) {
