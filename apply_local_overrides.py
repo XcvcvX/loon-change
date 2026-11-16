@@ -289,6 +289,10 @@ def remove_redundant_taobao_scripts(lines):
         raise ValueError("Taobao splash script trigger changed; refusing an unreviewed deduplication")
     if not target_seen:
         return output, 0
+    canonical_complete = all(counts[trigger] == 1 for trigger in TAOBAO_CANONICAL_SCRIPT_TRIGGERS)
+    redundant_absent = all(counts[trigger] == 0 for trigger in TAOBAO_REDUNDANT_SCRIPT_TRIGGERS)
+    if canonical_complete and redundant_absent:
+        return output, 0
     missing = [trigger for trigger, count in counts.items() if count != 1]
     if missing:
         raise ValueError("Taobao splash script trigger inventory changed; expected each reviewed trigger exactly once")
