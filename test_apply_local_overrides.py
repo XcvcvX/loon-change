@@ -497,6 +497,76 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         with self.assertRaisesRegex(ValueError, "duplicate Pinduoduo homepage script trigger"):
             apply(fixture)
 
+    def test_consolidates_pdd_splash_variants_to_one_case_insensitive_rule(self):
+        from apply_local_overrides import (
+            PDD_SPLASH_OLD_CANONICAL_RULE, PDD_SPLASH_CANONICAL_RULE,
+            PDD_SPLASH_REDUNDANT_RULES, consolidate_pdd_splash_rules,
+        )
+        fixture = [
+            PDD_SPLASH_OLD_CANONICAL_RULE, *PDD_SPLASH_REDUNDANT_RULES,
+            "request if \${url} ~= /^https?:\\/\\/api\\.pinduoduo\\.com\\/api\\/other/ then reject(404)",
+        ]
+        result, removed = consolidate_pdd_splash_rules(fixture)
+        self.assertEqual(removed, 3)
+        self.assertEqual(result.count(PDD_SPLASH_CANONICAL_RULE), 1)
+        self.assertEqual(result[-1], fixture[-1])
+        self.assertEqual(consolidate_pdd_splash_rules(result)[1], 0)
+
+    def test_pdd_splash_consolidation_fails_closed_on_unknown_or_duplicate_matchers(self):
+        from apply_local_overrides import (
+            PDD_SPLASH_OLD_CANONICAL_RULE, PDD_SPLASH_REDUNDANT_RULES,
+            consolidate_pdd_splash_rules,
+        )
+        with self.assertRaisesRegex(ValueError, "unknown Pinduoduo splash matcher"):
+            consolidate_pdd_splash_rules([PDD_SPLASH_OLD_CANONICAL_RULE, "request /cappuccino/splash-new reject"])
+        with self.assertRaisesRegex(ValueError, "inventory changed or duplicated"):
+            consolidate_pdd_splash_rules([PDD_SPLASH_OLD_CANONICAL_RULE, PDD_SPLASH_OLD_CANONICAL_RULE])
+        with self.assertRaisesRegex(ValueError, "inventory changed or duplicated"):
+            consolidate_pdd_splash_rules([PDD_SPLASH_OLD_CANONICAL_RULE, PDD_SPLASH_REDUNDANT_RULES[0], PDD_SPLASH_REDUNDANT_RULES[0]])
+
+    def test_removes_only_pdd_feed_asset_rules_shadowed_by_same_action(self):
+        from apply_local_overrides import (
+            PDD_FEED_ASSET_CANONICAL_RULES, PDD_FEED_ASSET_REDUNDANT_RULES,
+            remove_redundant_pdd_feed_asset_rules,
+        )
+        unrelated = "request if \${url} ~= /^https?:\\/\\/images\\.pinduoduo\\.com\\/product/ then reject(404)"
+        fixture = [*PDD_FEED_ASSET_CANONICAL_RULES, *PDD_FEED_ASSET_REDUNDANT_RULES, unrelated]
+        result, removed = remove_redundant_pdd_feed_asset_rules(fixture)
+        self.assertEqual(removed, 4)
+        for rule in PDD_FEED_ASSET_CANONICAL_RULES:
+            self.assertIn(rule, result)
+        self.assertIn(unrelated, result)
+        self.assertEqual(remove_redundant_pdd_feed_asset_rules(result)[1], 0)
+
+    def test_pdd_feed_cleanup_requires_covering_rules_and_rejects_duplicate_rows(self):
+        from apply_local_overrides import (
+            PDD_FEED_ASSET_REDUNDANT_RULES, remove_redundant_pdd_feed_asset_rules,
+        )
+        with self.assertRaisesRegex(ValueError, "covering rule missing"):
+            remove_redundant_pdd_feed_asset_rules([PDD_FEED_ASSET_REDUNDANT_RULES[0]])
+        with self.assertRaisesRegex(ValueError, "duplicate Pinduoduo feed asset rule"):
+            remove_redundant_pdd_feed_asset_rules([PDD_FEED_ASSET_REDUNDANT_RULES[0]] * 2)
+
+    def test_removes_pdd_oak_script_only_when_native_cleaner_exists(self):
+        from apply_local_overrides import (
+            PDD_OAK_REDUNDANT_SCRIPT_TRIGGER, PDD_OAK_NATIVE_RESPONSE_RULE,
+            remove_redundant_pdd_oak_script_trigger,
+        )
+        fixture = ["[Rewrite]", PDD_OAK_NATIVE_RESPONSE_RULE, "[Script]",
+                   PDD_OAK_REDUNDANT_SCRIPT_TRIGGER, "[MITM]"]
+        result, removed = remove_redundant_pdd_oak_script_trigger(fixture)
+        self.assertEqual(removed, 1)
+        self.assertNotIn(PDD_OAK_REDUNDANT_SCRIPT_TRIGGER, result)
+        self.assertIn(PDD_OAK_NATIVE_RESPONSE_RULE, result)
+        self.assertEqual(remove_redundant_pdd_oak_script_trigger(result)[1], 0)
+
+    def test_pdd_oak_script_is_preserved_if_native_cleaner_is_missing(self):
+        from apply_local_overrides import (
+            PDD_OAK_REDUNDANT_SCRIPT_TRIGGER, remove_redundant_pdd_oak_script_trigger,
+        )
+        with self.assertRaisesRegex(ValueError, "native response cleaner missing"):
+            remove_redundant_pdd_oak_script_trigger(["[Script]", PDD_OAK_REDUNDANT_SCRIPT_TRIGGER])
+
     def test_removes_duplicate_taobao_splash_scripts_and_keeps_canonical_rstore_triggers(self):
         from apply_local_overrides import (
             TAOBAO_CANONICAL_SCRIPT_TRIGGERS, TAOBAO_REDUNDANT_SCRIPT_TRIGGERS,
