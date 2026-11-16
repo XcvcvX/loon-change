@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、RuCu6 MyBlockAds、zirawell AlipayAdBlock、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / RuCu6 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-16 06:32 UTC
+#!merged-at=2026-11-16 06:36 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+RuCu6-MyBlockAds+zirawell-AlipayAdBlock+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -6966,7 +6966,7 @@ http-response ^https?:\/\/acs(\.|-)m\.(taobao|freshippo)\.com\/gw\/mtop\.wdk\.re
 http-response ^https?:\/\/oss-zjrs\.haier\.net\/resource\/confFile\/\d{22}\.json$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/haier.js,tag=EHAIER,requires-body=true
 http-response ^https?:\/\/zj\.haier\.net\/omsappapi\/resource\/v\d\/get\/resourceBag$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/haier.js,tag=EHAIER-2,requires-body=true
 http-response ^https?:\/\/creditcardapp\.bankcomm\.(com|cn)\/rcg\/index\.html\?callbackurl=rcg\/index\.html&orclogin=1& script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mdb.js,tag=BANKCOMM,requires-body=true
-http-response ^https?:\/\/p\d\.meituan\.net\/linglong\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/meituan.js,tag=MEITUAN,requires-body=true
+http-response ^https?:\/\/(?:p\d\.meituan\.net\/linglong\/|web\.meituan\.com\/api\/miniprogram\/(?:tabbar\/all\/query|index\/aggregate)|apimobile\.meituan\.com\/(?:aggroup\/indexTab|group\/v1\/deal\/searchpage\/(?:defaultword|hotword\/city\/divide\/hotrecommend\/))|feedguess\.meituan\.com\/lycoris\/scene\/(?:gwc_feed1_2265|personalcenter_2154)(?:\?|$)|mt-personalcenter\.meituan\.com\/usercenter\/display|assistify\.meituan\.com\/assistant\/getAppClientHornConfig|mop\.meituan\.com\/(?:mop\/entry\/shoppingCartEntry|api\/entryModule\/startupPicture)) script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/meituan/meituan.js,tag=MEITUAN-CONSOLIDATED,requires-body=true
 http-response ^https?:\/\/me\.bz\.mgtv\.com\/v\d\/module\/list\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=MGTV,requires-body=true
 http-response ^https?:\/\/mob-st\.bz\.mgtv\.com\/odin\/c\d\/channel\/index\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=MGTV-2,requires-body=true
 http-response ^https?:\/\/dc2?\.bz\.mgtv\.com\/dynamic\/v\d\/channel\/(index|vrsList)\/\w script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=MGTV-3,requires-body=true
@@ -7135,8 +7135,6 @@ http-response ^https?:\/\/saas-ad\.cloudpnr\.com\/huifuad-base-api\/api\/tactics
 http-response ^https?:\/\/acs\.m\.shyhhema\.com\/h5\/mtop\.wdk\.render\.query(?:index|my)page script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/freshippo.js,tag=FRESHIPPO-2,requires-body=true
 http-response ^https?:\/\/triangle\.wearemanner\.com\/mp-api\/v\d\/ads script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/manner.js,tag=MANNER,requires-body=true
 http-response ^https?:\/\/wechat-api-dj\.mstand\.cn\/scrm\/mini\/app\/index\/info script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/wechatApplet.js,tag=MSTAND,requires-body=true
-http-response ^https?:\/\/web\.meituan\.com\/api\/miniprogram\/tabbar\/all\/query script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/meituanwm.js,tag=MEITUANWM,requires-body=true
-http-response ^https?:\/\/web\.meituan\.com\/api\/miniprogram\/index\/aggregate script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/meituanwm.js,tag=MEITUANWM-2,requires-body=true
 http-response ^https?:\/\/opss\.qiye\.ccbhome\.cn\/ccbhome-open\/home\/common script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ccbHome.js,tag=CCBHOME,requires-body=true
 http-response ^https?:\/\/coco-com\.e\.verystar\.net\/v\d\/home\/info script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/wechatApplet.js,tag=COCO,requires-body=true
 http-response ^https?:\/\/miniapp\.sexytea2013\.com\/cms\/slot\/queryByCodes\?codes=INDEX_TOP_BANNER script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/wechatApplet.js,tag=SEXYTEA,requires-body=true
@@ -7350,14 +7348,6 @@ http-request ^https?:\/\/j5\.dfcfw\.com\/WG\/conf\/ script-path=https://cdn.jsde
 http-request ^https?:\/\/ad\.12306\.cn\/ad\/ser\/getAdList script-path=https://raw.githubusercontent.com/kokoryh/Script/master/js/12306.js, requires-body=true, timeout=60, tag=开屏广告
 http-response ^https?:\/\/(api|cdn\.api)\.chelaile(?:app)?(?:\.net)?\.cn\/goocity\/flowPos\/listByPos script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/refs/heads/main/plugins/CheLaiLe-flowpos.js, requires-body=1, timeout=20
 http-response ^https:\/\/api\.gotokeep\.com\/config\/v3\/basic\? script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/keep.js, requires-body=true, tag=底部tab、发现tab项的顶部
-http-response ^https?:\/\/apimobile\.meituan\.com\/aggroup\/indexTab script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团首页标签
-http-response ^https?:\/\/feedguess\.meituan\.com\/lycoris\/scene\/(gwc_feed1_2265|personalcenter_2154)(\?|$) script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团信息流
-http-response ^https?:\/\/mt-personalcenter\.meituan\.com\/usercenter\/display script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团我的页面
-http-response ^https?:\/\/apimobile\.meituan\.com\/group\/v1\/deal\/searchpage\/defaultword script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团搜索热词
-http-response ^https?:\/\/apimobile\.meituan\.com\/group\/v1\/deal\/searchpage\/hotword\/city\/divide\/hotrecommend\/ script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团热搜推荐
-http-response ^https?:\/\/assistify\.meituan\.com\/assistant\/getAppClientHornConfig script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团AI角标
-http-response ^https?:\/\/mop\.meituan\.com\/mop\/entry\/shoppingCartEntry script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团购物车横幅
-http-response ^https?:\/\/mop\.meituan\.com\/api\/entryModule\/startupPicture script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团开屏广告
 http-response ^https:\/\/j1\.pupuapi\.com\/client\/marketing\/advertisement\/v1 script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/pp.js, requires-body = true, tag = 开屏广告、首页横幅等
 http-response ^https:\/\/j1\.pupuapi\.com\/client\/order\/orders\/list\/v4 script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/pp.js, requires-body = true, tag = 订单列表骑手反馈问题推荐
 http-response ^https?:\/\/(?:slugger|minislugger|homefront|homeback|qbi|lang|qde|client)\.qunar\.com\/ script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/qunar-clean.js,requires-body=true,timeout=10,tag=去哪儿配套清理

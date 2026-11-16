@@ -118027,21 +118027,15 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://p\\\\d\\\\.meituan\\\\.net/linglong/', ('^https?:\\\\/\\\\/p\\\\d\\\\.meituan\\\\.net\\\\/linglong\\\\/', '^https?:\\\\/\\\\/p\\\\d\\\\.meituan\\\\.net\\\\/linglong\\\\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/meituan.js,tag=MEITUAN,requires-body=true'))",
-      "output_entry_index": 117,
-      "output_line": "http-response ^https?:\\/\\/p\\d\\.meituan\\.net\\/linglong\\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/meituan.js,tag=MEITUAN,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/(?:p\\d\\.meituan\\.net\\/linglong\\/|web\\.meituan\\.com\\/api\\/miniprogram\\/(?:tabbar\\/all\\/query|index\\/aggregate)|apimobile\\.meituan\\.com\\/(?:aggroup\\/indexTab|group\\/v1\\/deal\\/searchpage\\/(?:defaultword|hotword\\/city\\/divide\\/hotrecommend\\/))|feedguess\\.meituan\\.com\\/lycoris\\/scene\\/(?:gwc_feed1_2265|personalcenter_2154)(?:\\?|$)|mt-personalcenter\\.meituan\\.com\\/usercenter\\/display|assistify\\.meituan\\.com\\/assistant\\/getAppClientHornConfig|mop\\.meituan\\.com\\/(?:mop\\/entry\\/shoppingCartEntry|api\\/entryModule\\/startupPicture)) script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/meituan/meituan.js,tag=MEITUAN-CONSOLIDATED,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/p\\d\\.meituan\\.net\\/linglong\\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/meituan.js,tag=MEITUAN,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 116
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
       "canonical_key": "('guarded', '^https?://me\\\\.bz\\\\.mgtv\\\\.com/v\\\\d/module/list\\\\?', ('^https?:\\\\/\\\\/me\\\\.bz\\\\.mgtv\\\\.com\\\\/v\\\\d\\\\/module\\\\/list\\\\?', '^https?:\\\\/\\\\/me\\\\.bz\\\\.mgtv\\\\.com\\\\/v\\\\d\\\\/module\\\\/list\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=MGTV,requires-body=true'))",
@@ -120883,40 +120877,6 @@
           "priority": 4,
           "source": "base",
           "source_entry_index": 293
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://web\\\\.meituan\\\\.com/api/miniprogram/tabbar/all/query', ('^https?:\\\\/\\\\/web\\\\.meituan\\\\.com\\\\/api\\\\/miniprogram\\\\/tabbar\\\\/all\\\\/query', '^https?:\\\\/\\\\/web\\\\.meituan\\\\.com\\\\/api\\\\/miniprogram\\\\/tabbar\\\\/all\\\\/query script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/meituanwm.js,tag=MEITUANWM,requires-body=true'))",
-      "output_entry_index": 295,
-      "output_line": "http-response ^https?:\\/\\/web\\.meituan\\.com\\/api\\/miniprogram\\/tabbar\\/all\\/query script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/meituanwm.js,tag=MEITUANWM,requires-body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/web\\.meituan\\.com\\/api\\/miniprogram\\/tabbar\\/all\\/query script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/meituanwm.js,tag=MEITUANWM,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 294
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://web\\\\.meituan\\\\.com/api/miniprogram/index/aggregate', ('^https?:\\\\/\\\\/web\\\\.meituan\\\\.com\\\\/api\\\\/miniprogram\\\\/index\\\\/aggregate', '^https?:\\\\/\\\\/web\\\\.meituan\\\\.com\\\\/api\\\\/miniprogram\\\\/index\\\\/aggregate script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/meituanwm.js,tag=MEITUANWM-2,requires-body=true'))",
-      "output_entry_index": 296,
-      "output_line": "http-response ^https?:\\/\\/web\\.meituan\\.com\\/api\\/miniprogram\\/index\\/aggregate script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/meituanwm.js,tag=MEITUANWM-2,requires-body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/web\\.meituan\\.com\\/api\\/miniprogram\\/index\\/aggregate script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/meituanwm.js,tag=MEITUANWM-2,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 295
         }
       ],
       "trace_status": "mapped"
@@ -124541,142 +124501,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://apimobile\\\\.meituan\\\\.com/aggroup/indexTab', ('^https?:\\\\/\\\\/apimobile\\\\.meituan\\\\.com\\\\/aggroup\\\\/indextab', '^https?:\\\\/\\\\/apimobile\\\\.meituan\\\\.com\\\\/aggroup\\\\/indexTab script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团首页标签'))",
-      "output_entry_index": 556,
-      "output_line": "http-response ^https?:\\/\\/apimobile\\.meituan\\.com\\/aggroup\\/indexTab script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团首页标签",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/apimobile\\.meituan\\.com\\/aggroup\\/indexTab script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团首页标签",
-          "input_section": "Script",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 29
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://feedguess\\\\.meituan\\\\.com/lycoris/scene/(gwc_feed1_2265|personalcenter_2154)(\\\\?|$)', ('^https?:\\\\/\\\\/feedguess\\\\.meituan\\\\.com\\\\/lycoris\\\\/scene\\\\/', '^https?:\\\\/\\\\/feedguess\\\\.meituan\\\\.com\\\\/lycoris\\\\/scene\\\\/(gwc_feed1_2265|personalcenter_2154)(\\\\?|$) script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团信息流'))",
-      "output_entry_index": 557,
-      "output_line": "http-response ^https?:\\/\\/feedguess\\.meituan\\.com\\/lycoris\\/scene\\/(gwc_feed1_2265|personalcenter_2154)(\\?|$) script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团信息流",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/feedguess\\.meituan\\.com\\/lycoris\\/scene\\/(gwc_feed1_2265|personalcenter_2154)(\\?|$) script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团信息流",
-          "input_section": "Script",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 30
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://mt-personalcenter\\\\.meituan\\\\.com/usercenter/display', ('^https?:\\\\/\\\\/mt-personalcenter\\\\.meituan\\\\.com\\\\/usercenter\\\\/display', '^https?:\\\\/\\\\/mt-personalcenter\\\\.meituan\\\\.com\\\\/usercenter\\\\/display script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团我的页面'))",
-      "output_entry_index": 558,
-      "output_line": "http-response ^https?:\\/\\/mt-personalcenter\\.meituan\\.com\\/usercenter\\/display script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团我的页面",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/mt-personalcenter\\.meituan\\.com\\/usercenter\\/display script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团我的页面",
-          "input_section": "Script",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 31
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://apimobile\\\\.meituan\\\\.com/group/v1/deal/searchpage/defaultword', ('^https?:\\\\/\\\\/apimobile\\\\.meituan\\\\.com\\\\/group\\\\/v1\\\\/deal\\\\/searchpage\\\\/defaultword', '^https?:\\\\/\\\\/apimobile\\\\.meituan\\\\.com\\\\/group\\\\/v1\\\\/deal\\\\/searchpage\\\\/defaultword script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团搜索热词'))",
-      "output_entry_index": 559,
-      "output_line": "http-response ^https?:\\/\\/apimobile\\.meituan\\.com\\/group\\/v1\\/deal\\/searchpage\\/defaultword script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团搜索热词",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/apimobile\\.meituan\\.com\\/group\\/v1\\/deal\\/searchpage\\/defaultword script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团搜索热词",
-          "input_section": "Script",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 32
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://apimobile\\\\.meituan\\\\.com/group/v1/deal/searchpage/hotword/city/divide/hotrecommend/', ('^https?:\\\\/\\\\/apimobile\\\\.meituan\\\\.com\\\\/group\\\\/v1\\\\/deal\\\\/searchpage\\\\/hotword\\\\/city\\\\/divide\\\\/hotrecommend\\\\/', '^https?:\\\\/\\\\/apimobile\\\\.meituan\\\\.com\\\\/group\\\\/v1\\\\/deal\\\\/searchpage\\\\/hotword\\\\/city\\\\/divide\\\\/hotrecommend\\\\/ script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团热搜推荐'))",
-      "output_entry_index": 560,
-      "output_line": "http-response ^https?:\\/\\/apimobile\\.meituan\\.com\\/group\\/v1\\/deal\\/searchpage\\/hotword\\/city\\/divide\\/hotrecommend\\/ script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团热搜推荐",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/apimobile\\.meituan\\.com\\/group\\/v1\\/deal\\/searchpage\\/hotword\\/city\\/divide\\/hotrecommend\\/ script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团热搜推荐",
-          "input_section": "Script",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 33
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://assistify\\\\.meituan\\\\.com/assistant/getAppClientHornConfig', ('^https?:\\\\/\\\\/assistify\\\\.meituan\\\\.com\\\\/assistant\\\\/getappclienthornconfig', '^https?:\\\\/\\\\/assistify\\\\.meituan\\\\.com\\\\/assistant\\\\/getAppClientHornConfig script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团AI角标'))",
-      "output_entry_index": 561,
-      "output_line": "http-response ^https?:\\/\\/assistify\\.meituan\\.com\\/assistant\\/getAppClientHornConfig script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团AI角标",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/assistify\\.meituan\\.com\\/assistant\\/getAppClientHornConfig script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团AI角标",
-          "input_section": "Script",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 34
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://mop\\\\.meituan\\\\.com/mop/entry/shoppingCartEntry', ('^https?:\\\\/\\\\/mop\\\\.meituan\\\\.com\\\\/mop\\\\/entry\\\\/shoppingcartentry', '^https?:\\\\/\\\\/mop\\\\.meituan\\\\.com\\\\/mop\\\\/entry\\\\/shoppingCartEntry script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团购物车横幅'))",
-      "output_entry_index": 562,
-      "output_line": "http-response ^https?:\\/\\/mop\\.meituan\\.com\\/mop\\/entry\\/shoppingCartEntry script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团购物车横幅",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/mop\\.meituan\\.com\\/mop\\/entry\\/shoppingCartEntry script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团购物车横幅",
-          "input_section": "Script",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 35
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://mop\\\\.meituan\\\\.com/api/entryModule/startupPicture', ('^https?:\\\\/\\\\/mop\\\\.meituan\\\\.com\\\\/api\\\\/entrymodule\\\\/startuppicture', '^https?:\\\\/\\\\/mop\\\\.meituan\\\\.com\\\\/api\\\\/entryModule\\\\/startupPicture script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团开屏广告'))",
-      "output_entry_index": 563,
-      "output_line": "http-response ^https?:\\/\\/mop\\.meituan\\.com\\/api\\/entryModule\\/startupPicture script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团开屏广告",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/mop\\.meituan\\.com\\/api\\/entryModule\\/startupPicture script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团开屏广告",
-          "input_section": "Script",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 36
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https://j1\\\\.pupuapi\\\\.com/client/marketing/advertisement/v1', ('^https:\\\\/\\\\/j1\\\\.pupuapi\\\\.com\\\\/client\\\\/marketing\\\\/advertisement\\\\/v1', '^https:\\\\/\\\\/j1\\\\.pupuapi\\\\.com\\\\/client\\\\/marketing\\\\/advertisement\\\\/v1 script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/pp.js, requires-body = true, tag = 开屏广告、首页横幅等'))",
       "output_entry_index": 565,
       "output_line": "http-response ^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/marketing\\/advertisement\\/v1 script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/pp.js, requires-body = true, tag = 开屏广告、首页横幅等",
@@ -125720,7 +125544,7 @@
     "rule_safety_excluded_events": 11,
     "rule_scope_adjustments": 1,
     "rule_source_events": 5627,
-    "script_output_entries": 553
+    "script_output_entries": 543
   },
   "upstream_revisions": {
     "AlipayAdBlock": {
