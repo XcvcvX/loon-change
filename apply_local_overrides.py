@@ -1348,7 +1348,6 @@ JD_KEYWORD_SCOPE_HOSTS = (
     "bdsp.x.jd.com",
     "kepler.jd.com",
     "keplerapi.jd.com",
-    "mapi.m.jd.com",
 )
 JD_KEYWORD_SCOPE_RULES = {
     host: "DOMAIN-KEYWORD," + host + ",REJECT"
@@ -1427,6 +1426,48 @@ def remove_redundant_jd_keyword_rules(lines):
         raise ValueError("Jingdong DOMAIN-KEYWORD inventory is partial; refusing unreviewed cleanup")
     return output, sum(keyword_counts.values())
 
+
+JD_CORE_SERVICE_BLOCKS = {
+    "img-x.jd.com": "DOMAIN-SUFFIX,img-x.jd.com,REJECT",
+    "mapi.m.jd.com": "DOMAIN-SUFFIX,mapi.m.jd.com,REJECT",
+    "janapi.jd.com": "DOMAIN,janapi.jd.com,REJECT",
+}
+
+
+def remove_jd_core_service_domain_blocks(lines):
+    """Remove only broad JD host blocks independently identified as core services."""
+    section = ""
+    output = []
+    counts = {host: 0 for host in JD_CORE_SERVICE_BLOCKS}
+    saw_target = False
+
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            output.append(line)
+            continue
+
+        value = line.strip()
+        if section == "Rule" and value:
+            parts = [part.strip() for part in value.split(",")]
+            if len(parts) >= 2 and parts[0].upper() in ("DOMAIN", "DOMAIN-SUFFIX", "DOMAIN-KEYWORD"):
+                host = parts[1].lower()
+                if host in JD_CORE_SERVICE_BLOCKS:
+                    saw_target = True
+                    if value != JD_CORE_SERVICE_BLOCKS[host]:
+                        raise ValueError("JD core service domain rule changed; refusing unreviewed removal: " + value)
+                    counts[host] += 1
+                    if counts[host] > 1:
+                        raise ValueError("duplicate JD core service domain block: " + host)
+                    continue
+        output.append(line)
+
+    if not saw_target:
+        return list(lines), 0
+    present = [host for host, count in counts.items() if count]
+    if len(present) != len(JD_CORE_SERVICE_BLOCKS):
+        raise ValueError("JD core service domain block inventory is partial; refusing cleanup")
+    return output, sum(counts.values())
 
 # Jingdong: retain the unconditional R-Store cleaner and preserve the optional
 # FMZ welcomeHome-only extension behind its existing user switch.
@@ -2029,6 +2070,7 @@ def apply(text: str) -> str:
 
     lines, _ = scope_taobao_ossgw_ad_assets(lines)
     lines, _ = remove_redundant_jd_keyword_rules(lines)
+    lines, _ = remove_jd_core_service_domain_blocks(lines)
     lines, _ = scope_pdd_image_cdn_ad_rules(lines)
     lines, _ = remove_douyin_hongguo_unsafe_rules(lines)
     lines, _ = remove_kugou_jin10_redundant_rewrites(lines)
