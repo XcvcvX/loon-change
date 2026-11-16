@@ -52,6 +52,40 @@ SOUL_TEENAGER_CONFIG_HTTPS_RULE = r"^https:\/\/api-account\.soulapp\.cn\/teenage
 
 PEOPLEAPP_HOME_AD_BROAD_RULE = r"^https?:\/\/app\.peopleapp\.com\/Api\/\d+/HomeApi\/(?:adv|getAdvertImage) reject"
 PEOPLEAPP_HOME_AD_SHADOW_RULE = r"request if ${url} ~= /^https?:\/\/app\.peopleapp\.com\/Api\/\d+\/HomeApi\/(adv|getAdvertImage)/ then reject(404)"
+
+# A second PeopleApp homepage ad blocker differs only by a capturing vs
+# non-capturing group. Keep the first exact rule; both have identical scope/action.
+PEOPLEAPP_HOME_AD_DUPLICATE_RULES = (
+    PEOPLEAPP_HOME_AD_SHADOW_RULE.replace("/(adv|getAdvertImage)/", "/(?:adv|getAdvertImage)/"),
+    PEOPLEAPP_HOME_AD_SHADOW_RULE,
+)
+
+
+def remove_duplicate_peopleapp_home_ad_rules(lines):
+    """Remove the second exact matcher only when its equivalent first rule exists."""
+    counts = {rule: 0 for rule in PEOPLEAPP_HOME_AD_DUPLICATE_RULES}
+    for line in lines:
+        value = line.strip()
+        if value.startswith("request if ${url}") and "peopleapp" in value and "HomeApi" in value and ("adv" in value or "getAdvertImage" in value):
+            if value not in counts:
+                raise ValueError("PeopleApp homepage ad rule inventory changed; refusing cleanup")
+            counts[value] += 1
+            if counts[value] > 1:
+                raise ValueError("duplicate PeopleApp homepage ad rule; refusing ambiguous cleanup")
+
+    canonical_count, duplicate_count = (counts[rule] for rule in PEOPLEAPP_HOME_AD_DUPLICATE_RULES)
+    if canonical_count == 0 or duplicate_count == 0:
+        # A lone rule may be an upstream revision or an already-cleaned result.
+        # Preserve it; never delete without the exact covering counterpart.
+        return list(lines), 0
+
+    output = [
+        line for line in lines
+        if line.strip() != PEOPLEAPP_HOME_AD_DUPLICATE_RULES[1]
+    ]
+    return output, 1
+
+
 PEOPLEAPP_IMAGE_AD_BROAD_RULE = r"^https?:\/\/adstatic\.peopleapp\.com\/upload\/AppLoad\/.*\.(?:jpg|png) reject-200"
 PEOPLEAPP_IMAGE_AD_SHADOW_RULE = r"request if ${url} ~= /^https?:\/\/adstatic\.peopleapp\.com\/upload\/AppLoad\/.*\.(jpg|png)/ then reject(200)"
 
@@ -1757,6 +1791,7 @@ def apply(text: str) -> str:
                 rewrite_lines, _ = remove_redundant_zhihu_request_rules(rewrite_lines)
                 rewrite_lines, _ = consolidate_zhihu_multi_action_rewrites(rewrite_lines)
                 rewrite_lines, _ = remove_subsumed_soul_teenager_rule(rewrite_lines)
+                rewrite_lines, _ = remove_duplicate_peopleapp_home_ad_rules(rewrite_lines)
                 rewrite_lines, _ = remove_shadowed_peopleapp_rules(rewrite_lines)
                 rewrite_lines, _ = remove_shadowed_terminal_block_rules(rewrite_lines)
                 rewrite_lines, _ = remove_redundant_taobao_rewrite_rules(rewrite_lines)
@@ -1784,6 +1819,7 @@ def apply(text: str) -> str:
         rewrite_lines, _ = remove_redundant_zhihu_request_rules(rewrite_lines)
         rewrite_lines, _ = consolidate_zhihu_multi_action_rewrites(rewrite_lines)
         rewrite_lines, _ = remove_subsumed_soul_teenager_rule(rewrite_lines)
+        rewrite_lines, _ = remove_duplicate_peopleapp_home_ad_rules(rewrite_lines)
         rewrite_lines, _ = remove_shadowed_peopleapp_rules(rewrite_lines)
         rewrite_lines, _ = remove_shadowed_terminal_block_rules(rewrite_lines)
         rewrite_lines, _ = remove_redundant_taobao_rewrite_rules(rewrite_lines)
