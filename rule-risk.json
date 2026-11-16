@@ -2,8 +2,8 @@
   "change_counts": {
     "rewrite": {
       "action_changed": 0,
-      "added": 6,
-      "removed": 4
+      "added": 0,
+      "removed": 0
     },
     "rule": {
       "action_changed": 0,
@@ -12,63 +12,15 @@
     },
     "script": {
       "action_changed": 0,
-      "added": 0,
-      "removed": 13
+      "added": 1,
+      "removed": 2
     }
   },
   "events": [
     {
       "after": {
-        "line": "^https:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v1\\/other\\/fast reject-dict",
-        "section": "rewrite",
-        "sources": [
-          "aoomee"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "rewrite",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "aoomee": "scored"
-      },
-      "source_scores": {
-        "aoomee": 100
-      },
-      "sources": [
-        "aoomee"
-      ]
-    },
-    {
-      "after": {
-        "line": "^https:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v1\\/other\\/slow reject-dict",
-        "section": "rewrite",
-        "sources": [
-          "aoomee"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "rewrite",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "aoomee": "scored"
-      },
-      "source_scores": {
-        "aoomee": 100
-      },
-      "sources": [
-        "aoomee"
-      ]
-    },
-    {
-      "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v\\d\\/core\\?/i then response.json.jq(\"(if (try (.data.disorder_cards.bottom_nav_list.data | type) catch null) == \\\"array\\\" then .data.disorder_cards.bottom_nav_list.data |= map(select(.id == \\\"v6x_home\\\" or .id == \\\"home_page\\\" or .id == \\\"user_center\\\")) else . end) | (if (try (.data.order_cards.nav_list_card.data | type) catch null) == \\\"array\\\" then .data.order_cards.nav_list_card.data |= map(select(.nav_id == \\\"dache_anycar\\\" or .nav_id == \\\"carmate\\\" or .nav_id == \\\"driverservice\\\" or .nav_id == \\\"zhandianbashi\\\" or .nav_id == \\\"pincheche\\\" or .nav_id == \\\"bike\\\" or .nav_id == \\\"nav_more_v3\\\")) else . end) | (if (try (.data.disorder_cards.top_nav_list.data.top_nav_info | type) catch null) == \\\"array\\\" then .data.disorder_cards.top_nav_list.data.top_nav_info |= map(select(.nav_id == \\\"chu_xing\\\" or .nav_id == \\\"freight_cargo\\\")) else . end)\")",
-        "section": "rewrite",
+        "line": "http-response ^https?:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/homepage\\/hub script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/pinduoduo/pdd-homepage.js,tag=PDD-2,requires-body=true",
+        "section": "script",
         "sources": [
           "local_overrides"
         ]
@@ -77,7 +29,7 @@
       "change_type": "added",
       "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
       "risk": "medium",
-      "section": "rewrite",
+      "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
         "local_overrides": "unavailable"
@@ -90,82 +42,10 @@
       ]
     },
     {
-      "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/aos\\/perception\\/publicTravel\\/beforeNavi\\?/i then response.json.jq(\"(if (try (.data.common_data.bus_plan_bottom_event.data | type) catch null) == \\\"array\\\" then .data.common_data.bus_plan_bottom_event.data = [] else . end) | (if (try (.data.common_data.bus_plan_bottom_tips.data | type) catch null) == \\\"array\\\" then .data.common_data.bus_plan_bottom_tips.data = [] else . end) | (if (try (.data.common_data.bus_plan_segment_event.data | type) catch null) == \\\"array\\\" then .data.common_data.bus_plan_segment_event.data = [] else . end) | (if (try (.data.front_end.assistant | type) catch null) == \\\"array\\\" then .data.front_end.assistant = [] else . end)\")",
-        "section": "rewrite",
-        "sources": [
-          "amap"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "rewrite",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "amap": "unavailable"
-      },
-      "source_scores": {
-        "amap": null
-      },
-      "sources": [
-        "amap"
-      ]
-    },
-    {
-      "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/bus\\/plan\\/integrate\\?/i then response.json.jq(\"(if (try (.data.banner_lists.data | type) catch null) == \\\"array\\\" then .data.banner_lists.data = [] else . end) | (if (try (.data.banner_lists.tips | type) catch null) == \\\"array\\\" then .data.banner_lists.tips = [] else . end) | (if (try (.data.mixed_plans.data.taxiPlans | type) catch null) == \\\"array\\\" then .data.mixed_plans.data.taxiPlans = [] else . end)\")",
-        "section": "rewrite",
-        "sources": [
-          "amap"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "rewrite",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "amap": "unavailable"
-      },
-      "source_scores": {
-        "amap": null
-      },
-      "sources": [
-        "amap"
-      ]
-    },
-    {
-      "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_bff\\/hotword\\?/i then response.json.jq(\"(if (try (.data.headerHotWord | type) catch null) == \\\"array\\\" then .data.headerHotWord = [] else . end)\")",
-        "section": "rewrite",
-        "sources": [
-          "amap"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "rewrite",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "amap": "unavailable"
-      },
-      "source_scores": {
-        "amap": null
-      },
-      "sources": [
-        "amap"
-      ]
-    },
-    {
       "after": null,
       "before": {
-        "line": "^https:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v5\\/usercenter\\/layout response-body-json-jq 'del(.data.instances.center_marketing_card, .data.instances.center_tool_card, .data.instances.center_widget_list, .data.instances.center_res_light_guide) | .data.instances.center_wallet_finance_card.data.view_info |= map(select(.title == \"优惠卡券\"))'",
-        "section": "rewrite",
+        "line": "http-response ^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/homepage\\/hub script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/pdd.js, requires-body = true, tag = 拼多多首页简化(底部菜单、顶部分类)",
+        "section": "script",
         "sources": [
           "aoomee"
         ]
@@ -173,7 +53,7 @@
       "change_type": "removed",
       "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
       "risk": "high",
-      "section": "rewrite",
+      "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
         "aoomee": "scored"
@@ -188,79 +68,7 @@
     {
       "after": null,
       "before": {
-        "line": "^https:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v1\\/core\\? response-body-json-jq '.data.disorder_cards.bottom_nav_list.data |= [.[] | select(.id == \"home_page\" or .id == \"user_center\")] | .data.order_cards.nav_list_card.data |= [.[] | select(.nav_id == \"bike\" or .nav_id == \"driverservice\" or .nav_id == \"carmate\")]'",
-        "section": "rewrite",
-        "sources": [
-          "aoomee"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "rewrite",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "aoomee": "scored"
-      },
-      "source_scores": {
-        "aoomee": 100
-      },
-      "sources": [
-        "aoomee"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "^https?:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v\\d\\/other\\/fast reject-dict",
-        "section": "rewrite",
-        "sources": [
-          "base"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "rewrite",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "base": "unavailable"
-      },
-      "source_scores": {
-        "base": null
-      },
-      "sources": [
-        "base"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v\\d\\/core\\?/i then response.json.jq(\".data.order_cards.nav_list_card.data |= map(select(.nav_id == \\\"dache_anycar\\\" or .nav_id == \\\"carmate\\\" or .nav_id == \\\"driverservice\\\" or .nav_id == \\\"zhandianbashi\\\" or .nav_id == \\\"pincheche\\\" or .nav_id == \\\"bike\\\" or .nav_id == \\\"nav_more_v3\\\")) | .data.disorder_cards.top_nav_list.data.top_nav_info |= map(select(.nav_id == \\\"chu_xing\\\" or .nav_id == \\\"freight_cargo\\\"))\")",
-        "section": "rewrite",
-        "sources": [
-          "zmjapp"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "rewrite",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "zmjapp": "unavailable"
-      },
-      "source_scores": {
-        "zmjapp": null
-      },
-      "sources": [
-        "zmjapp"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "http-response ^https?:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v\\d\\/usercenter\\/me script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI-3,requires-body=true",
+        "line": "http-response ^https?:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/\\w+\\/hub script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/pdd.js,tag=PDD-2,requires-body=true",
         "section": "script",
         "sources": [
           "base"
@@ -279,304 +87,16 @@
       },
       "sources": [
         "base"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "http-response ^https?:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v\\d\\/core script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI,requires-body=true",
-        "section": "script",
-        "sources": [
-          "base"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "base": "unavailable"
-      },
-      "source_scores": {
-        "base": null
-      },
-      "sources": [
-        "base"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/aos\\/perception\\/publicTravel\\/beforeNavi\\?/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除路线规划推广\", requires_body=true",
-        "section": "script",
-        "sources": [
-          "amap"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "amap": "unavailable"
-      },
-      "source_scores": {
-        "amap": null
-      },
-      "sources": [
-        "amap"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/bus\\/plan\\/integrate\\?/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除路线规划、导航结束页推广\", requires_body=true",
-        "section": "script",
-        "sources": [
-          "amap"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "amap": "unavailable"
-      },
-      "source_scores": {
-        "amap": null
-      },
-      "sources": [
-        "amap"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_bff\\/hotword\\?/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除搜索栏推广\", requires_body=true",
-        "section": "script",
-        "sources": [
-          "amap"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "amap": "unavailable"
-      },
-      "source_scores": {
-        "amap": null
-      },
-      "sources": [
-        "amap"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https?:\\/\\/conf\\.diditaxi\\.com\\.cn\\/dynamic\\/conf/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "block"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "block": "unavailable"
-      },
-      "source_scores": {
-        "block": null
-      },
-      "sources": [
-        "block"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https?:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v\\d\\/other\\/fast/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "block"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "block": "unavailable"
-      },
-      "source_scores": {
-        "block": null
-      },
-      "sources": [
-        "block"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https?:\\/\\/ct\\.xiaojukeji\\.com\\/agent\\/v3\\/feeds/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "block"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "block": "unavailable"
-      },
-      "source_scores": {
-        "block": null
-      },
-      "sources": [
-        "block"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https?:\\/\\/daijia\\.kuaidadi\\.com:443\\/gateway/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "block"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "block": "unavailable"
-      },
-      "source_scores": {
-        "block": null
-      },
-      "sources": [
-        "block"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https?:\\/\\/daijia\\.kuaidadi\\.com\\/gateway/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "block"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "block": "unavailable"
-      },
-      "source_scores": {
-        "block": null
-      },
-      "sources": [
-        "block"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https?:\\/\\/freight\\.xiaojukeji\\.com\\/gateway/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "block"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "block": "unavailable"
-      },
-      "source_scores": {
-        "block": null
-      },
-      "sources": [
-        "block"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https?:\\/\\/res\\.xiaojukeji\\.com\\/resapi\\/activity\\/mget/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "block"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "block": "unavailable"
-      },
-      "source_scores": {
-        "block": null
-      },
-      "sources": [
-        "block"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https?:\\/\\/res\\.xiaojukeji\\.com\\/resapi\\/activity\\/xpget/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "block"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "block": "unavailable"
-      },
-      "source_scores": {
-        "block": null
-      },
-      "sources": [
-        "block"
       ]
     }
   ],
   "overall_risk": "high",
   "risk_counts": {
-    "high": 17,
+    "high": 2,
     "low": 0,
-    "medium": 6
+    "medium": 1
   },
-  "run_id": "43796011885",
+  "run_id": "43804266454",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -607,14 +127,14 @@
     "aoomee": {
       "action_changed": 0,
       "added": 2,
-      "removed": 26,
-      "snapshots_seen": 4
+      "removed": 27,
+      "snapshots_seen": 5
     },
     "base": {
       "action_changed": 0,
       "added": 3,
-      "removed": 31,
-      "snapshots_seen": 14
+      "removed": 32,
+      "snapshots_seen": 15
     },
     "block": {
       "action_changed": 0,
@@ -630,9 +150,9 @@
     },
     "local_overrides": {
       "action_changed": 0,
-      "added": 21,
+      "added": 22,
       "removed": 2,
-      "snapshots_seen": 8
+      "snapshots_seen": 9
     },
     "myblockads": {
       "action_changed": 0,
@@ -659,5 +179,21 @@
       "snapshots_seen": 1
     }
   },
-  "upstream_revision_changes": []
+  "upstream_revision_changes": [
+    {
+      "current_commit": "7804714d4af8a95c5dc47ae0672f3a89afee603d",
+      "previous_commit": "3fc25b8503977820d693abd2b98be8c54e0591a3",
+      "source": "AlipayAdBlock"
+    },
+    {
+      "current_commit": "7804714d4af8a95c5dc47ae0672f3a89afee603d",
+      "previous_commit": "3fc25b8503977820d693abd2b98be8c54e0591a3",
+      "source": "Amap"
+    },
+    {
+      "current_commit": "7804714d4af8a95c5dc47ae0672f3a89afee603d",
+      "previous_commit": "3fc25b8503977820d693abd2b98be8c54e0591a3",
+      "source": "GuaZiVideoAds"
+    }
+  ]
 }

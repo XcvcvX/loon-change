@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、RuCu6 MyBlockAds、zirawell AlipayAdBlock、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / RuCu6 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-16 03:06 UTC
+#!merged-at=2026-11-16 04:28 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+RuCu6-MyBlockAds+zirawell-AlipayAdBlock+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -7087,7 +7087,7 @@ http-response ^https?:\/\/acs\.youku\.com\/gw\/mtop\.youku\.soku\.yksearch scrip
 http-response ^https?:\/\/push\.m\.youku\.com\/collect-api\/get_push_interval_config_wx\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=YOUKU-5,requires-body=true
 http-response ^https?:\/\/un-acs\.youku\.com\/gw\/mtop\.youku\.play\.ups\.appinfo\.get script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=YOUKU-6,requires-body=true
 http-response ^https?:\/\/api\.pinduoduo\.com\/api\/oak\/integration\/render script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/pdd.js,tag=PDD,requires-body=true
-http-response ^https?:\/\/api\.pinduoduo\.com\/api\/alexa\/\w+\/hub script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/pdd.js,tag=PDD-2,requires-body=true
+http-response ^https?:\/\/api\.pinduoduo\.com\/api\/alexa\/homepage\/hub script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/pinduoduo/pdd-homepage.js,tag=PDD-2,requires-body=true
 http-response ^https?:\/\/image\.spdbccc\.com\.cn\/group\d\/.*\.JPG$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/spdbccc.js,tag=SPDBCCC,requires-body=true
 http-response ^https?:\/\/cdn\.sdb\.com\.cn\/bron-coms\/bron-coms\/material-image script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/sdb.js,tag=SDB,requires-body=true
 http-response ^https?:\/\/iosapi\.peiyinxiu\.com\/Api\/Film\/GetConfigValue script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/peiyinxiu.js,tag=PEIYINXIU,requires-body=true
@@ -7381,7 +7381,6 @@ http-response ^https?:\/\/apimobile\.meituan\.com\/group\/v1\/deal\/searchpage\/
 http-response ^https?:\/\/assistify\.meituan\.com\/assistant\/getAppClientHornConfig script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团AI角标
 http-response ^https?:\/\/mop\.meituan\.com\/mop\/entry\/shoppingCartEntry script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团购物车横幅
 http-response ^https?:\/\/mop\.meituan\.com\/api\/entryModule\/startupPicture script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团开屏广告
-http-response ^https:\/\/api\.pinduoduo\.com\/api\/alexa\/homepage\/hub script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/pdd.js, requires-body = true, tag = 拼多多首页简化(底部菜单、顶部分类)
 http-response ^https:\/\/j1\.pupuapi\.com\/client\/marketing\/advertisement\/v1 script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/pp.js, requires-body = true, tag = 开屏广告、首页横幅等
 http-response ^https:\/\/j1\.pupuapi\.com\/client\/order\/orders\/list\/v4 script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/pp.js, requires-body = true, tag = 订单列表骑手反馈问题推荐
 http-response ^https?:\/\/(?:slugger|minislugger|homefront|homeback|qbi|lang|qde|client)\.qunar\.com\/ script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/qunar-clean.js,requires-body=true,timeout=10,tag=去哪儿配套清理

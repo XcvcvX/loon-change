@@ -120122,21 +120122,15 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://api\\\\.pinduoduo\\\\.com/api/alexa/\\\\w+/hub', ('^https?:\\\\/\\\\/api\\\\.pinduoduo\\\\.com\\\\/api\\\\/alexa\\\\/\\\\w+\\\\/hub', '^https?:\\\\/\\\\/api\\\\.pinduoduo\\\\.com\\\\/api\\\\/alexa\\\\/\\\\w+\\\\/hub script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/pdd.js,tag=PDD-2,requires-body=true'))",
-      "output_entry_index": 238,
-      "output_line": "http-response ^https?:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/\\w+\\/hub script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/pdd.js,tag=PDD-2,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/homepage\\/hub script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/pinduoduo/pdd-homepage.js,tag=PDD-2,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/\\w+\\/hub script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/pdd.js,tag=PDD-2,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 237
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
       "canonical_key": "('guarded', '^https?://image\\\\.spdbccc\\\\.com\\\\.cn/group\\\\d/.*\\\\.JPG$', ('^https?:\\\\/\\\\/image\\\\.spdbccc\\\\.com\\\\.cn\\\\/group\\\\d\\\\/.*\\\\.jpg$', '^https?:\\\\/\\\\/image\\\\.spdbccc\\\\.com\\\\.cn\\\\/group\\\\d\\\\/.*\\\\.JPG$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/spdbccc.js,tag=SPDBCCC,requires-body=true'))",
@@ -125124,23 +125118,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/alexa/homepage/hub', ('^https:\\\\/\\\\/api\\\\.pinduoduo\\\\.com\\\\/api\\\\/alexa\\\\/homepage\\\\/hub', '^https:\\\\/\\\\/api\\\\.pinduoduo\\\\.com\\\\/api\\\\/alexa\\\\/homepage\\\\/hub script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/pdd.js, requires-body = true, tag = 拼多多首页简化(底部菜单、顶部分类)'))",
-      "output_entry_index": 564,
-      "output_line": "http-response ^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/homepage\\/hub script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/pdd.js, requires-body = true, tag = 拼多多首页简化(底部菜单、顶部分类)",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/homepage\\/hub script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/pdd.js, requires-body = true, tag = 拼多多首页简化(底部菜单、顶部分类)",
-          "input_section": "Script",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 37
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https://j1\\\\.pupuapi\\\\.com/client/marketing/advertisement/v1', ('^https:\\\\/\\\\/j1\\\\.pupuapi\\\\.com\\\\/client\\\\/marketing\\\\/advertisement\\\\/v1', '^https:\\\\/\\\\/j1\\\\.pupuapi\\\\.com\\\\/client\\\\/marketing\\\\/advertisement\\\\/v1 script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/pp.js, requires-body = true, tag = 开屏广告、首页横幅等'))",
       "output_entry_index": 565,
       "output_line": "http-response ^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/marketing\\/advertisement\\/v1 script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/pp.js, requires-body = true, tag = 开屏广告、首页横幅等",
@@ -126096,7 +126073,7 @@
     "rule_safety_excluded_events": 11,
     "rule_scope_adjustments": 1,
     "rule_source_events": 5627,
-    "script_output_entries": 564
+    "script_output_entries": 563
   },
   "upstream_revisions": {
     "AlipayAdBlock": {
@@ -126118,7 +126095,7 @@
         "Rule": 4,
         "Script": 1
       },
-      "upstream_commit": "3fc25b8503977820d693abd2b98be8c54e0591a3",
+      "upstream_commit": "7804714d4af8a95c5dc47ae0672f3a89afee603d",
       "upstream_path": "Modules/Loon/zirawell/Beta/alipayAdBlock.lpx",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
@@ -126157,13 +126134,13 @@
         "Rule": 4,
         "Script": 13
       },
-      "upstream_commit": "3fc25b8503977820d693abd2b98be8c54e0591a3",
+      "upstream_commit": "7804714d4af8a95c5dc47ae0672f3a89afee603d",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
     "GuaZiVideoAds": {
       "bytes": 3448,
       "entries": 6,
-      "upstream_commit": "3fc25b8503977820d693abd2b98be8c54e0591a3",
+      "upstream_commit": "7804714d4af8a95c5dc47ae0672f3a89afee603d",
       "upstream_path": "Modules/QuantumultX/ddgksf2013/Official/GuaZiVideoAds.conf",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
