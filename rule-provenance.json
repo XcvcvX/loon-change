@@ -115674,7 +115674,7 @@
       "trace_status": "mapped"
     },
     {
-      "output_line": "response if ${url} ~= /^https?:\\/\\/api-pay\\.soulapp\\.cn\\/vip\\/meet\\/userInfo/ then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
+      "output_line": "response if ${url} ~= /^https?:\\/\\/api-pay\\.soulapp\\.cn\\/(?:vip\\/meet\\/userInfo|privilege\\/supervip\\/status)/ then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
       "provenance_kind": "post_merge_transform",
       "sources": [
         {
@@ -115685,7 +115685,7 @@
       ]
     },
     {
-      "output_line": "response if ${url} ~= /^https?:\\/\\/api-pay\\.soulapp\\.cn\\/privilege\\/supervip\\/status/ then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
+      "output_line": "response if ${url} ~= /^https?:\\/\\/(?:api-account\\.soulapp\\.cn\\/teenager\\/config|api-a\\.soulapp\\.cn\\/(?:v\\d\\/post\\/gift\\/list|official\\/scene\\/module)|api-user\\.soulapp\\.cn\\/(?:furion\\/position\\/content|v\\d\\/planet\\/config)|api-chat\\.soulapp\\.cn\\/chat\\/limitInfo|post\\.soulapp\\.cn\\/(?:hot\\/soul\\/rank|v\\d\\/post\\/(?:homepage\\/guide\\/card|recSquare\\/subTabs))|chat-live\\.soulapp\\.cn\\/chatroom\\/chatClassifyRoomList|gateway-mobile-gray\\.soulapp\\.cn\\/mobile\\/app\\/version\\/queryIos|47\\.110\\.187\\.87\\/winterfell\\/v2\\/getIpByDomain)/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
       "provenance_kind": "post_merge_transform",
       "sources": [
         {
@@ -116834,23 +116834,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://(?:app\\\\.bilibili\\\\.com|grpc\\\\.biliapi\\\\.net)/bilibili\\\\.app\\\\.interface\\\\.v\\\\d\\\\.Teenagers/ModeStatus', ('^https?:\\\\/\\\\/', '^https?:\\\\/\\\\/(?:app\\\\.bilibili\\\\.com|grpc\\\\.biliapi\\\\.net)\\\\/bilibili\\\\.app\\\\.interface\\\\.v\\\\d\\\\.Teenagers\\\\/ModeStatus script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-2,requires-body=true,binary-body-mode=true'))",
-      "output_entry_index": 195,
-      "output_line": "http-response ^https?:\\/\\/(?:app\\.bilibili\\.com|grpc\\.biliapi\\.net)\\/bilibili\\.app\\.interface\\.v\\d\\.Teenagers\\/ModeStatus script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-2,requires-body=true,binary-body-mode=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/(?:app\\.bilibili\\.com|grpc\\.biliapi\\.net)\\/bilibili\\.app\\.interface\\.v\\d\\.Teenagers\\/ModeStatus script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-2,requires-body=true,binary-body-mode=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 194
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https?://(?:app\\\\.bilibili\\\\.com|grpc\\\\.biliapi\\\\.net)/bilibili\\\\.app\\\\.(?:view|viewunite)\\\\.v\\\\d\\\\.View/View', ('^https?:\\\\/\\\\/', '^https?:\\\\/\\\\/(?:app\\\\.bilibili\\\\.com|grpc\\\\.biliapi\\\\.net)\\\\/bilibili\\\\.app\\\\.(?:view|viewunite)\\\\.v\\\\d\\\\.View\\\\/View script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-3,requires-body=true,binary-body-mode=true'))",
       "output_entry_index": 196,
       "output_line": "http-response ^https?:\\/\\/(?:app\\.bilibili\\.com|grpc\\.biliapi\\.net)\\/bilibili\\.app\\.(?:view|viewunite)\\.v\\d\\.View\\/View script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-3,requires-body=true,binary-body-mode=true",
@@ -117757,21 +117740,15 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://api\\\\.weibo\\\\.cn/2/(checkin/show|client/publisher_list|push/active)\\\\?', ('^https?:\\\\/\\\\/api\\\\.weibo\\\\.cn\\\\/2\\\\/', '^https?:\\\\/\\\\/api\\\\.weibo\\\\.cn\\\\/2\\\\/(checkin\\\\/show|client\\\\/publisher_list|push\\\\/active)\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO,requires-body=true'))",
-      "output_entry_index": 263,
-      "output_line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/(checkin\\/show|client\\/publisher_list|push\\/active)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/(push\\/active)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/(checkin\\/show|client\\/publisher_list|push\\/active)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 262
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
       "canonical_key": "('guarded', '^https?://api\\\\.weibo\\\\.cn/2/groups/allgroups/v2\\\\?', ('^https?:\\\\/\\\\/api\\\\.weibo\\\\.cn\\\\/2\\\\/groups\\\\/allgroups\\\\/v2\\\\?', '^https?:\\\\/\\\\/api\\\\.weibo\\\\.cn\\\\/2\\\\/groups\\\\/allgroups\\\\/v2\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-2,requires-body=true'))",
@@ -117842,23 +117819,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://api\\\\.weibo\\\\.cn/2/friendships/(create|destroy)\\\\?', ('^https?:\\\\/\\\\/api\\\\.weibo\\\\.cn\\\\/2\\\\/friendships\\\\/', '^https?:\\\\/\\\\/api\\\\.weibo\\\\.cn\\\\/2\\\\/friendships\\\\/(create|destroy)\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-6,requires-body=true'))",
-      "output_entry_index": 268,
-      "output_line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/friendships\\/(create|destroy)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-6,requires-body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/friendships\\/(create|destroy)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-6,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 267
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https?://api\\\\.weibo\\\\.cn/2/profile/(container_timeline|dealatt|me|statuses/tab|userinfo)\\\\?', ('^https?:\\\\/\\\\/api\\\\.weibo\\\\.cn\\\\/2\\\\/profile\\\\/', '^https?:\\\\/\\\\/api\\\\.weibo\\\\.cn\\\\/2\\\\/profile\\\\/(container_timeline|dealatt|me|statuses\\\\/tab|userinfo)\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-7,requires-body=true'))",
       "output_entry_index": 269,
       "output_line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/profile\\/(container_timeline|dealatt|me|statuses\\/tab|userinfo)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-7,requires-body=true",
@@ -117905,57 +117865,6 @@
           "priority": 4,
           "source": "base",
           "source_entry_index": 270
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://api\\\\.weibo\\\\.cn/2/video/tiny_stream_video_list\\\\?', ('^https?:\\\\/\\\\/api\\\\.weibo\\\\.cn\\\\/2\\\\/video\\\\/tiny_stream_video_list\\\\?', '^https?:\\\\/\\\\/api\\\\.weibo\\\\.cn\\\\/2\\\\/video\\\\/tiny_stream_video_list\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-10,requires-body=true'))",
-      "output_entry_index": 272,
-      "output_line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/video\\/tiny_stream_video_list\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-10,requires-body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/video\\/tiny_stream_video_list\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-10,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 271
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://api\\\\.weibo\\\\.cn/2/!/huati/discovery_home_bottom_channels\\\\?', ('^https?:\\\\/\\\\/api\\\\.weibo\\\\.cn\\\\/2\\\\/!\\\\/huati\\\\/discovery_home_bottom_channels\\\\?', '^https?:\\\\/\\\\/api\\\\.weibo\\\\.cn\\\\/2\\\\/!\\\\/huati\\\\/discovery_home_bottom_channels\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-11,requires-body=true'))",
-      "output_entry_index": 273,
-      "output_line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/!\\/huati\\/discovery_home_bottom_channels\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-11,requires-body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/!\\/huati\\/discovery_home_bottom_channels\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-11,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 272
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://api\\\\.weibo\\\\.cn/2/direct_messages/user_list\\\\?', ('^https?:\\\\/\\\\/api\\\\.weibo\\\\.cn\\\\/2\\\\/direct_messages\\\\/user_list\\\\?', '^https?:\\\\/\\\\/api\\\\.weibo\\\\.cn\\\\/2\\\\/direct_messages\\\\/user_list\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-12,requires-body=true'))",
-      "output_entry_index": 274,
-      "output_line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/direct_messages\\/user_list\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-12,requires-body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/direct_messages\\/user_list\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-12,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 273
         }
       ],
       "trace_status": "mapped"
@@ -120574,204 +120483,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://api-account\\\\.soulapp\\\\.cn/teenager/config', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true'))",
-      "output_entry_index": 450,
-      "output_line": "response if ${url} ~= /^https?:\\/\\/api-account\\.soulapp\\.cn\\/teenager\\/config/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https?:\\/\\/api-account\\.soulapp\\.cn\\/teenager\\/config/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 142
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "output_line": "response if ${url} ~= /^https?:\\/\\/api-a\\.soulapp\\.cn\\/v\\d\\/post\\/gift\\/list/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
-      "provenance_kind": "post_merge_transform",
-      "sources": [
-        {
-          "source": "local_overrides",
-          "source_file": "apply_local_overrides.py",
-          "transform_stage": "local_overrides"
-        }
-      ]
-    },
-    {
-      "canonical_key": "('guarded', '^https?://api-a\\\\.soulapp\\\\.cn/official/scene/module', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true'))",
-      "output_entry_index": 452,
-      "output_line": "response if ${url} ~= /^https?:\\/\\/api-a\\.soulapp\\.cn\\/official\\/scene\\/module/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https?:\\/\\/api-a\\.soulapp\\.cn\\/official\\/scene\\/module/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 144
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://api-user\\\\.soulapp\\\\.cn/furion/position/content', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true'))",
-      "output_entry_index": 453,
-      "output_line": "response if ${url} ~= /^https?:\\/\\/api-user\\.soulapp\\.cn\\/furion\\/position\\/content/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https?:\\/\\/api-user\\.soulapp\\.cn\\/furion\\/position\\/content/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 145
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://api-user\\\\.soulapp\\\\.cn/v\\\\d/planet/config', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true'))",
-      "output_entry_index": 454,
-      "output_line": "response if ${url} ~= /^https?:\\/\\/api-user\\.soulapp\\.cn\\/v\\d\\/planet\\/config/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https?:\\/\\/api-user\\.soulapp\\.cn\\/v\\d\\/planet\\/config/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 146
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://api-chat\\\\.soulapp\\\\.cn/chat/limitInfo', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true'))",
-      "output_entry_index": 455,
-      "output_line": "response if ${url} ~= /^https?:\\/\\/api-chat\\.soulapp\\.cn\\/chat\\/limitInfo/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https?:\\/\\/api-chat\\.soulapp\\.cn\\/chat\\/limitInfo/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 147
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://post\\\\.soulapp\\\\.cn/hot/soul/rank', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true'))",
-      "output_entry_index": 456,
-      "output_line": "response if ${url} ~= /^https?:\\/\\/post\\.soulapp\\.cn\\/hot\\/soul\\/rank/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https?:\\/\\/post\\.soulapp\\.cn\\/hot\\/soul\\/rank/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 148
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://post\\\\.soulapp\\\\.cn/v\\\\d/post/homepage/guide/card', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true'))",
-      "output_entry_index": 457,
-      "output_line": "response if ${url} ~= /^https?:\\/\\/post\\.soulapp\\.cn\\/v\\d\\/post\\/homepage\\/guide\\/card/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https?:\\/\\/post\\.soulapp\\.cn\\/v\\d\\/post\\/homepage\\/guide\\/card/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 149
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://post\\\\.soulapp\\\\.cn/v\\\\d/post/recSquare/subTabs', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true'))",
-      "output_entry_index": 458,
-      "output_line": "response if ${url} ~= /^https?:\\/\\/post\\.soulapp\\.cn\\/v\\d\\/post\\/recSquare\\/subTabs/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https?:\\/\\/post\\.soulapp\\.cn\\/v\\d\\/post\\/recSquare\\/subTabs/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 150
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://chat-live\\\\.soulapp\\\\.cn/chatroom/chatClassifyRoomList', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true'))",
-      "output_entry_index": 459,
-      "output_line": "response if ${url} ~= /^https?:\\/\\/chat-live\\.soulapp\\.cn\\/chatroom\\/chatClassifyRoomList/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https?:\\/\\/chat-live\\.soulapp\\.cn\\/chatroom\\/chatClassifyRoomList/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 151
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://gateway-mobile-gray\\\\.soulapp\\\\.cn/mobile/app/version/queryIos', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true'))",
-      "output_entry_index": 460,
-      "output_line": "response if ${url} ~= /^https?:\\/\\/gateway-mobile-gray\\.soulapp\\.cn\\/mobile\\/app\\/version\\/queryIos/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https?:\\/\\/gateway-mobile-gray\\.soulapp\\.cn\\/mobile\\/app\\/version\\/queryIos/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 152
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://47\\\\.110\\\\.187\\\\.87/winterfell/v2/getIpByDomain', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true'))",
-      "output_entry_index": 461,
-      "output_line": "response if ${url} ~= /^https?:\\/\\/47\\.110\\.187\\.87\\/winterfell\\/v2\\/getIpByDomain/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https?:\\/\\/47\\.110\\.187\\.87\\/winterfell\\/v2\\/getIpByDomain/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 153
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https://(?:\\\\w+-spclient|spclient\\\\.wg)\\\\.spotify\\\\.com(?::443)?/(?:bootstrap|user-customization-service)', ('script', 'script(\"https://raw.githubusercontent.com/001ProMax/Surge/refs/heads/main/Script/Spotify.Crack.Dev.js\") with tag=\"Protobuf\", timeout=3, requires_body=true'))",
       "output_entry_index": 462,
       "output_line": "response if ${url} ~= /^https:\\/\\/(?:\\w+-spclient|spclient\\.wg)\\.spotify\\.com(?::443)?\\/(?:bootstrap|user-customization-service)/i then script(\"https://raw.githubusercontent.com/001ProMax/Surge/refs/heads/main/Script/Spotify.Crack.Dev.js\") with tag=\"Protobuf\", timeout=3, requires_body=true",
@@ -121214,72 +120925,37 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://(?:api|page-info)\\\\.zhihu\\\\.com/(?:answers|articles)/v2/\\\\d+', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除首页推广\", requires_body=true'))",
-      "output_entry_index": 512,
-      "output_line": "response if ${url} ~= /^https:\\/\\/(?:api|page-info)\\.zhihu\\.com\\/(?:answers|articles)\\/v2\\/\\d+/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除首页推广\", requires_body=true",
-      "section": "Script",
+      "output_line": "response if ${url} ~= /^https:\\/\\/(?:(?:api|page-info)\\.zhihu\\.com\\/(?:answers|articles)\\/v2\\/\\d+|api\\.zhihu\\.com\\/(?:commercial_api\\/app_float_layer|feed\\/render\\/tab\\/config\\?|moments_v3|topstory\\/hot-lists\\/total|topstory\\/recommend|v2\\/topstory\\/hot-lists\\/everyone-seeing\\?))/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除首页推广\", requires_body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/(?:api|page-info)\\.zhihu\\.com\\/(?:answers|articles)\\/v2\\/\\d+/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除首页推广\", requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 204
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https://api\\\\.zhihu\\\\.com/commercial_api/app_float_layer', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除首页推广\", requires_body=true'))",
-      "output_entry_index": 513,
-      "output_line": "response if ${url} ~= /^https:\\/\\/api\\.zhihu\\.com\\/commercial_api\\/app_float_layer/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除首页推广\", requires_body=true",
-      "section": "Script",
+      "output_line": "response if ${url} ~= /^https:\\/\\/(?:api\\.zhihu\\.com\\/(?:next-(?:bff|data|render)|questions\\/\\d+(?:\\/answers|\\/feeds|\\?include=))|www\\.zhihu\\.com\\/api\\/v4\\/(?:articles|answers)\\/\\d+\\/recommendations?\\?)/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除回答详情页推广\", requires_body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/api\\.zhihu\\.com\\/commercial_api\\/app_float_layer/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除首页推广\", requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 205
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https://api\\\\.zhihu\\\\.com/feed/render/tab/config\\\\?', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除首页推广\", requires_body=true'))",
-      "output_entry_index": 514,
-      "output_line": "response if ${url} ~= /^https:\\/\\/api\\.zhihu\\.com\\/feed\\/render\\/tab\\/config\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除首页推广\", requires_body=true",
-      "section": "Script",
+      "output_line": "response if ${url} ~= /^https:\\/\\/(?:appcloud2\\.zhihu\\.com\\/v3\\/config|m-cloud\\.zhihu\\.com\\/api\\/cloud\\/config\\/all\\?)/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎拦截服务器推送配置\", requires_body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/api\\.zhihu\\.com\\/feed\\/render\\/tab\\/config\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除首页推广\", requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 206
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://api\\\\.zhihu\\\\.com/(?:moments_v3|topstory/hot-lists/total|topstory/recommend)', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除首页推广\", requires_body=true'))",
-      "output_entry_index": 515,
-      "output_line": "response if ${url} ~= /^https:\\/\\/api\\.zhihu\\.com\\/(?:moments_v3|topstory\\/hot-lists\\/total|topstory\\/recommend)/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除首页推广\", requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/api\\.zhihu\\.com\\/(?:moments_v3|topstory\\/hot-lists\\/total|topstory\\/recommend)/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除首页推广\", requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 207
-        }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.zhihu\\\\.com/root/tab', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎精简顶部标签\", requires_body=true'))",
@@ -121299,23 +120975,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://api\\\\.zhihu\\\\.com/v2/topstory/hot-lists/everyone-seeing\\\\?', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除首页推广\", requires_body=true'))",
-      "output_entry_index": 517,
-      "output_line": "response if ${url} ~= /^https:\\/\\/api\\.zhihu\\.com\\/v2\\/topstory\\/hot-lists\\/everyone-seeing\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除首页推广\", requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/api\\.zhihu\\.com\\/v2\\/topstory\\/hot-lists\\/everyone-seeing\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除首页推广\", requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 209
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https://api\\\\.zhihu\\\\.com/bazaar/vip_tab/header\\\\?', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除会员页面推广\", requires_body=true'))",
       "output_entry_index": 518,
       "output_line": "response if ${url} ~= /^https:\\/\\/api\\.zhihu\\.com\\/bazaar\\/vip_tab\\/header\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除会员页面推广\", requires_body=true",
@@ -121328,91 +120987,6 @@
           "priority": 5,
           "source": "block",
           "source_entry_index": 210
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://api\\\\.zhihu\\\\.com/next-(?:bff|data|render)', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除回答详情页推广\", requires_body=true'))",
-      "output_entry_index": 519,
-      "output_line": "response if ${url} ~= /^https:\\/\\/api\\.zhihu\\.com\\/next-(?:bff|data|render)/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除回答详情页推广\", requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/api\\.zhihu\\.com\\/next-(?:bff|data|render)/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除回答详情页推广\", requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 211
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://api\\\\.zhihu\\\\.com/questions/\\\\d+(?:/answers|/feeds|\\\\?include=)', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除回答详情页推广\", requires_body=true'))",
-      "output_entry_index": 520,
-      "output_line": "response if ${url} ~= /^https:\\/\\/api\\.zhihu\\.com\\/questions\\/\\d+(?:\\/answers|\\/feeds|\\?include=)/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除回答详情页推广\", requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/api\\.zhihu\\.com\\/questions\\/\\d+(?:\\/answers|\\/feeds|\\?include=)/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除回答详情页推广\", requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 212
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://www\\\\.zhihu\\\\.com/api/v4/(?:articles|answers)/\\\\d+/recommendations?\\\\?', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除回答详情页推广\", requires_body=true'))",
-      "output_entry_index": 521,
-      "output_line": "response if ${url} ~= /^https:\\/\\/www\\.zhihu\\.com\\/api\\/v4\\/(?:articles|answers)\\/\\d+\\/recommendations?\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除回答详情页推广\", requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/www\\.zhihu\\.com\\/api\\/v4\\/(?:articles|answers)\\/\\d+\\/recommendations?\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除回答详情页推广\", requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 213
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://appcloud2\\\\.zhihu\\\\.com/v3/config', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎拦截服务器推送配置\", requires_body=true'))",
-      "output_entry_index": 522,
-      "output_line": "response if ${url} ~= /^https:\\/\\/appcloud2\\.zhihu\\.com\\/v3\\/config/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎拦截服务器推送配置\", requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/appcloud2\\.zhihu\\.com\\/v3\\/config/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎拦截服务器推送配置\", requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 214
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://m-cloud\\\\.zhihu\\\\.com/api/cloud/config/all\\\\?', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎拦截服务器推送配置\", requires_body=true'))",
-      "output_entry_index": 523,
-      "output_line": "response if ${url} ~= /^https:\\/\\/m-cloud\\.zhihu\\.com\\/api\\/cloud\\/config\\/all\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎拦截服务器推送配置\", requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/m-cloud\\.zhihu\\.com\\/api\\/cloud\\/config\\/all\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎拦截服务器推送配置\", requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 215
         }
       ],
       "trace_status": "mapped"
@@ -122567,7 +122141,7 @@
     "rule_safety_excluded_events": 11,
     "rule_scope_adjustments": 1,
     "rule_source_events": 5627,
-    "script_output_entries": 450
+    "script_output_entries": 426
   },
   "upstream_revisions": {
     "AlipayAdBlock": {
