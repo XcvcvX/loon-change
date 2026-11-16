@@ -2959,6 +2959,118 @@ def remove_more_duplicate_response_scripts(lines):
     return output, 0
 
 
+
+XHS_SCRIPT_TRIGGER_LINES = frozenset((
+    "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/note\\/widgets script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU,requires-body=true",
+    "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/user\\/followings\\/followfeed script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-2,requires-body=true",
+    "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/search\\/(?:banner|hot)_list script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-3,requires-body=true",
+    "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/search\\/(?:hint|trending)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-4,requires-body=true",
+    "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/search\\/notes\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-5,requires-body=true",
+    "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/system_service\\/config\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-6,requires-body=true",
+    "http-response ^https?:\\/\\/(?:edith|rec|www)\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/note\\/(?:imagefeed|feed|videofeed|(live_photo|video)\\/save) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-7,requires-body=true",
+    "http-response ^https?:\\/\\/(?:edith|rec|www)\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/(?:followfeed|homefeed)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-8,requires-body=true",
+    "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/recommend\\/user\\/follow_recommend\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-9,requires-body=true",
+    "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/note\\/comment\\/(?:list|sub_comments)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-10,requires-body=true",
+    "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/interaction\\/comment\\/video\\/download\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-11,requires-body=true",
+    "response if ${url} ~= /^https?:\\/\\/edith\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/v\\d+\\/search\\/(banner|hot)_list/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=xhs_enable, tag=\"小红书搜索页\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/edith\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/v\\d+\\/search\\/(hint|trending)\\?/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=xhs_enable, tag=\"小红书搜索页\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/(so|edith)\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/v\\d+\\/search\\/notes\\?/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=xhs_enable, tag=\"小红书搜索页\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/edith\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/v\\d+\\/system_service\\/config\\?/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=xhs_enable, tag=\"小红书开屏广告\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/edith\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/v\\d+\\/system_service\\/splash_config/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=xhs_enable, tag=\"小红书开屏广告\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/edith\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/v\\d+\\/note\\/widgets/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=xhs_enable, tag=\"小红书详情页\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/(edith|rec|www)\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/v\\d+\\/note\\/(imagefeed|live_photo\\/save)/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=xhs_enable, tag=\"小红书图片视频水印\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/(edith|rec|www)\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/v\\d+\\/(followfeed|homefeed)\\?/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=xhs_enable, tag=\"小红书图片视频水印\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/(edith|rec|www)\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/(v2\\/note\\/feed|v3\\/note\\/videofeed)\\?/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=xhs_enable, tag=\"小红书图片视频水印\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/(edith|rec|www)\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/(v4\\/note\\/videofeed|v10\\/note\\/video\\/save)\\?/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=xhs_enable, tag=\"小红书图片视频水印\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https:\\/\\/edith\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/(v5\\/note\\/comment\\/list|v3\\/note\\/comment\\/sub_comments)\\?/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=xhs_enable, tag=\"小红书评论区去水印存储\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https:\\/\\/edith\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/v1\\/interaction\\/comment\\/video\\/download\\?/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=xhs_enable, tag=\"小红书评论区去水印下载\", timeout=60, requires_body=true",
+))
+XHS_ARGUMENT_LINE = "xhs_enable = switch,true,false,tag=小红书-脚本开关"
+XHS_V3_VIDEO_AD_ONLY_RULE = r"""^https:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/v3\/note\/videofeed response-body-json-jq '. as $o | try (if (.data|type)=="array" then .data|=map(select(if type=="object" then ((.model_type=="note") and (has("ad")|not)) else false end)) else . end) catch $o'"""
+XHS_V4_VIDEO_AD_ONLY_RULE = r"""^https:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/v4\/note\/videofeed response-body-json-jq '. as $o | try (if (.data|type)=="array" then .data|=map(select(if type=="object" then ((.model_type=="note") and (has("ad")|not)) else false end)) else . end) catch $o'"""
+
+
+def optimize_xiaohongshu_response_cost(lines):
+    """Keep native ad filtering; remove duplicate JS body parsing and non-ad mutations."""
+    output, section = [], ""
+    trigger_counts = {line: 0 for line in XHS_SCRIPT_TRIGGER_LINES}
+    argument_count = 0
+    rewrite_counts = {"imagefeed": 0, "v2_feed": 0, "v3_video": 0, "v4_video": 0,
+                      "comment_list": 0, "watermark_image": 0}
+    v3_ad_count = v4_ad_count = 0
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+            output.append(line)
+            continue
+        if section == "Argument" and stripped == XHS_ARGUMENT_LINE:
+            argument_count += 1
+            if argument_count > 1:
+                raise ValueError("duplicate Xiaohongshu script switch")
+            continue
+        if section == "Script" and "xiaohongshu" in stripped.lower():
+            if stripped not in XHS_SCRIPT_TRIGGER_LINES:
+                raise ValueError("unknown Xiaohongshu script trigger; refusing unreviewed removal")
+            trigger_counts[stripped] += 1
+            if trigger_counts[stripped] > 1:
+                raise ValueError("duplicate Xiaohongshu script trigger")
+            continue
+        if section == "Rewrite":
+            normalized = re.sub(r"\\+/", "/", stripped)
+            if ("ci\\.xiaohongshu\\.com" in stripped
+                    and "/system_config/watermark" in normalized
+                    and "reject-img" in stripped):
+                rewrite_counts["watermark_image"] += 1
+                continue
+            if "xiaohongshu.com" in normalized and "response-body-json-jq" in stripped:
+                if "/v1/note/imagefeed" in normalized:
+                    if "disable_watermark" not in stripped or "video_download" not in stripped:
+                        raise ValueError("Xiaohongshu imagefeed rewrite changed")
+                    rewrite_counts["imagefeed"] += 1
+                    continue
+                if "/v2/note/feed" in normalized:
+                    if "disable_watermark" not in stripped or "video_download" not in stripped:
+                        raise ValueError("Xiaohongshu v2 feed rewrite changed")
+                    rewrite_counts["v2_feed"] += 1
+                    continue
+                if "/v3/note/videofeed" in normalized:
+                    if not all(token in stripped for token in ("disable_watermark", "video_download", "model_type", 'has("ad")')):
+                        raise ValueError("Xiaohongshu v3 video ad filter changed")
+                    rewrite_counts["v3_video"] += 1
+                    output.append(XHS_V3_VIDEO_AD_ONLY_RULE)
+                    continue
+                if "/v4/note/videofeed" in normalized:
+                    if not all(token in stripped for token in ("disable_watermark", "video_download", "model_type", 'has("ad")')):
+                        raise ValueError("Xiaohongshu v4 video ad filter changed")
+                    rewrite_counts["v4_video"] += 1
+                    output.append(XHS_V4_VIDEO_AD_ONLY_RULE)
+                    continue
+                if "/note/comment/list" in normalized and "comment_type" in stripped and "media_source_type" in stripped:
+                    rewrite_counts["comment_list"] += 1
+                    continue
+            if stripped == XHS_V3_VIDEO_AD_ONLY_RULE:
+                v3_ad_count += 1
+            elif stripped == XHS_V4_VIDEO_AD_ONLY_RULE:
+                v4_ad_count += 1
+        output.append(line)
+    trigger_total = sum(trigger_counts.values())
+    if trigger_total == 0:
+        if (all(value == 0 for value in rewrite_counts.values())
+                and v3_ad_count == 1 and v4_ad_count == 1 and argument_count == 0):
+            return output, 0
+        raise ValueError("Xiaohongshu cleanup is partial; refusing inconsistent plugin")
+    if trigger_total != len(XHS_SCRIPT_TRIGGER_LINES) or any(count != 1 for count in trigger_counts.values()):
+        raise ValueError("Xiaohongshu upstream script inventory changed; refusing partial cleanup")
+    expected = {"imagefeed": 1, "v2_feed": 1, "v3_video": 1, "v4_video": 1,
+                "comment_list": 1, "watermark_image": 2}
+    if rewrite_counts != expected or argument_count != 1:
+        raise ValueError("Xiaohongshu native Rewrite inventory changed; refusing partial cleanup")
+    if v3_ad_count or v4_ad_count:
+        raise ValueError("Xiaohongshu ad-only video rewrite unexpectedly existed before cleanup")
+    return output, trigger_total
+
+
 def apply(text: str) -> str:
     if "[Script]" not in text or "[MITM]" not in text or "[Rewrite]" not in text:
         raise ValueError("plugin missing [Rewrite], [Script] or [MITM] section")
@@ -3066,6 +3178,7 @@ def apply(text: str) -> str:
     lines, _ = remove_redundant_dianping_scripts(lines)
     lines, _ = remove_redundant_baidumap_script(lines)
     lines, _ = remove_redundant_amap_legacy_scripts(lines)
+    lines, _ = optimize_xiaohongshu_response_cost(lines)
 
     result_lines, rewrite_lines = [], []
     section = ""
