@@ -1479,11 +1479,15 @@ def narrow_baidunetdisk_ad_image_host(rewrite_lines, source):
 
 
 def narrow_gamersky_statistic_ad_host(rewrite_lines, source):
-    """将游民星空 statisticAd 规则锚定到合法子域名与明确接口路径。"""
+    """将游民星空 statisticAd 规则锚定到合法子域名与明确接口路径，并保留 /i 标志。"""
     output = []
     adjustments = []
     original = (
         r"request if ${url} ~= /https:\/\/.+\.gamersky.com\/v1\/statisticAd/"
+        r" then reject_dict(200)"
+    )
+    current_case_insensitive_original = (
+        r"request if ${url} ~= /https:\/\/.+\.gamersky\.com\/v1\/statisticAd/i"
         r" then reject_dict(200)"
     )
     narrowed = (
@@ -1491,15 +1495,29 @@ def narrow_gamersky_statistic_ad_host(rewrite_lines, source):
         r"[A-Za-z0-9])?\.)+gamersky\.com\/v1\/statisticAd(?:\/|\?|#|$)/"
         r" then reject_dict(200)"
     )
+    narrowed_case_insensitive = (
+        r"request if ${url} ~= /^https:\/\/(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}"
+        r"[A-Za-z0-9])?\.)+gamersky\.com\/v1\/statisticAd(?:\/|\?|#|$)/i"
+        r" then reject_dict(200)"
+    )
     for line in rewrite_lines:
         if 'gamersky' not in line or 'statisticAd' not in line:
             output.append(line)
             continue
-        if line != original or action_key(line) != ('REJECT', 'reject_dict', 'reject_dict(200)'):
+        if line == original:
+            replacement = narrowed
+        elif line == current_case_insensitive_original:
+            # 当前 fmz200 blockAds.plugin 已为该规则增加 /i；保留大小写不敏感语义。
+            replacement = narrowed_case_insensitive
+        else:
             raise RuntimeError(
                 source + ' 游民星空 statisticAd 广告规则范围或动作已变化，拒绝自动改写：' + line
             )
-        updated_matcher = entry_regex(narrowed)
+        if action_key(line) != ('REJECT', 'reject_dict', 'reject_dict(200)'):
+            raise RuntimeError(
+                source + ' 游民星空 statisticAd 广告规则动作已变化，拒绝自动改写：' + line
+            )
+        updated_matcher = entry_regex(replacement)
         updated_normalized = updated_matcher.replace(r'\/', '/') if updated_matcher else updated_matcher
         expected = (
             r'^https://(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+'
@@ -1512,13 +1530,14 @@ def narrow_gamersky_statistic_ad_host(rewrite_lines, source):
             'section': 'Rewrite',
             'reason': (
                 'Anchor the Gamersky statisticAd matcher and constrain its host/path boundary; '
-                'preserve HTTPS and reject only the explicit ad-statistics endpoint under valid declared subdomains.'
+                'preserve HTTPS, case-sensitivity flag, and reject only the explicit ad-statistics endpoint under valid declared subdomains.'
             ),
             'original_line': line,
-            'output_line': narrowed,
+            'output_line': replacement,
         })
-        output.append(narrowed)
+        output.append(replacement)
     return output, adjustments
+
 
 
 def narrow_gamersky_ad_system_host(rewrite_lines, source):
