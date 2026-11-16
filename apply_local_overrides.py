@@ -3554,32 +3554,52 @@ RRTV_NON_AD_SOURCE_TRIGGERS = (
     "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/watch\\/v\\d/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
     "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/user\\/profile/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
 )
+RRTV_RAW_SOURCE_TRIGGERS = (
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/\\w{3}\\/level\\/info/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /https://api.rr.tv/v3plus/index/channel\\?pageNum=1&position=CHANNEL_INDEX/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/app\\/config\\/h5NativeBar/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/v3plus\\/index\\/channel\\?pageNum=1&position=CHANNEL_MY/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/user\\/privilege\\/list/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/ad\\/getAll/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/drama\\/app\\/get_combined_drama_detail/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /https://api.rr.tv/watch/v4/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /https://api.rr.tv/user/profile/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+)
+RRTV_SOURCE_VARIANT_GROUPS = tuple(
+    frozenset((canonical, raw))
+    for canonical, raw in zip(RRTV_SOURCE_TRIGGERS, RRTV_RAW_SOURCE_TRIGGERS)
+)
+RRTV_RAW_NON_AD_SOURCE_TRIGGERS = tuple(RRTV_RAW_SOURCE_TRIGGERS[index] for index in (0, 2, 3, 4, 6, 7, 8))
 RRTV_HOME_AD_SOURCE_TRIGGER = "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/v3plus\\/index\\/channel\\?pageNum=1&position=CHANNEL_INDEX/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true"
 RRTV_GETALL_AD_SOURCE_TRIGGER = "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/ad\\/getAll/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true"
 RRTV_HOME_NATIVE_REWRITE = "response if ${rfrfuipk_enable} == true && ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/v3plus\\/index\\/channel\\?pageNum=1&position=CHANNEL_INDEX/i then response.json.jq(\". as $original | try (.data.sections |= map(if .sectionType == \\\"AD\\\" or .sectionType == \\\"SINGLE_IMAGE\\\" or .sectionType == \\\"SHORT_VIDEO\\\" then null else . end)) catch $original\")"
 RRTV_GETALL_NATIVE_REWRITE = "response if ${rfrfuipk_enable} == true && ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/ad\\/getAll/i then response.json.jq(\". as $original | try (.data.adList = []) catch $original\")"
-RRTV_AD_SOURCE_TO_NATIVE = {
-    RRTV_HOME_AD_SOURCE_TRIGGER: RRTV_HOME_NATIVE_REWRITE,
-    RRTV_GETALL_AD_SOURCE_TRIGGER: RRTV_GETALL_NATIVE_REWRITE,
+RRTV_AD_SOURCE_VARIANTS_TO_NATIVE = {
+    RRTV_SOURCE_VARIANT_GROUPS[1]: RRTV_HOME_NATIVE_REWRITE,
+    RRTV_SOURCE_VARIANT_GROUPS[5]: RRTV_GETALL_NATIVE_REWRITE,
 }
+
 RRTV_NATIVE_REWRITES = (RRTV_HOME_NATIVE_REWRITE, RRTV_GETALL_NATIVE_REWRITE)
 
 def replace_rrtv_json_script_with_native_rewrites(lines):
-    """Keep RRTV ad cleanup as native JSON rewrites and remove non-ad script work."""
-    source_set = set(RRTV_SOURCE_TRIGGERS)
-    native_set = {RRTV_HOME_NATIVE_REWRITE, RRTV_GETALL_NATIVE_REWRITE}
-    source_counts = {rule: sum(line.strip() == rule for line in lines) for rule in source_set}
+    """Keep RRTV ad cleanup native while accepting both raw and normalized upstream matchers."""
+    source_set = set().union(*RRTV_SOURCE_VARIANT_GROUPS)
+    native_set = set(RRTV_NATIVE_REWRITES)
+    source_counts = {
+        group: sum(line.strip() in group for line in lines)
+        for group in RRTV_SOURCE_VARIANT_GROUPS
+    }
     native_counts = {rule: sum(line.strip() == rule for line in lines) for rule in native_set}
 
-    for rule, count in source_counts.items():
+    for group, count in source_counts.items():
         if count > 1:
-            raise ValueError("duplicate RRTV response script trigger; refusing ambiguous cleanup")
+            raise ValueError("duplicate RRTV response script trigger variant; refusing ambiguous cleanup")
     for rule, count in native_counts.items():
         if count > 1:
             raise ValueError("duplicate RRTV native rewrite; refusing ambiguous cleanup")
 
-    for source, native in RRTV_AD_SOURCE_TO_NATIVE.items():
-        if source_counts[source] and native_counts[native]:
+    for group, native in RRTV_AD_SOURCE_VARIANTS_TO_NATIVE.items():
+        if source_counts[group] and native_counts[native]:
             raise ValueError("mixed RRTV script/native rule state; refusing ambiguous cleanup")
 
     section = ""
@@ -3602,8 +3622,8 @@ def replace_rrtv_json_script_with_native_rewrites(lines):
             raise ValueError("RRTV native rewrite moved outside Rewrite section; refusing cleanup")
 
     to_add = [
-        native for source, native in RRTV_AD_SOURCE_TO_NATIVE.items()
-        if source_counts[source] == 1 and native_counts[native] == 0
+        native for group, native in RRTV_AD_SOURCE_VARIANTS_TO_NATIVE.items()
+        if source_counts[group] == 1 and native_counts[native] == 0
     ]
     output = []
     section = ""
@@ -3625,6 +3645,8 @@ def replace_rrtv_json_script_with_native_rewrites(lines):
     if to_add and not inserted:
         raise ValueError("RRTV native rewrites could not be placed in an existing Rewrite section")
     return output, removed
+
+
 
 
 def apply(text: str) -> str:
