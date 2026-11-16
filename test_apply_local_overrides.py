@@ -2516,11 +2516,11 @@ class IdenticalScriptResponseDedupTests(unittest.TestCase):
 
     def test_checked_in_plugin_snapshot_has_only_the_canonical_handlers(self):
         from pathlib import Path
-        from apply_local_overrides import IDENTICAL_SCRIPT_KEEP_TRIGGERS, IDENTICAL_SCRIPT_REMOVE_TRIGGERS
+        from apply_local_overrides import IDENTICAL_SCRIPT_CURRENT_CANONICAL_TRIGGERS, IDENTICAL_SCRIPT_REMOVE_TRIGGERS
         plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
         for item in IDENTICAL_SCRIPT_REMOVE_TRIGGERS:
             self.assertNotIn(item, plugin)
-        for item in IDENTICAL_SCRIPT_KEEP_TRIGGERS:
+        for item in IDENTICAL_SCRIPT_CURRENT_CANONICAL_TRIGGERS:
             self.assertEqual(plugin.count(item), 1)
 
 
