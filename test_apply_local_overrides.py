@@ -2736,7 +2736,7 @@ class Dushu365NonAdTriggerPruningTests(unittest.TestCase):
 
         unknown = self.fixture.copy()
         index = unknown.index(self.keep[0])
-        unknown.insert(index + 1, self.keep[0].replace("banner-modular/get", "banner-modular/getV2"))
+        unknown.insert(index + 1, self.keep[0].replace("DUSHU365-2", "DUSHU365-2-UNKNOWN"))
         with self.assertRaisesRegex(ValueError, "inventory changed"):
             remove_dushu365_non_ad_triggers(unknown)
 
