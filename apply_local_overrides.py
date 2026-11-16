@@ -550,9 +550,9 @@ XIAN_YU_REWRITE_PAIRS = (
     (r"^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.circle\.visited\/1\.0 response-body-json-jq '.data.visitedCircleList = []'",
      r'response if ${url} ~= /^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.circle\.visited\/1\.0 then response.json.jq(`.data.visitedCircleList = []`)'),
     (r"^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlehome\.widget\.refresh\.get response-body-json-jq '.data.homeTopList = []'",
-     r'response if ${url} ~= /^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlehome\.widget\.refresh\.get\//i then response.json.jq(".data.homeTopList |= map(select(.sectionType == \\"kingkongDo\\"))")'),
-    (r"^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.trade\.full\.info response-body-json-jq '.data.components |= map(select(.render != "bannerVO"))'",
-     r'response if ${url} ~= /^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.trade\.full\.info\//i then response.json.jq(".data.components |= map(select(.render | . == \\"orderStatusVO\\" or . == \\"addressInfoVO\\" or . == \\"orderInfoVO\\"))")'),
+     r'response if ${url} ~= /^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlehome\.widget\.refresh\.get\//i then response.json.jq(".data.homeTopList |= map(select(.sectionType == \"kingkongDo\"))")'),
+    (r"""^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.trade\.full\.info response-body-json-jq '.data.components |= map(select(.render != "bannerVO"))'""",
+     r'response if ${url} ~= /^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.trade\.full\.info\//i then response.json.jq(".data.components |= map(select(.render | . == \"orderStatusVO\" or . == \"addressInfoVO\" or . == \"orderInfoVO\"))")'),
 )
 
 XIAN_YU_REQUEST_SUBSET_PAIRS = (
