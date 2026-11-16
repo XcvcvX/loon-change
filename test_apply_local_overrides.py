@@ -560,6 +560,38 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertEqual(apply(result), result)
 
 
+    def test_removes_didi_core_homepage_reject_when_field_cleaner_exists(self):
+        from apply_local_overrides import (
+            DIDI_HOME_CORE_LEGACY_REJECT, DIDI_HOME_CORE_RESPONSE_PREFIX,
+            remove_didi_homepage_rejects_shadowing_field_cleaners,
+        )
+        response = DIDI_HOME_CORE_RESPONSE_PREFIX + '".data.order_cards.nav_list_card.data |= map(select(.nav_id == \\"bike\\"))")'
+        unrelated = r"^https:\\/\\/conf\\.diditaxi\\.com\\.cn\\/dynamic\\/conf reject-dict"
+        result, removed = remove_didi_homepage_rejects_shadowing_field_cleaners(
+            [DIDI_HOME_CORE_LEGACY_REJECT, unrelated, response]
+        )
+        self.assertEqual(removed, 1)
+        self.assertNotIn(DIDI_HOME_CORE_LEGACY_REJECT, result)
+        self.assertIn(unrelated, result)
+        self.assertIn(response, result)
+        self.assertEqual(remove_didi_homepage_rejects_shadowing_field_cleaners(result)[1], 0)
+
+    def test_fails_closed_when_didi_core_homepage_cleaner_is_missing(self):
+        from apply_local_overrides import (
+            DIDI_HOME_CORE_LEGACY_REJECT,
+            remove_didi_homepage_rejects_shadowing_field_cleaners,
+        )
+        with self.assertRaisesRegex(ValueError, "core field-level response cleaner"):
+            remove_didi_homepage_rejects_shadowing_field_cleaners([DIDI_HOME_CORE_LEGACY_REJECT])
+
+    def test_generated_plugin_preserves_didi_core_field_cleaner_without_whole_endpoint_reject(self):
+        from pathlib import Path
+        from apply_local_overrides import DIDI_HOME_CORE_LEGACY_REJECT, DIDI_HOME_CORE_RESPONSE_PREFIX
+        plugin = Path(__file__).parent / "allAdRewrite.plugin"
+        result = apply(plugin.read_text(encoding="utf-8"))
+        self.assertNotIn(DIDI_HOME_CORE_LEGACY_REJECT, result)
+        self.assertIn(DIDI_HOME_CORE_RESPONSE_PREFIX, result)
+
     def test_removes_didi_whole_homepage_rejects_when_field_cleaners_exist(self):
         from apply_local_overrides import (
             DIDI_HOME_SLOW_LEGACY_REJECT, DIDI_HOME_FAST_LEGACY_REJECT,
