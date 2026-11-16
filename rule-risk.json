@@ -2,8 +2,8 @@
   "change_counts": {
     "rewrite": {
       "action_changed": 0,
-      "added": 2,
-      "removed": 4
+      "added": 1,
+      "removed": 2
     },
     "rule": {
       "action_changed": 0,
@@ -19,31 +19,7 @@
   "events": [
     {
       "after": {
-        "line": "^https:\\/\\/(api|page-info)(?:\\.zhihu)?\\.com\\/answers\\/v\\d\\/\\d+(?:\\?.*)?$ response-body-json-jq 'del(.third_business, .float_search_word) | (.structured_content.segments |= map(select(.type != \"card\")))'",
-        "section": "rewrite",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "rewrite",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "^https:\\/\\/api\\.zhihu\\.com\\/topstory\\/recommend\\? response-body-json-jq '(.data |= map(select(.type == \"ComponentCard\"))) | (.data[]?.children |= (if type == \"array\" then map(select(.id != \"ring\")) else . end))'",
+        "line": "response if ${url} ~= /^https:\\/\\/(mobile|mobilehera|mobwsa)\\.ximalaya\\.com\\/mobile-user\\/v\\d\\/homePage\\// then response.json.jq(`del(.data.freeListenV2) | (try (.data.serviceModule.entrances |= map(select(.name == \"全部服务\"))) catch .)`)",
         "section": "rewrite",
         "sources": [
           "local_overrides"
@@ -68,10 +44,10 @@
     {
       "after": null,
       "before": {
-        "line": "^https:\\/\\/(api|page-info)(?:\\.zhihu)?\\.com\\/answers\\/v\\d\\/\\d+(?:\\?.*)?$ response-body-json-del third_business float_search_word",
+        "line": "response if ${url} ~= /^https:\\/\\/(mobile|mobilehera|mobwsa)\\.ximalaya\\.com\\/mobile-user\\/v\\d\\/homePage\\// then response.json.delete(\"data.freeListenV2\")",
         "section": "rewrite",
         "sources": [
-          "thelong"
+          "block"
         ]
       },
       "change_type": "removed",
@@ -80,22 +56,22 @@
       "section": "rewrite",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "thelong": "unavailable"
+        "block": "unavailable"
       },
       "source_scores": {
-        "thelong": null
+        "block": null
       },
       "sources": [
-        "thelong"
+        "block"
       ]
     },
     {
       "after": null,
       "before": {
-        "line": "^https:\\/\\/(api|page-info)(?:\\.zhihu)?\\.com\\/answers\\/v\\d\\/\\d+(?:\\?.*)?$ response-body-json-jq '.structured_content.segments |= map(select(.type != \"card\"))'",
+        "line": "response if ${url} ~= /^https:\\/\\/(mobile|mobilehera|mobwsa)\\.ximalaya\\.com\\/mobile-user\\/v\\d\\/homePage\\// then response.json.jq(`.data.serviceModule.entrances |= map(select(.name == \"全部服务\"))`)",
         "section": "rewrite",
         "sources": [
-          "thelong"
+          "block"
         ]
       },
       "change_type": "removed",
@@ -104,71 +80,23 @@
       "section": "rewrite",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "thelong": "unavailable"
+        "block": "unavailable"
       },
       "source_scores": {
-        "thelong": null
+        "block": null
       },
       "sources": [
-        "thelong"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "^https:\\/\\/api\\.zhihu\\.com\\/topstory\\/recommend\\? response-body-json-jq '.data |= map(select(.type == \"ComponentCard\"))'",
-        "section": "rewrite",
-        "sources": [
-          "thelong"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "rewrite",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "thelong": "unavailable"
-      },
-      "source_scores": {
-        "thelong": null
-      },
-      "sources": [
-        "thelong"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "^https:\\/\\/api\\.zhihu\\.com\\/topstory\\/recommend\\? response-body-json-jq '.data[]?.children |= (if type == \"array\" then map(select(.id != \"ring\")) else . end)'",
-        "section": "rewrite",
-        "sources": [
-          "thelong"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "rewrite",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "thelong": "unavailable"
-      },
-      "source_scores": {
-        "thelong": null
-      },
-      "sources": [
-        "thelong"
+        "block"
       ]
     }
   ],
   "overall_risk": "high",
   "risk_counts": {
-    "high": 4,
+    "high": 2,
     "low": 0,
-    "medium": 2
+    "medium": 1
   },
-  "run_id": "43823193622",
+  "run_id": "43824735879",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -199,14 +127,14 @@
     "base": {
       "action_changed": 0,
       "added": 0,
-      "removed": 42,
-      "snapshots_seen": 19
+      "removed": 41,
+      "snapshots_seen": 18
     },
     "block": {
       "action_changed": 0,
       "added": 0,
-      "removed": 29,
-      "snapshots_seen": 8
+      "removed": 31,
+      "snapshots_seen": 9
     },
     "filter": {
       "action_changed": 0,
@@ -216,7 +144,7 @@
     },
     "local_overrides": {
       "action_changed": 0,
-      "added": 28,
+      "added": 27,
       "removed": 2,
       "snapshots_seen": 13
     },
