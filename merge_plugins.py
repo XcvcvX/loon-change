@@ -1223,6 +1223,276 @@ def narrow_gamersky_list_response_host(rewrite_lines, source):
 
 
 
+def narrow_odin_numeric_host_rules(rewrite_lines, source):
+    """Restrict only the Odin ad/config numeric host to IPv4, preserving source case flags."""
+    url_token = chr(36) + '{url}'
+    base_original = r'^https?:\/\/[\d\.]+\/odin\/c\d\/(channel\/ads|skin\/config)\? reject-dict'
+    base_narrowed = r'^https?:\/\/((25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.){3}(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\/odin\/c\d\/(channel\/ads|skin\/config)\? reject-dict'
+    block_original = 'request if @@URL@@ ~= /^https?:\\/\\/[\\d\\.]+\\/odin\\/c1\\/(channel\\/ads|skin\\/config)\\?/ then reject_dict(200)'
+    block_narrowed = 'request if @@URL@@ ~= /^https?:\\/\\/((25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\.){3}(25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\/odin\\/c1\\/(channel\\/ads|skin\\/config)\\?/ then reject_dict(200)'
+    block_current_original = 'request if @@URL@@ ~= /^https?:\\/\\/[\\d\\.]+\\/odin\\/c1\\/(channel\\/ads|skin\\/config)\\?/i then reject_dict(200)'
+    block_current_narrowed = 'request if @@URL@@ ~= /^https?:\\/\\/((25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\.){3}(25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\/odin\\/c1\\/(channel\\/ads|skin\\/config)\\?/i then reject_dict(200)'
+
+    if source == 'base':
+        variants = {
+            base_original: (base_narrowed, 626, 'R-Store converted Rewrite'),
+        }
+    elif source == 'block':
+        variants = {
+            block_original: (block_narrowed, 621, 'blockAdsV2.plugin'),
+            block_current_original: (block_current_narrowed, 1546, 'blockAds.plugin'),
+        }
+    else:
+        raise RuntimeError('Odin IPv4 scope guard received unknown source: ' + str(source))
+
+    variants = {
+        original.replace('@@URL@@', url_token): (
+            narrowed.replace('@@URL@@', url_token), index, filename
+        )
+        for original, (narrowed, index, filename) in variants.items()
+    }
+    originals = [line for line in rewrite_lines if line in variants]
+    narrowed_set = {value[0] for value in variants.values()}
+    narrowed_rows = [line for line in rewrite_lines if line in narrowed_set]
+    if len(originals) == 0 and len(narrowed_rows) <= 1:
+        related = [
+            line for line in rewrite_lines
+            if 'odin' in line and '(channel' in line and 'skin' in line
+        ]
+        if related and not narrowed_rows:
+            raise RuntimeError(
+                source + ' Odin numeric-host rule count/scope/action drift; refusing to guess: '
+                + repr(related)
+            )
+        return list(rewrite_lines), []
+    if len(originals) != 1 or narrowed_rows:
+        raise RuntimeError(
+            source + ' Odin numeric-host rule count/scope/action drift; refusing to guess: '
+            + repr({'original': originals, 'narrowed': narrowed_rows})
+        )
+
+    original = originals[0]
+    narrowed, source_index, source_file = variants[original]
+    matcher = entry_regex(narrowed)
+    if matcher is None:
+        raise RuntimeError(source + ' Odin IPv4 matcher could not be parsed')
+    adjustments = [{
+        'source': source,
+        'source_file': source_file,
+        'source_entry_index': source_index,
+        'section': 'Rewrite',
+        'reason': (
+            'The original [\\\\d\\\\.] host accepts malformed numeric/dotted strings. '
+            'Restrict only this Odin ad/config endpoint matcher to four valid IPv4 octets; '
+            'preserve protocol, path alternatives, query boundary, case flag, and reject action.'
+        ),
+        'original_line': original,
+        'output_line': narrowed,
+    }]
+    return [narrowed if line == original else line for line in rewrite_lines], adjustments
+
+
+
+
+def narrow_tencentvideo_segment_ip_prefix(rewrite_lines, source):
+    """按腾讯视频上游注释，将广告分片 URL 的可选数字前缀限制为合法 IPv4[:port]。"""
+    original = r'^http:\/\/[\d\.:]*\/?(defaultts\.tc|vmind\.qqvideo\.tc|finderpdd\.video)\.qq\.com\/\w+ reject'
+    octet = r'(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)'
+    ipv4 = r'(?:' + octet + r'\.){3}' + octet
+    narrowed = (
+        r'^http:\/\/(?:' + ipv4 + r'(?::\d+)?)?\/?'
+        r'(defaultts\.tc|vmind\.qqvideo\.tc|finderpdd\.video)\.qq\.com\/\w+ reject'
+    )
+    originals = [line for line in rewrite_lines if line == original]
+    narrowed_rows = [line for line in rewrite_lines if line == narrowed]
+    if len(originals) == 0 and len(narrowed_rows) == 1:
+        return list(rewrite_lines), []
+    if len(originals) == 0:
+        related = [
+            line for line in rewrite_lines
+            if ('defaultts' in line and 'vmind' in line and 'finderpdd' in line)
+        ]
+        if related:
+            raise RuntimeError(
+                source + ' 腾讯视频广告分片 IP matcher 范围或动作已变化，拒绝猜测改写：'
+                + repr(related)
+            )
+        return list(rewrite_lines), []
+    if len(originals) != 1 or narrowed_rows:
+        raise RuntimeError(
+            source + ' 腾讯视频广告分片 IP matcher 数量或范围异常，拒绝自动改写：'
+            + repr({'original': originals, 'narrowed': narrowed_rows})
+        )
+    matcher = entry_regex(narrowed)
+    if matcher is None:
+        raise RuntimeError(source + ' 腾讯视频广告分片 IPv4 matcher 无法解析')
+    adjustment = {
+        'source': source,
+        'source_file': 'tencentvideo_splash_ad_block.plugin',
+        'source_entry_index': 149,
+        'source_line_number': 93,
+        'section': 'Rewrite',
+        'reason': (
+            'The upstream Tencent Video plugin documents this HTTP ad-segment form as '
+            'IP:port / ad-domain / segment. Restrict its optional numeric prefix to a '
+            'valid IPv4 address with an optional numeric port; preserve the optional '
+            'prefix, HTTP scheme, three ad-domain alternatives, path, and reject action.'
+        ),
+        'original_line': original,
+        'output_line': narrowed,
+    }
+    return [narrowed if line == original else line for line in rewrite_lines], [adjustment]
+
+
+
+def narrow_baidunetdisk_cdn_subdomains(rewrite_lines, source):
+    """将百度网盘广告图片 CDN 兜底规则限制到 MITM 声明的合法子域名。"""
+    output = []
+    adjustments = []
+    targets = {
+        r'^https://.*\.vlion\.cn/.+ reject-200':
+            r'^https://(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+vlion\.cn/.+ reject-200',
+        r'^https://.*\.advlion\.com/.+ reject-200':
+            r'^https://(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+advlion\.com/.+ reject-200',
+    }
+    for original, narrowed in targets.items():
+        candidates = [
+            line for line in rewrite_lines
+            if (r'.*\.vlion\.cn/.+' in line if 'advlion' not in original
+                else r'.*\.advlion\.com/.+' in line)
+        ]
+        if len(candidates) != 1 or candidates[0] != original:
+            raise RuntimeError(
+                source + ' 百度网盘 CDN 子域名规则范围或动作已变化，拒绝自动改写：'
+                + repr(candidates)
+            )
+        matcher = entry_regex(narrowed)
+        expected = (
+            r'^https://(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+'
+            + (r'vlion\.cn/.+' if 'advlion' not in original else r'advlion\.com/.+')
+        )
+        if matcher != expected:
+            raise RuntimeError(source + ' 百度网盘 CDN 子域名 matcher 校验失败：' + original)
+    for line in rewrite_lines:
+        if line in targets:
+            narrowed = targets[line]
+            adjustments.append({
+                'source': source,
+                'source_file': 'baidunetdisk_splash_ad_block.plugin',
+                'section': 'Rewrite',
+                'reason': (
+                    'Constrain the Baidu Netdisk CDN image fallback to syntactically valid '
+                    'subdomains of the already-declared *.vlion.cn / *.advlion.com MITM hosts; '
+                    'preserve HTTPS, the image-path pattern, and reject-200.'
+                ),
+                'original_line': line,
+                'output_line': narrowed,
+            })
+            output.append(narrowed)
+        else:
+            output.append(line)
+    return output, adjustments
+
+
+def add_baidunetdisk_advlion_quic_rule(rule_lines, mitm_lines, source):
+    """补齐百度网盘 *.advlion.com MITM 主机对应的 QUIC 拦截，保留既有 .cn 规则。"""
+    expected_cn = "AND,((DOMAIN-SUFFIX,advlion.cn),(PROTOCOL,QUIC)),REJECT"
+    expected_com = "AND,((DOMAIN-SUFFIX,advlion.com),(PROTOCOL,QUIC)),REJECT"
+    mitm_hosts = []
+    for line in mitm_lines:
+        if '=' in line:
+            mitm_hosts.extend(
+                host.strip().lower()
+                for host in line.split('=', 1)[1].split(',')
+                if host.strip()
+            )
+    if '*.advlion.com' not in mitm_hosts:
+        raise RuntimeError(
+            source + ' 百度网盘 advlion.com QUIC 补齐守卫缺少对应 MITM 声明，拒绝自动添加'
+        )
+
+    cn_candidates = [
+        line for line in rule_lines
+        if 'advlion.cn' in line.lower() and 'protocol' in line.lower()
+    ]
+    com_candidates = [
+        line for line in rule_lines
+        if 'advlion.com' in line.lower() and 'protocol' in line.lower()
+    ]
+    if len(cn_candidates) > 1 or any(line != expected_cn for line in cn_candidates):
+        raise RuntimeError(
+            source + ' 百度网盘 advlion.cn QUIC 规则范围或动作已变化，拒绝自动补齐：'
+            + repr(cn_candidates)
+        )
+    if len(com_candidates) > 1 or any(line != expected_com for line in com_candidates):
+        raise RuntimeError(
+            source + ' 百度网盘 advlion.com QUIC 规则范围或动作已变化，拒绝自动补齐：'
+            + repr(com_candidates)
+        )
+    if com_candidates:
+        return list(rule_lines), [], []
+
+    if len(cn_candidates) != 1:
+        raise RuntimeError(
+            source + ' 百度网盘 QUIC 配套规则基线已变化，拒绝猜测补齐：'
+            + repr(cn_candidates)
+        )
+    adjustment = {
+        'source': source,
+        'source_file': 'baidunetdisk_splash_ad_block.plugin',
+        'section': 'Rule',
+        'change_type': 'add_missing_quic_coverage',
+        'reason': (
+            'The upstream Baidu Netdisk plugin declares *.advlion.com in MITM and '
+            'uses advlion.com for its ad-image fallback, but its QUIC companion rule '
+            'covers advlion.cn instead. Add the matching advlion.com QUIC REJECT while '
+            'preserving the separate existing advlion.cn rule.'
+        ),
+        'related_existing_rule': expected_cn,
+        'mitm_host': '*.advlion.com',
+        'output_line': expected_com,
+    }
+    return list(rule_lines), [expected_com], [adjustment]
+
+
+def narrow_baidunetdisk_ad_image_host(rewrite_lines, source):
+    """将百度网盘广告图兜底规则限制到插件实际声明 MITM 的 pan.baidu.com。"""
+    output = []
+    adjustments = []
+    original = r'^https://.*\.baidu\.com.*ad/.* reject-200'
+    narrowed = r'^https://pan\.baidu\.com/.*ad/.* reject-200'
+    candidates = [
+        line for line in rewrite_lines
+        if r'.*\.baidu\.com.*ad/.*' in line
+    ]
+    if len(candidates) != 1 or candidates[0] != original:
+        raise RuntimeError(
+            source + ' 百度网盘广告图 CDN 规则数量、范围或动作已变化，拒绝自动改写：'
+            + repr(candidates)
+        )
+    for line in rewrite_lines:
+        if line != original:
+            output.append(line)
+            continue
+        matcher = entry_regex(narrowed)
+        if matcher != r'^https://pan\.baidu\.com/.*ad/.*':
+            raise RuntimeError(source + ' 百度网盘广告图 CDN 主机收敛后校验失败：' + line)
+        adjustments.append({
+            'source': source,
+            'source_file': 'baidunetdisk_splash_ad_block.plugin',
+            'section': 'Rewrite',
+            'reason': (
+                'The upstream Baidu Netdisk plugin declares only pan.baidu.com in MITM; '
+                'limit this broad Baidu ad-image fallback matcher to that actual decrypted host '
+                'while preserving its HTTPS path pattern and reject-200 action.'
+            ),
+            'original_line': line,
+            'output_line': narrowed,
+        })
+        output.append(narrowed)
+    return output, adjustments
+
+
 def narrow_gamersky_statistic_ad_host(rewrite_lines, source):
     """Anchor the known Gamersky statisticAd matcher and preserve its optional /i flag."""
     output = []
