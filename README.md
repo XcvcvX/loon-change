@@ -542,3 +542,12 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 仅移除精确匹配的 `GUIDERANK` 首页脚本触发器；上游触发器文本漂移或重复出现时 fail-closed，避免静默误删其他脚本。
 - 增加测试验证 10 个路径全部保留、目标脚本触发器移除、其他盖得排行脚本触发器保留、漂移保护及幂等性。
 - 不修改其他盖得排行接口、MITM hostname、其他应用规则、Rule 或广告拦截范围。
+
+
+## 第八阶段第二十二批：将多多买菜首页悬浮推广字段改为原生 JSON 删除
+
+- 独立规则来源对 maicai.api.ddxq.mobi/homeApi/newDetails 明确使用 JSON 路径删除 .data.suspension；仓库当前同一接口同时存在旧式 random_body 替换与新版正文键名替换。
+- 将这两种已审查的目标改写统一替换为一条精确的 response.json.delete("data.suspension")，不改动接口 matcher、响应其他字段或相邻多多买菜规则。
+- 覆盖器只接受已确认的两种原动作及目标原生规则；同路径动作漂移、重复目标动作时 fail-closed，已转换规则保持幂等。
+- 新增测试验证两种旧动作均被替换、只生成一条原生 JSON 删除、相邻规则保留、上游漂移保护及重复执行幂等。
+- 不修改 MITM、Script、Rule、其他多多买菜接口或其他应用规则。
