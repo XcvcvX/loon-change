@@ -2134,7 +2134,7 @@ class TuhuDuplicateResponseScriptTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "duplicate canonical Tuhu"):
             remove_duplicate_tuhu_scripts(duplicate)
 
-        drifted = self.canonical[0].replace("getCmsModuleList", "getCmsModuleListV2")
+        drifted = self.canonical[0].replace("getCmsModuleList", "changedEndpoint")
         with self.assertRaisesRegex(ValueError, "inventory changed"):
             remove_duplicate_tuhu_scripts(["[Script]", *self.canonical[1:], drifted])
 
