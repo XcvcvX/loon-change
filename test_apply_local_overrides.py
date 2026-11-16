@@ -2502,8 +2502,13 @@ class CnftpDuplicateScriptTests(unittest.TestCase):
         self.assertEqual(remove_duplicate_cnftp_scripts(clean), (clean, 0))
 
     def test_preserves_final_inventory_with_combined_iqiyi_home_matcher(self):
-        from apply_local_overrides import CNFTP_IQIYI_HOME_COMBINED_TRIGGER, remove_duplicate_cnftp_scripts
-        clean = ["[Script]", CNFTP_IQIYI_HOME_COMBINED_TRIGGER, *self.keep[4:], "[MITM]"]
+        from apply_local_overrides import (
+            CNFTP_IQIYI_HOME_COMBINED_TRIGGER,
+            CNFTP_NON_AD_REMOVE_TRIGGERS,
+            remove_duplicate_cnftp_scripts,
+        )
+        retained = [item for item in self.keep[4:] if item not in CNFTP_NON_AD_REMOVE_TRIGGERS]
+        clean = ["[Script]", CNFTP_IQIYI_HOME_COMBINED_TRIGGER, *retained, "[MITM]"]
         self.assertEqual(remove_duplicate_cnftp_scripts(clean), (clean, 0))
 
     def test_fails_closed_on_missing_duplicate_duplicate_kept_or_unknown_variant(self):
@@ -2579,13 +2584,67 @@ class CnftpDuplicateScriptTests(unittest.TestCase):
             CNFTP_DUPLICATE_KEEP_TRIGGERS,
             CNFTP_DUPLICATE_REMOVE_TRIGGERS,
             CNFTP_IQIYI_HOME_COMBINED_TRIGGER,
+            CNFTP_NON_AD_REMOVE_TRIGGERS,
         )
         plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
         for item in CNFTP_DUPLICATE_REMOVE_TRIGGERS:
             self.assertNotIn(item, plugin)
         self.assertEqual(plugin.count(CNFTP_IQIYI_HOME_COMBINED_TRIGGER), 1)
         for item in CNFTP_DUPLICATE_KEEP_TRIGGERS[4:]:
-            self.assertEqual(plugin.count(item), 1)
+            if item in CNFTP_NON_AD_REMOVE_TRIGGERS:
+                self.assertNotIn(item, plugin)
+            else:
+                self.assertEqual(plugin.count(item), 1)
+
+
+
+class CnftpNonAdTriggerPruningTests(unittest.TestCase):
+    def setUp(self):
+        from apply_local_overrides import CNFTP_NON_AD_REMOVE_TRIGGERS, CNFTP_DUPLICATE_KEEP_TRIGGERS
+        self.targets = CNFTP_NON_AD_REMOVE_TRIGGERS
+        self.ad_keep = CNFTP_DUPLICATE_KEEP_TRIGGERS[4]
+        self.base = [
+            "[Script]", *self.targets, self.ad_keep,
+            "[MITM]", "hostname = iface2.iqiyi.com, search.video.iqiyi.com, acs.youku.com",
+        ]
+
+    def test_removes_six_non_ad_triggers_and_preserves_ad_trigger(self):
+        from apply_local_overrides import remove_cnftp_non_ad_triggers
+        result, removed = remove_cnftp_non_ad_triggers(self.base)
+        self.assertEqual(removed, 6)
+        for item in self.targets:
+            self.assertNotIn(item, result)
+        self.assertIn(self.ad_keep, result)
+        self.assertEqual(remove_cnftp_non_ad_triggers(result), (result, 0))
+
+    def test_allows_independently_missing_upstream_triggers(self):
+        from apply_local_overrides import remove_cnftp_non_ad_triggers
+        partial = [line for line in self.base if line != self.targets[0]]
+        result, removed = remove_cnftp_non_ad_triggers(partial)
+        self.assertEqual(removed, 5)
+        self.assertNotIn(self.targets[1], result)
+        self.assertIn(self.ad_keep, result)
+
+    def test_fails_closed_on_duplicate_or_unknown_same_matcher(self):
+        from apply_local_overrides import remove_cnftp_non_ad_triggers
+        duplicate = ["[Script]", *self.targets, self.targets[0], "[MITM]"]
+        with self.assertRaisesRegex(ValueError, "duplicate CNFTP non-ad trigger"):
+            remove_cnftp_non_ad_triggers(duplicate)
+
+        unknown = self.base.copy()
+        index = unknown.index(self.targets[0])
+        unknown.insert(index + 1, self.targets[0].replace("getMyMenus", "getMyMenusV2"))
+        with self.assertRaisesRegex(ValueError, "matcher changed"):
+            remove_cnftp_non_ad_triggers(unknown)
+
+    def test_checked_in_plugin_applies_non_ad_pruning_without_losing_ad_handlers(self):
+        from pathlib import Path
+        from apply_local_overrides import apply
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        result = apply(plugin)
+        for item in self.targets:
+            self.assertNotIn(item, result)
+        self.assertIn(self.ad_keep, result)
 
 
 class SameSourceResponseScriptDedupTests(unittest.TestCase):
