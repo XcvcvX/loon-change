@@ -14,6 +14,18 @@ MERGER = Path(__file__).with_name("merge_plugins.py")
 
 
 class MergeIntegrationTests(unittest.TestCase):
+    def test_fmz200_blockads_source_uses_live_plugin_path_and_mirrors(self):
+        from merge_plugins import BLOCKV2_URL, BLOCKV2_MIRRORS
+        self.assertEqual(
+            BLOCKV2_URL,
+            "https://raw.githubusercontent.com/fmz200/wool_scripts/main/Loon/plugin/blockAds.plugin",
+        )
+        self.assertTrue(BLOCKV2_MIRRORS)
+        for url in [BLOCKV2_URL, *BLOCKV2_MIRRORS]:
+            self.assertIn("/Loon/plugin/blockAds.plugin", url)
+            self.assertNotIn("blockAdsV2.plugin", url)
+
+
     def run_merge(self, base_text, extra_text, myblockads_text=None, return_stdout=False, amap_text=None, return_provenance=False, apps_files=None, aoomee_files=None, expect_failure=False, filter_text=None, alipayadblock_text=None):
         tmp = tempfile.TemporaryDirectory()
         self.addCleanup(tmp.cleanup)
