@@ -496,16 +496,16 @@ DDQX_NEWDETAILS_NATIVE_RULE = r'response if ${url} ~= /^https?:\/\/maicai\.api\.
 
 
 # 淘宝首页/开屏/信息流中，以下子集规则已被同动作、更宽的规则覆盖。
-TAOBAO_FLIGGY_HTTP_COVER = r"request if \${url} ~= /^https?:\/\/acs\.m\.taobao\.com\/gw\/mtop\.fliggy\.crm\.screen\.(allresource|predict)/ then reject_dict(200)"
-TAOBAO_FLIGGY_HTTPS_COVER = r"request if \${url} ~= /^https:\/\/acs\.m\.taobao\.com\/gw\/mtop\.fliggy\.crm\.screen\.(?:allresource|predict)/i then reject_dict(200)"
-TAOBAO_FLIGGY_HTTPS_REDUNDANT = r"request if \${url} ~= /^https:\/\/acs\.m\.taobao\.com\/gw\/mtop\.fliggy\.crm\.screen\.(allresource|predict)/i then reject_dict(200)"
+TAOBAO_FLIGGY_HTTP_COVER = r"request if ${url} ~= /^https?:\/\/acs\.m\.taobao\.com\/gw\/mtop\.fliggy\.crm\.screen\.(allresource|predict)/ then reject_dict(200)"
+TAOBAO_FLIGGY_HTTPS_COVER = r"request if ${url} ~= /^https:\/\/acs\.m\.taobao\.com\/gw\/mtop\.fliggy\.crm\.screen\.(?:allresource|predict)/i then reject_dict(200)"
+TAOBAO_FLIGGY_HTTPS_REDUNDANT = r"request if ${url} ~= /^https:\/\/acs\.m\.taobao\.com\/gw\/mtop\.fliggy\.crm\.screen\.(allresource|predict)/i then reject_dict(200)"
 
 TAOBAO_CAINIAO_FLYAD_COVER = r"^https?:\/\/guide-acs\.m\.taobao\.com\/gw\/mtop\.cainiao\.adx\.flyad\.getad reject-dict"
 TAOBAO_CAINIAO_FLYAD_REDUNDANT = r"^https:\/\/guide-acs\.m\.taobao\.com\/gw\/mtop\.cainiao\.adx\.flyad\.getad reject-dict"
 
 TAOBAO_HOME_HTTP_COVER = r"^https?:\/\/guide-acs\.m\.taobao\.com\/gw\/mtop\.taobao\.(volvo\.secondfloor\.getconfig|wireless\.home\.newface\.awesome\.get) reject-dict"
-TAOBAO_HOME_HTTPS_COVER = r"request if \${url} ~= /^https:\/\/guide-acs\.m\.taobao\.com\/gw\/mtop\.taobao\.(?:volvo\.secondfloor\.getconfig|shot\.resources\.load|wireless\.home\.(newface|splash)\.awesome\.get)/i then reject_dict(200)"
-TAOBAO_HOME_HTTPS_SUBSET = r"request if \${url} ~= /^https:\/\/guide-acs\.m\.taobao\.com\/gw\/mtop\.taobao\.(volvo\.secondfloor\.getconfig|wireless\.home\.newface\.awesome\.get)/i then reject_dict(200)"
+TAOBAO_HOME_HTTPS_COVER = r"request if ${url} ~= /^https:\/\/guide-acs\.m\.taobao\.com\/gw\/mtop\.taobao\.(?:volvo\.secondfloor\.getconfig|shot\.resources\.load|wireless\.home\.(newface|splash)\.awesome\.get)/i then reject_dict(200)"
+TAOBAO_HOME_HTTPS_SUBSET = r"request if ${url} ~= /^https:\/\/guide-acs\.m\.taobao\.com\/gw\/mtop\.taobao\.(volvo\.secondfloor\.getconfig|wireless\.home\.newface\.awesome\.get)/i then reject_dict(200)"
 TAOBAO_HOME_SPLASH_SUBSET = r"^https:\/\/guide-acs\.m\.taobao\.com\/gw\/mtop\.taobao\.wireless\.home\.splash\.awesome\.get reject-dict"
 
 
