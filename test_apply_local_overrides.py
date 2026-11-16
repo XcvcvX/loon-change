@@ -1194,7 +1194,7 @@ DOMAIN-KEYWORD,unrelated.example,REJECT
 [Script]
 [MITM]
 hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankcomm.cn, creditcardapp.bankcomm.com
-""" % ("\\n".join(self.keyword_rules), "\\n".join(self.suffix_rules))
+""" % ("\n".join(self.keyword_rules), "\n".join(self.suffix_rules))
 
     def test_removes_only_jd_keyword_shadows_and_preserves_suffix_coverage(self):
         result = apply(self.base)
@@ -1207,12 +1207,12 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertEqual(apply(result), result)
 
     def test_rejects_partial_jd_keyword_inventory(self):
-        partial = self.base.replace(self.keyword_rules[0] + "\\n", "")
+        partial = self.base.replace(self.keyword_rules[0] + "\n", "")
         with self.assertRaisesRegex(ValueError, "inventory is partial"):
             apply(partial)
 
     def test_rejects_missing_exact_suffix_cover(self):
-        missing = self.base.replace(self.suffix_rules[0] + "\\n", "")
+        missing = self.base.replace(self.suffix_rules[0] + "\n", "")
         with self.assertRaisesRegex(ValueError, "DOMAIN-SUFFIX covers"):
             apply(missing)
 
@@ -1220,7 +1220,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         changed = self.base.replace(self.keyword_rules[0], self.keyword_rules[0].replace(",REJECT", ",DIRECT"))
         with self.assertRaisesRegex(ValueError, "rule changed"):
             apply(changed)
-        duplicate = self.base.replace(self.keyword_rules[0] + "\\n", self.keyword_rules[0] + "\\n" + self.keyword_rules[0] + "\\n")
+        duplicate = self.base.replace(self.keyword_rules[0] + "\n", self.keyword_rules[0] + "\n" + self.keyword_rules[0] + "\n")
         with self.assertRaisesRegex(ValueError, "duplicate Jingdong"):
             apply(duplicate)
 
