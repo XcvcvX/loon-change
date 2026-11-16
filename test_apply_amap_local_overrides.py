@@ -12,13 +12,15 @@ from apply_amap_local_overrides import (
 BASE = """#!name = 高德地图
 
 [Rewrite]
-{duplicate}
-{grouped}
+__DUPLICATE__
+__GROUPED__
 request if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/shield\/search_poi\/tips_adv\?/i then reject_dict(200)
 
 [MitM]
 hostname = *.amap.com
-""".format(duplicate=DUPLICATE_HOTWORD_RULE, grouped=CANONICAL_GROUPED_RULE)
+""".replace("__DUPLICATE__", DUPLICATE_HOTWORD_RULE).replace(
+    "__GROUPED__", CANONICAL_GROUPED_RULE
+)
 
 
 class AmapLocalOverrideTests(unittest.TestCase):
