@@ -2991,87 +2991,88 @@ XHS_V4_VIDEO_AD_ONLY_RULE = r"""^https:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/
 
 
 def optimize_xiaohongshu_response_cost(lines):
-    """Keep native ad filtering; remove duplicate JS body parsing and non-ad mutations."""
-    output, section = [], ""
-    trigger_counts = {line: 0 for line in XHS_SCRIPT_TRIGGER_LINES}
+    """Apply only to the complete reviewed upstream inventory; otherwise preserve source unchanged."""
+    original = list(lines)
+    section = ""
+    script_lines = []
     argument_count = 0
     rewrite_counts = {"imagefeed": 0, "v2_feed": 0, "v3_video": 0, "v4_video": 0,
                       "comment_list": 0, "watermark_image": 0}
-    v3_ad_count = v4_ad_count = 0
-    for line in lines:
+    rewrite_actions = {}
+
+    for line in original:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+            continue
+        if section == "Argument" and stripped == XHS_ARGUMENT_LINE:
+            argument_count += 1
+        elif section == "Script" and "xiaohongshu" in stripped.lower():
+            script_lines.append(stripped)
+        elif section == "Rewrite":
+            normalized = re.sub(r"\\+/", "/", stripped)
+            if ("ci\\.xiaohongshu\\.com" in stripped
+                    and "/system_config/watermark" in normalized
+                    and "reject-img" in stripped):
+                rewrite_counts["watermark_image"] += 1
+                rewrite_actions[stripped] = "remove"
+            elif "xiaohongshu" in normalized and "response-body-json-jq" in stripped:
+                if "/v1/note/imagefeed" in normalized:
+                    rewrite_counts["imagefeed"] += 1
+                    rewrite_actions[stripped] = "remove" if "disable_watermark" in stripped and "video_download" in stripped else "invalid"
+                elif "/v2/note/feed" in normalized:
+                    rewrite_counts["v2_feed"] += 1
+                    rewrite_actions[stripped] = "remove" if "disable_watermark" in stripped and "video_download" in stripped else "invalid"
+                elif "/v3/note/videofeed" in normalized:
+                    rewrite_counts["v3_video"] += 1
+                    required = ("disable_watermark", "video_download", "model_type", 'has("ad")')
+                    rewrite_actions[stripped] = "v3" if all(token in stripped for token in required) else "invalid"
+                elif "/v4/note/videofeed" in normalized:
+                    rewrite_counts["v4_video"] += 1
+                    required = ("disable_watermark", "video_download", "model_type", 'has("ad")')
+                    rewrite_actions[stripped] = "v4" if all(token in stripped for token in required) else "invalid"
+                elif "/note/comment/list" in normalized and "comment_type" in stripped and "media_source_type" in stripped:
+                    rewrite_counts["comment_list"] += 1
+                    rewrite_actions[stripped] = "remove"
+
+    if (len(script_lines) != len(XHS_SCRIPT_TRIGGER_LINES)
+            or set(script_lines) != XHS_SCRIPT_TRIGGER_LINES
+            or len(script_lines) != len(set(script_lines))):
+        return original, 0
+    if argument_count != 1:
+        return original, 0
+    expected = {"imagefeed": 1, "v2_feed": 1, "v3_video": 1, "v4_video": 1,
+                "comment_list": 1, "watermark_image": 2}
+    if rewrite_counts != expected or any(action == "invalid" for action in rewrite_actions.values()):
+        return original, 0
+    if sum(action == "v3" for action in rewrite_actions.values()) != 1:
+        return original, 0
+    if sum(action == "v4" for action in rewrite_actions.values()) != 1:
+        return original, 0
+
+    output, section = [], ""
+    for line in original:
         stripped = line.strip()
         if stripped.startswith("[") and stripped.endswith("]"):
             section = stripped[1:-1]
             output.append(line)
             continue
         if section == "Argument" and stripped == XHS_ARGUMENT_LINE:
-            argument_count += 1
-            if argument_count > 1:
-                raise ValueError("duplicate Xiaohongshu script switch")
             continue
-        if section == "Script" and "xiaohongshu" in stripped.lower():
-            if stripped not in XHS_SCRIPT_TRIGGER_LINES:
-                raise ValueError("unknown Xiaohongshu script trigger; refusing unreviewed removal")
-            trigger_counts[stripped] += 1
-            if trigger_counts[stripped] > 1:
-                raise ValueError("duplicate Xiaohongshu script trigger")
+        if section == "Script" and stripped in XHS_SCRIPT_TRIGGER_LINES:
             continue
         if section == "Rewrite":
-            normalized = re.sub(r"\\+/", "/", stripped)
-            if ("ci\\.xiaohongshu\\.com" in stripped
-                    and "/system_config/watermark" in normalized
-                    and "reject-img" in stripped):
-                rewrite_counts["watermark_image"] += 1
+            action = rewrite_actions.get(stripped)
+            if action == "remove":
                 continue
-            if "xiaohongshu" in normalized and "response-body-json-jq" in stripped:
-                if "/v1/note/imagefeed" in normalized:
-                    if "disable_watermark" not in stripped or "video_download" not in stripped:
-                        raise ValueError("Xiaohongshu imagefeed rewrite changed")
-                    rewrite_counts["imagefeed"] += 1
-                    continue
-                if "/v2/note/feed" in normalized:
-                    if "disable_watermark" not in stripped or "video_download" not in stripped:
-                        raise ValueError("Xiaohongshu v2 feed rewrite changed")
-                    rewrite_counts["v2_feed"] += 1
-                    continue
-                if "/v3/note/videofeed" in normalized:
-                    if not all(token in stripped for token in ("disable_watermark", "video_download", "model_type", 'has("ad")')):
-                        raise ValueError("Xiaohongshu v3 video ad filter changed")
-                    rewrite_counts["v3_video"] += 1
-                    output.append(XHS_V3_VIDEO_AD_ONLY_RULE)
-                    continue
-                if "/v4/note/videofeed" in normalized:
-                    if not all(token in stripped for token in ("disable_watermark", "video_download", "model_type", 'has("ad")')):
-                        raise ValueError("Xiaohongshu v4 video ad filter changed")
-                    rewrite_counts["v4_video"] += 1
-                    output.append(XHS_V4_VIDEO_AD_ONLY_RULE)
-                    continue
-                if "/note/comment/list" in normalized and "comment_type" in stripped and "media_source_type" in stripped:
-                    rewrite_counts["comment_list"] += 1
-                    continue
-            if stripped == XHS_V3_VIDEO_AD_ONLY_RULE:
-                v3_ad_count += 1
-            elif stripped == XHS_V4_VIDEO_AD_ONLY_RULE:
-                v4_ad_count += 1
+            if action == "v3":
+                output.append(XHS_V3_VIDEO_AD_ONLY_RULE)
+                continue
+            if action == "v4":
+                output.append(XHS_V4_VIDEO_AD_ONLY_RULE)
+                continue
         output.append(line)
-    trigger_total = sum(trigger_counts.values())
-    if trigger_total == 0:
-        if (all(value == 0 for value in rewrite_counts.values())
-                and v3_ad_count == 0 and v4_ad_count == 0 and argument_count == 0):
-            return list(lines), 0
-        if (all(value == 0 for value in rewrite_counts.values())
-                and v3_ad_count == 1 and v4_ad_count == 1 and argument_count == 0):
-            return output, 0
-        raise ValueError("Xiaohongshu cleanup is partial; refusing inconsistent plugin")
-    if trigger_total != len(XHS_SCRIPT_TRIGGER_LINES) or any(count != 1 for count in trigger_counts.values()):
-        raise ValueError("Xiaohongshu upstream script inventory changed; refusing partial cleanup")
-    expected = {"imagefeed": 1, "v2_feed": 1, "v3_video": 1, "v4_video": 1,
-                "comment_list": 1, "watermark_image": 2}
-    if rewrite_counts != expected or argument_count != 1:
-        raise ValueError("Xiaohongshu native Rewrite inventory changed; refusing partial cleanup: " + repr(rewrite_counts))
-    if v3_ad_count or v4_ad_count:
-        raise ValueError("Xiaohongshu ad-only video rewrite unexpectedly existed before cleanup")
-    return output, trigger_total
+    return output, len(XHS_SCRIPT_TRIGGER_LINES)
 
 
 def apply(text: str) -> str:
