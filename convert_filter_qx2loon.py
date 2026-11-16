@@ -61,6 +61,11 @@ HTTPDNS_REJECT_EXCLUSIONS = {'119.29.29.98/32', '119.29.29.99/32'}
 # This exact Frontier host carries the app's WebSocket/streaming channel;
 # rejecting it can break feed/connectivity behavior. Exclude it in standalone output too.
 FRONTIER_REJECT_EXCLUSIONS = {'toutiao-frontier.snssdk.com'}
+# ByteDance HTTPDNS is a resolver endpoint, not an ad endpoint. Blocking it can
+# break domain resolution/login for Douyin and other ByteDance apps.
+BYTE_DANCE_HTTPDNS_REJECT_EXCLUSIONS = {'dig.bdurl.net'}
+# Douyin's webcast-open feed API supplies recommended live-room cards, not ads.
+DOUYIN_LIVE_FEED_REJECT_EXCLUSIONS = {'webcast-open.douyin.com'}
 
 ap = argparse.ArgumentParser()
 ap.add_argument('-i', '--input', help='本地 QuanX 规则文件；不指定则从上游拉取')
@@ -90,6 +95,8 @@ else:
 rules, unknown, stats = [], [], {}
 httpdns_excluded = []
 frontier_excluded = []
+byte_dance_httpdns_excluded = []
+douyin_live_feed_excluded = []
 upstream_date, upstream_count = '', ''
 csv = {}
 
@@ -139,6 +146,22 @@ for line in raw.split('\n'):
             stats.get('Toutiao Frontier WebSocket safety exclusions', 0) + 1)
         continue
 
+    if (ltype in {'DOMAIN', 'DOMAIN-SUFFIX'}
+            and value.lower() in BYTE_DANCE_HTTPDNS_REJECT_EXCLUSIONS
+            and lpolicy.startswith('REJECT')):
+        byte_dance_httpdns_excluded.append(s)
+        stats['ByteDance HTTPDNS safety exclusions'] = (
+            stats.get('ByteDance HTTPDNS safety exclusions', 0) + 1)
+        continue
+
+    if (ltype in {'DOMAIN', 'DOMAIN-SUFFIX'}
+            and value.lower() in DOUYIN_LIVE_FEED_REJECT_EXCLUSIONS
+            and lpolicy.startswith('REJECT')):
+        douyin_live_feed_excluded.append(s)
+        stats['Douyin live-feed service safety exclusions'] = (
+            stats.get('Douyin live-feed service safety exclusions', 0) + 1)
+        continue
+
     extra = ',no-resolve' if ltype in NO_RESOLVE else ''
     rules.append('%s,%s,%s%s' % (ltype, value, lpolicy, extra))
     stats['%s -> %s' % (qtype, ltype)] = stats.get('%s -> %s' % (qtype, ltype), 0) + 1
@@ -155,6 +178,8 @@ list_out = [
     '#   <本文件 URL>,REJECT',
     '# 安全排除：腾讯云 HTTPDNS 正式入口 119.29.29.98/32、119.29.29.99/32 的 REJECT 规则.',
     '# 安全排除：toutiao-frontier.snssdk.com（头条 Frontier 长连接/WebSocket）。',
+    '# 安全排除：dig.bdurl.net（字节 HTTPDNS 域名解析服务）。',
+    '# 安全排除：webcast-open.douyin.com（直播推荐房间列表接口）。',
     '',
 ] + rules
 
@@ -197,6 +222,8 @@ for k, v in sorted(stats.items(), key=lambda x: -x[1]):
     print('%6d  %s' % (v, k))
 print('HTTPDNS 安全排除规则: %d' % len(httpdns_excluded))
 print('Toutiao Frontier 安全排除规则: %d' % len(frontier_excluded))
+print('ByteDance HTTPDNS 安全排除规则: %d' % len(byte_dance_httpdns_excluded))
+print('抖音直播推荐接口安全排除规则: %d' % len(douyin_live_feed_excluded))
 print('规则总数: %d' % len(rules))
 if unknown:
     print('跳过/异常: %d' % len(unknown))
