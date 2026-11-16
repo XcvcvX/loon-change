@@ -120,7 +120,10 @@ def _semantic_duplicate_coverage(row, provenance):
     if not line:
         return None
     for exclusion in provenance.get("rewrite_exclusions", []):
-        if exclusion.get("status") != "excluded_semantic_duplicate":
+        if exclusion.get("status") not in (
+                "excluded_semantic_duplicate",
+                "excluded_unreachable_response",
+        ):
             continue
         covered_by = exclusion.get("covered_by")
         if not isinstance(covered_by, str) or not covered_by.strip():
@@ -136,6 +139,7 @@ def _semantic_duplicate_coverage(row, provenance):
                 "covered_by": covered_by,
                 "reason": exclusion.get("reason", ""),
                 "source": exclusion.get("source", "unknown"),
+                "coverage_kind": exclusion.get("coverage_kind", "same_action_semantic_duplicate"),
             }
     return None
 
@@ -152,11 +156,14 @@ def _classify_event(kind, section, row, health, provenance=None):
         names = sorted(set(_names(row, "before") + _names(row, "after")))
     elif kind == "removed" and coverage:
         level = "low"
-        reason = (
-            ("已由来源追溯证明为同动作语义重复项；保留覆盖规则：" if section == "rewrite"
-             else "已由来源追溯证明为引号外空白差异的重复 Rule；保留规则：")
-            + coverage["covered_by"]
-        )
+        if section == "rewrite" and coverage.get("coverage_kind") == "request_terminates_before_response":
+            reason = "已由精确请求阶段 reject(404) 证明响应阶段规则不可达；保留请求规则：" + coverage["covered_by"]
+        else:
+            reason = (
+                ("已由来源追溯证明为同动作语义重复项；保留覆盖规则：" if section == "rewrite"
+                 else "已由来源追溯证明为引号外空白差异的重复 Rule；保留规则：")
+                + coverage["covered_by"]
+            )
         names = _names(row)
     elif kind == "removed":
         level = "high"
@@ -186,6 +193,19 @@ def _classify_event(kind, section, row, health, provenance=None):
         "after": row.get("after") if kind == "action_changed" else (
             row if kind == "added" else None),
     }
+
+
+
+HISTORICAL_VERIFIED_COVERAGE_MIGRATIONS = {
+    # PR #196: 14 HTTPS-only strict subsets plus one unreachable response-stage
+    # rule. The base-source list_v prefix remains high risk and is not migrated.
+    "43820539762": {
+        "removed_by_source": {"base": 1, "thelong": 15},
+        "rewrite_removed": 16,
+        "reclassify_low": 15,
+        "reclassify_high": 1,
+    },
+}
 
 
 def _reconcile_semantic_duplicate_history(history):
@@ -229,6 +249,48 @@ def _reconcile_semantic_duplicate_history(history):
             "removed_events_reclassified": sum(expected.values()),
             "source_signature": expected,
             "reason": "exact production provenance confirms same-action semantic duplicates with retained covering matchers",
+        }
+
+    # Reconcile the single PR #196 production snapshot by run ID and complete
+    # section/source/count signature. Keep the unproven base list_v removal high.
+    for snapshot in history:
+        run_key = str(snapshot.get("run_id", "")).strip()
+        expected = HISTORICAL_VERIFIED_COVERAGE_MIGRATIONS.get(run_key)
+        if not expected or snapshot.get("verified_rewrite_coverage_reconciled"):
+            continue
+        changes = snapshot.get("change_counts", {})
+        rewrite = changes.get("rewrite", {})
+        removed_by_source = {
+            name: int(counts.get("removed", 0))
+            for name, counts in snapshot.get("source_changes", {}).items()
+            if int(counts.get("removed", 0))
+        }
+        other_removals = sum(
+            int(changes.get(section, {}).get("removed", 0))
+            for section in ("script", "rule")
+        )
+        action_changes = sum(
+            int(changes.get(section, {}).get("action_changed", 0))
+            for section in SECTIONS
+        )
+        risks = snapshot.get("risk_counts", {})
+        if (
+            int(rewrite.get("removed", 0)) != expected["rewrite_removed"]
+            or removed_by_source != expected["removed_by_source"]
+            or other_removals != 0
+            or action_changes != 0
+            or int(risks.get("high", 0)) != expected["rewrite_removed"]
+            or int(risks.get("medium", 0)) != 0
+            or int(risks.get("low", 0)) != 0
+        ):
+            continue
+        risks["high"] = expected["reclassify_high"]
+        risks["low"] = expected["reclassify_low"]
+        snapshot["verified_rewrite_coverage_reconciled"] = {
+            "removed_events_reclassified": expected["reclassify_low"],
+            "source_signature": expected["removed_by_source"],
+            "remaining_high_risk": 1,
+            "reason": "14 exact HTTPS-only strict subsets and one unreachable response-stage rewrite are verified; base list_v prefix remains unverified",
         }
 
 
@@ -304,7 +366,8 @@ def build_risk(diff, health, source_report, previous_history, run_id="", provena
         "safety_notes": [
             "Risk labels prioritize review; they do not prove a rule is wrong.",
             "Additions are medium risk by default; unverified removals and action changes are high risk.",
-            "A removed Rewrite is downgraded only when exact provenance marks it as an excluded semantic duplicate and names a retained covering matcher.",
+            "A removed Rewrite is downgraded only when exact provenance records a reviewed same-action subset or an unreachable response-stage rule and names a retained covering rule.",
+
             "A removed Rule is downgraded only when its exact source line is recorded as a whitespace-only duplicate outside quoted literals and the retained Rule is present in current provenance.",
             "Historical risk correction is limited to a known snapshot with an exact source and change-count signature; source change totals are not altered.",
             "No rule, MITM hostname, priority, or plugin output is modified.",

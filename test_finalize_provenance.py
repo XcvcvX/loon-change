@@ -7,6 +7,52 @@ from finalize_provenance import reconcile
 
 
 class FinalizeProvenanceTests(unittest.TestCase):
+
+
+    def test_records_only_exact_verified_kugou_and_jin10_coverage(self):
+        kugou_old = "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/adp\\/ad\\/ reject-dict"
+        kugou_new = kugou_old.replace("^https:", "^https?:")
+        jin_old = "^https:\\/\\/jad-api\\.jin10\\.com\\/ad reject-dict"
+        jin_request = "request if ${url} ~= /^https?:\\/\\/jad-api\\.jin10\\.com\\/ad/ then reject(404)"
+        broad_list_v = "^https?:\\/\\/gzacshow\\.kugou\\.com\\/mfanxing-home\\/cdn\\/room\\/index\\/list_v reject-dict"
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            before, after, final, provenance = [root / name for name in (
+                "before.plugin", "after.plugin", "final.plugin", "provenance.json"
+            )]
+            after_text = "[Rewrite]\n" + "\n".join([kugou_old, jin_old, broad_list_v]) + "\n"
+            after.write_text(after_text, encoding="utf-8")
+            before.write_text(after_text, encoding="utf-8")
+            final.write_text(
+                "[Rewrite]\n" + "\n".join([kugou_new, jin_request, broad_list_v]) + "\n",
+                encoding="utf-8",
+            )
+            provenance.write_text(json.dumps({"rewrite": [], "script": [], "rule_events": []}),
+                                  encoding="utf-8")
+            report = reconcile(before, after, final, provenance)
+            exclusions = {x["source_raw_line"]: x for x in report["rewrite_exclusions"]}
+            self.assertEqual(exclusions[kugou_old]["status"], "excluded_semantic_duplicate")
+            self.assertEqual(exclusions[kugou_old]["covered_by"], kugou_new)
+            self.assertEqual(exclusions[jin_old]["status"], "excluded_unreachable_response")
+            self.assertEqual(exclusions[jin_old]["covered_by"], jin_request)
+            self.assertNotIn(broad_list_v, exclusions)
+
+    def test_fails_when_verified_covering_matcher_is_missing(self):
+        removed = "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/adp\\/ad\\/ reject-dict"
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            before, after, final, provenance = [root / name for name in (
+                "before.plugin", "after.plugin", "final.plugin", "provenance.json"
+            )]
+            source = "[Rewrite]\n" + removed + "\n"
+            after.write_text(source, encoding="utf-8")
+            before.write_text(source, encoding="utf-8")
+            final.write_text("[Rewrite]\n", encoding="utf-8")
+            provenance.write_text(json.dumps({"rewrite": [], "script": [], "rule_events": []}),
+                                  encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "verified Rewrite coverage missing"):
+                reconcile(before, after, final, provenance)
+
     def test_reconciles_spotify_and_local_overrides_and_drops_stale_rows(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
