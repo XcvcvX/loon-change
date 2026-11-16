@@ -2671,7 +2671,7 @@ CNFTP_DUPLICATE_KEEP_TRIGGERS = (
 )
 CNFTP_IQIYI_HOME_SOURCE_TRIGGERS = CNFTP_DUPLICATE_KEEP_TRIGGERS[:4]
 CNFTP_IQIYI_HOME_COMBINED_TRIGGER = (
-    String.raw"response if \${url} ~= /^https?:\/\/(?:[\d\.]+\/3f1\/cards\.iqiyi\.com\/(?:views_home\/3\.0\/qy_home|waterfall\/3\.0\/feed)|access\.if\.iqiyi\.com\/3f1\/cards\.iqiyi\.com\/(?:views_category\/3\.0\/category_home|views_home\/3\.0\/qy_home|waterfall\/3\.0\/feed)|cards\.iqiyi\.com\/(?:views_category\/3\.0\/(?:category_home|categorylib_content|film_hybrid)|views_home\/3\.0\/qy_home|waterfall\/3\.0\/feed))\?/i then script(""https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js"") with enable=aiqiyi_enable, tag=""爱奇艺首页信息流广告"", timeout=60, requires_body=true"
+    r"""response if ${url} ~= /^https?:\/\/(?:[\d\.]+\/3f1\/cards\.iqiyi\.com\/(?:views_home\/3\.0\/qy_home|waterfall\/3\.0\/feed)|access\.if\.iqiyi\.com\/3f1\/cards\.iqiyi\.com\/(?:views_category\/3\.0\/category_home|views_home\/3\.0\/qy_home|waterfall\/3\.0\/feed)|cards\.iqiyi\.com\/(?:views_category\/3\.0\/(?:category_home|categorylib_content|film_hybrid)|views_home\/3\.0\/qy_home|waterfall\/3\.0\/feed))\?/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js") with enable=aiqiyi_enable, tag="爱奇艺首页信息流广告", timeout=60, requires_body=true"""
 )
 
 CNFTP_MGTV_SOURCE_TRIGGERS = (
