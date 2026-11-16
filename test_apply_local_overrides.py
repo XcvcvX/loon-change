@@ -497,32 +497,39 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         with self.assertRaisesRegex(ValueError, "duplicate Pinduoduo homepage script trigger"):
             apply(fixture)
 
-    def test_consolidates_pdd_splash_variants_to_one_case_insensitive_rule(self):
+    def test_consolidates_only_duplicate_pdd_splash_404_and_preserves_distinct_actions(self):
         from apply_local_overrides import (
             PDD_SPLASH_OLD_CANONICAL_RULE, PDD_SPLASH_CANONICAL_RULE,
-            PDD_SPLASH_REDUNDANT_RULES, consolidate_pdd_splash_rules,
+            PDD_SPLASH_DUPLICATE_404_RULE, PDD_SPLASH_DISTINCT_ACTION_RULES,
+            consolidate_pdd_splash_rules,
         )
+        unrelated = "request if ${url} ~= /^https?:\\/\\/api\\.pinduoduo\\.com\\/api\\/other/ then reject(404)"
         fixture = [
-            PDD_SPLASH_OLD_CANONICAL_RULE, *PDD_SPLASH_REDUNDANT_RULES,
-            "request if ${url} ~= /^https?:\/\/api\.pinduoduo\.com\/api\/other/ then reject(404)",
+            PDD_SPLASH_OLD_CANONICAL_RULE, PDD_SPLASH_DUPLICATE_404_RULE,
+            *PDD_SPLASH_DISTINCT_ACTION_RULES, unrelated,
         ]
         result, removed = consolidate_pdd_splash_rules(fixture)
-        self.assertEqual(removed, 3)
+        self.assertEqual(removed, 1)
         self.assertEqual(result.count(PDD_SPLASH_CANONICAL_RULE), 1)
-        self.assertEqual(result[-1], fixture[-1])
+        for action_rule in PDD_SPLASH_DISTINCT_ACTION_RULES:
+            self.assertIn(action_rule, result)
+        self.assertIn(unrelated, result)
         self.assertEqual(consolidate_pdd_splash_rules(result)[1], 0)
 
     def test_pdd_splash_consolidation_fails_closed_on_unknown_or_duplicate_matchers(self):
         from apply_local_overrides import (
-            PDD_SPLASH_OLD_CANONICAL_RULE, PDD_SPLASH_REDUNDANT_RULES,
-            consolidate_pdd_splash_rules,
+            PDD_SPLASH_OLD_CANONICAL_RULE, PDD_SPLASH_DUPLICATE_404_RULE,
+            PDD_SPLASH_DISTINCT_ACTION_RULES, consolidate_pdd_splash_rules,
         )
+        baseline = [PDD_SPLASH_OLD_CANONICAL_RULE, *PDD_SPLASH_DISTINCT_ACTION_RULES]
         with self.assertRaisesRegex(ValueError, "unknown Pinduoduo splash matcher"):
-            consolidate_pdd_splash_rules([PDD_SPLASH_OLD_CANONICAL_RULE, "request /cappuccino/splash-new reject"])
+            consolidate_pdd_splash_rules([*baseline, "request /cappuccino/splash-new reject"])
         with self.assertRaisesRegex(ValueError, "inventory changed or duplicated"):
-            consolidate_pdd_splash_rules([PDD_SPLASH_OLD_CANONICAL_RULE, PDD_SPLASH_OLD_CANONICAL_RULE])
+            consolidate_pdd_splash_rules([*baseline, PDD_SPLASH_OLD_CANONICAL_RULE])
         with self.assertRaisesRegex(ValueError, "inventory changed or duplicated"):
-            consolidate_pdd_splash_rules([PDD_SPLASH_OLD_CANONICAL_RULE, PDD_SPLASH_REDUNDANT_RULES[0], PDD_SPLASH_REDUNDANT_RULES[0]])
+            consolidate_pdd_splash_rules([*baseline, PDD_SPLASH_DUPLICATE_404_RULE, PDD_SPLASH_DUPLICATE_404_RULE])
+        with self.assertRaisesRegex(ValueError, "distinct action inventory missing"):
+            consolidate_pdd_splash_rules([PDD_SPLASH_OLD_CANONICAL_RULE])
 
     def test_removes_only_pdd_feed_asset_rules_shadowed_by_same_action(self):
         from apply_local_overrides import (
