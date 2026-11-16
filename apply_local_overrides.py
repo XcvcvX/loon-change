@@ -2391,15 +2391,31 @@ def batch_same_response_json_deletes(lines):
         XIMALAYA_PLAYPAGE_SPLIT_DELETE_REWRITE: XIMALAYA_PLAYPAGE_BATCHED_DELETE_REWRITE,
     }
     expected = tuple(replacements)
-    counts = {rule: sum(line.strip() == rule for line in lines) for rule in expected}
-    if not any(counts.values()):
+    combined = tuple(replacements.values())
+    expected_counts = {rule: sum(line.strip() == rule for line in lines) for rule in expected}
+    combined_counts = {rule: sum(line.strip() == rule for line in lines) for rule in combined}
+
+    if not any(expected_counts.values()):
+        if not any(combined_counts.values()):
+            return list(lines), 0
+        if any(count != 1 for count in combined_counts.values()):
+            raise ValueError(
+                "Response JSON delete batch output inventory changed; refusing partial or duplicate output"
+            )
+        _validate_response_json_delete_batch_scope(lines, set(expected) | set(combined))
         return list(lines), 0
-    if any(count != 1 for count in counts.values()):
+
+    if any(combined_counts.values()) or any(count != 1 for count in expected_counts.values()):
         raise ValueError(
-            "Response JSON delete batch inventory changed; refusing partial or drifted consolidation"
+            "Response JSON delete batch inventory changed; refusing partial, mixed, or drifted consolidation"
         )
 
-    expected_set = set(expected)
+    _validate_response_json_delete_batch_scope(lines, set(expected))
+    output = [replacements.get(line.strip(), line) for line in lines]
+    return output, len(expected)
+
+
+def _validate_response_json_delete_batch_scope(lines, allowed_rules):
     matcher_markers = (
         "rest/system/startup",
         "football-portal/diff2/batch",
@@ -2409,14 +2425,11 @@ def batch_same_response_json_deletes(lines):
         value = line.strip()
         normalized = re.sub(r"\\+/", "/", value)
         if any(marker in normalized for marker in matcher_markers) and (
-            "response.json." in value and value not in expected_set
+            "response.json." in value and value not in allowed_rules
         ):
             raise ValueError(
                 "Same-matcher response JSON delete changed; refusing unreviewed consolidation"
             )
-
-    output = [replacements.get(line.strip(), line) for line in lines]
-    return output, len(expected)
 
 
 # Ximalaya homepage response used two separate JSON transforms on the same URL.
