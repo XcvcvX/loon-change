@@ -188,31 +188,10 @@
       "added": [],
       "removed": [
         {
-          "line": "DOMAIN-KEYWORD,bdsp.x.jd.com,REJECT",
+          "line": "DOMAIN,images.pinduoduo.com,REJECT",
           "section": "rule",
           "sources": [
-            "filter"
-          ]
-        },
-        {
-          "line": "DOMAIN-KEYWORD,kepler.jd.com,REJECT",
-          "section": "rule",
-          "sources": [
-            "filter"
-          ]
-        },
-        {
-          "line": "DOMAIN-KEYWORD,keplerapi.jd.com,REJECT",
-          "section": "rule",
-          "sources": [
-            "filter"
-          ]
-        },
-        {
-          "line": "DOMAIN-KEYWORD,mapi.m.jd.com,REJECT",
-          "section": "rule",
-          "sources": [
-            "filter"
+            "myblockads"
           ]
         }
       ]
@@ -232,14 +211,14 @@
     "rule": {
       "action_changed": 0,
       "added": 0,
-      "removed": 4
+      "removed": 1
     },
     "script": {
       "action_changed": 0,
       "added": 0,
       "removed": 0
     },
-    "total_changes": 4
+    "total_changes": 1
   },
   "upstream_revision_changes": []
 }

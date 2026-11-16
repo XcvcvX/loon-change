@@ -8,7 +8,7 @@
     "rule": {
       "action_changed": 0,
       "added": 0,
-      "removed": 4
+      "removed": 1
     },
     "script": {
       "action_changed": 0,
@@ -20,10 +20,10 @@
     {
       "after": null,
       "before": {
-        "line": "DOMAIN-KEYWORD,bdsp.x.jd.com,REJECT",
+        "line": "DOMAIN,images.pinduoduo.com,REJECT",
         "section": "rule",
         "sources": [
-          "filter"
+          "myblockads"
         ]
       },
       "change_type": "removed",
@@ -32,95 +32,23 @@
       "section": "rule",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "filter": "unavailable"
+        "myblockads": "unavailable"
       },
       "source_scores": {
-        "filter": null
+        "myblockads": null
       },
       "sources": [
-        "filter"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "DOMAIN-KEYWORD,kepler.jd.com,REJECT",
-        "section": "rule",
-        "sources": [
-          "filter"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "rule",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "filter": "unavailable"
-      },
-      "source_scores": {
-        "filter": null
-      },
-      "sources": [
-        "filter"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "DOMAIN-KEYWORD,keplerapi.jd.com,REJECT",
-        "section": "rule",
-        "sources": [
-          "filter"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "rule",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "filter": "unavailable"
-      },
-      "source_scores": {
-        "filter": null
-      },
-      "sources": [
-        "filter"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "DOMAIN-KEYWORD,mapi.m.jd.com,REJECT",
-        "section": "rule",
-        "sources": [
-          "filter"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "rule",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "filter": "unavailable"
-      },
-      "source_scores": {
-        "filter": null
-      },
-      "sources": [
-        "filter"
+        "myblockads"
       ]
     }
   ],
   "overall_risk": "high",
   "risk_counts": {
-    "high": 4,
+    "high": 1,
     "low": 0,
     "medium": 0
   },
-  "run_id": "43835399403",
+  "run_id": "43835803822",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -151,8 +79,8 @@
     "base": {
       "action_changed": 0,
       "added": 0,
-      "removed": 38,
-      "snapshots_seen": 16
+      "removed": 37,
+      "snapshots_seen": 15
     },
     "block": {
       "action_changed": 0,
@@ -168,15 +96,15 @@
     },
     "local_overrides": {
       "action_changed": 0,
-      "added": 22,
+      "added": 21,
       "removed": 0,
-      "snapshots_seen": 12
+      "snapshots_seen": 11
     },
     "myblockads": {
       "action_changed": 0,
       "added": 0,
-      "removed": 2,
-      "snapshots_seen": 1
+      "removed": 3,
+      "snapshots_seen": 2
     },
     "thelong": {
       "action_changed": 0,
