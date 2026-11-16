@@ -192,42 +192,7 @@
       "action_changed": [],
       "added": [
         {
-          "line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/(push\\/active)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO,requires-body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/(?:(?:api|page-info)\\.zhihu\\.com\\/(?:answers|articles)\\/v2\\/\\d+|api\\.zhihu\\.com\\/(?:commercial_api\\/app_float_layer|feed\\/render\\/tab\\/config\\?|moments_v3|topstory\\/hot-lists\\/total|topstory\\/recommend|v2\\/topstory\\/hot-lists\\/everyone-seeing\\?))/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除首页推广\", requires_body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/(?:api\\.zhihu\\.com\\/(?:next-(?:bff|data|render)|questions\\/\\d+(?:\\/answers|\\/feeds|\\?include=))|www\\.zhihu\\.com\\/api\\/v4\\/(?:articles|answers)\\/\\d+\\/recommendations?\\?)/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除回答详情页推广\", requires_body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/(?:appcloud2\\.zhihu\\.com\\/v3\\/config|m-cloud\\.zhihu\\.com\\/api\\/cloud\\/config\\/all\\?)/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎拦截服务器推送配置\", requires_body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https?:\\/\\/(?:api-account\\.soulapp\\.cn\\/teenager\\/config|api-a\\.soulapp\\.cn\\/(?:v\\d\\/post\\/gift\\/list|official\\/scene\\/module)|api-user\\.soulapp\\.cn\\/(?:furion\\/position\\/content|v\\d\\/planet\\/config)|api-chat\\.soulapp\\.cn\\/chat\\/limitInfo|post\\.soulapp\\.cn\\/(?:hot\\/soul\\/rank|v\\d\\/post\\/(?:homepage\\/guide\\/card|recSquare\\/subTabs))|chat-live\\.soulapp\\.cn\\/chatroom\\/chatClassifyRoomList|gateway-mobile-gray\\.soulapp\\.cn\\/mobile\\/app\\/version\\/queryIos|47\\.110\\.187\\.87\\/winterfell\\/v2\\/getIpByDomain)/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https?:\\/\\/api-pay\\.soulapp\\.cn\\/(?:vip\\/meet\\/userInfo|privilege\\/supervip\\/status)/ then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
+          "line": "response if ${url} ~= /^https?:\\/\\/(?:[\\d\\.]+\\/3f1\\/cards\\.iqiyi\\.com\\/(?:views_home\\/3\\.0\\/qy_home|waterfall\\/3\\.0\\/feed)|access\\.if\\.iqiyi\\.com\\/3f1\\/cards\\.iqiyi\\.com\\/(?:views_category\\/3\\.0\\/category_home|views_home\\/3\\.0\\/qy_home|waterfall\\/3\\.0\\/feed)|cards\\.iqiyi\\.com\\/(?:views_category\\/3\\.0\\/(?:category_home|categorylib_content|film_hybrid)|views_home\\/3\\.0\\/qy_home|waterfall\\/3\\.0\\/feed))\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=aiqiyi_enable, tag=\"爱奇艺首页信息流广告\", timeout=60, requires_body=true",
           "section": "script",
           "sources": [
             "local_overrides"
@@ -236,210 +201,28 @@
       ],
       "removed": [
         {
-          "line": "http-response ^https?:\\/\\/(?:app\\.bilibili\\.com|grpc\\.biliapi\\.net)\\/bilibili\\.app\\.interface\\.v\\d\\.Teenagers\\/ModeStatus script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-2,requires-body=true,binary-body-mode=true",
-          "section": "script",
-          "sources": [
-            "base"
-          ]
-        },
-        {
-          "line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/!\\/huati\\/discovery_home_bottom_channels\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-11,requires-body=true",
-          "section": "script",
-          "sources": [
-            "base"
-          ]
-        },
-        {
-          "line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/(checkin\\/show|client\\/publisher_list|push\\/active)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO,requires-body=true",
-          "section": "script",
-          "sources": [
-            "base"
-          ]
-        },
-        {
-          "line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/direct_messages\\/user_list\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-12,requires-body=true",
-          "section": "script",
-          "sources": [
-            "base"
-          ]
-        },
-        {
-          "line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/friendships\\/(create|destroy)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-6,requires-body=true",
-          "section": "script",
-          "sources": [
-            "base"
-          ]
-        },
-        {
-          "line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/video\\/tiny_stream_video_list\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-10,requires-body=true",
-          "section": "script",
-          "sources": [
-            "base"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/(?:api|page-info)\\.zhihu\\.com\\/(?:answers|articles)\\/v2\\/\\d+/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除首页推广\", requires_body=true",
+          "line": "response if ${url} ~= /^https?:\\/\\/[\\d\\.]+\\/3f1\\/cards\\.iqiyi\\.com\\/(views_home\\/3\\.0\\/qy_home|waterfall\\/3\\.0\\/feed)\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=aiqiyi_enable, tag=\"爱奇艺首页信息流广告\", timeout=60, requires_body=true",
           "section": "script",
           "sources": [
             "block"
           ]
         },
         {
-          "line": "response if ${url} ~= /^https:\\/\\/api\\.zhihu\\.com\\/(?:moments_v3|topstory\\/hot-lists\\/total|topstory\\/recommend)/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除首页推广\", requires_body=true",
+          "line": "response if ${url} ~= /^https?:\\/\\/access\\.if\\.iqiyi\\.com\\/3f1\\/cards\\.iqiyi\\.com\\/(views_category\\/3\\.0\\/category_home|views_home\\/3\\.0\\/qy_home|waterfall\\/3\\.0\\/feed)\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=aiqiyi_enable, tag=\"爱奇艺首页信息流广告\", timeout=60, requires_body=true",
           "section": "script",
           "sources": [
             "block"
           ]
         },
         {
-          "line": "response if ${url} ~= /^https:\\/\\/api\\.zhihu\\.com\\/commercial_api\\/app_float_layer/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除首页推广\", requires_body=true",
+          "line": "response if ${url} ~= /^https?:\\/\\/cards\\.iqiyi\\.com\\/(views_home\\/3\\.0\\/qy_home|waterfall\\/3\\.0\\/feed)\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=aiqiyi_enable, tag=\"爱奇艺首页信息流广告\", timeout=60, requires_body=true",
           "section": "script",
           "sources": [
             "block"
           ]
         },
         {
-          "line": "response if ${url} ~= /^https:\\/\\/api\\.zhihu\\.com\\/feed\\/render\\/tab\\/config\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除首页推广\", requires_body=true",
-          "section": "script",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/api\\.zhihu\\.com\\/next-(?:bff|data|render)/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除回答详情页推广\", requires_body=true",
-          "section": "script",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/api\\.zhihu\\.com\\/questions\\/\\d+(?:\\/answers|\\/feeds|\\?include=)/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除回答详情页推广\", requires_body=true",
-          "section": "script",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/api\\.zhihu\\.com\\/v2\\/topstory\\/hot-lists\\/everyone-seeing\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除首页推广\", requires_body=true",
-          "section": "script",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/appcloud2\\.zhihu\\.com\\/v3\\/config/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎拦截服务器推送配置\", requires_body=true",
-          "section": "script",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/m-cloud\\.zhihu\\.com\\/api\\/cloud\\/config\\/all\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎拦截服务器推送配置\", requires_body=true",
-          "section": "script",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/www\\.zhihu\\.com\\/api\\/v4\\/(?:articles|answers)\\/\\d+\\/recommendations?\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js\") with enable=vihu_enable, tag=\"知乎移除回答详情页推广\", requires_body=true",
-          "section": "script",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https?:\\/\\/47\\.110\\.187\\.87\\/winterfell\\/v2\\/getIpByDomain/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
-          "section": "script",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https?:\\/\\/api-a\\.soulapp\\.cn\\/official\\/scene\\/module/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
-          "section": "script",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https?:\\/\\/api-a\\.soulapp\\.cn\\/v\\d\\/post\\/gift\\/list/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https?:\\/\\/api-account\\.soulapp\\.cn\\/teenager\\/config/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
-          "section": "script",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https?:\\/\\/api-chat\\.soulapp\\.cn\\/chat\\/limitInfo/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
-          "section": "script",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https?:\\/\\/api-pay\\.soulapp\\.cn\\/privilege\\/supervip\\/status/ then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https?:\\/\\/api-pay\\.soulapp\\.cn\\/vip\\/meet\\/userInfo/ then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https?:\\/\\/api-user\\.soulapp\\.cn\\/furion\\/position\\/content/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
-          "section": "script",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https?:\\/\\/api-user\\.soulapp\\.cn\\/v\\d\\/planet\\/config/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
-          "section": "script",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https?:\\/\\/chat-live\\.soulapp\\.cn\\/chatroom\\/chatClassifyRoomList/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
-          "section": "script",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https?:\\/\\/gateway-mobile-gray\\.soulapp\\.cn\\/mobile\\/app\\/version\\/queryIos/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
-          "section": "script",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https?:\\/\\/post\\.soulapp\\.cn\\/hot\\/soul\\/rank/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
-          "section": "script",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https?:\\/\\/post\\.soulapp\\.cn\\/v\\d\\/post\\/homepage\\/guide\\/card/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
-          "section": "script",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https?:\\/\\/post\\.soulapp\\.cn\\/v\\d\\/post\\/recSquare\\/subTabs/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
+          "line": "response if ${url} ~= /^https?:\\/\\/cards\\.iqiyi\\.com\\/views_category\\/3\\.0\\/(category_home|categorylib_content|film_hybrid)\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=aiqiyi_enable, tag=\"爱奇艺首页信息流广告\", timeout=60, requires_body=true",
           "section": "script",
           "sources": [
             "block"
@@ -461,10 +244,10 @@
     },
     "script": {
       "action_changed": 0,
-      "added": 6,
-      "removed": 30
+      "added": 1,
+      "removed": 4
     },
-    "total_changes": 36
+    "total_changes": 5
   },
   "upstream_revision_changes": []
 }
