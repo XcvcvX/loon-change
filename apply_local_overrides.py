@@ -1767,8 +1767,9 @@ def remove_douyin_content_cdn_overblocks(lines):
                 if (section, value) not in DOUYIN_CONTENT_CDN_OVERBLOCKS:
                     raise ValueError("Douyin content CDN domain rule changed; refusing unreviewed scope change: " + value)
             if (section, value) in counts:
-                counts[value] += 1
-                if counts[value] > 1:
+                saw_target = True
+                counts[(section, value)] += 1
+                if counts[(section, value)] > 1:
                     raise ValueError("duplicate Douyin content CDN overblock: " + value)
                 continue
         if section == "Rewrite":
