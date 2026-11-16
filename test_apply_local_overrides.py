@@ -1428,6 +1428,60 @@ class ZhihuMultiActionRewriteConsolidationTests(unittest.TestCase):
 
 
 
+class XimalayaHomepageJsonConsolidationTests(unittest.TestCase):
+    def setUp(self):
+        from apply_local_overrides import (
+            XIMALAYA_HOME_DELETE_REWRITE,
+            XIMALAYA_HOME_ENTRANCE_REWRITE,
+            XIMALAYA_HOME_COMBINED_REWRITE,
+        )
+        self.original = (XIMALAYA_HOME_DELETE_REWRITE, XIMALAYA_HOME_ENTRANCE_REWRITE)
+        self.combined = XIMALAYA_HOME_COMBINED_REWRITE
+        self.base = (
+            "#!name=Ximalaya-test\n[Rule]\n[Rewrite]\n"
+            + "\n".join(self.original)
+            + "\n[Script]\n[MITM]\nhostname = mobile.ximalaya.com, "
+            "mobilehera.ximalaya.com, mobwsa.ximalaya.com, "
+            "creditcard.bankcomm.cn, creditcard.bankcomm.com, "
+            "creditcardapp.bankcomm.cn, creditcardapp.bankcomm.com\n"
+        )
+
+    def test_combines_exact_homepage_transforms_and_preserves_other_sections(self):
+        result = apply(self.base)
+        for rule in self.original:
+            self.assertNotIn(rule, result)
+        self.assertEqual(result.count(self.combined), 1)
+        self.assertIn(self.combined, result)
+        self.assertIn("[Rule]", result)
+        self.assertIn("[Script]", result)
+        self.assertIn("creditcard.bankcomm.cn", result)
+        self.assertEqual(apply(result), result)
+
+    def test_fails_closed_on_missing_duplicate_drift_or_unknown_homepage_action(self):
+        missing = self.base.replace(self.original[0] + "\n", "", 1)
+        with self.assertRaisesRegex(ValueError, "Ximalaya homepage rewrite inventory changed"):
+            apply(missing)
+
+        drifted = self.base.replace(self.original[1], self.original[1].replace("全部服务", "VIP"), 1)
+        with self.assertRaisesRegex(ValueError, "Ximalaya homepage rewrite inventory changed"):
+            apply(drifted)
+
+        duplicate = self.base.replace(self.original[0], self.original[0] + "\n" + self.original[0], 1)
+        with self.assertRaisesRegex(ValueError, "Ximalaya homepage rewrite inventory changed"):
+            apply(duplicate)
+
+        unknown = self.base.replace(
+            self.original[0],
+            self.original[0] + "\n" +
+            r"""response if \${url} ~= /^https:\/\/(mobile|mobilehera|mobwsa)\.ximalaya\.com\/mobile-user\/v\d\/homePage\// then response.json.jq(\`.newField = null\`)""",
+            1,
+        )
+        with self.assertRaisesRegex(ValueError, "Ximalaya homepage response rewrite changed"):
+            apply(unknown)
+
+
+
+
 
 if __name__ == "__main__":
     unittest.main()
