@@ -2389,14 +2389,28 @@ class PinduoduoImageCdnScopeTests(unittest.TestCase):
         result2, removed2 = scope_pdd_image_cdn_ad_rules(result)
         self.assertEqual((result2, removed2), (result, 0))
 
-    def test_requires_both_ad_path_rules_and_existing_mitm(self):
+    def test_missing_scoped_rule_is_restored_from_reviewed_upstream_pair(self):
         from apply_local_overrides import scope_pdd_image_cdn_ad_rules
         missing_path = [line for line in self.base if line != self.paths[0]]
-        with self.assertRaisesRegex(ValueError, "ad-path Rewrite inventory changed"):
-            scope_pdd_image_cdn_ad_rules(missing_path)
+        result, removed = scope_pdd_image_cdn_ad_rules(missing_path)
+        self.assertEqual(removed, 1)
+        for rule in self.paths:
+            self.assertIn(rule, result)
+        self.assertNotIn(self.broad, result)
+
+    def test_requires_existing_mitm_before_removing_broad_block(self):
+        from apply_local_overrides import scope_pdd_image_cdn_ad_rules
         missing_mitm = [line.replace("images.pinduoduo.com, ", "") for line in self.base]
         with self.assertRaisesRegex(ValueError, "requires its existing MITM"):
             scope_pdd_image_cdn_ad_rules(missing_mitm)
+
+    def test_rejects_unknown_pdd_image_rewrite_when_broad_block_exists(self):
+        from apply_local_overrides import scope_pdd_image_cdn_ad_rules
+        unknown = r"request if ${url} ~= /^https?:\/\/images\.pinduoduo\.com\/unknown-ad\// then reject(200)"
+        fixture = ["[Rule]", self.broad, "[Rewrite]", *self.paths, unknown,
+                   "[MITM]", "hostname = images.pinduoduo.com"]
+        with self.assertRaisesRegex(ValueError, "ad-path Rewrite inventory changed"):
+            scope_pdd_image_cdn_ad_rules(fixture)
 
     def test_rejects_duplicate_or_changed_host_wide_domain_rules(self):
         from apply_local_overrides import scope_pdd_image_cdn_ad_rules
