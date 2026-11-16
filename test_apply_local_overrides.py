@@ -2019,20 +2019,25 @@ class ResponseJsonDeleteBatchTests(unittest.TestCase):
         self.assertIn("^https:\\/\\/unrelated\\.example\\/keep reject", result)
         self.assertEqual(apply(result), result)
 
-    def test_fails_closed_on_partial_or_duplicate_batched_output(self):
+    def test_allows_partial_upstream_output_but_rejects_duplicate_batched_output(self):
         result = apply(self.base)
         duplicate = result.replace(self.batched[0], self.batched[0] + "\n" + self.batched[0], 1)
-        with self.assertRaisesRegex(ValueError, "Response JSON delete batch output inventory changed"):
+        with self.assertRaisesRegex(ValueError, "Response JSON delete batch inventory changed"):
             apply(duplicate)
 
         partial = result.replace(self.batched[1] + "\n", "", 1)
-        with self.assertRaisesRegex(ValueError, "Response JSON delete batch output inventory changed"):
-            apply(partial)
+        partial_result = apply(partial)
+        self.assertEqual(partial_result.count(self.batched[0]), 1)
+        self.assertEqual(partial_result.count(self.batched[1]), 0)
+        self.assertEqual(partial_result.count(self.batched[2]), 1)
+        self.assertEqual(apply(partial_result), partial_result)
 
-    def test_fails_closed_on_missing_duplicate_or_drifted_inventory(self):
+    def test_allows_missing_source_group_but_fails_closed_on_duplicate_or_drift(self):
         missing = self.base.replace(self.original[0] + "\n", "", 1)
-        with self.assertRaisesRegex(ValueError, "Response JSON delete batch inventory changed"):
-            apply(missing)
+        missing_result = apply(missing)
+        self.assertEqual(missing_result.count(self.batched[0]), 0)
+        self.assertEqual(missing_result.count(self.batched[1]), 1)
+        self.assertEqual(missing_result.count(self.batched[2]), 1)
 
         duplicate = self.base.replace(self.original[1], self.original[1] + "\n" + self.original[1], 1)
         with self.assertRaisesRegex(ValueError, "Response JSON delete batch inventory changed"):
