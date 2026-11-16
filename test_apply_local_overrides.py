@@ -454,5 +454,46 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         with self.assertRaisesRegex(ValueError, "duplicate Gaoding resource script triggers"):
             apply(fixture)
 
+
+    def test_removes_duplicate_taobao_splash_scripts_and_keeps_canonical_rstore_triggers(self):
+        from apply_local_overrides import (
+            TAOBAO_CANONICAL_SCRIPT_TRIGGERS, TAOBAO_REDUNDANT_SCRIPT_TRIGGERS,
+        )
+        fixture = BASE.replace(
+            "[Script]",
+            "[Script]\n" + "\n".join(TAOBAO_CANONICAL_SCRIPT_TRIGGERS)
+            + "\n" + "\n".join(TAOBAO_REDUNDANT_SCRIPT_TRIGGERS)
+            + '\nresponse if ${url} ~= /api.example.com/ then script("https://example.invalid/keep.js")',
+        )
+        result = apply(fixture)
+        script = result.split("[Script]", 1)[1].split("[MITM]", 1)[0]
+        for trigger in TAOBAO_CANONICAL_SCRIPT_TRIGGERS:
+            self.assertEqual(script.count(trigger), 1)
+        for trigger in TAOBAO_REDUNDANT_SCRIPT_TRIGGERS:
+            self.assertNotIn(trigger, script)
+        self.assertIn("https://example.invalid/keep.js", script)
+        self.assertEqual(apply(result), result)
+
+    def test_fails_closed_when_a_taobao_duplicate_trigger_drifts(self):
+        from apply_local_overrides import TAOBAO_REDUNDANT_SCRIPT_TRIGGERS
+        changed = TAOBAO_REDUNDANT_SCRIPT_TRIGGERS[0].replace("requires_body=true", "requires_body=false")
+        fixture = BASE.replace("[Script]", "[Script]\n" + changed)
+        with self.assertRaisesRegex(ValueError, "Taobao splash script trigger changed"):
+            apply(fixture)
+
+    def test_fails_closed_when_taobao_trigger_inventory_is_incomplete(self):
+        from apply_local_overrides import TAOBAO_CANONICAL_SCRIPT_TRIGGERS, TAOBAO_REDUNDANT_SCRIPT_TRIGGERS
+        fixture = BASE.replace("[Script]", "[Script]\n" + "\n".join(TAOBAO_CANONICAL_SCRIPT_TRIGGERS) + "\n" + TAOBAO_REDUNDANT_SCRIPT_TRIGGERS[0])
+        with self.assertRaisesRegex(ValueError, "Taobao splash script trigger inventory changed"):
+            apply(fixture)
+
+    def test_fails_closed_on_duplicate_taobao_script_trigger(self):
+        from apply_local_overrides import TAOBAO_REDUNDANT_SCRIPT_TRIGGERS
+        duplicate = TAOBAO_REDUNDANT_SCRIPT_TRIGGERS[0]
+        fixture = BASE.replace("[Script]", "[Script]\n" + duplicate + "\n" + duplicate)
+        with self.assertRaisesRegex(ValueError, "duplicate redundant Taobao script trigger"):
+            apply(fixture)
+
+
 if __name__ == "__main__":
     unittest.main()

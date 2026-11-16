@@ -232,6 +232,74 @@ def remove_gaoding_resource_scripts(lines):
     return output, tuple(trigger for trigger, count in removed.items() if count)
 
 
+
+
+# 淘宝开屏两个接口在多个上游插件中重复挂载了等价响应脚本。
+# 保留 R-Store 的单一脚本入口；其逻辑与 FMZ、zmjde、RuCu6 对应分支一致。
+TAOBAO_CANONICAL_SCRIPT_TRIGGERS = (
+    r"http-response ^https?:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.(cloudvideo\\.video\\.query|wireless\\.home\\.splash\\.awesome\\.get) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/taobao.js,tag=TAOBAO,requires-body=true",
+    r"http-response ^https?:\\/\\/poplayer\\.template\\.alibaba\\.com\\/\\w+\\.json script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/taobao.js,tag=TAOBAO-2,requires-body=true",
+)
+TAOBAO_REDUNDANT_SCRIPT_TRIGGERS = (
+    r'response if ${url} ~= /^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.(cloudvideo\\.video\\.query|wireless\\.home\\.splash\\.awesome\\.get)/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/myBlockAds.js") with enable=albb_enable, tag="阿里巴巴广告", timeout=60, requires_body=true',
+    r'response if ${url} ~= /^https:\\/\\/poplayer\\.template\\.alibaba\\.com\\/\\w+\\.json/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/myBlockAds.js") with enable=albb_enable, tag="阿里巴巴广告", timeout=60, requires_body=true',
+    r'response if ${url} ~= /^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.(cloudvideo\\.video\\.query|wireless\\.home\\.splash\\.awesome\\.get)/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/myBlockAds.js") with enable=tcbc_enable, tag="淘宝", timeout=60, requires_body=true',
+    r'response if ${url} ~= /^https:\\/\\/poplayer\\.template\\.alibaba\\.com\\/\\w+\\.json/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/myBlockAds.js") with enable=tcbc_enable, tag="淘宝", timeout=60, requires_body=true',
+    r'response if ${url} ~= /^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.(cloudvideo\\.video\\.query|wireless\\.home\\.splash\\.awesome\\.get)/i then script("https://raw.githubusercontent.com/zmjde/loon-plugins/main/JS/Taobao/Taobao_remove_ads.js") with tag="移除淘宝开屏广告", requires_body=true',
+    r'response if ${url} ~= /^https:\\/\\/poplayer\\.template\\.alibaba\\.com\\/\\w+\\.json/i then script("https://raw.githubusercontent.com/zmjde/loon-plugins/main/JS/Taobao/Taobao_remove_ads.js") with tag="移除淘宝开屏广告", requires_body=true',
+    r'response if ${url} ~= /^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.(?:cloudvideo\\.video\\.query|wireless\\.home\\.splash\\.awesome\\.get)/i then script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js") with tag="taobao_1", requires_body=true',
+    r'response if ${url} ~= /^https:\\/\\/poplayer\\.template\\.alibaba\\.com\\/\\w+\\.json/i then script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js") with tag="taobao_2", requires_body=true',
+)
+
+
+def remove_redundant_taobao_scripts(lines):
+    """Keep the two canonical R-Store Taobao triggers and remove six equivalent duplicates."""
+    canonical = {re.sub(r"\\\\+", "", item.strip()): item for item in TAOBAO_CANONICAL_SCRIPT_TRIGGERS}
+    redundant = {re.sub(r"\\\\+", "", item.strip()): item for item in TAOBAO_REDUNDANT_SCRIPT_TRIGGERS}
+    counts = {item: 0 for item in (*TAOBAO_CANONICAL_SCRIPT_TRIGGERS, *TAOBAO_REDUNDANT_SCRIPT_TRIGGERS)}
+    output, section, target_seen = [], "", False
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            output.append(line)
+            continue
+        normalized = re.sub(r"\\\\+", "", line.strip())
+        is_target = section == "Script" and (
+            ("guide-acs.m.taobao.com/gw/mtop.taobao." in normalized
+             and ("cloudvideo.video.query" in normalized or "wireless.home.splash.awesome.get" in normalized))
+            or "poplayer.template.alibaba.com/" in normalized
+        )
+        if not is_target:
+            output.append(line)
+            continue
+        target_seen = True
+        if normalized in canonical:
+            trigger = canonical[normalized]
+            counts[trigger] += 1
+            if counts[trigger] > 1:
+                raise ValueError("duplicate canonical Taobao script trigger; refusing ambiguous deduplication")
+            output.append(line)
+            continue
+        if normalized in redundant:
+            trigger = redundant[normalized]
+            counts[trigger] += 1
+            if counts[trigger] > 1:
+                raise ValueError("duplicate redundant Taobao script trigger; refusing ambiguous deduplication")
+            continue
+        raise ValueError("Taobao splash script trigger changed; refusing an unreviewed deduplication")
+    if not target_seen:
+        return output, 0
+    canonical_complete = all(counts[trigger] == 1 for trigger in TAOBAO_CANONICAL_SCRIPT_TRIGGERS)
+    redundant_absent = all(counts[trigger] == 0 for trigger in TAOBAO_REDUNDANT_SCRIPT_TRIGGERS)
+    if canonical_complete and redundant_absent:
+        return output, 0
+    missing = [trigger for trigger, count in counts.items() if count != 1]
+    if missing:
+        raise ValueError("Taobao splash script trigger inventory changed; expected each reviewed trigger exactly once")
+    return output, len(TAOBAO_REDUNDANT_SCRIPT_TRIGGERS)
+
+
+
 DDQX_NEWDETAILS_MARKER = "maicai.api.ddxq.mobi/homeApi/newDetails"
 DDQX_NEWDETAILS_MATCHER = r"^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/newDetails"
 DDQX_NEWDETAILS_LEGACY_ACTION = "response-body-replace-regex suspension random_body"
@@ -459,6 +527,7 @@ def apply(text: str) -> str:
     lines = normalized_lines
     lines, guiderank_homepage_script_count = remove_guiderank_homepage_script(lines)
     lines, gaoding_converted_triggers = remove_gaoding_resource_scripts(lines)
+    lines, _ = remove_redundant_taobao_scripts(lines)
 
     result_lines, rewrite_lines = [], []
     section = ""
