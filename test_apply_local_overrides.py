@@ -2022,6 +2022,20 @@ class RRTVNativeAdRewriteTests(unittest.TestCase):
         self.assertIn("^https:\\/\\/unrelated\\.example\\/keep reject", result)
         self.assertEqual(apply(result), result)
 
+    def test_current_blockads_plugin_source_variants_are_replaced(self):
+        from apply_local_overrides import RRTV_BLOCKADS_SOURCE_TRIGGERS
+        current_base = (
+            "#!name=rrtv-current-blockads-test\n[Argument]\nrfrfuipk_enable = switch,true,false,tag=RRTV\n"
+            "[Rewrite]\n[Script]\n" + "\n".join(RRTV_BLOCKADS_SOURCE_TRIGGERS) +
+            "\n[MITM]\nhostname = api.rr.tv, creditcard.bankcomm.cn, creditcard.bankcomm.com, "
+            "creditcardapp.bankcomm.cn, creditcardapp.bankcomm.com\n"
+        )
+        result = apply(current_base)
+        self.assertNotIn("rrtv_json.js", result)
+        for rule in self.native:
+            self.assertEqual(result.count(rule), 1)
+        self.assertEqual(apply(result), result)
+
     def test_raw_upstream_source_variants_are_also_replaced(self):
         from apply_local_overrides import RRTV_RAW_SOURCE_TRIGGERS
         raw_base = (
@@ -2650,6 +2664,29 @@ class CnftpNonAdTriggerPruningTests(unittest.TestCase):
         unknown.insert(index + 1, self.targets[0].replace("getMyMenus", "getMyMenusV2"))
         with self.assertRaisesRegex(ValueError, "matcher changed"):
             remove_cnftp_non_ad_triggers(unknown)
+
+    def test_current_blockads_source_variants_are_supported(self):
+        from apply_local_overrides import (
+            CNFTP_BLOCKADS_SOURCE_TRIGGERS,
+            CNFTP_NON_AD_REMOVE_TRIGGERS,
+            CNFTP_IQIYI_HOME_COMBINED_TRIGGER,
+            normalize_cnftp_trigger_line,
+            apply,
+        )
+        current_base = (
+            "#!name=current-blockads-cnftp-test\n[Argument]\naiqiyi_enable = switch,true,false,tag=IQIYI\n"
+            "youku_enable = switch,true,false,tag=YOUKU\n[Rewrite]\n[Script]\n" +
+            "\n".join(CNFTP_BLOCKADS_SOURCE_TRIGGERS) +
+            "\n[MITM]\nhostname = iface2.iqiyi.com, search.video.iqiyi.com, acs.youku.com, "
+            "creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankcomm.cn, "
+            "creditcardapp.bankcomm.com\n"
+        )
+        result = apply(current_base)
+        normalized_result = {normalize_cnftp_trigger_line(line) for line in result.splitlines()}
+        for item in CNFTP_NON_AD_REMOVE_TRIGGERS:
+            self.assertNotIn(normalize_cnftp_trigger_line(item), normalized_result)
+        self.assertIn(CNFTP_IQIYI_HOME_COMBINED_TRIGGER, result)
+        self.assertEqual(apply(result), result)
 
     def test_checked_in_plugin_applies_non_ad_pruning_without_losing_ad_handlers(self):
         from pathlib import Path
