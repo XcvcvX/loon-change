@@ -1721,6 +1721,8 @@ def remove_douyin_tnc_conflicting_rejects(lines):
         output.append(line)
 
     present = [count for count in reject_counts.values() if count]
+    if not present and direct_count == 0 and not unknown_tnc_rejects:
+        return list(lines), 0
     if unknown_tnc_rejects or direct_count != 1 or (present and len(present) != len(DOUYIN_TNC_REJECT_RULES)):
         raise ValueError("Douyin TNC rule inventory changed; refusing partial cleanup or missing DIRECT guard")
     return output, sum(present)
