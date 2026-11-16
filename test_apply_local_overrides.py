@@ -1445,7 +1445,7 @@ class ZhihuMultiActionRewriteConsolidationTests(unittest.TestCase):
         for rule in self.combined:
             self.assertEqual(result.count(rule), 1)
             self.assertIn(rule, result)
-        self.assertIn("ad reject-dict", result)
+        self.assertIn("commercial_api", result)
         self.assertEqual(apply(result), result)
 
     def test_fails_closed_on_missing_drifted_duplicate_or_unknown_same_matcher_rule(self):
