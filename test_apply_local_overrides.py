@@ -1364,6 +1364,34 @@ class KugouJin10RewriteDedupTests(unittest.TestCase):
             apply(drifted)
 
 
+
+class PeopleAppHomepageAdDedupTests(unittest.TestCase):
+    def test_removes_only_the_exact_duplicate_and_is_idempotent(self):
+        from apply_local_overrides import PEOPLEAPP_HOME_AD_DUPLICATE_RULES, remove_duplicate_peopleapp_home_ad_rules
+        first, duplicate = PEOPLEAPP_HOME_AD_DUPLICATE_RULES
+        unrelated = r"request if ${url} ~= /^https?:\\/\\/stat\\.peopleapp\\.com\\// then reject(404)"
+        result, removed = remove_duplicate_peopleapp_home_ad_rules([first, duplicate, unrelated])
+        self.assertEqual(removed, 1)
+        self.assertEqual(result, [first, unrelated])
+        result2, removed2 = remove_duplicate_peopleapp_home_ad_rules(result)
+        self.assertEqual(removed2, 0)
+        self.assertEqual(result2, result)
+
+    def test_fails_closed_on_missing_duplicate_pair_duplicate_or_drift(self):
+        from apply_local_overrides import PEOPLEAPP_HOME_AD_DUPLICATE_RULES, remove_duplicate_peopleapp_home_ad_rules
+        first, duplicate = PEOPLEAPP_HOME_AD_DUPLICATE_RULES
+        with self.assertRaisesRegex(ValueError, "pair incomplete"):
+            remove_duplicate_peopleapp_home_ad_rules([first])
+        with self.assertRaisesRegex(ValueError, "duplicate PeopleApp"):
+            remove_duplicate_peopleapp_home_ad_rules([first, first, duplicate])
+        drifted = duplicate.replace("reject(404)", "reject_dict(200)")
+        with self.assertRaisesRegex(ValueError, "inventory changed"):
+            remove_duplicate_peopleapp_home_ad_rules([first, drifted])
+        unknown = r"request if ${url} ~= /^https?:\\/\\/app\\.peopleapp\\.com\\/Api\\/\\d+\\/HomeApi\\/(adv|getAdvertImage)/ then reject(403)"
+        with self.assertRaisesRegex(ValueError, "inventory changed"):
+            remove_duplicate_peopleapp_home_ad_rules([first, unknown])
+
+
 class ZhihuRequestShadowRuleCleanupTests(unittest.TestCase):
     def setUp(self):
         from apply_local_overrides import ZHIHU_REQUEST_SHADOW_PAIRS
