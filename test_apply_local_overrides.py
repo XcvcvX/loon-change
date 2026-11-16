@@ -1594,11 +1594,13 @@ class BilibiliNonAdFeatureScopeTests(unittest.TestCase):
             self.assertIn(marker, normalized)
         self.assertEqual(normalize_bilibili_non_ad_feature_overrides(result), (result, 0))
 
-    def test_fails_closed_on_partial_duplicate_or_changed_non_ad_rules(self):
+    def test_allows_upstream_pruned_known_non_ad_rows_but_fails_closed_on_duplicates_or_drift(self):
         from apply_local_overrides import normalize_bilibili_non_ad_feature_overrides
         partial = [line for line in self.base if line != self.remove_rules[0]]
-        with self.assertRaisesRegex(ValueError, "inventory is partial"):
-            normalize_bilibili_non_ad_feature_overrides(partial)
+        result, changed_count = normalize_bilibili_non_ad_feature_overrides(partial)
+        self.assertEqual(changed_count, len(self.remove_rules) - 1 + len(self.replacements))
+        self.assertNotIn(self.remove_rules[0], result)
+        self.assertEqual(normalize_bilibili_non_ad_feature_overrides(result), (result, 0))
         duplicate = self.base[:self.base.index("[Script]")] + [self.remove_rules[0]] + self.base[self.base.index("[Script]"): ]
         with self.assertRaisesRegex(ValueError, "duplicate Bilibili non-ad feature"):
             normalize_bilibili_non_ad_feature_overrides(duplicate)
