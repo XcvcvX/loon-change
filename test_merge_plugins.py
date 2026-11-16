@@ -1734,7 +1734,7 @@ hostname = *.amap.com
     def test_gamersky_ad_system_current_blockads_case_flag_is_preserved(self):
         empty = "[Rewrite]\n[Script]\n[MITM]\nhostname = \n"
         rule = (
-            r"request if \${url} ~= /^http:\/\/.+\.gamersky\.com\/.+"
+            r"request if ${url} ~= /^http:\/\/.+\.gamersky\.com\/.+"
             r"\/adSystem\/ad\/.+/i then reject_dict(200)"
         )
         extra = (
