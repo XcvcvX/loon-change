@@ -263,7 +263,7 @@ def remove_redundant_taobao_scripts(lines):
             section = line[1:-1]
             output.append(line)
             continue
-        normalized = re.sub(r"\\\\+", "", line.strip())
+        normalized = re.sub(r"\\+", "", line.strip())
         is_target = section == "Script" and (
             ("guide-acs.m.taobao.com/gw/mtop.taobao." in normalized
              and ("cloudvideo.video.query" in normalized or "wireless.home.splash.awesome.get" in normalized))
@@ -310,8 +310,8 @@ DIDI_USERCENTER_REDUNDANT_TRIGGER = r'response if ${url} ~= /^https?:\\/\\/commo
 
 def remove_redundant_didi_usercenter_script(lines):
     """Remove only the FMZ duplicate for the exact Didi user-center response endpoint."""
-    canonical = re.sub(r"\\\\+", "", DIDI_USERCENTER_CANONICAL_TRIGGER.strip())
-    redundant = re.sub(r"\\\\+", "", DIDI_USERCENTER_REDUNDANT_TRIGGER.strip())
+    canonical = re.sub(r"\\+", "", DIDI_USERCENTER_CANONICAL_TRIGGER.strip())
+    redundant = re.sub(r"\\+", "", DIDI_USERCENTER_REDUNDANT_TRIGGER.strip())
     output, section = [], ""
     canonical_count = redundant_count = 0
     target_seen = False
@@ -575,6 +575,7 @@ def apply(text: str) -> str:
     lines, guiderank_homepage_script_count = remove_guiderank_homepage_script(lines)
     lines, gaoding_converted_triggers = remove_gaoding_resource_scripts(lines)
     lines, _ = remove_redundant_taobao_scripts(lines)
+    lines, _ = remove_redundant_didi_usercenter_script(lines)
 
     result_lines, rewrite_lines = [], []
     section = ""
