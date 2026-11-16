@@ -504,7 +504,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         )
         fixture = [
             PDD_SPLASH_OLD_CANONICAL_RULE, *PDD_SPLASH_REDUNDANT_RULES,
-            "request if \${url} ~= /^https?:\\/\\/api\\.pinduoduo\\.com\\/api\\/other/ then reject(404)",
+            "request if ${url} ~= /^https?:\/\/api\.pinduoduo\.com\/api\/other/ then reject(404)",
         ]
         result, removed = consolidate_pdd_splash_rules(fixture)
         self.assertEqual(removed, 3)
@@ -529,7 +529,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
             PDD_FEED_ASSET_CANONICAL_RULES, PDD_FEED_ASSET_REDUNDANT_RULES,
             remove_redundant_pdd_feed_asset_rules,
         )
-        unrelated = "request if \${url} ~= /^https?:\\/\\/images\\.pinduoduo\\.com\\/product/ then reject(404)"
+        unrelated = "request if ${url} ~= /^https?:\/\/images\.pinduoduo\.com\/product/ then reject(404)"
         fixture = [*PDD_FEED_ASSET_CANONICAL_RULES, *PDD_FEED_ASSET_REDUNDANT_RULES, unrelated]
         result, removed = remove_redundant_pdd_feed_asset_rules(fixture)
         self.assertEqual(removed, 4)
