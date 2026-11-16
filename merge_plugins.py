@@ -2222,7 +2222,7 @@ for _line in block_rw:
     _expected_line, _expected_action, _action_label = _ZHANGLE_BLOCK_RULES[_matcher]
     _expected_variants = {
         _expected_line,
-        _expected_line.replace("$/ then", "$/i then"),
+        _expected_line.replace(" then ", "i then ", 1),
     }
     if _line not in _expected_variants or action_key(_line) != _expected_action:
         raise RuntimeError('blockAdsV2 涨乐财富通规则发生变化，拒绝扩大排除范围：' + _line)
