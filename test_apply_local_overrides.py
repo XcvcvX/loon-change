@@ -460,7 +460,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
             PDD_RSTORE_HOMEPAGE_TRIGGER, PDD_LOCAL_HOMEPAGE_TRIGGER,
             PDD_ISHOWSHU_HOMEPAGE_TRIGGER,
         )
-        unrelated = 'response if \${url} ~= /api.example.com/ then script("https://example.invalid/keep.js")'
+        unrelated = 'response if ${url} ~= /api.example.com/ then script("https://example.invalid/keep.js")'
         fixture = BASE.replace(
             "[Script]",
             "[Script]\n" + PDD_RSTORE_HOMEPAGE_TRIGGER + "\n"
@@ -1473,7 +1473,7 @@ class XimalayaHomepageJsonConsolidationTests(unittest.TestCase):
         unknown = self.base.replace(
             self.original[0],
             self.original[0] + "\n" +
-            r"""response if \${url} ~= /^https:\/\/(mobile|mobilehera|mobwsa)\.ximalaya\.com\/mobile-user\/v\d\/homePage\// then response.json.jq(\`.newField = null\`)""",
+            r"""response if ${url} ~= /^https:\/\/(mobile|mobilehera|mobwsa)\.ximalaya\.com\/mobile-user\/v\d\/homePage\// then response.json.jq(\`.newField = null\`)""",
             1,
         )
         with self.assertRaisesRegex(ValueError, "Ximalaya homepage response rewrite changed"):
