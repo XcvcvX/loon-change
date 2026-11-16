@@ -2755,6 +2755,20 @@ CNFTP_MGTV_TRIGGER_REPLACEMENTS = dict(zip(
 ))
 
 
+DUSHU365_NON_AD_REMOVE_TRIGGERS = (
+    "http-response ^https?:\\/\\/g(.*)\\.dushu365\\.com\\/chief-orch\\/home\\/bookPortal\\/v105\\/category script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/dushu365.js,tag=DUSHU365,requires-body=true",
+    "http-response ^https?:\\/\\/g(.*)\\.dushu365\\.com\\/resource-orchestration-system\\/book\\/channel\\/v100\\/info script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/dushu365.js,tag=DUSHU365-3,requires-body=true",
+    "http-response ^https?:\\/\\/g(.*)\\.dushu365\\.com\\/chief-orch\\/home\\/bookPortal\\/v111\\/forApp script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/dushu365.js,tag=DUSHU365-5,requires-body=true",
+    "http-response ^https?:\\/\\/g(.*)\\.dushu365\\.com\\/sns-orchestration-system\\/homePage\\/api\\/v100\\/myPage script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/dushu365.js,tag=DUSHU365-6,requires-body=true",
+)
+DUSHU365_AD_AND_UNCERTAIN_KEEP_TRIGGERS = (
+    "http-response ^https?:\\/\\/g(.*)\\.dushu365\\.com\\/abtest-front\\/banner-modular\\/get script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/dushu365.js,tag=DUSHU365-2,requires-body=true",
+    "http-response ^https?:\\/\\/g(.*)\\.dushu365\\.com\\/fs-member\\/user\\/profile\\/v100\\/detail script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/dushu365.js,tag=DUSHU365-4,requires-body=true",
+    "http-response ^https?:\\/\\/g(.*)\\.dushu365\\.com\\/task-orchestration\\/taskCenter\\/api\\/v101\\/taskList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/dushu365.js,tag=DUSHU365-7,requires-body=true",
+    "http-response ^https?:\\/\\/g(.*)\\.dushu365\\.com\\/resource-orchestration-system\\/book\\/v101\\/content script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/dushu365.js,tag=DUSHU365-8,requires-body=true",
+    "http-response ^https?:\\/\\/g(.*)\\.dushu365\\.com\\/user-orchestration\\/user\\/api\\/v101\\/ceiltip script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/dushu365.js,tag=DUSHU365-9,requires-body=true",
+)
+
 CNFTP_NON_AD_REMOVE_TRIGGERS = (
     "response if ${url} ~= /^https?:\\/\\/iface2\\.iqiyi\\.com\\/aggregate\\/3\\.0\\/getMyMenus\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=aiqiyi_enable, tag=\"爱奇艺我的页面菜单\", timeout=60, requires_body=true",
     "response if ${url} ~= /^https?:\\/\\/iface2\\.iqiyi\\.com\\/control\\/3\\.0\\/init_proxy\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=aiqiyi_enable, tag=\"爱奇艺首页左上角天气\", timeout=60, requires_body=true",
@@ -2980,6 +2994,33 @@ def remove_cnftp_non_ad_triggers(lines):
             raise ValueError("CNFTP non-ad trigger moved outside Script section; refusing pruning")
         output.append(line)
 
+    return output, removed
+
+
+def remove_dushu365_non_ad_triggers(lines):
+    """Remove only four Dushu365 triggers used for non-ad layout customization."""
+    targets = set(DUSHU365_NON_AD_REMOVE_TRIGGERS)
+    keep = set(DUSHU365_AD_AND_UNCERTAIN_KEEP_TRIGGERS)
+    output, section, counts, removed = [], "", {}, 0
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            output.append(line)
+            continue
+        value = line.strip()
+        is_dushu365 = "Res/Scripts/AntiAd/dushu365.js" in value
+        if is_dushu365 and section != "Script":
+            raise ValueError("Dushu365 response trigger moved outside Script section; refusing pruning")
+        if section == "Script" and is_dushu365:
+            if value not in targets and value not in keep:
+                raise ValueError("Dushu365 script trigger inventory changed; refusing unreviewed pruning")
+            counts[value] = counts.get(value, 0) + 1
+            if counts[value] > 1:
+                raise ValueError("duplicate Dushu365 response trigger; refusing ambiguous pruning")
+            if value in targets:
+                removed += 1
+                continue
+        output.append(line)
     return output, removed
 
 
@@ -3821,6 +3862,7 @@ def apply(text: str) -> str:
     lines, _ = remove_duplicate_cnftp_scripts(lines)
     lines, _ = consolidate_cnftp_iqiyi_home_triggers(lines)
     lines, _ = remove_cnftp_non_ad_triggers(lines)
+    lines, _ = remove_dushu365_non_ad_triggers(lines)
     lines, _ = remove_same_source_duplicate_response_scripts(lines)
     lines, _ = remove_identical_script_response_duplicates(lines)
     lines, _ = consolidate_soul_scripts(lines)
