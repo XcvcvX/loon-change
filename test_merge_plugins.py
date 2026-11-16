@@ -622,6 +622,29 @@ class MergeIntegrationTests(unittest.TestCase):
         self.assertEqual({item["source"] for item in changes}, {"base", "block"})
         self.assertEqual({item["source_entry_index"] for item in changes}, {621, 626})
 
+    def test_odin_numeric_host_current_blockads_variant_preserves_case_flag(self):
+        base = "[Rewrite]\n[Script]\n[MITM]\nhostname = \n"
+        extra = (
+            "[Rewrite]\n"
+            + 'request if @@URL@@ ~= /^https?:\\/\\/[\\d\\.]+\\/odin\\/c1\\/(channel\\/ads|skin\\/config)\\?/i then reject_dict(200)'
+            + "\n[Script]\n[MITM]\nhostname = \n"
+        ).replace("@@URL@@", chr(36) + "{url}")
+        output, provenance = self.run_merge(base, extra, return_provenance=True)
+        line = next(line for line in output.splitlines() if "odin" in line)
+        self.assertIn("/i then reject_dict(200)", line)
+        pattern = re.search(r"~= /(.*)/i then ", line).group(1)
+        compiled = re.compile(pattern, re.I)
+        for host in ("1.2.3.4", "0.0.0.0", "255.255.255.255"):
+            self.assertIsNotNone(compiled.search("https://" + host + "/odin/c1/channel/ads?x=1"))
+        for host in ("999.1.2.3", "1.2.3", "1.2.3.4.5", "1..2.3"):
+            self.assertIsNone(compiled.search("https://" + host + "/odin/c1/channel/ads?x=1"))
+        change = next(
+            item for item in provenance["scope_adjustments"]
+            if "Odin ad/config endpoint matcher" in item.get("reason", "")
+        )
+        self.assertEqual(change["source_file"], "blockAds.plugin")
+        self.assertEqual(change["source_entry_index"], 1546)
+
     def test_odin_numeric_host_guard_fails_closed_on_scope_or_action_drift(self):
         base = (
             "[Rewrite]\n"
