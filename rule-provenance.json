@@ -123309,23 +123309,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https\\\\://(weixin110\\\\.qq|security.wechat)\\\\.com/cgi-bin/mmspamsupport-bin/newredirectconfirmcgi\\\\?', ('script', 'script(\"https://raw.githubusercontent.com/zZPiglet/Task/master/asset/UnblockURLinWeChat.js\") with enable=lmjpxmvi_enable, tag=\"UnblockURLinWeChat-解除微信链接限制\", timeout=60, requires_body=true'))",
-      "output_entry_index": 477,
-      "output_line": "response if ${url} ~= /^https\\:\\/\\/(weixin110\\.qq|security.wechat)\\.com\\/cgi-bin\\/mmspamsupport-bin\\/newredirectconfirmcgi\\?/i then script(\"https://raw.githubusercontent.com/zZPiglet/Task/master/asset/UnblockURLinWeChat.js\") with enable=lmjpxmvi_enable, tag=\"UnblockURLinWeChat-解除微信链接限制\", timeout=60, requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https\\:\\/\\/(weixin110\\.qq|security.wechat)\\.com\\/cgi-bin\\/mmspamsupport-bin\\/newredirectconfirmcgi\\?/i then script(\"https://raw.githubusercontent.com/zZPiglet/Task/master/asset/UnblockURLinWeChat.js\") with enable=lmjpxmvi_enable, tag=\"UnblockURLinWeChat-解除微信链接限制\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 169
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https://vue3-api\\\\.zhixiny\\\\.cn/v1/initui\\\\?key=index', ('script', 'script(\"https://raw.githubusercontent.com/Sliverkiss/QuantumultX/main/AdBlock/xmApp/wnbz.js\") with enable=wfnibovj_enable, tag=\"温尼伯站\", timeout=60, requires_body=true'))",
       "output_entry_index": 478,
       "output_line": "response if ${url} ~= /^https:\\/\\/vue3-api\\.zhixiny\\.cn\\/v1\\/initui\\?key=index/i then script(\"https://raw.githubusercontent.com/Sliverkiss/QuantumultX/main/AdBlock/xmApp/wnbz.js\") with enable=wfnibovj_enable, tag=\"温尼伯站\", timeout=60, requires_body=true",
@@ -125138,7 +125121,7 @@
     "rule_safety_excluded_events": 11,
     "rule_scope_adjustments": 1,
     "rule_source_events": 5627,
-    "script_output_entries": 543
+    "script_output_entries": 542
   },
   "upstream_revisions": {
     "AlipayAdBlock": {

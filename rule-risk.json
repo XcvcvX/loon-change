@@ -3,7 +3,7 @@
     "rewrite": {
       "action_changed": 0,
       "added": 0,
-      "removed": 1
+      "removed": 0
     },
     "rule": {
       "action_changed": 0,
@@ -13,15 +13,15 @@
     "script": {
       "action_changed": 0,
       "added": 0,
-      "removed": 0
+      "removed": 1
     }
   },
   "events": [
     {
       "after": null,
       "before": {
-        "line": "request if ${url} ~= /^https?:\\/\\/app\\.peopleapp\\.com\\/Api\\/\\d+\\/HomeApi\\/(adv|getAdvertImage)/ then reject(404)",
-        "section": "rewrite",
+        "line": "response if ${url} ~= /^https\\:\\/\\/(weixin110\\.qq|security.wechat)\\.com\\/cgi-bin\\/mmspamsupport-bin\\/newredirectconfirmcgi\\?/i then script(\"https://raw.githubusercontent.com/zZPiglet/Task/master/asset/UnblockURLinWeChat.js\") with enable=lmjpxmvi_enable, tag=\"UnblockURLinWeChat-解除微信链接限制\", timeout=60, requires_body=true",
+        "section": "script",
         "sources": [
           "block"
         ]
@@ -29,7 +29,7 @@
       "change_type": "removed",
       "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
       "risk": "high",
-      "section": "rewrite",
+      "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
         "block": "unavailable"
@@ -48,7 +48,7 @@
     "low": 0,
     "medium": 0
   },
-  "run_id": "43829604719",
+  "run_id": "43831062757",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -85,8 +85,8 @@
     "block": {
       "action_changed": 0,
       "added": 0,
-      "removed": 36,
-      "snapshots_seen": 11
+      "removed": 37,
+      "snapshots_seen": 12
     },
     "filter": {
       "action_changed": 0,

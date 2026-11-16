@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、RuCu6 MyBlockAds、zirawell AlipayAdBlock、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / RuCu6 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-16 08:14 UTC
+#!merged-at=2026-11-16 08:26 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+RuCu6-MyBlockAds+zirawell-AlipayAdBlock+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -7273,7 +7273,6 @@ response if ${url} ~= /^https?:\/\/(ipv4|interface\d?)\.music\.163\.com\/e?api\/
 response if ${url} ~= /^https?:\/\/(ipv4|interface\d?)\.music\.163\.com\/e?api\/link\/page\/discovery\/resource\/show/i then script("https://raw.githubusercontent.com/Keywos/rule/main/script/wy/js/wyres.js") with enable=whyiyyybyt_enable, tag="NetEaseCloudMusic_fx", timeout=20, requires_body=true
 response if ${url} ~= /^https?:\/\/(ipv4|interface\d?)\.music\.163\.com\/e?api\/link\/position\/show\/resource/i then script("https://raw.githubusercontent.com/Keywos/rule/main/script/wy/js/wyres.js") with enable=whyiyyybyt_enable, tag="NetEaseCloudMusic_mybarad", timeout=20, requires_body=true
 response if ${url} ~= /^https?:\/\/(ipv4|interface\d?)\.music\.163\.com\/e?api\/user\/follow\/users\/mixed\/get/i then script("https://raw.githubusercontent.com/Keywos/rule/main/script/wy/js/wyres.js") with enable=whyiyyybyt_enable, tag="NetEaseCloudMusic_foll", timeout=20, requires_body=true
-response if ${url} ~= /^https\:\/\/(weixin110\.qq|security.wechat)\.com\/cgi-bin\/mmspamsupport-bin\/newredirectconfirmcgi\?/i then script("https://raw.githubusercontent.com/zZPiglet/Task/master/asset/UnblockURLinWeChat.js") with enable=lmjpxmvi_enable, tag="UnblockURLinWeChat-解除微信链接限制", timeout=60, requires_body=true
 response if ${url} ~= /^https:\/\/vue3-api\.zhixiny\.cn\/v1\/initui\?key=index/i then script("https://raw.githubusercontent.com/Sliverkiss/QuantumultX/main/AdBlock/xmApp/wnbz.js") with enable=wfnibovj_enable, tag="温尼伯站", timeout=60, requires_body=true
 response if ${url} ~= /^https?:\/\/.+?\.(pipi|fuli|xiang(jiao|xiang))apps\.com\/(ucp\/index|getGlobalData|(\/|)vod\/reqplay\/)/i then script("https://raw.githubusercontent.com/NobyDa/Script/master/QuantumultX/File/xjsp.js") with enable=xljnuiyivsuvgo_enable, tag="香蕉是一种水果", timeout=60, requires_body=true
 response if ${url} ~= /^https?:\/\/edith\.(xiaohongshu|rnote)\.com\/api\/sns\/v\d+\/search\/(banner|hot)_list/i then script("https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js") with enable=xhs_enable, tag="小红书搜索页", timeout=60, requires_body=true
