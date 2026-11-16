@@ -1127,13 +1127,16 @@ class JingdongScriptConsolidationTests(unittest.TestCase):
 hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankcomm.cn, creditcardapp.bankcomm.com
 """
 
-    def test_consolidates_overlapping_jd_scripts_to_one_local_trigger(self):
-        from apply_local_overrides import JD_CANONICAL_TRIGGER
+    def test_consolidates_duplicate_jd_work_and_preserves_optional_switch(self):
+        from apply_local_overrides import JD_CANONICAL_TRIGGER, JD_OPTIONAL_WELCOME_TRIGGER
         result = apply(self.base)
         self.assertNotIn(self.rstore, result)
         self.assertNotIn(self.fmz, result)
         self.assertEqual(result.count(JD_CANONICAL_TRIGGER), 1)
+        self.assertEqual(result.count(JD_OPTIONAL_WELCOME_TRIGGER), 1)
         self.assertIn("scripts/jingdong/jd.js", result)
+        self.assertIn("scripts/jingdong/jd-welcome.js", result)
+        self.assertIn("with enable=jkds_enable", result)
         self.assertEqual(apply(result), result)
 
     def test_fails_closed_when_either_legacy_trigger_drifts_or_is_missing(self):
@@ -1153,22 +1156,32 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         with self.assertRaisesRegex(ValueError, "Jingdong script trigger inventory is mixed"):
             apply(mixed)
 
-    def test_local_jd_script_preserves_reviewed_endpoints_and_safe_parse(self):
+    def test_local_jd_scripts_preserve_endpoint_coverage_and_safe_parse(self):
         from pathlib import Path
-        script = (Path(__file__).parent / "scripts/jingdong/jd.js").read_text(encoding="utf-8")
+        root = Path(__file__).parent / "scripts/jingdong"
+        base_script = (root / "jd.js").read_text(encoding="utf-8")
+        welcome_script = (root / "jd-welcome.js").read_text(encoding="utf-8")
         for marker in (
             "functionId=start", "functionId=welcomeHome",
             "functionId=readCustomSurfaceList", "functionId=deliverLayer",
             "functionId=orderTrackBusiness", "functionId=getTabHomeInfo",
             "functionId=myOrderInfo", "functionId=personinfoBusiness",
             "PERSON_INFO_BUSINESS_MID_EXCLUDE", "WELCOME_HOME_TYPE_INCLUDE",
-            "WELCOME_HOME_TYPE_EXCLUDE", "CUSTOM_SURFACE_NAME_INCLUDE",
-            "JSON.parse(body)", "$done({ body: JSON.stringify(obj) })",
+            "CUSTOM_SURFACE_NAME_INCLUDE", "JSON.parse(body)",
+            "$done({ body: JSON.stringify(obj) })",
         ):
-            self.assertIn(marker, script)
-        self.assertIn("catch (_)", script)
-        self.assertNotIn("fetch(", script)
-        self.assertNotIn("XMLHttpRequest", script)
+            self.assertIn(marker, base_script)
+        self.assertIn("catch (_)", base_script)
+        self.assertIn("with enable=jkds_enable", __import__("apply_local_overrides").JD_OPTIONAL_WELCOME_TRIGGER)
+        for marker in (
+            "bottomXview", "float", "photoCeiling", "ruleFloat",
+            "searchIcon", "topRotate", "tabBarAtmosphere",
+        ):
+            self.assertIn(marker, welcome_script)
+        self.assertIn("catch (_)", welcome_script)
+        for script in (base_script, welcome_script):
+            self.assertNotIn("fetch(", script)
+            self.assertNotIn("XMLHttpRequest", script)
 
 
 
