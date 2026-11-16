@@ -580,6 +580,14 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 新增测试覆盖精确去重、无关小程序触发器保留、触发器漂移、缺失、重复及幂等性。
 
 
+## 第八阶段第二十九批：淘宝首页、开屏与信息流子集规则审计
+
+- 淘宝首页/开屏：保留 HTTP 与 HTTPS 覆盖范围，移除已被同动作 HTTPS 综合规则覆盖的 `wireless.home.newface`、`wireless.home.splash` 子集规则；保留旧版 HTTP 入口规则。
+- 信息流：移除 Fliggy `crm.screen` 中与另一条相同 HTTPS/大小写范围、相同 JSON 空对象动作的重复 matcher；保留覆盖 HTTP 的规则。移除菜鸟 `adx.flyad.getad` 中被更宽 HTTP/HTTPS 同动作规则覆盖的 HTTPS 子集。
+- 对照 Loon 旧版 Rewrite 匹配顺序，只有在同动作、同范围或被严格覆盖时才删除；不同状态码、不同 Body 类型、HTTP/HTTPS 或大小写范围不同的规则均保留。
+- 不修改淘宝商品图片 CDN、搜索、商品详情、购物车、订单、支付及闲鱼专属接口；不移除 R-Store 的视频/开屏/Poplayer 处理脚本。
+- 覆盖器精确核对已审计的规则库存；未知变体、缺失覆盖规则、重复行均 fail-closed，并新增幂等及漂移测试。
+
 ## 第八阶段第二十八批：拼多多开屏与信息流重复处理收敛
 
 - 开屏接口 `api.(pinduoduo|yangkeduo).com/api/cappuccino/splash` 在合并产物中有两条重复的 request reject(404) matcher，另有 reject-200 与 reject-dict 两种不同响应语义。只合并重复的 404 matcher 为大小写不敏感规则；保留 reject-200 与 reject-dict，不把不同状态码/Body 语义误当成等价规则。

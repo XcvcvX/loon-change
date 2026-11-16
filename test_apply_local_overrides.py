@@ -574,6 +574,58 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         with self.assertRaisesRegex(ValueError, "native response cleaner missing"):
             remove_redundant_pdd_oak_script_trigger(["[Script]", PDD_OAK_REDUNDANT_SCRIPT_TRIGGER])
 
+    def test_removes_only_taobao_homepage_feed_rules_covered_by_same_action(self):
+        from apply_local_overrides import (
+            TAOBAO_FLIGGY_HTTP_COVER, TAOBAO_FLIGGY_HTTPS_COVER,
+            TAOBAO_FLIGGY_HTTPS_REDUNDANT, TAOBAO_CAINIAO_FLYAD_COVER,
+            TAOBAO_CAINIAO_FLYAD_REDUNDANT, TAOBAO_HOME_HTTP_COVER,
+            TAOBAO_HOME_HTTPS_COVER, TAOBAO_HOME_HTTPS_SUBSET,
+            TAOBAO_HOME_SPLASH_SUBSET, remove_redundant_taobao_rewrite_rules,
+        )
+        unrelated = r"^https?:\/\/guide-acs\.m\.taobao\.com\/gw\/mtop\.taobao\.wireless\.home\.config reject-dict"
+        fixture = [
+            "[Rewrite]", TAOBAO_FLIGGY_HTTP_COVER, TAOBAO_FLIGGY_HTTPS_COVER,
+            TAOBAO_FLIGGY_HTTPS_REDUNDANT, TAOBAO_CAINIAO_FLYAD_COVER,
+            TAOBAO_CAINIAO_FLYAD_REDUNDANT, TAOBAO_HOME_HTTP_COVER,
+            TAOBAO_HOME_HTTPS_COVER, TAOBAO_HOME_HTTPS_SUBSET,
+            TAOBAO_HOME_SPLASH_SUBSET, unrelated, "[Script]",
+        ]
+        result, removed = remove_redundant_taobao_rewrite_rules(fixture)
+        self.assertEqual(removed, 4)
+        for rule in (TAOBAO_FLIGGY_HTTP_COVER, TAOBAO_FLIGGY_HTTPS_COVER,
+                     TAOBAO_CAINIAO_FLYAD_COVER, TAOBAO_HOME_HTTP_COVER,
+                     TAOBAO_HOME_HTTPS_COVER, unrelated):
+            self.assertIn(rule, result)
+        for rule in (TAOBAO_FLIGGY_HTTPS_REDUNDANT, TAOBAO_CAINIAO_FLYAD_REDUNDANT,
+                     TAOBAO_HOME_HTTPS_SUBSET, TAOBAO_HOME_SPLASH_SUBSET):
+            self.assertNotIn(rule, result)
+        self.assertEqual(remove_redundant_taobao_rewrite_rules(result)[1], 0)
+
+    def test_taobao_rewrite_cleanup_fails_closed_on_drift_or_missing_cover(self):
+        from apply_local_overrides import (
+            TAOBAO_FLIGGY_HTTPS_REDUNDANT, TAOBAO_CAINIAO_FLYAD_REDUNDANT,
+            TAOBAO_HOME_HTTPS_SUBSET, remove_redundant_taobao_rewrite_rules,
+        )
+        with self.assertRaisesRegex(ValueError, "inventory changed"):
+            remove_redundant_taobao_rewrite_rules([
+                "[Rewrite]", TAOBAO_FLIGGY_HTTPS_REDUNDANT.replace("predict", "predict_v2")
+            ])
+        with self.assertRaisesRegex(ValueError, "covering rewrite missing"):
+            remove_redundant_taobao_rewrite_rules(["[Rewrite]", TAOBAO_CAINIAO_FLYAD_REDUNDANT])
+        with self.assertRaisesRegex(ValueError, "covering rewrite missing"):
+            remove_redundant_taobao_rewrite_rules(["[Rewrite]", TAOBAO_HOME_HTTPS_SUBSET])
+
+    def test_taobao_rewrite_cleanup_rejects_duplicate_known_rules(self):
+        from apply_local_overrides import (
+            TAOBAO_FLIGGY_HTTP_COVER, TAOBAO_FLIGGY_HTTPS_COVER,
+            TAOBAO_FLIGGY_HTTPS_REDUNDANT, remove_redundant_taobao_rewrite_rules,
+        )
+        with self.assertRaisesRegex(ValueError, "duplicate Taobao homepage/feed rewrite"):
+            remove_redundant_taobao_rewrite_rules([
+                "[Rewrite]", TAOBAO_FLIGGY_HTTP_COVER, TAOBAO_FLIGGY_HTTPS_COVER,
+                TAOBAO_FLIGGY_HTTPS_REDUNDANT, TAOBAO_FLIGGY_HTTPS_REDUNDANT,
+            ])
+
     def test_removes_duplicate_taobao_splash_scripts_and_keeps_canonical_rstore_triggers(self):
         from apply_local_overrides import (
             TAOBAO_CANONICAL_SCRIPT_TRIGGERS, TAOBAO_REDUNDANT_SCRIPT_TRIGGERS,
