@@ -1684,18 +1684,21 @@ def consolidate_ximalaya_homepage_json_rewrites(lines):
 
 
 
-# 微信解除链接限制：三个上游入口的脚本源码已逐字逻辑归一化比对，函数体相同。
-# 保留 R-Store 当前上游入口，避免同一响应被三个脚本重复解析。
+
+# 微信解除链接限制：R-Store 与 zZPiglet 两份脚本主体逐字逻辑相同；
+# RuCu6 MyBlockAds 版本存在 Spotify 链接解析差异，必须保留，不能视为重复。
 WECHAT_UNBLOCK_URL_CANONICAL_TRIGGER = "http-response ^https?:\\/\\/(weixin110\\.qq|security.wechat)\\.com\\/cgi-bin\\/mmspamsupport-bin\\/newredirectconfirmcgi\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/Plugins/Wechat_Unblock_URL.js,tag=WECHAT,requires-body=true"
-WECHAT_UNBLOCK_URL_REDUNDANT_TRIGGERS = (
-    "response if ${url} ~= /^https\\:\\/\\/(weixin110\\.qq|security.wechat)\\.com\\/cgi-bin\\/mmspamsupport-bin\\/newredirectconfirmcgi\\?/i then script(\"https://raw.githubusercontent.com/zZPiglet/Task/master/asset/UnblockURLinWeChat.js\") with enable=lmjpxmvi_enable, tag=\"UnblockURLinWeChat-解除微信链接限制\", timeout=60, requires_body=true",
-    "response if ${url} ~= /^https\\:\\/\\/(?:weixin110\\.qq|security\\.wechat)\\.com\\/cgi-bin\\/mmspamsupport-bin\\/newredirectconfirmcgi\\?/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_wechat.js\") with tag=\"wechat\", requires_body=true",
-)
+WECHAT_UNBLOCK_URL_REDUNDANT_TRIGGER = "response if ${url} ~= /^https\\:\\/\\/(weixin110\\.qq|security.wechat)\\.com\\/cgi-bin\\/mmspamsupport-bin\\/newredirectconfirmcgi\\?/i then script(\"https://raw.githubusercontent.com/zZPiglet/Task/master/asset/UnblockURLinWeChat.js\") with enable=lmjpxmvi_enable, tag=\"UnblockURLinWeChat-解除微信链接限制\", timeout=60, requires_body=true"
+WECHAT_UNBLOCK_URL_DISTINCT_TRIGGER = "response if ${url} ~= /^https\\:\\/\\/(?:weixin110\\.qq|security\\.wechat)\\.com\\/cgi-bin\\/mmspamsupport-bin\\/newredirectconfirmcgi\\?/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_wechat.js\") with tag=\"wechat\", requires_body=true"
 
 
 def consolidate_wechat_unblock_url_scripts(lines):
-    """Keep one exact WeChat URL-unblock script trigger; reject inventory drift."""
-    expected = (WECHAT_UNBLOCK_URL_CANONICAL_TRIGGER, *WECHAT_UNBLOCK_URL_REDUNDANT_TRIGGERS)
+    """Remove only the byte-for-byte-equivalent zZPiglet duplicate; preserve RuCu6 variant."""
+    expected = (
+        WECHAT_UNBLOCK_URL_CANONICAL_TRIGGER,
+        WECHAT_UNBLOCK_URL_REDUNDANT_TRIGGER,
+        WECHAT_UNBLOCK_URL_DISTINCT_TRIGGER,
+    )
     counts = {item: 0 for item in expected}
     output, section, target_seen, removed = [], "", False, 0
     for line in lines:
@@ -1712,7 +1715,7 @@ def consolidate_wechat_unblock_url_scripts(lines):
             counts[value] += 1
             if counts[value] > 1:
                 raise ValueError("duplicate WeChat URL-unblock script trigger")
-            if value == WECHAT_UNBLOCK_URL_CANONICAL_TRIGGER:
+            if value != WECHAT_UNBLOCK_URL_REDUNDANT_TRIGGER:
                 output.append(line)
             else:
                 removed += 1
@@ -1721,14 +1724,15 @@ def consolidate_wechat_unblock_url_scripts(lines):
 
     if not target_seen:
         return list(lines), 0
-    if counts[WECHAT_UNBLOCK_URL_CANONICAL_TRIGGER] == 1 and all(
-        counts[item] == 0 for item in WECHAT_UNBLOCK_URL_REDUNDANT_TRIGGERS
+    if (
+        counts[WECHAT_UNBLOCK_URL_CANONICAL_TRIGGER] == 1
+        and counts[WECHAT_UNBLOCK_URL_REDUNDANT_TRIGGER] == 0
+        and counts[WECHAT_UNBLOCK_URL_DISTINCT_TRIGGER] == 1
     ):
         return list(lines), 0
     if all(counts[item] == 1 for item in expected):
         return output, removed
     raise ValueError("WeChat URL-unblock script trigger inventory incomplete; refusing consolidation")
-
 
 
 def apply(text: str) -> str:
