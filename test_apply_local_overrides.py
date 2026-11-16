@@ -417,5 +417,42 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         with self.assertRaises(ValueError):
             apply(BASE.replace("creditcard.bankcomm.com, ", ""))
 
+
+    def test_replaces_gaoding_resource_scripts_with_exact_native_json_deletes(self):
+        from apply_local_overrides import (
+            GAODING_TEMPLATE_SCRIPT_TRIGGER, GAODING_MINE_SCRIPT_TRIGGER,
+            GAODING_NATIVE_RULES,
+        )
+        unrelated = r"http-response ^https?:\\/\\/www\\.gaoding\\.com\\/api\\/v1\\/account script-path=https://example.invalid/account.js,tag=ACCOUNT"
+        fixture = BASE.replace(
+            "[Script]",
+            "[Script]\n" + GAODING_TEMPLATE_SCRIPT_TRIGGER + "\n"
+            + GAODING_MINE_SCRIPT_TRIGGER + "\n" + unrelated,
+        )
+        result = apply(fixture)
+        rewrite = result.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
+        script = result.split("[Script]", 1)[1].split("[MITM]", 1)[0]
+        for rule in GAODING_NATIVE_RULES:
+            self.assertIn(rule, rewrite)
+        self.assertNotIn("gaoding.js", script)
+        self.assertIn(unrelated, script)
+        self.assertIn("pits[0].delivery_materials", GAODING_NATIVE_RULES[0])
+        self.assertIn("pits[2].delivery_materials", GAODING_NATIVE_RULES[1])
+        self.assertEqual(apply(result), result)
+
+    def test_fails_closed_when_gaoding_resource_script_trigger_changes(self):
+        from apply_local_overrides import GAODING_TEMPLATE_SCRIPT_TRIGGER
+        changed = GAODING_TEMPLATE_SCRIPT_TRIGGER.replace("requires-body=true", "requires-body=false")
+        fixture = BASE.replace("[Script]", "[Script]\n" + changed)
+        with self.assertRaisesRegex(ValueError, "Gaoding resource script trigger changed"):
+            apply(fixture)
+
+    def test_fails_closed_on_duplicate_gaoding_resource_script_trigger(self):
+        from apply_local_overrides import GAODING_TEMPLATE_SCRIPT_TRIGGER
+        fixture = BASE.replace("[Script]", "[Script]\n" + GAODING_TEMPLATE_SCRIPT_TRIGGER
+                               + "\n" + GAODING_TEMPLATE_SCRIPT_TRIGGER)
+        with self.assertRaisesRegex(ValueError, "duplicate Gaoding resource script triggers"):
+            apply(fixture)
+
 if __name__ == "__main__":
     unittest.main()
