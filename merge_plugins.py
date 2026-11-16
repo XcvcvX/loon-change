@@ -1159,32 +1159,47 @@ def escape_targeted_ad_hosts(rewrite_lines, source):
 
 
 def narrow_gamersky_list_response_host(rewrite_lines, source):
-    """将游民星空列表广告响应过滤限制到合法子域名与明确接口路径。"""
+    """Constrain the known Gamersky list-ad endpoint while preserving upstream action syntax and flags."""
     output = []
     adjustments = []
-    jq_action = (
-        'then response.json.jq(' + chr(96)
-        + '.listElements |= map(select(has("adCategory") | not))'
-        + chr(96) + ')'
+    jq_body = '.listElements |= map(select(has("adCategory") | not))'
+    jq_action_legacy = (
+        'then response.json.jq(' + chr(96) + jq_body + chr(96) + ')'
     )
-    original = (
+    jq_action_current = (
+        'then response.json.jq("' + jq_body.replace('"', r'\"') + '")'
+    )
+    original_legacy = (
         r'response if ${url} ~= /http:\/\/.+\.gamersky.com\/.+\/lists\/getListElements/ '
-        + jq_action
+        + jq_action_legacy
     )
-    narrowed = (
+    original_current = (
+        r'response if ${url} ~= /http:\/\/.+\.gamersky.com\/.+\/lists\/getListElements/i '
+        + jq_action_current
+    )
+    narrowed_legacy = (
         r'response if ${url} ~= /^http:\/\/(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}'
         r'[A-Za-z0-9])?\.)+gamersky\.com\/.+\/lists\/getListElements(?:\/|\?|#|$)/ '
-        + jq_action
+        + jq_action_legacy
+    )
+    narrowed_current = (
+        r'response if ${url} ~= /^http:\/\/(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}'
+        r'[A-Za-z0-9])?\.)+gamersky\.com\/.+\/lists\/getListElements(?:\/|\?|#|$)/i '
+        + jq_action_current
     )
     for line in rewrite_lines:
         if 'gamersky' not in line or 'getListElements' not in line:
             output.append(line)
             continue
-        if line != original:
+        if line == original_legacy:
+            replacement = narrowed_legacy
+        elif line == original_current:
+            replacement = narrowed_current
+        else:
             raise RuntimeError(
                 source + ' 游民星空列表广告响应规则范围或过滤动作已变化，拒绝自动改写：' + line
             )
-        updated_matcher = entry_regex(narrowed)
+        updated_matcher = entry_regex(replacement)
         updated_normalized = updated_matcher.replace(r'\/', '/') if updated_matcher else updated_matcher
         expected = (
             r'^http://(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+'
@@ -1198,12 +1213,12 @@ def narrow_gamersky_list_response_host(rewrite_lines, source):
             'reason': (
                 'Constrain the Gamersky list-ad response filter to valid declared subdomains, '
                 'a literal gamersky.com suffix, and the explicit getListElements endpoint; '
-                'preserve the original HTTP scheme and JSON adCategory filter.'
+                'preserve the upstream HTTP scheme, case flag, JSON jq syntax, and adCategory filter.'
             ),
             'original_line': line,
-            'output_line': narrowed,
+            'output_line': replacement,
         })
-        output.append(narrowed)
+        output.append(replacement)
     return output, adjustments
 
 

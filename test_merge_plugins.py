@@ -1610,6 +1610,46 @@ hostname = *.amap.com
         self.assertEqual(changes[0]["original_line"], rule)
         self.assertEqual(changes[0]["output_line"], result)
 
+    def test_gamersky_list_response_current_blockads_variant_preserves_i_and_json_quotes(self):
+        empty = "[Rewrite]\n[Script]\n[MITM]\nhostname = \n"
+        rule = (
+            r'response if ${url} ~= /http:\/\/.+\.gamersky.com\/.+\/lists\/getListElements/i '
+            r'then response.json.jq(".listElements |= map(select(has(\"adCategory\") | not))")'
+        )
+        extra = (
+            "[Rewrite]\n" + rule + "\n"
+            + "[MITM]\nhostname = api.gamersky.com\n"
+        )
+        output, report = self.run_merge(empty, extra, return_provenance=True)
+        result = next(
+            line for line in output.splitlines()
+            if line.startswith("response if") and "getListElements" in line
+        )
+        self.assertIn("/i then response.json.jq(", result)
+        self.assertIn(r'has(\"adCategory\")', result)
+        matcher = re.search(r"~= /(.*)/i then ", result).group(1).replace(r"\/", "/")
+        compiled = re.compile(matcher, re.IGNORECASE)
+        for url in (
+            "http://a.gamersky.com/api/v1/lists/getListElements",
+            "http://A.GAMERSKY.COM/api/v1/lists/getListElements?channel=app",
+        ):
+            self.assertRegex(url, compiled)
+        for url in (
+            "https://a.gamersky.com/api/v1/lists/getListElements",
+            "http://gamersky.com/api/v1/lists/getListElements",
+            "http://evilgamersky.com/api/v1/lists/getListElements",
+            "http://a.gamersky.com.evil.test/api/v1/lists/getListElements",
+            "http://a.gamersky.com/api/v1/lists/getListElementsExtra",
+        ):
+            self.assertNotRegex(url, compiled)
+        changes = [
+            item for item in report["scope_adjustments"]
+            if "Gamersky list-ad response filter" in item.get("reason", "")
+        ]
+        self.assertEqual(len(changes), 1)
+        self.assertEqual(changes[0]["original_line"], rule)
+        self.assertEqual(changes[0]["output_line"], result)
+
     def test_gamersky_list_response_guard_fails_closed_on_source_drift(self):
         empty = "[Rewrite]\n[Script]\n[MITM]\nhostname = \n"
         jq_action = (
