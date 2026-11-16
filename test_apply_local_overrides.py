@@ -2264,5 +2264,66 @@ class SameSourceResponseScriptDedupTests(unittest.TestCase):
             self.assertEqual(plugin.count(item), 1)
 
 
+class IdenticalScriptResponseDedupTests(unittest.TestCase):
+    def setUp(self):
+        from apply_local_overrides import (
+            IDENTICAL_SCRIPT_KEEP_SOURCE_TRIGGERS,
+            IDENTICAL_SCRIPT_KEEP_TRIGGERS,
+            IDENTICAL_SCRIPT_REMOVE_TRIGGERS,
+            IDENTICAL_SCRIPT_TRANSFORMS,
+        )
+        self.keep_source = IDENTICAL_SCRIPT_KEEP_SOURCE_TRIGGERS
+        self.keep = IDENTICAL_SCRIPT_KEEP_TRIGGERS
+        self.remove = IDENTICAL_SCRIPT_REMOVE_TRIGGERS
+        self.transforms = IDENTICAL_SCRIPT_TRANSFORMS
+        self.unrelated = 'response if ${url} ~= /^https?:\\/\\/example\\.com\\/api/ then script("https://example.invalid/keep.js")'
+        self.fixture = [
+            "[Script]", *self.remove, *self.keep_source, self.unrelated,
+            "[Rewrite]", "^https?:\\\\/\\\\/api.rr.tv\\\\/unrelated reject(404)",
+            "[MITM]", "hostname = api.rr.tv, api-a.soulapp.cn, gql.reddit.com",
+        ]
+
+    def test_removes_17_duplicates_and_keeps_24_single_handlers(self):
+        from apply_local_overrides import remove_identical_script_response_duplicates
+        result, removed = remove_identical_script_response_duplicates(self.fixture)
+        self.assertEqual(removed, 17)
+        for item in self.remove:
+            self.assertNotIn(item, result)
+        for item in self.keep_source:
+            expected = self.transforms.get(item, item)
+            self.assertEqual(result.count(expected), 1)
+        self.assertIn(self.unrelated, result)
+        self.assertIn("^https?:\\\\/\\\\/api.rr.tv\\\\/unrelated reject(404)", result)
+        self.assertEqual(remove_identical_script_response_duplicates(result), (result, 0))
+
+    def test_preserves_already_consolidated_inventory(self):
+        from apply_local_overrides import remove_identical_script_response_duplicates
+        clean = ["[Script]", *self.keep, "[MITM]"]
+        self.assertEqual(remove_identical_script_response_duplicates(clean), (clean, 0))
+
+    def test_fails_closed_on_missing_duplicate_or_unknown_variant(self):
+        from apply_local_overrides import remove_identical_script_response_duplicates
+        missing = [line for line in self.fixture if line != self.remove[0]]
+        with self.assertRaisesRegex(ValueError, "legacy identical-script inventory incomplete"):
+            remove_identical_script_response_duplicates(missing)
+
+        duplicate = ["[Script]", *self.remove, *self.keep_source, self.keep_source[0]]
+        with self.assertRaisesRegex(ValueError, "duplicate retained identical-script"):
+            remove_identical_script_response_duplicates(duplicate)
+
+        unknown = self.keep_source[0].replace("rrtv_json.js", "rrtv-next.js")
+        with self.assertRaisesRegex(ValueError, "inventory changed"):
+            remove_identical_script_response_duplicates(["[Script]", *self.remove, *self.keep_source[1:], unknown])
+
+    def test_checked_in_plugin_snapshot_has_only_the_canonical_handlers(self):
+        from pathlib import Path
+        from apply_local_overrides import IDENTICAL_SCRIPT_KEEP_TRIGGERS, IDENTICAL_SCRIPT_REMOVE_TRIGGERS
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        for item in IDENTICAL_SCRIPT_REMOVE_TRIGGERS:
+            self.assertNotIn(item, plugin)
+        for item in IDENTICAL_SCRIPT_KEEP_TRIGGERS:
+            self.assertEqual(plugin.count(item), 1)
+
+
 if __name__ == "__main__":
     unittest.main()
