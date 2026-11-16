@@ -361,7 +361,7 @@ def scope_pdd_image_cdn_ad_rules(lines):
 
         if section == "MITM" and value.lower().startswith("hostname") and "=" in value:
             hosts = [host.strip().lower() for host in value.split("=", 1)[1].split(",")]
-            mitm_has_host = PDD_IMAGE_CDN_HOST in hosts
+            mitm_has_host = mitm_has_host or PDD_IMAGE_CDN_HOST in hosts
             saw_target = saw_target or mitm_has_host
 
         output.append(line)
