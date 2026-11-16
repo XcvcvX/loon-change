@@ -1230,6 +1230,11 @@ def consolidate_jingdong_scripts(lines):
     canonical_count = scoped.count(JD_CANONICAL_TRIGGER)
     optional_count = scoped.count(JD_OPTIONAL_WELCOME_TRIGGER)
 
+    # Unrelated App test fixtures do not contain Jingdong triggers.
+    # Skip this override when none of the reviewed trigger variants is present.
+    if not (rstore_count or fmz_count or canonical_count or optional_count):
+        return list(lines), 0
+
     if canonical_count or optional_count:
         if canonical_count == 1 and optional_count == 1 and not rstore_count and not fmz_count:
             return list(lines), 0
