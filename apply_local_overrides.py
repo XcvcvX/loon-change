@@ -2628,7 +2628,7 @@ def remove_same_source_duplicate_response_scripts(lines):
             output.append(line)
             continue
 
-        normalized = line.replace("\\\\", "")
+        normalized = line.replace("\\", "")
         is_target = (
             section == "Script"
             and (
