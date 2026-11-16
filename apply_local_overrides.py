@@ -282,6 +282,99 @@ def consolidate_pdd_homepage_script(lines):
     return output, counts["ishowshu"] + counts["rstore"]
 
 
+# 拼多多开屏接口在多个来源中以不同动作重复匹配同一路径。
+# 统一保留最先生效的 404 拒绝行为，并使用大小写不敏感 matcher 覆盖原有大小写范围。
+PDD_SPLASH_OLD_CANONICAL_RULE = r"request if ${url} ~= /^https?:\/\/api\.(pinduoduo|yangkeduo)\.com\/api\/cappuccino\/splash/ then reject(404)"
+PDD_SPLASH_CANONICAL_RULE = r"request if ${url} ~= /^https?:\/\/api\.(pinduoduo|yangkeduo)\.com\/api\/cappuccino\/splash/i then reject(404)"
+PDD_SPLASH_DUPLICATE_404_RULE = r"request if ${url} ~= /^https:\/\/api\.(pinduoduo|yangkeduo)\.com\/api\/cappuccino\/splash/i then reject(404)"
+PDD_SPLASH_DISTINCT_ACTION_RULES = (
+    r"^https?://api\.(pinduoduo|yangkeduo)\.com/api/cappuccino/splash reject-200",
+    r"^https:\/\/api\.pinduoduo\.com\/api\/cappuccino\/splash reject-dict",
+)
+
+
+def consolidate_pdd_splash_rules(lines):
+    """Collapse only the duplicate 404 matcher; preserve distinct response status/body actions."""
+    old_count = sum(line.strip() == PDD_SPLASH_OLD_CANONICAL_RULE for line in lines)
+    canonical_count = sum(line.strip() == PDD_SPLASH_CANONICAL_RULE for line in lines)
+    duplicate_count = sum(line.strip() == PDD_SPLASH_DUPLICATE_404_RULE for line in lines)
+    distinct_counts = [sum(line.strip() == rule for line in lines) for rule in PDD_SPLASH_DISTINCT_ACTION_RULES]
+    known = old_count + canonical_count + duplicate_count + sum(distinct_counts)
+    target = [line for line in lines if "cappuccino" in line and "splash" in line]
+    if not target:
+        return list(lines), 0
+    if old_count + canonical_count != 1 or duplicate_count > 1 or any(count > 1 for count in distinct_counts):
+        raise ValueError("Pinduoduo splash rule inventory changed or duplicated; refusing consolidation")
+    if len(target) != known:
+        raise ValueError("unknown Pinduoduo splash matcher found; refusing unreviewed consolidation")
+    if canonical_count == 1 and duplicate_count == 0 and known == 3:
+        return list(lines), 0
+    if not all(distinct_counts):
+        raise ValueError("Pinduoduo splash distinct action inventory missing; refusing consolidation")
+    output = []
+    for line in lines:
+        stripped = line.strip()
+        if stripped == PDD_SPLASH_OLD_CANONICAL_RULE:
+            output.append(PDD_SPLASH_CANONICAL_RULE)
+        elif stripped == PDD_SPLASH_DUPLICATE_404_RULE:
+            continue
+        else:
+            output.append(line)
+    return output, 1
+
+
+# 以下三个广告资源 URL 规则在上游合并时重复出现，且更宽的同动作规则已先行覆盖。
+PDD_FEED_ASSET_CANONICAL_RULES = (
+    r"request if ${url} ~= /^https?:\/\/video-dsp\.pddpic\.com\/market-dsp-video\// then reject(404)",
+    r"request if ${url} ~= /^https?:\/\/t-dsp\.pinduoduo\.com\/dspcb\/i\/mrk_union/ then reject(404)",
+    r"request if ${url} ~= /^https?:\/\/images\.pinduoduo\.com\/(mrk|marketing_api)\// then reject(404)",
+)
+PDD_FEED_ASSET_REDUNDANT_RULES = (
+    r"request if ${url} ~= /^https:\/\/video-dsp\.pddpic\.com\/market-dsp-video\// then reject(404)",
+    r"request if ${url} ~= /^https:\/\/t-dsp\.pinduoduo\.com\/dspcb\/i\/mrk_union/ then reject(404)",
+    r"request if ${url} ~= /^https:\/\/images\.pinduoduo\.com\/mrk\// then reject(404)",
+    r"request if ${url} ~= /^https:\/\/images\.pinduoduo\.com\/marketing_api\// then reject(404)",
+)
+
+
+def remove_redundant_pdd_feed_asset_rules(lines):
+    """Remove exact narrower PDD asset rules already covered by broader same-action rules."""
+    counts = [sum(line.strip() == rule for line in lines) for rule in PDD_FEED_ASSET_REDUNDANT_RULES]
+    if not any(counts):
+        return list(lines), 0
+    if any(count > 1 for count in counts):
+        raise ValueError("duplicate Pinduoduo feed asset rule; refusing ambiguous cleanup")
+    canonical_counts = [sum(line.strip() == rule for line in lines) for rule in PDD_FEED_ASSET_CANONICAL_RULES]
+    for index, redundant in enumerate(counts):
+        if redundant and canonical_counts[index if index < 3 else 2] != 1:
+            raise ValueError("Pinduoduo feed asset covering rule missing; refusing cleanup")
+    return [line for line in lines if line.strip() not in PDD_FEED_ASSET_REDUNDANT_RULES], sum(counts)
+
+
+PDD_OAK_REDUNDANT_SCRIPT_TRIGGER = r"http-response ^https?:\/\/api\.pinduoduo\.com\/api\/oak\/integration\/render script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/pdd.js,tag=PDD,requires-body=true"
+PDD_OAK_NATIVE_RESPONSE_RULE = r'response if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/oak\/integration\/render\?/i then response.json.delete(["bottom_section_list", "ui.bottom_section", "ui.live_section.float_info"])'
+
+
+def remove_redundant_pdd_oak_script_trigger(lines):
+    """Keep native JSON field deletion and drop the script that parses the same response again."""
+    output, section = [], ""
+    trigger_count = 0
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            output.append(line)
+            continue
+        if section == "Script" and line.strip() == PDD_OAK_REDUNDANT_SCRIPT_TRIGGER:
+            trigger_count += 1
+            continue
+        output.append(line)
+    if trigger_count > 1:
+        raise ValueError("duplicate Pinduoduo oak response script trigger")
+    if trigger_count == 1 and sum(line.strip() == PDD_OAK_NATIVE_RESPONSE_RULE for line in lines) != 1:
+        raise ValueError("Pinduoduo oak native response cleaner missing; refusing script removal")
+    return output, trigger_count
+
+
 # 淘宝开屏两个接口在多个上游插件中重复挂载了等价响应脚本。
 # 保留 R-Store 的单一脚本入口；其逻辑与 FMZ、zmjde、RuCu6 对应分支一致。
 TAOBAO_CANONICAL_SCRIPT_TRIGGERS = (
@@ -923,6 +1016,7 @@ def apply(text: str) -> str:
         normalized_lines.append(candidate)
     lines = normalized_lines
     lines, _ = consolidate_pdd_homepage_script(lines)
+    lines, _ = remove_redundant_pdd_oak_script_trigger(lines)
     lines, guiderank_homepage_script_count = remove_guiderank_homepage_script(lines)
     lines, gaoding_converted_triggers = remove_gaoding_resource_scripts(lines)
     lines, _ = remove_redundant_taobao_scripts(lines)
@@ -937,6 +1031,8 @@ def apply(text: str) -> str:
         if line.startswith("[") and line.endswith("]"):
             if section == "Rewrite":
                 rewrite_lines, _ = remove_duplicate_pdd_homepage_delete_path(rewrite_lines)
+                rewrite_lines, _ = consolidate_pdd_splash_rules(rewrite_lines)
+                rewrite_lines, _ = remove_redundant_pdd_feed_asset_rules(rewrite_lines)
                 rewrite_lines, _ = remove_redundant_dache_core_icon_filter(rewrite_lines)
                 rewrite_lines, _ = merge_didi_fast_homepage_json_deletes(rewrite_lines)
                 rewrite_lines, _ = remove_didi_homepage_rejects_shadowing_field_cleaners(rewrite_lines)
@@ -957,6 +1053,8 @@ def apply(text: str) -> str:
         else: result_lines.append(line)
     if section == "Rewrite":
         rewrite_lines, _ = remove_duplicate_pdd_homepage_delete_path(rewrite_lines)
+        rewrite_lines, _ = consolidate_pdd_splash_rules(rewrite_lines)
+        rewrite_lines, _ = remove_redundant_pdd_feed_asset_rules(rewrite_lines)
         rewrite_lines, _ = remove_redundant_dache_core_icon_filter(rewrite_lines)
         rewrite_lines, _ = merge_didi_fast_homepage_json_deletes(rewrite_lines)
         rewrite_lines, _ = remove_didi_homepage_rejects_shadowing_field_cleaners(rewrite_lines)
