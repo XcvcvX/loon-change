@@ -1417,6 +1417,7 @@ def remove_douyin_hongguo_unsafe_rules(lines):
 
 
 
+
 # Kugou/Jin10 rewrite deduplication is deliberately limited to audited exact matchers.
 KUGOU_DUPLICATE_REWRITES = {
     "^https:\\/\\/fx\\.service\\.kugou\\.com\\/mfx-kugoulive\\/ad\\/ reject-dict",
@@ -1477,6 +1478,7 @@ def remove_kugou_jin10_redundant_rewrites(lines):
     if seen != set(KUGOU_DUPLICATE_REWRITES):
         raise ValueError("Kugou/Jin10 canonical rewrite insertion failed")
     return output, len(KUGOU_DUPLICATE_REWRITES) + 2
+
 
 
 def apply(text: str) -> str:
