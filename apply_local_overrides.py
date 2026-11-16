@@ -284,12 +284,12 @@ def consolidate_pdd_homepage_script(lines):
 
 # 拼多多开屏接口在多个来源中以不同动作重复匹配同一路径。
 # 统一保留最先生效的 404 拒绝行为，并使用大小写不敏感 matcher 覆盖原有大小写范围。
-PDD_SPLASH_OLD_CANONICAL_RULE = r"request if \${url} ~= /^https?:\\/\\/api\\.(pinduoduo|yangkeduo)\\.com\\/api\\/cappuccino\\/splash/ then reject(404)"
-PDD_SPLASH_CANONICAL_RULE = r"request if \${url} ~= /^https?:\\/\\/api\\.(pinduoduo|yangkeduo)\\.com\\/api\\/cappuccino\\/splash/i then reject(404)"
+PDD_SPLASH_OLD_CANONICAL_RULE = r"request if ${url} ~= /^https?:\/\/api\.(pinduoduo|yangkeduo)\.com\/api\/cappuccino\/splash/ then reject(404)"
+PDD_SPLASH_CANONICAL_RULE = r"request if ${url} ~= /^https?:\/\/api\.(pinduoduo|yangkeduo)\.com\/api\/cappuccino\/splash/i then reject(404)"
 PDD_SPLASH_REDUNDANT_RULES = (
-    r"request if \${url} ~= /^https:\\/\\/api\\.(pinduoduo|yangkeduo)\\.com\\/api\\/cappuccino\\/splash/i then reject(404)",
-    r"^https?://api\\.(pinduoduo|yangkeduo)\\.com/api/cappuccino/splash reject-200",
-    r"^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/cappuccino\\/splash reject-dict",
+    r"request if ${url} ~= /^https:\/\/api\.(pinduoduo|yangkeduo)\.com\/api\/cappuccino\/splash/i then reject(404)",
+    r"^https?://api\.(pinduoduo|yangkeduo)\.com/api/cappuccino/splash reject-200",
+    r"^https:\/\/api\.pinduoduo\.com\/api\/cappuccino\/splash reject-dict",
 )
 
 
@@ -322,15 +322,15 @@ def consolidate_pdd_splash_rules(lines):
 
 # 以下三个广告资源 URL 规则在上游合并时重复出现，且更宽的同动作规则已先行覆盖。
 PDD_FEED_ASSET_CANONICAL_RULES = (
-    r"request if \${url} ~= /^https?:\\/\\/video-dsp\\.pddpic\\.com\\/market-dsp-video\\// then reject(404)",
-    r"request if \${url} ~= /^https?:\\/\\/t-dsp\\.pinduoduo\\.com\\/dspcb\\/i\\/mrk_union/ then reject(404)",
-    r"request if \${url} ~= /^https?:\\/\\/images\\.pinduoduo\\.com\\/(mrk|marketing_api)\\// then reject(404)",
+    r"request if ${url} ~= /^https?:\/\/video-dsp\.pddpic\.com\/market-dsp-video\// then reject(404)",
+    r"request if ${url} ~= /^https?:\/\/t-dsp\.pinduoduo\.com\/dspcb\/i\/mrk_union/ then reject(404)",
+    r"request if ${url} ~= /^https?:\/\/images\.pinduoduo\.com\/(mrk|marketing_api)\// then reject(404)",
 )
 PDD_FEED_ASSET_REDUNDANT_RULES = (
-    r"request if \${url} ~= /^https:\\/\\/video-dsp\\.pddpic\\.com\\/market-dsp-video\\// then reject(404)",
-    r"request if \${url} ~= /^https:\\/\\/t-dsp\\.pinduoduo\\.com\\/dspcb\\/i\\/mrk_union/ then reject(404)",
-    r"request if \${url} ~= /^https:\\/\\/images\\.pinduoduo\\.com\\/mrk\\// then reject(404)",
-    r"request if \${url} ~= /^https:\\/\\/images\\.pinduoduo\\.com\\/marketing_api\\// then reject(404)",
+    r"request if ${url} ~= /^https:\/\/video-dsp\.pddpic\.com\/market-dsp-video\// then reject(404)",
+    r"request if ${url} ~= /^https:\/\/t-dsp\.pinduoduo\.com\/dspcb\/i\/mrk_union/ then reject(404)",
+    r"request if ${url} ~= /^https:\/\/images\.pinduoduo\.com\/mrk\// then reject(404)",
+    r"request if ${url} ~= /^https:\/\/images\.pinduoduo\.com\/marketing_api\// then reject(404)",
 )
 
 
@@ -348,8 +348,8 @@ def remove_redundant_pdd_feed_asset_rules(lines):
     return [line for line in lines if line.strip() not in PDD_FEED_ASSET_REDUNDANT_RULES], sum(counts)
 
 
-PDD_OAK_REDUNDANT_SCRIPT_TRIGGER = r"http-response ^https?:\\/\\/api\\.pinduoduo\\.com\\/api\\/oak\\/integration\\/render script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/pdd.js,tag=PDD,requires-body=true"
-PDD_OAK_NATIVE_RESPONSE_RULE = r'response if \${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/oak\\/integration\\/render\\?/i then response.json.delete(["bottom_section_list", "ui.bottom_section", "ui.live_section.float_info"])'
+PDD_OAK_REDUNDANT_SCRIPT_TRIGGER = r"http-response ^https?:\/\/api\.pinduoduo\.com\/api\/oak\/integration\/render script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/pdd.js,tag=PDD,requires-body=true"
+PDD_OAK_NATIVE_RESPONSE_RULE = r'response if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/oak\/integration\/render\?/i then response.json.delete(["bottom_section_list", "ui.bottom_section", "ui.live_section.float_info"])'
 
 
 def remove_redundant_pdd_oak_script_trigger(lines):
@@ -495,12 +495,12 @@ DDQX_NEWDETAILS_NATIVE_RULE = r'response if ${url} ~= /^https?:\/\/maicai\.api\.
 def replace_ddqx_newdetails_body_rewrites(lines):
     """Replace only the reviewed Duoduo Grocery suspension-field rewrites with JSON deletion."""
     output, converted, legacy_count, modern_count, native_count = [], 0, 0, 0, 0
-    normalized_matcher = re.sub(r"\\+", "", DDQX_NEWDETAILS_MATCHER)
-    normalized_native = re.sub(r"\\+", "", DDQX_NEWDETAILS_NATIVE_RULE)
+    normalized_matcher = re.sub(r"\+", "", DDQX_NEWDETAILS_MATCHER)
+    normalized_native = re.sub(r"\+", "", DDQX_NEWDETAILS_NATIVE_RULE)
     normalized_legacy = normalized_matcher + " " + DDQX_NEWDETAILS_LEGACY_ACTION
-    normalized_modern = re.sub(r"\\+", "", DDQX_NEWDETAILS_MODERN_ACTION)
+    normalized_modern = re.sub(r"\+", "", DDQX_NEWDETAILS_MODERN_ACTION)
     for line in lines:
-        normalized = re.sub(r"\\+", "", line.strip())
+        normalized = re.sub(r"\+", "", line.strip())
         if DDQX_NEWDETAILS_MARKER.lower() not in normalized.lower():
             output.append(line)
             continue
@@ -1028,8 +1028,6 @@ def apply(text: str) -> str:
         if line.startswith("[") and line.endswith("]"):
             if section == "Rewrite":
                 rewrite_lines, _ = remove_duplicate_pdd_homepage_delete_path(rewrite_lines)
-        rewrite_lines, _ = consolidate_pdd_splash_rules(rewrite_lines)
-        rewrite_lines, _ = remove_redundant_pdd_feed_asset_rules(rewrite_lines)
                 rewrite_lines, _ = consolidate_pdd_splash_rules(rewrite_lines)
                 rewrite_lines, _ = remove_redundant_pdd_feed_asset_rules(rewrite_lines)
                 rewrite_lines, _ = remove_redundant_dache_core_icon_filter(rewrite_lines)
@@ -1052,6 +1050,8 @@ def apply(text: str) -> str:
         else: result_lines.append(line)
     if section == "Rewrite":
         rewrite_lines, _ = remove_duplicate_pdd_homepage_delete_path(rewrite_lines)
+        rewrite_lines, _ = consolidate_pdd_splash_rules(rewrite_lines)
+        rewrite_lines, _ = remove_redundant_pdd_feed_asset_rules(rewrite_lines)
         rewrite_lines, _ = remove_redundant_dache_core_icon_filter(rewrite_lines)
         rewrite_lines, _ = merge_didi_fast_homepage_json_deletes(rewrite_lines)
         rewrite_lines, _ = remove_didi_homepage_rejects_shadowing_field_cleaners(rewrite_lines)
