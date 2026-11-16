@@ -367,7 +367,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
     def test_converts_duoduo_grocery_newdetails_suspension_to_native_json_delete(self):
         from apply_local_overrides import DDQX_NEWDETAILS_NATIVE_RULE
         legacy = r'^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/newDetails response-body-replace-regex suspension random_body'
-        modern = r'response if \${url} ~= /^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/newDetails/ then response.body.replace(/suspension/, "fmz200")'
+        modern = r'response if ${url} ~= /^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/newDetails/ then response.body.replace(/suspension/, "fmz200")'
         keep = r'^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/getHomeAdPop reject-dict'
         fixture = BASE.replace("[Rewrite]", "[Rewrite]\n" + legacy + "\n" + modern + "\n" + keep)
         result = apply(fixture)
@@ -380,7 +380,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertEqual(apply(result), result)
 
     def test_fails_closed_when_duoduo_grocery_newdetails_rule_changes(self):
-        changed = r'response if \${url} ~= /^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/newDetails/ then response.body.replace(/data/, "hidden")'
+        changed = r'response if ${url} ~= /^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/newDetails/ then response.body.replace(/data/, "hidden")'
         fixture = BASE.replace("[Rewrite]", "[Rewrite]\n" + changed)
         with self.assertRaisesRegex(ValueError, "Duoduo Grocery newDetails suspension rule changed"):
             apply(fixture)
