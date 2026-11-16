@@ -560,6 +560,44 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertEqual(apply(result), result)
 
 
+
+    def test_removes_unconditional_dianping_triggers_when_gated_equivalents_exist(self):
+        from apply_local_overrides import DIANPING_LEGACY_SCRIPT_RULES, remove_redundant_dianping_scripts
+        legacy1, gated1, _ = DIANPING_LEGACY_SCRIPT_RULES[0]
+        legacy2, gated2, _ = DIANPING_LEGACY_SCRIPT_RULES[1]
+        unrelated = "http-response https://example.invalid/ script-path=other.js"
+        result, removed = remove_redundant_dianping_scripts([legacy1, legacy2, gated1, gated2, unrelated])
+        self.assertEqual(removed, 2)
+        self.assertNotIn(legacy1, result)
+        self.assertNotIn(legacy2, result)
+        self.assertIn(gated1, result)
+        self.assertIn(gated2, result)
+        self.assertIn(unrelated, result)
+        self.assertEqual(remove_redundant_dianping_scripts(result)[1], 0)
+
+    def test_fails_closed_when_dianping_gated_trigger_is_missing(self):
+        from apply_local_overrides import DIANPING_LEGACY_SCRIPT_RULES, remove_redundant_dianping_scripts
+        legacy, _, _ = DIANPING_LEGACY_SCRIPT_RULES[0]
+        with self.assertRaisesRegex(ValueError, "gated script trigger missing or changed"):
+            remove_redundant_dianping_scripts([legacy])
+
+    def test_fails_closed_on_duplicate_dianping_triggers(self):
+        from apply_local_overrides import DIANPING_LEGACY_SCRIPT_RULES, remove_redundant_dianping_scripts
+        legacy, gated, _ = DIANPING_LEGACY_SCRIPT_RULES[0]
+        with self.assertRaisesRegex(ValueError, "duplicate legacy"):
+            remove_redundant_dianping_scripts([legacy, legacy, gated])
+        with self.assertRaisesRegex(ValueError, "duplicate gated"):
+            remove_redundant_dianping_scripts([legacy, gated, gated])
+
+    def test_generated_plugin_uses_only_switch_gated_dianping_triggers(self):
+        from pathlib import Path
+        from apply_local_overrides import DIANPING_LEGACY_SCRIPT_RULES
+        plugin = Path(__file__).parent / "allAdRewrite.plugin"
+        result = apply(plugin.read_text(encoding="utf-8"))
+        for legacy, gated, _ in DIANPING_LEGACY_SCRIPT_RULES:
+            self.assertNotIn(legacy, result)
+            self.assertIn(gated, result)
+
     def test_removes_didi_core_homepage_reject_when_field_cleaner_exists(self):
         from apply_local_overrides import (
             DIDI_HOME_CORE_LEGACY_REJECT, DIDI_HOME_CORE_RESPONSE_PREFIX,
