@@ -457,8 +457,8 @@ def remove_redundant_dache_core_icon_filter(lines):
 # Legacy Didi rules rejected the entire v1 homepage response before the newer
 # field-level response cleaners could run. Remove only those exact request
 # rejects when the corresponding precise response cleaner is present.
-DIDI_HOME_SLOW_LEGACY_REJECT = r"^https:\/\/conf\.diditaxi\.com\.cn\/homepage\/v1\/other\/slow reject-dict"
-DIDI_HOME_FAST_LEGACY_REJECT = r"^https:\/\/conf\.diditaxi\.com\.cn\/homepage\/v1\/other\/fast reject-dict"
+DIDI_HOME_SLOW_LEGACY_REJECT = r"^https?:\/\/conf\.diditaxi\.com\.cn\/homepage\/v\d\/other\/slow reject-dict"
+DIDI_HOME_FAST_LEGACY_REJECT = r"^https?:\/\/conf\.diditaxi\.com\.cn\/homepage\/v\d\/other\/fast reject-dict"
 DIDI_HOME_SLOW_RESPONSE_PREFIX = r"response if ${url} ~= /^https:\/\/conf\.diditaxi\.com\.cn\/homepage\/v\d\/other\/slow\?/i then response.json.delete("
 DIDI_HOME_FAST_RESPONSE_PREFIX = r"response if ${url} ~= /^https:\/\/conf\.diditaxi\.com\.cn\/homepage\/v\d\/other\/fast\?/i then response.json.delete("
 
@@ -472,8 +472,8 @@ def remove_didi_homepage_rejects_shadowing_field_cleaners(lines):
     output = list(lines)
     removed = 0
     targets = (
-        (DIDI_HOME_SLOW_LEGACY_REJECT, DIDI_HOME_SLOW_RESPONSE_PREFIX, "slow", "homepage/v1/other/slow"),
-        (DIDI_HOME_FAST_LEGACY_REJECT, DIDI_HOME_FAST_RESPONSE_PREFIX, "fast", "homepage/v1/other/fast"),
+        (DIDI_HOME_SLOW_LEGACY_REJECT, DIDI_HOME_SLOW_RESPONSE_PREFIX, "slow", "homepage/vd/other/slow"),
+        (DIDI_HOME_FAST_LEGACY_REJECT, DIDI_HOME_FAST_RESPONSE_PREFIX, "fast", "homepage/vd/other/fast"),
         (DIDI_HOME_CORE_LEGACY_REJECT, DIDI_HOME_CORE_RESPONSE_PREFIX, "core", "homepage/vd/core"),
     )
     for legacy_rule, response_prefix, label, drift_marker in targets:
@@ -498,6 +498,106 @@ def remove_didi_homepage_rejects_shadowing_field_cleaners(lines):
         output = [line for line in output if line.strip() != legacy_rule]
         removed += 1
     return output, removed
+
+
+DIDI_CORE_LEGACY_SCRIPT = "http-response ^https?:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v\\d\\/core script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI,requires-body=true"
+DIDI_USERCENTER_LEGACY_SCRIPT = "http-response ^https?:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v\\d\\/usercenter\\/me script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI-3,requires-body=true"
+DIDI_OTA_KEEP_SCRIPT = "http-response ^https?:\\/\\/conf\\.diditaxi\\.com\\.cn\\/ota\\/na\\/yuantu\\/infoList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI-2,requires-body=true"
+DIDI_PRESALE_KEEP_SCRIPT = "http-response ^https?:\\/\\/api\\.udache\\.com\\/gulfstream\\/pre-sale\\/v\\d\\/other\\/pGetSceneList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI-4,requires-body=true"
+DIDI_CORE_LEGACY_JSON_RULE = "^https:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v1\\/core\\? response-body-json-jq '.data.disorder_cards.bottom_nav_list.data |= [.[] | select(.id == \"home_page\" or .id == \"user_center\")] | .data.order_cards.nav_list_card.data |= [.[] | select(.nav_id == \"bike\" or .nav_id == \"driverservice\" or .nav_id == \"carmate\")]'"
+DIDI_CORE_NATIVE_RULE_CURRENT = "response if ${url} ~= /^https:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v\\d\\/core\\?/i then response.json.jq(\".data.order_cards.nav_list_card.data |= map(select(.nav_id == \\\"dache_anycar\\\" or .nav_id == \\\"carmate\\\" or .nav_id == \\\"driverservice\\\" or .nav_id == \\\"zhandianbashi\\\" or .nav_id == \\\"pincheche\\\" or .nav_id == \\\"bike\\\" or .nav_id == \\\"nav_more_v3\\\")) | .data.disorder_cards.top_nav_list.data.top_nav_info |= map(select(.nav_id == \\\"chu_xing\\\" or .nav_id == \\\"freight_cargo\\\"))\")"
+DIDI_CORE_NATIVE_RULE = "response if ${url} ~= /^https:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v\\d\\/core\\?/i then response.json.jq(\"(if (try (.data.disorder_cards.bottom_nav_list.data | type) catch null) == \\\"array\\\" then .data.disorder_cards.bottom_nav_list.data |= map(select(.id == \\\"v6x_home\\\" or .id == \\\"home_page\\\" or .id == \\\"user_center\\\")) else . end) | (if (try (.data.order_cards.nav_list_card.data | type) catch null) == \\\"array\\\" then .data.order_cards.nav_list_card.data |= map(select(.nav_id == \\\"dache_anycar\\\" or .nav_id == \\\"carmate\\\" or .nav_id == \\\"driverservice\\\" or .nav_id == \\\"zhandianbashi\\\" or .nav_id == \\\"pincheche\\\" or .nav_id == \\\"bike\\\" or .nav_id == \\\"nav_more_v3\\\")) else . end) | (if (try (.data.disorder_cards.top_nav_list.data.top_nav_info | type) catch null) == \\\"array\\\" then .data.disorder_cards.top_nav_list.data.top_nav_info |= map(select(.nav_id == \\\"chu_xing\\\" or .nav_id == \\\"freight_cargo\\\")) else . end)\")"
+DIDI_USERCENTER_LAYOUT_LEGACY_JSON_RULE = "^https:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v5\\/usercenter\\/layout response-body-json-jq 'del(.data.instances.center_marketing_card, .data.instances.center_tool_card, .data.instances.center_widget_list, .data.instances.center_res_light_guide) | .data.instances.center_wallet_finance_card.data.view_info |= map(select(.title == \"优惠卡券\"))'"
+DIDI_USERCENTER_LAYOUT_NATIVE_PREFIX = "response if ${url} ~= /^https:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v\\d\\/usercenter\\/layout/i then response.json.jq("
+DIDIADS_COMMON_V5_SCRIPT = "response if ${url} ~= /^https?:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v5/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"微信小程序个人中心净化\", timeout=60, requires_body=true"
+DIDIADS_NOOP_SCRIPT_RULES = (
+    "response if ${url} ~= /^https?:\\/\\/ct\\.xiaojukeji\\.com\\/agent\\/v3\\/feeds/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/freight\\.xiaojukeji\\.com\\/gateway/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/res\\.xiaojukeji\\.com\\/resapi\\/activity\\/xpget/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/res\\.xiaojukeji\\.com\\/resapi\\/activity\\/mget/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v\\d\\/other\\/fast/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/conf\\.diditaxi\\.com\\.cn\\/dynamic\\/conf/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/daijia\\.kuaidadi\\.com\\/gateway/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/daijia\\.kuaidadi\\.com:443\\/gateway/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
+)
+
+
+def apply_didi_script_and_homepage_cleanup(lines):
+    """Remove dead/overlapping Didi scripts and consolidate homepage/profile field cleaners."""
+    output = list(lines)
+    if "[Argument]" not in output or "[Rule]" not in output:
+        return output, 0
+    norm = lambda value: re.sub(r"\\+", "", value.strip()).lower()
+
+    core_current = [i for i, line in enumerate(output) if line.strip() == DIDI_CORE_NATIVE_RULE_CURRENT]
+    core_native = [i for i, line in enumerate(output) if line.strip() == DIDI_CORE_NATIVE_RULE]
+    if len(core_current) > 1 or len(core_native) > 1 or len(core_current) + len(core_native) != 1:
+        raise ValueError("Didi core homepage native rule inventory changed")
+    for line in output:
+        n = norm(line)
+        if "homepage/vd/core" in n and "response if" in n and "response.json.jq(" in n and line.strip() not in (DIDI_CORE_NATIVE_RULE_CURRENT, DIDI_CORE_NATIVE_RULE):
+            raise ValueError("Didi core homepage native rule drifted")
+    if core_current:
+        output[core_current[0]] = DIDI_CORE_NATIVE_RULE
+
+    old_core_json = [i for i, line in enumerate(output) if line.strip() == DIDI_CORE_LEGACY_JSON_RULE]
+    drifted_core_json = [line for line in output if "homepage/v1/core" in norm(line) and "response-body-json-jq" in line and line.strip() != DIDI_CORE_LEGACY_JSON_RULE]
+    if drifted_core_json:
+        raise ValueError("Didi legacy core JSON rule drifted")
+    if len(old_core_json) > 1:
+        raise ValueError("duplicate Didi legacy core JSON rules")
+    if old_core_json:
+        output = [line for line in output if line.strip() != DIDI_CORE_LEGACY_JSON_RULE]
+
+    old_user_layout = [i for i, line in enumerate(output) if line.strip() == DIDI_USERCENTER_LAYOUT_LEGACY_JSON_RULE]
+    drifted_user_layout = [line for line in output if "usercenter/layout" in norm(line) and "response-body-json-jq" in line and line.strip() != DIDI_USERCENTER_LAYOUT_LEGACY_JSON_RULE]
+    modern_user_layout = [line for line in output if line.strip().startswith(DIDI_USERCENTER_LAYOUT_NATIVE_PREFIX)]
+    if drifted_user_layout:
+        raise ValueError("Didi usercenter layout legacy JSON rule drifted")
+    if len(old_user_layout) > 1 or len(modern_user_layout) != 1:
+        raise ValueError("Didi usercenter layout native rule inventory changed")
+    if old_user_layout:
+        output = [line for line in output if line.strip() != DIDI_USERCENTER_LAYOUT_LEGACY_JSON_RULE]
+
+    common_v5 = [line for line in output if line.strip() == DIDIADS_COMMON_V5_SCRIPT]
+    if len(common_v5) != 1:
+        raise ValueError("Didi common/v5 canonical script trigger missing or duplicated")
+    for legacy, marker, label in (
+        (DIDI_CORE_LEGACY_SCRIPT, "homepage/vd/core", "core"),
+        (DIDI_USERCENTER_LEGACY_SCRIPT, "common/vd/usercenter/me", "usercenter"),
+    ):
+        exact = [line for line in output if line.strip() == legacy]
+        drifted = [line for line in output if "AntiAd/didi.js" in line and marker in norm(line) and line.strip() != legacy]
+        if drifted:
+            raise ValueError("Didi " + label + " legacy script trigger drifted")
+        if len(exact) > 1:
+            raise ValueError("duplicate Didi " + label + " legacy script trigger")
+        if exact:
+            output = [line for line in output if line.strip() != legacy]
+
+    removed_noop = 0
+    for legacy in DIDIADS_NOOP_SCRIPT_RULES:
+        marker = norm(legacy.split(" then script(", 1)[0])
+        exact = [line for line in output if line.strip() == legacy]
+        drifted = [line for line in output if "didiAds.js" in line and marker in norm(line) and line.strip() != legacy]
+        if drifted:
+            raise ValueError("DidiAds no-op script trigger drifted; refusing unreviewed cleanup")
+        if len(exact) > 1:
+            raise ValueError("duplicate DidiAds no-op script trigger")
+        if exact:
+            output = [line for line in output if line.strip() != legacy]
+            removed_noop += 1
+
+    remaining_didiads = [line.strip() for line in output if "didiAds.js" in line]
+    if remaining_didiads != [DIDIADS_COMMON_V5_SCRIPT]:
+        raise ValueError("DidiAds script trigger inventory changed; expected common/v5 only")
+    for keeper in (DIDI_OTA_KEEP_SCRIPT, DIDI_PRESALE_KEEP_SCRIPT):
+        if sum(line.strip() == keeper for line in output) != 1:
+            raise ValueError("Didi R-Store retained script inventory changed")
+    remaining_rstore = [line.strip() for line in output if "AntiAd/didi.js" in line]
+    if sorted(remaining_rstore) != sorted((DIDI_OTA_KEEP_SCRIPT, DIDI_PRESALE_KEEP_SCRIPT)):
+        raise ValueError("Didi R-Store script inventory changed")
+    return output, removed_noop
 
 DIDI_FAST_HOME_DELETE_FIRST = r'response if ${url} ~= /^https:\/\/conf\.diditaxi\.com\.cn\/homepage\/v\d\/other\/fast\?/i then response.json.delete(["data.disorder_cards.communicate_card", "data.disorder_cards.not_login_bottom_bar", "data.disorder_cards.riding_code_card", "data.order_cards", "data.disorder_cards.car_icon.data.icon_info_new_agreement"])'
 DIDI_FAST_HOME_DELETE_SECOND = r'response if ${url} ~= /^https:\/\/conf\.diditaxi\.com\.cn\/homepage\/v\d\/other\/fast\?/i then response.json.delete(["data.disorder_cards.guess_card", "data.disorder_cards.scene_list_card"])'
@@ -823,6 +923,7 @@ def apply(text: str) -> str:
         existing_rewrites = {item.strip() for item in rewrite_lines}
         rewrite_lines.extend(rule for rule in GAODING_NATIVE_RULES if rule not in existing_rewrites and ((rule == GAODING_NATIVE_RULES[0] and GAODING_TEMPLATE_SCRIPT_TRIGGER in gaoding_converted_triggers) or (rule == GAODING_NATIVE_RULES[1] and GAODING_MINE_SCRIPT_TRIGGER in gaoding_converted_triggers)))
         result_lines.extend(rewrite_lines)
+    result_lines, _ = apply_didi_script_and_homepage_cleanup(result_lines)
     result = "\n".join(result_lines)
     # Scope YYting to the two confirmed hosts. Upstream and generated plugin
     # text may encode URL slashes with one or multiple backslashes; normalize
