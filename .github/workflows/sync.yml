@@ -10,6 +10,8 @@ on:
       - 'audit_plugin.py'
       - 'deep_audit.py'
       - 'source_guard.py'
+      - 'stage_romeo_plugins.py'
+      - 'test_stage_romeo_plugins.py'
       - 'amap_dependency_guard.py'
       - 'apply_amap_local_overrides.py'
       - 'test_apply_amap_local_overrides.py'
@@ -27,12 +29,15 @@ on:
       - 'test_integrate_spotify.py'
       - 'sources/spotify/**'
       - 'sources/alipayAdBlock/**'
+      - 'sources/romeo_legacy/**'
       - 'scripts/**'
       - '.github/workflows/sync.yml'
   pull_request:
     paths:
       - 'validate_plugin.py'
       - 'source_guard.py'
+      - 'stage_romeo_plugins.py'
+      - 'test_stage_romeo_plugins.py'
       - 'merge_plugins.py'
       - 'mitm_policy.py'
       - 'test_mitm_policy.py'
@@ -63,6 +68,7 @@ on:
       - 'README.md'
       - 'sources/amap/**'
       - 'sources/alipayAdBlock/**'
+      - 'sources/romeo_legacy/**'
       - 'scripts/**'
       - 'apply_local_overrides.py'
       - 'test_apply_local_overrides.py'
@@ -88,10 +94,27 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
+      - name: 验证 Romeo 插件映射与本地快照
+        run: |
+          git clone --depth 1 https://github.com/ifflagged/Romeo.git /tmp/romeo-check
+          ROMEO_CHECK_SHA="$(git -C /tmp/romeo-check rev-parse HEAD)"
+          python3 stage_romeo_plugins.py --romeo-repo /tmp/romeo-check --commit "$ROMEO_CHECK_SHA" --output /tmp/romeo-check/plugins
+          python3 - <<'PY'
+          from pathlib import Path
+          from source_guard import validate_plugin_file
+          paths = sorted(Path("/tmp/romeo-check/plugins").glob("*"))
+          paths = [p for p in paths if p.suffix.lower() in (".lpx", ".plugin")]
+          total = sum(validate_plugin_file(p, str(p)) for p in paths)
+          if len(paths) != 28 or total < 169:
+              raise SystemExit(f"Romeo plugin feed incomplete or dropped over 60% of baseline: files={len(paths)}, valid_entries={total}")
+          print(f"Romeo plugin feed validated: {len(paths)} files, {total} entries")
+          PY
+
       - name: 编译检查
-        run: python3 -m py_compile merge_plugins.py mitm_policy.py validate_plugin.py source_guard.py audit_plugin.py deep_audit.py amap_dependency_guard.py apply_amap_local_overrides.py compare_rule_provenance.py source_health_guard.py finalize_provenance.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py integrate_spotify.py apply_local_overrides.py
+        run: python3 -m py_compile merge_plugins.py mitm_policy.py validate_plugin.py source_guard.py stage_romeo_plugins.py audit_plugin.py deep_audit.py amap_dependency_guard.py apply_amap_local_overrides.py compare_rule_provenance.py source_health_guard.py finalize_provenance.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py integrate_spotify.py apply_local_overrides.py
       - name: 运行单元与合并集成测试
-        run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_apply_amap_local_overrides.py test_compare_rule_provenance.py test_source_health_guard.py test_finalize_provenance.py test_rule_risk_history.py test_integrate_spotify.py test_convert_qx2loon.py test_convert_filter_qx2loon.py
+        run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_apply_amap_local_overrides.py test_compare_rule_provenance.py test_source_health_guard.py test_finalize_provenance.py test_rule_risk_history.py test_integrate_spotify.py test_convert_qx2loon.py test_convert_filter_qx2loon.py test_stage_romeo_plugins.py
       - name: 应用并测试本地插件覆盖
         run: |
           python3 -m unittest -v test_apply_local_overrides.py test_integrate_spotify.py
@@ -128,10 +151,10 @@ jobs:
           python-version: '3.11'
 
       - name: 编译检查
-        run: python3 -m py_compile merge_plugins.py mitm_policy.py validate_plugin.py source_guard.py audit_plugin.py deep_audit.py amap_dependency_guard.py apply_amap_local_overrides.py compare_rule_provenance.py source_health_guard.py finalize_provenance.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py integrate_spotify.py
+        run: python3 -m py_compile merge_plugins.py mitm_policy.py validate_plugin.py source_guard.py stage_romeo_plugins.py audit_plugin.py deep_audit.py amap_dependency_guard.py apply_amap_local_overrides.py compare_rule_provenance.py source_health_guard.py finalize_provenance.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py integrate_spotify.py
 
       - name: 测试校验器与来源依赖门禁
-        run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_apply_amap_local_overrides.py test_compare_rule_provenance.py test_source_health_guard.py test_finalize_provenance.py test_rule_risk_history.py test_integrate_spotify.py test_convert_qx2loon.py test_convert_filter_qx2loon.py
+        run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_apply_amap_local_overrides.py test_compare_rule_provenance.py test_source_health_guard.py test_finalize_provenance.py test_rule_risk_history.py test_integrate_spotify.py test_convert_qx2loon.py test_convert_filter_qx2loon.py test_stage_romeo_plugins.py
 
       - name: 创建隔离构建目录
         run: |
@@ -169,22 +192,19 @@ jobs:
           git clone --depth 1 https://github.com/Thelongdarkorg/loon-plugins.git /tmp/loon-plugins
           ls /tmp/loon-plugins/*_ad_block.plugin /tmp/loon-plugins/*_splash_ad_block.plugin | wc -l
 
-      - name: 拉取 aoomee 去广告插件
-        run: |
-          git clone --depth 1 https://github.com/aoomee/Loon-Adblock-Plugins.git /tmp/aoomee
-          ls /tmp/aoomee/plugins | wc -l
-
       - name: 拉取 zmjde 去广告插件
         run: |
           git clone --depth 1 https://github.com/zmjde/loon-plugins.git /tmp/zmjde
           ls /tmp/zmjde/Plugin | wc -l
 
-      - name: 固定 Romeo 上游版本并下载瓜子影视、高德与 MyBlockAds 插件及依赖
+      - name: 固定 Romeo 上游版本并同步 App 插件、瓜子影视、高德与 MyBlockAds 依赖
         run: |
           mkdir -p /tmp/amap sources/amap sources/alipayAdBlock
           git clone --depth 1 https://github.com/ifflagged/Romeo.git /tmp/romeo
           ROMEO_SHA="$(git -C /tmp/romeo rev-parse HEAD)"
           echo "ROMEO_SHA=$ROMEO_SHA" >> "$GITHUB_ENV"
+          # 固定 Romeo commit 后生成原 AOOMEE 合并槽的兼容插件目录。
+          python3 stage_romeo_plugins.py --romeo-repo /tmp/romeo --commit "$ROMEO_SHA" --output /tmp/romeo/plugins
           # 瓜子影视使用 Romeo 收录的 ddgksf2013 官方 QuanX 源文件，继续走原有 QuanX -> Loon 转换链路。
           git -C /tmp/romeo show "$ROMEO_SHA:Modules/QuantumultX/ddgksf2013/Official/GuaZiVideoAds.conf" > /tmp/GuaZiVideoAds.conf
           wc -c /tmp/GuaZiVideoAds.conf
@@ -219,10 +239,11 @@ jobs:
 
       - name: 校验克隆来源并生成来源报告
         run: |
-          python3 source_guard.py --thelong /tmp/loon-plugins --aoomee /tmp/aoomee --zmjde /tmp/zmjde --qxapp /tmp/GuaZiVideoAds.conf --amap /tmp/amap/Amap.lpx --previous-report source-report.json --report source-report.json
+          python3 source_guard.py --thelong /tmp/loon-plugins --romeo /tmp/romeo --zmjde /tmp/zmjde --qxapp /tmp/GuaZiVideoAds.conf --amap /tmp/amap/Amap.lpx --previous-report source-report.json --report source-report.json
           python3 - <<'PY'
           import json, os
           from pathlib import Path
+          from stage_romeo_plugins import LEGACY_SNAPSHOTS, ROMEO_PLUGIN_MAP
           report_path = Path("source-report.json")
           report = json.loads(report_path.read_text(encoding="utf-8"))
           from source_guard import validate_alipayadblock
@@ -234,6 +255,17 @@ jobs:
               "upstream_path": "Modules/Loon/zirawell/Beta/alipayAdBlock.lpx",
           })
           report["AlipayAdBlock"] = alipay_source
+          romeo_slot = report.get("aoomee")
+          if not isinstance(romeo_slot, dict):
+              raise SystemExit("source-report.json 缺少 Romeo 替代来源统计")
+          romeo_slot.update({
+              "upstream_repository": "https://github.com/ifflagged/Romeo",
+              "upstream_commit": os.environ["ROMEO_SHA"],
+              "source_mode": "Romeo Modules/Loon + pinned AOOMEE-only local snapshots",
+              "legacy_snapshot_files": list(LEGACY_SNAPSHOTS),
+              "romeo_module_paths": list(ROMEO_PLUGIN_MAP.values()),
+              "compatibility_key": "aoomee (retained only to preserve historical provenance continuity)"
+          })
           source = report.get("GuaZiVideoAds")
           if not isinstance(source, dict):
               raise SystemExit("source-report.json 缺少 GuaZiVideoAds 校验结果")
@@ -249,7 +281,7 @@ jobs:
           cp /tmp/amap/* sources/amap/
 
       - name: 合并各来源去广告规则（临时目录）
-        run: python3 merge_plugins.py --base /tmp/loon-build/allAdRewrite.plugin --extra fetch --filter fetch --apps /tmp/loon-plugins --aoomee /tmp/aoomee --zmjde /tmp/zmjde --qxapp /tmp/GuaZiVideoAds.conf --amap /tmp/amap/Amap.lpx --myblockads fetch --alipayadblock sources/alipayAdBlock/alipayAdBlock.lpx --out /tmp/loon-build/allAdRewrite.plugin --provenance-out /tmp/loon-build/rule-provenance.json --source-report source-report.json
+        run: python3 merge_plugins.py --base /tmp/loon-build/allAdRewrite.plugin --extra fetch --filter fetch --apps /tmp/loon-plugins --romeo-plugins /tmp/romeo --zmjde /tmp/zmjde --qxapp /tmp/GuaZiVideoAds.conf --amap /tmp/amap/Amap.lpx --myblockads fetch --alipayadblock sources/alipayAdBlock/alipayAdBlock.lpx --out /tmp/loon-build/allAdRewrite.plugin --provenance-out /tmp/loon-build/rule-provenance.json --source-report source-report.json
 
       - name: 保存合并阶段产物用于最终来源追溯
         run: cp /tmp/loon-build/allAdRewrite.plugin /tmp/loon-build/allAdRewrite.after-merge.plugin

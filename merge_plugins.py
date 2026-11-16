@@ -51,8 +51,8 @@ ALIPAY_ADBLOCK_CACHE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
     'sources', 'alipayAdBlock', 'alipayAdBlock.lpx')
 
-# aoomee 独立 App 去广告插件仓库（工作流 clone 到本地后传入目录）
-AOOMEE_REPO = 'https://github.com/aoomee/Loon-Adblock-Plugins.git'
+# Romeo 替代 AOOMEE 的独立 App 来源；少数无等价模块以仓库内快照保留。
+ROMEO_REPO = 'https://github.com/ifflagged/Romeo.git'
 # QuanX filter 类型/策略 -> Loon
 QX_TYPE_MAP = {
     'host': 'DOMAIN', 'host-suffix': 'DOMAIN-SUFFIX', 'host-keyword': 'DOMAIN-KEYWORD',
@@ -90,9 +90,9 @@ ap.add_argument('--filter', default='fetch',
 ap.add_argument('--apps', default=None,
                 help='Thelongdarkorg/loon-plugins 仓库目录（可选）；遍历其中去广告插件并入，'
                      '仅识别 *_ad_block.plugin / *_splash_ad_block.plugin，跳过 ai_auto_node')
-ap.add_argument('--aoomee', default=None,
-                help='aoomee/Loon-Adblock-Plugins 仓库目录（工作流 clone 后传入）；遍历其中 '
-                     '.plugin/.lpx 独立 App 插件并入，独立 App 插件优先级最高（同正则替换其他来源）')
+ap.add_argument('--romeo-plugins', '--aoomee', dest='aoomee', default=None,
+                help='Romeo 仓库目录（工作流固定 commit 并在 plugins/ 暂存对应 Loon 模块）；'
+                     '同时读取本地 sources/romeo_legacy/ 快照；保留历史 aoomee 参数别名与来源追溯键')
 ap.add_argument('--zmjde', default=None,
                 help='zmjde/loon-plugins 仓库目录（工作流 clone 后传入）；读取 8 个指定 .lpx：'
                      'DiDi/PinDuoDuo/闲鱼/淘宝/什么值得买作为 App 高优先级完整并入，'
@@ -169,8 +169,8 @@ def parse_loose_sections(text):
 
 
 def iter_aoomee(aoomee_dir):
-    """遍历 aoomee/Loon-Adblock-Plugins，产出 (文件名, 归一化段dict)。
-    兼容传入仓库根目录（含 plugins/）或直接传入 plugins 目录；
+    """遍历固定 Romeo commit 暂存的插件与本地兼容快照。
+    兼容传入 Romeo 根目录（含 plugins/）或直接传入 plugins 目录；
     识别 .plugin/.lpx（均为文本），跳过 .js 等非插件文件。"""
     pdir = os.path.join(aoomee_dir, 'plugins')
     if not os.path.isdir(pdir):
@@ -513,7 +513,7 @@ def and_rule_domains(line):
 
 # ============================================================================
 # 主流程：统一优先级合并
-# 优先级（数字小=高）：高德 App(-1) > zmjde App(0) > qx 单文件 App(1) > aoomee(2) > Thelongdarkorg(3)
+# 优先级（数字小=高）：高德 App(-1) > zmjde App(0) > qx 单文件 App(1) > Romeo/原 AOOMEE 槽(2) > Thelongdarkorg(3)
 #                     > base/R-Store(4) > blockAdsV2(5) > zmjde 通用(6) > MyBlockAds(7)
 # 高德 App 独立完整并入、同正则同动作替换其他来源；不同动作作为互补行为保留。
 # zmjde App（DiDi/PinDuoDuo/闲鱼/淘宝/什么值得买）完整并入、同正则替换其他来源；
@@ -2433,7 +2433,7 @@ def exclude_audited_semantic_duplicates(lines, origins, source):
             record['source_catalog'] = 'Thelongdarkorg/loon-plugins'
         else:
             record['source_file'], record['source_section'], record['source_section_entry_index'], record['source_raw_line'] = origin
-            record['source_catalog'] = 'aoomee/Loon-Adblock-Plugins'
+            record['source_catalog'] = 'ifflagged/Romeo Modules/Loon + local AOOMEE-only snapshots'
         exclusions.append(record)
     return kept_lines, kept_origins, exclusions
 
@@ -2591,7 +2591,7 @@ if _ttjj_response_rows:
 
     base_rw = _exclude_ttjj_request_rejects(base_rw, 'base')
     block_rw = _exclude_ttjj_request_rejects(block_rw, 'block')
-# aoomee（v1/v2 混合；URL Rewrite 的 reject 并入 Rewrite；generic/cron 由合并器识别）
+# Romeo 替代来源 + AOOMEE-only 本地快照（v1/v2 混合；URL Rewrite 的 reject 并入 Rewrite；generic/cron 由合并器识别）
 ao_rw, ao_sc, ao_rule, ao_mitm = [], [], [], []
 ao_rw_origins = []
 aoomee_duplicate_exclusions = []
@@ -2729,7 +2729,7 @@ merged_sc, sc_unguarded = priority_merge([(p, x) for _, p, x in sc_feeds])
 merged_sc = dedup_keep_order(merged_sc + rw_unguarded + sc_unguarded)
 merged_rw = dedup_keep_order(merged_rw)
 
-# ---------------- Argument：blockAdsV2 + aoomee（YouTube 增强）----------------
+# ---------------- Argument：blockAdsV2 + Romeo/兼容快照（YouTube 增强）----------------
 arg_items = dedup_keep_order(real_lines(extra_sec.get('Argument', [])))
 if args.aoomee:
     for fname, s in iter_aoomee(args.aoomee):
@@ -3405,13 +3405,13 @@ mitm = _kept_zhangle_mitm
 today = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
 header = [
     '#!name=R-Store × blockAdsV2 × MyBlockAds × AlipayAdBlock × 独立 App 去广告净化合集',
-    '#!desc=合并 R-Store、blockAdsV2、RuCu6 MyBlockAds、zirawell AlipayAdBlock、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；'
+    '#!desc=合并 R-Store、blockAdsV2、RuCu6 MyBlockAds、zirawell AlipayAdBlock、Thelongdarkorg、Romeo、zmjde、高德地图、ddgksf2013 瓜子；'
     '按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含',
-    '#!author=zirawell / fmz200 / RuCu6 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）',
+    '#!author=zirawell / fmz200 / RuCu6 / Thelongdarkorg / Romeo / zmjde / ddgksf2013（本仓库自动合并）',
     '#!homepage=https://github.com/XcvcvX/loon-change',
     '#!merged-at=%s' % today,
     '#!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。',
-    '#!sources=R-Store(QuanX->Loon)+blockAdsV2+RuCu6-MyBlockAds+zirawell-AlipayAdBlock+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds',
+    '#!sources=R-Store(QuanX->Loon)+blockAdsV2+RuCu6-MyBlockAds+zirawell-AlipayAdBlock+Thelongdarkorg+Romeo-Loon+AOOMEE-legacy-snapshots+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds',
     '',
 ]
 out = list(header)
@@ -3671,7 +3671,7 @@ if args.provenance_out:
             'block': 'fmz200/wool_scripts blockAdsV2',
             'zmjgen': 'zmjde/loon-plugins general plugins',
             'thelong': 'Thelongdarkorg/loon-plugins',
-            'aoomee': 'aoomee/Loon-Adblock-Plugins',
+            'aoomee': 'ifflagged/Romeo Modules/Loon + pinned AOOMEE-only local snapshots (legacy provenance key)',
             'qxapp': 'QuanX single-file app source (GuaZiVideoAds)',
             'amap': 'ifflagged/Romeo / RuCu6 Amap plugin',
             'zmjapp': 'zmjde/loon-plugins app plugins',
@@ -3744,7 +3744,7 @@ print('  Rule   ：%d 条；Argument：%d 个开关' % (len(rule_items), len(arg
 if args.amap:
     print('  高德 App：Rewrite %d / Script %d / Rule %d / MITM %d（priority=-1，最高）'
           % (len(amap_rw), len(amap_sc), len(amap_rule), len(amap_mitm)))
-print('  Rule 来源：aoomee 新增 %d（跳过 %d）；thelong 新增 %d（跳过 %d）；'
+print('  Rule 来源：Romeo 替代源新增 %d（跳过 %d）；thelong 新增 %d（跳过 %d）；'
       'block 新增 %d（跳过 %d）'
       % (rule_counts['aoomee_add'], rule_counts['aoomee_dup'],
          rule_counts['thelong_add'], rule_counts['thelong_dup'],
