@@ -506,14 +506,16 @@ def apply(text: str) -> str:
                     rewrite_lines.append(GUIDERANK_HOMEPAGE_NATIVE_RULE)
                 existing_rewrites = {item.strip() for item in rewrite_lines}
                 rewrite_lines.extend(rule for rule in GAODING_NATIVE_RULES if rule not in existing_rewrites and ((rule == GAODING_NATIVE_RULES[0] and GAODING_TEMPLATE_SCRIPT_TRIGGER in gaoding_converted_triggers) or (rule == GAODING_NATIVE_RULES[1] and GAODING_MINE_SCRIPT_TRIGGER in gaoding_converted_triggers)))
-        if rrtv_adgetall_script_count and RRTV_ADGETALL_NATIVE_RULE not in existing_rewrites:
-            rewrite_lines.append(RRTV_ADGETALL_NATIVE_RULE)
                 if rrtv_adgetall_script_count and RRTV_ADGETALL_NATIVE_RULE not in existing_rewrites:
                     rewrite_lines.append(RRTV_ADGETALL_NATIVE_RULE)
-                result_lines.extend(rewrite_lines); rewrite_lines = []
-            section = line[1:-1]; result_lines.append(line)
-        elif section == "Rewrite": rewrite_lines.append(line)
-        else: result_lines.append(line)
+                result_lines.extend(rewrite_lines)
+                rewrite_lines = []
+            section = line[1:-1]
+            result_lines.append(line)
+        elif section == "Rewrite":
+            rewrite_lines.append(line)
+        else:
+            result_lines.append(line)
     if section == "Rewrite":
         rewrite_lines, _ = remove_duplicate_pdd_homepage_delete_path(rewrite_lines)
         rewrite_lines, _ = remove_redundant_dache_core_icon_filter(rewrite_lines)
@@ -529,6 +531,8 @@ def apply(text: str) -> str:
             rewrite_lines.append(GUIDERANK_HOMEPAGE_NATIVE_RULE)
         existing_rewrites = {item.strip() for item in rewrite_lines}
         rewrite_lines.extend(rule for rule in GAODING_NATIVE_RULES if rule not in existing_rewrites and ((rule == GAODING_NATIVE_RULES[0] and GAODING_TEMPLATE_SCRIPT_TRIGGER in gaoding_converted_triggers) or (rule == GAODING_NATIVE_RULES[1] and GAODING_MINE_SCRIPT_TRIGGER in gaoding_converted_triggers)))
+        if rrtv_adgetall_script_count and RRTV_ADGETALL_NATIVE_RULE not in existing_rewrites:
+            rewrite_lines.append(RRTV_ADGETALL_NATIVE_RULE)
         result_lines.extend(rewrite_lines)
     result = "\n".join(result_lines)
     # Scope YYting to the two confirmed hosts. Upstream and generated plugin
