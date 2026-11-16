@@ -34,7 +34,9 @@ class LocalOverrideTests(unittest.TestCase):
             STARPLUCKER_DOUBLE_JQ_RULE, STARPLUCKER_SINGLE_JQ_RULE,
             consolidate_starplucker_config_jq, merge_adjacent_response_json_rewrites,
         )
-        first, second = STARPLUCKER_DOUBLE_JQ_RULE.split(" | ", 1)
+        prefix, pipeline = STARPLUCKER_DOUBLE_JQ_RULE.split(" then ", 1)
+        first_action, second_action = pipeline.split(" | ", 1)
+        first, second = prefix + " then " + first_action, prefix + " then " + second_action
         # The upstream converter emits the two actions as separate same-URL rules.
         merged, merge_count = merge_adjacent_response_json_rewrites([first, second])
         self.assertEqual(merge_count, 1)
