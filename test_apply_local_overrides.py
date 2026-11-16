@@ -2012,6 +2012,9 @@ class RRTVNativeAdRewriteTests(unittest.TestCase):
         for rule in self.native:
             self.assertEqual(result.count(rule), 1)
             self.assertIn("${rfrfuipk_enable} == true", rule)
+            self.assertIn("response.json.jq", rule)
+            self.assertIn("try", rule)
+            self.assertIn("catch $original", rule)
         for source in self.non_ad:
             self.assertNotIn(source, result)
         self.assertIn("rfrfuipk_enable = switch,true,false,tag=RRTV", result)
