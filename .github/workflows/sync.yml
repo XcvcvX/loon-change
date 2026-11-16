@@ -27,6 +27,7 @@ on:
       - 'test_integrate_spotify.py'
       - 'sources/spotify/**'
       - 'sources/alipayAdBlock/**'
+      - 'sources/romeo_legacy/**'
       - 'scripts/**'
       - '.github/workflows/sync.yml'
   pull_request:
@@ -63,6 +64,7 @@ on:
       - 'README.md'
       - 'sources/amap/**'
       - 'sources/alipayAdBlock/**'
+      - 'sources/romeo_legacy/**'
       - 'scripts/**'
       - 'apply_local_overrides.py'
       - 'test_apply_local_overrides.py'
@@ -169,11 +171,6 @@ jobs:
           git clone --depth 1 https://github.com/Thelongdarkorg/loon-plugins.git /tmp/loon-plugins
           ls /tmp/loon-plugins/*_ad_block.plugin /tmp/loon-plugins/*_splash_ad_block.plugin | wc -l
 
-      - name: 拉取 aoomee 去广告插件
-        run: |
-          git clone --depth 1 https://github.com/aoomee/Loon-Adblock-Plugins.git /tmp/aoomee
-          ls /tmp/aoomee/plugins | wc -l
-
       - name: 拉取 zmjde 去广告插件
         run: |
           git clone --depth 1 https://github.com/zmjde/loon-plugins.git /tmp/zmjde
@@ -185,6 +182,40 @@ jobs:
           git clone --depth 1 https://github.com/ifflagged/Romeo.git /tmp/romeo
           ROMEO_SHA="$(git -C /tmp/romeo rev-parse HEAD)"
           echo "ROMEO_SHA=$ROMEO_SHA" >> "$GITHUB_ENV"
+          # 用固定 Romeo commit 替换原 AOOMEE 上游；文件名保留兼容，便于来源追溯。
+          # 20 个原 AOOMEE 插件槽由 Romeo 对应作者/应用模块更新，PDD 拆为 filter + rewrite。
+          mkdir -p /tmp/romeo/plugins
+          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/fmz200/12306.lpx" > /tmp/romeo/plugins/12306.lpx
+          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/ishowshu/amap.lpx" > /tmp/romeo/plugins/amap.lpx
+          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/zirawell/boc.lpx" > /tmp/romeo/plugins/boc.plugin
+          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/sooyaaabo/CheLaiLe.lpx" > /tmp/romeo/plugins/chelaile.plugin
+          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/ishowshu/cmbchina.lpx" > /tmp/romeo/plugins/cmbchina.lpx
+          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/ishowshu/didi.lpx" > /tmp/romeo/plugins/didi.lpx
+          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/ishowshu/github.lpx" > /tmp/romeo/plugins/github.lpx
+          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/ishowshu/goofish.lpx" > /tmp/romeo/plugins/goofish.lpx
+          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/ishowshu/hupu.lpx" > /tmp/romeo/plugins/hupu.lpx
+          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/ishowshu/jd.lpx" > /tmp/romeo/plugins/jd.lpx
+          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/ishowshu/keep.lpx" > /tmp/romeo/plugins/keep.lpx
+          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/ishowshu/leisu.lpx" > /tmp/romeo/plugins/leisu.lpx
+          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/ZenmoFeiShi/MT.lpx" > /tmp/romeo/plugins/meituan.lpx
+          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/ishowshu/pdd-filter.lpx" > /tmp/romeo/plugins/pdd-filter.lpx
+          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/ishowshu/pdd-rewrite.lpx" > /tmp/romeo/plugins/pdd-rewrite.lpx
+          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/ishowshu/pupu.lpx" > /tmp/romeo/plugins/pupu.lpx
+          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/ccyykk666/qunar_ad.lpx" > /tmp/romeo/plugins/qunar.plugin
+          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/ishowshu/soul.lpx" > /tmp/romeo/plugins/soul-new.lpx
+          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/ishowshu/taobao.lpx" > /tmp/romeo/plugins/taobao.lpx
+          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/ddgksf2013/UmetripAds.lpx" > /tmp/romeo/plugins/umetrip.plugin
+          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/Maasea/YouTube.Enhance.lpx" > /tmp/romeo/plugins/youtube.lpx
+          # Romeo 没有完整等价版本的 AOOMEE 独有/定制插件：保留已审计快照，不丢失现有功能。
+          cp sources/romeo_legacy/51cg.plugin /tmp/romeo/plugins/51cg.plugin
+          cp sources/romeo_legacy/91porn.plugin /tmp/romeo/plugins/91porn.plugin
+          cp sources/romeo_legacy/cmcc.plugin /tmp/romeo/plugins/cmcc.plugin
+          cp sources/romeo_legacy/huazhu.plugin /tmp/romeo/plugins/huazhu.plugin
+          cp sources/romeo_legacy/chelaile2.plugin /tmp/romeo/plugins/chelaile2.plugin
+          cp sources/romeo_legacy/qunar-legacy.plugin /tmp/romeo/plugins/qunar-legacy.plugin
+          cp sources/romeo_legacy/youtube-zh.lpx /tmp/romeo/plugins/youtube-zh.lpx
+          test "$(find /tmp/romeo/plugins -maxdepth 1 -type f | wc -l)" -eq 28
+          echo "Romeo-backed plugin feed: $(find /tmp/romeo/plugins -maxdepth 1 -type f | wc -l) files"
           # 瓜子影视使用 Romeo 收录的 ddgksf2013 官方 QuanX 源文件，继续走原有 QuanX -> Loon 转换链路。
           git -C /tmp/romeo show "$ROMEO_SHA:Modules/QuantumultX/ddgksf2013/Official/GuaZiVideoAds.conf" > /tmp/GuaZiVideoAds.conf
           wc -c /tmp/GuaZiVideoAds.conf
@@ -219,7 +250,7 @@ jobs:
 
       - name: 校验克隆来源并生成来源报告
         run: |
-          python3 source_guard.py --thelong /tmp/loon-plugins --aoomee /tmp/aoomee --zmjde /tmp/zmjde --qxapp /tmp/GuaZiVideoAds.conf --amap /tmp/amap/Amap.lpx --previous-report source-report.json --report source-report.json
+          python3 source_guard.py --thelong /tmp/loon-plugins --romeo /tmp/romeo --zmjde /tmp/zmjde --qxapp /tmp/GuaZiVideoAds.conf --amap /tmp/amap/Amap.lpx --previous-report source-report.json --report source-report.json
           python3 - <<'PY'
           import json, os
           from pathlib import Path
@@ -234,6 +265,32 @@ jobs:
               "upstream_path": "Modules/Loon/zirawell/Beta/alipayAdBlock.lpx",
           })
           report["AlipayAdBlock"] = alipay_source
+          romeo_slot = report.get("aoomee")
+          if not isinstance(romeo_slot, dict):
+              raise SystemExit("source-report.json 缺少 Romeo 替代来源统计")
+          romeo_slot.update({
+              "upstream_repository": "https://github.com/ifflagged/Romeo",
+              "upstream_commit": os.environ["ROMEO_SHA"],
+              "source_mode": "Romeo Modules/Loon + pinned AOOMEE-only local snapshots",
+              "legacy_snapshot_files": [
+                  "51cg.plugin", "91porn.plugin", "cmcc.plugin", "huazhu.plugin",
+                  "chelaile2.plugin", "qunar-legacy.plugin", "youtube-zh.lpx"
+              ],
+              "romeo_module_paths": [
+                  "Modules/Loon/fmz200/12306.lpx", "Modules/Loon/ishowshu/amap.lpx",
+                  "Modules/Loon/zirawell/boc.lpx", "Modules/Loon/sooyaaabo/CheLaiLe.lpx",
+                  "Modules/Loon/ishowshu/cmbchina.lpx", "Modules/Loon/ishowshu/didi.lpx",
+                  "Modules/Loon/ishowshu/github.lpx", "Modules/Loon/ishowshu/goofish.lpx",
+                  "Modules/Loon/ishowshu/hupu.lpx", "Modules/Loon/ishowshu/jd.lpx",
+                  "Modules/Loon/ishowshu/keep.lpx", "Modules/Loon/ishowshu/leisu.lpx",
+                  "Modules/Loon/ZenmoFeiShi/MT.lpx", "Modules/Loon/ishowshu/pdd-filter.lpx",
+                  "Modules/Loon/ishowshu/pdd-rewrite.lpx", "Modules/Loon/ishowshu/pupu.lpx",
+                  "Modules/Loon/ccyykk666/qunar_ad.lpx", "Modules/Loon/ishowshu/soul.lpx",
+                  "Modules/Loon/ishowshu/taobao.lpx", "Modules/Loon/ddgksf2013/UmetripAds.lpx",
+                  "Modules/Loon/Maasea/YouTube.Enhance.lpx"
+              ],
+              "compatibility_key": "aoomee (retained only to preserve historical provenance continuity)"
+          })
           source = report.get("GuaZiVideoAds")
           if not isinstance(source, dict):
               raise SystemExit("source-report.json 缺少 GuaZiVideoAds 校验结果")
@@ -249,7 +306,7 @@ jobs:
           cp /tmp/amap/* sources/amap/
 
       - name: 合并各来源去广告规则（临时目录）
-        run: python3 merge_plugins.py --base /tmp/loon-build/allAdRewrite.plugin --extra fetch --filter fetch --apps /tmp/loon-plugins --aoomee /tmp/aoomee --zmjde /tmp/zmjde --qxapp /tmp/GuaZiVideoAds.conf --amap /tmp/amap/Amap.lpx --myblockads fetch --alipayadblock sources/alipayAdBlock/alipayAdBlock.lpx --out /tmp/loon-build/allAdRewrite.plugin --provenance-out /tmp/loon-build/rule-provenance.json --source-report source-report.json
+        run: python3 merge_plugins.py --base /tmp/loon-build/allAdRewrite.plugin --extra fetch --filter fetch --apps /tmp/loon-plugins --romeo-plugins /tmp/romeo --zmjde /tmp/zmjde --qxapp /tmp/GuaZiVideoAds.conf --amap /tmp/amap/Amap.lpx --myblockads fetch --alipayadblock sources/alipayAdBlock/alipayAdBlock.lpx --out /tmp/loon-build/allAdRewrite.plugin --provenance-out /tmp/loon-build/rule-provenance.json --source-report source-report.json
 
       - name: 保存合并阶段产物用于最终来源追溯
         run: cp /tmp/loon-build/allAdRewrite.plugin /tmp/loon-build/allAdRewrite.after-merge.plugin
