@@ -3011,9 +3011,9 @@ def optimize_xiaohongshu_response_cost(lines):
             script_lines.append(stripped)
         elif section == "Rewrite":
             normalized = re.sub(r"\\+/", "/", stripped)
-            if ("ci\\.xiaohongshu\\.com" in stripped
+            if ("ci" in normalized and "xiaohongshu" in normalized
                     and "/system_config/watermark" in normalized
-                    and "reject-img" in stripped):
+                    and ("reject-img" in stripped or "reject_img(200)" in stripped)):
                 rewrite_counts["watermark_image"] += 1
                 rewrite_actions[stripped] = "remove"
             elif "xiaohongshu" in normalized and "response-body-json-jq" in stripped:
@@ -3042,7 +3042,7 @@ def optimize_xiaohongshu_response_cost(lines):
     if argument_count != 1:
         return original, 0
     expected = {"imagefeed": 1, "v2_feed": 1, "v3_video": 1, "v4_video": 1,
-                "comment_list": 1, "watermark_image": 2}
+                "comment_list": 1, "watermark_image": 3}
     if rewrite_counts != expected or any(action == "invalid" for action in rewrite_actions.values()):
         return original, 0
     if sum(action == "v4" for action in rewrite_actions.values()) != 1:
