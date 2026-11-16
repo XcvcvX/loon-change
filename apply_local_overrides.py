@@ -2763,6 +2763,34 @@ CNFTP_NON_AD_REMOVE_TRIGGERS = (
     "response if ${url} ~= /^https?:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.haidai\\.lantern\\.appconfig\\.get/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=yzku_enable, tag=\"优酷底部tab\", timeout=60, requires_body=true",
     "response if ${url} ~= /^https?:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.huluwa\\.dispatcher\\.youthmode\\.config2/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=yzku_enable, tag=\"优酷青少年模式弹窗\", timeout=60, requires_body=true",
 )
+CNFTP_BLOCKADS_SOURCE_TRIGGERS = (
+    "response if ${url} ~= /^https?:\\/\\/[\\d\\.]+\\/3f1\\/cards\\.iqiyi\\.com\\/(views_home\\/3\\.0\\/qy_home|waterfall\\/3\\.0\\/feed)\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=${aiqiyi_enable}, tag=\"爱奇艺首页信息流广告\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/access\\.if\\.iqiyi\\.com\\/3f1\\/cards\\.iqiyi\\.com\\/(views_category\\/3\\.0\\/category_home|views_home\\/3\\.0\\/qy_home|waterfall\\/3\\.0\\/feed)\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=${aiqiyi_enable}, tag=\"爱奇艺首页信息流广告\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/cards\\.iqiyi\\.com\\/views_category\\/3\\.0\\/(category_home|categorylib_content|film_hybrid)\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=${aiqiyi_enable}, tag=\"爱奇艺首页信息流广告\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/cards\\.iqiyi\\.com\\/(views_home\\/3\\.0\\/qy_home|waterfall\\/3\\.0\\/feed)\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=${aiqiyi_enable}, tag=\"爱奇艺首页信息流广告\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/cards\\.iqiyi\\.com\\/views_plt\\/3\\.0\\/player_tabs_v2\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=${aiqiyi_enable}, tag=\"爱奇艺播放详情页广告\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/cards\\.iqiyi\\.com\\/views_search\\/3\\.0\\/(hot_query_)?search\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=${aiqiyi_enable}, tag=\"爱奇艺搜索页列表广告\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/comment-card\\.iqiyi\\.com\\/views_comment\\/3\\.0\\/long_video_comments\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=${aiqiyi_enable}, tag=\"爱奇艺评论区\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/iface2\\.iqiyi\\.com\\/aggregate\\/3\\.0\\/getMyMenus\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=${aiqiyi_enable}, tag=\"爱奇艺我的页面菜单\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/iface2\\.iqiyi\\.com\\/control\\/3\\.0\\/init_proxy\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=${aiqiyi_enable}, tag=\"爱奇艺首页左上角天气\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/iface2\\.iqiyi\\.com\\/fusion\\/3\\.0\\/common_switch\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=${aiqiyi_enable}, tag=\"爱奇艺通用控制\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/iface2\\.iqiyi\\.com\\/views\\/3\\.0\\/(bottom_theme|home_top_menu)\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=${aiqiyi_enable}, tag=\"爱奇艺底部tab、顶部tab\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/search\\.video\\.iqiyi\\.com\\/q\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=${aiqiyi_enable}, tag=\"爱奇艺搜索框填充词\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/(kjp|t7z)\\.cupid\\.iqiyi\\.com\\/mixer\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=${aiqiyi_enable}, tag=\"爱奇艺开屏广告\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/me\\.bz\\.mgtv\\.com\\/v3\\/module\\/list\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=${mhgotv_enable}, tag=\"芒果TV我的页面\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/mob-st\\.bz\\.mgtv\\.com\\/odin\\/c1\\/channel\\/index\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=${mhgotv_enable}, tag=\"芒果TV首页信息流\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/dc2?\\.bz\\.mgtv\\.com\\/dynamic\\/v1\\/channel\\/(index|vrsList)\\/\\w/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=${mhgotv_enable}, tag=\"芒果TV\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/mobile\\.api\\.mgtv\\.com\\/mobile\\/config\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=${mhgotv_enable}, tag=\"芒果TV底部tab\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/mobile\\.api\\.mgtv\\.com\\/v10\\/video\\/info\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=${mhgotv_enable}, tag=\"芒果TV播放详情页\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/mobile-thor\\.api\\.mgtv\\.com\\/v1\\/vod\\/info\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=${mhgotv_enable}, tag=\"芒果TV播放详情页\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/mobileso\\.bz\\.mgtv\\.com\\/mobile\\/recommend\\/v2\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=${mhgotv_enable}, tag=\"芒果TV搜索框填充词\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.columbus\\.(gateway\\.new\\.execute|home\\.feed|home\\.query|uc\\.query|ycp\\.query)/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=${yzku_enable}, tag=\"优酷\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.haidai\\.lantern\\.appconfig\\.get/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=${yzku_enable}, tag=\"优酷底部tab\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.huluwa\\.dispatcher\\.youthmode\\.config2/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=${yzku_enable}, tag=\"优酷青少年模式弹窗\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.soku\\.yksearch/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=${yzku_enable}, tag=\"优酷搜索列表\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/push\\.m\\.youku\\.com\\/collect-api\\/get_push_interval_config_wx\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=${yzku_enable}, tag=\"优酷热剧弹窗\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/un-acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.play\\.ups\\.appinfo\\.get/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=${yzku_enable}, tag=\"优酷开屏广告\", timeout=60, requires_body=true",
+)
 def normalize_cnftp_trigger_line(line):
     """Normalize only known source syntax differences for exact CNFTP inventory comparison."""
     value = line.strip().replace("\\/", "/")
@@ -2906,9 +2934,13 @@ def remove_cnftp_non_ad_triggers(lines):
         "lantern.appconfig": ("acs.youku.com", "haidai.lantern.appconfig.get"),
         "youthmode": ("acs.youku.com", "huluwa.dispatcher.youthmode.config2"),
     }
+    normalized_lines = {normalize_cnftp_trigger_line(line) for line in lines}
     active_markers = {
         key for key, parts in markers.items()
-        if any(item in lines and all(part in item.replace("\\", "") for part in parts) for item in targets)
+        if any(
+            item in normalized_lines and all(part in item.replace("\\", "") for part in parts)
+            for item in targets
+        )
     }
 
     output, section, removed = [], "", 0
@@ -2918,10 +2950,11 @@ def remove_cnftp_non_ad_triggers(lines):
             output.append(line)
             continue
         value = line.strip()
-        normalized = value.replace("\\", "")
+        normalized = normalize_cnftp_trigger_line(value)
+        unescaped = normalized.replace("\\", "")
         if section == "Script":
             for key, parts in markers.items():
-                if key in active_markers and all(part in normalized for part in parts) and "cnftp.js" in value:
+                if key in active_markers and all(part in unescaped for part in parts) and "cnftp.js" in value:
                     if normalized not in targets:
                         raise ValueError("CNFTP non-ad trigger matcher changed; refusing unreviewed pruning")
             if normalized in targets:
