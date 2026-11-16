@@ -234,6 +234,54 @@ def remove_gaoding_resource_scripts(lines):
 
 
 
+# 拼多多首页由 R-Store 与 ishowshu 两份脚本重复处理同一响应。
+# 合并为仓库内单脚本，保留两份脚本及原生 JSON 规则的并集行为。
+PDD_RSTORE_HOMEPAGE_TRIGGER = r"http-response ^https?:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/\\w+\\/hub script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/pdd.js,tag=PDD-2,requires-body=true"
+PDD_LOCAL_HOMEPAGE_TRIGGER = r"http-response ^https?:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/\\w+\\/hub script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/pinduoduo/pdd-homepage.js,tag=PDD-2,requires-body=true"
+PDD_ISHOWSHU_HOMEPAGE_TRIGGER = r"http-response ^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/homepage\\/hub script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/pdd.js, requires-body = true, tag = 拼多多首页简化(底部菜单、顶部分类)"
+
+
+def consolidate_pdd_homepage_script(lines):
+    """Replace two overlapping PDD homepage scripts with one behavior-preserving local handler."""
+    output, section = [], ""
+    counts = {"rstore": 0, "local": 0, "ishowshu": 0}
+    normalized_triggers = {
+        re.sub(r"\\\\+", "", PDD_RSTORE_HOMEPAGE_TRIGGER.strip()): "rstore",
+        re.sub(r"\\\\+", "", PDD_LOCAL_HOMEPAGE_TRIGGER.strip()): "local",
+        re.sub(r"\\\\+", "", PDD_ISHOWSHU_HOMEPAGE_TRIGGER.strip()): "ishowshu",
+    }
+    target_seen = False
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            output.append(line)
+            continue
+        normalized = re.sub(r"\\\\+", "", line.strip())
+        is_target = section == "Script" and "api.pinduoduo.com/api/alexa/" in normalized
+        if not is_target:
+            output.append(line)
+            continue
+        target_seen = True
+        kind = normalized_triggers.get(normalized)
+        if kind is None:
+            raise ValueError("Pinduoduo homepage script trigger changed; refusing unreviewed consolidation")
+        counts[kind] += 1
+        if counts[kind] > 1:
+            raise ValueError("duplicate Pinduoduo homepage script trigger; refusing ambiguous consolidation")
+        if kind == "ishowshu":
+            continue
+        if kind == "rstore":
+            output.append(PDD_LOCAL_HOMEPAGE_TRIGGER)
+        else:
+            output.append(line)
+
+    if not target_seen:
+        return output, 0
+    if counts["rstore"] + counts["local"] != 1:
+        raise ValueError("Pinduoduo canonical homepage script inventory changed; expected exactly one R-Store/local trigger")
+    return output, counts["ishowshu"] + counts["rstore"]
+
+
 # 淘宝开屏两个接口在多个上游插件中重复挂载了等价响应脚本。
 # 保留 R-Store 的单一脚本入口；其逻辑与 FMZ、zmjde、RuCu6 对应分支一致。
 TAOBAO_CANONICAL_SCRIPT_TRIGGERS = (
@@ -874,6 +922,7 @@ def apply(text: str) -> str:
             candidate = key + "= " + ", ".join(hosts)
         normalized_lines.append(candidate)
     lines = normalized_lines
+    lines, _ = consolidate_pdd_homepage_script(lines)
     lines, guiderank_homepage_script_count = remove_guiderank_homepage_script(lines)
     lines, gaoding_converted_triggers = remove_gaoding_resource_scripts(lines)
     lines, _ = remove_redundant_taobao_scripts(lines)
