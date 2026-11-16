@@ -62,27 +62,28 @@ PEOPLEAPP_HOME_AD_DUPLICATE_RULES = (
 
 
 def remove_duplicate_peopleapp_home_ad_rules(lines):
-    """Remove only the exact duplicate PeopleApp homepage ad matcher."""
+    """Remove the second exact matcher only when its equivalent first rule exists."""
     counts = {rule: 0 for rule in PEOPLEAPP_HOME_AD_DUPLICATE_RULES}
-    output = []
-    removed = 0
     for line in lines:
         value = line.strip()
-        if "peopleapp" in value and "HomeApi" in value and ("adv" in value or "getAdvertImage" in value):
+        if value.startswith("request if ${url}") and "peopleapp" in value and "HomeApi" in value and ("adv" in value or "getAdvertImage" in value):
             if value not in counts:
                 raise ValueError("PeopleApp homepage ad rule inventory changed; refusing cleanup")
             counts[value] += 1
             if counts[value] > 1:
                 raise ValueError("duplicate PeopleApp homepage ad rule; refusing ambiguous cleanup")
-            if value == PEOPLEAPP_HOME_AD_DUPLICATE_RULES[1]:
-                removed += 1
-                continue
-        output.append(line)
 
-    present = [count == 1 for count in counts.values()]
-    if any(present) and not all(present):
-        raise ValueError("PeopleApp homepage ad duplicate pair incomplete; refusing cleanup")
-    return output, removed
+    canonical_count, duplicate_count = (counts[rule] for rule in PEOPLEAPP_HOME_AD_DUPLICATE_RULES)
+    if canonical_count == 0 or duplicate_count == 0:
+        # A lone rule may be an upstream revision or an already-cleaned result.
+        # Preserve it; never delete without the exact covering counterpart.
+        return list(lines), 0
+
+    output = [
+        line for line in lines
+        if line.strip() != PEOPLEAPP_HOME_AD_DUPLICATE_RULES[1]
+    ]
+    return output, 1
 
 
 PEOPLEAPP_IMAGE_AD_BROAD_RULE = r"^https?:\/\/adstatic\.peopleapp\.com\/upload\/AppLoad\/.*\.(?:jpg|png) reject-200"
