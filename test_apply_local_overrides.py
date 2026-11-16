@@ -500,12 +500,12 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         from apply_local_overrides import (
             DIDI_USERCENTER_CANONICAL_TRIGGER, DIDI_USERCENTER_REDUNDANT_TRIGGER,
         )
-        unrelated = r'response if ${url} ~= /^https?:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v5/i then script("https://example.invalid/miniapp.js") with tag="MINIAPP", requires_body=true'
+        unrelated = 'response if ${url} ~= /common.diditaxi.com.cn/common/v5/ then script("https://example.invalid/miniapp.js")'
         fixture = BASE.replace(
             "[Script]",
-            "[Script]\\n" + DIDI_USERCENTER_CANONICAL_TRIGGER
-            + "\\n" + DIDI_USERCENTER_REDUNDANT_TRIGGER
-            + "\\n" + unrelated,
+            "[Script]\n" + DIDI_USERCENTER_CANONICAL_TRIGGER
+            + "\n" + DIDI_USERCENTER_REDUNDANT_TRIGGER
+            + "\n" + unrelated,
         )
         result = apply(fixture)
         script = result.split("[Script]", 1)[1].split("[MITM]", 1)[0]
@@ -517,13 +517,13 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
     def test_fails_closed_when_didi_usercenter_trigger_drifts(self):
         from apply_local_overrides import DIDI_USERCENTER_REDUNDANT_TRIGGER
         changed = DIDI_USERCENTER_REDUNDANT_TRIGGER.replace("requires_body=true", "requires_body=false")
-        fixture = BASE.replace("[Script]", "[Script]\\n" + changed)
+        fixture = BASE.replace("[Script]", "[Script]\n" + changed)
         with self.assertRaisesRegex(ValueError, "Didi user-center script trigger changed"):
             apply(fixture)
 
     def test_fails_closed_when_didi_usercenter_canonical_trigger_is_missing(self):
         from apply_local_overrides import DIDI_USERCENTER_REDUNDANT_TRIGGER
-        fixture = BASE.replace("[Script]", "[Script]\\n" + DIDI_USERCENTER_REDUNDANT_TRIGGER)
+        fixture = BASE.replace("[Script]", "[Script]\n" + DIDI_USERCENTER_REDUNDANT_TRIGGER)
         with self.assertRaisesRegex(ValueError, "Didi user-center canonical trigger inventory changed"):
             apply(fixture)
 
@@ -533,9 +533,9 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         )
         fixture = BASE.replace(
             "[Script]",
-            "[Script]\\n" + DIDI_USERCENTER_CANONICAL_TRIGGER
-            + "\\n" + DIDI_USERCENTER_REDUNDANT_TRIGGER
-            + "\\n" + DIDI_USERCENTER_REDUNDANT_TRIGGER,
+            "[Script]\n" + DIDI_USERCENTER_CANONICAL_TRIGGER
+            + "\n" + DIDI_USERCENTER_REDUNDANT_TRIGGER
+            + "\n" + DIDI_USERCENTER_REDUNDANT_TRIGGER,
         )
         with self.assertRaisesRegex(ValueError, "duplicate Didi user-center FMZ trigger"):
             apply(fixture)
