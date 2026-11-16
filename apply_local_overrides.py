@@ -1614,42 +1614,47 @@ def consolidate_zhihu_response_scripts(lines):
         elif section == "Script" and not line.lstrip().startswith("#"):
             scoped.append(line.strip())
 
-    counts = [scoped.count(trigger) for trigger in ZHIHU_RESPONSE_LEGACY_TRIGGERS]
-    canonical_counts = [scoped.count(trigger) for trigger in ZHIHU_RESPONSE_CANONICAL_TRIGGERS]
     known = set(ZHIHU_RESPONSE_LEGACY_TRIGGERS)
+    canonical = set(ZHIHU_RESPONSE_CANONICAL_TRIGGERS)
+    replace_set = known - canonical
+    insert_triggers = [trigger for trigger in ZHIHU_RESPONSE_CANONICAL_TRIGGERS if trigger not in known]
+    counts = {trigger: scoped.count(trigger) for trigger in ZHIHU_RESPONSE_LEGACY_TRIGGERS}
+    canonical_counts = {trigger: scoped.count(trigger) for trigger in ZHIHU_RESPONSE_CANONICAL_TRIGGERS}
     unknown = [
         line for line in scoped
         if ZHIHU_RESPONSE_SCRIPT_MARKER in line
-        and line not in known and line not in ZHIHU_RESPONSE_CANONICAL_TRIGGERS
+        and line not in known and line not in canonical
     ]
 
-    if not any(counts) and not any(canonical_counts) and not unknown:
+    if not any(counts.values()) and not any(canonical_counts.values()) and not unknown:
         return list(lines), 0
-    if tuple(canonical_counts) == (1,) * len(ZHIHU_RESPONSE_CANONICAL_TRIGGERS) and not any(counts) and not unknown:
+    if (not unknown and all(canonical_counts[trigger] == 1 for trigger in canonical)
+            and all(counts[trigger] == 0 for trigger in replace_set)):
         return list(lines), 0
-    if unknown or any(canonical_counts) or any(count != 1 for count in counts):
-        raise ValueError(
-            "Zhihu response script inventory changed; refusing partial consolidation "
-            f"(counts={counts}, canonical_counts={canonical_counts}, unknown={unknown})"
-        )
+    if (unknown
+            or any(counts[trigger] != 1 for trigger in known)
+            or any(canonical_counts[trigger] != (1 if trigger in known else 0) for trigger in canonical)):
+        raise ValueError("Zhihu response script inventory changed; refusing partial consolidation")
 
     output = []
     section = ""
-    inserted = 0
+    inserted = False
     for line in lines:
         if line.startswith("[") and line.endswith("]"):
             section = line[1:-1]
             output.append(line)
             continue
-        if section == "Script" and line.strip() in known:
-            if inserted < len(ZHIHU_RESPONSE_CANONICAL_TRIGGERS):
-                output.append(ZHIHU_RESPONSE_CANONICAL_TRIGGERS[inserted])
-                inserted += 1
+        stripped = line.strip()
+        if section == "Script" and stripped in replace_set:
+            if not inserted:
+                output.extend(insert_triggers)
+                inserted = True
             continue
         output.append(line)
-    if inserted != len(ZHIHU_RESPONSE_CANONICAL_TRIGGERS):
+    if not inserted or len(insert_triggers) != 3:
         raise ValueError("Zhihu canonical trigger insertion failed")
-    return output, len(ZHIHU_RESPONSE_LEGACY_TRIGGERS)
+    return output, len(ZHIHU_RESPONSE_LEGACY_TRIGGERS) - len(ZHIHU_RESPONSE_CANONICAL_TRIGGERS)
+
 
 
 def consolidate_soul_scripts(lines):
