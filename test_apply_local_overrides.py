@@ -495,5 +495,51 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
             apply(fixture)
 
 
+
+    def test_removes_only_duplicate_didi_usercenter_fmz_script(self):
+        from apply_local_overrides import (
+            DIDI_USERCENTER_CANONICAL_TRIGGER, DIDI_USERCENTER_REDUNDANT_TRIGGER,
+        )
+        unrelated = r'response if ${url} ~= /^https?:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v5/i then script("https://example.invalid/miniapp.js") with tag="MINIAPP", requires_body=true'
+        fixture = BASE.replace(
+            "[Script]",
+            "[Script]\\n" + DIDI_USERCENTER_CANONICAL_TRIGGER
+            + "\\n" + DIDI_USERCENTER_REDUNDANT_TRIGGER
+            + "\\n" + unrelated,
+        )
+        result = apply(fixture)
+        script = result.split("[Script]", 1)[1].split("[MITM]", 1)[0]
+        self.assertEqual(script.count(DIDI_USERCENTER_CANONICAL_TRIGGER), 1)
+        self.assertNotIn(DIDI_USERCENTER_REDUNDANT_TRIGGER, script)
+        self.assertIn(unrelated, script)
+        self.assertEqual(apply(result), result)
+
+    def test_fails_closed_when_didi_usercenter_trigger_drifts(self):
+        from apply_local_overrides import DIDI_USERCENTER_REDUNDANT_TRIGGER
+        changed = DIDI_USERCENTER_REDUNDANT_TRIGGER.replace("requires_body=true", "requires_body=false")
+        fixture = BASE.replace("[Script]", "[Script]\\n" + changed)
+        with self.assertRaisesRegex(ValueError, "Didi user-center script trigger changed"):
+            apply(fixture)
+
+    def test_fails_closed_when_didi_usercenter_canonical_trigger_is_missing(self):
+        from apply_local_overrides import DIDI_USERCENTER_REDUNDANT_TRIGGER
+        fixture = BASE.replace("[Script]", "[Script]\\n" + DIDI_USERCENTER_REDUNDANT_TRIGGER)
+        with self.assertRaisesRegex(ValueError, "Didi user-center canonical trigger inventory changed"):
+            apply(fixture)
+
+    def test_fails_closed_on_duplicate_didi_usercenter_fmz_trigger(self):
+        from apply_local_overrides import (
+            DIDI_USERCENTER_CANONICAL_TRIGGER, DIDI_USERCENTER_REDUNDANT_TRIGGER,
+        )
+        fixture = BASE.replace(
+            "[Script]",
+            "[Script]\\n" + DIDI_USERCENTER_CANONICAL_TRIGGER
+            + "\\n" + DIDI_USERCENTER_REDUNDANT_TRIGGER
+            + "\\n" + DIDI_USERCENTER_REDUNDANT_TRIGGER,
+        )
+        with self.assertRaisesRegex(ValueError, "duplicate Didi user-center FMZ trigger"):
+            apply(fixture)
+
+
 if __name__ == "__main__":
     unittest.main()
