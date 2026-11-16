@@ -68,7 +68,7 @@ def remove_duplicate_peopleapp_home_ad_rules(lines):
     removed = 0
     for line in lines:
         value = line.strip()
-        if "peopleapp" in value and "/HomeApi/" in value and ("adv" in value or "getAdvertImage" in value):
+        if "peopleapp" in value and "HomeApi" in value and ("adv" in value or "getAdvertImage" in value):
             if value not in counts:
                 raise ValueError("PeopleApp homepage ad rule inventory changed; refusing cleanup")
             counts[value] += 1
