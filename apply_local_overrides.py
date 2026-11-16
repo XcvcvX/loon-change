@@ -1266,6 +1266,76 @@ def consolidate_jingdong_scripts(lines):
     return output, 1
 
 
+# Meituan: merge the reviewed R-Store and aoomee trigger inventory into one
+# exact host/path union and one local handler; do not broaden any endpoint.
+MEITUAN_LEGACY_TRIGGERS = (
+    "http-response ^https?:\\/\\/p\\d\\.meituan\\.net\\/linglong\\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/meituan.js,tag=MEITUAN,requires-body=true",
+    "http-response ^https?:\\/\\/web\\.meituan\\.com\\/api\\/miniprogram\\/tabbar\\/all\\/query script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/meituanwm.js,tag=MEITUANWM,requires-body=true",
+    "http-response ^https?:\\/\\/web\\.meituan\\.com\\/api\\/miniprogram\\/index\\/aggregate script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/meituanwm.js,tag=MEITUANWM-2,requires-body=true",
+    "http-response ^https?:\\/\\/apimobile\\.meituan\\.com\\/aggroup\\/indexTab script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团首页标签",
+    "http-response ^https?:\\/\\/feedguess\\.meituan\\.com\\/lycoris\\/scene\\/(gwc_feed1_2265|personalcenter_2154)(\\?|$) script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团信息流",
+    "http-response ^https?:\\/\\/mt-personalcenter\\.meituan\\.com\\/usercenter\\/display script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团我的页面",
+    "http-response ^https?:\\/\\/apimobile\\.meituan\\.com\\/group\\/v1\\/deal\\/searchpage\\/defaultword script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团搜索热词",
+    "http-response ^https?:\\/\\/apimobile\\.meituan\\.com\\/group\\/v1\\/deal\\/searchpage\\/hotword\\/city\\/divide\\/hotrecommend\\/ script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团热搜推荐",
+    "http-response ^https?:\\/\\/assistify\\.meituan\\.com\\/assistant\\/getAppClientHornConfig script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团AI角标",
+    "http-response ^https?:\\/\\/mop\\.meituan\\.com\\/mop\\/entry\\/shoppingCartEntry script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团购物车横幅",
+    "http-response ^https?:\\/\\/mop\\.meituan\\.com\\/api\\/entryModule\\/startupPicture script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/meituan-clean.js,requires-body=true,tag=美团开屏广告",
+)
+MEITUAN_CANONICAL_TRIGGER = "http-response ^https?:\\/\\/(?:p\\d\\.meituan\\.net\\/linglong\\/|web\\.meituan\\.com\\/api\\/miniprogram\\/(?:tabbar\\/all\\/query|index\\/aggregate)|apimobile\\.meituan\\.com\\/(?:aggroup\\/indexTab|group\\/v1\\/deal\\/searchpage\\/(?:defaultword|hotword\\/city\\/divide\\/hotrecommend\\/))|feedguess\\.meituan\\.com\\/lycoris\\/scene\\/(?:gwc_feed1_2265|personalcenter_2154)(?:\\?|$)|mt-personalcenter\\.meituan\\.com\\/usercenter\\/display|assistify\\.meituan\\.com\\/assistant\\/getAppClientHornConfig|mop\\.meituan\\.com\\/(?:mop\\/entry\\/shoppingCartEntry|api\\/entryModule\\/startupPicture)) script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/meituan/meituan.js,tag=MEITUAN-CONSOLIDATED,requires-body=true"
+MEITUAN_LEGACY_SCRIPT_MARKERS = (
+    "Res/Scripts/AntiAd/meituan.js",
+    "Res/Scripts/AntiAd/meituanwm.js",
+    "scripts/meituan-clean.js",
+)
+
+
+def consolidate_meituan_scripts(lines):
+    """Collapse the exact 11 reviewed Meituan triggers into one local matcher."""
+    section = ""
+    scoped = []
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+        elif section == "Script" and not line.lstrip().startswith("#"):
+            scoped.append(line.strip())
+
+    counts = [scoped.count(trigger) for trigger in MEITUAN_LEGACY_TRIGGERS]
+    canonical_count = scoped.count(MEITUAN_CANONICAL_TRIGGER)
+    known = set(MEITUAN_LEGACY_TRIGGERS)
+    unknown_legacy = [
+        line for line in scoped
+        if any(marker in line for marker in MEITUAN_LEGACY_SCRIPT_MARKERS)
+        and line not in known
+    ]
+
+    if not any(counts) and not canonical_count and not unknown_legacy:
+        return list(lines), 0
+    if canonical_count == 1 and not any(counts) and not unknown_legacy:
+        return list(lines), 0
+    if canonical_count or unknown_legacy or any(count != 1 for count in counts):
+        raise ValueError(
+            "Meituan script trigger inventory changed; refusing partial or mixed consolidation"
+        )
+
+    output = []
+    section = ""
+    inserted = False
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            output.append(line)
+            continue
+        if section == "Script" and line.strip() in known:
+            if not inserted:
+                output.append(MEITUAN_CANONICAL_TRIGGER)
+                inserted = True
+            continue
+        output.append(line)
+    if not inserted:
+        raise ValueError("Meituan canonical trigger insertion failed")
+    return output, len(MEITUAN_LEGACY_TRIGGERS)
+
+
 def apply(text: str) -> str:
     if "[Script]" not in text or "[MITM]" not in text or "[Rewrite]" not in text:
         raise ValueError("plugin missing [Rewrite], [Script] or [MITM] section")
@@ -1350,6 +1420,7 @@ def apply(text: str) -> str:
     lines, _ = remove_redundant_didi_usercenter_script(lines)
     lines, _ = consolidate_goofish_script_triggers(lines)
     lines, _ = consolidate_jingdong_scripts(lines)
+    lines, _ = consolidate_meituan_scripts(lines)
     lines, _ = remove_redundant_dianping_scripts(lines)
     lines, _ = remove_redundant_baidumap_script(lines)
     lines, _ = remove_redundant_amap_legacy_scripts(lines)

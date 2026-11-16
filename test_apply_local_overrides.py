@@ -1185,5 +1185,73 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
 
 
 
+class MeituanScriptConsolidationTests(unittest.TestCase):
+    def setUp(self):
+        from apply_local_overrides import MEITUAN_LEGACY_TRIGGERS
+        self.triggers = MEITUAN_LEGACY_TRIGGERS
+        self.base = """#!name=meituan-test
+[Rewrite]
+^https?:\\/\\/example\\.com reject
+[Script]
+""" + "\n".join(self.triggers) + """
+[MITM]
+hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankcomm.cn, creditcardapp.bankcomm.com
+"""
+
+    def test_consolidates_all_meituan_scripts_to_one_exact_local_trigger(self):
+        from apply_local_overrides import MEITUAN_CANONICAL_TRIGGER
+        result = apply(self.base)
+        for trigger in self.triggers:
+            self.assertNotIn(trigger, result)
+        self.assertEqual(result.count(MEITUAN_CANONICAL_TRIGGER), 1)
+        self.assertIn("scripts/meituan/meituan.js", result)
+        self.assertEqual(apply(result), result)
+
+    def test_fails_closed_on_missing_drifted_or_duplicate_meituan_trigger(self):
+        missing = self.base.replace(self.triggers[0] + "\n", "")
+        with self.assertRaisesRegex(ValueError, "Meituan script trigger inventory changed"):
+            apply(missing)
+        drifted = self.base.replace("tag=MEITUAN,requires-body=true", "tag=MEITUAN-DRIFT,requires-body=true")
+        with self.assertRaisesRegex(ValueError, "Meituan script trigger inventory changed"):
+            apply(drifted)
+        duplicate = self.base.replace(self.triggers[0], self.triggers[0] + "\n" + self.triggers[0])
+        with self.assertRaisesRegex(ValueError, "Meituan script trigger inventory changed"):
+            apply(duplicate)
+
+    def test_fails_closed_on_unknown_or_mixed_meituan_trigger(self):
+        unknown = self.base.replace(self.triggers[0], self.triggers[0] + "\n" +
+            "http-response ^https?:\\\\/\\\\/new\\.meituan\\.com\\/ad script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/meituan.js,tag=NEW")
+        with self.assertRaisesRegex(ValueError, "Meituan script trigger inventory changed"):
+            apply(unknown)
+        from apply_local_overrides import MEITUAN_CANONICAL_TRIGGER
+        mixed = self.base.replace(self.triggers[0], self.triggers[0] + "\n" + MEITUAN_CANONICAL_TRIGGER)
+        with self.assertRaisesRegex(ValueError, "Meituan script trigger inventory changed"):
+            apply(mixed)
+
+    def test_local_meituan_script_and_combined_matcher_cover_reviewed_endpoints(self):
+        from pathlib import Path
+        from apply_local_overrides import MEITUAN_CANONICAL_TRIGGER
+        script = (Path(__file__).parent / "scripts/meituan/meituan.js").read_text(encoding="utf-8")
+        for marker in (
+            r"p\d\.meituan\.net", "cleanTabArea", "cleanFeed",
+            "cleanMine", "cleanDefaultWord", "cleanHotRecommend",
+            "cleanAiSkill", "clearArea", "cleanMiniProgram",
+            "topBannerArea", "startupPicArea", "oneCentBuy",
+            "JSON.parse(body)", "$done({ body: JSON.stringify(obj) })",
+        ):
+            self.assertIn(marker, script)
+        for marker in (
+            r"tabbar\/all\/query", r"index\/aggregate", "personalcenter_2154",
+            "gwc_feed1_2265", "mt-personalcenter", "assistify",
+            "shoppingCartEntry", "startupPicture",
+        ):
+            self.assertIn(marker, MEITUAN_CANONICAL_TRIGGER)
+        self.assertIn("catch (_)", script)
+        self.assertNotIn("fetch(", script)
+        self.assertNotIn("XMLHttpRequest", script)
+
+
+
+
 if __name__ == "__main__":
     unittest.main()
