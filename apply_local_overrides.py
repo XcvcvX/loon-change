@@ -1681,6 +1681,54 @@ def remove_douyin_hongguo_unsafe_rules(lines):
 
 
 
+DOUYIN_TNC_REJECT_RULES = (
+    "DOMAIN,tnc3-alisc1.zijieapi.com,REJECT",
+    "DOMAIN,tnc3-alisc1.snssdk.com,REJECT",
+    "DOMAIN,tnc3-aliec2.snssdk.com,REJECT",
+    "AND, ((DOMAIN-KEYWORD, tnc), (AND, ((OR, ((DOMAIN-KEYWORD, -bjlgy), (DOMAIN-KEYWORD, -alisc), (DOMAIN-KEYWORD, -aliec), (DOMAIN-KEYWORD, -alisg))), (OR, ((DOMAIN-SUFFIX, snssdk.com), (DOMAIN-SUFFIX, isnssdk.com), (DOMAIN-SUFFIX, toutiaoapi.com), (DOMAIN-SUFFIX, bytedance.com), (DOMAIN-SUFFIX, zijieapi.com)))))), REJECT",
+)
+DOUYIN_TNC_DIRECT_RULE = "AND, ((DOMAIN-KEYWORD, tnc), (OR, ((DOMAIN-SUFFIX, capcutapi.com), (DOMAIN-SUFFIX, zijieapi.com), (DOMAIN-SUFFIX, isnssdk.com), (DOMAIN-SUFFIX, toutiaoapi.com), (DOMAIN-SUFFIX, bytedance.com), (DOMAIN-SUFFIX, snssdk.com), (DOMAIN-SUFFIX, sgsnssdk.com)))), DIRECT"
+
+
+def remove_douyin_tnc_conflicting_rejects(lines):
+    """Remove stale TNC rejects so the existing TNC DIRECT rule can take effect."""
+    section = ""
+    output = []
+    reject_counts = {rule: 0 for rule in DOUYIN_TNC_REJECT_RULES}
+    direct_count = 0
+    unknown_tnc_rejects = []
+
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            output.append(line)
+            continue
+        value = line.strip()
+        if section == "Rule":
+            if value in reject_counts:
+                reject_counts[value] += 1
+                if reject_counts[value] > 1:
+                    raise ValueError("duplicate Douyin TNC reject rule")
+                continue
+            if value == DOUYIN_TNC_DIRECT_RULE:
+                direct_count += 1
+            else:
+                compact = value.replace(" ", "").lower()
+                if compact.startswith("domain,tnc3-") and compact.endswith(",reject") and any(
+                    suffix in compact for suffix in ("snssdk.com", "zijieapi.com", "isnssdk.com", "bytedance.com", "toutiaoapi.com")
+                ):
+                    unknown_tnc_rejects.append(value)
+                elif "domain-keyword,tnc" in compact and compact.endswith(",reject"):
+                    unknown_tnc_rejects.append(value)
+        output.append(line)
+
+    present = [count for count in reject_counts.values() if count]
+    if not present and direct_count == 0 and not unknown_tnc_rejects:
+        return list(lines), 0
+    if unknown_tnc_rejects or direct_count != 1 or (present and len(present) != len(DOUYIN_TNC_REJECT_RULES)):
+        raise ValueError("Douyin TNC rule inventory changed; refusing partial cleanup or missing DIRECT guard")
+    return output, sum(present)
+
 # The merged plugin contains broad HTTP+HTTPS Kugou matchers plus HTTPS-only
 # copies of the same paths. The latter are strict subsets and cannot add coverage.
 KUGOU_REDUNDANT_HTTPS_REWRITES = {
@@ -2072,6 +2120,7 @@ def apply(text: str) -> str:
     lines, _ = remove_redundant_jd_keyword_rules(lines)
     lines, _ = remove_jd_core_service_domain_blocks(lines)
     lines, _ = scope_pdd_image_cdn_ad_rules(lines)
+    lines, _ = remove_douyin_tnc_conflicting_rejects(lines)
     lines, _ = remove_douyin_hongguo_unsafe_rules(lines)
     lines, _ = remove_kugou_jin10_redundant_rewrites(lines)
     lines, _ = remove_pdd_order_endpoint_blocks(lines)

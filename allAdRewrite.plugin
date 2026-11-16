@@ -209,7 +209,6 @@ DOMAIN,analytics.oceanengine.com,REJECT
 DOMAIN,sdk-config.tanx.com,REJECT
 DOMAIN,adsmartget.datads.cn,REJECT
 DOMAIN-SUFFIX,anythinktech.com,REJECT
-DOMAIN,tnc3-alisc1.zijieapi.com,REJECT
 AND,((USER-AGENT,"leisu*"),(URL-REGEX,"^https:\/\/img1\.360buyimg\.com\/pop\/jfs\/t1")),REJECT-DICT
 AND,((USER-AGENT,"leisu*"),(URL-REGEX,"^https:\/\/s3plus\.meituan\.net\/")),REJECT-DICT
 AND,((USER-AGENT,"leisu*"),(DOMAIN-SUFFIX,douyinpic.com)),REJECT-DICT
@@ -970,9 +969,7 @@ DOMAIN,is-lq.snssdk.com,REJECT
 DOMAIN,ug-sinfonlinea.bytedance.com,REJECT
 DOMAIN,activity-ag.awemeughun.com,REJECT
 DOMAIN,mcs.snssdk.com,REJECT
-DOMAIN,tnc3-alisc1.snssdk.com,REJECT
 DOMAIN,security-lq.snssdk.com,REJECT
-DOMAIN,tnc3-aliec2.snssdk.com,REJECT
 DOMAIN,v6-novelapp.ixigua.com,REJECT
 DOMAIN,msync-im1-vip6-std.easemob.com,REJECT
 DOMAIN,apd-pcdnwxlogin.teg.tencent-cloud.net,REJECT
@@ -1705,7 +1702,6 @@ AND, ((DOMAIN-KEYWORD, api100-quic-normal-), (DOMAIN-SUFFIX, amemv.com)), REJECT
 AND, ((DOMAIN-KEYWORD, ma5-normal-), (DOMAIN-SUFFIX, zijieapi.com)), REJECT
 AND, ((DOMAIN-KEYWORD, polaris5-normal-), (DOMAIN-SUFFIX, zijieapi.com)), REJECT
 AND, ((DOMAIN-KEYWORD, webcast100-ws-c-), (DOMAIN-SUFFIX, amemv.com)), REJECT
-AND, ((DOMAIN-KEYWORD, tnc), (AND, ((OR, ((DOMAIN-KEYWORD, -bjlgy), (DOMAIN-KEYWORD, -alisc), (DOMAIN-KEYWORD, -aliec), (DOMAIN-KEYWORD, -alisg))), (OR, ((DOMAIN-SUFFIX, snssdk.com), (DOMAIN-SUFFIX, isnssdk.com), (DOMAIN-SUFFIX, toutiaoapi.com), (DOMAIN-SUFFIX, bytedance.com), (DOMAIN-SUFFIX, zijieapi.com)))))), REJECT
 AND, ((IP-CIDR, 110.249.199.75/32, no-resolve), (DEST-PORT, 6443)), REJECT
 AND, ((IP-CIDR, 111.225.147.191/32, no-resolve), (DEST-PORT, 6443)), REJECT
 AND, ((IP-CIDR, 111.63.61.101/32, no-resolve), (DEST-PORT, 6443)), REJECT
