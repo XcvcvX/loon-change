@@ -1731,6 +1731,49 @@ class WeChatUnblockScriptConsolidationTests(unittest.TestCase):
 
 
 
+class PinduoduoImageCdnScopeTests(unittest.TestCase):
+    def setUp(self):
+        from apply_local_overrides import PDD_IMAGE_CDN_BROAD_BLOCK, PDD_IMAGE_CDN_AD_PATH_RULES
+        self.broad = PDD_IMAGE_CDN_BROAD_BLOCK
+        self.paths = list(PDD_IMAGE_CDN_AD_PATH_RULES)
+        self.base = [
+            "[Rule]", self.broad, "DOMAIN,unrelated.example,REJECT",
+            "[Rewrite]", *self.paths, "[Script]",
+            "[MITM]", "hostname = images.pinduoduo.com, api.pinduoduo.com",
+        ]
+
+    def test_removes_only_broad_image_cdn_block_and_keeps_ad_paths_and_mitm(self):
+        from apply_local_overrides import scope_pdd_image_cdn_ad_rules
+        result, removed = scope_pdd_image_cdn_ad_rules(self.base)
+        self.assertEqual(removed, 1)
+        rule_section = result[result.index("[Rule]") + 1:result.index("[Rewrite]")]
+        self.assertNotIn(self.broad, rule_section)
+        self.assertIn("DOMAIN,unrelated.example,REJECT", rule_section)
+        for rule in self.paths:
+            self.assertEqual(result.count(rule), 1)
+        self.assertIn("images.pinduoduo.com", result[result.index("[MITM]") + 1])
+        result2, removed2 = scope_pdd_image_cdn_ad_rules(result)
+        self.assertEqual((result2, removed2), (result, 0))
+
+    def test_requires_both_ad_path_rules_and_existing_mitm(self):
+        from apply_local_overrides import scope_pdd_image_cdn_ad_rules
+        missing_path = [line for line in self.base if line != self.paths[0]]
+        with self.assertRaisesRegex(ValueError, "ad-path Rewrite inventory changed"):
+            scope_pdd_image_cdn_ad_rules(missing_path)
+        missing_mitm = [line.replace("images.pinduoduo.com, ", "") for line in self.base]
+        with self.assertRaisesRegex(ValueError, "requires its existing MITM"):
+            scope_pdd_image_cdn_ad_rules(missing_mitm)
+
+    def test_rejects_duplicate_or_changed_host_wide_domain_rules(self):
+        from apply_local_overrides import scope_pdd_image_cdn_ad_rules
+        duplicate = ["[Rule]", self.broad, self.broad, "[Rewrite]", *self.paths,
+                    "[MITM]", "hostname = images.pinduoduo.com"]
+        with self.assertRaisesRegex(ValueError, "duplicate PDD images CDN broad"):
+            scope_pdd_image_cdn_ad_rules(duplicate)
+        variant = [line.replace(self.broad, "DOMAIN-SUFFIX,images.pinduoduo.com,REJECT") for line in self.base]
+        with self.assertRaisesRegex(ValueError, "domain rule changed"):
+            scope_pdd_image_cdn_ad_rules(variant)
+
 class PinduoduoOrderEndpointSafetyTests(unittest.TestCase):
     def setUp(self):
         from apply_local_overrides import PDD_ORDER_ENDPOINT_BLOCKS_TO_PRESERVE

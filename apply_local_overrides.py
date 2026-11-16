@@ -316,6 +316,64 @@ def consolidate_pdd_homepage_script(lines):
     return output, counts["ishowshu"] + counts["rstore"]
 
 
+# 拼多多 images.pinduoduo.com 是商品图片 CDN；只拦截其广告素材路径，不整域拒绝。
+PDD_IMAGE_CDN_HOST = "images.pinduoduo.com"
+PDD_IMAGE_CDN_BROAD_BLOCK = "DOMAIN,images.pinduoduo.com,REJECT"
+PDD_IMAGE_CDN_AD_PATH_RULES = (
+    r"request if ${url} ~= /^https?:\/\/images\.pinduoduo\.com\/(mrk|marketing_api)\// then reject(404)",
+    r"request if ${url} ~= /^https?:\/\/images\.pinduoduo\.com\/marketing\_api/ then reject(200)",
+)
+
+
+def scope_pdd_image_cdn_ad_rules(lines):
+    """Remove only the host-wide image CDN reject; retain ad-path Rewrite and MITM."""
+    section = ""
+    output = []
+    broad_count = 0
+    path_counts = {rule: 0 for rule in PDD_IMAGE_CDN_AD_PATH_RULES}
+    mitm_has_host = False
+    saw_target = False
+
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            output.append(line)
+            continue
+
+        value = line.strip()
+        if section == "Rule" and value:
+            parts = [part.strip() for part in value.split(",")]
+            if len(parts) >= 2 and parts[0].upper() in ("DOMAIN", "DOMAIN-SUFFIX", "DOMAIN-KEYWORD") and parts[1].lower() == PDD_IMAGE_CDN_HOST:
+                saw_target = True
+                if value != PDD_IMAGE_CDN_BROAD_BLOCK:
+                    raise ValueError("PDD images CDN domain rule changed; refusing unreviewed scope change: " + value)
+                broad_count += 1
+                if broad_count > 1:
+                    raise ValueError("duplicate PDD images CDN broad domain block")
+                continue
+
+        if section == "Rewrite" and PDD_IMAGE_CDN_HOST in value.replace("\\", ""):
+            saw_target = True
+            if value in path_counts:
+                path_counts[value] += 1
+                if path_counts[value] > 1:
+                    raise ValueError("duplicate PDD images CDN ad-path Rewrite")
+
+        if section == "MITM" and value.lower().startswith("hostname") and "=" in value:
+            hosts = [host.strip().lower() for host in value.split("=", 1)[1].split(",")]
+            mitm_has_host = mitm_has_host or PDD_IMAGE_CDN_HOST in hosts
+            saw_target = saw_target or mitm_has_host
+
+        output.append(line)
+
+    if not saw_target:
+        return list(lines), 0
+    if not all(path_counts[rule] == 1 for rule in PDD_IMAGE_CDN_AD_PATH_RULES):
+        raise ValueError("PDD images CDN ad-path Rewrite inventory changed; refusing broad-block removal")
+    if not mitm_has_host:
+        raise ValueError("PDD images CDN ad-path Rewrite requires its existing MITM hostname")
+    return output, broad_count
+
 # 拼多多开屏接口在多个来源中以不同动作重复匹配同一路径。
 # 统一保留最先生效的 404 拒绝行为，并使用大小写不敏感 matcher 覆盖原有大小写范围。
 PDD_SPLASH_OLD_CANONICAL_RULE = r"request if ${url} ~= /^https?:\/\/api\.(pinduoduo|yangkeduo)\.com\/api\/cappuccino\/splash/ then reject(404)"
@@ -1971,6 +2029,7 @@ def apply(text: str) -> str:
 
     lines, _ = scope_taobao_ossgw_ad_assets(lines)
     lines, _ = remove_redundant_jd_keyword_rules(lines)
+    lines, _ = scope_pdd_image_cdn_ad_rules(lines)
     lines, _ = remove_douyin_hongguo_unsafe_rules(lines)
     lines, _ = remove_kugou_jin10_redundant_rewrites(lines)
     lines, _ = remove_pdd_order_endpoint_blocks(lines)
