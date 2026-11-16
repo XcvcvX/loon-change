@@ -1418,22 +1418,24 @@ def remove_douyin_hongguo_unsafe_rules(lines):
 
 
 
-# Kugou/Jin10 rewrite deduplication is deliberately limited to audited exact matchers.
-KUGOU_DUPLICATE_REWRITES = {
-    "^https?:\\/\\/fx\\.service\\.kugou\\.com\\/mfx-kugoulive\\/ad\\/ reject-dict",
-    "^https?:\\/\\/gateway(retry)?\\.kugou\\.com\\/adp\\/ad\\/ reject-dict",
-    "^https?:\\/\\/gateway(retry)?\\.kugou\\.com\\/ads\\.gateway\\/ reject-dict",
-    "^https?:\\/\\/gateway(retry)?\\.kugou\\.com\\/v\\d\\/feeds\\/follow_feed_fallback reject-dict",
-    "^https?:\\/\\/gateway(retry)?\\.kugou\\.com\\/mstc\\/musicsymbol\\/v\\d\\/system\\/profile reject-dict",
-    "^https?:\\/\\/gateway(retry)?\\.kugou\\.com\\/searchnofocus\\/v\\d\\/search_no_focus_word reject-dict",
-    "^https?:\\/\\/gateway(retry)?\\.kugou\\.com\\/adp\\/bubble\\/v\\d\\/song_play reject-dict",
-    "^https?:\\/\\/gateway(retry)?\\.kugou\\.com\\/singerdiscuss\\/v\\d\\/entrance\\/comment reject-dict",
-    "^https?:\\/\\/gateway(retry)?\\.kugou\\.com\\/r\\/v\\d\\/general\\/putin\\/midad reject-dict",
-    "^https?:\\/\\/gateway(retry)?\\.kugou\\.com\\/ocean\\/v\\d\\/sound\\/banner reject-dict",
-    "^https?:\\/\\/gzacshow\\.kugou\\.com\\/mfx-rt-show\\/cdn\\/mo\\/show\\/headline reject-dict",
-    "^https?:\\/\\/m1fxgroup\\.kugou\\.com\\/fxsing\\/yqc\\/alongInfo\\/getUserAlongInfo reject-dict",
-    "^https?:\\/\\/hwstore\\.kugou\\.com\\/v\\d\\/get_store_data reject-dict",
-    "^https?:\\/\\/ep\\.kugou\\.com\\/v\\d\\/album_shop\\/get_entrance_info reject-dict",
+
+# The merged plugin contains broad HTTP+HTTPS Kugou matchers plus HTTPS-only
+# copies of the same paths. The latter are strict subsets and cannot add coverage.
+KUGOU_REDUNDANT_HTTPS_REWRITES = {
+    "^https:\\/\\/fx\\.service\\.kugou\\.com\\/mfx-kugoulive\\/ad\\/ reject-dict",
+    "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/adp\\/ad\\/ reject-dict",
+    "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/ads\\.gateway\\/ reject-dict",
+    "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/v\\d\\/feeds\\/follow_feed_fallback reject-dict",
+    "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/mstc\\/musicsymbol\\/v\\d\\/system\\/profile reject-dict",
+    "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/searchnofocus\\/v\\d\\/search_no_focus_word reject-dict",
+    "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/adp\\/bubble\\/v\\d\\/song_play reject-dict",
+    "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/singerdiscuss\\/v\\d\\/entrance\\/comment reject-dict",
+    "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/r\\/v\\d\\/general\\/putin\\/midad reject-dict",
+    "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/ocean\\/v\\d\\/sound\\/banner reject-dict",
+    "^https:\\/\\/gzacshow\\.kugou\\.com\\/mfx-rt-show\\/cdn\\/mo\\/show\\/headline reject-dict",
+    "^https:\\/\\/m1fxgroup\\.kugou\\.com\\/fxsing\\/yqc\\/alongInfo\\/getUserAlongInfo reject-dict",
+    "^https:\\/\\/hwstore\\.kugou\\.com\\/v\\d\\/get_store_data reject-dict",
+    "^https:\\/\\/ep\\.kugou\\.com\\/v\\d\\/album_shop\\/get_entrance_info reject-dict",
 }
 KUGOU_OBSOLETE_ROOM_LIST_REWRITE = "^https?:\\/\\/gzacshow\\.kugou\\.com\\/mfanxing-home\\/cdn\\/room\\/index\\/list_v reject-dict"
 JIN10_REDUNDANT_AD_RESPONSE_REWRITE = "^https:\\/\\/jad-api\\.jin10\\.com\\/ad reject-dict"
@@ -1441,7 +1443,7 @@ JIN10_REDUNDANT_AD_RESPONSE_REWRITE = "^https:\\/\\/jad-api\\.jin10\\.com\\/ad r
 
 def remove_kugou_jin10_redundant_rewrites(lines):
     section = ""
-    counts = {rule: 0 for rule in KUGOU_DUPLICATE_REWRITES}
+    counts = {rule: 0 for rule in KUGOU_REDUNDANT_HTTPS_REWRITES}
     obsolete_count = jin10_response_count = 0
     for line in lines:
         if line.startswith("[") and line.endswith("]"):
@@ -1456,28 +1458,24 @@ def remove_kugou_jin10_redundant_rewrites(lines):
             elif value == JIN10_REDUNDANT_AD_RESPONSE_REWRITE:
                 jin10_response_count += 1
     values = list(counts.values())
-    if all(count == 1 for count in values) and obsolete_count == 0 and jin10_response_count == 0:
+    if all(count == 0 for count in values) and obsolete_count == 0 and jin10_response_count == 0:
         return list(lines), 0
-    if any(count != 2 for count in values) or obsolete_count != 1 or jin10_response_count != 1:
+    if any(count != 1 for count in values) or obsolete_count != 1 or jin10_response_count != 1:
         raise ValueError("Kugou/Jin10 rewrite inventory changed; refusing partial or drifted deduplication")
-    output, section, seen = [], "", set()
+    output, section = [], ""
     for line in lines:
         if line.startswith("[") and line.endswith("]"):
             section = line[1:-1]
             output.append(line)
             continue
         value = line.strip()
-        if section == "Rewrite":
-            if value in counts:
-                if value in seen:
-                    continue
-                seen.add(value)
-            elif value in (KUGOU_OBSOLETE_ROOM_LIST_REWRITE, JIN10_REDUNDANT_AD_RESPONSE_REWRITE):
-                continue
+        if section == "Rewrite" and (
+            value in KUGOU_REDUNDANT_HTTPS_REWRITES
+            or value in (KUGOU_OBSOLETE_ROOM_LIST_REWRITE, JIN10_REDUNDANT_AD_RESPONSE_REWRITE)
+        ):
+            continue
         output.append(line)
-    if seen != set(KUGOU_DUPLICATE_REWRITES):
-        raise ValueError("Kugou/Jin10 canonical rewrite insertion failed")
-    return output, len(KUGOU_DUPLICATE_REWRITES) + 2
+    return output, len(KUGOU_REDUNDANT_HTTPS_REWRITES) + 2
 
 
 
