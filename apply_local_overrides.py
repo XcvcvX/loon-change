@@ -1536,9 +1536,9 @@ def consolidate_zhihu_multi_action_rewrites(lines):
 
 # Ximalaya homepage response used two separate JSON transforms on the same URL.
 # Keep the deletion first, then make the optional entrance filtering failure-safe.
-XIMALAYA_HOME_DELETE_REWRITE = r"""response if \${url} ~= /^https:\/\/(mobile|mobilehera|mobwsa)\.ximalaya\.com\/mobile-user\/v\d\/homePage\// then response.json.delete("data.freeListenV2")"""
-XIMALAYA_HOME_ENTRANCE_REWRITE = r"""response if \${url} ~= /^https:\/\/(mobile|mobilehera|mobwsa)\.ximalaya\.com\/mobile-user\/v\d\/homePage\// then response.json.jq(\`.data.serviceModule.entrances |= map(select(.name == "全部服务"))\`)"""
-XIMALAYA_HOME_COMBINED_REWRITE = r"""response if \${url} ~= /^https:\/\/(mobile|mobilehera|mobwsa)\.ximalaya\.com\/mobile-user\/v\d\/homePage\// then response.json.jq(\`del(.data.freeListenV2) | (try (.data.serviceModule.entrances |= map(select(.name == "全部服务"))) catch .)\`)"""
+XIMALAYA_HOME_DELETE_REWRITE = r"""response if ${url} ~= /^https:\/\/(mobile|mobilehera|mobwsa)\.ximalaya\.com\/mobile-user\/v\d\/homePage\// then response.json.delete("data.freeListenV2")"""
+XIMALAYA_HOME_ENTRANCE_REWRITE = r"""response if ${url} ~= /^https:\/\/(mobile|mobilehera|mobwsa)\.ximalaya\.com\/mobile-user\/v\d\/homePage\// then response.json.jq(\`.data.serviceModule.entrances |= map(select(.name == "全部服务"))\`)"""
+XIMALAYA_HOME_COMBINED_REWRITE = r"""response if ${url} ~= /^https:\/\/(mobile|mobilehera|mobwsa)\.ximalaya\.com\/mobile-user\/v\d\/homePage\// then response.json.jq(\`del(.data.freeListenV2) | (try (.data.serviceModule.entrances |= map(select(.name == "全部服务"))) catch .)\`)"""
 
 
 def consolidate_ximalaya_homepage_json_rewrites(lines):
@@ -1688,6 +1688,7 @@ def apply(text: str) -> str:
                 rewrite_lines, _ = consolidate_zhihu_multi_action_rewrites(rewrite_lines)
         rewrite_lines, _ = consolidate_ximalaya_homepage_json_rewrites(rewrite_lines)
                 rewrite_lines, _ = consolidate_ximalaya_homepage_json_rewrites(rewrite_lines)
+        rewrite_lines, _ = consolidate_ximalaya_homepage_json_rewrites(rewrite_lines)
                 rewrite_lines, _ = remove_subsumed_soul_teenager_rule(rewrite_lines)
                 rewrite_lines, _ = remove_shadowed_peopleapp_rules(rewrite_lines)
                 rewrite_lines, _ = remove_shadowed_terminal_block_rules(rewrite_lines)
@@ -1713,7 +1714,6 @@ def apply(text: str) -> str:
         rewrite_lines, _ = remove_didi_homepage_rejects_shadowing_field_cleaners(rewrite_lines)
         rewrite_lines, _ = merge_adjacent_response_json_rewrites(rewrite_lines)
         rewrite_lines, _ = consolidate_zhihu_multi_action_rewrites(rewrite_lines)
-                rewrite_lines, _ = consolidate_ximalaya_homepage_json_rewrites(rewrite_lines)
         rewrite_lines, _ = remove_subsumed_soul_teenager_rule(rewrite_lines)
         rewrite_lines, _ = remove_shadowed_peopleapp_rules(rewrite_lines)
         rewrite_lines, _ = remove_shadowed_terminal_block_rules(rewrite_lines)
