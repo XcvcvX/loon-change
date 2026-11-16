@@ -443,6 +443,189 @@ def remove_redundant_taobao_scripts(lines):
 
 
 
+# 闲鱼的 R-Store 与 ishowshu 两组脚本对首页/本地页重复触发。
+# 将 17 个上游触发器合并为 8 个仓库内本地触发器，保留两个脚本的处理并集。
+GOOFISH_CANONICAL_SCRIPT_TRIGGERS = (
+    r"http-response ^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlehome\.home\.nextfresh\/ script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js,tag=GOOFISH-NEXTFRESH,requires-body=true",
+    r"http-response ^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.local\.home\/ script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js,tag=GOOFISH-LOCAL-HOME,requires-body=true",
+    r"http-response ^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.home\.whale\.modulet\/ script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js,tag=GOOFISH-WHALE,requires-body=true",
+    r"http-response ^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.idle\.user\.page\.my\.adapter\/ script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js,tag=GOOFISH-PROFILE,requires-body=true",
+    r"http-response ^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlehome\.home\.circle\.list\/ script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js,tag=GOOFISH-CIRCLE,requires-body=true",
+    r"http-response ^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.local\.nearby\.itemdetail\.enter\/ script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js,tag=GOOFISH-NEARBY,requires-body=true",
+    r"http-response ^https:\/\/g-acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlemtopsearch\.search\/ script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js,tag=GOOFISH-SEARCH,requires-body=true",
+    r"http-response ^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.local\.flow\.plat\.section script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js,tag=GOOFISH-LOCAL-FLOW,requires-body=true",
+)
+GOOFISH_REDUNDANT_SCRIPT_TRIGGERS = (
+    r"http-response ^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.home\.whale\.modulet\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/goofish.js,tag=GOOFISH,requires-body=true",
+    r"http-response ^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlehome\.home\.nextfresh\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/goofish.js,tag=GOOFISH-2,requires-body=true",
+    r"http-response ^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.local\.home\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/goofish.js,tag=GOOFISH-3,requires-body=true",
+    r'response if ${url} ~= /^https:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlehome\.home\.nextfresh\//i then script("https://raw.githubusercontent.com/ishowshu/qx/refs/heads/main/script/goofish.js") with tag="商品信息流广告", requires_body=true',
+    r'response if ${url} ~= /^https:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.local\.home\//i then script("https://raw.githubusercontent.com/ishowshu/qx/refs/heads/main/script/goofish.js") with tag="定位地区页面的信息流广告", requires_body=true',
+    r'response if ${url} ~= /^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.idle\.user\.page\.my\.adapter\//i then script("https://raw.githubusercontent.com/ishowshu/qx/refs/heads/main/script/goofish.js") with tag="个人主页", requires_body=true',
+    r'response if ${url} ~= /^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlehome\.home\.circle\.list\/1\.0/i then script("https://raw.githubusercontent.com/ishowshu/qx/refs/heads/main/script/goofish.js") with tag="首页顶部频道菜单", requires_body=true',
+    r'response if ${url} ~= /^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.local\.nearby\.itemdetail\.enter\/1\.0/i then script("https://raw.githubusercontent.com/ishowshu/qx/refs/heads/main/script/goofish.js") with tag="商品详情页周边推荐", requires_body=true',
+    r'response if ${url} ~= /^https:\/\/g-acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlemtopsearch\.search\//i then script("https://raw.githubusercontent.com/ishowshu/qx/refs/heads/main/script/goofish.js") with tag="搜索结果信息流广告", requires_body=true',
+    r'response if ${url} ~= /^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.local\.flow\.plat\.section/i then script("https://raw.githubusercontent.com/ishowshu/qx/refs/heads/main/script/goofish.js") with tag="同城页横幅广告", requires_body=true',
+    r"http-response ^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlehome\.home\.nextfresh\/ script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 商品信息流广告",
+    r"http-response ^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.local\.home\/ script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 定位地区页面的信息流广告",
+    r"http-response ^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.idle\.user\.page\.my\.adapter\/ script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 个人主页",
+    r"http-response ^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlehome\.home\.circle\.list\/ script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 首页顶部频道菜单",
+    r"http-response ^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.local\.nearby\.itemdetail\.enter\/ script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 商品详情页周边推荐",
+    r"http-response ^https:\/\/g-acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlemtopsearch\.search\/ script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 搜索结果信息流广告",
+    r"http-response ^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.local\.flow\.plat\.section script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 同城页横幅广告",
+)
+
+
+def consolidate_goofish_script_triggers(lines):
+    """Replace all audited Xianyu script triggers with one local trigger per endpoint."""
+    normalize = lambda value: re.sub(r"\\+", "", value.strip())
+    canonical = {normalize(item): item for item in GOOFISH_CANONICAL_SCRIPT_TRIGGERS}
+    redundant = {normalize(item): item for item in GOOFISH_REDUNDANT_SCRIPT_TRIGGERS}
+    counts = {item: 0 for item in (*GOOFISH_CANONICAL_SCRIPT_TRIGGERS, *GOOFISH_REDUNDANT_SCRIPT_TRIGGERS)}
+    output, section, target_seen = [], "", False
+    insert_canonical = False
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            if section == "Script" and insert_canonical:
+                output.extend(GOOFISH_CANONICAL_SCRIPT_TRIGGERS)
+                insert_canonical = False
+            section = line[1:-1]
+            output.append(line)
+            continue
+        normalized = normalize(line)
+        is_target = section == "Script" and "goofish.com" in normalized and (
+            "goofish.js" in normalized or "script(" in normalized
+        )
+        if not is_target:
+            output.append(line)
+            continue
+        target_seen = True
+        if normalized in canonical:
+            trigger = canonical[normalized]
+            counts[trigger] += 1
+            if counts[trigger] > 1:
+                raise ValueError("duplicate canonical Goofish script trigger")
+            output.append(line)
+            continue
+        if normalized in redundant:
+            trigger = redundant[normalized]
+            counts[trigger] += 1
+            if counts[trigger] > 1:
+                raise ValueError("duplicate redundant Goofish script trigger")
+            insert_canonical = True
+            continue
+        raise ValueError("Goofish script trigger inventory changed; refusing unreviewed consolidation")
+
+    if section == "Script" and insert_canonical:
+        output.extend(GOOFISH_CANONICAL_SCRIPT_TRIGGERS)
+    if not target_seen:
+        return output, 0
+    canonical_complete = all(counts[item] == 1 for item in GOOFISH_CANONICAL_SCRIPT_TRIGGERS)
+    redundant_absent = all(counts[item] == 0 for item in GOOFISH_REDUNDANT_SCRIPT_TRIGGERS)
+    if canonical_complete and redundant_absent:
+        return output, 0
+    redundant_complete = all(counts[item] == 1 for item in GOOFISH_REDUNDANT_SCRIPT_TRIGGERS)
+    canonical_absent = all(counts[item] == 0 for item in GOOFISH_CANONICAL_SCRIPT_TRIGGERS)
+    if redundant_complete and canonical_absent:
+        return output, len(GOOFISH_REDUNDANT_SCRIPT_TRIGGERS)
+    raise ValueError("Goofish script trigger inventory incomplete; refusing partial consolidation")
+
+
+# 闲鱼旧版 response-body-json-jq 与新版 response.json.jq 重复处理相同字段。
+XIAN_YU_REWRITE_PAIRS = (
+    (r"^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlemtopsearch\.search\.shade\/ response-body-json-jq 'del(.data)'",
+     r'response if ${url} ~= /^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlemtopsearch\.search\.shade\// then response.json.jq(`del(.data)`)'),
+    (r"^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.user\.strategy\.list\/ response-body-json-jq 'del(.data)'",
+     r'response if ${url} ~= /^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.user\.strategy\.list\// then response.json.jq(`del(.data)`)'),
+    (r"^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.group\.myself\.banner\/ response-body-json-jq '.data.bannerList = []'",
+     r'response if ${url} ~= /^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.group\.myself\.banner\// then response.json.jq(`.data.bannerList = []`)'),
+    (r"^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.playboy\.recommend\/2\.0 response-body-json-jq '.data.recommends = [] | .data.items = [] | .data.next = false'",
+     r'response if ${url} ~= /^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.playboy\.recommend\/2\.0 then response.json.jq(`.data.recommends = [] | .data.items = [] | .data.next = false`)'),
+    (r"^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.item\.recommend\.list\/ response-body-json-jq '.data.cardList = []'",
+     r'response if ${url} ~= /^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.item\.recommend\.list\// then response.json.jq(`.data.cardList = []`)'),
+    (r"^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.fun\.follow\.often\.visit response-body-json-jq '.data.sections = []'",
+     r'response if ${url} ~= /^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.fun\.follow\.often\.visit then response.json.jq(`.data.sections = []`)'),
+    (r"^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.circle\.myself\.banner\/1\.0 response-body-json-jq '.data.bannerList = []'",
+     r'response if ${url} ~= /^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.circle\.myself\.banner\/1\.0 then response.json.jq(`.data.bannerList = []`)'),
+    (r"^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.circle\.visited\/1\.0 response-body-json-jq '.data.visitedCircleList = []'",
+     r'response if ${url} ~= /^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.circle\.visited\/1\.0 then response.json.jq(`.data.visitedCircleList = []`)'),
+    (r"^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlehome\.widget\.refresh\.get response-body-json-jq '.data.homeTopList = []'",
+     r'response if ${url} ~= /^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlehome\.widget\.refresh\.get\//i then response.json.jq(".data.homeTopList |= map(select(.sectionType == \\"kingkongDo\\"))")'),
+    (r"^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.trade\.full\.info response-body-json-jq '.data.components |= map(select(.render != "bannerVO"))'",
+     r'response if ${url} ~= /^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.trade\.full\.info\//i then response.json.jq(".data.components |= map(select(.render | . == \\"orderStatusVO\\" or . == \\"addressInfoVO\\" or . == \\"orderInfoVO\\"))")'),
+)
+
+XIAN_YU_REQUEST_SUBSET_PAIRS = (
+    (r"^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlemtopsearch\.item\.search\.activate\/2\.0 reject-dict",
+     r"^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlemtopsearch\.item\.search\.activate\/ reject-dict"),
+    (r"^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlemtopsearch\.search\.discover\/1\.0 reject-dict",
+     r"^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlemtopsearch\.search\.(discover|shade)\/ reject-dict"),
+    (r"^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.item\.resell\.recommendorhotcate\/1\.0 reject-dict",
+     r"^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.item\.resell\.recommendorhotcate reject-dict"),
+    (r"^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlehome\.idle\.coin\.nextfresh\/1\.0 reject-dict",
+     r"^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlehome\.idle\.coin\.nextfresh\/ reject-dict"),
+    (r"^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlecommerce\.splash\.ads reject-dict",
+     r"^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlecommerce\.splash reject-dict"),
+)
+
+
+def remove_redundant_xianyu_rewrite_rules(lines):
+    """Remove only known same-action legacy duplicates and strict URL subsets."""
+    normalize = lambda value: re.sub(r"\\+", "", value.strip())
+    pairs = (*XIAN_YU_REWRITE_PAIRS, *XIAN_YU_REQUEST_SUBSET_PAIRS)
+    known = {
+        normalize(rule): (index, is_redundant)
+        for index, (redundant, canonical) in enumerate(pairs)
+        for is_redundant, rule in ((True, redundant), (False, canonical))
+    }
+    markers = (
+        "idlemtopsearch.search.shade/", "idle.user.strategy.list/",
+        "idle.group.myself.banner/", "idle.playboy.recommend/2.0",
+        "idle.item.recommend.list/", "idle.fun.follow.often.visit",
+        "idle.circle.myself.banner/1.0", "idle.circle.visited/1.0",
+        "idlehome.widget.refresh.get", "idle.trade.full.info",
+        "idlemtopsearch.item.search.activate/2.0", "idlemtopsearch.search.discover/1.0",
+        "idle.item.resell.recommendorhotcate/1.0", "idlehome.idle.coin.nextfresh/1.0",
+        "idlecommerce.splash.ads",
+    )
+    output, section, counts, target_seen = [], "", {key: 0 for key in known}, False
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            output.append(line)
+            continue
+        if section != "Rewrite":
+            output.append(line)
+            continue
+        value = normalize(line)
+        matched = known.get(value)
+        target = any(marker in value for marker in markers) and (
+            "response-body-json-jq" in value or
+            (value.startswith("^https:") and value.endswith("reject-dict"))
+        )
+        if matched is None:
+            if target:
+                raise ValueError("Xianyu rewrite inventory changed; refusing unreviewed cleanup")
+            output.append(line)
+            continue
+        target_seen = True
+        counts[value] += 1
+        if counts[value] > 1:
+            raise ValueError("duplicate Xianyu rewrite rule; refusing ambiguous cleanup")
+        if matched[1]:
+            continue
+        output.append(line)
+
+    if not target_seen:
+        return output, 0
+    for redundant, canonical in pairs:
+        if counts[normalize(canonical)] != 1:
+            raise ValueError("Xianyu covering rewrite missing; refusing redundant rule removal")
+        if counts[normalize(redundant)] not in (0, 1):
+            raise ValueError("duplicate Xianyu redundant rewrite; refusing ambiguous cleanup")
+    return output, sum(counts[normalize(redundant)] for redundant, _ in pairs)
+
+
 # 滴滴个人中心 /usercenter/me 同时由 R-Store 与 FMZ 两个脚本处理。
 # 两个脚本在该分支的过滤字段与保留条件一致；保留 R-Store 触发器。
 DIDI_USERCENTER_CANONICAL_TRIGGER = r"http-response ^https?:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v\\d\\/usercenter\\/me script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI-3,requires-body=true"
@@ -1106,6 +1289,7 @@ def apply(text: str) -> str:
     lines, gaoding_converted_triggers = remove_gaoding_resource_scripts(lines)
     lines, _ = remove_redundant_taobao_scripts(lines)
     lines, _ = remove_redundant_didi_usercenter_script(lines)
+    lines, _ = consolidate_goofish_script_triggers(lines)
     lines, _ = remove_redundant_dianping_scripts(lines)
     lines, _ = remove_redundant_baidumap_script(lines)
     lines, _ = remove_redundant_amap_legacy_scripts(lines)
@@ -1126,6 +1310,7 @@ def apply(text: str) -> str:
                 rewrite_lines, _ = remove_shadowed_peopleapp_rules(rewrite_lines)
                 rewrite_lines, _ = remove_shadowed_terminal_block_rules(rewrite_lines)
                 rewrite_lines, _ = remove_redundant_taobao_rewrite_rules(rewrite_lines)
+                rewrite_lines, _ = remove_redundant_xianyu_rewrite_rules(rewrite_lines)
                 rewrite_lines, _ = remove_lkcoffee_member_exchange_success_overrides(rewrite_lines)
                 rewrite_lines, _ = replace_guiderank_special_sale_random_body(rewrite_lines)
                 rewrite_lines, _ = replace_ddqx_newdetails_body_rewrites(rewrite_lines)
@@ -1149,6 +1334,7 @@ def apply(text: str) -> str:
         rewrite_lines, _ = remove_shadowed_peopleapp_rules(rewrite_lines)
         rewrite_lines, _ = remove_shadowed_terminal_block_rules(rewrite_lines)
         rewrite_lines, _ = remove_redundant_taobao_rewrite_rules(rewrite_lines)
+        rewrite_lines, _ = remove_redundant_xianyu_rewrite_rules(rewrite_lines)
         rewrite_lines, _ = remove_lkcoffee_member_exchange_success_overrides(rewrite_lines)
         rewrite_lines, _ = replace_guiderank_special_sale_random_body(rewrite_lines)
         rewrite_lines, _ = replace_ddqx_newdetails_body_rewrites(rewrite_lines)
