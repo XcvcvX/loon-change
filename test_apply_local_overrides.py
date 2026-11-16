@@ -841,7 +841,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
             DIDI_HOME_SLOW_RESPONSE_PREFIX,
             remove_didi_homepage_rejects_shadowing_field_cleaners,
         )
-        drifted = r"^https:\/\/conf\.diditaxi\.com\.cn\/homepage\/v1\/other\/slow reject"
+        drifted = r"^https?:\/\/conf\.diditaxi\.com\.cn\/homepage\/v\d\/other\/slow reject"
         response = DIDI_HOME_SLOW_RESPONSE_PREFIX + '["data.banner"])'
         with self.assertRaisesRegex(ValueError, "legacy reject changed"):
             remove_didi_homepage_rejects_shadowing_field_cleaners([drifted, response])
