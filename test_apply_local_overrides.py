@@ -2442,7 +2442,6 @@ class MoreResponseScriptDedupTests(unittest.TestCase):
             "[Argument]", "xhs_enable = switch,true,false,tag=小红书-脚本开关",
             "[Rewrite]",
             r"""^https?:\/\/ci\.xiaohongshu\.com\/system_config\/watermark reject-img""",
-            r"""^https:\/\/ci\.xiaohongshu\.com\/system_config\/watermark reject-img""",
             r"""request if ${url} ~= /^https?:\/\/ci\.(xiaohongshu|rnote)\.com\/system_config\/watermark/ then reject_img(200)""",
             r"""^https:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/v1\/note\/imagefeed response-body-json-jq 'disable_watermark video_download'""",
             r"""^https:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/v2\/note\/feed response-body-json-jq 'disable_watermark video_download'""",
