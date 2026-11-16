@@ -1241,7 +1241,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         ):
             self.assertIn(marker, script)
         for marker in (
-            "tabbar/all/query", "index/aggregate", "personalcenter_2154",
+            r"tabbar\/all\/query", r"index\/aggregate", "personalcenter_2154",
             "gwc_feed1_2265", "mt-personalcenter", "assistify",
             "shoppingCartEntry", "startupPicture",
         ):
