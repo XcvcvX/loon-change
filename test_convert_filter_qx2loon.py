@@ -22,6 +22,7 @@ class FilterConverterTests(unittest.TestCase):
             "host-suffix,dig.bdurl.net,reject",
             "host,webcast-open.douyin.com,reject",
             "host-suffix,webcast-open.douyin.com,reject-200",
+            "host,other.bdurl.net,reject",
             "host-suffix,snssdk.com,reject",
             "ip-cidr,119.29.29.99/32,reject-200",
             "ip-cidr,119.29.29.90/32,reject",
@@ -75,7 +76,8 @@ class FilterConverterTests(unittest.TestCase):
                 self.assertNotIn("DOMAIN,dig.bdurl.net,REJECT", rules_only)
                 self.assertNotIn("DOMAIN-SUFFIX,dig.bdurl.net,REJECT", rules_only)
                 self.assertNotIn("DOMAIN,webcast-open.douyin.com,REJECT", rules_only)
-                self.assertNotIn("DOMAIN-SUFFIX,webcast-open.douyin.com,REJECT-200", rules_only)
+                self.assertNotIn("DOMAIN-SUFFIX,webcast-open.douyin.com,REJECT", rules_only)
+                self.assertIn("DOMAIN,other.bdurl.net,REJECT", rules_only)
                 self.assertIn("DOMAIN-SUFFIX,snssdk.com,REJECT", rules_only)
                 self.assertIn("119.29.29.98/32", output)
                 self.assertIn("119.29.29.99/32", output)
