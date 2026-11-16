@@ -55031,25 +55031,15 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://api\\\\.zhihu\\\\.com/topstory/recommend\\\\?', ('response-body-json-jq', 'response-body-json-jq \\'.data |= map(select(.type == \"ComponentCard\"))\\''))",
-      "output_entry_index": 2957,
-      "output_line": "^https:\\/\\/api\\.zhihu\\.com\\/topstory\\/recommend\\? response-body-json-jq '.data |= map(select(.type == \"ComponentCard\"))'",
-      "section": "Rewrite",
+      "output_line": "^https:\\/\\/api\\.zhihu\\.com\\/topstory\\/recommend\\? response-body-json-jq '(.data |= map(select(.type == \"ComponentCard\"))) | (.data[]?.children |= (if type == \"array\" then map(select(.id != \"ring\")) else . end))'",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "^https:\\/\\/api\\.zhihu\\.com\\/topstory\\/recommend\\? response-body-json-jq '.data |= map(select(.type == \"ComponentCard\"))'",
-          "input_section": "Rewrite",
-          "priority": 3,
-          "source": "thelong",
-          "source_entry_index": 227,
-          "source_file": "zhihu_splash_ad_block.plugin",
-          "source_line_number": 19,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/topstory\\/recommend\\? response-body-json-jq '.data |= map(select(.type == \"ComponentCard\"))'"
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.zhihu\\\\.com/questions/\\\\d+/feeds\\\\?', ('response-body-json-del', 'response-body-json-del ad_info'))",
@@ -55115,67 +55105,15 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://(api|page-info)(?:\\\\.zhihu)?\\\\.com/answers/v\\\\d/\\\\d+(?:\\\\?.*)?$', ('response-body-json-del', 'response-body-json-del third_business float_search_word'))",
-      "output_entry_index": 2961,
-      "output_line": "^https:\\/\\/(api|page-info)(?:\\.zhihu)?\\.com\\/answers\\/v\\d\\/\\d+(?:\\?.*)?$ response-body-json-del third_business float_search_word",
-      "section": "Rewrite",
+      "output_line": "^https:\\/\\/(api|page-info)(?:\\.zhihu)?\\.com\\/answers\\/v\\d\\/\\d+(?:\\?.*)?$ response-body-json-jq 'del(.third_business, .float_search_word) | (.structured_content.segments |= map(select(.type != \"card\")))'",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "^https:\\/\\/(api|page-info)(?:\\.zhihu)?\\.com\\/answers\\/v\\d\\/\\d+(?:\\?.*)?$ response-body-json-del third_business float_search_word",
-          "input_section": "Rewrite",
-          "priority": 3,
-          "source": "thelong",
-          "source_entry_index": 231,
-          "source_file": "zhihu_splash_ad_block.plugin",
-          "source_line_number": 23,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "^https:\\/\\/(api|page-info)(?:\\.zhihu)?\\.com\\/answers\\/v\\d\\/\\d+(?:\\?.*)?$ response-body-json-del third_business float_search_word"
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://(api|page-info)(?:\\\\.zhihu)?\\\\.com/answers/v\\\\d/\\\\d+(?:\\\\?.*)?$', ('response-body-json-jq', 'response-body-json-jq \\'.structured_content.segments |= map(select(.type != \"card\"))\\''))",
-      "output_entry_index": 2962,
-      "output_line": "^https:\\/\\/(api|page-info)(?:\\.zhihu)?\\.com\\/answers\\/v\\d\\/\\d+(?:\\?.*)?$ response-body-json-jq '.structured_content.segments |= map(select(.type != \"card\"))'",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "^https:\\/\\/(api|page-info)(?:\\.zhihu)?\\.com\\/answers\\/v\\d\\/\\d+(?:\\?.*)?$ response-body-json-jq '.structured_content.segments |= map(select(.type != \"card\"))'",
-          "input_section": "Rewrite",
-          "priority": 3,
-          "source": "thelong",
-          "source_entry_index": 232,
-          "source_file": "zhihu_splash_ad_block.plugin",
-          "source_line_number": 24,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "^https:\\/\\/(api|page-info)(?:\\.zhihu)?\\.com\\/answers\\/v\\d\\/\\d+(?:\\?.*)?$ response-body-json-jq '.structured_content.segments |= map(select(.type != \"card\"))'"
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://api\\\\.zhihu\\\\.com/topstory/recommend\\\\?', ('response-body-json-jq', 'response-body-json-jq \\'.data[]?.children |= (if type == \"array\" then map(select(.id != \"ring\")) else . end)\\''))",
-      "output_entry_index": 2963,
-      "output_line": "^https:\\/\\/api\\.zhihu\\.com\\/topstory\\/recommend\\? response-body-json-jq '.data[]?.children |= (if type == \"array\" then map(select(.id != \"ring\")) else . end)'",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "^https:\\/\\/api\\.zhihu\\.com\\/topstory\\/recommend\\? response-body-json-jq '.data[]?.children |= (if type == \"array\" then map(select(.id != \"ring\")) else . end)'",
-          "input_section": "Rewrite",
-          "priority": 3,
-          "source": "thelong",
-          "source_entry_index": 233,
-          "source_file": "zhihu_splash_ad_block.plugin",
-          "source_line_number": 25,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "^https:\\/\\/api\\.zhihu\\.com\\/topstory\\/recommend\\? response-body-json-jq '.data[]?.children |= (if type == \"array\" then map(select(.id != \"ring\")) else . end)'"
-        }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.zhihu\\\\.com/(articles|answers|pins)/v\\\\d/\\\\d+\\\\?', ('response-body-json-del', 'response-body-json-del third_business ring_info interaction_bar_plugins'))",
@@ -125301,7 +125239,7 @@
       "included": 49
     },
     "post_transform_reconciled": true,
-    "rewrite_output_entries": 3266,
+    "rewrite_output_entries": 3264,
     "rule_covered_or_duplicate_events": 2140,
     "rule_included_events": 3476,
     "rule_output_entries": 3474,

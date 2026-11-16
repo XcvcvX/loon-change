@@ -180,8 +180,52 @@
   "sections": {
     "rewrite": {
       "action_changed": [],
-      "added": [],
-      "removed": []
+      "added": [
+        {
+          "line": "^https:\\/\\/(api|page-info)(?:\\.zhihu)?\\.com\\/answers\\/v\\d\\/\\d+(?:\\?.*)?$ response-body-json-jq 'del(.third_business, .float_search_word) | (.structured_content.segments |= map(select(.type != \"card\")))'",
+          "section": "rewrite",
+          "sources": [
+            "local_overrides"
+          ]
+        },
+        {
+          "line": "^https:\\/\\/api\\.zhihu\\.com\\/topstory\\/recommend\\? response-body-json-jq '(.data |= map(select(.type == \"ComponentCard\"))) | (.data[]?.children |= (if type == \"array\" then map(select(.id != \"ring\")) else . end))'",
+          "section": "rewrite",
+          "sources": [
+            "local_overrides"
+          ]
+        }
+      ],
+      "removed": [
+        {
+          "line": "^https:\\/\\/(api|page-info)(?:\\.zhihu)?\\.com\\/answers\\/v\\d\\/\\d+(?:\\?.*)?$ response-body-json-del third_business float_search_word",
+          "section": "rewrite",
+          "sources": [
+            "thelong"
+          ]
+        },
+        {
+          "line": "^https:\\/\\/(api|page-info)(?:\\.zhihu)?\\.com\\/answers\\/v\\d\\/\\d+(?:\\?.*)?$ response-body-json-jq '.structured_content.segments |= map(select(.type != \"card\"))'",
+          "section": "rewrite",
+          "sources": [
+            "thelong"
+          ]
+        },
+        {
+          "line": "^https:\\/\\/api\\.zhihu\\.com\\/topstory\\/recommend\\? response-body-json-jq '.data |= map(select(.type == \"ComponentCard\"))'",
+          "section": "rewrite",
+          "sources": [
+            "thelong"
+          ]
+        },
+        {
+          "line": "^https:\\/\\/api\\.zhihu\\.com\\/topstory\\/recommend\\? response-body-json-jq '.data[]?.children |= (if type == \"array\" then map(select(.id != \"ring\")) else . end)'",
+          "section": "rewrite",
+          "sources": [
+            "thelong"
+          ]
+        }
+      ]
     },
     "rule": {
       "action_changed": [],
@@ -197,8 +241,8 @@
   "summary": {
     "rewrite": {
       "action_changed": 0,
-      "added": 0,
-      "removed": 0
+      "added": 2,
+      "removed": 4
     },
     "rule": {
       "action_changed": 0,
@@ -210,7 +254,7 @@
       "added": 0,
       "removed": 0
     },
-    "total_changes": 0
+    "total_changes": 6
   },
   "upstream_revision_changes": []
 }
