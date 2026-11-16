@@ -562,6 +562,45 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
 
 
 
+
+    def test_removes_legacy_amap_scripts_only_when_modern_handlers_exist(self):
+        from apply_local_overrides import remove_redundant_amap_legacy_scripts
+        legacy = "http-response ^https://m5.amap.com/ws/aos/perception/publicTravel/beforeNavi? script-path=https://github.com/ishowshu/qx/raw/main/script/amap.js"
+        canonical = 'response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/aos\\/perception\\/publicTravel\\/beforeNavi\\?/i then script("https://example.invalid/rucu6_amap.js")'
+        unrelated = "http-response ^https://example.invalid/ad script-path=https://example.invalid/ad.js"
+        result, removed = remove_redundant_amap_legacy_scripts(
+            ["[Script]", legacy, "[Rewrite]", canonical, "[Script]", unrelated],
+            expected_count=1,
+        )
+        self.assertEqual(removed, 1)
+        self.assertNotIn(legacy, result)
+        self.assertIn(canonical, result)
+        self.assertIn(unrelated, result)
+
+    def test_fails_closed_on_unknown_amap_legacy_script_endpoint(self):
+        from apply_local_overrides import remove_redundant_amap_legacy_scripts
+        unknown = "http-response ^https://m5.amap.com/ws/unknown/ad script-path=https://example.invalid/amap.js"
+        with self.assertRaisesRegex(ValueError, "unknown Amap legacy response script endpoint"):
+            remove_redundant_amap_legacy_scripts(["[Script]", unknown], expected_count=1)
+
+    def test_fails_closed_when_amap_canonical_handler_is_missing(self):
+        from apply_local_overrides import remove_redundant_amap_legacy_scripts
+        legacy = "http-response ^https://m5.amap.com/ws/aos/perception/publicTravel/beforeNavi? script-path=https://example.invalid/amap.js"
+        with self.assertRaisesRegex(ValueError, "canonical response handler missing or duplicated"):
+            remove_redundant_amap_legacy_scripts(["[Script]", legacy], expected_count=1)
+
+    def test_generated_plugin_has_no_legacy_amap_scripts_and_keeps_native_handlers(self):
+        from pathlib import Path
+        from apply_local_overrides import remove_redundant_amap_legacy_scripts
+        plugin = Path(__file__).parent / "allAdRewrite.plugin"
+        original = plugin.read_text(encoding="utf-8")
+        result, removed = remove_redundant_amap_legacy_scripts(original.splitlines(), expected_count=0)
+        self.assertEqual(removed, 0)
+        self.assertNotIn("Res/Scripts/AntiAd/amap.js", result)
+        self.assertNotIn("ishowshu/qx/raw/refs/heads/main/script/amap.js", result)
+        self.assertIn("sources/amap/rucu6_amap.js", "\n".join(result))
+        self.assertIn("marketingOperationStructured", "\n".join(result))
+
     def test_removes_unconditional_baidumap_ad_trigger_when_gated_equivalent_exists(self):
         from apply_local_overrides import BAIDUMAP_LEGACY_SCRIPT_RULE, remove_redundant_baidumap_script
         legacy, gated, _ = BAIDUMAP_LEGACY_SCRIPT_RULE

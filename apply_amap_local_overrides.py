@@ -15,6 +15,10 @@ CANONICAL_GROUPED_RULE = (
 )
 HOTWORD_MARKER = "search/new_hotword"
 
+MARKETING_OPERATION_OLD_RULE = "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_business\\/process\\/marketingOperationStructured\\?/i then response.json.delete([\"data.tipsOperationLocation\", \"obj.data.resourcePlacement\"])"
+MARKETING_OPERATION_NEW_RULE = "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_business\\/process\\/marketingOperationStructured\\?/i then response.json.delete([\"data.tipsOperationLocation\", \"data.resourcePlacement\"])"
+MARKETING_OPERATION_MARKER = "marketingOperationStructured"
+
 
 def _normalize(line):
     # Loon plugin serialization may vary the number of backslashes around regex escapes.
@@ -28,9 +32,14 @@ def apply(text):
     section = ""
     duplicate_count = 0
     grouped_count = 0
+    marketing_old_count = 0
+    marketing_new_count = 0
     unexpected = []
+    marketing_unexpected = []
     duplicate_normalized = _normalize(DUPLICATE_HOTWORD_RULE)
     grouped_normalized = _normalize(CANONICAL_GROUPED_RULE)
+    marketing_old_normalized = _normalize(MARKETING_OPERATION_OLD_RULE)
+    marketing_new_normalized = _normalize(MARKETING_OPERATION_NEW_RULE)
 
     for line in lines:
         stripped = line.strip()
@@ -39,7 +48,21 @@ def apply(text):
             output.append(line)
             continue
         normalized = _normalize(stripped)
-        if section != "Rewrite" or HOTWORD_MARKER not in normalized:
+        if section != "Rewrite" or stripped.startswith("#"):
+            output.append(line)
+            continue
+        if MARKETING_OPERATION_MARKER.lower() in normalized.lower():
+            if normalized == marketing_old_normalized:
+                output.append(line.replace("obj.data.resourcePlacement", "data.resourcePlacement"))
+                marketing_old_count += 1
+            elif normalized == marketing_new_normalized:
+                output.append(line)
+                marketing_new_count += 1
+            else:
+                marketing_unexpected.append(stripped)
+                output.append(line)
+            continue
+        if HOTWORD_MARKER not in normalized:
             output.append(line)
             continue
         if normalized == duplicate_normalized:
@@ -52,6 +75,12 @@ def apply(text):
         unexpected.append(stripped)
         output.append(line)
 
+    if marketing_unexpected:
+        raise ValueError("Amap marketingOperationStructured rule changed; refusing an unreviewed override")
+    if marketing_old_count > 1 or marketing_new_count > 1:
+        raise ValueError("duplicate Amap marketingOperationStructured rules; refusing ambiguous correction")
+    if marketing_old_count + marketing_new_count != 1:
+        raise ValueError("Amap marketingOperationStructured rule inventory changed; expected exactly one")
     if unexpected:
         raise ValueError("Amap hotword rule changed; refusing an unreviewed override")
     if grouped_count != 1:
@@ -69,7 +98,7 @@ def main():
     original = path.read_text(encoding="utf-8-sig")
     updated, removed = apply(original)
     path.write_text(updated, encoding="utf-8")
-    print("[amap-local-overrides] PASS: removed %d duplicate hotword request rule(s)" % removed)
+    print("[amap-local-overrides] PASS: removed %d duplicate hotword request rule(s); corrected marketingOperationStructured JSON path" % removed)
 
 
 if __name__ == "__main__":

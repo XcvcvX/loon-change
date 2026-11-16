@@ -591,6 +591,113 @@ def remove_redundant_baidumap_script(lines):
     return output, 1
 
 
+
+AMAP_LEGACY_SCRIPT_EXPECTED_COUNT = 33
+AMAP_LEGACY_SCRIPT_PATH_MARKERS = (
+    "/ws/aos/perception/publictravel/beforenavi",
+    "/ws/bus/plan/integrate",
+    "/ws/c3frontend/af-",
+    "/ws/perception/drive/",
+    "/ws/shield/search/",
+    "/ws/shield/search_poi/",
+    "/ws/shield/search_business/process/marketingoperationstructured",
+    "/ws/faas/amap-navigation/",
+    "/ws/shield/frogserver/aocs/updatable/",
+    "/ws/shield/dsp/profile/index/nodefaasv",
+    "/ws/boss/",
+    "/ws/promotion-web/resource",
+    "/ws/sharedtrip/taxi/order_detail_car_tips",
+    "/ws/shield/search_bff/hotword",
+    "/ws/valueadded/alimama/splash_screen",
+)
+
+
+def _amap_required_response_handlers(normalized):
+    if "/ws/aos/perception/publictravel/beforenavi" in normalized:
+        return ("/ws/aos/perception/publictravel/beforenavi",)
+    if "/ws/bus/plan/integrate" in normalized:
+        return ("/ws/bus/plan/integrate",)
+    if "/ws/c3frontend/" in normalized:
+        return ("/ws/c3frontend/(?:af-(?:hotel|launch)/page/main|af-nearby/nearby)",)
+    if "/ws/perception/drive/" in normalized:
+        return ("/ws/perception/drive/(?:routeinfo|routeplan)",)
+    if "/ws/shield/search_business/process/marketingoperationstructured" in normalized:
+        return ("/ws/shield/search_business/process/marketingoperationstructured",)
+    if "/ws/shield/search_poi/" in normalized:
+        required = []
+        if "homepage" in normalized:
+            required.append("/ws/shield/search_poi/homepage")
+        if any(marker in normalized for marker in ("mps", "search/sp", "sug", "tips_operation_location")):
+            required.append("/ws/shield/search_poi/(?:mps|search/sp|sug|tips_operation_location)")
+        return tuple(required)
+    if "/ws/shield/search_bff/hotword" in normalized:
+        return ("/ws/shield/search_bff/hotword",)
+    if "/ws/shield/search/nearbyrec_smart" in normalized:
+        return ("/ws/shield/search/nearbyrec_smart",)
+    if "/ws/shield/search/" in normalized:
+        return ("/ws/shield/search/(?:common/coupon/info|poi/detail)",)
+    if "/ws/faas/amap-navigation/" in normalized:
+        return ("/ws/faas/amap-navigation/(?:card-service-plan-home|main-page)",)
+    if "/ws/shield/frogserver/aocs/updatable/" in normalized:
+        return ("/ws/shield/frogserver/aocs/updatable/1",)
+    if "/ws/shield/dsp/profile/index/nodefaasv" in normalized:
+        return ("/ws/shield/dsp/profile/index/nodefaasv3",)
+    if "/ws/boss/" in normalized:
+        return ("/ws/boss/(?:car/order/content_info|order_web/friendly_information)",)
+    if "/ws/promotion-web/resource" in normalized:
+        return ("/ws/promotion-web/resource",)
+    if "/ws/sharedtrip/taxi/order_detail_car_tips" in normalized:
+        return ("/ws/sharedtrip/taxi/order_detail_car_tips",)
+    if "/ws/valueadded/alimama/splash_screen" in normalized:
+        return ("/ws/valueadded/alimama/splash_screen",)
+    return ()
+
+
+def remove_redundant_amap_legacy_scripts(lines, expected_count=AMAP_LEGACY_SCRIPT_EXPECTED_COUNT):
+    """Remove only legacy Amap http-response scripts when their exact modern handlers exist."""
+    output, section, targets = [], "", []
+    response_handlers = []
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+            output.append(line)
+            continue
+        normalized = re.sub(r"\\+", "", stripped).lower()
+        if not stripped.startswith("#") and normalized.startswith("response if") and "amap" in normalized:
+            response_handlers.append(normalized)
+        if section != "Script" or not normalized.startswith("http-response") or "amap" not in normalized:
+            output.append(line)
+            continue
+        if "/amap.js" not in normalized:
+            raise ValueError("Amap legacy response script source changed; refusing unreviewed cleanup")
+        if not any(marker in normalized for marker in AMAP_LEGACY_SCRIPT_PATH_MARKERS):
+            raise ValueError("unknown Amap legacy response script endpoint; refusing unreviewed cleanup")
+        required = _amap_required_response_handlers(normalized)
+        if not required:
+            raise ValueError("Amap legacy response script has no reviewed native handler")
+        targets.append((line, required))
+    if not targets:
+        return output, 0
+    if expected_count is not None and len(targets) != expected_count:
+        raise ValueError(
+            "Amap legacy response script inventory changed; expected %d, found %d"
+            % (expected_count, len(targets))
+        )
+    for _line, required_markers in targets:
+        for marker in required_markers:
+            count = sum(marker in handler for handler in response_handlers)
+            if count != 1:
+                raise ValueError(
+                    "Amap canonical response handler missing or duplicated: " + marker
+                )
+    remaining = [line for line in lines]
+    for target_line, _required in targets:
+        remaining.remove(target_line)
+    return remaining, len(targets)
+
+
+
 def apply(text: str) -> str:
     if "[Script]" not in text or "[MITM]" not in text or "[Rewrite]" not in text:
         raise ValueError("plugin missing [Rewrite], [Script] or [MITM] section")
@@ -673,6 +780,7 @@ def apply(text: str) -> str:
     lines, _ = remove_redundant_didi_usercenter_script(lines)
     lines, _ = remove_redundant_dianping_scripts(lines)
     lines, _ = remove_redundant_baidumap_script(lines)
+    lines, _ = remove_redundant_amap_legacy_scripts(lines)
 
     result_lines, rewrite_lines = [], []
     section = ""
