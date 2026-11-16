@@ -1284,6 +1284,92 @@ def remove_redundant_amap_legacy_scripts(lines, expected_count=AMAP_LEGACY_SCRIP
 
 
 
+# 京东四个广告相关域名同时存在精确 DOMAIN-SUFFIX 与更宽的 DOMAIN-KEYWORD。
+# Loon 的 DOMAIN-SUFFIX 已覆盖目标域名及其子域；DOMAIN-KEYWORD 会匹配域名任意位置的子串。
+JD_KEYWORD_SCOPE_HOSTS = (
+    "bdsp.x.jd.com",
+    "kepler.jd.com",
+    "keplerapi.jd.com",
+    "mapi.m.jd.com",
+)
+JD_KEYWORD_SCOPE_RULES = {
+    host: "DOMAIN-KEYWORD," + host + ",REJECT"
+    for host in JD_KEYWORD_SCOPE_HOSTS
+}
+JD_SUFFIX_SCOPE_RULES = {
+    host: "DOMAIN-SUFFIX," + host + ",REJECT"
+    for host in JD_KEYWORD_SCOPE_HOSTS
+}
+
+
+def remove_redundant_jd_keyword_rules(lines):
+    """Drop only four proven broad keyword shadows, retaining exact suffix blocks.
+
+    The suffix rule covers the exact hostname and all subdomains. A keyword rule
+    additionally matches arbitrary hostnames containing that string, so it is
+    broader without adding coverage for the documented JD host tree.
+    """
+    section = ""
+    output = []
+    keyword_counts = {host: 0 for host in JD_KEYWORD_SCOPE_HOSTS}
+    suffix_counts = {host: 0 for host in JD_KEYWORD_SCOPE_HOSTS}
+    saw_target_rule = False
+
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            output.append(line)
+            continue
+
+        value = line.strip()
+        if section == "Rule" and value:
+            parts = [part.strip() for part in value.split(",")]
+            if len(parts) >= 2 and parts[0].upper() == "DOMAIN-KEYWORD":
+                host = parts[1].lower()
+                if host in JD_KEYWORD_SCOPE_RULES:
+                    saw_target_rule = True
+                    if value != JD_KEYWORD_SCOPE_RULES[host]:
+                        raise ValueError(
+                            "Jingdong DOMAIN-KEYWORD rule changed; refusing unreviewed scope reduction: "
+                            + value
+                        )
+                    keyword_counts[host] += 1
+                    if keyword_counts[host] > 1:
+                        raise ValueError("duplicate Jingdong DOMAIN-KEYWORD rule: " + host)
+                    continue
+                if any(target in host for target in JD_KEYWORD_SCOPE_HOSTS):
+                    saw_target_rule = True
+                    raise ValueError(
+                        "unknown Jingdong DOMAIN-KEYWORD variant; refusing unreviewed cleanup: "
+                        + value
+                    )
+
+            if len(parts) >= 2 and parts[0].upper() == "DOMAIN-SUFFIX":
+                host = parts[1].lower()
+                if host in JD_SUFFIX_SCOPE_RULES:
+                    saw_target_rule = True
+                    if value != JD_SUFFIX_SCOPE_RULES[host]:
+                        raise ValueError("Jingdong DOMAIN-SUFFIX cover changed: " + value)
+                    suffix_counts[host] += 1
+
+        output.append(line)
+
+    if not saw_target_rule:
+        return list(lines), 0
+
+    missing_covers = [host for host, count in suffix_counts.items() if count != 1]
+    if missing_covers:
+        raise ValueError(
+            "Jingdong exact DOMAIN-SUFFIX covers must each exist once: "
+            + ", ".join(missing_covers)
+        )
+
+    present = [host for host, count in keyword_counts.items() if count]
+    if present and len(present) != len(JD_KEYWORD_SCOPE_HOSTS):
+        raise ValueError("Jingdong DOMAIN-KEYWORD inventory is partial; refusing unreviewed cleanup")
+    return output, sum(keyword_counts.values())
+
+
 # Jingdong: retain the unconditional R-Store cleaner and preserve the optional
 # FMZ welcomeHome-only extension behind its existing user switch.
 JD_RSTORE_LEGACY_TRIGGER = r"http-response ^https?:\/\/api\.m\.jd\.com\/client\.action\?functionId=(?:deliverLayer|getTabHomeInfo|myOrderInfo|orderTrackBusiness|personinfoBusiness|start|welcomeHome|readCustomSurfaceList) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/jd.js,tag=JD,requires-body=true"
@@ -1884,6 +1970,7 @@ def apply(text: str) -> str:
         lines.append(line)
 
     lines, _ = scope_taobao_ossgw_ad_assets(lines)
+    lines, _ = remove_redundant_jd_keyword_rules(lines)
     lines, _ = remove_douyin_hongguo_unsafe_rules(lines)
     lines, _ = remove_kugou_jin10_redundant_rewrites(lines)
     lines, _ = remove_pdd_order_endpoint_blocks(lines)

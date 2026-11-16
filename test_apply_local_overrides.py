@@ -1179,6 +1179,52 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
 
 
 
+class JingdongRuleScopeTests(unittest.TestCase):
+    def setUp(self):
+        from apply_local_overrides import JD_KEYWORD_SCOPE_RULES, JD_SUFFIX_SCOPE_RULES
+        self.keyword_rules = list(JD_KEYWORD_SCOPE_RULES.values())
+        self.suffix_rules = list(JD_SUFFIX_SCOPE_RULES.values())
+        self.base = """#!name=test
+[Rule]
+%s
+%s
+DOMAIN-KEYWORD,unrelated.example,REJECT
+[Rewrite]
+^https?:\\/\\/example\\.com reject
+[Script]
+[MITM]
+hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankcomm.cn, creditcardapp.bankcomm.com
+""" % ("\n".join(self.keyword_rules), "\n".join(self.suffix_rules))
+
+    def test_removes_only_jd_keyword_shadows_and_preserves_suffix_coverage(self):
+        result = apply(self.base)
+        rule_section = result.split("[Rule]", 1)[1].split("[Rewrite]", 1)[0]
+        for rule in self.keyword_rules:
+            self.assertNotIn(rule, rule_section)
+        for rule in self.suffix_rules:
+            self.assertEqual(rule_section.count(rule), 1)
+        self.assertIn("DOMAIN-KEYWORD,unrelated.example,REJECT", rule_section)
+        self.assertEqual(apply(result), result)
+
+    def test_rejects_partial_jd_keyword_inventory(self):
+        partial = self.base.replace(self.keyword_rules[0] + "\n", "")
+        with self.assertRaisesRegex(ValueError, "inventory is partial"):
+            apply(partial)
+
+    def test_rejects_missing_exact_suffix_cover(self):
+        missing = self.base.replace(self.suffix_rules[0] + "\n", "")
+        with self.assertRaisesRegex(ValueError, "DOMAIN-SUFFIX covers"):
+            apply(missing)
+
+    def test_rejects_changed_action_and_duplicate_keyword_rules(self):
+        changed = self.base.replace(self.keyword_rules[0], self.keyword_rules[0].replace(",REJECT", ",DIRECT"))
+        with self.assertRaisesRegex(ValueError, "rule changed"):
+            apply(changed)
+        duplicate = self.base.replace(self.keyword_rules[0] + "\n", self.keyword_rules[0] + "\n" + self.keyword_rules[0] + "\n")
+        with self.assertRaisesRegex(ValueError, "duplicate Jingdong"):
+            apply(duplicate)
+
+
 class JingdongScriptConsolidationTests(unittest.TestCase):
     def setUp(self):
         from apply_local_overrides import (
