@@ -495,6 +495,91 @@ DDQX_NEWDETAILS_MODERN_ACTION = r'response if ${url} ~= /^https?:\/\/maicai\.api
 DDQX_NEWDETAILS_NATIVE_RULE = r'response if ${url} ~= /^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/newDetails/ then response.json.delete("data.suspension")'
 
 
+# 淘宝首页/开屏/信息流中，以下子集规则已被同动作、更宽的规则覆盖。
+TAOBAO_FLIGGY_HTTP_COVER = r"request if \${url} ~= /^https?:\/\/acs\.m\.taobao\.com\/gw\/mtop\.fliggy\.crm\.screen\.(allresource|predict)/ then reject_dict(200)"
+TAOBAO_FLIGGY_HTTPS_COVER = r"request if \${url} ~= /^https:\/\/acs\.m\.taobao\.com\/gw\/mtop\.fliggy\.crm\.screen\.(?:allresource|predict)/i then reject_dict(200)"
+TAOBAO_FLIGGY_HTTPS_REDUNDANT = r"request if \${url} ~= /^https:\/\/acs\.m\.taobao\.com\/gw\/mtop\.fliggy\.crm\.screen\.(allresource|predict)/i then reject_dict(200)"
+
+TAOBAO_CAINIAO_FLYAD_COVER = r"^https?:\/\/guide-acs\.m\.taobao\.com\/gw\/mtop\.cainiao\.adx\.flyad\.getad reject-dict"
+TAOBAO_CAINIAO_FLYAD_REDUNDANT = r"^https:\/\/guide-acs\.m\.taobao\.com\/gw\/mtop\.cainiao\.adx\.flyad\.getad reject-dict"
+
+TAOBAO_HOME_HTTP_COVER = r"^https?:\/\/guide-acs\.m\.taobao\.com\/gw\/mtop\.taobao\.(volvo\.secondfloor\.getconfig|wireless\.home\.newface\.awesome\.get) reject-dict"
+TAOBAO_HOME_HTTPS_COVER = r"request if \${url} ~= /^https:\/\/guide-acs\.m\.taobao\.com\/gw\/mtop\.taobao\.(?:volvo\.secondfloor\.getconfig|shot\.resources\.load|wireless\.home\.(newface|splash)\.awesome\.get)/i then reject_dict(200)"
+TAOBAO_HOME_HTTPS_SUBSET = r"request if \${url} ~= /^https:\/\/guide-acs\.m\.taobao\.com\/gw\/mtop\.taobao\.(volvo\.secondfloor\.getconfig|wireless\.home\.newface\.awesome\.get)/i then reject_dict(200)"
+TAOBAO_HOME_SPLASH_SUBSET = r"^https:\/\/guide-acs\.m\.taobao\.com\/gw\/mtop\.taobao\.wireless\.home\.splash\.awesome\.get reject-dict"
+
+
+def remove_redundant_taobao_rewrite_rules(lines):
+    """Remove only exact same-action subsets while preserving protocol/case coverage."""
+    groups = (
+        (
+            "mtop.fliggy.crm.screen",
+            (TAOBAO_FLIGGY_HTTP_COVER, TAOBAO_FLIGGY_HTTPS_COVER),
+            (TAOBAO_FLIGGY_HTTPS_REDUNDANT,),
+        ),
+        (
+            "mtop.cainiao.adx.flyad.getad",
+            (TAOBAO_CAINIAO_FLYAD_COVER,),
+            (TAOBAO_CAINIAO_FLYAD_REDUNDANT,),
+        ),
+        (
+            "guide-acs.m.taobao.com/gw/mtop.taobao.",
+            (TAOBAO_HOME_HTTP_COVER, TAOBAO_HOME_HTTPS_COVER),
+            (TAOBAO_HOME_HTTPS_SUBSET, TAOBAO_HOME_SPLASH_SUBSET),
+        ),
+    )
+    normalize = lambda value: re.sub(r"\\+", "", value.strip())
+    known = {
+        normalize(rule): (group_index, rule, is_redundant)
+        for group_index, (_, covers, redundants) in enumerate(groups)
+        for is_redundant, rules in ((False, covers), (True, redundants))
+        for rule in rules
+    }
+    output, section = [], ""
+    counts = {key: 0 for key in known}
+    seen_groups = set()
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            output.append(line)
+            continue
+        if section != "Rewrite":
+            output.append(line)
+            continue
+        value = normalize(line)
+        group_index = None
+        for index, (marker, _, _) in enumerate(groups):
+            if marker in value and (
+                index != 2 or any(token in value for token in (
+                    "volvo.secondfloor.getconfig", "shot.resources.load",
+                    "wireless.home.newface.awesome.get", "wireless.home.splash.awesome.get",
+                ))
+            ):
+                group_index = index
+                break
+        if group_index is None:
+            output.append(line)
+            continue
+        seen_groups.add(group_index)
+        matched = known.get(value)
+        if matched is None or matched[0] != group_index:
+            raise ValueError("Taobao homepage/feed rewrite inventory changed; refusing unreviewed cleanup")
+        counts[value] += 1
+        if counts[value] > 1:
+            raise ValueError("duplicate Taobao homepage/feed rewrite; refusing ambiguous cleanup")
+        if matched[2]:
+            continue
+        output.append(line)
+
+    for index in seen_groups:
+        _, covers, redundants = groups[index]
+        if any(counts[normalize(rule)] != 1 for rule in covers):
+            raise ValueError("Taobao covering rewrite missing; refusing redundant rule removal")
+        if any(counts[normalize(rule)] not in (0, 1) for rule in redundants):
+            raise ValueError("duplicate Taobao redundant rewrite; refusing ambiguous cleanup")
+    return output, sum(counts[normalize(rule)] for _, _, redundants in groups for rule in redundants)
+
+
 def replace_ddqx_newdetails_body_rewrites(lines):
     """Replace only the reviewed Duoduo Grocery suspension-field rewrites with JSON deletion."""
     output, converted, legacy_count, modern_count, native_count = [], 0, 0, 0, 0
@@ -1040,6 +1125,7 @@ def apply(text: str) -> str:
                 rewrite_lines, _ = remove_subsumed_soul_teenager_rule(rewrite_lines)
                 rewrite_lines, _ = remove_shadowed_peopleapp_rules(rewrite_lines)
                 rewrite_lines, _ = remove_shadowed_terminal_block_rules(rewrite_lines)
+                rewrite_lines, _ = remove_redundant_taobao_rewrite_rules(rewrite_lines)
                 rewrite_lines, _ = remove_lkcoffee_member_exchange_success_overrides(rewrite_lines)
                 rewrite_lines, _ = replace_guiderank_special_sale_random_body(rewrite_lines)
                 rewrite_lines, _ = replace_ddqx_newdetails_body_rewrites(rewrite_lines)
@@ -1062,6 +1148,7 @@ def apply(text: str) -> str:
         rewrite_lines, _ = remove_subsumed_soul_teenager_rule(rewrite_lines)
         rewrite_lines, _ = remove_shadowed_peopleapp_rules(rewrite_lines)
         rewrite_lines, _ = remove_shadowed_terminal_block_rules(rewrite_lines)
+        rewrite_lines, _ = remove_redundant_taobao_rewrite_rules(rewrite_lines)
         rewrite_lines, _ = remove_lkcoffee_member_exchange_success_overrides(rewrite_lines)
         rewrite_lines, _ = replace_guiderank_special_sale_random_body(rewrite_lines)
         rewrite_lines, _ = replace_ddqx_newdetails_body_rewrites(rewrite_lines)
