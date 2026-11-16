@@ -2385,7 +2385,7 @@ class MoreResponseScriptDedupTests(unittest.TestCase):
 
 
     def test_xiaohongshu_native_ad_rewrites_replace_duplicate_body_scripts(self):
-        from apply_local_overrides import XHS_SCRIPT_TRIGGER_LINES, XHS_V3_VIDEO_AD_ONLY_RULE, XHS_V4_VIDEO_AD_ONLY_RULE, optimize_xiaohongshu_response_cost
+        from apply_local_overrides import XHS_SCRIPT_TRIGGER_LINES, XHS_V4_VIDEO_AD_ONLY_RULE, optimize_xiaohongshu_response_cost
         fixture = [
             "[Argument]", "xhs_enable = switch,true,false,tag=小红书-脚本开关",
             "[Rewrite]",
@@ -2393,7 +2393,7 @@ class MoreResponseScriptDedupTests(unittest.TestCase):
             r"""^https:\/\/ci\.xiaohongshu\.com\/system_config\/watermark reject-img""",
             r"""^https:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/v1\/note\/imagefeed response-body-json-jq 'disable_watermark video_download'""",
             r"""^https:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/v2\/note\/feed response-body-json-jq 'disable_watermark video_download'""",
-            r"""^https:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/v3\/note\/videofeed response-body-json-jq 'disable_watermark video_download model_type has("ad")'""",
+            r"""^https:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/v3\/note\/videofeed response-body-json-jq 'disable_watermark video_download'""",
             r"""^https:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/v4\/note\/videofeed response-body-json-jq 'disable_watermark video_download model_type has("ad")'""",
             r"""^https:\/\/edith\.xiaohongshu\.com\/api\/sns\/v5\/note\/comment\/list response-body-json-jq 'comment_type media_source_type'""",
             r"""^https:\/\/edith\.xiaohongshu\.com\/api\/sns\/v\d+\/system_service\/config response-body-json-jq 'del(.data.splash)'""",
@@ -2407,10 +2407,9 @@ class MoreResponseScriptDedupTests(unittest.TestCase):
         self.assertNotIn("disable_watermark", "\n".join(result))
         self.assertNotIn("video_download", "\n".join(result))
         self.assertNotIn("comment_type", "\n".join(result))
-        self.assertIn(XHS_V3_VIDEO_AD_ONLY_RULE, result)
         self.assertIn(XHS_V4_VIDEO_AD_ONLY_RULE, result)
-        self.assertIn("model_type", XHS_V3_VIDEO_AD_ONLY_RULE)
         self.assertIn('has("ad")', XHS_V4_VIDEO_AD_ONLY_RULE)
+        self.assertFalse(any("v3/note/videofeed" in line for line in result))
         self.assertTrue(any("system_service" in line for line in result))
         self.assertTrue(any("example.invalid/keep.js" in line for line in result))
         again, second_removed = optimize_xiaohongshu_response_cost(result)
