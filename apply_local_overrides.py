@@ -475,7 +475,8 @@ def remove_didi_homepage_rejects_shadowing_field_cleaners(lines):
         exact_positions = [i for i, line in enumerate(output) if line.strip() == legacy_rule]
         drifted = [
             line.strip() for line in output
-            if "conf.diditaxi.com.cn/homepage/v1/other/" + label in line
+            if "conf.diditaxi.com.cn/homepage/v1/other/" + label
+            in re.sub(r"\\\\+", "", line)
             and line.strip().startswith("^https")
             and line.strip() != legacy_rule
         ]
