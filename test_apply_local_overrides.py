@@ -1981,6 +1981,91 @@ class ZhihuMultiActionRewriteConsolidationTests(unittest.TestCase):
 
 
 
+
+class RRTVNativeAdRewriteTests(unittest.TestCase):
+    def setUp(self):
+        from apply_local_overrides import (
+            RRTV_SOURCE_TRIGGERS,
+            RRTV_NON_AD_SOURCE_TRIGGERS,
+            RRTV_HOME_AD_SOURCE_TRIGGER,
+            RRTV_GETALL_AD_SOURCE_TRIGGER,
+            RRTV_HOME_NATIVE_REWRITE,
+            RRTV_GETALL_NATIVE_REWRITE,
+        )
+        self.source = RRTV_SOURCE_TRIGGERS
+        self.non_ad = RRTV_NON_AD_SOURCE_TRIGGERS
+        self.ad_source = (RRTV_HOME_AD_SOURCE_TRIGGER, RRTV_GETALL_AD_SOURCE_TRIGGER)
+        self.native = (RRTV_HOME_NATIVE_REWRITE, RRTV_GETALL_NATIVE_REWRITE)
+        self.base = (
+            "#!name=rrtv-native-test\n[Argument]\nrfrfuipk_enable = switch,true,false,tag=RRTV\n"
+            "[Rewrite]\n^https:\\/\\/unrelated\\.example\\/keep reject\n"
+            "[Script]\n" + "\n".join(self.source) +
+            "\nresponse if ${url} ~= /^https:\\/\\/example\\.com\\/keep/ then script(\"keep.js\")\n"
+            "[MITM]\nhostname = api.rr.tv, example.com, creditcard.bankcomm.cn, creditcard.bankcomm.com, "
+            "creditcardapp.bankcomm.cn, creditcardapp.bankcomm.com\n"
+        )
+
+    def test_replaces_only_two_ad_triggers_with_native_rewrites(self):
+        result = apply(self.base)
+        for source in self.source:
+            self.assertNotIn(source, result)
+        for rule in self.native:
+            self.assertEqual(result.count(rule), 1)
+            self.assertIn("${rfrfuipk_enable} == true", rule)
+        for source in self.non_ad:
+            self.assertNotIn(source, result)
+        self.assertIn("rfrfuipk_enable = switch,true,false,tag=RRTV", result)
+        self.assertIn('script("keep.js")', result)
+        self.assertIn("^https:\\/\\/unrelated\\.example\\/keep reject", result)
+        self.assertEqual(apply(result), result)
+
+    def test_allows_independently_missing_source_triggers(self):
+        partial = self.base.replace(self.non_ad[0] + "\n", "", 1)
+        result = apply(partial)
+        self.assertEqual(result.count(self.native[0]), 1)
+        self.assertEqual(result.count(self.native[1]), 1)
+        self.assertEqual(apply(result), result)
+
+        no_home = self.base.replace(self.ad_source[0] + "\n", "", 1)
+        no_home_result = apply(no_home)
+        self.assertEqual(no_home_result.count(self.native[0]), 0)
+        self.assertEqual(no_home_result.count(self.native[1]), 1)
+
+    def test_fails_closed_on_duplicates_mixed_state_and_unknown_matchers(self):
+        duplicate = self.base.replace(self.source[0], self.source[0] + "\n" + self.source[0], 1)
+        with self.assertRaisesRegex(ValueError, "duplicate RRTV response script trigger"):
+            apply(duplicate)
+
+        mixed = self.base.replace("[Script]", self.native[0] + "\n[Script]", 1)
+        with self.assertRaisesRegex(ValueError, "mixed RRTV script/native rule state"):
+            apply(mixed)
+
+        unknown_script = self.base.replace(
+            self.source[0],
+            self.source[0] + "\n" +
+            r"""response if ${url} ~= /^https:\/\/api\.rr\.tv\/unknown/i then script("rrtv_json.js") with enable=rfrfuipk_enable, requires_body=true""",
+            1,
+        )
+        with self.assertRaisesRegex(ValueError, "unknown RRTV script matcher"):
+            apply(unknown_script)
+
+        unknown_rewrite = self.base.replace(
+            "[Script]",
+            r"""response if ${url} ~= /^https:\/\/api\.rr\.tv\/ad\/getAll/i then response.json.delete("data.unreviewed")""" + "\n[Script]",
+            1,
+        )
+        with self.assertRaisesRegex(ValueError, "unknown RRTV native JSON action"):
+            apply(unknown_rewrite)
+
+    def test_checked_in_plugin_snapshot_applies_to_native_ad_only_rules(self):
+        from pathlib import Path
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        result = apply(plugin)
+        self.assertNotIn("rrtv_json.js", result)
+        for rule in self.native:
+            self.assertEqual(result.count(rule), 1)
+
+
 class ResponseJsonDeleteBatchTests(unittest.TestCase):
     def setUp(self):
         from apply_local_overrides import (
