@@ -814,3 +814,5 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 上游已移除 `Loon/plugin/blockAdsV2.plugin`，现行入口为 `Loon/plugin/blockAds.plugin`；将主源及 jsDelivr 镜像切换到当前有效路径。
 - 保留现有来源完整性校验、规则归一化、冲突处理和来源追溯，不关闭发布门禁，也不回退到旧版缓存。
 - 新增测试锁定主源和两个镜像地址，避免上游重命名后再次因 404 中断自动同步。
+
+- 为新版源的 `${switch}` 参数和转义 URL 正则增加仅用于精确库存匹配的归一化；RRTV 与 CNFTP 覆盖器同时识别旧快照、旧 V2 原始行和当前 `blockAds.plugin` 行，不改变实际输出 URL 规则。
