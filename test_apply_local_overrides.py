@@ -1413,6 +1413,53 @@ class DouyinTncDirectSafetyTests(unittest.TestCase):
             self.assertNotIn(rule, plugin)
         self.assertEqual(plugin.count(DOUYIN_TNC_DIRECT_RULE), 1)
 
+class DouyinContentCdnScopeTests(unittest.TestCase):
+    def setUp(self):
+        from apply_local_overrides import DOUYIN_CONTENT_CDN_OVERBLOCKS, DOUYIN_CDN_REQUIRED_AD_PATH_MARKERS
+        self.overblocks = list(DOUYIN_CONTENT_CDN_OVERBLOCKS)
+        self.markers = list(DOUYIN_CDN_REQUIRED_AD_PATH_MARKERS)
+        self.base = ["[Rule]", self.overblocks[0][1], self.overblocks[1][1],
+                     "DOMAIN-SUFFIX,pangolin-sdk-toutiao.com,REJECT", "[Rewrite]",
+                     *[rule for section, rule in self.overblocks if section == "Rewrite"],
+                     "request if ${url} ~= /^https?:\\/\\/.+\\.pstatp\\.com\\/(obj|img)\\/ad/ then reject(404)",
+                     "request if ${url} ~= /^https?:\\/\\/.+\\.pstatp\\.com\\/obj\\/ad-pattern\\/renderer/ then reject(404)",
+                     "request if ${url} ~= /^https?:\\/\\/.+\\.snssdk\\.com\\/api\\/ad\\/.+/ then reject(404)",
+                     "request if ${url} ~= /^https?:\\/\\/.+\\.pstatp\\.com\\/obj\\/mosaic-legacy\\/.+\\?from\\=ad/ then reject(404)",
+                     "[Script]", "[MITM]"]
+
+    def test_removes_only_content_cdn_overblocks_and_keeps_ad_path_rules(self):
+        from apply_local_overrides import remove_douyin_content_cdn_overblocks
+        result, removed = remove_douyin_content_cdn_overblocks(self.base)
+        self.assertEqual(removed, 5)
+        for _, rule in self.overblocks:
+            self.assertNotIn(rule, result)
+        for marker in self.markers:
+            self.assertTrue(any(marker in line.replace("\\\\", "") for line in result))
+        self.assertIn("DOMAIN-SUFFIX,pangolin-sdk-toutiao.com,REJECT", result)
+        self.assertEqual(remove_douyin_content_cdn_overblocks(result), (result, 0))
+
+    def test_fails_closed_on_partial_duplicate_or_unknown_origin_rules(self):
+        from apply_local_overrides import remove_douyin_content_cdn_overblocks
+        partial = [line for line in self.base if line != self.overblocks[0][1]]
+        with self.assertRaisesRegex(ValueError, "inventory changed"):
+            remove_douyin_content_cdn_overblocks(partial)
+        duplicate = self.base[:self.base.index("[Rewrite]")] + [self.overblocks[0][1]] + self.base[self.base.index("[Rewrite]"): ]
+        with self.assertRaisesRegex(ValueError, "duplicate Douyin content CDN"):
+            remove_douyin_content_cdn_overblocks(duplicate)
+        unknown = self.base[:self.base.index("[Rewrite]")] + ["request if ${url} ~= /^https?:\\/\\/p9\\.pstatp\\.com\\/origin/ then reject(404)"] + self.base[self.base.index("[Rewrite]"): ]
+        with self.assertRaisesRegex(ValueError, "inventory changed"):
+            remove_douyin_content_cdn_overblocks(unknown)
+
+    def test_checked_in_plugin_snapshot_keeps_ad_paths_without_content_cdn_overblocks(self):
+        from pathlib import Path
+        from apply_local_overrides import DOUYIN_CONTENT_CDN_OVERBLOCKS, DOUYIN_CDN_REQUIRED_AD_PATH_MARKERS
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        for _, rule in DOUYIN_CONTENT_CDN_OVERBLOCKS:
+            self.assertNotIn(rule, plugin)
+        normalized = plugin.replace("\\\\", "")
+        for marker in DOUYIN_CDN_REQUIRED_AD_PATH_MARKERS:
+            self.assertIn(marker, normalized)
+
 class DouyinHongguoBoundaryTests(unittest.TestCase):
     def setUp(self):
         self.base = r"""#!name=Douyin-Hongguo-test
