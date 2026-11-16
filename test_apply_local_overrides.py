@@ -561,6 +561,41 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
 
 
 
+
+    def test_removes_unconditional_baidumap_ad_trigger_when_gated_equivalent_exists(self):
+        from apply_local_overrides import BAIDUMAP_LEGACY_SCRIPT_RULE, remove_redundant_baidumap_script
+        legacy, gated, _ = BAIDUMAP_LEGACY_SCRIPT_RULE
+        unrelated = "http-response https://example.invalid/ script-path=other.js"
+        result, removed = remove_redundant_baidumap_script([legacy, gated, unrelated])
+        self.assertEqual(removed, 1)
+        self.assertNotIn(legacy, result)
+        self.assertIn(gated, result)
+        self.assertIn(unrelated, result)
+        self.assertEqual(remove_redundant_baidumap_script(result)[1], 0)
+
+    def test_fails_closed_when_baidumap_gated_ad_trigger_is_missing(self):
+        from apply_local_overrides import BAIDUMAP_LEGACY_SCRIPT_RULE, remove_redundant_baidumap_script
+        legacy, _, _ = BAIDUMAP_LEGACY_SCRIPT_RULE
+        with self.assertRaisesRegex(ValueError, "gated script trigger missing or changed"):
+            remove_redundant_baidumap_script([legacy])
+
+    def test_fails_closed_on_duplicate_baidumap_ad_triggers(self):
+        from apply_local_overrides import BAIDUMAP_LEGACY_SCRIPT_RULE, remove_redundant_baidumap_script
+        legacy, gated, _ = BAIDUMAP_LEGACY_SCRIPT_RULE
+        with self.assertRaisesRegex(ValueError, "duplicate legacy"):
+            remove_redundant_baidumap_script([legacy, legacy, gated])
+        with self.assertRaisesRegex(ValueError, "duplicate gated"):
+            remove_redundant_baidumap_script([legacy, gated, gated])
+
+    def test_generated_plugin_keeps_only_gated_baidumap_ad_trigger(self):
+        from pathlib import Path
+        from apply_local_overrides import BAIDUMAP_LEGACY_SCRIPT_RULE
+        plugin = Path(__file__).parent / "allAdRewrite.plugin"
+        result = apply(plugin.read_text(encoding="utf-8"))
+        legacy, gated, _ = BAIDUMAP_LEGACY_SCRIPT_RULE
+        self.assertNotIn(legacy, result)
+        self.assertIn(gated, result)
+
     def test_removes_unconditional_dianping_triggers_when_gated_equivalents_exist(self):
         from apply_local_overrides import DIANPING_LEGACY_SCRIPT_RULES, remove_redundant_dianping_scripts
         legacy1, gated1, _ = DIANPING_LEGACY_SCRIPT_RULES[0]
