@@ -1175,7 +1175,7 @@ def consolidate_starplucker_config_jq(lines):
     if not matches:
         return output, 0
     if len(matches) != 1:
-        raise ValueError("StarPlucker config jq rule duplicated; refusing unsafe rewrite")
+        raise ValueError("StarPlucker config jq rule changed or duplicated; refusing unsafe rewrite")
     current = output[matches[0]].strip()
     if current == STARPLUCKER_SINGLE_JQ_RULE:
         return output, 0
