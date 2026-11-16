@@ -3,7 +3,7 @@
     "rewrite": {
       "action_changed": 0,
       "added": 0,
-      "removed": 0
+      "removed": 4
     },
     "rule": {
       "action_changed": 0,
@@ -16,14 +16,111 @@
       "removed": 0
     }
   },
-  "events": [],
-  "overall_risk": "low",
+  "events": [
+    {
+      "after": null,
+      "before": {
+        "line": "request if ${url} ~= /^https:\\/\\/api\\.zhihu\\.com\\/ab\\/api\\/v1\\/products\\/zhihu\\/platforms\\/ios\\/config/ then reject(404)",
+        "section": "rewrite",
+        "sources": [
+          "block"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "block": "unavailable"
+      },
+      "source_scores": {
+        "block": null
+      },
+      "sources": [
+        "block"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "request if ${url} ~= /^https:\\/\\/api\\.zhihu\\.com\\/unlimited\\/go\\/my_card/ then reject(404)",
+        "section": "rewrite",
+        "sources": [
+          "block"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "block": "unavailable"
+      },
+      "source_scores": {
+        "block": null
+      },
+      "sources": [
+        "block"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "request if ${url} ~= /^https:\\/\\/zhstatic\\.zhihu\\.com\\/brand-ad/ then reject(404)",
+        "section": "rewrite",
+        "sources": [
+          "block"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "block": "unavailable"
+      },
+      "source_scores": {
+        "block": null
+      },
+      "sources": [
+        "block"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "request if ${url} ~= /^https:\\/\\/zhuanlan\\.zhihu\\.com\\/api\\/articles\\/\\d+\\/recommendation/ then reject(404)",
+        "section": "rewrite",
+        "sources": [
+          "block"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "block": "unavailable"
+      },
+      "source_scores": {
+        "block": null
+      },
+      "sources": [
+        "block"
+      ]
+    }
+  ],
+  "overall_risk": "high",
   "risk_counts": {
-    "high": 0,
+    "high": 4,
     "low": 0,
     "medium": 0
   },
-  "run_id": "43826886272",
+  "run_id": "43827478878",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -60,8 +157,8 @@
     "block": {
       "action_changed": 0,
       "added": 0,
-      "removed": 31,
-      "snapshots_seen": 9
+      "removed": 35,
+      "snapshots_seen": 10
     },
     "filter": {
       "action_changed": 0,

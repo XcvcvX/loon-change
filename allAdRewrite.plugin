@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、RuCu6 MyBlockAds、zirawell AlipayAdBlock、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / RuCu6 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-16 07:53 UTC
+#!merged-at=2026-11-16 07:58 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+RuCu6-MyBlockAds+zirawell-AlipayAdBlock+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -6175,14 +6175,12 @@ request if ${url} ~= /^https:\/\/api\.zhihu\.com\/(?:moments\/lastread|drama\/ho
 request if ${url} ~= /^https:\/\/api\.zhihu\.com\/root\/window/ then reject_dict(200)
 request if ${url} ~= /^https:\/\/api\.zhihu\.com\/(?:bazaar\/float_window|market\/popovers_v2)/ then reject_dict(200)
 request if ${url} ~= /^https:\/\/api\.zhihu\.com\/me\/guides/ then reject_dict(200)
-request if ${url} ~= /^https:\/\/api\.zhihu\.com\/unlimited\/go\/my_card/ then reject(404)
 request if ${url} ~= /^https:\/\/api\.zhihu\.com\/search\/(hot_search|preset_words)/ then reject_dict(200)
 response if ${url} ~= /^https:\/\/api\.zhihu\.com\/search\/recommend_query\/v2\?/ then response.body.replace(/"recommend_queries":\{.+\}/, "recommend_queries":{})
 request if ${url} ~= /^https:\/\/www\.zhihu\.com\/api\/v4\/search\/related_queries\/(?:article|answer)\/\d+/ then reject_dict(200)
 request if ${url} ~= /^https:\/\/api\.zhihu\.com\/comment_v5\/(?:articles|answers)\/\d+\/list-headers/ then reject_dict(200)
 request if ${url} ~= /^https:\/\/api\.zhihu\.com\/prague\/related_suggestion_native\/feed\?/ then reject_dict(200)
 request if ${url} ~= /^https:\/\/api\.zhihu\.com\/v5\.1\/topics\/answer\/\d+\/relation/ then reject_dict(200)
-request if ${url} ~= /^https:\/\/api\.zhihu\.com\/ab\/api\/v1\/products\/zhihu\/platforms\/ios\/config/ then reject(404)
 request if ${url} ~= /^https:\/\/api\.zhihu\.com\/ad-style-service\/request/ then reject_dict(200)
 request if ${url} ~= /^https:\/\/appcloud2\.zhihu\.com\/v3\/resource\?group_name=mp/ then reject_dict(200)
 request if ${url} ~= /^https:\/\/link\.zhihu\.com\/\?target=(?:https?)?(?:%3A|:)?(?:\/\/|%2F%2F)?(.*)/ as m then redirect(302, "http://${m.1}")
@@ -6191,8 +6189,6 @@ request if ${url} ~= /^https:\/\/www\.zhihu\.com\/api\/v4\/hot_recommendation/ t
 request if ${url} ~= /^https:\/\/www\.zhihu\.com\/api\/v4\/mcn\/v2\/linkcards\?/ then reject(404)
 request if ${url} ~= /^https:\/\/www\.zhihu\.com\/api\/v4\/(?:answers|questions)\/\d+\/related-readings/ then reject(404)
 request if ${url} ~= /^https:\/\/www\.zhihu\.com\/commercial_api\/banners_v3\/mobile_banner/ then reject(404)
-request if ${url} ~= /^https:\/\/zhuanlan\.zhihu\.com\/api\/articles\/\d+\/recommendation/ then reject(404)
-request if ${url} ~= /^https:\/\/zhstatic\.zhihu\.com\/brand-ad/ then reject(404)
 request if ${url} ~= /^https?:\/\/preprod\.cdzghome\.com:8100\/banner\/bootUp/ then reject(200)
 request if ${url} ~= /^https?:\/\/m\.ctrip\.com\/restapi\/soa2\/13916\/scjson\/tripAds/ then reject_dict(200)
 request if ${url} ~= /^https?:\/\/m\.client\.10010\.com\/mobileService\/(activity|customer)\/(accountListData|get_client_adv|get_startadv)/ then reject_img(200)
