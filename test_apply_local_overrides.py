@@ -1368,6 +1368,50 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
 
 
 
+class DouyinTncDirectSafetyTests(unittest.TestCase):
+    def setUp(self):
+        from apply_local_overrides import DOUYIN_TNC_REJECT_RULES, DOUYIN_TNC_DIRECT_RULE
+        self.rejects = list(DOUYIN_TNC_REJECT_RULES)
+        self.direct = DOUYIN_TNC_DIRECT_RULE
+        self.base = ["[Rule]", *self.rejects, "DOMAIN-SUFFIX,pangolin-sdk-toutiao.com,REJECT",
+                     self.direct, "[Rewrite]", "^https://example.com/ad reject", "[MITM]"]
+
+    def test_removes_only_conflicting_tnc_rejects_and_keeps_direct_guard(self):
+        from apply_local_overrides import remove_douyin_tnc_conflicting_rejects
+        result, removed = remove_douyin_tnc_conflicting_rejects(self.base)
+        self.assertEqual(removed, 4)
+        for rule in self.rejects:
+            self.assertNotIn(rule, result)
+        self.assertEqual(result.count(self.direct), 1)
+        self.assertIn("DOMAIN-SUFFIX,pangolin-sdk-toutiao.com,REJECT", result)
+        self.assertEqual(remove_douyin_tnc_conflicting_rejects(result), (result, 0))
+
+    def test_fails_closed_on_partial_duplicate_or_unknown_tnc_reject_inventory(self):
+        from apply_local_overrides import remove_douyin_tnc_conflicting_rejects
+        partial = [line for line in self.base if line != self.rejects[0]]
+        with self.assertRaisesRegex(ValueError, "inventory changed"):
+            remove_douyin_tnc_conflicting_rejects(partial)
+        duplicate = self.base + [self.rejects[0]]
+        with self.assertRaisesRegex(ValueError, "duplicate Douyin TNC"):
+            remove_douyin_tnc_conflicting_rejects(duplicate)
+        unknown = self.base + ["DOMAIN,tnc3-bjlgy.snssdk.com,REJECT"]
+        with self.assertRaisesRegex(ValueError, "inventory changed"):
+            remove_douyin_tnc_conflicting_rejects(unknown)
+
+    def test_requires_the_existing_tnc_direct_guard(self):
+        from apply_local_overrides import remove_douyin_tnc_conflicting_rejects
+        missing = [line for line in self.base if line != self.direct]
+        with self.assertRaisesRegex(ValueError, "missing DIRECT guard"):
+            remove_douyin_tnc_conflicting_rejects(missing)
+
+    def test_checked_in_plugin_has_no_tnc_reject_before_direct_guard(self):
+        from pathlib import Path
+        from apply_local_overrides import DOUYIN_TNC_REJECT_RULES, DOUYIN_TNC_DIRECT_RULE
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        for rule in DOUYIN_TNC_REJECT_RULES:
+            self.assertNotIn(rule, plugin)
+        self.assertEqual(plugin.count(DOUYIN_TNC_DIRECT_RULE), 1)
+
 class DouyinHongguoBoundaryTests(unittest.TestCase):
     def setUp(self):
         self.base = r"""#!name=Douyin-Hongguo-test
