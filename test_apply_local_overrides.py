@@ -1559,3 +1559,54 @@ class XimalayaHomepageJsonConsolidationTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class WeChatUnblockScriptConsolidationTests(unittest.TestCase):
+    def test_keeps_one_canonical_trigger_and_preserves_unrelated_scripts(self):
+        from apply_local_overrides import (
+            WECHAT_UNBLOCK_URL_CANONICAL_TRIGGER,
+            WECHAT_UNBLOCK_URL_REDUNDANT_TRIGGERS,
+            consolidate_wechat_unblock_url_scripts,
+        )
+        unrelated = 'response if ${url} ~= /^https:\\/\\/example\\.com/ then script("https://example.invalid/keep.js")'
+        fixture = ["[Script]", *WECHAT_UNBLOCK_URL_REDUNDANT_TRIGGERS,
+                   WECHAT_UNBLOCK_URL_CANONICAL_TRIGGER, unrelated, "[MITM]"]
+        result, removed = consolidate_wechat_unblock_url_scripts(fixture)
+        self.assertEqual(removed, 2)
+        self.assertEqual(result.count(WECHAT_UNBLOCK_URL_CANONICAL_TRIGGER), 1)
+        self.assertTrue(all(item not in result for item in WECHAT_UNBLOCK_URL_REDUNDANT_TRIGGERS))
+        self.assertIn(unrelated, result)
+        result2, removed2 = consolidate_wechat_unblock_url_scripts(result)
+        self.assertEqual((result2, removed2), (result, 0))
+
+    def test_preserves_already_consolidated_or_absent_inventory(self):
+        from apply_local_overrides import (
+            WECHAT_UNBLOCK_URL_CANONICAL_TRIGGER,
+            consolidate_wechat_unblock_url_scripts,
+        )
+        self.assertEqual(
+            consolidate_wechat_unblock_url_scripts(["[Script]", WECHAT_UNBLOCK_URL_CANONICAL_TRIGGER]),
+            (["[Script]", WECHAT_UNBLOCK_URL_CANONICAL_TRIGGER], 0),
+        )
+        self.assertEqual(consolidate_wechat_unblock_url_scripts(["[Script]", "[MITM]"]),
+                         (["[Script]", "[MITM]"], 0))
+
+    def test_fails_closed_on_duplicates_missing_or_drifted_triggers(self):
+        from apply_local_overrides import (
+            WECHAT_UNBLOCK_URL_CANONICAL_TRIGGER,
+            WECHAT_UNBLOCK_URL_REDUNDANT_TRIGGERS,
+            consolidate_wechat_unblock_url_scripts,
+        )
+        with self.assertRaisesRegex(ValueError, "duplicate WeChat"):
+            consolidate_wechat_unblock_url_scripts(
+                ["[Script]", WECHAT_UNBLOCK_URL_CANONICAL_TRIGGER,
+                 WECHAT_UNBLOCK_URL_CANONICAL_TRIGGER]
+            )
+        with self.assertRaisesRegex(ValueError, "inventory incomplete"):
+            consolidate_wechat_unblock_url_scripts(
+                ["[Script]", WECHAT_UNBLOCK_URL_REDUNDANT_TRIGGERS[0]]
+            )
+        drifted = WECHAT_UNBLOCK_URL_REDUNDANT_TRIGGERS[0].replace("requires_body=true", "requires_body=false")
+        with self.assertRaisesRegex(ValueError, "trigger changed"):
+            consolidate_wechat_unblock_url_scripts(["[Script]", drifted])
+
