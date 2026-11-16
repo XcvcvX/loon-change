@@ -1478,6 +1478,81 @@ def remove_kugou_jin10_redundant_rewrites(lines):
     return output, len(KUGOU_REDUNDANT_HTTPS_REWRITES) + 2
 
 
+# Zhihu had several HTTPS-only request blockers fully covered by older HTTP/HTTPS
+# rules with the same action. Keep the broader rules and remove only these exact
+# HTTPS subsets; do not conflate reject(404), reject-dict, or reject_dict(200).
+ZHIHU_REQUEST_SHADOW_PAIRS = (
+    (
+        r"request if ${url} ~= /^https:\/\/api\.zhihu\.com\/unlimited\/go\/my_card/ then reject(404)",
+        r"request if ${url} ~= /^https?:\/\/api\.zhihu\.com\/unlimited\/go\/my_card/ then reject(404)",
+        "unlimited/go/my_card",
+    ),
+    (
+        r"request if ${url} ~= /^https:\/\/api\.zhihu\.com\/ab\/api\/v1\/products\/zhihu\/platforms\/ios\/config/ then reject(404)",
+        r"request if ${url} ~= /^https?:\/\/api\.zhihu\.com\/ab\/api\/v\d\/products\/zhihu\/platforms\/ios\/config/ then reject(404)",
+        "ab/api/v1/products/zhihu/platforms/ios/config",
+    ),
+    (
+        r"request if ${url} ~= /^https:\/\/zhuanlan\.zhihu\.com\/api\/articles\/\d+\/recommendation/ then reject(404)",
+        r"request if ${url} ~= /^https?:\/\/zhuanlan\.zhihu\.com\/api\/articles\/\d+\/recommendation/ then reject(404)",
+        "zhuanlan.zhihu.com/api/articles/",
+    ),
+    (
+        r"request if ${url} ~= /^https:\/\/zhstatic\.zhihu\.com\/brand-ad/ then reject(404)",
+        r"request if ${url} ~= /^https?:\/\/zhstatic\.zhihu\.com\/brand-ad/ then reject(404)",
+        "zhstatic.zhihu.com/brand-ad",
+    ),
+)
+
+
+def remove_redundant_zhihu_request_rules(lines):
+    """Remove exact HTTPS-only subsets already covered by same-action HTTP/S rules."""
+    normalize = lambda value: re.sub(r"\\+/", "/", value.strip())
+    known = {
+        normalize(rule): (index, is_redundant)
+        for index, (redundant, canonical, _marker) in enumerate(ZHIHU_REQUEST_SHADOW_PAIRS)
+        for is_redundant, rule in ((True, redundant), (False, canonical))
+    }
+    markers = tuple(marker for _redundant, _canonical, marker in ZHIHU_REQUEST_SHADOW_PAIRS)
+    counts = {key: 0 for key in known}
+    seen_groups = set()
+    output, section = [], ""
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            output.append(line)
+            continue
+        if section != "Rewrite":
+            output.append(line)
+            continue
+        value = normalize(line)
+        group_index = next((i for i, marker in enumerate(markers) if marker in value), None)
+        if group_index is None:
+            output.append(line)
+            continue
+        matched = known.get(value)
+        if matched is None or matched[0] != group_index:
+            raise ValueError("Zhihu request blocker inventory changed; refusing unreviewed cleanup")
+        counts[value] += 1
+        if counts[value] > 1:
+            raise ValueError("duplicate Zhihu request blocker; refusing ambiguous cleanup")
+        seen_groups.add(group_index)
+        if not matched[1]:
+            output.append(line)
+
+    removed = 0
+    for index in seen_groups:
+        redundant, canonical, _marker = ZHIHU_REQUEST_SHADOW_PAIRS[index]
+        redundant_count = counts[normalize(redundant)]
+        canonical_count = counts[normalize(canonical)]
+        if canonical_count != 1:
+            raise ValueError("Zhihu covering request blocker missing or duplicated; refusing cleanup")
+        if redundant_count not in (0, 1):
+            raise ValueError("duplicate Zhihu redundant request blocker; refusing cleanup")
+        removed += redundant_count
+    return output, removed
+
+
 # Zhihu answer and recommendation responses each had two independent JSON
 # rewrites for the same matcher. Preserve both field operations in one jq pass.
 ZHIHU_ANSWER_DELETE_REWRITE = r"^https:\/\/(api|page-info)(?:\.zhihu)?\.com\/answers\/v\d\/\d+(?:\?.*)?$ response-body-json-del third_business float_search_word"
@@ -1686,6 +1761,7 @@ def apply(text: str) -> str:
                 rewrite_lines, _ = remove_didi_homepage_rejects_shadowing_field_cleaners(rewrite_lines)
                 rewrite_lines, _ = consolidate_ximalaya_homepage_json_rewrites(rewrite_lines)
                 rewrite_lines, _ = merge_adjacent_response_json_rewrites(rewrite_lines)
+                rewrite_lines, _ = remove_redundant_zhihu_request_rules(rewrite_lines)
                 rewrite_lines, _ = consolidate_zhihu_multi_action_rewrites(rewrite_lines)
                 rewrite_lines, _ = remove_subsumed_soul_teenager_rule(rewrite_lines)
                 rewrite_lines, _ = remove_shadowed_peopleapp_rules(rewrite_lines)
@@ -1712,7 +1788,8 @@ def apply(text: str) -> str:
         rewrite_lines, _ = remove_didi_homepage_rejects_shadowing_field_cleaners(rewrite_lines)
         rewrite_lines, _ = consolidate_ximalaya_homepage_json_rewrites(rewrite_lines)
         rewrite_lines, _ = merge_adjacent_response_json_rewrites(rewrite_lines)
-        rewrite_lines, _ = consolidate_zhihu_multi_action_rewrites(rewrite_lines)
+        rewrite_lines, _ = remove_redundant_zhihu_request_rules(rewrite_lines)
+                rewrite_lines, _ = consolidate_zhihu_multi_action_rewrites(rewrite_lines)
         rewrite_lines, _ = remove_subsumed_soul_teenager_rule(rewrite_lines)
         rewrite_lines, _ = remove_shadowed_peopleapp_rules(rewrite_lines)
         rewrite_lines, _ = remove_shadowed_terminal_block_rules(rewrite_lines)
