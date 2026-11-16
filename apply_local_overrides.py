@@ -368,12 +368,13 @@ def scope_pdd_image_cdn_ad_rules(lines):
 
     if not saw_target:
         return list(lines), 0
-    # The upstream may remove both ad-path rules while retaining the host in MITM
-    # for other app traffic. With no broad host reject present, there is nothing
-    # to narrow; preserve the snapshot unchanged. If a broad reject exists, the
-    # path-specific allowlist remains mandatory before removing it.
-    if broad_count == 0 and all(path_counts[rule] == 0 for rule in PDD_IMAGE_CDN_AD_PATH_RULES):
+    # This override exists only to remove the host-wide reject. If no such
+    # reject is present, preserve the upstream state regardless of whether it
+    # currently emits zero, one, or both path-specific rules.
+    if broad_count == 0:
         return list(lines), 0
+    # A broad reject may be removed only when both reviewed ad-path rules and
+    # the existing MITM hostname are present.
     if not all(path_counts[rule] == 1 for rule in PDD_IMAGE_CDN_AD_PATH_RULES):
         raise ValueError("PDD images CDN ad-path Rewrite inventory changed; refusing broad-block removal")
     if not mitm_has_host:
