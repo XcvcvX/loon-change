@@ -1337,6 +1337,44 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
 
 
 
+
+class SoulScriptConsolidationTests(unittest.TestCase):
+    def test_consolidates_all_exact_soul_triggers_into_two_case_safe_matchers(self):
+        from apply_local_overrides import SOUL_CANONICAL_TRIGGERS, SOUL_LEGACY_TRIGGERS, consolidate_soul_scripts
+        fixture = [
+            "[Script]", *sorted(SOUL_LEGACY_TRIGGERS),
+            r"""http-response ^https:\/\/api\.example\.com script-path=https://example.invalid/keep.js""",
+            "[MITM]", "hostname = api-pay.soulapp.cn",
+        ]
+        result, removed = consolidate_soul_scripts(fixture)
+        self.assertEqual(removed, 14)
+        self.assertEqual(sum(line in SOUL_CANONICAL_TRIGGERS for line in result), 2)
+        self.assertTrue(any("example.invalid/keep.js" in line for line in result))
+        self.assertFalse(any("Scripts/soul/soul_ads.js" in line and line not in SOUL_CANONICAL_TRIGGERS for line in result))
+        again, second_removed = consolidate_soul_scripts(result)
+        self.assertEqual(second_removed, 0)
+        self.assertEqual(again, result)
+
+    def test_fails_closed_on_missing_duplicate_or_drifted_soul_trigger(self):
+        from apply_local_overrides import SOUL_LEGACY_TRIGGERS, consolidate_soul_scripts
+        base = sorted(SOUL_LEGACY_TRIGGERS)
+        missing = ["[Script]", *base[:-1]]
+        with self.assertRaisesRegex(ValueError, "Soul script trigger inventory changed"):
+            consolidate_soul_scripts(missing)
+        duplicate = ["[Script]", *base, base[0]]
+        with self.assertRaisesRegex(ValueError, "Soul script trigger inventory changed"):
+            consolidate_soul_scripts(duplicate)
+        drifted = ["[Script]", *base[:-1], base[-1].replace("timeout=60", "timeout=30")]
+        with self.assertRaisesRegex(ValueError, "Soul script trigger inventory changed"):
+            consolidate_soul_scripts(drifted)
+
+    def test_preserves_absent_or_already_consolidated_soul_inventory(self):
+        from apply_local_overrides import SOUL_CANONICAL_TRIGGERS, consolidate_soul_scripts
+        self.assertEqual(consolidate_soul_scripts(["[Script]", "http-response ^https:\/\/example.com script-path=https://other.invalid/a.js"]), (["[Script]", "http-response ^https:\/\/example.com script-path=https://other.invalid/a.js"], 0))
+        canonical = ["[Script]", *SOUL_CANONICAL_TRIGGERS]
+        self.assertEqual(consolidate_soul_scripts(canonical), (canonical, 0))
+
+
 class MeituanScriptConsolidationTests(unittest.TestCase):
     def setUp(self):
         from apply_local_overrides import MEITUAN_LEGACY_TRIGGERS
@@ -2442,7 +2480,6 @@ class MoreResponseScriptDedupTests(unittest.TestCase):
             "[Argument]", "xhs_enable = switch,true,false,tag=小红书-脚本开关",
             "[Rewrite]",
             r"""^https?:\/\/ci\.xiaohongshu\.com\/system_config\/watermark reject-img""",
-            r"""^https:\/\/ci\.xiaohongshu\.com\/system_config\/watermark reject-img""",
             r"""request if ${url} ~= /^https?:\/\/ci\.(xiaohongshu|rnote)\.com\/system_config\/watermark/ then reject_img(200)""",
             r"""^https:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/v1\/note\/imagefeed response-body-json-jq 'disable_watermark video_download'""",
             r"""^https:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/v2\/note\/feed response-body-json-jq 'disable_watermark video_download'""",
