@@ -364,6 +364,27 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         with self.assertRaisesRegex(ValueError, "Guiderank SpecialSalePageMidTabConfig rule changed"):
             apply(BASE.replace("[Rewrite]", "[Rewrite]\n" + changed))
 
+    def test_converts_duoduo_grocery_newdetails_suspension_to_native_json_delete(self):
+        from apply_local_overrides import DDQX_NEWDETAILS_NATIVE_RULE
+        legacy = r'^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/newDetails response-body-replace-regex suspension random_body'
+        modern = r'response if ${url} ~= /^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/newDetails/ then response.body.replace(/suspension/, "fmz200")'
+        keep = r'^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/getHomeAdPop reject-dict'
+        fixture = BASE.replace("[Rewrite]", "[Rewrite]\n" + legacy + "\n" + modern + "\n" + keep)
+        result = apply(fixture)
+        rewrite = result.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
+        self.assertNotIn(legacy, rewrite)
+        self.assertNotIn(modern, rewrite)
+        self.assertIn(DDQX_NEWDETAILS_NATIVE_RULE, rewrite)
+        self.assertEqual(rewrite.count("response.json.delete(\"data.suspension\")"), 1)
+        self.assertIn(keep, rewrite)
+        self.assertEqual(apply(result), result)
+
+    def test_fails_closed_when_duoduo_grocery_newdetails_rule_changes(self):
+        changed = r'response if ${url} ~= /^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/newDetails/ then response.body.replace(/data/, "hidden")'
+        fixture = BASE.replace("[Rewrite]", "[Rewrite]\n" + changed)
+        with self.assertRaisesRegex(ValueError, "Duoduo Grocery newDetails suspension rule changed"):
+            apply(fixture)
+
     def test_replaces_guiderank_homepage_script_with_native_batch_json_delete(self):
         from apply_local_overrides import GUIDERANK_HOMEPAGE_SCRIPT_TRIGGER, GUIDERANK_HOMEPAGE_NATIVE_RULE
         fixture = BASE.replace("[Script]", "[Script]\n" + GUIDERANK_HOMEPAGE_SCRIPT_TRIGGER)
