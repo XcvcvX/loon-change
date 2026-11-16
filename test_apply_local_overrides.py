@@ -67,7 +67,7 @@ DOMAIN-SUFFIX,ossgw.alicdn.com,REJECT
 ^https?:\\/\\/ossgw.alicdn.com\\/creatives-assets\\/image\\/ reject-200
 [Script]
 [MITM]
-hostname = ossgw.alicdn.com
+hostname = ossgw.alicdn.com, creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankcomm.cn, creditcardapp.bankcomm.com
 """
         with self.assertRaises(ValueError):
             apply(base)
