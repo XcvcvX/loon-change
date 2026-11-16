@@ -456,43 +456,65 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
 
 
     def test_rrtv_constants_match_independently_reviewed_production_text(self):
-        from apply_local_overrides import RRTV_ADGETALL_SCRIPT_TRIGGER, RRTV_ADGETALL_NATIVE_RULE
+        from apply_local_overrides import (
+            RRTV_ADGETALL_SCRIPT_TRIGGER, RRTV_ADGETALL_LEGACY_SCRIPT_TRIGGER,
+            RRTV_ADGETALL_NATIVE_RULE,
+        )
         expected_trigger = r"http-response ^https?:\/\/api\.rr\.tv\/ad\/getAll script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/rrtv.js,tag=RRTV-4,requires-body=true"
+        expected_legacy = r'response if ${url} ~= /^https?:\/\/api\.rr\.tv\/ad\/getAll/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js") with enable=rfrfuipk_enable, tag="rrtv_json", timeout=60, requires_body=true'
         expected_rule = r'response if ${url} ~= /^https?:\/\/api\.rr\.tv\/ad\/getAll/ then response.json.jq(".data.adList = []")'
         self.assertEqual(RRTV_ADGETALL_SCRIPT_TRIGGER, expected_trigger)
+        self.assertEqual(RRTV_ADGETALL_LEGACY_SCRIPT_TRIGGER, expected_legacy)
         self.assertEqual(RRTV_ADGETALL_NATIVE_RULE, expected_rule)
 
-    def test_replaces_only_rrtv_adgetall_script_with_native_jq(self):
+    def test_replaces_both_rrtv_adgetall_scripts_with_one_native_jq(self):
         from apply_local_overrides import (
-            RRTV_ADGETALL_SCRIPT_TRIGGER, RRTV_ADGETALL_NATIVE_RULE,
+            RRTV_ADGETALL_SCRIPT_TRIGGER, RRTV_ADGETALL_LEGACY_SCRIPT_TRIGGER,
+            RRTV_ADGETALL_NATIVE_RULE,
         )
-        unrelated = r"http-response ^https?:\\/\\/api\\.rr\\.tv\\/user\\/profile script-path=https://example.invalid/rrtv.js,tag=RRTV-OTHER,requires-body=true"
+        unrelated = r"http-response ^https?:\/\/api\.rr\.tv\/user\/profile script-path=https://example.invalid/rrtv.js,tag=RRTV-OTHER,requires-body=true"
         fixture = BASE.replace(
             "[Script]",
-            "[Script]\n" + RRTV_ADGETALL_SCRIPT_TRIGGER + "\n" + unrelated,
+            "[Script]\n" + RRTV_ADGETALL_SCRIPT_TRIGGER + "\n"
+            + RRTV_ADGETALL_LEGACY_SCRIPT_TRIGGER + "\n" + unrelated,
         )
         result = apply(fixture)
         rewrite = result.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
         script = result.split("[Script]", 1)[1].split("[MITM]", 1)[0]
         self.assertIn(RRTV_ADGETALL_NATIVE_RULE, rewrite)
         self.assertNotIn("tag=RRTV-4", script)
+        self.assertNotIn("rrtv_json.js", script)
         self.assertIn(unrelated, script)
         self.assertEqual(apply(result), result)
 
     def test_rrtv_adgetall_trigger_drift_fails_closed(self):
-        from apply_local_overrides import RRTV_ADGETALL_SCRIPT_TRIGGER
+        from apply_local_overrides import (
+            RRTV_ADGETALL_SCRIPT_TRIGGER, RRTV_ADGETALL_LEGACY_SCRIPT_TRIGGER,
+        )
         changed = RRTV_ADGETALL_SCRIPT_TRIGGER.replace("requires-body=true", "requires-body=false")
-        fixture = BASE.replace("[Script]", "[Script]\n" + changed)
+        fixture = BASE.replace(
+            "[Script]",
+            "[Script]\n" + changed + "\n" + RRTV_ADGETALL_LEGACY_SCRIPT_TRIGGER,
+        )
         with self.assertRaisesRegex(ValueError, "RRTV ad/getAll script trigger changed"):
             apply(fixture)
 
     def test_duplicate_rrtv_adgetall_triggers_fail_closed(self):
-        from apply_local_overrides import RRTV_ADGETALL_SCRIPT_TRIGGER
+        from apply_local_overrides import (
+            RRTV_ADGETALL_SCRIPT_TRIGGER, RRTV_ADGETALL_LEGACY_SCRIPT_TRIGGER,
+        )
         fixture = BASE.replace(
             "[Script]",
-            "[Script]\n" + RRTV_ADGETALL_SCRIPT_TRIGGER + "\n" + RRTV_ADGETALL_SCRIPT_TRIGGER,
+            "[Script]\n" + RRTV_ADGETALL_SCRIPT_TRIGGER + "\n"
+            + RRTV_ADGETALL_SCRIPT_TRIGGER + "\n" + RRTV_ADGETALL_LEGACY_SCRIPT_TRIGGER,
         )
         with self.assertRaisesRegex(ValueError, "duplicate RRTV ad/getAll script triggers"):
+            apply(fixture)
+
+    def test_incomplete_rrtv_adgetall_trigger_pair_fails_closed(self):
+        from apply_local_overrides import RRTV_ADGETALL_SCRIPT_TRIGGER
+        fixture = BASE.replace("[Script]", "[Script]\n" + RRTV_ADGETALL_SCRIPT_TRIGGER)
+        with self.assertRaisesRegex(ValueError, "RRTV ad/getAll script trigger pair incomplete"):
             apply(fixture)
 
 if __name__ == "__main__":
