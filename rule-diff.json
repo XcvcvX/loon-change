@@ -180,31 +180,8 @@
   "sections": {
     "rewrite": {
       "action_changed": [],
-      "added": [
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/(mobile|mobilehera|mobwsa)\\.ximalaya\\.com\\/mobile-user\\/v\\d\\/homePage\\// then response.json.jq(`del(.data.freeListenV2) | (try (.data.serviceModule.entrances |= map(select(.name == \"全部服务\"))) catch .)`)",
-          "section": "rewrite",
-          "sources": [
-            "local_overrides"
-          ]
-        }
-      ],
-      "removed": [
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/(mobile|mobilehera|mobwsa)\\.ximalaya\\.com\\/mobile-user\\/v\\d\\/homePage\\// then response.json.delete(\"data.freeListenV2\")",
-          "section": "rewrite",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/(mobile|mobilehera|mobwsa)\\.ximalaya\\.com\\/mobile-user\\/v\\d\\/homePage\\// then response.json.jq(`.data.serviceModule.entrances |= map(select(.name == \"全部服务\"))`)",
-          "section": "rewrite",
-          "sources": [
-            "block"
-          ]
-        }
-      ]
+      "added": [],
+      "removed": []
     },
     "rule": {
       "action_changed": [],
@@ -220,8 +197,8 @@
   "summary": {
     "rewrite": {
       "action_changed": 0,
-      "added": 1,
-      "removed": 2
+      "added": 0,
+      "removed": 0
     },
     "rule": {
       "action_changed": 0,
@@ -233,7 +210,7 @@
       "added": 0,
       "removed": 0
     },
-    "total_changes": 3
+    "total_changes": 0
   },
   "upstream_revision_changes": []
 }
