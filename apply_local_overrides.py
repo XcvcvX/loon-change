@@ -3894,6 +3894,117 @@ def remove_redundant_smzdm_ads_script_triggers(lines):
     return result, removed
 
 
+WECHAT_APPLET_NATIVE_MIGRATIONS = (
+    (
+        "wechat-api-dj.mstand.cn",
+        "scrm/mini/app/index/info",
+        r"http-response ^https?:\/\/wechat-api-dj\.mstand\.cn\/scrm\/mini\/app\/index\/info script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/wechatApplet.js,tag=MSTAND,requires-body=true",
+        r'response if ${url} ~= /^https?:\/\/wechat-api-dj\.mstand\.cn\/scrm\/mini\/app\/index\/info/ then response.json.delete(["data.homeNewsAdv.jumpValue", "data.homeDineInAdv", "data.homePickupAdv", "data.nearbyShopInfo", "data.homeEventThemesAdv", "data.eventThemes", "data.homeRootAdv", "data.homeTopAdv", "data.homeDialogAdv", "data.homeBannerAdv", "data.homeCouponAdv", "data.homeCompanyAdv", "data.homeDeliveryAdv"])',
+    ),
+    (
+        "coco-com.e.verystar.net",
+        "home/info",
+        r"http-response ^https?:\/\/coco-com\.e\.verystar\.net\/v\d\/home\/info script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/wechatApplet.js,tag=COCO,requires-body=true",
+        r'response if ${url} ~= /^https?:\/\/coco-com\.e\.verystar\.net\/v\d\/home\/info/ then response.json.delete(["data.top_background_url", "data.bottom_banner_list"])',
+    ),
+    (
+        "htwkop.xiaojukeji.com",
+        "api=hm.fa.homeConfig",
+        r"http-response ^https?:\/\/htwkop\.xiaojukeji\.com\/gateway\?api=hm\.fa\.homeConfig script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/wechatApplet.js,tag=DIDIQJ,requires-body=true",
+        r'response if ${url} ~= /^https?:\/\/htwkop\.xiaojukeji\.com\/gateway\?api=hm\.fa\.homeConfig/ then response.json.delete("data.bannerInfoConfig")',
+    ),
+    (
+        "minifm.maxxipoint.com",
+        "banner/list",
+        r"http-response ^https?:\/\/minifm\.maxxipoint\.com\/banner\/list script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/wechatApplet.js,tag=FM,requires-body=true",
+        r'response if ${url} ~= /^https?:\/\/minifm\.maxxipoint\.com\/banner\/list/ then response.json.delete("data.topBanner")',
+    ),
+    (
+        "mapi.xiaotucc.com",
+        "main_page/index/getActivity",
+        r"http-response ^https?:\/\/mapi\.xiaotucc\.com\/(mall\/main|\w+\/main_page\/index\/getActivity) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/wechatApplet.js,tag=XIAOTUCC,requires-body=true",
+        (
+            r'response if ${url} ~= /^https?:\/\/mapi\.xiaotucc\.com\/mall\/main/ then response.json.delete("data")',
+            r'response if ${url} ~= /^https?:\/\/mapi\.xiaotucc\.com\/\w+\/main_page\/index\/getActivity/ then response.json.delete("data.p3")',
+        ),
+    ),
+)
+
+
+def migrate_wechat_applet_simple_endpoints(lines):
+    """Replace five simple WeChat-applet JSON scripts with equivalent native response.json.delete rules."""
+    output = list(lines)
+    section = ""
+    script_lines = []
+    rewrite_lines = []
+    for line in output:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+            continue
+        if section == "Script":
+            script_lines.append(stripped)
+        elif section == "Rewrite":
+            rewrite_lines.append(stripped)
+
+    removed = set()
+    native_rules = []
+    for host_marker, path_marker, trigger, replacement in WECHAT_APPLET_NATIVE_MIGRATIONS:
+        candidates = [
+            line for line in script_lines
+            if "wechatApplet.js" in line
+            and host_marker in re.sub(r"\\+", "", line)
+            and path_marker in re.sub(r"\\+", "", line)
+        ]
+        if not candidates:
+            continue
+        if len(candidates) != 1 or candidates[0] != trigger:
+            raise ValueError(
+                "WeChat applet trigger inventory changed; refusing native migration: "
+                + repr(candidates)
+            )
+        existing_native = [
+            line for line in rewrite_lines
+            if line.startswith("response if")
+            and host_marker in re.sub(r"\\+", "", line)
+            and path_marker in re.sub(r"\\+", "", line)
+        ]
+        if existing_native:
+            raise ValueError(
+                "WeChat applet native response rule already exists; refusing duplicate migration: "
+                + repr(existing_native)
+            )
+        removed.add(trigger)
+        if isinstance(replacement, tuple):
+            native_rules.extend(replacement)
+        else:
+            native_rules.append(replacement)
+
+    if not removed:
+        return output, 0
+
+    result = []
+    section = ""
+    inserted = False
+    removed_count = 0
+    for line in output:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+            result.append(line)
+            if section == "Rewrite" and not inserted:
+                result.extend(native_rules)
+                inserted = True
+            continue
+        if section == "Script" and stripped in removed:
+            removed_count += 1
+            continue
+        result.append(line)
+    if not inserted or removed_count != len(removed):
+        raise ValueError("WeChat applet native migration count or Rewrite section mismatch")
+    return result, removed_count
+
+
 def apply(text: str) -> str:
     if "[Script]" not in text or "[MITM]" not in text or "[Rewrite]" not in text:
         raise ValueError("plugin missing [Rewrite], [Script] or [MITM] section")
@@ -4011,6 +4122,7 @@ def apply(text: str) -> str:
     lines, _ = optimize_xiaohongshu_response_cost(lines)
     lines, _ = remove_redundant_smzdm_homepage_script_trigger(lines)
     lines, _ = remove_redundant_smzdm_ads_script_triggers(lines)
+    lines, _ = migrate_wechat_applet_simple_endpoints(lines)
 
     result_lines, rewrite_lines = [], []
     section = ""
