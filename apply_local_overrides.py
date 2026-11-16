@@ -2909,10 +2909,10 @@ def remove_more_duplicate_response_scripts(lines):
             and (
                 "kuwo.cn" in normalized
                 or "napi.ithome.com" in normalized
-                or ("cn-acs.m.cainiao.com" in normalized and ("mtop.cainiao.nbpresentation" in normalized or "mtop.nbfriend.message.conversation.list" in normalized))
+                or ("cn-acs.m.cainiao.com" in normalized and ("mtop.cainiao.nbpresentation" in normalized or "mtop.nbfriend.message.conversation.list" in normalized or "mtop.cainiao.guoguo" in normalized))
                 or ("guide-acs.m.taobao.com" in normalized and "mtop.cainiao.guoguo" in normalized)
                 or ("iqushangwang.8quan.com" in normalized and "/index.php/i/index/index" in normalized)
-                or ("dict.youdao.com" in normalized and any(path in normalized for path in ("/homepage/promotion", "/course/tab/home", "/homepage/tile")))
+                or ("dict.youdao.com" in normalized and any(path in normalized for path in ("homepage/promotion", "course/tab/home", "homepage/tile")))
                 or ("wx.mygolbs.com" in normalized and "/WxBusServer/ApiData.do" in normalized)
             )
         )
