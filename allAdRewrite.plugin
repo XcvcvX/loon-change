@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、RuCu6 MyBlockAds、zirawell AlipayAdBlock、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / RuCu6 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-15 23:35 UTC
+#!merged-at=2026-11-16 00:08 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+RuCu6-MyBlockAds+zirawell-AlipayAdBlock+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -4385,7 +4385,6 @@ request if ${url} ~= /^https?:\/\/ap\.(dongqiudi|dongdianqiu)\.com\/plat\/v/ the
 request if ${url} ~= /^https?:\/\/maicai\.api\.ddxq\.mobi\/advert\// then reject(404)
 request if ${url} ~= /^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/getHomeAdPop/ then reject(404)
 ^https?:\/\/maicai\.api\.ddxq\.mobi\/vip\/getVipAd reject-dict
-^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/newDetails response-body-replace-regex suspension random_body
 request if ${url} ~= /^https?:\/\/gw\.api\.ddxq\.mobi\/vip-app-service\/vip\/my\/page\/advertising/ then reject(404)
 ^https:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/queryMyPagePopup reject-dict
 ^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/userLike reject-dict
@@ -5521,7 +5520,6 @@ request if ${url} ~= /^https?:\/\/api\.gaoqingdianshi\.com\/api\/v\d\/ad\// then
 request if ${url} ~= /^https?:\/\/cdn\.dianshihome\.com\/static\/ad\// then reject(404)
 request if ${url} ~= /^https?:\/\/img\.admobile\.top\/admobile-adRequest\/.*\.(jpg|png)/ then reject(200)
 request if ${url} ~= /^https?:\/\/webcdn\.m\.qq\.com\/qiantu\/upload\/202[0-9]{5}\/.*.(jpg|png)/ then reject(200)
-response if ${url} ~= /^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/newDetails/ then response.body.replace(/suspension/, "fmz200")
 request if ${url} ~= /^https?:\/\/.*\.pglstatp-toutiao\.com\/.*ad.*/ then reject(404)
 request if ${url} ~= /^https?:\/\/api\.htp\.ad-scope\.com\.cn.*/ then reject(404)
 request if ${url} ~= /^https?:\/\/appgw\.ddpai\.com.*\/ad\/list.*/ then reject(404)
@@ -6869,6 +6867,7 @@ request if ${url} ~= /^https:\/\/wallet\.95516\.com(:10533)?\/s\/wl\/icon\/large
 
 # Spotify ad-block rules; generated from upstream by integrate_spotify.py
 ^https:\/\/(?:spclient\.wg|[\w-]+-spclient)\.spotify\.com(?::443)?\/(?:ads\/|ad-logic\/|[^?#]*\/ad-on-app-open) reject
+response if ${url} ~= /^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/newDetails/ then response.json.delete("data.suspension")
 response if ${url} ~= /^https?:\/\/zone\.guiderank-app\.com\/guiderank-web\/app\/home\/getHomePageV/ then response.json.delete(["data.countdownBanner", "data.newEvaluations", "data.freeToPayBannerPhotoUrl", "data.groupBuyingList", "data.multiCountdownBanner", "data.banners", "data.multiPlatformBanner", "data.specialSaleBannerPhotoUrl", "data.guide90Evaluation", "data.insurancePromotions"])
 [Script]
 http-response ^https?:\/\/gql(-fed)?\.reddit\.com script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/reddit.js,tag=REDDIT,requires-body=true

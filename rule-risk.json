@@ -3,7 +3,7 @@
     "rewrite": {
       "action_changed": 0,
       "added": 1,
-      "removed": 0
+      "removed": 2
     },
     "rule": {
       "action_changed": 0,
@@ -13,13 +13,13 @@
     "script": {
       "action_changed": 0,
       "added": 0,
-      "removed": 1
+      "removed": 0
     }
   },
   "events": [
     {
       "after": {
-        "line": "response if ${url} ~= /^https?:\\/\\/zone\\.guiderank-app\\.com\\/guiderank-web\\/app\\/home\\/getHomePageV/ then response.json.delete([\"data.countdownBanner\", \"data.newEvaluations\", \"data.freeToPayBannerPhotoUrl\", \"data.groupBuyingList\", \"data.multiCountdownBanner\", \"data.banners\", \"data.multiPlatformBanner\", \"data.specialSaleBannerPhotoUrl\", \"data.guide90Evaluation\", \"data.insurancePromotions\"])",
+        "line": "response if ${url} ~= /^https?:\\/\\/maicai\\.api\\.ddxq\\.mobi\\/homeApi\\/newDetails/ then response.json.delete(\"data.suspension\")",
         "section": "rewrite",
         "sources": [
           "local_overrides"
@@ -44,8 +44,8 @@
     {
       "after": null,
       "before": {
-        "line": "http-response ^https?:\\/\\/zone\\.guiderank-app\\.com\\/guiderank-web\\/app\\/home\\/getHomePageV script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/guiderank.js,tag=GUIDERANK,requires-body=true",
-        "section": "script",
+        "line": "^https?:\\/\\/maicai\\.api\\.ddxq\\.mobi\\/homeApi\\/newDetails response-body-replace-regex suspension random_body",
+        "section": "rewrite",
         "sources": [
           "base"
         ]
@@ -53,7 +53,7 @@
       "change_type": "removed",
       "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
       "risk": "high",
-      "section": "script",
+      "section": "rewrite",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
         "base": "unavailable"
@@ -64,15 +64,39 @@
       "sources": [
         "base"
       ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "response if ${url} ~= /^https?:\\/\\/maicai\\.api\\.ddxq\\.mobi\\/homeApi\\/newDetails/ then response.body.replace(/suspension/, \"fmz200\")",
+        "section": "rewrite",
+        "sources": [
+          "block"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "block": "unavailable"
+      },
+      "source_scores": {
+        "block": null
+      },
+      "sources": [
+        "block"
+      ]
     }
   ],
   "overall_risk": "high",
   "risk_counts": {
-    "high": 1,
+    "high": 2,
     "low": 0,
     "medium": 1
   },
-  "run_id": "43775595035",
+  "run_id": "43778528535",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -103,14 +127,14 @@
     "base": {
       "action_changed": 10,
       "added": 6,
-      "removed": 8,
-      "snapshots_seen": 9
+      "removed": 9,
+      "snapshots_seen": 10
     },
     "block": {
       "action_changed": 0,
       "added": 0,
-      "removed": 16,
-      "snapshots_seen": 2
+      "removed": 17,
+      "snapshots_seen": 3
     },
     "filter": {
       "action_changed": 0,
@@ -120,9 +144,9 @@
     },
     "local_overrides": {
       "action_changed": 0,
-      "added": 17,
+      "added": 18,
       "removed": 2,
-      "snapshots_seen": 5
+      "snapshots_seen": 6
     },
     "myblockads": {
       "action_changed": 18,
@@ -149,5 +173,21 @@
       "snapshots_seen": 1
     }
   },
-  "upstream_revision_changes": []
+  "upstream_revision_changes": [
+    {
+      "current_commit": "6ba781e550a7f560b3eb1924bef124ab74573a22",
+      "previous_commit": "513d1e581dc2e98f4a358e010b5543b37e900b47",
+      "source": "AlipayAdBlock"
+    },
+    {
+      "current_commit": "6ba781e550a7f560b3eb1924bef124ab74573a22",
+      "previous_commit": "513d1e581dc2e98f4a358e010b5543b37e900b47",
+      "source": "Amap"
+    },
+    {
+      "current_commit": "6ba781e550a7f560b3eb1924bef124ab74573a22",
+      "previous_commit": "513d1e581dc2e98f4a358e010b5543b37e900b47",
+      "source": "GuaZiVideoAds"
+    }
+  ]
 }

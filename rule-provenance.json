@@ -15873,23 +15873,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://maicai\\\\.api\\\\.ddxq\\\\.mobi/homeApi/newDetails', ('response-body-replace-regex', 'response-body-replace-regex suspension random_body'))",
-      "output_entry_index": 810,
-      "output_line": "^https?:\\/\\/maicai\\.api\\.ddxq\\.mobi\\/homeApi\\/newDetails response-body-replace-regex suspension random_body",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "^https?:\\/\\/maicai\\.api\\.ddxq\\.mobi\\/homeApi\\/newDetails response-body-replace-regex suspension random_body",
-          "input_section": "Rewrite",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 810
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https?://gw\\\\.api\\\\.ddxq\\\\.mobi/vip-app-service/vip/my/page/advertising', ('REJECT', 'reject', 'reject(404)'))",
       "output_entry_index": 811,
       "output_line": "request if ${url} ~= /^https?:\\/\\/gw\\.api\\.ddxq\\.mobi\\/vip-app-service\\/vip\\/my\\/page\\/advertising/ then reject(404)",
@@ -37436,23 +37419,6 @@
           "priority": 5,
           "source": "block",
           "source_entry_index": 255
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://maicai\\\\.api\\\\.ddxq\\\\.mobi/homeApi/newDetails', ('response.body.replace', 'response.body.replace(/suspension/, \"fmz200\")'))",
-      "output_entry_index": 1949,
-      "output_line": "response if ${url} ~= /^https?:\\/\\/maicai\\.api\\.ddxq\\.mobi\\/homeApi\\/newDetails/ then response.body.replace(/suspension/, \"fmz200\")",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https?:\\/\\/maicai\\.api\\.ddxq\\.mobi\\/homeApi\\/newDetails/ then response.body.replace(/suspension/, \"fmz200\")",
-          "input_section": "Rewrite",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 259
         }
       ],
       "trace_status": "mapped"
@@ -62713,6 +62679,17 @@
           "source": "Spotify",
           "source_file": "sources/spotify/Spotify.lpx",
           "transform_stage": "spotify_integration"
+        }
+      ]
+    },
+    {
+      "output_line": "response if ${url} ~= /^https?:\\/\\/maicai\\.api\\.ddxq\\.mobi\\/homeApi\\/newDetails/ then response.json.delete(\"data.suspension\")",
+      "provenance_kind": "post_merge_transform",
+      "sources": [
+        {
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
       ]
     },
@@ -127152,7 +127129,7 @@
       "included": 49
     },
     "post_transform_reconciled": true,
-    "rewrite_output_entries": 3290,
+    "rewrite_output_entries": 3289,
     "rule_covered_or_duplicate_events": 2140,
     "rule_included_events": 3474,
     "rule_output_entries": 3475,
@@ -127181,7 +127158,7 @@
         "Rule": 4,
         "Script": 1
       },
-      "upstream_commit": "513d1e581dc2e98f4a358e010b5543b37e900b47",
+      "upstream_commit": "6ba781e550a7f560b3eb1924bef124ab74573a22",
       "upstream_path": "Modules/Loon/zirawell/Beta/alipayAdBlock.lpx",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
@@ -127220,13 +127197,13 @@
         "Rule": 4,
         "Script": 13
       },
-      "upstream_commit": "513d1e581dc2e98f4a358e010b5543b37e900b47",
+      "upstream_commit": "6ba781e550a7f560b3eb1924bef124ab74573a22",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
     "GuaZiVideoAds": {
       "bytes": 3448,
       "entries": 6,
-      "upstream_commit": "513d1e581dc2e98f4a358e010b5543b37e900b47",
+      "upstream_commit": "6ba781e550a7f560b3eb1924bef124ab74573a22",
       "upstream_path": "Modules/QuantumultX/ddgksf2013/Official/GuaZiVideoAds.conf",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
