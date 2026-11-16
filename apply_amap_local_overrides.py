@@ -48,7 +48,7 @@ def apply(text):
             output.append(line)
             continue
         normalized = _normalize(stripped)
-        if section != "Rewrite":
+        if section != "Rewrite" or stripped.startswith("#"):
             output.append(line)
             continue
         if MARKETING_OPERATION_MARKER.lower() in normalized.lower():
