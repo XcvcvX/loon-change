@@ -2669,6 +2669,11 @@ CNFTP_DUPLICATE_KEEP_TRIGGERS = (
     "response if ${url} ~= /^https?:\\/\\/mobile-thor\\.api\\.mgtv\\.com\\/v\\d\\/vod\\/info\\?/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js\") with enable=mhgotv_enable, tag=\"芒果TV播放详情页\", timeout=60, requires_body=true",
     "response if ${url} ~= /^https?:\\/\\/mobileso\\.bz\\.mgtv\\.com\\/mobile\\/recommend\\/v\\d\\?/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js\") with enable=mhgotv_enable, tag=\"芒果TV搜索框填充词\", timeout=60, requires_body=true",
 )
+CNFTP_IQIYI_HOME_SOURCE_TRIGGERS = CNFTP_DUPLICATE_KEEP_TRIGGERS[:4]
+CNFTP_IQIYI_HOME_COMBINED_TRIGGER = (
+    r"""response if ${url} ~= /^https?:\/\/(?:[\d\.]+\/3f1\/cards\.iqiyi\.com\/(?:views_home\/3\.0\/qy_home|waterfall\/3\.0\/feed)|access\.if\.iqiyi\.com\/3f1\/cards\.iqiyi\.com\/(?:views_category\/3\.0\/category_home|views_home\/3\.0\/qy_home|waterfall\/3\.0\/feed)|cards\.iqiyi\.com\/(?:views_category\/3\.0\/(?:category_home|categorylib_content|film_hybrid)|views_home\/3\.0\/qy_home|waterfall\/3\.0\/feed))\?/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js") with enable=aiqiyi_enable, tag="爱奇艺首页信息流广告", timeout=60, requires_body=true"""
+)
+
 CNFTP_MGTV_SOURCE_TRIGGERS = (
     "response if ${url} ~= /^https?:\\/\\/me\\.bz\\.mgtv\\.com\\/v3\\/module\\/list\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=mhgotv_enable, tag=\"芒果TV我的页面\", timeout=60, requires_body=true",
     "response if ${url} ~= /^https?:\\/\\/mob-st\\.bz\\.mgtv\\.com\\/odin\\/c1\\/channel\\/index\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=mhgotv_enable, tag=\"芒果TV首页信息流\", timeout=60, requires_body=true",
@@ -2757,6 +2762,37 @@ def remove_duplicate_cnftp_scripts(lines):
     if not all(count == 1 for count in output_counts.values()):
         raise ValueError("consolidated video trigger inventory incomplete; refusing partial consolidation")
     return output, 0
+
+
+def consolidate_cnftp_iqiyi_home_triggers(lines):
+    """Combine four same-action iQIYI home-feed matchers without widening URL coverage."""
+    original = list(lines)
+    output, section = [], ""
+    counts = {item: 0 for item in CNFTP_IQIYI_HOME_SOURCE_TRIGGERS}
+    inserted = False
+    target_seen = False
+
+    for line in original:
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            output.append(line)
+            continue
+        if section != "Script" or line not in counts:
+            output.append(line)
+            continue
+        target_seen = True
+        counts[line] += 1
+        if counts[line] > 1:
+            raise ValueError("duplicate iQIYI home trigger; refusing consolidation")
+        if not inserted:
+            output.append(CNFTP_IQIYI_HOME_COMBINED_TRIGGER)
+            inserted = True
+
+    if not target_seen:
+        return output, 0
+    if not all(count == 1 for count in counts.values()):
+        raise ValueError("iQIYI home trigger inventory incomplete; refusing partial consolidation")
+    return output, len(CNFTP_IQIYI_HOME_SOURCE_TRIGGERS) - 1
 
 
 # Same-URL response scripts duplicated across legacy and v2 syntax.
@@ -2921,6 +2957,20 @@ IDENTICAL_SCRIPT_KEEP_TRIGGERS = (
     "response if ${url} ~= /^https?:\\/\\/api-pay\\.soulapp\\.cn\\/vip\\/meet\\/userInfo/ then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
     "response if ${url} ~= /^https?:\\/\\/api-pay\\.soulapp\\.cn\\/privilege\\/supervip\\/status/ then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
 )
+IDENTICAL_SCRIPT_CURRENT_CANONICAL_TRIGGERS = (
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/\\w{3}\\/level\\/info/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/v3plus\\/index\\/channel\\?pageNum=1&position=CHANNEL_INDEX/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/app\\/config\\/h5NativeBar/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/v3plus\\/index\\/channel\\?pageNum=1&position=CHANNEL_MY/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/user\\/privilege\\/list/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/ad\\/getAll/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/drama\\/app\\/get_combined_drama_detail/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/watch\\/v\\d/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/user\\/profile/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api-pay\\.soulapp\\.cn\\/(?:vip\\/meet\\/userInfo|privilege\\/supervip\\/status)/ then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/(?:api-account\\.soulapp\\.cn\\/teenager\\/config|api-a\\.soulapp\\.cn\\/(?:v\\d\\/post\\/gift\\/list|official\\/scene\\/module)|api-user\\.soulapp\\.cn\\/(?:furion\\/position\\/content|v\\d\\/planet\\/config)|api-chat\\.soulapp\\.cn\\/chat\\/limitInfo|post\\.soulapp\\.cn\\/(?:hot\\/soul\\/rank|v\\d\\/post\\/(?:homepage\\/guide\\/card|recSquare\\/subTabs))|chat-live\\.soulapp\\.cn\\/chatroom\\/chatClassifyRoomList|gateway-mobile-gray\\.soulapp\\.cn\\/mobile\\/app\\/version\\/queryIos|47\\.110\\.187\\.87\\/winterfell\\/v2\\/getIpByDomain)/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/gql(-fed)?\\.reddit\\.com/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/reddit.js\") with enable=reddit_enable, tag=\"reddit\", timeout=60, requires_body=true",
+)
 IDENTICAL_SCRIPT_TRANSFORMS = {
     "response if ${url} ~= /https:\\/\\/api.rr.tv\\/v3plus\\/index\\/channel\\?pageNum=1&position=CHANNEL_INDEX/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true": "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/v3plus\\/index\\/channel\\?pageNum=1&position=CHANNEL_INDEX/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
     "response if ${url} ~= /https:\\/\\/api.rr.tv\\/watch\\/v4/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true": "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/watch\\/v\\d/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
@@ -2935,7 +2985,9 @@ def remove_identical_script_response_duplicates(lines):
     """Use one code-identical response handler while preserving the broader legacy API paths."""
     remove_counts = {item: 0 for item in IDENTICAL_SCRIPT_REMOVE_TRIGGERS}
     source_counts = {item: 0 for item in IDENTICAL_SCRIPT_KEEP_SOURCE_TRIGGERS}
-    output_counts = {item: 0 for item in IDENTICAL_SCRIPT_KEEP_TRIGGERS}
+    current_snapshot_mode = all(item in lines for item in IDENTICAL_SCRIPT_CURRENT_CANONICAL_TRIGGERS)
+    canonical_triggers = IDENTICAL_SCRIPT_CURRENT_CANONICAL_TRIGGERS if current_snapshot_mode else IDENTICAL_SCRIPT_KEEP_TRIGGERS
+    output_counts = {item: 0 for item in canonical_triggers}
     remove_set = set(IDENTICAL_SCRIPT_REMOVE_TRIGGERS)
     output, section, target_seen, removed = [], "", False, 0
     source_mode = any(item in lines for item in remove_set)
@@ -2947,12 +2999,12 @@ def remove_identical_script_response_duplicates(lines):
             continue
 
         normalized = line.replace("\\", "")
-        has_script_action = "http-response " in line or "response if " in line
+        has_script_action = "http-response " in line or "script(" in line or "script-path=" in line
         soul_endpoint = (
             ("api-a.soulapp.cn" in normalized and ("/post/gift/list" in normalized or "/official/scene/module" in normalized))
             or ("api-chat.soulapp.cn" in normalized and "/chat/limitInfo" in normalized)
             or ("api-user.soulapp.cn" in normalized and ("/furion/position/content" in normalized or "/planet/config" in normalized))
-            or ("api-pay.soulapp.cn" in normalized and ("/vip/meet/userInfo" in normalized or "/privilege/supervip/status" in normalized))
+            or ("api-pay.soulapp.cn" in normalized and ("vip/meet/userInfo" in normalized or "privilege/supervip/status" in normalized))
             or ("post.soulapp.cn" in normalized and ("/hot/soul/rank" in normalized or "/post/homepage/guide/card" in normalized or "/post/recSquare/subTabs" in normalized))
             or ("gateway-mobile-gray.soulapp.cn" in normalized and "/mobile/app/version/queryIos" in normalized)
             or ("api-account.soulapp.cn" in normalized and "/teenager/config" in normalized)
@@ -3438,6 +3490,7 @@ def apply(text: str) -> str:
     lines, _ = consolidate_meituan_scripts(lines)
     lines, _ = remove_duplicate_tuhu_scripts(lines)
     lines, _ = remove_duplicate_cnftp_scripts(lines)
+    lines, _ = consolidate_cnftp_iqiyi_home_triggers(lines)
     lines, _ = remove_same_source_duplicate_response_scripts(lines)
     lines, _ = remove_identical_script_response_duplicates(lines)
     lines, _ = consolidate_soul_scripts(lines)
