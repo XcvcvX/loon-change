@@ -669,3 +669,11 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 酷狗繁星旧版宽泛 `list_v` matcher 不纳入安全覆盖清单：`list_v2` 不能证明覆盖所有可能的 `list_v` 版本，因此该项仍保留高风险提示，等待进一步证据。
 - 对 PR #196 历史快照仅按唯一 run ID、来源删除数量、分区变化数量及风险计数完整签名迁移；任何计数漂移均不迁移。14 条子集与金十不可达规则降为低风险，未证实的 `list_v` 删除仍为高风险。
 - 不修改任何运行时 Rewrite、Rule、Script、MITM、优先级或最终插件内容；只改进来源证据与风险报告准确性。
+
+
+## 第八阶段第三十六批：知乎回答页与推荐流 JSON 重复解析收敛
+
+- 对照 Thelongdarkorg 上游 `zhihu_splash_ad_block.plugin` 的第 19、25 行与第 23、24 行，确认同一回答页/推荐流 matcher 分别执行两次 JSON 响应处理。
+- 回答页将删除 `third_business`、`float_search_word` 与过滤 `structured_content.segments` 中 card 的操作合并为一次 `response-body-json-jq`；推荐流将 ComponentCard allowlist 与 children 中 ring 卡片过滤合并为一次 JQ。
+- 保持原 URL matcher、过滤条件和最终字段处理意图不变；不改动知乎开屏、搜索、HTTPDNS、QUIC、MITM、Rule 或其他 App。
+- 覆盖器要求四条原始规则各唯一存在；缺失、重复、动作漂移或出现未知同 matcher 响应规则时 fail-closed；新增幂等与保留无关规则测试。
