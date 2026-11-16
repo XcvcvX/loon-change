@@ -50,9 +50,9 @@
 | [Argument] | 91 |
 | [Rule] | 3477 |
 | [Rewrite] | 3284 |
-| [Script] | 562 |
+| [Script] | 553 |
 | [MITM] hostname 条目 | 1497 |
-| 唯一远程脚本 URL | 198 |
+| 唯一远程脚本 URL | 196 |
 <!-- AUTO_PLUGIN_STATS:END -->
 
 ## 自动更新

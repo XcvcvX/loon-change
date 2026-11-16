@@ -118605,57 +118605,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://(g-)?acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.taobao\\\\.idle\\\\.home\\\\.whale\\\\.modulet/', ('^https?:\\\\/\\\\/', '^https?:\\\\/\\\\/(g-)?acs\\\\.m\\\\.goofish\\\\.com\\\\/gw\\\\/mtop\\\\.taobao\\\\.idle\\\\.home\\\\.whale\\\\.modulet\\\\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/goofish.js,tag=GOOFISH,requires-body=true'))",
-      "output_entry_index": 155,
-      "output_line": "http-response ^https?:\\/\\/(g-)?acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.home\\.whale\\.modulet\\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/goofish.js,tag=GOOFISH,requires-body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/(g-)?acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.home\\.whale\\.modulet\\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/goofish.js,tag=GOOFISH,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 154
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://(g-)?acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.taobao\\\\.idlehome\\\\.home\\\\.nextfresh/', ('^https?:\\\\/\\\\/', '^https?:\\\\/\\\\/(g-)?acs\\\\.m\\\\.goofish\\\\.com\\\\/gw\\\\/mtop\\\\.taobao\\\\.idlehome\\\\.home\\\\.nextfresh\\\\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/goofish.js,tag=GOOFISH-2,requires-body=true'))",
-      "output_entry_index": 156,
-      "output_line": "http-response ^https?:\\/\\/(g-)?acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlehome\\.home\\.nextfresh\\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/goofish.js,tag=GOOFISH-2,requires-body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/(g-)?acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlehome\\.home\\.nextfresh\\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/goofish.js,tag=GOOFISH-2,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 155
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://(g-)?acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.taobao\\\\.idle\\\\.local\\\\.home/', ('^https?:\\\\/\\\\/', '^https?:\\\\/\\\\/(g-)?acs\\\\.m\\\\.goofish\\\\.com\\\\/gw\\\\/mtop\\\\.taobao\\\\.idle\\\\.local\\\\.home\\\\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/goofish.js,tag=GOOFISH-3,requires-body=true'))",
-      "output_entry_index": 157,
-      "output_line": "http-response ^https?:\\/\\/(g-)?acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.local\\.home\\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/goofish.js,tag=GOOFISH-3,requires-body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/(g-)?acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.local\\.home\\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/goofish.js,tag=GOOFISH-3,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 156
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https?://.*\\\\.xima.*\\\\.com/discovery-category/customCategories', ('^https?:\\\\/\\\\/.*\\\\.xima.*\\\\.com\\\\/discovery-category\\\\/customcategories', '^https?:\\\\/\\\\/.*\\\\.xima.*\\\\.com\\\\/discovery-category\\\\/customCategories script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xmly.js,tag=XMLY,requires-body=true'))",
       "output_entry_index": 158,
       "output_line": "http-response ^https?:\\/\\/.*\\.xima.*\\.com\\/discovery-category\\/customCategories script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xmly.js,tag=XMLY,requires-body=true",
@@ -123852,125 +123801,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://(g-)?acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.taobao\\\\.idlehome\\\\.home\\\\.nextfresh/', ('script', 'script(\"https://raw.githubusercontent.com/ishowshu/qx/refs/heads/main/script/goofish.js\") with tag=\"商品信息流广告\", requires_body=true'))",
-      "output_entry_index": 479,
-      "output_line": "response if ${url} ~= /^https:\\/\\/(g-)?acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlehome\\.home\\.nextfresh\\//i then script(\"https://raw.githubusercontent.com/ishowshu/qx/refs/heads/main/script/goofish.js\") with tag=\"商品信息流广告\", requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/(g-)?acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlehome\\.home\\.nextfresh\\//i then script(\"https://raw.githubusercontent.com/ishowshu/qx/refs/heads/main/script/goofish.js\") with tag=\"商品信息流广告\", requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 171
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://(g-)?acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.taobao\\\\.idle\\\\.local\\\\.home/', ('script', 'script(\"https://raw.githubusercontent.com/ishowshu/qx/refs/heads/main/script/goofish.js\") with tag=\"定位地区页面的信息流广告\", requires_body=true'))",
-      "output_entry_index": 480,
-      "output_line": "response if ${url} ~= /^https:\\/\\/(g-)?acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.local\\.home\\//i then script(\"https://raw.githubusercontent.com/ishowshu/qx/refs/heads/main/script/goofish.js\") with tag=\"定位地区页面的信息流广告\", requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/(g-)?acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.local\\.home\\//i then script(\"https://raw.githubusercontent.com/ishowshu/qx/refs/heads/main/script/goofish.js\") with tag=\"定位地区页面的信息流广告\", requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 172
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.idle\\\\.user\\\\.page\\\\.my\\\\.adapter/', ('script', 'script(\"https://raw.githubusercontent.com/ishowshu/qx/refs/heads/main/script/goofish.js\") with tag=\"个人主页\", requires_body=true'))",
-      "output_entry_index": 481,
-      "output_line": "response if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.idle\\.user\\.page\\.my\\.adapter\\//i then script(\"https://raw.githubusercontent.com/ishowshu/qx/refs/heads/main/script/goofish.js\") with tag=\"个人主页\", requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.idle\\.user\\.page\\.my\\.adapter\\//i then script(\"https://raw.githubusercontent.com/ishowshu/qx/refs/heads/main/script/goofish.js\") with tag=\"个人主页\", requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 173
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.taobao\\\\.idlehome\\\\.home\\\\.circle\\\\.list/1\\\\.0', ('script', 'script(\"https://raw.githubusercontent.com/ishowshu/qx/refs/heads/main/script/goofish.js\") with tag=\"首页顶部频道菜单\", requires_body=true'))",
-      "output_entry_index": 482,
-      "output_line": "response if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlehome\\.home\\.circle\\.list\\/1\\.0/i then script(\"https://raw.githubusercontent.com/ishowshu/qx/refs/heads/main/script/goofish.js\") with tag=\"首页顶部频道菜单\", requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlehome\\.home\\.circle\\.list\\/1\\.0/i then script(\"https://raw.githubusercontent.com/ishowshu/qx/refs/heads/main/script/goofish.js\") with tag=\"首页顶部频道菜单\", requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 174
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.taobao\\\\.idle\\\\.local\\\\.nearby\\\\.itemdetail\\\\.enter/1\\\\.0', ('script', 'script(\"https://raw.githubusercontent.com/ishowshu/qx/refs/heads/main/script/goofish.js\") with tag=\"商品详情页周边推荐\", requires_body=true'))",
-      "output_entry_index": 483,
-      "output_line": "response if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.local\\.nearby\\.itemdetail\\.enter\\/1\\.0/i then script(\"https://raw.githubusercontent.com/ishowshu/qx/refs/heads/main/script/goofish.js\") with tag=\"商品详情页周边推荐\", requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.local\\.nearby\\.itemdetail\\.enter\\/1\\.0/i then script(\"https://raw.githubusercontent.com/ishowshu/qx/refs/heads/main/script/goofish.js\") with tag=\"商品详情页周边推荐\", requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 175
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://g-acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.taobao\\\\.idlemtopsearch\\\\.search/', ('script', 'script(\"https://raw.githubusercontent.com/ishowshu/qx/refs/heads/main/script/goofish.js\") with tag=\"搜索结果信息流广告\", requires_body=true'))",
-      "output_entry_index": 484,
-      "output_line": "response if ${url} ~= /^https:\\/\\/g-acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlemtopsearch\\.search\\//i then script(\"https://raw.githubusercontent.com/ishowshu/qx/refs/heads/main/script/goofish.js\") with tag=\"搜索结果信息流广告\", requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/g-acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlemtopsearch\\.search\\//i then script(\"https://raw.githubusercontent.com/ishowshu/qx/refs/heads/main/script/goofish.js\") with tag=\"搜索结果信息流广告\", requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 176
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.taobao\\\\.idle\\\\.local\\\\.flow\\\\.plat\\\\.section', ('script', 'script(\"https://raw.githubusercontent.com/ishowshu/qx/refs/heads/main/script/goofish.js\") with tag=\"同城页横幅广告\", requires_body=true'))",
-      "output_entry_index": 485,
-      "output_line": "response if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.local\\.flow\\.plat\\.section/i then script(\"https://raw.githubusercontent.com/ishowshu/qx/refs/heads/main/script/goofish.js\") with tag=\"同城页横幅广告\", requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.local\\.flow\\.plat\\.section/i then script(\"https://raw.githubusercontent.com/ishowshu/qx/refs/heads/main/script/goofish.js\") with tag=\"同城页横幅广告\", requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 177
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https?://.+?\\\\.(pipi|fuli|xiang(jiao|xiang))apps\\\\.com/(ucp/index|getGlobalData|(/|)vod/reqplay/)', ('script', 'script(\"https://raw.githubusercontent.com/NobyDa/Script/master/QuantumultX/File/xjsp.js\") with enable=xljnuiyivsuvgo_enable, tag=\"香蕉是一种水果\", timeout=60, requires_body=true'))",
       "output_entry_index": 486,
       "output_line": "response if ${url} ~= /^https?:\\/\\/.+?\\.(pipi|fuli|xiang(jiao|xiang))apps\\.com\\/(ucp\\/index|getGlobalData|(\\/|)vod\\/reqplay\\/)/i then script(\"https://raw.githubusercontent.com/NobyDa/Script/master/QuantumultX/File/xjsp.js\") with enable=xljnuiyivsuvgo_enable, tag=\"香蕉是一种水果\", timeout=60, requires_body=true",
@@ -124701,125 +124531,6 @@
           "priority": 2,
           "source": "aoomee",
           "source_entry_index": 20
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.taobao\\\\.idlehome\\\\.home\\\\.nextfresh/', ('^https:\\\\/\\\\/acs\\\\.m\\\\.goofish\\\\.com\\\\/gw\\\\/mtop\\\\.taobao\\\\.idlehome\\\\.home\\\\.nextfresh\\\\/', '^https:\\\\/\\\\/acs\\\\.m\\\\.goofish\\\\.com\\\\/gw\\\\/mtop\\\\.taobao\\\\.idlehome\\\\.home\\\\.nextfresh\\\\/ script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 商品信息流广告'))",
-      "output_entry_index": 548,
-      "output_line": "http-response ^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlehome\\.home\\.nextfresh\\/ script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 商品信息流广告",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlehome\\.home\\.nextfresh\\/ script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 商品信息流广告",
-          "input_section": "Script",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 21
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.taobao\\\\.idle\\\\.local\\\\.home/', ('^https:\\\\/\\\\/acs\\\\.m\\\\.goofish\\\\.com\\\\/gw\\\\/mtop\\\\.taobao\\\\.idle\\\\.local\\\\.home\\\\/', '^https:\\\\/\\\\/acs\\\\.m\\\\.goofish\\\\.com\\\\/gw\\\\/mtop\\\\.taobao\\\\.idle\\\\.local\\\\.home\\\\/ script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 定位地区页面的信息流广告'))",
-      "output_entry_index": 549,
-      "output_line": "http-response ^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.local\\.home\\/ script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 定位地区页面的信息流广告",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.local\\.home\\/ script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 定位地区页面的信息流广告",
-          "input_section": "Script",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 22
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.idle\\\\.user\\\\.page\\\\.my\\\\.adapter/', ('^https:\\\\/\\\\/acs\\\\.m\\\\.goofish\\\\.com\\\\/gw\\\\/mtop\\\\.idle\\\\.user\\\\.page\\\\.my\\\\.adapter\\\\/', '^https:\\\\/\\\\/acs\\\\.m\\\\.goofish\\\\.com\\\\/gw\\\\/mtop\\\\.idle\\\\.user\\\\.page\\\\.my\\\\.adapter\\\\/ script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 个人主页'))",
-      "output_entry_index": 550,
-      "output_line": "http-response ^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.idle\\.user\\.page\\.my\\.adapter\\/ script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 个人主页",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.idle\\.user\\.page\\.my\\.adapter\\/ script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 个人主页",
-          "input_section": "Script",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 23
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.taobao\\\\.idlehome\\\\.home\\\\.circle\\\\.list/', ('^https:\\\\/\\\\/acs\\\\.m\\\\.goofish\\\\.com\\\\/gw\\\\/mtop\\\\.taobao\\\\.idlehome\\\\.home\\\\.circle\\\\.list\\\\/', '^https:\\\\/\\\\/acs\\\\.m\\\\.goofish\\\\.com\\\\/gw\\\\/mtop\\\\.taobao\\\\.idlehome\\\\.home\\\\.circle\\\\.list\\\\/ script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 首页顶部频道菜单'))",
-      "output_entry_index": 551,
-      "output_line": "http-response ^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlehome\\.home\\.circle\\.list\\/ script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 首页顶部频道菜单",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlehome\\.home\\.circle\\.list\\/ script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 首页顶部频道菜单",
-          "input_section": "Script",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 24
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.taobao\\\\.idle\\\\.local\\\\.nearby\\\\.itemdetail\\\\.enter/', ('^https:\\\\/\\\\/acs\\\\.m\\\\.goofish\\\\.com\\\\/gw\\\\/mtop\\\\.taobao\\\\.idle\\\\.local\\\\.nearby\\\\.itemdetail\\\\.enter\\\\/', '^https:\\\\/\\\\/acs\\\\.m\\\\.goofish\\\\.com\\\\/gw\\\\/mtop\\\\.taobao\\\\.idle\\\\.local\\\\.nearby\\\\.itemdetail\\\\.enter\\\\/ script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 商品详情页周边推荐'))",
-      "output_entry_index": 552,
-      "output_line": "http-response ^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.local\\.nearby\\.itemdetail\\.enter\\/ script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 商品详情页周边推荐",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.local\\.nearby\\.itemdetail\\.enter\\/ script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 商品详情页周边推荐",
-          "input_section": "Script",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 25
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://g-acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.taobao\\\\.idlemtopsearch\\\\.search/', ('^https:\\\\/\\\\/g-acs\\\\.m\\\\.goofish\\\\.com\\\\/gw\\\\/mtop\\\\.taobao\\\\.idlemtopsearch\\\\.search\\\\/', '^https:\\\\/\\\\/g-acs\\\\.m\\\\.goofish\\\\.com\\\\/gw\\\\/mtop\\\\.taobao\\\\.idlemtopsearch\\\\.search\\\\/ script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 搜索结果信息流广告'))",
-      "output_entry_index": 553,
-      "output_line": "http-response ^https:\\/\\/g-acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlemtopsearch\\.search\\/ script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 搜索结果信息流广告",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https:\\/\\/g-acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlemtopsearch\\.search\\/ script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 搜索结果信息流广告",
-          "input_section": "Script",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 26
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.taobao\\\\.idle\\\\.local\\\\.flow\\\\.plat\\\\.section', ('^https:\\\\/\\\\/acs\\\\.m\\\\.goofish\\\\.com\\\\/gw\\\\/mtop\\\\.taobao\\\\.idle\\\\.local\\\\.flow\\\\.plat\\\\.section', '^https:\\\\/\\\\/acs\\\\.m\\\\.goofish\\\\.com\\\\/gw\\\\/mtop\\\\.taobao\\\\.idle\\\\.local\\\\.flow\\\\.plat\\\\.section script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 同城页横幅广告'))",
-      "output_entry_index": 554,
-      "output_line": "http-response ^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.local\\.flow\\.plat\\.section script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 同城页横幅广告",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.local\\.flow\\.plat\\.section script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 同城页横幅广告",
-          "input_section": "Script",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 27
         }
       ],
       "trace_status": "mapped"
@@ -125867,6 +125578,94 @@
       ]
     },
     {
+      "output_line": "http-response ^https?:\\/\\/(g-)?acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlehome\\.home\\.nextfresh\\/ script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js,tag=GOOFISH-NEXTFRESH,requires-body=true",
+      "provenance_kind": "post_merge_transform",
+      "sources": [
+        {
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
+        }
+      ]
+    },
+    {
+      "output_line": "http-response ^https?:\\/\\/(g-)?acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.local\\.home\\/ script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js,tag=GOOFISH-LOCAL-HOME,requires-body=true",
+      "provenance_kind": "post_merge_transform",
+      "sources": [
+        {
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
+        }
+      ]
+    },
+    {
+      "output_line": "http-response ^https?:\\/\\/(g-)?acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.home\\.whale\\.modulet\\/ script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js,tag=GOOFISH-WHALE,requires-body=true",
+      "provenance_kind": "post_merge_transform",
+      "sources": [
+        {
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
+        }
+      ]
+    },
+    {
+      "output_line": "http-response ^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.idle\\.user\\.page\\.my\\.adapter\\/ script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js,tag=GOOFISH-PROFILE,requires-body=true",
+      "provenance_kind": "post_merge_transform",
+      "sources": [
+        {
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
+        }
+      ]
+    },
+    {
+      "output_line": "http-response ^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlehome\\.home\\.circle\\.list\\/ script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js,tag=GOOFISH-CIRCLE,requires-body=true",
+      "provenance_kind": "post_merge_transform",
+      "sources": [
+        {
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
+        }
+      ]
+    },
+    {
+      "output_line": "http-response ^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.local\\.nearby\\.itemdetail\\.enter\\/ script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js,tag=GOOFISH-NEARBY,requires-body=true",
+      "provenance_kind": "post_merge_transform",
+      "sources": [
+        {
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
+        }
+      ]
+    },
+    {
+      "output_line": "http-response ^https:\\/\\/g-acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlemtopsearch\\.search\\/ script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js,tag=GOOFISH-SEARCH,requires-body=true",
+      "provenance_kind": "post_merge_transform",
+      "sources": [
+        {
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
+        }
+      ]
+    },
+    {
+      "output_line": "http-response ^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.local\\.flow\\.plat\\.section script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js,tag=GOOFISH-LOCAL-FLOW,requires-body=true",
+      "provenance_kind": "post_merge_transform",
+      "sources": [
+        {
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
+        }
+      ]
+    },
+    {
       "output_line": "response if ${url} ~= /^https?:\\/\\/creditcard\\.bankcomm\\.(?:cn|com)\\/tofimg\\/bucket-pj-btss-tfcn-dmz\\/OSS-F\\/.+/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/maidanba.js\") with tag=\"买单吧开屏广告\", requires_body=true, binary_body_mode=true",
       "provenance_kind": "post_merge_transform",
       "sources": [
@@ -125933,7 +125732,7 @@
     "rule_safety_excluded_events": 11,
     "rule_scope_adjustments": 1,
     "rule_source_events": 5627,
-    "script_output_entries": 562
+    "script_output_entries": 553
   },
   "upstream_revisions": {
     "AlipayAdBlock": {
