@@ -197,6 +197,45 @@ def remove_guiderank_homepage_script(lines):
         raise ValueError("duplicate Guiderank homepage script triggers; refusing ambiguous conversion")
     return output, removed
 
+DDQX_NEWDETAILS_MARKER = "maicai.api.ddxq.mobi/homeApi/newDetails"
+DDQX_NEWDETAILS_MATCHER = r"^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/newDetails"
+DDQX_NEWDETAILS_LEGACY_ACTION = "response-body-replace-regex suspension random_body"
+DDQX_NEWDETAILS_MODERN_ACTION = r'response if \${url} ~= /^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/newDetails/ then response.body.replace(/suspension/, "fmz200")'
+DDQX_NEWDETAILS_NATIVE_RULE = r'response if \${url} ~= /^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/newDetails/ then response.json.delete("data.suspension")'
+
+
+def replace_ddqx_newdetails_body_rewrites(lines):
+    """Replace only the reviewed Duoduo Grocery suspension-field rewrites with JSON deletion."""
+    output, converted, legacy_count, modern_count, native_count = [], 0, 0, 0, 0
+    normalized_matcher = re.sub(r"\\+", "", DDQX_NEWDETAILS_MATCHER)
+    normalized_native = re.sub(r"\\+", "", DDQX_NEWDETAILS_NATIVE_RULE)
+    normalized_legacy = normalized_matcher + " " + DDQX_NEWDETAILS_LEGACY_ACTION
+    normalized_modern = re.sub(r"\\+", "", DDQX_NEWDETAILS_MODERN_ACTION)
+    for line in lines:
+        normalized = re.sub(r"\\+", "", line.strip())
+        if DDQX_NEWDETAILS_MARKER.lower() not in normalized.lower():
+            output.append(line)
+            continue
+        if normalized == normalized_legacy:
+            legacy_count += 1
+            converted += 1
+            continue
+        if normalized == normalized_modern:
+            modern_count += 1
+            converted += 1
+            continue
+        if normalized == normalized_native:
+            native_count += 1
+            output.append(line)
+            continue
+        raise ValueError("Duoduo Grocery newDetails suspension rule changed; refusing an unreviewed conversion")
+    if legacy_count > 1 or modern_count > 1 or native_count > 1:
+        raise ValueError("duplicate Duoduo Grocery newDetails suspension rules; refusing ambiguous conversion")
+    if converted and not native_count:
+        output.append(DDQX_NEWDETAILS_NATIVE_RULE)
+    return output, converted
+
+
 def split_response_json_rewrite(line: str):
     match = re.match(r'^(response if .+?) then (.+)', line)
     if not match: return None
@@ -399,6 +438,7 @@ def apply(text: str) -> str:
                 rewrite_lines, _ = remove_shadowed_terminal_block_rules(rewrite_lines)
                 rewrite_lines, _ = remove_lkcoffee_member_exchange_success_overrides(rewrite_lines)
                 rewrite_lines, _ = replace_guiderank_special_sale_random_body(rewrite_lines)
+                rewrite_lines, _ = replace_ddqx_newdetails_body_rewrites(rewrite_lines)
                 if guiderank_homepage_script_count and GUIDERANK_HOMEPAGE_NATIVE_RULE not in [item.strip() for item in rewrite_lines]:
                     rewrite_lines.append(GUIDERANK_HOMEPAGE_NATIVE_RULE)
                 result_lines.extend(rewrite_lines); rewrite_lines = []
@@ -415,6 +455,7 @@ def apply(text: str) -> str:
         rewrite_lines, _ = remove_shadowed_terminal_block_rules(rewrite_lines)
         rewrite_lines, _ = remove_lkcoffee_member_exchange_success_overrides(rewrite_lines)
         rewrite_lines, _ = replace_guiderank_special_sale_random_body(rewrite_lines)
+                rewrite_lines, _ = replace_ddqx_newdetails_body_rewrites(rewrite_lines)
         if guiderank_homepage_script_count and GUIDERANK_HOMEPAGE_NATIVE_RULE not in [item.strip() for item in rewrite_lines]:
             rewrite_lines.append(GUIDERANK_HOMEPAGE_NATIVE_RULE)
         result_lines.extend(rewrite_lines)
