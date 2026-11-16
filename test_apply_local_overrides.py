@@ -1595,7 +1595,7 @@ class BilibiliNonAdFeatureScopeTests(unittest.TestCase):
         self.assertNotIn("due_date: 9005270400000", plugin)
         self.assertNotIn("del(.data.payment)", plugin)
         self.assertNotIn("Teenagers\\/ModeStatus", plugin)
-        self.assertIn("/x/v2/feed/index", plugin)
+        self.assertIn("/x/v2/feed/index", plugin.replace(chr(92), ""))
 
 class DouyinHongguoBoundaryTests(unittest.TestCase):
     def setUp(self):
