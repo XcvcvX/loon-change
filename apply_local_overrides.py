@@ -2378,11 +2378,7 @@ def remove_duplicate_tuhu_scripts(lines):
             continue
 
         normalized = normalize(line)
-        is_target = section == "Script" and "gateway.tuhu.cn" in normalized and any(
-            marker in normalized for marker in (
-                "getCmsModuleList", "getHomePageInfo", "getModuleForC"
-            )
-        )
+        is_target = section == "Script" and "gateway.tuhu.cn" in normalized and "tuhu.js" in normalized
         if not is_target:
             output.append(line)
             continue
