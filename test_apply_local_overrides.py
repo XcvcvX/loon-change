@@ -1742,6 +1742,20 @@ class PinduoduoImageCdnScopeTests(unittest.TestCase):
             "[MITM]", "hostname = images.pinduoduo.com, api.pinduoduo.com",
         ]
 
+    def test_checked_in_plugin_snapshot_keeps_product_image_cdn_and_only_ad_path_blocks(self):
+        from pathlib import Path
+        from apply_local_overrides import (
+            PDD_IMAGE_CDN_HOST, PDD_IMAGE_CDN_BROAD_BLOCK, PDD_IMAGE_CDN_AD_PATH_RULES,
+        )
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        self.assertNotIn(PDD_IMAGE_CDN_BROAD_BLOCK, plugin)
+        self.assertNotIn("DOMAIN-SUFFIX," + PDD_IMAGE_CDN_HOST + ",REJECT", plugin)
+        self.assertNotIn("DOMAIN-KEYWORD," + PDD_IMAGE_CDN_HOST + ",REJECT", plugin)
+        for rule in PDD_IMAGE_CDN_AD_PATH_RULES:
+            self.assertEqual(plugin.count(rule), 1)
+        mitm = plugin.split("[MITM]", 1)[1]
+        self.assertIn(PDD_IMAGE_CDN_HOST, mitm)
+
     def test_removes_only_broad_image_cdn_block_and_keeps_ad_paths_and_mitm(self):
         from apply_local_overrides import scope_pdd_image_cdn_ad_rules
         result, removed = scope_pdd_image_cdn_ad_rules(self.base)
