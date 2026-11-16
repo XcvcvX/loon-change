@@ -3327,5 +3327,43 @@ class WechatAppletNativeMigrationTests(unittest.TestCase):
             migrate_wechat_applet_simple_endpoints(fixture)
 
 
+class WeiboNativeMigrationTests(unittest.TestCase):
+    def test_migrates_five_simple_weibo_branches_and_preserves_complex_triggers(self):
+        from apply_local_overrides import WEIBO_NATIVE_MIGRATIONS, migrate_weibo_simple_endpoints
+        fixture = ["[Rewrite]", "[Script]"]
+        for _, _, trigger, _ in WEIBO_NATIVE_MIGRATIONS:
+            fixture.append(trigger)
+        complex_trigger = (
+            r"http-response ^https?:\/\/api\.weibo\.cn\/2\/comments\/build_comments\? "
+            r"script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-4,requires-body=true"
+        )
+        fixture.extend([complex_trigger, "[MITM]", "hostname = api.weibo.cn, bootpreload.uve.weibo.com, wbapp.uve.weibo.com, new.vip.weibo.cn"])
+        result, changed = migrate_weibo_simple_endpoints(fixture)
+        self.assertEqual(changed, 5)
+        for _, _, trigger, replacement in WEIBO_NATIVE_MIGRATIONS:
+            self.assertNotIn(trigger, result)
+            self.assertIn(replacement, result)
+        self.assertIn(complex_trigger, result)
+        self.assertEqual(sum(1 for line in result if line.startswith("response if") and "weibo" in line), 5)
+        again, second_changed = migrate_weibo_simple_endpoints(result)
+        self.assertEqual(second_changed, 0)
+        self.assertEqual(again, result)
+
+    def test_noops_when_no_known_weibo_script_trigger_exists(self):
+        from apply_local_overrides import migrate_weibo_simple_endpoints
+        fixture = ["[Rewrite]", "[Script]", "http-response ^https?:\\/\\/unknown.example/ script-path=https://example.invalid/weibo.js", "[MITM]"]
+        result, changed = migrate_weibo_simple_endpoints(fixture)
+        self.assertEqual(changed, 0)
+        self.assertEqual(result, fixture)
+
+    def test_fails_closed_on_unreviewed_weibo_trigger_variant(self):
+        from apply_local_overrides import WEIBO_NATIVE_MIGRATIONS, migrate_weibo_simple_endpoints
+        trigger = WEIBO_NATIVE_MIGRATIONS[0][2]
+        drifted = trigger.replace("tag=WEIBO-13", "tag=WEIBO-13-NEW")
+        fixture = ["[Rewrite]", "[Script]", drifted, "[MITM]"]
+        with self.assertRaisesRegex(ValueError, "Weibo trigger inventory changed"):
+            migrate_weibo_simple_endpoints(fixture)
+
+
 if __name__ == "__main__":
     unittest.main()
