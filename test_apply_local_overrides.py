@@ -18,6 +18,27 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
 
 class LocalOverrideTests(unittest.TestCase):
 
+    def test_consolidates_starplucker_config_into_one_jq_parse(self):
+        from apply_local_overrides import (
+            STARPLUCKER_DOUBLE_JQ_RULE, STARPLUCKER_SINGLE_JQ_RULE,
+            consolidate_starplucker_config_jq,
+        )
+        result, changed = consolidate_starplucker_config_jq([STARPLUCKER_DOUBLE_JQ_RULE])
+        self.assertEqual(changed, 1)
+        self.assertEqual(result, [STARPLUCKER_SINGLE_JQ_RULE])
+        self.assertEqual(result[0].count("response.json.jq("), 1)
+        self.assertIn("del(.search_suggestions)? |", result[0])
+
+    def test_starplucker_consolidation_fails_closed_on_rule_drift_or_duplicates(self):
+        from apply_local_overrides import STARPLUCKER_DOUBLE_JQ_RULE, consolidate_starplucker_config_jq
+        with self.assertRaisesRegex(ValueError, "StarPlucker config jq rule changed"):
+            consolidate_starplucker_config_jq([STARPLUCKER_DOUBLE_JQ_RULE, STARPLUCKER_DOUBLE_JQ_RULE])
+        changed = STARPLUCKER_DOUBLE_JQ_RULE.replace("search_suggestions", "search_suggestion")
+        with self.assertRaisesRegex(ValueError, "StarPlucker config jq rule changed"):
+            consolidate_starplucker_config_jq([changed])
+
+
+
     def test_scopes_taobao_ossgw_block_to_ad_creatives_only(self):
         from apply_local_overrides import (
             TAOBAO_OSS_BROAD_DOMAIN_RULE,
