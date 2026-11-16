@@ -1228,20 +1228,26 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         with self.assertRaisesRegex(ValueError, "Meituan script trigger inventory changed"):
             apply(mixed)
 
-    def test_local_meituan_script_contains_all_reviewed_handlers_and_guards(self):
+    def test_local_meituan_script_and_combined_matcher_cover_reviewed_endpoints(self):
         from pathlib import Path
+        from apply_local_overrides import MEITUAN_CANONICAL_TRIGGER
         script = (Path(__file__).parent / "scripts/meituan/meituan.js").read_text(encoding="utf-8")
         for marker in (
-            "p\\\\d\\\\.meituan\\\\.net", "aggroup/indexTab",
+            r"p\d\.meituan\.net", "aggroup/indexTab",
             "lycoris/scene", "usercenter/display", "searchpage/defaultword",
             "searchpage/hotword/city/divide/hotrecommend",
             "assistant/getAppClientHornConfig", "shoppingCartEntry",
             "entryModule/startupPicture", "api/miniprogram",
-            "tabbar/all/query", "index/aggregate",
-            "startupPicArea", "topBannerArea", "oneCentBuy",
+            "topBannerArea", "startupPicArea", "oneCentBuy",
             "JSON.parse(body)", "$done({ body: JSON.stringify(obj) })",
         ):
             self.assertIn(marker, script)
+        for marker in (
+            "tabbar/all/query", "index/aggregate", "personalcenter_2154",
+            "gwc_feed1_2265", "mt-personalcenter", "assistify",
+            "shoppingCartEntry", "startupPicture",
+        ):
+            self.assertIn(marker, MEITUAN_CANONICAL_TRIGGER)
         self.assertIn("catch (_)", script)
         self.assertNotIn("fetch(", script)
         self.assertNotIn("XMLHttpRequest", script)
