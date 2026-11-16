@@ -1731,6 +1731,41 @@ class WeChatUnblockScriptConsolidationTests(unittest.TestCase):
 
 
 
+class JingdongCoreServiceDomainScopeTests(unittest.TestCase):
+    def setUp(self):
+        from apply_local_overrides import JD_CORE_SERVICE_BLOCKS
+        self.targets = list(JD_CORE_SERVICE_BLOCKS.values())
+        self.base = ["[Rule]", *self.targets, "DOMAIN,unrelated.example,REJECT",
+                     "[Rewrite]", "^https://example.com/ad reject", "[MITM]"]
+
+    def test_removes_only_three_known_core_service_host_blocks_and_is_idempotent(self):
+        from apply_local_overrides import remove_jd_core_service_domain_blocks
+        result, removed = remove_jd_core_service_domain_blocks(self.base)
+        self.assertEqual(removed, 3)
+        for rule in self.targets:
+            self.assertNotIn(rule, result)
+        self.assertIn("DOMAIN,unrelated.example,REJECT", result)
+        self.assertIn("^https://example.com/ad reject", result)
+        self.assertEqual(remove_jd_core_service_domain_blocks(result), (result, 0))
+
+    def test_fails_closed_on_partial_duplicate_or_changed_core_service_inventory(self):
+        from apply_local_overrides import remove_jd_core_service_domain_blocks
+        with self.assertRaisesRegex(ValueError, "inventory is partial"):
+            remove_jd_core_service_domain_blocks(["[Rule]", *self.targets[:-1]])
+        duplicate = ["[Rule]", *self.targets, self.targets[0]]
+        with self.assertRaisesRegex(ValueError, "duplicate JD core service"):
+            remove_jd_core_service_domain_blocks(duplicate)
+        drifted = [line.replace(",REJECT", ",DIRECT") if line == self.targets[0] else line for line in self.base]
+        with self.assertRaisesRegex(ValueError, "rule changed"):
+            remove_jd_core_service_domain_blocks(drifted)
+
+    def test_checked_in_plugin_snapshot_does_not_block_core_jd_hosts(self):
+        from pathlib import Path
+        from apply_local_overrides import JD_CORE_SERVICE_BLOCKS
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        for rule in JD_CORE_SERVICE_BLOCKS.values():
+            self.assertNotIn(rule, plugin)
+
 class PinduoduoImageCdnScopeTests(unittest.TestCase):
     def setUp(self):
         from apply_local_overrides import PDD_IMAGE_CDN_BROAD_BLOCK, PDD_IMAGE_CDN_AD_PATH_RULES
