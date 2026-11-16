@@ -2976,7 +2976,7 @@ def remove_identical_script_response_duplicates(lines):
     """Use one code-identical response handler while preserving the broader legacy API paths."""
     remove_counts = {item: 0 for item in IDENTICAL_SCRIPT_REMOVE_TRIGGERS}
     source_counts = {item: 0 for item in IDENTICAL_SCRIPT_KEEP_SOURCE_TRIGGERS}
-    current_snapshot_mode = any(item in lines for item in IDENTICAL_SCRIPT_CURRENT_CANONICAL_TRIGGERS)
+    current_snapshot_mode = all(item in lines for item in IDENTICAL_SCRIPT_CURRENT_CANONICAL_TRIGGERS)
     canonical_triggers = IDENTICAL_SCRIPT_CURRENT_CANONICAL_TRIGGERS if current_snapshot_mode else IDENTICAL_SCRIPT_KEEP_TRIGGERS
     output_counts = {item: 0 for item in canonical_triggers}
     remove_set = set(IDENTICAL_SCRIPT_REMOVE_TRIGGERS)
