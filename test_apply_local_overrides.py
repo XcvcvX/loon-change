@@ -2006,7 +2006,8 @@ class ResponseJsonDeleteBatchTests(unittest.TestCase):
             + "\n".join(self.original)
             + "\n^https:\\/\\/unrelated\\.example\\/keep reject\n"
             + "[Script]\n[MITM]\nhostname = apissl.gifshow.com, mobile.ximalaya.com, "
-            "mobwsa.ximalaya.com, unrelated.example\n"
+            "mobwsa.ximalaya.com, unrelated.example, creditcard.bankcomm.cn, creditcard.bankcomm.com, "
+            "creditcardapp.bankcomm.cn, creditcardapp.bankcomm.com\n"
         )
 
     def test_batches_only_the_exact_delete_operations_and_is_idempotent(self):
@@ -2020,11 +2021,11 @@ class ResponseJsonDeleteBatchTests(unittest.TestCase):
 
     def test_fails_closed_on_partial_or_duplicate_batched_output(self):
         result = apply(self.base)
-        duplicate = result.replace(self.batched[0], self.batched[0] + "\\n" + self.batched[0], 1)
+        duplicate = result.replace(self.batched[0], self.batched[0] + "\n" + self.batched[0], 1)
         with self.assertRaisesRegex(ValueError, "Response JSON delete batch output inventory changed"):
             apply(duplicate)
 
-        partial = result.replace(self.batched[1] + "\\n", "", 1)
+        partial = result.replace(self.batched[1] + "\n", "", 1)
         with self.assertRaisesRegex(ValueError, "Response JSON delete batch output inventory changed"):
             apply(partial)
 
@@ -2403,6 +2404,11 @@ class CnftpDuplicateScriptTests(unittest.TestCase):
         clean = ["[Script]", *self.keep, "[MITM]"]
         self.assertEqual(remove_duplicate_cnftp_scripts(clean), (clean, 0))
 
+    def test_preserves_final_inventory_with_combined_iqiyi_home_matcher(self):
+        from apply_local_overrides import CNFTP_IQIYI_HOME_COMBINED_TRIGGER, remove_duplicate_cnftp_scripts
+        clean = ["[Script]", CNFTP_IQIYI_HOME_COMBINED_TRIGGER, *self.keep[4:], "[MITM]"]
+        self.assertEqual(remove_duplicate_cnftp_scripts(clean), (clean, 0))
+
     def test_fails_closed_on_missing_duplicate_duplicate_kept_or_unknown_variant(self):
         from apply_local_overrides import remove_duplicate_cnftp_scripts
         missing = [line for line in self.fixture if line != self.remove[0]]
@@ -2472,11 +2478,16 @@ class CnftpDuplicateScriptTests(unittest.TestCase):
 
     def test_checked_in_plugin_snapshot_has_only_the_selected_handlers(self):
         from pathlib import Path
-        from apply_local_overrides import CNFTP_DUPLICATE_KEEP_TRIGGERS, CNFTP_DUPLICATE_REMOVE_TRIGGERS
+        from apply_local_overrides import (
+            CNFTP_DUPLICATE_KEEP_TRIGGERS,
+            CNFTP_DUPLICATE_REMOVE_TRIGGERS,
+            CNFTP_IQIYI_HOME_COMBINED_TRIGGER,
+        )
         plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
         for item in CNFTP_DUPLICATE_REMOVE_TRIGGERS:
             self.assertNotIn(item, plugin)
-        for item in CNFTP_DUPLICATE_KEEP_TRIGGERS:
+        self.assertEqual(plugin.count(CNFTP_IQIYI_HOME_COMBINED_TRIGGER), 1)
+        for item in CNFTP_DUPLICATE_KEEP_TRIGGERS[4:]:
             self.assertEqual(plugin.count(item), 1)
 
 
