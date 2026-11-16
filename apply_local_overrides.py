@@ -2370,6 +2370,55 @@ def consolidate_zhihu_multi_action_rewrites(lines):
 
 
 
+
+# Batch same-response JSON field deletions into Loon's native array form.
+# Loon documents this as one batch instruction with the same ordered result.
+KUAISHOU_STARTUP_SPLIT_DELETE_REWRITE = r"""response if ${url} ~= /^https:\\/\\/(apissl|az2-api(-js|-idc)?)\\.(gifshow|ksapisrv)\\.com\\/rest\\/system\\/startup\\?/ then response.json.delete("reskinConfig") | response.json.delete("sidebarExSquareStyle.moreList") | response.json.delete("sidebarExSquareStyle.topList") | response.json.jq(`.sidebarExSquareStyle.commonlyUsedList |= map(select(.title == "设置" or .title == "历史记录" or .title == "草稿箱" or .title == "我的钱包" or .title == "小程序" or .title == "未成年人模式" or .title == "官方客服" or .title == "内容偏好" or .title == "离线模式" or .title == "稍后再看" or .title == "举报中心" or .title == "挂件"))`)"""
+KUAISHOU_STARTUP_BATCHED_DELETE_REWRITE = r"""response if ${url} ~= /^https:\\/\\/(apissl|az2-api(-js|-idc)?)\\.(gifshow|ksapisrv)\\.com\\/rest\\/system\\/startup\\?/ then response.json.delete(["reskinConfig", "sidebarExSquareStyle.moreList", "sidebarExSquareStyle.topList"]) | response.json.jq(`.sidebarExSquareStyle.commonlyUsedList |= map(select(.title == "设置" or .title == "历史记录" or .title == "草稿箱" or .title == "我的钱包" or .title == "小程序" or .title == "未成年人模式" or .title == "官方客服" or .title == "内容偏好" or .title == "离线模式" or .title == "稍后再看" or .title == "举报中心" or .title == "挂件"))`)"""
+
+XIMALAYA_FOOTBALL_SPLIT_DELETE_REWRITE = r"""response if ${url} ~= /^https?:\\/\\/(mobile|mobilehera|mobwsa)\\.ximalaya\\.com\\/football-portal\\/diff2\\/batch\\?/ then response.json.delete("json.ad") | response.json.delete("json.toc")"""
+XIMALAYA_FOOTBALL_BATCHED_DELETE_REWRITE = r"""response if ${url} ~= /^https?:\\/\\/(mobile|mobilehera|mobwsa)\\.ximalaya\\.com\\/football-portal\\/diff2\\/batch\\?/ then response.json.delete(["json.ad", "json.toc"])"""
+
+XIMALAYA_PLAYPAGE_SPLIT_DELETE_REWRITE = r"""response if ${url} ~= /^https?:\\/\\/mobwsa\\.ximalaya\\.com\\/mobile-playpage\\/playpage\\/tabs\\/v2\\// then response.json.delete("data.playpage.resourceMap.defaultResource") | response.json.delete("data.playpage.resourceMap.playPageTip")"""
+XIMALAYA_PLAYPAGE_BATCHED_DELETE_REWRITE = r"""response if ${url} ~= /^https?:\\/\\/mobwsa\\.ximalaya\\.com\\/mobile-playpage\\/playpage\\/tabs\\/v2\\// then response.json.delete(["data.playpage.resourceMap.defaultResource", "data.playpage.resourceMap.playPageTip"])"""
+
+
+def batch_same_response_json_deletes(lines):
+    """Use documented Loon batch delete syntax for three exact, source-verified matchers."""
+    replacements = {
+        KUAISHOU_STARTUP_SPLIT_DELETE_REWRITE: KUAISHOU_STARTUP_BATCHED_DELETE_REWRITE,
+        XIMALAYA_FOOTBALL_SPLIT_DELETE_REWRITE: XIMALAYA_FOOTBALL_BATCHED_DELETE_REWRITE,
+        XIMALAYA_PLAYPAGE_SPLIT_DELETE_REWRITE: XIMALAYA_PLAYPAGE_BATCHED_DELETE_REWRITE,
+    }
+    expected = tuple(replacements)
+    counts = {rule: sum(line.strip() == rule for line in lines) for rule in expected}
+    if not any(counts.values()):
+        return list(lines), 0
+    if any(count != 1 for count in counts.values()):
+        raise ValueError(
+            "Response JSON delete batch inventory changed; refusing partial or drifted consolidation"
+        )
+
+    expected_set = set(expected)
+    matcher_markers = (
+        "rest/system/startup",
+        "football-portal/diff2/batch",
+        "mobile-playpage/playpage/tabs/v2",
+    )
+    for line in lines:
+        value = line.strip()
+        normalized = re.sub(r"\\+/", "/", value)
+        if any(marker in normalized for marker in matcher_markers) and (
+            "response.json." in value and value not in expected_set
+        ):
+            raise ValueError(
+                "Same-matcher response JSON delete changed; refusing unreviewed consolidation"
+            )
+
+    output = [replacements.get(line.strip(), line) for line in lines]
+    return output, len(expected)
+
+
 # Ximalaya homepage response used two separate JSON transforms on the same URL.
 # Keep the deletion first, then make the optional entrance filtering failure-safe.
 XIMALAYA_HOME_DELETE_REWRITE = r"""response if ${url} ~= /^https:\/\/(mobile|mobilehera|mobwsa)\.ximalaya\.com\/mobile-user\/v\d\/homePage\// then response.json.delete("data.freeListenV2")"""
@@ -3514,6 +3563,7 @@ def apply(text: str) -> str:
                 rewrite_lines, _ = merge_didi_fast_homepage_json_deletes(rewrite_lines)
                 rewrite_lines, _ = remove_didi_homepage_rejects_shadowing_field_cleaners(rewrite_lines)
                 rewrite_lines, _ = consolidate_ximalaya_homepage_json_rewrites(rewrite_lines)
+                rewrite_lines, _ = batch_same_response_json_deletes(rewrite_lines)
                 rewrite_lines, _ = merge_adjacent_response_json_rewrites(rewrite_lines)
                 rewrite_lines, _ = consolidate_starplucker_config_jq(rewrite_lines)
                 rewrite_lines, _ = remove_redundant_zhihu_request_rules(rewrite_lines)
@@ -3543,6 +3593,7 @@ def apply(text: str) -> str:
         rewrite_lines, _ = merge_didi_fast_homepage_json_deletes(rewrite_lines)
         rewrite_lines, _ = remove_didi_homepage_rejects_shadowing_field_cleaners(rewrite_lines)
         rewrite_lines, _ = consolidate_ximalaya_homepage_json_rewrites(rewrite_lines)
+        rewrite_lines, _ = batch_same_response_json_deletes(rewrite_lines)
         rewrite_lines, _ = merge_adjacent_response_json_rewrites(rewrite_lines)
         rewrite_lines, _ = consolidate_starplucker_config_jq(rewrite_lines)
         rewrite_lines, _ = remove_redundant_zhihu_request_rules(rewrite_lines)
