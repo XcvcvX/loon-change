@@ -1505,7 +1505,7 @@ def narrow_gamersky_statistic_ad_host(rewrite_lines, source):
         if (not line.startswith("request if ${url} ~= /")
                 or action_key(line) != ('REJECT', 'reject_dict', 'reject_dict(200)')):
             raise RuntimeError(
-                source + ' 游民星空 statisticAd 广告规则动作或语法已变化，拒绝自动改写：' + line
+                source + ' 游民星空 statisticAd 广告规则范围或动作已变化，拒绝自动改写：' + line
             )
         if normalized == legacy_matcher and has_no_flag:
             replacement = narrowed
