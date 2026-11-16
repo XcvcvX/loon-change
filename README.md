@@ -580,6 +580,14 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 新增测试覆盖精确去重、无关小程序触发器保留、触发器漂移、缺失、重复及幂等性。
 
 
+## 第八阶段第二十八批：拼多多开屏与信息流重复处理收敛
+
+- 开屏接口 `api.(pinduoduo|yangkeduo).com/api/cappuccino/splash` 在合并产物中出现四种重复匹配/动作：两条 request reject(404)、一条 reject-200、一条 reject-dict。最早生效的规则已是 request reject(404)；保留该行为，统一为大小写不敏感的单一 matcher，避免同一开屏请求反复命中重复规则。
+- 信息流广告资源侧，`video-dsp.pddpic.com/market-dsp-video/`、`t-dsp.pinduoduo.com/dspcb/i/mrk_union` 和 `images.pinduoduo.com/(mrk|marketing_api)/` 已各有更宽的同动作规则；移除四条仅 HTTPS 的重复子集规则，保留原有更宽 matcher、动作及其他 t-dsp 规则。
+- `api.pinduoduo.com/api/oak/integration/render` 的 R-Store 响应脚本与原生 JSON Rewrite 删除完全相同的三个字段。保留原生 JSON Rewrite，移除重复脚本触发器，减少一次脚本启动、JSON 解析和序列化。
+- 不拦截首页商品/推荐主接口，不修改 HTTPDNS、MITM、扫码取件、个人中心、搜索和交易接口；不改变其余信息流接口行为。
+- 覆盖器对已审计规则做精确匹配；出现未知开屏 matcher、重复行或缺少覆盖规则时 fail-closed。oak 脚本仅在原生字段清理规则仍存在时才允许移除。新增幂等、漂移、缺失及重复回归测试。
+
 ## 第八阶段第二十七批：拼多多首页重复响应脚本合并
 
 - 拼多多 `api/alexa/homepage/hub` 同时挂载 R-Store 的 `pdd.js` 与 ishowshu 的 `pdd.js`，且原生 JSON Rewrite 也处理相同首页字段，导致同一响应被多次解析和序列化。
