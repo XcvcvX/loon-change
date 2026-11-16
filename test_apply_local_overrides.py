@@ -541,5 +541,24 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
             apply(fixture)
 
 
+
+    def test_taobao_deduplication_accepts_single_backslash_generated_plugin_escapes(self):
+        from apply_local_overrides import (
+            TAOBAO_CANONICAL_SCRIPT_TRIGGERS, TAOBAO_REDUNDANT_SCRIPT_TRIGGERS,
+        )
+        single_escape = lambda trigger: trigger.replace("\\\\\\\\", "\\\\")
+        triggers = tuple(single_escape(item) for item in (
+            *TAOBAO_CANONICAL_SCRIPT_TRIGGERS, *TAOBAO_REDUNDANT_SCRIPT_TRIGGERS,
+        ))
+        fixture = BASE.replace("[Script]", "[Script]\n" + "\n".join(triggers))
+        result = apply(fixture)
+        script = result.split("[Script]", 1)[1].split("[MITM]", 1)[0]
+        for trigger in triggers[:len(TAOBAO_CANONICAL_SCRIPT_TRIGGERS)]:
+            self.assertIn(trigger, script)
+        for trigger in triggers[len(TAOBAO_CANONICAL_SCRIPT_TRIGGERS):]:
+            self.assertNotIn(trigger, script)
+        self.assertEqual(apply(result), result)
+
+
 if __name__ == "__main__":
     unittest.main()
