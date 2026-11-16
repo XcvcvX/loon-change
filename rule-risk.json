@@ -12,14 +12,14 @@
     },
     "script": {
       "action_changed": 0,
-      "added": 8,
-      "removed": 17
+      "added": 2,
+      "removed": 2
     }
   },
   "events": [
     {
       "after": {
-        "line": "http-response ^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.idle\\.user\\.page\\.my\\.adapter\\/ script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js,tag=GOOFISH-PROFILE,requires-body=true",
+        "line": "http-response ^https?:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=(?:deliverLayer|getTabHomeInfo|myOrderInfo|orderTrackBusiness|personinfoBusiness|start|welcomeHome|readCustomSurfaceList) script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/jingdong/jd.js,tag=JD-CONSOLIDATED,requires-body=true",
         "section": "script",
         "sources": [
           "local_overrides"
@@ -43,151 +43,7 @@
     },
     {
       "after": {
-        "line": "http-response ^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.local\\.flow\\.plat\\.section script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js,tag=GOOFISH-LOCAL-FLOW,requires-body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "http-response ^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.local\\.nearby\\.itemdetail\\.enter\\/ script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js,tag=GOOFISH-NEARBY,requires-body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "http-response ^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlehome\\.home\\.circle\\.list\\/ script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js,tag=GOOFISH-CIRCLE,requires-body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "http-response ^https:\\/\\/g-acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlemtopsearch\\.search\\/ script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js,tag=GOOFISH-SEARCH,requires-body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "http-response ^https?:\\/\\/(g-)?acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.home\\.whale\\.modulet\\/ script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js,tag=GOOFISH-WHALE,requires-body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "http-response ^https?:\\/\\/(g-)?acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.local\\.home\\/ script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js,tag=GOOFISH-LOCAL-HOME,requires-body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "http-response ^https?:\\/\\/(g-)?acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlehome\\.home\\.nextfresh\\/ script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js,tag=GOOFISH-NEXTFRESH,requires-body=true",
+        "line": "response if ${url} ~= /^https:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=welcomeHome/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/jingdong/jd-welcome.js\") with enable=jkds_enable, tag=\"京东首页额外清理\", timeout=60, requires_body=true",
         "section": "script",
         "sources": [
           "local_overrides"
@@ -212,175 +68,7 @@
     {
       "after": null,
       "before": {
-        "line": "http-response ^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.idle\\.user\\.page\\.my\\.adapter\\/ script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 个人主页",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "aoomee": "scored"
-      },
-      "source_scores": {
-        "aoomee": 100
-      },
-      "sources": [
-        "aoomee"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "http-response ^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.local\\.flow\\.plat\\.section script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 同城页横幅广告",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "aoomee": "scored"
-      },
-      "source_scores": {
-        "aoomee": 100
-      },
-      "sources": [
-        "aoomee"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "http-response ^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.local\\.home\\/ script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 定位地区页面的信息流广告",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "aoomee": "scored"
-      },
-      "source_scores": {
-        "aoomee": 100
-      },
-      "sources": [
-        "aoomee"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "http-response ^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.local\\.nearby\\.itemdetail\\.enter\\/ script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 商品详情页周边推荐",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "aoomee": "scored"
-      },
-      "source_scores": {
-        "aoomee": 100
-      },
-      "sources": [
-        "aoomee"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "http-response ^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlehome\\.home\\.circle\\.list\\/ script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 首页顶部频道菜单",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "aoomee": "scored"
-      },
-      "source_scores": {
-        "aoomee": 100
-      },
-      "sources": [
-        "aoomee"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "http-response ^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlehome\\.home\\.nextfresh\\/ script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 商品信息流广告",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "aoomee": "scored"
-      },
-      "source_scores": {
-        "aoomee": 100
-      },
-      "sources": [
-        "aoomee"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "http-response ^https:\\/\\/g-acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlemtopsearch\\.search\\/ script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 搜索结果信息流广告",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "aoomee": "scored"
-      },
-      "source_scores": {
-        "aoomee": 100
-      },
-      "sources": [
-        "aoomee"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "http-response ^https?:\\/\\/(g-)?acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.home\\.whale\\.modulet\\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/goofish.js,tag=GOOFISH,requires-body=true",
+        "line": "http-response ^https?:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=(?:deliverLayer|getTabHomeInfo|myOrderInfo|orderTrackBusiness|personinfoBusiness|start|welcomeHome|readCustomSurfaceList) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/jd.js,tag=JD,requires-body=true",
         "section": "script",
         "sources": [
           "base"
@@ -404,199 +92,7 @@
     {
       "after": null,
       "before": {
-        "line": "http-response ^https?:\\/\\/(g-)?acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.local\\.home\\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/goofish.js,tag=GOOFISH-3,requires-body=true",
-        "section": "script",
-        "sources": [
-          "base"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "base": "unavailable"
-      },
-      "source_scores": {
-        "base": null
-      },
-      "sources": [
-        "base"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "http-response ^https?:\\/\\/(g-)?acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlehome\\.home\\.nextfresh\\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/goofish.js,tag=GOOFISH-2,requires-body=true",
-        "section": "script",
-        "sources": [
-          "base"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "base": "unavailable"
-      },
-      "source_scores": {
-        "base": null
-      },
-      "sources": [
-        "base"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/(g-)?acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.local\\.home\\//i then script(\"https://raw.githubusercontent.com/ishowshu/qx/refs/heads/main/script/goofish.js\") with tag=\"定位地区页面的信息流广告\", requires_body=true",
-        "section": "script",
-        "sources": [
-          "block"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "block": "unavailable"
-      },
-      "source_scores": {
-        "block": null
-      },
-      "sources": [
-        "block"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/(g-)?acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlehome\\.home\\.nextfresh\\//i then script(\"https://raw.githubusercontent.com/ishowshu/qx/refs/heads/main/script/goofish.js\") with tag=\"商品信息流广告\", requires_body=true",
-        "section": "script",
-        "sources": [
-          "block"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "block": "unavailable"
-      },
-      "source_scores": {
-        "block": null
-      },
-      "sources": [
-        "block"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.idle\\.user\\.page\\.my\\.adapter\\//i then script(\"https://raw.githubusercontent.com/ishowshu/qx/refs/heads/main/script/goofish.js\") with tag=\"个人主页\", requires_body=true",
-        "section": "script",
-        "sources": [
-          "block"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "block": "unavailable"
-      },
-      "source_scores": {
-        "block": null
-      },
-      "sources": [
-        "block"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.local\\.flow\\.plat\\.section/i then script(\"https://raw.githubusercontent.com/ishowshu/qx/refs/heads/main/script/goofish.js\") with tag=\"同城页横幅广告\", requires_body=true",
-        "section": "script",
-        "sources": [
-          "block"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "block": "unavailable"
-      },
-      "source_scores": {
-        "block": null
-      },
-      "sources": [
-        "block"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.local\\.nearby\\.itemdetail\\.enter\\/1\\.0/i then script(\"https://raw.githubusercontent.com/ishowshu/qx/refs/heads/main/script/goofish.js\") with tag=\"商品详情页周边推荐\", requires_body=true",
-        "section": "script",
-        "sources": [
-          "block"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "block": "unavailable"
-      },
-      "source_scores": {
-        "block": null
-      },
-      "sources": [
-        "block"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlehome\\.home\\.circle\\.list\\/1\\.0/i then script(\"https://raw.githubusercontent.com/ishowshu/qx/refs/heads/main/script/goofish.js\") with tag=\"首页顶部频道菜单\", requires_body=true",
-        "section": "script",
-        "sources": [
-          "block"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "block": "unavailable"
-      },
-      "source_scores": {
-        "block": null
-      },
-      "sources": [
-        "block"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/g-acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlemtopsearch\\.search\\//i then script(\"https://raw.githubusercontent.com/ishowshu/qx/refs/heads/main/script/goofish.js\") with tag=\"搜索结果信息流广告\", requires_body=true",
+        "line": "response if ${url} ~= /^https:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=(deliverLayer|getTabHomeInfo|myOrderInfo|orderTrackBusiness|personinfoBusiness|start|welcomeHome)/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/jingdong/jingdong.js\") with enable=jkds_enable, tag=\"京东\", timeout=60, requires_body=true",
         "section": "script",
         "sources": [
           "block"
@@ -620,11 +116,11 @@
   ],
   "overall_risk": "high",
   "risk_counts": {
-    "high": 17,
+    "high": 2,
     "low": 0,
-    "medium": 8
+    "medium": 2
   },
-  "run_id": "43814773104",
+  "run_id": "43817414946",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -661,14 +157,14 @@
     "base": {
       "action_changed": 0,
       "added": 2,
-      "removed": 37,
-      "snapshots_seen": 16
+      "removed": 38,
+      "snapshots_seen": 17
     },
     "block": {
       "action_changed": 0,
       "added": 0,
-      "removed": 42,
-      "snapshots_seen": 7
+      "removed": 43,
+      "snapshots_seen": 8
     },
     "filter": {
       "action_changed": 0,
@@ -678,9 +174,9 @@
     },
     "local_overrides": {
       "action_changed": 0,
-      "added": 31,
+      "added": 33,
       "removed": 2,
-      "snapshots_seen": 11
+      "snapshots_seen": 12
     },
     "myblockads": {
       "action_changed": 0,

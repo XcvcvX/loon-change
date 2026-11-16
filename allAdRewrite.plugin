@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、RuCu6 MyBlockAds、zirawell AlipayAdBlock、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / RuCu6 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-16 06:09 UTC
+#!merged-at=2026-11-16 06:32 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+RuCu6-MyBlockAds+zirawell-AlipayAdBlock+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -6979,7 +6979,7 @@ http-response ^https?:\/\/mapi\.mafengwo\.cn\/user\/profile\/get_(?:list|profile
 http-response ^https?:\/\/((h5|api)\.xiuxiu|api-sub|api\.posters)\.meitu\.com\/.+\/(vip|user|h\d|center|home) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/Unlock/meitu.js,tag=MEITU,requires-body=true
 http-response ^https?:\/\/\w+\.juneyaoair\.com(\/server)?\/data\/index\/getPictureList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/juneyaoair.js,tag=JUNEYAOAIR,requires-body=true
 http-response ^https?:\/\/api(dd)?\.btyjscl\.com\/api\/v\d\/(?:ads|startup|users|movies) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/javdb.js,tag=JAVDB,requires-body=true
-http-response ^https?:\/\/api\.m\.jd\.com\/client\.action\?functionId=(?:deliverLayer|getTabHomeInfo|myOrderInfo|orderTrackBusiness|personinfoBusiness|start|welcomeHome|readCustomSurfaceList) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/jd.js,tag=JD,requires-body=true
+http-response ^https?:\/\/api\.m\.jd\.com\/client\.action\?functionId=(?:deliverLayer|getTabHomeInfo|myOrderInfo|orderTrackBusiness|personinfoBusiness|start|welcomeHome|readCustomSurfaceList) script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/jingdong/jd.js,tag=JD-CONSOLIDATED,requires-body=true
 http-response ^https?:\/\/yunbusiness\.ccb\.com\/(?:basic_service|clp_service)\/txCtrl\?txcode=A3341(?:SB16|C147|MB22|A009|A120|AB03|AB04|A068|A095|AB08) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ccblife.js,tag=CCBLIFE,requires-body=true
 http-response ^https?:\/\/mapi\.chaogejiaoyu\.com\/api\/ad\/getPageAdList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/chaoge.js,tag=CHAOGE,requires-body=true
 http-response ^https?:\/\/mapi\.chaogejiaoyu\.com\/api\/outline\/getAppBanner script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/chaoge.js,tag=CHAOGE-2,requires-body=true
@@ -7207,7 +7207,7 @@ response if ${url} ~= /^https:\/\/saas-ad\.cloudpnr\.com\/huifuad-base-api\/api\
 response if ${url} ~= /^https?:\/\/napi\.ithome\.com\/api\/(news\/index|topmenu\/getfeeds)/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/ithome/ithome.js") with enable=itzj_enable, tag="ithome", timeout=60, requires_body=true
 response if ${url} ~= /^https?:\/\/yunbusiness\.ccb\.com\/basic_service\/txCtrl\?txcode=A3341AB04/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/ccbLife/ccbLifeAds.js") with enable=jhsh_enable, tag="建行生活", timeout=60, requires_body=true
 response if ${url} ~= /^https?:\/\/g\.alicdn\.com\/.*o2o-ad/i then script("https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/alicdn.js") with enable=jhsh_enable, tag="建行生活内置饿了么", timeout=60, requires_body=true
-response if ${url} ~= /^https:\/\/api\.m\.jd\.com\/client\.action\?functionId=(deliverLayer|getTabHomeInfo|myOrderInfo|orderTrackBusiness|personinfoBusiness|start|welcomeHome)/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/jingdong/jingdong.js") with enable=jkds_enable, tag="京东", timeout=60, requires_body=true
+response if ${url} ~= /^https:\/\/api\.m\.jd\.com\/client\.action\?functionId=welcomeHome/i then script("https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/jingdong/jd-welcome.js") with enable=jkds_enable, tag="京东首页额外清理", timeout=60, requires_body=true
 response if ${url} ~= /^https?:\/\/api\.m\.jd\.com\/api\?functionId=delivery_show/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/jingxiAd.js") with enable=jkxi_enable, tag="京喜", timeout=60, requires_body=true
 response if ${url} ~= /^https?:\/\/api\.coolapk\.com\/v6\/feed\/(detail|replyList)\?/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/coolapk.js") with enable=kuan_enable, tag="酷安", timeout=60, requires_body=true
 response if ${url} ~= /^https?:\/\/api\.coolapk\.com\/v6\/main\/(dataList|indexV8|init)/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/coolapk.js") with enable=kuan_enable, tag="酷安", timeout=60, requires_body=true

@@ -42,12 +42,12 @@
     },
     "script": {
       "action_changed": 0,
-      "added": 8,
+      "added": 2,
       "current_entries": 553,
-      "net_shrink_percent": 1.601,
-      "previous_entries": 562,
-      "removed": 17,
-      "removed_percent": 3.025
+      "net_shrink_percent": 0.0,
+      "previous_entries": 553,
+      "removed": 2,
+      "removed_percent": 0.362
     }
   },
   "source_scores": {
