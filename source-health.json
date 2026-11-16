@@ -12,7 +12,7 @@
   },
   "provenance_coverage": {
     "coverage_percent": 100.0,
-    "entries": 7264,
+    "entries": 7128,
     "missing_source": 0
   },
   "safety_notes": [
@@ -24,30 +24,30 @@
   "section_changes": {
     "rewrite": {
       "action_changed": 0,
-      "added": 0,
-      "current_entries": 3254,
-      "net_shrink_percent": 0.0,
+      "added": 5,
+      "current_entries": 3226,
+      "net_shrink_percent": 0.86,
       "previous_entries": 3254,
-      "removed": 0,
-      "removed_percent": 0.0
+      "removed": 33,
+      "removed_percent": 1.014
     },
     "rule": {
       "action_changed": 0,
-      "added": 0,
-      "current_entries": 3468,
-      "net_shrink_percent": 0.029,
-      "previous_entries": 3469,
-      "removed": 1,
-      "removed_percent": 0.029
+      "added": 1,
+      "current_entries": 3452,
+      "net_shrink_percent": 0.461,
+      "previous_entries": 3468,
+      "removed": 17,
+      "removed_percent": 0.49
     },
     "script": {
       "action_changed": 0,
-      "added": 0,
-      "current_entries": 542,
-      "net_shrink_percent": 0.0,
+      "added": 19,
+      "current_entries": 450,
+      "net_shrink_percent": 16.974,
       "previous_entries": 542,
-      "removed": 0,
-      "removed_percent": 0.0
+      "removed": 111,
+      "removed_percent": 20.48
     }
   },
   "source_scores": {
