@@ -57,7 +57,7 @@ class AmapLocalOverrideTests(unittest.TestCase):
 
     def test_fails_closed_when_route_response_script_drifts(self):
         _marker, old_rule, _native_rule = NATIVE_RESPONSE_SCRIPT_RULES[0]
-        fixture = BASE.replace(old_rule, old_rule.replace("beforeNavi", "unreviewedRoute"))
+        fixture = BASE.replace(old_rule, old_rule.replace("requires_body=true", "requires_body=false"))
         with self.assertRaisesRegex(ValueError, "route response script changed"):
             apply(fixture)
 
