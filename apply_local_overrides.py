@@ -68,7 +68,7 @@ def remove_duplicate_peopleapp_home_ad_rules(lines):
     removed = 0
     for line in lines:
         value = line.strip()
-        if "peopleapp.com" in value and "/HomeApi/" in value and ("adv" in value or "getAdvertImage" in value):
+        if "peopleapp" in value and "/HomeApi/" in value and ("adv" in value or "getAdvertImage" in value):
             if value not in counts:
                 raise ValueError("PeopleApp homepage ad rule inventory changed; refusing cleanup")
             counts[value] += 1
@@ -1791,7 +1791,7 @@ def apply(text: str) -> str:
                 rewrite_lines, _ = consolidate_zhihu_multi_action_rewrites(rewrite_lines)
                 rewrite_lines, _ = remove_subsumed_soul_teenager_rule(rewrite_lines)
                 rewrite_lines, _ = remove_duplicate_peopleapp_home_ad_rules(rewrite_lines)
-                rewrite_lines, _ = remove_shadowed_peopleapp_rules(rewrite_lines)
+        rewrite_lines, _ = remove_shadowed_peopleapp_rules(rewrite_lines)
                 rewrite_lines, _ = remove_shadowed_terminal_block_rules(rewrite_lines)
                 rewrite_lines, _ = remove_redundant_taobao_rewrite_rules(rewrite_lines)
                 rewrite_lines, _ = remove_redundant_xianyu_rewrite_rules(rewrite_lines)
