@@ -2773,14 +2773,21 @@ def remove_identical_script_response_duplicates(lines):
 
         normalized = line.replace("\\", "")
         has_script_action = "http-response " in line or "response if " in line
+        soul_endpoint = (
+            ("api-a.soulapp.cn" in normalized and ("/post/gift/list" in normalized or "/official/scene/module" in normalized))
+            or ("api-chat.soulapp.cn" in normalized and "/chat/limitInfo" in normalized)
+            or ("api-user.soulapp.cn" in normalized and ("/furion/position/content" in normalized or "/planet/config" in normalized))
+            or ("api-pay.soulapp.cn" in normalized and ("/vip/meet/userInfo" in normalized or "/privilege/supervip/status" in normalized))
+            or ("post.soulapp.cn" in normalized and ("/hot/soul/rank" in normalized or "/post/homepage/guide/card" in normalized or "/post/recSquare/subTabs" in normalized))
+            or ("gateway-mobile-gray.soulapp.cn" in normalized and "/mobile/app/version/queryIos" in normalized)
+            or ("api-account.soulapp.cn" in normalized and "/teenager/config" in normalized)
+            or ("chat-live.soulapp.cn" in normalized and "/chatroom/chatClassifyRoomList" in normalized)
+            or ("47.110.187.87" in normalized and "/winterfell/v2/getIpByDomain" in normalized)
+        )
         is_target = (
             section == "Script"
             and has_script_action
-            and (
-                "api.rr.tv" in normalized
-                or "soulapp" in normalized
-                or ("reddit.com" in normalized and "gql" in normalized)
-            )
+            and ("api.rr.tv" in normalized or soul_endpoint or ("reddit.com" in normalized and "gql" in normalized))
         )
         if not is_target:
             output.append(line)
