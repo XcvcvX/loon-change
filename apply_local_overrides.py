@@ -1468,8 +1468,17 @@ def remove_jd_core_service_domain_blocks(lines):
             if len(parts) >= 2 and parts[0].upper() in ("DOMAIN", "DOMAIN-SUFFIX", "DOMAIN-KEYWORD"):
                 host = parts[1].lower()
                 if host in JD_CORE_SERVICE_BLOCKS:
+                    expected = JD_CORE_SERVICE_BLOCKS[host]
+                    expected_matcher = expected.split(",", 1)[0]
+                    # A DOMAIN-KEYWORD rule is a distinct upstream rule, not the
+                    # exact host-wide DOMAIN/DOMAIN-SUFFIX overblock targeted here.
+                    # Keep it intact; a missing canonical matcher still fails the
+                    # complete-inventory check below.
+                    if parts[0].upper() != expected_matcher:
+                        output.append(line)
+                        continue
                     saw_target = True
-                    if value != JD_CORE_SERVICE_BLOCKS[host]:
+                    if value != expected:
                         raise ValueError("JD core service domain rule changed; refusing unreviewed removal: " + value)
                     counts[host] += 1
                     if counts[host] > 1:
