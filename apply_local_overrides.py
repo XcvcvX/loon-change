@@ -352,7 +352,7 @@ def scope_pdd_image_cdn_ad_rules(lines):
                     raise ValueError("duplicate PDD images CDN broad domain block")
                 continue
 
-        if section == "Rewrite" and PDD_IMAGE_CDN_HOST in value:
+        if section == "Rewrite" and PDD_IMAGE_CDN_HOST in value.replace("\\", ""):
             saw_target = True
             if value in path_counts:
                 path_counts[value] += 1
