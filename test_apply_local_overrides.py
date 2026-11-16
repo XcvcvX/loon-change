@@ -1152,7 +1152,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         with self.assertRaisesRegex(ValueError, "Jingdong legacy trigger inventory changed"):
             apply(duplicate)
         from apply_local_overrides import JD_CANONICAL_TRIGGER
-        mixed = self.base + "\n" + JD_CANONICAL_TRIGGER
+        mixed = self.base.replace(self.fmz, self.fmz + "\n" + JD_CANONICAL_TRIGGER)
         with self.assertRaisesRegex(ValueError, "Jingdong script trigger inventory is mixed"):
             apply(mixed)
 
