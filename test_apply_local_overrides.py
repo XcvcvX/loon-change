@@ -3414,7 +3414,7 @@ class BilibiliProtobufDuplicateTriggerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "R-Store protobuf trigger variant changed"):
             narrow_duplicate_bilibili_protobuf_triggers(["[Script]", fmz_trigger, drifted, "[MITM]"])
 
-        bad_fmz = fmz_trigger.replace("dynamic.v2.Dynamic", "dynamic.v3.Dynamic")
+        bad_fmz = fmz_trigger.replace(r"dynamic\.v2", r"dynamic\.v3")
         with self.assertRaisesRegex(ValueError, "Sparkle protobuf endpoint coverage changed"):
             narrow_duplicate_bilibili_protobuf_triggers(["[Script]", bad_fmz, original, "[MITM]"])
 
