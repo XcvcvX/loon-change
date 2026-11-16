@@ -2602,10 +2602,23 @@ class WeiboNonAdResponseTriggerTests(unittest.TestCase):
 
         duplicated = self._fixture()
         index = next(i for i, line in enumerate(duplicated) if "friendships" in line)
-        duplicated.append(duplicated[index])
+        rewrite_index = duplicated.index("[Rewrite]")
+        duplicated.insert(rewrite_index, duplicated[index])
         result, changed = remove_weibo_non_ad_response_triggers(duplicated)
         self.assertEqual(changed, 0)
         self.assertEqual(result, duplicated)
+
+
+
+class StarPluckerIdempotenceTests(unittest.TestCase):
+    def test_already_consolidated_starplucker_rule_is_a_safe_noop(self):
+        from apply_local_overrides import (
+            STARPLUCKER_SINGLE_JQ_RULE, consolidate_starplucker_config_jq,
+        )
+        fixture = ["[Rewrite]", STARPLUCKER_SINGLE_JQ_RULE, "[MITM]", "hostname = starplucker.cyapi.cn"]
+        result, changed = consolidate_starplucker_config_jq(fixture)
+        self.assertEqual(changed, 0)
+        self.assertEqual(result, fixture)
 
 
 if __name__ == "__main__":
