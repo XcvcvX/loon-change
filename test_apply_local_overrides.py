@@ -2345,6 +2345,59 @@ class CnftpDuplicateScriptTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "inventory changed"):
             remove_duplicate_cnftp_scripts(["[Script]", *self.remove, *self.keep_source[1:], unknown])
 
+
+    def test_consolidates_four_same_action_iqiyi_home_matchers_without_scope_expansion(self):
+        import re
+        from apply_local_overrides import (
+            CNFTP_IQIYI_HOME_COMBINED_TRIGGER,
+            CNFTP_IQIYI_HOME_SOURCE_TRIGGERS,
+            consolidate_cnftp_iqiyi_home_triggers,
+        )
+        fixture = ["[Script]", *self.keep, self.unrelated, "[MITM]"]
+        result, removed = consolidate_cnftp_iqiyi_home_triggers(fixture)
+        self.assertEqual(removed, 3)
+        self.assertEqual(result.count(CNFTP_IQIYI_HOME_COMBINED_TRIGGER), 1)
+        for source in CNFTP_IQIYI_HOME_SOURCE_TRIGGERS:
+            self.assertNotIn(source, result)
+        self.assertIn(self.unrelated, result)
+        pattern = CNFTP_IQIYI_HOME_COMBINED_TRIGGER.split("~= /", 1)[1].split("/i then", 1)[0]
+        positives = [
+            "https://1.2.3.4/3f1/cards.iqiyi.com/views_home/3.0/qy_home?x=1",
+            "https://1.2.3.4/3f1/cards.iqiyi.com/waterfall/3.0/feed?x=1",
+            "https://access.if.iqiyi.com/3f1/cards.iqiyi.com/views_category/3.0/category_home?x=1",
+            "https://access.if.iqiyi.com/3f1/cards.iqiyi.com/views_home/3.0/qy_home?x=1",
+            "https://cards.iqiyi.com/views_category/3.0/category_home?x=1",
+            "https://cards.iqiyi.com/views_category/3.0/categorylib_content?x=1",
+            "https://cards.iqiyi.com/views_category/3.0/film_hybrid?x=1",
+            "https://cards.iqiyi.com/views_home/3.0/qy_home?x=1",
+            "https://cards.iqiyi.com/waterfall/3.0/feed?x=1",
+        ]
+        negatives = [
+            "https://cards.iqiyi.com/views_category/3.0/unknown?x=1",
+            "https://evilcards.iqiyi.com/views_home/3.0/qy_home?x=1",
+            "https://cards.iqiyi.com/views_plt/3.0/player_tabs_v2?x=1",
+        ]
+        for url in positives:
+            self.assertIsNotNone(re.search(pattern, url, re.I), url)
+        for url in negatives:
+            self.assertIsNone(re.search(pattern, url, re.I), url)
+        again, second_removed = consolidate_cnftp_iqiyi_home_triggers(result)
+        self.assertEqual(second_removed, 0)
+        self.assertEqual(again, result)
+
+    def test_fails_closed_on_missing_duplicate_or_drifted_iqiyi_home_matcher(self):
+        from apply_local_overrides import consolidate_cnftp_iqiyi_home_triggers
+        fixture = ["[Script]", *self.keep, "[MITM]"]
+        missing = [line for line in fixture if line != self.keep[0]]
+        with self.assertRaisesRegex(ValueError, "inventory incomplete"):
+            consolidate_cnftp_iqiyi_home_triggers(missing)
+        duplicate = ["[Script]", *self.keep, self.keep[0], "[MITM]"]
+        with self.assertRaisesRegex(ValueError, "duplicate iQIYI"):
+            consolidate_cnftp_iqiyi_home_triggers(duplicate)
+        unknown = self.keep[0].replace("qy_home", "qy_home_v2")
+        with self.assertRaisesRegex(ValueError, "inventory incomplete"):
+            consolidate_cnftp_iqiyi_home_triggers(["[Script]", *self.keep[1:], unknown, "[MITM]"])
+
     def test_checked_in_plugin_snapshot_has_only_the_selected_handlers(self):
         from pathlib import Path
         from apply_local_overrides import CNFTP_DUPLICATE_KEEP_TRIGGERS, CNFTP_DUPLICATE_REMOVE_TRIGGERS
