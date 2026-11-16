@@ -256,7 +256,7 @@ def check_clones(thelong, aoomee, zmjde, qxapp, previous_report=None, amap=None)
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--thelong")
-    parser.add_argument("--aoomee")
+    parser.add_argument("--romeo", "--aoomee", dest="aoomee")
     parser.add_argument("--zmjde")
     parser.add_argument("--qxapp")
     parser.add_argument("--amap", help="RuCu6 高德地图独立 Loon 插件路径")
