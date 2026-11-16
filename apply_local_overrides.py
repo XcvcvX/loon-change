@@ -525,6 +525,8 @@ DIDIADS_NOOP_SCRIPT_RULES = (
 def apply_didi_script_and_homepage_cleanup(lines):
     """Remove dead/overlapping Didi scripts and consolidate homepage/profile field cleaners."""
     output = list(lines)
+    if "[Argument]" not in output or "[Rule]" not in output:
+        return output, 0
     norm = lambda value: re.sub(r"\\+", "", value.strip()).lower()
 
     core_current = [i for i, line in enumerate(output) if line.strip() == DIDI_CORE_NATIVE_RULE_CURRENT]
