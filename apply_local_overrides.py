@@ -2810,11 +2810,13 @@ def remove_duplicate_cnftp_scripts(lines):
     }
     remove_set = set(CNFTP_DUPLICATE_REMOVE_TRIGGERS)
     legacy_remove_mode = any(item in lines for item in remove_set)
-    split_home_source_mode = any(
-        normalize_cnftp_trigger_line(line.strip()) in home_source_counts
+    current_source_only_mode = any(
+        normalize_cnftp_trigger_line(line.strip()) in source_counts
+        and normalize_cnftp_trigger_line(line.strip()) not in output_counts
+        and normalize_cnftp_trigger_line(line.strip()) not in home_source_counts
         for line in lines
     )
-    source_mode = legacy_remove_mode or split_home_source_mode
+    source_mode = legacy_remove_mode or current_source_only_mode
     output, section, target_seen, removed = [], "", False, 0
     combined_home_count = 0
 
