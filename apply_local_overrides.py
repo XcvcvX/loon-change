@@ -4151,6 +4151,105 @@ def migrate_weibo_simple_endpoints(lines):
     return result, removed_count
 
 
+BILIBILI_FMZ_PROTOBUF_REQUIRED_MARKERS = (
+    "dynamic.v2.Dynamic/DynAll",
+    "view(unite)?",
+    "community.service.dm.v1.DM/DmView",
+    "polymer.app.search.v1.Search/SearchAll",
+)
+BILIBILI_PROTOBUF_DUPLICATE_PAIRS = (
+    (
+        "DynAll",
+        r"http-response ^https?:\/\/(?:app\.bilibili\.com|grpc\.biliapi\.net)\/bilibili\.app\.dynamic\.v\d\.Dynamic\/DynAll script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN,requires-body=true,binary-body-mode=true",
+        r"http-response ^https?:\/\/(?:app\.bilibili\.com|grpc\.biliapi\.net)\/bilibili\.app\.dynamic\.v[13-9]\.Dynamic\/DynAll script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN,requires-body=true,binary-body-mode=true",
+    ),
+    (
+        "viewunite",
+        r"http-response ^https?:\/\/(?:app\.bilibili\.com|grpc\.biliapi\.net)\/bilibili\.app\.(?:view|viewunite)\.v\d\.View\/View script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-3,requires-body=true,binary-body-mode=true",
+        r"http-response ^https?:\/\/(?:app\.bilibili\.com|grpc\.biliapi\.net)\/bilibili\.app\.(?:view|viewunite)\.v[2-9]\.View\/View script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-3,requires-body=true,binary-body-mode=true",
+    ),
+    (
+        "DmView",
+        r"http-response ^https?:\/\/(?:app\.bilibili\.com|grpc\.biliapi\.net)\/bilibili\.community\.service\.dm\.v\d\.DM\/DmView script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-4,requires-body=true,binary-body-mode=true",
+        r"http-response ^https?:\/\/(?:app\.bilibili\.com|grpc\.biliapi\.net)\/bilibili\.community\.service\.dm\.v[2-9]\.DM\/DmView script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-4,requires-body=true,binary-body-mode=true",
+    ),
+    (
+        "SearchAll",
+        r"http-response ^https?:\/\/(?:app\.bilibili\.com|grpc\.biliapi\.net)\/bilibili\.polymer\.app\.search\.v\d\.Search\/SearchAll script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-6,requires-body=true,binary-body-mode=true",
+        r"http-response ^https?:\/\/(?:app\.bilibili\.com|grpc\.biliapi\.net)\/bilibili\.polymer\.app\.search\.v[2-9]\.Search\/SearchAll script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-6,requires-body=true,binary-body-mode=true",
+    ),
+)
+
+
+def narrow_duplicate_bilibili_protobuf_triggers(lines):
+    """Avoid duplicate binary protobuf processing where Sparkle's v1/v2 handler already covers R-Store."""
+    output = list(lines)
+    section = ""
+    script_lines = []
+    for line in output:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+        elif section == "Script":
+            script_lines.append(stripped)
+
+    fmz_candidates = [
+        line for line in script_lines
+        if "bilibili.protobuf.response.js" in line and line.startswith("response if")
+    ]
+    fmz_present = bool(fmz_candidates)
+    if fmz_present:
+        if len(fmz_candidates) != 1:
+            raise ValueError("Bilibili Sparkle protobuf trigger inventory changed; refusing duplicate cleanup")
+        normalized_fmz = re.sub(r"\\+", "", fmz_candidates[0])
+        if not all(marker in normalized_fmz for marker in BILIBILI_FMZ_PROTOBUF_REQUIRED_MARKERS):
+            raise ValueError("Bilibili Sparkle protobuf endpoint coverage changed; refusing duplicate cleanup")
+
+    replacements = {}
+    for marker, original, narrowed in BILIBILI_PROTOBUF_DUPLICATE_PAIRS:
+        candidates = [
+            line for line in script_lines
+            if "bilibiliProtoA.js" in line and marker in re.sub(r"\\+", "", line)
+        ]
+        if not candidates:
+            continue
+        if len(candidates) != 1:
+            raise ValueError(
+                "Bilibili R-Store protobuf trigger inventory changed; refusing duplicate cleanup: "
+                + repr(candidates)
+            )
+        current = candidates[0]
+        if current == original:
+            replacements[current] = narrowed if fmz_present else original
+        elif current == narrowed:
+            replacements[current] = narrowed if fmz_present else original
+        else:
+            raise ValueError(
+                "Bilibili R-Store protobuf trigger variant changed; refusing duplicate cleanup: "
+                + current
+            )
+
+    if not replacements or all(old == new for old, new in replacements.items()):
+        return output, 0
+
+    result = []
+    section = ""
+    changed = 0
+    for line in output:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+            result.append(line)
+            continue
+        if section == "Script" and stripped in replacements:
+            result.append(replacements[stripped])
+            if replacements[stripped] != stripped:
+                changed += 1
+        else:
+            result.append(line)
+    return result, changed
+
+
 def apply(text: str) -> str:
     if "[Script]" not in text or "[MITM]" not in text or "[Rewrite]" not in text:
         raise ValueError("plugin missing [Rewrite], [Script] or [MITM] section")
@@ -4270,6 +4369,7 @@ def apply(text: str) -> str:
     lines, _ = remove_redundant_smzdm_ads_script_triggers(lines)
     lines, _ = migrate_wechat_applet_simple_endpoints(lines)
     lines, _ = migrate_weibo_simple_endpoints(lines)
+    lines, _ = narrow_duplicate_bilibili_protobuf_triggers(lines)
 
     result_lines, rewrite_lines = [], []
     section = ""
