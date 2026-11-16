@@ -183,28 +183,7 @@
       "added": [],
       "removed": [
         {
-          "line": "request if ${url} ~= /^https:\\/\\/api\\.zhihu\\.com\\/ab\\/api\\/v1\\/products\\/zhihu\\/platforms\\/ios\\/config/ then reject(404)",
-          "section": "rewrite",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "request if ${url} ~= /^https:\\/\\/api\\.zhihu\\.com\\/unlimited\\/go\\/my_card/ then reject(404)",
-          "section": "rewrite",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "request if ${url} ~= /^https:\\/\\/zhstatic\\.zhihu\\.com\\/brand-ad/ then reject(404)",
-          "section": "rewrite",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "request if ${url} ~= /^https:\\/\\/zhuanlan\\.zhihu\\.com\\/api\\/articles\\/\\d+\\/recommendation/ then reject(404)",
+          "line": "request if ${url} ~= /^https?:\\/\\/app\\.peopleapp\\.com\\/Api\\/\\d+\\/HomeApi\\/(adv|getAdvertImage)/ then reject(404)",
           "section": "rewrite",
           "sources": [
             "block"
@@ -227,7 +206,7 @@
     "rewrite": {
       "action_changed": 0,
       "added": 0,
-      "removed": 4
+      "removed": 1
     },
     "rule": {
       "action_changed": 0,
@@ -239,7 +218,7 @@
       "added": 0,
       "removed": 0
     },
-    "total_changes": 4
+    "total_changes": 1
   },
   "upstream_revision_changes": []
 }

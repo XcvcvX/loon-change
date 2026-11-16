@@ -3,7 +3,7 @@
     "rewrite": {
       "action_changed": 0,
       "added": 0,
-      "removed": 4
+      "removed": 1
     },
     "rule": {
       "action_changed": 0,
@@ -20,79 +20,7 @@
     {
       "after": null,
       "before": {
-        "line": "request if ${url} ~= /^https:\\/\\/api\\.zhihu\\.com\\/ab\\/api\\/v1\\/products\\/zhihu\\/platforms\\/ios\\/config/ then reject(404)",
-        "section": "rewrite",
-        "sources": [
-          "block"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "rewrite",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "block": "unavailable"
-      },
-      "source_scores": {
-        "block": null
-      },
-      "sources": [
-        "block"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "request if ${url} ~= /^https:\\/\\/api\\.zhihu\\.com\\/unlimited\\/go\\/my_card/ then reject(404)",
-        "section": "rewrite",
-        "sources": [
-          "block"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "rewrite",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "block": "unavailable"
-      },
-      "source_scores": {
-        "block": null
-      },
-      "sources": [
-        "block"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "request if ${url} ~= /^https:\\/\\/zhstatic\\.zhihu\\.com\\/brand-ad/ then reject(404)",
-        "section": "rewrite",
-        "sources": [
-          "block"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "rewrite",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "block": "unavailable"
-      },
-      "source_scores": {
-        "block": null
-      },
-      "sources": [
-        "block"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "request if ${url} ~= /^https:\\/\\/zhuanlan\\.zhihu\\.com\\/api\\/articles\\/\\d+\\/recommendation/ then reject(404)",
+        "line": "request if ${url} ~= /^https?:\\/\\/app\\.peopleapp\\.com\\/Api\\/\\d+\\/HomeApi\\/(adv|getAdvertImage)/ then reject(404)",
         "section": "rewrite",
         "sources": [
           "block"
@@ -116,11 +44,11 @@
   ],
   "overall_risk": "high",
   "risk_counts": {
-    "high": 4,
+    "high": 1,
     "low": 0,
     "medium": 0
   },
-  "run_id": "43827478878",
+  "run_id": "43829604719",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -151,14 +79,14 @@
     "base": {
       "action_changed": 0,
       "added": 0,
-      "removed": 41,
-      "snapshots_seen": 18
+      "removed": 39,
+      "snapshots_seen": 17
     },
     "block": {
       "action_changed": 0,
       "added": 0,
-      "removed": 35,
-      "snapshots_seen": 10
+      "removed": 36,
+      "snapshots_seen": 11
     },
     "filter": {
       "action_changed": 0,
@@ -168,9 +96,9 @@
     },
     "local_overrides": {
       "action_changed": 0,
-      "added": 27,
-      "removed": 2,
-      "snapshots_seen": 13
+      "added": 22,
+      "removed": 0,
+      "snapshots_seen": 12
     },
     "myblockads": {
       "action_changed": 0,
@@ -187,8 +115,8 @@
     "zmjapp": {
       "action_changed": 0,
       "added": 0,
-      "removed": 9,
-      "snapshots_seen": 3
+      "removed": 3,
+      "snapshots_seen": 2
     },
     "zmjgen": {
       "action_changed": 0,

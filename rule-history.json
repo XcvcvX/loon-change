@@ -6,56 +6,6 @@
       "change_counts": {
         "rewrite": {
           "action_changed": 0,
-          "added": 5,
-          "removed": 10
-        },
-        "rule": {
-          "action_changed": 0,
-          "added": 0,
-          "removed": 0
-        },
-        "script": {
-          "action_changed": 0,
-          "added": 0,
-          "removed": 0
-        }
-      },
-      "risk_counts": {
-        "high": 10,
-        "low": 0,
-        "medium": 5
-      },
-      "run_id": "43733155668",
-      "source_changes": {
-        "base": {
-          "action_changed": 0,
-          "added": 0,
-          "removed": 2
-        },
-        "local_overrides": {
-          "action_changed": 0,
-          "added": 5,
-          "removed": 2
-        },
-        "zmjapp": {
-          "action_changed": 0,
-          "added": 0,
-          "removed": 6
-        }
-      },
-      "upstream_revisions": {
-        "AlipayAdBlock": "513d1e581dc2e98f4a358e010b5543b37e900b47",
-        "Amap": "513d1e581dc2e98f4a358e010b5543b37e900b47",
-        "GuaZiVideoAds": "513d1e581dc2e98f4a358e010b5543b37e900b47",
-        "aoomee": "370a13085514ccca924f43d13c6d3acfa5671dbe",
-        "thelongdarkorg": "2d0443ce1ecec36cf173634e77ba52224efbdc38",
-        "zmjde": "3e79a9798f1b996f5c05b1a42be5d286890f3f60"
-      }
-    },
-    {
-      "change_counts": {
-        "rewrite": {
-          "action_changed": 0,
           "added": 0,
           "removed": 0
         },
@@ -1354,6 +1304,46 @@
         "thelongdarkorg": "2d0443ce1ecec36cf173634e77ba52224efbdc38",
         "zmjde": "3e79a9798f1b996f5c05b1a42be5d286890f3f60"
       }
+    },
+    {
+      "change_counts": {
+        "rewrite": {
+          "action_changed": 0,
+          "added": 0,
+          "removed": 1
+        },
+        "rule": {
+          "action_changed": 0,
+          "added": 0,
+          "removed": 0
+        },
+        "script": {
+          "action_changed": 0,
+          "added": 0,
+          "removed": 0
+        }
+      },
+      "risk_counts": {
+        "high": 1,
+        "low": 0,
+        "medium": 0
+      },
+      "run_id": "43829604719",
+      "source_changes": {
+        "block": {
+          "action_changed": 0,
+          "added": 0,
+          "removed": 1
+        }
+      },
+      "upstream_revisions": {
+        "AlipayAdBlock": "7804714d4af8a95c5dc47ae0672f3a89afee603d",
+        "Amap": "7804714d4af8a95c5dc47ae0672f3a89afee603d",
+        "GuaZiVideoAds": "7804714d4af8a95c5dc47ae0672f3a89afee603d",
+        "aoomee": "370a13085514ccca924f43d13c6d3acfa5671dbe",
+        "thelongdarkorg": "2d0443ce1ecec36cf173634e77ba52224efbdc38",
+        "zmjde": "3e79a9798f1b996f5c05b1a42be5d286890f3f60"
+      }
     }
   ],
   "source_trends_last_30_snapshots": {
@@ -1372,14 +1362,14 @@
     "base": {
       "action_changed": 0,
       "added": 0,
-      "removed": 41,
-      "snapshots_seen": 18
+      "removed": 39,
+      "snapshots_seen": 17
     },
     "block": {
       "action_changed": 0,
       "added": 0,
-      "removed": 35,
-      "snapshots_seen": 10
+      "removed": 36,
+      "snapshots_seen": 11
     },
     "filter": {
       "action_changed": 0,
@@ -1389,9 +1379,9 @@
     },
     "local_overrides": {
       "action_changed": 0,
-      "added": 27,
-      "removed": 2,
-      "snapshots_seen": 13
+      "added": 22,
+      "removed": 0,
+      "snapshots_seen": 12
     },
     "myblockads": {
       "action_changed": 0,
@@ -1408,8 +1398,8 @@
     "zmjapp": {
       "action_changed": 0,
       "added": 0,
-      "removed": 9,
-      "snapshots_seen": 3
+      "removed": 3,
+      "snapshots_seen": 2
     },
     "zmjgen": {
       "action_changed": 0,
