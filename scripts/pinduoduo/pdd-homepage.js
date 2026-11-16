@@ -24,16 +24,18 @@ function main() {
       delete result.search_bar_hot_query;
 
       // Preserve both upstream bottom-tab filters.
-      const allowedLinks = /(?:chat_list|index|personal)/;
+      const allowedLinks = new Set(["index.html", "chat_list.html", "personal.html"]);
+      const allowedTitles = new Set(["首页", "聊天", "个人中心"]);
       const deniedTitles = new Set(["多多视频", "大促会场", "搜索", "直播"]);
       if (Array.isArray(result.bottom_tabs)) {
         result.bottom_tabs = result.bottom_tabs.filter(tab =>
-          tab && !deniedTitles.has(tab.title) && allowedLinks.test(String(tab.link || ""))
+          tab && allowedTitles.has(tab.title) && !deniedTitles.has(tab.title)
+          && allowedLinks.has(String(tab.link || ""))
         );
       }
       if (Array.isArray(result.buffer_bottom_tabs)) {
         result.buffer_bottom_tabs = result.buffer_bottom_tabs.filter(tab =>
-          tab && allowedLinks.test(String(tab.link || ""))
+          tab && allowedLinks.has(String(tab.link || ""))
         );
       }
 
