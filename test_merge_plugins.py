@@ -1675,6 +1675,46 @@ hostname = *.amap.com
         self.assertEqual(changes[0]["original_line"], rule)
         self.assertEqual(changes[0]["output_line"], result)
 
+    def test_gamersky_statistic_ad_current_blockads_case_flag_is_preserved(self):
+        empty = "[Rewrite]\n[Script]\n[MITM]\nhostname = \n"
+        rule = (
+            r"request if ${url} ~= /https:\/\/.+\.gamersky\.com\/v1\/statisticAd/i"
+            r" then reject_dict(200)"
+        )
+        extra = (
+            "[Rewrite]\n" + rule + "\n"
+            + "[MITM]\nhostname = api.gamersky.com\n"
+        )
+        output, report = self.run_merge(empty, extra, return_provenance=True)
+        result = next(
+            line for line in output.splitlines()
+            if line.startswith("request if") and "statisticAd" in line
+        )
+        self.assertIn("/i then reject_dict(200)", result)
+        matcher = re.search(r"~= /(.*)/i then ", result).group(1).replace(r"\/", "/")
+        compiled = re.compile(matcher, re.IGNORECASE)
+        for url in (
+            "https://a.gamersky.com/v1/statisticAd",
+            "https://A.GAMERSKY.COM/v1/statisticAd?from=app",
+            "https://a-b.gamersky.com/v1/statisticAd/collect",
+        ):
+            self.assertRegex(url, compiled)
+        for url in (
+            "http://a.gamersky.com/v1/statisticAd",
+            "https://gamersky.com/v1/statisticAd",
+            "https://evilgamersky.com/v1/statisticAd",
+            "https://a.gamersky.com.evil.test/v1/statisticAd",
+            "https://a.gamersky.com/v1/statisticAdx",
+        ):
+            self.assertNotRegex(url, compiled)
+        changes = [
+            item for item in report["scope_adjustments"]
+            if "Gamersky statisticAd" in item.get("reason", "")
+        ]
+        self.assertEqual(len(changes), 1)
+        self.assertEqual(changes[0]["original_line"], rule)
+        self.assertEqual(changes[0]["output_line"], result)
+
     def test_gamersky_statistic_ad_guard_fails_closed_on_action_drift(self):
         empty = "[Rewrite]\n[Script]\n[MITM]\nhostname = \n"
         rule = (
