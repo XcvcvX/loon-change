@@ -2517,6 +2517,29 @@ class MoreResponseScriptDedupTests(unittest.TestCase):
         self.assertEqual(removed, 0)
         self.assertEqual(result, fixture)
 
+
+    def test_checked_in_xiaohongshu_snapshot_contains_only_ad_response_processing(self):
+        from pathlib import Path
+        from apply_local_overrides import (
+            XHS_ARGUMENT_LINE, XHS_SCRIPT_TRIGGER_LINES, XHS_V4_VIDEO_AD_ONLY_RULE,
+        )
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        self.assertNotIn(XHS_ARGUMENT_LINE, plugin)
+        for trigger in XHS_SCRIPT_TRIGGER_LINES:
+            self.assertNotIn(trigger, plugin)
+        self.assertIn(XHS_V4_VIDEO_AD_ONLY_RULE, plugin)
+        xhs_rewrites = [
+            line for line in plugin.splitlines()
+            if "xiaohongshu" in line.lower() and "response-body-json-jq" in line
+        ]
+        self.assertFalse(any(
+            token in line for line in xhs_rewrites
+            for token in ("disable_watermark", "video_download", "comment_type", "media_source_type")
+        ))
+        self.assertFalse(any(
+            "/system_config/watermark" in line for line in plugin.splitlines()
+        ))
+
     def test_xiaohongshu_cleanup_fails_closed_on_trigger_drift(self):
         from apply_local_overrides import XHS_SCRIPT_TRIGGER_LINES, optimize_xiaohongshu_response_cost
         triggers = list(sorted(XHS_SCRIPT_TRIGGER_LINES))
