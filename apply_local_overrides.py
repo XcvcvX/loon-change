@@ -3012,7 +3012,7 @@ XHS_SCRIPT_TRIGGER_LINES = frozenset((
 XHS_ARGUMENT_LINE = "xhs_enable = switch,true,false,tag=小红书-脚本开关"
 XHS_WATERMARK_REQUIRED_RULES = frozenset((
     r"^https?:\/\/ci\.xiaohongshu\.com\/system_config\/watermark reject-img",
-    r"request if ${url} ~= /^https?:\/\/ci\.(xiaohongshu|rnote)\.com\/system_config\/watermark/ then reject_img(200)",
+    r"request if \${url} ~= /^https?:\/\/ci\.(xiaohongshu|rnote)\.com\/system_config\/watermark/ then reject_img(200)",
 ))
 XHS_WATERMARK_OPTIONAL_RULES = frozenset((
     r"^https:\/\/ci\.xiaohongshu\.com\/system_config\/watermark reject-img",
