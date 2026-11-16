@@ -23,11 +23,10 @@ from source_guard import (validate_alipayadblock, validate_blockv2, validate_fil
                           validate_myblockads, fetch_validated)
 from mitm_policy import mitm_skip_host
 
-BLOCKV2_URL = ('https://raw.githubusercontent.com/fmz200/wool_scripts/refs/heads/'
-                'main/Loon/plugin/blockAdsV2.plugin')
+BLOCKV2_URL = 'https://raw.githubusercontent.com/fmz200/wool_scripts/main/Loon/plugin/blockAds.plugin'
 BLOCKV2_MIRRORS = [
-    'https://cdn.jsdelivr.net/gh/fmz200/wool_scripts@main/Loon/plugin/blockAdsV2.plugin',
-    'https://fastly.jsdelivr.net/gh/fmz200/wool_scripts@main/Loon/plugin/blockAdsV2.plugin',
+    'https://cdn.jsdelivr.net/gh/fmz200/wool_scripts@main/Loon/plugin/blockAds.plugin',
+    'https://fastly.jsdelivr.net/gh/fmz200/wool_scripts@main/Loon/plugin/blockAds.plugin',
 ]
 
 # R-Store 独立分流（QuanX filter），用于补全 [Rule]
@@ -528,9 +527,9 @@ if args.extra == 'fetch':
     try:
         extra_text, used_url, _ = fetch_validated(
             [BLOCKV2_URL] + BLOCKV2_MIRRORS, fetch, validate_blockv2, 'blockAdsV2')
-        print('[fetch] 已获取并通过完整性检查 blockAdsV2:', used_url)
+        print('[fetch] 已获取并通过完整性检查 fmz200 blockAds.plugin:', used_url)
     except Exception as e:
-        raise SystemExit('blockAdsV2 获取失败: %s' % e)
+        raise SystemExit('fmz200 blockAds.plugin 获取失败: %s' % e)
 else:
     # 显式本地输入也用于单元测试/离线调试；远程生产抓取才执行上游体量门禁。
     extra_text = open(args.extra, encoding='utf-8').read()
