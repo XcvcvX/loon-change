@@ -1446,6 +1446,7 @@ class DouyinContentCdnScopeTests(unittest.TestCase):
                      "request if ${url} ~= /^https?:\\/\\/.+\\.pstatp\\.com\\/obj\\/ad-pattern\\/renderer/ then reject(404)",
                      "request if ${url} ~= /^https?:\\/\\/.+\\.snssdk\\.com\\/api\\/ad\\/.+/ then reject(404)",
                      "request if ${url} ~= /^https?:\\/\\/.+\\.pstatp\\.com\\/obj\\/mosaic-legacy\\/.+\\?from\\=ad/ then reject(404)",
+                     "request if ${url} ~= /^https?:\\/\\/.*\\.(pglstatp-toutiao|pstatp)\\.com\\/obj\\/ad-pattern\\/renderer/ then reject(404)",
                      "[Script]", "[MITM]"]
 
     def test_removes_only_content_cdn_overblocks_and_keeps_ad_path_rules(self):

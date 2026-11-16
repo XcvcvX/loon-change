@@ -2012,7 +2012,7 @@ def remove_douyin_content_cdn_overblocks(lines):
                     raise ValueError("duplicate Douyin content CDN overblock: " + value)
                 continue
         if section == "Rewrite":
-            if "pstatp.com" in normalized or "snssdk.com" in normalized:
+            if "pstatp" in normalized or "pglstatp-toutiao" in normalized or "snssdk.com" in normalized:
                 normalized_rewrites.append(normalized)
             if "pstatp.com/origin" in normalized and "reject(404)" in normalized and (section, value) not in DOUYIN_CONTENT_CDN_OVERBLOCKS:
                 saw_target = True
