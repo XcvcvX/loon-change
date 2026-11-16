@@ -663,7 +663,7 @@ def remove_redundant_amap_legacy_scripts(lines, expected_count=AMAP_LEGACY_SCRIP
             section = stripped[1:-1]
             output.append(line)
             continue
-        normalized = re.sub(r"\\\\+", "", stripped).lower()
+        normalized = re.sub(r"\\+", "", stripped).lower()
         if not stripped.startswith("#") and normalized.startswith("response if") and "amap" in normalized:
             response_handlers.append(normalized)
         if section != "Script" or not normalized.startswith("http-response") or "amap" not in normalized:
