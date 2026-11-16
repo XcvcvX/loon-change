@@ -2800,9 +2800,14 @@ def normalize_cnftp_trigger_line(line):
 def remove_duplicate_cnftp_scripts(lines):
     """Collapse duplicate video response scripts and accept the already-combined iQIYI home state."""
     remove_counts = {item: 0 for item in CNFTP_DUPLICATE_REMOVE_TRIGGERS}
-    source_counts = {item: 0 for item in CNFTP_DUPLICATE_KEEP_SOURCE_TRIGGERS}
-    home_source_counts = {item: 0 for item in CNFTP_IQIYI_HOME_SOURCE_TRIGGERS}
-    output_counts = {item: 0 for item in CNFTP_DUPLICATE_KEEP_TRIGGERS[4:]}
+    source_counts = {normalize_cnftp_trigger_line(item): 0 for item in CNFTP_DUPLICATE_KEEP_SOURCE_TRIGGERS}
+    home_source_counts = {normalize_cnftp_trigger_line(item): 0 for item in CNFTP_IQIYI_HOME_SOURCE_TRIGGERS}
+    output_counts = {normalize_cnftp_trigger_line(item): 0 for item in CNFTP_DUPLICATE_KEEP_TRIGGERS[4:]}
+    non_ad_normalized = {normalize_cnftp_trigger_line(item) for item in CNFTP_NON_AD_REMOVE_TRIGGERS}
+    normalized_mgtv_replacements = {
+        normalize_cnftp_trigger_line(source): target
+        for source, target in CNFTP_MGTV_TRIGGER_REPLACEMENTS.items()
+    }
     remove_set = set(CNFTP_DUPLICATE_REMOVE_TRIGGERS)
     source_mode = any(item in lines for item in remove_set)
     output, section, target_seen, removed = [], "", False, 0
@@ -2815,11 +2820,12 @@ def remove_duplicate_cnftp_scripts(lines):
             continue
 
         normalized_line = normalize_cnftp_trigger_line(line)
+        unescaped_line = normalized_line.replace("\\", "")
         is_target = (
             section == "Script"
-            and any(host in normalized_line for host in ("iqiyi.com", "mgtv.com", "youku.com"))
+            and any(host in unescaped_line for host in ("iqiyi.com", "mgtv.com", "youku.com"))
             and ("http-response " in line or "response if " in line)
-            and "mgesq.api.mgtv.com" not in normalized_line
+            and "mgesq.api.mgtv.com" not in unescaped_line
         )
         if not is_target:
             output.append(line)
@@ -2837,7 +2843,7 @@ def remove_duplicate_cnftp_scripts(lines):
                 source_counts[normalized_line] += 1
                 if source_counts[normalized_line] > 1:
                     raise ValueError("duplicate retained video source trigger; refusing ambiguous cleanup")
-                output.append(CNFTP_MGTV_TRIGGER_REPLACEMENTS.get(normalized_line, line))
+                output.append(normalized_mgtv_replacements.get(normalized_line, line))
                 continue
             raise ValueError("video script trigger inventory changed; refusing unreviewed consolidation")
 
@@ -2869,7 +2875,7 @@ def remove_duplicate_cnftp_scripts(lines):
             raise ValueError("legacy video trigger inventory incomplete; refusing partial consolidation")
         required_source_counts = {
             item: count for item, count in source_counts.items()
-            if item not in set(CNFTP_NON_AD_REMOVE_TRIGGERS)
+            if item not in non_ad_normalized
         }
         if not all(count == 1 for count in required_source_counts.values()):
             raise ValueError("video source trigger inventory incomplete; refusing partial consolidation")
@@ -2883,7 +2889,7 @@ def remove_duplicate_cnftp_scripts(lines):
 
     required_output_counts = {
         item: count for item, count in output_counts.items()
-        if item not in set(CNFTP_NON_AD_REMOVE_TRIGGERS)
+        if item not in non_ad_normalized
     }
     if not all(count == 1 for count in required_output_counts.values()):
         raise ValueError("consolidated video trigger inventory incomplete; refusing partial consolidation")
@@ -2894,7 +2900,7 @@ def consolidate_cnftp_iqiyi_home_triggers(lines):
     """Combine four same-action iQIYI home-feed matchers without widening URL coverage."""
     original = list(lines)
     output, section = [], ""
-    counts = {item: 0 for item in CNFTP_IQIYI_HOME_SOURCE_TRIGGERS}
+    counts = {normalize_cnftp_trigger_line(item): 0 for item in CNFTP_IQIYI_HOME_SOURCE_TRIGGERS}
     inserted = False
     target_seen = False
 
@@ -2924,7 +2930,7 @@ def consolidate_cnftp_iqiyi_home_triggers(lines):
 
 def remove_cnftp_non_ad_triggers(lines):
     """Remove only six reviewed CNFTP response triggers that do not process ads."""
-    targets = set(CNFTP_NON_AD_REMOVE_TRIGGERS)
+    targets = {normalize_cnftp_trigger_line(item) for item in CNFTP_NON_AD_REMOVE_TRIGGERS}
     counts = {item: 0 for item in targets}
     markers = {
         "getMyMenus": ("iface2.iqiyi.com", "aggregate/3.0/getMyMenus"),
