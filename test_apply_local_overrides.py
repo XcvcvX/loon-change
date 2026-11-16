@@ -3471,6 +3471,13 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
         self.assertEqual(second_changed, 0)
         self.assertEqual(again, result)
 
+    def test_noops_when_no_rstore_bilibili_json_script_is_present(self):
+        from apply_local_overrides import optimize_bilibili_json_native_coverage
+        fixture = ["[Rewrite]", "response if unrelated then response.body.mock(404)", "[Script]", "[MITM]"]
+        result, changed = optimize_bilibili_json_native_coverage(fixture)
+        self.assertEqual(changed, 0)
+        self.assertEqual(result, fixture)
+
     def test_fails_closed_when_native_or_sparkle_coverage_changes(self):
         from apply_local_overrides import (
             BILIBILI_JSON_TRIGGER_PAIRS, BILIBILI_NATIVE_PREREQUISITE_MARKERS,
