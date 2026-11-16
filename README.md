@@ -677,3 +677,11 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 回答页将删除 `third_business`、`float_search_word` 与过滤 `structured_content.segments` 中 card 的操作合并为一次 `response-body-json-jq`；推荐流将 ComponentCard allowlist 与 children 中 ring 卡片过滤合并为一次 JQ。
 - 保持原 URL matcher、过滤条件和最终字段处理意图不变；不改动知乎开屏、搜索、HTTPDNS、QUIC、MITM、Rule 或其他 App。
 - 覆盖器要求四条原始规则各唯一存在；缺失、重复、动作漂移或出现未知同 matcher 响应规则时 fail-closed；新增幂等与保留无关规则测试。
+
+
+## 第八阶段第三十七批：喜马拉雅首页响应 JSON 重复处理收敛
+
+- 来源追溯确认 `blockAdsV2.plugin` 中同一 `/mobile-user/vN/homePage/` matcher 连续执行两次响应 JSON 操作：删除 `data.freeListenV2`，以及仅保留 `data.serviceModule.entrances` 中名称为“全部服务”的入口。
+- 合并为一次 `response.json.jq`，先执行字段删除，再对服务入口执行过滤；过滤分支使用 `try/catch`，在服务入口字段缺失或结构异常时保留已完成的字段删除结果，避免把两步合并后扩大失败影响。
+- URL matcher、域名集合、字段路径和过滤条件保持不变；不改动播放、搜索、下载、账号、订阅、HTTPDNS、MITM 或其他应用规则。
+- 覆盖器要求两条原始规则各出现一次；缺失、重复、动作漂移或新增同首页 matcher 的未知响应 JSON 操作时 fail-closed；测试覆盖幂等、无关区段保留及漂移场景。
