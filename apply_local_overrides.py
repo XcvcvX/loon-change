@@ -198,11 +198,11 @@ def remove_guiderank_homepage_script(lines):
     return output, removed
 
 
-GAODING_TEMPLATE_SCRIPT_TRIGGER = r"http-response ^https?:\\/\\/www\\.gaoding\\.com\\/api\\/v\\d\\/oc\\/exhibitions\\/template\\/resources$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/gaoding.js,tag=GAODING,requires-body=true"
-GAODING_MINE_SCRIPT_TRIGGER = r"http-response ^https?:\\/\\/www\\.gaoding\\.com\\/api\\/v\\d\\/oc\\/exhibitions\\/app_mine\\/resources script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/gaoding.js,tag=GAODING-2,requires-body=true"
+GAODING_TEMPLATE_SCRIPT_TRIGGER = r"http-response ^https?:\/\/www\.gaoding\.com\/api\/v\d\/oc\/exhibitions\/template\/resources$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/gaoding.js,tag=GAODING,requires-body=true"
+GAODING_MINE_SCRIPT_TRIGGER = r"http-response ^https?:\/\/www\.gaoding\.com\/api\/v\d\/oc\/exhibitions\/app_mine\/resources script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/gaoding.js,tag=GAODING-2,requires-body=true"
 GAODING_NATIVE_RULES = (
-    r'response if \${url} ~= /^https?:\\/\\/www\\.gaoding\\.com\\/api\\/v\\d\\/oc\\/exhibitions\\/template\\/resources$/ then response.json.delete("pits[0].delivery_materials")',
-    r'response if \${url} ~= /^https?:\\/\\/www\\.gaoding\\.com\\/api\\/v\\d\\/oc\\/exhibitions\\/app_mine\\/resources/ then response.json.delete("pits[2].delivery_materials")',
+    r'response if \${url} ~= /^https?:\/\/www\.gaoding\.com\/api\/v\d\/oc\/exhibitions\/template\/resources$/ then response.json.delete("pits[0].delivery_materials")',
+    r'response if \${url} ~= /^https?:\/\/www\.gaoding\.com\/api\/v\d\/oc\/exhibitions\/app_mine\/resources/ then response.json.delete("pits[2].delivery_materials")',
 )
 
 
@@ -211,15 +211,15 @@ def remove_gaoding_resource_scripts(lines):
     output, removed = [], {GAODING_TEMPLATE_SCRIPT_TRIGGER: 0, GAODING_MINE_SCRIPT_TRIGGER: 0}
     section = ""
     expected = {
-        re.sub(r"\\\\+", "", GAODING_TEMPLATE_SCRIPT_TRIGGER.strip()): GAODING_TEMPLATE_SCRIPT_TRIGGER,
-        re.sub(r"\\\\+", "", GAODING_MINE_SCRIPT_TRIGGER.strip()): GAODING_MINE_SCRIPT_TRIGGER,
+        re.sub(r"\\+", "", GAODING_TEMPLATE_SCRIPT_TRIGGER.strip()): GAODING_TEMPLATE_SCRIPT_TRIGGER,
+        re.sub(r"\\+", "", GAODING_MINE_SCRIPT_TRIGGER.strip()): GAODING_MINE_SCRIPT_TRIGGER,
     }
     for line in lines:
         if line.startswith("[") and line.endswith("]"):
             section = line[1:-1]
             output.append(line)
             continue
-        normalized = re.sub(r"\\\\+", "", line.strip())
+        normalized = re.sub(r"\\+", "", line.strip())
         if section != "Script" or "www.gaoding.com/api/" not in normalized or "/oc/exhibitions/" not in normalized:
             output.append(line)
             continue
