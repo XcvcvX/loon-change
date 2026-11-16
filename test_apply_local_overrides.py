@@ -1364,6 +1364,70 @@ class KugouJin10RewriteDedupTests(unittest.TestCase):
             apply(drifted)
 
 
+class ZhihuMultiActionRewriteConsolidationTests(unittest.TestCase):
+    def setUp(self):
+        from apply_local_overrides import (
+            ZHIHU_ANSWER_DELETE_REWRITE,
+            ZHIHU_ANSWER_CARD_REWRITE,
+            ZHIHU_ANSWER_COMBINED_REWRITE,
+            ZHIHU_TOPSTORY_COMPONENTS_REWRITE,
+            ZHIHU_TOPSTORY_RING_REWRITE,
+            ZHIHU_TOPSTORY_COMBINED_REWRITE,
+        )
+        self.original = (
+            ZHIHU_ANSWER_DELETE_REWRITE,
+            ZHIHU_ANSWER_CARD_REWRITE,
+            ZHIHU_TOPSTORY_COMPONENTS_REWRITE,
+            ZHIHU_TOPSTORY_RING_REWRITE,
+        )
+        self.combined = (
+            ZHIHU_ANSWER_COMBINED_REWRITE,
+            ZHIHU_TOPSTORY_COMBINED_REWRITE,
+        )
+        self.base = (
+            "#!name=Zhihu-test\n[Rule]\n[Rewrite]\n"
+            "^https:\\/\\/api\\.zhihu\\.com\\/commercial_api\\/ reject-dict\n"
+            + "\n".join(self.original)
+            + "\n[Script]\n[MITM]\nhostname = api.zhihu.com, page-info.zhihu.com, "
+            "creditcard.bankcomm.cn, creditcard.bankcomm.com, "
+            "creditcardapp.bankcomm.cn, creditcardapp.bankcomm.com\n"
+        )
+
+    def test_coalesces_exact_zhihu_operations_without_changing_matchers_or_other_rules(self):
+        result = apply(self.base)
+        for rule in self.original:
+            self.assertNotIn(rule, result)
+        for rule in self.combined:
+            self.assertEqual(result.count(rule), 1)
+            self.assertIn(rule, result)
+        self.assertIn(r"^https:\/\/api\.zhihu\.com\/commercial_api\/ reject-dict", result)
+        self.assertEqual(apply(result), result)
+
+    def test_fails_closed_on_missing_drifted_duplicate_or_unknown_same_matcher_rule(self):
+        missing = self.base.replace(self.original[0] + "\n", "", 1)
+        with self.assertRaisesRegex(ValueError, "Zhihu multi-action rewrite inventory changed"):
+            apply(missing)
+
+        drifted = self.base.replace(self.original[1], self.original[1].replace('!= "card"', '!= "ad"'), 1)
+        with self.assertRaisesRegex(ValueError, "Zhihu multi-action rewrite inventory changed"):
+            apply(drifted)
+
+        duplicate = self.base.replace(self.original[0], self.original[0] + "\n" + self.original[0], 1)
+        with self.assertRaisesRegex(ValueError, "Zhihu multi-action rewrite inventory changed"):
+            apply(duplicate)
+
+        unknown = self.base.replace(
+            self.original[0],
+            self.original[0] + "\n" +
+            r"^https:\/\/(api|page-info)(?:\.zhihu)?\.com\/answers\/v\d\/\d+(?:\?.*)?$ response-body-json-jq '.new_field |= empty'",
+            1,
+        )
+        with self.assertRaisesRegex(ValueError, "Zhihu same-matcher response rewrite changed"):
+            apply(unknown)
+
+
+
+
 
 if __name__ == "__main__":
     unittest.main()
