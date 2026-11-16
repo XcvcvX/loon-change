@@ -15,8 +15,8 @@ CANONICAL_GROUPED_RULE = (
 )
 HOTWORD_MARKER = "search/new_hotword"
 
-MARKETING_OPERATION_OLD_RULE = "response if \\${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_business\\/process\\/marketingOperationStructured\\?/i then response.json.delete([\"data.tipsOperationLocation\", \"obj.data.resourcePlacement\"])"
-MARKETING_OPERATION_NEW_RULE = "response if \\${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_business\\/process\\/marketingOperationStructured\\?/i then response.json.delete([\"data.tipsOperationLocation\", \"data.resourcePlacement\"])"
+MARKETING_OPERATION_OLD_RULE = "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_business\\/process\\/marketingOperationStructured\\?/i then response.json.delete([\"data.tipsOperationLocation\", \"obj.data.resourcePlacement\"])"
+MARKETING_OPERATION_NEW_RULE = "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_business\\/process\\/marketingOperationStructured\\?/i then response.json.delete([\"data.tipsOperationLocation\", \"data.resourcePlacement\"])"
 MARKETING_OPERATION_MARKER = "marketingOperationStructured"
 
 
@@ -98,7 +98,7 @@ def main():
     original = path.read_text(encoding="utf-8-sig")
     updated, removed = apply(original)
     path.write_text(updated, encoding="utf-8")
-    print("[amap-local-overrides] PASS: removed %d duplicate hotword request rule(s)" % removed)
+    print("[amap-local-overrides] PASS: removed %d duplicate hotword request rule(s); corrected marketingOperationStructured JSON path" % removed)
 
 
 if __name__ == "__main__":
