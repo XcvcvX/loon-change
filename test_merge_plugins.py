@@ -2136,7 +2136,7 @@ hostname = *.amap.com
     def test_zhangle_block_rule_with_current_case_insensitive_flag_is_excluded(self):
         base = "[Rewrite]\n[MITM]\nhostname = \n"
         rule = (
-            r"request if ${url} ~= /^https?:\\/\\/c\\.zhangle\\.com\\/pic\\/mktg\\/diversity\\/.+\\.jpg$/i "
+            r"request if ${url} ~= /^https?:\/\/c\.zhangle\.com\/pic\/mktg\/diversity\/.+\.jpg$/i "
             r"then reject_dict(200)"
         )
         block = (
