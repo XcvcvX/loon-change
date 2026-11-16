@@ -1338,6 +1338,62 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
 
 
 
+
+class ZhihuResponseScriptConsolidationTests(unittest.TestCase):
+    def test_consolidates_12_exact_triggers_to_five_tag_preserving_matchers(self):
+        from apply_local_overrides import ZHIHU_RESPONSE_CANONICAL_TRIGGERS, ZHIHU_RESPONSE_LEGACY_TRIGGERS, consolidate_zhihu_response_scripts
+        fixture = [
+            "[Script]", *sorted(ZHIHU_RESPONSE_LEGACY_TRIGGERS),
+            r"""http-response ^https:\/\/api\.example\.com script-path=https://example.invalid/keep.js""",
+            "[MITM]", "hostname = api.zhihu.com",
+        ]
+        result, removed = consolidate_zhihu_response_scripts(fixture)
+        self.assertEqual(removed, 7)
+        self.assertEqual(sum(line in ZHIHU_RESPONSE_CANONICAL_TRIGGERS for line in result), 5)
+        self.assertTrue(any("example.invalid/keep.js" in line for line in result))
+        self.assertFalse(any("Scripts/zhihu/zhihu.js" in line and line not in ZHIHU_RESPONSE_CANONICAL_TRIGGERS for line in result))
+        again, second_removed = consolidate_zhihu_response_scripts(result)
+        self.assertEqual(second_removed, 0)
+        self.assertEqual(again, result)
+
+    def test_canonical_zhihu_matchers_cover_all_original_endpoints(self):
+        import re
+        from apply_local_overrides import ZHIHU_RESPONSE_CANONICAL_TRIGGERS
+        urls = [
+            "https://api.zhihu.com/answers/v2/123",
+            "https://page-info.zhihu.com/articles/v2/456",
+            "https://api.zhihu.com/commercial_api/app_float_layer",
+            "https://api.zhihu.com/feed/render/tab/config?x=1",
+            "https://api.zhihu.com/moments_v3",
+            "https://api.zhihu.com/topstory/hot-lists/total",
+            "https://api.zhihu.com/topstory/recommend",
+            "https://api.zhihu.com/v2/topstory/hot-lists/everyone-seeing?x=1",
+            "https://api.zhihu.com/root/tab",
+            "https://api.zhihu.com/bazaar/vip_tab/header?x=1",
+            "https://api.zhihu.com/next-bff",
+            "https://api.zhihu.com/questions/123/answers",
+            "https://www.zhihu.com/api/v4/articles/123/recommendations?",
+            "https://appcloud2.zhihu.com/v3/config",
+            "https://m-cloud.zhihu.com/api/cloud/config/all?x=1",
+        ]
+        patterns = []
+        for trigger in ZHIHU_RESPONSE_CANONICAL_TRIGGERS:
+            raw = trigger.split(" ~= ", 1)[1].split(" then script(", 1)[0]
+            end = raw.rfind("/")
+            patterns.append(re.compile(raw[1:end], re.I if raw[end + 1:] == "i" else 0))
+        self.assertTrue(all(any(pattern.search(url) for pattern in patterns) for url in urls))
+
+    def test_fails_closed_on_missing_duplicate_or_drifted_zhihu_trigger(self):
+        from apply_local_overrides import ZHIHU_RESPONSE_LEGACY_TRIGGERS, consolidate_zhihu_response_scripts
+        base = sorted(ZHIHU_RESPONSE_LEGACY_TRIGGERS)
+        for fixture in (
+            ["[Script]", *base[:-1]],
+            ["[Script]", *base, base[0]],
+            ["[Script]", *base[:-1], base[-1].replace("requires_body=true", "requires_body=false")],
+        ):
+            with self.assertRaisesRegex(ValueError, "Zhihu response script inventory changed"):
+                consolidate_zhihu_response_scripts(fixture)
+
 class SoulScriptConsolidationTests(unittest.TestCase):
     def test_consolidates_all_exact_soul_triggers_into_two_case_safe_matchers(self):
         from apply_local_overrides import SOUL_CANONICAL_TRIGGERS, SOUL_LEGACY_TRIGGERS, consolidate_soul_scripts
