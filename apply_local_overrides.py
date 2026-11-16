@@ -2809,7 +2809,12 @@ def remove_duplicate_cnftp_scripts(lines):
         for source, target in CNFTP_MGTV_TRIGGER_REPLACEMENTS.items()
     }
     remove_set = set(CNFTP_DUPLICATE_REMOVE_TRIGGERS)
-    source_mode = any(item in lines for item in remove_set)
+    legacy_remove_mode = any(item in lines for item in remove_set)
+    split_home_source_mode = any(
+        normalize_cnftp_trigger_line(line.strip()) in home_source_counts
+        for line in lines
+    )
+    source_mode = legacy_remove_mode or split_home_source_mode
     output, section, target_seen, removed = [], "", False, 0
     combined_home_count = 0
 
@@ -2871,7 +2876,7 @@ def remove_duplicate_cnftp_scripts(lines):
         return output, 0
 
     if source_mode:
-        if not all(count == 1 for count in remove_counts.values()):
+        if legacy_remove_mode and not all(count == 1 for count in remove_counts.values()):
             raise ValueError("legacy video trigger inventory incomplete; refusing partial consolidation")
         required_source_counts = {
             item: count for item, count in source_counts.items()
