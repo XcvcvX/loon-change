@@ -3493,8 +3493,13 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
                    *(old for _, old, _ in BILIBILI_JSON_TRIGGER_PAIRS), "[MITM]"]
         changed_trigger = BILIBILI_JSON_TRIGGER_PAIRS[0][1].replace("tag=BAICIZHAN-8", "tag=BAICIZHAN-8-NEW")
         drifted = [changed_trigger if line == BILIBILI_JSON_TRIGGER_PAIRS[0][1] else line for line in fixture]
-        with self.assertRaisesRegex(ValueError, "trigger inventory changed"):
+        with self.assertRaisesRegex(ValueError, "trigger variant changed"):
             optimize_bilibili_json_native_coverage(drifted)
+
+        bad_fmz = fmz_live.replace(r"app-room\/v1", r"app-room\/v3")
+        bad_fmz_fixture = [bad_fmz if line == fmz_live else line for line in fixture]
+        with self.assertRaisesRegex(ValueError, "live JSON native coverage changed"):
+            optimize_bilibili_json_native_coverage(bad_fmz_fixture)
 
         missing_native = [line for line in fixture if line != BILIBILI_NATIVE_RULE_REPLACEMENTS[0][0]]
         with self.assertRaisesRegex(ValueError, "native response rule changed"):
