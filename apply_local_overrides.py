@@ -2763,6 +2763,12 @@ CNFTP_NON_AD_REMOVE_TRIGGERS = (
     "response if ${url} ~= /^https?:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.haidai\\.lantern\\.appconfig\\.get/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=yzku_enable, tag=\"优酷底部tab\", timeout=60, requires_body=true",
     "response if ${url} ~= /^https?:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.huluwa\\.dispatcher\\.youthmode\\.config2/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=yzku_enable, tag=\"优酷青少年模式弹窗\", timeout=60, requires_body=true",
 )
+def normalize_cnftp_trigger_line(line):
+    """Normalize only known source syntax differences for exact CNFTP inventory comparison."""
+    value = line.strip().replace("\\/", "/")
+    return re.sub(r"enable=\$\{([^}]+)\}", r"enable=\1", value)
+
+
 def remove_duplicate_cnftp_scripts(lines):
     """Collapse duplicate video response scripts and accept the already-combined iQIYI home state."""
     remove_counts = {item: 0 for item in CNFTP_DUPLICATE_REMOVE_TRIGGERS}
@@ -2780,7 +2786,7 @@ def remove_duplicate_cnftp_scripts(lines):
             output.append(line)
             continue
 
-        normalized_line = line.replace("\\", "")
+        normalized_line = normalize_cnftp_trigger_line(line)
         is_target = (
             section == "Script"
             and any(host in normalized_line for host in ("iqiyi.com", "mgtv.com", "youku.com"))
@@ -2799,29 +2805,29 @@ def remove_duplicate_cnftp_scripts(lines):
                     raise ValueError("duplicate legacy video trigger; refusing ambiguous cleanup")
                 removed += 1
                 continue
-            if line in source_counts:
-                source_counts[line] += 1
-                if source_counts[line] > 1:
+            if normalized_line in source_counts:
+                source_counts[normalized_line] += 1
+                if source_counts[normalized_line] > 1:
                     raise ValueError("duplicate retained video source trigger; refusing ambiguous cleanup")
-                output.append(CNFTP_MGTV_TRIGGER_REPLACEMENTS.get(line, line))
+                output.append(CNFTP_MGTV_TRIGGER_REPLACEMENTS.get(normalized_line, line))
                 continue
             raise ValueError("video script trigger inventory changed; refusing unreviewed consolidation")
 
-        if line == CNFTP_IQIYI_HOME_COMBINED_TRIGGER:
+        if normalized_line == normalize_cnftp_trigger_line(CNFTP_IQIYI_HOME_COMBINED_TRIGGER):
             combined_home_count += 1
             if combined_home_count > 1:
                 raise ValueError("duplicate combined iQIYI home trigger; refusing ambiguous cleanup")
             output.append(line)
             continue
-        if line in home_source_counts:
-            home_source_counts[line] += 1
-            if home_source_counts[line] > 1:
+        if normalized_line in home_source_counts:
+            home_source_counts[normalized_line] += 1
+            if home_source_counts[normalized_line] > 1:
                 raise ValueError("duplicate iQIYI home source trigger; refusing ambiguous cleanup")
             output.append(line)
             continue
-        if line in output_counts:
-            output_counts[line] += 1
-            if output_counts[line] > 1:
+        if normalized_line in output_counts:
+            output_counts[normalized_line] += 1
+            if output_counts[normalized_line] > 1:
                 raise ValueError("duplicate consolidated video trigger; refusing ambiguous cleanup")
             output.append(line)
             continue
@@ -2869,12 +2875,13 @@ def consolidate_cnftp_iqiyi_home_triggers(lines):
             section = line[1:-1]
             output.append(line)
             continue
-        if section != "Script" or line not in counts:
+        normalized_line = normalize_cnftp_trigger_line(line)
+        if section != "Script" or normalized_line not in counts:
             output.append(line)
             continue
         target_seen = True
-        counts[line] += 1
-        if counts[line] > 1:
+        counts[normalized_line] += 1
+        if counts[normalized_line] > 1:
             raise ValueError("duplicate iQIYI home trigger; refusing consolidation")
         if not inserted:
             output.append(CNFTP_IQIYI_HOME_COMBINED_TRIGGER)
@@ -2915,15 +2922,15 @@ def remove_cnftp_non_ad_triggers(lines):
         if section == "Script":
             for key, parts in markers.items():
                 if key in active_markers and all(part in normalized for part in parts) and "cnftp.js" in value:
-                    if value not in targets:
+                    if normalized not in targets:
                         raise ValueError("CNFTP non-ad trigger matcher changed; refusing unreviewed pruning")
-            if value in targets:
-                counts[value] += 1
-                if counts[value] > 1:
+            if normalized in targets:
+                counts[normalized] += 1
+                if counts[normalized] > 1:
                     raise ValueError("duplicate CNFTP non-ad trigger; refusing ambiguous pruning")
                 removed += 1
                 continue
-        elif value in targets:
+        elif normalized in targets:
             raise ValueError("CNFTP non-ad trigger moved outside Script section; refusing pruning")
         output.append(line)
 
@@ -3565,9 +3572,24 @@ RRTV_RAW_SOURCE_TRIGGERS = (
     "response if ${url} ~= /https://api.rr.tv/watch/v4/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
     "response if ${url} ~= /https://api.rr.tv/user/profile/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
 )
+RRTV_BLOCKADS_SOURCE_TRIGGERS = (
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/\\w{3}\\/level\\/info/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=${rfrfuipk_enable}, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /https:\\/\\/api.rr.tv\\/v3plus\\/index\\/channel\\?pageNum=1&position=CHANNEL_INDEX/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=${rfrfuipk_enable}, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/app\\/config\\/h5NativeBar/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=${rfrfuipk_enable}, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/v3plus\\/index\\/channel\\?pageNum=1&position=CHANNEL_MY/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=${rfrfuipk_enable}, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/user\\/privilege\\/list/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=${rfrfuipk_enable}, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/ad\\/getAll/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=${rfrfuipk_enable}, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/drama\\/app\\/get_combined_drama_detail/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=${rfrfuipk_enable}, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /https:\\/\\/api.rr.tv\\/watch\\/v4/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=${rfrfuipk_enable}, tag=\"rrtv_json\", timeout=60, requires_body=true",
+    "response if ${url} ~= /https:\\/\\/api.rr.tv\\/user\\/profile/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=${rfrfuipk_enable}, tag=\"rrtv_json\", timeout=60, requires_body=true",
+)
+RRTV_BLOCKADS_NON_AD_SOURCE_TRIGGERS = tuple(RRTV_BLOCKADS_SOURCE_TRIGGERS[index] for index in (0, 2, 3, 4, 6, 7, 8))
+
 RRTV_SOURCE_VARIANT_GROUPS = tuple(
-    frozenset((canonical, raw))
-    for canonical, raw in zip(RRTV_SOURCE_TRIGGERS, RRTV_RAW_SOURCE_TRIGGERS)
+    frozenset((canonical, raw, current))
+    for canonical, raw, current in zip(
+        RRTV_SOURCE_TRIGGERS, RRTV_RAW_SOURCE_TRIGGERS, RRTV_BLOCKADS_SOURCE_TRIGGERS
+    )
 )
 RRTV_RAW_NON_AD_SOURCE_TRIGGERS = tuple(RRTV_RAW_SOURCE_TRIGGERS[index] for index in (0, 2, 3, 4, 6, 7, 8))
 RRTV_HOME_AD_SOURCE_TRIGGER = "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/v3plus\\/index\\/channel\\?pageNum=1&position=CHANNEL_INDEX/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true"
