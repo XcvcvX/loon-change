@@ -3026,7 +3026,7 @@ def optimize_xiaohongshu_response_cost(lines):
                 elif "/v3/note/videofeed" in normalized:
                     rewrite_counts["v3_video"] += 1
                     required = ("disable_watermark", "video_download", "model_type", 'has("ad")')
-                    rewrite_actions[stripped] = "v3" if all(token in stripped for token in required) else "invalid"
+                    rewrite_actions[stripped] = "remove" if "disable_watermark" in stripped and "video_download" in stripped else "invalid"
                 elif "/v4/note/videofeed" in normalized:
                     rewrite_counts["v4_video"] += 1
                     required = ("disable_watermark", "video_download", "model_type", 'has("ad")')
@@ -3044,8 +3044,6 @@ def optimize_xiaohongshu_response_cost(lines):
     expected = {"imagefeed": 1, "v2_feed": 1, "v3_video": 1, "v4_video": 1,
                 "comment_list": 1, "watermark_image": 2}
     if rewrite_counts != expected or any(action == "invalid" for action in rewrite_actions.values()):
-        return original, 0
-    if sum(action == "v3" for action in rewrite_actions.values()) != 1:
         return original, 0
     if sum(action == "v4" for action in rewrite_actions.values()) != 1:
         return original, 0
