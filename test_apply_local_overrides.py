@@ -483,7 +483,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
 
     def test_fails_closed_when_taobao_trigger_inventory_is_incomplete(self):
         from apply_local_overrides import TAOBAO_CANONICAL_SCRIPT_TRIGGERS
-        fixture = BASE.replace("[Script]", "[Script]\n" + "\n".join(TAOBAO_CANONICAL_SCRIPT_TRIGGERS))
+        fixture = BASE.replace("[Script]", "[Script]\n" + "\n".join(TAOBAO_CANONICAL_SCRIPT_TRIGGERS) + "\n" + TAOBAO_REDUNDANT_SCRIPT_TRIGGERS[0])
         with self.assertRaisesRegex(ValueError, "Taobao splash script trigger inventory changed"):
             apply(fixture)
 
