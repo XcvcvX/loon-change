@@ -2413,14 +2413,18 @@ def _validate_response_json_delete_batch_scope(lines, allowed_rules):
         "football-portal/diff2/batch",
         "mobile-playpage/playpage/tabs/v2",
     )
+    active_markers = {
+        marker for marker in matcher_markers
+        if any(marker in re.sub(r"\\+/", "/", rule) for rule in allowed_rules if rule in lines)
+    }
     for line in lines:
         value = line.strip()
         normalized = re.sub(r"\\+/", "/", value)
-        if any(marker in normalized for marker in matcher_markers) and (
+        if any(marker in normalized for marker in active_markers) and (
             "response.json." in value and value not in allowed_rules
         ):
             raise ValueError(
-                "Same-matcher response JSON delete changed; refusing unreviewed consolidation"
+                f"Same-matcher response JSON delete changed; refusing unreviewed consolidation: {value[:220]}"
             )
 
 
