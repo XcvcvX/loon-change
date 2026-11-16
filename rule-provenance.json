@@ -114785,15 +114785,6 @@
       "status": "included"
     },
     {
-      "normalized_line": "DOMAIN-KEYWORD,bdsp.x.jd.com,REJECT",
-      "original_input_line": "DOMAIN-KEYWORD,bdsp.x.jd.com,REJECT",
-      "output_entry_index": 3403,
-      "output_line": "DOMAIN-KEYWORD,bdsp.x.jd.com,REJECT",
-      "source": "filter",
-      "source_entry_index": 1392,
-      "status": "included"
-    },
-    {
       "normalized_line": "DOMAIN-KEYWORD,biz.weibo.com,REJECT",
       "original_input_line": "DOMAIN-KEYWORD,biz.weibo.com,REJECT",
       "output_entry_index": 3404,
@@ -114857,24 +114848,6 @@
       "status": "included"
     },
     {
-      "normalized_line": "DOMAIN-KEYWORD,kepler.jd.com,REJECT",
-      "original_input_line": "DOMAIN-KEYWORD,kepler.jd.com,REJECT",
-      "output_entry_index": 3411,
-      "output_line": "DOMAIN-KEYWORD,kepler.jd.com,REJECT",
-      "source": "filter",
-      "source_entry_index": 1405,
-      "status": "included"
-    },
-    {
-      "normalized_line": "DOMAIN-KEYWORD,keplerapi.jd.com,REJECT",
-      "original_input_line": "DOMAIN-KEYWORD,keplerapi.jd.com,REJECT",
-      "output_entry_index": 3412,
-      "output_line": "DOMAIN-KEYWORD,keplerapi.jd.com,REJECT",
-      "source": "filter",
-      "source_entry_index": 1406,
-      "status": "included"
-    },
-    {
       "normalized_line": "DOMAIN-KEYWORD,log.snssdk.com,REJECT",
       "original_input_line": "DOMAIN-KEYWORD,log.snssdk.com,REJECT",
       "output_entry_index": 3413,
@@ -114899,15 +114872,6 @@
       "output_line": "DOMAIN-KEYWORD,logs.amap.com,REJECT",
       "source": "filter",
       "source_entry_index": 1409,
-      "status": "included"
-    },
-    {
-      "normalized_line": "DOMAIN-KEYWORD,mapi.m.jd.com,REJECT",
-      "original_input_line": "DOMAIN-KEYWORD,mapi.m.jd.com,REJECT",
-      "output_entry_index": 3416,
-      "output_line": "DOMAIN-KEYWORD,mapi.m.jd.com,REJECT",
-      "source": "filter",
-      "source_entry_index": 1411,
       "status": "included"
     },
     {
@@ -125006,7 +124970,7 @@
     "rewrite_output_entries": 3254,
     "rule_covered_or_duplicate_events": 2140,
     "rule_included_events": 3476,
-    "rule_output_entries": 3473,
+    "rule_output_entries": 3469,
     "rule_safety_excluded_events": 11,
     "rule_scope_adjustments": 1,
     "rule_source_events": 5627,
