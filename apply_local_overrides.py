@@ -3004,7 +3004,7 @@ def remove_identical_script_response_duplicates(lines):
             ("api-a.soulapp.cn" in normalized and ("/post/gift/list" in normalized or "/official/scene/module" in normalized))
             or ("api-chat.soulapp.cn" in normalized and "/chat/limitInfo" in normalized)
             or ("api-user.soulapp.cn" in normalized and ("/furion/position/content" in normalized or "/planet/config" in normalized))
-            or ("api-pay.soulapp.cn" in normalized and ("/vip/meet/userInfo" in normalized or "/privilege/supervip/status" in normalized))
+            or ("api-pay.soulapp.cn" in normalized and ("vip/meet/userInfo" in normalized or "privilege/supervip/status" in normalized))
             or ("post.soulapp.cn" in normalized and ("/hot/soul/rank" in normalized or "/post/homepage/guide/card" in normalized or "/post/recSquare/subTabs" in normalized))
             or ("gateway-mobile-gray.soulapp.cn" in normalized and "/mobile/app/version/queryIos" in normalized)
             or ("api-account.soulapp.cn" in normalized and "/teenager/config" in normalized)
