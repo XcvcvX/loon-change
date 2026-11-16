@@ -20,7 +20,7 @@
         "Rule": 4,
         "Script": 1
       },
-      "upstream_commit": "6ba781e550a7f560b3eb1924bef124ab74573a22",
+      "upstream_commit": "e15d92afe27afd9ef1f9107e1a55263416d1357b",
       "upstream_path": "Modules/Loon/zirawell/Beta/alipayAdBlock.lpx",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
@@ -59,13 +59,13 @@
         "Rule": 4,
         "Script": 13
       },
-      "upstream_commit": "6ba781e550a7f560b3eb1924bef124ab74573a22",
+      "upstream_commit": "e15d92afe27afd9ef1f9107e1a55263416d1357b",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
     "GuaZiVideoAds": {
       "bytes": 3448,
       "entries": 6,
-      "upstream_commit": "6ba781e550a7f560b3eb1924bef124ab74573a22",
+      "upstream_commit": "e15d92afe27afd9ef1f9107e1a55263416d1357b",
       "upstream_path": "Modules/QuantumultX/ddgksf2013/Official/GuaZiVideoAds.conf",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
@@ -183,10 +183,17 @@
       "added": [],
       "removed": [
         {
-          "line": "request if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search\\/new_hotword\\?/i then reject_dict(200)",
+          "line": "^https:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v1\\/other\\/fast reject-dict",
           "section": "rewrite",
           "sources": [
-            "amap"
+            "aoomee"
+          ]
+        },
+        {
+          "line": "^https:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v1\\/other\\/slow reject-dict",
+          "section": "rewrite",
+          "sources": [
+            "aoomee"
           ]
         }
       ]
@@ -206,7 +213,7 @@
     "rewrite": {
       "action_changed": 0,
       "added": 0,
-      "removed": 1
+      "removed": 2
     },
     "rule": {
       "action_changed": 0,
@@ -218,7 +225,23 @@
       "added": 0,
       "removed": 0
     },
-    "total_changes": 1
+    "total_changes": 2
   },
-  "upstream_revision_changes": []
+  "upstream_revision_changes": [
+    {
+      "current_commit": "e15d92afe27afd9ef1f9107e1a55263416d1357b",
+      "previous_commit": "6ba781e550a7f560b3eb1924bef124ab74573a22",
+      "source": "AlipayAdBlock"
+    },
+    {
+      "current_commit": "e15d92afe27afd9ef1f9107e1a55263416d1357b",
+      "previous_commit": "6ba781e550a7f560b3eb1924bef124ab74573a22",
+      "source": "Amap"
+    },
+    {
+      "current_commit": "e15d92afe27afd9ef1f9107e1a55263416d1357b",
+      "previous_commit": "6ba781e550a7f560b3eb1924bef124ab74573a22",
+      "source": "GuaZiVideoAds"
+    }
+  ]
 }
