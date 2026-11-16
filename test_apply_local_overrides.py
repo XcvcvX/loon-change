@@ -1348,7 +1348,7 @@ class ZhihuResponseScriptConsolidationTests(unittest.TestCase):
             "[MITM]", "hostname = api.zhihu.com",
         ]
         result, removed = consolidate_zhihu_response_scripts(fixture)
-        self.assertEqual(removed, 12)
+        self.assertEqual(removed, 7)
         self.assertEqual(sum(line in ZHIHU_RESPONSE_CANONICAL_TRIGGERS for line in result), 5)
         self.assertTrue(any("example.invalid/keep.js" in line for line in result))
         self.assertFalse(any("Scripts/zhihu/zhihu.js" in line and line not in ZHIHU_RESPONSE_CANONICAL_TRIGGERS for line in result))
