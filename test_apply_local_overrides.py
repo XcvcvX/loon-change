@@ -713,8 +713,10 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
             DIDI_OTA_KEEP_SCRIPT, DIDI_PRESALE_KEEP_SCRIPT,
             apply_didi_script_and_homepage_cleanup,
         )
+        from apply_local_overrides import DIDI_CORE_NATIVE_RULE_CURRENT, DIDI_USERCENTER_LAYOUT_NATIVE_PREFIX
         fixture = [
             "[Argument]", "[Rule]", "[Rewrite]",
+            DIDI_CORE_NATIVE_RULE_CURRENT, DIDI_USERCENTER_LAYOUT_NATIVE_PREFIX + "[]",
             "[Script]", DIDIADS_NOOP_SCRIPT_RULES[0].replace('tag="滴滴出行"', 'tag="changed"'),
             DIDIADS_COMMON_V5_SCRIPT, DIDI_OTA_KEEP_SCRIPT, DIDI_PRESALE_KEEP_SCRIPT, "[MITM]",
         ]
