@@ -2787,7 +2787,7 @@ def remove_identical_script_response_duplicates(lines):
         is_target = (
             section == "Script"
             and has_script_action
-            and ("api.rr.tv" in normalized or soul_endpoint or ("reddit.com" in normalized and "gql" in normalized))
+            and ("api.rr.tv" in normalized or (soul_endpoint and "soul_qx.js" not in line) or ("reddit.com" in normalized and "gql" in normalized))
         )
         if not is_target:
             output.append(line)
