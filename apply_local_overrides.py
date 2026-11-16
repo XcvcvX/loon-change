@@ -2365,7 +2365,7 @@ TUHU_SCRIPT_CANONICAL_TRIGGERS = (
 
 def remove_duplicate_tuhu_scripts(lines):
     """Keep the newer case-insensitive response triggers; remove legacy duplicates."""
-    normalize = lambda value: re.sub(r"\\\\+", "", value.strip())
+    normalize = lambda value: re.sub(r"\\+", "", value.strip())
     canonical = {normalize(item): item for item in TUHU_SCRIPT_CANONICAL_TRIGGERS}
     legacy = {normalize(item): item for item in TUHU_SCRIPT_LEGACY_TRIGGERS}
     counts = {item: 0 for item in (*TUHU_SCRIPT_CANONICAL_TRIGGERS, *TUHU_SCRIPT_LEGACY_TRIGGERS)}
