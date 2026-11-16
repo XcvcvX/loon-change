@@ -3010,6 +3010,15 @@ XHS_SCRIPT_TRIGGER_LINES = frozenset((
     "response if ${url} ~= /^https:\\/\\/edith\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/v1\\/interaction\\/comment\\/video\\/download\\?/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=xhs_enable, tag=\"小红书评论区去水印下载\", timeout=60, requires_body=true",
 ))
 XHS_ARGUMENT_LINE = "xhs_enable = switch,true,false,tag=小红书-脚本开关"
+XHS_WATERMARK_REQUIRED_RULES = frozenset((
+    r"^https?:\/\/ci\.xiaohongshu\.com\/system_config\/watermark reject-img",
+    r"request if ${url} ~= /^https?:\/\/ci\.(xiaohongshu|rnote)\.com\/system_config\/watermark/ then reject_img(200)",
+))
+XHS_WATERMARK_OPTIONAL_RULES = frozenset((
+    r"^https:\/\/ci\.xiaohongshu\.com\/system_config\/watermark reject-img",
+))
+XHS_WATERMARK_IMAGE_RULES = XHS_WATERMARK_REQUIRED_RULES | XHS_WATERMARK_OPTIONAL_RULES
+
 XHS_V3_VIDEO_AD_ONLY_RULE = r"""^https:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/v3\/note\/videofeed response-body-json-jq '. as $o | try (if (.data|type)=="array" then .data|=map(select(if type=="object" then ((.model_type=="note") and (has("ad")|not)) else false end)) else . end) catch $o'"""
 XHS_V4_VIDEO_AD_ONLY_RULE = r"""^https:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/v4\/note\/videofeed response-body-json-jq '. as $o | try (if (.data|type)=="array" then .data|=map(select(if type=="object" then ((.model_type=="note") and (has("ad")|not)) else false end)) else . end) catch $o'"""
 
@@ -3023,6 +3032,7 @@ def optimize_xiaohongshu_response_cost(lines):
     rewrite_counts = {"imagefeed": 0, "v2_feed": 0, "v3_video": 0, "v4_video": 0,
                       "comment_list": 0, "watermark_image": 0}
     rewrite_actions = {}
+    watermark_rules = set()
 
     for line in original:
         stripped = line.strip()
@@ -3039,6 +3049,7 @@ def optimize_xiaohongshu_response_cost(lines):
                     and "/system_config/watermark" in normalized
                     and ("reject-img" in stripped or "reject_img(200)" in stripped)):
                 rewrite_counts["watermark_image"] += 1
+                watermark_rules.add(stripped)
                 rewrite_actions[stripped] = "remove"
             elif "xiaohongshu" in normalized and "response-body-json-jq" in stripped:
                 if "/v1/note/imagefeed" in normalized:
@@ -3066,8 +3077,13 @@ def optimize_xiaohongshu_response_cost(lines):
     if argument_count != 1:
         return original, 0
     expected = {"imagefeed": 1, "v2_feed": 1, "v3_video": 1, "v4_video": 1,
-                "comment_list": 1, "watermark_image": 3}
-    if rewrite_counts != expected or any(action == "invalid" for action in rewrite_actions.values()):
+                "comment_list": 1}
+    if (any(rewrite_counts[key] != count for key, count in expected.items())
+            or not XHS_WATERMARK_REQUIRED_RULES.issubset(watermark_rules)
+            or not watermark_rules.issubset(XHS_WATERMARK_IMAGE_RULES)
+            or rewrite_counts["watermark_image"] != len(watermark_rules)
+            or len(watermark_rules) not in (2, 3)
+            or any(action == "invalid" for action in rewrite_actions.values())):
         return original, 0
     if sum(action == "v4" for action in rewrite_actions.values()) != 1:
         return original, 0
