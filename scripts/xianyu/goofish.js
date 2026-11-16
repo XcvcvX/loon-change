@@ -1,0 +1,148 @@
+// Consolidated Xianyu response cleanup.
+// Combines the overlapping R-Store and ishowshu goofish handlers so each
+// response is parsed once while preserving the previously configured filters.
+function main() {
+  const url = ($request && $request.url) || "";
+  const body = $response && $response.body;
+  if (!body) return $done({});
+
+  let obj;
+  try {
+    obj = JSON.parse(body);
+  } catch (error) {
+    console.log("Goofish: invalid JSON, leave response unchanged");
+    return $done({});
+  }
+
+  const data = obj && obj.data;
+
+  if (url.includes("/mtop.taobao.idlehome.home.nextfresh")) {
+    if (data && typeof data === "object") {
+      // R-Store: remove homepage widgets and banner payloads.
+      delete data.widgetReturnDO;
+      delete data.bannerReturnDO;
+
+      // R-Store + ishowshu: retain the same intersection of feed filters.
+      if (Array.isArray(data.sections)) {
+        const excludedTemplates = new Set([
+          "fish_home_yunying_card_d3",
+          "idlefish_seafood_market",
+          "fish_home_chat_room"
+        ]);
+        data.sections = data.sections.filter(section => {
+          if (!section || typeof section !== "object") return false;
+          const sectionData = section.data;
+          if (sectionData && (sectionData.bizType === "AD" || sectionData.bizType === "homepage")) {
+            return false;
+          }
+          const templateName = section.template && section.template.name;
+          if (excludedTemplates.has(templateName)) return false;
+          return !!(sectionData && sectionData.cardTypeValue === "Item");
+        });
+      }
+
+      // ishowshu's existing handling of the newer top icon menu.
+      data.homeTopList = [];
+    }
+  }
+
+  if (url.includes("/mtop.taobao.idle.local.home")) {
+    if (data && Array.isArray(data.sections)) {
+      data.sections = data.sections.filter(section =>
+        !(section && section.data && section.data.bizType === "AD")
+      );
+    }
+  }
+
+  if (url.includes("/mtop.taobao.idle.home.whale.modulet")) {
+    if (data && data.container && typeof data.container === "object") {
+      delete data.container.sections;
+    }
+  }
+
+  if (url.includes("/mtop.idle.user.page.my.adapter")) {
+    if (data && data.container && Array.isArray(data.container.sections)) {
+      const keepIndexes = new Set(["0", "1", "3"]);
+      data.container.sections = data.container.sections.filter(item =>
+        item && keepIndexes.has(String(item.index))
+      );
+    }
+    if (data && typeof data === "object") data.ability = [];
+  }
+
+  if (url.includes("/mtop.taobao.idlehome.home.circle.list")) {
+    if (data && Array.isArray(data.circleList)) {
+      data.circleList = data.circleList.filter(circle =>
+        circle && (circle.circleId === "1" || circle.circleId === "2")
+      );
+    }
+
+    const filterHeadList = list => Array.isArray(list)
+      ? list.filter(item => item && (item.bizCode === "main" || item.bizCode === "recycle"))
+      : list;
+
+    if (data && data.next && Array.isArray(data.next.headList)) {
+      data.next.headList = filterHeadList(data.next.headList);
+      const recycle = data.next.headList.find(item => item.bizCode === "recycle");
+      if (recycle) {
+        if (!recycle.showInfo || typeof recycle.showInfo !== "object") recycle.showInfo = {};
+        recycle.showInfo.rightTagImage = {};
+      }
+    }
+
+    if (data && Array.isArray(data.headList)) {
+      data.headList = filterHeadList(data.headList);
+      const recycle = data.headList.find(item => item.bizCode === "recycle");
+      if (recycle) {
+        if (!recycle.showInfo || typeof recycle.showInfo !== "object") recycle.showInfo = {};
+        recycle.showInfo.rightTagImage = {};
+      }
+    }
+  }
+
+  if (url.includes("/mtop.taobao.idle.local.nearby.itemdetail.enter")) {
+    if (data && typeof data === "object") {
+      data.targetUrl = "";
+      if (data.trackParams && typeof data.trackParams === "object") data.trackParams.itemIds = "";
+      data.nearbyItemInfoList = [];
+      data.name = "";
+      data.desc = "";
+      data.poiName = "";
+    }
+  }
+
+  if (url.includes("/mtop.taobao.idlemtopsearch.search")) {
+    if (data && Array.isArray(data.resultList)) {
+      const excludedTemplates = new Set([
+        "idlefish_search_card_category_select",
+        "idlefish_search_spu_market_publish"
+      ]);
+      data.resultList = data.resultList.filter(element => {
+        if (!element || typeof element !== "object") return false;
+        const exContent = element.data && element.data.item &&
+          element.data.item.main && element.data.item.main.exContent;
+        if (exContent && (exContent.isAliMaMaAD === true || exContent.isAliMaMaAD === "true")) {
+          return false;
+        }
+        const templateName = element.data && element.data.template && element.data.template.name;
+        return !excludedTemplates.has(templateName);
+      });
+    }
+    if (data && typeof data === "object") {
+      delete data.resultPrefixBar;
+      if (Array.isArray(data.topList)) data.topList = [];
+    }
+  }
+
+  if (url.includes("/mtop.taobao.idle.local.flow.plat.section")) {
+    const components = data && data.data && data.data.components;
+    if (Array.isArray(components)) {
+      data.data.components = components.filter(item =>
+        item && item.key !== "fish_home_activity_enter_cardV1"
+      );
+    }
+  }
+
+  return $done({ body: JSON.stringify(obj) });
+}
+main();

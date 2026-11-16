@@ -580,6 +580,14 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 新增测试覆盖精确去重、无关小程序触发器保留、触发器漂移、缺失、重复及幂等性。
 
 
+## 第八阶段第三十批：闲鱼首页、信息流与脚本触发专项审计
+
+- R-Store 与 ishowshu 的闲鱼脚本在首页 nextfresh、本地首页等接口上重复触发；同一 ishowshu 脚本还同时以 response-script 与 http-response 两种语法挂载。将 17 个上游触发器收敛为 8 个仓库内本地触发器，减少同一响应重复启动脚本。
+- 新本地 goofish.js 合并两份上游脚本在 nextfresh、本地首页、whale 模块、个人主页、频道菜单、周边商品、搜索结果和同城页的既有处理；JSON 解析增加异常保护，字段和数组均做类型保护。
+- 移除 8 条与新版 response.json.jq 完全重复的旧 response-body-json-jq 规则；另移除 widget.refresh 中会清空整个 homeTopList 的旧规则，让新版规则保留 kingkongDo 顶部入口；trade.full.info 旧规则被新版组件 allowlist 完全覆盖，也不再重复解析。
+- 移除 5 条被更宽、同动作 reject-dict 规则覆盖的 HTTPS 版本子集；保留状态码、响应体类型、协议范围不同的规则，以及交易订单渲染、搜索标签等没有等价覆盖的规则。
+- 不改闲鱼登录、聊天、商品发布、支付、订单核心接口；不清理搜索/推荐主接口整体数据。覆盖器精确核对触发器和规则库存，未知漂移、缺失、重复时 fail-closed，并新增幂等测试。
+
 ## 第八阶段第二十九批：淘宝首页、开屏与信息流子集规则审计
 
 - 淘宝首页/开屏：保留 HTTP 与 HTTPS 覆盖范围，移除已被同动作 HTTPS 综合规则覆盖的 `wireless.home.newface`、`wireless.home.splash` 子集规则；保留旧版 HTTP 入口规则。

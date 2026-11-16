@@ -626,6 +626,70 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
                 TAOBAO_FLIGGY_HTTPS_REDUNDANT, TAOBAO_FLIGGY_HTTPS_REDUNDANT,
             ])
 
+    def test_consolidates_goofish_scripts_to_one_local_trigger_per_endpoint(self):
+        from apply_local_overrides import (
+            GOOFISH_CANONICAL_SCRIPT_TRIGGERS, GOOFISH_REDUNDANT_SCRIPT_TRIGGERS,
+            consolidate_goofish_script_triggers,
+        )
+        unrelated = 'response if ${url} ~= /example.com/ then script("https://example.invalid/keep.js")'
+        fixture = ["[Script]", *GOOFISH_REDUNDANT_SCRIPT_TRIGGERS, unrelated, "[MITM]"]
+        result, removed = consolidate_goofish_script_triggers(fixture)
+        self.assertEqual(removed, len(GOOFISH_REDUNDANT_SCRIPT_TRIGGERS))
+        script = result[result.index("[Script]") + 1:result.index("[MITM]")]
+        for trigger in GOOFISH_CANONICAL_SCRIPT_TRIGGERS:
+            self.assertEqual(script.count(trigger), 1)
+        for trigger in GOOFISH_REDUNDANT_SCRIPT_TRIGGERS:
+            self.assertNotIn(trigger, script)
+        self.assertIn(unrelated, script)
+        self.assertEqual(consolidate_goofish_script_triggers(result)[1], 0)
+
+    def test_goofish_script_consolidation_fails_closed_on_drift_missing_or_duplicate_triggers(self):
+        from apply_local_overrides import (
+            GOOFISH_REDUNDANT_SCRIPT_TRIGGERS, consolidate_goofish_script_triggers,
+        )
+        changed = GOOFISH_REDUNDANT_SCRIPT_TRIGGERS[0].replace("requires-body=true", "requires-body=false")
+        with self.assertRaisesRegex(ValueError, "inventory changed"):
+            consolidate_goofish_script_triggers(["[Script]", *GOOFISH_REDUNDANT_SCRIPT_TRIGGERS[1:], changed])
+        with self.assertRaisesRegex(ValueError, "inventory incomplete"):
+            consolidate_goofish_script_triggers(["[Script]", *GOOFISH_REDUNDANT_SCRIPT_TRIGGERS[:-1]])
+        with self.assertRaisesRegex(ValueError, "duplicate redundant Goofish"):
+            consolidate_goofish_script_triggers(["[Script]", *GOOFISH_REDUNDANT_SCRIPT_TRIGGERS,
+                                                 GOOFISH_REDUNDANT_SCRIPT_TRIGGERS[0]])
+
+    def test_removes_only_xianyu_legacy_json_and_strict_subset_rules(self):
+        from apply_local_overrides import (
+            XIAN_YU_REWRITE_PAIRS, XIAN_YU_REQUEST_SUBSET_PAIRS,
+            remove_redundant_xianyu_rewrite_rules,
+        )
+        unrelated = r"^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.trade\.order\.render\/ response-body-json-jq 'del(.data.unrelated)'"
+        fixture = ["[Rewrite]"]
+        for redundant, canonical in (*XIAN_YU_REWRITE_PAIRS, *XIAN_YU_REQUEST_SUBSET_PAIRS):
+            fixture.extend([redundant, canonical])
+        fixture.extend([unrelated, "[Script]"])
+        result, removed = remove_redundant_xianyu_rewrite_rules(fixture)
+        self.assertEqual(removed, len(XIAN_YU_REWRITE_PAIRS) + len(XIAN_YU_REQUEST_SUBSET_PAIRS))
+        for redundant, canonical in (*XIAN_YU_REWRITE_PAIRS, *XIAN_YU_REQUEST_SUBSET_PAIRS):
+            self.assertIn(canonical, result)
+            self.assertNotIn(redundant, result)
+        self.assertIn(unrelated, result)
+        self.assertEqual(remove_redundant_xianyu_rewrite_rules(result)[1], 0)
+
+    def test_xianyu_rewrite_cleanup_fails_closed_on_drift_missing_cover_or_duplicate(self):
+        from apply_local_overrides import (
+            XIAN_YU_REWRITE_PAIRS, XIAN_YU_REQUEST_SUBSET_PAIRS,
+            remove_redundant_xianyu_rewrite_rules,
+        )
+        redundant, canonical = XIAN_YU_REWRITE_PAIRS[0]
+        with self.assertRaisesRegex(ValueError, "inventory changed"):
+            remove_redundant_xianyu_rewrite_rules(["[Rewrite]", redundant.replace("del(.data)", "del(.data.foo)")])
+        with self.assertRaisesRegex(ValueError, "covering rewrite missing"):
+            remove_redundant_xianyu_rewrite_rules(["[Rewrite]", redundant])
+        redundant, canonical = XIAN_YU_REQUEST_SUBSET_PAIRS[0]
+        with self.assertRaisesRegex(ValueError, "covering rewrite missing"):
+            remove_redundant_xianyu_rewrite_rules(["[Rewrite]", redundant])
+        with self.assertRaisesRegex(ValueError, "duplicate Xianyu rewrite"):
+            remove_redundant_xianyu_rewrite_rules(["[Rewrite]", redundant, redundant, canonical])
+
     def test_removes_duplicate_taobao_splash_scripts_and_keeps_canonical_rstore_triggers(self):
         from apply_local_overrides import (
             TAOBAO_CANONICAL_SCRIPT_TRIGGERS, TAOBAO_REDUNDANT_SCRIPT_TRIGGERS,
