@@ -69,8 +69,8 @@ def remove_duplicate_peopleapp_home_ad_rules(lines):
         if value.startswith("request if ${url}") and "peopleapp" in value and "HomeApi" in value and ("adv" in value or "getAdvertImage" in value):
             if value not in counts:
                 raise ValueError("PeopleApp homepage ad rule inventory changed; refusing cleanup")
-            counts[value] += 1
-            if counts[value] > 1:
+            counts[(section, value)] += 1
+            if counts[(section, value)] > 1:
                 raise ValueError("duplicate PeopleApp homepage ad rule; refusing ambiguous cleanup")
 
     canonical_count, duplicate_count = (counts[rule] for rule in PEOPLEAPP_HOME_AD_DUPLICATE_RULES)
@@ -1748,7 +1748,7 @@ def remove_douyin_content_cdn_overblocks(lines):
     """Remove host-wide/content-path CDN blocks while retaining explicit ad paths."""
     section = ""
     output = []
-    counts = {rule: 0 for _, rule in DOUYIN_CONTENT_CDN_OVERBLOCKS}
+    counts = {item: 0 for item in DOUYIN_CONTENT_CDN_OVERBLOCKS}
     saw_target = False
     unknown_overblocks = []
     normalized_rewrites = []
@@ -1759,7 +1759,7 @@ def remove_douyin_content_cdn_overblocks(lines):
             output.append(line)
             continue
         value = line.strip()
-        normalized = value.replace("\\", "")
+        normalized = value.replace(chr(92), "")
         if section == "Rule" and value:
             parts = [part.strip() for part in value.split(",")]
             if len(parts) >= 2 and parts[0].upper() in ("DOMAIN", "DOMAIN-SUFFIX", "DOMAIN-KEYWORD") and parts[1].lower() in ("p3.pstatp.com", "video-cn.snssdk.com"):
@@ -1774,7 +1774,7 @@ def remove_douyin_content_cdn_overblocks(lines):
         if section == "Rewrite":
             if "pstatp.com" in normalized or "snssdk.com" in normalized:
                 normalized_rewrites.append(normalized)
-            if "pstatp.com/origin" in normalized and "reject(404)" in normalized and (section, value) not in counts:
+            if "pstatp.com/origin" in normalized and "reject(404)" in normalized and (section, value) not in DOUYIN_CONTENT_CDN_OVERBLOCKS:
                 saw_target = True
                 unknown_overblocks.append(value)
             if (section, value) in counts:
