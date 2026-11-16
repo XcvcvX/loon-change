@@ -66,6 +66,8 @@ class FilterConverterTests(unittest.TestCase):
                 self.assertIn("IP-CIDR,119.29.29.0/24,REJECT,no-resolve",
                               rule_lines)
                 self.assertIn("DOMAIN-SUFFIX,ads.example.com,REJECT", output)
+                self.assertIn("dig.bdurl.net（字节 HTTPDNS", output)
+                self.assertIn("webcast-open.douyin.com（直播推荐房间列表接口", output)
                 rules_only = [line.strip() for line in output.splitlines()
                               if line.strip() and not line.lstrip().startswith("#")]
                 self.assertNotIn("DOMAIN,toutiao-frontier.snssdk.com,REJECT", rules_only)
