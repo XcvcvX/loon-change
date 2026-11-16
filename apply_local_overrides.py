@@ -234,7 +234,7 @@ def remove_gaoding_resource_scripts(lines):
 
 
 RRTV_ADGETALL_SCRIPT_TRIGGER = r"http-response ^https?:\\/\\/api\\.rr\\.tv\\/ad\\/getAll script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/rrtv.js,tag=RRTV-4,requires-body=true"
-RRTV_ADGETALL_NATIVE_RULE = r'response if \${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/ad\\/getAll/ then response.json.jq(".data.adList = []")'
+RRTV_ADGETALL_NATIVE_RULE = r'response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/ad\\/getAll/ then response.json.jq(".data.adList = []")'
 
 
 def remove_rrtv_adgetall_script(lines):
