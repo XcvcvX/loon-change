@@ -17,6 +17,74 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
 """
 
 class LocalOverrideTests(unittest.TestCase):
+
+    def test_scopes_taobao_ossgw_block_to_ad_creatives_only(self):
+        from apply_local_overrides import (
+            TAOBAO_OSS_BROAD_DOMAIN_RULE,
+            TAOBAO_OSS_LEGACY_CREATIVE_RULE,
+            TAOBAO_OSS_SCOPED_CREATIVE_RULE,
+        )
+        base = """#!name=test
+[Rule]
+DOMAIN,ossgw.alicdn.com,REJECT
+DOMAIN,ut.taobao.com,REJECT
+[Rewrite]
+^https?:\\/\\/ossgw.alicdn.com\\/creatives-assets\\/image\\/ reject-200
+^https?:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.film\\.mtopadvertiseapi\\.queryadvertise reject-dict
+[Script]
+[MITM]
+hostname = ossgw.alicdn.com, acs.m.taobao.com
+"""
+        result = apply(base)
+        rule_section = result.split("[Rule]", 1)[1].split("[Rewrite]", 1)[0]
+        rewrite_section = result.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
+        self.assertNotIn(TAOBAO_OSS_BROAD_DOMAIN_RULE, rule_section)
+        self.assertNotIn(TAOBAO_OSS_LEGACY_CREATIVE_RULE, rewrite_section)
+        self.assertEqual(rewrite_section.count(TAOBAO_OSS_SCOPED_CREATIVE_RULE), 1)
+        self.assertIn("DOMAIN,ut.taobao.com,REJECT", rule_section)
+        self.assertIn("acs\\\\.m\\\\.taobao", rewrite_section)
+        self.assertIn("ossgw.alicdn.com", result.split("[MITM]", 1)[1])
+        self.assertEqual(apply(result), result)
+
+    def test_taobao_oss_scope_rejects_broad_rule_without_path_replacement(self):
+        base = """#!name=test
+[Rule]
+DOMAIN,ossgw.alicdn.com,REJECT
+[Rewrite]
+^https?:\\/\\/other\\.example reject
+[Script]
+[MITM]
+hostname = ossgw.alicdn.com
+"""
+        with self.assertRaises(ValueError):
+            apply(base)
+
+    def test_taobao_oss_scope_rejects_unreviewed_domain_rule_variant(self):
+        base = """#!name=test
+[Rule]
+DOMAIN-SUFFIX,ossgw.alicdn.com,REJECT
+[Rewrite]
+^https?:\\/\\/ossgw.alicdn.com\\/creatives-assets\\/image\\/ reject-200
+[Script]
+[MITM]
+hostname = ossgw.alicdn.com
+"""
+        with self.assertRaises(ValueError):
+            apply(base)
+
+    def test_taobao_oss_scope_requires_existing_mitm_hostname(self):
+        base = """#!name=test
+[Rule]
+DOMAIN,ossgw.alicdn.com,REJECT
+[Rewrite]
+^https?:\\/\\/ossgw.alicdn.com\\/creatives-assets\\/image\\/ reject-200
+[Script]
+[MITM]
+hostname = acs.m.taobao.com
+"""
+        with self.assertRaises(ValueError):
+            apply(base)
+
     def test_removes_pr129_hellobike_integration_and_preserves_existing_hosts(self):
         result = apply(BASE)
         self.assertIn(RULE, result)
