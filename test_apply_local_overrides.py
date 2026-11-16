@@ -1434,7 +1434,7 @@ class DouyinContentCdnScopeTests(unittest.TestCase):
         for _, rule in self.overblocks:
             self.assertNotIn(rule, result)
         for marker in self.markers:
-            self.assertTrue(any(marker in line.replace("\\\\", "") for line in result))
+            self.assertTrue(any(marker in line.replace(chr(92), "") for line in result))
         self.assertIn("DOMAIN-SUFFIX,pangolin-sdk-toutiao.com,REJECT", result)
         self.assertEqual(remove_douyin_content_cdn_overblocks(result), (result, 0))
 
@@ -1446,7 +1446,9 @@ class DouyinContentCdnScopeTests(unittest.TestCase):
         duplicate = self.base[:self.base.index("[Rewrite]")] + [self.overblocks[0][1]] + self.base[self.base.index("[Rewrite]"): ]
         with self.assertRaisesRegex(ValueError, "duplicate Douyin content CDN"):
             remove_douyin_content_cdn_overblocks(duplicate)
-        unknown = self.base[:self.base.index("[Rewrite]")] + ["request if ${url} ~= /^https?:\\/\\/p9\\.pstatp\\.com\\/origin/ then reject(404)"] + self.base[self.base.index("[Rewrite]"): ]
+        rewrite_index = self.base.index("[Rewrite]")
+        unknown_rule = self.overblocks[2][1].replace("p(b)?", "p9")
+        unknown = self.base[:rewrite_index + 1] + [unknown_rule] + self.base[rewrite_index + 1:]
         with self.assertRaisesRegex(ValueError, "inventory changed"):
             remove_douyin_content_cdn_overblocks(unknown)
 
