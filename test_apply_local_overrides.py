@@ -1980,6 +1980,79 @@ class ZhihuMultiActionRewriteConsolidationTests(unittest.TestCase):
 
 
 
+
+class ResponseJsonDeleteBatchTests(unittest.TestCase):
+    def setUp(self):
+        from apply_local_overrides import (
+            KUAISHOU_STARTUP_SPLIT_DELETE_REWRITE,
+            KUAISHOU_STARTUP_BATCHED_DELETE_REWRITE,
+            XIMALAYA_FOOTBALL_SPLIT_DELETE_REWRITE,
+            XIMALAYA_FOOTBALL_BATCHED_DELETE_REWRITE,
+            XIMALAYA_PLAYPAGE_SPLIT_DELETE_REWRITE,
+            XIMALAYA_PLAYPAGE_BATCHED_DELETE_REWRITE,
+        )
+        self.original = (
+            KUAISHOU_STARTUP_SPLIT_DELETE_REWRITE,
+            XIMALAYA_FOOTBALL_SPLIT_DELETE_REWRITE,
+            XIMALAYA_PLAYPAGE_SPLIT_DELETE_REWRITE,
+        )
+        self.batched = (
+            KUAISHOU_STARTUP_BATCHED_DELETE_REWRITE,
+            XIMALAYA_FOOTBALL_BATCHED_DELETE_REWRITE,
+            XIMALAYA_PLAYPAGE_BATCHED_DELETE_REWRITE,
+        )
+        self.base = (
+            "#!name=response-delete-batch-test\n[Rule]\n[Rewrite]\n"
+            + "\n".join(self.original)
+            + "\n^https:\\/\\/unrelated\\.example\\/keep reject\n"
+            + "[Script]\n[MITM]\nhostname = apissl.gifshow.com, mobile.ximalaya.com, "
+            "mobwsa.ximalaya.com, unrelated.example, creditcard.bankcomm.cn, creditcard.bankcomm.com, "
+            "creditcardapp.bankcomm.cn, creditcardapp.bankcomm.com\n"
+        )
+
+    def test_batches_only_the_exact_delete_operations_and_is_idempotent(self):
+        result = apply(self.base)
+        for rule in self.original:
+            self.assertNotIn(rule, result)
+        for rule in self.batched:
+            self.assertEqual(result.count(rule), 1)
+        self.assertIn("^https:\\/\\/unrelated\\.example\\/keep reject", result)
+        self.assertEqual(apply(result), result)
+
+    def test_fails_closed_on_partial_or_duplicate_batched_output(self):
+        result = apply(self.base)
+        duplicate = result.replace(self.batched[0], self.batched[0] + "\n" + self.batched[0], 1)
+        with self.assertRaisesRegex(ValueError, "Response JSON delete batch output inventory changed"):
+            apply(duplicate)
+
+        partial = result.replace(self.batched[1] + "\n", "", 1)
+        with self.assertRaisesRegex(ValueError, "Response JSON delete batch output inventory changed"):
+            apply(partial)
+
+    def test_fails_closed_on_missing_duplicate_or_drifted_inventory(self):
+        missing = self.base.replace(self.original[0] + "\n", "", 1)
+        with self.assertRaisesRegex(ValueError, "Response JSON delete batch inventory changed"):
+            apply(missing)
+
+        duplicate = self.base.replace(self.original[1], self.original[1] + "\n" + self.original[1], 1)
+        with self.assertRaisesRegex(ValueError, "Response JSON delete batch inventory changed"):
+            apply(duplicate)
+
+        drifted = self.base.replace(self.original[2], self.original[2].replace("defaultResource", "default_resource"), 1)
+        with self.assertRaisesRegex(ValueError, "Response JSON delete batch inventory changed"):
+            apply(drifted)
+
+    def test_fails_closed_on_unknown_same_matcher_response_action(self):
+        unknown = self.base.replace(
+            self.original[0],
+            self.original[0] + "\n" +
+            r"""response if ${url} ~= /^https:\/\/(apissl|az2-api(-js|-idc)?)\.(gifshow|ksapisrv)\.com\/rest\/system\/startup\?/ then response.json.delete("newAdField")""",
+            1,
+        )
+        with self.assertRaisesRegex(ValueError, "Same-matcher response JSON delete changed"):
+            apply(unknown)
+
+
 class XimalayaHomepageJsonConsolidationTests(unittest.TestCase):
     def setUp(self):
         from apply_local_overrides import (
@@ -2331,6 +2404,11 @@ class CnftpDuplicateScriptTests(unittest.TestCase):
         clean = ["[Script]", *self.keep, "[MITM]"]
         self.assertEqual(remove_duplicate_cnftp_scripts(clean), (clean, 0))
 
+    def test_preserves_final_inventory_with_combined_iqiyi_home_matcher(self):
+        from apply_local_overrides import CNFTP_IQIYI_HOME_COMBINED_TRIGGER, remove_duplicate_cnftp_scripts
+        clean = ["[Script]", CNFTP_IQIYI_HOME_COMBINED_TRIGGER, *self.keep[4:], "[MITM]"]
+        self.assertEqual(remove_duplicate_cnftp_scripts(clean), (clean, 0))
+
     def test_fails_closed_on_missing_duplicate_duplicate_kept_or_unknown_variant(self):
         from apply_local_overrides import remove_duplicate_cnftp_scripts
         missing = [line for line in self.fixture if line != self.remove[0]]
@@ -2400,11 +2478,16 @@ class CnftpDuplicateScriptTests(unittest.TestCase):
 
     def test_checked_in_plugin_snapshot_has_only_the_selected_handlers(self):
         from pathlib import Path
-        from apply_local_overrides import CNFTP_DUPLICATE_KEEP_TRIGGERS, CNFTP_DUPLICATE_REMOVE_TRIGGERS
+        from apply_local_overrides import (
+            CNFTP_DUPLICATE_KEEP_TRIGGERS,
+            CNFTP_DUPLICATE_REMOVE_TRIGGERS,
+            CNFTP_IQIYI_HOME_COMBINED_TRIGGER,
+        )
         plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
         for item in CNFTP_DUPLICATE_REMOVE_TRIGGERS:
             self.assertNotIn(item, plugin)
-        for item in CNFTP_DUPLICATE_KEEP_TRIGGERS:
+        self.assertEqual(plugin.count(CNFTP_IQIYI_HOME_COMBINED_TRIGGER), 1)
+        for item in CNFTP_DUPLICATE_KEEP_TRIGGERS[4:]:
             self.assertEqual(plugin.count(item), 1)
 
 

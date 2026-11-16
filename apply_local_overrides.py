@@ -2370,6 +2370,68 @@ def consolidate_zhihu_multi_action_rewrites(lines):
 
 
 
+
+# Batch same-response JSON field deletions into Loon's native array form.
+# Loon documents this as one batch instruction with the same ordered result.
+KUAISHOU_STARTUP_SPLIT_DELETE_REWRITE = r"""response if ${url} ~= /^https:\/\/(apissl|az2-api(-js|-idc)?)\.(gifshow|ksapisrv)\.com\/rest\/system\/startup\?/ then response.json.delete("reskinConfig") | response.json.delete("sidebarExSquareStyle.moreList") | response.json.delete("sidebarExSquareStyle.topList") | response.json.jq(`.sidebarExSquareStyle.commonlyUsedList |= map(select(.title == "设置" or .title == "历史记录" or .title == "草稿箱" or .title == "我的钱包" or .title == "小程序" or .title == "未成年人模式" or .title == "官方客服" or .title == "内容偏好" or .title == "离线模式" or .title == "稍后再看" or .title == "举报中心" or .title == "挂件"))`)"""
+KUAISHOU_STARTUP_BATCHED_DELETE_REWRITE = r"""response if ${url} ~= /^https:\/\/(apissl|az2-api(-js|-idc)?)\.(gifshow|ksapisrv)\.com\/rest\/system\/startup\?/ then response.json.delete(["reskinConfig", "sidebarExSquareStyle.moreList", "sidebarExSquareStyle.topList"]) | response.json.jq(`.sidebarExSquareStyle.commonlyUsedList |= map(select(.title == "设置" or .title == "历史记录" or .title == "草稿箱" or .title == "我的钱包" or .title == "小程序" or .title == "未成年人模式" or .title == "官方客服" or .title == "内容偏好" or .title == "离线模式" or .title == "稍后再看" or .title == "举报中心" or .title == "挂件"))`)"""
+
+XIMALAYA_FOOTBALL_SPLIT_DELETE_REWRITE = r"""response if ${url} ~= /^https:\/\/(mobile|mobilehera|mobwsa)\.ximalaya\.com\/football-portal\/diff2\/batch\?/ then response.json.delete("json.ad") | response.json.delete("json.toc")"""
+XIMALAYA_FOOTBALL_BATCHED_DELETE_REWRITE = r"""response if ${url} ~= /^https:\/\/(mobile|mobilehera|mobwsa)\.ximalaya\.com\/football-portal\/diff2\/batch\?/ then response.json.delete(["json.ad", "json.toc"])"""
+
+XIMALAYA_PLAYPAGE_SPLIT_DELETE_REWRITE = r"""response if ${url} ~= /^https:\/\/mobwsa\.ximalaya\.com\/mobile-playpage\/playpage\/tabs\/v2\// then response.json.delete("data.playpage.resourceMap.defaultResource") | response.json.delete("data.playpage.resourceMap.playPageTip")"""
+XIMALAYA_PLAYPAGE_BATCHED_DELETE_REWRITE = r"""response if ${url} ~= /^https:\/\/mobwsa\.ximalaya\.com\/mobile-playpage\/playpage\/tabs\/v2\// then response.json.delete(["data.playpage.resourceMap.defaultResource", "data.playpage.resourceMap.playPageTip"])"""
+
+
+def batch_same_response_json_deletes(lines):
+    """Use documented Loon batch delete syntax for three exact, source-verified matchers."""
+    replacements = {
+        KUAISHOU_STARTUP_SPLIT_DELETE_REWRITE: KUAISHOU_STARTUP_BATCHED_DELETE_REWRITE,
+        XIMALAYA_FOOTBALL_SPLIT_DELETE_REWRITE: XIMALAYA_FOOTBALL_BATCHED_DELETE_REWRITE,
+        XIMALAYA_PLAYPAGE_SPLIT_DELETE_REWRITE: XIMALAYA_PLAYPAGE_BATCHED_DELETE_REWRITE,
+    }
+    expected = tuple(replacements)
+    combined = tuple(replacements.values())
+    expected_counts = {rule: sum(line.strip() == rule for line in lines) for rule in expected}
+    combined_counts = {rule: sum(line.strip() == rule for line in lines) for rule in combined}
+
+    if not any(expected_counts.values()):
+        if not any(combined_counts.values()):
+            return list(lines), 0
+        if any(count != 1 for count in combined_counts.values()):
+            raise ValueError(
+                "Response JSON delete batch output inventory changed; refusing partial or duplicate output"
+            )
+        _validate_response_json_delete_batch_scope(lines, set(expected) | set(combined))
+        return list(lines), 0
+
+    if any(combined_counts.values()) or any(count != 1 for count in expected_counts.values()):
+        raise ValueError(
+            "Response JSON delete batch inventory changed; refusing partial, mixed, or drifted consolidation"
+        )
+
+    _validate_response_json_delete_batch_scope(lines, set(expected))
+    output = [replacements.get(line.strip(), line) for line in lines]
+    return output, len(expected)
+
+
+def _validate_response_json_delete_batch_scope(lines, allowed_rules):
+    matcher_markers = (
+        "rest/system/startup",
+        "football-portal/diff2/batch",
+        "mobile-playpage/playpage/tabs/v2",
+    )
+    for line in lines:
+        value = line.strip()
+        normalized = re.sub(r"\\+/", "/", value)
+        if any(marker in normalized for marker in matcher_markers) and (
+            "response.json." in value and value not in allowed_rules
+        ):
+            raise ValueError(
+                "Same-matcher response JSON delete changed; refusing unreviewed consolidation"
+            )
+
+
 # Ximalaya homepage response used two separate JSON transforms on the same URL.
 # Keep the deletion first, then make the optional entrance filtering failure-safe.
 XIMALAYA_HOME_DELETE_REWRITE = r"""response if ${url} ~= /^https:\/\/(mobile|mobilehera|mobwsa)\.ximalaya\.com\/mobile-user\/v\d\/homePage\// then response.json.delete("data.freeListenV2")"""
@@ -2698,15 +2760,15 @@ CNFTP_MGTV_TRIGGER_REPLACEMENTS = dict(zip(
 
 
 def remove_duplicate_cnftp_scripts(lines):
-    """Collapse duplicate video response scripts while preserving broad MGTV coverage."""
+    """Collapse duplicate video response scripts and accept the already-combined iQIYI home state."""
     remove_counts = {item: 0 for item in CNFTP_DUPLICATE_REMOVE_TRIGGERS}
     source_counts = {item: 0 for item in CNFTP_DUPLICATE_KEEP_SOURCE_TRIGGERS}
-    output_counts = {item: 0 for item in CNFTP_DUPLICATE_KEEP_TRIGGERS}
+    home_source_counts = {item: 0 for item in CNFTP_IQIYI_HOME_SOURCE_TRIGGERS}
+    output_counts = {item: 0 for item in CNFTP_DUPLICATE_KEEP_TRIGGERS[4:]}
     remove_set = set(CNFTP_DUPLICATE_REMOVE_TRIGGERS)
-    source_set = set(CNFTP_DUPLICATE_KEEP_SOURCE_TRIGGERS)
-    output_set = set(CNFTP_DUPLICATE_KEEP_TRIGGERS)
     source_mode = any(item in lines for item in remove_set)
     output, section, target_seen, removed = [], "", False, 0
+    combined_home_count = 0
 
     for line in lines:
         if line.startswith("[") and line.endswith("]"):
@@ -2741,6 +2803,18 @@ def remove_duplicate_cnftp_scripts(lines):
                 continue
             raise ValueError("video script trigger inventory changed; refusing unreviewed consolidation")
 
+        if line == CNFTP_IQIYI_HOME_COMBINED_TRIGGER:
+            combined_home_count += 1
+            if combined_home_count > 1:
+                raise ValueError("duplicate combined iQIYI home trigger; refusing ambiguous cleanup")
+            output.append(line)
+            continue
+        if line in home_source_counts:
+            home_source_counts[line] += 1
+            if home_source_counts[line] > 1:
+                raise ValueError("duplicate iQIYI home source trigger; refusing ambiguous cleanup")
+            output.append(line)
+            continue
         if line in output_counts:
             output_counts[line] += 1
             if output_counts[line] > 1:
@@ -2758,6 +2832,12 @@ def remove_duplicate_cnftp_scripts(lines):
         if not all(count == 1 for count in source_counts.values()):
             raise ValueError("video source trigger inventory incomplete; refusing partial consolidation")
         return output, removed
+
+    if combined_home_count == 1:
+        if any(home_source_counts.values()):
+            raise ValueError("mixed combined and split iQIYI home triggers; refusing ambiguous cleanup")
+    elif not all(count == 1 for count in home_source_counts.values()):
+        raise ValueError("consolidated video iQIYI home trigger inventory incomplete; refusing partial consolidation")
 
     if not all(count == 1 for count in output_counts.values()):
         raise ValueError("consolidated video trigger inventory incomplete; refusing partial consolidation")
@@ -3514,6 +3594,7 @@ def apply(text: str) -> str:
                 rewrite_lines, _ = merge_didi_fast_homepage_json_deletes(rewrite_lines)
                 rewrite_lines, _ = remove_didi_homepage_rejects_shadowing_field_cleaners(rewrite_lines)
                 rewrite_lines, _ = consolidate_ximalaya_homepage_json_rewrites(rewrite_lines)
+                rewrite_lines, _ = batch_same_response_json_deletes(rewrite_lines)
                 rewrite_lines, _ = merge_adjacent_response_json_rewrites(rewrite_lines)
                 rewrite_lines, _ = consolidate_starplucker_config_jq(rewrite_lines)
                 rewrite_lines, _ = remove_redundant_zhihu_request_rules(rewrite_lines)
@@ -3543,6 +3624,7 @@ def apply(text: str) -> str:
         rewrite_lines, _ = merge_didi_fast_homepage_json_deletes(rewrite_lines)
         rewrite_lines, _ = remove_didi_homepage_rejects_shadowing_field_cleaners(rewrite_lines)
         rewrite_lines, _ = consolidate_ximalaya_homepage_json_rewrites(rewrite_lines)
+        rewrite_lines, _ = batch_same_response_json_deletes(rewrite_lines)
         rewrite_lines, _ = merge_adjacent_response_json_rewrites(rewrite_lines)
         rewrite_lines, _ = consolidate_starplucker_config_jq(rewrite_lines)
         rewrite_lines, _ = remove_redundant_zhihu_request_rules(rewrite_lines)
