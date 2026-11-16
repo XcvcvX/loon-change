@@ -6702,7 +6702,7 @@ response if ${url} ~= /^https:\/\/(?:api|sdapi|newapi|hyperf|oldapi)\.[a-z0-9]+\
 response if ${url} ~= /^https:\/\/(?:api|sdapi|newapi|hyperf|oldapi)\.[a-z0-9]+\.com\/App\/Resource\/CommentAd\/show/ then response.json.jq(`.msg = "" | .message = "" | .data = null`)
 response if ${url} ~= /^https:\/\/(?:api|sdapi|newapi|hyperf|oldapi)\.[a-z0-9]+\.com\/App\/IndexPlay\/vodAdvertisement/ then response.json.jq(`.msg = "" | .message = "" | .data = null`)
 request if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/faas\/amap-navigation\/card-service-(?:car-end|route-plan)/i then reject_dict(200)
-response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/shield\/search_business\/process\/marketingOperationStructured\?/i then response.json.delete(["data.tipsOperationLocation", "obj.data.resourcePlacement"])
+response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/shield\/search_business\/process\/marketingOperationStructured\?/i then response.json.delete(["data.tipsOperationLocation", "data.resourcePlacement"])
 response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/shield\/search_poi\/homepage\?/i then response.json.delete("history_tags")
 request if ${url} ~= /^https:\/\/ai\.amap\.com\/v1\/ai_rec\/home_qs\?/i then reject_dict(200)
 request if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/faas\/amap-navigation\/(?:main-page-assets|main-page-aiqs|main-page-location|ridewalk-end-fc|usr-profile-fc\/homeV2)/i then reject_dict(200)
@@ -6881,20 +6881,6 @@ http-response ^https?:\/\/api\.rr\.tv\/watch\/v\d script-path=https://raw.github
 http-response ^https?:\/\/api\.rr\.tv\/user\/privilege\/list script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/rrtv.js,tag=RRTV-8,requires-body=true
 http-response ^https?:\/\/api\.rr\.tv\/user\/profile script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/rrtv.js,tag=RRTV-9,requires-body=true
 http-response ^https?:\/\/napi\.ithome\.com\/api\/(news\/index|topmenu\/getfeeds) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ithome.js,tag=ITHOME,requires-body=true
-http-response ^https?:\/\/m\d\.amap\.com\/ws\/aos\/perception\/publicTravel\/beforeNavi\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP,requires-body=true
-http-response ^https?:\/\/m\d\.amap\.com\/ws\/bus\/plan\/integrate\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-2,requires-body=true
-http-response ^https?:\/\/m\d\.amap\.com\/ws\/c3frontend\/af-(hotel|launch)\/page\/main\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-3,requires-body=true
-http-response ^https?:\/\/m\d\.amap\.com\/ws\/perception\/drive\/(?:routeInfo|routePlan) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-4,requires-body=true
-http-response ^https?:\/\/m\d\.amap\.com\/ws\/shield\/search\/(common\/coupon\/info|poi\/detail) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-5,requires-body=true
-http-response ^https?:\/\/m\d\.amap\.com\/ws\/shield\/search_business\/process\/marketingOperationStructured\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-6,requires-body=true
-http-response ^https?:\/\/m\d\.amap\.com\/ws\/shield\/search_poi\/(homepage|mps|search\/sp|sug|tips_operation_location) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-7,requires-body=true
-http-response ^https?:\/\/m\d\.amap\.com\/ws\/faas\/amap-navigation\/(?:card-service-plan-home|main-page) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-8,requires-body=true
-http-response ^https?:\/\/m\d\.amap\.com\/ws\/shield\/frogserver\/aocs\/updatable\/1\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-9,requires-body=true
-http-response ^https?:\/\/m\d\.amap\.com\/ws\/shield\/dsp\/profile\/index\/nodefaasv\d\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-10,requires-body=true
-http-response ^https?:\/\/m\d\.amap\.com\/ws\/shield\/search\/nearbyrec_smart\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-11,requires-body=true
-http-response ^https?:\/\/m\d-zb\.amap\.com\/ws\/boss\/(car\/order\/content_info|order_web\/friendly_information) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-12,requires-body=true
-http-response ^https?:\/\/m\d-zb\.amap\.com\/ws\/promotion-web\/resource(\/home)?\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-13,requires-body=true
-http-response ^https?:\/\/m\d-zb\.amap\.com\/ws\/sharedtrip\/taxi\/order_detail_car_tips\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-14,requires-body=true
 http-response ^https?:\/\/api\.zhihu\.com\/commercial_api\/app_float_layer script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU,requires-body=true
 http-response ^https?:\/\/api\.zhihu\.com\/(moments_v\d|topstory\/recommend(_v\d)?) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU-2,requires-body=true
 http-response ^https?:\/\/api\.zhihu\.com\/v2\/topstory\/hot-lists\/everyone-seeing\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU-3,requires-body=true
@@ -7387,25 +7373,6 @@ response if ${url} ~= /^https:\/\/m\.airchina\.com\.cn\/airchina\/gateway\/v\d(\
 response if ${url} ~= /^https?:\/\/app\.zhuanzhuan\.com\/zz\/transfer\/getmyprofilev3/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhuanzhuan/zhuanzhuan.js") with enable=vrvr_enable, tag="转转", timeout=60, requires_body=true
 http-request ^https?:\/\/j5\.dfcfw\.com\/WG\/conf\/ script-path=https://cdn.jsdelivr.net/gh/Thelongdarkorg/loon-plugins@4208a50239b4d6bf3467db401613c918fbba0ae8/scripts/tt_splash_1x1.js, tag=天天基金开屏图替换
 http-request ^https?:\/\/ad\.12306\.cn\/ad\/ser\/getAdList script-path=https://raw.githubusercontent.com/kokoryh/Script/master/js/12306.js, requires-body=true, timeout=60, tag=开屏广告
-http-response ^https:\/\/m5\.amap\.com\/ws\/aos\/perception\/publicTravel\/beforeNavi\? script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/amap.js, requires-body = true, tag = 路线规划推广
-http-response ^https:\/\/m5\.amap\.com\/ws\/bus\/plan\/integrate\? script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/amap.js, requires-body = true, tag = 路线规划和导航结束页推广
-http-response ^https:\/\/m5\.amap\.com\/ws\/c3frontend\/af-(hotel|launch)\/page\/main\? script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/amap.js, requires-body = true, tag = 导航详情页底部酒店
-http-response ^https:\/\/m5\.amap\.com\/ws\/perception\/drive\/(routeInfo|routePlan) script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/amap.js, requires-body = true, tag = 路线规划推广
-http-response ^https:\/\/(?:info\.amap\.com|m5\.amap\.com)\/ws\/shield\/search\/(common\/coupon\/info|poi\/detail) script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/amap.js, requires-body = true, tag = 搜索地点导航详情页推广
-http-response ^https:\/\/m5\.amap\.com\/ws\/shield\/search_bff\/hotword\? script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/amap.js, requires-body = true, tag = 搜索框提示词
-http-response ^https:\/\/m5\.amap\.com\/ws\/shield\/search_poi\/homepage script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/amap.js, requires-body = true, tag = 搜索详情页推广1
-http-response ^https:\/\/m5\.amap\.com\/ws\/shield\/search_poi\/search\/sp script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/amap.js, requires-body = true, tag = 搜索详情页推广2
-http-response ^https:\/\/m5\.amap\.com\/ws\/shield\/search_poi\/sug script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/amap.js, requires-body = true, tag = 搜索详情页推广3
-http-response ^https:\/\/m5\.amap\.com\/ws\/shield\/search_poi\/tips_operation_location script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/amap.js, requires-body = true, tag = 搜索详情页推广4
-http-response ^https:\/\/m5\.amap\.com\/ws\/faas\/amap-navigation\/(card-service-plan-home|main-page) script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/amap.js, requires-body = true, tag = 首页推广
-http-response ^https:\/\/m5\.amap\.com\/ws\/shield\/frogserver\/aocs\/updatable\/1\? script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/amap.js, requires-body = true, tag = 首页推广
-http-response ^https:\/\/m5\.amap\.com\/ws\/shield\/dsp\/profile\/index\/nodefaasv3\? script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/amap.js, requires-body = true, tag = 我的页面推广
-http-response ^https:\/\/m5\.amap\.com\/ws\/shield\/search\/nearbyrec_smart\? script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/amap.js, requires-body = true, tag = 附近页推广
-http-response ^https:\/\/m5\.amap\.com\/ws\/c3frontend\/af-nearby\/nearby script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/amap.js, requires-body = true, tag = 附近页横幅广告、信息流广告
-http-response ^https:\/\/m5\.amap\.com\/ws\/valueadded\/alimama\/splash_screen\? script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/amap.js, requires-body = true, tag = 开屏广告
-http-response ^https:\/\/m5-zb\.amap\.com\/ws\/boss\/(car\/order\/content_info|order_web\/friendly_information) script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/amap.js, requires-body = true, tag = 打车页(红点角标,弹窗,天气图标,推广卡片)
-http-response ^https:\/\/m5-zb\.amap\.com\/ws\/promotion-web\/resource(\/home)?\? script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/amap.js, requires-body = true, tag = 打车页红点角标、天气图标
-http-response ^https:\/\/m5-zb\.amap\.com\/ws\/sharedtrip\/taxi\/order_detail_car_tips\? script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/amap.js, requires-body = true, tag = 打车页提示
 http-response ^https?:\/\/(api|cdn\.api)\.chelaile(?:app)?(?:\.net)?\.cn\/goocity\/flowPos\/listByPos script-path=https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/refs/heads/main/plugins/CheLaiLe-flowpos.js, requires-body=1, timeout=20
 http-response ^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlehome\.home\.nextfresh\/ script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 商品信息流广告
 http-response ^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.local\.home\/ script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 定位地区页面的信息流广告
