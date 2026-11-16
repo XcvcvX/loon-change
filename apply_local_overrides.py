@@ -2832,6 +2832,133 @@ def remove_identical_script_response_duplicates(lines):
     return output, 0
 
 
+# More same-response script overlaps: identical Kuwo code, plus newer superset handlers.
+MORE_RESPONSE_REMOVE_TRIGGERS = (
+    "http-response ^https?:\\/\\/(mgxhtj|nmobi|searchrecterm)\\.kuwo\\.cn\\/(mgxh|mobi|recterm)\\.s script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/Unlock/kuwo.js,tag=KUWO,requires-body=true",
+    "http-response ^https?:\\/\\/audiobookpay\\.kuwo\\.cn\\/a\\.p script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/Unlock/kuwo.js,tag=KUWO-2,requires-body=true",
+    "http-response ^https?:\\/\\/musicpay\\.kuwo\\.cn\\/music\\.pay script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/Unlock/kuwo.js,tag=KUWO-3,requires-body=true",
+    "http-response ^https?:\\/\\/vip\\d\\.kuwo\\.cn\\/vip\\/(enc\\/user\\/vip\\?op=ui|v\\d\\/theme\\?op=gd) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/Unlock/kuwo.js,tag=KUWO-4,requires-body=true",
+    "http-response ^https?:\\/\\/vip\\d\\.kuwo\\.cn\\/vip\\/v\\d\\/user\\/vip\\?op=ui script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/Unlock/kuwo.js,tag=KUWO-5,requires-body=true",
+    "http-response ^https?:\\/\\/napi\\.ithome\\.com\\/api\\/(news\\/index|topmenu\\/getfeeds) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ithome.js,tag=ITHOME,requires-body=true",
+    "http-response ^https?:\\/\\/cn-acs\\.m\\.cainiao\\.com\\/gw\\/mtop\\.cainiao\\.nbpresentation\\.(pickup\\.empty\\.page|protocol\\.homepage)\\.get script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cainiao.js,tag=CAINIAO,requires-body=true",
+    "http-response ^https?:\\/\\/cn-acs\\.m\\.cainiao\\.com\\/gw\\/mtop\\.nbfriend\\.message\\.conversation\\.list\\.cn script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cainiao.js,tag=CAINIAO-2,requires-body=true",
+    "response if ${url} ~= /^https?:\\/\\/iqushangwang\\.8quan\\.com\\/index\\.php\\/i\\/index\\/index/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/QuDa.js\") with enable=quda_enable, tag=\"去哒\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/dict\\.youdao\\.com\\/(homepage\\/promotion|course\\/tab\\/home|homepage\\/tile)/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/youdao/dict-youdao-ad.js\") with enable=whyiyzdccidm_enable, tag=\"网易有道词典\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/wx\\.mygolbs\\.com\\/WxBusServer\\/ApiData\\.do/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhangshanggongjiao.js\") with enable=vhuhgsjn_enable, tag=\"掌上公交小程序广告\", timeout=60, requires_body=true",
+)
+MORE_RESPONSE_KEEP_SOURCE_TRIGGERS = (
+    "response if ${url} ~= /^https?:\\/\\/(mgxhtj|nmobi|searchrecterm)\\.kuwo\\.cn\\/(mgxh|mobi|recterm)\\.s/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/kuwo/kuwo.js\") with enable=kuwoybyt_enable, tag=\"酷我音乐\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/audiobookpay\\.kuwo\\.cn\\/a\\.p/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/kuwo/kuwo.js\") with enable=kuwoybyt_enable, tag=\"酷我音乐\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/musicpay\\.kuwo\\.cn\\/music\\.pay/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/kuwo/kuwo.js\") with enable=kuwoybyt_enable, tag=\"酷我音乐\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/vip1\\.kuwo\\.cn\\/vip\\/(enc\\/user\\/vip\\?op=ui|v\\d\\/theme\\?op=gd)/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/kuwo/kuwo.js\") with enable=kuwoybyt_enable, tag=\"酷我音乐\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/vip1\\.kuwo\\.cn\\/vip\\/v\\d\\/user\\/vip\\?op=ui/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/kuwo/kuwo.js\") with enable=kuwoybyt_enable, tag=\"酷我音乐\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/napi\\.ithome\\.com\\/api\\/(news\\/index|topmenu\\/getfeeds)/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/ithome/ithome.js\") with enable=itzj_enable, tag=\"ithome\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.cainiao\\.guoguo\\.nbnetflow\\.ads\\.mshow/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cainiao/cainiao.js\") with enable=albb_enable, tag=\"阿里巴巴广告\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/cn-acs\\.m\\.cainiao\\.com\\/gw\\/mtop\\.cainiao\\.guoguo\\.nbnetflow\\.ads\\.m?show\\.cn/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cainiao/cainiao.js\") with enable=cdnngogo_enable, tag=\"菜鸟裹裹\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/cn-acs\\.m\\.cainiao\\.com\\/gw\\/mtop\\.cainiao\\.nbpresentation\\.(pickup\\.empty\\.page|protocol\\.homepage)\\.get\\.cn/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cainiao/cainiao.js\") with enable=cdnngogo_enable, tag=\"菜鸟裹裹\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/cn-acs\\.m\\.cainiao\\.com\\/gw\\/mtop\\.nbfriend\\.message\\.conversation\\.list\\.cn/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cainiao/cainiao.js\") with enable=cdnngogo_enable, tag=\"菜鸟裹裹\", timeout=60, requires_body=true",
+    "http-response ^https?:\\/\\/iqushangwang\\.8quan\\.com\\/index\\.php\\/i\\/index\\/index script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/quda.js,tag=QUDA,requires-body=true",
+    "http-response ^https?:\\/\\/dict\\.youdao\\.com\\/(homepage\\/promotion|course\\/tab\\/home|homepage\\/tile) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/163youdao.js,tag=163YOUDAO,requires-body=true",
+    "http-response ^https?:\\/\\/wx\\.mygolbs\\.com\\/WxBusServer\\/ApiData\\.do script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zsgj.js,tag=MYGOLBS,requires-body=true",
+)
+MORE_RESPONSE_KEEP_TRIGGERS = (
+    "response if ${url} ~= /^https?:\\/\\/(mgxhtj|nmobi|searchrecterm)\\.kuwo\\.cn\\/(mgxh|mobi|recterm)\\.s/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/kuwo/kuwo.js\") with enable=kuwoybyt_enable, tag=\"酷我音乐\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/audiobookpay\\.kuwo\\.cn\\/a\\.p/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/kuwo/kuwo.js\") with enable=kuwoybyt_enable, tag=\"酷我音乐\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/musicpay\\.kuwo\\.cn\\/music\\.pay/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/kuwo/kuwo.js\") with enable=kuwoybyt_enable, tag=\"酷我音乐\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/vip\\d\\.kuwo\\.cn\\/vip\\/(enc\\/user\\/vip\\?op=ui|v\\d\\/theme\\?op=gd)/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/kuwo/kuwo.js\") with enable=kuwoybyt_enable, tag=\"酷我音乐\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/vip\\d\\.kuwo\\.cn\\/vip\\/v\\d\\/user\\/vip\\?op=ui/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/kuwo/kuwo.js\") with enable=kuwoybyt_enable, tag=\"酷我音乐\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/napi\\.ithome\\.com\\/api\\/(news\\/index|topmenu\\/getfeeds)/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/ithome/ithome.js\") with enable=itzj_enable, tag=\"ithome\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.cainiao\\.guoguo\\.nbnetflow\\.ads\\.mshow/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cainiao/cainiao.js\") with enable=albb_enable, tag=\"阿里巴巴广告\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/cn-acs\\.m\\.cainiao\\.com\\/gw\\/mtop\\.cainiao\\.guoguo\\.nbnetflow\\.ads\\.m?show\\.cn/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cainiao/cainiao.js\") with enable=cdnngogo_enable, tag=\"菜鸟裹裹\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/cn-acs\\.m\\.cainiao\\.com\\/gw\\/mtop\\.cainiao\\.nbpresentation\\.(pickup\\.empty\\.page|protocol\\.homepage)\\.get/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cainiao/cainiao.js\") with enable=cdnngogo_enable, tag=\"菜鸟裹裹\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/cn-acs\\.m\\.cainiao\\.com\\/gw\\/mtop\\.nbfriend\\.message\\.conversation\\.list\\.cn/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cainiao/cainiao.js\") with enable=cdnngogo_enable, tag=\"菜鸟裹裹\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/iqushangwang\\.8quan\\.com\\/index\\.php\\/i\\/index\\/index/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/quda.js\") with enable=quda_enable, tag=\"去哒\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/dict\\.youdao\\.com\\/(homepage\\/promotion|course\\/tab\\/home|homepage\\/tile)/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/163youdao.js\") with enable=whyiyzdccidm_enable, tag=\"网易有道词典\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/wx\\.mygolbs\\.com\\/WxBusServer\\/ApiData\\.do/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zsgj.js\") with enable=vhuhgsjn_enable, tag=\"掌上公交小程序广告\", timeout=60, requires_body=true",
+)
+MORE_RESPONSE_TRANSFORMS = {
+    "response if ${url} ~= /^https?:\\/\\/vip1\\.kuwo\\.cn\\/vip\\/(enc\\/user\\/vip\\?op=ui|v\\d\\/theme\\?op=gd)/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/kuwo/kuwo.js\") with enable=kuwoybyt_enable, tag=\"酷我音乐\", timeout=60, requires_body=true": "response if ${url} ~= /^https?:\\/\\/vip\\d\\.kuwo\\.cn\\/vip\\/(enc\\/user\\/vip\\?op=ui|v\\d\\/theme\\?op=gd)/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/kuwo/kuwo.js\") with enable=kuwoybyt_enable, tag=\"酷我音乐\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/vip1\\.kuwo\\.cn\\/vip\\/v\\d\\/user\\/vip\\?op=ui/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/kuwo/kuwo.js\") with enable=kuwoybyt_enable, tag=\"酷我音乐\", timeout=60, requires_body=true": "response if ${url} ~= /^https?:\\/\\/vip\\d\\.kuwo\\.cn\\/vip\\/v\\d\\/user\\/vip\\?op=ui/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/kuwo/kuwo.js\") with enable=kuwoybyt_enable, tag=\"酷我音乐\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/cn-acs\\.m\\.cainiao\\.com\\/gw\\/mtop\\.cainiao\\.nbpresentation\\.(pickup\\.empty\\.page|protocol\\.homepage)\\.get\\.cn/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cainiao/cainiao.js\") with enable=cdnngogo_enable, tag=\"菜鸟裹裹\", timeout=60, requires_body=true": "response if ${url} ~= /^https?:\\/\\/cn-acs\\.m\\.cainiao\\.com\\/gw\\/mtop\\.cainiao\\.nbpresentation\\.(pickup\\.empty\\.page|protocol\\.homepage)\\.get/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cainiao/cainiao.js\") with enable=cdnngogo_enable, tag=\"菜鸟裹裹\", timeout=60, requires_body=true",
+    "http-response ^https?:\\/\\/iqushangwang\\.8quan\\.com\\/index\\.php\\/i\\/index\\/index script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/quda.js,tag=QUDA,requires-body=true": "response if ${url} ~= /^https?:\\/\\/iqushangwang\\.8quan\\.com\\/index\\.php\\/i\\/index\\/index/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/quda.js\") with enable=quda_enable, tag=\"去哒\", timeout=60, requires_body=true",
+    "http-response ^https?:\\/\\/dict\\.youdao\\.com\\/(homepage\\/promotion|course\\/tab\\/home|homepage\\/tile) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/163youdao.js,tag=163YOUDAO,requires-body=true": "response if ${url} ~= /^https?:\\/\\/dict\\.youdao\\.com\\/(homepage\\/promotion|course\\/tab\\/home|homepage\\/tile)/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/163youdao.js\") with enable=whyiyzdccidm_enable, tag=\"网易有道词典\", timeout=60, requires_body=true",
+    "http-response ^https?:\\/\\/wx\\.mygolbs\\.com\\/WxBusServer\\/ApiData\\.do script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zsgj.js,tag=MYGOLBS,requires-body=true": "response if ${url} ~= /^https?:\\/\\/wx\\.mygolbs\\.com\\/WxBusServer\\/ApiData\\.do/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zsgj.js\") with enable=vhuhgsjn_enable, tag=\"掌上公交小程序广告\", timeout=60, requires_body=true",
+}
+
+
+def remove_more_duplicate_response_scripts(lines):
+    """Keep one handler per overlapping response, retaining broad matchers and safer guards."""
+    remove_counts = {item: 0 for item in MORE_RESPONSE_REMOVE_TRIGGERS}
+    source_counts = {item: 0 for item in MORE_RESPONSE_KEEP_SOURCE_TRIGGERS}
+    output_counts = {item: 0 for item in MORE_RESPONSE_KEEP_TRIGGERS}
+    remove_set = set(MORE_RESPONSE_REMOVE_TRIGGERS)
+    output, section, target_seen, removed = [], "", False, 0
+    source_mode = any(item in lines for item in remove_set)
+
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            output.append(line)
+            continue
+
+        normalized = line.replace("\\\\", "")
+        action = "http-response " in line or "response if " in line
+        is_target = (
+            section == "Script"
+            and action
+            and (
+                "kuwo.cn" in normalized
+                or "napi.ithome.com" in normalized
+                or ("cn-acs.m.cainiao.com" in normalized and ("mtop.cainiao.nbpresentation" in normalized or "mtop.nbfriend.message.conversation.list" in normalized))
+                or ("guide-acs.m.taobao.com" in normalized and "mtop.cainiao.guoguo" in normalized)
+                or ("iqushangwang.8quan.com" in normalized and "/index.php/i/index/index" in normalized)
+                or ("dict.youdao.com" in normalized and any(path in normalized for path in ("/homepage/promotion", "/course/tab/home", "/homepage/tile")))
+                or ("wx.mygolbs.com" in normalized and "/WxBusServer/ApiData.do" in normalized)
+            )
+        )
+        if not is_target:
+            output.append(line)
+            continue
+
+        target_seen = True
+        if source_mode:
+            if line in remove_counts:
+                remove_counts[line] += 1
+                if remove_counts[line] > 1:
+                    raise ValueError("duplicate legacy response trigger; refusing ambiguous cleanup")
+                removed += 1
+                continue
+            if line in source_counts:
+                source_counts[line] += 1
+                if source_counts[line] > 1:
+                    raise ValueError("duplicate retained response source trigger")
+                output.append(MORE_RESPONSE_TRANSFORMS.get(line, line))
+                continue
+            raise ValueError("Kuwo/iThome/Cainiao/QuDa/Youdao/ZSGJ inventory changed; refusing unreviewed consolidation")
+
+        if line in output_counts:
+            output_counts[line] += 1
+            if output_counts[line] > 1:
+                raise ValueError("duplicate consolidated response trigger")
+            output.append(line)
+            continue
+        raise ValueError("consolidated response inventory changed; refusing unreviewed cleanup")
+
+    if not target_seen:
+        return output, 0
+
+    if source_mode:
+        if not all(count == 1 for count in remove_counts.values()):
+            raise ValueError("legacy response inventory incomplete; refusing partial consolidation")
+        if not all(count == 1 for count in source_counts.values()):
+            raise ValueError("retained response source inventory incomplete")
+        return output, removed
+
+    if not all(count == 1 for count in output_counts.values()):
+        raise ValueError("consolidated response inventory incomplete; refusing partial consolidation")
+    return output, 0
+
+
 def apply(text: str) -> str:
     if "[Script]" not in text or "[MITM]" not in text or "[Rewrite]" not in text:
         raise ValueError("plugin missing [Rewrite], [Script] or [MITM] section")
@@ -2935,6 +3062,7 @@ def apply(text: str) -> str:
     lines, _ = remove_duplicate_cnftp_scripts(lines)
     lines, _ = remove_same_source_duplicate_response_scripts(lines)
     lines, _ = remove_identical_script_response_duplicates(lines)
+    lines, _ = remove_more_duplicate_response_scripts(lines)
     lines, _ = remove_redundant_dianping_scripts(lines)
     lines, _ = remove_redundant_baidumap_script(lines)
     lines, _ = remove_redundant_amap_legacy_scripts(lines)
