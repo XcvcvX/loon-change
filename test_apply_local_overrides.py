@@ -2044,7 +2044,7 @@ class ResponseJsonDeleteBatchTests(unittest.TestCase):
             apply(duplicate)
 
         drifted = self.base.replace(self.original[2], self.original[2].replace("defaultResource", "default_resource"), 1)
-        with self.assertRaisesRegex(ValueError, "Response JSON delete batch inventory changed"):
+        with self.assertRaisesRegex(ValueError, "Same-matcher response JSON delete changed"):
             apply(drifted)
 
     def test_fails_closed_on_unknown_same_matcher_response_action(self):
