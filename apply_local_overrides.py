@@ -2384,35 +2384,27 @@ XIMALAYA_PLAYPAGE_BATCHED_DELETE_REWRITE = r"""response if ${url} ~= /^https:\/\
 
 
 def batch_same_response_json_deletes(lines):
-    """Use documented Loon batch delete syntax for three exact, source-verified matchers."""
+    """Batch each available source-verified delete group independently."""
     replacements = {
         KUAISHOU_STARTUP_SPLIT_DELETE_REWRITE: KUAISHOU_STARTUP_BATCHED_DELETE_REWRITE,
         XIMALAYA_FOOTBALL_SPLIT_DELETE_REWRITE: XIMALAYA_FOOTBALL_BATCHED_DELETE_REWRITE,
         XIMALAYA_PLAYPAGE_SPLIT_DELETE_REWRITE: XIMALAYA_PLAYPAGE_BATCHED_DELETE_REWRITE,
     }
-    expected = tuple(replacements)
-    combined = tuple(replacements.values())
-    expected_counts = {rule: sum(line.strip() == rule for line in lines) for rule in expected}
-    combined_counts = {rule: sum(line.strip() == rule for line in lines) for rule in combined}
+    expected = set(replacements)
+    combined = set(replacements.values())
+    _validate_response_json_delete_batch_scope(lines, expected | combined)
 
-    if not any(expected_counts.values()):
-        if not any(combined_counts.values()):
-            return list(lines), 0
-        if any(count != 1 for count in combined_counts.values()):
+    for original, batched in replacements.items():
+        original_count = sum(line.strip() == original for line in lines)
+        batched_count = sum(line.strip() == batched for line in lines)
+        if original_count > 1 or batched_count > 1 or (original_count and batched_count):
             raise ValueError(
-                "Response JSON delete batch output inventory changed; refusing partial or duplicate output"
+                "Response JSON delete batch inventory changed; refusing duplicate or mixed rule state"
             )
-        _validate_response_json_delete_batch_scope(lines, set(expected) | set(combined))
-        return list(lines), 0
 
-    if any(combined_counts.values()) or any(count != 1 for count in expected_counts.values()):
-        raise ValueError(
-            "Response JSON delete batch inventory changed; refusing partial, mixed, or drifted consolidation"
-        )
-
-    _validate_response_json_delete_batch_scope(lines, set(expected))
     output = [replacements.get(line.strip(), line) for line in lines]
-    return output, len(expected)
+    changed = sum(line.strip() in replacements for line in lines)
+    return output, changed
 
 
 def _validate_response_json_delete_batch_scope(lines, allowed_rules):
