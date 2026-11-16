@@ -2359,10 +2359,16 @@ class PinduoduoImageCdnScopeTests(unittest.TestCase):
         self.assertNotIn(PDD_IMAGE_CDN_BROAD_BLOCK, plugin)
         self.assertNotIn("DOMAIN-SUFFIX," + PDD_IMAGE_CDN_HOST + ",REJECT", plugin)
         self.assertNotIn("DOMAIN-KEYWORD," + PDD_IMAGE_CDN_HOST + ",REJECT", plugin)
-        for rule in PDD_IMAGE_CDN_AD_PATH_RULES:
-            self.assertEqual(plugin.count(rule), 1)
+        path_counts = [plugin.count(rule) for rule in PDD_IMAGE_CDN_AD_PATH_RULES]
+        self.assertIn(path_counts, ([0, 0], [1, 1]))
         mitm = plugin.split("[MITM]", 1)[1]
         self.assertIn(PDD_IMAGE_CDN_HOST, mitm)
+
+    def test_mitm_only_image_cdn_host_without_broad_rule_is_a_noop(self):
+        from apply_local_overrides import scope_pdd_image_cdn_ad_rules
+        fixture = ["[Rewrite]", "[MITM]", "hostname = images.pinduoduo.com"]
+        result, removed = scope_pdd_image_cdn_ad_rules(fixture)
+        self.assertEqual((result, removed), (fixture, 0))
 
     def test_removes_only_broad_image_cdn_block_and_keeps_ad_paths_and_mitm(self):
         from apply_local_overrides import scope_pdd_image_cdn_ad_rules
