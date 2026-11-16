@@ -1500,6 +1500,52 @@ class DouyinNonAdServiceHostSafetyTests(unittest.TestCase):
             self.assertNotIn(rule, plugin)
         self.assertEqual(plugin.count(DOUYIN_AD_HOST_GUARD), 1)
 
+class BilibiliCoreServiceScopeTests(unittest.TestCase):
+    def setUp(self):
+        from apply_local_overrides import BILIBILI_CORE_SERVICE_OVERBLOCKS, BILIBILI_AD_HOST_GUARDS
+        self.targets = list(BILIBILI_CORE_SERVICE_OVERBLOCKS)
+        self.ad_guards = list(BILIBILI_AD_HOST_GUARDS)
+        self.base = ["[Rule]", *[rule for section, rule in self.targets if section == "Rule"],
+                     *self.ad_guards, "DOMAIN,unrelated.example,REJECT", "[Rewrite]",
+                     *[rule for section, rule in self.targets if section == "Rewrite"],
+                     "response if ${url} ~= /^https?:\\/\\/app\\.bilibili\\.com\\/x\\/v2\\/splash\\/show/ then response.json.jq(\".\")",
+                     "response if ${url} ~= /^https?:\\/\\/app\\.bilibili\\.com\\/x\\/v2\\/feed\\/index/ then response.json.jq(\".\")",
+                     "^https?:\\/\\/api\\.bilibili\\.com\\/pgc\\/activity\\/deliver reject-dict",
+                     "[Script]", "[MITM]"]
+
+    def test_removes_only_core_service_overblocks_and_keeps_bili_ad_paths(self):
+        from apply_local_overrides import remove_bilibili_core_service_overblocks
+        result, removed = remove_bilibili_core_service_overblocks(self.base)
+        self.assertEqual(removed, 7)
+        for _, rule in self.targets:
+            self.assertNotIn(rule, result)
+        for guard in self.ad_guards:
+            self.assertEqual(result.count(guard), 1)
+        self.assertIn("DOMAIN,unrelated.example,REJECT", result)
+        self.assertEqual(remove_bilibili_core_service_overblocks(result), (result, 0))
+
+    def test_fails_closed_on_partial_duplicate_or_changed_core_service_inventory(self):
+        from apply_local_overrides import remove_bilibili_core_service_overblocks
+        partial = [line for line in self.base if line != self.targets[0][1]]
+        with self.assertRaisesRegex(ValueError, "inventory is partial"):
+            remove_bilibili_core_service_overblocks(partial)
+        rule_index = self.base.index(self.ad_guards[0])
+        duplicate = self.base[:rule_index] + [self.targets[0][1]] + self.base[rule_index:]
+        with self.assertRaisesRegex(ValueError, "duplicate Bilibili core-service"):
+            remove_bilibili_core_service_overblocks(duplicate)
+        changed = [line.replace(",REJECT", ",DIRECT") if line == self.targets[0][1] else line for line in self.base]
+        with self.assertRaisesRegex(ValueError, "API host rule changed"):
+            remove_bilibili_core_service_overblocks(changed)
+
+    def test_checked_in_plugin_snapshot_allows_core_services_and_keeps_ad_rules(self):
+        from pathlib import Path
+        from apply_local_overrides import BILIBILI_CORE_SERVICE_OVERBLOCKS, BILIBILI_AD_HOST_GUARDS
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        for _, rule in BILIBILI_CORE_SERVICE_OVERBLOCKS:
+            self.assertNotIn(rule, plugin)
+        for guard in BILIBILI_AD_HOST_GUARDS:
+            self.assertEqual(plugin.count(guard), 1)
+
 class DouyinHongguoBoundaryTests(unittest.TestCase):
     def setUp(self):
         self.base = r"""#!name=Douyin-Hongguo-test

@@ -278,10 +278,6 @@ AND,((DOMAIN-SUFFIX,googlevideo.com),(PROTOCOL,UDP),(DEST-PORT,443)),REJECT
 AND,((DOMAIN,pan.baidu.com),(PROTOCOL,QUIC)),REJECT
 AND,((DOMAIN-SUFFIX,vlion.cn),(PROTOCOL,QUIC)),REJECT
 AND,((DOMAIN-SUFFIX,advlion.cn),(PROTOCOL,QUIC)),REJECT
-DOMAIN,api.biliapi.com,REJECT
-DOMAIN,app.biliapi.com,REJECT
-DOMAIN,api.biliapi.net,REJECT
-DOMAIN,app.biliapi.net,REJECT
 AND,((DOMAIN-SUFFIX,chat.bilibili.com),(OR,((DOMAIN-KEYWORD,stun),(DOMAIN-KEYWORD,tracker),(DOMAIN-KEYWORD,p2p)))),REJECT
 URL-REGEX, "^http:\/\/upos-sz-static\.bilivideo\.com\/ssaxcode\/\w{2}\/\w{2}\/\w{32}-1-SPLASH", REJECT-VIDEO-NO-DROP
 URL-REGEX, "^http:\/\/[\d\.]+:8000\/v1\/resource\/\w{32}-1-SPLASH", REJECT-VIDEO-NO-DROP
@@ -4647,7 +4643,6 @@ request if ${url} ~= /^https?:\/\/.*\.boohee\.(?:cn|com).*(?:notification_templa
 ^https?:\/\/api\.boohee\.com\/app-interface\/v\d\/search\/search\? reject-dict
 request if ${url} ~= /^https?:\/\/api\.boohee\.com\/app-interface\/v\d\/ad\/info/ then reject(404)
 ^https?:\/\/status\.boohee\.com\/api\/v\d\/merged_messages$ reject-dict
-request if ${url} ~= /^https?:\/\/httpdns\.bilivideo\.com\/resolve\?host/ then reject(404)
 ^https?:\/\/i\d\.hdslb\.com\/bfs\/fawkes reject-dict
 ^https?:\/\/i\d\.hdslb\.com\/bfs\/manga-static\/\w+\.(?:jpg|png)@1200w_1500h_1e_1c reject-200
 ^https?:\/\/manga\.bilibili\.com\/twirp\/risk\.v\d\.Risk\/AppUpgradeCheck reject-dict
@@ -4731,8 +4726,6 @@ response if ${url} ~= /^https?:\/\/bd-api\.kuwo\.cn\/api\/voice\/room\/v\d\/side
 ^https?:\/\/api\.bilibili\.com\/x\/v2\/dm\/qoe\/show\? reject-dict
 ^https?:\/\/upos-sz-static\.bilivideo\.com\/ssaxcode\/\w{2}\/\w{2}\/\w{32}-1-SPLASH reject-dict
 ^https?:\/\/api\.bilibili\.com\/x\/mengqi\/v\d\/resource\? reject-dict
-^https?:\/\/api\.bilibili\.com\/x\/web-interface\/zone\?jsonp reject-dict
-^https?:\/\/app\.bilibili\.com\/x\/resource\/ip reject-dict
 ^https?:\/\/social\.blued\.cn\/users\/recommend reject-dict
 ^https?:\/\/social\.blued\.cn\/users\/no_auth\/benefit reject-dict
 ^https?:\/\/img0[1-9]{1}\.benlailife\.com\/AppHomePageImage\/upload\/files\/.*.jpg reject-200
