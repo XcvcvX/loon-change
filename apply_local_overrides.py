@@ -320,7 +320,7 @@ def remove_redundant_didi_usercenter_script(lines):
             section = line[1:-1]
             output.append(line)
             continue
-        normalized = re.sub(r"\\\\+", "", line.strip())
+        normalized = re.sub(r"\\+", "", line.strip())
         is_target = section == "Script" and (
             "common.diditaxi.com.cn/common/v" in normalized
             and "/usercenter/me" in normalized
