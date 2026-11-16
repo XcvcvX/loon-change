@@ -22,6 +22,7 @@ __MARKETING__
 request if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/shield\/search_poi\/tips_adv\?/i then reject_dict(200)
 
 [Script]
+response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/shield\/search_bff\/hotword\?/i then script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/sooyaaabo/Amap/rucu6_amap.js") with tag="[高德地图]移除搜索栏推广", requires_body=true
 response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/aos\/perception\/publicTravel\/beforeNavi\?/i then script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/sooyaaabo/Amap/rucu6_amap.js") with tag="[高德地图]移除路线规划推广", requires_body=true
 response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/bus\/plan\/integrate\?/i then script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/sooyaaabo/Amap/rucu6_amap.js") with tag="[高德地图]移除路线规划、导航结束页推广", requires_body=true
 
