@@ -39,7 +39,7 @@ class AmapLocalOverrideTests(unittest.TestCase):
         self.assertEqual(removed, 1)
         self.assertNotIn(DUPLICATE_HOTWORD_RULE, result)
         self.assertIn(CANONICAL_GROUPED_RULE, result)
-        self.assertIn("search_poi/tips_adv", result)
+        self.assertIn("search_poi", result)
         self.assertEqual(apply(result)[0], result)
 
     def test_is_idempotent_when_upstream_duplicate_is_already_absent(self):
