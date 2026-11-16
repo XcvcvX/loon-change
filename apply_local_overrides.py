@@ -3816,6 +3816,84 @@ def remove_redundant_smzdm_homepage_script_trigger(lines):
     return result, removed
 
 
+SMZDM_FMZ_ADS_DUPLICATE_PAIRS = (
+    (
+        "detail_modul/user_related_modul",
+        r"http-response ^https?:\/\/haojia\.m\.smzdm\.com\/detail_modul\/user_related_modul\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/smzdm.js,tag=SMZDM,requires-body=true",
+        r'response if ${url} ~= /^https?:\/\/haojia\.m\.smzdm\.com\/detail_modul\/user_related_modul\?/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/smzdm/smzdm_ads.js") with enable=smzdm_enable, tag="什么值得买去广告", timeout=60, requires_body=true',
+    ),
+    (
+        "ranking_list/articles",
+        r"http-response ^https?:\/\/haojia-api\.smzdm\.com\/(?:home\/list|ranking_list\/articles) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/smzdm.js,tag=SMZDM-4,requires-body=true",
+        r'response if ${url} ~= /^https?:\/\/haojia-api\.smzdm\.com\/ranking_list\/articles\?/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/smzdm/smzdm_ads.js") with enable=smzdm_enable, tag="什么值得买去广告", timeout=60, requires_body=true',
+    ),
+    (
+        "filter/tags/hot_tags",
+        r"http-response ^https?:\/\/s-api\.smzdm\.com\/sou\/(>?filter\/tags\/hot_tags|list_v\d\?) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/smzdm.js,tag=SMZDM-8,requires-body=true",
+        r'response if ${url} ~= /^https?:\/\/s-api\.smzdm\.com\/sou\/filter\/tags\/hot_tags\?/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/smzdm/smzdm_ads.js") with enable=smzdm_enable, tag="什么值得买去广告", timeout=60, requires_body=true',
+    ),
+)
+
+
+def remove_redundant_smzdm_ads_script_triggers(lines):
+    """Remove only FMZ200 SMZDM triggers whose exact endpoint behavior is already covered by R-Store."""
+    output = list(lines)
+    section = ""
+    script_lines = []
+    for line in output:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+        elif section == "Script":
+            script_lines.append(stripped)
+
+    removed_lines = set()
+    for path_marker, rstore_expected, fmz_expected in SMZDM_FMZ_ADS_DUPLICATE_PAIRS:
+        fmz_candidates = [
+            line for line in script_lines
+            if "smzdm_ads.js" in line and path_marker in re.sub(r"\\+", "", line)
+        ]
+        if not fmz_candidates:
+            continue
+        if len(fmz_candidates) != 1 or fmz_candidates[0] != fmz_expected:
+            raise ValueError(
+                "SMZDM FMZ ad trigger inventory changed; refusing duplicate cleanup: "
+                + repr(fmz_candidates)
+            )
+        rstore_candidates = [
+            line for line in script_lines
+            if "/smzdm.js" in line and path_marker in re.sub(r"\\+", "", line)
+        ]
+        if not rstore_candidates:
+            # Do not remove a script unless its same-endpoint R-Store cover exists.
+            continue
+        if len(rstore_candidates) != 1 or rstore_candidates[0] != rstore_expected:
+            raise ValueError(
+                "SMZDM R-Store cover trigger inventory changed; refusing duplicate cleanup: "
+                + repr(rstore_candidates)
+            )
+        removed_lines.add(fmz_expected)
+
+    if not removed_lines:
+        return output, 0
+    result = []
+    section = ""
+    removed = 0
+    for line in output:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+            result.append(line)
+            continue
+        if section == "Script" and stripped in removed_lines:
+            removed += 1
+            continue
+        result.append(line)
+    if removed != len(removed_lines):
+        raise ValueError("SMZDM FMZ duplicate trigger removal count mismatch")
+    return result, removed
+
+
 def apply(text: str) -> str:
     if "[Script]" not in text or "[MITM]" not in text or "[Rewrite]" not in text:
         raise ValueError("plugin missing [Rewrite], [Script] or [MITM] section")
@@ -3932,6 +4010,7 @@ def apply(text: str) -> str:
     lines, _ = consolidate_zhihu_response_scripts(lines)
     lines, _ = optimize_xiaohongshu_response_cost(lines)
     lines, _ = remove_redundant_smzdm_homepage_script_trigger(lines)
+    lines, _ = remove_redundant_smzdm_ads_script_triggers(lines)
 
     result_lines, rewrite_lines = [], []
     section = ""
