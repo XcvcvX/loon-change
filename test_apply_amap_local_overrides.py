@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import unittest
+from pathlib import Path
 
 from apply_amap_local_overrides import (
     CANONICAL_GROUPED_RULE,
@@ -24,6 +25,15 @@ hostname = *.amap.com
 
 
 class AmapLocalOverrideTests(unittest.TestCase):
+    def test_vendored_plugin_is_already_deduplicated(self):
+        plugin = Path(__file__).parent / "sources" / "amap" / "Amap.lpx"
+        original = plugin.read_text(encoding="utf-8-sig")
+        result, removed = apply(original)
+        self.assertEqual(removed, 0)
+        self.assertEqual(result, original)
+        self.assertEqual(original.count(CANONICAL_GROUPED_RULE), 1)
+        self.assertNotIn(DUPLICATE_HOTWORD_RULE, original)
+
     def test_removes_only_duplicate_hotword_rule(self):
         result, removed = apply(BASE)
         self.assertEqual(removed, 1)
