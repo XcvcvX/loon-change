@@ -77,10 +77,10 @@ def apply(text):
 
     if marketing_unexpected:
         raise ValueError("Amap marketingOperationStructured rule changed; refusing an unreviewed override")
-    if marketing_old_count + marketing_new_count != 1:
-        raise ValueError("Amap marketingOperationStructured rule inventory changed; expected exactly one")
     if marketing_old_count > 1 or marketing_new_count > 1:
         raise ValueError("duplicate Amap marketingOperationStructured rules; refusing ambiguous correction")
+    if marketing_old_count + marketing_new_count != 1:
+        raise ValueError("Amap marketingOperationStructured rule inventory changed; expected exactly one")
     if unexpected:
         raise ValueError("Amap hotword rule changed; refusing an unreviewed override")
     if grouped_count != 1:
