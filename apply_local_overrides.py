@@ -1174,8 +1174,13 @@ def consolidate_starplucker_config_jq(lines):
     matches = [i for i, line in enumerate(output) if "starplucker\\.cyapi" in line and "response.json.jq" in line]
     if not matches:
         return output, 0
-    if len(matches) != 1 or output[matches[0]].strip() != STARPLUCKER_DOUBLE_JQ_RULE:
-        raise ValueError("StarPlucker config jq rule changed or duplicated; refusing unsafe rewrite")
+    if len(matches) != 1:
+        raise ValueError("StarPlucker config jq rule duplicated; refusing unsafe rewrite")
+    current = output[matches[0]].strip()
+    if current == STARPLUCKER_SINGLE_JQ_RULE:
+        return output, 0
+    if current != STARPLUCKER_DOUBLE_JQ_RULE:
+        raise ValueError("StarPlucker config jq rule changed; refusing unsafe rewrite")
     output[matches[0]] = STARPLUCKER_SINGLE_JQ_RULE
     return output, 1
 
@@ -1813,13 +1818,16 @@ def normalize_bilibili_non_ad_feature_overrides(lines):
             continue
         value = line.strip()
         normalized = value.replace(chr(92), "")
-        if section == "Rewrite":
+        if section in ("Rewrite", "Script"):
             if value in remove_counts:
                 remove_counts[value] += 1
                 saw_target = True
                 if remove_counts[value] > 1:
                     raise ValueError("duplicate Bilibili non-ad feature rule")
                 continue
+            if section == "Script" and any(marker in normalized and detail in normalized for marker, detail in unknown_markers):
+                raise ValueError("Bilibili non-ad script trigger changed; refusing unreviewed behavior: " + value)
+        if section == "Rewrite":
             replacement = dict(BILIBILI_NON_AD_FEATURE_REPLACEMENTS)
             if value in old_counts:
                 old_counts[value] += 1
