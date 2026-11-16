@@ -1660,6 +1660,73 @@ def remove_douyin_non_ad_service_host_blocks(lines):
         raise ValueError("Douyin dedicated Pangle ad host guard missing or duplicated")
     return output, sum(present)
 
+BILIBILI_CORE_SERVICE_OVERBLOCKS = (
+    ("Rule", "DOMAIN,api.biliapi.com,REJECT"),
+    ("Rule", "DOMAIN,app.biliapi.com,REJECT"),
+    ("Rule", "DOMAIN,api.biliapi.net,REJECT"),
+    ("Rule", "DOMAIN,app.biliapi.net,REJECT"),
+    ("Rewrite", "request if ${url} ~= /^https?:\\/\\/httpdns\\.bilivideo\\.com\\/resolve\\?host/ then reject(404)"),
+    ("Rewrite", "^https?:\\/\\/api\\.bilibili\\.com\\/x\\/web-interface\\/zone\\?jsonp reject-dict"),
+    ("Rewrite", "^https?:\\/\\/app\\.bilibili\\.com\\/x\\/resource\\/ip reject-dict"),
+)
+BILIBILI_AD_HOST_GUARDS = (
+    "DOMAIN-SUFFIX,ad.bilibili.com,REJECT",
+    "DOMAIN-SUFFIX,adcommon.bilibili.com,REJECT",
+)
+BILIBILI_AD_PATH_MARKERS = (
+    "app.bilibili.com/x/v2/splash/",
+    "app.bilibili.com/x/v2/feed/index",
+    "api.bilibili.com/pgc/activity/deliver",
+)
+
+
+def remove_bilibili_core_service_overblocks(lines):
+    """Remove broad Bili API, HTTPDNS, and IP-geolocation blocks, not ad filters."""
+    section = ""
+    output = []
+    counts = {item: 0 for item in BILIBILI_CORE_SERVICE_OVERBLOCKS}
+    saw_target = False
+    normalized_rewrites = []
+
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            output.append(line)
+            continue
+        value = line.strip()
+        normalized = value.replace(chr(92), "")
+        if section == "Rule" and value:
+            parts = [part.strip() for part in value.split(",")]
+            if len(parts) >= 2 and parts[0].upper() in ("DOMAIN", "DOMAIN-SUFFIX", "DOMAIN-KEYWORD") and parts[1].lower() in ("api.biliapi.com", "app.biliapi.com", "api.biliapi.net", "app.biliapi.net"):
+                saw_target = True
+                if (section, value) not in BILIBILI_CORE_SERVICE_OVERBLOCKS:
+                    raise ValueError("Bilibili API host rule changed; refusing unreviewed removal: " + value)
+        if section == "Rewrite":
+            if "bilibili.com" in normalized or "bilivideo.com" in normalized:
+                normalized_rewrites.append(normalized)
+            if "httpdns.bilivideo.com/resolve?host" in normalized or "bilibili.com/x/web-interface/zone" in normalized or "bilibili.com/x/resource/ip" in normalized:
+                if (section, value) not in BILIBILI_CORE_SERVICE_OVERBLOCKS:
+                    raise ValueError("Bilibili core-service Rewrite changed; refusing unreviewed removal: " + value)
+        if (section, value) in counts:
+            saw_target = True
+            counts[(section, value)] += 1
+            if counts[(section, value)] > 1:
+                raise ValueError("duplicate Bilibili core-service overblock")
+            continue
+        output.append(line)
+
+    if not saw_target:
+        return list(lines), 0
+    present = [count for count in counts.values() if count]
+    if len(present) != len(BILIBILI_CORE_SERVICE_OVERBLOCKS):
+        raise ValueError("Bilibili core-service overblock inventory is partial; refusing cleanup")
+    if any(sum(1 for line in output if line.strip() == guard) != 1 for guard in BILIBILI_AD_HOST_GUARDS):
+        raise ValueError("Bilibili dedicated ad host guards missing or duplicated")
+    normalized_text = "\n".join(normalized_rewrites)
+    if any(marker not in normalized_text for marker in BILIBILI_AD_PATH_MARKERS):
+        raise ValueError("Bilibili path-scoped ad Rewrite coverage changed")
+    return output, sum(present)
+
 def remove_douyin_hongguo_unsafe_rules(lines):
     """Remove only the reviewed HTTPDNS/runtime/live-feed blocks and MITM host."""
     section = ""
@@ -2236,6 +2303,7 @@ def apply(text: str) -> str:
     lines, _ = remove_douyin_tnc_conflicting_rejects(lines)
     lines, _ = remove_douyin_content_cdn_overblocks(lines)
     lines, _ = remove_douyin_non_ad_service_host_blocks(lines)
+    lines, _ = remove_bilibili_core_service_overblocks(lines)
     lines, _ = remove_douyin_hongguo_unsafe_rules(lines)
     lines, _ = remove_kugou_jin10_redundant_rewrites(lines)
     lines, _ = remove_pdd_order_endpoint_blocks(lines)
