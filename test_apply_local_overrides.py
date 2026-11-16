@@ -455,6 +455,13 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
             apply(fixture)
 
 
+    def test_rrtv_constants_match_independently_reviewed_production_text(self):
+        from apply_local_overrides import RRTV_ADGETALL_SCRIPT_TRIGGER, RRTV_ADGETALL_NATIVE_RULE
+        expected_trigger = r"http-response ^https?:\\/\\/api\\.rr\\.tv\\/ad\\/getAll script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/rrtv.js,tag=RRTV-4,requires-body=true"
+        expected_rule = r'response if \${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/ad\\/getAll/ then response.json.jq(".data.adList = []")'
+        self.assertEqual(RRTV_ADGETALL_SCRIPT_TRIGGER, expected_trigger)
+        self.assertEqual(RRTV_ADGETALL_NATIVE_RULE, expected_rule)
+
     def test_replaces_only_rrtv_adgetall_script_with_native_jq(self):
         from apply_local_overrides import (
             RRTV_ADGETALL_SCRIPT_TRIGGER, RRTV_ADGETALL_NATIVE_RULE,
