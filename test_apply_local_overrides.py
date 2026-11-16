@@ -1377,11 +1377,11 @@ class PeopleAppHomepageAdDedupTests(unittest.TestCase):
         self.assertEqual(removed2, 0)
         self.assertEqual(result2, result)
 
-    def test_fails_closed_on_missing_duplicate_pair_duplicate_or_drift(self):
+    def test_preserves_lone_rule_and_fails_closed_on_duplicate_or_drift(self):
         from apply_local_overrides import PEOPLEAPP_HOME_AD_DUPLICATE_RULES, remove_duplicate_peopleapp_home_ad_rules
         first, duplicate = PEOPLEAPP_HOME_AD_DUPLICATE_RULES
-        with self.assertRaisesRegex(ValueError, "pair incomplete"):
-            remove_duplicate_peopleapp_home_ad_rules([first])
+        self.assertEqual(remove_duplicate_peopleapp_home_ad_rules([first]), ([first], 0))
+        self.assertEqual(remove_duplicate_peopleapp_home_ad_rules([duplicate]), ([duplicate], 0))
         with self.assertRaisesRegex(ValueError, "duplicate PeopleApp"):
             remove_duplicate_peopleapp_home_ad_rules([first, first, duplicate])
         drifted = duplicate.replace("reject(404)", "reject_dict(200)")
@@ -1390,6 +1390,7 @@ class PeopleAppHomepageAdDedupTests(unittest.TestCase):
         unknown = r"request if ${url} ~= /^https?:\\/\\/app\\.peopleapp\\.com\\/Api\\/\\d+\\/HomeApi\\/(adv|getAdvertImage)/ then reject(403)"
         with self.assertRaisesRegex(ValueError, "inventory changed"):
             remove_duplicate_peopleapp_home_ad_rules([first, unknown])
+
 
 
 class ZhihuRequestShadowRuleCleanupTests(unittest.TestCase):
