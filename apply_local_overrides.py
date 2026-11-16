@@ -232,6 +232,32 @@ def remove_gaoding_resource_scripts(lines):
     return output, tuple(trigger for trigger, count in removed.items() if count)
 
 
+
+RRTV_ADGETALL_SCRIPT_TRIGGER = r"http-response ^https?:\\/\\/api\\.rr\\.tv\\/ad\\/getAll script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/rrtv.js,tag=RRTV-4,requires-body=true"
+RRTV_ADGETALL_NATIVE_RULE = r'response if \${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/ad\\/getAll/ then response.json.jq(".data.adList = []")'
+
+
+def remove_rrtv_adgetall_script(lines):
+    """Replace only the RRTV ad-list emptying script trigger with native JSON JQ."""
+    output, removed, section = [], 0, ""
+    expected = re.sub(r"\\+", "", RRTV_ADGETALL_SCRIPT_TRIGGER.strip())
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            output.append(line)
+            continue
+        normalized = re.sub(r"\\+", "", line.strip())
+        if section != "Script" or "api.rr.tv/ad/getAll" not in normalized:
+            output.append(line)
+            continue
+        if normalized != expected:
+            raise ValueError("RRTV ad/getAll script trigger changed; refusing an unreviewed conversion")
+        removed += 1
+        if removed > 1:
+            raise ValueError("duplicate RRTV ad/getAll script triggers; refusing ambiguous conversion")
+    return output, removed
+
+
 DDQX_NEWDETAILS_MARKER = "maicai.api.ddxq.mobi/homeApi/newDetails"
 DDQX_NEWDETAILS_MATCHER = r"^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/newDetails"
 DDQX_NEWDETAILS_LEGACY_ACTION = "response-body-replace-regex suspension random_body"
@@ -459,6 +485,7 @@ def apply(text: str) -> str:
     lines = normalized_lines
     lines, guiderank_homepage_script_count = remove_guiderank_homepage_script(lines)
     lines, gaoding_converted_triggers = remove_gaoding_resource_scripts(lines)
+    lines, rrtv_adgetall_script_count = remove_rrtv_adgetall_script(lines)
 
     result_lines, rewrite_lines = [], []
     section = ""
@@ -479,6 +506,10 @@ def apply(text: str) -> str:
                     rewrite_lines.append(GUIDERANK_HOMEPAGE_NATIVE_RULE)
                 existing_rewrites = {item.strip() for item in rewrite_lines}
                 rewrite_lines.extend(rule for rule in GAODING_NATIVE_RULES if rule not in existing_rewrites and ((rule == GAODING_NATIVE_RULES[0] and GAODING_TEMPLATE_SCRIPT_TRIGGER in gaoding_converted_triggers) or (rule == GAODING_NATIVE_RULES[1] and GAODING_MINE_SCRIPT_TRIGGER in gaoding_converted_triggers)))
+        if rrtv_adgetall_script_count and RRTV_ADGETALL_NATIVE_RULE not in existing_rewrites:
+            rewrite_lines.append(RRTV_ADGETALL_NATIVE_RULE)
+                if rrtv_adgetall_script_count and RRTV_ADGETALL_NATIVE_RULE not in existing_rewrites:
+                    rewrite_lines.append(RRTV_ADGETALL_NATIVE_RULE)
                 result_lines.extend(rewrite_lines); rewrite_lines = []
             section = line[1:-1]; result_lines.append(line)
         elif section == "Rewrite": rewrite_lines.append(line)
