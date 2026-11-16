@@ -1485,12 +1485,7 @@ ZHIHU_REQUEST_SHADOW_PAIRS = (
     (
         r"request if ${url} ~= /^https:\/\/api\.zhihu\.com\/unlimited\/go\/my_card/ then reject(404)",
         r"request if ${url} ~= /^https?:\/\/api\.zhihu\.com\/unlimited\/go\/my_card/ then reject(404)",
-        "unlimited/go/my_card",
-    ),
-    (
-        r"request if ${url} ~= /^https:\/\/api\.zhihu\.com\/ab\/api\/v1\/products\/zhihu\/platforms\/ios\/config/ then reject(404)",
-        r"request if ${url} ~= /^https?:\/\/api\.zhihu\.com\/ab\/api\/v\d\/products\/zhihu\/platforms\/ios\/config/ then reject(404)",
-        "ab/api/",
+        "unlimited/go/my_card/ then",
     ),
     (
         r"request if ${url} ~= /^https:\/\/zhuanlan\.zhihu\.com\/api\/articles\/\d+\/recommendation/ then reject(404)",
