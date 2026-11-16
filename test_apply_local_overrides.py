@@ -708,7 +708,11 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertEqual(second_removed, 0)
 
     def test_fails_closed_when_didiads_noop_trigger_drifts(self):
-        from apply_local_overrides import DIDIADS_NOOP_SCRIPT_RULES, apply_didi_script_and_homepage_cleanup
+        from apply_local_overrides import (
+            DIDIADS_NOOP_SCRIPT_RULES, DIDIADS_COMMON_V5_SCRIPT,
+            DIDI_OTA_KEEP_SCRIPT, DIDI_PRESALE_KEEP_SCRIPT,
+            apply_didi_script_and_homepage_cleanup,
+        )
         fixture = [
             "[Argument]", "[Rule]", "[Rewrite]",
             "[Script]", DIDIADS_NOOP_SCRIPT_RULES[0].replace('tag="滴滴出行"', 'tag="changed"'),
