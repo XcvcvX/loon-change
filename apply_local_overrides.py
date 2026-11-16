@@ -600,7 +600,7 @@ def remove_redundant_xianyu_rewrite_rules(lines):
         value = normalize(line)
         matched = known.get(value)
         target = any(marker in value for marker in markers) and (
-            "response-body-json-jq" in value or
+            ("response-body-json-jq" in value or "response.json.jq" in value) or
             (value.startswith("^https:") and value.endswith("reject-dict"))
         )
         if matched is None:
