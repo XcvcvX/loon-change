@@ -2163,12 +2163,16 @@ def remove_douyin_tnc_conflicting_rejects(lines):
 DOUYIN_CONTENT_CDN_OVERBLOCKS = (
     ("Rule", "DOMAIN-KEYWORD,p3.pstatp.com,REJECT"),
     ("Rule", "DOMAIN-KEYWORD,video-cn.snssdk.com,REJECT"),
-    ("Rewrite", "request if ${url} ~= /^https?:\\/\\/p(b)?\\d\\.pstatp.com\\/origin/ then reject(404)"),
-    ("Rewrite", "request if ${url} ~= /^https?:\\/\\/p\\d\\.pstatp.com\\/origin/ then reject(404)"),
-    ("Rewrite", "request if ${url} ~= /^https?:\\/\\/pb\\d\\.pstatp.com\\/origin/ then reject(404)"),
+    # Current fmz200 blockAds source variants.
+    ("Rewrite", r"request if ${url} ~= /^https?:\/\/p\d\.pstatp\.com\/origin/i then reject(404)"),
+    ("Rewrite", r"request if ${url} ~= /^https?:\/\/pb\d\.pstatp\.com\/origin/i then reject(404)"),
+    # Previously accepted merged-source variants.
+    ("Rewrite", r"request if ${url} ~= /^https?:\/\/p(b)?\d\.pstatp\.com\/origin/ then reject(404)"),
+    ("Rewrite", r"request if ${url} ~= /^https?:\/\/p\d\.pstatp\.com\/origin/ then reject(404)"),
+    ("Rewrite", r"request if ${url} ~= /^https?:\/\/pb\d\.pstatp\.com\/origin/ then reject(404)"),
 )
 DOUYIN_CDN_REQUIRED_AD_PATH_MARKERS = (
-    "pstatp.com/(obj|img)/ad",
+    "(obj|img)/(ad-app-package|ad)/",
     "/obj/ad-pattern/renderer",
     "snssdk.com/api/ad/",
     "from=ad",
@@ -2176,7 +2180,7 @@ DOUYIN_CDN_REQUIRED_AD_PATH_MARKERS = (
 
 
 def remove_douyin_content_cdn_overblocks(lines):
-    """Remove host-wide/content-path CDN blocks while retaining explicit ad paths."""
+    """Remove only known content-CDN overblocks while requiring explicit ad-path coverage."""
     section = ""
     output = []
     counts = {item: 0 for item in DOUYIN_CONTENT_CDN_OVERBLOCKS}
@@ -2193,40 +2197,45 @@ def remove_douyin_content_cdn_overblocks(lines):
         normalized = value.replace(chr(92), "")
         if section == "Rule" and value:
             parts = [part.strip() for part in value.split(",")]
+            compact_rule = ",".join(parts)
             if len(parts) >= 2 and parts[0].upper() in ("DOMAIN", "DOMAIN-SUFFIX", "DOMAIN-KEYWORD") and parts[1].lower() in ("p3.pstatp.com", "video-cn.snssdk.com"):
                 saw_target = True
-                if (section, value) not in DOUYIN_CONTENT_CDN_OVERBLOCKS:
+                key = (section, compact_rule)
+                if key not in counts:
                     raise ValueError("Douyin content CDN domain rule changed; refusing unreviewed scope change: " + value)
-            if (section, value) in counts:
-                saw_target = True
-                counts[(section, value)] += 1
-                if counts[(section, value)] > 1:
+                counts[key] += 1
+                if counts[key] > 1:
                     raise ValueError("duplicate Douyin content CDN overblock: " + value)
                 continue
         if section == "Rewrite":
             if "pstatp" in normalized or "pglstatp-toutiao" in normalized or "snssdk.com" in normalized:
                 normalized_rewrites.append(normalized)
-            if "pstatp.com/origin" in normalized and "reject(404)" in normalized and (section, value) not in DOUYIN_CONTENT_CDN_OVERBLOCKS:
+            if "pstatp.com/origin" in normalized and "reject(404)" in normalized:
                 saw_target = True
-                unknown_overblocks.append(value)
-            if (section, value) in counts:
-                saw_target = True
-                counts[(section, value)] += 1
-                if counts[(section, value)] > 1:
-                    raise ValueError("duplicate Douyin content CDN origin Rewrite")
-                continue
+                key = (section, value)
+                if key not in counts:
+                    unknown_overblocks.append(value)
+                else:
+                    counts[key] += 1
+                    if counts[key] > 1:
+                        raise ValueError("duplicate Douyin content CDN origin Rewrite")
+                    continue
         output.append(line)
 
-    present = [count for count in counts.values() if count]
     if not saw_target:
         return list(lines), 0
-    if unknown_overblocks or (present and len(present) != len(DOUYIN_CONTENT_CDN_OVERBLOCKS)):
+    if unknown_overblocks:
         raise ValueError("Douyin content CDN overblock inventory changed; refusing partial cleanup")
     normalized_rewrite_text = "\n".join(normalized_rewrites)
-    missing_ad_paths = [marker for marker in DOUYIN_CDN_REQUIRED_AD_PATH_MARKERS if marker not in normalized_rewrite_text]
+    missing_ad_paths = [
+        marker for marker in DOUYIN_CDN_REQUIRED_AD_PATH_MARKERS
+        if marker not in normalized_rewrite_text
+    ]
     if missing_ad_paths:
         raise ValueError("Douyin path-scoped ad Rewrite coverage changed: " + ", ".join(missing_ad_paths))
-    return output, sum(present)
+    return output, sum(counts.values())
+
+
 
 # The merged plugin contains broad HTTP+HTTPS Kugou matchers plus HTTPS-only
 # copies of the same paths. The latter are strict subsets and cannot add coverage.
