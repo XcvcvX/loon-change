@@ -31,13 +31,13 @@ def apply(text):
             section = stripped[1:-1]
             output.append(line)
             continue
-        if section != "Rewrite" or HOTWORD_MARKER not in stripped:
+        if section != "Rewrite" or HOTWORD_MARKER not in normalized:
             output.append(line)
             continue
-        if stripped == DUPLICATE_HOTWORD_RULE:
+        if normalized == duplicate_normalized:
             duplicate_count += 1
             continue
-        if stripped == CANONICAL_GROUPED_RULE:
+        if normalized == grouped_normalized:
             grouped_count += 1
             output.append(line)
             continue
