@@ -1458,7 +1458,7 @@ class DouyinContentCdnScopeTests(unittest.TestCase):
         plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
         for _, rule in DOUYIN_CONTENT_CDN_OVERBLOCKS:
             self.assertNotIn(rule, plugin)
-        normalized = plugin.replace("\\\\", "")
+        normalized = plugin.replace(chr(92), "")
         for marker in DOUYIN_CDN_REQUIRED_AD_PATH_MARKERS:
             self.assertIn(marker, normalized)
 
