@@ -2559,6 +2559,23 @@ class MoreResponseScriptDedupTests(unittest.TestCase):
 
 
 class WeiboNonAdResponseTriggerTests(unittest.TestCase):
+    def test_checked_in_snapshot_matches_optimized_weibo_trigger_inventory(self):
+        from pathlib import Path
+        from apply_local_overrides import WEIBO_OPTIMIZED_SCRIPT_TRIGGER_LINES, WEIBO_PUSH_ACTIVE_TRIGGER
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        section = ""
+        weibo = []
+        for line in plugin.splitlines():
+            value = line.strip()
+            if value.startswith("[") and value.endswith("]"):
+                section = value[1:-1]
+            elif section == "Script" and "weibo.js" in value.lower():
+                weibo.append(value)
+        self.assertEqual(len(weibo), 15)
+        self.assertEqual(set(weibo), WEIBO_OPTIMIZED_SCRIPT_TRIGGER_LINES)
+        self.assertIn(WEIBO_PUSH_ACTIVE_TRIGGER, weibo)
+
+
     def _fixture(self):
         from apply_local_overrides import WEIBO_SCRIPT_TRIGGER_LINES
         return [
