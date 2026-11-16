@@ -1478,6 +1478,61 @@ def remove_kugou_jin10_redundant_rewrites(lines):
     return output, len(KUGOU_REDUNDANT_HTTPS_REWRITES) + 2
 
 
+# Zhihu answer and recommendation responses each had two independent JSON
+# rewrites for the same matcher. Preserve both field operations in one jq pass.
+ZHIHU_ANSWER_DELETE_REWRITE = r"^https:\/\/(api|page-info)(?:\.zhihu)?\.com\/answers\/v\d\/\d+(?:\?.*)?$ response-body-json-del third_business float_search_word"
+ZHIHU_ANSWER_CARD_REWRITE = r"""^https:\/\/(api|page-info)(?:\.zhihu)?\.com\/answers\/v\d\/\d+(?:\?.*)?$ response-body-json-jq '.structured_content.segments |= map(select(.type != "card"))'"""
+ZHIHU_ANSWER_COMBINED_REWRITE = r"""^https:\/\/(api|page-info)(?:\.zhihu)?\.com\/answers\/v\d\/\d+(?:\?.*)?$ response-body-json-jq 'del(.third_business, .float_search_word) | (.structured_content.segments |= map(select(.type != "card")))"""
+
+ZHIHU_TOPSTORY_COMPONENTS_REWRITE = r"""^https:\/\/api\.zhihu\.com\/topstory\/recommend\? response-body-json-jq '.data |= map(select(.type == "ComponentCard"))'"""
+ZHIHU_TOPSTORY_RING_REWRITE = r"""^https:\/\/api\.zhihu\.com\/topstory\/recommend\? response-body-json-jq '.data[]?.children |= (if type == "array" then map(select(.id != "ring")) else . end)'"""
+ZHIHU_TOPSTORY_COMBINED_REWRITE = r"""^https:\/\/api\.zhihu\.com\/topstory\/recommend\? response-body-json-jq '(.data |= map(select(.type == "ComponentCard"))) | (.data[]?.children |= (if type == "array" then map(select(.id != "ring")) else . end))'"""
+
+
+def consolidate_zhihu_multi_action_rewrites(lines):
+    """Coalesce only four source-verified Zhihu operations into two JSON passes."""
+    expected = (
+        ZHIHU_ANSWER_DELETE_REWRITE,
+        ZHIHU_ANSWER_CARD_REWRITE,
+        ZHIHU_TOPSTORY_COMPONENTS_REWRITE,
+        ZHIHU_TOPSTORY_RING_REWRITE,
+    )
+    counts = {rule: sum(line.strip() == rule for line in lines) for rule in expected}
+    if not any(counts.values()):
+        return list(lines), 0
+    if any(count != 1 for count in counts.values()):
+        raise ValueError(
+            "Zhihu multi-action rewrite inventory changed; refusing partial or drifted consolidation"
+        )
+
+    expected_set = set(expected)
+    for line in lines:
+        value = line.strip()
+        if ("topstory/recommend" in value or "answers/v" in value) and (
+            "response-body-json" in value and value not in expected_set
+        ):
+            raise ValueError(
+                "Zhihu same-matcher response rewrite changed; refusing unreviewed consolidation"
+            )
+
+    replacements = {
+        ZHIHU_ANSWER_DELETE_REWRITE: ZHIHU_ANSWER_COMBINED_REWRITE,
+        ZHIHU_TOPSTORY_COMPONENTS_REWRITE: ZHIHU_TOPSTORY_COMBINED_REWRITE,
+    }
+    removed = {ZHIHU_ANSWER_CARD_REWRITE, ZHIHU_TOPSTORY_RING_REWRITE}
+    output = []
+    for line in lines:
+        value = line.strip()
+        if value in replacements:
+            output.append(replacements[value])
+        elif value in removed:
+            continue
+        else:
+            output.append(line)
+    return output, 2
+
+
+
 
 def apply(text: str) -> str:
     if "[Script]" not in text or "[MITM]" not in text or "[Rewrite]" not in text:
@@ -1583,6 +1638,7 @@ def apply(text: str) -> str:
                 rewrite_lines, _ = merge_didi_fast_homepage_json_deletes(rewrite_lines)
                 rewrite_lines, _ = remove_didi_homepage_rejects_shadowing_field_cleaners(rewrite_lines)
                 rewrite_lines, _ = merge_adjacent_response_json_rewrites(rewrite_lines)
+                rewrite_lines, _ = consolidate_zhihu_multi_action_rewrites(rewrite_lines)
                 rewrite_lines, _ = remove_subsumed_soul_teenager_rule(rewrite_lines)
                 rewrite_lines, _ = remove_shadowed_peopleapp_rules(rewrite_lines)
                 rewrite_lines, _ = remove_shadowed_terminal_block_rules(rewrite_lines)
@@ -1607,6 +1663,7 @@ def apply(text: str) -> str:
         rewrite_lines, _ = merge_didi_fast_homepage_json_deletes(rewrite_lines)
         rewrite_lines, _ = remove_didi_homepage_rejects_shadowing_field_cleaners(rewrite_lines)
         rewrite_lines, _ = merge_adjacent_response_json_rewrites(rewrite_lines)
+        rewrite_lines, _ = consolidate_zhihu_multi_action_rewrites(rewrite_lines)
         rewrite_lines, _ = remove_subsumed_soul_teenager_rule(rewrite_lines)
         rewrite_lines, _ = remove_shadowed_peopleapp_rules(rewrite_lines)
         rewrite_lines, _ = remove_shadowed_terminal_block_rules(rewrite_lines)
