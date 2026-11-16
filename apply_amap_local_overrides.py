@@ -13,7 +13,7 @@ CANONICAL_GROUPED_RULE = (
     r'request if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/(?:mapapi\/hint_text\/offline_data|message\/notice\/list|shield\/search\/new_hotword)/i '
     r'then reject_dict(200)'
 )
-HOTWORD_MARKER = "/ws/shield/search/new_hotword"
+HOTWORD_MARKER = "search/new_hotword"
 
 
 def _normalize(line):
