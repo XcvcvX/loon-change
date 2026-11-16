@@ -453,6 +453,48 @@ def remove_redundant_dache_core_icon_filter(lines):
         output.append(line)
     return output, removed
 
+
+# Legacy Didi rules rejected the entire v1 homepage response before the newer
+# field-level response cleaners could run. Remove only those exact request
+# rejects when the corresponding precise response cleaner is present.
+DIDI_HOME_SLOW_LEGACY_REJECT = r"^https:\/\/conf\.diditaxi\.com\.cn\/homepage\/v1\/other\/slow reject-dict"
+DIDI_HOME_FAST_LEGACY_REJECT = r"^https:\/\/conf\.diditaxi\.com\.cn\/homepage\/v1\/other\/fast reject-dict"
+DIDI_HOME_SLOW_RESPONSE_PREFIX = r"response if ${url} ~= /^https:\/\/conf\.diditaxi\.com\.cn\/homepage\/v\d\/other\/slow\?/i then response.json.delete("
+DIDI_HOME_FAST_RESPONSE_PREFIX = r"response if ${url} ~= /^https:\/\/conf\.diditaxi\.com\.cn\/homepage\/v\d\/other\/fast\?/i then response.json.delete("
+
+
+def remove_didi_homepage_rejects_shadowing_field_cleaners(lines):
+    """Remove exact whole-endpoint rejects only when precise field cleaners supersede them."""
+    output = list(lines)
+    removed = 0
+    targets = (
+        (DIDI_HOME_SLOW_LEGACY_REJECT, DIDI_HOME_SLOW_RESPONSE_PREFIX, "slow"),
+        (DIDI_HOME_FAST_LEGACY_REJECT, DIDI_HOME_FAST_RESPONSE_PREFIX, "fast"),
+    )
+    for legacy_rule, response_prefix, label in targets:
+        exact_positions = [i for i, line in enumerate(output) if line.strip() == legacy_rule]
+        drifted = [
+            line.strip() for line in output
+            if "conf.diditaxi.com.cn/homepage/v1/other/" + label in line
+            and "reject-dict" in line
+            and line.strip().startswith("^https")
+            and line.strip() != legacy_rule
+        ]
+        if drifted:
+            raise ValueError("Didi homepage " + label + " legacy reject changed; refusing an unreviewed override")
+        if len(exact_positions) > 1:
+            raise ValueError("duplicate Didi homepage " + label + " legacy rejects")
+        if not exact_positions:
+            continue
+        response_matches = [line for line in output if line.strip().startswith(response_prefix)]
+        if len(response_matches) != 1:
+            raise ValueError(
+                "Didi homepage " + label + " field-level response cleaner inventory changed"
+            )
+        output = [line for line in output if line.strip() != legacy_rule]
+        removed += 1
+    return output, removed
+
 DIDI_FAST_HOME_DELETE_FIRST = r'response if ${url} ~= /^https:\/\/conf\.diditaxi\.com\.cn\/homepage\/v\d\/other\/fast\?/i then response.json.delete(["data.disorder_cards.communicate_card", "data.disorder_cards.not_login_bottom_bar", "data.disorder_cards.riding_code_card", "data.order_cards", "data.disorder_cards.car_icon.data.icon_info_new_agreement"])'
 DIDI_FAST_HOME_DELETE_SECOND = r'response if ${url} ~= /^https:\/\/conf\.diditaxi\.com\.cn\/homepage\/v\d\/other\/fast\?/i then response.json.delete(["data.disorder_cards.guess_card", "data.disorder_cards.scene_list_card"])'
 DIDI_FAST_HOME_MATCHER_PREFIX = r'response if ${url} ~= /^https:\/\/conf\.diditaxi\.com\.cn\/homepage\/v\d\/other\/fast\?/i then '
@@ -585,6 +627,7 @@ def apply(text: str) -> str:
                 rewrite_lines, _ = remove_duplicate_pdd_homepage_delete_path(rewrite_lines)
                 rewrite_lines, _ = remove_redundant_dache_core_icon_filter(rewrite_lines)
                 rewrite_lines, _ = merge_didi_fast_homepage_json_deletes(rewrite_lines)
+                rewrite_lines, _ = remove_didi_homepage_rejects_shadowing_field_cleaners(rewrite_lines)
                 rewrite_lines, _ = merge_adjacent_response_json_rewrites(rewrite_lines)
                 rewrite_lines, _ = remove_subsumed_soul_teenager_rule(rewrite_lines)
                 rewrite_lines, _ = remove_shadowed_peopleapp_rules(rewrite_lines)
@@ -604,6 +647,7 @@ def apply(text: str) -> str:
         rewrite_lines, _ = remove_duplicate_pdd_homepage_delete_path(rewrite_lines)
         rewrite_lines, _ = remove_redundant_dache_core_icon_filter(rewrite_lines)
         rewrite_lines, _ = merge_didi_fast_homepage_json_deletes(rewrite_lines)
+        rewrite_lines, _ = remove_didi_homepage_rejects_shadowing_field_cleaners(rewrite_lines)
         rewrite_lines, _ = merge_adjacent_response_json_rewrites(rewrite_lines)
         rewrite_lines, _ = remove_subsumed_soul_teenager_rule(rewrite_lines)
         rewrite_lines, _ = remove_shadowed_peopleapp_rules(rewrite_lines)
