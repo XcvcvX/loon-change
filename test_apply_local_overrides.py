@@ -29,6 +29,21 @@ class LocalOverrideTests(unittest.TestCase):
         self.assertEqual(result[0].count("response.json.jq("), 1)
         self.assertIn("del(.search_suggestions)? |", result[0])
 
+    def test_consolidates_upstream_split_starplucker_jq_rules_after_adjacent_merge(self):
+        from apply_local_overrides import (
+            STARPLUCKER_DOUBLE_JQ_RULE, STARPLUCKER_SINGLE_JQ_RULE,
+            consolidate_starplucker_config_jq, merge_adjacent_response_json_rewrites,
+        )
+        first, second = STARPLUCKER_DOUBLE_JQ_RULE.split(" | ", 1)
+        # The upstream converter emits the two actions as separate same-URL rules.
+        merged, merge_count = merge_adjacent_response_json_rewrites([first, second])
+        self.assertEqual(merge_count, 1)
+        self.assertEqual(merged, [STARPLUCKER_DOUBLE_JQ_RULE])
+        result, changed = consolidate_starplucker_config_jq(merged)
+        self.assertEqual(changed, 1)
+        self.assertEqual(result, [STARPLUCKER_SINGLE_JQ_RULE])
+        self.assertEqual(result[0].count("response.json.jq("), 1)
+
     def test_starplucker_consolidation_fails_closed_on_rule_drift_or_duplicates(self):
         from apply_local_overrides import STARPLUCKER_DOUBLE_JQ_RULE, consolidate_starplucker_config_jq
         with self.assertRaisesRegex(ValueError, "StarPlucker config jq rule changed"):
