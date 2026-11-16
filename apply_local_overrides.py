@@ -3023,7 +3023,7 @@ def optimize_xiaohongshu_response_cost(lines):
                     and "reject-img" in stripped):
                 rewrite_counts["watermark_image"] += 1
                 continue
-            if "xiaohongshu.com" in normalized and "response-body-json-jq" in stripped:
+            if "xiaohongshu" in normalized and "response-body-json-jq" in stripped:
                 if "/v1/note/imagefeed" in normalized:
                     if "disable_watermark" not in stripped or "video_download" not in stripped:
                         raise ValueError("Xiaohongshu imagefeed rewrite changed")
@@ -3057,6 +3057,9 @@ def optimize_xiaohongshu_response_cost(lines):
     trigger_total = sum(trigger_counts.values())
     if trigger_total == 0:
         if (all(value == 0 for value in rewrite_counts.values())
+                and v3_ad_count == 0 and v4_ad_count == 0 and argument_count == 0):
+            return list(lines), 0
+        if (all(value == 0 for value in rewrite_counts.values())
                 and v3_ad_count == 1 and v4_ad_count == 1 and argument_count == 0):
             return output, 0
         raise ValueError("Xiaohongshu cleanup is partial; refusing inconsistent plugin")
@@ -3065,7 +3068,7 @@ def optimize_xiaohongshu_response_cost(lines):
     expected = {"imagefeed": 1, "v2_feed": 1, "v3_video": 1, "v4_video": 1,
                 "comment_list": 1, "watermark_image": 2}
     if rewrite_counts != expected or argument_count != 1:
-        raise ValueError("Xiaohongshu native Rewrite inventory changed; refusing partial cleanup")
+        raise ValueError("Xiaohongshu native Rewrite inventory changed; refusing partial cleanup: " + repr(rewrite_counts))
     if v3_ad_count or v4_ad_count:
         raise ValueError("Xiaohongshu ad-only video rewrite unexpectedly existed before cleanup")
     return output, trigger_total
