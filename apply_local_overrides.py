@@ -3061,8 +3061,14 @@ def remove_identical_script_response_duplicates(lines):
     """Use one code-identical response handler while preserving the broader legacy API paths."""
     remove_counts = {item: 0 for item in IDENTICAL_SCRIPT_REMOVE_TRIGGERS}
     source_counts = {item: 0 for item in IDENTICAL_SCRIPT_KEEP_SOURCE_TRIGGERS}
+    rrtv_script_triggers = set(IDENTICAL_SCRIPT_CURRENT_CANONICAL_TRIGGERS[:9])
+    rrtv_source_triggers = set(IDENTICAL_SCRIPT_KEEP_SOURCE_TRIGGERS[:9])
+    rrtv_native_mode = not any(item in lines for item in rrtv_script_triggers)
     current_snapshot_mode = all(item in lines for item in IDENTICAL_SCRIPT_CURRENT_CANONICAL_TRIGGERS)
-    canonical_triggers = IDENTICAL_SCRIPT_CURRENT_CANONICAL_TRIGGERS if current_snapshot_mode else IDENTICAL_SCRIPT_KEEP_TRIGGERS
+    if rrtv_native_mode:
+        canonical_triggers = IDENTICAL_SCRIPT_CURRENT_CANONICAL_TRIGGERS[9:]
+    else:
+        canonical_triggers = IDENTICAL_SCRIPT_CURRENT_CANONICAL_TRIGGERS if current_snapshot_mode else IDENTICAL_SCRIPT_KEEP_TRIGGERS
     output_counts = {item: 0 for item in canonical_triggers}
     remove_set = set(IDENTICAL_SCRIPT_REMOVE_TRIGGERS)
     output, section, target_seen, removed = [], "", False, 0
@@ -3126,7 +3132,11 @@ def remove_identical_script_response_duplicates(lines):
     if source_mode:
         if not all(count == 1 for count in remove_counts.values()):
             raise ValueError("legacy identical-script inventory incomplete; refusing partial consolidation")
-        if not all(count == 1 for count in source_counts.values()):
+        required_source_counts = {
+            item: count for item, count in source_counts.items()
+            if not (rrtv_native_mode and item in rrtv_source_triggers)
+        }
+        if not all(count == 1 for count in required_source_counts.values()):
             raise ValueError("retained identical-script source inventory incomplete")
         return output, removed
 
