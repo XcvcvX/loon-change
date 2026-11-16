@@ -2389,8 +2389,9 @@ class MoreResponseScriptDedupTests(unittest.TestCase):
         fixture = [
             "[Argument]", "xhs_enable = switch,true,false,tag=小红书-脚本开关",
             "[Rewrite]",
+            r"""^https?:\/\/ci\.xiaohongshu\.com\/system_config\/watermark reject-img""",
             r"""^https:\/\/ci\.xiaohongshu\.com\/system_config\/watermark reject-img""",
-            r"""^https:\/\/ci\.xiaohongshu\.com\/system_config\/watermark reject-img""",
+            r"""request if ${url} ~= /^https?:\/\/ci\.(xiaohongshu|rnote)\.com\/system_config\/watermark/ then reject_img(200)""",
             r"""^https:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/v1\/note\/imagefeed response-body-json-jq 'disable_watermark video_download'""",
             r"""^https:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/v2\/note\/feed response-body-json-jq 'disable_watermark video_download'""",
             r"""^https:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/v3\/note\/videofeed response-body-json-jq 'disable_watermark video_download'""",
@@ -2409,7 +2410,7 @@ class MoreResponseScriptDedupTests(unittest.TestCase):
         self.assertNotIn("comment_type", "\n".join(result))
         self.assertIn(XHS_V4_VIDEO_AD_ONLY_RULE, result)
         self.assertIn('has("ad")', XHS_V4_VIDEO_AD_ONLY_RULE)
-        self.assertFalse(any("v3/note/videofeed" in line for line in result))
+        self.assertFalse(any("videofeed" in line and "v3" in line for line in result))
         self.assertTrue(any("system_service" in line for line in result))
         self.assertTrue(any("example.invalid/keep.js" in line for line in result))
         again, second_removed = optimize_xiaohongshu_response_cost(result)
