@@ -2151,23 +2151,29 @@ class TuhuDuplicateResponseScriptTests(unittest.TestCase):
 class CnftpDuplicateScriptTests(unittest.TestCase):
     def setUp(self):
         from apply_local_overrides import (
-            CNFTP_DUPLICATE_KEEP_TRIGGERS, CNFTP_DUPLICATE_REMOVE_TRIGGERS,
+            CNFTP_DUPLICATE_KEEP_SOURCE_TRIGGERS,
+            CNFTP_DUPLICATE_KEEP_TRIGGERS,
+            CNFTP_DUPLICATE_REMOVE_TRIGGERS,
         )
+        self.keep_source = CNFTP_DUPLICATE_KEEP_SOURCE_TRIGGERS
         self.keep = CNFTP_DUPLICATE_KEEP_TRIGGERS
         self.remove = CNFTP_DUPLICATE_REMOVE_TRIGGERS
         self.unrelated = 'response if ${url} ~= /^https?:\\/\\/example\\.com\\/api/ then script("https://example.invalid/keep.js")'
         self.fixture = [
-            "[Script]", *self.remove, *self.keep, self.unrelated,
+            "[Script]", *self.remove, *self.keep_source, self.unrelated,
             "[Rewrite]", "^https?:\\\\/\\\\/api.iqiyi.com\\\\/unrelated reject(404)",
             "[MITM]", "hostname = cards.iqiyi.com, me.bz.mgtv.com, acs.youku.com",
         ]
 
-    def test_removes_all_26_duplicate_triggers_and_keeps_one_per_endpoint(self):
+    def test_removes_26_duplicates_and_keeps_26_single_processing_handlers(self):
         from apply_local_overrides import remove_duplicate_cnftp_scripts
         result, removed = remove_duplicate_cnftp_scripts(self.fixture)
         self.assertEqual(removed, 26)
         for item in self.remove:
             self.assertNotIn(item, result)
+        for item in self.keep_source:
+            if item not in self.keep:
+                self.assertNotIn(item, result)
         for item in self.keep:
             self.assertEqual(result.count(item), 1)
         self.assertIn(self.unrelated, result)
@@ -2181,17 +2187,17 @@ class CnftpDuplicateScriptTests(unittest.TestCase):
 
     def test_fails_closed_on_missing_duplicate_duplicate_kept_or_unknown_variant(self):
         from apply_local_overrides import remove_duplicate_cnftp_scripts
-        missing = [line for line in self.fixture if line != self.keep[0]]
-        with self.assertRaisesRegex(ValueError, "inventory incomplete"):
+        missing = [line for line in self.fixture if line != self.remove[0]]
+        with self.assertRaisesRegex(ValueError, "legacy video trigger inventory incomplete"):
             remove_duplicate_cnftp_scripts(missing)
 
-        duplicate = ["[Script]", *self.keep, self.keep[0]]
-        with self.assertRaisesRegex(ValueError, "duplicate retained"):
+        duplicate = ["[Script]", *self.remove, *self.keep_source, self.keep_source[0]]
+        with self.assertRaisesRegex(ValueError, "duplicate retained video source"):
             remove_duplicate_cnftp_scripts(duplicate)
 
-        unknown = self.keep[0].replace("cnftp.js", "cnftp-next.js")
+        unknown = self.keep_source[0].replace("cnftp.js", "cnftp-next.js")
         with self.assertRaisesRegex(ValueError, "inventory changed"):
-            remove_duplicate_cnftp_scripts(["[Script]", *self.keep[1:], unknown])
+            remove_duplicate_cnftp_scripts(["[Script]", *self.remove, *self.keep_source[1:], unknown])
 
     def test_checked_in_plugin_snapshot_has_only_the_selected_handlers(self):
         from pathlib import Path
