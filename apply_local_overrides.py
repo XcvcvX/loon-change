@@ -1508,7 +1508,8 @@ def consolidate_zhihu_multi_action_rewrites(lines):
     expected_set = set(expected)
     for line in lines:
         value = line.strip()
-        if ("topstory/recommend" in value or "answers/v" in value) and (
+        normalized = re.sub(r"\\+/", "/", value)
+        if ("topstory/recommend" in normalized or "answers/v" in normalized) and (
             "response-body-json" in value and value not in expected_set
         ):
             raise ValueError(
