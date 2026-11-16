@@ -1,9 +1,9 @@
 {
   "change_counts": {
     "rewrite": {
-      "action_changed": 1,
-      "added": 0,
-      "removed": 0
+      "action_changed": 0,
+      "added": 6,
+      "removed": 4
     },
     "rule": {
       "action_changed": 0,
@@ -13,28 +13,142 @@
     "script": {
       "action_changed": 0,
       "added": 0,
-      "removed": 33
+      "removed": 13
     }
   },
   "events": [
     {
       "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_business\\/process\\/marketingOperationStructured\\?/i then response.json.delete([\"data.tipsOperationLocation\", \"data.resourcePlacement\"])",
+        "line": "^https:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v1\\/other\\/fast reject-dict",
+        "section": "rewrite",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "aoomee": "scored"
+      },
+      "source_scores": {
+        "aoomee": 100
+      },
+      "sources": [
+        "aoomee"
+      ]
+    },
+    {
+      "after": {
+        "line": "^https:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v1\\/other\\/slow reject-dict",
+        "section": "rewrite",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "aoomee": "scored"
+      },
+      "source_scores": {
+        "aoomee": 100
+      },
+      "sources": [
+        "aoomee"
+      ]
+    },
+    {
+      "after": {
+        "line": "response if ${url} ~= /^https:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v\\d\\/core\\?/i then response.json.jq(\"(if (try (.data.disorder_cards.bottom_nav_list.data | type) catch null) == \\\"array\\\" then .data.disorder_cards.bottom_nav_list.data |= map(select(.id == \\\"v6x_home\\\" or .id == \\\"home_page\\\" or .id == \\\"user_center\\\")) else . end) | (if (try (.data.order_cards.nav_list_card.data | type) catch null) == \\\"array\\\" then .data.order_cards.nav_list_card.data |= map(select(.nav_id == \\\"dache_anycar\\\" or .nav_id == \\\"carmate\\\" or .nav_id == \\\"driverservice\\\" or .nav_id == \\\"zhandianbashi\\\" or .nav_id == \\\"pincheche\\\" or .nav_id == \\\"bike\\\" or .nav_id == \\\"nav_more_v3\\\")) else . end) | (if (try (.data.disorder_cards.top_nav_list.data.top_nav_info | type) catch null) == \\\"array\\\" then .data.disorder_cards.top_nav_list.data.top_nav_info |= map(select(.nav_id == \\\"chu_xing\\\" or .nav_id == \\\"freight_cargo\\\")) else . end)\")",
+        "section": "rewrite",
+        "sources": [
+          "local_overrides"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "local_overrides": "unavailable"
+      },
+      "source_scores": {
+        "local_overrides": null
+      },
+      "sources": [
+        "local_overrides"
+      ]
+    },
+    {
+      "after": {
+        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/aos\\/perception\\/publicTravel\\/beforeNavi\\?/i then response.json.jq(\"(if (try (.data.common_data.bus_plan_bottom_event.data | type) catch null) == \\\"array\\\" then .data.common_data.bus_plan_bottom_event.data = [] else . end) | (if (try (.data.common_data.bus_plan_bottom_tips.data | type) catch null) == \\\"array\\\" then .data.common_data.bus_plan_bottom_tips.data = [] else . end) | (if (try (.data.common_data.bus_plan_segment_event.data | type) catch null) == \\\"array\\\" then .data.common_data.bus_plan_segment_event.data = [] else . end) | (if (try (.data.front_end.assistant | type) catch null) == \\\"array\\\" then .data.front_end.assistant = [] else . end)\")",
         "section": "rewrite",
         "sources": [
           "amap"
         ]
       },
-      "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_business\\/process\\/marketingOperationStructured\\?/i then response.json.delete([\"data.tipsOperationLocation\", \"obj.data.resourcePlacement\"])",
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "amap": "unavailable"
+      },
+      "source_scores": {
+        "amap": null
+      },
+      "sources": [
+        "amap"
+      ]
+    },
+    {
+      "after": {
+        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/bus\\/plan\\/integrate\\?/i then response.json.jq(\"(if (try (.data.banner_lists.data | type) catch null) == \\\"array\\\" then .data.banner_lists.data = [] else . end) | (if (try (.data.banner_lists.tips | type) catch null) == \\\"array\\\" then .data.banner_lists.tips = [] else . end) | (if (try (.data.mixed_plans.data.taxiPlans | type) catch null) == \\\"array\\\" then .data.mixed_plans.data.taxiPlans = [] else . end)\")",
         "section": "rewrite",
         "sources": [
           "amap"
         ]
       },
-      "change_type": "action_changed",
-      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
-      "risk": "high",
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "amap": "unavailable"
+      },
+      "source_scores": {
+        "amap": null
+      },
+      "sources": [
+        "amap"
+      ]
+    },
+    {
+      "after": {
+        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_bff\\/hotword\\?/i then response.json.jq(\"(if (try (.data.headerHotWord | type) catch null) == \\\"array\\\" then .data.headerHotWord = [] else . end)\")",
+        "section": "rewrite",
+        "sources": [
+          "amap"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
       "section": "rewrite",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
@@ -50,8 +164,8 @@
     {
       "after": null,
       "before": {
-        "line": "http-response ^https:\\/\\/(?:info\\.amap\\.com|m5\\.amap\\.com)\\/ws\\/shield\\/search\\/(common\\/coupon\\/info|poi\\/detail) script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/amap.js, requires-body = true, tag = 搜索地点导航详情页推广",
-        "section": "script",
+        "line": "^https:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v5\\/usercenter\\/layout response-body-json-jq 'del(.data.instances.center_marketing_card, .data.instances.center_tool_card, .data.instances.center_widget_list, .data.instances.center_res_light_guide) | .data.instances.center_wallet_finance_card.data.view_info |= map(select(.title == \"优惠卡券\"))'",
+        "section": "rewrite",
         "sources": [
           "aoomee"
         ]
@@ -59,7 +173,7 @@
       "change_type": "removed",
       "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
       "risk": "high",
-      "section": "script",
+      "section": "rewrite",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
         "aoomee": "scored"
@@ -74,8 +188,8 @@
     {
       "after": null,
       "before": {
-        "line": "http-response ^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/boss\\/(car\\/order\\/content_info|order_web\\/friendly_information) script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/amap.js, requires-body = true, tag = 打车页(红点角标,弹窗,天气图标,推广卡片)",
-        "section": "script",
+        "line": "^https:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v1\\/core\\? response-body-json-jq '.data.disorder_cards.bottom_nav_list.data |= [.[] | select(.id == \"home_page\" or .id == \"user_center\")] | .data.order_cards.nav_list_card.data |= [.[] | select(.nav_id == \"bike\" or .nav_id == \"driverservice\" or .nav_id == \"carmate\")]'",
+        "section": "rewrite",
         "sources": [
           "aoomee"
         ]
@@ -83,7 +197,7 @@
       "change_type": "removed",
       "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
       "risk": "high",
-      "section": "script",
+      "section": "rewrite",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
         "aoomee": "scored"
@@ -98,415 +212,55 @@
     {
       "after": null,
       "before": {
-        "line": "http-response ^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/promotion-web\\/resource(\\/home)?\\? script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/amap.js, requires-body = true, tag = 打车页红点角标、天气图标",
-        "section": "script",
+        "line": "^https?:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v\\d\\/other\\/fast reject-dict",
+        "section": "rewrite",
         "sources": [
-          "aoomee"
+          "base"
         ]
       },
       "change_type": "removed",
       "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
       "risk": "high",
-      "section": "script",
+      "section": "rewrite",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "aoomee": "scored"
+        "base": "unavailable"
       },
       "source_scores": {
-        "aoomee": 100
+        "base": null
       },
       "sources": [
-        "aoomee"
+        "base"
       ]
     },
     {
       "after": null,
       "before": {
-        "line": "http-response ^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/sharedtrip\\/taxi\\/order_detail_car_tips\\? script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/amap.js, requires-body = true, tag = 打车页提示",
-        "section": "script",
+        "line": "response if ${url} ~= /^https:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v\\d\\/core\\?/i then response.json.jq(\".data.order_cards.nav_list_card.data |= map(select(.nav_id == \\\"dache_anycar\\\" or .nav_id == \\\"carmate\\\" or .nav_id == \\\"driverservice\\\" or .nav_id == \\\"zhandianbashi\\\" or .nav_id == \\\"pincheche\\\" or .nav_id == \\\"bike\\\" or .nav_id == \\\"nav_more_v3\\\")) | .data.disorder_cards.top_nav_list.data.top_nav_info |= map(select(.nav_id == \\\"chu_xing\\\" or .nav_id == \\\"freight_cargo\\\"))\")",
+        "section": "rewrite",
         "sources": [
-          "aoomee"
+          "zmjapp"
         ]
       },
       "change_type": "removed",
       "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
       "risk": "high",
-      "section": "script",
+      "section": "rewrite",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "aoomee": "scored"
+        "zmjapp": "unavailable"
       },
       "source_scores": {
-        "aoomee": 100
+        "zmjapp": null
       },
       "sources": [
-        "aoomee"
+        "zmjapp"
       ]
     },
     {
       "after": null,
       "before": {
-        "line": "http-response ^https:\\/\\/m5\\.amap\\.com\\/ws\\/aos\\/perception\\/publicTravel\\/beforeNavi\\? script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/amap.js, requires-body = true, tag = 路线规划推广",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "aoomee": "scored"
-      },
-      "source_scores": {
-        "aoomee": 100
-      },
-      "sources": [
-        "aoomee"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "http-response ^https:\\/\\/m5\\.amap\\.com\\/ws\\/bus\\/plan\\/integrate\\? script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/amap.js, requires-body = true, tag = 路线规划和导航结束页推广",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "aoomee": "scored"
-      },
-      "source_scores": {
-        "aoomee": 100
-      },
-      "sources": [
-        "aoomee"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "http-response ^https:\\/\\/m5\\.amap\\.com\\/ws\\/c3frontend\\/af-(hotel|launch)\\/page\\/main\\? script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/amap.js, requires-body = true, tag = 导航详情页底部酒店",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "aoomee": "scored"
-      },
-      "source_scores": {
-        "aoomee": 100
-      },
-      "sources": [
-        "aoomee"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "http-response ^https:\\/\\/m5\\.amap\\.com\\/ws\\/c3frontend\\/af-nearby\\/nearby script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/amap.js, requires-body = true, tag = 附近页横幅广告、信息流广告",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "aoomee": "scored"
-      },
-      "source_scores": {
-        "aoomee": 100
-      },
-      "sources": [
-        "aoomee"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "http-response ^https:\\/\\/m5\\.amap\\.com\\/ws\\/faas\\/amap-navigation\\/(card-service-plan-home|main-page) script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/amap.js, requires-body = true, tag = 首页推广",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "aoomee": "scored"
-      },
-      "source_scores": {
-        "aoomee": 100
-      },
-      "sources": [
-        "aoomee"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "http-response ^https:\\/\\/m5\\.amap\\.com\\/ws\\/perception\\/drive\\/(routeInfo|routePlan) script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/amap.js, requires-body = true, tag = 路线规划推广",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "aoomee": "scored"
-      },
-      "source_scores": {
-        "aoomee": 100
-      },
-      "sources": [
-        "aoomee"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "http-response ^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/dsp\\/profile\\/index\\/nodefaasv3\\? script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/amap.js, requires-body = true, tag = 我的页面推广",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "aoomee": "scored"
-      },
-      "source_scores": {
-        "aoomee": 100
-      },
-      "sources": [
-        "aoomee"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "http-response ^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/frogserver\\/aocs\\/updatable\\/1\\? script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/amap.js, requires-body = true, tag = 首页推广",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "aoomee": "scored"
-      },
-      "source_scores": {
-        "aoomee": 100
-      },
-      "sources": [
-        "aoomee"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "http-response ^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search\\/nearbyrec_smart\\? script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/amap.js, requires-body = true, tag = 附近页推广",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "aoomee": "scored"
-      },
-      "source_scores": {
-        "aoomee": 100
-      },
-      "sources": [
-        "aoomee"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "http-response ^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_bff\\/hotword\\? script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/amap.js, requires-body = true, tag = 搜索框提示词",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "aoomee": "scored"
-      },
-      "source_scores": {
-        "aoomee": 100
-      },
-      "sources": [
-        "aoomee"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "http-response ^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_poi\\/homepage script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/amap.js, requires-body = true, tag = 搜索详情页推广1",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "aoomee": "scored"
-      },
-      "source_scores": {
-        "aoomee": 100
-      },
-      "sources": [
-        "aoomee"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "http-response ^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_poi\\/search\\/sp script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/amap.js, requires-body = true, tag = 搜索详情页推广2",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "aoomee": "scored"
-      },
-      "source_scores": {
-        "aoomee": 100
-      },
-      "sources": [
-        "aoomee"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "http-response ^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_poi\\/sug script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/amap.js, requires-body = true, tag = 搜索详情页推广3",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "aoomee": "scored"
-      },
-      "source_scores": {
-        "aoomee": 100
-      },
-      "sources": [
-        "aoomee"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "http-response ^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_poi\\/tips_operation_location script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/amap.js, requires-body = true, tag = 搜索详情页推广4",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "aoomee": "scored"
-      },
-      "source_scores": {
-        "aoomee": 100
-      },
-      "sources": [
-        "aoomee"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "http-response ^https:\\/\\/m5\\.amap\\.com\\/ws\\/valueadded\\/alimama\\/splash_screen\\? script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/amap.js, requires-body = true, tag = 开屏广告",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "aoomee": "scored"
-      },
-      "source_scores": {
-        "aoomee": 100
-      },
-      "sources": [
-        "aoomee"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "http-response ^https?:\\/\\/m\\d-zb\\.amap\\.com\\/ws\\/boss\\/(car\\/order\\/content_info|order_web\\/friendly_information) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-12,requires-body=true",
+        "line": "http-response ^https?:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v\\d\\/usercenter\\/me script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI-3,requires-body=true",
         "section": "script",
         "sources": [
           "base"
@@ -530,7 +284,7 @@
     {
       "after": null,
       "before": {
-        "line": "http-response ^https?:\\/\\/m\\d-zb\\.amap\\.com\\/ws\\/promotion-web\\/resource(\\/home)?\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-13,requires-body=true",
+        "line": "http-response ^https?:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v\\d\\/core script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI,requires-body=true",
         "section": "script",
         "sources": [
           "base"
@@ -554,10 +308,10 @@
     {
       "after": null,
       "before": {
-        "line": "http-response ^https?:\\/\\/m\\d-zb\\.amap\\.com\\/ws\\/sharedtrip\\/taxi\\/order_detail_car_tips\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-14,requires-body=true",
+        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/aos\\/perception\\/publicTravel\\/beforeNavi\\?/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除路线规划推广\", requires_body=true",
         "section": "script",
         "sources": [
-          "base"
+          "amap"
         ]
       },
       "change_type": "removed",
@@ -566,22 +320,22 @@
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "base": "unavailable"
+        "amap": "unavailable"
       },
       "source_scores": {
-        "base": null
+        "amap": null
       },
       "sources": [
-        "base"
+        "amap"
       ]
     },
     {
       "after": null,
       "before": {
-        "line": "http-response ^https?:\\/\\/m\\d\\.amap\\.com\\/ws\\/aos\\/perception\\/publicTravel\\/beforeNavi\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP,requires-body=true",
+        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/bus\\/plan\\/integrate\\?/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除路线规划、导航结束页推广\", requires_body=true",
         "section": "script",
         "sources": [
-          "base"
+          "amap"
         ]
       },
       "change_type": "removed",
@@ -590,22 +344,22 @@
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "base": "unavailable"
+        "amap": "unavailable"
       },
       "source_scores": {
-        "base": null
+        "amap": null
       },
       "sources": [
-        "base"
+        "amap"
       ]
     },
     {
       "after": null,
       "before": {
-        "line": "http-response ^https?:\\/\\/m\\d\\.amap\\.com\\/ws\\/bus\\/plan\\/integrate\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-2,requires-body=true",
+        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_bff\\/hotword\\?/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除搜索栏推广\", requires_body=true",
         "section": "script",
         "sources": [
-          "base"
+          "amap"
         ]
       },
       "change_type": "removed",
@@ -614,22 +368,22 @@
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "base": "unavailable"
+        "amap": "unavailable"
       },
       "source_scores": {
-        "base": null
+        "amap": null
       },
       "sources": [
-        "base"
+        "amap"
       ]
     },
     {
       "after": null,
       "before": {
-        "line": "http-response ^https?:\\/\\/m\\d\\.amap\\.com\\/ws\\/c3frontend\\/af-(hotel|launch)\\/page\\/main\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-3,requires-body=true",
+        "line": "response if ${url} ~= /^https?:\\/\\/conf\\.diditaxi\\.com\\.cn\\/dynamic\\/conf/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
         "section": "script",
         "sources": [
-          "base"
+          "block"
         ]
       },
       "change_type": "removed",
@@ -638,22 +392,22 @@
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "base": "unavailable"
+        "block": "unavailable"
       },
       "source_scores": {
-        "base": null
+        "block": null
       },
       "sources": [
-        "base"
+        "block"
       ]
     },
     {
       "after": null,
       "before": {
-        "line": "http-response ^https?:\\/\\/m\\d\\.amap\\.com\\/ws\\/faas\\/amap-navigation\\/(?:card-service-plan-home|main-page) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-8,requires-body=true",
+        "line": "response if ${url} ~= /^https?:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v\\d\\/other\\/fast/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
         "section": "script",
         "sources": [
-          "base"
+          "block"
         ]
       },
       "change_type": "removed",
@@ -662,22 +416,22 @@
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "base": "unavailable"
+        "block": "unavailable"
       },
       "source_scores": {
-        "base": null
+        "block": null
       },
       "sources": [
-        "base"
+        "block"
       ]
     },
     {
       "after": null,
       "before": {
-        "line": "http-response ^https?:\\/\\/m\\d\\.amap\\.com\\/ws\\/perception\\/drive\\/(?:routeInfo|routePlan) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-4,requires-body=true",
+        "line": "response if ${url} ~= /^https?:\\/\\/ct\\.xiaojukeji\\.com\\/agent\\/v3\\/feeds/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
         "section": "script",
         "sources": [
-          "base"
+          "block"
         ]
       },
       "change_type": "removed",
@@ -686,22 +440,22 @@
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "base": "unavailable"
+        "block": "unavailable"
       },
       "source_scores": {
-        "base": null
+        "block": null
       },
       "sources": [
-        "base"
+        "block"
       ]
     },
     {
       "after": null,
       "before": {
-        "line": "http-response ^https?:\\/\\/m\\d\\.amap\\.com\\/ws\\/shield\\/dsp\\/profile\\/index\\/nodefaasv\\d\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-10,requires-body=true",
+        "line": "response if ${url} ~= /^https?:\\/\\/daijia\\.kuaidadi\\.com:443\\/gateway/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
         "section": "script",
         "sources": [
-          "base"
+          "block"
         ]
       },
       "change_type": "removed",
@@ -710,22 +464,22 @@
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "base": "unavailable"
+        "block": "unavailable"
       },
       "source_scores": {
-        "base": null
+        "block": null
       },
       "sources": [
-        "base"
+        "block"
       ]
     },
     {
       "after": null,
       "before": {
-        "line": "http-response ^https?:\\/\\/m\\d\\.amap\\.com\\/ws\\/shield\\/frogserver\\/aocs\\/updatable\\/1\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-9,requires-body=true",
+        "line": "response if ${url} ~= /^https?:\\/\\/daijia\\.kuaidadi\\.com\\/gateway/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
         "section": "script",
         "sources": [
-          "base"
+          "block"
         ]
       },
       "change_type": "removed",
@@ -734,22 +488,22 @@
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "base": "unavailable"
+        "block": "unavailable"
       },
       "source_scores": {
-        "base": null
+        "block": null
       },
       "sources": [
-        "base"
+        "block"
       ]
     },
     {
       "after": null,
       "before": {
-        "line": "http-response ^https?:\\/\\/m\\d\\.amap\\.com\\/ws\\/shield\\/search\\/(common\\/coupon\\/info|poi\\/detail) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-5,requires-body=true",
+        "line": "response if ${url} ~= /^https?:\\/\\/freight\\.xiaojukeji\\.com\\/gateway/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
         "section": "script",
         "sources": [
-          "base"
+          "block"
         ]
       },
       "change_type": "removed",
@@ -758,22 +512,22 @@
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "base": "unavailable"
+        "block": "unavailable"
       },
       "source_scores": {
-        "base": null
+        "block": null
       },
       "sources": [
-        "base"
+        "block"
       ]
     },
     {
       "after": null,
       "before": {
-        "line": "http-response ^https?:\\/\\/m\\d\\.amap\\.com\\/ws\\/shield\\/search\\/nearbyrec_smart\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-11,requires-body=true",
+        "line": "response if ${url} ~= /^https?:\\/\\/res\\.xiaojukeji\\.com\\/resapi\\/activity\\/mget/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
         "section": "script",
         "sources": [
-          "base"
+          "block"
         ]
       },
       "change_type": "removed",
@@ -782,22 +536,22 @@
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "base": "unavailable"
+        "block": "unavailable"
       },
       "source_scores": {
-        "base": null
+        "block": null
       },
       "sources": [
-        "base"
+        "block"
       ]
     },
     {
       "after": null,
       "before": {
-        "line": "http-response ^https?:\\/\\/m\\d\\.amap\\.com\\/ws\\/shield\\/search_business\\/process\\/marketingOperationStructured\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-6,requires-body=true",
+        "line": "response if ${url} ~= /^https?:\\/\\/res\\.xiaojukeji\\.com\\/resapi\\/activity\\/xpget/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
         "section": "script",
         "sources": [
-          "base"
+          "block"
         ]
       },
       "change_type": "removed",
@@ -806,47 +560,23 @@
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "base": "unavailable"
+        "block": "unavailable"
       },
       "source_scores": {
-        "base": null
+        "block": null
       },
       "sources": [
-        "base"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "http-response ^https?:\\/\\/m\\d\\.amap\\.com\\/ws\\/shield\\/search_poi\\/(homepage|mps|search\\/sp|sug|tips_operation_location) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-7,requires-body=true",
-        "section": "script",
-        "sources": [
-          "base"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "base": "unavailable"
-      },
-      "source_scores": {
-        "base": null
-      },
-      "sources": [
-        "base"
+        "block"
       ]
     }
   ],
   "overall_risk": "high",
   "risk_counts": {
-    "high": 34,
+    "high": 17,
     "low": 0,
-    "medium": 0
+    "medium": 6
   },
-  "run_id": "43795233782",
+  "run_id": "43796011885",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -870,27 +600,27 @@
     },
     "amap": {
       "action_changed": 1,
-      "added": 0,
-      "removed": 1,
-      "snapshots_seen": 2
+      "added": 3,
+      "removed": 4,
+      "snapshots_seen": 3
     },
     "aoomee": {
       "action_changed": 0,
-      "added": 0,
-      "removed": 24,
-      "snapshots_seen": 3
+      "added": 2,
+      "removed": 26,
+      "snapshots_seen": 4
     },
     "base": {
       "action_changed": 0,
       "added": 3,
-      "removed": 28,
-      "snapshots_seen": 13
+      "removed": 31,
+      "snapshots_seen": 14
     },
     "block": {
       "action_changed": 0,
       "added": 0,
-      "removed": 22,
-      "snapshots_seen": 4
+      "removed": 30,
+      "snapshots_seen": 5
     },
     "filter": {
       "action_changed": 0,
@@ -900,9 +630,9 @@
     },
     "local_overrides": {
       "action_changed": 0,
-      "added": 20,
+      "added": 21,
       "removed": 2,
-      "snapshots_seen": 7
+      "snapshots_seen": 8
     },
     "myblockads": {
       "action_changed": 0,
@@ -919,8 +649,8 @@
     "zmjapp": {
       "action_changed": 0,
       "added": 0,
-      "removed": 18,
-      "snapshots_seen": 3
+      "removed": 19,
+      "snapshots_seen": 4
     },
     "zmjgen": {
       "action_changed": 0,
@@ -929,21 +659,5 @@
       "snapshots_seen": 1
     }
   },
-  "upstream_revision_changes": [
-    {
-      "current_commit": "3fc25b8503977820d693abd2b98be8c54e0591a3",
-      "previous_commit": "e15d92afe27afd9ef1f9107e1a55263416d1357b",
-      "source": "AlipayAdBlock"
-    },
-    {
-      "current_commit": "3fc25b8503977820d693abd2b98be8c54e0591a3",
-      "previous_commit": "e15d92afe27afd9ef1f9107e1a55263416d1357b",
-      "source": "Amap"
-    },
-    {
-      "current_commit": "3fc25b8503977820d693abd2b98be8c54e0591a3",
-      "previous_commit": "e15d92afe27afd9ef1f9107e1a55263416d1357b",
-      "source": "GuaZiVideoAds"
-    }
-  ]
+  "upstream_revision_changes": []
 }

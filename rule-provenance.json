@@ -16285,23 +16285,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://conf\\\\.diditaxi\\\\.com\\\\.cn/homepage/v\\\\d/other/fast', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 831,
-      "output_line": "^https?:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v\\d\\/other\\/fast reject-dict",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "^https?:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v\\d\\/other\\/fast reject-dict",
-          "input_section": "Rewrite",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 831
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https?://ump\\\\.sz\\\\.creditcard\\\\.ecitic\\\\.com/citiccard/cm-ump/ump-gateway/ump-net-app/ump-net-app/adv', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
       "output_entry_index": 832,
       "output_line": "^https?:\\/\\/ump\\.sz\\.creditcard\\.ecitic\\.com\\/citiccard\\/cm-ump\\/ump-gateway\\/ump-net-app\\/ump-net-app\\/adv reject-dict",
@@ -57181,6 +57164,27 @@
       "trace_status": "mapped"
     },
     {
+      "canonical_key": "('guarded', '^https://conf\\\\.diditaxi\\\\.com\\\\.cn/homepage/v1/other/slow', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
+      "output_entry_index": 3035,
+      "output_line": "^https:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v1\\/other\\/slow reject-dict",
+      "section": "Rewrite",
+      "sources": [
+        {
+          "disposition": "selected",
+          "input_line": "^https:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v1\\/other\\/slow reject-dict",
+          "input_section": "Rewrite",
+          "priority": 2,
+          "source": "aoomee",
+          "source_entry_index": 58,
+          "source_file": "plugins/didi.lpx",
+          "source_line_number": 28,
+          "source_original_section": "Rewrite",
+          "source_raw_line": "^https:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v1\\/other\\/slow reject-dict"
+        }
+      ],
+      "trace_status": "mapped"
+    },
+    {
       "canonical_key": "('guarded', '^https://ct\\\\.xiaojukeji\\\\.com/agent/v3/feeds', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
       "output_entry_index": 3036,
       "output_line": "^https:\\/\\/ct\\.xiaojukeji\\.com\\/agent\\/v3\\/feeds reject-dict",
@@ -57197,6 +57201,27 @@
           "source_line_number": 30,
           "source_original_section": "Rewrite",
           "source_raw_line": "^https:\\/\\/ct\\.xiaojukeji\\.com\\/agent\\/v3\\/feeds reject-dict"
+        }
+      ],
+      "trace_status": "mapped"
+    },
+    {
+      "canonical_key": "('guarded', '^https://conf\\\\.diditaxi\\\\.com\\\\.cn/homepage/v1/other/fast', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
+      "output_entry_index": 3037,
+      "output_line": "^https:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v1\\/other\\/fast reject-dict",
+      "section": "Rewrite",
+      "sources": [
+        {
+          "disposition": "selected",
+          "input_line": "^https:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v1\\/other\\/fast reject-dict",
+          "input_section": "Rewrite",
+          "priority": 2,
+          "source": "aoomee",
+          "source_entry_index": 60,
+          "source_file": "plugins/didi.lpx",
+          "source_line_number": 32,
+          "source_original_section": "Rewrite",
+          "source_raw_line": "^https:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v1\\/other\\/fast reject-dict"
         }
       ],
       "trace_status": "mapped"
@@ -57260,48 +57285,6 @@
           "source_line_number": 38,
           "source_original_section": "Rewrite",
           "source_raw_line": "^https:\\/\\/api\\.udache\\.com\\/gulfstream\\/pandora\\/v1\\/invitation\\/shareAddress\\/pGetShareAddressPage reject-dict"
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://common\\\\.diditaxi\\\\.com\\\\.cn/common/v5/usercenter/layout', ('response-body-json-jq', 'response-body-json-jq \\'del(.data.instances.center_marketing_card, .data.instances.center_tool_card, .data.instances.center_widget_list, .data.instances.center_res_light_guide) | .data.instances.center_wallet_finance_card.data.view_info |= map(select(.title == \"优惠卡券\"))\\''))",
-      "output_entry_index": 3041,
-      "output_line": "^https:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v5\\/usercenter\\/layout response-body-json-jq 'del(.data.instances.center_marketing_card, .data.instances.center_tool_card, .data.instances.center_widget_list, .data.instances.center_res_light_guide) | .data.instances.center_wallet_finance_card.data.view_info |= map(select(.title == \"优惠卡券\"))'",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "^https:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v5\\/usercenter\\/layout response-body-json-jq 'del(.data.instances.center_marketing_card, .data.instances.center_tool_card, .data.instances.center_widget_list, .data.instances.center_res_light_guide) | .data.instances.center_wallet_finance_card.data.view_info |= map(select(.title == \"优惠卡券\"))'",
-          "input_section": "Rewrite",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 64,
-          "source_file": "plugins/didi.lpx",
-          "source_line_number": 40,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "^https:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v5\\/usercenter\\/layout response-body-json-jq 'del(.data.instances.center_marketing_card, .data.instances.center_tool_card, .data.instances.center_widget_list, .data.instances.center_res_light_guide) | .data.instances.center_wallet_finance_card.data.view_info |= map(select(.title == \"优惠卡券\"))'"
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://conf\\\\.diditaxi\\\\.com\\\\.cn/homepage/v1/core\\\\?', ('response-body-json-jq', 'response-body-json-jq \\'.data.disorder_cards.bottom_nav_list.data |= [.[] | select(.id == \"home_page\" or .id == \"user_center\")] | .data.order_cards.nav_list_card.data |= [.[] | select(.nav_id == \"bike\" or .nav_id == \"driverservice\" or .nav_id == \"carmate\")]\\''))",
-      "output_entry_index": 3042,
-      "output_line": "^https:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v1\\/core\\? response-body-json-jq '.data.disorder_cards.bottom_nav_list.data |= [.[] | select(.id == \"home_page\" or .id == \"user_center\")] | .data.order_cards.nav_list_card.data |= [.[] | select(.nav_id == \"bike\" or .nav_id == \"driverservice\" or .nav_id == \"carmate\")]'",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "^https:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v1\\/core\\? response-body-json-jq '.data.disorder_cards.bottom_nav_list.data |= [.[] | select(.id == \"home_page\" or .id == \"user_center\")] | .data.order_cards.nav_list_card.data |= [.[] | select(.nav_id == \"bike\" or .nav_id == \"driverservice\" or .nav_id == \"carmate\")]'",
-          "input_section": "Rewrite",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 65,
-          "source_file": "plugins/didi.lpx",
-          "source_line_number": 42,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "^https:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v1\\/core\\? response-body-json-jq '.data.disorder_cards.bottom_nav_list.data |= [.[] | select(.id == \"home_page\" or .id == \"user_center\")] | .data.order_cards.nav_list_card.data |= [.[] | select(.nav_id == \"bike\" or .nav_id == \"driverservice\" or .nav_id == \"carmate\")]'"
         }
       ],
       "trace_status": "mapped"
@@ -59872,8 +59855,59 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://as\\\\.xiaojukeji\\\\.com/ep/as/toggles\\\\?', ('response.json.jq', 'response.json.jq(\".data |= map(select(.name != \\\\\"isUseNetConnectivity\\\\\") | .assign.args.rootca_pin = 0 | .assign.args.sni_list = {})\")'))",
+      "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/aos/perception/publicTravel/beforeNavi\\\\?', ('response.json.jq', 'response.json.jq(\"(if (try (.data.common_data.bus_plan_bottom_event.data | type) catch null) == \\\\\"array\\\\\" then .data.common_data.bus_plan_bottom_event.data = [] else . end) | (if (try (.data.common_data.bus_plan_bottom_tips.data | type) catch null) == \\\\\"array\\\\\" then .data.common_data.bus_plan_bottom_tips.data = [] else . end) | (if (try (.data.common_data.bus_plan_segment_event.data | type) catch null) == \\\\\"array\\\\\" then .data.common_data.bus_plan_segment_event.data = [] else . end) | (if (try (.data.front_end.assistant | type) catch null) == \\\\\"array\\\\\" then .data.front_end.assistant = [] else . end)\")'))",
       "output_entry_index": 3169,
+      "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/aos\\/perception\\/publicTravel\\/beforeNavi\\?/i then response.json.jq(\"(if (try (.data.common_data.bus_plan_bottom_event.data | type) catch null) == \\\"array\\\" then .data.common_data.bus_plan_bottom_event.data = [] else . end) | (if (try (.data.common_data.bus_plan_bottom_tips.data | type) catch null) == \\\"array\\\" then .data.common_data.bus_plan_bottom_tips.data = [] else . end) | (if (try (.data.common_data.bus_plan_segment_event.data | type) catch null) == \\\"array\\\" then .data.common_data.bus_plan_segment_event.data = [] else . end) | (if (try (.data.front_end.assistant | type) catch null) == \\\"array\\\" then .data.front_end.assistant = [] else . end)\")",
+      "section": "Rewrite",
+      "sources": [
+        {
+          "disposition": "selected",
+          "input_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/aos\\/perception\\/publicTravel\\/beforeNavi\\?/i then response.json.jq(\"(if (try (.data.common_data.bus_plan_bottom_event.data | type) catch null) == \\\"array\\\" then .data.common_data.bus_plan_bottom_event.data = [] else . end) | (if (try (.data.common_data.bus_plan_bottom_tips.data | type) catch null) == \\\"array\\\" then .data.common_data.bus_plan_bottom_tips.data = [] else . end) | (if (try (.data.common_data.bus_plan_segment_event.data | type) catch null) == \\\"array\\\" then .data.common_data.bus_plan_segment_event.data = [] else . end) | (if (try (.data.front_end.assistant | type) catch null) == \\\"array\\\" then .data.front_end.assistant = [] else . end)\")",
+          "input_section": "Rewrite",
+          "priority": -1,
+          "source": "amap",
+          "source_entry_index": 25
+        }
+      ],
+      "trace_status": "mapped"
+    },
+    {
+      "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/bus/plan/integrate\\\\?', ('response.json.jq', 'response.json.jq(\"(if (try (.data.banner_lists.data | type) catch null) == \\\\\"array\\\\\" then .data.banner_lists.data = [] else . end) | (if (try (.data.banner_lists.tips | type) catch null) == \\\\\"array\\\\\" then .data.banner_lists.tips = [] else . end) | (if (try (.data.mixed_plans.data.taxiPlans | type) catch null) == \\\\\"array\\\\\" then .data.mixed_plans.data.taxiPlans = [] else . end)\")'))",
+      "output_entry_index": 3170,
+      "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/bus\\/plan\\/integrate\\?/i then response.json.jq(\"(if (try (.data.banner_lists.data | type) catch null) == \\\"array\\\" then .data.banner_lists.data = [] else . end) | (if (try (.data.banner_lists.tips | type) catch null) == \\\"array\\\" then .data.banner_lists.tips = [] else . end) | (if (try (.data.mixed_plans.data.taxiPlans | type) catch null) == \\\"array\\\" then .data.mixed_plans.data.taxiPlans = [] else . end)\")",
+      "section": "Rewrite",
+      "sources": [
+        {
+          "disposition": "selected",
+          "input_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/bus\\/plan\\/integrate\\?/i then response.json.jq(\"(if (try (.data.banner_lists.data | type) catch null) == \\\"array\\\" then .data.banner_lists.data = [] else . end) | (if (try (.data.banner_lists.tips | type) catch null) == \\\"array\\\" then .data.banner_lists.tips = [] else . end) | (if (try (.data.mixed_plans.data.taxiPlans | type) catch null) == \\\"array\\\" then .data.mixed_plans.data.taxiPlans = [] else . end)\")",
+          "input_section": "Rewrite",
+          "priority": -1,
+          "source": "amap",
+          "source_entry_index": 26
+        }
+      ],
+      "trace_status": "mapped"
+    },
+    {
+      "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/shield/search_bff/hotword\\\\?', ('response.json.jq', 'response.json.jq(\"(if (try (.data.headerHotWord | type) catch null) == \\\\\"array\\\\\" then .data.headerHotWord = [] else . end)\")'))",
+      "output_entry_index": 3171,
+      "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_bff\\/hotword\\?/i then response.json.jq(\"(if (try (.data.headerHotWord | type) catch null) == \\\"array\\\" then .data.headerHotWord = [] else . end)\")",
+      "section": "Rewrite",
+      "sources": [
+        {
+          "disposition": "selected",
+          "input_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_bff\\/hotword\\?/i then response.json.jq(\"(if (try (.data.headerHotWord | type) catch null) == \\\"array\\\" then .data.headerHotWord = [] else . end)\")",
+          "input_section": "Rewrite",
+          "priority": -1,
+          "source": "amap",
+          "source_entry_index": 27
+        }
+      ],
+      "trace_status": "mapped"
+    },
+    {
+      "canonical_key": "('guarded', '^https://as\\\\.xiaojukeji\\\\.com/ep/as/toggles\\\\?', ('response.json.jq', 'response.json.jq(\".data |= map(select(.name != \\\\\"isUseNetConnectivity\\\\\") | .assign.args.rootca_pin = 0 | .assign.args.sni_list = {})\")'))",
+      "output_entry_index": 3172,
       "output_line": "response if ${url} ~= /^https:\\/\\/as\\.xiaojukeji\\.com\\/ep\\/as\\/toggles\\?/i then response.json.jq(\".data |= map(select(.name != \\\"isUseNetConnectivity\\\") | .assign.args.rootca_pin = 0 | .assign.args.sni_list = {})\")",
       "section": "Rewrite",
       "sources": [
@@ -59894,7 +59928,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://conf\\\\.diditaxi\\\\.com\\\\.cn/homepage/v\\\\d/other/slow\\\\?', ('response.json.delete', 'response.json.delete([\"data.order_cards.new_loss_banner_card\", \"data.order_cards.call_car_card_80\"])'))",
-      "output_entry_index": 3170,
+      "output_entry_index": 3173,
       "output_line": "response if ${url} ~= /^https:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v\\d\\/other\\/slow\\?/i then response.json.delete([\"data.order_cards.new_loss_banner_card\", \"data.order_cards.call_car_card_80\"])",
       "section": "Rewrite",
       "sources": [
@@ -59914,25 +59948,15 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://conf\\\\.diditaxi\\\\.com\\\\.cn/homepage/v\\\\d/core\\\\?', ('response.json.jq', 'response.json.jq(\".data.order_cards.nav_list_card.data |= map(select(.nav_id == \\\\\"dache_anycar\\\\\" or .nav_id == \\\\\"carmate\\\\\" or .nav_id == \\\\\"driverservice\\\\\" or .nav_id == \\\\\"zhandianbashi\\\\\" or .nav_id == \\\\\"pincheche\\\\\" or .nav_id == \\\\\"bike\\\\\" or .nav_id == \\\\\"nav_more_v3\\\\\")) | .data.disorder_cards.top_nav_list.data.top_nav_info |= map(select(.nav_id == \\\\\"chu_xing\\\\\" or .nav_id == \\\\\"freight_cargo\\\\\"))\")'))",
-      "output_entry_index": 3171,
-      "output_line": "response if ${url} ~= /^https:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v\\d\\/core\\?/i then response.json.jq(\".data.order_cards.nav_list_card.data |= map(select(.nav_id == \\\"dache_anycar\\\" or .nav_id == \\\"carmate\\\" or .nav_id == \\\"driverservice\\\" or .nav_id == \\\"zhandianbashi\\\" or .nav_id == \\\"pincheche\\\" or .nav_id == \\\"bike\\\" or .nav_id == \\\"nav_more_v3\\\")) | .data.disorder_cards.top_nav_list.data.top_nav_info |= map(select(.nav_id == \\\"chu_xing\\\" or .nav_id == \\\"freight_cargo\\\"))\")",
-      "section": "Rewrite",
+      "output_line": "response if ${url} ~= /^https:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v\\d\\/core\\?/i then response.json.jq(\"(if (try (.data.disorder_cards.bottom_nav_list.data | type) catch null) == \\\"array\\\" then .data.disorder_cards.bottom_nav_list.data |= map(select(.id == \\\"v6x_home\\\" or .id == \\\"home_page\\\" or .id == \\\"user_center\\\")) else . end) | (if (try (.data.order_cards.nav_list_card.data | type) catch null) == \\\"array\\\" then .data.order_cards.nav_list_card.data |= map(select(.nav_id == \\\"dache_anycar\\\" or .nav_id == \\\"carmate\\\" or .nav_id == \\\"driverservice\\\" or .nav_id == \\\"zhandianbashi\\\" or .nav_id == \\\"pincheche\\\" or .nav_id == \\\"bike\\\" or .nav_id == \\\"nav_more_v3\\\")) else . end) | (if (try (.data.disorder_cards.top_nav_list.data.top_nav_info | type) catch null) == \\\"array\\\" then .data.disorder_cards.top_nav_list.data.top_nav_info |= map(select(.nav_id == \\\"chu_xing\\\" or .nav_id == \\\"freight_cargo\\\")) else . end)\")",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v\\d\\/core\\?/i then response.json.jq(\".data.order_cards.nav_list_card.data |= map(select(.nav_id == \\\"dache_anycar\\\" or .nav_id == \\\"carmate\\\" or .nav_id == \\\"driverservice\\\" or .nav_id == \\\"zhandianbashi\\\" or .nav_id == \\\"pincheche\\\" or .nav_id == \\\"bike\\\" or .nav_id == \\\"nav_more_v3\\\")) | .data.disorder_cards.top_nav_list.data.top_nav_info |= map(select(.nav_id == \\\"chu_xing\\\" or .nav_id == \\\"freight_cargo\\\"))\")",
-          "input_section": "Rewrite",
-          "priority": 0,
-          "source": "zmjapp",
-          "source_entry_index": 2,
-          "source_file": "Plugin/DiDi_remove_ads.lpx",
-          "source_line_number": 24,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "response if ${url} ~= /^https:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v\\d\\/core\\?/i then response.json.jq(\".data.order_cards.nav_list_card.data |= map(select(.nav_id == \\\"dache_anycar\\\" or .nav_id == \\\"carmate\\\" or .nav_id == \\\"driverservice\\\" or .nav_id == \\\"zhandianbashi\\\" or .nav_id == \\\"pincheche\\\" or .nav_id == \\\"bike\\\" or .nav_id == \\\"nav_more_v3\\\")) | .data.disorder_cards.top_nav_list.data.top_nav_info |= map(select(.nav_id == \\\"chu_xing\\\" or .nav_id == \\\"freight_cargo\\\"))\")"
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
       "output_line": "response if ${url} ~= /^https:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v\\d\\/other\\/fast\\?/i then response.json.delete([\"data.disorder_cards.communicate_card\", \"data.disorder_cards.not_login_bottom_bar\", \"data.disorder_cards.riding_code_card\", \"data.order_cards\", \"data.disorder_cards.car_icon.data.icon_info_new_agreement\", \"data.disorder_cards.guess_card\", \"data.disorder_cards.scene_list_card\"])",
@@ -59947,7 +59971,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://common\\\\.diditaxi\\\\.com\\\\.cn/common/v\\\\d/usercenter/layout', ('response.json.jq', 'response.json.jq(\".data |= (.instances |= (to_entries | map(select(.key as $k | [\\\\\"center_base_info_card\\\\\", \\\\\"center_tool_card\\\\\", \\\\\"center_wallet_finance_card\\\\\", \\\\\"center_order_related_card\\\\\"] | index($k))) | from_entries)) | .data.instances.center_wallet_finance_card.data.view_info |= map(select(.title == \\\\\"优惠卡券\\\\\"))\")'))",
-      "output_entry_index": 3173,
+      "output_entry_index": 3176,
       "output_line": "response if ${url} ~= /^https:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v\\d\\/usercenter\\/layout/i then response.json.jq(\".data |= (.instances |= (to_entries | map(select(.key as $k | [\\\"center_base_info_card\\\", \\\"center_tool_card\\\", \\\"center_wallet_finance_card\\\", \\\"center_order_related_card\\\"] | index($k))) | from_entries)) | .data.instances.center_wallet_finance_card.data.view_info |= map(select(.title == \\\"优惠卡券\\\"))\")",
       "section": "Rewrite",
       "sources": [
@@ -59968,7 +59992,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://res\\\\.xiaojukeji\\\\.com/resapi/activity/mget\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3174,
+      "output_entry_index": 3177,
       "output_line": "request if ${url} ~= /^https:\\/\\/res\\.xiaojukeji\\.com\\/resapi\\/activity\\/mget\\?/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -59989,7 +60013,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://res\\\\.xiaojukeji\\\\.com/resapi/activity/mget$', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3175,
+      "output_entry_index": 3178,
       "output_line": "request if ${url} ~= /^https:\\/\\/res\\.xiaojukeji\\.com\\/resapi\\/activity\\/mget$/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -60021,7 +60045,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.udache\\\\.com/intercity/ticket/api/v\\\\d/core/getFullPageInfoLayout\\\\?', ('response.json.jq', 'response.json.jq(\".data.disorder_components |= (map(select(.name == \\\\\"history_order_card\\\\\" or .name == \\\\\"inprogress_order_card\\\\\" or .name == \\\\\"station_calendar\\\\\" or .name == \\\\\"main_card_v2\\\\\" or .name == \\\\\"user_history_order\\\\\")))\")'))",
-      "output_entry_index": 3179,
+      "output_entry_index": 3182,
       "output_line": "response if ${url} ~= /^https:\\/\\/api\\.udache\\.com\\/intercity\\/ticket\\/api\\/v\\d\\/core\\/getFullPageInfoLayout\\?/i then response.json.jq(\".data.disorder_components |= (map(select(.name == \\\"history_order_card\\\" or .name == \\\"inprogress_order_card\\\" or .name == \\\"station_calendar\\\" or .name == \\\"main_card_v2\\\" or .name == \\\"user_history_order\\\")))\")",
       "section": "Rewrite",
       "sources": [
@@ -60042,7 +60066,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://daijia\\\\.kuaidadi\\\\.com(:443)?/gateway\\\\?api=prado\\\\.cms\\\\.delivery\\\\.batch', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3180,
+      "output_entry_index": 3183,
       "output_line": "request if ${url} ~= /^https:\\/\\/daijia\\.kuaidadi\\.com(:443)?\\/gateway\\?api=prado\\.cms\\.delivery\\.batch/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -60063,7 +60087,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://daijia\\\\.kuaidadi\\\\.com(:443)?/gateway\\\\?api=prado\\\\.cms\\\\.AggregateDeliveryRemoteService\\\\.aggregateDelivery', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3181,
+      "output_entry_index": 3184,
       "output_line": "request if ${url} ~= /^https:\\/\\/daijia\\.kuaidadi\\.com(:443)?\\/gateway\\?api=prado\\.cms\\.AggregateDeliveryRemoteService\\.aggregateDelivery/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -60084,7 +60108,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://daijia\\\\.kuaidadi\\\\.com(:443)?/gateway\\\\?api=lj\\\\.cos\\\\.apolloConfig', ('response.json.jq', 'response.json.jq(\".data |= map(select(.name != \\\\\"daijia-memberInfo-config\\\\\" and .name != \\\\\"daijia-transfer-share-config\\\\\"))\")'))",
-      "output_entry_index": 3182,
+      "output_entry_index": 3185,
       "output_line": "response if ${url} ~= /^https:\\/\\/daijia\\.kuaidadi\\.com(:443)?\\/gateway\\?api=lj\\.cos\\.apolloConfig/i then response.json.jq(\".data |= map(select(.name != \\\"daijia-memberInfo-config\\\" and .name != \\\"daijia-transfer-share-config\\\"))\")",
       "section": "Rewrite",
       "sources": [
@@ -60105,7 +60129,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://daijia\\\\.kuaidadi\\\\.com(:443)?/gateway\\\\?api=lj\\\\.c\\\\.p\\\\.queryLevelAndRightsStatus', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3183,
+      "output_entry_index": 3186,
       "output_line": "request if ${url} ~= /^https:\\/\\/daijia\\.kuaidadi\\.com(:443)?\\/gateway\\?api=lj\\.c\\.p\\.queryLevelAndRightsStatus/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -60126,7 +60150,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://daijia\\\\.kuaidadi\\\\.com(:443)?/gateway\\\\?api=lj\\\\.cos\\\\.p\\\\.popup', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3184,
+      "output_entry_index": 3187,
       "output_line": "request if ${url} ~= /^https:\\/\\/daijia\\.kuaidadi\\.com(:443)?\\/gateway\\?api=lj\\.cos\\.p\\.popup/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -60147,7 +60171,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://daijia\\\\.kuaidadi\\\\.com(:443)?/gateway\\\\?api=lj\\\\.cos\\\\.apolloToggle', ('response.json.jq', 'response.json.jq(\".data |= map(select(.name as $n | {daijia_app_estimate_pre_req_switch:true,daijia_agent_car_picture_check:true,daijia_bluetooth_wifi_degrade_switch:true,daijia_weixin_publish_login:true,daijia_estimate_recommend_degrade_switch:true,daijia_yugu_policy_switch:true,daijia_home_location_guide_switch:true,daijia_estimate_switch:true} | has($n)))\")'))",
-      "output_entry_index": 3185,
+      "output_entry_index": 3188,
       "output_line": "response if ${url} ~= /^https:\\/\\/daijia\\.kuaidadi\\.com(:443)?\\/gateway\\?api=lj\\.cos\\.apolloToggle/i then response.json.jq(\".data |= map(select(.name as $n | {daijia_app_estimate_pre_req_switch:true,daijia_agent_car_picture_check:true,daijia_bluetooth_wifi_degrade_switch:true,daijia_weixin_publish_login:true,daijia_estimate_recommend_degrade_switch:true,daijia_yugu_policy_switch:true,daijia_home_location_guide_switch:true,daijia_estimate_switch:true} | has($n)))\")",
       "section": "Rewrite",
       "sources": [
@@ -60168,7 +60192,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.udache\\\\.com/gulfstream/porsche/v\\\\d/bronze/pinchengle_homepage_layout$', ('response.json.jq', 'response.json.jq(\".data.instances |= with_entries(select(.key | IN(\\\\\"dacheanycar-certificates-1\\\\\", \\\\\"main-card-1\\\\\", \\\\\"map-1\\\\\", \\\\\"nav-1\\\\\", \\\\\"tool-container-1\\\\\")))\")'))",
-      "output_entry_index": 3186,
+      "output_entry_index": 3189,
       "output_line": "response if ${url} ~= /^https:\\/\\/api\\.udache\\.com\\/gulfstream\\/porsche\\/v\\d\\/bronze\\/pinchengle_homepage_layout$/i then response.json.jq(\".data.instances |= with_entries(select(.key | IN(\\\"dacheanycar-certificates-1\\\", \\\"main-card-1\\\", \\\"map-1\\\", \\\"nav-1\\\", \\\"tool-container-1\\\")))\")",
       "section": "Rewrite",
       "sources": [
@@ -60189,7 +60213,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.udache\\\\.com/gulfstream/porsche/v\\\\d/pSFCHomePage\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3187,
+      "output_entry_index": 3190,
       "output_line": "request if ${url} ~= /^https:\\/\\/api\\.udache\\.com\\/gulfstream\\/porsche\\/v\\d\\/pSFCHomePage\\?/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -60210,7 +60234,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.udache\\\\.com/gulfstream/porsche/v\\\\d/SFCHomeTab\\\\?', ('response.json.jq', 'response.json.jq(\".data.tab_list |= map(select(.tab_id == \\\\\"passenger\\\\\" or .tab_id == \\\\\"driver\\\\\"))\")'))",
-      "output_entry_index": 3188,
+      "output_entry_index": 3191,
       "output_line": "response if ${url} ~= /^https:\\/\\/api\\.udache\\.com\\/gulfstream\\/porsche\\/v\\d\\/SFCHomeTab\\?/i then response.json.jq(\".data.tab_list |= map(select(.tab_id == \\\"passenger\\\" or .tab_id == \\\"driver\\\"))\")",
       "section": "Rewrite",
       "sources": [
@@ -60231,7 +60255,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://htwkop-st\\\\.xiaojukeji\\\\.com/gateway\\\\?api=cms\\\\.htw\\\\.delivery\\\\.batch', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3189,
+      "output_entry_index": 3192,
       "output_line": "request if ${url} ~= /^https:\\/\\/htwkop-st\\.xiaojukeji\\.com\\/gateway\\?api=cms\\.htw\\.delivery\\.batch/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -60252,7 +60276,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://htwkop\\\\.xiaojukeji\\\\.com(:443)?/gateway\\\\?api=hm\\\\.fa\\\\.querySellCardSummary', ('response.json.replace', 'response.json.replace(\"data\", \"{}\")'))",
-      "output_entry_index": 3190,
+      "output_entry_index": 3193,
       "output_line": "response if ${url} ~= /^https:\\/\\/htwkop\\.xiaojukeji\\.com(:443)?\\/gateway\\?api=hm\\.fa\\.querySellCardSummary/i then response.json.replace(\"data\", \"{}\")",
       "section": "Rewrite",
       "sources": [
@@ -60273,7 +60297,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://htwkop\\\\.xiaojukeji\\\\.com(:443)?/gateway\\\\?api=hm\\\\.fa\\\\.queryWelfareCenter', ('response.json.replace', 'response.json.replace(\"data\", \"{}\")'))",
-      "output_entry_index": 3191,
+      "output_entry_index": 3194,
       "output_line": "response if ${url} ~= /^https:\\/\\/htwkop\\.xiaojukeji\\.com(:443)?\\/gateway\\?api=hm\\.fa\\.queryWelfareCenter/i then response.json.replace(\"data\", \"{}\")",
       "section": "Rewrite",
       "sources": [
@@ -60294,7 +60318,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://freight\\\\.xiaojukeji\\\\.com/gateway\\\\?api=freight\\\\.d\\\\.core\\\\.multiDisplayV\\\\d', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3192,
+      "output_entry_index": 3195,
       "output_line": "request if ${url} ~= /^https:\\/\\/freight\\.xiaojukeji\\.com\\/gateway\\?api=freight\\.d\\.core\\.multiDisplayV\\d/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -60315,7 +60339,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://poi\\\\.map\\\\.xiaojukeji\\\\.com/mapapi/startinfo\\\\?api_version', ('response.json.delete', 'response.json.delete(\"rec_destination\")'))",
-      "output_entry_index": 3193,
+      "output_entry_index": 3196,
       "output_line": "response if ${url} ~= /^https:\\/\\/poi\\.map\\.xiaojukeji\\.com\\/mapapi\\/startinfo\\?api_version/i then response.json.delete(\"rec_destination\")",
       "section": "Rewrite",
       "sources": [
@@ -60336,7 +60360,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://poi\\\\.map\\\\.xiaojukeji\\\\.com/mapapi/poiinfo\\\\?product_id', ('response.json.delete', 'response.json.delete(\"rec_destination\")'))",
-      "output_entry_index": 3194,
+      "output_entry_index": 3197,
       "output_line": "response if ${url} ~= /^https:\\/\\/poi\\.map\\.xiaojukeji\\.com\\/mapapi\\/poiinfo\\?product_id/i then response.json.delete(\"rec_destination\")",
       "section": "Rewrite",
       "sources": [
@@ -60357,7 +60381,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://common\\\\.diditaxi\\\\.com\\\\.cn/user_common/itineraryList\\\\?', ('response.json.jq', 'response.json.jq(\"del(.data.tab_nav[]?.tab_param)\")'))",
-      "output_entry_index": 3195,
+      "output_entry_index": 3198,
       "output_line": "response if ${url} ~= /^https:\\/\\/common\\.diditaxi\\.com\\.cn\\/user_common\\/itineraryList\\?/i then response.json.jq(\"del(.data.tab_nav[]?.tab_param)\")",
       "section": "Rewrite",
       "sources": [
@@ -60378,7 +60402,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/aristotle/unrated_order_for_unreceived_tab\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3196,
+      "output_entry_index": 3199,
       "output_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/aristotle\\/unrated_order_for_unreceived_tab\\?/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -60399,7 +60423,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/aristotle/query_order_list_tabs_element\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3197,
+      "output_entry_index": 3200,
       "output_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/aristotle\\/query_order_list_tabs_element\\?/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -60420,7 +60444,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/caterham/v3/query/order_express_group\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3198,
+      "output_entry_index": 3201,
       "output_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/caterham\\/v3\\/query\\/order_express_group\\?/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -60441,7 +60465,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/search_hotquery\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3199,
+      "output_entry_index": 3202,
       "output_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/search_hotquery\\?/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -60462,7 +60486,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/zaire_biz/chat/resource/get_list_data\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3200,
+      "output_entry_index": 3203,
       "output_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/zaire_biz\\/chat\\/resource\\/get_list_data\\?/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -60483,7 +60507,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/caterham/v3/query/new_chat_group\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3201,
+      "output_entry_index": 3204,
       "output_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/caterham\\/v3\\/query\\/new_chat_group\\?/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -60504,7 +60528,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/alexa/goods/back_up\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3202,
+      "output_entry_index": 3205,
       "output_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/goods\\/back_up\\?/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -60525,7 +60549,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/caterham/v3/query/personal\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3203,
+      "output_entry_index": 3206,
       "output_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/caterham\\/v3\\/query\\/personal\\?/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -60546,7 +60570,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/brand-olay/goods_detail/bybt_guide\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3204,
+      "output_entry_index": 3207,
       "output_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/brand-olay\\/goods_detail\\/bybt_guide\\?/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -60567,7 +60591,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/engels/reviews/require/append\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3205,
+      "output_entry_index": 3208,
       "output_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/engels\\/reviews\\/require\\/append\\?/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -60588,7 +60612,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/caterham/v3/query/my_order_group\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3206,
+      "output_entry_index": 3209,
       "output_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/caterham\\/v3\\/query\\/my_order_group\\?/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -60609,7 +60633,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/caterham/v3/query/likes\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3207,
+      "output_entry_index": 3210,
       "output_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/caterham\\/v3\\/query\\/likes\\?/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -60630,7 +60654,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/phantom/gbdbpdv/extra\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3208,
+      "output_entry_index": 3211,
       "output_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/phantom\\/gbdbpdv\\/extra\\?/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -60651,7 +60675,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/manufacturer/cross/shortcut/list\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3209,
+      "output_entry_index": 3212,
       "output_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/manufacturer\\/cross\\/shortcut\\/list\\?/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -60672,7 +60696,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/dunkirk/liveactivity/push/create/url/report\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3210,
+      "output_entry_index": 3213,
       "output_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/dunkirk\\/liveactivity\\/push\\/create\\/url\\/report\\?/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -60693,7 +60717,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/growth/nagato/app/index/gather\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3211,
+      "output_entry_index": 3214,
       "output_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/growth\\/nagato\\/app\\/index\\/gather\\?/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -60714,7 +60738,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/engels/wait/receive/review\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3212,
+      "output_entry_index": 3215,
       "output_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/engels\\/wait\\/receive\\/review\\?/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -60735,7 +60759,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/buffon/nasus/recommend\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3213,
+      "output_entry_index": 3216,
       "output_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/buffon\\/nasus\\/recommend\\?/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -60756,7 +60780,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/caterham/v2/query/goods_detail_with_tags\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3214,
+      "output_entry_index": 3217,
       "output_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/caterham\\/v2\\/query\\/goods_detail_with_tags\\?/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -60788,7 +60812,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/search\\\\?', ('response.json.delete', 'response.json.delete(\"expansion\")'))",
-      "output_entry_index": 3217,
+      "output_entry_index": 3220,
       "output_line": "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/search\\?/i then response.json.delete(\"expansion\")",
       "section": "Rewrite",
       "sources": [
@@ -60809,7 +60833,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/philo/personal/hub\\\\?', ('response.json.delete', 'response.json.delete([\"monthly_card_entrance\", \"personal_center_style_v2_vo\", \"icon_set.icons\", \"icon_set.top_personal_icons\", \"personal_banner\"])'))",
-      "output_entry_index": 3218,
+      "output_entry_index": 3221,
       "output_line": "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/philo\\/personal\\/hub\\?/i then response.json.delete([\"monthly_card_entrance\", \"personal_center_style_v2_vo\", \"icon_set.icons\", \"icon_set.top_personal_icons\", \"personal_banner\"])",
       "section": "Rewrite",
       "sources": [
@@ -60830,7 +60854,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/oak/integration/render\\\\?', ('response.json.delete', 'response.json.delete([\"bottom_section_list\", \"ui.bottom_section\", \"ui.live_section.float_info\"])'))",
-      "output_entry_index": 3219,
+      "output_entry_index": 3222,
       "output_line": "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/oak\\/integration\\/render\\?/i then response.json.delete([\"bottom_section_list\", \"ui.bottom_section\", \"ui.live_section.float_info\"])",
       "section": "Rewrite",
       "sources": [
@@ -60851,7 +60875,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/caterham/v3/query/order_detail_group\\\\?', ('response.json.delete', 'response.json.delete(\"data.goods_list\")'))",
-      "output_entry_index": 3220,
+      "output_entry_index": 3223,
       "output_line": "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/caterham\\/v3\\/query\\/order_detail_group\\?/i then response.json.delete(\"data.goods_list\")",
       "section": "Rewrite",
       "sources": [
@@ -60872,7 +60896,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/order/', ('response.json.delete', 'response.json.delete([\"marketing_banner_vo\", \"shipping.banner_above_recommend\"])'))",
-      "output_entry_index": 3221,
+      "output_entry_index": 3224,
       "output_line": "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/order\\//i then response.json.delete([\"marketing_banner_vo\", \"shipping.banner_above_recommend\"])",
       "section": "Rewrite",
       "sources": [
@@ -60893,7 +60917,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/aristotle/order_list_v4\\\\?', ('response.json.jq', 'response.json.jq(\".orders |= map(.order_buttons |= map(del(.order_growth_tip)))\")'))",
-      "output_entry_index": 3222,
+      "output_entry_index": 3225,
       "output_line": "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/aristotle\\/order_list_v4\\?/i then response.json.jq(\".orders |= map(.order_buttons |= map(del(.order_growth_tip)))\")",
       "section": "Rewrite",
       "sources": [
@@ -60914,7 +60938,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.taobao\\\\.idlecommerce\\\\.splash\\\\.ads/', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3223,
+      "output_entry_index": 3226,
       "output_line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlecommerce\\.splash\\.ads\\//i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -60935,7 +60959,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.taobao\\\\.idlehome\\\\.home\\\\.nextfresh/', ('response.json.jq', 'response.json.jq(\".data.homeTopList |= map(select(.sectionType == \\\\\"kingkongDo\\\\\")) | .data.sections |= map(select(.data.clickParam.args.cardType as $ct | $ct != \\\\\"homeMultiBanner\\\\\" and $ct != \\\\\"mamaAD\\\\\")) | .data.sections |= map(select((.template.name|type==\\\\\"string\\\\\")and(.template.name==\\\\\"idlefish_home_new_commodity_card\\\\\"or(.template.name|contains(\\\\\"fish_home_tags_item_card\\\\\")))))\")'))",
-      "output_entry_index": 3224,
+      "output_entry_index": 3227,
       "output_line": "response if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlehome\\.home\\.nextfresh\\//i then response.json.jq(\".data.homeTopList |= map(select(.sectionType == \\\"kingkongDo\\\")) | .data.sections |= map(select(.data.clickParam.args.cardType as $ct | $ct != \\\"homeMultiBanner\\\" and $ct != \\\"mamaAD\\\")) | .data.sections |= map(select((.template.name|type==\\\"string\\\")and(.template.name==\\\"idlefish_home_new_commodity_card\\\"or(.template.name|contains(\\\"fish_home_tags_item_card\\\")))))\")",
       "section": "Rewrite",
       "sources": [
@@ -60956,7 +60980,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.taobao\\\\.idlehome\\\\.widget\\\\.refresh\\\\.get/', ('response.json.jq', 'response.json.jq(\".data.homeTopList |= map(select(.sectionType == \\\\\"kingkongDo\\\\\"))\")'))",
-      "output_entry_index": 3225,
+      "output_entry_index": 3228,
       "output_line": "response if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlehome\\.widget\\.refresh\\.get\\//i then response.json.jq(\".data.homeTopList |= map(select(.sectionType == \\\"kingkongDo\\\"))\")",
       "section": "Rewrite",
       "sources": [
@@ -60977,7 +61001,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.taobao\\\\.idle\\\\.home\\\\.whale\\\\.modulet/', ('response.json.jq', 'response.json.jq(\".data.container.sections |= map(select(.template.name == \\\\\"fish_home_miniapp\\\\\"))\")'))",
-      "output_entry_index": 3226,
+      "output_entry_index": 3229,
       "output_line": "response if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.home\\.whale\\.modulet\\//i then response.json.jq(\".data.container.sections |= map(select(.template.name == \\\"fish_home_miniapp\\\"))\")",
       "section": "Rewrite",
       "sources": [
@@ -60998,7 +61022,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.taobao\\\\.idle\\\\.user\\\\.strategy\\\\.list/', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3227,
+      "output_entry_index": 3230,
       "output_line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.user\\.strategy\\.list\\//i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -61019,7 +61043,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.taobao\\\\.idle\\\\.fun\\\\.follow\\\\.feed\\\\.list/', ('response.json.jq', 'response.json.jq(\".data.sections|=map(select(.cardType==2001))\")'))",
-      "output_entry_index": 3228,
+      "output_entry_index": 3231,
       "output_line": "response if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.fun\\.follow\\.feed\\.list\\//i then response.json.jq(\".data.sections|=map(select(.cardType==2001))\")",
       "section": "Rewrite",
       "sources": [
@@ -61040,7 +61064,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.taobao\\\\.idlehome\\\\.home\\\\.community/', ('response.json.jq', 'response.json.jq(\".data.feedsList |= map(select(.template.name == \\\\\"idlefish_home_new_commodity_card\\\\\" or .template.name == \\\\\"idlefish_home_new_content_card\\\\\"))\")'))",
-      "output_entry_index": 3229,
+      "output_entry_index": 3232,
       "output_line": "response if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlehome\\.home\\.community\\//i then response.json.jq(\".data.feedsList |= map(select(.template.name == \\\"idlefish_home_new_commodity_card\\\" or .template.name == \\\"idlefish_home_new_content_card\\\"))\")",
       "section": "Rewrite",
       "sources": [
@@ -61061,7 +61085,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.taobao\\\\.idle\\\\.item\\\\.recommend\\\\.list/', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3230,
+      "output_entry_index": 3233,
       "output_line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.item\\.recommend\\.list\\//i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -61082,7 +61106,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.taobao\\\\.idlehome\\\\.home\\\\.newitem\\\\.page/', ('response.json.jq', 'response.json.jq(\".data.sections |= map(select(.data.clickParam.args.cardType as $ct | $ct != \\\\\"banner\\\\\" and $ct != \\\\\"mamaAD\\\\\"))\")'))",
-      "output_entry_index": 3231,
+      "output_entry_index": 3234,
       "output_line": "response if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlehome\\.home\\.newitem\\.page\\//i then response.json.jq(\".data.sections |= map(select(.data.clickParam.args.cardType as $ct | $ct != \\\"banner\\\" and $ct != \\\"mamaAD\\\"))\")",
       "section": "Rewrite",
       "sources": [
@@ -61103,7 +61127,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.taobao\\\\.idle\\\\.local\\\\.near\\\\.by\\\\.corner\\\\.info/', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3232,
+      "output_entry_index": 3235,
       "output_line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.local\\.near\\.by\\.corner\\.info\\//i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -61124,7 +61148,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.taobao\\\\.idle\\\\.local\\\\.flow\\\\.plat\\\\.section/', ('response.json.jq', 'response.json.jq(\".data.data.components |= map(select(.data and (.data|type==\\\\\"object\\\\\") and .data.template and (.data.template|type==\\\\\"object\\\\\") and .data.template.name and (.data.template.name|type==\\\\\"string\\\\\") and (.data.template.name|contains(\\\\\"fish_city_kingkong\\\\\"))))\")'))",
-      "output_entry_index": 3233,
+      "output_entry_index": 3236,
       "output_line": "response if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.local\\.flow\\.plat\\.section\\//i then response.json.jq(\".data.data.components |= map(select(.data and (.data|type==\\\"object\\\") and .data.template and (.data.template|type==\\\"object\\\") and .data.template.name and (.data.template.name|type==\\\"string\\\") and (.data.template.name|contains(\\\"fish_city_kingkong\\\"))))\")",
       "section": "Rewrite",
       "sources": [
@@ -61145,7 +61169,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.taobao\\\\.idle\\\\.local\\\\.home\\\\.top/', ('response.json.jq', 'response.json.jq(\".data.data.components |= map(select(.key == \\\\\"fish_home_second_stage_top_cardV3\\\\\"))\")'))",
-      "output_entry_index": 3234,
+      "output_entry_index": 3237,
       "output_line": "response if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.local\\.home\\.top\\//i then response.json.jq(\".data.data.components |= map(select(.key == \\\"fish_home_second_stage_top_cardV3\\\"))\")",
       "section": "Rewrite",
       "sources": [
@@ -61166,7 +61190,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.taobao\\\\.idle\\\\.local\\\\.home/', ('response.json.jq', 'response.json.jq(\".data.sections |= map(select((.template.cardEnum != \\\\\"ads\\\\\") and (.cardType == \\\\\"common\\\\\")))\")'))",
-      "output_entry_index": 3235,
+      "output_entry_index": 3238,
       "output_line": "response if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.local\\.home\\//i then response.json.jq(\".data.sections |= map(select((.template.cardEnum != \\\"ads\\\") and (.cardType == \\\"common\\\")))\")",
       "section": "Rewrite",
       "sources": [
@@ -61187,7 +61211,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.idle\\\\.user\\\\.page\\\\.my\\\\.adapter/', ('response.json.jq', 'response.json.jq(\".data.container.sections |= map(select((.template.name? // \\\\\"\\\\\") | test(\\\\\"^my_fy[0-9]+_(header|user_info|trade|appraise|tools)$\\\\\"))) | .data.container.sections |= map(.item |= (if .level and .level.exContent and (.level.exContent | has(\\\\\"tips\\\\\")) then del(.level) else . end)) | .data.container.sections |= map(if .sectionBizCode==\\\\\"entry2025\\\\\" then .item.tool.exContent.tools |= [[.[][] | select(.exContent.id as $id | $id==5 or $id==39 or $id==6 or $id==30 or $id==29 or $id==2 or $id==32 or $id==3 or $id==1)] | sort_by(. as $item | ([5,39,6,30,29,2,32,3,1] | index($item.exContent.id))) | [range(0;length;5) as $i | .[$i:$i+5]]][] else . end) | del(.data.ability)\")'))",
-      "output_entry_index": 3236,
+      "output_entry_index": 3239,
       "output_line": "response if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.idle\\.user\\.page\\.my\\.adapter\\//i then response.json.jq(\".data.container.sections |= map(select((.template.name? // \\\"\\\") | test(\\\"^my_fy[0-9]+_(header|user_info|trade|appraise|tools)$\\\"))) | .data.container.sections |= map(.item |= (if .level and .level.exContent and (.level.exContent | has(\\\"tips\\\")) then del(.level) else . end)) | .data.container.sections |= map(if .sectionBizCode==\\\"entry2025\\\" then .item.tool.exContent.tools |= [[.[][] | select(.exContent.id as $id | $id==5 or $id==39 or $id==6 or $id==30 or $id==29 or $id==2 or $id==32 or $id==3 or $id==1)] | sort_by(. as $item | ([5,39,6,30,29,2,32,3,1] | index($item.exContent.id))) | [range(0;length;5) as $i | .[$i:$i+5]]][] else . end) | del(.data.ability)\")",
       "section": "Rewrite",
       "sources": [
@@ -61208,7 +61232,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.taobao\\\\.idle\\\\.item\\\\.buy\\\\.feeds/', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3237,
+      "output_entry_index": 3240,
       "output_line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.item\\.buy\\.feeds\\//i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -61229,7 +61253,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.taobao\\\\.idlemtopsearch\\\\.search\\\\.shade/', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3238,
+      "output_entry_index": 3241,
       "output_line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlemtopsearch\\.search\\.shade\\//i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -61250,7 +61274,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.taobao\\\\.idlehome\\\\.home\\\\.circle\\\\.list/', ('response.json.jq', 'response.json.jq(\".data.circleList[]?.showInfo |= del(.titleImage, .atmosphereImageUrl) | .data.next.headList |= map(select(.bizCode == \\\\\"main\\\\\" or .bizCode == \\\\\"market\\\\\" or .bizCode == \\\\\"IDLE_CIRCLE\\\\\")) | del(.data.next.headList[]?.showInfo.rightTagImage)\")'))",
-      "output_entry_index": 3239,
+      "output_entry_index": 3242,
       "output_line": "response if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlehome\\.home\\.circle\\.list\\//i then response.json.jq(\".data.circleList[]?.showInfo |= del(.titleImage, .atmosphereImageUrl) | .data.next.headList |= map(select(.bizCode == \\\"main\\\" or .bizCode == \\\"market\\\" or .bizCode == \\\"IDLE_CIRCLE\\\")) | del(.data.next.headList[]?.showInfo.rightTagImage)\")",
       "section": "Rewrite",
       "sources": [
@@ -61271,7 +61295,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.taobao\\\\.idlehome\\\\.magic\\\\.home\\\\.page\\\\.list/', ('response.json.delete', 'response.json.delete(\"data.topList\")'))",
-      "output_entry_index": 3240,
+      "output_entry_index": 3243,
       "output_line": "response if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlehome\\.magic\\.home\\.page\\.list\\//i then response.json.delete(\"data.topList\")",
       "section": "Rewrite",
       "sources": [
@@ -61303,7 +61327,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.taobao\\\\.idlemtopsearch\\\\.search\\\\.discover/', ('response.json.jq', 'response.json.jq(\".data.resultList |= map(select(.type != \\\\\"MarketHotSpot\\\\\"))\")'))",
-      "output_entry_index": 3243,
+      "output_entry_index": 3246,
       "output_line": "response if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlemtopsearch\\.search\\.discover\\//i then response.json.jq(\".data.resultList |= map(select(.type != \\\"MarketHotSpot\\\"))\")",
       "section": "Rewrite",
       "sources": [
@@ -61324,7 +61348,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.taobao\\\\.idlemtopsearch\\\\.item\\\\.search\\\\.activate/', ('response.json.jq', 'response.json.jq(\".data.cardList |= map(if has(\\\\\"cardData\\\\\") and (.cardData | has(\\\\\"hotwords\\\\\")) then .cardData |= del(.hotwords) else . end)\")'))",
-      "output_entry_index": 3244,
+      "output_entry_index": 3247,
       "output_line": "response if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlemtopsearch\\.item\\.search\\.activate\\//i then response.json.jq(\".data.cardList |= map(if has(\\\"cardData\\\") and (.cardData | has(\\\"hotwords\\\")) then .cardData |= del(.hotwords) else . end)\")",
       "section": "Rewrite",
       "sources": [
@@ -61345,7 +61369,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.taobao\\\\.idle\\\\.playboy\\\\.recommend/', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3245,
+      "output_entry_index": 3248,
       "output_line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.playboy\\.recommend\\//i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -61366,7 +61390,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.taobao\\\\.idle\\\\.trade\\\\.full\\\\.info/', ('response.json.jq', 'response.json.jq(\".data.components |= map(select(.render | . == \\\\\"orderStatusVO\\\\\" or . == \\\\\"addressInfoVO\\\\\" or . == \\\\\"orderInfoVO\\\\\"))\")'))",
-      "output_entry_index": 3246,
+      "output_entry_index": 3249,
       "output_line": "response if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idle\\.trade\\.full\\.info\\//i then response.json.jq(\".data.components |= map(select(.render | . == \\\"orderStatusVO\\\" or . == \\\"addressInfoVO\\\" or . == \\\"orderInfoVO\\\"))\")",
       "section": "Rewrite",
       "sources": [
@@ -61387,7 +61411,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://(?:gw|heic)\\\\.alicdn\\\\.com/imgextra/i\\\\d/\\\\d*/?[\\\\w!]+-\\\\d-(?:octopus|tps)-(?:1080|1125)-\\\\d{4}\\\\.(?:jpg|png)_(?:1\\\\d{3}|9\\\\d{2})x(?:\\\\d|1\\\\d{3}|9\\\\d{2})q[59]0', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3247,
+      "output_entry_index": 3250,
       "output_line": "request if ${url} ~= /^https:\\/\\/(?:gw|heic)\\.alicdn\\.com\\/imgextra\\/i\\d\\/\\d*\\/?[\\w!]+-\\d-(?:octopus|tps)-(?:1080|1125)-\\d{4}\\.(?:jpg|png)_(?:1\\d{3}|9\\d{2})x(?:\\d|1\\d{3}|9\\d{2})q[59]0/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -61416,7 +61440,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://app-api\\\\.smzdm\\\\.com/util/loading\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3248,
+      "output_entry_index": 3251,
       "output_line": "request if ${url} ~= /^https:\\/\\/app-api\\.smzdm\\.com\\/util\\/loading\\?/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -61448,7 +61472,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://homepage-api\\\\.smzdm\\\\.com/v3/home\\\\?', ('response.json.jq_file', 'response.json.jq_file(\"https://raw.githubusercontent.com/zmjde/loon-plugins/main/JQ/smzdm/home_smzdm_remove_ads.jq\")'))",
-      "output_entry_index": 3252,
+      "output_entry_index": 3255,
       "output_line": "response if ${url} ~= /^https:\\/\\/homepage-api\\.smzdm\\.com\\/v3\\/home\\?/i then response.json.jq_file(\"https://raw.githubusercontent.com/zmjde/loon-plugins/main/JQ/smzdm/home_smzdm_remove_ads.jq\")",
       "section": "Rewrite",
       "sources": [
@@ -61469,7 +61493,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://app-api\\\\.smzdm\\\\.com/mychannel/list$', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3253,
+      "output_entry_index": 3256,
       "output_line": "request if ${url} ~= /^https:\\/\\/app-api\\.smzdm\\.com\\/mychannel\\/list$/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -61490,7 +61514,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://h5\\\\.smzdm\\\\.com/user/coupon/coupon_list\\\\?', ('REJECT', 'reject', 'reject(404)'))",
-      "output_entry_index": 3254,
+      "output_entry_index": 3257,
       "output_line": "request if ${url} ~= /^https:\\/\\/h5\\.smzdm\\.com\\/user\\/coupon\\/coupon_list\\?/i then reject(404)",
       "section": "Rewrite",
       "sources": [
@@ -61522,7 +61546,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://haojia\\\\.m\\\\.smzdm\\\\.com/detail_modul/user_related_modul\\\\?', ('response.json.delete', 'response.json.delete(\"data.super_coupon\")'))",
-      "output_entry_index": 3257,
+      "output_entry_index": 3260,
       "output_line": "response if ${url} ~= /^https:\\/\\/haojia\\.m\\.smzdm\\.com\\/detail_modul\\/user_related_modul\\?/i then response.json.delete(\"data.super_coupon\")",
       "section": "Rewrite",
       "sources": [
@@ -61543,7 +61567,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://haojia\\\\.m\\\\.smzdm\\\\.com/detail_modul/other_modul\\\\?', ('response.json.delete', 'response.json.delete(\"data.banner\")'))",
-      "output_entry_index": 3258,
+      "output_entry_index": 3261,
       "output_line": "response if ${url} ~= /^https:\\/\\/haojia\\.m\\.smzdm\\.com\\/detail_modul\\/other_modul\\?/i then response.json.delete(\"data.banner\")",
       "section": "Rewrite",
       "sources": [
@@ -61564,7 +61588,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://user-api\\\\.smzdm\\\\.com/vip$', ('response.json.delete', 'response.json.delete([\"data.activity_entrance_info\", \"data.big_banner\", \"data.top_banner\", \"data.banner_switch\", \"data.yaoqingshaiwu\", \"data.right_info\"])'))",
-      "output_entry_index": 3259,
+      "output_entry_index": 3262,
       "output_line": "response if ${url} ~= /^https:\\/\\/user-api\\.smzdm\\.com\\/vip$/i then response.json.delete([\"data.activity_entrance_info\", \"data.big_banner\", \"data.top_banner\", \"data.banner_switch\", \"data.yaoqingshaiwu\", \"data.right_info\"])",
       "section": "Rewrite",
       "sources": [
@@ -61585,7 +61609,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://user-api\\\\.smzdm\\\\.com/vip/bottom_card_list\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3260,
+      "output_entry_index": 3263,
       "output_line": "request if ${url} ~= /^https:\\/\\/user-api\\.smzdm\\.com\\/vip\\/bottom_card_list\\?/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -61606,7 +61630,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://article-api\\\\.smzdm\\\\.com/publish/get_bubble\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3261,
+      "output_entry_index": 3264,
       "output_line": "request if ${url} ~= /^https:\\/\\/article-api\\.smzdm\\.com\\/publish\\/get_bubble\\?/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -61627,7 +61651,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://s-api\\\\.smzdm\\\\.com/sou/search_default_keyword\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3262,
+      "output_entry_index": 3265,
       "output_line": "request if ${url} ~= /^https:\\/\\/s-api\\.smzdm\\.com\\/sou\\/search_default_keyword\\?/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -61648,7 +61672,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://s-api\\\\.smzdm\\\\.com/sou/list_v10\\\\?', ('response.json.jq', 'response.json.jq(\".data.rows |= map(select(.model_type != \\\\\"ads\\\\\")) | .data.top_aladdin |= map(select(has(\\\\\"ad\\\\\") | not))\")'))",
-      "output_entry_index": 3263,
+      "output_entry_index": 3266,
       "output_line": "response if ${url} ~= /^https:\\/\\/s-api\\.smzdm\\.com\\/sou\\/list_v10\\?/i then response.json.jq(\".data.rows |= map(select(.model_type != \\\"ads\\\")) | .data.top_aladdin |= map(select(has(\\\"ad\\\") | not))\")",
       "section": "Rewrite",
       "sources": [
@@ -61680,7 +61704,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://s-api\\\\.smzdm\\\\.com/sou/popup_coupon\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3266,
+      "output_entry_index": 3269,
       "output_line": "request if ${url} ~= /^https:\\/\\/s-api\\.smzdm\\.com\\/sou\\/popup_coupon\\?/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -61701,7 +61725,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://haojia-api\\\\.smzdm\\\\.com/detail/\\\\d+\\\\?', ('response.json.delete', 'response.json.delete(\"data.quan_log\")'))",
-      "output_entry_index": 3267,
+      "output_entry_index": 3270,
       "output_line": "response if ${url} ~= /^https:\\/\\/haojia-api\\.smzdm\\.com\\/detail\\/\\d+\\?/i then response.json.delete(\"data.quan_log\")",
       "section": "Rewrite",
       "sources": [
@@ -61722,7 +61746,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://haojia-cdn\\\\.smzdm\\\\.com/preload/\\\\d+/fiphone/v\\\\d+_\\\\d+_\\\\d+/wx\\\\d+/im\\\\d+/[0-9a-z]+/[0-9a-z]+\\\\.json$', ('response.json.delete', 'response.json.delete(\"data.quan_log\")'))",
-      "output_entry_index": 3268,
+      "output_entry_index": 3271,
       "output_line": "response if ${url} ~= /^https:\\/\\/haojia-cdn\\.smzdm\\.com\\/preload\\/\\d+\\/fiphone\\/v\\d+_\\d+_\\d+\\/wx\\d+\\/im\\d+\\/[0-9a-z]+\\/[0-9a-z]+\\.json$/i then response.json.delete(\"data.quan_log\")",
       "section": "Rewrite",
       "sources": [
@@ -61743,7 +61767,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://post\\\\.m\\\\.smzdm\\\\.com/ajax_app/ajax_get_footer_list\\\\?', ('response.json.delete', 'response.json.delete([\"data.tuiguang_ad\", \"data.activity_banner\"])'))",
-      "output_entry_index": 3269,
+      "output_entry_index": 3272,
       "output_line": "response if ${url} ~= /^https:\\/\\/post\\.m\\.smzdm\\.com\\/ajax_app\\/ajax_get_footer_list\\?/i then response.json.delete([\"data.tuiguang_ad\", \"data.activity_banner\"])",
       "section": "Rewrite",
       "sources": [
@@ -61764,7 +61788,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://list-app-m\\\\.i4\\\\.cn/(?:adclickcb|getHotSearchList|getopfstadinfo)\\\\.xhtml', ('REJECT', 'reject', 'reject(404)'))",
-      "output_entry_index": 3270,
+      "output_entry_index": 3273,
       "output_line": "request if ${url} ~= /^https:\\/\\/list-app-m\\.i4\\.cn\\/(?:adclickcb|getHotSearchList|getopfstadinfo)\\.xhtml/i then reject(404)",
       "section": "Rewrite",
       "sources": [
@@ -61781,7 +61805,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.taobao\\\\.com/gw/mtop\\\\.fliggy\\\\.crm\\\\.screen\\\\.(?:allresource|predict)', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3271,
+      "output_entry_index": 3274,
       "output_line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.fliggy\\.crm\\.screen\\.(?:allresource|predict)/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -61798,7 +61822,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://guide-acs\\\\.m\\\\.taobao\\\\.com/gw/mtop\\\\.relationrecommend\\\\.pailitaorecommend\\\\.recommend', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3272,
+      "output_entry_index": 3275,
       "output_line": "request if ${url} ~= /^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.relationrecommend\\.pailitaorecommend\\.recommend/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -61815,7 +61839,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://guide-acs\\\\.m\\\\.taobao\\\\.com/gw/mtop\\\\.taobao\\\\.(?:volvo\\\\.secondfloor\\\\.getconfig|shot\\\\.resources\\\\.load|wireless\\\\.home\\\\.(newface|splash)\\\\.awesome\\\\.get)', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3273,
+      "output_entry_index": 3276,
       "output_line": "request if ${url} ~= /^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.(?:volvo\\.secondfloor\\.getconfig|shot\\.resources\\.load|wireless\\.home\\.(newface|splash)\\.awesome\\.get)/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -61832,7 +61856,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://pan\\\\.baidu\\\\.com/(?:act/|aipic/|aisearch/|api/getsyscfg\\\\?|buy/adx?/|rest/)', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3274,
+      "output_entry_index": 3277,
       "output_line": "request if ${url} ~= /^https:\\/\\/pan\\.baidu\\.com\\/(?:act\\/|aipic\\/|aisearch\\/|api\\/getsyscfg\\?|buy\\/adx?\\/|rest\\/)/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -61849,7 +61873,7 @@
     },
     {
       "canonical_key": "('guarded', '^http://ad\\\\.5tao5ai\\\\.com/common/getReceipt\\\\?', ('response.json.delete', 'response.json.delete(\"payload.adInfo\")'))",
-      "output_entry_index": 3275,
+      "output_entry_index": 3278,
       "output_line": "response if ${url} ~= /^http:\\/\\/ad\\.5tao5ai\\.com\\/common\\/getReceipt\\?/i then response.json.delete(\"payload.adInfo\")",
       "section": "Rewrite",
       "sources": [
@@ -61866,7 +61890,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://www\\\\.washpayer\\\\.com/(?:ad/getBannerAd|ad/user-adword|user/getBannerList)', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3276,
+      "output_entry_index": 3279,
       "output_line": "request if ${url} ~= /^https:\\/\\/www\\.washpayer\\.com\\/(?:ad\\/getBannerAd|ad\\/user-adword|user\\/getBannerList)/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -61883,7 +61907,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://www\\\\.washpayer\\\\.com/common/getReceipt', ('response.json.delete', 'response.json.delete(\"payload.adInfo\")'))",
-      "output_entry_index": 3277,
+      "output_entry_index": 3280,
       "output_line": "response if ${url} ~= /^https:\\/\\/www\\.washpayer\\.com\\/common\\/getReceipt/i then response.json.delete(\"payload.adInfo\")",
       "section": "Rewrite",
       "sources": [
@@ -61900,7 +61924,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://oneapph5\\\\.dongfeng-nissan\\\\.com\\\\.cn/mb-gw/(?:dndc-gateway/nissan/platform/api/advertisement/app/ad-content|ly-mp-iov-forwarding-service/iov/login/advertapp/listByCarSeries)', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3278,
+      "output_entry_index": 3281,
       "output_line": "request if ${url} ~= /^https:\\/\\/oneapph5\\.dongfeng-nissan\\.com\\.cn\\/mb-gw\\/(?:dndc-gateway\\/nissan\\/platform\\/api\\/advertisement\\/app\\/ad-content|ly-mp-iov-forwarding-service\\/iov\\/login\\/advertapp\\/listByCarSeries)/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -61917,7 +61941,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.douban\\\\.com/v2/app_ads/splash\\\\w+', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3279,
+      "output_entry_index": 3282,
       "output_line": "request if ${url} ~= /^https:\\/\\/api\\.douban\\.com\\/v2\\/app_ads\\/splash\\w+/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -61934,7 +61958,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://(?:img|qnmob)3\\\\.doubanio\\\\.com/view/dale-online/dale_ad/public/\\\\w+', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3280,
+      "output_entry_index": 3283,
       "output_line": "request if ${url} ~= /^https:\\/\\/(?:img|qnmob)3\\.doubanio\\.com\\/view\\/dale-online\\/dale_ad\\/public\\/\\w+/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -61951,7 +61975,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://acs-m\\\\.freshippo\\\\.com/gw/mtop\\\\.wdk\\\\.render\\\\.querysinglepage/', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3281,
+      "output_entry_index": 3284,
       "output_line": "request if ${url} ~= /^https:\\/\\/acs-m\\.freshippo\\.com\\/gw\\/mtop\\.wdk\\.render\\.querysinglepage\\//i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -61968,7 +61992,7 @@
     },
     {
       "canonical_key": "('guarded', '^http://image1\\\\.ccb\\\\.com/newsinfo/eBranch/check/(?:nf/newfin/activity|po/poortheme/activity)/\\\\w+\\\\.png', ('REJECT', 'reject', 'reject(404)'))",
-      "output_entry_index": 3282,
+      "output_entry_index": 3285,
       "output_line": "request if ${url} ~= /^http:\\/\\/image1\\.ccb\\.com\\/newsinfo\\/eBranch\\/check\\/(?:nf\\/newfin\\/activity|po\\/poortheme\\/activity)\\/\\w+\\.png/i then reject(404)",
       "section": "Rewrite",
       "sources": [
@@ -61985,7 +62009,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://gab\\\\.122\\\\.gov\\\\.cn/eapp/m/sysquery/adver', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3283,
+      "output_entry_index": 3286,
       "output_line": "request if ${url} ~= /^https:\\/\\/gab\\.122\\.gov\\.cn\\/eapp\\/m\\/sysquery\\/adver/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -62002,7 +62026,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://p0\\\\.pipi\\\\.cn/(?:adAdmin|mediaplus/maoyantong_ads_fe)/\\\\w+\\\\.jpe?g\\\\?imageMogr2/quality/', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3284,
+      "output_entry_index": 3287,
       "output_line": "request if ${url} ~= /^https:\\/\\/p0\\.pipi\\.cn\\/(?:adAdmin|mediaplus\\/maoyantong_ads_fe)\\/\\w+\\.jpe?g\\?imageMogr2\\/quality\\//i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -62019,7 +62043,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://p0\\\\.pipi\\\\.cn/(?:adAdmin|mediaplus/maoyantong_ads_fe)/\\\\w+\\\\.(?:jpe?g|png)\\\\?imageMogr2/thumbnail/(?:860x0|880x0|!165x165|!1049x1169)', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3285,
+      "output_entry_index": 3288,
       "output_line": "request if ${url} ~= /^https:\\/\\/p0\\.pipi\\.cn\\/(?:adAdmin|mediaplus\\/maoyantong_ads_fe)\\/\\w+\\.(?:jpe?g|png)\\?imageMogr2\\/thumbnail\\/(?:860x0|880x0|!165x165|!1049x1169)/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -62036,7 +62060,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://mme\\\\.api\\\\.moji\\\\.com/json/entrance/list$', ('response.json.jq', 'response.json.jq(\"del(.entrance_region_res_list[] | select(.region_name == \\\\\"皇冠区域\\\\\" or .region_name == \\\\\"banner区\\\\\")) | .entrance_region_res_list[].entrance_res_list |= if . then map(select(.entrance_name | . != \\\\\"墨迹钱包\\\\\" and . != \\\\\"墨圈\\\\\")) else . end\")'))",
-      "output_entry_index": 3286,
+      "output_entry_index": 3289,
       "output_line": "response if ${url} ~= /^https:\\/\\/mme\\.api\\.moji\\.com\\/json\\/entrance\\/list$/i then response.json.jq(\"del(.entrance_region_res_list[] | select(.region_name == \\\"皇冠区域\\\" or .region_name == \\\"banner区\\\")) | .entrance_region_res_list[].entrance_res_list |= if . then map(select(.entrance_name | . != \\\"墨迹钱包\\\" and . != \\\"墨圈\\\")) else . end\")",
       "section": "Rewrite",
       "sources": [
@@ -62053,7 +62077,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://sns\\\\.api\\\\.moji\\\\.com/(?:forum|user/dynamic_v[89]/json)/', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3287,
+      "output_entry_index": 3290,
       "output_line": "request if ${url} ~= /^https:\\/\\/sns\\.api\\.moji\\.com\\/(?:forum|user\\/dynamic_v[89]\\/json)\\//i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -62070,7 +62094,7 @@
     },
     {
       "canonical_key": "('guarded', '^http://app-cdn\\\\.2q10\\\\.com/app/ical/honored\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3288,
+      "output_entry_index": 3291,
       "output_line": "request if ${url} ~= /^http:\\/\\/app-cdn\\.2q10\\.com\\/app\\/ical\\/honored\\?/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -62087,7 +62111,7 @@
     },
     {
       "canonical_key": "('guarded', '^http://wmapi\\\\.meituan\\\\.com/api/v7/(?:loadInfo|openscreen|startpicture)', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3289,
+      "output_entry_index": 3292,
       "output_line": "request if ${url} ~= /^http:\\/\\/wmapi\\.meituan\\.com\\/api\\/v7\\/(?:loadInfo|openscreen|startpicture)/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -62104,7 +62128,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://flowplus\\\\.meituan\\\\.net/v1/mss_\\\\w+/linglong/\\\\d+\\\\.jpg', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3290,
+      "output_entry_index": 3293,
       "output_line": "request if ${url} ~= /^https:\\/\\/flowplus\\.meituan\\.net\\/v1\\/mss_\\w+\\/linglong\\/\\d+\\.jpg/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -62121,7 +62145,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://img\\\\.meituan\\\\.net/bizad/bizad_brandCpt_\\\\d+\\\\.jpg', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3291,
+      "output_entry_index": 3294,
       "output_line": "request if ${url} ~= /^https:\\/\\/img\\.meituan\\.net\\/bizad\\/bizad_brandCpt_\\d+\\.jpg/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -62138,7 +62162,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://s3plus\\\\.meituan\\\\.net/ocean-blk-index/index/blk_conf_\\\\d+\\\\.json', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3292,
+      "output_entry_index": 3295,
       "output_line": "request if ${url} ~= /^https:\\/\\/s3plus\\.meituan\\.net\\/ocean-blk-index\\/index\\/blk_conf_\\d+\\.json/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -62155,7 +62179,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://s3plus\\\\.meituan\\\\.net/v1/mss_\\\\w+/(?:brandcpt-vedio|waimai-alita)/\\\\w+\\\\.zip$', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3293,
+      "output_entry_index": 3296,
       "output_line": "request if ${url} ~= /^https:\\/\\/s3plus\\.meituan\\.net\\/v1\\/mss_\\w+\\/(?:brandcpt-vedio|waimai-alita)\\/\\w+\\.zip$/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -62172,7 +62196,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://s3plus\\\\.meituan\\\\.net/v1/mss_\\\\w+/nebulafile/\\\\w+', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3294,
+      "output_entry_index": 3297,
       "output_line": "request if ${url} ~= /^https:\\/\\/s3plus\\.meituan\\.net\\/v1\\/mss_\\w+\\/nebulafile\\/\\w+/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -62189,7 +62213,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://home\\\\.mi\\\\.com/cgi-op/api/v1/recommendation/(?:banner|carousel/banners|myTab|openingBanner)', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3295,
+      "output_entry_index": 3298,
       "output_line": "request if ${url} ~= /^https:\\/\\/home\\.mi\\.com\\/cgi-op\\/api\\/v1\\/recommendation\\/(?:banner|carousel\\/banners|myTab|openingBanner)/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -62206,7 +62230,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://gql(-fed)?\\\\.reddit\\\\.com', ('response.json.jq', 'response.json.jq(\"jq-path=https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_reddit.jq\")'))",
-      "output_entry_index": 3296,
+      "output_entry_index": 3299,
       "output_line": "response if ${url} ~= /^https:\\/\\/gql(-fed)?\\.reddit\\.com/i then response.json.jq(\"jq-path=https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_reddit.jq\")",
       "section": "Rewrite",
       "sources": [
@@ -62223,7 +62247,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://a\\\\.cpiccdn\\\\.com/config-center/api/configfile/images/\\\\d{8}/\\\\d{13}_(?:(?:630|945|1035)_\\\\d{2,4}|123_48|136_136|207_210|408_408|750_750|1125_\\\\d{4})\\\\.(gif|jpg|png)$', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3297,
+      "output_entry_index": 3300,
       "output_line": "request if ${url} ~= /^https:\\/\\/a\\.cpiccdn\\.com\\/config-center\\/api\\/configfile\\/images\\/\\d{8}\\/\\d{13}_(?:(?:630|945|1035)_\\d{2,4}|123_48|136_136|207_210|408_408|750_750|1125_\\d{4})\\.(gif|jpg|png)$/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -62240,7 +62264,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://osg-service\\\\.sgcc\\\\.com\\\\.cn:18600/emss-pfa-appset-front/bootpageoutter/', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3298,
+      "output_entry_index": 3301,
       "output_line": "request if ${url} ~= /^https:\\/\\/osg-service\\.sgcc\\.com\\.cn:18600\\/emss-pfa-appset-front\\/bootpageoutter\\//i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -62257,7 +62281,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.xiachufang\\\\.com/v2/ad/', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3299,
+      "output_entry_index": 3302,
       "output_line": "request if ${url} ~= /^https:\\/\\/api\\.xiachufang\\.com\\/v2\\/ad\\//i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -62274,7 +62298,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.xiachufang\\\\.com/v2/homepage/paged_waterfall_recommendations\\\\.json', ('response.json.jq', 'response.json.jq(\".multiplex_cells |= map(select(.recommendation_cell.label != \\\\\"广告\\\\\"))\")'))",
-      "output_entry_index": 3300,
+      "output_entry_index": 3303,
       "output_line": "response if ${url} ~= /^https:\\/\\/api\\.xiachufang\\.com\\/v2\\/homepage\\/paged_waterfall_recommendations\\.json/i then response.json.jq(\".multiplex_cells |= map(select(.recommendation_cell.label != \\\"广告\\\"))\")",
       "section": "Rewrite",
       "sources": [
@@ -62291,7 +62315,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://mp\\\\.weixin\\\\.qq\\\\.com/mp/(?:cps_product_info|getappmsgad|getbizbanner|jsmonitor|masonryfeed|relatedarticle|relatedsearchword)', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3301,
+      "output_entry_index": 3304,
       "output_line": "request if ${url} ~= /^https:\\/\\/mp\\.weixin\\.qq\\.com\\/mp\\/(?:cps_product_info|getappmsgad|getbizbanner|jsmonitor|masonryfeed|relatedarticle|relatedsearchword)/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -62308,7 +62332,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://marketing-aibox\\\\.v\\\\.mitvos\\\\.com/(?:advertise|payGuide/halfScreenMulti)/', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3302,
+      "output_entry_index": 3305,
       "output_line": "request if ${url} ~= /^https:\\/\\/marketing-aibox\\.v\\.mitvos\\.com\\/(?:advertise|payGuide\\/halfScreenMulti)\\//i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -62325,7 +62349,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.m\\\\.mi\\\\.com/v1/order/expressView', ('response.json.delete', 'response.json.delete(\"data.bottom.ad_info\")'))",
-      "output_entry_index": 3303,
+      "output_entry_index": 3306,
       "output_line": "response if ${url} ~= /^https:\\/\\/api\\.m\\.mi\\.com\\/v1\\/order\\/expressView/i then response.json.delete(\"data.bottom.ad_info\")",
       "section": "Rewrite",
       "sources": [
@@ -62342,7 +62366,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.m\\\\.mi\\\\.com/(?:v1/(?:app/popup_info|home/page_feed|home/recommendBlank|misearch/search_input|product/recommendv2)|v2/search/search_default)', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3304,
+      "output_entry_index": 3307,
       "output_line": "request if ${url} ~= /^https:\\/\\/api\\.m\\.mi\\.com\\/(?:v1\\/(?:app\\/popup_info|home\\/page_feed|home\\/recommendBlank|misearch\\/search_input|product\\/recommendv2)|v2\\/search\\/search_default)/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -62359,7 +62383,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://shop-api\\\\.retail\\\\.mi\\\\.com/mtop/act/mishopSearch/mainSearch', ('response.json.replace', 'response.json.replace(\"data.recProductList\", `[]`)'))",
-      "output_entry_index": 3305,
+      "output_entry_index": 3308,
       "output_line": "response if ${url} ~= /^https:\\/\\/shop-api\\.retail\\.mi\\.com\\/mtop\\/act\\/mishopSearch\\/mainSearch/i then response.json.replace(\"data.recProductList\", `[]`)",
       "section": "Rewrite",
       "sources": [
@@ -62376,7 +62400,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://shop-api\\\\.retail\\\\.mi\\\\.com/mtop/mf/home/v1/index', ('response.json.delete', 'response.json.delete([\"data.floors[0].data.left_icon_config\", \"data.floors[0].data.right_icon_config\"])'))",
-      "output_entry_index": 3306,
+      "output_entry_index": 3309,
       "output_line": "response if ${url} ~= /^https:\\/\\/shop-api\\.retail\\.mi\\.com\\/mtop\\/mf\\/home\\/v1\\/index/i then response.json.delete([\"data.floors[0].data.left_icon_config\", \"data.floors[0].data.right_icon_config\"])",
       "section": "Rewrite",
       "sources": [
@@ -62393,7 +62417,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://shop-api\\\\.retail\\\\.mi\\\\.com/mtop/mf/usercenter/personalHome', ('response.json.delete', 'response.json.delete(\"data.carouselAD\")'))",
-      "output_entry_index": 3307,
+      "output_entry_index": 3310,
       "output_line": "response if ${url} ~= /^https:\\/\\/shop-api\\.retail\\.mi\\.com\\/mtop\\/mf\\/usercenter\\/personalHome/i then response.json.delete(\"data.carouselAD\")",
       "section": "Rewrite",
       "sources": [
@@ -62410,7 +62434,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://shop-api\\\\.retail\\\\.mi\\\\.com/mtop/mf/(?:cart|home|personal)/recommend', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3308,
+      "output_entry_index": 3311,
       "output_line": "request if ${url} ~= /^https:\\/\\/shop-api\\.retail\\.mi\\.com\\/mtop\\/mf\\/(?:cart|home|personal)\\/recommend/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -62427,7 +62451,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://shop-api\\\\.retail\\\\.mi\\\\.com/mtop/(?:act/mishopSearch/searchInput|mf/home/v1/feed)', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3309,
+      "output_entry_index": 3312,
       "output_line": "request if ${url} ~= /^https:\\/\\/shop-api\\.retail\\.mi\\.com\\/mtop\\/(?:act\\/mishopSearch\\/searchInput|mf\\/home\\/v1\\/feed)/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -62444,7 +62468,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://shop-api\\\\.retail\\\\.mi\\\\.com/mtop/navi/(?:rec/merge/|skywheel/(?:homePage/bottomFloatLayer|mishop/splash|shop/resourceAms|ucenter/pendant|ucenter/popup))', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3310,
+      "output_entry_index": 3313,
       "output_line": "request if ${url} ~= /^https:\\/\\/shop-api\\.retail\\.mi\\.com\\/mtop\\/navi\\/(?:rec\\/merge\\/|skywheel\\/(?:homePage\\/bottomFloatLayer|mishop\\/splash|shop\\/resourceAms|ucenter\\/pendant|ucenter\\/popup))/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -62461,7 +62485,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://xiaomishop\\\\.retail\\\\.mi\\\\.com/mtop/xiaomishop/product/compose', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3311,
+      "output_entry_index": 3314,
       "output_line": "request if ${url} ~= /^https:\\/\\/xiaomishop\\.retail\\.mi\\.com\\/mtop\\/xiaomishop\\/product\\/compose/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -62478,7 +62502,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://xiaomishop\\\\.retail\\\\.mi\\\\.com/mtop/xiaomishop/product/info', ('response.json.delete', 'response.json.delete([\"data.carouselAdInfo\", \"data.product.floatWindow\"])'))",
-      "output_entry_index": 3312,
+      "output_entry_index": 3315,
       "output_line": "response if ${url} ~= /^https:\\/\\/xiaomishop\\.retail\\.mi\\.com\\/mtop\\/xiaomishop\\/product\\/info/i then response.json.delete([\"data.carouselAdInfo\", \"data.product.floatWindow\"])",
       "section": "Rewrite",
       "sources": [
@@ -62495,7 +62519,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://gateway\\\\.sccncdn\\\\.com/app/v2/apiV2/advertisement/marke/list/', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3313,
+      "output_entry_index": 3316,
       "output_line": "request if ${url} ~= /^https:\\/\\/gateway\\.sccncdn\\.com\\/app\\/v2\\/apiV2\\/advertisement\\/marke\\/list\\//i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -62512,7 +62536,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://gateway\\\\.starcharge\\\\.com/app/(?:api/advertisement|v2/apiV2/advertisement/marke)/list', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3314,
+      "output_entry_index": 3317,
       "output_line": "request if ${url} ~= /^https:\\/\\/gateway\\.starcharge\\.com\\/app\\/(?:api\\/advertisement|v2\\/apiV2\\/advertisement\\/marke)\\/list/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -62529,7 +62553,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api-shoulei-ssl\\\\.xunlei\\\\.com/flowhub/v1/slots:batchGet', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3315,
+      "output_entry_index": 3318,
       "output_line": "request if ${url} ~= /^https:\\/\\/api-shoulei-ssl\\.xunlei\\.com\\/flowhub\\/v1\\/slots:batchGet/i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -62546,7 +62570,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://conf-m-ssl\\\\.xunlei\\\\.com/external/[0-9-a-z]+\\\\?', ('response.json.delete', 'response.json.delete(\"values.me_config.common_service_list\")'))",
-      "output_entry_index": 3316,
+      "output_entry_index": 3319,
       "output_line": "response if ${url} ~= /^https:\\/\\/conf-m-ssl\\.xunlei\\.com\\/external\\/[0-9-a-z]+\\?/i then response.json.delete(\"values.me_config.common_service_list\")",
       "section": "Rewrite",
       "sources": [
@@ -62563,7 +62587,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://login-service\\\\.mobile-bank\\\\.psbc\\\\.com/sn10/api/public/v1/(?:getStartUpAdvPicture|qryPopInfo)/', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 3317,
+      "output_entry_index": 3320,
       "output_line": "request if ${url} ~= /^https:\\/\\/login-service\\.mobile-bank\\.psbc\\.com\\/sn10\\/api\\/public\\/v1\\/(?:getStartUpAdvPicture|qryPopInfo)\\//i then reject_dict(200)",
       "section": "Rewrite",
       "sources": [
@@ -62580,7 +62604,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://wallet\\\\.95516\\\\.com(:10533)?/s/wl/icon/large/1', ('REJECT', 'reject', 'reject(404)'))",
-      "output_entry_index": 3318,
+      "output_entry_index": 3321,
       "output_line": "request if ${url} ~= /^https:\\/\\/wallet\\.95516\\.com(:10533)?\\/s\\/wl\\/icon\\/large\\/1/i then reject(404)",
       "section": "Rewrite",
       "sources": [
@@ -118517,23 +118541,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://conf\\\\.diditaxi\\\\.com\\\\.cn/homepage/v\\\\d/core', ('^https?:\\\\/\\\\/conf\\\\.diditaxi\\\\.com\\\\.cn\\\\/homepage\\\\/v\\\\d\\\\/core', '^https?:\\\\/\\\\/conf\\\\.diditaxi\\\\.com\\\\.cn\\\\/homepage\\\\/v\\\\d\\\\/core script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI,requires-body=true'))",
-      "output_entry_index": 140,
-      "output_line": "http-response ^https?:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v\\d\\/core script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI,requires-body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v\\d\\/core script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 139
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https?://conf\\\\.diditaxi\\\\.com\\\\.cn/ota/na/yuantu/infoList', ('^https?:\\\\/\\\\/conf\\\\.diditaxi\\\\.com\\\\.cn\\\\/ota\\\\/na\\\\/yuantu\\\\/infolist', '^https?:\\\\/\\\\/conf\\\\.diditaxi\\\\.com\\\\.cn\\\\/ota\\\\/na\\\\/yuantu\\\\/infoList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI-2,requires-body=true'))",
       "output_entry_index": 141,
       "output_line": "http-response ^https?:\\/\\/conf\\.diditaxi\\.com\\.cn\\/ota\\/na\\/yuantu\\/infoList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI-2,requires-body=true",
@@ -118546,23 +118553,6 @@
           "priority": 4,
           "source": "base",
           "source_entry_index": 140
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://common\\\\.diditaxi\\\\.com\\\\.cn/common/v\\\\d/usercenter/me', ('^https?:\\\\/\\\\/common\\\\.diditaxi\\\\.com\\\\.cn\\\\/common\\\\/v\\\\d\\\\/usercenter\\\\/me', '^https?:\\\\/\\\\/common\\\\.diditaxi\\\\.com\\\\.cn\\\\/common\\\\/v\\\\d\\\\/usercenter\\\\/me script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI-3,requires-body=true'))",
-      "output_entry_index": 142,
-      "output_line": "http-response ^https?:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v\\d\\/usercenter\\/me script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI-3,requires-body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v\\d\\/usercenter\\/me script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI-3,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 141
         }
       ],
       "trace_status": "mapped"
@@ -122036,142 +122026,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://ct\\\\.xiaojukeji\\\\.com/agent/v3/feeds', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true'))",
-      "output_entry_index": 352,
-      "output_line": "response if ${url} ~= /^https?:\\/\\/ct\\.xiaojukeji\\.com\\/agent\\/v3\\/feeds/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https?:\\/\\/ct\\.xiaojukeji\\.com\\/agent\\/v3\\/feeds/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 44
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://freight\\\\.xiaojukeji\\\\.com/gateway', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true'))",
-      "output_entry_index": 353,
-      "output_line": "response if ${url} ~= /^https?:\\/\\/freight\\.xiaojukeji\\.com\\/gateway/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https?:\\/\\/freight\\.xiaojukeji\\.com\\/gateway/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 45
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://res\\\\.xiaojukeji\\\\.com/resapi/activity/xpget', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true'))",
-      "output_entry_index": 354,
-      "output_line": "response if ${url} ~= /^https?:\\/\\/res\\.xiaojukeji\\.com\\/resapi\\/activity\\/xpget/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https?:\\/\\/res\\.xiaojukeji\\.com\\/resapi\\/activity\\/xpget/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 46
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://res\\\\.xiaojukeji\\\\.com/resapi/activity/mget', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true'))",
-      "output_entry_index": 355,
-      "output_line": "response if ${url} ~= /^https?:\\/\\/res\\.xiaojukeji\\.com\\/resapi\\/activity\\/mget/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https?:\\/\\/res\\.xiaojukeji\\.com\\/resapi\\/activity\\/mget/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 47
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://conf\\\\.diditaxi\\\\.com\\\\.cn/homepage/v\\\\d/other/fast', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true'))",
-      "output_entry_index": 356,
-      "output_line": "response if ${url} ~= /^https?:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v\\d\\/other\\/fast/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https?:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v\\d\\/other\\/fast/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 48
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://conf\\\\.diditaxi\\\\.com\\\\.cn/dynamic/conf', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true'))",
-      "output_entry_index": 357,
-      "output_line": "response if ${url} ~= /^https?:\\/\\/conf\\.diditaxi\\.com\\.cn\\/dynamic\\/conf/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https?:\\/\\/conf\\.diditaxi\\.com\\.cn\\/dynamic\\/conf/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 49
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://daijia\\\\.kuaidadi\\\\.com/gateway', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true'))",
-      "output_entry_index": 359,
-      "output_line": "response if ${url} ~= /^https?:\\/\\/daijia\\.kuaidadi\\.com\\/gateway/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https?:\\/\\/daijia\\.kuaidadi\\.com\\/gateway/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 51
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://daijia\\\\.kuaidadi\\\\.com:443/gateway', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true'))",
-      "output_entry_index": 360,
-      "output_line": "response if ${url} ~= /^https?:\\/\\/daijia\\.kuaidadi\\.com:443\\/gateway/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https?:\\/\\/daijia\\.kuaidadi\\.com:443\\/gateway/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 52
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https?://common\\\\.diditaxi\\\\.com\\\\.cn/common/v5', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"微信小程序个人中心净化\", timeout=60, requires_body=true'))",
       "output_entry_index": 361,
       "output_line": "response if ${url} ~= /^https?:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v5/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"微信小程序个人中心净化\", timeout=60, requires_body=true",
@@ -125627,42 +125481,8 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/aos/perception/publicTravel/beforeNavi\\\\?', ('script', 'script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除路线规划推广\", requires_body=true'))",
-      "output_entry_index": 585,
-      "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/aos\\/perception\\/publicTravel\\/beforeNavi\\?/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除路线规划推广\", requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/aos\\/perception\\/publicTravel\\/beforeNavi\\?/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除路线规划推广\", requires_body=true",
-          "input_section": "Script",
-          "priority": -1,
-          "source": "amap",
-          "source_entry_index": 0
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/bus/plan/integrate\\\\?', ('script', 'script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除路线规划、导航结束页推广\", requires_body=true'))",
-      "output_entry_index": 586,
-      "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/bus\\/plan\\/integrate\\?/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除路线规划、导航结束页推广\", requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/bus\\/plan\\/integrate\\?/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除路线规划、导航结束页推广\", requires_body=true",
-          "input_section": "Script",
-          "priority": -1,
-          "source": "amap",
-          "source_entry_index": 1
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/c3frontend/(?:af-(?:hotel|launch)/page/main|af-nearby/nearby)', ('script', 'script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除导航详情页底部酒店、处理附近页\", requires_body=true'))",
-      "output_entry_index": 587,
+      "output_entry_index": 585,
       "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/c3frontend\\/(?:af-(?:hotel|launch)\\/page\\/main|af-nearby\\/nearby)/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除导航详情页底部酒店、处理附近页\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -125672,14 +125492,14 @@
           "input_section": "Script",
           "priority": -1,
           "source": "amap",
-          "source_entry_index": 2
+          "source_entry_index": 0
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/perception/drive/(?:routeInfo|routePlan)', ('script', 'script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除路线规划推广\", requires_body=true'))",
-      "output_entry_index": 588,
+      "output_entry_index": 586,
       "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/perception\\/drive\\/(?:routeInfo|routePlan)/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除路线规划推广\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -125689,31 +125509,14 @@
           "input_section": "Script",
           "priority": -1,
           "source": "amap",
-          "source_entry_index": 3
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/shield/search_bff/hotword\\\\?', ('script', 'script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除搜索栏推广\", requires_body=true'))",
-      "output_entry_index": 589,
-      "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_bff\\/hotword\\?/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除搜索栏推广\", requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_bff\\/hotword\\?/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除搜索栏推广\", requires_body=true",
-          "input_section": "Script",
-          "priority": -1,
-          "source": "amap",
-          "source_entry_index": 4
+          "source_entry_index": 1
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/shield/search_poi/(?:mps|search/sp|sug|tips_operation_location)', ('script', 'script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除搜索详情页推广\", requires_body=true'))",
-      "output_entry_index": 590,
+      "output_entry_index": 587,
       "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_poi\\/(?:mps|search\\/sp|sug|tips_operation_location)/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除搜索详情页推广\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -125723,14 +125526,14 @@
           "input_section": "Script",
           "priority": -1,
           "source": "amap",
-          "source_entry_index": 5
+          "source_entry_index": 2
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/faas/amap-navigation/(?:card-service-plan-home|main-page)', ('script', 'script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除首页推广\", requires_body=true'))",
-      "output_entry_index": 591,
+      "output_entry_index": 588,
       "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/faas\\/amap-navigation\\/(?:card-service-plan-home|main-page)/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除首页推广\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -125740,14 +125543,14 @@
           "input_section": "Script",
           "priority": -1,
           "source": "amap",
-          "source_entry_index": 6
+          "source_entry_index": 3
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/shield/frogserver/aocs/updatable/1\\\\?', ('script', 'script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除首页推广\", requires_body=true'))",
-      "output_entry_index": 592,
+      "output_entry_index": 589,
       "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/frogserver\\/aocs\\/updatable\\/1\\?/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除首页推广\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -125757,14 +125560,14 @@
           "input_section": "Script",
           "priority": -1,
           "source": "amap",
-          "source_entry_index": 7
+          "source_entry_index": 4
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/shield/search/nearbyrec_smart\\\\?', ('script', 'script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除附近页推广\", requires_body=true'))",
-      "output_entry_index": 593,
+      "output_entry_index": 590,
       "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search\\/nearbyrec_smart\\?/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除附近页推广\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -125774,14 +125577,14 @@
           "input_section": "Script",
           "priority": -1,
           "source": "amap",
-          "source_entry_index": 8
+          "source_entry_index": 5
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/valueadded/alimama/splash_screen\\\\?', ('script', 'script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除开屏广告\", requires_body=true'))",
-      "output_entry_index": 594,
+      "output_entry_index": 591,
       "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/valueadded\\/alimama\\/splash_screen\\?/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除开屏广告\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -125791,14 +125594,14 @@
           "input_section": "Script",
           "priority": -1,
           "source": "amap",
-          "source_entry_index": 9
+          "source_entry_index": 6
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https://m5-zb\\\\.amap\\\\.com/ws/boss/(?:car/order/content_info|order_web/friendly_information)', ('script', 'script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除打车页推广卡片、弹窗\", requires_body=true'))",
-      "output_entry_index": 595,
+      "output_entry_index": 592,
       "output_line": "response if ${url} ~= /^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/boss\\/(?:car\\/order\\/content_info|order_web\\/friendly_information)/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除打车页推广卡片、弹窗\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -125808,14 +125611,14 @@
           "input_section": "Script",
           "priority": -1,
           "source": "amap",
-          "source_entry_index": 10
+          "source_entry_index": 7
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https://m5-zb\\\\.amap\\\\.com/ws/promotion-web/resource(/home)?\\\\?', ('script', 'script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除打车页红点角标、天气图标\", requires_body=true'))",
-      "output_entry_index": 596,
+      "output_entry_index": 593,
       "output_line": "response if ${url} ~= /^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/promotion-web\\/resource(\\/home)?\\?/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除打车页红点角标、天气图标\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -125825,14 +125628,14 @@
           "input_section": "Script",
           "priority": -1,
           "source": "amap",
-          "source_entry_index": 11
+          "source_entry_index": 8
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https://(?:info|m5)\\\\.amap\\\\.com/ws/shield/search/(?:common/coupon/info|poi/detail)', ('script', 'script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除导航详情页推广\", requires_body=true'))",
-      "output_entry_index": 597,
+      "output_entry_index": 594,
       "output_line": "response if ${url} ~= /^https:\\/\\/(?:info|m5)\\.amap\\.com\\/ws\\/shield\\/search\\/(?:common\\/coupon\\/info|poi\\/detail)/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除导航详情页推广\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -125842,14 +125645,14 @@
           "input_section": "Script",
           "priority": -1,
           "source": "amap",
-          "source_entry_index": 12
+          "source_entry_index": 9
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https://m\\\\.pinduoduo\\\\.net/mdkd/package\\\\?from_app_scan', ('script', 'script(\"https://raw.githubusercontent.com/zmjde/loon-plugins/main/JS/PinDuoDuo/PinDuoDuo_remove_ads.js\") with tag=\"移除扫码取件页面商品推荐及弹窗\", requires_body=true'))",
-      "output_entry_index": 598,
+      "output_entry_index": 595,
       "output_line": "response if ${url} ~= /^https:\\/\\/m\\.pinduoduo\\.net\\/mdkd\\/package\\?from_app_scan/i then script(\"https://raw.githubusercontent.com/zmjde/loon-plugins/main/JS/PinDuoDuo/PinDuoDuo_remove_ads.js\") with tag=\"移除扫码取件页面商品推荐及弹窗\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -125870,7 +125673,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://ad\\\\.12306\\\\.cn/ad/ser/getAdList$', ('script', 'script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_12306.js\") with tag=\"12306_splash\", requires_body=true'))",
-      "output_entry_index": 601,
+      "output_entry_index": 598,
       "output_line": "request if ${url} ~= /^https:\\/\\/ad\\.12306\\.cn\\/ad\\/ser\\/getAdList$/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_12306.js\") with tag=\"12306_splash\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -125887,7 +125690,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://mobile\\\\.12306\\\\.cn/otsmobile/app/mgs/mgw\\\\.htm$', ('script', 'script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_header.js\") with tag=\"12306_ads\"'))",
-      "output_entry_index": 602,
+      "output_entry_index": 599,
       "output_line": "request if ${url} ~= /^https:\\/\\/mobile\\.12306\\.cn\\/otsmobile\\/app\\/mgs\\/mgw\\.htm$/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_header.js\") with tag=\"12306_ads\"",
       "section": "Script",
       "sources": [
@@ -125904,7 +125707,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://(biz)?api\\\\.alipan\\\\.com/apps/v\\\\d/users?/home/(?:news|widgets)', ('script', 'script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_adrive.js\") with tag=\"aliyun_mine\", requires_body=true'))",
-      "output_entry_index": 603,
+      "output_entry_index": 600,
       "output_line": "response if ${url} ~= /^https:\\/\\/(biz)?api\\.alipan\\.com\\/apps\\/v\\d\\/users?\\/home\\/(?:news|widgets)/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_adrive.js\") with tag=\"aliyun_mine\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -125921,7 +125724,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://member\\\\.alipan\\\\.com/v1/users/onboard_list', ('script', 'script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_adrive.js\") with tag=\"aliyun_board\", requires_body=true'))",
-      "output_entry_index": 604,
+      "output_entry_index": 601,
       "output_line": "response if ${url} ~= /^https:\\/\\/member\\.alipan\\.com\\/v1\\/users\\/onboard_list/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_adrive.js\") with tag=\"aliyun_board\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -125938,7 +125741,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://2023\\\\.redircdn\\\\.com/web/mob_post\\\\.js\\\\?', ('script', 'script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"caoliu\", requires_body=true'))",
-      "output_entry_index": 607,
+      "output_entry_index": 604,
       "output_line": "response if ${url} ~= /^https:\\/\\/2023\\.redircdn\\.com\\/web\\/mob_post\\.js\\?/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"caoliu\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -125955,7 +125758,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://www\\\\.washpayer\\\\.com/user/message/equipmentPara\\\\?', ('script', 'script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_changyuan.js\") with tag=\"changyuan\", requires_body=true'))",
-      "output_entry_index": 608,
+      "output_entry_index": 605,
       "output_line": "response if ${url} ~= /^https:\\/\\/www\\.washpayer\\.com\\/user\\/message\\/equipmentPara\\?/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_changyuan.js\") with tag=\"changyuan\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -125972,7 +125775,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.coolapk\\\\.com/v6/(?:feed/detail|feed/replyList|page/dataList|main/dataList|main/indexV8|main/init)', ('script', 'script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_coolapk.js\") with tag=\"coolapk\", requires_body=true'))",
-      "output_entry_index": 609,
+      "output_entry_index": 606,
       "output_line": "response if ${url} ~= /^https:\\/\\/api\\.coolapk\\.com\\/v6\\/(?:feed\\/detail|feed\\/replyList|page\\/dataList|main\\/dataList|main\\/indexV8|main\\/init)/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_coolapk.js\") with tag=\"coolapk\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -125989,7 +125792,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://gateway\\\\.kugou\\\\.com/(?:adp/ad/v1/mine_top_banner|ads\\\\.gateway/v2/home_card)', ('script', 'script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_kugou.js\") with tag=\"kg_gateway\", requires_body=true'))",
-      "output_entry_index": 610,
+      "output_entry_index": 607,
       "output_line": "response if ${url} ~= /^https:\\/\\/gateway\\.kugou\\.com\\/(?:adp\\/ad\\/v1\\/mine_top_banner|ads\\.gateway\\/v2\\/home_card)/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_kugou.js\") with tag=\"kg_gateway\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -126006,7 +125809,7 @@
     },
     {
       "canonical_key": "('guarded', '^https?://adserviceretry\\\\.kglink\\\\.cn/v\\\\d/mobile\\\\w+', ('script', 'script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_kugou.js\") with tag=\"kg_linkcn\", requires_body=true'))",
-      "output_entry_index": 611,
+      "output_entry_index": 608,
       "output_line": "response if ${url} ~= /^https?:\\/\\/adserviceretry\\.kglink\\.cn\\/v\\d\\/mobile\\w+/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_kugou.js\") with tag=\"kg_linkcn\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -126023,7 +125826,7 @@
     },
     {
       "canonical_key": "('guarded', '^https\\\\://(?:weixin110\\\\.qq|security\\\\.wechat)\\\\.com/cgi-bin/mmspamsupport-bin/newredirectconfirmcgi\\\\?', ('script', 'script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_wechat.js\") with tag=\"wechat\", requires_body=true'))",
-      "output_entry_index": 612,
+      "output_entry_index": 609,
       "output_line": "response if ${url} ~= /^https\\:\\/\\/(?:weixin110\\.qq|security\\.wechat)\\.com\\/cgi-bin\\/mmspamsupport-bin\\/newredirectconfirmcgi\\?/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_wechat.js\") with tag=\"wechat\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -126040,7 +125843,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.m\\\\.mi\\\\.com/v1/app/start', ('script', 'script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"mi_mall\", requires_body=true'))",
-      "output_entry_index": 613,
+      "output_entry_index": 610,
       "output_line": "response if ${url} ~= /^https:\\/\\/api\\.m\\.mi\\.com\\/v1\\/app\\/start/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"mi_mall\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -126057,7 +125860,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api-gateway-pan\\\\.xunlei\\\\.com/content/v1/aggregate/info\\\\?', ('script', 'script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"thunder\", requires_body=true'))",
-      "output_entry_index": 614,
+      "output_entry_index": 611,
       "output_line": "response if ${url} ~= /^https:\\/\\/api-gateway-pan\\.xunlei\\.com\\/content\\/v1\\/aggregate\\/info\\?/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"thunder\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -126074,7 +125877,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://mobilepaas\\\\.abchina\\\\.com\\\\.cn:441/mgw\\\\.htm$', ('script', 'script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_header.js\") with tag=\"abchina\"'))",
-      "output_entry_index": 615,
+      "output_entry_index": 612,
       "output_line": "request if ${url} ~= /^https:\\/\\/mobilepaas\\.abchina\\.com\\.cn:441\\/mgw\\.htm$/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_header.js\") with tag=\"abchina\"",
       "section": "Script",
       "sources": [
@@ -126091,7 +125894,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://ad\\\\.mcloud\\\\.139\\\\.com/advertapi/adv-filter/', ('script', 'script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_cloud139.js\") with tag=\"cloud139_1\", requires_body=true'))",
-      "output_entry_index": 616,
+      "output_entry_index": 613,
       "output_line": "response if ${url} ~= /^https:\\/\\/ad\\.mcloud\\.139\\.com\\/advertapi\\/adv-filter\\//i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_cloud139.js\") with tag=\"cloud139_1\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -126108,7 +125911,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://jzts\\\\.cmpassport\\\\.com/personalized/getPushContent', ('script', 'script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_cloud139.js\") with tag=\"cloud139_2\", requires_body=true'))",
-      "output_entry_index": 617,
+      "output_entry_index": 614,
       "output_line": "response if ${url} ~= /^https:\\/\\/jzts\\.cmpassport\\.com\\/personalized\\/getPushContent/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_cloud139.js\") with tag=\"cloud139_2\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -126125,7 +125928,7 @@
     },
     {
       "canonical_key": "('unguarded', 'generic', 'https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/qunar-clean.js')",
-      "output_entry_index": 618,
+      "output_entry_index": 615,
       "output_line": "generic then script(\"https://raw.githubusercontent.com/aoomee/Loon-Adblock-Plugins/main/scripts/qunar-clean.js\") with tag=\"去哪儿清理运行状态\", timeout=10",
       "section": "Script",
       "sources": [
@@ -126150,7 +125953,7 @@
     },
     {
       "canonical_key": "('unguarded', 'cron', 'https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js')",
-      "output_entry_index": 619,
+      "output_entry_index": 616,
       "output_line": "cron \"0 * * * *\" script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,timeout=10,argument=[{blocked_channels_url}],tag=YouTube 定时更新屏蔽频道列表",
       "section": "Script",
       "sources": [
@@ -126167,7 +125970,7 @@
     },
     {
       "canonical_key": "('unguarded', 'generic', 'https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js')",
-      "output_entry_index": 620,
+      "output_entry_index": 617,
       "output_line": "generic script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,timeout=10,argument=[{blocked_channels_url}],tag=YouTube 手动更新屏蔽频道列表,img-url=person.crop.circle.badge.xmark.system",
       "section": "Script",
       "sources": [
@@ -126286,14 +126089,14 @@
       "included": 49
     },
     "post_transform_reconciled": true,
-    "rewrite_output_entries": 3287,
+    "rewrite_output_entries": 3289,
     "rule_covered_or_duplicate_events": 2140,
     "rule_included_events": 3476,
     "rule_output_entries": 3477,
     "rule_safety_excluded_events": 11,
     "rule_scope_adjustments": 1,
     "rule_source_events": 5627,
-    "script_output_entries": 577
+    "script_output_entries": 564
   },
   "upstream_revisions": {
     "AlipayAdBlock": {

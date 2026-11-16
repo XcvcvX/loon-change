@@ -25,39 +25,6 @@
         "low": 0,
         "medium": 0
       },
-      "run_id": "43393572941",
-      "source_changes": {},
-      "upstream_revisions": {
-        "Amap": "535f2e560079ca389f0040865af5d20738730f7c",
-        "GuaZiVideoAds": "535f2e560079ca389f0040865af5d20738730f7c",
-        "aoomee": "370a13085514ccca924f43d13c6d3acfa5671dbe",
-        "thelongdarkorg": "2d0443ce1ecec36cf173634e77ba52224efbdc38",
-        "zmjde": "3e79a9798f1b996f5c05b1a42be5d286890f3f60"
-      }
-    },
-    {
-      "change_counts": {
-        "rewrite": {
-          "action_changed": 0,
-          "added": 0,
-          "removed": 0
-        },
-        "rule": {
-          "action_changed": 0,
-          "added": 0,
-          "removed": 0
-        },
-        "script": {
-          "action_changed": 0,
-          "added": 0,
-          "removed": 0
-        }
-      },
-      "risk_counts": {
-        "high": 0,
-        "low": 0,
-        "medium": 0
-      },
       "run_id": "43395556138",
       "source_changes": {},
       "upstream_revisions": {
@@ -1230,6 +1197,71 @@
         "thelongdarkorg": "2d0443ce1ecec36cf173634e77ba52224efbdc38",
         "zmjde": "3e79a9798f1b996f5c05b1a42be5d286890f3f60"
       }
+    },
+    {
+      "change_counts": {
+        "rewrite": {
+          "action_changed": 0,
+          "added": 6,
+          "removed": 4
+        },
+        "rule": {
+          "action_changed": 0,
+          "added": 0,
+          "removed": 0
+        },
+        "script": {
+          "action_changed": 0,
+          "added": 0,
+          "removed": 13
+        }
+      },
+      "risk_counts": {
+        "high": 17,
+        "low": 0,
+        "medium": 6
+      },
+      "run_id": "43796011885",
+      "source_changes": {
+        "amap": {
+          "action_changed": 0,
+          "added": 3,
+          "removed": 3
+        },
+        "aoomee": {
+          "action_changed": 0,
+          "added": 2,
+          "removed": 2
+        },
+        "base": {
+          "action_changed": 0,
+          "added": 0,
+          "removed": 3
+        },
+        "block": {
+          "action_changed": 0,
+          "added": 0,
+          "removed": 8
+        },
+        "local_overrides": {
+          "action_changed": 0,
+          "added": 1,
+          "removed": 0
+        },
+        "zmjapp": {
+          "action_changed": 0,
+          "added": 0,
+          "removed": 1
+        }
+      },
+      "upstream_revisions": {
+        "AlipayAdBlock": "3fc25b8503977820d693abd2b98be8c54e0591a3",
+        "Amap": "3fc25b8503977820d693abd2b98be8c54e0591a3",
+        "GuaZiVideoAds": "3fc25b8503977820d693abd2b98be8c54e0591a3",
+        "aoomee": "370a13085514ccca924f43d13c6d3acfa5671dbe",
+        "thelongdarkorg": "2d0443ce1ecec36cf173634e77ba52224efbdc38",
+        "zmjde": "3e79a9798f1b996f5c05b1a42be5d286890f3f60"
+      }
     }
   ],
   "source_trends_last_30_snapshots": {
@@ -1241,27 +1273,27 @@
     },
     "amap": {
       "action_changed": 1,
-      "added": 0,
-      "removed": 1,
-      "snapshots_seen": 2
+      "added": 3,
+      "removed": 4,
+      "snapshots_seen": 3
     },
     "aoomee": {
       "action_changed": 0,
-      "added": 0,
-      "removed": 24,
-      "snapshots_seen": 3
+      "added": 2,
+      "removed": 26,
+      "snapshots_seen": 4
     },
     "base": {
       "action_changed": 0,
       "added": 3,
-      "removed": 28,
-      "snapshots_seen": 13
+      "removed": 31,
+      "snapshots_seen": 14
     },
     "block": {
       "action_changed": 0,
       "added": 0,
-      "removed": 22,
-      "snapshots_seen": 4
+      "removed": 30,
+      "snapshots_seen": 5
     },
     "filter": {
       "action_changed": 0,
@@ -1271,9 +1303,9 @@
     },
     "local_overrides": {
       "action_changed": 0,
-      "added": 20,
+      "added": 21,
       "removed": 2,
-      "snapshots_seen": 7
+      "snapshots_seen": 8
     },
     "myblockads": {
       "action_changed": 0,
@@ -1290,8 +1322,8 @@
     "zmjapp": {
       "action_changed": 0,
       "added": 0,
-      "removed": 18,
-      "snapshots_seen": 3
+      "removed": 19,
+      "snapshots_seen": 4
     },
     "zmjgen": {
       "action_changed": 0,
