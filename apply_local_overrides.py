@@ -320,8 +320,8 @@ def consolidate_pdd_homepage_script(lines):
 PDD_IMAGE_CDN_HOST = "images.pinduoduo.com"
 PDD_IMAGE_CDN_BROAD_BLOCK = "DOMAIN,images.pinduoduo.com,REJECT"
 PDD_IMAGE_CDN_AD_PATH_RULES = (
-    r"request if ${url} ~= /^https?:\\/\\/images\\.pinduoduo\\.com\\/(mrk|marketing_api)\\// then reject(404)",
-    r"request if ${url} ~= /^https?:\\/\\/images\\.pinduoduo\\.com\\/marketing\\_api/ then reject(200)",
+    r"request if ${url} ~= /^https?:\/\/images\.pinduoduo\.com\/(mrk|marketing_api)\// then reject(404)",
+    r"request if ${url} ~= /^https?:\/\/images\.pinduoduo\.com\/marketing\_api/ then reject(200)",
 )
 
 
