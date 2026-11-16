@@ -201,8 +201,8 @@ def remove_guiderank_homepage_script(lines):
 GAODING_TEMPLATE_SCRIPT_TRIGGER = r"http-response ^https?:\/\/www\.gaoding\.com\/api\/v\d\/oc\/exhibitions\/template\/resources$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/gaoding.js,tag=GAODING,requires-body=true"
 GAODING_MINE_SCRIPT_TRIGGER = r"http-response ^https?:\/\/www\.gaoding\.com\/api\/v\d\/oc\/exhibitions\/app_mine\/resources script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/gaoding.js,tag=GAODING-2,requires-body=true"
 GAODING_NATIVE_RULES = (
-    r'response if \${url} ~= /^https?:\/\/www\.gaoding\.com\/api\/v\d\/oc\/exhibitions\/template\/resources$/ then response.json.delete("pits[0].delivery_materials")',
-    r'response if \${url} ~= /^https?:\/\/www\.gaoding\.com\/api\/v\d\/oc\/exhibitions\/app_mine\/resources/ then response.json.delete("pits[2].delivery_materials")',
+    r'response if ${url} ~= /^https?:\/\/www\.gaoding\.com\/api\/v\d\/oc\/exhibitions\/template\/resources$/ then response.json.delete("pits[0].delivery_materials")',
+    r'response if ${url} ~= /^https?:\/\/www\.gaoding\.com\/api\/v\d\/oc\/exhibitions\/app_mine\/resources/ then response.json.delete("pits[2].delivery_materials")',
 )
 
 
