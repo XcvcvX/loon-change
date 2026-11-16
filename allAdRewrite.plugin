@@ -3536,7 +3536,6 @@ DOMAIN-KEYWORD,adservice,REJECT
 DOMAIN-KEYWORD,open.douyin.com,REJECT
 DOMAIN-KEYWORD,pangolin-dsp-toutiao,REJECT
 DOMAIN,adsmartget.guangtuikeji.com,REJECT
-DOMAIN,images.pinduoduo.com,REJECT
 DOMAIN,lf-leads-fe-scm.bytecdn.com,REJECT
 DOMAIN,mon.toutiao.com,REJECT
 DOMAIN,mon.toutiaocloud.com,REJECT
