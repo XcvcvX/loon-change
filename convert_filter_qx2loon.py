@@ -206,6 +206,8 @@ plugin_out = [
     '# 未使用 Surge 专有的 extended-matching / pre-matching，Loon 不支持这两个参数。',
     '# 安全排除：腾讯云 HTTPDNS 正式入口 119.29.29.98/32、119.29.29.99/32 的 REJECT 规则.',
     '# 安全排除：toutiao-frontier.snssdk.com（头条 Frontier 长连接/WebSocket）。',
+    '# 安全排除：dig.bdurl.net（字节 HTTPDNS 域名解析服务）。',
+    '# 安全排除：webcast-open.douyin.com（直播推荐房间列表接口）。',
     '',
     '[Rule]',
 ] + rules
