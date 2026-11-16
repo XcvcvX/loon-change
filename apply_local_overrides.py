@@ -1712,12 +1712,14 @@ def remove_douyin_tnc_conflicting_rejects(lines):
                 continue
             if value == DOUYIN_TNC_DIRECT_RULE:
                 direct_count += 1
-            elif value.startswith("DOMAIN,tnc3-") and value.endswith(",REJECT") and any(
-                suffix in value.lower() for suffix in ("snssdk.com", "zijieapi.com", "isnssdk.com", "bytedance.com", "toutiaoapi.com")
-            ):
-                unknown_tnc_rejects.append(value)
-            elif "DOMAIN-KEYWORD, tnc" in value and value.endswith(", REJECT"):
-                unknown_tnc_rejects.append(value)
+            else:
+                compact = value.replace(" ", "").lower()
+                if compact.startswith("domain,tnc3-") and compact.endswith(",reject") and any(
+                    suffix in compact for suffix in ("snssdk.com", "zijieapi.com", "isnssdk.com", "bytedance.com", "toutiaoapi.com")
+                ):
+                    unknown_tnc_rejects.append(value)
+                elif "domain-keyword,tnc" in compact and compact.endswith(",reject"):
+                    unknown_tnc_rejects.append(value)
         output.append(line)
 
     present = [count for count in reject_counts.values() if count]
