@@ -1778,6 +1778,61 @@ def consolidate_wechat_unblock_url_scripts(lines):
     raise ValueError("WeChat URL-unblock script trigger inventory incomplete; refusing consolidation")
 
 
+# 淘宝 OSS 广告素材使用专用路径；整域 REJECT 会扩大到该 CDN 上的非广告请求。
+TAOBAO_OSS_BROAD_DOMAIN_RULE = "DOMAIN,ossgw.alicdn.com,REJECT"
+TAOBAO_OSS_LEGACY_CREATIVE_RULE = r"^https?:\/\/ossgw.alicdn.com\/creatives-assets\/image\/ reject-200"
+TAOBAO_OSS_SCOPED_CREATIVE_RULE = r"^https?:\/\/ossgw\.alicdn\.com\/creatives-assets\/ reject-200"
+
+
+def scope_taobao_ossgw_ad_assets(lines):
+    """Replace the broad OSS host block with a path-scoped ad-creative matcher.
+
+    Fail closed on unreviewed ossgw rules, duplicate inventory, or missing MITM.
+    """
+    output, section = [], ""
+    broad_count = legacy_count = scoped_count = 0
+    mitm_has_host = False
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            output.append(line)
+            continue
+        value = line.strip()
+        if section == "Rule" and "ossgw.alicdn.com" in value.lower():
+            if value != TAOBAO_OSS_BROAD_DOMAIN_RULE:
+                raise ValueError("Taobao ossgw Rule changed; refusing unreviewed scope reduction")
+            broad_count += 1
+            if broad_count > 1:
+                raise ValueError("duplicate Taobao ossgw broad-domain rule")
+            continue
+        if section == "Rewrite" and "ossgw.alicdn.com" in value.lower():
+            if value == TAOBAO_OSS_LEGACY_CREATIVE_RULE:
+                legacy_count += 1
+                if legacy_count > 1:
+                    raise ValueError("duplicate Taobao ossgw legacy creative matcher")
+                output.append(TAOBAO_OSS_SCOPED_CREATIVE_RULE)
+                continue
+            if value == TAOBAO_OSS_SCOPED_CREATIVE_RULE:
+                scoped_count += 1
+                if scoped_count > 1:
+                    raise ValueError("duplicate Taobao ossgw scoped creative matcher")
+                output.append(line)
+                continue
+            raise ValueError("Taobao ossgw Rewrite changed; refusing unreviewed scope reduction")
+        if section == "MITM" and value.lower().startswith("hostname") and "=" in value:
+            hosts = [host.strip().lower() for host in value.split("=", 1)[1].split(",")]
+            mitm_has_host = "ossgw.alicdn.com" in hosts
+        output.append(line)
+
+    if legacy_count and scoped_count:
+        raise ValueError("both legacy and scoped Taobao ossgw matchers are present")
+    if broad_count and legacy_count + scoped_count != 1:
+        raise ValueError("Taobao ossgw broad block lacks exactly one reviewed path-scoped replacement")
+    if legacy_count + scoped_count and not mitm_has_host:
+        raise ValueError("Taobao ossgw creative matcher requires its existing MITM hostname")
+    return output, broad_count + legacy_count
+
+
 def apply(text: str) -> str:
     if "[Script]" not in text or "[MITM]" not in text or "[Rewrite]" not in text:
         raise ValueError("plugin missing [Rewrite], [Script] or [MITM] section")
@@ -1828,6 +1883,7 @@ def apply(text: str) -> str:
             line = key + "= " + ", ".join(hosts)
         lines.append(line)
 
+    lines, _ = scope_taobao_ossgw_ad_assets(lines)
     lines, _ = remove_douyin_hongguo_unsafe_rules(lines)
     lines, _ = remove_kugou_jin10_redundant_rewrites(lines)
     lines, _ = remove_pdd_order_endpoint_blocks(lines)
