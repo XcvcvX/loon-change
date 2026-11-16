@@ -968,7 +968,6 @@ DOMAIN,is-lq.snssdk.com,REJECT
 DOMAIN,ug-sinfonlinea.bytedance.com,REJECT
 DOMAIN,activity-ag.awemeughun.com,REJECT
 DOMAIN,mcs.snssdk.com,REJECT
-DOMAIN,security-lq.snssdk.com,REJECT
 DOMAIN,v6-novelapp.ixigua.com,REJECT
 DOMAIN,msync-im1-vip6-std.easemob.com,REJECT
 DOMAIN,apd-pcdnwxlogin.teg.tencent-cloud.net,REJECT
@@ -3143,7 +3142,6 @@ DOMAIN,cdn.ynuf.aliapp.org,REJECT
 DOMAIN,collect.hnair.com,REJECT
 DOMAIN,collect.xiaopeng.com,REJECT
 DOMAIN,conf-darwin.xycdn.com,REJECT
-DOMAIN,content-open.douyin.com,REJECT
 DOMAIN,cpush.trip.com,REJECT
 DOMAIN,credits.bz.mgtv.com,REJECT
 DOMAIN,credits2.bz.mgtv.com,REJECT
@@ -3164,7 +3162,6 @@ DOMAIN,dxlvs.meituan.com,REJECT
 DOMAIN,dynamicf.sankuai.com,REJECT
 DOMAIN,easytomessage.com,REJECT
 DOMAIN,eco.taobao.com,REJECT
-DOMAIN,effect.snssdk.com,REJECT
 DOMAIN,emapm.eastmoney.com,REJECT
 DOMAIN,emdcadvertise.eastmoney.com,REJECT
 DOMAIN,emdcadvertisepj.eastmoney.com,REJECT
@@ -3230,7 +3227,6 @@ DOMAIN,push.chsi.com.cn,REJECT
 DOMAIN,qdzx.cib.com.cn,REJECT
 DOMAIN,qzonestyle.gtimg.cn,REJECT
 DOMAIN,r.dianping.com,REJECT
-DOMAIN,reading.snssdk.com,REJECT
 DOMAIN,richmanapi.ksedt.com,REJECT
 DOMAIN,richmanmain.ksedt.com,REJECT
 DOMAIN,richmanrules.ksedt.com,REJECT
