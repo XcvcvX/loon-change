@@ -792,3 +792,12 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 新增库存、未知 matcher 漂移、重复触发器、幂等及正式快照测试；CI、覆盖器应用和深度审计全部通过。
 
 - 第四十八批的三组规则按独立 matcher 处理：允许某一组在上游被正常删除或暂时缺席，不因此阻断其他组；同组重复、原始/批量混合状态及未知同 matcher 动作仍 fail-closed。
+
+## 第八阶段第四十九批：人人视频响应脚本改为原生广告 JSON 清理
+
+- 对照上游 `rrtv_json.js` 的 9 个响应入口逐分支审计：只有首页频道与 `/ad/getAll` 两个入口执行广告清理；其余 7 个入口修改导航、个人页、等级/特权资料或播放权限，并非广告清理。
+- 移除 7 个非广告响应脚本入口；首页广告数组清理与广告列表清空改为两条受原 `rfrfuipk_enable` 开关控制的原生 `response.json.jq` Rewrite。
+- 保留首页 matcher 的原始 query 边界、广告列表接口 matcher 和原有开关；首页数组删除保持原脚本 `delete` 后序列化为 `null` 占位的结果，不扩大匹配范围。
+- 人人视频的响应脚本触发器由 9 条降为 0 条；两个广告响应由 JavaScript body script 改为原生 JSON Rewrite，不再加载约 25 KB 的 `rrtv_json.js` 执行脚本引擎、JS JSON.parse/循环/JSON.stringify。
+- 同时移除对 VIP 等级、特权、播放权限的非广告改写；不影响其他 App，不改 MITM 或请求/分流规则。
+- 本地覆盖器允许上游独立删减任一原始入口；重复、原生/脚本混合、未知同 matcher 脚本或 JSON 动作仍 fail-closed。新增测试覆盖开关、广告范围、幂等、上游删减及未知规则。
