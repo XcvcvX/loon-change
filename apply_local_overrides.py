@@ -69,8 +69,8 @@ def remove_duplicate_peopleapp_home_ad_rules(lines):
         if value.startswith("request if ${url}") and "peopleapp" in value and "HomeApi" in value and ("adv" in value or "getAdvertImage" in value):
             if value not in counts:
                 raise ValueError("PeopleApp homepage ad rule inventory changed; refusing cleanup")
-            counts[(section, value)] += 1
-            if counts[(section, value)] > 1:
+            counts[value] += 1
+            if counts[value] > 1:
                 raise ValueError("duplicate PeopleApp homepage ad rule; refusing ambiguous cleanup")
 
     canonical_count, duplicate_count = (counts[rule] for rule in PEOPLEAPP_HOME_AD_DUPLICATE_RULES)
@@ -1738,7 +1738,7 @@ DOUYIN_CONTENT_CDN_OVERBLOCKS = (
 )
 DOUYIN_CDN_REQUIRED_AD_PATH_MARKERS = (
     "pstatp.com/(obj|img)/ad",
-    "pstatp.com/obj/ad-pattern/renderer",
+    "/obj/ad-pattern/renderer",
     "snssdk.com/api/ad/",
     "from=ad",
 )
