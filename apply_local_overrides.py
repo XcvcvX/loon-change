@@ -542,6 +542,33 @@ def merge_adjacent_response_json_rewrites(lines):
             output.append(lines[index]); index += 1
     return output, merged
 
+
+DIANPING_LEGACY_SCRIPT_RULES = (
+    ("http-response ^https?:\\\\/\\\\/img\\\\.meituan\\\\.net\\\\/(?:dpmobile|goodsawardpic)\\\\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/dianping.js,tag=DIANPING,requires-body=true", "response if \\${url} ~= /^https?:\\\\/\\\\/img\\\\.meituan\\\\.net\\\\/(?>dpmobile|goodsawardpic)\\\\//i then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/dianping.js\") with enable=davsdmpk_enable, tag=\"大众点评\", timeout=60, requires_body=true", "img.meituan.net"),
+    ("http-response ^https?:\\\\/\\\\/ddplus\\\\.meituan\\\\.net\\\\/v\\\\d\\\\/mss_\\\\w+\\\\/picassovc script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/dianping.js,tag=DIANPING-2,requires-body=true", "response if \\${url} ~= /^https?:\\\\/\\\\/ddplus\\\\.meituan\\\\.net\\\\/v\\\\d\\\\/mss_\\\\w+\\\\/picassovc/i then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/dianping.js\") with enable=davsdmpk_enable, tag=\"大众点评\", timeout=60, requires_body=true", "ddplus.meituan.net"),
+)
+
+
+def remove_redundant_dianping_scripts(lines):
+    """Drop unconditional legacy triggers only when their gated equivalents exist once."""
+    output = list(lines)
+    removed = 0
+    for legacy, gated, label in DIANPING_LEGACY_SCRIPT_RULES:
+        legacy_positions = [i for i, line in enumerate(output) if line.strip() == legacy]
+        gated_positions = [i for i, line in enumerate(output) if line.strip() == gated]
+        if len(legacy_positions) > 1:
+            raise ValueError("duplicate legacy Dianping script trigger: " + label)
+        if len(gated_positions) > 1:
+            raise ValueError("duplicate gated Dianping script trigger: " + label)
+        if not legacy_positions:
+            continue
+        if not gated_positions:
+            raise ValueError("Dianping gated script trigger missing or changed: " + label)
+        output = [line for line in output if line.strip() != legacy]
+        removed += 1
+    return output, removed
+
+
 def apply(text: str) -> str:
     if "[Script]" not in text or "[MITM]" not in text or "[Rewrite]" not in text:
         raise ValueError("plugin missing [Rewrite], [Script] or [MITM] section")
@@ -622,6 +649,7 @@ def apply(text: str) -> str:
     lines, gaoding_converted_triggers = remove_gaoding_resource_scripts(lines)
     lines, _ = remove_redundant_taobao_scripts(lines)
     lines, _ = remove_redundant_didi_usercenter_script(lines)
+    lines, _ = remove_redundant_dianping_scripts(lines)
 
     result_lines, rewrite_lines = [], []
     section = ""
