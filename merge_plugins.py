@@ -1479,11 +1479,10 @@ def narrow_baidunetdisk_ad_image_host(rewrite_lines, source):
 
 
 def narrow_gamersky_statistic_ad_host(rewrite_lines, source):
-    """Anchor the Gamersky statisticAd rule and preserve only its known source flag variants."""
+    """Anchor the known Gamersky statisticAd matcher and preserve its optional /i flag."""
     output = []
     adjustments = []
-    legacy_matcher = r"https://.+\.gamersky.com/v1/statisticAd"
-    current_matcher = r"https://.+\.gamersky\.com/v1/statisticAd"
+    known_matcher = r"https://.+\.gamersky.com/v1/statisticAd"
     narrowed = (
         r"request if ${url} ~= /^https:\/\/(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}"
         r"[A-Za-z0-9])?\.)+gamersky\.com\/v1\/statisticAd(?:\/|\?|#|$)/"
@@ -1507,15 +1506,11 @@ def narrow_gamersky_statistic_ad_host(rewrite_lines, source):
             raise RuntimeError(
                 source + ' 游民星空 statisticAd 广告规则范围或动作已变化，拒绝自动改写：' + line
             )
-        if normalized == legacy_matcher and has_no_flag:
-            replacement = narrowed
-        elif normalized == current_matcher and has_i_flag:
-            # 当前上游 matcher 的域名点号写法不同，并带有 /i；仅接受此精确组合。
-            replacement = narrowed_case_insensitive
-        else:
+        if normalized != known_matcher or not (has_no_flag or has_i_flag):
             raise RuntimeError(
                 source + ' 游民星空 statisticAd 广告规则范围或标志已变化，拒绝自动改写：' + line
             )
+        replacement = narrowed_case_insensitive if has_i_flag else narrowed
         updated_matcher = entry_regex(replacement)
         updated_normalized = updated_matcher.replace(r'\/', '/') if updated_matcher else updated_matcher
         expected = (
@@ -1528,8 +1523,8 @@ def narrow_gamersky_statistic_ad_host(rewrite_lines, source):
             'source': source,
             'section': 'Rewrite',
             'reason': (
-                'Anchor the Gamersky statisticAd matcher and constrain its host/path boundary; '
-                'preserve HTTPS, the exact recognized case-sensitivity variant, and reject_dict(200).'
+                'Anchor the known Gamersky statisticAd matcher and constrain its host/path boundary; '
+                'preserve HTTPS, the upstream optional /i flag, and reject_dict(200).'
             ),
             'original_line': line,
             'output_line': replacement,
