@@ -118874,40 +118874,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://img\\\\.meituan\\\\.net/(?:dpmobile|goodsawardpic)/', ('^https?:\\\\/\\\\/img\\\\.meituan\\\\.net\\\\/', '^https?:\\\\/\\\\/img\\\\.meituan\\\\.net\\\\/(?:dpmobile|goodsawardpic)\\\\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/dianping.js,tag=DIANPING,requires-body=true'))",
-      "output_entry_index": 147,
-      "output_line": "http-response ^https?:\\/\\/img\\.meituan\\.net\\/(?:dpmobile|goodsawardpic)\\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/dianping.js,tag=DIANPING,requires-body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/img\\.meituan\\.net\\/(?:dpmobile|goodsawardpic)\\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/dianping.js,tag=DIANPING,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 146
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://ddplus\\\\.meituan\\\\.net/v\\\\d/mss_\\\\w+/picassovc', ('^https?:\\\\/\\\\/ddplus\\\\.meituan\\\\.net\\\\/v\\\\d\\\\/mss_\\\\w+\\\\/picassovc', '^https?:\\\\/\\\\/ddplus\\\\.meituan\\\\.net\\\\/v\\\\d\\\\/mss_\\\\w+\\\\/picassovc script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/dianping.js,tag=DIANPING-2,requires-body=true'))",
-      "output_entry_index": 148,
-      "output_line": "http-response ^https?:\\/\\/ddplus\\.meituan\\.net\\/v\\d\\/mss_\\w+\\/picassovc script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/dianping.js,tag=DIANPING-2,requires-body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/ddplus\\.meituan\\.net\\/v\\d\\/mss_\\w+\\/picassovc script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/dianping.js,tag=DIANPING-2,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 147
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https?://iqushangwang\\\\.8quan\\\\.com/index\\\\.php/i/index/index', ('^https?:\\\\/\\\\/iqushangwang\\\\.8quan\\\\.com\\\\/index\\\\.php\\\\/i\\\\/index\\\\/index', '^https?:\\\\/\\\\/iqushangwang\\\\.8quan\\\\.com\\\\/index\\\\.php\\\\/i\\\\/index\\\\/index script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/quda.js,tag=QUDA,requires-body=true'))",
       "output_entry_index": 149,
       "output_line": "http-response ^https?:\\/\\/iqushangwang\\.8quan\\.com\\/index\\.php\\/i\\/index\\/index script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/quda.js,tag=QUDA,requires-body=true",
@@ -126905,7 +126871,7 @@
     "rule_safety_excluded_events": 11,
     "rule_scope_adjustments": 1,
     "rule_source_events": 5627,
-    "script_output_entries": 613
+    "script_output_entries": 611
   },
   "upstream_revisions": {
     "AlipayAdBlock": {

@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、RuCu6 MyBlockAds、zirawell AlipayAdBlock、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / RuCu6 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-16 02:13 UTC
+#!merged-at=2026-11-16 02:20 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+RuCu6-MyBlockAds+zirawell-AlipayAdBlock+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -7013,8 +7013,6 @@ http-response ^https?:\/\/api\.udache\.com\/gulfstream\/pre-sale\/v\d\/other\/pG
 http-response ^https?:\/\/apiv2\.douyucdn\.cn\/mgapi\/livenc\/home\/getRecV3 script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/douyu.js,tag=DOUYU,requires-body=true
 http-response ^https?:\/\/apiv2\.douyucdn\.cn\/japi\/entrance\/roomRes\/nc\/m\/list script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/douyu.js,tag=DOUYU-2,requires-body=true
 http-response ^https?:\/\/venus\.douyucdn\.cn\/venus\/config\/static\/update.+keyCodeSet=flow_config script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/douyu.js,tag=DOUYU-3,requires-body=true
-http-response ^https?:\/\/img\.meituan\.net\/(?:dpmobile|goodsawardpic)\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/dianping.js,tag=DIANPING,requires-body=true
-http-response ^https?:\/\/ddplus\.meituan\.net\/v\d\/mss_\w+\/picassovc script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/dianping.js,tag=DIANPING-2,requires-body=true
 http-response ^https?:\/\/iqushangwang\.8quan\.com\/index\.php\/i\/index\/index script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/quda.js,tag=QUDA,requires-body=true
 http-response ^https?:\/\/cupid\.51job(app)?\.com\/open\/noauth\/recommend\/job-tab-dynamic script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/51job.js,tag=51JOB,requires-body=true
 http-response ^https?:\/\/cupid\.51job(app)?\.com\/open\/my-page\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/51job.js,tag=51JOB-2,requires-body=true

@@ -3,7 +3,7 @@
     "rewrite": {
       "action_changed": 0,
       "added": 0,
-      "removed": 1
+      "removed": 0
     },
     "rule": {
       "action_changed": 0,
@@ -13,15 +13,15 @@
     "script": {
       "action_changed": 0,
       "added": 0,
-      "removed": 0
+      "removed": 2
     }
   },
   "events": [
     {
       "after": null,
       "before": {
-        "line": "^https?:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v\\d\\/core reject-dict",
-        "section": "rewrite",
+        "line": "http-response ^https?:\\/\\/ddplus\\.meituan\\.net\\/v\\d\\/mss_\\w+\\/picassovc script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/dianping.js,tag=DIANPING-2,requires-body=true",
+        "section": "script",
         "sources": [
           "base"
         ]
@@ -29,7 +29,31 @@
       "change_type": "removed",
       "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
       "risk": "high",
-      "section": "rewrite",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "base": "unavailable"
+      },
+      "source_scores": {
+        "base": null
+      },
+      "sources": [
+        "base"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "http-response ^https?:\\/\\/img\\.meituan\\.net\\/(?:dpmobile|goodsawardpic)\\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/dianping.js,tag=DIANPING,requires-body=true",
+        "section": "script",
+        "sources": [
+          "base"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
         "base": "unavailable"
@@ -44,11 +68,11 @@
   ],
   "overall_risk": "high",
   "risk_counts": {
-    "high": 1,
+    "high": 2,
     "low": 0,
     "medium": 0
   },
-  "run_id": "43790794125",
+  "run_id": "43791538089",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -85,8 +109,8 @@
     "base": {
       "action_changed": 0,
       "added": 3,
-      "removed": 11,
-      "snapshots_seen": 10
+      "removed": 13,
+      "snapshots_seen": 11
     },
     "block": {
       "action_changed": 0,

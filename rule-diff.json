@@ -181,15 +181,7 @@
     "rewrite": {
       "action_changed": [],
       "added": [],
-      "removed": [
-        {
-          "line": "^https?:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v\\d\\/core reject-dict",
-          "section": "rewrite",
-          "sources": [
-            "base"
-          ]
-        }
-      ]
+      "removed": []
     },
     "rule": {
       "action_changed": [],
@@ -199,14 +191,29 @@
     "script": {
       "action_changed": [],
       "added": [],
-      "removed": []
+      "removed": [
+        {
+          "line": "http-response ^https?:\\/\\/ddplus\\.meituan\\.net\\/v\\d\\/mss_\\w+\\/picassovc script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/dianping.js,tag=DIANPING-2,requires-body=true",
+          "section": "script",
+          "sources": [
+            "base"
+          ]
+        },
+        {
+          "line": "http-response ^https?:\\/\\/img\\.meituan\\.net\\/(?:dpmobile|goodsawardpic)\\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/dianping.js,tag=DIANPING,requires-body=true",
+          "section": "script",
+          "sources": [
+            "base"
+          ]
+        }
+      ]
     }
   },
   "summary": {
     "rewrite": {
       "action_changed": 0,
       "added": 0,
-      "removed": 1
+      "removed": 0
     },
     "rule": {
       "action_changed": 0,
@@ -216,9 +223,9 @@
     "script": {
       "action_changed": 0,
       "added": 0,
-      "removed": 0
+      "removed": 2
     },
-    "total_changes": 1
+    "total_changes": 2
   },
   "upstream_revision_changes": []
 }
