@@ -56,8 +56,8 @@ PEOPLEAPP_HOME_AD_SHADOW_RULE = r"request if ${url} ~= /^https?:\/\/app\.peoplea
 # A second PeopleApp homepage ad blocker differs only by a capturing vs
 # non-capturing group. Keep the first exact rule; both have identical scope/action.
 PEOPLEAPP_HOME_AD_DUPLICATE_RULES = (
-    r"request if ${url} ~= /^https?:\\/\\/app\\.peopleapp\\.com\\/Api\\/\\d+\\/HomeApi\\/(?:adv|getAdvertImage)/ then reject(404)",
-    r"request if ${url} ~= /^https?:\\/\\/app\\.peopleapp\\.com\\/Api\\/\\d+\\/HomeApi\\/(adv|getAdvertImage)/ then reject(404)",
+    PEOPLEAPP_HOME_AD_SHADOW_RULE.replace("/(adv|getAdvertImage)/", "/(?:adv|getAdvertImage)/"),
+    PEOPLEAPP_HOME_AD_SHADOW_RULE,
 )
 
 
