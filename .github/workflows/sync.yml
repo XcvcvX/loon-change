@@ -197,7 +197,7 @@ jobs:
           git clone --depth 1 https://github.com/zmjde/loon-plugins.git /tmp/zmjde
           ls /tmp/zmjde/Plugin | wc -l
 
-      - name: 固定 Romeo 上游版本并下载瓜子影视、高德与 MyBlockAds 插件及依赖
+      - name: 固定 Romeo 上游版本并同步 App 插件、瓜子影视、高德与 MyBlockAds 依赖
         run: |
           mkdir -p /tmp/amap sources/amap sources/alipayAdBlock
           git clone --depth 1 https://github.com/ifflagged/Romeo.git /tmp/romeo
@@ -243,6 +243,7 @@ jobs:
           python3 - <<'PY'
           import json, os
           from pathlib import Path
+          from stage_romeo_plugins import LEGACY_SNAPSHOTS, ROMEO_PLUGIN_MAP
           report_path = Path("source-report.json")
           report = json.loads(report_path.read_text(encoding="utf-8"))
           from source_guard import validate_alipayadblock
@@ -261,8 +262,8 @@ jobs:
               "upstream_repository": "https://github.com/ifflagged/Romeo",
               "upstream_commit": os.environ["ROMEO_SHA"],
               "source_mode": "Romeo Modules/Loon + pinned AOOMEE-only local snapshots",
-              "legacy_snapshot_files": list(__import__("stage_romeo_plugins").LEGACY_SNAPSHOTS),
-              "romeo_module_paths": list(__import__("stage_romeo_plugins").ROMEO_PLUGIN_MAP.values()),
+              "legacy_snapshot_files": list(LEGACY_SNAPSHOTS),
+              "romeo_module_paths": list(ROMEO_PLUGIN_MAP.values()),
               "compatibility_key": "aoomee (retained only to preserve historical provenance continuity)"
           })
           source = report.get("GuaZiVideoAds")
