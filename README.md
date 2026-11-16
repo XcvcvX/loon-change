@@ -653,9 +653,9 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 
 ## 第八阶段第三十四批：酷狗音乐与金十数据 Rewrite 重复处理收敛
 
-- 对照上游酷狗插件与合并产物，发现同一组 14 条广告/推广接口 Rewrite 被重复挂载两次；仅保留每条精确 matcher 的一份，不改动 reject-dict 动作、URL 范围或执行阶段。
+- 对照上游酷狗插件与合并产物，发现同一组 14 条广告/推广接口 Rewrite 同时存在 HTTP+HTTPS 与 HTTPS-only 两种 matcher；HTTPS-only 是前者的严格子集，无法增加覆盖，因此仅移除这 14 条冗余子集，保留 HTTP+HTTPS matcher 及原 reject-dict 动作。
 - 繁星直播房间列表旧规则使用未限定版本的 `list_v` 前缀，而上游当前规则明确为 `list_v2`；移除旧的宽泛前缀，仅保留 `list_v2` 精确版本。
 - 金十 `jad-api.jin10.com/ad` 同时有 request 阶段 `reject(404)` 与 response 阶段 `reject-dict`。保留请求阶段 404 语义，移除不可达的响应阶段重复处理。
 - 不修改酷狗播放、下载、歌词、搜索主结果、账号、支付及其他业务接口；不修改金十行情、报价、图表、登录、推送和交易数据接口。
-- 新增精确库存保护：14 条酷狗重复 Rewrite 必须各出现两次，旧房间列表 matcher 与金十响应阶段规则必须各出现一次；清理后重复执行幂等。上游缺失、动作漂移、重复或版本变化时 fail-closed。
+- 新增精确库存保护：14 条酷狗 HTTPS-only 子集规则必须各出现一次，旧房间列表 matcher 与金十响应阶段规则必须各出现一次；清理后重复执行幂等。上游缺失、动作漂移、重复或版本变化时 fail-closed。
 - 不修改 MITM hostname、Script、Rule 域名拦截范围或 QUIC 规则。
