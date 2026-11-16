@@ -1615,6 +1615,51 @@ DOUYIN_LIVE_FEED_REWRITE_RULES = {
 DOUYIN_LIVE_FEED_HOST = "webcast-open.douyin.com"
 
 
+DOUYIN_NON_AD_SERVICE_HOST_BLOCKS = (
+    "DOMAIN,content-open.douyin.com,REJECT",
+    "DOMAIN,effect.snssdk.com,REJECT",
+    "DOMAIN,security-lq.snssdk.com,REJECT",
+    "DOMAIN,reading.snssdk.com,REJECT",
+)
+DOUYIN_AD_HOST_GUARD = "DOMAIN-SUFFIX,pangolin-sdk-toutiao.com,REJECT"
+
+
+def remove_douyin_non_ad_service_host_blocks(lines):
+    """Remove broad blocks on content, effect, security, and reading services."""
+    section = ""
+    output = []
+    counts = {rule: 0 for rule in DOUYIN_NON_AD_SERVICE_HOST_BLOCKS}
+    saw_target = False
+
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            output.append(line)
+            continue
+        value = line.strip()
+        if section == "Rule" and value:
+            parts = [part.strip() for part in value.split(",")]
+            if len(parts) >= 2 and parts[0].upper() in ("DOMAIN", "DOMAIN-SUFFIX", "DOMAIN-KEYWORD") and parts[1].lower() in ("content-open.douyin.com", "effect.snssdk.com", "security-lq.snssdk.com", "reading.snssdk.com"):
+                saw_target = True
+                if value not in counts:
+                    raise ValueError("Douyin non-ad service host rule changed; refusing unreviewed removal: " + value)
+            if value in counts:
+                saw_target = True
+                counts[value] += 1
+                if counts[value] > 1:
+                    raise ValueError("duplicate Douyin non-ad service host block: " + value)
+                continue
+        output.append(line)
+
+    if not saw_target:
+        return list(lines), 0
+    present = [count for count in counts.values() if count]
+    if len(present) != len(DOUYIN_NON_AD_SERVICE_HOST_BLOCKS):
+        raise ValueError("Douyin non-ad service host inventory is partial; refusing cleanup")
+    if sum(1 for line in output if line.strip() == DOUYIN_AD_HOST_GUARD) != 1:
+        raise ValueError("Douyin dedicated Pangle ad host guard missing or duplicated")
+    return output, sum(present)
+
 def remove_douyin_hongguo_unsafe_rules(lines):
     """Remove only the reviewed HTTPDNS/runtime/live-feed blocks and MITM host."""
     section = ""
@@ -2190,6 +2235,7 @@ def apply(text: str) -> str:
     lines, _ = scope_pdd_image_cdn_ad_rules(lines)
     lines, _ = remove_douyin_tnc_conflicting_rejects(lines)
     lines, _ = remove_douyin_content_cdn_overblocks(lines)
+    lines, _ = remove_douyin_non_ad_service_host_blocks(lines)
     lines, _ = remove_douyin_hongguo_unsafe_rules(lines)
     lines, _ = remove_kugou_jin10_redundant_rewrites(lines)
     lines, _ = remove_pdd_order_endpoint_blocks(lines)

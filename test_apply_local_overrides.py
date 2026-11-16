@@ -1462,6 +1462,44 @@ class DouyinContentCdnScopeTests(unittest.TestCase):
         for marker in DOUYIN_CDN_REQUIRED_AD_PATH_MARKERS:
             self.assertIn(marker, normalized)
 
+class DouyinNonAdServiceHostSafetyTests(unittest.TestCase):
+    def setUp(self):
+        from apply_local_overrides import DOUYIN_NON_AD_SERVICE_HOST_BLOCKS, DOUYIN_AD_HOST_GUARD
+        self.targets = list(DOUYIN_NON_AD_SERVICE_HOST_BLOCKS)
+        self.ad_guard = DOUYIN_AD_HOST_GUARD
+        self.base = ["[Rule]", *self.targets, self.ad_guard, "DOMAIN,unrelated.example,REJECT",
+                     "[Rewrite]", "^https://example.com/ad reject", "[MITM]"]
+
+    def test_removes_only_non_ad_service_host_blocks_and_keeps_pangle_ad_guard(self):
+        from apply_local_overrides import remove_douyin_non_ad_service_host_blocks
+        result, removed = remove_douyin_non_ad_service_host_blocks(self.base)
+        self.assertEqual(removed, 4)
+        for rule in self.targets:
+            self.assertNotIn(rule, result)
+        self.assertEqual(result.count(self.ad_guard), 1)
+        self.assertIn("DOMAIN,unrelated.example,REJECT", result)
+        self.assertEqual(remove_douyin_non_ad_service_host_blocks(result), (result, 0))
+
+    def test_fails_closed_on_partial_duplicate_or_changed_service_host_rules(self):
+        from apply_local_overrides import remove_douyin_non_ad_service_host_blocks
+        partial = [line for line in self.base if line != self.targets[0]]
+        with self.assertRaisesRegex(ValueError, "inventory is partial"):
+            remove_douyin_non_ad_service_host_blocks(partial)
+        duplicate = self.base[:self.base.index(self.ad_guard)] + [self.targets[0]] + self.base[self.base.index(self.ad_guard):]
+        with self.assertRaisesRegex(ValueError, "duplicate Douyin non-ad service"):
+            remove_douyin_non_ad_service_host_blocks(duplicate)
+        changed = [line.replace(",REJECT", ",DIRECT") if line == self.targets[0] else line for line in self.base]
+        with self.assertRaisesRegex(ValueError, "rule changed"):
+            remove_douyin_non_ad_service_host_blocks(changed)
+
+    def test_checked_in_plugin_snapshot_allows_service_hosts_and_keeps_ad_guard(self):
+        from pathlib import Path
+        from apply_local_overrides import DOUYIN_NON_AD_SERVICE_HOST_BLOCKS, DOUYIN_AD_HOST_GUARD
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        for rule in DOUYIN_NON_AD_SERVICE_HOST_BLOCKS:
+            self.assertNotIn(rule, plugin)
+        self.assertEqual(plugin.count(DOUYIN_AD_HOST_GUARD), 1)
+
 class DouyinHongguoBoundaryTests(unittest.TestCase):
     def setUp(self):
         self.base = r"""#!name=Douyin-Hongguo-test
