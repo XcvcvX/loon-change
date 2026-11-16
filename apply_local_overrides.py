@@ -455,7 +455,7 @@ def apply(text: str) -> str:
         rewrite_lines, _ = remove_shadowed_terminal_block_rules(rewrite_lines)
         rewrite_lines, _ = remove_lkcoffee_member_exchange_success_overrides(rewrite_lines)
         rewrite_lines, _ = replace_guiderank_special_sale_random_body(rewrite_lines)
-                rewrite_lines, _ = replace_ddqx_newdetails_body_rewrites(rewrite_lines)
+        rewrite_lines, _ = replace_ddqx_newdetails_body_rewrites(rewrite_lines)
         if guiderank_homepage_script_count and GUIDERANK_HOMEPAGE_NATIVE_RULE not in [item.strip() for item in rewrite_lines]:
             rewrite_lines.append(GUIDERANK_HOMEPAGE_NATIVE_RULE)
         result_lines.extend(rewrite_lines)
