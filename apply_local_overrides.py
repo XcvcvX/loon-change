@@ -463,8 +463,8 @@ DIDI_HOME_SLOW_RESPONSE_PREFIX = r"response if ${url} ~= /^https:\/\/conf\.didit
 DIDI_HOME_FAST_RESPONSE_PREFIX = r"response if ${url} ~= /^https:\/\/conf\.diditaxi\.com\.cn\/homepage\/v\d\/other\/fast\?/i then response.json.delete("
 
 
-DIDI_HOME_CORE_LEGACY_REJECT = r"^https:\/\/conf\.diditaxi\.com\.cn\/homepage\/v1\/other\/fast reject-dict"
-DIDI_HOME_CORE_RESPONSE_PREFIX = r"response if ${url} ~= /^https:\/\/conf\.diditaxi\.com\.cn\/homepage\/v\d\/other\/fast\?/i then response.json.delete("
+DIDI_HOME_CORE_LEGACY_REJECT = r"^https:\/\/conf\.diditaxi\.com\.cn\/homepage\/v1\/core reject-dict"
+DIDI_HOME_CORE_RESPONSE_PREFIX = r"response if ${url} ~= /^https:\/\/conf\.diditaxi\.com\.cn\/homepage\/v\d\/core\?/i then response.json.delete("
 
 
 def remove_didi_homepage_rejects_shadowing_field_cleaners(lines):
