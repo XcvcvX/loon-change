@@ -1253,5 +1253,79 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
 
 
 
+
+class DouyinHongguoBoundaryTests(unittest.TestCase):
+    def setUp(self):
+        self.base = r"""#!name=Douyin-Hongguo-test
+[Rule]
+DOMAIN,webcast-open.douyin.com,REJECT
+DOMAIN-KEYWORD,minigame,REJECT
+DOMAIN-SUFFIX,dig.bdurl.net,REJECT
+DOMAIN-SUFFIX,pangolin-sdk-toutiao.com,REJECT
+DOMAIN-SUFFIX,pglstatp-toutiao.com,REJECT
+DOMAIN-KEYWORD,ads0-normal-,REJECT
+DOMAIN-KEYWORD,ads5-normal-,REJECT
+[Rewrite]
+^https?:\/\/webcast-open\.douyin\.com\/webcast\/openapi\/feed\/ reject-dict
+request if ${url} ~= /^https:\/\/webcast-open\.douyin\.com\/webcast\/openapi\/feed\/\?/ then reject_dict(200)
+response if ${url} ~= /^https:\/\/beta-luna\.douyin\.com\/luna\/card\?/ then response.json.replace("card_items[0].is_show", false)
+[Script]
+[MITM]
+hostname = webcast-open.douyin.com, beta-luna.douyin.com, creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankcomm.cn, creditcardapp.bankcomm.com
+"""
+
+    def test_removes_only_httpdns_minigame_and_live_feed_blocks(self):
+        result = apply(self.base)
+        for removed in (
+            "DOMAIN,webcast-open.douyin.com,REJECT",
+            "DOMAIN-KEYWORD,minigame,REJECT",
+            "DOMAIN-SUFFIX,dig.bdurl.net,REJECT",
+            "webcast-open.douyin.com",
+            "webcast/openapi/feed",
+        ):
+            self.assertNotIn(removed, result)
+        for retained in (
+            "DOMAIN-SUFFIX,pangolin-sdk-toutiao.com,REJECT",
+            "DOMAIN-SUFFIX,pglstatp-toutiao.com,REJECT",
+            "DOMAIN-KEYWORD,ads0-normal-,REJECT",
+            "DOMAIN-KEYWORD,ads5-normal-,REJECT",
+            "beta-luna.douyin.com",
+            "creditcard.bankcomm.cn",
+            "response.json.replace",
+        ):
+            self.assertIn(retained, result)
+        self.assertEqual(apply(result), result)
+
+    def test_fails_closed_on_missing_drifted_or_duplicate_rule_inventory(self):
+        missing = self.base.replace("DOMAIN-KEYWORD,minigame,REJECT\n", "")
+        with self.assertRaisesRegex(ValueError, "Douyin/Hongguo safety inventory changed"):
+            apply(missing)
+        drifted = self.base.replace(
+            "DOMAIN-KEYWORD,minigame,REJECT",
+            "DOMAIN-KEYWORD,minigame,REJECT(404)",
+        )
+        with self.assertRaisesRegex(ValueError, "Douyin/Hongguo safety inventory changed"):
+            apply(drifted)
+        duplicate = self.base.replace(
+            "DOMAIN-SUFFIX,dig.bdurl.net,REJECT",
+            "DOMAIN-SUFFIX,dig.bdurl.net,REJECT\nDOMAIN-SUFFIX,dig.bdurl.net,REJECT",
+        )
+        with self.assertRaisesRegex(ValueError, "Douyin/Hongguo safety inventory changed"):
+            apply(duplicate)
+
+    def test_fails_closed_on_unknown_live_feed_rule_or_missing_mitm_host(self):
+        unknown = self.base.replace(
+            "DOMAIN,webcast-open.douyin.com,REJECT",
+            "DOMAIN,webcast-open.douyin.com,REJECT\nDOMAIN-SUFFIX,webcast-open.douyin.com,REJECT",
+        )
+        with self.assertRaisesRegex(ValueError, "Douyin/Hongguo safety inventory changed"):
+            apply(unknown)
+        missing_host = self.base.replace("webcast-open.douyin.com, ", "")
+        with self.assertRaisesRegex(ValueError, "Douyin/Hongguo safety inventory changed"):
+            apply(missing_host)
+
+
+
+
 if __name__ == "__main__":
     unittest.main()
