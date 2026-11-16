@@ -33,7 +33,7 @@ DOMAIN,ut.taobao.com,REJECT
 ^https?:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.film\\.mtopadvertiseapi\\.queryadvertise reject-dict
 [Script]
 [MITM]
-hostname = ossgw.alicdn.com, acs.m.taobao.com
+hostname = ossgw.alicdn.com, acs.m.taobao.com, creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankcomm.cn, creditcardapp.bankcomm.com
 """
         result = apply(base)
         rule_section = result.split("[Rule]", 1)[1].split("[Rewrite]", 1)[0]
@@ -42,7 +42,7 @@ hostname = ossgw.alicdn.com, acs.m.taobao.com
         self.assertNotIn(TAOBAO_OSS_LEGACY_CREATIVE_RULE, rewrite_section)
         self.assertEqual(rewrite_section.count(TAOBAO_OSS_SCOPED_CREATIVE_RULE), 1)
         self.assertIn("DOMAIN,ut.taobao.com,REJECT", rule_section)
-        self.assertIn("acs\\\\.m\\\\.taobao", rewrite_section)
+        self.assertIn("acs\\.m\\.taobao", rewrite_section)
         self.assertIn("ossgw.alicdn.com", result.split("[MITM]", 1)[1])
         self.assertEqual(apply(result), result)
 
@@ -54,7 +54,7 @@ DOMAIN,ossgw.alicdn.com,REJECT
 ^https?:\\/\\/other\\.example reject
 [Script]
 [MITM]
-hostname = ossgw.alicdn.com
+hostname = ossgw.alicdn.com, creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankcomm.cn, creditcardapp.bankcomm.com
 """
         with self.assertRaises(ValueError):
             apply(base)
@@ -80,7 +80,7 @@ DOMAIN,ossgw.alicdn.com,REJECT
 ^https?:\\/\\/ossgw.alicdn.com\\/creatives-assets\\/image\\/ reject-200
 [Script]
 [MITM]
-hostname = acs.m.taobao.com
+hostname = acs.m.taobao.com, creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankcomm.cn, creditcardapp.bankcomm.com
 """
         with self.assertRaises(ValueError):
             apply(base)
