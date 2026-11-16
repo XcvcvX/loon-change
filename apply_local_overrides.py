@@ -1628,7 +1628,10 @@ def consolidate_zhihu_response_scripts(lines):
     if tuple(canonical_counts) == (1,) * len(ZHIHU_RESPONSE_CANONICAL_TRIGGERS) and not any(counts) and not unknown:
         return list(lines), 0
     if unknown or any(canonical_counts) or any(count != 1 for count in counts):
-        raise ValueError("Zhihu response script inventory changed; refusing partial consolidation")
+        raise ValueError(
+            "Zhihu response script inventory changed; refusing partial consolidation "
+            f"(counts={counts}, canonical_counts={canonical_counts}, unknown={unknown})"
+        )
 
     output = []
     section = ""
