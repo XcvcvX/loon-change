@@ -180,34 +180,22 @@
   "sections": {
     "rewrite": {
       "action_changed": [],
-      "added": [],
+      "added": [
+        {
+          "line": "^https?:\\/\\/ossgw\\.alicdn\\.com\\/creatives-assets\\/ reject-200",
+          "section": "rewrite",
+          "sources": [
+            "local_overrides"
+          ]
+        }
+      ],
       "removed": [
         {
-          "line": "^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/aristotle\\/query_order_list_tabs_element reject-dict",
+          "line": "^https?:\\/\\/ossgw.alicdn.com\\/creatives-assets\\/image\\/ reject-200",
           "section": "rewrite",
           "sources": [
-            "aoomee"
-          ]
-        },
-        {
-          "line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/aristotle\\/query_order_list_tabs_element\\?/i then reject_dict(200)",
-          "section": "rewrite",
-          "sources": [
-            "zmjapp"
-          ]
-        },
-        {
-          "line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/aristotle\\/unrated_order_for_unreceived_tab\\?/i then reject_dict(200)",
-          "section": "rewrite",
-          "sources": [
-            "zmjapp"
-          ]
-        },
-        {
-          "line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/caterham\\/v3\\/query\\/order_express_group\\?/i then reject_dict(200)",
-          "section": "rewrite",
-          "sources": [
-            "zmjapp"
+            "base",
+            "block"
           ]
         }
       ]
@@ -215,7 +203,15 @@
     "rule": {
       "action_changed": [],
       "added": [],
-      "removed": []
+      "removed": [
+        {
+          "line": "DOMAIN,ossgw.alicdn.com,REJECT",
+          "section": "rule",
+          "sources": [
+            "zmjapp"
+          ]
+        }
+      ]
     },
     "script": {
       "action_changed": [],
@@ -226,20 +222,20 @@
   "summary": {
     "rewrite": {
       "action_changed": 0,
-      "added": 0,
-      "removed": 4
+      "added": 1,
+      "removed": 1
     },
     "rule": {
       "action_changed": 0,
       "added": 0,
-      "removed": 0
+      "removed": 1
     },
     "script": {
       "action_changed": 0,
       "added": 0,
       "removed": 0
     },
-    "total_changes": 4
+    "total_changes": 3
   },
   "upstream_revision_changes": []
 }

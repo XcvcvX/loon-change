@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、RuCu6 MyBlockAds、zirawell AlipayAdBlock、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / RuCu6 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-16 08:41 UTC
+#!merged-at=2026-11-16 08:54 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+RuCu6-MyBlockAds+zirawell-AlipayAdBlock+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -124,7 +124,6 @@ DOMAIN,ta-a.pinduoduo.com,REJECT
 DOMAIN,meta.pinduoduo.com,REJECT
 DOMAIN,apm-a.pinduoduo.com,REJECT
 DOMAIN,adashx.m.taobao.com,REJECT
-DOMAIN,ossgw.alicdn.com,REJECT
 DOMAIN,ems.youku.com,REJECT
 DOMAIN,hudong.alicdn.com,REJECT
 DOMAIN,h-adashx.ut.taobao.com,REJECT
@@ -3764,7 +3763,7 @@ request if ${url} ~= /^https?:\/\/top-widgets-api\.xiaozujian\.com\/api\/ad\/con
 ^https?:\/\/alt-r\.my\.com\/mobile reject-dict
 ^https?:\/\/imgx\.jampp\.com\/imgsrv\/tn reject-img
 ^https?:\/\/api\.cloud\.189\.cn\/guns\/(img\/recommendedPosition|getOpenscreenBanners) reject-dict
-^https?:\/\/ossgw.alicdn.com\/creatives-assets\/image\/ reject-200
+^https?:\/\/ossgw\.alicdn\.com\/creatives-assets\/ reject-200
 request if ${url} ~= /^https?:\/\/zconfig\.alibabausercontent\.com\/zconfig/ then reject(404)
 ^https?:\/\/tfsmy\.chengdu\.gov\.cn\/api\/v\d\/core\/version reject-200
 ^https?:\/\/tft-app\.cdtft\.cn\/gateway-customer\/tftapp\/tft-ams\/api\/appAd response-body-replace-regex officialAdvertResultVo random-response

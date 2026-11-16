@@ -3623,29 +3623,15 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://ossgw.alicdn.com/creatives-assets/image/', ('REJECT', 'reject', 'reject(200)'))",
-      "output_entry_index": 189,
-      "output_line": "^https?:\\/\\/ossgw.alicdn.com\\/creatives-assets\\/image\\/ reject-200",
-      "section": "Rewrite",
+      "output_line": "^https?:\\/\\/ossgw\\.alicdn\\.com\\/creatives-assets\\/ reject-200",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "^https?:\\/\\/ossgw.alicdn.com\\/creatives-assets\\/image\\/ reject-200",
-          "input_section": "Rewrite",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 188
-        },
-        {
-          "disposition": "duplicate_same_semantics",
-          "input_line": "request if ${url} ~= /^https?:\\/\\/ossgw.alicdn.com\\/creatives-assets\\/image\\// then reject(200)",
-          "input_section": "Rewrite",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 928
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
       "canonical_key": "('guarded', '^https?://zconfig\\\\.alibabausercontent\\\\.com/zconfig', ('REJECT', 'reject', 'reject(404)'))",
@@ -83537,19 +83523,6 @@
       "status": "included"
     },
     {
-      "normalized_line": "DOMAIN,ossgw.alicdn.com,REJECT",
-      "original_input_line": "DOMAIN, ossgw.alicdn.com, REJECT",
-      "output_entry_index": 25,
-      "output_line": "DOMAIN,ossgw.alicdn.com,REJECT",
-      "source": "zmjapp",
-      "source_entry_index": 21,
-      "source_file": "Plugin/Taobao_remove_ads.lpx",
-      "source_line_number": 15,
-      "source_original_section": "Rule",
-      "source_raw_line": "DOMAIN, ossgw.alicdn.com, REJECT",
-      "status": "included"
-    },
-    {
       "normalized_line": "DOMAIN,ems.youku.com,REJECT",
       "original_input_line": "DOMAIN, ems.youku.com, REJECT",
       "output_entry_index": 26,
@@ -125033,7 +125006,7 @@
     "rewrite_output_entries": 3254,
     "rule_covered_or_duplicate_events": 2140,
     "rule_included_events": 3476,
-    "rule_output_entries": 3474,
+    "rule_output_entries": 3473,
     "rule_safety_excluded_events": 11,
     "rule_scope_adjustments": 1,
     "rule_source_events": 5627,
