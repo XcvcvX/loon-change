@@ -234,13 +234,20 @@ def remove_gaoding_resource_scripts(lines):
 
 
 RRTV_ADGETALL_SCRIPT_TRIGGER = r"http-response ^https?:\/\/api\.rr\.tv\/ad\/getAll script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/rrtv.js,tag=RRTV-4,requires-body=true"
+RRTV_ADGETALL_LEGACY_SCRIPT_TRIGGER = r'response if ${url} ~= /^https?:\/\/api\.rr\.tv\/ad\/getAll/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js") with enable=rfrfuipk_enable, tag="rrtv_json", timeout=60, requires_body=true'
 RRTV_ADGETALL_NATIVE_RULE = r'response if ${url} ~= /^https?:\/\/api\.rr\.tv\/ad\/getAll/ then response.json.jq(".data.adList = []")'
 
 
-def remove_rrtv_adgetall_script(lines):
-    """Replace only the RRTV ad-list emptying script trigger with native JSON JQ."""
-    output, removed, section = [], 0, ""
-    expected = RRTV_ADGETALL_SCRIPT_TRIGGER.strip()
+def remove_rrtv_adgetall_scripts(lines):
+    """Replace both reviewed RRTV ad-list script triggers with one native JSON JQ rule."""
+    output, counts, section = [], {
+        RRTV_ADGETALL_SCRIPT_TRIGGER: 0,
+        RRTV_ADGETALL_LEGACY_SCRIPT_TRIGGER: 0,
+    }, ""
+    expected = {
+        re.sub(r"\\+", "", RRTV_ADGETALL_SCRIPT_TRIGGER.strip()): RRTV_ADGETALL_SCRIPT_TRIGGER,
+        re.sub(r"\\+", "", RRTV_ADGETALL_LEGACY_SCRIPT_TRIGGER.strip()): RRTV_ADGETALL_LEGACY_SCRIPT_TRIGGER,
+    }
     for line in lines:
         if line.startswith("[") and line.endswith("]"):
             section = line[1:-1]
@@ -250,12 +257,17 @@ def remove_rrtv_adgetall_script(lines):
         if section != "Script" or "api.rr.tv/ad/getAll" not in normalized:
             output.append(line)
             continue
-        if line.strip() != expected:
+        if normalized not in expected:
             raise ValueError("RRTV ad/getAll script trigger changed; refusing an unreviewed conversion")
-        removed += 1
-        if removed > 1:
+        trigger = expected[normalized]
+        counts[trigger] += 1
+        if counts[trigger] > 1:
             raise ValueError("duplicate RRTV ad/getAll script triggers; refusing ambiguous conversion")
-    return output, removed
+    if not any(counts.values()):
+        return output, 0
+    if any(count != 1 for count in counts.values()):
+        raise ValueError("RRTV ad/getAll script trigger pair incomplete; refusing behavior-changing conversion")
+    return output, 1
 
 
 DDQX_NEWDETAILS_MARKER = "maicai.api.ddxq.mobi/homeApi/newDetails"
@@ -485,7 +497,7 @@ def apply(text: str) -> str:
     lines = normalized_lines
     lines, guiderank_homepage_script_count = remove_guiderank_homepage_script(lines)
     lines, gaoding_converted_triggers = remove_gaoding_resource_scripts(lines)
-    lines, rrtv_adgetall_script_count = remove_rrtv_adgetall_script(lines)
+    lines, rrtv_adgetall_script_count = remove_rrtv_adgetall_scripts(lines)
 
     result_lines, rewrite_lines = [], []
     section = ""
