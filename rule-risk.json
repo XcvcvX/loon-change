@@ -3,7 +3,7 @@
     "rewrite": {
       "action_changed": 0,
       "added": 0,
-      "removed": 2
+      "removed": 1
     },
     "rule": {
       "action_changed": 0,
@@ -20,10 +20,10 @@
     {
       "after": null,
       "before": {
-        "line": "^https:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v1\\/other\\/fast reject-dict",
+        "line": "^https?:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v\\d\\/core reject-dict",
         "section": "rewrite",
         "sources": [
-          "aoomee"
+          "base"
         ]
       },
       "change_type": "removed",
@@ -32,47 +32,23 @@
       "section": "rewrite",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "aoomee": "scored"
+        "base": "unavailable"
       },
       "source_scores": {
-        "aoomee": 100
+        "base": null
       },
       "sources": [
-        "aoomee"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "^https:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v1\\/other\\/slow reject-dict",
-        "section": "rewrite",
-        "sources": [
-          "aoomee"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "rewrite",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "aoomee": "scored"
-      },
-      "source_scores": {
-        "aoomee": 100
-      },
-      "sources": [
-        "aoomee"
+        "base"
       ]
     }
   ],
   "overall_risk": "high",
   "risk_counts": {
-    "high": 2,
+    "high": 1,
     "low": 0,
     "medium": 0
   },
-  "run_id": "43789895301",
+  "run_id": "43790794125",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -107,9 +83,9 @@
       "snapshots_seen": 2
     },
     "base": {
-      "action_changed": 10,
-      "added": 4,
-      "removed": 10,
+      "action_changed": 0,
+      "added": 3,
+      "removed": 11,
       "snapshots_seen": 10
     },
     "block": {
@@ -155,21 +131,5 @@
       "snapshots_seen": 1
     }
   },
-  "upstream_revision_changes": [
-    {
-      "current_commit": "e15d92afe27afd9ef1f9107e1a55263416d1357b",
-      "previous_commit": "6ba781e550a7f560b3eb1924bef124ab74573a22",
-      "source": "AlipayAdBlock"
-    },
-    {
-      "current_commit": "e15d92afe27afd9ef1f9107e1a55263416d1357b",
-      "previous_commit": "6ba781e550a7f560b3eb1924bef124ab74573a22",
-      "source": "Amap"
-    },
-    {
-      "current_commit": "e15d92afe27afd9ef1f9107e1a55263416d1357b",
-      "previous_commit": "6ba781e550a7f560b3eb1924bef124ab74573a22",
-      "source": "GuaZiVideoAds"
-    }
-  ]
+  "upstream_revision_changes": []
 }
