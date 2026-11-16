@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、RuCu6 MyBlockAds、zirawell AlipayAdBlock、Thelongdarkorg、aoomee、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / RuCu6 / Thelongdarkorg / aoomee / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-16 04:28 UTC
+#!merged-at=2026-11-16 06:05 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+RuCu6-MyBlockAds+zirawell-AlipayAdBlock+Thelongdarkorg+aoomee+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -4979,7 +4979,7 @@ request if ${url} ~= /^https?:\/\/lban\.spdb\.com\.cn\/mspmk-web-component\/pref
 request if ${url} ~= /^https?:\/\/wap\.spdb\.com\.cn\/mspmk-web-homeassist\/OpenScreenAdv\.ah$/ then reject(404)
 request if ${url} ~= /^https?:\/\/j1\.pupuapi\.com\/client\/marketing\/banner\/v\d\?position/ then reject(404)
 ^https?:\/\/j1\.pupuapi\.com\/client\/marketing\/advertisement\/ reject-dict
-request if ${url} ~= /^https?:\/\/api\.(pinduoduo|yangkeduo)\.com\/api\/cappuccino\/splash/ then reject(404)
+request if ${url} ~= /^https?:\/\/api\.(pinduoduo|yangkeduo)\.com\/api\/cappuccino\/splash/i then reject(404)
 request if ${url} ~= /^https?:\/\/mobile\.yangkeduo\.com\/layer\/app_upgrade_popup/ then reject(404)
 ^https?:\/\/api\.pinduoduo\.com\/api\/aquarius\/hungary\/global\/app_popup reject-dict
 ^https?:\/\/api\.pinduoduo\.com\/api\/flow\/hungary\/window\/global reject-dict
@@ -5668,10 +5668,6 @@ request if ${url} ~= /^https?:\/\/res\.kfc\.com\.cn\/CRM\/kfcad\/apphome6\/\w+\.
 request if ${url} ~= /^https?:\/\/res\.kfc\.com.\cn\/advertisement\// then reject(404)
 response if ${url} ~= /^https?:\/\/p\.kuaidi100\.com\/mobile\/mobileapi\.do$/ then response.json.delete("adsplash") | response.json.delete("adIsConsumable") | response.json.delete("adProductId") | response.json.delete("nologin_tips") | response.json.delete("index_banner") | response.json.delete("me_banner") | response.json.delete("index_banner_shadow") | response.json.delete("adshongbao") | response.json.delete("adsapp_homepage_ticket_pop") | response.json.delete("adsoptimizationsend") | response.json.delete("adsapp_activity_ad_array") | response.json.delete("adbanner") | response.json.delete("adposition") | response.json.delete("adShowAgainTime")
 response if ${url} ~= /^https?:\/\/p\.kuaidi100\.com\/apicenter\/xcx\.dox/ then response.json.delete("data.secondMenuList")
-request if ${url} ~= /^https:\/\/video-dsp\.pddpic\.com\/market-dsp-video\// then reject(404)
-request if ${url} ~= /^https:\/\/t-dsp\.pinduoduo\.com\/dspcb\/i\/mrk_union/ then reject(404)
-request if ${url} ~= /^https:\/\/images\.pinduoduo\.com\/mrk\// then reject(404)
-request if ${url} ~= /^https:\/\/images\.pinduoduo\.com\/marketing_api\// then reject(404)
 request if ${url} ~= /^https?:\/\/api\.kkmh\.com\/v\d\/ad\/show/ then reject(200)
 request if ${url} ~= /^https?:\/\/api\.kkmh\.com\/v\d\/advertisement\// then reject(200)
 response if ${url} ~= /^https:\/\/(apissl|az2-api(-js|-idc)?)\.(gifshow|ksapisrv)\.com\/rest\/system\/startup\?/ then response.json.delete("reskinConfig") | response.json.delete("sidebarExSquareStyle.moreList") | response.json.delete("sidebarExSquareStyle.topList") | response.json.jq(`.sidebarExSquareStyle.commonlyUsedList |= map(select(.title == "设置" or .title == "历史记录" or .title == "草稿箱" or .title == "我的钱包" or .title == "小程序" or .title == "未成年人模式" or .title == "官方客服" or .title == "内容偏好" or .title == "离线模式" or .title == "稍后再看" or .title == "举报中心" or .title == "挂件"))`)
@@ -6281,7 +6277,6 @@ request if ${url} ~= /^http:\/\/img\.allahall\.com\/img\/6\/90585d9e96c73dd49644
 request if ${url} ~= /^http:\/\/img\.allahall\.com\/img\/5\/6cb2aa237ce1f65944aa1ecb29fbdeef\.jpg/i then reject(404)
 request if ${url} ~= /^http:\/\/img\.allahall\.com\/img\/59\/6a13a75dfe46ebfdac96bd27ef098885\.jpg/i then reject(404)
 request if ${url} ~= /^http:\/\/app\.zhoudamozi\.com\/ad\/.+/i then reject(200)
-request if ${url} ~= /^https:\/\/api\.(pinduoduo|yangkeduo)\.com\/api\/cappuccino\/splash/i then reject(404)
 request if ${url} ~= /^https:\/\/gw\.alicdn\.com\/mt\//i then reject(404)
 request if ${url} ~= /^https:\/\/gw\.alicdn\.com\/tfs\/.+\d{3,4}-\d{4}/i then reject(404)
 request if ${url} ~= /^https:\/\/gw\.alicdn\.com\/tps\/.+\d{3,4}-\d{4}/i then reject(404)
@@ -7086,7 +7081,6 @@ http-response ^https?:\/\/acs\.youku\.com\/gw\/mtop\.youku\.huluwa\.dispatcher\.
 http-response ^https?:\/\/acs\.youku\.com\/gw\/mtop\.youku\.soku\.yksearch script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=YOUKU-4,requires-body=true
 http-response ^https?:\/\/push\.m\.youku\.com\/collect-api\/get_push_interval_config_wx\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=YOUKU-5,requires-body=true
 http-response ^https?:\/\/un-acs\.youku\.com\/gw\/mtop\.youku\.play\.ups\.appinfo\.get script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=YOUKU-6,requires-body=true
-http-response ^https?:\/\/api\.pinduoduo\.com\/api\/oak\/integration\/render script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/pdd.js,tag=PDD,requires-body=true
 http-response ^https?:\/\/api\.pinduoduo\.com\/api\/alexa\/homepage\/hub script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/pinduoduo/pdd-homepage.js,tag=PDD-2,requires-body=true
 http-response ^https?:\/\/image\.spdbccc\.com\.cn\/group\d\/.*\.JPG$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/spdbccc.js,tag=SPDBCCC,requires-body=true
 http-response ^https?:\/\/cdn\.sdb\.com\.cn\/bron-coms\/bron-coms\/material-image script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/sdb.js,tag=SDB,requires-body=true

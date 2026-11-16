@@ -105,7 +105,7 @@
         "Rule": 4,
         "Script": 1
       },
-      "upstream_commit": "3fc25b8503977820d693abd2b98be8c54e0591a3",
+      "upstream_commit": "7804714d4af8a95c5dc47ae0672f3a89afee603d",
       "upstream_path": "Modules/Loon/zirawell/Beta/alipayAdBlock.lpx",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
@@ -144,13 +144,13 @@
         "Rule": 4,
         "Script": 13
       },
-      "upstream_commit": "3fc25b8503977820d693abd2b98be8c54e0591a3",
+      "upstream_commit": "7804714d4af8a95c5dc47ae0672f3a89afee603d",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
     "GuaZiVideoAds": {
       "bytes": 3448,
       "entries": 6,
-      "upstream_commit": "3fc25b8503977820d693abd2b98be8c54e0591a3",
+      "upstream_commit": "7804714d4af8a95c5dc47ae0672f3a89afee603d",
       "upstream_path": "Modules/QuantumultX/ddgksf2013/Official/GuaZiVideoAds.conf",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
@@ -180,8 +180,63 @@
   "sections": {
     "rewrite": {
       "action_changed": [],
-      "added": [],
-      "removed": []
+      "added": [
+        {
+          "line": "request if ${url} ~= /^https?:\\/\\/api\\.(pinduoduo|yangkeduo)\\.com\\/api\\/cappuccino\\/splash/i then reject(404)",
+          "section": "rewrite",
+          "sources": [
+            "local_overrides"
+          ]
+        }
+      ],
+      "removed": [
+        {
+          "line": "request if ${url} ~= /^https:\\/\\/api\\.(pinduoduo|yangkeduo)\\.com\\/api\\/cappuccino\\/splash/i then reject(404)",
+          "section": "rewrite",
+          "sources": [
+            "zmjgen"
+          ]
+        },
+        {
+          "line": "request if ${url} ~= /^https:\\/\\/images\\.pinduoduo\\.com\\/marketing_api\\// then reject(404)",
+          "section": "rewrite",
+          "sources": [
+            "block",
+            "zmjgen"
+          ]
+        },
+        {
+          "line": "request if ${url} ~= /^https:\\/\\/images\\.pinduoduo\\.com\\/mrk\\// then reject(404)",
+          "section": "rewrite",
+          "sources": [
+            "block",
+            "zmjgen"
+          ]
+        },
+        {
+          "line": "request if ${url} ~= /^https:\\/\\/t-dsp\\.pinduoduo\\.com\\/dspcb\\/i\\/mrk_union/ then reject(404)",
+          "section": "rewrite",
+          "sources": [
+            "block"
+          ]
+        },
+        {
+          "line": "request if ${url} ~= /^https:\\/\\/video-dsp\\.pddpic\\.com\\/market-dsp-video\\// then reject(404)",
+          "section": "rewrite",
+          "sources": [
+            "block",
+            "zmjgen"
+          ]
+        },
+        {
+          "line": "request if ${url} ~= /^https?:\\/\\/api\\.(pinduoduo|yangkeduo)\\.com\\/api\\/cappuccino\\/splash/ then reject(404)",
+          "section": "rewrite",
+          "sources": [
+            "base",
+            "block"
+          ]
+        }
+      ]
     },
     "rule": {
       "action_changed": [],
@@ -190,25 +245,10 @@
     },
     "script": {
       "action_changed": [],
-      "added": [
-        {
-          "line": "http-response ^https?:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/homepage\\/hub script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/pinduoduo/pdd-homepage.js,tag=PDD-2,requires-body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        }
-      ],
+      "added": [],
       "removed": [
         {
-          "line": "http-response ^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/homepage\\/hub script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/pdd.js, requires-body = true, tag = 拼多多首页简化(底部菜单、顶部分类)",
-          "section": "script",
-          "sources": [
-            "aoomee"
-          ]
-        },
-        {
-          "line": "http-response ^https?:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/\\w+\\/hub script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/pdd.js,tag=PDD-2,requires-body=true",
+          "line": "http-response ^https?:\\/\\/api\\.pinduoduo\\.com\\/api\\/oak\\/integration\\/render script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/pdd.js,tag=PDD,requires-body=true",
           "section": "script",
           "sources": [
             "base"
@@ -220,8 +260,8 @@
   "summary": {
     "rewrite": {
       "action_changed": 0,
-      "added": 0,
-      "removed": 0
+      "added": 1,
+      "removed": 6
     },
     "rule": {
       "action_changed": 0,
@@ -230,26 +270,10 @@
     },
     "script": {
       "action_changed": 0,
-      "added": 1,
-      "removed": 2
+      "added": 0,
+      "removed": 1
     },
-    "total_changes": 3
+    "total_changes": 8
   },
-  "upstream_revision_changes": [
-    {
-      "current_commit": "7804714d4af8a95c5dc47ae0672f3a89afee603d",
-      "previous_commit": "3fc25b8503977820d693abd2b98be8c54e0591a3",
-      "source": "AlipayAdBlock"
-    },
-    {
-      "current_commit": "7804714d4af8a95c5dc47ae0672f3a89afee603d",
-      "previous_commit": "3fc25b8503977820d693abd2b98be8c54e0591a3",
-      "source": "Amap"
-    },
-    {
-      "current_commit": "7804714d4af8a95c5dc47ae0672f3a89afee603d",
-      "previous_commit": "3fc25b8503977820d693abd2b98be8c54e0591a3",
-      "source": "GuaZiVideoAds"
-    }
-  ]
+  "upstream_revision_changes": []
 }

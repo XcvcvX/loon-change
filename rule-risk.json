@@ -2,8 +2,8 @@
   "change_counts": {
     "rewrite": {
       "action_changed": 0,
-      "added": 0,
-      "removed": 0
+      "added": 1,
+      "removed": 6
     },
     "rule": {
       "action_changed": 0,
@@ -12,15 +12,15 @@
     },
     "script": {
       "action_changed": 0,
-      "added": 1,
-      "removed": 2
+      "added": 0,
+      "removed": 1
     }
   },
   "events": [
     {
       "after": {
-        "line": "http-response ^https?:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/homepage\\/hub script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/pinduoduo/pdd-homepage.js,tag=PDD-2,requires-body=true",
-        "section": "script",
+        "line": "request if ${url} ~= /^https?:\\/\\/api\\.(pinduoduo|yangkeduo)\\.com\\/api\\/cappuccino\\/splash/i then reject(404)",
+        "section": "rewrite",
         "sources": [
           "local_overrides"
         ]
@@ -29,7 +29,7 @@
       "change_type": "added",
       "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
       "risk": "medium",
-      "section": "script",
+      "section": "rewrite",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
         "local_overrides": "unavailable"
@@ -44,31 +44,167 @@
     {
       "after": null,
       "before": {
-        "line": "http-response ^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/homepage\\/hub script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/pdd.js, requires-body = true, tag = 拼多多首页简化(底部菜单、顶部分类)",
-        "section": "script",
+        "line": "request if ${url} ~= /^https:\\/\\/api\\.(pinduoduo|yangkeduo)\\.com\\/api\\/cappuccino\\/splash/i then reject(404)",
+        "section": "rewrite",
         "sources": [
-          "aoomee"
+          "zmjgen"
         ]
       },
       "change_type": "removed",
       "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
       "risk": "high",
-      "section": "script",
+      "section": "rewrite",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "aoomee": "scored"
+        "zmjgen": "unavailable"
       },
       "source_scores": {
-        "aoomee": 100
+        "zmjgen": null
       },
       "sources": [
-        "aoomee"
+        "zmjgen"
       ]
     },
     {
       "after": null,
       "before": {
-        "line": "http-response ^https?:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/\\w+\\/hub script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/pdd.js,tag=PDD-2,requires-body=true",
+        "line": "request if ${url} ~= /^https:\\/\\/images\\.pinduoduo\\.com\\/marketing_api\\// then reject(404)",
+        "section": "rewrite",
+        "sources": [
+          "block",
+          "zmjgen"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "block": "unavailable",
+        "zmjgen": "unavailable"
+      },
+      "source_scores": {
+        "block": null,
+        "zmjgen": null
+      },
+      "sources": [
+        "block",
+        "zmjgen"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "request if ${url} ~= /^https:\\/\\/images\\.pinduoduo\\.com\\/mrk\\// then reject(404)",
+        "section": "rewrite",
+        "sources": [
+          "block",
+          "zmjgen"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "block": "unavailable",
+        "zmjgen": "unavailable"
+      },
+      "source_scores": {
+        "block": null,
+        "zmjgen": null
+      },
+      "sources": [
+        "block",
+        "zmjgen"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "request if ${url} ~= /^https:\\/\\/t-dsp\\.pinduoduo\\.com\\/dspcb\\/i\\/mrk_union/ then reject(404)",
+        "section": "rewrite",
+        "sources": [
+          "block"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "block": "unavailable"
+      },
+      "source_scores": {
+        "block": null
+      },
+      "sources": [
+        "block"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "request if ${url} ~= /^https:\\/\\/video-dsp\\.pddpic\\.com\\/market-dsp-video\\// then reject(404)",
+        "section": "rewrite",
+        "sources": [
+          "block",
+          "zmjgen"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "block": "unavailable",
+        "zmjgen": "unavailable"
+      },
+      "source_scores": {
+        "block": null,
+        "zmjgen": null
+      },
+      "sources": [
+        "block",
+        "zmjgen"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "request if ${url} ~= /^https?:\\/\\/api\\.(pinduoduo|yangkeduo)\\.com\\/api\\/cappuccino\\/splash/ then reject(404)",
+        "section": "rewrite",
+        "sources": [
+          "base",
+          "block"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "base": "unavailable",
+        "block": "unavailable"
+      },
+      "source_scores": {
+        "base": null,
+        "block": null
+      },
+      "sources": [
+        "base",
+        "block"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "http-response ^https?:\\/\\/api\\.pinduoduo\\.com\\/api\\/oak\\/integration\\/render script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/pdd.js,tag=PDD,requires-body=true",
         "section": "script",
         "sources": [
           "base"
@@ -92,11 +228,11 @@
   ],
   "overall_risk": "high",
   "risk_counts": {
-    "high": 2,
+    "high": 7,
     "low": 0,
     "medium": 1
   },
-  "run_id": "43804266454",
+  "run_id": "43814352477",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -132,27 +268,27 @@
     },
     "base": {
       "action_changed": 0,
-      "added": 3,
-      "removed": 32,
+      "added": 2,
+      "removed": 34,
       "snapshots_seen": 15
     },
     "block": {
       "action_changed": 0,
       "added": 0,
-      "removed": 30,
-      "snapshots_seen": 5
+      "removed": 35,
+      "snapshots_seen": 6
     },
     "filter": {
       "action_changed": 0,
-      "added": 4,
+      "added": 3,
       "removed": 2,
-      "snapshots_seen": 3
+      "snapshots_seen": 2
     },
     "local_overrides": {
       "action_changed": 0,
-      "added": 22,
+      "added": 23,
       "removed": 2,
-      "snapshots_seen": 9
+      "snapshots_seen": 10
     },
     "myblockads": {
       "action_changed": 0,
@@ -175,25 +311,9 @@
     "zmjgen": {
       "action_changed": 0,
       "added": 0,
-      "removed": 2,
-      "snapshots_seen": 1
+      "removed": 6,
+      "snapshots_seen": 2
     }
   },
-  "upstream_revision_changes": [
-    {
-      "current_commit": "7804714d4af8a95c5dc47ae0672f3a89afee603d",
-      "previous_commit": "3fc25b8503977820d693abd2b98be8c54e0591a3",
-      "source": "AlipayAdBlock"
-    },
-    {
-      "current_commit": "7804714d4af8a95c5dc47ae0672f3a89afee603d",
-      "previous_commit": "3fc25b8503977820d693abd2b98be8c54e0591a3",
-      "source": "Amap"
-    },
-    {
-      "current_commit": "7804714d4af8a95c5dc47ae0672f3a89afee603d",
-      "previous_commit": "3fc25b8503977820d693abd2b98be8c54e0591a3",
-      "source": "GuaZiVideoAds"
-    }
-  ]
+  "upstream_revision_changes": []
 }
