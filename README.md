@@ -651,6 +651,7 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 进一步收敛 Douyin 内容 CDN 误拦截：移除 `p3.pstatp.com`、`video-cn.snssdk.com` 两条整域关键词拒绝，以及三条 `p*.pstatp.com/origin` 全路径拒绝；保留 `/obj|img/ad`、`/obj/ad-pattern/renderer`、`/api/ad/`、`?from=ad` 等明确广告路径规则。
 - 放行 `content-open.douyin.com`、`effect.snssdk.com`、`security-lq.snssdk.com`、`reading.snssdk.com` 四个内容/特效/安全/阅读服务主机，不再整域拒绝非广告服务；保留专用 `pangolin-sdk-toutiao.com` 广告主机规则和其他明确广告路径规则。
 - Bilibili 首轮安全复核：放行 `api/app.biliapi.com` 与 `api/app.biliapi.net` 四个 API 主机；移除 `httpdns.bilivideo.com/resolve?host` HTTPDNS 拒绝及两个 IP/地区信息接口拒绝，保留 `ad.bilibili.com`、`adcommon.bilibili.com` 和 Bilibili 明确广告路径规则。
+- 清理 Bilibili 非广告行为改写：移除 VIP 状态伪造、PGC 付费字段删除、青少年模式模拟、默认搜索词硬编码、P2P tracker 改写及皮肤/导航自定义；保留开屏、信息流、PGC 活动等广告过滤，并将 gRPC 状态头规则收窄到保留的 TFInfo/ViewEndPage 处理。
 - 新增精确库存与 fail-closed 测试：规则缺失、动作漂移、重复、未知直播 feed 变体或 MITM 主机变化时不静默修改；验证广告专属规则和无关汽水音乐规则保留。
 - 不修改普通视频播放、推荐内容主接口、账号登录、直播间播放、评论、发布或支付接口；不新增对 snssdk.com、zijieapi.com、pstatp.com 的整域拦截。
 
