@@ -2370,6 +2370,12 @@ class PinduoduoImageCdnScopeTests(unittest.TestCase):
         result, removed = scope_pdd_image_cdn_ad_rules(fixture)
         self.assertEqual((result, removed), (fixture, 0))
 
+    def test_partial_ad_path_inventory_without_broad_reject_is_a_noop(self):
+        from apply_local_overrides import PDD_IMAGE_CDN_AD_PATH_RULES, scope_pdd_image_cdn_ad_rules
+        fixture = ["[Rewrite]", PDD_IMAGE_CDN_AD_PATH_RULES[0], "[MITM]", "hostname = images.pinduoduo.com"]
+        result, removed = scope_pdd_image_cdn_ad_rules(fixture)
+        self.assertEqual((result, removed), (fixture, 0))
+
     def test_removes_only_broad_image_cdn_block_and_keeps_ad_paths_and_mitm(self):
         from apply_local_overrides import scope_pdd_image_cdn_ad_rules
         result, removed = scope_pdd_image_cdn_ad_rules(self.base)
