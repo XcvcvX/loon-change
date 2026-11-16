@@ -180,82 +180,37 @@
   "sections": {
     "rewrite": {
       "action_changed": [],
-      "added": [
-        {
-          "line": "response if ${url} ~= /^https?:\\/\\/www\\.gaoding\\.com\\/api\\/v\\d\\/oc\\/exhibitions\\/app_mine\\/resources/ then response.json.delete(\"pits[2].delivery_materials\")",
-          "section": "rewrite",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https?:\\/\\/www\\.gaoding\\.com\\/api\\/v\\d\\/oc\\/exhibitions\\/template\\/resources$/ then response.json.delete(\"pits[0].delivery_materials\")",
-          "section": "rewrite",
-          "sources": [
-            "local_overrides"
-          ]
-        }
-      ],
+      "added": [],
       "removed": []
     },
     "rule": {
       "action_changed": [],
-      "added": [
-        {
-          "line": "DOMAIN,emapm.eastmoney.com,REJECT",
-          "section": "rule",
-          "sources": [
-            "filter"
-          ]
-        },
-        {
-          "line": "DOMAIN,swdlcdn.eastmoney.com,REJECT",
-          "section": "rule",
-          "sources": [
-            "filter"
-          ]
-        }
-      ],
+      "added": [],
       "removed": []
     },
     "script": {
       "action_changed": [],
       "added": [],
-      "removed": [
-        {
-          "line": "http-response ^https?:\\/\\/www\\.gaoding\\.com\\/api\\/v\\d\\/oc\\/exhibitions\\/app_mine\\/resources script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/gaoding.js,tag=GAODING-2,requires-body=true",
-          "section": "script",
-          "sources": [
-            "base"
-          ]
-        },
-        {
-          "line": "http-response ^https?:\\/\\/www\\.gaoding\\.com\\/api\\/v\\d\\/oc\\/exhibitions\\/template\\/resources$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/gaoding.js,tag=GAODING,requires-body=true",
-          "section": "script",
-          "sources": [
-            "base"
-          ]
-        }
-      ]
+      "removed": []
     }
   },
   "summary": {
     "rewrite": {
       "action_changed": 0,
-      "added": 2,
+      "added": 0,
       "removed": 0
     },
     "rule": {
       "action_changed": 0,
-      "added": 2,
+      "added": 0,
       "removed": 0
     },
     "script": {
       "action_changed": 0,
       "added": 0,
-      "removed": 2
+      "removed": 0
     },
-    "total_changes": 6
+    "total_changes": 0
   },
   "upstream_revision_changes": []
 }

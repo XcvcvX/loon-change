@@ -2,173 +2,28 @@
   "change_counts": {
     "rewrite": {
       "action_changed": 0,
-      "added": 2,
+      "added": 0,
       "removed": 0
     },
     "rule": {
       "action_changed": 0,
-      "added": 2,
+      "added": 0,
       "removed": 0
     },
     "script": {
       "action_changed": 0,
       "added": 0,
-      "removed": 2
+      "removed": 0
     }
   },
-  "events": [
-    {
-      "after": {
-        "line": "response if ${url} ~= /^https?:\\/\\/www\\.gaoding\\.com\\/api\\/v\\d\\/oc\\/exhibitions\\/app_mine\\/resources/ then response.json.delete(\"pits[2].delivery_materials\")",
-        "section": "rewrite",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "rewrite",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "response if ${url} ~= /^https?:\\/\\/www\\.gaoding\\.com\\/api\\/v\\d\\/oc\\/exhibitions\\/template\\/resources$/ then response.json.delete(\"pits[0].delivery_materials\")",
-        "section": "rewrite",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "rewrite",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "http-response ^https?:\\/\\/www\\.gaoding\\.com\\/api\\/v\\d\\/oc\\/exhibitions\\/app_mine\\/resources script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/gaoding.js,tag=GAODING-2,requires-body=true",
-        "section": "script",
-        "sources": [
-          "base"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "base": "unavailable"
-      },
-      "source_scores": {
-        "base": null
-      },
-      "sources": [
-        "base"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "http-response ^https?:\\/\\/www\\.gaoding\\.com\\/api\\/v\\d\\/oc\\/exhibitions\\/template\\/resources$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/gaoding.js,tag=GAODING,requires-body=true",
-        "section": "script",
-        "sources": [
-          "base"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "base": "unavailable"
-      },
-      "source_scores": {
-        "base": null
-      },
-      "sources": [
-        "base"
-      ]
-    },
-    {
-      "after": {
-        "line": "DOMAIN,emapm.eastmoney.com,REJECT",
-        "section": "rule",
-        "sources": [
-          "filter"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "rule",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "filter": "unavailable"
-      },
-      "source_scores": {
-        "filter": null
-      },
-      "sources": [
-        "filter"
-      ]
-    },
-    {
-      "after": {
-        "line": "DOMAIN,swdlcdn.eastmoney.com,REJECT",
-        "section": "rule",
-        "sources": [
-          "filter"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "rule",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "filter": "unavailable"
-      },
-      "source_scores": {
-        "filter": null
-      },
-      "sources": [
-        "filter"
-      ]
-    }
-  ],
-  "overall_risk": "high",
+  "events": [],
+  "overall_risk": "low",
   "risk_counts": {
-    "high": 2,
+    "high": 0,
     "low": 0,
-    "medium": 4
+    "medium": 0
   },
-  "run_id": "43784439315",
+  "run_id": "43787457214",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",

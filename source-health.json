@@ -24,19 +24,19 @@
   "section_changes": {
     "rewrite": {
       "action_changed": 0,
-      "added": 2,
+      "added": 0,
       "current_entries": 3291,
-      "net_shrink_percent": -0.061,
-      "previous_entries": 3289,
+      "net_shrink_percent": 0.0,
+      "previous_entries": 3291,
       "removed": 0,
       "removed_percent": 0.0
     },
     "rule": {
       "action_changed": 0,
-      "added": 2,
+      "added": 0,
       "current_entries": 3477,
-      "net_shrink_percent": -0.058,
-      "previous_entries": 3475,
+      "net_shrink_percent": 0.0,
+      "previous_entries": 3477,
       "removed": 0,
       "removed_percent": 0.0
     },
@@ -44,10 +44,10 @@
       "action_changed": 0,
       "added": 0,
       "current_entries": 622,
-      "net_shrink_percent": 0.321,
-      "previous_entries": 624,
-      "removed": 2,
-      "removed_percent": 0.321
+      "net_shrink_percent": 0.0,
+      "previous_entries": 622,
+      "removed": 0,
+      "removed_percent": 0.0
     }
   },
   "source_scores": {
