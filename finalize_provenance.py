@@ -26,6 +26,103 @@ def _take(records, line):
     return queue.pop(0) if queue else None
 
 
+
+# Exact, reviewed local-override removals. These entries are not generic regex
+# inference: every retained matcher is checked against the final plugin output.
+VERIFIED_LOCAL_REWRITE_COVERAGE = {
+    "^https:\\/\\/ep\\.kugou\\.com\\/v\\d\\/album_shop\\/get_entrance_info reject-dict": {
+        "status": "excluded_semantic_duplicate",
+        "covered_by": "^https?:\\/\\/ep\\.kugou\\.com\\/v\\d\\/album_shop\\/get_entrance_info reject-dict",
+        "coverage_kind": "strict_https_subset",
+        "reason": "HTTPS-only matcher is a strict subset of the retained HTTP+HTTPS matcher with the same reject-dict action and path",
+    },
+    "^https:\\/\\/fx\\.service\\.kugou\\.com\\/mfx-kugoulive\\/ad\\/ reject-dict": {
+        "status": "excluded_semantic_duplicate",
+        "covered_by": "^https?:\\/\\/fx\\.service\\.kugou\\.com\\/mfx-kugoulive\\/ad\\/ reject-dict",
+        "coverage_kind": "strict_https_subset",
+        "reason": "HTTPS-only matcher is a strict subset of the retained HTTP+HTTPS matcher with the same reject-dict action and path",
+    },
+    "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/adp\\/ad\\/ reject-dict": {
+        "status": "excluded_semantic_duplicate",
+        "covered_by": "^https?:\\/\\/gateway(retry)?\\.kugou\\.com\\/adp\\/ad\\/ reject-dict",
+        "coverage_kind": "strict_https_subset",
+        "reason": "HTTPS-only matcher is a strict subset of the retained HTTP+HTTPS matcher with the same reject-dict action and path",
+    },
+    "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/adp\\/bubble\\/v\\d\\/song_play reject-dict": {
+        "status": "excluded_semantic_duplicate",
+        "covered_by": "^https?:\\/\\/gateway(retry)?\\.kugou\\.com\\/adp\\/bubble\\/v\\d\\/song_play reject-dict",
+        "coverage_kind": "strict_https_subset",
+        "reason": "HTTPS-only matcher is a strict subset of the retained HTTP+HTTPS matcher with the same reject-dict action and path",
+    },
+    "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/ads\\.gateway\\/ reject-dict": {
+        "status": "excluded_semantic_duplicate",
+        "covered_by": "^https?:\\/\\/gateway(retry)?\\.kugou\\.com\\/ads\\.gateway\\/ reject-dict",
+        "coverage_kind": "strict_https_subset",
+        "reason": "HTTPS-only matcher is a strict subset of the retained HTTP+HTTPS matcher with the same reject-dict action and path",
+    },
+    "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/mstc\\/musicsymbol\\/v\\d\\/system\\/profile reject-dict": {
+        "status": "excluded_semantic_duplicate",
+        "covered_by": "^https?:\\/\\/gateway(retry)?\\.kugou\\.com\\/mstc\\/musicsymbol\\/v\\d\\/system\\/profile reject-dict",
+        "coverage_kind": "strict_https_subset",
+        "reason": "HTTPS-only matcher is a strict subset of the retained HTTP+HTTPS matcher with the same reject-dict action and path",
+    },
+    "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/ocean\\/v\\d\\/sound\\/banner reject-dict": {
+        "status": "excluded_semantic_duplicate",
+        "covered_by": "^https?:\\/\\/gateway(retry)?\\.kugou\\.com\\/ocean\\/v\\d\\/sound\\/banner reject-dict",
+        "coverage_kind": "strict_https_subset",
+        "reason": "HTTPS-only matcher is a strict subset of the retained HTTP+HTTPS matcher with the same reject-dict action and path",
+    },
+    "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/r\\/v\\d\\/general\\/putin\\/midad reject-dict": {
+        "status": "excluded_semantic_duplicate",
+        "covered_by": "^https?:\\/\\/gateway(retry)?\\.kugou\\.com\\/r\\/v\\d\\/general\\/putin\\/midad reject-dict",
+        "coverage_kind": "strict_https_subset",
+        "reason": "HTTPS-only matcher is a strict subset of the retained HTTP+HTTPS matcher with the same reject-dict action and path",
+    },
+    "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/searchnofocus\\/v\\d\\/search_no_focus_word reject-dict": {
+        "status": "excluded_semantic_duplicate",
+        "covered_by": "^https?:\\/\\/gateway(retry)?\\.kugou\\.com\\/searchnofocus\\/v\\d\\/search_no_focus_word reject-dict",
+        "coverage_kind": "strict_https_subset",
+        "reason": "HTTPS-only matcher is a strict subset of the retained HTTP+HTTPS matcher with the same reject-dict action and path",
+    },
+    "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/singerdiscuss\\/v\\d\\/entrance\\/comment reject-dict": {
+        "status": "excluded_semantic_duplicate",
+        "covered_by": "^https?:\\/\\/gateway(retry)?\\.kugou\\.com\\/singerdiscuss\\/v\\d\\/entrance\\/comment reject-dict",
+        "coverage_kind": "strict_https_subset",
+        "reason": "HTTPS-only matcher is a strict subset of the retained HTTP+HTTPS matcher with the same reject-dict action and path",
+    },
+    "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/v\\d\\/feeds\\/follow_feed_fallback reject-dict": {
+        "status": "excluded_semantic_duplicate",
+        "covered_by": "^https?:\\/\\/gateway(retry)?\\.kugou\\.com\\/v\\d\\/feeds\\/follow_feed_fallback reject-dict",
+        "coverage_kind": "strict_https_subset",
+        "reason": "HTTPS-only matcher is a strict subset of the retained HTTP+HTTPS matcher with the same reject-dict action and path",
+    },
+    "^https:\\/\\/gzacshow\\.kugou\\.com\\/mfx-rt-show\\/cdn\\/mo\\/show\\/headline reject-dict": {
+        "status": "excluded_semantic_duplicate",
+        "covered_by": "^https?:\\/\\/gzacshow\\.kugou\\.com\\/mfx-rt-show\\/cdn\\/mo\\/show\\/headline reject-dict",
+        "coverage_kind": "strict_https_subset",
+        "reason": "HTTPS-only matcher is a strict subset of the retained HTTP+HTTPS matcher with the same reject-dict action and path",
+    },
+    "^https:\\/\\/hwstore\\.kugou\\.com\\/v\\d\\/get_store_data reject-dict": {
+        "status": "excluded_semantic_duplicate",
+        "covered_by": "^https?:\\/\\/hwstore\\.kugou\\.com\\/v\\d\\/get_store_data reject-dict",
+        "coverage_kind": "strict_https_subset",
+        "reason": "HTTPS-only matcher is a strict subset of the retained HTTP+HTTPS matcher with the same reject-dict action and path",
+    },
+    "^https:\\/\\/m1fxgroup\\.kugou\\.com\\/fxsing\\/yqc\\/alongInfo\\/getUserAlongInfo reject-dict": {
+        "status": "excluded_semantic_duplicate",
+        "covered_by": "^https?:\\/\\/m1fxgroup\\.kugou\\.com\\/fxsing\\/yqc\\/alongInfo\\/getUserAlongInfo reject-dict",
+        "coverage_kind": "strict_https_subset",
+        "reason": "HTTPS-only matcher is a strict subset of the retained HTTP+HTTPS matcher with the same reject-dict action and path",
+    },
+    "^https:\\/\\/jad-api\\.jin10\\.com\\/ad reject-dict": {
+        "status": "excluded_unreachable_response",
+        "covered_by": "request if ${url} ~= /^https?:\\/\\/jad-api\\.jin10\\.com\\/ad/ then reject(404)",
+        "coverage_kind": "request_terminates_before_response",
+        "reason": "The exact request-phase reject(404) terminates this URL before a response-phase Rewrite can run",
+    },
+}
+
+
 def reconcile(before, after_spotify, final, provenance_path):
     base = plugin_rows(before)
     spotify = plugin_rows(after_spotify)
@@ -92,6 +189,32 @@ def reconcile(before, after_spotify, final, provenance_path):
             }
         retained_events.append(event)
     report["rule_events"] = retained_events
+
+
+    # Record exact local removals only when their retained coverage is present.
+    # The broad legacy list_v matcher is intentionally not listed: list_v2 does
+    # not prove coverage for every possible list_v version.
+    removed_rewrites = collections.Counter(spotify["Rewrite"]) - collections.Counter(output["Rewrite"])
+    exclusions = report.setdefault("rewrite_exclusions", [])
+    known_exclusions = {
+        item.get("source_raw_line") for item in exclusions
+        if isinstance(item, dict)
+    }
+    for removed_line, metadata in VERIFIED_LOCAL_REWRITE_COVERAGE.items():
+        if removed_rewrites[removed_line] <= 0 or removed_line in known_exclusions:
+            continue
+        if metadata["covered_by"] not in output["Rewrite"]:
+            raise ValueError(
+                "verified Rewrite coverage missing from final plugin: " + metadata["covered_by"]
+            )
+        exclusions.append({
+            **metadata,
+            "source_raw_line": removed_line,
+            "input_line": removed_line,
+            "source": "local_overrides",
+            "source_file": "apply_local_overrides.py",
+            "transform_stage": "local_overrides",
+        })
 
     report["summary"] = report.get("summary", {})
     report["summary"].update({
