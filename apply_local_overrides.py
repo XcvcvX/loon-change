@@ -1516,15 +1516,8 @@ def remove_redundant_zhihu_request_rules(lines):
     markers = tuple(marker for _redundant, _canonical, marker in ZHIHU_REQUEST_SHADOW_PAIRS)
     counts = {key: 0 for key in known}
     seen_groups = set()
-    output, section = [], ""
+    output = []
     for line in lines:
-        if line.startswith("[") and line.endswith("]"):
-            section = line[1:-1]
-            output.append(line)
-            continue
-        if section != "Rewrite":
-            output.append(line)
-            continue
         value = normalize(line)
         group_index = next((i for i, marker in enumerate(markers) if marker in value), None)
         if group_index is None:
