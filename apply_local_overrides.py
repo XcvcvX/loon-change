@@ -2755,6 +2755,14 @@ CNFTP_MGTV_TRIGGER_REPLACEMENTS = dict(zip(
 ))
 
 
+CNFTP_NON_AD_REMOVE_TRIGGERS = (
+    "response if ${url} ~= /^https?:\\/\\/iface2\\.iqiyi\\.com\\/aggregate\\/3\\.0\\/getMyMenus\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=aiqiyi_enable, tag=\"爱奇艺我的页面菜单\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/iface2\\.iqiyi\\.com\\/control\\/3\\.0\\/init_proxy\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=aiqiyi_enable, tag=\"爱奇艺首页左上角天气\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/iface2\\.iqiyi\\.com\\/views\\/3\\.0\\/(bottom_theme|home_top_menu)\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=aiqiyi_enable, tag=\"爱奇艺底部tab、顶部tab\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/search\\.video\\.iqiyi\\.com\\/q\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=aiqiyi_enable, tag=\"爱奇艺搜索框填充词\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.haidai\\.lantern\\.appconfig\\.get/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=yzku_enable, tag=\"优酷底部tab\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.huluwa\\.dispatcher\\.youthmode\\.config2/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=yzku_enable, tag=\"优酷青少年模式弹窗\", timeout=60, requires_body=true",
+)
 def remove_duplicate_cnftp_scripts(lines):
     """Collapse duplicate video response scripts and accept the already-combined iQIYI home state."""
     remove_counts = {item: 0 for item in CNFTP_DUPLICATE_REMOVE_TRIGGERS}
@@ -2825,7 +2833,11 @@ def remove_duplicate_cnftp_scripts(lines):
     if source_mode:
         if not all(count == 1 for count in remove_counts.values()):
             raise ValueError("legacy video trigger inventory incomplete; refusing partial consolidation")
-        if not all(count == 1 for count in source_counts.values()):
+        required_source_counts = {
+            item: count for item, count in source_counts.items()
+            if item not in set(CNFTP_NON_AD_REMOVE_TRIGGERS)
+        }
+        if not all(count == 1 for count in required_source_counts.values()):
             raise ValueError("video source trigger inventory incomplete; refusing partial consolidation")
         return output, removed
 
@@ -2835,7 +2847,11 @@ def remove_duplicate_cnftp_scripts(lines):
     elif not all(count == 1 for count in home_source_counts.values()):
         raise ValueError("consolidated video iQIYI home trigger inventory incomplete; refusing partial consolidation")
 
-    if not all(count == 1 for count in output_counts.values()):
+    required_output_counts = {
+        item: count for item, count in output_counts.items()
+        if item not in set(CNFTP_NON_AD_REMOVE_TRIGGERS)
+    }
+    if not all(count == 1 for count in required_output_counts.values()):
         raise ValueError("consolidated video trigger inventory incomplete; refusing partial consolidation")
     return output, 0
 
@@ -2869,6 +2885,49 @@ def consolidate_cnftp_iqiyi_home_triggers(lines):
     if not all(count == 1 for count in counts.values()):
         raise ValueError("iQIYI home trigger inventory incomplete; refusing partial consolidation")
     return output, len(CNFTP_IQIYI_HOME_SOURCE_TRIGGERS) - 1
+
+
+def remove_cnftp_non_ad_triggers(lines):
+    """Remove only six reviewed CNFTP response triggers that do not process ads."""
+    targets = set(CNFTP_NON_AD_REMOVE_TRIGGERS)
+    counts = {item: 0 for item in targets}
+    markers = {
+        "getMyMenus": ("iface2.iqiyi.com", "aggregate/3.0/getMyMenus"),
+        "init_proxy": ("iface2.iqiyi.com", "control/3.0/init_proxy"),
+        "bottom_theme": ("iface2.iqiyi.com", "views/3.0/", "bottom_theme"),
+        "search.video": ("search.video.iqiyi.com", "/q"),
+        "lantern.appconfig": ("acs.youku.com", "haidai.lantern.appconfig.get"),
+        "youthmode": ("acs.youku.com", "huluwa.dispatcher.youthmode.config2"),
+    }
+    active_markers = {
+        key for key, parts in markers.items()
+        if any(item in lines and all(part in item.replace("\\", "") for part in parts) for item in targets)
+    }
+
+    output, section, removed = [], "", 0
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            output.append(line)
+            continue
+        value = line.strip()
+        normalized = value.replace("\\", "")
+        if section == "Script":
+            for key, parts in markers.items():
+                if key in active_markers and all(part in normalized for part in parts) and "cnftp.js" in value:
+                    if value not in targets:
+                        raise ValueError("CNFTP non-ad trigger matcher changed; refusing unreviewed pruning")
+            if value in targets:
+                counts[value] += 1
+                if counts[value] > 1:
+                    raise ValueError("duplicate CNFTP non-ad trigger; refusing ambiguous pruning")
+                removed += 1
+                continue
+        elif value in targets:
+            raise ValueError("CNFTP non-ad trigger moved outside Script section; refusing pruning")
+        output.append(line)
+
+    return output, removed
 
 
 # Same-URL response scripts duplicated across legacy and v2 syntax.
@@ -3671,6 +3730,7 @@ def apply(text: str) -> str:
     lines, _ = remove_duplicate_tuhu_scripts(lines)
     lines, _ = remove_duplicate_cnftp_scripts(lines)
     lines, _ = consolidate_cnftp_iqiyi_home_triggers(lines)
+    lines, _ = remove_cnftp_non_ad_triggers(lines)
     lines, _ = remove_same_source_duplicate_response_scripts(lines)
     lines, _ = remove_identical_script_response_duplicates(lines)
     lines, _ = consolidate_soul_scripts(lines)
