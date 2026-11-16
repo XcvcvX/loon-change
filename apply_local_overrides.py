@@ -1171,7 +1171,7 @@ STARPLUCKER_SINGLE_JQ_RULE = "response if ${url} ~= /^https?:\\/\\/starplucker\\
 def consolidate_starplucker_config_jq(lines):
     """Combine the two sequential jq parses for the same StarPlucker config response."""
     output = list(lines)
-    matches = [i for i, line in enumerate(output) if "starplucker\\\\.cyapi" in line and "response.json.jq" in line]
+    matches = [i for i, line in enumerate(output) if "starplucker\\.cyapi" in line and "response.json.jq" in line]
     if not matches:
         return output, 0
     if len(matches) != 1 or output[matches[0]].strip() != STARPLUCKER_DOUBLE_JQ_RULE:
