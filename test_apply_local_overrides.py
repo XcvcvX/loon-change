@@ -2009,6 +2009,17 @@ class JingdongCoreServiceDomainScopeTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "rule changed"):
             remove_jd_core_service_domain_blocks(drifted)
 
+    def test_preserves_distinct_jd_domain_keyword_rule_while_removing_exact_host_overblocks(self):
+        from apply_local_overrides import remove_jd_core_service_domain_blocks
+        keyword_rule = "DOMAIN-KEYWORD,mapi.m.jd.com,REJECT"
+        result, removed = remove_jd_core_service_domain_blocks(
+            ["[Rule]", *self.targets, keyword_rule, "DOMAIN,unrelated.example,REJECT"]
+        )
+        self.assertEqual(removed, 3)
+        self.assertIn(keyword_rule, result)
+        self.assertIn("DOMAIN,unrelated.example,REJECT", result)
+        self.assertEqual(remove_jd_core_service_domain_blocks(result), (result, 0))
+
     def test_checked_in_plugin_snapshot_does_not_block_core_jd_hosts(self):
         from pathlib import Path
         from apply_local_overrides import JD_CORE_SERVICE_BLOCKS
