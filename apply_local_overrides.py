@@ -1348,7 +1348,6 @@ JD_KEYWORD_SCOPE_HOSTS = (
     "bdsp.x.jd.com",
     "kepler.jd.com",
     "keplerapi.jd.com",
-    "mapi.m.jd.com",
 )
 JD_KEYWORD_SCOPE_RULES = {
     host: "DOMAIN-KEYWORD," + host + ",REJECT"
