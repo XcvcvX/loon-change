@@ -2957,6 +2957,11 @@ IDENTICAL_SCRIPT_KEEP_TRIGGERS = (
     "response if ${url} ~= /^https?:\\/\\/api-pay\\.soulapp\\.cn\\/vip\\/meet\\/userInfo/ then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
     "response if ${url} ~= /^https?:\\/\\/api-pay\\.soulapp\\.cn\\/privilege\\/supervip\\/status/ then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
 )
+IDENTICAL_SCRIPT_CURRENT_CANONICAL_TRIGGERS = (
+    "response if ${url} ~= /^https?:\\/\\/api-pay\\.soulapp\\.cn\\/(?:vip\\/meet\\/userInfo|privilege\\/supervip\\/status)/ then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/(?:api-account\\.soulapp\\.cn\\/teenager\\/config|api-a\\.soulapp\\.cn\\/(?:v\\d\\/post\\/gift\\/list|official\\/scene\\/module)|api-user\\.soulapp\\.cn\\/(?:furion\\/position\\/content|v\\d\\/planet\\/config)|api-chat\\.soulapp\\.cn\\/chat\\/limitInfo|post\\.soulapp\\.cn\\/(?:hot\\/soul\\/rank|v\\d\\/post\\/(?:homepage\\/guide\\/card|recSquare\\/subTabs))|chat-live\\.soulapp\\.cn\\/chatroom\\/chatClassifyRoomList|gateway-mobile-gray\\.soulapp\\.cn\\/mobile\\/app\\/version\\/queryIos|47\\.110\\.187\\.87\\/winterfell\\/v2\\/getIpByDomain)/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/soul/soul_ads.js\") with enable=soul_enable, tag=\"soul_ads\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/gql(-fed)?\\.reddit\\.com/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/reddit.js\") with enable=reddit_enable, tag=\"reddit\", timeout=60, requires_body=true",
+)
 IDENTICAL_SCRIPT_TRANSFORMS = {
     "response if ${url} ~= /https:\\/\\/api.rr.tv\\/v3plus\\/index\\/channel\\?pageNum=1&position=CHANNEL_INDEX/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true": "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/v3plus\\/index\\/channel\\?pageNum=1&position=CHANNEL_INDEX/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
     "response if ${url} ~= /https:\\/\\/api.rr.tv\\/watch\\/v4/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true": "response if ${url} ~= /^https?:\\/\\/api\\.rr\\.tv\\/watch\\/v\\d/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js\") with enable=rfrfuipk_enable, tag=\"rrtv_json\", timeout=60, requires_body=true",
@@ -2971,7 +2976,7 @@ def remove_identical_script_response_duplicates(lines):
     """Use one code-identical response handler while preserving the broader legacy API paths."""
     remove_counts = {item: 0 for item in IDENTICAL_SCRIPT_REMOVE_TRIGGERS}
     source_counts = {item: 0 for item in IDENTICAL_SCRIPT_KEEP_SOURCE_TRIGGERS}
-    output_counts = {item: 0 for item in IDENTICAL_SCRIPT_KEEP_TRIGGERS}
+    current_snapshot_mode = any(item in lines for item in IDENTICAL_SCRIPT_CURRENT_CANONICAL_TRIGGERS)\n    canonical_triggers = IDENTICAL_SCRIPT_CURRENT_CANONICAL_TRIGGERS if current_snapshot_mode else IDENTICAL_SCRIPT_KEEP_TRIGGERS\n    output_counts = {item: 0 for item in canonical_triggers}
     remove_set = set(IDENTICAL_SCRIPT_REMOVE_TRIGGERS)
     output, section, target_seen, removed = [], "", False, 0
     source_mode = any(item in lines for item in remove_set)
@@ -2983,7 +2988,7 @@ def remove_identical_script_response_duplicates(lines):
             continue
 
         normalized = line.replace("\\", "")
-        has_script_action = "http-response " in line or "response if " in line
+        has_script_action = "http-response " in line or "script(" in line or "script-path=" in line
         soul_endpoint = (
             ("api-a.soulapp.cn" in normalized and ("/post/gift/list" in normalized or "/official/scene/module" in normalized))
             or ("api-chat.soulapp.cn" in normalized and "/chat/limitInfo" in normalized)
