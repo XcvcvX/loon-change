@@ -5,7 +5,6 @@ import argparse
 from pathlib import Path
 
 # This standalone rule is already covered by the grouped rule below.
-# Keeping both causes the same request to match two reject_dict actions.
 DUPLICATE_HOTWORD_RULE = (
     r'request if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/shield\/search\/new_hotword\?/i '
     r'then reject_dict(200)'
@@ -17,6 +16,11 @@ CANONICAL_GROUPED_RULE = (
 HOTWORD_MARKER = "/ws/shield/search/new_hotword"
 
 
+def _normalize(line):
+    # Loon plugin serialization may vary the number of backslashes around regex escapes.
+    return line.strip().replace("\\", "")
+
+
 def apply(text):
     """Remove only the exact duplicate hotword request rule; reject upstream drift."""
     lines = text.splitlines()
@@ -25,12 +29,16 @@ def apply(text):
     duplicate_count = 0
     grouped_count = 0
     unexpected = []
+    duplicate_normalized = _normalize(DUPLICATE_HOTWORD_RULE)
+    grouped_normalized = _normalize(CANONICAL_GROUPED_RULE)
+
     for line in lines:
         stripped = line.strip()
         if stripped.startswith("[") and stripped.endswith("]"):
             section = stripped[1:-1]
             output.append(line)
             continue
+        normalized = _normalize(stripped)
         if section != "Rewrite" or HOTWORD_MARKER not in normalized:
             output.append(line)
             continue
