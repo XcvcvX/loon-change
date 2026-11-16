@@ -30,6 +30,10 @@
 | test_merge_plugins.py | 合并器集成测试：重复区块、reject 动作、TLD hostname、高德最高优先级与互补动作 |
 | sources/amap/ | 高德上游插件、JS 与 3 份 JQ 依赖的可追溯缓存 |
 | sources/alipayAdBlock/ | zirawell AlipayAdBlock 上游 Loon 插件缓存（固定 Romeo commit） |
+| sources/romeo_legacy/ | Romeo 无完整等价版本的 7 个 AOOMEE 专项插件快照 |
+| scripts/romeo_legacy/ | 随插件快照保存的两份远程脚本，避免继续依赖 AOOMEE Raw |
+| stage_romeo_plugins.py | 按固定 Romeo commit 构建 28 个插件的兼容来源目录 |
+| test_stage_romeo_plugins.py | Romeo 来源映射、快照完整性与旧脚本 URL 回归测试 |
 | source_guard.py | 上游响应/仓库结构完整性门禁，阻止 HTML 错误页、空文件和缺失源 |
 | rule-provenance.json | 逐条 Rewrite/Script/Rule 来源、合并胜出/重复/覆盖关系与上游版本追溯 |
 | rule-diff.json | 与上次生产追溯基线比较，记录规则新增、删除、动作变化及上游版本变化 |
@@ -68,8 +72,8 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 
 ## 本地检查
 
-    python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_amap_dependency_guard.py test_compare_rule_provenance.py test_source_health_guard.py test_rule_risk_history.py
-    python3 -m py_compile merge_plugins.py validate_plugin.py source_guard.py audit_plugin.py deep_audit.py amap_dependency_guard.py compare_rule_provenance.py source_health_guard.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py
+    python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_amap_dependency_guard.py test_compare_rule_provenance.py test_source_health_guard.py test_rule_risk_history.py test_stage_romeo_plugins.py
+    python3 -m py_compile merge_plugins.py validate_plugin.py source_guard.py stage_romeo_plugins.py audit_plugin.py deep_audit.py amap_dependency_guard.py compare_rule_provenance.py source_health_guard.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py
     python3 validate_plugin.py allAdRewrite.plugin
     python3 validate_plugin.py allAdRewrite.plugin --update-readme README.md
     python3 validate_plugin.py allAdRewrite.plugin --check-remote
