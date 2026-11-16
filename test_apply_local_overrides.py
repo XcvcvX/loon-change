@@ -1546,6 +1546,57 @@ class BilibiliCoreServiceScopeTests(unittest.TestCase):
         for guard in BILIBILI_AD_HOST_GUARDS:
             self.assertEqual(plugin.count(guard), 1)
 
+class BilibiliNonAdFeatureScopeTests(unittest.TestCase):
+    def setUp(self):
+        from apply_local_overrides import BILIBILI_NON_AD_FEATURE_RULES, BILIBILI_NON_AD_FEATURE_REPLACEMENTS, BILIBILI_AD_PATH_MARKERS
+        self.remove_rules = list(BILIBILI_NON_AD_FEATURE_RULES)
+        self.replacements = list(BILIBILI_NON_AD_FEATURE_REPLACEMENTS)
+        self.markers = list(BILIBILI_AD_PATH_MARKERS)
+        self.base = ["[Rule]", "DOMAIN-SUFFIX,ad.bilibili.com,REJECT", "DOMAIN-SUFFIX,adcommon.bilibili.com,REJECT",
+                     "[Rewrite]", *self.remove_rules, *[old for old, _ in self.replacements],
+                     "response if ${url} ~= /^https?:\\/\\/app\\.bilibili\\.com\\/x\\/v2\\/splash\\/show/ then response.json.jq(\".\")",
+                     "response if ${url} ~= /^https?:\\/\\/app\\.bilibili\\.com\\/x\\/v2\\/feed\\/index/ then response.json.jq(\".\")",
+                     "^https?:\\/\\/api\\.bilibili\\.com\\/pgc\\/activity\\/deliver reject-dict",
+                     "[Script]", "[MITM]"]
+
+    def test_removes_non_ad_mutations_and_keeps_ad_filtering(self):
+        from apply_local_overrides import normalize_bilibili_non_ad_feature_overrides
+        result, changed = normalize_bilibili_non_ad_feature_overrides(self.base)
+        self.assertEqual(changed, len(self.remove_rules) + len(self.replacements))
+        for rule in self.remove_rules:
+            self.assertNotIn(rule, result)
+        for _, new in self.replacements:
+            self.assertEqual(result.count(new), 1)
+        normalized = "\n".join(line.replace(chr(92), "") for line in result)
+        for marker in self.markers:
+            self.assertIn(marker, normalized)
+        self.assertEqual(normalize_bilibili_non_ad_feature_overrides(result), (result, 0))
+
+    def test_fails_closed_on_partial_duplicate_or_changed_non_ad_rules(self):
+        from apply_local_overrides import normalize_bilibili_non_ad_feature_overrides
+        partial = [line for line in self.base if line != self.remove_rules[0]]
+        with self.assertRaisesRegex(ValueError, "inventory is partial"):
+            normalize_bilibili_non_ad_feature_overrides(partial)
+        duplicate = self.base[:self.base.index("[Script]")] + [self.remove_rules[0]] + self.base[self.base.index("[Script]"): ]
+        with self.assertRaisesRegex(ValueError, "duplicate Bilibili non-ad feature"):
+            normalize_bilibili_non_ad_feature_overrides(duplicate)
+        changed = [line.replace("9005270400000", "9000000000000") if "due_date" in line else line for line in self.base]
+        with self.assertRaisesRegex(ValueError, "rule changed"):
+            normalize_bilibili_non_ad_feature_overrides(changed)
+
+    def test_checked_in_plugin_has_no_vip_paywall_or_teen_mode_bypass(self):
+        from pathlib import Path
+        from apply_local_overrides import BILIBILI_NON_AD_FEATURE_RULES, BILIBILI_NON_AD_FEATURE_REPLACEMENTS
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        for rule in BILIBILI_NON_AD_FEATURE_RULES:
+            self.assertNotIn(rule, plugin)
+        for _, new in BILIBILI_NON_AD_FEATURE_REPLACEMENTS:
+            self.assertEqual(plugin.count(new), 1)
+        self.assertNotIn("due_date: 9005270400000", plugin)
+        self.assertNotIn("del(.data.payment)", plugin)
+        self.assertNotIn("Teenagers\\/ModeStatus", plugin)
+        self.assertIn("/x/v2/feed/index", plugin)
+
 class DouyinHongguoBoundaryTests(unittest.TestCase):
     def setUp(self):
         self.base = r"""#!name=Douyin-Hongguo-test
