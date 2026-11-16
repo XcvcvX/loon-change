@@ -3,12 +3,12 @@
     "rewrite": {
       "action_changed": 0,
       "added": 0,
-      "removed": 2
+      "removed": 16
     },
     "rule": {
       "action_changed": 0,
       "added": 0,
-      "removed": 3
+      "removed": 0
     },
     "script": {
       "action_changed": 0,
@@ -20,7 +20,367 @@
     {
       "after": null,
       "before": {
-        "line": "^https?:\\/\\/webcast-open\\.douyin\\.com\\/webcast\\/openapi\\/feed\\/ reject-dict",
+        "line": "^https:\\/\\/ep\\.kugou\\.com\\/v\\d\\/album_shop\\/get_entrance_info reject-dict",
+        "section": "rewrite",
+        "sources": [
+          "thelong"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "thelong": "unavailable"
+      },
+      "source_scores": {
+        "thelong": null
+      },
+      "sources": [
+        "thelong"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "^https:\\/\\/fx\\.service\\.kugou\\.com\\/mfx-kugoulive\\/ad\\/ reject-dict",
+        "section": "rewrite",
+        "sources": [
+          "thelong"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "thelong": "unavailable"
+      },
+      "source_scores": {
+        "thelong": null
+      },
+      "sources": [
+        "thelong"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/adp\\/ad\\/ reject-dict",
+        "section": "rewrite",
+        "sources": [
+          "thelong"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "thelong": "unavailable"
+      },
+      "source_scores": {
+        "thelong": null
+      },
+      "sources": [
+        "thelong"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/adp\\/bubble\\/v\\d\\/song_play reject-dict",
+        "section": "rewrite",
+        "sources": [
+          "thelong"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "thelong": "unavailable"
+      },
+      "source_scores": {
+        "thelong": null
+      },
+      "sources": [
+        "thelong"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/ads\\.gateway\\/ reject-dict",
+        "section": "rewrite",
+        "sources": [
+          "thelong"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "thelong": "unavailable"
+      },
+      "source_scores": {
+        "thelong": null
+      },
+      "sources": [
+        "thelong"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/mstc\\/musicsymbol\\/v\\d\\/system\\/profile reject-dict",
+        "section": "rewrite",
+        "sources": [
+          "thelong"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "thelong": "unavailable"
+      },
+      "source_scores": {
+        "thelong": null
+      },
+      "sources": [
+        "thelong"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/ocean\\/v\\d\\/sound\\/banner reject-dict",
+        "section": "rewrite",
+        "sources": [
+          "thelong"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "thelong": "unavailable"
+      },
+      "source_scores": {
+        "thelong": null
+      },
+      "sources": [
+        "thelong"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/r\\/v\\d\\/general\\/putin\\/midad reject-dict",
+        "section": "rewrite",
+        "sources": [
+          "thelong"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "thelong": "unavailable"
+      },
+      "source_scores": {
+        "thelong": null
+      },
+      "sources": [
+        "thelong"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/searchnofocus\\/v\\d\\/search_no_focus_word reject-dict",
+        "section": "rewrite",
+        "sources": [
+          "thelong"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "thelong": "unavailable"
+      },
+      "source_scores": {
+        "thelong": null
+      },
+      "sources": [
+        "thelong"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/singerdiscuss\\/v\\d\\/entrance\\/comment reject-dict",
+        "section": "rewrite",
+        "sources": [
+          "thelong"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "thelong": "unavailable"
+      },
+      "source_scores": {
+        "thelong": null
+      },
+      "sources": [
+        "thelong"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/v\\d\\/feeds\\/follow_feed_fallback reject-dict",
+        "section": "rewrite",
+        "sources": [
+          "thelong"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "thelong": "unavailable"
+      },
+      "source_scores": {
+        "thelong": null
+      },
+      "sources": [
+        "thelong"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "^https:\\/\\/gzacshow\\.kugou\\.com\\/mfx-rt-show\\/cdn\\/mo\\/show\\/headline reject-dict",
+        "section": "rewrite",
+        "sources": [
+          "thelong"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "thelong": "unavailable"
+      },
+      "source_scores": {
+        "thelong": null
+      },
+      "sources": [
+        "thelong"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "^https:\\/\\/hwstore\\.kugou\\.com\\/v\\d\\/get_store_data reject-dict",
+        "section": "rewrite",
+        "sources": [
+          "thelong"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "thelong": "unavailable"
+      },
+      "source_scores": {
+        "thelong": null
+      },
+      "sources": [
+        "thelong"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "^https:\\/\\/jad-api\\.jin10\\.com\\/ad reject-dict",
+        "section": "rewrite",
+        "sources": [
+          "thelong"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "thelong": "unavailable"
+      },
+      "source_scores": {
+        "thelong": null
+      },
+      "sources": [
+        "thelong"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "^https:\\/\\/m1fxgroup\\.kugou\\.com\\/fxsing\\/yqc\\/alongInfo\\/getUserAlongInfo reject-dict",
+        "section": "rewrite",
+        "sources": [
+          "thelong"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "thelong": "unavailable"
+      },
+      "source_scores": {
+        "thelong": null
+      },
+      "sources": [
+        "thelong"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "^https?:\\/\\/gzacshow\\.kugou\\.com\\/mfanxing-home\\/cdn\\/room\\/index\\/list_v reject-dict",
         "section": "rewrite",
         "sources": [
           "base"
@@ -40,111 +400,15 @@
       "sources": [
         "base"
       ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "request if ${url} ~= /^https:\\/\\/webcast-open\\.douyin\\.com\\/webcast\\/openapi\\/feed\\/\\?/ then reject_dict(200)",
-        "section": "rewrite",
-        "sources": [
-          "block"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "rewrite",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "block": "unavailable"
-      },
-      "source_scores": {
-        "block": null
-      },
-      "sources": [
-        "block"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "DOMAIN,webcast-open.douyin.com,REJECT",
-        "section": "rule",
-        "sources": [
-          "aoomee"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "rule",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "aoomee": "scored"
-      },
-      "source_scores": {
-        "aoomee": 100
-      },
-      "sources": [
-        "aoomee"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "DOMAIN-KEYWORD,minigame,REJECT",
-        "section": "rule",
-        "sources": [
-          "thelong"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "rule",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "thelong": "unavailable"
-      },
-      "source_scores": {
-        "thelong": null
-      },
-      "sources": [
-        "thelong"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "DOMAIN-SUFFIX,dig.bdurl.net,REJECT",
-        "section": "rule",
-        "sources": [
-          "thelong"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "rule",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "thelong": "unavailable"
-      },
-      "source_scores": {
-        "thelong": null
-      },
-      "sources": [
-        "thelong"
-      ]
     }
   ],
   "overall_risk": "high",
   "risk_counts": {
-    "high": 5,
+    "high": 16,
     "low": 0,
     "medium": 0
   },
-  "run_id": "43819349997",
+  "run_id": "43820539762",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -174,7 +438,7 @@
     },
     "base": {
       "action_changed": 0,
-      "added": 2,
+      "added": 0,
       "removed": 42,
       "snapshots_seen": 19
     },
@@ -205,8 +469,8 @@
     "thelong": {
       "action_changed": 0,
       "added": 0,
-      "removed": 2,
-      "snapshots_seen": 1
+      "removed": 17,
+      "snapshots_seen": 2
     },
     "zmjapp": {
       "action_changed": 0,
