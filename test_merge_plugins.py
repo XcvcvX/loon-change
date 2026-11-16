@@ -2153,6 +2153,26 @@ hostname = *.amap.com
         self.assertEqual(exclusions[0]["input_line"], rule)
         self.assertEqual(exclusions[0]["action"], "reject_dict(200)")
 
+    def test_zhangle_live_rule_with_case_insensitive_flag_is_excluded(self):
+        base = "[Rewrite]\n[MITM]\nhostname = \n"
+        rule = (
+            r"request if ${url} ~= /^https?:\/\/live\.inst-service\.htsc\.com\/live/i "
+            r"then reject_dict(200)"
+        )
+        block = (
+            "[Rewrite]\n" + rule + "\n"
+            + "[MITM]\nhostname = live.inst-service.htsc.com\n"
+        )
+        output, report = self.run_merge(base, block, return_provenance=True)
+        self.assertNotIn("live.inst-service.htsc.com", output)
+        exclusions = [
+            item for item in report["rewrite_exclusions"]
+            if item.get("source") == "block" and item.get("status") == "excluded_unused_app"
+        ]
+        self.assertEqual(len(exclusions), 1)
+        self.assertEqual(exclusions[0]["input_line"], rule)
+        self.assertEqual(exclusions[0]["action"], "reject_dict(200)")
+
     def test_zhangle_block_rule_drift_fails_closed(self):
         base = "[Rewrite]\n[MITM]\nhostname = \n"
         changed = (
