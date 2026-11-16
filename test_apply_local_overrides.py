@@ -1328,16 +1328,17 @@ hostname = webcast-open.douyin.com, beta-luna.douyin.com, creditcard.bankcomm.cn
 
 
 
+
 class KugouJin10RewriteDedupTests(unittest.TestCase):
     def setUp(self):
-        self.rules = ["^https:\\/\\/fx\\.service\\.kugou\\.com\\/mfx-kugoulive\\/ad\\/ reject-dict","^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/adp\\/ad\\/ reject-dict","^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/ads\\.gateway\\/ reject-dict","^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/v\\d\\/feeds\\/follow_feed_fallback reject-dict","^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/mstc\\/musicsymbol\\/v\\d\\/system\\/profile reject-dict","^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/searchnofocus\\/v\\d\\/search_no_focus_word reject-dict","^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/adp\\/bubble\\/v\\d\\/song_play reject-dict","^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/singerdiscuss\\/v\\d\\/entrance\\/comment reject-dict","^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/r\\/v\\d\\/general\\/putin\\/midad reject-dict","^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/ocean\\/v\\d\\/sound\\/banner reject-dict","^https:\\/\\/gzacshow\\.kugou\\.com\\/mfx-rt-show\\/cdn\\/mo\\/show\\/headline reject-dict","^https:\\/\\/m1fxgroup\\.kugou\\.com\\/fxsing\\/yqc\\/alongInfo\\/getUserAlongInfo reject-dict","^https:\\/\\/hwstore\\.kugou\\.com\\/v\\d\\/get_store_data reject-dict","^https:\\/\\/ep\\.kugou\\.com\\/v\\d\\/album_shop\\/get_entrance_info reject-dict","^https:\\/\\/fx\\.service\\.kugou\\.com\\/mfx-kugoulive\\/ad\\/ reject-dict","^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/adp\\/ad\\/ reject-dict","^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/ads\\.gateway\\/ reject-dict","^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/v\\d\\/feeds\\/follow_feed_fallback reject-dict","^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/mstc\\/musicsymbol\\/v\\d\\/system\\/profile reject-dict","^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/searchnofocus\\/v\\d\\/search_no_focus_word reject-dict","^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/adp\\/bubble\\/v\\d\\/song_play reject-dict","^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/singerdiscuss\\/v\\d\\/entrance\\/comment reject-dict","^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/r\\/v\\d\\/general\\/putin\\/midad reject-dict","^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/ocean\\/v\\d\\/sound\\/banner reject-dict","^https:\\/\\/gzacshow\\.kugou\\.com\\/mfx-rt-show\\/cdn\\/mo\\/show\\/headline reject-dict","^https:\\/\\/m1fxgroup\\.kugou\\.com\\/fxsing\\/yqc\\/alongInfo\\/getUserAlongInfo reject-dict","^https:\\/\\/hwstore\\.kugou\\.com\\/v\\d\\/get_store_data reject-dict","^https:\\/\\/ep\\.kugou\\.com\\/v\\d\\/album_shop\\/get_entrance_info reject-dict","^https:\\/\\/gzacshow\\.kugou\\.com\\/mfanxing-home\\/cdn\\/room\\/index\\/list_v reject-dict","^https:\\/\\/gzacshow\\.kugou\\.com\\/mfanxing-home\\/cdn\\/room\\/index\\/list_v2 reject-dict","^https:\\/\\/jad-api\\.jin10\\.com\\/ad reject-dict","request if \\${url} ~= /^https:\\/\\/jad-api\\.jin10\\.com\\/ad/ then reject(404)","^https:\\/\\/common-open-api\\.jin10\\.com\\/configuration\\/getById\\?id=1493$ reject-dict","^https:\\/\\/search-open-api\\.jin10\\.com\\/search\\/getHotWords$ reject-dict"]
-        self.base = ("#!name=Kugou-Jin10-test\\n[Rule]\\n[Rewrite]\\n" +
-                     "\\n".join(self.rules) +
-                     "\\n[Script]\\n[MITM]\\nhostname = gateway.kugou.com, "
+        self.rules = ["^https:\\/\\/fx\\.service\\.kugou\\.com\\/mfx-kugoulive\\/ad\\/ reject-dict","^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/adp\\/ad\\/ reject-dict","^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/ads\\.gateway\\/ reject-dict","^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/v\\d\\/feeds\\/follow_feed_fallback reject-dict","^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/mstc\\/musicsymbol\\/v\\d\\/system\\/profile reject-dict","^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/searchnofocus\\/v\\d\\/search_no_focus_word reject-dict","^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/adp\\/bubble\\/v\\d\\/song_play reject-dict","^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/singerdiscuss\\/v\\d\\/entrance\\/comment reject-dict","^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/r\\/v\\d\\/general\\/putin\\/midad reject-dict","^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/ocean\\/v\\d\\/sound\\/banner reject-dict","^https:\\/\\/gzacshow\\.kugou\\.com\\/mfx-rt-show\\/cdn\\/mo\\/show\\/headline reject-dict","^https:\\/\\/m1fxgroup\\.kugou\\.com\\/fxsing\\/yqc\\/alongInfo\\/getUserAlongInfo reject-dict","^https:\\/\\/hwstore\\.kugou\\.com\\/v\\d\\/get_store_data reject-dict","^https:\\/\\/ep\\.kugou\\.com\\/v\\d\\/album_shop\\/get_entrance_info reject-dict","^https:\\/\\/fx\\.service\\.kugou\\.com\\/mfx-kugoulive\\/ad\\/ reject-dict","^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/adp\\/ad\\/ reject-dict","^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/ads\\.gateway\\/ reject-dict","^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/v\\d\\/feeds\\/follow_feed_fallback reject-dict","^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/mstc\\/musicsymbol\\/v\\d\\/system\\/profile reject-dict","^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/searchnofocus\\/v\\d\\/search_no_focus_word reject-dict","^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/adp\\/bubble\\/v\\d\\/song_play reject-dict","^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/singerdiscuss\\/v\\d\\/entrance\\/comment reject-dict","^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/r\\/v\\d\\/general\\/putin\\/midad reject-dict","^https:\\/\\/gateway(retry)?\\.kugou\\.com\\/ocean\\/v\\d\\/sound\\/banner reject-dict","^https:\\/\\/gzacshow\\.kugou\\.com\\/mfx-rt-show\\/cdn\\/mo\\/show\\/headline reject-dict","^https:\\/\\/m1fxgroup\\.kugou\\.com\\/fxsing\\/yqc\\/alongInfo\\/getUserAlongInfo reject-dict","^https:\\/\\/hwstore\\.kugou\\.com\\/v\\d\\/get_store_data reject-dict","^https:\\/\\/ep\\.kugou\\.com\\/v\\d\\/album_shop\\/get_entrance_info reject-dict","^https:\\/\\/gzacshow\\.kugou\\.com\\/mfanxing-home\\/cdn\\/room\\/index\\/list_v reject-dict","^https:\\/\\/gzacshow\\.kugou\\.com\\/mfanxing-home\\/cdn\\/room\\/index\\/list_v2 reject-dict","^https:\\/\\/jad-api\\.jin10\\.com\\/ad reject-dict","request if ${url} ~= /^https:\\/\\/jad-api\\.jin10\\.com\\/ad/ then reject(404)","^https:\\/\\/common-open-api\\.jin10\\.com\\/configuration\\/getById\\?id=1493$ reject-dict","^https:\\/\\/search-open-api\\.jin10\\.com\\/search\\/getHotWords$ reject-dict"]
+        self.base = ("#!name=Kugou-Jin10-test\n[Rule]\n[Rewrite]\n" +
+                     "\n".join(self.rules) +
+                     "\n[Script]\n[MITM]\nhostname = gateway.kugou.com, "
                      "gzacshow.kugou.com, jad-api.jin10.com, common-open-api.jin10.com, "
                      "search-open-api.jin10.com, creditcard.bankcomm.cn, "
                      "creditcard.bankcomm.com, creditcardapp.bankcomm.cn, "
-                     "creditcardapp.bankcomm.com\\n")
+                     "creditcardapp.bankcomm.com\n")
 
     def test_deduplicates_only_audited_rewrites(self):
         result = apply(self.base)
@@ -1346,18 +1347,20 @@ class KugouJin10RewriteDedupTests(unittest.TestCase):
         self.assertNotIn("^https:\\/\\/gzacshow\\.kugou\\.com\\/mfanxing-home\\/cdn\\/room\\/index\\/list_v reject-dict", result)
         self.assertIn("^https:\\/\\/gzacshow\\.kugou\\.com\\/mfanxing-home\\/cdn\\/room\\/index\\/list_v2 reject-dict", result)
         self.assertNotIn("^https:\\/\\/jad-api\\.jin10\\.com\\/ad reject-dict", result)
-        self.assertIn("request if \\${url} ~= /^https:\\/\\/jad-api\\.jin10\\.com\\/ad/ then reject(404)", result)
+        self.assertIn("request if ${url} ~= /^https:\\/\\/jad-api\\.jin10\\.com\\/ad/ then reject(404)", result)
         for rule in ["^https:\\/\\/common-open-api\\.jin10\\.com\\/configuration\\/getById\\?id=1493$ reject-dict","^https:\\/\\/search-open-api\\.jin10\\.com\\/search\\/getHotWords$ reject-dict"]:
             self.assertIn(rule, result)
         self.assertEqual(apply(result), result)
 
     def test_fails_closed_on_missing_or_drifted_inventory(self):
-        missing = self.base.replace(self.rules[0] + "\\n", "", 1)
+        missing = self.base.replace(self.rules[0] + "\n", "", 1)
         with self.assertRaisesRegex(ValueError, "Kugou/Jin10 rewrite inventory changed"):
             apply(missing)
         drifted = self.base.replace(self.rules[0], self.rules[0].replace("reject-dict", "reject-200"), 1)
         with self.assertRaisesRegex(ValueError, "Kugou/Jin10 rewrite inventory changed"):
             apply(drifted)
+
+
 
 if __name__ == "__main__":
     unittest.main()
