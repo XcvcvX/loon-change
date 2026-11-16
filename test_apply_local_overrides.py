@@ -2148,5 +2148,60 @@ class TuhuDuplicateResponseScriptTests(unittest.TestCase):
             self.assertEqual(plugin.count(item), 1)
 
 
+class CnftpDuplicateScriptTests(unittest.TestCase):
+    def setUp(self):
+        from apply_local_overrides import (
+            CNFTP_DUPLICATE_KEEP_TRIGGERS, CNFTP_DUPLICATE_REMOVE_TRIGGERS,
+        )
+        self.keep = CNFTP_DUPLICATE_KEEP_TRIGGERS
+        self.remove = CNFTP_DUPLICATE_REMOVE_TRIGGERS
+        self.unrelated = 'response if ${url} ~= /^https?:\\/\\/example\\.com\\/api/ then script("https://example.invalid/keep.js")'
+        self.fixture = [
+            "[Script]", *self.remove, *self.keep, self.unrelated,
+            "[Rewrite]", "^https?:\\\\/\\\\/api.iqiyi.com\\\\/unrelated reject(404)",
+            "[MITM]", "hostname = cards.iqiyi.com, me.bz.mgtv.com, acs.youku.com",
+        ]
+
+    def test_removes_all_26_duplicate_triggers_and_keeps_one_per_endpoint(self):
+        from apply_local_overrides import remove_duplicate_cnftp_scripts
+        result, removed = remove_duplicate_cnftp_scripts(self.fixture)
+        self.assertEqual(removed, 26)
+        for item in self.remove:
+            self.assertNotIn(item, result)
+        for item in self.keep:
+            self.assertEqual(result.count(item), 1)
+        self.assertIn(self.unrelated, result)
+        self.assertIn("^https?:\\\\/\\\\/api.iqiyi.com\\\\/unrelated reject(404)", result)
+        self.assertEqual(remove_duplicate_cnftp_scripts(result), (result, 0))
+
+    def test_preserves_already_consolidated_inventory(self):
+        from apply_local_overrides import remove_duplicate_cnftp_scripts
+        clean = ["[Script]", *self.keep, "[MITM]"]
+        self.assertEqual(remove_duplicate_cnftp_scripts(clean), (clean, 0))
+
+    def test_fails_closed_on_missing_duplicate_duplicate_kept_or_unknown_variant(self):
+        from apply_local_overrides import remove_duplicate_cnftp_scripts
+        missing = [line for line in self.fixture if line != self.keep[0]]
+        with self.assertRaisesRegex(ValueError, "inventory incomplete"):
+            remove_duplicate_cnftp_scripts(missing)
+
+        duplicate = ["[Script]", *self.keep, self.keep[0]]
+        with self.assertRaisesRegex(ValueError, "duplicate retained"):
+            remove_duplicate_cnftp_scripts(duplicate)
+
+        unknown = self.keep[0].replace("cnftp.js", "cnftp-next.js")
+        with self.assertRaisesRegex(ValueError, "inventory changed"):
+            remove_duplicate_cnftp_scripts(["[Script]", *self.keep[1:], unknown])
+
+    def test_checked_in_plugin_snapshot_has_only_the_selected_handlers(self):
+        from pathlib import Path
+        from apply_local_overrides import CNFTP_DUPLICATE_KEEP_TRIGGERS, CNFTP_DUPLICATE_REMOVE_TRIGGERS
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        for item in CNFTP_DUPLICATE_REMOVE_TRIGGERS:
+            self.assertNotIn(item, plugin)
+        for item in CNFTP_DUPLICATE_KEEP_TRIGGERS:
+            self.assertEqual(plugin.count(item), 1)
+
+
 if __name__ == "__main__":
     unittest.main()
