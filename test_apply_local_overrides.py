@@ -1408,7 +1408,7 @@ class ZhihuMultiActionRewriteConsolidationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Zhihu multi-action rewrite inventory changed"):
             apply(missing)
 
-        drifted = self.base.replace(self.original[1], self.original[1].replace("!= \\"card\\"", "!= \\"ad\\""), 1)
+        drifted = self.base.replace(self.original[1], self.original[1].replace('!= "card"', '!= "ad"'), 1)
         with self.assertRaisesRegex(ValueError, "Zhihu multi-action rewrite inventory changed"):
             apply(drifted)
 
