@@ -3154,5 +3154,59 @@ class StarPluckerIdempotenceTests(unittest.TestCase):
         self.assertEqual(result, fixture)
 
 
+class SmzdmHomepageScriptOptimizationTests(unittest.TestCase):
+    def test_removes_only_duplicate_fmz_homepage_dispatch_when_rstore_handler_exists(self):
+        from apply_local_overrides import (
+            SMZDM_FMZ_HOME_TRIGGER, SMZDM_RSTORE_HOME_TRIGGER,
+            remove_redundant_smzdm_homepage_script_trigger,
+        )
+        fixture = [
+            "[Script]",
+            SMZDM_RSTORE_HOME_TRIGGER,
+            SMZDM_FMZ_HOME_TRIGGER,
+            "response if ${url} ~= /^https?:\\/\\/homepage-api\\.smzdm\\.com\\/v3\\/home\\/other/i then script(\"https://example.invalid/other.js\") with requires_body=true",
+            "[MITM]",
+            "hostname = homepage-api.smzdm.com",
+        ]
+        result, changed = remove_redundant_smzdm_homepage_script_trigger(fixture)
+        self.assertEqual(changed, 1)
+        self.assertIn(SMZDM_RSTORE_HOME_TRIGGER, result)
+        self.assertNotIn(SMZDM_FMZ_HOME_TRIGGER, result)
+        self.assertTrue(any("other.js" in line for line in result))
+        again, second_changed = remove_redundant_smzdm_homepage_script_trigger(result)
+        self.assertEqual(second_changed, 0)
+        self.assertEqual(again, result)
+
+    def test_preserves_fmz_homepage_dispatch_without_rstore_cover(self):
+        from apply_local_overrides import (
+            SMZDM_FMZ_HOME_TRIGGER, remove_redundant_smzdm_homepage_script_trigger,
+        )
+        fixture = ["[Script]", SMZDM_FMZ_HOME_TRIGGER, "[MITM]", "hostname = homepage-api.smzdm.com"]
+        result, changed = remove_redundant_smzdm_homepage_script_trigger(fixture)
+        self.assertEqual(changed, 0)
+        self.assertEqual(result, fixture)
+
+    def test_fails_closed_on_unreviewed_smzdm_homepage_trigger_variants(self):
+        from apply_local_overrides import (
+            SMZDM_FMZ_HOME_TRIGGER, SMZDM_RSTORE_HOME_TRIGGER,
+            remove_redundant_smzdm_homepage_script_trigger,
+        )
+        drifted = [
+            "[Script]", SMZDM_RSTORE_HOME_TRIGGER,
+            SMZDM_FMZ_HOME_TRIGGER.replace("v3", "v4"),
+            "[MITM]", "hostname = homepage-api.smzdm.com",
+        ]
+        with self.assertRaisesRegex(ValueError, "SMZDM homepage FMZ trigger inventory changed"):
+            remove_redundant_smzdm_homepage_script_trigger(drifted)
+
+        duplicated = [
+            "[Script]", SMZDM_RSTORE_HOME_TRIGGER,
+            SMZDM_FMZ_HOME_TRIGGER, SMZDM_FMZ_HOME_TRIGGER,
+            "[MITM]", "hostname = homepage-api.smzdm.com",
+        ]
+        with self.assertRaisesRegex(ValueError, "SMZDM homepage FMZ trigger inventory changed"):
+            remove_redundant_smzdm_homepage_script_trigger(duplicated)
+
+
 if __name__ == "__main__":
     unittest.main()

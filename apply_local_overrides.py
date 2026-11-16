@@ -3758,6 +3758,64 @@ def replace_rrtv_json_script_with_native_rewrites(lines):
 
 
 
+SMZDM_RSTORE_HOME_TRIGGER = (
+    r"http-response ^https?:\/\/homepage-api\.smzdm\.com\/v\d\/home "
+    r"script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/smzdm.js,"
+    r"tag=SMZDM-5,requires-body=true"
+)
+SMZDM_FMZ_HOME_TRIGGER = (
+    r"response if ${url} ~= /^https?:\/\/homepage-api\.smzdm\.com\/v3\/home/i "
+    r'then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/smzdm/Smzdm.js") '
+    r'with enable=smzdm_enable, tag="Smzdm", timeout=60, requires_body=true'
+)
+
+
+def remove_redundant_smzdm_homepage_script_trigger(lines):
+    """Remove the duplicate v3 homepage JS dispatch only when the broader R-Store handler is present."""
+    output = list(lines)
+    sections = {}
+    section = ""
+    for line in output:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+            continue
+        normalized = re.sub(r"\\+", "", stripped)
+        if section == "Script" and "homepage-api.smzdm.com" in normalized and "Smzdm.js" in stripped:
+            sections.setdefault("fmz_candidates", []).append(stripped)
+        if section == "Script" and "homepage-api.smzdm.com" in normalized and "smzdm.js" in stripped:
+            sections.setdefault("rstore_candidates", []).append(stripped)
+
+    fmz_candidates = sections.get("fmz_candidates", [])
+    rstore_candidates = sections.get("rstore_candidates", [])
+    if not fmz_candidates:
+        return output, 0
+    if len(fmz_candidates) != 1 or fmz_candidates[0] != SMZDM_FMZ_HOME_TRIGGER:
+        raise ValueError("SMZDM homepage FMZ trigger inventory changed; refusing duplicate cleanup")
+    if not rstore_candidates:
+        # Without the broader R-Store handler, preserve the FMZ trigger.
+        return output, 0
+    if len(rstore_candidates) != 1 or rstore_candidates[0] != SMZDM_RSTORE_HOME_TRIGGER:
+        raise ValueError("SMZDM homepage R-Store trigger inventory changed; refusing duplicate cleanup")
+
+    result = []
+    section = ""
+    removed = 0
+    for line in output:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+            result.append(line)
+            continue
+        if section == "Script" and stripped == SMZDM_FMZ_HOME_TRIGGER:
+            removed += 1
+            continue
+        result.append(line)
+    if removed != 1:
+        raise ValueError("SMZDM homepage duplicate trigger removal count mismatch")
+    return result, removed
+
+
 def apply(text: str) -> str:
     if "[Script]" not in text or "[MITM]" not in text or "[Rewrite]" not in text:
         raise ValueError("plugin missing [Rewrite], [Script] or [MITM] section")
@@ -3873,6 +3931,7 @@ def apply(text: str) -> str:
     lines, _ = remove_redundant_amap_legacy_scripts(lines)
     lines, _ = consolidate_zhihu_response_scripts(lines)
     lines, _ = optimize_xiaohongshu_response_cost(lines)
+    lines, _ = remove_redundant_smzdm_homepage_script_trigger(lines)
 
     result_lines, rewrite_lines = [], []
     section = ""
