@@ -10,6 +10,8 @@ on:
       - 'audit_plugin.py'
       - 'deep_audit.py'
       - 'source_guard.py'
+      - 'stage_romeo_plugins.py'
+      - 'test_stage_romeo_plugins.py'
       - 'amap_dependency_guard.py'
       - 'apply_amap_local_overrides.py'
       - 'test_apply_amap_local_overrides.py'
@@ -34,6 +36,8 @@ on:
     paths:
       - 'validate_plugin.py'
       - 'source_guard.py'
+      - 'stage_romeo_plugins.py'
+      - 'test_stage_romeo_plugins.py'
       - 'merge_plugins.py'
       - 'mitm_policy.py'
       - 'test_mitm_policy.py'
@@ -90,10 +94,27 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
+      - name: 验证 Romeo 插件映射与本地快照
+        run: |
+          git clone --depth 1 https://github.com/ifflagged/Romeo.git /tmp/romeo-check
+          ROMEO_CHECK_SHA="$(git -C /tmp/romeo-check rev-parse HEAD)"
+          python3 stage_romeo_plugins.py --romeo-repo /tmp/romeo-check --commit "$ROMEO_CHECK_SHA" --output /tmp/romeo-check/plugins
+          python3 - <<'PY'
+          from pathlib import Path
+          from source_guard import validate_plugin_file
+          paths = sorted(Path("/tmp/romeo-check/plugins").glob("*"))
+          paths = [p for p in paths if p.suffix.lower() in (".lpx", ".plugin")]
+          total = sum(validate_plugin_file(p, str(p)) for p in paths)
+          if len(paths) != 28 or total < 20:
+              raise SystemExit(f"Romeo plugin feed incomplete: files={len(paths)}, valid_entries={total}")
+          print(f"Romeo plugin feed validated: {len(paths)} files, {total} entries")
+          PY
+
       - name: 编译检查
-        run: python3 -m py_compile merge_plugins.py mitm_policy.py validate_plugin.py source_guard.py audit_plugin.py deep_audit.py amap_dependency_guard.py apply_amap_local_overrides.py compare_rule_provenance.py source_health_guard.py finalize_provenance.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py integrate_spotify.py apply_local_overrides.py
+        run: python3 -m py_compile merge_plugins.py mitm_policy.py validate_plugin.py source_guard.py stage_romeo_plugins.py audit_plugin.py deep_audit.py amap_dependency_guard.py apply_amap_local_overrides.py compare_rule_provenance.py source_health_guard.py finalize_provenance.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py integrate_spotify.py apply_local_overrides.py
       - name: 运行单元与合并集成测试
-        run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_apply_amap_local_overrides.py test_compare_rule_provenance.py test_source_health_guard.py test_finalize_provenance.py test_rule_risk_history.py test_integrate_spotify.py test_convert_qx2loon.py test_convert_filter_qx2loon.py
+        run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_apply_amap_local_overrides.py test_compare_rule_provenance.py test_source_health_guard.py test_finalize_provenance.py test_rule_risk_history.py test_integrate_spotify.py test_convert_qx2loon.py test_convert_filter_qx2loon.py test_stage_romeo_plugins.py test_stage_romeo_plugins.py
       - name: 应用并测试本地插件覆盖
         run: |
           python3 -m unittest -v test_apply_local_overrides.py test_integrate_spotify.py
@@ -130,7 +151,7 @@ jobs:
           python-version: '3.11'
 
       - name: 编译检查
-        run: python3 -m py_compile merge_plugins.py mitm_policy.py validate_plugin.py source_guard.py audit_plugin.py deep_audit.py amap_dependency_guard.py apply_amap_local_overrides.py compare_rule_provenance.py source_health_guard.py finalize_provenance.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py integrate_spotify.py
+        run: python3 -m py_compile merge_plugins.py mitm_policy.py validate_plugin.py source_guard.py stage_romeo_plugins.py audit_plugin.py deep_audit.py amap_dependency_guard.py apply_amap_local_overrides.py compare_rule_provenance.py source_health_guard.py finalize_provenance.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py integrate_spotify.py
 
       - name: 测试校验器与来源依赖门禁
         run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_apply_amap_local_overrides.py test_compare_rule_provenance.py test_source_health_guard.py test_finalize_provenance.py test_rule_risk_history.py test_integrate_spotify.py test_convert_qx2loon.py test_convert_filter_qx2loon.py
@@ -182,40 +203,8 @@ jobs:
           git clone --depth 1 https://github.com/ifflagged/Romeo.git /tmp/romeo
           ROMEO_SHA="$(git -C /tmp/romeo rev-parse HEAD)"
           echo "ROMEO_SHA=$ROMEO_SHA" >> "$GITHUB_ENV"
-          # 用固定 Romeo commit 替换原 AOOMEE 上游；文件名保留兼容，便于来源追溯。
-          # 20 个原 AOOMEE 插件槽由 Romeo 对应作者/应用模块更新，PDD 拆为 filter + rewrite。
-          mkdir -p /tmp/romeo/plugins
-          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/fmz200/12306.lpx" > /tmp/romeo/plugins/12306.lpx
-          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/ishowshu/amap.lpx" > /tmp/romeo/plugins/amap.lpx
-          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/zirawell/boc.lpx" > /tmp/romeo/plugins/boc.plugin
-          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/sooyaaabo/CheLaiLe.lpx" > /tmp/romeo/plugins/chelaile.plugin
-          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/ishowshu/cmbchina.lpx" > /tmp/romeo/plugins/cmbchina.lpx
-          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/ishowshu/didi.lpx" > /tmp/romeo/plugins/didi.lpx
-          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/ishowshu/github.lpx" > /tmp/romeo/plugins/github.lpx
-          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/ishowshu/goofish.lpx" > /tmp/romeo/plugins/goofish.lpx
-          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/ishowshu/hupu.lpx" > /tmp/romeo/plugins/hupu.lpx
-          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/ishowshu/jd.lpx" > /tmp/romeo/plugins/jd.lpx
-          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/ishowshu/keep.lpx" > /tmp/romeo/plugins/keep.lpx
-          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/ishowshu/leisu.lpx" > /tmp/romeo/plugins/leisu.lpx
-          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/ZenmoFeiShi/MT.lpx" > /tmp/romeo/plugins/meituan.lpx
-          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/ishowshu/pdd-filter.lpx" > /tmp/romeo/plugins/pdd-filter.lpx
-          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/ishowshu/pdd-rewrite.lpx" > /tmp/romeo/plugins/pdd-rewrite.lpx
-          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/ishowshu/pupu.lpx" > /tmp/romeo/plugins/pupu.lpx
-          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/ccyykk666/qunar_ad.lpx" > /tmp/romeo/plugins/qunar.plugin
-          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/ishowshu/soul.lpx" > /tmp/romeo/plugins/soul-new.lpx
-          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/ishowshu/taobao.lpx" > /tmp/romeo/plugins/taobao.lpx
-          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/ddgksf2013/UmetripAds.lpx" > /tmp/romeo/plugins/umetrip.plugin
-          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/Maasea/YouTube.Enhance.lpx" > /tmp/romeo/plugins/youtube.lpx
-          # Romeo 没有完整等价版本的 AOOMEE 独有/定制插件：保留已审计快照，不丢失现有功能。
-          cp sources/romeo_legacy/51cg.plugin /tmp/romeo/plugins/51cg.plugin
-          cp sources/romeo_legacy/91porn.plugin /tmp/romeo/plugins/91porn.plugin
-          cp sources/romeo_legacy/cmcc.plugin /tmp/romeo/plugins/cmcc.plugin
-          cp sources/romeo_legacy/huazhu.plugin /tmp/romeo/plugins/huazhu.plugin
-          cp sources/romeo_legacy/chelaile2.plugin /tmp/romeo/plugins/chelaile2.plugin
-          cp sources/romeo_legacy/qunar-legacy.plugin /tmp/romeo/plugins/qunar-legacy.plugin
-          cp sources/romeo_legacy/youtube-zh.lpx /tmp/romeo/plugins/youtube-zh.lpx
-          test "$(find /tmp/romeo/plugins -maxdepth 1 -type f | wc -l)" -eq 28
-          echo "Romeo-backed plugin feed: $(find /tmp/romeo/plugins -maxdepth 1 -type f | wc -l) files"
+          # 固定 Romeo commit 后生成原 AOOMEE 合并槽的兼容插件目录。
+          python3 stage_romeo_plugins.py --romeo-repo /tmp/romeo --commit "$ROMEO_SHA" --output /tmp/romeo/plugins
           # 瓜子影视使用 Romeo 收录的 ddgksf2013 官方 QuanX 源文件，继续走原有 QuanX -> Loon 转换链路。
           git -C /tmp/romeo show "$ROMEO_SHA:Modules/QuantumultX/ddgksf2013/Official/GuaZiVideoAds.conf" > /tmp/GuaZiVideoAds.conf
           wc -c /tmp/GuaZiVideoAds.conf
@@ -272,23 +261,8 @@ jobs:
               "upstream_repository": "https://github.com/ifflagged/Romeo",
               "upstream_commit": os.environ["ROMEO_SHA"],
               "source_mode": "Romeo Modules/Loon + pinned AOOMEE-only local snapshots",
-              "legacy_snapshot_files": [
-                  "51cg.plugin", "91porn.plugin", "cmcc.plugin", "huazhu.plugin",
-                  "chelaile2.plugin", "qunar-legacy.plugin", "youtube-zh.lpx"
-              ],
-              "romeo_module_paths": [
-                  "Modules/Loon/fmz200/12306.lpx", "Modules/Loon/ishowshu/amap.lpx",
-                  "Modules/Loon/zirawell/boc.lpx", "Modules/Loon/sooyaaabo/CheLaiLe.lpx",
-                  "Modules/Loon/ishowshu/cmbchina.lpx", "Modules/Loon/ishowshu/didi.lpx",
-                  "Modules/Loon/ishowshu/github.lpx", "Modules/Loon/ishowshu/goofish.lpx",
-                  "Modules/Loon/ishowshu/hupu.lpx", "Modules/Loon/ishowshu/jd.lpx",
-                  "Modules/Loon/ishowshu/keep.lpx", "Modules/Loon/ishowshu/leisu.lpx",
-                  "Modules/Loon/ZenmoFeiShi/MT.lpx", "Modules/Loon/ishowshu/pdd-filter.lpx",
-                  "Modules/Loon/ishowshu/pdd-rewrite.lpx", "Modules/Loon/ishowshu/pupu.lpx",
-                  "Modules/Loon/ccyykk666/qunar_ad.lpx", "Modules/Loon/ishowshu/soul.lpx",
-                  "Modules/Loon/ishowshu/taobao.lpx", "Modules/Loon/ddgksf2013/UmetripAds.lpx",
-                  "Modules/Loon/Maasea/YouTube.Enhance.lpx"
-              ],
+              "legacy_snapshot_files": list(__import__("stage_romeo_plugins").LEGACY_SNAPSHOTS),
+              "romeo_module_paths": list(__import__("stage_romeo_plugins").ROMEO_PLUGIN_MAP.values()),
               "compatibility_key": "aoomee (retained only to preserve historical provenance continuity)"
           })
           source = report.get("GuaZiVideoAds")
