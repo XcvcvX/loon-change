@@ -1196,11 +1196,12 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertIn(unrelated, result)
         self.assertEqual(remove_redundant_dianping_scripts(result)[1], 0)
 
-    def test_fails_closed_when_dianping_gated_trigger_is_missing(self):
+    def test_preserves_dianping_legacy_trigger_when_gated_twin_is_absent(self):
         from apply_local_overrides import DIANPING_LEGACY_SCRIPT_RULES, remove_redundant_dianping_scripts
         legacy, _, _ = DIANPING_LEGACY_SCRIPT_RULES[0]
-        with self.assertRaisesRegex(ValueError, "gated script trigger missing or changed"):
-            remove_redundant_dianping_scripts([legacy])
+        result, removed = remove_redundant_dianping_scripts([legacy])
+        self.assertEqual(removed, 0)
+        self.assertEqual(result, [legacy])
 
     def test_fails_closed_on_duplicate_dianping_triggers(self):
         from apply_local_overrides import DIANPING_LEGACY_SCRIPT_RULES, remove_redundant_dianping_scripts
