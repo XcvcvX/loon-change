@@ -597,7 +597,7 @@ def remove_redundant_taobao_scripts(lines):
     def normalize_trigger(item):
         value = re.sub(r"\\+", "", item.strip())
         # Accept only the two exact known Loon switch interpolation forms.
-        return re.sub(r"enable=\\$\\{(albb_enable|tcbc_enable)\\}", r"enable=\\1", value)
+        return re.sub(r"enable=\$\{(albb_enable|tcbc_enable)\}", r"enable=\1", value)
 
     canonical = {normalize_trigger(item): item for item in TAOBAO_CANONICAL_SCRIPT_TRIGGERS}
     redundant = {normalize_trigger(item): item for item in TAOBAO_REDUNDANT_SCRIPT_TRIGGERS}
