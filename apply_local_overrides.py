@@ -555,8 +555,13 @@ PDD_ORDER_ENDPOINT_MARKERS = (
 
 def remove_pdd_order_endpoint_blocks(lines):
     """Remove only reviewed request blocks for core order tabs/express data."""
-    counts = {item: 0 for item in PDD_ORDER_ENDPOINT_BLOCKS_TO_PRESERVE}
-    output, section, seen = [], "", False
+    # Loon sources may serialize URL slashes with different escape counts.
+    # Normalize escaping only for exact allowlisted endpoint/action comparisons.
+    def normalized(rule):
+        return re.sub(r"\\+", "", rule.strip())
+
+    known = {normalized(item) for item in PDD_ORDER_ENDPOINT_BLOCKS_TO_PRESERVE}
+    output, section, seen, removed = [], "", False, 0
     for line in lines:
         if line.startswith("[") and line.endswith("]"):
             section = line[1:-1]
@@ -565,12 +570,12 @@ def remove_pdd_order_endpoint_blocks(lines):
         value = line.strip()
         if section == "Rewrite" and any(marker in value for marker in PDD_ORDER_ENDPOINT_MARKERS):
             seen = True
-            if value not in counts:
+            if normalized(value) not in known:
                 raise ValueError(
                     "PDD order endpoint rule changed; refusing unreviewed removal: "
                     + repr(value)
                 )
-            counts[value] += 1
+            removed += 1
             continue
         output.append(line)
 
@@ -578,7 +583,7 @@ def remove_pdd_order_endpoint_blocks(lines):
         return list(lines), 0
     # Upstream sources may prune or duplicate exact known variants; remove every
     # reviewed overblock while continuing to reject any unknown endpoint form.
-    return output, sum(counts.values())
+    return output, removed
 
 
 def remove_redundant_taobao_scripts(lines):
