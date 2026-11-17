@@ -3268,7 +3268,7 @@ def remove_same_source_duplicate_response_scripts(lines):
                 raise ValueError("duplicate same-source retained trigger; refusing ambiguous cleanup")
             output.append(line)
             continue
-        raise ValueError("same-source response trigger inventory changed; refusing unreviewed consolidation")
+        raise ValueError(f"same-source response trigger inventory changed; refusing unreviewed consolidation: {line.strip()}")
 
     if not target_seen:
         return output, 0
