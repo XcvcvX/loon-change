@@ -2598,12 +2598,12 @@ class PinduoduoOrderEndpointSafetyTests(unittest.TestCase):
             r"then response.json.jq(\".orders |= map(.order_buttons |= map(del(.order_growth_tip)))\")"
         )
 
-    def test_removes_only_full_order_request_blocks_and_preserves_ad_field_cleanup(self):
+    def test_removes_known_order_request_variants_and_preserves_ad_field_cleanup(self):
         from apply_local_overrides import remove_pdd_order_endpoint_blocks
         fixture = ["[Rewrite]", *self.targets, self.recommendation,
                    self.shipping_cleanup, self.order_growth_cleanup, "[Script]"]
         result, removed = remove_pdd_order_endpoint_blocks(fixture)
-        self.assertEqual(removed, 4)
+        self.assertEqual(removed, len(self.targets))
         for item in self.targets:
             self.assertNotIn(item, result)
         self.assertIn(self.recommendation, result)
@@ -2612,12 +2612,18 @@ class PinduoduoOrderEndpointSafetyTests(unittest.TestCase):
         result2, removed2 = remove_pdd_order_endpoint_blocks(result)
         self.assertEqual((result2, removed2), (result, 0))
 
-    def test_fails_closed_on_missing_duplicate_or_drifted_order_rules(self):
+    def test_allows_upstream_pruning_and_duplicate_known_order_rules_but_rejects_drift(self):
         from apply_local_overrides import remove_pdd_order_endpoint_blocks
-        with self.assertRaisesRegex(ValueError, "inventory incomplete"):
-            remove_pdd_order_endpoint_blocks(["[Rewrite]", *self.targets[:-1]])
-        with self.assertRaisesRegex(ValueError, "duplicate PDD"):
-            remove_pdd_order_endpoint_blocks(["[Rewrite]", *self.targets, self.targets[0]])
+        missing = ["[Rewrite]", *self.targets[:-1]]
+        result, removed = remove_pdd_order_endpoint_blocks(missing)
+        self.assertEqual(removed, len(self.targets) - 1)
+        self.assertEqual(result, ["[Rewrite]"])
+
+        duplicate = ["[Rewrite]", *self.targets, self.targets[0]]
+        result, removed = remove_pdd_order_endpoint_blocks(duplicate)
+        self.assertEqual(removed, len(self.targets) + 1)
+        self.assertEqual(result, ["[Rewrite]"])
+
         drifted = self.targets[0].replace("reject_dict(200)", "reject(404)")
         with self.assertRaisesRegex(ValueError, "rule changed"):
             remove_pdd_order_endpoint_blocks(["[Rewrite]", *self.targets[1:], drifted])
