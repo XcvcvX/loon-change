@@ -919,6 +919,22 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertIn(unrelated, script)
         self.assertEqual(apply(result), result)
 
+    def test_removes_current_didi_usercenter_fmz_script_switch_template(self):
+        from apply_local_overrides import (
+            DIDI_USERCENTER_CANONICAL_TRIGGER,
+            DIDI_USERCENTER_REDUNDANT_TRIGGER_CURRENT,
+        )
+        fixture = BASE.replace(
+            "[Script]",
+            "[Script]\\n" + DIDI_USERCENTER_CANONICAL_TRIGGER
+            + "\\n" + DIDI_USERCENTER_REDUNDANT_TRIGGER_CURRENT,
+        )
+        result = apply(fixture)
+        script = result.split("[Script]", 1)[1].split("[MITM]", 1)[0]
+        self.assertEqual(script.count(DIDI_USERCENTER_CANONICAL_TRIGGER), 1)
+        self.assertNotIn(DIDI_USERCENTER_REDUNDANT_TRIGGER_CURRENT, script)
+        self.assertEqual(apply(result), result)
+
     def test_fails_closed_when_didi_usercenter_trigger_drifts(self):
         from apply_local_overrides import DIDI_USERCENTER_REDUNDANT_TRIGGER
         changed = DIDI_USERCENTER_REDUNDANT_TRIGGER.replace("requires_body=true", "requires_body=false")
