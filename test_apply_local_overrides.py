@@ -3952,6 +3952,19 @@ class BilibiliProtobufDuplicateTriggerTests(unittest.TestCase):
         mainlist_pattern = re.compile(mainlist.split(" script-path=")[0].removeprefix("http-response "))
         self.assertIsNotNone(mainlist_pattern.search("https://grpc.biliapi.net/bilibili.main.community.reply.v1.Reply/MainList"))
         self.assertIsNotNone(mainlist_pattern.search("https://app.bilibili.com/bilibili.main.community.reply.v9.Reply/MainList"))
+        import re
+        expected_boundaries = {
+            "DynAll": ("/bilibili.app.dynamic.v1.Dynamic/DynAll", "/bilibili.app.dynamic.v2.Dynamic/DynAll", "/bilibili.app.dynamic.v9.Dynamic/DynAll"),
+            "viewunite": ("/bilibili.app.view.v1.View/View", "/bilibili.app.viewunite.v2.View/View", "/bilibili.app.viewunite.v9.View/View"),
+            "DmView": ("/bilibili.community.service.dm.v1.DM/DmView", "/bilibili.community.service.dm.v2.DM/DmView", "/bilibili.community.service.dm.v9.DM/DmView"),
+            "SearchAll": ("/bilibili.polymer.app.search.v1.Search/SearchAll", "/bilibili.polymer.app.search.v2.Search/SearchAll", "/bilibili.polymer.app.search.v9.Search/SearchAll"),
+        }
+        for marker, original, narrowed in BILIBILI_PROTOBUF_DUPLICATE_PAIRS:
+            pattern = re.compile(narrowed.split(" script-path=")[0].removeprefix("http-response "))
+            v1, v2, v9 = expected_boundaries[marker]
+            self.assertEqual(bool(pattern.search("https://app.bilibili.com" + v1)), marker in ("DynAll",))
+            self.assertEqual(bool(pattern.search("https://app.bilibili.com" + v2)), marker != "DynAll")
+            self.assertTrue(pattern.search("https://grpc.biliapi.net" + v9))
         again, second_changed = narrow_duplicate_bilibili_protobuf_triggers(result)
         self.assertEqual(second_changed, 0)
         self.assertEqual(again, result)
