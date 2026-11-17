@@ -4095,3 +4095,91 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "native response rule changed"):
             optimize_bilibili_json_native_coverage(missing_native)
 
+
+
+    def test_amap_response_script_overlap_cleanup_preserves_coverage_and_reduces_body_scripts(self):
+        from pathlib import Path
+        from apply_local_overrides import (
+            apply, AMAP_VERSIONED_RSTORE_SCRIPT_MARKERS,
+            AMAP_ISHOWSHU_REDUNDANT_SCRIPT_MARKERS,
+            optimize_amap_response_script_overlaps,
+        )
+        plugin = Path(__file__).parent / "allAdRewrite.plugin"
+        original = plugin.read_text(encoding="utf-8")
+        result, removed = optimize_amap_response_script_overlaps(original.splitlines())
+        self.assertEqual(removed, 4)
+        script = "\n".join(result).split("[Script]", 1)[1].split("[MITM]", 1)[0]
+        for marker in AMAP_ISHOWSHU_REDUNDANT_SCRIPT_MARKERS:
+            self.assertFalse(any(
+                marker in line.lower() and "ishowshu_amap.js" in line.lower()
+                for line in script.splitlines()
+            ), marker)
+        # Bus-plan iShowshu is intentionally retained: it additionally removes
+        # hkfRecommendPlans, which the native rewrite does not cover.
+        self.assertTrue(any(
+            "/ws/bus/plan/integrate" in line.lower() and "ishowshu_amap.js" in line.lower()
+            for line in script.splitlines()
+        ))
+        for marker in AMAP_VERSIONED_RSTORE_SCRIPT_MARKERS:
+            rows = [
+                line for line in script.splitlines()
+                if marker in line.lower() and "/res/scripts/antiad/amap.js" in line.lower()
+            ]
+            self.assertEqual(len(rows), 1, marker)
+            self.assertIn("m[0-46-9]", rows[0], marker)
+            self.assertNotRegex(rows[0], r"m\\+d")
+        self.assertIn("sources/amap/rucu6_amap.js", script)
+        second, second_removed = optimize_amap_response_script_overlaps(result)
+        self.assertEqual(second, result)
+        self.assertEqual(second_removed, 0)
+        generated = apply(original)
+        self.assertEqual(generated, apply(generated))
+
+    def test_amap_overlap_cleanup_preserves_original_when_canonical_cover_is_missing(self):
+        from pathlib import Path
+        from apply_local_overrides import (
+            AMAP_ISHOWSHU_REDUNDANT_SCRIPT_MARKERS,
+            optimize_amap_response_script_overlaps,
+        )
+        plugin = Path(__file__).parent / "allAdRewrite.plugin"
+        lines = plugin.read_text(encoding="utf-8").splitlines()
+        before_marker = AMAP_ISHOWSHU_REDUNDANT_SCRIPT_MARKERS[0]
+        without_native = [
+            line for line in lines
+            if not (before_marker in line.lower() and "response.json.jq(" in line)
+        ]
+        preserved, _ = optimize_amap_response_script_overlaps(without_native)
+        preserved_script = "\n".join(preserved).split("[Script]", 1)[1].split("[MITM]", 1)[0]
+        self.assertTrue(any(
+            before_marker in line.lower() and "ishowshu_amap.js" in line.lower()
+            for line in preserved_script.splitlines()
+        ))
+        nearby_marker = AMAP_ISHOWSHU_REDUNDANT_SCRIPT_MARKERS[1]
+        without_local = [
+            line for line in lines
+            if not (nearby_marker in line.lower() and "sources/amap/rucu6_amap.js" in line.lower())
+        ]
+        preserved, _ = optimize_amap_response_script_overlaps(without_local)
+        preserved_script = "\n".join(preserved).split("[Script]", 1)[1].split("[MITM]", 1)[0]
+        self.assertTrue(any(
+            nearby_marker in line.lower() and "ishowshu_amap.js" in line.lower()
+            for line in preserved_script.splitlines()
+        ))
+
+    def test_amap_overlap_cleanup_rejects_ambiguous_duplicate_canonical_handlers(self):
+        from pathlib import Path
+        from apply_local_overrides import (
+            AMAP_ISHOWSHU_REDUNDANT_SCRIPT_MARKERS,
+            optimize_amap_response_script_overlaps,
+        )
+        plugin = Path(__file__).parent / "allAdRewrite.plugin"
+        lines = plugin.read_text(encoding="utf-8").splitlines()
+        marker = AMAP_ISHOWSHU_REDUNDANT_SCRIPT_MARKERS[1]
+        canonical = next(
+            line for line in lines
+            if marker in line.lower() and "sources/amap/rucu6_amap.js" in line.lower()
+        )
+        lines.append(canonical)
+        with self.assertRaisesRegex(ValueError, "duplicate canonical local Amap trigger"):
+            optimize_amap_response_script_overlaps(lines)
+
