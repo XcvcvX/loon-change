@@ -1412,7 +1412,7 @@ AMAP_ISHOWSHU_REDUNDANT_SCRIPT_MARKERS = (
     "/ws/aos/perception/publictravel/beforenavi",
     "/ws/shield/search/nearbyrec_smart",
     "/ws/promotion-web/resource",
-    "/ws/faas/amap-navigation/(card-service-plan-home|main-page)",
+    "card-service-plan-home|main-page",
 )
 
 
