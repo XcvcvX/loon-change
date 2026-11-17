@@ -1843,6 +1843,16 @@ class BilibiliNonAdFeatureScopeTests(unittest.TestCase):
         self.assertNotIn(tracker_rule, result)
         self.assertIn("/x/v2/feed/index", "\n".join(result).replace(chr(92), ""))
 
+    def test_narrows_playback_mock_without_the_non_ad_playpause_endpoint(self):
+        from apply_local_overrides import normalize_bilibili_non_ad_feature_overrides
+        old = "response if ${url} ~= /^https:\\/\\/grpc\\.biliapi\\.net\\/bilibili\\.app\\.(view\\.v1\\.View\\/TFInfo|viewunite\\.v1\\.View\\/(PlayPause|ViewEndPage))$/i then response.body.mock(\"text\", \"AAAAAAA=\", 200, true) | response.header.set(\"grpc-status\", \"0\")"
+        new = "response if ${url} ~= /^https:\\/\\/grpc\\.biliapi\\.net\\/bilibili\\.app\\.(view\\.v1\\.View\\/TFInfo|viewunite\\.v1\\.View\\/ViewEndPage)$/i then response.body.mock(\"text\", \"AAAAAAA=\", 200, true) | response.header.set(\"grpc-status\", \"0\")"
+        self.assertIn((old, new), self.replacements)
+        result, changed = normalize_bilibili_non_ad_feature_overrides(self.base)
+        self.assertEqual(changed, len(self.remove_rules) + len(self.replacements))
+        self.assertNotIn(old, result)
+        self.assertEqual(result.count(new), 1)
+
     def test_checked_in_plugin_has_no_vip_paywall_or_teen_mode_bypass(self):
         from pathlib import Path
         from apply_local_overrides import BILIBILI_NON_AD_FEATURE_RULES, BILIBILI_NON_AD_FEATURE_REPLACEMENTS
