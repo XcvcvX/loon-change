@@ -12,6 +12,8 @@ on:
       - 'source_guard.py'
       - 'stage_romeo_plugins.py'
       - 'test_stage_romeo_plugins.py'
+      - 'romeo_resource_map.json'
+      - 'romeo_resource_map.json'
       - 'amap_dependency_guard.py'
       - 'apply_amap_local_overrides.py'
       - 'test_apply_amap_local_overrides.py'
@@ -192,11 +194,6 @@ jobs:
           git clone --depth 1 https://github.com/Thelongdarkorg/loon-plugins.git /tmp/loon-plugins
           ls /tmp/loon-plugins/*_ad_block.plugin /tmp/loon-plugins/*_splash_ad_block.plugin | wc -l
 
-      - name: 拉取 zmjde 去广告插件
-        run: |
-          git clone --depth 1 https://github.com/zmjde/loon-plugins.git /tmp/zmjde
-          ls /tmp/zmjde/Plugin | wc -l
-
       - name: 固定 Romeo 上游版本并同步 App 插件、瓜子影视、高德与 MyBlockAds 依赖
         run: |
           mkdir -p /tmp/amap sources/amap sources/alipayAdBlock
@@ -204,7 +201,7 @@ jobs:
           ROMEO_SHA="$(git -C /tmp/romeo rev-parse HEAD)"
           echo "ROMEO_SHA=$ROMEO_SHA" >> "$GITHUB_ENV"
           # 固定 Romeo commit 后生成原 AOOMEE 合并槽的兼容插件目录。
-          python3 stage_romeo_plugins.py --romeo-repo /tmp/romeo --commit "$ROMEO_SHA" --output /tmp/romeo/plugins
+          python3 stage_romeo_plugins.py --romeo-repo /tmp/romeo --commit "$ROMEO_SHA" --output /tmp/romeo/plugins --zmjde-output /tmp/romeo-zmjde/Plugin
           # 瓜子影视使用 Romeo 收录的 ddgksf2013 官方 QuanX 源文件，继续走原有 QuanX -> Loon 转换链路。
           git -C /tmp/romeo show "$ROMEO_SHA:Modules/QuantumultX/ddgksf2013/Official/GuaZiVideoAds.conf" > /tmp/GuaZiVideoAds.conf
           wc -c /tmp/GuaZiVideoAds.conf
@@ -239,11 +236,11 @@ jobs:
 
       - name: 校验克隆来源并生成来源报告
         run: |
-          python3 source_guard.py --thelong /tmp/loon-plugins --romeo /tmp/romeo --zmjde /tmp/zmjde --qxapp /tmp/GuaZiVideoAds.conf --amap /tmp/amap/Amap.lpx --previous-report source-report.json --report source-report.json
+          python3 source_guard.py --thelong /tmp/loon-plugins --romeo /tmp/romeo --zmjde /tmp/romeo-zmjde --qxapp /tmp/GuaZiVideoAds.conf --amap /tmp/amap/Amap.lpx --previous-report source-report.json --report source-report.json
           python3 - <<'PY'
           import json, os
           from pathlib import Path
-          from stage_romeo_plugins import LEGACY_SNAPSHOTS, ROMEO_PLUGIN_MAP
+          from stage_romeo_plugins import (LEGACY_SNAPSHOTS, ROMEO_PLUGIN_MAP, ZMJDE_APP_MAP, ZMJDE_GENERAL_MAP)
           report_path = Path("source-report.json")
           report = json.loads(report_path.read_text(encoding="utf-8"))
           from source_guard import validate_alipayadblock
@@ -274,6 +271,17 @@ jobs:
               "upstream_commit": os.environ["ROMEO_SHA"],
               "upstream_path": "Modules/QuantumultX/ddgksf2013/Official/GuaZiVideoAds.conf",
           })
+          zmjde_slot = report.get("zmjde")
+          if not isinstance(zmjde_slot, dict):
+              raise SystemExit("source-report.json 缺少 Romeo 映射后的历史 zmjde 兼容槽统计")
+          zmjde_slot.update({
+              "upstream_repository": "https://github.com/ifflagged/Romeo",
+              "upstream_commit": os.environ["ROMEO_SHA"],
+              "source_mode": "Romeo Modules/Loon/Kelee/Official; historical zmjde merge priority retained",
+              "app_plugin_paths": list(ZMJDE_APP_MAP.values()),
+              "general_plugin_paths": list(ZMJDE_GENERAL_MAP.values()),
+              "compatibility_key": "zmjde (retained only for historical merge/provenance continuity)"
+          })
           report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
           PY
           python3 amap_dependency_guard.py --assets /tmp/amap --plugin /tmp/amap/Amap.lpx --commit "$ROMEO_SHA" --report source-report.json
@@ -281,7 +289,7 @@ jobs:
           cp /tmp/amap/* sources/amap/
 
       - name: 合并各来源去广告规则（临时目录）
-        run: python3 merge_plugins.py --base /tmp/loon-build/allAdRewrite.plugin --extra fetch --filter fetch --apps /tmp/loon-plugins --romeo-plugins /tmp/romeo --zmjde /tmp/zmjde --qxapp /tmp/GuaZiVideoAds.conf --amap /tmp/amap/Amap.lpx --myblockads fetch --alipayadblock sources/alipayAdBlock/alipayAdBlock.lpx --out /tmp/loon-build/allAdRewrite.plugin --provenance-out /tmp/loon-build/rule-provenance.json --source-report source-report.json
+        run: python3 merge_plugins.py --base /tmp/loon-build/allAdRewrite.plugin --extra fetch --filter fetch --apps /tmp/loon-plugins --romeo-plugins /tmp/romeo --zmjde /tmp/romeo-zmjde --qxapp /tmp/GuaZiVideoAds.conf --amap /tmp/amap/Amap.lpx --myblockads fetch --alipayadblock sources/alipayAdBlock/alipayAdBlock.lpx --out /tmp/loon-build/allAdRewrite.plugin --provenance-out /tmp/loon-build/rule-provenance.json --source-report source-report.json
 
       - name: 保存合并阶段产物用于最终来源追溯
         run: cp /tmp/loon-build/allAdRewrite.plugin /tmp/loon-build/allAdRewrite.after-merge.plugin
