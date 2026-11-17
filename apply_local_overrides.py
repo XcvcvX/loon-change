@@ -1397,6 +1397,124 @@ def remove_redundant_baidumap_script(lines):
 
 
 
+
+
+# Amap has versioned m{digit} legacy triggers alongside m5 modern handlers.
+# Keep legacy coverage for non-m5 hosts, but avoid running duplicate body scripts
+# on m5 where a native Rewrite or the repository-local Rucu6 handler is canonical.
+AMAP_VERSIONED_RSTORE_SCRIPT_MARKERS = (
+    "/ws/aos/perception/publictravel/beforenavi",
+    "/ws/bus/plan/integrate",
+    "/ws/shield/search/nearbyrec_smart",
+    "/ws/promotion-web/resource",
+)
+AMAP_ISHOWSHU_REDUNDANT_SCRIPT_MARKERS = (
+    "/ws/aos/perception/publictravel/beforenavi",
+    "/ws/shield/search/nearbyrec_smart",
+    "/ws/promotion-web/resource",
+    "/ws/faas/amap-navigation/(card-service-plan-home|main-page)",
+)
+
+
+def optimize_amap_response_script_overlaps(lines):
+    """Narrow versioned legacy Amap triggers and remove only proven m5 duplicates."""
+    output = list(lines)
+
+    def section_entries(section_name):
+        result, section = [], ""
+        for index, line in enumerate(output):
+            stripped = line.strip()
+            if stripped.startswith("[") and stripped.endswith("]"):
+                section = stripped[1:-1]
+            elif section == section_name:
+                result.append((index, line))
+        return result
+
+    def normalized(value):
+        return re.sub(r"\\\\+", "", value.strip()).lower()
+
+    script_entries = section_entries("Script")
+    rewrite_entries = section_entries("Rewrite")
+
+    def matches(entries, marker, token):
+        return [
+            index for index, line in entries
+            if marker in normalized(line) and token in normalized(line)
+        ]
+
+    rstore_cover = {
+        AMAP_VERSIONED_RSTORE_SCRIPT_MARKERS[0]: bool(matches(
+            rewrite_entries,
+            AMAP_VERSIONED_RSTORE_SCRIPT_MARKERS[0],
+            "response.json.jq(",
+        )),
+        AMAP_VERSIONED_RSTORE_SCRIPT_MARKERS[1]: bool(matches(
+            script_entries,
+            AMAP_VERSIONED_RSTORE_SCRIPT_MARKERS[1],
+            "ishowshu_amap.js",
+        )),
+        AMAP_VERSIONED_RSTORE_SCRIPT_MARKERS[2]: bool(matches(
+            script_entries,
+            AMAP_VERSIONED_RSTORE_SCRIPT_MARKERS[2],
+            "sources/amap/rucu6_amap.js",
+        )),
+        AMAP_VERSIONED_RSTORE_SCRIPT_MARKERS[3]: bool(matches(
+            script_entries,
+            AMAP_VERSIONED_RSTORE_SCRIPT_MARKERS[3],
+            "sources/amap/rucu6_amap.js",
+        )),
+    }
+
+    for marker in AMAP_VERSIONED_RSTORE_SCRIPT_MARKERS:
+        candidates = matches(script_entries, marker, "/res/scripts/antiad/amap.js")
+        if len(candidates) > 1:
+            raise ValueError("duplicate versioned Amap legacy trigger: " + marker)
+        if not candidates or not rstore_cover[marker]:
+            continue
+        index = candidates[0]
+        line = output[index]
+        if "m[0-46-9]" in line:
+            continue
+        updated, count = re.subn(r"m\\+d", "m[0-46-9]", line, count=1, flags=re.IGNORECASE)
+        if count != 1:
+            raise ValueError("Amap legacy host-version matcher changed: " + marker)
+        output[index] = updated
+
+    native_before = matches(
+        rewrite_entries,
+        AMAP_ISHOWSHU_REDUNDANT_SCRIPT_MARKERS[0],
+        "response.json.jq(",
+    )
+    if len(native_before) > 1:
+        raise ValueError("duplicate Amap beforeNavi native handler")
+    if native_before:
+        targets = matches(
+            script_entries,
+            AMAP_ISHOWSHU_REDUNDANT_SCRIPT_MARKERS[0],
+            "ishowshu_amap.js",
+        )
+        if len(targets) > 1:
+            raise ValueError("duplicate Amap beforeNavi iShowshu trigger")
+        if targets:
+            output[targets[0]] = None
+
+    for marker in AMAP_ISHOWSHU_REDUNDANT_SCRIPT_MARKERS[1:]:
+        canonical = matches(script_entries, marker, "sources/amap/rucu6_amap.js")
+        if len(canonical) > 1:
+            raise ValueError("duplicate canonical local Amap trigger: " + marker)
+        if not canonical:
+            continue
+        targets = matches(script_entries, marker, "ishowshu_amap.js")
+        if len(targets) > 1:
+            raise ValueError("duplicate Amap iShowshu trigger: " + marker)
+        if targets:
+            output[targets[0]] = None
+
+    result = [line for line in output if line is not None]
+    removed = len(output) - len(result)
+    return result, removed
+
+
 AMAP_LEGACY_SCRIPT_EXPECTED_COUNT = None
 AMAP_LEGACY_SCRIPT_PATH_MARKERS = (
     "/ws/aos/perception/publictravel/beforenavi",
@@ -4737,6 +4855,7 @@ def apply(text: str) -> str:
     lines, _ = remove_redundant_dianping_scripts(lines)
     lines, _ = remove_redundant_baidumap_script(lines)
     lines, _ = remove_redundant_amap_legacy_scripts(lines)
+    lines, _ = optimize_amap_response_script_overlaps(lines)
     lines, _ = consolidate_zhihu_response_scripts(lines)
     lines, _ = optimize_xiaohongshu_response_cost(lines)
     lines, _ = remove_redundant_smzdm_homepage_script_trigger(lines)
