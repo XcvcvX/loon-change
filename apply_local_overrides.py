@@ -331,6 +331,64 @@ def consolidate_pdd_homepage_script(lines):
     return output, counts["ishowshu"] + counts["rstore"]
 
 
+
+PDD_HOMEPAGE_NATIVE_JQ_RULE = "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/homepage\\/hub\\?/i then response.json.jq(\"if (.result | type) == \\\"object\\\" then del(.result.dy_module.irregular_banner_dy, .result.icon_set, .result.search_bar_hot_query) | .result.bottom_tabs? |= (if type == \\\"array\\\" then map(select(. != null and (.title | IN(\\\"首页\\\", \\\"聊天\\\", \\\"个人中心\\\")) and ((.link // \\\"\\\") | tostring | IN(\\\"index.html\\\", \\\"chat_list.html\\\", \\\"personal.html\\\")))) else . end) | .result.buffer_bottom_tabs? |= (if type == \\\"array\\\" then map(select(. != null and ((.link // \\\"\\\") | tostring | IN(\\\"index.html\\\", \\\"chat_list.html\\\", \\\"personal.html\\\")))) else . end) | .result.all_top_opts? |= (if type == \\\"array\\\" then [] else . end) | .result.module_order? |= (if type == \\\"array\\\" then map(select(. != null and . != false and . != 0 and . != \\\"\\\" and ((.module_name // \\\"\\\") | IN(\\\"irregular_banner_dy\\\", \\\"irregular_banner\\\", \\\"ad_module\\\", \\\"icon_set\\\", \\\"recommend_fresh_info\\\", \\\"timeline\\\") | not))) else . end) else . end\")"
+PDD_HOMEPAGE_NATIVE_REQUIRED_MARKERS = (
+    "response.json.delete(",
+    "result.dy_module.irregular_banner_dy",
+    "result.icon_set",
+    "result.search_bar_hot_query",
+    "bottom_tabs?",
+    "buffer_bottom_tabs?",
+    "all_top_opts",
+)
+
+
+def consolidate_pdd_homepage_native_response(lines):
+    """Replace split PDD homepage cleanup with one native jq response pass."""
+    output = list(lines)
+    section = ""
+    script_indices, rewrite_indices = [], []
+    marker = "api.pinduoduo.com/api/alexa/homepage/hub"
+
+    def normalize(value):
+        return value.replace(chr(92), "").strip().lower()
+
+    for index, line in enumerate(output):
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+        elif section == "Script" and marker in normalize(line) and "scripts/pinduoduo/pdd-homepage.js" in normalize(line):
+            script_indices.append(index)
+        elif section == "Rewrite" and marker in normalize(line) and (
+            "response.json.delete(" in normalize(line) or "response.json.jq(" in normalize(line)
+        ):
+            rewrite_indices.append(index)
+
+    if len(script_indices) > 1:
+        raise ValueError("duplicate Pinduoduo homepage local script trigger")
+    if len(rewrite_indices) > 1:
+        raise ValueError("duplicate Pinduoduo homepage native response rule")
+    if not script_indices or not rewrite_indices:
+        return output, 0
+
+    rewrite_index = rewrite_indices[0]
+    native_line = output[rewrite_index]
+    native_normalized = normalize(native_line)
+    canonical_normalized = normalize(PDD_HOMEPAGE_NATIVE_JQ_RULE)
+    if native_normalized != canonical_normalized:
+        missing = [
+            item for item in PDD_HOMEPAGE_NATIVE_REQUIRED_MARKERS
+            if item not in native_normalized
+        ]
+        if missing:
+            raise ValueError("Pinduoduo homepage native rule changed; refusing unreviewed replacement: " + ", ".join(missing))
+        output[rewrite_index] = PDD_HOMEPAGE_NATIVE_JQ_RULE
+
+    output[script_indices[0]] = None
+    return [line for line in output if line is not None], 1
+
+
 # 拼多多 images.pinduoduo.com 是商品图片 CDN；只拦截其广告素材路径，不整域拒绝。
 PDD_IMAGE_CDN_HOST = "images.pinduoduo.com"
 PDD_IMAGE_CDN_BROAD_BLOCK = "DOMAIN,images.pinduoduo.com,REJECT"
@@ -1771,8 +1829,8 @@ JD_RSTORE_LEGACY_TRIGGER = r"http-response ^https?:\/\/api\.m\.jd\.com\/client\.
 JD_FMZ_LEGACY_TRIGGER = r'response if ${url} ~= /^https:\/\/api\.m\.jd\.com\/client\.action\?functionId=(deliverLayer|getTabHomeInfo|myOrderInfo|orderTrackBusiness|personinfoBusiness|start|welcomeHome)/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/jingdong/jingdong.js") with enable=jkds_enable, tag="京东", timeout=60, requires_body=true'
 JD_FMZ_LEGACY_TRIGGER_CURRENT = r'response if ${url} ~= /^https:\/\/api\.m\.jd\.com\/client\.action\?functionId=(deliverLayer|getTabHomeInfo|myOrderInfo|orderTrackBusiness|personinfoBusiness|start|welcomeHome)/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/jingdong/jingdong.js") with enable=${jkds_enable}, tag="京东", timeout=60, requires_body=true'
 JD_FMZ_LEGACY_TRIGGERS = (JD_FMZ_LEGACY_TRIGGER, JD_FMZ_LEGACY_TRIGGER_CURRENT)
-JD_CANONICAL_TRIGGER = r"http-response ^https?:\/\/api\.m\.jd\.com\/client\.action\?functionId=(?:deliverLayer|getTabHomeInfo|myOrderInfo|orderTrackBusiness|personinfoBusiness|start|welcomeHome|readCustomSurfaceList) script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/jingdong/jd.js,tag=JD-CONSOLIDATED,requires-body=true"
-JD_OPTIONAL_WELCOME_TRIGGER = r'response if ${url} ~= /^https:\/\/api\.m\.jd\.com\/client\.action\?functionId=welcomeHome/i then script("https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/jingdong/jd-welcome.js") with enable=${jkds_enable}, tag="京东首页额外清理", timeout=60, requires_body=true'
+JD_CANONICAL_TRIGGER = r"http-response ^https?:\/\/api\.m\.jd\.com\/client\.action\?functionId=(?:deliverLayer|getTabHomeInfo|myOrderInfo|orderTrackBusiness|personinfoBusiness|start|readCustomSurfaceList) script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/jingdong/jd.js,tag=JD-CONSOLIDATED,requires-body=true"
+JD_OPTIONAL_WELCOME_TRIGGER = r'response if ${url} ~= /^https:\/\/api\.m\.jd\.com\/client\.action\?functionId=welcomeHome/i then script("https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/jingdong/jd.js", {${jkds_enable}}) with tag="JD-CONSOLIDATED-WELCOME", timeout=60, requires_body=true'
 
 
 def consolidate_jingdong_scripts(lines):
@@ -4932,6 +4990,7 @@ def apply(text: str) -> str:
         existing_rewrites = {item.strip() for item in rewrite_lines}
         rewrite_lines.extend(rule for rule in GAODING_NATIVE_RULES if rule not in existing_rewrites and ((rule == GAODING_NATIVE_RULES[0] and GAODING_TEMPLATE_SCRIPT_TRIGGER in gaoding_converted_triggers) or (rule == GAODING_NATIVE_RULES[1] and GAODING_MINE_SCRIPT_TRIGGER in gaoding_converted_triggers)))
         result_lines.extend(rewrite_lines)
+    result_lines, _ = consolidate_pdd_homepage_native_response(result_lines)
     result_lines, _ = apply_didi_script_and_homepage_cleanup(result_lines)
     result = "\n".join(result_lines)
     # Scope YYting to the two confirmed hosts. Upstream and generated plugin

@@ -1551,8 +1551,8 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertEqual(result.count(JD_CANONICAL_TRIGGER), 1)
         self.assertEqual(result.count(JD_OPTIONAL_WELCOME_TRIGGER), 1)
         self.assertIn("scripts/jingdong/jd.js", result)
-        self.assertIn("scripts/jingdong/jd-welcome.js", result)
-        self.assertIn("with enable=${jkds_enable}", result)
+        self.assertNotIn("jd-welcome.js", result)
+        self.assertIn("{${jkds_enable}}", result)
         self.assertEqual(apply(result), result)
 
     def test_accepts_current_jingdong_switch_interpolation_and_preserves_it(self):
@@ -1565,7 +1565,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertNotIn(JD_FMZ_LEGACY_TRIGGER_CURRENT, result)
         self.assertIn(JD_CANONICAL_TRIGGER, result)
         self.assertIn(JD_OPTIONAL_WELCOME_TRIGGER, result)
-        self.assertIn("enable=${jkds_enable}", JD_OPTIONAL_WELCOME_TRIGGER)
+        self.assertIn("{${jkds_enable}}", JD_OPTIONAL_WELCOME_TRIGGER)
         self.assertEqual(apply(result), result)
 
     def test_fails_closed_when_either_legacy_trigger_drifts_or_is_missing(self):
@@ -1596,12 +1596,18 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
             "functionId=orderTrackBusiness", "functionId=getTabHomeInfo",
             "functionId=myOrderInfo", "functionId=personinfoBusiness",
             "PERSON_INFO_BUSINESS_MID_EXCLUDE", "WELCOME_HOME_TYPE_INCLUDE",
-            "CUSTOM_SURFACE_NAME_INCLUDE", "JSON.parse(body)",
+            "CUSTOM_SURFACE_NAME_INCLUDE", "welcomeExtraEnabled",
+            "WELCOME_HOME_EXTRA_EXCLUDE", "$argument", "jkds_enable", "JSON.parse(body)",
             "$done({ body: JSON.stringify(obj) })",
         ):
             self.assertIn(marker, base_script)
         self.assertIn("catch (_)", base_script)
-        self.assertIn("with enable=${jkds_enable}", __import__("apply_local_overrides").JD_OPTIONAL_WELCOME_TRIGGER)
+        from apply_local_overrides import JD_CANONICAL_TRIGGER, JD_OPTIONAL_WELCOME_TRIGGER
+        self.assertNotIn("welcomeHome", JD_CANONICAL_TRIGGER)
+        self.assertIn("functionId=welcomeHome", JD_OPTIONAL_WELCOME_TRIGGER)
+        self.assertIn("{${jkds_enable}}", JD_OPTIONAL_WELCOME_TRIGGER)
+        self.assertIn("scripts/jingdong/jd.js", JD_OPTIONAL_WELCOME_TRIGGER)
+        self.assertNotIn("jd-welcome.js", JD_OPTIONAL_WELCOME_TRIGGER)
         for marker in (
             "bottomXview", "float", "photoCeiling", "ruleFloat",
             "searchIcon", "topRotate", "tabBarAtmosphere",
@@ -3999,6 +4005,33 @@ class PinduoduoOrderEndpointVariantTests(unittest.TestCase):
             remove_pdd_order_endpoint_blocks(["[Rewrite]", unknown])
 
 
+
+def _build_amap_unoptimized_fixture():
+    from pathlib import Path
+    plugin = Path(__file__).parent / "allAdRewrite.plugin"
+    lines = plugin.read_text(encoding="utf-8").splitlines()
+    markers = (
+        "/ws/aos/perception/publictravel/beforenavi",
+        "/ws/bus/plan/integrate",
+        "/ws/shield/search/nearbyrec_smart",
+        "/ws/promotion-web/resource",
+    )
+    for index, line in enumerate(lines):
+        normalized = line.replace(chr(92), "").lower()
+        if "/res/scripts/antiad/amap.js" in normalized and any(m in normalized for m in markers):
+            lines[index] = line.replace("m[0-46-9]", "m" + chr(92) + "d")
+    romeo = "https://raw.githubusercontent.com/ifflagged/Romeo/f056c091074a4c29ad0289d7d31f39d47a4ea3d1/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js"
+    duplicates = [
+        r'response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/aos\/perception\/publicTravel\/beforeNavi\?/i then script("' + romeo + r'") with tag="amap", timeout=60, requires_body=true',
+        r'response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/shield\/search\/nearbyrec_smart\?/i then script("' + romeo + r'") with tag="amap", timeout=60, requires_body=true',
+        r'response if ${url} ~= /^https:\/\/m5-zb\.amap\.com\/ws\/promotion-web\/resource(\/home)?\?/i then script("' + romeo + r'") with tag="amap", timeout=60, requires_body=true',
+        r'response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/faas\/amap-navigation\/(card-service-plan-home|main-page)/i then script("' + romeo + r'") with tag="amap", timeout=60, requires_body=true',
+    ]
+    mitm_index = next(i for i, line in enumerate(lines) if line.strip() == "[MITM]")
+    lines[mitm_index:mitm_index] = duplicates
+    return lines
+
+
 class BilibiliJsonNativeCoverageTests(unittest.TestCase):
     def test_narrows_only_native_covered_triggers_and_expands_native_filters(self):
         from apply_local_overrides import (
@@ -4106,7 +4139,8 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
         )
         plugin = Path(__file__).parent / "allAdRewrite.plugin"
         original = plugin.read_text(encoding="utf-8")
-        result, removed = optimize_amap_response_script_overlaps(original.splitlines())
+        fixture = _build_amap_unoptimized_fixture()
+        result, removed = optimize_amap_response_script_overlaps(fixture)
         self.assertEqual(removed, 4)
         script = "\n".join(result).split("[Script]", 1)[1].split("[MITM]", 1)[0]
         for marker in AMAP_ISHOWSHU_REDUNDANT_SCRIPT_MARKERS:
@@ -4142,7 +4176,7 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
             optimize_amap_response_script_overlaps,
         )
         plugin = Path(__file__).parent / "allAdRewrite.plugin"
-        lines = plugin.read_text(encoding="utf-8").splitlines()
+        lines = _build_amap_unoptimized_fixture()
         before_marker = AMAP_ISHOWSHU_REDUNDANT_SCRIPT_MARKERS[0]
         without_native = [
             line for line in lines
@@ -4186,3 +4220,127 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
         ]
         with self.assertRaisesRegex(ValueError, "duplicate canonical local Amap trigger"):
             optimize_amap_response_script_overlaps(fixture)
+
+
+class PinduoduoHomepageNativeConsolidationTests(unittest.TestCase):
+    def setUp(self):
+        from pathlib import Path
+        self.plugin = Path(__file__).parent / "allAdRewrite.plugin"
+        self.lines = self.plugin.read_text(encoding="utf-8").splitlines()
+
+    def test_replaces_split_native_and_script_homepage_processing_with_one_jq_pass(self):
+        from apply_local_overrides import (
+            PDD_HOMEPAGE_NATIVE_JQ_RULE,
+            consolidate_pdd_homepage_native_response,
+        )
+        result, removed = consolidate_pdd_homepage_native_response(self.lines)
+        self.assertEqual(removed, 1)
+        self.assertIn(PDD_HOMEPAGE_NATIVE_JQ_RULE, result)
+        self.assertFalse(any("scripts/pinduoduo/pdd-homepage.js" in line for line in result))
+        self.assertEqual(consolidate_pdd_homepage_native_response(result), (result, 0))
+
+    def test_pdd_native_jq_covers_the_merged_script_behavior(self):
+        from pathlib import Path
+        from apply_local_overrides import PDD_HOMEPAGE_NATIVE_JQ_RULE
+        script = (Path(__file__).parent / "scripts/pinduoduo/pdd-homepage.js").read_text(encoding="utf-8")
+        for marker in (
+            "delete result.dy_module.irregular_banner_dy",
+            "delete result.icon_set",
+            "delete result.search_bar_hot_query",
+            "allowedTitles",
+            "allowedLinks",
+            "result.all_top_opts = []",
+            "removedModules",
+            "result.module_order",
+        ):
+            self.assertIn(marker, script)
+        for marker in (
+            "result.dy_module.irregular_banner_dy",
+            "result.icon_set",
+            "result.search_bar_hot_query",
+            ".result.bottom_tabs",
+            ".result.buffer_bottom_tabs",
+            ".result.all_top_opts? |=",
+            ".result.module_order",
+        ):
+            self.assertIn(marker, PDD_HOMEPAGE_NATIVE_JQ_RULE)
+        self.assertEqual(PDD_HOMEPAGE_NATIVE_JQ_RULE.count("response.json.jq("), 1)
+        self.assertNotIn("response.json.delete(", PDD_HOMEPAGE_NATIVE_JQ_RULE)
+
+
+    def test_pdd_homepage_jq_filter_compiles_and_matches_expected_semantics(self):
+        import json
+        import shutil
+        import subprocess
+        from apply_local_overrides import PDD_HOMEPAGE_NATIVE_JQ_RULE
+        if not shutil.which("jq"):
+            self.skipTest("jq CLI is unavailable")
+        expression = PDD_HOMEPAGE_NATIVE_JQ_RULE.split('response.json.jq("', 1)[1].rsplit('")', 1)[0]
+        expression = expression.replace(chr(92) + '"', '"')
+        sample = {
+            "result": {
+                "dy_module": {"irregular_banner_dy": {}, "keep": True},
+                "icon_set": {},
+                "search_bar_hot_query": [],
+                "bottom_tabs": [
+                    {"title": "首页", "link": "index.html"},
+                    {"title": "多多视频", "link": "video.html"},
+                    {"title": "聊天", "link": "chat_list.html"},
+                    {"title": "个人中心", "link": "personal.html"},
+                    {"title": "错误标题", "link": "chat_list.html"},
+                ],
+                "buffer_bottom_tabs": [
+                    {"link": "personal.html"}, {"link": "video.html"}
+                ],
+                "all_top_opts": [{"image": "ad"}],
+                "module_order": [
+                    {"module_name": "ad_module"},
+                    {"module_name": "goods"},
+                    None,
+                ],
+            }
+        }
+        result = subprocess.run(
+            ["jq", expression],
+            input=json.dumps(sample, ensure_ascii=False),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        output = json.loads(result.stdout)
+        data = output["result"]
+        self.assertNotIn("irregular_banner_dy", data["dy_module"])
+        self.assertNotIn("icon_set", data)
+        self.assertNotIn("search_bar_hot_query", data)
+        self.assertEqual([x["title"] for x in data["bottom_tabs"]], ["首页", "聊天", "个人中心"])
+        self.assertEqual(data["buffer_bottom_tabs"], [{"link": "personal.html"}])
+        self.assertEqual(data["all_top_opts"], [])
+        self.assertEqual(data["module_order"], [{"module_name": "goods"}])
+
+    def test_pdd_homepage_native_rule_is_preserved_without_local_script_trigger(self):
+        from apply_local_overrides import consolidate_pdd_homepage_native_response
+        without_script = [
+            line for line in self.lines
+            if "scripts/pinduoduo/pdd-homepage.js" not in line
+        ]
+        result, removed = consolidate_pdd_homepage_native_response(without_script)
+        self.assertEqual(removed, 0)
+        self.assertEqual(result, without_script)
+
+    def test_pdd_homepage_native_rule_fails_closed_on_drift_or_duplicates(self):
+        from apply_local_overrides import consolidate_pdd_homepage_native_response
+        changed = [
+            line.replace("result.all_top_opts", "result.all_top_options")
+            if "alexa" in line and "response.json.delete" in line else line
+            for line in self.lines
+        ]
+        with self.assertRaisesRegex(ValueError, "Pinduoduo homepage native rule changed"):
+            consolidate_pdd_homepage_native_response(changed)
+        duplicate = list(self.lines)
+        native = next(line for line in duplicate if "alexa" in line and "response.json.delete" in line)
+        script_index = next(i for i, line in enumerate(duplicate) if line.strip() == "[Script]")
+        duplicate.insert(script_index, native)
+        with self.assertRaisesRegex(ValueError, "duplicate Pinduoduo homepage native response rule"):
+            consolidate_pdd_homepage_native_response(duplicate)
+
