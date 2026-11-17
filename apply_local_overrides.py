@@ -4086,6 +4086,11 @@ SMZDM_FMZ_ADS_DUPLICATE_PAIRS = (
 def remove_redundant_smzdm_ads_script_triggers(lines):
     """Remove only FMZ200 SMZDM triggers whose exact endpoint behavior is already covered by R-Store."""
     output = list(lines)
+    normalize = lambda value: re.sub(
+        r"enable=\$\{([^}]+)\}",
+        r"enable=\1",
+        re.sub(r"\\+", "", value.strip()),
+    )
     section = ""
     script_lines = []
     for line in output:
@@ -4103,7 +4108,7 @@ def remove_redundant_smzdm_ads_script_triggers(lines):
         ]
         if not fmz_candidates:
             continue
-        if len(fmz_candidates) != 1 or fmz_candidates[0] != fmz_expected:
+        if len(fmz_candidates) != 1 or normalize(fmz_candidates[0]) != normalize(fmz_expected):
             raise ValueError(
                 "SMZDM FMZ ad trigger inventory changed; refusing duplicate cleanup: "
                 + repr(fmz_candidates)
@@ -4115,12 +4120,12 @@ def remove_redundant_smzdm_ads_script_triggers(lines):
         if not rstore_candidates:
             # Do not remove a script unless its same-endpoint R-Store cover exists.
             continue
-        if len(rstore_candidates) != 1 or rstore_candidates[0] != rstore_expected:
+        if len(rstore_candidates) != 1 or normalize(rstore_candidates[0]) != normalize(rstore_expected):
             raise ValueError(
                 "SMZDM R-Store cover trigger inventory changed; refusing duplicate cleanup: "
                 + repr(rstore_candidates)
             )
-        removed_lines.add(fmz_expected)
+        removed_lines.add(normalize(fmz_expected))
 
     if not removed_lines:
         return output, 0
@@ -4133,7 +4138,7 @@ def remove_redundant_smzdm_ads_script_triggers(lines):
             section = stripped[1:-1]
             result.append(line)
             continue
-        if section == "Script" and stripped in removed_lines:
+        if section == "Script" and normalize(stripped) in removed_lines:
             removed += 1
             continue
         result.append(line)
