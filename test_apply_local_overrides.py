@@ -1819,6 +1819,14 @@ class BilibiliNonAdFeatureScopeTests(unittest.TestCase):
         self.assertNotIn(combined, result)
         self.assertIn("/x/v2/feed/index", "\n".join(result).replace(chr(92), ""))
 
+    def test_removes_combined_search_default_words_mock_and_grpc_status_override(self):
+        from apply_local_overrides import normalize_bilibili_non_ad_feature_overrides
+        combined = r'response if ${url} == "https://grpc.biliapi.net/bilibili.app.interface.v1.Search/DefaultWords" then response.body.mock("text", "AAAAACEaHeaQnOe0ouinhumikeOAgeeVquWJp+aIlnVw5Li7KAE=", 200, true) | response.header.set("grpc-status", "0")'
+        self.assertIn(combined, self.remove_rules)
+        result, _ = normalize_bilibili_non_ad_feature_overrides(self.base)
+        self.assertNotIn(combined, result)
+        self.assertIn("/x/v2/feed/index", "\n".join(result).replace(chr(92), ""))
+
     def test_checked_in_plugin_has_no_vip_paywall_or_teen_mode_bypass(self):
         from pathlib import Path
         from apply_local_overrides import BILIBILI_NON_AD_FEATURE_RULES, BILIBILI_NON_AD_FEATURE_REPLACEMENTS
