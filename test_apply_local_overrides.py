@@ -4005,6 +4005,33 @@ class PinduoduoOrderEndpointVariantTests(unittest.TestCase):
             remove_pdd_order_endpoint_blocks(["[Rewrite]", unknown])
 
 
+
+def _build_amap_unoptimized_fixture():
+    from pathlib import Path
+    plugin = Path(__file__).parent / "allAdRewrite.plugin"
+    lines = plugin.read_text(encoding="utf-8").splitlines()
+    markers = (
+        "/ws/aos/perception/publictravel/beforenavi",
+        "/ws/bus/plan/integrate",
+        "/ws/shield/search/nearbyrec_smart",
+        "/ws/promotion-web/resource",
+    )
+    for index, line in enumerate(lines):
+        normalized = line.replace(chr(92), "").lower()
+        if "/res/scripts/antiad/amap.js" in normalized and any(m in normalized for m in markers):
+            lines[index] = line.replace("m[0-46-9]", "m" + chr(92) + "d")
+    romeo = "https://raw.githubusercontent.com/ifflagged/Romeo/f056c091074a4c29ad0289d7d31f39d47a4ea3d1/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js"
+    duplicates = [
+        r'response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/aos\/perception\/publicTravel\/beforeNavi\?/i then script("' + romeo + r'") with tag="amap", timeout=60, requires_body=true',
+        r'response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/shield\/search\/nearbyrec_smart\?/i then script("' + romeo + r'") with tag="amap", timeout=60, requires_body=true',
+        r'response if ${url} ~= /^https:\/\/m5-zb\.amap\.com\/ws\/promotion-web\/resource(\/home)?\?/i then script("' + romeo + r'") with tag="amap", timeout=60, requires_body=true',
+        r'response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/faas\/amap-navigation\/(card-service-plan-home|main-page)/i then script("' + romeo + r'") with tag="amap", timeout=60, requires_body=true',
+    ]
+    mitm_index = next(i for i, line in enumerate(lines) if line.strip() == "[MITM]")
+    lines[mitm_index:mitm_index] = duplicates
+    return lines
+
+
 class BilibiliJsonNativeCoverageTests(unittest.TestCase):
     def test_narrows_only_native_covered_triggers_and_expands_native_filters(self):
         from apply_local_overrides import (
@@ -4112,7 +4139,8 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
         )
         plugin = Path(__file__).parent / "allAdRewrite.plugin"
         original = plugin.read_text(encoding="utf-8")
-        result, removed = optimize_amap_response_script_overlaps(original.splitlines())
+        fixture = _build_amap_unoptimized_fixture()
+        result, removed = optimize_amap_response_script_overlaps(fixture)
         self.assertEqual(removed, 4)
         script = "\n".join(result).split("[Script]", 1)[1].split("[MITM]", 1)[0]
         for marker in AMAP_ISHOWSHU_REDUNDANT_SCRIPT_MARKERS:
@@ -4148,7 +4176,7 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
             optimize_amap_response_script_overlaps,
         )
         plugin = Path(__file__).parent / "allAdRewrite.plugin"
-        lines = plugin.read_text(encoding="utf-8").splitlines()
+        lines = _build_amap_unoptimized_fixture()
         before_marker = AMAP_ISHOWSHU_REDUNDANT_SCRIPT_MARKERS[0]
         without_native = [
             line for line in lines
@@ -4253,13 +4281,13 @@ class PinduoduoHomepageNativeConsolidationTests(unittest.TestCase):
         from apply_local_overrides import consolidate_pdd_homepage_native_response
         changed = [
             line.replace("result.all_top_opts", "result.all_top_options")
-            if "api.alexa" in line and "response.json.delete" in line else line
+            if "alexa" in line and "response.json.delete" in line else line
             for line in self.lines
         ]
         with self.assertRaisesRegex(ValueError, "Pinduoduo homepage native rule changed"):
             consolidate_pdd_homepage_native_response(changed)
         duplicate = list(self.lines)
-        native = next(line for line in duplicate if "api.alexa" in line and "response.json.delete" in line)
+        native = next(line for line in duplicate if "alexa" in line and "response.json.delete" in line)
         script_index = next(i for i, line in enumerate(duplicate) if line.strip() == "[Script]")
         duplicate.insert(script_index, native)
         with self.assertRaisesRegex(ValueError, "duplicate Pinduoduo homepage native response rule"):
