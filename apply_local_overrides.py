@@ -4003,8 +4003,8 @@ def narrow_xiaohongshu_native_response_duplicates(lines):
     replacements = {}
     for line in fmz_actual:
         if "/search/notes" in re.sub(r"\\+", "", line):
-            old = r"(?:so|edith)\.(xiaohongshu|rnote)\.com"
-            new = r"(?:so|edith)\.rnote\.com"
+            old = r"(so|edith)\.(xiaohongshu|rnote)\.com"
+            new = r"(so|edith)\.rnote\.com"
         else:
             old = r"edith\.(xiaohongshu|rnote)\.com"
             new = r"edith\.rnote\.com"
