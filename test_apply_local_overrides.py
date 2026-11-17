@@ -1658,6 +1658,25 @@ class DouyinContentCdnScopeTests(unittest.TestCase):
         for marker in self.markers:
             self.assertTrue(any(marker in line.replace(chr(92), "") for line in result))
 
+    def test_removes_exact_unescaped_pstatp_hostname_overblock_variants(self):
+        from apply_local_overrides import remove_douyin_content_cdn_overblocks
+        unescaped_dot = [
+            r"request if \${url} ~= /^https?:\/\/p(b)?\d\.pstatp\.com\/origin/ then reject(404)",
+            r"request if \${url} ~= /^https?:\/\/p\d\.pstatp\.com\/origin/i then reject(404)",
+            r"request if \${url} ~= /^https?:\/\/pb\d\.pstatp\.com\/origin/i then reject(404)",
+        ]
+        unescaped_dot = [rule.replace(r"pstatp\.com", "pstatp.com") for rule in unescaped_dot]
+        fixture = ["[Rule]", self.overblocks[0][1], self.overblocks[1][1],
+                   "[Rewrite]", *unescaped_dot,
+                   *[line for line in self.base if line.startswith("request if") and "origin" not in line],
+                   "[Script]", "[MITM]"]
+        result, removed = remove_douyin_content_cdn_overblocks(fixture)
+        self.assertEqual(removed, 5)
+        for rule in unescaped_dot:
+            self.assertNotIn(rule, result)
+        for marker in self.markers:
+            self.assertTrue(any(marker in line.replace(chr(92), "") for line in result))
+
     def test_checked_in_plugin_snapshot_keeps_ad_paths_without_content_cdn_overblocks(self):
         from pathlib import Path
         from apply_local_overrides import DOUYIN_CONTENT_CDN_OVERBLOCKS, DOUYIN_CDN_REQUIRED_AD_PATH_MARKERS
