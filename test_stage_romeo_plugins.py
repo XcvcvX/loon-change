@@ -94,6 +94,9 @@ class RomeoPluginMigrationTests(unittest.TestCase):
                     assets = asset_by_plugin.get(plugin_name, [])
                     urls = "\\n".join(item["upstream_url"] for item in assets)
                     return ("#!name=fixture\\n[Rewrite]\\n" + urls + "\\n").encode()
+                for dependency in MANIFEST["external_runtime_dependencies"]:
+                    if source_path == dependency["referenced_by"]:
+                        return ("// Romeo asset fixture\\n" + dependency["url"] + "\\n").encode()
                 return b"// Romeo asset fixture\\n"
 
             with patch("stage_romeo_plugins._read_romeo_file", side_effect=fake_read):
