@@ -4022,7 +4022,7 @@ class XiaohongshuNativeDuplicateTriggerTests(unittest.TestCase):
     def test_fails_closed_when_native_search_coverage_is_missing(self):
         from apply_local_overrides import narrow_xiaohongshu_native_response_duplicates
         fixture = self._fixture()
-        fixture = [line for line in fixture if "/search/hot_list" not in line or "response-body-json-jq" not in line]
+        fixture = [line for line in fixture if "/search/hot_list" not in line.replace(chr(92), "") or "response-body-json-jq" not in line]
         with self.assertRaisesRegex(ValueError, "native JSON coverage missing or duplicated"):
             narrow_xiaohongshu_native_response_duplicates(fixture)
 
