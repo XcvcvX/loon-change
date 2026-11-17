@@ -4409,7 +4409,10 @@ def migrate_xiaohongshu_v4_and_comment_processing(lines):
         current = rstore_comment[0]
         if current not in (XHS_RSTORE_COMMENT_TRIGGER, XHS_RSTORE_COMMENT_TRIGGER_NARROWED):
             raise ValueError("Xiaohongshu R-Store comment trigger changed; refusing version narrowing")
-        if not fmz_comment or normalize_xhs_fmz_trigger(fmz_comment[0]) != normalize_xhs_fmz_trigger(XHS_FMZ_COMMENT_LIST_TRIGGER):
+        if not fmz_comment or normalize_xhs_fmz_trigger(fmz_comment[0]) not in (
+            normalize_xhs_fmz_trigger(XHS_FMZ_COMMENT_LIST_TRIGGER),
+            normalize_xhs_fmz_trigger(XHS_FMZ_COMMENT_LOCAL_TRIGGER),
+        ):
             raise ValueError("Xiaohongshu FMZ comment-version coverage missing; refusing R-Store narrowing")
         replacements[current] = XHS_RSTORE_COMMENT_TRIGGER_NARROWED
 
