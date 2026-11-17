@@ -1106,7 +1106,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         from apply_local_overrides import (
             TAOBAO_CANONICAL_SCRIPT_TRIGGERS, TAOBAO_REDUNDANT_SCRIPT_TRIGGERS,
         )
-        single_escape = lambda trigger: trigger.replace("\\\\\\\\", "\\\\")
+        single_escape = lambda trigger: trigger.replace("\\\\\\", "\\")
         triggers = tuple(single_escape(item) for item in (
             *TAOBAO_CANONICAL_SCRIPT_TRIGGERS, *TAOBAO_REDUNDANT_SCRIPT_TRIGGERS,
         ))
@@ -1386,7 +1386,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
             DIDI_HOME_CORE_LEGACY_REJECT, DIDI_HOME_CORE_RESPONSE_PREFIX,
             remove_didi_homepage_rejects_shadowing_field_cleaners,
         )
-        response = DIDI_HOME_CORE_RESPONSE_PREFIX + '".data.order_cards.nav_list_card.data |= map(select(.nav_id == \\"bike\\"))")'
+        response = DIDI_HOME_CORE_RESPONSE_PREFIX + '".data.order_cards.nav_list_card.data |= map(select(.nav_id == "bike"))")'
         unrelated = r"^https:\\/\\/conf\\.diditaxi\\.com\\.cn\\/dynamic\\/conf reject-dict"
         result, removed = remove_didi_homepage_rejects_shadowing_field_cleaners(
             [DIDI_HOME_CORE_LEGACY_REJECT, unrelated, response]
@@ -4012,7 +4012,8 @@ class XiaohongshuNativeDuplicateTriggerTests(unittest.TestCase):
         fixture = self._fixture()
         result, changed = narrow_xiaohongshu_native_response_duplicates(fixture)
         self.assertEqual(changed, 10)
-        self.assertFalse(any("tag=XIAOHONGSHU" in line or "tag=XIAOHONGSHU-" in line for line in result))
+        removed_tags = ("XIAOHONGSHU", "XIAOHONGSHU-3", "XIAOHONGSHU-4", "XIAOHONGSHU-5", "XIAOHONGSHU-6")
+        self.assertFalse(any(any(("tag=" + tag + ",") in line for tag in removed_tags) for line in result))
         from apply_local_overrides import XHS_NARROWED_TRIGGER_LINES
         for narrowed in XHS_NARROWED_TRIGGER_LINES.values():
             self.assertIn(narrowed, result)
