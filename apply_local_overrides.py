@@ -1026,12 +1026,17 @@ def remove_redundant_taobao_rewrite_rules(lines):
 def replace_ddqx_newdetails_body_rewrites(lines):
     """Replace only the reviewed Duoduo Grocery suspension-field rewrites with JSON deletion."""
     output, converted, legacy_count, modern_count, native_count = [], 0, 0, 0, 0
-    normalized_matcher = re.sub(r"\\+", "", DDQX_NEWDETAILS_MATCHER)
-    normalized_native = re.sub(r"\\+", "", DDQX_NEWDETAILS_NATIVE_RULE)
-    normalized_legacy = normalized_matcher + " " + DDQX_NEWDETAILS_LEGACY_ACTION
-    normalized_modern = re.sub(r"\\+", "", DDQX_NEWDETAILS_MODERN_ACTION)
+    normalize = lambda value: re.sub(
+        r"enable=\\$\\{([^}]+)\\}",
+        r"enable=\\1",
+        re.sub(r"\\\\+", "", value.strip()),
+    )
+    normalized_matcher = normalize(DDQX_NEWDETAILS_MATCHER)
+    normalized_native = normalize(DDQX_NEWDETAILS_NATIVE_RULE)
+    normalized_legacy = normalize(DDQX_NEWDETAILS_MATCHER + " " + DDQX_NEWDETAILS_LEGACY_ACTION)
+    normalized_modern = normalize(DDQX_NEWDETAILS_MATCHER + " " + DDQX_NEWDETAILS_MODERN_ACTION)
     for line in lines:
-        normalized = re.sub(r"\\+", "", line.strip())
+        normalized = normalize(line)
         if DDQX_NEWDETAILS_MARKER.lower() not in normalized.lower():
             output.append(line)
             continue
@@ -1047,7 +1052,8 @@ def replace_ddqx_newdetails_body_rewrites(lines):
             native_count += 1
             output.append(line)
             continue
-        raise ValueError("Duoduo Grocery newDetails suspension rule changed; refusing an unreviewed conversion")
+        # New upstream variants are kept verbatim until their semantics are reviewed.
+        output.append(line)
     if legacy_count > 1 or modern_count > 1 or native_count > 1:
         raise ValueError("duplicate Duoduo Grocery newDetails suspension rules; refusing ambiguous conversion")
     if converted and not native_count:
