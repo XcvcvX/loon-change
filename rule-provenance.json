@@ -116851,38 +116851,26 @@
   ],
   "script": [
     {
-      "canonical_key": "('guarded', '^https?://m\\\\d\\\\.amap\\\\.com/ws/aos/perception/publicTravel/beforeNavi\\\\?', ('^https?:\\\\/\\\\/m\\\\d\\\\.amap\\\\.com\\\\/ws\\\\/aos\\\\/perception\\\\/publictravel\\\\/beforenavi\\\\?', '^https?:\\\\/\\\\/m\\\\d\\\\.amap\\\\.com\\\\/ws\\\\/aos\\\\/perception\\\\/publicTravel\\\\/beforeNavi\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP,requires-body=true'))",
-      "output_entry_index": 15,
-      "output_line": "http-response ^https?:\\/\\/m\\d\\.amap\\.com\\/ws\\/aos\\/perception\\/publicTravel\\/beforeNavi\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/m[0-46-9]\\.amap\\.com\\/ws\\/aos\\/perception\\/publicTravel\\/beforeNavi\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/m\\d\\.amap\\.com\\/ws\\/aos\\/perception\\/publicTravel\\/beforeNavi\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 14
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://m\\\\d\\\\.amap\\\\.com/ws/bus/plan/integrate\\\\?', ('^https?:\\\\/\\\\/m\\\\d\\\\.amap\\\\.com\\\\/ws\\\\/bus\\\\/plan\\\\/integrate\\\\?', '^https?:\\\\/\\\\/m\\\\d\\\\.amap\\\\.com\\\\/ws\\\\/bus\\\\/plan\\\\/integrate\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-2,requires-body=true'))",
-      "output_entry_index": 16,
-      "output_line": "http-response ^https?:\\/\\/m\\d\\.amap\\.com\\/ws\\/bus\\/plan\\/integrate\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-2,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/m[0-46-9]\\.amap\\.com\\/ws\\/bus\\/plan\\/integrate\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-2,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/m\\d\\.amap\\.com\\/ws\\/bus\\/plan\\/integrate\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-2,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 15
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
       "canonical_key": "('guarded', '^https?://m\\\\d\\\\.amap\\\\.com/ws/shield/search_poi/(homepage|mps|search/sp|sug|tips_operation_location)', ('^https?:\\\\/\\\\/m\\\\d\\\\.amap\\\\.com\\\\/ws\\\\/shield\\\\/search_poi\\\\/', '^https?:\\\\/\\\\/m\\\\d\\\\.amap\\\\.com\\\\/ws\\\\/shield\\\\/search_poi\\\\/(homepage|mps|search\\\\/sp|sug|tips_operation_location) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-7,requires-body=true'))",
@@ -116919,38 +116907,26 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://m\\\\d\\\\.amap\\\\.com/ws/shield/search/nearbyrec_smart\\\\?', ('^https?:\\\\/\\\\/m\\\\d\\\\.amap\\\\.com\\\\/ws\\\\/shield\\\\/search\\\\/nearbyrec_smart\\\\?', '^https?:\\\\/\\\\/m\\\\d\\\\.amap\\\\.com\\\\/ws\\\\/shield\\\\/search\\\\/nearbyrec_smart\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-11,requires-body=true'))",
-      "output_entry_index": 25,
-      "output_line": "http-response ^https?:\\/\\/m\\d\\.amap\\.com\\/ws\\/shield\\/search\\/nearbyrec_smart\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-11,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/m[0-46-9]\\.amap\\.com\\/ws\\/shield\\/search\\/nearbyrec_smart\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-11,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/m\\d\\.amap\\.com\\/ws\\/shield\\/search\\/nearbyrec_smart\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-11,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 24
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://m\\\\d-zb\\\\.amap\\\\.com/ws/promotion-web/resource(/home)?\\\\?', ('^https?:\\\\/\\\\/m\\\\d-zb\\\\.amap\\\\.com\\\\/ws\\\\/promotion-web\\\\/resource', '^https?:\\\\/\\\\/m\\\\d-zb\\\\.amap\\\\.com\\\\/ws\\\\/promotion-web\\\\/resource(\\\\/home)?\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-13,requires-body=true'))",
-      "output_entry_index": 27,
-      "output_line": "http-response ^https?:\\/\\/m\\d-zb\\.amap\\.com\\/ws\\/promotion-web\\/resource(\\/home)?\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-13,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/m[0-46-9]-zb\\.amap\\.com\\/ws\\/promotion-web\\/resource(\\/home)?\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-13,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/m\\d-zb\\.amap\\.com\\/ws\\/promotion-web\\/resource(\\/home)?\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-13,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 26
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
       "canonical_key": "('guarded', '^https?://m\\\\d-zb\\\\.amap\\\\.com/ws/sharedtrip/taxi/order_detail_car_tips\\\\?', ('^https?:\\\\/\\\\/m\\\\d-zb\\\\.amap\\\\.com\\\\/ws\\\\/sharedtrip\\\\/taxi\\\\/order_detail_car_tips\\\\?', '^https?:\\\\/\\\\/m\\\\d-zb\\\\.amap\\\\.com\\\\/ws\\\\/sharedtrip\\\\/taxi\\\\/order_detail_car_tips\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-14,requires-body=true'))",
@@ -122794,23 +122770,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/aos/perception/publicTravel/beforeNavi\\\\?', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f056c091074a4c29ad0289d7d31f39d47a4ea3d1/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true'))",
-      "output_entry_index": 530,
-      "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/aos\\/perception\\/publicTravel\\/beforeNavi\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f056c091074a4c29ad0289d7d31f39d47a4ea3d1/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/aos\\/perception\\/publicTravel\\/beforeNavi\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f056c091074a4c29ad0289d7d31f39d47a4ea3d1/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 1
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/bus/plan/integrate\\\\?', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f056c091074a4c29ad0289d7d31f39d47a4ea3d1/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true'))",
       "output_entry_index": 531,
       "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/bus\\/plan\\/integrate\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f056c091074a4c29ad0289d7d31f39d47a4ea3d1/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
@@ -122964,23 +122923,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/faas/amap-navigation/(card-service-plan-home|main-page)', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f056c091074a4c29ad0289d7d31f39d47a4ea3d1/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true'))",
-      "output_entry_index": 540,
-      "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/faas\\/amap-navigation\\/(card-service-plan-home|main-page)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f056c091074a4c29ad0289d7d31f39d47a4ea3d1/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/faas\\/amap-navigation\\/(card-service-plan-home|main-page)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f056c091074a4c29ad0289d7d31f39d47a4ea3d1/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 11
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/shield/dsp/profile/index/nodefaasv3\\\\?', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f056c091074a4c29ad0289d7d31f39d47a4ea3d1/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true'))",
       "output_entry_index": 541,
       "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/dsp\\/profile\\/index\\/nodefaasv3\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f056c091074a4c29ad0289d7d31f39d47a4ea3d1/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
@@ -122993,23 +122935,6 @@
           "priority": 2,
           "source": "aoomee",
           "source_entry_index": 12
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/shield/search/nearbyrec_smart\\\\?', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f056c091074a4c29ad0289d7d31f39d47a4ea3d1/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true'))",
-      "output_entry_index": 542,
-      "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search\\/nearbyrec_smart\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f056c091074a4c29ad0289d7d31f39d47a4ea3d1/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search\\/nearbyrec_smart\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f056c091074a4c29ad0289d7d31f39d47a4ea3d1/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 13
         }
       ],
       "trace_status": "mapped"
@@ -123061,23 +122986,6 @@
           "priority": 2,
           "source": "aoomee",
           "source_entry_index": 16
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://m5-zb\\\\.amap\\\\.com/ws/promotion-web/resource(/home)?\\\\?', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f056c091074a4c29ad0289d7d31f39d47a4ea3d1/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true'))",
-      "output_entry_index": 546,
-      "output_line": "response if ${url} ~= /^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/promotion-web\\/resource(\\/home)?\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f056c091074a4c29ad0289d7d31f39d47a4ea3d1/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/promotion-web\\/resource(\\/home)?\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f056c091074a4c29ad0289d7d31f39d47a4ea3d1/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 17
         }
       ],
       "trace_status": "mapped"
@@ -124339,7 +124247,7 @@
     "rule_safety_excluded_events": 11,
     "rule_scope_adjustments": 1,
     "rule_source_events": 5738,
-    "script_output_entries": 453
+    "script_output_entries": 449
   },
   "upstream_revisions": {
     "AlipayAdBlock": {
