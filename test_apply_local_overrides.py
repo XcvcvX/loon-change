@@ -3295,6 +3295,23 @@ class MoreResponseScriptDedupTests(unittest.TestCase):
         self.assertIn(self.unrelated, result)
         self.assertEqual(remove_more_duplicate_response_scripts(result), (result, 0))
 
+    def test_accepts_interpolated_switch_and_preserves_it_in_response_output(self):
+        from apply_local_overrides import remove_more_duplicate_response_scripts
+        source = next(item for item in self.keep_source if "kuwoybyt_enable" in item)
+        current = source.replace("enable=kuwoybyt_enable", "enable=${kuwoybyt_enable}")
+        fixture = [
+            "[Script]", *self.remove,
+            *[current if item == source else item for item in self.keep_source],
+            "[MITM]",
+        ]
+        result, removed = remove_more_duplicate_response_scripts(fixture)
+        self.assertEqual(removed, len(self.remove))
+        expected = self.transforms.get(source, source).replace(
+            "enable=kuwoybyt_enable", "enable=${kuwoybyt_enable}"
+        )
+        self.assertIn(expected, result)
+        self.assertEqual(remove_more_duplicate_response_scripts(result), (result, 0))
+
     def test_preserves_already_consolidated_inventory(self):
         from apply_local_overrides import remove_more_duplicate_response_scripts
         clean = ["[Script]", *self.keep, "[MITM]"]
