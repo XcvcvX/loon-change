@@ -2589,12 +2589,22 @@ WECHAT_UNBLOCK_URL_DISTINCT_TRIGGER = "response if ${url} ~= /^https\\:\\/\\/(?:
 
 
 def consolidate_wechat_unblock_url_scripts(lines):
-    """Remove only the byte-for-byte-equivalent zZPiglet duplicate; preserve RuCu6 variant."""
+    """Remove only the reviewed zZPiglet duplicate; preserve the distinct RuCu6 variant."""
     expected = (
         WECHAT_UNBLOCK_URL_CANONICAL_TRIGGER,
         WECHAT_UNBLOCK_URL_REDUNDANT_TRIGGER,
         WECHAT_UNBLOCK_URL_DISTINCT_TRIGGER,
     )
+
+    def normalized_trigger(value):
+        # blockAds.plugin interpolates this one known switch as ${...};
+        # the equivalent Loon rule in the pinned snapshot uses the bare name.
+        # Normalize only this exact variable spelling; all other drift fails closed.
+        return value.strip().replace(
+            "enable=${lmjpxmvi_enable}", "enable=lmjpxmvi_enable"
+        )
+
+    normalized_expected = {normalized_trigger(item): item for item in expected}
     counts = {item: 0 for item in expected}
     output, section, target_seen, removed = [], "", False, 0
     for line in lines:
@@ -2606,12 +2616,13 @@ def consolidate_wechat_unblock_url_scripts(lines):
         normalized = re.sub(r"\\+", "", value).lower()
         if section == "Script" and "newredirectconfirmcgi" in normalized:
             target_seen = True
-            if value not in counts:
+            trigger = normalized_expected.get(normalized_trigger(value))
+            if trigger is None:
                 raise ValueError("WeChat URL-unblock script trigger changed; refusing unreviewed consolidation")
-            counts[value] += 1
-            if counts[value] > 1:
+            counts[trigger] += 1
+            if counts[trigger] > 1:
                 raise ValueError("duplicate WeChat URL-unblock script trigger")
-            if value != WECHAT_UNBLOCK_URL_REDUNDANT_TRIGGER:
+            if trigger != WECHAT_UNBLOCK_URL_REDUNDANT_TRIGGER:
                 output.append(line)
             else:
                 removed += 1
