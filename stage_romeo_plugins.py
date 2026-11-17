@@ -159,6 +159,7 @@ def stage(
             {"plugin": a["plugin"], "kind": a["kind"], "source_path": a["source_path"]}
             for a in RUNTIME_ASSETS
         ],
+        "external_runtime_dependencies": list(MANIFEST["external_runtime_dependencies"]),
     }
 
 
