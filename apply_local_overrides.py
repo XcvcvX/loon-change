@@ -1947,6 +1947,7 @@ def remove_bilibili_core_service_overblocks(lines):
     return output, sum(present)
 
 BILIBILI_NON_AD_FEATURE_RULES = (
+    r'response if ${url} == "https://grpc.biliapi.net/bilibili.app.interface.v1.Teenagers/ModeStatus" then response.body.mock("text", "AAAAABMKEQgCEgl0ZWVuYWdlcnMgAioA", 200, true) | response.header.set("grpc-status", "0")',
     "^https?:\\/\\/(?:app\\.bilibili\\.com|grpc\\.biliapi\\.net)\\/bilibili\\.app\\.interface\\.v\\d\\.Search\\/DefaultWords reject-dict",
     "response if ${url} ~= /^https:\\/\\/grpc\\.biliapi\\.net\\/bilibili\\.app\\.interface\\.v1\\.Teenagers\\/ModeStatus$/ then response.body.mock(\"text\", `AAAAABMKEQgCEgl0ZWVuYWdlcnMgAioA`, 200, true)",
     "response if ${url} ~= /^https:\\/\\/grpc\\.biliapi\\.net\\/bilibili\\.app\\.interface\\.v1\\.Search\\/DefaultWords$/ then response.body.mock(\"text\", `AAAAACEaHeaQnOe0ouinhumikeOAgeeVquWJp+aIlnVw5Li7KAE=`, 200, true)",
