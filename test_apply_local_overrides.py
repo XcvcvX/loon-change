@@ -4290,7 +4290,9 @@ class PinduoduoHomepageNativeConsolidationTests(unittest.TestCase):
             PDD_HOMEPAGE_NATIVE_JQ_RULE,
             consolidate_pdd_homepage_native_response,
         )
-        result, removed = consolidate_pdd_homepage_native_response(self.lines)
+        from apply_local_overrides import PDD_HOMEPAGE_NATIVE_JQ_RULE, PDD_LOCAL_HOMEPAGE_TRIGGER
+        fixture = ["[Rewrite]", PDD_HOMEPAGE_NATIVE_JQ_RULE, "[Script]", PDD_LOCAL_HOMEPAGE_TRIGGER, "[MITM]"]
+        result, removed = consolidate_pdd_homepage_native_response(fixture)
         self.assertEqual(removed, 1)
         self.assertIn(PDD_HOMEPAGE_NATIVE_JQ_RULE, result)
         self.assertFalse(any("scripts/pinduoduo/pdd-homepage.js" in line for line in result))
@@ -4387,15 +4389,17 @@ class PinduoduoHomepageNativeConsolidationTests(unittest.TestCase):
 
     def test_pdd_homepage_native_rule_fails_closed_on_drift_or_duplicates(self):
         from apply_local_overrides import consolidate_pdd_homepage_native_response
+        from apply_local_overrides import PDD_HOMEPAGE_NATIVE_JQ_RULE, PDD_LOCAL_HOMEPAGE_TRIGGER
+        fixture = ["[Rewrite]", PDD_HOMEPAGE_NATIVE_JQ_RULE, "[Script]", PDD_LOCAL_HOMEPAGE_TRIGGER, "[MITM]"]
         changed = [
             line.replace("result.all_top_opts", "result.all_top_options")
-            if "alexa" in line and "response.json.delete" in line else line
-            for line in self.lines
+            if "alexa" in line and "response.json.jq" in line else line
+            for line in fixture
         ]
         with self.assertRaisesRegex(ValueError, "Pinduoduo homepage native rule changed"):
             consolidate_pdd_homepage_native_response(changed)
-        duplicate = list(self.lines)
-        native = next(line for line in duplicate if "alexa" in line and "response.json.delete" in line)
+        duplicate = list(fixture)
+        native = PDD_HOMEPAGE_NATIVE_JQ_RULE
         script_index = next(i for i, line in enumerate(duplicate) if line.strip() == "[Script]")
         duplicate.insert(script_index, native)
         with self.assertRaisesRegex(ValueError, "duplicate Pinduoduo homepage native response rule"):
