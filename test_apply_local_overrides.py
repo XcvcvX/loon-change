@@ -4260,7 +4260,7 @@ class PinduoduoHomepageNativeConsolidationTests(unittest.TestCase):
             "result.search_bar_hot_query",
             ".result.bottom_tabs",
             ".result.buffer_bottom_tabs",
-            ".result.all_top_opts = []",
+            ".result.all_top_opts? |= (if type == \"array\" then [] else . end)",
             ".result.module_order",
         ):
             self.assertIn(marker, PDD_HOMEPAGE_NATIVE_JQ_RULE)
