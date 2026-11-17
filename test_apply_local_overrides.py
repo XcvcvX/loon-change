@@ -580,6 +580,33 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertIn(unrelated, script)
         self.assertEqual(apply(result), result)
 
+    def test_consolidates_current_romeo_ishowshu_response_script_trigger(self):
+        from apply_local_overrides import (
+            PDD_RSTORE_HOMEPAGE_TRIGGER, PDD_LOCAL_HOMEPAGE_TRIGGER,
+            PDD_ISHOWSHU_HOMEPAGE_TRIGGER, consolidate_pdd_homepage_script,
+        )
+        fixture = [
+            "[Script]", PDD_RSTORE_HOMEPAGE_TRIGGER,
+            PDD_ISHOWSHU_HOMEPAGE_TRIGGER, "[MITM]",
+        ]
+        result, removed = consolidate_pdd_homepage_script(fixture)
+        self.assertEqual(removed, 2)
+        self.assertEqual(result.count(PDD_LOCAL_HOMEPAGE_TRIGGER), 1)
+        self.assertNotIn(PDD_ISHOWSHU_HOMEPAGE_TRIGGER, result)
+
+    def test_accepts_exact_legacy_ishowshu_pdd_trigger(self):
+        from apply_local_overrides import (
+            PDD_RSTORE_HOMEPAGE_TRIGGER, PDD_LOCAL_HOMEPAGE_TRIGGER,
+            PDD_ISHOWSHU_HOMEPAGE_LEGACY_TRIGGER, consolidate_pdd_homepage_script,
+        )
+        fixture = [
+            "[Script]", PDD_RSTORE_HOMEPAGE_TRIGGER,
+            PDD_ISHOWSHU_HOMEPAGE_LEGACY_TRIGGER, "[MITM]",
+        ]
+        result, removed = consolidate_pdd_homepage_script(fixture)
+        self.assertEqual(removed, 2)
+        self.assertEqual(result.count(PDD_LOCAL_HOMEPAGE_TRIGGER), 1)
+
     def test_native_pdd_homepage_response_rewrite_is_not_a_script_trigger(self):
         from apply_local_overrides import consolidate_pdd_homepage_script
         native = 'response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/homepage\\?/i then response.json.delete("result.icon_set")'
@@ -600,7 +627,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
 
     def test_pdd_homepage_consolidation_fails_closed_on_trigger_drift(self):
         from apply_local_overrides import PDD_ISHOWSHU_HOMEPAGE_TRIGGER
-        changed = PDD_ISHOWSHU_HOMEPAGE_TRIGGER.replace("requires-body = true", "requires-body = false")
+        changed = PDD_ISHOWSHU_HOMEPAGE_TRIGGER.replace("requires_body=true", "requires_body=false")
         fixture = BASE.replace("[Script]", "[Script]\n" + changed)
         with self.assertRaisesRegex(ValueError, "Pinduoduo homepage script trigger changed"):
             apply(fixture)
