@@ -4414,7 +4414,7 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
         original = plugin.read_text(encoding="utf-8")
         fixture = _build_amap_unoptimized_fixture()
         result, removed = optimize_amap_response_script_overlaps(fixture)
-        self.assertEqual(removed, 4)
+        self.assertEqual(removed, 5)
         script = "\n".join(result).split("[Script]", 1)[1].split("[MITM]", 1)[0]
         for marker in AMAP_ISHOWSHU_REDUNDANT_SCRIPT_MARKERS:
             self.assertFalse(any(
