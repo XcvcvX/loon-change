@@ -4302,13 +4302,10 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
             r'response if ${url} ~= /^https?:\/\/api\.live\.bilibili\.com\/xlive\/(app-interface\/v2\/index\/feed|app-room\/v1\/index\/getInfoBy(Room|User))\?/i '
             r'then script("https://raw.githubusercontent.com/kokoryh/Sparkle/refs/heads/master/dist/bilibili.json.js") with tag="bilibili.live", requires_body=true'
         )
-        account_trigger = (
-            r"http-response ^https:\/\/app\.bilibili\.com\/x\/v\d\/account\/(?:mine(\/ipad)?|myinfo)\? "
-            r"script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-12,requires-body=true"
-        )
-        account_narrowed = (
-            r"http-response ^https:\/\/app\.bilibili\.com\/x\/(?:v(?:[13-9]|[1-9][0-9]+)\/account\/mine(\/ipad)?|v2\/account\/mine\/ipad|v\d\/account\/myinfo)\? "
-            r"script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-12,requires-body=true"
+        account_trigger, account_narrowed = next(
+            (original, narrowed)
+            for tag, original, narrowed in BILIBILI_JSON_TRIGGER_PAIRS
+            if tag == "BAICIZHAN-12"
         )
         pgc_trigger = (
             r"http-response ^https:\/\/api\.bilibili\.com\/pgc\/page\/(?:bangumi|cinema\/tab\?) "
@@ -4380,14 +4377,6 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
         pgc_trigger = (
             r"http-response ^https:\/\/api\.bilibili\.com\/pgc\/page\/(?:bangumi|cinema\/tab\?) "
             r"script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-7,requires-body=true"
-        )
-        account_trigger = (
-            r"http-response ^https:\/\/app\.bilibili\.com\/x\/v\d\/account\/(?:mine(\/ipad)?|myinfo)\? "
-            r"script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-12,requires-body=true"
-        )
-        account_narrowed = (
-            r"http-response ^https:\/\/app\.bilibili\.com\/x\/(?:v(?:[13-9]|[1-9][0-9]+)\/account\/mine(\/ipad)?|v\d\/account\/myinfo)\? "
-            r"script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-12,requires-body=true"
         )
         skin_trigger = (
             r"http-response ^https:\/\/app\.bilibili\.com\/x\/resource\/show\/skin\? "
