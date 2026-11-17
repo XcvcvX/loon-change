@@ -3024,9 +3024,9 @@ def remove_duplicate_cnftp_scripts(lines):
 
         target_seen = True
         if source_mode:
-            if line in remove_counts:
-                remove_counts[line] += 1
-                if remove_counts[line] > 1:
+            if inventory_line in remove_counts:
+                remove_counts[inventory_line] += 1
+                if remove_counts[inventory_line] > 1:
                     raise ValueError("duplicate legacy video trigger; refusing ambiguous cleanup")
                 removed += 1
                 continue
@@ -3408,6 +3408,7 @@ def remove_identical_script_response_duplicates(lines):
             continue
 
         normalized = line.replace("\\", "")
+        inventory_line = re.sub(r"enable=\$\{([^}]+)\}", r"enable=\1", line.strip())
         has_script_action = "http-response " in line or "script(" in line or "script-path=" in line
         soul_endpoint = (
             ("api-a.soulapp.cn" in normalized and ("/post/gift/list" in normalized or "/official/scene/module" in normalized))
@@ -3437,11 +3438,14 @@ def remove_identical_script_response_duplicates(lines):
                     raise ValueError("duplicate legacy identical-script trigger; refusing ambiguous cleanup")
                 removed += 1
                 continue
-            if line in source_counts:
-                source_counts[line] += 1
-                if source_counts[line] > 1:
+            if inventory_line in source_counts:
+                source_counts[inventory_line] += 1
+                if source_counts[inventory_line] > 1:
                     raise ValueError("duplicate retained identical-script source trigger")
-                output.append(IDENTICAL_SCRIPT_TRANSFORMS.get(line, line))
+                transformed = IDENTICAL_SCRIPT_TRANSFORMS.get(inventory_line, inventory_line)
+                if "enable=${" in line:
+                    transformed = re.sub(r"enable=([A-Za-z0-9_]+)", r"enable=${\1}", transformed)
+                output.append(transformed)
                 continue
             raise ValueError(f"RRTV/Soul/Reddit script inventory changed; refusing unreviewed consolidation: {line.strip()}")
 
