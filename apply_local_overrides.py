@@ -312,7 +312,7 @@ def consolidate_pdd_homepage_script(lines):
         target_seen = True
         kind = normalized_triggers.get(normalized)
         if kind is None:
-            raise ValueError("Pinduoduo homepage script trigger changed; refusing unreviewed consolidation")
+            raise ValueError("Pinduoduo homepage script trigger changed; refusing unreviewed consolidation: " + line.strip())
         counts[kind] += 1
         if counts[kind] > 1:
             raise ValueError("duplicate Pinduoduo homepage script trigger; refusing ambiguous consolidation")
@@ -645,7 +645,7 @@ def remove_redundant_taobao_scripts(lines):
             if counts[trigger] > 1:
                 raise ValueError("duplicate redundant Taobao script trigger; refusing ambiguous deduplication")
             continue
-        raise ValueError("Taobao splash script trigger changed; refusing an unreviewed deduplication")
+        raise ValueError("Taobao splash script trigger changed; refusing an unreviewed deduplication: " + line.strip())
     if not target_seen:
         return output, 0
     canonical_complete = all(counts[trigger] == 1 for trigger in TAOBAO_CANONICAL_SCRIPT_TRIGGERS)
