@@ -30,12 +30,12 @@ jobs:
         shell: bash
         run: |
           mapfile -t files < <(
-            git ls-files | grep -E '(^|/)allAdRewrite\\.plugin$' || true
+            git ls-files | grep -E '(^|/)allAdRewrite\.plugin$' || true
           )
 
           if [ "${#files[@]}" -ne 1 ]; then
             echo "Expected exactly one allAdRewrite.plugin"
-            printf 'Found: %s\\n' "${files[@]}"
+            printf 'Found: %s\n' "${files[@]}"
             exit 1
           fi
 
@@ -80,7 +80,7 @@ jobs:
           # allow-list is maintained: newly referenced files are picked up
           # regardless of whether they live under scripts/, sources/, or elsewhere.
           relative_paths = sorted(set(re.findall(
-              re.escape(private_prefix) + r"""([^,\\s"'?)#]+)""", plugin
+              re.escape(private_prefix) + r"""([^,\s"'?)#]+)""", plugin
           )))
 
           # Do not silently publish a plugin that still points at another branch
