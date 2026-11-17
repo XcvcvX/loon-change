@@ -243,6 +243,9 @@ if (url.includes("/v4/note/videofeed")) {
     // 写入本地持久化缓存
     $.setdata(JSON.stringify(videoData), "redBookVideoFeed");
     console.log(`已缓存普通视频 ${videoData.length} 条`);
+  } else if (Array.isArray(obj.data)) {
+    // Clear stale IDs when the filtered response contains no playable notes.
+    $.setdata("[]", "redBookVideoFeed");
   }
 }
 
