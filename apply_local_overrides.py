@@ -1471,6 +1471,7 @@ AMAP_ISHOWSHU_REDUNDANT_SCRIPT_MARKERS = (
     "/ws/shield/search/nearbyrec_smart",
     "/ws/promotion-web/resource",
     "card-service-plan-home|main-page",
+    "/ws/valueadded/alimama/splash_screen",
     "/ws/perception/drive/",
 )
 

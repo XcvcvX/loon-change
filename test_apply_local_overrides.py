@@ -4428,7 +4428,7 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
         original = plugin.read_text(encoding="utf-8")
         fixture = _build_amap_unoptimized_fixture()
         result, removed = optimize_amap_response_script_overlaps(fixture)
-        self.assertEqual(removed, 6)
+        self.assertEqual(removed, 7)
         script = "\n".join(result).split("[Script]", 1)[1].split("[MITM]", 1)[0]
         for marker in AMAP_ISHOWSHU_REDUNDANT_SCRIPT_MARKERS:
             self.assertFalse(any(
@@ -4493,6 +4493,17 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
         preserved_script = "\n".join(preserved).split("[Script]", 1)[1].split("[MITM]", 1)[0]
         self.assertTrue(any(
             route_marker in line.replace(chr(92), "").lower() and "ishowshu_amap.js" in line.lower()
+            for line in preserved_script.splitlines()
+        ))
+        splash_marker = "/ws/valueadded/alimama/splash_screen"
+        without_splash_local = [
+            line for line in lines
+            if not (splash_marker in line.replace(chr(92), "").lower() and "sources/amap/rucu6_amap.js" in line.lower())
+        ]
+        preserved, _ = optimize_amap_response_script_overlaps(without_splash_local)
+        preserved_script = "\n".join(preserved).split("[Script]", 1)[1].split("[MITM]", 1)[0]
+        self.assertTrue(any(
+            splash_marker in line.replace(chr(92), "").lower() and "ishowshu_amap.js" in line.lower()
             for line in preserved_script.splitlines()
         ))
         # Keep the script if the native jq rule no longer covers hkfRecommendPlans.
