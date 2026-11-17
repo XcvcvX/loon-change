@@ -3196,7 +3196,7 @@ class IdenticalScriptResponseDedupTests(unittest.TestCase):
         ]
         result, removed = remove_identical_script_response_duplicates(fixture)
         self.assertEqual(removed, len(self.remove))
-        expected = self.transforms[source].replace(
+        expected = self.transforms.get(source, source).replace(
             "enable=rfrfuipk_enable", "enable=${rfrfuipk_enable}"
         )
         self.assertIn(expected, result)
