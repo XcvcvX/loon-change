@@ -860,3 +860,14 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 京东主合并脚本与 welcomeHome 可选清理命中同一响应；新版 Loon Response Script 同一响应只选择一条规则，原宽泛主 matcher 会先命中 welcomeHome，后置可选触发器不能独立执行。
 - 将 welcomeHome 从主 matcher 中拆出，仍由同一份 jd.js 处理；通过插件对象参数传入 jkds_enable，基础 R-Store 清理始终执行，额外 FMZ 楼层排除只在开关开启时执行。
 - 同一响应只需一次 JSON.parse / JSON.stringify，不再保留第二个响应脚本入口；订单、支付、购物车、京喜、广告域名规则均不变。
+
+## 第八阶段第五十六批：哔哩哔哩 Proto 边界与小红书视频/评论响应去重
+
+- 哔哩哔哩 Proto：Sparkle protobuf 响应脚本实际覆盖 DynAll v2、View/ViewUnite v1、DmView v1、SearchAll v1；只对这四类已证实重叠的入口收窄 R-Store 版本范围。
+- 修正此前把 BAICIZHAN-5 MainList 也收窄到 v2-v9 的问题：Sparkle matcher 并不包含 MainList，因此完整保留 BAICIZHAN-5 的 v1-v9 覆盖，并增加版本边界回归测试。
+- BAICIZHAN-12 与 Sparkle bilibili.mine.jq 都会处理 /x/v2/account/mine，但并非等价转换：Sparkle 会重建账户分区并改写 VIP 字段，R-Store 还处理 iPad 我的页与 myinfo。当前不冒险删除任一处理；保留双处理并明确记录，待可证明等价后再合并。
+- 抖音复核：当前活跃配置没有与 beta-luna.douyin.com 原生 JSON Rewrite 同接口的响应体脚本；保留 beta-luna 原生字段清理、直播推荐接口保护及独立广告 SDK 处理，不扩大到视频内容接口。
+- 小红书 v4 视频流：将 FMZ v4 视频/下载处理固定到仓库本地脚本，在同一次 JSON 解析中合并原生广告卡片过滤、下载入口/权限字段处理和 H.265/H.264 视频缓存；移除同接口重复的原生 v4 JSON JQ，并让 R-Store 触发器退出 FMZ 已覆盖的 v4/v10 路径。
+- 小红书评论：评论列表的 comment_type / media_source_type 修改由仍需运行的评论缓存脚本处理，删除重复原生 JQ；R-Store 评论触发器排除 FMZ 已覆盖的 v5/list 与 v3/sub_comments 版本，其他版本仍保留。
+- 评论区视频与下载仍依赖跨请求本地缓存（评论响应提取视频流、下载响应按 video_id 回填 URL），不能安全地改成无状态原生 JQ；保留相应下载触发器，不牺牲评论视频和 Live Photo 下载能力。
+- 增加 Proto 版本边界、脚本触发范围、缓存路径、原生规则迁移、幂等与 fail-closed 回归测试，并在 CI 中执行本地脚本 Node 语法检查。性能收益来自减少重复响应体解析，不折算成未经设备测量的电量百分比。
