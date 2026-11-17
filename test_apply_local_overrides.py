@@ -2802,6 +2802,23 @@ class TuhuDuplicateResponseScriptTests(unittest.TestCase):
         self.assertNotIn(source, result)
         self.assertEqual(remove_same_source_duplicate_response_scripts(result), (result, 0))
 
+    def test_accepts_interpolated_switch_and_preserves_it_in_canonical_output(self):
+        from apply_local_overrides import remove_identical_script_response_duplicates
+        source = next(item for item in self.keep_source if "rfrfuipk_enable" in item)
+        current = source.replace("enable=rfrfuipk_enable", "enable=${rfrfuipk_enable}")
+        fixture = [
+            "[Script]", *self.remove,
+            *[current if item == source else item for item in self.keep_source],
+            "[MITM]",
+        ]
+        result, removed = remove_identical_script_response_duplicates(fixture)
+        self.assertEqual(removed, len(self.remove))
+        expected = self.transforms[source].replace(
+            "enable=rfrfuipk_enable", "enable=${rfrfuipk_enable}"
+        )
+        self.assertIn(expected, result)
+        self.assertEqual(remove_identical_script_response_duplicates(result), (result, 0))
+
     def test_preserves_already_consolidated_inventory(self):
         from apply_local_overrides import remove_duplicate_tuhu_scripts
         clean = ["[Script]", *self.canonical, "[MITM]"]
