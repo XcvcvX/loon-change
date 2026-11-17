@@ -562,8 +562,6 @@ def remove_pdd_order_endpoint_blocks(lines):
             if value not in counts:
                 raise ValueError("PDD order endpoint rule changed; refusing unreviewed removal")
             counts[value] += 1
-            if counts[value] > 1:
-                raise ValueError("duplicate PDD order endpoint rule")
             continue
         output.append(line)
 
