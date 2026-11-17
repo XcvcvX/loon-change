@@ -1597,8 +1597,8 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
     def test_rebuilds_full_local_meituan_union_from_exact_rstore_only_upstream_subset(self):
         from apply_local_overrides import MEITUAN_CANONICAL_TRIGGER
         fixture = self.base.replace(
-            "\\n".join(self.triggers),
-            "\\n".join(self.triggers[:3]),
+            "\n".join(self.triggers),
+            "\n".join(self.triggers[:3]),
         )
         result = apply(fixture)
         self.assertEqual(result.count(MEITUAN_CANONICAL_TRIGGER), 1)
