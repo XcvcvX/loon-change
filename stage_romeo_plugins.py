@@ -92,6 +92,18 @@ def stage(
         romeo_repo, commit, output, ROMEO_PLUGIN_MAP, assets_by_plugin
     )
 
+    # Keep the one known nested CDN dependency explicit and fail closed if its
+    # reference disappears or silently changes upstream.
+    for dependency in MANIFEST["external_runtime_dependencies"]:
+        asset_text = _read_romeo_file(
+            romeo_repo, commit, dependency["referenced_by"]
+        ).decode("utf-8-sig", "strict")
+        if dependency["url"] not in asset_text:
+            raise RuntimeError(
+                "Declared external runtime dependency is missing from "
+                + dependency["referenced_by"] + ": " + dependency["url"]
+            )
+
     legacy_dir = repo_root / "sources" / "romeo_legacy"
     for filename in LEGACY_SNAPSHOTS:
         source = legacy_dir / filename
