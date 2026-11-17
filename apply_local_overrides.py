@@ -3024,9 +3024,9 @@ def remove_duplicate_cnftp_scripts(lines):
 
         target_seen = True
         if source_mode:
-            if inventory_line in remove_counts:
-                remove_counts[inventory_line] += 1
-                if remove_counts[inventory_line] > 1:
+            if normalized_line in remove_counts:
+                remove_counts[normalized_line] += 1
+                if remove_counts[normalized_line] > 1:
                     raise ValueError("duplicate legacy video trigger; refusing ambiguous cleanup")
                 removed += 1
                 continue
