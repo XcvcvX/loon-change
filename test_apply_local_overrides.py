@@ -1661,9 +1661,9 @@ class DouyinContentCdnScopeTests(unittest.TestCase):
     def test_removes_exact_unescaped_pstatp_hostname_overblock_variants(self):
         from apply_local_overrides import remove_douyin_content_cdn_overblocks
         unescaped_dot = [
-            r"request if \${url} ~= /^https?:\/\/p(b)?\d\.pstatp\.com\/origin/ then reject(404)",
-            r"request if \${url} ~= /^https?:\/\/p\d\.pstatp\.com\/origin/i then reject(404)",
-            r"request if \${url} ~= /^https?:\/\/pb\d\.pstatp\.com\/origin/i then reject(404)",
+            r"request if ${url} ~= /^https?:\/\/p(b)?\d\.pstatp\.com\/origin/ then reject(404)",
+            r"request if ${url} ~= /^https?:\/\/p\d\.pstatp\.com\/origin/i then reject(404)",
+            r"request if ${url} ~= /^https?:\/\/pb\d\.pstatp\.com\/origin/i then reject(404)",
         ]
         unescaped_dot = [rule.replace(r"pstatp\.com", "pstatp.com") for rule in unescaped_dot]
         fixture = ["[Rule]", self.overblocks[0][1], self.overblocks[1][1],
