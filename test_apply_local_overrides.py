@@ -1144,12 +1144,15 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertIn(legacy, result)
 
 
-    def test_fails_closed_when_amap_native_handler_is_duplicated(self):
+    def test_preserves_amap_legacy_script_when_native_handler_is_ambiguous(self):
         from apply_local_overrides import remove_redundant_amap_legacy_scripts
         legacy = "http-response ^https://m5.amap.com/ws/aos/perception/publicTravel/beforeNavi? script-path=https://example.invalid/amap.js"
         canonical = 'response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/aos\\/perception\\/publicTravel\\/beforeNavi\\?/i then script("https://example.invalid/rucu6_amap.js")'
-        with self.assertRaisesRegex(ValueError, "canonical response handler duplicated"):
-            remove_redundant_amap_legacy_scripts(["[Script]", legacy, canonical, canonical], expected_count=1)
+        result, removed = remove_redundant_amap_legacy_scripts(
+            ["[Script]", legacy, canonical, canonical], expected_count=1
+        )
+        self.assertEqual(removed, 0)
+        self.assertIn(legacy, result)
 
     def test_generated_plugin_has_no_legacy_amap_scripts_and_keeps_native_handlers(self):
         from pathlib import Path
