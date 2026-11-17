@@ -19,6 +19,7 @@
   # --filter 控制 R-Store 分流来源：fetch（默认）/ 本地路径 / none（不补全）
 """
 import argparse, datetime, ipaddress, json, os, re, sys, urllib.request
+from rule_semantics import normalize_enable_switches
 from source_guard import (validate_alipayadblock, validate_blockv2, validate_filter,
                           validate_myblockads, fetch_validated)
 from mitm_policy import mitm_skip_host
@@ -660,7 +661,7 @@ def action_key(line):
     _, action = split_action(line)
     # Loon plugin switches may appear as either enable=name or enable=${name}.
     # They refer to the same switch and must not create false semantic diffs.
-    action = re.sub(r"\benable\s*=\s*\$\{([^}]+)\}", r"enable=\1", action)
+    action = normalize_enable_switches(action)
     aliases = {
         'reject': 'reject(404)',
         'reject-200': 'reject(200)',
