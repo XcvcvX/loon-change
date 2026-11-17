@@ -2,6 +2,10 @@
 // Preserves the combined R-Store + FMZ behavior while parsing each response once.
 (function () {
   const url = ($request && $request.url) || "";
+  const argument = typeof $argument !== "undefined" ? $argument : null;
+  const welcomeExtraEnabled = Boolean(
+    argument && typeof argument === "object" && argument.jkds_enable === true
+  );
   const body = $response && $response.body;
   if (typeof body !== "string" || !body) {
     $done({});
@@ -92,6 +96,18 @@
       obj.webViewFloorList = [];
     }
     if (obj.promotionTabs) delete obj.promotionTabs;
+
+    // Fold the optional FMZ cleanup into this one response pass.
+    // Base R-Store cleanup remains active when jkds_enable is false.
+    if (welcomeExtraEnabled && Array.isArray(obj.floorList)) {
+      const WELCOME_HOME_EXTRA_EXCLUDE = [
+        "bottomXview", "float", "photoCeiling", "ruleFloat",
+        "searchIcon", "topRotate", "tabBarAtmosphere",
+      ];
+      obj.floorList = obj.floorList.filter((item) =>
+        !WELCOME_HOME_EXTRA_EXCLUDE.includes(item && item.type)
+      );
+    }
   } else if (url.includes("functionId=readCustomSurfaceList")) {
     const modeMap = obj.result && obj.result.modeMap;
     ["dark", "normal"].forEach((mode) => {
