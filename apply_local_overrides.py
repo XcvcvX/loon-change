@@ -282,12 +282,20 @@ def consolidate_pdd_homepage_script(lines):
     """Replace two overlapping PDD homepage scripts with one behavior-preserving local handler."""
     output, section = [], ""
     counts = {"rstore": 0, "local": 0, "ishowshu": 0}
+    def normalize_trigger(value):
+        value = re.sub(r"\\+", "", value.strip())
+        return re.sub(
+            r"https://raw\\.githubusercontent\\.com/ifflagged/Romeo/[0-9a-f]{40}/",
+            "https://github.com/ifflagged/Romeo/raw/main/",
+            value,
+        )
+
     normalized_triggers = {
-        re.sub(r"\\+", "", PDD_RSTORE_HOMEPAGE_TRIGGER.strip()): "rstore",
-        re.sub(r"\\+", "", PDD_LOCAL_HOMEPAGE_TRIGGER.strip()): "local",
-        re.sub(r"\\+", "", PDD_LOCAL_HOMEPAGE_RELATIVE_TRIGGER.strip()): "local",
-        re.sub(r"\\+", "", PDD_ISHOWSHU_HOMEPAGE_TRIGGER.strip()): "ishowshu",
-        re.sub(r"\\+", "", PDD_ISHOWSHU_HOMEPAGE_LEGACY_TRIGGER.strip()): "ishowshu",
+        normalize_trigger(PDD_RSTORE_HOMEPAGE_TRIGGER): "rstore",
+        normalize_trigger(PDD_LOCAL_HOMEPAGE_TRIGGER): "local",
+        normalize_trigger(PDD_LOCAL_HOMEPAGE_RELATIVE_TRIGGER): "local",
+        normalize_trigger(PDD_ISHOWSHU_HOMEPAGE_TRIGGER): "ishowshu",
+        normalize_trigger(PDD_ISHOWSHU_HOMEPAGE_LEGACY_TRIGGER): "ishowshu",
     }
     target_seen = False
     for line in lines:
@@ -295,7 +303,7 @@ def consolidate_pdd_homepage_script(lines):
             section = line[1:-1]
             output.append(line)
             continue
-        normalized = re.sub(r"\\+", "", line.strip())
+        normalized = normalize_trigger(line)
         is_target = (section == "Script" and "api.pinduoduo.com/api/alexa/" in normalized
                      and ("script-path" in normalized or "script(" in normalized))
         if not is_target:
