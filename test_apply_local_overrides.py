@@ -794,6 +794,36 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertIn(unrelated, script)
         self.assertEqual(consolidate_goofish_script_triggers(result)[1], 0)
 
+    def test_consolidates_mixed_goofish_canonical_and_current_upstream_subset(self):
+        from apply_local_overrides import (
+            GOOFISH_CANONICAL_SCRIPT_TRIGGERS, GOOFISH_REDUNDANT_SCRIPT_TRIGGERS,
+            consolidate_goofish_script_triggers,
+        )
+        upstream_subset = GOOFISH_REDUNDANT_SCRIPT_TRIGGERS[:10]
+        fixture = ["[Script]", *GOOFISH_CANONICAL_SCRIPT_TRIGGERS,
+                   *upstream_subset, "[MITM]"]
+        result, removed = consolidate_goofish_script_triggers(fixture)
+        self.assertEqual(removed, len(upstream_subset))
+        script = result[result.index("[Script]") + 1:result.index("[MITM]")]
+        for trigger in GOOFISH_CANONICAL_SCRIPT_TRIGGERS:
+            self.assertEqual(script.count(trigger), 1)
+        for trigger in upstream_subset:
+            self.assertNotIn(trigger, script)
+        self.assertEqual(consolidate_goofish_script_triggers(result)[1], 0)
+
+    def test_rebuilds_goofish_canonical_set_from_known_partial_upstream_inventory(self):
+        from apply_local_overrides import (
+            GOOFISH_CANONICAL_SCRIPT_TRIGGERS, GOOFISH_REDUNDANT_SCRIPT_TRIGGERS,
+            consolidate_goofish_script_triggers,
+        )
+        upstream_subset = GOOFISH_REDUNDANT_SCRIPT_TRIGGERS[:10]
+        result, removed = consolidate_goofish_script_triggers(
+            ["[Script]", *upstream_subset, "[MITM]"]
+        )
+        self.assertEqual(removed, len(upstream_subset))
+        script = result[result.index("[Script]") + 1:result.index("[MITM]")]
+        self.assertEqual(list(script), list(GOOFISH_CANONICAL_SCRIPT_TRIGGERS))
+
     def test_normalizes_repository_relative_goofish_script_paths(self):
         from apply_local_overrides import (
             GOOFISH_CANONICAL_SCRIPT_TRIGGERS, consolidate_goofish_script_triggers,
@@ -820,8 +850,9 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         changed = GOOFISH_REDUNDANT_SCRIPT_TRIGGERS[0].replace("requires-body=true", "requires-body=false")
         with self.assertRaisesRegex(ValueError, "inventory changed"):
             consolidate_goofish_script_triggers(["[Script]", *GOOFISH_REDUNDANT_SCRIPT_TRIGGERS[1:], changed])
-        with self.assertRaisesRegex(ValueError, "inventory incomplete"):
-            consolidate_goofish_script_triggers(["[Script]", *GOOFISH_REDUNDANT_SCRIPT_TRIGGERS[:-1]])
+        from apply_local_overrides import GOOFISH_CANONICAL_SCRIPT_TRIGGERS
+        with self.assertRaisesRegex(ValueError, "canonical trigger inventory incomplete"):
+            consolidate_goofish_script_triggers(["[Script]", *GOOFISH_CANONICAL_SCRIPT_TRIGGERS[:-1]])
         with self.assertRaisesRegex(ValueError, "duplicate redundant Goofish"):
             consolidate_goofish_script_triggers(["[Script]", *GOOFISH_REDUNDANT_SCRIPT_TRIGGERS,
                                                  GOOFISH_REDUNDANT_SCRIPT_TRIGGERS[0]])
