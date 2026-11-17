@@ -62,22 +62,32 @@
   },
   "runtime_assets": [
     {
+      "slot": "aoomee_compat",
+      "plugin": "goofish.lpx",
+      "kind": "script",
+      "upstream_url": "https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/ishowshu/goofish/ishowshu_goofish.js",
+      "source_path": "Modules/JavaScript/ishowshu/goofish/ishowshu_goofish.js"
+    },
+    {
       "plugin": "PinDuoDuo_remove_ads.lpx",
       "kind": "script",
       "upstream_url": "https://kelee.one/Resource/JavaScript/PinDuoDuo/PinDuoDuo_remove_ads.js",
-      "source_path": "Modules/JavaScript/Kelee/PinDuoDuo_remove_ads/kelee.one_PinDuoDuo_remove_ads.js"
+      "source_path": "Modules/JavaScript/Kelee/PinDuoDuo_remove_ads/kelee.one_PinDuoDuo_remove_ads.js",
+      "slot": "zmjde_compat"
     },
     {
       "plugin": "Taobao_remove_ads.lpx",
       "kind": "script",
       "upstream_url": "https://kelee.one/Resource/JavaScript/Taobao/Taobao_remove_ads.js",
-      "source_path": "Modules/JavaScript/Kelee/Taobao_remove_ads/kelee.one_Taobao_remove_ads.js"
+      "source_path": "Modules/JavaScript/Kelee/Taobao_remove_ads/kelee.one_Taobao_remove_ads.js",
+      "slot": "zmjde_compat"
     },
     {
       "plugin": "smzdm_remove_ads.lpx",
       "kind": "jq",
       "upstream_url": "https://kelee.one/Resource/JQLang/smzdm/home_smzdm_remove_ads.jq",
-      "source_path": "Modules/JavaScript/Kelee/smzdm_remove_ads/kelee.one_home_smzdm_remove_ads.jq"
+      "source_path": "Modules/JavaScript/Kelee/smzdm_remove_ads/kelee.one_home_smzdm_remove_ads.jq",
+      "slot": "zmjde_compat"
     }
   ],
   "external_runtime_dependencies": [
