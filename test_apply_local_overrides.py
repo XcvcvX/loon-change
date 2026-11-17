@@ -4000,6 +4000,7 @@ class XiaohongshuNativeDuplicateTriggerTests(unittest.TestCase):
             r"^https:\/\/(?:edith|so)\.xiaohongshu\.com\/api\/sns\/v\d+\/search\/notes\? response-body-json-jq '. as $o | try . catch $o'",
             r"^https:\/\/edith\.xiaohongshu\.com\/api\/sns\/v\d\/system_service\/config\? response-body-json-jq '. as $o | try . catch $o'",
         ]
+        scripts = [line.replace("enable=xhs_enable", "enable=${xhs_enable}") for line in scripts]
         return ["[Rewrite]", *rewrites, "[Script]", *sorted(scripts), "[MITM]"]
 
     def test_removes_only_native_covered_rstore_search_and_widget_scripts(self):
