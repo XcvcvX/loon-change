@@ -12,38 +12,14 @@
     },
     "script": {
       "action_changed": 0,
-      "added": 2,
-      "removed": 3
+      "added": 1,
+      "removed": 1
     }
   },
   "events": [
     {
       "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/edith\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/(v5\\/note\\/comment\\/list|v3\\/note\\/comment\\/sub_comments)\\?/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu-v4.js\") with enable=${xhs_enable}, tag=\"小红书评论区本地缓存处理\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/edith\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/v1\\/interaction\\/comment\\/video\\/download\\?/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu-v4.js\") with enable=${xhs_enable}, tag=\"小红书评论区本地缓存下载\", timeout=60, requires_body=true",
+        "line": "http-response ^https?:\\/\\/app\\.bilibili\\.com\\/x\\/(?:v(?:[13-9]|[1-9][0-9]+)\\/account\\/mine(\\/ipad)?|v2\\/account\\/mine\\/ipad|v\\d\\/account\\/myinfo)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-12,requires-body=true",
         "section": "script",
         "sources": [
           "local_overrides"
@@ -68,7 +44,7 @@
     {
       "after": null,
       "before": {
-        "line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/interaction\\/comment\\/video\\/download\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-11,requires-body=true",
+        "line": "http-response ^https?:\\/\\/app\\.bilibili\\.com\\/x\\/v\\d\\/account\\/(?:mine(\\/ipad)?|myinfo)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-12,requires-body=true",
         "section": "script",
         "sources": [
           "base"
@@ -88,63 +64,15 @@
       "sources": [
         "base"
       ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/edith\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/(v5\\/note\\/comment\\/list|v3\\/note\\/comment\\/sub_comments)\\?/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书评论区去水印存储\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "block"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "block": "unavailable"
-      },
-      "source_scores": {
-        "block": null
-      },
-      "sources": [
-        "block"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/edith\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/v1\\/interaction\\/comment\\/video\\/download\\?/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书评论区去水印下载\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "block"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "block": "unavailable"
-      },
-      "source_scores": {
-        "block": null
-      },
-      "sources": [
-        "block"
-      ]
     }
   ],
   "overall_risk": "high",
   "risk_counts": {
-    "high": 3,
+    "high": 1,
     "low": 0,
-    "medium": 2
+    "medium": 1
   },
-  "run_id": "44127073860",
+  "run_id": "44131203133",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -175,8 +103,8 @@
     "block": {
       "action_changed": 46,
       "added": 75,
-      "removed": 168,
-      "snapshots_seen": 16
+      "removed": 167,
+      "snapshots_seen": 15
     },
     "filter": {
       "action_changed": 0,
@@ -186,7 +114,7 @@
     },
     "local_overrides": {
       "action_changed": 0,
-      "added": 112,
+      "added": 111,
       "removed": 42,
       "snapshots_seen": 19
     },
