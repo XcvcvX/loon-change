@@ -3980,6 +3980,60 @@ class BilibiliProtobufDuplicateTriggerTests(unittest.TestCase):
             narrow_duplicate_bilibili_protobuf_triggers(["[Script]", bad_fmz, original, "[MITM]"])
 
 
+class XiaohongshuNativeDuplicateTriggerTests(unittest.TestCase):
+    def _fixture(self):
+        from apply_local_overrides import XHS_SCRIPT_TRIGGER_LINES
+        rstore_tags = {"XIAOHONGSHU", "XIAOHONGSHU-3", "XIAOHONGSHU-4", "XIAOHONGSHU-5", "XIAOHONGSHU-6"}
+        scripts = [
+            line for line in XHS_SCRIPT_TRIGGER_LINES
+            if any(("tag=" + tag + ",") in line for tag in rstore_tags)
+            or ('tag="小红书搜索页"' in line and any(marker in line for marker in (
+                "/search/(banner|hot)_list", "/search/(hint|trending)", "/search/notes"
+            )))
+        ]
+        rewrites = [
+            r"^https:\/\/edith\.xiaohongshu\.com\/api\/sns\/v\d\/note\/widgets response-body-json-jq '. as $o | try . catch $o'",
+            r"^https:\/\/edith\.xiaohongshu\.com\/api\/sns\/v\d\/search\/banner_list$ response-body-json-jq '. as $o | try . catch $o'",
+            r"^https:\/\/edith\.xiaohongshu\.com\/api\/sns\/v\d\/search\/hot_list$ response-body-json-jq '. as $o | try . catch $o'",
+            r"^https:\/\/edith\.xiaohongshu\.com\/api\/sns\/v\d\/search\/hint response-body-json-jq '. as $o | try . catch $o'",
+            r"^https:\/\/edith\.xiaohongshu\.com\/api\/sns\/v\d\/search\/trending\? response-body-json-jq '. as $o | try . catch $o'",
+            r"^https:\/\/(?:edith|so)\.xiaohongshu\.com\/api\/sns\/v\d+\/search\/notes\? response-body-json-jq '. as $o | try . catch $o'",
+            r"^https:\/\/edith\.xiaohongshu\.com\/api\/sns\/v\d\/system_service\/config\? response-body-json-jq '. as $o | try . catch $o'",
+        ]
+        return ["[Rewrite]", *rewrites, "[Script]", *sorted(scripts), "[MITM]"]
+
+    def test_removes_only_native_covered_rstore_search_and_widget_scripts(self):
+        from apply_local_overrides import narrow_xiaohongshu_native_response_duplicates
+        fixture = self._fixture()
+        result, changed = narrow_xiaohongshu_native_response_duplicates(fixture)
+        self.assertEqual(changed, 8)
+        self.assertFalse(any("tag=XIAOHONGSHU" in line or "tag=XIAOHONGSHU-" in line for line in result))
+        fmz = [line for line in result if 'tag="小红书搜索页"' in line]
+        self.assertEqual(len(fmz), 3)
+        self.assertTrue(all(r"\.rnote\.com" in line for line in fmz))
+        self.assertFalse(any(r"(xiaohongshu|rnote)" in line for line in fmz))
+        again, second_changed = narrow_xiaohongshu_native_response_duplicates(result)
+        self.assertEqual(second_changed, 0)
+        self.assertEqual(again, result)
+
+    def test_fails_closed_when_native_search_coverage_is_missing(self):
+        from apply_local_overrides import narrow_xiaohongshu_native_response_duplicates
+        fixture = self._fixture()
+        fixture = [line for line in fixture if "/search/hot_list" not in line or "response-body-json-jq" not in line]
+        with self.assertRaisesRegex(ValueError, "native JSON coverage missing or duplicated"):
+            narrow_xiaohongshu_native_response_duplicates(fixture)
+
+    def test_fails_closed_on_changed_fmz_host_matcher(self):
+        from apply_local_overrides import narrow_xiaohongshu_native_response_duplicates
+        fixture = self._fixture()
+        for i, line in enumerate(fixture):
+            if 'tag="小红书搜索页"' in line and "/search/notes" in line:
+                fixture[i] = line.replace(r"(?:so|edith)\.(xiaohongshu|rnote)\.com", r"edith\.(xiaohongshu|rnote)\.com")
+                break
+        with self.assertRaisesRegex(ValueError, "FMZ search trigger inventory changed"):
+            narrow_xiaohongshu_native_response_duplicates(fixture)
+
+
 if __name__ == "__main__":
     unittest.main()
 
