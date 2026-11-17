@@ -3921,6 +3921,19 @@ XHS_NATIVE_DUPLICATE_TRIGGER_TAGS = (
     "XIAOHONGSHU-6",
 )
 
+# Native JSON rules fully cover these two feed filters on edith/rec; retain
+# R-Store fallback only for unsupported API versions/hosts.
+XHS_NARROWED_TRIGGER_LINES = {
+    "XIAOHONGSHU-2": (
+        "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v(?:[13-9]|[1-9][0-9]+)\\/user\\/followings\\/followfeed "
+        "script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-2,requires-body=true"
+    ),
+    "XIAOHONGSHU-8": (
+        "http-response ^https?:\\/\\/(?:(?:edith|rec|www)\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/homefeed\\?|www\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/followfeed\\?) "
+        "script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-8,requires-body=true"
+    ),
+}
+
 def narrow_xiaohongshu_native_response_duplicates(lines):
     """Remove only XHS script passes whose exact endpoint has a native JSON rewrite."""
     original = list(lines)
@@ -3955,6 +3968,16 @@ def narrow_xiaohongshu_native_response_duplicates(lines):
             raise ValueError("Xiaohongshu R-Store native duplicate trigger changed: " + tag)
         actual_by_tag[tag] = matches[0]
 
+    actual_by_narrowed_tag = {}
+    for tag in XHS_NARROWED_TRIGGER_LINES:
+        expected = next((line for line in XHS_SCRIPT_TRIGGER_LINES
+                         if line.startswith("http-response ")
+                         and ("tag=" + tag + ",") in line), None)
+        matches = [line for line in script_lines if ("tag=" + tag + ",") in line]
+        if expected is None or len(matches) != 1 or matches[0] != expected:
+            raise ValueError("Xiaohongshu feed trigger inventory changed: " + tag)
+        actual_by_narrowed_tag[tag] = matches[0]
+
     required_native = (
         ("/api/sns/v", "/note/widgets"),
         ("/api/sns/v", "/search/banner_list"),
@@ -3973,6 +3996,23 @@ def narrow_xiaohongshu_native_response_duplicates(lines):
             raise ValueError(
                 "Xiaohongshu native JSON coverage missing or duplicated: " + endpoint
             )
+
+    follow_user_rules = [
+        line for line in rewrite_lines
+        if "response-body-json-jq" in line
+        and "/api/sns/v2/user/followings/followfeed" in re.sub(r"\\+", "", line)
+        and '.recommend_reason=="friend_post"' in line
+    ]
+    followfeed_rules = [
+        line for line in rewrite_lines
+        if "response-body-json-jq" in line
+        and "/api/sns/v" in re.sub(r"\\+", "", line)
+        and "/user/followings/" not in re.sub(r"\\+", "", line)
+        and "/followfeed" in re.sub(r"\\+", "", line)
+        and '.recommend_reason!="recommend_user"' in line
+    ]
+    if len(follow_user_rules) != 1 or len(followfeed_rules) != 1:
+        raise ValueError("Xiaohongshu native follow-feed JSON coverage missing or duplicated")
 
     # FMZ duplicates are retained for the rnote.com host, which is not covered
     # by the native xiaohongshu.com rules. The xiaohongshu.com side is native-only.
@@ -4000,7 +4040,10 @@ def narrow_xiaohongshu_native_response_duplicates(lines):
             or len(fmz_actual) != 3):
         raise ValueError("Xiaohongshu FMZ search trigger inventory changed; refusing narrowing")
 
-    replacements = {}
+    replacements = {
+        actual_by_narrowed_tag[tag]: narrowed
+        for tag, narrowed in XHS_NARROWED_TRIGGER_LINES.items()
+    }
     for line in fmz_actual:
         if "/search/notes" in re.sub(r"\\+", "", line):
             old = r"(so|edith)\.(xiaohongshu|rnote)\.com"
@@ -4022,6 +4065,10 @@ def narrow_xiaohongshu_native_response_duplicates(lines):
             result.append(line)
             continue
         if section == "Script" and stripped in actual_by_tag.values():
+            changed += 1
+            continue
+        if section == "Script" and stripped in replacements:
+            result.append(replacements[stripped])
             changed += 1
             continue
         if section == "Script" and stripped in replacements:
