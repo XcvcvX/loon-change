@@ -1028,9 +1028,9 @@ def replace_ddqx_newdetails_body_rewrites(lines):
     output, converted, legacy_count, modern_count, native_count = [], 0, 0, 0, 0
     unknown_seen = False
     normalize = lambda value: re.sub(
-        r"enable=\\$\\{([^}]+)\\}",
-        r"enable=\\1",
-        re.sub(r"\\\\+", "", value.strip()),
+        r"enable=\$\{([^}]+)\}",
+        r"enable=\1",
+        re.sub(r"\\+", "", value.strip()),
     )
     normalized_matcher = normalize(DDQX_NEWDETAILS_MATCHER)
     normalized_native = normalize(DDQX_NEWDETAILS_NATIVE_RULE)
