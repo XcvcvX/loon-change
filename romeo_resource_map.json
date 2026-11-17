@@ -63,6 +63,13 @@
   "runtime_assets": [
     {
       "slot": "aoomee_compat",
+      "plugin": "12306.lpx",
+      "kind": "script",
+      "upstream_url": "https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/fmz200/12306/kokoryh_12306.js",
+      "source_path": "Modules/JavaScript/fmz200/12306/kokoryh_12306.js"
+    },
+    {
+      "slot": "aoomee_compat",
       "plugin": "goofish.lpx",
       "kind": "script",
       "upstream_url": "https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/ishowshu/goofish/ishowshu_goofish.js",
