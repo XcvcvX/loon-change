@@ -13,7 +13,6 @@ on:
       - 'stage_romeo_plugins.py'
       - 'test_stage_romeo_plugins.py'
       - 'romeo_resource_map.json'
-      - 'romeo_resource_map.json'
       - 'amap_dependency_guard.py'
       - 'apply_amap_local_overrides.py'
       - 'test_apply_amap_local_overrides.py'
