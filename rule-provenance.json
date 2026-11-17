@@ -122854,21 +122854,15 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://(api|cdn\\\\.api)\\\\.chelaile(?:app)?(?:\\\\.net)?\\\\.cn/goocity/flowPos/listByPos', ('^https?:\\\\/\\\\/', '^https?:\\\\/\\\\/(api|cdn\\\\.api)\\\\.chelaile(?:app)?(?:\\\\.net)?\\\\.cn\\\\/goocity\\\\/flowPos\\\\/listByPos script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/romeo_legacy/chelaile-flowpos.js, requires-body=1, timeout=20'))",
-      "output_entry_index": 548,
-      "output_line": "http-response ^https?:\\/\\/(api|cdn\\.api)\\.chelaile(?:app)?(?:\\.net)?\\.cn\\/goocity\\/flowPos\\/listByPos script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/romeo_legacy/chelaile-flowpos.js, requires-body=1, timeout=20",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/(api|cdn\\.api)\\.chelaile(?:app)?(?:\\.net)?\\.cn\\/goocity\\/flowPos\\/listByPos script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/romeo_legacy/chelaile-flowpos.js, requires-body=true, timeout=20",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/(api|cdn\\.api)\\.chelaile(?:app)?(?:\\.net)?\\.cn\\/goocity\\/flowPos\\/listByPos script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/romeo_legacy/chelaile-flowpos.js, requires-body=1, timeout=20",
-          "input_section": "Script",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 19
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
       "canonical_key": "('guarded', '^https://(raw|gist)\\\\.githubusercontent\\\\.com/', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/ishowshu/github/Script-Hub-Org_replace-header.js\", \"(%5Cr%5Cn)Accept-Language%3A.%2B(%5Cr%5Cn)-%3E%241Accept-Language%3A%20en-us%242\") with tag=\"replaceHeader\", timeout=30'))",
@@ -123177,14 +123171,14 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://(?:www\\\\.|m\\\\.)?youtube\\\\.com/api/timedtext\\\\?[^#]+$', ('^https:\\\\/\\\\/', '^https:\\\\/\\\\/(?:www\\\\.|m\\\\.)?youtube\\\\.com\\\\/api\\\\/timedtext\\\\?[^#]+$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=false,timeout=10,enable={translation_enabled},argument=[{translation_enabled},{translation_target}],tag=YouTube 字幕目标语言'))",
+      "canonical_key": "('guarded', '^https://(?:www\\\\.|m\\\\.)?youtube\\\\.com/api/timedtext\\\\?[^#]+$', ('^https:\\\\/\\\\/', '^https:\\\\/\\\\/(?:www\\\\.|m\\\\.)?youtube\\\\.com\\\\/api\\\\/timedtext\\\\?[^#]+$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=false,timeout=10,enable={translation_enabled},argument={translation_enabled,translation_target},tag=YouTube 字幕目标语言'))",
       "output_entry_index": 575,
-      "output_line": "http-request ^https:\\/\\/(?:www\\.|m\\.)?youtube\\.com\\/api\\/timedtext\\?[^#]+$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=false,timeout=10,enable={translation_enabled},argument=[{translation_enabled},{translation_target}],tag=YouTube 字幕目标语言",
+      "output_line": "http-request ^https:\\/\\/(?:www\\.|m\\.)?youtube\\.com\\/api\\/timedtext\\?[^#]+$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=false,timeout=10,enable={translation_enabled},argument={translation_enabled,translation_target},tag=YouTube 字幕目标语言",
       "section": "Script",
       "sources": [
         {
           "disposition": "selected",
-          "input_line": "http-request ^https:\\/\\/(?:www\\.|m\\.)?youtube\\.com\\/api\\/timedtext\\?[^#]+$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=false,timeout=10,enable={translation_enabled},argument=[{translation_enabled},{translation_target}],tag=YouTube 字幕目标语言",
+          "input_line": "http-request ^https:\\/\\/(?:www\\.|m\\.)?youtube\\.com\\/api\\/timedtext\\?[^#]+$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=false,timeout=10,enable={translation_enabled},argument={translation_enabled,translation_target},tag=YouTube 字幕目标语言",
           "input_section": "Script",
           "priority": 2,
           "source": "aoomee",
@@ -123211,14 +123205,14 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.|music\\\\.)?youtube\\\\.com)/youtubei/v1/(?:browse|next|search|reel/reel_watch_sequence)(?:\\\\?[^#]*)?$|^https://[\\\\w-]+\\\\.googlevideo\\\\.com/videoplayback\\\\?[^#]*$|^http://youtube-logs\\\\.invalid(?::80)?(?:/[^#]*)?$|^https://[\\\\w-]+\\\\.googlevideo\\\\.com/initplayback(?:\\\\?[^#]*)?$', ('^https:\\\\/\\\\/', '^https:\\\\/\\\\/(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.|music\\\\.)?youtube\\\\.com)\\\\/youtubei\\\\/v1\\\\/(?:browse|next|search|reel\\\\/reel_watch_sequence)(?:\\\\?[^#]*)?$|^https:\\\\/\\\\/[\\\\w-]+\\\\.googlevideo\\\\.com\\\\/videoplayback\\\\?[^#]*$|^http:\\\\/\\\\/youtube-logs\\\\.invalid(?::80)?(?:\\\\/[^#]*)?$|^https:\\\\/\\\\/[\\\\w-]+\\\\.googlevideo\\\\.com\\\\/initplayback(?:\\\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=false,timeout=10,enable={log_enabled},argument=[{log_enabled},{log_level},{capture_budget},{background_playback},{media_capture_mode},{quality_research}],tag=YouTube 日志与导出'))",
+      "canonical_key": "('guarded', '^https://(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.|music\\\\.)?youtube\\\\.com)/youtubei/v1/(?:browse|next|search|reel/reel_watch_sequence)(?:\\\\?[^#]*)?$|^https://[\\\\w-]+\\\\.googlevideo\\\\.com/videoplayback\\\\?[^#]*$|^http://youtube-logs\\\\.invalid(?::80)?(?:/[^#]*)?$|^https://[\\\\w-]+\\\\.googlevideo\\\\.com/initplayback(?:\\\\?[^#]*)?$', ('^https:\\\\/\\\\/', '^https:\\\\/\\\\/(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.|music\\\\.)?youtube\\\\.com)\\\\/youtubei\\\\/v1\\\\/(?:browse|next|search|reel\\\\/reel_watch_sequence)(?:\\\\?[^#]*)?$|^https:\\\\/\\\\/[\\\\w-]+\\\\.googlevideo\\\\.com\\\\/videoplayback\\\\?[^#]*$|^http:\\\\/\\\\/youtube-logs\\\\.invalid(?::80)?(?:\\\\/[^#]*)?$|^https:\\\\/\\\\/[\\\\w-]+\\\\.googlevideo\\\\.com\\\\/initplayback(?:\\\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=false,timeout=10,enable={log_enabled},argument={log_enabled,log_level,capture_budget,background_playback,media_capture_mode,quality_research},tag=YouTube 日志与导出'))",
       "output_entry_index": 577,
-      "output_line": "http-request ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/(?:browse|next|search|reel\\/reel_watch_sequence)(?:\\?[^#]*)?$|^https:\\/\\/[\\w-]+\\.googlevideo\\.com\\/videoplayback\\?[^#]*$|^http:\\/\\/youtube-logs\\.invalid(?::80)?(?:\\/[^#]*)?$|^https:\\/\\/[\\w-]+\\.googlevideo\\.com\\/initplayback(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=false,timeout=10,enable={log_enabled},argument=[{log_enabled},{log_level},{capture_budget},{background_playback},{media_capture_mode},{quality_research}],tag=YouTube 日志与导出",
+      "output_line": "http-request ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/(?:browse|next|search|reel\\/reel_watch_sequence)(?:\\?[^#]*)?$|^https:\\/\\/[\\w-]+\\.googlevideo\\.com\\/videoplayback\\?[^#]*$|^http:\\/\\/youtube-logs\\.invalid(?::80)?(?:\\/[^#]*)?$|^https:\\/\\/[\\w-]+\\.googlevideo\\.com\\/initplayback(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=false,timeout=10,enable={log_enabled},argument={log_enabled,log_level,capture_budget,background_playback,media_capture_mode,quality_research},tag=YouTube 日志与导出",
       "section": "Script",
       "sources": [
         {
           "disposition": "selected",
-          "input_line": "http-request ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/(?:browse|next|search|reel\\/reel_watch_sequence)(?:\\?[^#]*)?$|^https:\\/\\/[\\w-]+\\.googlevideo\\.com\\/videoplayback\\?[^#]*$|^http:\\/\\/youtube-logs\\.invalid(?::80)?(?:\\/[^#]*)?$|^https:\\/\\/[\\w-]+\\.googlevideo\\.com\\/initplayback(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=false,timeout=10,enable={log_enabled},argument=[{log_enabled},{log_level},{capture_budget},{background_playback},{media_capture_mode},{quality_research}],tag=YouTube 日志与导出",
+          "input_line": "http-request ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/(?:browse|next|search|reel\\/reel_watch_sequence)(?:\\?[^#]*)?$|^https:\\/\\/[\\w-]+\\.googlevideo\\.com\\/videoplayback\\?[^#]*$|^http:\\/\\/youtube-logs\\.invalid(?::80)?(?:\\/[^#]*)?$|^https:\\/\\/[\\w-]+\\.googlevideo\\.com\\/initplayback(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=false,timeout=10,enable={log_enabled},argument={log_enabled,log_level,capture_budget,background_playback,media_capture_mode,quality_research},tag=YouTube 日志与导出",
           "input_section": "Script",
           "priority": 2,
           "source": "aoomee",
@@ -123228,14 +123222,14 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.)?youtube\\\\.com)/youtubei/v1/log_event(?:\\\\?[^#]*)?$', ('^https:\\\\/\\\\/', '^https:\\\\/\\\\/(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.)?youtube\\\\.com)\\\\/youtubei\\\\/v1\\\\/log_event(?:\\\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument=[{log_enabled},{log_level},{capture_budget},{playback_region}],tag=YouTube 配置请求处理'))",
+      "canonical_key": "('guarded', '^https://(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.)?youtube\\\\.com)/youtubei/v1/log_event(?:\\\\?[^#]*)?$', ('^https:\\\\/\\\\/', '^https:\\\\/\\\\/(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.)?youtube\\\\.com)\\\\/youtubei\\\\/v1\\\\/log_event(?:\\\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument={log_enabled,log_level,capture_budget,playback_region},tag=YouTube 配置请求处理'))",
       "output_entry_index": 578,
-      "output_line": "http-request ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.)?youtube\\.com)\\/youtubei\\/v1\\/log_event(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument=[{log_enabled},{log_level},{capture_budget},{playback_region}],tag=YouTube 配置请求处理",
+      "output_line": "http-request ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.)?youtube\\.com)\\/youtubei\\/v1\\/log_event(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument={log_enabled,log_level,capture_budget,playback_region},tag=YouTube 配置请求处理",
       "section": "Script",
       "sources": [
         {
           "disposition": "selected",
-          "input_line": "http-request ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.)?youtube\\.com)\\/youtubei\\/v1\\/log_event(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument=[{log_enabled},{log_level},{capture_budget},{playback_region}],tag=YouTube 配置请求处理",
+          "input_line": "http-request ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.)?youtube\\.com)\\/youtubei\\/v1\\/log_event(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument={log_enabled,log_level,capture_budget,playback_region},tag=YouTube 配置请求处理",
           "input_section": "Script",
           "priority": 2,
           "source": "aoomee",
@@ -123262,14 +123256,14 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://[\\\\w-]+\\\\.googlevideo\\\\.com/(?:videoplayback|initplayback)(?:\\\\?[^#]*)?$', ('^https:\\\\/\\\\/[\\\\w-]+\\\\.googlevideo\\\\.com\\\\/', '^https:\\\\/\\\\/[\\\\w-]+\\\\.googlevideo\\\\.com\\\\/(?:videoplayback|initplayback)(?:\\\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=false,timeout=10,enable={log_enabled},argument=[{log_enabled},{log_level},{capture_budget}],tag=YouTube 媒体响应日志'))",
+      "canonical_key": "('guarded', '^https://[\\\\w-]+\\\\.googlevideo\\\\.com/(?:videoplayback|initplayback)(?:\\\\?[^#]*)?$', ('^https:\\\\/\\\\/[\\\\w-]+\\\\.googlevideo\\\\.com\\\\/', '^https:\\\\/\\\\/[\\\\w-]+\\\\.googlevideo\\\\.com\\\\/(?:videoplayback|initplayback)(?:\\\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=false,timeout=10,enable={log_enabled},argument={log_enabled,log_level,capture_budget},tag=YouTube 媒体响应日志'))",
       "output_entry_index": 580,
-      "output_line": "http-response ^https:\\/\\/[\\w-]+\\.googlevideo\\.com\\/(?:videoplayback|initplayback)(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=false,timeout=10,enable={log_enabled},argument=[{log_enabled},{log_level},{capture_budget}],tag=YouTube 媒体响应日志",
+      "output_line": "http-response ^https:\\/\\/[\\w-]+\\.googlevideo\\.com\\/(?:videoplayback|initplayback)(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=false,timeout=10,enable={log_enabled},argument={log_enabled,log_level,capture_budget},tag=YouTube 媒体响应日志",
       "section": "Script",
       "sources": [
         {
           "disposition": "selected",
-          "input_line": "http-response ^https:\\/\\/[\\w-]+\\.googlevideo\\.com\\/(?:videoplayback|initplayback)(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=false,timeout=10,enable={log_enabled},argument=[{log_enabled},{log_level},{capture_budget}],tag=YouTube 媒体响应日志",
+          "input_line": "http-response ^https:\\/\\/[\\w-]+\\.googlevideo\\.com\\/(?:videoplayback|initplayback)(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=false,timeout=10,enable={log_enabled},argument={log_enabled,log_level,capture_budget},tag=YouTube 媒体响应日志",
           "input_section": "Script",
           "priority": 2,
           "source": "aoomee",
@@ -123279,14 +123273,14 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.)?youtube\\\\.com)/youtubei/v1/(?:config|log_event)(?:\\\\?[^#]*)?$', ('^https:\\\\/\\\\/', '^https:\\\\/\\\\/(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.)?youtube\\\\.com)\\\\/youtubei\\\\/v1\\\\/(?:config|log_event)(?:\\\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument=[{log_enabled},{log_level},{capture_budget}],tag=YouTube Onesie 配置缓存'))",
+      "canonical_key": "('guarded', '^https://(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.)?youtube\\\\.com)/youtubei/v1/(?:config|log_event)(?:\\\\?[^#]*)?$', ('^https:\\\\/\\\\/', '^https:\\\\/\\\\/(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.)?youtube\\\\.com)\\\\/youtubei\\\\/v1\\\\/(?:config|log_event)(?:\\\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument={log_enabled,log_level,capture_budget},tag=YouTube Onesie 配置缓存'))",
       "output_entry_index": 581,
-      "output_line": "http-response ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.)?youtube\\.com)\\/youtubei\\/v1\\/(?:config|log_event)(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument=[{log_enabled},{log_level},{capture_budget}],tag=YouTube Onesie 配置缓存",
+      "output_line": "http-response ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.)?youtube\\.com)\\/youtubei\\/v1\\/(?:config|log_event)(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument={log_enabled,log_level,capture_budget},tag=YouTube Onesie 配置缓存",
       "section": "Script",
       "sources": [
         {
           "disposition": "selected",
-          "input_line": "http-response ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.)?youtube\\.com)\\/youtubei\\/v1\\/(?:config|log_event)(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument=[{log_enabled},{log_level},{capture_budget}],tag=YouTube Onesie 配置缓存",
+          "input_line": "http-response ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.)?youtube\\.com)\\/youtubei\\/v1\\/(?:config|log_event)(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument={log_enabled,log_level,capture_budget},tag=YouTube Onesie 配置缓存",
           "input_section": "Script",
           "priority": 2,
           "source": "aoomee",
@@ -123296,14 +123290,14 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.|music\\\\.)?youtube\\\\.com)/youtubei/v1/(?:player|get_watch)(?:\\\\?[^#]*)?$|^https://(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.|music\\\\.)?youtube\\\\.com)/youtubei/v1/player/ad_break(?:\\\\?[^#]*)?$', ('^https:\\\\/\\\\/', '^https:\\\\/\\\\/(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.|music\\\\.)?youtube\\\\.com)\\\\/youtubei\\\\/v1\\\\/(?:player|get_watch)(?:\\\\?[^#]*)?$|^https:\\\\/\\\\/(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.|music\\\\.)?youtube\\\\.com)\\\\/youtubei\\\\/v1\\\\/player\\\\/ad_break(?:\\\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument=[{log_enabled},{log_level},{capture_budget},{playback_region}],tag=YouTube 播放请求与广告配置处理'))",
+      "canonical_key": "('guarded', '^https://(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.|music\\\\.)?youtube\\\\.com)/youtubei/v1/(?:player|get_watch)(?:\\\\?[^#]*)?$|^https://(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.|music\\\\.)?youtube\\\\.com)/youtubei/v1/player/ad_break(?:\\\\?[^#]*)?$', ('^https:\\\\/\\\\/', '^https:\\\\/\\\\/(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.|music\\\\.)?youtube\\\\.com)\\\\/youtubei\\\\/v1\\\\/(?:player|get_watch)(?:\\\\?[^#]*)?$|^https:\\\\/\\\\/(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.|music\\\\.)?youtube\\\\.com)\\\\/youtubei\\\\/v1\\\\/player\\\\/ad_break(?:\\\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument={log_enabled,log_level,capture_budget,playback_region},tag=YouTube 播放请求与广告配置处理'))",
       "output_entry_index": 582,
-      "output_line": "http-request ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/(?:player|get_watch)(?:\\?[^#]*)?$|^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/player\\/ad_break(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument=[{log_enabled},{log_level},{capture_budget},{playback_region}],tag=YouTube 播放请求与广告配置处理",
+      "output_line": "http-request ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/(?:player|get_watch)(?:\\?[^#]*)?$|^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/player\\/ad_break(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument={log_enabled,log_level,capture_budget,playback_region},tag=YouTube 播放请求与广告配置处理",
       "section": "Script",
       "sources": [
         {
           "disposition": "selected",
-          "input_line": "http-request ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/(?:player|get_watch)(?:\\?[^#]*)?$|^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/player\\/ad_break(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument=[{log_enabled},{log_level},{capture_budget},{playback_region}],tag=YouTube 播放请求与广告配置处理",
+          "input_line": "http-request ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/(?:player|get_watch)(?:\\?[^#]*)?$|^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/player\\/ad_break(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument={log_enabled,log_level,capture_budget,playback_region},tag=YouTube 播放请求与广告配置处理",
           "input_section": "Script",
           "priority": 2,
           "source": "aoomee",
@@ -123313,14 +123307,14 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.|music\\\\.)?youtube\\\\.com)/youtubei/v1/(browse|next|search)(\\\\?[^#]*)?$', ('^https:\\\\/\\\\/', '^https:\\\\/\\\\/(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.|music\\\\.)?youtube\\\\.com)\\\\/youtubei\\\\/v1\\\\/(browse|next|search)(\\\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument=[{log_enabled},{log_level},{capture_budget},{hide_home_shorts},{blocked_channels},{blocked_channels_url}],tag=YouTube 信息流广告与首页 Shorts 处理'))",
+      "canonical_key": "('guarded', '^https://(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.|music\\\\.)?youtube\\\\.com)/youtubei/v1/(browse|next|search)(\\\\?[^#]*)?$', ('^https:\\\\/\\\\/', '^https:\\\\/\\\\/(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.|music\\\\.)?youtube\\\\.com)\\\\/youtubei\\\\/v1\\\\/(browse|next|search)(\\\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument={log_enabled,log_level,capture_budget,hide_home_shorts,blocked_channels,blocked_channels_url},tag=YouTube 信息流广告与首页 Shorts 处理'))",
       "output_entry_index": 583,
-      "output_line": "http-response ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/(browse|next|search)(\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument=[{log_enabled},{log_level},{capture_budget},{hide_home_shorts},{blocked_channels},{blocked_channels_url}],tag=YouTube 信息流广告与首页 Shorts 处理",
+      "output_line": "http-response ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/(browse|next|search)(\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument={log_enabled,log_level,capture_budget,hide_home_shorts,blocked_channels,blocked_channels_url},tag=YouTube 信息流广告与首页 Shorts 处理",
       "section": "Script",
       "sources": [
         {
           "disposition": "selected",
-          "input_line": "http-response ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/(browse|next|search)(\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument=[{log_enabled},{log_level},{capture_budget},{hide_home_shorts},{blocked_channels},{blocked_channels_url}],tag=YouTube 信息流广告与首页 Shorts 处理",
+          "input_line": "http-response ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/(browse|next|search)(\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument={log_enabled,log_level,capture_budget,hide_home_shorts,blocked_channels,blocked_channels_url},tag=YouTube 信息流广告与首页 Shorts 处理",
           "input_section": "Script",
           "priority": 2,
           "source": "aoomee",
@@ -123330,14 +123324,14 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.|music\\\\.)?youtube\\\\.com)/youtubei/v1/(player|get_watch)(\\\\?[^#]*)?$|^https://(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.|music\\\\.)?youtube\\\\.com)/youtubei/v1/reel/reel_watch_sequence(?:\\\\?[^#]*)?$', ('^https:\\\\/\\\\/', '^https:\\\\/\\\\/(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.|music\\\\.)?youtube\\\\.com)\\\\/youtubei\\\\/v1\\\\/(player|get_watch)(\\\\?[^#]*)?$|^https:\\\\/\\\\/(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.|music\\\\.)?youtube\\\\.com)\\\\/youtubei\\\\/v1\\\\/reel\\\\/reel_watch_sequence(?:\\\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument=[{log_enabled},{log_level},{capture_budget},{background_playback},{quality_research}],tag=YouTube 播放响应与后台播放'))",
+      "canonical_key": "('guarded', '^https://(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.|music\\\\.)?youtube\\\\.com)/youtubei/v1/(player|get_watch)(\\\\?[^#]*)?$|^https://(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.|music\\\\.)?youtube\\\\.com)/youtubei/v1/reel/reel_watch_sequence(?:\\\\?[^#]*)?$', ('^https:\\\\/\\\\/', '^https:\\\\/\\\\/(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.|music\\\\.)?youtube\\\\.com)\\\\/youtubei\\\\/v1\\\\/(player|get_watch)(\\\\?[^#]*)?$|^https:\\\\/\\\\/(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.|music\\\\.)?youtube\\\\.com)\\\\/youtubei\\\\/v1\\\\/reel\\\\/reel_watch_sequence(?:\\\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument={log_enabled,log_level,capture_budget,background_playback,quality_research},tag=YouTube 播放响应与后台播放'))",
       "output_entry_index": 584,
-      "output_line": "http-response ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/(player|get_watch)(\\?[^#]*)?$|^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/reel\\/reel_watch_sequence(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument=[{log_enabled},{log_level},{capture_budget},{background_playback},{quality_research}],tag=YouTube 播放响应与后台播放",
+      "output_line": "http-response ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/(player|get_watch)(\\?[^#]*)?$|^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/reel\\/reel_watch_sequence(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument={log_enabled,log_level,capture_budget,background_playback,quality_research},tag=YouTube 播放响应与后台播放",
       "section": "Script",
       "sources": [
         {
           "disposition": "selected",
-          "input_line": "http-response ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/(player|get_watch)(\\?[^#]*)?$|^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/reel\\/reel_watch_sequence(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument=[{log_enabled},{log_level},{capture_budget},{background_playback},{quality_research}],tag=YouTube 播放响应与后台播放",
+          "input_line": "http-response ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/(player|get_watch)(\\?[^#]*)?$|^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/reel\\/reel_watch_sequence(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument={log_enabled,log_level,capture_budget,background_playback,quality_research},tag=YouTube 播放响应与后台播放",
           "input_section": "Script",
           "priority": 2,
           "source": "aoomee",
@@ -123347,38 +123341,26 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://youtubei\\\\.googleapis\\\\.com/(youtubei/v1/(browse|next|player|search|reel/reel_watch_sequence|guide|account/get_setting|get_watch|log_event|config))(\\\\?(.*))?$', ('^https:\\\\/\\\\/youtubei\\\\.googleapis\\\\.com\\\\/', '^https:\\\\/\\\\/youtubei\\\\.googleapis\\\\.com\\\\/(youtubei\\\\/v1\\\\/(browse|next|player|search|reel\\\\/reel_watch_sequence|guide|account\\\\/get_setting|get_watch|log_event|config))(\\\\?(.*))?$ script-path=https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.response.js, requires-body=true, binary-body-mode=true, tag=youtube.response, argument=\"{\"captionLang\":\"{字幕翻译语言}\",\"blockUpload\":{屏蔽上传按钮},\"blockImmersive\":{屏蔽选段按钮},\"blockShorts\":{屏蔽Shorts按钮},\"debug\":{启用调试模式}}\"'))",
-      "output_entry_index": 585,
-      "output_line": "http-response ^https:\\/\\/youtubei\\.googleapis\\.com\\/(youtubei\\/v1\\/(browse|next|player|search|reel\\/reel_watch_sequence|guide|account\\/get_setting|get_watch|log_event|config))(\\?(.*))?$ script-path=https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.response.js, requires-body=true, binary-body-mode=true, tag=youtube.response, argument=\"{\"captionLang\":\"{字幕翻译语言}\",\"blockUpload\":{屏蔽上传按钮},\"blockImmersive\":{屏蔽选段按钮},\"blockShorts\":{屏蔽Shorts按钮},\"debug\":{启用调试模式}}\"",
-      "section": "Script",
+      "output_line": "http-response ^https:\\/\\/youtubei\\.googleapis\\.com\\/(youtubei\\/v1\\/(browse|next|player|search|reel\\/reel_watch_sequence|guide|account\\/get_setting|get_watch|log_event|config))(\\?(.*))?$ script-path=https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.response.js, requires-body=true, binary-body-mode=true, tag=youtube.response, argument={captionLang,blockUpload,blockImmersive,blockShorts,debug}",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https:\\/\\/youtubei\\.googleapis\\.com\\/(youtubei\\/v1\\/(browse|next|player|search|reel\\/reel_watch_sequence|guide|account\\/get_setting|get_watch|log_event|config))(\\?(.*))?$ script-path=https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.response.js, requires-body=true, binary-body-mode=true, tag=youtube.response, argument=\"{\"captionLang\":\"{字幕翻译语言}\",\"blockUpload\":{屏蔽上传按钮},\"blockImmersive\":{屏蔽选段按钮},\"blockShorts\":{屏蔽Shorts按钮},\"debug\":{启用调试模式}}\"",
-          "input_section": "Script",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 59
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://[\\\\w-]+\\\\.googlevideo\\\\.com/initplayback.+&ack.*', ('^https?:\\\\/\\\\/[\\\\w-]+\\\\.googlevideo\\\\.com\\\\/initplayback.+&ack.*', '^https?:\\\\/\\\\/[\\\\w-]+\\\\.googlevideo\\\\.com\\\\/initplayback.+&ack.* script-path=https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.request.js, requires-body=true, binary-body-mode=true, tag=youtube.request.init, argument=\"{\"captionLang\":\"{字幕翻译语言}\"}\"'))",
-      "output_entry_index": 586,
-      "output_line": "http-request ^https?:\\/\\/[\\w-]+\\.googlevideo\\.com\\/initplayback.+&ack.* script-path=https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.request.js, requires-body=true, binary-body-mode=true, tag=youtube.request.init, argument=\"{\"captionLang\":\"{字幕翻译语言}\"}\"",
-      "section": "Script",
+      "output_line": "http-request ^https?:\\/\\/[\\w-]+\\.googlevideo\\.com\\/initplayback.+&ack.* script-path=https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.request.js, requires-body=true, binary-body-mode=true, tag=youtube.request.init, argument={captionLang}",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-request ^https?:\\/\\/[\\w-]+\\.googlevideo\\.com\\/initplayback.+&ack.* script-path=https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.request.js, requires-body=true, binary-body-mode=true, tag=youtube.request.init, argument=\"{\"captionLang\":\"{字幕翻译语言}\"}\"",
-          "input_section": "Script",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 60
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
       "canonical_key": "('guarded', '^https://youtubei\\\\.googleapis\\\\.com/youtubei/v1/log_event', ('^https:\\\\/\\\\/youtubei\\\\.googleapis\\\\.com\\\\/youtubei\\\\/v1\\\\/log_event', '^https:\\\\/\\\\/youtubei\\\\.googleapis\\\\.com\\\\/youtubei\\\\/v1\\\\/log_event script-path=https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.request.js, requires-body=true, binary-body-mode=true, tag=youtube.request.log_event'))",
@@ -123863,12 +123845,12 @@
     {
       "canonical_key": "('unguarded', 'cron', 'https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js')",
       "output_entry_index": 619,
-      "output_line": "cron \"0 * * * *\" script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,timeout=10,argument=[{blocked_channels_url}],tag=YouTube 定时更新屏蔽频道列表",
+      "output_line": "cron \"0 * * * *\" script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,timeout=10,argument={blocked_channels_url},tag=YouTube 定时更新屏蔽频道列表",
       "section": "Script",
       "sources": [
         {
           "disposition": "selected",
-          "input_line": "cron \"0 * * * *\" script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,timeout=10,argument=[{blocked_channels_url}],tag=YouTube 定时更新屏蔽频道列表",
+          "input_line": "cron \"0 * * * *\" script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,timeout=10,argument={blocked_channels_url},tag=YouTube 定时更新屏蔽频道列表",
           "input_section": "Script",
           "priority": 2,
           "source": "aoomee",
@@ -123880,12 +123862,12 @@
     {
       "canonical_key": "('unguarded', 'generic', 'https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js')",
       "output_entry_index": 620,
-      "output_line": "generic script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,timeout=10,argument=[{blocked_channels_url}],tag=YouTube 手动更新屏蔽频道列表,img-url=person.crop.circle.badge.xmark.system",
+      "output_line": "generic script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,timeout=10,argument={blocked_channels_url},tag=YouTube 手动更新屏蔽频道列表,img-url=person.crop.circle.badge.xmark.system",
       "section": "Script",
       "sources": [
         {
           "disposition": "selected",
-          "input_line": "generic script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,timeout=10,argument=[{blocked_channels_url}],tag=YouTube 手动更新屏蔽频道列表,img-url=person.crop.circle.badge.xmark.system",
+          "input_line": "generic script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,timeout=10,argument={blocked_channels_url},tag=YouTube 手动更新屏蔽频道列表,img-url=person.crop.circle.badge.xmark.system",
           "input_section": "Script",
           "priority": 2,
           "source": "aoomee",
