@@ -1124,6 +1124,12 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertIn(canonical, result)
         self.assertIn(unrelated, result)
 
+    def test_fails_closed_on_duplicate_amap_legacy_script(self):
+        from apply_local_overrides import remove_redundant_amap_legacy_scripts
+        legacy = "http-response ^https://m5.amap.com/ws/aos/perception/publicTravel/beforeNavi? script-path=https://github.com/ishowshu/qx/raw/main/script/amap.js"
+        with self.assertRaisesRegex(ValueError, "duplicate Amap legacy response script trigger"):
+            remove_redundant_amap_legacy_scripts(["[Script]", legacy, legacy])
+
     def test_fails_closed_on_unknown_amap_legacy_script_endpoint(self):
         from apply_local_overrides import remove_redundant_amap_legacy_scripts
         unknown = "http-response ^https://m5.amap.com/ws/unknown/ad script-path=https://example.invalid/amap.js"
