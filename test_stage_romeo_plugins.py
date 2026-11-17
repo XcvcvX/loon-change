@@ -89,17 +89,12 @@ class RomeoPluginMigrationTests(unittest.TestCase):
                 asset_by_plugin.setdefault(asset["plugin"], []).append(asset)
 
             def fake_read(_repo, _commit, source_path):
-                for filename, assets in asset_by_plugin.items():
-                    if filename in source_path:
-                        return b""
-                plugin_name = Path(source_path).name
-                for filename, assets in asset_by_plugin.items():
-                    if filename == plugin_name:
-                        urls = "\n".join(item["upstream_url"] for item in assets)
-                        return ("#!name=fixture\n[Rewrite]\n" + urls + "\n").encode()
                 if source_path.endswith((".lpx", ".plugin")):
-                    return b"#!name=fixture\n[Rewrite]\nrequest if ${url} ~= /^https:\\/\\/example\\.com/ then reject(404)\n"
-                return b"// Romeo asset fixture\n"
+                    plugin_name = Path(source_path).name
+                    assets = asset_by_plugin.get(plugin_name, [])
+                    urls = "\\n".join(item["upstream_url"] for item in assets)
+                    return ("#!name=fixture\\n[Rewrite]\\n" + urls + "\\n").encode()
+                return b"// Romeo asset fixture\\n"
 
             with patch("stage_romeo_plugins._read_romeo_file", side_effect=fake_read):
                 result = stage(repo, commit, primary, ROOT, former_zmjde)
