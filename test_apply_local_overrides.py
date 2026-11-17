@@ -3989,7 +3989,7 @@ class XiaohongshuNativeDuplicateTriggerTests(unittest.TestCase):
         scripts = [
             line for line in XHS_SCRIPT_TRIGGER_LINES
             if any(("tag=" + tag + ",") in line for tag in rstore_tags)
-            or ('tag="小红书搜索页"' in line and any(marker in line for marker in (
+            or ('tag="小红书搜索页"' in line and any(marker in line.replace(chr(92), "") for marker in (
                 "/search/(banner|hot)_list", "/search/(hint|trending)", "/search/notes"
             )))
         ]
@@ -4030,7 +4030,7 @@ class XiaohongshuNativeDuplicateTriggerTests(unittest.TestCase):
         from apply_local_overrides import narrow_xiaohongshu_native_response_duplicates
         fixture = self._fixture()
         for i, line in enumerate(fixture):
-            if 'tag="小红书搜索页"' in line and "/search/notes" in line:
+            if 'tag="小红书搜索页"' in line and "/search/notes" in line.replace(chr(92), ""):
                 fixture[i] = line.replace(r"(?:so|edith)\.(xiaohongshu|rnote)\.com", r"edith\.(xiaohongshu|rnote)\.com")
                 break
         with self.assertRaisesRegex(ValueError, "FMZ search trigger inventory changed"):
