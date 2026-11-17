@@ -1431,7 +1431,7 @@ def optimize_amap_response_script_overlaps(lines):
         return result
 
     def normalized(value):
-        return re.sub(r"\\\\+", "", value.strip()).lower()
+        return value.replace(chr(92), "").strip().lower()
 
     script_entries = section_entries("Script")
     rewrite_entries = section_entries("Rewrite")
