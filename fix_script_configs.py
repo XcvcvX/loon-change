@@ -62,9 +62,9 @@ def repair_plugin_text(text):
         line, n = re.subn(r'\brequires-body=1\b', 'requires-body=true', line)
         counts["requires_body_boolean"] += n
         lines[index] = line
-    if any(re.search(r"argument=\\[\\{", line) for line in lines):
+    if any(re.search(r"argument=\[\{", line) for line in lines):
         raise ValueError("Unrepaired legacy argument list syntax remains in [Script]")
-    if any(re.search(r"requires-body=1\\b", line) for line in lines):
+    if any(re.search(r"requires-body=1\b", line) for line in lines):
         raise ValueError("Non-Boolean requires-body value remains in [Script]")
     if any(MAASEA_RESPONSE in line or MAASEA_REQUEST in line for line in lines):
         missing = [name for name in ("blockUpload", "blockImmersive", "blockShorts", "captionLang", "debug")
