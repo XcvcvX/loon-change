@@ -26,6 +26,7 @@ on:
       - 'convert_filter_qx2loon.py'
       - 'test_convert_filter_qx2loon.py'
       - 'apply_local_overrides.py'
+      - 'test_apply_local_overrides.py'
       - 'integrate_spotify.py'
       - 'test_integrate_spotify.py'
       - 'sources/spotify/**'
