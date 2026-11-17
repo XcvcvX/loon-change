@@ -4001,7 +4001,7 @@ def narrow_xiaohongshu_native_response_duplicates(lines):
         line for line in rewrite_lines
         if "response-body-json-jq" in line
         and "/api/sns/v2/user/followings/followfeed" in re.sub(r"\\+", "", line)
-        and '.recommend_reason=="friend_post"' in line
+        and '.recommend_reason=="friend_post"' in re.sub(r"\\+", "", line)
     ]
     followfeed_rules = [
         line for line in rewrite_lines
@@ -4009,7 +4009,7 @@ def narrow_xiaohongshu_native_response_duplicates(lines):
         and "/api/sns/v" in re.sub(r"\\+", "", line)
         and "/user/followings/" not in re.sub(r"\\+", "", line)
         and "/followfeed" in re.sub(r"\\+", "", line)
-        and '.recommend_reason!="recommend_user"' in line
+        and '.recommend_reason!="recommend_user"' in re.sub(r"\\+", "", line)
     ]
     if len(follow_user_rules) != 1 or len(followfeed_rules) != 1:
         raise ValueError("Xiaohongshu native follow-feed JSON coverage missing or duplicated")
