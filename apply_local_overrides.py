@@ -3058,9 +3058,9 @@ def remove_duplicate_cnftp_scripts(lines):
 
         target_seen = True
         if source_mode:
-            if inventory_line in remove_counts:
-                remove_counts[inventory_line] += 1
-                if remove_counts[inventory_line] > 1:
+            if line in remove_counts:
+                remove_counts[line] += 1
+                if remove_counts[line] > 1:
                     raise ValueError("duplicate legacy video trigger; refusing ambiguous cleanup")
                 removed += 1
                 continue
@@ -3603,9 +3603,9 @@ def remove_more_duplicate_response_scripts(lines):
 
         target_seen = True
         if source_mode:
-            if line in remove_counts:
-                remove_counts[line] += 1
-                if remove_counts[line] > 1:
+            if inventory_line in remove_counts:
+                remove_counts[inventory_line] += 1
+                if remove_counts[inventory_line] > 1:
                     raise ValueError("duplicate legacy response trigger; refusing ambiguous cleanup")
                 removed += 1
                 continue
