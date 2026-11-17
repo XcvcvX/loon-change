@@ -5265,7 +5265,7 @@ BILIBILI_JSON_TRIGGER_PAIRS = (
     (
         "BAICIZHAN-12",
         r"http-response ^https?:\\/\\/app\\.bilibili\\.com\\/x\\/v\\d\\/account\\/(?:mine(\\/ipad)?|myinfo)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-12,requires-body=true",
-        r"http-response ^https?:\\/\\/app\\.bilibili\\.com\\/x\\/(?:v(?:[13-9]|[1-9][0-9]+)\\/account\\/mine(\\/ipad)?|v\\d\\/account\\/myinfo)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-12,requires-body=true",
+        r"http-response ^https?:\\/\\/app\\.bilibili\\.com\\/x\\/(?:v(?:[13-9]|[1-9][0-9]+)\\/account\\/mine(\\/ipad)?|v2\\/account\\/mine\\/ipad|v\\d\\/account\\/myinfo)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-12,requires-body=true",
     ),
 )
 BILIBILI_LIVE_FMZ_MARKER = "app-room/v1/index/getInfoBy(Room|User)"
