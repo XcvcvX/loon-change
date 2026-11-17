@@ -54,6 +54,8 @@ class AmapLocalOverrideTests(unittest.TestCase):
         for marker, old_rule, native_rule in NATIVE_RESPONSE_SCRIPT_RULES:
             self.assertIn(native_rule, result)
             self.assertNotIn(old_rule, result)
+        bus_rule = next(rule for marker, _old, rule in NATIVE_RESPONSE_SCRIPT_RULES if marker == "bus/plan/integrate")
+        self.assertIn("hkfRecommendPlans", bus_rule)
         self.assertEqual(apply(result)[0], result)
 
     def test_fails_closed_when_route_response_script_drifts(self):

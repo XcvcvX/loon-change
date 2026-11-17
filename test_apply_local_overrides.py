@@ -4268,8 +4268,20 @@ class PinduoduoOrderEndpointVariantTests(unittest.TestCase):
 
 def _build_amap_unoptimized_fixture():
     from pathlib import Path
+    from apply_amap_local_overrides import NATIVE_RESPONSE_SCRIPT_RULES
     plugin = Path(__file__).parent / "allAdRewrite.plugin"
     lines = plugin.read_text(encoding="utf-8").splitlines()
+    # Model the current build output after the native bus-plan rule gains hkfRecommendPlans coverage.
+    native_bus_rule = next(
+        native for marker, _old, native in NATIVE_RESPONSE_SCRIPT_RULES
+        if marker == "bus/plan/integrate"
+    )
+    bus_rule_indexes = [
+        i for i, line in enumerate(lines)
+        if "/ws/bus/plan/integrate" in line.replace(chr(92), "").lower() and "response.json.jq(" in line
+    ]
+    if len(bus_rule_indexes) == 1:
+        lines[bus_rule_indexes[0]] = native_bus_rule
     markers = (
         "/ws/aos/perception/publictravel/beforenavi",
         "/ws/bus/plan/integrate",
@@ -4414,16 +4426,14 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
         original = plugin.read_text(encoding="utf-8")
         fixture = _build_amap_unoptimized_fixture()
         result, removed = optimize_amap_response_script_overlaps(fixture)
-        self.assertEqual(removed, 4)
+        self.assertEqual(removed, 5)
         script = "\n".join(result).split("[Script]", 1)[1].split("[MITM]", 1)[0]
         for marker in AMAP_ISHOWSHU_REDUNDANT_SCRIPT_MARKERS:
             self.assertFalse(any(
                 marker in line.replace(chr(92), "").lower() and "ishowshu_amap.js" in line.lower()
                 for line in script.splitlines()
             ), marker)
-        # Bus-plan iShowshu is intentionally retained: it additionally removes
-        # hkfRecommendPlans, which the native rewrite does not cover.
-        self.assertTrue(any(
+        self.assertFalse(any(
             "/ws/bus/plan/integrate" in line.replace(chr(92), "").lower() and "ishowshu_amap.js" in line.lower()
             for line in script.splitlines()
         ))
@@ -4470,6 +4480,19 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
         preserved_script = "\n".join(preserved).split("[Script]", 1)[1].split("[MITM]", 1)[0]
         self.assertTrue(any(
             nearby_marker in line.replace(chr(92), "").lower() and "ishowshu_amap.js" in line.lower()
+            for line in preserved_script.splitlines()
+        ))
+        # Keep the script if the native jq rule no longer covers hkfRecommendPlans.
+        without_hkf = [
+            line.replace("hkfRecommendPlans", "unreviewedField")
+            if "/ws/bus/plan/integrate" in line.replace(chr(92), "").lower() and "response.json.jq(" in line
+            else line
+            for line in lines
+        ]
+        preserved, _ = optimize_amap_response_script_overlaps(without_hkf)
+        preserved_script = "\n".join(preserved).split("[Script]", 1)[1].split("[MITM]", 1)[0]
+        self.assertTrue(any(
+            "/ws/bus/plan/integrate" in line.replace(chr(92), "").lower() and "ishowshu_amap.js" in line.lower()
             for line in preserved_script.splitlines()
         ))
 

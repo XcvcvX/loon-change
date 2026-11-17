@@ -1556,6 +1556,18 @@ def optimize_amap_response_script_overlaps(lines):
         if targets:
             output[targets[0]] = None
 
+    # The native bus-plan jq rule now removes both taxiPlans and hkfRecommendPlans.
+    # Once both fields are covered, the iShowshu response script is redundant.
+    native_bus_plan = matches(rewrite_entries, "/ws/bus/plan/integrate", "response.json.jq(")
+    if len(native_bus_plan) > 1:
+        raise ValueError("duplicate Amap bus-plan native response rules")
+    if native_bus_plan and "hkfrecommendplans" in normalized(output[native_bus_plan[0]]):
+        targets = matches(script_entries, "/ws/bus/plan/integrate", "ishowshu_amap.js")
+        if len(targets) > 1:
+            raise ValueError("duplicate Amap bus-plan iShowshu trigger")
+        if targets:
+            output[targets[0]] = None
+
     for marker in AMAP_ISHOWSHU_REDUNDANT_SCRIPT_MARKERS[1:]:
         canonical = matches(script_entries, marker, "sources/amap/rucu6_amap.js")
         if len(canonical) > 1:
