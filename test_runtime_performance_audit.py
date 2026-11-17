@@ -43,6 +43,14 @@ class RuntimePerformanceAuditTests(unittest.TestCase):
             self.assertEqual(report["summary"]["duplicate_script_trigger_groups"], 1)
             self.assertEqual(len(report["duplicate_script_triggers"][0]["lines"]), 2)
 
+    def test_xiaohongshu_feed_avoids_json_round_trip_and_payload_logging(self):
+        source = Path("scripts/xiaohongshu/xiaohongshu-v4.js").read_text(encoding="utf-8")
+        self.assertIn("imageEnhance(images_list)", source)
+        self.assertNotIn("imageEnhance(JSON.stringify(images_list))", source)
+        self.assertNotIn("JSON.parse(jsonStr)", source)
+        self.assertNotIn("打印原body", source)
+        self.assertNotIn("写入缓存val：", source)
+
     def test_commit_pinned_url_is_not_mutable(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
