@@ -5262,6 +5262,11 @@ BILIBILI_JSON_TRIGGER_PAIRS = (
         r"http-response ^https?:\/\/app\.bilibili\.com\/x\/v\d\/splash\/(?:brand\/list|event\/list2|list|show)\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-11,requires-body=true",
         r"http-response ^https?:\/\/app\.bilibili\.com\/x\/v(?:[13-9]\/splash\/(?:brand\/list|event\/list2|list|show)|2\/splash\/brand\/list)\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-11,requires-body=true",
     ),
+    (
+        "BAICIZHAN-12",
+        r"http-response ^https?:\\/\\/app\\.bilibili\\.com\\/x\\/v\\d\\/account\\/(?:mine(\\/ipad)?|myinfo)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-12,requires-body=true",
+        r"http-response ^https?:\\/\\/app\\.bilibili\\.com\\/x\\/(?:v(?:[13-9]|[1-9][0-9]+)\\/account\\/mine(\\/ipad)?|v\\d\\/account\\/myinfo)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-12,requires-body=true",
+    ),
 )
 BILIBILI_LIVE_FMZ_MARKER = "app-room/v1/index/getInfoBy(Room|User)"
 BILIBILI_NATIVE_RULE_REPLACEMENTS = (
@@ -5286,10 +5291,10 @@ BILIBILI_NATIVE_PREREQUISITE_MARKERS = (
 def optimize_bilibili_json_native_coverage(lines):
     """Narrow R-Store JSON triggers where existing native/Sparkle handlers cover the same current endpoints.
 
-    BAICIZHAN-12 and Sparkle mine JQ both parse v2/account/mine, but their
-    transformations are not equivalent: Sparkle replaces account sections and
-    rewrites VIP fields, while R-Store also handles ipad/myinfo variants. Keep
-    both until their complete output behavior can be merged without regression.
+    Sparkle's native JQ owns v2/account/mine (including ipad); keep R-Store's
+    BAICIZHAN-12 only for other account/mine API versions and account/myinfo.
+    This removes the duplicate v2 parse without dropping R-Store's version
+    fallback or the distinct myinfo VIP handler.
     """
     output = list(lines)
     section = ""
