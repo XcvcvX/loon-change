@@ -1827,6 +1827,14 @@ class BilibiliNonAdFeatureScopeTests(unittest.TestCase):
         self.assertNotIn(combined, result)
         self.assertIn("/x/v2/feed/index", "\n".join(result).replace(chr(92), ""))
 
+    def test_removes_native_tracker_configuration_override(self):
+        from apply_local_overrides import normalize_bilibili_non_ad_feature_overrides
+        tracker_rule = r'response if ${url} ~= /^https:\/\/api\.live\.bilibili\.com\/xlive\/open-interface\/v2\/tracker\/conf\?/ then response.json.jq(`.data.domains = ["wss://tracker.chat.bilibili.com"]`)'
+        self.assertIn(tracker_rule, self.remove_rules)
+        result, _ = normalize_bilibili_non_ad_feature_overrides(self.base)
+        self.assertNotIn(tracker_rule, result)
+        self.assertIn("/x/v2/feed/index", "\n".join(result).replace(chr(92), ""))
+
     def test_checked_in_plugin_has_no_vip_paywall_or_teen_mode_bypass(self):
         from pathlib import Path
         from apply_local_overrides import BILIBILI_NON_AD_FEATURE_RULES, BILIBILI_NON_AD_FEATURE_REPLACEMENTS
