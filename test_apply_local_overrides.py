@@ -1551,8 +1551,8 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertEqual(result.count(JD_CANONICAL_TRIGGER), 1)
         self.assertEqual(result.count(JD_OPTIONAL_WELCOME_TRIGGER), 1)
         self.assertIn("scripts/jingdong/jd.js", result)
-        self.assertIn("scripts/jingdong/jd-welcome.js", result)
-        self.assertIn("with enable=${jkds_enable}", result)
+        self.assertNotIn("jd-welcome.js", result)
+        self.assertIn("{${jkds_enable}}", result)
         self.assertEqual(apply(result), result)
 
     def test_accepts_current_jingdong_switch_interpolation_and_preserves_it(self):
@@ -1596,12 +1596,18 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
             "functionId=orderTrackBusiness", "functionId=getTabHomeInfo",
             "functionId=myOrderInfo", "functionId=personinfoBusiness",
             "PERSON_INFO_BUSINESS_MID_EXCLUDE", "WELCOME_HOME_TYPE_INCLUDE",
-            "CUSTOM_SURFACE_NAME_INCLUDE", "JSON.parse(body)",
+            "CUSTOM_SURFACE_NAME_INCLUDE", "welcomeExtraEnabled",
+            "WELCOME_HOME_EXTRA_EXCLUDE", "$argument", "jkds_enable", "JSON.parse(body)",
             "$done({ body: JSON.stringify(obj) })",
         ):
             self.assertIn(marker, base_script)
         self.assertIn("catch (_)", base_script)
-        self.assertIn("with enable=${jkds_enable}", __import__("apply_local_overrides").JD_OPTIONAL_WELCOME_TRIGGER)
+        from apply_local_overrides import JD_CANONICAL_TRIGGER, JD_OPTIONAL_WELCOME_TRIGGER
+        self.assertNotIn("welcomeHome", JD_CANONICAL_TRIGGER)
+        self.assertIn("functionId=welcomeHome", JD_OPTIONAL_WELCOME_TRIGGER)
+        self.assertIn("{${jkds_enable}}", JD_OPTIONAL_WELCOME_TRIGGER)
+        self.assertIn("scripts/jingdong/jd.js", JD_OPTIONAL_WELCOME_TRIGGER)
+        self.assertNotIn("jd-welcome.js", JD_OPTIONAL_WELCOME_TRIGGER)
         for marker in (
             "bottomXview", "float", "photoCeiling", "ruleFloat",
             "searchIcon", "topRotate", "tabBarAtmosphere",
