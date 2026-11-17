@@ -411,15 +411,7 @@
     "script": {
       "action_changed": [],
       "added": [],
-      "removed": [
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/perception\\/drive\\/(routeInfo|routePlan)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-          "section": "script",
-          "sources": [
-            "aoomee"
-          ]
-        }
-      ]
+      "removed": []
     }
   },
   "summary": {
@@ -436,9 +428,9 @@
     "script": {
       "action_changed": 0,
       "added": 0,
-      "removed": 1
+      "removed": 0
     },
-    "total_changes": 1
+    "total_changes": 0
   },
   "upstream_revision_changes": []
 }
