@@ -3814,6 +3814,44 @@ MORE_RESPONSE_TRANSFORMS = {
 }
 
 
+PUPU_DUPLICATE_RESPONSE_MARKERS = (
+    "/client/marketing/advertisement/v1",
+    "/client/order/orders/list/v4",
+)
+
+
+def remove_redundant_pupu_response_scripts(lines):
+    """Remove Romeo Pupu handlers only when the equivalent Wool handler exists."""
+    section = ""
+    entries = {marker: {"wool": [], "romeo": []} for marker in PUPU_DUPLICATE_RESPONSE_MARKERS}
+    for index, line in enumerate(lines):
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            continue
+        if section != "Script" or "response if " not in line:
+            continue
+        normalized = re.sub(r"\\+", "", line).lower()
+        for marker in PUPU_DUPLICATE_RESPONSE_MARKERS:
+            if marker not in normalized:
+                continue
+            if "pupusplashads.js" in normalized:
+                entries[marker]["wool"].append(index)
+            elif "ishowshu_pp.js" in normalized:
+                entries[marker]["romeo"].append(index)
+
+    remove_indexes = set()
+    for marker, sources in entries.items():
+        if len(sources["wool"]) > 1 or len(sources["romeo"]) > 1:
+            raise ValueError("duplicate Pupu response handler; refusing ambiguous cleanup: " + marker)
+        # Missing canonical coverage is fail-closed: keep the Romeo handler.
+        if sources["wool"] and sources["romeo"]:
+            remove_indexes.add(sources["romeo"][0])
+
+    if not remove_indexes:
+        return list(lines), 0
+    return [line for index, line in enumerate(lines) if index not in remove_indexes], len(remove_indexes)
+
+
 def remove_more_duplicate_response_scripts(lines):
     """Keep one handler per overlapping response, retaining broad matchers and safer guards."""
     normalize_switch = lambda value: re.sub(r"enable=\$\{([^}]+)\}", r"enable=\1", value.strip())
@@ -5518,6 +5556,7 @@ def apply(text: str) -> str:
     lines, _ = remove_identical_script_response_duplicates(lines)
     lines, _ = consolidate_soul_scripts(lines)
     lines, _ = remove_more_duplicate_response_scripts(lines)
+    lines, _ = remove_redundant_pupu_response_scripts(lines)
     lines, _ = remove_weibo_non_ad_response_triggers(lines)
     lines, _ = remove_redundant_dianping_scripts(lines)
     lines, _ = remove_redundant_baidumap_script(lines)

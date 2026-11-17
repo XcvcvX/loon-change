@@ -18,6 +18,52 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
 
 class LocalOverrideTests(unittest.TestCase):
 
+    def test_removes_duplicate_pupu_response_handlers_with_canonical_coverage(self):
+        from pathlib import Path
+        from apply_local_overrides import remove_redundant_pupu_response_scripts
+
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        lines = plugin.splitlines()
+        result, removed = remove_redundant_pupu_response_scripts(lines)
+        self.assertEqual(removed, 2)
+        script = "\n".join(result).split("[Script]", 1)[1].split("[MITM]", 1)[0]
+        self.assertNotIn("ishowshu_pp.js", script)
+        self.assertIn("PupuSplashAds.js", script)
+        again, changed = remove_redundant_pupu_response_scripts(result)
+        self.assertEqual(changed, 0)
+        self.assertEqual(again, result)
+
+    def test_pupu_duplicate_cleanup_fails_closed_without_canonical_or_with_ambiguity(self):
+        from pathlib import Path
+        from apply_local_overrides import remove_redundant_pupu_response_scripts
+
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        lines = plugin.splitlines()
+        ad_marker = "/client/marketing/advertisement/v1"
+        wool_ad = next(line for line in lines if ad_marker in line.replace(chr(92), "").lower() and "PupuSplashAds.js" in line)
+        without_wool_ad = [line for line in lines if line != wool_ad]
+        preserved, removed = remove_redundant_pupu_response_scripts(without_wool_ad)
+        self.assertEqual(removed, 1)
+        script = "\n".join(preserved).split("[Script]", 1)[1].split("[MITM]", 1)[0]
+        self.assertTrue(any(ad_marker in line.replace(chr(92), "").lower() and "ishowshu_pp.js" in line for line in script.splitlines()))
+
+        with_duplicate = list(lines)
+        mitm_index = with_duplicate.index("[MITM]")
+        with_duplicate.insert(mitm_index, wool_ad)
+        with self.assertRaisesRegex(ValueError, "duplicate Pupu response handler"):
+            remove_redundant_pupu_response_scripts(with_duplicate)
+
+    def test_apply_removes_pupu_romeo_duplicates_but_keeps_wool_unique_endpoints(self):
+        from pathlib import Path
+
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        result = apply(plugin)
+        self.assertNotIn("ishowshu_pp.js", result)
+        self.assertIn("PupuSplashAds.js", result)
+        normalized = result.replace(chr(92), "")
+        self.assertIn("/search/hot_keywords/v3", normalized)
+        self.assertIn("/order_settlement/detail", normalized)
+
     def test_consolidates_starplucker_config_into_one_jq_parse(self):
         from apply_local_overrides import (
             STARPLUCKER_DOUBLE_JQ_RULE, STARPLUCKER_SINGLE_JQ_RULE,
@@ -4298,6 +4344,7 @@ def _build_amap_unoptimized_fixture():
         r'response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/shield\/search\/nearbyrec_smart\?/i then script("' + romeo + r'") with tag="amap", timeout=60, requires_body=true',
         r'response if ${url} ~= /^https:\/\/m5-zb\.amap\.com\/ws\/promotion-web\/resource(\/home)?\?/i then script("' + romeo + r'") with tag="amap", timeout=60, requires_body=true',
         r'response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/bus\/plan\/integrate\?/i then script("' + romeo + r'") with tag="amap", timeout=60, requires_body=true',
+        r'response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/valueadded\/alimama\/splash_screen/i then script("' + romeo + r'") with tag="amap", timeout=60, requires_body=true',
         r'response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/perception\/drive\/(?:routeInfo|routePlan)/i then script("' + romeo + r'") with tag="amap", timeout=60, requires_body=true',
         r'response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/faas\/amap-navigation\/(card-service-plan-home|main-page)/i then script("' + romeo + r'") with tag="amap", timeout=60, requires_body=true',
     ]
