@@ -3698,6 +3698,18 @@ class SmzdmHomepageScriptOptimizationTests(unittest.TestCase):
         self.assertEqual(second_changed, 0)
         self.assertEqual(again, result)
 
+    def test_removes_interpolated_fmz_homepage_dispatch_when_rstore_handler_exists(self):
+        from apply_local_overrides import (
+            SMZDM_FMZ_HOME_TRIGGER, SMZDM_RSTORE_HOME_TRIGGER,
+            remove_redundant_smzdm_homepage_script_trigger,
+        )
+        fmz = SMZDM_FMZ_HOME_TRIGGER.replace("enable=smzdm_enable", "enable=${smzdm_enable}")
+        fixture = ["[Script]", SMZDM_RSTORE_HOME_TRIGGER, fmz, "[MITM]"]
+        result, changed = remove_redundant_smzdm_homepage_script_trigger(fixture)
+        self.assertEqual(changed, 1)
+        self.assertNotIn(fmz, result)
+        self.assertIn(SMZDM_RSTORE_HOME_TRIGGER, result)
+
     def test_preserves_fmz_homepage_dispatch_without_rstore_cover(self):
         from apply_local_overrides import (
             SMZDM_FMZ_HOME_TRIGGER, remove_redundant_smzdm_homepage_script_trigger,
