@@ -118167,7 +118167,7 @@
       "trace_status": "mapped"
     },
     {
-      "output_line": "response if ${url} ~= /^https?:\\/\\/iqushangwang\\.8quan\\.com\\/index\\.php\\/i\\/index\\/index/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/quda.js\") with enable=quda_enable, tag=\"去哒\", timeout=60, requires_body=true",
+      "output_line": "response if ${url} ~= /^https?:\\/\\/iqushangwang\\.8quan\\.com\\/index\\.php\\/i\\/index\\/index/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/quda.js\") with enable=${quda_enable}, tag=\"去哒\", timeout=60, requires_body=true",
       "provenance_kind": "post_merge_transform",
       "sources": [
         {
@@ -119364,7 +119364,7 @@
       "trace_status": "mapped"
     },
     {
-      "output_line": "response if ${url} ~= /^https?:\\/\\/dict\\.youdao\\.com\\/(homepage\\/promotion|course\\/tab\\/home|homepage\\/tile)/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/163youdao.js\") with enable=whyiyzdccidm_enable, tag=\"网易有道词典\", timeout=60, requires_body=true",
+      "output_line": "response if ${url} ~= /^https?:\\/\\/dict\\.youdao\\.com\\/(homepage\\/promotion|course\\/tab\\/home|homepage\\/tile)/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/163youdao.js\") with enable=${whyiyzdccidm_enable}, tag=\"网易有道词典\", timeout=60, requires_body=true",
       "provenance_kind": "post_merge_transform",
       "sources": [
         {
@@ -119783,7 +119783,7 @@
       "trace_status": "mapped"
     },
     {
-      "output_line": "response if ${url} ~= /^https?:\\/\\/wx\\.mygolbs\\.com\\/WxBusServer\\/ApiData\\.do/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zsgj.js\") with enable=vhuhgsjn_enable, tag=\"掌上公交小程序广告\", timeout=60, requires_body=true",
+      "output_line": "response if ${url} ~= /^https?:\\/\\/wx\\.mygolbs\\.com\\/WxBusServer\\/ApiData\\.do/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zsgj.js\") with enable=${vhuhgsjn_enable}, tag=\"掌上公交小程序广告\", timeout=60, requires_body=true",
       "provenance_kind": "post_merge_transform",
       "sources": [
         {
@@ -120151,7 +120151,7 @@
       "trace_status": "mapped"
     },
     {
-      "output_line": "response if ${url} ~= /^https?:\\/\\/(?:[\\d\\.]+\\/3f1\\/cards\\.iqiyi\\.com\\/(?:views_home\\/3\\.0\\/qy_home|waterfall\\/3\\.0\\/feed)|access\\.if\\.iqiyi\\.com\\/3f1\\/cards\\.iqiyi\\.com\\/(?:views_category\\/3\\.0\\/category_home|views_home\\/3\\.0\\/qy_home|waterfall\\/3\\.0\\/feed)|cards\\.iqiyi\\.com\\/(?:views_category\\/3\\.0\\/(?:category_home|categorylib_content|film_hybrid)|views_home\\/3\\.0\\/qy_home|waterfall\\/3\\.0\\/feed))\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=aiqiyi_enable, tag=\"爱奇艺首页信息流广告\", timeout=60, requires_body=true",
+      "output_line": "response if ${url} ~= /^https?:\\/\\/(?:[\\d\\.]+\\/3f1\\/cards\\.iqiyi\\.com\\/(?:views_home\\/3\\.0\\/qy_home|waterfall\\/3\\.0\\/feed)|access\\.if\\.iqiyi\\.com\\/3f1\\/cards\\.iqiyi\\.com\\/(?:views_category\\/3\\.0\\/category_home|views_home\\/3\\.0\\/qy_home|waterfall\\/3\\.0\\/feed)|cards\\.iqiyi\\.com\\/(?:views_category\\/3\\.0\\/(?:category_home|categorylib_content|film_hybrid)|views_home\\/3\\.0\\/qy_home|waterfall\\/3\\.0\\/feed))\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=${aiqiyi_enable}, tag=\"爱奇艺首页信息流广告\", timeout=60, requires_body=true",
       "provenance_kind": "post_merge_transform",
       "sources": [
         {
@@ -121328,7 +121328,7 @@
       "trace_status": "mapped"
     },
     {
-      "output_line": "response if ${url} ~= /^https?:\\/\\/me\\.bz\\.mgtv\\.com\\/v\\d\\/module\\/list\\?/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js\") with enable=mhgotv_enable, tag=\"芒果TV我的页面\", timeout=60, requires_body=true",
+      "output_line": "response if ${url} ~= /^https?:\\/\\/me\\.bz\\.mgtv\\.com\\/v\\d\\/module\\/list\\?/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js\") with enable=${mhgotv_enable}, tag=\"芒果TV我的页面\", timeout=60, requires_body=true",
       "provenance_kind": "post_merge_transform",
       "sources": [
         {
@@ -121339,7 +121339,7 @@
       ]
     },
     {
-      "output_line": "response if ${url} ~= /^https?:\\/\\/mob-st\\.bz\\.mgtv\\.com\\/odin\\/c\\d\\/channel\\/index\\?/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js\") with enable=mhgotv_enable, tag=\"芒果TV首页信息流\", timeout=60, requires_body=true",
+      "output_line": "response if ${url} ~= /^https?:\\/\\/mob-st\\.bz\\.mgtv\\.com\\/odin\\/c\\d\\/channel\\/index\\?/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js\") with enable=${mhgotv_enable}, tag=\"芒果TV首页信息流\", timeout=60, requires_body=true",
       "provenance_kind": "post_merge_transform",
       "sources": [
         {
@@ -121350,7 +121350,7 @@
       ]
     },
     {
-      "output_line": "response if ${url} ~= /^https?:\\/\\/dc2?\\.bz\\.mgtv\\.com\\/dynamic\\/v\\d\\/channel\\/(index|vrsList)\\/\\w/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js\") with enable=mhgotv_enable, tag=\"芒果TV\", timeout=60, requires_body=true",
+      "output_line": "response if ${url} ~= /^https?:\\/\\/dc2?\\.bz\\.mgtv\\.com\\/dynamic\\/v\\d\\/channel\\/(index|vrsList)\\/\\w/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js\") with enable=${mhgotv_enable}, tag=\"芒果TV\", timeout=60, requires_body=true",
       "provenance_kind": "post_merge_transform",
       "sources": [
         {
@@ -121361,7 +121361,7 @@
       ]
     },
     {
-      "output_line": "response if ${url} ~= /^https?:\\/\\/mobile\\.api\\.mgtv\\.com\\/mobile\\/config\\?/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js\") with enable=mhgotv_enable, tag=\"芒果TV底部tab\", timeout=60, requires_body=true",
+      "output_line": "response if ${url} ~= /^https?:\\/\\/mobile\\.api\\.mgtv\\.com\\/mobile\\/config\\?/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js\") with enable=${mhgotv_enable}, tag=\"芒果TV底部tab\", timeout=60, requires_body=true",
       "provenance_kind": "post_merge_transform",
       "sources": [
         {
@@ -121372,7 +121372,7 @@
       ]
     },
     {
-      "output_line": "response if ${url} ~= /^https?:\\/\\/mobile\\.api\\.mgtv\\.com\\/v\\d+\\/video\\/info\\?/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js\") with enable=mhgotv_enable, tag=\"芒果TV播放详情页\", timeout=60, requires_body=true",
+      "output_line": "response if ${url} ~= /^https?:\\/\\/mobile\\.api\\.mgtv\\.com\\/v\\d+\\/video\\/info\\?/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js\") with enable=${mhgotv_enable}, tag=\"芒果TV播放详情页\", timeout=60, requires_body=true",
       "provenance_kind": "post_merge_transform",
       "sources": [
         {
@@ -121383,7 +121383,7 @@
       ]
     },
     {
-      "output_line": "response if ${url} ~= /^https?:\\/\\/mobile-thor\\.api\\.mgtv\\.com\\/v\\d\\/vod\\/info\\?/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js\") with enable=mhgotv_enable, tag=\"芒果TV播放详情页\", timeout=60, requires_body=true",
+      "output_line": "response if ${url} ~= /^https?:\\/\\/mobile-thor\\.api\\.mgtv\\.com\\/v\\d\\/vod\\/info\\?/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js\") with enable=${mhgotv_enable}, tag=\"芒果TV播放详情页\", timeout=60, requires_body=true",
       "provenance_kind": "post_merge_transform",
       "sources": [
         {
@@ -121394,7 +121394,7 @@
       ]
     },
     {
-      "output_line": "response if ${url} ~= /^https?:\\/\\/mobileso\\.bz\\.mgtv\\.com\\/mobile\\/recommend\\/v\\d\\?/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js\") with enable=mhgotv_enable, tag=\"芒果TV搜索框填充词\", timeout=60, requires_body=true",
+      "output_line": "response if ${url} ~= /^https?:\\/\\/mobileso\\.bz\\.mgtv\\.com\\/mobile\\/recommend\\/v\\d\\?/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js\") with enable=${mhgotv_enable}, tag=\"芒果TV搜索框填充词\", timeout=60, requires_body=true",
       "provenance_kind": "post_merge_transform",
       "sources": [
         {
