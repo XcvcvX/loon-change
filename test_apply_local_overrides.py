@@ -4260,12 +4260,63 @@ class PinduoduoHomepageNativeConsolidationTests(unittest.TestCase):
             "result.search_bar_hot_query",
             ".result.bottom_tabs",
             ".result.buffer_bottom_tabs",
-            ".result.all_top_opts? |= (if type == \"array\" then [] else . end)",
+            ".result.all_top_opts? |=",
             ".result.module_order",
         ):
             self.assertIn(marker, PDD_HOMEPAGE_NATIVE_JQ_RULE)
         self.assertEqual(PDD_HOMEPAGE_NATIVE_JQ_RULE.count("response.json.jq("), 1)
         self.assertNotIn("response.json.delete(", PDD_HOMEPAGE_NATIVE_JQ_RULE)
+
+
+    def test_pdd_homepage_jq_filter_compiles_and_matches_expected_semantics(self):
+        import json
+        import shutil
+        import subprocess
+        from apply_local_overrides import PDD_HOMEPAGE_NATIVE_JQ_RULE
+        if not shutil.which("jq"):
+            self.skipTest("jq CLI is unavailable")
+        expression = PDD_HOMEPAGE_NATIVE_JQ_RULE.split('response.json.jq("', 1)[1].rsplit('")', 1)[0]
+        expression = expression.replace(chr(92) + '"', '"')
+        sample = {
+            "result": {
+                "dy_module": {"irregular_banner_dy": {}, "keep": True},
+                "icon_set": {},
+                "search_bar_hot_query": [],
+                "bottom_tabs": [
+                    {"title": "首页", "link": "index.html"},
+                    {"title": "多多视频", "link": "video.html"},
+                    {"title": "聊天", "link": "chat_list.html"},
+                    {"title": "个人中心", "link": "personal.html"},
+                    {"title": "错误标题", "link": "chat_list.html"},
+                ],
+                "buffer_bottom_tabs": [
+                    {"link": "personal.html"}, {"link": "video.html"}
+                ],
+                "all_top_opts": [{"image": "ad"}],
+                "module_order": [
+                    {"module_name": "ad_module"},
+                    {"module_name": "goods"},
+                    None,
+                ],
+            }
+        }
+        result = subprocess.run(
+            ["jq", expression],
+            input=json.dumps(sample, ensure_ascii=False),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        output = json.loads(result.stdout)
+        data = output["result"]
+        self.assertNotIn("irregular_banner_dy", data["dy_module"])
+        self.assertNotIn("icon_set", data)
+        self.assertNotIn("search_bar_hot_query", data)
+        self.assertEqual([x["title"] for x in data["bottom_tabs"]], ["首页", "聊天", "个人中心"])
+        self.assertEqual(data["buffer_bottom_tabs"], [{"link": "personal.html"}])
+        self.assertEqual(data["all_top_opts"], [])
+        self.assertEqual(data["module_order"], [{"module_name": "goods"}])
 
     def test_pdd_homepage_native_rule_is_preserved_without_local_script_trigger(self):
         from apply_local_overrides import consolidate_pdd_homepage_native_response
