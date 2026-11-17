@@ -594,6 +594,22 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertEqual(result.count(PDD_LOCAL_HOMEPAGE_TRIGGER), 1)
         self.assertNotIn(PDD_ISHOWSHU_HOMEPAGE_TRIGGER, result)
 
+    def test_consolidates_commit_pinned_romeo_ishowshu_pdd_trigger(self):
+        from apply_local_overrides import (
+            PDD_RSTORE_HOMEPAGE_TRIGGER, PDD_LOCAL_HOMEPAGE_TRIGGER,
+            PDD_ISHOWSHU_HOMEPAGE_TRIGGER, consolidate_pdd_homepage_script,
+        )
+        pinned = PDD_ISHOWSHU_HOMEPAGE_TRIGGER.replace(
+            "https://github.com/ifflagged/Romeo/raw/main/",
+            "https://raw.githubusercontent.com/ifflagged/Romeo/" + "d" * 40 + "/",
+        )
+        fixture = ["[Script]", PDD_RSTORE_HOMEPAGE_TRIGGER, pinned, "[MITM]"]
+        result, removed = consolidate_pdd_homepage_script(fixture)
+        self.assertEqual(removed, 2)
+        self.assertEqual(result.count(PDD_LOCAL_HOMEPAGE_TRIGGER), 1)
+        self.assertNotIn(pinned, result)
+        self.assertEqual(consolidate_pdd_homepage_script(result)[1], 0)
+
     def test_accepts_exact_legacy_ishowshu_pdd_trigger(self):
         from apply_local_overrides import (
             PDD_RSTORE_HOMEPAGE_TRIGGER, PDD_LOCAL_HOMEPAGE_TRIGGER,
