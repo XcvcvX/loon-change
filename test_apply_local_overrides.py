@@ -3997,3 +3997,94 @@ class PinduoduoOrderEndpointVariantTests(unittest.TestCase):
         unknown = r"request if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/aristotle\/query_order_list_tabs_element_v2/i then reject_dict(200)"
         with self.assertRaisesRegex(ValueError, "refusing unreviewed removal"):
             remove_pdd_order_endpoint_blocks(["[Rewrite]", unknown])
+
+
+class BilibiliJsonNativeCoverageTests(unittest.TestCase):
+    def test_narrows_only_native_covered_triggers_and_expands_native_filters(self):
+        from apply_local_overrides import (
+            BILIBILI_JSON_TRIGGER_PAIRS, BILIBILI_NATIVE_PREREQUISITE_MARKERS,
+            BILIBILI_NATIVE_RULE_REPLACEMENTS, optimize_bilibili_json_native_coverage,
+        )
+        fmz_live = (
+            r'response if ${url} ~= /^https?:\/\/api\.live\.bilibili\.com\/xlive\/(app-interface\/v2\/index\/feed|app-room\/v1\/index\/getInfoBy(Room|User))\?/i '
+            r'then script("https://raw.githubusercontent.com/kokoryh/Sparkle/refs/heads/master/dist/bilibili.json.js") with tag="bilibili.live", requires_body=true'
+        )
+        account_trigger = (
+            r"http-response ^https:\/\/app\.bilibili\.com\/x\/v\d\/account\/(?:mine(\/ipad)?|myinfo)\? "
+            r"script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-12,requires-body=true"
+        )
+        pgc_trigger = (
+            r"http-response ^https:\/\/api\.bilibili\.com\/pgc\/page\/(?:bangumi|cinema\/tab\?) "
+            r"script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-7,requires-body=true"
+        )
+        skin_trigger = (
+            r"http-response ^https:\/\/app\.bilibili\.com\/x\/resource\/show\/skin\? "
+            r"script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-13,requires-body=true"
+        )
+        fixture = ["[Rewrite]"]
+        fixture.extend(BILIBILI_NATIVE_PREREQUISITE_MARKERS)
+        fixture.extend(original for original, _ in BILIBILI_NATIVE_RULE_REPLACEMENTS)
+        fixture.append("[Script]")
+        fixture.append(fmz_live)
+        fixture.extend(original for _, original, _ in BILIBILI_JSON_TRIGGER_PAIRS)
+        fixture.extend([pgc_trigger, account_trigger, skin_trigger, "[MITM]", "hostname = api.live.bilibili.com, app.bilibili.com"])
+        result, changed = optimize_bilibili_json_native_coverage(fixture)
+        self.assertEqual(changed, 7)
+        for _, original, narrowed in BILIBILI_JSON_TRIGGER_PAIRS:
+            self.assertNotIn(original, result)
+            self.assertIn(narrowed, result)
+        for original, updated in BILIBILI_NATIVE_RULE_REPLACEMENTS:
+            self.assertNotIn(original, result)
+            self.assertIn(updated, result)
+        self.assertIn(account_trigger, result)
+        again, second_changed = optimize_bilibili_json_native_coverage(result)
+        self.assertEqual(second_changed, 0)
+        self.assertEqual(again, result)
+
+    def test_noops_when_no_rstore_bilibili_json_script_is_present(self):
+        from apply_local_overrides import optimize_bilibili_json_native_coverage
+        fixture = ["[Rewrite]", "response if unrelated then response.body.mock(404)", "[Script]", "[MITM]"]
+        result, changed = optimize_bilibili_json_native_coverage(fixture)
+        self.assertEqual(changed, 0)
+        self.assertEqual(result, fixture)
+
+    def test_fails_closed_when_native_or_sparkle_coverage_changes(self):
+        from apply_local_overrides import (
+            BILIBILI_JSON_TRIGGER_PAIRS, BILIBILI_NATIVE_PREREQUISITE_MARKERS,
+            BILIBILI_NATIVE_RULE_REPLACEMENTS, optimize_bilibili_json_native_coverage,
+        )
+        fmz_live = (
+            r'response if ${url} ~= /^https?:\/\/api\.live\.bilibili\.com\/xlive\/(app-interface\/v2\/index\/feed|app-room\/v1\/index\/getInfoBy(Room|User))\?/i '
+            r'then script("https://raw.githubusercontent.com/kokoryh/Sparkle/refs/heads/master/dist/bilibili.json.js") with tag="bilibili.live", requires_body=true'
+        )
+        pgc_trigger = (
+            r"http-response ^https:\/\/api\.bilibili\.com\/pgc\/page\/(?:bangumi|cinema\/tab\?) "
+            r"script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-7,requires-body=true"
+        )
+        account_trigger = (
+            r"http-response ^https:\/\/app\.bilibili\.com\/x\/v\d\/account\/(?:mine(\/ipad)?|myinfo)\? "
+            r"script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-12,requires-body=true"
+        )
+        skin_trigger = (
+            r"http-response ^https:\/\/app\.bilibili\.com\/x\/resource\/show\/skin\? "
+            r"script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-13,requires-body=true"
+        )
+        fixture = ["[Rewrite]", *BILIBILI_NATIVE_PREREQUISITE_MARKERS,
+                   *(old for old, _ in BILIBILI_NATIVE_RULE_REPLACEMENTS),
+                   "[Script]", fmz_live,
+                   *(old for _, old, _ in BILIBILI_JSON_TRIGGER_PAIRS),
+                   pgc_trigger, account_trigger, skin_trigger, "[MITM]"]
+        changed_trigger = BILIBILI_JSON_TRIGGER_PAIRS[0][1].replace("tag=BAICIZHAN-8", "tag=BAICIZHAN-8-NEW")
+        drifted = [changed_trigger if line == BILIBILI_JSON_TRIGGER_PAIRS[0][1] else line for line in fixture]
+        with self.assertRaisesRegex(ValueError, "trigger variant changed"):
+            optimize_bilibili_json_native_coverage(drifted)
+
+        bad_fmz = fmz_live.replace(r"app-room\/v1", r"app-room\/v3")
+        bad_fmz_fixture = [bad_fmz if line == fmz_live else line for line in fixture]
+        with self.assertRaisesRegex(ValueError, "live JSON native coverage changed"):
+            optimize_bilibili_json_native_coverage(bad_fmz_fixture)
+
+        missing_native = [line for line in fixture if line != BILIBILI_NATIVE_RULE_REPLACEMENTS[0][0]]
+        with self.assertRaisesRegex(ValueError, "native response rule changed"):
+            optimize_bilibili_json_native_coverage(missing_native)
+
