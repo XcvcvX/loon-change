@@ -1831,8 +1831,12 @@ def consolidate_meituan_scripts(lines):
     if canonical_count == 1 and not any(counts) and not unknown_legacy:
         return list(lines), 0
     if canonical_count or unknown_legacy or any(count != 1 for count in counts):
+        missing = [trigger for trigger, count in zip(MEITUAN_LEGACY_TRIGGERS, counts) if count == 0]
+        duplicate = [trigger for trigger, count in zip(MEITUAN_LEGACY_TRIGGERS, counts) if count > 1]
         raise ValueError(
-            "Meituan script trigger inventory changed; refusing partial or mixed consolidation"
+            "Meituan script trigger inventory changed; refusing partial or mixed consolidation; "
+            + f"counts={counts}, canonical={canonical_count}, unknown={unknown_legacy}, "
+            + f"missing={missing}, duplicate={duplicate}"
         )
 
     output = []
