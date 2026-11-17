@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、RuCu6 MyBlockAds、zirawell AlipayAdBlock、Thelongdarkorg、Romeo、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / RuCu6 / Thelongdarkorg / Romeo / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-17 22:46 UTC
+#!merged-at=2026-11-17 22:50 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+RuCu6-MyBlockAds+zirawell-AlipayAdBlock+Thelongdarkorg+Romeo-Loon+AOOMEE-legacy-snapshots+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -7288,7 +7288,6 @@ response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/shield\/search_poi\/sug/i t
 response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/shield\/search_poi\/tips_operation_location/i then script("https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js") with tag="amap", timeout=60, requires_body=true
 response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/shield\/dsp\/profile\/index\/nodefaasv3\?/i then script("https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js") with tag="amap", timeout=60, requires_body=true
 response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/c3frontend\/af-nearby\/nearby/i then script("https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js") with tag="amap", timeout=60, requires_body=true
-response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/valueadded\/alimama\/splash_screen\?/i then script("https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js") with tag="amap", timeout=60, requires_body=true
 response if ${url} ~= /^https:\/\/m5-zb\.amap\.com\/ws\/boss\/(car\/order\/content_info|order_web\/friendly_information)/i then script("https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js") with tag="amap", timeout=60, requires_body=true
 response if ${url} ~= /^https:\/\/m5-zb\.amap\.com\/ws\/sharedtrip\/taxi\/order_detail_car_tips\?/i then script("https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js") with tag="amap", timeout=60, requires_body=true
 http-response ^https?:\/\/(api|cdn\.api)\.chelaile(?:app)?(?:\.net)?\.cn\/goocity\/flowPos\/listByPos script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/romeo_legacy/chelaile-flowpos.js, requires-body=true, timeout=20
