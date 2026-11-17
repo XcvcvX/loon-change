@@ -131,7 +131,7 @@ jobs:
           PY
 
       - name: 编译检查
-        run: python3 -m py_compile merge_plugins.py mitm_policy.py validate_plugin.py fix_script_configs.py source_guard.py stage_romeo_plugins.py audit_plugin.py deep_audit.py amap_dependency_guard.py apply_amap_local_overrides.py compare_rule_provenance.py source_health_guard.py finalize_provenance.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py integrate_spotify.py apply_local_overrides.py
+        run: python3 -m py_compile merge_plugins.py mitm_policy.py validate_plugin.py fix_script_configs.py source_guard.py stage_romeo_plugins.py audit_plugin.py deep_audit.py amap_dependency_guard.py apply_amap_local_overrides.py compare_rule_provenance.py source_health_guard.py finalize_provenance.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py integrate_spotify.py apply_local_overrides.py check_script_v2.py
       - name: 检查小红书本地视频脚本语法
         run: node --check scripts/xiaohongshu/xiaohongshu-v4.js
       - name: 运行单元与合并集成测试
@@ -174,6 +174,8 @@ jobs:
           raise SystemExit(not result.wasSuccessful())
           PY
           python3 apply_local_overrides.py --plugin allAdRewrite.plugin
+          python3 fix_script_configs.py --plugin allAdRewrite.plugin
+          python3 check_script_v2.py allAdRewrite.plugin
       - name: 审计当前插件风险摘要
         run: |
           python3 audit_plugin.py allAdRewrite.plugin --summary-only
