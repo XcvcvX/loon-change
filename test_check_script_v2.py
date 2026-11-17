@@ -1,16 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import unittest
-
 from check_script_v2 import inspect_text
-
 
 class ScriptV2GuardTests(unittest.TestCase):
     def test_dynamic_argument_interpolation_is_valid(self):
         text = """[Argument]
 quda_enable = switch,true,false
 [Script]
-response if ${url} ~= /^https:\\/\\/example\\.com/ then script("https://example.com/a.js") with enable=${quda_enable}
+response if ${url} ~= /^https:\/\/example\.com/ then script("https://example.com/a.js") with enable=${quda_enable}
 """
         self.assertEqual(inspect_text(text), [])
 
@@ -49,7 +47,6 @@ DOMAIN,example.com,REJECT
 enable = quda_enable
 """
         self.assertEqual(inspect_text(text), [])
-
 
 if __name__ == "__main__":
     unittest.main()
