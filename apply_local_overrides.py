@@ -3967,7 +3967,7 @@ def narrow_xiaohongshu_native_response_duplicates(lines):
     for _, endpoint in required_native:
         matches = [line for line in rewrite_lines
                    if "response-body-json-jq" in line
-                   and "xiaohongshu.com" in line
+                   and "xiaohongshu.com" in re.sub(r"\\+", "", line)
                    and endpoint in re.sub(r"\\+", "", line)]
         if len(matches) != 1:
             raise ValueError(
