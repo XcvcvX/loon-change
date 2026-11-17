@@ -687,7 +687,7 @@ def consolidate_goofish_script_triggers(lines):
             counts[trigger] += 1
             if counts[trigger] > 1:
                 raise ValueError("duplicate canonical Goofish script trigger")
-            output.append(line)
+            output.append(trigger)
             continue
         if normalized in redundant:
             trigger = redundant[normalized]
