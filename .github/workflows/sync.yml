@@ -7,6 +7,8 @@ on:
       - 'merge_plugins.py'
       - 'mitm_policy.py'
       - 'validate_plugin.py'
+      - 'fix_script_configs.py'
+      - 'test_fix_script_configs.py'
       - 'audit_plugin.py'
       - 'deep_audit.py'
       - 'source_guard.py'
@@ -46,6 +48,7 @@ on:
       - 'test_mitm_policy.py'
       - 'test_merge_plugins.py'
       - 'test_validate_plugin.py'
+      - 'test_fix_script_configs.py'
       - 'test_source_guard.py'
       - 'audit_plugin.py'
       - 'test_audit_plugin.py'
@@ -128,9 +131,9 @@ jobs:
           PY
 
       - name: 编译检查
-        run: python3 -m py_compile merge_plugins.py mitm_policy.py validate_plugin.py source_guard.py stage_romeo_plugins.py audit_plugin.py deep_audit.py amap_dependency_guard.py apply_amap_local_overrides.py compare_rule_provenance.py source_health_guard.py finalize_provenance.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py integrate_spotify.py apply_local_overrides.py
+        run: python3 -m py_compile merge_plugins.py mitm_policy.py validate_plugin.py fix_script_configs.py source_guard.py stage_romeo_plugins.py audit_plugin.py deep_audit.py amap_dependency_guard.py apply_amap_local_overrides.py compare_rule_provenance.py source_health_guard.py finalize_provenance.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py integrate_spotify.py apply_local_overrides.py
       - name: 运行单元与合并集成测试
-        run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_apply_amap_local_overrides.py test_compare_rule_provenance.py test_source_health_guard.py test_finalize_provenance.py test_rule_risk_history.py test_integrate_spotify.py test_convert_qx2loon.py test_convert_filter_qx2loon.py test_stage_romeo_plugins.py
+        run: python3 -m unittest -v test_validate_plugin.py test_fix_script_configs.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_apply_amap_local_overrides.py test_compare_rule_provenance.py test_source_health_guard.py test_finalize_provenance.py test_rule_risk_history.py test_integrate_spotify.py test_convert_qx2loon.py test_convert_filter_qx2loon.py test_stage_romeo_plugins.py
       - name: 测试本地插件覆盖
         run: |
           # The checked-in plugin is a historical snapshot; snapshot-specific assertions
@@ -204,10 +207,10 @@ jobs:
           python-version: '3.11'
 
       - name: 编译检查
-        run: python3 -m py_compile merge_plugins.py mitm_policy.py validate_plugin.py source_guard.py stage_romeo_plugins.py audit_plugin.py deep_audit.py amap_dependency_guard.py apply_amap_local_overrides.py compare_rule_provenance.py source_health_guard.py finalize_provenance.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py integrate_spotify.py
+        run: python3 -m py_compile merge_plugins.py mitm_policy.py validate_plugin.py fix_script_configs.py source_guard.py stage_romeo_plugins.py audit_plugin.py deep_audit.py amap_dependency_guard.py apply_amap_local_overrides.py compare_rule_provenance.py source_health_guard.py finalize_provenance.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py integrate_spotify.py
 
       - name: 测试校验器与来源依赖门禁
-        run: python3 -m unittest -v test_validate_plugin.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_apply_amap_local_overrides.py test_compare_rule_provenance.py test_source_health_guard.py test_finalize_provenance.py test_rule_risk_history.py test_integrate_spotify.py test_convert_qx2loon.py test_convert_filter_qx2loon.py test_stage_romeo_plugins.py
+        run: python3 -m unittest -v test_validate_plugin.py test_fix_script_configs.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_apply_amap_local_overrides.py test_compare_rule_provenance.py test_source_health_guard.py test_finalize_provenance.py test_rule_risk_history.py test_integrate_spotify.py test_convert_qx2loon.py test_convert_filter_qx2loon.py test_stage_romeo_plugins.py
 
       - name: 创建隔离构建目录
         run: |
@@ -367,6 +370,7 @@ jobs:
       - name: 应用本地 App 规则覆盖（防止上游合并时丢失）
         run: |
           python3 apply_local_overrides.py --plugin /tmp/loon-build/allAdRewrite.plugin
+          python3 fix_script_configs.py --plugin /tmp/loon-build/allAdRewrite.plugin
           python3 finalize_provenance.py --before /tmp/loon-build/allAdRewrite.after-merge.plugin --after-spotify /tmp/loon-build/allAdRewrite.after-spotify.plugin --final /tmp/loon-build/allAdRewrite.plugin --provenance /tmp/loon-build/rule-provenance.json
 
       - name: 校验临时产物并同步 README 统计
