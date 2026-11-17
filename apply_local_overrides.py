@@ -713,7 +713,7 @@ def consolidate_goofish_script_triggers(lines):
             if counts[redundant[normalized]] > 1:
                 raise ValueError("duplicate redundant Goofish script trigger")
         else:
-            raise ValueError("Goofish script trigger inventory changed; refusing unreviewed consolidation")
+            raise ValueError(f"Goofish script trigger inventory changed; refusing unreviewed consolidation: {line.strip()}")
 
     if not target_seen:
         return lines, 0
