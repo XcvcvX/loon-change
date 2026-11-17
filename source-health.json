@@ -30,23 +30,13 @@
   "schema_version": 1,
   "section_changes": {
     "rewrite": {
-      "action_change_source_pairs": [
-        {
-          "after": [
-            "zmjapp"
-          ],
-          "before": [
-            "zmjapp"
-          ],
-          "count": 1
-        }
-      ],
-      "action_changed": 1,
+      "action_change_source_pairs": [],
+      "action_changed": 0,
       "added": 0,
       "current_entries": 3255,
       "migration_action_changed_exempted": 0,
       "net_shrink_percent": 0.0,
-      "non_migration_action_changed": 1,
+      "non_migration_action_changed": 0,
       "previous_entries": 3255,
       "removed": 0,
       "removed_percent": 0.0
@@ -64,35 +54,16 @@
       "removed_percent": 0.0
     },
     "script": {
-      "action_change_source_pairs": [
-        {
-          "after": [
-            "aoomee"
-          ],
-          "before": [
-            "aoomee"
-          ],
-          "count": 33
-        },
-        {
-          "after": [
-            "zmjapp"
-          ],
-          "before": [
-            "zmjapp"
-          ],
-          "count": 1
-        }
-      ],
-      "action_changed": 34,
-      "added": 2,
+      "action_change_source_pairs": [],
+      "action_changed": 0,
+      "added": 0,
       "current_entries": 442,
-      "migration_action_changed_exempted": 33,
+      "migration_action_changed_exempted": 0,
       "net_shrink_percent": 0.0,
-      "non_migration_action_changed": 1,
+      "non_migration_action_changed": 0,
       "previous_entries": 442,
-      "removed": 2,
-      "removed_percent": 0.452
+      "removed": 0,
+      "removed_percent": 0.0
     }
   },
   "source_scores": {
