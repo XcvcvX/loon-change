@@ -32,7 +32,8 @@
 | sources/alipayAdBlock/ | zirawell AlipayAdBlock 上游 Loon 插件缓存（固定 Romeo commit） |
 | sources/romeo_legacy/ | Romeo 无完整等价版本的 7 个 AOOMEE 专项插件快照 |
 | scripts/romeo_legacy/ | 随插件快照保存的两份远程脚本，避免继续依赖 AOOMEE Raw |
-| romeo_resource_map.json | AOOMEE 与原 zmjde 两批插件、Script/JQ 资源的唯一映射清单 |\n| stage_romeo_plugins.py | 按同一固定 Romeo commit 构建 AOOMEE 与原 zmjde 两个历史合并槽，并固定其运行时依赖 |
+| romeo_resource_map.json | AOOMEE 与原 zmjde 两批插件、Script/JQ 资源的唯一映射清单 |
+| stage_romeo_plugins.py | 按同一固定 Romeo commit 构建 AOOMEE 与原 zmjde 两个历史合并槽，并固定其运行时依赖 |
 | test_stage_romeo_plugins.py | Romeo 来源映射、快照完整性与旧脚本 URL 回归测试 |
 | sources/romeo_legacy/ | Romeo 无完整等价版本的 7 个 AOOMEE 专项插件快照 |
 | scripts/romeo_legacy/ | 随插件快照保存的两份远程脚本，避免继续依赖 AOOMEE Raw |
