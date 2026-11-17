@@ -1765,7 +1765,7 @@ def consolidate_zhihu_response_scripts(lines):
 
 def consolidate_soul_scripts(lines):
     """Collapse the 14 exact Soul response-body triggers into two case-safe matchers."""
-    normalize = lambda value: re.sub(r"enable=\\$\\{([^}]+)\\}", r"enable=\\1", value.strip())
+    normalize = lambda value: re.sub(r"enable=\$\{([^}]+)\}", r"enable=\1", value.strip())
     section = ""
     scoped = []
     for line in lines:
@@ -1797,7 +1797,7 @@ def consolidate_soul_scripts(lines):
     canonical_output = list(SOUL_CANONICAL_TRIGGERS)
     if preserve_interpolation:
         canonical_output = [
-            re.sub(r"enable=([A-Za-z0-9_]+)", r"enable=${\\1}", trigger)
+            re.sub(r"enable=([A-Za-z0-9_]+)", r"enable=${\1}, trigger)
             for trigger in canonical_output
         ]
 
