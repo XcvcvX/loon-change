@@ -4062,7 +4062,7 @@ def narrow_xiaohongshu_native_response_duplicates(lines):
             "/search/notes",
         ))
     }
-    normalize_fmz = lambda value: value.replace("enable=${xhs_enable}", "enable=xhs_enable")
+    normalize_fmz = lambda value: re.sub(r"\\+", "", value).replace("enable=${xhs_enable}", "enable=xhs_enable")
     if ({normalize_fmz(line) for line in fmz_actual} != fmz_expected
             or len(fmz_actual) != 3):
         raise ValueError("Xiaohongshu FMZ search trigger inventory changed; refusing narrowing")
