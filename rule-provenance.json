@@ -54407,25 +54407,15 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://(?:edith|rec)\\\\.xiaohongshu\\\\.com/api/sns/v\\\\d+/homefeed\\\\?', ('response-body-json-jq', 'response-body-json-jq \\'. as $o | try (if (.data|type)==\"array\" then .data|=map(select(if type==\"object\" then ((.model_type!=\"live_v2\") and (has(\"ads_info\")|not) and (has(\"card_icon\")|not) and (has(\"note_attributes\")|not) and (.has_related_goods!=true)) else false end)|(if type==\"object\" then del(.related_ques) else . end)) else . end) catch $o\\''))",
-      "output_entry_index": 2912,
-      "output_line": "^https:\\/\\/(?:edith|rec)\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/homefeed\\? response-body-json-jq '. as $o | try (if (.data|type)==\"array\" then .data|=map(select(if type==\"object\" then ((.model_type!=\"live_v2\") and (has(\"ads_info\")|not) and (has(\"card_icon\")|not) and (has(\"note_attributes\")|not) and (.has_related_goods!=true)) else false end)|(if type==\"object\" then del(.related_ques) else . end)) else . end) catch $o'",
-      "section": "Rewrite",
+      "output_line": "^https:\\/\\/(?:edith|rec)\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/homefeed\\? response-body-json-jq '. as $o | try (if (.data|type)==\\\"array\\\" then .data|=map(select(if type==\\\"object\\\" then ((.model_type!=\\\"live_v2\\\") and (has(\\\"ads_info\\\")|not) and (has(\\\"card_icon\\\")|not) and ((.note_attributes | if type==\\\"array\\\" then index(\\\"goods\\\") != null elif type==\\\"string\\\" then contains(\\\"goods\\\") else false end) | not) and (.has_related_goods!=true)) else false end)|(if type==\\\"object\\\" then del(.related_ques) else . end)) else . end) catch $o'",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "^https:\\/\\/(?:edith|rec)\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/homefeed\\? response-body-json-jq '. as $o | try (if (.data|type)==\"array\" then .data|=map(select(if type==\"object\" then ((.model_type!=\"live_v2\") and (has(\"ads_info\")|not) and (has(\"card_icon\")|not) and (has(\"note_attributes\")|not) and (.has_related_goods!=true)) else false end)|(if type==\"object\" then del(.related_ques) else . end)) else . end) catch $o'",
-          "input_section": "Rewrite",
-          "priority": 3,
-          "source": "thelong",
-          "source_entry_index": 204,
-          "source_file": "xiaohongshu_splash_ad_block.plugin",
-          "source_line_number": 63,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "^https:\\/\\/(?:edith|rec)\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/homefeed\\? response-body-json-jq '. as $o | try (if (.data|type)==\"array\" then .data|=map(select(if type==\"object\" then ((.model_type!=\"live_v2\") and (has(\"ads_info\")|not) and (has(\"card_icon\")|not) and (has(\"note_attributes\")|not) and (.has_related_goods!=true)) else false end)|(if type==\"object\" then del(.related_ques) else . end)) else . end) catch $o'"
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
       "canonical_key": "('guarded', '^https://(?:edith|rec)\\\\.xiaohongshu\\\\.com/api/sns/v\\\\d+/followfeed\\\\?', ('response-body-json-jq', 'response-body-json-jq \\'. as $o | try (if (.data|type)==\"object\" then (if ((.data.items|type)==\"array\") then .data.items|=map(select(if type==\"object\" then (.recommend_reason!=\"recommend_user\") else false end)) else . end) else . end) catch $o\\''))",
@@ -118400,21 +118390,15 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://edith\\\\.xiaohongshu\\\\.com/api/sns/v\\\\d+/user/followings/followfeed', ('^https?:\\\\/\\\\/edith\\\\.xiaohongshu\\\\.com\\\\/api\\\\/sns\\\\/v\\\\d+\\\\/user\\\\/followings\\\\/followfeed', '^https?:\\\\/\\\\/edith\\\\.xiaohongshu\\\\.com\\\\/api\\\\/sns\\\\/v\\\\d+\\\\/user\\\\/followings\\\\/followfeed script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-2,requires-body=true'))",
-      "output_entry_index": 166,
-      "output_line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/user\\/followings\\/followfeed script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-2,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v(?:[13-9]|[1-9][0-9]+)\\/user\\/followings\\/followfeed script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-2,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/user\\/followings\\/followfeed script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-2,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 165
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
       "canonical_key": "('guarded', '^https?://(?:edith|rec|www)\\\\.xiaohongshu\\\\.com/api/sns/v\\\\d+/note/(?:imagefeed|feed|videofeed|(live_photo|video)/save)', ('^https?:\\\\/\\\\/', '^https?:\\\\/\\\\/(?:edith|rec|www)\\\\.xiaohongshu\\\\.com\\\\/api\\\\/sns\\\\/v\\\\d+\\\\/note\\\\/(?:imagefeed|feed|videofeed|(live_photo|video)\\\\/save) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-7,requires-body=true'))",
@@ -118434,21 +118418,15 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://(?:edith|rec|www)\\\\.xiaohongshu\\\\.com/api/sns/v\\\\d+/(?:followfeed|homefeed)\\\\?', ('^https?:\\\\/\\\\/', '^https?:\\\\/\\\\/(?:edith|rec|www)\\\\.xiaohongshu\\\\.com\\\\/api\\\\/sns\\\\/v\\\\d+\\\\/(?:followfeed|homefeed)\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-8,requires-body=true'))",
-      "output_entry_index": 172,
-      "output_line": "http-response ^https?:\\/\\/(?:edith|rec|www)\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/(?:followfeed|homefeed)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-8,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/www\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/(?:followfeed|homefeed)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-8,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/(?:edith|rec|www)\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/(?:followfeed|homefeed)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-8,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 171
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
       "canonical_key": "('guarded', '^https?://edith\\\\.xiaohongshu\\\\.com/api/sns/v\\\\d+/recommend/user/follow_recommend\\\\?', ('^https?:\\\\/\\\\/edith\\\\.xiaohongshu\\\\.com\\\\/api\\\\/sns\\\\/v\\\\d+\\\\/recommend\\\\/user\\\\/follow_recommend\\\\?', '^https?:\\\\/\\\\/edith\\\\.xiaohongshu\\\\.com\\\\/api\\\\/sns\\\\/v\\\\d+\\\\/recommend\\\\/user\\\\/follow_recommend\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-9,requires-body=true'))",

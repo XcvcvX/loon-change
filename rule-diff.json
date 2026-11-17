@@ -400,8 +400,24 @@
   "sections": {
     "rewrite": {
       "action_changed": [],
-      "added": [],
-      "removed": []
+      "added": [
+        {
+          "line": "^https:\\/\\/(?:edith|rec)\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/homefeed\\? response-body-json-jq '. as $o | try (if (.data|type)==\\\"array\\\" then .data|=map(select(if type==\\\"object\\\" then ((.model_type!=\\\"live_v2\\\") and (has(\\\"ads_info\\\")|not) and (has(\\\"card_icon\\\")|not) and ((.note_attributes | if type==\\\"array\\\" then index(\\\"goods\\\") != null elif type==\\\"string\\\" then contains(\\\"goods\\\") else false end) | not) and (.has_related_goods!=true)) else false end)|(if type==\\\"object\\\" then del(.related_ques) else . end)) else . end) catch $o'",
+          "section": "rewrite",
+          "sources": [
+            "local_overrides"
+          ]
+        }
+      ],
+      "removed": [
+        {
+          "line": "^https:\\/\\/(?:edith|rec)\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/homefeed\\? response-body-json-jq '. as $o | try (if (.data|type)==\"array\" then .data|=map(select(if type==\"object\" then ((.model_type!=\"live_v2\") and (has(\"ads_info\")|not) and (has(\"card_icon\")|not) and (has(\"note_attributes\")|not) and (.has_related_goods!=true)) else false end)|(if type==\"object\" then del(.related_ques) else . end)) else . end) catch $o'",
+          "section": "rewrite",
+          "sources": [
+            "thelong"
+          ]
+        }
+      ]
     },
     "rule": {
       "action_changed": [],
@@ -412,28 +428,14 @@
       "action_changed": [],
       "added": [
         {
-          "line": "http-response ^https?:\\/\\/(?:app\\.bilibili\\.com|grpc\\.biliapi\\.net)\\/bilibili\\.main\\.community\\.reply\\.v[2-9]\\.Reply\\/MainList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-5,requires-body=true,binary-body-mode=true",
+          "line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v(?:[13-9]|[1-9][0-9]+)\\/user\\/followings\\/followfeed script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-2,requires-body=true",
           "section": "script",
           "sources": [
             "local_overrides"
           ]
         },
         {
-          "line": "response if ${url} ~= /^https?:\\/\\/(so|edith)\\.rnote\\.com\\/api\\/sns\\/v\\d+\\/search\\/notes\\?/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书搜索页\", timeout=60, requires_body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https?:\\/\\/edith\\.rnote\\.com\\/api\\/sns\\/v\\d+\\/search\\/(banner|hot)_list/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书搜索页\", timeout=60, requires_body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https?:\\/\\/edith\\.rnote\\.com\\/api\\/sns\\/v\\d+\\/search\\/(hint|trending)\\?/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书搜索页\", timeout=60, requires_body=true",
+          "line": "http-response ^https?:\\/\\/www\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/(?:followfeed|homefeed)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-8,requires-body=true",
           "section": "script",
           "sources": [
             "local_overrides"
@@ -442,66 +444,17 @@
       ],
       "removed": [
         {
-          "line": "http-response ^https?:\\/\\/(?:app\\.bilibili\\.com|grpc\\.biliapi\\.net)\\/bilibili\\.main\\.community\\.reply\\.v\\d\\.Reply\\/MainList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-5,requires-body=true,binary-body-mode=true",
+          "line": "http-response ^https?:\\/\\/(?:edith|rec|www)\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/(?:followfeed|homefeed)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-8,requires-body=true",
           "section": "script",
           "sources": [
             "base"
           ]
         },
         {
-          "line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/note\\/widgets script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU,requires-body=true",
+          "line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/user\\/followings\\/followfeed script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-2,requires-body=true",
           "section": "script",
           "sources": [
             "base"
-          ]
-        },
-        {
-          "line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/search\\/(?:banner|hot)_list script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-3,requires-body=true",
-          "section": "script",
-          "sources": [
-            "base"
-          ]
-        },
-        {
-          "line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/search\\/(?:hint|trending)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-4,requires-body=true",
-          "section": "script",
-          "sources": [
-            "base"
-          ]
-        },
-        {
-          "line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/search\\/notes\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-5,requires-body=true",
-          "section": "script",
-          "sources": [
-            "base"
-          ]
-        },
-        {
-          "line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/system_service\\/config\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-6,requires-body=true",
-          "section": "script",
-          "sources": [
-            "base"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https?:\\/\\/(so|edith)\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/v\\d+\\/search\\/notes\\?/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书搜索页\", timeout=60, requires_body=true",
-          "section": "script",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https?:\\/\\/edith\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/v\\d+\\/search\\/(banner|hot)_list/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书搜索页\", timeout=60, requires_body=true",
-          "section": "script",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https?:\\/\\/edith\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/v\\d+\\/search\\/(hint|trending)\\?/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书搜索页\", timeout=60, requires_body=true",
-          "section": "script",
-          "sources": [
-            "block"
           ]
         }
       ]
@@ -510,8 +463,8 @@
   "summary": {
     "rewrite": {
       "action_changed": 0,
-      "added": 0,
-      "removed": 0
+      "added": 1,
+      "removed": 1
     },
     "rule": {
       "action_changed": 0,
@@ -520,10 +473,10 @@
     },
     "script": {
       "action_changed": 0,
-      "added": 4,
-      "removed": 9
+      "added": 2,
+      "removed": 2
     },
-    "total_changes": 13
+    "total_changes": 6
   },
   "upstream_revision_changes": []
 }
