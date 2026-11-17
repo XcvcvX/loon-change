@@ -4,12 +4,13 @@ on:
   push:
     branches:
       - main
-    paths:
-      - '**/allAdRewrite.plugin'
-      - 'scripts/**'
-      - 'sources/amap/**'
-      - '.github/workflows/sync-alladrewrite-gist.yml'
+  schedule:
+    - cron: "17 3 * * *"
   workflow_dispatch:
+
+concurrency:
+  group: alladrewrite-gist-sync
+  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -17,26 +18,30 @@ permissions:
 jobs:
   sync:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
       - name: Find plugin file
         id: plugin
         shell: bash
         run: |
           mapfile -t files < <(
-            git ls-files | grep -E '(^|/)allAdRewrite\.plugin$' || true
+            git ls-files | grep -E '(^|/)allAdRewrite\\.plugin$' || true
           )
 
           if [ "${#files[@]}" -ne 1 ]; then
             echo "Expected exactly one allAdRewrite.plugin"
+            printf 'Found: %s\\n' "${files[@]}"
             exit 1
           fi
 
           echo "file=${files[0]}" >> "$GITHUB_OUTPUT"
 
-      - name: Build public Gist payload with mirrored runtime assets
+      - name: Build, publish and verify Gist payload
         env:
           GIST_ID: ${{ secrets.GIST_ID }}
           GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
@@ -59,34 +64,52 @@ jobs:
           if not gist_id or not token or not plugin_file:
               raise SystemExit("GIST_ID, GIST_TOKEN or PLUGIN_FILE is missing")
 
-          plugin_path = Path(plugin_file)
           owner = "XcvcvX"
           private_prefix = "https://raw.githubusercontent.com/XcvcvX/loon-change/main/"
+          private_repo_prefix = "https://raw.githubusercontent.com/XcvcvX/loon-change/"
           public_prefix = f"https://gist.githubusercontent.com/{owner}/{gist_id}/raw/"
+          managed_prefix = "loon-change__"
 
+          plugin_path = Path(plugin_file)
           if not plugin_path.is_file():
               raise SystemExit(f"Plugin file not found: {plugin_path}")
 
           plugin = plugin_path.read_text(encoding="utf-8")
+
+          # Discover dependencies from the plugin itself. No directory or file
+          # allow-list is maintained: newly referenced files are picked up
+          # regardless of whether they live under scripts/, sources/, or elsewhere.
           relative_paths = sorted(set(re.findall(
-              re.escape(private_prefix) + r"""([^,\s"')]+)""", plugin
+              re.escape(private_prefix) + r"""([^,\\s"'?)#]+)""", plugin
           )))
-          if not relative_paths:
-              raise SystemExit("No private-repository runtime asset URLs found; refusing an empty mirror")
+
+          # Do not silently publish a plugin that still points at another branch
+          # or an unsupported private-repository Raw URL.
+          if private_repo_prefix in plugin.replace(private_prefix, ""):
+              raise SystemExit(
+                  "Found a private-repository Raw URL that does not use the main branch; "
+                  "please normalize it to the main-branch URL before publishing"
+              )
 
           files = {}
           for relative_path in relative_paths:
+              if not relative_path or relative_path.startswith("/") or ".." in Path(relative_path).parts:
+                  raise SystemExit(f"Unsafe runtime asset path: {relative_path}")
+
               tracked = subprocess.run(
                   ["git", "ls-files", "--error-unmatch", "--", relative_path],
                   capture_output=True, text=True
               )
               asset_path = Path(relative_path)
               if tracked.returncode != 0 or not asset_path.is_file():
-                  raise SystemExit(f"Referenced runtime asset is not tracked/present: {relative_path}")
+                  raise SystemExit(
+                      f"Referenced runtime asset is not tracked/present in this checkout: {relative_path}"
+                  )
 
-              filename = "loon-change__" + relative_path.replace("/", "__")
+              filename = managed_prefix + relative_path.replace("/", "__")
               if len(filename) > 240:
                   raise SystemExit(f"Gist filename is too long: {filename}")
+
               content = asset_path.read_text(encoding="utf-8")
               if not content.strip():
                   raise SystemExit(f"Referenced runtime asset is empty: {relative_path}")
@@ -99,40 +122,75 @@ jobs:
               files[filename] = content
 
           if private_prefix in plugin:
-              raise SystemExit("Private repository Raw URL remains in published plugin")
+              raise SystemExit("Private repository main-branch Raw URL remains in published plugin")
 
+          # The stable subscription entry is always updated, even when the
+          # plugin currently has no private runtime dependencies.
           files["allAdRewrite.plugin"] = plugin
-          payload = {"files": {name: {"content": value} for name, value in files.items()}}
-          request = urllib.request.Request(
-              f"https://api.github.com/gists/{gist_id}",
-              data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
-              method="PATCH",
-              headers={
-                  "Accept": "application/vnd.github+json",
-                  "Authorization": f"Bearer {token}",
-                  "X-GitHub-Api-Version": "2022-11-28",
-                  "Content-Type": "application/json",
-                  "User-Agent": "loon-change-gist-sync",
-              },
-          )
-          try:
-              with urllib.request.urlopen(request, timeout=60) as response:
-                  result = json.loads(response.read().decode("utf-8"))
-          except urllib.error.HTTPError as error:
-              detail = error.read().decode("utf-8", errors="replace")
-              raise SystemExit(f"Gist API update failed ({error.code}): {detail[:1000]}")
 
+          api_url = f"https://api.github.com/gists/{gist_id}"
+
+          def api_request(url, method="GET", payload=None):
+              data = None if payload is None else json.dumps(
+                  payload, ensure_ascii=False
+              ).encode("utf-8")
+              request = urllib.request.Request(
+                  url,
+                  data=data,
+                  method=method,
+                  headers={
+                      "Accept": "application/vnd.github+json",
+                      "Authorization": f"Bearer {token}",
+                      "X-GitHub-Api-Version": "2022-11-28",
+                      "Content-Type": "application/json",
+                      "User-Agent": "loon-change-gist-sync",
+                  },
+              )
+              try:
+                  with urllib.request.urlopen(request, timeout=60) as response:
+                      body = response.read().decode("utf-8")
+                      return json.loads(body) if body else {}
+              except urllib.error.HTTPError as error:
+                  detail = error.read().decode("utf-8", errors="replace")
+                  raise SystemExit(
+                      f"Gist API request failed ({error.code}): {detail[:1000]}"
+                  )
+
+          # Remove only files owned by this workflow that are no longer referenced.
+          current = api_request(api_url)
+          current_names = set((current.get("files") or {}).keys())
+          stale_names = sorted(
+              name for name in current_names
+              if name.startswith(managed_prefix) and name not in files
+          )
+
+          patch_files = {
+              name: {"content": content}
+              for name, content in files.items()
+          }
+          for name in stale_names:
+              patch_files[name] = None
+
+          result = api_request(api_url, method="PATCH", payload={"files": patch_files})
           returned_files = result.get("files", {})
           missing = sorted(set(files) - set(returned_files))
           if missing:
               raise SystemExit("Gist API response omitted files: " + ", ".join(missing))
 
-          # Verify the API's versioned raw URL for every file.
+          still_present = sorted(set(stale_names) & set(returned_files))
+          if still_present:
+              raise SystemExit("Stale managed Gist files were not deleted: " + ", ".join(still_present))
+
+          # Verify the actual versioned Raw content for every published file.
           for filename, expected in files.items():
               raw_url = returned_files[filename].get("raw_url")
               if not raw_url:
                   raise SystemExit(f"Gist did not return raw_url for {filename}")
-              with urllib.request.urlopen(raw_url, timeout=30) as response:
+              request = urllib.request.Request(
+                  raw_url,
+                  headers={"User-Agent": "loon-change-gist-sync"},
+              )
+              with urllib.request.urlopen(request, timeout=30) as response:
                   actual = response.read().decode("utf-8")
               if actual != expected:
                   raise SystemExit(f"Raw content verification mismatch: {filename}")
@@ -140,7 +198,9 @@ jobs:
           print(
               "Gist sync verified: "
               + str(len(relative_paths))
-              + " runtime assets + allAdRewrite.plugin; "
+              + " discovered runtime assets + allAdRewrite.plugin; "
+              + str(len(stale_names))
+              + " stale managed files removed; plugin sha256="
               + hashlib.sha256(plugin.encode("utf-8")).hexdigest()[:12]
           )
           PY
