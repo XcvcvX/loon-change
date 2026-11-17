@@ -21,7 +21,7 @@ class ActionKeyNormalizationTests(unittest.TestCase):
         self.assertEqual(normalize_enable_switches(unbraced), normalize_enable_switches(braced))
 
     def test_switch_identity_and_other_action_parameters_remain_significant(self):
-        from merge_plugins import action_key
+        from rule_semantics import normalize_enable_switches
         base = r'response if ${url} ~= /^https:\/\/example\.com/ then script("https://example.invalid/a.js") with enable=foo, tag="example", timeout=10'
         other_switch = base.replace("enable=foo", "enable=bar")
         other_timeout = base.replace("timeout=10", "timeout=20")
