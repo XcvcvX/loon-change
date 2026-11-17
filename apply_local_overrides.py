@@ -3449,9 +3449,9 @@ def remove_identical_script_response_duplicates(lines):
                 continue
             raise ValueError(f"RRTV/Soul/Reddit script inventory changed; refusing unreviewed consolidation: {line.strip()}")
 
-        if line in output_counts:
-            output_counts[line] += 1
-            if output_counts[line] > 1:
+        if inventory_line in output_counts:
+            output_counts[inventory_line] += 1
+            if output_counts[inventory_line] > 1:
                 raise ValueError("duplicate consolidated identical-script trigger")
             output.append(line)
             continue
