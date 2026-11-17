@@ -143,6 +143,18 @@ class SourceHealthGuardTests(unittest.TestCase):
         self.assertEqual(section["migration_action_changed_exempted"], 11)
         self.assertEqual(section["non_migration_action_changed"], 11)
 
+    def test_mixed_source_action_changes_are_not_exempted(self):
+        row = {
+            "before": {"sources": ["zmjde", "thelongdarkorg"]},
+            "after": {"sources": ["zmjde", "thelongdarkorg"]},
+        }
+        report = build_health(
+            sources(), migration_sources(), provenance(), provenance(),
+            action_diff([row for _ in range(11)]),
+        )
+        self.assertFalse(report["deployment_allowed"])
+        self.assertEqual(report["section_changes"]["rewrite"]["migration_action_changed_exempted"], 0)
+
     def test_invalid_migration_declaration_does_not_exempt_changes(self):
         current = migration_sources()
         current["source_migrations"]["zmjde"]["from"] = "https://example.invalid/other"
