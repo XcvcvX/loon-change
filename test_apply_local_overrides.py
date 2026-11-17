@@ -943,8 +943,8 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         ]
         fixture = BASE.replace(
             "[Script]",
-            "[Script]\\n" + "\\n".join(TAOBAO_CANONICAL_SCRIPT_TRIGGERS)
-            + "\\n" + "\\n".join(romeo_triggers),
+            "[Script]\n" + "\n".join(TAOBAO_CANONICAL_SCRIPT_TRIGGERS)
+            + "\n" + "\n".join(romeo_triggers),
         )
         result = apply(fixture)
         script = result.split("[Script]", 1)[1].split("[MITM]", 1)[0]
@@ -960,7 +960,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
             "https://raw.githubusercontent.com/zmjde/loon-plugins/main/JS/Taobao/Taobao_remove_ads.js",
             "https://raw.githubusercontent.com/ifflagged/Romeo/not-a-commit/Modules/JavaScript/Kelee/Taobao_remove_ads/kelee.one_Taobao_remove_ads.js",
         )
-        fixture = BASE.replace("[Script]", "[Script]\\n" + changed)
+        fixture = BASE.replace("[Script]", "[Script]\n" + changed)
         with self.assertRaisesRegex(ValueError, "Taobao splash script trigger changed"):
             apply(fixture)
 
