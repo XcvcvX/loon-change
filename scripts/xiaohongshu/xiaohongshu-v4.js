@@ -427,9 +427,9 @@ function imageEnhance(images) {
   if (!images || typeof images !== "object") return [];
 
   const imageQuality = $.getdata("fmz200.xiaohongshu.imageQuality");
-  const originalPattern = /\\?imageView2\\/2[^&]*(?:&redImage\\/frame\\/0)/;
-  const widthPattern = /imageView2\\/2\\/w\\/\\d+\\/format/g;
-  const heightPattern = /imageView2\\/2\\/h\\/\\d+\\/format/g;
+  const originalPattern = /\?imageView2\/2[^&]*(?:&redImage\/frame\/0)/;
+  const widthPattern = /imageView2\/2\/w\/\d+\/format/g;
+  const heightPattern = /imageView2\/2\/h\/\d+\/format/g;
   let originalReplaced = false;
 
   function visit(value) {
