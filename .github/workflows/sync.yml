@@ -101,16 +101,27 @@ jobs:
         run: |
           git clone --depth 1 https://github.com/ifflagged/Romeo.git /tmp/romeo-check
           ROMEO_CHECK_SHA="$(git -C /tmp/romeo-check rev-parse HEAD)"
-          python3 stage_romeo_plugins.py --romeo-repo /tmp/romeo-check --commit "$ROMEO_CHECK_SHA" --output /tmp/romeo-check/plugins
+          python3 stage_romeo_plugins.py --romeo-repo /tmp/romeo-check --commit "$ROMEO_CHECK_SHA" --output /tmp/romeo-check/plugins --zmjde-output /tmp/romeo-check-zmjde/Plugin
           python3 - <<'PY'
           from pathlib import Path
           from source_guard import validate_plugin_file
+          from stage_romeo_plugins import EXPECTED_PLUGIN_FILES, ZMJDE_PLUGIN_MAP, RUNTIME_ASSETS
           paths = sorted(Path("/tmp/romeo-check/plugins").glob("*"))
           paths = [p for p in paths if p.suffix.lower() in (".lpx", ".plugin")]
+          zm_paths = sorted(Path("/tmp/romeo-check-zmjde/Plugin").glob("*.lpx"))
           total = sum(validate_plugin_file(p, str(p)) for p in paths)
-          if len(paths) != 28 or total < 169:
-              raise SystemExit(f"Romeo plugin feed incomplete or dropped over 60% of baseline: files={len(paths)}, valid_entries={total}")
-          print(f"Romeo plugin feed validated: {len(paths)} files, {total} entries")
+          zm_total = sum(validate_plugin_file(p, str(p)) for p in zm_paths)
+          if len(paths) != EXPECTED_PLUGIN_FILES or total < 169:
+              raise SystemExit("Romeo/AOOMEE compatibility feed incomplete: files=%d, valid_entries=%d" % (len(paths), total))
+          if len(zm_paths) != len(ZMJDE_PLUGIN_MAP) or zm_total < 10:
+              raise SystemExit("Romeo/zmjde compatibility feed incomplete: files=%d, valid_entries=%d" % (len(zm_paths), zm_total))
+          meta = json.loads(Path("/tmp/romeo-check-zmjde/Plugin/.romeo-source.json").read_text())
+          for asset in RUNTIME_ASSETS:
+              plugin = Path("/tmp/romeo-check-zmjde/Plugin") / asset["plugin"]
+              expected = "https://raw.githubusercontent.com/ifflagged/Romeo/" + meta["upstream_commit"] + "/" + asset["source_path"]
+              if expected not in plugin.read_text(encoding="utf-8"):
+                  raise SystemExit("Unpinned runtime asset in " + asset["plugin"] + ": " + asset["source_path"])
+          print("Romeo feeds validated: %d + %d plugins; %d entries" % (len(paths), len(zm_paths), total + zm_total))
           PY
 
       - name: 编译检查
@@ -136,7 +147,9 @@ jobs:
           if-no-files-found: error
 
   sync:
-    if: github.event_name != 'pull_request'
+    # Run the complete production build as a PR preflight for same-repository branches.
+    # Only the publish step is disabled for PR events.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     permissions:
       contents: write
     runs-on: ubuntu-latest
@@ -393,7 +406,7 @@ jobs:
           fi
 
       - name: 提交并推送
-        if: steps.diff.outputs.changed == 'true'
+        if: github.event_name != 'pull_request' && steps.diff.outputs.changed == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
