@@ -485,12 +485,21 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertIn(keep, rewrite)
         self.assertEqual(apply(result), result)
 
-    def test_preserves_unknown_duoduo_grocery_newdetails_rule(self):
+    def test_preserves_unknown_duoduo_grocery_newdetails_rule_without_partial_conversion(self):
+        from apply_local_overrides import (
+            DDQX_NEWDETAILS_MATCHER, DDQX_NEWDETAILS_LEGACY_ACTION,
+            DDQX_NEWDETAILS_MODERN_ACTION, DDQX_NEWDETAILS_NATIVE_RULE,
+        )
+        legacy = DDQX_NEWDETAILS_MATCHER + " " + DDQX_NEWDETAILS_LEGACY_ACTION
+        modern = DDQX_NEWDETAILS_MATCHER + " " + DDQX_NEWDETAILS_MODERN_ACTION
         changed = r'response if ${url} ~= /^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/newDetails/ then response.body.replace(/data/, "hidden")'
-        fixture = BASE.replace("[Rewrite]", "[Rewrite]\n" + changed)
+        fixture = BASE.replace("[Rewrite]", "[Rewrite]\n" + legacy + "\n" + modern + "\n" + changed)
         result = apply(fixture)
         rewrite = result.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
         self.assertIn(changed, rewrite)
+        self.assertIn(legacy, rewrite)
+        self.assertIn(modern, rewrite)
+        self.assertNotIn(DDQX_NEWDETAILS_NATIVE_RULE, rewrite)
 
     def test_replaces_guiderank_homepage_script_with_native_batch_json_delete(self):
         from apply_local_overrides import GUIDERANK_HOMEPAGE_SCRIPT_TRIGGER, GUIDERANK_HOMEPAGE_NATIVE_RULE
