@@ -1552,6 +1552,22 @@ class SoulScriptConsolidationTests(unittest.TestCase):
         self.assertEqual(second_removed, 0)
         self.assertEqual(again, result)
 
+    def test_accepts_interpolated_switch_and_preserves_it_in_canonical_triggers(self):
+        from apply_local_overrides import (
+            SOUL_CANONICAL_TRIGGERS, SOUL_LEGACY_TRIGGERS, consolidate_soul_scripts,
+        )
+        fixture = [
+            "[Script]",
+            *[item.replace("enable=soul_enable", "enable=${soul_enable}")
+              for item in SOUL_LEGACY_TRIGGERS],
+            "[MITM]",
+        ]
+        result, removed = consolidate_soul_scripts(fixture)
+        self.assertEqual(removed, len(SOUL_LEGACY_TRIGGERS))
+        for trigger in SOUL_CANONICAL_TRIGGERS:
+            self.assertIn(trigger.replace("enable=soul_enable", "enable=${soul_enable}"), result)
+        self.assertEqual(consolidate_soul_scripts(result), (result, 0))
+
     def test_fails_closed_on_missing_duplicate_or_drifted_soul_trigger(self):
         from apply_local_overrides import SOUL_LEGACY_TRIGGERS, consolidate_soul_scripts
         base = sorted(SOUL_LEGACY_TRIGGERS)
