@@ -4204,7 +4204,7 @@ class XiaohongshuV4AndCommentMigrationTests(unittest.TestCase):
     def test_fails_closed_on_v4_native_behavior_or_comment_version_drift(self):
         from apply_local_overrides import migrate_xiaohongshu_v4_and_comment_processing
         fixture = self._fixture()
-        drifted = [line.replace("function_switch", "unknown_switch") if "v4/note/videofeed" in line else line for line in fixture]
+        drifted = [line.replace("function_switch", "unknown_switch") if "v4/note/videofeed" in line.replace(chr(92), "") else line for line in fixture]
         with self.assertRaisesRegex(ValueError, "v4 native behavior changed"):
             migrate_xiaohongshu_v4_and_comment_processing(drifted)
 
@@ -4218,6 +4218,7 @@ class XiaohongshuV4AndCommentMigrationTests(unittest.TestCase):
         self.assertIn('item.model_type === "note"', script)
         self.assertIn('Object.prototype.hasOwnProperty.call(item, "ad")', script)
         self.assertIn('$.setdata(JSON.stringify(videoData), "redBookVideoFeed")', script)
+        self.assertIn('$.setdata("[]", "redBookVideoFeed")', script)
         self.assertIn('/v10/note/video/save', script)
 
 
