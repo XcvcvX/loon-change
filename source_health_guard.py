@@ -7,6 +7,60 @@ from pathlib import Path
 
 REQUIRED_SOURCES = ("Amap", "thelongdarkorg", "aoomee", "zmjde", "GuaZiVideoAds", "AlipayAdBlock")
 SECTIONS = ("rewrite", "script", "rule")
+EXPECTED_SOURCE_MIGRATIONS = {
+    "aoomee": {
+        "from": "https://github.com/aoomee/Loon-Adblock-Plugins",
+        "to": "https://github.com/ifflagged/Romeo",
+    },
+    "zmjde": {
+        "from": "https://github.com/zmjde/loon-plugins",
+        "to": "https://github.com/ifflagged/Romeo",
+    },
+}
+
+
+def _declared_migration_sources(current_sources):
+    declared = current_sources.get("source_migrations", {})
+    if not isinstance(declared, dict):
+        return set()
+    migrated = set()
+    for name, expected in EXPECTED_SOURCE_MIGRATIONS.items():
+        item = declared.get(name)
+        if (isinstance(item, dict)
+                and item.get("status") == "planned"
+                and item.get("from") == expected["from"]
+                and item.get("to") == expected["to"]):
+            migrated.add(name)
+    return migrated
+
+
+def _migration_action_changes(diff, section, migrated_sources):
+    rows = diff.get("sections", {}).get(section, {}).get("action_changed", [])
+    if not isinstance(rows, list):
+        return 0
+    count = 0
+    for row in rows:
+        before = row.get("before", {}).get("sources", [])
+        after = row.get("after", {}).get("sources", [])
+        contributing_sources = set(before) | set(after)
+        if contributing_sources and contributing_sources.issubset(migrated_sources):
+            count += 1
+    return count
+
+
+def _action_change_source_pairs(diff, section):
+    rows = diff.get("sections", {}).get(section, {}).get("action_changed", [])
+    pairs = {}
+    for row in rows if isinstance(rows, list) else []:
+        before = tuple(sorted(row.get("before", {}).get("sources", [])))
+        after = tuple(sorted(row.get("after", {}).get("sources", [])))
+        key = (before, after)
+        pairs[key] = pairs.get(key, 0) + 1
+    return [
+        {"before": list(before), "after": list(after), "count": count}
+        for (before, after), count in sorted(pairs.items(), key=lambda item: -item[1])
+    ]
+
 
 
 def read_json(path):
@@ -125,12 +179,17 @@ def build_health(previous_sources, current_sources, previous_provenance,
 
     before, after = _section_counts(previous_provenance), _section_counts(current_provenance)
     changes = diff.get("summary", {})
+    migrated_sources = _declared_migration_sources(current_sources)
     section_results = {}
     for section in SECTIONS:
         counts = changes.get(section, {})
         added = int(counts.get("added", 0))
         removed = int(counts.get("removed", 0))
         action_changed = int(counts.get("action_changed", 0))
+        migration_action_changed = min(
+            action_changed, _migration_action_changes(diff, section, migrated_sources)
+        )
+        unrelated_action_changed = action_changed - migration_action_changed
         old_count, new_count = before[section], after[section]
         removed_ratio = removed / old_count if old_count else (1.0 if removed else 0.0)
         shrink_ratio = (old_count - new_count) / old_count if old_count else 0.0
@@ -140,13 +199,16 @@ def build_health(previous_sources, current_sources, previous_provenance,
         if shrink_ratio > 0.30:
             blockers.append("%s output shrank by more than 30%% (%d -> %d)" %
                             (section, old_count, new_count))
-        if old_count and action_changed / old_count > 0.10:
-            blockers.append("%s action changes exceed 10%% of previous output" % section)
+        if old_count and unrelated_action_changed / old_count > 0.10:
+            blockers.append("%s non-migration action changes exceed 10%% of previous output" % section)
         if old_count and added / old_count > 1.0:
             warnings.append("%s additions exceed 100%% of previous output; inspect upstream change" % section)
         section_results[section] = {
             "previous_entries": old_count, "current_entries": new_count,
             "added": added, "removed": removed, "action_changed": action_changed,
+            "migration_action_changed_exempted": migration_action_changed,
+            "non_migration_action_changed": unrelated_action_changed,
+            "action_change_source_pairs": _action_change_source_pairs(diff, section),
             "removed_percent": round(removed_ratio * 100, 3),
             "net_shrink_percent": round(shrink_ratio * 100, 3),
         }
@@ -161,6 +223,7 @@ def build_health(previous_sources, current_sources, previous_provenance,
         "source_scores": source_scores,
         "provenance_coverage": coverage,
         "section_changes": section_results,
+        "declared_source_migrations": sorted(migrated_sources),
         "warnings": sorted(set(warnings)),
         "blockers": sorted(set(blockers)),
         "policy": {
@@ -168,12 +231,15 @@ def build_health(previous_sources, current_sources, previous_provenance,
             "section_output_shrink_block_percent": 30,
             "removed_rules_block_percent_of_previous_section": 25,
             "action_changes_block_percent_of_previous_section": 10,
+            "planned_migration_action_changes_exempted_only_for_declared_sources": True,
             "addition_spike_warning_percent_of_previous_section": 100,
             "automatic_rule_or_mitm_edits": False,
         },
         "safety_notes": [
             "Reliability scores summarize source evidence; they do not prove runtime correctness.",
             "Large destructive diffs are held for review rather than silently published.",
+            "Only action changes attributed to explicitly declared AOOMEE/zmjde source migrations are exempted from the generic 10% action-change hold.",
+            "All additions, removals, output-shrink limits, unrelated-source action changes, and provenance coverage checks remain enforced.",
             "No rule, MITM hostname, priority, or plugin output is modified by this guard.",
         ],
     }
@@ -198,6 +264,14 @@ def main():
           (report["status"], report["average_source_reliability_score"],
            report["provenance_coverage"]["coverage_percent"],
            len(report["blockers"]), len(report["warnings"])))
+    print("[source-health] declared migrations=" + ",".join(report["declared_source_migrations"]))
+    for section, counts in report["section_changes"].items():
+        print("[source-health] %s action changes: total=%d migration_exempt=%d unrelated=%d" % (
+            section, counts["action_changed"], counts["migration_action_changed_exempted"],
+            counts["non_migration_action_changed"]))
+        for pair in counts["action_change_source_pairs"][:8]:
+            print("[source-health] %s source pair x%d: before=%s after=%s" % (
+                section, pair["count"], pair["before"], pair["after"]))
     if not report["deployment_allowed"]:
         raise SystemExit("[source-health] HOLD: " + "; ".join(report["blockers"]))
 

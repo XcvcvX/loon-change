@@ -12,6 +12,7 @@ on:
       - 'source_guard.py'
       - 'stage_romeo_plugins.py'
       - 'test_stage_romeo_plugins.py'
+      - 'romeo_resource_map.json'
       - 'amap_dependency_guard.py'
       - 'apply_amap_local_overrides.py'
       - 'test_apply_amap_local_overrides.py'
@@ -25,6 +26,7 @@ on:
       - 'convert_filter_qx2loon.py'
       - 'test_convert_filter_qx2loon.py'
       - 'apply_local_overrides.py'
+      - 'test_apply_local_overrides.py'
       - 'integrate_spotify.py'
       - 'test_integrate_spotify.py'
       - 'sources/spotify/**'
@@ -38,6 +40,7 @@ on:
       - 'source_guard.py'
       - 'stage_romeo_plugins.py'
       - 'test_stage_romeo_plugins.py'
+      - 'romeo_resource_map.json'
       - 'merge_plugins.py'
       - 'mitm_policy.py'
       - 'test_mitm_policy.py'
@@ -99,16 +102,29 @@ jobs:
         run: |
           git clone --depth 1 https://github.com/ifflagged/Romeo.git /tmp/romeo-check
           ROMEO_CHECK_SHA="$(git -C /tmp/romeo-check rev-parse HEAD)"
-          python3 stage_romeo_plugins.py --romeo-repo /tmp/romeo-check --commit "$ROMEO_CHECK_SHA" --output /tmp/romeo-check/plugins
+          python3 stage_romeo_plugins.py --romeo-repo /tmp/romeo-check --commit "$ROMEO_CHECK_SHA" --output /tmp/romeo-check/plugins --zmjde-output /tmp/romeo-check-zmjde/Plugin
           python3 - <<'PY'
+          import json
           from pathlib import Path
           from source_guard import validate_plugin_file
+          from stage_romeo_plugins import EXPECTED_PLUGIN_FILES, ZMJDE_PLUGIN_MAP, RUNTIME_ASSETS
           paths = sorted(Path("/tmp/romeo-check/plugins").glob("*"))
           paths = [p for p in paths if p.suffix.lower() in (".lpx", ".plugin")]
+          zm_paths = sorted(Path("/tmp/romeo-check-zmjde/Plugin").glob("*.lpx"))
           total = sum(validate_plugin_file(p, str(p)) for p in paths)
-          if len(paths) != 28 or total < 169:
-              raise SystemExit(f"Romeo plugin feed incomplete or dropped over 60% of baseline: files={len(paths)}, valid_entries={total}")
-          print(f"Romeo plugin feed validated: {len(paths)} files, {total} entries")
+          zm_total = sum(validate_plugin_file(p, str(p)) for p in zm_paths)
+          if len(paths) != EXPECTED_PLUGIN_FILES or total < 169:
+              raise SystemExit("Romeo/AOOMEE compatibility feed incomplete: files=%d, valid_entries=%d" % (len(paths), total))
+          if len(zm_paths) != len(ZMJDE_PLUGIN_MAP) or zm_total < 10:
+              raise SystemExit("Romeo/zmjde compatibility feed incomplete: files=%d, valid_entries=%d" % (len(zm_paths), zm_total))
+          meta = json.loads(Path("/tmp/romeo-check-zmjde/Plugin/.romeo-source.json").read_text())
+          for asset in RUNTIME_ASSETS:
+              slot_dir = Path("/tmp/romeo-check/plugins") if asset["slot"] == "aoomee_compat" else Path("/tmp/romeo-check-zmjde/Plugin")
+              plugin = slot_dir / asset["plugin"]
+              expected = "https://raw.githubusercontent.com/ifflagged/Romeo/" + meta["upstream_commit"] + "/" + asset["source_path"]
+              if expected not in plugin.read_text(encoding="utf-8"):
+                  raise SystemExit("Unpinned runtime asset in " + asset["plugin"] + ": " + asset["source_path"])
+          print("Romeo feeds validated: %d + %d plugins; %d entries" % (len(paths), len(zm_paths), total + zm_total))
           PY
 
       - name: 编译检查
@@ -134,13 +150,16 @@ jobs:
           if-no-files-found: error
 
   sync:
-    if: github.event_name != 'pull_request'
+    # Run the complete production build as a PR preflight for same-repository branches.
+    # Only the publish step is disabled for PR events.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     permissions:
       contents: write
     runs-on: ubuntu-latest
     concurrency:
-      group: loon-change-main-sync
-      queue: max
+      # Serialize/cancel stale production runs on main; give each PR preflight its own slot.
+      group: ${{ github.ref == 'refs/heads/main' && 'loon-change-main-sync' || github.run_id }}
+      cancel-in-progress: true
     steps:
       - name: 检出仓库
         uses: actions/checkout@v4
@@ -192,11 +211,6 @@ jobs:
           git clone --depth 1 https://github.com/Thelongdarkorg/loon-plugins.git /tmp/loon-plugins
           ls /tmp/loon-plugins/*_ad_block.plugin /tmp/loon-plugins/*_splash_ad_block.plugin | wc -l
 
-      - name: 拉取 zmjde 去广告插件
-        run: |
-          git clone --depth 1 https://github.com/zmjde/loon-plugins.git /tmp/zmjde
-          ls /tmp/zmjde/Plugin | wc -l
-
       - name: 固定 Romeo 上游版本并同步 App 插件、瓜子影视、高德与 MyBlockAds 依赖
         run: |
           mkdir -p /tmp/amap sources/amap sources/alipayAdBlock
@@ -204,7 +218,7 @@ jobs:
           ROMEO_SHA="$(git -C /tmp/romeo rev-parse HEAD)"
           echo "ROMEO_SHA=$ROMEO_SHA" >> "$GITHUB_ENV"
           # 固定 Romeo commit 后生成原 AOOMEE 合并槽的兼容插件目录。
-          python3 stage_romeo_plugins.py --romeo-repo /tmp/romeo --commit "$ROMEO_SHA" --output /tmp/romeo/plugins
+          python3 stage_romeo_plugins.py --romeo-repo /tmp/romeo --commit "$ROMEO_SHA" --output /tmp/romeo/plugins --zmjde-output /tmp/romeo-zmjde/Plugin
           # 瓜子影视使用 Romeo 收录的 ddgksf2013 官方 QuanX 源文件，继续走原有 QuanX -> Loon 转换链路。
           git -C /tmp/romeo show "$ROMEO_SHA:Modules/QuantumultX/ddgksf2013/Official/GuaZiVideoAds.conf" > /tmp/GuaZiVideoAds.conf
           wc -c /tmp/GuaZiVideoAds.conf
@@ -239,11 +253,11 @@ jobs:
 
       - name: 校验克隆来源并生成来源报告
         run: |
-          python3 source_guard.py --thelong /tmp/loon-plugins --romeo /tmp/romeo --zmjde /tmp/zmjde --qxapp /tmp/GuaZiVideoAds.conf --amap /tmp/amap/Amap.lpx --previous-report source-report.json --report source-report.json
+          python3 source_guard.py --thelong /tmp/loon-plugins --romeo /tmp/romeo --zmjde /tmp/romeo-zmjde --qxapp /tmp/GuaZiVideoAds.conf --amap /tmp/amap/Amap.lpx --previous-report source-report.json --report source-report.json
           python3 - <<'PY'
           import json, os
           from pathlib import Path
-          from stage_romeo_plugins import LEGACY_SNAPSHOTS, ROMEO_PLUGIN_MAP
+          from stage_romeo_plugins import (LEGACY_SNAPSHOTS, ROMEO_PLUGIN_MAP, ZMJDE_APP_MAP, ZMJDE_GENERAL_MAP)
           report_path = Path("source-report.json")
           report = json.loads(report_path.read_text(encoding="utf-8"))
           from source_guard import validate_alipayadblock
@@ -255,6 +269,20 @@ jobs:
               "upstream_path": "Modules/Loon/zirawell/Beta/alipayAdBlock.lpx",
           })
           report["AlipayAdBlock"] = alipay_source
+          report["source_migrations"] = {
+              "aoomee": {
+                  "status": "planned",
+                  "from": "https://github.com/aoomee/Loon-Adblock-Plugins",
+                  "to": "https://github.com/ifflagged/Romeo",
+                  "scope": "AOOMEE plugin compatibility slot and its runtime assets",
+              },
+              "zmjde": {
+                  "status": "planned",
+                  "from": "https://github.com/zmjde/loon-plugins",
+                  "to": "https://github.com/ifflagged/Romeo",
+                  "scope": "zmjde App/general plugin compatibility slots and runtime assets",
+              },
+          }
           romeo_slot = report.get("aoomee")
           if not isinstance(romeo_slot, dict):
               raise SystemExit("source-report.json 缺少 Romeo 替代来源统计")
@@ -274,6 +302,17 @@ jobs:
               "upstream_commit": os.environ["ROMEO_SHA"],
               "upstream_path": "Modules/QuantumultX/ddgksf2013/Official/GuaZiVideoAds.conf",
           })
+          zmjde_slot = report.get("zmjde")
+          if not isinstance(zmjde_slot, dict):
+              raise SystemExit("source-report.json 缺少 Romeo 映射后的历史 zmjde 兼容槽统计")
+          zmjde_slot.update({
+              "upstream_repository": "https://github.com/ifflagged/Romeo",
+              "upstream_commit": os.environ["ROMEO_SHA"],
+              "source_mode": "Romeo Modules/Loon/Kelee/Official; historical zmjde merge priority retained",
+              "app_plugin_paths": list(ZMJDE_APP_MAP.values()),
+              "general_plugin_paths": list(ZMJDE_GENERAL_MAP.values()),
+              "compatibility_key": "zmjde (retained only for historical merge/provenance continuity)"
+          })
           report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
           PY
           python3 amap_dependency_guard.py --assets /tmp/amap --plugin /tmp/amap/Amap.lpx --commit "$ROMEO_SHA" --report source-report.json
@@ -281,7 +320,7 @@ jobs:
           cp /tmp/amap/* sources/amap/
 
       - name: 合并各来源去广告规则（临时目录）
-        run: python3 merge_plugins.py --base /tmp/loon-build/allAdRewrite.plugin --extra fetch --filter fetch --apps /tmp/loon-plugins --romeo-plugins /tmp/romeo --zmjde /tmp/zmjde --qxapp /tmp/GuaZiVideoAds.conf --amap /tmp/amap/Amap.lpx --myblockads fetch --alipayadblock sources/alipayAdBlock/alipayAdBlock.lpx --out /tmp/loon-build/allAdRewrite.plugin --provenance-out /tmp/loon-build/rule-provenance.json --source-report source-report.json
+        run: python3 merge_plugins.py --base /tmp/loon-build/allAdRewrite.plugin --extra fetch --filter fetch --apps /tmp/loon-plugins --romeo-plugins /tmp/romeo --zmjde /tmp/romeo-zmjde --qxapp /tmp/GuaZiVideoAds.conf --amap /tmp/amap/Amap.lpx --myblockads fetch --alipayadblock sources/alipayAdBlock/alipayAdBlock.lpx --out /tmp/loon-build/allAdRewrite.plugin --provenance-out /tmp/loon-build/rule-provenance.json --source-report source-report.json
 
       - name: 保存合并阶段产物用于最终来源追溯
         run: cp /tmp/loon-build/allAdRewrite.plugin /tmp/loon-build/allAdRewrite.after-merge.plugin
@@ -305,6 +344,21 @@ jobs:
       - name: 来源可靠性评分与异常更新发布门禁
         run: |
           python3 source_health_guard.py --previous-sources /tmp/loon-build/source-report.previous.json --current-sources source-report.json --previous-provenance /tmp/loon-build/rule-provenance.previous.json --current-provenance /tmp/loon-build/rule-provenance.json --diff /tmp/loon-build/rule-diff.json --out /tmp/loon-build/source-health.json
+
+      - name: 上传来源健康门禁诊断数据（失败时保留）
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: source-health-debug-${{ github.run_id }}
+          path: |
+            /tmp/loon-build/rule-diff.json
+            /tmp/loon-build/rule-provenance.json
+            /tmp/loon-build/rule-provenance.previous.json
+            /tmp/loon-build/source-health.json
+            /tmp/loon-build/source-report.previous.json
+            source-report.json
+          if-no-files-found: warn
+          retention-days: 14
 
       - name: 规则变更风险分级与来源历史趋势
         run: |
@@ -385,7 +439,7 @@ jobs:
           fi
 
       - name: 提交并推送
-        if: steps.diff.outputs.changed == 'true'
+        if: github.event_name != 'pull_request' && steps.diff.outputs.changed == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"

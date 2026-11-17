@@ -44,6 +44,23 @@ class ValidatorTests(unittest.TestCase):
         self.assertEqual(vp.extract_script_url(call_line), 'https://cdn.example.com/b.js')
         self.assertIsNone(vp.extract_script_url('response then reject(404)'))
 
+    def test_legacy_rewrite_accepts_dash_separator_before_action(self):
+        hosts = ','.join(sorted(vp.REQUIRED_COVERED_HOSTS))
+        fixture = "\n".join([
+            "[Argument]",
+            "[Rule]",
+            "[Rewrite]",
+            r"^https:\/\/oss\.umetrip\.com\/fs\/advert\/ - reject-img",
+            "[Script]",
+            "[MITM]",
+            "hostname = " + hosts,
+        ])
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'valid.plugin'
+            path.write_text(fixture, encoding='utf-8')
+            errors, _, _ = vp.inspect_plugin(path)
+        self.assertFalse(any("未知旧版动作" in error for error in errors))
+
     def test_script_section_rejects_rewrite_action(self):
         hosts = ','.join(sorted(vp.REQUIRED_COVERED_HOSTS))
         fixture = "\n".join([

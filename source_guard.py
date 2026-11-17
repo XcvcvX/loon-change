@@ -1,17 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Fail-closed validation for downloaded rule sources and cloned repositories."""
+"""Fail-closed validation for downloaded sources and Romeo-staged plugin mappings."""
 import argparse
 import json
 import re
 import subprocess
 from pathlib import Path
 
-REQUIRED_ZMJDE = (
-    "DiDi_remove_ads.lpx", "PinDuoDuo_remove_ads.lpx",
-    "FleaMarket_remove_ads.lpx", "Taobao_remove_ads.lpx", "smzdm_remove_ads.lpx",
-    "Block_HTTPDNS.lpx", "BlockAdvertisers.lpx", "Remove_ads_by_keli.lpx",
-)
+from stage_romeo_plugins import ZMJDE_PLUGIN_MAP
+
+# Historical merge-slot inventory is generated from the shared Romeo manifest.
+REQUIRED_ZMJDE = tuple(ZMJDE_PLUGIN_MAP)
 
 
 def real_lines(text):
@@ -220,6 +219,8 @@ def check_clones(thelong, aoomee, zmjde, qxapp, previous_report=None, amap=None)
         return total
 
     zm_files = [zm_dir / name for name in REQUIRED_ZMJDE]
+    zm_meta_path = zm_dir / ".romeo-source.json"
+    zm_meta = json.loads(zm_meta_path.read_text(encoding="utf-8")) if zm_meta_path.is_file() else {}
     counts = {
         "thelongdarkorg": rule_lines(tl),
         "aoomee": rule_lines(ao),
@@ -237,8 +238,14 @@ def check_clones(thelong, aoomee, zmjde, qxapp, previous_report=None, amap=None)
                            "rule_lines": counts["thelongdarkorg"]},
         "aoomee": {"commit": revision(aoomee), "plugin_files": len(ao),
                    "rule_lines": counts["aoomee"]},
-        "zmjde": {"commit": revision(zmjde), "required_plugins": len(REQUIRED_ZMJDE),
-                  "rule_lines": counts["zmjde"]},
+        "zmjde": {"commit": zm_meta.get("upstream_commit", revision(zmjde)),
+                  "required_plugins": len(REQUIRED_ZMJDE), "rule_lines": counts["zmjde"],
+                  "upstream_repository": zm_meta.get("upstream_repository", "unknown"),
+                  "source_mode": zm_meta.get("source_mode", "legacy source directory"),
+                  "app_plugin_paths": zm_meta.get("app_plugin_paths", []),
+                  "general_plugin_paths": zm_meta.get("general_plugin_paths", []),
+                  "runtime_assets": zm_meta.get("runtime_assets", []),
+                  "external_runtime_dependencies": zm_meta.get("external_runtime_dependencies", [])},
         "GuaZiVideoAds": qx_stats,
     })
     if previous_report and Path(previous_report).is_file():
@@ -257,7 +264,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--thelong")
     parser.add_argument("--romeo", "--aoomee", dest="aoomee")
-    parser.add_argument("--zmjde")
+    parser.add_argument("--zmjde", help="Romeo-staged former zmjde compatibility slot (no separate zmjde clone)")
     parser.add_argument("--qxapp")
     parser.add_argument("--amap", help="RuCu6 高德地图独立 Loon 插件路径")
     parser.add_argument("--report")

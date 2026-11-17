@@ -19,9 +19,11 @@
   # --filter 控制 R-Store 分流来源：fetch（默认）/ 本地路径 / none（不补全）
 """
 import argparse, datetime, ipaddress, json, os, re, sys, urllib.request
+from rule_semantics import normalize_enable_switches
 from source_guard import (validate_alipayadblock, validate_blockv2, validate_filter,
                           validate_myblockads, fetch_validated)
 from mitm_policy import mitm_skip_host
+from stage_romeo_plugins import ZMJDE_APP_PLUGINS, ZMJDE_GENERAL_PLUGINS
 
 BLOCKV2_URL = 'https://raw.githubusercontent.com/fmz200/wool_scripts/main/Loon/plugin/blockAds.plugin'
 BLOCKV2_MIRRORS = [
@@ -93,10 +95,9 @@ ap.add_argument('--apps', default=None,
 ap.add_argument('--romeo-plugins', '--aoomee', dest='aoomee', default=None,
                 help='Romeo 仓库目录（工作流固定 commit 并在 plugins/ 暂存对应 Loon 模块）；'
                      '同时读取本地 sources/romeo_legacy/ 快照；保留历史 aoomee 参数别名与来源追溯键')
-ap.add_argument('--zmjde', default=None,
-                help='zmjde/loon-plugins 仓库目录（工作流 clone 后传入）；读取 8 个指定 .lpx：'
-                     'DiDi/PinDuoDuo/闲鱼/淘宝/什么值得买作为 App 高优先级完整并入，'
-                     'Block_HTTPDNS/BlockAdvertisers/可莉广告过滤器以 base 优先只补不覆盖')
+ap.add_argument('--zmjde', '--romeo-zmjde-plugins', dest='zmjde', default=None,
+                help='Romeo manifest 暂存的历史 zmjde 兼容槽目录；读取 8 个固定映射 .lpx，'
+                     '保留既有 App 高优先级与通用插件 base 优先的合并语义')
 ap.add_argument('--qxapp', action='append', default=None,
                 help='QuanX 单文件 App 插件（.conf，如瓜子影视）本地路径，可重复传入；'
                      '脚本内解析 hostname 并把 qx 规则转为 Loon v2，按专属 App 高优先级完整并入')
@@ -658,6 +659,9 @@ def split_action(line):
 def action_key(line):
     """规范化旧版/新版拒绝动作别名；不同响应类型和状态码保持不同签名。"""
     _, action = split_action(line)
+    # Loon plugin switches may appear as either enable=name or enable=${name}.
+    # They refer to the same switch and must not create false semantic diffs.
+    action = normalize_enable_switches(action)
     aliases = {
         'reject': 'reject(404)',
         'reject-200': 'reject(200)',
@@ -2613,12 +2617,10 @@ if args.aoomee:
                 ao_mitm += [x.strip() for x in l.split('=', 1)[1].split(',') if x.strip()]
 ao_rw, ao_rw_origins, aoomee_duplicate_exclusions = exclude_audited_semantic_duplicates(
     ao_rw, ao_rw_origins, 'aoomee')
-# ---------------- zmjde 指定插件 ----------------
-# App 高优先级（完整并入，同正则替换其他来源）：DiDi/PinDuoDuo + 闲鱼/淘宝/什么值得买；
-# 通用 base 优先，只补 base 没有的（不覆盖）：Block_HTTPDNS/BlockAdvertisers + 可莉广告过滤器。
-_ZMJ_APP = ('DiDi_remove_ads.lpx', 'PinDuoDuo_remove_ads.lpx',
-            'FleaMarket_remove_ads.lpx', 'Taobao_remove_ads.lpx', 'smzdm_remove_ads.lpx')
-_ZMJ_GENERAL = ('Block_HTTPDNS.lpx', 'BlockAdvertisers.lpx', 'Remove_ads_by_keli.lpx')
+# ---------------- Romeo manifest 映射的历史 zmjde 合并槽 ----------------
+# 文件清单由 romeo_resource_map.json 单一维护；此处只保留既有合并优先级。
+_ZMJ_APP = ZMJDE_APP_PLUGINS
+_ZMJ_GENERAL = ZMJDE_GENERAL_PLUGINS
 zmj_app_rw, zmj_app_sc, zmj_app_rule, zmj_app_mitm = [], [], [], []
 zmj_gen_rw, zmj_gen_sc, zmj_gen_rule, zmj_gen_mitm = [], [], [], []
 
@@ -3660,7 +3662,7 @@ if args.provenance_out:
         'rule_scope_adjustments': rule_scope_adjustments,
         'limitations': [
             'source_entry_index is the ordinal within the extracted source feed, not the original upstream file line number',
-            'exact source filename and 1-based line attribution is included for Thelongdarkorg, aoomee, and zmjde App plugin feeds; other sources retain feed indices until their source mapping is added',
+            'exact source filename and 1-based line attribution is included for Thelongdarkorg, Romeo compatibility slots (historical aoomee/zmjde); other sources retain feed indices until their source mapping is added',
             'normalization and source conversion may mean input_line differs from upstream raw text',
             'MyBlockAds source_entry_index is the ordinal within its extracted section feed; source line numbers are not yet emitted because the online source may differ from the checked-in fallback cache',
             'MITM hostname provenance and Argument provenance are not included in this first batch',
@@ -3669,12 +3671,12 @@ if args.provenance_out:
         'source_catalog': {
             'base': 'R-Store converted rewrite source',
             'block': 'fmz200/wool_scripts blockAdsV2',
-            'zmjgen': 'zmjde/loon-plugins general plugins',
+            'zmjgen': 'ifflagged/Romeo Modules/Loon/Kelee/Official (historical zmjde general slot)',
             'thelong': 'Thelongdarkorg/loon-plugins',
             'aoomee': 'ifflagged/Romeo Modules/Loon + pinned AOOMEE-only local snapshots (legacy provenance key)',
             'qxapp': 'QuanX single-file app source (GuaZiVideoAds)',
             'amap': 'ifflagged/Romeo / RuCu6 Amap plugin',
-            'zmjapp': 'zmjde/loon-plugins app plugins',
+            'zmjapp': 'ifflagged/Romeo Modules/Loon/Kelee/Official (historical zmjde App slot)',
             'myblockads': {
                 'name': 'RuCu6 MyBlockAds',
                 'url': MYBLOCKADS_URL,

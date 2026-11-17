@@ -471,25 +471,34 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
             apply(BASE.replace("[Rewrite]", "[Rewrite]\n" + changed))
 
     def test_converts_duoduo_grocery_newdetails_suspension_to_native_json_delete(self):
-        from apply_local_overrides import DDQX_NEWDETAILS_NATIVE_RULE
+        from apply_local_overrides import (
+            DDQX_NEWDETAILS_NATIVE_RULE, replace_ddqx_newdetails_body_rewrites,
+        )
         legacy = r'^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/newDetails response-body-replace-regex suspension random_body'
         modern = r'response if ${url} ~= /^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/newDetails/ then response.body.replace(/suspension/, "fmz200")'
         keep = r'^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/getHomeAdPop reject-dict'
-        fixture = BASE.replace("[Rewrite]", "[Rewrite]\n" + legacy + "\n" + modern + "\n" + keep)
+        result, converted = replace_ddqx_newdetails_body_rewrites(["[Rewrite]", legacy, modern, keep])
+        self.assertEqual(converted, 2)
+        self.assertNotIn(legacy, result)
+        self.assertNotIn(modern, result)
+        self.assertIn(DDQX_NEWDETAILS_NATIVE_RULE, result)
+        self.assertIn(keep, result)
+
+    def test_preserves_unknown_duoduo_grocery_newdetails_rule_without_partial_conversion(self):
+        from apply_local_overrides import (
+            DDQX_NEWDETAILS_MATCHER, DDQX_NEWDETAILS_LEGACY_ACTION,
+            DDQX_NEWDETAILS_MODERN_ACTION, DDQX_NEWDETAILS_NATIVE_RULE,
+        )
+        legacy = DDQX_NEWDETAILS_MATCHER + " " + DDQX_NEWDETAILS_LEGACY_ACTION
+        modern = DDQX_NEWDETAILS_MATCHER + " " + DDQX_NEWDETAILS_MODERN_ACTION
+        changed = r'response if ${url} ~= /^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/newDetails/ then response.body.replace(/data/, "hidden")'
+        fixture = BASE.replace("[Rewrite]", "[Rewrite]\n" + legacy + "\n" + modern + "\n" + changed)
         result = apply(fixture)
         rewrite = result.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
-        self.assertNotIn(legacy, rewrite)
-        self.assertNotIn(modern, rewrite)
-        self.assertIn(DDQX_NEWDETAILS_NATIVE_RULE, rewrite)
-        self.assertEqual(rewrite.count("response.json.delete(\"data.suspension\")"), 1)
-        self.assertIn(keep, rewrite)
-        self.assertEqual(apply(result), result)
-
-    def test_fails_closed_when_duoduo_grocery_newdetails_rule_changes(self):
-        changed = r'response if ${url} ~= /^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/newDetails/ then response.body.replace(/data/, "hidden")'
-        fixture = BASE.replace("[Rewrite]", "[Rewrite]\n" + changed)
-        with self.assertRaisesRegex(ValueError, "Duoduo Grocery newDetails suspension rule changed"):
-            apply(fixture)
+        self.assertIn(changed, rewrite)
+        self.assertIn(legacy, rewrite)
+        self.assertIn(modern, rewrite)
+        self.assertNotIn(DDQX_NEWDETAILS_NATIVE_RULE, rewrite)
 
     def test_replaces_guiderank_homepage_script_with_native_batch_json_delete(self):
         from apply_local_overrides import GUIDERANK_HOMEPAGE_SCRIPT_TRIGGER, GUIDERANK_HOMEPAGE_NATIVE_RULE
@@ -594,6 +603,22 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertEqual(result.count(PDD_LOCAL_HOMEPAGE_TRIGGER), 1)
         self.assertNotIn(PDD_ISHOWSHU_HOMEPAGE_TRIGGER, result)
 
+    def test_consolidates_commit_pinned_romeo_ishowshu_pdd_trigger(self):
+        from apply_local_overrides import (
+            PDD_RSTORE_HOMEPAGE_TRIGGER, PDD_LOCAL_HOMEPAGE_TRIGGER,
+            PDD_ISHOWSHU_HOMEPAGE_TRIGGER, consolidate_pdd_homepage_script,
+        )
+        pinned = PDD_ISHOWSHU_HOMEPAGE_TRIGGER.replace(
+            "https://github.com/ifflagged/Romeo/raw/main/",
+            "https://raw.githubusercontent.com/ifflagged/Romeo/" + "d" * 40 + "/",
+        )
+        fixture = ["[Script]", PDD_RSTORE_HOMEPAGE_TRIGGER, pinned, "[MITM]"]
+        result, removed = consolidate_pdd_homepage_script(fixture)
+        self.assertEqual(removed, 2)
+        self.assertEqual(result.count(PDD_LOCAL_HOMEPAGE_TRIGGER), 1)
+        self.assertNotIn(pinned, result)
+        self.assertEqual(consolidate_pdd_homepage_script(result)[1], 0)
+
     def test_accepts_exact_legacy_ishowshu_pdd_trigger(self):
         from apply_local_overrides import (
             PDD_RSTORE_HOMEPAGE_TRIGGER, PDD_LOCAL_HOMEPAGE_TRIGGER,
@@ -667,20 +692,24 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertIn(unrelated, result)
         self.assertEqual(consolidate_pdd_splash_rules(result)[1], 0)
 
-    def test_pdd_splash_consolidation_fails_closed_on_unknown_or_duplicate_matchers(self):
+    def test_pdd_splash_consolidation_preserves_unknown_or_incomplete_inventory(self):
         from apply_local_overrides import (
             PDD_SPLASH_OLD_CANONICAL_RULE, PDD_SPLASH_DUPLICATE_404_RULE,
             PDD_SPLASH_DISTINCT_ACTION_RULES, consolidate_pdd_splash_rules,
         )
         baseline = [PDD_SPLASH_OLD_CANONICAL_RULE, *PDD_SPLASH_DISTINCT_ACTION_RULES]
-        with self.assertRaisesRegex(ValueError, "unknown Pinduoduo splash matcher"):
-            consolidate_pdd_splash_rules([*baseline, "request /cappuccino/splash-new reject"])
-        with self.assertRaisesRegex(ValueError, "inventory changed or duplicated"):
+        unknown = [*baseline, "request /cappuccino/splash-new reject"]
+        preserved, changed = consolidate_pdd_splash_rules(unknown)
+        self.assertEqual(changed, 0)
+        self.assertEqual(preserved, unknown)
+        incomplete = [PDD_SPLASH_OLD_CANONICAL_RULE]
+        preserved, changed = consolidate_pdd_splash_rules(incomplete)
+        self.assertEqual(changed, 0)
+        self.assertEqual(preserved, incomplete)
+        with self.assertRaisesRegex(ValueError, "duplicate known matchers"):
             consolidate_pdd_splash_rules([*baseline, PDD_SPLASH_OLD_CANONICAL_RULE])
-        with self.assertRaisesRegex(ValueError, "inventory changed or duplicated"):
+        with self.assertRaisesRegex(ValueError, "duplicate known matchers"):
             consolidate_pdd_splash_rules([*baseline, PDD_SPLASH_DUPLICATE_404_RULE, PDD_SPLASH_DUPLICATE_404_RULE])
-        with self.assertRaisesRegex(ValueError, "distinct action inventory missing"):
-            consolidate_pdd_splash_rules([PDD_SPLASH_OLD_CANONICAL_RULE])
 
     def test_removes_only_pdd_feed_asset_rules_shadowed_by_same_action(self):
         from apply_local_overrides import (
@@ -794,6 +823,74 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertIn(unrelated, script)
         self.assertEqual(consolidate_goofish_script_triggers(result)[1], 0)
 
+    def test_consolidates_mixed_goofish_canonical_and_current_upstream_subset(self):
+        from apply_local_overrides import (
+            GOOFISH_CANONICAL_SCRIPT_TRIGGERS, GOOFISH_REDUNDANT_SCRIPT_TRIGGERS,
+            consolidate_goofish_script_triggers,
+        )
+        upstream_subset = GOOFISH_REDUNDANT_SCRIPT_TRIGGERS[:10]
+        fixture = ["[Script]", *GOOFISH_CANONICAL_SCRIPT_TRIGGERS,
+                   *upstream_subset, "[MITM]"]
+        result, removed = consolidate_goofish_script_triggers(fixture)
+        self.assertEqual(removed, len(upstream_subset))
+        script = result[result.index("[Script]") + 1:result.index("[MITM]")]
+        for trigger in GOOFISH_CANONICAL_SCRIPT_TRIGGERS:
+            self.assertEqual(script.count(trigger), 1)
+        for trigger in upstream_subset:
+            self.assertNotIn(trigger, script)
+        self.assertEqual(consolidate_goofish_script_triggers(result)[1], 0)
+
+    def test_rebuilds_goofish_canonical_set_from_known_partial_upstream_inventory(self):
+        from apply_local_overrides import (
+            GOOFISH_CANONICAL_SCRIPT_TRIGGERS, GOOFISH_REDUNDANT_SCRIPT_TRIGGERS,
+            consolidate_goofish_script_triggers,
+        )
+        upstream_subset = GOOFISH_REDUNDANT_SCRIPT_TRIGGERS[:10]
+        result, removed = consolidate_goofish_script_triggers(
+            ["[Script]", *upstream_subset, "[MITM]"]
+        )
+        self.assertEqual(removed, len(upstream_subset))
+        script = result[result.index("[Script]") + 1:result.index("[MITM]")]
+        self.assertEqual(list(script), list(GOOFISH_CANONICAL_SCRIPT_TRIGGERS))
+
+    def test_removes_current_romeo_hosted_goofish_duplicate_trigger(self):
+        from apply_local_overrides import (
+            GOOFISH_CANONICAL_SCRIPT_TRIGGERS,
+            GOOFISH_REDUNDANT_SCRIPT_TRIGGERS,
+            consolidate_goofish_script_triggers,
+        )
+        romeo_trigger = next(
+            item for item in GOOFISH_REDUNDANT_SCRIPT_TRIGGERS
+            if "ifflagged/Romeo/raw/main/Modules/JavaScript/ishowshu/goofish/" in item
+        )
+        fixture = ["[Script]", *GOOFISH_CANONICAL_SCRIPT_TRIGGERS, romeo_trigger, "[MITM]"]
+        result, removed = consolidate_goofish_script_triggers(fixture)
+        self.assertEqual(removed, 1)
+        script = result[result.index("[Script]") + 1:result.index("[MITM]")]
+        self.assertEqual(list(script), list(GOOFISH_CANONICAL_SCRIPT_TRIGGERS))
+        self.assertEqual(consolidate_goofish_script_triggers(result)[1], 0)
+
+    def test_removes_commit_pinned_romeo_goofish_script_duplicate(self):
+        from apply_local_overrides import (
+            GOOFISH_CANONICAL_SCRIPT_TRIGGERS,
+            GOOFISH_REDUNDANT_SCRIPT_TRIGGERS,
+            consolidate_goofish_script_triggers,
+        )
+        source = next(
+            item for item in GOOFISH_REDUNDANT_SCRIPT_TRIGGERS
+            if "ifflagged/Romeo/raw/main/Modules/JavaScript/ishowshu/goofish/" in item
+        )
+        pinned = source.replace(
+            "https://github.com/ifflagged/Romeo/raw/main/",
+            "https://raw.githubusercontent.com/ifflagged/Romeo/" + "b" * 40 + "/",
+        )
+        fixture = ["[Script]", *GOOFISH_CANONICAL_SCRIPT_TRIGGERS, pinned, "[MITM]"]
+        result, removed = consolidate_goofish_script_triggers(fixture)
+        self.assertEqual(removed, 1)
+        script = result[result.index("[Script]") + 1:result.index("[MITM]")]
+        self.assertEqual(list(script), list(GOOFISH_CANONICAL_SCRIPT_TRIGGERS))
+        self.assertEqual(consolidate_goofish_script_triggers(result)[1], 0)
+
     def test_normalizes_repository_relative_goofish_script_paths(self):
         from apply_local_overrides import (
             GOOFISH_CANONICAL_SCRIPT_TRIGGERS, consolidate_goofish_script_triggers,
@@ -820,8 +917,9 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         changed = GOOFISH_REDUNDANT_SCRIPT_TRIGGERS[0].replace("requires-body=true", "requires-body=false")
         with self.assertRaisesRegex(ValueError, "inventory changed"):
             consolidate_goofish_script_triggers(["[Script]", *GOOFISH_REDUNDANT_SCRIPT_TRIGGERS[1:], changed])
-        with self.assertRaisesRegex(ValueError, "inventory incomplete"):
-            consolidate_goofish_script_triggers(["[Script]", *GOOFISH_REDUNDANT_SCRIPT_TRIGGERS[:-1]])
+        from apply_local_overrides import GOOFISH_CANONICAL_SCRIPT_TRIGGERS
+        with self.assertRaisesRegex(ValueError, "canonical trigger inventory incomplete"):
+            consolidate_goofish_script_triggers(["[Script]", *GOOFISH_CANONICAL_SCRIPT_TRIGGERS[:-1]])
         with self.assertRaisesRegex(ValueError, "duplicate redundant Goofish"):
             consolidate_goofish_script_triggers(["[Script]", *GOOFISH_REDUNDANT_SCRIPT_TRIGGERS,
                                                  GOOFISH_REDUNDANT_SCRIPT_TRIGGERS[0]])
@@ -879,6 +977,47 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertIn("https://example.invalid/keep.js", script)
         self.assertEqual(apply(result), result)
 
+    def test_removes_romeo_pinned_kelee_taobao_script_as_reviewed_duplicate(self):
+        from apply_local_overrides import TAOBAO_CANONICAL_SCRIPT_TRIGGERS, TAOBAO_REDUNDANT_SCRIPT_TRIGGERS
+        commit = "a" * 40
+        romeo_url = (
+            "https://raw.githubusercontent.com/ifflagged/Romeo/" + commit
+            + "/Modules/JavaScript/Kelee/Taobao_remove_ads/kelee.one_Taobao_remove_ads.js"
+        )
+        romeo_triggers = [
+            trigger.replace(
+                "https://raw.githubusercontent.com/zmjde/loon-plugins/main/JS/Taobao/Taobao_remove_ads.js",
+                romeo_url,
+            )
+            for trigger in TAOBAO_REDUNDANT_SCRIPT_TRIGGERS[4:6]
+        ]
+        other_redundant = (
+            list(TAOBAO_REDUNDANT_SCRIPT_TRIGGERS[:4])
+            + list(TAOBAO_REDUNDANT_SCRIPT_TRIGGERS[6:])
+        )
+        fixture = BASE.replace(
+            "[Script]",
+            "[Script]\n" + "\n".join(TAOBAO_CANONICAL_SCRIPT_TRIGGERS)
+            + "\n" + "\n".join(other_redundant + romeo_triggers),
+        )
+        result = apply(fixture)
+        script = result.split("[Script]", 1)[1].split("[MITM]", 1)[0]
+        for trigger in TAOBAO_CANONICAL_SCRIPT_TRIGGERS:
+            self.assertEqual(script.count(trigger), 1)
+        for trigger in romeo_triggers:
+            self.assertNotIn(trigger, script)
+        self.assertEqual(apply(result), result)
+
+    def test_fails_closed_on_unrecognized_romeo_taobao_asset_path(self):
+        from apply_local_overrides import TAOBAO_REDUNDANT_SCRIPT_TRIGGERS
+        changed = TAOBAO_REDUNDANT_SCRIPT_TRIGGERS[4].replace(
+            "https://raw.githubusercontent.com/zmjde/loon-plugins/main/JS/Taobao/Taobao_remove_ads.js",
+            "https://raw.githubusercontent.com/ifflagged/Romeo/not-a-commit/Modules/JavaScript/Kelee/Taobao_remove_ads/kelee.one_Taobao_remove_ads.js",
+        )
+        fixture = BASE.replace("[Script]", "[Script]\n" + changed)
+        with self.assertRaisesRegex(ValueError, "Taobao splash script trigger changed"):
+            apply(fixture)
+
     def test_fails_closed_when_a_taobao_duplicate_trigger_drifts(self):
         from apply_local_overrides import TAOBAO_REDUNDANT_SCRIPT_TRIGGERS
         changed = TAOBAO_REDUNDANT_SCRIPT_TRIGGERS[0].replace("requires_body=true", "requires_body=false")
@@ -917,6 +1056,22 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertEqual(script.count(DIDI_USERCENTER_CANONICAL_TRIGGER), 1)
         self.assertNotIn(DIDI_USERCENTER_REDUNDANT_TRIGGER, script)
         self.assertIn(unrelated, script)
+        self.assertEqual(apply(result), result)
+
+    def test_removes_current_didi_usercenter_fmz_script_switch_template(self):
+        from apply_local_overrides import (
+            DIDI_USERCENTER_CANONICAL_TRIGGER,
+            DIDI_USERCENTER_REDUNDANT_TRIGGER_CURRENT,
+        )
+        fixture = BASE.replace(
+            "[Script]",
+            "[Script]\n" + DIDI_USERCENTER_CANONICAL_TRIGGER
+            + "\n" + DIDI_USERCENTER_REDUNDANT_TRIGGER_CURRENT,
+        )
+        result = apply(fixture)
+        script = result.split("[Script]", 1)[1].split("[MITM]", 1)[0]
+        self.assertEqual(script.count(DIDI_USERCENTER_CANONICAL_TRIGGER), 1)
+        self.assertNotIn(DIDI_USERCENTER_REDUNDANT_TRIGGER_CURRENT, script)
         self.assertEqual(apply(result), result)
 
     def test_fails_closed_when_didi_usercenter_trigger_drifts(self):
@@ -982,17 +1137,35 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertIn(canonical, result)
         self.assertIn(unrelated, result)
 
+    def test_fails_closed_on_duplicate_amap_legacy_script(self):
+        from apply_local_overrides import remove_redundant_amap_legacy_scripts
+        legacy = "http-response ^https://m5.amap.com/ws/aos/perception/publicTravel/beforeNavi? script-path=https://github.com/ishowshu/qx/raw/main/script/amap.js"
+        with self.assertRaisesRegex(ValueError, "duplicate Amap legacy response script trigger"):
+            remove_redundant_amap_legacy_scripts(["[Script]", legacy, legacy])
+
     def test_fails_closed_on_unknown_amap_legacy_script_endpoint(self):
         from apply_local_overrides import remove_redundant_amap_legacy_scripts
         unknown = "http-response ^https://m5.amap.com/ws/unknown/ad script-path=https://example.invalid/amap.js"
         with self.assertRaisesRegex(ValueError, "unknown Amap legacy response script endpoint"):
             remove_redundant_amap_legacy_scripts(["[Script]", unknown], expected_count=1)
 
-    def test_fails_closed_when_amap_canonical_handler_is_missing(self):
+    def test_preserves_amap_legacy_script_when_native_handler_is_missing(self):
         from apply_local_overrides import remove_redundant_amap_legacy_scripts
         legacy = "http-response ^https://m5.amap.com/ws/aos/perception/publicTravel/beforeNavi? script-path=https://example.invalid/amap.js"
-        with self.assertRaisesRegex(ValueError, "canonical response handler missing or duplicated"):
-            remove_redundant_amap_legacy_scripts(["[Script]", legacy], expected_count=1)
+        result, removed = remove_redundant_amap_legacy_scripts(["[Script]", legacy], expected_count=1)
+        self.assertEqual(removed, 0)
+        self.assertIn(legacy, result)
+
+
+    def test_preserves_amap_legacy_script_when_native_handler_is_ambiguous(self):
+        from apply_local_overrides import remove_redundant_amap_legacy_scripts
+        legacy = "http-response ^https://m5.amap.com/ws/aos/perception/publicTravel/beforeNavi? script-path=https://example.invalid/amap.js"
+        canonical = 'response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/aos\\/perception\\/publicTravel\\/beforeNavi\\?/i then script("https://example.invalid/rucu6_amap.js")'
+        result, removed = remove_redundant_amap_legacy_scripts(
+            ["[Script]", legacy, canonical, canonical], expected_count=1
+        )
+        self.assertEqual(removed, 0)
+        self.assertIn(legacy, result)
 
     def test_generated_plugin_has_no_legacy_amap_scripts_and_keeps_native_handlers(self):
         from pathlib import Path
@@ -1017,11 +1190,12 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertIn(unrelated, result)
         self.assertEqual(remove_redundant_baidumap_script(result)[1], 0)
 
-    def test_fails_closed_when_baidumap_gated_ad_trigger_is_missing(self):
+    def test_preserves_baidumap_legacy_trigger_when_gated_twin_is_absent(self):
         from apply_local_overrides import BAIDUMAP_LEGACY_SCRIPT_RULE, remove_redundant_baidumap_script
         legacy, _, _ = BAIDUMAP_LEGACY_SCRIPT_RULE
-        with self.assertRaisesRegex(ValueError, "gated script trigger missing or changed"):
-            remove_redundant_baidumap_script([legacy])
+        result, removed = remove_redundant_baidumap_script([legacy])
+        self.assertEqual(removed, 0)
+        self.assertEqual(result, [legacy])
 
     def test_fails_closed_on_duplicate_baidumap_ad_triggers(self):
         from apply_local_overrides import BAIDUMAP_LEGACY_SCRIPT_RULE, remove_redundant_baidumap_script
@@ -1054,11 +1228,12 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertIn(unrelated, result)
         self.assertEqual(remove_redundant_dianping_scripts(result)[1], 0)
 
-    def test_fails_closed_when_dianping_gated_trigger_is_missing(self):
+    def test_preserves_dianping_legacy_trigger_when_gated_twin_is_absent(self):
         from apply_local_overrides import DIANPING_LEGACY_SCRIPT_RULES, remove_redundant_dianping_scripts
         legacy, _, _ = DIANPING_LEGACY_SCRIPT_RULES[0]
-        with self.assertRaisesRegex(ValueError, "gated script trigger missing or changed"):
-            remove_redundant_dianping_scripts([legacy])
+        result, removed = remove_redundant_dianping_scripts([legacy])
+        self.assertEqual(removed, 0)
+        self.assertEqual(result, [legacy])
 
     def test_fails_closed_on_duplicate_dianping_triggers(self):
         from apply_local_overrides import DIANPING_LEGACY_SCRIPT_RULES, remove_redundant_dianping_scripts
@@ -1111,6 +1286,31 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         second, second_removed = apply_didi_script_and_homepage_cleanup(result)
         self.assertEqual(second, result)
         self.assertEqual(second_removed, 0)
+
+    def test_accepts_interpolated_didiads_switches(self):
+        from apply_local_overrides import (
+            DIDI_CORE_NATIVE_RULE, DIDI_USERCENTER_LAYOUT_NATIVE_PREFIX,
+            DIDI_OTA_KEEP_SCRIPT, DIDI_PRESALE_KEEP_SCRIPT,
+            DIDIADS_COMMON_V5_SCRIPT, DIDIADS_NOOP_SCRIPT_RULES,
+            apply_didi_script_and_homepage_cleanup,
+        )
+        noops = [
+            rule.replace("enable=didiiuxk_enable", "enable=${didiiuxk_enable}")
+            for rule in DIDIADS_NOOP_SCRIPT_RULES
+        ]
+        common = DIDIADS_COMMON_V5_SCRIPT.replace(
+            "enable=didiiuxk_enable", "enable=${didiiuxk_enable}"
+        )
+        fixture = [
+            "[Argument]", "[Rule]", "[Rewrite]", DIDI_CORE_NATIVE_RULE,
+            DIDI_USERCENTER_LAYOUT_NATIVE_PREFIX + "[]", "[Script]",
+            *noops, common, DIDI_OTA_KEEP_SCRIPT, DIDI_PRESALE_KEEP_SCRIPT, "[MITM]",
+        ]
+        result, removed = apply_didi_script_and_homepage_cleanup(fixture)
+        self.assertEqual(removed, len(DIDIADS_NOOP_SCRIPT_RULES))
+        self.assertIn(common, result)
+        for rule in noops:
+            self.assertNotIn(rule, result)
 
     def test_fails_closed_when_didiads_noop_trigger_drifts(self):
         from apply_local_overrides import (
@@ -1352,7 +1552,20 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertEqual(result.count(JD_OPTIONAL_WELCOME_TRIGGER), 1)
         self.assertIn("scripts/jingdong/jd.js", result)
         self.assertIn("scripts/jingdong/jd-welcome.js", result)
-        self.assertIn("with enable=jkds_enable", result)
+        self.assertIn("with enable=${jkds_enable}", result)
+        self.assertEqual(apply(result), result)
+
+    def test_accepts_current_jingdong_switch_interpolation_and_preserves_it(self):
+        from apply_local_overrides import (
+            JD_CANONICAL_TRIGGER, JD_FMZ_LEGACY_TRIGGER_CURRENT,
+            JD_OPTIONAL_WELCOME_TRIGGER,
+        )
+        fixture = self.base.replace(self.fmz, JD_FMZ_LEGACY_TRIGGER_CURRENT)
+        result = apply(fixture)
+        self.assertNotIn(JD_FMZ_LEGACY_TRIGGER_CURRENT, result)
+        self.assertIn(JD_CANONICAL_TRIGGER, result)
+        self.assertIn(JD_OPTIONAL_WELCOME_TRIGGER, result)
+        self.assertIn("enable=${jkds_enable}", JD_OPTIONAL_WELCOME_TRIGGER)
         self.assertEqual(apply(result), result)
 
     def test_fails_closed_when_either_legacy_trigger_drifts_or_is_missing(self):
@@ -1388,7 +1601,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         ):
             self.assertIn(marker, base_script)
         self.assertIn("catch (_)", base_script)
-        self.assertIn("with enable=jkds_enable", __import__("apply_local_overrides").JD_OPTIONAL_WELCOME_TRIGGER)
+        self.assertIn("with enable=${jkds_enable}", __import__("apply_local_overrides").JD_OPTIONAL_WELCOME_TRIGGER)
         for marker in (
             "bottomXview", "float", "photoCeiling", "ruleFloat",
             "searchIcon", "topRotate", "tabBarAtmosphere",
@@ -1447,16 +1660,35 @@ class ZhihuResponseScriptConsolidationTests(unittest.TestCase):
             patterns.append(re.compile(raw[1:end], re.I if raw[end + 1:] == "i" else 0))
         self.assertTrue(all(any(pattern.search(url) for pattern in patterns) for url in urls))
 
-    def test_fails_closed_on_missing_duplicate_or_drifted_zhihu_trigger(self):
+    def test_preserves_partial_zhihu_inventory_and_rejects_duplicates_or_drift(self):
         from apply_local_overrides import ZHIHU_RESPONSE_LEGACY_TRIGGERS, consolidate_zhihu_response_scripts
         base = sorted(ZHIHU_RESPONSE_LEGACY_TRIGGERS)
-        for fixture in (
-            ["[Script]", *base[:-1]],
-            ["[Script]", *base, base[0]],
-            ["[Script]", *base[:-1], base[-1].replace("requires_body=true", "requires_body=false")],
-        ):
-            with self.assertRaisesRegex(ValueError, "Zhihu response script inventory changed"):
-                consolidate_zhihu_response_scripts(fixture)
+        partial = ["[Script]", *base[:-1]]
+        result, removed = consolidate_zhihu_response_scripts(partial)
+        self.assertEqual(removed, 0)
+        self.assertEqual(result, partial)
+        with self.assertRaisesRegex(ValueError, "duplicate triggers"):
+            consolidate_zhihu_response_scripts(["[Script]", *base, base[0]])
+        drifted = ["[Script]", *base[:-1], base[-1].replace("requires_body=true", "requires_body=false")]
+        with self.assertRaisesRegex(ValueError, "unknown trigger"):
+            consolidate_zhihu_response_scripts(drifted)
+
+    def test_consolidates_zhihu_inventory_with_interpolated_switches(self):
+        from apply_local_overrides import (
+            ZHIHU_RESPONSE_LEGACY_TRIGGERS,
+            ZHIHU_RESPONSE_CANONICAL_TRIGGERS,
+            consolidate_zhihu_response_scripts,
+        )
+        fixture = ["[Script]"] + [
+            trigger.replace("enable=vihu_enable", "enable=${vihu_enable}")
+            for trigger in ZHIHU_RESPONSE_LEGACY_TRIGGERS
+        ] + ["[MITM]"]
+        result, removed = consolidate_zhihu_response_scripts(fixture)
+        self.assertEqual(removed, len(ZHIHU_RESPONSE_LEGACY_TRIGGERS) - len(ZHIHU_RESPONSE_CANONICAL_TRIGGERS))
+        script = result[result.index("[Script]") + 1:result.index("[MITM]")]
+        self.assertEqual(len(script), len(ZHIHU_RESPONSE_CANONICAL_TRIGGERS))
+        self.assertTrue(all("enable=$" + "{" in line for line in script))
+        self.assertEqual(consolidate_zhihu_response_scripts(result)[1], 0)
 
 class SoulScriptConsolidationTests(unittest.TestCase):
     def test_consolidates_all_exact_soul_triggers_into_two_case_safe_matchers(self):
@@ -1474,6 +1706,22 @@ class SoulScriptConsolidationTests(unittest.TestCase):
         again, second_removed = consolidate_soul_scripts(result)
         self.assertEqual(second_removed, 0)
         self.assertEqual(again, result)
+
+    def test_accepts_interpolated_switch_and_preserves_it_in_canonical_triggers(self):
+        from apply_local_overrides import (
+            SOUL_CANONICAL_TRIGGERS, SOUL_LEGACY_TRIGGERS, consolidate_soul_scripts,
+        )
+        fixture = [
+            "[Script]",
+            *[item.replace("enable=soul_enable", "enable=${soul_enable}")
+              for item in SOUL_LEGACY_TRIGGERS],
+            "[MITM]",
+        ]
+        result, removed = consolidate_soul_scripts(fixture)
+        self.assertEqual(removed, len(SOUL_LEGACY_TRIGGERS))
+        for trigger in SOUL_CANONICAL_TRIGGERS:
+            self.assertIn(trigger.replace("enable=soul_enable", "enable=${soul_enable}"), result)
+        self.assertEqual(consolidate_soul_scripts(result), (result, 0))
 
     def test_fails_closed_on_missing_duplicate_or_drifted_soul_trigger(self):
         from apply_local_overrides import SOUL_LEGACY_TRIGGERS, consolidate_soul_scripts
@@ -1515,6 +1763,18 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
             self.assertNotIn(trigger, result)
         self.assertEqual(result.count(MEITUAN_CANONICAL_TRIGGER), 1)
         self.assertIn("scripts/meituan/meituan.js", result)
+        self.assertEqual(apply(result), result)
+
+    def test_rebuilds_full_local_meituan_union_from_exact_rstore_only_upstream_subset(self):
+        from apply_local_overrides import MEITUAN_CANONICAL_TRIGGER
+        fixture = self.base.replace(
+            "\n".join(self.triggers),
+            "\n".join(self.triggers[:3]),
+        )
+        result = apply(fixture)
+        self.assertEqual(result.count(MEITUAN_CANONICAL_TRIGGER), 1)
+        for trigger in self.triggers:
+            self.assertNotIn(trigger, result)
         self.assertEqual(apply(result), result)
 
     def test_fails_closed_on_missing_drifted_or_duplicate_meituan_trigger(self):
@@ -2042,7 +2302,7 @@ class PeopleAppHomepageAdDedupTests(unittest.TestCase):
         self.assertEqual(removed2, 0)
         self.assertEqual(result2, result)
 
-    def test_preserves_lone_rule_and_fails_closed_on_duplicate_or_drift(self):
+    def test_preserves_lone_or_unknown_rules_and_fails_closed_on_duplicate(self):
         from apply_local_overrides import PEOPLEAPP_HOME_AD_DUPLICATE_RULES, remove_duplicate_peopleapp_home_ad_rules
         first, duplicate = PEOPLEAPP_HOME_AD_DUPLICATE_RULES
         self.assertEqual(remove_duplicate_peopleapp_home_ad_rules([first]), ([first], 0))
@@ -2050,11 +2310,12 @@ class PeopleAppHomepageAdDedupTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "duplicate PeopleApp"):
             remove_duplicate_peopleapp_home_ad_rules([first, first, duplicate])
         drifted = duplicate.replace("reject(404)", "reject_dict(200)")
-        with self.assertRaisesRegex(ValueError, "inventory changed"):
-            remove_duplicate_peopleapp_home_ad_rules([first, drifted])
-        unknown = r"request if ${url} ~= /^https?:\\/\\/app\\.peopleapp\\.com\\/Api\\/\\d+\\/HomeApi\\/(adv|getAdvertImage)/ then reject(403)"
-        with self.assertRaisesRegex(ValueError, "inventory changed"):
-            remove_duplicate_peopleapp_home_ad_rules([first, unknown])
+        self.assertEqual(remove_duplicate_peopleapp_home_ad_rules([first, drifted]), ([first, drifted], 0))
+        unknown = r"request if \${url} ~= /^https?:\\/\\/app\\.peopleapp\\.com\\/Api\\/\\d+\\/HomeApi\\/(adv|getAdvertImage)/ then reject(403)"
+        self.assertEqual(remove_duplicate_peopleapp_home_ad_rules([first, unknown]), ([first, unknown], 0))
+        result, removed = remove_duplicate_peopleapp_home_ad_rules([first, duplicate, unknown])
+        self.assertEqual(removed, 1)
+        self.assertEqual(result, [first, unknown])
 
 
 
@@ -2079,28 +2340,25 @@ class ZhihuRequestShadowRuleCleanupTests(unittest.TestCase):
         self.assertIn("ad reject-dict", result)
         self.assertEqual(apply(result), result)
 
-    def test_fails_closed_on_missing_cover_duplicate_drift_or_unknown_target(self):
+    def test_preserves_missing_cover_and_unknown_but_rejects_duplicates(self):
+        from apply_local_overrides import remove_redundant_zhihu_request_rules
         redundant, canonical, _marker = self.pairs[0]
-        missing_cover = self.base.replace(canonical + "\n", "", 1)
-        with self.assertRaisesRegex(ValueError, "Zhihu covering request blocker missing"):
-            apply(missing_cover)
+        preserved, removed = remove_redundant_zhihu_request_rules([redundant])
+        self.assertEqual(removed, 0)
+        self.assertEqual(preserved, [redundant])
 
-        duplicate = self.base.replace(redundant, redundant + "\n" + redundant, 1)
         with self.assertRaisesRegex(ValueError, "duplicate Zhihu request blocker"):
-            apply(duplicate)
+            remove_redundant_zhihu_request_rules([redundant, redundant])
 
-        drifted = self.base.replace(redundant, redundant.replace("reject(404)", "reject_dict(200)"), 1)
-        with self.assertRaisesRegex(ValueError, "Zhihu request blocker inventory changed"):
-            apply(drifted)
+        drifted_line = redundant.replace("reject(404)", "reject_dict(200)")
+        preserved, _ = remove_redundant_zhihu_request_rules([drifted_line])
+        self.assertEqual(preserved, [drifted_line])
 
-        unknown = self.base.replace(
-            redundant,
-            redundant + "\n" +
-            redundant.replace("reject(404)", "reject(403)"),
-            1,
-        )
-        with self.assertRaisesRegex(ValueError, "Zhihu request blocker inventory changed"):
-            apply(unknown)
+        unknown_line = redundant.replace("reject(404)", "reject(403)")
+        preserved, removed = remove_redundant_zhihu_request_rules([redundant, canonical, unknown_line])
+        self.assertEqual(removed, 1)
+        self.assertIn(canonical, preserved)
+        self.assertIn(unknown_line, preserved)
 
 
 class ZhihuMultiActionRewriteConsolidationTests(unittest.TestCase):
@@ -3022,6 +3280,19 @@ class SameSourceResponseScriptDedupTests(unittest.TestCase):
         self.assertIn("^https?:\\\\/\\\\/creditcardapp.bankcomm.com\\\\/unrelated reject(404)", result)
         self.assertEqual(remove_same_source_duplicate_response_scripts(result), (result, 0))
 
+    def test_accepts_interpolated_switch_variant_without_changing_the_rule(self):
+        from apply_local_overrides import remove_same_source_duplicate_response_scripts
+        source = next(item for item in self.keep if "bilimanhua_enable" in item)
+        current = source.replace("enable=bilimanhua_enable", "enable=${bilimanhua_enable}")
+        fixture = ["[Script]", *self.remove, *[
+            current if item == source else item for item in self.keep
+        ], "[MITM]"]
+        result, removed = remove_same_source_duplicate_response_scripts(fixture)
+        self.assertEqual(removed, len(self.remove))
+        self.assertIn(current, result)
+        self.assertNotIn(source, result)
+        self.assertEqual(remove_same_source_duplicate_response_scripts(result), (result, 0))
+
     def test_preserves_already_consolidated_inventory(self):
         from apply_local_overrides import remove_same_source_duplicate_response_scripts
         clean = ["[Script]", *self.keep, "[MITM]"]
@@ -3081,6 +3352,23 @@ class IdenticalScriptResponseDedupTests(unittest.TestCase):
             self.assertEqual(result.count(expected), 1)
         self.assertIn(self.unrelated, result)
         self.assertIn("^https?:\\\\/\\\\/api.rr.tv\\\\/unrelated reject(404)", result)
+        self.assertEqual(remove_identical_script_response_duplicates(result), (result, 0))
+
+    def test_accepts_interpolated_switch_and_preserves_it_in_canonical_output(self):
+        from apply_local_overrides import remove_identical_script_response_duplicates
+        source = next(item for item in self.keep_source if "rfrfuipk_enable" in item)
+        current = source.replace("enable=rfrfuipk_enable", "enable=${rfrfuipk_enable}")
+        fixture = [
+            "[Script]", *self.remove,
+            *[current if item == source else item for item in self.keep_source],
+            "[MITM]",
+        ]
+        result, removed = remove_identical_script_response_duplicates(fixture)
+        self.assertEqual(removed, len(self.remove))
+        expected = self.transforms.get(source, source).replace(
+            "enable=rfrfuipk_enable", "enable=${rfrfuipk_enable}"
+        )
+        self.assertIn(expected, result)
         self.assertEqual(remove_identical_script_response_duplicates(result), (result, 0))
 
     def test_preserves_already_consolidated_inventory(self):
@@ -3158,6 +3446,38 @@ class MoreResponseScriptDedupTests(unittest.TestCase):
             expected = self.transforms.get(item, item)
             self.assertEqual(result.count(expected), 1)
         self.assertIn(self.unrelated, result)
+        self.assertEqual(remove_more_duplicate_response_scripts(result), (result, 0))
+
+    def test_accepts_interpolated_switch_and_preserves_it_in_response_output(self):
+        from apply_local_overrides import remove_more_duplicate_response_scripts
+        source = next(item for item in self.keep_source if "kuwoybyt_enable" in item)
+        current = source.replace("enable=kuwoybyt_enable", "enable=${kuwoybyt_enable}")
+        fixture = [
+            "[Script]", *self.remove,
+            *[current if item == source else item for item in self.keep_source],
+            "[MITM]",
+        ]
+        result, removed = remove_more_duplicate_response_scripts(fixture)
+        self.assertEqual(removed, len(self.remove))
+        expected = self.transforms.get(source, source).replace(
+            "enable=kuwoybyt_enable", "enable=${kuwoybyt_enable}"
+        )
+        self.assertIn(expected, result)
+        self.assertEqual(remove_more_duplicate_response_scripts(result), (result, 0))
+
+    def test_removes_duplicate_with_interpolated_switch(self):
+        from apply_local_overrides import remove_more_duplicate_response_scripts
+        source = next(item for item in self.remove if "quda_enable" in item)
+        current = source.replace("enable=quda_enable", "enable=${quda_enable}")
+        fixture = [
+            "[Script]",
+            *[current if item == source else item for item in self.remove],
+            *self.keep_source,
+            "[MITM]",
+        ]
+        result, removed = remove_more_duplicate_response_scripts(fixture)
+        self.assertEqual(removed, len(self.remove))
+        self.assertNotIn(current, result)
         self.assertEqual(remove_more_duplicate_response_scripts(result), (result, 0))
 
     def test_preserves_already_consolidated_inventory(self):
@@ -3413,6 +3733,30 @@ class SmzdmHomepageScriptOptimizationTests(unittest.TestCase):
         again, second_changed = remove_redundant_smzdm_homepage_script_trigger(result)
         self.assertEqual(second_changed, 0)
         self.assertEqual(again, result)
+
+    def test_removes_interpolated_fmz_homepage_dispatch_when_rstore_handler_exists(self):
+        from apply_local_overrides import (
+            SMZDM_FMZ_HOME_TRIGGER, SMZDM_RSTORE_HOME_TRIGGER,
+            remove_redundant_smzdm_homepage_script_trigger,
+        )
+        fmz = SMZDM_FMZ_HOME_TRIGGER.replace("enable=smzdm_enable", "enable=${smzdm_enable}")
+        fixture = ["[Script]", SMZDM_RSTORE_HOME_TRIGGER, fmz, "[MITM]"]
+        result, changed = remove_redundant_smzdm_homepage_script_trigger(fixture)
+        self.assertEqual(changed, 1)
+        self.assertNotIn(fmz, result)
+        self.assertIn(SMZDM_RSTORE_HOME_TRIGGER, result)
+
+    def test_removes_interpolated_fmz_ad_triggers_when_rstore_covers_them(self):
+        from apply_local_overrides import (
+            SMZDM_FMZ_ADS_DUPLICATE_PAIRS,
+            remove_redundant_smzdm_ads_script_triggers,
+        )
+        fixture = ["[Script]"]
+        for _, rstore, fmz in SMZDM_FMZ_ADS_DUPLICATE_PAIRS:
+            fixture.extend([rstore, fmz.replace("enable=smzdm_enable", "enable=${smzdm_enable}")])
+        result, removed = remove_redundant_smzdm_ads_script_triggers(fixture)
+        self.assertEqual(removed, len(SMZDM_FMZ_ADS_DUPLICATE_PAIRS))
+        self.assertFalse(any("smzdm_ads.js" in line for line in result))
 
     def test_preserves_fmz_homepage_dispatch_without_rstore_cover(self):
         from apply_local_overrides import (

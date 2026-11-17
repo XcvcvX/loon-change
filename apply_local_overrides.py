@@ -68,7 +68,8 @@ def remove_duplicate_peopleapp_home_ad_rules(lines):
         value = line.strip()
         if value.startswith("request if ${url}") and "peopleapp" in value and "HomeApi" in value and ("adv" in value or "getAdvertImage" in value):
             if value not in counts:
-                raise ValueError("PeopleApp homepage ad rule inventory changed; refusing cleanup")
+                # Preserve new upstream matchers; only deduplicate the reviewed exact pair.
+                continue
             counts[value] += 1
             if counts[value] > 1:
                 raise ValueError("duplicate PeopleApp homepage ad rule; refusing ambiguous cleanup")
@@ -282,12 +283,20 @@ def consolidate_pdd_homepage_script(lines):
     """Replace two overlapping PDD homepage scripts with one behavior-preserving local handler."""
     output, section = [], ""
     counts = {"rstore": 0, "local": 0, "ishowshu": 0}
+    def normalize_trigger(value):
+        value = re.sub(r"\\+", "", value.strip())
+        return re.sub(
+            r"https://raw\.githubusercontent\.com/ifflagged/Romeo/[0-9a-f]{40}/",
+            "https://github.com/ifflagged/Romeo/raw/main/",
+            value,
+        )
+
     normalized_triggers = {
-        re.sub(r"\\+", "", PDD_RSTORE_HOMEPAGE_TRIGGER.strip()): "rstore",
-        re.sub(r"\\+", "", PDD_LOCAL_HOMEPAGE_TRIGGER.strip()): "local",
-        re.sub(r"\\+", "", PDD_LOCAL_HOMEPAGE_RELATIVE_TRIGGER.strip()): "local",
-        re.sub(r"\\+", "", PDD_ISHOWSHU_HOMEPAGE_TRIGGER.strip()): "ishowshu",
-        re.sub(r"\\+", "", PDD_ISHOWSHU_HOMEPAGE_LEGACY_TRIGGER.strip()): "ishowshu",
+        normalize_trigger(PDD_RSTORE_HOMEPAGE_TRIGGER): "rstore",
+        normalize_trigger(PDD_LOCAL_HOMEPAGE_TRIGGER): "local",
+        normalize_trigger(PDD_LOCAL_HOMEPAGE_RELATIVE_TRIGGER): "local",
+        normalize_trigger(PDD_ISHOWSHU_HOMEPAGE_TRIGGER): "ishowshu",
+        normalize_trigger(PDD_ISHOWSHU_HOMEPAGE_LEGACY_TRIGGER): "ishowshu",
     }
     target_seen = False
     for line in lines:
@@ -295,7 +304,7 @@ def consolidate_pdd_homepage_script(lines):
             section = line[1:-1]
             output.append(line)
             continue
-        normalized = re.sub(r"\\+", "", line.strip())
+        normalized = normalize_trigger(line)
         is_target = (section == "Script" and "api.pinduoduo.com/api/alexa/" in normalized
                      and ("script-path" in normalized or "script(" in normalized))
         if not is_target:
@@ -304,7 +313,7 @@ def consolidate_pdd_homepage_script(lines):
         target_seen = True
         kind = normalized_triggers.get(normalized)
         if kind is None:
-            raise ValueError("Pinduoduo homepage script trigger changed; refusing unreviewed consolidation")
+            raise ValueError("Pinduoduo homepage script trigger changed; refusing unreviewed consolidation: " + line.strip())
         counts[kind] += 1
         if counts[kind] > 1:
             raise ValueError("duplicate Pinduoduo homepage script trigger; refusing ambiguous consolidation")
@@ -442,14 +451,14 @@ def consolidate_pdd_splash_rules(lines):
     target = [line for line in lines if "cappuccino" in line and "splash" in line]
     if not target:
         return list(lines), 0
-    if old_count + canonical_count != 1 or duplicate_count > 1 or any(count > 1 for count in distinct_counts):
-        raise ValueError("Pinduoduo splash rule inventory changed or duplicated; refusing consolidation")
-    if len(target) != known:
-        raise ValueError("unknown Pinduoduo splash matcher found; refusing unreviewed consolidation")
-    if canonical_count == 1 and duplicate_count == 0 and known == 3:
+    if old_count + canonical_count > 1 or duplicate_count > 1 or any(count > 1 for count in distinct_counts):
+        raise ValueError("Pinduoduo splash rule inventory contains duplicate known matchers")
+    # Unknown or incomplete upstream inventories are preserved untouched. The
+    # optimization is applied only when the complete known action set is present.
+    if len(target) != known or old_count + canonical_count == 0 or not all(distinct_counts):
         return list(lines), 0
-    if not all(distinct_counts):
-        raise ValueError("Pinduoduo splash distinct action inventory missing; refusing consolidation")
+    if canonical_count == 1 and duplicate_count == 0:
+        return list(lines), 0
     output = []
     for line in lines:
         stripped = line.strip()
@@ -596,7 +605,13 @@ def remove_redundant_taobao_scripts(lines):
     """Keep the two canonical R-Store Taobao triggers and remove eight equivalent duplicates."""
     def normalize_trigger(item):
         value = re.sub(r"\\+", "", item.strip())
-        # Accept only the two exact known Loon switch interpolation forms.
+        # The Kelee Taobao module is pinned to a specific Romeo commit. Normalize
+        # only that exact path and 40-hex SHA to the reviewed duplicate signature.
+        value = re.sub(
+            r"https://raw\.githubusercontent\.com/ifflagged/Romeo/[0-9a-f]{40}/Modules/JavaScript/Kelee/Taobao_remove_ads/kelee\.one_Taobao_remove_ads\.js",
+            "https://raw.githubusercontent.com/zmjde/loon-plugins/main/JS/Taobao/Taobao_remove_ads.js",
+            value,
+        )
         return re.sub(r"enable=\$\{(albb_enable|tcbc_enable)\}", r"enable=\1", value)
 
     canonical = {normalize_trigger(item): item for item in TAOBAO_CANONICAL_SCRIPT_TRIGGERS}
@@ -631,7 +646,7 @@ def remove_redundant_taobao_scripts(lines):
             if counts[trigger] > 1:
                 raise ValueError("duplicate redundant Taobao script trigger; refusing ambiguous deduplication")
             continue
-        raise ValueError("Taobao splash script trigger changed; refusing an unreviewed deduplication")
+        raise ValueError("Taobao splash script trigger changed; refusing an unreviewed deduplication: " + line.strip())
     if not target_seen:
         return output, 0
     canonical_complete = all(counts[trigger] == 1 for trigger in TAOBAO_CANONICAL_SCRIPT_TRIGGERS)
@@ -677,65 +692,99 @@ GOOFISH_REDUNDANT_SCRIPT_TRIGGERS = (
     r"http-response ^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.local\.nearby\.itemdetail\.enter\/ script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 商品详情页周边推荐",
     r"http-response ^https:\/\/g-acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlemtopsearch\.search\/ script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 搜索结果信息流广告",
     r"http-response ^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.local\.flow\.plat\.section script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 同城页横幅广告",
+    r'response if ${url} ~= /^https://acs.m.goofish.com/gw/mtop.taobao.idlehome.home.nextfresh//i then script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/ishowshu/goofish/ishowshu_goofish.js") with tag="goofish", timeout=60, requires_body=true',
+    r'response if ${url} ~= /^https://acs.m.goofish.com/gw/mtop.taobao.idle.local.home//i then script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/ishowshu/goofish/ishowshu_goofish.js") with tag="goofish", timeout=60, requires_body=true',
+    r'response if ${url} ~= /^https://acs.m.goofish.com/gw/mtop.idle.user.page.my.adapter//i then script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/ishowshu/goofish/ishowshu_goofish.js") with tag="goofish", timeout=60, requires_body=true',
+    r'response if ${url} ~= /^https://acs.m.goofish.com/gw/mtop.taobao.idlehome.home.circle.list//i then script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/ishowshu/goofish/ishowshu_goofish.js") with tag="goofish", timeout=60, requires_body=true',
+    r'response if ${url} ~= /^https://acs.m.goofish.com/gw/mtop.taobao.idle.local.nearby.itemdetail.enter//i then script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/ishowshu/goofish/ishowshu_goofish.js") with tag="goofish", timeout=60, requires_body=true',
+    r'response if ${url} ~= /^https://g-acs.m.goofish.com/gw/mtop.taobao.idlemtopsearch.search//i then script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/ishowshu/goofish/ishowshu_goofish.js") with tag="goofish", timeout=60, requires_body=true',
+    r'response if ${url} ~= /^https://acs.m.goofish.com/gw/mtop.taobao.idle.local.flow.plat.section/i then script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/ishowshu/goofish/ishowshu_goofish.js") with tag="goofish", timeout=60, requires_body=true',
 )
 
 
 def consolidate_goofish_script_triggers(lines):
-    """Replace all audited Xianyu script triggers with one local trigger per endpoint."""
-    normalize = lambda value: re.sub(r"\\+", "", value.strip()).replace(
-        "script-path=scripts/xianyu/goofish.js",
-        "script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js",
-    )
+    """Normalize audited Goofish triggers while tolerating known upstream deletions."""
+    def normalize(value):
+        value = re.sub(r"\\+", "", value.strip()).replace(
+            "script-path=scripts/xianyu/goofish.js",
+            "script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js",
+        )
+        # Stage pins Romeo-hosted JS/JQ references to the current 40-hex commit.
+        return re.sub(
+            r"https://raw\.githubusercontent\.com/ifflagged/Romeo/[0-9a-f]{40}/",
+            "https://github.com/ifflagged/Romeo/raw/main/",
+            value,
+        )
     canonical = {normalize(item): item for item in GOOFISH_CANONICAL_SCRIPT_TRIGGERS}
     redundant = {normalize(item): item for item in GOOFISH_REDUNDANT_SCRIPT_TRIGGERS}
     counts = {item: 0 for item in (*GOOFISH_CANONICAL_SCRIPT_TRIGGERS, *GOOFISH_REDUNDANT_SCRIPT_TRIGGERS)}
-    output, section, target_seen = [], "", False
-    insert_canonical = False
+    section = ""
+    target_seen = False
+    canonical_needs_normalization = False
+
+    # Validate the complete inventory before changing anything.
     for line in lines:
         if line.startswith("[") and line.endswith("]"):
-            if section == "Script" and insert_canonical:
-                output.extend(GOOFISH_CANONICAL_SCRIPT_TRIGGERS)
-                insert_canonical = False
             section = line[1:-1]
-            output.append(line)
             continue
         normalized = normalize(line)
         is_target = section == "Script" and "goofish.com" in normalized and (
             "goofish.js" in normalized or "script(" in normalized
         )
         if not is_target:
-            output.append(line)
             continue
         target_seen = True
         if normalized in canonical:
-            trigger = canonical[normalized]
-            counts[trigger] += 1
-            if counts[trigger] > 1:
+            counts[canonical[normalized]] += 1
+            if line.strip() != canonical[normalized]:
+                canonical_needs_normalization = True
+            if counts[canonical[normalized]] > 1:
                 raise ValueError("duplicate canonical Goofish script trigger")
-            output.append(trigger)
-            continue
-        if normalized in redundant:
-            trigger = redundant[normalized]
-            counts[trigger] += 1
-            if counts[trigger] > 1:
+        elif normalized in redundant:
+            counts[redundant[normalized]] += 1
+            if counts[redundant[normalized]] > 1:
                 raise ValueError("duplicate redundant Goofish script trigger")
-            insert_canonical = True
-            continue
-        raise ValueError("Goofish script trigger inventory changed; refusing unreviewed consolidation")
+        else:
+            raise ValueError(f"Goofish script trigger inventory changed; refusing unreviewed consolidation: {line.strip()}")
 
-    if section == "Script" and insert_canonical:
-        output.extend(GOOFISH_CANONICAL_SCRIPT_TRIGGERS)
     if not target_seen:
-        return output, 0
-    canonical_complete = all(counts[item] == 1 for item in GOOFISH_CANONICAL_SCRIPT_TRIGGERS)
-    redundant_absent = all(counts[item] == 0 for item in GOOFISH_REDUNDANT_SCRIPT_TRIGGERS)
-    if canonical_complete and redundant_absent:
-        return output, 0
-    redundant_complete = all(counts[item] == 1 for item in GOOFISH_REDUNDANT_SCRIPT_TRIGGERS)
-    canonical_absent = all(counts[item] == 0 for item in GOOFISH_CANONICAL_SCRIPT_TRIGGERS)
-    if redundant_complete and canonical_absent:
-        return output, len(GOOFISH_REDUNDANT_SCRIPT_TRIGGERS)
-    raise ValueError("Goofish script trigger inventory incomplete; refusing partial consolidation")
+        return lines, 0
+
+    canonical_counts = [counts[item] for item in GOOFISH_CANONICAL_SCRIPT_TRIGGERS]
+    redundant_count = sum(counts[item] for item in GOOFISH_REDUNDANT_SCRIPT_TRIGGERS)
+    canonical_complete = all(count == 1 for count in canonical_counts)
+    canonical_absent = all(count == 0 for count in canonical_counts)
+    if not canonical_complete and not canonical_absent:
+        raise ValueError("Goofish canonical trigger inventory incomplete; refusing partial consolidation")
+    if canonical_complete and redundant_count == 0 and not canonical_needs_normalization:
+        return lines, 0
+    if canonical_absent and redundant_count == 0:
+        return lines, 0
+
+    # If canonical triggers already exist, remove any known redundant subset.
+    # If they do not, replace any known non-empty upstream subset with the full
+    # local canonical set. This handles upstream deletions without widening matchers.
+    insert_canonical = canonical_absent
+    output, section, inserted, removed = [], "", False, 0
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            if section == "Script" and insert_canonical and not inserted:
+                output.extend(GOOFISH_CANONICAL_SCRIPT_TRIGGERS)
+                inserted = True
+            section = line[1:-1]
+            output.append(line)
+            continue
+        normalized = normalize(line)
+        if section == "Script" and normalized in redundant:
+            removed += 1
+            continue
+        if section == "Script" and normalized in canonical:
+            output.append(canonical[normalized])
+            continue
+        output.append(line)
+    if section == "Script" and insert_canonical and not inserted:
+        output.extend(GOOFISH_CANONICAL_SCRIPT_TRIGGERS)
+    return output, removed
 
 
 # 闲鱼旧版 response-body-json-jq 与新版 response.json.jq 重复处理相同字段。
@@ -837,12 +886,17 @@ def remove_redundant_xianyu_rewrite_rules(lines):
 # 两个脚本在该分支的过滤字段与保留条件一致；保留 R-Store 触发器。
 DIDI_USERCENTER_CANONICAL_TRIGGER = r"http-response ^https?:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v\\d\\/usercenter\\/me script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI-3,requires-body=true"
 DIDI_USERCENTER_REDUNDANT_TRIGGER = r'response if ${url} ~= /^https?:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v\\d\\/usercenter\\/me/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js") with enable=didiiuxk_enable, tag="滴滴出行", timeout=60, requires_body=true'
+DIDI_USERCENTER_REDUNDANT_TRIGGER_CURRENT = r'response if ${url} ~= /^https?:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v\\d\\/usercenter\\/me/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js") with enable=${didiiuxk_enable}, tag="滴滴出行", timeout=60, requires_body=true'
+DIDI_USERCENTER_REDUNDANT_TRIGGERS = (DIDI_USERCENTER_REDUNDANT_TRIGGER, DIDI_USERCENTER_REDUNDANT_TRIGGER_CURRENT)
 
 
 def remove_redundant_didi_usercenter_script(lines):
-    """Remove only the FMZ duplicate for the exact Didi user-center response endpoint."""
+    """Remove only known FMZ duplicates for the exact Didi user-center endpoint."""
     canonical = re.sub(r"\\+", "", DIDI_USERCENTER_CANONICAL_TRIGGER.strip())
-    redundant = re.sub(r"\\+", "", DIDI_USERCENTER_REDUNDANT_TRIGGER.strip())
+    redundant_variants = {
+        re.sub(r"\\+", "", trigger.strip())
+        for trigger in DIDI_USERCENTER_REDUNDANT_TRIGGERS
+    }
     output, section = [], ""
     canonical_count = redundant_count = 0
     target_seen = False
@@ -864,7 +918,7 @@ def remove_redundant_didi_usercenter_script(lines):
             canonical_count += 1
             output.append(line)
             continue
-        if normalized == redundant:
+        if normalized in redundant_variants:
             redundant_count += 1
             continue
         raise ValueError("Didi user-center script trigger changed; refusing an unreviewed deduplication")
@@ -875,7 +929,6 @@ def remove_redundant_didi_usercenter_script(lines):
     if redundant_count > 1:
         raise ValueError("duplicate Didi user-center FMZ trigger; refusing ambiguous deduplication")
     return output, redundant_count
-
 
 
 DDQX_NEWDETAILS_MARKER = "maicai.api.ddxq.mobi/homeApi/newDetails"
@@ -973,12 +1026,17 @@ def remove_redundant_taobao_rewrite_rules(lines):
 def replace_ddqx_newdetails_body_rewrites(lines):
     """Replace only the reviewed Duoduo Grocery suspension-field rewrites with JSON deletion."""
     output, converted, legacy_count, modern_count, native_count = [], 0, 0, 0, 0
-    normalized_matcher = re.sub(r"\\+", "", DDQX_NEWDETAILS_MATCHER)
-    normalized_native = re.sub(r"\\+", "", DDQX_NEWDETAILS_NATIVE_RULE)
-    normalized_legacy = normalized_matcher + " " + DDQX_NEWDETAILS_LEGACY_ACTION
-    normalized_modern = re.sub(r"\\+", "", DDQX_NEWDETAILS_MODERN_ACTION)
+    unknown_seen = False
+    normalize = lambda value: re.sub(
+        r"enable=\$\{([^}]+)\}",
+        r"enable=\1",
+        re.sub(r"\\+", "", value.strip()),
+    )
+    normalized_native = normalize(DDQX_NEWDETAILS_NATIVE_RULE)
+    normalized_legacy = normalize(DDQX_NEWDETAILS_MATCHER + " " + DDQX_NEWDETAILS_LEGACY_ACTION)
+    normalized_modern = normalize(DDQX_NEWDETAILS_MODERN_ACTION)
     for line in lines:
-        normalized = re.sub(r"\\+", "", line.strip())
+        normalized = normalize(line)
         if DDQX_NEWDETAILS_MARKER.lower() not in normalized.lower():
             output.append(line)
             continue
@@ -994,9 +1052,13 @@ def replace_ddqx_newdetails_body_rewrites(lines):
             native_count += 1
             output.append(line)
             continue
-        raise ValueError("Duoduo Grocery newDetails suspension rule changed; refusing an unreviewed conversion")
+        # New upstream variants are kept verbatim until their semantics are reviewed.
+        unknown_seen = True
+        output.append(line)
     if legacy_count > 1 or modern_count > 1 or native_count > 1:
         raise ValueError("duplicate Duoduo Grocery newDetails suspension rules; refusing ambiguous conversion")
+    if unknown_seen:
+        return list(lines), 0
     if converted and not native_count:
         output.append(DDQX_NEWDETAILS_NATIVE_RULE)
     return output, converted
@@ -1143,7 +1205,11 @@ def apply_didi_script_and_homepage_cleanup(lines):
     output = list(lines)
     if "[Argument]" not in output or "[Rule]" not in output:
         return output, 0
-    norm = lambda value: re.sub(r"\\+", "", value.strip()).lower()
+    norm = lambda value: re.sub(
+        r"enable=\$\{([^}]+)\}",
+        r"enable=\1",
+        re.sub(r"\\+", "", value.strip()),
+    ).lower()
 
     core_current = [i for i, line in enumerate(output) if line.strip() == DIDI_CORE_NATIVE_RULE_CURRENT]
     core_native = [i for i, line in enumerate(output) if line.strip() == DIDI_CORE_NATIVE_RULE]
@@ -1175,43 +1241,43 @@ def apply_didi_script_and_homepage_cleanup(lines):
     if old_user_layout:
         output = [line for line in output if line.strip() != DIDI_USERCENTER_LAYOUT_LEGACY_JSON_RULE]
 
-    common_v5 = [line for line in output if line.strip() == DIDIADS_COMMON_V5_SCRIPT]
+    common_v5 = [line for line in output if norm(line) == norm(DIDIADS_COMMON_V5_SCRIPT)]
     if len(common_v5) != 1:
         raise ValueError("Didi common/v5 canonical script trigger missing or duplicated")
     for legacy, marker, label in (
         (DIDI_CORE_LEGACY_SCRIPT, "homepage/vd/core", "core"),
         (DIDI_USERCENTER_LEGACY_SCRIPT, "common/vd/usercenter/me", "usercenter"),
     ):
-        exact = [line for line in output if line.strip() == legacy]
-        drifted = [line for line in output if "AntiAd/didi.js" in line and marker in norm(line) and line.strip() != legacy]
+        exact = [line for line in output if norm(line) == norm(legacy)]
+        drifted = [line for line in output if "AntiAd/didi.js" in line and marker in norm(line) and norm(line) != norm(legacy)]
         if drifted:
             raise ValueError("Didi " + label + " legacy script trigger drifted")
         if len(exact) > 1:
             raise ValueError("duplicate Didi " + label + " legacy script trigger")
         if exact:
-            output = [line for line in output if line.strip() != legacy]
+            output = [line for line in output if norm(line) != norm(legacy)]
 
     removed_noop = 0
     for legacy in DIDIADS_NOOP_SCRIPT_RULES:
         marker = norm(legacy.split(" then script(", 1)[0])
-        exact = [line for line in output if line.strip() == legacy]
-        drifted = [line for line in output if "didiAds.js" in line and marker in norm(line) and line.strip() != legacy]
+        exact = [line for line in output if norm(line) == norm(legacy)]
+        drifted = [line for line in output if "didiads.js" in norm(line) and marker in norm(line) and norm(line) != norm(legacy)]
         if drifted:
             raise ValueError("DidiAds no-op script trigger drifted; refusing unreviewed cleanup")
         if len(exact) > 1:
             raise ValueError("duplicate DidiAds no-op script trigger")
         if exact:
-            output = [line for line in output if line.strip() != legacy]
+            output = [line for line in output if norm(line) != norm(legacy)]
             removed_noop += 1
 
-    remaining_didiads = [line.strip() for line in output if "didiAds.js" in line]
-    if remaining_didiads != [DIDIADS_COMMON_V5_SCRIPT]:
+    remaining_didiads = [norm(line) for line in output if "didiads.js" in norm(line)]
+    if remaining_didiads != [norm(DIDIADS_COMMON_V5_SCRIPT)]:
         raise ValueError("DidiAds script trigger inventory changed; expected common/v5 only")
     for keeper in (DIDI_OTA_KEEP_SCRIPT, DIDI_PRESALE_KEEP_SCRIPT):
-        if sum(line.strip() == keeper for line in output) != 1:
+        if sum(norm(line) == norm(keeper) for line in output) != 1:
             raise ValueError("Didi R-Store retained script inventory changed")
-    remaining_rstore = [line.strip() for line in output if "AntiAd/didi.js" in line]
-    if sorted(remaining_rstore) != sorted((DIDI_OTA_KEEP_SCRIPT, DIDI_PRESALE_KEEP_SCRIPT)):
+    remaining_rstore = [norm(line) for line in output if "antiad/didi.js" in norm(line)]
+    if sorted(remaining_rstore) != sorted((norm(DIDI_OTA_KEEP_SCRIPT), norm(DIDI_PRESALE_KEEP_SCRIPT))):
         raise ValueError("Didi R-Store script inventory changed")
     return output, removed_noop
 
@@ -1299,7 +1365,9 @@ def remove_redundant_dianping_scripts(lines):
         if not legacy_positions:
             continue
         if not gated_positions:
-            raise ValueError("Dianping gated script trigger missing or changed: " + label)
+            # The upstream may legitimately ship only the legacy handler. Keep
+            # it rather than failing the whole sync or deleting the only handler.
+            continue
         output = [line for line in output if line.strip() != legacy]
         removed += 1
     return output, removed
@@ -1322,13 +1390,14 @@ def remove_redundant_baidumap_script(lines):
     if not legacy_positions:
         return output, 0
     if not gated_positions:
-        raise ValueError("Baidu Maps gated script trigger missing or changed: " + label)
+        # Preserve the only remaining handler when upstream no longer ships a gated twin.
+        return output, 0
     output = [line for line in output if line.strip() != legacy]
     return output, 1
 
 
 
-AMAP_LEGACY_SCRIPT_EXPECTED_COUNT = 33
+AMAP_LEGACY_SCRIPT_EXPECTED_COUNT = None
 AMAP_LEGACY_SCRIPT_PATH_MARKERS = (
     "/ws/aos/perception/publictravel/beforenavi",
     "/ws/bus/plan/integrate",
@@ -1415,22 +1484,24 @@ def remove_redundant_amap_legacy_scripts(lines, expected_count=AMAP_LEGACY_SCRIP
         targets.append((line, required))
     if not targets:
         return output, 0
+    if len({line for line, _required in targets}) != len(targets):
+        raise ValueError("duplicate Amap legacy response script trigger")
     if expected_count is not None and len(targets) != expected_count:
         raise ValueError(
             "Amap legacy response script inventory changed; expected %d, found %d"
             % (expected_count, len(targets))
         )
-    for _line, required_markers in targets:
-        for marker in required_markers:
-            count = sum(marker in handler for handler in response_handlers)
-            if count != 1:
-                raise ValueError(
-                    "Amap canonical response handler missing or duplicated: " + marker
-                )
+    removable = []
+    for target_line, required_markers in targets:
+        counts = [sum(marker in handler for handler in response_handlers) for marker in required_markers]
+        # Remove only when every exact native handler exists exactly once.
+        # Missing or ambiguous native handlers keep the legacy script in place.
+        if all(count == 1 for count in counts):
+            removable.append(target_line)
     remaining = [line for line in lines]
-    for target_line, _required in targets:
+    for target_line in removable:
         remaining.remove(target_line)
-    return remaining, len(targets)
+    return remaining, len(removable)
 
 
 
@@ -1574,8 +1645,10 @@ def remove_jd_core_service_domain_blocks(lines):
 # FMZ welcomeHome-only extension behind its existing user switch.
 JD_RSTORE_LEGACY_TRIGGER = r"http-response ^https?:\/\/api\.m\.jd\.com\/client\.action\?functionId=(?:deliverLayer|getTabHomeInfo|myOrderInfo|orderTrackBusiness|personinfoBusiness|start|welcomeHome|readCustomSurfaceList) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/jd.js,tag=JD,requires-body=true"
 JD_FMZ_LEGACY_TRIGGER = r'response if ${url} ~= /^https:\/\/api\.m\.jd\.com\/client\.action\?functionId=(deliverLayer|getTabHomeInfo|myOrderInfo|orderTrackBusiness|personinfoBusiness|start|welcomeHome)/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/jingdong/jingdong.js") with enable=jkds_enable, tag="京东", timeout=60, requires_body=true'
+JD_FMZ_LEGACY_TRIGGER_CURRENT = r'response if ${url} ~= /^https:\/\/api\.m\.jd\.com\/client\.action\?functionId=(deliverLayer|getTabHomeInfo|myOrderInfo|orderTrackBusiness|personinfoBusiness|start|welcomeHome)/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/jingdong/jingdong.js") with enable=${jkds_enable}, tag="京东", timeout=60, requires_body=true'
+JD_FMZ_LEGACY_TRIGGERS = (JD_FMZ_LEGACY_TRIGGER, JD_FMZ_LEGACY_TRIGGER_CURRENT)
 JD_CANONICAL_TRIGGER = r"http-response ^https?:\/\/api\.m\.jd\.com\/client\.action\?functionId=(?:deliverLayer|getTabHomeInfo|myOrderInfo|orderTrackBusiness|personinfoBusiness|start|welcomeHome|readCustomSurfaceList) script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/jingdong/jd.js,tag=JD-CONSOLIDATED,requires-body=true"
-JD_OPTIONAL_WELCOME_TRIGGER = r'response if ${url} ~= /^https:\/\/api\.m\.jd\.com\/client\.action\?functionId=welcomeHome/i then script("https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/jingdong/jd-welcome.js") with enable=jkds_enable, tag="京东首页额外清理", timeout=60, requires_body=true'
+JD_OPTIONAL_WELCOME_TRIGGER = r'response if ${url} ~= /^https:\/\/api\.m\.jd\.com\/client\.action\?functionId=welcomeHome/i then script("https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/jingdong/jd-welcome.js") with enable=${jkds_enable}, tag="京东首页额外清理", timeout=60, requires_body=true'
 
 
 def consolidate_jingdong_scripts(lines):
@@ -1589,7 +1662,8 @@ def consolidate_jingdong_scripts(lines):
             scoped.append(line.strip())
 
     rstore_count = scoped.count(JD_RSTORE_LEGACY_TRIGGER)
-    fmz_count = scoped.count(JD_FMZ_LEGACY_TRIGGER)
+    fmz_counts = {trigger: scoped.count(trigger) for trigger in JD_FMZ_LEGACY_TRIGGERS}
+    fmz_count = sum(fmz_counts.values())
     canonical_count = scoped.count(JD_CANONICAL_TRIGGER)
     optional_count = scoped.count(JD_OPTIONAL_WELCOME_TRIGGER)
 
@@ -1619,7 +1693,7 @@ def consolidate_jingdong_scripts(lines):
             output.append(JD_CANONICAL_TRIGGER)
             inserted_rstore = True
             continue
-        if section == "Script" and line.strip() == JD_FMZ_LEGACY_TRIGGER:
+        if section == "Script" and line.strip() in JD_FMZ_LEGACY_TRIGGERS:
             output.append(JD_OPTIONAL_WELCOME_TRIGGER)
             inserted_fmz = True
             continue
@@ -1677,7 +1751,12 @@ ZHIHU_RESPONSE_CANONICAL_TRIGGERS = (
 ZHIHU_RESPONSE_SCRIPT_MARKER = "Scripts/zhihu/zhihu.js"
 
 def consolidate_zhihu_response_scripts(lines):
-    """Collapse the 12 exact Zhihu response-body triggers into five tag-preserving matchers."""
+    """Collapse the complete known Zhihu inventory; preserve safe partial upstream inventories."""
+    normalize = lambda value: re.sub(
+        r"enable=\$\{([^}]+)\}",
+        r"enable=\1",
+        re.sub(r"\\+", "", value.strip()),
+    )
     section = ""
     scoped = []
     for line in lines:
@@ -1686,27 +1765,42 @@ def consolidate_zhihu_response_scripts(lines):
         elif section == "Script" and not line.lstrip().startswith("#"):
             scoped.append(line.strip())
 
-    known = set(ZHIHU_RESPONSE_LEGACY_TRIGGERS)
-    canonical = set(ZHIHU_RESPONSE_CANONICAL_TRIGGERS)
+    known = {normalize(trigger) for trigger in ZHIHU_RESPONSE_LEGACY_TRIGGERS}
+    canonical = {normalize(trigger) for trigger in ZHIHU_RESPONSE_CANONICAL_TRIGGERS}
     replace_set = known - canonical
-    insert_triggers = [trigger for trigger in ZHIHU_RESPONSE_CANONICAL_TRIGGERS if trigger not in known]
-    counts = {trigger: scoped.count(trigger) for trigger in ZHIHU_RESPONSE_LEGACY_TRIGGERS}
-    canonical_counts = {trigger: scoped.count(trigger) for trigger in ZHIHU_RESPONSE_CANONICAL_TRIGGERS}
+    counts = {trigger: sum(normalize(line) == trigger for line in scoped) for trigger in known}
+    canonical_counts = {trigger: sum(normalize(line) == trigger for line in scoped) for trigger in canonical}
     unknown = [
         line for line in scoped
         if ZHIHU_RESPONSE_SCRIPT_MARKER in line
-        and line not in known and line not in canonical
+        and normalize(line) not in known and normalize(line) not in canonical
     ]
 
-    if not any(counts.values()) and not any(canonical_counts.values()) and not unknown:
+    if unknown:
+        raise ValueError("Zhihu response script inventory contains an unknown trigger: " + unknown[0])
+    if any(count > 1 for count in counts.values()) or any(count > 1 for count in canonical_counts.values()):
+        raise ValueError("Zhihu response script inventory contains duplicate triggers")
+    if not any(counts.values()) and not any(canonical_counts.values()):
         return list(lines), 0
-    if (not unknown and all(canonical_counts[trigger] == 1 for trigger in canonical)
+    if (all(canonical_counts[trigger] == 1 for trigger in canonical)
             and all(counts[trigger] == 0 for trigger in replace_set)):
         return list(lines), 0
-    if (unknown
-            or any(counts[trigger] != 1 for trigger in known)
+
+    # An upstream may legitimately remove some legacy triggers. Do not partially
+    # rewrite an incomplete inventory; preserve its existing behavior unchanged.
+    if (not all(counts[trigger] == 1 for trigger in known)
             or any(canonical_counts[trigger] != (1 if trigger in known else 0) for trigger in canonical)):
-        raise ValueError("Zhihu response script inventory changed; refusing partial consolidation")
+        return list(lines), 0
+
+    placeholder_switch = any(
+        ("enable=$" + "{") in line for line in scoped if normalize(line) in known
+    )
+    insert_triggers = [
+        re.sub(r"enable=([A-Za-z0-9_]+)", "enable=$" + "{" + r"\1}", trigger)
+        if placeholder_switch else trigger
+        for trigger in ZHIHU_RESPONSE_CANONICAL_TRIGGERS
+        if normalize(trigger) not in known
+    ]
 
     output = []
     section = ""
@@ -1717,7 +1811,7 @@ def consolidate_zhihu_response_scripts(lines):
             output.append(line)
             continue
         stripped = line.strip()
-        if section == "Script" and stripped in replace_set:
+        if section == "Script" and normalize(stripped) in replace_set:
             if not inserted:
                 output.extend(insert_triggers)
                 inserted = True
@@ -1731,6 +1825,7 @@ def consolidate_zhihu_response_scripts(lines):
 
 def consolidate_soul_scripts(lines):
     """Collapse the 14 exact Soul response-body triggers into two case-safe matchers."""
+    normalize = lambda value: re.sub(r"enable=\$\{([^}]+)\}", r"enable=\1", value.strip())
     section = ""
     scoped = []
     for line in lines:
@@ -1739,20 +1834,32 @@ def consolidate_soul_scripts(lines):
         elif section == "Script" and not line.lstrip().startswith("#"):
             scoped.append(line.strip())
 
-    counts = [scoped.count(trigger) for trigger in SOUL_LEGACY_TRIGGERS]
-    canonical_counts = [scoped.count(trigger) for trigger in SOUL_CANONICAL_TRIGGERS]
-    known = set(SOUL_LEGACY_TRIGGERS)
+    legacy = {normalize(trigger) for trigger in SOUL_LEGACY_TRIGGERS}
+    canonical = {normalize(trigger) for trigger in SOUL_CANONICAL_TRIGGERS}
+    counts = {trigger: sum(normalize(line) == trigger for line in scoped) for trigger in legacy}
+    canonical_counts = {trigger: sum(normalize(line) == trigger for line in scoped) for trigger in canonical}
     unknown = [
         line for line in scoped
-        if SOUL_SCRIPT_MARKER in line and line not in known and line not in SOUL_CANONICAL_TRIGGERS
+        if SOUL_SCRIPT_MARKER in line and normalize(line) not in legacy and normalize(line) not in canonical
     ]
 
-    if not any(counts) and not any(canonical_counts) and not unknown:
+    if not any(counts.values()) and not any(canonical_counts.values()) and not unknown:
         return list(lines), 0
-    if tuple(canonical_counts) == (1, 1) and not any(counts) and not unknown:
+    if (all(count == 1 for count in canonical_counts.values())
+            and not any(counts.values()) and not unknown):
         return list(lines), 0
-    if (unknown or any(canonical_counts) or any(count != 1 for count in counts)):
+    if unknown or any(canonical_counts.values()) or any(count != 1 for count in counts.values()):
         raise ValueError("Soul script trigger inventory changed; refusing partial or mixed consolidation")
+
+    preserve_interpolation = any(
+        "enable=${" in line for line in scoped if SOUL_SCRIPT_MARKER in line
+    )
+    canonical_output = list(SOUL_CANONICAL_TRIGGERS)
+    if preserve_interpolation:
+        canonical_output = [
+            re.sub(r"enable=([A-Za-z0-9_]+)", r"enable=${\1}", trigger)
+            for trigger in canonical_output
+        ]
 
     output = []
     section = ""
@@ -1762,13 +1869,13 @@ def consolidate_soul_scripts(lines):
             section = line[1:-1]
             output.append(line)
             continue
-        if section == "Script" and line.strip() in known:
-            if inserted < len(SOUL_CANONICAL_TRIGGERS):
-                output.append(SOUL_CANONICAL_TRIGGERS[inserted])
+        if section == "Script" and normalize(line) in legacy:
+            if inserted < len(canonical_output):
+                output.append(canonical_output[inserted])
                 inserted += 1
             continue
         output.append(line)
-    if inserted != len(SOUL_CANONICAL_TRIGGERS):
+    if inserted != len(canonical_output):
         raise ValueError("Soul canonical trigger insertion failed")
     return output, len(SOUL_LEGACY_TRIGGERS)
 
@@ -1796,9 +1903,22 @@ def consolidate_meituan_scripts(lines):
         return list(lines), 0
     if canonical_count == 1 and not any(counts) and not unknown_legacy:
         return list(lines), 0
-    if canonical_count or unknown_legacy or any(count != 1 for count in counts):
+
+    # The current upstream has removed the eight aoomee Meituan app triggers,
+    # while retaining the three exact R-Store image/mini-program triggers.
+    # The checked-in local handler still implements the reviewed union of all
+    # eleven endpoints, so rebuild that single local matcher only for this
+    # exact, known R-Store-only inventory. Any other partial set still fails closed.
+    rstore_only_inventory = counts == [1, 1, 1] + [0] * (len(MEITUAN_LEGACY_TRIGGERS) - 3)
+    if canonical_count or unknown_legacy or (
+        not rstore_only_inventory and any(count != 1 for count in counts)
+    ):
+        missing = [trigger for trigger, count in zip(MEITUAN_LEGACY_TRIGGERS, counts) if count == 0]
+        duplicate = [trigger for trigger, count in zip(MEITUAN_LEGACY_TRIGGERS, counts) if count > 1]
         raise ValueError(
-            "Meituan script trigger inventory changed; refusing partial or mixed consolidation"
+            "Meituan script trigger inventory changed; refusing partial or mixed consolidation; "
+            + f"counts={counts}, canonical={canonical_count}, unknown={unknown_legacy}, "
+            + f"missing={missing}, duplicate={duplicate}"
         )
 
     output = []
@@ -1817,7 +1937,7 @@ def consolidate_meituan_scripts(lines):
         output.append(line)
     if not inserted:
         raise ValueError("Meituan canonical trigger insertion failed")
-    return output, len(MEITUAN_LEGACY_TRIGGERS)
+    return output, sum(counts) - 1
 
 
 
@@ -2386,7 +2506,7 @@ ZHIHU_REQUEST_SHADOW_PAIRS = (
 
 
 def remove_redundant_zhihu_request_rules(lines):
-    """Remove exact HTTPS-only subsets already covered by same-action HTTP/S rules."""
+    """Remove only exact HTTPS subsets when their same-action HTTP/S cover exists."""
     normalize = lambda value: re.sub(r"\\+/", "/", value.strip())
     known = {
         normalize(rule): (index, is_redundant)
@@ -2395,34 +2515,43 @@ def remove_redundant_zhihu_request_rules(lines):
     }
     markers = tuple(marker for _redundant, _canonical, marker in ZHIHU_REQUEST_SHADOW_PAIRS)
     counts = {key: 0 for key in known}
+    entries = []
     seen_groups = set()
-    output = []
     for line in lines:
         value = normalize(line)
         group_index = next((i for i, marker in enumerate(markers) if marker in value), None)
         if group_index is None:
-            output.append(line)
+            entries.append((line, None, False))
             continue
         matched = known.get(value)
         if matched is None or matched[0] != group_index:
-            raise ValueError("Zhihu request blocker inventory changed; refusing unreviewed cleanup")
+            # New or drifted upstream blockers are retained verbatim.
+            entries.append((line, None, False))
+            continue
         counts[value] += 1
         if counts[value] > 1:
             raise ValueError("duplicate Zhihu request blocker; refusing ambiguous cleanup")
         seen_groups.add(group_index)
-        if not matched[1]:
-            output.append(line)
+        entries.append((line, group_index, matched[1]))
 
-    removed = 0
+    remove_groups = set()
     for index in seen_groups:
         redundant, canonical, _marker = ZHIHU_REQUEST_SHADOW_PAIRS[index]
         redundant_count = counts[normalize(redundant)]
         canonical_count = counts[normalize(canonical)]
-        if canonical_count != 1:
-            raise ValueError("Zhihu covering request blocker missing or duplicated; refusing cleanup")
-        if redundant_count not in (0, 1):
-            raise ValueError("duplicate Zhihu redundant request blocker; refusing cleanup")
-        removed += redundant_count
+        if canonical_count > 1 or redundant_count > 1:
+            raise ValueError("duplicate Zhihu request blocker; refusing ambiguous cleanup")
+        if canonical_count == 1 and redundant_count == 1:
+            remove_groups.add(index)
+
+    output = [
+        line for line, group_index, is_redundant in entries
+        if not (group_index in remove_groups and is_redundant)
+    ]
+    removed = sum(
+        1 for _line, group_index, is_redundant in entries
+        if group_index in remove_groups and is_redundant
+    )
     return output, removed
 
 
@@ -2989,7 +3118,7 @@ def remove_duplicate_cnftp_scripts(lines):
                     raise ValueError("duplicate retained video source trigger; refusing ambiguous cleanup")
                 output.append(normalized_mgtv_replacements.get(normalized_line, line))
                 continue
-            raise ValueError("video script trigger inventory changed; refusing unreviewed consolidation")
+            raise ValueError(f"video script trigger inventory changed; refusing unreviewed consolidation: {line.strip()}")
 
         if normalized_line == normalize_cnftp_trigger_line(CNFTP_IQIYI_HOME_COMBINED_TRIGGER):
             combined_home_count += 1
@@ -3192,6 +3321,10 @@ def remove_same_source_duplicate_response_scripts(lines):
             continue
 
         normalized = line.replace("\\", "")
+        # Loon upstream now serializes some existing script switches as
+        # enable=${name}; compare both known spellings as the same switch,
+        # while preserving the original source line when it is retained.
+        inventory_line = re.sub(r"enable=\$\{([^}]+)\}", r"enable=\1", line.strip())
         is_target = (
             section == "Script"
             and (
@@ -3209,19 +3342,19 @@ def remove_same_source_duplicate_response_scripts(lines):
             continue
 
         target_seen = True
-        if line in remove_counts:
-            remove_counts[line] += 1
-            if remove_counts[line] > 1:
+        if inventory_line in remove_counts:
+            remove_counts[inventory_line] += 1
+            if remove_counts[inventory_line] > 1:
                 raise ValueError("duplicate same-source removal trigger; refusing ambiguous cleanup")
             removed += 1
             continue
-        if line in keep_counts:
-            keep_counts[line] += 1
-            if keep_counts[line] > 1:
+        if inventory_line in keep_counts:
+            keep_counts[inventory_line] += 1
+            if keep_counts[inventory_line] > 1:
                 raise ValueError("duplicate same-source retained trigger; refusing ambiguous cleanup")
             output.append(line)
             continue
-        raise ValueError("same-source response trigger inventory changed; refusing unreviewed consolidation")
+        raise ValueError(f"same-source response trigger inventory changed; refusing unreviewed consolidation: {line.strip()}")
 
     if not target_seen:
         return output, 0
@@ -3357,6 +3490,7 @@ def remove_identical_script_response_duplicates(lines):
             continue
 
         normalized = line.replace("\\", "")
+        inventory_line = re.sub(r"enable=\$\{([^}]+)\}", r"enable=\1", line.strip())
         has_script_action = "http-response " in line or "script(" in line or "script-path=" in line
         soul_endpoint = (
             ("api-a.soulapp.cn" in normalized and ("/post/gift/list" in normalized or "/official/scene/module" in normalized))
@@ -3386,17 +3520,20 @@ def remove_identical_script_response_duplicates(lines):
                     raise ValueError("duplicate legacy identical-script trigger; refusing ambiguous cleanup")
                 removed += 1
                 continue
-            if line in source_counts:
-                source_counts[line] += 1
-                if source_counts[line] > 1:
+            if inventory_line in source_counts:
+                source_counts[inventory_line] += 1
+                if source_counts[inventory_line] > 1:
                     raise ValueError("duplicate retained identical-script source trigger")
-                output.append(IDENTICAL_SCRIPT_TRANSFORMS.get(line, line))
+                transformed = IDENTICAL_SCRIPT_TRANSFORMS.get(inventory_line, inventory_line)
+                if "enable=${" in line:
+                    transformed = re.sub(r"enable=([A-Za-z0-9_]+)", r"enable=${\1}", transformed)
+                output.append(transformed)
                 continue
-            raise ValueError("RRTV/Soul/Reddit script inventory changed; refusing unreviewed consolidation")
+            raise ValueError(f"RRTV/Soul/Reddit script inventory changed; refusing unreviewed consolidation: {line.strip()}")
 
-        if line in output_counts:
-            output_counts[line] += 1
-            if output_counts[line] > 1:
+        if inventory_line in output_counts:
+            output_counts[inventory_line] += 1
+            if output_counts[inventory_line] > 1:
                 raise ValueError("duplicate consolidated identical-script trigger")
             output.append(line)
             continue
@@ -3477,12 +3614,14 @@ MORE_RESPONSE_TRANSFORMS = {
 
 def remove_more_duplicate_response_scripts(lines):
     """Keep one handler per overlapping response, retaining broad matchers and safer guards."""
-    remove_counts = {item: 0 for item in MORE_RESPONSE_REMOVE_TRIGGERS}
-    source_counts = {item: 0 for item in MORE_RESPONSE_KEEP_SOURCE_TRIGGERS}
-    output_counts = {item: 0 for item in MORE_RESPONSE_KEEP_TRIGGERS}
-    remove_set = set(MORE_RESPONSE_REMOVE_TRIGGERS)
+    normalize_switch = lambda value: re.sub(r"enable=\$\{([^}]+)\}", r"enable=\1", value.strip())
+    remove_counts = {normalize_switch(item): 0 for item in MORE_RESPONSE_REMOVE_TRIGGERS}
+    source_counts = {normalize_switch(item): 0 for item in MORE_RESPONSE_KEEP_SOURCE_TRIGGERS}
+    output_counts = {normalize_switch(item): 0 for item in MORE_RESPONSE_KEEP_TRIGGERS}
+    remove_set = set(remove_counts)
+    normalized_lines = {normalize_switch(item) for item in lines}
     output, section, target_seen, removed = [], "", False, 0
-    source_mode = any(item in lines for item in remove_set)
+    source_mode = bool(remove_set & normalized_lines)
 
     for line in lines:
         if line.startswith("[") and line.endswith("]"):
@@ -3491,6 +3630,7 @@ def remove_more_duplicate_response_scripts(lines):
             continue
 
         normalized = line.replace("\\", "")
+        inventory_line = normalize_switch(line)
         action = "http-response " in line or "response if " in line
         is_target = (
             section == "Script"
@@ -3511,27 +3651,30 @@ def remove_more_duplicate_response_scripts(lines):
 
         target_seen = True
         if source_mode:
-            if line in remove_counts:
-                remove_counts[line] += 1
-                if remove_counts[line] > 1:
+            if inventory_line in remove_counts:
+                remove_counts[inventory_line] += 1
+                if remove_counts[inventory_line] > 1:
                     raise ValueError("duplicate legacy response trigger; refusing ambiguous cleanup")
                 removed += 1
                 continue
-            if line in source_counts:
-                source_counts[line] += 1
-                if source_counts[line] > 1:
+            if inventory_line in source_counts:
+                source_counts[inventory_line] += 1
+                if source_counts[inventory_line] > 1:
                     raise ValueError("duplicate retained response source trigger")
-                output.append(MORE_RESPONSE_TRANSFORMS.get(line, line))
+                transformed = MORE_RESPONSE_TRANSFORMS.get(inventory_line, inventory_line)
+                if "enable=${" in line:
+                    transformed = re.sub(r"enable=([A-Za-z0-9_]+)", r"enable=${\1}", transformed)
+                output.append(transformed)
                 continue
-            raise ValueError("Kuwo/iThome/Cainiao/QuDa/Youdao/ZSGJ inventory changed; refusing unreviewed consolidation")
+            raise ValueError("Kuwo/iThome/Cainiao/QuDa/Youdao/ZSGJ inventory changed; refusing unreviewed consolidation: " + line.strip())
 
-        if line in output_counts:
-            output_counts[line] += 1
-            if output_counts[line] > 1:
+        if inventory_line in output_counts:
+            output_counts[inventory_line] += 1
+            if output_counts[inventory_line] > 1:
                 raise ValueError("duplicate consolidated response trigger")
             output.append(line)
             continue
-        raise ValueError("consolidated response inventory changed; refusing unreviewed cleanup")
+        raise ValueError("consolidated response inventory changed; refusing unreviewed cleanup: " + line.strip())
 
     if not target_seen:
         return output, 0
@@ -3896,6 +4039,11 @@ SMZDM_FMZ_HOME_TRIGGER = (
 def remove_redundant_smzdm_homepage_script_trigger(lines):
     """Remove the duplicate v3 homepage JS dispatch only when the broader R-Store handler is present."""
     output = list(lines)
+    normalize = lambda value: re.sub(
+        r"enable=\$\{([^}]+)\}",
+        r"enable=\1",
+        re.sub(r"\\+", "", value.strip()),
+    )
     sections = {}
     section = ""
     for line in output:
@@ -3913,12 +4061,12 @@ def remove_redundant_smzdm_homepage_script_trigger(lines):
     rstore_candidates = sections.get("rstore_candidates", [])
     if not fmz_candidates:
         return output, 0
-    if len(fmz_candidates) != 1 or fmz_candidates[0] != SMZDM_FMZ_HOME_TRIGGER:
+    if len(fmz_candidates) != 1 or normalize(fmz_candidates[0]) != normalize(SMZDM_FMZ_HOME_TRIGGER):
         raise ValueError("SMZDM homepage FMZ trigger inventory changed; refusing duplicate cleanup")
     if not rstore_candidates:
         # Without the broader R-Store handler, preserve the FMZ trigger.
         return output, 0
-    if len(rstore_candidates) != 1 or rstore_candidates[0] != SMZDM_RSTORE_HOME_TRIGGER:
+    if len(rstore_candidates) != 1 or normalize(rstore_candidates[0]) != normalize(SMZDM_RSTORE_HOME_TRIGGER):
         raise ValueError("SMZDM homepage R-Store trigger inventory changed; refusing duplicate cleanup")
 
     result = []
@@ -3930,7 +4078,7 @@ def remove_redundant_smzdm_homepage_script_trigger(lines):
             section = stripped[1:-1]
             result.append(line)
             continue
-        if section == "Script" and stripped == SMZDM_FMZ_HOME_TRIGGER:
+        if section == "Script" and normalize(stripped) == normalize(SMZDM_FMZ_HOME_TRIGGER):
             removed += 1
             continue
         result.append(line)
@@ -3961,6 +4109,11 @@ SMZDM_FMZ_ADS_DUPLICATE_PAIRS = (
 def remove_redundant_smzdm_ads_script_triggers(lines):
     """Remove only FMZ200 SMZDM triggers whose exact endpoint behavior is already covered by R-Store."""
     output = list(lines)
+    normalize = lambda value: re.sub(
+        r"enable=\$\{([^}]+)\}",
+        r"enable=\1",
+        re.sub(r"\\+", "", value.strip()),
+    )
     section = ""
     script_lines = []
     for line in output:
@@ -3978,7 +4131,7 @@ def remove_redundant_smzdm_ads_script_triggers(lines):
         ]
         if not fmz_candidates:
             continue
-        if len(fmz_candidates) != 1 or fmz_candidates[0] != fmz_expected:
+        if len(fmz_candidates) != 1 or normalize(fmz_candidates[0]) != normalize(fmz_expected):
             raise ValueError(
                 "SMZDM FMZ ad trigger inventory changed; refusing duplicate cleanup: "
                 + repr(fmz_candidates)
@@ -3990,12 +4143,12 @@ def remove_redundant_smzdm_ads_script_triggers(lines):
         if not rstore_candidates:
             # Do not remove a script unless its same-endpoint R-Store cover exists.
             continue
-        if len(rstore_candidates) != 1 or rstore_candidates[0] != rstore_expected:
+        if len(rstore_candidates) != 1 or normalize(rstore_candidates[0]) != normalize(rstore_expected):
             raise ValueError(
                 "SMZDM R-Store cover trigger inventory changed; refusing duplicate cleanup: "
                 + repr(rstore_candidates)
             )
-        removed_lines.add(fmz_expected)
+        removed_lines.add(normalize(fmz_expected))
 
     if not removed_lines:
         return output, 0
@@ -4008,7 +4161,7 @@ def remove_redundant_smzdm_ads_script_triggers(lines):
             section = stripped[1:-1]
             result.append(line)
             continue
-        if section == "Script" and stripped in removed_lines:
+        if section == "Script" and normalize(stripped) in removed_lines:
             removed += 1
             continue
         result.append(line)
