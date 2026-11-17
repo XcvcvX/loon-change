@@ -1622,16 +1622,35 @@ class ZhihuResponseScriptConsolidationTests(unittest.TestCase):
             patterns.append(re.compile(raw[1:end], re.I if raw[end + 1:] == "i" else 0))
         self.assertTrue(all(any(pattern.search(url) for pattern in patterns) for url in urls))
 
-    def test_fails_closed_on_missing_duplicate_or_drifted_zhihu_trigger(self):
+    def test_preserves_partial_zhihu_inventory_and_rejects_duplicates_or_drift(self):
         from apply_local_overrides import ZHIHU_RESPONSE_LEGACY_TRIGGERS, consolidate_zhihu_response_scripts
         base = sorted(ZHIHU_RESPONSE_LEGACY_TRIGGERS)
-        for fixture in (
-            ["[Script]", *base[:-1]],
-            ["[Script]", *base, base[0]],
-            ["[Script]", *base[:-1], base[-1].replace("requires_body=true", "requires_body=false")],
-        ):
-            with self.assertRaisesRegex(ValueError, "Zhihu response script inventory changed"):
-                consolidate_zhihu_response_scripts(fixture)
+        partial = ["[Script]", *base[:-1]]
+        result, removed = consolidate_zhihu_response_scripts(partial)
+        self.assertEqual(removed, 0)
+        self.assertEqual(result, partial)
+        with self.assertRaisesRegex(ValueError, "duplicate triggers"):
+            consolidate_zhihu_response_scripts(["[Script]", *base, base[0]])
+        drifted = ["[Script]", *base[:-1], base[-1].replace("requires_body=true", "requires_body=false")]
+        with self.assertRaisesRegex(ValueError, "unknown trigger"):
+            consolidate_zhihu_response_scripts(drifted)
+
+    def test_consolidates_zhihu_inventory_with_interpolated_switches(self):
+        from apply_local_overrides import (
+            ZHIHU_RESPONSE_LEGACY_TRIGGERS,
+            ZHIHU_RESPONSE_CANONICAL_TRIGGERS,
+            consolidate_zhihu_response_scripts,
+        )
+        fixture = ["[Script]"] + [
+            trigger.replace("enable=vihu_enable", "enable=${vihu_enable}")
+            for trigger in ZHIHU_RESPONSE_LEGACY_TRIGGERS
+        ] + ["[MITM]"]
+        result, removed = consolidate_zhihu_response_scripts(fixture)
+        self.assertEqual(removed, len(ZHIHU_RESPONSE_LEGACY_TRIGGERS) - len(ZHIHU_RESPONSE_CANONICAL_TRIGGERS))
+        script = result[result.index("[Script]") + 1:result.index("[MITM]")]
+        self.assertEqual(len(script), len(ZHIHU_RESPONSE_CANONICAL_TRIGGERS))
+        self.assertTrue(all("enable=$" + "{" in line for line in script))
+        self.assertEqual(consolidate_zhihu_response_scripts(result)[1], 0)
 
 class SoulScriptConsolidationTests(unittest.TestCase):
     def test_consolidates_all_exact_soul_triggers_into_two_case_safe_matchers(self):
