@@ -254,6 +254,16 @@ def main():
         print("[source-health] %s action changes: total=%d migration_exempt=%d unrelated=%d" % (
             section, counts["action_changed"], counts["migration_action_changed_exempted"],
             counts["non_migration_action_changed"]))
+        rows = diff.get("sections", {}).get(section, {}).get("action_changed", [])
+        source_pairs = {}
+        for row in rows:
+            before_sources = tuple(sorted(row.get("before", {}).get("sources", [])))
+            after_sources = tuple(sorted(row.get("after", {}).get("sources", [])))
+            key = (before_sources, after_sources)
+            source_pairs[key] = source_pairs.get(key, 0) + 1
+        for (before_sources, after_sources), count in sorted(source_pairs.items(), key=lambda item: -item[1])[:8]:
+            print("[source-health] %s source pair x%d: before=%s after=%s" % (
+                section, count, list(before_sources), list(after_sources)))
     if not report["deployment_allowed"]:
         raise SystemExit("[source-health] HOLD: " + "; ".join(report["blockers"]))
 
