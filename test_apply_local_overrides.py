@@ -588,6 +588,16 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertEqual(removed, 0)
         self.assertEqual(result, fixture)
 
+    def test_normalizes_repository_relative_pdd_script_path(self):
+        from apply_local_overrides import (
+            PDD_LOCAL_HOMEPAGE_RELATIVE_TRIGGER, PDD_LOCAL_HOMEPAGE_TRIGGER,
+            consolidate_pdd_homepage_script,
+        )
+        fixture = ["[Script]", PDD_LOCAL_HOMEPAGE_RELATIVE_TRIGGER, "[MITM]"]
+        result, removed = consolidate_pdd_homepage_script(fixture)
+        self.assertEqual(removed, 0)
+        self.assertEqual(result, ["[Script]", PDD_LOCAL_HOMEPAGE_TRIGGER, "[MITM]"])
+
     def test_pdd_homepage_consolidation_fails_closed_on_trigger_drift(self):
         from apply_local_overrides import PDD_ISHOWSHU_HOMEPAGE_TRIGGER
         changed = PDD_ISHOWSHU_HOMEPAGE_TRIGGER.replace("requires-body = true", "requires-body = false")
