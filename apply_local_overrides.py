@@ -2101,13 +2101,14 @@ def remove_douyin_hongguo_unsafe_rules(lines):
             unknown.append((section, value))
 
     counts = list(rule_counts.values()) + list(rewrite_counts.values())
-    if not any(counts) and live_feed_host_count == 0 and not unknown:
-        return list(lines), 0
-    if (unknown or any(count != 1 for count in counts) or live_feed_host_count != 1
-            or any(count > 1 for count in optional_rewrite_counts.values())):
+    optional_count = sum(optional_rewrite_counts.values())
+    if unknown:
         raise ValueError(
-            "Douyin/Hongguo safety inventory changed; refusing partial, drifted or duplicated cleanup"
+            "Douyin/Hongguo safety inventory changed; refusing unknown rules: "
+            + repr(unknown)
         )
+    if not any(counts) and optional_count == 0 and live_feed_host_count == 0:
+        return list(lines), 0
 
     output = []
     section = ""
@@ -2130,7 +2131,7 @@ def remove_douyin_hongguo_unsafe_rules(lines):
             hosts = [host for host in hosts if host.lower() != DOUYIN_LIVE_FEED_HOST]
             line = key + "= " + ", ".join(hosts)
         output.append(line)
-    return output, len(counts) + 1 + sum(optional_rewrite_counts.values())
+    return output, sum(counts) + optional_count + live_feed_host_count
 
 
 
