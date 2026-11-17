@@ -4031,7 +4031,7 @@ class XiaohongshuNativeDuplicateTriggerTests(unittest.TestCase):
         fixture = self._fixture()
         for i, line in enumerate(fixture):
             if 'tag="小红书搜索页"' in line and "/search/notes" in line.replace(chr(92), ""):
-                fixture[i] = line.replace(r"(?:so|edith)\.(xiaohongshu|rnote)\.com", r"edith\.(xiaohongshu|rnote)\.com")
+                fixture[i] = line.replace(r"(so|edith)\.(xiaohongshu|rnote)\.com", r"edith\.(xiaohongshu|rnote)\.com")
                 break
         with self.assertRaisesRegex(ValueError, "FMZ search trigger inventory changed"):
             narrow_xiaohongshu_native_response_duplicates(fixture)
