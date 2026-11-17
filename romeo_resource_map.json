@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "upstream_repository": "https://github.com/ifflagged/Romeo",
+  "pin_policy": "one Romeo commit SHA per sync run; every mapped plugin and runtime asset is read from that same commit",
+  "slots": {
+    "aoomee_compat": {
+      "output": "plugins",
+      "merge_slot": "aoomee",
+      "plugins": {
+        "12306.lpx": "Modules/Loon/fmz200/12306.lpx",
+        "amap.lpx": "Modules/Loon/ishowshu/amap.lpx",
+        "boc.plugin": "Modules/Loon/zirawell/boc.lpx",
+        "chelaile.plugin": "Modules/Loon/sooyaaabo/CheLaiLe.lpx",
+        "cmbchina.lpx": "Modules/Loon/ishowshu/cmbchina.lpx",
+        "didi.lpx": "Modules/Loon/ishowshu/didi.lpx",
+        "github.lpx": "Modules/Loon/ishowshu/github.lpx",
+        "goofish.lpx": "Modules/Loon/ishowshu/goofish.lpx",
+        "hupu.lpx": "Modules/Loon/ishowshu/hupu.lpx",
+        "jd.lpx": "Modules/Loon/ishowshu/jd.lpx",
+        "keep.lpx": "Modules/Loon/ishowshu/keep.lpx",
+        "leisu.lpx": "Modules/Loon/ishowshu/leisu.lpx",
+        "meituan.lpx": "Modules/Loon/ZenmoFeiShi/MT.lpx",
+        "pdd-filter.lpx": "Modules/Loon/ishowshu/pdd-filter.lpx",
+        "pdd-rewrite.lpx": "Modules/Loon/ishowshu/pdd-rewrite.lpx",
+        "pupu.lpx": "Modules/Loon/ishowshu/pupu.lpx",
+        "qunar.plugin": "Modules/Loon/ccyykk666/qunar_ad.lpx",
+        "soul-new.lpx": "Modules/Loon/ishowshu/soul.lpx",
+        "taobao.lpx": "Modules/Loon/ishowshu/taobao.lpx",
+        "umetrip.plugin": "Modules/Loon/ddgksf2013/UmetripAds.lpx",
+        "youtube.lpx": "Modules/Loon/Maasea/YouTube.Enhance.lpx"
+      },
+      "legacy_snapshots": [
+        "51cg.plugin",
+        "91porn.plugin",
+        "cmcc.plugin",
+        "huazhu.plugin",
+        "chelaile2.plugin",
+        "qunar-legacy.plugin",
+        "youtube-zh.lpx"
+      ]
+    },
+    "zmjde_app_compat": {
+      "output": "zmjde/Plugin",
+      "merge_slot": "zmjde_app",
+      "plugins": {
+        "DiDi_remove_ads.lpx": "Modules/Loon/Kelee/Official/DiDi_remove_ads.lpx",
+        "PinDuoDuo_remove_ads.lpx": "Modules/Loon/Kelee/Official/PinDuoDuo_remove_ads.lpx",
+        "FleaMarket_remove_ads.lpx": "Modules/Loon/Kelee/Official/FleaMarket_remove_ads.lpx",
+        "Taobao_remove_ads.lpx": "Modules/Loon/Kelee/Official/Taobao_remove_ads.lpx",
+        "smzdm_remove_ads.lpx": "Modules/Loon/Kelee/Official/smzdm_remove_ads.lpx"
+      }
+    },
+    "zmjde_general_compat": {
+      "output": "zmjde/Plugin",
+      "merge_slot": "zmjde_general",
+      "plugins": {
+        "Block_HTTPDNS.lpx": "Modules/Loon/Kelee/Official/Block_HTTPDNS.lpx",
+        "BlockAdvertisers.lpx": "Modules/Loon/Kelee/Official/BlockAdvertisers.lpx",
+        "Remove_ads_by_keli.lpx": "Modules/Loon/Kelee/Official/Remove_ads_by_keli.lpx"
+      }
+    }
+  },
+  "runtime_assets": [
+    {
+      "plugin": "PinDuoDuo_remove_ads.lpx",
+      "kind": "script",
+      "upstream_url": "https://kelee.one/Resource/JavaScript/PinDuoDuo/PinDuoDuo_remove_ads.js",
+      "source_path": "Modules/JavaScript/Kelee/PinDuoDuo_remove_ads/kelee.one_PinDuoDuo_remove_ads.js"
+    },
+    {
+      "plugin": "Taobao_remove_ads.lpx",
+      "kind": "script",
+      "upstream_url": "https://kelee.one/Resource/JavaScript/Taobao/Taobao_remove_ads.js",
+      "source_path": "Modules/JavaScript/Kelee/Taobao_remove_ads/kelee.one_Taobao_remove_ads.js"
+    },
+    {
+      "plugin": "smzdm_remove_ads.lpx",
+      "kind": "jq",
+      "upstream_url": "https://kelee.one/Resource/JQLang/smzdm/home_smzdm_remove_ads.jq",
+      "source_path": "Modules/JavaScript/Kelee/smzdm_remove_ads/kelee.one_home_smzdm_remove_ads.jq"
+    }
+  ],
+  "external_runtime_dependencies": [
+    {
+      "referenced_by": "Modules/JavaScript/Kelee/PinDuoDuo_remove_ads/kelee.one_PinDuoDuo_remove_ads.js",
+      "url": "https://kelee.one/Resource/JavaScript/PinDuoDuo/9410-b8806e870a26db7d.js",
+      "reason": "Nested page chunk rewritten by the Pinduoduo response script; no matching standalone asset is present in the Romeo Git tree."
+    }
+  ]
+}
