@@ -34,6 +34,41 @@ def diff(added=0, removed=0, changed=0):
     }}
 
 
+def migration_sources():
+    current = sources()
+    current["source_migrations"] = {
+        "aoomee": {
+            "status": "planned",
+            "from": "https://github.com/aoomee/Loon-Adblock-Plugins",
+            "to": "https://github.com/ifflagged/Romeo",
+        },
+        "zmjde": {
+            "status": "planned",
+            "from": "https://github.com/zmjde/loon-plugins",
+            "to": "https://github.com/ifflagged/Romeo",
+        },
+    }
+    return current
+
+
+def action_diff(rows):
+    return {
+        "summary": {
+            "rewrite": {"added": 0, "removed": 0, "action_changed": len(rows)},
+            "script": {"added": 0, "removed": 0, "action_changed": 0},
+            "rule": {"added": 0, "removed": 0, "action_changed": 0},
+        },
+        "sections": {"rewrite": {"action_changed": rows}},
+    }
+
+
+def action_row(source):
+    return {
+        "before": {"sources": [source]},
+        "after": {"sources": [source]},
+    }
+
+
 class SourceHealthGuardTests(unittest.TestCase):
     def test_full_source_evidence_passes(self):
         report = build_health(sources(), sources(), provenance(), provenance(), diff())
@@ -85,6 +120,38 @@ class SourceHealthGuardTests(unittest.TestCase):
         report = build_health(sources(), sources(), provenance(), provenance(),
                               diff(changed=11))
         self.assertFalse(report["deployment_allowed"])
+
+    def test_declared_source_migration_exempts_only_attributed_action_changes(self):
+        rows = [action_row("zmjde") for _ in range(11)]
+        report = build_health(
+            sources(), migration_sources(), provenance(), provenance(), action_diff(rows)
+        )
+        self.assertTrue(report["deployment_allowed"])
+        self.assertEqual(report["declared_source_migrations"], ["aoomee", "zmjde"])
+        section = report["section_changes"]["rewrite"]
+        self.assertEqual(section["migration_action_changed_exempted"], 11)
+        self.assertEqual(section["non_migration_action_changed"], 0)
+
+    def test_unrelated_action_changes_remain_blocked_during_migration(self):
+        rows = [action_row("zmjde") for _ in range(11)]
+        rows += [action_row("thelongdarkorg") for _ in range(11)]
+        report = build_health(
+            sources(), migration_sources(), provenance(), provenance(), action_diff(rows)
+        )
+        self.assertFalse(report["deployment_allowed"])
+        section = report["section_changes"]["rewrite"]
+        self.assertEqual(section["migration_action_changed_exempted"], 11)
+        self.assertEqual(section["non_migration_action_changed"], 11)
+
+    def test_invalid_migration_declaration_does_not_exempt_changes(self):
+        current = migration_sources()
+        current["source_migrations"]["zmjde"]["from"] = "https://example.invalid/other"
+        rows = [action_row("zmjde") for _ in range(11)]
+        report = build_health(
+            sources(), current, provenance(), provenance(), action_diff(rows)
+        )
+        self.assertFalse(report["deployment_allowed"])
+        self.assertEqual(report["declared_source_migrations"], ["aoomee"])
 
     def test_addition_spike_is_review_not_automatic_hold(self):
         report = build_health(sources(), sources(), provenance(), provenance(),
