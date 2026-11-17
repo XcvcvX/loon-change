@@ -285,7 +285,7 @@ def consolidate_pdd_homepage_script(lines):
     def normalize_trigger(value):
         value = re.sub(r"\\+", "", value.strip())
         return re.sub(
-            r"https://raw\\.githubusercontent\\.com/ifflagged/Romeo/[0-9a-f]{40}/",
+            r"https://raw\.githubusercontent\.com/ifflagged/Romeo/[0-9a-f]{40}/",
             "https://github.com/ifflagged/Romeo/raw/main/",
             value,
         )
