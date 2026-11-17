@@ -2492,7 +2492,7 @@ ZHIHU_REQUEST_SHADOW_PAIRS = (
 
 
 def remove_redundant_zhihu_request_rules(lines):
-    """Remove exact HTTPS-only subsets already covered by same-action HTTP/S rules."""
+    """Remove only exact HTTPS subsets when their same-action HTTP/S cover exists."""
     normalize = lambda value: re.sub(r"\\+/", "/", value.strip())
     known = {
         normalize(rule): (index, is_redundant)
@@ -2501,34 +2501,43 @@ def remove_redundant_zhihu_request_rules(lines):
     }
     markers = tuple(marker for _redundant, _canonical, marker in ZHIHU_REQUEST_SHADOW_PAIRS)
     counts = {key: 0 for key in known}
+    entries = []
     seen_groups = set()
-    output = []
     for line in lines:
         value = normalize(line)
         group_index = next((i for i, marker in enumerate(markers) if marker in value), None)
         if group_index is None:
-            output.append(line)
+            entries.append((line, None, False))
             continue
         matched = known.get(value)
         if matched is None or matched[0] != group_index:
-            raise ValueError("Zhihu request blocker inventory changed; refusing unreviewed cleanup")
+            # New or drifted upstream blockers are retained verbatim.
+            entries.append((line, None, False))
+            continue
         counts[value] += 1
         if counts[value] > 1:
             raise ValueError("duplicate Zhihu request blocker; refusing ambiguous cleanup")
         seen_groups.add(group_index)
-        if not matched[1]:
-            output.append(line)
+        entries.append((line, group_index, matched[1]))
 
-    removed = 0
+    remove_groups = set()
     for index in seen_groups:
         redundant, canonical, _marker = ZHIHU_REQUEST_SHADOW_PAIRS[index]
         redundant_count = counts[normalize(redundant)]
         canonical_count = counts[normalize(canonical)]
-        if canonical_count != 1:
-            raise ValueError("Zhihu covering request blocker missing or duplicated; refusing cleanup")
-        if redundant_count not in (0, 1):
-            raise ValueError("duplicate Zhihu redundant request blocker; refusing cleanup")
-        removed += redundant_count
+        if canonical_count > 1 or redundant_count > 1:
+            raise ValueError("duplicate Zhihu request blocker; refusing ambiguous cleanup")
+        if canonical_count == 1 and redundant_count == 1:
+            remove_groups.add(index)
+
+    output = [
+        line for line, group_index, is_redundant in entries
+        if not (group_index in remove_groups and is_redundant)
+    ]
+    removed = sum(
+        1 for _line, group_index, is_redundant in entries
+        if group_index in remove_groups and is_redundant
+    )
     return output, removed
 
 
