@@ -1,5 +1,4 @@
-
-name: Sync allAdRewrite to Secret Gist
+name: Sync allAdRewrite and runtime assets to Secret Gist
 
 on:
   push:
@@ -7,6 +6,8 @@ on:
       - main
     paths:
       - '**/allAdRewrite.plugin'
+      - 'scripts/**'
+      - 'sources/amap/**'
       - '.github/workflows/sync-alladrewrite-gist.yml'
   workflow_dispatch:
 
@@ -25,7 +26,7 @@ jobs:
         shell: bash
         run: |
           mapfile -t files < <(
-            git ls-files | grep -E '(^|/)allAdRewrite\.plugin$' || true
+            git ls-files | grep -E '(^|/)allAdRewrite\\.plugin$' || true
           )
 
           if [ "${#files[@]}" -ne 1 ]; then
@@ -35,25 +36,110 @@ jobs:
 
           echo "file=${files[0]}" >> "$GITHUB_OUTPUT"
 
-      - name: Sync to Secret Gist
+      - name: Build public Gist payload with mirrored runtime assets
         env:
           GIST_ID: ${{ secrets.GIST_ID }}
           GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
           PLUGIN_FILE: ${{ steps.plugin.outputs.file }}
         shell: bash
         run: |
-          jq -n \
-            --arg filename "allAdRewrite.plugin" \
-            --arg content "$(cat "$PLUGIN_FILE")" \
-            '{files: {($filename): {content: $content}}}' \
-            > payload.json
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          import re
+          import subprocess
+          import urllib.error
+          import urllib.request
+          from pathlib import Path
 
-          curl --fail-with-body -sS -L \
-            -X PATCH \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer $GIST_TOKEN" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            https://api.github.com/gists/$GIST_ID \
-            --data-binary @payload.json
+          gist_id = os.environ["GIST_ID"].strip()
+          token = os.environ["GIST_TOKEN"].strip()
+          plugin_path = Path(os.environ["PLUGIN_FILE"])
+          owner = "XcvcvX"
+          private_prefix = "https://raw.githubusercontent.com/XcvcvX/loon-change/main/"
+          public_prefix = f"https://gist.githubusercontent.com/{owner}/{gist_id}/raw/"
 
-          echo "Secret Gist sync completed."
+          if not gist_id or not token:
+              raise SystemExit("GIST_ID or GIST_TOKEN secret is missing")
+          if not plugin_path.is_file():
+              raise SystemExit(f"Plugin file not found: {plugin_path}")
+
+          plugin = plugin_path.read_text(encoding="utf-8")
+          relative_paths = sorted(set(re.findall(
+              re.escape(private_prefix) + r'([^,\\s"\\')]+)', plugin
+          )))
+          if not relative_paths:
+              raise SystemExit("No private-repository runtime asset URLs found; refusing an empty mirror")
+
+          files = {}
+          for relative_path in relative_paths:
+              tracked = subprocess.run(
+                  ["git", "ls-files", "--error-unmatch", "--", relative_path],
+                  capture_output=True, text=True
+              )
+              asset_path = Path(relative_path)
+              if tracked.returncode != 0 or not asset_path.is_file():
+                  raise SystemExit(f"Referenced runtime asset is not tracked/present: {relative_path}")
+
+              filename = "loon-change__" + relative_path.replace("/", "__")
+              if len(filename) > 240:
+                  raise SystemExit(f"Gist filename is too long: {filename}")
+              content = asset_path.read_text(encoding="utf-8")
+              if not content.strip():
+                  raise SystemExit(f"Referenced runtime asset is empty: {relative_path}")
+
+              old_url = private_prefix + relative_path
+              new_url = public_prefix + filename
+              if old_url not in plugin:
+                  raise SystemExit(f"Expected URL disappeared while preparing mirror: {old_url}")
+              plugin = plugin.replace(old_url, new_url)
+              files[filename] = content
+
+          if private_prefix in plugin:
+              raise SystemExit("Private repository Raw URL remains in published plugin")
+
+          files["allAdRewrite.plugin"] = plugin
+          payload = {"files": {name: {"content": value} for name, value in files.items()}}
+          request = urllib.request.Request(
+              f"https://api.github.com/gists/{gist_id}",
+              data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+              method="PATCH",
+              headers={
+                  "Accept": "application/vnd.github+json",
+                  "Authorization": f"Bearer {token}",
+                  "X-GitHub-Api-Version": "2022-11-28",
+                  "Content-Type": "application/json",
+                  "User-Agent": "loon-change-gist-sync",
+              },
+          )
+          try:
+              with urllib.request.urlopen(request, timeout=60) as response:
+                  result = json.loads(response.read().decode("utf-8"))
+          except urllib.error.HTTPError as error:
+              detail = error.read().decode("utf-8", errors="replace")
+              raise SystemExit(f"Gist API update failed ({error.code}): {detail[:1000]}")
+
+          returned_files = result.get("files", {})
+          missing = sorted(set(files) - set(returned_files))
+          if missing:
+              raise SystemExit("Gist API response omitted files: " + ", ".join(missing))
+
+          # Verify the API's versioned raw URL for every file. This avoids depending
+          # on CDN propagation timing for the stable, unversioned subscription URL.
+          for filename, expected in files.items():
+              raw_url = returned_files[filename].get("raw_url")
+              if not raw_url:
+                  raise SystemExit(f"Gist did not return raw_url for {filename}")
+              with urllib.request.urlopen(raw_url, timeout=30) as response:
+                  actual = response.read().decode("utf-8")
+              if actual != expected:
+                  raise SystemExit(f"Raw content verification mismatch: {filename}")
+
+          print(
+              "Gist sync verified: "
+              + str(len(relative_paths))
+              + " runtime assets + allAdRewrite.plugin; "
+              + hashlib.sha256(plugin.encode("utf-8")).hexdigest()[:12]
+          )
+          PY
