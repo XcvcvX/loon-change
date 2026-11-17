@@ -11,6 +11,8 @@ on:
       - 'test_fix_script_configs.py'
       - 'audit_plugin.py'
       - 'deep_audit.py'
+      - 'runtime_performance_audit.py'
+      - 'test_runtime_performance_audit.py'
       - 'source_guard.py'
       - 'stage_romeo_plugins.py'
       - 'test_stage_romeo_plugins.py'
@@ -54,6 +56,8 @@ on:
       - 'test_audit_plugin.py'
       - 'deep_audit.py'
       - 'test_deep_audit.py'
+      - 'runtime_performance_audit.py'
+      - 'test_runtime_performance_audit.py'
       - 'amap_dependency_guard.py'
       - 'test_amap_dependency_guard.py'
       - 'apply_amap_local_overrides.py'
@@ -131,11 +135,11 @@ jobs:
           PY
 
       - name: 编译检查
-        run: python3 -m py_compile merge_plugins.py mitm_policy.py validate_plugin.py fix_script_configs.py source_guard.py stage_romeo_plugins.py audit_plugin.py deep_audit.py amap_dependency_guard.py apply_amap_local_overrides.py compare_rule_provenance.py source_health_guard.py finalize_provenance.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py integrate_spotify.py apply_local_overrides.py check_script_v2.py
+        run: python3 -m py_compile merge_plugins.py mitm_policy.py validate_plugin.py fix_script_configs.py source_guard.py stage_romeo_plugins.py audit_plugin.py deep_audit.py amap_dependency_guard.py apply_amap_local_overrides.py compare_rule_provenance.py source_health_guard.py finalize_provenance.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py integrate_spotify.py apply_local_overrides.py check_script_v2.py runtime_performance_audit.py
       - name: 检查小红书本地视频脚本语法
         run: node --check scripts/xiaohongshu/xiaohongshu-v4.js
       - name: 运行单元与合并集成测试
-        run: python3 -m unittest -v test_validate_plugin.py test_fix_script_configs.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_apply_amap_local_overrides.py test_compare_rule_provenance.py test_source_health_guard.py test_finalize_provenance.py test_rule_risk_history.py test_integrate_spotify.py test_convert_qx2loon.py test_convert_filter_qx2loon.py test_stage_romeo_plugins.py
+        run: python3 -m unittest -v test_validate_plugin.py test_fix_script_configs.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_apply_amap_local_overrides.py test_compare_rule_provenance.py test_source_health_guard.py test_finalize_provenance.py test_rule_risk_history.py test_integrate_spotify.py test_convert_qx2loon.py test_convert_filter_qx2loon.py test_stage_romeo_plugins.py test_runtime_performance_audit.py
       - name: 测试本地插件覆盖
         run: |
           # The checked-in plugin is a historical snapshot; snapshot-specific assertions
@@ -181,6 +185,8 @@ jobs:
           python3 audit_plugin.py allAdRewrite.plugin --summary-only
           python3 deep_audit.py allAdRewrite.plugin --summary-only
           python3 deep_audit.py allAdRewrite.plugin --json /tmp/deep-audit.json --markdown /tmp/deep-audit.md
+          python3 runtime_performance_audit.py allAdRewrite.plugin --summary-only
+          python3 runtime_performance_audit.py allAdRewrite.plugin --json /tmp/runtime-performance.json --markdown /tmp/runtime-performance.md
       - name: 上传深度审计报告
         uses: actions/upload-artifact@v4
         with:
@@ -188,6 +194,8 @@ jobs:
           path: |
             /tmp/deep-audit.json
             /tmp/deep-audit.md
+            /tmp/runtime-performance.json
+            /tmp/runtime-performance.md
           if-no-files-found: error
 
   sync:
@@ -211,12 +219,12 @@ jobs:
           python-version: '3.11'
 
       - name: 编译检查
-        run: python3 -m py_compile merge_plugins.py mitm_policy.py validate_plugin.py fix_script_configs.py source_guard.py stage_romeo_plugins.py audit_plugin.py deep_audit.py amap_dependency_guard.py apply_amap_local_overrides.py compare_rule_provenance.py source_health_guard.py finalize_provenance.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py integrate_spotify.py
+        run: python3 -m py_compile merge_plugins.py mitm_policy.py validate_plugin.py fix_script_configs.py source_guard.py stage_romeo_plugins.py audit_plugin.py deep_audit.py amap_dependency_guard.py apply_amap_local_overrides.py compare_rule_provenance.py source_health_guard.py finalize_provenance.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py integrate_spotify.py runtime_performance_audit.py
       - name: 检查小红书本地视频脚本语法
         run: node --check scripts/xiaohongshu/xiaohongshu-v4.js
 
       - name: 测试校验器与来源依赖门禁
-        run: python3 -m unittest -v test_validate_plugin.py test_fix_script_configs.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_apply_amap_local_overrides.py test_compare_rule_provenance.py test_source_health_guard.py test_finalize_provenance.py test_rule_risk_history.py test_integrate_spotify.py test_convert_qx2loon.py test_convert_filter_qx2loon.py test_stage_romeo_plugins.py
+        run: python3 -m unittest -v test_validate_plugin.py test_fix_script_configs.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_apply_amap_local_overrides.py test_compare_rule_provenance.py test_source_health_guard.py test_finalize_provenance.py test_rule_risk_history.py test_integrate_spotify.py test_convert_qx2loon.py test_convert_filter_qx2loon.py test_stage_romeo_plugins.py test_runtime_performance_audit.py
 
       - name: 创建隔离构建目录
         run: |
@@ -414,6 +422,8 @@ jobs:
           python3 audit_plugin.py /tmp/loon-build/allAdRewrite.plugin --summary-only
           python3 deep_audit.py /tmp/loon-build/allAdRewrite.plugin --summary-only
           python3 deep_audit.py /tmp/loon-build/allAdRewrite.plugin --json /tmp/deep-audit-sync.json --markdown /tmp/deep-audit-sync.md
+          python3 runtime_performance_audit.py /tmp/loon-build/allAdRewrite.plugin --repo-root . --summary-only
+          python3 runtime_performance_audit.py /tmp/loon-build/allAdRewrite.plugin --repo-root . --json /tmp/runtime-performance-sync.json --markdown /tmp/runtime-performance-sync.md
 
       - name: 上传同步构建规则来源追溯报告
         uses: actions/upload-artifact@v4
@@ -456,6 +466,16 @@ jobs:
           path: |
             /tmp/deep-audit-sync.json
             /tmp/deep-audit-sync.md
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: 上传运行时性能审计报告
+        uses: actions/upload-artifact@v4
+        with:
+          name: runtime-performance-${{ github.run_id }}
+          path: |
+            /tmp/runtime-performance-sync.json
+            /tmp/runtime-performance-sync.md
           if-no-files-found: error
           retention-days: 14
 
