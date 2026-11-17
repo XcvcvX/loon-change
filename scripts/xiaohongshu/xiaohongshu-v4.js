@@ -229,7 +229,6 @@ if (url.includes("/v4/note/videofeed")) {
           url: selectedStream.master_url
         };
         videoData.push(data);
-      } else {
       }
     }
     // 写入本地持久化缓存
@@ -364,9 +363,9 @@ if (url.includes("/api/sns/v5/note/comment/list?") || url.includes("/api/sns/v3/
     } else {
       commitsRsp = JSON.parse(commitsCache);
       if (commitsRsp.noteId === note_id) {
-          commitsRsp.livePhotos = deduplicateLivePhotos(commitsRsp.livePhotos.concat(livePhotos));
+        commitsRsp.livePhotos = deduplicateLivePhotos(commitsRsp.livePhotos.concat(livePhotos));
       } else {
-          commitsRsp = {noteId: note_id, livePhotos: livePhotos};
+        commitsRsp = {noteId: note_id, livePhotos: livePhotos};
       }
     }
     $.setdata(JSON.stringify(commitsRsp), "fmz200.xiaohongshu.comments.rsp");
@@ -416,7 +415,6 @@ if (url.includes("/api/sns/v1/interaction/comment/video/download?")) {
         }
       }
     }
-  } else {
   }
 }
 
