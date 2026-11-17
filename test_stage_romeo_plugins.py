@@ -93,7 +93,7 @@ class RomeoPluginMigrationTests(unittest.TestCase):
             "https://raw.githubusercontent.com/ifflagged/Romeo/" + commit
             + "/Modules/JavaScript/fmz200/12306/kokoryh_12306.js"
         )
-        self.assertIn(expected + ",", result)
+        self.assertIn(expected + '",', result)
         self.assertNotIn("Romeo/raw/main", result)
 
     def test_stage_builds_both_compatibility_slots_from_one_commit(self):
