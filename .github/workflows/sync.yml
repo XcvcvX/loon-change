@@ -161,8 +161,9 @@ jobs:
       contents: write
     runs-on: ubuntu-latest
     concurrency:
-      group: loon-change-main-sync
-      queue: max
+      # Keep only the newest sync for each ref; PR builds cannot cancel main.
+      group: loon-change-sync-${{ github.ref }}
+      cancel-in-progress: true
     steps:
       - name: 检出仓库
         uses: actions/checkout@v4
