@@ -4297,6 +4297,7 @@ def _build_amap_unoptimized_fixture():
         r'response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/aos\/perception\/publicTravel\/beforeNavi\?/i then script("' + romeo + r'") with tag="amap", timeout=60, requires_body=true',
         r'response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/shield\/search\/nearbyrec_smart\?/i then script("' + romeo + r'") with tag="amap", timeout=60, requires_body=true',
         r'response if ${url} ~= /^https:\/\/m5-zb\.amap\.com\/ws\/promotion-web\/resource(\/home)?\?/i then script("' + romeo + r'") with tag="amap", timeout=60, requires_body=true',
+        r'response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/bus\/plan\/integrate\?/i then script("' + romeo + r'") with tag="amap", timeout=60, requires_body=true',
         r'response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/faas\/amap-navigation\/(card-service-plan-home|main-page)/i then script("' + romeo + r'") with tag="amap", timeout=60, requires_body=true',
     ]
     mitm_index = next(i for i, line in enumerate(lines) if line.strip() == "[MITM]")
@@ -4426,7 +4427,7 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
         original = plugin.read_text(encoding="utf-8")
         fixture = _build_amap_unoptimized_fixture()
         result, removed = optimize_amap_response_script_overlaps(fixture)
-        self.assertEqual(removed, 5)
+        self.assertEqual(removed, 6)
         script = "\n".join(result).split("[Script]", 1)[1].split("[MITM]", 1)[0]
         for marker in AMAP_ISHOWSHU_REDUNDANT_SCRIPT_MARKERS:
             self.assertFalse(any(
