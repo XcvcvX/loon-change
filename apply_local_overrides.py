@@ -3443,7 +3443,7 @@ def remove_identical_script_response_duplicates(lines):
                     raise ValueError("duplicate retained identical-script source trigger")
                 output.append(IDENTICAL_SCRIPT_TRANSFORMS.get(line, line))
                 continue
-            raise ValueError("RRTV/Soul/Reddit script inventory changed; refusing unreviewed consolidation")
+            raise ValueError(f"RRTV/Soul/Reddit script inventory changed; refusing unreviewed consolidation: {line.strip()}")
 
         if line in output_counts:
             output_counts[line] += 1
