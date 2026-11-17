@@ -3927,23 +3927,20 @@ class WeiboNativeMigrationTests(unittest.TestCase):
 
 
 class BilibiliProtobufDuplicateTriggerTests(unittest.TestCase):
+    def _fmz_trigger(self):
+        return (
+            r'response if ' + r'$' + r'{url} ~= /^https?:\/\/(?:grpc\.biliapi\.net|app\.bilibili\.com)\/bilibili\.(?:app\.(?:dynamic\.v2\.Dynamic\/DynAll|view(unite)?\.v1\.View\/View)|community\.service\.dm\.v1\.DM\/DmView|polymer\.app\.search\.v1\.Search\/SearchAll)$/i '
+            r'then script("https://raw.githubusercontent.com/kokoryh/Sparkle/refs/heads/master/dist/bilibili.protobuf.response.js") with tag="bilibili.protobuf", requires_body=true'
+        )
+
     def test_narrows_four_duplicate_binary_triggers_and_keeps_mainlist(self):
         from apply_local_overrides import (
             BILIBILI_PROTOBUF_DUPLICATE_PAIRS, BILIBILI_PROTOBUF_NON_DUPLICATE_TRIGGER,
-            BILIBILI_PROTOBUF_MAINLIST_PREVIOUS_NARROWED_TRIGGER,
             narrow_duplicate_bilibili_protobuf_triggers,
         )
-        fmz_trigger = (
-            r'response if ${url} ~= /^https?:\/\/(?:grpc\.biliapi\.net|app\.bilibili\.com)\/bilibili\.(?:app\.(?:dynamic\.v2\.Dynamic\/DynAll|view(unite)?\.v1\.View\/View)|community\.service\.dm\.v1\.DM\/DmView|polymer\.app\.search\.v1\.Search\/SearchAll)$/i '
-            r'then script("https://raw.githubusercontent.com/kokoryh/Sparkle/refs/heads/master/dist/bilibili.protobuf.response.js") with tag="bilibili.protobuf", requires_body=true'
-        )
-        mainlist = (
-            r"http-response ^https?:\/\/(?:app\.bilibili\.com|grpc\.biliapi\.net)\/bilibili\.main\.community\.reply\.v\d\.Reply\/MainList "
-            r"script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-5,requires-body=true,binary-body-mode=true"
-        )
-        fixture = ["[Rewrite]", "[Script]", fmz_trigger]
-        for _, original, _ in BILIBILI_PROTOBUF_DUPLICATE_PAIRS:
-            fixture.append(original)
+        mainlist = BILIBILI_PROTOBUF_NON_DUPLICATE_TRIGGER
+        fixture = ["[Rewrite]", "[Script]", self._fmz_trigger()]
+        fixture.extend(original for _, original, _ in BILIBILI_PROTOBUF_DUPLICATE_PAIRS)
         fixture.extend([mainlist, "[MITM]", "hostname = grpc.biliapi.net, app.bilibili.com"])
         result, changed = narrow_duplicate_bilibili_protobuf_triggers(fixture)
         self.assertEqual(changed, 4)
@@ -3951,9 +3948,26 @@ class BilibiliProtobufDuplicateTriggerTests(unittest.TestCase):
             self.assertNotIn(original, result)
             self.assertIn(narrowed, result)
         self.assertIn(mainlist, result)
+
+        import re
         mainlist_pattern = re.compile(mainlist.split(" script-path=")[0].removeprefix("http-response "))
         self.assertIsNotNone(mainlist_pattern.search("https://grpc.biliapi.net/bilibili.main.community.reply.v1.Reply/MainList"))
         self.assertIsNotNone(mainlist_pattern.search("https://app.bilibili.com/bilibili.main.community.reply.v9.Reply/MainList"))
+        expected_boundaries = {
+            "DynAll": ("/bilibili.app.dynamic.v1.Dynamic/DynAll", "/bilibili.app.dynamic.v2.Dynamic/DynAll", "/bilibili.app.dynamic.v9.Dynamic/DynAll"),
+            "viewunite": ("/bilibili.app.view.v1.View/View", "/bilibili.app.viewunite.v2.View/View", "/bilibili.app.viewunite.v9.View/View"),
+            "DmView": ("/bilibili.community.service.dm.v1.DM/DmView", "/bilibili.community.service.dm.v2.DM/DmView", "/bilibili.community.service.dm.v9.DM/DmView"),
+            "SearchAll": ("/bilibili.polymer.app.search.v1.Search/SearchAll", "/bilibili.polymer.app.search.v2.Search/SearchAll", "/bilibili.polymer.app.search.v9.Search/SearchAll"),
+        }
+        for marker, _, narrowed in BILIBILI_PROTOBUF_DUPLICATE_PAIRS:
+            pattern = re.compile(narrowed.split(" script-path=")[0].removeprefix("http-response "))
+            v1, v2, v9 = expected_boundaries[marker]
+            self.assertEqual(bool(pattern.search("https://app.bilibili.com" + v1)), marker == "DynAll")
+            self.assertEqual(bool(pattern.search("https://app.bilibili.com" + v2)), marker != "DynAll")
+            self.assertTrue(pattern.search("https://grpc.biliapi.net" + v9))
+        again, second_changed = narrow_duplicate_bilibili_protobuf_triggers(result)
+        self.assertEqual(second_changed, 0)
+        self.assertEqual(again, result)
 
     def test_restores_mainlist_after_previous_over_narrowing(self):
         from apply_local_overrides import (
@@ -3966,49 +3980,27 @@ class BilibiliProtobufDuplicateTriggerTests(unittest.TestCase):
         self.assertEqual(changed, 1)
         self.assertIn(BILIBILI_PROTOBUF_NON_DUPLICATE_TRIGGER, result)
         self.assertNotIn(BILIBILI_PROTOBUF_MAINLIST_PREVIOUS_NARROWED_TRIGGER, result)
-        result_without_sparkle, changed_without_sparkle = narrow_duplicate_bilibili_protobuf_triggers(fixture)
-        self.assertEqual(changed_without_sparkle, 1)
-        self.assertIn(BILIBILI_PROTOBUF_NON_DUPLICATE_TRIGGER, result_without_sparkle)
-        import re
-        expected_boundaries = {
-            "DynAll": ("/bilibili.app.dynamic.v1.Dynamic/DynAll", "/bilibili.app.dynamic.v2.Dynamic/DynAll", "/bilibili.app.dynamic.v9.Dynamic/DynAll"),
-            "viewunite": ("/bilibili.app.view.v1.View/View", "/bilibili.app.viewunite.v2.View/View", "/bilibili.app.viewunite.v9.View/View"),
-            "DmView": ("/bilibili.community.service.dm.v1.DM/DmView", "/bilibili.community.service.dm.v2.DM/DmView", "/bilibili.community.service.dm.v9.DM/DmView"),
-            "SearchAll": ("/bilibili.polymer.app.search.v1.Search/SearchAll", "/bilibili.polymer.app.search.v2.Search/SearchAll", "/bilibili.polymer.app.search.v9.Search/SearchAll"),
-        }
-        for marker, original, narrowed in BILIBILI_PROTOBUF_DUPLICATE_PAIRS:
-            pattern = re.compile(narrowed.split(" script-path=")[0].removeprefix("http-response "))
-            v1, v2, v9 = expected_boundaries[marker]
-            self.assertEqual(bool(pattern.search("https://app.bilibili.com" + v1)), marker in ("DynAll",))
-            self.assertEqual(bool(pattern.search("https://app.bilibili.com" + v2)), marker != "DynAll")
-            self.assertTrue(pattern.search("https://grpc.biliapi.net" + v9))
         again, second_changed = narrow_duplicate_bilibili_protobuf_triggers(result)
         self.assertEqual(second_changed, 0)
         self.assertEqual(again, result)
 
     def test_preserves_broad_rstore_triggers_when_sparkle_cover_is_absent(self):
         from apply_local_overrides import (
-            BILIBILI_PROTOBUF_DUPLICATE_PAIRS, narrow_duplicate_bilibili_protobuf_triggers,
+            BILIBILI_PROTOBUF_DUPLICATE_PAIRS, BILIBILI_PROTOBUF_NON_DUPLICATE_TRIGGER,
+            narrow_duplicate_bilibili_protobuf_triggers,
         )
-        from apply_local_overrides import BILIBILI_PROTOBUF_NON_DUPLICATE_TRIGGER
         fixture = ["[Script]"] + [original for _, original, _ in BILIBILI_PROTOBUF_DUPLICATE_PAIRS] + [BILIBILI_PROTOBUF_NON_DUPLICATE_TRIGGER, "[MITM]"]
         result, changed = narrow_duplicate_bilibili_protobuf_triggers(fixture)
         self.assertEqual(changed, 0)
         self.assertEqual(result, fixture)
 
     def test_fails_closed_on_unreviewed_protobuf_trigger_or_sparkle_coverage(self):
-        from apply_local_overrides import (
-            BILIBILI_PROTOBUF_DUPLICATE_PAIRS, narrow_duplicate_bilibili_protobuf_triggers,
-        )
-        fmz_trigger = (
-            r'response if ${url} ~= /^https?:\/\/(?:grpc\.biliapi\.net|app\.bilibili\.com)\/bilibili\.(?:app\.(?:dynamic\.v2\.Dynamic\/DynAll|view(unite)?\.v1\.View\/View)|community\.service\.dm\.v1\.DM\/DmView|polymer\.app\.search\.v1\.Search\/SearchAll)$/i '
-            r'then script("https://raw.githubusercontent.com/kokoryh/Sparkle/refs/heads/master/dist/bilibili.protobuf.response.js") with tag="bilibili.protobuf", requires_body=true'
-        )
+        from apply_local_overrides import BILIBILI_PROTOBUF_DUPLICATE_PAIRS, narrow_duplicate_bilibili_protobuf_triggers
+        fmz_trigger = self._fmz_trigger()
         original = BILIBILI_PROTOBUF_DUPLICATE_PAIRS[0][1]
         drifted = original.replace("tag=BAICIZHAN", "tag=BAICIZHAN-CHANGED")
         with self.assertRaisesRegex(ValueError, "R-Store protobuf trigger variant changed"):
             narrow_duplicate_bilibili_protobuf_triggers(["[Script]", fmz_trigger, drifted, "[MITM]"])
-
         bad_fmz = fmz_trigger.replace(r"dynamic\.v2", r"dynamic\.v3")
         with self.assertRaisesRegex(ValueError, "Sparkle protobuf endpoint coverage changed"):
             narrow_duplicate_bilibili_protobuf_triggers(["[Script]", bad_fmz, original, "[MITM]"])
