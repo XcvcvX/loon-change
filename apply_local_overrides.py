@@ -4133,6 +4133,18 @@ def narrow_xiaohongshu_v3_video_native_duplicates(lines):
         elif section == "Rewrite":
             rewrite_lines.append(stripped)
 
+    has_rstore_target = any("tag=XIAOHONGSHU-7," in line for line in script_lines)
+    has_fmz_target = any(
+        'tag="小红书图片视频水印"' in line
+        and ("/v2/note/feed" in re.sub(r"\\+", "", line)
+             or "/v3/note/videofeed" in re.sub(r"\\+", "", line))
+        for line in script_lines
+    )
+    if not has_rstore_target and not has_fmz_target:
+        return original, 0
+    if not has_rstore_target or not has_fmz_target:
+        raise ValueError("Xiaohongshu v3 video script trigger inventory is incomplete")
+
     rstore_expected = next(
         (line for line in XHS_SCRIPT_TRIGGER_LINES
          if line.startswith("http-response ") and "tag=XIAOHONGSHU-7," in line),
