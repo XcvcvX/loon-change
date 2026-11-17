@@ -3929,7 +3929,9 @@ class WeiboNativeMigrationTests(unittest.TestCase):
 class BilibiliProtobufDuplicateTriggerTests(unittest.TestCase):
     def test_narrows_four_duplicate_binary_triggers_and_keeps_mainlist(self):
         from apply_local_overrides import (
-            BILIBILI_PROTOBUF_DUPLICATE_PAIRS, narrow_duplicate_bilibili_protobuf_triggers,
+            BILIBILI_PROTOBUF_DUPLICATE_PAIRS, BILIBILI_PROTOBUF_NON_DUPLICATE_TRIGGER,
+            BILIBILI_PROTOBUF_MAINLIST_PREVIOUS_NARROWED_TRIGGER,
+            narrow_duplicate_bilibili_protobuf_triggers,
         )
         fmz_trigger = (
             r'response if ${url} ~= /^https?:\/\/(?:grpc\.biliapi\.net|app\.bilibili\.com)\/bilibili\.(?:app\.(?:dynamic\.v2\.Dynamic\/DynAll|view(unite)?\.v1\.View\/View)|community\.service\.dm\.v1\.DM\/DmView|polymer\.app\.search\.v1\.Search\/SearchAll)$/i '
@@ -3952,6 +3954,21 @@ class BilibiliProtobufDuplicateTriggerTests(unittest.TestCase):
         mainlist_pattern = re.compile(mainlist.split(" script-path=")[0].removeprefix("http-response "))
         self.assertIsNotNone(mainlist_pattern.search("https://grpc.biliapi.net/bilibili.main.community.reply.v1.Reply/MainList"))
         self.assertIsNotNone(mainlist_pattern.search("https://app.bilibili.com/bilibili.main.community.reply.v9.Reply/MainList"))
+
+    def test_restores_mainlist_after_previous_over_narrowing(self):
+        from apply_local_overrides import (
+            BILIBILI_PROTOBUF_MAINLIST_PREVIOUS_NARROWED_TRIGGER,
+            BILIBILI_PROTOBUF_NON_DUPLICATE_TRIGGER,
+            narrow_duplicate_bilibili_protobuf_triggers,
+        )
+        fixture = ["[Script]", BILIBILI_PROTOBUF_MAINLIST_PREVIOUS_NARROWED_TRIGGER, "[MITM]"]
+        result, changed = narrow_duplicate_bilibili_protobuf_triggers(fixture)
+        self.assertEqual(changed, 1)
+        self.assertIn(BILIBILI_PROTOBUF_NON_DUPLICATE_TRIGGER, result)
+        self.assertNotIn(BILIBILI_PROTOBUF_MAINLIST_PREVIOUS_NARROWED_TRIGGER, result)
+        result_without_sparkle, changed_without_sparkle = narrow_duplicate_bilibili_protobuf_triggers(fixture)
+        self.assertEqual(changed_without_sparkle, 1)
+        self.assertIn(BILIBILI_PROTOBUF_NON_DUPLICATE_TRIGGER, result_without_sparkle)
         import re
         expected_boundaries = {
             "DynAll": ("/bilibili.app.dynamic.v1.Dynamic/DynAll", "/bilibili.app.dynamic.v2.Dynamic/DynAll", "/bilibili.app.dynamic.v9.Dynamic/DynAll"),
@@ -4111,7 +4128,10 @@ class XiaohongshuV3VideoNativeDedupTests(unittest.TestCase):
         rstore = re.compile(XHS_V3_VIDEO_RSTORE_NARROWED_TRIGGER.split(" script-path=")[0].removeprefix("http-response "))
         self.assertIsNone(rstore.search("https://edith.xiaohongshu.com/api/sns/v3/note/videofeed"))
         self.assertIsNone(rstore.search("https://edith.xiaohongshu.com/api/sns/v4/note/videofeed"))
-        self.assertIsNone(rstore.search("https://edith.xiaohongshu.com/api/sns/v5/note/videofeed"))
+        self.assertIsNotNone(rstore.search("https://edith.xiaohongshu.com/api/sns/v1/note/videofeed"))
+        self.assertIsNotNone(rstore.search("https://edith.xiaohongshu.com/api/sns/v2/note/videofeed"))
+        self.assertIsNotNone(rstore.search("https://edith.xiaohongshu.com/api/sns/v5/note/videofeed"))
+        self.assertIsNotNone(rstore.search("https://edith.xiaohongshu.com/api/sns/v10/note/videofeed"))
         self.assertIsNone(rstore.search("https://www.xiaohongshu.com/api/sns/v1/note/imagefeed"))
         self.assertIsNone(rstore.search("https://rec.xiaohongshu.com/api/sns/v2/note/feed"))
         self.assertIsNone(rstore.search("https://edith.xiaohongshu.com/api/sns/v10/note/video/save"))
