@@ -201,7 +201,7 @@ def inspect_plugin(path):
             continue
         action = tokens[1]
         if action not in LEGACY_ACTIONS:
-            errors.append('Rewrite 第 %d 行未知旧版动作 %r' % (number, action))
+            errors.append('Rewrite 第 %d 行未知旧版动作 %r：%s' % (number, action, value[:240]))
         key = (tokens[0], action, ' '.join(tokens[2:]))
         if key in rewrite_seen:
             warnings.append('Rewrite 第 %d 行与第 %d 行完全重复' % (number, rewrite_seen[key]))
