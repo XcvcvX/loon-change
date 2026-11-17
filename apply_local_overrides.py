@@ -1376,7 +1376,8 @@ def remove_redundant_baidumap_script(lines):
     if not legacy_positions:
         return output, 0
     if not gated_positions:
-        raise ValueError("Baidu Maps gated script trigger missing or changed: " + label)
+        # Preserve the only remaining handler when upstream no longer ships a gated twin.
+        return output, 0
     output = [line for line in output if line.strip() != legacy]
     return output, 1
 
