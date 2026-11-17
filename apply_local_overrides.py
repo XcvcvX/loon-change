@@ -678,6 +678,12 @@ GOOFISH_REDUNDANT_SCRIPT_TRIGGERS = (
     r"http-response ^https:\/\/g-acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlemtopsearch\.search\/ script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 搜索结果信息流广告",
     r"http-response ^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.local\.flow\.plat\.section script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 同城页横幅广告",
     r'response if ${url} ~= /^https://acs.m.goofish.com/gw/mtop.taobao.idlehome.home.nextfresh//i then script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/ishowshu/goofish/ishowshu_goofish.js") with tag="goofish", timeout=60, requires_body=true',
+    r'response if ${url} ~= /^https://acs.m.goofish.com/gw/mtop.taobao.idle.local.home//i then script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/ishowshu/goofish/ishowshu_goofish.js") with tag="goofish", timeout=60, requires_body=true',
+    r'response if ${url} ~= /^https://acs.m.goofish.com/gw/mtop.idle.user.page.my.adapter//i then script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/ishowshu/goofish/ishowshu_goofish.js") with tag="goofish", timeout=60, requires_body=true',
+    r'response if ${url} ~= /^https://acs.m.goofish.com/gw/mtop.taobao.idlehome.home.circle.list/1.0/i then script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/ishowshu/goofish/ishowshu_goofish.js") with tag="goofish", timeout=60, requires_body=true',
+    r'response if ${url} ~= /^https://acs.m.goofish.com/gw/mtop.taobao.idle.local.nearby.itemdetail.enter/1.0/i then script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/ishowshu/goofish/ishowshu_goofish.js") with tag="goofish", timeout=60, requires_body=true',
+    r'response if ${url} ~= /^https://g-acs.m.goofish.com/gw/mtop.taobao.idlemtopsearch.search//i then script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/ishowshu/goofish/ishowshu_goofish.js") with tag="goofish", timeout=60, requires_body=true',
+    r'response if ${url} ~= /^https://acs.m.goofish.com/gw/mtop.taobao.idle.local.flow.plat.section/i then script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/ishowshu/goofish/ishowshu_goofish.js") with tag="goofish", timeout=60, requires_body=true',
 )
 
 
