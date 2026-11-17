@@ -598,7 +598,7 @@ def remove_redundant_taobao_scripts(lines):
             counts[trigger] += 1
             if counts[trigger] > 1:
                 raise ValueError("duplicate canonical Taobao script trigger; refusing ambiguous deduplication")
-            output.append(line)
+            output.append(trigger)
             continue
         if normalized in redundant:
             trigger = redundant[normalized]
@@ -657,7 +657,10 @@ GOOFISH_REDUNDANT_SCRIPT_TRIGGERS = (
 
 def consolidate_goofish_script_triggers(lines):
     """Replace all audited Xianyu script triggers with one local trigger per endpoint."""
-    normalize = lambda value: re.sub(r"\\+", "", value.strip())
+    normalize = lambda value: re.sub(r"\\+", "", value.strip()).replace(
+        "script-path=scripts/xianyu/goofish.js",
+        "script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js",
+    )
     canonical = {normalize(item): item for item in GOOFISH_CANONICAL_SCRIPT_TRIGGERS}
     redundant = {normalize(item): item for item in GOOFISH_REDUNDANT_SCRIPT_TRIGGERS}
     counts = {item: 0 for item in (*GOOFISH_CANONICAL_SCRIPT_TRIGGERS, *GOOFISH_REDUNDANT_SCRIPT_TRIGGERS)}
