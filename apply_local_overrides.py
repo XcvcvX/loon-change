@@ -1262,13 +1262,13 @@ def apply_didi_script_and_homepage_cleanup(lines):
     for legacy in DIDIADS_NOOP_SCRIPT_RULES:
         marker = norm(legacy.split(" then script(", 1)[0])
         exact = [line for line in output if norm(line) == norm(legacy)]
-        drifted = [line for line in output if "didiads.js" in norm(line) and marker in norm(line) and line.strip() != legacy]
+        drifted = [line for line in output if "didiads.js" in norm(line) and marker in norm(line) and norm(line) != norm(legacy)]
         if drifted:
             raise ValueError("DidiAds no-op script trigger drifted; refusing unreviewed cleanup")
         if len(exact) > 1:
             raise ValueError("duplicate DidiAds no-op script trigger")
         if exact:
-            output = [line for line in output if line.strip() != legacy]
+            output = [line for line in output if norm(line) != norm(legacy)]
             removed_noop += 1
 
     remaining_didiads = [norm(line) for line in output if "didiads.js" in norm(line)]
