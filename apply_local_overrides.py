@@ -1156,12 +1156,12 @@ def remove_didi_homepage_rejects_shadowing_field_cleaners(lines):
         (DIDI_HOME_CORE_LEGACY_REJECT, DIDI_HOME_CORE_RESPONSE_PREFIX, "core", "homepage/vd/core"),
     )
     for legacy_rule, response_prefix, label, drift_marker in targets:
-        exact_positions = [i for i, line in enumerate(output) if line.strip() == legacy_rule]
+        exact_positions = [i for i, line in enumerate(output) if norm(line) == norm(legacy)_rule]
         drifted = [
             line.strip() for line in output
             if drift_marker in re.sub(r"\\+", "", line)
             and line.strip().startswith("^https")
-            and line.strip() != legacy_rule
+            and norm(line) != norm(legacy)_rule
         ]
         if drifted:
             raise ValueError("Didi homepage " + label + " legacy reject changed; refusing an unreviewed override")
@@ -1174,7 +1174,7 @@ def remove_didi_homepage_rejects_shadowing_field_cleaners(lines):
             raise ValueError(
                 "Didi homepage " + label + " field-level response cleaner inventory changed"
             )
-        output = [line for line in output if line.strip() != legacy_rule]
+        output = [line for line in output if norm(line) != norm(legacy)_rule]
         removed += 1
     return output, removed
 
@@ -1206,7 +1206,11 @@ def apply_didi_script_and_homepage_cleanup(lines):
     output = list(lines)
     if "[Argument]" not in output or "[Rule]" not in output:
         return output, 0
-    norm = lambda value: re.sub(r"\\+", "", value.strip()).lower()
+    norm = lambda value: re.sub(
+        r"enable=\\$\\{([^}]+)\\}",
+        r"enable=\\1",
+        re.sub(r"\\\\+", "", value.strip()),
+    ).lower()
 
     core_current = [i for i, line in enumerate(output) if line.strip() == DIDI_CORE_NATIVE_RULE_CURRENT]
     core_native = [i for i, line in enumerate(output) if line.strip() == DIDI_CORE_NATIVE_RULE]
@@ -1238,14 +1242,14 @@ def apply_didi_script_and_homepage_cleanup(lines):
     if old_user_layout:
         output = [line for line in output if line.strip() != DIDI_USERCENTER_LAYOUT_LEGACY_JSON_RULE]
 
-    common_v5 = [line for line in output if line.strip() == DIDIADS_COMMON_V5_SCRIPT]
+    common_v5 = [line for line in output if norm(line) == norm(DIDIADS_COMMON_V5_SCRIPT)]
     if len(common_v5) != 1:
         raise ValueError("Didi common/v5 canonical script trigger missing or duplicated")
     for legacy, marker, label in (
         (DIDI_CORE_LEGACY_SCRIPT, "homepage/vd/core", "core"),
         (DIDI_USERCENTER_LEGACY_SCRIPT, "common/vd/usercenter/me", "usercenter"),
     ):
-        exact = [line for line in output if line.strip() == legacy]
+        exact = [line for line in output if norm(line) == norm(legacy)]
         drifted = [line for line in output if "AntiAd/didi.js" in line and marker in norm(line) and line.strip() != legacy]
         if drifted:
             raise ValueError("Didi " + label + " legacy script trigger drifted")
@@ -1267,14 +1271,14 @@ def apply_didi_script_and_homepage_cleanup(lines):
             output = [line for line in output if line.strip() != legacy]
             removed_noop += 1
 
-    remaining_didiads = [line.strip() for line in output if "didiAds.js" in line]
-    if remaining_didiads != [DIDIADS_COMMON_V5_SCRIPT]:
+    remaining_didiads = [norm(line) for line in output if "didiads.js" in norm(line)]
+    if remaining_didiads != [norm(DIDIADS_COMMON_V5_SCRIPT)]:
         raise ValueError("DidiAds script trigger inventory changed; expected common/v5 only")
     for keeper in (DIDI_OTA_KEEP_SCRIPT, DIDI_PRESALE_KEEP_SCRIPT):
-        if sum(line.strip() == keeper for line in output) != 1:
+        if sum(norm(line) == norm(keeper) for line in output) != 1:
             raise ValueError("Didi R-Store retained script inventory changed")
-    remaining_rstore = [line.strip() for line in output if "AntiAd/didi.js" in line]
-    if sorted(remaining_rstore) != sorted((DIDI_OTA_KEEP_SCRIPT, DIDI_PRESALE_KEEP_SCRIPT)):
+    remaining_rstore = [norm(line) for line in output if "antiad/didi.js" in norm(line)]
+    if sorted(remaining_rstore) != sorted((norm(DIDI_OTA_KEEP_SCRIPT), norm(DIDI_PRESALE_KEEP_SCRIPT))):
         raise ValueError("Didi R-Store script inventory changed")
     return output, removed_noop
 
