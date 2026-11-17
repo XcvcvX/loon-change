@@ -677,6 +677,7 @@ GOOFISH_REDUNDANT_SCRIPT_TRIGGERS = (
     r"http-response ^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.local\.nearby\.itemdetail\.enter\/ script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 商品详情页周边推荐",
     r"http-response ^https:\/\/g-acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlemtopsearch\.search\/ script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 搜索结果信息流广告",
     r"http-response ^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.local\.flow\.plat\.section script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/goofish.js, requires-body = true, tag = 同城页横幅广告",
+    r'response if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlehome\\.home\\.nextfresh\\//i then script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/ishowshu/goofish/ishowshu_goofish.js") with tag="goofish", requires_body=true',
 )
 
 
