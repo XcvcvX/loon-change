@@ -477,7 +477,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         legacy = r'^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/newDetails response-body-replace-regex suspension random_body'
         modern = r'response if ${url} ~= /^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/newDetails/ then response.body.replace(/suspension/, "fmz200")'
         keep = r'^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/getHomeAdPop reject-dict'
-        result, converted = replace_ddqx_newdetails_body_rewrites([legacy, modern, keep])
+        result, converted = replace_ddqx_newdetails_body_rewrites(["[Rewrite]", legacy, modern, keep])
         self.assertEqual(converted, 2)
         self.assertNotIn(legacy, result)
         self.assertNotIn(modern, result)
