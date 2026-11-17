@@ -3546,7 +3546,7 @@ MORE_RESPONSE_TRANSFORMS = {
 def remove_more_duplicate_response_scripts(lines):
     """Keep one handler per overlapping response, retaining broad matchers and safer guards."""
     remove_counts = {item: 0 for item in MORE_RESPONSE_REMOVE_TRIGGERS}
-    normalize_switch = lambda value: re.sub(r"enable=\\$\\{([^}]+)\\}", r"enable=\\1", value.strip())
+    normalize_switch = lambda value: re.sub(r"enable=\$\{([^}]+)\}", r"enable=\1", value.strip())
     source_counts = {normalize_switch(item): 0 for item in MORE_RESPONSE_KEEP_SOURCE_TRIGGERS}
     output_counts = {normalize_switch(item): 0 for item in MORE_RESPONSE_KEEP_TRIGGERS}
     remove_set = set(MORE_RESPONSE_REMOVE_TRIGGERS)
@@ -3593,7 +3593,7 @@ def remove_more_duplicate_response_scripts(lines):
                     raise ValueError("duplicate retained response source trigger")
                 transformed = MORE_RESPONSE_TRANSFORMS.get(inventory_line, inventory_line)
                 if "enable=${" in line:
-                    transformed = re.sub(r"enable=([A-Za-z0-9_]+)", r"enable=${\\1}", transformed)
+                    transformed = re.sub(r"enable=([A-Za-z0-9_]+)", r"enable=${\1}, transformed)
                 output.append(transformed)
                 continue
             raise ValueError("Kuwo/iThome/Cainiao/QuDa/Youdao/ZSGJ inventory changed; refusing unreviewed consolidation")
