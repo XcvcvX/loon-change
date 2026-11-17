@@ -3942,13 +3942,15 @@ class BilibiliProtobufDuplicateTriggerTests(unittest.TestCase):
         fixture = ["[Rewrite]", "[Script]", fmz_trigger]
         for _, original, _ in BILIBILI_PROTOBUF_DUPLICATE_PAIRS:
             fixture.append(original)
-        fixture.extend([mainlist, "[MITM]", "hostname = grpc.biliapi.net, app.bilibili.com"])
+        fixture.extend(["[MITM]", "hostname = grpc.biliapi.net, app.bilibili.com"])
         result, changed = narrow_duplicate_bilibili_protobuf_triggers(fixture)
-        self.assertEqual(changed, 4)
+        self.assertEqual(changed, 5)
         for _, original, narrowed in BILIBILI_PROTOBUF_DUPLICATE_PAIRS:
             self.assertNotIn(original, result)
             self.assertIn(narrowed, result)
-        self.assertIn(mainlist, result)
+        narrowed_mainlist = next(narrowed for marker, original, narrowed in BILIBILI_PROTOBUF_DUPLICATE_PAIRS if marker == "MainList")
+        self.assertNotIn(mainlist, result)
+        self.assertIn(narrowed_mainlist, result)
         again, second_changed = narrow_duplicate_bilibili_protobuf_triggers(result)
         self.assertEqual(second_changed, 0)
         self.assertEqual(again, result)
