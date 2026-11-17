@@ -345,6 +345,21 @@ jobs:
         run: |
           python3 source_health_guard.py --previous-sources /tmp/loon-build/source-report.previous.json --current-sources source-report.json --previous-provenance /tmp/loon-build/rule-provenance.previous.json --current-provenance /tmp/loon-build/rule-provenance.json --diff /tmp/loon-build/rule-diff.json --out /tmp/loon-build/source-health.json
 
+      - name: 上传来源健康门禁诊断数据（失败时保留）
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: source-health-debug-${{ github.run_id }}
+          path: |
+            /tmp/loon-build/rule-diff.json
+            /tmp/loon-build/rule-provenance.json
+            /tmp/loon-build/rule-provenance.previous.json
+            /tmp/loon-build/source-health.json
+            /tmp/loon-build/source-report.previous.json
+            source-report.json
+          if-no-files-found: warn
+          retention-days: 14
+
       - name: 规则变更风险分级与来源历史趋势
         run: |
           python3 rule_risk_history.py --diff /tmp/loon-build/rule-diff.json --health /tmp/loon-build/source-health.json --source-report source-report.json --provenance /tmp/loon-build/rule-provenance.json --previous-history /tmp/loon-build/rule-history.previous.json --run-id "$GITHUB_RUN_ID" --risk-out /tmp/loon-build/rule-risk.json --history-out /tmp/loon-build/rule-history.json
