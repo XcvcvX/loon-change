@@ -1416,7 +1416,20 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertEqual(result.count(JD_OPTIONAL_WELCOME_TRIGGER), 1)
         self.assertIn("scripts/jingdong/jd.js", result)
         self.assertIn("scripts/jingdong/jd-welcome.js", result)
-        self.assertIn("with enable=jkds_enable", result)
+        self.assertIn("with enable=${jkds_enable}", result)
+        self.assertEqual(apply(result), result)
+
+    def test_accepts_current_jingdong_switch_interpolation_and_preserves_it(self):
+        from apply_local_overrides import (
+            JD_CANONICAL_TRIGGER, JD_FMZ_LEGACY_TRIGGER_CURRENT,
+            JD_OPTIONAL_WELCOME_TRIGGER,
+        )
+        fixture = self.base.replace(self.fmz, JD_FMZ_LEGACY_TRIGGER_CURRENT)
+        result = apply(fixture)
+        self.assertNotIn(JD_FMZ_LEGACY_TRIGGER_CURRENT, result)
+        self.assertIn(JD_CANONICAL_TRIGGER, result)
+        self.assertIn(JD_OPTIONAL_WELCOME_TRIGGER, result)
+        self.assertIn("enable=${jkds_enable}", JD_OPTIONAL_WELCOME_TRIGGER)
         self.assertEqual(apply(result), result)
 
     def test_fails_closed_when_either_legacy_trigger_drifts_or_is_missing(self):
@@ -1452,7 +1465,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         ):
             self.assertIn(marker, base_script)
         self.assertIn("catch (_)", base_script)
-        self.assertIn("with enable=jkds_enable", __import__("apply_local_overrides").JD_OPTIONAL_WELCOME_TRIGGER)
+        self.assertIn("with enable=${jkds_enable}", __import__("apply_local_overrides").JD_OPTIONAL_WELCOME_TRIGGER)
         for marker in (
             "bottomXview", "float", "photoCeiling", "ruleFloat",
             "searchIcon", "topRotate", "tabBarAtmosphere",
