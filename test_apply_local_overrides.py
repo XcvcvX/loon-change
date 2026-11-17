@@ -4111,19 +4111,19 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
         script = "\n".join(result).split("[Script]", 1)[1].split("[MITM]", 1)[0]
         for marker in AMAP_ISHOWSHU_REDUNDANT_SCRIPT_MARKERS:
             self.assertFalse(any(
-                marker in line.lower() and "ishowshu_amap.js" in line.lower()
+                marker in line.replace(chr(92), "").lower() and "ishowshu_amap.js" in line.lower()
                 for line in script.splitlines()
             ), marker)
         # Bus-plan iShowshu is intentionally retained: it additionally removes
         # hkfRecommendPlans, which the native rewrite does not cover.
         self.assertTrue(any(
-            "/ws/bus/plan/integrate" in line.lower() and "ishowshu_amap.js" in line.lower()
+            "/ws/bus/plan/integrate" in line.replace(chr(92), "").lower() and "ishowshu_amap.js" in line.lower()
             for line in script.splitlines()
         ))
         for marker in AMAP_VERSIONED_RSTORE_SCRIPT_MARKERS:
             rows = [
                 line for line in script.splitlines()
-                if marker in line.lower() and "/res/scripts/antiad/amap.js" in line.lower()
+                if marker in line.replace(chr(92), "").lower() and "/res/scripts/antiad/amap.js" in line.lower()
             ]
             self.assertEqual(len(rows), 1, marker)
             self.assertIn("m[0-46-9]", rows[0], marker)
@@ -4146,23 +4146,23 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
         before_marker = AMAP_ISHOWSHU_REDUNDANT_SCRIPT_MARKERS[0]
         without_native = [
             line for line in lines
-            if not (before_marker in line.lower() and "response.json.jq(" in line)
+            if not (before_marker in line.replace(chr(92), "").lower() and "response.json.jq(" in line)
         ]
         preserved, _ = optimize_amap_response_script_overlaps(without_native)
         preserved_script = "\n".join(preserved).split("[Script]", 1)[1].split("[MITM]", 1)[0]
         self.assertTrue(any(
-            before_marker in line.lower() and "ishowshu_amap.js" in line.lower()
+            before_marker in line.replace(chr(92), "").lower() and "ishowshu_amap.js" in line.lower()
             for line in preserved_script.splitlines()
         ))
         nearby_marker = AMAP_ISHOWSHU_REDUNDANT_SCRIPT_MARKERS[1]
         without_local = [
             line for line in lines
-            if not (nearby_marker in line.lower() and "sources/amap/rucu6_amap.js" in line.lower())
+            if not (nearby_marker in line.replace(chr(92), "").lower() and "sources/amap/rucu6_amap.js" in line.lower())
         ]
         preserved, _ = optimize_amap_response_script_overlaps(without_local)
         preserved_script = "\n".join(preserved).split("[Script]", 1)[1].split("[MITM]", 1)[0]
         self.assertTrue(any(
-            nearby_marker in line.lower() and "ishowshu_amap.js" in line.lower()
+            nearby_marker in line.replace(chr(92), "").lower() and "ishowshu_amap.js" in line.lower()
             for line in preserved_script.splitlines()
         ))
 
@@ -4177,7 +4177,7 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
         marker = AMAP_ISHOWSHU_REDUNDANT_SCRIPT_MARKERS[1]
         canonical = next(
             line for line in lines
-            if marker in line.lower() and "sources/amap/rucu6_amap.js" in line.lower()
+            if marker in line.replace(chr(92), "").lower() and "sources/amap/rucu6_amap.js" in line.lower()
         )
         lines.append(canonical)
         with self.assertRaisesRegex(ValueError, "duplicate canonical local Amap trigger"):
