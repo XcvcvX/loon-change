@@ -4,6 +4,13 @@ on:
   push:
     branches:
       - main
+  # A production sync commit is pushed with GITHUB_TOKEN, which does not
+  # trigger other push workflows. Run again after the full rule-build workflow
+  # completes so the Gist always receives the final generated plugin.
+  workflow_run:
+    workflows: ["Sync multi-source ad-block plugins (QuanX -> Loon)"]
+    types: [completed]
+    branches: [main]
   schedule:
     - cron: "17 3 * * *"
   workflow_dispatch:
@@ -17,6 +24,7 @@ permissions:
 
 jobs:
   sync:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
