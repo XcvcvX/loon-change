@@ -2194,6 +2194,9 @@ def remove_douyin_content_cdn_overblocks(lines):
     # 仅将连续转义符归一为一个，按等价正则匹配已审核的精确清理清单。
     def inventory_key(section_name, rule):
         canonical = re.sub(r"\\{2,}([A-Za-z./])", lambda match: "\\" + match.group(1), rule)
+        # Some upstream variants leave the dot in the literal host unescaped;
+        # normalize only this exact hostname token before inventory comparison.
+        canonical = re.sub(r"(?<!\\)pstatp\\.com", r"pstatp\\.com", canonical)
         return section_name, canonical
 
     known_inventory = {inventory_key(section_name, rule): (section_name, rule)
