@@ -135,7 +135,9 @@ jobs:
           if-no-files-found: error
 
   sync:
-    if: github.event_name != 'pull_request'
+    # Run the complete production build as a PR preflight for same-repository branches.
+    # Only the publish step is disabled for PR events.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     permissions:
       contents: write
     runs-on: ubuntu-latest
@@ -386,7 +388,7 @@ jobs:
           fi
 
       - name: 提交并推送
-        if: steps.diff.outputs.changed == 'true'
+        if: github.event_name != 'pull_request' && steps.diff.outputs.changed == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
