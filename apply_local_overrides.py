@@ -2187,7 +2187,7 @@ def remove_douyin_content_cdn_overblocks(lines):
     # 合并来源可能把正则转义再次编码（\/、\\/；\.、\\.)。
     # 仅将连续转义符归一为一个，按等价正则匹配已审核的精确清理清单。
     def inventory_key(section_name, rule):
-        canonical = re.sub(r"\\{2,}([./])", lambda match: "\\" + match.group(1), rule)
+        canonical = re.sub(r"\\{2,}([A-Za-z./])", lambda match: "\\" + match.group(1), rule)
         return section_name, canonical
 
     known_inventory = {inventory_key(section_name, rule): (section_name, rule)
