@@ -3036,7 +3036,7 @@ def remove_duplicate_cnftp_scripts(lines):
                     raise ValueError("duplicate retained video source trigger; refusing ambiguous cleanup")
                 output.append(normalized_mgtv_replacements.get(normalized_line, line))
                 continue
-            raise ValueError("video script trigger inventory changed; refusing unreviewed consolidation")
+            raise ValueError(f"video script trigger inventory changed; refusing unreviewed consolidation: {line.strip()}")
 
         if normalized_line == normalize_cnftp_trigger_line(CNFTP_IQIYI_HOME_COMBINED_TRIGGER):
             combined_home_count += 1
