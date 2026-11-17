@@ -42,7 +42,8 @@ def _migration_action_changes(diff, section, migrated_sources):
     for row in rows:
         before = row.get("before", {}).get("sources", [])
         after = row.get("after", {}).get("sources", [])
-        if migrated_sources.intersection(set(before) | set(after)):
+        contributing_sources = set(before) | set(after)
+        if contributing_sources and contributing_sources.issubset(migrated_sources):
             count += 1
     return count
 
