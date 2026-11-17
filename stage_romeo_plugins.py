@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 from pathlib import Path
 
@@ -45,6 +46,21 @@ def _pinned_asset_url(commit: str, source_path: str) -> str:
     return f"https://raw.githubusercontent.com/ifflagged/Romeo/{commit}/{source_path}"
 
 
+def _pin_romeo_references(text: str, romeo_repo: Path, commit: str) -> str:
+    """Pin every plugin-level Romeo raw script/JQ URL to the build's commit."""
+    patterns = (
+        re.compile(r"https://github\\.com/ifflagged/Romeo/raw/(?:refs/heads/)?main/([^\\s\\\"')]+)"),
+        re.compile(r"https://raw\\.githubusercontent\\.com/ifflagged/Romeo/main/([^\\s\\\"')]+)"),
+    )
+    for pattern in patterns:
+        for match in list(pattern.finditer(text)):
+            old_url = match.group(0)
+            source_path = match.group(1)
+            _read_romeo_file(romeo_repo, commit, source_path)
+            text = text.replace(old_url, _pinned_asset_url(commit, source_path))
+    return text
+
+
 def _stage_plugin_map(
     romeo_repo: Path, commit: str, output: Path, mapping: dict[str, str],
     assets_by_plugin: dict[str, list[dict]],
@@ -70,6 +86,7 @@ def _stage_plugin_map(
             if not asset_data.strip():
                 raise RuntimeError(f"Romeo runtime asset is empty: {asset['source_path']}")
             text = text.replace(old_url, _pinned_asset_url(commit, asset["source_path"]))
+        text = _pin_romeo_references(text, romeo_repo, commit)
         if "raw.githubusercontent.com/zmjde/loon-plugins/" in text:
             raise RuntimeError(f"Unmigrated zmjde Raw dependency remains in {filename}")
         (output / filename).write_text(text, encoding="utf-8")
