@@ -53,9 +53,9 @@ class RuntimePerformanceAuditTests(unittest.TestCase):
             root = Path(directory)
             plugin = root / "test.plugin"
             plugin.write_text(
-                "[Script]\\n"
-                "response if ${url} ~= /^https://api.example.com/a then script(\"https://example.com/a.js\") with requires_body=true\\n"
-                "response if ${url} ~= /^https://api.example.com/a then script(\"https://example.com/b.js\") with requires_body=true\\n",
+                "[Script]\n"
+                "response if ${url} ~= /^https://api.example.com/a then script(\"https://example.com/a.js\") with requires_body=true\n"
+                "response if ${url} ~= /^https://api.example.com/a then script(\"https://example.com/b.js\") with requires_body=true\n",
                 encoding="utf-8",
             )
             report = audit_plugin(plugin, root)
