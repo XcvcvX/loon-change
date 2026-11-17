@@ -199,10 +199,13 @@ def inspect_plugin(path):
         if len(tokens) < 2:
             errors.append('Rewrite 第 %d 行字段不足：%s' % (number, value[:160]))
             continue
-        action = tokens[1]
+        # Some valid Loon legacy rules use a standalone "-" separator:
+        # <pattern> - <action>. Treat it as syntax, not as the action itself.
+        action_index = 2 if len(tokens) >= 3 and tokens[1] == '-' else 1
+        action = tokens[action_index]
         if action not in LEGACY_ACTIONS:
             errors.append('Rewrite 第 %d 行未知旧版动作 %r：%s' % (number, action, value[:240]))
-        key = (tokens[0], action, ' '.join(tokens[2:]))
+        key = (tokens[0], action, ' '.join(tokens[action_index + 1:]))
         if key in rewrite_seen:
             warnings.append('Rewrite 第 %d 行与第 %d 行完全重复' % (number, rewrite_seen[key]))
         else:
