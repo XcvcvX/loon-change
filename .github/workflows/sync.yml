@@ -103,6 +103,7 @@ jobs:
           ROMEO_CHECK_SHA="$(git -C /tmp/romeo-check rev-parse HEAD)"
           python3 stage_romeo_plugins.py --romeo-repo /tmp/romeo-check --commit "$ROMEO_CHECK_SHA" --output /tmp/romeo-check/plugins --zmjde-output /tmp/romeo-check-zmjde/Plugin
           python3 - <<'PY'
+          import json
           from pathlib import Path
           from source_guard import validate_plugin_file
           from stage_romeo_plugins import EXPECTED_PLUGIN_FILES, ZMJDE_PLUGIN_MAP, RUNTIME_ASSETS
