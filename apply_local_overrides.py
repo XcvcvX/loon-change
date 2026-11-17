@@ -3479,7 +3479,7 @@ SAME_SOURCE_DUPLICATE_KEEP_TRIGGERS = (
     "response if ${url} ~= /^https?:\\/\\/manga\\.bilibili\\.com\\/twirp\\/user\\.v\\d\\.User\\/GetInitInfo/i then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliManga.js\") with enable=bilimanhua_enable, tag=\"哔哩哔哩漫画\", timeout=60, requires_body=true",
     "response if ${url} ~= /^https?:\\/\\/manga\\.bilibili\\.com\\/twirp\\/comic\\.v\\d\\.Home\\/HomeFeed/i then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliManga.js\") with enable=bilimanhua_enable, tag=\"哔哩哔哩漫画\", timeout=60, requires_body=true",
     "response if ${url} ~= /^https?:\\/\\/manga\\.bilibili\\.com\\/twirp\\/comic\\.v\\d\\.Comment\\/Main/i then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliManga.js\") with enable=bilimanhua_enable, tag=\"哔哩哔哩漫画\", timeout=60, requires_body=true",
-    "response if ${url} ~= /^https?:\\/\\/maicai\\.api\\.ddxq\\.mobi\\/homeApi\\/(?>bottomNavi|homeFlowDetail)/i then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ddxq.js\") with enable=ddmc_enable, tag=\"叮咚买菜\", timeout=60, requires_body=true",
+    "response if ${url} ~= /^https?:\\/\\/maicai\\.api\\.ddxq\\.mobi\\/homeApi\\/(?:bottomNavi|homeFlowDetail)/i then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ddxq.js\") with enable=ddmc_enable, tag=\"叮咚买菜\", timeout=60, requires_body=true",
     "response if ${url} ~= /^https?:\\/\\/maicai\\.api\\.ddxq\\.mobi\\/tool\\/getConfig/i then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ddxq.js\") with enable=ddmc_enable, tag=\"叮咚买菜\", timeout=60, requires_body=true",
     "response if ${url} ~= /^https?:\\/\\/user\\.api\\.ddxq\\.mobi\\/userportal-service\\/api\\/v\\d\\/user\\/queryMyPage/i then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ddxq.js\") with enable=ddmc_enable, tag=\"叮咚买菜\", timeout=60, requires_body=true",
     "response if ${url} ~= /^https?:\\/\\/apis\\.folidaymall\\.com\\/online\\/capi\\/component\\/getPageComponents/i then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/foliday.js\") with tag=\"复游会微信小程序\", timeout=60, requires_body=true",
@@ -4109,7 +4109,7 @@ def narrow_xiaohongshu_native_response_duplicates(lines):
 
 
 XHS_V3_VIDEO_RSTORE_NARROWED_TRIGGER = (
-    r"http-response ^https?:\\/\\/(?:edith|rec|www)\\.xiaohongshu\\.com\\/api\\/sns\\/(?:v(?:[13-9]|[1-9][0-9]+)\\/note\\/feed|v(?:[1-9]|1[1-9]|[2-9][0-9]+)\\/note\\/video\\/save) "
+    r"http-response ^https?:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/(?:v(?:[13-9]|[1-9][0-9]+)\/note\/feed|v(?:[1-9]|1[1-9]|[2-9][0-9]+)\/note\/video\/save) "
     r"script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-7,requires-body=true"
 )
 XHS_V3_VIDEO_FMZ_NARROWED_TRIGGER = (
@@ -5064,7 +5064,7 @@ BILIBILI_PROTOBUF_DUPLICATE_PAIRS = (
 
 # Sparkle does not process MainList. Keep BAICIZHAN-5 full v1-v9 coverage.
 BILIBILI_PROTOBUF_NON_DUPLICATE_TRIGGER = (
-    r"http-response ^https?:\\/\\/(?:app\\.bilibili\\.com|grpc\\.biliapi\\.net)\\/bilibili\\.main\\.community\\.reply\\.v\\d\\.Reply\\/MainList "
+    r"http-response ^https?:\/\/(?:app\.bilibili\.com|grpc\.biliapi\.net)\/bilibili\.main\.community\.reply\.v\d\.Reply\/MainList "
     r"script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-5,requires-body=true,binary-body-mode=true"
 )
 
@@ -5097,9 +5097,10 @@ def narrow_duplicate_bilibili_protobuf_triggers(lines):
         line for line in script_lines
         if "tag=BAICIZHAN-5" in line or "bilibili.main.community.reply" in re.sub(r"\\+", "", line)
     ]
+    normalize_mainlist = lambda value: re.sub(r"\\+", "", value)
     if mainlist_candidates and (
         len(mainlist_candidates) != 1
-        or mainlist_candidates[0] != BILIBILI_PROTOBUF_NON_DUPLICATE_TRIGGER
+        or normalize_mainlist(mainlist_candidates[0]) != normalize_mainlist(BILIBILI_PROTOBUF_NON_DUPLICATE_TRIGGER)
     ):
         raise ValueError("Bilibili MainList is not covered by Sparkle; refusing version narrowing")
 
