@@ -3921,17 +3921,6 @@ XHS_NATIVE_DUPLICATE_TRIGGER_TAGS = (
     "XIAOHONGSHU-6",
 )
 
-XHS_NATIVE_DUPLICATE_REWRITE_MARKERS = (
-    ("/api/sns/v", "/note/widgets", 1),
-    ("/api/sns/v", "/search/banner_list", 1),
-    ("/api/sns/v", "/search/hot_list", 1),
-    ("/api/sns/v", "/search/hint", 1),
-    ("/api/sns/v", "/search/trending", 1),
-    ("/api/sns/v", "/search/notes", 1),
-    ("/api/sns/v", "/system_service/config", 1),
-)
-
-
 def narrow_xiaohongshu_native_response_duplicates(lines):
     """Remove only XHS script passes whose exact endpoint has a native JSON rewrite."""
     original = list(lines)
