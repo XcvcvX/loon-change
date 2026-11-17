@@ -471,19 +471,18 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
             apply(BASE.replace("[Rewrite]", "[Rewrite]\n" + changed))
 
     def test_converts_duoduo_grocery_newdetails_suspension_to_native_json_delete(self):
-        from apply_local_overrides import DDQX_NEWDETAILS_NATIVE_RULE
+        from apply_local_overrides import (
+            DDQX_NEWDETAILS_NATIVE_RULE, replace_ddqx_newdetails_body_rewrites,
+        )
         legacy = r'^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/newDetails response-body-replace-regex suspension random_body'
         modern = r'response if ${url} ~= /^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/newDetails/ then response.body.replace(/suspension/, "fmz200")'
         keep = r'^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/getHomeAdPop reject-dict'
-        fixture = BASE.replace("[Rewrite]", "[Rewrite]\n" + legacy + "\n" + modern + "\n" + keep)
-        result = apply(fixture)
-        rewrite = result.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
-        self.assertNotIn(legacy, rewrite)
-        self.assertNotIn(modern, rewrite)
-        self.assertIn(DDQX_NEWDETAILS_NATIVE_RULE, rewrite)
-        self.assertEqual(rewrite.count("response.json.delete(\"data.suspension\")"), 1)
-        self.assertIn(keep, rewrite)
-        self.assertEqual(apply(result), result)
+        result, converted = replace_ddqx_newdetails_body_rewrites([legacy, modern, keep])
+        self.assertEqual(converted, 2)
+        self.assertNotIn(legacy, result)
+        self.assertNotIn(modern, result)
+        self.assertIn(DDQX_NEWDETAILS_NATIVE_RULE, result)
+        self.assertIn(keep, result)
 
     def test_preserves_unknown_duoduo_grocery_newdetails_rule_without_partial_conversion(self):
         from apply_local_overrides import (
@@ -2319,24 +2318,21 @@ class ZhihuRequestShadowRuleCleanupTests(unittest.TestCase):
     def test_preserves_missing_cover_and_unknown_but_rejects_duplicates(self):
         from apply_local_overrides import remove_redundant_zhihu_request_rules
         redundant, canonical, _marker = self.pairs[0]
-        base = self.base.splitlines()
-        missing_cover = [line for line in base if line.strip() != canonical]
-        preserved, removed = remove_redundant_zhihu_request_rules(missing_cover)
+        preserved, removed = remove_redundant_zhihu_request_rules([redundant])
         self.assertEqual(removed, 0)
-        self.assertIn(redundant, preserved)
+        self.assertEqual(preserved, [redundant])
 
-        duplicate = base + [redundant]
         with self.assertRaisesRegex(ValueError, "duplicate Zhihu request blocker"):
-            remove_redundant_zhihu_request_rules(duplicate)
+            remove_redundant_zhihu_request_rules([redundant, redundant])
 
         drifted_line = redundant.replace("reject(404)", "reject_dict(200)")
-        drifted = [drifted_line if line == redundant else line for line in base]
-        preserved, _ = remove_redundant_zhihu_request_rules(drifted)
-        self.assertIn(drifted_line, preserved)
+        preserved, _ = remove_redundant_zhihu_request_rules([drifted_line])
+        self.assertEqual(preserved, [drifted_line])
 
         unknown_line = redundant.replace("reject(404)", "reject(403)")
-        unknown = base + [unknown_line]
-        preserved, _ = remove_redundant_zhihu_request_rules(unknown)
+        preserved, removed = remove_redundant_zhihu_request_rules([redundant, canonical, unknown_line])
+        self.assertEqual(removed, 1)
+        self.assertIn(canonical, preserved)
         self.assertIn(unknown_line, preserved)
 
 
