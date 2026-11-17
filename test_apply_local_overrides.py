@@ -1565,7 +1565,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertNotIn(JD_FMZ_LEGACY_TRIGGER_CURRENT, result)
         self.assertIn(JD_CANONICAL_TRIGGER, result)
         self.assertIn(JD_OPTIONAL_WELCOME_TRIGGER, result)
-        self.assertIn("enable=${jkds_enable}", JD_OPTIONAL_WELCOME_TRIGGER)
+        self.assertIn("{${jkds_enable}}", JD_OPTIONAL_WELCOME_TRIGGER)
         self.assertEqual(apply(result), result)
 
     def test_fails_closed_when_either_legacy_trigger_drifts_or_is_missing(self):
