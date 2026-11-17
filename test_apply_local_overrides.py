@@ -4167,20 +4167,22 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
         ))
 
     def test_amap_overlap_cleanup_rejects_ambiguous_duplicate_canonical_handlers(self):
-        from pathlib import Path
         from apply_local_overrides import (
             AMAP_ISHOWSHU_REDUNDANT_SCRIPT_MARKERS,
             optimize_amap_response_script_overlaps,
         )
-        plugin = Path(__file__).parent / "allAdRewrite.plugin"
-        lines = plugin.read_text(encoding="utf-8").splitlines()
         marker = AMAP_ISHOWSHU_REDUNDANT_SCRIPT_MARKERS[1]
-        canonical = next(
-            line for line in lines
-            if marker in line.replace(chr(92), "").lower() and "sources/amap/rucu6_amap.js" in line.lower()
+        canonical = (
+            'response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search\\/nearbyrec_smart\\?/i '
+            'then script("https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js") '
+            'with tag="local", requires_body=true'
         )
-        mitm_index = next(i for i, line in enumerate(lines) if line.strip() == "[MITM]")
-        lines.insert(mitm_index, canonical)
+        fixture = [
+            "[Rewrite]",
+            "[Script]",
+            canonical,
+            canonical,
+            "[MITM]",
+        ]
         with self.assertRaisesRegex(ValueError, "duplicate canonical local Amap trigger"):
-            optimize_amap_response_script_overlaps(lines)
-
+            optimize_amap_response_script_overlaps(fixture)
