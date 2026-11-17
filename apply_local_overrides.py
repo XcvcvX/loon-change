@@ -3913,6 +3913,125 @@ XHS_V3_VIDEO_AD_ONLY_RULE = r"""^https:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/
 XHS_V4_VIDEO_AD_ONLY_RULE = r"""^https:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/v4\/note\/videofeed response-body-json-jq '. as $o | try (if (.data|type)=="array" then .data|=map(select(if type=="object" then ((.model_type=="note") and (has("ad")|not)) else false end)) else . end) catch $o'"""
 
 
+XHS_NATIVE_DUPLICATE_TRIGGER_TAGS = (
+    "XIAOHONGSHU",
+    "XIAOHONGSHU-3",
+    "XIAOHONGSHU-4",
+    "XIAOHONGSHU-5",
+    "XIAOHONGSHU-6",
+)
+
+def narrow_xiaohongshu_native_response_duplicates(lines):
+    """Remove only XHS script passes whose exact endpoint has a native JSON rewrite."""
+    original = list(lines)
+    section = ""
+    script_lines = []
+    rewrite_lines = []
+    for line in original:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+            continue
+        if section == "Script":
+            script_lines.append(stripped)
+        elif section == "Rewrite":
+            rewrite_lines.append(stripped)
+
+    expected_rstore = {
+        tag: next((line for line in XHS_SCRIPT_TRIGGER_LINES
+                   if line.startswith("http-response ")
+                   and ("tag=" + tag + ",") in line), None)
+        for tag in XHS_NATIVE_DUPLICATE_TRIGGER_TAGS
+    }
+    if any(value is None for value in expected_rstore.values()):
+        raise ValueError("Xiaohongshu native duplicate trigger inventory is incomplete")
+
+    actual_by_tag = {}
+    for tag in XHS_NATIVE_DUPLICATE_TRIGGER_TAGS:
+        matches = [line for line in script_lines if ("tag=" + tag + ",") in line]
+        if not matches:
+            return original, 0
+        if len(matches) != 1 or matches[0] != expected_rstore[tag]:
+            raise ValueError("Xiaohongshu R-Store native duplicate trigger changed: " + tag)
+        actual_by_tag[tag] = matches[0]
+
+    required_native = (
+        ("/api/sns/v", "/note/widgets"),
+        ("/api/sns/v", "/search/banner_list"),
+        ("/api/sns/v", "/search/hot_list"),
+        ("/api/sns/v", "/search/hint"),
+        ("/api/sns/v", "/search/trending"),
+        ("/api/sns/v", "/search/notes"),
+        ("/api/sns/v", "/system_service/config"),
+    )
+    for _, endpoint in required_native:
+        matches = [line for line in rewrite_lines
+                   if "response-body-json-jq" in line
+                   and "xiaohongshu.com" in re.sub(r"\\+", "", line)
+                   and endpoint in re.sub(r"\\+", "", line)]
+        if len(matches) != 1:
+            raise ValueError(
+                "Xiaohongshu native JSON coverage missing or duplicated: " + endpoint
+            )
+
+    # FMZ duplicates are retained for the rnote.com host, which is not covered
+    # by the native xiaohongshu.com rules. The xiaohongshu.com side is native-only.
+    fmz_expected = {
+        line for line in XHS_SCRIPT_TRIGGER_LINES
+        if line.startswith("response if")
+        and 'tag="小红书搜索页"' in line
+        and any(marker in re.sub(r"\\+", "", line) for marker in (
+            "/search/(banner|hot)_list",
+            "/search/(hint|trending)",
+            "/search/notes",
+        ))
+    }
+    fmz_actual = {
+        line for line in script_lines
+        if 'tag="小红书搜索页"' in line
+        and any(marker in re.sub(r"\\+", "", line) for marker in (
+            "/search/(banner|hot)_list",
+            "/search/(hint|trending)",
+            "/search/notes",
+        ))
+    }
+    normalize_fmz = lambda value: value.replace("enable=${xhs_enable}", "enable=xhs_enable")
+    if ({normalize_fmz(line) for line in fmz_actual} != fmz_expected
+            or len(fmz_actual) != 3):
+        raise ValueError("Xiaohongshu FMZ search trigger inventory changed; refusing narrowing")
+
+    replacements = {}
+    for line in fmz_actual:
+        if "/search/notes" in re.sub(r"\\+", "", line):
+            old = r"(so|edith)\.(xiaohongshu|rnote)\.com"
+            new = r"(so|edith)\.rnote\.com"
+        else:
+            old = r"edith\.(xiaohongshu|rnote)\.com"
+            new = r"edith\.rnote\.com"
+        if line.count(old) != 1:
+            raise ValueError("Xiaohongshu FMZ host matcher changed; refusing narrowing")
+        replacements[line] = line.replace(old, new)
+
+    result = []
+    section = ""
+    changed = 0
+    for line in original:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+            result.append(line)
+            continue
+        if section == "Script" and stripped in actual_by_tag.values():
+            changed += 1
+            continue
+        if section == "Script" and stripped in replacements:
+            result.append(replacements[stripped])
+            changed += 1
+            continue
+        result.append(line)
+    return result, changed
+
+
 def optimize_xiaohongshu_response_cost(lines):
     """Apply only to the complete reviewed upstream inventory; otherwise preserve source unchanged."""
     original = list(lines)
@@ -4591,6 +4710,11 @@ BILIBILI_PROTOBUF_DUPLICATE_PAIRS = (
         r"http-response ^https?:\/\/(?:app\.bilibili\.com|grpc\.biliapi\.net)\/bilibili\.community\.service\.dm\.v[2-9]\.DM\/DmView script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-4,requires-body=true,binary-body-mode=true",
     ),
     (
+        "MainList",
+        r"http-response ^https?:\/\/(?:app\.bilibili\.com|grpc\.biliapi\.net)\/bilibili\.main\.community\.reply\.v\d\.Reply\/MainList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-5,requires-body=true,binary-body-mode=true",
+        r"http-response ^https?:\/\/(?:app\.bilibili\.com|grpc\.biliapi\.net)\/bilibili\.main\.community\.reply\.v[2-9]\.Reply\/MainList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-5,requires-body=true,binary-body-mode=true",
+    ),
+    (
         "SearchAll",
         r"http-response ^https?:\/\/(?:app\.bilibili\.com|grpc\.biliapi\.net)\/bilibili\.polymer\.app\.search\.v\d\.Search\/SearchAll script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-6,requires-body=true,binary-body-mode=true",
         r"http-response ^https?:\/\/(?:app\.bilibili\.com|grpc\.biliapi\.net)\/bilibili\.polymer\.app\.search\.v[2-9]\.Search\/SearchAll script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-6,requires-body=true,binary-body-mode=true",
@@ -4921,7 +5045,7 @@ def apply(text: str) -> str:
     lines, _ = remove_redundant_amap_legacy_scripts(lines)
     lines, _ = optimize_amap_response_script_overlaps(lines)
     lines, _ = consolidate_zhihu_response_scripts(lines)
-    lines, _ = optimize_xiaohongshu_response_cost(lines)
+    lines, _ = narrow_xiaohongshu_native_response_duplicates(lines)
     lines, _ = remove_redundant_smzdm_homepage_script_trigger(lines)
     lines, _ = remove_redundant_smzdm_ads_script_triggers(lines)
     lines, _ = migrate_wechat_applet_simple_endpoints(lines)
