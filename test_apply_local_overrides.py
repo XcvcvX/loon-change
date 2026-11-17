@@ -3587,3 +3587,24 @@ class BilibiliProtobufDuplicateTriggerTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PinduoduoOrderEndpointVariantTests(unittest.TestCase):
+    def test_removes_exact_known_order_blocks_without_query_delimiter(self):
+        from apply_local_overrides import remove_pdd_order_endpoint_blocks
+        known = [
+            r"request if \${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/aristotle\/unrated_order_for_unreceived_tab/i then reject_dict(200)",
+            r"request if \${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/aristotle\/query_order_list_tabs_element/i then reject_dict(200)",
+            r"request if \${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/caterham\/v3\/query\/order_express_group/i then reject_dict(200)",
+        ]
+        fixture = ["[Rewrite]", *known, "[Script]"]
+        result, removed = remove_pdd_order_endpoint_blocks(fixture)
+        self.assertEqual(removed, 3)
+        self.assertEqual(result, ["[Rewrite]", "[Script]"])
+        self.assertEqual(remove_pdd_order_endpoint_blocks(result)[1], 0)
+
+    def test_unknown_pdd_order_endpoint_variant_still_fails_closed(self):
+        from apply_local_overrides import remove_pdd_order_endpoint_blocks
+        unknown = r"request if \${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/aristotle\/query_order_list_tabs_element_v2/i then reject_dict(200)"
+        with self.assertRaisesRegex(ValueError, "refusing unreviewed removal"):
+            remove_pdd_order_endpoint_blocks(["[Rewrite]", unknown])
