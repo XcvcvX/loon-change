@@ -39,6 +39,7 @@ on:
       - 'source_guard.py'
       - 'stage_romeo_plugins.py'
       - 'test_stage_romeo_plugins.py'
+      - 'romeo_resource_map.json'
       - 'merge_plugins.py'
       - 'mitm_policy.py'
       - 'test_mitm_policy.py'
