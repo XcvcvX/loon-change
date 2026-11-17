@@ -1606,9 +1606,9 @@ class DouyinContentCdnScopeTests(unittest.TestCase):
     def test_removes_double_escaped_equivalent_origin_overblocks(self):
         from apply_local_overrides import remove_douyin_content_cdn_overblocks
         doubled = [
-            r"request if \${url} ~= /^https?:\\/\\/p(b)?\\d\\.pstatp\\.com\\/origin/ then reject(404)",
-            r"request if \${url} ~= /^https?:\\/\\/p\\d\\.pstatp\\.com\\/origin/i then reject(404)",
-            r"request if \${url} ~= /^https?:\\/\\/pb\\d\\.pstatp\\.com\\/origin/i then reject(404)",
+            r"request if ${url} ~= /^https?:\\/\\/p(b)?\\d\\.pstatp\\.com\\/origin/ then reject(404)",
+            r"request if ${url} ~= /^https?:\\/\\/p\\d\\.pstatp\\.com\\/origin/i then reject(404)",
+            r"request if ${url} ~= /^https?:\\/\\/pb\\d\\.pstatp\\.com\\/origin/i then reject(404)",
         ]
         fixture = ["[Rule]", self.overblocks[0][1], self.overblocks[1][1],
                    "[Rewrite]", *doubled,
