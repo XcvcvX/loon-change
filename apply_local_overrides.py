@@ -4016,6 +4016,11 @@ SMZDM_FMZ_HOME_TRIGGER = (
 def remove_redundant_smzdm_homepage_script_trigger(lines):
     """Remove the duplicate v3 homepage JS dispatch only when the broader R-Store handler is present."""
     output = list(lines)
+    normalize = lambda value: re.sub(
+        r"enable=\$\{([^}]+)\}",
+        r"enable=\1",
+        re.sub(r"\\+", "", value.strip()),
+    )
     sections = {}
     section = ""
     for line in output:
@@ -4033,12 +4038,12 @@ def remove_redundant_smzdm_homepage_script_trigger(lines):
     rstore_candidates = sections.get("rstore_candidates", [])
     if not fmz_candidates:
         return output, 0
-    if len(fmz_candidates) != 1 or fmz_candidates[0] != SMZDM_FMZ_HOME_TRIGGER:
+    if len(fmz_candidates) != 1 or normalize(fmz_candidates[0]) != normalize(SMZDM_FMZ_HOME_TRIGGER):
         raise ValueError("SMZDM homepage FMZ trigger inventory changed; refusing duplicate cleanup")
     if not rstore_candidates:
         # Without the broader R-Store handler, preserve the FMZ trigger.
         return output, 0
-    if len(rstore_candidates) != 1 or rstore_candidates[0] != SMZDM_RSTORE_HOME_TRIGGER:
+    if len(rstore_candidates) != 1 or normalize(rstore_candidates[0]) != normalize(SMZDM_RSTORE_HOME_TRIGGER):
         raise ValueError("SMZDM homepage R-Store trigger inventory changed; refusing duplicate cleanup")
 
     result = []
@@ -4050,7 +4055,7 @@ def remove_redundant_smzdm_homepage_script_trigger(lines):
             section = stripped[1:-1]
             result.append(line)
             continue
-        if section == "Script" and stripped == SMZDM_FMZ_HOME_TRIGGER:
+        if section == "Script" and normalize(stripped) == normalize(SMZDM_FMZ_HOME_TRIGGER):
             removed += 1
             continue
         result.append(line)
