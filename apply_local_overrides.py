@@ -450,14 +450,14 @@ def consolidate_pdd_splash_rules(lines):
     target = [line for line in lines if "cappuccino" in line and "splash" in line]
     if not target:
         return list(lines), 0
-    if old_count + canonical_count != 1 or duplicate_count > 1 or any(count > 1 for count in distinct_counts):
-        raise ValueError("Pinduoduo splash rule inventory changed or duplicated; refusing consolidation")
-    if len(target) != known:
-        raise ValueError("unknown Pinduoduo splash matcher found; refusing unreviewed consolidation")
-    if canonical_count == 1 and duplicate_count == 0 and known == 3:
+    if old_count + canonical_count > 1 or duplicate_count > 1 or any(count > 1 for count in distinct_counts):
+        raise ValueError("Pinduoduo splash rule inventory contains duplicate known matchers")
+    # Unknown or incomplete upstream inventories are preserved untouched. The
+    # optimization is applied only when the complete known action set is present.
+    if len(target) != known or old_count + canonical_count == 0 or not all(distinct_counts):
         return list(lines), 0
-    if not all(distinct_counts):
-        raise ValueError("Pinduoduo splash distinct action inventory missing; refusing consolidation")
+    if canonical_count == 1 and duplicate_count == 0:
+        return list(lines), 0
     output = []
     for line in lines:
         stripped = line.strip()
