@@ -580,6 +580,14 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertIn(unrelated, script)
         self.assertEqual(apply(result), result)
 
+    def test_native_pdd_homepage_response_rewrite_is_not_a_script_trigger(self):
+        from apply_local_overrides import consolidate_pdd_homepage_script
+        native = 'response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/homepage\\?/i then response.json.delete("result.icon_set")'
+        fixture = ["[Script]", native, "[MITM]"]
+        result, removed = consolidate_pdd_homepage_script(fixture)
+        self.assertEqual(removed, 0)
+        self.assertEqual(result, fixture)
+
     def test_pdd_homepage_consolidation_fails_closed_on_trigger_drift(self):
         from apply_local_overrides import PDD_ISHOWSHU_HOMEPAGE_TRIGGER
         changed = PDD_ISHOWSHU_HOMEPAGE_TRIGGER.replace("requires-body = true", "requires-body = false")
