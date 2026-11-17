@@ -4031,7 +4031,7 @@ class XiaohongshuNativeDuplicateTriggerTests(unittest.TestCase):
         self.assertIsNotNone(mixed_feed.search("https://www.xiaohongshu.com/api/sns/v2/followfeed?"))
         self.assertIsNone(mixed_feed.search("https://edith.xiaohongshu.com/api/sns/v2/followfeed?"))
         self.assertIsNone(mixed_feed.search("https://rec.xiaohongshu.com/api/sns/v2/followfeed?"))
-        from apply_local_overrides import XHS_HOMEFEED_NATIVE_RULE
+        from apply_local_overrides import XHS_HOMEFEED_NATIVE_RULE, XHS_HOMEFEED_NATIVE_OLD_RULE
         self.assertIn(XHS_HOMEFEED_NATIVE_RULE, result)
         self.assertFalse(any(line == XHS_HOMEFEED_NATIVE_OLD_RULE for line in result))
         from apply_local_overrides import XHS_HOMEFEED_NATIVE_RULE
