@@ -1159,11 +1159,12 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertIn(unrelated, result)
         self.assertEqual(remove_redundant_baidumap_script(result)[1], 0)
 
-    def test_fails_closed_when_baidumap_gated_ad_trigger_is_missing(self):
+    def test_preserves_baidumap_legacy_trigger_when_gated_twin_is_absent(self):
         from apply_local_overrides import BAIDUMAP_LEGACY_SCRIPT_RULE, remove_redundant_baidumap_script
         legacy, _, _ = BAIDUMAP_LEGACY_SCRIPT_RULE
-        with self.assertRaisesRegex(ValueError, "gated script trigger missing or changed"):
-            remove_redundant_baidumap_script([legacy])
+        result, removed = remove_redundant_baidumap_script([legacy])
+        self.assertEqual(removed, 0)
+        self.assertEqual(result, [legacy])
 
     def test_fails_closed_on_duplicate_baidumap_ad_triggers(self):
         from apply_local_overrides import BAIDUMAP_LEGACY_SCRIPT_RULE, remove_redundant_baidumap_script
