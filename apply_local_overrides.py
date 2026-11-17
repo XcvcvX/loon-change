@@ -532,6 +532,7 @@ TAOBAO_REDUNDANT_SCRIPT_TRIGGERS = (
 
 # Pinduoduo: these request-level blocks target order navigation/data, not the
 # requested homepage/search/recommendation/splash ad surfaces. Preserve them.
+# AOOMEE/Romeo sources mix legacy reject-dict and Loon request-if forms for these endpoints.
 PDD_ORDER_ENDPOINT_BLOCKS_TO_PRESERVE = (
     "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/aristotle\\/unrated_order_for_unreceived_tab\\?/i then reject_dict(200)",
     "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/aristotle\\/query_order_list_tabs_element\\?/i then reject_dict(200)",
