@@ -1,0 +1,40 @@
+name: Validate allAdRewrite Script v2 syntax
+
+on:
+  pull_request:
+    paths:
+      - 'check_script_v2.py'
+      - 'test_check_script_v2.py'
+      - 'allAdRewrite.plugin'
+      - '.github/workflows/sync-alladrewrite-gist.yml'
+      - '.github/workflows/script-v2-guard.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'check_script_v2.py'
+      - 'test_check_script_v2.py'
+      - 'allAdRewrite.plugin'
+      - '.github/workflows/sync-alladrewrite-gist.yml'
+      - '.github/workflows/script-v2-guard.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile syntax guard
+        run: python3 -m py_compile check_script_v2.py
+      - name: Run regression tests
+        run: python3 -m unittest -v test_check_script_v2.py
+      - name: Validate current subscription plugin
+        run: python3 check_script_v2.py allAdRewrite.plugin

@@ -50,6 +50,13 @@ jobs:
 
           echo "file=${files[0]}" >> "$GITHUB_OUTPUT"
 
+      - name: Check Script v2 syntax before Gist publish
+        env:
+          PLUGIN_FILE: ${{ steps.plugin.outputs.file }}
+        run: |
+          python3 -m unittest -v test_check_script_v2.py
+          python3 check_script_v2.py "$PLUGIN_FILE"
+
       - name: Build, publish and verify Gist payload
         env:
           GIST_ID: ${{ secrets.GIST_ID }}
@@ -132,6 +139,14 @@ jobs:
 
           if private_prefix in plugin:
               raise SystemExit("Private repository main-branch Raw URL remains in published plugin")
+
+          # Validate the exact rewritten subscription payload as well as the source file.
+          import sys
+          sys.path.insert(0, str(Path.cwd()))
+          from check_script_v2 import inspect_text
+          syntax_errors = inspect_text(plugin, "published allAdRewrite.plugin")
+          if syntax_errors:
+              raise SystemExit("\\n".join(syntax_errors))
 
           # The stable subscription entry is always updated, even when the
           # plugin currently has no private runtime dependencies.
