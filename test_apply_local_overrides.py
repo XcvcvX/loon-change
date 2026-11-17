@@ -2884,21 +2884,6 @@ class TuhuDuplicateResponseScriptTests(unittest.TestCase):
         self.assertIn("^https?:\\\\/\\\\/gateway\\\\.tuhu\\\\.cn\\\\/unrelated reject(404)", result)
         self.assertEqual(remove_duplicate_tuhu_scripts(result), (result, 0))
 
-    def test_removes_duplicate_with_interpolated_switch(self):
-        from apply_local_overrides import remove_more_duplicate_response_scripts
-        source = next(item for item in self.remove if "quda_enable" in item)
-        current = source.replace("enable=quda_enable", "enable=${quda_enable}")
-        fixture = [
-            "[Script]",
-            *[current if item == source else item for item in self.remove],
-            *self.keep_source,
-            "[MITM]",
-        ]
-        result, removed = remove_more_duplicate_response_scripts(fixture)
-        self.assertEqual(removed, len(self.remove))
-        self.assertNotIn(current, result)
-        self.assertEqual(remove_more_duplicate_response_scripts(result), (result, 0))
-
     def test_preserves_already_consolidated_inventory(self):
         from apply_local_overrides import remove_duplicate_tuhu_scripts
         clean = ["[Script]", *self.canonical, "[MITM]"]
@@ -3404,6 +3389,21 @@ class MoreResponseScriptDedupTests(unittest.TestCase):
             "enable=kuwoybyt_enable", "enable=${kuwoybyt_enable}"
         )
         self.assertIn(expected, result)
+        self.assertEqual(remove_more_duplicate_response_scripts(result), (result, 0))
+
+    def test_removes_duplicate_with_interpolated_switch(self):
+        from apply_local_overrides import remove_more_duplicate_response_scripts
+        source = next(item for item in self.remove if "quda_enable" in item)
+        current = source.replace("enable=quda_enable", "enable=${quda_enable}")
+        fixture = [
+            "[Script]",
+            *[current if item == source else item for item in self.remove],
+            *self.keep_source,
+            "[MITM]",
+        ]
+        result, removed = remove_more_duplicate_response_scripts(fixture)
+        self.assertEqual(removed, len(self.remove))
+        self.assertNotIn(current, result)
         self.assertEqual(remove_more_duplicate_response_scripts(result), (result, 0))
 
     def test_preserves_already_consolidated_inventory(self):
