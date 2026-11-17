@@ -879,6 +879,43 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertIn("https://example.invalid/keep.js", script)
         self.assertEqual(apply(result), result)
 
+    def test_removes_romeo_pinned_klee_taobao_script_as_reviewed_duplicate(self):
+        from apply_local_overrides import TAOBAO_CANONICAL_SCRIPT_TRIGGERS, TAOBAO_REDUNDANT_SCRIPT_TRIGGERS
+        commit = "a" * 40
+        romeo_url = (
+            "https://raw.githubusercontent.com/ifflagged/Romeo/" + commit
+            + "/Modules/JavaScript/Kelee/Taobao_remove_ads/kelee.one_Taobao_remove_ads.js"
+        )
+        romeo_triggers = [
+            trigger.replace(
+                "https://raw.githubusercontent.com/zmjde/loon-plugins/main/JS/Taobao/Taobao_remove_ads.js",
+                romeo_url,
+            )
+            for trigger in TAOBAO_REDUNDANT_SCRIPT_TRIGGERS[4:6]
+        ]
+        fixture = BASE.replace(
+            "[Script]",
+            "[Script]\\n" + "\\n".join(TAOBAO_CANONICAL_SCRIPT_TRIGGERS)
+            + "\\n" + "\\n".join(romeo_triggers),
+        )
+        result = apply(fixture)
+        script = result.split("[Script]", 1)[1].split("[MITM]", 1)[0]
+        for trigger in TAOBAO_CANONICAL_SCRIPT_TRIGGERS:
+            self.assertEqual(script.count(trigger), 1)
+        for trigger in romeo_triggers:
+            self.assertNotIn(trigger, script)
+        self.assertEqual(apply(result), result)
+
+    def test_fails_closed_on_unrecognized_romeo_taobao_asset_path(self):
+        from apply_local_overrides import TAOBAO_REDUNDANT_SCRIPT_TRIGGERS
+        changed = TAOBAO_REDUNDANT_SCRIPT_TRIGGERS[4].replace(
+            "https://raw.githubusercontent.com/zmjde/loon-plugins/main/JS/Taobao/Taobao_remove_ads.js",
+            "https://raw.githubusercontent.com/ifflagged/Romeo/not-a-commit/Modules/JavaScript/Kelee/Taobao_remove_ads/kelee.one_Taobao_remove_ads.js",
+        )
+        fixture = BASE.replace("[Script]", "[Script]\\n" + changed)
+        with self.assertRaisesRegex(ValueError, "Taobao splash script trigger changed"):
+            apply(fixture)
+
     def test_fails_closed_when_a_taobao_duplicate_trigger_drifts(self):
         from apply_local_overrides import TAOBAO_REDUNDANT_SCRIPT_TRIGGERS
         changed = TAOBAO_REDUNDANT_SCRIPT_TRIGGERS[0].replace("requires_body=true", "requires_body=false")
