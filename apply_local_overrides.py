@@ -1480,11 +1480,8 @@ def remove_redundant_amap_legacy_scripts(lines, expected_count=AMAP_LEGACY_SCRIP
     removable = []
     for target_line, required_markers in targets:
         counts = [sum(marker in handler for handler in response_handlers) for marker in required_markers]
-        if any(count > 1 for count in counts):
-            duplicate = required_markers[counts.index(next(count for count in counts if count > 1))]
-            raise ValueError("Amap canonical response handler duplicated: " + duplicate)
-        # No modern twin means the legacy script may be the only remaining
-        # handler. Preserve it; remove only when every exact native handler exists once.
+        # Remove only when every exact native handler exists exactly once.
+        # Missing or ambiguous native handlers keep the legacy script in place.
         if all(count == 1 for count in counts):
             removable.append(target_line)
     remaining = [line for line in lines]
