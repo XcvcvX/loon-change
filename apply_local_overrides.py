@@ -4109,11 +4109,11 @@ def narrow_xiaohongshu_native_response_duplicates(lines):
 
 
 XHS_V3_VIDEO_RSTORE_NARROWED_TRIGGER = (
-    r"http-response ^https?:\\/\\/(?:edith|rec|www)\\.xiaohongshu\\.com\\/api\\/sns\\/(?:v\\d+\\/note\\/(?:imagefeed|feed|(?:live_photo|video)\\/save)|v4\\/note\\/videofeed) "
+    r"http-response ^https?:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/(?:v\d+\/note\/(?:imagefeed|feed|(?:live_photo|video)\/save)|v4\/note\/videofeed) "
     r"script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-7,requires-body=true"
 )
 XHS_V3_VIDEO_FMZ_NARROWED_TRIGGER = (
-    r'response if ${url} ~= /^https?:\\/\\/(?:(?:edith|rec|www)\\.(?:xiaohongshu|rnote)\\.com\\/api\\/sns\\/v2\\/note\\/feed\\?|(?:edith|rec|www)\\.rnote\\.com\\/api\\/sns\\/v3\\/note\\/videofeed\\?)/i '
+    r'response if ${url} ~= /^https?:\/\/(?:(?:edith|rec|www)\.(?:xiaohongshu|rnote)\.com\/api\/sns\/v2\/note\/feed\?|(?:edith|rec|www)\.rnote\.com\/api\/sns\/v3\/note\/videofeed\?)/i '
     r'then script("https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js") with enable=${xhs_enable}, tag="小红书图片视频水印", timeout=60, requires_body=true'
 )
 
