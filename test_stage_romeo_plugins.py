@@ -59,7 +59,7 @@ class RomeoPluginMigrationTests(unittest.TestCase):
         self.assertNotIn("Modules/Loon/ishowshu/pdd.lpx", ROMEO_PLUGIN_MAP.values())
 
     def test_former_zmjde_assets_are_mapped_to_romeo_files(self):
-        self.assertEqual(len(RUNTIME_ASSETS), 3)
+        self.assertEqual(len(RUNTIME_ASSETS), 4)
         by_plugin = {item["plugin"]: item for item in RUNTIME_ASSETS}
         self.assertEqual(
             by_plugin["PinDuoDuo_remove_ads.lpx"]["source_path"],
@@ -72,6 +72,10 @@ class RomeoPluginMigrationTests(unittest.TestCase):
         self.assertEqual(
             by_plugin["smzdm_remove_ads.lpx"]["source_path"],
             "Modules/JavaScript/Kelee/smzdm_remove_ads/kelee.one_home_smzdm_remove_ads.jq",
+        )
+        self.assertEqual(
+            by_plugin["goofish.lpx"]["source_path"],
+            "Modules/JavaScript/ishowshu/goofish/ishowshu_goofish.js",
         )
         self.assertTrue(MANIFEST["external_runtime_dependencies"])
 
@@ -110,7 +114,8 @@ class RomeoPluginMigrationTests(unittest.TestCase):
             self.assertEqual(meta["upstream_commit"], commit)
             self.assertEqual(meta["upstream_repository"], MANIFEST["upstream_repository"])
             for asset in RUNTIME_ASSETS:
-                staged = (former_zmjde / asset["plugin"]).read_text(encoding="utf-8")
+                slot_dir = primary if asset["slot"] == "aoomee_compat" else former_zmjde
+                staged = (slot_dir / asset["plugin"]).read_text(encoding="utf-8")
                 self.assertIn(
                     f"https://raw.githubusercontent.com/ifflagged/Romeo/{commit}/{asset['source_path']}",
                     staged,
