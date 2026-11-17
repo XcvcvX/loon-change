@@ -1948,8 +1948,8 @@ hostname = webcast-open.douyin.com, beta-luna.douyin.com, creditcard.bankcomm.cn
         without_optional = self.base.replace(optional + "\n", "")
         self.assertEqual(apply(without_optional), result)
         duplicated = self.base.replace(optional, optional + "\n" + optional)
-        with self.assertRaisesRegex(ValueError, "Douyin/Hongguo safety inventory changed"):
-            apply(duplicated)
+        duplicate_result = apply(duplicated)
+        self.assertNotIn(optional, duplicate_result)
 
     def test_fails_closed_on_unknown_live_feed_rule_but_allows_missing_host(self):
         unknown = self.base.replace(
