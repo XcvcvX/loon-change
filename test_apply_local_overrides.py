@@ -4101,7 +4101,7 @@ class XiaohongshuV3VideoNativeDedupTests(unittest.TestCase):
         self.assertIsNotNone(rstore.search("https://rec.xiaohongshu.com/api/sns/v2/note/feed"))
         self.assertIsNotNone(rstore.search("https://edith.xiaohongshu.com/api/sns/v10/note/video/save"))
         self.assertIsNotNone(rstore.search("https://edith.xiaohongshu.com/api/sns/v2/note/live_photo/save"))
-        fmz = re.compile(r"^https?://(?:(?:edith|rec|www)\\.(?:xiaohongshu|rnote)\\.com/api/sns/v2/note/feed\\?|(?:edith|rec|www)\\.rnote\\.com/api/sns/v3/note/videofeed\\?)")
+        fmz = re.compile(r"^https?://(?:(?:edith|rec|www)\.(?:xiaohongshu|rnote)\.com/api/sns/v2/note/feed\?|(?:edith|rec|www)\.rnote\.com/api/sns/v3/note/videofeed\?)")
         self.assertIsNotNone(fmz.search("https://edith.xiaohongshu.com/api/sns/v2/note/feed?"))
         self.assertIsNotNone(fmz.search("https://edith.rnote.com/api/sns/v2/note/feed?"))
         self.assertIsNotNone(fmz.search("https://rec.rnote.com/api/sns/v3/note/videofeed?"))
