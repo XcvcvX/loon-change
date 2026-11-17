@@ -485,11 +485,12 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertIn(keep, rewrite)
         self.assertEqual(apply(result), result)
 
-    def test_fails_closed_when_duoduo_grocery_newdetails_rule_changes(self):
+    def test_preserves_unknown_duoduo_grocery_newdetails_rule(self):
         changed = r'response if ${url} ~= /^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/newDetails/ then response.body.replace(/data/, "hidden")'
         fixture = BASE.replace("[Rewrite]", "[Rewrite]\n" + changed)
-        with self.assertRaisesRegex(ValueError, "Duoduo Grocery newDetails suspension rule changed"):
-            apply(fixture)
+        result = apply(fixture)
+        rewrite = result.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
+        self.assertIn(changed, rewrite)
 
     def test_replaces_guiderank_homepage_script_with_native_batch_json_delete(self):
         from apply_local_overrides import GUIDERANK_HOMEPAGE_SCRIPT_TRIGGER, GUIDERANK_HOMEPAGE_NATIVE_RULE
