@@ -4271,6 +4271,10 @@ XHS_FMZ_COMMENT_LIST_TRIGGER = next(
 )
 
 
+def normalize_xhs_fmz_trigger(value):
+    return re.sub(r"\\+", "", value).replace("enable=${xhs_enable}", "enable=xhs_enable")
+
+
 def migrate_xiaohongshu_v4_and_comment_processing(lines):
     """Keep stateful cache/download scripts and remove only proven duplicate JSON passes."""
     original = list(lines)
@@ -4313,7 +4317,7 @@ def migrate_xiaohongshu_v4_and_comment_processing(lines):
 
     if fmz_v4:
         current = fmz_v4[0]
-        if current == XHS_FMZ_V4_TRIGGER:
+        if normalize_xhs_fmz_trigger(current) == normalize_xhs_fmz_trigger(XHS_FMZ_V4_TRIGGER):
             v4_native = [
                 line for line in rewrite_lines
                 if "/api/sns/v4/note/videofeed" in re.sub(r"\\+", "", line)
@@ -4326,9 +4330,16 @@ def migrate_xiaohongshu_v4_and_comment_processing(lines):
             missing = [marker for marker in required if marker not in normalized]
             if missing:
                 raise ValueError("Xiaohongshu v4 native behavior changed; refusing script migration: " + ", ".join(missing))
-            replacements[current] = XHS_FMZ_V4_LOCAL_TRIGGER
+            replacements[current] = (
+                current
+                .replace(
+                    "https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js",
+                    "https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu-v4.js",
+                )
+                .replace('tag="小红书图片视频水印"', 'tag="小红书视频缓存与下载"')
+            )
             remove_rewrites.add(v4_native[0])
-        elif current == XHS_FMZ_V4_LOCAL_TRIGGER:
+        elif normalize_xhs_fmz_trigger(current) == normalize_xhs_fmz_trigger(XHS_FMZ_V4_LOCAL_TRIGGER):
             if any(
                 "/api/sns/v4/note/videofeed" in re.sub(r"\\+", "", line)
                 and "response-body-json-jq" in line
@@ -4342,7 +4353,7 @@ def migrate_xiaohongshu_v4_and_comment_processing(lines):
         current = rstore_comment[0]
         if current not in (XHS_RSTORE_COMMENT_TRIGGER, XHS_RSTORE_COMMENT_TRIGGER_NARROWED):
             raise ValueError("Xiaohongshu R-Store comment trigger changed; refusing version narrowing")
-        if not fmz_comment or fmz_comment[0] != XHS_FMZ_COMMENT_LIST_TRIGGER:
+        if not fmz_comment or normalize_xhs_fmz_trigger(fmz_comment[0]) != normalize_xhs_fmz_trigger(XHS_FMZ_COMMENT_LIST_TRIGGER):
             raise ValueError("Xiaohongshu FMZ comment-version coverage missing; refusing R-Store narrowing")
         replacements[current] = XHS_RSTORE_COMMENT_TRIGGER_NARROWED
 
