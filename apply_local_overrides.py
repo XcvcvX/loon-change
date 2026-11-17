@@ -1351,7 +1351,9 @@ def remove_redundant_dianping_scripts(lines):
         if not legacy_positions:
             continue
         if not gated_positions:
-            raise ValueError("Dianping gated script trigger missing or changed: " + label)
+            # The upstream may legitimately ship only the legacy handler. Keep
+            # it rather than failing the whole sync or deleting the only handler.
+            continue
         output = [line for line in output if line.strip() != legacy]
         removed += 1
     return output, removed
