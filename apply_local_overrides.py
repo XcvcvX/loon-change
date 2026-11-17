@@ -702,7 +702,7 @@ def consolidate_goofish_script_triggers(lines):
         )
         # Stage pins Romeo-hosted JS/JQ references to the current 40-hex commit.
         return re.sub(
-            r"https://raw\\.githubusercontent\\.com/ifflagged/Romeo/[0-9a-f]{40}/",
+            r"https://raw\.githubusercontent\.com/ifflagged/Romeo/[0-9a-f]{40}/",
             "https://github.com/ifflagged/Romeo/raw/main/",
             value,
         )
