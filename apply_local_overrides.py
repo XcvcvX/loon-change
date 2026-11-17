@@ -1032,10 +1032,9 @@ def replace_ddqx_newdetails_body_rewrites(lines):
         r"enable=\1",
         re.sub(r"\\+", "", value.strip()),
     )
-    normalized_matcher = normalize(DDQX_NEWDETAILS_MATCHER)
     normalized_native = normalize(DDQX_NEWDETAILS_NATIVE_RULE)
     normalized_legacy = normalize(DDQX_NEWDETAILS_MATCHER + " " + DDQX_NEWDETAILS_LEGACY_ACTION)
-    normalized_modern = normalize(DDQX_NEWDETAILS_MATCHER + " " + DDQX_NEWDETAILS_MODERN_ACTION)
+    normalized_modern = normalize(DDQX_NEWDETAILS_MODERN_ACTION)
     for line in lines:
         normalized = normalize(line)
         if DDQX_NEWDETAILS_MARKER.lower() not in normalized.lower():
