@@ -533,6 +533,9 @@ TAOBAO_REDUNDANT_SCRIPT_TRIGGERS = (
 # Pinduoduo: these request-level blocks target order navigation/data, not the
 # requested homepage/search/recommendation/splash ad surfaces. Preserve them.
 PDD_ORDER_ENDPOINT_BLOCKS_TO_PRESERVE = (
+    "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/aristotle\\/unrated_order_for_unreceived_tab\\?/i then reject_dict(200)",
+    "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/aristotle\\/query_order_list_tabs_element\\?/i then reject_dict(200)",
+    "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/caterham\\/v3\\/query\\/order_express_group\\?/i then reject_dict(200)",
     "request if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/aristotle\/unrated_order_for_unreceived_tab\?/i then reject_dict(200)",
     "^https:\/\/api\.pinduoduo\.com\/api\/aristotle\/unrated_order_for_unreceived_tab\? reject-dict",
     "^https:\/\/api\.pinduoduo\.com\/api\/aristotle\/query_order_list_tabs_element\? reject-dict",
@@ -560,7 +563,10 @@ def remove_pdd_order_endpoint_blocks(lines):
         if section == "Rewrite" and any(marker in value for marker in PDD_ORDER_ENDPOINT_MARKERS):
             seen = True
             if value not in counts:
-                raise ValueError("PDD order endpoint rule changed; refusing unreviewed removal")
+                raise ValueError(
+                    "PDD order endpoint rule changed; refusing unreviewed removal: "
+                    + repr(value)
+                )
             counts[value] += 1
             continue
         output.append(line)
