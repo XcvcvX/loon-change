@@ -291,7 +291,8 @@ def consolidate_pdd_homepage_script(lines):
             output.append(line)
             continue
         normalized = re.sub(r"\\+", "", line.strip())
-        is_target = (section == "Script" and "api.pinduoduo.com/api/alexa/" in normalized\n                     and ("script-path" in normalized or "script(" in normalized))
+        is_target = (section == "Script" and "api.pinduoduo.com/api/alexa/" in normalized
+                     and ("script-path" in normalized or "script(" in normalized))
         if not is_target:
             output.append(line)
             continue
