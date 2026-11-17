@@ -59,7 +59,7 @@ class RomeoPluginMigrationTests(unittest.TestCase):
         self.assertNotIn("Modules/Loon/ishowshu/pdd.lpx", ROMEO_PLUGIN_MAP.values())
 
     def test_former_zmjde_assets_are_mapped_to_romeo_files(self):
-        self.assertEqual(len(RUNTIME_ASSETS), 4)
+        self.assertEqual(len(RUNTIME_ASSETS), 5)
         by_plugin = {item["plugin"]: item for item in RUNTIME_ASSETS}
         self.assertEqual(
             by_plugin["PinDuoDuo_remove_ads.lpx"]["source_path"],
@@ -76,6 +76,10 @@ class RomeoPluginMigrationTests(unittest.TestCase):
         self.assertEqual(
             by_plugin["goofish.lpx"]["source_path"],
             "Modules/JavaScript/ishowshu/goofish/ishowshu_goofish.js",
+        )
+        self.assertEqual(
+            by_plugin["12306.lpx"]["source_path"],
+            "Modules/JavaScript/fmz200/12306/kokoryh_12306.js",
         )
         self.assertTrue(MANIFEST["external_runtime_dependencies"])
 
