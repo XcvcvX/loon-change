@@ -1765,6 +1765,7 @@ def consolidate_zhihu_response_scripts(lines):
 
 def consolidate_soul_scripts(lines):
     """Collapse the 14 exact Soul response-body triggers into two case-safe matchers."""
+    normalize = lambda value: re.sub(r"enable=\\$\\{([^}]+)\\}", r"enable=\\1", value.strip())
     section = ""
     scoped = []
     for line in lines:
@@ -1773,20 +1774,32 @@ def consolidate_soul_scripts(lines):
         elif section == "Script" and not line.lstrip().startswith("#"):
             scoped.append(line.strip())
 
-    counts = [scoped.count(trigger) for trigger in SOUL_LEGACY_TRIGGERS]
-    canonical_counts = [scoped.count(trigger) for trigger in SOUL_CANONICAL_TRIGGERS]
-    known = set(SOUL_LEGACY_TRIGGERS)
+    legacy = {normalize(trigger) for trigger in SOUL_LEGACY_TRIGGERS}
+    canonical = {normalize(trigger) for trigger in SOUL_CANONICAL_TRIGGERS}
+    counts = {trigger: sum(normalize(line) == trigger for line in scoped) for trigger in legacy}
+    canonical_counts = {trigger: sum(normalize(line) == trigger for line in scoped) for trigger in canonical}
     unknown = [
         line for line in scoped
-        if SOUL_SCRIPT_MARKER in line and line not in known and line not in SOUL_CANONICAL_TRIGGERS
+        if SOUL_SCRIPT_MARKER in line and normalize(line) not in legacy and normalize(line) not in canonical
     ]
 
-    if not any(counts) and not any(canonical_counts) and not unknown:
+    if not any(counts.values()) and not any(canonical_counts.values()) and not unknown:
         return list(lines), 0
-    if tuple(canonical_counts) == (1, 1) and not any(counts) and not unknown:
+    if (all(count == 1 for count in canonical_counts.values())
+            and not any(counts.values()) and not unknown):
         return list(lines), 0
-    if (unknown or any(canonical_counts) or any(count != 1 for count in counts)):
+    if unknown or any(canonical_counts.values()) or any(count != 1 for count in counts.values()):
         raise ValueError("Soul script trigger inventory changed; refusing partial or mixed consolidation")
+
+    preserve_interpolation = any(
+        "enable=${" in line for line in scoped if SOUL_SCRIPT_MARKER in line
+    )
+    canonical_output = list(SOUL_CANONICAL_TRIGGERS)
+    if preserve_interpolation:
+        canonical_output = [
+            re.sub(r"enable=([A-Za-z0-9_]+)", r"enable=${\\1}", trigger)
+            for trigger in canonical_output
+        ]
 
     output = []
     section = ""
@@ -1796,13 +1809,13 @@ def consolidate_soul_scripts(lines):
             section = line[1:-1]
             output.append(line)
             continue
-        if section == "Script" and line.strip() in known:
-            if inserted < len(SOUL_CANONICAL_TRIGGERS):
-                output.append(SOUL_CANONICAL_TRIGGERS[inserted])
+        if section == "Script" and normalize(line) in legacy:
+            if inserted < len(canonical_output):
+                output.append(canonical_output[inserted])
                 inserted += 1
             continue
         output.append(line)
-    if inserted != len(SOUL_CANONICAL_TRIGGERS):
+    if inserted != len(canonical_output):
         raise ValueError("Soul canonical trigger insertion failed")
     return output, len(SOUL_LEGACY_TRIGGERS)
 
