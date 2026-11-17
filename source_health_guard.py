@@ -249,6 +249,11 @@ def main():
           (report["status"], report["average_source_reliability_score"],
            report["provenance_coverage"]["coverage_percent"],
            len(report["blockers"]), len(report["warnings"])))
+    print("[source-health] declared migrations=" + ",".join(report["declared_source_migrations"]))
+    for section, counts in report["section_changes"].items():
+        print("[source-health] %s action changes: total=%d migration_exempt=%d unrelated=%d" % (
+            section, counts["action_changed"], counts["migration_action_changed_exempted"],
+            counts["non_migration_action_changed"]))
     if not report["deployment_allowed"]:
         raise SystemExit("[source-health] HOLD: " + "; ".join(report["blockers"]))
 
