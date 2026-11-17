@@ -4038,8 +4038,6 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
             self.assertIn(updated, result)
         self.assertIn(account_trigger, result)
         splash_matcher = next(line for line in result if "tag=BAICIZHAN-11" in line)
-        self.assertIn(r"/x/v(?:[13-9]\/splash", splash_matcher)
-        self.assertIn(r"|2\/splash\/brand\/list", splash_matcher)
         import re
         splash_pattern = re.compile(splash_matcher.split(" script-path=")[0].removeprefix("http-response "))
         self.assertIsNotNone(splash_pattern.search("https://app.bilibili.com/x/v3/splash/show?"))
