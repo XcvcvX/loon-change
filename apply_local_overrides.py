@@ -4523,7 +4523,7 @@ BILIBILI_NATIVE_RULE_REPLACEMENTS = (
     ),
 )
 BILIBILI_NATIVE_PREREQUISITE_MARKERS = (
-    "response if ${url} ~= /^https:\\/\\/ap[ip]\\.bilibili\\.com\\/x\\/(resource\\/(top\\/activity|patch\\/tab(\\/v2)?)|v2\\/search\\/square|vip\\/ads\\/materials)\\?/ then response.body.mock",
+    r"response if ${url} ~= /^https:\/\/ap[ip]\.bilibili\.com\/x\/(resource\/(top\/activity|patch\/tab(\/v2)?)|v2\/search\/square|vip\/ads\/materials)\?/ then response.body.mock",
 )
 
 
