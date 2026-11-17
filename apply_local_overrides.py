@@ -3546,8 +3546,9 @@ MORE_RESPONSE_TRANSFORMS = {
 def remove_more_duplicate_response_scripts(lines):
     """Keep one handler per overlapping response, retaining broad matchers and safer guards."""
     remove_counts = {item: 0 for item in MORE_RESPONSE_REMOVE_TRIGGERS}
-    source_counts = {item: 0 for item in MORE_RESPONSE_KEEP_SOURCE_TRIGGERS}
-    output_counts = {item: 0 for item in MORE_RESPONSE_KEEP_TRIGGERS}
+    normalize_switch = lambda value: re.sub(r"enable=\\$\\{([^}]+)\\}", r"enable=\\1", value.strip())
+    source_counts = {normalize_switch(item): 0 for item in MORE_RESPONSE_KEEP_SOURCE_TRIGGERS}
+    output_counts = {normalize_switch(item): 0 for item in MORE_RESPONSE_KEEP_TRIGGERS}
     remove_set = set(MORE_RESPONSE_REMOVE_TRIGGERS)
     output, section, target_seen, removed = [], "", False, 0
     source_mode = any(item in lines for item in remove_set)
@@ -3559,6 +3560,7 @@ def remove_more_duplicate_response_scripts(lines):
             continue
 
         normalized = line.replace("\\", "")
+        inventory_line = normalize_switch(line)
         action = "http-response " in line or "response if " in line
         is_target = (
             section == "Script"
@@ -3585,17 +3587,20 @@ def remove_more_duplicate_response_scripts(lines):
                     raise ValueError("duplicate legacy response trigger; refusing ambiguous cleanup")
                 removed += 1
                 continue
-            if line in source_counts:
-                source_counts[line] += 1
-                if source_counts[line] > 1:
+            if inventory_line in source_counts:
+                source_counts[inventory_line] += 1
+                if source_counts[inventory_line] > 1:
                     raise ValueError("duplicate retained response source trigger")
-                output.append(MORE_RESPONSE_TRANSFORMS.get(line, line))
+                transformed = MORE_RESPONSE_TRANSFORMS.get(inventory_line, inventory_line)
+                if "enable=${" in line:
+                    transformed = re.sub(r"enable=([A-Za-z0-9_]+)", r"enable=${\\1}", transformed)
+                output.append(transformed)
                 continue
             raise ValueError("Kuwo/iThome/Cainiao/QuDa/Youdao/ZSGJ inventory changed; refusing unreviewed consolidation")
 
-        if line in output_counts:
-            output_counts[line] += 1
-            if output_counts[line] > 1:
+        if inventory_line in output_counts:
+            output_counts[inventory_line] += 1
+            if output_counts[inventory_line] > 1:
                 raise ValueError("duplicate consolidated response trigger")
             output.append(line)
             continue
