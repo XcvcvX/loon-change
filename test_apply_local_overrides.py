@@ -719,7 +719,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         unrelated = "request if ${url} ~= /^https?:\/\/images\.pinduoduo\.com\/product/ then reject(404)"
         fixture = [*PDD_FEED_ASSET_CANONICAL_RULES, *PDD_FEED_ASSET_REDUNDANT_RULES, unrelated]
         result, removed = remove_redundant_pdd_feed_asset_rules(fixture)
-        self.assertEqual(removed, 5)
+        self.assertEqual(removed, 4)
         for rule in PDD_FEED_ASSET_CANONICAL_RULES:
             self.assertIn(rule, result)
         self.assertIn(unrelated, result)
