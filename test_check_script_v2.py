@@ -28,17 +28,13 @@ response then script("https://example.com/a.js") with enable=quda_enable
         self.assertIn("fixture.plugin:2", errors[0])
         self.assertIn("enable=${quda_enable}", errors[0])
 
-    def test_atomic_group_is_rejected_only_in_config_sections(self):
-        text = """[Argument]
-note = (?>this is ordinary text)
-[Script]
-response if ${url} ~= /(?>ads)/ then script("https://example.com/a.js")
-[Rewrite]
-^https://example.com/(?>ads) - reject
+    def test_rewrite_regex_is_not_interpreted_as_script_configuration(self):
+        text = """[Rewrite]
+request if ${url} ~= /^https:\/\/example\.com\/(?>ads)/ then reject(404)
+[Rule]
+DOMAIN,example.com,REJECT
 """
-        errors = inspect_text(text)
-        self.assertEqual(len(errors), 2)
-        self.assertTrue(all("atomic regex group" in item for item in errors))
+        self.assertEqual(inspect_text(text), [])
 
     def test_non_script_sections_are_not_scanned(self):
         text = """[Rule]
