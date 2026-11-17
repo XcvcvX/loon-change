@@ -1287,6 +1287,31 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertEqual(second, result)
         self.assertEqual(second_removed, 0)
 
+    def test_accepts_interpolated_didiads_switches(self):
+        from apply_local_overrides import (
+            DIDI_CORE_NATIVE_RULE, DIDI_USERCENTER_LAYOUT_NATIVE_PREFIX,
+            DIDI_OTA_KEEP_SCRIPT, DIDI_PRESALE_KEEP_SCRIPT,
+            DIDIADS_COMMON_V5_SCRIPT, DIDIADS_NOOP_SCRIPT_RULES,
+            apply_didi_script_and_homepage_cleanup,
+        )
+        noops = [
+            rule.replace("enable=didiiuxk_enable", "enable=${didiiuxk_enable}")
+            for rule in DIDIADS_NOOP_SCRIPT_RULES
+        ]
+        common = DIDIADS_COMMON_V5_SCRIPT.replace(
+            "enable=didiiuxk_enable", "enable=${didiiuxk_enable}"
+        )
+        fixture = [
+            "[Argument]", "[Rule]", "[Rewrite]", DIDI_CORE_NATIVE_RULE,
+            DIDI_USERCENTER_LAYOUT_NATIVE_PREFIX + "[]", "[Script]",
+            *noops, common, DIDI_OTA_KEEP_SCRIPT, DIDI_PRESALE_KEEP_SCRIPT, "[MITM]",
+        ]
+        result, removed = apply_didi_script_and_homepage_cleanup(fixture)
+        self.assertEqual(removed, len(DIDIADS_NOOP_SCRIPT_RULES))
+        self.assertIn(common, result)
+        for rule in noops:
+            self.assertNotIn(rule, result)
+
     def test_fails_closed_when_didiads_noop_trigger_drifts(self):
         from apply_local_overrides import (
             DIDIADS_NOOP_SCRIPT_RULES, DIDIADS_COMMON_V5_SCRIPT,
