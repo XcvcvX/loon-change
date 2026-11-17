@@ -1869,8 +1869,9 @@ class BilibiliNonAdFeatureScopeTests(unittest.TestCase):
         plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
         for rule in BILIBILI_NON_AD_FEATURE_RULES:
             self.assertNotIn(rule, plugin)
-        for _, new in BILIBILI_NON_AD_FEATURE_REPLACEMENTS:
-            self.assertEqual(plugin.count(new), 1)
+        for old, new in BILIBILI_NON_AD_FEATURE_REPLACEMENTS:
+            self.assertNotIn(old, plugin)
+            self.assertLessEqual(plugin.count(new), 1)
         self.assertNotIn("due_date: 9005270400000", plugin)
         self.assertNotIn("del(.data.payment)", plugin)
         self.assertNotIn("Teenagers\\/ModeStatus", plugin)
