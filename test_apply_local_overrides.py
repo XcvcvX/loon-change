@@ -3710,6 +3710,18 @@ class SmzdmHomepageScriptOptimizationTests(unittest.TestCase):
         self.assertNotIn(fmz, result)
         self.assertIn(SMZDM_RSTORE_HOME_TRIGGER, result)
 
+    def test_removes_interpolated_fmz_ad_triggers_when_rstore_covers_them(self):
+        from apply_local_overrides import (
+            SMZDM_FMZ_ADS_DUPLICATE_PAIRS,
+            remove_redundant_smzdm_ads_script_triggers,
+        )
+        fixture = ["[Script]"]
+        for _, rstore, fmz in SMZDM_FMZ_ADS_DUPLICATE_PAIRS:
+            fixture.extend([rstore, fmz.replace("enable=smzdm_enable", "enable=${smzdm_enable}")])
+        result, removed = remove_redundant_smzdm_ads_script_triggers(fixture)
+        self.assertEqual(removed, len(SMZDM_FMZ_ADS_DUPLICATE_PAIRS))
+        self.assertFalse(any("smzdm_ads.js" in line for line in result))
+
     def test_preserves_fmz_homepage_dispatch_without_rstore_cover(self):
         from apply_local_overrides import (
             SMZDM_FMZ_HOME_TRIGGER, remove_redundant_smzdm_homepage_script_trigger,
