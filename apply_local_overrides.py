@@ -3989,7 +3989,7 @@ def narrow_xiaohongshu_native_response_duplicates(lines):
     fmz_actual = {
         line for line in script_lines
         if 'tag="小红书搜索页"' in line
-        and any(marker in line for marker in (
+        and any(marker in re.sub(r"\\+", "", line) for marker in (
             "/search/(banner|hot)_list",
             "/search/(hint|trending)",
             "/search/notes",
@@ -4002,7 +4002,7 @@ def narrow_xiaohongshu_native_response_duplicates(lines):
 
     replacements = {}
     for line in fmz_actual:
-        if "/search/notes" in line:
+        if "/search/notes" in re.sub(r"\\+", "", line):
             old = r"(?:so|edith)\.(xiaohongshu|rnote)\.com"
             new = r"(?:so|edith)\.rnote\.com"
         else:
