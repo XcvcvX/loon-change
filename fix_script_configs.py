@@ -51,11 +51,11 @@ def repair_plugin_text(text):
             continue
         line, n = re.subn(r'argument=\[\{([^]\r\n]+)\}\]', r'argument={\1}', line)
         counts["legacy_argument_lists"] += n
-        if MAASEA_RESPONSE in line:
+        if MAASEA_RESPONSE in line and "argument=" in line:
             counts["maasea_response"] += 1
             line = re.sub(r',\s*argument=.*$', '', line)
             line += ', argument={captionLang,blockUpload,blockImmersive,blockShorts,debug}'
-        elif MAASEA_REQUEST in line:
+        elif MAASEA_REQUEST in line and "argument=" in line:
             counts["maasea_request"] += 1
             line = re.sub(r',\s*argument=.*$', '', line)
             line += ', argument={captionLang}'
