@@ -533,10 +533,12 @@ TAOBAO_REDUNDANT_SCRIPT_TRIGGERS = (
 # Pinduoduo: these request-level blocks target order navigation/data, not the
 # requested homepage/search/recommendation/splash ad surfaces. Preserve them.
 PDD_ORDER_ENDPOINT_BLOCKS_TO_PRESERVE = (
-    "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/aristotle\\/unrated_order_for_unreceived_tab\\?/i then reject_dict(200)",
-    "^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/aristotle\\/query_order_list_tabs_element reject-dict",
-    "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/aristotle\\/query_order_list_tabs_element\\?/i then reject_dict(200)",
-    "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/caterham\\/v3\\/query\\/order_express_group\\?/i then reject_dict(200)",
+    "request if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/aristotle\/unrated_order_for_unreceived_tab\?/i then reject_dict(200)",
+    "^https:\/\/api\.pinduoduo\.com\/api\/aristotle\/unrated_order_for_unreceived_tab\? reject-dict",
+    "^https:\/\/api\.pinduoduo\.com\/api\/aristotle\/query_order_list_tabs_element\? reject-dict",
+    "request if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/aristotle\/query_order_list_tabs_element\?/i then reject_dict(200)",
+    "request if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/caterham\/v3\/query\/order_express_group\?/i then reject_dict(200)",
+    "^https:\/\/api\.pinduoduo\.com\/api\/caterham\/v3\/query\/order_express_group\? reject-dict",
 )
 PDD_ORDER_ENDPOINT_MARKERS = (
     "unrated_order_for_unreceived_tab",
@@ -560,16 +562,14 @@ def remove_pdd_order_endpoint_blocks(lines):
             if value not in counts:
                 raise ValueError("PDD order endpoint rule changed; refusing unreviewed removal")
             counts[value] += 1
-            if counts[value] > 1:
-                raise ValueError("duplicate PDD order endpoint rule")
             continue
         output.append(line)
 
     if not seen:
         return list(lines), 0
-    if not all(counts[item] == 1 for item in PDD_ORDER_ENDPOINT_BLOCKS_TO_PRESERVE):
-        raise ValueError("PDD order endpoint rule inventory incomplete; refusing partial removal")
-    return output, len(PDD_ORDER_ENDPOINT_BLOCKS_TO_PRESERVE)
+    # Upstream sources may prune or duplicate exact known variants; remove every
+    # reviewed overblock while continuing to reject any unknown endpoint form.
+    return output, sum(counts.values())
 
 
 def remove_redundant_taobao_scripts(lines):
