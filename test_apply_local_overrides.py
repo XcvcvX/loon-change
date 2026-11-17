@@ -1594,6 +1594,18 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertIn("scripts/meituan/meituan.js", result)
         self.assertEqual(apply(result), result)
 
+    def test_rebuilds_full_local_meituan_union_from_exact_rstore_only_upstream_subset(self):
+        from apply_local_overrides import MEITUAN_CANONICAL_TRIGGER
+        fixture = self.base.replace(
+            "\\n".join(self.triggers),
+            "\\n".join(self.triggers[:3]),
+        )
+        result = apply(fixture)
+        self.assertEqual(result.count(MEITUAN_CANONICAL_TRIGGER), 1)
+        for trigger in self.triggers:
+            self.assertNotIn(trigger, result)
+        self.assertEqual(apply(result), result)
+
     def test_fails_closed_on_missing_drifted_or_duplicate_meituan_trigger(self):
         missing = self.base.replace(self.triggers[0] + "\n", "")
         with self.assertRaisesRegex(ValueError, "Meituan script trigger inventory changed"):
