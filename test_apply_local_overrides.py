@@ -4482,6 +4482,17 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
             nearby_marker in line.replace(chr(92), "").lower() and "ishowshu_amap.js" in line.lower()
             for line in preserved_script.splitlines()
         ))
+        route_marker = AMAP_ISHOWSHU_REDUNDANT_SCRIPT_MARKERS[-1]
+        without_route_local = [
+            line for line in lines
+            if not (route_marker in line.replace(chr(92), "").lower() and "sources/amap/rucu6_amap.js" in line.lower())
+        ]
+        preserved, _ = optimize_amap_response_script_overlaps(without_route_local)
+        preserved_script = "\n".join(preserved).split("[Script]", 1)[1].split("[MITM]", 1)[0]
+        self.assertTrue(any(
+            route_marker in line.replace(chr(92), "").lower() and "ishowshu_amap.js" in line.lower()
+            for line in preserved_script.splitlines()
+        ))
         # Keep the script if the native jq rule no longer covers hkfRecommendPlans.
         without_hkf = [
             line.replace("hkfRecommendPlans", "unreviewedField")
