@@ -1603,6 +1603,24 @@ class DouyinContentCdnScopeTests(unittest.TestCase):
         for rule in current_rules:
             self.assertNotIn(rule, result)
 
+    def test_removes_double_escaped_equivalent_origin_overblocks(self):
+        from apply_local_overrides import remove_douyin_content_cdn_overblocks
+        doubled = [
+            r"request if \${url} ~= /^https?:\\/\\/p(b)?\\d\\.pstatp\\.com\\/origin/ then reject(404)",
+            r"request if \${url} ~= /^https?:\\/\\/p\\d\\.pstatp\\.com\\/origin/i then reject(404)",
+            r"request if \${url} ~= /^https?:\\/\\/pb\\d\\.pstatp\\.com\\/origin/i then reject(404)",
+        ]
+        fixture = ["[Rule]", self.overblocks[0][1], self.overblocks[1][1],
+                   "[Rewrite]", *doubled,
+                   *[line for line in self.base if line.startswith("request if") and "origin" not in line],
+                   "[Script]", "[MITM]"]
+        result, removed = remove_douyin_content_cdn_overblocks(fixture)
+        self.assertEqual(removed, 5)
+        for rule in doubled:
+            self.assertNotIn(rule, result)
+        for marker in self.markers:
+            self.assertTrue(any(marker in line.replace(chr(92), "") for line in result))
+
     def test_checked_in_plugin_snapshot_keeps_ad_paths_without_content_cdn_overblocks(self):
         from pathlib import Path
         from apply_local_overrides import DOUYIN_CONTENT_CDN_OVERBLOCKS, DOUYIN_CDN_REQUIRED_AD_PATH_MARKERS
