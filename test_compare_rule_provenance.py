@@ -39,6 +39,26 @@ class RuleProvenanceDiffTests(unittest.TestCase):
         self.assertEqual(result["summary"]["rewrite"]["removed"], 1)
         self.assertEqual(result["summary"]["script"]["removed"], 1)
 
+    def test_enable_switch_brace_style_is_not_a_semantic_action_change(self):
+        old = report([
+            rewrite(
+                r'response if ${url} ~= /^https:\/\/a\.example/ then script("x.js") with enable=foo',
+                "^https://a.example",
+                ('script("x.js") with enable=foo',),
+            )
+        ])
+        new = report([
+            rewrite(
+                r'response if ${url} ~= /^https:\/\/a\.example/ then script("x.js") with enable=${foo}',
+                "^https://a.example",
+                ('script("x.js") with enable=${foo}',),
+            )
+        ])
+        result = build_diff(old, new)
+        self.assertEqual(result["summary"]["rewrite"]["action_changed"], 0)
+        self.assertEqual(result["summary"]["rewrite"]["added"], 0)
+        self.assertEqual(result["summary"]["rewrite"]["removed"], 0)
+
     def test_detects_unique_rewrite_action_change(self):
         old = report([rewrite("^https://a.example/ad reject", "^https://a.example/ad", ("REJECT",))])
         new = report([rewrite("^https://a.example/ad reject-200", "^https://a.example/ad", ("REJECT-200",))])
