@@ -3942,15 +3942,16 @@ class BilibiliProtobufDuplicateTriggerTests(unittest.TestCase):
         fixture = ["[Rewrite]", "[Script]", fmz_trigger]
         for _, original, _ in BILIBILI_PROTOBUF_DUPLICATE_PAIRS:
             fixture.append(original)
-        fixture.extend(["[MITM]", "hostname = grpc.biliapi.net, app.bilibili.com"])
+        fixture.extend([mainlist, "[MITM]", "hostname = grpc.biliapi.net, app.bilibili.com"])
         result, changed = narrow_duplicate_bilibili_protobuf_triggers(fixture)
-        self.assertEqual(changed, 5)
+        self.assertEqual(changed, 4)
         for _, original, narrowed in BILIBILI_PROTOBUF_DUPLICATE_PAIRS:
             self.assertNotIn(original, result)
             self.assertIn(narrowed, result)
-        narrowed_mainlist = next(narrowed for marker, original, narrowed in BILIBILI_PROTOBUF_DUPLICATE_PAIRS if marker == "MainList")
-        self.assertNotIn(mainlist, result)
-        self.assertIn(narrowed_mainlist, result)
+        self.assertIn(mainlist, result)
+        mainlist_pattern = re.compile(mainlist.split(" script-path=")[0].removeprefix("http-response "))
+        self.assertIsNotNone(mainlist_pattern.search("https://grpc.biliapi.net/bilibili.main.community.reply.v1.Reply/MainList"))
+        self.assertIsNotNone(mainlist_pattern.search("https://app.bilibili.com/bilibili.main.community.reply.v9.Reply/MainList"))
         again, second_changed = narrow_duplicate_bilibili_protobuf_triggers(result)
         self.assertEqual(second_changed, 0)
         self.assertEqual(again, result)
@@ -3959,7 +3960,8 @@ class BilibiliProtobufDuplicateTriggerTests(unittest.TestCase):
         from apply_local_overrides import (
             BILIBILI_PROTOBUF_DUPLICATE_PAIRS, narrow_duplicate_bilibili_protobuf_triggers,
         )
-        fixture = ["[Script]"] + [original for _, original, _ in BILIBILI_PROTOBUF_DUPLICATE_PAIRS] + ["[MITM]"]
+        from apply_local_overrides import BILIBILI_PROTOBUF_NON_DUPLICATE_TRIGGER
+        fixture = ["[Script]"] + [original for _, original, _ in BILIBILI_PROTOBUF_DUPLICATE_PAIRS] + [BILIBILI_PROTOBUF_NON_DUPLICATE_TRIGGER, "[MITM]"]
         result, changed = narrow_duplicate_bilibili_protobuf_triggers(fixture)
         self.assertEqual(changed, 0)
         self.assertEqual(result, fixture)
@@ -4095,12 +4097,15 @@ class XiaohongshuV3VideoNativeDedupTests(unittest.TestCase):
         self.assertIn(XHS_V3_VIDEO_FMZ_NARROWED_TRIGGER, result)
         rstore = re.compile(XHS_V3_VIDEO_RSTORE_NARROWED_TRIGGER.split(" script-path=")[0].removeprefix("http-response "))
         self.assertIsNone(rstore.search("https://edith.xiaohongshu.com/api/sns/v3/note/videofeed"))
-        self.assertIsNotNone(rstore.search("https://edith.xiaohongshu.com/api/sns/v4/note/videofeed"))
+        self.assertIsNone(rstore.search("https://edith.xiaohongshu.com/api/sns/v4/note/videofeed"))
         self.assertIsNone(rstore.search("https://edith.xiaohongshu.com/api/sns/v5/note/videofeed"))
-        self.assertIsNotNone(rstore.search("https://www.xiaohongshu.com/api/sns/v1/note/imagefeed"))
-        self.assertIsNotNone(rstore.search("https://rec.xiaohongshu.com/api/sns/v2/note/feed"))
-        self.assertIsNotNone(rstore.search("https://edith.xiaohongshu.com/api/sns/v10/note/video/save"))
-        self.assertIsNotNone(rstore.search("https://edith.xiaohongshu.com/api/sns/v2/note/live_photo/save"))
+        self.assertIsNone(rstore.search("https://www.xiaohongshu.com/api/sns/v1/note/imagefeed"))
+        self.assertIsNone(rstore.search("https://rec.xiaohongshu.com/api/sns/v2/note/feed"))
+        self.assertIsNone(rstore.search("https://edith.xiaohongshu.com/api/sns/v10/note/video/save"))
+        self.assertIsNone(rstore.search("https://edith.xiaohongshu.com/api/sns/v2/note/live_photo/save"))
+        self.assertIsNotNone(rstore.search("https://edith.xiaohongshu.com/api/sns/v3/note/feed"))
+        self.assertIsNotNone(rstore.search("https://edith.xiaohongshu.com/api/sns/v11/note/video/save"))
+        self.assertIsNotNone(rstore.search("https://edith.xiaohongshu.com/api/sns/v1/note/video/save"))
         fmz = re.compile(r"^https?://(?:(?:edith|rec|www)\.(?:xiaohongshu|rnote)\.com/api/sns/v2/note/feed\?|(?:edith|rec|www)\.rnote\.com/api/sns/v3/note/videofeed\?)")
         self.assertIsNotNone(fmz.search("https://edith.xiaohongshu.com/api/sns/v2/note/feed?"))
         self.assertIsNotNone(fmz.search("https://edith.rnote.com/api/sns/v2/note/feed?"))
@@ -4123,6 +4128,86 @@ class XiaohongshuV3VideoNativeDedupTests(unittest.TestCase):
         fixture[1] = fixture[1].replace("function_switch", "other_switch")
         with self.assertRaisesRegex(ValueError, "no longer covers script behavior"):
             narrow_xiaohongshu_v3_video_native_duplicates(fixture)
+
+
+
+class XiaohongshuV4AndCommentMigrationTests(unittest.TestCase):
+    def _fixture(self):
+        from apply_local_overrides import (
+            XHS_FMZ_COMMENT_LIST_TRIGGER, XHS_FMZ_V4_TRIGGER,
+            XHS_RSTORE_COMMENT_TRIGGER, XHS_V3_VIDEO_RSTORE_NARROWED_TRIGGER,
+            XHS_SCRIPT_TRIGGER_LINES,
+        )
+        rstore_download = next(line for line in XHS_SCRIPT_TRIGGER_LINES if "tag=XIAOHONGSHU-11," in line)
+        fmz_download = next(
+            line for line in XHS_SCRIPT_TRIGGER_LINES
+            if "v1/interaction/comment/video/download" in line.replace(chr(92), "")
+        )
+        v4_native = (
+            r"^https:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/v4\/note\/videofeed "
+            r"response-body-json-jq 'function_switch disable_save disable_watermark video_download has(\"ad\")'"
+        )
+        comment_native = (
+            r"^https:\/\/edith\.xiaohongshu\.com\/api\/sns\/v\d+\/note\/comment\/list "
+            r"response-body-json-jq 'comment_type media_source_type'"
+        )
+        return [
+            "[Rewrite]", v4_native, comment_native,
+            "[Script]", XHS_V3_VIDEO_RSTORE_NARROWED_TRIGGER,
+            XHS_RSTORE_COMMENT_TRIGGER, XHS_FMZ_V4_TRIGGER,
+            XHS_FMZ_COMMENT_LIST_TRIGGER, rstore_download, fmz_download,
+            "[MITM]",
+        ]
+
+    def test_migrates_v4_filter_into_cached_script_and_removes_duplicate_comment_jq(self):
+        from apply_local_overrides import (
+            XHS_FMZ_V4_LOCAL_TRIGGER, XHS_FMZ_COMMENT_LIST_TRIGGER,
+            XHS_RSTORE_COMMENT_TRIGGER_NARROWED,
+            migrate_xiaohongshu_v4_and_comment_processing,
+        )
+        import re
+        fixture = self._fixture()
+        result, changed = migrate_xiaohongshu_v4_and_comment_processing(fixture)
+        self.assertEqual(changed, 4)
+        self.assertIn(XHS_FMZ_V4_LOCAL_TRIGGER, result)
+        self.assertIn(XHS_FMZ_COMMENT_LIST_TRIGGER, result)
+        self.assertIn(XHS_RSTORE_COMMENT_TRIGGER_NARROWED, result)
+        self.assertFalse(any("v4/note/videofeed" in line.replace(chr(92), "") and "response-body-json-jq" in line for line in result))
+        self.assertFalse(any("/note/comment/list" in line.replace(chr(92), "") and "response-body-json-jq" in line for line in result))
+        self.assertTrue(any("tag=XIAOHONGSHU-11," in line for line in result))
+        self.assertTrue(any("v1/interaction/comment/video/download" in line.replace(chr(92), "") for line in result))
+
+        comment = re.compile(XHS_RSTORE_COMMENT_TRIGGER_NARROWED.split(" script-path=")[0].removeprefix("http-response "))
+        self.assertIsNotNone(comment.search("https://edith.xiaohongshu.com/api/sns/v3/note/comment/list?"))
+        self.assertIsNone(comment.search("https://edith.xiaohongshu.com/api/sns/v3/note/comment/sub_comments?"))
+        self.assertIsNone(comment.search("https://edith.xiaohongshu.com/api/sns/v5/note/comment/list?"))
+        self.assertIsNotNone(comment.search("https://edith.xiaohongshu.com/api/sns/v5/note/comment/sub_comments?"))
+        self.assertIsNotNone(comment.search("https://edith.xiaohongshu.com/api/sns/v10/note/comment/list?"))
+
+        again, second_changed = migrate_xiaohongshu_v4_and_comment_processing(result)
+        self.assertEqual(second_changed, 0)
+        self.assertEqual(again, result)
+
+    def test_fails_closed_on_v4_native_behavior_or_comment_version_drift(self):
+        from apply_local_overrides import migrate_xiaohongshu_v4_and_comment_processing
+        fixture = self._fixture()
+        drifted = [line.replace("function_switch", "unknown_switch") if "v4/note/videofeed" in line else line for line in fixture]
+        with self.assertRaisesRegex(ValueError, "v4 native behavior changed"):
+            migrate_xiaohongshu_v4_and_comment_processing(drifted)
+
+        no_fmz_comment = [line for line in fixture if "v5/note/comment/list" not in line.replace(chr(92), "")]
+        with self.assertRaisesRegex(ValueError, "FMZ comment-version coverage missing"):
+            migrate_xiaohongshu_v4_and_comment_processing(no_fmz_comment)
+
+    def test_local_v4_script_contains_the_merged_ad_filter_and_keeps_cache_paths(self):
+        from pathlib import Path
+        script = (Path(__file__).parent / "scripts" / "xiaohongshu" / "xiaohongshu-v4.js").read_text(encoding="utf-8")
+        self.assertIn('item.model_type === "note"', script)
+        self.assertIn('Object.prototype.hasOwnProperty.call(item, "ad")', script)
+        self.assertIn('$.setdata(JSON.stringify(videoData), "redBookVideoFeed")', script)
+        self.assertIn('/v10/note/video/save', script)
+
+
 
 
 if __name__ == "__main__":
@@ -4199,9 +4284,14 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
             r"http-response ^https:\/\/app\.bilibili\.com\/x\/resource\/show\/skin\? "
             r"script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-13,requires-body=true"
         )
+        sparkle_mine_rule = (
+            r'response if ${url} ~= /^https:\\/\\/app\\.bilibili\\.com\\/x\\/v2\\/account\\/mine\\?/ '
+            r'then response.json.jq_file("https://raw.githubusercontent.com/kokoryh/Sparkle/refs/heads/master/jq/bilibili.mine.jq")'
+        )
         fixture = ["[Rewrite]"]
         fixture.extend(BILIBILI_NATIVE_PREREQUISITE_MARKERS)
         fixture.extend(original for original, _ in BILIBILI_NATIVE_RULE_REPLACEMENTS)
+        fixture.append(sparkle_mine_rule)
         fixture.append("[Script]")
         fixture.append(fmz_live)
         fixture.extend(original for _, original, _ in BILIBILI_JSON_TRIGGER_PAIRS)
@@ -4215,6 +4305,7 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
             self.assertNotIn(original, result)
             self.assertIn(updated, result)
         self.assertIn(account_trigger, result)
+        self.assertIn(sparkle_mine_rule, result)  # Not equivalent to BAICIZHAN-12; retain both safely.
         splash_matcher = next(line for line in result if "tag=BAICIZHAN-11" in line)
         import re
         splash_pattern = re.compile(splash_matcher.split(" script-path=")[0].removeprefix("http-response "))
