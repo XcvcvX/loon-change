@@ -2415,6 +2415,24 @@ class WeChatUnblockScriptConsolidationTests(unittest.TestCase):
         result2, removed2 = consolidate_wechat_unblock_url_scripts(result)
         self.assertEqual((result2, removed2), (result, 0))
 
+    def test_removes_exact_duplicate_with_loon_variable_interpolation(self):
+        from apply_local_overrides import (
+            WECHAT_UNBLOCK_URL_CANONICAL_TRIGGER,
+            WECHAT_UNBLOCK_URL_REDUNDANT_TRIGGER,
+            WECHAT_UNBLOCK_URL_DISTINCT_TRIGGER,
+            consolidate_wechat_unblock_url_scripts,
+        )
+        interpolated = WECHAT_UNBLOCK_URL_REDUNDANT_TRIGGER.replace(
+            "enable=lmjpxmvi_enable", "enable=${lmjpxmvi_enable}"
+        )
+        fixture = ["[Script]", WECHAT_UNBLOCK_URL_CANONICAL_TRIGGER,
+                   interpolated, WECHAT_UNBLOCK_URL_DISTINCT_TRIGGER]
+        result, removed = consolidate_wechat_unblock_url_scripts(fixture)
+        self.assertEqual(removed, 1)
+        self.assertNotIn(interpolated, result)
+        self.assertIn(WECHAT_UNBLOCK_URL_CANONICAL_TRIGGER, result)
+        self.assertIn(WECHAT_UNBLOCK_URL_DISTINCT_TRIGGER, result)
+
     def test_preserves_already_consolidated_or_absent_inventory(self):
         from apply_local_overrides import (
             WECHAT_UNBLOCK_URL_CANONICAL_TRIGGER,
