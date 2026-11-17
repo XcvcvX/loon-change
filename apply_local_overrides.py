@@ -1026,6 +1026,7 @@ def remove_redundant_taobao_rewrite_rules(lines):
 def replace_ddqx_newdetails_body_rewrites(lines):
     """Replace only the reviewed Duoduo Grocery suspension-field rewrites with JSON deletion."""
     output, converted, legacy_count, modern_count, native_count = [], 0, 0, 0, 0
+    unknown_seen = False
     normalize = lambda value: re.sub(
         r"enable=\\$\\{([^}]+)\\}",
         r"enable=\\1",
@@ -1053,9 +1054,12 @@ def replace_ddqx_newdetails_body_rewrites(lines):
             output.append(line)
             continue
         # New upstream variants are kept verbatim until their semantics are reviewed.
+        unknown_seen = True
         output.append(line)
     if legacy_count > 1 or modern_count > 1 or native_count > 1:
         raise ValueError("duplicate Duoduo Grocery newDetails suspension rules; refusing ambiguous conversion")
+    if unknown_seen:
+        return list(lines), 0
     if converted and not native_count:
         output.append(DDQX_NEWDETAILS_NATIVE_RULE)
     return output, converted
