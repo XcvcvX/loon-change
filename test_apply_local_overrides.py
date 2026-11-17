@@ -1919,22 +1919,27 @@ hostname = webcast-open.douyin.com, beta-luna.douyin.com, creditcard.bankcomm.cn
             self.assertIn(retained, result)
         self.assertEqual(apply(result), result)
 
-    def test_fails_closed_on_missing_drifted_or_duplicate_rule_inventory(self):
+    def test_allows_upstream_pruning_and_removes_duplicate_known_unsafe_rules(self):
         missing = self.base.replace("DOMAIN-KEYWORD,minigame,REJECT\n", "")
-        with self.assertRaisesRegex(ValueError, "Douyin/Hongguo safety inventory changed"):
-            apply(missing)
+        missing_result = apply(missing)
+        self.assertNotIn("DOMAIN-KEYWORD,minigame,REJECT", missing_result)
+        self.assertNotIn("webcast-open.douyin.com", missing_result)
+
+        duplicate = self.base.replace(
+            "DOMAIN-SUFFIX,dig.bdurl.net,REJECT",
+            "DOMAIN-SUFFIX,dig.bdurl.net,REJECT\nDOMAIN-SUFFIX,dig.bdurl.net,REJECT",
+        )
+        duplicate_result = apply(duplicate)
+        self.assertNotIn("DOMAIN-SUFFIX,dig.bdurl.net,REJECT", duplicate_result)
+        self.assertNotIn("webcast-open.douyin.com", duplicate_result)
+
+    def test_fails_closed_on_drifted_unsafe_rule_inventory(self):
         drifted = self.base.replace(
             "DOMAIN-KEYWORD,minigame,REJECT",
             "DOMAIN-KEYWORD,minigame,REJECT(404)",
         )
         with self.assertRaisesRegex(ValueError, "Douyin/Hongguo safety inventory changed"):
             apply(drifted)
-        duplicate = self.base.replace(
-            "DOMAIN-SUFFIX,dig.bdurl.net,REJECT",
-            "DOMAIN-SUFFIX,dig.bdurl.net,REJECT\nDOMAIN-SUFFIX,dig.bdurl.net,REJECT",
-        )
-        with self.assertRaisesRegex(ValueError, "Douyin/Hongguo safety inventory changed"):
-            apply(duplicate)
 
     def test_optional_romeo_live_feed_response_mock_is_removed_but_not_required(self):
         optional = r'response if ${url} ~= /^https?:\/\/webcast-open\.douyin\.com\/webcast\/openapi\/feed\//i then response.body.mock("json", "{}", 200)'
@@ -1943,10 +1948,10 @@ hostname = webcast-open.douyin.com, beta-luna.douyin.com, creditcard.bankcomm.cn
         without_optional = self.base.replace(optional + "\n", "")
         self.assertEqual(apply(without_optional), result)
         duplicated = self.base.replace(optional, optional + "\n" + optional)
-        with self.assertRaisesRegex(ValueError, "Douyin/Hongguo safety inventory changed"):
-            apply(duplicated)
+        duplicate_result = apply(duplicated)
+        self.assertNotIn(optional, duplicate_result)
 
-    def test_fails_closed_on_unknown_live_feed_rule_or_missing_mitm_host(self):
+    def test_fails_closed_on_unknown_live_feed_rule_but_allows_missing_host(self):
         unknown = self.base.replace(
             "DOMAIN,webcast-open.douyin.com,REJECT",
             "DOMAIN,webcast-open.douyin.com,REJECT\nDOMAIN-SUFFIX,webcast-open.douyin.com,REJECT",
@@ -1954,8 +1959,8 @@ hostname = webcast-open.douyin.com, beta-luna.douyin.com, creditcard.bankcomm.cn
         with self.assertRaisesRegex(ValueError, "Douyin/Hongguo safety inventory changed"):
             apply(unknown)
         missing_host = self.base.replace("webcast-open.douyin.com, ", "")
-        with self.assertRaisesRegex(ValueError, "Douyin/Hongguo safety inventory changed"):
-            apply(missing_host)
+        missing_result = apply(missing_host)
+        self.assertNotIn("webcast-open.douyin.com", missing_result)
 
 
 
