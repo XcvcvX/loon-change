@@ -3617,7 +3617,7 @@ def remove_more_duplicate_response_scripts(lines):
                     transformed = re.sub(r"enable=([A-Za-z0-9_]+)", r"enable=${\1}", transformed)
                 output.append(transformed)
                 continue
-            raise ValueError("Kuwo/iThome/Cainiao/QuDa/Youdao/ZSGJ inventory changed; refusing unreviewed consolidation")
+            raise ValueError("Kuwo/iThome/Cainiao/QuDa/Youdao/ZSGJ inventory changed; refusing unreviewed consolidation: " + line.strip())
 
         if inventory_line in output_counts:
             output_counts[inventory_line] += 1
@@ -3625,7 +3625,7 @@ def remove_more_duplicate_response_scripts(lines):
                 raise ValueError("duplicate consolidated response trigger")
             output.append(line)
             continue
-        raise ValueError("consolidated response inventory changed; refusing unreviewed cleanup")
+        raise ValueError("consolidated response inventory changed; refusing unreviewed cleanup: " + line.strip())
 
     if not target_seen:
         return output, 0
