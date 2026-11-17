@@ -4109,7 +4109,7 @@ def narrow_xiaohongshu_native_response_duplicates(lines):
 
 
 XHS_V3_VIDEO_RSTORE_NARROWED_TRIGGER = (
-    r"http-response ^https?:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/(?:v\d+\/note\/(?:imagefeed|feed|(?:live_photo|video)\/save)|v4\/note\/videofeed) "
+    r"http-response ^https?:\\/\\/(?:edith|rec|www)\\.xiaohongshu\\.com\\/api\\/sns\\/(?:v(?:[13-9]|[1-9][0-9]+)\\/note\\/feed|v(?:[1-9]|1[1-9]|[2-9][0-9]+)\\/note\\/video\\/save) "
     r"script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-7,requires-body=true"
 )
 XHS_V3_VIDEO_FMZ_NARROWED_TRIGGER = (
@@ -4906,15 +4906,16 @@ BILIBILI_PROTOBUF_DUPLICATE_PAIRS = (
         r"http-response ^https?:\/\/(?:app\.bilibili\.com|grpc\.biliapi\.net)\/bilibili\.community\.service\.dm\.v[2-9]\.DM\/DmView script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-4,requires-body=true,binary-body-mode=true",
     ),
     (
-        "MainList",
-        r"http-response ^https?:\/\/(?:app\.bilibili\.com|grpc\.biliapi\.net)\/bilibili\.main\.community\.reply\.v\d\.Reply\/MainList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-5,requires-body=true,binary-body-mode=true",
-        r"http-response ^https?:\/\/(?:app\.bilibili\.com|grpc\.biliapi\.net)\/bilibili\.main\.community\.reply\.v[2-9]\.Reply\/MainList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-5,requires-body=true,binary-body-mode=true",
-    ),
-    (
         "SearchAll",
         r"http-response ^https?:\/\/(?:app\.bilibili\.com|grpc\.biliapi\.net)\/bilibili\.polymer\.app\.search\.v\d\.Search\/SearchAll script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-6,requires-body=true,binary-body-mode=true",
         r"http-response ^https?:\/\/(?:app\.bilibili\.com|grpc\.biliapi\.net)\/bilibili\.polymer\.app\.search\.v[2-9]\.Search\/SearchAll script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-6,requires-body=true,binary-body-mode=true",
     ),
+)
+
+# Sparkle does not process MainList. Keep BAICIZHAN-5 full v1-v9 coverage.
+BILIBILI_PROTOBUF_NON_DUPLICATE_TRIGGER = (
+    r"http-response ^https?:\\/\\/(?:app\\.bilibili\\.com|grpc\\.biliapi\\.net)\\/bilibili\\.main\\.community\\.reply\\.v\\d\\.Reply\\/MainList "
+    r"script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-5,requires-body=true,binary-body-mode=true"
 )
 
 
@@ -4941,6 +4942,16 @@ def narrow_duplicate_bilibili_protobuf_triggers(lines):
         normalized_fmz = re.sub(r"\\+", "", fmz_candidates[0])
         if not all(marker in normalized_fmz for marker in BILIBILI_FMZ_PROTOBUF_REQUIRED_MARKERS):
             raise ValueError("Bilibili Sparkle protobuf endpoint coverage changed; refusing duplicate cleanup")
+
+    mainlist_candidates = [
+        line for line in script_lines
+        if "tag=BAICIZHAN-5" in line or "bilibili.main.community.reply" in re.sub(r"\\+", "", line)
+    ]
+    if mainlist_candidates and (
+        len(mainlist_candidates) != 1
+        or mainlist_candidates[0] != BILIBILI_PROTOBUF_NON_DUPLICATE_TRIGGER
+    ):
+        raise ValueError("Bilibili MainList is not covered by Sparkle; refusing version narrowing")
 
     replacements = {}
     for marker, original, narrowed in BILIBILI_PROTOBUF_DUPLICATE_PAIRS:
@@ -5030,7 +5041,13 @@ BILIBILI_NATIVE_PREREQUISITE_MARKERS = (
 
 
 def optimize_bilibili_json_native_coverage(lines):
-    """Narrow R-Store JSON triggers where existing native/Sparkle handlers cover the same current endpoints."""
+    """Narrow R-Store JSON triggers where existing native/Sparkle handlers cover the same current endpoints.
+
+    BAICIZHAN-12 and Sparkle mine JQ both parse v2/account/mine, but their
+    transformations are not equivalent: Sparkle replaces account sections and
+    rewrites VIP fields, while R-Store also handles ipad/myinfo variants. Keep
+    both until their complete output behavior can be merged without regression.
+    """
     output = list(lines)
     section = ""
     script_lines = []
