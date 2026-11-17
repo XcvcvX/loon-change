@@ -4117,7 +4117,6 @@ XHS_V3_VIDEO_FMZ_NARROWED_TRIGGER = (
     r'then script("https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js") with enable=${xhs_enable}, tag="小红书图片视频水印", timeout=60, requires_body=true'
 )
 
-
 def narrow_xiaohongshu_v3_video_native_duplicates(lines):
     """Drop only v3 video-feed script passes proven equivalent to native jq."""
     original = list(lines)
