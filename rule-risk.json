@@ -2,8 +2,8 @@
   "change_counts": {
     "rewrite": {
       "action_changed": 0,
-      "added": 1,
-      "removed": 1
+      "added": 0,
+      "removed": 0
     },
     "rule": {
       "action_changed": 0,
@@ -12,62 +12,14 @@
     },
     "script": {
       "action_changed": 0,
-      "added": 2,
-      "removed": 3
+      "added": 4,
+      "removed": 9
     }
   },
   "events": [
     {
       "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/homepage\\/hub\\?/i then response.json.jq(\"if (.result | type) == \\\"object\\\" then del(.result.dy_module.irregular_banner_dy, .result.icon_set, .result.search_bar_hot_query) | .result.bottom_tabs? |= (if type == \\\"array\\\" then map(select(. != null and (.title | IN(\\\"首页\\\", \\\"聊天\\\", \\\"个人中心\\\")) and ((.link // \\\"\\\") | tostring | IN(\\\"index.html\\\", \\\"chat_list.html\\\", \\\"personal.html\\\")))) else . end) | .result.buffer_bottom_tabs? |= (if type == \\\"array\\\" then map(select(. != null and ((.link // \\\"\\\") | tostring | IN(\\\"index.html\\\", \\\"chat_list.html\\\", \\\"personal.html\\\")))) else . end) | .result.all_top_opts? |= (if type == \\\"array\\\" then [] else . end) | .result.module_order? |= (if type == \\\"array\\\" then map(select(. != null and . != false and . != 0 and . != \\\"\\\" and ((.module_name // \\\"\\\") | IN(\\\"irregular_banner_dy\\\", \\\"irregular_banner\\\", \\\"ad_module\\\", \\\"icon_set\\\", \\\"recommend_fresh_info\\\", \\\"timeline\\\") | not))) else . end) else . end\")",
-        "section": "rewrite",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "rewrite",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/homepage\\/hub\\?/i then response.json.delete([\"result.dy_module.irregular_banner_dy\", \"result.icon_set\", \"result.search_bar_hot_query\"]) | response.json.jq(\".result.bottom_tabs? |= map(select(.link | IN(\\\"index.html\\\", \\\"chat_list.html\\\", \\\"personal.html\\\"))) | .result.buffer_bottom_tabs? |= map(select(.link | IN(\\\"index.html\\\", \\\"chat_list.html\\\", \\\"personal.html\\\"))) | .result.all_top_opts |= map(del(.selected_image, .image, .height, .width))\")",
-        "section": "rewrite",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "rewrite",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "http-response ^https?:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=(?:deliverLayer|getTabHomeInfo|myOrderInfo|orderTrackBusiness|personinfoBusiness|start|readCustomSurfaceList) script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/jingdong/jd.js,tag=JD-CONSOLIDATED,requires-body=true",
+        "line": "http-response ^https?:\\/\\/(?:app\\.bilibili\\.com|grpc\\.biliapi\\.net)\\/bilibili\\.main\\.community\\.reply\\.v[2-9]\\.Reply\\/MainList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-5,requires-body=true,binary-body-mode=true",
         "section": "script",
         "sources": [
           "local_overrides"
@@ -91,7 +43,55 @@
     },
     {
       "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=welcomeHome/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/jingdong/jd.js\", {${jkds_enable}}) with tag=\"JD-CONSOLIDATED-WELCOME\", timeout=60, requires_body=true",
+        "line": "response if ${url} ~= /^https?:\\/\\/(so|edith)\\.rnote\\.com\\/api\\/sns\\/v\\d+\\/search\\/notes\\?/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书搜索页\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "local_overrides"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "local_overrides": "unavailable"
+      },
+      "source_scores": {
+        "local_overrides": null
+      },
+      "sources": [
+        "local_overrides"
+      ]
+    },
+    {
+      "after": {
+        "line": "response if ${url} ~= /^https?:\\/\\/edith\\.rnote\\.com\\/api\\/sns\\/v\\d+\\/search\\/(banner|hot)_list/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书搜索页\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "local_overrides"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "local_overrides": "unavailable"
+      },
+      "source_scores": {
+        "local_overrides": null
+      },
+      "sources": [
+        "local_overrides"
+      ]
+    },
+    {
+      "after": {
+        "line": "response if ${url} ~= /^https?:\\/\\/edith\\.rnote\\.com\\/api\\/sns\\/v\\d+\\/search\\/(hint|trending)\\?/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书搜索页\", timeout=60, requires_body=true",
         "section": "script",
         "sources": [
           "local_overrides"
@@ -116,10 +116,10 @@
     {
       "after": null,
       "before": {
-        "line": "http-response ^https?:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=(?:deliverLayer|getTabHomeInfo|myOrderInfo|orderTrackBusiness|personinfoBusiness|start|welcomeHome|readCustomSurfaceList) script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/jingdong/jd.js,tag=JD-CONSOLIDATED,requires-body=true",
+        "line": "http-response ^https?:\\/\\/(?:app\\.bilibili\\.com|grpc\\.biliapi\\.net)\\/bilibili\\.main\\.community\\.reply\\.v\\d\\.Reply\\/MainList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-5,requires-body=true,binary-body-mode=true",
         "section": "script",
         "sources": [
-          "local_overrides"
+          "base"
         ]
       },
       "change_type": "removed",
@@ -128,22 +128,22 @@
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "local_overrides": "unavailable"
+        "base": "unavailable"
       },
       "source_scores": {
-        "local_overrides": null
+        "base": null
       },
       "sources": [
-        "local_overrides"
+        "base"
       ]
     },
     {
       "after": null,
       "before": {
-        "line": "http-response ^https?:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/homepage\\/hub script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/pinduoduo/pdd-homepage.js,tag=PDD-2,requires-body=true",
+        "line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/note\\/widgets script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU,requires-body=true",
         "section": "script",
         "sources": [
-          "local_overrides"
+          "base"
         ]
       },
       "change_type": "removed",
@@ -152,22 +152,22 @@
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "local_overrides": "unavailable"
+        "base": "unavailable"
       },
       "source_scores": {
-        "local_overrides": null
+        "base": null
       },
       "sources": [
-        "local_overrides"
+        "base"
       ]
     },
     {
       "after": null,
       "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=welcomeHome/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/jingdong/jd-welcome.js\") with enable=${jkds_enable}, tag=\"京东首页额外清理\", timeout=60, requires_body=true",
+        "line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/search\\/(?:banner|hot)_list script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-3,requires-body=true",
         "section": "script",
         "sources": [
-          "local_overrides"
+          "base"
         ]
       },
       "change_type": "removed",
@@ -176,23 +176,167 @@
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "local_overrides": "unavailable"
+        "base": "unavailable"
       },
       "source_scores": {
-        "local_overrides": null
+        "base": null
       },
       "sources": [
-        "local_overrides"
+        "base"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/search\\/(?:hint|trending)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-4,requires-body=true",
+        "section": "script",
+        "sources": [
+          "base"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "base": "unavailable"
+      },
+      "source_scores": {
+        "base": null
+      },
+      "sources": [
+        "base"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/search\\/notes\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-5,requires-body=true",
+        "section": "script",
+        "sources": [
+          "base"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "base": "unavailable"
+      },
+      "source_scores": {
+        "base": null
+      },
+      "sources": [
+        "base"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/system_service\\/config\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-6,requires-body=true",
+        "section": "script",
+        "sources": [
+          "base"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "base": "unavailable"
+      },
+      "source_scores": {
+        "base": null
+      },
+      "sources": [
+        "base"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "response if ${url} ~= /^https?:\\/\\/(so|edith)\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/v\\d+\\/search\\/notes\\?/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书搜索页\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "block"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "block": "unavailable"
+      },
+      "source_scores": {
+        "block": null
+      },
+      "sources": [
+        "block"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "response if ${url} ~= /^https?:\\/\\/edith\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/v\\d+\\/search\\/(banner|hot)_list/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书搜索页\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "block"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "block": "unavailable"
+      },
+      "source_scores": {
+        "block": null
+      },
+      "sources": [
+        "block"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "response if ${url} ~= /^https?:\\/\\/edith\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/v\\d+\\/search\\/(hint|trending)\\?/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书搜索页\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "block"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "block": "unavailable"
+      },
+      "source_scores": {
+        "block": null
+      },
+      "sources": [
+        "block"
       ]
     }
   ],
   "overall_risk": "high",
   "risk_counts": {
-    "high": 4,
+    "high": 9,
     "low": 0,
-    "medium": 3
+    "medium": 4
   },
-  "run_id": "44070806797",
+  "run_id": "44095249611",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -223,14 +367,14 @@
     "base": {
       "action_changed": 0,
       "added": 24,
-      "removed": 151,
+      "removed": 156,
       "snapshots_seen": 16
     },
     "block": {
       "action_changed": 46,
       "added": 75,
-      "removed": 181,
-      "snapshots_seen": 15
+      "removed": 184,
+      "snapshots_seen": 16
     },
     "filter": {
       "action_changed": 0,
@@ -240,9 +384,9 @@
     },
     "local_overrides": {
       "action_changed": 0,
-      "added": 93,
+      "added": 97,
       "removed": 27,
-      "snapshots_seen": 16
+      "snapshots_seen": 17
     },
     "myblockads": {
       "action_changed": 0,

@@ -118400,23 +118400,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://edith\\\\.xiaohongshu\\\\.com/api/sns/v\\\\d+/note/widgets', ('^https?:\\\\/\\\\/edith\\\\.xiaohongshu\\\\.com\\\\/api\\\\/sns\\\\/v\\\\d+\\\\/note\\\\/widgets', '^https?:\\\\/\\\\/edith\\\\.xiaohongshu\\\\.com\\\\/api\\\\/sns\\\\/v\\\\d+\\\\/note\\\\/widgets script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU,requires-body=true'))",
-      "output_entry_index": 165,
-      "output_line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/note\\/widgets script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU,requires-body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/note\\/widgets script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 164
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https?://edith\\\\.xiaohongshu\\\\.com/api/sns/v\\\\d+/user/followings/followfeed', ('^https?:\\\\/\\\\/edith\\\\.xiaohongshu\\\\.com\\\\/api\\\\/sns\\\\/v\\\\d+\\\\/user\\\\/followings\\\\/followfeed', '^https?:\\\\/\\\\/edith\\\\.xiaohongshu\\\\.com\\\\/api\\\\/sns\\\\/v\\\\d+\\\\/user\\\\/followings\\\\/followfeed script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-2,requires-body=true'))",
       "output_entry_index": 166,
       "output_line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/user\\/followings\\/followfeed script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-2,requires-body=true",
@@ -118429,74 +118412,6 @@
           "priority": 4,
           "source": "base",
           "source_entry_index": 165
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://edith\\\\.xiaohongshu\\\\.com/api/sns/v\\\\d+/search/(?:banner|hot)_list', ('^https?:\\\\/\\\\/edith\\\\.xiaohongshu\\\\.com\\\\/api\\\\/sns\\\\/v\\\\d+\\\\/search\\\\/', '^https?:\\\\/\\\\/edith\\\\.xiaohongshu\\\\.com\\\\/api\\\\/sns\\\\/v\\\\d+\\\\/search\\\\/(?:banner|hot)_list script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-3,requires-body=true'))",
-      "output_entry_index": 167,
-      "output_line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/search\\/(?:banner|hot)_list script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-3,requires-body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/search\\/(?:banner|hot)_list script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-3,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 166
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://edith\\\\.xiaohongshu\\\\.com/api/sns/v\\\\d+/search/(?:hint|trending)\\\\?', ('^https?:\\\\/\\\\/edith\\\\.xiaohongshu\\\\.com\\\\/api\\\\/sns\\\\/v\\\\d+\\\\/search\\\\/', '^https?:\\\\/\\\\/edith\\\\.xiaohongshu\\\\.com\\\\/api\\\\/sns\\\\/v\\\\d+\\\\/search\\\\/(?:hint|trending)\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-4,requires-body=true'))",
-      "output_entry_index": 168,
-      "output_line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/search\\/(?:hint|trending)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-4,requires-body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/search\\/(?:hint|trending)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-4,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 167
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://edith\\\\.xiaohongshu\\\\.com/api/sns/v\\\\d+/search/notes\\\\?', ('^https?:\\\\/\\\\/edith\\\\.xiaohongshu\\\\.com\\\\/api\\\\/sns\\\\/v\\\\d+\\\\/search\\\\/notes\\\\?', '^https?:\\\\/\\\\/edith\\\\.xiaohongshu\\\\.com\\\\/api\\\\/sns\\\\/v\\\\d+\\\\/search\\\\/notes\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-5,requires-body=true'))",
-      "output_entry_index": 169,
-      "output_line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/search\\/notes\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-5,requires-body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/search\\/notes\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-5,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 168
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://edith\\\\.xiaohongshu\\\\.com/api/sns/v\\\\d+/system_service/config\\\\?', ('^https?:\\\\/\\\\/edith\\\\.xiaohongshu\\\\.com\\\\/api\\\\/sns\\\\/v\\\\d+\\\\/system_service\\\\/config\\\\?', '^https?:\\\\/\\\\/edith\\\\.xiaohongshu\\\\.com\\\\/api\\\\/sns\\\\/v\\\\d+\\\\/system_service\\\\/config\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-6,requires-body=true'))",
-      "output_entry_index": 170,
-      "output_line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/system_service\\/config\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-6,requires-body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/system_service\\/config\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-6,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 169
         }
       ],
       "trace_status": "mapped"
@@ -118875,21 +118790,15 @@
       ]
     },
     {
-      "canonical_key": "('guarded', '^https?://(?:app\\\\.bilibili\\\\.com|grpc\\\\.biliapi\\\\.net)/bilibili\\\\.main\\\\.community\\\\.reply\\\\.v\\\\d\\\\.Reply/MainList', ('^https?:\\\\/\\\\/', '^https?:\\\\/\\\\/(?:app\\\\.bilibili\\\\.com|grpc\\\\.biliapi\\\\.net)\\\\/bilibili\\\\.main\\\\.community\\\\.reply\\\\.v\\\\d\\\\.Reply\\\\/MainList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-5,requires-body=true,binary-body-mode=true'))",
-      "output_entry_index": 198,
-      "output_line": "http-response ^https?:\\/\\/(?:app\\.bilibili\\.com|grpc\\.biliapi\\.net)\\/bilibili\\.main\\.community\\.reply\\.v\\d\\.Reply\\/MainList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-5,requires-body=true,binary-body-mode=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/(?:app\\.bilibili\\.com|grpc\\.biliapi\\.net)\\/bilibili\\.main\\.community\\.reply\\.v[2-9]\\.Reply\\/MainList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-5,requires-body=true,binary-body-mode=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/(?:app\\.bilibili\\.com|grpc\\.biliapi\\.net)\\/bilibili\\.main\\.community\\.reply\\.v\\d\\.Reply\\/MainList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-5,requires-body=true,binary-body-mode=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 197
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
       "output_line": "http-response ^https?:\\/\\/(?:app\\.bilibili\\.com|grpc\\.biliapi\\.net)\\/bilibili\\.polymer\\.app\\.search\\.v[2-9]\\.Search\\/SearchAll script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-6,requires-body=true,binary-body-mode=true",
@@ -122229,55 +122138,37 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://edith\\\\.(xiaohongshu|rnote)\\\\.com/api/sns/v\\\\d+/search/(banner|hot)_list', ('script', 'script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=xhs_enable, tag=\"小红书搜索页\", timeout=60, requires_body=true'))",
-      "output_entry_index": 488,
-      "output_line": "response if ${url} ~= /^https?:\\/\\/edith\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/v\\d+\\/search\\/(banner|hot)_list/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书搜索页\", timeout=60, requires_body=true",
-      "section": "Script",
+      "output_line": "response if ${url} ~= /^https?:\\/\\/edith\\.rnote\\.com\\/api\\/sns\\/v\\d+\\/search\\/(banner|hot)_list/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书搜索页\", timeout=60, requires_body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https?:\\/\\/edith\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/v\\d+\\/search\\/(banner|hot)_list/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书搜索页\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 180
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://edith\\\\.(xiaohongshu|rnote)\\\\.com/api/sns/v\\\\d+/search/(hint|trending)\\\\?', ('script', 'script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=xhs_enable, tag=\"小红书搜索页\", timeout=60, requires_body=true'))",
-      "output_entry_index": 489,
-      "output_line": "response if ${url} ~= /^https?:\\/\\/edith\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/v\\d+\\/search\\/(hint|trending)\\?/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书搜索页\", timeout=60, requires_body=true",
-      "section": "Script",
+      "output_line": "response if ${url} ~= /^https?:\\/\\/edith\\.rnote\\.com\\/api\\/sns\\/v\\d+\\/search\\/(hint|trending)\\?/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书搜索页\", timeout=60, requires_body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https?:\\/\\/edith\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/v\\d+\\/search\\/(hint|trending)\\?/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书搜索页\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 181
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://(so|edith)\\\\.(xiaohongshu|rnote)\\\\.com/api/sns/v\\\\d+/search/notes\\\\?', ('script', 'script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=xhs_enable, tag=\"小红书搜索页\", timeout=60, requires_body=true'))",
-      "output_entry_index": 490,
-      "output_line": "response if ${url} ~= /^https?:\\/\\/(so|edith)\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/v\\d+\\/search\\/notes\\?/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书搜索页\", timeout=60, requires_body=true",
-      "section": "Script",
+      "output_line": "response if ${url} ~= /^https?:\\/\\/(so|edith)\\.rnote\\.com\\/api\\/sns\\/v\\d+\\/search\\/notes\\?/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书搜索页\", timeout=60, requires_body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https?:\\/\\/(so|edith)\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/v\\d+\\/search\\/notes\\?/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书搜索页\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 182
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
       "canonical_key": "('guarded', '^https?://edith\\\\.(xiaohongshu|rnote)\\\\.com/api/sns/v\\\\d+/system_service/config\\\\?', ('script', 'script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=xhs_enable, tag=\"小红书开屏广告\", timeout=60, requires_body=true'))",
@@ -124236,7 +124127,7 @@
     "rule_safety_excluded_events": 11,
     "rule_scope_adjustments": 1,
     "rule_source_events": 5738,
-    "script_output_entries": 448
+    "script_output_entries": 443
   },
   "upstream_revisions": {
     "AlipayAdBlock": {
