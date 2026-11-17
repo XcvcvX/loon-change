@@ -580,6 +580,24 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertIn(unrelated, script)
         self.assertEqual(apply(result), result)
 
+    def test_native_pdd_homepage_response_rewrite_is_not_a_script_trigger(self):
+        from apply_local_overrides import consolidate_pdd_homepage_script
+        native = 'response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/homepage\\?/i then response.json.delete("result.icon_set")'
+        fixture = ["[Script]", native, "[MITM]"]
+        result, removed = consolidate_pdd_homepage_script(fixture)
+        self.assertEqual(removed, 0)
+        self.assertEqual(result, fixture)
+
+    def test_normalizes_repository_relative_pdd_script_path(self):
+        from apply_local_overrides import (
+            PDD_LOCAL_HOMEPAGE_RELATIVE_TRIGGER, PDD_LOCAL_HOMEPAGE_TRIGGER,
+            consolidate_pdd_homepage_script,
+        )
+        fixture = ["[Script]", PDD_LOCAL_HOMEPAGE_RELATIVE_TRIGGER, "[MITM]"]
+        result, removed = consolidate_pdd_homepage_script(fixture)
+        self.assertEqual(removed, 0)
+        self.assertEqual(result, ["[Script]", PDD_LOCAL_HOMEPAGE_TRIGGER, "[MITM]"])
+
     def test_pdd_homepage_consolidation_fails_closed_on_trigger_drift(self):
         from apply_local_overrides import PDD_ISHOWSHU_HOMEPAGE_TRIGGER
         changed = PDD_ISHOWSHU_HOMEPAGE_TRIGGER.replace("requires-body = true", "requires-body = false")
@@ -748,6 +766,25 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
             self.assertNotIn(trigger, script)
         self.assertIn(unrelated, script)
         self.assertEqual(consolidate_goofish_script_triggers(result)[1], 0)
+
+    def test_normalizes_repository_relative_goofish_script_paths(self):
+        from apply_local_overrides import (
+            GOOFISH_CANONICAL_SCRIPT_TRIGGERS, consolidate_goofish_script_triggers,
+        )
+        relative = [
+            trigger.replace(
+                "https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js",
+                "scripts/xianyu/goofish.js",
+            )
+            for trigger in GOOFISH_CANONICAL_SCRIPT_TRIGGERS
+        ]
+        fixture = ["[Script]", *relative, "[MITM]"]
+        result, removed = consolidate_goofish_script_triggers(fixture)
+        self.assertEqual(removed, 0)
+        script = result[result.index("[Script]") + 1:result.index("[MITM]")]
+        for trigger in GOOFISH_CANONICAL_SCRIPT_TRIGGERS:
+            self.assertIn(trigger, script)
+        self.assertFalse(any("script-path=scripts/xianyu/goofish.js" in line for line in script))
 
     def test_goofish_script_consolidation_fails_closed_on_drift_missing_or_duplicate_triggers(self):
         from apply_local_overrides import (
@@ -1602,6 +1639,24 @@ class DouyinContentCdnScopeTests(unittest.TestCase):
         self.assertEqual(removed, 4)
         for rule in current_rules:
             self.assertNotIn(rule, result)
+
+    def test_removes_double_escaped_equivalent_origin_overblocks(self):
+        from apply_local_overrides import remove_douyin_content_cdn_overblocks
+        doubled = [
+            r"request if ${url} ~= /^https?:\\/\\/p(b)?\\d\\.pstatp\\.com\\/origin/ then reject(404)",
+            r"request if ${url} ~= /^https?:\\/\\/p\\d\\.pstatp\\.com\\/origin/i then reject(404)",
+            r"request if ${url} ~= /^https?:\\/\\/pb\\d\\.pstatp\\.com\\/origin/i then reject(404)",
+        ]
+        fixture = ["[Rule]", self.overblocks[0][1], self.overblocks[1][1],
+                   "[Rewrite]", *doubled,
+                   *[line for line in self.base if line.startswith("request if") and "origin" not in line],
+                   "[Script]", "[MITM]"]
+        result, removed = remove_douyin_content_cdn_overblocks(fixture)
+        self.assertEqual(removed, 5)
+        for rule in doubled:
+            self.assertNotIn(rule, result)
+        for marker in self.markers:
+            self.assertTrue(any(marker in line.replace(chr(92), "") for line in result))
 
     def test_checked_in_plugin_snapshot_keeps_ad_paths_without_content_cdn_overblocks(self):
         from pathlib import Path

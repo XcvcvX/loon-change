@@ -272,6 +272,7 @@ def remove_gaoding_resource_scripts(lines):
 # 合并为仓库内单脚本，保留两份脚本及原生 JSON 规则的并集行为。
 PDD_RSTORE_HOMEPAGE_TRIGGER = r"http-response ^https?:\/\/api\.pinduoduo\.com\/api\/alexa\/\w+\/hub script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/pdd.js,tag=PDD-2,requires-body=true"
 PDD_LOCAL_HOMEPAGE_TRIGGER = r"http-response ^https?:\/\/api\.pinduoduo\.com\/api\/alexa\/homepage\/hub script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/pinduoduo/pdd-homepage.js,tag=PDD-2,requires-body=true"
+PDD_LOCAL_HOMEPAGE_RELATIVE_TRIGGER = r"http-response ^https?:\/\/api\.pinduoduo\.com\/api\/alexa\/homepage\/hub script-path=scripts/pinduoduo/pdd-homepage.js,tag=PDD-2,requires-body=true"
 PDD_ISHOWSHU_HOMEPAGE_TRIGGER = r"http-response ^https:\/\/api\.pinduoduo\.com\/api\/alexa\/homepage\/hub script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/pdd.js, requires-body = true, tag = 拼多多首页简化(底部菜单、顶部分类)"
 
 
@@ -282,6 +283,7 @@ def consolidate_pdd_homepage_script(lines):
     normalized_triggers = {
         re.sub(r"\\+", "", PDD_RSTORE_HOMEPAGE_TRIGGER.strip()): "rstore",
         re.sub(r"\\+", "", PDD_LOCAL_HOMEPAGE_TRIGGER.strip()): "local",
+        re.sub(r"\\+", "", PDD_LOCAL_HOMEPAGE_RELATIVE_TRIGGER.strip()): "local",
         re.sub(r"\\+", "", PDD_ISHOWSHU_HOMEPAGE_TRIGGER.strip()): "ishowshu",
     }
     target_seen = False
@@ -291,7 +293,8 @@ def consolidate_pdd_homepage_script(lines):
             output.append(line)
             continue
         normalized = re.sub(r"\\+", "", line.strip())
-        is_target = section == "Script" and "api.pinduoduo.com/api/alexa/" in normalized
+        is_target = (section == "Script" and "api.pinduoduo.com/api/alexa/" in normalized
+                     and ("script-path" in normalized or "script(" in normalized))
         if not is_target:
             output.append(line)
             continue
@@ -304,10 +307,10 @@ def consolidate_pdd_homepage_script(lines):
             raise ValueError("duplicate Pinduoduo homepage script trigger; refusing ambiguous consolidation")
         if kind == "ishowshu":
             continue
-        if kind == "rstore":
+        if kind in ("rstore", "local"):
+            # Normalize the repository-relative script reference to the hosted URL
+            # used by the published aggregate plugin.
             output.append(PDD_LOCAL_HOMEPAGE_TRIGGER)
-        else:
-            output.append(line)
 
     if not target_seen:
         return output, 0
@@ -595,7 +598,7 @@ def remove_redundant_taobao_scripts(lines):
             counts[trigger] += 1
             if counts[trigger] > 1:
                 raise ValueError("duplicate canonical Taobao script trigger; refusing ambiguous deduplication")
-            output.append(line)
+            output.append(trigger)
             continue
         if normalized in redundant:
             trigger = redundant[normalized]
@@ -654,7 +657,10 @@ GOOFISH_REDUNDANT_SCRIPT_TRIGGERS = (
 
 def consolidate_goofish_script_triggers(lines):
     """Replace all audited Xianyu script triggers with one local trigger per endpoint."""
-    normalize = lambda value: re.sub(r"\\+", "", value.strip())
+    normalize = lambda value: re.sub(r"\\+", "", value.strip()).replace(
+        "script-path=scripts/xianyu/goofish.js",
+        "script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js",
+    )
     canonical = {normalize(item): item for item in GOOFISH_CANONICAL_SCRIPT_TRIGGERS}
     redundant = {normalize(item): item for item in GOOFISH_REDUNDANT_SCRIPT_TRIGGERS}
     counts = {item: 0 for item in (*GOOFISH_CANONICAL_SCRIPT_TRIGGERS, *GOOFISH_REDUNDANT_SCRIPT_TRIGGERS)}
@@ -681,7 +687,7 @@ def consolidate_goofish_script_triggers(lines):
             counts[trigger] += 1
             if counts[trigger] > 1:
                 raise ValueError("duplicate canonical Goofish script trigger")
-            output.append(line)
+            output.append(trigger)
             continue
         if normalized in redundant:
             trigger = redundant[normalized]
@@ -2184,6 +2190,14 @@ def remove_douyin_content_cdn_overblocks(lines):
     section = ""
     output = []
     counts = {item: 0 for item in DOUYIN_CONTENT_CDN_OVERBLOCKS}
+    # 合并来源可能把正则转义再次编码（\/、\\/；\.、\\.)。
+    # 仅将连续转义符归一为一个，按等价正则匹配已审核的精确清理清单。
+    def inventory_key(section_name, rule):
+        canonical = re.sub(r"\\{2,}([A-Za-z./])", lambda match: "\\" + match.group(1), rule)
+        return section_name, canonical
+
+    known_inventory = {inventory_key(section_name, rule): (section_name, rule)
+                       for section_name, rule in DOUYIN_CONTENT_CDN_OVERBLOCKS}
     saw_target = False
     unknown_overblocks = []
     normalized_rewrites = []
@@ -2212,12 +2226,13 @@ def remove_douyin_content_cdn_overblocks(lines):
                 normalized_rewrites.append(normalized)
             if "pstatp.com/origin" in normalized and "reject(404)" in normalized:
                 saw_target = True
-                key = (section, value)
-                if key not in counts:
+                key = inventory_key(section, value)
+                inventory_item = known_inventory.get(key)
+                if inventory_item is None:
                     unknown_overblocks.append(value)
                 else:
-                    counts[key] += 1
-                    if counts[key] > 1:
+                    counts[inventory_item] += 1
+                    if counts[inventory_item] > 1:
                         raise ValueError("duplicate Douyin content CDN origin Rewrite")
                     continue
         output.append(line)
