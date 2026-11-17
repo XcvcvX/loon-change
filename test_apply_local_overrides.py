@@ -60,8 +60,9 @@ class LocalOverrideTests(unittest.TestCase):
         result = apply(plugin)
         self.assertNotIn("ishowshu_pp.js", result)
         self.assertIn("PupuSplashAds.js", result)
-        self.assertIn("/search/hot_keywords/v3", result)
-        self.assertIn("/order_settlement/detail", result)
+        normalized = result.replace(chr(92), "")
+        self.assertIn("/search/hot_keywords/v3", normalized)
+        self.assertIn("/order_settlement/detail", normalized)
 
     def test_consolidates_starplucker_config_into_one_jq_parse(self):
         from apply_local_overrides import (
@@ -4343,6 +4344,7 @@ def _build_amap_unoptimized_fixture():
         r'response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/shield\/search\/nearbyrec_smart\?/i then script("' + romeo + r'") with tag="amap", timeout=60, requires_body=true',
         r'response if ${url} ~= /^https:\/\/m5-zb\.amap\.com\/ws\/promotion-web\/resource(\/home)?\?/i then script("' + romeo + r'") with tag="amap", timeout=60, requires_body=true',
         r'response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/bus\/plan\/integrate\?/i then script("' + romeo + r'") with tag="amap", timeout=60, requires_body=true',
+        r'response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/valueadded\/alimama\/splash_screen/i then script("' + romeo + r'") with tag="amap", timeout=60, requires_body=true',
         r'response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/perception\/drive\/(?:routeInfo|routePlan)/i then script("' + romeo + r'") with tag="amap", timeout=60, requires_body=true',
         r'response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/faas\/amap-navigation\/(card-service-plan-home|main-page)/i then script("' + romeo + r'") with tag="amap", timeout=60, requires_body=true',
     ]
