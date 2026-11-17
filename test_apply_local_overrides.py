@@ -4159,7 +4159,8 @@ class XiaohongshuV3VideoNativeDedupTests(unittest.TestCase):
 class XiaohongshuV4AndCommentMigrationTests(unittest.TestCase):
     def _fixture(self):
         from apply_local_overrides import (
-            XHS_FMZ_COMMENT_LIST_TRIGGER, XHS_FMZ_V4_TRIGGER,
+            XHS_FMZ_COMMENT_LIST_TRIGGER, XHS_FMZ_COMMENT_DOWNLOAD_TRIGGER,
+            XHS_FMZ_V4_TRIGGER, XHS_RSTORE_COMMENT_DOWNLOAD_TRIGGER,
             XHS_RSTORE_COMMENT_TRIGGER, XHS_V3_VIDEO_RSTORE_NARROWED_TRIGGER,
             XHS_SCRIPT_TRIGGER_LINES,
         )
@@ -4180,27 +4181,32 @@ class XiaohongshuV4AndCommentMigrationTests(unittest.TestCase):
             "[Rewrite]", v4_native, comment_native,
             "[Script]", XHS_V3_VIDEO_RSTORE_NARROWED_TRIGGER,
             XHS_RSTORE_COMMENT_TRIGGER, XHS_FMZ_V4_TRIGGER,
-            XHS_FMZ_COMMENT_LIST_TRIGGER, rstore_download, fmz_download,
+            XHS_FMZ_COMMENT_LIST_TRIGGER, XHS_FMZ_COMMENT_DOWNLOAD_TRIGGER,
+            XHS_RSTORE_COMMENT_DOWNLOAD_TRIGGER, rstore_download, fmz_download,
             "[MITM]",
         ]
 
     def test_migrates_v4_filter_into_cached_script_and_removes_duplicate_comment_jq(self):
         from apply_local_overrides import (
-            XHS_FMZ_V4_LOCAL_TRIGGER, XHS_FMZ_COMMENT_LIST_TRIGGER,
+            XHS_FMZ_V4_LOCAL_TRIGGER, XHS_FMZ_COMMENT_LOCAL_TRIGGER,
+            XHS_FMZ_COMMENT_DOWNLOAD_LOCAL_TRIGGER,
+            XHS_RSTORE_COMMENT_DOWNLOAD_TRIGGER, XHS_FMZ_COMMENT_LIST_TRIGGER,
             XHS_RSTORE_COMMENT_TRIGGER_NARROWED,
             migrate_xiaohongshu_v4_and_comment_processing,
         )
         import re
         fixture = self._fixture()
         result, changed = migrate_xiaohongshu_v4_and_comment_processing(fixture)
-        self.assertEqual(changed, 4)
+        self.assertEqual(changed, 7)
         self.assertIn(XHS_FMZ_V4_LOCAL_TRIGGER, result)
-        self.assertIn(XHS_FMZ_COMMENT_LIST_TRIGGER, result)
+        self.assertIn(XHS_FMZ_COMMENT_LOCAL_TRIGGER, result)
+        self.assertIn(XHS_FMZ_COMMENT_DOWNLOAD_LOCAL_TRIGGER, result)
+        self.assertNotIn(XHS_RSTORE_COMMENT_DOWNLOAD_TRIGGER, result)
         self.assertIn(XHS_RSTORE_COMMENT_TRIGGER_NARROWED, result)
         self.assertFalse(any("v4/note/videofeed" in line.replace(chr(92), "") and "response-body-json-jq" in line for line in result))
         self.assertFalse(any("/note/comment/list" in line.replace(chr(92), "") and "response-body-json-jq" in line for line in result))
-        self.assertTrue(any("tag=XIAOHONGSHU-11," in line for line in result))
-        self.assertTrue(any("v1/interaction/comment/video/download" in line.replace(chr(92), "") for line in result))
+        self.assertFalse(any("tag=XIAOHONGSHU-11," in line for line in result))
+        self.assertTrue(any("v1/interaction/comment/video/download" in line.replace(chr(92), "") and "xiaohongshu-v4.js" in line for line in result))
 
         comment = re.compile(XHS_RSTORE_COMMENT_TRIGGER_NARROWED.split(" script-path=")[0].removeprefix("http-response "))
         self.assertIsNotNone(comment.search("https://edith.xiaohongshu.com/api/sns/v3/note/comment/list?"))
@@ -4232,6 +4238,10 @@ class XiaohongshuV4AndCommentMigrationTests(unittest.TestCase):
         self.assertIn('$.setdata(JSON.stringify(videoData), "redBookVideoFeed")', script)
         self.assertIn('$.setdata("[]", "redBookVideoFeed")', script)
         self.assertIn('/v10/note/video/save', script)
+        self.assertIn('/api/sns/v5/note/comment/list?', script)
+        self.assertIn('/api/sns/v3/note/comment/sub_comments?', script)
+        self.assertIn('/api/sns/v1/interaction/comment/video/download?', script)
+        self.assertIn('fmz200.xiaohongshu.comments.videos.rsp', script)
 
 
 
