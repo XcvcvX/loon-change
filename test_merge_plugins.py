@@ -2878,30 +2878,33 @@ hostname = *.amap.com
     def test_taobao_script_dedup_accepts_current_fmz_switch_interpolation(self):
         import apply_local_overrides as overrides
 
-        # Exercise the exact current fmz200 ${switch} serialization alongside
-        # the already-reviewed legacy, zmjde, and Romeo trigger variants.
+        # Build a complete reviewed inventory, then serialize only the two
+        # known FMZ switch variables using Loon's ${name} form.
         triggers = [
             *overrides.TAOBAO_CANONICAL_SCRIPT_TRIGGERS,
-            *overrides.TAOBAO_REDUNDANT_SCRIPT_TRIGGERS,
+            *[
+                item.replace("enable=albb_enable", "enable=${albb_enable}")
+                    .replace("enable=tcbc_enable", "enable=${tcbc_enable}")
+                for item in overrides.TAOBAO_REDUNDANT_SCRIPT_TRIGGERS
+            ],
         ]
-        self.assertTrue(any("enable=${albb_enable}" in item for item in triggers))
-        self.assertTrue(any("enable=${tcbc_enable}" in item for item in triggers))
-
         output, removed = overrides.remove_redundant_taobao_scripts(
             ["[Script]", *triggers]
         )
         self.assertEqual(removed, len(overrides.TAOBAO_REDUNDANT_SCRIPT_TRIGGERS))
-        self.assertEqual(output, ["[Script]", *overrides.TAOBAO_CANONICAL_SCRIPT_TRIGGERS])
+        self.assertEqual(
+            output,
+            ["[Script]", *overrides.TAOBAO_CANONICAL_SCRIPT_TRIGGERS],
+        )
 
-        unknown = [
-            "[Script]",
-            *overrides.TAOBAO_CANONICAL_SCRIPT_TRIGGERS,
+        # An unreviewed switch variable must still be rejected immediately.
+        unknown = triggers + [
             overrides.TAOBAO_REDUNDANT_SCRIPT_TRIGGERS[0].replace(
-                "enable=${albb_enable}", "enable=${unreviewed_switch}"
-            ),
+                "enable=albb_enable", "enable=${unreviewed_switch}"
+            )
         ]
         with self.assertRaisesRegex(ValueError, "Taobao splash script trigger changed"):
-            overrides.remove_redundant_taobao_scripts(unknown)
+            overrides.remove_redundant_taobao_scripts(["[Script]", *unknown])
 
 if __name__ == "__main__":
     unittest.main()
