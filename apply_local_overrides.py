@@ -681,7 +681,7 @@ GOOFISH_REDUNDANT_SCRIPT_TRIGGERS = (
 
 
 def consolidate_goofish_script_triggers(lines):
-    """Replace all audited Xianyu script triggers with one local trigger per endpoint."""
+    """Normalize audited Goofish triggers while tolerating known upstream deletions."""
     normalize = lambda value: re.sub(r"\\+", "", value.strip()).replace(
         "script-path=scripts/xianyu/goofish.js",
         "script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js",
@@ -689,53 +689,67 @@ def consolidate_goofish_script_triggers(lines):
     canonical = {normalize(item): item for item in GOOFISH_CANONICAL_SCRIPT_TRIGGERS}
     redundant = {normalize(item): item for item in GOOFISH_REDUNDANT_SCRIPT_TRIGGERS}
     counts = {item: 0 for item in (*GOOFISH_CANONICAL_SCRIPT_TRIGGERS, *GOOFISH_REDUNDANT_SCRIPT_TRIGGERS)}
-    output, section, target_seen = [], "", False
-    insert_canonical = False
+    section = ""
+    target_seen = False
+
+    # Validate the complete inventory before changing anything.
     for line in lines:
         if line.startswith("[") and line.endswith("]"):
-            if section == "Script" and insert_canonical:
-                output.extend(GOOFISH_CANONICAL_SCRIPT_TRIGGERS)
-                insert_canonical = False
             section = line[1:-1]
-            output.append(line)
             continue
         normalized = normalize(line)
         is_target = section == "Script" and "goofish.com" in normalized and (
             "goofish.js" in normalized or "script(" in normalized
         )
         if not is_target:
-            output.append(line)
             continue
         target_seen = True
         if normalized in canonical:
-            trigger = canonical[normalized]
-            counts[trigger] += 1
-            if counts[trigger] > 1:
+            counts[canonical[normalized]] += 1
+            if counts[canonical[normalized]] > 1:
                 raise ValueError("duplicate canonical Goofish script trigger")
-            output.append(trigger)
-            continue
-        if normalized in redundant:
-            trigger = redundant[normalized]
-            counts[trigger] += 1
-            if counts[trigger] > 1:
+        elif normalized in redundant:
+            counts[redundant[normalized]] += 1
+            if counts[redundant[normalized]] > 1:
                 raise ValueError("duplicate redundant Goofish script trigger")
-            insert_canonical = True
-            continue
-        raise ValueError("Goofish script trigger inventory changed; refusing unreviewed consolidation")
+        else:
+            raise ValueError("Goofish script trigger inventory changed; refusing unreviewed consolidation")
 
-    if section == "Script" and insert_canonical:
-        output.extend(GOOFISH_CANONICAL_SCRIPT_TRIGGERS)
     if not target_seen:
-        return output, 0
-    canonical_complete = all(counts[item] == 1 for item in GOOFISH_CANONICAL_SCRIPT_TRIGGERS)
-    redundant_absent = all(counts[item] == 0 for item in GOOFISH_REDUNDANT_SCRIPT_TRIGGERS)
-    if canonical_complete and redundant_absent:
-        return output, 0
-    redundant_complete = all(counts[item] == 1 for item in GOOFISH_REDUNDANT_SCRIPT_TRIGGERS)
-    canonical_absent = all(counts[item] == 0 for item in GOOFISH_CANONICAL_SCRIPT_TRIGGERS)
-    if redundant_complete and canonical_absent:
-        return output, len(GOOFISH_REDUNDANT_SCRIPT_TRIGGERS)
-    raise ValueError("Goofish script trigger inventory incomplete; refusing partial consolidation")
+        return lines, 0
+
+    canonical_counts = [counts[item] for item in GOOFISH_CANONICAL_SCRIPT_TRIGGERS]
+    redundant_count = sum(counts[item] for item in GOOFISH_REDUNDANT_SCRIPT_TRIGGERS)
+    canonical_complete = all(count == 1 for count in canonical_counts)
+    canonical_absent = all(count == 0 for count in canonical_counts)
+    if not canonical_complete and not canonical_absent:
+        raise ValueError("Goofish canonical trigger inventory incomplete; refusing partial consolidation")
+    if canonical_complete and redundant_count == 0:
+        return lines, 0
+    if canonical_absent and redundant_count == 0:
+        return lines, 0
+
+    # If canonical triggers already exist, remove any known redundant subset.
+    # If they do not, replace any known non-empty upstream subset with the full
+    # local canonical set. This handles upstream deletions without widening matchers.
+    insert_canonical = canonical_absent
+    output, section, inserted, removed = [], "", False, 0
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            if section == "Script" and insert_canonical and not inserted:
+                output.extend(GOOFISH_CANONICAL_SCRIPT_TRIGGERS)
+                inserted = True
+            section = line[1:-1]
+            output.append(line)
+            continue
+        normalized = normalize(line)
+        if section == "Script" and normalized in redundant:
+            removed += 1
+            continue
+        output.append(line)
+    if section == "Script" and insert_canonical and not inserted:
+        output.extend(GOOFISH_CANONICAL_SCRIPT_TRIGGERS)
+    return output, removed
 
 
 # 闲鱼旧版 response-body-json-jq 与新版 response.json.jq 重复处理相同字段。
