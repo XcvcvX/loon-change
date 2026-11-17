@@ -4551,7 +4551,7 @@ def optimize_bilibili_json_native_coverage(lines):
 
     expected_json_tags = {f"BAICIZHAN-{number}" for number in range(7, 14)}
     actual_json_tags = [
-        match.group(1) if (match := re.search(r"tag=(BAICIZHAN-\\d+)", line)) else None
+        match.group(1) if (match := re.search(r"tag=(BAICIZHAN-\d+)", line)) else None
         for line in rstore_json_lines
     ]
     if (
