@@ -3239,6 +3239,10 @@ def remove_same_source_duplicate_response_scripts(lines):
             continue
 
         normalized = line.replace("\\", "")
+        # Loon upstream now serializes some existing script switches as
+        # enable=${name}; compare both known spellings as the same switch,
+        # while preserving the original source line when it is retained.
+        inventory_line = re.sub(r"enable=\$\{([^}]+)\}", r"enable=\1", line.strip())
         is_target = (
             section == "Script"
             and (
@@ -3256,15 +3260,15 @@ def remove_same_source_duplicate_response_scripts(lines):
             continue
 
         target_seen = True
-        if line in remove_counts:
-            remove_counts[line] += 1
-            if remove_counts[line] > 1:
+        if inventory_line in remove_counts:
+            remove_counts[inventory_line] += 1
+            if remove_counts[inventory_line] > 1:
                 raise ValueError("duplicate same-source removal trigger; refusing ambiguous cleanup")
             removed += 1
             continue
-        if line in keep_counts:
-            keep_counts[line] += 1
-            if keep_counts[line] > 1:
+        if inventory_line in keep_counts:
+            keep_counts[inventory_line] += 1
+            if keep_counts[inventory_line] > 1:
                 raise ValueError("duplicate same-source retained trigger; refusing ambiguous cleanup")
             output.append(line)
             continue
