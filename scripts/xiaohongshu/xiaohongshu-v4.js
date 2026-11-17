@@ -365,13 +365,10 @@ if (url.includes("/api/sns/v5/note/comment/list?") || url.includes("/api/sns/v3/
       commitsRsp = {noteId: note_id, livePhotos: livePhotos};
     } else {
       commitsRsp = JSON.parse(commitsCache);
-      console.log("缓存note_id：" + commitsRsp.noteId);
       if (commitsRsp.noteId === note_id) {
-        console.log("增量数据");
-        commitsRsp.livePhotos = deduplicateLivePhotos(commitsRsp.livePhotos.concat(livePhotos));
+          commitsRsp.livePhotos = deduplicateLivePhotos(commitsRsp.livePhotos.concat(livePhotos));
       } else {
-        console.log("更换数据");
-        commitsRsp = {noteId: note_id, livePhotos: livePhotos};
+          commitsRsp = {noteId: note_id, livePhotos: livePhotos};
       }
     }
     $.setdata(JSON.stringify(commitsRsp), "fmz200.xiaohongshu.comments.rsp");
@@ -385,16 +382,12 @@ if (url.includes("/api/sns/v5/note/comment/list?") || url.includes("/api/sns/v3/
       videosCache = {noteId: note_id, videos: commentVideos};
     } else {
       videosCache = JSON.parse(commitsCache);
-      console.log("[commentVideos]缓存note_id：" + videosCache.noteId);
       if (videosCache.noteId === note_id) {
-        console.log("[commentVideos]增量数据");
         videosCache.videos = deduplicateLivePhotos(videosCache.videos.concat(commentVideos));
       } else {
-        console.log("[commentVideos]更换数据");
         videosCache = {noteId: note_id, videos: commentVideos};
       }
     }
-    console.log("[commentVideos]写入缓存val：" + JSON.stringify(videosCache));
     $.setdata(JSON.stringify(videosCache), "fmz200.xiaohongshu.comments.videos.rsp");
   }
 }
@@ -410,7 +403,6 @@ if (url.includes("/api/sns/v1/interaction/comment/video/download?")) {
       for (const item of commitsRsp.livePhotos) {
         // console.log("缓存video_id：" + item.videId);
         if (item.videId === obj.data.video.video_id) {
-          console.log("匹配到无水印链接：" + item.videoUrl);
           obj.data.video.video_url = item.videoUrl;
           break;
         }
@@ -422,14 +414,12 @@ if (url.includes("/api/sns/v1/interaction/comment/video/download?")) {
       for (const item of commitsVideoRsp.videos) {
         // console.log("缓存video_id：" + item.videId);
         if (item.videId === obj.data.video.video_id) {
-          console.log("[commentVideos]匹配到无水印链接：" + item.videoUrl);
           obj.data.video.video_url = item.videoUrl;
           break;
         }
       }
     }
   } else {
-    console.log(`没有[${obj.data?.video.video_id}]的无水印地址`);
   }
 }
 
@@ -544,11 +534,9 @@ function selectBestStream(h265List, h264List) {
 function fixCommentType(comment) {
   if (comment.comment_type === 3) {
     comment.comment_type = 2;
-    console.log(`修改评论类型：3->2`);
   }
   if (comment.media_source_type === 1) {
     comment.media_source_type = 0;
-    console.log(`修改媒体类型：1->0`);
   }
 }
 
