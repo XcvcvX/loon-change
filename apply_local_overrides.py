@@ -695,10 +695,17 @@ GOOFISH_REDUNDANT_SCRIPT_TRIGGERS = (
 
 def consolidate_goofish_script_triggers(lines):
     """Normalize audited Goofish triggers while tolerating known upstream deletions."""
-    normalize = lambda value: re.sub(r"\\+", "", value.strip()).replace(
-        "script-path=scripts/xianyu/goofish.js",
-        "script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js",
-    )
+    def normalize(value):
+        value = re.sub(r"\\+", "", value.strip()).replace(
+            "script-path=scripts/xianyu/goofish.js",
+            "script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js",
+        )
+        # Stage pins Romeo-hosted JS/JQ references to the current 40-hex commit.
+        return re.sub(
+            r"https://raw\\.githubusercontent\\.com/ifflagged/Romeo/[0-9a-f]{40}/",
+            "https://github.com/ifflagged/Romeo/raw/main/",
+            value,
+        )
     canonical = {normalize(item): item for item in GOOFISH_CANONICAL_SCRIPT_TRIGGERS}
     redundant = {normalize(item): item for item in GOOFISH_REDUNDANT_SCRIPT_TRIGGERS}
     counts = {item: 0 for item in (*GOOFISH_CANONICAL_SCRIPT_TRIGGERS, *GOOFISH_REDUNDANT_SCRIPT_TRIGGERS)}
