@@ -1599,6 +1599,12 @@ def remove_redundant_amap_legacy_scripts(lines, expected_count=AMAP_LEGACY_SCRIP
         required = _amap_required_response_handlers(normalized)
         if not required:
             raise ValueError("Amap legacy response script has no reviewed native handler")
+        # These four R-Store matchers span m1-m9, while their newer handlers
+        # are m5-only. Never drop the non-m5 coverage on a later idempotent pass.
+        if (any(marker in normalized for marker in AMAP_VERSIONED_RSTORE_SCRIPT_MARKERS)
+                and ("m" + chr(92) + "d" in line or "m[0-46-9]" in normalized)):
+            output.append(line)
+            continue
         targets.append((line, required))
     if not targets:
         return output, 0
