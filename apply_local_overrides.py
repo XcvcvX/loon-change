@@ -3921,6 +3921,23 @@ XHS_NATIVE_DUPLICATE_TRIGGER_TAGS = (
     "XIAOHONGSHU-6",
 )
 
+# Native JSON rules fully cover these two feed filters on edith/rec; retain
+# R-Store fallback only for unsupported API versions/hosts.
+XHS_NARROWED_TRIGGER_LINES = {
+    "XIAOHONGSHU-2": (
+        "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v(?:[13-9]|[1-9][0-9]+)\\/user\\/followings\\/followfeed "
+        "script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-2,requires-body=true"
+    ),
+    "XIAOHONGSHU-8": (
+        "http-response ^https?:\\/\\/www\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/(?:followfeed|homefeed)\\? "
+        "script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-8,requires-body=true"
+    ),
+}
+
+XHS_HOMEFEED_NATIVE_OLD_RULE = r"""^https:\/\/(?:edith|rec)\.xiaohongshu\.com\/api\/sns\/v\d+\/homefeed\? response-body-json-jq '. as $o | try (if (.data|type)==\"array\" then .data|=map(select(if type==\"object\" then ((.model_type!=\"live_v2\") and (has(\"ads_info\")|not) and (has(\"card_icon\")|not) and (has(\"note_attributes\")|not) and (.has_related_goods!=true)) else false end)|(if type==\"object\" then del(.related_ques) else . end)) else . end) catch $o'"""
+XHS_HOMEFEED_NATIVE_RULE = r"""^https:\/\/(?:edith|rec)\.xiaohongshu\.com\/api\/sns\/v\d+\/homefeed\? response-body-json-jq '. as $o | try (if (.data|type)==\"array\" then .data|=map(select(if type==\"object\" then ((.model_type!=\"live_v2\") and (has(\"ads_info\")|not) and (has(\"card_icon\")|not) and ((.note_attributes | if type==\"array\" then index(\"goods\") != null elif type==\"string\" then contains(\"goods\") else false end) | not) and (.has_related_goods!=true)) else false end)|(if type==\"object\" then del(.related_ques) else . end)) else . end) catch $o'"""
+
+
 def narrow_xiaohongshu_native_response_duplicates(lines):
     """Remove only XHS script passes whose exact endpoint has a native JSON rewrite."""
     original = list(lines)
@@ -3955,6 +3972,16 @@ def narrow_xiaohongshu_native_response_duplicates(lines):
             raise ValueError("Xiaohongshu R-Store native duplicate trigger changed: " + tag)
         actual_by_tag[tag] = matches[0]
 
+    actual_by_narrowed_tag = {}
+    for tag in XHS_NARROWED_TRIGGER_LINES:
+        expected = next((line for line in XHS_SCRIPT_TRIGGER_LINES
+                         if line.startswith("http-response ")
+                         and ("tag=" + tag + ",") in line), None)
+        matches = [line for line in script_lines if ("tag=" + tag + ",") in line]
+        if expected is None or len(matches) != 1 or matches[0] != expected:
+            raise ValueError("Xiaohongshu feed trigger inventory changed: " + tag)
+        actual_by_narrowed_tag[tag] = matches[0]
+
     required_native = (
         ("/api/sns/v", "/note/widgets"),
         ("/api/sns/v", "/search/banner_list"),
@@ -3973,6 +4000,46 @@ def narrow_xiaohongshu_native_response_duplicates(lines):
             raise ValueError(
                 "Xiaohongshu native JSON coverage missing or duplicated: " + endpoint
             )
+
+    follow_user_rules = [
+        line for line in rewrite_lines
+        if "response-body-json-jq" in line
+        and "/api/sns/v2/user/followings/followfeed" in re.sub(r"\\+", "", line)
+        and '.recommend_reason=="friend_post"' in re.sub(r"\\+", "", line)
+    ]
+    followfeed_rules = [
+        line for line in rewrite_lines
+        if "response-body-json-jq" in line
+        and "/api/sns/v" in re.sub(r"\\+", "", line)
+        and "/user/followings/" not in re.sub(r"\\+", "", line)
+        and "/followfeed" in re.sub(r"\\+", "", line)
+        and '.recommend_reason!="recommend_user"' in re.sub(r"\\+", "", line)
+    ]
+    if len(follow_user_rules) != 1 or len(followfeed_rules) != 1:
+        raise ValueError("Xiaohongshu native follow-feed JSON coverage missing or duplicated")
+
+    homefeed_rules = [
+        line for line in rewrite_lines
+        if "response-body-json-jq" in line
+        and "/api/sns/v" in re.sub(r"\\+", "", line)
+        and "/homefeed" in re.sub(r"\\+", "", line)
+    ]
+    if len(homefeed_rules) != 1:
+        raise ValueError("Xiaohongshu native home-feed JSON coverage missing or duplicated")
+    homefeed_rule = homefeed_rules[0]
+    normalized_homefeed = re.sub(r"\\+", "", homefeed_rule)
+    normalized_old_homefeed = re.sub(r"\\+", "", XHS_HOMEFEED_NATIVE_OLD_RULE)
+    normalized_new_homefeed = re.sub(r"\\+", "", XHS_HOMEFEED_NATIVE_RULE)
+    if normalized_homefeed not in (normalized_old_homefeed, normalized_new_homefeed):
+        raise ValueError("Xiaohongshu native home-feed rule changed; refusing unreviewed conversion")
+    if normalized_homefeed == normalized_old_homefeed:
+        homefeed_replacement = homefeed_rule.replace(
+            XHS_HOMEFEED_NATIVE_OLD_RULE, XHS_HOMEFEED_NATIVE_RULE
+        )
+        if homefeed_replacement == homefeed_rule:
+            homefeed_replacement = XHS_HOMEFEED_NATIVE_RULE
+    else:
+        homefeed_replacement = homefeed_rule
 
     # FMZ duplicates are retained for the rnote.com host, which is not covered
     # by the native xiaohongshu.com rules. The xiaohongshu.com side is native-only.
@@ -4000,7 +4067,10 @@ def narrow_xiaohongshu_native_response_duplicates(lines):
             or len(fmz_actual) != 3):
         raise ValueError("Xiaohongshu FMZ search trigger inventory changed; refusing narrowing")
 
-    replacements = {}
+    replacements = {
+        actual_by_narrowed_tag[tag]: narrowed
+        for tag, narrowed in XHS_NARROWED_TRIGGER_LINES.items()
+    }
     for line in fmz_actual:
         if "/search/notes" in re.sub(r"\\+", "", line):
             old = r"(so|edith)\.(xiaohongshu|rnote)\.com"
@@ -4015,11 +4085,17 @@ def narrow_xiaohongshu_native_response_duplicates(lines):
     result = []
     section = ""
     changed = 0
+    homefeed_rule_replaced = False
     for line in original:
         stripped = line.strip()
         if stripped.startswith("[") and stripped.endswith("]"):
             section = stripped[1:-1]
             result.append(line)
+            continue
+        if section == "Rewrite" and stripped == homefeed_rule and homefeed_replacement != homefeed_rule:
+            result.append(homefeed_replacement)
+            changed += 1
+            homefeed_rule_replaced = True
             continue
         if section == "Script" and stripped in actual_by_tag.values():
             changed += 1
