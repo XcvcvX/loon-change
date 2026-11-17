@@ -594,8 +594,13 @@ def remove_pdd_order_endpoint_blocks(lines):
 
 def remove_redundant_taobao_scripts(lines):
     """Keep the two canonical R-Store Taobao triggers and remove eight equivalent duplicates."""
-    canonical = {re.sub(r"\\+", "", item.strip()): item for item in TAOBAO_CANONICAL_SCRIPT_TRIGGERS}
-    redundant = {re.sub(r"\\+", "", item.strip()): item for item in TAOBAO_REDUNDANT_SCRIPT_TRIGGERS}
+    def normalize_trigger(item):
+        value = re.sub(r"\\+", "", item.strip())
+        # Accept only the two exact known Loon switch interpolation forms.
+        return re.sub(r"enable=\$\{(albb_enable|tcbc_enable)\}", r"enable=\1", value)
+
+    canonical = {normalize_trigger(item): item for item in TAOBAO_CANONICAL_SCRIPT_TRIGGERS}
+    redundant = {normalize_trigger(item): item for item in TAOBAO_REDUNDANT_SCRIPT_TRIGGERS}
     counts = {item: 0 for item in (*TAOBAO_CANONICAL_SCRIPT_TRIGGERS, *TAOBAO_REDUNDANT_SCRIPT_TRIGGERS)}
     output, section, target_seen = [], "", False
     for line in lines:
@@ -603,7 +608,7 @@ def remove_redundant_taobao_scripts(lines):
             section = line[1:-1]
             output.append(line)
             continue
-        normalized = re.sub(r"\\+", "", line.strip())
+        normalized = normalize_trigger(line)
         is_target = section == "Script" and (
             ("guide-acs.m.taobao.com/gw/mtop.taobao." in normalized
              and ("cloudvideo.video.query" in normalized or "wireless.home.splash.awesome.get" in normalized))
