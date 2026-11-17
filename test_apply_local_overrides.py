@@ -4298,6 +4298,7 @@ def _build_amap_unoptimized_fixture():
         r'response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/shield\/search\/nearbyrec_smart\?/i then script("' + romeo + r'") with tag="amap", timeout=60, requires_body=true',
         r'response if ${url} ~= /^https:\/\/m5-zb\.amap\.com\/ws\/promotion-web\/resource(\/home)?\?/i then script("' + romeo + r'") with tag="amap", timeout=60, requires_body=true',
         r'response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/bus\/plan\/integrate\?/i then script("' + romeo + r'") with tag="amap", timeout=60, requires_body=true',
+        r'response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/perception\/drive\/(?:routeInfo|routePlan)/i then script("' + romeo + r'") with tag="amap", timeout=60, requires_body=true',
         r'response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/faas\/amap-navigation\/(card-service-plan-home|main-page)/i then script("' + romeo + r'") with tag="amap", timeout=60, requires_body=true',
     ]
     mitm_index = next(i for i, line in enumerate(lines) if line.strip() == "[MITM]")
