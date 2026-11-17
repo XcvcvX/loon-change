@@ -719,7 +719,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         unrelated = "request if ${url} ~= /^https?:\/\/images\.pinduoduo\.com\/product/ then reject(404)"
         fixture = [*PDD_FEED_ASSET_CANONICAL_RULES, *PDD_FEED_ASSET_REDUNDANT_RULES, unrelated]
         result, removed = remove_redundant_pdd_feed_asset_rules(fixture)
-        self.assertEqual(removed, 4)
+        self.assertEqual(removed, 5)
         for rule in PDD_FEED_ASSET_CANONICAL_RULES:
             self.assertIn(rule, result)
         self.assertIn(unrelated, result)
@@ -4421,9 +4421,7 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
                 marker in line.replace(chr(92), "").lower() and "ishowshu_amap.js" in line.lower()
                 for line in script.splitlines()
             ), marker)
-        # Bus-plan iShowshu is intentionally retained: it additionally removes
-        # hkfRecommendPlans, which the native rewrite does not cover.
-        self.assertTrue(any(
+        self.assertFalse(any(
             "/ws/bus/plan/integrate" in line.replace(chr(92), "").lower() and "ishowshu_amap.js" in line.lower()
             for line in script.splitlines()
         ))
@@ -4470,6 +4468,19 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
         preserved_script = "\n".join(preserved).split("[Script]", 1)[1].split("[MITM]", 1)[0]
         self.assertTrue(any(
             nearby_marker in line.replace(chr(92), "").lower() and "ishowshu_amap.js" in line.lower()
+            for line in preserved_script.splitlines()
+        ))
+        # Keep the script if the native jq rule no longer covers hkfRecommendPlans.
+        without_hkf = [
+            line.replace("hkfRecommendPlans", "unreviewedField")
+            if "/ws/bus/plan/integrate" in line.replace(chr(92), "").lower() and "response.json.jq(" in line
+            else line
+            for line in lines
+        ]
+        preserved, _ = optimize_amap_response_script_overlaps(without_hkf)
+        preserved_script = "\n".join(preserved).split("[Script]", 1)[1].split("[MITM]", 1)[0]
+        self.assertTrue(any(
+            "/ws/bus/plan/integrate" in line.replace(chr(92), "").lower() and "ishowshu_amap.js" in line.lower()
             for line in preserved_script.splitlines()
         ))
 
