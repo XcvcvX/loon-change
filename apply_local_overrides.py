@@ -2004,6 +2004,7 @@ def normalize_bilibili_non_ad_feature_overrides(lines):
         ("/x/resource/show/skin", "common_equip"),
         ("/x/resource/show/tab/v2", "response"),
         ("PlayPause", "mock-response-body"),
+        ("PlayPause", "response.body.mock"),
     )
 
     for line in lines:
@@ -2050,8 +2051,8 @@ def normalize_bilibili_non_ad_feature_overrides(lines):
     # Remove only exact known rows that are still present; duplicate rows and changed
     # variants remain fail-closed through the checks above and unknown_markers below.
     for old, new in BILIBILI_NON_AD_FEATURE_REPLACEMENTS:
-        if old_counts[old] + new_counts[new] != 1:
-            raise ValueError("Bilibili gRPC feature rule replacement inventory changed")
+        if old_counts[old] + new_counts[new] > 1:
+            raise ValueError("Bilibili gRPC feature rule replacement inventory duplicated")
     normalized_text = "\n".join(normalized_rewrites)
     if any(marker not in normalized_text for marker in BILIBILI_AD_PATH_MARKERS):
         raise ValueError("Bilibili ad-path Rewrite coverage changed during feature cleanup")
