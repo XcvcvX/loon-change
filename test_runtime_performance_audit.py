@@ -12,6 +12,7 @@ class RuntimePerformanceAuditTests(unittest.TestCase):
                 "[Script]\n"
                 "http-response ^https://api.example.com/a script-path=https://raw.githubusercontent.com/org/repo/main/a.js,requires-body=true\n"
                 "http-response ^https://api.example.com/b script-path=https://raw.githubusercontent.com/org/repo/main/a.js,requires-body=true\n"
+                "response if ${url} ~= /^https://api.example.com/d then script(\"https://raw.githubusercontent.com/org/repo/main/c.js\") with requires_body=true\n"
                 "http-request ^https://api.example.com/c script-path=https://cdn.example.com/b.js\n",
                 encoding="utf-8",
             )
@@ -20,10 +21,14 @@ class RuntimePerformanceAuditTests(unittest.TestCase):
             )
             report = audit_plugin(plugin, root)
             summary = report["summary"]
+            self.assertEqual(summary["response_script_triggers"], 3)
             self.assertEqual(summary["http_response_script_triggers"], 2)
+            self.assertEqual(summary["inline_response_script_triggers"], 1)
+            self.assertEqual(summary["response_script_requires_body_true"], 3)
             self.assertEqual(summary["http_response_requires_body_true"], 2)
-            self.assertEqual(summary["unique_remote_script_urls"], 2)
-            self.assertEqual(summary["mutable_branch_remote_urls"], 1)
+            self.assertEqual(summary["inline_response_requires_body_true"], 1)
+            self.assertEqual(summary["unique_remote_script_urls"], 3)
+            self.assertEqual(summary["mutable_branch_remote_urls"], 2)
             self.assertEqual(summary["non_github_remote_urls"], 1)
             self.assertEqual(summary["local_js_json_parse_calls"], 2)
             self.assertEqual(summary["repeated_json_parse_expressions"], 1)
@@ -42,6 +47,21 @@ class RuntimePerformanceAuditTests(unittest.TestCase):
             report = audit_plugin(plugin, root)
             self.assertEqual(report["summary"]["duplicate_script_trigger_groups"], 1)
             self.assertEqual(len(report["duplicate_script_triggers"][0]["lines"]), 2)
+
+    def test_same_response_pattern_across_different_scripts_is_reported(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            plugin = root / "test.plugin"
+            plugin.write_text(
+                "[Script]\\n"
+                "response if ${url} ~= /^https://api.example.com/a then script(\"https://example.com/a.js\") with requires_body=true\\n"
+                "response if ${url} ~= /^https://api.example.com/a then script(\"https://example.com/b.js\") with requires_body=true\\n",
+                encoding="utf-8",
+            )
+            report = audit_plugin(plugin, root)
+            self.assertEqual(report["summary"]["duplicate_script_trigger_groups"], 0)
+            self.assertEqual(report["summary"]["duplicate_response_patterns_across_scripts"], 1)
+            self.assertIn("Duplicate response patterns across scripts", render_markdown(report))
 
     def test_xiaohongshu_feed_avoids_json_round_trip_and_payload_logging(self):
         source = Path("scripts/xiaohongshu/xiaohongshu-v4.js").read_text(encoding="utf-8")
