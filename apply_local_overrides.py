@@ -1969,6 +1969,7 @@ BILIBILI_NON_AD_FEATURE_RULES = (
     "http-response ^https?:\\/\\/(?:app\\.bilibili\\.com|grpc\\.biliapi\\.net)\\/bilibili\\.app\\.interface\\.v\\d\\.Teenagers\\/ModeStatus script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-2,requires-body=true,binary-body-mode=true",
 )
 BILIBILI_NON_AD_FEATURE_REPLACEMENTS = (
+    ("response if ${url} ~= /^https:\\/\\/grpc\\.biliapi\\.net\\/bilibili\\.app\\.(view\\.v1\\.View\\/TFInfo|viewunite\\.v1\\.View\\/(PlayPause|ViewEndPage))$/i then response.body.mock(\"text\", \"AAAAAAA=\", 200, true) | response.header.set(\"grpc-status\", \"0\")", "response if ${url} ~= /^https:\\/\\/grpc\\.biliapi\\.net\\/bilibili\\.app\\.(view\\.v1\\.View\\/TFInfo|viewunite\\.v1\\.View\\/ViewEndPage)$/i then response.body.mock(\"text\", \"AAAAAAA=\", 200, true) | response.header.set(\"grpc-status\", \"0\")"),
     ("response if ${url} ~= /^https:\\/\\/grpc\\.biliapi\\.net\\/bilibili\\.app\\.(interface\\.v1\\.(Teenagers\\/ModeStatus|Search\\/DefaultWords)|view\\.v1\\.View\\/TFInfo|viewunite\\.v1\\.View\\/ViewEndPage)$/ then response.header.add(\"grpc-status\", \"0\")", "response if ${url} ~= /^https:\\/\\/grpc\\.biliapi\\.net\\/bilibili\\.app\\.(view\\.v1\\.View\\/TFInfo|viewunite\\.v1\\.View\\/ViewEndPage)$/ then response.header.add(\"grpc-status\", \"0\")"),
     ("^https:\\/\\/grpc\\.biliapi\\.net\\/bilibili\\.app\\.(interface\\.v1\\.(Teenagers\\/ModeStatus|Search\\/DefaultWords)|view\\.v1\\.View\\/TFInfo|viewunite\\.v1\\.View\\/(PlayPause|ViewEndPage))$ response-header-add grpc-status 0", "^https:\\/\\/grpc\\.biliapi\\.net\\/bilibili\\.app\\.(view\\.v1\\.View\\/TFInfo|viewunite\\.v1\\.View\\/ViewEndPage)$ response-header-add grpc-status 0"),
     ("^https:\\/\\/grpc\\.biliapi\\.net\\/bilibili\\.app\\.(view\\.v1\\.View\\/TFInfo|viewunite\\.v1\\.View\\/(PlayPause|ViewEndPage))$ mock-response-body data-type=text data=\"AAAAAAA=\" mock-data-is-base64=true", "^https:\\/\\/grpc\\.biliapi\\.net\\/bilibili\\.app\\.(view\\.v1\\.View\\/TFInfo|viewunite\\.v1\\.View\\/ViewEndPage)$ mock-response-body data-type=text data=\"AAAAAAA=\" mock-data-is-base64=true"),
@@ -2003,6 +2004,7 @@ def normalize_bilibili_non_ad_feature_overrides(lines):
         ("/x/resource/show/skin", "common_equip"),
         ("/x/resource/show/tab/v2", "response"),
         ("PlayPause", "mock-response-body"),
+        ("PlayPause", "response.body.mock"),
     )
 
     for line in lines:
@@ -2049,8 +2051,8 @@ def normalize_bilibili_non_ad_feature_overrides(lines):
     # Remove only exact known rows that are still present; duplicate rows and changed
     # variants remain fail-closed through the checks above and unknown_markers below.
     for old, new in BILIBILI_NON_AD_FEATURE_REPLACEMENTS:
-        if old_counts[old] + new_counts[new] != 1:
-            raise ValueError("Bilibili gRPC feature rule replacement inventory changed")
+        if old_counts[old] + new_counts[new] > 1:
+            raise ValueError("Bilibili gRPC feature rule replacement inventory duplicated")
     normalized_text = "\n".join(normalized_rewrites)
     if any(marker not in normalized_text for marker in BILIBILI_AD_PATH_MARKERS):
         raise ValueError("Bilibili ad-path Rewrite coverage changed during feature cleanup")

@@ -1843,14 +1843,35 @@ class BilibiliNonAdFeatureScopeTests(unittest.TestCase):
         self.assertNotIn(tracker_rule, result)
         self.assertIn("/x/v2/feed/index", "\n".join(result).replace(chr(92), ""))
 
+    def test_allows_upstream_pruning_of_the_playback_replacement_pair(self):
+        from apply_local_overrides import normalize_bilibili_non_ad_feature_overrides
+        old, new = self.replacements[0]
+        fixture = [line for line in self.base if line != old and line != new]
+        result, changed = normalize_bilibili_non_ad_feature_overrides(fixture)
+        self.assertEqual(changed, len(self.remove_rules) + len(self.replacements) - 1)
+        self.assertNotIn(old, result)
+        self.assertNotIn(new, result)
+        self.assertIn("/x/v2/feed/index", "\n".join(result).replace(chr(92), ""))
+
+    def test_narrows_playback_mock_without_the_non_ad_playpause_endpoint(self):
+        from apply_local_overrides import normalize_bilibili_non_ad_feature_overrides
+        old = "response if ${url} ~= /^https:\\/\\/grpc\\.biliapi\\.net\\/bilibili\\.app\\.(view\\.v1\\.View\\/TFInfo|viewunite\\.v1\\.View\\/(PlayPause|ViewEndPage))$/i then response.body.mock(\"text\", \"AAAAAAA=\", 200, true) | response.header.set(\"grpc-status\", \"0\")"
+        new = "response if ${url} ~= /^https:\\/\\/grpc\\.biliapi\\.net\\/bilibili\\.app\\.(view\\.v1\\.View\\/TFInfo|viewunite\\.v1\\.View\\/ViewEndPage)$/i then response.body.mock(\"text\", \"AAAAAAA=\", 200, true) | response.header.set(\"grpc-status\", \"0\")"
+        self.assertIn((old, new), self.replacements)
+        result, changed = normalize_bilibili_non_ad_feature_overrides(self.base)
+        self.assertEqual(changed, len(self.remove_rules) + len(self.replacements))
+        self.assertNotIn(old, result)
+        self.assertEqual(result.count(new), 1)
+
     def test_checked_in_plugin_has_no_vip_paywall_or_teen_mode_bypass(self):
         from pathlib import Path
         from apply_local_overrides import BILIBILI_NON_AD_FEATURE_RULES, BILIBILI_NON_AD_FEATURE_REPLACEMENTS
         plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
         for rule in BILIBILI_NON_AD_FEATURE_RULES:
             self.assertNotIn(rule, plugin)
-        for _, new in BILIBILI_NON_AD_FEATURE_REPLACEMENTS:
-            self.assertEqual(plugin.count(new), 1)
+        for old, new in BILIBILI_NON_AD_FEATURE_REPLACEMENTS:
+            self.assertNotIn(old, plugin)
+            self.assertLessEqual(plugin.count(new), 1)
         self.assertNotIn("due_date: 9005270400000", plugin)
         self.assertNotIn("del(.data.payment)", plugin)
         self.assertNotIn("Teenagers\\/ModeStatus", plugin)
