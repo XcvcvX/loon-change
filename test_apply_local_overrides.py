@@ -3985,7 +3985,7 @@ class BilibiliProtobufDuplicateTriggerTests(unittest.TestCase):
 class XiaohongshuNativeDuplicateTriggerTests(unittest.TestCase):
     def _fixture(self):
         from apply_local_overrides import XHS_SCRIPT_TRIGGER_LINES
-        rstore_tags = {"XIAOHONGSHU", "XIAOHONGSHU-3", "XIAOHONGSHU-4", "XIAOHONGSHU-5", "XIAOHONGSHU-6"}
+        rstore_tags = {"XIAOHONGSHU", "XIAOHONGSHU-2", "XIAOHONGSHU-3", "XIAOHONGSHU-4", "XIAOHONGSHU-5", "XIAOHONGSHU-6", "XIAOHONGSHU-8"}
         scripts = [
             line for line in XHS_SCRIPT_TRIGGER_LINES
             if any(("tag=" + tag + ",") in line for tag in rstore_tags)
@@ -4001,6 +4001,8 @@ class XiaohongshuNativeDuplicateTriggerTests(unittest.TestCase):
             r"^https:\/\/edith\.xiaohongshu\.com\/api\/sns\/v\d\/search\/trending\? response-body-json-jq '. as $o | try . catch $o'",
             r"^https:\/\/(?:edith|so)\.xiaohongshu\.com\/api\/sns\/v\d+\/search\/notes\? response-body-json-jq '. as $o | try . catch $o'",
             r"^https:\/\/edith\.xiaohongshu\.com\/api\/sns\/v\d\/system_service\/config\? response-body-json-jq '. as $o | try . catch $o'",
+            r"^https:\/\/(?:edith|rec)\.xiaohongshu\.com\/api\/sns\/v\d+\/followfeed\? response-body-json-jq '. as $o | try (if (.data|type)==\"object\" then (if ((.data.items|type)==\"array\") then .data.items|=map(select(if type==\"object\" then (.recommend_reason!=\"recommend_user\") else false end)) else . end) else . end) catch $o'",
+            r"^https:\/\/(?:edith|rec)\.xiaohongshu\.com\/api\/sns\/v2\/user\/followings\/followfeed response-body-json-jq '. as $o | try (if (.data|type)==\"object\" then (if ((.data.items|type)==\"array\") then .data.items|=map(select(if type==\"object\" then (.recommend_reason==\"friend_post\") else false end)) else . end) else . end) catch $o'",
         ]
         scripts = [line.replace("enable=xhs_enable", "enable=${xhs_enable}") for line in scripts]
         return ["[Rewrite]", *rewrites, "[Script]", *sorted(scripts), "[MITM]"]
@@ -4009,8 +4011,24 @@ class XiaohongshuNativeDuplicateTriggerTests(unittest.TestCase):
         from apply_local_overrides import narrow_xiaohongshu_native_response_duplicates
         fixture = self._fixture()
         result, changed = narrow_xiaohongshu_native_response_duplicates(fixture)
-        self.assertEqual(changed, 8)
+        self.assertEqual(changed, 10)
         self.assertFalse(any("tag=XIAOHONGSHU" in line or "tag=XIAOHONGSHU-" in line for line in result))
+        from apply_local_overrides import XHS_NARROWED_TRIGGER_LINES
+        for narrowed in XHS_NARROWED_TRIGGER_LINES.values():
+            self.assertIn(narrowed, result)
+        import re
+        user_follow = re.compile(XHS_NARROWED_TRIGGER_LINES["XIAOHONGSHU-2"].split(" script-path=")[0].removeprefix("http-response "))
+        self.assertIsNotNone(user_follow.search("https://edith.xiaohongshu.com/api/sns/v1/user/followings/followfeed"))
+        self.assertIsNone(user_follow.search("https://edith.xiaohongshu.com/api/sns/v2/user/followings/followfeed"))
+        self.assertIsNotNone(user_follow.search("https://edith.xiaohongshu.com/api/sns/v3/user/followings/followfeed"))
+        self.assertIsNotNone(user_follow.search("https://edith.xiaohongshu.com/api/sns/v10/user/followings/followfeed"))
+        mixed_feed = re.compile(XHS_NARROWED_TRIGGER_LINES["XIAOHONGSHU-8"].split(" script-path=")[0].removeprefix("http-response "))
+        self.assertIsNotNone(mixed_feed.search("https://edith.xiaohongshu.com/api/sns/v2/homefeed?"))
+        self.assertIsNotNone(mixed_feed.search("https://rec.xiaohongshu.com/api/sns/v2/homefeed?"))
+        self.assertIsNotNone(mixed_feed.search("https://www.xiaohongshu.com/api/sns/v2/homefeed?"))
+        self.assertIsNotNone(mixed_feed.search("https://www.xiaohongshu.com/api/sns/v2/followfeed?"))
+        self.assertIsNone(mixed_feed.search("https://edith.xiaohongshu.com/api/sns/v2/followfeed?"))
+        self.assertIsNone(mixed_feed.search("https://rec.xiaohongshu.com/api/sns/v2/followfeed?"))
         fmz = [line for line in result if 'tag="小红书搜索页"' in line]
         self.assertEqual(len(fmz), 3)
         self.assertTrue(all(r"\.rnote\.com" in line for line in fmz))
