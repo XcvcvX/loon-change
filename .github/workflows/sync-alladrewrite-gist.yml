@@ -26,7 +26,7 @@ jobs:
         shell: bash
         run: |
           mapfile -t files < <(
-            git ls-files | grep -E '(^|/)allAdRewrite\\.plugin$' || true
+            git ls-files | grep -E '(^|/)allAdRewrite\.plugin$' || true
           )
 
           if [ "${#files[@]}" -ne 1 ]; then
@@ -53,21 +53,23 @@ jobs:
           import urllib.request
           from pathlib import Path
 
-          gist_id = os.environ["GIST_ID"].strip()
-          token = os.environ["GIST_TOKEN"].strip()
-          plugin_path = Path(os.environ["PLUGIN_FILE"])
+          gist_id = os.environ.get("GIST_ID", "").strip()
+          token = os.environ.get("GIST_TOKEN", "").strip()
+          plugin_file = os.environ.get("PLUGIN_FILE", "").strip()
+          if not gist_id or not token or not plugin_file:
+              raise SystemExit("GIST_ID, GIST_TOKEN or PLUGIN_FILE is missing")
+
+          plugin_path = Path(plugin_file)
           owner = "XcvcvX"
           private_prefix = "https://raw.githubusercontent.com/XcvcvX/loon-change/main/"
           public_prefix = f"https://gist.githubusercontent.com/{owner}/{gist_id}/raw/"
 
-          if not gist_id or not token:
-              raise SystemExit("GIST_ID or GIST_TOKEN secret is missing")
           if not plugin_path.is_file():
               raise SystemExit(f"Plugin file not found: {plugin_path}")
 
           plugin = plugin_path.read_text(encoding="utf-8")
           relative_paths = sorted(set(re.findall(
-              re.escape(private_prefix) + r'([^,\\s"\\')]+)', plugin
+              re.escape(private_prefix) + r"""([^,\\s"')]+)""", plugin
           )))
           if not relative_paths:
               raise SystemExit("No private-repository runtime asset URLs found; refusing an empty mirror")
@@ -125,8 +127,7 @@ jobs:
           if missing:
               raise SystemExit("Gist API response omitted files: " + ", ".join(missing))
 
-          # Verify the API's versioned raw URL for every file. This avoids depending
-          # on CDN propagation timing for the stable, unversioned subscription URL.
+          # Verify the API's versioned raw URL for every file.
           for filename, expected in files.items():
               raw_url = returned_files[filename].get("raw_url")
               if not raw_url:
