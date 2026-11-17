@@ -536,12 +536,12 @@ PDD_ORDER_ENDPOINT_BLOCKS_TO_PRESERVE = (
     "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/aristotle\\/unrated_order_for_unreceived_tab\\?/i then reject_dict(200)",
     "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/aristotle\\/query_order_list_tabs_element\\?/i then reject_dict(200)",
     "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/caterham\\/v3\\/query\\/order_express_group\\?/i then reject_dict(200)",
-    "request if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/aristotle\/unrated_order_for_unreceived_tab\?/i then reject_dict(200)",
-    "^https:\/\/api\.pinduoduo\.com\/api\/aristotle\/unrated_order_for_unreceived_tab\? reject-dict",
-    "^https:\/\/api\.pinduoduo\.com\/api\/aristotle\/query_order_list_tabs_element\? reject-dict",
-    "request if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/aristotle\/query_order_list_tabs_element\?/i then reject_dict(200)",
-    "request if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/caterham\/v3\/query\/order_express_group\?/i then reject_dict(200)",
-    "^https:\/\/api\.pinduoduo\.com\/api\/caterham\/v3\/query\/order_express_group\? reject-dict",
+    r"request if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/aristotle\/unrated_order_for_unreceived_tab\?/i then reject_dict(200)",
+    r"^https:\/\/api\.pinduoduo\.com\/api\/aristotle\/unrated_order_for_unreceived_tab\? reject-dict",
+    r"^https:\/\/api\.pinduoduo\.com\/api\/aristotle\/query_order_list_tabs_element\? reject-dict",
+    r"request if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/aristotle\/query_order_list_tabs_element\?/i then reject_dict(200)",
+    r"request if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/caterham\/v3\/query\/order_express_group\?/i then reject_dict(200)",
+    r"^https:\/\/api\.pinduoduo\.com\/api\/caterham\/v3\/query\/order_express_group\? reject-dict",
 )
 PDD_ORDER_ENDPOINT_MARKERS = (
     "unrated_order_for_unreceived_tab",
