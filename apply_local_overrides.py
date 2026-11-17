@@ -2184,6 +2184,14 @@ def remove_douyin_content_cdn_overblocks(lines):
     section = ""
     output = []
     counts = {item: 0 for item in DOUYIN_CONTENT_CDN_OVERBLOCKS}
+    # 合并来源可能把正则转义再次编码（\/、\\/；\.、\\.)。
+    # 仅将连续转义符归一为一个，按等价正则匹配已审核的精确清理清单。
+    def inventory_key(section_name, rule):
+        canonical = re.sub(r"\\{2,}([./])", lambda match: "\\" + match.group(1), rule)
+        return section_name, canonical
+
+    known_inventory = {inventory_key(section_name, rule): (section_name, rule)
+                       for section_name, rule in DOUYIN_CONTENT_CDN_OVERBLOCKS}
     saw_target = False
     unknown_overblocks = []
     normalized_rewrites = []
@@ -2212,12 +2220,13 @@ def remove_douyin_content_cdn_overblocks(lines):
                 normalized_rewrites.append(normalized)
             if "pstatp.com/origin" in normalized and "reject(404)" in normalized:
                 saw_target = True
-                key = (section, value)
-                if key not in counts:
+                key = inventory_key(section, value)
+                inventory_item = known_inventory.get(key)
+                if inventory_item is None:
                     unknown_overblocks.append(value)
                 else:
-                    counts[key] += 1
-                    if counts[key] > 1:
+                    counts[inventory_item] += 1
+                    if counts[inventory_item] > 1:
                         raise ValueError("duplicate Douyin content CDN origin Rewrite")
                     continue
         output.append(line)
