@@ -63,7 +63,7 @@ def audit_plugin(plugin_path, repo_root="."):
             item = {
                 "line": line_no, "trigger_kind": kind, "url_pattern": url_pattern,
                 "script_url": url,
-                "requires_body": bool(re.search(r"\\brequires[-_]body\\s*=\\s*true\\b", line, re.I)),
+                "requires_body": bool(re.search(r"\brequires[-_]body\s*=\s*true\b", line, re.I)),
             }
             response_body.append(item)
             response_pattern_groups[url_pattern].append(item)
