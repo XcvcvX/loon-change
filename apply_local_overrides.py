@@ -1830,7 +1830,16 @@ def consolidate_meituan_scripts(lines):
         return list(lines), 0
     if canonical_count == 1 and not any(counts) and not unknown_legacy:
         return list(lines), 0
-    if canonical_count or unknown_legacy or any(count != 1 for count in counts):
+
+    # The current upstream has removed the eight aoomee Meituan app triggers,
+    # while retaining the three exact R-Store image/mini-program triggers.
+    # The checked-in local handler still implements the reviewed union of all
+    # eleven endpoints, so rebuild that single local matcher only for this
+    # exact, known R-Store-only inventory. Any other partial set still fails closed.
+    rstore_only_inventory = counts == [1, 1, 1] + [0] * (len(MEITUAN_LEGACY_TRIGGERS) - 3)
+    if canonical_count or unknown_legacy or (
+        not rstore_only_inventory and any(count != 1 for count in counts)
+    ):
         missing = [trigger for trigger, count in zip(MEITUAN_LEGACY_TRIGGERS, counts) if count == 0]
         duplicate = [trigger for trigger, count in zip(MEITUAN_LEGACY_TRIGGERS, counts) if count > 1]
         raise ValueError(
@@ -1855,7 +1864,7 @@ def consolidate_meituan_scripts(lines):
         output.append(line)
     if not inserted:
         raise ValueError("Meituan canonical trigger insertion failed")
-    return output, len(MEITUAN_LEGACY_TRIGGERS)
+    return output, sum(counts) - 1
 
 
 
