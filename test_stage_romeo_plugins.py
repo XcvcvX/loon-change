@@ -1,10 +1,19 @@
+import json
+import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from stage_romeo_plugins import (
     EXPECTED_PLUGIN_FILES,
     LEGACY_SNAPSHOTS,
+    MANIFEST,
     ROMEO_PLUGIN_MAP,
+    RUNTIME_ASSETS,
+    ZMJDE_APP_MAP,
+    ZMJDE_GENERAL_MAP,
+    ZMJDE_PLUGIN_MAP,
+    stage,
 )
 
 
@@ -12,11 +21,16 @@ ROOT = Path(__file__).resolve().parent
 
 
 class RomeoPluginMigrationTests(unittest.TestCase):
-    def test_mapping_is_complete_and_unambiguous(self):
+    def test_manifest_is_the_single_complete_mapping(self):
         self.assertEqual(len(ROMEO_PLUGIN_MAP), 21)
         self.assertEqual(len(set(ROMEO_PLUGIN_MAP)), len(ROMEO_PLUGIN_MAP))
         self.assertEqual(len(set(ROMEO_PLUGIN_MAP.values())), len(ROMEO_PLUGIN_MAP))
         self.assertEqual(EXPECTED_PLUGIN_FILES, 28)
+        self.assertEqual(len(ZMJDE_APP_MAP), 5)
+        self.assertEqual(len(ZMJDE_GENERAL_MAP), 3)
+        self.assertEqual(len(ZMJDE_PLUGIN_MAP), 8)
+        self.assertTrue(all(path.startswith("Modules/Loon/Kelee/Official/")
+                            for path in ZMJDE_PLUGIN_MAP.values()))
 
     def test_legacy_snapshots_are_present(self):
         self.assertEqual(len(LEGACY_SNAPSHOTS), 7)
@@ -43,6 +57,67 @@ class RomeoPluginMigrationTests(unittest.TestCase):
             "Modules/Loon/ishowshu/pdd-rewrite.lpx",
         )
         self.assertNotIn("Modules/Loon/ishowshu/pdd.lpx", ROMEO_PLUGIN_MAP.values())
+
+    def test_former_zmjde_assets_are_mapped_to_romeo_files(self):
+        self.assertEqual(len(RUNTIME_ASSETS), 3)
+        by_plugin = {item["plugin"]: item for item in RUNTIME_ASSETS}
+        self.assertEqual(
+            by_plugin["PinDuoDuo_remove_ads.lpx"]["source_path"],
+            "Modules/JavaScript/Kelee/PinDuoDuo_remove_ads/kelee.one_PinDuoDuo_remove_ads.js",
+        )
+        self.assertEqual(
+            by_plugin["Taobao_remove_ads.lpx"]["source_path"],
+            "Modules/JavaScript/Kelee/Taobao_remove_ads/kelee.one_Taobao_remove_ads.js",
+        )
+        self.assertEqual(
+            by_plugin["smzdm_remove_ads.lpx"]["source_path"],
+            "Modules/JavaScript/Kelee/smzdm_remove_ads/kelee.one_home_smzdm_remove_ads.jq",
+        )
+        self.assertTrue(MANIFEST["external_runtime_dependencies"])
+
+    def test_stage_builds_both_compatibility_slots_from_one_commit(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            repo = root / "romeo"
+            (repo / ".git").mkdir(parents=True)
+            primary = root / "plugins"
+            former_zmjde = root / "zmjde" / "Plugin"
+            commit = "a" * 40
+
+            asset_by_plugin = {}
+            for asset in RUNTIME_ASSETS:
+                asset_by_plugin.setdefault(asset["plugin"], []).append(asset)
+
+            def fake_read(_repo, _commit, source_path):
+                for filename, assets in asset_by_plugin.items():
+                    if filename in source_path:
+                        return b""
+                plugin_name = Path(source_path).name
+                for filename, assets in asset_by_plugin.items():
+                    if filename == plugin_name:
+                        urls = "\n".join(item["upstream_url"] for item in assets)
+                        return ("#!name=fixture\n[Rewrite]\n" + urls + "\n").encode()
+                if source_path.endswith((".lpx", ".plugin")):
+                    return b"#!name=fixture\n[Rewrite]\nrequest if ${url} ~= /^https:\\/\\/example\\.com/ then reject(404)\n"
+                return b"// Romeo asset fixture\n"
+
+            with patch("stage_romeo_plugins._read_romeo_file", side_effect=fake_read):
+                result = stage(repo, commit, primary, ROOT, former_zmjde)
+
+            self.assertEqual(result["romeo_plugin_files"], 21)
+            self.assertEqual(result["former_zmjde_plugin_files"], 8)
+            self.assertEqual(len(result["staged_plugin_files"]), EXPECTED_PLUGIN_FILES)
+            self.assertEqual(len(list(former_zmjde.glob("*.lpx"))), 8)
+            meta = json.loads((former_zmjde / ".romeo-source.json").read_text(encoding="utf-8"))
+            self.assertEqual(meta["upstream_commit"], commit)
+            self.assertEqual(meta["upstream_repository"], MANIFEST["upstream_repository"])
+            for asset in RUNTIME_ASSETS:
+                staged = (former_zmjde / asset["plugin"]).read_text(encoding="utf-8")
+                self.assertIn(
+                    f"https://raw.githubusercontent.com/ifflagged/Romeo/{commit}/{asset['source_path']}",
+                    staged,
+                )
+                self.assertNotIn(asset["upstream_url"], staged)
 
 
 if __name__ == "__main__":
