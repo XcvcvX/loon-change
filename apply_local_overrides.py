@@ -3507,6 +3507,8 @@ def remove_same_source_duplicate_response_scripts(lines):
         # enable=${name}; compare both known spellings as the same switch,
         # while preserving the original source line when it is retained.
         inventory_line = re.sub(r"enable=\$\{([^}]+)\}", r"enable=\1", line.strip())
+        # Equivalent atomic/non-capturing groups appeared in the upstream matcher.
+        inventory_line = inventory_line.replace("(?>", "(?:")
         is_target = (
             section == "Script"
             and (
@@ -4112,6 +4114,10 @@ XHS_V3_VIDEO_RSTORE_NARROWED_TRIGGER = (
     r"http-response ^https?:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/(?:v(?:[13-9]|[1-9][0-9]+)\/note\/feed|v(?:[12]|[5-9]|[1-9][0-9]+)\/note\/videofeed|v(?:[1-9]|1[1-9]|[2-9][0-9]+)\/note\/video\/save) "
     r"script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-7,requires-body=true"
 )
+XHS_V3_VIDEO_RSTORE_PREVIOUS_NARROWED_TRIGGER = (
+    r"http-response ^https?:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/(?:v\d+\/note\/(?:imagefeed|feed|(?:live_photo|video)\/save)|v4\/note\/videofeed) "
+    r"script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-7,requires-body=true"
+)
 XHS_V3_VIDEO_FMZ_NARROWED_TRIGGER = (
     r'response if ${url} ~= /^https?:\/\/(?:(?:edith|rec|www)\.(?:xiaohongshu|rnote)\.com\/api\/sns\/v2\/note\/feed\?|(?:edith|rec|www)\.rnote\.com\/api\/sns\/v3\/note\/videofeed\?)/i '
     r'then script("https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js") with enable=${xhs_enable}, tag="小红书图片视频水印", timeout=60, requires_body=true'
@@ -4168,7 +4174,11 @@ def narrow_xiaohongshu_v3_video_native_duplicates(lines):
     if has_rstore_target:
         if rstore_expected is None or len(rstore_matches) != 1:
             raise ValueError("Xiaohongshu R-Store v3 video trigger inventory changed")
-        if rstore_matches[0] not in (rstore_expected, XHS_V3_VIDEO_RSTORE_NARROWED_TRIGGER):
+        if rstore_matches[0] not in (
+            rstore_expected,
+            XHS_V3_VIDEO_RSTORE_PREVIOUS_NARROWED_TRIGGER,
+            XHS_V3_VIDEO_RSTORE_NARROWED_TRIGGER,
+        ):
             raise ValueError("Xiaohongshu R-Store video-feed trigger changed; refusing narrowing")
     if has_fmz_target:
         if fmz_expected is None or len(fmz_matches) != 1:
@@ -4205,7 +4215,7 @@ def narrow_xiaohongshu_v3_video_native_duplicates(lines):
 
     replacements = {}
     if has_rstore_target:
-        replacements[rstore_expected] = XHS_V3_VIDEO_RSTORE_NARROWED_TRIGGER
+        replacements[rstore_matches[0]] = XHS_V3_VIDEO_RSTORE_NARROWED_TRIGGER
     if has_fmz_target:
         replacements[fmz_matches[0]] = XHS_V3_VIDEO_FMZ_NARROWED_TRIGGER
     changed = 0
