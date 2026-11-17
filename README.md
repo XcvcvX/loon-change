@@ -837,3 +837,14 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 不修改远程脚本源码、广告处理逻辑、开关或 URL matcher；仅缩减四个确定为界面定制的脚本入口。
 - 本地覆盖器允许上游独立移除已知入口；重复、未知同脚本触发器或触发器移出 Script 区块时 fail-closed。新增测试覆盖精确删除、保留、幂等、上游删减及未知变体。
 - 性能收益来自减少四个非广告接口的响应体脚本调度，不将触发器数量减少量等同于耗电百分比。
+
+
+## 第八阶段第五十三批：高德地图版本化响应脚本去重
+
+- 审计发现高德地图同一接口在 R-Store 的 amap.js、Romeo 的 ishowshu_amap.js 与仓库本地 rucu6_amap.js 之间存在重复响应体处理。
+- beforeNavi 的 R-Store/iShowshu 分支执行相同字段清理，仓库已有 Loon 原生 JSON Rewrite 覆盖这三个字段并额外清理 bus_plan_bottom_tips；因此只在 m5 原生规则覆盖的范围移除 iShowshu 触发，并把 R-Store 的 m\d matcher 收窄为 m[0-46-9]，保留其他版本主机覆盖。
+- 公交 bus/plan/integrate 保留 iShowshu 触发，因为它还清理 hkfRecommendPlans，现有原生规则未覆盖该字段；仅把 R-Store 重复触发收窄到非 m5 主机。
+- nearbyrec_smart 与 promotion-web/resource 三份脚本的对应分支处理一致，保留仓库本地 Rucu6 脚本，移除 m5 上 R-Store/iShowshu 的重复入口；保留 R-Store 对其他 m 版本的原有覆盖。
+- card-service-plan-home、main-page 两个分支在 iShowshu 与本地 Rucu6 脚本中一致，保留本地脚本并移除重复 iShowshu 入口。
+- 覆盖器只按已核对的主机、路径和脚本来源执行；缺少原生/本地覆盖时保留原触发，重复规范入口或版本正则漂移时 fail-closed。新增回归测试验证触发次数、非 m5 覆盖、公交额外字段保留、幂等和覆盖缺失保护。
+- 不修改高德地图其他搜索、路线、导航、酒店、打车、开屏或搜索详情处理，不扩大任何广告拦截范围；滴滴与百度地图本轮仅复核，不为减少规则数而更改其已验证的独立处理。
