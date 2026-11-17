@@ -2789,6 +2789,19 @@ class TuhuDuplicateResponseScriptTests(unittest.TestCase):
         self.assertIn("^https?:\\\\/\\\\/gateway\\\\.tuhu\\\\.cn\\\\/unrelated reject(404)", result)
         self.assertEqual(remove_duplicate_tuhu_scripts(result), (result, 0))
 
+    def test_accepts_interpolated_switch_variant_without_changing_the_rule(self):
+        from apply_local_overrides import remove_same_source_duplicate_response_scripts
+        source = next(item for item in self.keep if "bilimanhua_enable" in item)
+        current = source.replace("enable=bilimanhua_enable", "enable=${bilimanhua_enable}")
+        fixture = ["[Script]", *self.remove, *[
+            current if item == source else item for item in self.keep
+        ], "[MITM]"]
+        result, removed = remove_same_source_duplicate_response_scripts(fixture)
+        self.assertEqual(removed, len(self.remove))
+        self.assertIn(current, result)
+        self.assertNotIn(source, result)
+        self.assertEqual(remove_same_source_duplicate_response_scripts(result), (result, 0))
+
     def test_preserves_already_consolidated_inventory(self):
         from apply_local_overrides import remove_duplicate_tuhu_scripts
         clean = ["[Script]", *self.canonical, "[MITM]"]
