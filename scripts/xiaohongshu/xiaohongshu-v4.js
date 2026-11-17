@@ -66,7 +66,6 @@ if (url.includes("/system_service/splash_config")) {
 }
 
 if (url.includes("/note/imagefeed?") || url.includes("/note/feed?")) {
-  console.log('打印原body：' + JSON.stringify(obj));
   // 信息流 图片
   if (obj?.data?.length > 0) {
     if (obj.data[0]?.note_list?.length > 0) {
@@ -114,18 +113,17 @@ if (url.includes("/note/imagefeed?") || url.includes("/note/feed?")) {
 
       const images_list = obj.data[0].note_list[0].images_list;
       // 画质增强
-      obj.data[0].note_list[0].images_list = imageEnhance(JSON.stringify(images_list));
-      // 保存无水印信息
-      $.setdata(JSON.stringify(images_list), "fmz200.xiaohongshu.feed.rsp");
+      // Cache the original image metadata before in-place quality URL enhancement.
+      const cachedImages = JSON.stringify(images_list);
+      obj.data[0].note_list[0].images_list = imageEnhance(images_list);
+      $.setdata(cachedImages, "fmz200.xiaohongshu.feed.rsp");
       console.log('已存储无水印信息♻️');
     }
   }
 } 
 
 if (url.includes("/note/live_photo/save")) {
-  console.log('原body：' + rsp_body);
   const rsp = $.getdata("fmz200.xiaohongshu.feed.rsp");
-  console.log("读取缓存key[fmz200.xiaohongshu.feed.rsp]的值：" + rsp);
   // console.log("读取缓存val：" + rsp);
   if (rsp == null || rsp.length === 0) {
     console.log('缓存无内容，返回原body');
@@ -148,7 +146,6 @@ if (url.includes("/note/live_photo/save")) {
   } else {
     obj = {"code": 0, "success": true, "msg": "fmz200创建响应体成功", "data": {"datas": new_data}};
   }
-  console.log('新body：' + JSON.stringify(obj));
 } 
 
 if (url.includes("/note/widgets")) {
@@ -217,7 +214,6 @@ if (url.includes("/v4/note/videofeed")) {
       if (item?.share_info?.function_entries?.length > 0) {
         const hasDownload = item.share_info.function_entries.some(entry => entry.type === "video_download");
         if (!hasDownload) {
-          console.log(`添加下载按钮: ${item.id}`);
           item.share_info.function_entries.push({type: "video_download"});
         }
       }
@@ -233,16 +229,12 @@ if (url.includes("/v4/note/videofeed")) {
           id: item.id,
           url: selectedStream.master_url
         };
-        console.log(`提取成功 ➜ ${item.id} → ${selectedStream.stream_desc}`);
         videoData.push(data);
-        console.log(`[缓存] ID:${item.id} | 规格:${selectedStream.quality_type} | 码率:${selectedStream.avg_bitrate}`);
       } else {
-        console.log(`未找到可用视频: ${item.id}`);
       }
     }
     // 写入本地持久化缓存
     $.setdata(JSON.stringify(videoData), "redBookVideoFeed");
-    console.log(`已缓存普通视频 ${videoData.length} 条`);
   } else if (Array.isArray(obj.data)) {
     // Clear stale IDs when the filtered response contains no playable notes.
     $.setdata("[]", "redBookVideoFeed");
@@ -369,7 +361,6 @@ if (url.includes("/api/sns/v5/note/comment/list?") || url.includes("/api/sns/v3/
   if (livePhotos.length > 0) {
     let commitsRsp;
     const commitsCache = $.getdata("fmz200.xiaohongshu.comments.rsp");
-    console.log("读取缓存val：" + commitsCache);
     if (!commitsCache) {
       commitsRsp = {noteId: note_id, livePhotos: livePhotos};
     } else {
@@ -383,7 +374,6 @@ if (url.includes("/api/sns/v5/note/comment/list?") || url.includes("/api/sns/v3/
         commitsRsp = {noteId: note_id, livePhotos: livePhotos};
       }
     }
-    console.log("写入缓存val：" + JSON.stringify(commitsRsp));
     $.setdata(JSON.stringify(commitsRsp), "fmz200.xiaohongshu.comments.rsp");
   }
 
@@ -413,7 +403,6 @@ if (url.includes("/api/sns/v5/note/comment/list?") || url.includes("/api/sns/v3/
 if (url.includes("/api/sns/v1/interaction/comment/video/download?")) {
   const commitsCache = $.getdata("fmz200.xiaohongshu.comments.rsp");
   const commitsVideoCache = $.getdata("fmz200.xiaohongshu.comments.videos.rsp");
-  console.log("读取缓存val：" + commitsCache);
   console.log("目标video_id：" + obj.data.video.video_id);
   if (commitsCache) {
     let commitsRsp = JSON.parse(commitsCache);
@@ -447,44 +436,46 @@ if (url.includes("/api/sns/v1/interaction/comment/video/download?")) {
 $done({body: JSON.stringify(obj)});
 
 // 小红书画质增强：加载2K分辨率的图片
-function imageEnhance(jsonStr) {
-  if (!jsonStr) {
-    console.error("jsonStr is undefined or null");
-    return [];
-  }
+function imageEnhance(images) {
+  if (!images || typeof images !== "object") return images;
 
   const imageQuality = $.getdata("fmz200.xiaohongshu.imageQuality");
-  console.log(`Image Quality: ${imageQuality}`);
-  if (imageQuality === "original") { // 原始分辨率，PNG格式的图片，占用空间比较大
-    console.log("画质设置为-原始分辨率");
-    jsonStr = jsonStr.replace(/\?imageView2\/2[^&]*(?:&redImage\/frame\/0)/, "?imageView2/0/format/png&redImage/frame/0");
-  } else { // 高像素输出
-    console.log("画质设置为-高像素输出");
-    const regex1 = /imageView2\/2\/w\/\d+\/format/g;
-    jsonStr = jsonStr.replace(regex1, `imageView2/2/w/2160/format`);
+  const originalPattern = /\\?imageView2\\/2[^&]*(?:&redImage\\/frame\\/0)/;
+  const widthPattern = /imageView2\\/2\\/w\\/\\d+\\/format/g;
+  const heightPattern = /imageView2\\/2\\/h\\/\\d+\\/format/g;
+  let originalReplaced = false;
 
-    const regex2 = /imageView2\/2\/h\/\d+\/format/g;
-    jsonStr = jsonStr.replace(regex2, `imageView2/2/h/2160/format`);
-  }
-  console.log('图片画质增强完成✅');
+  function visit(value) {
+    if (typeof value === "string") {
+      if (imageQuality === "original") {
+        if (originalReplaced) return value;
+        const enhanced = value.replace(originalPattern, "?imageView2/0/format/png&redImage/frame/0");
+        if (enhanced !== value) originalReplaced = true;
+        return enhanced;
+      }
+      return value
+        .replace(widthPattern, "imageView2/2/w/2160/format")
+        .replace(heightPattern, "imageView2/2/h/2160/format");
+    }
 
-  try {
-    return JSON.parse(jsonStr);
-  } catch (e) {
-    console.error("JSON parsing error: ", e);
-    return [];
+    if (Array.isArray(value)) {
+      for (let i = 0; i < value.length; i++) value[i] = visit(value[i]);
+    } else if (value && typeof value === "object") {
+      for (const key of Object.keys(value)) value[key] = visit(value[key]);
+    }
+    return value;
   }
+
+  return visit(images);
 }
 
 function replaceUrlContent(collectionA, collectionB) {
-  console.log('替换无水印的URL');
   // 匹配常见视频格式（扩展名到查询参数之前的部分）
   const videoBaseRegex = /(.*\.(mp4|mov|webm|m3u8|ts|avi|mkv|flv))/i;
 
   collectionA.forEach(itemA => {
     const itemB = collectionB.find(itemB => itemB.file_id === itemA.file_id);
     if (itemB) {
-      console.log(`file_id：${itemA.file_id}匹配到无水印链接`);
       if (itemA.url !== "") {
         const match = itemB.url.match(videoBaseRegex);
         itemA.url = match ? match[1] : itemB.url;
@@ -570,13 +561,11 @@ function fixCommentType(comment) {
  */
 function extractLivePhotos(pictures, livePhotos, commentId, prefix = "") {
   if (!pictures?.length > 0) return;
-  console.log(`${prefix}comment_id: ` + commentId);
   for (const picture of pictures) {
     if (picture.video_id) {
       const picObj = JSON.parse(picture.video_info);
       const bestStream = selectBestStream(picObj.stream?.h265, picObj.stream?.h264);
       if (bestStream?.master_url) {
-        console.log(`${prefix}video_id：` + picture.video_id);
         livePhotos.push({
           videId: picture.video_id,
           videoUrl: bestStream.master_url
