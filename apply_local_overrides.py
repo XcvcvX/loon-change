@@ -4388,15 +4388,17 @@ def migrate_xiaohongshu_v4_and_comment_processing(lines):
 
     if fmz_comment:
         current = fmz_comment[0]
-        if normalize_xhs_fmz_trigger(current) != normalize_xhs_fmz_trigger(XHS_FMZ_COMMENT_LIST_TRIGGER):
+        if normalize_xhs_fmz_trigger(current) == normalize_xhs_fmz_trigger(XHS_FMZ_COMMENT_LIST_TRIGGER):
+            replacements[current] = XHS_FMZ_COMMENT_LOCAL_TRIGGER
+        elif normalize_xhs_fmz_trigger(current) != normalize_xhs_fmz_trigger(XHS_FMZ_COMMENT_LOCAL_TRIGGER):
             raise ValueError("Xiaohongshu FMZ comment trigger changed; refusing local migration")
-        replacements[current] = XHS_FMZ_COMMENT_LOCAL_TRIGGER
 
     if fmz_comment_download:
         current = fmz_comment_download[0]
-        if normalize_xhs_fmz_trigger(current) != normalize_xhs_fmz_trigger(XHS_FMZ_COMMENT_DOWNLOAD_TRIGGER):
+        if normalize_xhs_fmz_trigger(current) == normalize_xhs_fmz_trigger(XHS_FMZ_COMMENT_DOWNLOAD_TRIGGER):
+            replacements[current] = XHS_FMZ_COMMENT_DOWNLOAD_LOCAL_TRIGGER
+        elif normalize_xhs_fmz_trigger(current) != normalize_xhs_fmz_trigger(XHS_FMZ_COMMENT_DOWNLOAD_LOCAL_TRIGGER):
             raise ValueError("Xiaohongshu FMZ comment-download trigger changed; refusing local migration")
-        replacements[current] = XHS_FMZ_COMMENT_DOWNLOAD_LOCAL_TRIGGER
 
     if rstore_comment_download:
         current = rstore_comment_download[0]
