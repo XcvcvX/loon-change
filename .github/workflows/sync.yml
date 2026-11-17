@@ -375,6 +375,7 @@ jobs:
         run: |
           python3 apply_local_overrides.py --plugin /tmp/loon-build/allAdRewrite.plugin
           python3 fix_script_configs.py --plugin /tmp/loon-build/allAdRewrite.plugin
+          python3 check_script_v2.py /tmp/loon-build/allAdRewrite.plugin
           python3 finalize_provenance.py --before /tmp/loon-build/allAdRewrite.after-merge.plugin --after-spotify /tmp/loon-build/allAdRewrite.after-spotify.plugin --final /tmp/loon-build/allAdRewrite.plugin --provenance /tmp/loon-build/rule-provenance.json
 
       - name: 校验临时产物并同步 README 统计
