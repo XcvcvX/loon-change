@@ -3980,7 +3980,7 @@ def narrow_xiaohongshu_native_response_duplicates(lines):
         line for line in XHS_SCRIPT_TRIGGER_LINES
         if line.startswith("response if")
         and 'tag="小红书搜索页"' in line
-        and any(marker in line for marker in (
+        and any(marker in re.sub(r"\\+", "", line) for marker in (
             "/search/(banner|hot)_list",
             "/search/(hint|trending)",
             "/search/notes",
