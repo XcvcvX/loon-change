@@ -4063,6 +4063,68 @@ class XiaohongshuNativeDuplicateTriggerTests(unittest.TestCase):
             narrow_xiaohongshu_native_response_duplicates(fixture)
 
 
+class XiaohongshuV3VideoNativeDedupTests(unittest.TestCase):
+    def _fixture(self):
+        from apply_local_overrides import XHS_SCRIPT_TRIGGER_LINES
+        rstore = next(line for line in XHS_SCRIPT_TRIGGER_LINES if "tag=XIAOHONGSHU-7," in line)
+        fmz = next(
+            line for line in XHS_SCRIPT_TRIGGER_LINES
+            if line.startswith("response if")
+            and 'tag="小红书图片视频水印"' in line
+            and "/v2/note/feed" in line.replace(chr(92), "")
+            and "/v3/note/videofeed" in line.replace(chr(92), "")
+        )
+        native = (
+            r"^https:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/v3\/note\/videofeed "
+            r"response-body-json-jq 'function_switch .disable_save=false .disable_watermark=true "
+            r".disable_weibo_cover=true video_download'"
+        )
+        return ["[Rewrite]", native, "[Script]", rstore, fmz, "[MITM]"]
+
+    def test_narrows_only_native_covered_v3_video_scripts(self):
+        from apply_local_overrides import (
+            XHS_V3_VIDEO_RSTORE_NARROWED_TRIGGER,
+            XHS_V3_VIDEO_FMZ_NARROWED_TRIGGER,
+            narrow_xiaohongshu_v3_video_native_duplicates,
+        )
+        import re
+        fixture = self._fixture()
+        result, changed = narrow_xiaohongshu_v3_video_native_duplicates(fixture)
+        self.assertEqual(changed, 2)
+        self.assertIn(XHS_V3_VIDEO_RSTORE_NARROWED_TRIGGER, result)
+        self.assertIn(XHS_V3_VIDEO_FMZ_NARROWED_TRIGGER, result)
+        rstore = re.compile(XHS_V3_VIDEO_RSTORE_NARROWED_TRIGGER.split(" script-path=")[0].removeprefix("http-response "))
+        self.assertIsNone(rstore.search("https://edith.xiaohongshu.com/api/sns/v3/note/videofeed"))
+        self.assertIsNotNone(rstore.search("https://edith.xiaohongshu.com/api/sns/v4/note/videofeed"))
+        self.assertIsNone(rstore.search("https://edith.xiaohongshu.com/api/sns/v5/note/videofeed"))
+        self.assertIsNotNone(rstore.search("https://www.xiaohongshu.com/api/sns/v1/note/imagefeed"))
+        self.assertIsNotNone(rstore.search("https://rec.xiaohongshu.com/api/sns/v2/note/feed"))
+        self.assertIsNotNone(rstore.search("https://edith.xiaohongshu.com/api/sns/v10/note/video/save"))
+        self.assertIsNotNone(rstore.search("https://edith.xiaohongshu.com/api/sns/v2/note/live_photo/save"))
+        fmz = re.compile(XHS_V3_VIDEO_FMZ_NARROWED_TRIGGER.split(" then script")[0].removeprefix("response if ${url} ~= "))
+        self.assertIsNotNone(fmz.search("https://edith.xiaohongshu.com/api/sns/v2/note/feed?"))
+        self.assertIsNotNone(fmz.search("https://edith.rnote.com/api/sns/v2/note/feed?"))
+        self.assertIsNotNone(fmz.search("https://rec.rnote.com/api/sns/v3/note/videofeed?"))
+        self.assertIsNone(fmz.search("https://rec.xiaohongshu.com/api/sns/v3/note/videofeed?"))
+        again, second_changed = narrow_xiaohongshu_v3_video_native_duplicates(result)
+        self.assertEqual(second_changed, 0)
+        self.assertEqual(again, result)
+
+    def test_fails_closed_without_native_v3_video_coverage(self):
+        from apply_local_overrides import narrow_xiaohongshu_v3_video_native_duplicates
+        fixture = self._fixture()
+        fixture = [line for line in fixture if "/v3/note/videofeed" not in line]
+        with self.assertRaisesRegex(ValueError, "native JSON coverage missing or duplicated"):
+            narrow_xiaohongshu_v3_video_native_duplicates(fixture)
+
+    def test_fails_closed_when_native_v3_video_loses_a_required_operation(self):
+        from apply_local_overrides import narrow_xiaohongshu_v3_video_native_duplicates
+        fixture = self._fixture()
+        fixture[1] = fixture[1].replace("function_switch", "other_switch")
+        with self.assertRaisesRegex(ValueError, "no longer covers script behavior"):
+            narrow_xiaohongshu_v3_video_native_duplicates(fixture)
+
+
 if __name__ == "__main__":
     unittest.main()
 
