@@ -3984,7 +3984,7 @@ class BilibiliProtobufDuplicateTriggerTests(unittest.TestCase):
 
 class XiaohongshuNativeDuplicateTriggerTests(unittest.TestCase):
     def _fixture(self):
-        from apply_local_overrides import XHS_SCRIPT_TRIGGER_LINES
+        from apply_local_overrides import XHS_SCRIPT_TRIGGER_LINES, XHS_HOMEFEED_NATIVE_OLD_RULE
         rstore_tags = {"XIAOHONGSHU", "XIAOHONGSHU-2", "XIAOHONGSHU-3", "XIAOHONGSHU-4", "XIAOHONGSHU-5", "XIAOHONGSHU-6", "XIAOHONGSHU-8"}
         scripts = [
             line for line in XHS_SCRIPT_TRIGGER_LINES
@@ -4031,6 +4031,9 @@ class XiaohongshuNativeDuplicateTriggerTests(unittest.TestCase):
         self.assertIsNotNone(mixed_feed.search("https://www.xiaohongshu.com/api/sns/v2/followfeed?"))
         self.assertIsNone(mixed_feed.search("https://edith.xiaohongshu.com/api/sns/v2/followfeed?"))
         self.assertIsNone(mixed_feed.search("https://rec.xiaohongshu.com/api/sns/v2/followfeed?"))
+        from apply_local_overrides import XHS_HOMEFEED_NATIVE_RULE
+        self.assertIn(XHS_HOMEFEED_NATIVE_RULE, result)
+        self.assertFalse(any(line == XHS_HOMEFEED_NATIVE_OLD_RULE for line in result))
         from apply_local_overrides import XHS_HOMEFEED_NATIVE_RULE
         self.assertIn(XHS_HOMEFEED_NATIVE_RULE, result)
         self.assertFalse(any(line == XHS_HOMEFEED_NATIVE_OLD_RULE for line in result))
