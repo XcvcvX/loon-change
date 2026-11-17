@@ -48,6 +48,20 @@ def _migration_action_changes(diff, section, migrated_sources):
     return count
 
 
+def _action_change_source_pairs(diff, section):
+    rows = diff.get("sections", {}).get(section, {}).get("action_changed", [])
+    pairs = {}
+    for row in rows if isinstance(rows, list) else []:
+        before = tuple(sorted(row.get("before", {}).get("sources", [])))
+        after = tuple(sorted(row.get("after", {}).get("sources", [])))
+        key = (before, after)
+        pairs[key] = pairs.get(key, 0) + 1
+    return [
+        {"before": list(before), "after": list(after), "count": count}
+        for (before, after), count in sorted(pairs.items(), key=lambda item: -item[1])
+    ]
+
+
 
 def read_json(path):
     with open(path, encoding="utf-8") as handle:
@@ -194,6 +208,7 @@ def build_health(previous_sources, current_sources, previous_provenance,
             "added": added, "removed": removed, "action_changed": action_changed,
             "migration_action_changed_exempted": migration_action_changed,
             "non_migration_action_changed": unrelated_action_changed,
+            "action_change_source_pairs": _action_change_source_pairs(diff, section),
             "removed_percent": round(removed_ratio * 100, 3),
             "net_shrink_percent": round(shrink_ratio * 100, 3),
         }
@@ -254,16 +269,9 @@ def main():
         print("[source-health] %s action changes: total=%d migration_exempt=%d unrelated=%d" % (
             section, counts["action_changed"], counts["migration_action_changed_exempted"],
             counts["non_migration_action_changed"]))
-        rows = diff.get("sections", {}).get(section, {}).get("action_changed", [])
-        source_pairs = {}
-        for row in rows:
-            before_sources = tuple(sorted(row.get("before", {}).get("sources", [])))
-            after_sources = tuple(sorted(row.get("after", {}).get("sources", [])))
-            key = (before_sources, after_sources)
-            source_pairs[key] = source_pairs.get(key, 0) + 1
-        for (before_sources, after_sources), count in sorted(source_pairs.items(), key=lambda item: -item[1])[:8]:
+        for pair in counts["action_change_source_pairs"][:8]:
             print("[source-health] %s source pair x%d: before=%s after=%s" % (
-                section, count, list(before_sources), list(after_sources)))
+                section, pair["count"], pair["before"], pair["after"]))
     if not report["deployment_allowed"]:
         raise SystemExit("[source-health] HOLD: " + "; ".join(report["blockers"]))
 
