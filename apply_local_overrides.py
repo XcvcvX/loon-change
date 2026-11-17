@@ -1383,7 +1383,7 @@ def remove_redundant_baidumap_script(lines):
 
 
 
-AMAP_LEGACY_SCRIPT_EXPECTED_COUNT = 33
+AMAP_LEGACY_SCRIPT_EXPECTED_COUNT = None
 AMAP_LEGACY_SCRIPT_PATH_MARKERS = (
     "/ws/aos/perception/publictravel/beforenavi",
     "/ws/bus/plan/integrate",
@@ -1470,6 +1470,8 @@ def remove_redundant_amap_legacy_scripts(lines, expected_count=AMAP_LEGACY_SCRIP
         targets.append((line, required))
     if not targets:
         return output, 0
+    if len({line for line, _required in targets}) != len(targets):
+        raise ValueError("duplicate Amap legacy response script trigger")
     if expected_count is not None and len(targets) != expected_count:
         raise ValueError(
             "Amap legacy response script inventory changed; expected %d, found %d"
