@@ -683,20 +683,24 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertIn(unrelated, result)
         self.assertEqual(consolidate_pdd_splash_rules(result)[1], 0)
 
-    def test_pdd_splash_consolidation_fails_closed_on_unknown_or_duplicate_matchers(self):
+    def test_pdd_splash_consolidation_preserves_unknown_or_incomplete_inventory(self):
         from apply_local_overrides import (
             PDD_SPLASH_OLD_CANONICAL_RULE, PDD_SPLASH_DUPLICATE_404_RULE,
             PDD_SPLASH_DISTINCT_ACTION_RULES, consolidate_pdd_splash_rules,
         )
         baseline = [PDD_SPLASH_OLD_CANONICAL_RULE, *PDD_SPLASH_DISTINCT_ACTION_RULES]
-        with self.assertRaisesRegex(ValueError, "unknown Pinduoduo splash matcher"):
-            consolidate_pdd_splash_rules([*baseline, "request /cappuccino/splash-new reject"])
-        with self.assertRaisesRegex(ValueError, "inventory changed or duplicated"):
+        unknown = [*baseline, "request /cappuccino/splash-new reject"]
+        preserved, changed = consolidate_pdd_splash_rules(unknown)
+        self.assertEqual(changed, 0)
+        self.assertEqual(preserved, unknown)
+        incomplete = [PDD_SPLASH_OLD_CANONICAL_RULE]
+        preserved, changed = consolidate_pdd_splash_rules(incomplete)
+        self.assertEqual(changed, 0)
+        self.assertEqual(preserved, incomplete)
+        with self.assertRaisesRegex(ValueError, "duplicate known matchers"):
             consolidate_pdd_splash_rules([*baseline, PDD_SPLASH_OLD_CANONICAL_RULE])
-        with self.assertRaisesRegex(ValueError, "inventory changed or duplicated"):
+        with self.assertRaisesRegex(ValueError, "duplicate known matchers"):
             consolidate_pdd_splash_rules([*baseline, PDD_SPLASH_DUPLICATE_404_RULE, PDD_SPLASH_DUPLICATE_404_RULE])
-        with self.assertRaisesRegex(ValueError, "distinct action inventory missing"):
-            consolidate_pdd_splash_rules([PDD_SPLASH_OLD_CANONICAL_RULE])
 
     def test_removes_only_pdd_feed_asset_rules_shadowed_by_same_action(self):
         from apply_local_overrides import (
