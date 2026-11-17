@@ -558,7 +558,10 @@ def remove_pdd_order_endpoint_blocks(lines):
     # Loon sources may serialize URL slashes with different escape counts.
     # Normalize escaping only for exact allowlisted endpoint/action comparisons.
     def normalized(rule):
-        return re.sub(r"\\+", "", rule.strip())
+        # Compare exact endpoint/action semantics while accepting reviewed
+        # URL slash escaping and the https versus https? source spelling.
+        value = re.sub(r"\\+/", "/", rule.strip())
+        return value.replace("https?://", "https://")
 
     known = {normalized(item) for item in PDD_ORDER_ENDPOINT_BLOCKS_TO_PRESERVE}
     output, section, seen, removed = [], "", False, 0
