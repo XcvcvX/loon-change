@@ -7,10 +7,10 @@ from pathlib import Path
 
 SECTION_RE = re.compile(r"^\[([^\]]+)\]\s*$")
 ENABLE_RE = re.compile(r"\b(?:with\s+)?enable\s*=\s*([^,\s]+)", re.I)
-ATOMIC_GROUP_RE = re.compile(r"\(?>")
 DYNAMIC_VALUE_RE = re.compile(r"^\$\{[A-Za-z_][A-Za-z0-9_]*\}$")
 
 def inspect_text(text: str, label: str = "<text>") -> list[str]:
+    """Check only Script v2 enable interpolation; do not reinterpret Rewrite regex syntax."""
     section = None
     errors: list[str] = []
     for number, raw in enumerate(text.splitlines(), 1):
@@ -18,23 +18,20 @@ def inspect_text(text: str, label: str = "<text>") -> list[str]:
         if header:
             section = header.group(1).strip().lower()
             continue
-        if section not in {"script", "rewrite"}:
+        if section != "script":
             continue
         line = raw.strip()
         if not line or line.startswith("#"):
             continue
-        if section == "script":
-            for match in ENABLE_RE.finditer(line):
-                value = match.group(1).strip().strip("\"'")
-                if value.lower() in {"true", "false"} or DYNAMIC_VALUE_RE.fullmatch(value):
-                    continue
-                if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", value):
-                    errors.append(
-                        f"{label}:{number}: bare Script enable variable {value!r}; "
-                        f"use enable=${{{value}}}"
-                    )
-        if ATOMIC_GROUP_RE.search(line):
-            errors.append(f"{label}:{number}: unsupported atomic regex group '(?>...)' in a Loon Script/Rewrite configuration line")
+        for match in ENABLE_RE.finditer(line):
+            value = match.group(1).strip().strip("\"'")
+            if value.lower() in {"true", "false"} or DYNAMIC_VALUE_RE.fullmatch(value):
+                continue
+            if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", value):
+                errors.append(
+                    f"{label}:{number}: bare Script enable variable {value!r}; "
+                    f"use enable=${{{value}}}"
+                )
     return errors
 
 def main() -> int:
