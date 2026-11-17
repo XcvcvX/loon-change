@@ -13,6 +13,7 @@ on:
     branches: [main]
   schedule:
     - cron: "17 3 * * *"
+  # Manual recovery entry point; keep enabled for one-click Gist resyncs.
   workflow_dispatch:
 
 concurrency:
