@@ -4430,7 +4430,7 @@ def migrate_xiaohongshu_v4_and_comment_processing(lines):
             raise ValueError("Xiaohongshu comment native rule host changed")
         remove_rewrites.add(comment_native[0])
 
-    if not replacements and not remove_rewrites:
+    if not replacements and not remove_rewrites and not rstore_comment_download:
         return original, 0
 
     result, section = [], ""
