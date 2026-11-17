@@ -636,7 +636,7 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 
 - 对照 R-Store jd.js 与 FMZ jingdong.js，确认两个来源在 deliverLayer、getTabHomeInfo、myOrderInfo、personinfoBusiness 与 start 分支的处理一致；这些接口收敛为一个本地响应脚本，避免重复解析和序列化。
 - welcomeHome 两份脚本的行为并不完全相同：R-Store 无条件执行楼层 allowlist、下拉二楼清理和 promotionTabs 删除；FMZ 还会额外排除指定楼层，且受 jkds_enable 开关控制。
-- 因此保留一个无开关的 R-Store 本地触发器，并将 FMZ 触发器收窄为 welcomeHome 专用本地脚本，继续保留 jkds_enable 开关；避免将可选清理错误地变成无条件行为。
+- 按 Loon 新版 Script 的单响应只选择一条 Response Script 规则的执行模型，原宽泛主 matcher 会先命中 welcomeHome，导致后置可选脚本不能独立执行。现在将 welcomeHome 从主合并 matcher 中拆出，仍只触发一次 jd.js，并通过插件对象参数把 jkds_enable 传入；基础清理始终执行，额外排除仅在开关开启时执行。
 - 保留 R-Store 独有的 readCustomSurfaceList 导航过滤及 HTTP/HTTPS 覆盖范围。本地脚本增加空响应、JSON 解析异常和数组类型保护，不发起网络请求。
 - 覆盖器要求两条旧触发器各唯一存在；漂移、缺失、重复或新旧触发器混杂时 fail-closed，并验证转换幂等。
 - 不修改京东广告域名拦截、Rewrite 动作、MITM、Rule、京喜规则或其他应用；不清理订单、支付、购物车等核心交易接口。
