@@ -273,6 +273,20 @@ jobs:
               "upstream_path": "Modules/Loon/zirawell/Beta/alipayAdBlock.lpx",
           })
           report["AlipayAdBlock"] = alipay_source
+          report["source_migrations"] = {
+              "aoomee": {
+                  "status": "planned",
+                  "from": "https://github.com/aoomee/Loon-Adblock-Plugins",
+                  "to": "https://github.com/ifflagged/Romeo",
+                  "scope": "AOOMEE plugin compatibility slot and its runtime assets",
+              },
+              "zmjde": {
+                  "status": "planned",
+                  "from": "https://github.com/zmjde/loon-plugins",
+                  "to": "https://github.com/ifflagged/Romeo",
+                  "scope": "zmjde App/general plugin compatibility slots and runtime assets",
+              },
+          }
           romeo_slot = report.get("aoomee")
           if not isinstance(romeo_slot, dict):
               raise SystemExit("source-report.json 缺少 Romeo 替代来源统计")
