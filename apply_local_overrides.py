@@ -1831,6 +1831,9 @@ DOUYIN_LIVE_FEED_REWRITE_RULES = {
     r"^https?:\/\/webcast-open\.douyin\.com\/webcast\/openapi\/feed\/ reject-dict",
     r"request if ${url} ~= /^https:\/\/webcast-open\.douyin\.com\/webcast\/openapi\/feed\/\?/ then reject_dict(200)",
 }
+DOUYIN_LIVE_FEED_OPTIONAL_REWRITE_RULES = {
+    r'response if ${url} ~= /^https?:\/\/webcast-open\.douyin\.com\/webcast\/openapi\/feed\//i then response.body.mock("json", "{}", 200)',
+}
 DOUYIN_LIVE_FEED_HOST = "webcast-open.douyin.com"
 
 
@@ -2065,6 +2068,7 @@ def remove_douyin_hongguo_unsafe_rules(lines):
     section = ""
     rule_counts = {rule: 0 for rule in DOUYIN_HONGGUO_UNSAFE_RULES}
     rewrite_counts = {rule: 0 for rule in DOUYIN_LIVE_FEED_REWRITE_RULES}
+    optional_rewrite_counts = {rule: 0 for rule in DOUYIN_LIVE_FEED_OPTIONAL_REWRITE_RULES}
     live_feed_host_count = 0
     unknown = []
 
@@ -2083,6 +2087,8 @@ def remove_douyin_hongguo_unsafe_rules(lines):
         elif section == "Rewrite":
             if value in rewrite_counts:
                 rewrite_counts[value] += 1
+            elif value in optional_rewrite_counts:
+                optional_rewrite_counts[value] += 1
             elif "webcast-open.douyin.com" in value:
                 unknown.append((section, value))
         elif section == "MITM" and value.lower().startswith("hostname") and "=" in value:
@@ -2097,7 +2103,8 @@ def remove_douyin_hongguo_unsafe_rules(lines):
     counts = list(rule_counts.values()) + list(rewrite_counts.values())
     if not any(counts) and live_feed_host_count == 0 and not unknown:
         return list(lines), 0
-    if unknown or any(count != 1 for count in counts) or live_feed_host_count != 1:
+    if (unknown or any(count != 1 for count in counts) or live_feed_host_count != 1
+            or any(count > 1 for count in optional_rewrite_counts.values())):
         raise ValueError(
             "Douyin/Hongguo safety inventory changed; refusing partial, drifted or duplicated cleanup"
         )
@@ -2112,7 +2119,10 @@ def remove_douyin_hongguo_unsafe_rules(lines):
         value = line.strip()
         if section == "Rule" and value in DOUYIN_HONGGUO_UNSAFE_RULES:
             continue
-        if section == "Rewrite" and value in DOUYIN_LIVE_FEED_REWRITE_RULES:
+        if section == "Rewrite" and (
+            value in DOUYIN_LIVE_FEED_REWRITE_RULES
+            or value in DOUYIN_LIVE_FEED_OPTIONAL_REWRITE_RULES
+        ):
             continue
         if section == "MITM" and value.lower().startswith("hostname") and "=" in value:
             key, host_text = line.split("=", 1)
@@ -2120,7 +2130,7 @@ def remove_douyin_hongguo_unsafe_rules(lines):
             hosts = [host for host in hosts if host.lower() != DOUYIN_LIVE_FEED_HOST]
             line = key + "= " + ", ".join(hosts)
         output.append(line)
-    return output, len(counts) + 1
+    return output, len(counts) + 1 + sum(optional_rewrite_counts.values())
 
 
 

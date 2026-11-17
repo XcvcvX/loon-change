@@ -1890,6 +1890,7 @@ DOMAIN-KEYWORD,ads5-normal-,REJECT
 [Rewrite]
 ^https?:\/\/webcast-open\.douyin\.com\/webcast\/openapi\/feed\/ reject-dict
 request if ${url} ~= /^https:\/\/webcast-open\.douyin\.com\/webcast\/openapi\/feed\/\?/ then reject_dict(200)
+response if ${url} ~= /^https?:\/\/webcast-open\.douyin\.com\/webcast\/openapi\/feed\//i then response.body.mock("json", "{}", 200)
 response if ${url} ~= /^https:\/\/beta-luna\.douyin\.com\/luna\/card\?/ then response.json.replace("card_items[0].is_show", false)
 [Script]
 [MITM]
@@ -1934,6 +1935,16 @@ hostname = webcast-open.douyin.com, beta-luna.douyin.com, creditcard.bankcomm.cn
         )
         with self.assertRaisesRegex(ValueError, "Douyin/Hongguo safety inventory changed"):
             apply(duplicate)
+
+    def test_optional_romeo_live_feed_response_mock_is_removed_but_not_required(self):
+        optional = r'response if ${url} ~= /^https?:\/\/webcast-open\.douyin\.com\/webcast\/openapi\/feed\//i then response.body.mock("json", "{}", 200)'
+        result = apply(self.base)
+        self.assertNotIn(optional, result)
+        without_optional = self.base.replace(optional + "\n", "")
+        self.assertEqual(apply(without_optional), result)
+        duplicated = self.base.replace(optional, optional + "\n" + optional)
+        with self.assertRaisesRegex(ValueError, "Douyin/Hongguo safety inventory changed"):
+            apply(duplicated)
 
     def test_fails_closed_on_unknown_live_feed_rule_or_missing_mitm_host(self):
         unknown = self.base.replace(
