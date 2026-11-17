@@ -2789,36 +2789,6 @@ class TuhuDuplicateResponseScriptTests(unittest.TestCase):
         self.assertIn("^https?:\\\\/\\\\/gateway\\\\.tuhu\\\\.cn\\\\/unrelated reject(404)", result)
         self.assertEqual(remove_duplicate_tuhu_scripts(result), (result, 0))
 
-    def test_accepts_interpolated_switch_variant_without_changing_the_rule(self):
-        from apply_local_overrides import remove_same_source_duplicate_response_scripts
-        source = next(item for item in self.keep if "bilimanhua_enable" in item)
-        current = source.replace("enable=bilimanhua_enable", "enable=${bilimanhua_enable}")
-        fixture = ["[Script]", *self.remove, *[
-            current if item == source else item for item in self.keep
-        ], "[MITM]"]
-        result, removed = remove_same_source_duplicate_response_scripts(fixture)
-        self.assertEqual(removed, len(self.remove))
-        self.assertIn(current, result)
-        self.assertNotIn(source, result)
-        self.assertEqual(remove_same_source_duplicate_response_scripts(result), (result, 0))
-
-    def test_accepts_interpolated_switch_and_preserves_it_in_canonical_output(self):
-        from apply_local_overrides import remove_identical_script_response_duplicates
-        source = next(item for item in self.keep_source if "rfrfuipk_enable" in item)
-        current = source.replace("enable=rfrfuipk_enable", "enable=${rfrfuipk_enable}")
-        fixture = [
-            "[Script]", *self.remove,
-            *[current if item == source else item for item in self.keep_source],
-            "[MITM]",
-        ]
-        result, removed = remove_identical_script_response_duplicates(fixture)
-        self.assertEqual(removed, len(self.remove))
-        expected = self.transforms[source].replace(
-            "enable=rfrfuipk_enable", "enable=${rfrfuipk_enable}"
-        )
-        self.assertIn(expected, result)
-        self.assertEqual(remove_identical_script_response_duplicates(result), (result, 0))
-
     def test_preserves_already_consolidated_inventory(self):
         from apply_local_overrides import remove_duplicate_tuhu_scripts
         clean = ["[Script]", *self.canonical, "[MITM]"]
@@ -3141,6 +3111,19 @@ class SameSourceResponseScriptDedupTests(unittest.TestCase):
         self.assertIn("^https?:\\\\/\\\\/creditcardapp.bankcomm.com\\\\/unrelated reject(404)", result)
         self.assertEqual(remove_same_source_duplicate_response_scripts(result), (result, 0))
 
+    def test_accepts_interpolated_switch_variant_without_changing_the_rule(self):
+        from apply_local_overrides import remove_same_source_duplicate_response_scripts
+        source = next(item for item in self.keep if "bilimanhua_enable" in item)
+        current = source.replace("enable=bilimanhua_enable", "enable=${bilimanhua_enable}")
+        fixture = ["[Script]", *self.remove, *[
+            current if item == source else item for item in self.keep
+        ], "[MITM]"]
+        result, removed = remove_same_source_duplicate_response_scripts(fixture)
+        self.assertEqual(removed, len(self.remove))
+        self.assertIn(current, result)
+        self.assertNotIn(source, result)
+        self.assertEqual(remove_same_source_duplicate_response_scripts(result), (result, 0))
+
     def test_preserves_already_consolidated_inventory(self):
         from apply_local_overrides import remove_same_source_duplicate_response_scripts
         clean = ["[Script]", *self.keep, "[MITM]"]
@@ -3200,6 +3183,23 @@ class IdenticalScriptResponseDedupTests(unittest.TestCase):
             self.assertEqual(result.count(expected), 1)
         self.assertIn(self.unrelated, result)
         self.assertIn("^https?:\\\\/\\\\/api.rr.tv\\\\/unrelated reject(404)", result)
+        self.assertEqual(remove_identical_script_response_duplicates(result), (result, 0))
+
+    def test_accepts_interpolated_switch_and_preserves_it_in_canonical_output(self):
+        from apply_local_overrides import remove_identical_script_response_duplicates
+        source = next(item for item in self.keep_source if "rfrfuipk_enable" in item)
+        current = source.replace("enable=rfrfuipk_enable", "enable=${rfrfuipk_enable}")
+        fixture = [
+            "[Script]", *self.remove,
+            *[current if item == source else item for item in self.keep_source],
+            "[MITM]",
+        ]
+        result, removed = remove_identical_script_response_duplicates(fixture)
+        self.assertEqual(removed, len(self.remove))
+        expected = self.transforms[source].replace(
+            "enable=rfrfuipk_enable", "enable=${rfrfuipk_enable}"
+        )
+        self.assertIn(expected, result)
         self.assertEqual(remove_identical_script_response_duplicates(result), (result, 0))
 
     def test_preserves_already_consolidated_inventory(self):
