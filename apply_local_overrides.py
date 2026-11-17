@@ -1471,6 +1471,7 @@ AMAP_ISHOWSHU_REDUNDANT_SCRIPT_MARKERS = (
     "/ws/shield/search/nearbyrec_smart",
     "/ws/promotion-web/resource",
     "card-service-plan-home|main-page",
+    "/ws/perception/drive/",
 )
 
 
@@ -1506,11 +1507,15 @@ def optimize_amap_response_script_overlaps(lines):
             AMAP_VERSIONED_RSTORE_SCRIPT_MARKERS[0],
             "response.json.jq(",
         )),
-        AMAP_VERSIONED_RSTORE_SCRIPT_MARKERS[1]: bool(matches(
-            script_entries,
-            AMAP_VERSIONED_RSTORE_SCRIPT_MARKERS[1],
-            "ishowshu_amap.js",
-        )),
+        AMAP_VERSIONED_RSTORE_SCRIPT_MARKERS[1]: bool(
+            matches(script_entries, AMAP_VERSIONED_RSTORE_SCRIPT_MARKERS[1], "ishowshu_amap.js")
+            or (
+                len(matches(rewrite_entries, AMAP_VERSIONED_RSTORE_SCRIPT_MARKERS[1], "response.json.jq(")) == 1
+                and "hkfrecommendplans" in normalized(output[matches(
+                    rewrite_entries, AMAP_VERSIONED_RSTORE_SCRIPT_MARKERS[1], "response.json.jq("
+                )[0]])
+            )
+        ),
         AMAP_VERSIONED_RSTORE_SCRIPT_MARKERS[2]: bool(matches(
             script_entries,
             AMAP_VERSIONED_RSTORE_SCRIPT_MARKERS[2],
