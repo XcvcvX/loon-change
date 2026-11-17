@@ -61,12 +61,10 @@ def repair_plugin_text(text):
             line = re.sub(r',\s*argument=.*$', '', line)
             line += ', argument={captionLang}'
         line, n = re.subn(
-            r'(\benable\s*=\s*)([A-Za-z_][A-Za-z0-9_]*)(?=\s*(?:,|$))',
-            lambda match: (
-                match.group(0) if match.group(2).lower() in {"true", "false"}
-                else match.group(1) + "${" + match.group(2) + "}"
-            ),
+            r'(\benable\s*=\s*)(?!true\b|false\b)([A-Za-z_][A-Za-z0-9_]*)(?=\s*(?:,|$))',
+            lambda match: match.group(1) + "${" + match.group(2) + "}",
             line,
+            flags=re.IGNORECASE,
         )
         counts["bare_enable_variables"] += n
         line, n = re.subn(r'\brequires-body=1\b', 'requires-body=true', line)
