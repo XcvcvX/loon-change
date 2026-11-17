@@ -4179,7 +4179,8 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
             line for line in lines
             if marker in line.replace(chr(92), "").lower() and "sources/amap/rucu6_amap.js" in line.lower()
         )
-        lines.append(canonical)
+        mitm_index = next(i for i, line in enumerate(lines) if line.strip() == "[MITM]")
+        lines.insert(mitm_index, canonical)
         with self.assertRaisesRegex(ValueError, "duplicate canonical local Amap trigger"):
             optimize_amap_response_script_overlaps(lines)
 
