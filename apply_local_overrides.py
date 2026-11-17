@@ -746,6 +746,9 @@ def consolidate_goofish_script_triggers(lines):
         if section == "Script" and normalized in redundant:
             removed += 1
             continue
+        if section == "Script" and normalized in canonical:
+            output.append(canonical[normalized])
+            continue
         output.append(line)
     if section == "Script" and insert_canonical and not inserted:
         output.extend(GOOFISH_CANONICAL_SCRIPT_TRIGGERS)
