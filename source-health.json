@@ -17,7 +17,7 @@
   },
   "provenance_coverage": {
     "coverage_percent": 100.0,
-    "entries": 7250,
+    "entries": 7249,
     "missing_source": 0
   },
   "safety_notes": [
@@ -30,13 +30,23 @@
   "schema_version": 1,
   "section_changes": {
     "rewrite": {
-      "action_change_source_pairs": [],
-      "action_changed": 0,
+      "action_change_source_pairs": [
+        {
+          "after": [
+            "amap"
+          ],
+          "before": [
+            "amap"
+          ],
+          "count": 1
+        }
+      ],
+      "action_changed": 1,
       "added": 0,
       "current_entries": 3255,
       "migration_action_changed_exempted": 0,
       "net_shrink_percent": 0.0,
-      "non_migration_action_changed": 0,
+      "non_migration_action_changed": 1,
       "previous_entries": 3255,
       "removed": 0,
       "removed_percent": 0.0
@@ -57,13 +67,13 @@
       "action_change_source_pairs": [],
       "action_changed": 0,
       "added": 0,
-      "current_entries": 442,
+      "current_entries": 441,
       "migration_action_changed_exempted": 0,
-      "net_shrink_percent": 0.0,
+      "net_shrink_percent": 0.226,
       "non_migration_action_changed": 0,
       "previous_entries": 442,
-      "removed": 0,
-      "removed_percent": 0.0
+      "removed": 1,
+      "removed_percent": 0.226
     }
   },
   "source_scores": {
