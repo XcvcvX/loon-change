@@ -1156,12 +1156,12 @@ def remove_didi_homepage_rejects_shadowing_field_cleaners(lines):
         (DIDI_HOME_CORE_LEGACY_REJECT, DIDI_HOME_CORE_RESPONSE_PREFIX, "core", "homepage/vd/core"),
     )
     for legacy_rule, response_prefix, label, drift_marker in targets:
-        exact_positions = [i for i, line in enumerate(output) if norm(line) == norm(legacy)_rule]
+        exact_positions = [i for i, line in enumerate(output) if line.strip() == legacy_rule]
         drifted = [
             line.strip() for line in output
             if drift_marker in re.sub(r"\\+", "", line)
             and line.strip().startswith("^https")
-            and norm(line) != norm(legacy)_rule
+            and line.strip() != legacy_rule
         ]
         if drifted:
             raise ValueError("Didi homepage " + label + " legacy reject changed; refusing an unreviewed override")
@@ -1174,7 +1174,7 @@ def remove_didi_homepage_rejects_shadowing_field_cleaners(lines):
             raise ValueError(
                 "Didi homepage " + label + " field-level response cleaner inventory changed"
             )
-        output = [line for line in output if norm(line) != norm(legacy)_rule]
+        output = [line for line in output if line.strip() != legacy_rule]
         removed += 1
     return output, removed
 
@@ -1207,9 +1207,9 @@ def apply_didi_script_and_homepage_cleanup(lines):
     if "[Argument]" not in output or "[Rule]" not in output:
         return output, 0
     norm = lambda value: re.sub(
-        r"enable=\\$\\{([^}]+)\\}",
-        r"enable=\\1",
-        re.sub(r"\\\\+", "", value.strip()),
+        r"enable=\$\{([^}]+)\}",
+        r"enable=\1",
+        re.sub(r"\\+", "", value.strip()),
     ).lower()
 
     core_current = [i for i, line in enumerate(output) if line.strip() == DIDI_CORE_NATIVE_RULE_CURRENT]
@@ -1250,19 +1250,19 @@ def apply_didi_script_and_homepage_cleanup(lines):
         (DIDI_USERCENTER_LEGACY_SCRIPT, "common/vd/usercenter/me", "usercenter"),
     ):
         exact = [line for line in output if norm(line) == norm(legacy)]
-        drifted = [line for line in output if "AntiAd/didi.js" in line and marker in norm(line) and line.strip() != legacy]
+        drifted = [line for line in output if "AntiAd/didi.js" in line and marker in norm(line) and norm(line) != norm(legacy)]
         if drifted:
             raise ValueError("Didi " + label + " legacy script trigger drifted")
         if len(exact) > 1:
             raise ValueError("duplicate Didi " + label + " legacy script trigger")
         if exact:
-            output = [line for line in output if line.strip() != legacy]
+            output = [line for line in output if norm(line) != norm(legacy)]
 
     removed_noop = 0
     for legacy in DIDIADS_NOOP_SCRIPT_RULES:
         marker = norm(legacy.split(" then script(", 1)[0])
-        exact = [line for line in output if line.strip() == legacy]
-        drifted = [line for line in output if "didiAds.js" in line and marker in norm(line) and line.strip() != legacy]
+        exact = [line for line in output if norm(line) == norm(legacy)]
+        drifted = [line for line in output if "didiads.js" in norm(line) and marker in norm(line) and line.strip() != legacy]
         if drifted:
             raise ValueError("DidiAds no-op script trigger drifted; refusing unreviewed cleanup")
         if len(exact) > 1:
