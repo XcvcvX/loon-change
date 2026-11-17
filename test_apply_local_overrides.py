@@ -26,7 +26,7 @@ class LocalOverrideTests(unittest.TestCase):
         lines = plugin.splitlines()
         result, removed = remove_redundant_pupu_response_scripts(lines)
         self.assertEqual(removed, 2)
-        script = "\\n".join(result).split("[Script]", 1)[1].split("[MITM]", 1)[0]
+        script = "\n".join(result).split("[Script]", 1)[1].split("[MITM]", 1)[0]
         self.assertNotIn("ishowshu_pp.js", script)
         self.assertIn("PupuSplashAds.js", script)
         again, changed = remove_redundant_pupu_response_scripts(result)
@@ -44,10 +44,12 @@ class LocalOverrideTests(unittest.TestCase):
         without_wool_ad = [line for line in lines if line != wool_ad]
         preserved, removed = remove_redundant_pupu_response_scripts(without_wool_ad)
         self.assertEqual(removed, 1)
-        script = "\\n".join(preserved).split("[Script]", 1)[1].split("[MITM]", 1)[0]
+        script = "\n".join(preserved).split("[Script]", 1)[1].split("[MITM]", 1)[0]
         self.assertTrue(any(ad_marker in line.replace(chr(92), "").lower() and "ishowshu_pp.js" in line for line in script.splitlines()))
 
-        with_duplicate = lines + [wool_ad]
+        with_duplicate = list(lines)
+        mitm_index = with_duplicate.index("[MITM]")
+        with_duplicate.insert(mitm_index, wool_ad)
         with self.assertRaisesRegex(ValueError, "duplicate Pupu response handler"):
             remove_redundant_pupu_response_scripts(with_duplicate)
 
