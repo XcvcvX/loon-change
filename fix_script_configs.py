@@ -49,7 +49,7 @@ def repair_plugin_text(text):
             continue
         if not in_script or not line.strip() or line.lstrip().startswith("#"):
             continue
-        line, n = re.subn(r'argument=\[\{([^]\r\n]+)\}\]', r'argument={\1}', line)
+        line, n = re.subn(r'argument=\[\{([^]\r\n]+)\}\]', lambda m: 'argument={' + m.group(1).replace('},{', ',') + '}', line)
         counts["legacy_argument_lists"] += n
         if MAASEA_RESPONSE in line and "argument=" in line:
             counts["maasea_response"] += 1
