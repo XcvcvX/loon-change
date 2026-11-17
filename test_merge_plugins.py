@@ -15,18 +15,18 @@ MERGER = Path(__file__).with_name("merge_plugins.py")
 
 class ActionKeyNormalizationTests(unittest.TestCase):
     def test_braced_and_unbraced_switches_have_same_semantic_action(self):
-        from merge_plugins import action_key
+        from rule_semantics import normalize_enable_switches
         unbraced = r'response if ${url} ~= /^https:\/\/example\.com/ then script("https://example.invalid/a.js") with enable=foo, tag="example", timeout=10'
         braced = r'response if ${url} ~= /^https:\/\/example\.com/ then script("https://example.invalid/a.js") with enable=${foo}, tag="example", timeout=10'
-        self.assertEqual(action_key(unbraced), action_key(braced))
+        self.assertEqual(normalize_enable_switches(unbraced), normalize_enable_switches(braced))
 
     def test_switch_identity_and_other_action_parameters_remain_significant(self):
         from merge_plugins import action_key
         base = r'response if ${url} ~= /^https:\/\/example\.com/ then script("https://example.invalid/a.js") with enable=foo, tag="example", timeout=10'
         other_switch = base.replace("enable=foo", "enable=bar")
         other_timeout = base.replace("timeout=10", "timeout=20")
-        self.assertNotEqual(action_key(base), action_key(other_switch))
-        self.assertNotEqual(action_key(base), action_key(other_timeout))
+        self.assertNotEqual(normalize_enable_switches(base), normalize_enable_switches(other_switch))
+        self.assertNotEqual(normalize_enable_switches(base), normalize_enable_switches(other_timeout))
 
 
 class MergeIntegrationTests(unittest.TestCase):
