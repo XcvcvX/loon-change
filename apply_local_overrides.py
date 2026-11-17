@@ -596,8 +596,16 @@ def remove_redundant_taobao_scripts(lines):
     """Keep the two canonical R-Store Taobao triggers and remove eight equivalent duplicates."""
     def normalize_trigger(item):
         value = re.sub(r"\\+", "", item.strip())
+        # The former zmjde Kelee Taobao script is now pinned to the exact
+        # Romeo commit. Normalize only this exact module path + 40-hex SHA to
+        # its reviewed historical signature; unknown paths remain fail-closed.
+        value = re.sub(
+            r"https://raw\\.githubusercontent\\.com/ifflagged/Romeo/[0-9a-f]{40}/Modules/JavaScript/Kelee/Taobao_remove_ads/kelee\\.one_Taobao_remove_ads\\.js",
+            "https://raw.githubusercontent.com/zmjde/loon-plugins/main/JS/Taobao/Taobao_remove_ads.js",
+            value,
+        )
         # Accept only the two exact known Loon switch interpolation forms.
-        return re.sub(r"enable=\$\{(albb_enable|tcbc_enable)\}", r"enable=\1", value)
+        return re.sub(r"enable=\\$\\{(albb_enable|tcbc_enable)\\}", r"enable=\\1", value)
 
     canonical = {normalize_trigger(item): item for item in TAOBAO_CANONICAL_SCRIPT_TRIGGERS}
     redundant = {normalize_trigger(item): item for item in TAOBAO_REDUNDANT_SCRIPT_TRIGGERS}
