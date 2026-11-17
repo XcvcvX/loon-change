@@ -4142,8 +4142,6 @@ def narrow_xiaohongshu_v3_video_native_duplicates(lines):
     )
     if not has_rstore_target and not has_fmz_target:
         return original, 0
-    if not has_rstore_target or not has_fmz_target:
-        raise ValueError("Xiaohongshu v3 video script trigger inventory is incomplete")
 
     rstore_expected = next(
         (line for line in XHS_SCRIPT_TRIGGER_LINES
@@ -4168,12 +4166,16 @@ def narrow_xiaohongshu_v3_video_native_duplicates(lines):
         and ("/v2/note/feed" in re.sub(r"\\+", "", line)
              or "/v3/note/videofeed" in re.sub(r"\\+", "", line))
     ]
-    if len(rstore_matches) != 1 or len(fmz_matches) != 1:
-        raise ValueError("Xiaohongshu v3 video script trigger inventory changed")
-    if rstore_matches[0] not in (rstore_expected, XHS_V3_VIDEO_RSTORE_NARROWED_TRIGGER):
-        raise ValueError("Xiaohongshu R-Store video-feed trigger changed; refusing narrowing")
-    if fmz_matches[0] not in (fmz_expected, XHS_V3_VIDEO_FMZ_NARROWED_TRIGGER):
-        raise ValueError("Xiaohongshu FMZ video-feed trigger changed; refusing narrowing")
+    if has_rstore_target:
+        if rstore_expected is None or len(rstore_matches) != 1:
+            raise ValueError("Xiaohongshu R-Store v3 video trigger inventory changed")
+        if rstore_matches[0] not in (rstore_expected, XHS_V3_VIDEO_RSTORE_NARROWED_TRIGGER):
+            raise ValueError("Xiaohongshu R-Store video-feed trigger changed; refusing narrowing")
+    if has_fmz_target:
+        if fmz_expected is None or len(fmz_matches) != 1:
+            raise ValueError("Xiaohongshu FMZ v3 video trigger inventory changed")
+        if fmz_matches[0] not in (fmz_expected, XHS_V3_VIDEO_FMZ_NARROWED_TRIGGER):
+            raise ValueError("Xiaohongshu FMZ video-feed trigger changed; refusing narrowing")
 
     native_matches = [
         line for line in rewrite_lines
@@ -4198,10 +4200,11 @@ def narrow_xiaohongshu_v3_video_native_duplicates(lines):
             + ", ".join(missing)
         )
 
-    replacements = {
-        rstore_expected: XHS_V3_VIDEO_RSTORE_NARROWED_TRIGGER,
-        fmz_expected: XHS_V3_VIDEO_FMZ_NARROWED_TRIGGER,
-    }
+    replacements = {}
+    if has_rstore_target:
+        replacements[rstore_expected] = XHS_V3_VIDEO_RSTORE_NARROWED_TRIGGER
+    if has_fmz_target:
+        replacements[fmz_expected] = XHS_V3_VIDEO_FMZ_NARROWED_TRIGGER
     changed = 0
     result, section = [], ""
     for line in original:
