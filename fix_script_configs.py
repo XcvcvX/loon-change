@@ -40,7 +40,8 @@ def repair_plugin_text(text):
     newline = "\r\n" if "\r\n" in text else "\n"
     lines = _rename_argument_declarations(text.splitlines())
     counts = {"legacy_argument_lists": 0, "maasea_response": 0,
-              "maasea_request": 0, "requires_body_boolean": 0}
+              "maasea_request": 0, "requires_body_boolean": 0,
+              "bare_enable_variables": 0}
     in_script = False
     for index, line in enumerate(lines):
         section = re.match(r'^\[([^]]+)\]\s*$', line.strip())
@@ -59,6 +60,13 @@ def repair_plugin_text(text):
             counts["maasea_request"] += 1
             line = re.sub(r',\s*argument=.*$', '', line)
             line += ', argument={captionLang}'
+        line, n = re.subn(
+            r'(\benable\s*=\s*)(?!true\b|false\b)([A-Za-z_][A-Za-z0-9_]*)(?=\s*(?:,|$))',
+            lambda match: match.group(1) + "${" + match.group(2) + "}",
+            line,
+            flags=re.IGNORECASE,
+        )
+        counts["bare_enable_variables"] += n
         line, n = re.subn(r'\brequires-body=1\b', 'requires-body=true', line)
         counts["requires_body_boolean"] += n
         lines[index] = line

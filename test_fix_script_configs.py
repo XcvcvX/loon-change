@@ -35,5 +35,34 @@ class ScriptConfigRepairTests(unittest.TestCase):
         self.assertEqual(repaired, source)
         self.assertEqual(counts["legacy_argument_lists"], 0)
 
+    def test_repairs_all_bare_script_enable_identifiers_and_is_idempotent(self):
+        from check_script_v2 import inspect_text
+
+        source = (
+            "[Script]\n"
+            "response if ${url} ~= /^https?:\\/\\/a.example/ then script(\"a.js\") with enable=quda_enable, tag=\"A\"\n"
+            "response if ${url} ~= /^https?:\\/\\/b.example/ then script(\"b.js\") with enable=whyiyzdccidm_enable, tag=\"B\"\n"
+            "response if ${url} ~= /^https?:\\/\\/c.example/ then script(\"c.js\") with enable=vhuhgsjn_enable, tag=\"C\"\n"
+            "response if ${url} ~= /^https?:\\/\\/d.example/ then script(\"d.js\") with enable=aiqiyi_enable, tag=\"D\"\n"
+            + "".join(
+                f'response if ${{url}} ~= /^https?:\\/\\/mgtv{i}.example/ then script("mgtv.js") with enable=mhgotv_enable, tag="MGTV {i}"\n'
+                for i in range(7)
+            )
+            + "response if ${url} ~= /^https?:\\/\\/bool.example/ then script(\"bool.js\") with enable=true\n"
+            + "response if ${url} ~= /^https?:\\/\\/dynamic.example/ then script(\"dynamic.js\") with enable=${already_enable}\n"
+            + "[Rewrite]\n^https://rewrite.example enable=leave_this_alone\n"
+        )
+        repaired, counts = repair_plugin_text(source)
+        self.assertEqual(counts["bare_enable_variables"], 11)
+        self.assertIn("enable=${quda_enable}", repaired)
+        self.assertIn("enable=${mhgotv_enable}", repaired)
+        self.assertIn("enable=true", repaired)
+        self.assertIn("enable=${already_enable}", repaired)
+        self.assertIn("enable=leave_this_alone", repaired)
+        self.assertEqual(inspect_text(repaired), [])
+        repaired_again, second_counts = repair_plugin_text(repaired)
+        self.assertEqual(repaired_again, repaired)
+        self.assertEqual(second_counts["bare_enable_variables"], 0)
+
 if __name__ == "__main__":
     unittest.main()
