@@ -118,7 +118,8 @@ jobs:
               raise SystemExit("Romeo/zmjde compatibility feed incomplete: files=%d, valid_entries=%d" % (len(zm_paths), zm_total))
           meta = json.loads(Path("/tmp/romeo-check-zmjde/Plugin/.romeo-source.json").read_text())
           for asset in RUNTIME_ASSETS:
-              plugin = Path("/tmp/romeo-check-zmjde/Plugin") / asset["plugin"]
+              slot_dir = Path("/tmp/romeo-check/plugins") if asset["slot"] == "aoomee_compat" else Path("/tmp/romeo-check-zmjde/Plugin")
+              plugin = slot_dir / asset["plugin"]
               expected = "https://raw.githubusercontent.com/ifflagged/Romeo/" + meta["upstream_commit"] + "/" + asset["source_path"]
               if expected not in plugin.read_text(encoding="utf-8"):
                   raise SystemExit("Unpinned runtime asset in " + asset["plugin"] + ": " + asset["source_path"])
