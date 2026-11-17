@@ -4071,10 +4071,6 @@ def narrow_xiaohongshu_native_response_duplicates(lines):
             result.append(replacements[stripped])
             changed += 1
             continue
-        if section == "Script" and stripped in replacements:
-            result.append(replacements[stripped])
-            changed += 1
-            continue
         result.append(line)
     return result, changed
 
