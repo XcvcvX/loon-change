@@ -4162,12 +4162,6 @@ class XiaohongshuV4AndCommentMigrationTests(unittest.TestCase):
             XHS_FMZ_COMMENT_LIST_TRIGGER, XHS_FMZ_COMMENT_DOWNLOAD_TRIGGER,
             XHS_FMZ_V4_TRIGGER, XHS_RSTORE_COMMENT_DOWNLOAD_TRIGGER,
             XHS_RSTORE_COMMENT_TRIGGER, XHS_V3_VIDEO_RSTORE_NARROWED_TRIGGER,
-            XHS_SCRIPT_TRIGGER_LINES,
-        )
-        rstore_download = next(line for line in XHS_SCRIPT_TRIGGER_LINES if "tag=XIAOHONGSHU-11," in line)
-        fmz_download = next(
-            line for line in XHS_SCRIPT_TRIGGER_LINES
-            if "v1/interaction/comment/video/download" in line.replace(chr(92), "")
         )
         v4_native = (
             r"^https:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/v4\/note\/videofeed "
@@ -4182,7 +4176,7 @@ class XiaohongshuV4AndCommentMigrationTests(unittest.TestCase):
             "[Script]", XHS_V3_VIDEO_RSTORE_NARROWED_TRIGGER,
             XHS_RSTORE_COMMENT_TRIGGER, XHS_FMZ_V4_TRIGGER,
             XHS_FMZ_COMMENT_LIST_TRIGGER, XHS_FMZ_COMMENT_DOWNLOAD_TRIGGER,
-            XHS_RSTORE_COMMENT_DOWNLOAD_TRIGGER, rstore_download, fmz_download,
+            XHS_RSTORE_COMMENT_DOWNLOAD_TRIGGER,
             "[MITM]",
         ]
 
