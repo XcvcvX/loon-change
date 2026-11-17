@@ -962,10 +962,14 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
             )
             for trigger in TAOBAO_REDUNDANT_SCRIPT_TRIGGERS[4:6]
         ]
+        other_redundant = (
+            list(TAOBAO_REDUNDANT_SCRIPT_TRIGGERS[:4])
+            + list(TAOBAO_REDUNDANT_SCRIPT_TRIGGERS[6:])
+        )
         fixture = BASE.replace(
             "[Script]",
             "[Script]\n" + "\n".join(TAOBAO_CANONICAL_SCRIPT_TRIGGERS)
-            + "\n" + "\n".join(romeo_triggers),
+            + "\n" + "\n".join(other_redundant + romeo_triggers),
         )
         result = apply(fixture)
         script = result.split("[Script]", 1)[1].split("[MITM]", 1)[0]
