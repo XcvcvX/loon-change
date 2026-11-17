@@ -1737,7 +1737,12 @@ ZHIHU_RESPONSE_CANONICAL_TRIGGERS = (
 ZHIHU_RESPONSE_SCRIPT_MARKER = "Scripts/zhihu/zhihu.js"
 
 def consolidate_zhihu_response_scripts(lines):
-    """Collapse the 12 exact Zhihu response-body triggers into five tag-preserving matchers."""
+    """Collapse the complete known Zhihu inventory; preserve safe partial upstream inventories."""
+    normalize = lambda value: re.sub(
+        r"enable=\$\{([^}]+)\}",
+        r"enable=\1",
+        re.sub(r"\\+", "", value.strip()),
+    )
     section = ""
     scoped = []
     for line in lines:
@@ -1746,27 +1751,42 @@ def consolidate_zhihu_response_scripts(lines):
         elif section == "Script" and not line.lstrip().startswith("#"):
             scoped.append(line.strip())
 
-    known = set(ZHIHU_RESPONSE_LEGACY_TRIGGERS)
-    canonical = set(ZHIHU_RESPONSE_CANONICAL_TRIGGERS)
+    known = {normalize(trigger) for trigger in ZHIHU_RESPONSE_LEGACY_TRIGGERS}
+    canonical = {normalize(trigger) for trigger in ZHIHU_RESPONSE_CANONICAL_TRIGGERS}
     replace_set = known - canonical
-    insert_triggers = [trigger for trigger in ZHIHU_RESPONSE_CANONICAL_TRIGGERS if trigger not in known]
-    counts = {trigger: scoped.count(trigger) for trigger in ZHIHU_RESPONSE_LEGACY_TRIGGERS}
-    canonical_counts = {trigger: scoped.count(trigger) for trigger in ZHIHU_RESPONSE_CANONICAL_TRIGGERS}
+    counts = {trigger: sum(normalize(line) == trigger for line in scoped) for trigger in known}
+    canonical_counts = {trigger: sum(normalize(line) == trigger for line in scoped) for trigger in canonical}
     unknown = [
         line for line in scoped
         if ZHIHU_RESPONSE_SCRIPT_MARKER in line
-        and line not in known and line not in canonical
+        and normalize(line) not in known and normalize(line) not in canonical
     ]
 
-    if not any(counts.values()) and not any(canonical_counts.values()) and not unknown:
+    if unknown:
+        raise ValueError("Zhihu response script inventory contains an unknown trigger: " + unknown[0])
+    if any(count > 1 for count in counts.values()) or any(count > 1 for count in canonical_counts.values()):
+        raise ValueError("Zhihu response script inventory contains duplicate triggers")
+    if not any(counts.values()) and not any(canonical_counts.values()):
         return list(lines), 0
-    if (not unknown and all(canonical_counts[trigger] == 1 for trigger in canonical)
+    if (all(canonical_counts[trigger] == 1 for trigger in canonical)
             and all(counts[trigger] == 0 for trigger in replace_set)):
         return list(lines), 0
-    if (unknown
-            or any(counts[trigger] != 1 for trigger in known)
+
+    # An upstream may legitimately remove some legacy triggers. Do not partially
+    # rewrite an incomplete inventory; preserve its existing behavior unchanged.
+    if (not all(counts[trigger] == 1 for trigger in known)
             or any(canonical_counts[trigger] != (1 if trigger in known else 0) for trigger in canonical)):
-        raise ValueError("Zhihu response script inventory changed; refusing partial consolidation")
+        return list(lines), 0
+
+    placeholder_switch = any(
+        ("enable=$" + "{") in line for line in scoped if normalize(line) in known
+    )
+    insert_triggers = [
+        re.sub(r"enable=([A-Za-z0-9_]+)", "enable=$" + "{" + r"\1}", trigger)
+        if placeholder_switch else trigger
+        for trigger in ZHIHU_RESPONSE_CANONICAL_TRIGGERS
+        if normalize(trigger) not in known
+    ]
 
     output = []
     section = ""
@@ -1777,7 +1797,7 @@ def consolidate_zhihu_response_scripts(lines):
             output.append(line)
             continue
         stripped = line.strip()
-        if section == "Script" and stripped in replace_set:
+        if section == "Script" and normalize(stripped) in replace_set:
             if not inserted:
                 output.extend(insert_triggers)
                 inserted = True
