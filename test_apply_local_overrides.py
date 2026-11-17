@@ -767,6 +767,25 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertIn(unrelated, script)
         self.assertEqual(consolidate_goofish_script_triggers(result)[1], 0)
 
+    def test_normalizes_repository_relative_goofish_script_paths(self):
+        from apply_local_overrides import (
+            GOOFISH_CANONICAL_SCRIPT_TRIGGERS, consolidate_goofish_script_triggers,
+        )
+        relative = [
+            trigger.replace(
+                "https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js",
+                "scripts/xianyu/goofish.js",
+            )
+            for trigger in GOOFISH_CANONICAL_SCRIPT_TRIGGERS
+        ]
+        fixture = ["[Script]", *relative, "[MITM]"]
+        result, removed = consolidate_goofish_script_triggers(fixture)
+        self.assertEqual(removed, 0)
+        script = result[result.index("[Script]") + 1:result.index("[MITM]")]
+        for trigger in GOOFISH_CANONICAL_SCRIPT_TRIGGERS:
+            self.assertIn(trigger, script)
+        self.assertFalse(any("script-path=scripts/xianyu/goofish.js" in line for line in script))
+
     def test_goofish_script_consolidation_fails_closed_on_drift_missing_or_duplicate_triggers(self):
         from apply_local_overrides import (
             GOOFISH_REDUNDANT_SCRIPT_TRIGGERS, consolidate_goofish_script_triggers,
