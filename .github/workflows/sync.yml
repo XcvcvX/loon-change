@@ -157,8 +157,8 @@ jobs:
       contents: write
     runs-on: ubuntu-latest
     concurrency:
-      # Keep only the newest sync for each ref; PR builds cannot cancel main.
-      group: loon-change-sync-${{ github.ref }}
+      # Serialize/cancel stale production runs on main; give each PR preflight its own slot.
+      group: ${{ github.ref == 'refs/heads/main' && 'loon-change-main-sync' || github.run_id }}
       cancel-in-progress: true
     steps:
       - name: 检出仓库
