@@ -4192,3 +4192,76 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
         ]
         with self.assertRaisesRegex(ValueError, "duplicate canonical local Amap trigger"):
             optimize_amap_response_script_overlaps(fixture)
+
+
+class PinduoduoHomepageNativeConsolidationTests(unittest.TestCase):
+    def setUp(self):
+        from pathlib import Path
+        self.plugin = Path(__file__).parent / "allAdRewrite.plugin"
+        self.lines = self.plugin.read_text(encoding="utf-8").splitlines()
+
+    def test_replaces_split_native_and_script_homepage_processing_with_one_jq_pass(self):
+        from apply_local_overrides import (
+            PDD_HOMEPAGE_NATIVE_JQ_RULE,
+            consolidate_pdd_homepage_native_response,
+        )
+        result, removed = consolidate_pdd_homepage_native_response(self.lines)
+        self.assertEqual(removed, 1)
+        self.assertIn(PDD_HOMEPAGE_NATIVE_JQ_RULE, result)
+        self.assertFalse(any("scripts/pinduoduo/pdd-homepage.js" in line for line in result))
+        self.assertEqual(consolidate_pdd_homepage_native_response(result), (result, 0))
+
+    def test_pdd_native_jq_covers_the_merged_script_behavior(self):
+        from pathlib import Path
+        from apply_local_overrides import PDD_HOMEPAGE_NATIVE_JQ_RULE
+        script = (Path(__file__).parent / "scripts/pinduoduo/pdd-homepage.js").read_text(encoding="utf-8")
+        for marker in (
+            "delete result.dy_module.irregular_banner_dy",
+            "delete result.icon_set",
+            "delete result.search_bar_hot_query",
+            "allowedTitles",
+            "allowedLinks",
+            "result.all_top_opts = []",
+            "removedModules",
+            "result.module_order",
+        ):
+            self.assertIn(marker, script)
+        for marker in (
+            "result.dy_module.irregular_banner_dy",
+            "result.icon_set",
+            "result.search_bar_hot_query",
+            ".result.bottom_tabs",
+            ".result.buffer_bottom_tabs",
+            ".result.all_top_opts = []",
+            ".result.module_order",
+        ):
+            self.assertIn(marker, PDD_HOMEPAGE_NATIVE_JQ_RULE)
+        self.assertEqual(PDD_HOMEPAGE_NATIVE_JQ_RULE.count("response.json.jq("), 1)
+        self.assertNotIn("response.json.delete(", PDD_HOMEPAGE_NATIVE_JQ_RULE)
+
+    def test_pdd_homepage_native_rule_is_preserved_without_local_script_trigger(self):
+        from apply_local_overrides import consolidate_pdd_homepage_native_response
+        without_script = [
+            line for line in self.lines
+            if "scripts/pinduoduo/pdd-homepage.js" not in line
+        ]
+        result, removed = consolidate_pdd_homepage_native_response(without_script)
+        self.assertEqual(removed, 0)
+        self.assertEqual(result, without_script)
+
+    def test_pdd_homepage_native_rule_fails_closed_on_drift_or_duplicates(self):
+        from apply_local_overrides import consolidate_pdd_homepage_native_response
+        changed = [
+            line.replace("result.all_top_opts", "result.all_top_options")
+            if "api.alexa" in line and "response.json.delete" in line else line
+            for line in self.lines
+        ]
+        with self.assertRaisesRegex(ValueError, "Pinduoduo homepage native rule changed"):
+            consolidate_pdd_homepage_native_response(changed)
+        duplicate = list(self.lines)
+        native = next(line for line in duplicate if "api.alexa" in line and "response.json.delete" in line)
+        script_index = next(i for i, line in enumerate(duplicate) if line.strip() == "[Script]")
+        duplicate.insert(script_index, native)
+        with self.assertRaisesRegex(ValueError, "duplicate Pinduoduo homepage native response rule"):
+            consolidate_pdd_homepage_native_response(duplicate)
+
