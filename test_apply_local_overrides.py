@@ -4071,8 +4071,8 @@ class XiaohongshuV3VideoNativeDedupTests(unittest.TestCase):
             line for line in XHS_SCRIPT_TRIGGER_LINES
             if line.startswith("response if")
             and 'tag="小红书图片视频水印"' in line
-            and "/v2/note/feed" in line.replace(chr(92), "")
-            and "/v3/note/videofeed" in line.replace(chr(92), "")
+            and "v2/note/feed" in line.replace(chr(92), "")
+            and "v3/note/videofeed" in line.replace(chr(92), "")
         )
         native = (
             r"^https:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/v3\/note\/videofeed "
@@ -4113,7 +4113,7 @@ class XiaohongshuV3VideoNativeDedupTests(unittest.TestCase):
     def test_fails_closed_without_native_v3_video_coverage(self):
         from apply_local_overrides import narrow_xiaohongshu_v3_video_native_duplicates
         fixture = self._fixture()
-        fixture = [line for line in fixture if "/v3/note/videofeed" not in line]
+        fixture = [line for line in fixture if "v3/note/videofeed" not in line]
         with self.assertRaisesRegex(ValueError, "native JSON coverage missing or duplicated"):
             narrow_xiaohongshu_v3_video_native_duplicates(fixture)
 
