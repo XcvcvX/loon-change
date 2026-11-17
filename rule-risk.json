@@ -2,8 +2,8 @@
   "change_counts": {
     "rewrite": {
       "action_changed": 0,
-      "added": 0,
-      "removed": 0
+      "added": 1,
+      "removed": 1
     },
     "rule": {
       "action_changed": 0,
@@ -12,14 +12,62 @@
     },
     "script": {
       "action_changed": 0,
-      "added": 4,
-      "removed": 8
+      "added": 2,
+      "removed": 3
     }
   },
   "events": [
     {
       "after": {
-        "line": "http-response ^https?:\\/\\/m[0-46-9]-zb\\.amap\\.com\\/ws\\/promotion-web\\/resource(\\/home)?\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-13,requires-body=true",
+        "line": "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/homepage\\/hub\\?/i then response.json.jq(\"if (.result | type) == \\\"object\\\" then del(.result.dy_module.irregular_banner_dy, .result.icon_set, .result.search_bar_hot_query) | .result.bottom_tabs? |= (if type == \\\"array\\\" then map(select(. != null and (.title | IN(\\\"首页\\\", \\\"聊天\\\", \\\"个人中心\\\")) and ((.link // \\\"\\\") | tostring | IN(\\\"index.html\\\", \\\"chat_list.html\\\", \\\"personal.html\\\")))) else . end) | .result.buffer_bottom_tabs? |= (if type == \\\"array\\\" then map(select(. != null and ((.link // \\\"\\\") | tostring | IN(\\\"index.html\\\", \\\"chat_list.html\\\", \\\"personal.html\\\")))) else . end) | .result.all_top_opts? |= (if type == \\\"array\\\" then [] else . end) | .result.module_order? |= (if type == \\\"array\\\" then map(select(. != null and . != false and . != 0 and . != \\\"\\\" and ((.module_name // \\\"\\\") | IN(\\\"irregular_banner_dy\\\", \\\"irregular_banner\\\", \\\"ad_module\\\", \\\"icon_set\\\", \\\"recommend_fresh_info\\\", \\\"timeline\\\") | not))) else . end) else . end\")",
+        "section": "rewrite",
+        "sources": [
+          "local_overrides"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "local_overrides": "unavailable"
+      },
+      "source_scores": {
+        "local_overrides": null
+      },
+      "sources": [
+        "local_overrides"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/homepage\\/hub\\?/i then response.json.delete([\"result.dy_module.irregular_banner_dy\", \"result.icon_set\", \"result.search_bar_hot_query\"]) | response.json.jq(\".result.bottom_tabs? |= map(select(.link | IN(\\\"index.html\\\", \\\"chat_list.html\\\", \\\"personal.html\\\"))) | .result.buffer_bottom_tabs? |= map(select(.link | IN(\\\"index.html\\\", \\\"chat_list.html\\\", \\\"personal.html\\\"))) | .result.all_top_opts |= map(del(.selected_image, .image, .height, .width))\")",
+        "section": "rewrite",
+        "sources": [
+          "local_overrides"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "local_overrides": "unavailable"
+      },
+      "source_scores": {
+        "local_overrides": null
+      },
+      "sources": [
+        "local_overrides"
+      ]
+    },
+    {
+      "after": {
+        "line": "http-response ^https?:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=(?:deliverLayer|getTabHomeInfo|myOrderInfo|orderTrackBusiness|personinfoBusiness|start|readCustomSurfaceList) script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/jingdong/jd.js,tag=JD-CONSOLIDATED,requires-body=true",
         "section": "script",
         "sources": [
           "local_overrides"
@@ -43,55 +91,7 @@
     },
     {
       "after": {
-        "line": "http-response ^https?:\\/\\/m[0-46-9]\\.amap\\.com\\/ws\\/aos\\/perception\\/publicTravel\\/beforeNavi\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP,requires-body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "http-response ^https?:\\/\\/m[0-46-9]\\.amap\\.com\\/ws\\/bus\\/plan\\/integrate\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-2,requires-body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "http-response ^https?:\\/\\/m[0-46-9]\\.amap\\.com\\/ws\\/shield\\/search\\/nearbyrec_smart\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-11,requires-body=true",
+        "line": "response if ${url} ~= /^https:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=welcomeHome/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/jingdong/jd.js\", {${jkds_enable}}) with tag=\"JD-CONSOLIDATED-WELCOME\", timeout=60, requires_body=true",
         "section": "script",
         "sources": [
           "local_overrides"
@@ -116,10 +116,10 @@
     {
       "after": null,
       "before": {
-        "line": "http-response ^https?:\\/\\/m\\d-zb\\.amap\\.com\\/ws\\/promotion-web\\/resource(\\/home)?\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-13,requires-body=true",
+        "line": "http-response ^https?:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=(?:deliverLayer|getTabHomeInfo|myOrderInfo|orderTrackBusiness|personinfoBusiness|start|welcomeHome|readCustomSurfaceList) script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/jingdong/jd.js,tag=JD-CONSOLIDATED,requires-body=true",
         "section": "script",
         "sources": [
-          "base"
+          "local_overrides"
         ]
       },
       "change_type": "removed",
@@ -128,22 +128,22 @@
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "base": "unavailable"
+        "local_overrides": "unavailable"
       },
       "source_scores": {
-        "base": null
+        "local_overrides": null
       },
       "sources": [
-        "base"
+        "local_overrides"
       ]
     },
     {
       "after": null,
       "before": {
-        "line": "http-response ^https?:\\/\\/m\\d\\.amap\\.com\\/ws\\/aos\\/perception\\/publicTravel\\/beforeNavi\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP,requires-body=true",
+        "line": "http-response ^https?:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/homepage\\/hub script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/pinduoduo/pdd-homepage.js,tag=PDD-2,requires-body=true",
         "section": "script",
         "sources": [
-          "base"
+          "local_overrides"
         ]
       },
       "change_type": "removed",
@@ -152,22 +152,22 @@
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "base": "unavailable"
+        "local_overrides": "unavailable"
       },
       "source_scores": {
-        "base": null
+        "local_overrides": null
       },
       "sources": [
-        "base"
+        "local_overrides"
       ]
     },
     {
       "after": null,
       "before": {
-        "line": "http-response ^https?:\\/\\/m\\d\\.amap\\.com\\/ws\\/bus\\/plan\\/integrate\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-2,requires-body=true",
+        "line": "response if ${url} ~= /^https:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=welcomeHome/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/jingdong/jd-welcome.js\") with enable=${jkds_enable}, tag=\"京东首页额外清理\", timeout=60, requires_body=true",
         "section": "script",
         "sources": [
-          "base"
+          "local_overrides"
         ]
       },
       "change_type": "removed",
@@ -176,143 +176,23 @@
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "base": "unavailable"
+        "local_overrides": "unavailable"
       },
       "source_scores": {
-        "base": null
+        "local_overrides": null
       },
       "sources": [
-        "base"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "http-response ^https?:\\/\\/m\\d\\.amap\\.com\\/ws\\/shield\\/search\\/nearbyrec_smart\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-11,requires-body=true",
-        "section": "script",
-        "sources": [
-          "base"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "base": "unavailable"
-      },
-      "source_scores": {
-        "base": null
-      },
-      "sources": [
-        "base"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/promotion-web\\/resource(\\/home)?\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f056c091074a4c29ad0289d7d31f39d47a4ea3d1/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "aoomee": "scored"
-      },
-      "source_scores": {
-        "aoomee": 100
-      },
-      "sources": [
-        "aoomee"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/aos\\/perception\\/publicTravel\\/beforeNavi\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f056c091074a4c29ad0289d7d31f39d47a4ea3d1/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "aoomee": "scored"
-      },
-      "source_scores": {
-        "aoomee": 100
-      },
-      "sources": [
-        "aoomee"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/faas\\/amap-navigation\\/(card-service-plan-home|main-page)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f056c091074a4c29ad0289d7d31f39d47a4ea3d1/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "aoomee": "scored"
-      },
-      "source_scores": {
-        "aoomee": 100
-      },
-      "sources": [
-        "aoomee"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search\\/nearbyrec_smart\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f056c091074a4c29ad0289d7d31f39d47a4ea3d1/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "aoomee": "scored"
-      },
-      "source_scores": {
-        "aoomee": 100
-      },
-      "sources": [
-        "aoomee"
+        "local_overrides"
       ]
     }
   ],
   "overall_risk": "high",
   "risk_counts": {
-    "high": 8,
+    "high": 4,
     "low": 0,
-    "medium": 4
+    "medium": 3
   },
-  "run_id": "44068359243",
+  "run_id": "44070806797",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -343,8 +223,8 @@
     "base": {
       "action_changed": 0,
       "added": 24,
-      "removed": 153,
-      "snapshots_seen": 17
+      "removed": 151,
+      "snapshots_seen": 16
     },
     "block": {
       "action_changed": 46,
@@ -360,9 +240,9 @@
     },
     "local_overrides": {
       "action_changed": 0,
-      "added": 90,
-      "removed": 23,
-      "snapshots_seen": 15
+      "added": 93,
+      "removed": 27,
+      "snapshots_seen": 16
     },
     "myblockads": {
       "action_changed": 0,

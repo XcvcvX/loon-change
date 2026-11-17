@@ -60267,7 +60267,7 @@
       "trace_status": "mapped"
     },
     {
-      "output_line": "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/homepage\\/hub\\?/i then response.json.delete([\"result.dy_module.irregular_banner_dy\", \"result.icon_set\", \"result.search_bar_hot_query\"]) | response.json.jq(\".result.bottom_tabs? |= map(select(.link | IN(\\\"index.html\\\", \\\"chat_list.html\\\", \\\"personal.html\\\"))) | .result.buffer_bottom_tabs? |= map(select(.link | IN(\\\"index.html\\\", \\\"chat_list.html\\\", \\\"personal.html\\\"))) | .result.all_top_opts |= map(del(.selected_image, .image, .height, .width))\")",
+      "output_line": "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/homepage\\/hub\\?/i then response.json.jq(\"if (.result | type) == \\\"object\\\" then del(.result.dy_module.irregular_banner_dy, .result.icon_set, .result.search_bar_hot_query) | .result.bottom_tabs? |= (if type == \\\"array\\\" then map(select(. != null and (.title | IN(\\\"首页\\\", \\\"聊天\\\", \\\"个人中心\\\")) and ((.link // \\\"\\\") | tostring | IN(\\\"index.html\\\", \\\"chat_list.html\\\", \\\"personal.html\\\")))) else . end) | .result.buffer_bottom_tabs? |= (if type == \\\"array\\\" then map(select(. != null and ((.link // \\\"\\\") | tostring | IN(\\\"index.html\\\", \\\"chat_list.html\\\", \\\"personal.html\\\")))) else . end) | .result.all_top_opts? |= (if type == \\\"array\\\" then [] else . end) | .result.module_order? |= (if type == \\\"array\\\" then map(select(. != null and . != false and . != 0 and . != \\\"\\\" and ((.module_name // \\\"\\\") | IN(\\\"irregular_banner_dy\\\", \\\"irregular_banner\\\", \\\"ad_module\\\", \\\"icon_set\\\", \\\"recommend_fresh_info\\\", \\\"timeline\\\") | not))) else . end) else . end\")",
       "provenance_kind": "post_merge_transform",
       "sources": [
         {
@@ -118021,7 +118021,7 @@
       "trace_status": "mapped"
     },
     {
-      "output_line": "http-response ^https?:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=(?:deliverLayer|getTabHomeInfo|myOrderInfo|orderTrackBusiness|personinfoBusiness|start|welcomeHome|readCustomSurfaceList) script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/jingdong/jd.js,tag=JD-CONSOLIDATED,requires-body=true",
+      "output_line": "http-response ^https?:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=(?:deliverLayer|getTabHomeInfo|myOrderInfo|orderTrackBusiness|personinfoBusiness|start|readCustomSurfaceList) script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/jingdong/jd.js,tag=JD-CONSOLIDATED,requires-body=true",
       "provenance_kind": "post_merge_transform",
       "sources": [
         {
@@ -119319,17 +119319,6 @@
         }
       ],
       "trace_status": "mapped"
-    },
-    {
-      "output_line": "http-response ^https?:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/homepage\\/hub script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/pinduoduo/pdd-homepage.js,tag=PDD-2,requires-body=true",
-      "provenance_kind": "post_merge_transform",
-      "sources": [
-        {
-          "source": "local_overrides",
-          "source_file": "apply_local_overrides.py",
-          "transform_stage": "local_overrides"
-        }
-      ]
     },
     {
       "canonical_key": "('guarded', '^https?://image\\\\.spdbccc\\\\.com\\\\.cn/group\\\\d/.*\\\\.JPG$', ('^https?:\\\\/\\\\/image\\\\.spdbccc\\\\.com\\\\.cn\\\\/group\\\\d\\\\/.*\\\\.jpg$', '^https?:\\\\/\\\\/image\\\\.spdbccc\\\\.com\\\\.cn\\\\/group\\\\d\\\\/.*\\\\.JPG$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/spdbccc.js,tag=SPDBCCC,requires-body=true'))",
@@ -121093,7 +121082,7 @@
       "trace_status": "mapped"
     },
     {
-      "output_line": "response if ${url} ~= /^https:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=welcomeHome/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/jingdong/jd-welcome.js\") with enable=${jkds_enable}, tag=\"京东首页额外清理\", timeout=60, requires_body=true",
+      "output_line": "response if ${url} ~= /^https:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=welcomeHome/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/jingdong/jd.js\", {${jkds_enable}}) with tag=\"JD-CONSOLIDATED-WELCOME\", timeout=60, requires_body=true",
       "provenance_kind": "post_merge_transform",
       "sources": [
         {
@@ -124247,7 +124236,7 @@
     "rule_safety_excluded_events": 11,
     "rule_scope_adjustments": 1,
     "rule_source_events": 5738,
-    "script_output_entries": 449
+    "script_output_entries": 448
   },
   "upstream_revisions": {
     "AlipayAdBlock": {
