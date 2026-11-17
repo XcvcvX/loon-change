@@ -2305,28 +2305,28 @@ class ZhihuRequestShadowRuleCleanupTests(unittest.TestCase):
         self.assertIn("ad reject-dict", result)
         self.assertEqual(apply(result), result)
 
-    def test_fails_closed_on_missing_cover_duplicate_drift_or_unknown_target(self):
+    def test_preserves_missing_cover_and_unknown_but_rejects_duplicates(self):
+        from apply_local_overrides import remove_redundant_zhihu_request_rules
         redundant, canonical, _marker = self.pairs[0]
-        missing_cover = self.base.replace(canonical + "\n", "", 1)
-        with self.assertRaisesRegex(ValueError, "Zhihu covering request blocker missing"):
-            apply(missing_cover)
+        base = self.base.splitlines()
+        missing_cover = [line for line in base if line.strip() != canonical]
+        preserved, removed = remove_redundant_zhihu_request_rules(missing_cover)
+        self.assertEqual(removed, 0)
+        self.assertIn(redundant, preserved)
 
-        duplicate = self.base.replace(redundant, redundant + "\n" + redundant, 1)
+        duplicate = base + [redundant]
         with self.assertRaisesRegex(ValueError, "duplicate Zhihu request blocker"):
-            apply(duplicate)
+            remove_redundant_zhihu_request_rules(duplicate)
 
-        drifted = self.base.replace(redundant, redundant.replace("reject(404)", "reject_dict(200)"), 1)
-        with self.assertRaisesRegex(ValueError, "Zhihu request blocker inventory changed"):
-            apply(drifted)
+        drifted_line = redundant.replace("reject(404)", "reject_dict(200)")
+        drifted = [drifted_line if line == redundant else line for line in base]
+        preserved, _ = remove_redundant_zhihu_request_rules(drifted)
+        self.assertIn(drifted_line, preserved)
 
-        unknown = self.base.replace(
-            redundant,
-            redundant + "\n" +
-            redundant.replace("reject(404)", "reject(403)"),
-            1,
-        )
-        with self.assertRaisesRegex(ValueError, "Zhihu request blocker inventory changed"):
-            apply(unknown)
+        unknown_line = redundant.replace("reject(404)", "reject(403)")
+        unknown = base + [unknown_line]
+        preserved, _ = remove_redundant_zhihu_request_rules(unknown)
+        self.assertIn(unknown_line, preserved)
 
 
 class ZhihuMultiActionRewriteConsolidationTests(unittest.TestCase):
