@@ -273,7 +273,9 @@ def remove_gaoding_resource_scripts(lines):
 PDD_RSTORE_HOMEPAGE_TRIGGER = r"http-response ^https?:\/\/api\.pinduoduo\.com\/api\/alexa\/\w+\/hub script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/pdd.js,tag=PDD-2,requires-body=true"
 PDD_LOCAL_HOMEPAGE_TRIGGER = r"http-response ^https?:\/\/api\.pinduoduo\.com\/api\/alexa\/homepage\/hub script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/pinduoduo/pdd-homepage.js,tag=PDD-2,requires-body=true"
 PDD_LOCAL_HOMEPAGE_RELATIVE_TRIGGER = r"http-response ^https?:\/\/api\.pinduoduo\.com\/api\/alexa\/homepage\/hub script-path=scripts/pinduoduo/pdd-homepage.js,tag=PDD-2,requires-body=true"
-PDD_ISHOWSHU_HOMEPAGE_TRIGGER = r"http-response ^https:\/\/api\.pinduoduo\.com\/api\/alexa\/homepage\/hub script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/pdd.js, requires-body = true, tag = 拼多多首页简化(底部菜单、顶部分类)"
+# Romeo 当前 ishowshu/pdd-rewrite 插件已从旧 http-response script-path 迁移为 Loon response/script 语法。
+PDD_ISHOWSHU_HOMEPAGE_TRIGGER = r'response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/homepage\\/hub/i then script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/ishowshu/pdd-rewrite/ishowshu_pdd.js") with tag="pdd", timeout=60, requires_body=true'
+PDD_ISHOWSHU_HOMEPAGE_LEGACY_TRIGGER = r"http-response ^https:\/\/api\.pinduoduo\.com\/api\/alexa\/homepage\/hub script-path = https://github.com/ishowshu/qx/raw/refs/heads/main/script/pdd.js, requires-body = true, tag = 拼多多首页简化(底部菜单、顶部分类)"
 
 
 def consolidate_pdd_homepage_script(lines):
@@ -285,6 +287,7 @@ def consolidate_pdd_homepage_script(lines):
         re.sub(r"\\+", "", PDD_LOCAL_HOMEPAGE_TRIGGER.strip()): "local",
         re.sub(r"\\+", "", PDD_LOCAL_HOMEPAGE_RELATIVE_TRIGGER.strip()): "local",
         re.sub(r"\\+", "", PDD_ISHOWSHU_HOMEPAGE_TRIGGER.strip()): "ishowshu",
+        re.sub(r"\\+", "", PDD_ISHOWSHU_HOMEPAGE_LEGACY_TRIGGER.strip()): "ishowshu",
     }
     target_seen = False
     for line in lines:
