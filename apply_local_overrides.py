@@ -1797,7 +1797,7 @@ def consolidate_soul_scripts(lines):
     canonical_output = list(SOUL_CANONICAL_TRIGGERS)
     if preserve_interpolation:
         canonical_output = [
-            re.sub(r"enable=([A-Za-z0-9_]+)", r"enable=${\1}, trigger)
+            re.sub(r"enable=([A-Za-z0-9_]+)", r"enable=${\1}", trigger)
             for trigger in canonical_output
         ]
 
