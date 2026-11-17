@@ -4549,6 +4549,21 @@ def optimize_bilibili_json_native_coverage(lines):
     if not rstore_json_lines:
         return output, 0
 
+    expected_json_tags = {f"BAICIZHAN-{number}" for number in range(7, 14)}
+    actual_json_tags = [
+        match.group(1) if (match := re.search(r"tag=(BAICIZHAN-\\d+)", line)) else None
+        for line in rstore_json_lines
+    ]
+    if (
+        len(rstore_json_lines) != len(expected_json_tags)
+        or set(actual_json_tags) != expected_json_tags
+        or len(set(actual_json_tags)) != len(expected_json_tags)
+    ):
+        raise ValueError(
+            "Bilibili R-Store JSON trigger inventory changed; refusing partial narrowing: "
+            + repr(actual_json_tags)
+        )
+
     fmz_live = [
         line for line in script_lines
         if "bilibili.json.js" in line and line.startswith("response if")
