@@ -1,9 +1,9 @@
 {
   "change_counts": {
     "rewrite": {
-      "action_changed": 0,
+      "action_changed": 1,
       "added": 0,
-      "removed": 0
+      "removed": 2
     },
     "rule": {
       "action_changed": 0,
@@ -11,24 +11,246 @@
       "removed": 0
     },
     "script": {
-      "action_changed": 8,
-      "added": 3,
-      "removed": 3
+      "action_changed": 34,
+      "added": 6,
+      "removed": 6
     }
   },
   "events": [
     {
+      "after": null,
+      "before": {
+        "line": "^https:\\/\\/(?:edith|rec|www)\\.xiaohongshu\\.com\\/api\\/sns\\/v4\\/note\\/videofeed response-body-json-jq 'def u: (if type==\"object\" then ((if (.function_switch|type)==\"array\" then .function_switch|=map(if type==\"object\" then (if .enable==false then (.enable=true|.reason=\"\") else . end) else . end) else . end)|(if has(\"media_save_config\") then .media_save_config|=(.disable_save=false|.disable_watermark=true|.disable_weibo_cover=true) else . end)|(if ((.share_info.function_entries|type)==\"array\") and ((.share_info.function_entries|length)>0) then .share_info.function_entries|=(if (map(select(if type==\"object\" then (.type==\"video_download\") else false end))|length)>0 then (map(select(if type==\"object\" then (.type==\"video_download\") else false end)))+(map(select(if type==\"object\" then (.type!=\"video_download\") else false end))) else [{\"type\":\"video_download\"}]+. end) else . end)) else . end); . as $o | try (if (.data|type)==\"array\" then .data|=map(select(if type==\"object\" then ((.model_type==\"note\") and (has(\"ad\")|not)) else false end)|u) else . end) catch $o'",
+        "section": "rewrite",
+        "sources": [
+          "thelong"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "thelong": "unavailable"
+      },
+      "source_scores": {
+        "thelong": null
+      },
+      "sources": [
+        "thelong"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/note\\/comment\\/list response-body-json-jq 'def c: (if type==\"object\" then ((if .comment_type==3 then .comment_type=2 else . end)|(if .media_source_type==1 then .media_source_type=0 else . end)) else . end); . as $o | try (if (.data|type)==\"object\" then (if ((.data.comments|type)==\"array\") then .data.comments|=map(c|(if ((.sub_comments|type)==\"array\") then .sub_comments|=map(c) else . end)) else . end) else . end) catch $o'",
+        "section": "rewrite",
+        "sources": [
+          "thelong"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "thelong": "unavailable"
+      },
+      "source_scores": {
+        "thelong": null
+      },
+      "sources": [
+        "thelong"
+      ]
+    },
+    {
       "after": {
+        "line": "response if ${url} ~= /^https:\\/\\/homepage-api\\.smzdm\\.com\\/v3\\/home\\?/i then response.json.jq_file(\"https://raw.githubusercontent.com/ifflagged/Romeo/679790b320b708335a3ec4cd39ac1d8313d93dff/Modules/JavaScript/Kelee/smzdm_remove_ads/kelee.one_home_smzdm_remove_ads.jq\")",
+        "section": "rewrite",
+        "sources": [
+          "zmjapp"
+        ]
+      },
+      "before": {
+        "line": "response if ${url} ~= /^https:\\/\\/homepage-api\\.smzdm\\.com\\/v3\\/home\\?/i then response.json.jq_file(\"https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/Kelee/smzdm_remove_ads/kelee.one_home_smzdm_remove_ads.jq\")",
+        "section": "rewrite",
+        "sources": [
+          "zmjapp"
+        ]
+      },
+      "change_type": "action_changed",
+      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "zmjapp": "unavailable"
+      },
+      "source_scores": {
+        "zmjapp": null
+      },
+      "sources": [
+        "zmjapp"
+      ]
+    },
+    {
+      "after": {
+        "line": "http-request ^https?:\\/\\/[\\w-]+\\.googlevideo\\.com\\/initplayback.+&ack.* script-path=https://raw.githubusercontent.com/ifflagged/Romeo/679790b320b708335a3ec4cd39ac1d8313d93dff/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.request.js, requires-body=true, binary-body-mode=true, tag=youtube.request.init, argument={captionLang}",
+        "section": "script",
+        "sources": [
+          "local_overrides"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "local_overrides": "unavailable"
+      },
+      "source_scores": {
+        "local_overrides": null
+      },
+      "sources": [
+        "local_overrides"
+      ]
+    },
+    {
+      "after": {
+        "line": "http-response ^https:\\/\\/youtubei\\.googleapis\\.com\\/(youtubei\\/v1\\/(browse|next|player|search|reel\\/reel_watch_sequence|guide|account\\/get_setting|get_watch|log_event|config))(\\?(.*))?$ script-path=https://raw.githubusercontent.com/ifflagged/Romeo/679790b320b708335a3ec4cd39ac1d8313d93dff/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.response.js, requires-body=true, binary-body-mode=true, tag=youtube.response, argument={captionLang,blockUpload,blockImmersive,blockShorts,debug}",
+        "section": "script",
+        "sources": [
+          "local_overrides"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "local_overrides": "unavailable"
+      },
+      "source_scores": {
+        "local_overrides": null
+      },
+      "sources": [
+        "local_overrides"
+      ]
+    },
+    {
+      "after": {
+        "line": "http-response ^https?:\\/\\/(?:app\\.bilibili\\.com|grpc\\.biliapi\\.net)\\/bilibili\\.main\\.community\\.reply\\.v\\d\\.Reply\\/MainList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-5,requires-body=true,binary-body-mode=true",
+        "section": "script",
+        "sources": [
+          "base"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "base": "unavailable"
+      },
+      "source_scores": {
+        "base": null
+      },
+      "sources": [
+        "base"
+      ]
+    },
+    {
+      "after": {
+        "line": "http-response ^https?:\\/\\/(?:edith|rec|www)\\.xiaohongshu\\.com\\/api\\/sns\\/(?:v(?:[13-9]|[1-9][0-9]+)\\/note\\/feed|v(?:[12]|[5-9]|[1-9][0-9]+)\\/note\\/videofeed|v(?:[1-9]|1[1-9]|[2-9][0-9]+)\\/note\\/video\\/save) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-7,requires-body=true",
+        "section": "script",
+        "sources": [
+          "local_overrides"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "local_overrides": "unavailable"
+      },
+      "source_scores": {
+        "local_overrides": null
+      },
+      "sources": [
+        "local_overrides"
+      ]
+    },
+    {
+      "after": {
+        "line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/(?:v(?:[1246-9]|[1-9][0-9]+)\\/note\\/comment\\/(?:list|sub_comments)|v3\\/note\\/comment\\/list|v5\\/note\\/comment\\/sub_comments)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-10,requires-body=true",
+        "section": "script",
+        "sources": [
+          "local_overrides"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "local_overrides": "unavailable"
+      },
+      "source_scores": {
+        "local_overrides": null
+      },
+      "sources": [
+        "local_overrides"
+      ]
+    },
+    {
+      "after": {
+        "line": "response if ${url} ~= /^https?:\\/\\/(edith|rec|www)\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/(v4\\/note\\/videofeed|v10\\/note\\/video\\/save)\\?/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu-v4.js\") with enable=${xhs_enable}, tag=\"小红书视频缓存与下载\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "local_overrides"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "local_overrides": "unavailable"
+      },
+      "source_scores": {
+        "local_overrides": null
+      },
+      "sources": [
+        "local_overrides"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
         "line": "http-request ^https?:\\/\\/[\\w-]+\\.googlevideo\\.com\\/initplayback.+&ack.* script-path=https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.request.js, requires-body=true, binary-body-mode=true, tag=youtube.request.init, argument={captionLang}",
         "section": "script",
         "sources": [
           "local_overrides"
         ]
       },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
@@ -42,17 +264,17 @@
       ]
     },
     {
-      "after": {
+      "after": null,
+      "before": {
         "line": "http-response ^https:\\/\\/youtubei\\.googleapis\\.com\\/(youtubei\\/v1\\/(browse|next|player|search|reel\\/reel_watch_sequence|guide|account\\/get_setting|get_watch|log_event|config))(\\?(.*))?$ script-path=https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.response.js, requires-body=true, binary-body-mode=true, tag=youtube.response, argument={captionLang,blockUpload,blockImmersive,blockShorts,debug}",
         "section": "script",
         "sources": [
           "local_overrides"
         ]
       },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
@@ -66,17 +288,17 @@
       ]
     },
     {
-      "after": {
-        "line": "http-response ^https?:\\/\\/(api|cdn\\.api)\\.chelaile(?:app)?(?:\\.net)?\\.cn\\/goocity\\/flowPos\\/listByPos script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/romeo_legacy/chelaile-flowpos.js, requires-body=true, timeout=20",
+      "after": null,
+      "before": {
+        "line": "http-response ^https?:\\/\\/(?:app\\.bilibili\\.com|grpc\\.biliapi\\.net)\\/bilibili\\.main\\.community\\.reply\\.v[2-9]\\.Reply\\/MainList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-5,requires-body=true,binary-body-mode=true",
         "section": "script",
         "sources": [
           "local_overrides"
         ]
       },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
@@ -92,10 +314,10 @@
     {
       "after": null,
       "before": {
-        "line": "http-request ^https?:\\/\\/[\\w-]+\\.googlevideo\\.com\\/initplayback.+&ack.* script-path=https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.request.js, requires-body=true, binary-body-mode=true, tag=youtube.request.init, argument=\"{\"captionLang\":\"{字幕翻译语言}\"}\"",
+        "line": "http-response ^https?:\\/\\/(?:edith|rec|www)\\.xiaohongshu\\.com\\/api\\/sns\\/(?:v\\d+\\/note\\/(?:imagefeed|feed|(?:live_photo|video)\\/save)|v4\\/note\\/videofeed) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-7,requires-body=true",
         "section": "script",
         "sources": [
-          "aoomee"
+          "local_overrides"
         ]
       },
       "change_type": "removed",
@@ -104,22 +326,22 @@
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "aoomee": "scored"
+        "local_overrides": "unavailable"
       },
       "source_scores": {
-        "aoomee": 100
+        "local_overrides": null
       },
       "sources": [
-        "aoomee"
+        "local_overrides"
       ]
     },
     {
       "after": null,
       "before": {
-        "line": "http-response ^https:\\/\\/youtubei\\.googleapis\\.com\\/(youtubei\\/v1\\/(browse|next|player|search|reel\\/reel_watch_sequence|guide|account\\/get_setting|get_watch|log_event|config))(\\?(.*))?$ script-path=https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.response.js, requires-body=true, binary-body-mode=true, tag=youtube.response, argument=\"{\"captionLang\":\"{字幕翻译语言}\",\"blockUpload\":{屏蔽上传按钮},\"blockImmersive\":{屏蔽选段按钮},\"blockShorts\":{屏蔽Shorts按钮},\"debug\":{启用调试模式}}\"",
+        "line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/note\\/comment\\/(?:list|sub_comments)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-10,requires-body=true",
         "section": "script",
         "sources": [
-          "aoomee"
+          "base"
         ]
       },
       "change_type": "removed",
@@ -128,22 +350,22 @@
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "aoomee": "scored"
+        "base": "unavailable"
       },
       "source_scores": {
-        "aoomee": 100
+        "base": null
       },
       "sources": [
-        "aoomee"
+        "base"
       ]
     },
     {
       "after": null,
       "before": {
-        "line": "http-response ^https?:\\/\\/(api|cdn\\.api)\\.chelaile(?:app)?(?:\\.net)?\\.cn\\/goocity\\/flowPos\\/listByPos script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/romeo_legacy/chelaile-flowpos.js, requires-body=1, timeout=20",
+        "line": "response if ${url} ~= /^https?:\\/\\/(edith|rec|www)\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/(v4\\/note\\/videofeed|v10\\/note\\/video\\/save)\\?/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书图片视频水印\", timeout=60, requires_body=true",
         "section": "script",
         "sources": [
-          "aoomee"
+          "block"
         ]
       },
       "change_type": "removed",
@@ -152,25 +374,25 @@
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "aoomee": "scored"
+        "block": "unavailable"
       },
       "source_scores": {
-        "aoomee": 100
+        "block": null
       },
       "sources": [
-        "aoomee"
+        "block"
       ]
     },
     {
       "after": {
-        "line": "http-request ^https:\\/\\/(?:www\\.|m\\.)?youtube\\.com\\/api\\/timedtext\\?[^#]+$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=false,timeout=10,enable={translation_enabled},argument={translation_enabled,translation_target},tag=YouTube 字幕目标语言",
+        "line": "http-request ^https:\\/\\/youtubei\\.googleapis\\.com\\/youtubei\\/v1\\/log_event script-path=https://raw.githubusercontent.com/ifflagged/Romeo/679790b320b708335a3ec4cd39ac1d8313d93dff/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.request.js, requires-body=true, binary-body-mode=true, tag=youtube.request.log_event",
         "section": "script",
         "sources": [
           "aoomee"
         ]
       },
       "before": {
-        "line": "http-request ^https:\\/\\/(?:www\\.|m\\.)?youtube\\.com\\/api\\/timedtext\\?[^#]+$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=false,timeout=10,enable={translation_enabled},argument=[{translation_enabled},{translation_target}],tag=YouTube 字幕目标语言",
+        "line": "http-request ^https:\\/\\/youtubei\\.googleapis\\.com\\/youtubei\\/v1\\/log_event script-path=https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.request.js, requires-body=true, binary-body-mode=true, tag=youtube.request.log_event",
         "section": "script",
         "sources": [
           "aoomee"
@@ -193,14 +415,14 @@
     },
     {
       "after": {
-        "line": "http-request ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.)?youtube\\.com)\\/youtubei\\/v1\\/log_event(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument={log_enabled,log_level,capture_budget,playback_region},tag=YouTube 配置请求处理",
+        "line": "http-request ^https?:\\/\\/ad\\.12306\\.cn\\/ad\\/ser\\/getAdList script-path=https://raw.githubusercontent.com/ifflagged/Romeo/679790b320b708335a3ec4cd39ac1d8313d93dff/Modules/JavaScript/fmz200/12306/kokoryh_12306.js, requires-body=true, timeout=60, tag=12306, enable={12306_enable}",
         "section": "script",
         "sources": [
           "aoomee"
         ]
       },
       "before": {
-        "line": "http-request ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.)?youtube\\.com)\\/youtubei\\/v1\\/log_event(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument=[{log_enabled},{log_level},{capture_budget},{playback_region}],tag=YouTube 配置请求处理",
+        "line": "http-request ^https?:\\/\\/ad\\.12306\\.cn\\/ad\\/ser\\/getAdList script-path=https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/fmz200/12306/kokoryh_12306.js, requires-body=true, timeout=60, tag=12306, enable={12306_enable}",
         "section": "script",
         "sources": [
           "aoomee"
@@ -223,14 +445,14 @@
     },
     {
       "after": {
-        "line": "http-request ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/(?:browse|next|search|reel\\/reel_watch_sequence)(?:\\?[^#]*)?$|^https:\\/\\/[\\w-]+\\.googlevideo\\.com\\/videoplayback\\?[^#]*$|^http:\\/\\/youtube-logs\\.invalid(?::80)?(?:\\/[^#]*)?$|^https:\\/\\/[\\w-]+\\.googlevideo\\.com\\/initplayback(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=false,timeout=10,enable={log_enabled},argument={log_enabled,log_level,capture_budget,background_playback,media_capture_mode,quality_research},tag=YouTube 日志与导出",
+        "line": "http-response ^https:\\/\\/(?:sns|appmsg|home|umehome|opactivity|activity|umerp|flightstatus|umeflightstatus|startup|umestartup|user|umeuser|event)\\.umetrip\\.com\\/gateway\\/api\\/umetrip\\/native(?:\\?.*)?$ script-path=https://raw.githubusercontent.com/ifflagged/Romeo/679790b320b708335a3ec4cd39ac1d8313d93dff/Modules/JavaScript/ddgksf2013/UmetripAds/ddgksf2013_umetrip.ads.js, requires-body=true, timeout=60, tag=umetrip.ads",
         "section": "script",
         "sources": [
           "aoomee"
         ]
       },
       "before": {
-        "line": "http-request ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/(?:browse|next|search|reel\\/reel_watch_sequence)(?:\\?[^#]*)?$|^https:\\/\\/[\\w-]+\\.googlevideo\\.com\\/videoplayback\\?[^#]*$|^http:\\/\\/youtube-logs\\.invalid(?::80)?(?:\\/[^#]*)?$|^https:\\/\\/[\\w-]+\\.googlevideo\\.com\\/initplayback(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=false,timeout=10,enable={log_enabled},argument=[{log_enabled},{log_level},{capture_budget},{background_playback},{media_capture_mode},{quality_research}],tag=YouTube 日志与导出",
+        "line": "http-response ^https:\\/\\/(?:sns|appmsg|home|umehome|opactivity|activity|umerp|flightstatus|umeflightstatus|startup|umestartup|user|umeuser|event)\\.umetrip\\.com\\/gateway\\/api\\/umetrip\\/native(?:\\?.*)?$ script-path=https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/ddgksf2013/UmetripAds/ddgksf2013_umetrip.ads.js, requires-body=true, timeout=60, tag=umetrip.ads",
         "section": "script",
         "sources": [
           "aoomee"
@@ -253,14 +475,14 @@
     },
     {
       "after": {
-        "line": "http-request ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/(?:player|get_watch)(?:\\?[^#]*)?$|^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/player\\/ad_break(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument={log_enabled,log_level,capture_budget,playback_region},tag=YouTube 播放请求与广告配置处理",
+        "line": "request if ${url} ~= /^https:\\/\\/(raw|gist)\\.githubusercontent\\.com\\//i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/679790b320b708335a3ec4cd39ac1d8313d93dff/Modules/JavaScript/ishowshu/github/Script-Hub-Org_replace-header.js\", \"(%5Cr%5Cn)Accept-Language%3A.%2B(%5Cr%5Cn)-%3E%241Accept-Language%3A%20en-us%242\") with tag=\"replaceHeader\", timeout=30",
         "section": "script",
         "sources": [
           "aoomee"
         ]
       },
       "before": {
-        "line": "http-request ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/(?:player|get_watch)(?:\\?[^#]*)?$|^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/player\\/ad_break(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument=[{log_enabled},{log_level},{capture_budget},{playback_region}],tag=YouTube 播放请求与广告配置处理",
+        "line": "request if ${url} ~= /^https:\\/\\/(raw|gist)\\.githubusercontent\\.com\\//i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/ishowshu/github/Script-Hub-Org_replace-header.js\", \"(%5Cr%5Cn)Accept-Language%3A.%2B(%5Cr%5Cn)-%3E%241Accept-Language%3A%20en-us%242\") with tag=\"replaceHeader\", timeout=30",
         "section": "script",
         "sources": [
           "aoomee"
@@ -283,14 +505,14 @@
     },
     {
       "after": {
-        "line": "http-response ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.)?youtube\\.com)\\/youtubei\\/v1\\/(?:config|log_event)(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument={log_enabled,log_level,capture_budget},tag=YouTube Onesie 配置缓存",
+        "line": "request if ${url} ~= /^https:\\/\\/github\\.com\\//i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/679790b320b708335a3ec4cd39ac1d8313d93dff/Modules/JavaScript/ishowshu/github/Script-Hub-Org_replace-header.js\", \"(%5Cr%5Cn)Accept-Language%3A.%2B(%5Cr%5Cn)-%3E%241Accept-Language%3A%20en-us%242\") with tag=\"replaceHeader\", timeout=30",
         "section": "script",
         "sources": [
           "aoomee"
         ]
       },
       "before": {
-        "line": "http-response ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.)?youtube\\.com)\\/youtubei\\/v1\\/(?:config|log_event)(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument=[{log_enabled},{log_level},{capture_budget}],tag=YouTube Onesie 配置缓存",
+        "line": "request if ${url} ~= /^https:\\/\\/github\\.com\\//i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/ishowshu/github/Script-Hub-Org_replace-header.js\", \"(%5Cr%5Cn)Accept-Language%3A.%2B(%5Cr%5Cn)-%3E%241Accept-Language%3A%20en-us%242\") with tag=\"replaceHeader\", timeout=30",
         "section": "script",
         "sources": [
           "aoomee"
@@ -313,14 +535,14 @@
     },
     {
       "after": {
-        "line": "http-response ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/(browse|next|search)(\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument={log_enabled,log_level,capture_budget,hide_home_shorts,blocked_channels,blocked_channels_url},tag=YouTube 信息流广告与首页 Shorts 处理",
+        "line": "response if ${url} ~= /^https:\\/\\/(?:info\\.amap\\.com|m5\\.amap\\.com)\\/ws\\/shield\\/search\\/(common\\/coupon\\/info|poi\\/detail)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/679790b320b708335a3ec4cd39ac1d8313d93dff/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
         "section": "script",
         "sources": [
           "aoomee"
         ]
       },
       "before": {
-        "line": "http-response ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/(browse|next|search)(\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument=[{log_enabled},{log_level},{capture_budget},{hide_home_shorts},{blocked_channels},{blocked_channels_url}],tag=YouTube 信息流广告与首页 Shorts 处理",
+        "line": "response if ${url} ~= /^https:\\/\\/(?:info\\.amap\\.com|m5\\.amap\\.com)\\/ws\\/shield\\/search\\/(common\\/coupon\\/info|poi\\/detail)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
         "section": "script",
         "sources": [
           "aoomee"
@@ -343,14 +565,14 @@
     },
     {
       "after": {
-        "line": "http-response ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/(player|get_watch)(\\?[^#]*)?$|^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/reel\\/reel_watch_sequence(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument={log_enabled,log_level,capture_budget,background_playback,quality_research},tag=YouTube 播放响应与后台播放",
+        "line": "response if ${url} ~= /^https:\\/\\/api-chat\\.soulapp\\.cn\\/chat\\/limitInfo/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/679790b320b708335a3ec4cd39ac1d8313d93dff/Modules/JavaScript/ishowshu/soul/ishowshu_soul_qx.js\") with tag=\"soul_qx\", timeout=60, requires_body=true",
         "section": "script",
         "sources": [
           "aoomee"
         ]
       },
       "before": {
-        "line": "http-response ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/(player|get_watch)(\\?[^#]*)?$|^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/reel\\/reel_watch_sequence(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument=[{log_enabled},{log_level},{capture_budget},{background_playback},{quality_research}],tag=YouTube 播放响应与后台播放",
+        "line": "response if ${url} ~= /^https:\\/\\/api-chat\\.soulapp\\.cn\\/chat\\/limitInfo/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/ishowshu/soul/ishowshu_soul_qx.js\") with tag=\"soul_qx\", timeout=60, requires_body=true",
         "section": "script",
         "sources": [
           "aoomee"
@@ -373,14 +595,794 @@
     },
     {
       "after": {
-        "line": "http-response ^https:\\/\\/[\\w-]+\\.googlevideo\\.com\\/(?:videoplayback|initplayback)(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=false,timeout=10,enable={log_enabled},argument={log_enabled,log_level,capture_budget},tag=YouTube 媒体响应日志",
+        "line": "response if ${url} ~= /^https:\\/\\/api-chat\\.soulapp\\.cn\\/snapchat\\/url/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/679790b320b708335a3ec4cd39ac1d8313d93dff/Modules/JavaScript/ishowshu/soul/ishowshu_soul_qx.js\") with tag=\"soul_qx\", timeout=60, requires_body=true",
         "section": "script",
         "sources": [
           "aoomee"
         ]
       },
       "before": {
-        "line": "http-response ^https:\\/\\/[\\w-]+\\.googlevideo\\.com\\/(?:videoplayback|initplayback)(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=false,timeout=10,enable={log_enabled},argument=[{log_enabled},{log_level},{capture_budget}],tag=YouTube 媒体响应日志",
+        "line": "response if ${url} ~= /^https:\\/\\/api-chat\\.soulapp\\.cn\\/snapchat\\/url/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/ishowshu/soul/ishowshu_soul_qx.js\") with tag=\"soul_qx\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "change_type": "action_changed",
+      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "aoomee": "scored"
+      },
+      "source_scores": {
+        "aoomee": 100
+      },
+      "sources": [
+        "aoomee"
+      ]
+    },
+    {
+      "after": {
+        "line": "response if ${url} ~= /^https:\\/\\/api\\.gotokeep\\.com\\/config\\/v3\\/basic\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/679790b320b708335a3ec4cd39ac1d8313d93dff/Modules/JavaScript/ishowshu/keep/ishowshu_keep.js\") with tag=\"keep\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "before": {
+        "line": "response if ${url} ~= /^https:\\/\\/api\\.gotokeep\\.com\\/config\\/v3\\/basic\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/ishowshu/keep/ishowshu_keep.js\") with tag=\"keep\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "change_type": "action_changed",
+      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "aoomee": "scored"
+      },
+      "source_scores": {
+        "aoomee": 100
+      },
+      "sources": [
+        "aoomee"
+      ]
+    },
+    {
+      "after": {
+        "line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/marketing\\/advertisement\\/v1/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/679790b320b708335a3ec4cd39ac1d8313d93dff/Modules/JavaScript/ishowshu/pupu/ishowshu_pp.js\") with tag=\"pp\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "before": {
+        "line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/marketing\\/advertisement\\/v1/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/ishowshu/pupu/ishowshu_pp.js\") with tag=\"pp\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "change_type": "action_changed",
+      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "aoomee": "scored"
+      },
+      "source_scores": {
+        "aoomee": 100
+      },
+      "sources": [
+        "aoomee"
+      ]
+    },
+    {
+      "after": {
+        "line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/order\\/orders\\/list\\/v4/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/679790b320b708335a3ec4cd39ac1d8313d93dff/Modules/JavaScript/ishowshu/pupu/ishowshu_pp.js\") with tag=\"pp\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "before": {
+        "line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/order\\/orders\\/list\\/v4/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/ishowshu/pupu/ishowshu_pp.js\") with tag=\"pp\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "change_type": "action_changed",
+      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "aoomee": "scored"
+      },
+      "source_scores": {
+        "aoomee": 100
+      },
+      "sources": [
+        "aoomee"
+      ]
+    },
+    {
+      "after": {
+        "line": "response if ${url} ~= /^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/boss\\/(car\\/order\\/content_info|order_web\\/friendly_information)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/679790b320b708335a3ec4cd39ac1d8313d93dff/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "before": {
+        "line": "response if ${url} ~= /^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/boss\\/(car\\/order\\/content_info|order_web\\/friendly_information)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "change_type": "action_changed",
+      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "aoomee": "scored"
+      },
+      "source_scores": {
+        "aoomee": 100
+      },
+      "sources": [
+        "aoomee"
+      ]
+    },
+    {
+      "after": {
+        "line": "response if ${url} ~= /^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/sharedtrip\\/taxi\\/order_detail_car_tips\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/679790b320b708335a3ec4cd39ac1d8313d93dff/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "before": {
+        "line": "response if ${url} ~= /^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/sharedtrip\\/taxi\\/order_detail_car_tips\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "change_type": "action_changed",
+      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "aoomee": "scored"
+      },
+      "source_scores": {
+        "aoomee": 100
+      },
+      "sources": [
+        "aoomee"
+      ]
+    },
+    {
+      "after": {
+        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/bus\\/plan\\/integrate\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/679790b320b708335a3ec4cd39ac1d8313d93dff/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "before": {
+        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/bus\\/plan\\/integrate\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "change_type": "action_changed",
+      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "aoomee": "scored"
+      },
+      "source_scores": {
+        "aoomee": 100
+      },
+      "sources": [
+        "aoomee"
+      ]
+    },
+    {
+      "after": {
+        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/c3frontend\\/af-(hotel|launch)\\/page\\/main\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/679790b320b708335a3ec4cd39ac1d8313d93dff/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "before": {
+        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/c3frontend\\/af-(hotel|launch)\\/page\\/main\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "change_type": "action_changed",
+      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "aoomee": "scored"
+      },
+      "source_scores": {
+        "aoomee": 100
+      },
+      "sources": [
+        "aoomee"
+      ]
+    },
+    {
+      "after": {
+        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/c3frontend\\/af-nearby\\/nearby/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/679790b320b708335a3ec4cd39ac1d8313d93dff/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "before": {
+        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/c3frontend\\/af-nearby\\/nearby/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "change_type": "action_changed",
+      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "aoomee": "scored"
+      },
+      "source_scores": {
+        "aoomee": 100
+      },
+      "sources": [
+        "aoomee"
+      ]
+    },
+    {
+      "after": {
+        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/perception\\/drive\\/(routeInfo|routePlan)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/679790b320b708335a3ec4cd39ac1d8313d93dff/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "before": {
+        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/perception\\/drive\\/(routeInfo|routePlan)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "change_type": "action_changed",
+      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "aoomee": "scored"
+      },
+      "source_scores": {
+        "aoomee": 100
+      },
+      "sources": [
+        "aoomee"
+      ]
+    },
+    {
+      "after": {
+        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/dsp\\/profile\\/index\\/nodefaasv3\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/679790b320b708335a3ec4cd39ac1d8313d93dff/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "before": {
+        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/dsp\\/profile\\/index\\/nodefaasv3\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "change_type": "action_changed",
+      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "aoomee": "scored"
+      },
+      "source_scores": {
+        "aoomee": 100
+      },
+      "sources": [
+        "aoomee"
+      ]
+    },
+    {
+      "after": {
+        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_bff\\/hotword\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/679790b320b708335a3ec4cd39ac1d8313d93dff/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "before": {
+        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_bff\\/hotword\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "change_type": "action_changed",
+      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "aoomee": "scored"
+      },
+      "source_scores": {
+        "aoomee": 100
+      },
+      "sources": [
+        "aoomee"
+      ]
+    },
+    {
+      "after": {
+        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_poi\\/homepage/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/679790b320b708335a3ec4cd39ac1d8313d93dff/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "before": {
+        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_poi\\/homepage/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "change_type": "action_changed",
+      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "aoomee": "scored"
+      },
+      "source_scores": {
+        "aoomee": 100
+      },
+      "sources": [
+        "aoomee"
+      ]
+    },
+    {
+      "after": {
+        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_poi\\/search\\/sp/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/679790b320b708335a3ec4cd39ac1d8313d93dff/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "before": {
+        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_poi\\/search\\/sp/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "change_type": "action_changed",
+      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "aoomee": "scored"
+      },
+      "source_scores": {
+        "aoomee": 100
+      },
+      "sources": [
+        "aoomee"
+      ]
+    },
+    {
+      "after": {
+        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_poi\\/sug/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/679790b320b708335a3ec4cd39ac1d8313d93dff/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "before": {
+        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_poi\\/sug/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "change_type": "action_changed",
+      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "aoomee": "scored"
+      },
+      "source_scores": {
+        "aoomee": 100
+      },
+      "sources": [
+        "aoomee"
+      ]
+    },
+    {
+      "after": {
+        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_poi\\/tips_operation_location/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/679790b320b708335a3ec4cd39ac1d8313d93dff/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "before": {
+        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_poi\\/tips_operation_location/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "change_type": "action_changed",
+      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "aoomee": "scored"
+      },
+      "source_scores": {
+        "aoomee": 100
+      },
+      "sources": [
+        "aoomee"
+      ]
+    },
+    {
+      "after": {
+        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/valueadded\\/alimama\\/splash_screen\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/679790b320b708335a3ec4cd39ac1d8313d93dff/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "before": {
+        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/valueadded\\/alimama\\/splash_screen\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "change_type": "action_changed",
+      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "aoomee": "scored"
+      },
+      "source_scores": {
+        "aoomee": 100
+      },
+      "sources": [
+        "aoomee"
+      ]
+    },
+    {
+      "after": {
+        "line": "response if ${url} ~= /^https:\\/\\/m\\.pinduoduo\\.net\\/mdkd\\/package\\?from_app_scan/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/679790b320b708335a3ec4cd39ac1d8313d93dff/Modules/JavaScript/Kelee/PinDuoDuo_remove_ads/kelee.one_PinDuoDuo_remove_ads.js\") with tag=\"移除扫码取件页面商品推荐及弹窗\", requires_body=true",
+        "section": "script",
+        "sources": [
+          "zmjapp"
+        ]
+      },
+      "before": {
+        "line": "response if ${url} ~= /^https:\\/\\/m\\.pinduoduo\\.net\\/mdkd\\/package\\?from_app_scan/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/Kelee/PinDuoDuo_remove_ads/kelee.one_PinDuoDuo_remove_ads.js\") with tag=\"移除扫码取件页面商品推荐及弹窗\", requires_body=true",
+        "section": "script",
+        "sources": [
+          "zmjapp"
+        ]
+      },
+      "change_type": "action_changed",
+      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "zmjapp": "unavailable"
+      },
+      "source_scores": {
+        "zmjapp": null
+      },
+      "sources": [
+        "zmjapp"
+      ]
+    },
+    {
+      "after": {
+        "line": "response if ${url} ~= /^https:\\/\\/slugger\\.qunar\\.com\\/slugger-proxy\\?(?:[^#]*&)?qrt=(?:p_homeRecommend|qpub_animateSloganView|p_secondScreen_cards|pp_gw_u_myMainCard|pp_gw_u_myHeadInfo|suggestion_operation_app|innovation_popular_recommend|innovation_rankinglist_head|innovation_single_rankinglist|content_api_common_desert_damo_getPostList|content_api_common_feed_open_postList)(?:&[^#]*)?$/ && ${request.method} == \"POST\" && ${response.status} == 200 then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/679790b320b708335a3ec4cd39ac1d8313d93dff/Modules/JavaScript/ccyykk666/qunar_ad/ccyykk666_qunar_ad_filter.js\") with tag=\"去哪儿旅行去广告\", timeout=10, requires_body=true, binary_body_mode=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "before": {
+        "line": "response if ${url} ~= /^https:\\/\\/slugger\\.qunar\\.com\\/slugger-proxy\\?(?:[^#]*&)?qrt=(?:p_homeRecommend|qpub_animateSloganView|p_secondScreen_cards|pp_gw_u_myMainCard|pp_gw_u_myHeadInfo|suggestion_operation_app|innovation_popular_recommend|innovation_rankinglist_head|innovation_single_rankinglist|content_api_common_desert_damo_getPostList|content_api_common_feed_open_postList)(?:&[^#]*)?$/ && ${request.method} == \"POST\" && ${response.status} == 200 then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/ccyykk666/qunar_ad/ccyykk666_qunar_ad_filter.js\") with tag=\"去哪儿旅行去广告\", timeout=10, requires_body=true, binary_body_mode=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "change_type": "action_changed",
+      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "aoomee": "scored"
+      },
+      "source_scores": {
+        "aoomee": 100
+      },
+      "sources": [
+        "aoomee"
+      ]
+    },
+    {
+      "after": {
+        "line": "response if ${url} ~= /^https?:\\/\\/apimobile\\.meituan\\.com\\/aggroup\\/indexTab/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/679790b320b708335a3ec4cd39ac1d8313d93dff/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "before": {
+        "line": "response if ${url} ~= /^https?:\\/\\/apimobile\\.meituan\\.com\\/aggroup\\/indexTab/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "change_type": "action_changed",
+      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "aoomee": "scored"
+      },
+      "source_scores": {
+        "aoomee": 100
+      },
+      "sources": [
+        "aoomee"
+      ]
+    },
+    {
+      "after": {
+        "line": "response if ${url} ~= /^https?:\\/\\/apimobile\\.meituan\\.com\\/group\\/v1\\/deal\\/searchpage\\/defaultword/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/679790b320b708335a3ec4cd39ac1d8313d93dff/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "before": {
+        "line": "response if ${url} ~= /^https?:\\/\\/apimobile\\.meituan\\.com\\/group\\/v1\\/deal\\/searchpage\\/defaultword/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "change_type": "action_changed",
+      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "aoomee": "scored"
+      },
+      "source_scores": {
+        "aoomee": 100
+      },
+      "sources": [
+        "aoomee"
+      ]
+    },
+    {
+      "after": {
+        "line": "response if ${url} ~= /^https?:\\/\\/apimobile\\.meituan\\.com\\/group\\/v1\\/deal\\/searchpage\\/hotword\\/city\\/divide\\/hotrecommend\\//i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/679790b320b708335a3ec4cd39ac1d8313d93dff/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "before": {
+        "line": "response if ${url} ~= /^https?:\\/\\/apimobile\\.meituan\\.com\\/group\\/v1\\/deal\\/searchpage\\/hotword\\/city\\/divide\\/hotrecommend\\//i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "change_type": "action_changed",
+      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "aoomee": "scored"
+      },
+      "source_scores": {
+        "aoomee": 100
+      },
+      "sources": [
+        "aoomee"
+      ]
+    },
+    {
+      "after": {
+        "line": "response if ${url} ~= /^https?:\\/\\/assistify\\.meituan\\.com\\/assistant\\/getAppClientHornConfig/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/679790b320b708335a3ec4cd39ac1d8313d93dff/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "before": {
+        "line": "response if ${url} ~= /^https?:\\/\\/assistify\\.meituan\\.com\\/assistant\\/getAppClientHornConfig/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "change_type": "action_changed",
+      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "aoomee": "scored"
+      },
+      "source_scores": {
+        "aoomee": 100
+      },
+      "sources": [
+        "aoomee"
+      ]
+    },
+    {
+      "after": {
+        "line": "response if ${url} ~= /^https?:\\/\\/feedguess\\.meituan\\.com\\/lycoris\\/scene\\/(gwc_feed1_2265|personalcenter_2154)(\\?|$)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/679790b320b708335a3ec4cd39ac1d8313d93dff/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "before": {
+        "line": "response if ${url} ~= /^https?:\\/\\/feedguess\\.meituan\\.com\\/lycoris\\/scene\\/(gwc_feed1_2265|personalcenter_2154)(\\?|$)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "change_type": "action_changed",
+      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "aoomee": "scored"
+      },
+      "source_scores": {
+        "aoomee": 100
+      },
+      "sources": [
+        "aoomee"
+      ]
+    },
+    {
+      "after": {
+        "line": "response if ${url} ~= /^https?:\\/\\/mop\\.meituan\\.com\\/api\\/entryModule\\/startupPicture/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/679790b320b708335a3ec4cd39ac1d8313d93dff/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "before": {
+        "line": "response if ${url} ~= /^https?:\\/\\/mop\\.meituan\\.com\\/api\\/entryModule\\/startupPicture/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "change_type": "action_changed",
+      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "aoomee": "scored"
+      },
+      "source_scores": {
+        "aoomee": 100
+      },
+      "sources": [
+        "aoomee"
+      ]
+    },
+    {
+      "after": {
+        "line": "response if ${url} ~= /^https?:\\/\\/mop\\.meituan\\.com\\/mop\\/entry\\/shoppingCartEntry/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/679790b320b708335a3ec4cd39ac1d8313d93dff/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "before": {
+        "line": "response if ${url} ~= /^https?:\\/\\/mop\\.meituan\\.com\\/mop\\/entry\\/shoppingCartEntry/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "change_type": "action_changed",
+      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "aoomee": "scored"
+      },
+      "source_scores": {
+        "aoomee": 100
+      },
+      "sources": [
+        "aoomee"
+      ]
+    },
+    {
+      "after": {
+        "line": "response if ${url} ~= /^https?:\\/\\/mt-personalcenter\\.meituan\\.com\\/usercenter\\/display/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/679790b320b708335a3ec4cd39ac1d8313d93dff/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "before": {
+        "line": "response if ${url} ~= /^https?:\\/\\/mt-personalcenter\\.meituan\\.com\\/usercenter\\/display/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/d72a30a461cedce931cadfade77ff842649aaf58/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
         "section": "script",
         "sources": [
           "aoomee"
@@ -404,11 +1406,11 @@
   ],
   "overall_risk": "high",
   "risk_counts": {
-    "high": 11,
+    "high": 43,
     "low": 0,
-    "medium": 3
+    "medium": 6
   },
-  "run_id": "44104453251",
+  "run_id": "44118812830",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -425,21 +1427,21 @@
   "source_health_warnings": [],
   "source_trends_last_30_snapshots": {
     "aoomee": {
-      "action_changed": 96,
+      "action_changed": 129,
       "added": 173,
       "removed": 52,
-      "snapshots_seen": 9
+      "snapshots_seen": 10
     },
     "base": {
       "action_changed": 0,
-      "added": 24,
-      "removed": 141,
+      "added": 25,
+      "removed": 140,
       "snapshots_seen": 15
     },
     "block": {
       "action_changed": 46,
       "added": 75,
-      "removed": 177,
+      "removed": 173,
       "snapshots_seen": 16
     },
     "filter": {
@@ -450,8 +1452,8 @@
     },
     "local_overrides": {
       "action_changed": 0,
-      "added": 103,
-      "removed": 27,
+      "added": 107,
+      "removed": 31,
       "snapshots_seen": 18
     },
     "myblockads": {
@@ -463,21 +1465,47 @@
     "thelong": {
       "action_changed": 0,
       "added": 6,
-      "removed": 41,
-      "snapshots_seen": 6
+      "removed": 43,
+      "snapshots_seen": 7
     },
     "zmjapp": {
-      "action_changed": 4,
+      "action_changed": 6,
       "added": 0,
       "removed": 4,
-      "snapshots_seen": 4
+      "snapshots_seen": 5
     },
     "zmjgen": {
       "action_changed": 0,
       "added": 5,
-      "removed": 5,
-      "snapshots_seen": 3
+      "removed": 1,
+      "snapshots_seen": 2
     }
   },
-  "upstream_revision_changes": []
+  "upstream_revision_changes": [
+    {
+      "current_commit": "679790b320b708335a3ec4cd39ac1d8313d93dff",
+      "previous_commit": "d72a30a461cedce931cadfade77ff842649aaf58",
+      "source": "AlipayAdBlock"
+    },
+    {
+      "current_commit": "679790b320b708335a3ec4cd39ac1d8313d93dff",
+      "previous_commit": "d72a30a461cedce931cadfade77ff842649aaf58",
+      "source": "Amap"
+    },
+    {
+      "current_commit": "679790b320b708335a3ec4cd39ac1d8313d93dff",
+      "previous_commit": "d72a30a461cedce931cadfade77ff842649aaf58",
+      "source": "GuaZiVideoAds"
+    },
+    {
+      "current_commit": "679790b320b708335a3ec4cd39ac1d8313d93dff",
+      "previous_commit": "d72a30a461cedce931cadfade77ff842649aaf58",
+      "source": "aoomee"
+    },
+    {
+      "current_commit": "679790b320b708335a3ec4cd39ac1d8313d93dff",
+      "previous_commit": "d72a30a461cedce931cadfade77ff842649aaf58",
+      "source": "zmjde"
+    }
+  ]
 }
