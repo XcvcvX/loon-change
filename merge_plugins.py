@@ -658,6 +658,9 @@ def split_action(line):
 def action_key(line):
     """规范化旧版/新版拒绝动作别名；不同响应类型和状态码保持不同签名。"""
     _, action = split_action(line)
+    # Loon plugin switches may appear as either enable=name or enable=${name}.
+    # They refer to the same switch and must not create false semantic diffs.
+    action = re.sub(r"\benable\s*=\s*\$\{([^}]+)\}", r"enable=\1", action)
     aliases = {
         'reject': 'reject(404)',
         'reject-200': 'reject(200)',
