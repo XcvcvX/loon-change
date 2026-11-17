@@ -1,53 +1,125 @@
 {
   "average_source_reliability_score": 100.0,
   "blockers": [],
+  "declared_source_migrations": [
+    "aoomee",
+    "zmjde"
+  ],
   "deployment_allowed": true,
   "policy": {
     "action_changes_block_percent_of_previous_section": 10,
     "addition_spike_warning_percent_of_previous_section": 100,
     "automatic_rule_or_mitm_edits": false,
+    "planned_migration_action_changes_exempted_only_for_declared_sources": true,
     "removed_rules_block_percent_of_previous_section": 25,
     "section_output_shrink_block_percent": 30,
     "source_count_drop_block_percent": 60
   },
   "provenance_coverage": {
     "coverage_percent": 100.0,
-    "entries": 7101,
+    "entries": 7263,
     "missing_source": 0
   },
   "safety_notes": [
     "Reliability scores summarize source evidence; they do not prove runtime correctness.",
     "Large destructive diffs are held for review rather than silently published.",
+    "Only action changes attributed to explicitly declared AOOMEE/zmjde source migrations are exempted from the generic 10% action-change hold.",
+    "All additions, removals, output-shrink limits, unrelated-source action changes, and provenance coverage checks remain enforced.",
     "No rule, MITM hostname, priority, or plugin output is modified by this guard."
   ],
   "schema_version": 1,
   "section_changes": {
     "rewrite": {
-      "action_changed": 0,
-      "added": 0,
-      "current_entries": 3226,
-      "net_shrink_percent": 0.0,
+      "action_change_source_pairs": [
+        {
+          "after": [
+            "aoomee"
+          ],
+          "before": [
+            "aoomee"
+          ],
+          "count": 41
+        },
+        {
+          "after": [
+            "block"
+          ],
+          "before": [
+            "block"
+          ],
+          "count": 41
+        },
+        {
+          "after": [
+            "zmjapp"
+          ],
+          "before": [
+            "zmjapp"
+          ],
+          "count": 1
+        }
+      ],
+      "action_changed": 83,
+      "added": 102,
+      "current_entries": 3257,
+      "migration_action_changed_exempted": 41,
+      "net_shrink_percent": -0.961,
+      "non_migration_action_changed": 42,
       "previous_entries": 3226,
-      "removed": 0,
-      "removed_percent": 0.0
+      "removed": 71,
+      "removed_percent": 2.201
     },
     "rule": {
+      "action_change_source_pairs": [],
       "action_changed": 0,
-      "added": 0,
-      "current_entries": 3452,
-      "net_shrink_percent": 0.0,
+      "added": 109,
+      "current_entries": 3553,
+      "migration_action_changed_exempted": 0,
+      "net_shrink_percent": -2.926,
+      "non_migration_action_changed": 0,
       "previous_entries": 3452,
-      "removed": 0,
-      "removed_percent": 0.0
+      "removed": 8,
+      "removed_percent": 0.232
     },
     "script": {
-      "action_changed": 0,
-      "added": 1,
-      "current_entries": 423,
-      "net_shrink_percent": 0.704,
-      "previous_entries": 426,
-      "removed": 4,
-      "removed_percent": 0.939
+      "action_change_source_pairs": [
+        {
+          "after": [
+            "aoomee"
+          ],
+          "before": [
+            "aoomee"
+          ],
+          "count": 12
+        },
+        {
+          "after": [
+            "block"
+          ],
+          "before": [
+            "block"
+          ],
+          "count": 5
+        },
+        {
+          "after": [
+            "zmjapp"
+          ],
+          "before": [
+            "zmjapp"
+          ],
+          "count": 1
+        }
+      ],
+      "action_changed": 18,
+      "added": 89,
+      "current_entries": 453,
+      "migration_action_changed_exempted": 12,
+      "net_shrink_percent": -7.092,
+      "non_migration_action_changed": 6,
+      "previous_entries": 423,
+      "removed": 59,
+      "removed_percent": 13.948
     }
   },
   "source_scores": {
@@ -88,7 +160,7 @@
       "score": 100
     },
     "aoomee": {
-      "current_count": 422,
+      "current_count": 536,
       "evidence": {
         "asset_integrity": "not_applicable",
         "content_volume": "present_rule_lines",

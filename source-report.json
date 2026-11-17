@@ -17,7 +17,7 @@
       "search_poi_detail.jq"
     ],
     "upstream_repository": "https://github.com/ifflagged/Romeo",
-    "upstream_commit": "7804714d4af8a95c5dc47ae0672f3a89afee603d",
+    "upstream_commit": "f056c091074a4c29ad0289d7d31f39d47a4ea3d1",
     "assets": {
       "rucu6_amap.js": {
         "bytes": 23517,
@@ -43,20 +43,116 @@
     "rule_lines": 991
   },
   "aoomee": {
-    "commit": "370a13085514ccca924f43d13c6d3acfa5671dbe",
-    "plugin_files": 27,
-    "rule_lines": 422
+    "commit": "f056c091074a4c29ad0289d7d31f39d47a4ea3d1",
+    "plugin_files": 28,
+    "rule_lines": 536,
+    "upstream_repository": "https://github.com/ifflagged/Romeo",
+    "upstream_commit": "f056c091074a4c29ad0289d7d31f39d47a4ea3d1",
+    "source_mode": "Romeo Modules/Loon + pinned AOOMEE-only local snapshots",
+    "legacy_snapshot_files": [
+      "51cg.plugin",
+      "91porn.plugin",
+      "cmcc.plugin",
+      "huazhu.plugin",
+      "chelaile2.plugin",
+      "qunar-legacy.plugin",
+      "youtube-zh.lpx"
+    ],
+    "romeo_module_paths": [
+      "Modules/Loon/fmz200/12306.lpx",
+      "Modules/Loon/ishowshu/amap.lpx",
+      "Modules/Loon/zirawell/boc.lpx",
+      "Modules/Loon/sooyaaabo/CheLaiLe.lpx",
+      "Modules/Loon/ishowshu/cmbchina.lpx",
+      "Modules/Loon/ishowshu/didi.lpx",
+      "Modules/Loon/ishowshu/github.lpx",
+      "Modules/Loon/ishowshu/goofish.lpx",
+      "Modules/Loon/ishowshu/hupu.lpx",
+      "Modules/Loon/ishowshu/jd.lpx",
+      "Modules/Loon/ishowshu/keep.lpx",
+      "Modules/Loon/ishowshu/leisu.lpx",
+      "Modules/Loon/ZenmoFeiShi/MT.lpx",
+      "Modules/Loon/ishowshu/pdd-filter.lpx",
+      "Modules/Loon/ishowshu/pdd-rewrite.lpx",
+      "Modules/Loon/ishowshu/pupu.lpx",
+      "Modules/Loon/ccyykk666/qunar_ad.lpx",
+      "Modules/Loon/ishowshu/soul.lpx",
+      "Modules/Loon/ishowshu/taobao.lpx",
+      "Modules/Loon/ddgksf2013/UmetripAds.lpx",
+      "Modules/Loon/Maasea/YouTube.Enhance.lpx"
+    ],
+    "compatibility_key": "aoomee (retained only to preserve historical provenance continuity)"
   },
   "zmjde": {
-    "commit": "3e79a9798f1b996f5c05b1a42be5d286890f3f60",
+    "commit": "f056c091074a4c29ad0289d7d31f39d47a4ea3d1",
     "required_plugins": 8,
-    "rule_lines": 766
+    "rule_lines": 766,
+    "upstream_repository": "https://github.com/ifflagged/Romeo",
+    "source_mode": "Romeo Modules/Loon/Kelee/Official; historical zmjde merge priority retained",
+    "app_plugin_paths": [
+      "Modules/Loon/Kelee/Official/DiDi_remove_ads.lpx",
+      "Modules/Loon/Kelee/Official/PinDuoDuo_remove_ads.lpx",
+      "Modules/Loon/Kelee/Official/FleaMarket_remove_ads.lpx",
+      "Modules/Loon/Kelee/Official/Taobao_remove_ads.lpx",
+      "Modules/Loon/Kelee/Official/smzdm_remove_ads.lpx"
+    ],
+    "general_plugin_paths": [
+      "Modules/Loon/Kelee/Official/Block_HTTPDNS.lpx",
+      "Modules/Loon/Kelee/Official/BlockAdvertisers.lpx",
+      "Modules/Loon/Kelee/Official/Remove_ads_by_keli.lpx"
+    ],
+    "runtime_assets": [
+      {
+        "slot": "aoomee_compat",
+        "plugin": "12306.lpx",
+        "kind": "script",
+        "upstream_url": "https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/fmz200/12306/kokoryh_12306.js",
+        "source_path": "Modules/JavaScript/fmz200/12306/kokoryh_12306.js"
+      },
+      {
+        "slot": "aoomee_compat",
+        "plugin": "goofish.lpx",
+        "kind": "script",
+        "upstream_url": "https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/ishowshu/goofish/ishowshu_goofish.js",
+        "source_path": "Modules/JavaScript/ishowshu/goofish/ishowshu_goofish.js"
+      },
+      {
+        "plugin": "PinDuoDuo_remove_ads.lpx",
+        "kind": "script",
+        "upstream_url": "https://kelee.one/Resource/JavaScript/PinDuoDuo/PinDuoDuo_remove_ads.js",
+        "source_path": "Modules/JavaScript/Kelee/PinDuoDuo_remove_ads/kelee.one_PinDuoDuo_remove_ads.js",
+        "slot": "zmjde_compat"
+      },
+      {
+        "plugin": "Taobao_remove_ads.lpx",
+        "kind": "script",
+        "upstream_url": "https://kelee.one/Resource/JavaScript/Taobao/Taobao_remove_ads.js",
+        "source_path": "Modules/JavaScript/Kelee/Taobao_remove_ads/kelee.one_Taobao_remove_ads.js",
+        "slot": "zmjde_compat"
+      },
+      {
+        "plugin": "smzdm_remove_ads.lpx",
+        "kind": "jq",
+        "upstream_url": "https://kelee.one/Resource/JQLang/smzdm/home_smzdm_remove_ads.jq",
+        "source_path": "Modules/JavaScript/Kelee/smzdm_remove_ads/kelee.one_home_smzdm_remove_ads.jq",
+        "slot": "zmjde_compat"
+      }
+    ],
+    "external_runtime_dependencies": [
+      {
+        "referenced_by": "Modules/JavaScript/Kelee/PinDuoDuo_remove_ads/kelee.one_PinDuoDuo_remove_ads.js",
+        "url": "https://kelee.one/Resource/JavaScript/PinDuoDuo/9410-b8806e870a26db7d.js",
+        "reason": "Nested page chunk rewritten by the Pinduoduo response script; no matching standalone asset is present in the Romeo Git tree."
+      }
+    ],
+    "upstream_commit": "f056c091074a4c29ad0289d7d31f39d47a4ea3d1",
+    "compatibility_key": "zmjde (retained only for historical merge/provenance continuity)"
   },
   "GuaZiVideoAds": {
     "bytes": 3448,
     "entries": 6,
     "upstream_repository": "https://github.com/ifflagged/Romeo",
-    "upstream_commit": "7804714d4af8a95c5dc47ae0672f3a89afee603d",
+    "upstream_commit": "f056c091074a4c29ad0289d7d31f39d47a4ea3d1",
     "upstream_path": "Modules/QuantumultX/ddgksf2013/Official/GuaZiVideoAds.conf"
   },
   "AlipayAdBlock": {
@@ -79,7 +175,21 @@
       "m5-zb.amap.com"
     ],
     "upstream_repository": "https://github.com/ifflagged/Romeo",
-    "upstream_commit": "7804714d4af8a95c5dc47ae0672f3a89afee603d",
+    "upstream_commit": "f056c091074a4c29ad0289d7d31f39d47a4ea3d1",
     "upstream_path": "Modules/Loon/zirawell/Beta/alipayAdBlock.lpx"
+  },
+  "source_migrations": {
+    "aoomee": {
+      "status": "planned",
+      "from": "https://github.com/aoomee/Loon-Adblock-Plugins",
+      "to": "https://github.com/ifflagged/Romeo",
+      "scope": "AOOMEE plugin compatibility slot and its runtime assets"
+    },
+    "zmjde": {
+      "status": "planned",
+      "from": "https://github.com/zmjde/loon-plugins",
+      "to": "https://github.com/ifflagged/Romeo",
+      "scope": "zmjde App/general plugin compatibility slots and runtime assets"
+    }
   }
 }

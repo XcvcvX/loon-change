@@ -58,12 +58,12 @@
 
 | 区块 | 条目数 |
 |---|---:|
-| [Argument] | 90 |
-| [Rule] | 3452 |
-| [Rewrite] | 3226 |
-| [Script] | 423 |
-| [MITM] hostname 条目 | 1496 |
-| 唯一远程脚本 URL | 182 |
+| [Argument] | 102 |
+| [Rule] | 3553 |
+| [Rewrite] | 3257 |
+| [Script] | 453 |
+| [MITM] hostname 条目 | 1494 |
+| 唯一远程脚本 URL | 191 |
 <!-- AUTO_PLUGIN_STATS:END -->
 
 ## 自动更新
