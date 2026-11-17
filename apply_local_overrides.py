@@ -4228,6 +4228,156 @@ def narrow_xiaohongshu_v3_video_native_duplicates(lines):
     return result, changed
 
 
+# The stateful FMZ v4 handler already caches H.265/H.264 streams and serves
+# v10/note/video/save. Keep that cache path, move the ad filter into the same
+# script, and avoid a second native JSON parse of the same v4 response.
+XHS_RSTORE_COMMENT_TRIGGER = next(
+    line for line in XHS_SCRIPT_TRIGGER_LINES
+    if line.startswith("http-response ") and "tag=XIAOHONGSHU-10," in line
+)
+XHS_RSTORE_COMMENT_TRIGGER_NARROWED = XHS_RSTORE_COMMENT_TRIGGER.replace(
+    r"v\\d+\\/note\\/comment\\/(?:list|sub_comments)",
+    r"(?:v(?:[124-9]|[1-9][0-9]+)\\/note\\/comment\\/(?:list|sub_comments)|v3\\/note\\/comment\\/list|v5\\/note\\/comment\\/sub_comments)",
+)
+XHS_FMZ_V4_TRIGGER = next(
+    line for line in XHS_SCRIPT_TRIGGER_LINES
+    if line.startswith("response if")
+    and "v4/note/videofeed" in re.sub(r"\\+", "", line)
+    and "v10/note/video/save" in re.sub(r"\\+", "", line)
+)
+XHS_FMZ_V4_LOCAL_TRIGGER = (
+    XHS_FMZ_V4_TRIGGER
+    .replace(
+        "https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js",
+        "https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu-v4.js",
+    )
+    .replace('tag="小红书图片视频水印"', 'tag="小红书视频缓存与下载"')
+)
+XHS_FMZ_COMMENT_LIST_TRIGGER = next(
+    line for line in XHS_SCRIPT_TRIGGER_LINES
+    if line.startswith("response if")
+    and "v5/note/comment/list" in re.sub(r"\\+", "", line)
+    and "v3/note/comment/sub_comments" in re.sub(r"\\+", "", line)
+)
+
+
+def migrate_xiaohongshu_v4_and_comment_processing(lines):
+    """Keep stateful cache/download scripts and remove only proven duplicate JSON passes."""
+    original = list(lines)
+    section = ""
+    script_lines, rewrite_lines = [], []
+    for line in original:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+            continue
+        if section == "Script":
+            script_lines.append(stripped)
+        elif section == "Rewrite":
+            rewrite_lines.append(stripped)
+
+    fmz_v4 = [
+        line for line in script_lines
+        if "v4/note/videofeed" in re.sub(r"\\+", "", line)
+        and "v10/note/video/save" in re.sub(r"\\+", "", line)
+    ]
+    if len(fmz_v4) > 1:
+        raise ValueError("Xiaohongshu FMZ v4 cache trigger duplicated")
+
+    rstore_comment = [
+        line for line in script_lines if "tag=XIAOHONGSHU-10," in line
+    ]
+    if len(rstore_comment) > 1:
+        raise ValueError("Xiaohongshu R-Store comment trigger duplicated")
+
+    fmz_comment = [
+        line for line in script_lines
+        if "v5/note/comment/list" in re.sub(r"\\+", "", line)
+        and "v3/note/comment/sub_comments" in re.sub(r"\\+", "", line)
+    ]
+    if len(fmz_comment) > 1:
+        raise ValueError("Xiaohongshu FMZ comment trigger duplicated")
+
+    replacements = {}
+    remove_rewrites = set()
+
+    if fmz_v4:
+        current = fmz_v4[0]
+        if current == XHS_FMZ_V4_TRIGGER:
+            v4_native = [
+                line for line in rewrite_lines
+                if "/api/sns/v4/note/videofeed" in re.sub(r"\\+", "", line)
+                and "response-body-json-jq" in line
+            ]
+            if len(v4_native) != 1:
+                raise ValueError("Xiaohongshu v4 native filter missing or duplicated")
+            normalized = re.sub(r"\\+", "", v4_native[0])
+            required = ("function_switch", "disable_save", "disable_watermark", "video_download", 'has("ad")')
+            missing = [marker for marker in required if marker not in normalized]
+            if missing:
+                raise ValueError("Xiaohongshu v4 native behavior changed; refusing script migration: " + ", ".join(missing))
+            replacements[current] = XHS_FMZ_V4_LOCAL_TRIGGER
+            remove_rewrites.add(v4_native[0])
+        elif current == XHS_FMZ_V4_LOCAL_TRIGGER:
+            if any(
+                "/api/sns/v4/note/videofeed" in re.sub(r"\\+", "", line)
+                and "response-body-json-jq" in line
+                for line in rewrite_lines
+            ):
+                raise ValueError("Xiaohongshu v4 local script and native JSON filter still overlap")
+        else:
+            raise ValueError("Xiaohongshu FMZ v4 trigger changed; refusing cache migration")
+
+    if rstore_comment:
+        current = rstore_comment[0]
+        if current not in (XHS_RSTORE_COMMENT_TRIGGER, XHS_RSTORE_COMMENT_TRIGGER_NARROWED):
+            raise ValueError("Xiaohongshu R-Store comment trigger changed; refusing version narrowing")
+        if not fmz_comment or fmz_comment[0] != XHS_FMZ_COMMENT_LIST_TRIGGER:
+            raise ValueError("Xiaohongshu FMZ comment-version coverage missing; refusing R-Store narrowing")
+        replacements[current] = XHS_RSTORE_COMMENT_TRIGGER_NARROWED
+
+    comment_native = [
+        line for line in rewrite_lines
+        if "/note/comment/list" in re.sub(r"\\+", "", line)
+        and "response-body-json-jq" in line
+        and "comment_type" in line
+        and "media_source_type" in line
+    ]
+    if comment_native:
+        if len(comment_native) != 1:
+            raise ValueError("Xiaohongshu comment native JSON rule duplicated")
+        if not rstore_comment or not fmz_comment:
+            raise ValueError("Xiaohongshu comment script coverage incomplete; refusing native-rule removal")
+        normalized = re.sub(r"\\+", "", comment_native[0])
+        if "edith.xiaohongshu.com" not in normalized:
+            raise ValueError("Xiaohongshu comment native rule host changed")
+        remove_rewrites.add(comment_native[0])
+
+    if not replacements and not remove_rewrites:
+        return original, 0
+
+    result, section = [], ""
+    changed = 0
+    for line in original:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+            result.append(line)
+            continue
+        if section == "Script" and stripped in replacements:
+            result.append(replacements[stripped])
+            if replacements[stripped] != stripped:
+                changed += 1
+            continue
+        if section == "Rewrite" and stripped in remove_rewrites:
+            changed += 1
+            continue
+        result.append(line)
+    return result, changed
+
+
+
+
 def optimize_xiaohongshu_response_cost(lines):
     """Apply only to the complete reviewed upstream inventory; otherwise preserve source unchanged."""
     original = list(lines)
@@ -5260,6 +5410,7 @@ def apply(text: str) -> str:
     lines, _ = consolidate_zhihu_response_scripts(lines)
     lines, _ = narrow_xiaohongshu_native_response_duplicates(lines)
     lines, _ = narrow_xiaohongshu_v3_video_native_duplicates(lines)
+    lines, _ = migrate_xiaohongshu_v4_and_comment_processing(lines)
     lines, _ = remove_redundant_smzdm_homepage_script_trigger(lines)
     lines, _ = remove_redundant_smzdm_ads_script_triggers(lines)
     lines, _ = migrate_wechat_applet_simple_endpoints(lines)
