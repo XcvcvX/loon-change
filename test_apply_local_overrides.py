@@ -1843,6 +1843,16 @@ class BilibiliNonAdFeatureScopeTests(unittest.TestCase):
         self.assertNotIn(tracker_rule, result)
         self.assertIn("/x/v2/feed/index", "\n".join(result).replace(chr(92), ""))
 
+    def test_allows_upstream_pruning_of_the_playback_replacement_pair(self):
+        from apply_local_overrides import normalize_bilibili_non_ad_feature_overrides
+        old, new = self.replacements[0]
+        fixture = [line for line in self.base if line != old and line != new]
+        result, changed = normalize_bilibili_non_ad_feature_overrides(fixture)
+        self.assertEqual(changed, len(self.remove_rules) + len(self.replacements) - 1)
+        self.assertNotIn(old, result)
+        self.assertNotIn(new, result)
+        self.assertIn("/x/v2/feed/index", "\n".join(result).replace(chr(92), ""))
+
     def test_narrows_playback_mock_without_the_non_ad_playpause_endpoint(self):
         from apply_local_overrides import normalize_bilibili_non_ad_feature_overrides
         old = "response if ${url} ~= /^https:\\/\\/grpc\\.biliapi\\.net\\/bilibili\\.app\\.(view\\.v1\\.View\\/TFInfo|viewunite\\.v1\\.View\\/(PlayPause|ViewEndPage))$/i then response.body.mock(\"text\", \"AAAAAAA=\", 200, true) | response.header.set(\"grpc-status\", \"0\")"
