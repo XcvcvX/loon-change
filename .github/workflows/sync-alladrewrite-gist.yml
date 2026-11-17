@@ -1,0 +1,59 @@
+
+name: Sync allAdRewrite to Secret Gist
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**/allAdRewrite.plugin'
+      - '.github/workflows/sync-alladrewrite-gist.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Find plugin file
+        id: plugin
+        shell: bash
+        run: |
+          mapfile -t files < <(
+            git ls-files | grep -E '(^|/)allAdRewrite\.plugin$' || true
+          )
+
+          if [ "${#files[@]}" -ne 1 ]; then
+            echo "Expected exactly one allAdRewrite.plugin"
+            exit 1
+          fi
+
+          echo "file=${files[0]}" >> "$GITHUB_OUTPUT"
+
+      - name: Sync to Secret Gist
+        env:
+          GIST_ID: ${{ secrets.GIST_ID }}
+          GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
+          PLUGIN_FILE: ${{ steps.plugin.outputs.file }}
+        shell: bash
+        run: |
+          jq -n \
+            --arg filename "allAdRewrite.plugin" \
+            --arg content "$(cat "$PLUGIN_FILE")" \
+            '{files: {($filename): {content: $content}}}' \
+            > payload.json
+
+          curl --fail-with-body -sS -L \
+            -X PATCH \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GIST_TOKEN" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/gists/$GIST_ID \
+            --data-binary @payload.json
+
+          echo "Secret Gist sync completed."
