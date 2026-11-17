@@ -12,14 +12,14 @@
     },
     "script": {
       "action_changed": 0,
-      "added": 11,
-      "removed": 11
+      "added": 2,
+      "removed": 3
     }
   },
   "events": [
     {
       "after": {
-        "line": "response if ${url} ~= /^https?:\\/\\/(?:[\\d\\.]+\\/3f1\\/cards\\.iqiyi\\.com\\/(?:views_home\\/3\\.0\\/qy_home|waterfall\\/3\\.0\\/feed)|access\\.if\\.iqiyi\\.com\\/3f1\\/cards\\.iqiyi\\.com\\/(?:views_category\\/3\\.0\\/category_home|views_home\\/3\\.0\\/qy_home|waterfall\\/3\\.0\\/feed)|cards\\.iqiyi\\.com\\/(?:views_category\\/3\\.0\\/(?:category_home|categorylib_content|film_hybrid)|views_home\\/3\\.0\\/qy_home|waterfall\\/3\\.0\\/feed))\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=${aiqiyi_enable}, tag=\"爱奇艺首页信息流广告\", timeout=60, requires_body=true",
+        "line": "response if ${url} ~= /^https:\\/\\/edith\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/(v5\\/note\\/comment\\/list|v3\\/note\\/comment\\/sub_comments)\\?/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu-v4.js\") with enable=${xhs_enable}, tag=\"小红书评论区本地缓存处理\", timeout=60, requires_body=true",
         "section": "script",
         "sources": [
           "local_overrides"
@@ -43,223 +43,7 @@
     },
     {
       "after": {
-        "line": "response if ${url} ~= /^https?:\\/\\/dc2?\\.bz\\.mgtv\\.com\\/dynamic\\/v\\d\\/channel\\/(index|vrsList)\\/\\w/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js\") with enable=${mhgotv_enable}, tag=\"芒果TV\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "response if ${url} ~= /^https?:\\/\\/dict\\.youdao\\.com\\/(homepage\\/promotion|course\\/tab\\/home|homepage\\/tile)/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/163youdao.js\") with enable=${whyiyzdccidm_enable}, tag=\"网易有道词典\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "response if ${url} ~= /^https?:\\/\\/iqushangwang\\.8quan\\.com\\/index\\.php\\/i\\/index\\/index/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/quda.js\") with enable=${quda_enable}, tag=\"去哒\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "response if ${url} ~= /^https?:\\/\\/me\\.bz\\.mgtv\\.com\\/v\\d\\/module\\/list\\?/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js\") with enable=${mhgotv_enable}, tag=\"芒果TV我的页面\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "response if ${url} ~= /^https?:\\/\\/mob-st\\.bz\\.mgtv\\.com\\/odin\\/c\\d\\/channel\\/index\\?/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js\") with enable=${mhgotv_enable}, tag=\"芒果TV首页信息流\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "response if ${url} ~= /^https?:\\/\\/mobile-thor\\.api\\.mgtv\\.com\\/v\\d\\/vod\\/info\\?/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js\") with enable=${mhgotv_enable}, tag=\"芒果TV播放详情页\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "response if ${url} ~= /^https?:\\/\\/mobile\\.api\\.mgtv\\.com\\/mobile\\/config\\?/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js\") with enable=${mhgotv_enable}, tag=\"芒果TV底部tab\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "response if ${url} ~= /^https?:\\/\\/mobile\\.api\\.mgtv\\.com\\/v\\d+\\/video\\/info\\?/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js\") with enable=${mhgotv_enable}, tag=\"芒果TV播放详情页\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "response if ${url} ~= /^https?:\\/\\/mobileso\\.bz\\.mgtv\\.com\\/mobile\\/recommend\\/v\\d\\?/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js\") with enable=${mhgotv_enable}, tag=\"芒果TV搜索框填充词\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "response if ${url} ~= /^https?:\\/\\/wx\\.mygolbs\\.com\\/WxBusServer\\/ApiData\\.do/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zsgj.js\") with enable=${vhuhgsjn_enable}, tag=\"掌上公交小程序广告\", timeout=60, requires_body=true",
+        "line": "response if ${url} ~= /^https:\\/\\/edith\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/v1\\/interaction\\/comment\\/video\\/download\\?/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu-v4.js\") with enable=${xhs_enable}, tag=\"小红书评论区本地缓存下载\", timeout=60, requires_body=true",
         "section": "script",
         "sources": [
           "local_overrides"
@@ -284,10 +68,10 @@
     {
       "after": null,
       "before": {
-        "line": "response if ${url} ~= /^https?:\\/\\/(?:[\\d\\.]+\\/3f1\\/cards\\.iqiyi\\.com\\/(?:views_home\\/3\\.0\\/qy_home|waterfall\\/3\\.0\\/feed)|access\\.if\\.iqiyi\\.com\\/3f1\\/cards\\.iqiyi\\.com\\/(?:views_category\\/3\\.0\\/category_home|views_home\\/3\\.0\\/qy_home|waterfall\\/3\\.0\\/feed)|cards\\.iqiyi\\.com\\/(?:views_category\\/3\\.0\\/(?:category_home|categorylib_content|film_hybrid)|views_home\\/3\\.0\\/qy_home|waterfall\\/3\\.0\\/feed))\\?/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=aiqiyi_enable, tag=\"爱奇艺首页信息流广告\", timeout=60, requires_body=true",
+        "line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/interaction\\/comment\\/video\\/download\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-11,requires-body=true",
         "section": "script",
         "sources": [
-          "local_overrides"
+          "base"
         ]
       },
       "change_type": "removed",
@@ -296,22 +80,22 @@
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "local_overrides": "unavailable"
+        "base": "unavailable"
       },
       "source_scores": {
-        "local_overrides": null
+        "base": null
       },
       "sources": [
-        "local_overrides"
+        "base"
       ]
     },
     {
       "after": null,
       "before": {
-        "line": "response if ${url} ~= /^https?:\\/\\/dc2?\\.bz\\.mgtv\\.com\\/dynamic\\/v\\d\\/channel\\/(index|vrsList)\\/\\w/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js\") with enable=mhgotv_enable, tag=\"芒果TV\", timeout=60, requires_body=true",
+        "line": "response if ${url} ~= /^https:\\/\\/edith\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/(v5\\/note\\/comment\\/list|v3\\/note\\/comment\\/sub_comments)\\?/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书评论区去水印存储\", timeout=60, requires_body=true",
         "section": "script",
         "sources": [
-          "local_overrides"
+          "block"
         ]
       },
       "change_type": "removed",
@@ -320,22 +104,22 @@
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "local_overrides": "unavailable"
+        "block": "unavailable"
       },
       "source_scores": {
-        "local_overrides": null
+        "block": null
       },
       "sources": [
-        "local_overrides"
+        "block"
       ]
     },
     {
       "after": null,
       "before": {
-        "line": "response if ${url} ~= /^https?:\\/\\/dict\\.youdao\\.com\\/(homepage\\/promotion|course\\/tab\\/home|homepage\\/tile)/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/163youdao.js\") with enable=whyiyzdccidm_enable, tag=\"网易有道词典\", timeout=60, requires_body=true",
+        "line": "response if ${url} ~= /^https:\\/\\/edith\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/v1\\/interaction\\/comment\\/video\\/download\\?/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书评论区去水印下载\", timeout=60, requires_body=true",
         "section": "script",
         "sources": [
-          "local_overrides"
+          "block"
         ]
       },
       "change_type": "removed",
@@ -344,215 +128,23 @@
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "local_overrides": "unavailable"
+        "block": "unavailable"
       },
       "source_scores": {
-        "local_overrides": null
+        "block": null
       },
       "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https?:\\/\\/iqushangwang\\.8quan\\.com\\/index\\.php\\/i\\/index\\/index/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/quda.js\") with enable=quda_enable, tag=\"去哒\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https?:\\/\\/me\\.bz\\.mgtv\\.com\\/v\\d\\/module\\/list\\?/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js\") with enable=mhgotv_enable, tag=\"芒果TV我的页面\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https?:\\/\\/mob-st\\.bz\\.mgtv\\.com\\/odin\\/c\\d\\/channel\\/index\\?/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js\") with enable=mhgotv_enable, tag=\"芒果TV首页信息流\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https?:\\/\\/mobile-thor\\.api\\.mgtv\\.com\\/v\\d\\/vod\\/info\\?/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js\") with enable=mhgotv_enable, tag=\"芒果TV播放详情页\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https?:\\/\\/mobile\\.api\\.mgtv\\.com\\/mobile\\/config\\?/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js\") with enable=mhgotv_enable, tag=\"芒果TV底部tab\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https?:\\/\\/mobile\\.api\\.mgtv\\.com\\/v\\d+\\/video\\/info\\?/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js\") with enable=mhgotv_enable, tag=\"芒果TV播放详情页\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https?:\\/\\/mobileso\\.bz\\.mgtv\\.com\\/mobile\\/recommend\\/v\\d\\?/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js\") with enable=mhgotv_enable, tag=\"芒果TV搜索框填充词\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https?:\\/\\/wx\\.mygolbs\\.com\\/WxBusServer\\/ApiData\\.do/ then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zsgj.js\") with enable=vhuhgsjn_enable, tag=\"掌上公交小程序广告\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
+        "block"
       ]
     }
   ],
   "overall_risk": "high",
   "risk_counts": {
-    "high": 11,
+    "high": 3,
     "low": 0,
-    "medium": 11
+    "medium": 2
   },
-  "run_id": "44119719041",
+  "run_id": "44127073860",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -571,19 +163,19 @@
     "aoomee": {
       "action_changed": 129,
       "added": 173,
-      "removed": 52,
-      "snapshots_seen": 10
+      "removed": 45,
+      "snapshots_seen": 9
     },
     "base": {
       "action_changed": 0,
       "added": 25,
-      "removed": 140,
+      "removed": 138,
       "snapshots_seen": 15
     },
     "block": {
       "action_changed": 46,
       "added": 75,
-      "removed": 173,
+      "removed": 168,
       "snapshots_seen": 16
     },
     "filter": {
@@ -594,7 +186,7 @@
     },
     "local_overrides": {
       "action_changed": 0,
-      "added": 118,
+      "added": 112,
       "removed": 42,
       "snapshots_seen": 19
     },

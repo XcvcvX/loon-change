@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、RuCu6 MyBlockAds、zirawell AlipayAdBlock、Thelongdarkorg、Romeo、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / RuCu6 / Thelongdarkorg / Romeo / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-17 15:55 UTC
+#!merged-at=2026-11-17 16:33 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+RuCu6-MyBlockAds+zirawell-AlipayAdBlock+Thelongdarkorg+Romeo-Loon+AOOMEE-legacy-snapshots+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -7025,7 +7025,6 @@ http-response ^https?:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/(?:v(?:
 http-response ^https?:\/\/www\.xiaohongshu\.com\/api\/sns\/v\d+\/(?:followfeed|homefeed)\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-8,requires-body=true
 http-response ^https?:\/\/edith\.xiaohongshu\.com\/api\/sns\/v\d+\/recommend\/user\/follow_recommend\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-9,requires-body=true
 http-response ^https?:\/\/edith\.xiaohongshu\.com\/api\/sns\/(?:v(?:[1246-9]|[1-9][0-9]+)\/note\/comment\/(?:list|sub_comments)|v3\/note\/comment\/list|v5\/note\/comment\/sub_comments)\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-10,requires-body=true
-http-response ^https?:\/\/edith\.xiaohongshu\.com\/api\/sns\/v\d+\/interaction\/comment\/video\/download\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-11,requires-body=true
 http-response ^https?:\/\/api\.xiaoheihe\.cn\/bbs\/app\/feeds\/news script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaoheihe.js,tag=XIAOHEIHE,requires-body=true
 http-response ^https?:\/\/mgesq\.api\.mgtv\.com\/dsl\/index\.+ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xmgtv.js,tag=XMGTV,requires-body=true
 http-response ^https?:\/\/api\.boohee\.com\/meta-interface\/v\d\/index\/plaza-flow\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/boohee.js,tag=BOOHEE,requires-body=true
@@ -7258,8 +7257,8 @@ response if ${url} ~= /^https?:\/\/(edith|rec|www)\.(xiaohongshu|rnote)\.com\/ap
 response if ${url} ~= /^https?:\/\/(edith|rec|www)\.(xiaohongshu|rnote)\.com\/api\/sns\/v\d+\/(followfeed|homefeed)\?/i then script("https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js") with enable=${xhs_enable}, tag="小红书图片视频水印", timeout=60, requires_body=true
 response if ${url} ~= /^https?:\/\/(?:(?:edith|rec|www)\.(?:xiaohongshu|rnote)\.com\/api\/sns\/v2\/note\/feed\?|(?:edith|rec|www)\.rnote\.com\/api\/sns\/v3\/note\/videofeed\?)/i then script("https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js") with enable=${xhs_enable}, tag="小红书图片视频水印", timeout=60, requires_body=true
 response if ${url} ~= /^https?:\/\/(edith|rec|www)\.(xiaohongshu|rnote)\.com\/api\/sns\/(v4\/note\/videofeed|v10\/note\/video\/save)\?/i then script("https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu-v4.js") with enable=${xhs_enable}, tag="小红书视频缓存与下载", timeout=60, requires_body=true
-response if ${url} ~= /^https:\/\/edith\.(xiaohongshu|rnote)\.com\/api\/sns\/(v5\/note\/comment\/list|v3\/note\/comment\/sub_comments)\?/i then script("https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js") with enable=${xhs_enable}, tag="小红书评论区去水印存储", timeout=60, requires_body=true
-response if ${url} ~= /^https:\/\/edith\.(xiaohongshu|rnote)\.com\/api\/sns\/v1\/interaction\/comment\/video\/download\?/i then script("https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js") with enable=${xhs_enable}, tag="小红书评论区去水印下载", timeout=60, requires_body=true
+response if ${url} ~= /^https:\/\/edith\.(xiaohongshu|rnote)\.com\/api\/sns\/(v5\/note\/comment\/list|v3\/note\/comment\/sub_comments)\?/i then script("https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu-v4.js") with enable=${xhs_enable}, tag="小红书评论区本地缓存处理", timeout=60, requires_body=true
+response if ${url} ~= /^https:\/\/edith\.(xiaohongshu|rnote)\.com\/api\/sns\/v1\/interaction\/comment\/video\/download\?/i then script("https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu-v4.js") with enable=${xhs_enable}, tag="小红书评论区本地缓存下载", timeout=60, requires_body=true
 response if ${url} ~= /https:\/\/mgesq.api.mgtv.com\/dsl\/index.+/i then script("https://raw.githubusercontent.com/Sliverkiss/QuantumultX/main/AdBlock/xmApp/xmApp.js") with enable=${xnmh_enable}, tag="小芒APP主页广告", timeout=60, requires_body=true
 response if ${url} ~= /^https?:\/\/api\.m\.mi\.com\/v1\/app\/start/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/myBlockAds.js") with enable=${xnmiuhig_enable}, tag="小米商城", timeout=60, requires_body=true
 response if ${url} ~= /^https?:\/\/mapi\.xiaotucc\.com\/(mall\/main|main_page\/index\/getActivity)/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/xiaotucc.js") with enable=${xntuisis_enable}, tag="小兔充充", timeout=60, requires_body=true

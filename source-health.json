@@ -17,7 +17,7 @@
   },
   "provenance_coverage": {
     "coverage_percent": 100.0,
-    "entries": 7251,
+    "entries": 7250,
     "missing_source": 0
   },
   "safety_notes": [
@@ -56,14 +56,14 @@
     "script": {
       "action_change_source_pairs": [],
       "action_changed": 0,
-      "added": 11,
-      "current_entries": 443,
+      "added": 2,
+      "current_entries": 442,
       "migration_action_changed_exempted": 0,
-      "net_shrink_percent": 0.0,
+      "net_shrink_percent": 0.226,
       "non_migration_action_changed": 0,
       "previous_entries": 443,
-      "removed": 11,
-      "removed_percent": 2.483
+      "removed": 3,
+      "removed_percent": 0.677
     }
   },
   "source_scores": {
