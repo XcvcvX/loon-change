@@ -7,6 +7,8 @@ import json
 import re
 from collections import defaultdict
 
+from rule_semantics import normalize_enable_switches
+
 
 def load_report(path):
     with open(path, encoding="utf-8") as handle:
@@ -25,7 +27,7 @@ def _rewrite_identity(record):
     try:
         key = ast.literal_eval(record.get("canonical_key", ""))
         if isinstance(key, tuple) and len(key) == 3:
-            return (key[0], key[1]), repr(key[2])
+            return (key[0], key[1]), normalize_enable_switches(repr(key[2]))
     except (ValueError, SyntaxError, TypeError):
         pass
     # Unknown canonical formats are compared exactly, never guessed semantically.
