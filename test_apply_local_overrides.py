@@ -824,6 +824,23 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         script = result[result.index("[Script]") + 1:result.index("[MITM]")]
         self.assertEqual(list(script), list(GOOFISH_CANONICAL_SCRIPT_TRIGGERS))
 
+    def test_removes_current_romeo_hosted_goofish_duplicate_trigger(self):
+        from apply_local_overrides import (
+            GOOFISH_CANONICAL_SCRIPT_TRIGGERS,
+            GOOFISH_REDUNDANT_SCRIPT_TRIGGERS,
+            consolidate_goofish_script_triggers,
+        )
+        romeo_trigger = next(
+            item for item in GOOFISH_REDUNDANT_SCRIPT_TRIGGERS
+            if "ifflagged/Romeo/raw/main/Modules/JavaScript/ishowshu/goofish/" in item
+        )
+        fixture = ["[Script]", *GOOFISH_CANONICAL_SCRIPT_TRIGGERS, romeo_trigger, "[MITM]"]
+        result, removed = consolidate_goofish_script_triggers(fixture)
+        self.assertEqual(removed, 1)
+        script = result[result.index("[Script]") + 1:result.index("[MITM]")]
+        self.assertEqual(list(script), list(GOOFISH_CANONICAL_SCRIPT_TRIGGERS))
+        self.assertEqual(consolidate_goofish_script_triggers(result)[1], 0)
+
     def test_normalizes_repository_relative_goofish_script_paths(self):
         from apply_local_overrides import (
             GOOFISH_CANONICAL_SCRIPT_TRIGGERS, consolidate_goofish_script_triggers,
