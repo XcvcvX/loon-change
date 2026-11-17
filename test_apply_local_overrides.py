@@ -4010,8 +4010,16 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
             r'then script("https://raw.githubusercontent.com/kokoryh/Sparkle/refs/heads/master/dist/bilibili.json.js") with tag="bilibili.live", requires_body=true'
         )
         account_trigger = (
-            r"http-response ^https?:\/\/app\.bilibili\.com\/x\/v\d\/account\/(?:mine(\/ipad)?|myinfo)\? "
+            r"http-response ^https:\/\/app\.bilibili\.com\/x\/v\d\/account\/(?:mine(\/ipad)?|myinfo)\? "
             r"script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-12,requires-body=true"
+        )
+        pgc_trigger = (
+            r"http-response ^https:\/\/api\.bilibili\.com\/pgc\/page\/(?:bangumi|cinema\/tab\?) "
+            r"script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-7,requires-body=true"
+        )
+        skin_trigger = (
+            r"http-response ^https:\/\/app\.bilibili\.com\/x\/resource\/show\/skin\? "
+            r"script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-13,requires-body=true"
         )
         fixture = ["[Rewrite]"]
         fixture.extend(BILIBILI_NATIVE_PREREQUISITE_MARKERS)
@@ -4019,7 +4027,7 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
         fixture.append("[Script]")
         fixture.append(fmz_live)
         fixture.extend(original for _, original, _ in BILIBILI_JSON_TRIGGER_PAIRS)
-        fixture.extend([account_trigger, "[MITM]", "hostname = api.live.bilibili.com, app.bilibili.com"])
+        fixture.extend([pgc_trigger, account_trigger, skin_trigger, "[MITM]", "hostname = api.live.bilibili.com, app.bilibili.com"])
         result, changed = optimize_bilibili_json_native_coverage(fixture)
         self.assertEqual(changed, 7)
         for _, original, narrowed in BILIBILI_JSON_TRIGGER_PAIRS:
@@ -4049,10 +4057,23 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
             r'response if ${url} ~= /^https?:\/\/api\.live\.bilibili\.com\/xlive\/(app-interface\/v2\/index\/feed|app-room\/v1\/index\/getInfoBy(Room|User))\?/i '
             r'then script("https://raw.githubusercontent.com/kokoryh/Sparkle/refs/heads/master/dist/bilibili.json.js") with tag="bilibili.live", requires_body=true'
         )
+        pgc_trigger = (
+            r"http-response ^https:\/\/api\.bilibili\.com\/pgc\/page\/(?:bangumi|cinema\/tab\?) "
+            r"script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-7,requires-body=true"
+        )
+        account_trigger = (
+            r"http-response ^https:\/\/app\.bilibili\.com\/x\/v\d\/account\/(?:mine(\/ipad)?|myinfo)\? "
+            r"script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-12,requires-body=true"
+        )
+        skin_trigger = (
+            r"http-response ^https:\/\/app\.bilibili\.com\/x\/resource\/show\/skin\? "
+            r"script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-13,requires-body=true"
+        )
         fixture = ["[Rewrite]", *BILIBILI_NATIVE_PREREQUISITE_MARKERS,
                    *(old for old, _ in BILIBILI_NATIVE_RULE_REPLACEMENTS),
                    "[Script]", fmz_live,
-                   *(old for _, old, _ in BILIBILI_JSON_TRIGGER_PAIRS), "[MITM]"]
+                   *(old for _, old, _ in BILIBILI_JSON_TRIGGER_PAIRS),
+                   pgc_trigger, account_trigger, skin_trigger, "[MITM]"]
         changed_trigger = BILIBILI_JSON_TRIGGER_PAIRS[0][1].replace("tag=BAICIZHAN-8", "tag=BAICIZHAN-8-NEW")
         drifted = [changed_trigger if line == BILIBILI_JSON_TRIGGER_PAIRS[0][1] else line for line in fixture]
         with self.assertRaisesRegex(ValueError, "trigger variant changed"):
