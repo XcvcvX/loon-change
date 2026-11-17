@@ -841,6 +841,27 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertEqual(list(script), list(GOOFISH_CANONICAL_SCRIPT_TRIGGERS))
         self.assertEqual(consolidate_goofish_script_triggers(result)[1], 0)
 
+    def test_removes_commit_pinned_romeo_goofish_script_duplicate(self):
+        from apply_local_overrides import (
+            GOOFISH_CANONICAL_SCRIPT_TRIGGERS,
+            GOOFISH_REDUNDANT_SCRIPT_TRIGGERS,
+            consolidate_goofish_script_triggers,
+        )
+        source = next(
+            item for item in GOOFISH_REDUNDANT_SCRIPT_TRIGGERS
+            if "ifflagged/Romeo/raw/main/Modules/JavaScript/ishowshu/goofish/" in item
+        )
+        pinned = source.replace(
+            "https://github.com/ifflagged/Romeo/raw/main/",
+            "https://raw.githubusercontent.com/ifflagged/Romeo/" + "b" * 40 + "/",
+        )
+        fixture = ["[Script]", *GOOFISH_CANONICAL_SCRIPT_TRIGGERS, pinned, "[MITM]"]
+        result, removed = consolidate_goofish_script_triggers(fixture)
+        self.assertEqual(removed, 1)
+        script = result[result.index("[Script]") + 1:result.index("[MITM]")]
+        self.assertEqual(list(script), list(GOOFISH_CANONICAL_SCRIPT_TRIGGERS))
+        self.assertEqual(consolidate_goofish_script_triggers(result)[1], 0)
+
     def test_normalizes_repository_relative_goofish_script_paths(self):
         from apply_local_overrides import (
             GOOFISH_CANONICAL_SCRIPT_TRIGGERS, consolidate_goofish_script_triggers,
