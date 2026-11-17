@@ -4136,8 +4136,8 @@ def narrow_xiaohongshu_v3_video_native_duplicates(lines):
     has_rstore_target = any("tag=XIAOHONGSHU-7," in line for line in script_lines)
     has_fmz_target = any(
         'tag="小红书图片视频水印"' in line
-        and ("/v2/note/feed" in re.sub(r"\\+", "", line)
-             or "/v3/note/videofeed" in re.sub(r"\\+", "", line))
+        and ("v2/note/feed" in re.sub(r"\\+", "", line)
+             or "v3/note/videofeed" in re.sub(r"\\+", "", line))
         for line in script_lines
     )
     if not has_rstore_target and not has_fmz_target:
@@ -4152,8 +4152,8 @@ def narrow_xiaohongshu_v3_video_native_duplicates(lines):
         (line for line in XHS_SCRIPT_TRIGGER_LINES
          if line.startswith("response if")
          and 'tag="小红书图片视频水印"' in line
-         and "/v2/note/feed" in re.sub(r"\\+", "", line)
-         and "/v3/note/videofeed" in re.sub(r"\\+", "", line)),
+         and "v2/note/feed" in re.sub(r"\\+", "", line)
+         and "v3/note/videofeed" in re.sub(r"\\+", "", line)),
         None,
     )
     if rstore_expected is None or fmz_expected is None:
@@ -4163,8 +4163,8 @@ def narrow_xiaohongshu_v3_video_native_duplicates(lines):
     fmz_matches = [
         line for line in script_lines
         if 'tag="小红书图片视频水印"' in line
-        and ("/v2/note/feed" in re.sub(r"\\+", "", line)
-             or "/v3/note/videofeed" in re.sub(r"\\+", "", line))
+        and ("v2/note/feed" in re.sub(r"\\+", "", line)
+             or "v3/note/videofeed" in re.sub(r"\\+", "", line))
     ]
     if has_rstore_target:
         if rstore_expected is None or len(rstore_matches) != 1:
