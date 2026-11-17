@@ -837,12 +837,17 @@ def remove_redundant_xianyu_rewrite_rules(lines):
 # 两个脚本在该分支的过滤字段与保留条件一致；保留 R-Store 触发器。
 DIDI_USERCENTER_CANONICAL_TRIGGER = r"http-response ^https?:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v\\d\\/usercenter\\/me script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI-3,requires-body=true"
 DIDI_USERCENTER_REDUNDANT_TRIGGER = r'response if ${url} ~= /^https?:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v\\d\\/usercenter\\/me/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js") with enable=didiiuxk_enable, tag="滴滴出行", timeout=60, requires_body=true'
+DIDI_USERCENTER_REDUNDANT_TRIGGER_CURRENT = r'response if ${url} ~= /^https?:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v\\d\\/usercenter\\/me/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js") with enable=${didiiuxk_enable}, tag="滴滴出行", timeout=60, requires_body=true'
+DIDI_USERCENTER_REDUNDANT_TRIGGERS = (DIDI_USERCENTER_REDUNDANT_TRIGGER, DIDI_USERCENTER_REDUNDANT_TRIGGER_CURRENT)
 
 
 def remove_redundant_didi_usercenter_script(lines):
-    """Remove only the FMZ duplicate for the exact Didi user-center response endpoint."""
+    """Remove only known FMZ duplicates for the exact Didi user-center endpoint."""
     canonical = re.sub(r"\\+", "", DIDI_USERCENTER_CANONICAL_TRIGGER.strip())
-    redundant = re.sub(r"\\+", "", DIDI_USERCENTER_REDUNDANT_TRIGGER.strip())
+    redundant_variants = {
+        re.sub(r"\\+", "", trigger.strip())
+        for trigger in DIDI_USERCENTER_REDUNDANT_TRIGGERS
+    }
     output, section = [], ""
     canonical_count = redundant_count = 0
     target_seen = False
@@ -864,7 +869,7 @@ def remove_redundant_didi_usercenter_script(lines):
             canonical_count += 1
             output.append(line)
             continue
-        if normalized == redundant:
+        if normalized in redundant_variants:
             redundant_count += 1
             continue
         raise ValueError("Didi user-center script trigger changed; refusing an unreviewed deduplication")
@@ -875,7 +880,6 @@ def remove_redundant_didi_usercenter_script(lines):
     if redundant_count > 1:
         raise ValueError("duplicate Didi user-center FMZ trigger; refusing ambiguous deduplication")
     return output, redundant_count
-
 
 
 DDQX_NEWDETAILS_MARKER = "maicai.api.ddxq.mobi/homeApi/newDetails"
