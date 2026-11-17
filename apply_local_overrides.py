@@ -4109,7 +4109,7 @@ def narrow_xiaohongshu_native_response_duplicates(lines):
 
 
 XHS_V3_VIDEO_RSTORE_NARROWED_TRIGGER = (
-    r"http-response ^https?:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/(?:v(?:[13-9]|[1-9][0-9]+)\/note\/feed|v(?:[1-9]|1[1-9]|[2-9][0-9]+)\/note\/video\/save) "
+    r"http-response ^https?:\/\/(?:edith|rec|www)\.xiaohongshu\.com\/api\/sns\/(?:v(?:[13-9]|[1-9][0-9]+)\/note\/feed|v(?:[12]|[5-9]|[1-9][0-9]+)\/note\/videofeed|v(?:[1-9]|1[1-9]|[2-9][0-9]+)\/note\/video\/save) "
     r"script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-7,requires-body=true"
 )
 XHS_V3_VIDEO_FMZ_NARROWED_TRIGGER = (
@@ -5067,6 +5067,10 @@ BILIBILI_PROTOBUF_NON_DUPLICATE_TRIGGER = (
     r"http-response ^https?:\/\/(?:app\.bilibili\.com|grpc\.biliapi\.net)\/bilibili\.main\.community\.reply\.v\d\.Reply\/MainList "
     r"script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-5,requires-body=true,binary-body-mode=true"
 )
+BILIBILI_PROTOBUF_MAINLIST_PREVIOUS_NARROWED_TRIGGER = (
+    r"http-response ^https?:\/\/(?:app\.bilibili\.com|grpc\.biliapi\.net)\/bilibili\.main\.community\.reply\.v[2-9]\.Reply\/MainList "
+    r"script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-5,requires-body=true,binary-body-mode=true"
+)
 
 
 def narrow_duplicate_bilibili_protobuf_triggers(lines):
@@ -5100,11 +5104,16 @@ def narrow_duplicate_bilibili_protobuf_triggers(lines):
     normalize_mainlist = lambda value: re.sub(r"\\+", "", value)
     if mainlist_candidates and (
         len(mainlist_candidates) != 1
-        or normalize_mainlist(mainlist_candidates[0]) != normalize_mainlist(BILIBILI_PROTOBUF_NON_DUPLICATE_TRIGGER)
+        or normalize_mainlist(mainlist_candidates[0]) not in (
+            normalize_mainlist(BILIBILI_PROTOBUF_NON_DUPLICATE_TRIGGER),
+            normalize_mainlist(BILIBILI_PROTOBUF_MAINLIST_PREVIOUS_NARROWED_TRIGGER),
+        )
     ):
-        raise ValueError("Bilibili MainList is not covered by Sparkle; refusing version narrowing")
+        raise ValueError("Bilibili MainList trigger variant changed; refusing version restoration")
 
     replacements = {}
+    if mainlist_candidates and normalize_mainlist(mainlist_candidates[0]) == normalize_mainlist(BILIBILI_PROTOBUF_MAINLIST_PREVIOUS_NARROWED_TRIGGER):
+        replacements[mainlist_candidates[0]] = BILIBILI_PROTOBUF_NON_DUPLICATE_TRIGGER
     for marker, original, narrowed in BILIBILI_PROTOBUF_DUPLICATE_PAIRS:
         candidates = [
             line for line in script_lines
