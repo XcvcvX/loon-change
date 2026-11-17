@@ -691,6 +691,7 @@ def consolidate_goofish_script_triggers(lines):
     counts = {item: 0 for item in (*GOOFISH_CANONICAL_SCRIPT_TRIGGERS, *GOOFISH_REDUNDANT_SCRIPT_TRIGGERS)}
     section = ""
     target_seen = False
+    canonical_needs_normalization = False
 
     # Validate the complete inventory before changing anything.
     for line in lines:
@@ -706,6 +707,8 @@ def consolidate_goofish_script_triggers(lines):
         target_seen = True
         if normalized in canonical:
             counts[canonical[normalized]] += 1
+            if line.strip() != canonical[normalized]:
+                canonical_needs_normalization = True
             if counts[canonical[normalized]] > 1:
                 raise ValueError("duplicate canonical Goofish script trigger")
         elif normalized in redundant:
@@ -724,7 +727,7 @@ def consolidate_goofish_script_triggers(lines):
     canonical_absent = all(count == 0 for count in canonical_counts)
     if not canonical_complete and not canonical_absent:
         raise ValueError("Goofish canonical trigger inventory incomplete; refusing partial consolidation")
-    if canonical_complete and redundant_count == 0:
+    if canonical_complete and redundant_count == 0 and not canonical_needs_normalization:
         return lines, 0
     if canonical_absent and redundant_count == 0:
         return lines, 0
