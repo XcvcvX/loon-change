@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Fail-closed validation for downloaded rule sources and cloned repositories."""
+"""Fail-closed validation for downloaded sources and Romeo-staged plugin mappings."""
 import argparse
 import json
 import re
