@@ -400,52 +400,8 @@
   "sections": {
     "rewrite": {
       "action_changed": [],
-      "added": [
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/app\\.bilibili\\.com\\/x\\/v2\\/feed\\/index\\/story\\?/ then response.json.jq(`if .data.items then .data.items |= map(select((has(\"ad_info\") | not) and (.card_goto | IN(\"vertical_ad_av\", \"vertical_live\", \"vertical_pgc\", \"vertical_ad_live\", \"vertical_ad_picture\") | not)) | del(.creative_entrance, .story_cart_icon, .free_flow_toast, .image_infos, .course_info, .game_info)) else . end`)",
-          "section": "rewrite",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/app\\.bilibili\\.com\\/x\\/v2\\/feed\\/index\\?/ then response.json.jq(`if .data.items then .data.items |= map(select((.banner_item == null) and (.ad_info == null) and (.card_goto == \"av\") and (.card_type | IN(\"small_cover_v2\", \"large_cover_single_v9\", \"large_cover_v1\")))) else . end | if (.data.config.toast.has_toast? // false) then .data.config.toast.has_toast = false else . end`)",
-          "section": "rewrite",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/app\\.bilibili\\.com\\/x\\/v2\\/splash\\/(show|event\\/list2)\\?/ then response.json.jq(`if (.data | type) == \"object\" then .data |= (del(.account, .event_list, .preload, .show) | if (.max_time != null and .max_time != false and .max_time != 0 and .max_time != \"\") then .max_time = 0 else . end | if (.min_interval != null and .min_interval != false and .min_interval != 0 and .min_interval != \"\") then .min_interval = 31536000 else . end | if (.pull_interval != null and .pull_interval != false and .pull_interval != 0 and .pull_interval != \"\") then .pull_interval = 31536000 else . end | if (.list | type) == \"array\" and (.list | length) > 0 then .list |= map(.duration = 0 | .enable_pre_download = false | .begin_time = 3818332800 | .end_time = 3818419199) else . end) else . end`)",
-          "section": "rewrite",
-          "sources": [
-            "local_overrides"
-          ]
-        }
-      ],
-      "removed": [
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/app\\.bilibili\\.com\\/x\\/v2\\/feed\\/index\\/story\\?/ then response.json.jq(`if .data.items then .data.items |= map(select((.ad_info == null) and (.card_goto | IN(\"vertical_ad_av\", \"vertical_ad_live\", \"vertical_ad_picture\") | not)) | del(.story_cart_icon, .free_flow_toast, .image_infos, .course_info, .game_info)) end`)",
-          "section": "rewrite",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/app\\.bilibili\\.com\\/x\\/v2\\/feed\\/index\\?/ then response.json.jq(`if .data.items then .data.items |= map(select((.banner_item == null) and (.ad_info == null) and (.card_goto == \"av\") and (.card_type | IN(\"small_cover_v2\", \"large_cover_single_v9\", \"large_cover_v1\")))) end`)",
-          "section": "rewrite",
-          "sources": [
-            "block"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/app\\.bilibili\\.com\\/x\\/v2\\/splash\\/(show|event\\/list2)\\?/ then response.json.jq(`.data |= with_entries(if .key | IN(\"show\", \"event_list\") then .value = [] else . end)`)",
-          "section": "rewrite",
-          "sources": [
-            "block"
-          ]
-        }
-      ]
+      "added": [],
+      "removed": []
     },
     "rule": {
       "action_changed": [],
@@ -454,73 +410,15 @@
     },
     "script": {
       "action_changed": [],
-      "added": [
-        {
-          "line": "http-response ^https?:\\/\\/api\\.live\\.bilibili\\.com\\/xlive\\/app-room\\/v[2-9]\\/index\\/getInfoByRoom\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-8,requires-body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "http-response ^https?:\\/\\/app\\.bilibili\\.com\\/x\\/resource\\/show\\/tab\\/v\\d\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-10,requires-body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "http-response ^https?:\\/\\/app\\.bilibili\\.com\\/x\\/v(?:[13-9]\\/splash\\/(?:brand\\/list|event\\/list2|list|show)|2\\/splash\\/brand\\/list)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-11,requires-body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "http-response ^https?:\\/\\/app\\.bilibili\\.com\\/x\\/v[13-9]\\/(?:feed\\/index(\\/story)?|search\\/square)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-9,requires-body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        }
-      ],
-      "removed": [
-        {
-          "line": "http-response ^https?:\\/\\/api\\.live\\.bilibili\\.com\\/xlive\\/app-room\\/v\\d\\/index\\/getInfoByRoom\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-8,requires-body=true",
-          "section": "script",
-          "sources": [
-            "base"
-          ]
-        },
-        {
-          "line": "http-response ^https?:\\/\\/app\\.bilibili\\.com\\/x\\/resource\\/(?:top\\/activity|show\\/tab\\/v\\d)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-10,requires-body=true",
-          "section": "script",
-          "sources": [
-            "base"
-          ]
-        },
-        {
-          "line": "http-response ^https?:\\/\\/app\\.bilibili\\.com\\/x\\/v\\d\\/(?:feed\\/index(\\/story)?|search\\/square)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-9,requires-body=true",
-          "section": "script",
-          "sources": [
-            "base"
-          ]
-        },
-        {
-          "line": "http-response ^https?:\\/\\/app\\.bilibili\\.com\\/x\\/v\\d\\/splash\\/(?:brand\\/list|event\\/list2|list|show)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-11,requires-body=true",
-          "section": "script",
-          "sources": [
-            "base"
-          ]
-        }
-      ]
+      "added": [],
+      "removed": []
     }
   },
   "summary": {
     "rewrite": {
       "action_changed": 0,
-      "added": 3,
-      "removed": 3
+      "added": 0,
+      "removed": 0
     },
     "rule": {
       "action_changed": 0,
@@ -529,10 +427,10 @@
     },
     "script": {
       "action_changed": 0,
-      "added": 4,
-      "removed": 4
+      "added": 0,
+      "removed": 0
     },
-    "total_changes": 14
+    "total_changes": 0
   },
   "upstream_revision_changes": []
 }

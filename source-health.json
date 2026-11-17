@@ -32,14 +32,14 @@
     "rewrite": {
       "action_change_source_pairs": [],
       "action_changed": 0,
-      "added": 3,
+      "added": 0,
       "current_entries": 3257,
       "migration_action_changed_exempted": 0,
       "net_shrink_percent": 0.0,
       "non_migration_action_changed": 0,
       "previous_entries": 3257,
-      "removed": 3,
-      "removed_percent": 0.092
+      "removed": 0,
+      "removed_percent": 0.0
     },
     "rule": {
       "action_change_source_pairs": [],
@@ -56,14 +56,14 @@
     "script": {
       "action_change_source_pairs": [],
       "action_changed": 0,
-      "added": 4,
+      "added": 0,
       "current_entries": 453,
       "migration_action_changed_exempted": 0,
       "net_shrink_percent": 0.0,
       "non_migration_action_changed": 0,
       "previous_entries": 453,
-      "removed": 4,
-      "removed_percent": 0.883
+      "removed": 0,
+      "removed_percent": 0.0
     }
   },
   "source_scores": {
