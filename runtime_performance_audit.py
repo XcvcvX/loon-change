@@ -10,6 +10,7 @@ from urllib.parse import urlparse
 SECTION_RE = re.compile(r"^\[([^\]]+)\]\s*$")
 SCRIPT_URL_RE = re.compile(r"""(?:script-path\s*=\s*|script\(\s*["'])(https?://[^,\s"')]+)""", re.I)
 SCRIPT_TRIGGER_RE = re.compile(r"^(http-request|http-response|cron|generic)\s+(\S+)", re.I)
+INLINE_SCRIPT_TRIGGER_RE = re.compile(r"^(request|response)\s+if\s+\$\{url\}\s*~=\s*(.+?)\s+then\s+script\(", re.I)
 JSON_PARSE_RE = re.compile(r"\bJSON\.parse\s*\(\s*([^()\n]{1,240}?)\s*\)")
 COMMIT_RE = re.compile(r"/[0-9a-f]{40}(?:/|$)", re.I)
 
@@ -23,6 +24,16 @@ def parse_sections(text):
             sections[current].append((number, raw.strip()))
     return sections
 
+def parse_script_trigger(line):
+    legacy = SCRIPT_TRIGGER_RE.match(line)
+    if legacy:
+        return legacy.group(1).lower(), legacy.group(2)
+    inline = INLINE_SCRIPT_TRIGGER_RE.match(line)
+    if inline:
+        return inline.group(1).lower(), inline.group(2).strip()
+    return None, None
+
+
 def is_mutable_remote_url(url):
     if COMMIT_RE.search(url):
         return False
@@ -34,10 +45,11 @@ def audit_plugin(plugin_path, repo_root="."):
     script_rows = [(n, line) for n, line in sections.get("script", []) if line and not line.startswith("#")]
     trigger_types, response_body = Counter(), []
     trigger_groups, url_usage = defaultdict(list), defaultdict(list)
+    response_pattern_groups = defaultdict(list)
     script_url_count = 0
     for line_no, line in script_rows:
-        trigger = SCRIPT_TRIGGER_RE.match(line)
-        kind = trigger.group(1).lower() if trigger else "unclassified"
+        kind, url_pattern = parse_script_trigger(line)
+        kind = kind or "unclassified"
         trigger_types[kind] += 1
         url_match = SCRIPT_URL_RE.search(line)
         if not url_match:
@@ -45,20 +57,29 @@ def audit_plugin(plugin_path, repo_root="."):
         url = url_match.group(1).rstrip(",")
         script_url_count += 1
         url_usage[url].append({"line": line_no, "trigger": kind})
-        if trigger:
-            trigger_groups[(kind, trigger.group(2), url)].append(line_no)
-        if kind == "http-response":
-            response_body.append({
-                "line": line_no, "url_pattern": trigger.group(2), "script_url": url,
-                "requires_body": bool(re.search(r"\brequires-body\s*=\s*true\b", line, re.I)),
-            })
+        if url_pattern:
+            trigger_groups[(kind, url_pattern, url)].append(line_no)
+        if kind in {"http-response", "response"}:
+            item = {
+                "line": line_no, "trigger_kind": kind, "url_pattern": url_pattern,
+                "script_url": url,
+                "requires_body": bool(re.search(r"\\brequires[-_]body\\s*=\\s*true\\b", line, re.I)),
+            }
+            response_body.append(item)
+            response_pattern_groups[url_pattern].append(item)
     duplicates = [
         {"trigger": key[0], "url_pattern": key[1], "script_url": key[2], "lines": nums}
         for key, nums in sorted(trigger_groups.items()) if len(nums) > 1
     ]
+    cross_script_overlaps = [
+        {"url_pattern": pattern, "script_urls": sorted({x["script_url"] for x in items}),
+         "lines": [x["line"] for x in items]}
+        for pattern, items in sorted(response_pattern_groups.items())
+        if len({x["script_url"] for x in items}) > 1
+    ]
     high_fanout = [
         {"script_url": url, "trigger_count": len(items),
-         "response_count": sum(x["trigger"] == "http-response" for x in items),
+         "response_count": sum(x["trigger"] in {"http-response", "response"} for x in items),
          "lines": [x["line"] for x in items]}
         for url, items in sorted(url_usage.items(), key=lambda item: (-len(item[1]), item[0]))
         if len(items) >= 5
@@ -93,8 +114,13 @@ def audit_plugin(plugin_path, repo_root="."):
     summary = {
         "script_entries": len(script_rows),
         "script_trigger_types": dict(sorted(trigger_types.items())),
-        "http_response_script_triggers": len(response_body),
-        "http_response_requires_body_true": sum(x["requires_body"] for x in response_body),
+        "response_script_triggers": len(response_body),
+        "http_response_script_triggers": sum(x["trigger_kind"] == "http-response" for x in response_body),
+        "inline_response_script_triggers": sum(x["trigger_kind"] == "response" for x in response_body),
+        "response_script_requires_body_true": sum(x["requires_body"] for x in response_body),
+        "http_response_requires_body_true": sum(x["requires_body"] and x["trigger_kind"] == "http-response" for x in response_body),
+        "inline_response_requires_body_true": sum(x["requires_body"] and x["trigger_kind"] == "response" for x in response_body),
+        "duplicate_response_patterns_across_scripts": len(cross_script_overlaps),
         "unique_remote_script_urls": len(url_usage),
         "remote_script_url_references": script_url_count,
         "duplicate_script_trigger_groups": len(duplicates),
@@ -110,13 +136,14 @@ def audit_plugin(plugin_path, repo_root="."):
     return {
         "plugin": str(plugin_path), "summary": summary,
         "response_body_script_triggers": response_body, "duplicate_script_triggers": duplicates,
+        "duplicate_response_patterns_across_scripts": cross_script_overlaps,
         "high_fanout_script_urls": high_fanout, "mutable_branch_remote_urls": mutable,
         "non_github_remote_urls": non_github, "missing_local_repo_assets": missing_local,
         "local_js_json_parse": js_parse,
         "notes": [
             "只读静态审计，不自动删除脚本、requires-body 或远程依赖。",
-            "http-response 且 requires-body=true 表示需要读取响应体；触发次数不等于实际请求次数。",
-            "同一脚本 URL 多个触发器可能是有意覆盖不同接口，不直接判定为重复。",
+            "http-response 与 response if ... then script(...) 都是响应脚本；requires-body=true 表示需要读取响应体，触发次数不等于实际请求次数。",
+            "相同响应 URL pattern 被不同脚本处理会列为跨脚本重叠候选；需确认逻辑等价后再移除。",
             "JSON.parse 统计是静态文本计数；重复表达式是优化候选，需结合脚本控制流确认。",
             "分支型 URL 可能是有意跟随上游更新；固定 commit 的 URL 更可复现，但不自动保证运行性能。",
         ],
@@ -127,9 +154,13 @@ def render_markdown(report):
              "| Metric | Count |", "|---|---:|"]
     lines.extend(f"| {key} | {value} |" for key, value in report["summary"].items())
     lines += ["", "## Response-body script triggers", "",
-              "| Line | URL pattern | Script | requires-body |", "|---:|---|---|---|"]
+              "| Line | Trigger | URL pattern | Script | requires-body |", "|---:|---|---|---|---|"]
     for item in report["response_body_script_triggers"]:
-        lines.append(f"| {item['line']} | {item['url_pattern']} | {item['script_url']} | {item['requires_body']} |")
+        lines.append(f"| {item['line']} | {item['trigger_kind']} | {item['url_pattern']} | {item['script_url']} | {item['requires_body']} |")
+    lines += ["", "## Duplicate response patterns across scripts", "",
+              "| URL pattern | Script URLs | Lines |", "|---|---|---:|"]
+    for item in report["duplicate_response_patterns_across_scripts"]:
+        lines.append(f"| {item['url_pattern']} | {'; '.join(item['script_urls'])} | {', '.join(map(str, item['lines']))} |")
     lines += ["", "## High fan-out script URLs (5+ triggers)", "",
               "| Trigger count | Response count | Script URL |", "|---:|---:|---|"]
     for item in report["high_fanout_script_urls"]:
