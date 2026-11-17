@@ -49,8 +49,8 @@ def _pinned_asset_url(commit: str, source_path: str) -> str:
 def _pin_romeo_references(text: str, romeo_repo: Path, commit: str) -> str:
     """Pin every plugin-level Romeo raw script/JQ URL to the build's commit."""
     patterns = (
-        re.compile(r"https://github\.com/ifflagged/Romeo/raw/(?:refs/heads/)?main/([^\s\"')]+)"),
-        re.compile(r"https://raw\.githubusercontent\.com/ifflagged/Romeo/main/([^\s\"')]+)"),
+        re.compile(r"https://github\.com/ifflagged/Romeo/raw/(?:refs/heads/)?main/([^\s\"'),;]+)"),
+        re.compile(r"https://raw\.githubusercontent\.com/ifflagged/Romeo/main/([^\s\"'),;]+)"),
     )
     for pattern in patterns:
         for match in list(pattern.finditer(text)):
