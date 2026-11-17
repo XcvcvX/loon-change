@@ -4108,6 +4108,108 @@ def narrow_xiaohongshu_native_response_duplicates(lines):
     return result, changed
 
 
+XHS_V3_VIDEO_RSTORE_NARROWED_TRIGGER = (
+    r"http-response ^https?:\\/\\/(?:edith|rec|www)\\.xiaohongshu\\.com\\/api\\/sns\\/(?:v\\d+\\/note\\/(?:imagefeed|feed|(?:live_photo|video)\\/save)|v4\\/note\\/videofeed) "
+    r"script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-7,requires-body=true"
+)
+XHS_V3_VIDEO_FMZ_NARROWED_TRIGGER = (
+    r'response if ${url} ~= /^https?:\\/\\/(?:(?:edith|rec|www)\\.(?:xiaohongshu|rnote)\\.com\\/api\\/sns\\/v2\\/note\\/feed\\?|(?:edith|rec|www)\\.rnote\\.com\\/api\\/sns\\/v3\\/note\\/videofeed\\?)/i '
+    r'then script("https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js") with enable=${xhs_enable}, tag="小红书图片视频水印", timeout=60, requires_body=true'
+)
+
+
+def narrow_xiaohongshu_v3_video_native_duplicates(lines):
+    """Drop only v3 video-feed script passes proven equivalent to native jq."""
+    original = list(lines)
+    section = ""
+    script_lines, rewrite_lines = [], []
+    for line in original:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+            continue
+        if section == "Script":
+            script_lines.append(stripped)
+        elif section == "Rewrite":
+            rewrite_lines.append(stripped)
+
+    rstore_expected = next(
+        (line for line in XHS_SCRIPT_TRIGGER_LINES
+         if line.startswith("http-response ") and "tag=XIAOHONGSHU-7," in line),
+        None,
+    )
+    fmz_expected = next(
+        (line for line in XHS_SCRIPT_TRIGGER_LINES
+         if line.startswith("response if")
+         and 'tag="小红书图片视频水印"' in line
+         and "/v2/note/feed" in re.sub(r"\\+", "", line)
+         and "/v3/note/videofeed" in re.sub(r"\\+", "", line)),
+        None,
+    )
+    if rstore_expected is None or fmz_expected is None:
+        raise ValueError("Xiaohongshu v3 video trigger inventory is incomplete")
+
+    rstore_matches = [line for line in script_lines if "tag=XIAOHONGSHU-7," in line]
+    fmz_matches = [
+        line for line in script_lines
+        if 'tag="小红书图片视频水印"' in line
+        and ("/v2/note/feed" in re.sub(r"\\+", "", line)
+             or "/v3/note/videofeed" in re.sub(r"\\+", "", line))
+    ]
+    if len(rstore_matches) != 1 or len(fmz_matches) != 1:
+        raise ValueError("Xiaohongshu v3 video script trigger inventory changed")
+    if rstore_matches[0] not in (rstore_expected, XHS_V3_VIDEO_RSTORE_NARROWED_TRIGGER):
+        raise ValueError("Xiaohongshu R-Store video-feed trigger changed; refusing narrowing")
+    if fmz_matches[0] not in (fmz_expected, XHS_V3_VIDEO_FMZ_NARROWED_TRIGGER):
+        raise ValueError("Xiaohongshu FMZ video-feed trigger changed; refusing narrowing")
+
+    native_matches = [
+        line for line in rewrite_lines
+        if "response-body-json-jq" in line
+        and "/api/sns/v3/note/videofeed" in re.sub(r"\\+", "", line)
+    ]
+    if len(native_matches) != 1:
+        raise ValueError("Xiaohongshu v3 video native JSON coverage missing or duplicated")
+    normalized_native = re.sub(r"\\+", "", native_matches[0])
+    required = (
+        "xiaohongshu.com",
+        "function_switch",
+        ".disable_save=false",
+        ".disable_watermark=true",
+        ".disable_weibo_cover=true",
+        "video_download",
+    )
+    missing = [marker for marker in required if marker not in normalized_native]
+    if missing:
+        raise ValueError(
+            "Xiaohongshu v3 video native rule no longer covers script behavior: "
+            + ", ".join(missing)
+        )
+
+    replacements = {
+        rstore_expected: XHS_V3_VIDEO_RSTORE_NARROWED_TRIGGER,
+        fmz_expected: XHS_V3_VIDEO_FMZ_NARROWED_TRIGGER,
+    }
+    changed = 0
+    result, section = [], ""
+    for line in original:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+            result.append(line)
+            continue
+        if section == "Script" and stripped in replacements:
+            narrowed = replacements[stripped]
+            if narrowed != stripped:
+                result.append(narrowed)
+                changed += 1
+            else:
+                result.append(line)
+            continue
+        result.append(line)
+    return result, changed
+
+
 def optimize_xiaohongshu_response_cost(lines):
     """Apply only to the complete reviewed upstream inventory; otherwise preserve source unchanged."""
     original = list(lines)
@@ -5122,6 +5224,7 @@ def apply(text: str) -> str:
     lines, _ = optimize_amap_response_script_overlaps(lines)
     lines, _ = consolidate_zhihu_response_scripts(lines)
     lines, _ = narrow_xiaohongshu_native_response_duplicates(lines)
+    lines, _ = narrow_xiaohongshu_v3_video_native_duplicates(lines)
     lines, _ = remove_redundant_smzdm_homepage_script_trigger(lines)
     lines, _ = remove_redundant_smzdm_ads_script_triggers(lines)
     lines, _ = migrate_wechat_applet_simple_endpoints(lines)
