@@ -4236,8 +4236,8 @@ XHS_RSTORE_COMMENT_TRIGGER = next(
     if line.startswith("http-response ") and "tag=XIAOHONGSHU-10," in line
 )
 XHS_RSTORE_COMMENT_TRIGGER_NARROWED = XHS_RSTORE_COMMENT_TRIGGER.replace(
-    r"v\\d+\\/note\\/comment\\/(?:list|sub_comments)",
-    r"(?:v(?:[1246-9]|[1-9][0-9]+)\\/note\\/comment\\/(?:list|sub_comments)|v3\\/note\\/comment\\/list|v5\\/note\\/comment\\/sub_comments)",
+    r"v\d+\/note\/comment\/(?:list|sub_comments)",
+    r"(?:v(?:[1246-9]|[1-9][0-9]+)\/note\/comment\/(?:list|sub_comments)|v3\/note\/comment\/list|v5\/note\/comment\/sub_comments)",
 )
 XHS_FMZ_V4_TRIGGER = next(
     line for line in XHS_SCRIPT_TRIGGER_LINES
