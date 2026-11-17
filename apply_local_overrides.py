@@ -4269,6 +4269,30 @@ XHS_FMZ_COMMENT_LIST_TRIGGER = next(
     and "v5/note/comment/list" in re.sub(r"\\+", "", line)
     and "v3/note/comment/sub_comments" in re.sub(r"\\+", "", line)
 )
+XHS_FMZ_COMMENT_LOCAL_TRIGGER = (
+    XHS_FMZ_COMMENT_LIST_TRIGGER
+    .replace(
+        "https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js",
+        "https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu-v4.js",
+    )
+    .replace('tag="小红书评论区去水印存储"', 'tag="小红书评论区本地缓存处理"')
+)
+XHS_RSTORE_COMMENT_DOWNLOAD_TRIGGER = next(
+    line for line in XHS_SCRIPT_TRIGGER_LINES if "tag=XIAOHONGSHU-11," in line
+)
+XHS_FMZ_COMMENT_DOWNLOAD_TRIGGER = next(
+    line for line in XHS_SCRIPT_TRIGGER_LINES
+    if line.startswith("response if")
+    and "v1/interaction/comment/video/download" in re.sub(r"\\+", "", line)
+)
+XHS_FMZ_COMMENT_DOWNLOAD_LOCAL_TRIGGER = (
+    XHS_FMZ_COMMENT_DOWNLOAD_TRIGGER
+    .replace(
+        "https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js",
+        "https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu-v4.js",
+    )
+    .replace('tag="小红书评论区去水印下载"', 'tag="小红书评论区本地缓存下载"')
+)
 
 
 def normalize_xhs_fmz_trigger(value):
@@ -4312,6 +4336,19 @@ def migrate_xiaohongshu_v4_and_comment_processing(lines):
     if len(fmz_comment) > 1:
         raise ValueError("Xiaohongshu FMZ comment trigger duplicated")
 
+    rstore_comment_download = [
+        line for line in script_lines if "tag=XIAOHONGSHU-11," in line
+    ]
+    if len(rstore_comment_download) > 1:
+        raise ValueError("Xiaohongshu R-Store comment-download trigger duplicated")
+    fmz_comment_download = [
+        line for line in script_lines
+        if "v1/interaction/comment/video/download" in re.sub(r"\\+", "", line)
+        and line.startswith("response if")
+    ]
+    if len(fmz_comment_download) > 1:
+        raise ValueError("Xiaohongshu FMZ comment-download trigger duplicated")
+
     replacements = {}
     remove_rewrites = set()
 
@@ -4349,11 +4386,33 @@ def migrate_xiaohongshu_v4_and_comment_processing(lines):
         else:
             raise ValueError("Xiaohongshu FMZ v4 trigger changed; refusing cache migration")
 
+    if fmz_comment:
+        current = fmz_comment[0]
+        if normalize_xhs_fmz_trigger(current) == normalize_xhs_fmz_trigger(XHS_FMZ_COMMENT_LIST_TRIGGER):
+            replacements[current] = XHS_FMZ_COMMENT_LOCAL_TRIGGER
+        elif normalize_xhs_fmz_trigger(current) != normalize_xhs_fmz_trigger(XHS_FMZ_COMMENT_LOCAL_TRIGGER):
+            raise ValueError("Xiaohongshu FMZ comment trigger changed; refusing local migration")
+
+    if fmz_comment_download:
+        current = fmz_comment_download[0]
+        if normalize_xhs_fmz_trigger(current) == normalize_xhs_fmz_trigger(XHS_FMZ_COMMENT_DOWNLOAD_TRIGGER):
+            replacements[current] = XHS_FMZ_COMMENT_DOWNLOAD_LOCAL_TRIGGER
+        elif normalize_xhs_fmz_trigger(current) != normalize_xhs_fmz_trigger(XHS_FMZ_COMMENT_DOWNLOAD_LOCAL_TRIGGER):
+            raise ValueError("Xiaohongshu FMZ comment-download trigger changed; refusing local migration")
+
+    if rstore_comment_download:
+        current = rstore_comment_download[0]
+        if current != XHS_RSTORE_COMMENT_DOWNLOAD_TRIGGER:
+            raise ValueError("Xiaohongshu R-Store comment-download trigger changed; refusing inert-trigger removal")
+
     if rstore_comment:
         current = rstore_comment[0]
         if current not in (XHS_RSTORE_COMMENT_TRIGGER, XHS_RSTORE_COMMENT_TRIGGER_NARROWED):
             raise ValueError("Xiaohongshu R-Store comment trigger changed; refusing version narrowing")
-        if not fmz_comment or normalize_xhs_fmz_trigger(fmz_comment[0]) != normalize_xhs_fmz_trigger(XHS_FMZ_COMMENT_LIST_TRIGGER):
+        if not fmz_comment or normalize_xhs_fmz_trigger(fmz_comment[0]) not in (
+            normalize_xhs_fmz_trigger(XHS_FMZ_COMMENT_LIST_TRIGGER),
+            normalize_xhs_fmz_trigger(XHS_FMZ_COMMENT_LOCAL_TRIGGER),
+        ):
             raise ValueError("Xiaohongshu FMZ comment-version coverage missing; refusing R-Store narrowing")
         replacements[current] = XHS_RSTORE_COMMENT_TRIGGER_NARROWED
 
@@ -4374,7 +4433,7 @@ def migrate_xiaohongshu_v4_and_comment_processing(lines):
             raise ValueError("Xiaohongshu comment native rule host changed")
         remove_rewrites.add(comment_native[0])
 
-    if not replacements and not remove_rewrites:
+    if not replacements and not remove_rewrites and not rstore_comment_download:
         return original, 0
 
     result, section = [], ""
@@ -4384,6 +4443,9 @@ def migrate_xiaohongshu_v4_and_comment_processing(lines):
         if stripped.startswith("[") and stripped.endswith("]"):
             section = stripped[1:-1]
             result.append(line)
+            continue
+        if section == "Script" and stripped in rstore_comment_download:
+            changed += 1
             continue
         if section == "Script" and stripped in replacements:
             result.append(replacements[stripped])
