@@ -117,7 +117,6 @@ if (url.includes("/note/imagefeed?") || url.includes("/note/feed?")) {
       const cachedImages = JSON.stringify(images_list);
       obj.data[0].note_list[0].images_list = imageEnhance(images_list);
       $.setdata(cachedImages, "fmz200.xiaohongshu.feed.rsp");
-      console.log('已存储无水印信息♻️');
     }
   }
 } 
