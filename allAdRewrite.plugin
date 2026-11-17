@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、RuCu6 MyBlockAds、zirawell AlipayAdBlock、Thelongdarkorg、Romeo、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / RuCu6 / Thelongdarkorg / Romeo / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-17 22:34 UTC
+#!merged-at=2026-11-17 22:39 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+RuCu6-MyBlockAds+zirawell-AlipayAdBlock+Thelongdarkorg+Romeo-Loon+AOOMEE-legacy-snapshots+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -7280,7 +7280,6 @@ response if ${url} ~= /^https?:\/\/app\.zhuanzhuan\.com\/zz\/transfer\/getmyprof
 http-request ^https?:\/\/j5\.dfcfw\.com\/WG\/conf\/ script-path=https://cdn.jsdelivr.net/gh/Thelongdarkorg/loon-plugins@4208a50239b4d6bf3467db401613c918fbba0ae8/scripts/tt_splash_1x1.js, tag=天天基金开屏图替换
 http-request ^https?:\/\/ad\.12306\.cn\/ad\/ser\/getAdList script-path=https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/fmz200/12306/kokoryh_12306.js, requires-body=true, timeout=60, tag=12306, enable={12306_enable}
 response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/c3frontend\/af-(hotel|launch)\/page\/main\?/i then script("https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js") with tag="amap", timeout=60, requires_body=true
-response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/perception\/drive\/(routeInfo|routePlan)/i then script("https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js") with tag="amap", timeout=60, requires_body=true
 response if ${url} ~= /^https:\/\/(?:info\.amap\.com|m5\.amap\.com)\/ws\/shield\/search\/(common\/coupon\/info|poi\/detail)/i then script("https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js") with tag="amap", timeout=60, requires_body=true
 response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/shield\/search_bff\/hotword\?/i then script("https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js") with tag="amap", timeout=60, requires_body=true
 response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/shield\/search_poi\/homepage/i then script("https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js") with tag="amap", timeout=60, requires_body=true

@@ -1,7 +1,7 @@
 {
   "change_counts": {
     "rewrite": {
-      "action_changed": 1,
+      "action_changed": 0,
       "added": 0,
       "removed": 0
     },
@@ -18,39 +18,9 @@
   },
   "events": [
     {
-      "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/bus\\/plan\\/integrate\\?/i then response.json.jq(\"(if (try (.data.banner_lists.data | type) catch null) == \\\"array\\\" then .data.banner_lists.data = [] else . end) | (if (try (.data.banner_lists.tips | type) catch null) == \\\"array\\\" then .data.banner_lists.tips = [] else . end) | (if (try (.data.mixed_plans.data.taxiPlans | type) catch null) == \\\"array\\\" then .data.mixed_plans.data.taxiPlans = [] else . end) | (if (try (.data.mixed_plans.data.hkfRecommendPlans | type) catch null) == \\\"array\\\" then .data.mixed_plans.data.hkfRecommendPlans = [] else . end)\")",
-        "section": "rewrite",
-        "sources": [
-          "amap"
-        ]
-      },
-      "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/bus\\/plan\\/integrate\\?/i then response.json.jq(\"(if (try (.data.banner_lists.data | type) catch null) == \\\"array\\\" then .data.banner_lists.data = [] else . end) | (if (try (.data.banner_lists.tips | type) catch null) == \\\"array\\\" then .data.banner_lists.tips = [] else . end) | (if (try (.data.mixed_plans.data.taxiPlans | type) catch null) == \\\"array\\\" then .data.mixed_plans.data.taxiPlans = [] else . end)\")",
-        "section": "rewrite",
-        "sources": [
-          "amap"
-        ]
-      },
-      "change_type": "action_changed",
-      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
-      "risk": "high",
-      "section": "rewrite",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "amap": "unavailable"
-      },
-      "source_scores": {
-        "amap": null
-      },
-      "sources": [
-        "amap"
-      ]
-    },
-    {
       "after": null,
       "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/bus\\/plan\\/integrate\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/perception\\/drive\\/(routeInfo|routePlan)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
         "section": "script",
         "sources": [
           "aoomee"
@@ -74,11 +44,11 @@
   ],
   "overall_risk": "high",
   "risk_counts": {
-    "high": 2,
+    "high": 1,
     "low": 0,
     "medium": 0
   },
-  "run_id": "44191212938",
+  "run_id": "44192108567",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -103,8 +73,8 @@
     "aoomee": {
       "action_changed": 162,
       "added": 173,
-      "removed": 37,
-      "snapshots_seen": 9
+      "removed": 38,
+      "snapshots_seen": 10
     },
     "base": {
       "action_changed": 0,
@@ -126,9 +96,9 @@
     },
     "local_overrides": {
       "action_changed": 0,
-      "added": 112,
+      "added": 110,
       "removed": 44,
-      "snapshots_seen": 19
+      "snapshots_seen": 18
     },
     "myblockads": {
       "action_changed": 0,
@@ -139,8 +109,8 @@
     "thelong": {
       "action_changed": 0,
       "added": 6,
-      "removed": 26,
-      "snapshots_seen": 5
+      "removed": 22,
+      "snapshots_seen": 4
     },
     "zmjapp": {
       "action_changed": 8,
