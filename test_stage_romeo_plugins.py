@@ -79,6 +79,23 @@ class RomeoPluginMigrationTests(unittest.TestCase):
         )
         self.assertTrue(MANIFEST["external_runtime_dependencies"])
 
+    def test_pins_romeo_urls_without_consuming_rule_delimiters(self):
+        from stage_romeo_plugins import _pin_romeo_references
+        commit = "c" * 40
+        source = (
+            'response if ${url} ~= /example/ then script("'
+            'https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/fmz200/12306/kokoryh_12306.js",'
+            ' tag="12306")'
+        )
+        with patch("stage_romeo_plugins._read_romeo_file", return_value=b"// asset"):
+            result = _pin_romeo_references(source, Path("."), commit)
+        expected = (
+            "https://raw.githubusercontent.com/ifflagged/Romeo/" + commit
+            + "/Modules/JavaScript/fmz200/12306/kokoryh_12306.js"
+        )
+        self.assertIn(expected + ",", result)
+        self.assertNotIn("Romeo/raw/main", result)
+
     def test_stage_builds_both_compatibility_slots_from_one_commit(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
