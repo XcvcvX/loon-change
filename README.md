@@ -848,3 +848,15 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - card-service-plan-home、main-page 两个分支在 iShowshu 与本地 Rucu6 脚本中一致，保留本地脚本并移除重复 iShowshu 入口。
 - 覆盖器只按已核对的主机、路径和脚本来源执行；缺少原生/本地覆盖时保留原触发，重复规范入口或版本正则漂移时 fail-closed。新增回归测试验证触发次数、非 m5 覆盖、公交额外字段保留、幂等和覆盖缺失保护。
 - 不修改高德地图其他搜索、路线、导航、酒店、打车、开屏或搜索详情处理，不扩大任何广告拦截范围；滴滴与百度地图本轮仅复核，不为减少规则数而更改其已验证的独立处理。
+
+## 第八阶段第五十四批：拼多多首页响应清理合并为单次原生 JSON 处理
+
+- 复核发现 PDD 首页 hub 同时存在一个 response body Rewrite 和本地响应脚本。Loon 新版文档明确：命中 Response Body Rewrite 时不会再执行 Response Script，因此原脚本触发器与 native Rewrite 不是两个可叠加处理阶段。
+- 将已合并脚本的字段清理、底部导航交集过滤、缓冲底栏过滤、顶部入口清空和 module_order 广告模块过滤迁移到单条 response.json.jq；用一个 JSON Rewrite 代替原先 delete + jq 两个动作，并移除不会被选中的本地脚本触发器。
+- 通过回归测试检查脚本行为覆盖、单条 jq 动作、原生规则漂移/重复保护、脚本缺失时保留原规则及幂等。商品、搜索、订单、支付、HTTPDNS、开屏和信息流规则不变。
+
+## 第八阶段第五十五批：京东 welcomeHome 合并双脚本并保留开关语义
+
+- 京东主合并脚本与 welcomeHome 可选清理命中同一响应；新版 Loon Response Script 同一响应只选择一条规则，原宽泛主 matcher 会先命中 welcomeHome，后置可选触发器不能独立执行。
+- 将 welcomeHome 从主 matcher 中拆出，仍由同一份 jd.js 处理；通过插件对象参数传入 jkds_enable，基础 R-Store 清理始终执行，额外 FMZ 楼层排除只在开关开启时执行。
+- 同一响应只需一次 JSON.parse / JSON.stringify，不再保留第二个响应脚本入口；订单、支付、购物车、京喜、广告域名规则均不变。
