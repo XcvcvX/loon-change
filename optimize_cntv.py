@@ -56,13 +56,16 @@ def optimize_source(source, commit="unknown"):
 
 
 def rewrite_plugin(plugin):
-    if LOCAL in plugin:
-        if REMOTE in plugin:
-            raise ValueError("mixed local and remote CNTV script URLs")
+    local_count = plugin.count(LOCAL)
+    remote_count = plugin.count(REMOTE)
+    if local_count and remote_count:
+        raise ValueError("mixed local and remote CNTV script URLs")
+    if local_count:
+        if local_count != 26:
+            raise ValueError("CNTV local trigger inventory changed: expected 26, got %d" % local_count)
         return plugin
-    count = plugin.count(REMOTE)
-    if count != 26:
-        raise ValueError("CNTV trigger inventory changed: expected 26, got %d" % count)
+    if remote_count != 26:
+        raise ValueError("CNTV trigger inventory changed: expected 26, got %d" % remote_count)
     result = plugin.replace(REMOTE, LOCAL)
     if REMOTE in result or result.count(LOCAL) != 26:
         raise ValueError("CNTV local trigger migration incomplete")
