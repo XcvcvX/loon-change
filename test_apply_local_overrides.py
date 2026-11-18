@@ -1669,7 +1669,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
 
     def test_preserves_partial_retired_inventory_but_fails_on_trigger_drift(self):
         from apply_local_overrides import consolidate_jingdong_scripts
-        drifted = self.base.replace("tag=JD,requires-body=true", "tag=JD-DRIFT,requires-body=true")
+        drifted = self.base.replace('tag="京东"', 'tag="京东-DRIFT"')
         with self.assertRaisesRegex(ValueError, "Jingdong legacy trigger changed"):
             consolidate_jingdong_scripts(drifted.splitlines())
         missing = self.base.replace(self.fmz + "\n", "")
@@ -1677,7 +1677,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
 
     def test_fails_closed_on_duplicate_or_mixed_jd_triggers(self):
         duplicate = self.base.replace(self.fmz, self.fmz + "\n" + self.fmz)
-        with self.assertRaisesRegex(ValueError, "Jingdong legacy trigger inventory changed"):
+        with self.assertRaisesRegex(ValueError, "Jingdong legacy trigger inventory duplicated"):
             apply(duplicate)
         from apply_local_overrides import JD_CANONICAL_TRIGGER
         mixed = self.base.replace(self.fmz, self.fmz + "\n" + JD_CANONICAL_TRIGGER)
