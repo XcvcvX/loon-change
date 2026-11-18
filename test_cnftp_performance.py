@@ -26,7 +26,7 @@ class CnftpPerformanceTests(unittest.TestCase):
 
     def test_rewrites_exact_cnftp_trigger_inventory_and_is_idempotent(self):
         fixture = "[Script]\n" + "\n".join(
-            'response if \${url} ~= /^https:\\/\\/example\\.com\\/%d/ then script("%s") with requires_body=true' % (i, REMOTE_URL)
+            'response if ${url} ~= /^https:\\/\\/example\\.com\\/%d/ then script("%s") with requires_body=true' % (i, REMOTE_URL)
             for i in range(10)
         ) + "\n[MITM]\nhostname = example.com\n"
         result = rewrite_plugin(fixture)
@@ -35,7 +35,7 @@ class CnftpPerformanceTests(unittest.TestCase):
         self.assertEqual(rewrite_plugin(result), result)
 
     def test_fails_closed_when_cnftp_trigger_count_drifts(self):
-        fixture = "[Script]\n" + 'response if \${url} ~= /^https:\\/\\/example/ then script("%s")' % REMOTE_URL + "\n[MITM]\n"
+        fixture = "[Script]\n" + 'response if ${url} ~= /^https:\\/\\/example/ then script("%s")' % REMOTE_URL + "\n[MITM]\n"
         with self.assertRaisesRegex(ValueError, "trigger inventory changed"):
             rewrite_plugin(fixture)
 
