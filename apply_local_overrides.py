@@ -5734,7 +5734,6 @@ BILIBILI_FMZ_PROTOBUF_REQUIRED_MARKERS = (
     "view(unite)?",
     "community.service.dm.v1.DM/DmView",
     "polymer.app.search.v1.Search/SearchAll",
-    "main.community.reply.v1.Reply/MainList",
 )
 BILIBILI_FMZ_MAINLIST_DUPLICATE_BRANCH = r"|main\.community\.reply\.v1\.Reply\/MainList"
 BILIBILI_PROTOBUF_DUPLICATE_PAIRS = (
@@ -5794,6 +5793,16 @@ def narrow_duplicate_bilibili_protobuf_triggers(lines):
         normalized_fmz = re.sub(r"\\+", "", fmz_candidates[0])
         if not all(marker in normalized_fmz for marker in BILIBILI_FMZ_PROTOBUF_REQUIRED_MARKERS):
             raise ValueError("Bilibili Sparkle protobuf endpoint coverage changed; refusing duplicate cleanup")
+        if (
+            "main.community.reply" in normalized_fmz
+            and "main.community.reply.v1.Reply/MainList" not in normalized_fmz
+        ):
+            raise ValueError("Bilibili Sparkle MainList matcher changed; refusing duplicate cleanup")
+        if (
+            "main.community.reply.v1.Reply/MainList" in normalized_fmz
+            and fmz_candidates[0].count(BILIBILI_FMZ_MAINLIST_DUPLICATE_BRANCH) != 1
+        ):
+            raise ValueError("Bilibili Sparkle MainList escaping changed; refusing duplicate cleanup")
 
     # Only count the R-Store MainList handler here; Sparkle's MainList branch
     # is checked separately below and may be removed only when R-Store covers it.
