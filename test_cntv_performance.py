@@ -53,13 +53,25 @@ class CNTVOptimizerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "expected 26"):
             rewrite_plugin(fixture)
 
+    def test_legacy_response_syntax_is_migrated_without_requiring_http_response_form(self):
+        fixture = [
+            "[Script]",
+            'response if ${url} ~= /^https?:\\/\\/me\\.bz\\.mgtv\\.com\\/v3\\/module\\/list\\?/ then script("' + CNTV_REMOTE_SCRIPT_URL + '") with enable=mhgotv_enable, tag="芒果TV我的页面", timeout=60, requires_body=true',
+            "[MITM]",
+            "hostname = me.bz.mgtv.com",
+        ]
+        lines, changed = migrate_cntv_script_to_local(fixture)
+        self.assertEqual(changed, 1)
+        self.assertIn(CNTV_LOCAL_SCRIPT_URL, "\\n".join(lines))
+        self.assertNotIn(CNTV_REMOTE_SCRIPT_URL, "\\n".join(lines))
+
     def test_partial_trigger_inventory_fails_closed(self):
         fixture = ["[Script]"] + [
             "http-response ^https://cntv.example/api script-path=%s,tag=CNTV,requires-body=true"
             % CNTV_REMOTE_SCRIPT_URL
         ] + ["[MITM]", "hostname = cntv.example"]
         with self.assertRaisesRegex(ValueError, "expected 26"):
-            migrate_cntv_script_to_local(fixture)
+            rewrite_plugin("\\n".join(fixture))
 
 
 @unittest.skipUnless(NODE, "Node.js is required for CNTV response runtime tests")
