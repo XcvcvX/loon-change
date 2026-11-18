@@ -97,7 +97,7 @@ for(let i = 0; i < repHeadMessage.messageHead.length; i++) {
 const body = assembleBaiduResponse(repHeadMessage, repHeadType, newResult, newAds, md5);
 
 if(isQuanX){
-  $done({bodyBytes: body.buffer.slice(body.byteOffset, body.byteLength + body.byteOffset)});
+  $done({bodyBytes: body.buffer});
 } else {
   $done({body});
 }
