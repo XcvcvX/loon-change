@@ -2945,6 +2945,7 @@ def consolidate_wechat_unblock_url_scripts(lines):
     counts = {item: 0 for item in expected}
     output, section, target_seen, removed = [], "", False, 0
     target_lines = []
+    unknown_trigger = False
     for line in lines:
         if line.startswith("[") and line.endswith("]"):
             section = line[1:-1]
@@ -2957,7 +2958,9 @@ def consolidate_wechat_unblock_url_scripts(lines):
             target_lines.append(value)
             trigger = normalized_expected.get(normalized_trigger(value))
             if trigger is None:
-                raise ValueError("WeChat URL-unblock script trigger changed; refusing unreviewed consolidation")
+                unknown_trigger = True
+                output.append(line)
+                continue
             counts[trigger] += 1
             if counts[trigger] > 1:
                 raise ValueError("duplicate WeChat URL-unblock script trigger")
@@ -2979,6 +2982,8 @@ def consolidate_wechat_unblock_url_scripts(lines):
         and "rucu6_wechat.js" not in target_lines[0].lower()
     ):
         return list(lines), 0
+    if unknown_trigger:
+        raise ValueError("WeChat URL-unblock script trigger changed; refusing unreviewed consolidation")
     if (
         counts[WECHAT_UNBLOCK_URL_CANONICAL_TRIGGER] == 1
         and counts[WECHAT_UNBLOCK_URL_REDUNDANT_TRIGGER] == 0
