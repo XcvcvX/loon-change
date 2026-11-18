@@ -13,6 +13,8 @@ class XiaohongshuOptimizerTests(unittest.TestCase):
         self.assertNotIn("imageEnhance(JSON.stringify(images_list))",src)
         self.assertIn("imageEnhance(images_list)",src)
         self.assertIn("const byFileId=new Map()",src)
+        self.assertNotIn("console.log('新body：' + JSON.stringify(obj))",src)
+        self.assertNotIn('console.log("写入缓存val：" + JSON.stringify(commitsRsp))',src)
 
     def test_plugin_rewrites_exact_nine_triggers(self):
         dollar=chr(36)
