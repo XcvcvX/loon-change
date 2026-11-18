@@ -58,6 +58,10 @@
     "hybrid",
     "recommend",
   ];
+  const WELCOME_HOME_EXTRA_EXCLUDE = new Set([
+    "bottomXview", "float", "photoCeiling", "ruleFloat",
+    "searchIcon", "topRotate", "tabBarAtmosphere",
+  ]);
   const CUSTOM_SURFACE_NAME_INCLUDE = ["index", "messagenew", "cart", "home"];
 
   function cleanFloorData(floor) {
@@ -102,13 +106,9 @@
   } else if (url.includes("functionId=welcomeHome")) {
     // Apply R-Store's allowlist first, then FMZ's additional exclusions.
     if (Array.isArray(obj.floorList) && obj.floorList.length > 0) {
-      const extraExclude = welcomeExtraEnabled ? new Set([
-        "bottomXview", "float", "photoCeiling", "ruleFloat",
-        "searchIcon", "topRotate", "tabBarAtmosphere",
-      ]) : null;
       compactInPlace(obj.floorList, item =>
         WELCOME_HOME_TYPE_INCLUDE.includes(item && item.type) &&
-        (!extraExclude || !extraExclude.has(item && item.type))
+        (!welcomeExtraEnabled || !WELCOME_HOME_EXTRA_EXCLUDE.has(item && item.type))
       );
     }
     if (Array.isArray(obj.webViewFloorList) && obj.webViewFloorList.length > 0) {
