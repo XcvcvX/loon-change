@@ -133,6 +133,48 @@ if (saved.data.datas[0].author !== "@fmz200") throw new Error("live-photo author
         completed = subprocess.run([node, "-e", harness, str(source_path)], capture_output=True, text=True)
         self.assertEqual(completed.returncode, 0, msg=completed.stderr or completed.stdout)
 
+    def test_xiaohongshu_image_enhance_skips_unrelated_strings(self):
+        import shutil
+        import subprocess
+        from pathlib import Path
+
+        source = Path(__file__).with_name("scripts").joinpath("xiaohongshu", "xiaohongshu-v4.js").read_text(encoding="utf-8")
+        self.assertIn('if (!value.includes("imageView2/2")) return value;', source)
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node.js is required for the Xiaohongshu runtime integration test")
+        source_path = Path(__file__).with_name("scripts").joinpath("xiaohongshu", "xiaohongshu-v4.js")
+        harness = r'''
+const fs = require("fs");
+const vm = require("vm");
+const source = fs.readFileSync(process.argv[1], "utf8");
+let result;
+const context = {
+  $loon: {},
+  $request: { url: "https://edith.xiaohongshu.com/api/sns/v1/note/imagefeed?test=1" },
+  $response: { body: JSON.stringify({ data: [{ note_list: [{
+    note_text: "ordinary description imageView2 text",
+    images_list: [{
+      url_default: "https://img.example/a.jpg?imageView2/2/w/1080/format/jpg",
+      image_id: "imageView2/2 is an opaque identifier",
+      description: "This ordinary metadata string should remain unchanged"
+    }]
+  }] }] }) },
+  $persistentStore: { read() { return null; }, write() { return true; } },
+  $done(value) { result = value; },
+  console: { log() {} }
+};
+vm.runInNewContext(source, context);
+const body = JSON.parse(result.body);
+const image = body.data[0].note_list[0].images_list[0];
+if (!image.url_default.includes("imageView2/2/w/2160/format")) throw new Error("image URL quality rewrite was lost");
+if (image.description !== "This ordinary metadata string should remain unchanged") throw new Error("unrelated metadata was modified");
+if (image.image_id !== "imageView2/2 is an opaque identifier") throw new Error("non-URL token was modified");
+if (body.data[0].note_list[0].note_text !== "ordinary description imageView2 text") throw new Error("note text was modified");
+'''
+        completed = subprocess.run([node, "-e", harness, str(source_path)], capture_output=True, text=True)
+        self.assertEqual(completed.returncode, 0, msg=completed.stderr or completed.stdout)
+
     def test_same_parse_identifier_in_separate_blocks_is_not_reported_as_duplicate(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
