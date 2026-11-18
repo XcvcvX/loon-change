@@ -412,49 +412,7 @@
       "action_changed": [],
       "added": [
         {
-          "line": "http-response ^https?:\\/\\/api\\.bilibili\\.com\\/pgc\\/page\\/(?:bangumi|cinema\\/tab\\?) script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/bilibili/bilibili-json.js,tag=BAICIZHAN-7,requires-body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "http-response ^https?:\\/\\/api\\.live\\.bilibili\\.com\\/xlive\\/app-room\\/v[2-9]\\/index\\/getInfoByRoom\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/bilibili/bilibili-json.js,tag=BAICIZHAN-8,requires-body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "http-response ^https?:\\/\\/app\\.bilibili\\.com\\/x\\/(?:v(?:[13-9]|[1-9][0-9]+)\\/account\\/mine(\\/ipad)?|v2\\/account\\/mine\\/ipad|v\\d\\/account\\/myinfo)\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/bilibili/bilibili-json.js,tag=BAICIZHAN-12,requires-body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "http-response ^https?:\\/\\/app\\.bilibili\\.com\\/x\\/resource\\/show\\/skin\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/bilibili/bilibili-json.js,tag=BAICIZHAN-13,requires-body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "http-response ^https?:\\/\\/app\\.bilibili\\.com\\/x\\/resource\\/show\\/tab\\/v\\d\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/bilibili/bilibili-json.js,tag=BAICIZHAN-10,requires-body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "http-response ^https?:\\/\\/app\\.bilibili\\.com\\/x\\/v(?:[13-9]\\/splash\\/(?:brand\\/list|event\\/list2|list|show)|2\\/splash\\/brand\\/list)\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/bilibili/bilibili-json.js,tag=BAICIZHAN-11,requires-body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "http-response ^https?:\\/\\/app\\.bilibili\\.com\\/x\\/v[13-9]\\/(?:feed\\/index(\\/story)?|search\\/square)\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/bilibili/bilibili-json.js,tag=BAICIZHAN-9,requires-body=true",
+          "line": "response if ${url} ~= /^https?:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v5/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/didi/didi-ads.js\") with enable=${didiiuxk_enable}, tag=\"微信小程序个人中心净化\", timeout=60, requires_body=true",
           "section": "script",
           "sources": [
             "local_overrides"
@@ -463,52 +421,10 @@
       ],
       "removed": [
         {
-          "line": "http-response ^https?:\\/\\/api\\.bilibili\\.com\\/pgc\\/page\\/(?:bangumi|cinema\\/tab\\?) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-7,requires-body=true",
+          "line": "response if ${url} ~= /^https?:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v5/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=${didiiuxk_enable}, tag=\"微信小程序个人中心净化\", timeout=60, requires_body=true",
           "section": "script",
           "sources": [
-            "base"
-          ]
-        },
-        {
-          "line": "http-response ^https?:\\/\\/api\\.live\\.bilibili\\.com\\/xlive\\/app-room\\/v[2-9]\\/index\\/getInfoByRoom\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-8,requires-body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "http-response ^https?:\\/\\/app\\.bilibili\\.com\\/x\\/(?:v(?:[13-9]|[1-9][0-9]+)\\/account\\/mine(\\/ipad)?|v2\\/account\\/mine\\/ipad|v\\d\\/account\\/myinfo)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-12,requires-body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "http-response ^https?:\\/\\/app\\.bilibili\\.com\\/x\\/resource\\/show\\/skin\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-13,requires-body=true",
-          "section": "script",
-          "sources": [
-            "base"
-          ]
-        },
-        {
-          "line": "http-response ^https?:\\/\\/app\\.bilibili\\.com\\/x\\/resource\\/show\\/tab\\/v\\d\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-10,requires-body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "http-response ^https?:\\/\\/app\\.bilibili\\.com\\/x\\/v(?:[13-9]\\/splash\\/(?:brand\\/list|event\\/list2|list|show)|2\\/splash\\/brand\\/list)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-11,requires-body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "http-response ^https?:\\/\\/app\\.bilibili\\.com\\/x\\/v[13-9]\\/(?:feed\\/index(\\/story)?|search\\/square)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-9,requires-body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
+            "block"
           ]
         }
       ]
@@ -527,10 +443,10 @@
     },
     "script": {
       "action_changed": 0,
-      "added": 7,
-      "removed": 7
+      "added": 1,
+      "removed": 1
     },
-    "total_changes": 14
+    "total_changes": 2
   },
   "upstream_revision_changes": []
 }
