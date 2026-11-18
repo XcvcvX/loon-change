@@ -5540,3 +5540,38 @@ class BilibiliLocalJsonScriptMigrationTests(unittest.TestCase):
         changed[1] = changed[1].replace("requires-body=true", "requires-body=false")
         with self.assertRaisesRegex(ValueError, "mode changed"):
             migrate_bilibili_json_script_to_local(changed)
+
+
+class DidiLocalJsonScriptMigrationTests(unittest.TestCase):
+    def test_migrates_common_v5_handler_to_local_and_is_idempotent(self):
+        from apply_local_overrides import (
+            DIDIADS_COMMON_V5_SCRIPT,
+            DIDIADS_LOCAL_COMMON_V5_SCRIPT,
+            migrate_didiads_common_v5_to_local,
+        )
+
+        fixture = ["[Script]", DIDIADS_COMMON_V5_SCRIPT, "[MITM]"]
+        result, changed = migrate_didiads_common_v5_to_local(fixture)
+        self.assertEqual(changed, 1)
+        self.assertIn(DIDIADS_LOCAL_COMMON_V5_SCRIPT, result)
+        self.assertNotIn(DIDIADS_COMMON_V5_SCRIPT, result)
+        again, second_changed = migrate_didiads_common_v5_to_local(result)
+        self.assertEqual(again, result)
+        self.assertEqual(second_changed, 0)
+
+    def test_noops_without_didiads_and_fails_closed_on_drift_or_duplicates(self):
+        from apply_local_overrides import (
+            DIDIADS_COMMON_V5_SCRIPT,
+            migrate_didiads_common_v5_to_local,
+        )
+
+        unrelated = ["[Script]", "response if ${url} ~= /^https?:\\/\\/example.test/ then script(\\"https://example.test/other.js\\")", "[MITM]"]
+        result, changed = migrate_didiads_common_v5_to_local(unrelated)
+        self.assertEqual(result, unrelated)
+        self.assertEqual(changed, 0)
+
+        drifted = DIDIADS_COMMON_V5_SCRIPT.replace("common/v5", "common/v6")
+        with self.assertRaisesRegex(ValueError, "trigger changed"):
+            migrate_didiads_common_v5_to_local(["[Script]", drifted, "[MITM]"])
+        with self.assertRaisesRegex(ValueError, "duplicated"):
+            migrate_didiads_common_v5_to_local(["[Script]", DIDIADS_COMMON_V5_SCRIPT, DIDIADS_COMMON_V5_SCRIPT, "[MITM]"])
