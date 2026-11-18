@@ -100,6 +100,29 @@ class RomeoPluginMigrationTests(unittest.TestCase):
         self.assertIn(expected + '",', result)
         self.assertNotIn("Romeo/raw/main", result)
 
+
+    def test_pins_all_romeo_reference_forms_in_a_merged_plugin(self):
+        from stage_romeo_plugins import _pin_romeo_references
+        commit = "d" * 40
+        source = (
+            'script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/a.js")\n'
+            'script("https://raw.githubusercontent.com/ifflagged/Romeo/main/Modules/JavaScript/b.js")\n'
+        )
+        with patch("stage_romeo_plugins._read_romeo_file", return_value=b"// pinned asset"):
+            result = _pin_romeo_references(source, Path("."), commit)
+        prefix = "https://raw.githubusercontent.com/ifflagged/Romeo/" + commit + "/"
+        self.assertIn(prefix + "Modules/JavaScript/a.js", result)
+        self.assertIn(prefix + "Modules/JavaScript/b.js", result)
+        self.assertNotIn("Romeo/raw/main/", result)
+        self.assertNotIn("Romeo/main/", result)
+
+    def test_romeo_reference_pinning_fails_closed_when_asset_is_missing(self):
+        from stage_romeo_plugins import _pin_romeo_references
+        source = 'script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/missing.js")'
+        with patch("stage_romeo_plugins._read_romeo_file", side_effect=RuntimeError("missing asset")):
+            with self.assertRaisesRegex(RuntimeError, "missing asset"):
+                _pin_romeo_references(source, Path("."), "e" * 40)
+
     def test_stage_builds_both_compatibility_slots_from_one_commit(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
