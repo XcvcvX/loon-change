@@ -2852,8 +2852,10 @@ def remove_kugou_jin10_redundant_rewrites(lines):
     values = list(counts.values())
     if all(count == 0 for count in values) and obsolete_count == 0 and jin10_response_count == 0:
         return list(lines), 0
-    if any(count != 1 for count in values) or obsolete_count != 1 or jin10_response_count != 1:
-        raise ValueError("Kugou/Jin10 rewrite inventory changed; refusing partial or drifted deduplication")
+    if any(count > 1 for count in values) or obsolete_count > 1 or jin10_response_count > 1:
+        raise ValueError("Kugou/Jin10 rewrite inventory changed; refusing duplicate or drifted deduplication")
+    if any(count == 0 for count in values) or obsolete_count == 0 or jin10_response_count == 0:
+        return list(lines), 0
     output, section = [], ""
     for line in lines:
         if line.startswith("[") and line.endswith("]"):
