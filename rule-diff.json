@@ -215,7 +215,7 @@
         "Rule": 4,
         "Script": 1
       },
-      "upstream_commit": "f7367904e29e84b1fc0169d7f302e88d7dd8be55",
+      "upstream_commit": "1469334f6a715a2eebd6e0385b311283c7947b32",
       "upstream_path": "Modules/Loon/zirawell/Beta/alipayAdBlock.lpx",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
@@ -254,18 +254,18 @@
         "Rule": 4,
         "Script": 13
       },
-      "upstream_commit": "f7367904e29e84b1fc0169d7f302e88d7dd8be55",
+      "upstream_commit": "1469334f6a715a2eebd6e0385b311283c7947b32",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
     "GuaZiVideoAds": {
       "bytes": 3448,
       "entries": 6,
-      "upstream_commit": "f7367904e29e84b1fc0169d7f302e88d7dd8be55",
+      "upstream_commit": "1469334f6a715a2eebd6e0385b311283c7947b32",
       "upstream_path": "Modules/QuantumultX/ddgksf2013/Official/GuaZiVideoAds.conf",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
     "aoomee": {
-      "commit": "f7367904e29e84b1fc0169d7f302e88d7dd8be55",
+      "commit": "1469334f6a715a2eebd6e0385b311283c7947b32",
       "compatibility_key": "aoomee (retained only to preserve historical provenance continuity)",
       "legacy_snapshot_files": [
         "51cg.plugin",
@@ -302,7 +302,7 @@
       ],
       "rule_lines": 536,
       "source_mode": "Romeo Modules/Loon + pinned AOOMEE-only local snapshots",
-      "upstream_commit": "f7367904e29e84b1fc0169d7f302e88d7dd8be55",
+      "upstream_commit": "1469334f6a715a2eebd6e0385b311283c7947b32",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
     "source_migrations": {
@@ -332,7 +332,7 @@
         "Modules/Loon/Kelee/Official/Taobao_remove_ads.lpx",
         "Modules/Loon/Kelee/Official/smzdm_remove_ads.lpx"
       ],
-      "commit": "f7367904e29e84b1fc0169d7f302e88d7dd8be55",
+      "commit": "1469334f6a715a2eebd6e0385b311283c7947b32",
       "compatibility_key": "zmjde (retained only for historical merge/provenance continuity)",
       "external_runtime_dependencies": [
         {
@@ -386,7 +386,7 @@
         }
       ],
       "source_mode": "Romeo Modules/Loon/Kelee/Official; historical zmjde merge priority retained",
-      "upstream_commit": "f7367904e29e84b1fc0169d7f302e88d7dd8be55",
+      "upstream_commit": "1469334f6a715a2eebd6e0385b311283c7947b32",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     }
   },
@@ -399,43 +399,9 @@
   "schema_version": 1,
   "sections": {
     "rewrite": {
-      "action_changed": [
-        {
-          "after": {
-            "line": "response if ${url} ~= /^https:\\/\\/homepage-api\\.smzdm\\.com\\/v3\\/home\\?/i then response.json.jq_file(\"https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/Kelee/smzdm_remove_ads/kelee.one_home_smzdm_remove_ads.jq\")",
-            "section": "rewrite",
-            "sources": [
-              "zmjapp"
-            ]
-          },
-          "before": {
-            "line": "response if ${url} ~= /^https:\\/\\/homepage-api\\.smzdm\\.com\\/v3\\/home\\?/i then response.json.jq_file(\"https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/Kelee/smzdm_remove_ads/kelee.one_home_smzdm_remove_ads.jq\")",
-            "section": "rewrite",
-            "sources": [
-              "zmjapp"
-            ]
-          },
-          "section": "rewrite"
-        }
-      ],
-      "added": [
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/gql(-fed)?\\.reddit\\.com/i then response.json.jq(\"jq-path=https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/rucu6/myblockads/rucu6_reddit.jq\")",
-          "section": "rewrite",
-          "sources": [
-            "local_overrides"
-          ]
-        }
-      ],
-      "removed": [
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/gql(-fed)?\\.reddit\\.com/i then response.json.jq(\"jq-path=https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/rucu6/myblockads/rucu6_reddit.jq\")",
-          "section": "rewrite",
-          "sources": [
-            "local_overrides"
-          ]
-        }
-      ]
+      "action_changed": [],
+      "added": [],
+      "removed": []
     },
     "rule": {
       "action_changed": [],
@@ -443,617 +409,16 @@
       "removed": []
     },
     "script": {
-      "action_changed": [
-        {
-          "after": {
-            "line": "http-request ^https?:\\/\\/ad\\.12306\\.cn\\/ad\\/ser\\/getAdList script-path=https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/fmz200/12306/kokoryh_12306.js, requires-body=true, timeout=60, tag=12306, enable={12306_enable}",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "before": {
-            "line": "http-request ^https?:\\/\\/ad\\.12306\\.cn\\/ad\\/ser\\/getAdList script-path=https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/fmz200/12306/kokoryh_12306.js, requires-body=true, timeout=60, tag=12306, enable={12306_enable}",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "section": "script"
-        },
-        {
-          "after": {
-            "line": "http-response ^https:\\/\\/(?:sns|appmsg|home|umehome|opactivity|activity|umerp|flightstatus|umeflightstatus|startup|umestartup|user|umeuser|event)\\.umetrip\\.com\\/gateway\\/api\\/umetrip\\/native(?:\\?.*)?$ script-path=https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/ddgksf2013/UmetripAds/ddgksf2013_umetrip.ads.js, requires-body=true, timeout=60, tag=umetrip.ads",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "before": {
-            "line": "http-response ^https:\\/\\/(?:sns|appmsg|home|umehome|opactivity|activity|umerp|flightstatus|umeflightstatus|startup|umestartup|user|umeuser|event)\\.umetrip\\.com\\/gateway\\/api\\/umetrip\\/native(?:\\?.*)?$ script-path=https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/ddgksf2013/UmetripAds/ddgksf2013_umetrip.ads.js, requires-body=true, timeout=60, tag=umetrip.ads",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "section": "script"
-        },
-        {
-          "after": {
-            "line": "request if ${url} ~= /^https:\\/\\/(raw|gist)\\.githubusercontent\\.com\\//i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/ishowshu/github/Script-Hub-Org_replace-header.js\", \"(%5Cr%5Cn)Accept-Language%3A.%2B(%5Cr%5Cn)-%3E%241Accept-Language%3A%20en-us%242\") with tag=\"replaceHeader\", timeout=30",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "before": {
-            "line": "request if ${url} ~= /^https:\\/\\/(raw|gist)\\.githubusercontent\\.com\\//i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/ishowshu/github/Script-Hub-Org_replace-header.js\", \"(%5Cr%5Cn)Accept-Language%3A.%2B(%5Cr%5Cn)-%3E%241Accept-Language%3A%20en-us%242\") with tag=\"replaceHeader\", timeout=30",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "section": "script"
-        },
-        {
-          "after": {
-            "line": "request if ${url} ~= /^https:\\/\\/github\\.com\\//i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/ishowshu/github/Script-Hub-Org_replace-header.js\", \"(%5Cr%5Cn)Accept-Language%3A.%2B(%5Cr%5Cn)-%3E%241Accept-Language%3A%20en-us%242\") with tag=\"replaceHeader\", timeout=30",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "before": {
-            "line": "request if ${url} ~= /^https:\\/\\/github\\.com\\//i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/ishowshu/github/Script-Hub-Org_replace-header.js\", \"(%5Cr%5Cn)Accept-Language%3A.%2B(%5Cr%5Cn)-%3E%241Accept-Language%3A%20en-us%242\") with tag=\"replaceHeader\", timeout=30",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "section": "script"
-        },
-        {
-          "after": {
-            "line": "response if ${url} ~= /^https:\\/\\/api-chat\\.soulapp\\.cn\\/chat\\/limitInfo/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/ishowshu/soul/ishowshu_soul_qx.js\") with tag=\"soul_qx\", timeout=60, requires_body=true",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "before": {
-            "line": "response if ${url} ~= /^https:\\/\\/api-chat\\.soulapp\\.cn\\/chat\\/limitInfo/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/ishowshu/soul/ishowshu_soul_qx.js\") with tag=\"soul_qx\", timeout=60, requires_body=true",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "section": "script"
-        },
-        {
-          "after": {
-            "line": "response if ${url} ~= /^https:\\/\\/api-chat\\.soulapp\\.cn\\/snapchat\\/url/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/ishowshu/soul/ishowshu_soul_qx.js\") with tag=\"soul_qx\", timeout=60, requires_body=true",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "before": {
-            "line": "response if ${url} ~= /^https:\\/\\/api-chat\\.soulapp\\.cn\\/snapchat\\/url/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/ishowshu/soul/ishowshu_soul_qx.js\") with tag=\"soul_qx\", timeout=60, requires_body=true",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "section": "script"
-        },
-        {
-          "after": {
-            "line": "response if ${url} ~= /^https:\\/\\/api\\.gotokeep\\.com\\/config\\/v3\\/basic\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/ishowshu/keep/ishowshu_keep.js\") with tag=\"keep\", timeout=60, requires_body=true",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "before": {
-            "line": "response if ${url} ~= /^https:\\/\\/api\\.gotokeep\\.com\\/config\\/v3\\/basic\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/ishowshu/keep/ishowshu_keep.js\") with tag=\"keep\", timeout=60, requires_body=true",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "section": "script"
-        },
-        {
-          "after": {
-            "line": "response if ${url} ~= /^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/boss\\/(car\\/order\\/content_info|order_web\\/friendly_information)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "before": {
-            "line": "response if ${url} ~= /^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/boss\\/(car\\/order\\/content_info|order_web\\/friendly_information)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "section": "script"
-        },
-        {
-          "after": {
-            "line": "response if ${url} ~= /^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/sharedtrip\\/taxi\\/order_detail_car_tips\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "before": {
-            "line": "response if ${url} ~= /^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/sharedtrip\\/taxi\\/order_detail_car_tips\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "section": "script"
-        },
-        {
-          "after": {
-            "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/dsp\\/profile\\/index\\/nodefaasv3\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "before": {
-            "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/dsp\\/profile\\/index\\/nodefaasv3\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "section": "script"
-        },
-        {
-          "after": {
-            "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_bff\\/hotword\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "before": {
-            "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_bff\\/hotword\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "section": "script"
-        },
-        {
-          "after": {
-            "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_poi\\/homepage/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "before": {
-            "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_poi\\/homepage/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "section": "script"
-        },
-        {
-          "after": {
-            "line": "response if ${url} ~= /^https:\\/\\/m\\.pinduoduo\\.net\\/mdkd\\/package\\?from_app_scan/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/Kelee/PinDuoDuo_remove_ads/kelee.one_PinDuoDuo_remove_ads.js\") with tag=\"移除扫码取件页面商品推荐及弹窗\", requires_body=true",
-            "section": "script",
-            "sources": [
-              "zmjapp"
-            ]
-          },
-          "before": {
-            "line": "response if ${url} ~= /^https:\\/\\/m\\.pinduoduo\\.net\\/mdkd\\/package\\?from_app_scan/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/Kelee/PinDuoDuo_remove_ads/kelee.one_PinDuoDuo_remove_ads.js\") with tag=\"移除扫码取件页面商品推荐及弹窗\", requires_body=true",
-            "section": "script",
-            "sources": [
-              "zmjapp"
-            ]
-          },
-          "section": "script"
-        },
-        {
-          "after": {
-            "line": "response if ${url} ~= /^https:\\/\\/slugger\\.qunar\\.com\\/slugger-proxy\\?(?:[^#]*&)?qrt=(?:p_homeRecommend|qpub_animateSloganView|p_secondScreen_cards|pp_gw_u_myMainCard|pp_gw_u_myHeadInfo|suggestion_operation_app|innovation_popular_recommend|innovation_rankinglist_head|innovation_single_rankinglist|content_api_common_desert_damo_getPostList|content_api_common_feed_open_postList)(?:&[^#]*)?$/ && ${request.method} == \"POST\" && ${response.status} == 200 then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/ccyykk666/qunar_ad/ccyykk666_qunar_ad_filter.js\") with tag=\"去哪儿旅行去广告\", timeout=10, requires_body=true, binary_body_mode=true",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "before": {
-            "line": "response if ${url} ~= /^https:\\/\\/slugger\\.qunar\\.com\\/slugger-proxy\\?(?:[^#]*&)?qrt=(?:p_homeRecommend|qpub_animateSloganView|p_secondScreen_cards|pp_gw_u_myMainCard|pp_gw_u_myHeadInfo|suggestion_operation_app|innovation_popular_recommend|innovation_rankinglist_head|innovation_single_rankinglist|content_api_common_desert_damo_getPostList|content_api_common_feed_open_postList)(?:&[^#]*)?$/ && ${request.method} == \"POST\" && ${response.status} == 200 then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/ccyykk666/qunar_ad/ccyykk666_qunar_ad_filter.js\") with tag=\"去哪儿旅行去广告\", timeout=10, requires_body=true, binary_body_mode=true",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "section": "script"
-        },
-        {
-          "after": {
-            "line": "response if ${url} ~= /^https?:\\/\\/apimobile\\.meituan\\.com\\/aggroup\\/indexTab/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "before": {
-            "line": "response if ${url} ~= /^https?:\\/\\/apimobile\\.meituan\\.com\\/aggroup\\/indexTab/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "section": "script"
-        },
-        {
-          "after": {
-            "line": "response if ${url} ~= /^https?:\\/\\/apimobile\\.meituan\\.com\\/group\\/v1\\/deal\\/searchpage\\/defaultword/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "before": {
-            "line": "response if ${url} ~= /^https?:\\/\\/apimobile\\.meituan\\.com\\/group\\/v1\\/deal\\/searchpage\\/defaultword/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "section": "script"
-        },
-        {
-          "after": {
-            "line": "response if ${url} ~= /^https?:\\/\\/apimobile\\.meituan\\.com\\/group\\/v1\\/deal\\/searchpage\\/hotword\\/city\\/divide\\/hotrecommend\\//i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "before": {
-            "line": "response if ${url} ~= /^https?:\\/\\/apimobile\\.meituan\\.com\\/group\\/v1\\/deal\\/searchpage\\/hotword\\/city\\/divide\\/hotrecommend\\//i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "section": "script"
-        },
-        {
-          "after": {
-            "line": "response if ${url} ~= /^https?:\\/\\/assistify\\.meituan\\.com\\/assistant\\/getAppClientHornConfig/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "before": {
-            "line": "response if ${url} ~= /^https?:\\/\\/assistify\\.meituan\\.com\\/assistant\\/getAppClientHornConfig/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "section": "script"
-        },
-        {
-          "after": {
-            "line": "response if ${url} ~= /^https?:\\/\\/feedguess\\.meituan\\.com\\/lycoris\\/scene\\/(gwc_feed1_2265|personalcenter_2154)(\\?|$)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "before": {
-            "line": "response if ${url} ~= /^https?:\\/\\/feedguess\\.meituan\\.com\\/lycoris\\/scene\\/(gwc_feed1_2265|personalcenter_2154)(\\?|$)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "section": "script"
-        },
-        {
-          "after": {
-            "line": "response if ${url} ~= /^https?:\\/\\/mop\\.meituan\\.com\\/api\\/entryModule\\/startupPicture/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "before": {
-            "line": "response if ${url} ~= /^https?:\\/\\/mop\\.meituan\\.com\\/api\\/entryModule\\/startupPicture/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "section": "script"
-        },
-        {
-          "after": {
-            "line": "response if ${url} ~= /^https?:\\/\\/mop\\.meituan\\.com\\/mop\\/entry\\/shoppingCartEntry/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "before": {
-            "line": "response if ${url} ~= /^https?:\\/\\/mop\\.meituan\\.com\\/mop\\/entry\\/shoppingCartEntry/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "section": "script"
-        },
-        {
-          "after": {
-            "line": "response if ${url} ~= /^https?:\\/\\/mt-personalcenter\\.meituan\\.com\\/usercenter\\/display/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "before": {
-            "line": "response if ${url} ~= /^https?:\\/\\/mt-personalcenter\\.meituan\\.com\\/usercenter\\/display/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
-            "section": "script",
-            "sources": [
-              "aoomee"
-            ]
-          },
-          "section": "script"
-        }
-      ],
-      "added": [
-        {
-          "line": "http-request ^https?:\\/\\/[\\w-]+\\.googlevideo\\.com\\/initplayback.+&ack.* script-path=https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.request.js, requires-body=true, binary-body-mode=true, tag=youtube.request.init, argument={captionLang}",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "http-response ^https:\\/\\/youtubei\\.googleapis\\.com\\/(youtubei\\/v1\\/(guide|account\\/get_setting))(\\?(.*))?$ script-path=https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.response.js, requires-body=true, binary-body-mode=true, tag=youtube.response, argument={captionLang,blockUpload,blockImmersive,blockShorts,debug}",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "request if ${url} ~= /^https:\\/\\/ad\\.12306\\.cn\\/ad\\/ser\\/getAdList$/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/rucu6/myblockads/rucu6_12306.js\") with tag=\"12306_splash\", requires_body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "request if ${url} ~= /^https:\\/\\/mobile\\.12306\\.cn\\/otsmobile\\/app\\/mgs\\/mgw\\.htm$/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/rucu6/myblockads/rucu6_header.js\") with tag=\"12306_ads\"",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "request if ${url} ~= /^https:\\/\\/mobilepaas\\.abchina\\.com\\.cn:441\\/mgw\\.htm$/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/rucu6/myblockads/rucu6_header.js\") with tag=\"abchina\"",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/(biz)?api\\.alipan\\.com\\/apps\\/v\\d\\/users?\\/home\\/(?:news|widgets)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/rucu6/myblockads/rucu6_adrive.js\") with tag=\"aliyun_mine\", requires_body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/2023\\.redircdn\\.com\\/web\\/mob_post\\.js\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"caoliu\", requires_body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/ad\\.mcloud\\.139\\.com\\/advertapi\\/adv-filter\\//i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/rucu6/myblockads/rucu6_cloud139.js\") with tag=\"cloud139_1\", requires_body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/api-gateway-pan\\.xunlei\\.com\\/content\\/v1\\/aggregate\\/info\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"thunder\", requires_body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/api\\.coolapk\\.com\\/v6\\/(?:feed\\/detail|feed\\/replyList|page\\/dataList|main\\/dataList|main\\/indexV8|main\\/init)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/rucu6/myblockads/rucu6_coolapk.js\") with tag=\"coolapk\", requires_body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/api\\.m\\.mi\\.com\\/v1\\/app\\/start/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"mi_mall\", requires_body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/gateway\\.kugou\\.com\\/(?:adp\\/ad\\/v1\\/mine_top_banner|ads\\.gateway\\/v2\\/home_card)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/rucu6/myblockads/rucu6_kugou.js\") with tag=\"kg_gateway\", requires_body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/jzts\\.cmpassport\\.com\\/personalized\\/getPushContent/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/rucu6/myblockads/rucu6_cloud139.js\") with tag=\"cloud139_2\", requires_body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/www\\.washpayer\\.com\\/user\\/message\\/equipmentPara\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/rucu6/myblockads/rucu6_changyuan.js\") with tag=\"changyuan\", requires_body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https?:\\/\\/adserviceretry\\.kglink\\.cn\\/v\\d\\/mobile\\w+/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/rucu6/myblockads/rucu6_kugou.js\") with tag=\"kg_linkcn\", requires_body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https\\:\\/\\/(?:weixin110\\.qq|security\\.wechat)\\.com\\/cgi-bin\\/mmspamsupport-bin\\/newredirectconfirmcgi\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1469334f6a715a2eebd6e0385b311283c7947b32/Modules/JavaScript/rucu6/myblockads/rucu6_wechat.js\") with tag=\"wechat\", requires_body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        }
-      ],
-      "removed": [
-        {
-          "line": "http-request ^https?:\\/\\/[\\w-]+\\.googlevideo\\.com\\/initplayback.+&ack.* script-path=https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.request.js, requires-body=true, binary-body-mode=true, tag=youtube.request.init, argument={captionLang}",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "http-response ^https:\\/\\/youtubei\\.googleapis\\.com\\/(youtubei\\/v1\\/(guide|account\\/get_setting))(\\?(.*))?$ script-path=https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.response.js, requires-body=true, binary-body-mode=true, tag=youtube.response, argument={captionLang,blockUpload,blockImmersive,blockShorts,debug}",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "request if ${url} ~= /^https:\\/\\/ad\\.12306\\.cn\\/ad\\/ser\\/getAdList$/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/rucu6/myblockads/rucu6_12306.js\") with tag=\"12306_splash\", requires_body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "request if ${url} ~= /^https:\\/\\/mobile\\.12306\\.cn\\/otsmobile\\/app\\/mgs\\/mgw\\.htm$/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/rucu6/myblockads/rucu6_header.js\") with tag=\"12306_ads\"",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "request if ${url} ~= /^https:\\/\\/mobilepaas\\.abchina\\.com\\.cn:441\\/mgw\\.htm$/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/rucu6/myblockads/rucu6_header.js\") with tag=\"abchina\"",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/(biz)?api\\.alipan\\.com\\/apps\\/v\\d\\/users?\\/home\\/(?:news|widgets)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/rucu6/myblockads/rucu6_adrive.js\") with tag=\"aliyun_mine\", requires_body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/2023\\.redircdn\\.com\\/web\\/mob_post\\.js\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"caoliu\", requires_body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/ad\\.mcloud\\.139\\.com\\/advertapi\\/adv-filter\\//i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/rucu6/myblockads/rucu6_cloud139.js\") with tag=\"cloud139_1\", requires_body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/api-gateway-pan\\.xunlei\\.com\\/content\\/v1\\/aggregate\\/info\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"thunder\", requires_body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/api\\.coolapk\\.com\\/v6\\/(?:feed\\/detail|feed\\/replyList|page\\/dataList|main\\/dataList|main\\/indexV8|main\\/init)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/rucu6/myblockads/rucu6_coolapk.js\") with tag=\"coolapk\", requires_body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/api\\.m\\.mi\\.com\\/v1\\/app\\/start/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"mi_mall\", requires_body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/gateway\\.kugou\\.com\\/(?:adp\\/ad\\/v1\\/mine_top_banner|ads\\.gateway\\/v2\\/home_card)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/rucu6/myblockads/rucu6_kugou.js\") with tag=\"kg_gateway\", requires_body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/jzts\\.cmpassport\\.com\\/personalized\\/getPushContent/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/rucu6/myblockads/rucu6_cloud139.js\") with tag=\"cloud139_2\", requires_body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/www\\.washpayer\\.com\\/user\\/message\\/equipmentPara\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/rucu6/myblockads/rucu6_changyuan.js\") with tag=\"changyuan\", requires_body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https?:\\/\\/adserviceretry\\.kglink\\.cn\\/v\\d\\/mobile\\w+/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/rucu6/myblockads/rucu6_kugou.js\") with tag=\"kg_linkcn\", requires_body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https\\:\\/\\/(?:weixin110\\.qq|security\\.wechat)\\.com\\/cgi-bin\\/mmspamsupport-bin\\/newredirectconfirmcgi\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/f7367904e29e84b1fc0169d7f302e88d7dd8be55/Modules/JavaScript/rucu6/myblockads/rucu6_wechat.js\") with tag=\"wechat\", requires_body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        }
-      ]
+      "action_changed": [],
+      "added": [],
+      "removed": []
     }
   },
   "summary": {
     "rewrite": {
-      "action_changed": 1,
-      "added": 1,
-      "removed": 1
+      "action_changed": 0,
+      "added": 0,
+      "removed": 0
     },
     "rule": {
       "action_changed": 0,
@@ -1061,37 +426,11 @@
       "removed": 0
     },
     "script": {
-      "action_changed": 22,
-      "added": 16,
-      "removed": 16
+      "action_changed": 0,
+      "added": 0,
+      "removed": 0
     },
-    "total_changes": 57
+    "total_changes": 0
   },
-  "upstream_revision_changes": [
-    {
-      "current_commit": "1469334f6a715a2eebd6e0385b311283c7947b32",
-      "previous_commit": "f7367904e29e84b1fc0169d7f302e88d7dd8be55",
-      "source": "AlipayAdBlock"
-    },
-    {
-      "current_commit": "1469334f6a715a2eebd6e0385b311283c7947b32",
-      "previous_commit": "f7367904e29e84b1fc0169d7f302e88d7dd8be55",
-      "source": "Amap"
-    },
-    {
-      "current_commit": "1469334f6a715a2eebd6e0385b311283c7947b32",
-      "previous_commit": "f7367904e29e84b1fc0169d7f302e88d7dd8be55",
-      "source": "GuaZiVideoAds"
-    },
-    {
-      "current_commit": "1469334f6a715a2eebd6e0385b311283c7947b32",
-      "previous_commit": "f7367904e29e84b1fc0169d7f302e88d7dd8be55",
-      "source": "aoomee"
-    },
-    {
-      "current_commit": "1469334f6a715a2eebd6e0385b311283c7947b32",
-      "previous_commit": "f7367904e29e84b1fc0169d7f302e88d7dd8be55",
-      "source": "zmjde"
-    }
-  ]
+  "upstream_revision_changes": []
 }
