@@ -445,6 +445,9 @@ function imageEnhance(images) {
 
   function visit(value) {
     if (typeof value === "string") {
+      // Most image metadata strings are not image URLs; avoid running URL
+      // replacement regexes against titles, IDs, descriptions and other text.
+      if (!value.includes("imageView2/2")) return value;
       if (imageQuality === "original") {
         if (originalReplaced) return value;
         const enhanced = value.replace(originalPattern, "?imageView2/0/format/png&redImage/frame/0");
