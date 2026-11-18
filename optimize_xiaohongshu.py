@@ -166,7 +166,7 @@ def optimize_source(src,commit="unknown"):
         line for line in src.splitlines(keepends=True)
         if not ("console.log(" in line and any(token in line for token in log_tokens))
     )
-    result=MARKER+commit+"\\n"+src
+    result=MARKER+commit+"\n"+src
     for token in ("imageEnhance(images_list)","compactInPlace(obj.data","appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)","const byFileId=new Map()"):
         if token not in result:raise ValueError("missing optimizer invariant: "+token)
     if "imageEnhance(JSON.stringify(images_list))" in result:raise ValueError("image-feed serialization round trip remains")
