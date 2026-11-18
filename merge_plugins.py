@@ -3411,14 +3411,13 @@ mitm = _kept_zhangle_mitm
 # ---------------- 输出 ----------------
 today = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
 header = [
-    '#!name=R-Store × blockAdsV2 × MyBlockAds × AlipayAdBlock × 独立 App 去广告净化合集',
-    '#!desc=合并 R-Store、blockAdsV2、RuCu6 MyBlockAds、zirawell AlipayAdBlock、Thelongdarkorg、Romeo、zmjde、高德地图、ddgksf2013 瓜子；'
-    '按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含',
-    '#!author=zirawell / fmz200 / RuCu6 / Thelongdarkorg / Romeo / zmjde / ddgksf2013（本仓库自动合并）',
+    '#!name=R-Store base × 独立 App 去广告净化合集',
+    '#!desc=综合规则仅使用 R-Store base；保留 Romeo 独立 App 插件、高德、Spotify、瓜子影视与支付宝专项规则；单插件自包含',
+    '#!author=R-Store / Romeo / RuCu6（Amap）/ zirawell / ddgksf2013（本仓库自动构建）',
     '#!homepage=https://github.com/XcvcvX/loon-change',
     '#!merged-at=%s' % today,
-    '#!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。',
-    '#!sources=R-Store(QuanX->Loon)+blockAdsV2+RuCu6-MyBlockAds+zirawell-AlipayAdBlock+Thelongdarkorg+Romeo-Loon+AOOMEE-legacy-snapshots+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds',
+    '#!note=综合规则只取 R-Store base；独立 App 专项规则单独保留；高德独立规则优先级最高；脚本/JQ 依赖本仓库镜像。',
+    '#!sources=R-Store-base(QuanX->Loon)+Romeo-independent-App+Romeo-Spotify+RuCu6-Amap+zirawell-AlipayAdBlock+ddgksf2013/GuaZiVideoAds',
     '',
 ]
 out = list(header)
