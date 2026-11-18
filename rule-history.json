@@ -6,57 +6,6 @@
       "change_counts": {
         "rewrite": {
           "action_changed": 0,
-          "added": 0,
-          "removed": 0
-        },
-        "rule": {
-          "action_changed": 0,
-          "added": 0,
-          "removed": 0
-        },
-        "script": {
-          "action_changed": 0,
-          "added": 4,
-          "removed": 9
-        }
-      },
-      "risk_counts": {
-        "high": 9,
-        "low": 0,
-        "medium": 4
-      },
-      "run_id": "44095249611",
-      "source_changes": {
-        "base": {
-          "action_changed": 0,
-          "added": 0,
-          "removed": 6
-        },
-        "block": {
-          "action_changed": 0,
-          "added": 0,
-          "removed": 3
-        },
-        "local_overrides": {
-          "action_changed": 0,
-          "added": 4,
-          "removed": 0
-        }
-      },
-      "upstream_revisions": {
-        "AlipayAdBlock": "f056c091074a4c29ad0289d7d31f39d47a4ea3d1",
-        "Amap": "f056c091074a4c29ad0289d7d31f39d47a4ea3d1",
-        "GuaZiVideoAds": "f056c091074a4c29ad0289d7d31f39d47a4ea3d1",
-        "aoomee": "f056c091074a4c29ad0289d7d31f39d47a4ea3d1",
-        "source_migrations": "",
-        "thelongdarkorg": "2d0443ce1ecec36cf173634e77ba52224efbdc38",
-        "zmjde": "f056c091074a4c29ad0289d7d31f39d47a4ea3d1"
-      }
-    },
-    {
-      "change_counts": {
-        "rewrite": {
-          "action_changed": 0,
           "added": 1,
           "removed": 1
         },
@@ -1313,6 +1262,67 @@
         "thelongdarkorg": "2d0443ce1ecec36cf173634e77ba52224efbdc38",
         "zmjde": "024b8115bb263d17e52c14a9671fe5bd1c3a65ab"
       }
+    },
+    {
+      "change_counts": {
+        "rewrite": {
+          "action_changed": 1,
+          "added": 1,
+          "removed": 1
+        },
+        "rule": {
+          "action_changed": 0,
+          "added": 0,
+          "removed": 0
+        },
+        "script": {
+          "action_changed": 22,
+          "added": 22,
+          "removed": 22
+        }
+      },
+      "risk_counts": {
+        "high": 46,
+        "low": 0,
+        "medium": 23
+      },
+      "run_id": "44255452549",
+      "source_changes": {
+        "aoomee": {
+          "action_changed": 21,
+          "added": 0,
+          "removed": 0
+        },
+        "base": {
+          "action_changed": 0,
+          "added": 0,
+          "removed": 5
+        },
+        "block": {
+          "action_changed": 0,
+          "added": 0,
+          "removed": 1
+        },
+        "local_overrides": {
+          "action_changed": 0,
+          "added": 23,
+          "removed": 17
+        },
+        "zmjapp": {
+          "action_changed": 2,
+          "added": 0,
+          "removed": 0
+        }
+      },
+      "upstream_revisions": {
+        "AlipayAdBlock": "f7367904e29e84b1fc0169d7f302e88d7dd8be55",
+        "Amap": "f7367904e29e84b1fc0169d7f302e88d7dd8be55",
+        "GuaZiVideoAds": "f7367904e29e84b1fc0169d7f302e88d7dd8be55",
+        "aoomee": "f7367904e29e84b1fc0169d7f302e88d7dd8be55",
+        "source_migrations": "",
+        "thelongdarkorg": "2d0443ce1ecec36cf173634e77ba52224efbdc38",
+        "zmjde": "f7367904e29e84b1fc0169d7f302e88d7dd8be55"
+      }
     }
   ],
   "source_trends_last_30_snapshots": {
@@ -1323,27 +1333,27 @@
       "snapshots_seen": 1
     },
     "aoomee": {
-      "action_changed": 109,
+      "action_changed": 130,
       "added": 0,
       "removed": 15,
-      "snapshots_seen": 10
+      "snapshots_seen": 11
     },
     "base": {
       "action_changed": 0,
       "added": 1,
-      "removed": 16,
+      "removed": 15,
       "snapshots_seen": 8
     },
     "block": {
       "action_changed": 0,
       "added": 0,
-      "removed": 24,
+      "removed": 22,
       "snapshots_seen": 8
     },
     "local_overrides": {
       "action_changed": 0,
-      "added": 61,
-      "removed": 18,
+      "added": 80,
+      "removed": 35,
       "snapshots_seen": 14
     },
     "myblockads": {
@@ -1359,10 +1369,10 @@
       "snapshots_seen": 2
     },
     "zmjapp": {
-      "action_changed": 6,
+      "action_changed": 8,
       "added": 0,
       "removed": 0,
-      "snapshots_seen": 3
+      "snapshots_seen": 4
     }
   }
 }
