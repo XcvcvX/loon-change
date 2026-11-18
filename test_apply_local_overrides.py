@@ -4235,8 +4235,8 @@ class BilibiliProtobufDuplicateTriggerTests(unittest.TestCase):
         self.assertIn(mainlist, result)
         sparkle_lines = [line for line in result if "bilibili.protobuf.response.js" in line]
         self.assertEqual(len(sparkle_lines), 1)
-        self.assertNotIn(String.raw`main\\.community\\.reply\\.v1\\.Reply`, sparkle_lines[0])
-        for marker in (String.raw`dynamic\\.v2\\.Dynamic`, "view(unite)?", String.raw`community\\.service\\.dm`, String.raw`polymer\\.app\\.search`):
+        self.assertNotIn(r"main\\.community\\.reply\\.v1\\.Reply", sparkle_lines[0])
+        for marker in (r"dynamic\\.v2\\.Dynamic", "view(unite)?", r"community\\.service\\.dm", r"polymer\\.app\\.search"):
             self.assertIn(marker, sparkle_lines[0])
 
         import re
