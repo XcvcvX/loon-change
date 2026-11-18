@@ -698,7 +698,8 @@ def remove_redundant_taobao_scripts(lines):
             counts[trigger] += 1
             if counts[trigger] > 1:
                 raise ValueError("duplicate canonical Taobao script trigger; refusing ambiguous deduplication")
-            output.append(trigger)
+            # Preserve the reviewed line, including the already-local URL and escape style.
+            output.append(line)
             continue
         if normalized in redundant:
             trigger = redundant[normalized]
@@ -747,7 +748,7 @@ def migrate_taobao_script_to_local(lines):
             None,
         )
         normalized = stripped.replace(TAOBAO_LOCAL_SCRIPT_URL, remote_url)
-        if expected is None or normalized != expected:
+        if expected is None or re.sub(r"\\+", "", normalized) != re.sub(r"\\+", "", expected):
             raise ValueError("Taobao script matcher changed; refusing local migration: " + tag)
         candidates[tag] = line
     if not candidates:
@@ -1226,27 +1227,33 @@ def narrow_pdd_philo_hub_response_rules(lines):
     section = ""
     counts = {rule: 0 for rule in PDD_PHILO_HUB_RESPONSE_RULES}
     narrowed_counts = {PDD_PHILO_HUB_NO_QUERY_RULE: 0, PDD_PHILO_HUB_QUERY_RULE: 0}
+    original_normalized = {re.sub(r"\\+", "", rule): rule for rule in PDD_PHILO_HUB_RESPONSE_RULES}
+    narrowed_normalized = {re.sub(r"\\+", "", rule): rule for rule in narrowed_counts}
     for index, line in enumerate(output):
         stripped = line.strip()
         if stripped.startswith("[") and stripped.endswith("]"):
             section = stripped[1:-1]
             continue
-        if section != "Rewrite" or "api.pinduoduo.com/api/philo/personal/hub" not in stripped:
+        normalized = re.sub(r"\\+", "", stripped)
+        if section != "Rewrite" or "api.pinduoduo.com/api/philo/personal/hub" not in normalized:
             continue
-        if stripped in narrowed_counts:
-            narrowed_counts[stripped] += 1
-            if narrowed_counts[stripped] > 1:
+        if normalized in narrowed_normalized:
+            rule = narrowed_normalized[normalized]
+            narrowed_counts[rule] += 1
+            if narrowed_counts[rule] > 1:
                 raise ValueError("duplicate narrowed PDD personal-hub response rule")
             continue
-        if stripped not in counts:
+        original = original_normalized.get(normalized)
+        if original is None:
             raise ValueError("PDD personal-hub response rule changed; refusing unreviewed matcher narrowing")
-        counts[stripped] += 1
-        if counts[stripped] > 1:
+        counts[original] += 1
+        if counts[original] > 1:
             raise ValueError("duplicate PDD personal-hub response rule")
-        output[index] = (
-            PDD_PHILO_HUB_NO_QUERY_RULE if stripped == PDD_PHILO_HUB_RESPONSE_RULES[0]
+        replacement = (
+            PDD_PHILO_HUB_NO_QUERY_RULE if original == PDD_PHILO_HUB_RESPONSE_RULES[0]
             else PDD_PHILO_HUB_QUERY_RULE
         )
+        output[index] = replacement
     if any(counts.values()) and any(narrowed_counts.values()):
         raise ValueError("mixed original and narrowed PDD personal-hub rules; refusing partial migration")
     if any(narrowed_counts.values()):
