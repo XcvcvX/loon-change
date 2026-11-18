@@ -408,7 +408,7 @@ jobs:
           romeo_slot.update({
               "upstream_repository": "https://github.com/ifflagged/Romeo",
               "upstream_commit": os.environ["ROMEO_SHA"],
-              "source_mode": "Romeo Modules/Loon + pinned AOOMEE-only local snapshots",
+              "source_mode": "Romeo Modules/Loon (including Kelee WeChat/Weidian plugins) + pinned AOOMEE-only local snapshots",
               "legacy_snapshot_files": list(LEGACY_SNAPSHOTS),
               "romeo_module_paths": list(ROMEO_PLUGIN_MAP.values()),
               "compatibility_key": "aoomee (retained only to preserve historical provenance continuity)"
