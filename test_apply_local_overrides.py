@@ -5075,3 +5075,72 @@ class CrossSyntaxShadowedResponseTriggerTests(unittest.TestCase):
             self.assertEqual(v2, [])
 
 
+class PupuLocalResponseOptimizationTests(unittest.TestCase):
+    def setUp(self):
+        from apply_local_overrides import (
+            PUPU_REMOTE_SCRIPT_URL,
+            PUPU_LOCAL_SCRIPT_URL,
+            PUPU_RESPONSE_MATCHERS_BEFORE,
+            PUPU_RESPONSE_MATCHERS_AFTER,
+        )
+        from apply_local_overrides import _pupu_response_rule_lines
+        self.old_rules = _pupu_response_rule_lines(PUPU_REMOTE_SCRIPT_URL, PUPU_RESPONSE_MATCHERS_BEFORE)
+        self.new_rules = _pupu_response_rule_lines(PUPU_LOCAL_SCRIPT_URL, PUPU_RESPONSE_MATCHERS_AFTER)
+        self.fixture = ["[Script]", *self.old_rules, "[MITM]"]
+
+    def test_migrates_exactly_six_pupu_rules_and_preserves_body_processing(self):
+        from apply_local_overrides import migrate_pupu_response_script_to_local
+        result, changed = migrate_pupu_response_script_to_local(self.fixture)
+        self.assertEqual(changed, 6)
+        self.assertEqual(sum("scripts/pupu/pupu-splash.js" in line for line in result), 6)
+        self.assertFalse(any("Scripts/PupuSplashAds.js" in line for line in result))
+        self.assertTrue(all("requires_body=true" in line for line in result if "scripts/pupu/pupu-splash.js" in line))
+        self.assertTrue(all(rule in result for rule in self.new_rules))
+        self.assertIn("[MITM]", result)
+
+    def test_is_idempotent(self):
+        from apply_local_overrides import migrate_pupu_response_script_to_local
+        migrated, changed = migrate_pupu_response_script_to_local(self.fixture)
+        again, changed_again = migrate_pupu_response_script_to_local(migrated)
+        self.assertEqual(changed, 6)
+        self.assertEqual((again, changed_again), (migrated, 0))
+
+    def test_fails_closed_on_missing_drifted_duplicate_or_mixed_inventory(self):
+        from apply_local_overrides import migrate_pupu_response_script_to_local
+        with self.assertRaisesRegex(ValueError, "inventory or matcher drift"):
+            migrate_pupu_response_script_to_local(self.fixture[:-2] + ["[MITM]"])
+        drifted = list(self.fixture)
+        drifted[1] = drifted[1].replace("/v3/i", "/v4/i")
+        with self.assertRaisesRegex(ValueError, "inventory or matcher drift"):
+            migrate_pupu_response_script_to_local(drifted)
+        duplicate = list(self.fixture)
+        duplicate.insert(2, duplicate[1])
+        with self.assertRaisesRegex(ValueError, "inventory or matcher drift"):
+            migrate_pupu_response_script_to_local(duplicate)
+        mixed = list(self.fixture)
+        mixed[1] = self.new_rules[0]
+        with self.assertRaisesRegex(ValueError, "inventory or matcher drift"):
+            migrate_pupu_response_script_to_local(mixed)
+
+    def test_checked_in_plugin_uses_only_local_exact_pupu_triggers(self):
+        from pathlib import Path
+        from apply_local_overrides import apply, PUPU_LOCAL_SCRIPT_URL, PUPU_RESPONSE_MATCHERS_AFTER
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        result = apply(plugin)
+        lines = result.splitlines()
+        pupu_lines = [line for line in lines if PUPU_LOCAL_SCRIPT_URL in line]
+        self.assertEqual(len(pupu_lines), 6)
+        self.assertFalse(any("Scripts/PupuSplashAds.js" in line for line in lines))
+        self.assertTrue(all("requires_body=true" in line for line in pupu_lines))
+        self.assertTrue(all(matcher in line for matcher, line in zip(PUPU_RESPONSE_MATCHERS_AFTER, pupu_lines)))
+
+    def test_local_handler_parses_and_serializes_response_once(self):
+        from pathlib import Path
+        source = Path(__file__).with_name("scripts").joinpath("pupu", "pupu-splash.js").read_text(encoding="utf-8")
+        self.assertEqual(source.count("JSON.parse("), 1)
+        self.assertEqual(source.count("JSON.stringify(obj)"), 1)
+        self.assertEqual(source.count("$done("), 2)
+        self.assertEqual(source.count("else if (url.includes("), 5)
+        self.assertIn("if (!body)", source)
+
+
