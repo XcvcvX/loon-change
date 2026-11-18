@@ -1427,7 +1427,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         with self.assertRaisesRegex(ValueError, "no-op script trigger drifted"):
             apply_didi_script_and_homepage_cleanup(fixture)
 
-    def test_fails_closed_when_didiads_common_v5_trigger_is_missing(self):
+    def test_preserves_didi_rules_when_retired_common_v5_trigger_is_absent(self):
         from apply_local_overrides import (
             DIDI_CORE_NATIVE_RULE, DIDI_USERCENTER_LAYOUT_NATIVE_PREFIX,
             DIDIADS_NOOP_SCRIPT_RULES, DIDI_OTA_KEEP_SCRIPT, DIDI_PRESALE_KEEP_SCRIPT,
@@ -1438,8 +1438,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
             DIDI_USERCENTER_LAYOUT_NATIVE_PREFIX + "[]", "[Script]",
             *DIDIADS_NOOP_SCRIPT_RULES, DIDI_OTA_KEEP_SCRIPT, DIDI_PRESALE_KEEP_SCRIPT, "[MITM]",
         ]
-        with self.assertRaisesRegex(ValueError, "common/v5 canonical script trigger missing"):
-            apply_didi_script_and_homepage_cleanup(fixture)
+        self.assertEqual(apply_didi_script_and_homepage_cleanup(fixture), (fixture, 0))
 
     def test_fails_closed_when_didi_core_or_usercenter_native_rule_is_missing(self):
         from apply_local_overrides import (
