@@ -569,7 +569,7 @@ function selectBestStream(h265List, h264List) {
     for (const item of list) {
       if (!item || !item.master_url) continue;
       const resolution = (item.width || 0) * (item.height || 0);
-      const bitrate = item.avg_bitrate || 0;
+      const bitrate = Number(item.avg_bitrate) || 0;
       if (
         best === null ||
         resolution > bestResolution ||
