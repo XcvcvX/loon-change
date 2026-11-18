@@ -1246,6 +1246,7 @@ DIDI_CORE_NATIVE_RULE = "response if ${url} ~= /^https:\\/\\/conf\\.diditaxi\\.c
 DIDI_USERCENTER_LAYOUT_LEGACY_JSON_RULE = "^https:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v5\\/usercenter\\/layout response-body-json-jq 'del(.data.instances.center_marketing_card, .data.instances.center_tool_card, .data.instances.center_widget_list, .data.instances.center_res_light_guide) | .data.instances.center_wallet_finance_card.data.view_info |= map(select(.title == \"优惠卡券\"))'"
 DIDI_USERCENTER_LAYOUT_NATIVE_PREFIX = "response if ${url} ~= /^https:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v\\d\\/usercenter\\/layout/i then response.json.jq("
 DIDIADS_COMMON_V5_SCRIPT = "response if ${url} ~= /^https?:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v5/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"微信小程序个人中心净化\", timeout=60, requires_body=true"
+DIDIADS_LOCAL_COMMON_V5_SCRIPT = DIDIADS_COMMON_V5_SCRIPT.replace("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js", "https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/didi/didi-ads.js")
 DIDIADS_NOOP_SCRIPT_RULES = (
     "response if ${url} ~= /^https?:\\/\\/ct\\.xiaojukeji\\.com\\/agent\\/v3\\/feeds/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
     "response if ${url} ~= /^https?:\\/\\/freight\\.xiaojukeji\\.com\\/gateway/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js\") with enable=didiiuxk_enable, tag=\"滴滴出行\", timeout=60, requires_body=true",
@@ -1299,7 +1300,10 @@ def apply_didi_script_and_homepage_cleanup(lines):
     if old_user_layout:
         output = [line for line in output if line.strip() != DIDI_USERCENTER_LAYOUT_LEGACY_JSON_RULE]
 
-    common_v5 = [line for line in output if norm(line) == norm(DIDIADS_COMMON_V5_SCRIPT)]
+    common_v5 = [
+        line for line in output
+        if norm(line) in (norm(DIDIADS_COMMON_V5_SCRIPT), norm(DIDIADS_LOCAL_COMMON_V5_SCRIPT))
+    ]
     if len(common_v5) != 1:
         raise ValueError("Didi common/v5 canonical script trigger missing or duplicated")
     for legacy, marker, label in (
@@ -1328,8 +1332,13 @@ def apply_didi_script_and_homepage_cleanup(lines):
             output = [line for line in output if norm(line) != norm(legacy)]
             removed_noop += 1
 
-    remaining_didiads = [norm(line) for line in output if "didiads.js" in norm(line)]
-    if remaining_didiads != [norm(DIDIADS_COMMON_V5_SCRIPT)]:
+    remaining_didiads = [
+        norm(line) for line in output
+        if "didiads.js" in norm(line) or "scripts/didi/didi-ads.js" in norm(line)
+    ]
+    if len(remaining_didiads) != 1 or remaining_didiads[0] not in (
+        norm(DIDIADS_COMMON_V5_SCRIPT), norm(DIDIADS_LOCAL_COMMON_V5_SCRIPT)
+    ):
         raise ValueError("DidiAds script trigger inventory changed; expected common/v5 only")
     for keeper in (DIDI_OTA_KEEP_SCRIPT, DIDI_PRESALE_KEEP_SCRIPT):
         if sum(norm(line) == norm(keeper) for line in output) != 1:
@@ -1338,6 +1347,38 @@ def apply_didi_script_and_homepage_cleanup(lines):
     if sorted(remaining_rstore) != sorted((norm(DIDI_OTA_KEEP_SCRIPT), norm(DIDI_PRESALE_KEEP_SCRIPT))):
         raise ValueError("Didi R-Store script inventory changed")
     return output, removed_noop
+
+
+
+def migrate_didiads_common_v5_to_local(lines):
+    """Move the sole surviving Didi common/v5 response handler to the tested local cleaner."""
+    output = list(lines)
+    section = ""
+    candidates = []
+    remote = re.sub(r"\\+", "", DIDIADS_COMMON_V5_SCRIPT.strip())
+    local = re.sub(r"\\+", "", DIDIADS_LOCAL_COMMON_V5_SCRIPT.strip())
+    for line in output:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+            continue
+        normalized = re.sub(r"\\+", "", stripped)
+        if section != "Script" or "common.diditaxi.com.cn/common/v5" not in normalized:
+            continue
+        if "didiads.js" not in normalized and "scripts/didi/didi-ads.js" not in normalized:
+            continue
+        if normalized not in (remote, local):
+            raise ValueError("Didi common/v5 script trigger changed; refusing local migration")
+        candidates.append(line)
+    if not candidates:
+        return output, 0
+    if len(candidates) != 1:
+        raise ValueError("Didi common/v5 script trigger duplicated; refusing local migration")
+    current = candidates[0]
+    if re.sub(r"\\+", "", current.strip()) == local:
+        return output, 0
+    result = [DIDIADS_LOCAL_COMMON_V5_SCRIPT if line == current else line for line in output]
+    return result, 1
 
 DIDI_FAST_HOME_DELETE_FIRST = r'response if ${url} ~= /^https:\/\/conf\.diditaxi\.com\.cn\/homepage\/v\d\/other\/fast\?/i then response.json.delete(["data.disorder_cards.communicate_card", "data.disorder_cards.not_login_bottom_bar", "data.disorder_cards.riding_code_card", "data.order_cards", "data.disorder_cards.car_icon.data.icon_info_new_agreement"])'
 DIDI_FAST_HOME_DELETE_SECOND = r'response if ${url} ~= /^https:\/\/conf\.diditaxi\.com\.cn\/homepage\/v\d\/other\/fast\?/i then response.json.delete(["data.disorder_cards.guess_card", "data.disorder_cards.scene_list_card"])'
@@ -6402,6 +6443,7 @@ def apply(text: str) -> str:
         result_lines.extend(rewrite_lines)
     result_lines, _ = consolidate_pdd_homepage_native_response(result_lines)
     result_lines, _ = apply_didi_script_and_homepage_cleanup(result_lines)
+    result_lines, _ = migrate_didiads_common_v5_to_local(result_lines)
     result = "\n".join(result_lines)
     # Scope YYting to the two confirmed hosts. Upstream and generated plugin
     # text may encode URL slashes with one or multiple backslashes; normalize
