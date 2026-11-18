@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、RuCu6 MyBlockAds、zirawell AlipayAdBlock、Thelongdarkorg、Romeo、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / RuCu6 / Thelongdarkorg / Romeo / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-17 23:08 UTC
+#!merged-at=2026-11-18 00:08 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+RuCu6-MyBlockAds+zirawell-AlipayAdBlock+Thelongdarkorg+Romeo-Loon+AOOMEE-legacy-snapshots+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -7334,7 +7334,6 @@ response if ${url} ~= /^https:\/\/m\.pinduoduo\.net\/mdkd\/package\?from_app_sca
 request if ${url} ~= /^https:\/\/ad\.12306\.cn\/ad\/ser\/getAdList$/i then script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_12306.js") with tag="12306_splash", requires_body=true
 request if ${url} ~= /^https:\/\/mobile\.12306\.cn\/otsmobile\/app\/mgs\/mgw\.htm$/i then script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_header.js") with tag="12306_ads"
 response if ${url} ~= /^https:\/\/(biz)?api\.alipan\.com\/apps\/v\d\/users?\/home\/(?:news|widgets)/i then script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_adrive.js") with tag="aliyun_mine", requires_body=true
-response if ${url} ~= /^https:\/\/member\.alipan\.com\/v1\/users\/onboard_list/i then script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_adrive.js") with tag="aliyun_board", requires_body=true
 response if ${url} ~= /^https:\/\/2023\.redircdn\.com\/web\/mob_post\.js\?/i then script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js") with tag="caoliu", requires_body=true
 response if ${url} ~= /^https:\/\/www\.washpayer\.com\/user\/message\/equipmentPara\?/i then script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_changyuan.js") with tag="changyuan", requires_body=true
 response if ${url} ~= /^https:\/\/api\.coolapk\.com\/v6\/(?:feed\/detail|feed\/replyList|page\/dataList|main\/dataList|main\/indexV8|main\/init)/i then script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_coolapk.js") with tag="coolapk", requires_body=true
