@@ -175,6 +175,56 @@ if (body.data[0].note_list[0].note_text !== "ordinary description imageView2 tex
         completed = subprocess.run([node, "-e", harness, str(source_path)], capture_output=True, text=True)
         self.assertEqual(completed.returncode, 0, msg=completed.stderr or completed.stdout)
 
+
+    def test_amap_suggestion_filters_use_direct_scalar_checks(self):
+        import shutil
+        import subprocess
+        from pathlib import Path
+
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node.js is required for the Amap runtime integration test")
+        source_path = Path(__file__).with_name("sources").joinpath("amap", "rucu6_amap.js")
+        harness = r'''
+const fs = require("fs");
+const vm = require("vm");
+const source = fs.readFileSync(process.argv[1], "utf8");
+function run(body) {
+  let result;
+  const context = {
+    $request: { url: "https://m5.amap.com/ws/shield/search_poi/sug?keywords=test" },
+    $response: { body: JSON.stringify(body) },
+    $done(value) { result = value; },
+    console: { log() {} }
+  };
+  vm.runInNewContext(source, context);
+  if (!result || typeof result.body !== "string") throw new Error("Amap response was not returned");
+  return JSON.parse(result.body);
+}
+const direct = run({ tip_list: [
+  { id: 1, tip: { datatype_spec: "12" } },
+  { id: 2, tip: { result_type: "ad" } },
+  { id: 3, tip: { result_type: "poi_ad" } },
+  { id: 4, tip: { result_type: "toplist" } },
+  { id: 5, tip: { task_tag: "exct_query_sug_merge_theme" } },
+  { id: 6, tip: { task_tag: "query_sug_merge_theme" } },
+  { id: 7, tip: { task_tag: "sp" } },
+  { id: 8, tip: { result_type: "normal", task_tag: "poi" } }
+] });
+if (direct.tip_list.length !== 1 || direct.tip_list[0].id !== 8) throw new Error("direct suggestion filter behavior changed");
+const nested = run({ city_list: [
+  { city: "A", tip_list: [
+    { id: 1, tip: { datatype_spec: "12" } },
+    { id: 2, tip: { result_type: "ad" } },
+    { id: 3, tip: { result_type: "poi_ad" } },
+    { id: 4, tip: { result_type: "normal" } }
+  ] }
+] });
+if (nested.city_list[0].tip_list.length !== 1 || nested.city_list[0].tip_list[0].id !== 4) throw new Error("nested suggestion filter behavior changed");
+'''
+        completed = subprocess.run([node, "-e", harness, str(source_path)], capture_output=True, text=True)
+        self.assertEqual(completed.returncode, 0, msg=completed.stderr or completed.stdout)
+
     def test_same_parse_identifier_in_separate_blocks_is_not_reported_as_duplicate(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
