@@ -18,49 +18,44 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
 
 class LocalOverrideTests(unittest.TestCase):
 
-    def test_removes_duplicate_pupu_response_handlers_with_canonical_coverage(self):
-        from pathlib import Path
+    def test_pupu_cleanup_removes_only_confirmed_duplicate_handlers_in_fixture(self):
         from apply_local_overrides import remove_redundant_pupu_response_scripts
 
-        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
-        lines = plugin.splitlines()
-        result, removed = remove_redundant_pupu_response_scripts(lines)
+        wool_ad = r'response if \${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/marketing\\/advertisement\\/v1/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/PupuSplashAds.js")'
+        romeo_ad = r'response if \${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/marketing\\/advertisement\\/v1/i then script("https://raw.githubusercontent.com/ifflagged/Romeo/main/Modules/JavaScript/ishowshu/pupu/ishowshu_pp.js")'
+        wool_orders = r'response if \${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/order\\/orders\\/list\\/v4/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/PupuSplashAds.js")'
+        romeo_orders = r'response if \${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/order\\/orders\\/list\\/v4/i then script("https://raw.githubusercontent.com/ifflagged/Romeo/main/Modules/JavaScript/ishowshu/pupu/ishowshu_pp.js")'
+        fixture = ["[Script]", wool_ad, romeo_ad, wool_orders, romeo_orders, "[MITM]"]
+        result, removed = remove_redundant_pupu_response_scripts(fixture)
         self.assertEqual(removed, 2)
-        script = "\n".join(result).split("[Script]", 1)[1].split("[MITM]", 1)[0]
-        self.assertNotIn("ishowshu_pp.js", script)
-        self.assertIn("PupuSplashAds.js", script)
-        again, changed = remove_redundant_pupu_response_scripts(result)
-        self.assertEqual(changed, 0)
-        self.assertEqual(again, result)
+        self.assertIn(wool_ad, result)
+        self.assertIn(wool_orders, result)
+        self.assertNotIn(romeo_ad, result)
+        self.assertNotIn(romeo_orders, result)
+        self.assertEqual(remove_redundant_pupu_response_scripts(result), (result, 0))
 
-    def test_pupu_duplicate_cleanup_fails_closed_without_canonical_or_with_ambiguity(self):
-        from pathlib import Path
+    def test_pupu_cleanup_fails_closed_when_canonical_is_missing_or_duplicate(self):
         from apply_local_overrides import remove_redundant_pupu_response_scripts
 
-        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
-        lines = plugin.splitlines()
-        ad_marker = "/client/marketing/advertisement/v1"
-        wool_ad = next(line for line in lines if ad_marker in line.replace(chr(92), "").lower() and "PupuSplashAds.js" in line)
-        without_wool_ad = [line for line in lines if line != wool_ad]
-        preserved, removed = remove_redundant_pupu_response_scripts(without_wool_ad)
-        self.assertEqual(removed, 1)
-        script = "\n".join(preserved).split("[Script]", 1)[1].split("[MITM]", 1)[0]
-        self.assertTrue(any(ad_marker in line.replace(chr(92), "").lower() and "ishowshu_pp.js" in line for line in script.splitlines()))
+        wool_ad = r'response if \${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/marketing\\/advertisement\\/v1/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/PupuSplashAds.js")'
+        romeo_ad = r'response if \${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/marketing\\/advertisement\\/v1/i then script("https://raw.githubusercontent.com/ifflagged/Romeo/main/Modules/JavaScript/ishowshu/pupu/ishowshu_pp.js")'
+        preserved, removed = remove_redundant_pupu_response_scripts(["[Script]", romeo_ad, "[MITM]"])
+        self.assertEqual(removed, 0)
+        self.assertIn(romeo_ad, preserved)
 
-        with_duplicate = list(lines)
-        mitm_index = with_duplicate.index("[MITM]")
-        with_duplicate.insert(mitm_index, wool_ad)
+        duplicate = ["[Script]", wool_ad, romeo_ad, wool_ad, "[MITM]"]
         with self.assertRaisesRegex(ValueError, "duplicate Pupu response handler"):
-            remove_redundant_pupu_response_scripts(with_duplicate)
+            remove_redundant_pupu_response_scripts(duplicate)
 
-    def test_apply_removes_pupu_romeo_duplicates_but_keeps_wool_unique_endpoints(self):
+    def test_checked_in_plugin_keeps_wool_pupu_handlers_and_has_no_romeo_duplicate(self):
         from pathlib import Path
+        from apply_local_overrides import apply
 
         plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
         result = apply(plugin)
-        self.assertNotIn("ishowshu_pp.js", result)
-        self.assertIn("PupuSplashAds.js", result)
         normalized = result.replace(chr(92), "")
+        self.assertNotIn("ishowshu_pp.js", normalized)
+        self.assertIn("PupuSplashAds.js", result)
         self.assertIn("/search/hot_keywords/v3", normalized)
         self.assertIn("/order_settlement/detail", normalized)
 
