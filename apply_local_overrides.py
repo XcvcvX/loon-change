@@ -3545,6 +3545,10 @@ def remove_duplicate_cnftp_scripts(lines):
     source_mode = legacy_remove_mode or current_source_only_mode
     output, section, target_seen, removed = [], "", False, 0
     combined_home_count = 0
+    has_cnftp_source = any(
+        normalize_cnftp_trigger_line(candidate.strip()) in source_counts
+        for candidate in lines
+    )
 
     for line in lines:
         if line.startswith("[") and line.endswith("]"):
@@ -3554,6 +3558,13 @@ def remove_duplicate_cnftp_scripts(lines):
 
         normalized_line = normalize_cnftp_trigger_line(line)
         unescaped_line = normalized_line.replace("\\", "")
+        is_cntv_local = "scripts/cntv/cntv.js" in unescaped_line
+        is_cntv_remote_without_cnftp_pair = (
+            "Res/Scripts/AntiAd/cntv.js" in unescaped_line and not has_cnftp_source
+        )
+        if is_cntv_local or is_cntv_remote_without_cnftp_pair:
+            output.append(line)
+            continue
         is_target = (
             section == "Script"
             and any(host in unescaped_line for host in ("iqiyi.com", "mgtv.com", "youku.com"))
@@ -6455,6 +6466,51 @@ def optimize_goofish_home_sections_filter(lines):
 
 
 
+CNTV_REMOTE_SCRIPT_URL = "https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js"
+CNTV_LOCAL_SCRIPT_URL = "https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js"
+CNTV_TRIGGER_COUNT = 26
+
+
+def migrate_cntv_script_to_local(lines):
+    """Route all reviewed CNTV/iQIYI/MGTV/Youku response handlers to the local optimized snapshot."""
+    output = []
+    section = ""
+    candidates = 0
+    changed = 0
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+            output.append(line)
+            continue
+        if section == "Script" and (
+            CNTV_REMOTE_SCRIPT_URL in stripped or CNTV_LOCAL_SCRIPT_URL in stripped
+        ):
+            http_response = "http-response " in stripped and "requires-body=true" in stripped
+            response_script = (
+                stripped.startswith("response if ")
+                and 'then script("' in stripped
+                and "requires_body=true" in stripped
+            )
+            if not (http_response or response_script):
+                raise ValueError("CNTV trigger mode changed; refusing local migration: " + stripped)
+            if stripped.count(CNTV_REMOTE_SCRIPT_URL) + stripped.count(CNTV_LOCAL_SCRIPT_URL) != 1:
+                raise ValueError("CNTV script URL is ambiguous; refusing local migration: " + stripped)
+            candidates += 1
+            if CNTV_REMOTE_SCRIPT_URL in line:
+                line = line.replace(CNTV_REMOTE_SCRIPT_URL, CNTV_LOCAL_SCRIPT_URL)
+                changed += 1
+        output.append(line)
+    if candidates == 0:
+        return output, 0
+    if candidates > CNTV_TRIGGER_COUNT:
+        raise ValueError(
+            "CNTV trigger inventory exceeded reviewed maximum %d: got %d"
+            % (CNTV_TRIGGER_COUNT, candidates)
+        )
+    return output, changed
+
+
 def apply(text: str) -> str:
     if "[Script]" not in text or "[MITM]" not in text or "[Rewrite]" not in text:
         raise ValueError("plugin missing [Rewrite], [Script] or [MITM] section")
@@ -6595,6 +6651,7 @@ def apply(text: str) -> str:
     lines, _ = narrow_duplicate_bilibili_protobuf_triggers(lines)
     lines, _ = optimize_bilibili_json_native_coverage(lines)
     lines, _ = migrate_bilibili_json_script_to_local(lines)
+    lines, _ = migrate_cntv_script_to_local(lines)
 
     result_lines, rewrite_lines = [], []
     section = ""
