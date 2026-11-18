@@ -105,8 +105,7 @@ on:
       - 'test_integrate_spotify.py'
       - 'sources/spotify/**'
   schedule:
-    - cron: '7 1 * * *'
-    - cron: '23 13 * * *'
+    - cron: '*/5 * * * *' # temporary one-shot sync trigger; reverted after successful publish
   workflow_dispatch:
 
 permissions:
