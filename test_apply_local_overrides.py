@@ -18,49 +18,44 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
 
 class LocalOverrideTests(unittest.TestCase):
 
-    def test_removes_duplicate_pupu_response_handlers_with_canonical_coverage(self):
-        from pathlib import Path
+    def test_pupu_cleanup_removes_only_confirmed_duplicate_handlers_in_fixture(self):
         from apply_local_overrides import remove_redundant_pupu_response_scripts
 
-        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
-        lines = plugin.splitlines()
-        result, removed = remove_redundant_pupu_response_scripts(lines)
+        wool_ad = r'response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/marketing\\/advertisement\\/v1/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/PupuSplashAds.js")'
+        romeo_ad = r'response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/marketing\\/advertisement\\/v1/i then script("https://raw.githubusercontent.com/ifflagged/Romeo/main/Modules/JavaScript/ishowshu/pupu/ishowshu_pp.js")'
+        wool_orders = r'response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/order\\/orders\\/list\\/v4/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/PupuSplashAds.js")'
+        romeo_orders = r'response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/order\\/orders\\/list\\/v4/i then script("https://raw.githubusercontent.com/ifflagged/Romeo/main/Modules/JavaScript/ishowshu/pupu/ishowshu_pp.js")'
+        fixture = ["[Script]", wool_ad, romeo_ad, wool_orders, romeo_orders, "[MITM]"]
+        result, removed = remove_redundant_pupu_response_scripts(fixture)
         self.assertEqual(removed, 2)
-        script = "\n".join(result).split("[Script]", 1)[1].split("[MITM]", 1)[0]
-        self.assertNotIn("ishowshu_pp.js", script)
-        self.assertIn("PupuSplashAds.js", script)
-        again, changed = remove_redundant_pupu_response_scripts(result)
-        self.assertEqual(changed, 0)
-        self.assertEqual(again, result)
+        self.assertIn(wool_ad, result)
+        self.assertIn(wool_orders, result)
+        self.assertNotIn(romeo_ad, result)
+        self.assertNotIn(romeo_orders, result)
+        self.assertEqual(remove_redundant_pupu_response_scripts(result), (result, 0))
 
-    def test_pupu_duplicate_cleanup_fails_closed_without_canonical_or_with_ambiguity(self):
-        from pathlib import Path
+    def test_pupu_cleanup_fails_closed_when_canonical_is_missing_or_duplicate(self):
         from apply_local_overrides import remove_redundant_pupu_response_scripts
 
-        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
-        lines = plugin.splitlines()
-        ad_marker = "/client/marketing/advertisement/v1"
-        wool_ad = next(line for line in lines if ad_marker in line.replace(chr(92), "").lower() and "PupuSplashAds.js" in line)
-        without_wool_ad = [line for line in lines if line != wool_ad]
-        preserved, removed = remove_redundant_pupu_response_scripts(without_wool_ad)
-        self.assertEqual(removed, 1)
-        script = "\n".join(preserved).split("[Script]", 1)[1].split("[MITM]", 1)[0]
-        self.assertTrue(any(ad_marker in line.replace(chr(92), "").lower() and "ishowshu_pp.js" in line for line in script.splitlines()))
+        wool_ad = r'response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/marketing\\/advertisement\\/v1/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/PupuSplashAds.js")'
+        romeo_ad = r'response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/marketing\\/advertisement\\/v1/i then script("https://raw.githubusercontent.com/ifflagged/Romeo/main/Modules/JavaScript/ishowshu/pupu/ishowshu_pp.js")'
+        preserved, removed = remove_redundant_pupu_response_scripts(["[Script]", romeo_ad, "[MITM]"])
+        self.assertEqual(removed, 0)
+        self.assertIn(romeo_ad, preserved)
 
-        with_duplicate = list(lines)
-        mitm_index = with_duplicate.index("[MITM]")
-        with_duplicate.insert(mitm_index, wool_ad)
+        duplicate = ["[Script]", wool_ad, romeo_ad, wool_ad, "[MITM]"]
         with self.assertRaisesRegex(ValueError, "duplicate Pupu response handler"):
-            remove_redundant_pupu_response_scripts(with_duplicate)
+            remove_redundant_pupu_response_scripts(duplicate)
 
-    def test_apply_removes_pupu_romeo_duplicates_but_keeps_wool_unique_endpoints(self):
+    def test_checked_in_plugin_keeps_wool_pupu_handlers_and_has_no_romeo_duplicate(self):
         from pathlib import Path
+        from apply_local_overrides import apply
 
         plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
         result = apply(plugin)
-        self.assertNotIn("ishowshu_pp.js", result)
-        self.assertIn("PupuSplashAds.js", result)
         normalized = result.replace(chr(92), "")
+        self.assertNotIn("ishowshu_pp.js", normalized)
+        self.assertIn("PupuSplashAds.js", result)
         self.assertIn("/search/hot_keywords/v3", normalized)
         self.assertIn("/order_settlement/detail", normalized)
 
@@ -2363,7 +2358,7 @@ class PeopleAppHomepageAdDedupTests(unittest.TestCase):
             remove_duplicate_peopleapp_home_ad_rules([first, first, duplicate])
         drifted = duplicate.replace("reject(404)", "reject_dict(200)")
         self.assertEqual(remove_duplicate_peopleapp_home_ad_rules([first, drifted]), ([first, drifted], 0))
-        unknown = r"request if \${url} ~= /^https?:\\/\\/app\\.peopleapp\\.com\\/Api\\/\\d+\\/HomeApi\\/(adv|getAdvertImage)/ then reject(403)"
+        unknown = r"request if ${url} ~= /^https?:\\/\\/app\\.peopleapp\\.com\\/Api\\/\\d+\\/HomeApi\\/(adv|getAdvertImage)/ then reject(403)"
         self.assertEqual(remove_duplicate_peopleapp_home_ad_rules([first, unknown]), ([first, unknown], 0))
         result, removed = remove_duplicate_peopleapp_home_ad_rules([first, duplicate, unknown])
         self.assertEqual(removed, 1)
@@ -3304,6 +3299,67 @@ class Dushu365NonAdTriggerPruningTests(unittest.TestCase):
             self.assertNotIn(item, result)
         for item in DUSHU365_AD_AND_UNCERTAIN_KEEP_TRIGGERS:
             self.assertEqual(result.count(item), 1)
+
+
+class AlipanOnboardResponseDedupTests(unittest.TestCase):
+    def setUp(self):
+        from pathlib import Path
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        self.lines = plugin.splitlines()
+        self.wool = next(
+            line for line in self.lines
+            if "member.alipan.com" in line.replace(chr(92), "").lower()
+            and "/v1/users/onboard_list" in line.replace(chr(92), "")
+            and "Scripts/adrive/adrive.js" in line
+        )
+        self.romeo = next(
+            line for line in self.lines
+            if "member.alipan.com" in line.replace(chr(92), "").lower()
+            and "/v1/users/onboard_list" in line.replace(chr(92), "")
+            and "rucu6_adrive.js" in line
+        )
+        self.romeo_unique = next(
+            line for line in self.lines
+            if "api.alipan.com" in line.replace(chr(92), "").lower() and "rucu6_adrive.js" in line
+        )
+
+    def test_removes_only_the_duplicate_romeo_onboard_handler(self):
+        from apply_local_overrides import remove_redundant_alipan_onboard_response_script
+        fixture = ["[Script]", self.romeo, self.wool, self.romeo_unique, "[MITM]"]
+        result, removed = remove_redundant_alipan_onboard_response_script(fixture)
+        self.assertEqual(removed, 1)
+        self.assertNotIn(self.romeo, result)
+        self.assertIn(self.wool, result)
+        self.assertIn(self.romeo_unique, result)
+        self.assertEqual(remove_redundant_alipan_onboard_response_script(result), (result, 0))
+
+    def test_preserves_romeo_handler_when_wool_canonical_is_missing(self):
+        from apply_local_overrides import remove_redundant_alipan_onboard_response_script
+        fixture = ["[Script]", self.romeo, self.romeo_unique, "[MITM]"]
+        result, removed = remove_redundant_alipan_onboard_response_script(fixture)
+        self.assertEqual(removed, 0)
+        self.assertIn(self.romeo, result)
+        self.assertIn(self.romeo_unique, result)
+
+    def test_fails_closed_on_duplicate_known_handlers_and_ignores_other_sections(self):
+        from apply_local_overrides import remove_redundant_alipan_onboard_response_script
+        duplicate = ["[Script]", self.romeo, self.romeo, self.wool, "[MITM]"]
+        with self.assertRaisesRegex(ValueError, "duplicate Aliyun Drive onboard-list"):
+            remove_redundant_alipan_onboard_response_script(duplicate)
+
+        moved = ["[Rewrite]", self.romeo, self.wool, "[MITM]"]
+        result, removed = remove_redundant_alipan_onboard_response_script(moved)
+        self.assertEqual(removed, 0)
+        self.assertEqual(result, moved)
+
+    def test_checked_in_plugin_apply_keeps_single_onboard_handler(self):
+        from pathlib import Path
+        from apply_local_overrides import apply
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        result = apply(plugin)
+        self.assertNotIn(self.romeo, result)
+        self.assertEqual(result.count(self.wool), 1)
+        self.assertIn(self.romeo_unique, result)
 
 
 class SameSourceResponseScriptDedupTests(unittest.TestCase):
