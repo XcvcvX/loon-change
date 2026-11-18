@@ -14,7 +14,7 @@ class ZhihuOptimizerTests(unittest.TestCase):
         self.assertNotIn(".filter(",src)
         self.assertNotIn("Object.fromEntries(",src)
         self.assertNotIn("getUrlParamValue(item.fields.header.url",src)
-        self.assertEqual(src.count("fallbackSearch"),2)
+        self.assertEqual(src.count("fallbackSearch"),3)
 
     def test_exact_eight_plugin_triggers_are_rewritten(self):
         dollar=chr(36)
