@@ -6442,8 +6442,9 @@ def apply(text: str) -> str:
         if section == "MITM" and line.strip().lower().startswith("hostname") and "=" in line:
             key, value = line.split("=", 1)
             hosts = [host.strip() for host in value.split(",") if host.strip()]
-            if not REQUIRED_BANKCOMM_MITM_HOSTS.issubset(set(hosts)):
-                raise ValueError("required Bankcomm image hosts missing from MITM")
+            # This local script is retained independently of the removed MyBlockAds feed.
+            # Restore only its four exact HTTPS hosts instead of relying on an upstream feed.
+            hosts.extend(sorted(REQUIRED_BANKCOMM_MITM_HOSTS - set(hosts)))
             # Defer legacy HelloBike host removal until all surviving Rewrite/Script
             # references are known. Some hosts are also used by unrelated base rules.
             line = key + "= " + ", ".join(hosts)
