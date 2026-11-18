@@ -155,6 +155,17 @@ def optimize_source(src,commit="unknown"):
     src=between(src,"function selectBestStream(h265List, h264List) {","\n/**\n * 修复评论类型",STREAM,"stream selection")
     src=src.replace("commitsRsp.livePhotos = deduplicateLivePhotos(commitsRsp.livePhotos.concat(livePhotos));","commitsRsp.livePhotos = appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos);")
     src=src.replace("videosCache.videos = deduplicateLivePhotos(videosCache.videos.concat(commentVideos));","videosCache.videos = appendUniqueLivePhotos(videosCache.videos, commentVideos);")
+    log_tokens = (
+        "原body：", "读取缓存key", "缓存无内容", "新body：", "本次note_id",
+        "读取缓存val", "缓存note_id", "增量数据", "更换数据", "写入缓存val",
+        "目标video_id", "匹配到无水印链接", "comment_id:", "video_id：",
+        "没有[", "修改评论类型", "修改媒体类型", "提取成功", "未找到可用视频",
+        "已缓存普通视频", "添加下载按钮",
+    )
+    src = "".join(
+        line for line in src.splitlines(keepends=True)
+        if not ("console.log(" in line and any(token in line for token in log_tokens))
+    )
     result=MARKER+commit+"\n"+src
     for token in ("imageEnhance(images_list)","compactInPlace(obj.data","appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)","const byFileId=new Map()"):
         if token not in result:raise ValueError("missing optimizer invariant: "+token)

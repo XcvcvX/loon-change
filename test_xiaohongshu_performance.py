@@ -13,6 +13,9 @@ class XiaohongshuOptimizerTests(unittest.TestCase):
         self.assertNotIn("imageEnhance(JSON.stringify(images_list))",src)
         self.assertIn("imageEnhance(images_list)",src)
         self.assertIn("const byFileId=new Map()",src)
+        self.assertNotIn("console.log('新body：' + JSON.stringify(obj))",src)
+        self.assertNotIn('console.log("写入缓存val：" + JSON.stringify(commitsRsp))',src)
+        self.assertFalse(any("console.log(" in line and any(token in line for token in ("原body：","新body：","写入缓存val","comment_id:","video_id：")) for line in src.splitlines()))
 
     def test_plugin_rewrites_exact_nine_triggers(self):
         dollar=chr(36)
@@ -42,7 +45,7 @@ process.stdout.write(JSON.stringify({body:JSON.parse(done.body),store:Object.fro
         body={"data":[{"note_list":[{"images_list":[{"url":original,"nested":{"url":original}}],
           "media_save_config":{"disable_save":True},"share_info":{"function_entries":[{"type":"share"}]},
           "note_text_press_options":[{"key":"copy"}],"hash_tag":[{"type":"normal"},{"type":"interact_vote"}]}]}]}
-        run=subprocess.run([NODE,"-e",runner],input=json.dumps({"url":"https://edith.xiaohongshu.com/api/sns/v1/note/imagefeed","body":body}),
+        run=subprocess.run([NODE,"-e",runner],input=json.dumps({"url":"https://edith.xiaohongshu.com/api/sns/v1/note/imagefeed?cursor=fixture","body":body}),
           cwd=ROOT,capture_output=True,text=True,check=True,timeout=10)
         out=json.loads(run.stdout);item=out["body"]["data"][0]["note_list"][0]
         self.assertIn("w/2160/format",item["images_list"][0]["url"])
