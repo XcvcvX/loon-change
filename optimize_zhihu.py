@@ -108,7 +108,7 @@ def optimize_source(src, commit="unknown"):
         raise ValueError("allocating URL parameter parser remains")
     if "getUrlParamValue(item.fields.header.url" in result:
         raise ValueError("market card undefined variable remains")
-    if result.count("fallbackSearch")!=2:
+    if result.count("fallbackSearch")!=3:
         raise ValueError("fallback response scan was not hoisted exactly once")
     return result
 
