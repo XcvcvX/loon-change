@@ -5497,3 +5497,46 @@ if (parsed.data.adspotidIOS !== "" || parsed.data.AdrAdsPotId !== "" || parsed.d
         self.assertIn("if (responseBody.indexOf(", source)
         self.assertIn("adUrl320", source)
         self.assertIn("typeof ad.adUrl320 === 'string' && own(ad, 'locIndex') && own(ad, 'locName')", source)
+
+
+class BilibiliLocalJsonScriptMigrationTests(unittest.TestCase):
+    def test_migrates_exact_seven_rstore_json_triggers_to_local_script(self):
+        from apply_local_overrides import (
+            BILIBILI_LOCAL_JSON_SCRIPT_URL,
+            BILIBILI_LOCAL_JSON_TAGS,
+            BILIBILI_RSTORE_JSON_SCRIPT_URL,
+            migrate_bilibili_json_script_to_local,
+        )
+
+        fixture = ["[Script]"] + [
+            f"http-response ^https?://example.test/{tag} script-path={BILIBILI_RSTORE_JSON_SCRIPT_URL},tag={tag},requires-body=true"
+            for tag in BILIBILI_LOCAL_JSON_TAGS
+        ] + ["http-response ^https?://example.test/unrelated script-path=https://example.test/other.js,tag=OTHER,requires-body=true", "[MITM]"]
+        result, changed = migrate_bilibili_json_script_to_local(fixture)
+        self.assertEqual(changed, 7)
+        self.assertEqual(sum(BILIBILI_LOCAL_JSON_SCRIPT_URL in line for line in result), 7)
+        self.assertFalse(any(BILIBILI_RSTORE_JSON_SCRIPT_URL in line for line in result))
+        self.assertIn(fixture[-2], result)
+        again, second_changed = migrate_bilibili_json_script_to_local(result)
+        self.assertEqual(again, result)
+        self.assertEqual(second_changed, 0)
+
+    def test_fails_closed_on_missing_duplicate_or_changed_bilibili_json_trigger(self):
+        from apply_local_overrides import (
+            BILIBILI_LOCAL_JSON_TAGS,
+            BILIBILI_RSTORE_JSON_SCRIPT_URL,
+            migrate_bilibili_json_script_to_local,
+        )
+
+        fixture = ["[Script]"] + [
+            f"http-response ^https?://example.test/{tag} script-path={BILIBILI_RSTORE_JSON_SCRIPT_URL},tag={tag},requires-body=true"
+            for tag in BILIBILI_LOCAL_JSON_TAGS
+        ] + ["[MITM]"]
+        with self.assertRaisesRegex(ValueError, "inventory changed"):
+            migrate_bilibili_json_script_to_local(fixture[:-2] + fixture[-1:])
+        with self.assertRaisesRegex(ValueError, "duplicate"):
+            migrate_bilibili_json_script_to_local(fixture[:-1] + [fixture[1], fixture[-1]])
+        changed = fixture.copy()
+        changed[1] = changed[1].replace("requires-body=true", "requires-body=false")
+        with self.assertRaisesRegex(ValueError, "mode changed"):
+            migrate_bilibili_json_script_to_local(changed)
