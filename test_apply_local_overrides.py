@@ -3306,6 +3306,67 @@ class Dushu365NonAdTriggerPruningTests(unittest.TestCase):
             self.assertEqual(result.count(item), 1)
 
 
+class AlipanOnboardResponseDedupTests(unittest.TestCase):
+    def setUp(self):
+        from pathlib import Path
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        self.lines = plugin.splitlines()
+        self.wool = next(
+            line for line in self.lines
+            if "member.alipan.com" in line.lower()
+            and "/v1/users/onboard_list" in line.replace(chr(92), "")
+            and "Scripts/adrive/adrive.js" in line
+        )
+        self.romeo = next(
+            line for line in self.lines
+            if "member.alipan.com" in line.lower()
+            and "/v1/users/onboard_list" in line.replace(chr(92), "")
+            and "rucu6_adrive.js" in line
+        )
+        self.romeo_unique = next(
+            line for line in self.lines
+            if "api.alipan.com" in line.lower() and "rucu6_adrive.js" in line
+        )
+
+    def test_removes_only_the_duplicate_romeo_onboard_handler(self):
+        from apply_local_overrides import remove_redundant_alipan_onboard_response_script
+        fixture = ["[Script]", self.romeo, self.wool, self.romeo_unique, "[MITM]"]
+        result, removed = remove_redundant_alipan_onboard_response_script(fixture)
+        self.assertEqual(removed, 1)
+        self.assertNotIn(self.romeo, result)
+        self.assertIn(self.wool, result)
+        self.assertIn(self.romeo_unique, result)
+        self.assertEqual(remove_redundant_alipan_onboard_response_script(result), (result, 0))
+
+    def test_preserves_romeo_handler_when_wool_canonical_is_missing(self):
+        from apply_local_overrides import remove_redundant_alipan_onboard_response_script
+        fixture = ["[Script]", self.romeo, self.romeo_unique, "[MITM]"]
+        result, removed = remove_redundant_alipan_onboard_response_script(fixture)
+        self.assertEqual(removed, 0)
+        self.assertIn(self.romeo, result)
+        self.assertIn(self.romeo_unique, result)
+
+    def test_fails_closed_on_duplicate_known_handlers_and_ignores_other_sections(self):
+        from apply_local_overrides import remove_redundant_alipan_onboard_response_script
+        duplicate = ["[Script]", self.romeo, self.romeo, self.wool, "[MITM]"]
+        with self.assertRaisesRegex(ValueError, "duplicate Aliyun Drive onboard-list"):
+            remove_redundant_alipan_onboard_response_script(duplicate)
+
+        moved = ["[Rewrite]", self.romeo, self.wool, "[MITM]"]
+        result, removed = remove_redundant_alipan_onboard_response_script(moved)
+        self.assertEqual(removed, 0)
+        self.assertEqual(result, moved)
+
+    def test_checked_in_plugin_apply_keeps_single_onboard_handler(self):
+        from pathlib import Path
+        from apply_local_overrides import apply
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        result = apply(plugin)
+        self.assertNotIn(self.romeo, result)
+        self.assertEqual(result.count(self.wool), 1)
+        self.assertIn(self.romeo_unique, result)
+
+
 class SameSourceResponseScriptDedupTests(unittest.TestCase):
     def setUp(self):
         from apply_local_overrides import (
