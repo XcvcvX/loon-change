@@ -480,3 +480,102 @@ if (!imageResult || !imageResult.body.includes("imageView2/2/w/2160/format")) {
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class BilibiliLocalJsonRuntimePerformanceTests(unittest.TestCase):
+    def test_json_cleaner_uses_one_parse_stringify_and_in_place_array_compaction(self):
+        import shutil
+        import subprocess
+        from pathlib import Path
+
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node.js is required for the Bilibili runtime integration test")
+        source_path = Path(__file__).with_name("scripts").joinpath("bilibili", "bilibili-json.js")
+        source = source_path.read_text(encoding="utf-8")
+        self.assertNotIn(".filter(", source)
+        self.assertNotIn("newItems", source)
+        self.assertEqual(source.count("JSON.parse("), 1)
+        self.assertEqual(source.count("JSON.stringify("), 1)
+
+        harness = r'''
+const fs = require("fs");
+const vm = require("vm");
+const source = fs.readFileSync(process.argv[1], "utf8");
+const cases = [
+  {
+    url: "https://app.bilibili.com/x/v3/feed/index?test=1",
+    data: { items: [{ card_goto: "av", id: 1 }, { card_goto: "banner", id: 2 }, { card_goto: "av", id: 3 }], config: { toast: { has_toast: true } } },
+    check(body) {
+      if (body.data.items.length !== 2 || body.data.items[0].id !== 1 || body.data.items[1].id !== 3 || body.data.config.toast.has_toast !== false) throw new Error("feed result mismatch");
+    }
+  },
+  {
+    url: "https://app.bilibili.com/x/v3/feed/index/story?test=1",
+    data: { items: [{ ad_info: null }, { card_goto: "vertical_live" }, { card_goto: "vertical_ad_picture" }, { card_goto: "organic", creative_entrance: {}, story_cart_icon: {} }] },
+    check(body) {
+      if (body.data.items.length !== 1 || body.data.items[0].card_goto !== "organic" || "creative_entrance" in body.data.items[0] || "story_cart_icon" in body.data.items[0]) throw new Error("story result mismatch");
+    }
+  },
+  {
+    url: "https://app.bilibili.com/x/v3/account/mine?test=1",
+    data: { sections_v2: [
+      { style: 1, title: "创作中心", items: [] },
+      { style: 2, title: "更多服务", items: [{ uri: "bilibili://user_center/feedback" }, { uri: "bilibili://user_center/setting" }, { uri: "bilibili://user_center/other" }] },
+      { style: 1, title: "常规服务", button: {} },
+      { style: 3, title: "其他" }
+    ] },
+    check(body) {
+      const sections = body.data.sections_v2;
+      if (sections.length !== 2 || sections[0].items.length !== 2 || sections[0].title !== undefined || sections[1].title !== "常规服务" || "button" in sections[1]) throw new Error("account result mismatch");
+    }
+  },
+  {
+    url: "https://app.bilibili.com/x/resource/show/tab/v1?test=1",
+    data: { bottom: [{name:"我的"},{name:"其他"},{name:"首页"},{name:"首页"}], tab: [{name:"动画"},{name:"推荐"},{name:"未知"}], top: [{name:"动态"},{name:"消息",pos:9}] },
+    check(body) {
+      if (body.data.bottom.map(x=>x.name).join(",") !== "首页,首页,我的" || body.data.tab.map(x=>x.name).join(",") !== "推荐,动画" || body.data.top.length !== 1 || body.data.top[0].pos !== 1) throw new Error("tab result mismatch");
+    }
+  },
+  {
+    url: "https://api.bilibili.com/pgc/page/bangumi?test=1",
+    data: { result: { modules: [{ style:"banner", items:[{link:"https://play.example"},{link:"https://other.example"}] }, {style:"function",items:[{blink:"bilibili://x"},{blink:"https://x"}]}] } },
+    check(body) {
+      const modules = body.result.modules;
+      if (modules[0].items.length !== 1 || modules[1].items.length !== 1) throw new Error("pgc result mismatch");
+    }
+  },
+  {
+    url: "https://api.live.bilibili.com/xlive/app-room/v2/index/getInfoByRoom?test=1",
+    data: { activity_banner_info:{}, new_tab_info:{outer_list:[{biz_id:33},{biz_id:1}]}, shopping_info:{is_show:1} },
+    check(body) {
+      if (body.data.new_tab_info.outer_list.length !== 1 || body.data.new_tab_info.outer_list[0].biz_id !== 1 || body.data.shopping_info.is_show !== 0 || "activity_banner_info" in body.data) throw new Error("live result mismatch");
+    }
+  }
+];
+for (const item of cases) {
+  let parseCalls = 0, stringifyCalls = 0, doneResult;
+  const trackedJSON = {
+    parse(...args) { parseCalls++; return JSON.parse(...args); },
+    stringify(...args) { stringifyCalls++; return JSON.stringify(...args); }
+  };
+  const context = {
+    JSON: trackedJSON,
+    $request: { url: item.url },
+    $response: { body: JSON.stringify(item.data) },
+    $done(value) { doneResult = value; }
+  };
+  vm.runInNewContext(source, context);
+  if (parseCalls !== 1 || stringifyCalls !== 1) throw new Error(item.url + " parse/stringify count " + parseCalls + "/" + stringifyCalls);
+  item.check(JSON.parse(doneResult.body));
+}
+let emptyDone;
+vm.runInNewContext(source, {
+  JSON,
+  $request: { url: "https://app.bilibili.com/x/v3/feed/index?test=empty" },
+  $response: { body: "" },
+  $done(value) { emptyDone = value; }
+});
+if (!emptyDone || Object.keys(emptyDone).length !== 0) throw new Error("empty body fast path changed");
+'''
+        subprocess.run([node, "-e", harness, str(source_path)], check=True, capture_output=True, text=True)
