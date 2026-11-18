@@ -225,6 +225,58 @@ if (nested.city_list[0].tip_list.length !== 1 || nested.city_list[0].tip_list[0]
         completed = subprocess.run([node, "-e", harness, str(source_path)], capture_output=True, text=True)
         self.assertEqual(completed.returncode, 0, msg=completed.stderr or completed.stdout)
 
+
+    def test_amap_search_result_filter_uses_direct_scalar_checks(self):
+        import shutil
+        import subprocess
+        from pathlib import Path
+
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node.js is required for the Amap runtime integration test")
+        source_path = Path(__file__).with_name("sources").joinpath("amap", "rucu6_amap.js")
+        harness = r'''
+const fs = require("fs");
+const vm = require("vm");
+const source = fs.readFileSync(process.argv[1], "utf8");
+const body = {
+  data: {
+    modules: {
+      list_data: {
+        data: {
+          content: [
+            { id: 1, item_type: "brandAdCard" },
+            { id: 2, item_type: "toplist_al" },
+            { id: 3, item_type: "normal" },
+            { id: 4 },
+            null
+          ]
+        }
+      }
+    }
+  }
+};
+let result;
+const context = {
+  $request: { url: "https://m5.amap.com/ws/shield/search_poi/search/sp?keywords=test" },
+  $response: { body: JSON.stringify(body) },
+  $done(value) { result = value; },
+  console: { log() {} }
+};
+vm.runInNewContext(source, context);
+if (!result || typeof result.body !== "string") throw new Error("Amap response was not returned");
+const output = JSON.parse(result.body);
+const content = output.data.modules.list_data.data.content;
+if (content.length !== 3) throw new Error("Search ad cards were not removed");
+if (content[0].id !== 3 || content[1].id !== 4 || content[2] !== null) {
+  throw new Error("Search result order or non-ad entries changed");
+}
+''';
+        completed = subprocess.run([node, "-e", harness, str(source_path)], capture_output=True, text=True)
+        self.assertEqual(completed.returncode, 0, msg=completed.stderr or completed.stdout)
+        source = source_path.read_text(encoding="utf-8")
+        self.assertIn('item?.item_type !== "brandAdCard" && item?.item_type !== "toplist_al"', source)
+
     def test_jd_person_info_floor_cleanup_uses_single_pass_and_preserves_behavior(self):
         import shutil
         import subprocess
