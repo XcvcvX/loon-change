@@ -6,6 +6,9 @@
 (function () {
   'use strict';
   var VERSION = '1.0.0', STORE = 'qunar-clean-v1-stats';
+  // Per-response persistence/logging is diagnostic only; keep it off the hot path.
+  // Set to true locally only when actively troubleshooting Qunar matching.
+  var ENABLE_RUNTIME_STATS = false;
   var HOSTS = ['slugger.qunar.com', 'minislugger.qunar.com', 'homefront.qunar.com',
     'homeback.qunar.com', 'qbi.qunar.com', 'lang.qunar.com', 'qde.qunar.com', 'client.qunar.com'];
   var SERVICES = [
@@ -177,6 +180,12 @@
     console.log('[QunarClean ' + VERSION + '] ' + JSON.stringify(s.recent[s.recent.length - 1]));
   }
   function report() {
+    if (!ENABLE_RUNTIME_STATS) {
+      var disabledMessage = '脚本已加载；实时响应统计默认关闭，以避免每次接口响应都读写持久化存储。广告清理功能不受影响。';
+      console.log('[QunarClean report] ' + disabledMessage);
+      if (typeof $notification !== 'undefined') $notification.post('去哪儿配套清理 v' + VERSION, '运行状态', disabledMessage);
+      return disabledMessage;
+    }
     var s = statsRead(), c = s.counts || {}, msg = '脚本可运行；捕获响应 ' + (s.total || 0) + ' 次，已改写 ' + (c.changed || 0) + ' 次。\n';
     msg += '非 JSON ' + (c['non-json'] || 0) + ' 次；未识别接口 ' + (c.unmatched || 0) + ' 次；已识别但无目标字段 ' + (c['no-target-fields'] || 0) + ' 次。\n';
     msg += '捕获为 0：检查规则、解密域名或缓存。非 JSON 多：需查看真实响应格式。改写计数不等于页面验收通过。';
@@ -192,7 +201,7 @@
     if (typeof $request === 'undefined') report();
     else if (typeof $response !== 'undefined') {
       var result = clean($request, $response);
-      record(result);
+      if (ENABLE_RUNTIME_STATS) record(result);
       if (result.kind === 'changed') output.body = result.body;
     }
   } catch (_) { console.log('[QunarClean ' + VERSION + '] 内部处理失败，保留原响应。'); }
