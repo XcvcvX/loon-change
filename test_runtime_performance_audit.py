@@ -762,3 +762,76 @@ if (header.md5 !== context.__testMd5(merged)) throw new Error("RepHead md5 does 
 '''
         result = subprocess.run([node, "-e", harness, str(source_path)], check=False, capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
+
+
+class TaobaoLocalJsonRuntimePerformanceTests(unittest.TestCase):
+    def test_taobao_handler_parses_and_serializes_once_per_response(self):
+        import shutil
+        import subprocess
+        from pathlib import Path
+
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node.js is required for the Taobao runtime integration test")
+        source_path = Path(__file__).with_name("scripts").joinpath("taobao", "taobao.js")
+        source = source_path.read_text(encoding="utf-8")
+        self.assertEqual(source.count("JSON.parse("), 1)
+        self.assertEqual(source.count("JSON.stringify("), 1)
+        self.assertEqual(source.count('item.waitTime = "0"'), 1)
+
+        harness = r'''
+const fs = require("fs");
+const vm = require("vm");
+const source = fs.readFileSync(process.argv[1], "utf8");
+const cases = [
+  {
+    url: "https://guide-acs.m.taobao.com/gw/mtop.taobao.cloudvideo.video.query",
+    data: { data: { duration: "20", resources: [{url:"a"}], caches: [{url:"b"}], respTimeInMs: "1" } },
+    check(body) {
+      if (body.data.duration !== "0" || body.data.resources.length !== 0 || body.data.caches.length !== 0 || body.data.respTimeInMs !== "3818332800000") throw new Error("cloudvideo result mismatch");
+    }
+  },
+  {
+    url: "https://guide-acs.m.taobao.com/gw/mtop.taobao.wireless.home.splash.awesome.get",
+    data: { data: { containers: { splash_home_base: { base: { sections: [
+      { bizData: { "taobao-splash": { data: [{waitTime:"10",times:"3",hotStart:"true",haveVoice:"true",hideTBLogo:"true",enable4G:"true",coldStart:"true",imgUrl:"image",videoUrl:"video"}] } } }
+    ] } } } } },
+    check(body) {
+      const item = body.data.containers.splash_home_base.base.sections[0].bizData["taobao-splash"].data[0];
+      if (item.waitTime !== "0" || item.times !== "0" || item.hotStart !== "false" || item.imgUrl !== "" || item.videoUrl !== "" || item.startTime !== "3818332800000") throw new Error("splash result mismatch");
+    }
+  },
+  {
+    url: "https://poplayer.template.alibaba.com/test.json",
+    data: { res: { images:[1], videos:[2] }, enable:true, mainRes:{images:[3]} },
+    check(body) {
+      if (body.res.images.length !== 0 || body.res.videos.length !== 0 || body.enable !== false || body.mainRes.images.length !== 0) throw new Error("poplayer result mismatch");
+    }
+  }
+];
+for (const item of cases) {
+  let parseCalls = 0, stringifyCalls = 0, doneResult;
+  const trackedJSON = {
+    parse(...args) { parseCalls++; return JSON.parse(...args); },
+    stringify(...args) { stringifyCalls++; return JSON.stringify(...args); }
+  };
+  vm.runInNewContext(source, {
+    JSON: trackedJSON,
+    $request: { url: item.url },
+    $response: { body: JSON.stringify(item.data) },
+    $done(value) { doneResult = value; }
+  });
+  if (parseCalls !== 1 || stringifyCalls !== 1) throw new Error(item.url + " parse/stringify count " + parseCalls + "/" + stringifyCalls);
+  item.check(JSON.parse(doneResult.body));
+}
+let emptyDone;
+vm.runInNewContext(source, {
+  JSON,
+  $request: { url: "https://guide-acs.m.taobao.com/gw/mtop.taobao.cloudvideo.video.query" },
+  $response: { body: "" },
+  $done(value) { emptyDone = value; }
+});
+if (!emptyDone || Object.keys(emptyDone).length !== 0) throw new Error("empty body fast path changed");
+'''
+        result = subprocess.run([node, "-e", harness, str(source_path)], check=False, capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr or result.stdout)

@@ -583,6 +583,7 @@ def remove_redundant_pdd_oak_script_trigger(lines):
 
 # 淘宝开屏两个接口在多个上游插件中重复挂载了等价响应脚本。
 # 保留 R-Store 的单一脚本入口；其逻辑与 FMZ、zmjde、RuCu6 对应分支一致。
+TAOBAO_LOCAL_SCRIPT_URL = "https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/taobao/taobao.js"
 TAOBAO_CANONICAL_SCRIPT_TRIGGERS = (
     r"http-response ^https?:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.(cloudvideo\\.video\\.query|wireless\\.home\\.splash\\.awesome\\.get) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/taobao.js,tag=TAOBAO,requires-body=true",
     r"http-response ^https?:\\/\\/poplayer\\.template\\.alibaba\\.com\\/\\w+\\.json script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/taobao.js,tag=TAOBAO-2,requires-body=true",
@@ -663,6 +664,7 @@ def remove_redundant_taobao_scripts(lines):
     """Keep the two canonical R-Store Taobao triggers and remove eight equivalent duplicates."""
     def normalize_trigger(item):
         value = re.sub(r"\\+", "", item.strip())
+        value = value.replace(TAOBAO_LOCAL_SCRIPT_URL, "https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/taobao.js")
         # The Kelee Taobao module is pinned to a specific Romeo commit. Normalize
         # only that exact path and 40-hex SHA to the reviewed duplicate signature.
         value = re.sub(
@@ -696,7 +698,8 @@ def remove_redundant_taobao_scripts(lines):
             counts[trigger] += 1
             if counts[trigger] > 1:
                 raise ValueError("duplicate canonical Taobao script trigger; refusing ambiguous deduplication")
-            output.append(trigger)
+            # Preserve the reviewed line, including the already-local URL and escape style.
+            output.append(line)
             continue
         if normalized in redundant:
             trigger = redundant[normalized]
@@ -715,6 +718,51 @@ def remove_redundant_taobao_scripts(lines):
     if missing:
         raise ValueError("Taobao splash script trigger inventory changed; expected each reviewed trigger exactly once")
     return output, len(TAOBAO_REDUNDANT_SCRIPT_TRIGGERS)
+
+
+def migrate_taobao_script_to_local(lines):
+    """Move the two reviewed Taobao response triggers to the repository-local single-parse cleaner."""
+    output = list(lines)
+    section = ""
+    candidates = {}
+    remote_url = "https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/taobao.js"
+    for line in output:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+            continue
+        if section != "Script" or "tag=TAOBAO" not in stripped:
+            continue
+        tags = [tag for tag in ("TAOBAO", "TAOBAO-2") if re.search(r"tag=" + re.escape(tag) + r"(?:,|$)", stripped)]
+        if len(tags) != 1:
+            raise ValueError("Taobao script trigger tag changed; refusing local migration")
+        tag = tags[0]
+        if tag in candidates:
+            raise ValueError("duplicate Taobao script trigger; refusing local migration: " + tag)
+        if "requires-body=true" not in stripped:
+            raise ValueError("Taobao script trigger lost requires-body; refusing local migration")
+        if remote_url not in stripped and TAOBAO_LOCAL_SCRIPT_URL not in stripped:
+            raise ValueError("Taobao script source changed; refusing local migration")
+        expected = next(
+            (item for item in TAOBAO_CANONICAL_SCRIPT_TRIGGERS if "tag=" + tag in item),
+            None,
+        )
+        normalized = stripped.replace(TAOBAO_LOCAL_SCRIPT_URL, remote_url)
+        if expected is None or re.sub(r"\\+", "", normalized) != re.sub(r"\\+", "", expected):
+            raise ValueError("Taobao script matcher changed; refusing local migration: " + tag)
+        candidates[tag] = line
+    if not candidates:
+        return output, 0
+    if set(candidates) != {"TAOBAO", "TAOBAO-2"}:
+        raise ValueError("Taobao script trigger inventory changed; refusing partial local migration")
+    result = [
+        line.replace(remote_url, TAOBAO_LOCAL_SCRIPT_URL) if line in candidates.values() else line
+        for line in output
+    ]
+    changed = sum(remote_url in line for line in candidates.values())
+    return result, changed
+
+
 
 
 
@@ -1164,6 +1212,60 @@ def remove_duplicate_pdd_homepage_delete_path(lines):
         PDD_HOMEPAGE_DELETE_DEDUPED_RULE if line.strip() == PDD_HOMEPAGE_DELETE_DUPLICATE_RULE else line
         for line in lines
     ], 1
+
+PDD_PHILO_HUB_NO_QUERY_RULE = r'response if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/philo\/personal\/hub\/?$/i then response.json.jq("del(.personal_banner, .personal_center_style_v2_vo.third_personal_icons_v2) | .monthly_card_entrance.display = false")'
+PDD_PHILO_HUB_QUERY_RULE = r'response if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/philo\/personal\/hub\/?\?/i then response.json.delete(["monthly_card_entrance", "personal_center_style_v2_vo", "icon_set.icons", "icon_set.top_personal_icons", "personal_banner"])'
+PDD_PHILO_HUB_RESPONSE_RULES = (
+    r'response if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/philo\/personal\/hub/i then response.json.jq("del(.personal_banner, .personal_center_style_v2_vo.third_personal_icons_v2) | .monthly_card_entrance.display = false")',
+    r'response if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/philo\/personal\/hub\?/i then response.json.delete(["monthly_card_entrance", "personal_center_style_v2_vo", "icon_set.icons", "icon_set.top_personal_icons", "personal_banner"])',
+)
+
+
+def narrow_pdd_philo_hub_response_rules(lines):
+    """Make broad no-query and query-specific PDD personal-hub rules mutually exclusive."""
+    output = list(lines)
+    section = ""
+    counts = {rule: 0 for rule in PDD_PHILO_HUB_RESPONSE_RULES}
+    narrowed_counts = {PDD_PHILO_HUB_NO_QUERY_RULE: 0, PDD_PHILO_HUB_QUERY_RULE: 0}
+    original_normalized = {re.sub(r"\\+", "", rule): rule for rule in PDD_PHILO_HUB_RESPONSE_RULES}
+    narrowed_normalized = {re.sub(r"\\+", "", rule): rule for rule in narrowed_counts}
+    for index, line in enumerate(output):
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+            continue
+        normalized = re.sub(r"\\+", "", stripped)
+        if section != "Rewrite" or "api.pinduoduo.com/api/philo/personal/hub" not in normalized:
+            continue
+        if normalized in narrowed_normalized:
+            rule = narrowed_normalized[normalized]
+            narrowed_counts[rule] += 1
+            if narrowed_counts[rule] > 1:
+                raise ValueError("duplicate narrowed PDD personal-hub response rule")
+            continue
+        original = original_normalized.get(normalized)
+        if original is None:
+            raise ValueError("PDD personal-hub response rule changed; refusing unreviewed matcher narrowing")
+        counts[original] += 1
+        if counts[original] > 1:
+            raise ValueError("duplicate PDD personal-hub response rule")
+        replacement = (
+            PDD_PHILO_HUB_NO_QUERY_RULE if original == PDD_PHILO_HUB_RESPONSE_RULES[0]
+            else PDD_PHILO_HUB_QUERY_RULE
+        )
+        output[index] = replacement
+    if any(counts.values()) and any(narrowed_counts.values()):
+        raise ValueError("mixed original and narrowed PDD personal-hub rules; refusing partial migration")
+    if any(narrowed_counts.values()):
+        if any(count != 1 for count in narrowed_counts.values()):
+            raise ValueError("narrowed PDD personal-hub response rule inventory changed")
+        return output, 0
+    if not any(counts.values()):
+        return output, 0
+    if any(count != 1 for count in counts.values()):
+        raise ValueError("PDD personal-hub response rule inventory changed; refusing partial matcher narrowing")
+    return output, 2
+
 
 DACHE_CORE_ICON_DELETE_GUARD = r'response if ${url} ~= /^https:\/\/api\.udache\.com\/gulfstream\/porsche\/v\d\/dache_homepage_layout\?/i then response.json.delete("data.instances.dache_main_core_icon")'
 DACHE_CORE_ICON_FILTER_RULE = r'response if ${url} ~= /^https:\/\/api\.udache\.com\/gulfstream\/porsche\/v\d\/dache_homepage_layout\?/i then response.json.jq(".data |= (.instances |= (to_entries | map(select(.key | test(\"feed_back_|dache_main_member|order_container_|dache_main_core_icon|dache_main_card_\"))) | from_entries))")'
@@ -6382,6 +6484,7 @@ def apply(text: str) -> str:
     lines, guiderank_homepage_script_count = remove_guiderank_homepage_script(lines)
     lines, gaoding_converted_triggers = remove_gaoding_resource_scripts(lines)
     lines, _ = remove_redundant_taobao_scripts(lines)
+    lines, _ = migrate_taobao_script_to_local(lines)
     lines, _ = remove_redundant_didi_usercenter_script(lines)
     lines, _ = consolidate_goofish_script_triggers(lines)
     lines, _ = optimize_goofish_home_sections_filter(lines)
@@ -6487,6 +6590,7 @@ def apply(text: str) -> str:
         rewrite_lines.extend(rule for rule in GAODING_NATIVE_RULES if rule not in existing_rewrites and ((rule == GAODING_NATIVE_RULES[0] and GAODING_TEMPLATE_SCRIPT_TRIGGER in gaoding_converted_triggers) or (rule == GAODING_NATIVE_RULES[1] and GAODING_MINE_SCRIPT_TRIGGER in gaoding_converted_triggers)))
         result_lines.extend(rewrite_lines)
     result_lines, _ = consolidate_pdd_homepage_native_response(result_lines)
+    result_lines, _ = narrow_pdd_philo_hub_response_rules(result_lines)
     result_lines, _ = apply_didi_script_and_homepage_cleanup(result_lines)
     result_lines, _ = migrate_didiads_common_v5_to_local(result_lines)
     result = "\n".join(result_lines)
