@@ -203,13 +203,10 @@ if (url.includes("/v4/note/videofeed")) {
     let write = 0;
     for (let read = 0; read < items.length; read++) {
       const item = items[read];
-      if (
-        !item || typeof item !== "object" ||
-        item.model_type !== "note" ||
-        Object.prototype.hasOwnProperty.call(item, "ad")
-      ) {
-        continue;
-      }
+      const keepNote = item && typeof item === "object" &&
+        item.model_type === "note" &&
+        !Object.prototype.hasOwnProperty.call(item, "ad");
+      if (!keepNote) continue;
       items[write++] = item;
       processVideoFeedItem(item, videoData);
     }
