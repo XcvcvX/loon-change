@@ -3301,6 +3301,47 @@ class Dushu365NonAdTriggerPruningTests(unittest.TestCase):
             self.assertEqual(result.count(item), 1)
 
 
+class UnneededMgwEcnyResponseBodyReadTests(unittest.TestCase):
+    def test_removes_only_ecny_mgw_requires_body(self):
+        from apply_local_overrides import remove_unneeded_mgw_ecny_response_body_read
+        ecny = r"http-response ^https?:\\/\\/mgs\\.wallet\\.pbcdci\\.cn(:\\d+)?\\/mgw\\.htm$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=ECNY,requires-body=true"
+        other_host = r"http-response ^https?:\\/\\/mgs1\\.bosc\\.cn(:\\d+)?\\/mgw script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=BOSCLIFE"
+        request = r"http-request ^https?:\\/\\/m2\\.cmbwinglungbank\\.com(:\\d+)?\\/mgw script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=CMBWL"
+        result, changed = remove_unneeded_mgw_ecny_response_body_read(["[Script]", ecny, other_host, request, "[MITM]"])
+        self.assertEqual(changed, 1)
+        self.assertNotIn("requires-body=true", result[1])
+        self.assertIn("tag=ECNY", result[1])
+        self.assertIn(other_host, result)
+        self.assertIn(request, result)
+
+    def test_is_idempotent_and_preserves_missing_or_already_clean_trigger(self):
+        from apply_local_overrides import remove_unneeded_mgw_ecny_response_body_read
+        clean = r"http-response ^https?:\\/\\/mgs\\.wallet\\.pbcdci\\.cn(:\\d+)?\\/mgw\\.htm$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=ECNY"
+        result, changed = remove_unneeded_mgw_ecny_response_body_read(["[Script]", clean, "[MITM]"])
+        self.assertEqual(changed, 0)
+        self.assertEqual(result, ["[Script]", clean, "[MITM]"])
+        self.assertEqual(remove_unneeded_mgw_ecny_response_body_read(result), (result, 0))
+        missing, changed = remove_unneeded_mgw_ecny_response_body_read(["[Script]", "[MITM]"])
+        self.assertEqual(changed, 0)
+        self.assertEqual(missing, ["[Script]", "[MITM]"])
+
+    def test_fails_closed_on_ambiguous_duplicate_trigger(self):
+        from apply_local_overrides import remove_unneeded_mgw_ecny_response_body_read
+        trigger = r"http-response ^https?:\\/\\/mgs\\.wallet\\.pbcdci\\.cn(:\\d+)?\\/mgw\\.htm$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=ECNY,requires-body=true"
+        with self.assertRaisesRegex(ValueError, "duplicate MGW ECNY response handler"):
+            remove_unneeded_mgw_ecny_response_body_read(["[Script]", trigger, trigger, "[MITM]"])
+
+    def test_checked_in_plugin_keeps_ecny_trigger_without_body_wait(self):
+        from pathlib import Path
+        from apply_local_overrides import apply
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        result = apply(plugin)
+        matches = [line for line in result.splitlines() if "mgs.wallet.pbcdci.cn" in line.replace(chr(92), "") and "mgw.js" in line]
+        self.assertEqual(len(matches), 1)
+        self.assertIn("tag=ECNY", matches[0])
+        self.assertNotIn("requires-body=true", matches[0])
+
+
 class AlipanOnboardResponseDedupTests(unittest.TestCase):
     def setUp(self):
         from pathlib import Path
@@ -3312,16 +3353,23 @@ class AlipanOnboardResponseDedupTests(unittest.TestCase):
             and "/v1/users/onboard_list" in line.replace(chr(92), "")
             and "Scripts/adrive/adrive.js" in line
         )
-        self.romeo = next(
+        romeo_matches = [
             line for line in self.lines
             if "member.alipan.com" in line.replace(chr(92), "").lower()
             and "/v1/users/onboard_list" in line.replace(chr(92), "")
             and "rucu6_adrive.js" in line
+        ]
+        self.has_romeo_snapshot = bool(romeo_matches)
+        self.romeo = romeo_matches[0] if romeo_matches else self.wool.replace(
+            "Scripts/adrive/adrive.js", "rucu6_adrive.js"
         )
-        self.romeo_unique = next(
+        unique_matches = [
             line for line in self.lines
             if "api.alipan.com" in line.replace(chr(92), "").lower() and "rucu6_adrive.js" in line
-        )
+        ]
+        self.romeo_unique = unique_matches[0] if unique_matches else self.romeo.replace(
+            "member.alipan.com", "api.alipan.com"
+        ).replace("/v1/users/onboard_list", "/v1/other")
 
     def test_removes_only_the_duplicate_romeo_onboard_handler(self):
         from apply_local_overrides import remove_redundant_alipan_onboard_response_script
@@ -3357,9 +3405,17 @@ class AlipanOnboardResponseDedupTests(unittest.TestCase):
         from apply_local_overrides import apply
         plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
         result = apply(plugin)
-        self.assertNotIn(self.romeo, result)
         self.assertEqual(result.count(self.wool), 1)
-        self.assertIn(self.romeo_unique, result)
+        if self.has_romeo_snapshot:
+            self.assertNotIn(self.romeo, result)
+            self.assertIn(self.romeo_unique, result)
+        else:
+            self.assertFalse(any(
+                "member.alipan.com" in line.replace(chr(92), "").lower()
+                and "/v1/users/onboard_list" in line.replace(chr(92), "")
+                and "rucu6_adrive.js" in line
+                for line in result.splitlines()
+            ))
 
 
 class SameSourceResponseScriptDedupTests(unittest.TestCase):
