@@ -12,6 +12,7 @@ SCRIPT_URL_RE = re.compile(r"""(?:script-path\s*=\s*|script\(\s*["'])(https?://[
 SCRIPT_TRIGGER_RE = re.compile(r"^(http-request|http-response|cron|generic)\s+(\S+)", re.I)
 INLINE_SCRIPT_TRIGGER_RE = re.compile(r"^(request|response)\s+if\s+\$\{url\}\s*~=\s*(.+?)\s+then\s+script\(", re.I)
 JSON_PARSE_RE = re.compile(r"\bJSON\.parse\s*\(\s*([^()\n]{1,240}?)\s*\)")
+JSON_STRINGIFY_RE = re.compile(r"\bJSON\.stringify\s*\(\s*([^()\n]{1,240}?)\s*\)")
 COMMIT_RE = re.compile(r"/[0-9a-f]{40}(?:/|$)", re.I)
 
 def parse_sections(text):
@@ -176,7 +177,9 @@ def audit_plugin(plugin_path, repo_root="."):
         except (OSError, UnicodeError):
             continue
         matches = list(JSON_PARSE_RE.finditer(source))
+        stringify_matches = list(JSON_STRINGIFY_RE.finditer(source))
         scoped_expressions = defaultdict(list)
+        scoped_stringify_expressions = defaultdict(list)
         for match in matches:
             expression = re.sub(r"\s+", " ", match.group(1).strip())
             scope = javascript_brace_scope_at(source, match.start())
@@ -189,9 +192,23 @@ def audit_plugin(plugin_path, repo_root="."):
                 scoped_expressions.items(), key=lambda item: (item[0][0], item[0][1])
             ) if len(items) > 1
         ]
-        if matches:
+        for match in stringify_matches:
+            expression = re.sub(r"\s+", " ", match.group(1).strip())
+            scope = javascript_brace_scope_at(source, match.start())
+            scoped_stringify_expressions[(expression, scope)].append(match)
+        repeated_stringify = [
+            {"expression": expression, "count": len(items),
+             "lines": [source.count("\n", 0, item.start()) + 1 for item in items],
+             "scope_depth": len(scope)}
+            for (expression, scope), items in sorted(
+                scoped_stringify_expressions.items(), key=lambda item: (item[0][0], item[0][1])
+            ) if len(items) > 1
+        ]
+        if matches or stringify_matches:
             js_parse.append({"path": str(path), "json_parse_calls": len(matches),
                              "repeated_parse_expressions": repeated,
+                             "json_stringify_calls": len(stringify_matches),
+                             "repeated_stringify_expressions": repeated_stringify,
                              "bytes": len(source.encode("utf-8"))})
     summary = {
         "script_entries": len(script_rows),
@@ -214,6 +231,8 @@ def audit_plugin(plugin_path, repo_root="."):
         "local_js_files_with_json_parse": len(js_parse),
         "local_js_json_parse_calls": sum(x["json_parse_calls"] for x in js_parse),
         "repeated_json_parse_expressions": sum(len(x["repeated_parse_expressions"]) for x in js_parse),
+        "local_js_json_stringify_calls": sum(x["json_stringify_calls"] for x in js_parse),
+        "repeated_json_stringify_expressions": sum(len(x["repeated_stringify_expressions"]) for x in js_parse),
     }
     return {
         "plugin": str(plugin_path), "summary": summary,
@@ -250,10 +269,10 @@ def render_markdown(report):
         lines.append(f"| {item['trigger_count']} | {item['response_count']} | {item['script_url']} |")
     lines += ["", "## Mutable branch URLs", ""]
     lines.extend(f"- {url}" for url in report["mutable_branch_remote_urls"])
-    lines += ["", "## Local JavaScript JSON.parse hotspots (same-scope repeats)", "",
-              "| File | Bytes | JSON.parse calls | Repeated expressions |", "|---|---:|---:|---:|"]
+    lines += ["", "## Local JavaScript JSON hot paths (same-scope repeats)", "",
+              "| File | Bytes | JSON.parse | Repeated parse | JSON.stringify | Repeated stringify |", "|---|---:|---:|---:|---:|---:|"]
     for item in report["local_js_json_parse"]:
-        lines.append(f"| {item['path']} | {item['bytes']} | {item['json_parse_calls']} | {len(item['repeated_parse_expressions'])} |")
+        lines.append(f"| {item['path']} | {item['bytes']} | {item['json_parse_calls']} | {len(item['repeated_parse_expressions'])} | {item['json_stringify_calls']} | {len(item['repeated_stringify_expressions'])} |")
     lines += ["", "## Interpretation", ""]
     lines.extend(f"- {note}" for note in report["notes"])
     return "\n".join(lines) + "\n"
