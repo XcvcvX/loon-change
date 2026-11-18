@@ -5051,7 +5051,7 @@ class CrossSyntaxShadowedResponseTriggerTests(unittest.TestCase):
     def test_fails_closed_on_matcher_drift_or_duplicate_handlers(self):
         from apply_local_overrides import remove_shadowed_cross_syntax_response_triggers
         drift = list(self.lines)
-        drift[2] = drift[2].replace("publish/get_bubble", "publish/get_bubble2")
+        drift[2] = drift[2].replace(r"publish\\/get_bubble", r"publish\\/get_bubble2")
         with self.assertRaisesRegex(ValueError, "SMZDM article bubble response matcher changed"):
             remove_shadowed_cross_syntax_response_triggers(drift)
         duplicate = list(self.lines)
@@ -5067,7 +5067,7 @@ class CrossSyntaxShadowedResponseTriggerTests(unittest.TestCase):
         for _, legacy_script, v2_script, _, search_markers in SHADOWED_CROSS_SYNTAX_RESPONSE_PAIRS:
             candidates = [
                 line for line in result.splitlines()
-                if all(marker in line.replace(chr(92), "").lower() for marker in search_markers)
+                if all(marker.lower() in line.replace(chr(92), "").lower() for marker in search_markers)
             ]
             legacy = [line for line in candidates if legacy_script.lower() in line.lower() and line.lower().startswith("http-response ")]
             v2 = [line for line in candidates if v2_script.lower() in line.lower() and line.lower().startswith("response if ")]
