@@ -47,17 +47,18 @@ class LocalOverrideTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "duplicate Pupu response handler"):
             remove_redundant_pupu_response_scripts(duplicate)
 
-    def test_checked_in_plugin_keeps_wool_pupu_handlers_and_has_no_romeo_duplicate(self):
+    def test_checked_in_plugin_uses_local_pupu_handlers_and_has_no_romeo_duplicate(self):
         from pathlib import Path
-        from apply_local_overrides import apply
+        from apply_local_overrides import apply, PUPU_LOCAL_SCRIPT_URL
 
         plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
         result = apply(plugin)
         normalized = result.replace(chr(92), "")
         self.assertNotIn("ishowshu_pp.js", normalized)
-        self.assertIn("PupuSplashAds.js", result)
-        self.assertIn("/search/hot_keywords/v3", normalized)
-        self.assertIn("/order_settlement/detail", normalized)
+        self.assertNotIn("PupuSplashAds.js", result)
+        self.assertEqual(result.count(PUPU_LOCAL_SCRIPT_URL), 6)
+        self.assertIn("/search/hot_keywords/v3/", normalized)
+        self.assertIn("/order_settlement/detail/", normalized)
 
     def test_consolidates_starplucker_config_into_one_jq_parse(self):
         from apply_local_overrides import (
