@@ -18,9 +18,12 @@ if (!$response.body) {
 
   function filterInPlace(items, predicate) {
     let write = 0;
-    for (let read = 0; read < items.length; read++) {
+    for (let read = 0, length = items.length; read < length; read++) {
       const item = items[read];
-      if (predicate(item, read)) items[write++] = item;
+      if (predicate(item, read)) {
+        if (write !== read) items[write] = item;
+        write++;
+      }
     }
     items.length = write;
     return items;
@@ -54,7 +57,7 @@ if (url.includes("/x/resource/show/tab/")) {
   if (obj?.data?.sections_v2?.length > 0) {
     const sections = obj.data.sections_v2;
     let sectionWrite = 0;
-    for (let sectionRead = 0; sectionRead < sections.length; sectionRead++) {
+    for (let sectionRead = 0, sectionLength = sections.length; sectionRead < sectionLength; sectionRead++) {
       let item = sections[sectionRead];
       delete item.button;
       if (item?.style) {
@@ -68,14 +71,16 @@ if (url.includes("/x/resource/show/tab/")) {
               if (item?.items?.length > 0) {
                 const items = item.items;
                 let itemWrite = 0;
-                for (let itemRead = 0; itemRead < items.length; itemRead++) {
+                for (let itemRead = 0, itemLength = items.length; itemRead < itemLength; itemRead++) {
                   const i = items[itemRead];
                   if (/user_center\/feedback/g.test(i?.uri)) {
                     // 联系客服
-                    items[itemWrite++] = i;
+                    if (itemWrite !== itemRead) items[itemWrite] = i;
+                    itemWrite++;
                   } else if (/user_center\/setting/g.test(i?.uri)) {
                     // 设置
-                    items[itemWrite++] = i;
+                    if (itemWrite !== itemRead) items[itemWrite] = i;
+                    itemWrite++;
                   } else {
                     continue;
                   }
@@ -89,7 +94,8 @@ if (url.includes("/x/resource/show/tab/")) {
           continue;
         }
       }
-      sections[sectionWrite++] = item;
+      if (sectionWrite !== sectionRead) sections[sectionWrite] = item;
+      sectionWrite++;
     }
     sections.length = sectionWrite;
   }
@@ -153,7 +159,7 @@ if (url.includes("/x/resource/show/tab/")) {
     // vertical_pgc 大会员专享
     const items = obj.data.items;
     let itemWrite = 0;
-    for (let itemRead = 0; itemRead < items.length; itemRead++) {
+    for (let itemRead = 0, itemLength = items.length; itemRead < itemLength; itemRead++) {
       let item = items[itemRead];
       if (item?.hasOwnProperty("ad_info")) {
         continue;
@@ -162,7 +168,8 @@ if (url.includes("/x/resource/show/tab/")) {
       } else {
         delete item.creative_entrance; // 推荐话题搜索框
         delete item.story_cart_icon; // 相关话题图标
-        items[itemWrite++] = item;
+        if (itemWrite !== itemRead) items[itemWrite] = item;
+        itemWrite++;
       }
     }
     items.length = itemWrite;

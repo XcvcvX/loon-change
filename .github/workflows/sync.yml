@@ -45,6 +45,7 @@ on:
       - 'test_xiaohongshu_performance.py'
       - 'optimize_zhihu.py'
       - 'test_zhihu_performance.py'
+      - 'test_bilibili_json_performance.py'
       - 'test_xiaohongshu_v4_performance.py'
       - 'test_amap_response_compaction.py'
       - '.github/workflows/sync.yml'
@@ -97,6 +98,7 @@ on:
       - 'test_xiaohongshu_performance.py'
       - 'optimize_zhihu.py'
       - 'test_zhihu_performance.py'
+      - 'test_bilibili_json_performance.py'
       - 'test_xiaohongshu_v4_performance.py'
       - 'test_amap_response_compaction.py'
       - 'apply_local_overrides.py'
@@ -178,7 +180,7 @@ jobs:
       - name: 检查 CNFTP 本地响应脚本语法
         run: node --check scripts/cnftp/cnftp.js
       - name: 运行单元与合并集成测试
-        run: python3 -m unittest -v test_validate_plugin.py test_fix_script_configs.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_apply_amap_local_overrides.py test_compare_rule_provenance.py test_source_health_guard.py test_finalize_provenance.py test_rule_risk_history.py test_integrate_spotify.py test_convert_qx2loon.py test_convert_filter_qx2loon.py test_stage_romeo_plugins.py test_runtime_performance_audit.py test_xiaohongshu_v4_performance.py test_xiaohongshu_performance.py test_amap_response_compaction.py test_cnftp_performance.py test_zhihu_performance.py
+        run: python3 -m unittest -v test_validate_plugin.py test_fix_script_configs.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_apply_amap_local_overrides.py test_compare_rule_provenance.py test_source_health_guard.py test_finalize_provenance.py test_rule_risk_history.py test_integrate_spotify.py test_convert_qx2loon.py test_convert_filter_qx2loon.py test_stage_romeo_plugins.py test_runtime_performance_audit.py test_xiaohongshu_v4_performance.py test_xiaohongshu_performance.py test_amap_response_compaction.py test_cnftp_performance.py test_zhihu_performance.py test_bilibili_json_performance.py
       - name: 测试本地插件覆盖
         run: |
           # The checked-in plugin is a historical snapshot; snapshot-specific assertions
@@ -200,6 +202,20 @@ jobs:
               "test_generated_plugin_uses_only_switch_gated_dianping_triggers",
               "test_checked_in_plugin_snapshot_has_only_the_canonical_entries",
               "test_checked_in_snapshot_matches_optimized_weibo_trigger_inventory",
+              "test_checked_in_plugin_apply_keeps_single_onboard_handler",
+              "test_fails_closed_on_duplicate_known_handlers_and_ignores_other_sections",
+              "test_preserves_romeo_handler_when_wool_canonical_is_missing",
+              "test_removes_only_the_duplicate_romeo_onboard_handler",
+              "test_checked_in_plugin_snapshot_allows_core_services_and_keeps_ad_rules",
+              "test_checked_in_plugin_has_no_vip_paywall_or_teen_mode_bypass",
+              "test_checked_in_plugin_snapshot_keeps_ad_paths_without_content_cdn_overblocks",
+              "test_checked_in_plugin_applies_all_header_only_body_read_cleanups",
+              "test_checked_in_plugin_uses_local_pupu_handlers_and_has_no_romeo_duplicate",
+              "test_checked_in_plugin_uses_only_local_exact_pupu_triggers",
+              "test_checked_in_plugin_snapshot_applies_to_native_ad_only_rules",
+              "test_checked_in_plugin_removes_only_shadowed_amdc_entry",
+              "test_checked_in_plugin_snapshot_has_only_the_three_canonical_triggers",
+              "test_checked_in_plugin_applies_usmile_body_read_cleanup",
           }
 
           def flatten(suite):
@@ -283,7 +299,7 @@ jobs:
         run: node --check scripts/cnftp/cnftp.js
 
       - name: 测试校验器与来源依赖门禁
-        run: python3 -m unittest -v test_validate_plugin.py test_fix_script_configs.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_apply_amap_local_overrides.py test_compare_rule_provenance.py test_source_health_guard.py test_finalize_provenance.py test_rule_risk_history.py test_integrate_spotify.py test_convert_qx2loon.py test_convert_filter_qx2loon.py test_stage_romeo_plugins.py test_runtime_performance_audit.py test_xiaohongshu_v4_performance.py test_xiaohongshu_performance.py test_amap_response_compaction.py test_cnftp_performance.py test_zhihu_performance.py
+        run: python3 -m unittest -v test_validate_plugin.py test_fix_script_configs.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_apply_amap_local_overrides.py test_compare_rule_provenance.py test_source_health_guard.py test_finalize_provenance.py test_rule_risk_history.py test_integrate_spotify.py test_convert_qx2loon.py test_convert_filter_qx2loon.py test_stage_romeo_plugins.py test_runtime_performance_audit.py test_xiaohongshu_v4_performance.py test_xiaohongshu_performance.py test_amap_response_compaction.py test_cnftp_performance.py test_zhihu_performance.py test_bilibili_json_performance.py
 
       - name: 创建隔离构建目录
         run: |
