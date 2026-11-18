@@ -25,6 +25,7 @@ request if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/shield\/search_poi\/tips_adv
 response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/shield\/search_bff\/hotword\?/i then script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/sooyaaabo/Amap/rucu6_amap.js") with tag="[高德地图]移除搜索栏推广", requires_body=true
 response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/aos\/perception\/publicTravel\/beforeNavi\?/i then script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/sooyaaabo/Amap/rucu6_amap.js") with tag="[高德地图]移除路线规划推广", requires_body=true
 response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/bus\/plan\/integrate\?/i then script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/sooyaaabo/Amap/rucu6_amap.js") with tag="[高德地图]移除路线规划、导航结束页推广", requires_body=true
+response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/shield\/search\/nearbyrec_smart\?/i then script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/sooyaaabo/Amap/rucu6_amap.js") with tag="[高德地图]移除附近页推广", requires_body=true
 
 [MitM]
 hostname = *.amap.com
@@ -56,6 +57,14 @@ class AmapLocalOverrideTests(unittest.TestCase):
             self.assertNotIn(old_rule, result)
         bus_rule = next(rule for marker, _old, rule in NATIVE_RESPONSE_SCRIPT_RULES if marker == "bus/plan/integrate")
         self.assertIn("hkfRecommendPlans", bus_rule)
+        self.assertEqual(apply(result)[0], result)
+
+
+    def test_converts_nearby_recommendation_script_to_native_json_filter(self):
+        result, _ = apply(BASE)
+        rule = next(line for line in result.splitlines() if "nearbyrec_smart" in line)
+        self.assertIn('response.json.jq("if (.data.modules | type) == \\"array\\" then .data.modules |= map(select(. == \\"head\\" or . == \\"search_hot_words\\" or . == \\"feed_rec\\")) else . end")', rule)
+        self.assertNotIn('script("https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/sooyaaabo/Amap/rucu6_amap.js")', rule)
         self.assertEqual(apply(result)[0], result)
 
     def test_fails_closed_when_route_response_script_drifts(self):
