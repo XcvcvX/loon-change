@@ -60,7 +60,7 @@ ALIPAY_ADBLOCK_CACHE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
     'sources', 'alipayAdBlock', 'alipayAdBlock.lpx')
 
-# Romeo 替代 AOOMEE 的独立 App 来源；少数无等价模块以仓库内快照保留。
+# Romeo 独立 App 来源（含 Kelee 微信/微店模块）；少数无等价模块以仓库内快照保留。
 ROMEO_REPO = 'https://github.com/ifflagged/Romeo.git'
 # QuanX filter 类型/策略 -> Loon
 QX_TYPE_MAP = {
