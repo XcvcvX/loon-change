@@ -3301,6 +3301,47 @@ class Dushu365NonAdTriggerPruningTests(unittest.TestCase):
             self.assertEqual(result.count(item), 1)
 
 
+class UnneededMgwEcnyResponseBodyReadTests(unittest.TestCase):
+    def test_removes_only_ecny_mgw_requires_body(self):
+        from apply_local_overrides import remove_unneeded_mgw_ecny_response_body_read
+        ecny = r"http-response ^https?:\\/\\/mgs\\.wallet\\.pbcdci\\.cn(:\\d+)?\\/mgw\\.htm$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=ECNY,requires-body=true"
+        other_host = r"http-response ^https?:\\/\\/mgs1\\.bosc\\.cn(:\\d+)?\\/mgw script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=BOSCLIFE"
+        request = r"http-request ^https?:\\/\\/m2\\.cmbwinglungbank\\.com(:\\d+)?\\/mgw script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=CMBWL"
+        result, changed = remove_unneeded_mgw_ecny_response_body_read(["[Script]", ecny, other_host, request, "[MITM]"])
+        self.assertEqual(changed, 1)
+        self.assertNotIn("requires-body=true", result[1])
+        self.assertIn("tag=ECNY", result[1])
+        self.assertIn(other_host, result)
+        self.assertIn(request, result)
+
+    def test_is_idempotent_and_preserves_missing_or_already_clean_trigger(self):
+        from apply_local_overrides import remove_unneeded_mgw_ecny_response_body_read
+        clean = r"http-response ^https?:\\/\\/mgs\\.wallet\\.pbcdci\\.cn(:\\d+)?\\/mgw\\.htm$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=ECNY"
+        result, changed = remove_unneeded_mgw_ecny_response_body_read(["[Script]", clean, "[MITM]"])
+        self.assertEqual(changed, 0)
+        self.assertEqual(result, ["[Script]", clean, "[MITM]"])
+        self.assertEqual(remove_unneeded_mgw_ecny_response_body_read(result), (result, 0))
+        missing, changed = remove_unneeded_mgw_ecny_response_body_read(["[Script]", "[MITM]"])
+        self.assertEqual(changed, 0)
+        self.assertEqual(missing, ["[Script]", "[MITM]"])
+
+    def test_fails_closed_on_ambiguous_duplicate_trigger(self):
+        from apply_local_overrides import remove_unneeded_mgw_ecny_response_body_read
+        trigger = r"http-response ^https?:\\/\\/mgs\\.wallet\\.pbcdci\\.cn(:\\d+)?\\/mgw\\.htm$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=ECNY,requires-body=true"
+        with self.assertRaisesRegex(ValueError, "duplicate MGW ECNY response handler"):
+            remove_unneeded_mgw_ecny_response_body_read(["[Script]", trigger, trigger, "[MITM]"])
+
+    def test_checked_in_plugin_keeps_ecny_trigger_without_body_wait(self):
+        from pathlib import Path
+        from apply_local_overrides import apply
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        result = apply(plugin)
+        matches = [line for line in result.splitlines() if "mgs.wallet.pbcdci.cn" in line.replace(chr(92), "") and "mgw.js" in line]
+        self.assertEqual(len(matches), 1)
+        self.assertIn("tag=ECNY", matches[0])
+        self.assertNotIn("requires-body=true", matches[0])
+
+
 class AlipanOnboardResponseDedupTests(unittest.TestCase):
     def setUp(self):
         from pathlib import Path
