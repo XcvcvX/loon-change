@@ -1042,8 +1042,18 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         )
         result = apply(fixture)
         script = result.split("[Script]", 1)[1].split("[MITM]", 1)[0]
-        for trigger in TAOBAO_CANONICAL_SCRIPT_TRIGGERS:
+        from apply_local_overrides import TAOBAO_LOCAL_SCRIPT_URL
+        local_triggers = tuple(
+            trigger.replace(
+                "https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/taobao.js",
+                TAOBAO_LOCAL_SCRIPT_URL,
+            )
+            for trigger in TAOBAO_CANONICAL_SCRIPT_TRIGGERS
+        )
+        for trigger in local_triggers:
             self.assertEqual(script.count(trigger), 1)
+        for trigger in TAOBAO_CANONICAL_SCRIPT_TRIGGERS:
+            self.assertNotIn(trigger, script)
         for trigger in TAOBAO_REDUNDANT_SCRIPT_TRIGGERS:
             self.assertNotIn(trigger, script)
         self.assertIn("https://example.invalid/keep.js", script)
@@ -1074,8 +1084,18 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         )
         result = apply(fixture)
         script = result.split("[Script]", 1)[1].split("[MITM]", 1)[0]
-        for trigger in TAOBAO_CANONICAL_SCRIPT_TRIGGERS:
+        from apply_local_overrides import TAOBAO_LOCAL_SCRIPT_URL
+        local_triggers = tuple(
+            trigger.replace(
+                "https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/taobao.js",
+                TAOBAO_LOCAL_SCRIPT_URL,
+            )
+            for trigger in TAOBAO_CANONICAL_SCRIPT_TRIGGERS
+        )
+        for trigger in local_triggers:
             self.assertEqual(script.count(trigger), 1)
+        for trigger in TAOBAO_CANONICAL_SCRIPT_TRIGGERS:
+            self.assertNotIn(trigger, script)
         for trigger in romeo_triggers:
             self.assertNotIn(trigger, script)
         self.assertEqual(apply(result), result)
@@ -1185,8 +1205,11 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         fixture = BASE.replace("[Script]", "[Script]\n" + "\n".join(triggers))
         result = apply(fixture)
         script = result.split("[Script]", 1)[1].split("[MITM]", 1)[0]
+        from apply_local_overrides import TAOBAO_LOCAL_SCRIPT_URL
+        remote_url = "https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/taobao.js"
         for trigger in triggers[:len(TAOBAO_CANONICAL_SCRIPT_TRIGGERS)]:
-            self.assertIn(trigger, script)
+            self.assertIn(trigger.replace(remote_url, TAOBAO_LOCAL_SCRIPT_URL), script)
+            self.assertNotIn(trigger, script)
         for trigger in triggers[len(TAOBAO_CANONICAL_SCRIPT_TRIGGERS):]:
             self.assertNotIn(trigger, script)
         self.assertEqual(apply(result), result)
