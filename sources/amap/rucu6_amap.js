@@ -275,7 +275,9 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
   // 附近页面
   const items = ["head", "search_hot_words", "feed_rec"];
   if (obj?.data?.modules?.length > 0) {
-    obj.data.modules = obj.data.modules.filter((i) => items.includes(i));
+    if (obj?.data?.modules?.length > 0) {
+      obj.data.modules = obj.data.modules.filter((i) => items?.includes(i));
+    }
   }
 } else if (url.includes("/shield/search/poi/detail")) {
   // 搜索结果 模块详情
@@ -599,14 +601,9 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
     if (obj?.tip_list?.length > 0) {
       for (let item of obj.tip_list) {
         if (
-          item?.tip?.datatype_spec === "12" ||
-          item?.tip?.result_type === "ad" ||
-          item?.tip?.result_type === "poi_ad" ||
-          item?.tip?.result_type === "toplist" ||
-          item?.tip?.task_tag === "ad" ||
-          item?.tip?.task_tag === "exct_query_sug_merge_theme" ||
-          item?.tip?.task_tag === "query_sug_merge_theme" ||
-          item?.tip?.task_tag === "sp"
+          ["12"].includes(item?.tip?.datatype_spec) ||
+          ["ad", "poi_ad", "toplist"].includes(item?.tip?.result_type) ||
+          ["ad", "exct_query_sug_merge_theme", "query_sug_merge_theme", "sp"].includes(item?.tip?.task_tag)
         ) {
           continue;
         } else {
@@ -622,9 +619,9 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
         let newTips = [];
         if (item?.tip_list?.length > 0) {
           for (let ii of item.tip_list) {
-            if (ii?.tip?.datatype_spec === "12") {
+            if (["12"].includes(ii?.tip?.datatype_spec)) {
               continue;
-            } else if (ii?.tip?.result_type === "ad" || ii?.tip?.result_type === "poi_ad") {
+            } else if (["ad", "poi_ad"].includes(ii?.tip?.result_type)) {
               continue;
             } else {
               newTips.push(ii);
