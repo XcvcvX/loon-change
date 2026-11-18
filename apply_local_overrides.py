@@ -4005,11 +4005,16 @@ def remove_identical_script_response_duplicates(lines):
         return output, 0
 
     if source_mode:
-        # A retired supplemental feed may leave only a subset of the historical
-        # R-Store handlers. Cleanup is safe only for exact known duplicate rows;
-        # missing rows are not reconstructed and unknown variants still fail closed.
-        if not any(remove_counts.values()):
-            return output, 0
+        # Only collapse a complete reviewed inventory. When an upstream feed is
+        # retired, keep every remaining trigger untouched rather than partially
+        # removing handlers whose companion source rows are no longer present.
+        required_source_counts = {
+            item: count for item, count in source_counts.items()
+            if not (rrtv_native_mode and item in rrtv_source_triggers)
+        }
+        if (not all(count == 1 for count in remove_counts.values())
+                or not all(count == 1 for count in required_source_counts.values())):
+            return list(lines), 0
         return output, removed
 
     if not all(count == 1 for count in output_counts.values()):
