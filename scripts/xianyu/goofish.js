@@ -3,6 +3,20 @@
 // response is parsed once while preserving the previously configured filters.
 function main() {
   const url = ($request && $request.url) || "";
+
+  function compactInPlace(items, keep) {
+    const length = items.length;
+    let write = 0;
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      if (keep(item, read)) {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+    items.length = write;
+    return items;
+  }
   const body = $response && $response.body;
   if (!body) return $done({});
 
@@ -29,7 +43,7 @@ function main() {
           "idlefish_seafood_market",
           "fish_home_chat_room"
         ]);
-        data.sections = data.sections.filter(section => {
+        compactInPlace(data.sections, section => {
           if (!section || typeof section !== "object") return false;
           const sectionData = section.data;
           if (sectionData && (sectionData.bizType === "AD" || sectionData.bizType === "homepage")) {
@@ -48,7 +62,7 @@ function main() {
 
   if (url.includes("/mtop.taobao.idle.local.home")) {
     if (data && Array.isArray(data.sections)) {
-      data.sections = data.sections.filter(section =>
+      compactInPlace(data.sections, section =>
         !(section && section.data && section.data.bizType === "AD")
       );
     }
@@ -63,7 +77,7 @@ function main() {
   if (url.includes("/mtop.idle.user.page.my.adapter")) {
     if (data && data.container && Array.isArray(data.container.sections)) {
       const keepIndexes = new Set(["0", "1", "3"]);
-      data.container.sections = data.container.sections.filter(item =>
+      compactInPlace(data.container.sections, item =>
         item && keepIndexes.has(String(item.index))
       );
     }
@@ -72,13 +86,13 @@ function main() {
 
   if (url.includes("/mtop.taobao.idlehome.home.circle.list")) {
     if (data && Array.isArray(data.circleList)) {
-      data.circleList = data.circleList.filter(circle =>
+      compactInPlace(data.circleList, circle =>
         circle && (circle.circleId === "1" || circle.circleId === "2")
       );
     }
 
     const filterHeadList = list => Array.isArray(list)
-      ? list.filter(item => item && (item.bizCode === "main" || item.bizCode === "recycle"))
+      ? compactInPlace(list, item => item && (item.bizCode === "main" || item.bizCode === "recycle"))
       : list;
 
     if (data && data.next && Array.isArray(data.next.headList)) {
@@ -117,7 +131,7 @@ function main() {
         "idlefish_search_card_category_select",
         "idlefish_search_spu_market_publish"
       ]);
-      data.resultList = data.resultList.filter(element => {
+      compactInPlace(data.resultList, element => {
         if (!element || typeof element !== "object") return false;
         const exContent = element.data && element.data.item &&
           element.data.item.main && element.data.item.main.exContent;
@@ -137,7 +151,7 @@ function main() {
   if (url.includes("/mtop.taobao.idle.local.flow.plat.section")) {
     const components = data && data.data && data.data.components;
     if (Array.isArray(components)) {
-      data.data.components = components.filter(item =>
+      compactInPlace(components, item =>
         item && item.key !== "fish_home_activity_enter_cardV1"
       );
     }
