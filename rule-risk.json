@@ -23,7 +23,7 @@
     "low": 0,
     "medium": 0
   },
-  "run_id": "44259924921",
+  "run_id": "44260224559",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -46,10 +46,10 @@
       "snapshots_seen": 1
     },
     "aoomee": {
-      "action_changed": 116,
+      "action_changed": 108,
       "added": 0,
-      "removed": 15,
-      "snapshots_seen": 11
+      "removed": 12,
+      "snapshots_seen": 10
     },
     "base": {
       "action_changed": 0,
@@ -65,9 +65,9 @@
     },
     "local_overrides": {
       "action_changed": 0,
-      "added": 92,
+      "added": 89,
       "removed": 52,
-      "snapshots_seen": 13
+      "snapshots_seen": 12
     },
     "myblockads": {
       "action_changed": 0,
