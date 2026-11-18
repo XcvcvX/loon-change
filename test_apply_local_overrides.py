@@ -5297,3 +5297,73 @@ if (reads !== 0 || writes !== 0) throw new Error("manual report performed storag
 if (!doneResult || Object.keys(doneResult).length !== 0) throw new Error("manual report changed the generic result");
 '''
         subprocess.run([node, "-e", harness, str(source_path)], check=True, capture_output=True, text=True)
+
+
+class QunarUnrelatedResponseFastPathTests(unittest.TestCase):
+    def test_unknown_service_without_fallback_markers_skips_response_json_parse(self):
+        import shutil
+        import subprocess
+        from pathlib import Path
+
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node.js is required for the Qunar runtime integration test")
+        source_path = Path(__file__).with_name("scripts").joinpath("romeo_legacy", "qunar-clean.js")
+        harness = r'''
+const fs = require("fs");
+const vm = require("vm");
+const source = fs.readFileSync(process.argv[1], "utf8");
+let parseCalls = 0, stringifyCalls = 0, reads = 0, writes = 0, doneResult;
+const trackedJSON = {
+  parse(...args) { parseCalls++; return JSON.parse(...args); },
+  stringify(...args) { stringifyCalls++; return JSON.stringify(...args); }
+};
+const context = {
+  JSON: trackedJSON,
+  $request: { url: "https://client.qunar.com/api/v1/unrelated", method: "GET", headers: {} },
+  $response: { status: 200, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ data: { items: [{ id: 1 }, { id: 2 }] } }) },
+  $persistentStore: { read() { reads++; return "{}"; }, write() { writes++; return true; } },
+  $done(value) { doneResult = value; },
+  console: { log() {} }
+};
+vm.runInNewContext(source, context);
+if (parseCalls !== 0 || stringifyCalls !== 0) throw new Error("unrelated response used JSON parse/stringify: " + parseCalls + "/" + stringifyCalls);
+if (reads !== 0 || writes !== 0) throw new Error("unrelated response touched persistent storage: " + reads + "/" + writes);
+if (!doneResult || Object.keys(doneResult).length !== 0) throw new Error("unrelated Qunar response was modified");
+'''
+        subprocess.run([node, "-e", harness, str(source_path)], check=True, capture_output=True, text=True)
+
+    def test_unknown_service_still_cleans_adspot_fallback_signature(self):
+        import shutil
+        import subprocess
+        from pathlib import Path
+
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node.js is required for the Qunar runtime integration test")
+        source_path = Path(__file__).with_name("scripts").joinpath("romeo_legacy", "qunar-clean.js")
+        harness = r'''
+const fs = require("fs");
+const vm = require("vm");
+const source = fs.readFileSync(process.argv[1], "utf8");
+let doneResult;
+const context = {
+  $request: { url: "https://client.qunar.com/api/v1/unrelated", method: "GET", headers: {} },
+  $response: { status: 200, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ data: { adspotidIOS: "ios-ad", AdrAdsPotId: "legacy-ad", adBanner: [{ adUrl320: "https://img.example/ad.jpg", locIndex: 1, locName: "hotel" }] } }) },
+  $persistentStore: { read() { throw new Error("unexpected persistent read"); }, write() { throw new Error("unexpected persistent write"); } },
+  $done(value) { doneResult = value; },
+  console: { log() {} }
+};
+vm.runInNewContext(source, context);
+if (!doneResult || typeof doneResult.body !== "string") throw new Error("fallback signature was not processed");
+const parsed = JSON.parse(doneResult.body);
+if (parsed.data.adspotidIOS !== "" || parsed.data.AdrAdsPotId !== "" || parsed.data.adBanner[0].adUrl320 !== "") throw new Error("known fallback ad fields were not cleaned");
+'''
+        subprocess.run([node, "-e", harness, str(source_path)], check=True, capture_output=True, text=True)
+
+    def test_qwh_ad_tree_walk_is_guarded_by_exact_serialized_key(self):
+        from pathlib import Path
+        source = Path(__file__).with_name("scripts").joinpath("romeo_legacy", "qunar-clean.js").read_text(encoding="utf-8")
+        self.assertIn("if (responseBody.indexOf(", source)
+        self.assertIn("adUrl320", source)
+        self.assertIn("typeof ad.adUrl320 === 'string' && own(ad, 'locIndex') && own(ad, 'locName')", source)

@@ -60,9 +60,19 @@
     if (r.ambiguous) { result.kind = 'ambiguous'; return result; }
     if (response.status && (Number(response.status) < 200 || Number(response.status) >= 300)) { result.kind = 'http-error'; return result; }
     if (typeof response.body !== 'string' || response.body.length > 4 * 1024 * 1024) { result.kind = 'unreadable'; return result; }
+    var responseBody = response.body;
+    // This handler is attached to whole Qunar host families. For requests whose
+    // service cannot be identified, avoid parsing unrelated response JSON
+    // unless a known response-only fallback signature is present.
+    if (!r.service && ![
+      '"myHead"', '"financial"', '"bottomADBannerMap"',
+      '"adspotidIOS"', '"AdrAdsPotId"', '"adUrl320"'
+    ].some(function (marker) { return responseBody.indexOf(marker) !== -1; })) {
+      return result;
+    }
     var root;
     try {
-      root = JSON.parse(response.body, function (_, value) {
+      root = JSON.parse(responseBody, function (_, value) {
         // Re-serializing an unsafe numeric order ID would silently round it.
         if (typeof value === 'number' && (!isFinite(value) || (Math.floor(value) === value && Math.abs(value) > 9007199254740991))) throw new Error('unsafe-number');
         return value;
@@ -135,13 +145,17 @@
     }
     // QWHAdvertiseInfo is an ad-only native model. Traverse only its known
     // response containers and require all identifying fields before changing it.
-    var adNodes = [root], adCount = 0;
-    while (adNodes.length && adCount++ < 100) {
-      var ad = adNodes.pop();
-      if (Array.isArray(ad)) { ad.forEach(function (v) { if (obj(v)) adNodes.push(v); }); continue; }
-      if (!obj(ad)) continue;
-      if (typeof ad.adUrl320 === 'string' && own(ad, 'locIndex') && own(ad, 'locName')) set(ad, 'adUrl320', '', 'hotel.native-ad');
-      ['data', 'adBanner', 'adRecommendArray'].forEach(function (k) { if (obj(ad[k]) || Array.isArray(ad[k])) adNodes.push(ad[k]); });
+    // Avoid recursive traversal on the common case where the ad-only model
+    // key is absent from the original JSON text.
+    if (responseBody.indexOf('"adUrl320"') !== -1) {
+      var adNodes = [root], adCount = 0;
+      while (adNodes.length && adCount++ < 100) {
+        var ad = adNodes.pop();
+        if (Array.isArray(ad)) { ad.forEach(function (v) { if (obj(v)) adNodes.push(v); }); continue; }
+        if (!obj(ad)) continue;
+        if (typeof ad.adUrl320 === 'string' && own(ad, 'locIndex') && own(ad, 'locName')) set(ad, 'adUrl320', '', 'hotel.native-ad');
+        ['data', 'adBanner', 'adRecommendArray'].forEach(function (k) { if (obj(ad[k]) || Array.isArray(ad[k])) adNodes.push(ad[k]); });
+      }
     }
     // Dedicated flight popup response: keep the envelope and the data type.
     if (service === 'f_flightHome_float_window' && d && Object.keys(d).length) set(root, 'data', {}, 'flight.float');
