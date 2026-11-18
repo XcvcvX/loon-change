@@ -5250,7 +5250,7 @@ class QunarRuntimeHotPathTests(unittest.TestCase):
             self.skipTest("Node.js is required for the Qunar runtime integration test")
         source_path = Path(__file__).with_name("scripts").joinpath("romeo_legacy", "qunar-clean.js")
         source = source_path.read_text(encoding="utf-8")
-        harness = r'''\
+        harness = r'''
 const fs = require("fs");
 const vm = require("vm");
 const source = fs.readFileSync(process.argv[1], "utf8");
@@ -5281,7 +5281,7 @@ if (parsed.data.list.length !== 0 || parsed.data.fastFilterNameList.length !== 0
         if not node:
             self.skipTest("Node.js is required for the Qunar runtime integration test")
         source_path = Path(__file__).with_name("scripts").joinpath("romeo_legacy", "qunar-clean.js")
-        harness = r'''\
+        harness = r'''
 const fs = require("fs");
 const vm = require("vm");
 const source = fs.readFileSync(process.argv[1], "utf8");
