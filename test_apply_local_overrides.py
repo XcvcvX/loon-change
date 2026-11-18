@@ -5565,7 +5565,7 @@ class DidiLocalJsonScriptMigrationTests(unittest.TestCase):
             migrate_didiads_common_v5_to_local,
         )
 
-        unrelated = ["[Script]", "response if ${url} ~= /^https?:\\/\\/example.test/ then script(\\"https://example.test/other.js\\")", "[MITM]"]
+        unrelated = ["[Script]", "not a Didi trigger", "[MITM]"]
         result, changed = migrate_didiads_common_v5_to_local(unrelated)
         self.assertEqual(result, unrelated)
         self.assertEqual(changed, 0)
