@@ -285,13 +285,11 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
   }
 } else if (url.includes("/shield/search/nearbyrec_smart")) {
   // 附近页面
-  const items = ["head", "search_hot_words", "feed_rec"];
-  if (obj?.data?.modules?.length > 0) {
-    if (obj?.data?.modules?.length > 0) {
-      compactInPlace(obj.data.modules, (item) =>
-        item === "head" || item === "search_hot_words" || item === "feed_rec"
-      );
-    }
+  const modules = obj?.data?.modules;
+  if (Array.isArray(modules) && modules.length > 0) {
+    compactInPlace(modules, (item) =>
+      item === "head" || item === "search_hot_words" || item === "feed_rec"
+    );
   }
 } else if (url.includes("/shield/search/poi/detail")) {
   // 搜索结果 模块详情
