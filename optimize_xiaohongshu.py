@@ -182,6 +182,7 @@ def rewrite_plugin(plugin):
         if t.startswith("[") and t.endswith("]"):section=t[1:-1].strip().lower()
         if section=="script" and REMOTE in line:count+=line.count(REMOTE);line=line.replace(REMOTE,LOCAL)
         out.append(line)
+    if count==0:return plugin
     if count!=9:raise ValueError(f"Xiaohongshu trigger inventory changed: expected 9, got {count}")
     result="\n".join(out)
     if REMOTE in result:raise ValueError("upstream URL remains")
