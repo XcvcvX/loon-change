@@ -677,3 +677,88 @@ if (!emptyDone || Object.keys(emptyDone).length !== 0) throw new Error("empty bo
 '''
         result = subprocess.run([node, "-e", harness, str(source_path)], check=False, capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
+
+
+class BaiduMapZeroCopyProtobufRuntimeTests(unittest.TestCase):
+    def test_binary_handler_preserves_result_bytes_and_updates_only_ad_dates(self):
+        import shutil
+        import subprocess
+        from pathlib import Path
+
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node.js is required for the Baidu Map protobuf runtime test")
+        source_path = Path(__file__).with_name("scripts").joinpath("baidumap", "baidu-map-protobuf.js")
+        source = source_path.read_text(encoding="utf-8")
+        app = source[source.index("const isQuanX ="):]
+        self.assertNotIn("binaryBody.slice(", app)
+        self.assertNotIn("Uint8Array.from([...", app)
+        self.assertNotIn("resultType.decode", app)
+        self.assertNotIn("console.log(", app)
+        self.assertEqual(app.count("binaryBody.subarray("), 2)
+
+        harness = r'''
+const fs = require("fs");
+const vm = require("vm");
+const source = fs.readFileSync(process.argv[1], "utf8");
+const appStart = source.indexOf("const isQuanX =");
+const schemaContext = { console: { log() {} }, Uint8Array, ArrayBuffer, DataView };
+vm.runInNewContext(source.slice(0, appStart) + "\nglobalThis.__testRoot = baiduMapRoot;", schemaContext);
+const root = schemaContext.__testRoot;
+const resultType = root.lookupType("Result");
+const adsType = root.lookupType("Ads");
+const repHeadType = root.lookupType("RepHead");
+const resultBytes = resultType.encode({ type: 1, error: 0 }).finish();
+const adsBytes = adsType.encode({
+  content: [
+    { type: "home_banner", start: 10, end: 20 },
+    { type: "splash_screen1040", start: 30, end: 40 },
+    { type: "normal_card", start: 50, end: 60 }
+  ]
+}).finish();
+const repHeadBytes = repHeadType.encode({
+  md5: "original",
+  range: "",
+  messageHead: [
+    { offset: 0, length: resultBytes.length, name: "Result" },
+    { offset: resultBytes.length, length: adsBytes.length, name: "Ads" }
+  ]
+}).finish();
+const input = new Uint8Array(4 + repHeadBytes.length + resultBytes.length + adsBytes.length);
+new DataView(input.buffer).setInt32(0, repHeadBytes.length);
+input.set(repHeadBytes, 4);
+input.set(resultBytes, 4 + repHeadBytes.length);
+input.set(adsBytes, 4 + repHeadBytes.length + resultBytes.length);
+let doneResult, logs = [];
+const context = {
+  console: { log(...args) { logs.push(args); } },
+  Uint8Array,
+  ArrayBuffer,
+  DataView,
+  $response: { body: input },
+  $done(value) { doneResult = value; }
+};
+vm.runInNewContext(source + "\nglobalThis.__testRoot = baiduMapRoot; globalThis.__testMd5 = md5;", context);
+if (!doneResult || !(doneResult.body instanceof Uint8Array)) throw new Error("Baidu handler did not return a binary body");
+if (logs.length !== 0) throw new Error("Baidu handler emitted runtime debug logs");
+const output = doneResult.body;
+const headerLength = new DataView(output.buffer, output.byteOffset, 4).getInt32(0);
+const outputRoot = context.__testRoot;
+const header = outputRoot.lookupType("RepHead").decode(output.subarray(4, 4 + headerLength));
+const resultMeta = header.messageHead.find(item => item.name === "Result");
+const adsMeta = header.messageHead.find(item => item.name === "Ads");
+const resultOffset = 4 + headerLength + resultMeta.offset;
+const outputResult = output.subarray(resultOffset, resultOffset + resultMeta.length);
+if (Buffer.compare(Buffer.from(outputResult), Buffer.from(resultBytes)) !== 0) throw new Error("untouched Result bytes were changed");
+const adsOffset = 4 + headerLength + adsMeta.offset;
+const outputAds = outputRoot.lookupType("Ads").decode(output.subarray(adsOffset, adsOffset + adsMeta.length));
+if (outputAds.content[0].start !== 1648746061 || outputAds.content[0].end !== 1648832461) throw new Error("banner dates were not expired");
+if (outputAds.content[1].start !== 1648746061 || outputAds.content[1].end !== 1648832461) throw new Error("splash dates were not expired");
+if (outputAds.content[2].start !== 50 || outputAds.content[2].end !== 60) throw new Error("non-ad content was modified");
+const merged = new Uint8Array(outputResult.length + adsMeta.length);
+merged.set(outputResult, 0);
+merged.set(output.subarray(adsOffset, adsOffset + adsMeta.length), outputResult.length);
+if (header.md5 !== context.__testMd5(merged)) throw new Error("RepHead md5 does not match the rewritten payload");
+'''
+        result = subprocess.run([node, "-e", harness, str(source_path)], check=False, capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr or result.stdout)

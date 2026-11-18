@@ -5160,12 +5160,19 @@ class CrossSyntaxShadowedResponseTriggerTests(unittest.TestCase):
         from apply_local_overrides import apply, SHADOWED_CROSS_SYNTAX_RESPONSE_PAIRS
         plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
         result = apply(plugin)
-        for _, legacy_script, v2_script, _, search_markers in SHADOWED_CROSS_SYNTAX_RESPONSE_PAIRS:
+        for name, legacy_script, v2_script, _, search_markers in SHADOWED_CROSS_SYNTAX_RESPONSE_PAIRS:
             candidates = [
                 line for line in result.splitlines()
                 if all(marker.lower() in line.replace(chr(92), "").lower() for marker in search_markers)
             ]
-            legacy = [line for line in candidates if legacy_script.lower() in line.lower() and line.lower().startswith("http-response ")]
+            legacy_markers = (legacy_script.lower(),)
+            if name == "Baidu Map ad endpoint":
+                legacy_markers += ("scripts/baidumap/baidu-map-protobuf.js",)
+            legacy = [
+                line for line in candidates
+                if any(marker in line.lower() for marker in legacy_markers)
+                and line.lower().startswith("http-response ")
+            ]
             v2 = [line for line in candidates if v2_script.lower() in line.lower() and line.lower().startswith("response if ")]
             self.assertEqual(len(legacy), 1)
             self.assertEqual(v2, [])
@@ -5575,3 +5582,44 @@ class DidiLocalJsonScriptMigrationTests(unittest.TestCase):
             migrate_didiads_common_v5_to_local(["[Script]", drifted, "[MITM]"])
         with self.assertRaisesRegex(ValueError, "duplicated"):
             migrate_didiads_common_v5_to_local(["[Script]", DIDIADS_COMMON_V5_SCRIPT, DIDIADS_COMMON_V5_SCRIPT, "[MITM]"])
+
+
+class BaiduMapLocalBinaryScriptMigrationTests(unittest.TestCase):
+    def test_migrates_only_binary_baidumap_handler_and_is_idempotent(self):
+        from apply_local_overrides import (
+            BAIDUMAP_LOCAL_SCRIPT_URL,
+            BAIDUMAP_RSTORE_SCRIPT_URL,
+            migrate_baidumap_script_to_local,
+            remove_redundant_baidumap_script,
+        )
+
+        trigger = f"http-response ^https?://newclient.map.baidu.com/client/phpui2/?qt=ads script-path={BAIDUMAP_RSTORE_SCRIPT_URL},tag=BAIDUMAP,requires-body=true,binary-body-mode=true"
+        fixture = ["[Script]", trigger, "[MITM]"]
+        preserved, removed = remove_redundant_baidumap_script(fixture)
+        self.assertEqual(removed, 0)
+        result, changed = migrate_baidumap_script_to_local(preserved)
+        self.assertEqual(changed, 1)
+        self.assertIn(BAIDUMAP_LOCAL_SCRIPT_URL, result[1])
+        self.assertIn("requires-body=true,binary-body-mode=true", result[1])
+        again, second_changed = migrate_baidumap_script_to_local(result)
+        self.assertEqual(again, result)
+        self.assertEqual(second_changed, 0)
+
+    def test_noops_without_baidumap_and_fails_closed_on_source_or_binary_mode_drift(self):
+        from apply_local_overrides import (
+            BAIDUMAP_RSTORE_SCRIPT_URL,
+            migrate_baidumap_script_to_local,
+        )
+
+        unrelated = ["[Script]", "not a Baidu Maps trigger", "[MITM]"]
+        result, changed = migrate_baidumap_script_to_local(unrelated)
+        self.assertEqual(result, unrelated)
+        self.assertEqual(changed, 0)
+
+        drifted_source = f"http-response ^https?://newclient.map.baidu.com/client/phpui2/?qt=ads script-path=https://example.test/baidu.js,tag=BAIDUMAP,requires-body=true,binary-body-mode=true"
+        with self.assertRaisesRegex(ValueError, "source changed"):
+            migrate_baidumap_script_to_local(["[Script]", drifted_source, "[MITM]"])
+
+        missing_binary = f"http-response ^https?://newclient.map.baidu.com/client/phpui2/?qt=ads script-path={BAIDUMAP_RSTORE_SCRIPT_URL},tag=BAIDUMAP,requires-body=true"
+        with self.assertRaisesRegex(ValueError, "binary-body requirements"):
+            migrate_baidumap_script_to_local(["[Script]", missing_binary, "[MITM]"])
