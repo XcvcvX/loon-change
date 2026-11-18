@@ -3882,6 +3882,41 @@ def remove_redundant_alipan_onboard_response_script(lines):
     return [line for index, line in enumerate(lines) if index != remove_index], 1
 
 
+MGW_ECNY_RESPONSE_HOST = "mgs.wallet.pbcdci.cn"
+
+
+def remove_unneeded_mgw_ecny_response_body_read(lines):
+    """Drop requires-body only for MGW's ECNY response handler, which reads request headers only."""
+    section = ""
+    candidates = []
+    for index, line in enumerate(lines):
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            continue
+        if section != "Script" or not line.lower().startswith("http-response "):
+            continue
+        normalized = re.sub(r"\\+", "", line).lower()
+        if MGW_ECNY_RESPONSE_HOST in normalized and "mgw.js" in normalized:
+            candidates.append(index)
+
+    if len(candidates) > 1:
+        raise ValueError("duplicate MGW ECNY response handler; refusing ambiguous body-read cleanup")
+    if not candidates:
+        return list(lines), 0
+
+    index = candidates[0]
+    line = lines[index]
+    matches = list(re.finditer(r",\\s*requires-body\\s*=\\s*true(?=\\s*(?:,|$))", line, re.I))
+    if len(matches) > 1:
+        raise ValueError("duplicate MGW ECNY requires-body option; refusing ambiguous cleanup")
+    if not matches:
+        return list(lines), 0
+
+    updated = list(lines)
+    updated[index] = line[:matches[0].start()] + line[matches[0].end():]
+    return updated, 1
+
+
 def remove_more_duplicate_response_scripts(lines):
     """Keep one handler per overlapping response, retaining broad matchers and safer guards."""
     normalize_switch = lambda value: re.sub(r"enable=\$\{([^}]+)\}", r"enable=\1", value.strip())
@@ -5588,6 +5623,7 @@ def apply(text: str) -> str:
     lines, _ = remove_more_duplicate_response_scripts(lines)
     lines, _ = remove_redundant_pupu_response_scripts(lines)
     lines, _ = remove_redundant_alipan_onboard_response_script(lines)
+    lines, _ = remove_unneeded_mgw_ecny_response_body_read(lines)
     lines, _ = remove_weibo_non_ad_response_triggers(lines)
     lines, _ = remove_redundant_dianping_scripts(lines)
     lines, _ = remove_redundant_baidumap_script(lines)
