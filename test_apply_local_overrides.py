@@ -2209,6 +2209,13 @@ class BilibiliNonAdFeatureScopeTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "rule changed"):
             normalize_bilibili_non_ad_feature_overrides(changed)
 
+    def test_preserves_original_rules_when_retired_source_removes_ad_path_coverage(self):
+        from apply_local_overrides import normalize_bilibili_non_ad_feature_overrides
+        fixture = [line for line in self.base if not any(marker in line.replace(chr(92), "") for marker in self.markers)]
+        result, changed = normalize_bilibili_non_ad_feature_overrides(fixture)
+        self.assertEqual(changed, 0)
+        self.assertEqual(result, fixture)
+
     def test_removes_combined_teen_mode_mock_and_grpc_status_override(self):
         from apply_local_overrides import normalize_bilibili_non_ad_feature_overrides
         combined = r'response if ${url} == "https://grpc.biliapi.net/bilibili.app.interface.v1.Teenagers/ModeStatus" then response.body.mock("text", "AAAAABMKEQgCEgl0ZWVuYWdlcnMgAioA", 200, true) | response.header.set("grpc-status", "0")'
