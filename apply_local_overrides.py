@@ -4220,7 +4220,7 @@ SHADOWED_ISHOWSHU_AMAP_TRIGGERS = (
     (
         "Amap coupon and POI detail pages",
         r"/^https:\/\/(?:info\.amap\.com|m5\.amap\.com)\/ws\/shield\/search\/(common\/coupon\/info|poi\/detail)/i",
-        r"ws\/shield\/search\/",
+        r"ws/shield/search/(common/coupon/info|poi/detail)",
         r"/^https:\/\/(?:info|m5)\.amap\.com\/ws\/shield\/search\/(?:common\/coupon\/info|poi\/detail)/i",
     ),
     (
@@ -4276,7 +4276,7 @@ def remove_shadowed_ishowshu_amap_response_triggers(lines):
         if not old_candidates:
             continue
         if any(matcher != old_matcher for _, matcher in old_candidates):
-            raise ValueError("iShowShu Amap matcher changed; refusing shadow cleanup: " + name + " actual=" + repr([matcher for _, matcher in old_candidates]) + " expected=" + repr(old_matcher))
+            raise ValueError("iShowShu Amap matcher changed; refusing shadow cleanup: " + name)
 
         if local_matcher not in verified_local:
             local_candidates = [
