@@ -74,11 +74,13 @@
 
   function processFloors(floors) {
     if (!Array.isArray(floors) || floors.length === 0) return floors;
-    return floors.filter((floor) => !PERSON_INFO_BUSINESS_MID_EXCLUDE.includes(floor && floor.mId))
-      .map((floor) => {
-        cleanFloorData(floor);
-        return floor;
-      });
+    const kept = [];
+    for (const floor of floors) {
+      if (PERSON_INFO_BUSINESS_MID_EXCLUDE.includes(floor && floor.mId)) continue;
+      cleanFloorData(floor);
+      kept.push(floor);
+    }
+    return kept;
   }
 
   if (url.includes("functionId=start")) {
