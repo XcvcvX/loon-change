@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、RuCu6 MyBlockAds、zirawell AlipayAdBlock、Thelongdarkorg、Romeo、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / RuCu6 / Thelongdarkorg / Romeo / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-18 00:26 UTC
+#!merged-at=2026-11-18 01:16 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+RuCu6-MyBlockAds+zirawell-AlipayAdBlock+Thelongdarkorg+Romeo-Loon+AOOMEE-legacy-snapshots+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -7012,7 +7012,7 @@ http-response ^https?:\/\/ddplus\.meituan\.net\/v\d\/mss_\w+\/picassovc script-p
 response if ${url} ~= /^https?:\/\/iqushangwang\.8quan\.com\/index\.php\/i\/index\/index/ then script("https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/quda.js") with enable=${quda_enable}, tag="去哒", timeout=60, requires_body=true
 http-response ^https?:\/\/mage(v\d)?\.if\.qidian\.com\/argus\/api\/v\d\/(deeplink\/geturl|client\/getconf|bookshelf\/getHoverAdv|dailyrecommend\/getdailyrecommend|assembly\/toolbar|user\/getaccountpage) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/qidian.js,tag=QIDIAN,requires-body=true
 http-response ^https?:\/\/webapi\.qbb6\.com\/h5\/api\/lib\/internal\/append\/get script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/qbb.js,tag=QBB,requires-body=true
-http-response ^https?:\/\/www\.myusmile\.online\/user\/plaqueTopic\/selectByType script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/usmile.js,tag=USMILE,requires-body=true
+http-response ^https?:\/\/www\.myusmile\.online\/user\/plaqueTopic\/selectByType script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/usmile.js,tag=USMILE
 http-response ^https?:\/\/.*\.xima.*\.com\/discovery-category\/customCategories script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xmly.js,tag=XMLY,requires-body=true
 http-response ^https?:\/\/.*\.xima.*\.com\/focus-mobile\/focusPic script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xmly.js,tag=XMLY-2,requires-body=true
 http-response ^https?:\/\/.*\.xima.*\.com\/discovery-feed\/v\d\/mix script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xmly.js,tag=XMLY-3,requires-body=true
@@ -7071,8 +7071,8 @@ http-response ^https?:\/\/(cdn-)?social\.kkmh\.com\/v\d\/graph\/unified_feed scr
 http-response ^https?:\/\/www\.1314zhilv\.com\/ltsstnew\/(common\/getJGQIconNew|city\/getAllBannelByCity) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ltsst.js,tag=1314ZHILV,requires-body=true
 http-response ^https?:\/\/youtubei\.googleapis\.com\/(youtubei\/v\d\/(browse|next|player|search|reel\/reel_watch_sequence|guide|account\/get_setting|get_watch))(\?(.*))?$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/youtube.js,tag=YOUTUBE,requires-body=true,binary-body-mode=true
 http-response ^https?:\/\/\w+\.ys7\.com\/v\d\/valueadded\/operation\/config\/master\/station script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ys7.js,tag=YS7,requires-body=true
-http-response ^https?:\/\/image\.spdbccc\.com\.cn\/group\d\/.*\.JPG$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/spdbccc.js,tag=SPDBCCC,requires-body=true
-http-response ^https?:\/\/cdn\.sdb\.com\.cn\/bron-coms\/bron-coms\/material-image script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/sdb.js,tag=SDB,requires-body=true
+http-response ^https?:\/\/image\.spdbccc\.com\.cn\/group\d\/.*\.JPG$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/spdbccc.js,tag=SPDBCCC
+http-response ^https?:\/\/cdn\.sdb\.com\.cn\/bron-coms\/bron-coms\/material-image script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/sdb.js,tag=SDB
 http-response ^https?:\/\/iosapi\.peiyinxiu\.com\/Api\/Film\/GetConfigValue script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/peiyinxiu.js,tag=PEIYINXIU,requires-body=true
 http-response ^https?:\/\/iosapi\.peiyinxiu\.com\/Api\/live\/LiveList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/peiyinxiu.js,tag=PEIYINXIU-2,requires-body=true
 http-response ^https?:\/\/iosapi\.peiyinxiu\.com\/api\/live\/FollowList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/peiyinxiu.js,tag=PEIYINXIU-3,requires-body=true
@@ -7169,7 +7169,7 @@ response if ${url} ~= /^https?:\/\/47\.100\.65\.202\/source\/plugin\/mobile\/mob
 response if ${url} ~= /^https?:\/\/www\.flyert\.com(\.cn)?\/.*plugin/i then script("https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/flyert.js") with enable=${fwke_enable}, tag="飞客茶馆", timeout=60, requires_body=true
 response if ${url} ~= /^https?:\/\/tiku\.fenbi\.com\/activity\/app\/launcher\?/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/fenbi.js") with enable=${ffbi_enable}, tag="粉笔开屏广告", timeout=60, requires_body=true
 response if ${url} ~= /^https?:\/\/apis\.folidaymall\.com\/online\/capi\/component\/getPageComponents/i then script("https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/foliday.js") with tag="复游会微信小程序", timeout=60, requires_body=true
-response if ${url} ~= /^http?:\/\/(114\.115\.217\.129)|(home\.umetrip\.com)\/gateway\/api\/umetrip\/native$/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/umetrip/umetrip_ads.js") with enable=${hlzh_enable}, tag="航旅纵横", timeout=60, requires_body=true
+response if ${url} ~= /^http?:\/\/(114\.115\.217\.129)|(home\.umetrip\.com)\/gateway\/api\/umetrip\/native$/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/umetrip/umetrip_ads.js") with enable=${hlzh_enable}, tag="航旅纵横", timeout=60
 response if ${url} ~= /^https?:\/\/acs(\.|-)m\.(taobao|freshippo)\.com\/gw\/mtop\.wdk\.render\.query(?>indexpage|mypage|tabfeedstream)/i then script("https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/freshippo.js") with enable=${hema_enable}, tag="盒马", timeout=60, requires_body=true
 response if ${url} ~= /^https:\/\/mcsp\.cloudpnr\.com\/api\/miniapp\/popular\/T_MINIAPP$/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/huifutianxia_ads.js") with enable=${hftx_enable}, tag="汇付天下", timeout=60, requires_body=true
 response if ${url} ~= /^https:\/\/saas-ad\.cloudpnr\.com\/huifuad-base-api\/api\/tactics\/ad/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/huifutianxia_ads.js") with enable=${hftx_enable}, tag="汇付天下", timeout=60, requires_body=true
@@ -7262,7 +7262,7 @@ response if ${url} ~= /^https:\/\/edith\.(xiaohongshu|rnote)\.com\/api\/sns\/v1\
 response if ${url} ~= /https:\/\/mgesq.api.mgtv.com\/dsl\/index.+/i then script("https://raw.githubusercontent.com/Sliverkiss/QuantumultX/main/AdBlock/xmApp/xmApp.js") with enable=${xnmh_enable}, tag="小芒APP主页广告", timeout=60, requires_body=true
 response if ${url} ~= /^https?:\/\/api\.m\.mi\.com\/v1\/app\/start/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/myBlockAds.js") with enable=${xnmiuhig_enable}, tag="小米商城", timeout=60, requires_body=true
 response if ${url} ~= /^https?:\/\/mapi\.xiaotucc\.com\/(mall\/main|main_page\/index\/getActivity)/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/xiaotucc.js") with enable=${xntuisis_enable}, tag="小兔充充", timeout=60, requires_body=true
-response if ${url} ~= /^https?:\/\/www\.myusmile\.online\/user\/plaqueTopic\/selectByType/i then script("https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/usmile.js") with tag="笑容加-我的页面推广", timeout=60, requires_body=true
+response if ${url} ~= /^https?:\/\/www\.myusmile\.online\/user\/plaqueTopic\/selectByType/i then script("https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/usmile.js") with tag="笑容加-我的页面推广", timeout=60
 response if ${url} ~= /^https?:\/\/acs\.youku\.com\/gw\/mtop\.youku\.columbus\.(gateway\.new\.execute|home\.feed|home\.query|uc\.query|ycp\.query)/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js") with enable=${yzku_enable}, tag="优酷", timeout=60, requires_body=true
 response if ${url} ~= /^https?:\/\/acs\.youku\.com\/gw\/mtop\.youku\.soku\.yksearch/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js") with enable=${yzku_enable}, tag="优酷搜索列表", timeout=60, requires_body=true
 response if ${url} ~= /^https?:\/\/push\.m\.youku\.com\/collect-api\/get_push_interval_config_wx\?/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js") with enable=${yzku_enable}, tag="优酷热剧弹窗", timeout=60, requires_body=true

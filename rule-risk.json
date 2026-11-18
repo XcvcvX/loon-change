@@ -2,8 +2,8 @@
   "change_counts": {
     "rewrite": {
       "action_changed": 0,
-      "added": 1,
-      "removed": 1
+      "added": 0,
+      "removed": 0
     },
     "rule": {
       "action_changed": 0,
@@ -12,62 +12,14 @@
     },
     "script": {
       "action_changed": 0,
-      "added": 14,
-      "removed": 14
+      "added": 5,
+      "removed": 5
     }
   },
   "events": [
     {
       "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/gql(-fed)?\\.reddit\\.com/i then response.json.jq(\"jq-path=https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/rucu6/myblockads/rucu6_reddit.jq\")",
-        "section": "rewrite",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "rewrite",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/gql(-fed)?\\.reddit\\.com/i then response.json.jq(\"jq-path=https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_reddit.jq\")",
-        "section": "rewrite",
-        "sources": [
-          "myblockads"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "rewrite",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "myblockads": "unavailable"
-      },
-      "source_scores": {
-        "myblockads": null
-      },
-      "sources": [
-        "myblockads"
-      ]
-    },
-    {
-      "after": {
-        "line": "request if ${url} ~= /^https:\\/\\/ad\\.12306\\.cn\\/ad\\/ser\\/getAdList$/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/rucu6/myblockads/rucu6_12306.js\") with tag=\"12306_splash\", requires_body=true",
+        "line": "http-response ^https?:\\/\\/cdn\\.sdb\\.com\\.cn\\/bron-coms\\/bron-coms\\/material-image script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/sdb.js,tag=SDB",
         "section": "script",
         "sources": [
           "local_overrides"
@@ -91,7 +43,7 @@
     },
     {
       "after": {
-        "line": "request if ${url} ~= /^https:\\/\\/mobile\\.12306\\.cn\\/otsmobile\\/app\\/mgs\\/mgw\\.htm$/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/rucu6/myblockads/rucu6_header.js\") with tag=\"12306_ads\"",
+        "line": "http-response ^https?:\\/\\/image\\.spdbccc\\.com\\.cn\\/group\\d\\/.*\\.JPG$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/spdbccc.js,tag=SPDBCCC",
         "section": "script",
         "sources": [
           "local_overrides"
@@ -115,7 +67,7 @@
     },
     {
       "after": {
-        "line": "request if ${url} ~= /^https:\\/\\/mobilepaas\\.abchina\\.com\\.cn:441\\/mgw\\.htm$/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/rucu6/myblockads/rucu6_header.js\") with tag=\"abchina\"",
+        "line": "http-response ^https?:\\/\\/www\\.myusmile\\.online\\/user\\/plaqueTopic\\/selectByType script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/usmile.js,tag=USMILE",
         "section": "script",
         "sources": [
           "local_overrides"
@@ -139,7 +91,7 @@
     },
     {
       "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/(biz)?api\\.alipan\\.com\\/apps\\/v\\d\\/users?\\/home\\/(?:news|widgets)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/rucu6/myblockads/rucu6_adrive.js\") with tag=\"aliyun_mine\", requires_body=true",
+        "line": "response if ${url} ~= /^http?:\\/\\/(114\\.115\\.217\\.129)|(home\\.umetrip\\.com)\\/gateway\\/api\\/umetrip\\/native$/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/umetrip/umetrip_ads.js\") with enable=${hlzh_enable}, tag=\"航旅纵横\", timeout=60",
         "section": "script",
         "sources": [
           "local_overrides"
@@ -163,223 +115,7 @@
     },
     {
       "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/2023\\.redircdn\\.com\\/web\\/mob_post\\.js\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"caoliu\", requires_body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/ad\\.mcloud\\.139\\.com\\/advertapi\\/adv-filter\\//i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/rucu6/myblockads/rucu6_cloud139.js\") with tag=\"cloud139_1\", requires_body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/api-gateway-pan\\.xunlei\\.com\\/content\\/v1\\/aggregate\\/info\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"thunder\", requires_body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/api\\.coolapk\\.com\\/v6\\/(?:feed\\/detail|feed\\/replyList|page\\/dataList|main\\/dataList|main\\/indexV8|main\\/init)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/rucu6/myblockads/rucu6_coolapk.js\") with tag=\"coolapk\", requires_body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/api\\.m\\.mi\\.com\\/v1\\/app\\/start/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"mi_mall\", requires_body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/gateway\\.kugou\\.com\\/(?:adp\\/ad\\/v1\\/mine_top_banner|ads\\.gateway\\/v2\\/home_card)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/rucu6/myblockads/rucu6_kugou.js\") with tag=\"kg_gateway\", requires_body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/jzts\\.cmpassport\\.com\\/personalized\\/getPushContent/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/rucu6/myblockads/rucu6_cloud139.js\") with tag=\"cloud139_2\", requires_body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/www\\.washpayer\\.com\\/user\\/message\\/equipmentPara\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/rucu6/myblockads/rucu6_changyuan.js\") with tag=\"changyuan\", requires_body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "response if ${url} ~= /^https?:\\/\\/adserviceretry\\.kglink\\.cn\\/v\\d\\/mobile\\w+/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/rucu6/myblockads/rucu6_kugou.js\") with tag=\"kg_linkcn\", requires_body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "response if ${url} ~= /^https\\:\\/\\/(?:weixin110\\.qq|security\\.wechat)\\.com\\/cgi-bin\\/mmspamsupport-bin\\/newredirectconfirmcgi\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/rucu6/myblockads/rucu6_wechat.js\") with tag=\"wechat\", requires_body=true",
+        "line": "response if ${url} ~= /^https?:\\/\\/www\\.myusmile\\.online\\/user\\/plaqueTopic\\/selectByType/i then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/usmile.js\") with tag=\"笑容加-我的页面推广\", timeout=60",
         "section": "script",
         "sources": [
           "local_overrides"
@@ -404,10 +140,10 @@
     {
       "after": null,
       "before": {
-        "line": "request if ${url} ~= /^https:\\/\\/ad\\.12306\\.cn\\/ad\\/ser\\/getAdList$/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_12306.js\") with tag=\"12306_splash\", requires_body=true",
+        "line": "http-response ^https?:\\/\\/cdn\\.sdb\\.com\\.cn\\/bron-coms\\/bron-coms\\/material-image script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/sdb.js,tag=SDB,requires-body=true",
         "section": "script",
         "sources": [
-          "myblockads"
+          "base"
         ]
       },
       "change_type": "removed",
@@ -416,22 +152,22 @@
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "myblockads": "unavailable"
+        "base": "unavailable"
       },
       "source_scores": {
-        "myblockads": null
+        "base": null
       },
       "sources": [
-        "myblockads"
+        "base"
       ]
     },
     {
       "after": null,
       "before": {
-        "line": "request if ${url} ~= /^https:\\/\\/mobile\\.12306\\.cn\\/otsmobile\\/app\\/mgs\\/mgw\\.htm$/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_header.js\") with tag=\"12306_ads\"",
+        "line": "http-response ^https?:\\/\\/image\\.spdbccc\\.com\\.cn\\/group\\d\\/.*\\.JPG$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/spdbccc.js,tag=SPDBCCC,requires-body=true",
         "section": "script",
         "sources": [
-          "myblockads"
+          "base"
         ]
       },
       "change_type": "removed",
@@ -440,22 +176,22 @@
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "myblockads": "unavailable"
+        "base": "unavailable"
       },
       "source_scores": {
-        "myblockads": null
+        "base": null
       },
       "sources": [
-        "myblockads"
+        "base"
       ]
     },
     {
       "after": null,
       "before": {
-        "line": "request if ${url} ~= /^https:\\/\\/mobilepaas\\.abchina\\.com\\.cn:441\\/mgw\\.htm$/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_header.js\") with tag=\"abchina\"",
+        "line": "http-response ^https?:\\/\\/www\\.myusmile\\.online\\/user\\/plaqueTopic\\/selectByType script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/usmile.js,tag=USMILE,requires-body=true",
         "section": "script",
         "sources": [
-          "myblockads"
+          "base"
         ]
       },
       "change_type": "removed",
@@ -464,22 +200,22 @@
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "myblockads": "unavailable"
+        "base": "unavailable"
       },
       "source_scores": {
-        "myblockads": null
+        "base": null
       },
       "sources": [
-        "myblockads"
+        "base"
       ]
     },
     {
       "after": null,
       "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/(biz)?api\\.alipan\\.com\\/apps\\/v\\d\\/users?\\/home\\/(?:news|widgets)/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_adrive.js\") with tag=\"aliyun_mine\", requires_body=true",
+        "line": "response if ${url} ~= /^http?:\\/\\/(114\\.115\\.217\\.129)|(home\\.umetrip\\.com)\\/gateway\\/api\\/umetrip\\/native$/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/umetrip/umetrip_ads.js\") with enable=${hlzh_enable}, tag=\"航旅纵横\", timeout=60, requires_body=true",
         "section": "script",
         "sources": [
-          "myblockads"
+          "block"
         ]
       },
       "change_type": "removed",
@@ -488,22 +224,22 @@
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "myblockads": "unavailable"
+        "block": "unavailable"
       },
       "source_scores": {
-        "myblockads": null
+        "block": null
       },
       "sources": [
-        "myblockads"
+        "block"
       ]
     },
     {
       "after": null,
       "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/2023\\.redircdn\\.com\\/web\\/mob_post\\.js\\?/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"caoliu\", requires_body=true",
+        "line": "response if ${url} ~= /^https?:\\/\\/www\\.myusmile\\.online\\/user\\/plaqueTopic\\/selectByType/i then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/usmile.js\") with tag=\"笑容加-我的页面推广\", timeout=60, requires_body=true",
         "section": "script",
         "sources": [
-          "myblockads"
+          "block"
         ]
       },
       "change_type": "removed",
@@ -512,239 +248,23 @@
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "myblockads": "unavailable"
+        "block": "unavailable"
       },
       "source_scores": {
-        "myblockads": null
+        "block": null
       },
       "sources": [
-        "myblockads"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/ad\\.mcloud\\.139\\.com\\/advertapi\\/adv-filter\\//i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_cloud139.js\") with tag=\"cloud139_1\", requires_body=true",
-        "section": "script",
-        "sources": [
-          "myblockads"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "myblockads": "unavailable"
-      },
-      "source_scores": {
-        "myblockads": null
-      },
-      "sources": [
-        "myblockads"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/api-gateway-pan\\.xunlei\\.com\\/content\\/v1\\/aggregate\\/info\\?/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"thunder\", requires_body=true",
-        "section": "script",
-        "sources": [
-          "myblockads"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "myblockads": "unavailable"
-      },
-      "source_scores": {
-        "myblockads": null
-      },
-      "sources": [
-        "myblockads"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/api\\.coolapk\\.com\\/v6\\/(?:feed\\/detail|feed\\/replyList|page\\/dataList|main\\/dataList|main\\/indexV8|main\\/init)/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_coolapk.js\") with tag=\"coolapk\", requires_body=true",
-        "section": "script",
-        "sources": [
-          "myblockads"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "myblockads": "unavailable"
-      },
-      "source_scores": {
-        "myblockads": null
-      },
-      "sources": [
-        "myblockads"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/api\\.m\\.mi\\.com\\/v1\\/app\\/start/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"mi_mall\", requires_body=true",
-        "section": "script",
-        "sources": [
-          "myblockads"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "myblockads": "unavailable"
-      },
-      "source_scores": {
-        "myblockads": null
-      },
-      "sources": [
-        "myblockads"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/gateway\\.kugou\\.com\\/(?:adp\\/ad\\/v1\\/mine_top_banner|ads\\.gateway\\/v2\\/home_card)/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_kugou.js\") with tag=\"kg_gateway\", requires_body=true",
-        "section": "script",
-        "sources": [
-          "myblockads"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "myblockads": "unavailable"
-      },
-      "source_scores": {
-        "myblockads": null
-      },
-      "sources": [
-        "myblockads"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/jzts\\.cmpassport\\.com\\/personalized\\/getPushContent/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_cloud139.js\") with tag=\"cloud139_2\", requires_body=true",
-        "section": "script",
-        "sources": [
-          "myblockads"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "myblockads": "unavailable"
-      },
-      "source_scores": {
-        "myblockads": null
-      },
-      "sources": [
-        "myblockads"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/www\\.washpayer\\.com\\/user\\/message\\/equipmentPara\\?/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_changyuan.js\") with tag=\"changyuan\", requires_body=true",
-        "section": "script",
-        "sources": [
-          "myblockads"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "myblockads": "unavailable"
-      },
-      "source_scores": {
-        "myblockads": null
-      },
-      "sources": [
-        "myblockads"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https?:\\/\\/adserviceretry\\.kglink\\.cn\\/v\\d\\/mobile\\w+/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_kugou.js\") with tag=\"kg_linkcn\", requires_body=true",
-        "section": "script",
-        "sources": [
-          "myblockads"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "myblockads": "unavailable"
-      },
-      "source_scores": {
-        "myblockads": null
-      },
-      "sources": [
-        "myblockads"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https\\:\\/\\/(?:weixin110\\.qq|security\\.wechat)\\.com\\/cgi-bin\\/mmspamsupport-bin\\/newredirectconfirmcgi\\?/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_wechat.js\") with tag=\"wechat\", requires_body=true",
-        "section": "script",
-        "sources": [
-          "myblockads"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "myblockads": "unavailable"
-      },
-      "source_scores": {
-        "myblockads": null
-      },
-      "sources": [
-        "myblockads"
+        "block"
       ]
     }
   ],
   "overall_risk": "high",
   "risk_counts": {
-    "high": 15,
+    "high": 5,
     "low": 0,
-    "medium": 15
+    "medium": 5
   },
-  "run_id": "44207736267",
+  "run_id": "44214409451",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -775,26 +295,26 @@
     "base": {
       "action_changed": 0,
       "added": 25,
-      "removed": 133,
-      "snapshots_seen": 12
+      "removed": 136,
+      "snapshots_seen": 13
     },
     "block": {
       "action_changed": 46,
       "added": 75,
-      "removed": 157,
-      "snapshots_seen": 9
+      "removed": 159,
+      "snapshots_seen": 10
     },
     "filter": {
       "action_changed": 0,
       "added": 1,
-      "removed": 7,
-      "snapshots_seen": 2
+      "removed": 3,
+      "snapshots_seen": 1
     },
     "local_overrides": {
       "action_changed": 0,
-      "added": 124,
+      "added": 129,
       "removed": 44,
-      "snapshots_seen": 18
+      "snapshots_seen": 19
     },
     "myblockads": {
       "action_changed": 0,

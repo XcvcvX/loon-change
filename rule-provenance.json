@@ -118200,21 +118200,15 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://www\\\\.myusmile\\\\.online/user/plaqueTopic/selectByType', ('^https?:\\\\/\\\\/www\\\\.myusmile\\\\.online\\\\/user\\\\/plaquetopic\\\\/selectbytype', '^https?:\\\\/\\\\/www\\\\.myusmile\\\\.online\\\\/user\\\\/plaqueTopic\\\\/selectByType script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/usmile.js,tag=USMILE,requires-body=true'))",
-      "output_entry_index": 154,
-      "output_line": "http-response ^https?:\\/\\/www\\.myusmile\\.online\\/user\\/plaqueTopic\\/selectByType script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/usmile.js,tag=USMILE,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/www\\.myusmile\\.online\\/user\\/plaqueTopic\\/selectByType script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/usmile.js,tag=USMILE",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/www\\.myusmile\\.online\\/user\\/plaqueTopic\\/selectByType script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/usmile.js,tag=USMILE,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 153
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
       "canonical_key": "('guarded', '^https?://.*\\\\.xima.*\\\\.com/discovery-category/customCategories', ('^https?:\\\\/\\\\/.*\\\\.xima.*\\\\.com\\\\/discovery-category\\\\/customcategories', '^https?:\\\\/\\\\/.*\\\\.xima.*\\\\.com\\\\/discovery-category\\\\/customCategories script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xmly.js,tag=XMLY,requires-body=true'))",
@@ -119125,38 +119119,26 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://image\\\\.spdbccc\\\\.com\\\\.cn/group\\\\d/.*\\\\.JPG$', ('^https?:\\\\/\\\\/image\\\\.spdbccc\\\\.com\\\\.cn\\\\/group\\\\d\\\\/.*\\\\.jpg$', '^https?:\\\\/\\\\/image\\\\.spdbccc\\\\.com\\\\.cn\\\\/group\\\\d\\\\/.*\\\\.JPG$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/spdbccc.js,tag=SPDBCCC,requires-body=true'))",
-      "output_entry_index": 239,
-      "output_line": "http-response ^https?:\\/\\/image\\.spdbccc\\.com\\.cn\\/group\\d\\/.*\\.JPG$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/spdbccc.js,tag=SPDBCCC,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/image\\.spdbccc\\.com\\.cn\\/group\\d\\/.*\\.JPG$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/spdbccc.js,tag=SPDBCCC",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/image\\.spdbccc\\.com\\.cn\\/group\\d\\/.*\\.JPG$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/spdbccc.js,tag=SPDBCCC,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 238
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://cdn\\\\.sdb\\\\.com\\\\.cn/bron-coms/bron-coms/material-image', ('^https?:\\\\/\\\\/cdn\\\\.sdb\\\\.com\\\\.cn\\\\/bron-coms\\\\/bron-coms\\\\/material-image', '^https?:\\\\/\\\\/cdn\\\\.sdb\\\\.com\\\\.cn\\\\/bron-coms\\\\/bron-coms\\\\/material-image script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/sdb.js,tag=SDB,requires-body=true'))",
-      "output_entry_index": 240,
-      "output_line": "http-response ^https?:\\/\\/cdn\\.sdb\\.com\\.cn\\/bron-coms\\/bron-coms\\/material-image script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/sdb.js,tag=SDB,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/cdn\\.sdb\\.com\\.cn\\/bron-coms\\/bron-coms\\/material-image script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/sdb.js,tag=SDB",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/cdn\\.sdb\\.com\\.cn\\/bron-coms\\/bron-coms\\/material-image script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/sdb.js,tag=SDB,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 239
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
       "canonical_key": "('guarded', '^https?://iosapi\\\\.peiyinxiu\\\\.com/Api/Film/GetConfigValue', ('^https?:\\\\/\\\\/iosapi\\\\.peiyinxiu\\\\.com\\\\/api\\\\/film\\\\/getconfigvalue', '^https?:\\\\/\\\\/iosapi\\\\.peiyinxiu\\\\.com\\\\/Api\\\\/Film\\\\/GetConfigValue script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/peiyinxiu.js,tag=PEIYINXIU,requires-body=true'))",
@@ -120767,21 +120749,15 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^http?://(114\\\\.115\\\\.217\\\\.129)|(home\\\\.umetrip\\\\.com)/gateway/api/umetrip/native$', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/umetrip/umetrip_ads.js\") with enable=hlzh_enable, tag=\"航旅纵横\", timeout=60, requires_body=true'))",
-      "output_entry_index": 372,
-      "output_line": "response if ${url} ~= /^http?:\\/\\/(114\\.115\\.217\\.129)|(home\\.umetrip\\.com)\\/gateway\\/api\\/umetrip\\/native$/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/umetrip/umetrip_ads.js\") with enable=${hlzh_enable}, tag=\"航旅纵横\", timeout=60, requires_body=true",
-      "section": "Script",
+      "output_line": "response if ${url} ~= /^http?:\\/\\/(114\\.115\\.217\\.129)|(home\\.umetrip\\.com)\\/gateway\\/api\\/umetrip\\/native$/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/umetrip/umetrip_ads.js\") with enable=${hlzh_enable}, tag=\"航旅纵横\", timeout=60",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^http?:\\/\\/(114\\.115\\.217\\.129)|(home\\.umetrip\\.com)\\/gateway\\/api\\/umetrip\\/native$/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/umetrip/umetrip_ads.js\") with enable=${hlzh_enable}, tag=\"航旅纵横\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 64
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
       "canonical_key": "('guarded', '^https?://acs(\\\\.|-)m\\\\.(taobao|freshippo)\\\\.com/gw/mtop\\\\.wdk\\\\.render\\\\.query(?>indexpage|mypage|tabfeedstream)', ('script', 'script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/freshippo.js\") with enable=hema_enable, tag=\"盒马\", timeout=60, requires_body=true'))",
@@ -122246,21 +122222,15 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://www\\\\.myusmile\\\\.online/user/plaqueTopic/selectByType', ('script', 'script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/usmile.js\") with tag=\"笑容加-我的页面推广\", timeout=60, requires_body=true'))",
-      "output_entry_index": 503,
-      "output_line": "response if ${url} ~= /^https?:\\/\\/www\\.myusmile\\.online\\/user\\/plaqueTopic\\/selectByType/i then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/usmile.js\") with tag=\"笑容加-我的页面推广\", timeout=60, requires_body=true",
-      "section": "Script",
+      "output_line": "response if ${url} ~= /^https?:\\/\\/www\\.myusmile\\.online\\/user\\/plaqueTopic\\/selectByType/i then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/usmile.js\") with tag=\"笑容加-我的页面推广\", timeout=60",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https?:\\/\\/www\\.myusmile\\.online\\/user\\/plaqueTopic\\/selectByType/i then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/usmile.js\") with tag=\"笑容加-我的页面推广\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 195
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
       "canonical_key": "('guarded', '^https?://acs\\\\.youku\\\\.com/gw/mtop\\\\.youku\\\\.columbus\\\\.(gateway\\\\.new\\\\.execute|home\\\\.feed|home\\\\.query|uc\\\\.query|ycp\\\\.query)', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js\") with enable=yzku_enable, tag=\"优酷\", timeout=60, requires_body=true'))",
