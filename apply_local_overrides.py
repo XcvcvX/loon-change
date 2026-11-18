@@ -4214,7 +4214,7 @@ SHADOWED_ISHOWSHU_AMAP_TRIGGERS = (
     (
         "Amap hotel and walking-navigation pages",
         r"/^https:\/\/m5\.amap\.com\/ws\/c3frontend\/af-(hotel|launch)\/page\/main\?/i",
-        r"c3frontend\/af-",
+        r"c3frontend\/af-(hotel|launch)\/page\/main",
         r"/^https:\/\/m5\.amap\.com\/ws\/c3frontend\/(?:af-(?:hotel|launch)\/page\/main|af-nearby\/nearby)/i",
     ),
     (
@@ -4268,7 +4268,8 @@ def remove_shadowed_ishowshu_amap_response_triggers(lines):
         for index, line in entries:
             lowered = line.lower()
             normalized = re.sub(r"\\+", "", lowered)
-            if ISHOWSHU_AMAP_SCRIPT_MARKER.lower() in lowered and path_marker.lower() in normalized:
+            normalized_marker = re.sub(r"\\+", "", path_marker.lower())
+            if ISHOWSHU_AMAP_SCRIPT_MARKER.lower() in lowered and normalized_marker in normalized:
                 matcher = line.split("~=", 1)[1].split(" then script", 1)[0].strip() if "~=" in line and " then script" in line else ""
                 old_candidates.append((index, matcher))
 
