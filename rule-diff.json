@@ -400,8 +400,24 @@
   "sections": {
     "rewrite": {
       "action_changed": [],
-      "added": [],
-      "removed": []
+      "added": [
+        {
+          "line": "response if ${url} ~= /^https:\\/\\/gql(-fed)?\\.reddit\\.com/i then response.json.jq(\"jq-path=https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/rucu6/myblockads/rucu6_reddit.jq\")",
+          "section": "rewrite",
+          "sources": [
+            "local_overrides"
+          ]
+        }
+      ],
+      "removed": [
+        {
+          "line": "response if ${url} ~= /^https:\\/\\/gql(-fed)?\\.reddit\\.com/i then response.json.jq(\"jq-path=https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_reddit.jq\")",
+          "section": "rewrite",
+          "sources": [
+            "myblockads"
+          ]
+        }
+      ]
     },
     "rule": {
       "action_changed": [],
@@ -410,15 +426,213 @@
     },
     "script": {
       "action_changed": [],
-      "added": [],
-      "removed": []
+      "added": [
+        {
+          "line": "request if ${url} ~= /^https:\\/\\/ad\\.12306\\.cn\\/ad\\/ser\\/getAdList$/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/rucu6/myblockads/rucu6_12306.js\") with tag=\"12306_splash\", requires_body=true",
+          "section": "script",
+          "sources": [
+            "local_overrides"
+          ]
+        },
+        {
+          "line": "request if ${url} ~= /^https:\\/\\/mobile\\.12306\\.cn\\/otsmobile\\/app\\/mgs\\/mgw\\.htm$/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/rucu6/myblockads/rucu6_header.js\") with tag=\"12306_ads\"",
+          "section": "script",
+          "sources": [
+            "local_overrides"
+          ]
+        },
+        {
+          "line": "request if ${url} ~= /^https:\\/\\/mobilepaas\\.abchina\\.com\\.cn:441\\/mgw\\.htm$/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/rucu6/myblockads/rucu6_header.js\") with tag=\"abchina\"",
+          "section": "script",
+          "sources": [
+            "local_overrides"
+          ]
+        },
+        {
+          "line": "response if ${url} ~= /^https:\\/\\/(biz)?api\\.alipan\\.com\\/apps\\/v\\d\\/users?\\/home\\/(?:news|widgets)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/rucu6/myblockads/rucu6_adrive.js\") with tag=\"aliyun_mine\", requires_body=true",
+          "section": "script",
+          "sources": [
+            "local_overrides"
+          ]
+        },
+        {
+          "line": "response if ${url} ~= /^https:\\/\\/2023\\.redircdn\\.com\\/web\\/mob_post\\.js\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"caoliu\", requires_body=true",
+          "section": "script",
+          "sources": [
+            "local_overrides"
+          ]
+        },
+        {
+          "line": "response if ${url} ~= /^https:\\/\\/ad\\.mcloud\\.139\\.com\\/advertapi\\/adv-filter\\//i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/rucu6/myblockads/rucu6_cloud139.js\") with tag=\"cloud139_1\", requires_body=true",
+          "section": "script",
+          "sources": [
+            "local_overrides"
+          ]
+        },
+        {
+          "line": "response if ${url} ~= /^https:\\/\\/api-gateway-pan\\.xunlei\\.com\\/content\\/v1\\/aggregate\\/info\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"thunder\", requires_body=true",
+          "section": "script",
+          "sources": [
+            "local_overrides"
+          ]
+        },
+        {
+          "line": "response if ${url} ~= /^https:\\/\\/api\\.coolapk\\.com\\/v6\\/(?:feed\\/detail|feed\\/replyList|page\\/dataList|main\\/dataList|main\\/indexV8|main\\/init)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/rucu6/myblockads/rucu6_coolapk.js\") with tag=\"coolapk\", requires_body=true",
+          "section": "script",
+          "sources": [
+            "local_overrides"
+          ]
+        },
+        {
+          "line": "response if ${url} ~= /^https:\\/\\/api\\.m\\.mi\\.com\\/v1\\/app\\/start/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"mi_mall\", requires_body=true",
+          "section": "script",
+          "sources": [
+            "local_overrides"
+          ]
+        },
+        {
+          "line": "response if ${url} ~= /^https:\\/\\/gateway\\.kugou\\.com\\/(?:adp\\/ad\\/v1\\/mine_top_banner|ads\\.gateway\\/v2\\/home_card)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/rucu6/myblockads/rucu6_kugou.js\") with tag=\"kg_gateway\", requires_body=true",
+          "section": "script",
+          "sources": [
+            "local_overrides"
+          ]
+        },
+        {
+          "line": "response if ${url} ~= /^https:\\/\\/jzts\\.cmpassport\\.com\\/personalized\\/getPushContent/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/rucu6/myblockads/rucu6_cloud139.js\") with tag=\"cloud139_2\", requires_body=true",
+          "section": "script",
+          "sources": [
+            "local_overrides"
+          ]
+        },
+        {
+          "line": "response if ${url} ~= /^https:\\/\\/www\\.washpayer\\.com\\/user\\/message\\/equipmentPara\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/rucu6/myblockads/rucu6_changyuan.js\") with tag=\"changyuan\", requires_body=true",
+          "section": "script",
+          "sources": [
+            "local_overrides"
+          ]
+        },
+        {
+          "line": "response if ${url} ~= /^https?:\\/\\/adserviceretry\\.kglink\\.cn\\/v\\d\\/mobile\\w+/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/rucu6/myblockads/rucu6_kugou.js\") with tag=\"kg_linkcn\", requires_body=true",
+          "section": "script",
+          "sources": [
+            "local_overrides"
+          ]
+        },
+        {
+          "line": "response if ${url} ~= /^https\\:\\/\\/(?:weixin110\\.qq|security\\.wechat)\\.com\\/cgi-bin\\/mmspamsupport-bin\\/newredirectconfirmcgi\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/rucu6/myblockads/rucu6_wechat.js\") with tag=\"wechat\", requires_body=true",
+          "section": "script",
+          "sources": [
+            "local_overrides"
+          ]
+        }
+      ],
+      "removed": [
+        {
+          "line": "request if ${url} ~= /^https:\\/\\/ad\\.12306\\.cn\\/ad\\/ser\\/getAdList$/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_12306.js\") with tag=\"12306_splash\", requires_body=true",
+          "section": "script",
+          "sources": [
+            "myblockads"
+          ]
+        },
+        {
+          "line": "request if ${url} ~= /^https:\\/\\/mobile\\.12306\\.cn\\/otsmobile\\/app\\/mgs\\/mgw\\.htm$/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_header.js\") with tag=\"12306_ads\"",
+          "section": "script",
+          "sources": [
+            "myblockads"
+          ]
+        },
+        {
+          "line": "request if ${url} ~= /^https:\\/\\/mobilepaas\\.abchina\\.com\\.cn:441\\/mgw\\.htm$/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_header.js\") with tag=\"abchina\"",
+          "section": "script",
+          "sources": [
+            "myblockads"
+          ]
+        },
+        {
+          "line": "response if ${url} ~= /^https:\\/\\/(biz)?api\\.alipan\\.com\\/apps\\/v\\d\\/users?\\/home\\/(?:news|widgets)/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_adrive.js\") with tag=\"aliyun_mine\", requires_body=true",
+          "section": "script",
+          "sources": [
+            "myblockads"
+          ]
+        },
+        {
+          "line": "response if ${url} ~= /^https:\\/\\/2023\\.redircdn\\.com\\/web\\/mob_post\\.js\\?/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"caoliu\", requires_body=true",
+          "section": "script",
+          "sources": [
+            "myblockads"
+          ]
+        },
+        {
+          "line": "response if ${url} ~= /^https:\\/\\/ad\\.mcloud\\.139\\.com\\/advertapi\\/adv-filter\\//i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_cloud139.js\") with tag=\"cloud139_1\", requires_body=true",
+          "section": "script",
+          "sources": [
+            "myblockads"
+          ]
+        },
+        {
+          "line": "response if ${url} ~= /^https:\\/\\/api-gateway-pan\\.xunlei\\.com\\/content\\/v1\\/aggregate\\/info\\?/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"thunder\", requires_body=true",
+          "section": "script",
+          "sources": [
+            "myblockads"
+          ]
+        },
+        {
+          "line": "response if ${url} ~= /^https:\\/\\/api\\.coolapk\\.com\\/v6\\/(?:feed\\/detail|feed\\/replyList|page\\/dataList|main\\/dataList|main\\/indexV8|main\\/init)/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_coolapk.js\") with tag=\"coolapk\", requires_body=true",
+          "section": "script",
+          "sources": [
+            "myblockads"
+          ]
+        },
+        {
+          "line": "response if ${url} ~= /^https:\\/\\/api\\.m\\.mi\\.com\\/v1\\/app\\/start/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_myblockads.js\") with tag=\"mi_mall\", requires_body=true",
+          "section": "script",
+          "sources": [
+            "myblockads"
+          ]
+        },
+        {
+          "line": "response if ${url} ~= /^https:\\/\\/gateway\\.kugou\\.com\\/(?:adp\\/ad\\/v1\\/mine_top_banner|ads\\.gateway\\/v2\\/home_card)/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_kugou.js\") with tag=\"kg_gateway\", requires_body=true",
+          "section": "script",
+          "sources": [
+            "myblockads"
+          ]
+        },
+        {
+          "line": "response if ${url} ~= /^https:\\/\\/jzts\\.cmpassport\\.com\\/personalized\\/getPushContent/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_cloud139.js\") with tag=\"cloud139_2\", requires_body=true",
+          "section": "script",
+          "sources": [
+            "myblockads"
+          ]
+        },
+        {
+          "line": "response if ${url} ~= /^https:\\/\\/www\\.washpayer\\.com\\/user\\/message\\/equipmentPara\\?/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_changyuan.js\") with tag=\"changyuan\", requires_body=true",
+          "section": "script",
+          "sources": [
+            "myblockads"
+          ]
+        },
+        {
+          "line": "response if ${url} ~= /^https?:\\/\\/adserviceretry\\.kglink\\.cn\\/v\\d\\/mobile\\w+/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_kugou.js\") with tag=\"kg_linkcn\", requires_body=true",
+          "section": "script",
+          "sources": [
+            "myblockads"
+          ]
+        },
+        {
+          "line": "response if ${url} ~= /^https\\:\\/\\/(?:weixin110\\.qq|security\\.wechat)\\.com\\/cgi-bin\\/mmspamsupport-bin\\/newredirectconfirmcgi\\?/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_wechat.js\") with tag=\"wechat\", requires_body=true",
+          "section": "script",
+          "sources": [
+            "myblockads"
+          ]
+        }
+      ]
     }
   },
   "summary": {
     "rewrite": {
       "action_changed": 0,
-      "added": 0,
-      "removed": 0
+      "added": 1,
+      "removed": 1
     },
     "rule": {
       "action_changed": 0,
@@ -427,10 +641,10 @@
     },
     "script": {
       "action_changed": 0,
-      "added": 0,
-      "removed": 0
+      "added": 14,
+      "removed": 14
     },
-    "total_changes": 0
+    "total_changes": 30
   },
   "upstream_revision_changes": []
 }
