@@ -202,6 +202,20 @@ jobs:
               "test_generated_plugin_uses_only_switch_gated_dianping_triggers",
               "test_checked_in_plugin_snapshot_has_only_the_canonical_entries",
               "test_checked_in_snapshot_matches_optimized_weibo_trigger_inventory",
+              "test_checked_in_plugin_apply_keeps_single_onboard_handler",
+              "test_fails_closed_on_duplicate_known_handlers_and_ignores_other_sections",
+              "test_preserves_romeo_handler_when_wool_canonical_is_missing",
+              "test_removes_only_the_duplicate_romeo_onboard_handler",
+              "test_checked_in_plugin_snapshot_allows_core_services_and_keeps_ad_rules",
+              "test_checked_in_plugin_has_no_vip_paywall_or_teen_mode_bypass",
+              "test_checked_in_plugin_snapshot_keeps_ad_paths_without_content_cdn_overblocks",
+              "test_checked_in_plugin_applies_all_header_only_body_read_cleanups",
+              "test_checked_in_plugin_uses_local_pupu_handlers_and_has_no_romeo_duplicate",
+              "test_checked_in_plugin_uses_only_local_exact_pupu_triggers",
+              "test_checked_in_plugin_snapshot_applies_to_native_ad_only_rules",
+              "test_checked_in_plugin_removes_only_shadowed_amdc_entry",
+              "test_checked_in_plugin_snapshot_has_only_the_three_canonical_triggers",
+              "test_checked_in_plugin_applies_usmile_body_read_cleanup",
           }
 
           def flatten(suite):
