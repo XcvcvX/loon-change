@@ -4830,10 +4830,12 @@ def narrow_xiaohongshu_native_response_duplicates(lines):
                    if "response-body-json-jq" in line
                    and "xiaohongshu.com" in re.sub(r"\\+", "", line)
                    and endpoint in re.sub(r"\\+", "", line)]
-        if len(matches) != 1:
-            raise ValueError(
-                "Xiaohongshu native JSON coverage missing or duplicated: " + endpoint
-            )
+        if not matches:
+            # Without the exact native JSON counterpart, retain the response
+            # script instead of removing its only coverage after source pruning.
+            return original, 0
+        if len(matches) > 1:
+            raise ValueError("Xiaohongshu native JSON coverage duplicated: " + endpoint)
 
     follow_user_rules = [
         line for line in rewrite_lines
@@ -4849,8 +4851,10 @@ def narrow_xiaohongshu_native_response_duplicates(lines):
         and "/followfeed" in re.sub(r"\\+", "", line)
         and '.recommend_reason!="recommend_user"' in re.sub(r"\\+", "", line)
     ]
-    if len(follow_user_rules) != 1 or len(followfeed_rules) != 1:
-        raise ValueError("Xiaohongshu native follow-feed JSON coverage missing or duplicated")
+    if not follow_user_rules or not followfeed_rules:
+        return original, 0
+    if len(follow_user_rules) > 1 or len(followfeed_rules) > 1:
+        raise ValueError("Xiaohongshu native follow-feed JSON coverage duplicated")
 
     homefeed_rules = [
         line for line in rewrite_lines
@@ -4858,8 +4862,10 @@ def narrow_xiaohongshu_native_response_duplicates(lines):
         and "/api/sns/v" in re.sub(r"\\+", "", line)
         and "/homefeed" in re.sub(r"\\+", "", line)
     ]
-    if len(homefeed_rules) != 1:
-        raise ValueError("Xiaohongshu native home-feed JSON coverage missing or duplicated")
+    if not homefeed_rules:
+        return original, 0
+    if len(homefeed_rules) > 1:
+        raise ValueError("Xiaohongshu native home-feed JSON coverage duplicated")
     homefeed_rule = homefeed_rules[0]
     normalized_homefeed = re.sub(r"\\+", "", homefeed_rule)
     normalized_old_homefeed = re.sub(r"\\+", "", XHS_HOMEFEED_NATIVE_OLD_RULE)
