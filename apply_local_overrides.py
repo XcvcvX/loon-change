@@ -5985,6 +5985,9 @@ BILIBILI_JSON_TRIGGER_PAIRS = (
         r"http-response ^https?:\/\/app\.bilibili\.com\/x\/(?:v(?:[13-9]|[1-9][0-9]+)\/account\/mine(\/ipad)?|v2\/account\/mine\/ipad|v\d\/account\/myinfo)\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js,tag=BAICIZHAN-12,requires-body=true",
     ),
 )
+BILIBILI_LOCAL_JSON_SCRIPT_URL = "https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/bilibili/bilibili-json.js"
+BILIBILI_RSTORE_JSON_SCRIPT_URL = "https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliJson.js"
+BILIBILI_LOCAL_JSON_TAGS = tuple(f"BAICIZHAN-{number}" for number in range(7, 14))
 BILIBILI_LIVE_FMZ_MARKER = "app-room/v1/index/getInfoBy(Room|User)"
 BILIBILI_NATIVE_RULE_REPLACEMENTS = (
     (
@@ -6105,6 +6108,58 @@ def optimize_bilibili_json_native_coverage(lines):
             result.append(line)
     changed = sum(1 for old, new in trigger_replacements.items() if old != new)
     changed += sum(1 for old, new in native_replacements.items() if old != new)
+    return result, changed
+
+
+
+def migrate_bilibili_json_script_to_local(lines):
+    """Serve the reviewed Bilibili JSON cleaner locally and keep all seven endpoint tags."""
+    output = list(lines)
+    section = ""
+    candidates = {}
+    for line in output:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+            continue
+        if section != "Script" or "bilibiliJson.js" not in stripped and BILIBILI_LOCAL_JSON_SCRIPT_URL not in stripped:
+            continue
+        tags = [tag for tag in BILIBILI_LOCAL_JSON_TAGS if "tag=" + tag in stripped]
+        if len(tags) != 1:
+            raise ValueError("Bilibili local JSON trigger tag changed; refusing migration: " + stripped)
+        tag = tags[0]
+        if tag in candidates:
+            raise ValueError("duplicate Bilibili JSON trigger tag; refusing migration: " + tag)
+        if "http-response " not in stripped or "requires-body=true" not in stripped:
+            raise ValueError("Bilibili JSON trigger mode changed; refusing migration: " + stripped)
+        if BILIBILI_LOCAL_JSON_SCRIPT_URL in stripped:
+            candidates[tag] = stripped
+        elif BILIBILI_RSTORE_JSON_SCRIPT_URL in stripped:
+            candidates[tag] = stripped
+        else:
+            raise ValueError("Bilibili JSON script source changed; refusing migration: " + stripped)
+
+    if set(candidates) != set(BILIBILI_LOCAL_JSON_TAGS):
+        raise ValueError("Bilibili JSON trigger inventory changed; refusing partial local migration: " + repr(sorted(candidates)))
+
+    replacements = {
+        line: line.replace(BILIBILI_RSTORE_JSON_SCRIPT_URL, BILIBILI_LOCAL_JSON_SCRIPT_URL)
+        for line in candidates.values()
+    }
+    result = []
+    section = ""
+    changed = 0
+    for line in output:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+            result.append(line)
+        elif section == "Script" and stripped in replacements:
+            updated = replacements[stripped]
+            result.append(updated)
+            changed += updated != stripped
+        else:
+            result.append(line)
     return result, changed
 
 
@@ -6280,6 +6335,7 @@ def apply(text: str) -> str:
     lines, _ = narrow_ximalaya_script_triggers(lines)
     lines, _ = narrow_duplicate_bilibili_protobuf_triggers(lines)
     lines, _ = optimize_bilibili_json_native_coverage(lines)
+    lines, _ = migrate_bilibili_json_script_to_local(lines)
 
     result_lines, rewrite_lines = [], []
     section = ""
