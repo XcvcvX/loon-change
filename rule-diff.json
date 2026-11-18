@@ -20,7 +20,7 @@
         "Rule": 4,
         "Script": 1
       },
-      "upstream_commit": "2f8d7079dfeac733143b83285ce44f4e2bc357a0",
+      "upstream_commit": "5685038ec50b505d6d24691b01b5ae8ca05a6142",
       "upstream_path": "Modules/Loon/zirawell/Beta/alipayAdBlock.lpx",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
@@ -59,18 +59,18 @@
         "Rule": 4,
         "Script": 13
       },
-      "upstream_commit": "2f8d7079dfeac733143b83285ce44f4e2bc357a0",
+      "upstream_commit": "5685038ec50b505d6d24691b01b5ae8ca05a6142",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
     "GuaZiVideoAds": {
       "bytes": 3448,
       "entries": 6,
-      "upstream_commit": "2f8d7079dfeac733143b83285ce44f4e2bc357a0",
+      "upstream_commit": "5685038ec50b505d6d24691b01b5ae8ca05a6142",
       "upstream_path": "Modules/QuantumultX/ddgksf2013/Official/GuaZiVideoAds.conf",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
     "aoomee": {
-      "commit": "2f8d7079dfeac733143b83285ce44f4e2bc357a0",
+      "commit": "5685038ec50b505d6d24691b01b5ae8ca05a6142",
       "compatibility_key": "aoomee (retained only to preserve historical provenance continuity)",
       "legacy_snapshot_files": [
         "51cg.plugin",
@@ -107,7 +107,7 @@
       ],
       "rule_lines": 536,
       "source_mode": "Romeo Modules/Loon + pinned AOOMEE-only local snapshots",
-      "upstream_commit": "2f8d7079dfeac733143b83285ce44f4e2bc357a0",
+      "upstream_commit": "5685038ec50b505d6d24691b01b5ae8ca05a6142",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     },
     "retired_rule_sources": [
@@ -137,7 +137,7 @@
         "Modules/Loon/Kelee/Official/Taobao_remove_ads.lpx",
         "Modules/Loon/Kelee/Official/smzdm_remove_ads.lpx"
       ],
-      "commit": "2f8d7079dfeac733143b83285ce44f4e2bc357a0",
+      "commit": "5685038ec50b505d6d24691b01b5ae8ca05a6142",
       "compatibility_key": "zmjde (retained only for historical merge/provenance continuity)",
       "external_runtime_dependencies": [
         {
@@ -191,7 +191,7 @@
         }
       ],
       "source_mode": "Romeo Modules/Loon/Kelee/Official; historical zmjde merge priority retained",
-      "upstream_commit": "2f8d7079dfeac733143b83285ce44f4e2bc357a0",
+      "upstream_commit": "5685038ec50b505d6d24691b01b5ae8ca05a6142",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
     }
   },
@@ -399,7 +399,25 @@
   "schema_version": 1,
   "sections": {
     "rewrite": {
-      "action_changed": [],
+      "action_changed": [
+        {
+          "after": {
+            "line": "response if ${url} ~= /^https:\\/\\/homepage-api\\.smzdm\\.com\\/v3\\/home\\?/i then response.json.jq_file(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/Kelee/smzdm_remove_ads/kelee.one_home_smzdm_remove_ads.jq\")",
+            "section": "rewrite",
+            "sources": [
+              "zmjapp"
+            ]
+          },
+          "before": {
+            "line": "response if ${url} ~= /^https:\\/\\/homepage-api\\.smzdm\\.com\\/v3\\/home\\?/i then response.json.jq_file(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/Kelee/smzdm_remove_ads/kelee.one_home_smzdm_remove_ads.jq\")",
+            "section": "rewrite",
+            "sources": [
+              "zmjapp"
+            ]
+          },
+          "section": "rewrite"
+        }
+      ],
       "added": [],
       "removed": []
     },
@@ -409,14 +427,487 @@
       "removed": []
     },
     "script": {
-      "action_changed": [],
-      "added": [],
-      "removed": []
+      "action_changed": [
+        {
+          "after": {
+            "line": "http-request ^https?:\\/\\/ad\\.12306\\.cn\\/ad\\/ser\\/getAdList script-path=https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/fmz200/12306/kokoryh_12306.js, requires-body=true, timeout=60, tag=12306, enable={12306_enable}",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "before": {
+            "line": "http-request ^https?:\\/\\/ad\\.12306\\.cn\\/ad\\/ser\\/getAdList script-path=https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/fmz200/12306/kokoryh_12306.js, requires-body=true, timeout=60, tag=12306, enable={12306_enable}",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "section": "script"
+        },
+        {
+          "after": {
+            "line": "http-response ^https:\\/\\/(?:sns|appmsg|home|umehome|opactivity|activity|umerp|flightstatus|umeflightstatus|startup|umestartup|user|umeuser|event)\\.umetrip\\.com\\/gateway\\/api\\/umetrip\\/native(?:\\?.*)?$ script-path=https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ddgksf2013/UmetripAds/ddgksf2013_umetrip.ads.js, requires-body=true, timeout=60, tag=umetrip.ads",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "before": {
+            "line": "http-response ^https:\\/\\/(?:sns|appmsg|home|umehome|opactivity|activity|umerp|flightstatus|umeflightstatus|startup|umestartup|user|umeuser|event)\\.umetrip\\.com\\/gateway\\/api\\/umetrip\\/native(?:\\?.*)?$ script-path=https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ddgksf2013/UmetripAds/ddgksf2013_umetrip.ads.js, requires-body=true, timeout=60, tag=umetrip.ads",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "section": "script"
+        },
+        {
+          "after": {
+            "line": "request if ${url} ~= /^https:\\/\\/(raw|gist)\\.githubusercontent\\.com\\//i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ishowshu/github/Script-Hub-Org_replace-header.js\", \"(%5Cr%5Cn)Accept-Language%3A.%2B(%5Cr%5Cn)-%3E%241Accept-Language%3A%20en-us%242\") with tag=\"replaceHeader\", timeout=30",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "before": {
+            "line": "request if ${url} ~= /^https:\\/\\/(raw|gist)\\.githubusercontent\\.com\\//i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ishowshu/github/Script-Hub-Org_replace-header.js\", \"(%5Cr%5Cn)Accept-Language%3A.%2B(%5Cr%5Cn)-%3E%241Accept-Language%3A%20en-us%242\") with tag=\"replaceHeader\", timeout=30",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "section": "script"
+        },
+        {
+          "after": {
+            "line": "request if ${url} ~= /^https:\\/\\/github\\.com\\//i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ishowshu/github/Script-Hub-Org_replace-header.js\", \"(%5Cr%5Cn)Accept-Language%3A.%2B(%5Cr%5Cn)-%3E%241Accept-Language%3A%20en-us%242\") with tag=\"replaceHeader\", timeout=30",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "before": {
+            "line": "request if ${url} ~= /^https:\\/\\/github\\.com\\//i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ishowshu/github/Script-Hub-Org_replace-header.js\", \"(%5Cr%5Cn)Accept-Language%3A.%2B(%5Cr%5Cn)-%3E%241Accept-Language%3A%20en-us%242\") with tag=\"replaceHeader\", timeout=30",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "section": "script"
+        },
+        {
+          "after": {
+            "line": "response if ${url} ~= /^https:\\/\\/api-chat\\.soulapp\\.cn\\/chat\\/limitInfo/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ishowshu/soul/ishowshu_soul_qx.js\") with tag=\"soul_qx\", timeout=60, requires_body=true",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "before": {
+            "line": "response if ${url} ~= /^https:\\/\\/api-chat\\.soulapp\\.cn\\/chat\\/limitInfo/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ishowshu/soul/ishowshu_soul_qx.js\") with tag=\"soul_qx\", timeout=60, requires_body=true",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "section": "script"
+        },
+        {
+          "after": {
+            "line": "response if ${url} ~= /^https:\\/\\/api-chat\\.soulapp\\.cn\\/snapchat\\/url/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ishowshu/soul/ishowshu_soul_qx.js\") with tag=\"soul_qx\", timeout=60, requires_body=true",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "before": {
+            "line": "response if ${url} ~= /^https:\\/\\/api-chat\\.soulapp\\.cn\\/snapchat\\/url/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ishowshu/soul/ishowshu_soul_qx.js\") with tag=\"soul_qx\", timeout=60, requires_body=true",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "section": "script"
+        },
+        {
+          "after": {
+            "line": "response if ${url} ~= /^https:\\/\\/api\\.gotokeep\\.com\\/config\\/v3\\/basic\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ishowshu/keep/ishowshu_keep.js\") with tag=\"keep\", timeout=60, requires_body=true",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "before": {
+            "line": "response if ${url} ~= /^https:\\/\\/api\\.gotokeep\\.com\\/config\\/v3\\/basic\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ishowshu/keep/ishowshu_keep.js\") with tag=\"keep\", timeout=60, requires_body=true",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "section": "script"
+        },
+        {
+          "after": {
+            "line": "response if ${url} ~= /^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.(cloudvideo\\.video\\.query|wireless\\.home\\.splash\\.awesome\\.get)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/Kelee/Taobao_remove_ads/kelee.one_Taobao_remove_ads.js\") with tag=\"移除淘宝开屏广告\", requires_body=true",
+            "section": "script",
+            "sources": [
+              "zmjapp"
+            ]
+          },
+          "before": {
+            "line": "response if ${url} ~= /^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.(cloudvideo\\.video\\.query|wireless\\.home\\.splash\\.awesome\\.get)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/Kelee/Taobao_remove_ads/kelee.one_Taobao_remove_ads.js\") with tag=\"移除淘宝开屏广告\", requires_body=true",
+            "section": "script",
+            "sources": [
+              "zmjapp"
+            ]
+          },
+          "section": "script"
+        },
+        {
+          "after": {
+            "line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/marketing\\/advertisement\\/v1/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ishowshu/pupu/ishowshu_pp.js\") with tag=\"pp\", timeout=60, requires_body=true",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "before": {
+            "line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/marketing\\/advertisement\\/v1/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ishowshu/pupu/ishowshu_pp.js\") with tag=\"pp\", timeout=60, requires_body=true",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "section": "script"
+        },
+        {
+          "after": {
+            "line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/order\\/orders\\/list\\/v4/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ishowshu/pupu/ishowshu_pp.js\") with tag=\"pp\", timeout=60, requires_body=true",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "before": {
+            "line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/order\\/orders\\/list\\/v4/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ishowshu/pupu/ishowshu_pp.js\") with tag=\"pp\", timeout=60, requires_body=true",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "section": "script"
+        },
+        {
+          "after": {
+            "line": "response if ${url} ~= /^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/boss\\/(car\\/order\\/content_info|order_web\\/friendly_information)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "before": {
+            "line": "response if ${url} ~= /^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/boss\\/(car\\/order\\/content_info|order_web\\/friendly_information)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "section": "script"
+        },
+        {
+          "after": {
+            "line": "response if ${url} ~= /^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/sharedtrip\\/taxi\\/order_detail_car_tips\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "before": {
+            "line": "response if ${url} ~= /^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/sharedtrip\\/taxi\\/order_detail_car_tips\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "section": "script"
+        },
+        {
+          "after": {
+            "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/dsp\\/profile\\/index\\/nodefaasv3\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "before": {
+            "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/dsp\\/profile\\/index\\/nodefaasv3\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "section": "script"
+        },
+        {
+          "after": {
+            "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_bff\\/hotword\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "before": {
+            "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_bff\\/hotword\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "section": "script"
+        },
+        {
+          "after": {
+            "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_poi\\/homepage/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "before": {
+            "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_poi\\/homepage/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "section": "script"
+        },
+        {
+          "after": {
+            "line": "response if ${url} ~= /^https:\\/\\/m\\.pinduoduo\\.net\\/mdkd\\/package\\?from_app_scan/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/Kelee/PinDuoDuo_remove_ads/kelee.one_PinDuoDuo_remove_ads.js\") with tag=\"移除扫码取件页面商品推荐及弹窗\", requires_body=true",
+            "section": "script",
+            "sources": [
+              "zmjapp"
+            ]
+          },
+          "before": {
+            "line": "response if ${url} ~= /^https:\\/\\/m\\.pinduoduo\\.net\\/mdkd\\/package\\?from_app_scan/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/Kelee/PinDuoDuo_remove_ads/kelee.one_PinDuoDuo_remove_ads.js\") with tag=\"移除扫码取件页面商品推荐及弹窗\", requires_body=true",
+            "section": "script",
+            "sources": [
+              "zmjapp"
+            ]
+          },
+          "section": "script"
+        },
+        {
+          "after": {
+            "line": "response if ${url} ~= /^https:\\/\\/poplayer\\.template\\.alibaba\\.com\\/\\w+\\.json/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/Kelee/Taobao_remove_ads/kelee.one_Taobao_remove_ads.js\") with tag=\"移除淘宝开屏广告\", requires_body=true",
+            "section": "script",
+            "sources": [
+              "zmjapp"
+            ]
+          },
+          "before": {
+            "line": "response if ${url} ~= /^https:\\/\\/poplayer\\.template\\.alibaba\\.com\\/\\w+\\.json/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/Kelee/Taobao_remove_ads/kelee.one_Taobao_remove_ads.js\") with tag=\"移除淘宝开屏广告\", requires_body=true",
+            "section": "script",
+            "sources": [
+              "zmjapp"
+            ]
+          },
+          "section": "script"
+        },
+        {
+          "after": {
+            "line": "response if ${url} ~= /^https:\\/\\/slugger\\.qunar\\.com\\/slugger-proxy\\?(?:[^#]*&)?qrt=(?:p_homeRecommend|qpub_animateSloganView|p_secondScreen_cards|pp_gw_u_myMainCard|pp_gw_u_myHeadInfo|suggestion_operation_app|innovation_popular_recommend|innovation_rankinglist_head|innovation_single_rankinglist|content_api_common_desert_damo_getPostList|content_api_common_feed_open_postList)(?:&[^#]*)?$/ && ${request.method} == \"POST\" && ${response.status} == 200 then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ccyykk666/qunar_ad/ccyykk666_qunar_ad_filter.js\") with tag=\"去哪儿旅行去广告\", timeout=10, requires_body=true, binary_body_mode=true",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "before": {
+            "line": "response if ${url} ~= /^https:\\/\\/slugger\\.qunar\\.com\\/slugger-proxy\\?(?:[^#]*&)?qrt=(?:p_homeRecommend|qpub_animateSloganView|p_secondScreen_cards|pp_gw_u_myMainCard|pp_gw_u_myHeadInfo|suggestion_operation_app|innovation_popular_recommend|innovation_rankinglist_head|innovation_single_rankinglist|content_api_common_desert_damo_getPostList|content_api_common_feed_open_postList)(?:&[^#]*)?$/ && ${request.method} == \"POST\" && ${response.status} == 200 then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ccyykk666/qunar_ad/ccyykk666_qunar_ad_filter.js\") with tag=\"去哪儿旅行去广告\", timeout=10, requires_body=true, binary_body_mode=true",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "section": "script"
+        },
+        {
+          "after": {
+            "line": "response if ${url} ~= /^https?:\\/\\/apimobile\\.meituan\\.com\\/aggroup\\/indexTab/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "before": {
+            "line": "response if ${url} ~= /^https?:\\/\\/apimobile\\.meituan\\.com\\/aggroup\\/indexTab/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "section": "script"
+        },
+        {
+          "after": {
+            "line": "response if ${url} ~= /^https?:\\/\\/apimobile\\.meituan\\.com\\/group\\/v1\\/deal\\/searchpage\\/defaultword/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "before": {
+            "line": "response if ${url} ~= /^https?:\\/\\/apimobile\\.meituan\\.com\\/group\\/v1\\/deal\\/searchpage\\/defaultword/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "section": "script"
+        },
+        {
+          "after": {
+            "line": "response if ${url} ~= /^https?:\\/\\/apimobile\\.meituan\\.com\\/group\\/v1\\/deal\\/searchpage\\/hotword\\/city\\/divide\\/hotrecommend\\//i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "before": {
+            "line": "response if ${url} ~= /^https?:\\/\\/apimobile\\.meituan\\.com\\/group\\/v1\\/deal\\/searchpage\\/hotword\\/city\\/divide\\/hotrecommend\\//i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "section": "script"
+        },
+        {
+          "after": {
+            "line": "response if ${url} ~= /^https?:\\/\\/assistify\\.meituan\\.com\\/assistant\\/getAppClientHornConfig/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "before": {
+            "line": "response if ${url} ~= /^https?:\\/\\/assistify\\.meituan\\.com\\/assistant\\/getAppClientHornConfig/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "section": "script"
+        },
+        {
+          "after": {
+            "line": "response if ${url} ~= /^https?:\\/\\/feedguess\\.meituan\\.com\\/lycoris\\/scene\\/(gwc_feed1_2265|personalcenter_2154)(\\?|$)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "before": {
+            "line": "response if ${url} ~= /^https?:\\/\\/feedguess\\.meituan\\.com\\/lycoris\\/scene\\/(gwc_feed1_2265|personalcenter_2154)(\\?|$)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "section": "script"
+        },
+        {
+          "after": {
+            "line": "response if ${url} ~= /^https?:\\/\\/mop\\.meituan\\.com\\/api\\/entryModule\\/startupPicture/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "before": {
+            "line": "response if ${url} ~= /^https?:\\/\\/mop\\.meituan\\.com\\/api\\/entryModule\\/startupPicture/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "section": "script"
+        },
+        {
+          "after": {
+            "line": "response if ${url} ~= /^https?:\\/\\/mop\\.meituan\\.com\\/mop\\/entry\\/shoppingCartEntry/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "before": {
+            "line": "response if ${url} ~= /^https?:\\/\\/mop\\.meituan\\.com\\/mop\\/entry\\/shoppingCartEntry/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "section": "script"
+        },
+        {
+          "after": {
+            "line": "response if ${url} ~= /^https?:\\/\\/mt-personalcenter\\.meituan\\.com\\/usercenter\\/display/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "before": {
+            "line": "response if ${url} ~= /^https?:\\/\\/mt-personalcenter\\.meituan\\.com\\/usercenter\\/display/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
+            "section": "script",
+            "sources": [
+              "aoomee"
+            ]
+          },
+          "section": "script"
+        }
+      ],
+      "added": [
+        {
+          "line": "http-request ^https?:\\/\\/[\\w-]+\\.googlevideo\\.com\\/initplayback.+&ack.* script-path=https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.request.js, requires-body=true, binary-body-mode=true, tag=youtube.request.init, argument={captionLang}",
+          "section": "script",
+          "sources": [
+            "local_overrides"
+          ]
+        },
+        {
+          "line": "http-response ^https:\\/\\/youtubei\\.googleapis\\.com\\/(youtubei\\/v1\\/(guide|account\\/get_setting))(\\?(.*))?$ script-path=https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.response.js, requires-body=true, binary-body-mode=true, tag=youtube.response, argument={captionLang,blockUpload,blockImmersive,blockShorts,debug}",
+          "section": "script",
+          "sources": [
+            "local_overrides"
+          ]
+        }
+      ],
+      "removed": [
+        {
+          "line": "http-request ^https?:\\/\\/[\\w-]+\\.googlevideo\\.com\\/initplayback.+&ack.* script-path=https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.request.js, requires-body=true, binary-body-mode=true, tag=youtube.request.init, argument={captionLang}",
+          "section": "script",
+          "sources": [
+            "local_overrides"
+          ]
+        },
+        {
+          "line": "http-response ^https:\\/\\/youtubei\\.googleapis\\.com\\/(youtubei\\/v1\\/(guide|account\\/get_setting))(\\?(.*))?$ script-path=https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.response.js, requires-body=true, binary-body-mode=true, tag=youtube.response, argument={captionLang,blockUpload,blockImmersive,blockShorts,debug}",
+          "section": "script",
+          "sources": [
+            "local_overrides"
+          ]
+        }
+      ]
     }
   },
   "summary": {
     "rewrite": {
-      "action_changed": 0,
+      "action_changed": 1,
       "added": 0,
       "removed": 0
     },
@@ -426,11 +917,37 @@
       "removed": 0
     },
     "script": {
-      "action_changed": 0,
-      "added": 0,
-      "removed": 0
+      "action_changed": 26,
+      "added": 2,
+      "removed": 2
     },
-    "total_changes": 0
+    "total_changes": 31
   },
-  "upstream_revision_changes": []
+  "upstream_revision_changes": [
+    {
+      "current_commit": "5685038ec50b505d6d24691b01b5ae8ca05a6142",
+      "previous_commit": "2f8d7079dfeac733143b83285ce44f4e2bc357a0",
+      "source": "AlipayAdBlock"
+    },
+    {
+      "current_commit": "5685038ec50b505d6d24691b01b5ae8ca05a6142",
+      "previous_commit": "2f8d7079dfeac733143b83285ce44f4e2bc357a0",
+      "source": "Amap"
+    },
+    {
+      "current_commit": "5685038ec50b505d6d24691b01b5ae8ca05a6142",
+      "previous_commit": "2f8d7079dfeac733143b83285ce44f4e2bc357a0",
+      "source": "GuaZiVideoAds"
+    },
+    {
+      "current_commit": "5685038ec50b505d6d24691b01b5ae8ca05a6142",
+      "previous_commit": "2f8d7079dfeac733143b83285ce44f4e2bc357a0",
+      "source": "aoomee"
+    },
+    {
+      "current_commit": "5685038ec50b505d6d24691b01b5ae8ca05a6142",
+      "previous_commit": "2f8d7079dfeac733143b83285ce44f4e2bc357a0",
+      "source": "zmjde"
+    }
+  ]
 }
