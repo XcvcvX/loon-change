@@ -5229,6 +5229,7 @@ class ShadowedIshowshuAmapResponseTriggerTests(unittest.TestCase):
 
 class QunarSerializationCostTests(unittest.TestCase):
     def test_qunar_empty_container_replacements_avoid_serializing_old_subtrees(self):
+        from pathlib import Path
         source = Path(__file__).with_name("scripts").joinpath("romeo_legacy", "qunar-clean.js").read_text(encoding="utf-8")
         self.assertIn("function sameTarget(current, target)", source)
         self.assertIn("Array.isArray(current) && current.length === 0", source)
