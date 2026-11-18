@@ -48,14 +48,19 @@
   function cleanTabArea(obj) {
     const resource = obj && obj.data && obj.data.resource;
     if (!isObj(resource) || !Array.isArray(resource.tabArea)) return false;
-    const keepTabs = ["homepage", "mine"];
-    const hideTabs = ["video", "xiaotuan"];
-    const names = resource.tabArea.map((tab) => (isObj(tab) ? tab.tabName : ""));
-    if (!keepTabs.every((name) => names.indexOf(name) >= 0)) return false;
-    const kept = resource.tabArea.filter((tab) =>
-      !(isObj(tab) && hideTabs.indexOf(tab.tabName) >= 0)
-    );
-    if (kept.length === resource.tabArea.length) return false;
+    const original = resource.tabArea;
+    let hasHomepage = false;
+    let hasMine = false;
+    const kept = [];
+    for (const tab of original) {
+      if (isObj(tab)) {
+        if (tab.tabName === "homepage") hasHomepage = true;
+        else if (tab.tabName === "mine") hasMine = true;
+        if (tab.tabName === "video" || tab.tabName === "xiaotuan") continue;
+      }
+      kept.push(tab);
+    }
+    if (!hasHomepage || !hasMine || kept.length === original.length) return false;
     resource.tabArea = kept;
     return true;
   }
