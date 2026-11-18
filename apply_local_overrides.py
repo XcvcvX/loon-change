@@ -2849,6 +2849,8 @@ def remove_kugou_jin10_redundant_rewrites(lines):
                 obsolete_count += 1
             elif value == JIN10_REDUNDANT_AD_RESPONSE_REWRITE:
                 jin10_response_count += 1
+            elif any(value.startswith(rule.rsplit(" ", 1)[0]) for rule in KUGOU_REDUNDANT_HTTPS_REWRITES | {KUGOU_OBSOLETE_ROOM_LIST_REWRITE, JIN10_REDUNDANT_AD_RESPONSE_REWRITE}):
+                raise ValueError("Kugou/Jin10 rewrite inventory changed; refusing drifted matcher or action")
     values = list(counts.values())
     if all(count == 0 for count in values) and obsolete_count == 0 and jin10_response_count == 0:
         return list(lines), 0
