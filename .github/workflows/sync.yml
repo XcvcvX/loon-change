@@ -389,6 +389,12 @@ jobs:
           python3 amap_dependency_guard.py --assets /tmp/amap --plugin /tmp/amap/Amap.lpx --commit "$ROMEO_SHA" --report source-report.json
           python3 apply_amap_local_overrides.py --plugin /tmp/amap/Amap.lpx
           cp /tmp/amap/* sources/amap/
+          # Reapply the reviewed in-place compaction after upstream assets are copied.
+          # The upstream copy must never silently revert PR #340's runtime optimization.
+          git apply --check patches/amap-rucu6-performance.patch
+          git apply patches/amap-rucu6-performance.patch
+          node --check sources/amap/rucu6_amap.js
+          python3 -m unittest -v test_amap_response_compaction.py
 
       - name: 合并各来源去广告规则（临时目录）
         run: python3 merge_plugins.py --base /tmp/loon-build/allAdRewrite.plugin --extra fetch --filter fetch --apps /tmp/loon-plugins --romeo-plugins /tmp/romeo --zmjde /tmp/romeo-zmjde --qxapp /tmp/GuaZiVideoAds.conf --amap /tmp/amap/Amap.lpx --myblockads fetch --alipayadblock sources/alipayAdBlock/alipayAdBlock.lpx --out /tmp/loon-build/allAdRewrite.plugin --provenance-out /tmp/loon-build/rule-provenance.json --source-report source-report.json
