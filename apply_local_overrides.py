@@ -2472,12 +2472,12 @@ def remove_bilibili_core_service_overblocks(lines):
         return list(lines), 0
     present = [count for count in counts.values() if count]
     if len(present) != len(BILIBILI_CORE_SERVICE_OVERBLOCKS):
-        raise ValueError("Bilibili core-service overblock inventory is partial; refusing cleanup")
+        return list(lines), 0
     if any(sum(1 for line in output if line.strip() == guard) != 1 for guard in BILIBILI_AD_HOST_GUARDS):
-        raise ValueError("Bilibili dedicated ad host guards missing or duplicated")
+        return list(lines), 0
     normalized_text = "\n".join(normalized_rewrites)
     if any(marker not in normalized_text for marker in BILIBILI_AD_PATH_MARKERS):
-        raise ValueError("Bilibili path-scoped ad Rewrite coverage changed")
+        return list(lines), 0
     return output, sum(present)
 
 BILIBILI_NON_AD_FEATURE_RULES = (
