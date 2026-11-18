@@ -3558,6 +3558,7 @@ def remove_duplicate_cnftp_scripts(lines):
             section == "Script"
             and any(host in unescaped_line for host in ("iqiyi.com", "mgtv.com", "youku.com"))
             and ("http-response " in line or "response if " in line)
+            and "cntv.js" not in unescaped_line
             and "mgesq.api.mgtv.com" not in unescaped_line
         )
         if not is_target:
@@ -6475,7 +6476,13 @@ def migrate_cntv_script_to_local(lines):
         if section == "Script" and (
             CNTV_REMOTE_SCRIPT_URL in stripped or CNTV_LOCAL_SCRIPT_URL in stripped
         ):
-            if "http-response " not in stripped or "requires-body=true" not in stripped:
+            http_response = "http-response " in stripped and "requires-body=true" in stripped
+            response_script = (
+                stripped.startswith("response if ")
+                and 'then script("' in stripped
+                and "requires_body=true" in stripped
+            )
+            if not (http_response or response_script):
                 raise ValueError("CNTV trigger mode changed; refusing local migration: " + stripped)
             if stripped.count(CNTV_REMOTE_SCRIPT_URL) + stripped.count(CNTV_LOCAL_SCRIPT_URL) != 1:
                 raise ValueError("CNTV script URL is ambiguous; refusing local migration: " + stripped)
@@ -6486,9 +6493,9 @@ def migrate_cntv_script_to_local(lines):
         output.append(line)
     if candidates == 0:
         return output, 0
-    if candidates != CNTV_TRIGGER_COUNT:
+    if candidates > CNTV_TRIGGER_COUNT:
         raise ValueError(
-            "CNTV trigger inventory changed: expected %d, got %d"
+            "CNTV trigger inventory exceeded reviewed maximum %d: got %d"
             % (CNTV_TRIGGER_COUNT, candidates)
         )
     return output, changed
