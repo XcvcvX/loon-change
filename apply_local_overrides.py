@@ -1355,11 +1355,13 @@ def migrate_didiads_common_v5_to_local(lines):
     output = list(lines)
     section = ""
     candidates = []
-    normalize = lambda value: re.sub(
-        r"enable=\\$\\{([^}]+)\\}",
-        r"enable=\\1",
-        re.sub(r"\\\\+", "", value.strip()),
-    ).lower()
+    normalize = lambda value: (
+        value.replace(chr(92), "")
+        .replace("enable=${", "enable=")
+        .replace("}", "")
+        .strip()
+        .lower()
+    )
     remote = normalize(DIDIADS_COMMON_V5_SCRIPT)
     local = normalize(DIDIADS_LOCAL_COMMON_V5_SCRIPT)
     for line in output:
