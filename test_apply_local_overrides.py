@@ -2148,11 +2148,10 @@ class BilibiliCoreServiceScopeTests(unittest.TestCase):
         self.assertIn("DOMAIN,unrelated.example,REJECT", result)
         self.assertEqual(remove_bilibili_core_service_overblocks(result), (result, 0))
 
-    def test_fails_closed_on_partial_duplicate_or_changed_core_service_inventory(self):
+    def test_preserves_partial_inventory_but_fails_on_duplicate_or_changed_core_service_rows(self):
         from apply_local_overrides import remove_bilibili_core_service_overblocks
         partial = [line for line in self.base if line != self.targets[0][1]]
-        with self.assertRaisesRegex(ValueError, "inventory is partial"):
-            remove_bilibili_core_service_overblocks(partial)
+        self.assertEqual(remove_bilibili_core_service_overblocks(partial), (partial, 0))
         rule_index = self.base.index(self.ad_guards[0])
         duplicate = self.base[:rule_index] + [self.targets[0][1]] + self.base[rule_index:]
         with self.assertRaisesRegex(ValueError, "duplicate Bilibili core-service"):
