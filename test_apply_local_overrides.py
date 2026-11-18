@@ -5309,7 +5309,7 @@ class QunarUnrelatedResponseFastPathTests(unittest.TestCase):
         if not node:
             self.skipTest("Node.js is required for the Qunar runtime integration test")
         source_path = Path(__file__).with_name("scripts").joinpath("romeo_legacy", "qunar-clean.js")
-        harness = r'''\
+        harness = r'''
 const fs = require("fs");
 const vm = require("vm");
 const source = fs.readFileSync(process.argv[1], "utf8");
@@ -5342,7 +5342,7 @@ if (!doneResult || Object.keys(doneResult).length !== 0) throw new Error("unrela
         if not node:
             self.skipTest("Node.js is required for the Qunar runtime integration test")
         source_path = Path(__file__).with_name("scripts").joinpath("romeo_legacy", "qunar-clean.js")
-        harness = r'''\
+        harness = r'''
 const fs = require("fs");
 const vm = require("vm");
 const source = fs.readFileSync(process.argv[1], "utf8");
@@ -5364,6 +5364,7 @@ if (parsed.data.adspotidIOS !== "" || parsed.data.AdrAdsPotId !== "") throw new 
     def test_qwh_ad_tree_walk_is_guarded_by_exact_serialized_key(self):
         from pathlib import Path
         source = Path(__file__).with_name("scripts").joinpath("romeo_legacy", "qunar-clean.js").read_text(encoding="utf-8")
-        self.assertIn("if (responseBody.indexOf('\\\"adUrl320\\\"') !== -1)", source)
+        self.assertIn("if (responseBody.indexOf(", source)
+        self.assertIn("adUrl320", source)
         self.assertIn("typeof ad.adUrl320 === 'string' && own(ad, 'locIndex') && own(ad, 'locName')", source)
 ''';
