@@ -5,7 +5,7 @@ import argparse
 import json
 from pathlib import Path
 
-REQUIRED_SOURCES = ("Amap", "thelongdarkorg", "aoomee", "zmjde", "GuaZiVideoAds", "AlipayAdBlock")
+REQUIRED_SOURCES = ("Amap", "aoomee", "zmjde", "GuaZiVideoAds", "AlipayAdBlock")
 SECTIONS = ("rewrite", "script", "rule")
 EXPECTED_SOURCE_MIGRATIONS = {
     "aoomee": {
@@ -179,25 +179,30 @@ def build_health(previous_sources, current_sources, previous_provenance,
 
     before, after = _section_counts(previous_provenance), _section_counts(current_provenance)
     changes = diff.get("summary", {})
+    retired_sources = set(current_sources.get("retired_rule_sources", []))
+    diff_sections = diff.get("sections", {})
     migrated_sources = _declared_migration_sources(current_sources)
     section_results = {}
     for section in SECTIONS:
         counts = changes.get(section, {})
         added = int(counts.get("added", 0))
         removed = int(counts.get("removed", 0))
+        retired_removed = sum(1 for row in diff_sections.get(section, {}).get("removed", [])
+                              if row.get("sources") and set(row.get("sources", [])).issubset(retired_sources))
+        effective_removed = max(0, removed - retired_removed)
         action_changed = int(counts.get("action_changed", 0))
         migration_action_changed = min(
             action_changed, _migration_action_changes(diff, section, migrated_sources)
         )
         unrelated_action_changed = action_changed - migration_action_changed
         old_count, new_count = before[section], after[section]
-        removed_ratio = removed / old_count if old_count else (1.0 if removed else 0.0)
-        shrink_ratio = (old_count - new_count) / old_count if old_count else 0.0
+        removed_ratio = effective_removed / old_count if old_count else (1.0 if effective_removed else 0.0)
+        shrink_ratio = max(0, old_count - new_count - retired_removed) / old_count if old_count else 0.0
         if removed_ratio > 0.25:
-            blockers.append("%s removals exceed 25%% of previous output (%d/%d)" %
-                            (section, removed, old_count))
+            blockers.append("%s non-retired removals exceed 25%% of previous output (%d/%d)" %
+                            (section, effective_removed, old_count))
         if shrink_ratio > 0.30:
-            blockers.append("%s output shrank by more than 30%% (%d -> %d)" %
+            blockers.append("%s non-retirement output shrank by more than 30%% (%d -> %d)" %
                             (section, old_count, new_count))
         if old_count and unrelated_action_changed / old_count > 0.10:
             blockers.append("%s non-migration action changes exceed 10%% of previous output" % section)
@@ -205,7 +210,8 @@ def build_health(previous_sources, current_sources, previous_provenance,
             warnings.append("%s additions exceed 100%% of previous output; inspect upstream change" % section)
         section_results[section] = {
             "previous_entries": old_count, "current_entries": new_count,
-            "added": added, "removed": removed, "action_changed": action_changed,
+            "added": added, "removed": removed, "retired_source_removed": retired_removed,
+            "non_retired_removed": effective_removed, "action_changed": action_changed,
             "migration_action_changed_exempted": migration_action_changed,
             "non_migration_action_changed": unrelated_action_changed,
             "action_change_source_pairs": _action_change_source_pairs(diff, section),
@@ -232,6 +238,7 @@ def build_health(previous_sources, current_sources, previous_provenance,
             "removed_rules_block_percent_of_previous_section": 25,
             "action_changes_block_percent_of_previous_section": 10,
             "planned_migration_action_changes_exempted_only_for_declared_sources": True,
+            "planned_source_retirements_exempted_only_for_attributed_removed_entries": True,
             "addition_spike_warning_percent_of_previous_section": 100,
             "automatic_rule_or_mitm_edits": False,
         },
@@ -239,7 +246,8 @@ def build_health(previous_sources, current_sources, previous_provenance,
             "Reliability scores summarize source evidence; they do not prove runtime correctness.",
             "Large destructive diffs are held for review rather than silently published.",
             "Only action changes attributed to explicitly declared AOOMEE/zmjde source migrations are exempted from the generic 10% action-change hold.",
-            "All additions, removals, output-shrink limits, unrelated-source action changes, and provenance coverage checks remain enforced.",
+            "Only removals attributed exclusively to explicitly retired rule sources are exempted from removal/output-shrink holds; unrelated removals remain enforced.",
+            "All additions, unrelated-source action changes, and provenance coverage checks remain enforced.",
             "No rule, MITM hostname, priority, or plugin output is modified by this guard.",
         ],
     }

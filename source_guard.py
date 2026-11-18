@@ -179,11 +179,13 @@ def validate_alipayadblock(text):
 
 def check_clones(thelong, aoomee, zmjde, qxapp, previous_report=None, amap=None):
     report = {}
-    tl = list(Path(thelong).glob("*_ad_block.plugin")) + list(
-        Path(thelong).glob("*_splash_ad_block.plugin"))
-    tl = [p for p in tl if not p.name.startswith("ai_auto_node")]
-    if not tl:
-        raise ValueError("Thelongdarkorg: 未找到任何 *_ad_block.plugin / *_splash_ad_block.plugin")
+    tl = []
+    if thelong:
+        tl = list(Path(thelong).glob("*_ad_block.plugin")) + list(
+            Path(thelong).glob("*_splash_ad_block.plugin"))
+        tl = [p for p in tl if not p.name.startswith("ai_auto_node")]
+        if not tl:
+            raise ValueError("Thelongdarkorg: 未找到任何 *_ad_block.plugin / *_splash_ad_block.plugin")
     ao_dir = Path(aoomee) / "plugins"
     if not ao_dir.is_dir():
         ao_dir = Path(aoomee)
@@ -222,7 +224,6 @@ def check_clones(thelong, aoomee, zmjde, qxapp, previous_report=None, amap=None)
     zm_meta_path = zm_dir / ".romeo-source.json"
     zm_meta = json.loads(zm_meta_path.read_text(encoding="utf-8")) if zm_meta_path.is_file() else {}
     counts = {
-        "thelongdarkorg": rule_lines(tl),
         "aoomee": rule_lines(ao),
         "zmjde": rule_lines(zm_files),
     }
@@ -230,12 +231,14 @@ def check_clones(thelong, aoomee, zmjde, qxapp, previous_report=None, amap=None)
         if count < 10:
             raise ValueError("%s 可识别规则量仅 %d 行（要求至少 10），拒绝把异常空源写入基线"
                              % (source, count))
+    if thelong:
+        counts["thelongdarkorg"] = rule_lines(tl)
+        report["thelongdarkorg"] = {"commit": revision(thelong), "plugin_files": len(tl),
+                                    "rule_lines": counts["thelongdarkorg"]}
     if amap:
         amap_text = Path(amap).read_text(encoding="utf-8-sig")
         report["Amap"] = validate_amap(amap_text)
     report.update({
-        "thelongdarkorg": {"commit": revision(thelong), "plugin_files": len(tl),
-                           "rule_lines": counts["thelongdarkorg"]},
         "aoomee": {"commit": revision(aoomee), "plugin_files": len(ao),
                    "rule_lines": counts["aoomee"]},
         "zmjde": {"commit": zm_meta.get("upstream_commit", revision(zmjde)),
@@ -250,7 +253,7 @@ def check_clones(thelong, aoomee, zmjde, qxapp, previous_report=None, amap=None)
     })
     if previous_report and Path(previous_report).is_file():
         previous = json.loads(Path(previous_report).read_text(encoding="utf-8"))
-        for source in ("thelongdarkorg", "aoomee", "zmjde"):
+        for source in (("thelongdarkorg",) if thelong else ()) + ("aoomee", "zmjde"):
             old_count = previous.get(source, {}).get("rule_lines", 0)
             new_count = report[source]["rule_lines"]
             if old_count >= 20 and new_count < old_count * 0.40:
