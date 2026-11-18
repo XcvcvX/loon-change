@@ -3916,6 +3916,66 @@ def remove_redundant_alipan_onboard_response_script(lines):
 MGW_ECNY_RESPONSE_HOST = "mgs.wallet.pbcdci.cn"
 
 
+MAASEA_YOUTUBE_RESPONSE_BROAD_ENDPOINTS = r"youtubei\/v1\/(browse|next|player|search|reel\/reel_watch_sequence|guide|account\/get_setting|get_watch|log_event|config)"
+MAASEA_YOUTUBE_RESPONSE_NARROW_ENDPOINTS = r"youtubei\/v1\/(guide|account\/get_setting)"
+
+
+def optimize_maasea_youtube_shadowed_triggers(lines):
+    """Remove a fully shadowed Maasea log_event request and narrow its response fallback."""
+    section = ""
+    response_candidates = []
+    maasea_request_candidates = []
+    devchristian_request_candidates = []
+    for index, line in enumerate(lines):
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            continue
+        if section != "Script":
+            continue
+        lowered = line.lower()
+        if "maasea_youtube.response.js" in lowered and lowered.startswith(("http-response ", "response if ")):
+            response_candidates.append(index)
+        if "maasea_youtube.request.js" in lowered and "log_event" in lowered and lowered.startswith("http-request "):
+            maasea_request_candidates.append(index)
+        if "request.min.js" in lowered and "log_event" in lowered and lowered.startswith("http-request "):
+            devchristian_request_candidates.append(index)
+
+    if len(response_candidates) > 1:
+        raise ValueError("duplicate Maasea YouTube response triggers; refusing ambiguous narrowing")
+    if len(maasea_request_candidates) > 1:
+        raise ValueError("duplicate Maasea YouTube log_event request triggers")
+    if len(devchristian_request_candidates) > 1:
+        raise ValueError("duplicate DevChristian YouTube log_event request handlers")
+
+    updated = list(lines)
+    changed = 0
+    if response_candidates:
+        index = response_candidates[0]
+        line = updated[index]
+        broad_count = line.count(MAASEA_YOUTUBE_RESPONSE_BROAD_ENDPOINTS)
+        narrow_count = line.count(MAASEA_YOUTUBE_RESPONSE_NARROW_ENDPOINTS)
+        if broad_count == 1 and narrow_count == 0:
+            updated[index] = line.replace(
+                MAASEA_YOUTUBE_RESPONSE_BROAD_ENDPOINTS,
+                MAASEA_YOUTUBE_RESPONSE_NARROW_ENDPOINTS,
+                1,
+            )
+            changed += 1
+        elif broad_count == 0 and narrow_count == 1:
+            pass
+        else:
+            raise ValueError("Maasea YouTube response endpoint matcher changed; refusing unreviewed narrowing")
+
+    if maasea_request_candidates:
+        maasea_index = maasea_request_candidates[0]
+        if devchristian_request_candidates:
+            devchristian_index = devchristian_request_candidates[0]
+            if devchristian_index < maasea_index:
+                updated.pop(maasea_index)
+                changed += 1
+    return updated, changed
+
+
 USMILE_RESPONSE_SCRIPT_MARKER = "www.myusmile.online/user/plaquetopic/selectbytype"
 USMILE_RESPONSE_SCRIPT_URL = "Res/Scripts/AntiAd/usmile.js"
 
@@ -5735,6 +5795,7 @@ def apply(text: str) -> str:
     lines, _ = remove_unneeded_mgw_ecny_response_body_read(lines)
     lines, _ = remove_unneeded_usmile_response_body_read(lines)
     lines, _ = remove_unneeded_header_only_response_body_reads(lines)
+    lines, _ = optimize_maasea_youtube_shadowed_triggers(lines)
     lines, _ = remove_weibo_non_ad_response_triggers(lines)
     lines, _ = remove_redundant_dianping_scripts(lines)
     lines, _ = remove_redundant_baidumap_script(lines)
