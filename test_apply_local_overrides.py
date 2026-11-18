@@ -2402,10 +2402,9 @@ class KugouJin10RewriteDedupTests(unittest.TestCase):
             self.assertIn(rule, result)
         self.assertEqual(apply(result), result)
 
-    def test_fails_closed_on_missing_or_drifted_inventory(self):
+    def test_preserves_partial_inventory_and_fails_closed_on_drift(self):
         missing = self.base.replace(self.rules[14] + "\n", "", 1)
-        with self.assertRaisesRegex(ValueError, "Kugou/Jin10 rewrite inventory changed"):
-            apply(missing)
+        self.assertEqual(apply(missing), missing)
         drifted = self.base.replace(self.rules[14], self.rules[14].replace("reject-dict", "reject-200"), 1)
         with self.assertRaisesRegex(ValueError, "Kugou/Jin10 rewrite inventory changed"):
             apply(drifted)
