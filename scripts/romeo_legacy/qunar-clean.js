@@ -83,10 +83,10 @@
     if (obj(root.responseBizHead) && own(root.responseBizHead, 'code') && Number(root.responseBizHead.code) !== 0) { result.kind = 'api-error'; return result; }
     var d = obj(root.data) ? root.data : null, service = r.service;
     function sameTarget(current, target) {
-    // Most cleanup writes replace potentially large ad/feed containers with an
-    // empty array/object or null. Avoid serializing the entire old subtree just
-    // to detect an already-clean value. Keep the generic deep comparison only
-    // for non-empty object targets so future callers retain the old semantics.
+    // Every current set() call uses a primitive, null, an empty array or an
+    // empty object. Handle those cases without serializing the old subtree.
+    // Future non-empty object targets use identity comparison until a specific,
+    // bounded structural comparison is deliberately implemented for them.
     if (target === null || typeof target !== 'object') return current === target;
     if (Array.isArray(target) && target.length === 0) {
       return Array.isArray(current) && current.length === 0;
@@ -94,7 +94,7 @@
     if (!Array.isArray(target) && Object.keys(target).length === 0) {
       return obj(current) && Object.keys(current).length === 0;
     }
-    return JSON.stringify(current) === JSON.stringify(target);
+    return current === target;
   }
   function set(o, k, value, label) {
       if (!obj(o) || !own(o, k) || sameTarget(o[k], value)) return;
