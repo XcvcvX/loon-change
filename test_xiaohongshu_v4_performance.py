@@ -36,7 +36,7 @@ const result = {
   body: doneResult && typeof doneResult.body === "string" ? JSON.parse(doneResult.body) : null,
   store: Object.fromEntries(store)
 };
-process.stdout.write("\\n" + JSON.stringify(result) + "\\n");
+process.stdout.write(JSON.stringify(result));
 """
         result = subprocess.run(
             [NODE, "-e", runner],
