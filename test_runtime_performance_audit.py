@@ -32,7 +32,7 @@ class RuntimePerformanceAuditTests(unittest.TestCase):
             self.assertEqual(summary["non_github_remote_urls"], 1)
             self.assertEqual(summary["local_js_json_parse_calls"], 2)
             self.assertEqual(summary["repeated_json_parse_expressions"], 1)
-            self.assertIn("Response-body script triggers", render_markdown(report))
+            self.assertIn("Response-script candidates (not per-response execution counts)", render_markdown(report))
 
     def test_duplicate_trigger_group_is_reported_not_removed(self):
         with tempfile.TemporaryDirectory() as directory:
