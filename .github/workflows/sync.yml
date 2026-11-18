@@ -389,7 +389,6 @@ jobs:
           # Pin every remaining Romeo raw URL in the final merged plugin to the same ROMEO_SHA; fail closed if a referenced file is absent.
           python3 - <<'PY'
           import os
-          import re
           from pathlib import Path
           from stage_romeo_plugins import _pin_romeo_references
 
@@ -397,13 +396,14 @@ jobs:
           romeo_repo = Path("/tmp/romeo")
           commit = os.environ["ROMEO_SHA"]
           text = plugin.read_text(encoding="utf-8-sig")
-          unpinned = re.compile(
-              r"https://github\\.com/ifflagged/Romeo/raw/(?:refs/heads/)?main/|"
-              r"https://raw\\.githubusercontent\\.com/ifflagged/Romeo/main/"
+          unpinned_prefixes = (
+              "https://github.com/ifflagged/Romeo/raw/main/",
+              "https://github.com/ifflagged/Romeo/raw/refs/heads/main/",
+              "https://raw.githubusercontent.com/ifflagged/Romeo/main/",
           )
-          before = len(unpinned.findall(text))
+          before = sum(text.count(prefix) for prefix in unpinned_prefixes)
           text = _pin_romeo_references(text, romeo_repo, commit)
-          if unpinned.search(text):
+          if any(prefix in text for prefix in unpinned_prefixes):
               raise SystemExit("Unpinned Romeo raw/main runtime URL remains in final plugin")
           plugin.write_text(text, encoding="utf-8")
           print("Pinned %d Romeo runtime URLs to %s" % (before, commit))
