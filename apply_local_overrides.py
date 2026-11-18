@@ -4636,6 +4636,7 @@ def remove_more_duplicate_response_scripts(lines):
     normalized_lines = {normalize_switch(item) for item in lines}
     output, section, target_seen, removed = [], "", False, 0
     source_mode = bool(remove_set & normalized_lines)
+    unknown_source_trigger = False
 
     for line in lines:
         if line.startswith("[") and line.endswith("]"):
@@ -4680,7 +4681,9 @@ def remove_more_duplicate_response_scripts(lines):
                     transformed = re.sub(r"enable=([A-Za-z0-9_]+)", r"enable=${\1}", transformed)
                 output.append(transformed)
                 continue
-            raise ValueError("Kuwo/iThome/Cainiao/QuDa/Youdao/ZSGJ inventory changed; refusing unreviewed consolidation: " + line.strip())
+            unknown_source_trigger = True
+            output.append(line)
+            continue
 
         if inventory_line in output_counts:
             output_counts[inventory_line] += 1
@@ -4694,10 +4697,12 @@ def remove_more_duplicate_response_scripts(lines):
         return output, 0
 
     if source_mode:
-        if not all(count == 1 for count in remove_counts.values()):
-            raise ValueError("legacy response inventory incomplete; refusing partial consolidation")
-        if not all(count == 1 for count in source_counts.values()):
-            raise ValueError("retained response source inventory incomplete")
+        if (unknown_source_trigger
+                or not all(count == 1 for count in remove_counts.values())
+                or not all(count == 1 for count in source_counts.values())):
+            # Retired or partially updated upstream snapshots are left intact;
+            # do not partially collapse a response-handler inventory.
+            return list(lines), 0
         return output, removed
 
     if not all(count == 1 for count in output_counts.values()):
