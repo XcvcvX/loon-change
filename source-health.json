@@ -56,12 +56,12 @@
     "script": {
       "action_change_source_pairs": [],
       "action_changed": 0,
-      "added": 0,
+      "added": 1,
       "current_entries": 436,
       "migration_action_changed_exempted": 0,
-      "net_shrink_percent": 0.229,
+      "net_shrink_percent": 0.0,
       "non_migration_action_changed": 0,
-      "previous_entries": 437,
+      "previous_entries": 436,
       "removed": 1,
       "removed_percent": 0.229
     }

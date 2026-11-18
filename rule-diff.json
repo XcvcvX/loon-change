@@ -410,13 +410,21 @@
     },
     "script": {
       "action_changed": [],
-      "added": [],
-      "removed": [
+      "added": [
         {
-          "line": "response if ${url} ~= /^https:\\/\\/member\\.alipan\\.com\\/v1\\/users\\/onboard_list/i then script(\"https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/rucu6/myblockads/rucu6_adrive.js\") with tag=\"aliyun_board\", requires_body=true",
+          "line": "http-response ^https?:\\/\\/mgs\\.wallet\\.pbcdci\\.cn(:\\d+)?\\/mgw\\.htm$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=ECNY",
           "section": "script",
           "sources": [
-            "myblockads"
+            "local_overrides"
+          ]
+        }
+      ],
+      "removed": [
+        {
+          "line": "http-response ^https?:\\/\\/mgs\\.wallet\\.pbcdci\\.cn(:\\d+)?\\/mgw\\.htm$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=ECNY,requires-body=true",
+          "section": "script",
+          "sources": [
+            "base"
           ]
         }
       ]
@@ -435,10 +443,10 @@
     },
     "script": {
       "action_changed": 0,
-      "added": 0,
+      "added": 1,
       "removed": 1
     },
-    "total_changes": 1
+    "total_changes": 2
   },
   "upstream_revision_changes": []
 }
