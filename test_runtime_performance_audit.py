@@ -580,3 +580,100 @@ if (!emptyDone || Object.keys(emptyDone).length !== 0) throw new Error("empty bo
 '''
         result = subprocess.run([node, "-e", harness, str(source_path)], check=False, capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
+
+
+class DidiLocalJsonRuntimePerformanceTests(unittest.TestCase):
+    def test_json_cleaner_uses_one_parse_stringify_and_in_place_array_compaction(self):
+        import shutil
+        import subprocess
+        from pathlib import Path
+
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node.js is required for the Didi runtime integration test")
+        source_path = Path(__file__).with_name("scripts").joinpath("didi", "didi-ads.js")
+        source = source_path.read_text(encoding="utf-8")
+        self.assertNotIn(".filter(", source)
+        self.assertNotIn(".forEach(", source)
+        self.assertEqual(source.count("JSON.parse("), 1)
+        self.assertEqual(source.count("JSON.stringify("), 1)
+
+        harness = r'''
+const fs = require("fs");
+const vm = require("vm");
+const source = fs.readFileSync(process.argv[1], "utf8");
+const cases = [
+  {
+    url: "https://common.diditaxi.com.cn/other/pGetSceneList",
+    data: { data: { scene_list: [{text:"优惠商城"},{text:"快车"}], show_data:[{scene_ids:["scene_coupon_mall","scene_ride"]},{scene_ids:["scene_ride"]}] } },
+    check(body) {
+      if (body.data.scene_list.length !== 1 || body.data.scene_list[0].text !== "快车" || body.data.show_data[0].scene_ids.length !== 1) throw new Error("scene list result mismatch");
+    }
+  },
+  {
+    url: "https://common.diditaxi.com.cn/homepage/v1/core",
+    data: { data: { order_cards:{nav_list_card:{data:[{nav_id:"dache_anycar"},{nav_id:"other"}]}}, disorder_cards:{bottom_nav_list:{data:[{id:"home_page"},{id:"other"}]}} } },
+    check(body) {
+      if (body.data.order_cards.nav_list_card.data.length !== 1 || body.data.disorder_cards.bottom_nav_list.data.length !== 1) throw new Error("homepage result mismatch");
+    }
+  },
+  {
+    url: "https://api.diditaxi.com.cn/ota/na/yuantu/infoList",
+    data: { data: { disorder_cards:{top_banner_card:{data:[{T:"yuentu_top_banner"},{T:"keep"}]}} } },
+    check(body) {
+      if (body.data.disorder_cards.top_banner_card.data.length !== 1 || body.data.disorder_cards.top_banner_card.data[0].T !== "keep") throw new Error("OTA result mismatch");
+    }
+  },
+  {
+    url: "https://api.udache.com/gulfstream/passenger-center/v2/other/pInTripLayout",
+    data: { data: { order_components:[{name:"passenger_common_casper"},{name:"keep"},{name:"keep2"}] } },
+    check(body) {
+      if (body.data.order_components.length !== 2 || body.data.order_components[0].name !== "keep") throw new Error("trip layout result mismatch");
+    }
+  },
+  {
+    url: "https://common.diditaxi.com.cn/usercenter/me",
+    data: { data: { cards:[
+      {title:"金融服务"},
+      {title:"保留卡片",tag:"normal"},
+      {title:"钱包",tag:"wallet",items:[{title:"优惠券"},{title:"其他"}],card_type:4,bottom_items:[{title:"省钱套餐"},{title:"天天神券"},{title:"其他"}]}
+    ] } },
+    check(body) {
+      const cards = body.data.cards;
+      if (cards.length !== 2 || cards[0].title !== "保留卡片" || cards[1].items.length !== 1 || cards[1].bottom_items.length !== 2) throw new Error("usercenter result mismatch");
+    }
+  },
+  {
+    url: "https://common.diditaxi.com.cn/common/v5",
+    data: { data: { sections:[{sectionId:"center_v2"},{sectionId:"other"},{sectionId:"core_function"}] } },
+    check(body) {
+      if (body.data.sections.length !== 2 || body.data.sections[0].sectionId !== "center_v2") throw new Error("mini program result mismatch");
+    }
+  }
+];
+for (const item of cases) {
+  let parseCalls = 0, stringifyCalls = 0, doneResult;
+  const trackedJSON = {
+    parse(...args) { parseCalls++; return JSON.parse(...args); },
+    stringify(...args) { stringifyCalls++; return JSON.stringify(...args); }
+  };
+  vm.runInNewContext(source, {
+    JSON: trackedJSON,
+    $request: { url: item.url },
+    $response: { body: JSON.stringify(item.data) },
+    $done(value) { doneResult = value; }
+  });
+  if (parseCalls !== 1 || stringifyCalls !== 1) throw new Error(item.url + " parse/stringify count " + parseCalls + "/" + stringifyCalls);
+  item.check(JSON.parse(doneResult.body));
+}
+let emptyDone;
+vm.runInNewContext(source, {
+  JSON,
+  $request: { url: "https://common.diditaxi.com.cn/common/v5" },
+  $response: { body: "" },
+  $done(value) { emptyDone = value; }
+});
+if (!emptyDone || Object.keys(emptyDone).length !== 0) throw new Error("empty body fast path changed");
+'''
+        result = subprocess.run([node, "-e", harness, str(source_path)], check=False, capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
