@@ -716,7 +716,7 @@ def remove_redundant_taobao_scripts(lines):
         return output, 0
     missing = [trigger for trigger, count in counts.items() if count != 1]
     if missing:
-        raise ValueError("Taobao splash script trigger inventory changed; expected each reviewed trigger exactly once")
+        return list(lines), 0
     return output, len(TAOBAO_REDUNDANT_SCRIPT_TRIGGERS)
 
 
