@@ -6455,6 +6455,45 @@ def optimize_goofish_home_sections_filter(lines):
 
 
 
+CNTV_REMOTE_SCRIPT_URL = "https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js"
+CNTV_LOCAL_SCRIPT_URL = "https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js"
+CNTV_TRIGGER_COUNT = 26
+
+
+def migrate_cntv_script_to_local(lines):
+    """Route all reviewed CNTV/iQIYI/MGTV/Youku response handlers to the local optimized snapshot."""
+    output = []
+    section = ""
+    candidates = 0
+    changed = 0
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+            output.append(line)
+            continue
+        if section == "Script" and (
+            CNTV_REMOTE_SCRIPT_URL in stripped or CNTV_LOCAL_SCRIPT_URL in stripped
+        ):
+            if "http-response " not in stripped or "requires-body=true" not in stripped:
+                raise ValueError("CNTV trigger mode changed; refusing local migration: " + stripped)
+            if stripped.count(CNTV_REMOTE_SCRIPT_URL) + stripped.count(CNTV_LOCAL_SCRIPT_URL) != 1:
+                raise ValueError("CNTV script URL is ambiguous; refusing local migration: " + stripped)
+            candidates += 1
+            if CNTV_REMOTE_SCRIPT_URL in line:
+                line = line.replace(CNTV_REMOTE_SCRIPT_URL, CNTV_LOCAL_SCRIPT_URL)
+                changed += 1
+        output.append(line)
+    if candidates == 0:
+        return output, 0
+    if candidates != CNTV_TRIGGER_COUNT:
+        raise ValueError(
+            "CNTV trigger inventory changed: expected %d, got %d"
+            % (CNTV_TRIGGER_COUNT, candidates)
+        )
+    return output, changed
+
+
 def apply(text: str) -> str:
     if "[Script]" not in text or "[MITM]" not in text or "[Rewrite]" not in text:
         raise ValueError("plugin missing [Rewrite], [Script] or [MITM] section")
@@ -6595,6 +6634,7 @@ def apply(text: str) -> str:
     lines, _ = narrow_duplicate_bilibili_protobuf_triggers(lines)
     lines, _ = optimize_bilibili_json_native_coverage(lines)
     lines, _ = migrate_bilibili_json_script_to_local(lines)
+    lines, _ = migrate_cntv_script_to_local(lines)
 
     result_lines, rewrite_lines = [], []
     section = ""
