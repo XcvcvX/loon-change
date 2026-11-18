@@ -145,12 +145,20 @@ def build_diff(previous, current):
     }
     old_revisions = previous.get("upstream_revisions", {})
     new_revisions = current.get("upstream_revisions", {})
+    def revision_token(value):
+        if isinstance(value, dict):
+            return value.get("commit") or value.get("upstream_commit")
+        if isinstance(value, str):
+            return value
+        if isinstance(value, list):
+            tokens = [revision_token(item) for item in value]
+            return sorted(token for token in tokens if token is not None) or None
+        return None
+
     revision_changes = []
     for source in sorted(set(old_revisions) | set(new_revisions)):
-        old_value = old_revisions.get(source, {})
-        new_value = new_revisions.get(source, {})
-        old_commit = old_value.get("commit") or old_value.get("upstream_commit")
-        new_commit = new_value.get("commit") or new_value.get("upstream_commit")
+        old_commit = revision_token(old_revisions.get(source))
+        new_commit = revision_token(new_revisions.get(source))
         if old_commit != new_commit:
             revision_changes.append({
                 "source": source,
