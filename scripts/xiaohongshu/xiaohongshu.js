@@ -142,12 +142,9 @@ if (url.includes("/note/imagefeed?") || url.includes("/note/feed?")) {
 } 
 
 if (url.includes("/note/live_photo/save")) {
-  console.log('原body：' + rsp_body);
   const rsp = $.getdata("fmz200.xiaohongshu.feed.rsp");
-  console.log("读取缓存key[fmz200.xiaohongshu.feed.rsp]的值：" + rsp);
   // console.log("读取缓存val：" + rsp);
   if (rsp == null || rsp.length === 0) {
-    console.log('缓存无内容，返回原body');
     $done({body: rsp_body});
   }
   const cache_body = JSON.parse(rsp);
@@ -167,7 +164,6 @@ if (url.includes("/note/live_photo/save")) {
   } else {
     obj = {"code": 0, "success": true, "msg": "fmz200创建响应体成功", "data": {"datas": new_data}};
   }
-  console.log('新body：' + JSON.stringify(obj));
 } 
 
 if (url.includes("/note/widgets")) {
@@ -363,26 +359,20 @@ if (url.includes("/api/sns/v5/note/comment/list?") || url.includes("/api/sns/v3/
       
     }
   }
-  console.log("本次note_id：" + note_id);
   // 存储评论实况照片
   if (livePhotos.length > 0) {
     let commitsRsp;
     const commitsCache = $.getdata("fmz200.xiaohongshu.comments.rsp");
-    console.log("读取缓存val：" + commitsCache);
     if (!commitsCache) {
       commitsRsp = {noteId: note_id, livePhotos: livePhotos};
     } else {
       commitsRsp = JSON.parse(commitsCache);
-      console.log("缓存note_id：" + commitsRsp.noteId);
       if (commitsRsp.noteId === note_id) {
-        console.log("增量数据");
         commitsRsp.livePhotos = appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos);
       } else {
-        console.log("更换数据");
         commitsRsp = {noteId: note_id, livePhotos: livePhotos};
       }
     }
-    console.log("写入缓存val：" + JSON.stringify(commitsRsp));
     $.setdata(JSON.stringify(commitsRsp), "fmz200.xiaohongshu.comments.rsp");
   }
 
@@ -394,16 +384,12 @@ if (url.includes("/api/sns/v5/note/comment/list?") || url.includes("/api/sns/v3/
       videosCache = {noteId: note_id, videos: commentVideos};
     } else {
       videosCache = JSON.parse(commitsCache);
-      console.log("[commentVideos]缓存note_id：" + videosCache.noteId);
       if (videosCache.noteId === note_id) {
-        console.log("[commentVideos]增量数据");
         videosCache.videos = appendUniqueLivePhotos(videosCache.videos, commentVideos);
       } else {
-        console.log("[commentVideos]更换数据");
         videosCache = {noteId: note_id, videos: commentVideos};
       }
     }
-    console.log("[commentVideos]写入缓存val：" + JSON.stringify(videosCache));
     $.setdata(JSON.stringify(videosCache), "fmz200.xiaohongshu.comments.videos.rsp");
   }
 }
@@ -412,15 +398,12 @@ if (url.includes("/api/sns/v5/note/comment/list?") || url.includes("/api/sns/v3/
 if (url.includes("/api/sns/v1/interaction/comment/video/download?")) {
   const commitsCache = $.getdata("fmz200.xiaohongshu.comments.rsp");
   const commitsVideoCache = $.getdata("fmz200.xiaohongshu.comments.videos.rsp");
-  console.log("读取缓存val：" + commitsCache);
-  console.log("目标video_id：" + obj.data.video.video_id);
   if (commitsCache) {
     let commitsRsp = JSON.parse(commitsCache);
     if (commitsRsp.livePhotos.length > 0 && obj.data?.video) {
       for (const item of commitsRsp.livePhotos) {
         // console.log("缓存video_id：" + item.videId);
         if (item.videId === obj.data.video.video_id) {
-          console.log("匹配到无水印链接：" + item.videoUrl);
           obj.data.video.video_url = item.videoUrl;
           break;
         }
@@ -432,7 +415,6 @@ if (url.includes("/api/sns/v1/interaction/comment/video/download?")) {
       for (const item of commitsVideoRsp.videos) {
         // console.log("缓存video_id：" + item.videId);
         if (item.videId === obj.data.video.video_id) {
-          console.log("[commentVideos]匹配到无水印链接：" + item.videoUrl);
           obj.data.video.video_url = item.videoUrl;
           break;
         }
