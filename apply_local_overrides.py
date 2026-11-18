@@ -5807,7 +5807,7 @@ def narrow_duplicate_bilibili_protobuf_triggers(lines):
     mainlist_candidates = [
         line for line in script_lines
         if "tag=BAICIZHAN-5" in line
-        or ("bilibili.main.community.reply" in re.sub(r"\\+", "", line)
+        or ("bilibili.main.community.reply" in re.sub(r"\\\\+", "", line)
             and "bilibiliProtoA.js" in line)
     ]
     normalize_mainlist = lambda value: re.sub(r"\\+", "", value)
