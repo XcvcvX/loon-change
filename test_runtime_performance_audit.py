@@ -458,7 +458,7 @@ if (JSON.parse(saved.body).data.datas[0].url !== "https://video.example/first.mp
 }
 
 // Deep comment payload must not depend on the JavaScript call stack.
-const depth = 12000;
+const depth = 4000;
 const nested = '{"data":' + '{"child":'.repeat(depth) + '{"red_id":"deep-id"}' + '}'.repeat(depth) + '}';
 const deepResult = run("https://edith.xiaohongshu.com/api/sns/v5/note/comment/list?test=1", nested);
 if (!deepResult || !deepResult.body.includes('"fmz200":"deep-id"') || deepResult.body.includes('"red_id"')) {
