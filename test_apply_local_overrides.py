@@ -4228,7 +4228,8 @@ class BilibiliProtobufDuplicateTriggerTests(unittest.TestCase):
         fixture.extend(original for _, original, _ in BILIBILI_PROTOBUF_DUPLICATE_PAIRS)
         fixture.extend([mainlist, "[MITM]", "hostname = grpc.biliapi.net, app.bilibili.com"])
         result, changed = narrow_duplicate_bilibili_protobuf_triggers(fixture)
-        self.assertEqual(changed, 4)
+        # Four R-Store matchers are narrowed, plus one exact Sparkle MainList branch.
+        self.assertEqual(changed, 5)
         for _, original, narrowed in BILIBILI_PROTOBUF_DUPLICATE_PAIRS:
             self.assertNotIn(original, result)
             self.assertIn(narrowed, result)
