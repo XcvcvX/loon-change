@@ -1481,6 +1481,8 @@ def remove_redundant_dianping_scripts(lines):
 
 
 BAIDUMAP_LEGACY_SCRIPT_RULE = ("http-response ^https?:\\/\\/newclient\\.map\\.baidu\\.com\\/client\\/phpui2\\/\\?qt=ads script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/baiduMap.js,tag=BAIDUMAP,requires-body=true,binary-body-mode=true", "response if ${url} ~= /^https?:\\/\\/newclient\\.map\\.baidu\\.com\\/client\\/phpui2\\/\\?qt=ads/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/baidumap.js\") with enable=bdduditu_enable, tag=\"百度地图广告\", timeout=60, requires_body=true", "newclient.map.baidu.com/qt=ads")
+BAIDUMAP_RSTORE_SCRIPT_URL = "https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/baiduMap.js"
+BAIDUMAP_LOCAL_SCRIPT_URL = "https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/baidumap/baidu-map-protobuf.js"
 
 
 def remove_redundant_baidumap_script(lines):
@@ -1503,6 +1505,41 @@ def remove_redundant_baidumap_script(lines):
 
 
 
+
+
+
+def migrate_baidumap_script_to_local(lines):
+    """Route the binary-body Baidu Maps handler to the reviewed local zero-copy version."""
+    output = list(lines)
+    section = ""
+    candidates = []
+    for line in output:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+            continue
+        if section != "Script" or "tag=BAIDUMAP" not in stripped:
+            continue
+        if "newclient" not in stripped or "qt=ads" not in stripped:
+            continue
+        if "requires-body=true" not in stripped or "binary-body-mode=true" not in stripped:
+            raise ValueError("Baidu Maps trigger lost binary-body requirements; refusing migration")
+        if BAIDUMAP_RSTORE_SCRIPT_URL in stripped or BAIDUMAP_LOCAL_SCRIPT_URL in stripped:
+            candidates.append(line)
+        else:
+            raise ValueError("Baidu Maps script source changed; refusing local migration")
+    if not candidates:
+        return output, 0
+    if len(candidates) != 1:
+        raise ValueError("Baidu Maps binary response trigger duplicated; refusing local migration")
+    current = candidates[0]
+    if BAIDUMAP_LOCAL_SCRIPT_URL in current:
+        return output, 0
+    return [
+        line.replace(BAIDUMAP_RSTORE_SCRIPT_URL, BAIDUMAP_LOCAL_SCRIPT_URL)
+        if line == current else line
+        for line in output
+    ], 1
 
 
 # Amap has versioned m{digit} legacy triggers alongside m5 modern handlers.
@@ -6371,6 +6408,7 @@ def apply(text: str) -> str:
     lines, _ = remove_weibo_non_ad_response_triggers(lines)
     lines, _ = remove_redundant_dianping_scripts(lines)
     lines, _ = remove_redundant_baidumap_script(lines)
+    lines, _ = migrate_baidumap_script_to_local(lines)
     lines, _ = remove_redundant_amap_legacy_scripts(lines)
     lines, _ = optimize_amap_response_script_overlaps(lines)
     lines, _ = remove_shadowed_ishowshu_amap_response_triggers(lines)
