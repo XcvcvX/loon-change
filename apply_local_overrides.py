@@ -4276,7 +4276,7 @@ def remove_shadowed_ishowshu_amap_response_triggers(lines):
         if not old_candidates:
             continue
         if any(matcher != old_matcher for _, matcher in old_candidates):
-            raise ValueError("iShowShu Amap matcher changed; refusing shadow cleanup: " + name)
+            raise ValueError("iShowShu Amap matcher changed; refusing shadow cleanup: " + name + " actual=" + repr([matcher for _, matcher in old_candidates]) + " expected=" + repr(old_matcher))
 
         if local_matcher not in verified_local:
             local_candidates = [
