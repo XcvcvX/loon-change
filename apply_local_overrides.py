@@ -5734,7 +5734,9 @@ BILIBILI_FMZ_PROTOBUF_REQUIRED_MARKERS = (
     "view(unite)?",
     "community.service.dm.v1.DM/DmView",
     "polymer.app.search.v1.Search/SearchAll",
+    "main.community.reply.v1.Reply/MainList",
 )
+BILIBILI_FMZ_MAINLIST_DUPLICATE_BRANCH = r"|main\\.community\\.reply\\.v1\\.Reply\\/MainList"
 BILIBILI_PROTOBUF_DUPLICATE_PAIRS = (
     (
         "DynAll",
@@ -5793,9 +5795,13 @@ def narrow_duplicate_bilibili_protobuf_triggers(lines):
         if not all(marker in normalized_fmz for marker in BILIBILI_FMZ_PROTOBUF_REQUIRED_MARKERS):
             raise ValueError("Bilibili Sparkle protobuf endpoint coverage changed; refusing duplicate cleanup")
 
+    # Only count the R-Store MainList handler here; Sparkle's MainList branch
+    # is checked separately below and may be removed only when R-Store covers it.
     mainlist_candidates = [
         line for line in script_lines
-        if "tag=BAICIZHAN-5" in line or "bilibili.main.community.reply" in re.sub(r"\\+", "", line)
+        if "tag=BAICIZHAN-5" in line
+        or ("bilibili.main.community.reply" in re.sub(r"\\\\+", "", line)
+            and "bilibiliProtoA.js" in line)
     ]
     normalize_mainlist = lambda value: re.sub(r"\\+", "", value)
     if mainlist_candidates and (
@@ -5810,6 +5816,19 @@ def narrow_duplicate_bilibili_protobuf_triggers(lines):
     replacements = {}
     if mainlist_candidates and normalize_mainlist(mainlist_candidates[0]) == normalize_mainlist(BILIBILI_PROTOBUF_MAINLIST_PREVIOUS_NARROWED_TRIGGER):
         replacements[mainlist_candidates[0]] = BILIBILI_PROTOBUF_NON_DUPLICATE_TRIGGER
+
+    # Sparkle's protobuf handler also implements v1.Reply/MainList. The R-Store
+    # BAICIZHAN-5 matcher covers v1-v9 on both hosts and appears earlier, so
+    # this one Sparkle branch can never be selected. Remove only that exact
+    # branch, preserving every other Sparkle endpoint and failing closed on drift.
+    if fmz_present and mainlist_candidates:
+        fmz_line = fmz_candidates[0]
+        branch_count = fmz_line.count(BILIBILI_FMZ_MAINLIST_DUPLICATE_BRANCH)
+        if branch_count > 1:
+            raise ValueError("Bilibili Sparkle MainList branch duplicated; refusing duplicate cleanup")
+        if branch_count == 1:
+            replacements[fmz_line] = fmz_line.replace(BILIBILI_FMZ_MAINLIST_DUPLICATE_BRANCH, "", 1)
+
     for marker, original, narrowed in BILIBILI_PROTOBUF_DUPLICATE_PAIRS:
         candidates = [
             line for line in script_lines
