@@ -21,10 +21,10 @@ class LocalOverrideTests(unittest.TestCase):
     def test_pupu_cleanup_removes_only_confirmed_duplicate_handlers_in_fixture(self):
         from apply_local_overrides import remove_redundant_pupu_response_scripts
 
-        wool_ad = r'response if \${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/marketing\\/advertisement\\/v1/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/PupuSplashAds.js")'
-        romeo_ad = r'response if \${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/marketing\\/advertisement\\/v1/i then script("https://raw.githubusercontent.com/ifflagged/Romeo/main/Modules/JavaScript/ishowshu/pupu/ishowshu_pp.js")'
-        wool_orders = r'response if \${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/order\\/orders\\/list\\/v4/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/PupuSplashAds.js")'
-        romeo_orders = r'response if \${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/order\\/orders\\/list\\/v4/i then script("https://raw.githubusercontent.com/ifflagged/Romeo/main/Modules/JavaScript/ishowshu/pupu/ishowshu_pp.js")'
+        wool_ad = r'response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/marketing\\/advertisement\\/v1/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/PupuSplashAds.js")'
+        romeo_ad = r'response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/marketing\\/advertisement\\/v1/i then script("https://raw.githubusercontent.com/ifflagged/Romeo/main/Modules/JavaScript/ishowshu/pupu/ishowshu_pp.js")'
+        wool_orders = r'response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/order\\/orders\\/list\\/v4/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/PupuSplashAds.js")'
+        romeo_orders = r'response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/order\\/orders\\/list\\/v4/i then script("https://raw.githubusercontent.com/ifflagged/Romeo/main/Modules/JavaScript/ishowshu/pupu/ishowshu_pp.js")'
         fixture = ["[Script]", wool_ad, romeo_ad, wool_orders, romeo_orders, "[MITM]"]
         result, removed = remove_redundant_pupu_response_scripts(fixture)
         self.assertEqual(removed, 2)
@@ -37,8 +37,8 @@ class LocalOverrideTests(unittest.TestCase):
     def test_pupu_cleanup_fails_closed_when_canonical_is_missing_or_duplicate(self):
         from apply_local_overrides import remove_redundant_pupu_response_scripts
 
-        wool_ad = r'response if \${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/marketing\\/advertisement\\/v1/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/PupuSplashAds.js")'
-        romeo_ad = r'response if \${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/marketing\\/advertisement\\/v1/i then script("https://raw.githubusercontent.com/ifflagged/Romeo/main/Modules/JavaScript/ishowshu/pupu/ishowshu_pp.js")'
+        wool_ad = r'response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/marketing\\/advertisement\\/v1/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/PupuSplashAds.js")'
+        romeo_ad = r'response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/marketing\\/advertisement\\/v1/i then script("https://raw.githubusercontent.com/ifflagged/Romeo/main/Modules/JavaScript/ishowshu/pupu/ishowshu_pp.js")'
         preserved, removed = remove_redundant_pupu_response_scripts(["[Script]", romeo_ad, "[MITM]"])
         self.assertEqual(removed, 0)
         self.assertIn(romeo_ad, preserved)
@@ -2358,7 +2358,7 @@ class PeopleAppHomepageAdDedupTests(unittest.TestCase):
             remove_duplicate_peopleapp_home_ad_rules([first, first, duplicate])
         drifted = duplicate.replace("reject(404)", "reject_dict(200)")
         self.assertEqual(remove_duplicate_peopleapp_home_ad_rules([first, drifted]), ([first, drifted], 0))
-        unknown = r"request if \${url} ~= /^https?:\\/\\/app\\.peopleapp\\.com\\/Api\\/\\d+\\/HomeApi\\/(adv|getAdvertImage)/ then reject(403)"
+        unknown = r"request if ${url} ~= /^https?:\\/\\/app\\.peopleapp\\.com\\/Api\\/\\d+\\/HomeApi\\/(adv|getAdvertImage)/ then reject(403)"
         self.assertEqual(remove_duplicate_peopleapp_home_ad_rules([first, unknown]), ([first, unknown], 0))
         result, removed = remove_duplicate_peopleapp_home_ad_rules([first, duplicate, unknown])
         self.assertEqual(removed, 1)
