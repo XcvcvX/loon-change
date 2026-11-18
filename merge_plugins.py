@@ -3,7 +3,14 @@
 """
 合并两个 Loon 插件（Loon <-> Loon 融合，非 QuanX 转换）。
 
-以 R-Store 转换产物（allAdRewrite.plugin）为 base，整合 fmz200 的 blockAdsV2：
+以 R-Store 转换产物（allAdRewrite.plugin）为唯一综合规则源。生产构建默认关闭
+blockAdsV2、独立 filter、Thelongdarkorg 与 MyBlockAds 补充源；其他保留的独立 App
+插件由 Romeo 映射、Amap、Spotify、瓜子影视和支付宝专用链路单独处理。
+
+兼容性说明：合并器仍保留显式传入额外文件的解析能力，供历史迁移与单元测试使用；
+正式 workflow 固定使用 --extra none --filter none --myblockads none。
+
+历史合并行为（仅在显式启用额外文件时适用）：
   - [Rewrite] / [Script]：按【规范化 URL 正则】去重，base 已有的正则一律保留 base，
     blockAdsV2 仅补充 base 没有的正则（含跨段冲突，统一 base 优先）；
   - [MITM]：blockAdsV2 的非标准 hostname（中间/前缀通配、通配 TLD、裸 IP、源损坏）
