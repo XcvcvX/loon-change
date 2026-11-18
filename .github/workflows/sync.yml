@@ -555,8 +555,6 @@ jobs:
       - name: 校验通过后替换正式产物
         run: |
           cp /tmp/loon-build/allAdRewrite.plugin allAdRewrite.plugin.tmp && mv allAdRewrite.plugin.tmp allAdRewrite.plugin
-          cp /tmp/loon-build/ && mv.tmp
-          cp /tmp/loon-build/ && mv.tmp
           cp /tmp/loon-build/rule-provenance.json rule-provenance.json
           cp /tmp/loon-build/rule-diff.json rule-diff.json
           cp /tmp/loon-build/source-health.json source-health.json
