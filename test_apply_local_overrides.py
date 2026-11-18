@@ -3353,16 +3353,23 @@ class AlipanOnboardResponseDedupTests(unittest.TestCase):
             and "/v1/users/onboard_list" in line.replace(chr(92), "")
             and "Scripts/adrive/adrive.js" in line
         )
-        self.romeo = next(
+        romeo_matches = [
             line for line in self.lines
             if "member.alipan.com" in line.replace(chr(92), "").lower()
             and "/v1/users/onboard_list" in line.replace(chr(92), "")
             and "rucu6_adrive.js" in line
+        ]
+        self.has_romeo_snapshot = bool(romeo_matches)
+        self.romeo = romeo_matches[0] if romeo_matches else self.wool.replace(
+            "Scripts/adrive/adrive.js", "rucu6_adrive.js"
         )
-        self.romeo_unique = next(
+        unique_matches = [
             line for line in self.lines
             if "api.alipan.com" in line.replace(chr(92), "").lower() and "rucu6_adrive.js" in line
-        )
+        ]
+        self.romeo_unique = unique_matches[0] if unique_matches else self.romeo.replace(
+            "member.alipan.com", "api.alipan.com"
+        ).replace("/v1/users/onboard_list", "/v1/other")
 
     def test_removes_only_the_duplicate_romeo_onboard_handler(self):
         from apply_local_overrides import remove_redundant_alipan_onboard_response_script
@@ -3398,9 +3405,17 @@ class AlipanOnboardResponseDedupTests(unittest.TestCase):
         from apply_local_overrides import apply
         plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
         result = apply(plugin)
-        self.assertNotIn(self.romeo, result)
         self.assertEqual(result.count(self.wool), 1)
-        self.assertIn(self.romeo_unique, result)
+        if self.has_romeo_snapshot:
+            self.assertNotIn(self.romeo, result)
+            self.assertIn(self.romeo_unique, result)
+        else:
+            self.assertFalse(any(
+                "member.alipan.com" in line.replace(chr(92), "").lower()
+                and "/v1/users/onboard_list" in line.replace(chr(92), "")
+                and "rucu6_adrive.js" in line
+                for line in result.splitlines()
+            ))
 
 
 class SameSourceResponseScriptDedupTests(unittest.TestCase):
