@@ -2330,6 +2330,10 @@ hostname = webcast-open.douyin.com, beta-luna.douyin.com, creditcard.bankcomm.cn
         self.assertNotIn("DOMAIN-KEYWORD,minigame,REJECT", missing_result)
         self.assertNotIn("webcast-open.douyin.com", missing_result)
 
+        alias = self.base.replace("DOMAIN-SUFFIX,dig.bdurl.net,REJECT", "DOMAIN,dig.bdurl.net,REJECT")
+        alias_result = apply(alias)
+        self.assertNotIn("DOMAIN,dig.bdurl.net,REJECT", alias_result)
+
         duplicate = self.base.replace(
             "DOMAIN-SUFFIX,dig.bdurl.net,REJECT",
             "DOMAIN-SUFFIX,dig.bdurl.net,REJECT\nDOMAIN-SUFFIX,dig.bdurl.net,REJECT",
