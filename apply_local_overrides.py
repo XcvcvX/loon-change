@@ -4001,7 +4001,8 @@ def remove_shadowed_amdc_response_trigger(lines):
         if section != "Script":
             continue
         lowered = line.lower()
-        if "amdc.m.taobao.com" not in lowered:
+        normalized_line = re.sub(r"\\+", "", lowered)
+        if "amdc.m.taobao.com" not in normalized_line:
             continue
         if lowered.startswith("http-response ") and AMDC_RSTORE_SCRIPT_MARKER.lower() in lowered:
             parts = line.split(maxsplit=2)
