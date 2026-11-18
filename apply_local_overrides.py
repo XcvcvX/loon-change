@@ -5873,6 +5873,84 @@ def narrow_duplicate_bilibili_protobuf_triggers(lines):
     return result, changed
 
 
+XIMALAYA_SCRIPT_TRIGGER_OLD_HOST_PREFIX = r"^https?:\/\/.*\.xima.*\.com\/"
+XIMALAYA_SCRIPT_TRIGGER_NEW_HOST_PREFIX = r"^https?:\/\/(?:[A-Za-z0-9-]+\.)+ximalaya\.com\/"
+XIMALAYA_SCRIPT_TRIGGER_TAG_PATHS = {
+    "tag=XMLY,": "customCategories",
+    "tag=XMLY-2,": "focusPic",
+    "tag=XMLY-3,": "/mix ",
+    "tag=XMLY-4,": "/category ",
+    "tag=XMLY-5,": "homePage",
+}
+
+
+def narrow_ximalaya_script_triggers(lines):
+    """Restrict five Ximalaya response scripts to the observed ximalaya.com domain suffix."""
+    output = list(lines)
+    section = ""
+    candidates = []
+    for line in output:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+        elif (
+            section == "Script"
+            and stripped.startswith("http-response ")
+            and "Res/Scripts/AntiAd/xmly.js" in stripped
+        ):
+            candidates.append(stripped)
+
+    if not candidates:
+        return output, 0
+    if len(candidates) != len(XIMALAYA_SCRIPT_TRIGGER_TAG_PATHS):
+        raise ValueError("Ximalaya response trigger inventory changed; refusing host narrowing")
+
+    replacements = {}
+    seen_tags = set()
+    for line in candidates:
+        matching_tags = [tag for tag in XIMALAYA_SCRIPT_TRIGGER_TAG_PATHS if tag in line]
+        if len(matching_tags) != 1:
+            raise ValueError("Ximalaya response trigger tag changed; refusing host narrowing")
+        tag = matching_tags[0]
+        if tag in seen_tags or XIMALAYA_SCRIPT_TRIGGER_TAG_PATHS[tag] not in line:
+            raise ValueError("Ximalaya response trigger path changed; refusing host narrowing")
+        seen_tags.add(tag)
+
+        old_count = line.count(XIMALAYA_SCRIPT_TRIGGER_OLD_HOST_PREFIX)
+        new_count = line.count(XIMALAYA_SCRIPT_TRIGGER_NEW_HOST_PREFIX)
+        if old_count == 1 and new_count == 0:
+            replacements[line] = line.replace(
+                XIMALAYA_SCRIPT_TRIGGER_OLD_HOST_PREFIX,
+                XIMALAYA_SCRIPT_TRIGGER_NEW_HOST_PREFIX,
+                1,
+            )
+        elif old_count == 0 and new_count == 1:
+            continue
+        else:
+            raise ValueError("Ximalaya response host matcher changed; refusing host narrowing")
+
+    if seen_tags != set(XIMALAYA_SCRIPT_TRIGGER_TAG_PATHS):
+        raise ValueError("Ximalaya response trigger coverage changed; refusing host narrowing")
+    if not replacements:
+        return output, 0
+
+    result = []
+    section = ""
+    changed = 0
+    for line in output:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+            result.append(line)
+            continue
+        if section == "Script" and stripped in replacements:
+            result.append(replacements[stripped])
+            changed += 1
+        else:
+            result.append(line)
+    return result, changed
+
+
 BILIBILI_JSON_TRIGGER_PAIRS = (
     (
         "BAICIZHAN-8",
@@ -6155,6 +6233,7 @@ def apply(text: str) -> str:
     lines, _ = remove_redundant_smzdm_ads_script_triggers(lines)
     lines, _ = migrate_wechat_applet_simple_endpoints(lines)
     lines, _ = migrate_weibo_simple_endpoints(lines)
+    lines, _ = narrow_ximalaya_script_triggers(lines)
     lines, _ = narrow_duplicate_bilibili_protobuf_triggers(lines)
     lines, _ = optimize_bilibili_json_native_coverage(lines)
 
