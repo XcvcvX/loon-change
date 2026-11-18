@@ -1828,18 +1828,16 @@ class SoulScriptConsolidationTests(unittest.TestCase):
             self.assertIn(trigger.replace("enable=soul_enable", "enable=${soul_enable}"), result)
         self.assertEqual(consolidate_soul_scripts(result), (result, 0))
 
-    def test_fails_closed_on_missing_duplicate_or_drifted_soul_trigger(self):
+    def test_preserves_partial_or_drifted_soul_inventory_and_rejects_duplicates(self):
         from apply_local_overrides import SOUL_LEGACY_TRIGGERS, consolidate_soul_scripts
         base = sorted(SOUL_LEGACY_TRIGGERS)
         missing = ["[Script]", *base[:-1]]
-        with self.assertRaisesRegex(ValueError, "Soul script trigger inventory changed"):
-            consolidate_soul_scripts(missing)
+        self.assertEqual(consolidate_soul_scripts(missing), (missing, 0))
         duplicate = ["[Script]", *base, base[0]]
-        with self.assertRaisesRegex(ValueError, "Soul script trigger inventory changed"):
+        with self.assertRaisesRegex(ValueError, "Soul script trigger inventory duplicated"):
             consolidate_soul_scripts(duplicate)
         drifted = ["[Script]", *base[:-1], base[-1].replace("timeout=60", "timeout=30")]
-        with self.assertRaisesRegex(ValueError, "Soul script trigger inventory changed"):
-            consolidate_soul_scripts(drifted)
+        self.assertEqual(consolidate_soul_scripts(drifted), (drifted, 0))
 
     def test_preserves_absent_or_already_consolidated_soul_inventory(self):
         from apply_local_overrides import SOUL_CANONICAL_TRIGGERS, consolidate_soul_scripts
