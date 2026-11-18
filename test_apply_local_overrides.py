@@ -4953,3 +4953,57 @@ class PinduoduoHomepageNativeConsolidationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "duplicate Pinduoduo homepage native response rule"):
             consolidate_pdd_homepage_native_response(duplicate)
 
+
+class ShadowedAmdcResponseTriggerTests(unittest.TestCase):
+    def setUp(self):
+        self.rstore = r"http-response ^https?:\/\/amdc\.m\.taobao\.com\/amdc\/mobileDispatch$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amdc.js,tag=ALIBABA"
+        self.wool = r'response if \${url} ~= /^https?:\/\/amdc\.m\.taobao\.com\/amdc\/mobileDispatch$/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/header.js") with enable=\${cdnngogo_enable}, tag="菜鸟裹裹", timeout=60'
+        self.unrelated = r'response if \${url} ~= /^https?:\/\/cn-acs\.m\.cainiao\.com\/gw\/mtop\.cainiao\.guoguo\.nbnetflow\.ads\.m?show\.cn/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cainiao/cainiao.js") with enable=\${cdnngogo_enable}, requires_body=true'
+
+    def test_removes_only_later_shadowed_wool_amdc_handler(self):
+        from apply_local_overrides import remove_shadowed_amdc_response_trigger
+        lines = ["[Script]", self.rstore, self.wool, self.unrelated, "[MITM]"]
+        result, changed = remove_shadowed_amdc_response_trigger(lines)
+        self.assertEqual(changed, 1)
+        self.assertIn(self.rstore, result)
+        self.assertNotIn(self.wool, result)
+        self.assertIn(self.unrelated, result)
+        self.assertEqual(result[1], self.rstore)
+
+    def test_is_idempotent_and_preserves_wool_without_earlier_rstore_handler(self):
+        from apply_local_overrides import remove_shadowed_amdc_response_trigger
+        lines = ["[Script]", self.rstore, self.wool, "[MITM]"]
+        result, changed = remove_shadowed_amdc_response_trigger(lines)
+        self.assertEqual(changed, 1)
+        again, changed_again = remove_shadowed_amdc_response_trigger(result)
+        self.assertEqual((again, changed_again), (result, 0))
+        only_wool, removed = remove_shadowed_amdc_response_trigger(["[Script]", self.wool, "[MITM]"])
+        self.assertEqual((only_wool, removed), (["[Script]", self.wool, "[MITM]"], 0))
+
+    def test_preserves_both_if_wool_is_first(self):
+        from apply_local_overrides import remove_shadowed_amdc_response_trigger
+        lines = ["[Script]", self.wool, self.rstore, "[MITM]"]
+        result, changed = remove_shadowed_amdc_response_trigger(lines)
+        self.assertEqual((result, changed), (lines, 0))
+
+    def test_fails_closed_on_duplicates_or_matcher_drift(self):
+        from apply_local_overrides import remove_shadowed_amdc_response_trigger
+        duplicate = ["[Script]", self.rstore, self.wool, self.wool, "[MITM]"]
+        with self.assertRaisesRegex(ValueError, "duplicate AMDC"):
+            remove_shadowed_amdc_response_trigger(duplicate)
+        drift = self.wool.replace("mobileDispatch", "differentDispatch")
+        with self.assertRaisesRegex(ValueError, "matcher changed"):
+            remove_shadowed_amdc_response_trigger(["[Script]", self.rstore, drift, "[MITM]"])
+
+    def test_checked_in_plugin_removes_only_shadowed_amdc_entry(self):
+        from pathlib import Path
+        from apply_local_overrides import apply
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        result = apply(plugin)
+        lines = [line for line in result.splitlines() if "amdc.m.taobao.com/amdc/mobileDispatch" in line]
+        self.assertEqual(len(lines), 1)
+        self.assertIn("Res/Scripts/AntiAd/amdc.js", lines[0])
+        self.assertNotIn("Scripts/header.js", lines[0])
+        self.assertIn("Scripts/cainiao/cainiao.js", result)
+
+
