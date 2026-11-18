@@ -12,162 +12,18 @@
     },
     "script": {
       "action_changed": 0,
-      "added": 6,
+      "added": 0,
       "removed": 6
     }
   },
   "events": [
     {
-      "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/app_resource\\/resource_preload\\/list_h5_resource\\/?(?:\\?[^#]*)?$/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/pupu/pupu-splash.js\") with enable=${pupuicui_enable}, tag=\"朴朴超市\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/marketing\\/advertisement\\/v1\\/?(?:\\?[^#]*)?$/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/pupu/pupu-splash.js\") with enable=${pupuicui_enable}, tag=\"朴朴超市\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/order\\/orders\\/list\\/v4\\/?(?:\\?[^#]*)?$/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/pupu/pupu-splash.js\") with enable=${pupuicui_enable}, tag=\"朴朴超市\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/order_settlement\\/detail\\/?(?:\\?[^#]*)?$/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/pupu/pupu-splash.js\") with enable=${pupuicui_enable}, tag=\"朴朴超市\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/search\\/hot_keywords\\/v3\\/?(?:\\?[^#]*)?$/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/pupu/pupu-splash.js\") with enable=${pupuicui_enable}, tag=\"朴朴超市\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/search\\/hub\\/search_box\\/products\\/v6\\/?(?:\\?[^#]*)?$/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/pupu/pupu-splash.js\") with enable=${pupuicui_enable}, tag=\"朴朴超市\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
       "after": null,
       "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/app_resource\\/resource_preload\\/list_h5_resource/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/PupuSplashAds.js\") with enable=${pupuicui_enable}, tag=\"朴朴超市\", timeout=60, requires_body=true",
+        "line": "response if ${url} ~= /^https:\\/\\/(?:info\\.amap\\.com|m5\\.amap\\.com)\\/ws\\/shield\\/search\\/(common\\/coupon\\/info|poi\\/detail)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
         "section": "script",
         "sources": [
-          "block"
+          "aoomee"
         ]
       },
       "change_type": "removed",
@@ -176,22 +32,22 @@
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "block": "unavailable"
+        "aoomee": "scored"
       },
       "source_scores": {
-        "block": null
+        "aoomee": 100
       },
       "sources": [
-        "block"
+        "aoomee"
       ]
     },
     {
       "after": null,
       "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/marketing\\/advertisement\\/v1/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/PupuSplashAds.js\") with enable=${pupuicui_enable}, tag=\"朴朴超市\", timeout=60, requires_body=true",
+        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/c3frontend\\/af-(hotel|launch)\\/page\\/main\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
         "section": "script",
         "sources": [
-          "block"
+          "aoomee"
         ]
       },
       "change_type": "removed",
@@ -200,22 +56,22 @@
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "block": "unavailable"
+        "aoomee": "scored"
       },
       "source_scores": {
-        "block": null
+        "aoomee": 100
       },
       "sources": [
-        "block"
+        "aoomee"
       ]
     },
     {
       "after": null,
       "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/order\\/orders\\/list\\/v4/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/PupuSplashAds.js\") with enable=${pupuicui_enable}, tag=\"朴朴超市\", timeout=60, requires_body=true",
+        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/c3frontend\\/af-nearby\\/nearby/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
         "section": "script",
         "sources": [
-          "block"
+          "aoomee"
         ]
       },
       "change_type": "removed",
@@ -224,22 +80,22 @@
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "block": "unavailable"
+        "aoomee": "scored"
       },
       "source_scores": {
-        "block": null
+        "aoomee": 100
       },
       "sources": [
-        "block"
+        "aoomee"
       ]
     },
     {
       "after": null,
       "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/order_settlement\\/detail/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/PupuSplashAds.js\") with enable=${pupuicui_enable}, tag=\"朴朴超市\", timeout=60, requires_body=true",
+        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_poi\\/search\\/sp/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
         "section": "script",
         "sources": [
-          "block"
+          "aoomee"
         ]
       },
       "change_type": "removed",
@@ -248,22 +104,22 @@
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "block": "unavailable"
+        "aoomee": "scored"
       },
       "source_scores": {
-        "block": null
+        "aoomee": 100
       },
       "sources": [
-        "block"
+        "aoomee"
       ]
     },
     {
       "after": null,
       "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/search\\/hot_keywords\\/v3/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/PupuSplashAds.js\") with enable=${pupuicui_enable}, tag=\"朴朴超市\", timeout=60, requires_body=true",
+        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_poi\\/sug/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
         "section": "script",
         "sources": [
-          "block"
+          "aoomee"
         ]
       },
       "change_type": "removed",
@@ -272,22 +128,22 @@
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "block": "unavailable"
+        "aoomee": "scored"
       },
       "source_scores": {
-        "block": null
+        "aoomee": 100
       },
       "sources": [
-        "block"
+        "aoomee"
       ]
     },
     {
       "after": null,
       "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/search\\/hub\\/search_box\\/products\\/v6/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/PupuSplashAds.js\") with enable=${pupuicui_enable}, tag=\"朴朴超市\", timeout=60, requires_body=true",
+        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_poi\\/tips_operation_location/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
         "section": "script",
         "sources": [
-          "block"
+          "aoomee"
         ]
       },
       "change_type": "removed",
@@ -296,13 +152,13 @@
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "block": "unavailable"
+        "aoomee": "scored"
       },
       "source_scores": {
-        "block": null
+        "aoomee": 100
       },
       "sources": [
-        "block"
+        "aoomee"
       ]
     }
   ],
@@ -310,9 +166,9 @@
   "risk_counts": {
     "high": 6,
     "low": 0,
-    "medium": 6
+    "medium": 0
   },
-  "run_id": "44220840757",
+  "run_id": "44223302061",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -335,28 +191,28 @@
       "snapshots_seen": 1
     },
     "aoomee": {
-      "action_changed": 162,
-      "added": 173,
-      "removed": 40,
+      "action_changed": 109,
+      "added": 0,
+      "removed": 19,
       "snapshots_seen": 11
     },
     "base": {
       "action_changed": 0,
-      "added": 25,
-      "removed": 43,
-      "snapshots_seen": 11
+      "added": 1,
+      "removed": 24,
+      "snapshots_seen": 10
     },
     "block": {
-      "action_changed": 46,
-      "added": 75,
-      "removed": 100,
-      "snapshots_seen": 10
+      "action_changed": 0,
+      "added": 0,
+      "removed": 27,
+      "snapshots_seen": 9
     },
     "local_overrides": {
       "action_changed": 0,
-      "added": 105,
-      "removed": 41,
-      "snapshots_seen": 18
+      "added": 75,
+      "removed": 22,
+      "snapshots_seen": 17
     },
     "myblockads": {
       "action_changed": 0,
@@ -366,21 +222,15 @@
     },
     "thelong": {
       "action_changed": 0,
-      "added": 6,
+      "added": 0,
       "removed": 3,
-      "snapshots_seen": 3
+      "snapshots_seen": 2
     },
     "zmjapp": {
-      "action_changed": 8,
+      "action_changed": 6,
       "added": 0,
       "removed": 0,
-      "snapshots_seen": 4
-    },
-    "zmjgen": {
-      "action_changed": 0,
-      "added": 5,
-      "removed": 0,
-      "snapshots_seen": 1
+      "snapshots_seen": 3
     }
   },
   "upstream_revision_changes": []
