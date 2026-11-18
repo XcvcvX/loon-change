@@ -1,7 +1,7 @@
 {
   "change_counts": {
     "rewrite": {
-      "action_changed": 1,
+      "action_changed": 0,
       "added": 0,
       "removed": 0
     },
@@ -11,45 +11,15 @@
       "removed": 0
     },
     "script": {
-      "action_changed": 26,
-      "added": 2,
-      "removed": 2
+      "action_changed": 0,
+      "added": 26,
+      "removed": 26
     }
   },
   "events": [
     {
       "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/homepage-api\\.smzdm\\.com\\/v3\\/home\\?/i then response.json.jq_file(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/Kelee/smzdm_remove_ads/kelee.one_home_smzdm_remove_ads.jq\")",
-        "section": "rewrite",
-        "sources": [
-          "zmjapp"
-        ]
-      },
-      "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/homepage-api\\.smzdm\\.com\\/v3\\/home\\?/i then response.json.jq_file(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/Kelee/smzdm_remove_ads/kelee.one_home_smzdm_remove_ads.jq\")",
-        "section": "rewrite",
-        "sources": [
-          "zmjapp"
-        ]
-      },
-      "change_type": "action_changed",
-      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
-      "risk": "high",
-      "section": "rewrite",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "zmjapp": "unavailable"
-      },
-      "source_scores": {
-        "zmjapp": null
-      },
-      "sources": [
-        "zmjapp"
-      ]
-    },
-    {
-      "after": {
-        "line": "http-request ^https?:\\/\\/[\\w-]+\\.googlevideo\\.com\\/initplayback.+&ack.* script-path=https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.request.js, requires-body=true, binary-body-mode=true, tag=youtube.request.init, argument={captionLang}",
+        "line": "http-response ^https?:\\/\\/(kjp|t7z)\\.cupid\\.iqiyi\\.com\\/mixer\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=IQIYI-13,requires-body=true",
         "section": "script",
         "sources": [
           "local_overrides"
@@ -73,7 +43,583 @@
     },
     {
       "after": {
-        "line": "http-response ^https:\\/\\/youtubei\\.googleapis\\.com\\/(youtubei\\/v1\\/(guide|account\\/get_setting))(\\?(.*))?$ script-path=https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.response.js, requires-body=true, binary-body-mode=true, tag=youtube.response, argument={captionLang,blockUpload,blockImmersive,blockShorts,debug}",
+        "line": "http-response ^https?:\\/\\/[\\d\\.]+\\/3f1\\/cards\\.iqiyi\\.com\\/(views_home\\/3\\.0\\/qy_home|waterfall\\/3\\.0\\/feed)\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=IQIYI,requires-body=true",
+        "section": "script",
+        "sources": [
+          "local_overrides"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "local_overrides": "unavailable"
+      },
+      "source_scores": {
+        "local_overrides": null
+      },
+      "sources": [
+        "local_overrides"
+      ]
+    },
+    {
+      "after": {
+        "line": "http-response ^https?:\\/\\/access\\.if\\.iqiyi\\.com\\/3f1\\/cards\\.iqiyi\\.com\\/(views_category\\/3\\.0\\/category_home|views_home\\/3\\.0\\/qy_home|waterfall\\/3\\.0\\/feed)\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=IQIYI-2,requires-body=true",
+        "section": "script",
+        "sources": [
+          "local_overrides"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "local_overrides": "unavailable"
+      },
+      "source_scores": {
+        "local_overrides": null
+      },
+      "sources": [
+        "local_overrides"
+      ]
+    },
+    {
+      "after": {
+        "line": "http-response ^https?:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.columbus\\.(gateway\\.new\\.execute|home\\.feed|home\\.query|uc\\.query|ycp\\.query) script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=YOUKU,requires-body=true",
+        "section": "script",
+        "sources": [
+          "local_overrides"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "local_overrides": "unavailable"
+      },
+      "source_scores": {
+        "local_overrides": null
+      },
+      "sources": [
+        "local_overrides"
+      ]
+    },
+    {
+      "after": {
+        "line": "http-response ^https?:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.haidai\\.lantern\\.appconfig\\.get script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=YOUKU-2,requires-body=true",
+        "section": "script",
+        "sources": [
+          "local_overrides"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "local_overrides": "unavailable"
+      },
+      "source_scores": {
+        "local_overrides": null
+      },
+      "sources": [
+        "local_overrides"
+      ]
+    },
+    {
+      "after": {
+        "line": "http-response ^https?:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.huluwa\\.dispatcher\\.youthmode\\.config2 script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=YOUKU-3,requires-body=true",
+        "section": "script",
+        "sources": [
+          "local_overrides"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "local_overrides": "unavailable"
+      },
+      "source_scores": {
+        "local_overrides": null
+      },
+      "sources": [
+        "local_overrides"
+      ]
+    },
+    {
+      "after": {
+        "line": "http-response ^https?:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.soku\\.yksearch script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=YOUKU-4,requires-body=true",
+        "section": "script",
+        "sources": [
+          "local_overrides"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "local_overrides": "unavailable"
+      },
+      "source_scores": {
+        "local_overrides": null
+      },
+      "sources": [
+        "local_overrides"
+      ]
+    },
+    {
+      "after": {
+        "line": "http-response ^https?:\\/\\/cards\\.iqiyi\\.com\\/(views_home\\/3\\.0\\/qy_home|waterfall\\/3\\.0\\/feed)\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=IQIYI-4,requires-body=true",
+        "section": "script",
+        "sources": [
+          "local_overrides"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "local_overrides": "unavailable"
+      },
+      "source_scores": {
+        "local_overrides": null
+      },
+      "sources": [
+        "local_overrides"
+      ]
+    },
+    {
+      "after": {
+        "line": "http-response ^https?:\\/\\/cards\\.iqiyi\\.com\\/views_category\\/3\\.0\\/(category_home|categorylib_content|film_hybrid)\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=IQIYI-3,requires-body=true",
+        "section": "script",
+        "sources": [
+          "local_overrides"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "local_overrides": "unavailable"
+      },
+      "source_scores": {
+        "local_overrides": null
+      },
+      "sources": [
+        "local_overrides"
+      ]
+    },
+    {
+      "after": {
+        "line": "http-response ^https?:\\/\\/cards\\.iqiyi\\.com\\/views_plt\\/3\\.0\\/player_tabs_v2\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=IQIYI-5,requires-body=true",
+        "section": "script",
+        "sources": [
+          "local_overrides"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "local_overrides": "unavailable"
+      },
+      "source_scores": {
+        "local_overrides": null
+      },
+      "sources": [
+        "local_overrides"
+      ]
+    },
+    {
+      "after": {
+        "line": "http-response ^https?:\\/\\/cards\\.iqiyi\\.com\\/views_search\\/3\\.0\\/(hot_query_)?search\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=IQIYI-6,requires-body=true",
+        "section": "script",
+        "sources": [
+          "local_overrides"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "local_overrides": "unavailable"
+      },
+      "source_scores": {
+        "local_overrides": null
+      },
+      "sources": [
+        "local_overrides"
+      ]
+    },
+    {
+      "after": {
+        "line": "http-response ^https?:\\/\\/comment-card\\.iqiyi\\.com\\/views_comment\\/3\\.0\\/long_video_comments\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=IQIYI-7,requires-body=true",
+        "section": "script",
+        "sources": [
+          "local_overrides"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "local_overrides": "unavailable"
+      },
+      "source_scores": {
+        "local_overrides": null
+      },
+      "sources": [
+        "local_overrides"
+      ]
+    },
+    {
+      "after": {
+        "line": "http-response ^https?:\\/\\/dc2?\\.bz\\.mgtv\\.com\\/dynamic\\/v\\d\\/channel\\/(index|vrsList)\\/\\w script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=MGTV-3,requires-body=true",
+        "section": "script",
+        "sources": [
+          "local_overrides"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "local_overrides": "unavailable"
+      },
+      "source_scores": {
+        "local_overrides": null
+      },
+      "sources": [
+        "local_overrides"
+      ]
+    },
+    {
+      "after": {
+        "line": "http-response ^https?:\\/\\/iface2\\.iqiyi\\.com\\/aggregate\\/3\\.0\\/getMyMenus\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=IQIYI-8,requires-body=true",
+        "section": "script",
+        "sources": [
+          "local_overrides"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "local_overrides": "unavailable"
+      },
+      "source_scores": {
+        "local_overrides": null
+      },
+      "sources": [
+        "local_overrides"
+      ]
+    },
+    {
+      "after": {
+        "line": "http-response ^https?:\\/\\/iface2\\.iqiyi\\.com\\/control\\/3\\.0\\/init_proxy\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=IQIYI-9,requires-body=true",
+        "section": "script",
+        "sources": [
+          "local_overrides"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "local_overrides": "unavailable"
+      },
+      "source_scores": {
+        "local_overrides": null
+      },
+      "sources": [
+        "local_overrides"
+      ]
+    },
+    {
+      "after": {
+        "line": "http-response ^https?:\\/\\/iface2\\.iqiyi\\.com\\/fusion\\/3\\.0\\/common_switch\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=IQIYI-10,requires-body=true",
+        "section": "script",
+        "sources": [
+          "local_overrides"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "local_overrides": "unavailable"
+      },
+      "source_scores": {
+        "local_overrides": null
+      },
+      "sources": [
+        "local_overrides"
+      ]
+    },
+    {
+      "after": {
+        "line": "http-response ^https?:\\/\\/iface2\\.iqiyi\\.com\\/views\\/3\\.0\\/(bottom_theme|home_top_menu)\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=IQIYI-11,requires-body=true",
+        "section": "script",
+        "sources": [
+          "local_overrides"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "local_overrides": "unavailable"
+      },
+      "source_scores": {
+        "local_overrides": null
+      },
+      "sources": [
+        "local_overrides"
+      ]
+    },
+    {
+      "after": {
+        "line": "http-response ^https?:\\/\\/me\\.bz\\.mgtv\\.com\\/v\\d\\/module\\/list\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=MGTV,requires-body=true",
+        "section": "script",
+        "sources": [
+          "local_overrides"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "local_overrides": "unavailable"
+      },
+      "source_scores": {
+        "local_overrides": null
+      },
+      "sources": [
+        "local_overrides"
+      ]
+    },
+    {
+      "after": {
+        "line": "http-response ^https?:\\/\\/mob-st\\.bz\\.mgtv\\.com\\/odin\\/c\\d\\/channel\\/index\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=MGTV-2,requires-body=true",
+        "section": "script",
+        "sources": [
+          "local_overrides"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "local_overrides": "unavailable"
+      },
+      "source_scores": {
+        "local_overrides": null
+      },
+      "sources": [
+        "local_overrides"
+      ]
+    },
+    {
+      "after": {
+        "line": "http-response ^https?:\\/\\/mobile-thor\\.api\\.mgtv\\.com\\/v\\d\\/vod\\/info\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=MGTV-6,requires-body=true",
+        "section": "script",
+        "sources": [
+          "local_overrides"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "local_overrides": "unavailable"
+      },
+      "source_scores": {
+        "local_overrides": null
+      },
+      "sources": [
+        "local_overrides"
+      ]
+    },
+    {
+      "after": {
+        "line": "http-response ^https?:\\/\\/mobile\\.api\\.mgtv\\.com\\/mobile\\/config\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=MGTV-4,requires-body=true",
+        "section": "script",
+        "sources": [
+          "local_overrides"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "local_overrides": "unavailable"
+      },
+      "source_scores": {
+        "local_overrides": null
+      },
+      "sources": [
+        "local_overrides"
+      ]
+    },
+    {
+      "after": {
+        "line": "http-response ^https?:\\/\\/mobile\\.api\\.mgtv\\.com\\/v\\d+\\/video\\/info\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=MGTV-5,requires-body=true",
+        "section": "script",
+        "sources": [
+          "local_overrides"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "local_overrides": "unavailable"
+      },
+      "source_scores": {
+        "local_overrides": null
+      },
+      "sources": [
+        "local_overrides"
+      ]
+    },
+    {
+      "after": {
+        "line": "http-response ^https?:\\/\\/mobileso\\.bz\\.mgtv\\.com\\/mobile\\/recommend\\/v\\d\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=MGTV-7,requires-body=true",
+        "section": "script",
+        "sources": [
+          "local_overrides"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "local_overrides": "unavailable"
+      },
+      "source_scores": {
+        "local_overrides": null
+      },
+      "sources": [
+        "local_overrides"
+      ]
+    },
+    {
+      "after": {
+        "line": "http-response ^https?:\\/\\/push\\.m\\.youku\\.com\\/collect-api\\/get_push_interval_config_wx\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=YOUKU-5,requires-body=true",
+        "section": "script",
+        "sources": [
+          "local_overrides"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "local_overrides": "unavailable"
+      },
+      "source_scores": {
+        "local_overrides": null
+      },
+      "sources": [
+        "local_overrides"
+      ]
+    },
+    {
+      "after": {
+        "line": "http-response ^https?:\\/\\/search\\.video\\.iqiyi\\.com\\/q\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=IQIYI-12,requires-body=true",
+        "section": "script",
+        "sources": [
+          "local_overrides"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "local_overrides": "unavailable"
+      },
+      "source_scores": {
+        "local_overrides": null
+      },
+      "sources": [
+        "local_overrides"
+      ]
+    },
+    {
+      "after": {
+        "line": "http-response ^https?:\\/\\/un-acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.play\\.ups\\.appinfo\\.get script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=YOUKU-6,requires-body=true",
         "section": "script",
         "sources": [
           "local_overrides"
@@ -98,10 +644,10 @@
     {
       "after": null,
       "before": {
-        "line": "http-request ^https?:\\/\\/[\\w-]+\\.googlevideo\\.com\\/initplayback.+&ack.* script-path=https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.request.js, requires-body=true, binary-body-mode=true, tag=youtube.request.init, argument={captionLang}",
+        "line": "http-response ^https?:\\/\\/(kjp|t7z)\\.cupid\\.iqiyi\\.com\\/mixer\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-13,requires-body=true",
         "section": "script",
         "sources": [
-          "local_overrides"
+          "base"
         ]
       },
       "change_type": "removed",
@@ -110,22 +656,22 @@
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "local_overrides": "unavailable"
+        "base": "unavailable"
       },
       "source_scores": {
-        "local_overrides": null
+        "base": null
       },
       "sources": [
-        "local_overrides"
+        "base"
       ]
     },
     {
       "after": null,
       "before": {
-        "line": "http-response ^https:\\/\\/youtubei\\.googleapis\\.com\\/(youtubei\\/v1\\/(guide|account\\/get_setting))(\\?(.*))?$ script-path=https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.response.js, requires-body=true, binary-body-mode=true, tag=youtube.response, argument={captionLang,blockUpload,blockImmersive,blockShorts,debug}",
+        "line": "http-response ^https?:\\/\\/[\\d\\.]+\\/3f1\\/cards\\.iqiyi\\.com\\/(views_home\\/3\\.0\\/qy_home|waterfall\\/3\\.0\\/feed)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI,requires-body=true",
         "section": "script",
         "sources": [
-          "local_overrides"
+          "base"
         ]
       },
       "change_type": "removed",
@@ -134,803 +680,599 @@
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "local_overrides": "unavailable"
+        "base": "unavailable"
       },
       "source_scores": {
-        "local_overrides": null
+        "base": null
       },
       "sources": [
-        "local_overrides"
+        "base"
       ]
     },
     {
-      "after": {
-        "line": "http-request ^https?:\\/\\/ad\\.12306\\.cn\\/ad\\/ser\\/getAdList script-path=https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/fmz200/12306/kokoryh_12306.js, requires-body=true, timeout=60, tag=12306, enable={12306_enable}",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
+      "after": null,
       "before": {
-        "line": "http-request ^https?:\\/\\/ad\\.12306\\.cn\\/ad\\/ser\\/getAdList script-path=https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/fmz200/12306/kokoryh_12306.js, requires-body=true, timeout=60, tag=12306, enable={12306_enable}",
+        "line": "http-response ^https?:\\/\\/access\\.if\\.iqiyi\\.com\\/3f1\\/cards\\.iqiyi\\.com\\/(views_category\\/3\\.0\\/category_home|views_home\\/3\\.0\\/qy_home|waterfall\\/3\\.0\\/feed)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-2,requires-body=true",
         "section": "script",
         "sources": [
-          "aoomee"
+          "base"
         ]
       },
-      "change_type": "action_changed",
-      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
       "risk": "high",
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "aoomee": "scored"
+        "base": "unavailable"
       },
       "source_scores": {
-        "aoomee": 100
+        "base": null
       },
       "sources": [
-        "aoomee"
+        "base"
       ]
     },
     {
-      "after": {
-        "line": "http-response ^https:\\/\\/(?:sns|appmsg|home|umehome|opactivity|activity|umerp|flightstatus|umeflightstatus|startup|umestartup|user|umeuser|event)\\.umetrip\\.com\\/gateway\\/api\\/umetrip\\/native(?:\\?.*)?$ script-path=https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ddgksf2013/UmetripAds/ddgksf2013_umetrip.ads.js, requires-body=true, timeout=60, tag=umetrip.ads",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
+      "after": null,
       "before": {
-        "line": "http-response ^https:\\/\\/(?:sns|appmsg|home|umehome|opactivity|activity|umerp|flightstatus|umeflightstatus|startup|umestartup|user|umeuser|event)\\.umetrip\\.com\\/gateway\\/api\\/umetrip\\/native(?:\\?.*)?$ script-path=https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ddgksf2013/UmetripAds/ddgksf2013_umetrip.ads.js, requires-body=true, timeout=60, tag=umetrip.ads",
+        "line": "http-response ^https?:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.columbus\\.(gateway\\.new\\.execute|home\\.feed|home\\.query|uc\\.query|ycp\\.query) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=YOUKU,requires-body=true",
         "section": "script",
         "sources": [
-          "aoomee"
+          "base"
         ]
       },
-      "change_type": "action_changed",
-      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
       "risk": "high",
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "aoomee": "scored"
+        "base": "unavailable"
       },
       "source_scores": {
-        "aoomee": 100
+        "base": null
       },
       "sources": [
-        "aoomee"
+        "base"
       ]
     },
     {
-      "after": {
-        "line": "request if ${url} ~= /^https:\\/\\/(raw|gist)\\.githubusercontent\\.com\\//i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ishowshu/github/Script-Hub-Org_replace-header.js\", \"(%5Cr%5Cn)Accept-Language%3A.%2B(%5Cr%5Cn)-%3E%241Accept-Language%3A%20en-us%242\") with tag=\"replaceHeader\", timeout=30",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
+      "after": null,
       "before": {
-        "line": "request if ${url} ~= /^https:\\/\\/(raw|gist)\\.githubusercontent\\.com\\//i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ishowshu/github/Script-Hub-Org_replace-header.js\", \"(%5Cr%5Cn)Accept-Language%3A.%2B(%5Cr%5Cn)-%3E%241Accept-Language%3A%20en-us%242\") with tag=\"replaceHeader\", timeout=30",
+        "line": "http-response ^https?:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.haidai\\.lantern\\.appconfig\\.get script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=YOUKU-2,requires-body=true",
         "section": "script",
         "sources": [
-          "aoomee"
+          "base"
         ]
       },
-      "change_type": "action_changed",
-      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
       "risk": "high",
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "aoomee": "scored"
+        "base": "unavailable"
       },
       "source_scores": {
-        "aoomee": 100
+        "base": null
       },
       "sources": [
-        "aoomee"
+        "base"
       ]
     },
     {
-      "after": {
-        "line": "request if ${url} ~= /^https:\\/\\/github\\.com\\//i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ishowshu/github/Script-Hub-Org_replace-header.js\", \"(%5Cr%5Cn)Accept-Language%3A.%2B(%5Cr%5Cn)-%3E%241Accept-Language%3A%20en-us%242\") with tag=\"replaceHeader\", timeout=30",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
+      "after": null,
       "before": {
-        "line": "request if ${url} ~= /^https:\\/\\/github\\.com\\//i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ishowshu/github/Script-Hub-Org_replace-header.js\", \"(%5Cr%5Cn)Accept-Language%3A.%2B(%5Cr%5Cn)-%3E%241Accept-Language%3A%20en-us%242\") with tag=\"replaceHeader\", timeout=30",
+        "line": "http-response ^https?:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.huluwa\\.dispatcher\\.youthmode\\.config2 script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=YOUKU-3,requires-body=true",
         "section": "script",
         "sources": [
-          "aoomee"
+          "base"
         ]
       },
-      "change_type": "action_changed",
-      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
       "risk": "high",
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "aoomee": "scored"
+        "base": "unavailable"
       },
       "source_scores": {
-        "aoomee": 100
+        "base": null
       },
       "sources": [
-        "aoomee"
+        "base"
       ]
     },
     {
-      "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/api-chat\\.soulapp\\.cn\\/chat\\/limitInfo/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ishowshu/soul/ishowshu_soul_qx.js\") with tag=\"soul_qx\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
+      "after": null,
       "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/api-chat\\.soulapp\\.cn\\/chat\\/limitInfo/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ishowshu/soul/ishowshu_soul_qx.js\") with tag=\"soul_qx\", timeout=60, requires_body=true",
+        "line": "http-response ^https?:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.soku\\.yksearch script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=YOUKU-4,requires-body=true",
         "section": "script",
         "sources": [
-          "aoomee"
+          "base"
         ]
       },
-      "change_type": "action_changed",
-      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
       "risk": "high",
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "aoomee": "scored"
+        "base": "unavailable"
       },
       "source_scores": {
-        "aoomee": 100
+        "base": null
       },
       "sources": [
-        "aoomee"
+        "base"
       ]
     },
     {
-      "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/api-chat\\.soulapp\\.cn\\/snapchat\\/url/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ishowshu/soul/ishowshu_soul_qx.js\") with tag=\"soul_qx\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
+      "after": null,
       "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/api-chat\\.soulapp\\.cn\\/snapchat\\/url/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ishowshu/soul/ishowshu_soul_qx.js\") with tag=\"soul_qx\", timeout=60, requires_body=true",
+        "line": "http-response ^https?:\\/\\/cards\\.iqiyi\\.com\\/(views_home\\/3\\.0\\/qy_home|waterfall\\/3\\.0\\/feed)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-4,requires-body=true",
         "section": "script",
         "sources": [
-          "aoomee"
+          "base"
         ]
       },
-      "change_type": "action_changed",
-      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
       "risk": "high",
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "aoomee": "scored"
+        "base": "unavailable"
       },
       "source_scores": {
-        "aoomee": 100
+        "base": null
       },
       "sources": [
-        "aoomee"
+        "base"
       ]
     },
     {
-      "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/api\\.gotokeep\\.com\\/config\\/v3\\/basic\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ishowshu/keep/ishowshu_keep.js\") with tag=\"keep\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
+      "after": null,
       "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/api\\.gotokeep\\.com\\/config\\/v3\\/basic\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ishowshu/keep/ishowshu_keep.js\") with tag=\"keep\", timeout=60, requires_body=true",
+        "line": "http-response ^https?:\\/\\/cards\\.iqiyi\\.com\\/views_category\\/3\\.0\\/(category_home|categorylib_content|film_hybrid)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-3,requires-body=true",
         "section": "script",
         "sources": [
-          "aoomee"
+          "base"
         ]
       },
-      "change_type": "action_changed",
-      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
       "risk": "high",
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "aoomee": "scored"
+        "base": "unavailable"
       },
       "source_scores": {
-        "aoomee": 100
+        "base": null
       },
       "sources": [
-        "aoomee"
+        "base"
       ]
     },
     {
-      "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.(cloudvideo\\.video\\.query|wireless\\.home\\.splash\\.awesome\\.get)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/Kelee/Taobao_remove_ads/kelee.one_Taobao_remove_ads.js\") with tag=\"移除淘宝开屏广告\", requires_body=true",
-        "section": "script",
-        "sources": [
-          "zmjapp"
-        ]
-      },
+      "after": null,
       "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.(cloudvideo\\.video\\.query|wireless\\.home\\.splash\\.awesome\\.get)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/Kelee/Taobao_remove_ads/kelee.one_Taobao_remove_ads.js\") with tag=\"移除淘宝开屏广告\", requires_body=true",
+        "line": "http-response ^https?:\\/\\/cards\\.iqiyi\\.com\\/views_plt\\/3\\.0\\/player_tabs_v2\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-5,requires-body=true",
         "section": "script",
         "sources": [
-          "zmjapp"
+          "base"
         ]
       },
-      "change_type": "action_changed",
-      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
       "risk": "high",
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "zmjapp": "unavailable"
+        "base": "unavailable"
       },
       "source_scores": {
-        "zmjapp": null
+        "base": null
       },
       "sources": [
-        "zmjapp"
+        "base"
       ]
     },
     {
-      "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/marketing\\/advertisement\\/v1/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ishowshu/pupu/ishowshu_pp.js\") with tag=\"pp\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
+      "after": null,
       "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/marketing\\/advertisement\\/v1/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ishowshu/pupu/ishowshu_pp.js\") with tag=\"pp\", timeout=60, requires_body=true",
+        "line": "http-response ^https?:\\/\\/cards\\.iqiyi\\.com\\/views_search\\/3\\.0\\/(hot_query_)?search\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-6,requires-body=true",
         "section": "script",
         "sources": [
-          "aoomee"
+          "base"
         ]
       },
-      "change_type": "action_changed",
-      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
       "risk": "high",
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "aoomee": "scored"
+        "base": "unavailable"
       },
       "source_scores": {
-        "aoomee": 100
+        "base": null
       },
       "sources": [
-        "aoomee"
+        "base"
       ]
     },
     {
-      "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/order\\/orders\\/list\\/v4/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ishowshu/pupu/ishowshu_pp.js\") with tag=\"pp\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
+      "after": null,
       "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/order\\/orders\\/list\\/v4/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ishowshu/pupu/ishowshu_pp.js\") with tag=\"pp\", timeout=60, requires_body=true",
+        "line": "http-response ^https?:\\/\\/comment-card\\.iqiyi\\.com\\/views_comment\\/3\\.0\\/long_video_comments\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-7,requires-body=true",
         "section": "script",
         "sources": [
-          "aoomee"
+          "base"
         ]
       },
-      "change_type": "action_changed",
-      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
       "risk": "high",
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "aoomee": "scored"
+        "base": "unavailable"
       },
       "source_scores": {
-        "aoomee": 100
+        "base": null
       },
       "sources": [
-        "aoomee"
+        "base"
       ]
     },
     {
-      "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/boss\\/(car\\/order\\/content_info|order_web\\/friendly_information)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
+      "after": null,
       "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/boss\\/(car\\/order\\/content_info|order_web\\/friendly_information)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+        "line": "http-response ^https?:\\/\\/dc2?\\.bz\\.mgtv\\.com\\/dynamic\\/v\\d\\/channel\\/(index|vrsList)\\/\\w script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=MGTV-3,requires-body=true",
         "section": "script",
         "sources": [
-          "aoomee"
+          "base"
         ]
       },
-      "change_type": "action_changed",
-      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
       "risk": "high",
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "aoomee": "scored"
+        "base": "unavailable"
       },
       "source_scores": {
-        "aoomee": 100
+        "base": null
       },
       "sources": [
-        "aoomee"
+        "base"
       ]
     },
     {
-      "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/sharedtrip\\/taxi\\/order_detail_car_tips\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
+      "after": null,
       "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/sharedtrip\\/taxi\\/order_detail_car_tips\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+        "line": "http-response ^https?:\\/\\/iface2\\.iqiyi\\.com\\/aggregate\\/3\\.0\\/getMyMenus\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-8,requires-body=true",
         "section": "script",
         "sources": [
-          "aoomee"
+          "base"
         ]
       },
-      "change_type": "action_changed",
-      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
       "risk": "high",
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "aoomee": "scored"
+        "base": "unavailable"
       },
       "source_scores": {
-        "aoomee": 100
+        "base": null
       },
       "sources": [
-        "aoomee"
+        "base"
       ]
     },
     {
-      "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/dsp\\/profile\\/index\\/nodefaasv3\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
+      "after": null,
       "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/dsp\\/profile\\/index\\/nodefaasv3\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+        "line": "http-response ^https?:\\/\\/iface2\\.iqiyi\\.com\\/control\\/3\\.0\\/init_proxy\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-9,requires-body=true",
         "section": "script",
         "sources": [
-          "aoomee"
+          "base"
         ]
       },
-      "change_type": "action_changed",
-      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
       "risk": "high",
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "aoomee": "scored"
+        "base": "unavailable"
       },
       "source_scores": {
-        "aoomee": 100
+        "base": null
       },
       "sources": [
-        "aoomee"
+        "base"
       ]
     },
     {
-      "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_bff\\/hotword\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
+      "after": null,
       "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_bff\\/hotword\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+        "line": "http-response ^https?:\\/\\/iface2\\.iqiyi\\.com\\/fusion\\/3\\.0\\/common_switch\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-10,requires-body=true",
         "section": "script",
         "sources": [
-          "aoomee"
+          "base"
         ]
       },
-      "change_type": "action_changed",
-      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
       "risk": "high",
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "aoomee": "scored"
+        "base": "unavailable"
       },
       "source_scores": {
-        "aoomee": 100
+        "base": null
       },
       "sources": [
-        "aoomee"
+        "base"
       ]
     },
     {
-      "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_poi\\/homepage/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
+      "after": null,
       "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_poi\\/homepage/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
+        "line": "http-response ^https?:\\/\\/iface2\\.iqiyi\\.com\\/views\\/3\\.0\\/(bottom_theme|home_top_menu)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-11,requires-body=true",
         "section": "script",
         "sources": [
-          "aoomee"
+          "base"
         ]
       },
-      "change_type": "action_changed",
-      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
       "risk": "high",
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "aoomee": "scored"
+        "base": "unavailable"
       },
       "source_scores": {
-        "aoomee": 100
+        "base": null
       },
       "sources": [
-        "aoomee"
+        "base"
       ]
     },
     {
-      "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/m\\.pinduoduo\\.net\\/mdkd\\/package\\?from_app_scan/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/Kelee/PinDuoDuo_remove_ads/kelee.one_PinDuoDuo_remove_ads.js\") with tag=\"移除扫码取件页面商品推荐及弹窗\", requires_body=true",
-        "section": "script",
-        "sources": [
-          "zmjapp"
-        ]
-      },
+      "after": null,
       "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/m\\.pinduoduo\\.net\\/mdkd\\/package\\?from_app_scan/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/Kelee/PinDuoDuo_remove_ads/kelee.one_PinDuoDuo_remove_ads.js\") with tag=\"移除扫码取件页面商品推荐及弹窗\", requires_body=true",
+        "line": "http-response ^https?:\\/\\/me\\.bz\\.mgtv\\.com\\/v\\d\\/module\\/list\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=MGTV,requires-body=true",
         "section": "script",
         "sources": [
-          "zmjapp"
+          "base"
         ]
       },
-      "change_type": "action_changed",
-      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
       "risk": "high",
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "zmjapp": "unavailable"
+        "base": "unavailable"
       },
       "source_scores": {
-        "zmjapp": null
+        "base": null
       },
       "sources": [
-        "zmjapp"
+        "base"
       ]
     },
     {
-      "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/poplayer\\.template\\.alibaba\\.com\\/\\w+\\.json/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/Kelee/Taobao_remove_ads/kelee.one_Taobao_remove_ads.js\") with tag=\"移除淘宝开屏广告\", requires_body=true",
-        "section": "script",
-        "sources": [
-          "zmjapp"
-        ]
-      },
+      "after": null,
       "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/poplayer\\.template\\.alibaba\\.com\\/\\w+\\.json/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/Kelee/Taobao_remove_ads/kelee.one_Taobao_remove_ads.js\") with tag=\"移除淘宝开屏广告\", requires_body=true",
+        "line": "http-response ^https?:\\/\\/mob-st\\.bz\\.mgtv\\.com\\/odin\\/c\\d\\/channel\\/index\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=MGTV-2,requires-body=true",
         "section": "script",
         "sources": [
-          "zmjapp"
+          "base"
         ]
       },
-      "change_type": "action_changed",
-      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
       "risk": "high",
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "zmjapp": "unavailable"
+        "base": "unavailable"
       },
       "source_scores": {
-        "zmjapp": null
+        "base": null
       },
       "sources": [
-        "zmjapp"
+        "base"
       ]
     },
     {
-      "after": {
-        "line": "response if ${url} ~= /^https:\\/\\/slugger\\.qunar\\.com\\/slugger-proxy\\?(?:[^#]*&)?qrt=(?:p_homeRecommend|qpub_animateSloganView|p_secondScreen_cards|pp_gw_u_myMainCard|pp_gw_u_myHeadInfo|suggestion_operation_app|innovation_popular_recommend|innovation_rankinglist_head|innovation_single_rankinglist|content_api_common_desert_damo_getPostList|content_api_common_feed_open_postList)(?:&[^#]*)?$/ && ${request.method} == \"POST\" && ${response.status} == 200 then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ccyykk666/qunar_ad/ccyykk666_qunar_ad_filter.js\") with tag=\"去哪儿旅行去广告\", timeout=10, requires_body=true, binary_body_mode=true",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
+      "after": null,
       "before": {
-        "line": "response if ${url} ~= /^https:\\/\\/slugger\\.qunar\\.com\\/slugger-proxy\\?(?:[^#]*&)?qrt=(?:p_homeRecommend|qpub_animateSloganView|p_secondScreen_cards|pp_gw_u_myMainCard|pp_gw_u_myHeadInfo|suggestion_operation_app|innovation_popular_recommend|innovation_rankinglist_head|innovation_single_rankinglist|content_api_common_desert_damo_getPostList|content_api_common_feed_open_postList)(?:&[^#]*)?$/ && ${request.method} == \"POST\" && ${response.status} == 200 then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ccyykk666/qunar_ad/ccyykk666_qunar_ad_filter.js\") with tag=\"去哪儿旅行去广告\", timeout=10, requires_body=true, binary_body_mode=true",
+        "line": "http-response ^https?:\\/\\/mobile-thor\\.api\\.mgtv\\.com\\/v\\d\\/vod\\/info\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=MGTV-6,requires-body=true",
         "section": "script",
         "sources": [
-          "aoomee"
+          "base"
         ]
       },
-      "change_type": "action_changed",
-      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
       "risk": "high",
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "aoomee": "scored"
+        "base": "unavailable"
       },
       "source_scores": {
-        "aoomee": 100
+        "base": null
       },
       "sources": [
-        "aoomee"
+        "base"
       ]
     },
     {
-      "after": {
-        "line": "response if ${url} ~= /^https?:\\/\\/apimobile\\.meituan\\.com\\/aggroup\\/indexTab/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
+      "after": null,
       "before": {
-        "line": "response if ${url} ~= /^https?:\\/\\/apimobile\\.meituan\\.com\\/aggroup\\/indexTab/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
+        "line": "http-response ^https?:\\/\\/mobile\\.api\\.mgtv\\.com\\/mobile\\/config\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=MGTV-4,requires-body=true",
         "section": "script",
         "sources": [
-          "aoomee"
+          "base"
         ]
       },
-      "change_type": "action_changed",
-      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
       "risk": "high",
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "aoomee": "scored"
+        "base": "unavailable"
       },
       "source_scores": {
-        "aoomee": 100
+        "base": null
       },
       "sources": [
-        "aoomee"
+        "base"
       ]
     },
     {
-      "after": {
-        "line": "response if ${url} ~= /^https?:\\/\\/apimobile\\.meituan\\.com\\/group\\/v1\\/deal\\/searchpage\\/defaultword/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
+      "after": null,
       "before": {
-        "line": "response if ${url} ~= /^https?:\\/\\/apimobile\\.meituan\\.com\\/group\\/v1\\/deal\\/searchpage\\/defaultword/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
+        "line": "http-response ^https?:\\/\\/mobile\\.api\\.mgtv\\.com\\/v\\d+\\/video\\/info\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=MGTV-5,requires-body=true",
         "section": "script",
         "sources": [
-          "aoomee"
+          "base"
         ]
       },
-      "change_type": "action_changed",
-      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
       "risk": "high",
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "aoomee": "scored"
+        "base": "unavailable"
       },
       "source_scores": {
-        "aoomee": 100
+        "base": null
       },
       "sources": [
-        "aoomee"
+        "base"
       ]
     },
     {
-      "after": {
-        "line": "response if ${url} ~= /^https?:\\/\\/apimobile\\.meituan\\.com\\/group\\/v1\\/deal\\/searchpage\\/hotword\\/city\\/divide\\/hotrecommend\\//i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
+      "after": null,
       "before": {
-        "line": "response if ${url} ~= /^https?:\\/\\/apimobile\\.meituan\\.com\\/group\\/v1\\/deal\\/searchpage\\/hotword\\/city\\/divide\\/hotrecommend\\//i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
+        "line": "http-response ^https?:\\/\\/mobileso\\.bz\\.mgtv\\.com\\/mobile\\/recommend\\/v\\d\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=MGTV-7,requires-body=true",
         "section": "script",
         "sources": [
-          "aoomee"
+          "base"
         ]
       },
-      "change_type": "action_changed",
-      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
       "risk": "high",
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "aoomee": "scored"
+        "base": "unavailable"
       },
       "source_scores": {
-        "aoomee": 100
+        "base": null
       },
       "sources": [
-        "aoomee"
+        "base"
       ]
     },
     {
-      "after": {
-        "line": "response if ${url} ~= /^https?:\\/\\/assistify\\.meituan\\.com\\/assistant\\/getAppClientHornConfig/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
+      "after": null,
       "before": {
-        "line": "response if ${url} ~= /^https?:\\/\\/assistify\\.meituan\\.com\\/assistant\\/getAppClientHornConfig/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
+        "line": "http-response ^https?:\\/\\/push\\.m\\.youku\\.com\\/collect-api\\/get_push_interval_config_wx\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=YOUKU-5,requires-body=true",
         "section": "script",
         "sources": [
-          "aoomee"
+          "base"
         ]
       },
-      "change_type": "action_changed",
-      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
       "risk": "high",
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "aoomee": "scored"
+        "base": "unavailable"
       },
       "source_scores": {
-        "aoomee": 100
+        "base": null
       },
       "sources": [
-        "aoomee"
+        "base"
       ]
     },
     {
-      "after": {
-        "line": "response if ${url} ~= /^https?:\\/\\/feedguess\\.meituan\\.com\\/lycoris\\/scene\\/(gwc_feed1_2265|personalcenter_2154)(\\?|$)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
+      "after": null,
       "before": {
-        "line": "response if ${url} ~= /^https?:\\/\\/feedguess\\.meituan\\.com\\/lycoris\\/scene\\/(gwc_feed1_2265|personalcenter_2154)(\\?|$)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
+        "line": "http-response ^https?:\\/\\/search\\.video\\.iqiyi\\.com\\/q\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-12,requires-body=true",
         "section": "script",
         "sources": [
-          "aoomee"
+          "base"
         ]
       },
-      "change_type": "action_changed",
-      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
       "risk": "high",
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "aoomee": "scored"
+        "base": "unavailable"
       },
       "source_scores": {
-        "aoomee": 100
+        "base": null
       },
       "sources": [
-        "aoomee"
+        "base"
       ]
     },
     {
-      "after": {
-        "line": "response if ${url} ~= /^https?:\\/\\/mop\\.meituan\\.com\\/api\\/entryModule\\/startupPicture/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
+      "after": null,
       "before": {
-        "line": "response if ${url} ~= /^https?:\\/\\/mop\\.meituan\\.com\\/api\\/entryModule\\/startupPicture/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
+        "line": "http-response ^https?:\\/\\/un-acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.play\\.ups\\.appinfo\\.get script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=YOUKU-6,requires-body=true",
         "section": "script",
         "sources": [
-          "aoomee"
+          "base"
         ]
       },
-      "change_type": "action_changed",
-      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
       "risk": "high",
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "aoomee": "scored"
+        "base": "unavailable"
       },
       "source_scores": {
-        "aoomee": 100
+        "base": null
       },
       "sources": [
-        "aoomee"
-      ]
-    },
-    {
-      "after": {
-        "line": "response if ${url} ~= /^https?:\\/\\/mop\\.meituan\\.com\\/mop\\/entry\\/shoppingCartEntry/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
-      "before": {
-        "line": "response if ${url} ~= /^https?:\\/\\/mop\\.meituan\\.com\\/mop\\/entry\\/shoppingCartEntry/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
-      "change_type": "action_changed",
-      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "aoomee": "scored"
-      },
-      "source_scores": {
-        "aoomee": 100
-      },
-      "sources": [
-        "aoomee"
-      ]
-    },
-    {
-      "after": {
-        "line": "response if ${url} ~= /^https?:\\/\\/mt-personalcenter\\.meituan\\.com\\/usercenter\\/display/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
-      "before": {
-        "line": "response if ${url} ~= /^https?:\\/\\/mt-personalcenter\\.meituan\\.com\\/usercenter\\/display/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/2f8d7079dfeac733143b83285ce44f4e2bc357a0/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "aoomee"
-        ]
-      },
-      "change_type": "action_changed",
-      "reason": "规则动作发生变化，可能改变请求/响应处理结果",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "aoomee": "scored"
-      },
-      "source_scores": {
-        "aoomee": 100
-      },
-      "sources": [
-        "aoomee"
+        "base"
       ]
     }
   ],
   "overall_risk": "high",
   "risk_counts": {
-    "high": 29,
+    "high": 26,
     "low": 0,
-    "medium": 2
+    "medium": 26
   },
-  "run_id": "44416870958",
+  "run_id": "44418800103",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -955,14 +1297,14 @@
     "base": {
       "action_changed": 19,
       "added": 75,
-      "removed": 17,
-      "snapshots_seen": 5
+      "removed": 43,
+      "snapshots_seen": 6
     },
     "block": {
       "action_changed": 20,
       "added": 0,
-      "removed": 3082,
-      "snapshots_seen": 6
+      "removed": 3076,
+      "snapshots_seen": 5
     },
     "filter": {
       "action_changed": 0,
@@ -972,7 +1314,7 @@
     },
     "local_overrides": {
       "action_changed": 0,
-      "added": 114,
+      "added": 134,
       "removed": 160,
       "snapshots_seen": 13
     },
@@ -1001,31 +1343,5 @@
       "snapshots_seen": 1
     }
   },
-  "upstream_revision_changes": [
-    {
-      "current_commit": "5685038ec50b505d6d24691b01b5ae8ca05a6142",
-      "previous_commit": "2f8d7079dfeac733143b83285ce44f4e2bc357a0",
-      "source": "AlipayAdBlock"
-    },
-    {
-      "current_commit": "5685038ec50b505d6d24691b01b5ae8ca05a6142",
-      "previous_commit": "2f8d7079dfeac733143b83285ce44f4e2bc357a0",
-      "source": "Amap"
-    },
-    {
-      "current_commit": "5685038ec50b505d6d24691b01b5ae8ca05a6142",
-      "previous_commit": "2f8d7079dfeac733143b83285ce44f4e2bc357a0",
-      "source": "GuaZiVideoAds"
-    },
-    {
-      "current_commit": "5685038ec50b505d6d24691b01b5ae8ca05a6142",
-      "previous_commit": "2f8d7079dfeac733143b83285ce44f4e2bc357a0",
-      "source": "aoomee"
-    },
-    {
-      "current_commit": "5685038ec50b505d6d24691b01b5ae8ca05a6142",
-      "previous_commit": "2f8d7079dfeac733143b83285ce44f4e2bc357a0",
-      "source": "zmjde"
-    }
-  ]
+  "upstream_revision_changes": []
 }

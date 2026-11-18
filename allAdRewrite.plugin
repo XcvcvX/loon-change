@@ -2,7 +2,7 @@
 #!desc=综合规则仅使用 R-Store base；保留 Romeo 独立 App 插件、高德、Spotify、瓜子影视与支付宝专项规则；单插件自包含
 #!author=R-Store / Romeo / RuCu6（Amap）/ zirawell / ddgksf2013（本仓库自动构建）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-18 23:01 UTC
+#!merged-at=2026-11-18 23:14 UTC
 #!note=综合规则只取 R-Store base；独立 App 专项规则单独保留；高德独立规则优先级最高；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store-base(QuanX->Loon)+Romeo-independent-App+Romeo-Spotify+RuCu6-Amap+zirawell-AlipayAdBlock+ddgksf2013/GuaZiVideoAds
 
@@ -3012,19 +3012,19 @@ http-response ^https?:\/\/post\.soulapp\.cn\/hot\/soul\/rank script-path=https:/
 http-response ^https?:\/\/post\.soulapp\.cn\/v\d\/post\/homepage\/guide\/card script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/soul.js,tag=SOUL-8,requires-body=true
 http-response ^https?:\/\/gateway-mobile-gray\.soulapp\.cn\/mobile\/app\/version\/queryIos script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/soul.js,tag=SOUL-9,requires-body=true
 http-response ^https?:\/\/mgs1\.bosc\.cn(:\d+)?\/mgw script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=BOSCLIFE
-http-response ^https?:\/\/[\d\.]+\/3f1\/cards\.iqiyi\.com\/(views_home\/3\.0\/qy_home|waterfall\/3\.0\/feed)\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI,requires-body=true
-http-response ^https?:\/\/access\.if\.iqiyi\.com\/3f1\/cards\.iqiyi\.com\/(views_category\/3\.0\/category_home|views_home\/3\.0\/qy_home|waterfall\/3\.0\/feed)\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-2,requires-body=true
-http-response ^https?:\/\/cards\.iqiyi\.com\/views_category\/3\.0\/(category_home|categorylib_content|film_hybrid)\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-3,requires-body=true
-http-response ^https?:\/\/cards\.iqiyi\.com\/(views_home\/3\.0\/qy_home|waterfall\/3\.0\/feed)\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-4,requires-body=true
-http-response ^https?:\/\/cards\.iqiyi\.com\/views_plt\/3\.0\/player_tabs_v2\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-5,requires-body=true
-http-response ^https?:\/\/cards\.iqiyi\.com\/views_search\/3\.0\/(hot_query_)?search\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-6,requires-body=true
-http-response ^https?:\/\/comment-card\.iqiyi\.com\/views_comment\/3\.0\/long_video_comments\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-7,requires-body=true
-http-response ^https?:\/\/iface2\.iqiyi\.com\/aggregate\/3\.0\/getMyMenus\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-8,requires-body=true
-http-response ^https?:\/\/iface2\.iqiyi\.com\/control\/3\.0\/init_proxy\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-9,requires-body=true
-http-response ^https?:\/\/iface2\.iqiyi\.com\/fusion\/3\.0\/common_switch\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-10,requires-body=true
-http-response ^https?:\/\/iface2\.iqiyi\.com\/views\/3\.0\/(bottom_theme|home_top_menu)\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-11,requires-body=true
-http-response ^https?:\/\/search\.video\.iqiyi\.com\/q\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-12,requires-body=true
-http-response ^https?:\/\/(kjp|t7z)\.cupid\.iqiyi\.com\/mixer\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-13,requires-body=true
+http-response ^https?:\/\/[\d\.]+\/3f1\/cards\.iqiyi\.com\/(views_home\/3\.0\/qy_home|waterfall\/3\.0\/feed)\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=IQIYI,requires-body=true
+http-response ^https?:\/\/access\.if\.iqiyi\.com\/3f1\/cards\.iqiyi\.com\/(views_category\/3\.0\/category_home|views_home\/3\.0\/qy_home|waterfall\/3\.0\/feed)\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=IQIYI-2,requires-body=true
+http-response ^https?:\/\/cards\.iqiyi\.com\/views_category\/3\.0\/(category_home|categorylib_content|film_hybrid)\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=IQIYI-3,requires-body=true
+http-response ^https?:\/\/cards\.iqiyi\.com\/(views_home\/3\.0\/qy_home|waterfall\/3\.0\/feed)\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=IQIYI-4,requires-body=true
+http-response ^https?:\/\/cards\.iqiyi\.com\/views_plt\/3\.0\/player_tabs_v2\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=IQIYI-5,requires-body=true
+http-response ^https?:\/\/cards\.iqiyi\.com\/views_search\/3\.0\/(hot_query_)?search\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=IQIYI-6,requires-body=true
+http-response ^https?:\/\/comment-card\.iqiyi\.com\/views_comment\/3\.0\/long_video_comments\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=IQIYI-7,requires-body=true
+http-response ^https?:\/\/iface2\.iqiyi\.com\/aggregate\/3\.0\/getMyMenus\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=IQIYI-8,requires-body=true
+http-response ^https?:\/\/iface2\.iqiyi\.com\/control\/3\.0\/init_proxy\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=IQIYI-9,requires-body=true
+http-response ^https?:\/\/iface2\.iqiyi\.com\/fusion\/3\.0\/common_switch\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=IQIYI-10,requires-body=true
+http-response ^https?:\/\/iface2\.iqiyi\.com\/views\/3\.0\/(bottom_theme|home_top_menu)\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=IQIYI-11,requires-body=true
+http-response ^https?:\/\/search\.video\.iqiyi\.com\/q\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=IQIYI-12,requires-body=true
+http-response ^https?:\/\/(kjp|t7z)\.cupid\.iqiyi\.com\/mixer\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=IQIYI-13,requires-body=true
 http-response ^https?:\/\/member\.alipan\.com\/v\d\/users\/onboard_list script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/adrive.js,tag=ADRIVE,requires-body=true
 http-response ^https?:\/\/api\.alipan\.com\/apps\/v\d\/users\/home\/(?:news|widgets) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/adrive.js,tag=ADRIVE-2,requires-body=true
 http-response ^https?:\/\/8\.95508\.com\/creditbank\/mgs\/mgw\.htm$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=95508
@@ -3048,13 +3048,13 @@ http-response ^https?:\/\/oss-zjrs\.haier\.net\/resource\/confFile\/\d{22}\.json
 http-response ^https?:\/\/zj\.haier\.net\/omsappapi\/resource\/v\d\/get\/resourceBag$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/haier.js,tag=EHAIER-2,requires-body=true
 http-response ^https?:\/\/creditcardapp\.bankcomm\.(com|cn)\/rcg\/index\.html\?callbackurl=rcg\/index\.html&orclogin=1& script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mdb.js,tag=BANKCOMM,requires-body=true
 http-response ^https?:\/\/(?:p\d\.meituan\.net\/linglong\/|web\.meituan\.com\/api\/miniprogram\/(?:tabbar\/all\/query|index\/aggregate)|apimobile\.meituan\.com\/(?:aggroup\/indexTab|group\/v1\/deal\/searchpage\/(?:defaultword|hotword\/city\/divide\/hotrecommend\/))|feedguess\.meituan\.com\/lycoris\/scene\/(?:gwc_feed1_2265|personalcenter_2154)(?:\?|$)|mt-personalcenter\.meituan\.com\/usercenter\/display|assistify\.meituan\.com\/assistant\/getAppClientHornConfig|mop\.meituan\.com\/(?:mop\/entry\/shoppingCartEntry|api\/entryModule\/startupPicture)) script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/meituan/meituan.js,tag=MEITUAN-CONSOLIDATED,requires-body=true
-http-response ^https?:\/\/me\.bz\.mgtv\.com\/v\d\/module\/list\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=MGTV,requires-body=true
-http-response ^https?:\/\/mob-st\.bz\.mgtv\.com\/odin\/c\d\/channel\/index\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=MGTV-2,requires-body=true
-http-response ^https?:\/\/dc2?\.bz\.mgtv\.com\/dynamic\/v\d\/channel\/(index|vrsList)\/\w script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=MGTV-3,requires-body=true
-http-response ^https?:\/\/mobile\.api\.mgtv\.com\/mobile\/config\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=MGTV-4,requires-body=true
-http-response ^https?:\/\/mobile\.api\.mgtv\.com\/v\d+\/video\/info\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=MGTV-5,requires-body=true
-http-response ^https?:\/\/mobile-thor\.api\.mgtv\.com\/v\d\/vod\/info\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=MGTV-6,requires-body=true
-http-response ^https?:\/\/mobileso\.bz\.mgtv\.com\/mobile\/recommend\/v\d\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=MGTV-7,requires-body=true
+http-response ^https?:\/\/me\.bz\.mgtv\.com\/v\d\/module\/list\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=MGTV,requires-body=true
+http-response ^https?:\/\/mob-st\.bz\.mgtv\.com\/odin\/c\d\/channel\/index\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=MGTV-2,requires-body=true
+http-response ^https?:\/\/dc2?\.bz\.mgtv\.com\/dynamic\/v\d\/channel\/(index|vrsList)\/\w script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=MGTV-3,requires-body=true
+http-response ^https?:\/\/mobile\.api\.mgtv\.com\/mobile\/config\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=MGTV-4,requires-body=true
+http-response ^https?:\/\/mobile\.api\.mgtv\.com\/v\d+\/video\/info\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=MGTV-5,requires-body=true
+http-response ^https?:\/\/mobile-thor\.api\.mgtv\.com\/v\d\/vod\/info\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=MGTV-6,requires-body=true
+http-response ^https?:\/\/mobileso\.bz\.mgtv\.com\/mobile\/recommend\/v\d\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=MGTV-7,requires-body=true
 http-response ^https?:\/\/(h3\.)?open\.taou\.com\/maimai\/(feed|gossip)\/v\d\/(?:focus_feed|gossip_detail_comment|feed_detail_comment) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/maimai.js,tag=MAIMAI,requires-body=true
 http-response ^https?:\/\/mapi\.mafengwo\.cn\/user\/profile\/get_(?:list|profile) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mafengwo.js,tag=MAFENGWO,requires-body=true
 http-response ^https?:\/\/((h5|api)\.xiuxiu|api-sub|api\.posters)\.meitu\.com\/.+\/(vip|user|h\d|center|home) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/Unlock/meitu.js,tag=MEITU,requires-body=true
@@ -3157,12 +3157,12 @@ http-response ^https?:\/\/vip\d\.kuwo\.cn\/vip\/v\d\/user\/vip\?op=ui script-pat
 http-response ^https?:\/\/www\.1314zhilv\.com\/ltsstnew\/(common\/getJGQIconNew|city\/getAllBannelByCity) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ltsst.js,tag=1314ZHILV,requires-body=true
 http-response ^https?:\/\/youtubei\.googleapis\.com\/(youtubei\/v\d\/(browse|next|player|search|reel\/reel_watch_sequence|guide|account\/get_setting|get_watch))(\?(.*))?$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/youtube.js,tag=YOUTUBE,requires-body=true,binary-body-mode=true
 http-response ^https?:\/\/\w+\.ys7\.com\/v\d\/valueadded\/operation\/config\/master\/station script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ys7.js,tag=YS7,requires-body=true
-http-response ^https?:\/\/acs\.youku\.com\/gw\/mtop\.youku\.columbus\.(gateway\.new\.execute|home\.feed|home\.query|uc\.query|ycp\.query) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=YOUKU,requires-body=true
-http-response ^https?:\/\/acs\.youku\.com\/gw\/mtop\.youku\.haidai\.lantern\.appconfig\.get script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=YOUKU-2,requires-body=true
-http-response ^https?:\/\/acs\.youku\.com\/gw\/mtop\.youku\.huluwa\.dispatcher\.youthmode\.config2 script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=YOUKU-3,requires-body=true
-http-response ^https?:\/\/acs\.youku\.com\/gw\/mtop\.youku\.soku\.yksearch script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=YOUKU-4,requires-body=true
-http-response ^https?:\/\/push\.m\.youku\.com\/collect-api\/get_push_interval_config_wx\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=YOUKU-5,requires-body=true
-http-response ^https?:\/\/un-acs\.youku\.com\/gw\/mtop\.youku\.play\.ups\.appinfo\.get script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=YOUKU-6,requires-body=true
+http-response ^https?:\/\/acs\.youku\.com\/gw\/mtop\.youku\.columbus\.(gateway\.new\.execute|home\.feed|home\.query|uc\.query|ycp\.query) script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=YOUKU,requires-body=true
+http-response ^https?:\/\/acs\.youku\.com\/gw\/mtop\.youku\.haidai\.lantern\.appconfig\.get script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=YOUKU-2,requires-body=true
+http-response ^https?:\/\/acs\.youku\.com\/gw\/mtop\.youku\.huluwa\.dispatcher\.youthmode\.config2 script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=YOUKU-3,requires-body=true
+http-response ^https?:\/\/acs\.youku\.com\/gw\/mtop\.youku\.soku\.yksearch script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=YOUKU-4,requires-body=true
+http-response ^https?:\/\/push\.m\.youku\.com\/collect-api\/get_push_interval_config_wx\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=YOUKU-5,requires-body=true
+http-response ^https?:\/\/un-acs\.youku\.com\/gw\/mtop\.youku\.play\.ups\.appinfo\.get script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=YOUKU-6,requires-body=true
 http-response ^https?:\/\/image\.spdbccc\.com\.cn\/group\d\/.*\.JPG$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/spdbccc.js,tag=SPDBCCC
 http-response ^https?:\/\/cdn\.sdb\.com\.cn\/bron-coms\/bron-coms\/material-image script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/sdb.js,tag=SDB
 http-response ^https?:\/\/iosapi\.peiyinxiu\.com\/Api\/Film\/GetConfigValue script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/peiyinxiu.js,tag=PEIYINXIU,requires-body=true

@@ -47414,225 +47414,147 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://[\\\\d\\\\.]+/3f1/cards\\\\.iqiyi\\\\.com/(views_home/3\\\\.0/qy_home|waterfall/3\\\\.0/feed)\\\\?', ('^https?:\\\\/\\\\/[\\\\d\\\\.]+\\\\/3f1\\\\/cards\\\\.iqiyi\\\\.com\\\\/', '^https?:\\\\/\\\\/[\\\\d\\\\.]+\\\\/3f1\\\\/cards\\\\.iqiyi\\\\.com\\\\/(views_home\\\\/3\\\\.0\\\\/qy_home|waterfall\\\\/3\\\\.0\\\\/feed)\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI,requires-body=true'))",
-      "output_entry_index": 78,
-      "output_line": "http-response ^https?:\\/\\/[\\d\\.]+\\/3f1\\/cards\\.iqiyi\\.com\\/(views_home\\/3\\.0\\/qy_home|waterfall\\/3\\.0\\/feed)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/[\\d\\.]+\\/3f1\\/cards\\.iqiyi\\.com\\/(views_home\\/3\\.0\\/qy_home|waterfall\\/3\\.0\\/feed)\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=IQIYI,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/[\\d\\.]+\\/3f1\\/cards\\.iqiyi\\.com\\/(views_home\\/3\\.0\\/qy_home|waterfall\\/3\\.0\\/feed)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 77
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://access\\\\.if\\\\.iqiyi\\\\.com/3f1/cards\\\\.iqiyi\\\\.com/(views_category/3\\\\.0/category_home|views_home/3\\\\.0/qy_home|waterfall/3\\\\.0/feed)\\\\?', ('^https?:\\\\/\\\\/access\\\\.if\\\\.iqiyi\\\\.com\\\\/3f1\\\\/cards\\\\.iqiyi\\\\.com\\\\/', '^https?:\\\\/\\\\/access\\\\.if\\\\.iqiyi\\\\.com\\\\/3f1\\\\/cards\\\\.iqiyi\\\\.com\\\\/(views_category\\\\/3\\\\.0\\\\/category_home|views_home\\\\/3\\\\.0\\\\/qy_home|waterfall\\\\/3\\\\.0\\\\/feed)\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-2,requires-body=true'))",
-      "output_entry_index": 79,
-      "output_line": "http-response ^https?:\\/\\/access\\.if\\.iqiyi\\.com\\/3f1\\/cards\\.iqiyi\\.com\\/(views_category\\/3\\.0\\/category_home|views_home\\/3\\.0\\/qy_home|waterfall\\/3\\.0\\/feed)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-2,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/access\\.if\\.iqiyi\\.com\\/3f1\\/cards\\.iqiyi\\.com\\/(views_category\\/3\\.0\\/category_home|views_home\\/3\\.0\\/qy_home|waterfall\\/3\\.0\\/feed)\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=IQIYI-2,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/access\\.if\\.iqiyi\\.com\\/3f1\\/cards\\.iqiyi\\.com\\/(views_category\\/3\\.0\\/category_home|views_home\\/3\\.0\\/qy_home|waterfall\\/3\\.0\\/feed)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-2,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 78
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://cards\\\\.iqiyi\\\\.com/views_category/3\\\\.0/(category_home|categorylib_content|film_hybrid)\\\\?', ('^https?:\\\\/\\\\/cards\\\\.iqiyi\\\\.com\\\\/views_category\\\\/3\\\\.0\\\\/', '^https?:\\\\/\\\\/cards\\\\.iqiyi\\\\.com\\\\/views_category\\\\/3\\\\.0\\\\/(category_home|categorylib_content|film_hybrid)\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-3,requires-body=true'))",
-      "output_entry_index": 80,
-      "output_line": "http-response ^https?:\\/\\/cards\\.iqiyi\\.com\\/views_category\\/3\\.0\\/(category_home|categorylib_content|film_hybrid)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-3,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/cards\\.iqiyi\\.com\\/views_category\\/3\\.0\\/(category_home|categorylib_content|film_hybrid)\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=IQIYI-3,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/cards\\.iqiyi\\.com\\/views_category\\/3\\.0\\/(category_home|categorylib_content|film_hybrid)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-3,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 79
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://cards\\\\.iqiyi\\\\.com/(views_home/3\\\\.0/qy_home|waterfall/3\\\\.0/feed)\\\\?', ('^https?:\\\\/\\\\/cards\\\\.iqiyi\\\\.com\\\\/', '^https?:\\\\/\\\\/cards\\\\.iqiyi\\\\.com\\\\/(views_home\\\\/3\\\\.0\\\\/qy_home|waterfall\\\\/3\\\\.0\\\\/feed)\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-4,requires-body=true'))",
-      "output_entry_index": 81,
-      "output_line": "http-response ^https?:\\/\\/cards\\.iqiyi\\.com\\/(views_home\\/3\\.0\\/qy_home|waterfall\\/3\\.0\\/feed)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-4,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/cards\\.iqiyi\\.com\\/(views_home\\/3\\.0\\/qy_home|waterfall\\/3\\.0\\/feed)\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=IQIYI-4,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/cards\\.iqiyi\\.com\\/(views_home\\/3\\.0\\/qy_home|waterfall\\/3\\.0\\/feed)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-4,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 80
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://cards\\\\.iqiyi\\\\.com/views_plt/3\\\\.0/player_tabs_v2\\\\?', ('^https?:\\\\/\\\\/cards\\\\.iqiyi\\\\.com\\\\/views_plt\\\\/3\\\\.0\\\\/player_tabs_v2\\\\?', '^https?:\\\\/\\\\/cards\\\\.iqiyi\\\\.com\\\\/views_plt\\\\/3\\\\.0\\\\/player_tabs_v2\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-5,requires-body=true'))",
-      "output_entry_index": 82,
-      "output_line": "http-response ^https?:\\/\\/cards\\.iqiyi\\.com\\/views_plt\\/3\\.0\\/player_tabs_v2\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-5,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/cards\\.iqiyi\\.com\\/views_plt\\/3\\.0\\/player_tabs_v2\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=IQIYI-5,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/cards\\.iqiyi\\.com\\/views_plt\\/3\\.0\\/player_tabs_v2\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-5,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 81
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://cards\\\\.iqiyi\\\\.com/views_search/3\\\\.0/(hot_query_)?search\\\\?', ('^https?:\\\\/\\\\/cards\\\\.iqiyi\\\\.com\\\\/views_search\\\\/3\\\\.0\\\\/', '^https?:\\\\/\\\\/cards\\\\.iqiyi\\\\.com\\\\/views_search\\\\/3\\\\.0\\\\/(hot_query_)?search\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-6,requires-body=true'))",
-      "output_entry_index": 83,
-      "output_line": "http-response ^https?:\\/\\/cards\\.iqiyi\\.com\\/views_search\\/3\\.0\\/(hot_query_)?search\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-6,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/cards\\.iqiyi\\.com\\/views_search\\/3\\.0\\/(hot_query_)?search\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=IQIYI-6,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/cards\\.iqiyi\\.com\\/views_search\\/3\\.0\\/(hot_query_)?search\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-6,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 82
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://comment-card\\\\.iqiyi\\\\.com/views_comment/3\\\\.0/long_video_comments\\\\?', ('^https?:\\\\/\\\\/comment-card\\\\.iqiyi\\\\.com\\\\/views_comment\\\\/3\\\\.0\\\\/long_video_comments\\\\?', '^https?:\\\\/\\\\/comment-card\\\\.iqiyi\\\\.com\\\\/views_comment\\\\/3\\\\.0\\\\/long_video_comments\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-7,requires-body=true'))",
-      "output_entry_index": 84,
-      "output_line": "http-response ^https?:\\/\\/comment-card\\.iqiyi\\.com\\/views_comment\\/3\\.0\\/long_video_comments\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-7,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/comment-card\\.iqiyi\\.com\\/views_comment\\/3\\.0\\/long_video_comments\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=IQIYI-7,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/comment-card\\.iqiyi\\.com\\/views_comment\\/3\\.0\\/long_video_comments\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-7,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 83
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://iface2\\\\.iqiyi\\\\.com/aggregate/3\\\\.0/getMyMenus\\\\?', ('^https?:\\\\/\\\\/iface2\\\\.iqiyi\\\\.com\\\\/aggregate\\\\/3\\\\.0\\\\/getmymenus\\\\?', '^https?:\\\\/\\\\/iface2\\\\.iqiyi\\\\.com\\\\/aggregate\\\\/3\\\\.0\\\\/getMyMenus\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-8,requires-body=true'))",
-      "output_entry_index": 85,
-      "output_line": "http-response ^https?:\\/\\/iface2\\.iqiyi\\.com\\/aggregate\\/3\\.0\\/getMyMenus\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-8,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/iface2\\.iqiyi\\.com\\/aggregate\\/3\\.0\\/getMyMenus\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=IQIYI-8,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/iface2\\.iqiyi\\.com\\/aggregate\\/3\\.0\\/getMyMenus\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-8,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 84
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://iface2\\\\.iqiyi\\\\.com/control/3\\\\.0/init_proxy\\\\?', ('^https?:\\\\/\\\\/iface2\\\\.iqiyi\\\\.com\\\\/control\\\\/3\\\\.0\\\\/init_proxy\\\\?', '^https?:\\\\/\\\\/iface2\\\\.iqiyi\\\\.com\\\\/control\\\\/3\\\\.0\\\\/init_proxy\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-9,requires-body=true'))",
-      "output_entry_index": 86,
-      "output_line": "http-response ^https?:\\/\\/iface2\\.iqiyi\\.com\\/control\\/3\\.0\\/init_proxy\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-9,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/iface2\\.iqiyi\\.com\\/control\\/3\\.0\\/init_proxy\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=IQIYI-9,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/iface2\\.iqiyi\\.com\\/control\\/3\\.0\\/init_proxy\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-9,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 85
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://iface2\\\\.iqiyi\\\\.com/fusion/3\\\\.0/common_switch\\\\?', ('^https?:\\\\/\\\\/iface2\\\\.iqiyi\\\\.com\\\\/fusion\\\\/3\\\\.0\\\\/common_switch\\\\?', '^https?:\\\\/\\\\/iface2\\\\.iqiyi\\\\.com\\\\/fusion\\\\/3\\\\.0\\\\/common_switch\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-10,requires-body=true'))",
-      "output_entry_index": 87,
-      "output_line": "http-response ^https?:\\/\\/iface2\\.iqiyi\\.com\\/fusion\\/3\\.0\\/common_switch\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-10,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/iface2\\.iqiyi\\.com\\/fusion\\/3\\.0\\/common_switch\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=IQIYI-10,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/iface2\\.iqiyi\\.com\\/fusion\\/3\\.0\\/common_switch\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-10,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 86
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://iface2\\\\.iqiyi\\\\.com/views/3\\\\.0/(bottom_theme|home_top_menu)\\\\?', ('^https?:\\\\/\\\\/iface2\\\\.iqiyi\\\\.com\\\\/views\\\\/3\\\\.0\\\\/', '^https?:\\\\/\\\\/iface2\\\\.iqiyi\\\\.com\\\\/views\\\\/3\\\\.0\\\\/(bottom_theme|home_top_menu)\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-11,requires-body=true'))",
-      "output_entry_index": 88,
-      "output_line": "http-response ^https?:\\/\\/iface2\\.iqiyi\\.com\\/views\\/3\\.0\\/(bottom_theme|home_top_menu)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-11,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/iface2\\.iqiyi\\.com\\/views\\/3\\.0\\/(bottom_theme|home_top_menu)\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=IQIYI-11,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/iface2\\.iqiyi\\.com\\/views\\/3\\.0\\/(bottom_theme|home_top_menu)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-11,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 87
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://search\\\\.video\\\\.iqiyi\\\\.com/q\\\\?', ('^https?:\\\\/\\\\/search\\\\.video\\\\.iqiyi\\\\.com\\\\/q\\\\?', '^https?:\\\\/\\\\/search\\\\.video\\\\.iqiyi\\\\.com\\\\/q\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-12,requires-body=true'))",
-      "output_entry_index": 89,
-      "output_line": "http-response ^https?:\\/\\/search\\.video\\.iqiyi\\.com\\/q\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-12,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/search\\.video\\.iqiyi\\.com\\/q\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=IQIYI-12,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/search\\.video\\.iqiyi\\.com\\/q\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-12,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 88
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://(kjp|t7z)\\\\.cupid\\\\.iqiyi\\\\.com/mixer\\\\?', ('^https?:\\\\/\\\\/', '^https?:\\\\/\\\\/(kjp|t7z)\\\\.cupid\\\\.iqiyi\\\\.com\\\\/mixer\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-13,requires-body=true'))",
-      "output_entry_index": 90,
-      "output_line": "http-response ^https?:\\/\\/(kjp|t7z)\\.cupid\\.iqiyi\\.com\\/mixer\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-13,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/(kjp|t7z)\\.cupid\\.iqiyi\\.com\\/mixer\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=IQIYI-13,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/(kjp|t7z)\\.cupid\\.iqiyi\\.com\\/mixer\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=IQIYI-13,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 89
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
       "canonical_key": "('guarded', '^https?://member\\\\.alipan\\\\.com/v\\\\d/users/onboard_list', ('^https?:\\\\/\\\\/member\\\\.alipan\\\\.com\\\\/v\\\\d\\\\/users\\\\/onboard_list', '^https?:\\\\/\\\\/member\\\\.alipan\\\\.com\\\\/v\\\\d\\\\/users\\\\/onboard_list script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/adrive.js,tag=ADRIVE,requires-body=true'))",
@@ -48020,123 +47942,81 @@
       ]
     },
     {
-      "canonical_key": "('guarded', '^https?://me\\\\.bz\\\\.mgtv\\\\.com/v\\\\d/module/list\\\\?', ('^https?:\\\\/\\\\/me\\\\.bz\\\\.mgtv\\\\.com\\\\/v\\\\d\\\\/module\\\\/list\\\\?', '^https?:\\\\/\\\\/me\\\\.bz\\\\.mgtv\\\\.com\\\\/v\\\\d\\\\/module\\\\/list\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=MGTV,requires-body=true'))",
-      "output_entry_index": 118,
-      "output_line": "http-response ^https?:\\/\\/me\\.bz\\.mgtv\\.com\\/v\\d\\/module\\/list\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=MGTV,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/me\\.bz\\.mgtv\\.com\\/v\\d\\/module\\/list\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=MGTV,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/me\\.bz\\.mgtv\\.com\\/v\\d\\/module\\/list\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=MGTV,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 117
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://mob-st\\\\.bz\\\\.mgtv\\\\.com/odin/c\\\\d/channel/index\\\\?', ('^https?:\\\\/\\\\/mob-st\\\\.bz\\\\.mgtv\\\\.com\\\\/odin\\\\/c\\\\d\\\\/channel\\\\/index\\\\?', '^https?:\\\\/\\\\/mob-st\\\\.bz\\\\.mgtv\\\\.com\\\\/odin\\\\/c\\\\d\\\\/channel\\\\/index\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=MGTV-2,requires-body=true'))",
-      "output_entry_index": 119,
-      "output_line": "http-response ^https?:\\/\\/mob-st\\.bz\\.mgtv\\.com\\/odin\\/c\\d\\/channel\\/index\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=MGTV-2,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/mob-st\\.bz\\.mgtv\\.com\\/odin\\/c\\d\\/channel\\/index\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=MGTV-2,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/mob-st\\.bz\\.mgtv\\.com\\/odin\\/c\\d\\/channel\\/index\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=MGTV-2,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 118
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://dc2?\\\\.bz\\\\.mgtv\\\\.com/dynamic/v\\\\d/channel/(index|vrsList)/\\\\w', ('^https?:\\\\/\\\\/dc2?\\\\.bz\\\\.mgtv\\\\.com\\\\/dynamic\\\\/v\\\\d\\\\/channel\\\\/', '^https?:\\\\/\\\\/dc2?\\\\.bz\\\\.mgtv\\\\.com\\\\/dynamic\\\\/v\\\\d\\\\/channel\\\\/(index|vrsList)\\\\/\\\\w script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=MGTV-3,requires-body=true'))",
-      "output_entry_index": 120,
-      "output_line": "http-response ^https?:\\/\\/dc2?\\.bz\\.mgtv\\.com\\/dynamic\\/v\\d\\/channel\\/(index|vrsList)\\/\\w script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=MGTV-3,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/dc2?\\.bz\\.mgtv\\.com\\/dynamic\\/v\\d\\/channel\\/(index|vrsList)\\/\\w script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=MGTV-3,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/dc2?\\.bz\\.mgtv\\.com\\/dynamic\\/v\\d\\/channel\\/(index|vrsList)\\/\\w script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=MGTV-3,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 119
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://mobile\\\\.api\\\\.mgtv\\\\.com/mobile/config\\\\?', ('^https?:\\\\/\\\\/mobile\\\\.api\\\\.mgtv\\\\.com\\\\/mobile\\\\/config\\\\?', '^https?:\\\\/\\\\/mobile\\\\.api\\\\.mgtv\\\\.com\\\\/mobile\\\\/config\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=MGTV-4,requires-body=true'))",
-      "output_entry_index": 121,
-      "output_line": "http-response ^https?:\\/\\/mobile\\.api\\.mgtv\\.com\\/mobile\\/config\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=MGTV-4,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/mobile\\.api\\.mgtv\\.com\\/mobile\\/config\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=MGTV-4,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/mobile\\.api\\.mgtv\\.com\\/mobile\\/config\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=MGTV-4,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 120
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://mobile\\\\.api\\\\.mgtv\\\\.com/v\\\\d+/video/info\\\\?', ('^https?:\\\\/\\\\/mobile\\\\.api\\\\.mgtv\\\\.com\\\\/v\\\\d+\\\\/video\\\\/info\\\\?', '^https?:\\\\/\\\\/mobile\\\\.api\\\\.mgtv\\\\.com\\\\/v\\\\d+\\\\/video\\\\/info\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=MGTV-5,requires-body=true'))",
-      "output_entry_index": 122,
-      "output_line": "http-response ^https?:\\/\\/mobile\\.api\\.mgtv\\.com\\/v\\d+\\/video\\/info\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=MGTV-5,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/mobile\\.api\\.mgtv\\.com\\/v\\d+\\/video\\/info\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=MGTV-5,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/mobile\\.api\\.mgtv\\.com\\/v\\d+\\/video\\/info\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=MGTV-5,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 121
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://mobile-thor\\\\.api\\\\.mgtv\\\\.com/v\\\\d/vod/info\\\\?', ('^https?:\\\\/\\\\/mobile-thor\\\\.api\\\\.mgtv\\\\.com\\\\/v\\\\d\\\\/vod\\\\/info\\\\?', '^https?:\\\\/\\\\/mobile-thor\\\\.api\\\\.mgtv\\\\.com\\\\/v\\\\d\\\\/vod\\\\/info\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=MGTV-6,requires-body=true'))",
-      "output_entry_index": 123,
-      "output_line": "http-response ^https?:\\/\\/mobile-thor\\.api\\.mgtv\\.com\\/v\\d\\/vod\\/info\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=MGTV-6,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/mobile-thor\\.api\\.mgtv\\.com\\/v\\d\\/vod\\/info\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=MGTV-6,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/mobile-thor\\.api\\.mgtv\\.com\\/v\\d\\/vod\\/info\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=MGTV-6,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 122
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://mobileso\\\\.bz\\\\.mgtv\\\\.com/mobile/recommend/v\\\\d\\\\?', ('^https?:\\\\/\\\\/mobileso\\\\.bz\\\\.mgtv\\\\.com\\\\/mobile\\\\/recommend\\\\/v\\\\d\\\\?', '^https?:\\\\/\\\\/mobileso\\\\.bz\\\\.mgtv\\\\.com\\\\/mobile\\\\/recommend\\\\/v\\\\d\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=MGTV-7,requires-body=true'))",
-      "output_entry_index": 124,
-      "output_line": "http-response ^https?:\\/\\/mobileso\\.bz\\.mgtv\\.com\\/mobile\\/recommend\\/v\\d\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=MGTV-7,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/mobileso\\.bz\\.mgtv\\.com\\/mobile\\/recommend\\/v\\d\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=MGTV-7,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/mobileso\\.bz\\.mgtv\\.com\\/mobile\\/recommend\\/v\\d\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=MGTV-7,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 123
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
       "canonical_key": "('guarded', '^https?://(h3\\\\.)?open\\\\.taou\\\\.com/maimai/(feed|gossip)/v\\\\d/(?:focus_feed|gossip_detail_comment|feed_detail_comment)', ('^https?:\\\\/\\\\/', '^https?:\\\\/\\\\/(h3\\\\.)?open\\\\.taou\\\\.com\\\\/maimai\\\\/(feed|gossip)\\\\/v\\\\d\\\\/(?:focus_feed|gossip_detail_comment|feed_detail_comment) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/maimai.js,tag=MAIMAI,requires-body=true'))",
@@ -49789,106 +49669,70 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://acs\\\\.youku\\\\.com/gw/mtop\\\\.youku\\\\.columbus\\\\.(gateway\\\\.new\\\\.execute|home\\\\.feed|home\\\\.query|uc\\\\.query|ycp\\\\.query)', ('^https?:\\\\/\\\\/acs\\\\.youku\\\\.com\\\\/gw\\\\/mtop\\\\.youku\\\\.columbus\\\\.', '^https?:\\\\/\\\\/acs\\\\.youku\\\\.com\\\\/gw\\\\/mtop\\\\.youku\\\\.columbus\\\\.(gateway\\\\.new\\\\.execute|home\\\\.feed|home\\\\.query|uc\\\\.query|ycp\\\\.query) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=YOUKU,requires-body=true'))",
-      "output_entry_index": 231,
-      "output_line": "http-response ^https?:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.columbus\\.(gateway\\.new\\.execute|home\\.feed|home\\.query|uc\\.query|ycp\\.query) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=YOUKU,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.columbus\\.(gateway\\.new\\.execute|home\\.feed|home\\.query|uc\\.query|ycp\\.query) script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=YOUKU,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.columbus\\.(gateway\\.new\\.execute|home\\.feed|home\\.query|uc\\.query|ycp\\.query) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=YOUKU,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 230
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://acs\\\\.youku\\\\.com/gw/mtop\\\\.youku\\\\.haidai\\\\.lantern\\\\.appconfig\\\\.get', ('^https?:\\\\/\\\\/acs\\\\.youku\\\\.com\\\\/gw\\\\/mtop\\\\.youku\\\\.haidai\\\\.lantern\\\\.appconfig\\\\.get', '^https?:\\\\/\\\\/acs\\\\.youku\\\\.com\\\\/gw\\\\/mtop\\\\.youku\\\\.haidai\\\\.lantern\\\\.appconfig\\\\.get script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=YOUKU-2,requires-body=true'))",
-      "output_entry_index": 232,
-      "output_line": "http-response ^https?:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.haidai\\.lantern\\.appconfig\\.get script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=YOUKU-2,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.haidai\\.lantern\\.appconfig\\.get script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=YOUKU-2,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.haidai\\.lantern\\.appconfig\\.get script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=YOUKU-2,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 231
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://acs\\\\.youku\\\\.com/gw/mtop\\\\.youku\\\\.huluwa\\\\.dispatcher\\\\.youthmode\\\\.config2', ('^https?:\\\\/\\\\/acs\\\\.youku\\\\.com\\\\/gw\\\\/mtop\\\\.youku\\\\.huluwa\\\\.dispatcher\\\\.youthmode\\\\.config2', '^https?:\\\\/\\\\/acs\\\\.youku\\\\.com\\\\/gw\\\\/mtop\\\\.youku\\\\.huluwa\\\\.dispatcher\\\\.youthmode\\\\.config2 script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=YOUKU-3,requires-body=true'))",
-      "output_entry_index": 233,
-      "output_line": "http-response ^https?:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.huluwa\\.dispatcher\\.youthmode\\.config2 script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=YOUKU-3,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.huluwa\\.dispatcher\\.youthmode\\.config2 script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=YOUKU-3,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.huluwa\\.dispatcher\\.youthmode\\.config2 script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=YOUKU-3,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 232
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://acs\\\\.youku\\\\.com/gw/mtop\\\\.youku\\\\.soku\\\\.yksearch', ('^https?:\\\\/\\\\/acs\\\\.youku\\\\.com\\\\/gw\\\\/mtop\\\\.youku\\\\.soku\\\\.yksearch', '^https?:\\\\/\\\\/acs\\\\.youku\\\\.com\\\\/gw\\\\/mtop\\\\.youku\\\\.soku\\\\.yksearch script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=YOUKU-4,requires-body=true'))",
-      "output_entry_index": 234,
-      "output_line": "http-response ^https?:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.soku\\.yksearch script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=YOUKU-4,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.soku\\.yksearch script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=YOUKU-4,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.soku\\.yksearch script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=YOUKU-4,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 233
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://push\\\\.m\\\\.youku\\\\.com/collect-api/get_push_interval_config_wx\\\\?', ('^https?:\\\\/\\\\/push\\\\.m\\\\.youku\\\\.com\\\\/collect-api\\\\/get_push_interval_config_wx\\\\?', '^https?:\\\\/\\\\/push\\\\.m\\\\.youku\\\\.com\\\\/collect-api\\\\/get_push_interval_config_wx\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=YOUKU-5,requires-body=true'))",
-      "output_entry_index": 235,
-      "output_line": "http-response ^https?:\\/\\/push\\.m\\.youku\\.com\\/collect-api\\/get_push_interval_config_wx\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=YOUKU-5,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/push\\.m\\.youku\\.com\\/collect-api\\/get_push_interval_config_wx\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=YOUKU-5,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/push\\.m\\.youku\\.com\\/collect-api\\/get_push_interval_config_wx\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=YOUKU-5,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 234
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://un-acs\\\\.youku\\\\.com/gw/mtop\\\\.youku\\\\.play\\\\.ups\\\\.appinfo\\\\.get', ('^https?:\\\\/\\\\/un-acs\\\\.youku\\\\.com\\\\/gw\\\\/mtop\\\\.youku\\\\.play\\\\.ups\\\\.appinfo\\\\.get', '^https?:\\\\/\\\\/un-acs\\\\.youku\\\\.com\\\\/gw\\\\/mtop\\\\.youku\\\\.play\\\\.ups\\\\.appinfo\\\\.get script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=YOUKU-6,requires-body=true'))",
-      "output_entry_index": 236,
-      "output_line": "http-response ^https?:\\/\\/un-acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.play\\.ups\\.appinfo\\.get script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=YOUKU-6,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/un-acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.play\\.ups\\.appinfo\\.get script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js,tag=YOUKU-6,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/un-acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.play\\.ups\\.appinfo\\.get script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js,tag=YOUKU-6,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 235
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
       "output_line": "http-response ^https?:\\/\\/image\\.spdbccc\\.com\\.cn\\/group\\d\\/.*\\.JPG$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/spdbccc.js,tag=SPDBCCC",
