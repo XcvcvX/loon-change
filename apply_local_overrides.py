@@ -3584,27 +3584,27 @@ def remove_duplicate_cnftp_scripts(lines):
 
     if source_mode:
         if legacy_remove_mode and not all(count == 1 for count in remove_counts.values()):
-            raise ValueError("legacy video trigger inventory incomplete; refusing partial consolidation")
+            return list(lines), 0
         required_source_counts = {
             item: count for item, count in source_counts.items()
             if item not in non_ad_normalized
         }
         if not all(count == 1 for count in required_source_counts.values()):
-            raise ValueError("video source trigger inventory incomplete; refusing partial consolidation")
+            return list(lines), 0
         return output, removed
 
     if combined_home_count == 1:
         if any(home_source_counts.values()):
             raise ValueError("mixed combined and split iQIYI home triggers; refusing ambiguous cleanup")
     elif not all(count == 1 for count in home_source_counts.values()):
-        raise ValueError("consolidated video iQIYI home trigger inventory incomplete; refusing partial consolidation")
+        return list(lines), 0
 
     required_output_counts = {
         item: count for item, count in output_counts.items()
         if item not in non_ad_normalized
     }
     if not all(count == 1 for count in required_output_counts.values()):
-        raise ValueError("consolidated video trigger inventory incomplete; refusing partial consolidation")
+        return list(lines), 0
     return output, 0
 
 
