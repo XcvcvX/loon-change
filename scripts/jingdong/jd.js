@@ -25,6 +25,20 @@
     return;
   }
 
+  function compactInPlace(items, keep) {
+    const length = items.length;
+    let write = 0;
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      if (keep(item, read)) {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+    items.length = write;
+    return items;
+  }
+
   const PERSON_INFO_BUSINESS_MID_EXCLUDE = [
     "bigSaleFloor",
     "buyOften",
@@ -74,13 +88,11 @@
 
   function processFloors(floors) {
     if (!Array.isArray(floors) || floors.length === 0) return floors;
-    const kept = [];
-    for (const floor of floors) {
-      if (PERSON_INFO_BUSINESS_MID_EXCLUDE.includes(floor && floor.mId)) continue;
+    return compactInPlace(floors, floor => {
+      if (PERSON_INFO_BUSINESS_MID_EXCLUDE.includes(floor && floor.mId)) return false;
       cleanFloorData(floor);
-      kept.push(floor);
-    }
-    return kept;
+      return true;
+    });
   }
 
   if (url.includes("functionId=start")) {
@@ -90,8 +102,13 @@
   } else if (url.includes("functionId=welcomeHome")) {
     // Apply R-Store's allowlist first, then FMZ's additional exclusions.
     if (Array.isArray(obj.floorList) && obj.floorList.length > 0) {
-      obj.floorList = obj.floorList.filter((item) =>
-        WELCOME_HOME_TYPE_INCLUDE.includes(item && item.type)
+      const extraExclude = welcomeExtraEnabled ? new Set([
+        "bottomXview", "float", "photoCeiling", "ruleFloat",
+        "searchIcon", "topRotate", "tabBarAtmosphere",
+      ]) : null;
+      compactInPlace(obj.floorList, item =>
+        WELCOME_HOME_TYPE_INCLUDE.includes(item && item.type) &&
+        (!extraExclude || !extraExclude.has(item && item.type))
       );
     }
     if (Array.isArray(obj.webViewFloorList) && obj.webViewFloorList.length > 0) {
@@ -99,23 +116,13 @@
     }
     if (obj.promotionTabs) delete obj.promotionTabs;
 
-    // Fold the optional FMZ cleanup into this one response pass.
-    // Base R-Store cleanup remains active when jkds_enable is false.
-    if (welcomeExtraEnabled && Array.isArray(obj.floorList)) {
-      const WELCOME_HOME_EXTRA_EXCLUDE = [
-        "bottomXview", "float", "photoCeiling", "ruleFloat",
-        "searchIcon", "topRotate", "tabBarAtmosphere",
-      ];
-      obj.floorList = obj.floorList.filter((item) =>
-        !WELCOME_HOME_EXTRA_EXCLUDE.includes(item && item.type)
-      );
-    }
+    // Optional FMZ exclusions are folded into the allowlist pass above.
   } else if (url.includes("functionId=readCustomSurfaceList")) {
     const modeMap = obj.result && obj.result.modeMap;
     ["dark", "normal"].forEach((mode) => {
       const navigation = modeMap && modeMap[mode] && modeMap[mode].navigationAll;
       if (Array.isArray(navigation) && navigation.length > 0) {
-        modeMap[mode].navigationAll = navigation.filter((item) =>
+        compactInPlace(navigation, item =>
           CUSTOM_SURFACE_NAME_INCLUDE.includes(item && item.functionId)
         );
       }
@@ -123,7 +130,7 @@
   } else if (url.includes("functionId=deliverLayer") || url.includes("functionId=orderTrackBusiness")) {
     if (obj.bannerInfo) delete obj.bannerInfo;
     if (Array.isArray(obj.floors) && obj.floors.length > 0) {
-      obj.floors = obj.floors.filter((item) =>
+      compactInPlace(obj.floors, item =>
         !["banner", "jdDeliveryBanner"].includes(item && item.mId)
       );
     }
@@ -134,22 +141,20 @@
     }
   } else if (url.includes("functionId=myOrderInfo")) {
     if (Array.isArray(obj.floors) && obj.floors.length > 0) {
-      const newFloors = [];
-      for (const floor of obj.floors) {
+      compactInPlace(obj.floors, floor => {
         if (["bannerFloor", "bpDynamicFloor", "plusFloor"].includes(floor && floor.mId)) {
-          continue;
+          return false;
         }
         if (floor && floor.mId === "virtualServiceCenter") {
           const centers = floor.data && floor.data.virtualServiceCenters;
           if (Array.isArray(centers) && centers.length > 0) {
-            floor.data.virtualServiceCenters = centers.map((item) => {
+            for (const item of centers) {
               if (item && Array.isArray(item.serviceList) && item.serviceList.length > 0) {
-                item.serviceList = item.serviceList.filter((card) =>
+                compactInPlace(item.serviceList, card =>
                   !(card && card.serviceTitle === "精选特惠")
                 );
               }
-              return item;
-            });
+            }
           }
         }
         if (floor && floor.mId === "customerServiceFloor" &&
@@ -158,9 +163,8 @@
           delete floor.data.moreIcon_dark;
           floor.data.moreText = " ";
         }
-        newFloors.push(floor);
-      }
-      obj.floors = newFloors;
+        return true;
+      });
     }
   } else if (url.includes("functionId=personinfoBusiness")) {
     if (Array.isArray(obj.floors) && obj.floors.length > 0) {
