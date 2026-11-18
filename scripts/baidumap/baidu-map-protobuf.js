@@ -16,8 +16,42 @@ let md5=null;(function(){'use strict';var ERROR='input is invalid type';var WIND
 const baiduMapJson = {"options":{"java_package":"com.smile.baidumap.model"},"nested":{"RepHead":{"fields":{"md5":{"type":"string","id":1},"range":{"type":"string","id":2},"messageHead":{"rule":"repeated","type":"MessageHead","id":3}}},"MessageHead":{"fields":{"offset":{"type":"int32","id":1},"length":{"type":"int32","id":2},"name":{"type":"string","id":3}}},"Result":{"fields":{"type":{"type":"int32","id":1},"error":{"type":"int32","id":2}}},"Ads":{"fields":{"option":{"type":"Option","id":1},"content":{"rule":"repeated","type":"Content","id":2}}},"Option":{"fields":{"lasttime":{"type":"int32","id":1},"checkcode":{"type":"string","id":2},"errmsg":{"type":"string","id":3}}},"Content":{"fields":{"type":{"type":"string","id":1},"data":{"type":"string","id":2},"intval":{"type":"int32","id":3},"start":{"type":"int32","id":4},"end":{"type":"int32","id":5},"id":{"type":"int32","id":6},"updatetime":{"type":"int32","id":7},"order":{"type":"int32","id":8},"ctrlMode":{"type":"string","id":9},"dayTimes":{"type":"int32","id":10}}}}};
 const baiduMapRoot = protobuf.Root.fromJSON(baiduMapJson);
 
+function assembleBaiduResponse(repHeadMessage, repHeadType, newResult, newAds, hash) {
+  const beginOffset = 4;
+  const payloadLength = newResult.byteLength + newAds.byteLength;
+
+  // MD5 is a fixed 32-character hex string, so the placeholder preserves
+  // the encoded RepHead size while the final payload buffer is assembled.
+  repHeadMessage.md5 = "00000000000000000000000000000000";
+  repHeadMessage.messageHead[0].length = newResult.byteLength;
+  repHeadMessage.messageHead[1].offset = newResult.byteLength;
+  repHeadMessage.messageHead[1].length = newAds.byteLength;
+
+  const headerLength = repHeadType.encode(repHeadMessage).finish().byteLength;
+  const payloadOffset = beginOffset + headerLength;
+  const body = new Uint8Array(payloadOffset + payloadLength);
+
+  body.set(newResult, payloadOffset);
+  body.set(newAds, payloadOffset + newResult.byteLength);
+  repHeadMessage.md5 = hash(body.subarray(payloadOffset));
+
+  const encodedHeader = repHeadType.encode(repHeadMessage).finish();
+  // Both MD5 values are 32 characters; a different header size would mean
+  // the schema or hash contract changed and must not silently corrupt offsets.
+  if (encodedHeader.byteLength !== headerLength) {
+    throw new Error("BaiduMap RepHead size changed after MD5 calculation");
+  }
+
+  new DataView(body.buffer, body.byteOffset, beginOffset).setInt32(0, headerLength);
+  body.set(encodedHeader, beginOffset);
+  return body;
+}
+
 const isQuanX = typeof $task != "undefined";
-const binaryBody = isQuanX ? new Uint8Array($response.bodyBytes) : $response.body;
+const responseBytes = isQuanX ? $response.bodyBytes : $response.body;
+const binaryBody = responseBytes instanceof Uint8Array
+  ? responseBytes
+  : new Uint8Array(responseBytes);
 
 const beginOffset = 4;
 const prefixLength = new DataView(binaryBody.buffer, binaryBody.byteOffset, beginOffset).getInt32(0);
@@ -59,27 +93,8 @@ for(let i = 0; i < repHeadMessage.messageHead.length; i++) {
   }
 }
 
-// 生成新RepHead
-const mergeResultAndAds = new Uint8Array(newResult.byteLength + newAds.byteLength);
-mergeResultAndAds.set(newResult, 0);
-mergeResultAndAds.set(newAds, newResult.byteLength);
-const newMd5 = md5(mergeResultAndAds);
-repHeadMessage.md5 = newMd5;
-
-repHeadMessage.messageHead[0].length = newResult.byteLength;
-// Ads的offset为Result的偏移量+ Result的长度
-repHeadMessage.messageHead[1].offset = newResult.byteLength;
-repHeadMessage.messageHead[1].length = newAds.byteLength;
-
-const newRepHead = repHeadType.encode(repHeadMessage).finish();
-
-
-const totalLength = beginOffset + newRepHead.byteLength + newResult.byteLength + newAds.byteLength;
-let body = new Uint8Array(totalLength);
-new DataView(body.buffer, body.byteOffset, beginOffset).setInt32(0, newRepHead.byteLength);
-body.set(newRepHead,beginOffset);
-body.set(newResult,beginOffset + newRepHead.byteLength);
-body.set(newAds,beginOffset + newRepHead.byteLength + newResult.byteLength);
+// Build the final payload in one allocation; hash its zero-copy view.
+const body = assembleBaiduResponse(repHeadMessage, repHeadType, newResult, newAds, md5);
 
 if(isQuanX){
   $done({bodyBytes: body.buffer.slice(body.byteOffset, body.byteLength + body.byteOffset)});
