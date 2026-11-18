@@ -5623,3 +5623,74 @@ class BaiduMapLocalBinaryScriptMigrationTests(unittest.TestCase):
         missing_binary = f"http-response ^https?://newclient.map.baidu.com/client/phpui2/?qt=ads script-path={BAIDUMAP_RSTORE_SCRIPT_URL},tag=BAIDUMAP,requires-body=true"
         with self.assertRaisesRegex(ValueError, "binary-body requirements"):
             migrate_baidumap_script_to_local(["[Script]", missing_binary, "[MITM]"])
+
+
+class TaobaoLocalScriptMigrationTests(unittest.TestCase):
+    def test_migrates_two_canonical_triggers_and_remains_idempotent(self):
+        from apply_local_overrides import (
+            TAOBAO_CANONICAL_SCRIPT_TRIGGERS,
+            TAOBAO_LOCAL_SCRIPT_URL,
+            migrate_taobao_script_to_local,
+            remove_redundant_taobao_scripts,
+        )
+
+        fixture = ["[Script]", *TAOBAO_CANONICAL_SCRIPT_TRIGGERS, "[MITM]"]
+        deduped, removed = remove_redundant_taobao_scripts(fixture)
+        self.assertEqual(removed, 0)
+        result, changed = migrate_taobao_script_to_local(deduped)
+        self.assertEqual(changed, 2)
+        self.assertEqual(sum(TAOBAO_LOCAL_SCRIPT_URL in line for line in result), 2)
+        again_base, _ = remove_redundant_taobao_scripts(result)
+        again, second_changed = migrate_taobao_script_to_local(again_base)
+        self.assertEqual(again, result)
+        self.assertEqual(second_changed, 0)
+
+    def test_fails_closed_on_partial_or_duplicate_taobao_script_inventory(self):
+        from apply_local_overrides import TAOBAO_CANONICAL_SCRIPT_TRIGGERS, migrate_taobao_script_to_local
+
+        fixture = ["[Script]", *TAOBAO_CANONICAL_SCRIPT_TRIGGERS, "[MITM]"]
+        with self.assertRaisesRegex(ValueError, "partial local migration"):
+            migrate_taobao_script_to_local(fixture[:-2] + fixture[-1:])
+        with self.assertRaisesRegex(ValueError, "duplicate"):
+            migrate_taobao_script_to_local(fixture[:-1] + [fixture[1], fixture[-1]])
+
+
+class PinduoduoPersonalHubMatcherNarrowingTests(unittest.TestCase):
+    def test_personal_hub_response_rules_are_mutually_exclusive(self):
+        import re
+        from apply_local_overrides import (
+            PDD_PHILO_HUB_NO_QUERY_RULE,
+            PDD_PHILO_HUB_QUERY_RULE,
+            PDD_PHILO_HUB_RESPONSE_RULES,
+            narrow_pdd_philo_hub_response_rules,
+        )
+
+        fixture = ["[Rewrite]", *PDD_PHILO_HUB_RESPONSE_RULES, "[MITM]"]
+        result, changed = narrow_pdd_philo_hub_response_rules(fixture)
+        self.assertEqual(changed, 2)
+        self.assertIn(PDD_PHILO_HUB_NO_QUERY_RULE, result)
+        self.assertIn(PDD_PHILO_HUB_QUERY_RULE, result)
+
+        rules = (PDD_PHILO_HUB_NO_QUERY_RULE, PDD_PHILO_HUB_QUERY_RULE)
+        patterns = [
+            re.compile(rule.split("~= ", 1)[1].split(" then", 1)[0][1:-2], re.IGNORECASE)
+            for rule in rules
+        ]
+        urls = (
+            "https://api.pinduoduo.com/api/philo/personal/hub",
+            "https://api.pinduoduo.com/api/philo/personal/hub/",
+            "https://api.pinduoduo.com/api/philo/personal/hub?foo=1",
+            "https://api.pinduoduo.com/api/philo/personal/hub/?foo=1",
+        )
+        for url in urls:
+            self.assertEqual(sum(bool(pattern.search(url)) for pattern in patterns), 1, url)
+
+        again, second_changed = narrow_pdd_philo_hub_response_rules(result)
+        self.assertEqual(again, result)
+        self.assertEqual(second_changed, 0)
+
+    def test_fails_closed_when_only_one_personal_hub_rule_is_present(self):
+        from apply_local_overrides import PDD_PHILO_HUB_RESPONSE_RULES, narrow_pdd_philo_hub_response_rules
+
+        with self.assertRaisesRegex(ValueError, "inventory changed"):
+            narrow_pdd_philo_hub_response_rules(["[Rewrite]", PDD_PHILO_HUB_RESPONSE_RULES[0], "[MITM]"])
