@@ -9,7 +9,7 @@
 - [RuCu6 高德地图插件](https://rucu6.pages.dev/Plugins/amap.lpx)（通过 Romeo GitHub 镜像同步；JS/JQ 依赖缓存到 `sources/amap/`，合并后使用仓库内资源地址）；
 - [ddgksf2013 墨鱼手记瓜子影视规则](https://github.com/ifflagged/Romeo/blob/main/Modules/QuantumultX/ddgksf2013/Official/GuaZiVideoAds.conf)（与高德共用固定 Romeo commit；保留原有 QuanX → Loon 转换与规则优先级）；
 - `fmz200/wool_scripts` 仅作为 CNFTP、小红书本地响应脚本的上游输入，不再导入其 blockAds 综合规则插件；
-- [zirawell 支付宝小程序去广告合集](https://github.com/ifflagged/Romeo/tree/main/Modules/Loon/zirawell/Beta)（与其他 Romeo 来源共用固定 commit；只补充未覆盖的精确 Loon v2 Rewrite 规则）。
+- [zirawell 支付宝小程序去广告合集](https://github.com/ifflagged/Romeo/tree/main/Modules/Loon/zirawell/Beta)（与其他 Romeo 来源共用固定 commit；只补充未覆盖的精确 Loon v2 Rewrite 规则）；\n- [Kelee 微信公众号、微信小程序与微店去广告](https://github.com/ifflagged/Romeo/tree/main/Modules/Loon/Kelee)（三个插件纳入 Romeo 固定版本 App 槽；14 个响应脚本依赖逐一校验并固定到同一 commit，随综合插件合并）。
 
 > **只装一个 allAdRewrite.plugin 就够了。** 综合规则以 R-Store base 为唯一规则源；保留的独立 App 插件按优先级补充各自专属功能。
 
