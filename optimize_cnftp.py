@@ -149,6 +149,9 @@ def rewrite_plugin(plugin: str) -> str:
         elif section == "Script" and LOCAL_URL in line:
             local_count += 1
         lines.append(line)
+    if remote_count == 0 and local_count == 0:
+        # The supplemental CNFTP handler is absent from the base-only feed.
+        return plugin
     if remote_count == EXPECTED_TRIGGER_COUNT and local_count == 0:
         return "\n".join(lines) + ("\n" if plugin.endswith("\n") else "")
     if remote_count == 0 and local_count == EXPECTED_TRIGGER_COUNT:
