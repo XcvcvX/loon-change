@@ -3885,6 +3885,43 @@ def remove_redundant_alipan_onboard_response_script(lines):
 MGW_ECNY_RESPONSE_HOST = "mgs.wallet.pbcdci.cn"
 
 
+USMILE_RESPONSE_SCRIPT_MARKER = "www.myusmile.online/user/plaqueTopic/selectByType"
+USMILE_RESPONSE_SCRIPT_URL = "Res/Scripts/AntiAd/usmile.js"
+
+
+def remove_unneeded_usmile_response_body_read(lines):
+    """Remove response-body buffering from Usmile's request-header-only handler."""
+    section = ""
+    candidates = []
+    for index, line in enumerate(lines):
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            continue
+        if section != "Script" or not line.lower().startswith(("http-response ", "response if ")):
+            continue
+        normalized = re.sub(r"\\+", "", line).lower()
+        if USMILE_RESPONSE_SCRIPT_MARKER in normalized and USMILE_RESPONSE_SCRIPT_URL.lower() in normalized:
+            candidates.append(index)
+
+    if len(candidates) > 2:
+        raise ValueError("duplicate Usmile response handlers; refusing ambiguous body-read cleanup")
+    if not candidates:
+        return list(lines), 0
+
+    updated = list(lines)
+    removed = 0
+    for index in candidates:
+        line = updated[index]
+        matches = list(re.finditer(r",\s*requires[-_]body\s*=\s*true(?=\s*(?:,|$))", line, re.I))
+        if len(matches) > 1:
+            raise ValueError("duplicate Usmile requires-body option; refusing ambiguous cleanup")
+        if matches:
+            match = matches[0]
+            updated[index] = line[:match.start()] + line[match.end():]
+            removed += 1
+    return updated, removed
+
+
 def remove_unneeded_mgw_ecny_response_body_read(lines):
     """Drop requires-body only for MGW's ECNY response handler, which reads request headers only."""
     section = ""
@@ -5624,6 +5661,7 @@ def apply(text: str) -> str:
     lines, _ = remove_redundant_pupu_response_scripts(lines)
     lines, _ = remove_redundant_alipan_onboard_response_script(lines)
     lines, _ = remove_unneeded_mgw_ecny_response_body_read(lines)
+    lines, _ = remove_unneeded_usmile_response_body_read(lines)
     lines, _ = remove_weibo_non_ad_response_triggers(lines)
     lines, _ = remove_redundant_dianping_scripts(lines)
     lines, _ = remove_redundant_baidumap_script(lines)
