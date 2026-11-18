@@ -5160,7 +5160,7 @@ class CrossSyntaxShadowedResponseTriggerTests(unittest.TestCase):
         from apply_local_overrides import apply, SHADOWED_CROSS_SYNTAX_RESPONSE_PAIRS
         plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
         result = apply(plugin)
-        for _, legacy_script, v2_script, _, search_markers in SHADOWED_CROSS_SYNTAX_RESPONSE_PAIRS:
+        for name, legacy_script, v2_script, _, search_markers in SHADOWED_CROSS_SYNTAX_RESPONSE_PAIRS:
             candidates = [
                 line for line in result.splitlines()
                 if all(marker.lower() in line.replace(chr(92), "").lower() for marker in search_markers)
