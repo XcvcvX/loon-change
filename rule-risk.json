@@ -2,8 +2,8 @@
   "change_counts": {
     "rewrite": {
       "action_changed": 0,
-      "added": 0,
-      "removed": 0
+      "added": 1,
+      "removed": 1
     },
     "rule": {
       "action_changed": 0,
@@ -16,14 +16,63 @@
       "removed": 0
     }
   },
-  "events": [],
-  "overall_risk": "low",
+  "events": [
+    {
+      "after": {
+        "line": "response if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlehome\\.home\\.nextfresh\\//i then response.json.jq(\".data.homeTopList |= map(select(.sectionType == \\\"kingkongDo\\\")) | .data.sections |= map(select((.data.clickParam.args.cardType as $ct | $ct != \\\"homeMultiBanner\\\" and $ct != \\\"mamaAD\\\") and ((.template.name|type)==\\\"string\\\") and (.template.name==\\\"idlefish_home_new_commodity_card\\\" or (.template.name|contains(\\\"fish_home_tags_item_card\\\")))))\")",
+        "section": "rewrite",
+        "sources": [
+          "local_overrides"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "local_overrides": "unavailable"
+      },
+      "source_scores": {
+        "local_overrides": null
+      },
+      "sources": [
+        "local_overrides"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "response if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlehome\\.home\\.nextfresh\\//i then response.json.jq(\".data.homeTopList |= map(select(.sectionType == \\\"kingkongDo\\\")) | .data.sections |= map(select(.data.clickParam.args.cardType as $ct | $ct != \\\"homeMultiBanner\\\" and $ct != \\\"mamaAD\\\")) | .data.sections |= map(select((.template.name|type==\\\"string\\\")and(.template.name==\\\"idlefish_home_new_commodity_card\\\"or(.template.name|contains(\\\"fish_home_tags_item_card\\\")))))\")",
+        "section": "rewrite",
+        "sources": [
+          "zmjapp"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "zmjapp": "unavailable"
+      },
+      "source_scores": {
+        "zmjapp": null
+      },
+      "sources": [
+        "zmjapp"
+      ]
+    }
+  ],
+  "overall_risk": "high",
   "risk_counts": {
-    "high": 0,
+    "high": 1,
     "low": 0,
-    "medium": 0
+    "medium": 1
   },
-  "run_id": "44263548174",
+  "run_id": "44266783022",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -54,8 +103,8 @@
     "base": {
       "action_changed": 0,
       "added": 0,
-      "removed": 10,
-      "snapshots_seen": 4
+      "removed": 9,
+      "snapshots_seen": 3
     },
     "block": {
       "action_changed": 0,
@@ -78,8 +127,8 @@
     "zmjapp": {
       "action_changed": 6,
       "added": 0,
-      "removed": 0,
-      "snapshots_seen": 3
+      "removed": 1,
+      "snapshots_seen": 4
     }
   },
   "upstream_revision_changes": []

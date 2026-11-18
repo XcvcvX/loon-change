@@ -60373,25 +60373,15 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.taobao\\\\.idlehome\\\\.home\\\\.nextfresh/', ('response.json.jq', 'response.json.jq(\".data.homeTopList |= map(select(.sectionType == \\\\\"kingkongDo\\\\\")) | .data.sections |= map(select(.data.clickParam.args.cardType as $ct | $ct != \\\\\"homeMultiBanner\\\\\" and $ct != \\\\\"mamaAD\\\\\")) | .data.sections |= map(select((.template.name|type==\\\\\"string\\\\\")and(.template.name==\\\\\"idlefish_home_new_commodity_card\\\\\"or(.template.name|contains(\\\\\"fish_home_tags_item_card\\\\\")))))\")'))",
-      "output_entry_index": 3211,
-      "output_line": "response if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlehome\\.home\\.nextfresh\\//i then response.json.jq(\".data.homeTopList |= map(select(.sectionType == \\\"kingkongDo\\\")) | .data.sections |= map(select(.data.clickParam.args.cardType as $ct | $ct != \\\"homeMultiBanner\\\" and $ct != \\\"mamaAD\\\")) | .data.sections |= map(select((.template.name|type==\\\"string\\\")and(.template.name==\\\"idlefish_home_new_commodity_card\\\"or(.template.name|contains(\\\"fish_home_tags_item_card\\\")))))\")",
-      "section": "Rewrite",
+      "output_line": "response if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlehome\\.home\\.nextfresh\\//i then response.json.jq(\".data.homeTopList |= map(select(.sectionType == \\\"kingkongDo\\\")) | .data.sections |= map(select((.data.clickParam.args.cardType as $ct | $ct != \\\"homeMultiBanner\\\" and $ct != \\\"mamaAD\\\") and ((.template.name|type)==\\\"string\\\") and (.template.name==\\\"idlefish_home_new_commodity_card\\\" or (.template.name|contains(\\\"fish_home_tags_item_card\\\")))))\")",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlehome\\.home\\.nextfresh\\//i then response.json.jq(\".data.homeTopList |= map(select(.sectionType == \\\"kingkongDo\\\")) | .data.sections |= map(select(.data.clickParam.args.cardType as $ct | $ct != \\\"homeMultiBanner\\\" and $ct != \\\"mamaAD\\\")) | .data.sections |= map(select((.template.name|type==\\\"string\\\")and(.template.name==\\\"idlefish_home_new_commodity_card\\\"or(.template.name|contains(\\\"fish_home_tags_item_card\\\")))))\")",
-          "input_section": "Rewrite",
-          "priority": 0,
-          "source": "zmjapp",
-          "source_entry_index": 56,
-          "source_file": "Plugin/FleaMarket_remove_ads.lpx",
-          "source_line_number": 16,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "response if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlehome\\.home\\.nextfresh\\//i then response.json.jq(\".data.homeTopList |= map(select(.sectionType == \\\"kingkongDo\\\")) | .data.sections |= map(select(.data.clickParam.args.cardType as $ct | $ct != \\\"homeMultiBanner\\\" and $ct != \\\"mamaAD\\\")) | .data.sections |= map(select((.template.name|type==\\\"string\\\")and(.template.name==\\\"idlefish_home_new_commodity_card\\\"or(.template.name|contains(\\\"fish_home_tags_item_card\\\")))))\")"
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
       "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.taobao\\\\.idlehome\\\\.widget\\\\.refresh\\\\.get/', ('response.json.jq', 'response.json.jq(\".data.homeTopList |= map(select(.sectionType == \\\\\"kingkongDo\\\\\"))\")'))",
