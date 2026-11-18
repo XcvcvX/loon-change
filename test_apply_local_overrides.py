@@ -3336,8 +3336,7 @@ class UnneededUsmileResponseBodyReadTests(unittest.TestCase):
         result = apply(plugin)
         matches = [
             line for line in result.splitlines()
-            if "myusmile.online/user/plaqueTopic/selectByType" in line
-            and "usmile.js" in line
+            if "usmile.js" in line and ("http-response " in line or "response if " in line)
         ]
         self.assertEqual(len(matches), 2)
         self.assertTrue(all("requires-body=true" not in line.lower() and "requires_body=true" not in line.lower() for line in matches))
