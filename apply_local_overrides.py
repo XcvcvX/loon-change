@@ -2057,10 +2057,12 @@ def consolidate_jingdong_scripts(lines):
     fmz_count = sum(fmz_counts.values())
     known_triggers = {JD_RSTORE_LEGACY_TRIGGER, *JD_FMZ_LEGACY_TRIGGERS,
                       JD_CANONICAL_TRIGGER, JD_OPTIONAL_WELCOME_TRIGGER}
-    unknown_triggers = [line for line in scoped
-                        if "api.m.jd.com/client.action?functionId=" in line
-                        and ("tag=JD" in line or "jingdong.js" in line or "/jd.js" in line)
-                        and line not in known_triggers]
+    unknown_triggers = [
+        line for line in scoped
+        if "api.m.jd.com/client.action?functionId=" in line.replace("\\", "")
+        and ("tag=JD" in line or "jingdong.js" in line or "/jd.js" in line)
+        and line not in known_triggers
+    ]
     if unknown_triggers:
         raise ValueError("Jingdong legacy trigger changed; refusing unreviewed cleanup: " + unknown_triggers[0])
     canonical_count = scoped.count(JD_CANONICAL_TRIGGER)
