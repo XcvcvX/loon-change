@@ -3883,6 +3883,65 @@ def remove_redundant_pupu_response_scripts(lines):
     return [line for index, line in enumerate(lines) if index not in remove_indexes], len(remove_indexes)
 
 
+PUPU_REMOTE_SCRIPT_URL = "https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/PupuSplashAds.js"
+PUPU_LOCAL_SCRIPT_URL = "https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/pupu/pupu-splash.js"
+PUPU_RESPONSE_MATCHERS_BEFORE = (
+    r"/^https:\/\/j1\.pupuapi\.com\/client\/search\/hot_keywords\/v3/i",
+    r"/^https:\/\/j1\.pupuapi\.com\/client\/app_resource\/resource_preload\/list_h5_resource/i",
+    r"/^https:\/\/j1\.pupuapi\.com\/client\/marketing\/advertisement\/v1/i",
+    r"/^https:\/\/j1\.pupuapi\.com\/client\/search\/hub\/search_box\/products\/v6/i",
+    r"/^https:\/\/j1\.pupuapi\.com\/client\/order_settlement\/detail/i",
+    r"/^https:\/\/j1\.pupuapi\.com\/client\/order\/orders\/list\/v4/i",
+)
+PUPU_RESPONSE_MATCHERS_AFTER = (
+    r"/^https:\/\/j1\.pupuapi\.com\/client\/search\/hot_keywords\/v3\/?(?:\?[^#]*)?$/i",
+    r"/^https:\/\/j1\.pupuapi\.com\/client\/app_resource\/resource_preload\/list_h5_resource\/?(?:\?[^#]*)?$/i",
+    r"/^https:\/\/j1\.pupuapi\.com\/client\/marketing\/advertisement\/v1\/?(?:\?[^#]*)?$/i",
+    r"/^https:\/\/j1\.pupuapi\.com\/client\/search\/hub\/search_box\/products\/v6\/?(?:\?[^#]*)?$/i",
+    r"/^https:\/\/j1\.pupuapi\.com\/client\/order_settlement\/detail\/?(?:\?[^#]*)?$/i",
+    r"/^https:\/\/j1\.pupuapi\.com\/client\/order\/orders\/list\/v4\/?(?:\?[^#]*)?$/i",
+)
+
+
+def _pupu_response_rule_lines(script_url, matchers):
+    return [
+        'response if ${url} ~= ' + matcher + ' then script("' + script_url + '") with enable=${pupuicui_enable}, tag="朴朴超市", timeout=60, requires_body=true'
+        for matcher in matchers
+    ]
+
+
+def migrate_pupu_response_script_to_local(lines):
+    """Use the local single-pass Pupu handler and anchor its six endpoint matchers."""
+    section = ""
+    script_indexes = []
+    for index, line in enumerate(lines):
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+        elif section == "Script":
+            script_indexes.append(index)
+
+    old_rules = _pupu_response_rule_lines(PUPU_REMOTE_SCRIPT_URL, PUPU_RESPONSE_MATCHERS_BEFORE)
+    new_rules = _pupu_response_rule_lines(PUPU_LOCAL_SCRIPT_URL, PUPU_RESPONSE_MATCHERS_AFTER)
+    script_lines = [lines[index] for index in script_indexes]
+    remote_count = sum(PUPU_REMOTE_SCRIPT_URL in line for line in script_lines)
+    local_count = sum(PUPU_LOCAL_SCRIPT_URL in line for line in script_lines)
+
+    if remote_count == 0 and local_count == 0:
+        return list(lines), 0
+
+    old_counts = [script_lines.count(rule) for rule in old_rules]
+    new_counts = [script_lines.count(rule) for rule in new_rules]
+    if remote_count == len(old_rules) and local_count == 0 and old_counts == [1] * len(old_rules) and new_counts == [0] * len(new_rules):
+        replacements = dict(zip(old_rules, new_rules))
+        updated = [replacements.get(line, line) for line in lines]
+        return updated, len(old_rules)
+
+    if local_count == len(new_rules) and remote_count == 0 and new_counts == [1] * len(new_rules) and old_counts == [0] * len(old_rules):
+        return list(lines), 0
+
+    raise ValueError("Pupu response trigger inventory or matcher drift; refusing partial local migration")
+
+
 ALIPAN_ONBOARD_DUPLICATE_MARKER = "/v1/users/onboard_list"
 
 
@@ -5964,6 +6023,7 @@ def apply(text: str) -> str:
     lines, _ = consolidate_soul_scripts(lines)
     lines, _ = remove_more_duplicate_response_scripts(lines)
     lines, _ = remove_redundant_pupu_response_scripts(lines)
+    lines, _ = migrate_pupu_response_script_to_local(lines)
     lines, _ = remove_redundant_alipan_onboard_response_script(lines)
     lines, _ = remove_unneeded_mgw_ecny_response_body_read(lines)
     lines, _ = remove_unneeded_usmile_response_body_read(lines)
