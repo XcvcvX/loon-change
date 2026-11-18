@@ -2971,6 +2971,14 @@ def consolidate_wechat_unblock_url_scripts(lines):
     if (
         counts[WECHAT_UNBLOCK_URL_CANONICAL_TRIGGER] == 1
         and counts[WECHAT_UNBLOCK_URL_REDUNDANT_TRIGGER] == 0
+        and counts[WECHAT_UNBLOCK_URL_DISTINCT_TRIGGER] == 0
+    ):
+        # Current merged upstream snapshot contains only the canonical R-Store handler.
+        # No duplicate exists to remove; preserve the lone handler without treating it as drift.
+        return list(lines), 0
+    if (
+        counts[WECHAT_UNBLOCK_URL_CANONICAL_TRIGGER] == 1
+        and counts[WECHAT_UNBLOCK_URL_REDUNDANT_TRIGGER] == 0
         and counts[WECHAT_UNBLOCK_URL_DISTINCT_TRIGGER] == 1
     ):
         return list(lines), 0
@@ -3885,7 +3893,7 @@ def remove_redundant_alipan_onboard_response_script(lines):
 MGW_ECNY_RESPONSE_HOST = "mgs.wallet.pbcdci.cn"
 
 
-USMILE_RESPONSE_SCRIPT_MARKER = "www.myusmile.online/user/plaqueTopic/selectByType"
+USMILE_RESPONSE_SCRIPT_MARKER = "www.myusmile.online/user/plaqueTopic/selectbytype"
 USMILE_RESPONSE_SCRIPT_URL = "Res/Scripts/AntiAd/usmile.js"
 
 
@@ -3918,6 +3926,47 @@ def remove_unneeded_usmile_response_body_read(lines):
         if matches:
             match = matches[0]
             updated[index] = line[:match.start()] + line[match.end():]
+            removed += 1
+    return updated, removed
+
+
+HEADER_ONLY_RESPONSE_SCRIPT_MARKERS = (
+    ("image.spdbccc.com.cn/group", "Res/Scripts/AntiAd/spdbccc.js"),
+    ("cdn.sdb.com.cn/bron-coms/bron-coms/material-image", "Res/Scripts/AntiAd/sdb.js"),
+    ("home.umetrip.com", "Scripts/umetrip/umetrip_ads.js"),
+)
+
+
+def remove_unneeded_header_only_response_body_reads(lines):
+    """Remove body buffering only from verified response-header/request-header-only scripts."""
+    section = ""
+    found = {marker: [] for marker, _ in HEADER_ONLY_RESPONSE_SCRIPT_MARKERS}
+    for index, line in enumerate(lines):
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            continue
+        if section != "Script" or not line.lower().startswith(("http-response ", "response if ")):
+            continue
+        normalized = re.sub(r"\\+", "", line).lower()
+        for marker, script_path in HEADER_ONLY_RESPONSE_SCRIPT_MARKERS:
+            if marker in normalized and script_path.lower() in normalized:
+                found[marker].append(index)
+
+    updated = list(lines)
+    removed = 0
+    for marker, _ in HEADER_ONLY_RESPONSE_SCRIPT_MARKERS:
+        candidates = found[marker]
+        if len(candidates) > 1:
+            raise ValueError("duplicate header-only response handler for %s" % marker)
+        if not candidates:
+            continue
+        index = candidates[0]
+        matches = list(re.finditer(r",\s*requires[-_]body\s*=\s*true(?=\s*(?:,|$))", updated[index], re.I))
+        if len(matches) > 1:
+            raise ValueError("duplicate requires-body option for header-only response handler %s" % marker)
+        if matches:
+            match = matches[0]
+            updated[index] = updated[index][:match.start()] + updated[index][match.end():]
             removed += 1
     return updated, removed
 
