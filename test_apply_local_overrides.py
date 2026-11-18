@@ -5165,7 +5165,14 @@ class CrossSyntaxShadowedResponseTriggerTests(unittest.TestCase):
                 line for line in result.splitlines()
                 if all(marker.lower() in line.replace(chr(92), "").lower() for marker in search_markers)
             ]
-            legacy = [line for line in candidates if legacy_script.lower() in line.lower() and line.lower().startswith("http-response ")]
+            legacy_markers = (legacy_script.lower(),)
+            if name == "Baidu Map ad endpoint":
+                legacy_markers += ("scripts/baidumap/baidu-map-protobuf.js",)
+            legacy = [
+                line for line in candidates
+                if any(marker in line.lower() for marker in legacy_markers)
+                and line.lower().startswith("http-response ")
+            ]
             v2 = [line for line in candidates if v2_script.lower() in line.lower() and line.lower().startswith("response if ")]
             self.assertEqual(len(legacy), 1)
             self.assertEqual(v2, [])
