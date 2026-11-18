@@ -1946,11 +1946,12 @@ class DouyinTncDirectSafetyTests(unittest.TestCase):
         self.assertIn("DOMAIN-SUFFIX,pangolin-sdk-toutiao.com,REJECT", result)
         self.assertEqual(remove_douyin_tnc_conflicting_rejects(result), (result, 0))
 
-    def test_fails_closed_on_partial_duplicate_or_unknown_tnc_reject_inventory(self):
+    def test_accepts_partial_retired_source_inventory_but_rejects_duplicate_or_unknown_tnc_rules(self):
         from apply_local_overrides import remove_douyin_tnc_conflicting_rejects
         partial = [line for line in self.base if line != self.rejects[0]]
-        with self.assertRaisesRegex(ValueError, "inventory changed"):
-            remove_douyin_tnc_conflicting_rejects(partial)
+        result, removed = remove_douyin_tnc_conflicting_rejects(partial)
+        self.assertEqual(removed, 3)
+        self.assertEqual(result.count(self.direct), 1)
         rewrite_index = self.base.index("[Rewrite]")
         duplicate = self.base[:rewrite_index] + [self.rejects[0]] + self.base[rewrite_index:]
         with self.assertRaisesRegex(ValueError, "duplicate Douyin TNC"):
