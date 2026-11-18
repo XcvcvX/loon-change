@@ -4985,7 +4985,14 @@ def narrow_xiaohongshu_v3_video_native_duplicates(lines):
     if has_fmz_target:
         if fmz_expected is None or len(fmz_matches) != 1:
             raise ValueError("Xiaohongshu FMZ v3 video trigger inventory changed")
-        normalize_fmz = lambda value: re.sub(r"\\+", "", value).replace("enable=${xhs_enable}", "enable=xhs_enable")
+        normalize_fmz = lambda value: (
+            re.sub(r"\\+", "", value)
+            .replace("enable=" + "$" + "{xhs_enable}", "enable=xhs_enable")
+            .replace(
+                "https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu.js",
+                "https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js",
+            )
+        )
         if normalize_fmz(fmz_matches[0]) not in (
             normalize_fmz(fmz_expected),
             normalize_fmz(XHS_V3_VIDEO_FMZ_NARROWED_TRIGGER),
