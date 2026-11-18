@@ -3478,6 +3478,10 @@ CNFTP_BLOCKADS_SOURCE_TRIGGERS = (
 def normalize_cnftp_trigger_line(line):
     """Normalize only known source syntax differences for exact CNFTP inventory comparison."""
     value = line.strip().replace("\\/", "/")
+    value = value.replace(
+        "https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cnftp/cnftp.js",
+        "https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js",
+    )
     return re.sub(r"enable=\$\{([^}]+)\}", r"enable=\1", value)
 
 
