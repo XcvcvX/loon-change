@@ -6278,6 +6278,19 @@ def optimize_bilibili_json_native_coverage(lines):
     if not rstore_json_lines:
         return output, 0
 
+    fmz_live = [
+        line for line in script_lines
+        if "bilibili.json.js" in line and line.startswith("response if")
+        and "api.live.bilibili.com" in re.sub(r"\\+", "", line)
+    ]
+    if not fmz_live:
+        # The supplemental FMZ feed is retired; without its live handler there
+        # is no proven duplicate, so preserve all R-Store JSON triggers intact.
+        return output, 0
+    if len(fmz_live) != 1 or BILIBILI_LIVE_FMZ_MARKER not in re.sub(r"\\+", "", fmz_live[0]):
+        raise ValueError("Bilibili live JSON native coverage changed; refusing duplicate trigger narrowing")
+
+
     expected_json_tags = {f"BAICIZHAN-{number}" for number in range(7, 14)}
     actual_json_tags = [
         match.group(1) if (match := re.search(r"tag=(BAICIZHAN-\d+)", line)) else None
@@ -6292,18 +6305,6 @@ def optimize_bilibili_json_native_coverage(lines):
             "Bilibili R-Store JSON trigger inventory changed; refusing partial narrowing: "
             + repr(actual_json_tags)
         )
-
-    fmz_live = [
-        line for line in script_lines
-        if "bilibili.json.js" in line and line.startswith("response if")
-        and "api.live.bilibili.com" in re.sub(r"\\+", "", line)
-    ]
-    if not fmz_live:
-        # The supplemental FMZ feed is retired; without its live handler there
-        # is no proven duplicate, so preserve all R-Store JSON triggers intact.
-        return output, 0
-    if len(fmz_live) != 1 or BILIBILI_LIVE_FMZ_MARKER not in re.sub(r"\\+", "", fmz_live[0]):
-        raise ValueError("Bilibili live JSON native coverage changed; refusing duplicate trigger narrowing")
 
     for marker in BILIBILI_NATIVE_PREREQUISITE_MARKERS:
         if not any(marker in line for line in rewrite_lines):
