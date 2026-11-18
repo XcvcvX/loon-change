@@ -270,6 +270,47 @@ if (body.others.floors.length !== 1 || body.others.floors[0].data.commentRemindI
         completed = subprocess.run([node, "-e", harness, str(source_path)], capture_output=True, text=True)
         self.assertEqual(completed.returncode, 0, msg=completed.stderr or completed.stdout)
 
+    def test_meituan_tab_area_cleanup_uses_single_pass_and_keeps_required_tabs(self):
+        import shutil
+        import subprocess
+        from pathlib import Path
+
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node.js is required for the Meituan runtime integration test")
+        source_path = Path(__file__).with_name("scripts").joinpath("meituan", "meituan.js")
+        harness = r'''
+const fs = require("fs");
+const vm = require("vm");
+const source = fs.readFileSync(process.argv[1], "utf8");
+function run(tabArea) {
+  let result;
+  const context = {
+    $request: { url: "https://apimobile.meituan.com/aggroup/indexTab" },
+    $response: { body: JSON.stringify({ data: { resource: { tabArea } } }) },
+    $done(value) { result = value; },
+    console: { log() {} }
+  };
+  vm.runInNewContext(source, context);
+  return result;
+}
+const cleaned = run([
+  { tabName: "homepage", id: 1 },
+  { tabName: "video", id: 2 },
+  { tabName: "mine", id: 3 },
+  { tabName: "xiaotuan", id: 4 },
+  { tabName: "nearby", id: 5 },
+  null
+]);
+if (!cleaned || typeof cleaned.body !== "string") throw new Error("expected a cleaned Meituan response");
+const tabs = JSON.parse(cleaned.body).data.resource.tabArea;
+if (tabs.length !== 4 || tabs[0].tabName !== "homepage" || tabs[1].tabName !== "mine" || tabs[2].tabName !== "nearby" || tabs[3] !== null) throw new Error("tab filtering or order changed");
+const unchanged = run([{ tabName: "homepage" }, { tabName: "video" }, { tabName: "nearby" }]);
+if (!unchanged || Object.keys(unchanged).length !== 0) throw new Error("missing required tab should leave response untouched");
+'''
+        completed = subprocess.run([node, "-e", harness, str(source_path)], capture_output=True, text=True)
+        self.assertEqual(completed.returncode, 0, msg=completed.stderr or completed.stdout)
+
     def test_same_parse_identifier_in_separate_blocks_is_not_reported_as_duplicate(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
