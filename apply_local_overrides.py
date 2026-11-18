@@ -4208,6 +4208,96 @@ def remove_shadowed_cross_syntax_response_triggers(lines):
     return updated, removed
 
 
+ISHOWSHU_AMAP_SCRIPT_MARKER = "Modules/JavaScript/ishowshu/amap/ishowshu_amap.js"
+RUCU6_AMAP_SCRIPT_MARKER = "sources/amap/rucu6_amap.js"
+SHADOWED_ISHOWSHU_AMAP_TRIGGERS = (
+    (
+        "Amap hotel and walking-navigation pages",
+        r"/^https:\/\/m5\.amap\.com\/ws\/c3frontend\/af-(hotel|launch)\/page\/main\?/i",
+        r"c3frontend\/af-",
+        r"/^https:\/\/m5\.amap\.com\/ws\/c3frontend\/(?:af-(?:hotel|launch)\/page\/main|af-nearby\/nearby)/i",
+    ),
+    (
+        "Amap coupon and POI detail pages",
+        r"/^https:\/\/(?:info\.amap\.com|m5\.amap\.com)\/ws\/shield\/search\/(common\/coupon\/info|poi\/detail)/i",
+        r"ws\/shield\/search\/",
+        r"/^https:\/\/(?:info|m5)\.amap\.com\/ws\/shield\/search\/(?:common\/coupon\/info|poi\/detail)/i",
+    ),
+    (
+        "Amap search result pages",
+        r"/^https:\/\/m5\.amap\.com\/ws\/shield\/search_poi\/search\/sp/i",
+        r"search_poi\/search\/sp",
+        r"/^https:\/\/m5\.amap\.com\/ws\/shield\/search_poi\/(?:mps|search\/sp|sug|tips_operation_location)/i",
+    ),
+    (
+        "Amap search suggestions",
+        r"/^https:\/\/m5\.amap\.com\/ws\/shield\/search_poi\/sug/i",
+        r"search_poi\/sug",
+        r"/^https:\/\/m5\.amap\.com\/ws\/shield\/search_poi\/(?:mps|search\/sp|sug|tips_operation_location)/i",
+    ),
+    (
+        "Amap search operation banner",
+        r"/^https:\/\/m5\.amap\.com\/ws\/shield\/search_poi\/tips_operation_location/i",
+        r"search_poi\/tips_operation_location",
+        r"/^https:\/\/m5\.amap\.com\/ws\/shield\/search_poi\/(?:mps|search\/sp|sug|tips_operation_location)/i",
+    ),
+    (
+        "Amap nearby page",
+        r"/^https:\/\/m5\.amap\.com\/ws\/c3frontend\/af-nearby\/nearby/i",
+        r"c3frontend\/af-nearby\/nearby",
+        r"/^https:\/\/m5\.amap\.com\/ws\/c3frontend\/(?:af-(?:hotel|launch)\/page\/main|af-nearby\/nearby)/i",
+    ),
+)
+
+
+def remove_shadowed_ishowshu_amap_response_triggers(lines):
+    """Drop iShowShu Amap entries covered by the more complete local RuCu6 handler."""
+    section = ""
+    entries = []
+    for index, line in enumerate(lines):
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            continue
+        if section == "Script" and line.lower().startswith("response if "):
+            entries.append((index, line))
+
+    remove_indexes = set()
+    verified_local = set()
+    for name, old_matcher, path_marker, local_matcher in SHADOWED_ISHOWSHU_AMAP_TRIGGERS:
+        old_candidates = []
+        for index, line in entries:
+            lowered = line.lower()
+            normalized = re.sub(r"\\+", "", lowered)
+            if ISHOWSHU_AMAP_SCRIPT_MARKER.lower() in lowered and path_marker.lower() in normalized:
+                matcher = line.split("~=", 1)[1].split(" then script", 1)[0].strip() if "~=" in line and " then script" in line else ""
+                old_candidates.append((index, matcher))
+
+        if len(old_candidates) > 1:
+            raise ValueError("duplicate iShowShu Amap trigger; refusing shadow cleanup: " + name)
+        if not old_candidates:
+            continue
+        if old_candidates[0][1] != old_matcher:
+            raise ValueError("iShowShu Amap matcher changed; refusing shadow cleanup: " + name)
+
+        if local_matcher not in verified_local:
+            local_candidates = [
+                (index, line)
+                for index, line in entries
+                if RUCU6_AMAP_SCRIPT_MARKER.lower() in line.lower()
+                and "~=" in line
+                and line.split("~=", 1)[1].split(" then script", 1)[0].strip() == local_matcher
+            ]
+            if len(local_candidates) != 1:
+                raise ValueError("local RuCu6 Amap coverage missing or duplicated; refusing shadow cleanup: " + name)
+            verified_local.add(local_matcher)
+
+        remove_indexes.add(old_candidates[0][0])
+
+    if not remove_indexes:
+        return list(lines), 0
+    return [line for index, line in enumerate(lines) if index not in remove_indexes], len(remove_indexes)
+
+
 USMILE_RESPONSE_SCRIPT_MARKER = "www.myusmile.online/user/plaquetopic/selectbytype"
 USMILE_RESPONSE_SCRIPT_URL = "Res/Scripts/AntiAd/usmile.js"
 
@@ -6036,6 +6126,7 @@ def apply(text: str) -> str:
     lines, _ = remove_redundant_baidumap_script(lines)
     lines, _ = remove_redundant_amap_legacy_scripts(lines)
     lines, _ = optimize_amap_response_script_overlaps(lines)
+    lines, _ = remove_shadowed_ishowshu_amap_response_triggers(lines)
     lines, _ = consolidate_zhihu_response_scripts(lines)
     lines, _ = narrow_xiaohongshu_native_response_duplicates(lines)
     lines, _ = narrow_xiaohongshu_v3_video_native_duplicates(lines)
