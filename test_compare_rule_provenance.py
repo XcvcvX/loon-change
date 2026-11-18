@@ -84,6 +84,13 @@ class RuleProvenanceDiffTests(unittest.TestCase):
         self.assertEqual(result["summary"]["rewrite"]["action_changed"], 0)
         self.assertEqual(result["summary"]["rewrite"]["added"], 1)
 
+    def test_tracks_list_shaped_source_metadata_without_crashing(self):
+        old = report(revisions={"romeo": [{"upstream_commit": "abc"}]})
+        new = report(revisions={"romeo": [{"upstream_commit": "def"}]})
+        result = build_diff(old, new)
+        self.assertEqual(result["upstream_revision_changes"][0]["previous_commit"], ["abc"])
+        self.assertEqual(result["upstream_revision_changes"][0]["current_commit"], ["def"])
+
     def test_ignores_non_included_rule_events_and_tracks_upstream_revisions(self):
         old = report(rule_rows=[
             rule("DOMAIN,ads.example.com,REJECT"),
