@@ -578,4 +578,5 @@ vm.runInNewContext(source, {
 });
 if (!emptyDone || Object.keys(emptyDone).length !== 0) throw new Error("empty body fast path changed");
 '''
-        subprocess.run([node, "-e", harness, str(source_path)], check=True, capture_output=True, text=True)
+        result = subprocess.run([node, "-e", harness, str(source_path)], check=False, capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr || result.stdout)
