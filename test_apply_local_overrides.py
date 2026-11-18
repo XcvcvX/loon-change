@@ -3313,19 +3313,19 @@ class AlipanOnboardResponseDedupTests(unittest.TestCase):
         self.lines = plugin.splitlines()
         self.wool = next(
             line for line in self.lines
-            if "member.alipan.com" in line.lower()
+            if "member.alipan.com" in line.replace(chr(92), "").lower()
             and "/v1/users/onboard_list" in line.replace(chr(92), "")
             and "Scripts/adrive/adrive.js" in line
         )
         self.romeo = next(
             line for line in self.lines
-            if "member.alipan.com" in line.lower()
+            if "member.alipan.com" in line.replace(chr(92), "").lower()
             and "/v1/users/onboard_list" in line.replace(chr(92), "")
             and "rucu6_adrive.js" in line
         )
         self.romeo_unique = next(
             line for line in self.lines
-            if "api.alipan.com" in line.lower() and "rucu6_adrive.js" in line
+            if "api.alipan.com" in line.replace(chr(92), "").lower() and "rucu6_adrive.js" in line
         )
 
     def test_removes_only_the_duplicate_romeo_onboard_handler(self):
