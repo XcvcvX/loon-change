@@ -5040,8 +5040,10 @@ def narrow_xiaohongshu_v3_video_native_duplicates(lines):
         if "response-body-json-jq" in line
         and "/api/sns/v3/note/videofeed" in re.sub(r"\\+", "", line)
     ]
-    if len(native_matches) != 1:
-        raise ValueError("Xiaohongshu v3 video native JSON coverage missing or duplicated")
+    if not native_matches:
+        return original, 0
+    if len(native_matches) > 1:
+        raise ValueError("Xiaohongshu v3 video native JSON coverage duplicated")
     normalized_native = re.sub(r"\\+", "", native_matches[0])
     required = (
         "xiaohongshu.com",
