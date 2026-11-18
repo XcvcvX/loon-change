@@ -4214,7 +4214,7 @@ class WeiboNativeMigrationTests(unittest.TestCase):
 class BilibiliProtobufDuplicateTriggerTests(unittest.TestCase):
     def _fmz_trigger(self):
         return (
-            r'response if ' + r'$' + r'{url} ~= /^https?:\/\/(?:grpc\.biliapi\.net|app\.bilibili\.com)\/bilibili\.(?:app\.(?:dynamic\.v2\.Dynamic\/DynAll|view(unite)?\.v1\.View\/View)|community\.service\.dm\.v1\.DM\/DmView|polymer\.app\.search\.v1\.Search\/SearchAll|main\\.community\\.reply\\.v1\\.Reply\\/MainList)$/i '
+            r'response if ' + r'$' + r'{url} ~= /^https?:\/\/(?:grpc\.biliapi\.net|app\.bilibili\.com)\/bilibili\.(?:app\.(?:dynamic\.v2\.Dynamic\/DynAll|view(unite)?\.v1\.View\/View)|community\.service\.dm\.v1\.DM\/DmView|polymer\.app\.search\.v1\.Search\/SearchAll|main\.community\.reply\.v1\.Reply\/MainList)$/i '
             r'then script("https://raw.githubusercontent.com/kokoryh/Sparkle/refs/heads/master/dist/bilibili.protobuf.response.js") with tag="bilibili.protobuf", requires_body=true'
         )
 
@@ -4236,8 +4236,8 @@ class BilibiliProtobufDuplicateTriggerTests(unittest.TestCase):
         self.assertIn(mainlist, result)
         sparkle_lines = [line for line in result if "bilibili.protobuf.response.js" in line]
         self.assertEqual(len(sparkle_lines), 1)
-        self.assertNotIn(r"main\\.community\\.reply\\.v1\\.Reply", sparkle_lines[0])
-        for marker in (r"dynamic\\.v2\\.Dynamic", "view(unite)?", r"community\\.service\\.dm", r"polymer\\.app\\.search"):
+        self.assertNotIn(r"main\.community\.reply\.v1\.Reply", sparkle_lines[0])
+        for marker in (r"dynamic\.v2\.Dynamic", "view(unite)?", r"community\.service\.dm", r"polymer\.app\.search"):
             self.assertIn(marker, sparkle_lines[0])
 
         import re
