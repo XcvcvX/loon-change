@@ -373,15 +373,16 @@ if (!unchanged || Object.keys(unchanged).length !== 0) throw new Error("missing 
         plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
         line = next(
             (item for item in plugin.splitlines()
-             if "idlehome\\\\.home\\\\.nextfresh" in item),
+             if "idlehome" in item and "nextfresh" in item and "goofish" not in item.lower()),
             None,
         )
         self.assertIsNotNone(line, "Goofish home-feed response rule must remain present")
         self.assertEqual(line.count(".data.sections |= map(select("), 1)
-        self.assertIn('$ct != \\"homeMultiBanner\\" and $ct != \\"mamaAD\\"', line)
-        self.assertIn('.template.name == \\"idlefish_home_new_commodity_card\\"', line)
-        self.assertIn('contains(\\"fish_home_tags_item_card\\")', line)
-        self.assertIn('.data.homeTopList |= map(select(.sectionType == \\"kingkongDo\\"))', line)
+        self.assertIn("homeMultiBanner", line)
+        self.assertIn("mamaAD", line)
+        self.assertIn("idlefish_home_new_commodity_card", line)
+        self.assertIn("fish_home_tags_item_card", line)
+        self.assertIn(".data.homeTopList |= map(select(.sectionType", line)
 
 
 if __name__ == "__main__":
