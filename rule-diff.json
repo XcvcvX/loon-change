@@ -410,24 +410,8 @@
     },
     "script": {
       "action_changed": [],
-      "added": [
-        {
-          "line": "http-response ^https?:\\/\\/mgs\\.wallet\\.pbcdci\\.cn(:\\d+)?\\/mgw\\.htm$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=ECNY",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        }
-      ],
-      "removed": [
-        {
-          "line": "http-response ^https?:\\/\\/mgs\\.wallet\\.pbcdci\\.cn(:\\d+)?\\/mgw\\.htm$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=ECNY,requires-body=true",
-          "section": "script",
-          "sources": [
-            "base"
-          ]
-        }
-      ]
+      "added": [],
+      "removed": []
     }
   },
   "summary": {
@@ -443,10 +427,10 @@
     },
     "script": {
       "action_changed": 0,
-      "added": 1,
-      "removed": 1
+      "added": 0,
+      "removed": 0
     },
-    "total_changes": 2
+    "total_changes": 0
   },
   "upstream_revision_changes": []
 }
