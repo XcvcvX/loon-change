@@ -848,6 +848,36 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
                 TAOBAO_FLIGGY_HTTPS_REDUNDANT, TAOBAO_FLIGGY_HTTPS_REDUNDANT,
             ])
 
+
+    def test_optimizes_goofish_home_sections_with_one_filter_pass(self):
+        from apply_local_overrides import (
+            GOOFISH_HOME_SECTIONS_OLD_RULE,
+            GOOFISH_HOME_SECTIONS_NATIVE_RULE,
+            optimize_goofish_home_sections_filter,
+        )
+        fixture = ["[Rewrite]", GOOFISH_HOME_SECTIONS_OLD_RULE, "[Script]"]
+        result, changed = optimize_goofish_home_sections_filter(fixture)
+        self.assertEqual(changed, 1)
+        rule = result[1]
+        self.assertEqual(rule.count(".data.sections |= map(select("), 1)
+        self.assertIn("homeMultiBanner", rule)
+        self.assertIn("mamaAD", rule)
+        self.assertIn("idlefish_home_new_commodity_card", rule)
+        self.assertIn("fish_home_tags_item_card", rule)
+        self.assertEqual(optimize_goofish_home_sections_filter(result)[1], 0)
+        self.assertIn(GOOFISH_HOME_SECTIONS_NATIVE_RULE, result)
+
+    def test_goofish_home_sections_override_fails_closed_on_drift_or_duplicates(self):
+        from apply_local_overrides import (
+            GOOFISH_HOME_SECTIONS_OLD_RULE,
+            optimize_goofish_home_sections_filter,
+        )
+        changed = GOOFISH_HOME_SECTIONS_OLD_RULE.replace("mamaAD", "unreviewed")
+        with self.assertRaisesRegex(ValueError, "rule changed"):
+            optimize_goofish_home_sections_filter(["[Rewrite]", changed])
+        with self.assertRaisesRegex(ValueError, "duplicate"):
+            optimize_goofish_home_sections_filter(["[Rewrite]", GOOFISH_HOME_SECTIONS_OLD_RULE, GOOFISH_HOME_SECTIONS_OLD_RULE])
+
     def test_consolidates_goofish_scripts_to_one_local_trigger_per_endpoint(self):
         from apply_local_overrides import (
             GOOFISH_CANONICAL_SCRIPT_TRIGGERS, GOOFISH_REDUNDANT_SCRIPT_TRIGGERS,
