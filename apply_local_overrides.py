@@ -5809,7 +5809,7 @@ def narrow_duplicate_bilibili_protobuf_triggers(lines):
     mainlist_candidates = [
         line for line in script_lines
         if "tag=BAICIZHAN-5" in line
-        or ("bilibili.main.community.reply" in re.sub(r"\\\\+", "", line)
+        or ("bilibili.main.community.reply" in re.sub(r"\\+", "", line)
             and "bilibiliProtoA.js" in line)
     ]
     normalize_mainlist = lambda value: re.sub(r"\\+", "", value)
@@ -6118,15 +6118,15 @@ GOOFISH_HOME_SECTIONS_NATIVE_RULE = r'''response if ${url} ~= /^https:\/\/acs\.m
 def optimize_goofish_home_sections_filter(lines):
     """Combine the two reviewed Goofish home sections filters into one map pass."""
     output, section, found, changed = [], "", 0, 0
-    old_normalized = re.sub(r"\\\\+", "", GOOFISH_HOME_SECTIONS_OLD_RULE.strip())
-    new_normalized = re.sub(r"\\\\+", "", GOOFISH_HOME_SECTIONS_NATIVE_RULE.strip())
+    old_normalized = re.sub(r"\\+", "", GOOFISH_HOME_SECTIONS_OLD_RULE.strip())
+    new_normalized = re.sub(r"\\+", "", GOOFISH_HOME_SECTIONS_NATIVE_RULE.strip())
     for line in lines:
         stripped = line.strip()
         if stripped.startswith("[") and stripped.endswith("]"):
             section = stripped[1:-1]
             output.append(line)
             continue
-        normalized = re.sub(r"\\\\+", "", stripped)
+        normalized = re.sub(r"\\+", "", stripped)
         if "idlehome.home.nextfresh" not in normalized or ".data.sections" not in normalized:
             output.append(line)
             continue
