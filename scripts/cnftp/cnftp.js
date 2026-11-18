@@ -18,7 +18,6 @@ function compactInPlace(items, keep) {
 }
 
 
-
 if (!$response.body) $done({});
 const isIQY = url.includes("iqiyi.com/");
 const isMG = url.includes("mgtv.com/");
