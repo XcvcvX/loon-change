@@ -69,8 +69,22 @@
     if (obj(root.bstatus) && own(root.bstatus, 'code') && Number(root.bstatus.code) !== 0) { result.kind = 'api-error'; return result; }
     if (obj(root.responseBizHead) && own(root.responseBizHead, 'code') && Number(root.responseBizHead.code) !== 0) { result.kind = 'api-error'; return result; }
     var d = obj(root.data) ? root.data : null, service = r.service;
-    function set(o, k, value, label) {
-      if (!obj(o) || !own(o, k) || JSON.stringify(o[k]) === JSON.stringify(value)) return;
+    function sameTarget(current, target) {
+    // Most cleanup writes replace potentially large ad/feed containers with an
+    // empty array/object or null. Avoid serializing the entire old subtree just
+    // to detect an already-clean value. Keep the generic deep comparison only
+    // for non-empty object targets so future callers retain the old semantics.
+    if (target === null || typeof target !== 'object') return current === target;
+    if (Array.isArray(target) && target.length === 0) {
+      return Array.isArray(current) && current.length === 0;
+    }
+    if (!Array.isArray(target) && Object.keys(target).length === 0) {
+      return obj(current) && Object.keys(current).length === 0;
+    }
+    return JSON.stringify(current) === JSON.stringify(target);
+  }
+  function set(o, k, value, label) {
+      if (!obj(o) || !own(o, k) || sameTarget(o[k], value)) return;
       o[k] = value;
       if (result.actions.indexOf(label) < 0) result.actions.push(label);
     }
