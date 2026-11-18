@@ -732,7 +732,7 @@ def migrate_taobao_script_to_local(lines):
             continue
         if section != "Script" or "tag=TAOBAO" not in stripped:
             continue
-        tags = [tag for tag in ("TAOBAO", "TAOBAO-2") if "tag=" + tag in stripped]
+        tags = [tag for tag in ("TAOBAO", "TAOBAO-2") if re.search(r"tag=" + re.escape(tag) + r"(?:,|$)", stripped)]
         if len(tags) != 1:
             raise ValueError("Taobao script trigger tag changed; refusing local migration")
         tag = tags[0]
