@@ -22,15 +22,32 @@ ROOT = Path(__file__).resolve().parent
 
 class RomeoPluginMigrationTests(unittest.TestCase):
     def test_manifest_is_the_single_complete_mapping(self):
-        self.assertEqual(len(ROMEO_PLUGIN_MAP), 21)
+        self.assertEqual(len(ROMEO_PLUGIN_MAP), 24)
         self.assertEqual(len(set(ROMEO_PLUGIN_MAP)), len(ROMEO_PLUGIN_MAP))
         self.assertEqual(len(set(ROMEO_PLUGIN_MAP.values())), len(ROMEO_PLUGIN_MAP))
-        self.assertEqual(EXPECTED_PLUGIN_FILES, 28)
+        self.assertEqual(EXPECTED_PLUGIN_FILES, 31)
         self.assertEqual(len(ZMJDE_APP_MAP), 5)
         self.assertEqual(len(ZMJDE_GENERAL_MAP), 3)
         self.assertEqual(len(ZMJDE_PLUGIN_MAP), 8)
         self.assertTrue(all(path.startswith("Modules/Loon/Kelee/Official/")
                             for path in ZMJDE_PLUGIN_MAP.values()))
+
+
+    def test_wechat_and_weidian_plugins_and_all_runtime_scripts_are_mapped(self):
+        expected = {
+            "Weixin_Official_Accounts_remove_ads.lpx":
+                "Modules/Loon/Kelee/Weixin_Official_Accounts_remove_ads.lpx",
+            "WexinMiniPrograms_Remove_ads.lpx":
+                "Modules/Loon/Kelee/WexinMiniPrograms_Remove_ads.lpx",
+            "Weidian_remove_ads.lpx":
+                "Modules/Loon/Kelee/Weidian_remove_ads.lpx",
+        }
+        for filename, source_path in expected.items():
+            self.assertEqual(ROMEO_PLUGIN_MAP[filename], source_path)
+        assets = {(item["plugin"], item["source_path"]) for item in RUNTIME_ASSETS}
+        self.assertEqual(sum(plugin == "WexinMiniPrograms_Remove_ads.lpx" for plugin, _ in assets), 12)
+        self.assertEqual(sum(plugin == "Weidian_remove_ads.lpx" for plugin, _ in assets), 2)
+        self.assertEqual(sum(plugin == "Weixin_Official_Accounts_remove_ads.lpx" for plugin, _ in assets), 0)
 
     def test_legacy_snapshots_are_present(self):
         self.assertEqual(len(LEGACY_SNAPSHOTS), 7)
@@ -59,7 +76,7 @@ class RomeoPluginMigrationTests(unittest.TestCase):
         self.assertNotIn("Modules/Loon/ishowshu/pdd.lpx", ROMEO_PLUGIN_MAP.values())
 
     def test_former_zmjde_assets_are_mapped_to_romeo_files(self):
-        self.assertEqual(len(RUNTIME_ASSETS), 5)
+        self.assertEqual(len(RUNTIME_ASSETS), 19)
         by_plugin = {item["plugin"]: item for item in RUNTIME_ASSETS}
         self.assertEqual(
             by_plugin["PinDuoDuo_remove_ads.lpx"]["source_path"],
@@ -150,7 +167,7 @@ class RomeoPluginMigrationTests(unittest.TestCase):
             with patch("stage_romeo_plugins._read_romeo_file", side_effect=fake_read):
                 result = stage(repo, commit, primary, ROOT, former_zmjde)
 
-            self.assertEqual(result["romeo_plugin_files"], 21)
+            self.assertEqual(result["romeo_plugin_files"], 24)
             self.assertEqual(result["former_zmjde_plugin_files"], 8)
             self.assertEqual(len(result["staged_plugin_files"]), EXPECTED_PLUGIN_FILES)
             self.assertEqual(len(list(former_zmjde.glob("*.lpx"))), 8)
