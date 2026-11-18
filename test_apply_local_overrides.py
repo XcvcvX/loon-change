@@ -570,9 +570,12 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertIn(other, result)
         self.assertNotIn("guiderank.js", result)
 
-    def test_requires_bankcomm_mitm_hosts(self):
-        with self.assertRaises(ValueError):
-            apply(BASE.replace("creditcard.bankcomm.com, ", ""))
+    def test_restores_bankcomm_mitm_hosts_without_relying_on_retired_feed(self):
+        result = apply(BASE.replace("creditcard.bankcomm.com, ", ""))
+        mitm = result.split("[MITM]", 1)[1]
+        for host in ("creditcard.bankcomm.cn", "creditcard.bankcomm.com",
+                     "creditcardapp.bankcomm.cn", "creditcardapp.bankcomm.com"):
+            self.assertIn(host, mitm)
 
 
     def test_replaces_gaoding_resource_scripts_with_exact_native_json_deletes(self):
