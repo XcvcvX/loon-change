@@ -44,6 +44,15 @@ class CNTVOptimizerTests(unittest.TestCase):
         self.assertEqual(changed_again, 0)
         self.assertEqual(lines_again, lines)
 
+    def test_partial_local_inventory_fails_closed(self):
+        fixture = "[Script]\n" + "\n".join(
+            "http-response ^https://cntv%d.example/api script-path=%s,tag=CNTV-%d,requires-body=true"
+            % (index, CNTV_LOCAL_SCRIPT_URL, index)
+            for index in range(2)
+        )
+        with self.assertRaisesRegex(ValueError, "expected 26"):
+            rewrite_plugin(fixture)
+
     def test_partial_trigger_inventory_fails_closed(self):
         fixture = ["[Script]"] + [
             "http-response ^https://cntv.example/api script-path=%s,tag=CNTV,requires-body=true"
