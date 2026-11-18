@@ -3306,7 +3306,7 @@ class UnneededUsmileResponseBodyReadTests(unittest.TestCase):
     def test_removes_body_read_from_legacy_and_v2_usmile_handlers_only(self):
         from apply_local_overrides import remove_unneeded_usmile_response_body_read
         legacy = r"http-response ^https?:\\/\\/www\\.myusmile\\.online\\/user\\/plaqueTopic\\/selectByType script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/usmile.js,tag=USMILE,requires-body=true"
-        v2 = r'response if \${url} ~= /^https?:\\/\\/www\\.myusmile\\.online\\/user\\/plaqueTopic\\/selectByType/i then script("https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/usmile.js") with tag="笑容加-我的页面推广", timeout=60, requires_body=true'
+        v2 = r'response if ${url} ~= /^https?:\\/\\/www\\.myusmile\\.online\\/user\\/plaqueTopic\\/selectByType/i then script("https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/usmile.js") with tag="笑容加-我的页面推广", timeout=60, requires_body=true'
         unrelated = r"http-response ^https?:\\/\\/www\\.myusmile\\.online\\/user\\/other script-path=https://example.com/other.js,requires-body=true"
         request = r"http-request ^https?:\\/\\/www\\.myusmile\\.online\\/user\\/plaqueTopic\\/selectByType script-path=https://example.com/request.js,requires-body=true"
         result, changed = remove_unneeded_usmile_response_body_read(
@@ -3320,7 +3320,7 @@ class UnneededUsmileResponseBodyReadTests(unittest.TestCase):
 
     def test_is_idempotent_and_fails_closed_on_duplicate_handlers(self):
         from apply_local_overrides import remove_unneeded_usmile_response_body_read
-        clean = r'response if \${url} ~= /^https?:\\/\\/www\\.myusmile\\.online\\/user\\/plaqueTopic\\/selectByType/i then script("https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/usmile.js") with tag="USMILE"'
+        clean = r'response if ${url} ~= /^https?:\\/\\/www\\.myusmile\\.online\\/user\\/plaqueTopic\\/selectByType/i then script("https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/usmile.js") with tag="USMILE"'
         result, changed = remove_unneeded_usmile_response_body_read(["[Script]", clean, "[MITM]"])
         self.assertEqual(changed, 0)
         self.assertEqual(result, ["[Script]", clean, "[MITM]"])
@@ -3353,7 +3353,7 @@ class MaaseaYoutubeShadowedTriggerTests(unittest.TestCase):
         dev_request = r"http-request ^https:\/\/youtubei\.googleapis\.com\/youtubei\/v1\/log_event(?:\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=true"
         maasea_request = r"http-request ^https:\/\/youtubei\.googleapis\.com\/youtubei\/v1\/log_event script-path=https://raw.githubusercontent.com/ifflagged/Romeo/abc/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.request.js,requires-body=true"
         broad_response = r"http-response ^https:\/\/youtubei\.googleapis\.com\/(youtubei\/v1\/(browse|next|player|search|reel\/reel_watch_sequence|guide|account\/get_setting|get_watch|log_event|config))(\?(.*))?$ script-path=https://raw.githubusercontent.com/ifflagged/Romeo/abc/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.response.js,requires-body=true"
-        legacy_response = r"response if \${url} ~= /youtubei\/v1\/(browse|next|player)/ then script('https://raw.githubusercontent.com/Maasea/sgmodule/master/Script/Youtube/youtube.response.js')"
+        legacy_response = r"response if ${url} ~= /youtubei\/v1\/(browse|next|player)/ then script('https://raw.githubusercontent.com/Maasea/sgmodule/master/Script/Youtube/youtube.response.js')"
         lines = ["[Script]", dev_request, maasea_request, broad_response, legacy_response, "[MITM]"]
         result, changed = optimize_maasea_youtube_shadowed_triggers(lines)
         self.assertEqual(changed, 2)
@@ -3397,7 +3397,7 @@ class HeaderOnlyResponseBodyReadTests(unittest.TestCase):
         from apply_local_overrides import remove_unneeded_header_only_response_body_reads
         spdb = r"http-response ^https?:\\/\\/image\\.spdbccc\\.com\\.cn\\/group\\d\\/.*\\.JPG$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/spdbccc.js,tag=SPDBCCC,requires-body=true"
         sdb = r"http-response ^https?:\\/\\/cdn\\.sdb\\.com\\.cn\\/bron-coms\\/bron-coms\\/material-image script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/sdb.js,tag=SDB,requires-body=true"
-        umetrip = r'response if \${url} ~= /^https?:\\/\\/(114\\.115\\.217\\.129)|(home\\.umetrip\\.com)\\/gateway\\/api\\/umetrip\\/native$/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/umetrip/umetrip_ads.js") with enable=\${hlzh_enable}, tag="航旅纵横", timeout=60, requires_body=true'
+        umetrip = r'response if ${url} ~= /^https?:\\/\\/(114\\.115\\.217\\.129)|(home\\.umetrip\\.com)\\/gateway\\/api\\/umetrip\\/native$/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/umetrip/umetrip_ads.js") with enable=\${hlzh_enable}, tag="航旅纵横", timeout=60, requires_body=true'
         unrelated = r"http-response ^https?:\\/\\/example.com\\/image script-path=https://example.com/image.js,requires-body=true"
         result, changed = remove_unneeded_header_only_response_body_reads(
             ["[Script]", spdb, sdb, umetrip, unrelated, "[MITM]"]
@@ -4957,8 +4957,8 @@ class PinduoduoHomepageNativeConsolidationTests(unittest.TestCase):
 class ShadowedAmdcResponseTriggerTests(unittest.TestCase):
     def setUp(self):
         self.rstore = r"http-response ^https?:\/\/amdc\.m\.taobao\.com\/amdc\/mobileDispatch$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amdc.js,tag=ALIBABA"
-        self.wool = r'response if \${url} ~= /^https?:\/\/amdc\.m\.taobao\.com\/amdc\/mobileDispatch$/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/header.js") with enable=\${cdnngogo_enable}, tag="菜鸟裹裹", timeout=60'
-        self.unrelated = r'response if \${url} ~= /^https?:\/\/cn-acs\.m\.cainiao\.com\/gw\/mtop\.cainiao\.guoguo\.nbnetflow\.ads\.m?show\.cn/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cainiao/cainiao.js") with enable=\${cdnngogo_enable}, requires_body=true'
+        self.wool = r'response if ${url} ~= /^https?:\/\/amdc\.m\.taobao\.com\/amdc\/mobileDispatch$/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/header.js") with enable=\${cdnngogo_enable}, tag="菜鸟裹裹", timeout=60'
+        self.unrelated = r'response if ${url} ~= /^https?:\/\/cn-acs\.m\.cainiao\.com\/gw\/mtop\.cainiao\.guoguo\.nbnetflow\.ads\.m?show\.cn/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cainiao/cainiao.js") with enable=\${cdnngogo_enable}, requires_body=true'
 
     def test_removes_only_later_shadowed_wool_amdc_handler(self):
         from apply_local_overrides import remove_shadowed_amdc_response_trigger
