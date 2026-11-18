@@ -53,6 +53,14 @@ class CNTVOptimizerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "expected 26"):
             rewrite_plugin(fixture)
 
+    def test_standalone_cntv_inventory_is_not_removed_as_cnftp_duplicate(self):
+        from apply_local_overrides import (
+            CNFTP_DUPLICATE_REMOVE_TRIGGERS,
+            remove_duplicate_cnftp_scripts,
+        )
+        fixture = ["[Script]", *CNFTP_DUPLICATE_REMOVE_TRIGGERS, "[MITM]"]
+        self.assertEqual(remove_duplicate_cnftp_scripts(fixture), (fixture, 0))
+
     def test_legacy_response_syntax_is_migrated_without_requiring_http_response_form(self):
         fixture = [
             "[Script]",
