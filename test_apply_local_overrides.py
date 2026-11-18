@@ -5000,7 +5000,7 @@ class ShadowedAmdcResponseTriggerTests(unittest.TestCase):
         from apply_local_overrides import apply
         plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
         result = apply(plugin)
-        lines = [line for line in result.splitlines() if "amdc.m.taobao.com" in __import__("re").sub(r"\\+", "", line).lower() and ("res/scripts/antiad/amdc.js" in line.lower() or "scripts/header.js" in line.lower())]
+        lines = [line for line in result.splitlines() if r"amdc\.m\.taobao\.com" in line.lower() and ("res/scripts/antiad/amdc.js" in line.lower() or "scripts/header.js" in line.lower())]
         self.assertEqual(len(lines), 1)
         self.assertIn("res/scripts/antiad/amdc.js", lines[0].lower())
         self.assertNotIn("scripts/header.js", lines[0].lower())
