@@ -275,9 +275,7 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
   // 附近页面
   const items = ["head", "search_hot_words", "feed_rec"];
   if (obj?.data?.modules?.length > 0) {
-    if (obj?.data?.modules?.length > 0) {
-      obj.data.modules = obj.data.modules.filter((i) => items?.includes(i));
-    }
+    obj.data.modules = obj.data.modules.filter((i) => items.includes(i));
   }
 } else if (url.includes("/shield/search/poi/detail")) {
   // 搜索结果 模块详情
