@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、RuCu6 MyBlockAds、zirawell AlipayAdBlock、Thelongdarkorg、Romeo、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / RuCu6 / Thelongdarkorg / Romeo / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-18 01:23 UTC
+#!merged-at=2026-11-18 01:32 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+RuCu6-MyBlockAds+zirawell-AlipayAdBlock+Thelongdarkorg+Romeo-Loon+AOOMEE-legacy-snapshots+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -7153,7 +7153,6 @@ response if ${url} ~= /^https?:\/\/manga\.bilibili\.com\/twirp\/comic\.v\d\.Home
 response if ${url} ~= /^https?:\/\/manga\.bilibili\.com\/twirp\/comic\.v\d\.Comment\/Main/i then script("https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliManga.js") with enable=${bilimanhua_enable}, tag="哔哩哔哩漫画", timeout=60, requires_body=true
 response if ${url} ~= /^https?:\/\/social\.blued\.cn\/users\/.+\/more\/ios\?v=2/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/blued.js") with enable=${blued_enable}, tag="blued登录后个人界面广告", timeout=60, requires_body=true
 response if ${url} ~= /^https?:\/\/gg\.caixin\.com\/s\?z=caixin&op=1&c=3362/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/caixin/caixinAd.js") with enable=${cdxb_enable}, tag="财新广告", timeout=60, requires_body=true
-response if ${url} ~= /^https?:\/\/amdc\.m\.taobao\.com\/amdc\/mobileDispatch$/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/header.js") with enable=${cdnngogo_enable}, tag="菜鸟裹裹", timeout=60
 response if ${url} ~= /^https?:\/\/cn-acs\.m\.cainiao\.com\/gw\/mtop\.cainiao\.guoguo\.nbnetflow\.ads\.m?show\.cn/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cainiao/cainiao.js") with enable=${cdnngogo_enable}, tag="菜鸟裹裹", timeout=60, requires_body=true
 response if ${url} ~= /^https?:\/\/cn-acs\.m\.cainiao\.com\/gw\/mtop\.cainiao\.nbpresentation\.(pickup\.empty\.page|protocol\.homepage)\.get/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cainiao/cainiao.js") with enable=${cdnngogo_enable}, tag="菜鸟裹裹", timeout=60, requires_body=true
 response if ${url} ~= /^https?:\/\/cn-acs\.m\.cainiao\.com\/gw\/mtop\.nbfriend\.message\.conversation\.list\.cn/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cainiao/cainiao.js") with enable=${cdnngogo_enable}, tag="菜鸟裹裹", timeout=60, requires_body=true

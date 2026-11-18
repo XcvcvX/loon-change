@@ -120483,23 +120483,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://amdc\\\\.m\\\\.taobao\\\\.com/amdc/mobileDispatch$', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/header.js\") with enable=cdnngogo_enable, tag=\"菜鸟裹裹\", timeout=60'))",
-      "output_entry_index": 347,
-      "output_line": "response if ${url} ~= /^https?:\\/\\/amdc\\.m\\.taobao\\.com\\/amdc\\/mobileDispatch$/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/header.js\") with enable=${cdnngogo_enable}, tag=\"菜鸟裹裹\", timeout=60",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https?:\\/\\/amdc\\.m\\.taobao\\.com\\/amdc\\/mobileDispatch$/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/header.js\") with enable=${cdnngogo_enable}, tag=\"菜鸟裹裹\", timeout=60",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 39
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https?://cn-acs\\\\.m\\\\.cainiao\\\\.com/gw/mtop\\\\.cainiao\\\\.guoguo\\\\.nbnetflow\\\\.ads\\\\.m?show\\\\.cn', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cainiao/cainiao.js\") with enable=cdnngogo_enable, tag=\"菜鸟裹裹\", timeout=60, requires_body=true'))",
       "output_entry_index": 348,
       "output_line": "response if ${url} ~= /^https?:\\/\\/cn-acs\\.m\\.cainiao\\.com\\/gw\\/mtop\\.cainiao\\.guoguo\\.nbnetflow\\.ads\\.m?show\\.cn/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cainiao/cainiao.js\") with enable=${cdnngogo_enable}, tag=\"菜鸟裹裹\", timeout=60, requires_body=true",
@@ -123747,7 +123730,7 @@
     "rule_safety_excluded_events": 11,
     "rule_scope_adjustments": 1,
     "rule_source_events": 5738,
-    "script_output_entries": 435
+    "script_output_entries": 434
   },
   "upstream_revisions": {
     "AlipayAdBlock": {
