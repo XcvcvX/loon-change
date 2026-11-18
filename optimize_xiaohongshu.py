@@ -158,28 +158,17 @@ def optimize_source(src,commit="unknown"):
     result=MARKER+commit+"\n"+src
     for token in ("imageEnhance(images_list)","compactInPlace(obj.data","appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)","const byFileId=new Map()"):
         if token not in result:raise ValueError("missing optimizer invariant: "+token)
-    for line in (
-        "  console.log('原body：' + rsp_body);",
-        '  console.log("读取缓存key[fmz200.xiaohongshu.feed.rsp]的值：" + rsp);',
-        "    console.log('缓存无内容，返回原body');",
-        "  console.log('新body：' + JSON.stringify(obj));",
-        '  console.log("本次note_id：" + note_id);',
-        '    console.log("读取缓存val：" + commitsCache);',
-        '      console.log("缓存note_id：" + commitsRsp.noteId);',
-        '        console.log("增量数据");',
-        '        console.log("更换数据");',
-        '    console.log("写入缓存val：" + JSON.stringify(commitsRsp));',
-        '      console.log("[commentVideos]缓存note_id：" + videosCache.noteId);',
-        '        console.log("[commentVideos]增量数据");',
-        '        console.log("[commentVideos]更换数据");',
-        '    console.log("[commentVideos]写入缓存val：" + JSON.stringify(videosCache));',
-        '  console.log("读取缓存val：" + commitsCache);',
-        '  console.log("目标video_id：" + obj.data.video.video_id);',
-        '          console.log("匹配到无水印链接：" + item.videoUrl);',
-        '          console.log("[commentVideos]匹配到无水印链接：" + item.videoUrl);',
-    ):
-        src = src.replace(line + "\n", "")
-    if "imageEnhance(JSON.stringify(images_list))" in result:raise ValueError("image-feed serialization round trip remains")
+    log_tokens = (
+        "原body：", "读取缓存key", "缓存无内容", "新body：", "本次note_id",
+        "读取缓存val", "缓存note_id", "增量数据", "更换数据", "写入缓存val",
+        "目标video_id", "匹配到无水印链接", "comment_id:", "video_id：",
+        "没有[", "修改评论类型", "修改媒体类型", "提取成功", "未找到可用视频",
+        "已缓存普通视频", "添加下载按钮",
+    )
+    src = "".join(
+        line for line in src.splitlines(keepends=True)
+        if not ("console.log(" in line and any(token in line for token in log_tokens))
+    )    if "imageEnhance(JSON.stringify(images_list))" in result:raise ValueError("image-feed serialization round trip remains")
     return result
 
 def rewrite_plugin(plugin):
