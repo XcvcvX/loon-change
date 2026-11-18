@@ -4568,12 +4568,11 @@ class XiaohongshuV3VideoNativeDedupTests(unittest.TestCase):
         self.assertEqual(second_changed, 0)
         self.assertEqual(again, result)
 
-    def test_fails_closed_without_native_v3_video_coverage(self):
+    def test_preserves_scripts_without_native_v3_video_coverage(self):
         from apply_local_overrides import narrow_xiaohongshu_v3_video_native_duplicates
         fixture = self._fixture()
         fixture = [line for line in fixture if "v3/note/videofeed" not in line.replace(chr(92), "")]
-        with self.assertRaisesRegex(ValueError, "native JSON coverage missing or duplicated"):
-            narrow_xiaohongshu_v3_video_native_duplicates(fixture)
+        self.assertEqual(narrow_xiaohongshu_v3_video_native_duplicates(fixture), (fixture, 0))
 
     def test_fails_closed_when_native_v3_video_loses_a_required_operation(self):
         from apply_local_overrides import narrow_xiaohongshu_v3_video_native_duplicates
