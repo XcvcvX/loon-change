@@ -2016,6 +2016,13 @@ class DouyinContentCdnScopeTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "inventory changed"):
             remove_douyin_content_cdn_overblocks(unknown)
 
+    def test_preserves_original_overblocks_when_retired_source_removed_required_path_guards(self):
+        from apply_local_overrides import remove_douyin_content_cdn_overblocks
+        fixture = [line for line in self.base if not any(marker in line.replace(chr(92), "") for marker in self.markers)]
+        result, removed = remove_douyin_content_cdn_overblocks(fixture)
+        self.assertEqual(removed, 0)
+        self.assertEqual(result, fixture)
+
     def test_current_fmz_source_inventory_is_supported(self):
         from apply_local_overrides import DOUYIN_CONTENT_CDN_OVERBLOCKS, remove_douyin_content_cdn_overblocks
         current_rules = [
