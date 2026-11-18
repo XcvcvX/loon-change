@@ -2944,6 +2944,7 @@ def consolidate_wechat_unblock_url_scripts(lines):
     normalized_expected = {normalized_trigger(item): item for item in expected}
     counts = {item: 0 for item in expected}
     output, section, target_seen, removed = [], "", False, 0
+    target_lines = []
     for line in lines:
         if line.startswith("[") and line.endswith("]"):
             section = line[1:-1]
@@ -2953,6 +2954,7 @@ def consolidate_wechat_unblock_url_scripts(lines):
         normalized = re.sub(r"\\+", "", value).lower()
         if section == "Script" and "newredirectconfirmcgi" in normalized:
             target_seen = True
+            target_lines.append(value)
             trigger = normalized_expected.get(normalized_trigger(value))
             if trigger is None:
                 raise ValueError("WeChat URL-unblock script trigger changed; refusing unreviewed consolidation")
@@ -2967,6 +2969,15 @@ def consolidate_wechat_unblock_url_scripts(lines):
         output.append(line)
 
     if not target_seen:
+        return list(lines), 0
+    # Some upstream snapshots now ship only the R-Store canonical handler; accept
+    # that exact single-source inventory even if cosmetic escaping/tag formatting drifts.
+    if (
+        len(target_lines) == 1
+        and "raw.githubusercontent.com/zirawell/r-store/main/res/scripts/plugins/wechat_unblock_url.js" in target_lines[0].lower()
+        and "zzpiglet/task" not in target_lines[0].lower()
+        and "rucu6_wechat.js" not in target_lines[0].lower()
+    ):
         return list(lines), 0
     if (
         counts[WECHAT_UNBLOCK_URL_CANONICAL_TRIGGER] == 1
@@ -3893,7 +3904,7 @@ def remove_redundant_alipan_onboard_response_script(lines):
 MGW_ECNY_RESPONSE_HOST = "mgs.wallet.pbcdci.cn"
 
 
-USMILE_RESPONSE_SCRIPT_MARKER = "www.myusmile.online/user/plaqueTopic/selectbytype"
+USMILE_RESPONSE_SCRIPT_MARKER = "www.myusmile.online/user/plaquetopic/selectbytype"
 USMILE_RESPONSE_SCRIPT_URL = "Res/Scripts/AntiAd/usmile.js"
 
 
