@@ -11,59 +11,124 @@
     "addition_spike_warning_percent_of_previous_section": 100,
     "automatic_rule_or_mitm_edits": false,
     "planned_migration_action_changes_exempted_only_for_declared_sources": true,
+    "planned_source_retirements_exempted_only_for_attributed_removed_entries": true,
     "removed_rules_block_percent_of_previous_section": 25,
     "section_output_shrink_block_percent": 30,
     "source_count_drop_block_percent": 60
   },
   "provenance_coverage": {
     "coverage_percent": 100.0,
-    "entries": 7228,
+    "entries": 3249,
     "missing_source": 0
   },
   "safety_notes": [
     "Reliability scores summarize source evidence; they do not prove runtime correctness.",
     "Large destructive diffs are held for review rather than silently published.",
     "Only action changes attributed to explicitly declared AOOMEE/zmjde source migrations are exempted from the generic 10% action-change hold.",
-    "All additions, removals, output-shrink limits, unrelated-source action changes, and provenance coverage checks remain enforced.",
+    "Only removals attributed exclusively to explicitly retired rule sources are exempted from removal/output-shrink holds; unrelated removals remain enforced.",
+    "All additions, unrelated-source action changes, and provenance coverage checks remain enforced.",
     "No rule, MITM hostname, priority, or plugin output is modified by this guard."
   ],
   "schema_version": 1,
   "section_changes": {
     "rewrite": {
-      "action_change_source_pairs": [],
-      "action_changed": 0,
-      "added": 0,
-      "current_entries": 3255,
+      "action_change_source_pairs": [
+        {
+          "after": [
+            "base"
+          ],
+          "before": [
+            "thelong"
+          ],
+          "count": 1
+        },
+        {
+          "after": [
+            "zmjapp"
+          ],
+          "before": [
+            "zmjapp"
+          ],
+          "count": 1
+        }
+      ],
+      "action_changed": 2,
+      "added": 9,
+      "current_entries": 2198,
       "migration_action_changed_exempted": 0,
-      "net_shrink_percent": 0.0,
-      "non_migration_action_changed": 0,
+      "net_shrink_percent": 0.184,
+      "non_migration_action_changed": 2,
+      "non_retired_removed": 15,
       "previous_entries": 3255,
-      "removed": 0,
-      "removed_percent": 0.0
+      "removed": 1066,
+      "removed_percent": 0.461,
+      "retired_source_removed": 1051
     },
     "rule": {
-      "action_change_source_pairs": [],
-      "action_changed": 0,
-      "added": 0,
-      "current_entries": 3553,
+      "action_change_source_pairs": [
+        {
+          "after": [
+            "zmjgen"
+          ],
+          "before": [
+            "block"
+          ],
+          "count": 2
+        }
+      ],
+      "action_changed": 2,
+      "added": 30,
+      "current_entries": 714,
       "migration_action_changed_exempted": 0,
-      "net_shrink_percent": 0.0,
-      "non_migration_action_changed": 0,
+      "net_shrink_percent": 12.637,
+      "non_migration_action_changed": 2,
+      "non_retired_removed": 479,
       "previous_entries": 3553,
-      "removed": 0,
-      "removed_percent": 0.0
+      "removed": 2869,
+      "removed_percent": 13.482,
+      "retired_source_removed": 2390
     },
     "script": {
-      "action_change_source_pairs": [],
-      "action_changed": 0,
-      "added": 0,
-      "current_entries": 420,
-      "migration_action_changed_exempted": 0,
-      "net_shrink_percent": 0.0,
-      "non_migration_action_changed": 0,
+      "action_change_source_pairs": [
+        {
+          "after": [
+            "aoomee"
+          ],
+          "before": [
+            "aoomee"
+          ],
+          "count": 20
+        },
+        {
+          "after": [
+            "base"
+          ],
+          "before": [
+            "block"
+          ],
+          "count": 18
+        },
+        {
+          "after": [
+            "zmjapp"
+          ],
+          "before": [
+            "zmjapp"
+          ],
+          "count": 1
+        }
+      ],
+      "action_changed": 39,
+      "added": 81,
+      "current_entries": 337,
+      "migration_action_changed_exempted": 20,
+      "net_shrink_percent": 0.238,
+      "non_migration_action_changed": 19,
+      "non_retired_removed": 82,
       "previous_entries": 420,
-      "removed": 0,
-      "removed_percent": 0.0
+      "removed": 164,
+      "removed_percent": 19.524,
+      "retired_source_removed": 82
     }
   },
   "source_scores": {
@@ -113,18 +178,6 @@
       },
       "max_score": 100,
       "previous_count": 536,
-      "score": 100
-    },
-    "thelongdarkorg": {
-      "current_count": 991,
-      "evidence": {
-        "asset_integrity": "not_applicable",
-        "content_volume": "present_rule_lines",
-        "historical_continuity": "within_existing_60_percent_drop_guard",
-        "revision_identity": "present"
-      },
-      "max_score": 100,
-      "previous_count": 991,
       "score": 100
     },
     "zmjde": {
