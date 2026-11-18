@@ -702,7 +702,7 @@ const fs = require("fs");
 const vm = require("vm");
 const source = fs.readFileSync(process.argv[1], "utf8");
 const appStart = source.indexOf("const isQuanX =");
-const schemaContext = { console: { log() {} } };
+const schemaContext = { console: { log() {} }, Uint8Array, ArrayBuffer, DataView };
 vm.runInNewContext(source.slice(0, appStart) + "\nglobalThis.__testRoot = baiduMapRoot;", schemaContext);
 const root = schemaContext.__testRoot;
 const resultType = root.lookupType("Result");
@@ -732,6 +732,9 @@ input.set(adsBytes, 4 + repHeadBytes.length + resultBytes.length);
 let doneResult, logs = [];
 const context = {
   console: { log(...args) { logs.push(args); } },
+  Uint8Array,
+  ArrayBuffer,
+  DataView,
   $response: { body: input },
   $done(value) { doneResult = value; }
 };
