@@ -19,16 +19,18 @@ const source = fs.readFileSync("scripts/xiaohongshu/xiaohongshu-v4.js", "utf8");
 const payload = JSON.parse(fs.readFileSync(0, "utf8"));
 const store = new Map();
 let doneResult;
-class Env {
-  getdata(key) { return store.has(key) ? store.get(key) : null; }
-  setdata(value, key) { store.set(key, value); }
-}
 const context = {
-  Env,
+  // Make the bundled Env helper select Loon storage rather than writing box.dat
+  // into the GitHub Actions workspace.
+  $loon: {},
+  $persistentStore: {
+    read(key) { return store.has(key) ? store.get(key) : null; },
+    write(value, key) { store.set(key, value); return true; }
+  },
   $request: { url: payload.url },
   $response: { body: JSON.stringify(payload.body) },
   $done: value => { doneResult = value; },
-  console
+  console: { log() {}, warn() {}, error() {} }
 };
 vm.runInNewContext(source, context, { timeout: 5000 });
 const result = {
