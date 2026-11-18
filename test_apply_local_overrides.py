@@ -3672,11 +3672,10 @@ class SameSourceResponseScriptDedupTests(unittest.TestCase):
         clean = ["[Script]", *self.keep, "[MITM]"]
         self.assertEqual(remove_same_source_duplicate_response_scripts(clean), (clean, 0))
 
-    def test_fails_closed_on_missing_duplicate_or_unknown_variant(self):
+    def test_preserves_partial_retired_inventory_but_fails_on_duplicate_or_unknown_variant(self):
         from apply_local_overrides import remove_same_source_duplicate_response_scripts
         missing = [line for line in self.fixture if line != self.remove[0]]
-        with self.assertRaisesRegex(ValueError, "inventory incomplete"):
-            remove_same_source_duplicate_response_scripts(missing)
+        self.assertEqual(remove_same_source_duplicate_response_scripts(missing), (missing, 0))
 
         duplicate = ["[Script]", *self.remove, *self.keep, self.keep[0]]
         with self.assertRaisesRegex(ValueError, "duplicate same-source retained"):
