@@ -3087,11 +3087,10 @@ class TuhuDuplicateResponseScriptTests(unittest.TestCase):
         clean = ["[Script]", *self.canonical, "[MITM]"]
         self.assertEqual(remove_duplicate_tuhu_scripts(clean), (clean, 0))
 
-    def test_fails_closed_on_missing_canonical_duplicate_or_unknown_variant(self):
+    def test_preserves_partial_inventory_but_fails_on_duplicate_or_unknown_variant(self):
         from apply_local_overrides import remove_duplicate_tuhu_scripts
         missing = [line for line in self.fixture if line != self.canonical[1]]
-        with self.assertRaisesRegex(ValueError, "canonical script inventory incomplete"):
-            remove_duplicate_tuhu_scripts(missing)
+        self.assertEqual(remove_duplicate_tuhu_scripts(missing), (missing, 0))
 
         duplicate = ["[Script]", *self.canonical, self.canonical[0]]
         with self.assertRaisesRegex(ValueError, "duplicate canonical Tuhu"):
