@@ -31,13 +31,12 @@ const context = {
   console
 };
 vm.runInNewContext(source, context, { timeout: 5000 });
-if (!doneResult || typeof doneResult.body !== "string") {
-  throw new Error("Xiaohongshu script did not return a response body");
-}
-process.stdout.write(JSON.stringify({
-  body: JSON.parse(doneResult.body),
+const result = {
+  done: Boolean(doneResult),
+  body: doneResult && typeof doneResult.body === "string" ? JSON.parse(doneResult.body) : null,
   store: Object.fromEntries(store)
-}));
+};
+process.stdout.write("\\n" + JSON.stringify(result) + "\\n");
 """
         result = subprocess.run(
             [NODE, "-e", runner],
@@ -48,7 +47,10 @@ process.stdout.write(JSON.stringify({
             check=True,
             timeout=10,
         )
-        return json.loads(result.stdout)
+        output_lines = [line for line in result.stdout.splitlines() if line.strip()]
+        if not output_lines:
+            self.fail(f"Node runtime produced no JSON output; stderr={result.stderr!r}")
+        return json.loads(output_lines[-1])
 
     @staticmethod
     def video_item(item_id, url, include_download=False):
@@ -102,6 +104,7 @@ process.stdout.write(JSON.stringify({
             body,
         )
 
+        self.assertTrue(result["done"])
         self.assertEqual(
             [item["id"] for item in result["body"]["data"]],
             ["note-1", "note-2"],
@@ -138,6 +141,7 @@ process.stdout.write(JSON.stringify({
                 ]
             },
         )
+        self.assertTrue(result["done"])
         self.assertEqual(result["body"]["data"], [])
         self.assertEqual(result["store"]["redBookVideoFeed"], "[]")
 
