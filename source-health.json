@@ -34,13 +34,13 @@
     "rewrite": {
       "action_change_source_pairs": [],
       "action_changed": 0,
-      "added": 131,
+      "added": 0,
       "current_entries": 2329,
       "migration_action_changed_exempted": 0,
       "net_shrink_percent": 0.0,
       "non_migration_action_changed": 0,
       "non_retired_removed": 0,
-      "previous_entries": 2198,
+      "previous_entries": 2329,
       "removed": 0,
       "removed_percent": 0.0,
       "retired_source_removed": 0
@@ -48,13 +48,13 @@
     "rule": {
       "action_change_source_pairs": [],
       "action_changed": 0,
-      "added": 5,
+      "added": 0,
       "current_entries": 719,
       "migration_action_changed_exempted": 0,
       "net_shrink_percent": 0.0,
       "non_migration_action_changed": 0,
       "non_retired_removed": 0,
-      "previous_entries": 714,
+      "previous_entries": 719,
       "removed": 0,
       "removed_percent": 0.0,
       "retired_source_removed": 0
@@ -62,13 +62,13 @@
     "script": {
       "action_change_source_pairs": [],
       "action_changed": 0,
-      "added": 14,
+      "added": 0,
       "current_entries": 351,
       "migration_action_changed_exempted": 0,
       "net_shrink_percent": 0.0,
       "non_migration_action_changed": 0,
       "non_retired_removed": 0,
-      "previous_entries": 337,
+      "previous_entries": 351,
       "removed": 0,
       "removed_percent": 0.0,
       "retired_source_removed": 0
@@ -120,7 +120,7 @@
         "revision_identity": "present"
       },
       "max_score": 100,
-      "previous_count": 536,
+      "previous_count": 689,
       "score": 100
     },
     "zmjde": {
