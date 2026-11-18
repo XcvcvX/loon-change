@@ -1406,8 +1406,13 @@ def apply_didi_script_and_homepage_cleanup(lines):
         line for line in output
         if norm(line) in (norm(DIDIADS_COMMON_V5_SCRIPT), norm(DIDIADS_LOCAL_COMMON_V5_SCRIPT))
     ]
-    if len(common_v5) != 1:
-        raise ValueError("Didi common/v5 canonical script trigger missing or duplicated")
+    if not common_v5:
+        # The common/v5 handler came from the retired supplemental feed. Without
+        # it, leave the remaining Didi rules untouched instead of enforcing an
+        # obsolete merged-source inventory.
+        return list(lines), 0
+    if len(common_v5) > 1:
+        raise ValueError("Didi common/v5 canonical script trigger duplicated")
     for legacy, marker, label in (
         (DIDI_CORE_LEGACY_SCRIPT, "homepage/vd/core", "core"),
         (DIDI_USERCENTER_LEGACY_SCRIPT, "common/vd/usercenter/me", "usercenter"),
