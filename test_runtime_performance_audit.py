@@ -127,7 +127,7 @@ const result = run("https://edith.xiaohongshu.com/api/sns/v1/note/live_photo/sav
 });
 if (!result || typeof result.body !== "string") throw new Error("live-photo save response was not produced");
 const saved = JSON.parse(result.body);
-if (saved.data.datas[0].url !== "https://video.example/live.mp4") throw new Error("live-photo URL restoration changed");
+if (saved.data.datas[0].url !== "https://video.example/live.mp4?token=secret") throw new Error("live-photo URL restoration changed");
 if (saved.data.datas[0].author !== "@fmz200") throw new Error("live-photo author marker changed");
 '''
         completed = subprocess.run([node, "-e", harness, str(source_path)], capture_output=True, text=True)
