@@ -5007,3 +5007,71 @@ class ShadowedAmdcResponseTriggerTests(unittest.TestCase):
         self.assertIn("Scripts/cainiao/cainiao.js", result)
 
 
+class CrossSyntaxShadowedResponseTriggerTests(unittest.TestCase):
+    def setUp(self):
+        from apply_local_overrides import SHADOWED_CROSS_SYNTAX_RESPONSE_PAIRS
+        self.pairs = SHADOWED_CROSS_SYNTAX_RESPONSE_PAIRS
+        self.lines = ["[Script]"]
+        self.legacy = []
+        self.v2 = []
+        for name, legacy_script, v2_script, matcher, _ in self.pairs:
+            legacy = "http-response " + matcher + " script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/" + legacy_script + ",tag=RSTORE"
+            v2 = 'response if ${url} ~= /' + matcher + '/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/' + v2_script + '") with tag="WOOL"'
+            self.legacy.append(legacy)
+            self.v2.append(v2)
+            self.lines.extend([legacy, v2])
+        self.lines.append("[MITM]")
+
+    def test_removes_all_eight_later_cross_syntax_handlers_only(self):
+        from apply_local_overrides import remove_shadowed_cross_syntax_response_triggers
+        result, changed = remove_shadowed_cross_syntax_response_triggers(self.lines)
+        self.assertEqual(changed, 8)
+        for legacy, v2 in zip(self.legacy, self.v2):
+            self.assertIn(legacy, result)
+            self.assertNotIn(v2, result)
+        self.assertEqual(sum("http-response " in line for line in result), 8)
+
+    def test_is_idempotent(self):
+        from apply_local_overrides import remove_shadowed_cross_syntax_response_triggers
+        result, changed = remove_shadowed_cross_syntax_response_triggers(self.lines)
+        again, changed_again = remove_shadowed_cross_syntax_response_triggers(result)
+        self.assertEqual(changed, 8)
+        self.assertEqual((again, changed_again), (result, 0))
+
+    def test_preserves_later_handler_if_order_is_reversed(self):
+        from apply_local_overrides import remove_shadowed_cross_syntax_response_triggers
+        pair = self.pairs[0]
+        _, legacy, v2, matcher, _ = pair
+        legacy_line = self.legacy[0]
+        v2_line = self.v2[0]
+        lines = ["[Script]", v2_line, legacy_line, "[MITM]"]
+        result, changed = remove_shadowed_cross_syntax_response_triggers(lines)
+        self.assertEqual((result, changed), (lines, 0))
+
+    def test_fails_closed_on_matcher_drift_or_duplicate_handlers(self):
+        from apply_local_overrides import remove_shadowed_cross_syntax_response_triggers
+        drift = list(self.lines)
+        drift[2] = drift[2].replace("publish/get_bubble", "publish/get_bubble2")
+        with self.assertRaisesRegex(ValueError, "SMZDM article bubble response matcher changed"):
+            remove_shadowed_cross_syntax_response_triggers(drift)
+        duplicate = list(self.lines)
+        duplicate.insert(4, duplicate[2])
+        with self.assertRaisesRegex(ValueError, "duplicate SMZDM article bubble"):
+            remove_shadowed_cross_syntax_response_triggers(duplicate)
+
+    def test_checked_in_plugin_has_no_shadowed_cross_syntax_pairs(self):
+        from pathlib import Path
+        from apply_local_overrides import apply, SHADOWED_CROSS_SYNTAX_RESPONSE_PAIRS
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        result = apply(plugin)
+        for _, legacy_script, v2_script, _, search_markers in SHADOWED_CROSS_SYNTAX_RESPONSE_PAIRS:
+            candidates = [
+                line for line in result.splitlines()
+                if all(marker in line.replace("\\\\", "").lower() for marker in search_markers)
+            ]
+            legacy = [line for line in candidates if legacy_script.lower() in line.lower() and line.lower().startswith("http-response ")]
+            v2 = [line for line in candidates if v2_script.lower() in line.lower() and line.lower().startswith("response if ")]
+            self.assertEqual(len(legacy), 1)
+            self.assertEqual(v2, [])
+
+
