@@ -5736,7 +5736,7 @@ BILIBILI_FMZ_PROTOBUF_REQUIRED_MARKERS = (
     "polymer.app.search.v1.Search/SearchAll",
     "main.community.reply.v1.Reply/MainList",
 )
-BILIBILI_FMZ_MAINLIST_DUPLICATE_BRANCH = r"|main\\.community\\.reply\\.v1\\.Reply\\/MainList"
+BILIBILI_FMZ_MAINLIST_DUPLICATE_BRANCH = r"|main\.community\.reply\.v1\.Reply\/MainList"
 BILIBILI_PROTOBUF_DUPLICATE_PAIRS = (
     (
         "DynAll",
