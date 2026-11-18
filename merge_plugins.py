@@ -3677,7 +3677,7 @@ if args.provenance_out:
             'block': 'fmz200/wool_scripts blockAdsV2',
             'zmjgen': 'ifflagged/Romeo Modules/Loon/Kelee/Official (historical zmjde general slot)',
             'thelong': 'Thelongdarkorg/loon-plugins',
-            'aoomee': 'ifflagged/Romeo Modules/Loon + pinned AOOMEE-only local snapshots (legacy provenance key)',
+            'aoomee': 'ifflagged/Romeo Modules/Loon (including Kelee WeChat/Weidian plugins) + pinned AOOMEE-only local snapshots (legacy provenance key)',
             'qxapp': 'QuanX single-file app source (GuaZiVideoAds)',
             'amap': 'ifflagged/Romeo / RuCu6 Amap plugin',
             'zmjapp': 'ifflagged/Romeo Modules/Loon/Kelee/Official (historical zmjde App slot)',
