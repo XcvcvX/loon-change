@@ -3906,7 +3906,7 @@ def remove_unneeded_mgw_ecny_response_body_read(lines):
 
     index = candidates[0]
     line = lines[index]
-    matches = list(re.finditer(r",\\s*requires-body\\s*=\\s*true(?=\\s*(?:,|$))", line, re.I))
+    matches = list(re.finditer(r",\s*requires-body\s*=\s*true(?=\s*(?:,|$))", line, re.I))
     if len(matches) > 1:
         raise ValueError("duplicate MGW ECNY requires-body option; refusing ambiguous cleanup")
     if not matches:
