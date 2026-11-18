@@ -3105,6 +3105,15 @@ class CnftpDuplicateScriptTests(unittest.TestCase):
             "[MITM]", "hostname = cards.iqiyi.com, me.bz.mgtv.com, acs.youku.com",
         ]
 
+    def test_local_optimized_script_url_matches_upstream_inventory(self):
+        from apply_local_overrides import normalize_cnftp_trigger_line
+        upstream = self.keep[4]
+        local = upstream.replace(
+            "https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/cnftp.js",
+            "https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cnftp/cnftp.js",
+        )
+        self.assertEqual(normalize_cnftp_trigger_line(local), normalize_cnftp_trigger_line(upstream))
+
     def test_removes_26_duplicates_and_keeps_26_single_processing_handlers(self):
         from apply_local_overrides import remove_duplicate_cnftp_scripts
         result, removed = remove_duplicate_cnftp_scripts(self.fixture)
