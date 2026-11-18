@@ -3976,6 +3976,65 @@ def optimize_maasea_youtube_shadowed_triggers(lines):
     return updated, changed
 
 
+AMDC_RSTORE_SCRIPT_MARKER = "Res/Scripts/AntiAd/amdc.js"
+AMDC_WOOL_SCRIPT_MARKER = "Scripts/header.js"
+AMDC_CANONICAL_MATCHER = r"^https?:\/\/amdc\.m\.taobao\.com\/amdc\/mobileDispatch$"
+
+
+def _normalize_amdc_response_matcher(value):
+    """Normalize legacy and Script v2 regex wrappers for one reviewed AMDC URL."""
+    value = value.strip()
+    if value.startswith("/") and re.search(r"/[a-z]*$", value):
+        value = value[1:]
+        value = re.sub(r"/[a-z]*$", "", value)
+    return re.sub(r"\\+", "", value).lower()
+
+
+def remove_shadowed_amdc_response_trigger(lines):
+    """Remove Wool's later AMDC handler when the earlier R-Store handler covers it."""
+    section = ""
+    rstore, wool = [], []
+    for index, line in enumerate(lines):
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            continue
+        if section != "Script":
+            continue
+        lowered = line.lower()
+        if "amdc.m.taobao.com" not in lowered:
+            continue
+        if lowered.startswith("http-response ") and AMDC_RSTORE_SCRIPT_MARKER.lower() in lowered:
+            parts = line.split(maxsplit=2)
+            if len(parts) < 2:
+                raise ValueError("AMDC R-Store response matcher is malformed")
+            rstore.append((index, parts[1]))
+        elif lowered.startswith("response if ") and AMDC_WOOL_SCRIPT_MARKER.lower() in lowered:
+            if "~=" not in line or " then script" not in line:
+                raise ValueError("AMDC Wool response matcher is malformed")
+            matcher = line.split("~=", 1)[1].split(" then script", 1)[0].strip()
+            wool.append((index, matcher))
+
+    if len(rstore) > 1 or len(wool) > 1:
+        raise ValueError("duplicate AMDC response handlers; refusing ambiguous cleanup")
+    if not rstore or not wool:
+        return list(lines), 0
+
+    expected = _normalize_amdc_response_matcher(AMDC_CANONICAL_MATCHER)
+    if (
+        _normalize_amdc_response_matcher(rstore[0][1]) != expected
+        or _normalize_amdc_response_matcher(wool[0][1]) != expected
+    ):
+        raise ValueError("AMDC response matcher changed; refusing unreviewed shadow cleanup")
+
+    # Loon selects the first complete Response Script match in final configuration
+    # order. Only remove Wool when the broader, earlier R-Store handler is first.
+    if rstore[0][0] >= wool[0][0]:
+        return list(lines), 0
+
+    remove_index = wool[0][0]
+    return [line for index, line in enumerate(lines) if index != remove_index], 1
+
+
 USMILE_RESPONSE_SCRIPT_MARKER = "www.myusmile.online/user/plaquetopic/selectbytype"
 USMILE_RESPONSE_SCRIPT_URL = "Res/Scripts/AntiAd/usmile.js"
 
@@ -5795,6 +5854,7 @@ def apply(text: str) -> str:
     lines, _ = remove_unneeded_mgw_ecny_response_body_read(lines)
     lines, _ = remove_unneeded_usmile_response_body_read(lines)
     lines, _ = remove_unneeded_header_only_response_body_reads(lines)
+    lines, _ = remove_shadowed_amdc_response_trigger(lines)
     lines, _ = optimize_maasea_youtube_shadowed_triggers(lines)
     lines, _ = remove_weibo_non_ad_response_triggers(lines)
     lines, _ = remove_redundant_dianping_scripts(lines)
