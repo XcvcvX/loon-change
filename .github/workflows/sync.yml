@@ -218,6 +218,9 @@ jobs:
       group: ${{ github.ref == 'refs/heads/main' && 'loon-change-main-sync' || github.run_id }}
       cancel-in-progress: true
     steps:
+      - name: 检出仓库
+        uses: actions/checkout@v4
+
       - name: 获取并优化 CNFTP 本地响应脚本
         run: |
           git clone --depth 1 https://github.com/fmz200/wool_scripts.git /tmp/wool_scripts
@@ -225,8 +228,6 @@ jobs:
           python3 optimize_cnftp.py --source /tmp/wool_scripts/Scripts/cnftp.js --output scripts/cnftp/cnftp.js --upstream-commit "$WOOL_SHA"
           echo "CNFTP upstream: fmz200/wool_scripts@$WOOL_SHA"
 
-      - name: 检出仓库
-        uses: actions/checkout@v4
 
       - name: 准备 Python
         uses: actions/setup-python@v5
