@@ -12,110 +12,14 @@
     },
     "script": {
       "action_changed": 0,
-      "added": 5,
-      "removed": 5
+      "added": 1,
+      "removed": 2
     }
   },
   "events": [
     {
       "after": {
-        "line": "http-response ^https?:\\/\\/cdn\\.sdb\\.com\\.cn\\/bron-coms\\/bron-coms\\/material-image script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/sdb.js,tag=SDB",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "http-response ^https?:\\/\\/image\\.spdbccc\\.com\\.cn\\/group\\d\\/.*\\.JPG$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/spdbccc.js,tag=SPDBCCC",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "http-response ^https?:\\/\\/www\\.myusmile\\.online\\/user\\/plaqueTopic\\/selectByType script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/usmile.js,tag=USMILE",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "response if ${url} ~= /^http?:\\/\\/(114\\.115\\.217\\.129)|(home\\.umetrip\\.com)\\/gateway\\/api\\/umetrip\\/native$/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/umetrip/umetrip_ads.js\") with enable=${hlzh_enable}, tag=\"航旅纵横\", timeout=60",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "response if ${url} ~= /^https?:\\/\\/www\\.myusmile\\.online\\/user\\/plaqueTopic\\/selectByType/i then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/usmile.js\") with tag=\"笑容加-我的页面推广\", timeout=60",
+        "line": "http-response ^https:\\/\\/youtubei\\.googleapis\\.com\\/(youtubei\\/v1\\/(guide|account\\/get_setting))(\\?(.*))?$ script-path=https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.response.js, requires-body=true, binary-body-mode=true, tag=youtube.response, argument={captionLang,blockUpload,blockImmersive,blockShorts,debug}",
         "section": "script",
         "sources": [
           "local_overrides"
@@ -140,10 +44,10 @@
     {
       "after": null,
       "before": {
-        "line": "http-response ^https?:\\/\\/cdn\\.sdb\\.com\\.cn\\/bron-coms\\/bron-coms\\/material-image script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/sdb.js,tag=SDB,requires-body=true",
+        "line": "http-request ^https:\\/\\/youtubei\\.googleapis\\.com\\/youtubei\\/v1\\/log_event script-path=https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.request.js, requires-body=true, binary-body-mode=true, tag=youtube.request.log_event",
         "section": "script",
         "sources": [
-          "base"
+          "aoomee"
         ]
       },
       "change_type": "removed",
@@ -152,22 +56,22 @@
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "base": "unavailable"
+        "aoomee": "scored"
       },
       "source_scores": {
-        "base": null
+        "aoomee": 100
       },
       "sources": [
-        "base"
+        "aoomee"
       ]
     },
     {
       "after": null,
       "before": {
-        "line": "http-response ^https?:\\/\\/image\\.spdbccc\\.com\\.cn\\/group\\d\\/.*\\.JPG$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/spdbccc.js,tag=SPDBCCC,requires-body=true",
+        "line": "http-response ^https:\\/\\/youtubei\\.googleapis\\.com\\/(youtubei\\/v1\\/(browse|next|player|search|reel\\/reel_watch_sequence|guide|account\\/get_setting|get_watch|log_event|config))(\\?(.*))?$ script-path=https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.response.js, requires-body=true, binary-body-mode=true, tag=youtube.response, argument={captionLang,blockUpload,blockImmersive,blockShorts,debug}",
         "section": "script",
         "sources": [
-          "base"
+          "local_overrides"
         ]
       },
       "change_type": "removed",
@@ -176,95 +80,23 @@
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "base": "unavailable"
+        "local_overrides": "unavailable"
       },
       "source_scores": {
-        "base": null
+        "local_overrides": null
       },
       "sources": [
-        "base"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "http-response ^https?:\\/\\/www\\.myusmile\\.online\\/user\\/plaqueTopic\\/selectByType script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/usmile.js,tag=USMILE,requires-body=true",
-        "section": "script",
-        "sources": [
-          "base"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "base": "unavailable"
-      },
-      "source_scores": {
-        "base": null
-      },
-      "sources": [
-        "base"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^http?:\\/\\/(114\\.115\\.217\\.129)|(home\\.umetrip\\.com)\\/gateway\\/api\\/umetrip\\/native$/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/umetrip/umetrip_ads.js\") with enable=${hlzh_enable}, tag=\"航旅纵横\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "block"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "block": "unavailable"
-      },
-      "source_scores": {
-        "block": null
-      },
-      "sources": [
-        "block"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "response if ${url} ~= /^https?:\\/\\/www\\.myusmile\\.online\\/user\\/plaqueTopic\\/selectByType/i then script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/usmile.js\") with tag=\"笑容加-我的页面推广\", timeout=60, requires_body=true",
-        "section": "script",
-        "sources": [
-          "block"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "block": "unavailable"
-      },
-      "source_scores": {
-        "block": null
-      },
-      "sources": [
-        "block"
+        "local_overrides"
       ]
     }
   ],
   "overall_risk": "high",
   "risk_counts": {
-    "high": 5,
+    "high": 2,
     "low": 0,
-    "medium": 5
+    "medium": 1
   },
-  "run_id": "44214409451",
+  "run_id": "44215304468",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -289,8 +121,8 @@
     "aoomee": {
       "action_changed": 162,
       "added": 173,
-      "removed": 40,
-      "snapshots_seen": 11
+      "removed": 41,
+      "snapshots_seen": 12
     },
     "base": {
       "action_changed": 0,
@@ -312,15 +144,15 @@
     },
     "local_overrides": {
       "action_changed": 0,
-      "added": 129,
-      "removed": 44,
-      "snapshots_seen": 19
+      "added": 130,
+      "removed": 45,
+      "snapshots_seen": 20
     },
     "myblockads": {
       "action_changed": 0,
       "added": 0,
-      "removed": 17,
-      "snapshots_seen": 3
+      "removed": 16,
+      "snapshots_seen": 2
     },
     "thelong": {
       "action_changed": 0,
