@@ -5735,6 +5735,7 @@ BILIBILI_FMZ_PROTOBUF_REQUIRED_MARKERS = (
     "community.service.dm.v1.DM/DmView",
     "polymer.app.search.v1.Search/SearchAll",
 )
+BILIBILI_FMZ_MAINLIST_DUPLICATE_BRANCH = r"|main\.community\.reply\.v1\.Reply\/MainList"
 BILIBILI_PROTOBUF_DUPLICATE_PAIRS = (
     (
         "DynAll",
@@ -5792,10 +5793,24 @@ def narrow_duplicate_bilibili_protobuf_triggers(lines):
         normalized_fmz = re.sub(r"\\+", "", fmz_candidates[0])
         if not all(marker in normalized_fmz for marker in BILIBILI_FMZ_PROTOBUF_REQUIRED_MARKERS):
             raise ValueError("Bilibili Sparkle protobuf endpoint coverage changed; refusing duplicate cleanup")
+        if (
+            "main.community.reply" in normalized_fmz
+            and "main.community.reply.v1.Reply/MainList" not in normalized_fmz
+        ):
+            raise ValueError("Bilibili Sparkle MainList matcher changed; refusing duplicate cleanup")
+        if (
+            "main.community.reply.v1.Reply/MainList" in normalized_fmz
+            and fmz_candidates[0].count(BILIBILI_FMZ_MAINLIST_DUPLICATE_BRANCH) != 1
+        ):
+            raise ValueError("Bilibili Sparkle MainList escaping changed; refusing duplicate cleanup")
 
+    # Only count the R-Store MainList handler here; Sparkle's MainList branch
+    # is checked separately below and may be removed only when R-Store covers it.
     mainlist_candidates = [
         line for line in script_lines
-        if "tag=BAICIZHAN-5" in line or "bilibili.main.community.reply" in re.sub(r"\\+", "", line)
+        if "tag=BAICIZHAN-5" in line
+        or ("bilibili.main.community.reply" in re.sub(r"\\\\+", "", line)
+            and "bilibiliProtoA.js" in line)
     ]
     normalize_mainlist = lambda value: re.sub(r"\\+", "", value)
     if mainlist_candidates and (
@@ -5810,6 +5825,19 @@ def narrow_duplicate_bilibili_protobuf_triggers(lines):
     replacements = {}
     if mainlist_candidates and normalize_mainlist(mainlist_candidates[0]) == normalize_mainlist(BILIBILI_PROTOBUF_MAINLIST_PREVIOUS_NARROWED_TRIGGER):
         replacements[mainlist_candidates[0]] = BILIBILI_PROTOBUF_NON_DUPLICATE_TRIGGER
+
+    # Sparkle's protobuf handler also implements v1.Reply/MainList. The R-Store
+    # BAICIZHAN-5 matcher covers v1-v9 on both hosts and appears earlier, so
+    # this one Sparkle branch can never be selected. Remove only that exact
+    # branch, preserving every other Sparkle endpoint and failing closed on drift.
+    if fmz_present and mainlist_candidates:
+        fmz_line = fmz_candidates[0]
+        branch_count = fmz_line.count(BILIBILI_FMZ_MAINLIST_DUPLICATE_BRANCH)
+        if branch_count > 1:
+            raise ValueError("Bilibili Sparkle MainList branch duplicated; refusing duplicate cleanup")
+        if branch_count == 1:
+            replacements[fmz_line] = fmz_line.replace(BILIBILI_FMZ_MAINLIST_DUPLICATE_BRANCH, "", 1)
+
     for marker, original, narrowed in BILIBILI_PROTOBUF_DUPLICATE_PAIRS:
         candidates = [
             line for line in script_lines
@@ -5849,6 +5877,84 @@ def narrow_duplicate_bilibili_protobuf_triggers(lines):
             result.append(replacements[stripped])
             if replacements[stripped] != stripped:
                 changed += 1
+        else:
+            result.append(line)
+    return result, changed
+
+
+XIMALAYA_SCRIPT_TRIGGER_OLD_HOST_PREFIX = r"^https?:\/\/.*\.xima.*\.com\/"
+XIMALAYA_SCRIPT_TRIGGER_NEW_HOST_PREFIX = r"^https?:\/\/(?:[A-Za-z0-9-]+\.)+ximalaya\.com\/"
+XIMALAYA_SCRIPT_TRIGGER_TAG_PATHS = {
+    "tag=XMLY,": "customCategories",
+    "tag=XMLY-2,": "focusPic",
+    "tag=XMLY-3,": "/mix ",
+    "tag=XMLY-4,": "/category ",
+    "tag=XMLY-5,": "homePage",
+}
+
+
+def narrow_ximalaya_script_triggers(lines):
+    """Restrict five Ximalaya response scripts to the observed ximalaya.com domain suffix."""
+    output = list(lines)
+    section = ""
+    candidates = []
+    for line in output:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+        elif (
+            section == "Script"
+            and stripped.startswith("http-response ")
+            and "Res/Scripts/AntiAd/xmly.js" in stripped
+        ):
+            candidates.append(stripped)
+
+    if not candidates:
+        return output, 0
+    if len(candidates) != len(XIMALAYA_SCRIPT_TRIGGER_TAG_PATHS):
+        raise ValueError("Ximalaya response trigger inventory changed; refusing host narrowing")
+
+    replacements = {}
+    seen_tags = set()
+    for line in candidates:
+        matching_tags = [tag for tag in XIMALAYA_SCRIPT_TRIGGER_TAG_PATHS if tag in line]
+        if len(matching_tags) != 1:
+            raise ValueError("Ximalaya response trigger tag changed; refusing host narrowing")
+        tag = matching_tags[0]
+        if tag in seen_tags or XIMALAYA_SCRIPT_TRIGGER_TAG_PATHS[tag] not in line:
+            raise ValueError("Ximalaya response trigger path changed; refusing host narrowing")
+        seen_tags.add(tag)
+
+        old_count = line.count(XIMALAYA_SCRIPT_TRIGGER_OLD_HOST_PREFIX)
+        new_count = line.count(XIMALAYA_SCRIPT_TRIGGER_NEW_HOST_PREFIX)
+        if old_count == 1 and new_count == 0:
+            replacements[line] = line.replace(
+                XIMALAYA_SCRIPT_TRIGGER_OLD_HOST_PREFIX,
+                XIMALAYA_SCRIPT_TRIGGER_NEW_HOST_PREFIX,
+                1,
+            )
+        elif old_count == 0 and new_count == 1:
+            continue
+        else:
+            raise ValueError("Ximalaya response host matcher changed; refusing host narrowing")
+
+    if seen_tags != set(XIMALAYA_SCRIPT_TRIGGER_TAG_PATHS):
+        raise ValueError("Ximalaya response trigger coverage changed; refusing host narrowing")
+    if not replacements:
+        return output, 0
+
+    result = []
+    section = ""
+    changed = 0
+    for line in output:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+            result.append(line)
+            continue
+        if section == "Script" and stripped in replacements:
+            result.append(replacements[stripped])
+            changed += 1
         else:
             result.append(line)
     return result, changed
@@ -6136,6 +6242,7 @@ def apply(text: str) -> str:
     lines, _ = remove_redundant_smzdm_ads_script_triggers(lines)
     lines, _ = migrate_wechat_applet_simple_endpoints(lines)
     lines, _ = migrate_weibo_simple_endpoints(lines)
+    lines, _ = narrow_ximalaya_script_triggers(lines)
     lines, _ = narrow_duplicate_bilibili_protobuf_triggers(lines)
     lines, _ = optimize_bilibili_json_native_coverage(lines)
 

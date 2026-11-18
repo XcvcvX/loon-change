@@ -4214,7 +4214,7 @@ class WeiboNativeMigrationTests(unittest.TestCase):
 class BilibiliProtobufDuplicateTriggerTests(unittest.TestCase):
     def _fmz_trigger(self):
         return (
-            r'response if ' + r'$' + r'{url} ~= /^https?:\/\/(?:grpc\.biliapi\.net|app\.bilibili\.com)\/bilibili\.(?:app\.(?:dynamic\.v2\.Dynamic\/DynAll|view(unite)?\.v1\.View\/View)|community\.service\.dm\.v1\.DM\/DmView|polymer\.app\.search\.v1\.Search\/SearchAll)$/i '
+            r'response if ' + r'$' + r'{url} ~= /^https?:\/\/(?:grpc\.biliapi\.net|app\.bilibili\.com)\/bilibili\.(?:app\.(?:dynamic\.v2\.Dynamic\/DynAll|view(unite)?\.v1\.View\/View)|community\.service\.dm\.v1\.DM\/DmView|polymer\.app\.search\.v1\.Search\/SearchAll|main\.community\.reply\.v1\.Reply\/MainList)$/i '
             r'then script("https://raw.githubusercontent.com/kokoryh/Sparkle/refs/heads/master/dist/bilibili.protobuf.response.js") with tag="bilibili.protobuf", requires_body=true'
         )
 
@@ -4228,11 +4228,18 @@ class BilibiliProtobufDuplicateTriggerTests(unittest.TestCase):
         fixture.extend(original for _, original, _ in BILIBILI_PROTOBUF_DUPLICATE_PAIRS)
         fixture.extend([mainlist, "[MITM]", "hostname = grpc.biliapi.net, app.bilibili.com"])
         result, changed = narrow_duplicate_bilibili_protobuf_triggers(fixture)
-        self.assertEqual(changed, 4)
+        # Four R-Store matchers are narrowed, plus one exact Sparkle MainList branch.
+        self.assertEqual(changed, 5)
         for _, original, narrowed in BILIBILI_PROTOBUF_DUPLICATE_PAIRS:
             self.assertNotIn(original, result)
             self.assertIn(narrowed, result)
         self.assertIn(mainlist, result)
+        sparkle_lines = [line for line in result if "bilibili.protobuf.response.js" in line]
+        self.assertEqual(len(sparkle_lines), 1)
+        normalized_sparkle = sparkle_lines[0].replace("\\", "")
+        self.assertNotIn("main.community.reply.v1.Reply", normalized_sparkle)
+        for marker in ("dynamic.v2.Dynamic", "view(unite)?", "community.service.dm", "polymer.app.search"):
+            self.assertIn(marker, normalized_sparkle)
 
         import re
         mainlist_pattern = re.compile(mainlist.split(" script-path=")[0].removeprefix("http-response "))
@@ -4279,6 +4286,13 @@ class BilibiliProtobufDuplicateTriggerTests(unittest.TestCase):
         self.assertEqual(changed, 0)
         self.assertEqual(result, fixture)
 
+    def test_keeps_sparkle_mainlist_branch_without_rstore_cover(self):
+        from apply_local_overrides import narrow_duplicate_bilibili_protobuf_triggers
+        sparkle = self._fmz_trigger()
+        result, changed = narrow_duplicate_bilibili_protobuf_triggers(["[Script]", sparkle, "[MITM]"])
+        self.assertEqual(changed, 0)
+        self.assertEqual(result, ["[Script]", sparkle, "[MITM]"])
+
     def test_fails_closed_on_unreviewed_protobuf_trigger_or_sparkle_coverage(self):
         from apply_local_overrides import BILIBILI_PROTOBUF_DUPLICATE_PAIRS, narrow_duplicate_bilibili_protobuf_triggers
         fmz_trigger = self._fmz_trigger()
@@ -4289,6 +4303,57 @@ class BilibiliProtobufDuplicateTriggerTests(unittest.TestCase):
         bad_fmz = fmz_trigger.replace(r"dynamic\.v2", r"dynamic\.v3")
         with self.assertRaisesRegex(ValueError, "Sparkle protobuf endpoint coverage changed"):
             narrow_duplicate_bilibili_protobuf_triggers(["[Script]", bad_fmz, original, "[MITM]"])
+
+
+class XimalayaResponseTriggerScopeTests(unittest.TestCase):
+    def _fixture(self):
+        from apply_local_overrides import XIMALAYA_SCRIPT_TRIGGER_OLD_HOST_PREFIX
+        script_url = "https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xmly.js"
+        specs = (
+            ("tag=XMLY,", r"discovery-category\/customCategories"),
+            ("tag=XMLY-2,", r"focus-mobile\/focusPic"),
+            ("tag=XMLY-3,", r"discovery-feed\/v\d\/mix"),
+            ("tag=XMLY-4,", r"discovery-category\/v\d/category"),
+            ("tag=XMLY-5,", r"mobile-user\/v\d\/homePage"),
+        )
+        return ["[Script]"] + [
+            "http-response " + XIMALAYA_SCRIPT_TRIGGER_OLD_HOST_PREFIX + path
+            + " script-path=" + script_url + "," + tag + "requires-body=true"
+            for tag, path in specs
+        ] + ["[MITM]"]
+
+    def test_narrows_only_five_known_ximalaya_response_handlers(self):
+        import re
+        from apply_local_overrides import (
+            XIMALAYA_SCRIPT_TRIGGER_NEW_HOST_PREFIX,
+            narrow_ximalaya_script_triggers,
+        )
+        fixture = self._fixture()
+        result, changed = narrow_ximalaya_script_triggers(fixture)
+        self.assertEqual(changed, 5)
+        new_lines = [line for line in result if "AntiAd/xmly.js" in line]
+        self.assertEqual(len(new_lines), 5)
+        for line in new_lines:
+            self.assertIn(XIMALAYA_SCRIPT_TRIGGER_NEW_HOST_PREFIX, line)
+            self.assertIn("requires-body=true", line)
+        pattern = re.compile(new_lines[0].split(" script-path=")[0].removeprefix("http-response "))
+        self.assertTrue(pattern.search("https://m.ximalaya.com/discovery-category/customCategories"))
+        self.assertTrue(pattern.search("https://adse.wsa.ximalaya.com/discovery-category/customCategories"))
+        self.assertFalse(pattern.search("https://m.xima-example.com/discovery-category/customCategories"))
+        self.assertFalse(pattern.search("https://m.ximalaya.com.example.net/discovery-category/customCategories"))
+        again, second_changed = narrow_ximalaya_script_triggers(result)
+        self.assertEqual(second_changed, 0)
+        self.assertEqual(again, result)
+
+    def test_fails_closed_on_missing_or_drifted_ximalaya_script_inventory(self):
+        from apply_local_overrides import narrow_ximalaya_script_triggers
+        fixture = self._fixture()
+        with self.assertRaisesRegex(ValueError, "inventory changed"):
+            narrow_ximalaya_script_triggers(fixture[:-2] + ["[MITM]"])
+        drifted = list(fixture)
+        drifted[1] = drifted[1].replace("customCategories", "changedEndpoint")
+        with self.assertRaisesRegex(ValueError, "path changed"):
+            narrow_ximalaya_script_triggers(drifted)
 
 
 class XiaohongshuNativeDuplicateTriggerTests(unittest.TestCase):
