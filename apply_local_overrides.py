@@ -3987,7 +3987,7 @@ def _normalize_amdc_response_matcher(value):
     if value.startswith("/") and re.search(r"/[a-z]*$", value):
         value = value[1:]
         value = re.sub(r"/[a-z]*$", "", value)
-    return re.sub(r"\\+", "", value).lower()
+    return value.lower()
 
 
 def remove_shadowed_amdc_response_trigger(lines):
@@ -4034,6 +4034,119 @@ def remove_shadowed_amdc_response_trigger(lines):
 
     remove_index = wool[0][0]
     return [line for index, line in enumerate(lines) if index != remove_index], 1
+
+
+SHADOWED_CROSS_SYNTAX_RESPONSE_PAIRS = (
+    (
+        "SMZDM article bubble",
+        "Res/Scripts/AntiAd/smzdm.js",
+        "Scripts/smzdm/Smzdm.js",
+        r"^https?:\/\/article-api\.smzdm\.com\/publish\/get_bubble",
+        ("article-api.smzdm.com", "publish/get_bubble"),
+    ),
+    (
+        "SMZDM wallet home",
+        "Res/Scripts/AntiAd/smzdm.js",
+        "Scripts/smzdm/Smzdm.js",
+        r"^https?:\/\/qianbao\.smzdm\.com\/v\d\/app\/home",
+        ("qianbao.smzdm.com", "app/home"),
+    ),
+    (
+        "Baidu Map ad endpoint",
+        "Res/Scripts/AntiAd/baiduMap.js",
+        "Scripts/baidumap.js",
+        r"^https?:\/\/newclient\.map\.baidu\.com\/client\/phpui2\/\?qt=ads",
+        ("newclient.map.baidu.com", "qt=ads"),
+    ),
+    (
+        "Keep personal page",
+        "Res/Scripts/AntiAd/keep.js",
+        "Scripts/keep.js",
+        r"^https?:\/\/api\.gotokeep\.com\/athena\/v\d\/people\/my$",
+        ("api.gotokeep.com", "people/my"),
+    ),
+    (
+        "Keep basic config",
+        "Res/Scripts/AntiAd/keep.js",
+        "Scripts/keep.js",
+        r"^https?:\/\/api\.gotokeep\.com\/config\/v\d\/basic",
+        ("api.gotokeep.com", "config/v"),
+    ),
+    (
+        "Keep homepage tabs",
+        "Res/Scripts/AntiAd/keep.js",
+        "Scripts/keep.js",
+        r"^https?:\/\/api\.gotokeep\.com\/homepage\/v\d\/tab",
+        ("api.gotokeep.com", "homepage/v"),
+    ),
+    (
+        "Keep sport page",
+        "Res/Scripts/AntiAd/keep.js",
+        "Scripts/keep.js",
+        r"^https?:\/\/api\.gotokeep\.com\/sportpage\/sport\/v\d\/mysport",
+        ("api.gotokeep.com", "sportpage/sport/v"),
+    ),
+    (
+        "LTSST city guide",
+        "Res/Scripts/AntiAd/ltsst.js",
+        "Scripts/lvtusuishenting/ltsst-ad.js",
+        r"^https?:\/\/www\.1314zhilv\.com\/ltsstnew\/(common\/getJGQIconNew|city\/getAllBannelByCity)",
+        ("www.1314zhilv.com", "getJGQIconNew"),
+    ),
+)
+
+
+def remove_shadowed_cross_syntax_response_triggers(lines):
+    """Remove later Script v2 handlers shadowed by exact earlier legacy handlers."""
+    section = ""
+    updated = list(lines)
+    removed = 0
+    for name, legacy_script, v2_script, expected_matcher, search_markers in SHADOWED_CROSS_SYNTAX_RESPONSE_PAIRS:
+        legacy_candidates, v2_candidates = [], []
+        for index, line in enumerate(updated):
+            if line.startswith("[") and line.endswith("]"):
+                section = line[1:-1]
+                continue
+            if section != "Script":
+                continue
+            lowered = line.lower()
+            if "http-response " not in lowered and not lowered.startswith("response if "):
+                continue
+            if not all(marker in re.sub(r"\\+", "", lowered) for marker in search_markers):
+                continue
+            if lowered.startswith("http-response ") and legacy_script.lower() in lowered:
+                parts = line.split(maxsplit=2)
+                if len(parts) < 2:
+                    raise ValueError("%s legacy response matcher is malformed" % name)
+                legacy_candidates.append((index, parts[1]))
+            elif lowered.startswith("response if ") and v2_script.lower() in lowered:
+                if "~=" not in line or " then script" not in line:
+                    raise ValueError("%s Script v2 response matcher is malformed" % name)
+                matcher = line.split("~=", 1)[1].split(" then script", 1)[0].strip()
+                v2_candidates.append((index, matcher))
+
+        if len(legacy_candidates) > 1 or len(v2_candidates) > 1:
+            raise ValueError("duplicate %s cross-syntax response handlers" % name)
+        if not legacy_candidates or not v2_candidates:
+            continue
+
+        expected = _normalize_amdc_response_matcher(expected_matcher)
+        if (
+            _normalize_amdc_response_matcher(legacy_candidates[0][1]) != expected
+            or _normalize_amdc_response_matcher(v2_candidates[0][1]) != expected
+        ):
+            raise ValueError("%s response matcher changed; refusing shadow cleanup" % name)
+
+        # Loon selects at most one Response Script by final configuration order.
+        # Keep both if an upstream reorder would make the legacy handler no longer first.
+        if legacy_candidates[0][0] >= v2_candidates[0][0]:
+            continue
+
+        remove_index = v2_candidates[0][0]
+        updated.pop(remove_index)
+        removed += 1
+
+    return updated, removed
 
 
 USMILE_RESPONSE_SCRIPT_MARKER = "www.myusmile.online/user/plaquetopic/selectbytype"
@@ -5856,6 +5969,7 @@ def apply(text: str) -> str:
     lines, _ = remove_unneeded_usmile_response_body_read(lines)
     lines, _ = remove_unneeded_header_only_response_body_reads(lines)
     lines, _ = remove_shadowed_amdc_response_trigger(lines)
+    lines, _ = remove_shadowed_cross_syntax_response_triggers(lines)
     lines, _ = optimize_maasea_youtube_shadowed_triggers(lines)
     lines, _ = remove_weibo_non_ad_response_triggers(lines)
     lines, _ = remove_redundant_dianping_scripts(lines)
