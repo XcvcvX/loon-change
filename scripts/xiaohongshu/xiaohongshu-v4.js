@@ -112,11 +112,25 @@ if (url.includes("/note/imagefeed?") || url.includes("/note/feed?")) {
       }
 
       const images_list = obj.data[0].note_list[0].images_list;
+      // The later live-photo save handler only needs these three values.
+      // Cache a compact projection instead of serializing every image field.
+      const livePhotoCache = [];
+      if (Array.isArray(images_list)) {
+        for (const image of images_list) {
+          const stream = image?.live_photo?.media?.stream?.h265?.[0];
+          const videoId = image?.live_photo?.media?.video_id;
+          if (image?.live_photo_file_id && videoId && stream?.master_url) {
+            livePhotoCache.push({
+              live_photo_file_id: image.live_photo_file_id,
+              video_id: videoId,
+              url: stream.master_url
+            });
+          }
+        }
+      }
       // 画质增强
-      // Cache the original image metadata before in-place quality URL enhancement.
-      const cachedImages = JSON.stringify(images_list);
       obj.data[0].note_list[0].images_list = imageEnhance(images_list);
-      $.setdata(cachedImages, "fmz200.xiaohongshu.feed.rsp");
+      $.setdata(JSON.stringify(livePhotoCache), "fmz200.xiaohongshu.feed.rsp");
     }
   }
 } 
@@ -132,12 +146,11 @@ if (url.includes("/note/live_photo/save")) {
   let new_data = [];
   for (const images of cache_body) {
     if (images.live_photo_file_id) {
-      const item = {
+      new_data.push({
         file_id: images.live_photo_file_id,
-        video_id: images.live_photo.media.video_id,
-        url: images.live_photo.media.stream.h265[0].master_url
-      };
-      new_data.push(item);
+        video_id: images.video_id,
+        url: images.url
+      });
     }
   }
   if (obj.data.datas) {
