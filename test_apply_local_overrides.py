@@ -5570,7 +5570,7 @@ class DidiLocalJsonScriptMigrationTests(unittest.TestCase):
         self.assertEqual(result, unrelated)
         self.assertEqual(changed, 0)
 
-        drifted = DIDIADS_COMMON_V5_SCRIPT.replace("common/v5", "common/v6")
+        drifted = DIDIADS_COMMON_V5_SCRIPT.replace("timeout=60", "timeout=61")
         with self.assertRaisesRegex(ValueError, "trigger changed"):
             migrate_didiads_common_v5_to_local(["[Script]", drifted, "[MITM]"])
         with self.assertRaisesRegex(ValueError, "duplicated"):
