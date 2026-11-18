@@ -457,6 +457,7 @@ jobs:
 
       - name: 应用本地 App 规则覆盖（防止上游合并时丢失）
         run: |
+          python3 optimize_cntv.py --plugin /tmp/loon-build/allAdRewrite.plugin
           python3 apply_local_overrides.py --plugin /tmp/loon-build/allAdRewrite.plugin
           python3 optimize_cnftp.py --plugin /tmp/loon-build/allAdRewrite.plugin
           python3 optimize_xiaohongshu.py --plugin /tmp/loon-build/allAdRewrite.plugin
