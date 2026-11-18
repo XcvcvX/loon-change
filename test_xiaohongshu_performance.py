@@ -27,6 +27,10 @@ class XiaohongshuOptimizerTests(unittest.TestCase):
         self.assertNotIn(REMOTE,out)
         self.assertEqual(rewrite_plugin(out),out)
 
+    def test_preserves_base_only_plugin_without_retired_xhs_triggers(self):
+        fixture = "[Script]\nhttp-response ^https?:\\\\/\\\\/example\\\\.com script-path=https://example.invalid/keep.js\n[MITM]\nhostname = example.com\n"
+        self.assertEqual(rewrite_plugin(fixture), fixture)
+
     def test_trigger_count_drift_fails_closed(self):
         fixture=f'[Script]\nresponse if {chr(36)}{{url}} ~= /^https:\\/\\/xhs/ then script("{REMOTE}")\n'
         with self.assertRaisesRegex(ValueError,"trigger inventory changed"):rewrite_plugin(fixture)

@@ -570,9 +570,12 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertIn(other, result)
         self.assertNotIn("guiderank.js", result)
 
-    def test_requires_bankcomm_mitm_hosts(self):
-        with self.assertRaises(ValueError):
-            apply(BASE.replace("creditcard.bankcomm.com, ", ""))
+    def test_restores_bankcomm_mitm_hosts_without_relying_on_retired_feed(self):
+        result = apply(BASE.replace("creditcard.bankcomm.com, ", ""))
+        mitm = result.split("[MITM]", 1)[1]
+        for host in ("creditcard.bankcomm.cn", "creditcard.bankcomm.com",
+                     "creditcardapp.bankcomm.cn", "creditcardapp.bankcomm.com"):
+            self.assertIn(host, mitm)
 
 
     def test_replaces_gaoding_resource_scripts_with_exact_native_json_deletes(self):
@@ -1117,11 +1120,12 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         with self.assertRaisesRegex(ValueError, "Taobao splash script trigger changed"):
             apply(fixture)
 
-    def test_fails_closed_when_taobao_trigger_inventory_is_incomplete(self):
-        from apply_local_overrides import TAOBAO_CANONICAL_SCRIPT_TRIGGERS, TAOBAO_REDUNDANT_SCRIPT_TRIGGERS
+    def test_preserves_incomplete_taobao_trigger_inventory_after_source_retirement(self):
+        from apply_local_overrides import (TAOBAO_CANONICAL_SCRIPT_TRIGGERS,
+                                           TAOBAO_REDUNDANT_SCRIPT_TRIGGERS,
+                                           remove_redundant_taobao_scripts)
         fixture = BASE.replace("[Script]", "[Script]\n" + "\n".join(TAOBAO_CANONICAL_SCRIPT_TRIGGERS) + "\n" + TAOBAO_REDUNDANT_SCRIPT_TRIGGERS[0])
-        with self.assertRaisesRegex(ValueError, "Taobao splash script trigger inventory changed"):
-            apply(fixture)
+        self.assertEqual(remove_redundant_taobao_scripts(fixture.splitlines()), (fixture.splitlines(), 0))
 
     def test_fails_closed_on_duplicate_taobao_script_trigger(self):
         from apply_local_overrides import TAOBAO_REDUNDANT_SCRIPT_TRIGGERS
@@ -1423,7 +1427,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         with self.assertRaisesRegex(ValueError, "no-op script trigger drifted"):
             apply_didi_script_and_homepage_cleanup(fixture)
 
-    def test_fails_closed_when_didiads_common_v5_trigger_is_missing(self):
+    def test_preserves_didi_rules_when_retired_common_v5_trigger_is_absent(self):
         from apply_local_overrides import (
             DIDI_CORE_NATIVE_RULE, DIDI_USERCENTER_LAYOUT_NATIVE_PREFIX,
             DIDIADS_NOOP_SCRIPT_RULES, DIDI_OTA_KEEP_SCRIPT, DIDI_PRESALE_KEEP_SCRIPT,
@@ -1434,8 +1438,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
             DIDI_USERCENTER_LAYOUT_NATIVE_PREFIX + "[]", "[Script]",
             *DIDIADS_NOOP_SCRIPT_RULES, DIDI_OTA_KEEP_SCRIPT, DIDI_PRESALE_KEEP_SCRIPT, "[MITM]",
         ]
-        with self.assertRaisesRegex(ValueError, "common/v5 canonical script trigger missing"):
-            apply_didi_script_and_homepage_cleanup(fixture)
+        self.assertEqual(apply_didi_script_and_homepage_cleanup(fixture), (fixture, 0))
 
     def test_fails_closed_when_didi_core_or_usercenter_native_rule_is_missing(self):
         from apply_local_overrides import (
@@ -1663,17 +1666,17 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertIn("{${jkds_enable}}", JD_OPTIONAL_WELCOME_TRIGGER)
         self.assertEqual(apply(result), result)
 
-    def test_fails_closed_when_either_legacy_trigger_drifts_or_is_missing(self):
-        drifted = self.base.replace("tag=JD,requires-body=true", "tag=JD-DRIFT,requires-body=true")
-        with self.assertRaisesRegex(ValueError, "Jingdong legacy trigger inventory changed"):
-            apply(drifted)
+    def test_preserves_partial_retired_inventory_but_fails_on_trigger_drift(self):
+        from apply_local_overrides import consolidate_jingdong_scripts
+        drifted = self.base.replace('tag="京东"', 'tag="京东-DRIFT"')
+        with self.assertRaisesRegex(ValueError, "Jingdong legacy trigger changed"):
+            consolidate_jingdong_scripts(drifted.splitlines())
         missing = self.base.replace(self.fmz + "\n", "")
-        with self.assertRaisesRegex(ValueError, "Jingdong legacy trigger inventory changed"):
-            apply(missing)
+        self.assertEqual(consolidate_jingdong_scripts(missing.splitlines()), (missing.splitlines(), 0))
 
     def test_fails_closed_on_duplicate_or_mixed_jd_triggers(self):
         duplicate = self.base.replace(self.fmz, self.fmz + "\n" + self.fmz)
-        with self.assertRaisesRegex(ValueError, "Jingdong legacy trigger inventory changed"):
+        with self.assertRaisesRegex(ValueError, "Jingdong legacy trigger inventory duplicated"):
             apply(duplicate)
         from apply_local_overrides import JD_CANONICAL_TRIGGER
         mixed = self.base.replace(self.fmz, self.fmz + "\n" + JD_CANONICAL_TRIGGER)
@@ -1824,18 +1827,16 @@ class SoulScriptConsolidationTests(unittest.TestCase):
             self.assertIn(trigger.replace("enable=soul_enable", "enable=${soul_enable}"), result)
         self.assertEqual(consolidate_soul_scripts(result), (result, 0))
 
-    def test_fails_closed_on_missing_duplicate_or_drifted_soul_trigger(self):
+    def test_preserves_partial_or_drifted_soul_inventory_and_rejects_duplicates(self):
         from apply_local_overrides import SOUL_LEGACY_TRIGGERS, consolidate_soul_scripts
         base = sorted(SOUL_LEGACY_TRIGGERS)
         missing = ["[Script]", *base[:-1]]
-        with self.assertRaisesRegex(ValueError, "Soul script trigger inventory changed"):
-            consolidate_soul_scripts(missing)
+        self.assertEqual(consolidate_soul_scripts(missing), (missing, 0))
         duplicate = ["[Script]", *base, base[0]]
-        with self.assertRaisesRegex(ValueError, "Soul script trigger inventory changed"):
+        with self.assertRaisesRegex(ValueError, "Soul script trigger inventory duplicated"):
             consolidate_soul_scripts(duplicate)
         drifted = ["[Script]", *base[:-1], base[-1].replace("timeout=60", "timeout=30")]
-        with self.assertRaisesRegex(ValueError, "Soul script trigger inventory changed"):
-            consolidate_soul_scripts(drifted)
+        self.assertEqual(consolidate_soul_scripts(drifted), (drifted, 0))
 
     def test_preserves_absent_or_already_consolidated_soul_inventory(self):
         from apply_local_overrides import SOUL_CANONICAL_TRIGGERS, consolidate_soul_scripts
@@ -1943,11 +1944,12 @@ class DouyinTncDirectSafetyTests(unittest.TestCase):
         self.assertIn("DOMAIN-SUFFIX,pangolin-sdk-toutiao.com,REJECT", result)
         self.assertEqual(remove_douyin_tnc_conflicting_rejects(result), (result, 0))
 
-    def test_fails_closed_on_partial_duplicate_or_unknown_tnc_reject_inventory(self):
+    def test_accepts_partial_retired_source_inventory_but_rejects_duplicate_or_unknown_tnc_rules(self):
         from apply_local_overrides import remove_douyin_tnc_conflicting_rejects
         partial = [line for line in self.base if line != self.rejects[0]]
-        with self.assertRaisesRegex(ValueError, "inventory changed"):
-            remove_douyin_tnc_conflicting_rejects(partial)
+        result, removed = remove_douyin_tnc_conflicting_rejects(partial)
+        self.assertEqual(removed, 3)
+        self.assertEqual(result.count(self.direct), 1)
         rewrite_index = self.base.index("[Rewrite]")
         duplicate = self.base[:rewrite_index] + [self.rejects[0]] + self.base[rewrite_index:]
         with self.assertRaisesRegex(ValueError, "duplicate Douyin TNC"):
@@ -2011,6 +2013,13 @@ class DouyinContentCdnScopeTests(unittest.TestCase):
         unknown = [unknown_rule if line == self.overblocks[2][1] else line for line in self.base]
         with self.assertRaisesRegex(ValueError, "inventory changed"):
             remove_douyin_content_cdn_overblocks(unknown)
+
+    def test_preserves_original_overblocks_when_retired_source_removed_required_path_guards(self):
+        from apply_local_overrides import remove_douyin_content_cdn_overblocks
+        fixture = [line for line in self.base if not any(marker in line.replace(chr(92), "") for marker in self.markers)]
+        result, removed = remove_douyin_content_cdn_overblocks(fixture)
+        self.assertEqual(removed, 0)
+        self.assertEqual(result, fixture)
 
     def test_current_fmz_source_inventory_is_supported(self):
         from apply_local_overrides import DOUYIN_CONTENT_CDN_OVERBLOCKS, remove_douyin_content_cdn_overblocks
@@ -2137,11 +2146,10 @@ class BilibiliCoreServiceScopeTests(unittest.TestCase):
         self.assertIn("DOMAIN,unrelated.example,REJECT", result)
         self.assertEqual(remove_bilibili_core_service_overblocks(result), (result, 0))
 
-    def test_fails_closed_on_partial_duplicate_or_changed_core_service_inventory(self):
+    def test_preserves_partial_inventory_but_fails_on_duplicate_or_changed_core_service_rows(self):
         from apply_local_overrides import remove_bilibili_core_service_overblocks
         partial = [line for line in self.base if line != self.targets[0][1]]
-        with self.assertRaisesRegex(ValueError, "inventory is partial"):
-            remove_bilibili_core_service_overblocks(partial)
+        self.assertEqual(remove_bilibili_core_service_overblocks(partial), (partial, 0))
         rule_index = self.base.index(self.ad_guards[0])
         duplicate = self.base[:rule_index] + [self.targets[0][1]] + self.base[rule_index:]
         with self.assertRaisesRegex(ValueError, "duplicate Bilibili core-service"):
@@ -2198,6 +2206,13 @@ class BilibiliNonAdFeatureScopeTests(unittest.TestCase):
         changed = [line.replace("9005270400000", "9000000000000") if "due_date" in line else line for line in self.base]
         with self.assertRaisesRegex(ValueError, "rule changed"):
             normalize_bilibili_non_ad_feature_overrides(changed)
+
+    def test_preserves_original_rules_when_retired_source_removes_ad_path_coverage(self):
+        from apply_local_overrides import normalize_bilibili_non_ad_feature_overrides
+        fixture = [line for line in self.base if not any(marker in line.replace(chr(92), "") for marker in self.markers)]
+        result, changed = normalize_bilibili_non_ad_feature_overrides(fixture)
+        self.assertEqual(changed, 0)
+        self.assertEqual(result, fixture)
 
     def test_removes_combined_teen_mode_mock_and_grpc_status_override(self):
         from apply_local_overrides import normalize_bilibili_non_ad_feature_overrides
@@ -2313,6 +2328,10 @@ hostname = webcast-open.douyin.com, beta-luna.douyin.com, creditcard.bankcomm.cn
         self.assertNotIn("DOMAIN-KEYWORD,minigame,REJECT", missing_result)
         self.assertNotIn("webcast-open.douyin.com", missing_result)
 
+        alias = self.base.replace("DOMAIN-SUFFIX,dig.bdurl.net,REJECT", "DOMAIN,dig.bdurl.net,REJECT")
+        alias_result = apply(alias)
+        self.assertNotIn("DOMAIN,dig.bdurl.net,REJECT", alias_result)
+
         duplicate = self.base.replace(
             "DOMAIN-SUFFIX,dig.bdurl.net,REJECT",
             "DOMAIN-SUFFIX,dig.bdurl.net,REJECT\nDOMAIN-SUFFIX,dig.bdurl.net,REJECT",
@@ -2381,13 +2400,13 @@ class KugouJin10RewriteDedupTests(unittest.TestCase):
             self.assertIn(rule, result)
         self.assertEqual(apply(result), result)
 
-    def test_fails_closed_on_missing_or_drifted_inventory(self):
+    def test_preserves_partial_inventory_and_fails_closed_on_drift(self):
+        from apply_local_overrides import remove_kugou_jin10_redundant_rewrites
         missing = self.base.replace(self.rules[14] + "\n", "", 1)
-        with self.assertRaisesRegex(ValueError, "Kugou/Jin10 rewrite inventory changed"):
-            apply(missing)
+        self.assertEqual(remove_kugou_jin10_redundant_rewrites(missing.splitlines()), (missing.splitlines(), 0))
         drifted = self.base.replace(self.rules[14], self.rules[14].replace("reject-dict", "reject-200"), 1)
         with self.assertRaisesRegex(ValueError, "Kugou/Jin10 rewrite inventory changed"):
-            apply(drifted)
+            remove_kugou_jin10_redundant_rewrites(drifted.splitlines())
 
 
 
@@ -2874,10 +2893,11 @@ class JingdongCoreServiceDomainScopeTests(unittest.TestCase):
         self.assertIn("^https://example.com/ad reject", result)
         self.assertEqual(remove_jd_core_service_domain_blocks(result), (result, 0))
 
-    def test_fails_closed_on_partial_duplicate_or_changed_core_service_inventory(self):
+    def test_accepts_partial_retired_source_inventory_but_rejects_duplicate_or_changed_rows(self):
         from apply_local_overrides import remove_jd_core_service_domain_blocks
-        with self.assertRaisesRegex(ValueError, "inventory is partial"):
-            remove_jd_core_service_domain_blocks(["[Rule]", *self.targets[:-1]])
+        partial, removed = remove_jd_core_service_domain_blocks(["[Rule]", *self.targets[:-1]])
+        self.assertEqual(removed, 2)
+        self.assertEqual(partial, ["[Rule]"])
         duplicate = ["[Rule]", *self.targets, self.targets[0]]
         with self.assertRaisesRegex(ValueError, "duplicate JD core service"):
             remove_jd_core_service_domain_blocks(duplicate)
@@ -3064,11 +3084,10 @@ class TuhuDuplicateResponseScriptTests(unittest.TestCase):
         clean = ["[Script]", *self.canonical, "[MITM]"]
         self.assertEqual(remove_duplicate_tuhu_scripts(clean), (clean, 0))
 
-    def test_fails_closed_on_missing_canonical_duplicate_or_unknown_variant(self):
+    def test_preserves_partial_inventory_but_fails_on_duplicate_or_unknown_variant(self):
         from apply_local_overrides import remove_duplicate_tuhu_scripts
         missing = [line for line in self.fixture if line != self.canonical[1]]
-        with self.assertRaisesRegex(ValueError, "canonical script inventory incomplete"):
-            remove_duplicate_tuhu_scripts(missing)
+        self.assertEqual(remove_duplicate_tuhu_scripts(missing), (missing, 0))
 
         duplicate = ["[Script]", *self.canonical, self.canonical[0]]
         with self.assertRaisesRegex(ValueError, "duplicate canonical Tuhu"):
@@ -3144,11 +3163,10 @@ class CnftpDuplicateScriptTests(unittest.TestCase):
         clean = ["[Script]", CNFTP_IQIYI_HOME_COMBINED_TRIGGER, *retained, "[MITM]"]
         self.assertEqual(remove_duplicate_cnftp_scripts(clean), (clean, 0))
 
-    def test_fails_closed_on_missing_duplicate_duplicate_kept_or_unknown_variant(self):
+    def test_preserves_partial_retired_inventory_but_fails_on_duplicate_or_unknown_variant(self):
         from apply_local_overrides import remove_duplicate_cnftp_scripts
         missing = [line for line in self.fixture if line != self.remove[0]]
-        with self.assertRaisesRegex(ValueError, "legacy video trigger inventory incomplete"):
-            remove_duplicate_cnftp_scripts(missing)
+        self.assertEqual(remove_duplicate_cnftp_scripts(missing), (missing, 0))
 
         duplicate = ["[Script]", *self.remove, *self.keep_source, self.keep_source[0]]
         with self.assertRaisesRegex(ValueError, "duplicate retained video source"):
@@ -3651,11 +3669,10 @@ class SameSourceResponseScriptDedupTests(unittest.TestCase):
         clean = ["[Script]", *self.keep, "[MITM]"]
         self.assertEqual(remove_same_source_duplicate_response_scripts(clean), (clean, 0))
 
-    def test_fails_closed_on_missing_duplicate_or_unknown_variant(self):
+    def test_preserves_partial_retired_inventory_but_fails_on_duplicate_or_unknown_variant(self):
         from apply_local_overrides import remove_same_source_duplicate_response_scripts
         missing = [line for line in self.fixture if line != self.remove[0]]
-        with self.assertRaisesRegex(ValueError, "inventory incomplete"):
-            remove_same_source_duplicate_response_scripts(missing)
+        self.assertEqual(remove_same_source_duplicate_response_scripts(missing), (missing, 0))
 
         duplicate = ["[Script]", *self.remove, *self.keep, self.keep[0]]
         with self.assertRaisesRegex(ValueError, "duplicate same-source retained"):
@@ -3732,8 +3749,7 @@ class IdenticalScriptResponseDedupTests(unittest.TestCase):
     def test_fails_closed_on_missing_duplicate_or_unknown_variant(self):
         from apply_local_overrides import remove_identical_script_response_duplicates
         missing = [line for line in self.fixture if line != self.remove[0]]
-        with self.assertRaisesRegex(ValueError, "legacy identical-script inventory incomplete"):
-            remove_identical_script_response_duplicates(missing)
+        self.assertEqual(remove_identical_script_response_duplicates(missing), (missing, 0))
 
         duplicate = ["[Script]", *self.remove, *self.keep_source, self.keep_source[0]]
         with self.assertRaisesRegex(ValueError, "duplicate retained identical-script"):
@@ -3841,8 +3857,7 @@ class MoreResponseScriptDedupTests(unittest.TestCase):
     def test_fails_closed_on_missing_duplicate_or_unknown_variant(self):
         from apply_local_overrides import remove_more_duplicate_response_scripts
         missing = [line for line in self.fixture if line != self.remove[0]]
-        with self.assertRaisesRegex(ValueError, "legacy response inventory incomplete"):
-            remove_more_duplicate_response_scripts(missing)
+        self.assertEqual(remove_more_duplicate_response_scripts(missing), (missing, 0))
 
         duplicate = ["[Script]", *self.remove, *self.keep_source, self.keep_source[0]]
         with self.assertRaisesRegex(ValueError, "duplicate retained response source"):
@@ -4481,12 +4496,11 @@ class XiaohongshuNativeDuplicateTriggerTests(unittest.TestCase):
         self.assertEqual(second_changed, 0)
         self.assertEqual(again, result)
 
-    def test_fails_closed_when_native_search_coverage_is_missing(self):
+    def test_preserves_scripts_when_native_search_coverage_is_missing(self):
         from apply_local_overrides import narrow_xiaohongshu_native_response_duplicates
         fixture = self._fixture()
         fixture = [line for line in fixture if "/search/hot_list" not in line.replace(chr(92), "") or "response-body-json-jq" not in line]
-        with self.assertRaisesRegex(ValueError, "native JSON coverage missing or duplicated"):
-            narrow_xiaohongshu_native_response_duplicates(fixture)
+        self.assertEqual(narrow_xiaohongshu_native_response_duplicates(fixture), (fixture, 0))
 
     def test_fails_closed_on_changed_fmz_host_matcher(self):
         from apply_local_overrides import narrow_xiaohongshu_native_response_duplicates
@@ -4552,12 +4566,11 @@ class XiaohongshuV3VideoNativeDedupTests(unittest.TestCase):
         self.assertEqual(second_changed, 0)
         self.assertEqual(again, result)
 
-    def test_fails_closed_without_native_v3_video_coverage(self):
+    def test_preserves_scripts_without_native_v3_video_coverage(self):
         from apply_local_overrides import narrow_xiaohongshu_v3_video_native_duplicates
         fixture = self._fixture()
         fixture = [line for line in fixture if "v3/note/videofeed" not in line.replace(chr(92), "")]
-        with self.assertRaisesRegex(ValueError, "native JSON coverage missing or duplicated"):
-            narrow_xiaohongshu_v3_video_native_duplicates(fixture)
+        self.assertEqual(narrow_xiaohongshu_v3_video_native_duplicates(fixture), (fixture, 0))
 
     def test_fails_closed_when_native_v3_video_loses_a_required_operation(self):
         from apply_local_overrides import narrow_xiaohongshu_v3_video_native_duplicates
@@ -4633,8 +4646,10 @@ class XiaohongshuV4AndCommentMigrationTests(unittest.TestCase):
             migrate_xiaohongshu_v4_and_comment_processing(drifted)
 
         no_fmz_comment = [line for line in fixture if "v5/note/comment/list" not in line.replace(chr(92), "")]
-        with self.assertRaisesRegex(ValueError, "FMZ comment-version coverage missing"):
-            migrate_xiaohongshu_v4_and_comment_processing(no_fmz_comment)
+        self.assertEqual(
+            migrate_xiaohongshu_v4_and_comment_processing(no_fmz_comment),
+            (no_fmz_comment, 0),
+        )
 
     def test_local_v4_script_contains_the_merged_ad_filter_and_keeps_cache_paths(self):
         from pathlib import Path
@@ -4792,6 +4807,19 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
         result, changed = optimize_bilibili_json_native_coverage(fixture)
         self.assertEqual(changed, 0)
         self.assertEqual(result, fixture)
+
+    def test_preserves_rstore_json_triggers_when_retired_fmz_live_handler_is_absent(self):
+        from apply_local_overrides import (
+            BILIBILI_JSON_TRIGGER_PAIRS, BILIBILI_NATIVE_PREREQUISITE_MARKERS,
+            BILIBILI_NATIVE_RULE_REPLACEMENTS, optimize_bilibili_json_native_coverage,
+        )
+        fixture = [
+            "[Rewrite]", *BILIBILI_NATIVE_PREREQUISITE_MARKERS,
+            *(old for old, _ in BILIBILI_NATIVE_RULE_REPLACEMENTS),
+            "[Script]", *(original for _, original, _ in BILIBILI_JSON_TRIGGER_PAIRS),
+            "[MITM]",
+        ]
+        self.assertEqual(optimize_bilibili_json_native_coverage(fixture), (fixture, 0))
 
     def test_fails_closed_when_native_or_sparkle_coverage_changes(self):
         from apply_local_overrides import (

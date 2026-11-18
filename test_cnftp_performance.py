@@ -34,6 +34,10 @@ class CnftpPerformanceTests(unittest.TestCase):
         self.assertNotIn(REMOTE_URL, result)
         self.assertEqual(rewrite_plugin(result), result)
 
+    def test_preserves_base_only_plugin_when_cnftp_handler_is_absent(self):
+        fixture = "[Script]\nhttp-response ^https?:\\\\/\\\\/example\\\\.com script-path=https://example.invalid/keep.js\n[MITM]\nhostname = example.com\n"
+        self.assertEqual(rewrite_plugin(fixture), fixture)
+
     def test_fails_closed_when_cnftp_trigger_count_drifts(self):
         fixture = "[Script]\n" + 'response if ${url} ~= /^https:\\/\\/example/ then script("%s")' % REMOTE_URL + "\n[MITM]\n"
         with self.assertRaisesRegex(ValueError, "trigger inventory changed"):

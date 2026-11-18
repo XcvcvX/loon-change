@@ -14,7 +14,7 @@
     包含）只追加未被覆盖的规则。最终单插件即可完整替代独立分流，无需再装 allAdBlock。
 
 用法：
-  python3 merge_plugins.py --base allAdRewrite.plugin --extra fetch --out allAdRewrite.plugin
+  python3 merge_plugins.py --base allAdRewrite.plugin --extra none --filter none --myblockads none --out allAdRewrite.plugin
   python3 merge_plugins.py --base allAdRewrite.plugin --extra sources/blockAdsV2.plugin --out x.plugin
   # --filter 控制 R-Store 分流来源：fetch（默认）/ 本地路径 / none（不补全）
 """
@@ -85,9 +85,9 @@ IP_OK = re.compile(r'^\d{1,3}(?:\.\d{1,3}){3}$')
 
 ap = argparse.ArgumentParser()
 ap.add_argument('--base', required=True, help='base 插件（R-Store 产物）')
-ap.add_argument('--extra', required=True,
-                help='blockAdsV2 路径；传 fetch 则从上游拉取（含镜像回退）')
-ap.add_argument('--filter', default='fetch',
+ap.add_argument('--extra', default='none',
+                help='附加规则源；生产配置使用 none，仅合并 base')
+ap.add_argument('--filter', default='none',
                 help='R-Store 分流来源：fetch（默认，含镜像）/ 本地路径 / none（不补全 [Rule]）')
 ap.add_argument('--apps', default=None,
                 help='Thelongdarkorg/loon-plugins 仓库目录（可选）；遍历其中去广告插件并入，'
@@ -103,7 +103,7 @@ ap.add_argument('--qxapp', action='append', default=None,
                      '脚本内解析 hostname 并把 qx 规则转为 Loon v2，按专属 App 高优先级完整并入')
 ap.add_argument('--amap', default=None,
                 help='RuCu6/sooyaaabo 高德地图独立 Loon 插件（经来源校验的本地 .lpx 文件）；最高 App 优先级')
-ap.add_argument('--myblockads', default='fetch',
+ap.add_argument('--myblockads', default='none',
                 help='MyBlockAds 来源：fetch（默认，在线抓取失败回退 sources/myblockads.lpx 缓存）'
                      '/ 本地路径 / none（不并入）')
 ap.add_argument('--alipayadblock', default='fetch',
@@ -524,7 +524,10 @@ import collections
 
 # ---------------- 读取 base / extra ----------------
 base_text = open(args.base, encoding='utf-8').read()
-if args.extra == 'fetch':
+if args.extra == 'none':
+    extra_text = ''
+elif args.extra == 'fetch':
+    raise SystemExit('blockAdsV2 上游已停用；综合规则仅允许 base 来源')
     try:
         extra_text, used_url, _ = fetch_validated(
             [BLOCKV2_URL] + BLOCKV2_MIRRORS, fetch, validate_blockv2, 'blockAdsV2')
@@ -538,6 +541,7 @@ else:
 # ---------------- MyBlockAds：在线抓取，失败回退仓库内置缓存 ----------------
 mb_text = None
 if args.myblockads == 'fetch':
+    raise SystemExit('Romeo rucu6/MyBlockAds 来源已停用')
     try:
         mb_text = fetch(MYBLOCKADS_URL)
         validate_myblockads(mb_text)
@@ -2935,14 +2939,8 @@ if args.zmjde:
 fstats = {'total': 0, 'covered': 0, 'added': 0}
 if args.filter != 'none':
     if args.filter == 'fetch':
-        try:
-            ftext, used_url, _ = fetch_validated(
-                [FILTER_URL] + FILTER_MIRRORS, fetch, validate_filter, 'R-Store filter')
-            print('[fetch] 已获取并通过完整性检查 R-Store filter:', used_url)
-        except Exception as e:
-            raise SystemExit('R-Store filter 获取失败: %s' % e)
-    else:
-        ftext = open(args.filter, encoding='utf-8').read()
+        raise SystemExit('R-Store 独立 filter 补充源已停用；综合规则仅使用 base')
+    ftext = open(args.filter, encoding='utf-8').read()
     for fr in dedup_keep_order(parse_qx_filter(ftext)):
         fstats['total'] += 1
         before = len(rule_result)

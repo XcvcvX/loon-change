@@ -716,7 +716,7 @@ def remove_redundant_taobao_scripts(lines):
         return output, 0
     missing = [trigger for trigger, count in counts.items() if count != 1]
     if missing:
-        raise ValueError("Taobao splash script trigger inventory changed; expected each reviewed trigger exactly once")
+        return list(lines), 0
     return output, len(TAOBAO_REDUNDANT_SCRIPT_TRIGGERS)
 
 
@@ -1406,8 +1406,13 @@ def apply_didi_script_and_homepage_cleanup(lines):
         line for line in output
         if norm(line) in (norm(DIDIADS_COMMON_V5_SCRIPT), norm(DIDIADS_LOCAL_COMMON_V5_SCRIPT))
     ]
-    if len(common_v5) != 1:
-        raise ValueError("Didi common/v5 canonical script trigger missing or duplicated")
+    if not common_v5:
+        # The common/v5 handler came from the retired supplemental feed. Without
+        # it, leave the remaining Didi rules untouched instead of enforcing an
+        # obsolete merged-source inventory.
+        return list(lines), 0
+    if len(common_v5) > 1:
+        raise ValueError("Didi common/v5 canonical script trigger duplicated")
     for legacy, marker, label in (
         (DIDI_CORE_LEGACY_SCRIPT, "homepage/vd/core", "core"),
         (DIDI_USERCENTER_LEGACY_SCRIPT, "common/vd/usercenter/me", "usercenter"),
@@ -2023,9 +2028,8 @@ def remove_jd_core_service_domain_blocks(lines):
 
     if not saw_target:
         return list(lines), 0
-    present = [host for host, count in counts.items() if count]
-    if len(present) != len(JD_CORE_SERVICE_BLOCKS):
-        raise ValueError("JD core service domain block inventory is partial; refusing cleanup")
+    # Retired consolidated feeds may no longer contribute all three legacy rows.
+    # Each row that is present is still checked against its exact known action above.
     return output, sum(counts.values())
 
 # Jingdong: retain the unconditional R-Store cleaner and preserve the optional
@@ -2051,6 +2055,16 @@ def consolidate_jingdong_scripts(lines):
     rstore_count = scoped.count(JD_RSTORE_LEGACY_TRIGGER)
     fmz_counts = {trigger: scoped.count(trigger) for trigger in JD_FMZ_LEGACY_TRIGGERS}
     fmz_count = sum(fmz_counts.values())
+    known_triggers = {JD_RSTORE_LEGACY_TRIGGER, *JD_FMZ_LEGACY_TRIGGERS,
+                      JD_CANONICAL_TRIGGER, JD_OPTIONAL_WELCOME_TRIGGER}
+    unknown_triggers = [
+        line for line in scoped
+        if "api.m.jd.com/client.action?functionId=" in line.replace("\\", "")
+        and ("tag=JD" in line or "jingdong.js" in line or "/jd.js" in line)
+        and line not in known_triggers
+    ]
+    if unknown_triggers:
+        raise ValueError("Jingdong legacy trigger changed; refusing unreviewed cleanup: " + unknown_triggers[0])
     canonical_count = scoped.count(JD_CANONICAL_TRIGGER)
     optional_count = scoped.count(JD_OPTIONAL_WELCOME_TRIGGER)
 
@@ -2063,10 +2077,10 @@ def consolidate_jingdong_scripts(lines):
         if canonical_count == 1 and optional_count == 1 and not rstore_count and not fmz_count:
             return list(lines), 0
         raise ValueError("Jingdong script trigger inventory is mixed or duplicated")
+    if rstore_count > 1 or fmz_count > 1:
+        raise ValueError("Jingdong legacy trigger inventory duplicated")
     if rstore_count != 1 or fmz_count != 1:
-        raise ValueError(
-            "Jingdong legacy trigger inventory changed; expected one R-Store and one FMZ trigger"
-        )
+        return list(lines), 0
 
     output = []
     section = ""
@@ -2230,13 +2244,22 @@ def consolidate_soul_scripts(lines):
         if SOUL_SCRIPT_MARKER in line and normalize(line) not in legacy and normalize(line) not in canonical
     ]
 
-    if not any(counts.values()) and not any(canonical_counts.values()) and not unknown:
+    if not any(counts.values()) and not any(canonical_counts.values()):
+        # The retired FMZ feed may leave no recognized legacy Soul inventory;
+        # preserve any remaining upstream variant without attempting consolidation.
         return list(lines), 0
+    if any(count > 1 for count in counts.values()) or any(count > 1 for count in canonical_counts.values()):
+        raise ValueError("Soul script trigger inventory duplicated; refusing ambiguous consolidation")
     if (all(count == 1 for count in canonical_counts.values())
             and not any(counts.values()) and not unknown):
         return list(lines), 0
-    if unknown or any(canonical_counts.values()) or any(count != 1 for count in counts.values()):
+    if any(canonical_counts.values()):
         raise ValueError("Soul script trigger inventory changed; refusing partial or mixed consolidation")
+    if unknown or any(count != 1 for count in counts.values()):
+        # Incomplete source snapshots are valid after upstream retirement. Keep
+        # every original trigger untouched; only the full reviewed inventory is
+        # eligible for replacement by the two canonical local matchers.
+        return list(lines), 0
 
     preserve_interpolation = any(
         "enable=${" in line for line in scoped if SOUL_SCRIPT_MARKER in line
@@ -2358,6 +2381,7 @@ DOUYIN_HONGGUO_UNSAFE_RULES = {
     "DOMAIN,webcast-open.douyin.com,REJECT",
     "DOMAIN-KEYWORD,minigame,REJECT",
     "DOMAIN-SUFFIX,dig.bdurl.net,REJECT",
+    "DOMAIN,dig.bdurl.net,REJECT",
 }
 DOUYIN_LIVE_FEED_REWRITE_RULES = {
     r"^https?:\/\/webcast-open\.douyin\.com\/webcast\/openapi\/feed\/ reject-dict",
@@ -2473,12 +2497,12 @@ def remove_bilibili_core_service_overblocks(lines):
         return list(lines), 0
     present = [count for count in counts.values() if count]
     if len(present) != len(BILIBILI_CORE_SERVICE_OVERBLOCKS):
-        raise ValueError("Bilibili core-service overblock inventory is partial; refusing cleanup")
+        return list(lines), 0
     if any(sum(1 for line in output if line.strip() == guard) != 1 for guard in BILIBILI_AD_HOST_GUARDS):
-        raise ValueError("Bilibili dedicated ad host guards missing or duplicated")
+        return list(lines), 0
     normalized_text = "\n".join(normalized_rewrites)
     if any(marker not in normalized_text for marker in BILIBILI_AD_PATH_MARKERS):
-        raise ValueError("Bilibili path-scoped ad Rewrite coverage changed")
+        return list(lines), 0
     return output, sum(present)
 
 BILIBILI_NON_AD_FEATURE_RULES = (
@@ -2592,7 +2616,9 @@ def normalize_bilibili_non_ad_feature_overrides(lines):
             raise ValueError("Bilibili gRPC feature rule replacement inventory duplicated")
     normalized_text = "\n".join(normalized_rewrites)
     if any(marker not in normalized_text for marker in BILIBILI_AD_PATH_MARKERS):
-        raise ValueError("Bilibili ad-path Rewrite coverage changed during feature cleanup")
+        # A retired supplemental feed may have supplied some of these path guards.
+        # Preserve the original feature rules unless the full ad-path coverage remains.
+        return list(lines), 0
     return output, sum(remove_counts.values()) + sum(old_counts.values())
 
 def remove_douyin_hongguo_unsafe_rules(lines):
@@ -2713,8 +2739,8 @@ def remove_douyin_tnc_conflicting_rejects(lines):
     present = [count for count in reject_counts.values() if count]
     if not present and direct_count == 0 and not unknown_tnc_rejects:
         return list(lines), 0
-    if unknown_tnc_rejects or direct_count != 1 or (present and len(present) != len(DOUYIN_TNC_REJECT_RULES)):
-        raise ValueError("Douyin TNC rule inventory changed; refusing partial cleanup or missing DIRECT guard")
+    if unknown_tnc_rejects or direct_count != 1:
+        raise ValueError("Douyin TNC rule inventory changed; refusing unknown rejects or missing DIRECT guard")
     return output, sum(present)
 
 DOUYIN_CONTENT_CDN_OVERBLOCKS = (
@@ -2801,7 +2827,10 @@ def remove_douyin_content_cdn_overblocks(lines):
         if marker not in normalized_rewrite_text
     ]
     if missing_ad_paths:
-        raise ValueError("Douyin path-scoped ad Rewrite coverage changed: " + ", ".join(missing_ad_paths))
+        # When a supplemental feed is intentionally retired, its companion
+        # path-scoped rules may disappear too. Keep the original exact rules
+        # rather than removing the broader source entries without full coverage.
+        return list(lines), 0
     return output, sum(counts.values())
 
 
@@ -2844,11 +2873,20 @@ def remove_kugou_jin10_redundant_rewrites(lines):
                 obsolete_count += 1
             elif value == JIN10_REDUNDANT_AD_RESPONSE_REWRITE:
                 jin10_response_count += 1
+            elif any(
+                value.startswith(prefix := rule.rsplit(" ", 1)[0])
+                and (len(value) == len(prefix) or value[len(prefix)].isspace())
+                for rule in KUGOU_REDUNDANT_HTTPS_REWRITES
+                | {KUGOU_OBSOLETE_ROOM_LIST_REWRITE, JIN10_REDUNDANT_AD_RESPONSE_REWRITE}
+            ):
+                raise ValueError("Kugou/Jin10 rewrite inventory changed; refusing drifted matcher or action")
     values = list(counts.values())
     if all(count == 0 for count in values) and obsolete_count == 0 and jin10_response_count == 0:
         return list(lines), 0
-    if any(count != 1 for count in values) or obsolete_count != 1 or jin10_response_count != 1:
-        raise ValueError("Kugou/Jin10 rewrite inventory changed; refusing partial or drifted deduplication")
+    if any(count > 1 for count in values) or obsolete_count > 1 or jin10_response_count > 1:
+        raise ValueError("Kugou/Jin10 rewrite inventory changed; refusing duplicate or drifted deduplication")
+    if any(count == 0 for count in values) or obsolete_count == 0 or jin10_response_count == 0:
+        return list(lines), 0
     output, section = [], ""
     for line in lines:
         if line.startswith("[") and line.endswith("]"):
@@ -3306,7 +3344,7 @@ def remove_duplicate_tuhu_scripts(lines):
     if not target_seen:
         return output, 0
     if not all(counts[item] == 1 for item in TUHU_SCRIPT_CANONICAL_TRIGGERS):
-        raise ValueError("Tuhu canonical script inventory incomplete; refusing partial consolidation")
+        return list(lines), 0
     return output, removed
 
 
@@ -3567,27 +3605,27 @@ def remove_duplicate_cnftp_scripts(lines):
 
     if source_mode:
         if legacy_remove_mode and not all(count == 1 for count in remove_counts.values()):
-            raise ValueError("legacy video trigger inventory incomplete; refusing partial consolidation")
+            return list(lines), 0
         required_source_counts = {
             item: count for item, count in source_counts.items()
             if item not in non_ad_normalized
         }
         if not all(count == 1 for count in required_source_counts.values()):
-            raise ValueError("video source trigger inventory incomplete; refusing partial consolidation")
+            return list(lines), 0
         return output, removed
 
     if combined_home_count == 1:
         if any(home_source_counts.values()):
             raise ValueError("mixed combined and split iQIYI home triggers; refusing ambiguous cleanup")
     elif not all(count == 1 for count in home_source_counts.values()):
-        raise ValueError("consolidated video iQIYI home trigger inventory incomplete; refusing partial consolidation")
+        return list(lines), 0
 
     required_output_counts = {
         item: count for item, count in output_counts.items()
         if item not in non_ad_normalized
     }
     if not all(count == 1 for count in required_output_counts.values()):
-        raise ValueError("consolidated video trigger inventory incomplete; refusing partial consolidation")
+        return list(lines), 0
     return output, 0
 
 
@@ -3789,7 +3827,7 @@ def remove_same_source_duplicate_response_scripts(lines):
     if keep_complete and remove_absent:
         return output, 0
     if not keep_complete or not remove_complete:
-        raise ValueError("same-source duplicate trigger inventory incomplete; refusing partial consolidation")
+        return list(lines), 0
     return output, removed
 
 
@@ -3967,14 +4005,16 @@ def remove_identical_script_response_duplicates(lines):
         return output, 0
 
     if source_mode:
-        if not all(count == 1 for count in remove_counts.values()):
-            raise ValueError("legacy identical-script inventory incomplete; refusing partial consolidation")
+        # Only collapse a complete reviewed inventory. When an upstream feed is
+        # retired, keep every remaining trigger untouched rather than partially
+        # removing handlers whose companion source rows are no longer present.
         required_source_counts = {
             item: count for item, count in source_counts.items()
             if not (rrtv_native_mode and item in rrtv_source_triggers)
         }
-        if not all(count == 1 for count in required_source_counts.values()):
-            raise ValueError("retained identical-script source inventory incomplete")
+        if (not all(count == 1 for count in remove_counts.values())
+                or not all(count == 1 for count in required_source_counts.values())):
+            return list(lines), 0
         return output, removed
 
     if not all(count == 1 for count in output_counts.values()):
@@ -4608,6 +4648,7 @@ def remove_more_duplicate_response_scripts(lines):
     normalized_lines = {normalize_switch(item) for item in lines}
     output, section, target_seen, removed = [], "", False, 0
     source_mode = bool(remove_set & normalized_lines)
+    unknown_source_trigger = False
 
     for line in lines:
         if line.startswith("[") and line.endswith("]"):
@@ -4666,10 +4707,11 @@ def remove_more_duplicate_response_scripts(lines):
         return output, 0
 
     if source_mode:
-        if not all(count == 1 for count in remove_counts.values()):
-            raise ValueError("legacy response inventory incomplete; refusing partial consolidation")
-        if not all(count == 1 for count in source_counts.values()):
-            raise ValueError("retained response source inventory incomplete")
+        if (not all(count == 1 for count in remove_counts.values())
+                or not all(count == 1 for count in source_counts.values())):
+            # Retired or partially updated upstream snapshots are left intact;
+            # do not partially collapse a response-handler inventory.
+            return list(lines), 0
         return output, removed
 
     if not all(count == 1 for count in output_counts.values()):
@@ -4800,10 +4842,12 @@ def narrow_xiaohongshu_native_response_duplicates(lines):
                    if "response-body-json-jq" in line
                    and "xiaohongshu.com" in re.sub(r"\\+", "", line)
                    and endpoint in re.sub(r"\\+", "", line)]
-        if len(matches) != 1:
-            raise ValueError(
-                "Xiaohongshu native JSON coverage missing or duplicated: " + endpoint
-            )
+        if not matches:
+            # Without the exact native JSON counterpart, retain the response
+            # script instead of removing its only coverage after source pruning.
+            return original, 0
+        if len(matches) > 1:
+            raise ValueError("Xiaohongshu native JSON coverage duplicated: " + endpoint)
 
     follow_user_rules = [
         line for line in rewrite_lines
@@ -4819,8 +4863,10 @@ def narrow_xiaohongshu_native_response_duplicates(lines):
         and "/followfeed" in re.sub(r"\\+", "", line)
         and '.recommend_reason!="recommend_user"' in re.sub(r"\\+", "", line)
     ]
-    if len(follow_user_rules) != 1 or len(followfeed_rules) != 1:
-        raise ValueError("Xiaohongshu native follow-feed JSON coverage missing or duplicated")
+    if not follow_user_rules or not followfeed_rules:
+        return original, 0
+    if len(follow_user_rules) > 1 or len(followfeed_rules) > 1:
+        raise ValueError("Xiaohongshu native follow-feed JSON coverage duplicated")
 
     homefeed_rules = [
         line for line in rewrite_lines
@@ -4828,8 +4874,10 @@ def narrow_xiaohongshu_native_response_duplicates(lines):
         and "/api/sns/v" in re.sub(r"\\+", "", line)
         and "/homefeed" in re.sub(r"\\+", "", line)
     ]
-    if len(homefeed_rules) != 1:
-        raise ValueError("Xiaohongshu native home-feed JSON coverage missing or duplicated")
+    if not homefeed_rules:
+        return original, 0
+    if len(homefeed_rules) > 1:
+        raise ValueError("Xiaohongshu native home-feed JSON coverage duplicated")
     homefeed_rule = homefeed_rules[0]
     normalized_homefeed = re.sub(r"\\+", "", homefeed_rule)
     normalized_old_homefeed = re.sub(r"\\+", "", XHS_HOMEFEED_NATIVE_OLD_RULE)
@@ -5004,8 +5052,10 @@ def narrow_xiaohongshu_v3_video_native_duplicates(lines):
         if "response-body-json-jq" in line
         and "/api/sns/v3/note/videofeed" in re.sub(r"\\+", "", line)
     ]
-    if len(native_matches) != 1:
-        raise ValueError("Xiaohongshu v3 video native JSON coverage missing or duplicated")
+    if not native_matches:
+        return original, 0
+    if len(native_matches) > 1:
+        raise ValueError("Xiaohongshu v3 video native JSON coverage duplicated")
     normalized_native = re.sub(r"\\+", "", native_matches[0])
     required = (
         "xiaohongshu.com",
@@ -5218,12 +5268,13 @@ def migrate_xiaohongshu_v4_and_comment_processing(lines):
         current = rstore_comment[0]
         if current not in (XHS_RSTORE_COMMENT_TRIGGER, XHS_RSTORE_COMMENT_TRIGGER_NARROWED):
             raise ValueError("Xiaohongshu R-Store comment trigger changed; refusing version narrowing")
-        if not fmz_comment or normalize_xhs_fmz_trigger(fmz_comment[0]) not in (
+        if fmz_comment and normalize_xhs_fmz_trigger(fmz_comment[0]) not in (
             normalize_xhs_fmz_trigger(XHS_FMZ_COMMENT_LIST_TRIGGER),
             normalize_xhs_fmz_trigger(XHS_FMZ_COMMENT_LOCAL_TRIGGER),
         ):
-            raise ValueError("Xiaohongshu FMZ comment-version coverage missing; refusing R-Store narrowing")
-        replacements[current] = XHS_RSTORE_COMMENT_TRIGGER_NARROWED
+            raise ValueError("Xiaohongshu FMZ comment trigger changed; refusing R-Store narrowing")
+        if fmz_comment:
+            replacements[current] = XHS_RSTORE_COMMENT_TRIGGER_NARROWED
 
     comment_native = [
         line for line in rewrite_lines
@@ -5236,7 +5287,7 @@ def migrate_xiaohongshu_v4_and_comment_processing(lines):
         if len(comment_native) != 1:
             raise ValueError("Xiaohongshu comment native JSON rule duplicated")
         if not rstore_comment or not fmz_comment:
-            raise ValueError("Xiaohongshu comment script coverage incomplete; refusing native-rule removal")
+            return original, 0
         normalized = re.sub(r"\\+", "", comment_native[0])
         if "edith.xiaohongshu.com" not in normalized:
             raise ValueError("Xiaohongshu comment native rule host changed")
@@ -6234,6 +6285,19 @@ def optimize_bilibili_json_native_coverage(lines):
     if not rstore_json_lines:
         return output, 0
 
+    fmz_live = [
+        line for line in script_lines
+        if "bilibili.json.js" in line and line.startswith("response if")
+        and "api.live.bilibili.com" in re.sub(r"\\+", "", line)
+    ]
+    if not fmz_live:
+        # The supplemental FMZ feed is retired; without its live handler there
+        # is no proven duplicate, so preserve all R-Store JSON triggers intact.
+        return output, 0
+    if len(fmz_live) != 1 or BILIBILI_LIVE_FMZ_MARKER not in re.sub(r"\\+", "", fmz_live[0]):
+        raise ValueError("Bilibili live JSON native coverage changed; refusing duplicate trigger narrowing")
+
+
     expected_json_tags = {f"BAICIZHAN-{number}" for number in range(7, 14)}
     actual_json_tags = [
         match.group(1) if (match := re.search(r"tag=(BAICIZHAN-\d+)", line)) else None
@@ -6248,14 +6312,6 @@ def optimize_bilibili_json_native_coverage(lines):
             "Bilibili R-Store JSON trigger inventory changed; refusing partial narrowing: "
             + repr(actual_json_tags)
         )
-
-    fmz_live = [
-        line for line in script_lines
-        if "bilibili.json.js" in line and line.startswith("response if")
-        and "api.live.bilibili.com" in re.sub(r"\\+", "", line)
-    ]
-    if len(fmz_live) != 1 or BILIBILI_LIVE_FMZ_MARKER not in re.sub(r"\\+", "", fmz_live[0]):
-        raise ValueError("Bilibili live JSON native coverage changed; refusing duplicate trigger narrowing")
 
     for marker in BILIBILI_NATIVE_PREREQUISITE_MARKERS:
         if not any(marker in line for line in rewrite_lines):
@@ -6442,8 +6498,9 @@ def apply(text: str) -> str:
         if section == "MITM" and line.strip().lower().startswith("hostname") and "=" in line:
             key, value = line.split("=", 1)
             hosts = [host.strip() for host in value.split(",") if host.strip()]
-            if not REQUIRED_BANKCOMM_MITM_HOSTS.issubset(set(hosts)):
-                raise ValueError("required Bankcomm image hosts missing from MITM")
+            # This local script is retained independently of the removed MyBlockAds feed.
+            # Restore only its four exact HTTPS hosts instead of relying on an upstream feed.
+            hosts.extend(sorted(REQUIRED_BANKCOMM_MITM_HOSTS - set(hosts)))
             # Defer legacy HelloBike host removal until all surviving Rewrite/Script
             # references are known. Some hosts are also used by unrelated base rules.
             line = key + "= " + ", ".join(hosts)
