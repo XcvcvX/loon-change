@@ -139,7 +139,8 @@ def optimize_source(src,commit="unknown"):
     }
     obj.data = newItems;'''
     home_new='''    compactInPlace(obj.data, item => {
-      if (!item || item.model_type === "live_v2" ||
+      if (!item) return true;
+      if (item.model_type === "live_v2" ||
           Object.prototype.hasOwnProperty.call(item, "ads_info") ||
           Object.prototype.hasOwnProperty.call(item, "card_icon") ||
           item.note_attributes?.includes("goods")) return false;
