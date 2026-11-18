@@ -275,7 +275,9 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
   // 附近页面
   const items = ["head", "search_hot_words", "feed_rec"];
   if (obj?.data?.modules?.length > 0) {
-    obj.data.modules = obj.data.modules.filter((i) => items.includes(i));
+    if (obj?.data?.modules?.length > 0) {
+      obj.data.modules = obj.data.modules.filter((i) => items?.includes(i));
+    }
   }
 } else if (url.includes("/shield/search/poi/detail")) {
   // 搜索结果 模块详情
@@ -589,7 +591,7 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
       let list = obj.data.modules.list_data.data;
       if (list?.content?.length > 0) {
         // brandAdCard广告卡片 toplist_al人气榜单 高德指南
-        list.content = list.content.filter((item) => item?.item_type !== "brandAdCard" && item?.item_type !== "toplist_al");
+        list.content = list.content.filter((i) => !["brandAdCard", "toplist_al"].includes(i?.item_type));
       }
     }
   }
