@@ -15,6 +15,7 @@ class XiaohongshuOptimizerTests(unittest.TestCase):
         self.assertIn("const byFileId=new Map()",src)
         self.assertNotIn("console.log('新body：' + JSON.stringify(obj))",src)
         self.assertNotIn('console.log("写入缓存val：" + JSON.stringify(commitsRsp))',src)
+        self.assertFalse(any("console.log(" in line and any(token in line for token in ("原body：","新body：","写入缓存val","comment_id:","video_id：")) for line in src.splitlines()))
 
     def test_plugin_rewrites_exact_nine_triggers(self):
         dollar=chr(36)
