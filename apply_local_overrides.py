@@ -4112,7 +4112,7 @@ def remove_shadowed_cross_syntax_response_triggers(lines):
             lowered = line.lower()
             if "http-response " not in lowered and not lowered.startswith("response if "):
                 continue
-            if not all(marker in re.sub(r"\\+", "", lowered) for marker in search_markers):
+            if not all(marker.lower() in re.sub(r"\\+", "", lowered) for marker in search_markers):
                 continue
             if lowered.startswith("http-response ") and legacy_script.lower() in lowered:
                 parts = line.split(maxsplit=2)
