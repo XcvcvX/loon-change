@@ -3852,6 +3852,36 @@ def remove_redundant_pupu_response_scripts(lines):
     return [line for index, line in enumerate(lines) if index not in remove_indexes], len(remove_indexes)
 
 
+ALIPAN_ONBOARD_DUPLICATE_MARKER = "/v1/users/onboard_list"
+
+
+def remove_redundant_alipan_onboard_response_script(lines):
+    """Keep Wool's equivalent onboard-list cleaner and retain Romeo's unique handlers."""
+    section = ""
+    wool_indexes, romeo_indexes = [], []
+    for index, line in enumerate(lines):
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            continue
+        if section != "Script" or "response if " not in line:
+            continue
+        normalized = re.sub(r"\\+", "", line).lower()
+        if "member.alipan.com" not in normalized or ALIPAN_ONBOARD_DUPLICATE_MARKER not in normalized:
+            continue
+        if "scripts/adrive/adrive.js" in normalized:
+            wool_indexes.append(index)
+        elif "rucu6_adrive.js" in normalized:
+            romeo_indexes.append(index)
+
+    if len(wool_indexes) > 1 or len(romeo_indexes) > 1:
+        raise ValueError("duplicate Aliyun Drive onboard-list response handler; refusing ambiguous cleanup")
+    # If the canonical Wool handler is absent, preserve Romeo's only handler.
+    if not wool_indexes or not romeo_indexes:
+        return list(lines), 0
+    remove_index = romeo_indexes[0]
+    return [line for index, line in enumerate(lines) if index != remove_index], 1
+
+
 def remove_more_duplicate_response_scripts(lines):
     """Keep one handler per overlapping response, retaining broad matchers and safer guards."""
     normalize_switch = lambda value: re.sub(r"enable=\$\{([^}]+)\}", r"enable=\1", value.strip())
@@ -5557,6 +5587,7 @@ def apply(text: str) -> str:
     lines, _ = consolidate_soul_scripts(lines)
     lines, _ = remove_more_duplicate_response_scripts(lines)
     lines, _ = remove_redundant_pupu_response_scripts(lines)
+    lines, _ = remove_redundant_alipan_onboard_response_script(lines)
     lines, _ = remove_weibo_non_ad_response_triggers(lines)
     lines, _ = remove_redundant_dianping_scripts(lines)
     lines, _ = remove_redundant_baidumap_script(lines)
