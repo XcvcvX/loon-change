@@ -2050,6 +2050,14 @@ def consolidate_jingdong_scripts(lines):
     rstore_count = scoped.count(JD_RSTORE_LEGACY_TRIGGER)
     fmz_counts = {trigger: scoped.count(trigger) for trigger in JD_FMZ_LEGACY_TRIGGERS}
     fmz_count = sum(fmz_counts.values())
+    known_triggers = {JD_RSTORE_LEGACY_TRIGGER, *JD_FMZ_LEGACY_TRIGGERS,
+                      JD_CANONICAL_TRIGGER, JD_OPTIONAL_WELCOME_TRIGGER}
+    unknown_triggers = [line for line in scoped
+                        if "api.m.jd.com/client.action?functionId=" in line
+                        and ("tag=JD" in line or "jingdong.js" in line or "/jd.js" in line)
+                        and line not in known_triggers]
+    if unknown_triggers:
+        raise ValueError("Jingdong legacy trigger changed; refusing unreviewed cleanup: " + unknown_triggers[0])
     canonical_count = scoped.count(JD_CANONICAL_TRIGGER)
     optional_count = scoped.count(JD_OPTIONAL_WELCOME_TRIGGER)
 
@@ -2062,10 +2070,10 @@ def consolidate_jingdong_scripts(lines):
         if canonical_count == 1 and optional_count == 1 and not rstore_count and not fmz_count:
             return list(lines), 0
         raise ValueError("Jingdong script trigger inventory is mixed or duplicated")
+    if rstore_count > 1 or fmz_count > 1:
+        raise ValueError("Jingdong legacy trigger inventory duplicated")
     if rstore_count != 1 or fmz_count != 1:
-        raise ValueError(
-            "Jingdong legacy trigger inventory changed; expected one R-Store and one FMZ trigger"
-        )
+        return list(lines), 0
 
     output = []
     section = ""
