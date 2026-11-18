@@ -5257,6 +5257,7 @@ class ShadowedIshowshuAmapResponseTriggerTests(unittest.TestCase):
         ]
         self.unique_ishowshu_rules = [
             'response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_bff\\/hotword\\?/i then script("' + self.ishowshu_url + '") with tag="amap", timeout=60, requires_body=true',
+            'response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search\\/nearbyrec_smart\\?/i then script("' + self.ishowshu_url + '") with tag="amap", timeout=60, requires_body=true',
             'response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_poi\\/homepage/i then script("' + self.ishowshu_url + '") with tag="amap", timeout=60, requires_body=true',
             'response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/dsp\\/profile\\/index\\/nodefaasv3\\?/i then script("' + self.ishowshu_url + '") with tag="amap", timeout=60, requires_body=true',
             'response if ${url} ~= /^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/sharedtrip\\/taxi\\/order_detail_car_tips\\?/i then script("' + self.ishowshu_url + '") with tag="amap", timeout=60, requires_body=true',
