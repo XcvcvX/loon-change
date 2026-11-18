@@ -225,6 +225,51 @@ if (nested.city_list[0].tip_list.length !== 1 || nested.city_list[0].tip_list[0]
         completed = subprocess.run([node, "-e", harness, str(source_path)], capture_output=True, text=True)
         self.assertEqual(completed.returncode, 0, msg=completed.stderr or completed.stdout)
 
+    def test_jd_person_info_floor_cleanup_uses_single_pass_and_preserves_behavior(self):
+        import shutil
+        import subprocess
+        from pathlib import Path
+
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node.js is required for the Jingdong runtime integration test")
+        source_path = Path(__file__).with_name("scripts").joinpath("jingdong", "jd.js")
+        harness = r'''
+const fs = require("fs");
+const vm = require("vm");
+const source = fs.readFileSync(process.argv[1], "utf8");
+let result;
+const context = {
+  $request: { url: "https://api.m.jd.com/client.action?functionId=personinfoBusiness" },
+  $response: { body: JSON.stringify({
+    floors: [
+      { mId: "basefloorinfo", data: { commonPopup: {}, commonTips: [1], commonWindows: [2], floatLayer: {} } },
+      { mId: "bigSaleFloor", data: { keep: true } },
+      { mId: "userinfo", data: { newPlusBlackCard: {} } },
+      null,
+      { mId: "normalFloor", data: { keep: true } }
+    ],
+    others: { floors: [
+      { mId: "noticeFloor", data: {} },
+      { mId: "orderIdFloor", data: { commentRemindInfo: { infos: [1, 2] } } }
+    ] }
+  }) },
+  $done(value) { result = value; },
+  console: { log() {} }
+};
+vm.runInNewContext(source, context);
+if (!result || typeof result.body !== "string") throw new Error("JD response was not returned");
+const body = JSON.parse(result.body);
+if (body.floors.length !== 3) throw new Error("excluded floors or null floor behavior changed");
+if (body.floors[0].mId !== "basefloorinfo" || body.floors[1] !== null || body.floors[2].mId !== "normalFloor") throw new Error("floor order or retained entries changed");
+if (body.floors[0].data.commonPopup !== undefined || body.floors[0].data.floatLayer !== undefined) throw new Error("base floor cleanup changed");
+if (body.floors[0].data.commonTips.length || body.floors[0].data.commonWindows.length) throw new Error("base floor arrays were not cleared");
+if (body.floors.some(f => f && f.mId === "userinfo")) throw new Error("excluded userinfo floor remained");
+if (body.others.floors.length !== 1 || body.others.floors[0].data.commentRemindInfo.infos.length !== 0) throw new Error("others floors cleanup changed");
+'''
+        completed = subprocess.run([node, "-e", harness, str(source_path)], capture_output=True, text=True)
+        self.assertEqual(completed.returncode, 0, msg=completed.stderr or completed.stdout)
+
     def test_same_parse_identifier_in_separate_blocks_is_not_reported_as_duplicate(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
