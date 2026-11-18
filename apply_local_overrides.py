@@ -2975,12 +2975,19 @@ def consolidate_wechat_unblock_url_scripts(lines):
         return list(lines), 0
     # Some upstream snapshots now ship only the R-Store canonical handler; accept
     # that exact single-source inventory even if cosmetic escaping/tag formatting drifts.
+    target_sources = [item.lower() for item in target_lines]
+    has_rstore_canonical = any(
+        "raw.githubusercontent.com/zirawell/r-store/main/res/scripts/plugins/wechat_unblock_url.js" in item
+        for item in target_sources
+    )
+    has_rucu6_variant = any("rucu6/myblockads/rucu6_wechat.js" in item for item in target_sources)
+    has_zzpiglet_duplicate = any("zzpiglet/task" in item for item in target_sources)
     if (
-        len(target_lines) == 1
-        and "raw.githubusercontent.com/zirawell/r-store/main/res/scripts/plugins/wechat_unblock_url.js" in target_lines[0].lower()
-        and "zzpiglet/task" not in target_lines[0].lower()
-        and "rucu6_wechat.js" not in target_lines[0].lower()
+        has_rstore_canonical
+        and not has_zzpiglet_duplicate
+        and (len(target_lines) == 1 or (len(target_lines) == 2 and has_rucu6_variant))
     ):
+        # Preserve the current R-Store handler and the behaviorally distinct RuCu6 variant.
         return list(lines), 0
     if unknown_trigger:
         raise ValueError("WeChat URL-unblock script trigger changed; refusing unreviewed consolidation")
