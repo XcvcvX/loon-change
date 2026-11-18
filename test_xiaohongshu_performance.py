@@ -61,10 +61,11 @@ const ctx={$loon:{},$persistentStore:{read(){return null},write(){return true}},
 $request:{url:p.url},$response:{body:JSON.stringify(p.body)},$done:v=>done=v,console:{log(){},warn(){},error(){}}};
 vm.runInNewContext(source,ctx,{timeout:5000});process.stdout.write(JSON.stringify(JSON.parse(done.body)));
 """
-        body={"data":[{"id":"keep1","related_ques":{}},{"id":"ad","ads_info":{}},{"id":"live","model_type":"live_v2"},
+        body={"data":[{"id":"keep1","related_ques":{}},None,{"id":"ad","ads_info":{}},{"id":"live","model_type":"live_v2"},
           {"id":"shop","note_attributes":["goods"]},{"id":"card","card_icon":None},{"id":"keep2"}]}
         run=subprocess.run([NODE,"-e",runner],input=json.dumps({"url":"https://edith.xiaohongshu.com/api/sns/v6/homefeed","body":body}),
           cwd=ROOT,capture_output=True,text=True,check=True,timeout=10)
         out=json.loads(run.stdout)
-        self.assertEqual([x["id"] for x in out["data"]],["keep1","keep2"])
+        self.assertEqual([x["id"] for x in out["data"] if x],["keep1","keep2"])
+        self.assertIsNone(out["data"][1])
         self.assertNotIn("related_ques",out["data"][0])
