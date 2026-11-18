@@ -130,7 +130,8 @@ const saved = JSON.parse(result.body);
 if (saved.data.datas[0].url !== "https://video.example/live.mp4") throw new Error("live-photo URL restoration changed");
 if (saved.data.datas[0].author !== "@fmz200") throw new Error("live-photo author marker changed");
 '''
-        subprocess.run([node, "-e", harness, str(source_path)], check=True, capture_output=True, text=True)
+        completed = subprocess.run([node, "-e", harness, str(source_path)], capture_output=True, text=True)
+        self.assertEqual(completed.returncode, 0, msg=completed.stderr or completed.stdout)
 
     def test_same_parse_identifier_in_separate_blocks_is_not_reported_as_duplicate(self):
         with tempfile.TemporaryDirectory() as directory:
