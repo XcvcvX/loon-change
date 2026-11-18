@@ -413,7 +413,56 @@
       "added": [],
       "removed": [
         {
-          "line": "response if ${url} ~= /^https?:\\/\\/amdc\\.m\\.taobao\\.com\\/amdc\\/mobileDispatch$/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/header.js\") with enable=${cdnngogo_enable}, tag=\"菜鸟裹裹\", timeout=60",
+          "line": "response if ${url} ~= /^https?:\\/\\/api\\.gotokeep\\.com\\/athena\\/v\\d\\/people\\/my$/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/keep.js\") with enable=${keep_enable}, tag=\"keep\", timeout=60, requires_body=true",
+          "section": "script",
+          "sources": [
+            "block"
+          ]
+        },
+        {
+          "line": "response if ${url} ~= /^https?:\\/\\/api\\.gotokeep\\.com\\/config\\/v\\d\\/basic/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/keep.js\") with enable=${keep_enable}, tag=\"keep\", timeout=60, requires_body=true",
+          "section": "script",
+          "sources": [
+            "block"
+          ]
+        },
+        {
+          "line": "response if ${url} ~= /^https?:\\/\\/api\\.gotokeep\\.com\\/homepage\\/v\\d\\/tab/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/keep.js\") with enable=${keep_enable}, tag=\"keep\", timeout=60, requires_body=true",
+          "section": "script",
+          "sources": [
+            "block"
+          ]
+        },
+        {
+          "line": "response if ${url} ~= /^https?:\\/\\/api\\.gotokeep\\.com\\/sportpage\\/sport\\/v\\d\\/mysport/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/keep.js\") with enable=${keep_enable}, tag=\"keep\", timeout=60, requires_body=true",
+          "section": "script",
+          "sources": [
+            "block"
+          ]
+        },
+        {
+          "line": "response if ${url} ~= /^https?:\\/\\/article-api\\.smzdm\\.com\\/publish\\/get_bubble/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/smzdm/Smzdm.js\") with enable=${smzdm_enable}, tag=\"Smzdm\", timeout=60, requires_body=true",
+          "section": "script",
+          "sources": [
+            "block"
+          ]
+        },
+        {
+          "line": "response if ${url} ~= /^https?:\\/\\/newclient\\.map\\.baidu\\.com\\/client\\/phpui2\\/\\?qt=ads/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/baidumap.js\") with enable=${bdduditu_enable}, tag=\"百度地图广告\", timeout=60, requires_body=true",
+          "section": "script",
+          "sources": [
+            "block"
+          ]
+        },
+        {
+          "line": "response if ${url} ~= /^https?:\\/\\/qianbao\\.smzdm\\.com\\/v\\d\\/app\\/home/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/smzdm/Smzdm.js\") with enable=${smzdm_enable}, tag=\"Smzdm\", timeout=60, requires_body=true",
+          "section": "script",
+          "sources": [
+            "block"
+          ]
+        },
+        {
+          "line": "response if ${url} ~= /^https?:\\/\\/www\\.1314zhilv\\.com\\/ltsstnew\\/(common\\/getJGQIconNew|city\\/getAllBannelByCity)/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/lvtusuishenting/ltsst-ad.js\") with enable=${lvtusvuftk_enable}, tag=\"旅途随身听\", timeout=60, requires_body=true",
           "section": "script",
           "sources": [
             "block"
@@ -436,9 +485,9 @@
     "script": {
       "action_changed": 0,
       "added": 0,
-      "removed": 1
+      "removed": 8
     },
-    "total_changes": 1
+    "total_changes": 8
   },
   "upstream_revision_changes": []
 }

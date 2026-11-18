@@ -120194,23 +120194,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://newclient\\\\.map\\\\.baidu\\\\.com/client/phpui2/\\\\?qt=ads', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/baidumap.js\") with enable=bdduditu_enable, tag=\"百度地图广告\", timeout=60, requires_body=true'))",
-      "output_entry_index": 330,
-      "output_line": "response if ${url} ~= /^https?:\\/\\/newclient\\.map\\.baidu\\.com\\/client\\/phpui2\\/\\?qt=ads/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/baidumap.js\") with enable=${bdduditu_enable}, tag=\"百度地图广告\", timeout=60, requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https?:\\/\\/newclient\\.map\\.baidu\\.com\\/client\\/phpui2\\/\\?qt=ads/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/baidumap.js\") with enable=${bdduditu_enable}, tag=\"百度地图广告\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 22
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^http(s://tiebac|://c\\\\.tieba)\\\\.baidu\\\\.com/(c/(s/sync|f/(ad/getSplashAd|frs/(page|threadlist|generalTabList)|pb/(pic)?page|excellent/personalized))$|tiebaads/commonbatch\\\\?)', ('script', 'script(\"https://raw.githubusercontent.com/app2smile/rules/master/js/tieba-json.js\") with tag=\"贴吧json\", timeout=10, requires_body=true'))",
       "output_entry_index": 331,
       "output_line": "response if ${url} ~= /^http(s:\\/\\/tiebac|:\\/\\/c\\.tieba)\\.baidu\\.com\\/(c\\/(s\\/sync|f\\/(ad\\/getSplashAd|frs\\/(page|threadlist|generalTabList)|pb\\/(pic)?page|excellent\\/personalized))$|tiebaads\\/commonbatch\\?)/i then script(\"https://raw.githubusercontent.com/app2smile/rules/master/js/tieba-json.js\") with tag=\"贴吧json\", timeout=10, requires_body=true",
@@ -121048,57 +121031,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://api\\\\.gotokeep\\\\.com/athena/v\\\\d/people/my$', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/keep.js\") with enable=keep_enable, tag=\"keep\", timeout=60, requires_body=true'))",
-      "output_entry_index": 392,
-      "output_line": "response if ${url} ~= /^https?:\\/\\/api\\.gotokeep\\.com\\/athena\\/v\\d\\/people\\/my$/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/keep.js\") with enable=${keep_enable}, tag=\"keep\", timeout=60, requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https?:\\/\\/api\\.gotokeep\\.com\\/athena\\/v\\d\\/people\\/my$/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/keep.js\") with enable=${keep_enable}, tag=\"keep\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 84
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://api\\\\.gotokeep\\\\.com/config/v\\\\d/basic', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/keep.js\") with enable=keep_enable, tag=\"keep\", timeout=60, requires_body=true'))",
-      "output_entry_index": 393,
-      "output_line": "response if ${url} ~= /^https?:\\/\\/api\\.gotokeep\\.com\\/config\\/v\\d\\/basic/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/keep.js\") with enable=${keep_enable}, tag=\"keep\", timeout=60, requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https?:\\/\\/api\\.gotokeep\\.com\\/config\\/v\\d\\/basic/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/keep.js\") with enable=${keep_enable}, tag=\"keep\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 85
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://api\\\\.gotokeep\\\\.com/homepage/v\\\\d/tab', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/keep.js\") with enable=keep_enable, tag=\"keep\", timeout=60, requires_body=true'))",
-      "output_entry_index": 394,
-      "output_line": "response if ${url} ~= /^https?:\\/\\/api\\.gotokeep\\.com\\/homepage\\/v\\d\\/tab/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/keep.js\") with enable=${keep_enable}, tag=\"keep\", timeout=60, requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https?:\\/\\/api\\.gotokeep\\.com\\/homepage\\/v\\d\\/tab/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/keep.js\") with enable=${keep_enable}, tag=\"keep\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 86
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https?://api\\\\.gotokeep\\\\.com/nuocha/course/v\\\\d/\\\\w+/preview', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/keep.js\") with enable=keep_enable, tag=\"keep\", timeout=60, requires_body=true'))",
       "output_entry_index": 395,
       "output_line": "response if ${url} ~= /^https?:\\/\\/api\\.gotokeep\\.com\\/nuocha\\/course\\/v\\d\\/\\w+\\/preview/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/keep.js\") with enable=${keep_enable}, tag=\"keep\", timeout=60, requires_body=true",
@@ -121111,40 +121043,6 @@
           "priority": 5,
           "source": "block",
           "source_entry_index": 87
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://api\\\\.gotokeep\\\\.com/sportpage/sport/v\\\\d/mysport', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/keep.js\") with enable=keep_enable, tag=\"keep\", timeout=60, requires_body=true'))",
-      "output_entry_index": 396,
-      "output_line": "response if ${url} ~= /^https?:\\/\\/api\\.gotokeep\\.com\\/sportpage\\/sport\\/v\\d\\/mysport/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/keep.js\") with enable=${keep_enable}, tag=\"keep\", timeout=60, requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https?:\\/\\/api\\.gotokeep\\.com\\/sportpage\\/sport\\/v\\d\\/mysport/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/keep.js\") with enable=${keep_enable}, tag=\"keep\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 88
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://www\\\\.1314zhilv\\\\.com/ltsstnew/(common/getJGQIconNew|city/getAllBannelByCity)', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/lvtusuishenting/ltsst-ad.js\") with enable=lvtusvuftk_enable, tag=\"旅途随身听\", timeout=60, requires_body=true'))",
-      "output_entry_index": 397,
-      "output_line": "response if ${url} ~= /^https?:\\/\\/www\\.1314zhilv\\.com\\/ltsstnew\\/(common\\/getJGQIconNew|city\\/getAllBannelByCity)/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/lvtusuishenting/ltsst-ad.js\") with enable=${lvtusvuftk_enable}, tag=\"旅途随身听\", timeout=60, requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https?:\\/\\/www\\.1314zhilv\\.com\\/ltsstnew\\/(common\\/getJGQIconNew|city\\/getAllBannelByCity)/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/lvtusuishenting/ltsst-ad.js\") with enable=${lvtusvuftk_enable}, tag=\"旅途随身听\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 89
         }
       ],
       "trace_status": "mapped"
@@ -121681,40 +121579,6 @@
           "priority": 5,
           "source": "block",
           "source_entry_index": 137
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://article-api\\\\.smzdm\\\\.com/publish/get_bubble', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/smzdm/Smzdm.js\") with enable=smzdm_enable, tag=\"Smzdm\", timeout=60, requires_body=true'))",
-      "output_entry_index": 447,
-      "output_line": "response if ${url} ~= /^https?:\\/\\/article-api\\.smzdm\\.com\\/publish\\/get_bubble/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/smzdm/Smzdm.js\") with enable=${smzdm_enable}, tag=\"Smzdm\", timeout=60, requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https?:\\/\\/article-api\\.smzdm\\.com\\/publish\\/get_bubble/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/smzdm/Smzdm.js\") with enable=${smzdm_enable}, tag=\"Smzdm\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 139
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://qianbao\\\\.smzdm\\\\.com/v\\\\d/app/home', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/smzdm/Smzdm.js\") with enable=smzdm_enable, tag=\"Smzdm\", timeout=60, requires_body=true'))",
-      "output_entry_index": 448,
-      "output_line": "response if ${url} ~= /^https?:\\/\\/qianbao\\.smzdm\\.com\\/v\\d\\/app\\/home/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/smzdm/Smzdm.js\") with enable=${smzdm_enable}, tag=\"Smzdm\", timeout=60, requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https?:\\/\\/qianbao\\.smzdm\\.com\\/v\\d\\/app\\/home/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/smzdm/Smzdm.js\") with enable=${smzdm_enable}, tag=\"Smzdm\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 140
         }
       ],
       "trace_status": "mapped"
@@ -123730,7 +123594,7 @@
     "rule_safety_excluded_events": 11,
     "rule_scope_adjustments": 1,
     "rule_source_events": 5738,
-    "script_output_entries": 434
+    "script_output_entries": 426
   },
   "upstream_revisions": {
     "AlipayAdBlock": {
