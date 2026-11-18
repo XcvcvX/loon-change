@@ -71,6 +71,36 @@ class RuntimePerformanceAuditTests(unittest.TestCase):
         self.assertNotIn("打印原body", source)
         self.assertNotIn("写入缓存val：", source)
 
+
+    def test_same_parse_identifier_in_separate_blocks_is_not_reported_as_duplicate(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            plugin = root / "test.plugin"
+            plugin.write_text("[Script]\n", encoding="utf-8")
+            (root / "separate-scopes.js").write_text(
+                'if (first) { const cache = get("first"); JSON.parse(cache); }\n'
+                'if (second) { const cache = get("second"); JSON.parse(cache); }',
+                encoding="utf-8",
+            )
+            report = audit_plugin(plugin, root)
+            self.assertEqual(report["summary"]["local_js_json_parse_calls"], 2)
+            self.assertEqual(report["summary"]["repeated_json_parse_expressions"], 0)
+
+    def test_response_candidate_counts_explain_loom_first_match_semantics(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            plugin = root / "test.plugin"
+            plugin.write_text(
+                "[Script]\n"
+                "http-response ^https://api.example.com/a script-path=https://example.com/a.js,requires-body=true\n"
+                "http-response ^https://api.example.com/a script-path=https://example.com/b.js,requires-body=true\n",
+                encoding="utf-8",
+            )
+            report = audit_plugin(plugin, root)
+            self.assertEqual(report["summary"]["response_script_triggers"], 2)
+            self.assertIn("最多选择一条 Response Script", " ".join(report["notes"]))
+            self.assertIn("not per-response execution counts", render_markdown(report))
+
     def test_commit_pinned_url_is_not_mutable(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
