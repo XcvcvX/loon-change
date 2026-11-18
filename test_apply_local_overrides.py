@@ -1667,13 +1667,13 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertIn("{${jkds_enable}}", JD_OPTIONAL_WELCOME_TRIGGER)
         self.assertEqual(apply(result), result)
 
-    def test_fails_closed_when_either_legacy_trigger_drifts_or_is_missing(self):
+    def test_preserves_partial_retired_inventory_but_fails_on_trigger_drift(self):
+        from apply_local_overrides import consolidate_jingdong_scripts
         drifted = self.base.replace("tag=JD,requires-body=true", "tag=JD-DRIFT,requires-body=true")
-        with self.assertRaisesRegex(ValueError, "Jingdong legacy trigger inventory changed"):
-            apply(drifted)
+        with self.assertRaisesRegex(ValueError, "Jingdong legacy trigger changed"):
+            consolidate_jingdong_scripts(drifted.splitlines())
         missing = self.base.replace(self.fmz + "\n", "")
-        with self.assertRaisesRegex(ValueError, "Jingdong legacy trigger inventory changed"):
-            apply(missing)
+        self.assertEqual(consolidate_jingdong_scripts(missing.splitlines()), (missing.splitlines(), 0))
 
     def test_fails_closed_on_duplicate_or_mixed_jd_triggers(self):
         duplicate = self.base.replace(self.fmz, self.fmz + "\n" + self.fmz)
