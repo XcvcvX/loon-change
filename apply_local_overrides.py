@@ -3545,6 +3545,10 @@ def remove_duplicate_cnftp_scripts(lines):
     source_mode = legacy_remove_mode or current_source_only_mode
     output, section, target_seen, removed = [], "", False, 0
     combined_home_count = 0
+    has_cnftp_source = any(
+        normalize_cnftp_trigger_line(candidate.strip()) in source_counts
+        for candidate in lines
+    )
 
     for line in lines:
         if line.startswith("[") and line.endswith("]"):
@@ -3554,10 +3558,6 @@ def remove_duplicate_cnftp_scripts(lines):
 
         normalized_line = normalize_cnftp_trigger_line(line)
         unescaped_line = normalized_line.replace("\\", "")
-        has_cnftp_source = any(
-            normalize_cnftp_trigger_line(candidate.strip()) in source_counts
-            for candidate in lines
-        )
         is_cntv_local = "scripts/cntv/cntv.js" in unescaped_line
         is_cntv_remote_without_cnftp_pair = (
             "Res/Scripts/AntiAd/cntv.js" in unescaped_line and not has_cnftp_source
