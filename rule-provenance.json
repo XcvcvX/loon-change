@@ -116858,140 +116858,92 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://api\\\\.zhihu\\\\.com/commercial_api/app_float_layer', ('^https?:\\\\/\\\\/api\\\\.zhihu\\\\.com\\\\/commercial_api\\\\/app_float_layer', '^https?:\\\\/\\\\/api\\\\.zhihu\\\\.com\\\\/commercial_api\\\\/app_float_layer script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU,requires-body=true'))",
-      "output_entry_index": 29,
-      "output_line": "http-response ^https?:\\/\\/api\\.zhihu\\.com\\/commercial_api\\/app_float_layer script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/api\\.zhihu\\.com\\/commercial_api\\/app_float_layer script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/zhihu/zhihu.js,tag=ZHIHU,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/api\\.zhihu\\.com\\/commercial_api\\/app_float_layer script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 28
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://api\\\\.zhihu\\\\.com/(moments_v\\\\d|topstory/recommend(_v\\\\d)?)', ('^https?:\\\\/\\\\/api\\\\.zhihu\\\\.com\\\\/', '^https?:\\\\/\\\\/api\\\\.zhihu\\\\.com\\\\/(moments_v\\\\d|topstory\\\\/recommend(_v\\\\d)?) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU-2,requires-body=true'))",
-      "output_entry_index": 30,
-      "output_line": "http-response ^https?:\\/\\/api\\.zhihu\\.com\\/(moments_v\\d|topstory\\/recommend(_v\\d)?) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU-2,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/api\\.zhihu\\.com\\/(moments_v\\d|topstory\\/recommend(_v\\d)?) script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/zhihu/zhihu.js,tag=ZHIHU-2,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/api\\.zhihu\\.com\\/(moments_v\\d|topstory\\/recommend(_v\\d)?) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU-2,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 29
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://api\\\\.zhihu\\\\.com/v2/topstory/hot-lists/everyone-seeing\\\\?', ('^https?:\\\\/\\\\/api\\\\.zhihu\\\\.com\\\\/v2\\\\/topstory\\\\/hot-lists\\\\/everyone-seeing\\\\?', '^https?:\\\\/\\\\/api\\\\.zhihu\\\\.com\\\\/v2\\\\/topstory\\\\/hot-lists\\\\/everyone-seeing\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU-3,requires-body=true'))",
-      "output_entry_index": 31,
-      "output_line": "http-response ^https?:\\/\\/api\\.zhihu\\.com\\/v2\\/topstory\\/hot-lists\\/everyone-seeing\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU-3,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/api\\.zhihu\\.com\\/v2\\/topstory\\/hot-lists\\/everyone-seeing\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/zhihu/zhihu.js,tag=ZHIHU-3,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/api\\.zhihu\\.com\\/v2\\/topstory\\/hot-lists\\/everyone-seeing\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU-3,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 30
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://api\\\\.zhihu\\\\.com/next-(bff|data|render)\\\\?', ('^https?:\\\\/\\\\/api\\\\.zhihu\\\\.com\\\\/next-', '^https?:\\\\/\\\\/api\\\\.zhihu\\\\.com\\\\/next-(bff|data|render)\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU-4,requires-body=true'))",
-      "output_entry_index": 32,
-      "output_line": "http-response ^https?:\\/\\/api\\.zhihu\\.com\\/next-(bff|data|render)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU-4,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/api\\.zhihu\\.com\\/next-(bff|data|render)\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/zhihu/zhihu.js,tag=ZHIHU-4,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/api\\.zhihu\\.com\\/next-(bff|data|render)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU-4,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 31
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://api\\\\.zhihu\\\\.com/(v\\\\d/)?questions/\\\\d+/(feeds|answers)\\\\?', ('^https?:\\\\/\\\\/api\\\\.zhihu\\\\.com\\\\/', '^https?:\\\\/\\\\/api\\\\.zhihu\\\\.com\\\\/(v\\\\d\\\\/)?questions\\\\/\\\\d+\\\\/(feeds|answers)\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU-5,requires-body=true'))",
-      "output_entry_index": 33,
-      "output_line": "http-response ^https?:\\/\\/api\\.zhihu\\.com\\/(v\\d\\/)?questions\\/\\d+\\/(feeds|answers)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU-5,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/api\\.zhihu\\.com\\/(v\\d\\/)?questions\\/\\d+\\/(feeds|answers)\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/zhihu/zhihu.js,tag=ZHIHU-5,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/api\\.zhihu\\.com\\/(v\\d\\/)?questions\\/\\d+\\/(feeds|answers)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU-5,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 32
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://www\\\\.zhihu\\\\.com/api/v\\\\d/(answers|articles)/\\\\d+/recommendations?', ('^https?:\\\\/\\\\/www\\\\.zhihu\\\\.com\\\\/api\\\\/v\\\\d\\\\/', '^https?:\\\\/\\\\/www\\\\.zhihu\\\\.com\\\\/api\\\\/v\\\\d\\\\/(answers|articles)\\\\/\\\\d+\\\\/recommendations? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU-6,requires-body=true'))",
-      "output_entry_index": 34,
-      "output_line": "http-response ^https?:\\/\\/www\\.zhihu\\.com\\/api\\/v\\d\\/(answers|articles)\\/\\d+\\/recommendations? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU-6,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/www\\.zhihu\\.com\\/api\\/v\\d\\/(answers|articles)\\/\\d+\\/recommendations? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/zhihu/zhihu.js,tag=ZHIHU-6,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/www\\.zhihu\\.com\\/api\\/v\\d\\/(answers|articles)\\/\\d+\\/recommendations? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU-6,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 33
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://appcloud2\\\\.zhihu\\\\.com/v\\\\d/config', ('^https?:\\\\/\\\\/appcloud2\\\\.zhihu\\\\.com\\\\/v\\\\d\\\\/config', '^https?:\\\\/\\\\/appcloud2\\\\.zhihu\\\\.com\\\\/v\\\\d\\\\/config script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU-7,requires-body=true'))",
-      "output_entry_index": 35,
-      "output_line": "http-response ^https?:\\/\\/appcloud2\\.zhihu\\.com\\/v\\d\\/config script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU-7,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/appcloud2\\.zhihu\\.com\\/v\\d\\/config script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/zhihu/zhihu.js,tag=ZHIHU-7,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/appcloud2\\.zhihu\\.com\\/v\\d\\/config script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU-7,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 34
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://m-cloud\\\\.zhihu\\\\.com/api/cloud/config/all\\\\?', ('^https?:\\\\/\\\\/m-cloud\\\\.zhihu\\\\.com\\\\/api\\\\/cloud\\\\/config\\\\/all\\\\?', '^https?:\\\\/\\\\/m-cloud\\\\.zhihu\\\\.com\\\\/api\\\\/cloud\\\\/config\\\\/all\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU-8,requires-body=true'))",
-      "output_entry_index": 36,
-      "output_line": "http-response ^https?:\\/\\/m-cloud\\.zhihu\\.com\\/api\\/cloud\\/config\\/all\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU-8,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/m-cloud\\.zhihu\\.com\\/api\\/cloud\\/config\\/all\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/zhihu/zhihu.js,tag=ZHIHU-8,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/m-cloud\\.zhihu\\.com\\/api\\/cloud\\/config\\/all\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU-8,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 35
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
       "canonical_key": "('guarded', '^https?://jzts\\\\.cmpassport\\\\.com/personalized/getPushContent', ('^https?:\\\\/\\\\/jzts\\\\.cmpassport\\\\.com\\\\/personalized\\\\/getpushcontent', '^https?:\\\\/\\\\/jzts\\\\.cmpassport\\\\.com\\\\/personalized\\\\/getPushContent script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mcloud.js,tag=MCLOUD,requires-body=true'))",

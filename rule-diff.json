@@ -412,63 +412,56 @@
       "action_changed": [],
       "added": [
         {
-          "line": "response if ${url} ~= /^https?:\\/\\/(?:(?:edith|rec|www)\\.(?:xiaohongshu|rnote)\\.com\\/api\\/sns\\/v2\\/note\\/feed\\?|(?:edith|rec|www)\\.rnote\\.com\\/api\\/sns\\/v3\\/note\\/videofeed\\?)/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书图片视频水印\", timeout=60, requires_body=true",
+          "line": "http-response ^https?:\\/\\/api\\.zhihu\\.com\\/(moments_v\\d|topstory\\/recommend(_v\\d)?) script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/zhihu/zhihu.js,tag=ZHIHU-2,requires-body=true",
           "section": "script",
           "sources": [
             "local_overrides"
           ]
         },
         {
-          "line": "response if ${url} ~= /^https?:\\/\\/(edith|rec|www)\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/v\\d+\\/(followfeed|homefeed)\\?/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书图片视频水印\", timeout=60, requires_body=true",
+          "line": "http-response ^https?:\\/\\/api\\.zhihu\\.com\\/(v\\d\\/)?questions\\/\\d+\\/(feeds|answers)\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/zhihu/zhihu.js,tag=ZHIHU-5,requires-body=true",
           "section": "script",
           "sources": [
             "local_overrides"
           ]
         },
         {
-          "line": "response if ${url} ~= /^https?:\\/\\/(edith|rec|www)\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/v\\d+\\/note\\/(imagefeed|live_photo\\/save)/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书图片视频水印\", timeout=60, requires_body=true",
+          "line": "http-response ^https?:\\/\\/api\\.zhihu\\.com\\/commercial_api\\/app_float_layer script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/zhihu/zhihu.js,tag=ZHIHU,requires-body=true",
           "section": "script",
           "sources": [
             "local_overrides"
           ]
         },
         {
-          "line": "response if ${url} ~= /^https?:\\/\\/(so|edith)\\.rnote\\.com\\/api\\/sns\\/v\\d+\\/search\\/notes\\?/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书搜索页\", timeout=60, requires_body=true",
+          "line": "http-response ^https?:\\/\\/api\\.zhihu\\.com\\/next-(bff|data|render)\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/zhihu/zhihu.js,tag=ZHIHU-4,requires-body=true",
           "section": "script",
           "sources": [
             "local_overrides"
           ]
         },
         {
-          "line": "response if ${url} ~= /^https?:\\/\\/edith\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/v\\d+\\/note\\/widgets/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书详情页\", timeout=60, requires_body=true",
+          "line": "http-response ^https?:\\/\\/api\\.zhihu\\.com\\/v2\\/topstory\\/hot-lists\\/everyone-seeing\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/zhihu/zhihu.js,tag=ZHIHU-3,requires-body=true",
           "section": "script",
           "sources": [
             "local_overrides"
           ]
         },
         {
-          "line": "response if ${url} ~= /^https?:\\/\\/edith\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/v\\d+\\/system_service\\/config\\?/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书开屏广告\", timeout=60, requires_body=true",
+          "line": "http-response ^https?:\\/\\/appcloud2\\.zhihu\\.com\\/v\\d\\/config script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/zhihu/zhihu.js,tag=ZHIHU-7,requires-body=true",
           "section": "script",
           "sources": [
             "local_overrides"
           ]
         },
         {
-          "line": "response if ${url} ~= /^https?:\\/\\/edith\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/v\\d+\\/system_service\\/splash_config/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书开屏广告\", timeout=60, requires_body=true",
+          "line": "http-response ^https?:\\/\\/m-cloud\\.zhihu\\.com\\/api\\/cloud\\/config\\/all\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/zhihu/zhihu.js,tag=ZHIHU-8,requires-body=true",
           "section": "script",
           "sources": [
             "local_overrides"
           ]
         },
         {
-          "line": "response if ${url} ~= /^https?:\\/\\/edith\\.rnote\\.com\\/api\\/sns\\/v\\d+\\/search\\/(banner|hot)_list/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书搜索页\", timeout=60, requires_body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https?:\\/\\/edith\\.rnote\\.com\\/api\\/sns\\/v\\d+\\/search\\/(hint|trending)\\?/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书搜索页\", timeout=60, requires_body=true",
+          "line": "http-response ^https?:\\/\\/www\\.zhihu\\.com\\/api\\/v\\d\\/(answers|articles)\\/\\d+\\/recommendations? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/zhihu/zhihu.js,tag=ZHIHU-6,requires-body=true",
           "section": "script",
           "sources": [
             "local_overrides"
@@ -477,66 +470,59 @@
       ],
       "removed": [
         {
-          "line": "response if ${url} ~= /^https?:\\/\\/(?:(?:edith|rec|www)\\.(?:xiaohongshu|rnote)\\.com\\/api\\/sns\\/v2\\/note\\/feed\\?|(?:edith|rec|www)\\.rnote\\.com\\/api\\/sns\\/v3\\/note\\/videofeed\\?)/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书图片视频水印\", timeout=60, requires_body=true",
+          "line": "http-response ^https?:\\/\\/api\\.zhihu\\.com\\/(moments_v\\d|topstory\\/recommend(_v\\d)?) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU-2,requires-body=true",
           "section": "script",
           "sources": [
-            "local_overrides"
+            "base"
           ]
         },
         {
-          "line": "response if ${url} ~= /^https?:\\/\\/(edith|rec|www)\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/v\\d+\\/(followfeed|homefeed)\\?/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书图片视频水印\", timeout=60, requires_body=true",
+          "line": "http-response ^https?:\\/\\/api\\.zhihu\\.com\\/(v\\d\\/)?questions\\/\\d+\\/(feeds|answers)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU-5,requires-body=true",
           "section": "script",
           "sources": [
-            "block"
+            "base"
           ]
         },
         {
-          "line": "response if ${url} ~= /^https?:\\/\\/(edith|rec|www)\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/v\\d+\\/note\\/(imagefeed|live_photo\\/save)/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书图片视频水印\", timeout=60, requires_body=true",
+          "line": "http-response ^https?:\\/\\/api\\.zhihu\\.com\\/commercial_api\\/app_float_layer script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU,requires-body=true",
           "section": "script",
           "sources": [
-            "block"
+            "base"
           ]
         },
         {
-          "line": "response if ${url} ~= /^https?:\\/\\/(so|edith)\\.rnote\\.com\\/api\\/sns\\/v\\d+\\/search\\/notes\\?/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书搜索页\", timeout=60, requires_body=true",
+          "line": "http-response ^https?:\\/\\/api\\.zhihu\\.com\\/next-(bff|data|render)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU-4,requires-body=true",
           "section": "script",
           "sources": [
-            "local_overrides"
+            "base"
           ]
         },
         {
-          "line": "response if ${url} ~= /^https?:\\/\\/edith\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/v\\d+\\/note\\/widgets/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书详情页\", timeout=60, requires_body=true",
+          "line": "http-response ^https?:\\/\\/api\\.zhihu\\.com\\/v2\\/topstory\\/hot-lists\\/everyone-seeing\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU-3,requires-body=true",
           "section": "script",
           "sources": [
-            "block"
+            "base"
           ]
         },
         {
-          "line": "response if ${url} ~= /^https?:\\/\\/edith\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/v\\d+\\/system_service\\/config\\?/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书开屏广告\", timeout=60, requires_body=true",
+          "line": "http-response ^https?:\\/\\/appcloud2\\.zhihu\\.com\\/v\\d\\/config script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU-7,requires-body=true",
           "section": "script",
           "sources": [
-            "block"
+            "base"
           ]
         },
         {
-          "line": "response if ${url} ~= /^https?:\\/\\/edith\\.(xiaohongshu|rnote)\\.com\\/api\\/sns\\/v\\d+\\/system_service\\/splash_config/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书开屏广告\", timeout=60, requires_body=true",
+          "line": "http-response ^https?:\\/\\/m-cloud\\.zhihu\\.com\\/api\\/cloud\\/config\\/all\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU-8,requires-body=true",
           "section": "script",
           "sources": [
-            "block"
+            "base"
           ]
         },
         {
-          "line": "response if ${url} ~= /^https?:\\/\\/edith\\.rnote\\.com\\/api\\/sns\\/v\\d+\\/search\\/(banner|hot)_list/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书搜索页\", timeout=60, requires_body=true",
+          "line": "http-response ^https?:\\/\\/www\\.zhihu\\.com\\/api\\/v\\d\\/(answers|articles)\\/\\d+\\/recommendations? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU-6,requires-body=true",
           "section": "script",
           "sources": [
-            "local_overrides"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https?:\\/\\/edith\\.rnote\\.com\\/api\\/sns\\/v\\d+\\/search\\/(hint|trending)\\?/i then script(\"https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js\") with enable=${xhs_enable}, tag=\"小红书搜索页\", timeout=60, requires_body=true",
-          "section": "script",
-          "sources": [
-            "local_overrides"
+            "base"
           ]
         }
       ]
@@ -555,10 +541,10 @@
     },
     "script": {
       "action_changed": 0,
-      "added": 9,
-      "removed": 9
+      "added": 8,
+      "removed": 8
     },
-    "total_changes": 18
+    "total_changes": 16
   },
   "upstream_revision_changes": []
 }

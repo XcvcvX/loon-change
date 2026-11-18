@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、RuCu6 MyBlockAds、zirawell AlipayAdBlock、Thelongdarkorg、Romeo、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / RuCu6 / Thelongdarkorg / Romeo / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-18 14:37 UTC
+#!merged-at=2026-11-18 14:51 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+RuCu6-MyBlockAds+zirawell-AlipayAdBlock+Thelongdarkorg+Romeo-Loon+AOOMEE-legacy-snapshots+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -6932,14 +6932,14 @@ http-response ^https?:\/\/m\d\.amap\.com\/ws\/shield\/dsp\/profile\/index\/nodef
 http-response ^https?:\/\/m[0-46-9]\.amap\.com\/ws\/shield\/search\/nearbyrec_smart\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-11,requires-body=true
 http-response ^https?:\/\/m[0-46-9]-zb\.amap\.com\/ws\/promotion-web\/resource(\/home)?\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-13,requires-body=true
 http-response ^https?:\/\/m\d-zb\.amap\.com\/ws\/sharedtrip\/taxi\/order_detail_car_tips\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-14,requires-body=true
-http-response ^https?:\/\/api\.zhihu\.com\/commercial_api\/app_float_layer script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU,requires-body=true
-http-response ^https?:\/\/api\.zhihu\.com\/(moments_v\d|topstory\/recommend(_v\d)?) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU-2,requires-body=true
-http-response ^https?:\/\/api\.zhihu\.com\/v2\/topstory\/hot-lists\/everyone-seeing\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU-3,requires-body=true
-http-response ^https?:\/\/api\.zhihu\.com\/next-(bff|data|render)\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU-4,requires-body=true
-http-response ^https?:\/\/api\.zhihu\.com\/(v\d\/)?questions\/\d+\/(feeds|answers)\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU-5,requires-body=true
-http-response ^https?:\/\/www\.zhihu\.com\/api\/v\d\/(answers|articles)\/\d+\/recommendations? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU-6,requires-body=true
-http-response ^https?:\/\/appcloud2\.zhihu\.com\/v\d\/config script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU-7,requires-body=true
-http-response ^https?:\/\/m-cloud\.zhihu\.com\/api\/cloud\/config\/all\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhihu.js,tag=ZHIHU-8,requires-body=true
+http-response ^https?:\/\/api\.zhihu\.com\/commercial_api\/app_float_layer script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/zhihu/zhihu.js,tag=ZHIHU,requires-body=true
+http-response ^https?:\/\/api\.zhihu\.com\/(moments_v\d|topstory\/recommend(_v\d)?) script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/zhihu/zhihu.js,tag=ZHIHU-2,requires-body=true
+http-response ^https?:\/\/api\.zhihu\.com\/v2\/topstory\/hot-lists\/everyone-seeing\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/zhihu/zhihu.js,tag=ZHIHU-3,requires-body=true
+http-response ^https?:\/\/api\.zhihu\.com\/next-(bff|data|render)\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/zhihu/zhihu.js,tag=ZHIHU-4,requires-body=true
+http-response ^https?:\/\/api\.zhihu\.com\/(v\d\/)?questions\/\d+\/(feeds|answers)\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/zhihu/zhihu.js,tag=ZHIHU-5,requires-body=true
+http-response ^https?:\/\/www\.zhihu\.com\/api\/v\d\/(answers|articles)\/\d+\/recommendations? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/zhihu/zhihu.js,tag=ZHIHU-6,requires-body=true
+http-response ^https?:\/\/appcloud2\.zhihu\.com\/v\d\/config script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/zhihu/zhihu.js,tag=ZHIHU-7,requires-body=true
+http-response ^https?:\/\/m-cloud\.zhihu\.com\/api\/cloud\/config\/all\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/zhihu/zhihu.js,tag=ZHIHU-8,requires-body=true
 http-response ^https?:\/\/jzts\.cmpassport\.com\/personalized\/getPushContent script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mcloud.js,tag=MCLOUD,requires-body=true
 http-response ^https?:\/\/m\.airchina\.com\.cn\/airchina\/gateway\/v\d(\.\d)*\/api\/services script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/airchina.js,tag=AIRCHINA
 http-request ^https?:\/\/autoload\.bank\.ecitic\.com\/imcslego\/cloud\/\w+\.jpg\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ecitic.js,tag=ECITIC
