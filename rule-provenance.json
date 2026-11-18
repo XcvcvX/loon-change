@@ -57590,25 +57590,15 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/philo/personal/hub', ('response.json.jq', 'response.json.jq(\"del(.personal_banner, .personal_center_style_v2_vo.third_personal_icons_v2) | .monthly_card_entrance.display = false\")'))",
-      "output_entry_index": 3065,
-      "output_line": "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/philo\\/personal\\/hub/i then response.json.jq(\"del(.personal_banner, .personal_center_style_v2_vo.third_personal_icons_v2) | .monthly_card_entrance.display = false\")",
-      "section": "Rewrite",
+      "output_line": "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/philo\\/personal\\/hub\\/?$/i then response.json.jq(\"del(.personal_banner, .personal_center_style_v2_vo.third_personal_icons_v2) | .monthly_card_entrance.display = false\")",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/philo\\/personal\\/hub/i then response.json.jq(\"del(.personal_banner, .personal_center_style_v2_vo.third_personal_icons_v2) | .monthly_card_entrance.display = false\")",
-          "input_section": "Rewrite",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 123,
-          "source_file": "plugins/pdd-rewrite.lpx",
-          "source_line_number": 8,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/philo\\/personal\\/hub/i then response.json.jq(\"del(.personal_banner, .personal_center_style_v2_vo.third_personal_icons_v2) | .monthly_card_entrance.display = false\")"
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/growth/nagato/app/index/gather', ('response.json.jq', 'response.json.jq(\"del(.newer_index_banner.data)\")'))",
@@ -60247,25 +60237,15 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/philo/personal/hub\\\\?', ('response.json.delete', 'response.json.delete([\"monthly_card_entrance\", \"personal_center_style_v2_vo\", \"icon_set.icons\", \"icon_set.top_personal_icons\", \"personal_banner\"])'))",
-      "output_entry_index": 3205,
-      "output_line": "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/philo\\/personal\\/hub\\?/i then response.json.delete([\"monthly_card_entrance\", \"personal_center_style_v2_vo\", \"icon_set.icons\", \"icon_set.top_personal_icons\", \"personal_banner\"])",
-      "section": "Rewrite",
+      "output_line": "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/philo\\/personal\\/hub\\/?\\?/i then response.json.delete([\"monthly_card_entrance\", \"personal_center_style_v2_vo\", \"icon_set.icons\", \"icon_set.top_personal_icons\", \"personal_banner\"])",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/philo\\/personal\\/hub\\?/i then response.json.delete([\"monthly_card_entrance\", \"personal_center_style_v2_vo\", \"icon_set.icons\", \"icon_set.top_personal_icons\", \"personal_banner\"])",
-          "input_section": "Rewrite",
-          "priority": 0,
-          "source": "zmjapp",
-          "source_entry_index": 50,
-          "source_file": "Plugin/PinDuoDuo_remove_ads.lpx",
-          "source_line_number": 61,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/philo\\/personal\\/hub\\?/i then response.json.delete([\"monthly_card_entrance\", \"personal_center_style_v2_vo\", \"icon_set.icons\", \"icon_set.top_personal_icons\", \"personal_banner\"])"
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/oak/integration/render\\\\?', ('response.json.delete', 'response.json.delete([\"bottom_section_list\", \"ui.bottom_section\", \"ui.live_section.float_info\"])'))",
@@ -117184,7 +117164,7 @@
       "trace_status": "mapped"
     },
     {
-      "output_line": "http-response ^https?:\\\\/\\\\/guide-acs\\\\.m\\\\.taobao\\\\.com\\\\/gw\\\\/mtop\\\\.taobao\\\\.(cloudvideo\\\\.video\\\\.query|wireless\\\\.home\\\\.splash\\\\.awesome\\\\.get) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/taobao.js,tag=TAOBAO,requires-body=true",
+      "output_line": "http-response ^https?:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.(cloudvideo\\.video\\.query|wireless\\.home\\.splash\\.awesome\\.get) script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/taobao/taobao.js,tag=TAOBAO,requires-body=true",
       "provenance_kind": "post_merge_transform",
       "sources": [
         {
@@ -117195,7 +117175,7 @@
       ]
     },
     {
-      "output_line": "http-response ^https?:\\\\/\\\\/poplayer\\\\.template\\\\.alibaba\\\\.com\\\\/\\\\w+\\\\.json script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/taobao.js,tag=TAOBAO-2,requires-body=true",
+      "output_line": "http-response ^https?:\\/\\/poplayer\\.template\\.alibaba\\.com\\/\\w+\\.json script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/taobao/taobao.js,tag=TAOBAO-2,requires-body=true",
       "provenance_kind": "post_merge_transform",
       "sources": [
         {

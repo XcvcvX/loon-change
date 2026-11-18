@@ -2,7 +2,7 @@
 #!desc=合并 R-Store、blockAdsV2、RuCu6 MyBlockAds、zirawell AlipayAdBlock、Thelongdarkorg、Romeo、zmjde、高德地图、ddgksf2013 瓜子；按 URL 正则去重，专属 App 插件优先、同正则替换综合源；[Rule] 已含多套分流，单插件自包含
 #!author=zirawell / fmz200 / RuCu6 / Thelongdarkorg / Romeo / zmjde / ddgksf2013（本仓库自动合并）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-18 09:21 UTC
+#!merged-at=2026-11-18 09:40 UTC
 #!note=高德地图独立 App 规则优先级最高；不同动作保留，重复动作按来源优先级；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store(QuanX->Loon)+blockAdsV2+RuCu6-MyBlockAds+zirawell-AlipayAdBlock+Thelongdarkorg+Romeo-Loon+AOOMEE-legacy-snapshots+zmjde+RuCu6-amap+ddgksf2013/GuaZiVideoAds
 
@@ -6687,7 +6687,7 @@ request if ${url} ~= /^https:\/\/img1\.360buyimg\.com\/pop\/jfs\/t1/i then rejec
 request if ${url} ~= /^https:\/\/app-gateway\.leisuapi\.com\/v1\/app\/mobile\/ads/i then reject_dict(200)
 request if ${url} ~= /^https?:\/\/(httpdns|httpdnsvip|httpdnsmultiapi|httpdnsmultiapivip)\.meituan\.com\//i then reject(200)
 request if ${url} ~= /^http:\/\/103\.37\.155\.60\/fetch/i then reject(200)
-response if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/philo\/personal\/hub/i then response.json.jq("del(.personal_banner, .personal_center_style_v2_vo.third_personal_icons_v2) | .monthly_card_entrance.display = false")
+response if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/philo\/personal\/hub\/?$/i then response.json.jq("del(.personal_banner, .personal_center_style_v2_vo.third_personal_icons_v2) | .monthly_card_entrance.display = false")
 response if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/growth\/nagato\/app\/index\/gather/i then response.json.jq("del(.newer_index_banner.data)")
 response if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/order\/\d+-\d+\/shipping/i then response.json.jq("del(.shipping.banner_above_recommend)")
 request if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/cappuccino\/splash/i then reject_dict(200)
@@ -6820,7 +6820,7 @@ request if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/buffon\/nasus\/recomm
 request if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/caterham\/v2\/query\/goods_detail_with_tags\?/i then reject_dict(200)
 response if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/alexa\/homepage\/hub\?/i then response.json.jq("if (.result | type) == \"object\" then del(.result.dy_module.irregular_banner_dy, .result.icon_set, .result.search_bar_hot_query) | .result.bottom_tabs? |= (if type == \"array\" then map(select(. != null and (.title | IN(\"首页\", \"聊天\", \"个人中心\")) and ((.link // \"\") | tostring | IN(\"index.html\", \"chat_list.html\", \"personal.html\")))) else . end) | .result.buffer_bottom_tabs? |= (if type == \"array\" then map(select(. != null and ((.link // \"\") | tostring | IN(\"index.html\", \"chat_list.html\", \"personal.html\")))) else . end) | .result.all_top_opts? |= (if type == \"array\" then [] else . end) | .result.module_order? |= (if type == \"array\" then map(select(. != null and . != false and . != 0 and . != \"\" and ((.module_name // \"\") | IN(\"irregular_banner_dy\", \"irregular_banner\", \"ad_module\", \"icon_set\", \"recommend_fresh_info\", \"timeline\") | not))) else . end) else . end")
 response if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/search\?/i then response.json.delete("expansion")
-response if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/philo\/personal\/hub\?/i then response.json.delete(["monthly_card_entrance", "personal_center_style_v2_vo", "icon_set.icons", "icon_set.top_personal_icons", "personal_banner"])
+response if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/philo\/personal\/hub\/?\?/i then response.json.delete(["monthly_card_entrance", "personal_center_style_v2_vo", "icon_set.icons", "icon_set.top_personal_icons", "personal_banner"])
 response if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/oak\/integration\/render\?/i then response.json.delete(["bottom_section_list", "ui.bottom_section", "ui.live_section.float_info"])
 response if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/caterham\/v3\/query\/order_detail_group\?/i then response.json.delete("data.goods_list")
 response if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/order\//i then response.json.delete(["marketing_banner_vo", "shipping.banner_above_recommend"])
@@ -6950,8 +6950,8 @@ http-response ^https?:\/\/app\.zhuanzhuan\.com\/zz\/transfer\/getmyprofilev scri
 http-response ^https?:\/\/zgrb\.epicc\.com\.cn\/G-HAPP\/a\/config\/homeInit script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/picc.js,tag=PICC,requires-body=true
 http-response ^https?:\/\/zgrb\.epicc\.com\.cn\/G-HAPP\/mpageconfig\/myPageConfigList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/picc.js,tag=PICC-2,requires-body=true
 http-response ^https?:\/\/r\.inews\.qq\.com\/gw\/page\/(?:event_detail|channel_feed) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/txnews.js,tag=TXNEWS,requires-body=true
-http-response ^https?:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.(cloudvideo\\.video\\.query|wireless\\.home\\.splash\\.awesome\\.get) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/taobao.js,tag=TAOBAO,requires-body=true
-http-response ^https?:\\/\\/poplayer\\.template\\.alibaba\\.com\\/\\w+\\.json script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/taobao.js,tag=TAOBAO-2,requires-body=true
+http-response ^https?:\/\/guide-acs\.m\.taobao\.com\/gw\/mtop\.taobao\.(cloudvideo\.video\.query|wireless\.home\.splash\.awesome\.get) script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/taobao/taobao.js,tag=TAOBAO,requires-body=true
+http-response ^https?:\/\/poplayer\.template\.alibaba\.com\/\w+\.json script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/taobao/taobao.js,tag=TAOBAO-2,requires-body=true
 http-response ^https?:\/\/sec\.sginput\.qq\.com\/q script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/sougou.js,tag=SOGOU
 http-response ^https?:\/\/pmbservice\.bosc\.cn:\d+\/mgw script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=BOSC
 http-response ^https?:\/\/mgs\.wallet\.pbcdci\.cn(:\d+)?\/mgw\.htm$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=ECNY

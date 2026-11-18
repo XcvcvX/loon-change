@@ -400,8 +400,38 @@
   "sections": {
     "rewrite": {
       "action_changed": [],
-      "added": [],
-      "removed": []
+      "added": [
+        {
+          "line": "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/philo\\/personal\\/hub\\/?$/i then response.json.jq(\"del(.personal_banner, .personal_center_style_v2_vo.third_personal_icons_v2) | .monthly_card_entrance.display = false\")",
+          "section": "rewrite",
+          "sources": [
+            "local_overrides"
+          ]
+        },
+        {
+          "line": "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/philo\\/personal\\/hub\\/?\\?/i then response.json.delete([\"monthly_card_entrance\", \"personal_center_style_v2_vo\", \"icon_set.icons\", \"icon_set.top_personal_icons\", \"personal_banner\"])",
+          "section": "rewrite",
+          "sources": [
+            "local_overrides"
+          ]
+        }
+      ],
+      "removed": [
+        {
+          "line": "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/philo\\/personal\\/hub/i then response.json.jq(\"del(.personal_banner, .personal_center_style_v2_vo.third_personal_icons_v2) | .monthly_card_entrance.display = false\")",
+          "section": "rewrite",
+          "sources": [
+            "aoomee"
+          ]
+        },
+        {
+          "line": "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/philo\\/personal\\/hub\\?/i then response.json.delete([\"monthly_card_entrance\", \"personal_center_style_v2_vo\", \"icon_set.icons\", \"icon_set.top_personal_icons\", \"personal_banner\"])",
+          "section": "rewrite",
+          "sources": [
+            "zmjapp"
+          ]
+        }
+      ]
     },
     "rule": {
       "action_changed": [],
@@ -412,7 +442,14 @@
       "action_changed": [],
       "added": [
         {
-          "line": "http-response ^https?:\\/\\/newclient\\.map\\.baidu\\.com\\/client\\/phpui2\\/\\?qt=ads script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/baidumap/baidu-map-protobuf.js,tag=BAIDUMAP,requires-body=true,binary-body-mode=true",
+          "line": "http-response ^https?:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.(cloudvideo\\.video\\.query|wireless\\.home\\.splash\\.awesome\\.get) script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/taobao/taobao.js,tag=TAOBAO,requires-body=true",
+          "section": "script",
+          "sources": [
+            "local_overrides"
+          ]
+        },
+        {
+          "line": "http-response ^https?:\\/\\/poplayer\\.template\\.alibaba\\.com\\/\\w+\\.json script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/taobao/taobao.js,tag=TAOBAO-2,requires-body=true",
           "section": "script",
           "sources": [
             "local_overrides"
@@ -421,10 +458,17 @@
       ],
       "removed": [
         {
-          "line": "http-response ^https?:\\/\\/newclient\\.map\\.baidu\\.com\\/client\\/phpui2\\/\\?qt=ads script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/baiduMap.js,tag=BAIDUMAP,requires-body=true,binary-body-mode=true",
+          "line": "http-response ^https?:\\\\/\\\\/guide-acs\\\\.m\\\\.taobao\\\\.com\\\\/gw\\\\/mtop\\\\.taobao\\\\.(cloudvideo\\\\.video\\\\.query|wireless\\\\.home\\\\.splash\\\\.awesome\\\\.get) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/taobao.js,tag=TAOBAO,requires-body=true",
           "section": "script",
           "sources": [
-            "base"
+            "local_overrides"
+          ]
+        },
+        {
+          "line": "http-response ^https?:\\\\/\\\\/poplayer\\\\.template\\\\.alibaba\\\\.com\\\\/\\\\w+\\\\.json script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/taobao.js,tag=TAOBAO-2,requires-body=true",
+          "section": "script",
+          "sources": [
+            "local_overrides"
           ]
         }
       ]
@@ -433,8 +477,8 @@
   "summary": {
     "rewrite": {
       "action_changed": 0,
-      "added": 0,
-      "removed": 0
+      "added": 2,
+      "removed": 2
     },
     "rule": {
       "action_changed": 0,
@@ -443,10 +487,10 @@
     },
     "script": {
       "action_changed": 0,
-      "added": 1,
-      "removed": 1
+      "added": 2,
+      "removed": 2
     },
-    "total_changes": 2
+    "total_changes": 8
   },
   "upstream_revision_changes": []
 }
