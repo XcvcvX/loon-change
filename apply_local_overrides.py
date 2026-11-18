@@ -1355,14 +1355,19 @@ def migrate_didiads_common_v5_to_local(lines):
     output = list(lines)
     section = ""
     candidates = []
-    remote = re.sub(r"\\+", "", DIDIADS_COMMON_V5_SCRIPT.strip()).lower()
-    local = re.sub(r"\\+", "", DIDIADS_LOCAL_COMMON_V5_SCRIPT.strip()).lower()
+    normalize = lambda value: re.sub(
+        r"enable=\\$\\{([^}]+)\\}",
+        r"enable=\\1",
+        re.sub(r"\\\\+", "", value.strip()),
+    ).lower()
+    remote = normalize(DIDIADS_COMMON_V5_SCRIPT)
+    local = normalize(DIDIADS_LOCAL_COMMON_V5_SCRIPT)
     for line in output:
         stripped = line.strip()
         if stripped.startswith("[") and stripped.endswith("]"):
             section = stripped[1:-1]
             continue
-        normalized = re.sub(r"\\+", "", stripped).lower()
+        normalized = normalize(stripped)
         if section != "Script" or "common.diditaxi.com.cn/common/v5" not in normalized:
             continue
         if "didiads.js" not in normalized and "scripts/didi/didi-ads.js" not in normalized:
@@ -1375,7 +1380,7 @@ def migrate_didiads_common_v5_to_local(lines):
     if len(candidates) != 1:
         raise ValueError("Didi common/v5 script trigger duplicated; refusing local migration")
     current = candidates[0]
-    if re.sub(r"\\+", "", current.strip()).lower() == local:
+    if normalize(current) == local:
         return output, 0
     result = [DIDIADS_LOCAL_COMMON_V5_SCRIPT if line == current else line for line in output]
     return result, 1
