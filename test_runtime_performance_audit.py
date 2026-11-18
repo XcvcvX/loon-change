@@ -428,6 +428,7 @@ function run(url, body) {
 run("https://edith.xiaohongshu.com/api/sns/v4/note/videofeed?test=1", JSON.stringify({
   data: [{
     id: "note-1",
+    model_type: "note",
     video_info_v2: { media: { stream: {
       h265: [
         { master_url: "https://video.example/low.mp4", width: 720, height: 1280, avg_bitrate: 1000 },
