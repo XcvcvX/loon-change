@@ -1,7 +1,6 @@
 // 2026-07-21 17:50
 
 const url = $request.url;
-const amapAdsPattern = /ads-\d+/;
 if (!$response.body) $done({});
 let obj = JSON.parse($response.body);
 
@@ -111,30 +110,27 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
   // 路线规划页
   if (obj?.data?.children?.length > 0) {
     // 有schema参数的为推广
-    compactInPlace(obj.data.children, (item) =>
-      !item || !Object.prototype.hasOwnProperty.call(item, "schema")
-    );
+    obj.data.children = obj.data.children.filter((i) => !i.hasOwnProperty("schema"));
   }
 } else if (url.includes("/faas/amap-navigation/main-page")) {
   // 首页底部卡片
   if (obj?.data?.cardList?.length > 0) {
-    compactInPlace(obj.data.cardList, (item) =>
-      item?.dataKey === "ContinueNavigationCard" ||
-      item?.dataKey === "FrequentLocation" ||
-      item?.dataKey === "LoginCard"
+    obj.data.cardList = obj.data.cardList.filter(
+      (i) =>
+        i?.dataKey === "ContinueNavigationCard" || // 继续导航
+        i?.dataKey === "FrequentLocation" || // 常去地点
+        i?.dataKey === "LoginCard" // 登陆卡片
     );
   }
   if (obj?.data?.mapBizList?.length > 0) {
-    compactInPlace(obj.data.mapBizList, (item) =>
-      item?.dataKey === "FindCarVirtualCard"
+    obj.data.mapBizList = obj.data.mapBizList.filter(
+      (i) => i?.dataKey === "FindCarVirtualCard" // 显示关联车辆位置
     );
   }
 } else if (url.includes("/perception/drive/routeInfo")) {
   // 导航详情页
   if (obj?.data?.tbt?.event?.length > 0) {
-    compactInPlace(obj.data.tbt.event, (item) =>
-      !amapAdsPattern.test(item?.dynamic_id_s)
-    );
+    obj.data.tbt.event = obj.data.tbt.event.filter((i) => !/ads-\d+/.test(i?.dynamic_id_s));
   }
   if (obj?.data?.front_end) {
     if (obj?.data?.front_end?.assistant) {
@@ -142,15 +138,11 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
     }
     if (obj?.data?.front_end?.guide_tips?.length > 0) {
       // 音乐底栏
-      compactInPlace(obj.data.front_end.guide_tips, (item) =>
-        item?.biz_type !== "music"
-      );
+      obj.data.front_end.guide_tips = obj.data.front_end.guide_tips.filter((i) => i?.biz_type !== "music");
     }
     if (obj?.data?.front_end?.download?.length > 0) {
       // 导航插播语音广告
-      compactInPlace(obj.data.front_end.download, (item) =>
-        !amapAdsPattern.test(item?.dynamic_id_s)
-      );
+      obj.data.front_end.download = obj.data.front_end.download.filter((i) => !/ads-\d+/.test(i?.dynamic_id_s));
     }
   }
 } else if (url.includes("/perception/drive/routePlan")) {
@@ -168,15 +160,11 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
   }
   if (obj?.data?.tbt?.event?.length > 0) {
     // 导航插播语音广告
-    compactInPlace(obj.data.tbt.event, (item) =>
-      !amapAdsPattern.test(item?.dynamic_id_s)
-    );
+    obj.data.tbt.event = obj.data.tbt.event.filter((i) => !/ads-\d+/.test(i?.dynamic_id_s));
   }
   if (obj?.data?.front_end?.download?.length > 0) {
     // 导航插播语音广告
-    compactInPlace(obj.data.front_end.download, (item) =>
-      !amapAdsPattern.test(item?.dynamic_id_s)
-    );
+    obj.data.front_end.download = obj.data.front_end.download.filter((i) => !/ads-\d+/.test(i?.dynamic_id_s));
   }
 } else if (url.includes("/promotion-web/resource")) {
   // 打车页面
@@ -211,7 +199,7 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
       delete obj.data.topMixedCard; // 顶部足迹、贡献卡片
     }
     if (obj?.data?.cardList?.length > 0) {
-      compactInPlace(obj.data.cardList, (item) => item?.dataKey === "MyOrderCard");
+      obj.data.cardList = obj.data.cardList.filter((i) => i?.dataKey === "MyOrderCard");
     }
   }
 } else if (url.includes("/shield/frogserver/aocs/updatable/")) {
@@ -285,11 +273,11 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
   }
 } else if (url.includes("/shield/search/nearbyrec_smart")) {
   // 附近页面
-  const modules = obj?.data?.modules;
-  if (Array.isArray(modules) && modules.length > 0) {
-    compactInPlace(modules, (item) =>
-      item === "head" || item === "search_hot_words" || item === "feed_rec"
-    );
+  const items = ["head", "search_hot_words", "feed_rec"];
+  if (obj?.data?.modules?.length > 0) {
+    if (obj?.data?.modules?.length > 0) {
+      obj.data.modules = obj.data.modules.filter((i) => items?.includes(i));
+    }
   }
 } else if (url.includes("/shield/search/poi/detail")) {
   // 搜索结果 模块详情
@@ -603,56 +591,47 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
       let list = obj.data.modules.list_data.data;
       if (list?.content?.length > 0) {
         // brandAdCard广告卡片 toplist_al人气榜单 高德指南
-        compactInPlace(list.content, (item) =>
-          item?.item_type !== "brandAdCard" && item?.item_type !== "toplist_al"
-        );
+        list.content = list.content.filter((i) => !["brandAdCard", "toplist_al"].includes(i?.item_type));
       }
     }
   }
 } else if (url.includes("/shield/search_poi/sug")) {
   if (obj?.tip_list) {
-    const tips = obj.tip_list;
-    if (Array.isArray(tips) && tips.length > 0) {
-      // Avoid per-item temporary arrays/includes() and compact the original list.
-      let write = 0;
-      for (let read = 0; read < tips.length; read++) {
-        const item = tips[read];
-        const tip = item?.tip;
+    let newLists = [];
+    if (obj?.tip_list?.length > 0) {
+      for (let item of obj.tip_list) {
         if (
-          tip?.datatype_spec === "12" ||
-          tip?.result_type === "ad" ||
-          tip?.result_type === "poi_ad" ||
-          tip?.result_type === "toplist" ||
-          tip?.task_tag === "ad" ||
-          tip?.task_tag === "exct_query_sug_merge_theme" ||
-          tip?.task_tag === "query_sug_merge_theme" ||
-          tip?.task_tag === "sp"
+          ["12"].includes(item?.tip?.datatype_spec) ||
+          ["ad", "poi_ad", "toplist"].includes(item?.tip?.result_type) ||
+          ["ad", "exct_query_sug_merge_theme", "query_sug_merge_theme", "sp"].includes(item?.tip?.task_tag)
         ) {
           continue;
+        } else {
+          newLists.push(item);
         }
-        tips[write++] = item;
       }
-      tips.length = write;
+      obj.tip_list = newLists;
     }
   } else if (obj?.city_list) {
-    // The city list itself is retained unchanged; only compact each nested tip list.
-    for (const city of obj.city_list) {
-      const tips = city?.tip_list;
-      if (!Array.isArray(tips) || tips.length === 0) continue;
-      let write = 0;
-      for (let read = 0; read < tips.length; read++) {
-        const item = tips[read];
-        const tip = item?.tip;
-        if (
-          tip?.datatype_spec === "12" ||
-          tip?.result_type === "ad" ||
-          tip?.result_type === "poi_ad"
-        ) {
-          continue;
+    let newLists = [];
+    if (obj?.city_list?.length > 0) {
+      for (let item of obj.city_list) {
+        let newTips = [];
+        if (item?.tip_list?.length > 0) {
+          for (let ii of item.tip_list) {
+            if (["12"].includes(ii?.tip?.datatype_spec)) {
+              continue;
+            } else if (["ad", "poi_ad"].includes(ii?.tip?.result_type)) {
+              continue;
+            } else {
+              newTips.push(ii);
+            }
+          }
+          item.tip_list = newTips;
         }
-        tips[write++] = item;
+        newLists.push(item);
       }
-      tips.length = write;
+      obj.city_list = newLists;
     }
   }
 } else if (url.includes("/shield/search_poi/tips_operation_location")) {
@@ -690,14 +669,3 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
 }
 
 $done({ body: JSON.stringify(obj) });
-
-function compactInPlace(items, keep) {
-  if (!Array.isArray(items) || items.length === 0) return;
-  let write = 0;
-  for (let read = 0; read < items.length; read++) {
-    const item = items[read];
-    if (!keep(item)) continue;
-    items[write++] = item;
-  }
-  items.length = write;
-}
