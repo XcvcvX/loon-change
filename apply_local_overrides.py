@@ -5256,12 +5256,13 @@ def migrate_xiaohongshu_v4_and_comment_processing(lines):
         current = rstore_comment[0]
         if current not in (XHS_RSTORE_COMMENT_TRIGGER, XHS_RSTORE_COMMENT_TRIGGER_NARROWED):
             raise ValueError("Xiaohongshu R-Store comment trigger changed; refusing version narrowing")
-        if not fmz_comment or normalize_xhs_fmz_trigger(fmz_comment[0]) not in (
+        if fmz_comment and normalize_xhs_fmz_trigger(fmz_comment[0]) not in (
             normalize_xhs_fmz_trigger(XHS_FMZ_COMMENT_LIST_TRIGGER),
             normalize_xhs_fmz_trigger(XHS_FMZ_COMMENT_LOCAL_TRIGGER),
         ):
-            raise ValueError("Xiaohongshu FMZ comment-version coverage missing; refusing R-Store narrowing")
-        replacements[current] = XHS_RSTORE_COMMENT_TRIGGER_NARROWED
+            raise ValueError("Xiaohongshu FMZ comment trigger changed; refusing R-Store narrowing")
+        if fmz_comment:
+            replacements[current] = XHS_RSTORE_COMMENT_TRIGGER_NARROWED
 
     comment_native = [
         line for line in rewrite_lines
@@ -5274,7 +5275,7 @@ def migrate_xiaohongshu_v4_and_comment_processing(lines):
         if len(comment_native) != 1:
             raise ValueError("Xiaohongshu comment native JSON rule duplicated")
         if not rstore_comment or not fmz_comment:
-            raise ValueError("Xiaohongshu comment script coverage incomplete; refusing native-rule removal")
+            return original, 0
         normalized = re.sub(r"\\+", "", comment_native[0])
         if "edith.xiaohongshu.com" not in normalized:
             raise ValueError("Xiaohongshu comment native rule host changed")
