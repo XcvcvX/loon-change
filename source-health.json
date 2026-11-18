@@ -59,11 +59,11 @@
       "added": 0,
       "current_entries": 420,
       "migration_action_changed_exempted": 0,
-      "net_shrink_percent": 1.408,
+      "net_shrink_percent": 0.0,
       "non_migration_action_changed": 0,
-      "previous_entries": 426,
-      "removed": 6,
-      "removed_percent": 1.408
+      "previous_entries": 420,
+      "removed": 0,
+      "removed_percent": 0.0
     }
   },
   "source_scores": {

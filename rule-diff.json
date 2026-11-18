@@ -411,50 +411,7 @@
     "script": {
       "action_changed": [],
       "added": [],
-      "removed": [
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/(?:info\\.amap\\.com|m5\\.amap\\.com)\\/ws\\/shield\\/search\\/(common\\/coupon\\/info|poi\\/detail)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-          "section": "script",
-          "sources": [
-            "aoomee"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/c3frontend\\/af-(hotel|launch)\\/page\\/main\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-          "section": "script",
-          "sources": [
-            "aoomee"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/c3frontend\\/af-nearby\\/nearby/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-          "section": "script",
-          "sources": [
-            "aoomee"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_poi\\/search\\/sp/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-          "section": "script",
-          "sources": [
-            "aoomee"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_poi\\/sug/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-          "section": "script",
-          "sources": [
-            "aoomee"
-          ]
-        },
-        {
-          "line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_poi\\/tips_operation_location/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-          "section": "script",
-          "sources": [
-            "aoomee"
-          ]
-        }
-      ]
+      "removed": []
     }
   },
   "summary": {
@@ -471,9 +428,9 @@
     "script": {
       "action_changed": 0,
       "added": 0,
-      "removed": 6
+      "removed": 0
     },
-    "total_changes": 6
+    "total_changes": 0
   },
   "upstream_revision_changes": []
 }
