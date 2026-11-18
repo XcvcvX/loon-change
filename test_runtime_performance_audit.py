@@ -226,6 +226,40 @@ if (nested.city_list[0].tip_list.length !== 1 || nested.city_list[0].tip_list[0]
         self.assertEqual(completed.returncode, 0, msg=completed.stderr or completed.stdout)
 
 
+
+    def test_amap_nearby_modules_filter_uses_single_guard(self):
+        import shutil
+        import subprocess
+        from pathlib import Path
+
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node.js is required for the Amap runtime integration test")
+        source_path = Path(__file__).with_name("sources").joinpath("amap", "rucu6_amap.js")
+        harness = r'''
+const fs = require("fs");
+const vm = require("vm");
+const source = fs.readFileSync(process.argv[1], "utf8");
+let result;
+const context = {
+  $request: { url: "https://m5.amap.com/ws/shield/search/nearbyrec_smart?city=1" },
+  $response: { body: JSON.stringify({ data: { modules: ["head", "ad", "feed_rec", "search_hot_words", null] } }) },
+  $done(value) { result = value; },
+  console: { log() {} }
+};
+vm.runInNewContext(source, context);
+const modules = JSON.parse(result.body).data.modules;
+if (modules.length !== 3 || modules[0] !== "head" || modules[1] !== "feed_rec" || modules[2] !== "search_hot_words") {
+  throw new Error("Nearby module filtering behavior changed");
+}
+''';
+        completed = subprocess.run([node, "-e", harness, str(source_path)], capture_output=True, text=True)
+        self.assertEqual(completed.returncode, 0, msg=completed.stderr or completed.stdout)
+        source = source_path.read_text(encoding="utf-8")
+        block = source.split('url.includes("/shield/search/nearbyrec_smart")', 1)[1].split('url.includes("/shield/search/poi/detail")', 1)[0]
+        self.assertEqual(block.count('if (obj?.data?.modules?.length > 0)'), 1)
+        self.assertIn('items.includes(i)', block)
+
     def test_amap_search_result_filter_uses_direct_scalar_checks(self):
         import shutil
         import subprocess
