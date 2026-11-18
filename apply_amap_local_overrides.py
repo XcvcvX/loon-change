@@ -33,7 +33,7 @@ def _normalize(line):
 
 
 def apply(text):
-    """Deduplicate Amap hotword and migrate two safe route response scripts to native JSON."""
+    """Deduplicate Amap hotword and migrate selected response scripts to native JSON."""
     lines = text.splitlines()
     output = []
     section = ""
