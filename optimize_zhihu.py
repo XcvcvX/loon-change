@@ -43,8 +43,8 @@ GET_URL_PARAM=r'''function getUrlParamValue(url, queryName) {
 def optimize_source(src, commit="unknown"):
     if MARKER in src: return src
     src=once(src,"if (!$response.body) $done({});",
-             "if (!$response.body) {\\n  $done({});\\n} else {","body guard")
-    src=once(src,"const url = $request.url;","const url = $request.url;\\n"+HELPERS.strip(),"in-place helper")
+             "if (!$response.body) {\n  $done({});\n} else {","body guard")
+    src=once(src,"const url = $request.url;","const url = $request.url;\n"+HELPERS.strip(),"in-place helper")
     transforms=[
       ("obj.config.homepage_feed_tab.tab_infos = obj.config.homepage_feed_tab.tab_infos.filter(",
        "compactInPlace(obj.config.homepage_feed_tab.tab_infos, ","homepage tabs",1),
@@ -87,19 +87,21 @@ def optimize_source(src, commit="unknown"):
           }''',
       "avoid repeated full-body scan")
     src=once(src,
-      "function getUrlParamValue(url, queryName) {",
+      """function getUrlParamValue(url, queryName) {
+  return Object.fromEntries(
+      url
+          .substring(url.indexOf("?") + 1)
+          .split("&")
+          .map((pair) => pair.split("="))
+  )[queryName];
+}""",
       GET_URL_PARAM,
-      "allocation-free URL parameter parser start")
-    # Replace the original parser's remaining body through the end of the file.
-    end_marker="\n}"
-    start=src.index(GET_URL_PARAM)
-    end=src.index(end_marker,start)+len(end_marker)
-    # The original function is the final top-level function; the optimizer replacement is already complete.
-    if src.count("function getUrlParamValue(url, queryName) {")!=1:
+      "allocation-free URL parameter parser")
+    if src.count("function getUrlParamValue(url, queryName) {") != 1:
         raise ValueError("URL parser definition count drift")
-    # Wrap the original response processing body with the body guard's else block.
-    src=src.rstrip()+"\\n}\\n"
-    result=MARKER+commit+"\\n"+src
+    # Close the response-body guard opened near the top of the script.
+    src=src.rstrip()+"\n}\n"
+    result=MARKER+commit+"\n"+src
     if (result.count("compactInPlace(")-1)!=11:
         raise ValueError("expected all 11 Zhihu filters to use stable in-place compaction")
     if "Object.fromEntries(" in result or ".map((pair) => pair.split" in result:
@@ -124,9 +126,9 @@ def rewrite_plugin(plugin):
             line=line.replace(REMOTE,LOCAL)
         out.append(line)
     if count!=8: raise ValueError(f"Zhihu trigger inventory changed: expected 8, got {count}")
-    result="\\n".join(out)
+    result="\n".join(out)
     if REMOTE in result: raise ValueError("upstream Zhihu URL remains")
-    return result+("\\n" if plugin.endswith("\\n") else "")
+    return result+("\n" if plugin.endswith("\n") else "")
 
 
 def main():
