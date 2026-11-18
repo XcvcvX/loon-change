@@ -4214,7 +4214,7 @@ class WeiboNativeMigrationTests(unittest.TestCase):
 class BilibiliProtobufDuplicateTriggerTests(unittest.TestCase):
     def _fmz_trigger(self):
         return (
-            r'response if ' + r'$' + r'{url} ~= /^https?:\/\/(?:grpc\.biliapi\.net|app\.bilibili\.com)\/bilibili\.(?:app\.(?:dynamic\.v2\.Dynamic\/DynAll|view(unite)?\.v1\.View\/View)|community\.service\.dm\.v1\.DM\/DmView|polymer\.app\.search\.v1\.Search\/SearchAll)$/i '
+            r'response if ' + r'$' + r'{url} ~= /^https?:\/\/(?:grpc\.biliapi\.net|app\.bilibili\.com)\/bilibili\.(?:app\.(?:dynamic\.v2\.Dynamic\/DynAll|view(unite)?\.v1\.View\/View)|community\.service\.dm\.v1\.DM\/DmView|polymer\.app\.search\.v1\.Search\/SearchAll|main\\.community\\.reply\\.v1\\.Reply\\/MainList)$/i '
             r'then script("https://raw.githubusercontent.com/kokoryh/Sparkle/refs/heads/master/dist/bilibili.protobuf.response.js") with tag="bilibili.protobuf", requires_body=true'
         )
 
@@ -4233,6 +4233,11 @@ class BilibiliProtobufDuplicateTriggerTests(unittest.TestCase):
             self.assertNotIn(original, result)
             self.assertIn(narrowed, result)
         self.assertIn(mainlist, result)
+        sparkle_lines = [line for line in result if "bilibili.protobuf.response.js" in line]
+        self.assertEqual(len(sparkle_lines), 1)
+        self.assertNotIn(String.raw`main\\.community\\.reply\\.v1\\.Reply`, sparkle_lines[0])
+        for marker in (String.raw`dynamic\\.v2\\.Dynamic`, "view(unite)?", String.raw`community\\.service\\.dm`, String.raw`polymer\\.app\\.search`):
+            self.assertIn(marker, sparkle_lines[0])
 
         import re
         mainlist_pattern = re.compile(mainlist.split(" script-path=")[0].removeprefix("http-response "))
@@ -4278,6 +4283,13 @@ class BilibiliProtobufDuplicateTriggerTests(unittest.TestCase):
         result, changed = narrow_duplicate_bilibili_protobuf_triggers(fixture)
         self.assertEqual(changed, 0)
         self.assertEqual(result, fixture)
+
+    def test_keeps_sparkle_mainlist_branch_without_rstore_cover(self):
+        from apply_local_overrides import narrow_duplicate_bilibili_protobuf_triggers
+        sparkle = self._fmz_trigger()
+        result, changed = narrow_duplicate_bilibili_protobuf_triggers(["[Script]", sparkle, "[MITM]"])
+        self.assertEqual(changed, 0)
+        self.assertEqual(result, ["[Script]", sparkle, "[MITM]"])
 
     def test_fails_closed_on_unreviewed_protobuf_trigger_or_sparkle_coverage(self):
         from apply_local_overrides import BILIBILI_PROTOBUF_DUPLICATE_PAIRS, narrow_duplicate_bilibili_protobuf_triggers
