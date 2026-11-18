@@ -2403,11 +2403,12 @@ class KugouJin10RewriteDedupTests(unittest.TestCase):
         self.assertEqual(apply(result), result)
 
     def test_preserves_partial_inventory_and_fails_closed_on_drift(self):
+        from apply_local_overrides import remove_kugou_jin10_redundant_rewrites
         missing = self.base.replace(self.rules[14] + "\n", "", 1)
-        self.assertEqual(apply(missing), missing)
+        self.assertEqual(remove_kugou_jin10_redundant_rewrites(missing.splitlines()), (missing.splitlines(), 0))
         drifted = self.base.replace(self.rules[14], self.rules[14].replace("reject-dict", "reject-200"), 1)
         with self.assertRaisesRegex(ValueError, "Kugou/Jin10 rewrite inventory changed"):
-            apply(drifted)
+            remove_kugou_jin10_redundant_rewrites(drifted.splitlines())
 
 
 
