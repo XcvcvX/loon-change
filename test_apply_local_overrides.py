@@ -4648,8 +4648,10 @@ class XiaohongshuV4AndCommentMigrationTests(unittest.TestCase):
             migrate_xiaohongshu_v4_and_comment_processing(drifted)
 
         no_fmz_comment = [line for line in fixture if "v5/note/comment/list" not in line.replace(chr(92), "")]
-        with self.assertRaisesRegex(ValueError, "FMZ comment-version coverage missing"):
-            migrate_xiaohongshu_v4_and_comment_processing(no_fmz_comment)
+        self.assertEqual(
+            migrate_xiaohongshu_v4_and_comment_processing(no_fmz_comment),
+            (no_fmz_comment, 0),
+        )
 
     def test_local_v4_script_contains_the_merged_ad_filter_and_keeps_cache_paths(self):
         from pathlib import Path
