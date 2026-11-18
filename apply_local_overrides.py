@@ -2023,9 +2023,8 @@ def remove_jd_core_service_domain_blocks(lines):
 
     if not saw_target:
         return list(lines), 0
-    present = [host for host, count in counts.items() if count]
-    if len(present) != len(JD_CORE_SERVICE_BLOCKS):
-        raise ValueError("JD core service domain block inventory is partial; refusing cleanup")
+    # Retired consolidated feeds may no longer contribute all three legacy rows.
+    # Each row that is present is still checked against its exact known action above.
     return output, sum(counts.values())
 
 # Jingdong: retain the unconditional R-Store cleaner and preserve the optional
