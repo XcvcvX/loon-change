@@ -3,6 +3,20 @@
 // their combined filtering behavior and the native JSON field cleanup.
 function main() {
   const url = $request.url || "";
+
+  function compactInPlace(items, keep) {
+    const length = items.length;
+    let write = 0;
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      if (keep(item, read)) {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+    items.length = write;
+    return items;
+  }
   const body = $response && $response.body;
   if (!body) return $done({});
 
@@ -28,13 +42,13 @@ function main() {
       const allowedTitles = new Set(["首页", "聊天", "个人中心"]);
       const deniedTitles = new Set(["多多视频", "大促会场", "搜索", "直播"]);
       if (Array.isArray(result.bottom_tabs)) {
-        result.bottom_tabs = result.bottom_tabs.filter(tab =>
+        compactInPlace(result.bottom_tabs, tab =>
           tab && allowedTitles.has(tab.title) && !deniedTitles.has(tab.title)
           && allowedLinks.has(String(tab.link || ""))
         );
       }
       if (Array.isArray(result.buffer_bottom_tabs)) {
-        result.buffer_bottom_tabs = result.buffer_bottom_tabs.filter(tab =>
+        compactInPlace(result.buffer_bottom_tabs, tab =>
           tab && allowedLinks.has(String(tab.link || ""))
         );
       }
@@ -48,7 +62,7 @@ function main() {
         "icon_set", "recommend_fresh_info", "timeline"
       ]);
       if (Array.isArray(result.module_order)) {
-        result.module_order = result.module_order.filter(item =>
+        compactInPlace(result.module_order, item =>
           item && !removedModules.has(item.module_name)
         );
       }

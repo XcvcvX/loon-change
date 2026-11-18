@@ -5,6 +5,20 @@
   const url = ($request && $request.url) || "";
   const imageUrlRegex = /^https?:\/\/p\d\.meituan\.net\/linglong\//;
 
+  function compactInPlace(items, keep) {
+    const length = items.length;
+    let write = 0;
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      if (keep(item, read)) {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+    items.length = write;
+    return items;
+  }
+
   function extractAfterAt(value) {
     const atIndex = value.lastIndexOf("@");
     return atIndex === -1 ? "-1" : value.substring(atIndex + 1);
@@ -78,11 +92,11 @@
 
   function cleanMine(obj) {
     if (!isObj(obj) || !Array.isArray(obj.children)) return false;
-    const kept = obj.children.filter((child) =>
+    const originalLength = obj.children.length;
+    compactInPlace(obj.children, child =>
       !(isObj(child) && child.name === "mine_cross_recommend")
     );
-    if (kept.length === obj.children.length) return false;
-    obj.children = kept;
+    if (obj.children.length === originalLength) return false;
     return true;
   }
 
@@ -107,27 +121,17 @@
     const data = obj && obj.data;
     if (!isObj(data) || !Array.isArray(data.segmentsV2)) return false;
     let changed = false;
-    const keptSegments = [];
-    data.segmentsV2.forEach((segment) => {
-      if (!isObj(segment) || !Array.isArray(segment.hotwordSegments)) {
-        keptSegments.push(segment);
-        return;
-      }
-      const keptHotwords = segment.hotwordSegments.filter((hotword) =>
+    compactInPlace(data.segmentsV2, segment => {
+      if (!isObj(segment) || !Array.isArray(segment.hotwordSegments)) return true;
+      const originalLength = segment.hotwordSegments.length;
+      compactInPlace(segment.hotwordSegments, hotword =>
         !(isObj(hotword) &&
           ["EntranceHotwordsV2Hotwords", "EntranceHotwordsV2ContentCard"].includes(hotword.pageName))
       );
-      if (keptHotwords.length === segment.hotwordSegments.length) {
-        keptSegments.push(segment);
-        return;
-      }
+      if (segment.hotwordSegments.length === originalLength) return true;
       changed = true;
-      if (keptHotwords.length) {
-        segment.hotwordSegments = keptHotwords;
-        keptSegments.push(segment);
-      }
+      return segment.hotwordSegments.length > 0;
     });
-    if (changed) data.segmentsV2 = keptSegments;
     const bubble = data.aiSearchBubble;
     if (isObj(bubble) && Array.isArray(bubble.bubbleTexts) && bubble.bubbleTexts.length) {
       bubble.bubbleTexts = [];
@@ -163,11 +167,11 @@
   function cleanMiniProgram(obj) {
     if (!obj || !obj.data) return false;
     if (Array.isArray(obj.data)) {
-      const kept = obj.data.filter((item) =>
+      const originalLength = obj.data.length;
+      compactInPlace(obj.data, item =>
         item && item.name && ["首页", "神券", "我的"].includes(item.name)
       );
-      const changed = kept.length !== obj.data.length;
-      if (changed) obj.data = kept;
+      const changed = obj.data.length !== originalLength;
       return changed;
     }
     if (obj.data.oneCentBuy) {
