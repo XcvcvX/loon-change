@@ -56,14 +56,14 @@
     "script": {
       "action_change_source_pairs": [],
       "action_changed": 0,
-      "added": 0,
+      "added": 6,
       "current_entries": 426,
       "migration_action_changed_exempted": 0,
-      "net_shrink_percent": 1.843,
+      "net_shrink_percent": 0.0,
       "non_migration_action_changed": 0,
-      "previous_entries": 434,
-      "removed": 8,
-      "removed_percent": 1.843
+      "previous_entries": 426,
+      "removed": 6,
+      "removed_percent": 1.408
     }
   },
   "source_scores": {

@@ -121295,106 +121295,70 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://j1\\\\.pupuapi\\\\.com/client/search/hot_keywords/v3', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/PupuSplashAds.js\") with enable=pupuicui_enable, tag=\"朴朴超市\", timeout=60, requires_body=true'))",
-      "output_entry_index": 415,
-      "output_line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/search\\/hot_keywords\\/v3/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/PupuSplashAds.js\") with enable=${pupuicui_enable}, tag=\"朴朴超市\", timeout=60, requires_body=true",
-      "section": "Script",
+      "output_line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/search\\/hot_keywords\\/v3\\/?(?:\\?[^#]*)?$/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/pupu/pupu-splash.js\") with enable=${pupuicui_enable}, tag=\"朴朴超市\", timeout=60, requires_body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/search\\/hot_keywords\\/v3/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/PupuSplashAds.js\") with enable=${pupuicui_enable}, tag=\"朴朴超市\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 107
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https://j1\\\\.pupuapi\\\\.com/client/app_resource/resource_preload/list_h5_resource', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/PupuSplashAds.js\") with enable=pupuicui_enable, tag=\"朴朴超市\", timeout=60, requires_body=true'))",
-      "output_entry_index": 416,
-      "output_line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/app_resource\\/resource_preload\\/list_h5_resource/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/PupuSplashAds.js\") with enable=${pupuicui_enable}, tag=\"朴朴超市\", timeout=60, requires_body=true",
-      "section": "Script",
+      "output_line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/app_resource\\/resource_preload\\/list_h5_resource\\/?(?:\\?[^#]*)?$/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/pupu/pupu-splash.js\") with enable=${pupuicui_enable}, tag=\"朴朴超市\", timeout=60, requires_body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/app_resource\\/resource_preload\\/list_h5_resource/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/PupuSplashAds.js\") with enable=${pupuicui_enable}, tag=\"朴朴超市\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 108
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https://j1\\\\.pupuapi\\\\.com/client/marketing/advertisement/v1', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/PupuSplashAds.js\") with enable=pupuicui_enable, tag=\"朴朴超市\", timeout=60, requires_body=true'))",
-      "output_entry_index": 417,
-      "output_line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/marketing\\/advertisement\\/v1/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/PupuSplashAds.js\") with enable=${pupuicui_enable}, tag=\"朴朴超市\", timeout=60, requires_body=true",
-      "section": "Script",
+      "output_line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/marketing\\/advertisement\\/v1\\/?(?:\\?[^#]*)?$/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/pupu/pupu-splash.js\") with enable=${pupuicui_enable}, tag=\"朴朴超市\", timeout=60, requires_body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/marketing\\/advertisement\\/v1/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/PupuSplashAds.js\") with enable=${pupuicui_enable}, tag=\"朴朴超市\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 109
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https://j1\\\\.pupuapi\\\\.com/client/search/hub/search_box/products/v6', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/PupuSplashAds.js\") with enable=pupuicui_enable, tag=\"朴朴超市\", timeout=60, requires_body=true'))",
-      "output_entry_index": 418,
-      "output_line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/search\\/hub\\/search_box\\/products\\/v6/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/PupuSplashAds.js\") with enable=${pupuicui_enable}, tag=\"朴朴超市\", timeout=60, requires_body=true",
-      "section": "Script",
+      "output_line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/search\\/hub\\/search_box\\/products\\/v6\\/?(?:\\?[^#]*)?$/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/pupu/pupu-splash.js\") with enable=${pupuicui_enable}, tag=\"朴朴超市\", timeout=60, requires_body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/search\\/hub\\/search_box\\/products\\/v6/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/PupuSplashAds.js\") with enable=${pupuicui_enable}, tag=\"朴朴超市\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 110
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https://j1\\\\.pupuapi\\\\.com/client/order_settlement/detail', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/PupuSplashAds.js\") with enable=pupuicui_enable, tag=\"朴朴超市\", timeout=60, requires_body=true'))",
-      "output_entry_index": 419,
-      "output_line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/order_settlement\\/detail/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/PupuSplashAds.js\") with enable=${pupuicui_enable}, tag=\"朴朴超市\", timeout=60, requires_body=true",
-      "section": "Script",
+      "output_line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/order_settlement\\/detail\\/?(?:\\?[^#]*)?$/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/pupu/pupu-splash.js\") with enable=${pupuicui_enable}, tag=\"朴朴超市\", timeout=60, requires_body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/order_settlement\\/detail/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/PupuSplashAds.js\") with enable=${pupuicui_enable}, tag=\"朴朴超市\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 111
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https://j1\\\\.pupuapi\\\\.com/client/order/orders/list/v4', ('script', 'script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/PupuSplashAds.js\") with enable=pupuicui_enable, tag=\"朴朴超市\", timeout=60, requires_body=true'))",
-      "output_entry_index": 420,
-      "output_line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/order\\/orders\\/list\\/v4/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/PupuSplashAds.js\") with enable=${pupuicui_enable}, tag=\"朴朴超市\", timeout=60, requires_body=true",
-      "section": "Script",
+      "output_line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/order\\/orders\\/list\\/v4\\/?(?:\\?[^#]*)?$/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/pupu/pupu-splash.js\") with enable=${pupuicui_enable}, tag=\"朴朴超市\", timeout=60, requires_body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/order\\/orders\\/list\\/v4/i then script(\"https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/PupuSplashAds.js\") with enable=${pupuicui_enable}, tag=\"朴朴超市\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 5,
-          "source": "block",
-          "source_entry_index": 112
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
       "canonical_key": "('guarded', '^https?://(?>webapi|miniapp)\\\\.qmai\\\\.cn/web/catering([0-9]-apiserver)?/advertising/ad/advertiseInfo', ('script', 'script(\"https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/qmai.js\") with tag=\"企迈（挪瓦咖啡、林里柠檬茶、霸王茶姬、陈香贵）\", timeout=60, requires_body=true'))",
