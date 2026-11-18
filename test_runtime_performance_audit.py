@@ -512,7 +512,7 @@ const cases = [
   },
   {
     url: "https://app.bilibili.com/x/v3/feed/index/story?test=1",
-    data: { items: [{ ad_info: null }, { card_goto: "vertical_live" }, { card_goto: "vertical_ad_picture" }, { card_goto: "organic", creative_entrance: {}, story_cart_icon: {} }] },
+    data: { items: [{ ad_info: null }, { card_goto: "vertical_live" }, { card_goto: "vertical_ad_av" }, { card_goto: "organic", creative_entrance: {}, story_cart_icon: {} }] },
     check(body) {
       if (body.data.items.length !== 1 || body.data.items[0].card_goto !== "organic" || "creative_entrance" in body.data.items[0] || "story_cart_icon" in body.data.items[0]) throw new Error("story result mismatch");
     }
