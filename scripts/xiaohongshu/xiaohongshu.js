@@ -143,7 +143,6 @@ if (url.includes("/note/imagefeed?") || url.includes("/note/feed?")) {
 
 if (url.includes("/note/live_photo/save")) {
   const rsp = $.getdata("fmz200.xiaohongshu.feed.rsp");
-  // console.log("读取缓存val：" + rsp);
   if (rsp == null || rsp.length === 0) {
     $done({body: rsp_body});
   }
@@ -224,7 +223,6 @@ if (url.includes("/v4/note/videofeed")) {
       if (item?.share_info?.function_entries?.length > 0) {
         const hasDownload = item.share_info.function_entries.some(entry => entry.type === "video_download");
         if (!hasDownload) {
-          console.log(`添加下载按钮: ${item.id}`);
           item.share_info.function_entries.push({type: "video_download"});
         }
       }
@@ -240,16 +238,13 @@ if (url.includes("/v4/note/videofeed")) {
           id: item.id,
           url: selectedStream.master_url
         };
-        console.log(`提取成功 ➜ ${item.id} → ${selectedStream.stream_desc}`);
         videoData.push(data);
         console.log(`[缓存] ID:${item.id} | 规格:${selectedStream.quality_type} | 码率:${selectedStream.avg_bitrate}`);
       } else {
-        console.log(`未找到可用视频: ${item.id}`);
       }
     }
     // 写入本地持久化缓存
     $.setdata(JSON.stringify(videoData), "redBookVideoFeed");
-    console.log(`已缓存普通视频 ${videoData.length} 条`);
   }
 }
 
@@ -402,7 +397,6 @@ if (url.includes("/api/sns/v1/interaction/comment/video/download?")) {
     let commitsRsp = JSON.parse(commitsCache);
     if (commitsRsp.livePhotos.length > 0 && obj.data?.video) {
       for (const item of commitsRsp.livePhotos) {
-        // console.log("缓存video_id：" + item.videId);
         if (item.videId === obj.data.video.video_id) {
           obj.data.video.video_url = item.videoUrl;
           break;
@@ -413,7 +407,6 @@ if (url.includes("/api/sns/v1/interaction/comment/video/download?")) {
     let commitsVideoRsp = JSON.parse(commitsVideoCache);
     if (commitsVideoRsp.videos.length > 0 && obj.data?.video) {
       for (const item of commitsVideoRsp.videos) {
-        // console.log("缓存video_id：" + item.videId);
         if (item.videId === obj.data.video.video_id) {
           obj.data.video.video_url = item.videoUrl;
           break;
@@ -421,7 +414,6 @@ if (url.includes("/api/sns/v1/interaction/comment/video/download?")) {
       }
     }
   } else {
-    console.log(`没有[${obj.data?.video.video_id}]的无水印地址`);
   }
 }
 
@@ -514,11 +506,9 @@ function selectBestStream(h265List,h264List) {
 function fixCommentType(comment) {
   if (comment.comment_type === 3) {
     comment.comment_type = 2;
-    console.log(`修改评论类型：3->2`);
   }
   if (comment.media_source_type === 1) {
     comment.media_source_type = 0;
-    console.log(`修改媒体类型：1->0`);
   }
 }
 
@@ -531,13 +521,11 @@ function fixCommentType(comment) {
  */
 function extractLivePhotos(pictures, livePhotos, commentId, prefix = "") {
   if (!pictures?.length > 0) return;
-  console.log(`${prefix}comment_id: ` + commentId);
   for (const picture of pictures) {
     if (picture.video_id) {
       const picObj = JSON.parse(picture.video_info);
       const bestStream = selectBestStream(picObj.stream?.h265, picObj.stream?.h264);
       if (bestStream?.master_url) {
-        console.log(`${prefix}video_id：` + picture.video_id);
         livePhotos.push({
           videId: picture.video_id,
           videoUrl: bestStream.master_url
