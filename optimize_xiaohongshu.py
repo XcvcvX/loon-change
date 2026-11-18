@@ -178,7 +178,7 @@ def optimize_source(src,commit="unknown"):
         '          console.log("匹配到无水印链接：" + item.videoUrl);',
         '          console.log("[commentVideos]匹配到无水印链接：" + item.videoUrl);',
     ):
-        src = src.replace(line + "\\n", "")
+        src = src.replace(line + "\n", "")
     if "imageEnhance(JSON.stringify(images_list))" in result:raise ValueError("image-feed serialization round trip remains")
     return result
 
