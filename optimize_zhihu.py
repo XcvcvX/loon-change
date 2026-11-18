@@ -74,7 +74,7 @@ def optimize_source(src, commit="unknown"):
   const fallbackSearch = '"feed_content":{"video":{"id":';
   const fallbackIndex = $response.body.indexOf(fallbackSearch);
   const fallbackVideoID = fallbackIndex >= 0
-    ? $response.body.slice(fallbackIndex + fallbackSearch.length).split(",", 1)[0]
+    ? $response.body.slice(fallbackIndex + fallbackSearch.length).split(",", 1)[0].replace(/}+$/, "")
     : undefined;''',
       "precompute response fallback video id")
     src=once(src,
