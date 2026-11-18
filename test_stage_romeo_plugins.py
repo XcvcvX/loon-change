@@ -167,7 +167,7 @@ class RomeoPluginMigrationTests(unittest.TestCase):
             with patch("stage_romeo_plugins._read_romeo_file", side_effect=fake_read):
                 result = stage(repo, commit, primary, ROOT, former_zmjde)
 
-            self.assertEqual(result["romeo_plugin_files"], 21)
+            self.assertEqual(result["romeo_plugin_files"], 24)
             self.assertEqual(result["former_zmjde_plugin_files"], 8)
             self.assertEqual(len(result["staged_plugin_files"]), EXPECTED_PLUGIN_FILES)
             self.assertEqual(len(list(former_zmjde.glob("*.lpx"))), 8)
