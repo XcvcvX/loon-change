@@ -20,7 +20,10 @@ if (!$response.body) {
     let write = 0;
     for (let read = 0, length = items.length; read < length; read++) {
       const item = items[read];
-      if (predicate(item, read)) {\n        if (write !== read) items[write] = item;\n        write++;\n      }
+      if (predicate(item, read)) {
+        if (write !== read) items[write] = item;
+        write++;
+      }
     }
     items.length = write;
     return items;
@@ -72,10 +75,12 @@ if (url.includes("/x/resource/show/tab/")) {
                   const i = items[itemRead];
                   if (/user_center\/feedback/g.test(i?.uri)) {
                     // 联系客服
-                    if (itemWrite !== itemRead) items[itemWrite] = i;\n                    itemWrite++;
+                    if (itemWrite !== itemRead) items[itemWrite] = i;
+                    itemWrite++;
                   } else if (/user_center\/setting/g.test(i?.uri)) {
                     // 设置
-                    if (itemWrite !== itemRead) items[itemWrite] = i;\n                    itemWrite++;
+                    if (itemWrite !== itemRead) items[itemWrite] = i;
+                    itemWrite++;
                   } else {
                     continue;
                   }
@@ -89,7 +94,8 @@ if (url.includes("/x/resource/show/tab/")) {
           continue;
         }
       }
-      if (sectionWrite !== sectionRead) sections[sectionWrite] = item;\n      sectionWrite++;
+      if (sectionWrite !== sectionRead) sections[sectionWrite] = item;
+      sectionWrite++;
     }
     sections.length = sectionWrite;
   }
@@ -162,7 +168,8 @@ if (url.includes("/x/resource/show/tab/")) {
       } else {
         delete item.creative_entrance; // 推荐话题搜索框
         delete item.story_cart_icon; // 相关话题图标
-        if (itemWrite !== itemRead) items[itemWrite] = item;\n        itemWrite++;
+        if (itemWrite !== itemRead) items[itemWrite] = item;
+        itemWrite++;
       }
     }
     items.length = itemWrite;
