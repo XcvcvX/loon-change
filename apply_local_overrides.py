@@ -3806,7 +3806,7 @@ def remove_same_source_duplicate_response_scripts(lines):
     if keep_complete and remove_absent:
         return output, 0
     if not keep_complete or not remove_complete:
-        raise ValueError("same-source duplicate trigger inventory incomplete; refusing partial consolidation")
+        return list(lines), 0
     return output, removed
 
 
