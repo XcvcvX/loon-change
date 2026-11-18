@@ -443,49 +443,76 @@ function imageEnhance(images) {
   const heightPattern = /imageView2\/2\/h\/\d+\/format/g;
   let originalReplaced = false;
 
-  function visit(value) {
-    if (typeof value === "string") {
-      // Most image metadata strings are not image URLs; avoid running URL
-      // replacement regexes against titles, IDs, descriptions and other text.
-      if (!value.includes("imageView2/2")) return value;
-      if (imageQuality === "original") {
-        if (originalReplaced) return value;
-        const enhanced = value.replace(originalPattern, "?imageView2/0/format/png&redImage/frame/0");
-        if (enhanced !== value) originalReplaced = true;
-        return enhanced;
-      }
-      return value
-        .replace(widthPattern, "imageView2/2/w/2160/format")
-        .replace(heightPattern, "imageView2/2/h/2160/format");
+  function enhanceString(value) {
+    // Avoid running regular expressions against titles, IDs and descriptions.
+    if (!value.includes("imageView2/2")) return value;
+    if (imageQuality === "original") {
+      if (originalReplaced) return value;
+      const enhanced = value.replace(originalPattern, "?imageView2/0/format/png&redImage/frame/0");
+      if (enhanced !== value) originalReplaced = true;
+      return enhanced;
     }
-
-    if (Array.isArray(value)) {
-      for (let i = 0; i < value.length; i++) value[i] = visit(value[i]);
-    } else if (value && typeof value === "object") {
-      for (const key of Object.keys(value)) value[key] = visit(value[key]);
-    }
-    return value;
+    return value
+      .replace(widthPattern, "imageView2/2/w/2160/format")
+      .replace(heightPattern, "imageView2/2/h/2160/format");
   }
 
-  return visit(images);
+  // Iterative depth-first walk preserves property/array order without recursion.
+  const stack = [{ value: images, index: 0, keys: null }];
+  while (stack.length > 0) {
+    const frame = stack[stack.length - 1];
+    const value = frame.value;
+    if (Array.isArray(value)) {
+      if (frame.index >= value.length) {
+        stack.pop();
+        continue;
+      }
+      const index = frame.index++;
+      const child = value[index];
+      if (typeof child === "string") {
+        value[index] = enhanceString(child);
+      } else if (child && typeof child === "object") {
+        stack.push({ value: child, index: 0, keys: null });
+      }
+    } else {
+      if (frame.keys === null) frame.keys = Object.keys(value);
+      if (frame.index >= frame.keys.length) {
+        stack.pop();
+        continue;
+      }
+      const key = frame.keys[frame.index++];
+      const child = value[key];
+      if (typeof child === "string") {
+        value[key] = enhanceString(child);
+      } else if (child && typeof child === "object") {
+        stack.push({ value: child, index: 0, keys: null });
+      }
+    }
+  }
+  return images;
 }
 
 function replaceUrlContent(collectionA, collectionB) {
-  // 匹配常见视频格式（扩展名到查询参数之前的部分）
-  const videoBaseRegex = /(.*\.(mp4|mov|webm|m3u8|ts|avi|mkv|flv))/i;
+  // Index once: repeated Array.find() made large save lists O(A × B).
+  // Keep the first entry for duplicate file_id values, matching Array.find().
+  const byFileId = new Map();
+  for (const itemB of collectionB) {
+    if (itemB && !byFileId.has(itemB.file_id)) byFileId.set(itemB.file_id, itemB);
+  }
 
-  collectionA.forEach(itemA => {
-    const itemB = collectionB.find(itemB => itemB.file_id === itemA.file_id);
-    if (itemB) {
-      if (itemA.url !== "") {
-        const match = itemB.url.match(videoBaseRegex);
-        itemA.url = match ? match[1] : itemB.url;
-      } else {
-        itemA.url = itemB.url;
-      }
-      itemA.author = "@fmz200"
+  const videoBaseRegex = /(.*\.(mp4|mov|webm|m3u8|ts|avi|mkv|flv))/i;
+  for (const itemA of collectionA) {
+    if (!itemA) continue;
+    const itemB = byFileId.get(itemA.file_id);
+    if (!itemB) continue;
+    if (itemA.url !== "") {
+      const match = itemB.url.match(videoBaseRegex);
+      itemA.url = match ? match[1] : itemB.url;
+    } else {
+      itemA.url = itemB.url;
     }
-  });
+    itemA.author = "@fmz200";
+  }
 }
 
 function deduplicateLivePhotos(livePhotos) {
@@ -501,16 +528,27 @@ function deduplicateLivePhotos(livePhotos) {
 }
 
 function replaceRedIdWithFmz200(obj) {
-  if (Array.isArray(obj)) {
-    obj.forEach(item => replaceRedIdWithFmz200(item));
-  } else if (typeof obj === 'object' && obj !== null) {
-    if ('red_id' in obj) {
-      obj.fmz200 = obj.red_id; // 创建新属性fmz200
-      delete obj.red_id; // 删除旧属性red_id
+  // Parsed API payloads can be deeply nested; use an explicit stack to avoid
+  // recursive call overhead and call-stack limits.
+  const stack = [obj];
+  while (stack.length > 0) {
+    const current = stack.pop();
+    if (Array.isArray(current)) {
+      for (let i = current.length - 1; i >= 0; i--) {
+        const child = current[i];
+        if (child && typeof child === "object") stack.push(child);
+      }
+    } else if (current && typeof current === "object") {
+      if ("red_id" in current) {
+        current.fmz200 = current.red_id;
+        delete current.red_id;
+      }
+      const keys = Object.keys(current);
+      for (let i = keys.length - 1; i >= 0; i--) {
+        const child = current[keys[i]];
+        if (child && typeof child === "object") stack.push(child);
+      }
     }
-    Object.keys(obj).forEach(key => {
-      replaceRedIdWithFmz200(obj[key]);
-    });
   }
 }
 
@@ -521,18 +559,28 @@ function replaceRedIdWithFmz200(obj) {
  * @returns {Object|null} - 选中的流对象或 null
  */
 function selectBestStream(h265List, h264List) {
-  // 排序函数：优先分辨率面积，其次平均码率
-  const sortStream = (a, b) => {
-    const resA = (a.width || 0) * (a.height || 0);
-    const resB = (b.width || 0) * (b.height || 0);
-    if (resB !== resA) return resB - resA;
-    return (b.avg_bitrate || 0) - (a.avg_bitrate || 0);
-  };
-
+  // A full filter + sort only needs the maximum item. Scan once instead:
+  // O(n) time, O(1) auxiliary memory, with the same resolution/bitrate order.
   const selectFromList = (list) => {
     if (!Array.isArray(list) || list.length === 0) return null;
-    const sorted = list.filter(v => !!v.master_url).sort(sortStream);
-    return sorted.length > 0 ? sorted[0] : null;
+    let best = null;
+    let bestResolution = 0;
+    let bestBitrate = 0;
+    for (const item of list) {
+      if (!item || !item.master_url) continue;
+      const resolution = (item.width || 0) * (item.height || 0);
+      const bitrate = item.avg_bitrate || 0;
+      if (
+        best === null ||
+        resolution > bestResolution ||
+        (resolution === bestResolution && bitrate > bestBitrate)
+      ) {
+        best = item;
+        bestResolution = resolution;
+        bestBitrate = bitrate;
+      }
+    }
+    return best;
   };
 
   return selectFromList(h265List) || selectFromList(h264List);
