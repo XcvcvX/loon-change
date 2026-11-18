@@ -848,6 +848,36 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
                 TAOBAO_FLIGGY_HTTPS_REDUNDANT, TAOBAO_FLIGGY_HTTPS_REDUNDANT,
             ])
 
+
+    def test_optimizes_goofish_home_sections_with_one_filter_pass(self):
+        from apply_local_overrides import (
+            GOOFISH_HOME_SECTIONS_OLD_RULE,
+            GOOFISH_HOME_SECTIONS_NATIVE_RULE,
+            optimize_goofish_home_sections_filter,
+        )
+        fixture = ["[Rewrite]", GOOFISH_HOME_SECTIONS_OLD_RULE, "[Script]"]
+        result, changed = optimize_goofish_home_sections_filter(fixture)
+        self.assertEqual(changed, 1)
+        rule = result[1]
+        self.assertEqual(rule.count(".data.sections |= map(select("), 1)
+        self.assertIn("homeMultiBanner", rule)
+        self.assertIn("mamaAD", rule)
+        self.assertIn("idlefish_home_new_commodity_card", rule)
+        self.assertIn("fish_home_tags_item_card", rule)
+        self.assertEqual(optimize_goofish_home_sections_filter(result)[1], 0)
+        self.assertIn(GOOFISH_HOME_SECTIONS_NATIVE_RULE, result)
+
+    def test_goofish_home_sections_override_fails_closed_on_drift_or_duplicates(self):
+        from apply_local_overrides import (
+            GOOFISH_HOME_SECTIONS_OLD_RULE,
+            optimize_goofish_home_sections_filter,
+        )
+        changed = GOOFISH_HOME_SECTIONS_OLD_RULE.replace("mamaAD", "unreviewed")
+        with self.assertRaisesRegex(ValueError, "rule changed"):
+            optimize_goofish_home_sections_filter(["[Rewrite]", changed])
+        with self.assertRaisesRegex(ValueError, "duplicate"):
+            optimize_goofish_home_sections_filter(["[Rewrite]", GOOFISH_HOME_SECTIONS_OLD_RULE, GOOFISH_HOME_SECTIONS_OLD_RULE])
+
     def test_consolidates_goofish_scripts_to_one_local_trigger_per_endpoint(self):
         from apply_local_overrides import (
             GOOFISH_CANONICAL_SCRIPT_TRIGGERS, GOOFISH_REDUNDANT_SCRIPT_TRIGGERS,
@@ -5227,6 +5257,7 @@ class ShadowedIshowshuAmapResponseTriggerTests(unittest.TestCase):
         ]
         self.unique_ishowshu_rules = [
             'response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_bff\\/hotword\\?/i then script("' + self.ishowshu_url + '") with tag="amap", timeout=60, requires_body=true',
+            'response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search\\/nearbyrec_smart\\?/i then script("' + self.ishowshu_url + '") with tag="amap", timeout=60, requires_body=true',
             'response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_poi\\/homepage/i then script("' + self.ishowshu_url + '") with tag="amap", timeout=60, requires_body=true',
             'response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/dsp\\/profile\\/index\\/nodefaasv3\\?/i then script("' + self.ishowshu_url + '") with tag="amap", timeout=60, requires_body=true',
             'response if ${url} ~= /^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/sharedtrip\\/taxi\\/order_detail_car_tips\\?/i then script("' + self.ishowshu_url + '") with tag="amap", timeout=60, requires_body=true',
@@ -5261,8 +5292,9 @@ class ShadowedIshowshuAmapResponseTriggerTests(unittest.TestCase):
 
         duplicate = list(self.fixture)
         duplicate.insert(2, duplicate[1])
-        with self.assertRaisesRegex(ValueError, "duplicate iShowShu Amap trigger"):
-            remove_shadowed_ishowshu_amap_response_triggers(duplicate)
+        deduplicated, duplicate_removed = remove_shadowed_ishowshu_amap_response_triggers(duplicate)
+        self.assertEqual(duplicate_removed, 7)
+        self.assertNotIn(duplicate[1], deduplicated)
 
         missing_local = [line for line in self.fixture if line != self.local_rules[0]]
         with self.assertRaisesRegex(ValueError, "local RuCu6 Amap coverage missing or duplicated"):

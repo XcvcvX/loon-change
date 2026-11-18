@@ -4220,7 +4220,7 @@ SHADOWED_ISHOWSHU_AMAP_TRIGGERS = (
     (
         "Amap coupon and POI detail pages",
         r"/^https:\/\/(?:info\.amap\.com|m5\.amap\.com)\/ws\/shield\/search\/(common\/coupon\/info|poi\/detail)/i",
-        r"ws\/shield\/search\/",
+        r"ws/shield/search/(common/coupon/info|poi/detail)",
         r"/^https:\/\/(?:info|m5)\.amap\.com\/ws\/shield\/search\/(?:common\/coupon\/info|poi\/detail)/i",
     ),
     (
@@ -4273,11 +4273,9 @@ def remove_shadowed_ishowshu_amap_response_triggers(lines):
                 matcher = line.split("~=", 1)[1].split(" then script", 1)[0].strip() if "~=" in line and " then script" in line else ""
                 old_candidates.append((index, matcher))
 
-        if len(old_candidates) > 1:
-            raise ValueError("duplicate iShowShu Amap trigger; refusing shadow cleanup: " + name)
         if not old_candidates:
             continue
-        if old_candidates[0][1] != old_matcher:
+        if any(matcher != old_matcher for _, matcher in old_candidates):
             raise ValueError("iShowShu Amap matcher changed; refusing shadow cleanup: " + name)
 
         if local_matcher not in verified_local:
@@ -4292,7 +4290,7 @@ def remove_shadowed_ishowshu_amap_response_triggers(lines):
                 raise ValueError("local RuCu6 Amap coverage missing or duplicated; refusing shadow cleanup: " + name)
             verified_local.add(local_matcher)
 
-        remove_indexes.add(old_candidates[0][0])
+        remove_indexes.update(index for index, _matcher in old_candidates)
 
     if not remove_indexes:
         return list(lines), 0
@@ -6110,6 +6108,42 @@ def optimize_bilibili_json_native_coverage(lines):
     return result, changed
 
 
+
+GOOFISH_HOME_SECTIONS_OLD_RULE = r'''response if ${url} ~= /^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlehome\.home\.nextfresh\//i then response.json.jq(".data.homeTopList |= map(select(.sectionType == \"kingkongDo\")) | .data.sections |= map(select(.data.clickParam.args.cardType as $ct | $ct != \"homeMultiBanner\" and $ct != \"mamaAD\")) | .data.sections |= map(select((.template.name|type==\"string\")and(.template.name==\"idlefish_home_new_commodity_card\"or(.template.name|contains(\"fish_home_tags_item_card\")))))")'''
+GOOFISH_HOME_SECTIONS_NATIVE_RULE = r'''response if ${url} ~= /^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlehome\.home\.nextfresh\//i then response.json.jq(".data.homeTopList |= map(select(.sectionType == \"kingkongDo\")) | .data.sections |= map(select((.data.clickParam.args.cardType as $ct | $ct != \"homeMultiBanner\" and $ct != \"mamaAD\") and ((.template.name|type)==\"string\") and (.template.name==\"idlefish_home_new_commodity_card\" or (.template.name|contains(\"fish_home_tags_item_card\")))))")'''
+
+
+def optimize_goofish_home_sections_filter(lines):
+    """Combine the two reviewed Goofish home sections filters into one map pass."""
+    output, section, found, changed = [], "", 0, 0
+    old_normalized = re.sub(r"\\+", "", GOOFISH_HOME_SECTIONS_OLD_RULE.strip())
+    new_normalized = re.sub(r"\\+", "", GOOFISH_HOME_SECTIONS_NATIVE_RULE.strip())
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+            output.append(line)
+            continue
+        normalized = re.sub(r"\\+", "", stripped)
+        if "idlehome.home.nextfresh" not in normalized or ".data.sections" not in normalized:
+            output.append(line)
+            continue
+        if section != "Rewrite" or "response.json.jq" not in normalized:
+            raise ValueError("Goofish home sections response rule moved or changed; refusing an unreviewed override")
+        found += 1
+        if found > 1:
+            raise ValueError("duplicate Goofish home sections response rules")
+        if normalized == old_normalized:
+            output.append(GOOFISH_HOME_SECTIONS_NATIVE_RULE)
+            changed += 1
+        elif normalized == new_normalized:
+            output.append(line)
+        else:
+            raise ValueError("Goofish home sections jq rule changed; refusing an unreviewed optimization")
+    return output, changed
+
+
+
 def apply(text: str) -> str:
     if "[Script]" not in text or "[MITM]" not in text or "[Rewrite]" not in text:
         raise ValueError("plugin missing [Rewrite], [Script] or [MITM] section")
@@ -6208,6 +6242,7 @@ def apply(text: str) -> str:
     lines, _ = remove_redundant_taobao_scripts(lines)
     lines, _ = remove_redundant_didi_usercenter_script(lines)
     lines, _ = consolidate_goofish_script_triggers(lines)
+    lines, _ = optimize_goofish_home_sections_filter(lines)
     lines, _ = consolidate_jingdong_scripts(lines)
     lines, _ = consolidate_meituan_scripts(lines)
     lines, _ = remove_duplicate_tuhu_scripts(lines)
