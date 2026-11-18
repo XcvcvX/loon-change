@@ -194,61 +194,34 @@ if (url.includes("/v3/note/videofeed?")) {
 
 // 信息流 视频
 if (url.includes("/v4/note/videofeed")) {
-  // Preserve the former native v4 ad filter in this single response-body pass.
-  if (Array.isArray(obj.data)) {
-    obj.data = obj.data.filter((item) =>
-      item && typeof item === "object" &&
-      item.model_type === "note" &&
-      !Object.prototype.hasOwnProperty.call(item, "ad")
-    );
-  }
   let videoData = [];
-  if (obj.data?.length > 0) {
-    for (let item of obj.data) {
-      // 强制开启权限
-      if (item?.media_save_config) {
-        item.media_save_config.disable_save = false;
-        item.media_save_config.disable_watermark = true;
-        item.media_save_config.disable_weibo_cover = true;
+  if (Array.isArray(obj.data)) {
+    // Compact the response array in place while processing each retained note.
+    // This replaces filter()+a second traversal with one stable O(n) pass and
+    // avoids allocating a second array for large video feeds.
+    const items = obj.data;
+    let write = 0;
+    for (let read = 0; read < items.length; read++) {
+      const item = items[read];
+      if (
+        !item || typeof item !== "object" ||
+        item.model_type !== "note" ||
+        Object.prototype.hasOwnProperty.call(item, "ad")
+      ) {
+        continue;
       }
-
-      // 处理 function_switch (修复按钮置灰)
-      if (item?.function_switch?.length > 0) {
-        for (let switchItem of item.function_switch) {
-          if (switchItem.type === "video_download") {
-            switchItem.enable = true;
-            if (switchItem.reason) delete switchItem.reason;
-          }
-        }
-      }
-
-      // 添加下载按钮（如果未存在）
-      if (item?.share_info?.function_entries?.length > 0) {
-        const hasDownload = item.share_info.function_entries.some(entry => entry.type === "video_download");
-        if (!hasDownload) {
-          item.share_info.function_entries.push({type: "video_download"});
-        }
-      }
-
-      // 提取最佳视频流 (修复逻辑：分辨率相同优先选码率高的)
-      const h265List = item?.video_info_v2?.media?.stream?.h265 || [];
-      const h264List = item?.video_info_v2?.media?.stream?.h264 || [];
-
-      const selectedStream = selectBestStream(h265List, h264List);
-      // 存入缓存数组
-      if (item?.id && selectedStream?.master_url) {
-        const data = {
-          id: item.id,
-          url: selectedStream.master_url
-        };
-        videoData.push(data);
-      }
+      items[write++] = item;
+      processVideoFeedItem(item, videoData);
     }
-    // 写入本地持久化缓存
+    items.length = write;
+    // Empty feeds also clear stale IDs from the previous response.
     $.setdata(JSON.stringify(videoData), "redBookVideoFeed");
-  } else if (Array.isArray(obj.data)) {
-    // Clear stale IDs when the filtered response contains no playable notes.
-    $.setdata("[]", "redBookVideoFeed");
+  } else if (obj.data?.length > 0) {
+    // Preserve the previous iterable fallback for unexpected non-array payloads.
+    for (const item of obj.data) {
+      processVideoFeedItem(item, videoData);
+    }
+    $.setdata(JSON.stringify(videoData), "redBookVideoFeed");
   }
 }
 
@@ -432,6 +405,47 @@ if (url.includes("/api/sns/v1/interaction/comment/video/download?")) {
 }
 
 $done({body: JSON.stringify(obj)});
+
+function processVideoFeedItem(item, videoData) {
+  // 强制开启权限
+  if (item?.media_save_config) {
+    item.media_save_config.disable_save = false;
+    item.media_save_config.disable_watermark = true;
+    item.media_save_config.disable_weibo_cover = true;
+  }
+
+  // 处理 function_switch (修复按钮置灰)
+  const switches = item?.function_switch;
+  if (Array.isArray(switches)) {
+    for (const switchItem of switches) {
+      if (switchItem?.type === "video_download") {
+        switchItem.enable = true;
+        if (switchItem.reason) delete switchItem.reason;
+      }
+    }
+  }
+
+  // 添加下载按钮（如果未存在）；避免 Array.some 的回调开销。
+  const entries = item?.share_info?.function_entries;
+  if (Array.isArray(entries) && entries.length > 0) {
+    let hasDownload = false;
+    for (const entry of entries) {
+      if (entry?.type === "video_download") {
+        hasDownload = true;
+        break;
+      }
+    }
+    if (!hasDownload) entries.push({type: "video_download"});
+  }
+
+  // 缺失流列表直接传 undefined，由 selectBestStream 的数组守卫返回 null，
+  // 避免每个无视频项都分配两个临时空数组。
+  const streams = item?.video_info_v2?.media?.stream;
+  const selectedStream = selectBestStream(streams?.h265, streams?.h264);
+  if (item?.id && selectedStream?.master_url) {
+    videoData.push({id: item.id, url: selectedStream.master_url});
+  }
+}
 
 // 小红书画质增强：加载2K分辨率的图片
 function imageEnhance(images) {
