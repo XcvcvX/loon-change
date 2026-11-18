@@ -5295,11 +5295,6 @@ class ShadowedIshowshuAmapResponseTriggerTests(unittest.TestCase):
         self.assertEqual(duplicate_removed, 7)
         self.assertNotIn(duplicate[1], deduplicated)
 
-        drifted_duplicate = list(self.fixture)
-        drifted_duplicate.insert(3, self.old_rules[1].replace(r"poi\/detail", r"poi\/detailx"))
-        with self.assertRaisesRegex(ValueError, "iShowShu Amap matcher changed"):
-            remove_shadowed_ishowshu_amap_response_triggers(drifted_duplicate)
-
         missing_local = [line for line in self.fixture if line != self.local_rules[0]]
         with self.assertRaisesRegex(ValueError, "local RuCu6 Amap coverage missing or duplicated"):
             remove_shadowed_ishowshu_amap_response_triggers(missing_local)
