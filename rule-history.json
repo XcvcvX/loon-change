@@ -5,57 +5,6 @@
     {
       "change_counts": {
         "rewrite": {
-          "action_changed": 0,
-          "added": 1,
-          "removed": 1
-        },
-        "rule": {
-          "action_changed": 0,
-          "added": 0,
-          "removed": 0
-        },
-        "script": {
-          "action_changed": 0,
-          "added": 2,
-          "removed": 2
-        }
-      },
-      "risk_counts": {
-        "high": 3,
-        "low": 0,
-        "medium": 3
-      },
-      "run_id": "44099348093",
-      "source_changes": {
-        "base": {
-          "action_changed": 0,
-          "added": 0,
-          "removed": 2
-        },
-        "local_overrides": {
-          "action_changed": 0,
-          "added": 3,
-          "removed": 0
-        },
-        "thelong": {
-          "action_changed": 0,
-          "added": 0,
-          "removed": 1
-        }
-      },
-      "upstream_revisions": {
-        "AlipayAdBlock": "f056c091074a4c29ad0289d7d31f39d47a4ea3d1",
-        "Amap": "f056c091074a4c29ad0289d7d31f39d47a4ea3d1",
-        "GuaZiVideoAds": "f056c091074a4c29ad0289d7d31f39d47a4ea3d1",
-        "aoomee": "f056c091074a4c29ad0289d7d31f39d47a4ea3d1",
-        "source_migrations": "",
-        "thelongdarkorg": "2d0443ce1ecec36cf173634e77ba52224efbdc38",
-        "zmjde": "f056c091074a4c29ad0289d7d31f39d47a4ea3d1"
-      }
-    },
-    {
-      "change_counts": {
-        "rewrite": {
           "action_changed": 1,
           "added": 0,
           "removed": 0
@@ -1323,6 +1272,57 @@
         "thelongdarkorg": "2d0443ce1ecec36cf173634e77ba52224efbdc38",
         "zmjde": "f7367904e29e84b1fc0169d7f302e88d7dd8be55"
       }
+    },
+    {
+      "change_counts": {
+        "rewrite": {
+          "action_changed": 1,
+          "added": 1,
+          "removed": 1
+        },
+        "rule": {
+          "action_changed": 0,
+          "added": 0,
+          "removed": 0
+        },
+        "script": {
+          "action_changed": 22,
+          "added": 16,
+          "removed": 16
+        }
+      },
+      "risk_counts": {
+        "high": 40,
+        "low": 0,
+        "medium": 17
+      },
+      "run_id": "44258985875",
+      "source_changes": {
+        "aoomee": {
+          "action_changed": 21,
+          "added": 0,
+          "removed": 0
+        },
+        "local_overrides": {
+          "action_changed": 0,
+          "added": 17,
+          "removed": 17
+        },
+        "zmjapp": {
+          "action_changed": 2,
+          "added": 0,
+          "removed": 0
+        }
+      },
+      "upstream_revisions": {
+        "AlipayAdBlock": "1469334f6a715a2eebd6e0385b311283c7947b32",
+        "Amap": "1469334f6a715a2eebd6e0385b311283c7947b32",
+        "GuaZiVideoAds": "1469334f6a715a2eebd6e0385b311283c7947b32",
+        "aoomee": "1469334f6a715a2eebd6e0385b311283c7947b32",
+        "source_migrations": "",
+        "thelongdarkorg": "2d0443ce1ecec36cf173634e77ba52224efbdc38",
+        "zmjde": "1469334f6a715a2eebd6e0385b311283c7947b32"
+      }
     }
   ],
   "source_trends_last_30_snapshots": {
@@ -1333,16 +1333,16 @@
       "snapshots_seen": 1
     },
     "aoomee": {
-      "action_changed": 130,
+      "action_changed": 151,
       "added": 0,
       "removed": 15,
-      "snapshots_seen": 11
+      "snapshots_seen": 12
     },
     "base": {
       "action_changed": 0,
       "added": 1,
-      "removed": 15,
-      "snapshots_seen": 8
+      "removed": 13,
+      "snapshots_seen": 7
     },
     "block": {
       "action_changed": 0,
@@ -1352,8 +1352,8 @@
     },
     "local_overrides": {
       "action_changed": 0,
-      "added": 80,
-      "removed": 35,
+      "added": 94,
+      "removed": 52,
       "snapshots_seen": 14
     },
     "myblockads": {
@@ -1365,14 +1365,14 @@
     "thelong": {
       "action_changed": 0,
       "added": 0,
-      "removed": 3,
-      "snapshots_seen": 2
+      "removed": 2,
+      "snapshots_seen": 1
     },
     "zmjapp": {
-      "action_changed": 8,
+      "action_changed": 10,
       "added": 0,
       "removed": 0,
-      "snapshots_seen": 4
+      "snapshots_seen": 5
     }
   }
 }
