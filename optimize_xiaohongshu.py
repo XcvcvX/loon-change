@@ -168,7 +168,8 @@ def optimize_source(src,commit="unknown"):
     src = "".join(
         line for line in src.splitlines(keepends=True)
         if not ("console.log(" in line and any(token in line for token in log_tokens))
-    )    if "imageEnhance(JSON.stringify(images_list))" in result:raise ValueError("image-feed serialization round trip remains")
+    )
+    if "imageEnhance(JSON.stringify(images_list))" in result:raise ValueError("image-feed serialization round trip remains")
     return result
 
 def rewrite_plugin(plugin):
