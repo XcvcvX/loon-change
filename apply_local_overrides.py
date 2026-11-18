@@ -2591,7 +2591,9 @@ def normalize_bilibili_non_ad_feature_overrides(lines):
             raise ValueError("Bilibili gRPC feature rule replacement inventory duplicated")
     normalized_text = "\n".join(normalized_rewrites)
     if any(marker not in normalized_text for marker in BILIBILI_AD_PATH_MARKERS):
-        raise ValueError("Bilibili ad-path Rewrite coverage changed during feature cleanup")
+        # A retired supplemental feed may have supplied some of these path guards.
+        # Preserve the original feature rules unless the full ad-path coverage remains.
+        return list(lines), 0
     return output, sum(remove_counts.values()) + sum(old_counts.values())
 
 def remove_douyin_hongguo_unsafe_rules(lines):
