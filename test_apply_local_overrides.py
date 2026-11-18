@@ -5575,3 +5575,44 @@ class DidiLocalJsonScriptMigrationTests(unittest.TestCase):
             migrate_didiads_common_v5_to_local(["[Script]", drifted, "[MITM]"])
         with self.assertRaisesRegex(ValueError, "duplicated"):
             migrate_didiads_common_v5_to_local(["[Script]", DIDIADS_COMMON_V5_SCRIPT, DIDIADS_COMMON_V5_SCRIPT, "[MITM]"])
+
+
+class BaiduMapLocalBinaryScriptMigrationTests(unittest.TestCase):
+    def test_migrates_only_binary_baidumap_handler_and_is_idempotent(self):
+        from apply_local_overrides import (
+            BAIDUMAP_LOCAL_SCRIPT_URL,
+            BAIDUMAP_RSTORE_SCRIPT_URL,
+            migrate_baidumap_script_to_local,
+            remove_redundant_baidumap_script,
+        )
+
+        trigger = f"http-response ^https?://newclient.map.baidu.com/client/phpui2/?qt=ads script-path={BAIDUMAP_RSTORE_SCRIPT_URL},tag=BAIDUMAP,requires-body=true,binary-body-mode=true"
+        fixture = ["[Script]", trigger, "[MITM]"]
+        preserved, removed = remove_redundant_baidumap_script(fixture)
+        self.assertEqual(removed, 0)
+        result, changed = migrate_baidumap_script_to_local(preserved)
+        self.assertEqual(changed, 1)
+        self.assertIn(BAIDUMAP_LOCAL_SCRIPT_URL, result[1])
+        self.assertIn("requires-body=true,binary-body-mode=true", result[1])
+        again, second_changed = migrate_baidumap_script_to_local(result)
+        self.assertEqual(again, result)
+        self.assertEqual(second_changed, 0)
+
+    def test_noops_without_baidumap_and_fails_closed_on_source_or_binary_mode_drift(self):
+        from apply_local_overrides import (
+            BAIDUMAP_RSTORE_SCRIPT_URL,
+            migrate_baidumap_script_to_local,
+        )
+
+        unrelated = ["[Script]", "not a Baidu Maps trigger", "[MITM]"]
+        result, changed = migrate_baidumap_script_to_local(unrelated)
+        self.assertEqual(result, unrelated)
+        self.assertEqual(changed, 0)
+
+        drifted_source = f"http-response ^https?://newclient.map.baidu.com/client/phpui2/?qt=ads script-path=https://example.test/baidu.js,tag=BAIDUMAP,requires-body=true,binary-body-mode=true"
+        with self.assertRaisesRegex(ValueError, "source changed"):
+            migrate_baidumap_script_to_local(["[Script]", drifted_source, "[MITM]"])
+
+        missing_binary = f"http-response ^https?://newclient.map.baidu.com/client/phpui2/?qt=ads script-path={BAIDUMAP_RSTORE_SCRIPT_URL},tag=BAIDUMAP,requires-body=true"
+        with self.assertRaisesRegex(ValueError, "binary-body requirements"):
+            migrate_baidumap_script_to_local(["[Script]", missing_binary, "[MITM]"])
