@@ -39,6 +39,78 @@ def is_mutable_remote_url(url):
         return False
     return bool(re.search(r"/(?:main|master|develop|latest|refs/heads/[^/]+)(?:/|$)", url, re.I))
 
+def _looks_like_regex_start(source, index):
+    prefix = source[max(0, index - 32):index].rstrip()
+    if not prefix:
+        return True
+    return prefix[-1] in "=(:,[!&|?{};" or bool(
+        re.search(r"\b(return|case|throw|yield|await|else|do)\s*$", prefix)
+    )
+
+
+def javascript_brace_scope_at(source, offset):
+    """Return the enclosing brace stack while ignoring strings and comments."""
+    stack = []
+    state, quote, escaped, in_class = "code", "", False, False
+    index = 0
+    while index < offset:
+        char = source[index]
+        following = source[index + 1] if index + 1 < offset else ""
+
+        if state == "code":
+            if char == "/" and following == "/":
+                state = "line-comment"
+                index += 2
+                continue
+            if char == "/" and following == "*":
+                state = "block-comment"
+                index += 2
+                continue
+            if char == "/" and _looks_like_regex_start(source, index):
+                state, escaped, in_class = "regex", False, False
+                index += 1
+                continue
+            if char in ("'", '"', "\x60"):
+                state, quote, escaped = "string", char, False
+            elif char == "{":
+                stack.append(index)
+            elif char == "}" and stack:
+                stack.pop()
+
+        elif state == "line-comment":
+            if char == "\n":
+                state = "code"
+
+        elif state == "block-comment":
+            if char == "*" and following == "/":
+                state = "code"
+                index += 2
+                continue
+
+        elif state == "string":
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == quote:
+                state = "code"
+
+        elif state == "regex":
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == "[":
+                in_class = True
+            elif char == "]":
+                in_class = False
+            elif char == "/" and not in_class:
+                state = "code"
+
+        index += 1
+    return tuple(stack)
+
+
 def audit_plugin(plugin_path, repo_root="."):
     plugin_path, root = Path(plugin_path), Path(repo_root)
     sections = parse_sections(plugin_path.read_text(encoding="utf-8-sig"))
@@ -104,9 +176,19 @@ def audit_plugin(plugin_path, repo_root="."):
         except (OSError, UnicodeError):
             continue
         matches = list(JSON_PARSE_RE.finditer(source))
-        expressions = Counter(re.sub(r"\s+", " ", m.group(1).strip()) for m in matches)
-        repeated = [{"expression": expr, "count": count}
-                    for expr, count in sorted(expressions.items()) if count > 1]
+        scoped_expressions = defaultdict(list)
+        for match in matches:
+            expression = re.sub(r"\s+", " ", match.group(1).strip())
+            scope = javascript_brace_scope_at(source, match.start())
+            scoped_expressions[(expression, scope)].append(match)
+        repeated = [
+            {"expression": expression, "count": len(items),
+             "lines": [source.count("\n", 0, item.start()) + 1 for item in items],
+             "scope_depth": len(scope)}
+            for (expression, scope), items in sorted(
+                scoped_expressions.items(), key=lambda item: (item[0][0], item[0][1])
+            ) if len(items) > 1
+        ]
         if matches:
             js_parse.append({"path": str(path), "json_parse_calls": len(matches),
                              "repeated_parse_expressions": repeated,
@@ -142,9 +224,10 @@ def audit_plugin(plugin_path, repo_root="."):
         "local_js_json_parse": js_parse,
         "notes": [
             "只读静态审计，不自动删除脚本、requires-body 或远程依赖。",
-            "http-response 与 response if ... then script(...) 都是响应脚本；requires-body=true 表示需要读取响应体，触发次数不等于实际请求次数。",
-            "相同响应 URL pattern 被不同脚本处理会列为跨脚本重叠候选；需确认逻辑等价后再移除。",
-            "JSON.parse 统计是静态文本计数；重复表达式是优化候选，需结合脚本控制流确认。",
+            "Loon Script v2 对每个响应最多选择一条 Response Script；响应脚本条目与 requires-body 数量是候选配置数，不是每个响应累计执行次数。",
+            "高复用脚本 URL 的触发次数是配置引用数，不代表实际请求频率或每次响应的脚本执行次数。",
+            "相同响应 URL pattern 被不同脚本处理会列为选择重叠候选；Loon 按最终配置顺序选择一条，不应误判为同一响应会被多脚本重复处理。",
+            "JSON.parse 重复表达式按 JavaScript 花括号作用域分组；不同 if/函数块中的同名变量不会被视为同一数据重复解析。",
             "分支型 URL 可能是有意跟随上游更新；固定 commit 的 URL 更可复现，但不自动保证运行性能。",
         ],
     }
@@ -153,21 +236,21 @@ def render_markdown(report):
     lines = ["# Loon runtime performance audit", "", "## Summary", "",
              "| Metric | Count |", "|---|---:|"]
     lines.extend(f"| {key} | {value} |" for key, value in report["summary"].items())
-    lines += ["", "## Response-body script triggers", "",
-              "| Line | Trigger | URL pattern | Script | requires-body |", "|---:|---|---|---|---|"]
+    lines += ["", "## Response-script candidates (not per-response execution counts)", "",
+              "| Line | Trigger | URL pattern | Script | requires-body=true |", "|---:|---|---|---|---|"]
     for item in report["response_body_script_triggers"]:
         lines.append(f"| {item['line']} | {item['trigger_kind']} | {item['url_pattern']} | {item['script_url']} | {item['requires_body']} |")
     lines += ["", "## Duplicate response patterns across scripts", "",
               "| URL pattern | Script URLs | Lines |", "|---|---|---:|"]
     for item in report["duplicate_response_patterns_across_scripts"]:
         lines.append(f"| {item['url_pattern']} | {'; '.join(item['script_urls'])} | {', '.join(map(str, item['lines']))} |")
-    lines += ["", "## High fan-out script URLs (5+ triggers)", "",
+    lines += ["", "## High fan-out script URLs (5+ configured references; not request frequency)", "",
               "| Trigger count | Response count | Script URL |", "|---:|---:|---|"]
     for item in report["high_fanout_script_urls"]:
         lines.append(f"| {item['trigger_count']} | {item['response_count']} | {item['script_url']} |")
     lines += ["", "## Mutable branch URLs", ""]
     lines.extend(f"- {url}" for url in report["mutable_branch_remote_urls"])
-    lines += ["", "## Local JavaScript JSON.parse hotspots", "",
+    lines += ["", "## Local JavaScript JSON.parse hotspots (same-scope repeats)", "",
               "| File | Bytes | JSON.parse calls | Repeated expressions |", "|---|---:|---:|---:|"]
     for item in report["local_js_json_parse"]:
         lines.append(f"| {item['path']} | {item['bytes']} | {item['json_parse_calls']} | {len(item['repeated_parse_expressions'])} |")
