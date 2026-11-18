@@ -5237,3 +5237,63 @@ class QunarSerializationCostTests(unittest.TestCase):
         self.assertIn("sameTarget(o[k], value)", source)
         self.assertNotIn("JSON.stringify(o[k]) === JSON.stringify(value)", source)
         self.assertIn("return JSON.stringify(current) === JSON.stringify(target)", source)
+
+
+class QunarRuntimeHotPathTests(unittest.TestCase):
+    def test_response_cleanup_skips_per_response_persistent_stats_by_default(self):
+        import shutil
+        import subprocess
+        from pathlib import Path
+
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node.js is required for the Qunar runtime integration test")
+        source_path = Path(__file__).with_name("scripts").joinpath("romeo_legacy", "qunar-clean.js")
+        source = source_path.read_text(encoding="utf-8")
+        harness = r'''\
+const fs = require("fs");
+const vm = require("vm");
+const source = fs.readFileSync(process.argv[1], "utf8");
+let reads = 0, writes = 0, doneResult;
+const context = {
+  $request: { url: "https://lang.qunar.com/api/common/feed/open/postList", method: "GET", headers: {} },
+  $response: { status: 200, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ data: { list: [{ id: 1 }], fastFilterNameList: [{ id: 2 }] } }) },
+  $persistentStore: { read() { reads++; return "{}"; }, write() { writes++; return true; } },
+  $done(value) { doneResult = value; },
+  console: { log() {} }
+};
+vm.runInNewContext(source, context);
+if (reads !== 0 || writes !== 0) throw new Error("hot-path persistent stats I/O occurred: " + reads + "/" + writes);
+if (!doneResult || typeof doneResult.body !== "string") throw new Error("Qunar response cleanup did not return a body");
+const parsed = JSON.parse(doneResult.body);
+if (parsed.data.list.length !== 0 || parsed.data.fastFilterNameList.length !== 0 || parsed.data.isLastOne !== true) {
+  throw new Error("Qunar ad cleanup behavior changed: " + doneResult.body);
+}
+'''
+        subprocess.run([node, "-e", harness, str(source_path)], check=True, capture_output=True, text=True)
+
+    def test_manual_status_report_also_skips_storage_when_stats_are_disabled(self):
+        import shutil
+        import subprocess
+        from pathlib import Path
+
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node.js is required for the Qunar runtime integration test")
+        source_path = Path(__file__).with_name("scripts").joinpath("romeo_legacy", "qunar-clean.js")
+        harness = r'''\
+const fs = require("fs");
+const vm = require("vm");
+const source = fs.readFileSync(process.argv[1], "utf8");
+let reads = 0, writes = 0, doneResult;
+const context = {
+  $persistentStore: { read() { reads++; return "{}"; }, write() { writes++; return true; } },
+  $notification: { post() {} },
+  $done(value) { doneResult = value; },
+  console: { log() {} }
+};
+vm.runInNewContext(source, context);
+if (reads !== 0 || writes !== 0) throw new Error("manual report performed storage I/O: " + reads + "/" + writes);
+if (!doneResult || Object.keys(doneResult).length !== 0) throw new Error("manual report changed the generic result");
+'''
+        subprocess.run([node, "-e", harness, str(source_path)], check=True, capture_output=True, text=True)
