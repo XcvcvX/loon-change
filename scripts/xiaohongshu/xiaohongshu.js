@@ -1,4 +1,4 @@
-// loon-change: Xiaohongshu response hot-path optimization v1; upstream fmz200/wool_scripts@8b3e6927bc6ad6a8efb52e685284c683e09578d0
+// loon-change: Xiaohongshu response hot-path optimization v1; upstream fmz200/wool_scripts@eca3853dfed0f2db829408a81b98ff279bcfe8f9
 /**
  * @author fmz200
  * @function 小红书去广告、净化、解除下载限制、画质增强等
@@ -7,7 +7,6 @@
 
 const $ = new Env('小红书');
 const url = $request.url;
-
 function compactInPlace(items, keep) {
   let write = 0;
   for (let read = 0, length = items.length; read < length; read++) {
@@ -134,7 +133,7 @@ if (url.includes("/note/imagefeed?") || url.includes("/note/feed?")) {
 
       const images_list = obj.data[0].note_list[0].images_list;
       // 画质增强
-      // Cache original image URLs before mutating response data in place.
+      // Cache original image URLs before mutating the response.
       $.setdata(JSON.stringify(images_list), "fmz200.xiaohongshu.feed.rsp");
       obj.data[0].note_list[0].images_list = imageEnhance(images_list);
     }
