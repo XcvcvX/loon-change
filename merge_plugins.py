@@ -2939,14 +2939,8 @@ if args.zmjde:
 fstats = {'total': 0, 'covered': 0, 'added': 0}
 if args.filter != 'none':
     if args.filter == 'fetch':
-        try:
-            ftext, used_url, _ = fetch_validated(
-                [FILTER_URL] + FILTER_MIRRORS, fetch, validate_filter, 'R-Store filter')
-            print('[fetch] 已获取并通过完整性检查 R-Store filter:', used_url)
-        except Exception as e:
-            raise SystemExit('R-Store filter 获取失败: %s' % e)
-    else:
-        ftext = open(args.filter, encoding='utf-8').read()
+        raise SystemExit('R-Store 独立 filter 补充源已停用；综合规则仅使用 base')
+    ftext = open(args.filter, encoding='utf-8').read()
     for fr in dedup_keep_order(parse_qx_filter(ftext)):
         fstats['total'] += 1
         before = len(rule_result)
