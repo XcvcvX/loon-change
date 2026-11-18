@@ -2944,6 +2944,8 @@ def consolidate_wechat_unblock_url_scripts(lines):
     normalized_expected = {normalized_trigger(item): item for item in expected}
     counts = {item: 0 for item in expected}
     output, section, target_seen, removed = [], "", False, 0
+    target_lines = []
+    unknown_trigger = False
     for line in lines:
         if line.startswith("[") and line.endswith("]"):
             section = line[1:-1]
@@ -2953,9 +2955,12 @@ def consolidate_wechat_unblock_url_scripts(lines):
         normalized = re.sub(r"\\+", "", value).lower()
         if section == "Script" and "newredirectconfirmcgi" in normalized:
             target_seen = True
+            target_lines.append(value)
             trigger = normalized_expected.get(normalized_trigger(value))
             if trigger is None:
-                raise ValueError("WeChat URL-unblock script trigger changed; refusing unreviewed consolidation")
+                unknown_trigger = True
+                output.append(line)
+                continue
             counts[trigger] += 1
             if counts[trigger] > 1:
                 raise ValueError("duplicate WeChat URL-unblock script trigger")
@@ -2967,6 +2972,32 @@ def consolidate_wechat_unblock_url_scripts(lines):
         output.append(line)
 
     if not target_seen:
+        return list(lines), 0
+    # Some upstream snapshots now ship only the R-Store canonical handler; accept
+    # that exact single-source inventory even if cosmetic escaping/tag formatting drifts.
+    target_sources = [item.lower() for item in target_lines]
+    has_rstore_canonical = any(
+        "raw.githubusercontent.com/zirawell/r-store/main/res/scripts/plugins/wechat_unblock_url.js" in item
+        for item in target_sources
+    )
+    has_rucu6_variant = any("rucu6/myblockads/rucu6_wechat.js" in item for item in target_sources)
+    has_zzpiglet_duplicate = any("zzpiglet/task" in item for item in target_sources)
+    if (
+        has_rstore_canonical
+        and not has_zzpiglet_duplicate
+        and (len(target_lines) == 1 or (len(target_lines) == 2 and has_rucu6_variant))
+    ):
+        # Preserve the current R-Store handler and the behaviorally distinct RuCu6 variant.
+        return list(lines), 0
+    if unknown_trigger:
+        raise ValueError("WeChat URL-unblock script trigger changed; refusing unreviewed consolidation")
+    if (
+        counts[WECHAT_UNBLOCK_URL_CANONICAL_TRIGGER] == 1
+        and counts[WECHAT_UNBLOCK_URL_REDUNDANT_TRIGGER] == 0
+        and counts[WECHAT_UNBLOCK_URL_DISTINCT_TRIGGER] == 0
+    ):
+        # Current merged upstream snapshot contains only the canonical R-Store handler.
+        # No duplicate exists to remove; preserve the lone handler without treating it as drift.
         return list(lines), 0
     if (
         counts[WECHAT_UNBLOCK_URL_CANONICAL_TRIGGER] == 1
@@ -3883,6 +3914,84 @@ def remove_redundant_alipan_onboard_response_script(lines):
 
 
 MGW_ECNY_RESPONSE_HOST = "mgs.wallet.pbcdci.cn"
+
+
+USMILE_RESPONSE_SCRIPT_MARKER = "www.myusmile.online/user/plaquetopic/selectbytype"
+USMILE_RESPONSE_SCRIPT_URL = "Res/Scripts/AntiAd/usmile.js"
+
+
+def remove_unneeded_usmile_response_body_read(lines):
+    """Remove response-body buffering from Usmile's request-header-only handler."""
+    section = ""
+    candidates = []
+    for index, line in enumerate(lines):
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            continue
+        if section != "Script" or not line.lower().startswith(("http-response ", "response if ")):
+            continue
+        normalized = re.sub(r"\\+", "", line).lower()
+        if USMILE_RESPONSE_SCRIPT_MARKER in normalized and USMILE_RESPONSE_SCRIPT_URL.lower() in normalized:
+            candidates.append(index)
+
+    if len(candidates) > 2:
+        raise ValueError("duplicate Usmile response handlers; refusing ambiguous body-read cleanup")
+    if not candidates:
+        return list(lines), 0
+
+    updated = list(lines)
+    removed = 0
+    for index in candidates:
+        line = updated[index]
+        matches = list(re.finditer(r",\s*requires[-_]body\s*=\s*true(?=\s*(?:,|$))", line, re.I))
+        if len(matches) > 1:
+            raise ValueError("duplicate Usmile requires-body option; refusing ambiguous cleanup")
+        if matches:
+            match = matches[0]
+            updated[index] = line[:match.start()] + line[match.end():]
+            removed += 1
+    return updated, removed
+
+
+HEADER_ONLY_RESPONSE_SCRIPT_MARKERS = (
+    ("image.spdbccc.com.cn/group", "Res/Scripts/AntiAd/spdbccc.js"),
+    ("cdn.sdb.com.cn/bron-coms/bron-coms/material-image", "Res/Scripts/AntiAd/sdb.js"),
+    ("home.umetrip.com", "Scripts/umetrip/umetrip_ads.js"),
+)
+
+
+def remove_unneeded_header_only_response_body_reads(lines):
+    """Remove body buffering only from verified response-header/request-header-only scripts."""
+    section = ""
+    found = {marker: [] for marker, _ in HEADER_ONLY_RESPONSE_SCRIPT_MARKERS}
+    for index, line in enumerate(lines):
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            continue
+        if section != "Script" or not line.lower().startswith(("http-response ", "response if ")):
+            continue
+        normalized = re.sub(r"\\+", "", line).lower()
+        for marker, script_path in HEADER_ONLY_RESPONSE_SCRIPT_MARKERS:
+            if marker in normalized and script_path.lower() in normalized:
+                found[marker].append(index)
+
+    updated = list(lines)
+    removed = 0
+    for marker, _ in HEADER_ONLY_RESPONSE_SCRIPT_MARKERS:
+        candidates = found[marker]
+        if len(candidates) > 1:
+            raise ValueError("duplicate header-only response handler for %s" % marker)
+        if not candidates:
+            continue
+        index = candidates[0]
+        matches = list(re.finditer(r",\s*requires[-_]body\s*=\s*true(?=\s*(?:,|$))", updated[index], re.I))
+        if len(matches) > 1:
+            raise ValueError("duplicate requires-body option for header-only response handler %s" % marker)
+        if matches:
+            match = matches[0]
+            updated[index] = updated[index][:match.start()] + updated[index][match.end():]
+            removed += 1
+    return updated, removed
 
 
 def remove_unneeded_mgw_ecny_response_body_read(lines):
@@ -5624,6 +5733,8 @@ def apply(text: str) -> str:
     lines, _ = remove_redundant_pupu_response_scripts(lines)
     lines, _ = remove_redundant_alipan_onboard_response_script(lines)
     lines, _ = remove_unneeded_mgw_ecny_response_body_read(lines)
+    lines, _ = remove_unneeded_usmile_response_body_read(lines)
+    lines, _ = remove_unneeded_header_only_response_body_reads(lines)
     lines, _ = remove_weibo_non_ad_response_triggers(lines)
     lines, _ = remove_redundant_dianping_scripts(lines)
     lines, _ = remove_redundant_baidumap_script(lines)
