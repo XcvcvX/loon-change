@@ -37,6 +37,7 @@ on:
       - 'sources/alipayAdBlock/**'
       - 'sources/romeo_legacy/**'
       - 'scripts/**'
+      - 'test_xiaohongshu_v4_performance.py'
       - '.github/workflows/sync.yml'
   pull_request:
     paths:
@@ -80,6 +81,7 @@ on:
       - 'sources/alipayAdBlock/**'
       - 'sources/romeo_legacy/**'
       - 'scripts/**'
+      - 'test_xiaohongshu_v4_performance.py'
       - 'apply_local_overrides.py'
       - 'test_apply_local_overrides.py'
       - 'integrate_spotify.py'
@@ -139,7 +141,7 @@ jobs:
       - name: 检查小红书本地视频脚本语法
         run: node --check scripts/xiaohongshu/xiaohongshu-v4.js
       - name: 运行单元与合并集成测试
-        run: python3 -m unittest -v test_validate_plugin.py test_fix_script_configs.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_apply_amap_local_overrides.py test_compare_rule_provenance.py test_source_health_guard.py test_finalize_provenance.py test_rule_risk_history.py test_integrate_spotify.py test_convert_qx2loon.py test_convert_filter_qx2loon.py test_stage_romeo_plugins.py test_runtime_performance_audit.py
+        run: python3 -m unittest -v test_validate_plugin.py test_fix_script_configs.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_apply_amap_local_overrides.py test_compare_rule_provenance.py test_source_health_guard.py test_finalize_provenance.py test_rule_risk_history.py test_integrate_spotify.py test_convert_qx2loon.py test_convert_filter_qx2loon.py test_stage_romeo_plugins.py test_runtime_performance_audit.py test_xiaohongshu_v4_performance.py
       - name: 测试本地插件覆盖
         run: |
           # The checked-in plugin is a historical snapshot; snapshot-specific assertions
@@ -224,7 +226,7 @@ jobs:
         run: node --check scripts/xiaohongshu/xiaohongshu-v4.js
 
       - name: 测试校验器与来源依赖门禁
-        run: python3 -m unittest -v test_validate_plugin.py test_fix_script_configs.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_apply_amap_local_overrides.py test_compare_rule_provenance.py test_source_health_guard.py test_finalize_provenance.py test_rule_risk_history.py test_integrate_spotify.py test_convert_qx2loon.py test_convert_filter_qx2loon.py test_stage_romeo_plugins.py test_runtime_performance_audit.py
+        run: python3 -m unittest -v test_validate_plugin.py test_fix_script_configs.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_apply_amap_local_overrides.py test_compare_rule_provenance.py test_source_health_guard.py test_finalize_provenance.py test_rule_risk_history.py test_integrate_spotify.py test_convert_qx2loon.py test_convert_filter_qx2loon.py test_stage_romeo_plugins.py test_runtime_performance_audit.py test_xiaohongshu_v4_performance.py
 
       - name: 创建隔离构建目录
         run: |
