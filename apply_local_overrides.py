@@ -1225,12 +1225,18 @@ def narrow_pdd_philo_hub_response_rules(lines):
     output = list(lines)
     section = ""
     counts = {rule: 0 for rule in PDD_PHILO_HUB_RESPONSE_RULES}
+    narrowed_counts = {PDD_PHILO_HUB_NO_QUERY_RULE: 0, PDD_PHILO_HUB_QUERY_RULE: 0}
     for index, line in enumerate(output):
         stripped = line.strip()
         if stripped.startswith("[") and stripped.endswith("]"):
             section = stripped[1:-1]
             continue
         if section != "Rewrite" or "api.pinduoduo.com/api/philo/personal/hub" not in stripped:
+            continue
+        if stripped in narrowed_counts:
+            narrowed_counts[stripped] += 1
+            if narrowed_counts[stripped] > 1:
+                raise ValueError("duplicate narrowed PDD personal-hub response rule")
             continue
         if stripped not in counts:
             raise ValueError("PDD personal-hub response rule changed; refusing unreviewed matcher narrowing")
@@ -1241,6 +1247,12 @@ def narrow_pdd_philo_hub_response_rules(lines):
             PDD_PHILO_HUB_NO_QUERY_RULE if stripped == PDD_PHILO_HUB_RESPONSE_RULES[0]
             else PDD_PHILO_HUB_QUERY_RULE
         )
+    if any(counts.values()) and any(narrowed_counts.values()):
+        raise ValueError("mixed original and narrowed PDD personal-hub rules; refusing partial migration")
+    if any(narrowed_counts.values()):
+        if any(count != 1 for count in narrowed_counts.values()):
+            raise ValueError("narrowed PDD personal-hub response rule inventory changed")
+        return output, 0
     if not any(counts.values()):
         return output, 0
     if any(count != 1 for count in counts.values()):
