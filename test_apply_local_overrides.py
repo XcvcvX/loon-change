@@ -5296,7 +5296,7 @@ class ShadowedIshowshuAmapResponseTriggerTests(unittest.TestCase):
         self.assertNotIn(duplicate[1], deduplicated)
 
         drifted_duplicate = list(self.fixture)
-        drifted_duplicate.insert(3, self.old_rules[1].replace(r"poi\\/detail", r"poi\\/detailx"))
+        drifted_duplicate.insert(3, self.old_rules[1].replace(r"poi\/detail", r"poi\/detailx"))
         with self.assertRaisesRegex(ValueError, "iShowShu Amap matcher changed"):
             remove_shadowed_ishowshu_amap_response_triggers(drifted_duplicate)
 
