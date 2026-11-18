@@ -44,8 +44,8 @@ process.stdout.write(JSON.stringify(done));
         body={"data":[
           {"type":"market_card","fields":{"header":{"url":"https://www.zhihu.com/video?videoID=market-1"},"body":{"video":{"id":"old-market"}}}},
           {"type":"common_card","extra":{"type":"drama"}},
-          {"type":"common_card","extra":{"type":"zvideo"},"common_card":{"feed_content":{"video":{"customized_page_url":"https://www.zhihu.com/video?x=1&videoID=custom-2","id":"old-custom"}}}},
           {"type":"common_card","common_card":{"feed_content":{"video":{"id":"old-fallback"}}}},
+          {"type":"common_card","extra":{"type":"zvideo"},"common_card":{"feed_content":{"video":{"customized_page_url":"https://www.zhihu.com/video?x=1&videoID=custom-2","id":"old-custom"}}}},
           {"type":"common_card","common_card":{"footline":{"elements":[{"text":{"panel_text":"广告推广"}}]}}},
           {"type":"common_card","common_card":{"feed_content":{"source_line":{"elements":[{},{"text":{"panel_text":"盐选专栏"}}]}}}},
           {"type":"common_card","promotion_extra":{}},
@@ -60,8 +60,8 @@ process.stdout.write(JSON.stringify(done));
         ids=[item["type"] for item in out["data"]]
         self.assertEqual(ids,["market_card","common_card","common_card","normal_card"])
         self.assertEqual(out["data"][0]["fields"]["body"]["video"]["id"],"market-1")
-        self.assertEqual(out["data"][1]["common_card"]["feed_content"]["video"]["id"],"custom-2")
-        self.assertEqual(out["data"][2]["common_card"]["feed_content"]["video"]["id"],'"old-fallback"')
+        self.assertEqual(out["data"][1]["common_card"]["feed_content"]["video"]["id"],'"old-fallback"')
+        self.assertEqual(out["data"][2]["common_card"]["feed_content"]["video"]["id"],"custom-2")
         self.assertEqual([item["offset"] for item in out["data"]],[1,2,3,4])
 
     @unittest.skipUnless(NODE,"Node.js required for response runtime tests")
