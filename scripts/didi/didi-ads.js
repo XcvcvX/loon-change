@@ -26,13 +26,13 @@ if (!$response.body) {
   }
 
 if (url.includes("/other/pGetSceneList")) {
-  if (obj.data?.scene_list instanceof Array) {
+  if (Array.isArray(obj.data?.scene_list)) {
     filterInPlace(obj.data.scene_list, item => item.text !== "优惠商城");
   }
-  if (obj.data?.show_data instanceof Array) {
+  if (Array.isArray(obj.data?.show_data)) {
     for (let i = 0; i < obj.data.show_data.length; i++) {
       const block = obj.data.show_data[i];
-      if (block.scene_ids instanceof Array) {
+      if (Array.isArray(block.scene_ids)) {
         filterInPlace(block.scene_ids, id => id !== "scene_coupon_mall");
       }
     }
