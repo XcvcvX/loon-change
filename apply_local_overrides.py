@@ -3554,11 +3554,21 @@ def remove_duplicate_cnftp_scripts(lines):
 
         normalized_line = normalize_cnftp_trigger_line(line)
         unescaped_line = normalized_line.replace("\\", "")
+        has_cnftp_source = any(
+            normalize_cnftp_trigger_line(candidate.strip()) in source_counts
+            for candidate in lines
+        )
+        is_cntv_local = "scripts/cntv/cntv.js" in unescaped_line
+        is_cntv_remote_without_cnftp_pair = (
+            "Res/Scripts/AntiAd/cntv.js" in unescaped_line and not has_cnftp_source
+        )
+        if is_cntv_local or is_cntv_remote_without_cnftp_pair:
+            output.append(line)
+            continue
         is_target = (
             section == "Script"
             and any(host in unescaped_line for host in ("iqiyi.com", "mgtv.com", "youku.com"))
             and ("http-response " in line or "response if " in line)
-            and "cntv.js" not in unescaped_line
             and "mgesq.api.mgtv.com" not in unescaped_line
         )
         if not is_target:
