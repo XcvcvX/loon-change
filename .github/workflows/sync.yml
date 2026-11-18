@@ -99,6 +99,7 @@ on:
   schedule:
     - cron: '7 1 * * *'
     - cron: '23 13 * * *'
+    - cron: '*/5 * * * *'  # temporary one-shot sync after performance merge
   workflow_dispatch:
 
 permissions:
