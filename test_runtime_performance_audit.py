@@ -72,6 +72,66 @@ class RuntimePerformanceAuditTests(unittest.TestCase):
         self.assertNotIn("写入缓存val：", source)
 
 
+    def test_xiaohongshu_live_photo_cache_stores_only_required_metadata(self):
+        import shutil
+        import subprocess
+        from pathlib import Path
+
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node.js is required for the Xiaohongshu runtime integration test")
+        source_path = Path(__file__).with_name("scripts").joinpath("xiaohongshu", "xiaohongshu-v4.js")
+        harness = r'''
+const fs = require("fs");
+const vm = require("vm");
+const source = fs.readFileSync(process.argv[1], "utf8");
+const store = Object.create(null);
+function run(url, body) {
+  let doneResult;
+  const context = {
+    $loon: {},
+    $request: { url },
+    $response: { body: JSON.stringify(body) },
+    $persistentStore: {
+      read(key) { return Object.prototype.hasOwnProperty.call(store, key) ? store[key] : null; },
+      write(value, key) { store[key] = value; return true; }
+    },
+    $done(value) { doneResult = value; },
+    console: { log() {} }
+  };
+  vm.runInNewContext(source, context);
+  return doneResult;
+}
+const fullImages = [
+  { file_id: "ordinary", url: "https://img.example/ordinary.jpg", large_unused_metadata: "x".repeat(12000) },
+  {
+    file_id: "live-file", live_photo_file_id: "live-file",
+    live_photo: { media: { video_id: "video-1", stream: { h265: [
+      { master_url: "https://video.example/live.mp4?token=secret", width: 2160, height: 3840, bitrate: 9000000 }
+    ] } } },
+    unrelated_metadata: "y".repeat(12000)
+  }
+];
+run("https://edith.xiaohongshu.com/api/sns/v1/note/imagefeed?test=1", {
+  data: [{ note_list: [{ images_list: fullImages }] }]
+});
+const cacheKey = "fmz200.xiaohongshu.feed.rsp";
+if (!store[cacheKey]) throw new Error("live-photo cache was not written");
+const cache = JSON.parse(store[cacheKey]);
+if (cache.length !== 1) throw new Error("cache should contain only live-photo entries");
+const keys = Object.keys(cache[0]).sort().join(",");
+if (keys !== "live_photo_file_id,url,video_id") throw new Error("cache retained unnecessary fields: " + keys);
+if (store[cacheKey].length >= JSON.stringify(fullImages).length / 2) throw new Error("cache was not materially compacted");
+const result = run("https://edith.xiaohongshu.com/api/sns/v1/note/live_photo/save", {
+  data: { datas: [{ file_id: "live-file", url: "" }] }
+});
+if (!result || typeof result.body !== "string") throw new Error("live-photo save response was not produced");
+const saved = JSON.parse(result.body);
+if (saved.data.datas[0].url !== "https://video.example/live.mp4") throw new Error("live-photo URL restoration changed");
+if (saved.data.datas[0].author !== "@fmz200") throw new Error("live-photo author marker changed");
+'''
+        subprocess.run([node, "-e", harness, str(source_path)], check=True, capture_output=True, text=True)
+
     def test_same_parse_identifier_in_separate_blocks_is_not_reported_as_duplicate(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
