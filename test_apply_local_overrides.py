@@ -3345,11 +3345,15 @@ class UnneededUsmileResponseBodyReadTests(unittest.TestCase):
 
 class MaaseaYoutubeShadowedTriggerTests(unittest.TestCase):
     def test_narrows_response_fallback_and_removes_shadowed_log_event_request(self):
-        from apply_local_overrides import optimize_maasea_youtube_shadowed_triggers
-        dev_request = r"http-request ^https:\\/\\/youtubei\\.googleapis\\.com\\/youtubei\\/v1\\/log_event(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=true"
-        maasea_request = r"http-request ^https:\\/\\/youtubei\\.googleapis\\.com\\/youtubei\\/v1\\/log_event script-path=https://raw.githubusercontent.com/ifflagged/Romeo/abc/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.request.js,requires-body=true"
-        broad_response = r"http-response ^https:\\/\\/youtubei\\.googleapis\\.com\\/(youtubei\\/v1\\/(browse|next|player|search|reel\\/reel_watch_sequence|guide|account\\/get_setting|get_watch|log_event|config))(\\?(.*))?$ script-path=https://raw.githubusercontent.com/ifflagged/Romeo/abc/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.response.js,requires-body=true"
-        legacy_response = r"response if \${url} ~= /youtubei\\/v1\\/(browse|next|player)/ then script('https://raw.githubusercontent.com/Maasea/sgmodule/master/Script/Youtube/youtube.response.js')"
+        from apply_local_overrides import (
+            optimize_maasea_youtube_shadowed_triggers,
+            MAASEA_YOUTUBE_RESPONSE_BROAD_ENDPOINTS,
+            MAASEA_YOUTUBE_RESPONSE_NARROW_ENDPOINTS,
+        )
+        dev_request = r"http-request ^https:\/\/youtubei\.googleapis\.com\/youtubei\/v1\/log_event(?:\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=true"
+        maasea_request = r"http-request ^https:\/\/youtubei\.googleapis\.com\/youtubei\/v1\/log_event script-path=https://raw.githubusercontent.com/ifflagged/Romeo/abc/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.request.js,requires-body=true"
+        broad_response = r"http-response ^https:\/\/youtubei\.googleapis\.com\/(youtubei\/v1\/(browse|next|player|search|reel\/reel_watch_sequence|guide|account\/get_setting|get_watch|log_event|config))(\?(.*))?$ script-path=https://raw.githubusercontent.com/ifflagged/Romeo/abc/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.response.js,requires-body=true"
+        legacy_response = r"response if \${url} ~= /youtubei\/v1\/(browse|next|player)/ then script('https://raw.githubusercontent.com/Maasea/sgmodule/master/Script/Youtube/youtube.response.js')"
         lines = ["[Script]", dev_request, maasea_request, broad_response, legacy_response, "[MITM]"]
         result, changed = optimize_maasea_youtube_shadowed_triggers(lines)
         self.assertEqual(changed, 2)
@@ -3364,20 +3368,20 @@ class MaaseaYoutubeShadowedTriggerTests(unittest.TestCase):
 
     def test_preserves_maasea_request_if_no_earlier_handler_exists(self):
         from apply_local_overrides import optimize_maasea_youtube_shadowed_triggers
-        maasea_request = r"http-request ^https:\\/\\/youtubei\\.googleapis\\.com\\/youtubei\\/v1\\/log_event script-path=https://raw.githubusercontent.com/ifflagged/Romeo/abc/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.request.js,requires-body=true"
+        maasea_request = r"http-request ^https:\/\/youtubei\.googleapis\.com\/youtubei\/v1\/log_event script-path=https://raw.githubusercontent.com/ifflagged/Romeo/abc/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.request.js,requires-body=true"
         result, changed = optimize_maasea_youtube_shadowed_triggers(["[Script]", maasea_request, "[MITM]"])
         self.assertEqual(changed, 0)
         self.assertIn(maasea_request, result)
 
-    def test_fails_closed_on_duplicate_maasea_response_or_request_triggers(self):
+    def test_fails_closed_on_duplicate_maasea_response_triggers(self):
         from apply_local_overrides import optimize_maasea_youtube_shadowed_triggers
-        response = r"http-response ^https:\\/\\/youtubei\\.googleapis\\.com\\/(youtubei\\/v1\\/(guide|account\\/get_setting)) script-path=https://raw.githubusercontent.com/ifflagged/Romeo/abc/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.response.js"
+        response = r"http-response ^https:\/\/youtubei\.googleapis\.com\/(youtubei\/v1\/(guide|account\/get_setting)) script-path=https://raw.githubusercontent.com/ifflagged/Romeo/abc/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.response.js"
         with self.assertRaisesRegex(ValueError, "duplicate Maasea YouTube response triggers"):
             optimize_maasea_youtube_shadowed_triggers(["[Script]", response, response, "[MITM]"])
 
     def test_checked_in_plugin_has_only_unshadowed_maasea_youtube_triggers(self):
         from pathlib import Path
-        from apply_local_overrides import apply
+        from apply_local_overrides import apply, MAASEA_YOUTUBE_RESPONSE_NARROW_ENDPOINTS
         plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
         result = apply(plugin)
         lines = [line for line in result.splitlines() if "Maasea_youtube." in line]
