@@ -307,21 +307,7 @@ jobs:
       - name: 转换重写规则（先写入临时产物）
         run: python3 convert_qx2loon.py -o /tmp/loon-build/allAdRewrite.plugin
 
-      - name: 转换独立分流规则（含 Frontier / HTTPDNS 安全排除）
-        run: |
-          curl -fsSL --retry 5 --retry-all-errors -A "Mozilla/5.0" \
-            https://raw.githubusercontent.com/zirawell/R-Store/main/Rule/QuanX/Adblock/All/filter/allAdBlock.list \
-            -o /tmp/loon-build/allAdBlock-source.list
-          python3 convert_filter_qx2loon.py -i /tmp/loon-build/allAdBlock-source.list \
-            --list /tmp/loon-build/\
-            --plugin /tmp/loon-build/allAdBlock-Loon.plugin
-
-      - name: 拉取 Thelongdarkorg 去广告插件
-        run: |
-          git clone --depth 1 https://github.com/Thelongdarkorg/loon-plugins.git /tmp/loon-plugins
-          ls /tmp/loon-plugins/*_ad_block.plugin /tmp/loon-plugins/*_splash_ad_block.plugin | wc -l
-
-      - name: 固定 Romeo 上游版本并同步 App 插件、瓜子影视、高德与 MyBlockAds 依赖
+      - name: 固定 Romeo 上游版本并同步保留的 App 插件、瓜子影视与高德依赖
         run: |
           mkdir -p /tmp/amap sources/amap sources/alipayAdBlock
           git clone --depth 1 https://github.com/ifflagged/Romeo.git /tmp/romeo
@@ -333,10 +319,6 @@ jobs:
           git -C /tmp/romeo show "$ROMEO_SHA:Modules/QuantumultX/ddgksf2013/Official/GuaZiVideoAds.conf" > /tmp/GuaZiVideoAds.conf
           wc -c /tmp/GuaZiVideoAds.conf
           echo "GuaZiVideoAds upstream: ifflagged/Romeo@$ROMEO_SHA:Modules/QuantumultX/ddgksf2013/Official/GuaZiVideoAds.conf"
-          # MyBlockAds 与高德共用同一固定 commit，避免 Pages 源失败后长期使用陈旧缓存。
-          git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/rucu6/myblockads.lpx" >
-          python3 -c 'from pathlib import Path; from source_guard import validate_myblockads; p=Path("myblockads.lpx"); s=validate_myblockads(p.read_text(encoding="utf-8-sig")); print("MyBlockAds Romeo cache validated:", s)'
-          echo "MyBlockAds upstream: ifflagged/Romeo@$ROMEO_SHA:Modules/Loon/rucu6/myblockads.lpx"
           # zirawell AlipayAdBlock：只缓存插件源；重复脚本由 base 已有 Eleme handler 覆盖，不另载入第二份脚本。
           git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/zirawell/Beta/alipayAdBlock.lpx" > sources/alipayAdBlock/alipayAdBlock.lpx
           python3 -c 'from pathlib import Path; from source_guard import validate_alipayadblock; p=Path("sources/alipayAdBlock/alipayAdBlock.lpx"); print("AlipayAdBlock Romeo cache validated:", validate_alipayadblock(p.read_text(encoding="utf-8-sig")))'
@@ -352,7 +334,7 @@ jobs:
       - name: 从固定 Romeo commit 获取 Spotify 官方插件及四个脚本
         run: |
           mkdir -p sources/spotify scripts/spotify /tmp/spotify-scripts
-          # 与瓜子影视、高德、MyBlockAds 共用同一 ROMEO_SHA，确保一次同步内来源版本一致。
+          # 与瓜子影视、高德共用同一 ROMEO_SHA，确保一次同步内来源版本一致。
           git -C /tmp/romeo show "$ROMEO_SHA:Modules/Loon/devchristian1337/Official/Spotify.lpx" > sources/spotify/Spotify.lpx
           git -C /tmp/romeo show "$ROMEO_SHA:Modules/JavaScript/devchristian1337/Spotify/devchristian1337_spot-gabo.js" > /tmp/spotify-scripts/spot-gabo.js
           git -C /tmp/romeo show "$ROMEO_SHA:Modules/JavaScript/devchristian1337/Spotify/devchristian1337_spot-NoSearchAd.js" > /tmp/spotify-scripts/spot-NoSearchAd.js
@@ -363,7 +345,7 @@ jobs:
 
       - name: 校验克隆来源并生成来源报告
         run: |
-          python3 source_guard.py --thelong /tmp/loon-plugins --romeo /tmp/romeo --zmjde /tmp/romeo-zmjde --qxapp /tmp/GuaZiVideoAds.conf --amap /tmp/amap/Amap.lpx --previous-report source-report.json --report source-report.json
+          python3 source_guard.py --romeo /tmp/romeo --zmjde /tmp/romeo-zmjde --qxapp /tmp/GuaZiVideoAds.conf --amap /tmp/amap/Amap.lpx --previous-report source-report.json --report source-report.json
           python3 - <<'PY'
           import json, os
           from pathlib import Path
@@ -379,6 +361,7 @@ jobs:
               "upstream_path": "Modules/Loon/zirawell/Beta/alipayAdBlock.lpx",
           })
           report["AlipayAdBlock"] = alipay_source
+          report["retired_rule_sources"] = ["block", "thelong", "myblockads"]
           report["source_migrations"] = {
               "aoomee": {
                   "status": "planned",
@@ -436,7 +419,7 @@ jobs:
           python3 -m unittest -v test_amap_response_compaction.py
 
       - name: 合并各来源去广告规则（临时目录）
-        run: python3 merge_plugins.py --base /tmp/loon-build/allAdRewrite.plugin --extra fetch --filter fetch --apps /tmp/loon-plugins --romeo-plugins /tmp/romeo --zmjde /tmp/romeo-zmjde --qxapp /tmp/GuaZiVideoAds.conf --amap /tmp/amap/Amap.lpx --myblockads fetch --alipayadblock sources/alipayAdBlock/alipayAdBlock.lpx --out /tmp/loon-build/allAdRewrite.plugin --provenance-out /tmp/loon-build/rule-provenance.json --source-report source-report.json
+        run: python3 merge_plugins.py --base /tmp/loon-build/allAdRewrite.plugin --extra none --filter none --romeo-plugins /tmp/romeo --zmjde /tmp/romeo-zmjde --qxapp /tmp/GuaZiVideoAds.conf --amap /tmp/amap/Amap.lpx --myblockads none --alipayadblock sources/alipayAdBlock/alipayAdBlock.lpx --out /tmp/loon-build/allAdRewrite.plugin --provenance-out /tmp/loon-build/rule-provenance.json --source-report source-report.json
 
       - name: 保存合并阶段产物用于最终来源追溯
         run: cp /tmp/loon-build/allAdRewrite.plugin /tmp/loon-build/allAdRewrite.after-merge.plugin
@@ -453,8 +436,7 @@ jobs:
           python3 optimize_xiaohongshu.py --plugin /tmp/loon-build/allAdRewrite.plugin
           python3 optimize_zhihu.py --plugin /tmp/loon-build/allAdRewrite.plugin
           python3 fix_script_configs.py --plugin /tmp/loon-build/allAdRewrite.plugin
-          # The MyBlockAds source is fetched from the already-pinned Romeo commit, but its nested script URLs may still say raw/main.
-          # Pin every remaining Romeo raw URL in the final merged plugin to the same ROMEO_SHA; fail closed if a referenced file is absent.
+          # Pin remaining Romeo raw URLs used by retained standalone App plugins to the same ROMEO_SHA.
           python3 - <<'PY'
           import os
           from pathlib import Path
@@ -573,8 +555,8 @@ jobs:
       - name: 校验通过后替换正式产物
         run: |
           cp /tmp/loon-build/allAdRewrite.plugin allAdRewrite.plugin.tmp && mv allAdRewrite.plugin.tmp allAdRewrite.plugin
-          cp /tmp/loon-build/allAdBlock-Loon.plugin.tmp && mv allAdBlock-Loon.plugin.tmp allAdBlock-Loon.plugin
-          cp /tmp/loon-build/allAdBlock-Loon.list.tmp && mv allAdBlock-Loon.list.tmp allAdBlock-Loon.list
+          cp /tmp/loon-build/ && mv.tmp
+          cp /tmp/loon-build/ && mv.tmp
           cp /tmp/loon-build/rule-provenance.json rule-provenance.json
           cp /tmp/loon-build/rule-diff.json rule-diff.json
           cp /tmp/loon-build/source-health.json source-health.json
