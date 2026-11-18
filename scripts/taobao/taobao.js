@@ -35,6 +35,7 @@ if (url.includes("mtop.taobao.cloudvideo.video.query")) {
         if ("taobao-splash" in items.bizData) {
           if (items?.bizData?.["taobao-splash"]?.data?.length > 0) {
             for (let item of items.bizData["taobao-splash"].data) {
+              item.waitTime = "0";
               item.times = "0";
               item.hotStart = "false";
               item.haveVoice = "false";
