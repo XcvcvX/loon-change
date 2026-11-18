@@ -6,6 +6,8 @@ The R-Store `cntv.js` handler is referenced by 26 response triggers spanning iQI
 
 ## Changes
 
+The generated snapshot is pinned to upstream R-Store commit `d0f4dd305bade7cc6a38e3445a768d72aaea0e5b` for this review; CI regenerates it from the current upstream commit and re-runs the inventory checks.
+
 - Vendor a reproducible local snapshot pinned to the R-Store commit used by the build.
 - Replace all 11 `array = array.filter(predicate)` operations with stable in-place compaction. This removes the temporary result arrays while preserving predicate and ordering.
 - Add a same-index write guard so already-retained elements are not written back unnecessarily.
