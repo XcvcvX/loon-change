@@ -39,11 +39,11 @@
   },
   "aoomee": {
     "commit": "5685038ec50b505d6d24691b01b5ae8ca05a6142",
-    "plugin_files": 28,
-    "rule_lines": 536,
+    "plugin_files": 31,
+    "rule_lines": 689,
     "upstream_repository": "https://github.com/ifflagged/Romeo",
     "upstream_commit": "5685038ec50b505d6d24691b01b5ae8ca05a6142",
-    "source_mode": "Romeo Modules/Loon + pinned AOOMEE-only local snapshots",
+    "source_mode": "Romeo Modules/Loon (including Kelee WeChat/Weidian plugins) + pinned AOOMEE-only local snapshots",
     "legacy_snapshot_files": [
       "51cg.plugin",
       "91porn.plugin",
@@ -74,6 +74,9 @@
       "Modules/Loon/ishowshu/soul.lpx",
       "Modules/Loon/ishowshu/taobao.lpx",
       "Modules/Loon/ddgksf2013/UmetripAds.lpx",
+      "Modules/Loon/Kelee/Weidian_remove_ads.lpx",
+      "Modules/Loon/Kelee/Weixin_Official_Accounts_remove_ads.lpx",
+      "Modules/Loon/Kelee/WexinMiniPrograms_Remove_ads.lpx",
       "Modules/Loon/Maasea/YouTube.Enhance.lpx"
     ],
     "compatibility_key": "aoomee (retained only to preserve historical provenance continuity)"
@@ -131,6 +134,104 @@
         "upstream_url": "https://kelee.one/Resource/JQLang/smzdm/home_smzdm_remove_ads.jq",
         "source_path": "Modules/JavaScript/Kelee/smzdm_remove_ads/kelee.one_home_smzdm_remove_ads.jq",
         "slot": "zmjde_compat"
+      },
+      {
+        "slot": "aoomee_compat",
+        "plugin": "WexinMiniPrograms_Remove_ads.lpx",
+        "kind": "script",
+        "upstream_url": "https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_kff.js",
+        "source_path": "Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_kff.js"
+      },
+      {
+        "slot": "aoomee_compat",
+        "plugin": "WexinMiniPrograms_Remove_ads.lpx",
+        "kind": "script",
+        "upstream_url": "https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_ems.js",
+        "source_path": "Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_ems.js"
+      },
+      {
+        "slot": "aoomee_compat",
+        "plugin": "WexinMiniPrograms_Remove_ads.lpx",
+        "kind": "script",
+        "upstream_url": "https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_xiaotucc.js",
+        "source_path": "Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_xiaotucc.js"
+      },
+      {
+        "slot": "aoomee_compat",
+        "plugin": "WexinMiniPrograms_Remove_ads.lpx",
+        "kind": "script",
+        "upstream_url": "https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_FamilyMart.js",
+        "source_path": "Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_FamilyMart.js"
+      },
+      {
+        "slot": "aoomee_compat",
+        "plugin": "WexinMiniPrograms_Remove_ads.lpx",
+        "kind": "script",
+        "upstream_url": "https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_lawson.js",
+        "source_path": "Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_lawson.js"
+      },
+      {
+        "slot": "aoomee_compat",
+        "plugin": "WexinMiniPrograms_Remove_ads.lpx",
+        "kind": "script",
+        "upstream_url": "https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_chayanyuese_remove_ads.js",
+        "source_path": "Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_chayanyuese_remove_ads.js"
+      },
+      {
+        "slot": "aoomee_compat",
+        "plugin": "WexinMiniPrograms_Remove_ads.lpx",
+        "kind": "script",
+        "upstream_url": "https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_coco.js",
+        "source_path": "Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_coco.js"
+      },
+      {
+        "slot": "aoomee_compat",
+        "plugin": "WexinMiniPrograms_Remove_ads.lpx",
+        "kind": "script",
+        "upstream_url": "https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_qingju.js",
+        "source_path": "Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_qingju.js"
+      },
+      {
+        "slot": "aoomee_compat",
+        "plugin": "WexinMiniPrograms_Remove_ads.lpx",
+        "kind": "script",
+        "upstream_url": "https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_alittle-tea.js",
+        "source_path": "Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_alittle-tea.js"
+      },
+      {
+        "slot": "aoomee_compat",
+        "plugin": "WexinMiniPrograms_Remove_ads.lpx",
+        "kind": "script",
+        "upstream_url": "https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_M_Stand.js",
+        "source_path": "Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_M_Stand.js"
+      },
+      {
+        "slot": "aoomee_compat",
+        "plugin": "WexinMiniPrograms_Remove_ads.lpx",
+        "kind": "script",
+        "upstream_url": "https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_T3.js",
+        "source_path": "Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_T3.js"
+      },
+      {
+        "slot": "aoomee_compat",
+        "plugin": "WexinMiniPrograms_Remove_ads.lpx",
+        "kind": "script",
+        "upstream_url": "https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_ming.js",
+        "source_path": "Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_ming.js"
+      },
+      {
+        "slot": "aoomee_compat",
+        "plugin": "Weidian_remove_ads.lpx",
+        "kind": "script",
+        "upstream_url": "https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/Kelee/Weidian_remove_ads/kelee_getAppConfig.js",
+        "source_path": "Modules/JavaScript/Kelee/Weidian_remove_ads/kelee_getAppConfig.js"
+      },
+      {
+        "slot": "aoomee_compat",
+        "plugin": "Weidian_remove_ads.lpx",
+        "kind": "script",
+        "upstream_url": "https://github.com/ifflagged/Romeo/raw/main/Modules/JavaScript/Kelee/Weidian_remove_ads/kelee_wallet.js",
+        "source_path": "Modules/JavaScript/Kelee/Weidian_remove_ads/kelee_wallet.js"
       }
     ],
     "external_runtime_dependencies": [
