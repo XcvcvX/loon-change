@@ -5367,4 +5367,4 @@ if (parsed.data.adspotidIOS !== "" || parsed.data.AdrAdsPotId !== "" || parsed.d
         self.assertIn("if (responseBody.indexOf(", source)
         self.assertIn("adUrl320", source)
         self.assertIn("typeof ad.adUrl320 === 'string' && own(ad, 'locIndex') && own(ad, 'locName')", source)
-''';
+'''
