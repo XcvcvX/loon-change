@@ -795,7 +795,7 @@ const cases = [
     url: "https://guide-acs.m.taobao.com/gw/mtop.taobao.wireless.home.splash.awesome.get",
     data: { data: { containers: { splash_home_base: { base: { sections: [
       { bizData: { "taobao-splash": { data: [{waitTime:"10",times:"3",hotStart:"true",haveVoice:"true",hideTBLogo:"true",enable4G:"true",coldStart:"true",imgUrl:"image",videoUrl:"video"}] } } }
-    ] } } } },
+    ] } } } } },
     check(body) {
       const item = body.data.containers.splash_home_base.base.sections[0].bizData["taobao-splash"].data[0];
       if (item.waitTime !== "0" || item.times !== "0" || item.hotStart !== "false" || item.imgUrl !== "" || item.videoUrl !== "" || item.startTime !== "3818332800000") throw new Error("splash result mismatch");
