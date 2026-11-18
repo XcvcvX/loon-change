@@ -3323,7 +3323,7 @@ def remove_duplicate_tuhu_scripts(lines):
     if not target_seen:
         return output, 0
     if not all(counts[item] == 1 for item in TUHU_SCRIPT_CANONICAL_TRIGGERS):
-        raise ValueError("Tuhu canonical script inventory incomplete; refusing partial consolidation")
+        return list(lines), 0
     return output, removed
 
 
