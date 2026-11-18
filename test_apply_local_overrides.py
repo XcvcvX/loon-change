@@ -3342,6 +3342,42 @@ class UnneededUsmileResponseBodyReadTests(unittest.TestCase):
         self.assertEqual(len(matches), 2)
         self.assertTrue(all("requires-body=true" not in line.lower() and "requires_body=true" not in line.lower() for line in matches))
 
+
+class HeaderOnlyResponseBodyReadTests(unittest.TestCase):
+    def test_removes_only_verified_header_only_response_body_reads(self):
+        from apply_local_overrides import remove_unneeded_header_only_response_body_reads
+        spdb = r"http-response ^https?:\\/\\/image\\.spdbccc\\.com\\.cn\\/group\\d\\/.*\\.JPG$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/spdbccc.js,tag=SPDBCCC,requires-body=true"
+        sdb = r"http-response ^https?:\\/\\/cdn\\.sdb\\.com\\.cn\\/bron-coms\\/bron-coms\\/material-image script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/sdb.js,tag=SDB,requires-body=true"
+        umetrip = r'response if \${url} ~= /^https?:\\/\\/(114\\.115\\.217\\.129)|(home\\.umetrip\\.com)\\/gateway\\/api\\/umetrip\\/native$/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/umetrip/umetrip_ads.js") with enable=\${hlzh_enable}, tag="航旅纵横", timeout=60, requires_body=true'
+        unrelated = r"http-response ^https?:\\/\\/example.com\\/image script-path=https://example.com/image.js,requires-body=true"
+        result, changed = remove_unneeded_header_only_response_body_reads(
+            ["[Script]", spdb, sdb, umetrip, unrelated, "[MITM]"]
+        )
+        self.assertEqual(changed, 3)
+        self.assertTrue(all("requires-body=true" not in line.lower() and "requires_body=true" not in line.lower() for line in result[1:4]))
+        self.assertIn("requires-body=true", result[4])
+
+    def test_header_only_cleanup_is_idempotent_and_fails_closed_on_duplicates(self):
+        from apply_local_overrides import remove_unneeded_header_only_response_body_reads
+        clean = r"http-response ^https?:\\/\\/cdn\\.sdb\\.com\\.cn\\/bron-coms\\/bron-coms\\/material-image script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/sdb.js,tag=SDB"
+        result, changed = remove_unneeded_header_only_response_body_reads(["[Script]", clean, "[MITM]"])
+        self.assertEqual(changed, 0)
+        self.assertEqual(result, ["[Script]", clean, "[MITM]"])
+        duplicate = ["[Script]", clean, clean, "[MITM]"]
+        with self.assertRaisesRegex(ValueError, "duplicate header-only response handler"):
+            remove_unneeded_header_only_response_body_reads(duplicate)
+
+    def test_checked_in_plugin_applies_all_header_only_body_read_cleanups(self):
+        from pathlib import Path
+        from apply_local_overrides import apply
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        result = apply(plugin)
+        markers = ("usmile.js", "spdbccc.js", "sdb.js", "umetrip_ads.js")
+        matches = [line for line in result.splitlines() if any(marker in line for marker in markers) and ("http-response " in line or "response if " in line)]
+        self.assertEqual(len(matches), 5)
+        self.assertTrue(all("requires-body=true" not in line.lower() and "requires_body=true" not in line.lower() for line in matches))
+
+
 class UnneededMgwEcnyResponseBodyReadTests(unittest.TestCase):
     def test_removes_only_ecny_mgw_requires_body(self):
         from apply_local_overrides import remove_unneeded_mgw_ecny_response_body_read
