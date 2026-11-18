@@ -56,7 +56,7 @@ process.stdout.write(JSON.stringify(done));
         ]}
         run=subprocess.run([NODE,"-e",runner],input=json.dumps({"url":"https://api.zhihu.com/topstory/recommend?fixture=1","body":body}),
           cwd=ROOT,capture_output=True,text=True,check=True,timeout=10)
-        out=json.loads(run.stdout)["body"]
+        out=json.loads(json.loads(run.stdout)["body"])
         ids=[item["type"] for item in out["data"]]
         self.assertEqual(ids,["market_card","common_card","common_card","normal_card"])
         self.assertEqual(out["data"][0]["fields"]["body"]["video"]["id"],"market-1")
