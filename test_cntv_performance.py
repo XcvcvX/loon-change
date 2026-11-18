@@ -132,7 +132,7 @@ if (payload.body === null) {
             ]
         }}}}}}
         result = self.run_script(
-            "https://acs.youku.com/gw/mtop.youku.haidai.lantern.appconfig.get",
+            "https://acs.youku.com/gw/mtop.youku.haidai.lantern.appconfig.get/",
             body,
         )
         items = result["output"]["data"]["model"]["configInfo"]["bottomNavigate"]["data"]["bottomTabList"]
