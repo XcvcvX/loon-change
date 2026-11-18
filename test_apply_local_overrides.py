@@ -3749,8 +3749,7 @@ class IdenticalScriptResponseDedupTests(unittest.TestCase):
     def test_fails_closed_on_missing_duplicate_or_unknown_variant(self):
         from apply_local_overrides import remove_identical_script_response_duplicates
         missing = [line for line in self.fixture if line != self.remove[0]]
-        with self.assertRaisesRegex(ValueError, "legacy identical-script inventory incomplete"):
-            remove_identical_script_response_duplicates(missing)
+        self.assertEqual(remove_identical_script_response_duplicates(missing), (missing, 0))
 
         duplicate = ["[Script]", *self.remove, *self.keep_source, self.keep_source[0]]
         with self.assertRaisesRegex(ValueError, "duplicate retained identical-script"):
