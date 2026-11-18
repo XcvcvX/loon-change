@@ -5067,7 +5067,7 @@ class CrossSyntaxShadowedResponseTriggerTests(unittest.TestCase):
         for _, legacy_script, v2_script, _, search_markers in SHADOWED_CROSS_SYNTAX_RESPONSE_PAIRS:
             candidates = [
                 line for line in result.splitlines()
-                if all(marker in line.replace("\\\\", "").lower() for marker in search_markers)
+                if all(marker in line.replace(chr(92), "").lower() for marker in search_markers)
             ]
             legacy = [line for line in candidates if legacy_script.lower() in line.lower() and line.lower().startswith("http-response ")]
             v2 = [line for line in candidates if v2_script.lower() in line.lower() and line.lower().startswith("response if ")]
