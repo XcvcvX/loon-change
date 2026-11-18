@@ -373,7 +373,7 @@ if (!unchanged || Object.keys(unchanged).length !== 0) throw new Error("missing 
         plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
         line = next(
             (item for item in plugin.splitlines()
-             if "idlehome" in item and "nextfresh" in item and "goofish" not in item.lower()),
+             if "idlehome" in item and "nextfresh" in item and ".data.sections" in item),
             None,
         )
         self.assertIsNotNone(line, "Goofish home-feed response rule must remain present")
