@@ -387,5 +387,96 @@ if (!unchanged || Object.keys(unchanged).length !== 0) throw new Error("missing 
         self.assertIn(".data.homeTopList |= map(select(.sectionType", line)
 
 
+    def test_xiaohongshu_hot_paths_use_linear_lookup_and_iterative_traversal(self):
+        import shutil
+        import subprocess
+
+        source_path = Path(__file__).with_name("scripts").joinpath("xiaohongshu", "xiaohongshu-v4.js")
+        source = source_path.read_text(encoding="utf-8")
+        self.assertIn("const byFileId = new Map();", source)
+        self.assertNotIn("collectionB.find", source)
+        self.assertNotIn(".sort(sortStream)", source)
+        self.assertNotIn("replaceRedIdWithFmz200(obj[key])", source)
+        self.assertNotIn("value[i] = visit(value[i])", source)
+
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node.js is required for the Xiaohongshu hot-path integration test")
+        harness = r"""
+const fs = require("fs");
+const vm = require("vm");
+const source = fs.readFileSync(process.argv[1], "utf8");
+const store = Object.create(null);
+function run(url, body) {
+  let result;
+  const context = {
+    $loon: {},
+    $request: { url },
+    $response: { body },
+    $persistentStore: {
+      read(key) { return Object.prototype.hasOwnProperty.call(store, key) ? store[key] : null; },
+      write(value, key) { store[key] = value; return true; }
+    },
+    $done(value) { result = value; },
+    console: { log() {} }
+  };
+  vm.runInNewContext(source, context);
+  return result;
+}
+
+// H265 retains priority; within H265, resolution then average bitrate wins.
+run("https://edith.xiaohongshu.com/api/sns/v4/note/videofeed?test=1", JSON.stringify({
+  data: [{
+    id: "note-1",
+    model_type: "note",
+    video_info_v2: { media: { stream: {
+      h265: [
+        { master_url: "https://video.example/low.mp4", width: 720, height: 1280, avg_bitrate: 1000 },
+        { master_url: "https://video.example/best.mp4", width: 2160, height: 3840, avg_bitrate: 9000 },
+        { master_url: "https://video.example/best-numeric.mp4", width: 2160, height: 3840, avg_bitrate: "10000" },
+        { width: 4320, height: 7680, avg_bitrate: 99999 }
+      ],
+      h264: [{ master_url: "https://video.example/h264.mp4", width: 4320, height: 7680, avg_bitrate: 99999 }]
+    } } }
+  }]
+}));
+const feedCache = JSON.parse(store.redBookVideoFeed);
+if (feedCache.length !== 1 || feedCache[0].url !== "https://video.example/best-numeric.mp4") {
+  throw new Error("linear stream selection changed H265 priority or ranking");
+}
+
+// Indexed replacement preserves Array.find()'s first-match behavior.
+store["fmz200.xiaohongshu.feed.rsp"] = JSON.stringify([
+  { live_photo_file_id: "file-1", video_id: "v1", url: "https://video.example/first.mp4?token=1" },
+  { live_photo_file_id: "file-1", video_id: "v2", url: "https://video.example/second.mp4?token=2" }
+]);
+const saved = run("https://edith.xiaohongshu.com/api/sns/v1/note/live_photo/save", JSON.stringify({
+  data: { datas: [{ file_id: "file-1", url: "" }] }
+}));
+if (JSON.parse(saved.body).data.datas[0].url !== "https://video.example/first.mp4?token=1") {
+  throw new Error("indexed cache lookup no longer preserves first match");
+}
+
+// Deep comment payload must not depend on the JavaScript call stack.
+const depth = 4000;
+const nested = '{"data":' + '{"child":'.repeat(depth) + '{"red_id":"deep-id"}' + '}'.repeat(depth) + '}';
+const deepResult = run("https://edith.xiaohongshu.com/api/sns/v5/note/comment/list?test=1", nested);
+if (!deepResult || !deepResult.body.includes('"fmz200":"deep-id"') || deepResult.body.includes('"red_id"')) {
+  throw new Error("iterative red_id traversal failed on deeply nested data");
+}
+
+// Deep image metadata still receives URL enhancement through iterative traversal.
+const deepImage = '{"data":[{"note_list":[{"images_list":[' +
+  '{"child":'.repeat(depth) + '{"url":"https://img.example/a.jpg?imageView2/2/w/1080/format/jpg"}' +
+  '}'.repeat(depth) + ']}]}]}';
+const imageResult = run("https://edith.xiaohongshu.com/api/sns/v1/note/imagefeed?test=1", deepImage);
+if (!imageResult || !imageResult.body.includes("imageView2/2/w/2160/format")) {
+  throw new Error("iterative image traversal failed on deeply nested data");
+}
+"""
+        completed = subprocess.run([node, "-e", harness, str(source_path)], capture_output=True, text=True)
+        self.assertEqual(completed.returncode, 0, msg=completed.stderr or completed.stdout)
+
+
 if __name__ == "__main__":
     unittest.main()
