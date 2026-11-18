@@ -1120,11 +1120,12 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         with self.assertRaisesRegex(ValueError, "Taobao splash script trigger changed"):
             apply(fixture)
 
-    def test_fails_closed_when_taobao_trigger_inventory_is_incomplete(self):
-        from apply_local_overrides import TAOBAO_CANONICAL_SCRIPT_TRIGGERS, TAOBAO_REDUNDANT_SCRIPT_TRIGGERS
+    def test_preserves_incomplete_taobao_trigger_inventory_after_source_retirement(self):
+        from apply_local_overrides import (TAOBAO_CANONICAL_SCRIPT_TRIGGERS,
+                                           TAOBAO_REDUNDANT_SCRIPT_TRIGGERS,
+                                           remove_redundant_taobao_scripts)
         fixture = BASE.replace("[Script]", "[Script]\n" + "\n".join(TAOBAO_CANONICAL_SCRIPT_TRIGGERS) + "\n" + TAOBAO_REDUNDANT_SCRIPT_TRIGGERS[0])
-        with self.assertRaisesRegex(ValueError, "Taobao splash script trigger inventory changed"):
-            apply(fixture)
+        self.assertEqual(remove_redundant_taobao_scripts(fixture.splitlines()), (fixture.splitlines(), 0))
 
     def test_fails_closed_on_duplicate_taobao_script_trigger(self):
         from apply_local_overrides import TAOBAO_REDUNDANT_SCRIPT_TRIGGERS
