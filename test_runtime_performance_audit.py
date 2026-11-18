@@ -260,11 +260,11 @@ const context = {
 vm.runInNewContext(source, context);
 if (!result || typeof result.body !== "string") throw new Error("JD response was not returned");
 const body = JSON.parse(result.body);
-if (body.floors.length !== 3) throw new Error("excluded floors or null floor behavior changed");
-if (body.floors[0].mId !== "basefloorinfo" || body.floors[1] !== null || body.floors[2].mId !== "normalFloor") throw new Error("floor order or retained entries changed");
+if (body.floors.length !== 4) throw new Error("excluded floors or null floor behavior changed");
+if (body.floors[0].mId !== "basefloorinfo" || body.floors[1].mId !== "userinfo" || body.floors[2] !== null || body.floors[3].mId !== "normalFloor") throw new Error("floor order or retained entries changed");
 if (body.floors[0].data.commonPopup !== undefined || body.floors[0].data.floatLayer !== undefined) throw new Error("base floor cleanup changed");
 if (body.floors[0].data.commonTips.length || body.floors[0].data.commonWindows.length) throw new Error("base floor arrays were not cleared");
-if (body.floors.some(f => f && f.mId === "userinfo")) throw new Error("excluded userinfo floor remained");
+if (body.floors[1].data.newPlusBlackCard !== undefined) throw new Error("userinfo floor cleanup changed");
 if (body.others.floors.length !== 1 || body.others.floors[0].data.commentRemindInfo.infos.length !== 0) throw new Error("others floors cleanup changed");
 '''
         completed = subprocess.run([node, "-e", harness, str(source_path)], capture_output=True, text=True)
