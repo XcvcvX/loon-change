@@ -589,7 +589,7 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
       let list = obj.data.modules.list_data.data;
       if (list?.content?.length > 0) {
         // brandAdCard广告卡片 toplist_al人气榜单 高德指南
-        list.content = list.content.filter((i) => !["brandAdCard", "toplist_al"].includes(i?.item_type));
+        list.content = list.content.filter((item) => item?.item_type !== "brandAdCard" && item?.item_type !== "toplist_al");
       }
     }
   }
