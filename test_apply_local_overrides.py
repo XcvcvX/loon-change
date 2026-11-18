@@ -3166,11 +3166,10 @@ class CnftpDuplicateScriptTests(unittest.TestCase):
         clean = ["[Script]", CNFTP_IQIYI_HOME_COMBINED_TRIGGER, *retained, "[MITM]"]
         self.assertEqual(remove_duplicate_cnftp_scripts(clean), (clean, 0))
 
-    def test_fails_closed_on_missing_duplicate_duplicate_kept_or_unknown_variant(self):
+    def test_preserves_partial_retired_inventory_but_fails_on_duplicate_or_unknown_variant(self):
         from apply_local_overrides import remove_duplicate_cnftp_scripts
         missing = [line for line in self.fixture if line != self.remove[0]]
-        with self.assertRaisesRegex(ValueError, "legacy video trigger inventory incomplete"):
-            remove_duplicate_cnftp_scripts(missing)
+        self.assertEqual(remove_duplicate_cnftp_scripts(missing), (missing, 0))
 
         duplicate = ["[Script]", *self.remove, *self.keep_source, self.keep_source[0]]
         with self.assertRaisesRegex(ValueError, "duplicate retained video source"):
