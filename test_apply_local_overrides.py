@@ -5349,7 +5349,7 @@ const source = fs.readFileSync(process.argv[1], "utf8");
 let doneResult;
 const context = {
   $request: { url: "https://client.qunar.com/api/v1/unrelated", method: "GET", headers: {} },
-  $response: { status: 200, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ data: { adspotidIOS: "ios-ad", AdrAdsPotId: "legacy-ad" } }) },
+  $response: { status: 200, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ data: { adspotidIOS: "ios-ad", AdrAdsPotId: "legacy-ad", adBanner: [{ adUrl320: "https://img.example/ad.jpg", locIndex: 1, locName: "hotel" }] } }) },
   $persistentStore: { read() { throw new Error("unexpected persistent read"); }, write() { throw new Error("unexpected persistent write"); } },
   $done(value) { doneResult = value; },
   console: { log() {} }
@@ -5357,7 +5357,7 @@ const context = {
 vm.runInNewContext(source, context);
 if (!doneResult || typeof doneResult.body !== "string") throw new Error("fallback signature was not processed");
 const parsed = JSON.parse(doneResult.body);
-if (parsed.data.adspotidIOS !== "" || parsed.data.AdrAdsPotId !== "") throw new Error("known fallback ad fields were not cleaned");
+if (parsed.data.adspotidIOS !== "" || parsed.data.AdrAdsPotId !== "" || parsed.data.adBanner[0].adUrl320 !== "") throw new Error("known fallback ad fields were not cleaned");
 '''
         subprocess.run([node, "-e", harness, str(source_path)], check=True, capture_output=True, text=True)
 
