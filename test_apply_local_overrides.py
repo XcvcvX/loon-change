@@ -4810,6 +4810,19 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
         self.assertEqual(changed, 0)
         self.assertEqual(result, fixture)
 
+    def test_preserves_rstore_json_triggers_when_retired_fmz_live_handler_is_absent(self):
+        from apply_local_overrides import (
+            BILIBILI_JSON_TRIGGER_PAIRS, BILIBILI_NATIVE_PREREQUISITE_MARKERS,
+            BILIBILI_NATIVE_RULE_REPLACEMENTS, optimize_bilibili_json_native_coverage,
+        )
+        fixture = [
+            "[Rewrite]", *BILIBILI_NATIVE_PREREQUISITE_MARKERS,
+            *(old for old, _ in BILIBILI_NATIVE_RULE_REPLACEMENTS),
+            "[Script]", *(original for _, original, _ in BILIBILI_JSON_TRIGGER_PAIRS),
+            "[MITM]",
+        ]
+        self.assertEqual(optimize_bilibili_json_native_coverage(fixture), (fixture, 0))
+
     def test_fails_closed_when_native_or_sparkle_coverage_changes(self):
         from apply_local_overrides import (
             BILIBILI_JSON_TRIGGER_PAIRS, BILIBILI_NATIVE_PREREQUISITE_MARKERS,
