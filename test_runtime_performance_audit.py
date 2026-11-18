@@ -433,6 +433,7 @@ run("https://edith.xiaohongshu.com/api/sns/v4/note/videofeed?test=1", JSON.strin
       h265: [
         { master_url: "https://video.example/low.mp4", width: 720, height: 1280, avg_bitrate: 1000 },
         { master_url: "https://video.example/best.mp4", width: 2160, height: 3840, avg_bitrate: 9000 },
+        { master_url: "https://video.example/best-numeric.mp4", width: 2160, height: 3840, avg_bitrate: "10000" },
         { width: 4320, height: 7680, avg_bitrate: 99999 }
       ],
       h264: [{ master_url: "https://video.example/h264.mp4", width: 4320, height: 7680, avg_bitrate: 99999 }]
@@ -440,7 +441,7 @@ run("https://edith.xiaohongshu.com/api/sns/v4/note/videofeed?test=1", JSON.strin
   }]
 }));
 const feedCache = JSON.parse(store.redBookVideoFeed);
-if (feedCache.length !== 1 || feedCache[0].url !== "https://video.example/best.mp4") {
+if (feedCache.length !== 1 || feedCache[0].url !== "https://video.example/best-numeric.mp4") {
   throw new Error("linear stream selection changed H265 priority or ranking");
 }
 
