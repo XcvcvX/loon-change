@@ -4273,11 +4273,9 @@ def remove_shadowed_ishowshu_amap_response_triggers(lines):
                 matcher = line.split("~=", 1)[1].split(" then script", 1)[0].strip() if "~=" in line and " then script" in line else ""
                 old_candidates.append((index, matcher))
 
-        if len(old_candidates) > 1:
-            raise ValueError("duplicate iShowShu Amap trigger; refusing shadow cleanup: " + name)
         if not old_candidates:
             continue
-        if old_candidates[0][1] != old_matcher:
+        if any(matcher != old_matcher for _, matcher in old_candidates):
             raise ValueError("iShowShu Amap matcher changed; refusing shadow cleanup: " + name)
 
         if local_matcher not in verified_local:
@@ -4292,7 +4290,7 @@ def remove_shadowed_ishowshu_amap_response_triggers(lines):
                 raise ValueError("local RuCu6 Amap coverage missing or duplicated; refusing shadow cleanup: " + name)
             verified_local.add(local_matcher)
 
-        remove_indexes.add(old_candidates[0][0])
+        remove_indexes.update(index for index, _matcher in old_candidates)
 
     if not remove_indexes:
         return list(lines), 0
