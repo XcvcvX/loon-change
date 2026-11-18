@@ -101,6 +101,22 @@ class RuntimePerformanceAuditTests(unittest.TestCase):
             self.assertIn("最多选择一条 Response Script", " ".join(report["notes"]))
             self.assertIn("not per-response execution counts", render_markdown(report))
 
+    def test_repeated_json_stringify_is_reported_only_within_same_scope(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            plugin = root / "test.plugin"
+            plugin.write_text("[Script]\n", encoding="utf-8")
+            (root / "stringify.js").write_text(
+                "const first = JSON.stringify(payload); const second = JSON.stringify(payload);\n"
+                "if (other) { const third = JSON.stringify(payload); }", encoding="utf-8"
+            )
+            report = audit_plugin(plugin, root)
+            self.assertEqual(report["summary"]["local_js_json_stringify_calls"], 3)
+            self.assertEqual(report["summary"]["repeated_json_stringify_expressions"], 1)
+            item = report["local_js_json_parse"][0]
+            self.assertEqual(item["repeated_stringify_expressions"][0]["count"], 2)
+            self.assertIn("JSON.stringify", render_markdown(report))
+
     def test_commit_pinned_url_is_not_mutable(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
