@@ -2237,13 +2237,22 @@ def consolidate_soul_scripts(lines):
         if SOUL_SCRIPT_MARKER in line and normalize(line) not in legacy and normalize(line) not in canonical
     ]
 
-    if not any(counts.values()) and not any(canonical_counts.values()) and not unknown:
+    if not any(counts.values()) and not any(canonical_counts.values()):
+        # The retired FMZ feed may leave no recognized legacy Soul inventory;
+        # preserve any remaining upstream variant without attempting consolidation.
         return list(lines), 0
+    if any(count > 1 for count in counts.values()) or any(count > 1 for count in canonical_counts.values()):
+        raise ValueError("Soul script trigger inventory duplicated; refusing ambiguous consolidation")
     if (all(count == 1 for count in canonical_counts.values())
             and not any(counts.values()) and not unknown):
         return list(lines), 0
-    if unknown or any(canonical_counts.values()) or any(count != 1 for count in counts.values()):
+    if any(canonical_counts.values()):
         raise ValueError("Soul script trigger inventory changed; refusing partial or mixed consolidation")
+    if unknown or any(count != 1 for count in counts.values()):
+        # Incomplete source snapshots are valid after upstream retirement. Keep
+        # every original trigger untouched; only the full reviewed inventory is
+        # eligible for replacement by the two canonical local matchers.
+        return list(lines), 0
 
     preserve_interpolation = any(
         "enable=${" in line for line in scoped if SOUL_SCRIPT_MARKER in line
