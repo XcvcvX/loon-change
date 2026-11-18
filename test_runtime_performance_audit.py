@@ -368,5 +368,22 @@ if (!unchanged || Object.keys(unchanged).length !== 0) throw new Error("missing 
             report = audit_plugin(plugin, root)
             self.assertEqual(report["summary"]["mutable_branch_remote_urls"], 0)
 
+
+    def test_goofish_home_sections_filters_are_combined_into_one_pass(self):
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        line = next(
+            (item for item in plugin.splitlines()
+             if "idlehome" in item and "nextfresh" in item and ".data.sections" in item),
+            None,
+        )
+        self.assertIsNotNone(line, "Goofish home-feed response rule must remain present")
+        self.assertEqual(line.count(".data.sections |= map(select("), 1)
+        self.assertIn("homeMultiBanner", line)
+        self.assertIn("mamaAD", line)
+        self.assertIn("idlefish_home_new_commodity_card", line)
+        self.assertIn("fish_home_tags_item_card", line)
+        self.assertIn(".data.homeTopList |= map(select(.sectionType", line)
+
+
 if __name__ == "__main__":
     unittest.main()
