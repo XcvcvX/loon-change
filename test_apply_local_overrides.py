@@ -3342,6 +3342,52 @@ class UnneededUsmileResponseBodyReadTests(unittest.TestCase):
         self.assertTrue(all("requires-body=true" not in line.lower() and "requires_body=true" not in line.lower() for line in matches))
 
 
+
+class MaaseaYoutubeShadowedTriggerTests(unittest.TestCase):
+    def test_narrows_response_fallback_and_removes_shadowed_log_event_request(self):
+        from apply_local_overrides import optimize_maasea_youtube_shadowed_triggers
+        dev_request = r"http-request ^https:\\/\\/youtubei\\.googleapis\\.com\\/youtubei\\/v1\\/log_event(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=true"
+        maasea_request = r"http-request ^https:\\/\\/youtubei\\.googleapis\\.com\\/youtubei\\/v1\\/log_event script-path=https://raw.githubusercontent.com/ifflagged/Romeo/abc/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.request.js,requires-body=true"
+        broad_response = r"http-response ^https:\\/\\/youtubei\\.googleapis\\.com\\/(youtubei\\/v1\\/(browse|next|player|search|reel\\/reel_watch_sequence|guide|account\\/get_setting|get_watch|log_event|config))(\\?(.*))?$ script-path=https://raw.githubusercontent.com/ifflagged/Romeo/abc/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.response.js,requires-body=true"
+        legacy_response = r"response if \${url} ~= /youtubei\\/v1\\/(browse|next|player)/ then script('https://raw.githubusercontent.com/Maasea/sgmodule/master/Script/Youtube/youtube.response.js')"
+        lines = ["[Script]", dev_request, maasea_request, broad_response, legacy_response, "[MITM]"]
+        result, changed = optimize_maasea_youtube_shadowed_triggers(lines)
+        self.assertEqual(changed, 2)
+        self.assertNotIn(maasea_request, result)
+        narrowed = next(line for line in result if "Maasea_youtube.response.js" in line)
+        self.assertIn(MAASEA_YOUTUBE_RESPONSE_NARROW_ENDPOINTS, narrowed)
+        self.assertNotIn(MAASEA_YOUTUBE_RESPONSE_BROAD_ENDPOINTS, narrowed)
+        self.assertIn(legacy_response, result)
+        again, changed_again = optimize_maasea_youtube_shadowed_triggers(result)
+        self.assertEqual(changed_again, 0)
+        self.assertEqual(again, result)
+
+    def test_preserves_maasea_request_if_no_earlier_handler_exists(self):
+        from apply_local_overrides import optimize_maasea_youtube_shadowed_triggers
+        maasea_request = r"http-request ^https:\\/\\/youtubei\\.googleapis\\.com\\/youtubei\\/v1\\/log_event script-path=https://raw.githubusercontent.com/ifflagged/Romeo/abc/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.request.js,requires-body=true"
+        result, changed = optimize_maasea_youtube_shadowed_triggers(["[Script]", maasea_request, "[MITM]"])
+        self.assertEqual(changed, 0)
+        self.assertIn(maasea_request, result)
+
+    def test_fails_closed_on_duplicate_maasea_response_or_request_triggers(self):
+        from apply_local_overrides import optimize_maasea_youtube_shadowed_triggers
+        response = r"http-response ^https:\\/\\/youtubei\\.googleapis\\.com\\/(youtubei\\/v1\\/(guide|account\\/get_setting)) script-path=https://raw.githubusercontent.com/ifflagged/Romeo/abc/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.response.js"
+        with self.assertRaisesRegex(ValueError, "duplicate Maasea YouTube response triggers"):
+            optimize_maasea_youtube_shadowed_triggers(["[Script]", response, response, "[MITM]"])
+
+    def test_checked_in_plugin_has_only_unshadowed_maasea_youtube_triggers(self):
+        from pathlib import Path
+        from apply_local_overrides import apply
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        result = apply(plugin)
+        lines = [line for line in result.splitlines() if "Maasea_youtube." in line]
+        request_lines = [line for line in lines if "Maasea_youtube.request.js" in line and "log_event" in line]
+        response_lines = [line for line in lines if "Maasea_youtube.response.js" in line]
+        self.assertEqual(request_lines, [])
+        self.assertEqual(len(response_lines), 1)
+        self.assertIn(MAASEA_YOUTUBE_RESPONSE_NARROW_ENDPOINTS, response_lines[0])
+
+
 class HeaderOnlyResponseBodyReadTests(unittest.TestCase):
     def test_removes_only_verified_header_only_response_body_reads(self):
         from apply_local_overrides import remove_unneeded_header_only_response_body_reads
