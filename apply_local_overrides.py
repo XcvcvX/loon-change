@@ -6139,6 +6139,8 @@ def migrate_bilibili_json_script_to_local(lines):
         else:
             raise ValueError("Bilibili JSON script source changed; refusing migration: " + stripped)
 
+    if not candidates:
+        return output, 0
     if set(candidates) != set(BILIBILI_LOCAL_JSON_TAGS):
         raise ValueError("Bilibili JSON trigger inventory changed; refusing partial local migration: " + repr(sorted(candidates)))
 
