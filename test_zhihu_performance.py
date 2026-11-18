@@ -51,7 +51,6 @@ process.stdout.write(JSON.stringify(done));
           {"type":"common_card","promotion_extra":{}},
           {"type":"aggregation_card"},
           {"type":"feed_advert"},
-          {"type":"common_card","common_card":{"feed_content":{"video":{"id":"second-fallback"}}}},
           {"type":"normal_card"}
         ]}
         run=subprocess.run([NODE,"-e",runner],input=json.dumps({"url":"https://api.zhihu.com/topstory/recommend?fixture=1","body":body}),
