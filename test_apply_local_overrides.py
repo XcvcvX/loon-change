@@ -5145,3 +5145,83 @@ class PupuLocalResponseOptimizationTests(unittest.TestCase):
         self.assertIn("if (!body)", source)
 
 
+class ShadowedIshowshuAmapResponseTriggerTests(unittest.TestCase):
+    def setUp(self):
+        from apply_local_overrides import SHADOWED_ISHOWSHU_AMAP_TRIGGERS
+        self.pairs = SHADOWED_ISHOWSHU_AMAP_TRIGGERS
+        self.ishowshu_url = "https://raw.githubusercontent.com/ifflagged/Romeo/024b8115bb263d17e52c14a9671fe5bd1c3a65ab/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js"
+        self.rucu6_url = "https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js"
+        self.old_rules = [
+            'response if ${url} ~= ' + old_matcher + ' then script("' + self.ishowshu_url + '") with tag="amap", timeout=60, requires_body=true'
+            for _, old_matcher, _, _ in self.pairs
+        ]
+        self.local_matchers = list(dict.fromkeys(pair[3] for pair in self.pairs))
+        self.local_rules = [
+            'response if ${url} ~= ' + matcher + ' then script("' + self.rucu6_url + '") with tag="[高德地图]", requires_body=true'
+            for matcher in self.local_matchers
+        ]
+        self.unique_ishowshu_rules = [
+            'response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_bff\\/hotword\\?/i then script("' + self.ishowshu_url + '") with tag="amap", timeout=60, requires_body=true',
+            'response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_poi\\/homepage/i then script("' + self.ishowshu_url + '") with tag="amap", timeout=60, requires_body=true',
+            'response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/dsp\\/profile\\/index\\/nodefaasv3\\?/i then script("' + self.ishowshu_url + '") with tag="amap", timeout=60, requires_body=true',
+            'response if ${url} ~= /^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/sharedtrip\\/taxi\\/order_detail_car_tips\\?/i then script("' + self.ishowshu_url + '") with tag="amap", timeout=60, requires_body=true',
+        ]
+        self.fixture = ["[Script]", *self.old_rules, *self.unique_ishowshu_rules, *self.local_rules, "[MITM]"]
+
+    def test_removes_only_six_shadowed_ishowshu_entries(self):
+        from apply_local_overrides import remove_shadowed_ishowshu_amap_response_triggers
+        result, changed = remove_shadowed_ishowshu_amap_response_triggers(self.fixture)
+        self.assertEqual(changed, 6)
+        for old in self.old_rules:
+            self.assertNotIn(old, result)
+        for local in self.local_rules:
+            self.assertIn(local, result)
+        for unique in self.unique_ishowshu_rules:
+            self.assertIn(unique, result)
+        self.assertIn("[MITM]", result)
+
+    def test_is_idempotent(self):
+        from apply_local_overrides import remove_shadowed_ishowshu_amap_response_triggers
+        migrated, changed = remove_shadowed_ishowshu_amap_response_triggers(self.fixture)
+        again, changed_again = remove_shadowed_ishowshu_amap_response_triggers(migrated)
+        self.assertEqual(changed, 6)
+        self.assertEqual((again, changed_again), (migrated, 0))
+
+    def test_fails_closed_on_matcher_drift_duplicate_or_missing_local_coverage(self):
+        from apply_local_overrides import remove_shadowed_ishowshu_amap_response_triggers
+        drifted = list(self.fixture)
+        drifted[3] = drifted[3].replace(r"search\/sp", r"search\/special")
+        with self.assertRaisesRegex(ValueError, "iShowShu Amap matcher changed"):
+            remove_shadowed_ishowshu_amap_response_triggers(drifted)
+
+        duplicate = list(self.fixture)
+        duplicate.insert(2, duplicate[1])
+        with self.assertRaisesRegex(ValueError, "duplicate iShowShu Amap trigger"):
+            remove_shadowed_ishowshu_amap_response_triggers(duplicate)
+
+        missing_local = [line for line in self.fixture if line != self.local_rules[0]]
+        with self.assertRaisesRegex(ValueError, "local RuCu6 Amap coverage missing or duplicated"):
+            remove_shadowed_ishowshu_amap_response_triggers(missing_local)
+
+    def test_checked_in_plugin_keeps_only_local_handlers_for_the_shadowed_paths(self):
+        from pathlib import Path
+        from apply_local_overrides import (
+            apply,
+            ISHOWSHU_AMAP_SCRIPT_MARKER,
+            RUCU6_AMAP_SCRIPT_MARKER,
+            SHADOWED_ISHOWSHU_AMAP_TRIGGERS,
+        )
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        result = apply(plugin)
+        response_lines = [line for line in result.splitlines() if line.lower().startswith("response if ")]
+        for _, old_matcher, _, _ in SHADOWED_ISHOWSHU_AMAP_TRIGGERS:
+            self.assertFalse(any(ISHOWSHU_AMAP_SCRIPT_MARKER in line and old_matcher in line for line in response_lines))
+        for local_matcher in set(pair[3] for pair in SHADOWED_ISHOWSHU_AMAP_TRIGGERS):
+            self.assertEqual(sum(RUCU6_AMAP_SCRIPT_MARKER in line and local_matcher in line for line in response_lines), 1)
+        ishowshu_lines = [line for line in response_lines if ISHOWSHU_AMAP_SCRIPT_MARKER in line]
+        self.assertEqual(len(ishowshu_lines), 5)
+        amap_source = Path(__file__).with_name("sources").joinpath("amap", "rucu6_amap.js").read_text(encoding="utf-8")
+        for marker in ("contentPoster", "CouponPush", "activityRecommendation", "tips_operation_location"):
+            self.assertIn(marker, amap_source)
+
+
