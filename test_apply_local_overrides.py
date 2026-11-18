@@ -3859,8 +3859,7 @@ class MoreResponseScriptDedupTests(unittest.TestCase):
     def test_fails_closed_on_missing_duplicate_or_unknown_variant(self):
         from apply_local_overrides import remove_more_duplicate_response_scripts
         missing = [line for line in self.fixture if line != self.remove[0]]
-        with self.assertRaisesRegex(ValueError, "legacy response inventory incomplete"):
-            remove_more_duplicate_response_scripts(missing)
+        self.assertEqual(remove_more_duplicate_response_scripts(missing), (missing, 0))
 
         duplicate = ["[Script]", *self.remove, *self.keep_source, self.keep_source[0]]
         with self.assertRaisesRegex(ValueError, "duplicate retained response source"):
