@@ -4236,9 +4236,10 @@ class BilibiliProtobufDuplicateTriggerTests(unittest.TestCase):
         self.assertIn(mainlist, result)
         sparkle_lines = [line for line in result if "bilibili.protobuf.response.js" in line]
         self.assertEqual(len(sparkle_lines), 1)
-        self.assertNotIn(r"main\.community\.reply\.v1\.Reply", sparkle_lines[0])
-        for marker in (r"dynamic\.v2\.Dynamic", "view(unite)?", r"community\.service\.dm", r"polymer\.app\.search"):
-            self.assertIn(marker, sparkle_lines[0])
+        normalized_sparkle = sparkle_lines[0].replace("\\", "")
+        self.assertNotIn("main.community.reply.v1.Reply", normalized_sparkle)
+        for marker in ("dynamic.v2.Dynamic", "view(unite)?", "community.service.dm", "polymer.app.search"):
+            self.assertIn(marker, normalized_sparkle)
 
         import re
         mainlist_pattern = re.compile(mainlist.split(" script-path=")[0].removeprefix("http-response "))
@@ -4302,6 +4303,57 @@ class BilibiliProtobufDuplicateTriggerTests(unittest.TestCase):
         bad_fmz = fmz_trigger.replace(r"dynamic\.v2", r"dynamic\.v3")
         with self.assertRaisesRegex(ValueError, "Sparkle protobuf endpoint coverage changed"):
             narrow_duplicate_bilibili_protobuf_triggers(["[Script]", bad_fmz, original, "[MITM]"])
+
+
+class XimalayaResponseTriggerScopeTests(unittest.TestCase):
+    def _fixture(self):
+        from apply_local_overrides import XIMALAYA_SCRIPT_TRIGGER_OLD_HOST_PREFIX
+        script_url = "https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xmly.js"
+        specs = (
+            ("tag=XMLY,", r"discovery-category\/customCategories"),
+            ("tag=XMLY-2,", r"focus-mobile\/focusPic"),
+            ("tag=XMLY-3,", r"discovery-feed\/v\d\/mix"),
+            ("tag=XMLY-4,", r"discovery-category\/v\d/category"),
+            ("tag=XMLY-5,", r"mobile-user\/v\d\/homePage"),
+        )
+        return ["[Script]"] + [
+            "http-response " + XIMALAYA_SCRIPT_TRIGGER_OLD_HOST_PREFIX + path
+            + " script-path=" + script_url + "," + tag + "requires-body=true"
+            for tag, path in specs
+        ] + ["[MITM]"]
+
+    def test_narrows_only_five_known_ximalaya_response_handlers(self):
+        import re
+        from apply_local_overrides import (
+            XIMALAYA_SCRIPT_TRIGGER_NEW_HOST_PREFIX,
+            narrow_ximalaya_script_triggers,
+        )
+        fixture = self._fixture()
+        result, changed = narrow_ximalaya_script_triggers(fixture)
+        self.assertEqual(changed, 5)
+        new_lines = [line for line in result if "AntiAd/xmly.js" in line]
+        self.assertEqual(len(new_lines), 5)
+        for line in new_lines:
+            self.assertIn(XIMALAYA_SCRIPT_TRIGGER_NEW_HOST_PREFIX, line)
+            self.assertIn("requires-body=true", line)
+        pattern = re.compile(new_lines[0].split(" script-path=")[0].removeprefix("http-response "))
+        self.assertTrue(pattern.search("https://m.ximalaya.com/discovery-category/customCategories"))
+        self.assertTrue(pattern.search("https://adse.wsa.ximalaya.com/discovery-category/customCategories"))
+        self.assertFalse(pattern.search("https://m.xima-example.com/discovery-category/customCategories"))
+        self.assertFalse(pattern.search("https://m.ximalaya.com.example.net/discovery-category/customCategories"))
+        again, second_changed = narrow_ximalaya_script_triggers(result)
+        self.assertEqual(second_changed, 0)
+        self.assertEqual(again, result)
+
+    def test_fails_closed_on_missing_or_drifted_ximalaya_script_inventory(self):
+        from apply_local_overrides import narrow_ximalaya_script_triggers
+        fixture = self._fixture()
+        with self.assertRaisesRegex(ValueError, "inventory changed"):
+            narrow_ximalaya_script_triggers(fixture[:-2] + ["[MITM]"])
+        drifted = list(fixture)
+        drifted[1] = drifted[1].replace("customCategories", "changedEndpoint")
+        with self.assertRaisesRegex(ValueError, "path changed"):
+            narrow_ximalaya_script_triggers(drifted)
 
 
 class XiaohongshuNativeDuplicateTriggerTests(unittest.TestCase):
