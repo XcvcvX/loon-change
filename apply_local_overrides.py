@@ -2357,6 +2357,7 @@ DOUYIN_HONGGUO_UNSAFE_RULES = {
     "DOMAIN,webcast-open.douyin.com,REJECT",
     "DOMAIN-KEYWORD,minigame,REJECT",
     "DOMAIN-SUFFIX,dig.bdurl.net,REJECT",
+    "DOMAIN,dig.bdurl.net,REJECT",
 }
 DOUYIN_LIVE_FEED_REWRITE_RULES = {
     r"^https?:\/\/webcast-open\.douyin\.com\/webcast\/openapi\/feed\/ reject-dict",
