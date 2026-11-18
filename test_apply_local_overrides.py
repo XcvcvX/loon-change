@@ -3301,6 +3301,47 @@ class Dushu365NonAdTriggerPruningTests(unittest.TestCase):
             self.assertEqual(result.count(item), 1)
 
 
+
+class UnneededUsmileResponseBodyReadTests(unittest.TestCase):
+    def test_removes_body_read_from_legacy_and_v2_usmile_handlers_only(self):
+        from apply_local_overrides import remove_unneeded_usmile_response_body_read
+        legacy = r"http-response ^https?:\\/\\/www\\.myusmile\\.online\\/user\\/plaqueTopic\\/selectByType script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/usmile.js,tag=USMILE,requires-body=true"
+        v2 = r'response if \${url} ~= /^https?:\\/\\/www\\.myusmile\\.online\\/user\\/plaqueTopic\\/selectByType/i then script("https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/usmile.js") with tag="笑容加-我的页面推广", timeout=60, requires_body=true'
+        unrelated = r"http-response ^https?:\\/\\/www\\.myusmile\\.online\\/user\\/other script-path=https://example.com/other.js,requires-body=true"
+        request = r"http-request ^https?:\\/\\/www\\.myusmile\\.online\\/user\\/plaqueTopic\\/selectByType script-path=https://example.com/request.js,requires-body=true"
+        result, changed = remove_unneeded_usmile_response_body_read(
+            ["[Script]", legacy, v2, unrelated, request, "[MITM]"]
+        )
+        self.assertEqual(changed, 2)
+        self.assertNotIn("requires-body=true", result[1])
+        self.assertNotIn("requires_body=true", result[2])
+        self.assertIn("requires-body=true", result[3])
+        self.assertIn("requires-body=true", result[4])
+
+    def test_is_idempotent_and_fails_closed_on_duplicate_handlers(self):
+        from apply_local_overrides import remove_unneeded_usmile_response_body_read
+        clean = r'response if \${url} ~= /^https?:\\/\\/www\\.myusmile\\.online\\/user\\/plaqueTopic\\/selectByType/i then script("https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/usmile.js") with tag="USMILE"'
+        result, changed = remove_unneeded_usmile_response_body_read(["[Script]", clean, "[MITM]"])
+        self.assertEqual(changed, 0)
+        self.assertEqual(result, ["[Script]", clean, "[MITM]"])
+        self.assertEqual(remove_unneeded_usmile_response_body_read(result), (result, 0))
+        duplicate = ["[Script]", clean, clean, clean, "[MITM]"]
+        with self.assertRaisesRegex(ValueError, "duplicate Usmile response handlers"):
+            remove_unneeded_usmile_response_body_read(duplicate)
+
+    def test_checked_in_plugin_applies_usmile_body_read_cleanup(self):
+        from pathlib import Path
+        from apply_local_overrides import apply
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        result = apply(plugin)
+        matches = [
+            line for line in result.splitlines()
+            if "myusmile.online/user/plaqueTopic/selectByType" in line
+            and "usmile.js" in line
+        ]
+        self.assertEqual(len(matches), 2)
+        self.assertTrue(all("requires-body=true" not in line.lower() and "requires_body=true" not in line.lower() for line in matches))
+
 class UnneededMgwEcnyResponseBodyReadTests(unittest.TestCase):
     def test_removes_only_ecny_mgw_requires_body(self):
         from apply_local_overrides import remove_unneeded_mgw_ecny_response_body_read
