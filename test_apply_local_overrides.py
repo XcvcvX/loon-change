@@ -2877,10 +2877,11 @@ class JingdongCoreServiceDomainScopeTests(unittest.TestCase):
         self.assertIn("^https://example.com/ad reject", result)
         self.assertEqual(remove_jd_core_service_domain_blocks(result), (result, 0))
 
-    def test_fails_closed_on_partial_duplicate_or_changed_core_service_inventory(self):
+    def test_accepts_partial_retired_source_inventory_but_rejects_duplicate_or_changed_rows(self):
         from apply_local_overrides import remove_jd_core_service_domain_blocks
-        with self.assertRaisesRegex(ValueError, "inventory is partial"):
-            remove_jd_core_service_domain_blocks(["[Rule]", *self.targets[:-1]])
+        partial, removed = remove_jd_core_service_domain_blocks(["[Rule]", *self.targets[:-1]])
+        self.assertEqual(removed, 2)
+        self.assertEqual(partial, ["[Rule]"])
         duplicate = ["[Rule]", *self.targets, self.targets[0]]
         with self.assertRaisesRegex(ValueError, "duplicate JD core service"):
             remove_jd_core_service_domain_blocks(duplicate)
