@@ -5300,8 +5300,41 @@ class QunarSerializationCostTests(unittest.TestCase):
         self.assertIn("Array.isArray(current) && current.length === 0", source)
         self.assertIn("obj(current) && Object.keys(current).length === 0", source)
         self.assertIn("sameTarget(o[k], value)", source)
-        self.assertNotIn("JSON.stringify(o[k]) === JSON.stringify(value)", source)
-        self.assertIn("return JSON.stringify(current) === JSON.stringify(target)", source)
+        helper = source.split("function sameTarget(current, target)", 1)[1].split("function set(o, k, value, label)", 1)[0]
+        self.assertNotIn("JSON.stringify", helper)
+        self.assertIn("return current === target", helper)
+
+
+    def test_qunar_already_clean_payload_avoids_all_stringification(self):
+        import shutil
+        import subprocess
+        from pathlib import Path
+
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node.js is required for the Qunar runtime integration test")
+        source_path = Path(__file__).with_name("scripts").joinpath("romeo_legacy", "qunar-clean.js")
+        harness = r'''
+const fs = require("fs");
+const vm = require("vm");
+const source = fs.readFileSync(process.argv[1], "utf8");
+let parseCalls = 0, stringifyCalls = 0, doneResult;
+const trackedJSON = {
+  parse(...args) { parseCalls++; return JSON.parse(...args); },
+  stringify(...args) { stringifyCalls++; return JSON.stringify(...args); }
+};
+const context = {
+  JSON: trackedJSON,
+  $request: { url: "https://lang.qunar.com/api/common/feed/open/postList", method: "GET", headers: {} },
+  $response: { status: 200, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ data: { list: [], fastFilterNameList: [], isLastOne: true } }) },
+  $done(value) { doneResult = value; },
+  console: { log() {} }
+};
+vm.runInNewContext(source, context);
+if (parseCalls !== 1 || stringifyCalls !== 0) throw new Error("already-clean response unexpectedly serialized: " + parseCalls + "/" + stringifyCalls);
+if (!doneResult || Object.keys(doneResult).length !== 0) throw new Error("already-clean response should pass through unchanged");
+'''
+        subprocess.run([node, "-e", harness, str(source_path)], check=True, capture_output=True, text=True)
 
 
 class QunarRuntimeHotPathTests(unittest.TestCase):
