@@ -5734,6 +5734,7 @@ def apply(text: str) -> str:
     lines, _ = remove_redundant_alipan_onboard_response_script(lines)
     lines, _ = remove_unneeded_mgw_ecny_response_body_read(lines)
     lines, _ = remove_unneeded_usmile_response_body_read(lines)
+    lines, _ = remove_unneeded_header_only_response_body_reads(lines)
     lines, _ = remove_weibo_non_ad_response_triggers(lines)
     lines, _ = remove_redundant_dianping_scripts(lines)
     lines, _ = remove_redundant_baidumap_script(lines)
