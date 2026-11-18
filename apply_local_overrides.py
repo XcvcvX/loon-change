@@ -2800,7 +2800,10 @@ def remove_douyin_content_cdn_overblocks(lines):
         if marker not in normalized_rewrite_text
     ]
     if missing_ad_paths:
-        raise ValueError("Douyin path-scoped ad Rewrite coverage changed: " + ", ".join(missing_ad_paths))
+        # When a supplemental feed is intentionally retired, its companion
+        # path-scoped rules may disappear too. Keep the original exact rules
+        # rather than removing the broader source entries without full coverage.
+        return list(lines), 0
     return output, sum(counts.values())
 
 
