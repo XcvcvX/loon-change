@@ -35,7 +35,7 @@ if (url.includes("/search/trending?")) {
 if (url.includes("/search/notes?")) {
   // 搜索结果
   if (obj.data.items?.length > 0) {
-    obj.data.items = obj.data.items.filter((i) => i.model_type === "note");
+    compactInPlace(obj.data.items, item => item?.model_type === "note");
   }
 }
 
@@ -107,7 +107,7 @@ if (url.includes("/note/imagefeed?") || url.includes("/note/feed?")) {
 
         // 处理帖子引用的标签
         if (item.hash_tag) {
-          item.hash_tag = item.hash_tag.filter(tag => tag.type !== "interact_vote");
+          compactInPlace(item.hash_tag, tag => tag?.type !== "interact_vote");
         }
       }
 
@@ -244,7 +244,7 @@ if (url.includes("/user/followings/followfeed")) {
   // 关注页信息流 可能感兴趣的人
   if (obj?.data?.items?.length > 0) {
     // 白名单
-    obj.data.items = obj.data.items.filter((i) => i?.recommend_reason === "friend_post");
+    compactInPlace(obj.data.items, item => item?.recommend_reason === "friend_post");
   }
 } 
 
@@ -252,7 +252,7 @@ if (url.includes("/v4/followfeed")) {
   // 关注列表
   if (obj?.data?.items?.length > 0) {
     // recommend_user 可能感兴趣的人
-    obj.data.items = obj.data.items.filter((i) => !["recommend_user"].includes(i.recommend_reason));
+    compactInPlace(obj.data.items, item => item?.recommend_reason !== "recommend_user");
   }
 }  
 
@@ -266,24 +266,16 @@ if (url.includes("/recommend/user/follow_recommend")) {
 if (url.includes("/v6/homefeed")) {
   if (obj?.data?.length > 0) {
     // 信息流广告
-    let newItems = [];
-    for (let item of obj.data) {
-      if (item?.model_type === "live_v2") {
-        // 信息流-直播
-      } else if (item?.hasOwnProperty("ads_info")) {
-        // 信息流-赞助
-      } else if (item?.hasOwnProperty("card_icon")) {
-        // 信息流-带货
-      } else if (item?.note_attributes?.includes("goods")) {
-        // 信息流-商品
-      } else {
-        if (item?.related_ques) {
-          delete item.related_ques;
-        }
-        newItems.push(item);
+    compactInPlace(obj.data, item => {
+      if (item?.model_type === "live_v2" ||
+          item?.hasOwnProperty("ads_info") ||
+          item?.hasOwnProperty("card_icon") ||
+          item?.note_attributes?.includes("goods")) {
+        return false;
       }
-    }
-    obj.data = newItems;
+      if (item?.related_ques) delete item.related_ques;
+      return true;
+    });
   }
 }
 
@@ -346,7 +338,8 @@ if (url.includes("/api/sns/v5/note/comment/list?") || url.includes("/api/sns/v3/
     } else {
       commitsRsp = JSON.parse(commitsCache);
       if (commitsRsp.noteId === note_id) {
-        commitsRsp.livePhotos = deduplicateLivePhotos(commitsRsp.livePhotos.concat(livePhotos));
+        for (const item of livePhotos) commitsRsp.livePhotos.push(item);
+        commitsRsp.livePhotos = deduplicateLivePhotos(commitsRsp.livePhotos);
       } else {
         commitsRsp = {noteId: note_id, livePhotos: livePhotos};
       }
@@ -363,7 +356,8 @@ if (url.includes("/api/sns/v5/note/comment/list?") || url.includes("/api/sns/v3/
     } else {
       videosCache = JSON.parse(commitsCache);
       if (videosCache.noteId === note_id) {
-        videosCache.videos = deduplicateLivePhotos(videosCache.videos.concat(commentVideos));
+        for (const item of commentVideos) videosCache.videos.push(item);
+        videosCache.videos = deduplicateLivePhotos(videosCache.videos);
       } else {
         videosCache = {noteId: note_id, videos: commentVideos};
       }
@@ -402,6 +396,18 @@ if (url.includes("/api/sns/v1/interaction/comment/video/download?")) {
 }
 
 $done({body: JSON.stringify(obj)});
+
+function compactInPlace(items, predicate) {
+  let write = 0;
+  for (let read = 0, length = items.length; read < length; read++) {
+    const item = items[read];
+    if (!predicate(item, read)) continue;
+    if (write !== read) items[write] = item;
+    write++;
+  }
+  items.length = write;
+  return items;
+}
 
 function processVideoFeedItem(item, videoData) {
   // 强制开启权限
@@ -528,13 +534,15 @@ function replaceUrlContent(collectionA, collectionB) {
 
 function deduplicateLivePhotos(livePhotos) {
   const seen = new Map();
-  livePhotos = livePhotos.filter(item => {
-    if (seen.has(item.videId)) {
-      return false;
-    }
+  let write = 0;
+  for (let read = 0; read < livePhotos.length; read++) {
+    const item = livePhotos[read];
+    if (seen.has(item.videId)) continue;
     seen.set(item.videId, true);
-    return true;
-  });
+    if (write !== read) livePhotos[write] = item;
+    write++;
+  }
+  livePhotos.length = write;
   return livePhotos;
 }
 
