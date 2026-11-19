@@ -24,6 +24,44 @@ class CnftpPerformanceTests(unittest.TestCase):
         self.assertNotIn("newNode4", branch)
         self.assertNotIn('console.log("移除首页的轮播广告")', branch)
 
+    def test_terminal_empty_body_guard_is_added_idempotently(self):
+        source = SOURCE_PATH.read_text(encoding="utf-8")
+        self.assertIn("CNFTP terminal empty-body guard v1", source)
+        self.assertIn("if (!$response.body) {\n  $done({});\n} else {", source)
+        self.assertEqual(optimize_source(source), source)
+
+    def test_node_runtime_empty_body_skips_json_parse(self):
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node.js is required for CNFTP runtime tests")
+        harness = r'''
+const fs = require("fs"), vm = require("vm");
+const source = fs.readFileSync(process.argv[1], "utf8");
+let parseCalls = 0, doneCalls = 0, doneResult;
+const trackedJSON = {
+  parse(value) { parseCalls++; return JSON.parse(value); },
+  stringify(value) { return JSON.stringify(value); }
+};
+const context = {
+  JSON: trackedJSON,
+  $request: { url: "https://acs.youku.com/gw/mtop.youku.columbus.home.feed/" },
+  $response: { body: "" },
+  $done(value) { doneCalls++; doneResult = value; },
+  console: { log() {}, warn() {}, error() {} }
+};
+vm.createContext(context);
+vm.runInContext(source, context, { timeout: 5000 });
+if (parseCalls !== 0) throw new Error("empty response unexpectedly parsed JSON: " + parseCalls);
+if (doneCalls !== 1 || !doneResult || Object.keys(doneResult).length !== 0) {
+  throw new Error("empty response must complete once with pass-through");
+}
+'''
+        result = subprocess.run(
+            [node, "-e", harness, str(SOURCE_PATH)],
+            capture_output=True, text=True, check=False, timeout=10,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
+
     def test_upstream_home_feed_branch_is_migrated_fail_closed(self):
         fixture = """const url = $request.url;
 if (isYK) {
