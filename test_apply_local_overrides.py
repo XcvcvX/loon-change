@@ -2971,13 +2971,20 @@ class PinduoduoImageCdnScopeTests(unittest.TestCase):
         from pathlib import Path
         from apply_local_overrides import (
             PDD_IMAGE_CDN_HOST, PDD_IMAGE_CDN_BROAD_BLOCK, PDD_IMAGE_CDN_AD_PATH_RULES,
+            PDD_IMAGE_CDN_LEGACY_AD_PATH_RULES,
         )
         plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
         self.assertNotIn(PDD_IMAGE_CDN_BROAD_BLOCK, plugin)
         self.assertNotIn("DOMAIN-SUFFIX," + PDD_IMAGE_CDN_HOST + ",REJECT", plugin)
         self.assertNotIn("DOMAIN-KEYWORD," + PDD_IMAGE_CDN_HOST + ",REJECT", plugin)
         path_counts = [plugin.count(rule) for rule in PDD_IMAGE_CDN_AD_PATH_RULES]
-        self.assertIn(path_counts, ([0, 0], [1, 1]))
+        legacy_combined_count = plugin.count(PDD_IMAGE_CDN_LEGACY_AD_PATH_RULES[0])
+        legacy_broad_count = plugin.count(PDD_IMAGE_CDN_LEGACY_AD_PATH_RULES[1])
+        self.assertTrue(
+            path_counts == [1, 1]
+            or (path_counts == [0, 0] and legacy_combined_count == 1)
+        )
+        self.assertEqual(legacy_broad_count, 0)
         mitm = plugin.split("[MITM]", 1)[1]
         self.assertIn(PDD_IMAGE_CDN_HOST, mitm)
 
@@ -4699,6 +4706,76 @@ class XiaohongshuV4AndCommentMigrationTests(unittest.TestCase):
         self.assertIn('fmz200.xiaohongshu.comments.videos.rsp', script)
 
 
+
+
+    def test_prunes_only_mitm_entries_covered_by_existing_wildcards(self):
+        from apply_local_overrides import remove_mitm_hosts_covered_by_wildcards
+        hosts = [
+            "*.bankcomm.com", "creditcard.bankcomm.com", "download1.bankcomm.com",
+            "*.dianping.com", "m.dianping.com", "*.shuqireader.com",
+            "message.shuqireader.com", "*.example.com", "example.com",
+            "-blocked.example.com",
+        ]
+        kept, removed = remove_mitm_hosts_covered_by_wildcards(hosts)
+        self.assertEqual(removed, 3)
+        self.assertIn("creditcard.bankcomm.com", kept)
+        self.assertNotIn("download1.bankcomm.com", kept)
+        self.assertNotIn("m.dianping.com", kept)
+        self.assertNotIn("message.shuqireader.com", kept)
+        self.assertIn("example.com", kept)  # wildcard does not cover apex
+        self.assertIn("-blocked.example.com", kept)
+
+    def test_removes_only_reviewed_rewrite_overlaps_and_is_idempotent(self):
+        from apply_local_overrides import (
+            REVIEWED_REWRITE_OVERLAP_PAIRS,
+            remove_reviewed_rewrite_overlap_rules,
+        )
+        fixture = ["[Rewrite]"]
+        for keep, remove in REVIEWED_REWRITE_OVERLAP_PAIRS:
+            for canonical in keep:
+                if canonical not in fixture:
+                    fixture.append(canonical)
+            fixture.extend(remove)
+        fixture.append("[Script]")
+        cleaned, removed = remove_reviewed_rewrite_overlap_rules(fixture)
+        self.assertEqual(removed, 38)
+        for keep, _ in REVIEWED_REWRITE_OVERLAP_PAIRS:
+            for canonical in keep:
+                self.assertIn(canonical, cleaned)
+        for _, shadows in REVIEWED_REWRITE_OVERLAP_PAIRS:
+            for shadow in shadows:
+                self.assertNotIn(shadow, cleaned)
+        self.assertEqual(remove_reviewed_rewrite_overlap_rules(cleaned), (cleaned, 0))
+
+
+    def test_preserves_earlier_specific_status_exceptions_before_broader_fallbacks(self):
+        from pathlib import Path
+        from apply_local_overrides import apply
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        result = apply(plugin)
+        rewrite = result.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
+        pic_specific = "^https?:\\/\\/pic\\.k\\.sohu\\.com\\/img8\\/wb\\/tj\\/ reject-200"
+        pic_broad = "request if ${url} ~= /^https?:\\/\\/pic\\.k\\.sohu\\.com\\/img\\d\\/wb\\/tj\\// then reject(404)"
+        issue_specific = "^https?:\\/\\/issuecdn\\.baidupcs\\.com\\/issue\\/netdisk\\/guanggao\\/ reject-200"
+        issue_broad = "request if ${url} ~= /^https?:\\/\\/issuecdn\\.baidupcs\\.com\\/issue\\/netdisk\\/guanggao/ then reject(404)"
+        elong_specific = "^https?:\\/\\/mobile-api2011\\.elong\\.com\\/adgateway\\/newad\\/list reject-dict"
+        elong_broad = "^https?:\\/\\/mobile-api2011\\.elong\\.com\\/ad(?:v|gateway) reject-200"
+        self.assertIn(pic_specific, rewrite)
+        self.assertIn(issue_specific, rewrite)
+        self.assertIn(elong_specific, rewrite)
+        self.assertLess(rewrite.index(pic_specific), rewrite.index(pic_broad))
+        self.assertLess(rewrite.index(issue_specific), rewrite.index(issue_broad))
+        self.assertLess(rewrite.index(elong_specific), rewrite.index(elong_broad))
+
+    def test_rewrite_overlap_cleanup_fails_closed_without_canonical_cover(self):
+        from apply_local_overrides import (
+            REVIEWED_REWRITE_OVERLAP_PAIRS,
+            remove_reviewed_rewrite_overlap_rules,
+        )
+        keep, remove = REVIEWED_REWRITE_OVERLAP_PAIRS[0]
+        cleaned, removed = remove_reviewed_rewrite_overlap_rules(["[Rewrite]", *remove, "[Script]"])
+        self.assertEqual(removed, 0)
+        self.assertEqual(cleaned, ["[Rewrite]", *remove, "[Script]"])
 
 
 if __name__ == "__main__":

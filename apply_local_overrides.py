@@ -2,6 +2,7 @@
 """Apply durable local Loon plugin overrides after upstream merge."""
 from pathlib import Path
 import argparse
+import fnmatch
 import re
 
 RULE = (r'response if ${url} ~= /^https?:\/\/creditcard\.bankcomm\.(?:cn|com)\/tofimg\/bucket-pj-btss-tfcn-dmz\/OSS-F\/.+/i '
@@ -34,6 +35,25 @@ REQUIRED_BANKCOMM_MITM_HOSTS = {
     "creditcard.bankcomm.cn", "creditcard.bankcomm.com",
     "creditcardapp.bankcomm.cn", "creditcardapp.bankcomm.com",
 }
+
+def remove_mitm_hosts_covered_by_wildcards(hosts, preserve=REQUIRED_BANKCOMM_MITM_HOSTS):
+    """Drop only positive MITM entries fully subsumed by an existing wildcard."""
+    import fnmatch
+    values = [host.strip() for host in hosts if host.strip()]
+    wildcards = [host.lower() for host in values
+                 if not host.startswith('-') and ('*' in host or '?' in host)]
+    kept, removed = [], 0
+    for host in values:
+        if host.startswith('-') or host in preserve:
+            kept.append(host)
+            continue
+        if any(host != wildcard and fnmatch.fnmatchcase(host.lower(), wildcard)
+               for wildcard in wildcards):
+            removed += 1
+            continue
+        kept.append(host)
+    return kept, removed
+
 HELLOBIKE_REWRITE_MARKERS = (
     "api-htp.beizi.biz",
     "adservice.sigmob.cn",
@@ -143,6 +163,34 @@ SHADOWED_TERMINAL_BLOCK_RULE_PAIRS = (
     ("request if ${url} ~= /^https?:\\/\\/p\\.kuaidi100\\.com\\/advertisement\\// then reject(404)", "request if ${url} ~= /^https?:\\/\\/p\\.kuaidi100\\.com\\/advertisement\\// then reject_dict(200)"),
     ("request if ${url} ~= /^https?:\\/\\/api\\.jr\\.mi\\.com\\/jr\\/api\\/playScreen/ then reject(404)", "request if ${url} ~= /^https?:\\/\\/api\\.jr\\.mi\\.com\\/jr\\/api\\/playScreen/ then reject(200)"),
 )
+
+
+# Intentional priority overlaps retained outside this removal table:
+# - Elong: narrow /adgateway/newad/list reject-dict precedes the broader ad fallback reject-200.
+# - Sohu: /img8 keeps its earlier reject-200 exception before the img\\d fallback.
+# - Baidu Netdisk: /guanggao/ keeps its earlier reject-200 exception before the broader fallback.
+# Exact, reviewed overlaps from the 2026-11-19 deep audit. Each removal is
+# conditional on its canonical covering rule(s) remaining exactly once.
+REVIEWED_REWRITE_OVERLAP_PAIRS = [[["request if ${url} ~= /^https?:\\/\\/amap-aos-info-nogw\\.amap\\.com\\/ws\\/aos\\/alimama\\/splash_screen_rt/ then reject(404)"],["request if ${url} ~= /^https:\\/\\/amap-aos-info-nogw\\.amap\\.com\\/ws\\/aos\\/alimama\\/splash_screen_rt/i then reject_dict(200)"]],[["request if ${url} ~= /^https?:\\/\\/(client\\.)?app(\\.coc)?\\.10086\\.cn\\/biz-orange\\/DN\\/init\\/startInit/ then reject(404)"],["request if ${url} ~= /^https:\\/\\/client\\.app\\.coc\\.10086\\.cn\\/biz-orange\\/DN\\/init\\/startInit$/i then reject(404)"]],[["^https?:\\/\\/mbs\\.boc\\.cn\\/ubas-mgateway-static\\/images\\/theme\\/ reject-200"],["^https?:\\/\\/mbs\\.boc\\.cn\\/ubas-mgateway-static\\/images\\/theme\\/ mock-response-body data-type=text status-code=200"]],[["^https?:\\/\\/mbs\\.boc\\.cn\\/ubas-mgateway-static\\/images\\/advertType\\/.+.jpg reject-200"],["^https?:\\/\\/mbs\\.boc\\.cn\\/ubas-mgateway-static\\/images\\/advertType\\/.+.jpg mock-response-body data-type=text status-code=200"]],[["^https?:\\/\\/cdn1\\.mbs\\.boc\\.cn\\/ubas-mgateway-static\\/images\\/theme\\/ reject-200"],["^https?:\\/\\/cdn1\\.mbs\\.boc\\.cn\\/ubas-mgateway-static\\/images\\/theme\\/ mock-response-body data-type=text status-code=200"]],[["^https?:\\/\\/cdn1\\.mbs\\.boc\\.cn\\/ubas-mgateway-static\\/images\\/advertType\\/\\.+\\.jpg reject-200"],["^https?:\\/\\/cdn1\\.mbs\\.boc\\.cn\\/ubas-mgateway-static\\/images\\/advertType\\/\\.+\\.jpg mock-response-body data-type=text status-code=200"]],[["^https?:\\/\\/us\\.l\\.qq\\.com\\/exapp reject-200"],["request if ${url} ~= /^https?:\\/\\/us\\.l\\.qq\\.com\\/exapp/ then reject(404)"]],[["^https?:\\/\\/webappcfg\\.paas\\.cmbchina\\.com\\/v\\d\\/func\\/getmarketconfig reject-200"],["request if ${url} ~= /^https?:\\/\\/webappcfg\\.paas\\.cmbchina\\.com\\/v\\d\\/func\\/getmarketconfig/i then reject(200, \" \")"]],[["request if ${url} ~= /^https?:\\/\\/api\\.zcool\\.com\\.cn\\/v\\d\\.\\d\\.\\d\\/common\\/open-screen/ then reject(404)"],["request if ${url} ~= /^https:\\/\\/api\\.zcool\\.com\\.cn\\/v\\d\\.\\d\\.\\d\\/common\\/open-screen/i then reject_dict(200)"]],[["^https?:\\/\\/app\\.10099\\.com\\.cn\\/contact-web\\/api\\/version\\/getFlashScreenPage reject-200"],["request if ${url} ~= /^https:\\/\\/app\\.10099\\.com\\.cn\\/contact-web\\/api\\/version\\/getFlashScreenPage/i then reject(404)"]],[["request if ${url} ~= /^https?:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.film\\.mtopadvertiseapi\\.(queryadvertise|queryloadingbanner)\\// then reject(404)"],["request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.film\\.mtopadvertiseapi\\.queryadvertise/i then reject_dict(200)"]],[["^https?:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.film\\.life\\.popup\\.get\\/ reject-dict"],["request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.film\\.life\\.popup\\.get\\//i then reject_dict(200)"]],[["request if ${url} ~= /^https?:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.etao\\.noah\\.query\\/.+tao_splash/ then reject(404)"],["request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.etao\\.noah\\.query\\/.+tao_splash/i then reject_dict(200)"]],[["request if ${url} ~= /^https?:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.alimama\\.etao\\.config\\.query\\/.+?etao_advertise/ then reject(404)"],["request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.alimama\\.etao\\.config\\.query\\/.+?etao_advertise/i then reject_dict(200)"]],[["^https?:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.alibaba\\.advertisementservice\\.getadv reject-dict"],["request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.alibaba\\.advertisementservice\\.getadv/i then reject_dict(200)"]],[["^https?:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.alimusic\\.common\\.mobileservice\\.startinit reject-dict"],["request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.alimusic\\.common\\.mobileservice\\.startinit/i then reject_dict(200)"]],[["^https?:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.o2o\\.ad\\.gateway\\.get reject-dict"],["request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.o2o\\.ad\\.gateway\\.get/i then reject_dict(200)"]],[["^https?:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.idle\\.home\\.welcome reject-dict"],["request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.idle\\.home\\.welcome/i then reject(404)","request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.idle\\.home\\.welcome/i then reject_dict(200)"]],[["^https?:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.trip\\.activity\\.querytmsresources reject-dict"],["request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.trip\\.activity\\.querytmsresources/i then reject_dict(200)"]],[["^https?:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.(volvo\\.secondfloor\\.getconfig|wireless\\.home\\.newface\\.awesome\\.get) reject-dict"],["request if ${url} ~= /^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.(volvo\\.secondfloor\\.getconfig|wireless\\.home\\.newface\\.awesome\\.get)/i then reject_dict(200)"]],[["^https?:\\/\\/client\\.tujia\\.com\\/bnbapp-node\\/app\\/portal\\/getportalconfig\\/bnb\\/v\\d response-body-replace-regex \"banners\":\\[.+\\], \"banners\":[],","request if ${url} ~= /^https?:\\/\\/client\\.tujia\\.com\\/bnbapp-node\\/app\\/(promotion\\/popup\\/getpopupups\\/bnb|portal\\/getStartPictureAdvertising)/ then reject(404)"],["^https?:\\/\\/client\\.tujia\\.com\\/bnbapp-node reject-dict"]],[["request if ${url} ~= /^https?:\\/\\/api\\.jr\\.mi\\.com\\/jr\\/api\\/playScreen/ then reject(404)"],["request if ${url} ~= /^https?:\\/\\/api\\.jr\\.mi\\.com\\/jr\\/api\\/playScreen/i then reject(200)"]],[["^https?:\\/\\/ucmp\\.sf-express\\.com\\/proxy\\/esgcempcore\\/memberGoods\\/pointMallService\\/goodsList reject-dict"],["request if ${url} ~= /^https:\\/\\/ucmp\\.sf-express\\.com\\/proxy\\/esgcempcore\\/memberGoods\\/pointMallService\\/goodsList/i then reject_dict(200)"]],[["request if ${url} ~= /^https?:\\/\\/sf3-be-pack\\.pglstatp-toutiao\\.com\\/img\\/ad\\.union\\.api/ then reject(404)"],["request if ${url} ~= /^https?:\\/\\/.+\\.pglstatp-toutiao\\.com/ then reject(404)"]],[["^https?:\\/\\/ssp\\.soulapp\\.cn\\/api\\/q reject-dict"],["request if ${url} ~= /^https:\\/\\/ssp\\.soulapp\\.cn\\/api/i then reject_dict(200)"]],[["^https?:\\/\\/api-account\\.soulapp\\.cn\\/teenager\\/config reject-dict"],["request if ${url} ~= /^https:\\/\\/api-account\\.soulapp\\.cn\\/teenager\\/config/i then reject_dict(200)"]],[["^https?:\\/\\/api\\.xiangji\\.qq\\.com\\/splash$ reject-dict"],["request if ${url} ~= /^https:\\/\\/api\\.xiangji\\.qq\\.com\\/splash$/i then reject_dict(200)"]],[["request if ${url} ~= /^https?:\\/\\/video-dsp\\.pddpic\\.com\\/market-dsp-video\\// then reject(404)"],["request if ${url} ~= /^https:\\/\\/video-dsp\\.pddpic\\.com\\/market-dsp-video\\//i then reject(404)"]],[["request if ${url} ~= /^https:\\/\\/t-dsp\\.pinduoduo\\.com\\/dspcb\\/i\\/mrk_/i then reject(404)"],["request if ${url} ~= /^https?:\\/\\/t-dsp\\.pinduoduo\\.com\\/dspcb\\/i\\/mrk_union/ then reject(404)","request if ${url} ~= /^https?:\\/\\/t-dsp\\.pinduoduo\\.com/i then reject(200)"]],[["request if ${url} ~= /^https?:\\/\\/images\\.pinduoduo\\.com\\/(mrk|marketing_api)\\// then reject(404)"],["request if ${url} ~= /^https:\\/\\/images\\.pinduoduo\\.com\\/mrk\\//i then reject(404)"]],[["request if ${url} ~= /^https?:\\/\\/(gw|heic)\\.alicdn\\.com\\/mt\\// then reject(404)"],["request if ${url} ~= /^https:\\/\\/gw\\.alicdn\\.com\\/mt\\//i then reject(404)"]],[["request if ${url} ~= /^https?:\\/\\/c\\.m\\.163\\.com\\/nc\\/gl\\// then reject(404)"],["^https?:\\/\\/c\\.m\\.163\\.com\\/nc\\/gl\\/ reject-200"]],[["request if ${url} ~= /^https?:\\/\\/hweb-manager\\.huazhu\\.com\\/start\\/getAppStartPage/ then reject(404)"],["^https?:\\/\\/hweb-manager\\.huazhu\\.com\\/start\\/getAppStartPage(?:\\?.*)?$ reject-dict"]],[["^https?:\\/\\/business\\.msstatic\\.com\\/advertiser reject-200"],["request if ${url} ~= /^https?:\\/\\/business\\.msstatic\\.com\\/advertiser\\/material/ then reject(404)"]],[["^https?:\\/\\/ossgw\\.alicdn\\.com\\/creatives-assets\\/ reject-200"],["request if ${url} ~= /^https?:\\/\\/ossgw\\.alicdn\\.com\\/creatives-assets\\/prod\\/feupload\\/user/ then reject(404)"]],[["request if ${url} ~= /^https?:\\/\\/images\\.pinduoduo\\.com\\/(mrk|marketing_api)\\// then reject(404)"],["request if ${url} ~= /^https:\\/\\/images\\.pinduoduo\\.com\\/marketing_api\\//i then reject(404)"]]]
+
+
+def remove_reviewed_rewrite_overlap_rules(lines):
+    """Remove only confirmed shadowed/duplicate matchers; fail closed on drift."""
+    output = list(lines)
+    removed = 0
+    for keep_lines, remove_lines in REVIEWED_REWRITE_OVERLAP_PAIRS:
+        if not all(sum(line.strip() == keep for line in output) == 1
+                   for keep in keep_lines):
+            continue
+        for shadow in remove_lines:
+            count = sum(line.strip() == shadow for line in output)
+            if count > 1:
+                raise ValueError("duplicate reviewed Rewrite overlap; refusing ambiguous cleanup")
+            if count == 1:
+                output = [line for line in output if line.strip() != shadow]
+                removed += 1
+    return output, removed
+
 
 def remove_shadowed_terminal_block_rules(lines):
     guards = {guard for guard, _ in SHADOWED_TERMINAL_BLOCK_RULE_PAIRS}
@@ -6718,6 +6766,7 @@ def apply(text: str) -> str:
             # This local script is retained independently of the removed MyBlockAds feed.
             # Restore only its four exact HTTPS hosts instead of relying on an upstream feed.
             hosts.extend(sorted(REQUIRED_BANKCOMM_MITM_HOSTS - set(hosts)))
+            hosts, _ = remove_mitm_hosts_covered_by_wildcards(hosts)
             # Defer legacy HelloBike host removal until all surviving Rewrite/Script
             # references are known. Some hosts are also used by unrelated base rules.
             line = key + "= " + ", ".join(hosts)
@@ -6836,6 +6885,7 @@ def apply(text: str) -> str:
                 rewrite_lines, _ = remove_duplicate_peopleapp_home_ad_rules(rewrite_lines)
                 rewrite_lines, _ = remove_shadowed_peopleapp_rules(rewrite_lines)
                 rewrite_lines, _ = remove_shadowed_terminal_block_rules(rewrite_lines)
+                rewrite_lines, _ = remove_reviewed_rewrite_overlap_rules(rewrite_lines)
                 rewrite_lines, _ = remove_redundant_taobao_rewrite_rules(rewrite_lines)
                 rewrite_lines, _ = remove_redundant_xianyu_rewrite_rules(rewrite_lines)
                 rewrite_lines, _ = remove_lkcoffee_member_exchange_success_overrides(rewrite_lines)
@@ -6866,6 +6916,7 @@ def apply(text: str) -> str:
         rewrite_lines, _ = remove_duplicate_peopleapp_home_ad_rules(rewrite_lines)
         rewrite_lines, _ = remove_shadowed_peopleapp_rules(rewrite_lines)
         rewrite_lines, _ = remove_shadowed_terminal_block_rules(rewrite_lines)
+        rewrite_lines, _ = remove_reviewed_rewrite_overlap_rules(rewrite_lines)
         rewrite_lines, _ = remove_redundant_taobao_rewrite_rules(rewrite_lines)
         rewrite_lines, _ = remove_redundant_xianyu_rewrite_rules(rewrite_lines)
         rewrite_lines, _ = remove_lkcoffee_member_exchange_success_overrides(rewrite_lines)
