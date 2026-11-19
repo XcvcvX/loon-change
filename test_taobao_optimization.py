@@ -14,11 +14,11 @@ def fixture(guide=True, poplayer=True, extra=False):
     ]
     base = "https://raw.githubusercontent.com/ifflagged/Romeo/abc123" + KELEE_PATH
     if guide:
-        lines.append(f'response if ${url} ~= /^guide-acs.*cloudvideo.*splash/ then script("{base}") with tag="Taobao", requires_body=true')
+        lines.append(f'response if ${{url}} ~= /^guide-acs.*cloudvideo.*splash/ then script("{base}") with tag="Taobao", requires_body=true')
     if poplayer:
-        lines.append(f'response if ${url} ~= /^poplayer/ then script("{base}") with tag="Taobao", requires_body=true')
+        lines.append(f'response if ${{url}} ~= /^poplayer/ then script("{base}") with tag="Taobao", requires_body=true')
     if extra:
-        lines.append(f'response if ${url} ~= /^unexpected/ then script("{base}") with tag="Other", requires_body=true')
+        lines.append(f'response if ${{url}} ~= /^unexpected/ then script("{base}") with tag="Other", requires_body=true')
     lines.extend([
         'response if ${url} ~= /mdkd/ then script("https://example.invalid/pdd.js") with tag="PDD", requires_body=true',
         "[MITM]",
