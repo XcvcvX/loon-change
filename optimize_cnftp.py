@@ -11,6 +11,32 @@ LOCAL_URL = "https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/c
 EXPECTED_TRIGGER_COUNT = 10
 SOURCE_MARKER = "// loon-change: Youku home.query in-place compaction v1"
 
+EMPTY_BODY_MARKER = "// loon-change: CNFTP terminal empty-body guard v1"
+
+
+def ensure_terminal_empty_body_guard(source: str) -> str:
+    """Prevent the response parser from running after an empty-body completion."""
+    wrapped = (
+        EMPTY_BODY_MARKER
+        + "\nif (!$response.body) {\n  $done({});\n} else {"
+    )
+    if EMPTY_BODY_MARKER in source:
+        if source.count(EMPTY_BODY_MARKER) != 1 or wrapped not in source:
+            raise ValueError("CNFTP terminal empty-body guard marker/structure drift")
+        return source
+    guard = "if (!$response.body) $done({});"
+    if source.count(guard) == 0:
+        return source
+    if source.count(guard) != 1:
+        raise ValueError("CNFTP empty-body guard count changed; refusing terminal guard")
+    final = "$done({body: JSON.stringify(obj)});"
+    if source.count(final) != 1 or not source.rstrip().endswith(final):
+        raise ValueError("CNFTP final response completion changed; refusing terminal guard")
+    source = source.replace(guard, wrapped, 1)
+    return source.rstrip() + "\n}\n"
+
+
+
 HELPER = """function compactInPlace(items, keep) {
   let write = 0;
   const length = items.length;
@@ -124,11 +150,12 @@ def optimize_source(source: str, upstream_commit: str | None = None) -> str:
     """Replace Youku home.query's nested filtered-copy arrays with stable in-place compaction."""
     if SOURCE_MARKER in source:
         if not upstream_commit:
-            return source
+            return ensure_terminal_empty_body_guard(source)
         if not re.fullmatch(r"[0-9a-f]{40}", upstream_commit):
             raise ValueError("invalid Wool Scripts upstream commit")
         source = re.sub(r"^// loon-change:.*\n", "", source, count=1)
-        return SOURCE_MARKER + "; upstream fmz200/wool_scripts@" + upstream_commit + "\n" + source
+        source = SOURCE_MARKER + "; upstream fmz200/wool_scripts@" + upstream_commit + "\n" + source
+        return ensure_terminal_empty_body_guard(source)
 
     feed_start = '  } else if (url.includes("columbus.home.feed/")) {'
     feed_end = '  } else if (url.includes("columbus.home.query/")) {'
@@ -162,7 +189,8 @@ def optimize_source(source: str, upstream_commit: str | None = None) -> str:
             raise ValueError("invalid Wool Scripts upstream commit")
     else:
         upstream_commit = "unrecorded"
-    return SOURCE_MARKER + "; upstream fmz200/wool_scripts@" + upstream_commit + "\n// loon-change: Youku home.feed in-place compaction v1\n" + source
+    result = SOURCE_MARKER + "; upstream fmz200/wool_scripts@" + upstream_commit + "\n// loon-change: Youku home.feed in-place compaction v1\n" + source
+    return ensure_terminal_empty_body_guard(result)
 
 
 def rewrite_plugin(plugin: str) -> str:
