@@ -12,6 +12,7 @@
 - [zirawell 支付宝小程序去广告合集](https://github.com/ifflagged/Romeo/tree/main/Modules/Loon/zirawell/Beta)（与其他 Romeo 来源共用固定 commit；只补充未覆盖的精确 Loon v2 Rewrite 规则）；
 - [Kelee 微信公众号、微信小程序与微店去广告](https://github.com/ifflagged/Romeo/tree/main/Modules/Loon/Kelee)（三个插件纳入 Romeo 固定版本 App 槽；14 个响应脚本依赖逐一校验并固定到同一 commit，随综合插件合并）；
 - [ddgksf2013 金十数据去广告](https://github.com/ifflagged/Romeo/blob/main/Modules/Loon/ddgksf2013/Beta/JinShiDataAds.lpx)（固定 Romeo commit 同步，无额外脚本依赖；与 base 已有的金十广告拦截规则按 base 优先去重）。
+- [BruceWae KFC_AdBlock](https://github.com/BruceWae/my-loon-plugins/blob/main/Plugin/KFC_AdBlock.plugin)（KFC 广告路由及 AI 弹窗接口按实际响应结构返回空广告数据；保留其他 API 拦截与现有 KFC 路径规则，仅补充精准 splash 素材拦截，不添加整域 REJECT 或宽泛 `.*ad/` 规则）。
 
 > **只装一个 allAdRewrite.plugin 就够了。** 综合规则以 R-Store base 为唯一规则源；保留的独立 App 插件按优先级补充各自专属功能。
 
