@@ -48,6 +48,23 @@ class SpotifyIntegrationTests(unittest.TestCase):
                 main()
             self.assertTrue(meta.exists())
             self.assertIn('DOMAIN,aet.spotify.com,REJECT', plugin.read_text(encoding='utf-8'))
+    def test_removes_rstore_spotify_entitlement_mutator_but_keeps_other_handlers(self):
+        from integrate_spotify import remove_rstore_spotify_entitlement_script
+        plugin = """[Script]
+http-response ^https?:\/\/(?:gae2-spclient|guc3-spclient|spclient\.wg)\.spotify\.com(:443)?\/(?:bootstrap\/v\d\/bootstrap|user-customization-service\/v\d\/customize)$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/spotify.js,tag=SPOTIFY,requires-body=true,binary-body-mode=true
+http-response ^https:\/\/spclient.wg.spotify.com\/unrelated script-path=https://example.com/other.js,tag=OTHER
+"""
+        cleaned, removed = remove_rstore_spotify_entitlement_script(plugin)
+        self.assertEqual(removed, 1)
+        self.assertNotIn("R-Store/main/Res/Scripts/AntiAd/spotify.js", cleaned)
+        self.assertIn("tag=OTHER", cleaned)
+
+    def test_rstore_spotify_filter_is_safe_when_script_absent(self):
+        from integrate_spotify import remove_rstore_spotify_entitlement_script
+        cleaned, removed = remove_rstore_spotify_entitlement_script("[Script]\n# no R-Store Spotify handler\n")
+        self.assertEqual(removed, 0)
+        self.assertIn("# no R-Store Spotify handler", cleaned)
+
     def test_extracts_only_ad_features_and_is_idempotent(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
