@@ -2739,14 +2739,14 @@ sc_feeds = [('base', 4, base_sc), ('block', 5, block_sc), ('zmjgen', 6, zmj_gen_
 # ---------------- 闲鱼/京东专项规则：吸收 y0unge 上游的高置信补漏 ----------------
 # 本地规则来源单独入 feeds，确保来源追溯和自动构建均保留。
 jd_splash_image = (
-    r'^https?:\\/\\/[a-z0-9]+\\.360buyimg\\.com\\/mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/ reject-200'
+    r'^https?:\/\/[a-z0-9]+\.360buyimg\.com\/mobilecms\/s1\d{3}x2\d{3}_jfs\/ reject-200'
 )
 jd_splash_video = (
-    r'^https?:\\/\\/[a-z0-9]+\\.360buyimg\\.com\\/material-video\\/ reject-200'
+    r'^https?:\/\/[a-z0-9]+\.360buyimg\.com\/material-video\/ reject-200'
 )
 goofish_splash_trigger = (
     r'response if ${url} ~= /^https?:\\/\\/(?:g-)?acs\\.m\\.goofish\\.com\\/gw\\/'
-    r'mtop\\.taobao\\.idlecommerce\\.splash\\.(?:ads|async\\.ads|config)\\//i '
+    r'mtop\.taobao\.idlecommerce\.splash\.(?:ads|async\.ads|config)\//i '
     r'then script("https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js") '
     r'with tag="GOOFISH-SPLASH", timeout=20, requires_body=true'
 )
@@ -2761,13 +2761,13 @@ merged_rw = dedup_keep_order(merged_rw)
 # 用全 CDN 分片规则替代历史仅覆盖 m. 子域的窄规则；不拦截商品图片。
 merged_rw = [
     line for line in merged_rw
-    if not re.search(r'360buyimg\\.com\\/mobilecms\\/s1125x2436_jfs', line)
+    if not re.search(r'360buyimg\.com\/mobilecms\/s1125x2436_jfs', line)
 ]
 merged_rw = dedup_keep_order(merged_rw)
 # 闲鱼开屏改为响应体删除 realTimeAd，避免请求失败触发联盟兜底/重试。
 merged_rw = [
     line for line in merged_rw
-    if not re.search(r'mtop\\.taobao\\.idlecommerce\\.splash', line, re.IGNORECASE)
+    if not re.search(r'mtop\.taobao\.idlecommerce\.splash', line, re.IGNORECASE)
 ]
 
 # ---------------- Argument：blockAdsV2 + Romeo/兼容快照（YouTube 增强）----------------
