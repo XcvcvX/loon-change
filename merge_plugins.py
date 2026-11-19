@@ -3039,8 +3039,16 @@ mitm = dedup_keep_order(mitm)
 def _mitm_covered(host, hostset):
     if host in hostset:
         return True
-    return any(m.startswith('*.') and host.endswith('.' + m[2:])
-               for m in hostset)
+    for pattern in hostset:
+        if pattern.startswith('*.') and host.endswith('.' + pattern[2:]):
+            return True
+        # Existing scoped wildcards such as img*.360buyimg.com already cover
+        # numbered CDN shards; do not add each exact host to MITM separately.
+        if '*' in pattern or '?' in pattern:
+            regex = re.escape(pattern).replace(r'\\*', r'[^.]*').replace(r'\\?', r'[^.]')
+            if re.fullmatch(regex, host, re.IGNORECASE):
+                return True
+    return False
 
 
 mitm_healed = []
