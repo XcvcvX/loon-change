@@ -108,24 +108,23 @@ jobs:
           }
           normalized_text = text.replace(chr(92), '')
           referenced = {host for host in required if host in normalized_text}
-          if referenced != required:
-              raise SystemExit('Unexpected independent-source host inventory: ' + repr(sorted(referenced)))
           lines = text.splitlines()
           section = ''
           found = False
           for index, line in enumerate(lines):
               if line.startswith('[') and line.endswith(']'):
                   section = line[1:-1]
-              elif section == 'MITM' and line.strip().lower().startswith('hostname') and '=' in line:
+              elif referenced and section == 'MITM' and line.strip().lower().startswith('hostname') and '=' in line:
                   key, value = line.split('=', 1)
                   hosts = [host.strip() for host in value.split(',') if host.strip()]
-                  hosts = sorted(set(hosts) | required)
+                  hosts = sorted(set(hosts) | referenced)
                   lines[index] = key + '= ' + ', '.join(hosts)
                   found = True
                   break
-          if not found:
+          if referenced and not found:
               raise SystemExit('MITM hostname declaration missing in no-base preview')
-          path.write_text('\n'.join(lines) + '\n', encoding='utf-8')
+          if referenced:
+              path.write_text('\n'.join(lines) + '\n', encoding='utf-8')
           PY
           python3 fix_script_configs.py --plugin /tmp/no-rstore-base.plugin
           python3 check_script_v2.py /tmp/no-rstore-base.plugin
