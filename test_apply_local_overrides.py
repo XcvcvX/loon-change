@@ -4732,7 +4732,9 @@ class XiaohongshuV4AndCommentMigrationTests(unittest.TestCase):
         )
         fixture = ["[Rewrite]"]
         for keep, remove in REVIEWED_REWRITE_OVERLAP_PAIRS:
-            fixture.extend(keep)
+            for canonical in keep:
+                if canonical not in fixture:
+                    fixture.append(canonical)
             fixture.extend(remove)
         fixture.append("[Script]")
         cleaned, removed = remove_reviewed_rewrite_overlap_rules(fixture)
