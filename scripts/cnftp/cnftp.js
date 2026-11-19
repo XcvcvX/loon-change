@@ -19,7 +19,10 @@ function compactInPlace(items, keep) {
 }
 
 
-if (!$response.body) $done({});
+// loon-change: CNFTP terminal empty-body guard v1
+if (!$response.body) {
+  $done({});
+} else {
 const isIQY = url.includes("iqiyi.com/");
 const isMG = url.includes("mgtv.com/");
 const isYK = url.includes("youku.com/");
@@ -844,3 +847,4 @@ if (isIQY) {
 }
 
 $done({body: JSON.stringify(obj)});
+}
