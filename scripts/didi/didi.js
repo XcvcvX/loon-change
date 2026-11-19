@@ -11,6 +11,7 @@ https://raw.githubusercontent.com/zirawell/R-Store/main/Rule/Surge/Adblock/App/D
 ********************************/
 
 const url = $request.url;
+let modified = false;
 
 function compactInPlace(items, keep) {
   const length = items.length;
@@ -32,7 +33,6 @@ if (!$response.body) {
 } else {
 
 let obj = JSON.parse($response.body);
-let modified = false;
 
 if (url.includes("/other/pGetSceneList")) {
   if (obj && obj.data && obj.data.scene_list instanceof Array) {
