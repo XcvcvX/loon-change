@@ -29,12 +29,18 @@ FILTER_ASSIGNMENT = re.compile(
 
 
 def optimize_get_my_menus(source):
-    if MENUS_MARKER in source:
-        if "newMenus" in source or "newLists" in source:
-            raise ValueError("CNTV getMyMenus marker exists but allocating arrays remain")
-        return source
     anchor = '  } else if (url.includes("/getMyMenus?")) {'
+    end_anchor = '  } else if (url.includes("/home_top_menu?")) {'
     if anchor not in source:
+        return source
+    if source.count(anchor) != 1 or source.count(end_anchor) != 1:
+        raise ValueError("CNTV getMyMenus dispatch inventory changed")
+    start = source.index(anchor)
+    end = source.index(end_anchor, start)
+    branch = source[start:end]
+    if MENUS_MARKER in branch:
+        if "newMenus" in branch or "newLists" in branch:
+            raise ValueError("CNTV getMyMenus marker exists but allocating arrays remain")
         return source
     old_block = "    if (obj?.data?.length > 0) {\n      let newMenus = [];\n      for (let item of obj.data) {\n        if ([\"wd_liebiao_2\", \"wd_liebiao_3\", \"wd_liebiao_4\"]?.includes(item?.statistic?.block)) {\n          // 精简列表\n          continue;\n        } else {\n          if (item?.menuList?.length > 0) {\n            let newLists = [];\n            for (let i of item.menuList) {\n              if (i?.menuType === 121) {\n                // 121有奖限时问卷\n                continue;\n              } else {\n                newLists.push(i);\n              }\n            }\n            item.menuList = newLists;\n            newMenus.push(item);\n          } else {\n            newMenus.push(item);\n          }\n        }\n      }\n      obj.data = newMenus;\n    }"
     new_block = "    if (obj?.data?.length > 0) {\n      compactInPlace(obj.data, item => {\n        if ([\"wd_liebiao_2\", \"wd_liebiao_3\", \"wd_liebiao_4\"]?.includes(item?.statistic?.block)) {\n          // 精简列表\n          return false;\n        }\n        if (item?.menuList?.length > 0) {\n          // 121有奖限时问卷\n          compactInPlace(item.menuList, menu => menu?.menuType !== 121);\n        }\n        return true;\n      });\n    }"
@@ -42,7 +48,10 @@ def optimize_get_my_menus(source):
         raise ValueError("CNTV getMyMenus block changed; refusing in-place compaction")
     source = source.replace(old_block, new_block, 1)
     source = source.replace(anchor, anchor + "\n    " + MENUS_MARKER, 1)
-    if "newMenus" in source or "newLists" in source:
+    start = source.index(anchor)
+    end = source.index(end_anchor, start)
+    branch = source[start:end]
+    if "newMenus" in branch or "newLists" in branch:
         raise ValueError("CNTV getMyMenus temporary arrays remain")
     return source
 
