@@ -1,4 +1,13 @@
 // Consolidated Xianyu response cleanup.
+const AD_TEMPLATE_NAMES = new Set([
+  "fish_home_advertise_card_d3",
+  "fish_home_advertise_card_d4",
+  "fish_local_advertise_card_d4",
+  "idlefish_local_feed2_marketing",
+  "fish_home_feeds_pager_banner",
+  "detail_recommend_ad_card"
+]);
+const AD_TEMPLATE_RE = /^(fish_home_advertise_card_d[34]|fish_local_advertise_card_d4|idlefish_local_feed2_marketing|fish_home_feeds_pager_banner|detail_recommend_ad_card)$/;
 // Combines the overlapping R-Store and ishowshu goofish handlers so each
 // response is parsed once while preserving the previously configured filters.
 function main() {
@@ -19,6 +28,37 @@ function main() {
   }
   const body = $response && $response.body;
   if (!body) return $done({});
+
+  // 开屏：只在专用 splash API 上解析；删除实测下发节点 realTimeAd，
+  // 让 App 收到与服务端“当日无广告”一致的响应形状。
+  if (url.includes("/mtop.taobao.idlecommerce.splash.")) {
+    if (typeof body !== "string" || !body.includes('"realTimeAd"')) return $done({});
+    let splash;
+    try {
+      splash = JSON.parse(body);
+    } catch (_) {
+      return $done({});
+    }
+    let removed = 0;
+    const stack = [splash];
+    while (stack.length) {
+      const node = stack.pop();
+      if (!node || typeof node !== "object") continue;
+      if (Array.isArray(node)) {
+        for (let i = 0; i < node.length; i++) stack.push(node[i]);
+        continue;
+      }
+      for (const key of Object.keys(node)) {
+        if (key === "realTimeAd" && node[key] && typeof node[key] === "object") {
+          delete node[key];
+          removed++;
+        } else {
+          stack.push(node[key]);
+        }
+      }
+    }
+    return removed ? $done({ body: JSON.stringify(splash) }) : $done({});
+  }
 
   let obj;
   try {
@@ -50,7 +90,14 @@ function main() {
             return false;
           }
           const templateName = section.template && section.template.name;
-          if (excludedTemplates.has(templateName)) return false;
+          const dataTemplateName = sectionData && sectionData.template && sectionData.template.name;
+          const cardType = sectionData && (sectionData.cardType || sectionData.cardTypeValue);
+          if (excludedTemplates.has(templateName) || AD_TEMPLATE_NAMES.has(templateName) ||
+              AD_TEMPLATE_NAMES.has(dataTemplateName) || cardType === "mamaAD" ||
+              cardType === "homeMultiBanner") return false;
+          const exContent = sectionData && sectionData.item && sectionData.item.main &&
+            sectionData.item.main.exContent;
+          if (exContent && (exContent.isAliMaMaAD === true || exContent.isAliMaMaAD === "true")) return false;
           return !!(sectionData && sectionData.cardTypeValue === "Item");
         });
       }
@@ -62,9 +109,18 @@ function main() {
 
   if (url.includes("/mtop.taobao.idle.local.home")) {
     if (data && Array.isArray(data.sections)) {
-      compactInPlace(data.sections, section =>
-        !(section && section.data && section.data.bizType === "AD")
-      );
+      compactInPlace(data.sections, section => {
+        const sectionData = section && section.data;
+        if (!sectionData) return true;
+        const templateName = section.template && section.template.name;
+        const dataTemplateName = sectionData.template && sectionData.template.name;
+        const cardType = sectionData.cardType || sectionData.cardTypeValue;
+        const adTemplate = /^(fish_home_advertise_card_d[34]|fish_local_advertise_card_d4|idlefish_local_feed2_marketing|fish_home_feeds_pager_banner|detail_recommend_ad_card)$/;
+        return sectionData.bizType !== "AD" &&
+          !AD_TEMPLATE_RE.test(templateName || "") &&
+          !AD_TEMPLATE_RE.test(dataTemplateName || "") &&
+          cardType !== "mamaAD" && cardType !== "homeMultiBanner";
+      });
     }
   }
 
@@ -138,6 +194,8 @@ function main() {
         if (exContent && (exContent.isAliMaMaAD === true || exContent.isAliMaMaAD === "true")) {
           return false;
         }
+        const cardType = element.data && element.data.cardType;
+        if (cardType === "mamaAD" || cardType === "homeMultiBanner") return false;
         const templateName = element.data && element.data.template && element.data.template.name;
         return !excludedTemplates.has(templateName);
       });

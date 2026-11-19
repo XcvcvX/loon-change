@@ -2736,11 +2736,58 @@ rw_feeds = [('base', 4, base_rw), ('block', 5, block_rw), ('zmjgen', 6, zmj_gen_
 sc_feeds = [('base', 4, base_sc), ('block', 5, block_sc), ('zmjgen', 6, zmj_gen_sc),
             ('thelong', 3, thelong_sc), ('aoomee', 2, ao_sc),
             ('amap', -1, amap_sc), ('zmjapp', 0, zmj_app_sc), ('myblockads', 7, mb_sc)]
+# ---------------- 闲鱼/京东专项规则：吸收 y0unge 上游的高置信补漏 ----------------
+# 本地规则来源单独入 feeds，确保来源追溯和自动构建均保留。
+# 仅使用 base MITM 已明确覆盖的已知 CDN 分片（m、storage、img1-img30）。
+# 若某个测试/精简配置没有这些 MITM 声明，则不擅自扩展解密范围。
+_base_mitm_hosts = {
+    host.strip()
+    for line in base_sec.get('MITM', [])
+    if '=' in line
+    for host in line.split('=', 1)[1].split(',')
+    if host.strip()
+}
+_known_jd_hosts = ['m', 'storage'] + [f'img{i}' for i in range(1, 31)]
+_jd_splash_hosts = [
+    host for host in _known_jd_hosts
+    if host + '.360buyimg.com' in _base_mitm_hosts
+    or (host.startswith('img') and (
+        'img*.360buyimg.com' in _base_mitm_hosts
+        or '*.360buyimg.com' in _base_mitm_hosts
+    ))
+]
+jd_splash_asset_rules = [
+    (
+        r'^https?:\/\/' + host
+        + r'\.360buyimg\.com\/(?:mobilecms\/s1\d{3}x2\d{3}_jfs\/|material-video\/) reject-200'
+    )
+    for host in _jd_splash_hosts
+]
+goofish_splash_trigger = (
+    r'response if ${url} ~= /^https?:\/\/(?:g-)?acs\.m\.goofish\.com\/gw\/'
+    r'mtop\.taobao\.idlecommerce\.splash\.(?:ads|async\.ads|config)\//i '
+    r'then script("https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js") '
+    r'with tag="GOOFISH-SPLASH", timeout=20, requires_body=true'
+)
+rw_feeds.append(('xianyu_jd_targeted', 0, jd_splash_asset_rules))
+sc_feeds.append(('xianyu_jd_targeted', 0, [goofish_splash_trigger]))
+
 merged_rw, rw_unguarded = priority_merge([(p, x) for _, p, x in rw_feeds])
 merged_sc, sc_unguarded = priority_merge([(p, x) for _, p, x in sc_feeds])
 # 无守卫行（generic/cron）归入 Script 段末尾，再整体去重
 merged_sc = dedup_keep_order(merged_sc + rw_unguarded + sc_unguarded)
 merged_rw = dedup_keep_order(merged_rw)
+# 用全 CDN 分片规则替代历史仅覆盖 m. 子域的窄规则；不拦截商品图片。
+merged_rw = [
+    line for line in merged_rw
+    if "360buyimg.com/mobilecms/s1125x2436_jfs" not in line.replace(chr(92), "")
+]
+merged_rw = dedup_keep_order(merged_rw)
+# 闲鱼开屏改为响应体删除 realTimeAd，避免请求失败触发联盟兜底/重试。
+merged_rw = [
+    line for line in merged_rw
+    if "mtop.taobao.idlecommerce.splash" not in line.replace(chr(92), "").lower()
+]
 
 # ---------------- Argument：blockAdsV2 + Romeo/兼容快照（YouTube 增强）----------------
 arg_items = dedup_keep_order(real_lines(extra_sec.get('Argument', [])))
@@ -3009,8 +3056,16 @@ mitm = dedup_keep_order(mitm)
 def _mitm_covered(host, hostset):
     if host in hostset:
         return True
-    return any(m.startswith('*.') and host.endswith('.' + m[2:])
-               for m in hostset)
+    for pattern in hostset:
+        if pattern.startswith('*.') and host.endswith('.' + pattern[2:]):
+            return True
+        # Existing scoped wildcards such as img*.360buyimg.com already cover
+        # numbered CDN shards; do not add each exact host to MITM separately.
+        if '*' in pattern or '?' in pattern:
+            regex = re.escape(pattern).replace(r'\*', r'[^.]*').replace(r'\?', r'[^.]')
+            if re.fullmatch(regex, host, re.IGNORECASE):
+                return True
+    return False
 
 
 mitm_healed = []
