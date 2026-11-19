@@ -2111,6 +2111,61 @@ hostname = *.amap.com
             self.assertNotIn(host, mitm_line)
         self.assertIn("gateway.tuhu.cn", mitm_line)
 
+    def test_kfc_targeted_rules_keep_existing_api_coverage_and_add_compatible_ad_responses(self):
+        base = (
+            "[Rewrite]\\n"
+            r"^https?:\\/\\/dynamicad\\.kfc\\.com\\.cn\\/api reject-dict" + "\\n"
+            r"^https?:\\/\\/res\\.kfc\\.com\\.cn\\/CRM\\/kfcad\\/apphome reject-200" + "\\n"
+            r"request if " + "$" + "{url} ~= /^https?:\\/\\/res\\.kfc\\.com\\.cn\\/advertisement/ then reject(404)" + "\\n"
+            r"^https?:\\/\\/res\\.kfc\\.com\\.cn\\/CRM\\/kfcad\\/custom_v\\d\\/wxapp reject-dict" + "\\n"
+            "[MITM]\\nhostname = dynamicad.kfc.com.cn, res.kfc.com.cn\\n"
+        )
+        output, provenance = self.run_merge(
+            base, "[Rewrite]\\n[MITM]\\nhostname = \\n",
+            return_provenance=True,
+        )
+
+        # The broad API block is retained for every endpoint except the AI popup,
+        # which receives the upstream's normal empty-popup response shape.
+        self.assertIn(
+            r"^https?:\\/\\/dynamicad\\.kfc\\.com\\.cn\\/api(?!\\/app5\\/homepage\\/ai\\/popup) reject-dict",
+            output,
+        )
+        self.assertNotIn(
+            r"^https?:\\/\\/dynamicad\\.kfc\\.com\\.cn\\/api reject-dict",
+            output,
+        )
+        self.assertIn(
+            'dynamicad\\\\.kfc\\\\.com\\\\.cn\\\\/api\\\\/app5\\\\/homepage\\\\/ai\\\\/popup',
+            output,
+        )
+        self.assertIn('mock-response-body data-type=json body={"body":{"data":{"list":[]},"abType":"popup"},"error":null,"errorCode":null}', output)
+
+        self.assertIn(
+            r"^https?:\\/\\/abplatform\\.yumchina\\.com\\/abtestplatform\\/api\\/abtest\\/kfc\\/adRouter",
+            output,
+        )
+        self.assertIn(
+            'body={"data":{"aiAd":{},"commonAd":{},"composeAd":[],"personnalAd":{}},"errCode":0,"errorCode":"0"}',
+            output,
+        )
+        self.assertIn(r"^https?:\\/\\/res\\.kfc\\.com\\.cn\\/.*splash reject", output)
+
+        # Existing KFC rules survive; unsafe broad host blocking and the upstream
+        # .*ad/ asset matcher are deliberately not imported.
+        self.assertIn(r"res\\.kfc\\.com\\.cn\\/CRM\\/kfcad\\/apphome reject-200", output)
+        self.assertIn(r"res\\.kfc\\.com\\.cn\\/CRM\\/kfcad\\/custom_v\\d\\/wxapp reject-dict", output)
+        self.assertIn("res.kfc.com.cn/advertisement", output)
+        self.assertNotIn("DOMAIN, dynamicad.kfc.com.cn, REJECT", output)
+        self.assertNotIn(r"res\\.kfc\\.com\\.cn\\/.*ad\\/ reject", output)
+
+        mitm_line = next(line for line in output.splitlines()
+                         if line.strip().startswith("hostname ="))
+        self.assertIn("abplatform.yumchina.com", mitm_line)
+        self.assertIn("dynamicad.kfc.com.cn", mitm_line)
+        self.assertIn("res.kfc.com.cn", mitm_line)
+        self.assertIn("kfc_targeted", json.dumps(provenance))
+
     def test_icu_control_escape_cannot_match_dns_host_or_keep_unrelated_zhangle_mitm(self):
         # ICU \cX denotes a control character. The malformed KFC host zone
         # contains \cn, so it cannot match a valid DNS hostname; unlike broad
