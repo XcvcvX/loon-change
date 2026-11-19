@@ -106,7 +106,8 @@ jobs:
               's1.api.tv.itc.cn',
               'ucmp-static.sf-express.com',
           }
-          referenced = {host for host in required if host in text}
+          normalized_text = text.replace('\\\\', '')
+          referenced = {host for host in required if host in normalized_text}
           if referenced != required:
               raise SystemExit('Unexpected independent-source host inventory: ' + repr(sorted(referenced)))
           lines = text.splitlines()
