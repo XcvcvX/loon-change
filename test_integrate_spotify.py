@@ -63,7 +63,7 @@ http-response ^https:\/\/keep.example.com\/unrelated script-path=https://example
 hostname = api.example.com, *spotify.com, spclient.wg.spotify.com
 """
         cleaned, removed = replace_rstore_spotify_rules(plugin)
-        self.assertEqual(removed, 1)
+        self.assertEqual(removed, 4)
         self.assertNotIn("spotify.com", cleaned)
         self.assertNotIn("spotify.js", cleaned)
         self.assertIn("keep.example.com", cleaned)
