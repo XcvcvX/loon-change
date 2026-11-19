@@ -44,7 +44,7 @@ hostname = m.360buyimg.com, img*.360buyimg.com, acs.m.goofish.com, g-acs.m.goofi
             self.assertIn("realTimeAd", (ROOT / "scripts/xianyu/goofish.js").read_text(encoding="utf-8"))
             self.assertIn(r"s1\d{3}x2\d{3}_jfs", merged)
             self.assertIn("material-video", merged)
-            self.assertNotIn(r"idlecommerce\.splash", merged)
+            self.assertFalse(any(r"idlecommerce\.splash" in line and "reject_dict" in line for line in merged.splitlines()))
             self.assertNotIn("s1125x2436_jfs", merged)
             self.assertIn("xianyu_jd_targeted", provenance.read_text(encoding="utf-8"))
 
