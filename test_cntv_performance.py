@@ -211,3 +211,95 @@ if (payload.body === null) {
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class CNTVPreParseRouteGuardTests(unittest.TestCase):
+    def test_route_guard_is_idempotent_and_precedes_json_parse(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        self.assertIn("// loon-change: CNTV pre-parse supported-route guard v1", source)
+        self.assertEqual(source.count("const shouldProcess ="), 1)
+        self.assertLess(source.index("const shouldProcess ="), source.index("let obj = JSON.parse"))
+        self.assertEqual(optimize_source(source), source)
+
+    def test_supported_route_inventory_is_explicit(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        expected = [
+            "/bottom_theme?", "/common_switch?", "/control/", "/getMyMenus?",
+            "/home_top_menu?", "/mixer?", "/search.video.iqiyi.com/",
+            "/views_category/", "/views_comment/", "/views_home/", "/views_plt/",
+            "/views_search/", "/waterfall/", "/channel/vrsList/", "/mobile/config?",
+            "/mobile/recommend/v", "/vod/info?", "/module/list?", "/video/info?",
+            "columbus.gateway.new.execute", "columbus.home.feed/",
+            "columbus.home.query/", "columbus.uc.query/", "columbus.ycp.query/",
+            "haidai.lantern.appconfig.get/", "huluwa.dispatcher.youthmode.config2/",
+            "play.ups.appinfo.get/", "soku.yksearch/"
+        ]
+        for route in expected:
+            self.assertIn('url.includes("' + route + '")', source)
+        self.assertIn('(url.includes("/dynamic/v") && url.includes("/channel/index/"))', source)
+        self.assertIn('(url.includes("/channel/index?") && url.includes("/odin/c"))', source)
+
+
+@unittest.skipUnless(NODE, "Node.js is required for CNTV route-guard runtime tests")
+class CNTVPreParseRouteGuardRuntimeTests(unittest.TestCase):
+    def run_script(self, url, body):
+        runner = r"""
+const fs = require("fs");
+const vm = require("vm");
+const source = fs.readFileSync(process.argv[1], "utf8");
+const payload = JSON.parse(fs.readFileSync(0, "utf8"));
+const nativeJSON = JSON;
+let parseCount = 0, stringifyCount = 0;
+const trackedJSON = {
+  parse(value) { parseCount++; return nativeJSON.parse(value); },
+  stringify(value) { stringifyCount++; return nativeJSON.stringify(value); }
+};
+let doneResult;
+const context = {
+  JSON: trackedJSON,
+  $request: { url: payload.url },
+  $response: { body: nativeJSON.stringify(payload.body) },
+  $done(value) { doneResult = value; },
+  console: { log() {}, warn() {}, error() {} }
+};
+vm.runInNewContext(source, context, { timeout: 5000 });
+process.stdout.write(nativeJSON.stringify({
+  doneResult,
+  parseCount,
+  stringifyCount
+}));
+"""
+        completed = subprocess.run(
+            [NODE, "-e", runner, str(SOURCE)],
+            input=json.dumps({"url": url, "body": body}),
+            capture_output=True, text=True, check=True, timeout=10
+        )
+        return json.loads(completed.stdout)
+
+    def test_unknown_routes_on_all_three_apps_skip_parse_and_stringify(self):
+        urls = [
+            "https://iface2.iqiyi.com/unrelated/large-feed",
+            "https://mobile.api.mgtv.com/unrelated/large-feed",
+            "https://acs.youku.com/unrelated/large-feed",
+            "https://unrelated.example/views_home/large-feed"
+        ]
+        body = {"data": [{"payload": "x" * 50000}]}
+        for url in urls:
+            with self.subTest(url=url):
+                result = self.run_script(url, body)
+                self.assertEqual(result["doneResult"], {})
+                self.assertEqual(result["parseCount"], 0)
+                self.assertEqual(result["stringifyCount"], 0)
+
+    def test_supported_routes_keep_existing_processing(self):
+        cases = [
+            ("https://iface2.iqiyi.com/views/3.0/bottom_theme?version=1", {"cards": [{"items": [{"_id": "29"}, {"_id": "35"}]}]}),
+            ("https://mobile.api.mgtv.com/vod/info?foo=1", {"data": {"tabs": [{"type": "1"}, {"type": "3"}]}}),
+            ("https://acs.youku.com/gw/mtop.youku.haidai.lantern.appconfig.get/", {"data": {"model": {"configInfo": {"bottomNavigate": {"data": {"bottomTabList": [{"type": "HOME"}, {"type": "SEARCH"}, {"type": "NEW_UCENTER"}]}}}}}})
+        ]
+        for url, body in cases:
+            with self.subTest(url=url):
+                result = self.run_script(url, body)
+                self.assertEqual(result["parseCount"], 1)
+                self.assertEqual(result["stringifyCount"], 1)
+                self.assertIsInstance(result["doneResult"].get("body"), str)

@@ -1,4 +1,4 @@
-// loon-change: CNTV response compaction optimization v2; upstream zirawell/R-Store@d0f4dd305bade7cc6a38e3445a768d72aaea0e5b
+// loon-change: CNTV response compaction optimization v3; upstream zirawell/R-Store@d0f4dd305bade7cc6a38e3445a768d72aaea0e5b
 /********************************
 CNTV Remove Ads - Version 1.0
 Checkout Source - https://raw.githubusercontent.com/RuCu6/QuanX/main/Scripts/cnftp.js
@@ -35,6 +35,48 @@ function compactInPlace(items, keep) {
   return items;
 }
 
+// loon-change: CNTV pre-parse supported-route guard v1
+const shouldProcess =
+  (isIQY && (
+    url.includes("/bottom_theme?") ||
+    url.includes("/common_switch?") ||
+    url.includes("/control/") ||
+    url.includes("/getMyMenus?") ||
+    url.includes("/home_top_menu?") ||
+    url.includes("/mixer?") ||
+    url.includes("/search.video.iqiyi.com/") ||
+    url.includes("/views_category/") ||
+    url.includes("/views_comment/") ||
+    url.includes("/views_home/") ||
+    url.includes("/views_plt/") ||
+    url.includes("/views_search/") ||
+    url.includes("/waterfall/")
+  )) ||
+  (isMG && (
+    (url.includes("/dynamic/v") && url.includes("/channel/index/")) ||
+    url.includes("/channel/vrsList/") ||
+    url.includes("/mobile/config?") ||
+    url.includes("/mobile/recommend/v") ||
+    (url.includes("/channel/index?") && url.includes("/odin/c")) ||
+    url.includes("/vod/info?") ||
+    url.includes("/module/list?") ||
+    url.includes("/video/info?")
+  )) ||
+  (isYK && (
+    url.includes("/collect-api/get_push_interval_config_wx?") ||
+    url.includes("columbus.gateway.new.execute") ||
+    url.includes("columbus.home.feed/") ||
+    url.includes("columbus.home.query/") ||
+    url.includes("columbus.uc.query/") ||
+    url.includes("columbus.ycp.query/") ||
+    url.includes("haidai.lantern.appconfig.get/") ||
+    url.includes("huluwa.dispatcher.youthmode.config2/") ||
+    url.includes("play.ups.appinfo.get/") ||
+    url.includes("soku.yksearch/")
+  ));
+if (!shouldProcess) {
+  $done({});
+} else {
 let obj = JSON.parse($response.body);
 
 if (isIQY) {
@@ -892,4 +934,5 @@ if (isIQY) {
 }
 
 $done({body: JSON.stringify(obj)});
+}
 }
