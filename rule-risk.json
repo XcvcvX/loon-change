@@ -2,8 +2,8 @@
   "change_counts": {
     "rewrite": {
       "action_changed": 0,
-      "added": 4,
-      "removed": 1
+      "added": 0,
+      "removed": 0
     },
     "rule": {
       "action_changed": 0,
@@ -16,135 +16,14 @@
       "removed": 0
     }
   },
-  "events": [
-    {
-      "after": {
-        "line": "^https?:\\/\\/abplatform\\.yumchina\\.com\\/abtestplatform\\/api\\/abtest\\/kfc\\/adRouter mock-response-body data-type=json body={\"data\":{\"aiAd\":{},\"commonAd\":{},\"composeAd\":[],\"personnalAd\":{}},\"errCode\":0,\"errorCode\":\"0\"}",
-        "section": "rewrite",
-        "sources": [
-          "kfc_targeted"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "rewrite",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "kfc_targeted": "unavailable"
-      },
-      "source_scores": {
-        "kfc_targeted": null
-      },
-      "sources": [
-        "kfc_targeted"
-      ]
-    },
-    {
-      "after": {
-        "line": "^https?:\\/\\/dynamicad\\.kfc\\.com\\.cn\\/api(?!\\/app5\\/homepage\\/ai\\/popup) reject-dict",
-        "section": "rewrite",
-        "sources": [
-          "kfc_targeted"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "rewrite",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "kfc_targeted": "unavailable"
-      },
-      "source_scores": {
-        "kfc_targeted": null
-      },
-      "sources": [
-        "kfc_targeted"
-      ]
-    },
-    {
-      "after": {
-        "line": "^https?:\\/\\/dynamicad\\.kfc\\.com\\.cn\\/api\\/app5\\/homepage\\/ai\\/popup mock-response-body data-type=json body={\"body\":{\"data\":{\"list\":[]},\"abType\":\"popup\"},\"error\":null,\"errorCode\":null}",
-        "section": "rewrite",
-        "sources": [
-          "kfc_targeted"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "rewrite",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "kfc_targeted": "unavailable"
-      },
-      "source_scores": {
-        "kfc_targeted": null
-      },
-      "sources": [
-        "kfc_targeted"
-      ]
-    },
-    {
-      "after": {
-        "line": "^https?:\\/\\/res\\.kfc\\.com\\.cn\\/.*splash reject",
-        "section": "rewrite",
-        "sources": [
-          "kfc_targeted"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "rewrite",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "kfc_targeted": "unavailable"
-      },
-      "source_scores": {
-        "kfc_targeted": null
-      },
-      "sources": [
-        "kfc_targeted"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "^https?:\\/\\/dynamicad\\.kfc\\.com\\.cn\\/api reject-dict",
-        "section": "rewrite",
-        "sources": [
-          "base"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "rewrite",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "base": "unavailable"
-      },
-      "source_scores": {
-        "base": null
-      },
-      "sources": [
-        "base"
-      ]
-    }
-  ],
-  "overall_risk": "high",
+  "events": [],
+  "overall_risk": "low",
   "risk_counts": {
-    "high": 1,
+    "high": 0,
     "low": 0,
-    "medium": 4
+    "medium": 0
   },
-  "run_id": "44440962629",
+  "run_id": "44442344304",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -161,10 +40,10 @@
   "source_health_warnings": [],
   "source_trends_last_30_snapshots": {
     "aoomee": {
-      "action_changed": 85,
+      "action_changed": 64,
       "added": 156,
       "removed": 4,
-      "snapshots_seen": 8
+      "snapshots_seen": 7
     },
     "base": {
       "action_changed": 19,
@@ -192,9 +71,9 @@
     },
     "local_overrides": {
       "action_changed": 0,
-      "added": 111,
-      "removed": 143,
-      "snapshots_seen": 12
+      "added": 94,
+      "removed": 126,
+      "snapshots_seen": 11
     },
     "myblockads": {
       "action_changed": 0,
@@ -215,10 +94,10 @@
       "snapshots_seen": 1
     },
     "zmjapp": {
-      "action_changed": 10,
+      "action_changed": 8,
       "added": 3,
       "removed": 3,
-      "snapshots_seen": 7
+      "snapshots_seen": 6
     },
     "zmjgen": {
       "action_changed": 2,
