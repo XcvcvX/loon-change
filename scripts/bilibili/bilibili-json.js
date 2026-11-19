@@ -105,8 +105,9 @@ if (url.includes("/x/resource/show/tab/")) {
               deleteTracked(item, "title");
               if (item?.items?.length > 0) {
                 const items = item.items;
+                const originalItemsLength = items.length;
                 let itemWrite = 0;
-                for (let itemRead = 0, itemLength = items.length; itemRead < itemLength; itemRead++) {
+                for (let itemRead = 0, itemLength = originalItemsLength; itemRead < itemLength; itemRead++) {
                   const i = items[itemRead];
                   if (/user_center\/feedback/g.test(i?.uri)) {
                     // 联系客服
@@ -121,7 +122,7 @@ if (url.includes("/x/resource/show/tab/")) {
                   }
                 }
                 items.length = itemWrite;
-                if (itemWrite !== itemLength) modified = true;
+                if (itemWrite !== originalItemsLength) modified = true;
               }
             }
           }
