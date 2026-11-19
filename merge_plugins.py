@@ -2738,13 +2738,30 @@ sc_feeds = [('base', 4, base_sc), ('block', 5, block_sc), ('zmjgen', 6, zmj_gen_
             ('amap', -1, amap_sc), ('zmjapp', 0, zmj_app_sc), ('myblockads', 7, mb_sc)]
 # ---------------- 闲鱼/京东专项规则：吸收 y0unge 上游的高置信补漏 ----------------
 # 本地规则来源单独入 feeds，确保来源追溯和自动构建均保留。
-# 仅列出已知 CDN 分片（m、storage、img1-img30），避免把 MITM 扩大到整个 *.360buyimg.com。
+# 仅使用 base MITM 已明确覆盖的已知 CDN 分片（m、storage、img1-img30）。
+# 若某个测试/精简配置没有这些 MITM 声明，则不擅自扩展解密范围。
+_base_mitm_hosts = {
+    host.strip()
+    for line in base_sec.get('MITM', [])
+    if '=' in line
+    for host in line.split('=', 1)[1].split(',')
+    if host.strip()
+}
+_known_jd_hosts = ['m', 'storage'] + [f'img{i}' for i in range(1, 31)]
+_jd_splash_hosts = [
+    host for host in _known_jd_hosts
+    if host + '.360buyimg.com' in _base_mitm_hosts
+    or (host.startswith('img') and (
+        'img*.360buyimg.com' in _base_mitm_hosts
+        or '*.360buyimg.com' in _base_mitm_hosts
+    ))
+]
 jd_splash_asset_rules = [
     (
-        r'^https?:\/\/' + host
-        + r'\.360buyimg\.com\/(?:mobilecms\/s1\d{3}x2\d{3}_jfs\/|material-video\/) reject-200'
+        r'^https?:\\/\\/' + host
+        + r'\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200'
     )
-    for host in ['m', 'storage'] + [f'img{i}' for i in range(1, 31)]
+    for host in _jd_splash_hosts
 ]
 goofish_splash_trigger = (
     r'response if ${url} ~= /^https?:\/\/(?:g-)?acs\.m\.goofish\.com\/gw\/'
