@@ -58,9 +58,10 @@ def optimize_lazy_serialization(source):
     if source.count(old_for_each) == 1:
         source = source.replace(old_for_each, new_for_each, 1)
     splice = "    obj.data.disorder_cards.top_banner_card.data.splice(0, 1);"
-    if source.count(splice) != 1:
-        raise ValueError("Didi banner removal changed; refusing optimization")
-    source = source.replace(splice, splice + "\n    modified = true;", 1)
+    if source.count(splice) > 1:
+        raise ValueError("Didi banner removal inventory changed; refusing optimization")
+    if source.count(splice) == 1:
+        source = source.replace(splice, splice + "\n    modified = true;", 1)
     source = source.replace(completion, "$done(modified ? {body: JSON.stringify(obj)} : {});", 1)
     return source
 
