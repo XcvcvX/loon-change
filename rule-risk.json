@@ -2,8 +2,8 @@
   "change_counts": {
     "rewrite": {
       "action_changed": 0,
-      "added": 3,
-      "removed": 0
+      "added": 32,
+      "removed": 5
     },
     "rule": {
       "action_changed": 0,
@@ -12,23 +12,887 @@
     },
     "script": {
       "action_changed": 0,
-      "added": 0,
+      "added": 1,
       "removed": 0
     }
   },
   "events": [
     {
       "after": {
-        "line": "request if ${url} ~= /^https?:\\/\\/jad-api\\.jin10\\.com\\/ad/i then reject(200, \" \")",
+        "line": "^https?:\\/\\/img10\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
         "section": "rewrite",
         "sources": [
-          "aoomee"
+          "xianyu_jd_targeted"
         ]
       },
       "before": null,
       "change_type": "added",
       "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
       "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "xianyu_jd_targeted": "unavailable"
+      },
+      "source_scores": {
+        "xianyu_jd_targeted": null
+      },
+      "sources": [
+        "xianyu_jd_targeted"
+      ]
+    },
+    {
+      "after": {
+        "line": "^https?:\\/\\/img11\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+        "section": "rewrite",
+        "sources": [
+          "xianyu_jd_targeted"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "xianyu_jd_targeted": "unavailable"
+      },
+      "source_scores": {
+        "xianyu_jd_targeted": null
+      },
+      "sources": [
+        "xianyu_jd_targeted"
+      ]
+    },
+    {
+      "after": {
+        "line": "^https?:\\/\\/img12\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+        "section": "rewrite",
+        "sources": [
+          "xianyu_jd_targeted"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "xianyu_jd_targeted": "unavailable"
+      },
+      "source_scores": {
+        "xianyu_jd_targeted": null
+      },
+      "sources": [
+        "xianyu_jd_targeted"
+      ]
+    },
+    {
+      "after": {
+        "line": "^https?:\\/\\/img13\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+        "section": "rewrite",
+        "sources": [
+          "xianyu_jd_targeted"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "xianyu_jd_targeted": "unavailable"
+      },
+      "source_scores": {
+        "xianyu_jd_targeted": null
+      },
+      "sources": [
+        "xianyu_jd_targeted"
+      ]
+    },
+    {
+      "after": {
+        "line": "^https?:\\/\\/img14\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+        "section": "rewrite",
+        "sources": [
+          "xianyu_jd_targeted"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "xianyu_jd_targeted": "unavailable"
+      },
+      "source_scores": {
+        "xianyu_jd_targeted": null
+      },
+      "sources": [
+        "xianyu_jd_targeted"
+      ]
+    },
+    {
+      "after": {
+        "line": "^https?:\\/\\/img15\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+        "section": "rewrite",
+        "sources": [
+          "xianyu_jd_targeted"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "xianyu_jd_targeted": "unavailable"
+      },
+      "source_scores": {
+        "xianyu_jd_targeted": null
+      },
+      "sources": [
+        "xianyu_jd_targeted"
+      ]
+    },
+    {
+      "after": {
+        "line": "^https?:\\/\\/img16\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+        "section": "rewrite",
+        "sources": [
+          "xianyu_jd_targeted"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "xianyu_jd_targeted": "unavailable"
+      },
+      "source_scores": {
+        "xianyu_jd_targeted": null
+      },
+      "sources": [
+        "xianyu_jd_targeted"
+      ]
+    },
+    {
+      "after": {
+        "line": "^https?:\\/\\/img17\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+        "section": "rewrite",
+        "sources": [
+          "xianyu_jd_targeted"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "xianyu_jd_targeted": "unavailable"
+      },
+      "source_scores": {
+        "xianyu_jd_targeted": null
+      },
+      "sources": [
+        "xianyu_jd_targeted"
+      ]
+    },
+    {
+      "after": {
+        "line": "^https?:\\/\\/img18\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+        "section": "rewrite",
+        "sources": [
+          "xianyu_jd_targeted"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "xianyu_jd_targeted": "unavailable"
+      },
+      "source_scores": {
+        "xianyu_jd_targeted": null
+      },
+      "sources": [
+        "xianyu_jd_targeted"
+      ]
+    },
+    {
+      "after": {
+        "line": "^https?:\\/\\/img19\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+        "section": "rewrite",
+        "sources": [
+          "xianyu_jd_targeted"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "xianyu_jd_targeted": "unavailable"
+      },
+      "source_scores": {
+        "xianyu_jd_targeted": null
+      },
+      "sources": [
+        "xianyu_jd_targeted"
+      ]
+    },
+    {
+      "after": {
+        "line": "^https?:\\/\\/img1\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+        "section": "rewrite",
+        "sources": [
+          "xianyu_jd_targeted"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "xianyu_jd_targeted": "unavailable"
+      },
+      "source_scores": {
+        "xianyu_jd_targeted": null
+      },
+      "sources": [
+        "xianyu_jd_targeted"
+      ]
+    },
+    {
+      "after": {
+        "line": "^https?:\\/\\/img20\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+        "section": "rewrite",
+        "sources": [
+          "xianyu_jd_targeted"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "xianyu_jd_targeted": "unavailable"
+      },
+      "source_scores": {
+        "xianyu_jd_targeted": null
+      },
+      "sources": [
+        "xianyu_jd_targeted"
+      ]
+    },
+    {
+      "after": {
+        "line": "^https?:\\/\\/img21\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+        "section": "rewrite",
+        "sources": [
+          "xianyu_jd_targeted"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "xianyu_jd_targeted": "unavailable"
+      },
+      "source_scores": {
+        "xianyu_jd_targeted": null
+      },
+      "sources": [
+        "xianyu_jd_targeted"
+      ]
+    },
+    {
+      "after": {
+        "line": "^https?:\\/\\/img22\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+        "section": "rewrite",
+        "sources": [
+          "xianyu_jd_targeted"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "xianyu_jd_targeted": "unavailable"
+      },
+      "source_scores": {
+        "xianyu_jd_targeted": null
+      },
+      "sources": [
+        "xianyu_jd_targeted"
+      ]
+    },
+    {
+      "after": {
+        "line": "^https?:\\/\\/img23\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+        "section": "rewrite",
+        "sources": [
+          "xianyu_jd_targeted"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "xianyu_jd_targeted": "unavailable"
+      },
+      "source_scores": {
+        "xianyu_jd_targeted": null
+      },
+      "sources": [
+        "xianyu_jd_targeted"
+      ]
+    },
+    {
+      "after": {
+        "line": "^https?:\\/\\/img24\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+        "section": "rewrite",
+        "sources": [
+          "xianyu_jd_targeted"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "xianyu_jd_targeted": "unavailable"
+      },
+      "source_scores": {
+        "xianyu_jd_targeted": null
+      },
+      "sources": [
+        "xianyu_jd_targeted"
+      ]
+    },
+    {
+      "after": {
+        "line": "^https?:\\/\\/img25\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+        "section": "rewrite",
+        "sources": [
+          "xianyu_jd_targeted"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "xianyu_jd_targeted": "unavailable"
+      },
+      "source_scores": {
+        "xianyu_jd_targeted": null
+      },
+      "sources": [
+        "xianyu_jd_targeted"
+      ]
+    },
+    {
+      "after": {
+        "line": "^https?:\\/\\/img26\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+        "section": "rewrite",
+        "sources": [
+          "xianyu_jd_targeted"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "xianyu_jd_targeted": "unavailable"
+      },
+      "source_scores": {
+        "xianyu_jd_targeted": null
+      },
+      "sources": [
+        "xianyu_jd_targeted"
+      ]
+    },
+    {
+      "after": {
+        "line": "^https?:\\/\\/img27\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+        "section": "rewrite",
+        "sources": [
+          "xianyu_jd_targeted"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "xianyu_jd_targeted": "unavailable"
+      },
+      "source_scores": {
+        "xianyu_jd_targeted": null
+      },
+      "sources": [
+        "xianyu_jd_targeted"
+      ]
+    },
+    {
+      "after": {
+        "line": "^https?:\\/\\/img28\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+        "section": "rewrite",
+        "sources": [
+          "xianyu_jd_targeted"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "xianyu_jd_targeted": "unavailable"
+      },
+      "source_scores": {
+        "xianyu_jd_targeted": null
+      },
+      "sources": [
+        "xianyu_jd_targeted"
+      ]
+    },
+    {
+      "after": {
+        "line": "^https?:\\/\\/img29\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+        "section": "rewrite",
+        "sources": [
+          "xianyu_jd_targeted"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "xianyu_jd_targeted": "unavailable"
+      },
+      "source_scores": {
+        "xianyu_jd_targeted": null
+      },
+      "sources": [
+        "xianyu_jd_targeted"
+      ]
+    },
+    {
+      "after": {
+        "line": "^https?:\\/\\/img2\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+        "section": "rewrite",
+        "sources": [
+          "xianyu_jd_targeted"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "xianyu_jd_targeted": "unavailable"
+      },
+      "source_scores": {
+        "xianyu_jd_targeted": null
+      },
+      "sources": [
+        "xianyu_jd_targeted"
+      ]
+    },
+    {
+      "after": {
+        "line": "^https?:\\/\\/img30\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+        "section": "rewrite",
+        "sources": [
+          "xianyu_jd_targeted"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "xianyu_jd_targeted": "unavailable"
+      },
+      "source_scores": {
+        "xianyu_jd_targeted": null
+      },
+      "sources": [
+        "xianyu_jd_targeted"
+      ]
+    },
+    {
+      "after": {
+        "line": "^https?:\\/\\/img3\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+        "section": "rewrite",
+        "sources": [
+          "xianyu_jd_targeted"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "xianyu_jd_targeted": "unavailable"
+      },
+      "source_scores": {
+        "xianyu_jd_targeted": null
+      },
+      "sources": [
+        "xianyu_jd_targeted"
+      ]
+    },
+    {
+      "after": {
+        "line": "^https?:\\/\\/img4\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+        "section": "rewrite",
+        "sources": [
+          "xianyu_jd_targeted"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "xianyu_jd_targeted": "unavailable"
+      },
+      "source_scores": {
+        "xianyu_jd_targeted": null
+      },
+      "sources": [
+        "xianyu_jd_targeted"
+      ]
+    },
+    {
+      "after": {
+        "line": "^https?:\\/\\/img5\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+        "section": "rewrite",
+        "sources": [
+          "xianyu_jd_targeted"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "xianyu_jd_targeted": "unavailable"
+      },
+      "source_scores": {
+        "xianyu_jd_targeted": null
+      },
+      "sources": [
+        "xianyu_jd_targeted"
+      ]
+    },
+    {
+      "after": {
+        "line": "^https?:\\/\\/img6\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+        "section": "rewrite",
+        "sources": [
+          "xianyu_jd_targeted"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "xianyu_jd_targeted": "unavailable"
+      },
+      "source_scores": {
+        "xianyu_jd_targeted": null
+      },
+      "sources": [
+        "xianyu_jd_targeted"
+      ]
+    },
+    {
+      "after": {
+        "line": "^https?:\\/\\/img7\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+        "section": "rewrite",
+        "sources": [
+          "xianyu_jd_targeted"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "xianyu_jd_targeted": "unavailable"
+      },
+      "source_scores": {
+        "xianyu_jd_targeted": null
+      },
+      "sources": [
+        "xianyu_jd_targeted"
+      ]
+    },
+    {
+      "after": {
+        "line": "^https?:\\/\\/img8\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+        "section": "rewrite",
+        "sources": [
+          "xianyu_jd_targeted"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "xianyu_jd_targeted": "unavailable"
+      },
+      "source_scores": {
+        "xianyu_jd_targeted": null
+      },
+      "sources": [
+        "xianyu_jd_targeted"
+      ]
+    },
+    {
+      "after": {
+        "line": "^https?:\\/\\/img9\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+        "section": "rewrite",
+        "sources": [
+          "xianyu_jd_targeted"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "xianyu_jd_targeted": "unavailable"
+      },
+      "source_scores": {
+        "xianyu_jd_targeted": null
+      },
+      "sources": [
+        "xianyu_jd_targeted"
+      ]
+    },
+    {
+      "after": {
+        "line": "^https?:\\/\\/m\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+        "section": "rewrite",
+        "sources": [
+          "xianyu_jd_targeted"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "xianyu_jd_targeted": "unavailable"
+      },
+      "source_scores": {
+        "xianyu_jd_targeted": null
+      },
+      "sources": [
+        "xianyu_jd_targeted"
+      ]
+    },
+    {
+      "after": {
+        "line": "^https?:\\/\\/storage\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+        "section": "rewrite",
+        "sources": [
+          "xianyu_jd_targeted"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "xianyu_jd_targeted": "unavailable"
+      },
+      "source_scores": {
+        "xianyu_jd_targeted": null
+      },
+      "sources": [
+        "xianyu_jd_targeted"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "^https?:\\/\\/(g-)?acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlecommerce\\.splash reject-dict",
+        "section": "rewrite",
+        "sources": [
+          "base"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "base": "unavailable"
+      },
+      "source_scores": {
+        "base": null
+      },
+      "sources": [
+        "base"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "^https?:\\/\\/m.360buyimg\\.com\\/mobilecms\\/s1125x2436_jfs\\/ reject-200",
+        "section": "rewrite",
+        "sources": [
+          "base"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "base": "unavailable"
+      },
+      "source_scores": {
+        "base": null
+      },
+      "sources": [
+        "base"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlecommerce\\.splash\\.ads/i then reject_dict(200)",
+        "section": "rewrite",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "aoomee": "scored"
+      },
+      "source_scores": {
+        "aoomee": 100
+      },
+      "sources": [
+        "aoomee"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlecommerce\\.splash\\.ads\\//i then reject_dict(200)",
+        "section": "rewrite",
+        "sources": [
+          "zmjapp"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "zmjapp": "unavailable"
+      },
+      "source_scores": {
+        "zmjapp": null
+      },
+      "sources": [
+        "zmjapp"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "request if ${url} ~= /^https?:\\/\\/m\\.360buyimg\\.com\\/mobilecms\\/s1125x2436_jfs/i then reject(200, \" \")",
+        "section": "rewrite",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
       "section": "rewrite",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
@@ -43,60 +907,36 @@
     },
     {
       "after": {
-        "line": "request if ${url} ~= /^https?:\\/\\/jad-api\\.jin10\\.com\\/mult\\/list_unread\\?display=flash_list&fit_type=new_flash_flash/i then reject(200, \" \")",
-        "section": "rewrite",
+        "line": "response if ${url} ~= /^https?:\\/\\/(?:g-)?acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlecommerce\\.splash\\.(?:ads|async\\.ads|config)\\//i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js\") with tag=\"GOOFISH-SPLASH\", timeout=20, requires_body=true",
+        "section": "script",
         "sources": [
-          "aoomee"
+          "xianyu_jd_targeted"
         ]
       },
       "before": null,
       "change_type": "added",
       "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
       "risk": "medium",
-      "section": "rewrite",
+      "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "aoomee": "scored"
+        "xianyu_jd_targeted": "unavailable"
       },
       "source_scores": {
-        "aoomee": 100
+        "xianyu_jd_targeted": null
       },
       "sources": [
-        "aoomee"
-      ]
-    },
-    {
-      "after": {
-        "line": "response if ${url} ~= /^https?:\\/\\/search-open-api\\.jin10\\.com\\/search\\/getHotWords/i then response.json.jq(\".data.list=[]\")",
-        "section": "rewrite",
-        "sources": [
-          "aoomee"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "rewrite",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "aoomee": "scored"
-      },
-      "source_scores": {
-        "aoomee": 100
-      },
-      "sources": [
-        "aoomee"
+        "xianyu_jd_targeted"
       ]
     }
   ],
-  "overall_risk": "medium",
+  "overall_risk": "high",
   "risk_counts": {
-    "high": 0,
+    "high": 5,
     "low": 0,
-    "medium": 3
+    "medium": 33
   },
-  "run_id": "44427622938",
+  "run_id": "44437804232",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -115,14 +955,14 @@
     "aoomee": {
       "action_changed": 106,
       "added": 156,
-      "removed": 2,
-      "snapshots_seen": 8
+      "removed": 4,
+      "snapshots_seen": 9
     },
     "base": {
       "action_changed": 19,
       "added": 75,
-      "removed": 43,
-      "snapshots_seen": 6
+      "removed": 45,
+      "snapshots_seen": 7
     },
     "block": {
       "action_changed": 20,
@@ -154,11 +994,17 @@
       "removed": 381,
       "snapshots_seen": 1
     },
+    "xianyu_jd_targeted": {
+      "action_changed": 0,
+      "added": 33,
+      "removed": 0,
+      "snapshots_seen": 1
+    },
     "zmjapp": {
       "action_changed": 12,
       "added": 3,
-      "removed": 2,
-      "snapshots_seen": 7
+      "removed": 3,
+      "snapshots_seen": 8
     },
     "zmjgen": {
       "action_changed": 2,

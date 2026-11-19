@@ -378,7 +378,7 @@
         "qunar-legacy.plugin",
         "youtube-zh.lpx"
       ],
-      "plugin_files": 31,
+      "plugin_files": 32,
       "romeo_module_paths": [
         "Modules/Loon/fmz200/12306.lpx",
         "Modules/Loon/ishowshu/amap.lpx",
@@ -403,9 +403,10 @@
         "Modules/Loon/Kelee/Weidian_remove_ads.lpx",
         "Modules/Loon/Kelee/Weixin_Official_Accounts_remove_ads.lpx",
         "Modules/Loon/Kelee/WexinMiniPrograms_Remove_ads.lpx",
-        "Modules/Loon/Maasea/YouTube.Enhance.lpx"
+        "Modules/Loon/Maasea/YouTube.Enhance.lpx",
+        "Modules/Loon/ddgksf2013/Beta/JinShiDataAds.lpx"
       ],
-      "rule_lines": 689,
+      "rule_lines": 692,
       "source_mode": "Romeo Modules/Loon (including Kelee WeChat/Weidian plugins) + pinned AOOMEE-only local snapshots",
       "upstream_commit": "5685038ec50b505d6d24691b01b5ae8ca05a6142",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
@@ -605,28 +606,267 @@
       "action_changed": [],
       "added": [
         {
-          "line": "request if ${url} ~= /^https?:\\/\\/jad-api\\.jin10\\.com\\/ad/i then reject(200, \" \")",
+          "line": "^https?:\\/\\/img10\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+          "section": "rewrite",
+          "sources": [
+            "xianyu_jd_targeted"
+          ]
+        },
+        {
+          "line": "^https?:\\/\\/img11\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+          "section": "rewrite",
+          "sources": [
+            "xianyu_jd_targeted"
+          ]
+        },
+        {
+          "line": "^https?:\\/\\/img12\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+          "section": "rewrite",
+          "sources": [
+            "xianyu_jd_targeted"
+          ]
+        },
+        {
+          "line": "^https?:\\/\\/img13\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+          "section": "rewrite",
+          "sources": [
+            "xianyu_jd_targeted"
+          ]
+        },
+        {
+          "line": "^https?:\\/\\/img14\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+          "section": "rewrite",
+          "sources": [
+            "xianyu_jd_targeted"
+          ]
+        },
+        {
+          "line": "^https?:\\/\\/img15\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+          "section": "rewrite",
+          "sources": [
+            "xianyu_jd_targeted"
+          ]
+        },
+        {
+          "line": "^https?:\\/\\/img16\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+          "section": "rewrite",
+          "sources": [
+            "xianyu_jd_targeted"
+          ]
+        },
+        {
+          "line": "^https?:\\/\\/img17\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+          "section": "rewrite",
+          "sources": [
+            "xianyu_jd_targeted"
+          ]
+        },
+        {
+          "line": "^https?:\\/\\/img18\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+          "section": "rewrite",
+          "sources": [
+            "xianyu_jd_targeted"
+          ]
+        },
+        {
+          "line": "^https?:\\/\\/img19\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+          "section": "rewrite",
+          "sources": [
+            "xianyu_jd_targeted"
+          ]
+        },
+        {
+          "line": "^https?:\\/\\/img1\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+          "section": "rewrite",
+          "sources": [
+            "xianyu_jd_targeted"
+          ]
+        },
+        {
+          "line": "^https?:\\/\\/img20\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+          "section": "rewrite",
+          "sources": [
+            "xianyu_jd_targeted"
+          ]
+        },
+        {
+          "line": "^https?:\\/\\/img21\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+          "section": "rewrite",
+          "sources": [
+            "xianyu_jd_targeted"
+          ]
+        },
+        {
+          "line": "^https?:\\/\\/img22\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+          "section": "rewrite",
+          "sources": [
+            "xianyu_jd_targeted"
+          ]
+        },
+        {
+          "line": "^https?:\\/\\/img23\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+          "section": "rewrite",
+          "sources": [
+            "xianyu_jd_targeted"
+          ]
+        },
+        {
+          "line": "^https?:\\/\\/img24\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+          "section": "rewrite",
+          "sources": [
+            "xianyu_jd_targeted"
+          ]
+        },
+        {
+          "line": "^https?:\\/\\/img25\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+          "section": "rewrite",
+          "sources": [
+            "xianyu_jd_targeted"
+          ]
+        },
+        {
+          "line": "^https?:\\/\\/img26\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+          "section": "rewrite",
+          "sources": [
+            "xianyu_jd_targeted"
+          ]
+        },
+        {
+          "line": "^https?:\\/\\/img27\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+          "section": "rewrite",
+          "sources": [
+            "xianyu_jd_targeted"
+          ]
+        },
+        {
+          "line": "^https?:\\/\\/img28\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+          "section": "rewrite",
+          "sources": [
+            "xianyu_jd_targeted"
+          ]
+        },
+        {
+          "line": "^https?:\\/\\/img29\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+          "section": "rewrite",
+          "sources": [
+            "xianyu_jd_targeted"
+          ]
+        },
+        {
+          "line": "^https?:\\/\\/img2\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+          "section": "rewrite",
+          "sources": [
+            "xianyu_jd_targeted"
+          ]
+        },
+        {
+          "line": "^https?:\\/\\/img30\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+          "section": "rewrite",
+          "sources": [
+            "xianyu_jd_targeted"
+          ]
+        },
+        {
+          "line": "^https?:\\/\\/img3\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+          "section": "rewrite",
+          "sources": [
+            "xianyu_jd_targeted"
+          ]
+        },
+        {
+          "line": "^https?:\\/\\/img4\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+          "section": "rewrite",
+          "sources": [
+            "xianyu_jd_targeted"
+          ]
+        },
+        {
+          "line": "^https?:\\/\\/img5\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+          "section": "rewrite",
+          "sources": [
+            "xianyu_jd_targeted"
+          ]
+        },
+        {
+          "line": "^https?:\\/\\/img6\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+          "section": "rewrite",
+          "sources": [
+            "xianyu_jd_targeted"
+          ]
+        },
+        {
+          "line": "^https?:\\/\\/img7\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+          "section": "rewrite",
+          "sources": [
+            "xianyu_jd_targeted"
+          ]
+        },
+        {
+          "line": "^https?:\\/\\/img8\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+          "section": "rewrite",
+          "sources": [
+            "xianyu_jd_targeted"
+          ]
+        },
+        {
+          "line": "^https?:\\/\\/img9\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+          "section": "rewrite",
+          "sources": [
+            "xianyu_jd_targeted"
+          ]
+        },
+        {
+          "line": "^https?:\\/\\/m\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+          "section": "rewrite",
+          "sources": [
+            "xianyu_jd_targeted"
+          ]
+        },
+        {
+          "line": "^https?:\\/\\/storage\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200",
+          "section": "rewrite",
+          "sources": [
+            "xianyu_jd_targeted"
+          ]
+        }
+      ],
+      "removed": [
+        {
+          "line": "^https?:\\/\\/(g-)?acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlecommerce\\.splash reject-dict",
+          "section": "rewrite",
+          "sources": [
+            "base"
+          ]
+        },
+        {
+          "line": "^https?:\\/\\/m.360buyimg\\.com\\/mobilecms\\/s1125x2436_jfs\\/ reject-200",
+          "section": "rewrite",
+          "sources": [
+            "base"
+          ]
+        },
+        {
+          "line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlecommerce\\.splash\\.ads/i then reject_dict(200)",
           "section": "rewrite",
           "sources": [
             "aoomee"
           ]
         },
         {
-          "line": "request if ${url} ~= /^https?:\\/\\/jad-api\\.jin10\\.com\\/mult\\/list_unread\\?display=flash_list&fit_type=new_flash_flash/i then reject(200, \" \")",
+          "line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlecommerce\\.splash\\.ads\\//i then reject_dict(200)",
           "section": "rewrite",
           "sources": [
-            "aoomee"
+            "zmjapp"
           ]
         },
         {
-          "line": "response if ${url} ~= /^https?:\\/\\/search-open-api\\.jin10\\.com\\/search\\/getHotWords/i then response.json.jq(\".data.list=[]\")",
+          "line": "request if ${url} ~= /^https?:\\/\\/m\\.360buyimg\\.com\\/mobilecms\\/s1125x2436_jfs/i then reject(200, \" \")",
           "section": "rewrite",
           "sources": [
             "aoomee"
           ]
         }
-      ],
-      "removed": []
+      ]
     },
     "rule": {
       "action_changed": [],
@@ -635,15 +875,23 @@
     },
     "script": {
       "action_changed": [],
-      "added": [],
+      "added": [
+        {
+          "line": "response if ${url} ~= /^https?:\\/\\/(?:g-)?acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlecommerce\\.splash\\.(?:ads|async\\.ads|config)\\//i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js\") with tag=\"GOOFISH-SPLASH\", timeout=20, requires_body=true",
+          "section": "script",
+          "sources": [
+            "xianyu_jd_targeted"
+          ]
+        }
+      ],
       "removed": []
     }
   },
   "summary": {
     "rewrite": {
       "action_changed": 0,
-      "added": 3,
-      "removed": 0
+      "added": 32,
+      "removed": 5
     },
     "rule": {
       "action_changed": 0,
@@ -652,10 +900,10 @@
     },
     "script": {
       "action_changed": 0,
-      "added": 0,
+      "added": 1,
       "removed": 0
     },
-    "total_changes": 3
+    "total_changes": 38
   },
   "upstream_revision_changes": []
 }
