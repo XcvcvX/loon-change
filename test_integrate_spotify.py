@@ -48,20 +48,30 @@ class SpotifyIntegrationTests(unittest.TestCase):
                 main()
             self.assertTrue(meta.exists())
             self.assertIn('DOMAIN,aet.spotify.com,REJECT', plugin.read_text(encoding='utf-8'))
-    def test_removes_rstore_spotify_entitlement_mutator_but_keeps_other_handlers(self):
-        from integrate_spotify import remove_rstore_spotify_entitlement_script
-        plugin = """[Script]
-http-response ^https?:\/\/(?:gae2-spclient|guc3-spclient|spclient\.wg)\.spotify\.com(:443)?\/(?:bootstrap\/v\d\/bootstrap|user-customization-service\/v\d\/customize)$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/spotify.js,tag=SPOTIFY,requires-body=true,binary-body-mode=true
-http-response ^https:\/\/spclient.wg.spotify.com\/unrelated script-path=https://example.com/other.js,tag=OTHER
+    def test_independent_spotify_source_replaces_all_rstore_spotify_entries(self):
+        from integrate_spotify import replace_rstore_spotify_rules
+        plugin = """[Rule]
+DOMAIN,aet.spotify.com,REJECT
+DOMAIN,keep.example.com,REJECT
+[Rewrite]
+^https?:\/\/spclient.wg.spotify.com\/ads\/ reject
+^https?:\/\/keep.example.com\/ads\/ reject
+[Script]
+http-response ^https?:\/\/spclient.wg.spotify.com\/bootstrap script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/spotify.js,tag=SPOTIFY
+http-response ^https:\/\/keep.example.com\/unrelated script-path=https://example.com/other.js,tag=OTHER
+[MITM]
+hostname = api.example.com, *spotify.com, spclient.wg.spotify.com
 """
-        cleaned, removed = remove_rstore_spotify_entitlement_script(plugin)
+        cleaned, removed = replace_rstore_spotify_rules(plugin)
         self.assertEqual(removed, 1)
-        self.assertNotIn("R-Store/main/Res/Scripts/AntiAd/spotify.js", cleaned)
+        self.assertNotIn("spotify.com", cleaned)
+        self.assertNotIn("spotify.js", cleaned)
+        self.assertIn("keep.example.com", cleaned)
         self.assertIn("tag=OTHER", cleaned)
 
     def test_rstore_spotify_filter_is_safe_when_script_absent(self):
-        from integrate_spotify import remove_rstore_spotify_entitlement_script
-        cleaned, removed = remove_rstore_spotify_entitlement_script("[Script]\n# no R-Store Spotify handler\n")
+        from integrate_spotify import replace_rstore_spotify_rules
+        cleaned, removed = replace_rstore_spotify_rules("[Script]\n# no R-Store Spotify handler\n[MITM]\nhostname = api.example.com\n")
         self.assertEqual(removed, 0)
         self.assertIn("# no R-Store Spotify handler", cleaned)
 
