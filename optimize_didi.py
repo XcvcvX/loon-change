@@ -34,6 +34,8 @@ def optimize_source(source, commit="unknown"):
     if MARKER in source:
         if re.search(r"\.filter\s*\(", source):
             raise ValueError("Didi optimization marker exists but allocating filter remains")
+        if "obj.data.cards.forEach" in source:
+            raise ValueError("Didi user-center wallet traversal optimization is stale")
         return source
 
     body_guard = "if (!$response.body) $done({});"
@@ -60,6 +62,11 @@ def optimize_source(source, commit="unknown"):
         lambda match: "compactInPlace(%s, " % match.group(1),
         source,
     )
+    old_wallet_block = "    compactInPlace(obj.data.cards, card => !excludedTitles.includes(card.title));\n\n    obj.data.cards.forEach(card => {\n      if (card.tag === \"wallet\") {\n        if (card.items) {\n          compactInPlace(card.items, item => item.title === \"优惠券\");\n        }\n        if (card.card_type === 4 && card.bottom_items) {\n          compactInPlace(card.bottom_items, item =>\n              item.title === \"省钱套餐\" || item.title === \"天天神券\"\n          );\n        }\n      }\n    });"
+    new_wallet_block = "    compactInPlace(obj.data.cards, card => {\n      if (excludedTitles.includes(card.title)) return false;\n      if (card.tag === \"wallet\") {\n        if (card.items) {\n          compactInPlace(card.items, item => item.title === \"优惠券\");\n        }\n        if (card.card_type === 4 && card.bottom_items) {\n          compactInPlace(card.bottom_items, item =>\n              item.title === \"省钱套餐\" || item.title === \"天天神券\"\n          );\n        }\n      }\n      return true;\n    });"
+    if source.count(old_wallet_block) != 1:
+        raise ValueError("Didi user-center card traversal changed; refusing fusion")
+    source = source.replace(old_wallet_block, new_wallet_block, 1)
     if re.search(r"\.filter\s*\(", source):
         raise ValueError("Didi allocating filter remains after optimization")
     if source.count("function compactInPlace(items, keep)") != 1:

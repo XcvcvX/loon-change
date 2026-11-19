@@ -69,9 +69,8 @@ if (url.includes("/usercenter/me")) {
   const excludedTitles = ['天天领福利', '金融服务', '更多服务', '企业服务', '安全中心'];
 
   if (obj.data && obj.data.cards) {
-    compactInPlace(obj.data.cards, card => !excludedTitles.includes(card.title));
-
-    obj.data.cards.forEach(card => {
+    compactInPlace(obj.data.cards, card => {
+      if (excludedTitles.includes(card.title)) return false;
       if (card.tag === "wallet") {
         if (card.items) {
           compactInPlace(card.items, item => item.title === "优惠券");
@@ -82,6 +81,7 @@ if (url.includes("/usercenter/me")) {
           );
         }
       }
+      return true;
     });
   }
 }
