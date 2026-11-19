@@ -12,211 +12,18 @@
     },
     "script": {
       "action_changed": 0,
-      "added": 4,
-      "removed": 4
+      "added": 0,
+      "removed": 0
     }
   },
-  "events": [
-    {
-      "after": {
-        "line": "http-response ^https?:\\/\\/api\\.udache\\.com\\/gulfstream\\/pre-sale\\/v\\d\\/other\\/pGetSceneList script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/didi/didi.js,tag=DIDI-4,requires-body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "http-response ^https?:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v\\d\\/usercenter\\/me script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/didi/didi.js,tag=DIDI-3,requires-body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "http-response ^https?:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v\\d\\/core script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/didi/didi.js,tag=DIDI,requires-body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": {
-        "line": "http-response ^https?:\\/\\/conf\\.diditaxi\\.com\\.cn\\/ota\\/na\\/yuantu\\/infoList script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/didi/didi.js,tag=DIDI-2,requires-body=true",
-        "section": "script",
-        "sources": [
-          "local_overrides"
-        ]
-      },
-      "before": null,
-      "change_type": "added",
-      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
-      "risk": "medium",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "local_overrides": "unavailable"
-      },
-      "source_scores": {
-        "local_overrides": null
-      },
-      "sources": [
-        "local_overrides"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "http-response ^https?:\\/\\/api\\.udache\\.com\\/gulfstream\\/pre-sale\\/v\\d\\/other\\/pGetSceneList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI-4,requires-body=true",
-        "section": "script",
-        "sources": [
-          "base"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "base": "unavailable"
-      },
-      "source_scores": {
-        "base": null
-      },
-      "sources": [
-        "base"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "http-response ^https?:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v\\d\\/usercenter\\/me script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI-3,requires-body=true",
-        "section": "script",
-        "sources": [
-          "base"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "base": "unavailable"
-      },
-      "source_scores": {
-        "base": null
-      },
-      "sources": [
-        "base"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "http-response ^https?:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v\\d\\/core script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI,requires-body=true",
-        "section": "script",
-        "sources": [
-          "base"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "base": "unavailable"
-      },
-      "source_scores": {
-        "base": null
-      },
-      "sources": [
-        "base"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "http-response ^https?:\\/\\/conf\\.diditaxi\\.com\\.cn\\/ota\\/na\\/yuantu\\/infoList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI-2,requires-body=true",
-        "section": "script",
-        "sources": [
-          "base"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "script",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "base": "unavailable"
-      },
-      "source_scores": {
-        "base": null
-      },
-      "sources": [
-        "base"
-      ]
-    }
-  ],
-  "overall_risk": "high",
+  "events": [],
+  "overall_risk": "low",
   "risk_counts": {
-    "high": 4,
+    "high": 0,
     "low": 0,
-    "medium": 4
+    "medium": 0
   },
-  "run_id": "44471045989",
+  "run_id": "44473393008",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -241,8 +48,8 @@
     "base": {
       "action_changed": 19,
       "added": 75,
-      "removed": 45,
-      "snapshots_seen": 8
+      "removed": 43,
+      "snapshots_seen": 7
     },
     "block": {
       "action_changed": 20,
@@ -264,9 +71,9 @@
     },
     "local_overrides": {
       "action_changed": 0,
-      "added": 97,
-      "removed": 126,
-      "snapshots_seen": 11
+      "added": 90,
+      "removed": 121,
+      "snapshots_seen": 10
     },
     "myblockads": {
       "action_changed": 0,
