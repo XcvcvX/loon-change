@@ -29,22 +29,52 @@ if (!$response.body) {
     return items;
   }
 
+  let modified = false;
+
+  function filterTracked(items, predicate) {
+    const originalLength = items.length;
+    filterInPlace(items, predicate);
+    if (items.length !== originalLength) modified = true;
+    return items;
+  }
+
+  function deleteTracked(target, key) {
+    if (Object.prototype.hasOwnProperty.call(target, key)) {
+      delete target[key];
+      modified = true;
+    }
+  }
+
+  function filterAndSortAllowed(items, allowedNames) {
+    const originalLength = items.length;
+    filterInPlace(items, item => allowedNames.includes(item?.name));
+    if (items.length !== originalLength) modified = true;
+    for (let i = 1; i < items.length; i++) {
+      if (allowedNames.indexOf(items[i - 1]?.name) > allowedNames.indexOf(items[i]?.name)) {
+        modified = true;
+        break;
+      }
+    }
+    items.sort((a, b) => allowedNames.indexOf(a?.name) - allowedNames.indexOf(b?.name));
+    return items;
+  }
+
 if (url.includes("/x/resource/show/tab/")) {
   // 底部选项卡
   if (obj?.data?.bottom?.length > 0) {
     const sortLists = ["首页", "动态", "关注", "我的"];
-    filterInPlace(obj.data.bottom, (i) => sortLists.includes(i?.name)).sort((a, b) => sortLists.indexOf(a?.name) - sortLists.indexOf(b?.name));
+    filterAndSortAllowed(obj.data.bottom, sortLists);
   }
   // 首页导航栏
   if (obj?.data?.tab?.length > 0) {
     const sortLists = ["推荐", "热门", "影视", "动画"];
-    filterInPlace(obj.data.tab, (i) => sortLists.includes(i?.name)).sort((a, b) => sortLists.indexOf(a?.name) - sortLists.indexOf(b?.name));
+    filterAndSortAllowed(obj.data.tab, sortLists);
   }
   // 右上角按钮
   if (obj?.data?.top?.length > 0) {
-    filterInPlace(obj.data.top, (i) => i?.name === "消息");
+    filterTracked(obj.data.top, (i) => i?.name === "消息");
     if (obj?.data?.top?.[0]?.pos) {
-      obj.data.top[0].pos = 1;
+      if (obj.data.top[0].pos !== 1) { obj.data.top[0].pos = 1; modified = true; }
     }
   }
 } else if (url.includes("/account/mine?")) {
@@ -52,14 +82,15 @@ if (url.includes("/x/resource/show/tab/")) {
   const del = ["rework_v1", "vip_section", "vip_section_v2"];
   for (let i of del) {
     // 不必要项目
-    delete obj.data[i];
+    deleteTracked(obj.data, i);
   }
   if (obj?.data?.sections_v2?.length > 0) {
     const sections = obj.data.sections_v2;
+    const originalSectionLength = sections.length;
     let sectionWrite = 0;
     for (let sectionRead = 0, sectionLength = sections.length; sectionRead < sectionLength; sectionRead++) {
       let item = sections[sectionRead];
-      delete item.button;
+      deleteTracked(item, "button");
       if (item?.style) {
         if (item?.style === 1 || item?.style === 2) {
           if (item?.title) {
@@ -67,7 +98,7 @@ if (url.includes("/x/resource/show/tab/")) {
               // 创作中心 推荐服务
               continue;
             } else if (item?.title === "更多服务") {
-              delete item.title;
+              deleteTracked(item, "title");
               if (item?.items?.length > 0) {
                 const items = item.items;
                 let itemWrite = 0;
@@ -86,6 +117,7 @@ if (url.includes("/x/resource/show/tab/")) {
                   }
                 }
                 items.length = itemWrite;
+                if (itemWrite !== itemLength) modified = true;
               }
             }
           }
@@ -98,10 +130,12 @@ if (url.includes("/x/resource/show/tab/")) {
       sectionWrite++;
     }
     sections.length = sectionWrite;
+    if (sectionWrite !== originalSectionLength) modified = true;
   }
   // 非会员开启本地会员标识
   if (obj?.data?.vip) {
     if (obj?.data?.vip?.status === 0) {
+      modified = true;
       obj.data.vip_type = 2;
       obj.data.vip.type = 2;
       obj.data.vip.status = 1;
@@ -184,7 +218,7 @@ if (url.includes("/x/resource/show/tab/")) {
   if (obj?.data) {
     const item = ["account", "event_list", "preload", "show"];
     item.forEach((i) => {
-      delete obj.data[i];
+      deleteTracked(obj.data, i);
     });
     if (obj?.data?.max_time) {
       obj.data.max_time = 0;
