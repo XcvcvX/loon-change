@@ -1,4 +1,5 @@
 // loon-change: Youku home.query in-place compaction v1; upstream fmz200/wool_scripts@eca3853dfed0f2db829408a81b98ff279bcfe8f9
+// loon-change: Youku home.feed in-place compaction v1
 // 2025-03-08 22:15
 
 const url = $request.url;
@@ -594,32 +595,17 @@ if (isIQY) {
     if (obj?.data?.["2019061000"]?.data) {
       let objData = obj.data["2019061000"].data;
       if (objData?.nodes?.length > 0) {
-        let newNodes1 = [];
-        for (let node1 of objData.nodes) {
-          if (node1?.typeName === "PHONE_FEED_CARD_GROUP") {
-            if (node1?.nodes?.length > 0) {
-              let newNode2 = [];
-              for (let node2 of node1.nodes) {
-                if (node2?.typeName === "PHONE_FEED_CARD_S_AD") {
-                  // 首页 四格小图广告
-                  continue;
-                } else if (node2?.typeName === "PHONE_H_UC_AD") {
-                  // 首页 横版独占广告
-                  continue;
-                } else {
-                  newNode2.push(node2);
-                }
-              }
-              node1.nodes = newNode2;
-              newNodes1.push(node1);
-            } else {
-              newNodes1.push(node1);
-            }
-          } else {
-            newNodes1.push(node1);
+        // Reuse response arrays and compact only the nested ad-card groups.
+        compactInPlace(objData.nodes, (node1) => {
+          if (node1?.typeName === "PHONE_FEED_CARD_GROUP" &&
+              node1?.nodes?.length > 0) {
+            compactInPlace(node1.nodes, (node2) =>
+              node2?.typeName !== "PHONE_FEED_CARD_S_AD" &&
+              node2?.typeName !== "PHONE_H_UC_AD"
+            );
           }
-        }
-        objData.nodes = newNodes1;
+          return true;
+        });
       }
     }
   } else if (url.includes("columbus.home.query/")) {
