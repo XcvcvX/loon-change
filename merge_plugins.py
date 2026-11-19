@@ -2738,40 +2738,48 @@ sc_feeds = [('base', 4, base_sc), ('block', 5, block_sc), ('zmjgen', 6, zmj_gen_
             ('amap', -1, amap_sc), ('zmjapp', 0, zmj_app_sc), ('myblockads', 7, mb_sc)]
 
 # ---------------- KFC 专项补漏：只吸收独立插件未被 base 覆盖的行为 ----------------
-# base 已有 dynamicad.kfc.com.cn/api 的 reject-dict；将 AI 弹窗接口从泛拦截中
-# 精确排除，再返回上游定义的空列表结构。其他 /api 路径仍维持原拦截行为。
-def _is_kfc_legacy_dynamicad_api_reject(line):
-    normalized = line.strip().replace(chr(92), '').lower()
-    return (
-        normalized.startswith('^https?://dynamicad.kfc.com.cn/api ')
-        and normalized.endswith('reject-dict')
+# 只有 base 已声明现有 KFC 主机时才启用，避免向无关/精简构建夹具注入 KFC MITM。
+_base_kfc_mitm_hosts = {
+    host.strip()
+    for line in base_sec.get('MITM', [])
+    if '=' in line
+    for host in line.split('=', 1)[1].split(',')
+    if host.strip()
+}
+if {'dynamicad.kfc.com.cn', 'res.kfc.com.cn'}.issubset(_base_kfc_mitm_hosts):
+    # base 已有 dynamicad.kfc.com.cn/api 的 reject-dict；将 AI 弹窗接口从泛拦截中
+    # 精确排除，再返回上游定义的空列表结构。其他 /api 路径仍维持原拦截行为。
+    def _is_kfc_legacy_dynamicad_api_reject(line):
+        normalized = line.strip().replace(chr(92), '').lower()
+        return (
+            normalized.startswith('^https?://dynamicad.kfc.com.cn/api ')
+            and normalized.endswith('reject-dict')
+        )
+
+    rw_feeds = [
+        (source, priority, [line for line in lines if not _is_kfc_legacy_dynamicad_api_reject(line)])
+        for source, priority, lines in rw_feeds
+    ]
+    kfc_dynamicad_fallback = (
+        r'^https?:\/\/dynamicad\.kfc\.com\.cn\/api(?!\/app5\/homepage\/ai\/popup) reject-dict'
     )
-
-
-rw_feeds = [
-    (source, priority, [line for line in lines if not _is_kfc_legacy_dynamicad_api_reject(line)])
-    for source, priority, lines in rw_feeds
-]
-kfc_dynamicad_fallback = (
-    r'^https?:\/\/dynamicad\.kfc\.com\.cn\/api(?!\/app5\/homepage\/ai\/popup) reject-dict'
-)
-kfc_ai_popup_mock = (
-    r'^https?:\/\/dynamicad\.kfc\.com\.cn\/api\/app5\/homepage\/ai\/popup '
-    r'mock-response-body data-type=json '
-    r'body={"body":{"data":{"list":[]},"abType":"popup"},"error":null,"errorCode":null}'
-)
-kfc_ad_router_mock = (
-    r'^https?:\/\/abplatform\.yumchina\.com\/abtestplatform\/api\/abtest\/kfc\/adRouter '
-    r'mock-response-body data-type=json '
-    r'body={"data":{"aiAd":{},"commonAd":{},"composeAd":[],"personnalAd":{}},"errCode":0,"errorCode":"0"}'
-)
-# 只补开屏素材路径；不照搬上游过宽的 .*ad/，避免误拦 upload/download 等普通资源。
-kfc_splash_asset = r'^https?:\/\/res\.kfc\.com\.cn\/.*splash reject'
-rw_feeds.append((
-    'kfc_targeted',
-    0,
-    [kfc_dynamicad_fallback, kfc_ai_popup_mock, kfc_ad_router_mock, kfc_splash_asset],
-))
+    kfc_ai_popup_mock = (
+        r'^https?:\/\/dynamicad\.kfc\.com\.cn\/api\/app5\/homepage\/ai\/popup '
+        r'mock-response-body data-type=json '
+        r'body={"body":{"data":{"list":[]},"abType":"popup"},"error":null,"errorCode":null}'
+    )
+    kfc_ad_router_mock = (
+        r'^https?:\/\/abplatform\.yumchina\.com\/abtestplatform\/api\/abtest\/kfc\/adRouter '
+        r'mock-response-body data-type=json '
+        r'body={"data":{"aiAd":{},"commonAd":{},"composeAd":[],"personnalAd":{}},"errCode":0,"errorCode":"0"}'
+    )
+    # 只补开屏素材路径；不照搬上游过宽的 .*ad/，避免误拦 upload/download 等普通资源。
+    kfc_splash_asset = r'^https?:\/\/res\.kfc\.com\.cn\/.*splash reject'
+    rw_feeds.append((
+        'kfc_targeted',
+        0,
+        [kfc_dynamicad_fallback, kfc_ai_popup_mock, kfc_ad_router_mock, kfc_splash_asset],
+    ))
 
 # ---------------- 闲鱼/京东专项规则：吸收 y0unge 上游的高置信补漏 ----------------
 # 本地规则来源单独入 feeds，确保来源追溯和自动构建均保留。
