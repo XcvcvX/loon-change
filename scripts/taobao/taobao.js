@@ -29,7 +29,6 @@ if (!$response.body) {
     }
   }
   const obj = JSON.parse($response.body);
-  let modified = false;
 if (url.includes("mtop.taobao.cloudvideo.video.query")) {
   if (obj?.data?.duration) {
     setIfDifferent(obj.data, "duration", "0");
@@ -69,22 +68,12 @@ if (url.includes("mtop.taobao.cloudvideo.video.query")) {
     }
   }
 } else if (url.includes("poplayer.template.alibaba.com")) {
-  if (obj?.res?.images?.length > 0) {
-    obj.res.images = [];
-    modified = true;
-  }
-  if (obj?.res?.videos?.length > 0) {
-    obj.res.videos = [];
-    modified = true;
-  }
+  clearArray(obj?.res || {}, "images");
+  clearArray(obj?.res || {}, "videos");
   if (obj?.enable) {
-    obj.enable = false;
-    modified = true;
+    setIfDifferent(obj, "enable", false);
   }
-  if (obj?.mainRes?.images?.length > 0) {
-    obj.mainRes.images = [];
-    modified = true;
-  }
+  clearArray(obj?.mainRes || {}, "images");
 }
 $done(modified ? {body: JSON.stringify(obj)} : {});
 }
