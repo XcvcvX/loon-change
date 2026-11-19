@@ -898,6 +898,23 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertIn(unrelated, script)
         self.assertEqual(consolidate_goofish_script_triggers(result)[1], 0)
 
+    def test_rebuilds_full_goofish_inventory_when_only_new_splash_trigger_is_preinserted(self):
+        from apply_local_overrides import (
+            GOOFISH_CANONICAL_SCRIPT_TRIGGERS, GOOFISH_REDUNDANT_SCRIPT_TRIGGERS,
+            consolidate_goofish_script_triggers,
+        )
+        fixture = [
+            "[Script]",
+            GOOFISH_CANONICAL_SCRIPT_TRIGGERS[-1],
+            *GOOFISH_REDUNDANT_SCRIPT_TRIGGERS[:6],
+            "[MITM]",
+        ]
+        result, removed = consolidate_goofish_script_triggers(fixture)
+        script = result[result.index("[Script]") + 1:result.index("[MITM]")]
+        self.assertEqual(list(script), list(GOOFISH_CANONICAL_SCRIPT_TRIGGERS))
+        self.assertEqual(removed, 6)
+        self.assertEqual(consolidate_goofish_script_triggers(result)[1], 0)
+
     def test_consolidates_mixed_goofish_canonical_and_current_upstream_subset(self):
         from apply_local_overrides import (
             GOOFISH_CANONICAL_SCRIPT_TRIGGERS, GOOFISH_REDUNDANT_SCRIPT_TRIGGERS,
