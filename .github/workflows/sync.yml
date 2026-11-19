@@ -110,6 +110,7 @@ on:
       - 'test_amap_response_compaction.py'
       - 'test_response_array_compaction_performance.py'
       - 'test_baidumap_binary_performance.py'
+      - 'test_xianyu_jd_upstream.py'
       - 'apply_local_overrides.py'
       - 'test_apply_local_overrides.py'
       - 'integrate_spotify.py'
