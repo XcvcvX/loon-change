@@ -299,11 +299,16 @@ def consolidate_pdd_homepage_script(lines):
         normalize_trigger(PDD_ISHOWSHU_HOMEPAGE_LEGACY_TRIGGER): "ishowshu",
     }
     target_seen = False
-    has_canonical = any(
-        section == "Script" and normalize_trigger(line) in normalized_triggers
-        and normalized_triggers[normalize_trigger(line)] in ("rstore", "local")
-        for section, line in _iter_plugin_lines(lines)
-    )
+    scan_section = ""
+    has_canonical = False
+    for scan_line in lines:
+        if scan_line.startswith("[") and scan_line.endswith("]"):
+            scan_section = scan_line[1:-1]
+        elif scan_section == "Script":
+            scan_kind = normalized_triggers.get(normalize_trigger(scan_line))
+            if scan_kind in ("rstore", "local"):
+                has_canonical = True
+                break
     for line in lines:
         if line.startswith("[") and line.endswith("]"):
             section = line[1:-1]
