@@ -299,6 +299,11 @@ def consolidate_pdd_homepage_script(lines):
         normalize_trigger(PDD_ISHOWSHU_HOMEPAGE_LEGACY_TRIGGER): "ishowshu",
     }
     target_seen = False
+    has_canonical = any(
+        section == "Script" and normalize_trigger(line) in normalized_triggers
+        and normalized_triggers[normalize_trigger(line)] in ("rstore", "local")
+        for section, line in _iter_plugin_lines(lines)
+    )
     for line in lines:
         if line.startswith("[") and line.endswith("]"):
             section = line[1:-1]
@@ -318,6 +323,9 @@ def consolidate_pdd_homepage_script(lines):
         if counts[kind] > 1:
             raise ValueError("duplicate Pinduoduo homepage script trigger; refusing ambiguous consolidation")
         if kind == "ishowshu":
+            if has_canonical:
+                continue
+            output.append(line)
             continue
         if kind in ("rstore", "local"):
             # Normalize the repository-relative script reference to the hosted URL
@@ -325,6 +333,10 @@ def consolidate_pdd_homepage_script(lines):
             output.append(PDD_LOCAL_HOMEPAGE_TRIGGER)
 
     if not target_seen:
+        return output, 0
+    if counts["rstore"] + counts["local"] == 0 and counts["ishowshu"]:
+        # Independent Romeo-only build: keep its native PDD handler instead
+        # of requiring the R-Store-owned companion trigger.
         return output, 0
     if counts["rstore"] + counts["local"] != 1:
         raise ValueError("Pinduoduo canonical homepage script inventory changed; expected exactly one R-Store/local trigger")
