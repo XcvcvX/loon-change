@@ -5344,14 +5344,31 @@ def migrate_xiaohongshu_v4_and_comment_processing(lines):
         elif normalize_xhs_fmz_trigger(current) != normalize_xhs_fmz_trigger(XHS_FMZ_COMMENT_DOWNLOAD_LOCAL_TRIGGER):
             raise ValueError("Xiaohongshu FMZ comment-download trigger changed; refusing local migration")
 
+    remote_url = "https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js"
+    local_url = "https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu-rstore.js"
+
     if rstore_comment_download:
         current = rstore_comment_download[0]
-        if current != XHS_RSTORE_COMMENT_DOWNLOAD_TRIGGER:
+        allowed_download = (
+            XHS_RSTORE_COMMENT_DOWNLOAD_TRIGGER,
+            XHS_RSTORE_COMMENT_DOWNLOAD_TRIGGER.replace(remote_url, local_url),
+        )
+        if current not in allowed_download:
             raise ValueError("Xiaohongshu R-Store comment-download trigger changed; refusing inert-trigger removal")
+
+    narrowed_comment_trigger = XHS_RSTORE_COMMENT_TRIGGER_NARROWED
+    if rstore_comment and local_url in rstore_comment[0]:
+        narrowed_comment_trigger = narrowed_comment_trigger.replace(remote_url, local_url)
 
     if rstore_comment:
         current = rstore_comment[0]
-        if current not in (XHS_RSTORE_COMMENT_TRIGGER, XHS_RSTORE_COMMENT_TRIGGER_NARROWED):
+        allowed_comment = (
+            XHS_RSTORE_COMMENT_TRIGGER,
+            XHS_RSTORE_COMMENT_TRIGGER_NARROWED,
+            XHS_RSTORE_COMMENT_TRIGGER.replace(remote_url, local_url),
+            XHS_RSTORE_COMMENT_TRIGGER_NARROWED.replace(remote_url, local_url),
+        )
+        if current not in allowed_comment:
             raise ValueError("Xiaohongshu R-Store comment trigger changed; refusing version narrowing")
         if fmz_comment and normalize_xhs_fmz_trigger(fmz_comment[0]) not in (
             normalize_xhs_fmz_trigger(XHS_FMZ_COMMENT_LIST_TRIGGER),
@@ -5359,7 +5376,7 @@ def migrate_xiaohongshu_v4_and_comment_processing(lines):
         ):
             raise ValueError("Xiaohongshu FMZ comment trigger changed; refusing R-Store narrowing")
         if fmz_comment:
-            replacements[current] = XHS_RSTORE_COMMENT_TRIGGER_NARROWED
+            replacements[current] = narrowed_comment_trigger
 
     comment_native = [
         line for line in rewrite_lines
