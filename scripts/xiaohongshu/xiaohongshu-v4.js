@@ -562,10 +562,18 @@ function replaceRedIdWithFmz200(obj) {
         current.fmz200 = current.red_id;
         delete current.red_id;
       }
-      const keys = Object.keys(current);
-      for (let i = keys.length - 1; i >= 0; i--) {
-        const child = current[keys[i]];
+      // Avoid allocating Object.keys() for every object in large comment trees.
+      // Reverse only the newly pushed child segment so DFS visitation order stays the same.
+      const childStart = stack.length;
+      for (const key in current) {
+        if (!Object.prototype.hasOwnProperty.call(current, key)) continue;
+        const child = current[key];
         if (child && typeof child === "object") stack.push(child);
+      }
+      for (let left = childStart, right = stack.length - 1; left < right; left++, right--) {
+        const child = stack[left];
+        stack[left] = stack[right];
+        stack[right] = child;
       }
     }
   }
