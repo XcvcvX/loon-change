@@ -48,6 +48,33 @@ class SpotifyIntegrationTests(unittest.TestCase):
                 main()
             self.assertTrue(meta.exists())
             self.assertIn('DOMAIN,aet.spotify.com,REJECT', plugin.read_text(encoding='utf-8'))
+    def test_independent_spotify_source_replaces_all_rstore_spotify_entries(self):
+        from integrate_spotify import replace_rstore_spotify_rules
+        plugin = """[Rule]
+DOMAIN,aet.spotify.com,REJECT
+DOMAIN,keep.example.com,REJECT
+[Rewrite]
+^https?:\/\/spclient.wg.spotify.com\/ads\/ reject
+^https?:\/\/keep.example.com\/ads\/ reject
+[Script]
+http-response ^https?:\/\/spclient.wg.spotify.com\/bootstrap script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/spotify.js,tag=SPOTIFY
+http-response ^https:\/\/keep.example.com\/unrelated script-path=https://example.com/other.js,tag=OTHER
+[MITM]
+hostname = api.example.com, *spotify.com, spclient.wg.spotify.com
+"""
+        cleaned, removed = replace_rstore_spotify_rules(plugin)
+        self.assertEqual(removed, 5)
+        self.assertNotIn("spotify.com", cleaned)
+        self.assertNotIn("spotify.js", cleaned)
+        self.assertIn("keep.example.com", cleaned)
+        self.assertIn("tag=OTHER", cleaned)
+
+    def test_rstore_spotify_filter_is_safe_when_script_absent(self):
+        from integrate_spotify import replace_rstore_spotify_rules
+        cleaned, removed = replace_rstore_spotify_rules("[Script]\n# no R-Store Spotify handler\n[MITM]\nhostname = api.example.com\n")
+        self.assertEqual(removed, 0)
+        self.assertIn("# no R-Store Spotify handler", cleaned)
+
     def test_extracts_only_ad_features_and_is_idempotent(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
