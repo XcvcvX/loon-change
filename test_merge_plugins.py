@@ -2155,7 +2155,7 @@ hostname = *.amap.com
         # .*ad/ asset matcher are deliberately not imported.
         self.assertIn(r"res\.kfc\.com\.cn\/CRM\/kfcad\/apphome reject-200", output)
         self.assertIn(r"res\.kfc\.com\.cn\/CRM\/kfcad\/custom_v\d\/wxapp reject-dict", output)
-        self.assertIn("res.kfc.com.cn/advertisement", output)
+        self.assertIn(r"res\\.kfc\\.com\\.cn\\/advertisement", output)
         self.assertNotIn("DOMAIN, dynamicad.kfc.com.cn, REJECT", output)
         self.assertNotIn(r"res\.kfc\.com\.cn\/.*ad\/ reject", output)
 
