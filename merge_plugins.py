@@ -2741,8 +2741,8 @@ sc_feeds = [('base', 4, base_sc), ('block', 5, block_sc), ('zmjgen', 6, zmj_gen_
 # 仅列出已知 CDN 分片（m、storage、img1-img30），避免把 MITM 扩大到整个 *.360buyimg.com。
 jd_splash_asset_rules = [
     (
-        r'^https?:\\/\\/' + host
-        + r'\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{{3}}x2\\d{{3}}_jfs\\/|material-video\\/) reject-200'
+        r'^https?:\/\/' + host
+        + r'\.360buyimg\.com\/(?:mobilecms\/s1\d{3}x2\d{3}_jfs\/|material-video\/) reject-200'
     )
     for host in ['m', 'storage'] + [f'img{i}' for i in range(1, 31)]
 ]
