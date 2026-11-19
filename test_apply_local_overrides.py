@@ -994,7 +994,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
             consolidate_goofish_script_triggers(["[Script]", *GOOFISH_REDUNDANT_SCRIPT_TRIGGERS[1:], changed])
         from apply_local_overrides import GOOFISH_CANONICAL_SCRIPT_TRIGGERS
         with self.assertRaisesRegex(ValueError, "canonical trigger inventory incomplete"):
-            consolidate_goofish_script_triggers(["[Script]", *GOOFISH_CANONICAL_SCRIPT_TRIGGERS[:-1]])
+            consolidate_goofish_script_triggers(["[Script]", *GOOFISH_CANONICAL_SCRIPT_TRIGGERS[1:]])
         with self.assertRaisesRegex(ValueError, "duplicate redundant Goofish"):
             consolidate_goofish_script_triggers(["[Script]", *GOOFISH_REDUNDANT_SCRIPT_TRIGGERS,
                                                  GOOFISH_REDUNDANT_SCRIPT_TRIGGERS[0]])
