@@ -5788,3 +5788,33 @@ class PinduoduoPersonalHubMatcherNarrowingTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "inventory changed"):
             narrow_pdd_philo_hub_response_rules(["[Rewrite]", PDD_PHILO_HUB_RESPONSE_RULES[0], "[MITM]"])
+
+
+class XiaohongshuLocalMirrorCompatibilityTests(unittest.TestCase):
+    def test_checked_in_local_rstore_triggers_survive_native_narrowing(self):
+        from pathlib import Path
+        from apply_local_overrides import (
+            XHS_NATIVE_DUPLICATE_TRIGGER_TAGS,
+            XHS_NARROWED_TRIGGER_LINES,
+            apply,
+        )
+        local_url = "https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu-rstore.js"
+        remote_url = "https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js"
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        result = apply(plugin)
+        required_tags = set(XHS_NATIVE_DUPLICATE_TRIGGER_TAGS) | set(XHS_NARROWED_TRIGGER_LINES)
+        script_section = False
+        script_lines = []
+        for line in result.splitlines():
+            stripped = line.strip()
+            if stripped.startswith("[") and stripped.endswith("]"):
+                script_section = stripped[1:-1] == "Script"
+                continue
+            if script_section:
+                script_lines.append(line)
+        for tag in required_tags:
+            matches = [line for line in script_lines if "tag=" + tag + "," in line]
+            self.assertEqual(len(matches), 1, tag)
+            self.assertIn(local_url, matches[0], tag)
+            self.assertNotIn(remote_url, matches[0], tag)
+        self.assertEqual(apply(result), result)
