@@ -79,6 +79,7 @@ def replace_rstore_spotify_rules(plugin, independent_entries=()):
     section = None
     removed = 0
     independent_entries = set(independent_entries)
+    has_independent_entries = any(line in independent_entries for line in plugin.splitlines())
     for line in plugin.splitlines():
         header = re.match(r"^\s*\[([^\]]+)\]\s*$", line)
         if header:
@@ -86,7 +87,8 @@ def replace_rstore_spotify_rules(plugin, independent_entries=()):
             output.append(line)
             continue
         if section in {"rule", "rewrite", "script"}:
-            if line.strip() == "# Spotify ad-block rules; generated from upstream by integrate_spotify.py":
+            if (line.strip() == "# Spotify ad-block rules; generated from upstream by integrate_spotify.py"
+                    and not has_independent_entries):
                 continue
             if not line.lstrip().startswith("#") and line not in independent_entries:
                 lower = line.lower()
