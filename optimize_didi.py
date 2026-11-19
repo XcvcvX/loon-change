@@ -37,12 +37,12 @@ def optimize_lazy_serialization(source):
             raise ValueError("Didi lazy serialization completion guard is missing")
         return source
     parse_anchor = "let obj = JSON.parse($response.body);"
-    helper_return = "  items.length = write;\\n  return items;"
+    helper_return = "  items.length = write;\n  return items;"
     completion = "$done({body: JSON.stringify(obj)});"
     if source.count(parse_anchor) != 1 or source.count(helper_return) != 1 or source.count(completion) != 1:
         raise ValueError("Didi lazy serialization anchors changed; refusing optimization")
-    source = source.replace(parse_anchor, parse_anchor + "\\nlet modified = false;", 1)
-    source = source.replace(helper_return, "  items.length = write;\\n  if (write !== length) modified = true;\\n  return items;", 1)
+    source = source.replace(parse_anchor, parse_anchor + "\nlet modified = false;", 1)
+    source = source.replace(helper_return, "  items.length = write;\n  if (write !== length) modified = true;\n  return items;", 1)
     old_for_each = """    obj.data.show_data.forEach((block) => {
       if (block.scene_ids instanceof Array) {
         compactInPlace(block.scene_ids, id => id !== "scene_coupon_mall");
@@ -61,7 +61,7 @@ def optimize_lazy_serialization(source):
     splice = "    obj.data.disorder_cards.top_banner_card.data.splice(0, 1);"
     if source.count(splice) != 1:
         raise ValueError("Didi banner removal changed; refusing optimization")
-    source = source.replace(splice, splice + "\\n    modified = true;", 1)
+    source = source.replace(splice, splice + "\n    modified = true;", 1)
     source = source.replace(completion, "$done(modified ? {body: JSON.stringify(obj)} : {});", 1)
     return source
 
