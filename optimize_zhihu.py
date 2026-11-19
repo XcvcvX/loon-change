@@ -14,11 +14,15 @@ def once(src,old,new,label):
     return src.replace(old,new,1)
 
 HELPERS=r'''
-function compactInPlace(items, keep) {
+function compactInPlace(items, keep, onKeep) {
   let write = 0;
   for (let read = 0, length = items.length; read < length; read++) {
     const item = items[read];
-    if (keep(item)) { if (write !== read) items[write] = item; write++; }
+    if (keep(item)) {
+      if (write !== read) items[write] = item;
+      if (onKeep) onKeep(item, write);
+      write++;
+    }
   }
   items.length = write;
   return items;
@@ -29,19 +33,32 @@ GET_URL_PARAM=r'''function getUrlParamValue(url, queryName) {
   if (typeof url !== "string") return undefined;
   const question = url.indexOf("?");
   if (question < 0) return undefined;
-  const query = url.slice(question + 1).split("#", 1)[0];
+  const queryStart = question + 1;
+  const hash = url.indexOf("#", queryStart);
+  const queryEnd = hash < 0 ? url.length : hash;
   let value;
-  for (const part of query.split("&")) {
-    const equal = part.indexOf("=");
-    const key = equal < 0 ? part : part.slice(0, equal);
-    if (key === queryName) value = equal < 0 ? undefined : part.slice(equal + 1);
+  let cursor = queryStart;
+  while (cursor <= queryEnd) {
+    const ampersand = url.indexOf("&", cursor);
+    const partEnd = ampersand < 0 || ampersand > queryEnd ? queryEnd : ampersand;
+    const equal = url.indexOf("=", cursor);
+    const hasEquals = equal >= cursor && equal < partEnd;
+    const keyEnd = hasEquals ? equal : partEnd;
+    if (url.slice(cursor, keyEnd) === queryName) {
+      value = hasEquals ? url.slice(equal + 1, partEnd) : undefined;
+    }
+    if (partEnd === queryEnd) break;
+    cursor = partEnd + 1;
   }
   return value;
 }'''
 
 
 def optimize_source(src, commit="unknown"):
-    if MARKER in src: return src
+    if MARKER in src:
+        if '.split("&")' in src or "fixPos(obj.data)" in src:
+            raise ValueError("Zhihu snapshot contains pre-fusion feed traversal")
+        return src
     src=once(src,"if (!$response.body) $done({});",
              "if (!$response.body) {\n  $done({});\n} else {","body guard")
     src=once(src,"const url = $request.url;","const url = $request.url;\n"+HELPERS.strip(),"in-place helper")
@@ -73,9 +90,15 @@ def optimize_source(src, commit="unknown"):
       '''} else if (url.includes("/topstory/recommend")) {
   const fallbackSearch = '"feed_content":{"video":{"id":';
   const fallbackIndex = $response.body.indexOf(fallbackSearch);
-  const fallbackVideoID = fallbackIndex >= 0
-    ? $response.body.slice(fallbackIndex + fallbackSearch.length).split(",", 1)[0].replace(/}+$/, "")
-    : undefined;''',
+  let fallbackVideoID;
+  if (fallbackIndex >= 0) {
+    const valueStart = fallbackIndex + fallbackSearch.length;
+    const commaIndex = $response.body.indexOf(",", valueStart);
+    const valueEnd = commaIndex < 0 ? $response.body.length : commaIndex;
+    let trimmedEnd = valueEnd;
+    while (trimmedEnd > valueStart && $response.body.charCodeAt(trimmedEnd - 1) === 125) trimmedEnd--;
+    fallbackVideoID = $response.body.slice(valueStart, trimmedEnd);
+  }''',
       "precompute response fallback video id")
     src=once(src,
       '''          let search = '"feed_content":{"video":{"id":';
@@ -97,6 +120,8 @@ def optimize_source(src, commit="unknown"):
 }""",
       GET_URL_PARAM,
       "allocation-free URL parameter parser")
+    src=once(src, "    });\n    fixPos(obj.data);", "    }, (item, index) => { item.offset = index + 1; });", "fuse recommendation offsets into compaction")
+    src=once(src, "// 修复offset\nfunction fixPos(arr) {\n  for (let i = 0; i < arr.length; i++) {\n    arr[i].offset = i + 1;\n  }\n}", "", "remove second offset traversal")
     if src.count("function getUrlParamValue(url, queryName) {") != 1:
         raise ValueError("URL parser definition count drift")
     # Close the response-body guard opened near the top of the script.
@@ -104,7 +129,7 @@ def optimize_source(src, commit="unknown"):
     result=MARKER+commit+"\n"+src
     if (result.count("compactInPlace(")-1)!=11:
         raise ValueError("expected all 11 Zhihu filters to use stable in-place compaction")
-    if "Object.fromEntries(" in result or ".map((pair) => pair.split" in result:
+    if '.split("&")' in result or 'split(",", 1)' in result or "fixPos(obj.data)" in result or "function fixPos(" in result:
         raise ValueError("allocating URL parameter parser remains")
     if "getUrlParamValue(item.fields.header.url" in result:
         raise ValueError("market card undefined variable remains")
