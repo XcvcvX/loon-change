@@ -40,8 +40,14 @@
     let removeFlag = true;
     if (urlRegex.test(url)) {
       const headers = ($request && $request.headers) || {};
-      const traceKey = Object.keys(headers).find((key) => /^(ai|dt|al|u)$/i.test(key));
-      removeFlag = !!traceKey;
+      let hasTraceKey = false;
+      for (const key in headers) {
+        if (Object.prototype.hasOwnProperty.call(headers, key) && /^(ai|dt|al|u)$/i.test(key)) {
+          hasTraceKey = true;
+          break;
+        }
+      }
+      removeFlag = hasTraceKey;
       if (url.endsWith("@1sc")) removeFlag = false;
     } else {
       const dimStr = extractAfterAt(url);

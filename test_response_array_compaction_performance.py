@@ -129,5 +129,49 @@ process.stdout.write(JSON.stringify({ output, parseCount: context.__parseCount()
         )
 
 
+    def test_meituan_linglong_image_scans_headers_without_key_array(self):
+        source = ROOT / "scripts" / "meituan" / "meituan.js"
+        runner = r"""
+const fs = require("fs");
+const vm = require("vm");
+const source = fs.readFileSync(process.argv[1], "utf8");
+const payload = JSON.parse(fs.readFileSync(0, "utf8"));
+let result;
+const headers = Object.create(payload.inherited ? { ai: "inherited" } : null);
+Object.assign(headers, payload.headers || {});
+const context = {
+  $request: { url: "https://p1.meituan.net/linglong/test.jpg", headers },
+  $response: {},
+  $done(value) { result = value; },
+  console: { log() {} }
+};
+vm.createContext(context);
+vm.runInContext(
+  "Object.keys = function() { throw new Error('Object.keys allocated on Meituan image hot path'); };",
+  context
+);
+vm.runInContext(source, context, { timeout: 5000 });
+process.stdout.write(JSON.stringify(result || {}));
+"""
+        def run(headers=None, inherited=False):
+            completed = subprocess.run(
+                [NODE, "-e", runner, str(source)],
+                input=json.dumps({"headers": headers or {}, "inherited": inherited}),
+                capture_output=True, text=True, check=True, timeout=10,
+            )
+            return json.loads(completed.stdout)
+
+        blocked = run({"Ai": "trace"})
+        self.assertEqual(blocked.get("status"), "HTTP/1.1 204 No Content")
+        self.assertEqual(blocked.get("body"), "")
+        self.assertEqual(blocked.get("headers"), "")
+
+        unmarked = run({"User-Agent": "Meituan"})
+        self.assertEqual(unmarked, {})
+
+        inherited = run({}, inherited=True)
+        self.assertEqual(inherited, {})
+
+
 if __name__ == "__main__":
     unittest.main()
