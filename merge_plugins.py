@@ -2780,13 +2780,13 @@ merged_rw = dedup_keep_order(merged_rw)
 # 用全 CDN 分片规则替代历史仅覆盖 m. 子域的窄规则；不拦截商品图片。
 merged_rw = [
     line for line in merged_rw
-    if not re.search(r'360buyimg\.com\/mobilecms\/s1125x2436_jfs', line)
+    if "360buyimg.com/mobilecms/s1125x2436_jfs" not in line.replace(chr(92), "")
 ]
 merged_rw = dedup_keep_order(merged_rw)
 # 闲鱼开屏改为响应体删除 realTimeAd，避免请求失败触发联盟兜底/重试。
 merged_rw = [
     line for line in merged_rw
-    if not re.search(r'mtop\.taobao\.idlecommerce\.splash', line, re.IGNORECASE)
+    if "mtop.taobao.idlecommerce.splash" not in line.replace(chr(92), "").lower()
 ]
 
 # ---------------- Argument：blockAdsV2 + Romeo/兼容快照（YouTube 增强）----------------
