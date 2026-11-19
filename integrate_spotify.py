@@ -92,7 +92,7 @@ def replace_rstore_spotify_rules(plugin, independent_entries=()):
                 continue
             if not line.lstrip().startswith("#") and line not in independent_entries:
                 lower = line.lower()
-                if "spotify.com" in lower or "spotify.js" in lower:
+                if "spotify.com" in lower or r"spotify\.com" in lower or "spotify.js" in lower:
                     removed += 1
                     continue
         if section == "mitm" and line.strip().lower().startswith("hostname"):
