@@ -1,4 +1,4 @@
-// loon-change: Xiaohongshu response hot-path optimization v1; upstream fmz200/wool_scripts@eca3853dfed0f2db829408a81b98ff279bcfe8f9
+// loon-change: Xiaohongshu response hot-path optimization v1; upstream fmz200/wool_scripts@7bc19e8b57b4a67ecefade790574472de69074d0
 /**
  * @author fmz200
  * @function 小红书去广告、净化、解除下载限制、画质增强等
