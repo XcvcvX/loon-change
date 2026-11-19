@@ -3045,7 +3045,7 @@ def _mitm_covered(host, hostset):
         # Existing scoped wildcards such as img*.360buyimg.com already cover
         # numbered CDN shards; do not add each exact host to MITM separately.
         if '*' in pattern or '?' in pattern:
-            regex = re.escape(pattern).replace(r'\\*', r'[^.]*').replace(r'\\?', r'[^.]')
+            regex = re.escape(pattern).replace(r'\*', r'[^.]*').replace(r'\?', r'[^.]')
             if re.fullmatch(regex, host, re.IGNORECASE):
                 return True
     return False
