@@ -2977,7 +2977,13 @@ class PinduoduoImageCdnScopeTests(unittest.TestCase):
         self.assertNotIn("DOMAIN-SUFFIX," + PDD_IMAGE_CDN_HOST + ",REJECT", plugin)
         self.assertNotIn("DOMAIN-KEYWORD," + PDD_IMAGE_CDN_HOST + ",REJECT", plugin)
         path_counts = [plugin.count(rule) for rule in PDD_IMAGE_CDN_AD_PATH_RULES]
-        self.assertIn(path_counts, ([0, 0], [1, 1]))
+        legacy_combined_count = plugin.count(PDD_IMAGE_CDN_LEGACY_AD_PATH_RULES[0])
+        legacy_broad_count = plugin.count(PDD_IMAGE_CDN_LEGACY_AD_PATH_RULES[1])
+        self.assertTrue(
+            path_counts == [1, 1]
+            or (path_counts == [0, 0] and legacy_combined_count == 1)
+        )
+        self.assertEqual(legacy_broad_count, 0)
         mitm = plugin.split("[MITM]", 1)[1]
         self.assertIn(PDD_IMAGE_CDN_HOST, mitm)
 
