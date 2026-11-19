@@ -29,7 +29,8 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
 
     def test_exactly_ten_live_rstore_triggers_are_routed_to_local_script(self):
         plugin = (ROOT / "allAdRewrite.plugin").read_text(encoding="utf-8")
-        self.assertEqual(plugin.count(REMOTE), 10)
+        self.assertEqual(plugin.count(REMOTE), 0)
+        self.assertEqual(plugin.count(LOCAL), 10)
         routed = rewrite_plugin(plugin)
         self.assertEqual(routed.count(LOCAL), 10)
         self.assertNotIn(REMOTE, routed)

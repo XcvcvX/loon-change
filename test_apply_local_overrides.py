@@ -5818,3 +5818,26 @@ class XiaohongshuLocalMirrorCompatibilityTests(unittest.TestCase):
             self.assertNotIn(remote_url, matches[0], tag)
         self.assertFalse(any("tag=XIAOHONGSHU-11," in line for line in script_lines))
         self.assertEqual(apply(result), result)
+
+
+class WeiboLocalMirrorCompatibilityTests(unittest.TestCase):
+    def test_checked_in_local_rstore_triggers_survive_override_pass(self):
+        from pathlib import Path
+        from apply_local_overrides import apply
+
+        local_url = "https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/weibo/weibo-rstore.js"
+        remote_url = "https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js"
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        result = apply(plugin)
+        section = ""
+        weibo_lines = []
+        for line in result.splitlines():
+            stripped = line.strip()
+            if stripped.startswith("[") and stripped.endswith("]"):
+                section = stripped[1:-1]
+            elif section == "Script" and ("weibo.js" in stripped.lower() or "weibo-rstore.js" in stripped.lower()):
+                weibo_lines.append(stripped)
+        self.assertEqual(len(weibo_lines), 10)
+        self.assertTrue(all(local_url in line for line in weibo_lines))
+        self.assertFalse(any(remote_url in line for line in weibo_lines))
+        self.assertEqual(apply(result), result)
