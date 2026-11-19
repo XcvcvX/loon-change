@@ -5098,11 +5098,17 @@ def narrow_xiaohongshu_v3_video_native_duplicates(lines):
     if has_rstore_target:
         if rstore_expected is None or len(rstore_matches) != 1:
             raise ValueError("Xiaohongshu R-Store v3 video trigger inventory changed")
-        if rstore_matches[0] not in (
+        remote_url = "https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js"
+        local_url = "https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu-rstore.js"
+        expected_variants = {
             rstore_expected,
+            rstore_expected.replace(remote_url, local_url),
             XHS_V3_VIDEO_RSTORE_PREVIOUS_NARROWED_TRIGGER,
+            XHS_V3_VIDEO_RSTORE_PREVIOUS_NARROWED_TRIGGER.replace(remote_url, local_url),
             XHS_V3_VIDEO_RSTORE_NARROWED_TRIGGER,
-        ):
+            XHS_V3_VIDEO_RSTORE_NARROWED_TRIGGER.replace(remote_url, local_url),
+        }
+        if rstore_matches[0] not in expected_variants:
             raise ValueError("Xiaohongshu R-Store video-feed trigger changed; refusing narrowing")
     if has_fmz_target:
         if fmz_expected is None or len(fmz_matches) != 1:
@@ -5148,7 +5154,12 @@ def narrow_xiaohongshu_v3_video_native_duplicates(lines):
 
     replacements = {}
     if has_rstore_target:
-        replacements[rstore_matches[0]] = XHS_V3_VIDEO_RSTORE_NARROWED_TRIGGER
+        remote_url = "https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js"
+        local_url = "https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu-rstore.js"
+        narrowed = XHS_V3_VIDEO_RSTORE_NARROWED_TRIGGER
+        if local_url in rstore_matches[0]:
+            narrowed = narrowed.replace(remote_url, local_url)
+        replacements[rstore_matches[0]] = narrowed
     if has_fmz_target:
         replacements[fmz_matches[0]] = XHS_V3_VIDEO_FMZ_NARROWED_TRIGGER
     changed = 0
