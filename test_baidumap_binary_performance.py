@@ -282,21 +282,22 @@ if (!doneResult) throw new Error("script did not call $done");
 let output = null;
 if (doneResult.body) {
   output = new Uint8Array(doneResult.body);
-  const headerLength = new DataView(output.buffer, output.byteOffset, 4).getInt32(0);
-  const header = testRoot.lookupType("RepHead").decode(
-    output.subarray(4, 4 + headerLength)
-  );
-  const adsHead = header.messageHead.find(item => item.name === "Ads");
-  const adsStart = 4 + headerLength + adsHead.offset;
-  const ads = testRoot.lookupType("Ads").decode(
-    output.subarray(adsStart, adsStart + adsHead.length)
-  );
+  context.__outputBytes = Array.from(output);
+  const decoded = vm.runInContext(`(() => {
+    const bytes = new Uint8Array(__outputBytes);
+    const headerLength = new DataView(bytes.buffer, bytes.byteOffset, 4).getInt32(0);
+    const header = baiduMapRoot.lookupType("RepHead").decode(bytes.subarray(4, 4 + headerLength));
+    const adsHead = header.messageHead.find(item => item.name === "Ads");
+    const adsStart = 4 + headerLength + adsHead.offset;
+    const ads = baiduMapRoot.lookupType("Ads").decode(bytes.subarray(adsStart, adsStart + adsHead.length));
+    return { md5: header.md5, item: ads.content[0] };
+  })()`, context);
   process.stdout.write(JSON.stringify({
     hasBody: true,
     originalLength: input.length,
     outputLength: output.length,
-    md5: header.md5,
-    item: ads.content[0]
+    md5: decoded.md5,
+    item: decoded.item
   }));
 } else {
   process.stdout.write(JSON.stringify({
