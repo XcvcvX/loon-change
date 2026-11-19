@@ -264,5 +264,38 @@ process.stdout.write(JSON.stringify(result));
         self.assertEqual(stored["livePhotos"][1]["videoUrl"], "new-url")
 
 
+    def test_comment_red_id_walk_avoids_per_object_keys_arrays(self):
+        source = (ROOT / "scripts/xiaohongshu/xiaohongshu-v4.js").read_text(encoding="utf-8")
+        start = source.index("function replaceRedIdWithFmz200(obj) {")
+        end = source.index("function selectBestStream", start)
+        block = source[start:end]
+        self.assertNotIn("Object.keys(current)", block)
+        self.assertIn("Object.prototype.hasOwnProperty.call(current, key)", block)
+        self.assertIn("const childStart = stack.length", block)
+
+        result = self.run_script(
+            "https://edith.xiaohongshu.com/api/sns/v5/note/comment/list?note_id=note-1",
+            {"data": {
+                "red_id": "root-id",
+                "comments": [{
+                    "id": "comment-1",
+                    "note_id": "note-1",
+                    "red_id": "comment-id",
+                    "nested": {
+                        "red_id": "nested-id",
+                        "items": [{"red_id": "array-item-id"}],
+                    },
+                }],
+            }},
+        )
+        data = result["body"]["data"]
+        self.assertEqual(data["fmz200"], "root-id")
+        self.assertNotIn("red_id", data)
+        comment = data["comments"][0]
+        self.assertEqual(comment["fmz200"], "comment-id")
+        self.assertEqual(comment["nested"]["fmz200"], "nested-id")
+        self.assertEqual(comment["nested"]["items"][0]["fmz200"], "array-item-id")
+
+
 if __name__ == "__main__":
     unittest.main()
