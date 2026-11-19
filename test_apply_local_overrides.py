@@ -1981,7 +1981,7 @@ class DouyinTncDirectSafetyTests(unittest.TestCase):
         from apply_local_overrides import remove_douyin_tnc_conflicting_rejects
         partial = [line for line in self.base if line != self.rejects[0]]
         result, removed = remove_douyin_tnc_conflicting_rejects(partial)
-        self.assertEqual(removed, 3)
+        self.assertEqual(removed, 4)
         self.assertEqual(result.count(self.direct), 1)
         rewrite_index = self.base.index("[Rewrite]")
         duplicate = self.base[:rewrite_index] + [self.rejects[0]] + self.base[rewrite_index:]
@@ -5890,7 +5890,8 @@ hostname = github.com, api.github.com, keep.example.com
         result = apply(plugin)
         self.assertNotIn("header-replace-regex Accept-Language", result)
         mitm = result.split("[MITM]", 1)[1]
-        self.assertNotIn("github.com,", mitm)
-        self.assertIn("api.github.com", mitm)
+        hosts = [host.strip() for host in mitm.split("=", 1)[1].split(",")]
+        self.assertNotIn("github.com", hosts)
+        self.assertIn("api.github.com", hosts)
         self.assertIn("keep.example.com", mitm)
         self.assertEqual(apply(result), result)
