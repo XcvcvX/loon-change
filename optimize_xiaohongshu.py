@@ -93,7 +93,7 @@ TRAVERSE=r'''function replaceRedIdWithFmz200(obj) {
   while(stack.length){const current=stack.pop();
     if(Array.isArray(current)){for(let i=current.length-1;i>=0;i--)if(current[i]&&typeof current[i]==="object")stack.push(current[i]);}
     else if(current&&typeof current==="object"){if("red_id" in current){current.fmz200=current.red_id;delete current.red_id;}
-      const keys=Object.keys(current);for(let i=keys.length-1;i>=0;i--)if(current[keys[i]]&&typeof current[keys[i]]==="object")stack.push(current[keys[i]]);}
+      const childStart=stack.length;for(const key in current){if(!Object.prototype.hasOwnProperty.call(current,key))continue;const child=current[key];if(child&&typeof child==="object")stack.push(child);}for(let left=childStart,right=stack.length-1;left<right;left++,right--){const temp=stack[left];stack[left]=stack[right];stack[right]=temp;}}
   }
 }'''
 STREAM=r'''function selectBestStream(h265List,h264List) {
@@ -105,7 +105,9 @@ STREAM=r'''function selectBestStream(h265List,h264List) {
 }'''
 
 def optimize_source(src,commit="unknown"):
-    if MARKER in src:return src
+    if MARKER in src:
+        if "Object.keys(current)" in src: raise ValueError("Xiaohongshu traversal optimization is stale")
+        return src
     src=once(src,"const url = $request.url;","const url = $request.url;\n"+HELPERS.strip(),"helpers")
     src=once(src,"  console.log('打印原body：' + JSON.stringify(obj));\n","","full-body logging")
     src=once(src,'''      obj.data[0].note_list[0].images_list = imageEnhance(JSON.stringify(images_list));
