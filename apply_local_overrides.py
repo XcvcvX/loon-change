@@ -865,6 +865,23 @@ def consolidate_goofish_script_triggers(lines):
     canonical_complete = all(count == 1 for count in canonical_counts)
     canonical_absent = all(count == 0 for count in canonical_counts)
     if not canonical_complete and not canonical_absent:
+        missing = [
+            item for item in GOOFISH_CANONICAL_SCRIPT_TRIGGERS
+            if counts[item] == 0
+        ]
+        # The newly added splash cleaner is a repository-owned trigger, not an
+        # upstream variant. Older base snapshots can legitimately lack only
+        # this one entry; restore it without weakening checks for other endpoints.
+        if missing == [GOOFISH_CANONICAL_SCRIPT_TRIGGERS[-1]]:
+            restored, inserted = [], False
+            for line in lines:
+                if line == "[MITM]" and not inserted:
+                    restored.append(missing[0])
+                    inserted = True
+                restored.append(line)
+            if not inserted:
+                restored.append(missing[0])
+            return consolidate_goofish_script_triggers(restored)
         raise ValueError("Goofish canonical trigger inventory incomplete; refusing partial consolidation")
     if canonical_complete and redundant_count == 0 and not canonical_needs_normalization:
         return lines, 0
