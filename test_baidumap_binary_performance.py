@@ -222,5 +222,115 @@ process.stdout.write(nativeJSON.stringify({
 
 
 
+class BaiduMapNoopRebuildRuntimeTests(unittest.TestCase):
+    runner = r"""
+const fs = require("fs");
+const vm = require("vm");
+const source = fs.readFileSync(process.argv[1], "utf8");
+
+function varint(value) {
+  const out = [];
+  value >>>= 0;
+  while (value > 127) { out.push((value & 127) | 128); value >>>= 7; }
+  out.push(value);
+  return out;
+}
+function bytesField(id, value) {
+  return [...varint((id << 3) | 2), ...varint(value.length), ...value];
+}
+function stringField(id, value) {
+  return bytesField(id, Array.from(Buffer.from(value, "utf8")));
+}
+function intField(id, value) {
+  return [...varint(id << 3), ...varint(value)];
+}
+function content(type, start, end) {
+  return [
+    ...stringField(1, type),
+    ...intField(4, start),
+    ...intField(5, end)
+  ];
+}
+function fixture(type, start, end) {
+  const result = [8, 0];
+  const ads = bytesField(2, content(type, start, end));
+  const head = [
+    ...stringField(1, "0123456789abcdef0123456789abcdef"),
+    ...bytesField(3, [
+      ...intField(1, 0), ...intField(2, result.length), ...stringField(3, "Result")
+    ]),
+    ...bytesField(3, [
+      ...intField(1, result.length), ...intField(2, ads.length), ...stringField(3, "Ads")
+    ])
+  ];
+  const prefix = Buffer.alloc(4);
+  prefix.writeInt32BE(head.length, 0);
+  return new Uint8Array(Buffer.concat([prefix, Buffer.from(head), Buffer.from(result), Buffer.from(ads)]));
+}
+
+const input = fixture(process.argv[2], Number(process.argv[3]), Number(process.argv[4]));
+let doneResult;
+const context = {
+  $response: { body: input },
+  $done(value) { doneResult = value; },
+  console: { log() {}, warn() {}, error() {} }
+};
+vm.runInNewContext(source + "\\nglobalThis.__testRoot = baiduMapRoot;", context, { timeout: 10000 });
+if (!doneResult) throw new Error("script did not call $done");
+
+let output = null;
+if (doneResult.body) {
+  output = new Uint8Array(doneResult.body);
+  const headerLength = new DataView(output.buffer, output.byteOffset, 4).getInt32(0);
+  const header = context.__testRoot.lookupType("RepHead").decode(
+    output.subarray(4, 4 + headerLength)
+  );
+  const adsHead = header.messageHead.find(item => item.name === "Ads");
+  const adsStart = 4 + headerLength + adsHead.offset;
+  const ads = context.__testRoot.lookupType("Ads").decode(
+    output.subarray(adsStart, adsStart + adsHead.length)
+  );
+  process.stdout.write(JSON.stringify({
+    hasBody: true,
+    originalLength: input.length,
+    outputLength: output.length,
+    md5: header.md5,
+    item: ads.content[0]
+  }));
+} else {
+  process.stdout.write(JSON.stringify({
+    hasBody: false,
+    originalLength: input.length
+  }));
+}
+"""
+
+    def run_script(self, content_type, start, end):
+        if not NODE:
+            self.skipTest("Node.js is required for BaiduMap protobuf runtime tests")
+        completed = subprocess.run(
+            [NODE, "-e", self.runner, str(ROOT / "scripts/baidumap/baidu-map-protobuf.js"),
+             content_type, str(start), str(end)],
+            capture_output=True, text=True, check=True, timeout=15,
+        )
+        return __import__("json").loads(completed.stdout)
+
+    def test_non_target_ads_skip_protobuf_encode_md5_and_body_reassembly(self):
+        result = self.run_script("normal", 1, 2)
+        self.assertFalse(result["hasBody"])
+
+    def test_already_clean_target_ads_skip_protobuf_encode_md5_and_body_reassembly(self):
+        result = self.run_script("home_banner", 1648746061, 1648832461)
+        self.assertFalse(result["hasBody"])
+
+    def test_changed_target_ads_still_rebuild_with_correct_values(self):
+        result = self.run_script("home_banner", 1, 2)
+        self.assertTrue(result["hasBody"])
+        self.assertEqual(result["item"]["start"], 1648746061)
+        self.assertEqual(result["item"]["end"], 1648832461)
+        self.assertEqual(len(result["md5"]), 32)
+        self.assertGreater(result["outputLength"], 0)
+
+
 if __name__ == "__main__":
     unittest.main()
