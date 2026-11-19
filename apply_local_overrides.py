@@ -815,6 +815,9 @@ def consolidate_goofish_script_triggers(lines):
         value = re.sub(r"\\+", "", value.strip()).replace(
             "script-path=scripts/xianyu/goofish.js",
             "script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js",
+        ).replace(
+            'script("scripts/xianyu/goofish.js")',
+            'script("https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js")',
         )
         # Stage pins Romeo-hosted JS/JQ references to the current 40-hex commit.
         return re.sub(
