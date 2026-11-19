@@ -55027,48 +55027,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://guide-acs\\\\.m\\\\.taobao\\\\.com/gw/mtop\\\\.taobao\\\\.(cloudvideo\\\\.video\\\\.query|wireless\\\\.home\\\\.splash\\\\.awesome\\\\.get)', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/Kelee/Taobao_remove_ads/kelee.one_Taobao_remove_ads.js\") with tag=\"移除淘宝开屏广告\", requires_body=true'))",
-      "output_entry_index": 392,
-      "output_line": "response if ${url} ~= /^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.(cloudvideo\\.video\\.query|wireless\\.home\\.splash\\.awesome\\.get)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/Kelee/Taobao_remove_ads/kelee.one_Taobao_remove_ads.js\") with tag=\"移除淘宝开屏广告\", requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.(cloudvideo\\.video\\.query|wireless\\.home\\.splash\\.awesome\\.get)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/Kelee/Taobao_remove_ads/kelee.one_Taobao_remove_ads.js\") with tag=\"移除淘宝开屏广告\", requires_body=true",
-          "input_section": "Script",
-          "priority": 0,
-          "source": "zmjapp",
-          "source_entry_index": 1,
-          "source_file": "Plugin/Taobao_remove_ads.lpx",
-          "source_line_number": 35,
-          "source_original_section": "Script",
-          "source_raw_line": "response if ${url} ~= /^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.(cloudvideo\\.video\\.query|wireless\\.home\\.splash\\.awesome\\.get)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/Kelee/Taobao_remove_ads/kelee.one_Taobao_remove_ads.js\") with tag=\"移除淘宝开屏广告\", requires_body=true"
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://poplayer\\\\.template\\\\.alibaba\\\\.com/\\\\w+\\\\.json', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/Kelee/Taobao_remove_ads/kelee.one_Taobao_remove_ads.js\") with tag=\"移除淘宝开屏广告\", requires_body=true'))",
-      "output_entry_index": 393,
-      "output_line": "response if ${url} ~= /^https:\\/\\/poplayer\\.template\\.alibaba\\.com\\/\\w+\\.json/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/Kelee/Taobao_remove_ads/kelee.one_Taobao_remove_ads.js\") with tag=\"移除淘宝开屏广告\", requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/poplayer\\.template\\.alibaba\\.com\\/\\w+\\.json/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/Kelee/Taobao_remove_ads/kelee.one_Taobao_remove_ads.js\") with tag=\"移除淘宝开屏广告\", requires_body=true",
-          "input_section": "Script",
-          "priority": 0,
-          "source": "zmjapp",
-          "source_entry_index": 2,
-          "source_file": "Plugin/Taobao_remove_ads.lpx",
-          "source_line_number": 37,
-          "source_original_section": "Script",
-          "source_raw_line": "response if ${url} ~= /^https:\\/\\/poplayer\\.template\\.alibaba\\.com\\/\\w+\\.json/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/Kelee/Taobao_remove_ads/kelee.one_Taobao_remove_ads.js\") with tag=\"移除淘宝开屏广告\", requires_body=true"
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('unguarded', 'generic', 'https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/romeo_legacy/qunar-clean.js')",
       "output_entry_index": 395,
       "output_line": "generic script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/romeo_legacy/qunar-clean.js,tag=去哪儿清理运行状态,timeout=10",
@@ -55335,7 +55293,7 @@
     "rule_safety_excluded_events": 3,
     "rule_scope_adjustments": 0,
     "rule_source_events": 847,
-    "script_output_entries": 352
+    "script_output_entries": 350
   },
   "upstream_revisions": {
     "AlipayAdBlock": {

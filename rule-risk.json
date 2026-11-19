@@ -13,17 +13,66 @@
     "script": {
       "action_changed": 0,
       "added": 0,
-      "removed": 0
+      "removed": 2
     }
   },
-  "events": [],
-  "overall_risk": "low",
+  "events": [
+    {
+      "after": null,
+      "before": {
+        "line": "response if ${url} ~= /^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.(cloudvideo\\.video\\.query|wireless\\.home\\.splash\\.awesome\\.get)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/Kelee/Taobao_remove_ads/kelee.one_Taobao_remove_ads.js\") with tag=\"移除淘宝开屏广告\", requires_body=true",
+        "section": "script",
+        "sources": [
+          "zmjapp"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "zmjapp": "unavailable"
+      },
+      "source_scores": {
+        "zmjapp": null
+      },
+      "sources": [
+        "zmjapp"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "response if ${url} ~= /^https:\\/\\/poplayer\\.template\\.alibaba\\.com\\/\\w+\\.json/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/5685038ec50b505d6d24691b01b5ae8ca05a6142/Modules/JavaScript/Kelee/Taobao_remove_ads/kelee.one_Taobao_remove_ads.js\") with tag=\"移除淘宝开屏广告\", requires_body=true",
+        "section": "script",
+        "sources": [
+          "zmjapp"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "zmjapp": "unavailable"
+      },
+      "source_scores": {
+        "zmjapp": null
+      },
+      "sources": [
+        "zmjapp"
+      ]
+    }
+  ],
+  "overall_risk": "high",
   "risk_counts": {
-    "high": 0,
+    "high": 2,
     "low": 0,
     "medium": 0
   },
-  "run_id": "44475113099",
+  "run_id": "44485440677",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -48,8 +97,8 @@
     "base": {
       "action_changed": 19,
       "added": 75,
-      "removed": 43,
-      "snapshots_seen": 7
+      "removed": 42,
+      "snapshots_seen": 6
     },
     "block": {
       "action_changed": 20,
@@ -71,9 +120,9 @@
     },
     "local_overrides": {
       "action_changed": 0,
-      "added": 89,
+      "added": 88,
       "removed": 121,
-      "snapshots_seen": 9
+      "snapshots_seen": 8
     },
     "myblockads": {
       "action_changed": 0,
@@ -96,8 +145,8 @@
     "zmjapp": {
       "action_changed": 8,
       "added": 3,
-      "removed": 2,
-      "snapshots_seen": 5
+      "removed": 4,
+      "snapshots_seen": 6
     },
     "zmjgen": {
       "action_changed": 2,
