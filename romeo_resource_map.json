@@ -30,7 +30,8 @@
         "Weidian_remove_ads.lpx": "Modules/Loon/Kelee/Weidian_remove_ads.lpx",
         "Weixin_Official_Accounts_remove_ads.lpx": "Modules/Loon/Kelee/Weixin_Official_Accounts_remove_ads.lpx",
         "WexinMiniPrograms_Remove_ads.lpx": "Modules/Loon/Kelee/WexinMiniPrograms_Remove_ads.lpx",
-        "youtube.lpx": "Modules/Loon/Maasea/YouTube.Enhance.lpx"
+        "youtube.lpx": "Modules/Loon/Maasea/YouTube.Enhance.lpx",
+        "JinShiDataAds.lpx": "Modules/Loon/ddgksf2013/Beta/JinShiDataAds.lpx"
       },
       "legacy_snapshots": [
         "51cg.plugin",
