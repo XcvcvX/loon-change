@@ -105,7 +105,7 @@ jobs:
           for line in lines:
               matched = next((prefix for prefix in replacements if line.startswith(prefix)), None)
               output.append(replacements[matched] if matched else line)
-          path.write_text('\\n'.join(output) + '\\n', encoding='utf-8')
+          path.write_text('\n'.join(output) + '\n', encoding='utf-8')
           PY
           # Some independent Romeo rules refer to exact response hosts without
           # carrying their own MITM declarations. Add only the six exact hosts
@@ -136,7 +136,7 @@ jobs:
               key, value = lines[host_line].split('=', 1)
               hosts = [host.strip() for host in value.split(',') if host.strip()]
               lines[host_line] = key + '= ' + ', '.join(sorted(set(hosts) | referenced))
-          path.write_text('\\n'.join(lines) + '\\n', encoding='utf-8')
+          path.write_text('\n'.join(lines) + '\n', encoding='utf-8')
           PY
           python3 fix_script_configs.py --plugin /tmp/no-rstore-base.plugin
           python3 check_script_v2.py /tmp/no-rstore-base.plugin
