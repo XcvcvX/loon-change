@@ -1050,9 +1050,6 @@ request if ${url} ~= /^https?:\/\/pic\.k\.sohu\.com\/img\d\/wb\/tj\// then rejec
 request if ${url} ~= /^https?:\/\/ios\.sspai\.com\/api\/v\d\/recommend\/page\/get\?ad\.*ios_home_modal/ then reject(404)
 ^https?:\/\/www\.skyscanner\.com\/g\/explore-feed-service\/api\/explore reject-dict
 request if ${url} ~= /^https?:\/\/apis\.lifeweek\.com\.cn\/api\/baseConfig\/getIosNewConfig/ then reject(404)
-^https?:\/\/(?:gae2-spclient|guc3-spclient|spclient\.wg)\.spotify\.com(:443)?\/pendragon\/ reject-dict
-^https?:\/\/(?:gae2-spclient|guc3-spclient|spclient\.wg)\.spotify\.com(:443)?\/(?:ad-logic|ads|.+ad_slot|.+banners|.+canvases|.+cards|.+crashlytics|.+doubleclick.net|.+enabled-tracks|.+event|.+sponsored|.+promoted) reject-img
-request if ${url} ~= /^https?:\/\/(gae2-spclient|guc3-spclient|spclient\.wg)\.spotify\.com(?::443)?\/artistview\/v1\/artist\/(.*)&platform=iphone/ as m then redirect(302, "https://${m.1}.spotify.com/artistview/v1/artist/${m.2}&platform=ipad")
 ^https?:\/\/ccsp-egmas\.sf-express\.com\/cx-app-base\/base\/app\/ad\/ reject-dict
 ^https?:\/\/ccsp-egmas\.sf-express\.com\/cx-app-base\/base\/app\/bms\/queryRecommend reject-dict
 ^https?:\/\/ccsp-egmas\.sf-express\.com\/cx-app-video\/video\/app\/video\/labelClusterList reject-dict
