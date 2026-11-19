@@ -3330,8 +3330,13 @@ def scope_taobao_ossgw_ad_assets(lines):
 
     if legacy_count and scoped_count:
         raise ValueError("both legacy and scoped Taobao ossgw matchers are present")
-    if broad_count and legacy_count + scoped_count != 1:
-        raise ValueError("Taobao ossgw broad block lacks exactly one reviewed path-scoped replacement")
+    # In a no-R-Store-base build, an independent plugin may contribute the
+    # broad Rule without the base-owned creative Rewrite. The broad Rule has
+    # already been removed above; do not fail the entire preview or restore an
+    # unscoped domain block. When a creative Rewrite exists, retain the strict
+    # one-to-one and MITM checks below.
+    if broad_count and legacy_count + scoped_count > 1:
+        raise ValueError("Taobao ossgw broad block has multiple reviewed path-scoped replacements")
     if legacy_count + scoped_count and not mitm_has_host:
         raise ValueError("Taobao ossgw creative matcher requires its existing MITM hostname")
     return output, broad_count + legacy_count
