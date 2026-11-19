@@ -5802,7 +5802,7 @@ class XiaohongshuLocalMirrorCompatibilityTests(unittest.TestCase):
         remote_url = "https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js"
         plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
         result = apply(plugin)
-        required_tags = set(XHS_NATIVE_DUPLICATE_TRIGGER_TAGS) | set(XHS_NARROWED_TRIGGER_LINES)
+        required_tags = set(XHS_NATIVE_DUPLICATE_TRIGGER_TAGS) | set(XHS_NARROWED_TRIGGER_LINES) | {"XIAOHONGSHU-7"}
         script_section = False
         script_lines = []
         for line in result.splitlines():
