@@ -2742,6 +2742,34 @@ merged_sc, sc_unguarded = priority_merge([(p, x) for _, p, x in sc_feeds])
 merged_sc = dedup_keep_order(merged_sc + rw_unguarded + sc_unguarded)
 merged_rw = dedup_keep_order(merged_rw)
 
+# ---------------- 闲鱼/京东专项规则：吸收 y0unge 上游的高置信补漏 ----------------
+# 闲鱼开屏真实下发节点为 realTimeAd；直接 reject splash 请求可能触发联盟兜底。
+# 移除旧的 splash 请求拒绝，改为只对三个开屏接口调用仓库内既有脚本。
+merged_rw = [
+    line for line in merged_rw
+    if not re.search(r'mtop\\.taobao\\.idlecommerce\\.splash', line, re.IGNORECASE)
+]
+goofish_splash_trigger = (
+    r'response if ${url} ~= /^https?:\\/\\/(?:g-)?acs\\.m\\.goofish\\.com\\/gw\\/'
+    r'mtop\\.taobao\\.idlecommerce\\.splash\\.(?:ads|async\\.ads|config)\\//i '
+    r'then script("https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js") '
+    r'with tag="GOOFISH-SPLASH", timeout=20, requires_body=true'
+)
+merged_sc = dedup_keep_order(merged_sc + [goofish_splash_trigger])
+
+# 京东 CDN 分片轮转：仅拦截全屏开屏图规格和开屏视频素材，不碰普通商品图片。
+jd_splash_image = (
+    r'^https?:\\/\\/[a-z0-9]+\\.360buyimg\\.com\\/mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/ reject-200'
+)
+jd_splash_video = (
+    r'^https?:\\/\\/[a-z0-9]+\\.360buyimg\\.com\\/material-video\\/ reject-200'
+)
+merged_rw = [
+    line for line in merged_rw
+    if not re.search(r'360buyimg\\.com\\/mobilecms\\/s1125x2436_jfs', line)
+]
+merged_rw = dedup_keep_order(merged_rw + [jd_splash_image, jd_splash_video])
+
 # ---------------- Argument：blockAdsV2 + Romeo/兼容快照（YouTube 增强）----------------
 arg_items = dedup_keep_order(real_lines(extra_sec.get('Argument', [])))
 if args.aoomee:
