@@ -5513,6 +5513,14 @@ def optimize_xiaohongshu_response_cost(lines):
     return output, len(XHS_SCRIPT_TRIGGER_LINES)
 
 
+WEIBO_RSTORE_REMOTE_SCRIPT_URL = "https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js"
+WEIBO_RSTORE_LOCAL_SCRIPT_URL = "https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/weibo/weibo-rstore.js"
+
+
+def _weibo_trigger_with_script_url(line, script_url):
+    return line.replace(WEIBO_RSTORE_REMOTE_SCRIPT_URL, script_url)
+
+
 WEIBO_SCRIPT_TRIGGER_LINES = frozenset((
     "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/(checkin\\/show|client\\/publisher_list|push\\/active)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO,requires-body=true",
     "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/groups\\/allgroups\\/v2\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-2,requires-body=true",
@@ -5563,11 +5571,29 @@ def remove_weibo_non_ad_response_triggers(lines):
     if len(observed) != len(set(observed)):
         return original, 0
     observed_set = set(observed)
-    if observed_set == WEIBO_OPTIMIZED_SCRIPT_TRIGGER_LINES:
+    local_full = frozenset(
+        _weibo_trigger_with_script_url(line, WEIBO_RSTORE_LOCAL_SCRIPT_URL)
+        for line in WEIBO_SCRIPT_TRIGGER_LINES
+    )
+    local_optimized = frozenset(
+        _weibo_trigger_with_script_url(line, WEIBO_RSTORE_LOCAL_SCRIPT_URL)
+        for line in WEIBO_OPTIMIZED_SCRIPT_TRIGGER_LINES
+    )
+    if observed_set in (WEIBO_OPTIMIZED_SCRIPT_TRIGGER_LINES, local_optimized):
         return original, 0
-    if len(observed) != len(WEIBO_SCRIPT_TRIGGER_LINES) or observed_set != WEIBO_SCRIPT_TRIGGER_LINES:
+    if observed_set == WEIBO_SCRIPT_TRIGGER_LINES:
+        script_url = WEIBO_RSTORE_REMOTE_SCRIPT_URL
+    elif observed_set == local_full:
+        script_url = WEIBO_RSTORE_LOCAL_SCRIPT_URL
+    else:
         return original, 0
 
+    combined_home = _weibo_trigger_with_script_url(WEIBO_COMBINED_HOME_TRIGGER, script_url)
+    push_active = _weibo_trigger_with_script_url(WEIBO_PUSH_ACTIVE_TRIGGER, script_url)
+    non_ad_lines = {
+        _weibo_trigger_with_script_url(line, script_url)
+        for line in WEIBO_NON_AD_TRIGGER_LINES
+    }
     output = []
     section = ""
     for line in original:
@@ -5577,10 +5603,10 @@ def remove_weibo_non_ad_response_triggers(lines):
             output.append(line)
             continue
         if section == "Script":
-            if stripped == WEIBO_COMBINED_HOME_TRIGGER:
-                output.append(WEIBO_PUSH_ACTIVE_TRIGGER)
+            if stripped == combined_home:
+                output.append(push_active)
                 continue
-            if stripped in WEIBO_NON_AD_TRIGGER_LINES:
+            if stripped in non_ad_lines:
                 continue
         output.append(line)
     return output, len(WEIBO_NON_AD_TRIGGER_LINES) + 1
@@ -6026,15 +6052,16 @@ def migrate_weibo_simple_endpoints(lines):
     removed = set()
     native_rules = []
     for host_marker, path_marker, trigger, replacement in WEIBO_NATIVE_MIGRATIONS:
+        local_trigger = _weibo_trigger_with_script_url(trigger, WEIBO_RSTORE_LOCAL_SCRIPT_URL)
         candidates = [
             line for line in script_lines
-            if "weibo.js" in line
+            if ("weibo.js" in line or "weibo-rstore.js" in line)
             and host_marker in re.sub(r"\\+", "", line)
             and path_marker in re.sub(r"\\+", "", line)
         ]
         if not candidates:
             continue
-        if len(candidates) != 1 or candidates[0] != trigger:
+        if len(candidates) != 1 or candidates[0] not in (trigger, local_trigger):
             raise ValueError(
                 "Weibo trigger inventory changed; refusing native migration: "
                 + repr(candidates)
@@ -6050,7 +6077,7 @@ def migrate_weibo_simple_endpoints(lines):
                 "Weibo native response rule already exists; refusing duplicate migration: "
                 + repr(existing_native)
             )
-        removed.add(trigger)
+        removed.add(candidates[0])
         native_rules.append(replacement)
 
     if not removed:
