@@ -24,6 +24,52 @@ class CnftpPerformanceTests(unittest.TestCase):
         self.assertNotIn("newNode4", branch)
         self.assertNotIn('console.log("移除首页的轮播广告")', branch)
 
+    def test_node_runtime_compacts_youku_home_feed_without_filter_allocations(self):
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node.js is required for CNFTP runtime tests")
+        harness = r'''
+const fs = require("fs"), vm = require("vm");
+const source = fs.readFileSync(process.argv[1], "utf8");
+const body = { data: { "2019061000": { data: { nodes: [
+  { typeName: "PHONE_FEED_CARD_GROUP", nodes: [
+    { typeName: "PHONE_FEED_CARD_S_AD", id: "small-ad" },
+    { typeName: "NORMAL", id: "keep-1" },
+    { typeName: "PHONE_H_UC_AD", id: "wide-ad" },
+    { typeName: "NORMAL", id: "keep-2" }
+  ]},
+  { typeName: "NORMAL", id: "outside-group" }
+]}}}};
+let parseCalls = 0, stringifyCalls = 0, doneResult;
+const nativeJSON = JSON;
+const trackedJSON = {
+  parse(value) { parseCalls++; return nativeJSON.parse(value); },
+  stringify(value) { stringifyCalls++; return nativeJSON.stringify(value); }
+};
+const context = {
+  JSON: trackedJSON,
+  $request: { url: "https://acs.youku.com/gw/mtop.youku.columbus.home.feed/" },
+  $response: { body: nativeJSON.stringify(body) },
+  $done(value) { doneResult = value; },
+  console: { log() {}, warn() {}, error() {} }
+};
+vm.createContext(context);
+vm.runInContext("Array.prototype.filter = function() { throw new Error(\'Array.filter allocation remains\'); };", context);
+vm.runInContext(source, context, { timeout: 5000 });
+if (parseCalls !== 1 || stringifyCalls !== 1) throw new Error("unexpected JSON round trips");
+if (!doneResult || typeof doneResult.body !== "string") throw new Error("missing rewritten body");
+const output = nativeJSON.parse(doneResult.body);
+const nodes = output.data["2019061000"].data.nodes;
+if (nodes.length !== 2 || nodes[1].id !== "outside-group") throw new Error("outer node order changed");
+const children = nodes[0].nodes;
+if (children.length !== 2 || children[0].id !== "keep-1" || children[1].id !== "keep-2") throw new Error("home feed ad compaction mismatch");
+'''
+        result = subprocess.run(
+            [node, "-e", harness, str(SOURCE_PATH)],
+            capture_output=True, text=True, check=False, timeout=10,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
+
     def test_rewrites_exact_cnftp_trigger_inventory_and_is_idempotent(self):
         fixture = "[Script]\n" + "\n".join(
             'response if ${url} ~= /^https:\\/\\/example\\.com\\/%d/ then script("%s") with requires_body=true' % (i, REMOTE_URL)
