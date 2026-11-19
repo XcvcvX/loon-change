@@ -200,5 +200,19 @@ if (payload.body === null) {
         self.assertEqual(result["parseCount"], 0)
 
 
+    def test_sync_workflow_tracks_the_generated_local_didi_runtime(self):
+        workflow = (ROOT / ".github" / "workflows" / "sync.yml").read_text(encoding="utf-8")
+        diff_line = next(
+            line for line in workflow.splitlines()
+            if "git diff --quiet -- allAdRewrite.plugin" in line
+        )
+        add_line = next(
+            line for line in workflow.splitlines()
+            if line.strip().startswith("git add allAdRewrite.plugin")
+        )
+        self.assertIn("scripts/didi/", diff_line)
+        self.assertIn("scripts/didi/", add_line)
+
+
 if __name__ == "__main__":
     unittest.main()

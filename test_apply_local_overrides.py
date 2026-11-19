@@ -1171,6 +1171,22 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         self.assertIn(unrelated, script)
         self.assertEqual(apply(result), result)
 
+    def test_removes_fmz_duplicate_when_local_didi_runtime_is_canonical(self):
+        from apply_local_overrides import (
+            DIDI_USERCENTER_CANONICAL_TRIGGER_LOCAL,
+            DIDI_USERCENTER_REDUNDANT_TRIGGER,
+        )
+        fixture = BASE.replace(
+            "[Script]",
+            "[Script]" + chr(10) + DIDI_USERCENTER_CANONICAL_TRIGGER_LOCAL
+            + chr(10) + DIDI_USERCENTER_REDUNDANT_TRIGGER,
+        )
+        result = apply(fixture)
+        script = result.split("[Script]", 1)[1].split("[MITM]", 1)[0]
+        self.assertEqual(script.count(DIDI_USERCENTER_CANONICAL_TRIGGER_LOCAL), 1)
+        self.assertNotIn(DIDI_USERCENTER_REDUNDANT_TRIGGER, script)
+        self.assertEqual(apply(result), result)
+
     def test_removes_current_didi_usercenter_fmz_script_switch_template(self):
         from apply_local_overrides import (
             DIDI_USERCENTER_CANONICAL_TRIGGER,

@@ -1027,6 +1027,14 @@ def remove_redundant_xianyu_rewrite_rules(lines):
 # 滴滴个人中心 /usercenter/me 同时由 R-Store 与 FMZ 两个脚本处理。
 # 两个脚本在该分支的过滤字段与保留条件一致；保留 R-Store 触发器。
 DIDI_USERCENTER_CANONICAL_TRIGGER = r"http-response ^https?:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v\\d\\/usercenter\\/me script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI-3,requires-body=true"
+DIDI_USERCENTER_CANONICAL_TRIGGER_LOCAL = DIDI_USERCENTER_CANONICAL_TRIGGER.replace(
+    "https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js",
+    "https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/didi/didi.js",
+)
+DIDI_USERCENTER_CANONICAL_TRIGGERS = (
+    DIDI_USERCENTER_CANONICAL_TRIGGER,
+    DIDI_USERCENTER_CANONICAL_TRIGGER_LOCAL,
+)
 DIDI_USERCENTER_REDUNDANT_TRIGGER = r'response if ${url} ~= /^https?:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v\\d\\/usercenter\\/me/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js") with enable=didiiuxk_enable, tag="滴滴出行", timeout=60, requires_body=true'
 DIDI_USERCENTER_REDUNDANT_TRIGGER_CURRENT = r'response if ${url} ~= /^https?:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v\\d\\/usercenter\\/me/i then script("https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js") with enable=${didiiuxk_enable}, tag="滴滴出行", timeout=60, requires_body=true'
 DIDI_USERCENTER_REDUNDANT_TRIGGERS = (DIDI_USERCENTER_REDUNDANT_TRIGGER, DIDI_USERCENTER_REDUNDANT_TRIGGER_CURRENT)
@@ -1034,7 +1042,10 @@ DIDI_USERCENTER_REDUNDANT_TRIGGERS = (DIDI_USERCENTER_REDUNDANT_TRIGGER, DIDI_US
 
 def remove_redundant_didi_usercenter_script(lines):
     """Remove only known FMZ duplicates for the exact Didi user-center endpoint."""
-    canonical = re.sub(r"\\+", "", DIDI_USERCENTER_CANONICAL_TRIGGER.strip())
+    canonical_variants = {
+        re.sub(r"\\+", "", trigger.strip())
+        for trigger in DIDI_USERCENTER_CANONICAL_TRIGGERS
+    }
     redundant_variants = {
         re.sub(r"\\+", "", trigger.strip())
         for trigger in DIDI_USERCENTER_REDUNDANT_TRIGGERS
@@ -1056,7 +1067,7 @@ def remove_redundant_didi_usercenter_script(lines):
             output.append(line)
             continue
         target_seen = True
-        if normalized == canonical:
+        if normalized in canonical_variants:
             canonical_count += 1
             output.append(line)
             continue
@@ -1067,7 +1078,7 @@ def remove_redundant_didi_usercenter_script(lines):
     if not target_seen:
         return output, 0
     if canonical_count != 1:
-        raise ValueError("Didi user-center canonical trigger inventory changed; expected exactly one R-Store trigger")
+        raise ValueError("Didi user-center canonical trigger inventory changed; expected exactly one recognized active trigger")
     if redundant_count > 1:
         raise ValueError("duplicate Didi user-center FMZ trigger; refusing ambiguous deduplication")
     return output, redundant_count
