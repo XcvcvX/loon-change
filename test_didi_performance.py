@@ -31,13 +31,14 @@ class DidiOptimizerTests(unittest.TestCase):
             lines.append("%s = %s.filter(item => item.keep);" % (path, path))
         lines.extend([
             "if (obj.data && obj.data.cards) {",
-            "  obj.data.cards = obj.data.cards.filter(card => !excludedTitles.includes(card.title));",
-            "  obj.data.cards.forEach(card => {",
-            "    if (card.tag === \"wallet\") {",
-            "      if (card.items) card.items = card.items.filter(item => item.title === \"优惠券\");",
-            "      if (card.card_type === 4 && card.bottom_items) card.bottom_items = card.bottom_items.filter(item => item.title === \"省钱套餐\" || item.title === \"天天神券\");",
-            "    }",
-            "  });",
+            "    obj.data.cards = obj.data.cards.filter(card => !excludedTitles.includes(card.title));",
+            "",
+            "    obj.data.cards.forEach(card => {",
+            "      if (card.tag === \"wallet\") {",
+            "        if (card.items) card.items = card.items.filter(item => item.title === \"优惠券\");",
+            "        if (card.card_type === 4 && card.bottom_items) card.bottom_items = card.bottom_items.filter(item => item.title === \"省钱套餐\" || item.title === \"天天神券\");",
+            "      }",
+            "    });",
             "}",
         ])
         lines.append("$done({body: JSON.stringify(obj)});")
@@ -55,8 +56,8 @@ class DidiOptimizerTests(unittest.TestCase):
 
     def test_optimizer_fails_closed_when_upstream_filter_inventory_drifts(self):
         source = self.fixture_source().replace(
-            "obj.data.items6 = obj.data.items6.filter(item => item.keep);",
-            "obj.data.items6 = obj.data.items6;",
+            "obj.data.items3 = obj.data.items3.filter(item => item.keep);",
+            "obj.data.items3 = obj.data.items3;",
         )
         with self.assertRaisesRegex(ValueError, "expected 7, got 6"):
             optimize_source(source)

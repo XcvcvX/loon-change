@@ -20,9 +20,9 @@ class XiaohongshuOptimizerTests(unittest.TestCase):
     def test_comment_tree_walk_avoids_object_keys_temporary_arrays(self):
         source=(ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")
         self.assertNotIn("Object.keys(current)",source)
-        self.assertIn("for (const key in current)",source)
-        self.assertIn("const childStart = stack.length;",source)
-        self.assertIn("Object.prototype.hasOwnProperty.call(current, key)",source)
+        self.assertIn("for(const key in current)",source)
+        self.assertIn("const childStart=stack.length;",source)
+        self.assertIn("Object.prototype.hasOwnProperty.call(current,key)",source)
 
     def test_plugin_rewrites_exact_nine_triggers(self):
         dollar=chr(36)
