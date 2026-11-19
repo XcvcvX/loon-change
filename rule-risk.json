@@ -3,7 +3,7 @@
     "rewrite": {
       "action_changed": 0,
       "added": 0,
-      "removed": 3
+      "removed": 2
     },
     "rule": {
       "action_changed": 0,
@@ -13,14 +13,14 @@
     "script": {
       "action_changed": 0,
       "added": 0,
-      "removed": 1
+      "removed": 2
     }
   },
   "events": [
     {
       "after": null,
       "before": {
-        "line": "^https?:\\/\\/(?:gae2-spclient|guc3-spclient|spclient\\.wg)\\.spotify\\.com(:443)?\\/(?:ad-logic|ads|.+ad_slot|.+banners|.+canvases|.+cards|.+crashlytics|.+doubleclick.net|.+enabled-tracks|.+event|.+sponsored|.+promoted) reject-img",
+        "line": "^https?:\\/\\/(raw|gist)\\.githubusercontent\\.com\\/ header-replace-regex Accept-Language ^.*$ en-us",
         "section": "rewrite",
         "sources": [
           "base"
@@ -44,7 +44,7 @@
     {
       "after": null,
       "before": {
-        "line": "^https?:\\/\\/(?:gae2-spclient|guc3-spclient|spclient\\.wg)\\.spotify\\.com(:443)?\\/pendragon\\/ reject-dict",
+        "line": "^https?:\\/\\/github\\.com\\/ header-replace-regex Accept-Language ^.*$ en-us",
         "section": "rewrite",
         "sources": [
           "base"
@@ -68,34 +68,10 @@
     {
       "after": null,
       "before": {
-        "line": "request if ${url} ~= /^https?:\\/\\/(gae2-spclient|guc3-spclient|spclient\\.wg)\\.spotify\\.com(?::443)?\\/artistview\\/v1\\/artist\\/(.*)&platform=iphone/ as m then redirect(302, \"https://${m.1}.spotify.com/artistview/v1/artist/${m.2}&platform=ipad\")",
-        "section": "rewrite",
-        "sources": [
-          "base"
-        ]
-      },
-      "change_type": "removed",
-      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
-      "risk": "high",
-      "section": "rewrite",
-      "semantic_duplicate_coverage": null,
-      "source_score_status": {
-        "base": "unavailable"
-      },
-      "source_scores": {
-        "base": null
-      },
-      "sources": [
-        "base"
-      ]
-    },
-    {
-      "after": null,
-      "before": {
-        "line": "http-response ^https?:\\/\\/(?:gae2-spclient|guc3-spclient|spclient\\.wg)\\.spotify\\.com(:443)?\\/(?:bootstrap\\/v\\d\\/bootstrap|user-customization-service\\/v\\d\\/customize)$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/spotify.js,tag=SPOTIFY,requires-body=true,binary-body-mode=true",
+        "line": "request if ${url} ~= /^https:\\/\\/(raw|gist)\\.githubusercontent\\.com\\//i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/51a9b27e769c8ced6762de800da9c1bba684d60a/Modules/JavaScript/ishowshu/github/Script-Hub-Org_replace-header.js\", \"(%5Cr%5Cn)Accept-Language%3A.%2B(%5Cr%5Cn)-%3E%241Accept-Language%3A%20en-us%242\") with tag=\"replaceHeader\", timeout=30",
         "section": "script",
         "sources": [
-          "base"
+          "aoomee"
         ]
       },
       "change_type": "removed",
@@ -104,13 +80,37 @@
       "section": "script",
       "semantic_duplicate_coverage": null,
       "source_score_status": {
-        "base": "unavailable"
+        "aoomee": "scored"
       },
       "source_scores": {
-        "base": null
+        "aoomee": 100
       },
       "sources": [
-        "base"
+        "aoomee"
+      ]
+    },
+    {
+      "after": null,
+      "before": {
+        "line": "request if ${url} ~= /^https:\\/\\/github\\.com\\//i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/51a9b27e769c8ced6762de800da9c1bba684d60a/Modules/JavaScript/ishowshu/github/Script-Hub-Org_replace-header.js\", \"(%5Cr%5Cn)Accept-Language%3A.%2B(%5Cr%5Cn)-%3E%241Accept-Language%3A%20en-us%242\") with tag=\"replaceHeader\", timeout=30",
+        "section": "script",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "change_type": "removed",
+      "reason": "已有规则被移除，可能造成广告重新出现或保护范围缩小",
+      "risk": "high",
+      "section": "script",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "aoomee": "scored"
+      },
+      "source_scores": {
+        "aoomee": 100
+      },
+      "sources": [
+        "aoomee"
       ]
     }
   ],
@@ -120,7 +120,7 @@
     "low": 0,
     "medium": 0
   },
-  "run_id": "44555979980",
+  "run_id": "44562049387",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -139,14 +139,14 @@
     "aoomee": {
       "action_changed": 37,
       "added": 3,
-      "removed": 2,
-      "snapshots_seen": 3
+      "removed": 4,
+      "snapshots_seen": 4
     },
     "base": {
       "action_changed": 0,
       "added": 0,
-      "removed": 31,
-      "snapshots_seen": 6
+      "removed": 33,
+      "snapshots_seen": 7
     },
     "kfc_targeted": {
       "action_changed": 0,

@@ -18,7 +18,7 @@
   },
   "provenance_coverage": {
     "coverage_percent": 100.0,
-    "entries": 3427,
+    "entries": 3423,
     "missing_source": 0
   },
   "safety_notes": [
@@ -35,14 +35,14 @@
       "action_change_source_pairs": [],
       "action_changed": 0,
       "added": 0,
-      "current_entries": 2359,
+      "current_entries": 2357,
       "migration_action_changed_exempted": 0,
-      "net_shrink_percent": 0.127,
+      "net_shrink_percent": 0.085,
       "non_migration_action_changed": 0,
-      "non_retired_removed": 3,
-      "previous_entries": 2362,
-      "removed": 3,
-      "removed_percent": 0.127,
+      "non_retired_removed": 2,
+      "previous_entries": 2359,
+      "removed": 2,
+      "removed_percent": 0.085,
       "retired_source_removed": 0
     },
     "rule": {
@@ -63,14 +63,14 @@
       "action_change_source_pairs": [],
       "action_changed": 0,
       "added": 0,
-      "current_entries": 349,
+      "current_entries": 347,
       "migration_action_changed_exempted": 0,
-      "net_shrink_percent": 0.286,
+      "net_shrink_percent": 0.573,
       "non_migration_action_changed": 0,
-      "non_retired_removed": 1,
-      "previous_entries": 350,
-      "removed": 1,
-      "removed_percent": 0.286,
+      "non_retired_removed": 2,
+      "previous_entries": 349,
+      "removed": 2,
+      "removed_percent": 0.573,
       "retired_source_removed": 0
     }
   },

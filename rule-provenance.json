@@ -8779,40 +8779,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://(raw|gist)\\\\.githubusercontent\\\\.com/', ('header-replace-regex', 'header-replace-regex Accept-Language ^.*$ en-us'))",
-      "output_entry_index": 509,
-      "output_line": "^https?:\\/\\/(raw|gist)\\.githubusercontent\\.com\\/ header-replace-regex Accept-Language ^.*$ en-us",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "^https?:\\/\\/(raw|gist)\\.githubusercontent\\.com\\/ header-replace-regex Accept-Language ^.*$ en-us",
-          "input_section": "Rewrite",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 509
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://github\\\\.com/', ('header-replace-regex', 'header-replace-regex Accept-Language ^.*$ en-us'))",
-      "output_entry_index": 510,
-      "output_line": "^https?:\\/\\/github\\.com\\/ header-replace-regex Accept-Language ^.*$ en-us",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "^https?:\\/\\/github\\.com\\/ header-replace-regex Accept-Language ^.*$ en-us",
-          "input_section": "Rewrite",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 510
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https?://doh\\\\.pub/dns-query\\\\?', ('REJECT', 'reject', 'reject(404)'))",
       "output_entry_index": 511,
       "output_line": "request if ${url} ~= /^https?:\\/\\/doh\\.pub\\/dns-query\\?/ then reject(404)",
@@ -54150,40 +54116,6 @@
       ]
     },
     {
-      "canonical_key": "('guarded', '^https://(raw|gist)\\\\.githubusercontent\\\\.com/', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/51a9b27e769c8ced6762de800da9c1bba684d60a/Modules/JavaScript/ishowshu/github/Script-Hub-Org_replace-header.js\", \"(%5Cr%5Cn)Accept-Language%3A.%2B(%5Cr%5Cn)-%3E%241Accept-Language%3A%20en-us%242\") with tag=\"replaceHeader\", timeout=30'))",
-      "output_entry_index": 342,
-      "output_line": "request if ${url} ~= /^https:\\/\\/(raw|gist)\\.githubusercontent\\.com\\//i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/51a9b27e769c8ced6762de800da9c1bba684d60a/Modules/JavaScript/ishowshu/github/Script-Hub-Org_replace-header.js\", \"(%5Cr%5Cn)Accept-Language%3A.%2B(%5Cr%5Cn)-%3E%241Accept-Language%3A%20en-us%242\") with tag=\"replaceHeader\", timeout=30",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https:\\/\\/(raw|gist)\\.githubusercontent\\.com\\//i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/51a9b27e769c8ced6762de800da9c1bba684d60a/Modules/JavaScript/ishowshu/github/Script-Hub-Org_replace-header.js\", \"(%5Cr%5Cn)Accept-Language%3A.%2B(%5Cr%5Cn)-%3E%241Accept-Language%3A%20en-us%242\") with tag=\"replaceHeader\", timeout=30",
-          "input_section": "Script",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 34
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://github\\\\.com/', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/51a9b27e769c8ced6762de800da9c1bba684d60a/Modules/JavaScript/ishowshu/github/Script-Hub-Org_replace-header.js\", \"(%5Cr%5Cn)Accept-Language%3A.%2B(%5Cr%5Cn)-%3E%241Accept-Language%3A%20en-us%242\") with tag=\"replaceHeader\", timeout=30'))",
-      "output_entry_index": 343,
-      "output_line": "request if ${url} ~= /^https:\\/\\/github\\.com\\//i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/51a9b27e769c8ced6762de800da9c1bba684d60a/Modules/JavaScript/ishowshu/github/Script-Hub-Org_replace-header.js\", \"(%5Cr%5Cn)Accept-Language%3A.%2B(%5Cr%5Cn)-%3E%241Accept-Language%3A%20en-us%242\") with tag=\"replaceHeader\", timeout=30",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https:\\/\\/github\\.com\\//i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/51a9b27e769c8ced6762de800da9c1bba684d60a/Modules/JavaScript/ishowshu/github/Script-Hub-Org_replace-header.js\", \"(%5Cr%5Cn)Accept-Language%3A.%2B(%5Cr%5Cn)-%3E%241Accept-Language%3A%20en-us%242\") with tag=\"replaceHeader\", timeout=30",
-          "input_section": "Script",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 35
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https://api\\\\.gotokeep\\\\.com/config/v3/basic\\\\?', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/51a9b27e769c8ced6762de800da9c1bba684d60a/Modules/JavaScript/ishowshu/keep/ishowshu_keep.js\") with tag=\"keep\", timeout=60, requires_body=true'))",
       "output_entry_index": 351,
       "output_line": "response if ${url} ~= /^https:\\/\\/api\\.gotokeep\\.com\\/config\\/v3\\/basic\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/51a9b27e769c8ced6762de800da9c1bba684d60a/Modules/JavaScript/ishowshu/keep/ishowshu_keep.js\") with tag=\"keep\", timeout=60, requires_body=true",
@@ -55098,14 +55030,14 @@
       "included": 0
     },
     "post_transform_reconciled": true,
-    "rewrite_output_entries": 2359,
+    "rewrite_output_entries": 2357,
     "rule_covered_or_duplicate_events": 121,
     "rule_included_events": 723,
     "rule_output_entries": 719,
     "rule_safety_excluded_events": 3,
     "rule_scope_adjustments": 0,
     "rule_source_events": 847,
-    "script_output_entries": 349
+    "script_output_entries": 347
   },
   "upstream_revisions": {
     "AlipayAdBlock": {
