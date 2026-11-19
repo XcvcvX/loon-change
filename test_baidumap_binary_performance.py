@@ -98,12 +98,18 @@ class ResponseScriptAuditTests(unittest.TestCase):
         self.assertEqual(source.count("JSON.parse("), 1)
         self.assertEqual(source.count("JSON.stringify("), 1)
 
-    def test_didi_local_script_is_not_the_active_plugin_target(self):
+    def test_didi_response_triggers_use_the_local_compacted_runtime(self):
         plugin = (ROOT / "allAdRewrite.plugin").read_text(encoding="utf-8")
-        source = (ROOT / "scripts/didi/didi-ads.js").read_text(encoding="utf-8")
-        self.assertIn("script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js", plugin)
+        source = (ROOT / "scripts/didi/didi.js").read_text(encoding="utf-8")
+        legacy_source = (ROOT / "scripts/didi/didi-ads.js").read_text(encoding="utf-8")
+        local_target = "script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/didi/didi.js"
+        remote_target = "script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js"
+        self.assertEqual(plugin.count(local_target), 4)
+        self.assertNotIn(remote_target, plugin)
         self.assertNotIn("scripts/didi/didi-ads.js", plugin)
-        self.assertIn("function filterInPlace", source)
+        self.assertIn("function compactInPlace(items, keep)", source)
+        self.assertNotIn(".filter(", source)
+        self.assertIn("function filterInPlace", legacy_source)
 
 
 
