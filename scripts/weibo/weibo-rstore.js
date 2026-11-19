@@ -1,4 +1,4 @@
-// loon-change: R-Store Weibo in-place response compaction v1; upstream zirawell/R-Store@1164e86828b1bb81a18a24ab0549743f15675493
+// loon-change: R-Store Weibo in-place response compaction v1; upstream zirawell/R-Store@d0f4dd305bade7cc6a38e3445a768d72aaea0e5b
 /********************************
 Weibo Remove Ads - Version 1.0
 Checkout Source - https://raw.githubusercontent.com/RuCu6/QuanX/main/Scripts/weibo.js

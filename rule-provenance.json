@@ -53434,174 +53434,114 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://api\\\\.weibo\\\\.cn/2/groups/allgroups/v2\\\\?', ('^https?:\\\\/\\\\/api\\\\.weibo\\\\.cn\\\\/2\\\\/groups\\\\/allgroups\\\\/v2\\\\?', '^https?:\\\\/\\\\/api\\\\.weibo\\\\.cn\\\\/2\\\\/groups\\\\/allgroups\\\\/v2\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-2,requires-body=true'))",
-      "output_entry_index": 264,
-      "output_line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/groups\\/allgroups\\/v2\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-2,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/groups\\/allgroups\\/v2\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/weibo/weibo-rstore.js,tag=WEIBO-2,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/groups\\/allgroups\\/v2\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-2,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 263
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://api\\\\.weibo\\\\.cn/2/(cardlist|page)\\\\?', ('^https?:\\\\/\\\\/api\\\\.weibo\\\\.cn\\\\/2\\\\/', '^https?:\\\\/\\\\/api\\\\.weibo\\\\.cn\\\\/2\\\\/(cardlist|page)\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-3,requires-body=true'))",
-      "output_entry_index": 265,
-      "output_line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/(cardlist|page)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-3,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/(cardlist|page)\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/weibo/weibo-rstore.js,tag=WEIBO-3,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/(cardlist|page)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-3,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 264
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://api\\\\.weibo\\\\.cn/2/comments/build_comments\\\\?', ('^https?:\\\\/\\\\/api\\\\.weibo\\\\.cn\\\\/2\\\\/comments\\\\/build_comments\\\\?', '^https?:\\\\/\\\\/api\\\\.weibo\\\\.cn\\\\/2\\\\/comments\\\\/build_comments\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-4,requires-body=true'))",
-      "output_entry_index": 266,
-      "output_line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/comments\\/build_comments\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-4,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/comments\\/build_comments\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/weibo/weibo-rstore.js,tag=WEIBO-4,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/comments\\/build_comments\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-4,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 265
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://api\\\\.weibo\\\\.cn/2/(container/asyn|flowlist|flowpage)\\\\?', ('^https?:\\\\/\\\\/api\\\\.weibo\\\\.cn\\\\/2\\\\/', '^https?:\\\\/\\\\/api\\\\.weibo\\\\.cn\\\\/2\\\\/(container\\\\/asyn|flowlist|flowpage)\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-5,requires-body=true'))",
-      "output_entry_index": 267,
-      "output_line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/(container\\/asyn|flowlist|flowpage)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-5,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/(container\\/asyn|flowlist|flowpage)\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/weibo/weibo-rstore.js,tag=WEIBO-5,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/(container\\/asyn|flowlist|flowpage)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-5,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 266
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://api\\\\.weibo\\\\.cn/2/profile/(container_timeline|dealatt|me|statuses/tab|userinfo)\\\\?', ('^https?:\\\\/\\\\/api\\\\.weibo\\\\.cn\\\\/2\\\\/profile\\\\/', '^https?:\\\\/\\\\/api\\\\.weibo\\\\.cn\\\\/2\\\\/profile\\\\/(container_timeline|dealatt|me|statuses\\\\/tab|userinfo)\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-7,requires-body=true'))",
-      "output_entry_index": 269,
-      "output_line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/profile\\/(container_timeline|dealatt|me|statuses\\/tab|userinfo)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-7,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/profile\\/(container_timeline|dealatt|me|statuses\\/tab|userinfo)\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/weibo/weibo-rstore.js,tag=WEIBO-7,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/profile\\/(container_timeline|dealatt|me|statuses\\/tab|userinfo)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-7,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 268
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://api\\\\.weibo\\\\.cn/2/statuses/(container_timeline(?:_hot|_topic|_topicpage|_unread)?|unread_hot_timeline)\\\\?', ('^https?:\\\\/\\\\/api\\\\.weibo\\\\.cn\\\\/2\\\\/statuses\\\\/', '^https?:\\\\/\\\\/api\\\\.weibo\\\\.cn\\\\/2\\\\/statuses\\\\/(container_timeline(?:_hot|_topic|_topicpage|_unread)?|unread_hot_timeline)\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-8,requires-body=true'))",
-      "output_entry_index": 270,
-      "output_line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/statuses\\/(container_timeline(?:_hot|_topic|_topicpage|_unread)?|unread_hot_timeline)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-8,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/statuses\\/(container_timeline(?:_hot|_topic|_topicpage|_unread)?|unread_hot_timeline)\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/weibo/weibo-rstore.js,tag=WEIBO-8,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/statuses\\/(container_timeline(?:_hot|_topic|_topicpage|_unread)?|unread_hot_timeline)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-8,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 269
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://api\\\\.weibo\\\\.cn/2/statuses/(extend|show)\\\\?', ('^https?:\\\\/\\\\/api\\\\.weibo\\\\.cn\\\\/2\\\\/statuses\\\\/', '^https?:\\\\/\\\\/api\\\\.weibo\\\\.cn\\\\/2\\\\/statuses\\\\/(extend|show)\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-9,requires-body=true'))",
-      "output_entry_index": 271,
-      "output_line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/statuses\\/(extend|show)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-9,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/statuses\\/(extend|show)\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/weibo/weibo-rstore.js,tag=WEIBO-9,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/statuses\\/(extend|show)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-9,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 270
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://api\\\\.weibo\\\\.cn/2/search/(container_timeline|finder)\\\\?', ('^https?:\\\\/\\\\/api\\\\.weibo\\\\.cn\\\\/2\\\\/search\\\\/', '^https?:\\\\/\\\\/api\\\\.weibo\\\\.cn\\\\/2\\\\/search\\\\/(container_timeline|finder)\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-14,requires-body=true'))",
-      "output_entry_index": 276,
-      "output_line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/search\\/(container_timeline|finder)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-14,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/search\\/(container_timeline|finder)\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/weibo/weibo-rstore.js,tag=WEIBO-14,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/search\\/(container_timeline|finder)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-14,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 275
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://api\\\\.weibo\\\\.cn/2/searchall\\\\?', ('^https?:\\\\/\\\\/api\\\\.weibo\\\\.cn\\\\/2\\\\/searchall\\\\?', '^https?:\\\\/\\\\/api\\\\.weibo\\\\.cn\\\\/2\\\\/searchall\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-15,requires-body=true'))",
-      "output_entry_index": 277,
-      "output_line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/searchall\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-15,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/searchall\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/weibo/weibo-rstore.js,tag=WEIBO-15,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/searchall\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-15,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 276
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://sdkapp\\\\.uve\\\\.weibo\\\\.com/interface/sdk/sdkad\\\\.php', ('^https?:\\\\/\\\\/sdkapp\\\\.uve\\\\.weibo\\\\.com\\\\/interface\\\\/sdk\\\\/sdkad\\\\.php', '^https?:\\\\/\\\\/sdkapp\\\\.uve\\\\.weibo\\\\.com\\\\/interface\\\\/sdk\\\\/sdkad\\\\.php script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-17,requires-body=true'))",
-      "output_entry_index": 279,
-      "output_line": "http-response ^https?:\\/\\/sdkapp\\.uve\\.weibo\\.com\\/interface\\/sdk\\/sdkad\\.php script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-17,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/sdkapp\\.uve\\.weibo\\.com\\/interface\\/sdk\\/sdkad\\.php script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/weibo/weibo-rstore.js,tag=WEIBO-17,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/sdkapp\\.uve\\.weibo\\.com\\/interface\\/sdk\\/sdkad\\.php script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-17,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 278
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
       "canonical_key": "('guarded', '^https?://waimai-guide\\\\.ele\\\\.me/(gw|h5)/mtop\\\\.alsc\\\\.eleme\\\\.miniapp\\\\.homepage', ('^https?:\\\\/\\\\/waimai-guide\\\\.ele\\\\.me\\\\/', '^https?:\\\\/\\\\/waimai-guide\\\\.ele\\\\.me\\\\/(gw|h5)\\\\/mtop\\\\.alsc\\\\.eleme\\\\.miniapp\\\\.homepage script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/eleme.js,tag=ELEME,requires-body=true'))",

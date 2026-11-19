@@ -19,7 +19,7 @@
   "events": [
     {
       "after": {
-        "line": "http-response ^https?:\\/\\/(?:edith|rec|www)\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/(?:followfeed|homefeed)\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu-rstore.js,tag=XIAOHONGSHU-8,requires-body=true",
+        "line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/(cardlist|page)\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/weibo/weibo-rstore.js,tag=WEIBO-3,requires-body=true",
         "section": "script",
         "sources": [
           "local_overrides"
@@ -43,7 +43,7 @@
     },
     {
       "after": {
-        "line": "http-response ^https?:\\/\\/(?:edith|rec|www)\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/note\\/(?:imagefeed|feed|videofeed|(live_photo|video)\\/save) script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu-rstore.js,tag=XIAOHONGSHU-7,requires-body=true",
+        "line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/(container\\/asyn|flowlist|flowpage)\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/weibo/weibo-rstore.js,tag=WEIBO-5,requires-body=true",
         "section": "script",
         "sources": [
           "local_overrides"
@@ -67,7 +67,7 @@
     },
     {
       "after": {
-        "line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/note\\/comment\\/(?:list|sub_comments)\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu-rstore.js,tag=XIAOHONGSHU-10,requires-body=true",
+        "line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/comments\\/build_comments\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/weibo/weibo-rstore.js,tag=WEIBO-4,requires-body=true",
         "section": "script",
         "sources": [
           "local_overrides"
@@ -91,7 +91,7 @@
     },
     {
       "after": {
-        "line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/note\\/widgets script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu-rstore.js,tag=XIAOHONGSHU,requires-body=true",
+        "line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/groups\\/allgroups\\/v2\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/weibo/weibo-rstore.js,tag=WEIBO-2,requires-body=true",
         "section": "script",
         "sources": [
           "local_overrides"
@@ -115,7 +115,7 @@
     },
     {
       "after": {
-        "line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/recommend\\/user\\/follow_recommend\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu-rstore.js,tag=XIAOHONGSHU-9,requires-body=true",
+        "line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/profile\\/(container_timeline|dealatt|me|statuses\\/tab|userinfo)\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/weibo/weibo-rstore.js,tag=WEIBO-7,requires-body=true",
         "section": "script",
         "sources": [
           "local_overrides"
@@ -139,7 +139,7 @@
     },
     {
       "after": {
-        "line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/search\\/(?:banner|hot)_list script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu-rstore.js,tag=XIAOHONGSHU-3,requires-body=true",
+        "line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/search\\/(container_timeline|finder)\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/weibo/weibo-rstore.js,tag=WEIBO-14,requires-body=true",
         "section": "script",
         "sources": [
           "local_overrides"
@@ -163,7 +163,7 @@
     },
     {
       "after": {
-        "line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/search\\/(?:hint|trending)\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu-rstore.js,tag=XIAOHONGSHU-4,requires-body=true",
+        "line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/searchall\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/weibo/weibo-rstore.js,tag=WEIBO-15,requires-body=true",
         "section": "script",
         "sources": [
           "local_overrides"
@@ -187,7 +187,7 @@
     },
     {
       "after": {
-        "line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/search\\/notes\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu-rstore.js,tag=XIAOHONGSHU-5,requires-body=true",
+        "line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/statuses\\/(container_timeline(?:_hot|_topic|_topicpage|_unread)?|unread_hot_timeline)\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/weibo/weibo-rstore.js,tag=WEIBO-8,requires-body=true",
         "section": "script",
         "sources": [
           "local_overrides"
@@ -211,7 +211,7 @@
     },
     {
       "after": {
-        "line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/system_service\\/config\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu-rstore.js,tag=XIAOHONGSHU-6,requires-body=true",
+        "line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/statuses\\/(extend|show)\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/weibo/weibo-rstore.js,tag=WEIBO-9,requires-body=true",
         "section": "script",
         "sources": [
           "local_overrides"
@@ -235,7 +235,7 @@
     },
     {
       "after": {
-        "line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/user\\/followings\\/followfeed script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu-rstore.js,tag=XIAOHONGSHU-2,requires-body=true",
+        "line": "http-response ^https?:\\/\\/sdkapp\\.uve\\.weibo\\.com\\/interface\\/sdk\\/sdkad\\.php script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/weibo/weibo-rstore.js,tag=WEIBO-17,requires-body=true",
         "section": "script",
         "sources": [
           "local_overrides"
@@ -260,7 +260,7 @@
     {
       "after": null,
       "before": {
-        "line": "http-response ^https?:\\/\\/(?:edith|rec|www)\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/(?:followfeed|homefeed)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-8,requires-body=true",
+        "line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/(cardlist|page)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-3,requires-body=true",
         "section": "script",
         "sources": [
           "base"
@@ -284,7 +284,7 @@
     {
       "after": null,
       "before": {
-        "line": "http-response ^https?:\\/\\/(?:edith|rec|www)\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/note\\/(?:imagefeed|feed|videofeed|(live_photo|video)\\/save) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-7,requires-body=true",
+        "line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/(container\\/asyn|flowlist|flowpage)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-5,requires-body=true",
         "section": "script",
         "sources": [
           "base"
@@ -308,7 +308,7 @@
     {
       "after": null,
       "before": {
-        "line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/note\\/comment\\/(?:list|sub_comments)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-10,requires-body=true",
+        "line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/comments\\/build_comments\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-4,requires-body=true",
         "section": "script",
         "sources": [
           "base"
@@ -332,7 +332,7 @@
     {
       "after": null,
       "before": {
-        "line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/note\\/widgets script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU,requires-body=true",
+        "line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/groups\\/allgroups\\/v2\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-2,requires-body=true",
         "section": "script",
         "sources": [
           "base"
@@ -356,7 +356,7 @@
     {
       "after": null,
       "before": {
-        "line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/recommend\\/user\\/follow_recommend\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-9,requires-body=true",
+        "line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/profile\\/(container_timeline|dealatt|me|statuses\\/tab|userinfo)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-7,requires-body=true",
         "section": "script",
         "sources": [
           "base"
@@ -380,7 +380,7 @@
     {
       "after": null,
       "before": {
-        "line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/search\\/(?:banner|hot)_list script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-3,requires-body=true",
+        "line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/search\\/(container_timeline|finder)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-14,requires-body=true",
         "section": "script",
         "sources": [
           "base"
@@ -404,7 +404,7 @@
     {
       "after": null,
       "before": {
-        "line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/search\\/(?:hint|trending)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-4,requires-body=true",
+        "line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/searchall\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-15,requires-body=true",
         "section": "script",
         "sources": [
           "base"
@@ -428,7 +428,7 @@
     {
       "after": null,
       "before": {
-        "line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/search\\/notes\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-5,requires-body=true",
+        "line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/statuses\\/(container_timeline(?:_hot|_topic|_topicpage|_unread)?|unread_hot_timeline)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-8,requires-body=true",
         "section": "script",
         "sources": [
           "base"
@@ -452,7 +452,7 @@
     {
       "after": null,
       "before": {
-        "line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/system_service\\/config\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-6,requires-body=true",
+        "line": "http-response ^https?:\\/\\/api\\.weibo\\.cn\\/2\\/statuses\\/(extend|show)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-9,requires-body=true",
         "section": "script",
         "sources": [
           "base"
@@ -476,7 +476,7 @@
     {
       "after": null,
       "before": {
-        "line": "http-response ^https?:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v\\d+\\/user\\/followings\\/followfeed script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js,tag=XIAOHONGSHU-2,requires-body=true",
+        "line": "http-response ^https?:\\/\\/sdkapp\\.uve\\.weibo\\.com\\/interface\\/sdk\\/sdkad\\.php script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/weibo.js,tag=WEIBO-17,requires-body=true",
         "section": "script",
         "sources": [
           "base"
@@ -504,7 +504,7 @@
     "low": 0,
     "medium": 10
   },
-  "run_id": "44546297397",
+  "run_id": "44552192521",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -529,7 +529,7 @@
     "base": {
       "action_changed": 0,
       "added": 0,
-      "removed": 43,
+      "removed": 27,
       "snapshots_seen": 5
     },
     "kfc_targeted": {
@@ -540,7 +540,7 @@
     },
     "local_overrides": {
       "action_changed": 0,
-      "added": 42,
+      "added": 26,
       "removed": 2,
       "snapshots_seen": 4
     },
