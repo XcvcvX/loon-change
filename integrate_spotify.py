@@ -73,11 +73,12 @@ def insert_section(plugin, section, additions):
     return "\n".join(lines).rstrip() + "\n"
 
 
-def replace_rstore_spotify_rules(plugin):
+def replace_rstore_spotify_rules(plugin, independent_entries=()):
     """Replace R-Store Spotify entries with the independent Spotify plugin's entries."""
     output = []
     section = None
     removed = 0
+    independent_entries = set(independent_entries)
     for line in plugin.splitlines():
         header = re.match(r"^\s*\[([^\]]+)\]\s*$", line)
         if header:
@@ -87,7 +88,7 @@ def replace_rstore_spotify_rules(plugin):
         if section in {"rule", "rewrite", "script"}:
             if line.strip() == "# Spotify ad-block rules; generated from upstream by integrate_spotify.py":
                 continue
-            if not line.lstrip().startswith("#"):
+            if not line.lstrip().startswith("#") and line not in independent_entries:
                 lower = line.lower()
                 if "spotify.com" in lower or "spotify.js" in lower:
                     removed += 1
@@ -126,7 +127,7 @@ def integrate(plugin_path, source_path, scripts_source, scripts_dest, upstream_c
         rewritten_script_rules.append(line)
 
     plugin = Path(plugin_path).read_text(encoding="utf-8")
-    plugin, removed_rstore_script = replace_rstore_spotify_rules(plugin)
+    plugin, removed_rstore_script = replace_rstore_spotify_rules(\n        plugin, [*rules, *rewrites, *rewritten_script_rules]\n    )
     if removed_rstore_script:
         print("Replaced %d R-Store Spotify rule/script/MITM entries with the independent Spotify source" % removed_rstore_script)
     plugin = insert_section(plugin, "Rule", rules)
