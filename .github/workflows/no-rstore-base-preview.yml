@@ -6,6 +6,10 @@ on:
       - preview/no-rstore-base
     paths:
       - '.github/workflows/no-rstore-base-preview.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/no-rstore-base-preview.yml'
   workflow_dispatch:
 
 permissions:
