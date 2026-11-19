@@ -11,6 +11,35 @@ LOCAL_URL = "https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/c
 EXPECTED_TRIGGER_COUNT = 10
 SOURCE_MARKER = "// loon-change: Youku home.query in-place compaction v1"
 
+FILTER_MARKER = "// loon-change: CNFTP response filter in-place compaction v1"
+FILTER_ASSIGNMENT_RE = re.compile(
+    r"([A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*)\s*=\s*\1\.filter\s*\("
+)
+
+
+def compact_response_filters(source: str) -> str:
+    """Replace response-array filter copies with stable in-place compaction."""
+    if FILTER_MARKER in source:
+        if source.count(FILTER_MARKER) != 1 or FILTER_ASSIGNMENT_RE.search(source):
+            raise ValueError("CNFTP in-place filter marker/structure drift")
+        return source
+    matches = list(FILTER_ASSIGNMENT_RE.finditer(source))
+    if not matches:
+        return source
+    if len(matches) != 11:
+        raise ValueError(
+            "CNFTP response filter inventory changed: expected 11, got %d"
+            % len(matches)
+        )
+    for match in reversed(matches):
+        target = match.group(1)
+        source = source[:match.start()] + "compactInPlace(%s, " % target + source[match.end():]
+    if FILTER_ASSIGNMENT_RE.search(source):
+        raise ValueError("CNFTP allocating response filter remains after compaction")
+    return FILTER_MARKER + "\n" + source
+
+
+
 EMPTY_BODY_MARKER = "// loon-change: CNFTP terminal empty-body guard v1"
 
 
@@ -150,7 +179,7 @@ def optimize_source(source: str, upstream_commit: str | None = None) -> str:
     """Replace Youku home.query's nested filtered-copy arrays with stable in-place compaction."""
     if SOURCE_MARKER in source:
         if not upstream_commit:
-            return ensure_terminal_empty_body_guard(source)
+            return compact_response_filters(ensure_terminal_empty_body_guard(source))
         if not re.fullmatch(r"[0-9a-f]{40}", upstream_commit):
             raise ValueError("invalid Wool Scripts upstream commit")
         source = re.sub(r"^// loon-change:.*\n", "", source, count=1)
@@ -190,7 +219,7 @@ def optimize_source(source: str, upstream_commit: str | None = None) -> str:
     else:
         upstream_commit = "unrecorded"
     result = SOURCE_MARKER + "; upstream fmz200/wool_scripts@" + upstream_commit + "\n// loon-change: Youku home.feed in-place compaction v1\n" + source
-    return ensure_terminal_empty_body_guard(result)
+    return compact_response_filters(ensure_terminal_empty_body_guard(result))
 
 
 def rewrite_plugin(plugin: str) -> str:

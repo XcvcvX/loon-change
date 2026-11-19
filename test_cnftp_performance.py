@@ -3,7 +3,7 @@ import subprocess
 import unittest
 from pathlib import Path
 
-from optimize_cnftp import LOCAL_URL, REMOTE_URL, SOURCE_MARKER, optimize_source, rewrite_plugin
+from optimize_cnftp import FILTER_MARKER, LOCAL_URL, REMOTE_URL, SOURCE_MARKER, optimize_source, rewrite_plugin
 
 ROOT = Path(__file__).parent
 SOURCE_PATH = ROOT / "scripts" / "cnftp" / "cnftp.js"
@@ -54,6 +54,54 @@ vm.runInContext(source, context, { timeout: 5000 });
 if (parseCalls !== 0) throw new Error("empty response unexpectedly parsed JSON: " + parseCalls);
 if (doneCalls !== 1 || !doneResult || Object.keys(doneResult).length !== 0) {
   throw new Error("empty response must complete once with pass-through");
+}
+'''
+        result = subprocess.run(
+            [node, "-e", harness, str(SOURCE_PATH)],
+            capture_output=True, text=True, check=False, timeout=10,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
+
+    def test_all_response_filter_assignments_use_in_place_compaction(self):
+        source = SOURCE_PATH.read_text(encoding="utf-8")
+        self.assertIn(FILTER_MARKER, source)
+        self.assertNotRegex(source, r"\.filter\s*\(")
+        self.assertEqual(optimize_source(source), source)
+
+    def test_node_runtime_comment_filter_preserves_order_without_array_filter(self):
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node.js is required for CNFTP runtime tests")
+        harness = r'''
+const fs = require("fs"), vm = require("vm");
+const source = fs.readFileSync(process.argv[1], "utf8");
+const body = { cards: [
+  { alias_name: "comment_resource_card", id: "ad-1" },
+  { alias_name: "normal_comment", id: "keep-1" },
+  { id: "missing-alias" },
+  { alias_name: "comment_resource_convention_card", id: "ad-2" },
+  { alias_name: "normal_comment", id: "keep-2" }
+]};
+let parseCalls = 0, stringifyCalls = 0, doneResult;
+const nativeJSON = JSON;
+const trackedJSON = {
+  parse(value) { parseCalls++; return nativeJSON.parse(value); },
+  stringify(value) { stringifyCalls++; return nativeJSON.stringify(value); }
+};
+const context = {
+  JSON: trackedJSON,
+  $request: { url: "https://iface2.iqiyi.com/views_comment/" },
+  $response: { body: nativeJSON.stringify(body) },
+  $done(value) { doneResult = value; },
+  console: { log() {}, warn() {}, error() {} }
+};
+vm.createContext(context);
+vm.runInContext(source, context, { timeout: 5000 });
+if (parseCalls !== 1 || stringifyCalls !== 1) throw new Error("unexpected JSON round trips");
+if (!doneResult || typeof doneResult.body !== "string") throw new Error("missing rewritten body");
+const output = nativeJSON.parse(doneResult.body);
+if (output.cards.length !== 2 || output.cards[0].id !== "keep-1" || output.cards[1].id !== "keep-2") {
+  throw new Error("comment card compaction changed filtering or order");
 }
 '''
         result = subprocess.run(
