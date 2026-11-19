@@ -6629,6 +6629,49 @@ def migrate_cntv_script_to_local(lines):
     return output, changed
 
 
+def remove_github_website_compatibility_overrides(lines):
+    """Remove upstream GitHub website header mutations, preserving API/Raw MITM hosts."""
+    output = []
+    section = ""
+    removed_rewrites = 0
+    removed_scripts = 0
+    removed_mitm_hosts = 0
+
+    for line in lines:
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1]
+            output.append(line)
+            continue
+
+        value = line.strip()
+        normalized = re.sub(r"\\+", "", value).lower()
+        is_github_host = (
+            "github.com" in normalized
+            or "githubusercontent.com" in normalized
+        )
+
+        if section == "Rewrite" and is_github_host and "header-replace-regex" in normalized:
+            removed_rewrites += 1
+            continue
+
+        if section == "Script" and is_github_host and (
+            "replace-header" in normalized or "tag=replaceheader" in normalized
+        ):
+            removed_scripts += 1
+            continue
+
+        if section == "MITM" and value.lower().startswith("hostname") and "=" in value:
+            key, host_text = line.split("=", 1)
+            hosts = [host.strip() for host in host_text.split(",") if host.strip()]
+            kept = [host for host in hosts if host.lower() != "github.com"]
+            removed_mitm_hosts += len(hosts) - len(kept)
+            line = key + "= " + ", ".join(kept)
+
+        output.append(line)
+
+    return output, removed_rewrites + removed_scripts + removed_mitm_hosts
+
+
 def apply(text: str) -> str:
     if "[Script]" not in text or "[MITM]" not in text or "[Rewrite]" not in text:
         raise ValueError("plugin missing [Rewrite], [Script] or [MITM] section")
@@ -6680,6 +6723,7 @@ def apply(text: str) -> str:
             line = key + "= " + ", ".join(hosts)
         lines.append(line)
 
+    lines, _ = remove_github_website_compatibility_overrides(lines)
     lines, _ = scope_taobao_ossgw_ad_assets(lines)
     lines, _ = remove_redundant_jd_keyword_rules(lines)
     lines, _ = remove_jd_core_service_domain_blocks(lines)

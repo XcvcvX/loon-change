@@ -5841,3 +5841,57 @@ class WeiboLocalMirrorCompatibilityTests(unittest.TestCase):
         self.assertTrue(all(local_url in line for line in weibo_lines))
         self.assertFalse(any(remote_url in line for line in weibo_lines))
         self.assertEqual(apply(result), result)
+
+
+class GitHubWebsiteCompatibilityOverrideTests(unittest.TestCase):
+    def test_removes_github_website_header_rewrites_and_mitm_but_keeps_api_and_raw_hosts(self):
+        from apply_local_overrides import remove_github_website_compatibility_overrides
+
+        plugin = [
+            "[Rewrite]",
+            r"^https?:\/\/(raw|gist)\.githubusercontent\.com\/ header-replace-regex Accept-Language ^.*$ en-us",
+            r"^https?:\/\/github\.com\/ header-replace-regex Accept-Language ^.*$ en-us",
+            r"^https?:\/\/example\.com\/ header-replace-regex Accept-Language ^.*$ en-us",
+            "[Script]",
+            r'request if \${url} ~= /^https:\/\/github\.com\//i then script("https://raw.githubusercontent.com/example/replace-header.js") with tag="replaceHeader"',
+            r'request if \${url} ~= /^https:\/\/example\.com\//i then script("https://example.com/replace-header.js") with tag="replaceHeader"',
+            "[MITM]",
+            "hostname = github.com, api.github.com, raw.githubusercontent.com, gist.githubusercontent.com, example.com",
+        ]
+
+        result, removed = remove_github_website_compatibility_overrides(plugin)
+        joined = "\n".join(result)
+        self.assertEqual(removed, 4)
+        self.assertEqual(joined.split("[Script]")[0].count("header-replace-regex Accept-Language"), 1)
+        self.assertNotIn("github.com\\//i", joined)
+        self.assertIn("example.com", joined)
+        self.assertIn("api.github.com", joined)
+        self.assertIn("raw.githubusercontent.com", joined)
+        self.assertIn("gist.githubusercontent.com", joined)
+        self.assertNotIn("hostname = github.com,", joined)
+
+        again, second_removed = remove_github_website_compatibility_overrides(result)
+        self.assertEqual(again, result)
+        self.assertEqual(second_removed, 0)
+
+    def test_apply_removes_upstream_github_website_mutations(self):
+        from apply_local_overrides import apply
+
+        plugin = """#!name=test
+[Rule]
+DOMAIN,keep.example.com,REJECT
+[Rewrite]
+^https?:\\\\/\\\\/github\\\\.com\\\\/ header-replace-regex Accept-Language ^.*$ en-us
+^https?:\\\\/\\\\/keep.example.com\\\\/ reject
+[Script]
+[MITM]
+hostname = github.com, api.github.com, keep.example.com
+"""
+        result = apply(plugin)
+        self.assertNotIn("header-replace-regex Accept-Language", result)
+        mitm = result.split("[MITM]", 1)[1]
+        hosts = [host.strip() for host in mitm.split("=", 1)[1].split(",")]
+        self.assertNotIn("github.com", hosts)
+        self.assertIn("api.github.com", hosts)
+        self.assertIn("keep.example.com", mitm)
+        self.assertEqual(apply(result), result)
