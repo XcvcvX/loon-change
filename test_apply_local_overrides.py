@@ -124,7 +124,6 @@ hostname = ossgw.alicdn.com, acs.m.taobao.com, creditcard.bankcomm.cn, creditcar
         self.assertIn("DOMAIN,ut.taobao.com,REJECT", rule_section)
         self.assertIn("acs\\.m\\.taobao", rewrite_section)
         self.assertIn("ossgw.alicdn.com", result.split("[MITM]", 1)[1])
-        self.assertFalse(any("tag=XIAOHONGSHU-11," in line for line in script_lines))
         self.assertEqual(apply(result), result)
 
     def test_taobao_oss_scope_rejects_broad_rule_without_path_replacement(self):
@@ -5795,7 +5794,6 @@ class XiaohongshuLocalMirrorCompatibilityTests(unittest.TestCase):
     def test_checked_in_local_rstore_triggers_survive_native_narrowing(self):
         from pathlib import Path
         from apply_local_overrides import (
-            XHS_NATIVE_DUPLICATE_TRIGGER_TAGS,
             XHS_NARROWED_TRIGGER_LINES,
             apply,
         )
@@ -5818,4 +5816,5 @@ class XiaohongshuLocalMirrorCompatibilityTests(unittest.TestCase):
             self.assertEqual(len(matches), 1, tag)
             self.assertIn(local_url, matches[0], tag)
             self.assertNotIn(remote_url, matches[0], tag)
+        self.assertFalse(any("tag=XIAOHONGSHU-11," in line for line in script_lines))
         self.assertEqual(apply(result), result)
