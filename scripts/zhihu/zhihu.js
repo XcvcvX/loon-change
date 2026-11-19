@@ -15,11 +15,15 @@ if (!$response.body) {
   $done({});
 } else {
 const url = $request.url;
-function compactInPlace(items, keep) {
+function compactInPlace(items, keep, onKeep) {
   let write = 0;
   for (let read = 0, length = items.length; read < length; read++) {
     const item = items[read];
-    if (keep(item)) { if (write !== read) items[write] = item; write++; }
+    if (keep(item)) {
+      if (write !== read) items[write] = item;
+      if (onKeep) onKeep(item, write);
+      write++;
+    }
   }
   items.length = write;
   return items;
@@ -186,9 +190,15 @@ if (url.includes("/answers/v2/") || url.includes("/articles/v2/")) {
 } else if (url.includes("/topstory/recommend")) {
   const fallbackSearch = '"feed_content":{"video":{"id":';
   const fallbackIndex = $response.body.indexOf(fallbackSearch);
-  const fallbackVideoID = fallbackIndex >= 0
-    ? $response.body.slice(fallbackIndex + fallbackSearch.length).split(",", 1)[0].replace(/}+$/, "")
-    : undefined;
+  let fallbackVideoID;
+  if (fallbackIndex >= 0) {
+    const valueStart = fallbackIndex + fallbackSearch.length;
+    const commaIndex = $response.body.indexOf(",", valueStart);
+    const valueEnd = commaIndex < 0 ? $response.body.length : commaIndex;
+    let trimmedEnd = valueEnd;
+    while (trimmedEnd > valueStart && $response.body.charCodeAt(trimmedEnd - 1) === 125) trimmedEnd--;
+    fallbackVideoID = $response.body.slice(valueStart, trimmedEnd);
+  }
   // 推荐信息流
   if (obj?.data?.length > 0) {
     compactInPlace(obj.data, (i) => {
@@ -229,30 +239,34 @@ if (url.includes("/answers/v2/") || url.includes("/articles/v2/")) {
         return false;
       }
       return true;
-    });
-    fixPos(obj.data);
+    }, (item, index) => { item.offset = index + 1; });
   }
 }
 
 $done({body: JSON.stringify(obj)});
 
-// 修复offset
-function fixPos(arr) {
-  for (let i = 0; i < arr.length; i++) {
-    arr[i].offset = i + 1;
-  }
-}
+
 
 function getUrlParamValue(url, queryName) {
   if (typeof url !== "string") return undefined;
   const question = url.indexOf("?");
   if (question < 0) return undefined;
-  const query = url.slice(question + 1).split("#", 1)[0];
+  const queryStart = question + 1;
+  const hash = url.indexOf("#", queryStart);
+  const queryEnd = hash < 0 ? url.length : hash;
   let value;
-  for (const part of query.split("&")) {
-    const equal = part.indexOf("=");
-    const key = equal < 0 ? part : part.slice(0, equal);
-    if (key === queryName) value = equal < 0 ? undefined : part.slice(equal + 1);
+  let cursor = queryStart;
+  while (cursor <= queryEnd) {
+    const ampersand = url.indexOf("&", cursor);
+    const partEnd = ampersand < 0 || ampersand > queryEnd ? queryEnd : ampersand;
+    const equal = url.indexOf("=", cursor);
+    const hasEquals = equal >= cursor && equal < partEnd;
+    const keyEnd = hasEquals ? equal : partEnd;
+    if (url.slice(cursor, keyEnd) === queryName) {
+      value = hasEquals ? url.slice(equal + 1, partEnd) : undefined;
+    }
+    if (partEnd === queryEnd) break;
+    cursor = partEnd + 1;
   }
   return value;
 }

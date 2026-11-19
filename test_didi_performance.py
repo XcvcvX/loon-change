@@ -26,9 +26,27 @@ class DidiOptimizerTests(unittest.TestCase):
             "if (!$response.body) $done({});",
             "let obj = JSON.parse($response.body);",
         ]
-        for index in range(EXPECTED_FILTERS):
+        for index in range(EXPECTED_FILTERS - 3):
             path = "obj.data.items%d" % index
             lines.append("%s = %s.filter(item => item.keep);" % (path, path))
+        lines.extend([
+            "if (obj.data && obj.data.cards) {",
+            "    obj.data.cards = obj.data.cards.filter(card => !excludedTitles.includes(card.title));",
+            "",
+            "    obj.data.cards.forEach(card => {",
+            "      if (card.tag === \"wallet\") {",
+            "        if (card.items) {",
+            "          card.items = card.items.filter(item => item.title === \"优惠券\");",
+            "        }",
+            "        if (card.card_type === 4 && card.bottom_items) {",
+            "          card.bottom_items = card.bottom_items.filter(item =>",
+            "              item.title === \"省钱套餐\" || item.title === \"天天神券\"",
+            "          );",
+            "        }",
+            "      }",
+            "    });",
+            "}",
+        ])
         lines.append("$done({body: JSON.stringify(obj)});")
         return "\n".join(lines) + "\n"
 
@@ -44,8 +62,8 @@ class DidiOptimizerTests(unittest.TestCase):
 
     def test_optimizer_fails_closed_when_upstream_filter_inventory_drifts(self):
         source = self.fixture_source().replace(
-            "obj.data.items6 = obj.data.items6.filter(item => item.keep);",
-            "obj.data.items6 = obj.data.items6;",
+            "obj.data.items3 = obj.data.items3.filter(item => item.keep);",
+            "obj.data.items3 = obj.data.items3;",
         )
         with self.assertRaisesRegex(ValueError, "expected 7, got 6"):
             optimize_source(source)
@@ -74,7 +92,7 @@ class DidiOptimizerTests(unittest.TestCase):
 
 @unittest.skipUnless(NODE, "Node.js is required for Didi response runtime tests")
 class DidiRuntimeTests(unittest.TestCase):
-    def run_script(self, url, body):
+    def run_script(self, url, body, disable_for_each=False):
         runner = r"""
 const fs = require("fs");
 const vm = require("vm");
@@ -93,6 +111,9 @@ vm.runInContext(
   "const nativeParse = JSON.parse.bind(JSON); JSON.parse = function(value) { __parseCount++; return nativeParse(value); }; Array.prototype.filter = function() { throw new Error('allocating Array.filter remains'); };",
   context
 );
+if (payload.disableForEach) {
+  vm.runInContext("Array.prototype.forEach = function() { throw new Error('second user-center traversal remains'); };", context);
+}
 vm.runInContext(source, context, { timeout: 5000 });
 if (payload.body === null) {
   if (!doneResult || Object.keys(doneResult).length !== 0) throw new Error("empty body did not complete cleanly");
@@ -111,6 +132,13 @@ if (payload.body === null) {
             timeout=10,
         )
         return json.loads(completed.stdout)
+
+    def test_usercenter_wallet_fields_are_compacted_during_the_card_pass(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        self.assertNotIn("obj.data.cards.forEach", source)
+        self.assertIn("if (excludedTitles.includes(card.title)) return false;", source)
+        self.assertIn('compactInPlace(card.items, item => item.title === "优惠券")', source)
+        self.assertIn("return true;", source)
 
     def test_generated_snapshot_has_no_allocating_filter_and_seven_compaction_calls(self):
         source = SOURCE.read_text(encoding="utf-8")
@@ -171,7 +199,7 @@ if (payload.body === null) {
                 {"title": "省钱套餐"}, {"title": "其他"}, {"title": "天天神券"}
             ]},
         ]}}
-        result = self.run_script("https://common.diditaxi.com.cn/common/v1/usercenter/me", profile)
+        result = self.run_script("https://common.diditaxi.com.cn/common/v1/usercenter/me", profile, disable_for_each=True)
         cards = result["output"]["data"]["cards"]
         self.assertEqual([item["title"] for item in cards], ["普通卡片", "钱包"])
         self.assertEqual([item["title"] for item in cards[1]["items"]], ["优惠券"])

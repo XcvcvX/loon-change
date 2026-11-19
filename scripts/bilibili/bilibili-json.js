@@ -45,6 +45,16 @@ if (!$response.body) {
     }
   }
 
+  function countOwnEnumerableKeys(target, limit) {
+    let count = 0;
+    for (const key in target) {
+      if (!Object.prototype.hasOwnProperty.call(target, key)) continue;
+      count++;
+      if (count > limit) return count;
+    }
+    return count;
+  }
+
   function filterAndSortAllowed(items, allowedNames) {
     const originalLength = items.length;
     filterInPlace(items, item => allowedNames.includes(item?.name));
@@ -221,8 +231,10 @@ if (url.includes("/x/resource/show/tab/")) {
   // 搜索框
   if (obj?.data) {
     const current = obj.data;
-    const keys = current && typeof current === "object" && !Array.isArray(current) ? Object.keys(current) : [];
-    const alreadyClean = keys.length === 3 && current.type === "history" &&
+    const keyCount = current && typeof current === "object" && !Array.isArray(current)
+      ? countOwnEnumerableKeys(current, 3)
+      : 0;
+    const alreadyClean = keyCount === 3 && current.type === "history" &&
       current.title === "搜索历史" && current.search_hotword_revision === 2;
     if (!alreadyClean) {
       obj.data = {type: "history", title: "搜索历史", search_hotword_revision: 2};
@@ -286,8 +298,11 @@ if (url.includes("/x/resource/show/tab/")) {
   deleteTracked(obj.data, "activity_banner_info");
   if (obj?.data?.shopping_info) {
     const shopping = obj.data.shopping_info;
+    const keyCount = typeof shopping === "object" && !Array.isArray(shopping)
+      ? countOwnEnumerableKeys(shopping, 1)
+      : 0;
     if (typeof shopping !== "object" || Array.isArray(shopping) ||
-        shopping.is_show !== 0 || Object.keys(shopping).length !== 1) {
+        shopping.is_show !== 0 || keyCount !== 1) {
       obj.data.shopping_info = {is_show: 0};
       modified = true;
     }

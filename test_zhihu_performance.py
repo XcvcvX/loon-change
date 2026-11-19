@@ -13,6 +13,10 @@ class ZhihuOptimizerTests(unittest.TestCase):
         self.assertEqual(src.count("compactInPlace(")-1,11)
         self.assertNotIn(".filter(",src)
         self.assertNotIn("Object.fromEntries(",src)
+        self.assertNotIn('.split("&")',src)
+        self.assertNotIn('split(",", 1)',src)
+        self.assertNotIn("function fixPos(",src)
+        self.assertIn("onKeep",src)
         self.assertNotIn("getUrlParamValue(item.fields.header.url",src)
         self.assertEqual(src.count("fallbackSearch"),3)
 
@@ -45,7 +49,7 @@ process.stdout.write(JSON.stringify(done));
           {"type":"market_card","fields":{"header":{"url":"https://www.zhihu.com/video?videoID=market-1"},"body":{"video":{"id":"old-market"}}}},
           {"type":"common_card","extra":{"type":"drama"}},
           {"type":"common_card","common_card":{"feed_content":{"video":{"id":"old-fallback"}}}},
-          {"type":"common_card","extra":{"type":"zvideo"},"common_card":{"feed_content":{"video":{"customized_page_url":"https://www.zhihu.com/video?x=1&videoID=custom-2","id":"old-custom"}}}},
+          {"type":"common_card","extra":{"type":"zvideo"},"common_card":{"feed_content":{"video":{"customized_page_url":"https://www.zhihu.com/video?x=1&videoID=old&videoID=custom-2#fragment","id":"old-custom"}}}},
           {"type":"common_card","common_card":{"footline":{"elements":[{"text":{"panel_text":"广告推广"}}]}}},
           {"type":"common_card","common_card":{"feed_content":{"source_line":{"elements":[{},{"text":{"panel_text":"盐选专栏"}}]}}}},
           {"type":"common_card","promotion_extra":{}},

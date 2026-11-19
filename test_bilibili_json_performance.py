@@ -11,7 +11,7 @@ SOURCE = ROOT / "scripts" / "bilibili" / "bilibili-json.js"
 
 @unittest.skipUnless(NODE, "Node.js is required for Bilibili response runtime tests")
 class BilibiliResponseCompactionTests(unittest.TestCase):
-    def run_body(self, url, body):
+    def run_body(self, url, body, guard_object_keys=False):
         runner = r"""
 const fs = require("fs");
 const vm = require("vm");
@@ -47,7 +47,11 @@ const context = {
   $done(value) { doneResult = value; },
   console: { log() {}, warn() {}, error() {} }
 };
-vm.runInNewContext(source, context, { timeout: 5000 });
+vm.createContext(context);
+if (payload.guardObjectKeys) {
+  vm.runInContext("Object.keys = function() { throw new Error('Object.keys temporary allocation remains'); };", context);
+}
+vm.runInContext(source, context, { timeout: 5000 });
 if (!doneResult) throw new Error("script did not call $done");
 const hasBody = typeof doneResult.body === "string";
 const output = hasBody ? NativeJSON.parse(doneResult.body) : payload.body;
@@ -57,7 +61,7 @@ process.stdout.write(NativeJSON.stringify({
 """
         completed = subprocess.run(
             [NODE, "-e", runner, str(SOURCE)],
-            input=json.dumps({"url": url, "body": body}),
+            input=json.dumps({"url": url, "body": body, "guardObjectKeys": guard_object_keys}),
             capture_output=True, text=True, check=True, timeout=10,
         )
         return json.loads(completed.stdout)
@@ -208,6 +212,23 @@ process.stdout.write(NativeJSON.stringify({
                          ["user_center/setting", "user_center/feedback"])
         self.assertEqual(data["vip"]["status"], 1)
 
+    def test_search_square_and_live_room_key_checks_do_not_allocate_object_keys(self):
+        search = self.run_body(
+            "https://app.bilibili.com/x/v2/search/square?build=1",
+            {"data": {"type": "history", "title": "搜索历史", "search_hotword_revision": 2}},
+            guard_object_keys=True,
+        )
+        self.assertEqual(search["stringifyCalls"], 0)
+        self.assertFalse(search["hasBody"])
+
+        live = self.run_body(
+            "https://api.live.bilibili.com/xlive/app-room/v1/index/getInfoByRoom?build=1",
+            {"data": {"shopping_info": {"is_show": 0}}},
+            guard_object_keys=True,
+        )
+        self.assertEqual(live["stringifyCalls"], 0)
+        self.assertFalse(live["hasBody"])
+
     def test_live_room_cleanup_marks_only_real_changes(self):
         result = self.run_body(
             "https://api.live.bilibili.com/xlive/app-room/v1/index/getInfoByRoom?build=1",
@@ -231,6 +252,8 @@ process.stdout.write(NativeJSON.stringify({
         self.assertNotIn("items[write++]", source)
         self.assertNotIn("sections[sectionWrite++]", source)
         self.assertNotIn("items[itemWrite++]", source)
+        self.assertNotIn("Object.keys(", source)
+        self.assertIn("function countOwnEnumerableKeys(target, limit)", source)
 
 
 if __name__ == "__main__":
