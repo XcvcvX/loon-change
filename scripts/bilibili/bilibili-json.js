@@ -281,7 +281,12 @@ if (url.includes("/x/resource/show/tab/")) {
   // 直播
   deleteTracked(obj.data, "activity_banner_info");
   if (obj?.data?.shopping_info) {
-    obj.data.shopping_info = {is_show: 0};
+    const shopping = obj.data.shopping_info;
+    if (typeof shopping !== "object" || Array.isArray(shopping) ||
+        shopping.is_show !== 0 || Object.keys(shopping).length !== 1) {
+      obj.data.shopping_info = {is_show: 0};
+      modified = true;
+    }
   }
   if (obj?.data?.new_tab_info?.outer_list?.length > 0) {
     filterTracked(obj.data.new_tab_info.outer_list, (i) => i?.biz_id !== 33);
