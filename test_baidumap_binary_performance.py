@@ -312,8 +312,10 @@ if (doneResult.body) {
         completed = subprocess.run(
             [NODE, "-e", self.runner, str(ROOT / "scripts/baidumap/baidu-map-protobuf.js"),
              content_type, str(start), str(end)],
-            capture_output=True, text=True, check=True, timeout=15,
+            capture_output=True, text=True, check=False, timeout=15,
         )
+        if completed.returncode:
+            raise AssertionError(completed.stderr or completed.stdout)
         return __import__("json").loads(completed.stdout)
 
     def test_non_target_ads_skip_protobuf_encode_md5_and_body_reassembly(self):
