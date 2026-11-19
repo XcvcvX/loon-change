@@ -61,10 +61,10 @@
 |---|---:|
 | [Argument] | 18 |
 | [Rule] | 719 |
-| [Rewrite] | 2362 |
-| [Script] | 350 |
-| [MITM] hostname 条目 | 1236 |
-| 唯一远程脚本 URL | 139 |
+| [Rewrite] | 2359 |
+| [Script] | 349 |
+| [MITM] hostname 条目 | 1234 |
+| 唯一远程脚本 URL | 138 |
 <!-- AUTO_PLUGIN_STATS:END -->
 
 ## 自动更新

@@ -5117,57 +5117,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://(?:gae2-spclient|guc3-spclient|spclient\\\\.wg)\\\\.spotify\\\\.com(:443)?/pendragon/', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 292,
-      "output_line": "^https?:\\/\\/(?:gae2-spclient|guc3-spclient|spclient\\.wg)\\.spotify\\.com(:443)?\\/pendragon\\/ reject-dict",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "^https?:\\/\\/(?:gae2-spclient|guc3-spclient|spclient\\.wg)\\.spotify\\.com(:443)?\\/pendragon\\/ reject-dict",
-          "input_section": "Rewrite",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 291
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://(?:gae2-spclient|guc3-spclient|spclient\\\\.wg)\\\\.spotify\\\\.com(:443)?/(?:ad-logic|ads|.+ad_slot|.+banners|.+canvases|.+cards|.+crashlytics|.+doubleclick.net|.+enabled-tracks|.+event|.+sponsored|.+promoted)', ('REJECT', 'reject_img', 'reject_img(200)'))",
-      "output_entry_index": 293,
-      "output_line": "^https?:\\/\\/(?:gae2-spclient|guc3-spclient|spclient\\.wg)\\.spotify\\.com(:443)?\\/(?:ad-logic|ads|.+ad_slot|.+banners|.+canvases|.+cards|.+crashlytics|.+doubleclick.net|.+enabled-tracks|.+event|.+sponsored|.+promoted) reject-img",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "^https?:\\/\\/(?:gae2-spclient|guc3-spclient|spclient\\.wg)\\.spotify\\.com(:443)?\\/(?:ad-logic|ads|.+ad_slot|.+banners|.+canvases|.+cards|.+crashlytics|.+doubleclick.net|.+enabled-tracks|.+event|.+sponsored|.+promoted) reject-img",
-          "input_section": "Rewrite",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 292
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://(gae2-spclient|guc3-spclient|spclient\\\\.wg)\\\\.spotify\\\\.com(?::443)?/artistview/v1/artist/(.*)&platform=iphone', ('redirect', 'redirect(302, \"https://${m.1}.spotify.com/artistview/v1/artist/${m.2}&platform=ipad\")'))",
-      "output_entry_index": 294,
-      "output_line": "request if ${url} ~= /^https?:\\/\\/(gae2-spclient|guc3-spclient|spclient\\.wg)\\.spotify\\.com(?::443)?\\/artistview\\/v1\\/artist\\/(.*)&platform=iphone/ as m then redirect(302, \"https://${m.1}.spotify.com/artistview/v1/artist/${m.2}&platform=ipad\")",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https?:\\/\\/(gae2-spclient|guc3-spclient|spclient\\.wg)\\.spotify\\.com(?::443)?\\/artistview\\/v1\\/artist\\/(.*)&platform=iphone/ as m then redirect(302, \"https://${m.1}.spotify.com/artistview/v1/artist/${m.2}&platform=ipad\")",
-          "input_section": "Rewrite",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 293
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https?://ccsp-egmas\\\\.sf-express\\\\.com/cx-app-base/base/app/ad/', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
       "output_entry_index": 295,
       "output_line": "^https?:\\/\\/ccsp-egmas\\.sf-express\\.com\\/cx-app-base\\/base\\/app\\/ad\\/ reject-dict",
@@ -50410,23 +50359,6 @@
       ]
     },
     {
-      "canonical_key": "('guarded', '^https?://(?:gae2-spclient|guc3-spclient|spclient\\\\.wg)\\\\.spotify\\\\.com(:443)?/(?:bootstrap/v\\\\d/bootstrap|user-customization-service/v\\\\d/customize)$', ('^https?:\\\\/\\\\/', '^https?:\\\\/\\\\/(?:gae2-spclient|guc3-spclient|spclient\\\\.wg)\\\\.spotify\\\\.com(:443)?\\\\/(?:bootstrap\\\\/v\\\\d\\\\/bootstrap|user-customization-service\\\\/v\\\\d\\\\/customize)$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/spotify.js,tag=SPOTIFY,requires-body=true,binary-body-mode=true'))",
-      "output_entry_index": 55,
-      "output_line": "http-response ^https?:\\/\\/(?:gae2-spclient|guc3-spclient|spclient\\.wg)\\.spotify\\.com(:443)?\\/(?:bootstrap\\/v\\d\\/bootstrap|user-customization-service\\/v\\d\\/customize)$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/spotify.js,tag=SPOTIFY,requires-body=true,binary-body-mode=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/(?:gae2-spclient|guc3-spclient|spclient\\.wg)\\.spotify\\.com(:443)?\\/(?:bootstrap\\/v\\d\\/bootstrap|user-customization-service\\/v\\d\\/customize)$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/spotify.js,tag=SPOTIFY,requires-body=true,binary-body-mode=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 54
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https?://api\\\\.17gwx\\\\.com/v\\\\d/history/remind/listV', ('^https?:\\\\/\\\\/api\\\\.17gwx\\\\.com\\\\/v\\\\d\\\\/history\\\\/remind\\\\/listv', '^https?:\\\\/\\\\/api\\\\.17gwx\\\\.com\\\\/v\\\\d\\\\/history\\\\/remind\\\\/listV script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/sqkb.js,tag=SQKB,requires-body=true'))",
       "output_entry_index": 56,
       "output_line": "http-response ^https?:\\/\\/api\\.17gwx\\.com\\/v\\d\\/history\\/remind\\/listV script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/sqkb.js,tag=SQKB,requires-body=true",
@@ -55166,14 +55098,14 @@
       "included": 0
     },
     "post_transform_reconciled": true,
-    "rewrite_output_entries": 2362,
+    "rewrite_output_entries": 2359,
     "rule_covered_or_duplicate_events": 121,
     "rule_included_events": 723,
     "rule_output_entries": 719,
     "rule_safety_excluded_events": 3,
     "rule_scope_adjustments": 0,
     "rule_source_events": 847,
-    "script_output_entries": 350
+    "script_output_entries": 349
   },
   "upstream_revisions": {
     "AlipayAdBlock": {
