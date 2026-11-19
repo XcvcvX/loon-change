@@ -1,7 +1,10 @@
 import json
 import shutil
 import subprocess
+import sys
 import unittest
+
+sys.setrecursionlimit(10000)
 from pathlib import Path
 
 from optimize_xiaohongshu_rstore import LOCAL, REMOTE, MARKER, optimize_source, rewrite_plugin
