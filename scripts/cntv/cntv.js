@@ -79,32 +79,20 @@ if (isIQY) {
       delete obj.content.weather;
     }
   } else if (url.includes("/getMyMenus?")) {
+    // loon-change: CNTV getMyMenus in-place compaction v1
     // 爱奇艺 我的页面
     if (obj?.data?.length > 0) {
-      let newMenus = [];
-      for (let item of obj.data) {
+      compactInPlace(obj.data, item => {
         if (["wd_liebiao_2", "wd_liebiao_3", "wd_liebiao_4"]?.includes(item?.statistic?.block)) {
           // 精简列表
-          continue;
-        } else {
-          if (item?.menuList?.length > 0) {
-            let newLists = [];
-            for (let i of item.menuList) {
-              if (i?.menuType === 121) {
-                // 121有奖限时问卷
-                continue;
-              } else {
-                newLists.push(i);
-              }
-            }
-            item.menuList = newLists;
-            newMenus.push(item);
-          } else {
-            newMenus.push(item);
-          }
+          return false;
         }
-      }
-      obj.data = newMenus;
+        if (item?.menuList?.length > 0) {
+          // 121有奖限时问卷
+          compactInPlace(item.menuList, menu => menu?.menuType !== 121);
+        }
+        return true;
+      });
     }
   } else if (url.includes("/home_top_menu?")) {
     // 爱奇艺 顶部tab
