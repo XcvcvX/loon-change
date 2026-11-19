@@ -11,13 +11,13 @@ NODE = shutil.which("node")
 
 @unittest.skipUnless(NODE, "Node.js is required for the Xiaohongshu runtime regression tests")
 class XiaohongshuV4SinglePassTests(unittest.TestCase):
-    def run_script(self, url, body):
+    def run_script(self, url, body, disable_filter=False, initial_store=None):
         runner = r"""
 const fs = require("fs");
 const vm = require("vm");
 const source = fs.readFileSync("scripts/xiaohongshu/xiaohongshu-v4.js", "utf8");
 const payload = JSON.parse(fs.readFileSync(0, "utf8"));
-const store = new Map();
+const store = new Map(Object.entries(payload.store || {}));
 let doneResult;
 const context = {
   // Make the bundled Env helper select Loon storage rather than writing box.dat
@@ -32,6 +32,9 @@ const context = {
   $done: value => { doneResult = value; },
   console: { log() {}, warn() {}, error() {} }
 };
+if (payload.disableFilter) {
+  vm.runInNewContext("Array.prototype.filter = function() { throw new Error('Array.filter allocation remains'); };", context);
+}
 vm.runInNewContext(source, context, { timeout: 5000 });
 const result = {
   done: Boolean(doneResult),
@@ -42,7 +45,7 @@ process.stdout.write(JSON.stringify(result));
 """
         result = subprocess.run(
             [NODE, "-e", runner],
-            input=json.dumps({"url": url, "body": body}),
+            input=json.dumps({"url": url, "body": body, "disableFilter": disable_filter, "store": initial_store or {}}),
             cwd=ROOT,
             capture_output=True,
             text=True,
@@ -156,6 +159,109 @@ process.stdout.write(JSON.stringify(result));
         self.assertIn("items[write++] = item", block)
         self.assertIn("items.length = write", block)
         self.assertIn("processVideoFeedItem(item, videoData)", block)
+
+
+    def test_search_follow_and_home_feeds_compact_in_place_without_filter(self):
+        cases = [
+            (
+                "https://edith.xiaohongshu.com/api/sns/v1/search/notes?keyword=test",
+                {"data": {"items": [
+                    {"id": "note-1", "model_type": "note"},
+                    {"id": "ad-1", "model_type": "ads"},
+                    {"id": "note-2", "model_type": "note"},
+                ]}},
+                ["note-1", "note-2"],
+            ),
+            (
+                "https://edith.xiaohongshu.com/api/sns/v1/user/followings/followfeed",
+                {"data": {"items": [
+                    {"id": "friend-1", "recommend_reason": "friend_post"},
+                    {"id": "recommend-1", "recommend_reason": "recommend_user"},
+                    {"id": "friend-2", "recommend_reason": "friend_post"},
+                ]}},
+                ["friend-1", "friend-2"],
+            ),
+            (
+                "https://edith.xiaohongshu.com/api/sns/v4/followfeed",
+                {"data": {"items": [
+                    {"id": "friend-1", "recommend_reason": "friend_post"},
+                    {"id": "recommend-1", "recommend_reason": "recommend_user"},
+                    {"id": "friend-2", "recommend_reason": "friend_post"},
+                ]}},
+                ["friend-1", "friend-2"],
+            ),
+        ]
+        for url, body, expected in cases:
+            with self.subTest(url=url):
+                result = self.run_script(url, body, disable_filter=True)
+                self.assertTrue(result["done"])
+                self.assertEqual(
+                    [item["id"] for item in result["body"]["data"]["items"]],
+                    expected,
+                )
+
+        home = self.run_script(
+            "https://edith.xiaohongshu.com/api/sns/v6/homefeed",
+            {"data": [
+                {"id": "keep-1", "related_ques": {"id": 1}},
+                {"id": "live", "model_type": "live_v2"},
+                {"id": "ad", "ads_info": {}},
+                {"id": "goods", "note_attributes": ["goods"]},
+                None,
+                {"id": "keep-2"},
+            ]},
+            disable_filter=True,
+        )
+        self.assertEqual(
+            [item.get("id") if item else None for item in home["body"]["data"]],
+            ["keep-1", None, "keep-2"],
+        )
+        self.assertNotIn("related_ques", home["body"]["data"][0])
+
+    def test_imagefeed_hash_tags_compact_in_place_without_filter(self):
+        result = self.run_script(
+            "https://edith.xiaohongshu.com/api/sns/v1/note/imagefeed?cursor=test",
+            {"data": [{"note_list": [{
+                "images_list": [],
+                "hash_tag": [
+                    {"type": "normal", "id": 1},
+                    {"type": "interact_vote", "id": 2},
+                    {"type": "normal", "id": 3},
+                ],
+            }]}]},
+            disable_filter=True,
+        )
+        tags = result["body"]["data"][0]["note_list"][0]["hash_tag"]
+        self.assertEqual([item["id"] for item in tags], [1, 3])
+
+    def test_comment_cache_dedup_appends_and_compacts_in_place(self):
+        cached = {
+            "noteId": "note-1",
+            "livePhotos": [{"videId": "old", "videoUrl": "old-url"}],
+        }
+        video_info = json.dumps({"stream": {"h265": [
+            {"master_url": "old-new-url", "width": 1080, "height": 1920, "avg_bitrate": 1},
+        ]}})
+        new_info = json.dumps({"stream": {"h265": [
+            {"master_url": "new-url", "width": 1080, "height": 1920, "avg_bitrate": 2},
+        ]}})
+        result = self.run_script(
+            "https://edith.xiaohongshu.com/api/sns/v5/note/comment/list?note_id=note-1",
+            {"data": {"comments": [{
+                "id": "comment-1",
+                "note_id": "note-1",
+                "pictures": [
+                    {"video_id": "old", "video_info": video_info},
+                    {"video_id": "new", "video_info": new_info},
+                ],
+            }]}},
+            disable_filter=True,
+            initial_store={"fmz200.xiaohongshu.comments.rsp": json.dumps(cached)},
+        )
+        stored = json.loads(result["store"]["fmz200.xiaohongshu.comments.rsp"])
+        self.assertEqual([item["videId"] for item in stored["livePhotos"]], ["old", "new"])
+        self.assertEqual(stored["livePhotos"][0]["videoUrl"], "old-url")
+        self.assertEqual(stored["livePhotos"][1]["videoUrl"], "new-url")
 
 
 if __name__ == "__main__":
