@@ -84,11 +84,14 @@ def replace_rstore_spotify_rules(plugin):
             section = header.group(1).strip().lower()
             output.append(line)
             continue
-        if section in {"rule", "rewrite", "script"} and not line.lstrip().startswith("#"):
-            lower = line.lower()
-            if "spotify.com" in lower or "spotify.js" in lower:
-                removed += 1
+        if section in {"rule", "rewrite", "script"}:
+            if line.strip() == "# Spotify ad-block rules; generated from upstream by integrate_spotify.py":
                 continue
+            if not line.lstrip().startswith("#"):
+                lower = line.lower()
+                if "spotify.com" in lower or "spotify.js" in lower:
+                    removed += 1
+                    continue
         if section == "mitm" and line.strip().lower().startswith("hostname"):
             prefix, values = line.split("=", 1)
             hosts = [host.strip() for host in values.split(",") if host.strip()]
