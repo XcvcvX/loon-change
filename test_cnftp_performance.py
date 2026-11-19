@@ -24,6 +24,83 @@ class CnftpPerformanceTests(unittest.TestCase):
         self.assertNotIn("newNode4", branch)
         self.assertNotIn('console.log("移除首页的轮播广告")', branch)
 
+    def test_upstream_home_feed_branch_is_migrated_fail_closed(self):
+        fixture = """const url = $request.url;
+if (isYK) {
+  } else if (url.includes("columbus.home.feed/")) {
+  let newNodes1 = [];
+  for (let node1 of objData.nodes) {
+    if (node1?.typeName === "PHONE_FEED_CARD_GROUP") {
+      let newNode2 = [];
+      for (let node2 of node1.nodes) {
+        if (node2?.typeName === "PHONE_FEED_CARD_S_AD") continue;
+        else if (node2?.typeName === "PHONE_H_UC_AD") continue;
+        else newNode2.push(node2);
+      }
+      node1.nodes = newNode2;
+      newNodes1.push(node1);
+    } else newNodes1.push(node1);
+  }
+  objData.nodes = newNodes1;
+  } else if (url.includes("columbus.home.query/")) {
+  let newNodes1 = []; let newNode2 = []; let newNode3 = []; let newNode4 = [];
+  if (node3.id === 272768) {}
+  } else if (url.includes("columbus.uc.query/")) {}
+"""
+        optimized = optimize_source(fixture, "a" * 40)
+        self.assertIn("Youku home.feed in-place compaction v1", optimized)
+        self.assertIn("compactInPlace(objData.nodes", optimized)
+        self.assertIn("compactInPlace(node1.nodes", optimized)
+        self.assertNotIn("let newNodes1 = [];", optimized)
+        self.assertEqual(optimize_source(optimized), optimized)
+
+    def test_node_runtime_compacts_youku_home_feed_without_filter_allocations(self):
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node.js is required for CNFTP runtime tests")
+        harness = r'''
+const fs = require("fs"), vm = require("vm");
+const source = fs.readFileSync(process.argv[1], "utf8");
+const body = { data: { "2019061000": { data: { nodes: [
+  { typeName: "PHONE_FEED_CARD_GROUP", nodes: [
+    { typeName: "PHONE_FEED_CARD_S_AD", id: "small-ad" },
+    { typeName: "NORMAL", id: "keep-1" },
+    { typeName: "PHONE_H_UC_AD", id: "wide-ad" },
+    { typeName: "NORMAL", id: "keep-2" }
+  ]},
+  { typeName: "NORMAL", id: "outside-group" }
+]}}}};
+let parseCalls = 0, stringifyCalls = 0, doneResult;
+const nativeJSON = JSON;
+const trackedJSON = {
+  parse(value) { parseCalls++; return nativeJSON.parse(value); },
+  stringify(value) { stringifyCalls++; return nativeJSON.stringify(value); }
+};
+const context = {
+  JSON: trackedJSON,
+  $request: { url: "https://acs.youku.com/gw/mtop.youku.columbus.home.feed/" },
+  $response: { body: nativeJSON.stringify(body) },
+  $done(value) { doneResult = value; },
+  console: { log() {}, warn() {}, error() {} }
+};
+vm.createContext(context);
+const nativeFilter = Array.prototype.filter; Array.prototype.filter = function() { throw new Error("Array.filter allocation remains"); };
+vm.runInContext(source, context, { timeout: 5000 });
+Array.prototype.filter = nativeFilter;
+if (parseCalls !== 1 || stringifyCalls !== 1) throw new Error("unexpected JSON round trips");
+if (!doneResult || typeof doneResult.body !== "string") throw new Error("missing rewritten body");
+const output = nativeJSON.parse(doneResult.body);
+const nodes = output.data["2019061000"].data.nodes;
+if (nodes.length !== 2 || nodes[1].id !== "outside-group") throw new Error("outer node order changed");
+const children = nodes[0].nodes;
+if (children.length !== 2 || children[0].id !== "keep-1" || children[1].id !== "keep-2") throw new Error("home feed ad compaction mismatch");
+'''
+        result = subprocess.run(
+            [node, "-e", harness, str(SOURCE_PATH)],
+            capture_output=True, text=True, check=False, timeout=10,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
+
     def test_rewrites_exact_cnftp_trigger_inventory_and_is_idempotent(self):
         fixture = "[Script]\n" + "\n".join(
             'response if ${url} ~= /^https:\\/\\/example\\.com\\/%d/ then script("%s") with requires_body=true' % (i, REMOTE_URL)
