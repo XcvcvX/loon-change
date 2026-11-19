@@ -11,16 +11,17 @@ SOURCE = ROOT / "scripts" / "bilibili" / "bilibili-json.js"
 
 @unittest.skipUnless(NODE, "Node.js is required for Bilibili response runtime tests")
 class BilibiliResponseCompactionTests(unittest.TestCase):
-    def run_script(self, url, items):
+    def run_body(self, url, body):
         runner = r"""
 const fs = require("fs");
 const vm = require("vm");
 const source = fs.readFileSync(process.argv[1], "utf8");
 const payload = JSON.parse(fs.readFileSync(0, "utf8"));
 const NativeJSON = JSON;
-let numericWrites = 0;
+let numericWrites = 0, parseCalls = 0, stringifyCalls = 0;
 const instrumentedJSON = {
   parse(text) {
+    parseCalls++;
     const value = NativeJSON.parse(text);
     const list = value && value.data && value.data.items;
     if (Array.isArray(list)) {
@@ -33,28 +34,36 @@ const instrumentedJSON = {
     }
     return value;
   },
-  stringify(value) { return NativeJSON.stringify(value); }
+  stringify(value) {
+    stringifyCalls++;
+    return NativeJSON.stringify(value);
+  }
 };
 let doneResult;
 const context = {
   JSON: instrumentedJSON,
   $request: { url: payload.url },
-  $response: { body: JSON.stringify(payload.body) },
+  $response: { body: NativeJSON.stringify(payload.body) },
   $done(value) { doneResult = value; },
   console: { log() {}, warn() {}, error() {} }
 };
 vm.runInNewContext(source, context, { timeout: 5000 });
-if (!doneResult || typeof doneResult.body !== "string") throw new Error("missing rewritten response");
-const output = JSON.parse(doneResult.body);
-process.stdout.write(JSON.stringify({ output, numericWrites }));
+if (!doneResult) throw new Error("script did not call $done");
+const hasBody = typeof doneResult.body === "string";
+const output = hasBody ? NativeJSON.parse(doneResult.body) : payload.body;
+process.stdout.write(NativeJSON.stringify({
+  output, numericWrites, parseCalls, stringifyCalls, hasBody
+}));
 """
-        body = {"data": {"items": items}}
         completed = subprocess.run(
             [NODE, "-e", runner, str(SOURCE)],
             input=json.dumps({"url": url, "body": body}),
             capture_output=True, text=True, check=True, timeout=10,
         )
         return json.loads(completed.stdout)
+
+    def run_script(self, url, items):
+        return self.run_body(url, {"data": {"items": items}})
 
     def test_feed_kept_items_are_not_written_back_to_the_same_indices(self):
         items = [{"id": "a", "card_goto": "av"}, {"id": "b", "card_goto": "av"}]
