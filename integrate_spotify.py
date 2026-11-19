@@ -76,14 +76,20 @@ def insert_section(plugin, section, additions):
 def remove_rstore_spotify_entitlement_script(plugin):
     """Remove R-Store's overlapping bootstrap/customization protobuf mutator."""
     lines = plugin.splitlines()
-    pattern = re.compile(
-        r"^\s*http-response\s+\^https?:\\/\\/(?:gae2-spclient|guc3-spclient|spclient\\.wg)"
-        r"\\.spotify\\.com.*(?:bootstrap\\/v\\d\\/bootstrap|user-customization-service\\/v\\d\\/customize)"
-        r".*spotify\\.js(?:,|\s|$)",
-        re.IGNORECASE,
-    )
-    kept = [line for line in lines if not pattern.search(line)]
-    removed = len(lines) - len(kept)
+    marker = "R-Store/main/Res/Scripts/AntiAd/spotify.js"
+    kept = []
+    removed = 0
+    for line in lines:
+        is_rstore_startup_mutator = (
+            line.lstrip().lower().startswith("http-response ")
+            and marker in line
+            and "bootstrap" in line
+            and "user-customization-service" in line
+        )
+        if is_rstore_startup_mutator:
+            removed += 1
+        else:
+            kept.append(line)
     if removed > 1:
         raise ValueError(f"发现 {removed} 条 R-Store Spotify entitlement 脚本，预期最多 1 条")
     return "\n".join(kept).rstrip() + "\n", removed
