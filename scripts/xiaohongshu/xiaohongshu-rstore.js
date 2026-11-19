@@ -1,4 +1,4 @@
-// loon-change: R-Store Xiaohongshu hot-path optimization v1; upstream zirawell/R-Store@3dacb509fade4e910c5698be1919705ce6cc1d8f
+// loon-change: R-Store Xiaohongshu hot-path optimization v1; upstream zirawell/R-Store@d0f4dd305bade7cc6a38e3445a768d72aaea0e5b
 /********************************
 XiaoHongShu Remove Ads - Version 2.0
 Checkout Source: 
@@ -21,15 +21,27 @@ function compactInPlace(items, keep) {
   let write = 0;
   for (let read = 0, length = items.length; read < length; read++) {
     const item = items[read];
-    if (keep(item, read)) { if (write !== read) items[write] = item; write++; }
+    if (keep(item, read)) {
+      if (write !== read) items[write] = item;
+      write++;
+    }
   }
   items.length = write;
   return items;
 }
 function appendUniqueLivePhotos(existing, incoming) {
   const seen = new Set();
-  compactInPlace(existing, item => { if (seen.has(item.videId)) return false; seen.add(item.videId); return true; });
-  for (const item of incoming) if (!seen.has(item.videId)) { seen.add(item.videId); existing.push(item); }
+  compactInPlace(existing, item => {
+    if (seen.has(item.videId)) return false;
+    seen.add(item.videId);
+    return true;
+  });
+  for (const item of incoming) {
+    if (!seen.has(item.videId)) {
+      seen.add(item.videId);
+      existing.push(item);
+    }
+  }
   return existing;
 }
 if (!$response.body) $done({});
@@ -62,7 +74,7 @@ if (url.includes("/note/imagefeed") || url.includes("/note/feed")) {
       }
 
       const images_list = obj.data[0].note_list[0].images_list;
-      // Cache original image URLs once before mutating the parsed response object.
+      // Cache the original image URLs once, then mutate the parsed object in place.
       $.setdata(JSON.stringify(images_list), "redBookLivePhoto");
       imageEnhance(images_list);
     }
@@ -167,7 +179,9 @@ if (url.includes("/note/imagefeed") || url.includes("/note/feed")) {
           let selectedStream = null;
           for (const stream of h265List) {
             if (!stream || !stream.master_url || !stream.height) continue;
-            if (!selectedStream || Number(stream.height) > Number(selectedStream.height)) selectedStream = stream;
+            if (!selectedStream || Number(stream.height) > Number(selectedStream.height)) {
+              selectedStream = stream;
+            }
           }
     
           // 存入缓存数组
@@ -340,24 +354,55 @@ function imageEnhance(images) {
   let originalDone = false;
   const stack = [{value: images, index: 0, keys: null}];
   while (stack.length) {
-    const frame = stack[stack.length - 1], value = frame.value;
+    const frame = stack[stack.length - 1];
+    const value = frame.value;
     if (Array.isArray(value)) {
-      if (frame.index >= value.length) { stack.pop(); continue; }
-      const key = frame.index++, child = value[key];
+      if (frame.index >= value.length) {
+        stack.pop();
+        continue;
+      }
+      const key = frame.index++;
+      const child = value[key];
       if (typeof child === "string" && child.includes("imageView2/2")) {
         if (quality === "original") {
-          if (!originalDone) { const changed = child.replace(originalPattern, "?imageView2/0/format/png&redImage/frame/0"); if (changed !== child) { value[key] = changed; originalDone = true; } }
-        } else value[key] = child.replace(widthPattern, "imageView2/2/w/2160/format").replace(heightPattern, "imageView2/2/h/2160/format");
-      } else if (child && typeof child === "object") stack.push({value: child, index: 0, keys: null});
+          if (!originalDone) {
+            const changed = child.replace(originalPattern, "?imageView2/0/format/png&redImage/frame/0");
+            if (changed !== child) {
+              value[key] = changed;
+              originalDone = true;
+            }
+          }
+        } else {
+          value[key] = child.replace(widthPattern, "imageView2/2/w/2160/format")
+            .replace(heightPattern, "imageView2/2/h/2160/format");
+        }
+      } else if (child && typeof child === "object") {
+        stack.push({value: child, index: 0, keys: null});
+      }
     } else {
       if (frame.keys === null) frame.keys = Object.keys(value);
-      if (frame.index >= frame.keys.length) { stack.pop(); continue; }
-      const key = frame.keys[frame.index++], child = value[key];
+      if (frame.index >= frame.keys.length) {
+        stack.pop();
+        continue;
+      }
+      const key = frame.keys[frame.index++];
+      const child = value[key];
       if (typeof child === "string" && child.includes("imageView2/2")) {
         if (quality === "original") {
-          if (!originalDone) { const changed = child.replace(originalPattern, "?imageView2/0/format/png&redImage/frame/0"); if (changed !== child) { value[key] = changed; originalDone = true; } }
-        } else value[key] = child.replace(widthPattern, "imageView2/2/w/2160/format").replace(heightPattern, "imageView2/2/h/2160/format");
-      } else if (child && typeof child === "object") stack.push({value: child, index: 0, keys: null});
+          if (!originalDone) {
+            const changed = child.replace(originalPattern, "?imageView2/0/format/png&redImage/frame/0");
+            if (changed !== child) {
+              value[key] = changed;
+              originalDone = true;
+            }
+          }
+        } else {
+          value[key] = child.replace(widthPattern, "imageView2/2/w/2160/format")
+            .replace(heightPattern, "imageView2/2/h/2160/format");
+        }
+      } else if (child && typeof child === "object") {
+        stack.push({value: child, index: 0, keys: null});
+      }
     }
   }
   return images;
@@ -366,18 +411,26 @@ function imageEnhance(images) {
 
 function replaceUrlContent(collectionA, collectionB) {
   const byFileId = new Map();
-  for (const item of collectionB) if (item && !byFileId.has(item.file_id)) byFileId.set(item.file_id, item);
+  for (const item of collectionB) {
+    if (item && !byFileId.has(item.file_id)) byFileId.set(item.file_id, item);
+  }
   for (const item of collectionA) {
     const found = byFileId.get(item.file_id);
     if (!found) continue;
-    item.url = item.url !== "" ? item.url.replace(/^https?:\/\/.*\.mp4(\?[^"]*)?/g, found.url.match(/(.*)\.mp4/)[1] + ".mp4") : found.url;
+    item.url = item.url !== ""
+      ? item.url.replace(/^https?:\/\/.*\.mp4(\?[^"]*)?/g, found.url.match(/(.*)\.mp4/)[1] + ".mp4")
+      : found.url;
   }
 }
 
 
 function deDuplicateLivePhotos(livePhotos) {
   const seen = new Set();
-  return compactInPlace(livePhotos, item => { if (seen.has(item.videId)) return false; seen.add(item.videId); return true; });
+  return compactInPlace(livePhotos, item => {
+    if (seen.has(item.videId)) return false;
+    seen.add(item.videId);
+    return true;
+  });
 }
 
 
