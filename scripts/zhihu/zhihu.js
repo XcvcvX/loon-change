@@ -15,6 +15,29 @@ if (!$response.body) {
   $done({});
 } else {
 const url = $request.url;
+const supportedPaths = [
+  "/answers/v2/",
+  "/articles/v2/",
+  "/api/cloud/config/all",
+  "/api/v4/answers",
+  "/api/v4/articles",
+  "/appcloud2.zhihu.com/v3/config",
+  "/bazaar/vip_tab/header",
+  "/commercial_api/app_float_layer",
+  "/feed/render/tab/config",
+  "/moments_v3",
+  "/next-bff",
+  "/next-data",
+  "/next-render",
+  "/questions/",
+  "/root/tab",
+  "/topstory/hot-lists/everyone-seeing",
+  "/topstory/hot-lists/total",
+  "/topstory/recommend"
+];
+if (!supportedPaths.some(path => url.includes(path))) {
+  $done({});
+} else {
 function compactInPlace(items, keep, onKeep) {
   let write = 0;
   for (let read = 0, length = items.length; read < length; read++) {
@@ -269,5 +292,6 @@ function getUrlParamValue(url, queryName) {
     cursor = partEnd + 1;
   }
   return value;
+}
 }
 }
