@@ -4729,7 +4729,7 @@ class XiaohongshuV4AndCommentMigrationTests(unittest.TestCase):
             fixture.extend(remove)
         fixture.append("[Script]")
         cleaned, removed = remove_reviewed_rewrite_overlap_rules(fixture)
-        self.assertEqual(removed, 39)
+        self.assertEqual(removed, 37)
         for keep, _ in REVIEWED_REWRITE_OVERLAP_PAIRS:
             for canonical in keep:
                 self.assertIn(canonical, cleaned)
@@ -4737,6 +4737,22 @@ class XiaohongshuV4AndCommentMigrationTests(unittest.TestCase):
             for shadow in shadows:
                 self.assertNotIn(shadow, cleaned)
         self.assertEqual(remove_reviewed_rewrite_overlap_rules(cleaned), (cleaned, 0))
+
+
+    def test_preserves_earlier_specific_status_exceptions_before_broader_fallbacks(self):
+        from pathlib import Path
+        from apply_local_overrides import apply
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        result = apply(plugin)
+        rewrite = result.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
+        pic_specific = "^https?:\\/\\/pic\\.k\\.sohu\\.com\\/img8\\/wb\\/tj\\/ reject-200"
+        pic_broad = "request if ${url} ~= /^https?:\\/\\/pic\\.k\\.sohu\\.com\\/img\\d\\/wb\\/tj\\// then reject(404)"
+        issue_specific = "^https?:\\/\\/issuecdn\\.baidupcs\\.com\\/issue\\/netdisk\\/guanggao\\/ reject-200"
+        issue_broad = "request if ${url} ~= /^https?:\\/\\/issuecdn\\.baidupcs\\.com\\/issue\\/netdisk\\/guanggao/ then reject(404)"
+        self.assertIn(pic_specific, rewrite)
+        self.assertIn(issue_specific, rewrite)
+        self.assertLess(rewrite.index(pic_specific), rewrite.index(pic_broad))
+        self.assertLess(rewrite.index(issue_specific), rewrite.index(issue_broad))
 
     def test_rewrite_overlap_cleanup_fails_closed_without_canonical_cover(self):
         from apply_local_overrides import (
