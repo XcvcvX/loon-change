@@ -41,7 +41,7 @@ def optimize_get_my_menus(source):
     if source.count(old_block) != 1:
         raise ValueError("CNTV getMyMenus block changed; refusing in-place compaction")
     source = source.replace(old_block, new_block, 1)
-    source = source.replace(anchor, anchor + "\\n    " + MENUS_MARKER, 1)
+    source = source.replace(anchor, anchor + "\n    " + MENUS_MARKER, 1)
     if "newMenus" in source or "newLists" in source:
         raise ValueError("CNTV getMyMenus temporary arrays remain")
     return source
