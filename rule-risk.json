@@ -23,7 +23,7 @@
     "low": 0,
     "medium": 0
   },
-  "run_id": "44489124431",
+  "run_id": "44489750590",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -40,10 +40,10 @@
   "source_health_warnings": [],
   "source_trends_last_30_snapshots": {
     "aoomee": {
-      "action_changed": 64,
+      "action_changed": 43,
       "added": 156,
       "removed": 3,
-      "snapshots_seen": 6
+      "snapshots_seen": 5
     },
     "base": {
       "action_changed": 19,
@@ -54,8 +54,8 @@
     "block": {
       "action_changed": 20,
       "added": 0,
-      "removed": 3074,
-      "snapshots_seen": 3
+      "removed": 3065,
+      "snapshots_seen": 2
     },
     "filter": {
       "action_changed": 0,
@@ -71,9 +71,9 @@
     },
     "local_overrides": {
       "action_changed": 0,
-      "added": 84,
-      "removed": 119,
-      "snapshots_seen": 7
+      "added": 57,
+      "removed": 101,
+      "snapshots_seen": 6
     },
     "myblockads": {
       "action_changed": 0,
@@ -94,10 +94,10 @@
       "snapshots_seen": 1
     },
     "zmjapp": {
-      "action_changed": 8,
+      "action_changed": 6,
       "added": 3,
       "removed": 3,
-      "snapshots_seen": 5
+      "snapshots_seen": 4
     },
     "zmjgen": {
       "action_changed": 2,
