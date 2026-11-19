@@ -57,6 +57,8 @@ class DidiOptimizerTests(unittest.TestCase):
         self.assertEqual(result.count("compactInPlace("), EXPECTED_FILTERS + 1)
         self.assertIsNone(re.search(r"\.filter\s*\(", result))
         self.assertIn("if (!$response.body) {", result)
+        self.assertIn("$done(modified ? {body: JSON.stringify(obj)} : {});", result)
+        self.assertIn("if (write !== length) modified = true;", result)
         self.assertTrue(result.rstrip().endswith("}"))
         self.assertEqual(optimize_source(result), result)
 
@@ -104,11 +106,12 @@ const context = {
   $response: { body: payload.body === null ? "" : JSON.stringify(payload.body) },
   $done(value) { doneResult = value; },
   __parseCount: 0,
+  __stringifyCount: 0,
   console: { log() {}, warn() {}, error() {} }
 };
 vm.createContext(context);
 vm.runInContext(
-  "const nativeParse = JSON.parse.bind(JSON); JSON.parse = function(value) { __parseCount++; return nativeParse(value); }; Array.prototype.filter = function() { throw new Error('allocating Array.filter remains'); };",
+  "const nativeParse = JSON.parse.bind(JSON); JSON.parse = function(value) { __parseCount++; return nativeParse(value); }; const nativeStringify = JSON.stringify.bind(JSON); JSON.stringify = function(value) { __stringifyCount++; return nativeStringify(value); }; Array.prototype.filter = function() { throw new Error('allocating Array.filter remains'); };",
   context
 );
 if (payload.disableForEach) {
@@ -117,10 +120,11 @@ if (payload.disableForEach) {
 vm.runInContext(source, context, { timeout: 5000 });
 if (payload.body === null) {
   if (!doneResult || Object.keys(doneResult).length !== 0) throw new Error("empty body did not complete cleanly");
-  process.stdout.write(JSON.stringify({ parseCount: context.__parseCount, empty: true }));
+  process.stdout.write(JSON.stringify({ parseCount: context.__parseCount, stringifyCount: context.__stringifyCount, empty: true }));
+} else if (!doneResult || typeof doneResult.body !== "string") {
+  process.stdout.write(JSON.stringify({ parseCount: context.__parseCount, stringifyCount: context.__stringifyCount, passThrough: true }));
 } else {
-  if (!doneResult || typeof doneResult.body !== "string") throw new Error("missing rewritten response");
-  process.stdout.write(JSON.stringify({ parseCount: context.__parseCount, output: JSON.parse(doneResult.body) }));
+  process.stdout.write(JSON.stringify({ parseCount: context.__parseCount, stringifyCount: context.__stringifyCount, output: JSON.parse(doneResult.body) }));
 }
 """
         completed = subprocess.run(
@@ -218,6 +222,22 @@ if (payload.body === null) {
         )
         self.assertEqual(result["output"]["data"]["disorder_cards"]["top_banner_card"]["data"],
                          [{"T": "keep"}])
+
+    def test_unchanged_homepage_skips_json_serialization(self):
+        body = {
+            "data": {
+                "order_cards": {"nav_list_card": {"data": [
+                    {"nav_id": "dache_anycar"}, {"nav_id": "driverservice"}, {"nav_id": "bike"}
+                ]}},
+                "disorder_cards": {"bottom_nav_list": {"data": [
+                    {"id": "v6x_home"}, {"id": "user_center"}
+                ]}},
+            }
+        }
+        result = self.run_script("https://conf.diditaxi.com.cn/homepage/v1/core", body)
+        self.assertTrue(result["passThrough"])
+        self.assertEqual(result["parseCount"], 1)
+        self.assertEqual(result["stringifyCount"], 0)
 
     def test_empty_body_skips_json_parse(self):
         result = self.run_script(

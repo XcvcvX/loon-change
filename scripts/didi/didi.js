@@ -1,4 +1,4 @@
-// loon-change: Didi response compaction optimization v1; upstream zirawell/R-Store@d0f4dd305bade7cc6a38e3445a768d72aaea0e5b
+// loon-change: Didi response compaction and lazy serialization optimization v2; upstream zirawell/R-Store@d0f4dd305bade7cc6a38e3445a768d72aaea0e5b
 /********************************
 Didi Remove Ads - Version 1.0
 Please note that you may need to reinstall app for script to work.
@@ -11,6 +11,7 @@ https://raw.githubusercontent.com/zirawell/R-Store/main/Rule/Surge/Adblock/App/D
 ********************************/
 
 const url = $request.url;
+let modified = false;
 
 function compactInPlace(items, keep) {
   const length = items.length;
@@ -23,6 +24,7 @@ function compactInPlace(items, keep) {
     }
   }
   items.length = write;
+  if (write !== length) modified = true;
   return items;
 }
 
@@ -37,11 +39,13 @@ if (url.includes("/other/pGetSceneList")) {
     compactInPlace(obj.data.scene_list, item => item.text !== "优惠商城");
   }
   if (obj && obj.data && obj.data.show_data instanceof Array) {
-    obj.data.show_data.forEach((block) => {
+    const showData = obj.data.show_data;
+    for (let read = 0; read < showData.length; read++) {
+      const block = showData[read];
       if (block.scene_ids instanceof Array) {
         compactInPlace(block.scene_ids, id => id !== "scene_coupon_mall");
       }
-    });
+    }
   }
 }
 
@@ -62,6 +66,7 @@ if (url.includes("/ota/na/yuantu/infoList")) {
   if (obj.data && obj.data.disorder_cards && obj.data.disorder_cards.top_banner_card && obj.data.disorder_cards.top_banner_card.data && obj.data.disorder_cards.top_banner_card.data[0] && obj.data.disorder_cards.top_banner_card.data[0].T === "yuentu_top_banner") {
     // 移除顶部卡片
     obj.data.disorder_cards.top_banner_card.data.splice(0, 1);
+    modified = true;
   }
 }
 
@@ -86,5 +91,5 @@ if (url.includes("/usercenter/me")) {
   }
 }
 
-$done({body: JSON.stringify(obj)});
+$done(modified ? {body: JSON.stringify(obj)} : {});
 }
