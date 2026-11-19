@@ -20,7 +20,7 @@ const payload = JSON.parse(fs.readFileSync(0, "utf8"));
 let doneResult;
 const context = {
   $request: { url: payload.url },
-  $response: { body: JSON.stringify(payload.body) },
+  $response: { body: payload.body === null ? "" : JSON.stringify(payload.body) },
   $done: value => { doneResult = value; },
   console: { log() {}, warn() {}, error() {} }
 };
@@ -170,6 +170,40 @@ process.stdout.write(JSON.stringify(JSON.parse(doneResult.body)));
             data["front_end"]["download"],
             [{"dynamic_id_s": "normal-voice"}],
         )
+
+    def test_empty_response_completes_without_attempting_json_parse(self):
+        runner = r"""
+const fs = require("fs");
+const vm = require("vm");
+const source = fs.readFileSync("sources/amap/rucu6_amap.js", "utf8");
+let doneResult, parseCalls = 0;
+const nativeJSON = JSON;
+const trackedJSON = {
+  parse(value) { parseCalls++; return nativeJSON.parse(value); },
+  stringify(value) { return nativeJSON.stringify(value); }
+};
+const context = {
+  JSON: trackedJSON,
+  $request: { url: "https://m5.amap.com/ws/perception/drive/routeInfo" },
+  $response: { body: "" },
+  $done(value) { doneResult = value; }
+};
+vm.runInNewContext(source, context, { timeout: 5000 });
+if (!doneResult || Object.keys(doneResult).length !== 0) {
+  throw new Error("empty Amap response was not passed through");
+}
+if (parseCalls !== 0) throw new Error("empty Amap response still attempted JSON.parse");
+process.stdout.write(JSON.stringify({ parseCalls, doneResult }));
+"""
+        result = subprocess.run(
+            [NODE, "-e", runner],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=10,
+        )
+        self.assertEqual(json.loads(result.stdout)["parseCalls"], 0)
 
     def test_script_uses_in_place_compaction_instead_of_filter_allocations(self):
         source = (ROOT / "sources/amap/rucu6_amap.js").read_text(encoding="utf-8")

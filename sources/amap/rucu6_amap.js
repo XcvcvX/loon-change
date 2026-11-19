@@ -2,7 +2,9 @@
 
 const url = $request.url;
 const amapAdsPattern = /ads-\d+/;
-if (!$response.body) $done({});
+if (!$response.body) {
+  $done({});
+} else {
 let obj = JSON.parse($response.body);
 
 if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
@@ -690,6 +692,7 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
 }
 
 $done({ body: JSON.stringify(obj) });
+}
 
 function compactInPlace(items, keep) {
   if (!Array.isArray(items) || items.length === 0) return;
