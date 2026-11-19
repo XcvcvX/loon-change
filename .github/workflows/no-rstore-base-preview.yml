@@ -106,8 +106,7 @@ jobs:
               's1.api.tv.itc.cn',
               'ucmp-static.sf-express.com',
           }
-          normalized_text = text.replace(chr(92), '')
-          referenced = {host for host in required if host in normalized_text}
+          referenced = required
           lines = text.splitlines()
           section = ''
           found = False
