@@ -2,7 +2,7 @@
 #!desc=综合规则仅使用 R-Store base；保留 Romeo 独立 App 插件、高德、Spotify、瓜子影视与支付宝专项规则；单插件自包含
 #!author=R-Store / Romeo / RuCu6（Amap）/ zirawell / ddgksf2013（本仓库自动构建）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-19 06:06 UTC
+#!merged-at=2026-11-19 06:17 UTC
 #!note=综合规则只取 R-Store base；独立 App 专项规则单独保留；高德独立规则优先级最高；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store-base(QuanX->Loon)+Romeo-independent-App+Romeo-Spotify+RuCu6-Amap+zirawell-AlipayAdBlock+ddgksf2013/GuaZiVideoAds
 
@@ -3239,10 +3239,10 @@ http-response ^https?:\/\/(www|api)\.duitang\.com\/napi\/settings\/ script-path=
 http-response ^https?:\/\/maicai\.api\.ddxq\.mobi\/homeApi\/(?:bottomNavi|homeFlowDetail) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ddxq.js,tag=DDXQ,requires-body=true
 http-response ^https?:\/\/maicai\.api\.ddxq\.mobi\/tool\/getConfig script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ddxq.js,tag=DDXQ-2,requires-body=true
 http-response ^https?:\/\/user\.api\.ddxq\.mobi\/userportal-service\/api\/v\d\/user\/queryMyPage script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ddxq.js,tag=DDXQ-3,requires-body=true
-http-response ^https?:\/\/conf\.diditaxi\.com\.cn\/homepage\/v\d\/core script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI,requires-body=true
-http-response ^https?:\/\/conf\.diditaxi\.com\.cn\/ota\/na\/yuantu\/infoList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI-2,requires-body=true
-http-response ^https?:\/\/common\.diditaxi\.com\.cn\/common\/v\d\/usercenter\/me script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI-3,requires-body=true
-http-response ^https?:\/\/api\.udache\.com\/gulfstream\/pre-sale\/v\d\/other\/pGetSceneList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI-4,requires-body=true
+http-response ^https?:\/\/conf\.diditaxi\.com\.cn\/homepage\/v\d\/core script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/didi/didi.js,tag=DIDI,requires-body=true
+http-response ^https?:\/\/conf\.diditaxi\.com\.cn\/ota\/na\/yuantu\/infoList script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/didi/didi.js,tag=DIDI-2,requires-body=true
+http-response ^https?:\/\/common\.diditaxi\.com\.cn\/common\/v\d\/usercenter\/me script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/didi/didi.js,tag=DIDI-3,requires-body=true
+http-response ^https?:\/\/api\.udache\.com\/gulfstream\/pre-sale\/v\d\/other\/pGetSceneList script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/didi/didi.js,tag=DIDI-4,requires-body=true
 http-response ^https?:\/\/apiv2\.douyucdn\.cn\/mgapi\/livenc\/home\/getRecV3 script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/douyu.js,tag=DOUYU,requires-body=true
 http-response ^https?:\/\/apiv2\.douyucdn\.cn\/japi\/entrance\/roomRes\/nc\/m\/list script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/douyu.js,tag=DOUYU-2,requires-body=true
 http-response ^https?:\/\/venus\.douyucdn\.cn\/venus\/config\/static\/update.+keyCodeSet=flow_config script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/douyu.js,tag=DOUYU-3,requires-body=true

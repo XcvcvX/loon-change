@@ -51661,72 +51661,48 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://conf\\\\.diditaxi\\\\.com\\\\.cn/homepage/v\\\\d/core', ('^https?:\\\\/\\\\/conf\\\\.diditaxi\\\\.com\\\\.cn\\\\/homepage\\\\/v\\\\d\\\\/core', '^https?:\\\\/\\\\/conf\\\\.diditaxi\\\\.com\\\\.cn\\\\/homepage\\\\/v\\\\d\\\\/core script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI,requires-body=true'))",
-      "output_entry_index": 140,
-      "output_line": "http-response ^https?:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v\\d\\/core script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v\\d\\/core script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/didi/didi.js,tag=DIDI,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/conf\\.diditaxi\\.com\\.cn\\/homepage\\/v\\d\\/core script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 139
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://conf\\\\.diditaxi\\\\.com\\\\.cn/ota/na/yuantu/infoList', ('^https?:\\\\/\\\\/conf\\\\.diditaxi\\\\.com\\\\.cn\\\\/ota\\\\/na\\\\/yuantu\\\\/infolist', '^https?:\\\\/\\\\/conf\\\\.diditaxi\\\\.com\\\\.cn\\\\/ota\\\\/na\\\\/yuantu\\\\/infoList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI-2,requires-body=true'))",
-      "output_entry_index": 141,
-      "output_line": "http-response ^https?:\\/\\/conf\\.diditaxi\\.com\\.cn\\/ota\\/na\\/yuantu\\/infoList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI-2,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/conf\\.diditaxi\\.com\\.cn\\/ota\\/na\\/yuantu\\/infoList script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/didi/didi.js,tag=DIDI-2,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/conf\\.diditaxi\\.com\\.cn\\/ota\\/na\\/yuantu\\/infoList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI-2,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 140
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://common\\\\.diditaxi\\\\.com\\\\.cn/common/v\\\\d/usercenter/me', ('^https?:\\\\/\\\\/common\\\\.diditaxi\\\\.com\\\\.cn\\\\/common\\\\/v\\\\d\\\\/usercenter\\\\/me', '^https?:\\\\/\\\\/common\\\\.diditaxi\\\\.com\\\\.cn\\\\/common\\\\/v\\\\d\\\\/usercenter\\\\/me script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI-3,requires-body=true'))",
-      "output_entry_index": 142,
-      "output_line": "http-response ^https?:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v\\d\\/usercenter\\/me script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI-3,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v\\d\\/usercenter\\/me script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/didi/didi.js,tag=DIDI-3,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/common\\.diditaxi\\.com\\.cn\\/common\\/v\\d\\/usercenter\\/me script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI-3,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 141
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
-      "canonical_key": "('guarded', '^https?://api\\\\.udache\\\\.com/gulfstream/pre-sale/v\\\\d/other/pGetSceneList', ('^https?:\\\\/\\\\/api\\\\.udache\\\\.com\\\\/gulfstream\\\\/pre-sale\\\\/v\\\\d\\\\/other\\\\/pgetscenelist', '^https?:\\\\/\\\\/api\\\\.udache\\\\.com\\\\/gulfstream\\\\/pre-sale\\\\/v\\\\d\\\\/other\\\\/pGetSceneList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI-4,requires-body=true'))",
-      "output_entry_index": 143,
-      "output_line": "http-response ^https?:\\/\\/api\\.udache\\.com\\/gulfstream\\/pre-sale\\/v\\d\\/other\\/pGetSceneList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI-4,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/api\\.udache\\.com\\/gulfstream\\/pre-sale\\/v\\d\\/other\\/pGetSceneList script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/didi/didi.js,tag=DIDI-4,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/api\\.udache\\.com\\/gulfstream\\/pre-sale\\/v\\d\\/other\\/pGetSceneList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js,tag=DIDI-4,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 142
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
       "canonical_key": "('guarded', '^https?://apiv2\\\\.douyucdn\\\\.cn/mgapi/livenc/home/getRecV3', ('^https?:\\\\/\\\\/apiv2\\\\.douyucdn\\\\.cn\\\\/mgapi\\\\/livenc\\\\/home\\\\/getrecv3', '^https?:\\\\/\\\\/apiv2\\\\.douyucdn\\\\.cn\\\\/mgapi\\\\/livenc\\\\/home\\\\/getRecV3 script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/douyu.js,tag=DOUYU,requires-body=true'))",

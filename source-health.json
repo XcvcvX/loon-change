@@ -62,15 +62,15 @@
     "script": {
       "action_change_source_pairs": [],
       "action_changed": 0,
-      "added": 0,
+      "added": 4,
       "current_entries": 352,
       "migration_action_changed_exempted": 0,
       "net_shrink_percent": 0.0,
       "non_migration_action_changed": 0,
-      "non_retired_removed": 0,
+      "non_retired_removed": 4,
       "previous_entries": 352,
-      "removed": 0,
-      "removed_percent": 0.0,
+      "removed": 4,
+      "removed_percent": 1.136,
       "retired_source_removed": 0
     }
   },
