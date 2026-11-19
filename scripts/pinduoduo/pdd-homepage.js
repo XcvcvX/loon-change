@@ -4,6 +4,8 @@
 function main() {
   const url = $request.url || "";
 
+  let modified = false;
+
   function compactInPlace(items, keep) {
     const length = items.length;
     let write = 0;
@@ -15,7 +17,15 @@ function main() {
       }
     }
     items.length = write;
+    if (write !== length) modified = true;
     return items;
+  }
+
+  function deleteIfPresent(target, key) {
+    if (target && Object.prototype.hasOwnProperty.call(target, key)) {
+      delete target[key];
+      modified = true;
+    }
   }
   const body = $response && $response.body;
   if (!body) return $done({});
@@ -32,10 +42,10 @@ function main() {
     const result = obj && obj.result;
     if (result && typeof result === "object") {
       if (result.dy_module && typeof result.dy_module === "object") {
-        delete result.dy_module.irregular_banner_dy;
+        deleteIfPresent(result.dy_module, "irregular_banner_dy");
       }
-      delete result.icon_set;
-      delete result.search_bar_hot_query;
+      deleteIfPresent(result, "icon_set");
+      deleteIfPresent(result, "search_bar_hot_query");
 
       // Preserve both upstream bottom-tab filters.
       const allowedLinks = new Set(["index.html", "chat_list.html", "personal.html"]);
@@ -54,7 +64,10 @@ function main() {
       }
 
       // ishowshu removes the homepage top category bar.
-      if (Array.isArray(result.all_top_opts)) result.all_top_opts = [];
+      if (Array.isArray(result.all_top_opts) && result.all_top_opts.length > 0) {
+        result.all_top_opts = [];
+        modified = true;
+      }
 
       // ishowshu's homepage feed-module cleanup.
       const removedModules = new Set([
@@ -69,6 +82,6 @@ function main() {
     }
   }
 
-  return $done({ body: JSON.stringify(obj) });
+  return $done(modified ? { body: JSON.stringify(obj) } : {});
 }
 main();

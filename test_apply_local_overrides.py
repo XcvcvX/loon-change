@@ -5041,9 +5041,9 @@ class PinduoduoHomepageNativeConsolidationTests(unittest.TestCase):
         from apply_local_overrides import PDD_HOMEPAGE_NATIVE_JQ_RULE
         script = (Path(__file__).parent / "scripts/pinduoduo/pdd-homepage.js").read_text(encoding="utf-8")
         for marker in (
-            "delete result.dy_module.irregular_banner_dy",
-            "delete result.icon_set",
-            "delete result.search_bar_hot_query",
+            'deleteIfPresent(result.dy_module, "irregular_banner_dy")',
+            'deleteIfPresent(result, "icon_set")',
+            'deleteIfPresent(result, "search_bar_hot_query")',
             "allowedTitles",
             "allowedLinks",
             "result.all_top_opts = []",

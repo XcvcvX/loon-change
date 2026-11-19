@@ -27,13 +27,13 @@ const context = {
 };
 vm.createContext(context);
 vm.runInContext(
-  "const nativeParse = JSON.parse.bind(JSON); let parseCount = 0; JSON.parse = function(value) { parseCount++; return nativeParse(value); }; Array.prototype.filter = function() { throw new Error('allocating Array.filter remains'); }; Array.prototype.map = function() { throw new Error('allocating Array.map remains'); }; globalThis.__parseCount = () => parseCount;",
+  "const nativeParse = JSON.parse.bind(JSON); let parseCount = 0, stringifyCount = 0; JSON.parse = function(value) { parseCount++; return nativeParse(value); }; const nativeStringify = JSON.stringify.bind(JSON); JSON.stringify = function(value) { stringifyCount++; return nativeStringify(value); }; Array.prototype.filter = function() { throw new Error('allocating Array.filter remains'); }; Array.prototype.map = function() { throw new Error('allocating Array.map remains'); }; globalThis.__parseCount = () => parseCount; globalThis.__stringifyCount = () => stringifyCount;",
   context
 );
 vm.runInContext(source, context, { timeout: 5000 });
-if (!doneResult || typeof doneResult.body !== "string") throw new Error("missing rewritten response");
-const output = JSON.parse(doneResult.body);
-process.stdout.write(JSON.stringify({ output, parseCount: context.__parseCount() }));
+const passThrough = !doneResult || typeof doneResult.body !== "string";
+const output = passThrough ? null : JSON.parse(doneResult.body);
+process.stdout.write(JSON.stringify({ output, passThrough, parseCount: context.__parseCount(), stringifyCount: context.__stringifyCount() }));
 """
         completed = subprocess.run(
             [NODE, "-e", runner, str(source)],
@@ -96,6 +96,28 @@ process.stdout.write(JSON.stringify({ output, parseCount: context.__parseCount()
         )
         self.assertEqual(result["output"]["webViewFloorList"], [])
         self.assertNotIn("promotionTabs", result["output"])
+
+    def test_pdd_homepage_skips_serialization_when_already_clean(self):
+        body = {"result": {
+            "bottom_tabs": [
+                {"title": "首页", "link": "index.html"},
+                {"title": "聊天", "link": "chat_list.html"},
+                {"title": "个人中心", "link": "personal.html"},
+            ],
+            "buffer_bottom_tabs": [
+                {"title": "首页", "link": "index.html"},
+                {"title": "聊天", "link": "chat_list.html"},
+            ],
+            "module_order": [{"module_name": "goods"}, {"module_name": "feed"}],
+        }}
+        result = self.run_script(
+            "scripts/pinduoduo/pdd-homepage.js",
+            "https://api.pinduoduo.com/api/alexa/homepage/hub",
+            body,
+        )
+        self.assert_single_parse(result)
+        self.assertTrue(result["passThrough"])
+        self.assertEqual(result["stringifyCount"], 0)
 
     def test_pdd_homepage_compacts_tabs_and_modules(self):
         body = {"result": {
