@@ -2745,7 +2745,7 @@ jd_splash_video = (
     r'^https?:\/\/[a-z0-9]+\.360buyimg\.com\/material-video\/ reject-200'
 )
 goofish_splash_trigger = (
-    r'response if ${url} ~= /^https?:\\/\\/(?:g-)?acs\\.m\\.goofish\\.com\\/gw\\/'
+    r'response if ${url} ~= /^https?:\/\/(?:g-)?acs\.m\.goofish\.com\/gw\/'
     r'mtop\.taobao\.idlecommerce\.splash\.(?:ads|async\.ads|config)\//i '
     r'then script("https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js") '
     r'with tag="GOOFISH-SPLASH", timeout=20, requires_body=true'
