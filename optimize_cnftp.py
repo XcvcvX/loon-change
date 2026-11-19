@@ -128,7 +128,7 @@ def optimize_source(source: str, upstream_commit: str | None = None) -> str:
         if not re.fullmatch(r"[0-9a-f]{40}", upstream_commit):
             raise ValueError("invalid Wool Scripts upstream commit")
         source = re.sub(r"^// loon-change:.*\n", "", source, count=1)
-        return SOURCE_MARKER + "; upstream fmz200/wool_scripts@" + upstream_commit + "\n// loon-change: Youku home.feed in-place compaction v1\n" + source
+    return SOURCE_MARKER + "; upstream fmz200/wool_scripts@" + upstream_commit + "\n// loon-change: Youku home.feed in-place compaction v1\n" + source
 
     feed_start = '  } else if (url.includes("columbus.home.feed/")) {'
     feed_end = '  } else if (url.includes("columbus.home.query/")) {'
