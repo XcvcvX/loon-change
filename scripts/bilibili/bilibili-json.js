@@ -137,7 +137,6 @@ if (url.includes("/x/resource/show/tab/")) {
     if (obj?.data?.vip?.status === 0) {
       modified = true;
       obj.data.vip_type = 2;
-      modified = true;
       obj.data.vip.type = 2;
       obj.data.vip.status = 1;
       obj.data.vip.due_date = 3818419199; // Unix 时间戳 2090-12-31 23:59:59
