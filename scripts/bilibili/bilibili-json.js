@@ -137,6 +137,7 @@ if (url.includes("/x/resource/show/tab/")) {
     if (obj?.data?.vip?.status === 0) {
       modified = true;
       obj.data.vip_type = 2;
+      modified = true;
       obj.data.vip.type = 2;
       obj.data.vip.status = 1;
       obj.data.vip.due_date = 3818419199; // Unix 时间戳 2090-12-31 23:59:59
@@ -156,21 +157,22 @@ if (url.includes("/x/resource/show/tab/")) {
   }
 } else if (url.includes("/account/mine/ipad")) {
   // ipad我的页面
-  delete obj.data.ipad_upper_sections; // 投稿 创作首页 稿件管理 有奖活动
+  deleteTracked(obj.data, "ipad_upper_sections"); // 投稿 创作首页 稿件管理 有奖活动
   if (obj?.data?.ipad_recommend_sections?.length > 0) {
     // 789我的关注 790我的消息 791我的钱包 792直播中心 793大会员 794我的课程 2542我的游戏
     const itemList = [789, 790];
-    filterInPlace(obj.data.ipad_recommend_sections, (i) => itemList.includes(i.id));
+    filterTracked(obj.data.ipad_recommend_sections, (i) => itemList.includes(i.id));
   }
   if (obj?.data?.ipad_more_sections?.length > 0) {
     // 797我的客服 798设置 1070青少年守护
     const itemList = [797, 798];
-    filterInPlace(obj.data.ipad_more_sections, (i) => itemList.includes(i.id));
+    filterTracked(obj.data.ipad_more_sections, (i) => itemList.includes(i.id));
   }
 } else if (url.includes("/account/myinfo")) {
   // 非会员开启会员专属清晰度
   if (obj?.data?.vip) {
     if (obj?.data?.vip?.status === 0) {
+      modified = true;
       obj.data.vip.type = 2;
       obj.data.vip.status = 1;
       obj.data.vip.due_date = 3818419199; // Unix 时间戳 2090-12-31 23:59:59
@@ -181,10 +183,11 @@ if (url.includes("/x/resource/show/tab/")) {
   // 首页推荐信息流
   if (obj?.data?.items?.length > 0) {
     // 白名单
-    filterInPlace(obj.data.items, (i) => i?.card_goto === "av");
+    filterTracked(obj.data.items, (i) => i?.card_goto === "av");
   }
   if (obj?.data?.config?.toast?.has_toast) {
     obj.data.config.toast.has_toast = false;
+    modified = true;
   }
 } else if (url.includes("/feed/index/story")) {
   // 竖屏模式信息流
@@ -192,6 +195,7 @@ if (url.includes("/x/resource/show/tab/")) {
     // vertical_live 直播内容
     // vertical_pgc 大会员专享
     const items = obj.data.items;
+    const originalItemLength = items.length;
     let itemWrite = 0;
     for (let itemRead = 0, itemLength = items.length; itemRead < itemLength; itemRead++) {
       let item = items[itemRead];
@@ -200,18 +204,26 @@ if (url.includes("/x/resource/show/tab/")) {
       } else if (["vertical_ad_av", "vertical_live", "vertical_pgc"]?.includes(item?.card_goto)) {
         continue;
       } else {
-        delete item.creative_entrance; // 推荐话题搜索框
-        delete item.story_cart_icon; // 相关话题图标
+        deleteTracked(item, "creative_entrance"); // 推荐话题搜索框
+        deleteTracked(item, "story_cart_icon"); // 相关话题图标
         if (itemWrite !== itemRead) items[itemWrite] = item;
         itemWrite++;
       }
     }
     items.length = itemWrite;
+    if (itemWrite !== originalItemLength) modified = true;
   }
 } else if (url.includes("/search/square")) {
   // 搜索框
   if (obj?.data) {
-    obj.data = {type: "history", title: "搜索历史", search_hotword_revision: 2};
+    const current = obj.data;
+    const keys = current && typeof current === "object" && !Array.isArray(current) ? Object.keys(current) : [];
+    const alreadyClean = keys.length === 3 && current.type === "history" &&
+      current.title === "搜索历史" && current.search_hotword_revision === 2;
+    if (!alreadyClean) {
+      obj.data = {type: "history", title: "搜索历史", search_hotword_revision: 2};
+      modified = true;
+    }
   }
 } else if (url.includes("/splash")) {
   // 开屏广告
@@ -221,16 +233,18 @@ if (url.includes("/x/resource/show/tab/")) {
       deleteTracked(obj.data, i);
     });
     if (obj?.data?.max_time) {
-      obj.data.max_time = 0;
+      if (obj.data.max_time !== 0) { obj.data.max_time = 0; modified = true; }
     }
     if (obj?.data?.min_interval) {
-      obj.data.min_interval = 31536000;
+      if (obj.data.min_interval !== 31536000) { obj.data.min_interval = 31536000; modified = true; }
     }
     if (obj?.data?.pull_interval) {
-      obj.data.pull_interval = 31536000;
+      if (obj.data.pull_interval !== 31536000) { obj.data.pull_interval = 31536000; modified = true; }
     }
     if (obj?.data?.list?.length > 0) {
       for (let i of obj.data.list) {
+        if (i.duration !== 0 || i.enable_pre_download !== false ||
+            i.begin_time !== 3818332800 || i.end_time !== 3818419199) modified = true;
         i.duration = 0;
         i.enable_pre_download = false;
         i.begin_time = 3818332800; // Unix 时间戳 2090-12-31 00:00:00
@@ -244,33 +258,35 @@ if (url.includes("/x/resource/show/tab/")) {
     obj.result.modules.forEach((i) => {
       if (i?.style?.startsWith("banner")) {
         if (i?.items?.length > 0) {
-          filterInPlace(i.items, (ii) => ii?.link?.includes("play"));
+          filterTracked(i.items, (ii) => ii?.link?.includes("play"));
         }
       } else if (i?.style?.startsWith("function")) {
         if (i?.items?.length > 0) {
-          filterInPlace(i.items, (ii) => ii?.blink?.startsWith("bilibili"));
+          filterTracked(i.items, (ii) => ii?.blink?.startsWith("bilibili"));
         }
       } else if ([241, 1283, 1284, 1441]?.includes(i?.module_id)) {
         if (i?.items?.length > 0) {
           i.items = [];
+          modified = true;
         }
       } else if (i?.style?.startsWith("tip")) {
         if (i?.items?.length > 0) {
           i.items = [];
+          modified = true;
         }
       }
     });
   }
 } else if (url.includes("/index/getInfoByRoom")) {
   // 直播
-  delete obj.data.activity_banner_info;
+  deleteTracked(obj.data, "activity_banner_info");
   if (obj?.data?.shopping_info) {
     obj.data.shopping_info = {is_show: 0};
   }
   if (obj?.data?.new_tab_info?.outer_list?.length > 0) {
-    filterInPlace(obj.data.new_tab_info.outer_list, (i) => i?.biz_id !== 33);
+    filterTracked(obj.data.new_tab_info.outer_list, (i) => i?.biz_id !== 33);
   }
 }
 
-$done({body: JSON.stringify(obj)});
+$done(modified ? {body: JSON.stringify(obj)} : {});
 }
