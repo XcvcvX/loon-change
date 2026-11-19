@@ -36,12 +36,12 @@ def optimize_lazy_serialization(source):
         if "$done(modified ? {body: JSON.stringify(obj)} : {});" not in source:
             raise ValueError("Didi lazy serialization completion guard is missing")
         return source
-    parse_anchor = "let obj = JSON.parse($response.body);"
+    url_anchor = "const url = $request.url;"
     helper_return = "  items.length = write;\n  return items;"
     completion = "$done({body: JSON.stringify(obj)});"
-    if source.count(parse_anchor) != 1 or source.count(helper_return) != 1 or source.count(completion) != 1:
+    if source.count(url_anchor) != 1 or source.count(helper_return) != 1 or source.count(completion) != 1:
         raise ValueError("Didi lazy serialization anchors changed; refusing optimization")
-    source = source.replace(parse_anchor, parse_anchor + "\nlet modified = false;", 1)
+    source = source.replace(url_anchor, url_anchor + "\nlet modified = false;", 1)
     source = source.replace(helper_return, "  items.length = write;\n  if (write !== length) modified = true;\n  return items;", 1)
     old_for_each = """    obj.data.show_data.forEach((block) => {
       if (block.scene_ids instanceof Array) {
@@ -55,9 +55,8 @@ def optimize_lazy_serialization(source):
         compactInPlace(block.scene_ids, id => id !== "scene_coupon_mall");
       }
     }"""
-    if source.count(old_for_each) != 1:
-        raise ValueError("Didi show_data traversal changed; refusing optimization")
-    source = source.replace(old_for_each, new_for_each, 1)
+    if source.count(old_for_each) == 1:
+        source = source.replace(old_for_each, new_for_each, 1)
     splice = "    obj.data.disorder_cards.top_banner_card.data.splice(0, 1);"
     if source.count(splice) != 1:
         raise ValueError("Didi banner removal changed; refusing optimization")
