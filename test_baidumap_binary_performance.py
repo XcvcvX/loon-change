@@ -91,12 +91,135 @@ class ResponseScriptAuditTests(unittest.TestCase):
         self.assertNotIn(".filter(", source)
         self.assertNotIn(".map(", source)
 
+    def test_taobao_handler_skips_serialization_for_unchanged_responses(self):
+        source = (ROOT / "scripts/taobao/taobao.js").read_text(encoding="utf-8")
+        self.assertIn("let modified = false;", source)
+        self.assertIn('$done(modified ? {body: JSON.stringify(obj)} : {});', source)
+        self.assertEqual(source.count("JSON.parse("), 1)
+        self.assertEqual(source.count("JSON.stringify("), 1)
+
     def test_didi_local_script_is_not_the_active_plugin_target(self):
         plugin = (ROOT / "allAdRewrite.plugin").read_text(encoding="utf-8")
         source = (ROOT / "scripts/didi/didi-ads.js").read_text(encoding="utf-8")
         self.assertIn("script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js", plugin)
         self.assertNotIn("scripts/didi/didi-ads.js", plugin)
         self.assertIn("function filterInPlace", source)
+
+
+
+class TaobaoLazySerializationRuntimeTests(unittest.TestCase):
+    runner = r"""
+const fs = require("fs");
+const vm = require("vm");
+const source = fs.readFileSync(process.argv[1], "utf8");
+const payload = JSON.parse(fs.readFileSync(0, "utf8"));
+let doneResult, parseCalls = 0, stringifyCalls = 0;
+const nativeJSON = JSON;
+const trackedJSON = {
+  parse(value) { parseCalls++; return nativeJSON.parse(value); },
+  stringify(value) { stringifyCalls++; return nativeJSON.stringify(value); }
+};
+const context = {
+  JSON: trackedJSON,
+  $request: { url: payload.url },
+  $response: { body: payload.body === null ? "" : nativeJSON.stringify(payload.body) },
+  $done(value) { doneResult = value; }
+};
+vm.runInNewContext(source, context, { timeout: 5000 });
+process.stdout.write(nativeJSON.stringify({
+  done: doneResult || null,
+  parseCalls,
+  stringifyCalls
+}));
+"""
+
+    def run_script(self, url, body):
+        if not NODE:
+            self.skipTest("Node.js is required for Taobao runtime tests")
+        completed = subprocess.run(
+            [NODE, "-e", self.runner, str(ROOT / "scripts/taobao/taobao.js")],
+            input=__import__("json").dumps({"url": url, "body": body}),
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=10,
+        )
+        return __import__("json").loads(completed.stdout)
+
+    def test_noop_video_splash_and_poplayer_responses_skip_stringify(self):
+        cases = [
+            (
+                "https://guide-acs.m.taobao.com/gw/mtop.taobao.cloudvideo.video.query",
+                {"data": {"duration": 0, "resources": [], "caches": [], "respTimeInMs": 0}},
+            ),
+            (
+                "https://guide-acs.m.taobao.com/gw/mtop.taobao.wireless.home.splash.awesome.get",
+                {"data": {"containers": {"splash_home_base": {"base": {"sections": [
+                    {"bizData": {"normal": {"data": [{"id": "keep"}]}}}
+                ]}}}}},
+            ),
+            (
+                "https://poplayer.template.alibaba.com/example.json",
+                {"res": {"images": [], "videos": []}, "enable": False, "mainRes": {"images": []}},
+            ),
+        ]
+        for url, body in cases:
+            with self.subTest(url=url):
+                result = self.run_script(url, body)
+                self.assertEqual(result["done"], {})
+                self.assertEqual(result["parseCalls"], 1)
+                self.assertEqual(result["stringifyCalls"], 0)
+
+    def test_video_query_mutations_still_serialize_once(self):
+        result = self.run_script(
+            "https://guide-acs.m.taobao.com/gw/mtop.taobao.cloudvideo.video.query",
+            {"data": {"duration": "12", "resources": [1], "caches": [2], "respTimeInMs": 3}},
+        )
+        self.assertEqual(result["parseCalls"], 1)
+        self.assertEqual(result["stringifyCalls"], 1)
+        body = __import__("json").loads(result["done"]["body"])
+        self.assertEqual(body["data"]["duration"], "0")
+        self.assertEqual(body["data"]["resources"], [])
+        self.assertEqual(body["data"]["caches"], [])
+        self.assertEqual(body["data"]["respTimeInMs"], "3818332800000")
+
+    def test_splash_mutations_still_apply_to_target_creative_items(self):
+        result = self.run_script(
+            "https://guide-acs.m.taobao.com/gw/mtop.taobao.wireless.home.splash.awesome.get",
+            {"data": {"containers": {"splash_home_base": {"base": {"sections": [
+                {"bizData": {"taobao-splash": {"data": [
+                    {"waitTime": "5", "imgUrl": "https://img.example/ad.jpg", "videoUrl": "https://video.example/ad.mp4"}
+                ]}}}
+            ]}}}}},
+        )
+        self.assertEqual(result["parseCalls"], 1)
+        self.assertEqual(result["stringifyCalls"], 1)
+        item = __import__("json").loads(result["done"]["body"])["data"]["containers"]["splash_home_base"]["base"]["sections"][0]["bizData"]["taobao-splash"]["data"][0]
+        self.assertEqual(item["waitTime"], "0")
+        self.assertEqual(item["times"], "0")
+        self.assertEqual(item["startTime"], "3818332800000")
+        self.assertEqual(item["imgUrl"], "")
+        self.assertEqual(item["videoUrl"], "")
+
+    def test_poplayer_mutations_still_clear_creatives_once(self):
+        result = self.run_script(
+            "https://poplayer.template.alibaba.com/example.json",
+            {"res": {"images": [1], "videos": [2]}, "enable": True, "mainRes": {"images": [3]}},
+        )
+        self.assertEqual(result["parseCalls"], 1)
+        self.assertEqual(result["stringifyCalls"], 1)
+        body = __import__("json").loads(result["done"]["body"])
+        self.assertEqual(body["res"]["images"], [])
+        self.assertEqual(body["res"]["videos"], [])
+        self.assertFalse(body["enable"])
+        self.assertEqual(body["mainRes"]["images"], [])
+
+    def test_empty_body_returns_without_json_work(self):
+        result = self.run_script("https://poplayer.template.alibaba.com/example.json", None)
+        self.assertEqual(result["done"], {})
+        self.assertEqual(result["parseCalls"], 0)
+        self.assertEqual(result["stringifyCalls"], 0)
+
 
 
 if __name__ == "__main__":
