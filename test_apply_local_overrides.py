@@ -4738,7 +4738,7 @@ class XiaohongshuV4AndCommentMigrationTests(unittest.TestCase):
             fixture.extend(remove)
         fixture.append("[Script]")
         cleaned, removed = remove_reviewed_rewrite_overlap_rules(fixture)
-        self.assertEqual(removed, 38)
+        self.assertEqual(removed, 36)
         for keep, _ in REVIEWED_REWRITE_OVERLAP_PAIRS:
             for canonical in keep:
                 self.assertIn(canonical, cleaned)
@@ -4747,6 +4747,18 @@ class XiaohongshuV4AndCommentMigrationTests(unittest.TestCase):
                 self.assertNotIn(shadow, cleaned)
         self.assertEqual(remove_reviewed_rewrite_overlap_rules(cleaned), (cleaned, 0))
 
+
+
+    def test_pdd_case_insensitive_specific_rules_remain_after_legacy_combined_matcher(self):
+        from pathlib import Path
+        from apply_local_overrides import PDD_IMAGE_CDN_AD_PATH_RULES, PDD_IMAGE_CDN_LEGACY_AD_PATH_RULES
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        rewrite = plugin.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
+        legacy = PDD_IMAGE_CDN_LEGACY_AD_PATH_RULES[0]
+        self.assertIn(legacy, rewrite)
+        for rule in PDD_IMAGE_CDN_AD_PATH_RULES:
+            self.assertIn(rule, rewrite)
+            self.assertLess(rewrite.index(legacy), rewrite.index(rule))
 
     def test_preserves_earlier_specific_status_exceptions_before_broader_fallbacks(self):
         from pathlib import Path
