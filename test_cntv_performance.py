@@ -9,7 +9,7 @@ from apply_local_overrides import (
     CNTV_REMOTE_SCRIPT_URL,
     migrate_cntv_script_to_local,
 )
-from optimize_cntv import MARKER, optimize_source, rewrite_plugin
+from optimize_cntv import MARKER, MENUS_MARKER, optimize_source, rewrite_plugin
 
 ROOT = Path(__file__).resolve().parent
 SOURCE = ROOT / "scripts" / "cntv" / "cntv.js"
@@ -25,6 +25,9 @@ class CNTVOptimizerTests(unittest.TestCase):
         self.assertNotIn(".filter(", source)
         self.assertIn("if (!$response.body) {", source)
         self.assertTrue(source.rstrip().endswith("}"))
+        self.assertIn(MENUS_MARKER, source)
+        self.assertNotIn("newMenus", source)
+        self.assertNotIn("newLists", source)
 
     def test_all_26_response_triggers_are_migrated_and_idempotent(self):
         fixture = "[Script]\n" + "\n".join(
@@ -84,7 +87,7 @@ class CNTVOptimizerTests(unittest.TestCase):
 
 @unittest.skipUnless(NODE, "Node.js is required for CNTV response runtime tests")
 class CNTVRuntimeTests(unittest.TestCase):
-    def run_script(self, url, body):
+    def run_script(self, url, body, disable_push=False):
         runner = r"""
 const fs = require("fs");
 const vm = require("vm");
@@ -103,6 +106,7 @@ vm.runInContext(
   "const nativeParse = JSON.parse.bind(JSON); JSON.parse = function(value) { __parseCount++; return nativeParse(value); }; Array.prototype.filter = function() { throw new Error('allocating Array.filter remains'); };",
   context
 );
+if (payload.disablePush) vm.runInContext("Array.prototype.push = function() { throw new Error('temporary push allocation remains'); };", context);
 vm.runInContext(source, context, { timeout: 5000 });
 if (context.__parseCount > 1) throw new Error("response parsed more than once");
 if (payload.body === null) {
@@ -115,7 +119,7 @@ if (payload.body === null) {
 """
         completed = subprocess.run(
             [NODE, "-e", runner, str(SOURCE)],
-            input=json.dumps({"url": url, "body": body}),
+            input=json.dumps({"url": url, "body": body, "disablePush": disable_push}),
             capture_output=True,
             text=True,
             check=True,
@@ -175,6 +179,28 @@ if (payload.body === null) {
             [item["alias_name"] for item in result["output"]["cards"]],
             ["normal_comment"],
         )
+
+    def test_iqiyi_my_menus_compacts_outer_and_inner_arrays_in_place(self):
+        body = {"data": [
+            {"statistic": {"block": "wd_liebiao_2"}, "menuList": [{"menuType": 1}]},
+            {"statistic": {"block": "normal"}, "menuList": [
+                {"menuType": 1, "id": "keep-1"},
+                {"menuType": 121, "id": "survey"},
+                {"menuType": 2, "id": "keep-2"}
+            ]},
+            {"statistic": {"block": "normal"}, "menuList": []},
+            {"statistic": {"block": "wd_liebiao_4"}}
+        ]}
+        result = self.run_script(
+            "https://iface2.iqiyi.com/aggregate/3.0/getMyMenus?foo=1",
+            body,
+            disable_push=True,
+        )
+        data = result["output"]["data"]
+        self.assertEqual(len(data), 2)
+        self.assertEqual([item["id"] for item in data[0]["menuList"]], ["keep-1", "keep-2"])
+        self.assertEqual(data[1]["menuList"], [])
+        self.assertEqual(result["parseCount"], 1)
 
     def test_empty_body_does_not_attempt_json_parse(self):
         result = self.run_script("https://iface2.iqiyi.com/views/3.0/bottom_theme?version=1", None)
