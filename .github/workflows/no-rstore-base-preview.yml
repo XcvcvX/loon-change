@@ -90,6 +90,42 @@ jobs:
         run: |
           python3 integrate_spotify.py --plugin /tmp/no-rstore-base.plugin --source-plugin sources/spotify/Spotify.lpx --scripts-source /tmp/spotify-scripts --scripts-dest scripts/spotify --upstream-commit "$ROMEO_SHA" --metadata /tmp/no-rstore-spotify-upstream.json
           python3 apply_local_overrides.py --plugin /tmp/no-rstore-base.plugin
+          # Some independent Romeo rules refer to exact response hosts without
+          # carrying their own MITM declarations. Add only the six exact hosts
+          # reported by the validator, and only when a rule actually references them.
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          path = Path('/tmp/no-rstore-base.plugin')
+          text = path.read_text(encoding='utf-8')
+          required = {
+              'api.k.sohu.com',
+              'image.suning.cn',
+              'mcs-mimp-web.sf-express.com',
+              'outfliggys.m.taobao.com',
+              's1.api.tv.itc.cn',
+              'ucmp-static.sf-express.com',
+          }
+          referenced = {host for host in required if host in text}
+          if referenced != required:
+              raise SystemExit('Unexpected independent-source host inventory: ' + repr(sorted(referenced)))
+          lines = text.splitlines()
+          section = ''
+          found = False
+          for index, line in enumerate(lines):
+              if line.startswith('[') and line.endswith(']'):
+                  section = line[1:-1]
+              elif section == 'MITM' and line.strip().lower().startswith('hostname') and '=' in line:
+                  key, value = line.split('=', 1)
+                  hosts = [host.strip() for host in value.split(',') if host.strip()]
+                  hosts = sorted(set(hosts) | required)
+                  lines[index] = key + '= ' + ', '.join(hosts)
+                  found = True
+                  break
+          if not found:
+              raise SystemExit('MITM hostname declaration missing in no-base preview')
+          path.write_text('\\n'.join(lines) + '\\n', encoding='utf-8')
+          PY
           python3 fix_script_configs.py --plugin /tmp/no-rstore-base.plugin
           python3 check_script_v2.py /tmp/no-rstore-base.plugin
           python3 validate_plugin.py /tmp/no-rstore-base.plugin
