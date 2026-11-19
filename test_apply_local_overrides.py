@@ -4756,10 +4756,14 @@ class XiaohongshuV4AndCommentMigrationTests(unittest.TestCase):
         pic_broad = "request if ${url} ~= /^https?:\\/\\/pic\\.k\\.sohu\\.com\\/img\\d\\/wb\\/tj\\// then reject(404)"
         issue_specific = "^https?:\\/\\/issuecdn\\.baidupcs\\.com\\/issue\\/netdisk\\/guanggao\\/ reject-200"
         issue_broad = "request if ${url} ~= /^https?:\\/\\/issuecdn\\.baidupcs\\.com\\/issue\\/netdisk\\/guanggao/ then reject(404)"
+        elong_specific = "^https?:\\/\\/mobile-api2011\\.elong\\.com\\/adgateway\\/newad\\/list reject-dict"
+        elong_broad = "^https?:\\/\\/mobile-api2011\\.elong\\.com\\/ad(?:v|gateway) reject-200"
         self.assertIn(pic_specific, rewrite)
         self.assertIn(issue_specific, rewrite)
+        self.assertIn(elong_specific, rewrite)
         self.assertLess(rewrite.index(pic_specific), rewrite.index(pic_broad))
         self.assertLess(rewrite.index(issue_specific), rewrite.index(issue_broad))
+        self.assertLess(rewrite.index(elong_specific), rewrite.index(elong_broad))
 
     def test_rewrite_overlap_cleanup_fails_closed_without_canonical_cover(self):
         from apply_local_overrides import (
