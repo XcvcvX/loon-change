@@ -156,7 +156,7 @@ process.stdout.write(nativeJSON.stringify({
                 "https://guide-acs.m.taobao.com/gw/mtop.taobao.wireless.home.splash.awesome.get",
                 {"data": {"containers": {"splash_home_base": {"base": {"sections": [
                     {"bizData": {"normal": {"data": [{"id": "keep"}]}}}
-                ]}}}},
+                ]}}}}},
             ),
             (
                 "https://poplayer.template.alibaba.com/example.json",
@@ -190,7 +190,7 @@ process.stdout.write(nativeJSON.stringify({
                 {"bizData": {"taobao-splash": {"data": [
                     {"waitTime": "5", "imgUrl": "https://img.example/ad.jpg", "videoUrl": "https://video.example/ad.mp4"}
                 ]}}}
-            ]}}}},
+            ]}}}}},
         )
         self.assertEqual(result["parseCalls"], 1)
         self.assertEqual(result["stringifyCalls"], 1)
