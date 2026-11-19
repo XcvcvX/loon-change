@@ -142,7 +142,7 @@ function main() {
 
   if (url.includes("/mtop.taobao.idle.local.home")) {
     if (data && Array.isArray(data.sections)) {
-      compactInPlace(data.sections, section => {
+      compactTracked(data.sections, section => {
         const sectionData = section && section.data;
         if (!sectionData) return true;
         const templateName = section.template && section.template.name;
