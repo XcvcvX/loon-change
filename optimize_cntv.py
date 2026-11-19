@@ -7,8 +7,12 @@ from pathlib import Path
 
 REMOTE = "https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cntv.js"
 LOCAL = "https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/cntv.js"
-LEGACY_MARKER = "// loon-change: CNTV response compaction optimization v1; upstream zirawell/R-Store@"
-MARKER = "// loon-change: CNTV response compaction optimization v2; upstream zirawell/R-Store@"
+LEGACY_MARKERS = (
+    "// loon-change: CNTV response compaction optimization v2; upstream zirawell/R-Store@",
+    "// loon-change: CNTV response compaction optimization v1; upstream zirawell/R-Store@",
+)
+MARKER = "// loon-change: CNTV response compaction optimization v3; upstream zirawell/R-Store@"
+ROUTE_GUARD_MARKER = "// loon-change: CNTV pre-parse supported-route guard v1"
 MENUS_MARKER = "// loon-change: CNTV getMyMenus in-place compaction v1"
 HELPER = """function compactInPlace(items, keep) {
   let write = 0;
@@ -56,12 +60,80 @@ def optimize_get_my_menus(source):
     return source
 
 
+ROUTE_GUARD = """// loon-change: CNTV pre-parse supported-route guard v1
+const shouldProcess =
+  (isIQY && (
+    url.includes("/bottom_theme?") ||
+    url.includes("/common_switch?") ||
+    url.includes("/control/") ||
+    url.includes("/getMyMenus?") ||
+    url.includes("/home_top_menu?") ||
+    url.includes("/mixer?") ||
+    url.includes("/search.video.iqiyi.com/") ||
+    url.includes("/views_category/") ||
+    url.includes("/views_comment/") ||
+    url.includes("/views_home/") ||
+    url.includes("/views_plt/") ||
+    url.includes("/views_search/") ||
+    url.includes("/waterfall/")
+  )) ||
+  (isMG && (
+    (url.includes("/dynamic/v") && url.includes("/channel/index/")) ||
+    url.includes("/channel/vrsList/") ||
+    url.includes("/mobile/config?") ||
+    url.includes("/mobile/recommend/v") ||
+    (url.includes("/channel/index?") && url.includes("/odin/c")) ||
+    url.includes("/vod/info?") ||
+    url.includes("/module/list?") ||
+    url.includes("/video/info?")
+  )) ||
+  (isYK && (
+    url.includes("/collect-api/get_push_interval_config_wx?") ||
+    url.includes("columbus.gateway.new.execute") ||
+    url.includes("columbus.home.feed/") ||
+    url.includes("columbus.home.query/") ||
+    url.includes("columbus.uc.query/") ||
+    url.includes("columbus.ycp.query/") ||
+    url.includes("haidai.lantern.appconfig.get/") ||
+    url.includes("huluwa.dispatcher.youthmode.config2/") ||
+    url.includes("play.ups.appinfo.get/") ||
+    url.includes("soku.yksearch/")
+  ));
+if (!shouldProcess) {
+  $done({});
+} else {
+"""
+
+
+def optimize_pre_parse_route_guard(source):
+    if ROUTE_GUARD_MARKER in source:
+        if (
+            source.count(ROUTE_GUARD_MARKER) != 1
+            or source.count("const shouldProcess =") != 1
+            or source.count("if (!shouldProcess)") != 1
+        ):
+            raise ValueError("CNTV pre-parse route guard marker/structure drift")
+        return source
+    parse_anchor = "let obj = JSON.parse($response.body);"
+    if source.count(parse_anchor) != 1:
+        raise ValueError("CNTV JSON.parse anchor changed; refusing route guard")
+    source = source.replace(parse_anchor, ROUTE_GUARD + parse_anchor, 1)
+    end_anchor = "\n$done({body: JSON.stringify(obj)});\n}\n"
+    if source.count(end_anchor) != 1:
+        raise ValueError("CNTV response completion anchor changed; refusing route guard")
+    source = source.replace(end_anchor, "\n$done({body: JSON.stringify(obj)});\n}\n}\n", 1)
+    if source.count(ROUTE_GUARD_MARKER) != 1 or source.count("const shouldProcess =") != 1:
+        raise ValueError("CNTV pre-parse route guard insertion failed")
+    return source
+
+
 def optimize_source(source, commit="unknown"):
     if MARKER in source:
-        return optimize_get_my_menus(source)
-    if LEGACY_MARKER in source:
-        source = source.replace(LEGACY_MARKER, MARKER, 1)
-        return optimize_get_my_menus(source)
+        return optimize_pre_parse_route_guard(optimize_get_my_menus(source))
+    for legacy_marker in LEGACY_MARKERS:
+        if legacy_marker in source:
+            source = source.replace(legacy_marker, MARKER, 1)
+            return optimize_pre_parse_route_guard(optimize_get_my_menus(source))
     body_guard = "if (!$response.body) $done({});"
     if source.count(body_guard) != 1:
         raise ValueError("CNTV response body guard changed; refusing optimization")
@@ -85,8 +157,9 @@ def optimize_source(source, commit="unknown"):
     if source.count("compactInPlace(") != 12:
         raise ValueError("expected 11 CNTV filters to use compactInPlace")
     source = source.rstrip() + "\n}\n"
-    return optimize_get_my_menus(MARKER + commit + "\n" + source)
-
+    return optimize_pre_parse_route_guard(
+        optimize_get_my_menus(MARKER + commit + "\n" + source)
+    )
 
 def rewrite_plugin(plugin):
     local_count = plugin.count(LOCAL)
