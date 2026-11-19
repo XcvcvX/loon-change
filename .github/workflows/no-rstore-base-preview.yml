@@ -143,9 +143,9 @@ jobs:
           sections={}
           current=''
           for line in s.splitlines():
-              m=re.match(r'^\\[([^]]+)\\]$', line.strip())
-              if m:
-                  current=m.group(1); sections.setdefault(current,0)
+              stripped=line.strip()
+              if stripped.startswith('[') and stripped.endswith(']'):
+                  current=stripped[1:-1]; sections.setdefault(current,0)
               elif current and line.strip() and not line.lstrip().startswith('#'):
                   sections[current]=sections.get(current,0)+1
           report={
