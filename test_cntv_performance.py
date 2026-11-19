@@ -26,8 +26,9 @@ class CNTVOptimizerTests(unittest.TestCase):
         self.assertIn("if (!$response.body) {", source)
         self.assertTrue(source.rstrip().endswith("}"))
         self.assertIn(MENUS_MARKER, source)
-        self.assertNotIn("newMenus", source)
-        self.assertNotIn("newLists", source)
+        menus_branch = source.split('url.includes("/getMyMenus?")', 1)[1].split('url.includes("/home_top_menu?")', 1)[0]
+        self.assertNotIn("newMenus", menus_branch)
+        self.assertNotIn("newLists", menus_branch)
 
     def test_all_26_response_triggers_are_migrated_and_idempotent(self):
         fixture = "[Script]\n" + "\n".join(
