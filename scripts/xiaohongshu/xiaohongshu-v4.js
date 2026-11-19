@@ -35,7 +35,7 @@ if (url.includes("/search/trending?")) {
 if (url.includes("/search/notes?")) {
   // 搜索结果
   if (obj.data.items?.length > 0) {
-    compactInPlace(obj.data.items, item => item?.model_type === "note");
+    compactInPlace(obj.data.items, item => item.model_type === "note");
   }
 }
 
@@ -107,7 +107,7 @@ if (url.includes("/note/imagefeed?") || url.includes("/note/feed?")) {
 
         // 处理帖子引用的标签
         if (item.hash_tag) {
-          compactInPlace(item.hash_tag, tag => tag?.type !== "interact_vote");
+          compactInPlace(item.hash_tag, tag => tag.type !== "interact_vote");
         }
       }
 
@@ -252,7 +252,7 @@ if (url.includes("/v4/followfeed")) {
   // 关注列表
   if (obj?.data?.items?.length > 0) {
     // recommend_user 可能感兴趣的人
-    compactInPlace(obj.data.items, item => item?.recommend_reason !== "recommend_user");
+    compactInPlace(obj.data.items, item => item.recommend_reason !== "recommend_user");
   }
 }  
 
