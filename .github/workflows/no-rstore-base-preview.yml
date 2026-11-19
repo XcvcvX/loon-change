@@ -132,7 +132,7 @@ jobs:
 
       - name: Generate audit and coverage reports
         run: |
-          python3 audit_plugin.py /tmp/no-rstore-base.plugin --json /tmp/no-rstore-audit.json
+          python3 audit_plugin.py /tmp/no-rstore-base.plugin --output /tmp/no-rstore-audit.json
           python3 deep_audit.py /tmp/no-rstore-base.plugin --json /tmp/no-rstore-deep-audit.json --markdown /tmp/no-rstore-deep-audit.md
           python3 runtime_performance_audit.py /tmp/no-rstore-base.plugin --repo-root . --json /tmp/no-rstore-runtime-audit.json --markdown /tmp/no-rstore-runtime-audit.md
           python3 - <<'PY'
