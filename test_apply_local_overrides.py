@@ -1178,8 +1178,8 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         )
         fixture = BASE.replace(
             "[Script]",
-            "[Script]\\n" + DIDI_USERCENTER_CANONICAL_TRIGGER_LOCAL
-            + "\\n" + DIDI_USERCENTER_REDUNDANT_TRIGGER,
+            "[Script]" + chr(10) + DIDI_USERCENTER_CANONICAL_TRIGGER_LOCAL
+            + chr(10) + DIDI_USERCENTER_REDUNDANT_TRIGGER,
         )
         result = apply(fixture)
         script = result.split("[Script]", 1)[1].split("[MITM]", 1)[0]
