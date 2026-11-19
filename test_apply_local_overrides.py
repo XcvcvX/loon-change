@@ -4701,6 +4701,54 @@ class XiaohongshuV4AndCommentMigrationTests(unittest.TestCase):
 
 
 
+    def test_prunes_only_mitm_entries_covered_by_existing_wildcards(self):
+        from apply_local_overrides import remove_mitm_hosts_covered_by_wildcards
+        hosts = [
+            "*.bankcomm.com", "creditcard.bankcomm.com", "download1.bankcomm.com",
+            "*.dianping.com", "m.dianping.com", "*.shuqireader.com",
+            "message.shuqireader.com", "*.example.com", "example.com",
+            "-blocked.example.com",
+        ]
+        kept, removed = remove_mitm_hosts_covered_by_wildcards(hosts)
+        self.assertEqual(removed, 3)
+        self.assertIn("creditcard.bankcomm.com", kept)
+        self.assertNotIn("download1.bankcomm.com", kept)
+        self.assertNotIn("m.dianping.com", kept)
+        self.assertNotIn("message.shuqireader.com", kept)
+        self.assertIn("example.com", kept)  # wildcard does not cover apex
+        self.assertIn("-blocked.example.com", kept)
+
+    def test_removes_only_reviewed_rewrite_overlaps_and_is_idempotent(self):
+        from apply_local_overrides import (
+            REVIEWED_REWRITE_OVERLAP_PAIRS,
+            remove_reviewed_rewrite_overlap_rules,
+        )
+        fixture = ["[Rewrite]"]
+        for keep, remove in REVIEWED_REWRITE_OVERLAP_PAIRS:
+            fixture.extend(keep)
+            fixture.extend(remove)
+        fixture.append("[Script]")
+        cleaned, removed = remove_reviewed_rewrite_overlap_rules(fixture)
+        self.assertEqual(removed, 39)
+        for keep, _ in REVIEWED_REWRITE_OVERLAP_PAIRS:
+            for canonical in keep:
+                self.assertIn(canonical, cleaned)
+        for _, shadows in REVIEWED_REWRITE_OVERLAP_PAIRS:
+            for shadow in shadows:
+                self.assertNotIn(shadow, cleaned)
+        self.assertEqual(remove_reviewed_rewrite_overlap_rules(cleaned), (cleaned, 0))
+
+    def test_rewrite_overlap_cleanup_fails_closed_without_canonical_cover(self):
+        from apply_local_overrides import (
+            REVIEWED_REWRITE_OVERLAP_PAIRS,
+            remove_reviewed_rewrite_overlap_rules,
+        )
+        keep, remove = REVIEWED_REWRITE_OVERLAP_PAIRS[0]
+        cleaned, removed = remove_reviewed_rewrite_overlap_rules(["[Rewrite]", *remove, "[Script]"])
+        self.assertEqual(removed, 0)
+        self.assertEqual(cleaned, ["[Rewrite]", *remove, "[Script]"])
+
+
 if __name__ == "__main__":
     unittest.main()
 
