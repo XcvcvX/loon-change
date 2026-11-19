@@ -1,3 +1,4 @@
+// loon-change: CNFTP response filter in-place compaction v1
 // loon-change: Youku home.query in-place compaction v1; upstream fmz200/wool_scripts@eca3853dfed0f2db829408a81b98ff279bcfe8f9
 // loon-change: Youku home.feed in-place compaction v1
 // 2025-03-08 22:15
@@ -35,7 +36,7 @@ if (isIQY) {
       let card = obj.cards[0];
       if (card?.items?.length > 0) {
         // 29首页 31会员中心 34我的 35发现 184随刻视频
-        card.items = card.items.filter((i) => ["29", "31", "34"]?.includes(i?._id));
+        compactInPlace(card.items, (i) => ["29", "31", "34"]?.includes(i?._id));
         // 修复位置
         for (let i = 0; i < card.items.length; i++) {
           card.items[i].show_order = i + 1;
@@ -103,7 +104,7 @@ if (isIQY) {
       let card = obj.cards[0];
       if (card?.items?.length > 0) {
         // 1017直播 8196热点 4525518866820370中国梦
-        card.items = card.items.filter((i) => !["1017", "8196", "4525518866820370"]?.includes(i?._id));
+        compactInPlace(card.items, (i) => !["1017", "8196", "4525518866820370"]?.includes(i?._id));
         for (let i = 0; i < card.items.length; i++) {
           card.items[i].show_order = i + 1;
         }
@@ -160,7 +161,7 @@ if (isIQY) {
     // 爱奇艺 播放页评论区
     if (obj?.cards?.length > 0) {
       // 评论资源位 无alias_name字段的为广告
-      obj.cards = obj.cards.filter(
+      compactInPlace(obj.cards, 
         (i) => i.hasOwnProperty("alias_name") && !["comment_resource_card", "comment_resource_convention_card"]?.includes(i?.alias_name)
       );
     }
@@ -202,7 +203,7 @@ if (isIQY) {
       }
     }
     if (obj?.cards?.length > 0) {
-      obj.cards = obj.cards.filter(
+      compactInPlace(obj.cards, 
         (i) =>
           ![
             "bi_playlist", // 必播单 当下最热电影推荐
@@ -365,7 +366,7 @@ if (isIQY) {
       obj.data = newItems;
     }
     if (obj?.moduleIDS?.length > 0) {
-      obj.moduleIDS = obj.moduleIDS.filter((i) => !["842", "2237", "5418"]?.includes(i?.moduleEntityId));
+      compactInPlace(obj.moduleIDS, (i) => !["842", "2237", "5418"]?.includes(i?.moduleEntityId));
     }
   } else if (url.includes("/dynamic/v1/channel/vrsList/")) {
     // 芒果 顶部tab
@@ -438,7 +439,7 @@ if (isIQY) {
     }
     if (obj?.data?.tabs?.length > 0) {
       // 播放标签页 1视频 2讨论
-      obj.data.tabs = obj.data.tabs.filter((i) => ["1", "2"]?.includes(i?.type));
+      compactInPlace(obj.data.tabs, (i) => ["1", "2"]?.includes(i?.type));
     }
     if (obj?.data?.template?.modules?.length > 0) {
       // 播放页组件
@@ -525,7 +526,7 @@ if (isIQY) {
       // 1正片 2花絮片段 6设备信息 7未知 8看了还会看 9精华打包 10未知 14vip
       // 15未知 17周边大放送 18未知 20出品人 22未知 30未知 31系列推荐
       // 35音乐fm入口 36为你推荐 37音乐fm入口
-      obj.data.categoryList = obj.data.categoryList.filter((i) => ![2, 8, 9, 14, 17]?.includes(i?.dataType));
+      compactInPlace(obj.data.categoryList, (i) => ![2, 8, 9, 14, 17]?.includes(i?.dataType));
     }
   }
 } else if (isYK) {
@@ -545,7 +546,7 @@ if (isIQY) {
         let config = objData.data.global;
         if (config?.PHONE_DETAIL_TOP_TAB?.pageTabs?.length > 0) {
           // detail视频 list热门 planet讨论
-          config.PHONE_DETAIL_TOP_TAB.pageTabs = config.PHONE_DETAIL_TOP_TAB.pageTabs.filter((i) =>
+          compactInPlace(config.PHONE_DETAIL_TOP_TAB.pageTabs, (i) =>
             ["detail", "planet"]?.includes(i?.code)
           );
         }
@@ -555,7 +556,7 @@ if (isIQY) {
           let node0 = objData.nodes[0];
           if (node0?.nodes?.length > 0) {
             if (node0?.typeName === "NORMAL") {
-              node0.nodes = node0.nodes.filter(
+              compactInPlace(node0.nodes, 
                 (i) =>
                   ![
                     "PHONE_CHD_AGE_DETAIL_2",
@@ -815,7 +816,7 @@ if (isIQY) {
       let bottom = obj.data.model.configInfo.bottomNavigate;
       if (bottom?.data?.bottomTabList?.length > 0) {
         // HOME首页 DONGTAI短视频 SEARCH淘好片 VIP_MEMBER会员 NEW_UCENTER我的
-        bottom.data.bottomTabList = bottom.data.bottomTabList.filter((i) =>
+        compactInPlace(bottom.data.bottomTabList, (i) =>
           ["HOME", "NEW_UCENTER", "VIP_MEMBER"]?.includes(i?.type)
         );
         // 修复位置
@@ -841,7 +842,7 @@ if (isIQY) {
     // 优酷 搜索页面组件
     if (obj?.data?.nodes?.length > 0) {
       // 仅保留搜索tab
-      obj.data.nodes = obj.data.nodes.filter((i) => i.hasOwnProperty("data"));
+      compactInPlace(obj.data.nodes, (i) => i.hasOwnProperty("data"));
     }
   }
 }
