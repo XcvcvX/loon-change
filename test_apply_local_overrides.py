@@ -124,6 +124,7 @@ hostname = ossgw.alicdn.com, acs.m.taobao.com, creditcard.bankcomm.cn, creditcar
         self.assertIn("DOMAIN,ut.taobao.com,REJECT", rule_section)
         self.assertIn("acs\\.m\\.taobao", rewrite_section)
         self.assertIn("ossgw.alicdn.com", result.split("[MITM]", 1)[1])
+        self.assertFalse(any("tag=XIAOHONGSHU-11," in line for line in script_lines))
         self.assertEqual(apply(result), result)
 
     def test_taobao_oss_scope_rejects_broad_rule_without_path_replacement(self):
@@ -5802,7 +5803,7 @@ class XiaohongshuLocalMirrorCompatibilityTests(unittest.TestCase):
         remote_url = "https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js"
         plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
         result = apply(plugin)
-        required_tags = set(XHS_NATIVE_DUPLICATE_TRIGGER_TAGS) | set(XHS_NARROWED_TRIGGER_LINES) | {"XIAOHONGSHU-7"}
+        required_tags = set(XHS_NARROWED_TRIGGER_LINES) | {"XIAOHONGSHU-7", "XIAOHONGSHU-9", "XIAOHONGSHU-10"}
         script_section = False
         script_lines = []
         for line in result.splitlines():
