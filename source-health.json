@@ -65,12 +65,12 @@
       "added": 0,
       "current_entries": 350,
       "migration_action_changed_exempted": 0,
-      "net_shrink_percent": 0.568,
+      "net_shrink_percent": 0.0,
       "non_migration_action_changed": 0,
-      "non_retired_removed": 2,
-      "previous_entries": 352,
-      "removed": 2,
-      "removed_percent": 0.568,
+      "non_retired_removed": 0,
+      "previous_entries": 350,
+      "removed": 0,
+      "removed_percent": 0.0,
       "retired_source_removed": 0
     }
   },
