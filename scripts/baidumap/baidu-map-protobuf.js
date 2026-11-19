@@ -63,6 +63,8 @@ const repHeadMessage = repHeadType.decode(repHeadData);
 
 let newResult = null;
 let newAds = null;
+let adsFound = false;
+let modifiedAds = false;
 const dataBeginOffset = beginOffset + prefixLength;
 for(let i = 0; i < repHeadMessage.messageHead.length; i++) {
   let messageHead = repHeadMessage.messageHead[i];
@@ -77,27 +79,37 @@ for(let i = 0; i < repHeadMessage.messageHead.length; i++) {
     // Result is unchanged; retain a zero-copy view instead of decoding and re-encoding it.
     newResult = targetData;
   }else if(name === 'Ads'){
-    // 对Ads进行修改
+    adsFound = true;
+    // Decode once to inspect the small ad list, but avoid protobuf re-encode,
+    // MD5 hashing and full binary-body reconstruction when no target field changes.
     const adsType = baiduMapRoot.lookupType(name);
-    let adsMessage = adsType.decode(targetData);
+    const adsMessage = adsType.decode(targetData);
     for(let j = 0; j < adsMessage.content.length; j++) {
       const item = adsMessage.content[j];
       const type = item.type;
       if((type.indexOf('_banner') !== -1 || type.indexOf('splash_screen1040') !== -1)
         && item.hasOwnProperty('start') && item.hasOwnProperty('end')){
-        item.start = 1648746061;
-        item.end = 1648832461;
+        if(item.start !== 1648746061 || item.end !== 1648832461) {
+          item.start = 1648746061;
+          item.end = 1648832461;
+          modifiedAds = true;
+        }
       }
     }
-    newAds = adsType.encode(adsMessage).finish();
+    if(modifiedAds) newAds = adsType.encode(adsMessage).finish();
   }
 }
 
-// Build the final payload in one allocation; hash its zero-copy view.
-const body = assembleBaiduResponse(repHeadMessage, repHeadType, newResult, newAds, md5);
-
-if(isQuanX){
-  $done({bodyBytes: body.buffer});
+if(adsFound && !modifiedAds) {
+  // No JSON-visible/binary field change: preserve the original response bytes.
+  $done({});
 } else {
-  $done({body});
+  // Build the final payload in one allocation; hash its zero-copy view.
+  const body = assembleBaiduResponse(repHeadMessage, repHeadType, newResult, newAds, md5);
+
+  if(isQuanX){
+    $done({bodyBytes: body.buffer});
+  } else {
+    $done({body});
+  }
 }
