@@ -7,7 +7,8 @@ from pathlib import Path
 
 REMOTE = "https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js"
 LOCAL = "https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/didi/didi.js"
-MARKER = "// loon-change: Didi response compaction optimization v1; upstream zirawell/R-Store@"
+LEGACY_MARKER = "// loon-change: Didi response compaction optimization v1; upstream zirawell/R-Store@"
+MARKER = "// loon-change: Didi response compaction and lazy serialization optimization v2; upstream zirawell/R-Store@"
 EXPECTED_FILTERS = 7
 
 HELPER = """function compactInPlace(items, keep) {
@@ -30,13 +31,51 @@ FILTER_ASSIGNMENT = re.compile(
 )
 
 
+def optimize_lazy_serialization(source):
+    if "let modified = false;" in source:
+        if "$done(modified ? {body: JSON.stringify(obj)} : {});" not in source:
+            raise ValueError("Didi lazy serialization completion guard is missing")
+        return source
+    parse_anchor = "let obj = JSON.parse($response.body);"
+    helper_return = "  items.length = write;\\n  return items;"
+    completion = "$done({body: JSON.stringify(obj)});"
+    if source.count(parse_anchor) != 1 or source.count(helper_return) != 1 or source.count(completion) != 1:
+        raise ValueError("Didi lazy serialization anchors changed; refusing optimization")
+    source = source.replace(parse_anchor, parse_anchor + "\\nlet modified = false;", 1)
+    source = source.replace(helper_return, "  items.length = write;\\n  if (write !== length) modified = true;\\n  return items;", 1)
+    old_for_each = """    obj.data.show_data.forEach((block) => {
+      if (block.scene_ids instanceof Array) {
+        compactInPlace(block.scene_ids, id => id !== "scene_coupon_mall");
+      }
+    });"""
+    new_for_each = """    const showData = obj.data.show_data;
+    for (let read = 0; read < showData.length; read++) {
+      const block = showData[read];
+      if (block.scene_ids instanceof Array) {
+        compactInPlace(block.scene_ids, id => id !== "scene_coupon_mall");
+      }
+    }"""
+    if source.count(old_for_each) != 1:
+        raise ValueError("Didi show_data traversal changed; refusing optimization")
+    source = source.replace(old_for_each, new_for_each, 1)
+    splice = "    obj.data.disorder_cards.top_banner_card.data.splice(0, 1);"
+    if source.count(splice) != 1:
+        raise ValueError("Didi banner removal changed; refusing optimization")
+    source = source.replace(splice, splice + "\\n    modified = true;", 1)
+    source = source.replace(completion, "$done(modified ? {body: JSON.stringify(obj)} : {});", 1)
+    return source
+
+
 def optimize_source(source, commit="unknown"):
     if MARKER in source:
         if re.search(r"\.filter\s*\(", source):
             raise ValueError("Didi optimization marker exists but allocating filter remains")
         if "obj.data.cards.forEach" in source:
             raise ValueError("Didi user-center wallet traversal optimization is stale")
-        return source
+        return optimize_lazy_serialization(source)
+    if LEGACY_MARKER in source:
+        source = source.replace(LEGACY_MARKER, MARKER, 1)
+        return optimize_lazy_serialization(source)
 
     body_guard = "if (!$response.body) $done({});"
     if source.count(body_guard) != 1:
@@ -75,7 +114,7 @@ def optimize_source(source, commit="unknown"):
         raise ValueError("expected all seven Didi filters to use compactInPlace")
 
     source = source.rstrip() + "\n}\n"
-    return MARKER + commit + "\n" + source
+    return optimize_lazy_serialization(MARKER + commit + "\n" + source)
 
 
 def rewrite_plugin(plugin):
