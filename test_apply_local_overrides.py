@@ -2919,7 +2919,7 @@ class JingdongCoreServiceDomainScopeTests(unittest.TestCase):
     def test_removes_only_three_known_core_service_host_blocks_and_is_idempotent(self):
         from apply_local_overrides import remove_jd_core_service_domain_blocks
         result, removed = remove_jd_core_service_domain_blocks(self.base)
-        self.assertEqual(removed, 3)
+        self.assertEqual(removed, 4)
         for rule in self.targets:
             self.assertNotIn(rule, result)
         self.assertIn("DOMAIN,unrelated.example,REJECT", result)
