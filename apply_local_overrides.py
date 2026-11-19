@@ -4872,7 +4872,11 @@ def narrow_xiaohongshu_native_response_duplicates(lines):
         matches = [line for line in script_lines if ("tag=" + tag + ",") in line]
         if not matches:
             return original, 0
-        if len(matches) != 1 or matches[0] != expected_rstore[tag]:
+        local_expected = expected_rstore[tag].replace(
+            "https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js",
+            "https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu-rstore.js"
+        )
+        if len(matches) != 1 or matches[0] not in (expected_rstore[tag], local_expected):
             raise ValueError("Xiaohongshu R-Store native duplicate trigger changed: " + tag)
         actual_by_tag[tag] = matches[0]
 
@@ -4882,7 +4886,11 @@ def narrow_xiaohongshu_native_response_duplicates(lines):
                          if line.startswith("http-response ")
                          and ("tag=" + tag + ",") in line), None)
         matches = [line for line in script_lines if ("tag=" + tag + ",") in line]
-        if expected is None or len(matches) != 1 or matches[0] != expected:
+        local_expected = expected.replace(
+            "https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js",
+            "https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu-rstore.js"
+        ) if expected else None
+        if expected is None or len(matches) != 1 or matches[0] not in (expected, local_expected):
             raise ValueError("Xiaohongshu feed trigger inventory changed: " + tag)
         actual_by_narrowed_tag[tag] = matches[0]
 
@@ -4977,10 +4985,18 @@ def narrow_xiaohongshu_native_response_duplicates(lines):
             or len(fmz_actual) != 3):
         raise ValueError("Xiaohongshu FMZ search trigger inventory changed; refusing narrowing")
 
-    replacements = {
-        actual_by_narrowed_tag[tag]: narrowed
-        for tag, narrowed in XHS_NARROWED_TRIGGER_LINES.items()
-    }
+    replacements = {}
+    for tag, narrowed in XHS_NARROWED_TRIGGER_LINES.items():
+        actual_line = actual_by_narrowed_tag[tag]
+        script_url = re.search(r"script-path=([^,\\s]+)", actual_line)
+        if not script_url:
+            raise ValueError("Xiaohongshu script URL missing from narrowed trigger: " + tag)
+        replacements[actual_line] = re.sub(
+            r"script-path=[^,\\s]+",
+            "script-path=" + script_url.group(1),
+            narrowed,
+            count=1
+        )
     for line in fmz_actual:
         if "/search/notes" in re.sub(r"\\+", "", line):
             old = r"(so|edith)\.(xiaohongshu|rnote)\.com"
