@@ -73,26 +73,30 @@ def insert_section(plugin, section, additions):
     return "\n".join(lines).rstrip() + "\n"
 
 
-def remove_rstore_spotify_entitlement_script(plugin):
-    """Remove R-Store's overlapping bootstrap/customization protobuf mutator."""
-    lines = plugin.splitlines()
-    marker = "R-Store/main/Res/Scripts/AntiAd/spotify.js"
-    kept = []
+def replace_rstore_spotify_rules(plugin):
+    """Replace R-Store Spotify entries with the independent Spotify plugin's entries."""
+    output = []
+    section = None
     removed = 0
-    for line in lines:
-        is_rstore_startup_mutator = (
-            line.lstrip().lower().startswith("http-response ")
-            and marker in line
-            and "bootstrap" in line
-            and "user-customization-service" in line
-        )
-        if is_rstore_startup_mutator:
-            removed += 1
-        else:
-            kept.append(line)
-    if removed > 1:
-        raise ValueError(f"发现 {removed} 条 R-Store Spotify entitlement 脚本，预期最多 1 条")
-    return "\n".join(kept).rstrip() + "\n", removed
+    for line in plugin.splitlines():
+        header = re.match(r"^\s*\[([^\]]+)\]\s*$", line)
+        if header:
+            section = header.group(1).strip().lower()
+            output.append(line)
+            continue
+        if section in {"rule", "rewrite", "script"} and not line.lstrip().startswith("#"):
+            lower = line.lower()
+            if "spotify.com" in lower or "spotify.js" in lower:
+                removed += 1
+                continue
+        if section == "mitm" and line.strip().lower().startswith("hostname"):
+            prefix, values = line.split("=", 1)
+            hosts = [host.strip() for host in values.split(",") if host.strip()]
+            kept_hosts = [host for host in hosts if "spotify.com" not in host.lower()]
+            removed += len(hosts) - len(kept_hosts)
+            line = prefix + "= " + ", ".join(kept_hosts)
+        output.append(line)
+    return "\n".join(output).rstrip() + "\n", removed
 
 
 def integrate(plugin_path, source_path, scripts_source, scripts_dest, upstream_commit, metadata_path):
@@ -119,9 +123,9 @@ def integrate(plugin_path, source_path, scripts_source, scripts_dest, upstream_c
         rewritten_script_rules.append(line)
 
     plugin = Path(plugin_path).read_text(encoding="utf-8")
-    plugin, removed_rstore_script = remove_rstore_spotify_entitlement_script(plugin)
+    plugin, removed_rstore_script = replace_rstore_spotify_rules(plugin)
     if removed_rstore_script:
-        print("Removed %d overlapping R-Store Spotify bootstrap/customization script(s)" % removed_rstore_script)
+        print("Replaced %d R-Store Spotify rule/script/MITM entries with the independent Spotify source" % removed_rstore_script)
     plugin = insert_section(plugin, "Rule", rules)
     plugin = insert_section(plugin, "Rewrite", rewrites)
     plugin = insert_section(plugin, "Script", rewritten_script_rules)
