@@ -39,8 +39,8 @@
   },
   "aoomee": {
     "commit": "5685038ec50b505d6d24691b01b5ae8ca05a6142",
-    "plugin_files": 31,
-    "rule_lines": 689,
+    "plugin_files": 32,
+    "rule_lines": 692,
     "upstream_repository": "https://github.com/ifflagged/Romeo",
     "upstream_commit": "5685038ec50b505d6d24691b01b5ae8ca05a6142",
     "source_mode": "Romeo Modules/Loon (including Kelee WeChat/Weidian plugins) + pinned AOOMEE-only local snapshots",
@@ -77,7 +77,8 @@
       "Modules/Loon/Kelee/Weidian_remove_ads.lpx",
       "Modules/Loon/Kelee/Weixin_Official_Accounts_remove_ads.lpx",
       "Modules/Loon/Kelee/WexinMiniPrograms_Remove_ads.lpx",
-      "Modules/Loon/Maasea/YouTube.Enhance.lpx"
+      "Modules/Loon/Maasea/YouTube.Enhance.lpx",
+      "Modules/Loon/ddgksf2013/Beta/JinShiDataAds.lpx"
     ],
     "compatibility_key": "aoomee (retained only to preserve historical provenance continuity)"
   },

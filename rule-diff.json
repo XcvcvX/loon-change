@@ -81,7 +81,7 @@
         "qunar-legacy.plugin",
         "youtube-zh.lpx"
       ],
-      "plugin_files": 31,
+      "plugin_files": 32,
       "romeo_module_paths": [
         "Modules/Loon/fmz200/12306.lpx",
         "Modules/Loon/ishowshu/amap.lpx",
@@ -106,9 +106,10 @@
         "Modules/Loon/Kelee/Weidian_remove_ads.lpx",
         "Modules/Loon/Kelee/Weixin_Official_Accounts_remove_ads.lpx",
         "Modules/Loon/Kelee/WexinMiniPrograms_Remove_ads.lpx",
-        "Modules/Loon/Maasea/YouTube.Enhance.lpx"
+        "Modules/Loon/Maasea/YouTube.Enhance.lpx",
+        "Modules/Loon/ddgksf2013/Beta/JinShiDataAds.lpx"
       ],
-      "rule_lines": 689,
+      "rule_lines": 692,
       "source_mode": "Romeo Modules/Loon (including Kelee WeChat/Weidian plugins) + pinned AOOMEE-only local snapshots",
       "upstream_commit": "5685038ec50b505d6d24691b01b5ae8ca05a6142",
       "upstream_repository": "https://github.com/ifflagged/Romeo"
@@ -602,7 +603,29 @@
   "sections": {
     "rewrite": {
       "action_changed": [],
-      "added": [],
+      "added": [
+        {
+          "line": "request if ${url} ~= /^https?:\\/\\/jad-api\\.jin10\\.com\\/ad/i then reject(200, \" \")",
+          "section": "rewrite",
+          "sources": [
+            "aoomee"
+          ]
+        },
+        {
+          "line": "request if ${url} ~= /^https?:\\/\\/jad-api\\.jin10\\.com\\/mult\\/list_unread\\?display=flash_list&fit_type=new_flash_flash/i then reject(200, \" \")",
+          "section": "rewrite",
+          "sources": [
+            "aoomee"
+          ]
+        },
+        {
+          "line": "response if ${url} ~= /^https?:\\/\\/search-open-api\\.jin10\\.com\\/search\\/getHotWords/i then response.json.jq(\".data.list=[]\")",
+          "section": "rewrite",
+          "sources": [
+            "aoomee"
+          ]
+        }
+      ],
       "removed": []
     },
     "rule": {
@@ -619,7 +642,7 @@
   "summary": {
     "rewrite": {
       "action_changed": 0,
-      "added": 0,
+      "added": 3,
       "removed": 0
     },
     "rule": {
@@ -632,7 +655,7 @@
       "added": 0,
       "removed": 0
     },
-    "total_changes": 0
+    "total_changes": 3
   },
   "upstream_revision_changes": []
 }

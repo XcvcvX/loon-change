@@ -2,7 +2,7 @@
   "change_counts": {
     "rewrite": {
       "action_changed": 0,
-      "added": 0,
+      "added": 3,
       "removed": 0
     },
     "rule": {
@@ -16,14 +16,87 @@
       "removed": 0
     }
   },
-  "events": [],
-  "overall_risk": "low",
+  "events": [
+    {
+      "after": {
+        "line": "request if ${url} ~= /^https?:\\/\\/jad-api\\.jin10\\.com\\/ad/i then reject(200, \" \")",
+        "section": "rewrite",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "aoomee": "scored"
+      },
+      "source_scores": {
+        "aoomee": 100
+      },
+      "sources": [
+        "aoomee"
+      ]
+    },
+    {
+      "after": {
+        "line": "request if ${url} ~= /^https?:\\/\\/jad-api\\.jin10\\.com\\/mult\\/list_unread\\?display=flash_list&fit_type=new_flash_flash/i then reject(200, \" \")",
+        "section": "rewrite",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "aoomee": "scored"
+      },
+      "source_scores": {
+        "aoomee": 100
+      },
+      "sources": [
+        "aoomee"
+      ]
+    },
+    {
+      "after": {
+        "line": "response if ${url} ~= /^https?:\\/\\/search-open-api\\.jin10\\.com\\/search\\/getHotWords/i then response.json.jq(\".data.list=[]\")",
+        "section": "rewrite",
+        "sources": [
+          "aoomee"
+        ]
+      },
+      "before": null,
+      "change_type": "added",
+      "reason": "出现新规则，需要确认匹配范围、动作和误伤边界",
+      "risk": "medium",
+      "section": "rewrite",
+      "semantic_duplicate_coverage": null,
+      "source_score_status": {
+        "aoomee": "scored"
+      },
+      "source_scores": {
+        "aoomee": 100
+      },
+      "sources": [
+        "aoomee"
+      ]
+    }
+  ],
+  "overall_risk": "medium",
   "risk_counts": {
     "high": 0,
     "low": 0,
-    "medium": 0
+    "medium": 3
   },
-  "run_id": "44425003567",
+  "run_id": "44427622938",
   "safety_notes": [
     "Risk labels prioritize review; they do not prove a rule is wrong.",
     "Additions are medium risk by default; unverified removals and action changes are high risk.",
@@ -41,9 +114,9 @@
   "source_trends_last_30_snapshots": {
     "aoomee": {
       "action_changed": 106,
-      "added": 153,
+      "added": 156,
       "removed": 2,
-      "snapshots_seen": 7
+      "snapshots_seen": 8
     },
     "base": {
       "action_changed": 19,

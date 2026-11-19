@@ -18,7 +18,7 @@
   },
   "provenance_coverage": {
     "coverage_percent": 100.0,
-    "entries": 3399,
+    "entries": 3402,
     "missing_source": 0
   },
   "safety_notes": [
@@ -34,8 +34,8 @@
     "rewrite": {
       "action_change_source_pairs": [],
       "action_changed": 0,
-      "added": 0,
-      "current_entries": 2329,
+      "added": 3,
+      "current_entries": 2332,
       "migration_action_changed_exempted": 0,
       "net_shrink_percent": 0.0,
       "non_migration_action_changed": 0,
@@ -112,7 +112,7 @@
       "score": 100
     },
     "aoomee": {
-      "current_count": 689,
+      "current_count": 692,
       "evidence": {
         "asset_integrity": "not_applicable",
         "content_volume": "present_rule_lines",
