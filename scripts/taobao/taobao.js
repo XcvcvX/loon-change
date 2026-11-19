@@ -14,18 +14,23 @@ if (!$response.body) {
 } else {
   const url = $request.url;
   const obj = JSON.parse($response.body);
+  let modified = false;
 if (url.includes("mtop.taobao.cloudvideo.video.query")) {
   if (obj?.data?.duration) {
     obj.data.duration = "0";
+    modified = true;
   }
   if (obj?.data?.resources?.length > 0) {
     obj.data.resources = [];
+    modified = true;
   }
   if (obj?.data?.caches?.length > 0) {
     obj.data.caches = [];
+    modified = true;
   }
   if (obj?.data?.respTimeInMs) {
     obj.data.respTimeInMs = "3818332800000";
+    modified = true;
   }
 } else if (url.includes("mtop.taobao.wireless.home.splash.awesome.get")) {
   if (obj?.data?.containers?.splash_home_base) {
@@ -35,6 +40,7 @@ if (url.includes("mtop.taobao.cloudvideo.video.query")) {
         if ("taobao-splash" in items.bizData) {
           if (items?.bizData?.["taobao-splash"]?.data?.length > 0) {
             for (let item of items.bizData["taobao-splash"].data) {
+              modified = true;
               item.waitTime = "0";
               item.times = "0";
               item.hotStart = "false";
@@ -63,16 +69,20 @@ if (url.includes("mtop.taobao.cloudvideo.video.query")) {
 } else if (url.includes("poplayer.template.alibaba.com")) {
   if (obj?.res?.images?.length > 0) {
     obj.res.images = [];
+    modified = true;
   }
   if (obj?.res?.videos?.length > 0) {
     obj.res.videos = [];
+    modified = true;
   }
   if (obj?.enable) {
     obj.enable = false;
+    modified = true;
   }
   if (obj?.mainRes?.images?.length > 0) {
     obj.mainRes.images = [];
+    modified = true;
   }
 }
-$done({body: JSON.stringify(obj)});
+$done(modified ? {body: JSON.stringify(obj)} : {});
 }
