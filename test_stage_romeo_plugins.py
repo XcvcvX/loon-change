@@ -22,10 +22,10 @@ ROOT = Path(__file__).resolve().parent
 
 class RomeoPluginMigrationTests(unittest.TestCase):
     def test_manifest_is_the_single_complete_mapping(self):
-        self.assertEqual(len(ROMEO_PLUGIN_MAP), 24)
+        self.assertEqual(len(ROMEO_PLUGIN_MAP), 25)
         self.assertEqual(len(set(ROMEO_PLUGIN_MAP)), len(ROMEO_PLUGIN_MAP))
         self.assertEqual(len(set(ROMEO_PLUGIN_MAP.values())), len(ROMEO_PLUGIN_MAP))
-        self.assertEqual(EXPECTED_PLUGIN_FILES, 31)
+        self.assertEqual(EXPECTED_PLUGIN_FILES, 32)
         self.assertEqual(len(ZMJDE_APP_MAP), 5)
         self.assertEqual(len(ZMJDE_GENERAL_MAP), 3)
         self.assertEqual(len(ZMJDE_PLUGIN_MAP), 8)
@@ -48,6 +48,13 @@ class RomeoPluginMigrationTests(unittest.TestCase):
         self.assertEqual(sum(plugin == "WexinMiniPrograms_Remove_ads.lpx" for plugin, _ in assets), 12)
         self.assertEqual(sum(plugin == "Weidian_remove_ads.lpx" for plugin, _ in assets), 2)
         self.assertEqual(sum(plugin == "Weixin_Official_Accounts_remove_ads.lpx" for plugin, _ in assets), 0)
+
+    def test_jinshi_data_ads_plugin_is_mapped_without_runtime_script_dependencies(self):
+        self.assertEqual(
+            ROMEO_PLUGIN_MAP["JinShiDataAds.lpx"],
+            "Modules/Loon/ddgksf2013/Beta/JinShiDataAds.lpx",
+        )
+        self.assertFalse(any(item["plugin"] == "JinShiDataAds.lpx" for item in RUNTIME_ASSETS))
 
     def test_legacy_snapshots_are_present(self):
         self.assertEqual(len(LEGACY_SNAPSHOTS), 7)
@@ -167,7 +174,7 @@ class RomeoPluginMigrationTests(unittest.TestCase):
             with patch("stage_romeo_plugins._read_romeo_file", side_effect=fake_read):
                 result = stage(repo, commit, primary, ROOT, former_zmjde)
 
-            self.assertEqual(result["romeo_plugin_files"], 24)
+            self.assertEqual(result["romeo_plugin_files"], 25)
             self.assertEqual(result["former_zmjde_plugin_files"], 8)
             self.assertEqual(len(result["staged_plugin_files"]), EXPECTED_PLUGIN_FILES)
             self.assertEqual(len(list(former_zmjde.glob("*.lpx"))), 8)
