@@ -26,7 +26,8 @@ class CnftpPerformanceTests(unittest.TestCase):
 
     def test_upstream_home_feed_branch_is_migrated_fail_closed(self):
         fixture = """const url = $request.url;
-if (isYK) {\n  } else if (url.includes("columbus.home.feed/")) {
+if (isYK) {
+  } else if (url.includes("columbus.home.feed/")) {
   let newNodes1 = [];
   for (let node1 of objData.nodes) {
     if (node1?.typeName === "PHONE_FEED_CARD_GROUP") {
