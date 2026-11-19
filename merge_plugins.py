@@ -2738,19 +2738,21 @@ sc_feeds = [('base', 4, base_sc), ('block', 5, block_sc), ('zmjgen', 6, zmj_gen_
             ('amap', -1, amap_sc), ('zmjapp', 0, zmj_app_sc), ('myblockads', 7, mb_sc)]
 # ---------------- 闲鱼/京东专项规则：吸收 y0unge 上游的高置信补漏 ----------------
 # 本地规则来源单独入 feeds，确保来源追溯和自动构建均保留。
-jd_splash_image = (
-    r'^https?:\/\/[a-z0-9]+\.360buyimg\.com\/mobilecms\/s1\d{3}x2\d{3}_jfs\/ reject-200'
-)
-jd_splash_video = (
-    r'^https?:\/\/[a-z0-9]+\.360buyimg\.com\/material-video\/ reject-200'
-)
+# 仅列出已知 CDN 分片（m、storage、img1-img30），避免把 MITM 扩大到整个 *.360buyimg.com。
+jd_splash_asset_rules = [
+    (
+        r'^https?:\\/\\/' + host
+        + r'\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{{3}}x2\\d{{3}}_jfs\\/|material-video\\/) reject-200'
+    )
+    for host in ['m', 'storage'] + [f'img{i}' for i in range(1, 31)]
+]
 goofish_splash_trigger = (
     r'response if ${url} ~= /^https?:\/\/(?:g-)?acs\.m\.goofish\.com\/gw\/'
     r'mtop\.taobao\.idlecommerce\.splash\.(?:ads|async\.ads|config)\//i '
     r'then script("https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js") '
     r'with tag="GOOFISH-SPLASH", timeout=20, requires_body=true'
 )
-rw_feeds.append(('xianyu_jd_targeted', 0, [jd_splash_image, jd_splash_video]))
+rw_feeds.append(('xianyu_jd_targeted', 0, jd_splash_asset_rules))
 sc_feeds.append(('xianyu_jd_targeted', 0, [goofish_splash_trigger]))
 
 merged_rw, rw_unguarded = priority_merge([(p, x) for _, p, x in rw_feeds])
