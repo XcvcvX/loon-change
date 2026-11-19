@@ -14,8 +14,8 @@ class TargetedUpstreamAppRuleTests(unittest.TestCase):
     def test_merge_pipeline_keeps_only_targeted_local_xianyu_and_jd_additions(self):
         base_text = r"""#!name=fixture
 [Rewrite]
-^https?:\\/\\/m.360buyimg\\.com\\/mobilecms\\/s1125x2436_jfs\\/ reject-200
-request if ${url} ~= /^https?:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlecommerce\\.splash\\.ads\\// then reject_dict(200)
+^https?:\/\/m.360buyimg\.com\/mobilecms\/s1125x2436_jfs\/ reject-200
+request if ${url} ~= /^https?:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlecommerce\.splash\.ads\// then reject_dict(200)
 [Script]
 [Rule]
 [MITM]
@@ -38,13 +38,13 @@ hostname = m.360buyimg.com, img*.360buyimg.com, acs.m.goofish.com, g-acs.m.goofi
                 "--provenance-out", str(provenance),
             ]
             completed = subprocess.run(command, capture_output=True, text=True, timeout=60)
-            self.assertEqual(completed.returncode, 0, completed.stdout + "\\n" + completed.stderr)
+            self.assertEqual(completed.returncode, 0, completed.stdout + "\n" + completed.stderr)
             merged = output.read_text(encoding="utf-8")
             self.assertIn("GOOFISH-SPLASH", merged)
             self.assertIn("realTimeAd", (ROOT / "scripts/xianyu/goofish.js").read_text(encoding="utf-8"))
-            self.assertIn("s1\\\\d{3}x2\\\\d{3}_jfs", merged)
+            self.assertIn(r"s1\d{3}x2\d{3}_jfs", merged)
             self.assertIn("material-video", merged)
-            self.assertNotIn("idlecommerce\\\\.splash", merged)
+            self.assertNotIn(r"idlecommerce\.splash", merged)
             self.assertNotIn("s1125x2436_jfs", merged)
             self.assertIn("xianyu_jd_targeted", provenance.read_text(encoding="utf-8"))
 
