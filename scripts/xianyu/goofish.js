@@ -60,7 +60,19 @@ function main() {
     return removed ? $done({ body: JSON.stringify(splash) }) : $done({});
   }
 
-  let obj;
+  const supportedPaths = [
+      "/mtop.taobao.idlehome.home.nextfresh",
+      "/mtop.taobao.idle.local.home",
+      "/mtop.taobao.idle.home.whale.modulet",
+      "/mtop.idle.user.page.my.adapter",
+      "/mtop.taobao.idlehome.home.circle.list",
+      "/mtop.taobao.idle.local.nearby.itemdetail.enter",
+      "/mtop.taobao.idlemtopsearch.search",
+      "/mtop.taobao.idle.local.flow.plat.section"
+    ];
+    if (!supportedPaths.some(path => url.includes(path))) return $done({});
+
+    let obj;
   try {
     obj = JSON.parse(body);
   } catch (error) {
