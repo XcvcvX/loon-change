@@ -257,24 +257,29 @@ function content(type, start, end) {
     ...intField(5, end)
   ];
 }
-function fixture(type, start, end) {
+function fixture(type, start, end, includeAds) {
   const result = [8, 0];
-  const ads = bytesField(2, content(type, start, end));
-  const head = [
-    ...stringField(1, "0123456789abcdef0123456789abcdef"),
-    ...bytesField(3, [
+  const fields = [
+    bytesField(3, [
       ...intField(1, 0), ...intField(2, result.length), ...stringField(3, "Result")
-    ]),
-    ...bytesField(3, [
-      ...intField(1, result.length), ...intField(2, ads.length), ...stringField(3, "Ads")
     ])
   ];
+  const payload = result.slice();
+  if (includeAds) {
+    const ads = bytesField(2, content(type, start, end));
+    fields.push(bytesField(3, [
+      ...intField(1, result.length), ...intField(2, ads.length), ...stringField(3, "Ads")
+    ]));
+    payload.push(...ads);
+  }
+  const head = [...stringField(1, "0123456789abcdef0123456789abcdef")];
+  for (const field of fields) head.push(...field);
   const prefix = Buffer.alloc(4);
   prefix.writeInt32BE(head.length, 0);
-  return new Uint8Array(Buffer.concat([prefix, Buffer.from(head), Buffer.from(result), Buffer.from(ads)]));
+  return new Uint8Array(Buffer.concat([prefix, Buffer.from(head), Buffer.from(payload)]));
 }
 
-const input = fixture(process.argv[2], Number(process.argv[3]), Number(process.argv[4]));
+const input = fixture(process.argv[2], Number(process.argv[3]), Number(process.argv[4]), process.argv[5] !== "no-ads");
 let doneResult;
 const context = {
   $response: { body: input },
@@ -313,17 +318,21 @@ if (doneResult.body) {
 }
 """
 
-    def run_script(self, content_type, start, end):
+    def run_script(self, content_type, start, end, include_ads=True):
         if not NODE:
             self.skipTest("Node.js is required for BaiduMap protobuf runtime tests")
         completed = subprocess.run(
             [NODE, "-e", self.runner, str(ROOT / "scripts/baidumap/baidu-map-protobuf.js"),
-             content_type, str(start), str(end)],
+             content_type, str(start), str(end), "with-ads" if include_ads else "no-ads"],
             capture_output=True, text=True, check=False, timeout=15,
         )
         if completed.returncode:
             raise AssertionError(completed.stderr or completed.stdout)
         return __import__("json").loads(completed.stdout)
+
+    def test_missing_ads_section_passes_through_without_reassembly(self):
+        result = self.run_script("normal", 1, 2, include_ads=False)
+        self.assertFalse(result["hasBody"])
 
     def test_non_target_ads_skip_protobuf_encode_md5_and_body_reassembly(self):
         result = self.run_script("normal", 1, 2)

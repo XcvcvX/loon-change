@@ -100,7 +100,7 @@ for(let i = 0; i < repHeadMessage.messageHead.length; i++) {
   }
 }
 
-if(adsFound && !modifiedAds) {
+if(!adsFound || !modifiedAds || !newResult) {
   // No JSON-visible/binary field change: preserve the original response bytes.
   $done({});
 } else {
