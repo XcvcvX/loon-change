@@ -3971,23 +3971,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://ossgw\\\\.alicdn\\\\.com/creatives-assets/prod/feupload/user', ('REJECT', 'reject', 'reject(404)'))",
-      "output_entry_index": 226,
-      "output_line": "request if ${url} ~= /^https?:\\/\\/ossgw\\.alicdn\\.com\\/creatives-assets\\/prod\\/feupload\\/user/ then reject(404)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https?:\\/\\/ossgw\\.alicdn\\.com\\/creatives-assets\\/prod\\/feupload\\/user/ then reject(404)",
-          "input_section": "Rewrite",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 225
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https?://acs\\\\.m\\\\.taobao\\\\.com/gw/mtop\\\\.etao\\\\.noah\\\\.query/.+tao_splash', ('REJECT', 'reject', 'reject(404)'))",
       "output_entry_index": 227,
       "output_line": "request if ${url} ~= /^https?:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.etao\\.noah\\.query\\/.+tao_splash/ then reject(404)",
@@ -4339,23 +4322,6 @@
           "priority": 4,
           "source": "base",
           "source_entry_index": 245
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://client\\\\.tujia\\\\.com/bnbapp-node', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 247,
-      "output_line": "^https?:\\/\\/client\\.tujia\\.com\\/bnbapp-node reject-dict",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "^https?:\\/\\/client\\.tujia\\.com\\/bnbapp-node reject-dict",
-          "input_section": "Rewrite",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 246
         }
       ],
       "trace_status": "mapped"
@@ -5621,23 +5587,6 @@
           "priority": 4,
           "source": "base",
           "source_entry_index": 322
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://.+\\\\.pglstatp-toutiao\\\\.com', ('REJECT', 'reject', 'reject(404)'))",
-      "output_entry_index": 324,
-      "output_line": "request if ${url} ~= /^https?:\\/\\/.+\\.pglstatp-toutiao\\.com/ then reject(404)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https?:\\/\\/.+\\.pglstatp-toutiao\\.com/ then reject(404)",
-          "input_section": "Rewrite",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 323
         }
       ],
       "trace_status": "mapped"
@@ -8507,23 +8456,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://t-dsp\\\\.pinduoduo\\\\.com/dspcb/i/mrk_union', ('REJECT', 'reject', 'reject(404)'))",
-      "output_entry_index": 493,
-      "output_line": "request if ${url} ~= /^https?:\\/\\/t-dsp\\.pinduoduo\\.com\\/dspcb\\/i\\/mrk_union/ then reject(404)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https?:\\/\\/t-dsp\\.pinduoduo\\.com\\/dspcb\\/i\\/mrk_union/ then reject(404)",
-          "input_section": "Rewrite",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 493
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https?://images\\\\.pinduoduo\\\\.com/(mrk|marketing_api)/', ('REJECT', 'reject', 'reject(404)'))",
       "output_entry_index": 494,
       "output_line": "request if ${url} ~= /^https?:\\/\\/images\\.pinduoduo\\.com\\/(mrk|marketing_api)\\// then reject(404)",
@@ -9335,23 +9267,6 @@
           "priority": 4,
           "source": "base",
           "source_entry_index": 543
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://business\\\\.msstatic\\\\.com/advertiser/material', ('REJECT', 'reject', 'reject(404)'))",
-      "output_entry_index": 544,
-      "output_line": "request if ${url} ~= /^https?:\\/\\/business\\.msstatic\\.com\\/advertiser\\/material/ then reject(404)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https?:\\/\\/business\\.msstatic\\.com\\/advertiser\\/material/ then reject(404)",
-          "input_section": "Rewrite",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 544
         }
       ],
       "trace_status": "mapped"
@@ -15303,23 +15218,6 @@
           "priority": 4,
           "source": "base",
           "source_entry_index": 898
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://us\\\\.l\\\\.qq\\\\.com/exapp', ('REJECT', 'reject', 'reject(404)'))",
-      "output_entry_index": 898,
-      "output_line": "request if ${url} ~= /^https?:\\/\\/us\\.l\\.qq\\.com\\/exapp/ then reject(404)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https?:\\/\\/us\\.l\\.qq\\.com\\/exapp/ then reject(404)",
-          "input_section": "Rewrite",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 899
         }
       ],
       "trace_status": "mapped"
@@ -25554,23 +25452,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://c\\\\.m\\\\.163\\\\.com/nc/gl/', ('REJECT', 'reject', 'reject(200)'))",
-      "output_entry_index": 1499,
-      "output_line": "^https?:\\/\\/c\\.m\\.163\\.com\\/nc\\/gl\\/ reject-200",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "^https?:\\/\\/c\\.m\\.163\\.com\\/nc\\/gl\\/ reject-200",
-          "input_section": "Rewrite",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 1506
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https?://kano\\\\.guahao\\\\.cn/[a-zA-Z0-9]{12}', ('REJECT', 'reject', 'reject(200)'))",
       "output_entry_index": 1500,
       "output_line": "^https?:\\/\\/kano\\.guahao\\.cn\\/[a-zA-Z0-9]{12} reject-200",
@@ -30365,23 +30246,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://video-dsp\\\\.pddpic\\\\.com/market-dsp-video/', ('REJECT', 'reject', 'reject(404)'))",
-      "output_entry_index": 1783,
-      "output_line": "request if ${url} ~= /^https:\\/\\/video-dsp\\.pddpic\\.com\\/market-dsp-video\\//i then reject(404)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https:\\/\\/video-dsp\\.pddpic\\.com\\/market-dsp-video\\//i then reject(404)",
-          "input_section": "Rewrite",
-          "priority": 6,
-          "source": "zmjgen",
-          "source_entry_index": 6
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https://t-dsp\\\\.pinduoduo\\\\.com/dspcb/i/mrk_', ('REJECT', 'reject', 'reject(404)'))",
       "output_entry_index": 1784,
       "output_line": "request if ${url} ~= /^https:\\/\\/t-dsp\\.pinduoduo\\.com\\/dspcb\\/i\\/mrk_/i then reject(404)",
@@ -30394,40 +30258,6 @@
           "priority": 6,
           "source": "zmjgen",
           "source_entry_index": 7
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://images\\\\.pinduoduo\\\\.com/mrk/', ('REJECT', 'reject', 'reject(404)'))",
-      "output_entry_index": 1785,
-      "output_line": "request if ${url} ~= /^https:\\/\\/images\\.pinduoduo\\.com\\/mrk\\//i then reject(404)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https:\\/\\/images\\.pinduoduo\\.com\\/mrk\\//i then reject(404)",
-          "input_section": "Rewrite",
-          "priority": 6,
-          "source": "zmjgen",
-          "source_entry_index": 8
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://images\\\\.pinduoduo\\\\.com/marketing_api/', ('REJECT', 'reject', 'reject(404)'))",
-      "output_entry_index": 1786,
-      "output_line": "request if ${url} ~= /^https:\\/\\/images\\.pinduoduo\\.com\\/marketing_api\\//i then reject(404)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https:\\/\\/images\\.pinduoduo\\.com\\/marketing_api\\//i then reject(404)",
-          "input_section": "Rewrite",
-          "priority": 6,
-          "source": "zmjgen",
-          "source_entry_index": 9
         }
       ],
       "trace_status": "mapped"
@@ -30496,23 +30326,6 @@
           "priority": 6,
           "source": "zmjgen",
           "source_entry_index": 14
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://api\\\\.jr\\\\.mi\\\\.com/jr/api/playScreen', ('REJECT', 'reject', 'reject(200)'))",
-      "output_entry_index": 1791,
-      "output_line": "request if ${url} ~= /^https?:\\/\\/api\\.jr\\.mi\\.com\\/jr\\/api\\/playScreen/i then reject(200)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https?:\\/\\/api\\.jr\\.mi\\.com\\/jr\\/api\\/playScreen/i then reject(200)",
-          "input_section": "Rewrite",
-          "priority": 6,
-          "source": "zmjgen",
-          "source_entry_index": 15
         }
       ],
       "trace_status": "mapped"
@@ -30943,23 +30756,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://gw\\\\.alicdn\\\\.com/mt/', ('REJECT', 'reject', 'reject(404)'))",
-      "output_entry_index": 1817,
-      "output_line": "request if ${url} ~= /^https:\\/\\/gw\\.alicdn\\.com\\/mt\\//i then reject(404)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https:\\/\\/gw\\.alicdn\\.com\\/mt\\//i then reject(404)",
-          "input_section": "Rewrite",
-          "priority": 6,
-          "source": "zmjgen",
-          "source_entry_index": 41
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https://gw\\\\.alicdn\\\\.com/tfs/.+\\\\d{3,4}-\\\\d{4}', ('REJECT', 'reject', 'reject(404)'))",
       "output_entry_index": 1818,
       "output_line": "request if ${url} ~= /^https:\\/\\/gw\\.alicdn\\.com\\/tfs\\/.+\\d{3,4}-\\d{4}/i then reject(404)",
@@ -30989,23 +30785,6 @@
           "priority": 6,
           "source": "zmjgen",
           "source_entry_index": 43
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.taobao\\\\.com/gw/mtop\\\\.taobao\\\\.idle\\\\.home\\\\.welcome', ('REJECT', 'reject', 'reject(404)'))",
-      "output_entry_index": 1820,
-      "output_line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.idle\\.home\\.welcome/i then reject(404)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.idle\\.home\\.welcome/i then reject(404)",
-          "input_section": "Rewrite",
-          "priority": 6,
-          "source": "zmjgen",
-          "source_entry_index": 44
         }
       ],
       "trace_status": "mapped"
@@ -31108,23 +30887,6 @@
           "priority": 6,
           "source": "zmjgen",
           "source_entry_index": 50
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://client\\\\.app\\\\.coc\\\\.10086\\\\.cn/biz-orange/DN/init/startInit$', ('REJECT', 'reject', 'reject(404)'))",
-      "output_entry_index": 1827,
-      "output_line": "request if ${url} ~= /^https:\\/\\/client\\.app\\.coc\\.10086\\.cn\\/biz-orange\\/DN\\/init\\/startInit$/i then reject(404)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https:\\/\\/client\\.app\\.coc\\.10086\\.cn\\/biz-orange\\/DN\\/init\\/startInit$/i then reject(404)",
-          "input_section": "Rewrite",
-          "priority": 6,
-          "source": "zmjgen",
-          "source_entry_index": 52
         }
       ],
       "trace_status": "mapped"
@@ -31261,23 +31023,6 @@
           "priority": 6,
           "source": "zmjgen",
           "source_entry_index": 61
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://t-dsp\\\\.pinduoduo\\\\.com', ('REJECT', 'reject', 'reject(200)'))",
-      "output_entry_index": 1836,
-      "output_line": "request if ${url} ~= /^https?:\\/\\/t-dsp\\.pinduoduo\\.com/i then reject(200)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https?:\\/\\/t-dsp\\.pinduoduo\\.com/i then reject(200)",
-          "input_section": "Rewrite",
-          "priority": 6,
-          "source": "zmjgen",
-          "source_entry_index": 62
         }
       ],
       "trace_status": "mapped"
@@ -31436,23 +31181,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://api\\\\.zcool\\\\.com\\\\.cn/v\\\\d\\\\.\\\\d\\\\.\\\\d/common/open-screen', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 1846,
-      "output_line": "request if ${url} ~= /^https:\\/\\/api\\.zcool\\.com\\.cn\\/v\\d\\.\\d\\.\\d\\/common\\/open-screen/i then reject_dict(200)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https:\\/\\/api\\.zcool\\.com\\.cn\\/v\\d\\.\\d\\.\\d\\/common\\/open-screen/i then reject_dict(200)",
-          "input_section": "Rewrite",
-          "priority": 6,
-          "source": "zmjgen",
-          "source_entry_index": 73
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https://shealthyapi\\\\.senssun\\\\.com/v1/app/banner/findByType\\\\?type=bottom$', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
       "output_entry_index": 1847,
       "output_line": "request if ${url} ~= /^https:\\/\\/shealthyapi\\.senssun\\.com\\/v1\\/app\\/banner\\/findByType\\?type=bottom$/i then reject_dict(200)",
@@ -31538,23 +31266,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://app\\\\.10099\\\\.com\\\\.cn/contact-web/api/version/getFlashScreenPage', ('REJECT', 'reject', 'reject(404)'))",
-      "output_entry_index": 1852,
-      "output_line": "request if ${url} ~= /^https:\\/\\/app\\.10099\\.com\\.cn\\/contact-web\\/api\\/version\\/getFlashScreenPage/i then reject(404)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https:\\/\\/app\\.10099\\.com\\.cn\\/contact-web\\/api\\/version\\/getFlashScreenPage/i then reject(404)",
-          "input_section": "Rewrite",
-          "priority": 6,
-          "source": "zmjgen",
-          "source_entry_index": 79
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https://api\\\\.flydigi\\\\.com/android/v2/ad', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
       "output_entry_index": 1853,
       "output_line": "request if ${url} ~= /^https:\\/\\/api\\.flydigi\\.com\\/android\\/v2\\/ad/i then reject_dict(200)",
@@ -31567,23 +31278,6 @@
           "priority": 6,
           "source": "zmjgen",
           "source_entry_index": 80
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://api\\\\.xiangji\\\\.qq\\\\.com/splash$', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 1854,
-      "output_line": "request if ${url} ~= /^https:\\/\\/api\\.xiangji\\.qq\\.com\\/splash$/i then reject_dict(200)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https:\\/\\/api\\.xiangji\\.qq\\.com\\/splash$/i then reject_dict(200)",
-          "input_section": "Rewrite",
-          "priority": 6,
-          "source": "zmjgen",
-          "source_entry_index": 81
         }
       ],
       "trace_status": "mapped"
@@ -31669,23 +31363,6 @@
           "priority": 6,
           "source": "zmjgen",
           "source_entry_index": 86
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.taobao\\\\.com/gw/mtop\\\\.film\\\\.life\\\\.popup\\\\.get/', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 1860,
-      "output_line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.film\\.life\\.popup\\.get\\//i then reject_dict(200)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.film\\.life\\.popup\\.get\\//i then reject_dict(200)",
-          "input_section": "Rewrite",
-          "priority": 6,
-          "source": "zmjgen",
-          "source_entry_index": 87
         }
       ],
       "trace_status": "mapped"
@@ -34333,27 +34010,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://ucmp\\\\.sf-express\\\\.com/proxy/esgcempcore/memberGoods/pointMallService/goodsList', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 1987,
-      "output_line": "request if ${url} ~= /^https:\\/\\/ucmp\\.sf-express\\.com\\/proxy\\/esgcempcore\\/memberGoods\\/pointMallService\\/goodsList/i then reject_dict(200)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https:\\/\\/ucmp\\.sf-express\\.com\\/proxy\\/esgcempcore\\/memberGoods\\/pointMallService\\/goodsList/i then reject_dict(200)",
-          "input_section": "Rewrite",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 123,
-          "source_file": "plugins/WexinMiniPrograms_Remove_ads.lpx",
-          "source_line_number": 190,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "request if ${url} ~= /^https:\\/\\/ucmp\\.sf-express\\.com\\/proxy\\/esgcempcore\\/memberGoods\\/pointMallService\\/goodsList/i then reject_dict(200)"
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https://as\\\\.xiaojukeji\\\\.com/ep/as/conf\\\\?ns=daijia-front&name=', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
       "output_entry_index": 1988,
       "output_line": "request if ${url} ~= /^https:\\/\\/as\\.xiaojukeji\\.com\\/ep\\/as\\/conf\\?ns=daijia-front&name=/i then reject_dict(200)",
@@ -35132,35 +34788,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://amap-aos-info-nogw\\\\.amap\\\\.com/ws/aos/alimama/splash_screen_rt', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 2022,
-      "output_line": "request if ${url} ~= /^https:\\/\\/amap-aos-info-nogw\\.amap\\.com\\/ws\\/aos\\/alimama\\/splash_screen_rt/i then reject_dict(200)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "duplicate_same_semantics",
-          "input_line": "request if ${url} ~= /^https:\\/\\/amap-aos-info-nogw\\.amap\\.com\\/ws\\/aos\\/alimama\\/splash_screen_rt/i then reject_dict(200)",
-          "input_section": "Rewrite",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 158,
-          "source_file": "plugins/amap.lpx",
-          "source_line_number": 28,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "request if ${url} ~= /^https:\\/\\/amap-aos-info-nogw\\.amap\\.com\\/ws\\/aos\\/alimama\\/splash_screen_rt/i then reject_dict(200)"
-        },
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https:\\/\\/amap-aos-info-nogw\\.amap\\.com\\/ws\\/aos\\/alimama\\/splash_screen_rt/i then reject_dict(200)",
-          "input_section": "Rewrite",
-          "priority": -1,
-          "source": "amap",
-          "source_entry_index": 0
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https://m5-zb\\\\.amap\\\\.com/ws/fluorite/resource', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
       "output_entry_index": 2023,
       "output_line": "request if ${url} ~= /^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/fluorite\\/resource/i then reject_dict(200)",
@@ -35219,90 +34846,6 @@
           "source_line_number": 31,
           "source_original_section": "Rewrite",
           "source_raw_line": "request if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/info_bff\\/rankingCard/i then reject_dict(200)"
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://mbs\\\\.boc\\\\.cn/ubas-mgateway-static/images/theme/', ('mock-response-body', 'mock-response-body data-type=text status-code=200'))",
-      "output_entry_index": 2026,
-      "output_line": "^https?:\\/\\/mbs\\.boc\\.cn\\/ubas-mgateway-static\\/images\\/theme\\/ mock-response-body data-type=text status-code=200",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "^https?:\\/\\/mbs\\.boc\\.cn\\/ubas-mgateway-static\\/images\\/theme\\/ mock-response-body data-type=text status-code=200",
-          "input_section": "Rewrite",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 162,
-          "source_file": "plugins/boc.plugin",
-          "source_line_number": 19,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "^https?:\\/\\/mbs\\.boc\\.cn\\/ubas-mgateway-static\\/images\\/theme\\/ mock-response-body data-type=text status-code=200"
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://mbs\\\\.boc\\\\.cn/ubas-mgateway-static/images/advertType/.+.jpg', ('mock-response-body', 'mock-response-body data-type=text status-code=200'))",
-      "output_entry_index": 2027,
-      "output_line": "^https?:\\/\\/mbs\\.boc\\.cn\\/ubas-mgateway-static\\/images\\/advertType\\/.+.jpg mock-response-body data-type=text status-code=200",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "^https?:\\/\\/mbs\\.boc\\.cn\\/ubas-mgateway-static\\/images\\/advertType\\/.+.jpg mock-response-body data-type=text status-code=200",
-          "input_section": "Rewrite",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 163,
-          "source_file": "plugins/boc.plugin",
-          "source_line_number": 20,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "^https?:\\/\\/mbs\\.boc\\.cn\\/ubas-mgateway-static\\/images\\/advertType\\/.+.jpg mock-response-body data-type=text status-code=200"
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://cdn1\\\\.mbs\\\\.boc\\\\.cn/ubas-mgateway-static/images/theme/', ('mock-response-body', 'mock-response-body data-type=text status-code=200'))",
-      "output_entry_index": 2028,
-      "output_line": "^https?:\\/\\/cdn1\\.mbs\\.boc\\.cn\\/ubas-mgateway-static\\/images\\/theme\\/ mock-response-body data-type=text status-code=200",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "^https?:\\/\\/cdn1\\.mbs\\.boc\\.cn\\/ubas-mgateway-static\\/images\\/theme\\/ mock-response-body data-type=text status-code=200",
-          "input_section": "Rewrite",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 164,
-          "source_file": "plugins/boc.plugin",
-          "source_line_number": 21,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "^https?:\\/\\/cdn1\\.mbs\\.boc\\.cn\\/ubas-mgateway-static\\/images\\/theme\\/ mock-response-body data-type=text status-code=200"
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://cdn1\\\\.mbs\\\\.boc\\\\.cn/ubas-mgateway-static/images/advertType/\\\\.+\\\\.jpg', ('mock-response-body', 'mock-response-body data-type=text status-code=200'))",
-      "output_entry_index": 2029,
-      "output_line": "^https?:\\/\\/cdn1\\.mbs\\.boc\\.cn\\/ubas-mgateway-static\\/images\\/advertType\\/\\.+\\.jpg mock-response-body data-type=text status-code=200",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "^https?:\\/\\/cdn1\\.mbs\\.boc\\.cn\\/ubas-mgateway-static\\/images\\/advertType\\/\\.+\\.jpg mock-response-body data-type=text status-code=200",
-          "input_section": "Rewrite",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 165,
-          "source_file": "plugins/boc.plugin",
-          "source_line_number": 22,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "^https?:\\/\\/cdn1\\.mbs\\.boc\\.cn\\/ubas-mgateway-static\\/images\\/advertType\\/\\.+\\.jpg mock-response-body data-type=text status-code=200"
         }
       ],
       "trace_status": "mapped"
@@ -35807,27 +35350,6 @@
           "source_line_number": 8,
           "source_original_section": "Rewrite",
           "source_raw_line": "request if ${url} ~= /^https?:\\/\\/mbasecc\\.(bas|bcs)\\.cmbchina\\.com\\/Edge\\/api\\/mlife\\.clientface\\.clientservice\\.api\\.advertiseService\\/preCacheAdvertiseSec/i then reject_dict(200)"
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://webappcfg\\\\.paas\\\\.cmbchina\\\\.com/v\\\\d/func/getmarketconfig', ('REJECT', 'reject', 'reject(200, \" \")'))",
-      "output_entry_index": 2054,
-      "output_line": "request if ${url} ~= /^https?:\\/\\/webappcfg\\.paas\\.cmbchina\\.com\\/v\\d\\/func\\/getmarketconfig/i then reject(200, \" \")",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https?:\\/\\/webappcfg\\.paas\\.cmbchina\\.com\\/v\\d\\/func\\/getmarketconfig/i then reject(200, \" \")",
-          "input_section": "Rewrite",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 190,
-          "source_file": "plugins/cmbchina.lpx",
-          "source_line_number": 9,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "request if ${url} ~= /^https?:\\/\\/webappcfg\\.paas\\.cmbchina\\.com\\/v\\d\\/func\\/getmarketconfig/i then reject(200, \" \")"
         }
       ],
       "trace_status": "mapped"
@@ -36584,27 +36106,6 @@
           "source_line_number": 35,
           "source_original_section": "Rewrite",
           "source_raw_line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlemessage\\.user\\.query\\.top\\.resource/i then reject_dict(200)"
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://hweb-manager\\\\.huazhu\\\\.com/start/getAppStartPage(?:\\\\?.*)?$', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 2091,
-      "output_line": "^https?:\\/\\/hweb-manager\\.huazhu\\.com\\/start\\/getAppStartPage(?:\\?.*)?$ reject-dict",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "^https?:\\/\\/hweb-manager\\.huazhu\\.com\\/start\\/getAppStartPage(?:\\?.*)?$ reject-dict",
-          "input_section": "Rewrite",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 229,
-          "source_file": "plugins/huazhu.plugin",
-          "source_line_number": 7,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "^https?:\\/\\/hweb-manager\\.huazhu\\.com\\/start\\/getAppStartPage(?:\\?.*)?$ reject-dict"
         }
       ],
       "trace_status": "mapped"
@@ -37956,27 +37457,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://ssp\\\\.soulapp\\\\.cn/api', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 2157,
-      "output_line": "request if ${url} ~= /^https:\\/\\/ssp\\.soulapp\\.cn\\/api/i then reject_dict(200)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https:\\/\\/ssp\\.soulapp\\.cn\\/api/i then reject_dict(200)",
-          "input_section": "Rewrite",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 296,
-          "source_file": "plugins/soul-new.lpx",
-          "source_line_number": 28,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "request if ${url} ~= /^https:\\/\\/ssp\\.soulapp\\.cn\\/api/i then reject_dict(200)"
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https://47\\\\.110\\\\.187\\\\.87/winterfell/(?:v2/)?getIpByDomain', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
       "output_entry_index": 2158,
       "output_line": "request if ${url} ~= /^https:\\/\\/47\\.110\\.187\\.87\\/winterfell\\/(?:v2\\/)?getIpByDomain/i then reject_dict(200)",
@@ -38014,27 +37494,6 @@
           "source_line_number": 30,
           "source_original_section": "Rewrite",
           "source_raw_line": "request if ${url} ~= /^https:\\/\\/post\\.soulapp\\.cn\\/v\\d\\/post\\/homepage\\/guide\\/card/i then reject_dict(200)"
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://api-account\\\\.soulapp\\\\.cn/teenager/config', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 2160,
-      "output_line": "request if ${url} ~= /^https:\\/\\/api-account\\.soulapp\\.cn\\/teenager\\/config/i then reject_dict(200)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https:\\/\\/api-account\\.soulapp\\.cn\\/teenager\\/config/i then reject_dict(200)",
-          "input_section": "Rewrite",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 299,
-          "source_file": "plugins/soul-new.lpx",
-          "source_line_number": 31,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "request if ${url} ~= /^https:\\/\\/api-account\\.soulapp\\.cn\\/teenager\\/config/i then reject_dict(200)"
         }
       ],
       "trace_status": "mapped"
@@ -40560,174 +40019,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.taobao\\\\.com/gw/mtop\\\\.alibaba\\\\.advertisementservice\\\\.getadv', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 2296,
-      "output_line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.alibaba\\.advertisementservice\\.getadv/i then reject_dict(200)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.alibaba\\.advertisementservice\\.getadv/i then reject_dict(200)",
-          "input_section": "Rewrite",
-          "priority": 0,
-          "source": "zmjapp",
-          "source_entry_index": 80,
-          "source_file": "Plugin/Taobao_remove_ads.lpx",
-          "source_line_number": 23,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.alibaba\\.advertisementservice\\.getadv/i then reject_dict(200)"
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.taobao\\\\.com/gw/mtop\\\\.alimama\\\\.etao\\\\.config\\\\.query/.+?etao_advertise', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 2297,
-      "output_line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.alimama\\.etao\\.config\\.query\\/.+?etao_advertise/i then reject_dict(200)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.alimama\\.etao\\.config\\.query\\/.+?etao_advertise/i then reject_dict(200)",
-          "input_section": "Rewrite",
-          "priority": 0,
-          "source": "zmjapp",
-          "source_entry_index": 81,
-          "source_file": "Plugin/Taobao_remove_ads.lpx",
-          "source_line_number": 24,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.alimama\\.etao\\.config\\.query\\/.+?etao_advertise/i then reject_dict(200)"
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.taobao\\\\.com/gw/mtop\\\\.alimusic\\\\.common\\\\.mobileservice\\\\.startinit', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 2298,
-      "output_line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.alimusic\\.common\\.mobileservice\\.startinit/i then reject_dict(200)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.alimusic\\.common\\.mobileservice\\.startinit/i then reject_dict(200)",
-          "input_section": "Rewrite",
-          "priority": 0,
-          "source": "zmjapp",
-          "source_entry_index": 82,
-          "source_file": "Plugin/Taobao_remove_ads.lpx",
-          "source_line_number": 25,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.alimusic\\.common\\.mobileservice\\.startinit/i then reject_dict(200)"
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.taobao\\\\.com/gw/mtop\\\\.etao\\\\.noah\\\\.query/.+tao_splash', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 2299,
-      "output_line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.etao\\.noah\\.query\\/.+tao_splash/i then reject_dict(200)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.etao\\.noah\\.query\\/.+tao_splash/i then reject_dict(200)",
-          "input_section": "Rewrite",
-          "priority": 0,
-          "source": "zmjapp",
-          "source_entry_index": 83,
-          "source_file": "Plugin/Taobao_remove_ads.lpx",
-          "source_line_number": 26,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.etao\\.noah\\.query\\/.+tao_splash/i then reject_dict(200)"
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.taobao\\\\.com/gw/mtop\\\\.film\\\\.mtopadvertiseapi\\\\.queryadvertise', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 2300,
-      "output_line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.film\\.mtopadvertiseapi\\.queryadvertise/i then reject_dict(200)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.film\\.mtopadvertiseapi\\.queryadvertise/i then reject_dict(200)",
-          "input_section": "Rewrite",
-          "priority": 0,
-          "source": "zmjapp",
-          "source_entry_index": 84,
-          "source_file": "Plugin/Taobao_remove_ads.lpx",
-          "source_line_number": 27,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.film\\.mtopadvertiseapi\\.queryadvertise/i then reject_dict(200)"
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.taobao\\\\.com/gw/mtop\\\\.o2o\\\\.ad\\\\.gateway\\\\.get', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 2301,
-      "output_line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.o2o\\.ad\\.gateway\\.get/i then reject_dict(200)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.o2o\\.ad\\.gateway\\.get/i then reject_dict(200)",
-          "input_section": "Rewrite",
-          "priority": 0,
-          "source": "zmjapp",
-          "source_entry_index": 85,
-          "source_file": "Plugin/Taobao_remove_ads.lpx",
-          "source_line_number": 28,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.o2o\\.ad\\.gateway\\.get/i then reject_dict(200)"
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.taobao\\\\.com/gw/mtop\\\\.taobao\\\\.idle\\\\.home\\\\.welcome', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 2302,
-      "output_line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.idle\\.home\\.welcome/i then reject_dict(200)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.idle\\.home\\.welcome/i then reject_dict(200)",
-          "input_section": "Rewrite",
-          "priority": 0,
-          "source": "zmjapp",
-          "source_entry_index": 86,
-          "source_file": "Plugin/Taobao_remove_ads.lpx",
-          "source_line_number": 29,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.idle\\.home\\.welcome/i then reject_dict(200)"
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://acs\\\\.m\\\\.taobao\\\\.com/gw/mtop\\\\.trip\\\\.activity\\\\.querytmsresources', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 2303,
-      "output_line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.trip\\.activity\\.querytmsresources/i then reject_dict(200)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.trip\\.activity\\.querytmsresources/i then reject_dict(200)",
-          "input_section": "Rewrite",
-          "priority": 0,
-          "source": "zmjapp",
-          "source_entry_index": 87,
-          "source_file": "Plugin/Taobao_remove_ads.lpx",
-          "source_line_number": 30,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "request if ${url} ~= /^https:\\/\\/acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.trip\\.activity\\.querytmsresources/i then reject_dict(200)"
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https://(?:gw|heic)\\\\.alicdn\\\\.com/imgextra/i\\\\d/\\\\d*/?[\\\\w!]+-\\\\d-(?:octopus|tps)-(?:1080|1125)-\\\\d{4}\\\\.(?:jpg|png)_(?:1\\\\d{3}|9\\\\d{2})x(?:\\\\d|1\\\\d{3}|9\\\\d{2})q[59]0', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
       "output_entry_index": 2304,
       "output_line": "request if ${url} ~= /^https:\\/\\/(?:gw|heic)\\.alicdn\\.com\\/imgextra\\/i\\d\\/\\d*\\/?[\\w!]+-\\d-(?:octopus|tps)-(?:1080|1125)-\\d{4}\\.(?:jpg|png)_(?:1\\d{3}|9\\d{2})x(?:\\d|1\\d{3}|9\\d{2})q[59]0/i then reject_dict(200)",
@@ -40744,27 +40035,6 @@
           "source_line_number": 31,
           "source_original_section": "Rewrite",
           "source_raw_line": "request if ${url} ~= /^https:\\/\\/(?:gw|heic)\\.alicdn\\.com\\/imgextra\\/i\\d\\/\\d*\\/?[\\w!]+-\\d-(?:octopus|tps)-(?:1080|1125)-\\d{4}\\.(?:jpg|png)_(?:1\\d{3}|9\\d{2})x(?:\\d|1\\d{3}|9\\d{2})q[59]0/i then reject_dict(200)"
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://guide-acs\\\\.m\\\\.taobao\\\\.com/gw/mtop\\\\.taobao\\\\.(volvo\\\\.secondfloor\\\\.getconfig|wireless\\\\.home\\\\.newface\\\\.awesome\\\\.get)', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 2305,
-      "output_line": "request if ${url} ~= /^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.(volvo\\.secondfloor\\.getconfig|wireless\\.home\\.newface\\.awesome\\.get)/i then reject_dict(200)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.(volvo\\.secondfloor\\.getconfig|wireless\\.home\\.newface\\.awesome\\.get)/i then reject_dict(200)",
-          "input_section": "Rewrite",
-          "priority": 0,
-          "source": "zmjapp",
-          "source_entry_index": 89,
-          "source_file": "Plugin/Taobao_remove_ads.lpx",
-          "source_line_number": 32,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "request if ${url} ~= /^https:\\/\\/guide-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.taobao\\.(volvo\\.secondfloor\\.getconfig|wireless\\.home\\.newface\\.awesome\\.get)/i then reject_dict(200)"
         }
       ],
       "trace_status": "mapped"
@@ -55030,7 +54300,7 @@
       "included": 0
     },
     "post_transform_reconciled": true,
-    "rewrite_output_entries": 2357,
+    "rewrite_output_entries": 2319,
     "rule_covered_or_duplicate_events": 121,
     "rule_included_events": 723,
     "rule_output_entries": 719,
