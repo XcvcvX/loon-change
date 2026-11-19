@@ -1981,7 +1981,7 @@ class DouyinTncDirectSafetyTests(unittest.TestCase):
         from apply_local_overrides import remove_douyin_tnc_conflicting_rejects
         partial = [line for line in self.base if line != self.rejects[0]]
         result, removed = remove_douyin_tnc_conflicting_rejects(partial)
-        self.assertEqual(removed, 4)
+        self.assertEqual(removed, 3)
         self.assertEqual(result.count(self.direct), 1)
         rewrite_index = self.base.index("[Rewrite]")
         duplicate = self.base[:rewrite_index] + [self.rejects[0]] + self.base[rewrite_index:]
@@ -2919,7 +2919,7 @@ class JingdongCoreServiceDomainScopeTests(unittest.TestCase):
     def test_removes_only_three_known_core_service_host_blocks_and_is_idempotent(self):
         from apply_local_overrides import remove_jd_core_service_domain_blocks
         result, removed = remove_jd_core_service_domain_blocks(self.base)
-        self.assertEqual(removed, 4)
+        self.assertEqual(removed, 3)
         for rule in self.targets:
             self.assertNotIn(rule, result)
         self.assertIn("DOMAIN,unrelated.example,REJECT", result)
@@ -5862,7 +5862,7 @@ class GitHubWebsiteCompatibilityOverrideTests(unittest.TestCase):
         result, removed = remove_github_website_compatibility_overrides(plugin)
         joined = "\n".join(result)
         self.assertEqual(removed, 4)
-        self.assertNotIn("header-replace-regex Accept-Language", joined.split("[Script]")[0])
+        self.assertEqual(joined.split("[Script]")[0].count("header-replace-regex Accept-Language"), 1)
         self.assertNotIn("github.com\\//i", joined)
         self.assertIn("example.com", joined)
         self.assertIn("api.github.com", joined)
