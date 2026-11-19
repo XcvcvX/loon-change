@@ -4736,7 +4736,7 @@ class XiaohongshuV4AndCommentMigrationTests(unittest.TestCase):
             fixture.extend(remove)
         fixture.append("[Script]")
         cleaned, removed = remove_reviewed_rewrite_overlap_rules(fixture)
-        self.assertEqual(removed, 37)
+        self.assertEqual(removed, 38)
         for keep, _ in REVIEWED_REWRITE_OVERLAP_PAIRS:
             for canonical in keep:
                 self.assertIn(canonical, cleaned)
