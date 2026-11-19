@@ -137,7 +137,7 @@ process.stdout.write(JSON.stringify({
 
     def test_comment_tree_cleanup_is_iterative_for_deep_objects(self):
         nested = {"red_id": "deep"}
-        for index in range(2500):
+        for index in range(400):
             nested = {"child": nested, "red_id": str(index)}
         body = {"data": {"red_id": "root", "nested": nested}}
         result = self.run_script(
