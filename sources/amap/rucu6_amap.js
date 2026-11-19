@@ -2,7 +2,37 @@
 
 const url = $request.url;
 const amapAdsPattern = /ads-\d+/;
-if (!$response.body) {
+
+// Avoid parsing large unrelated response bodies when this shared script is
+// invoked by a broader response trigger. Keep this list aligned with branches below.
+const supportedPaths = [
+  "/aos/perception/publicTravel/beforeNavi",
+  "/boss/car/order/content_info",
+  "/boss/order_web/friendly_information",
+  "/bus/plan/integrate",
+  "/c3frontend/af-hotel/page/main",
+  "/c3frontend/af-launch/page/main",
+  "/c3frontend/af-nearby/nearby",
+  "/faas/amap-navigation/card-service-plan-home",
+  "/faas/amap-navigation/main-page",
+  "/perception/drive/routeInfo",
+  "/perception/drive/routePlan",
+  "/promotion-web/resource",
+  "/shield/dsp/profile/index/nodefaasv3",
+  "/shield/frogserver/aocs/updatable/",
+  "/shield/search/common/coupon/info",
+  "/shield/search/nearbyrec_smart",
+  "/shield/search/poi/detail",
+  "/shield/search_bff/hotword",
+  "/shield/search_poi/search/sp",
+  "/shield/search_poi/mps",
+  "/shield/search_poi/sug",
+  "/shield/search_poi/tips_operation_location",
+  "/valueadded/alimama/splash_screen"
+];
+const shouldProcess = supportedPaths.some((path) => url.includes(path));
+
+if (!$response.body || !shouldProcess) {
   $done({});
 } else {
 let obj = JSON.parse($response.body);
