@@ -90,6 +90,23 @@ jobs:
         run: |
           python3 integrate_spotify.py --plugin /tmp/no-rstore-base.plugin --source-plugin sources/spotify/Spotify.lpx --scripts-source /tmp/spotify-scripts --scripts-dest scripts/spotify --upstream-commit "$ROMEO_SHA" --metadata /tmp/no-rstore-spotify-upstream.json
           python3 apply_local_overrides.py --plugin /tmp/no-rstore-base.plugin
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('/tmp/no-rstore-base.plugin')
+          lines = path.read_text(encoding='utf-8').splitlines()
+          replacements = {
+              '#!name=': '#!name=独立来源去广告净化合集（无 R-Store base）',
+              '#!desc=': '#!desc=仅合并 Romeo/Kelee/AOOMEE 快照、高德、Spotify、支付宝与瓜子影视等独立来源；不含 R-Store base。',
+              '#!author=': '#!author=Romeo / RuCu6（Amap）/ zirawell / ddgksf2013（本仓库自动构建）',
+              '#!note=': '#!note=本预览不含 R-Store base；独立 App 插件与专项规则按来源合并，覆盖范围低于原综合版。',
+              '#!sources=': '#!sources=Romeo-independent-App+Romeo-Spotify+RuCu6-Amap+zirawell-AlipayAdBlock+ddgksf2013/GuaZiVideoAds',
+          }
+          output = []
+          for line in lines:
+              matched = next((prefix for prefix in replacements if line.startswith(prefix)), None)
+              output.append(replacements[matched] if matched else line)
+          path.write_text('\\n'.join(output) + '\\n', encoding='utf-8')
+          PY
           # Some independent Romeo rules refer to exact response hosts without
           # carrying their own MITM declarations. Add only the six exact hosts
           # reported by the validator, and only when a rule actually references them.
