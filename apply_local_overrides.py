@@ -779,7 +779,7 @@ GOOFISH_CANONICAL_SCRIPT_TRIGGERS = (
     r"http-response ^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.local\.nearby\.itemdetail\.enter\/ script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js,tag=GOOFISH-NEARBY,requires-body=true",
     r"http-response ^https:\/\/g-acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlemtopsearch\.search\/ script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js,tag=GOOFISH-SEARCH,requires-body=true",
     r"http-response ^https:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.local\.flow\.plat\.section script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js,tag=GOOFISH-LOCAL-FLOW,requires-body=true",
-    r'response if ${url} ~= /^https?:\\/\\/(?:g-)?acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlecommerce\\.splash\\.(?:ads|async\\.ads|config)\\//i then script("https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js") with tag="GOOFISH-SPLASH", timeout=20, requires_body=true',
+    r'response if ${url} ~= /^https?:\/\/(?:g-)?acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlecommerce\.splash\.(?:ads|async\.ads|config)\//i then script("https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js") with tag="GOOFISH-SPLASH", timeout=20, requires_body=true',
 )
 GOOFISH_REDUNDANT_SCRIPT_TRIGGERS = (
     r"http-response ^https?:\/\/(g-)?acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.home\.whale\.modulet\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/goofish.js,tag=GOOFISH,requires-body=true",
