@@ -2526,7 +2526,6 @@ request if ${url} ~= /^https:\/\/gslbali\.ximalaya\.com\/linkeye-cloud\/httpdns\
 request if ${url} ~= /^https:\/\/ucdc\d?-upaas\.uc\.cn\/api\/v\d\/dns_query\?/i then reject_dict(200)
 request if ${url} ~= /^https:\/\/gw-cn\.jiaoliuqu\.com\/taqu-im-broadcast-srv\/v\d\/Comet\/get\?/i then reject_dict(200)
 request if ${url} ~= /^https:\/\/t-dsp\.pinduoduo\.com\/dspcb\/i\/mrk_/i then reject(404)
-request if ${url} ~= /^https:\/\/images\.pinduoduo\.com\/marketing_api\//i then reject(404)
 request if ${url} ~= /^https?:\/\/api-access\.pangolin-sdk-toutiao\.com\/api\/ad\/union\/sdk/i then reject(404)
 request if ${url} ~= /^https:\/\/cdn\.web\.chelaile\.net\.cn\/info-flow\/index\.html/i then reject(404)
 request if ${url} ~= /^http:\/\/mercury-gateway\.ixiaochuan\.cn\/mercury\/v1\/ad\//i then reject(404)
