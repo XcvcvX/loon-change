@@ -2758,8 +2758,8 @@ _jd_splash_hosts = [
 ]
 jd_splash_asset_rules = [
     (
-        r'^https?:\\/\\/' + host
-        + r'\\.360buyimg\\.com\\/(?:mobilecms\\/s1\\d{3}x2\\d{3}_jfs\\/|material-video\\/) reject-200'
+        r'^https?:\/\/' + host
+        + r'\.360buyimg\.com\/(?:mobilecms\/s1\d{3}x2\d{3}_jfs\/|material-video\/) reject-200'
     )
     for host in _jd_splash_hosts
 ]
