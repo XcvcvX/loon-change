@@ -275,19 +275,20 @@ const context = {
   $done(value) { doneResult = value; },
   console: { log() {}, warn() {}, error() {} }
 };
-vm.runInNewContext(source + "\\nglobalThis.__testRoot = baiduMapRoot;", context, { timeout: 10000 });
+vm.runInNewContext(source, context, { timeout: 10000 });
+const testRoot = vm.runInContext("baiduMapRoot", context);
 if (!doneResult) throw new Error("script did not call $done");
 
 let output = null;
 if (doneResult.body) {
   output = new Uint8Array(doneResult.body);
   const headerLength = new DataView(output.buffer, output.byteOffset, 4).getInt32(0);
-  const header = context.__testRoot.lookupType("RepHead").decode(
+  const header = testRoot.lookupType("RepHead").decode(
     output.subarray(4, 4 + headerLength)
   );
   const adsHead = header.messageHead.find(item => item.name === "Ads");
   const adsStart = 4 + headerLength + adsHead.offset;
-  const ads = context.__testRoot.lookupType("Ads").decode(
+  const ads = testRoot.lookupType("Ads").decode(
     output.subarray(adsStart, adsStart + adsHead.length)
   );
   process.stdout.write(JSON.stringify({
