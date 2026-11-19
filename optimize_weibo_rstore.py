@@ -23,6 +23,84 @@ HELPER = """function compactInPlace(items, keep) {
   return items;
 }"""
 
+
+FILTER_REWRITES = [
+    (
+        r'''obj.elements = obj.elements.filter((i) => i.app_name === "写微博" || i.app_name === "图片" || i.app_name === "视频");''',
+        r'''compactInPlace(obj.elements, i => i.app_name === "写微博" || i.app_name === "图片" || i.app_name === "视频");''',
+        "publisher list"
+    ),
+    (
+        r'''obj.user_list = obj.user_list.filter((i) => !["活动通知", "闪聊"]?.includes(i?.user?.name));''',
+        r'''compactInPlace(obj.user_list, i => !["活动通知", "闪聊"].includes(i?.user?.name));''',
+        "direct message list"
+    ),
+    (
+        r'''obj.cards[0].card_group = obj.cards[0].card_group.filter(
+            (c) => !(c?.actionlog?.ext?.includes("ads_word") || c?.itemid?.includes("t:51") || c?.itemid?.includes("ads_word"))
+        );''',
+        r'''compactInPlace(obj.cards[0].card_group, c => !(c?.actionlog?.ext?.includes("ads_word") || c?.itemid?.includes("t:51") || c?.itemid?.includes("ads_word")));''',
+        "search card group"
+    ),
+    (
+        r'''obj.cards = obj.cards.filter(
+          (i) =>
+              !(
+                  i.itemid?.includes("feed_-_invite") || // 超话里的好友
+                  i.itemid?.includes("infeed_friends_recommend") || // 好友关注
+                  i.itemid?.includes("infeed_may_interest_in") || // 你可能感兴趣的超话
+                  i.itemid?.includes("infeed_pagemanual3") || // 手动区域3
+                  i.itemid?.includes("infeed_weibo_mall") || // 微博小店
+                  i?.mblog?.mblogtypename?.includes("广告")
+              )
+      );''',
+        r'''compactInPlace(obj.cards, i => !(
+          i.itemid?.includes("feed_-_invite") ||
+          i.itemid?.includes("infeed_friends_recommend") ||
+          i.itemid?.includes("infeed_may_interest_in") ||
+          i.itemid?.includes("infeed_pagemanual3") ||
+          i.itemid?.includes("infeed_weibo_mall") ||
+          i?.mblog?.mblogtypename?.includes("广告")
+        ));''',
+        "search cards"
+    ),
+    (
+        r'''obj.card_group = obj.card_group.filter((i) => i?.desc?.includes("你可能感兴趣的超话"));''',
+        r'''compactInPlace(obj.card_group, i => i?.desc?.includes("你可能感兴趣的超话"));''',
+        "topic card group"
+    ),
+    (
+        r'''item.items = item.items.filter(
+                (i) =>
+                    i.itemId === "100505_-_album" || // 我的相册
+                    i.itemId === "100505_-_like" || // 赞/收藏
+                    i.itemId === "100505_-_watchhistory" || // 浏览记录
+                    i.itemId === "100505_-_draft" // 草稿箱
+                // i.itemId === "100505_-_pay" || // 我的钱包
+                // i.itemId === "100505_-_ordercenter" || // 我的订单
+                // i.itemId === "100505_-_productcenter" || // 创作中心
+                // i.itemId === "100505_-_promote" || // 广告中心
+            );''',
+        r'''compactInPlace(item.items, i =>
+            i.itemId === "100505_-_album" ||
+            i.itemId === "100505_-_like" ||
+            i.itemId === "100505_-_watchhistory" ||
+            i.itemId === "100505_-_draft"
+          );''',
+        "profile menu"
+    ),
+    (
+        r'''obj.footer.data.menus = obj.footer.data.menus.filter((i) => !/\\d+_ai\\./?.test(i?.pic));''',
+        r'''compactInPlace(obj.footer.data.menus, i => !/\\d+_ai\\./.test(i?.pic));''',
+        "search footer menu"
+    ),
+    (
+        r'''obj.channelInfo.channel_list = obj.channelInfo.channel_list.filter((t) => t.title !== "广场");''',
+        r'''compactInPlace(obj.channelInfo.channel_list, t => t.title !== "广场");''',
+        "topic channels"
+    ),
+]
+
 def _regex_start(source, index):
     previous = source[:index].rstrip()
     if not previous:
@@ -177,6 +255,10 @@ def optimize_source(source, commit="unknown"):
     if source.count(HELPER) != 1:
         raise ValueError("Weibo helper insertion failed")
     source = compact_collecting_loops(source)
+    for old, new, label in FILTER_REWRITES:
+        if source.count(old) != 1:
+            raise ValueError(label + " filter anchor drift")
+        source = source.replace(old, new, 1)
     remaining = re.findall(r"\b(new[A-Za-z0-9_]*)\s*=\s*\[\s*\]", source)
     if sorted(remaining) != ["newActions", "newII"]:
         raise ValueError("unexpected remaining Weibo temporary arrays: " + repr(remaining))
