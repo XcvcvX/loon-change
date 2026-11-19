@@ -90,8 +90,8 @@ FILTER_REWRITES = [
         "profile menu"
     ),
     (
-        r'''obj.footer.data.menus = obj.footer.data.menus.filter((i) => !/\\d+_ai\\./?.test(i?.pic));''',
-        r'''compactInPlace(obj.footer.data.menus, i => !/\\d+_ai\\./.test(i?.pic));''',
+        r'''obj.footer.data.menus = obj.footer.data.menus.filter((i) => !/\d+_ai\./?.test(i?.pic));''',
+        r'''compactInPlace(obj.footer.data.menus, i => !/\d+_ai\./.test(i?.pic));''',
         "search footer menu"
     ),
     (
