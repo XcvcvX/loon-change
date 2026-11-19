@@ -1,3 +1,12 @@
+# 历史优化审计记录（第一部分）
+
+> 由原 audits/ 独立报告合并，正文保留。原始文件名作为小节标识。
+
+
+---
+
+<!-- 原文件：audits/phase7-batch1-rule-review.md -->
+
 # 第七阶段第一批：正式规则只读筛查报告
 
 **审计基线：** `allAdRewrite.plugin`（main，2026-11-11 07:29 UTC 生成）
@@ -673,3 +682,215 @@
 - `deep-audit-sync.md`：完整审计报告（本次 Actions artifact）。
 - `rule-provenance.json`：规则来源映射（本次 Actions artifact）。
 - 本报告行号对应审计时的 `allAdRewrite.plugin` 物理行号；后续上游同步后行号可能变化，必须重新定位。
+
+
+---
+
+<!-- 原文件：audits/phase7-batch2-httpdns-safety-fix.md -->
+
+# Phase 7 Batch 2 — Tencent HTTPDNS false-positive protection
+
+## Proposed change
+
+Exclude the ZhangLe Cai Fu Tong app-specific HTTPDNS block from the merged output, because the user does not use that app:
+
+\`\`\`loon
+request if ${url} ~= /^https?:\/\/119\.29\.29\.\d+\/d/ then reject(200)
+\`\`\`
+
+Upstream source: [fmz200/wool_scripts — blockAdsV2.plugin](https://github.com/fmz200/wool_scripts/blob/main/Loon/plugin/blockAdsV2.plugin), current source line 7559 at review time.
+
+## Evidence
+
+Tencent Cloud's official HTTPDNS documentation identifies the \`/d\` path as its HTTPDNS query API and documents current service entry IPs:
+
+- HTTP: \`119.29.29.98\`
+- HTTPS: \`119.29.29.99\`
+
+Tencent's product documentation also says the legacy \`119.29.29.29\` service IP was retired effective 2022-01-01. The current upstream matcher uses \`119.29.29.\\d+\`, so it matches both current service IPs, not only the retired address.
+
+Official references:
+
+- https://cloud.tencent.com/document/product/379
+- https://cloud.tencent.com/document/product/379/95497
+- https://cloud.tencent.com.cn/document/product/379/3522
+
+Also remove the exact `119.29.29.*` MITM hostname declaration contributed by the same blockAdsV2 source section. The merger records this separately as `mitm_exclusions`; if another independent source declares the same hostname, that other source is not filtered.
+
+## Exact scope and safety
+
+- Only the exact normalized matcher \`^https?://119\\.29\\.29\\.\\d+/d\` with action \`reject(200)\` from the blockAdsV2 Rewrite feed is excluded.
+- Other paths on \`119.29.29.98\`, other IP addresses, and different actions are not excluded.
+- The paired `119.29.29.*` MITM wildcard is removed only from the blockAdsV2 source contribution; no other source's hostname declaration, other Rewrite, Script, Rule, source priority, or plugin setting is changed.
+- The exclusion is recorded in \`rule-provenance.json\` under \`rewrite_exclusions\`, including the original line and source line number.
+- A regression test verifies that the broad HTTPDNS matcher disappears while an unrelated path on the same IP remains.
+
+## Review and rollback
+
+This PR changes runtime rule behavior and must be reviewed by the repository owner before merging. To roll back, revert this PR; the upstream source remains unchanged and the exclusion can be removed from the merger.
+
+
+## User-specific scope confirmation
+
+The upstream Loon source places the Rewrite matcher and 119.29.29.* MITM declaration in the ZhangLeCaiFuTong.lpx feed. The merged blockAdsV2 copy is grouped under # > 涨乐财富通. The user confirmed they do not use this app, so both contributions are excluded. The MITM filter is source-specific: an identical hostname contributed by another independent source remains eligible for inclusion.
+
+
+---
+
+<!-- 原文件：audits/phase8-batch1-bilibili-hotpath.md -->
+
+# Phase 8 Batch 1 — Bilibili response-array compaction
+
+## Scope
+
+Optimize the repository-owned Bilibili JSON response script only. No trigger URL, response field, ad-filter predicate, MITM hostname, upstream source, or plugin priority is changed.
+
+## Runtime changes
+
+- Cache the source array length once per compaction loop instead of re-reading `length` on every iteration.
+- In the shared `filterInPlace` helper, skip writing an element back when its read and write indices are identical.
+- Apply the same no-op-write guard to the nested account-section compaction and the vertical feed compaction loops.
+- Preserve stable ordering and the existing allowlists / exclusions.
+
+## Why this is safe
+
+The compaction algorithm still visits each original array element once, keeps the same elements in the same order, truncates only the removed tail, and writes a kept element only when it actually moves left. The transform does not change any predicate or response mutation.
+
+## Regression coverage
+
+`test_bilibili_json_performance.py` executes the real script in a Node VM with instrumented arrays. It verifies:
+- unchanged feed arrays perform zero numeric-index writes;
+- when the first item is removed, only the two shifted kept items are written;
+- unchanged vertical-feed arrays perform zero numeric-index writes;
+- output membership and order remain unchanged.
+
+The checks validate array-write reduction, not absolute CPU time or device-level battery savings. Real-device Loon testing remains necessary to quantify end-to-end impact.
+
+
+---
+
+<!-- 原文件：audits/phase8-batch2-cntv-hotpath.md -->
+
+# Phase 8 Batch 2 — CNTV/iQIYI/MGTV/Youku response hot path
+
+## Scope
+
+The R-Store `cntv.js` handler is referenced by 26 response triggers spanning iQIYI, Mango TV and Youku. The upstream script is approximately 29 KB and contains 11 array `.filter()` assignments plus one unconditional JSON parse after an empty-body completion call.
+
+## Changes
+
+The generated snapshot is pinned to upstream R-Store commit `d0f4dd305bade7cc6a38e3445a768d72aaea0e5b` for this review; CI regenerates it from the current upstream commit and re-runs the inventory checks.
+
+- Vendor a reproducible local snapshot pinned to the R-Store commit used by the build.
+- Replace all 11 `array = array.filter(predicate)` operations with stable in-place compaction. This removes the temporary result arrays while preserving predicate and ordering.
+- Add a same-index write guard so already-retained elements are not written back unnecessarily.
+- Fix the empty-body guard so `$done({})` is terminal and JSON parsing is skipped.
+- Route all 26 existing response triggers to the local snapshot. Trigger patterns, tags, `requires-body=true`, MITM scope and ad predicates remain unchanged.
+
+## Regression coverage
+
+Node VM tests disable `Array.prototype.filter` and execute representative iQIYI, MGTV and Youku payloads. They verify output membership/order, tab index repair, one JSON parse per non-empty response, and zero JSON parses for empty bodies. Migration tests fail closed unless all 26 expected trigger references are present.
+
+The optimization reduces known temporary array allocations and unnecessary array writes; it does not claim a measured percentage reduction in device CPU or battery use.
+
+
+---
+
+<!-- 原文件：audits/phase9-batch1-response-array-compaction.md -->
+
+# Phase 9 Batch 1 — high-fanout response-array compaction
+
+## Scope
+
+Optimize the repository-owned Xianyu, Meituan, Jingdong and Pinduoduo response handlers. Existing response triggers, URL matchers, MITM hostnames, enable arguments, field mutations and ad-removal predicates remain unchanged.
+
+## Runtime changes
+
+- Add stable in-place array compaction with a cached source length and a same-index write guard.
+- Replace allocating `filter()` calls in Xianyu feed/profile/circle/search arrays, Meituan personal-center/mini-program/hotword arrays, Jingdong floor/navigation/service arrays, and Pinduoduo homepage tabs/modules.
+- Fold Jingdong's optional welcome-home exclusion into the existing allowlist pass, avoiding a second full traversal while preserving the `jkds_enable` behavior.
+- Replace Jingdong's identity `map()` over virtual service centers with a direct loop; nested service-list filtering remains semantically identical.
+- Preserve stable ordering and all original keep/remove predicates.
+
+## Regression coverage
+
+`test_response_array_compaction_performance.py` executes each real script in a Node VM, disables allocating `Array.prototype.filter` and `Array.prototype.map`, and verifies one outer JSON parse plus expected output membership and ordering for representative responses.
+
+These tests prove the targeted allocation patterns are removed and response behavior is preserved for the fixtures. They do not claim measured device-level CPU or battery percentages; real-device Loon testing is still required for end-to-end measurements.
+
+
+---
+
+<!-- 原文件：audits/phase9-batch10-xiaohongshu-comment-walk.md -->
+
+# Phase 9 Batch 10 — Xiaohongshu comment-tree traversal allocation
+
+## Finding
+
+The v4 comment response handler walks the parsed comment tree iteratively to rename nested `red_id` fields. The object branch called `Object.keys(current)` for every visited object, allocating a key array even when most properties were scalar metadata.
+
+## Runtime change
+
+- Keep the same explicit-stack depth-first traversal and array reverse-push behavior.
+- Enumerate own enumerable object properties with `for...in` plus `hasOwnProperty`, pushing only object-valued children.
+- Reverse only the newly appended stack segment so nested objects are still visited in the same property order as the previous `Object.keys` reverse-push implementation.
+- Preserve the `red_id` to `fmz200` assignment/deletion behavior and leave array traversal unchanged.
+
+## Regression coverage
+
+`test_xiaohongshu_v4_performance.py` asserts the comment-walk object branch no longer allocates `Object.keys(current)` and exercises root, nested object and array-contained `red_id` fields through the Node VM.
+
+This removes per-object key-array allocation in comment payload traversal; no trigger, cache, field mapping or response content is intentionally changed. No device CPU/battery percentage is claimed without on-device Loon measurement.
+
+
+---
+
+<!-- 原文件：audits/phase9-batch11-meituan-header-scan.md -->
+
+# Phase 9 Batch 11 — Meituan Linglong image-header scan
+
+## Finding
+
+The consolidated Meituan response script handles Linglong image responses before JSON parsing. For every matching image it previously called `Object.keys(headers).find(...)`, allocating a complete key array to locate at most one of four trace-header names.
+
+## Runtime change
+
+- Replace the per-response key-array creation and `find` callback with a short-circuiting `for...in` scan.
+- Keep the same case-insensitive header-name expression and match only own enumerable properties, matching `Object.keys` semantics.
+- Stop at the first matching key; keep the existing `@1sc` exception and all 204/empty-response behavior unchanged.
+- Do not alter URL matching, MITM, JSON response handlers, or other Meituan paths.
+
+## Regression coverage
+
+The Node VM test disables `Object.keys` while executing the active Linglong image branch. It verifies a matching own header still returns the existing 204 response, an unmarked request is passed through, and an inherited header does not count.
+
+This removes one transient key array and the `find` callback from each matching image response. No device-level CPU or battery percentage is claimed without on-device measurement.
+
+
+---
+
+<!-- 原文件：audits/phase9-batch12-didi-response-compaction.md -->
+
+# Phase 9 Batch 12 — Didi response array compaction
+
+## Scope
+
+The active Didi response script from R-Store contains seven assignments that replace an existing array with \`Array.filter(...)\`. The production rule builder retains either the two reviewed Didi triggers after local cleanup or all four original triggers when the supplemental cleanup source is absent.
+
+## Runtime change
+
+- Vendor the current R-Store \`didi.js\` snapshot through a reproducible optimizer pinned to the upstream commit used by each build.
+- Replace all seven filter assignments with a stable, in-place read/write compaction pass. The helper preserves retained item order and original read indexes.
+- Make the empty-body completion terminal so it cannot fall through into \`JSON.parse\`.
+- Route only the existing Didi script-path URLs in the \`[Script]\` section to the local generated file. Accept only the verified two- or four-trigger inventory and fail closed on drift.
+- Preserve all URL expressions, tags, \`requires-body\`, filtering predicates, allowed fields, MITM and other policy sections.
+
+## Regression coverage
+
+Unit tests verify the exact seven-call transformation, idempotency, source-inventory drift rejection and two/four trigger migration. Node VM tests disable \`Array.prototype.filter\` and exercise scene-list filtering, homepage/profile allowlists, OTA banner removal, and the empty-body path.
+
+The optimization removes temporary result arrays from the seven reviewed filters. The deployed plugin's current retained Didi paths are covered by the same source; no measured device battery or CPU percentage is asserted.
+
+## Follow-up: preserve generated runtime assets during publication
+
+The first production build after migration confirmed that the plugin referenced the generated local Didi script, while the workflow's generated-artifact diff and staging allow-list omitted `scripts/didi/`. The Gist publisher correctly failed closed when the referenced file was absent from the main checkout. The sync allow-lists now include this directory, and a regression test checks both the diff and staging commands so the script cannot silently disappear from the published artifact set.
