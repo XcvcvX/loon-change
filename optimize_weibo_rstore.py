@@ -29,7 +29,7 @@ def _regex_start(source, index):
         return True
     if previous[-1] in "=(:,[!&|?{};":
         return True
-    return re.search(r"\\b(return|case|throw|yield|await|else|do)\\s*$", previous) is not None
+    return re.search(r"\b(return|case|throw|yield|await|else|do)\s*$", previous) is not None
 
 def _matching_brace(source, opening):
     depth = 0
@@ -67,7 +67,7 @@ def _matching_brace(source, opening):
                 if depth == 0:
                     return index
         elif state == "line":
-            if char == "\\n":
+            if char == "\n":
                 state = "code"
         elif state == "block":
             if char == "*" and nxt == "/":
@@ -77,14 +77,14 @@ def _matching_brace(source, opening):
         elif state == "string":
             if escaped:
                 escaped = False
-            elif char == "\\\\":
+            elif ord(char) == 92:
                 escaped = True
             elif char == quote:
                 state = "code"
         elif state == "regex":
             if escaped:
                 escaped = False
-            elif char == "\\\\":
+            elif ord(char) == 92:
                 escaped = True
             elif char == "[":
                 in_class = True
@@ -96,11 +96,11 @@ def _matching_brace(source, opening):
     raise ValueError("unterminated JavaScript loop")
 
 def _transform_one(source, sequence):
-    declarations = list(re.finditer(r"let\\s+(new[A-Za-z0-9_]*)\\s*=\\s*\\[\\s*\\]\\s*;", source))
+    declarations = list(re.finditer(r"let\s+(new[A-Za-z0-9_]*)\s*=\s*\[\s*\]\s*;", source))
     for declaration in reversed(declarations):
         name = declaration.group(1)
         header = re.search(
-            r"for\\s*\\(\\s*let\\s+([A-Za-z_$][\\w$]*)\\s+of\\s+([^)]+)\\)\\s*\\{",
+            r"for\s*\(\s*let\s+([A-Za-z_$][\w$]*)\s+of\s+([^)]+)\)\s*\{",
             source[declaration.end():declaration.end() + 500]
         )
         if not header:
@@ -111,15 +111,15 @@ def _transform_one(source, sequence):
         opening = declaration.end() + header.end() - 1
         closing = _matching_brace(source, opening)
         body = source[opening + 1:closing]
-        if re.search(r"\\b" + re.escape(name) + r"\\.unshift\\s*\\(", body):
+        if re.search(r"\b" + re.escape(name) + r"\.unshift\s*\(", body):
             continue
-        push = re.compile(r"\\b" + re.escape(name) + r"\\.push\\(\\s*" + re.escape(iterator) + r"\\s*\\)\\s*;")
+        push = re.compile(r"\b" + re.escape(name) + r"\.push\(\s*" + re.escape(iterator) + r"\s*\)\s*;")
         body, pushes = push.subn("__SOURCE__[__WRITE__++] = " + iterator + ";", body)
         if not pushes:
             continue
         assignment = re.search(
-            r"(?m)^(?P<indent>[ \\t]*)(?P<dest>[A-Za-z_$][\\w$]*(?:\\.[A-Za-z_$][\\w$]*)*)\\s*=\\s*" +
-            re.escape(name) + r"\\s*;",
+            r"(?m)^(?P<indent>[ \t]*)(?P<dest>[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*)\s*=\s*" +
+            re.escape(name) + r"\s*;",
             source[closing + 1:closing + 1 + 900]
         )
         if not assignment or assignment.group("dest") != source_expr:
@@ -130,21 +130,21 @@ def _transform_one(source, sequence):
         read_name = "__loonRead%d" % sequence
         length_name = "__loonLength%d" % sequence
         body = body.replace("__SOURCE__", source_name).replace("__WRITE__", write_name)
-        line_start = source.rfind("\\n", 0, declaration.start()) + 1
+        line_start = source.rfind("\n", 0, declaration.start()) + 1
         decl_indent = source[line_start:declaration.start()]
-        loop_line = source.rfind("\\n", 0, header_start) + 1
+        loop_line = source.rfind("\n", 0, header_start) + 1
         loop_indent = source[loop_line:header_start]
         assign_start = closing + 1 + assignment.start()
         assign_end = closing + 1 + assignment.end()
         decl_replacement = (
-            "const " + source_name + " = " + source_expr + ";\\n" +
+            "const " + source_name + " = " + source_expr + ";\n" +
             decl_indent + "let " + write_name + " = 0;"
         )
         between = source[declaration.end():header_start]
         header_replacement = (
             "for (let " + read_name + " = 0, " + length_name + " = " +
             source_name + ".length; " + read_name + " < " + length_name +
-            "; " + read_name + "++) {\\n" + loop_indent + "  let " +
+            "; " + read_name + "++) {\n" + loop_indent + "  let " +
             iterator + " = " + source_name + "[" + read_name + "];"
         )
         assignment_replacement = assignment.group("indent") + source_name + ".length = " + write_name + ";"
@@ -173,14 +173,14 @@ def optimize_source(source, commit="unknown"):
         if "__loonSource32" not in source or "compactInPlace(items, keep)" not in source:
             raise ValueError("marked Weibo script is incomplete")
         return source
-    source = source.replace("const url = $request.url;", "const url = $request.url;\\n\\n" + HELPER, 1)
+    source = source.replace("const url = $request.url;", "const url = $request.url;\n\n" + HELPER, 1)
     if source.count(HELPER) != 1:
         raise ValueError("Weibo helper insertion failed")
     source = compact_collecting_loops(source)
-    remaining = re.findall(r"\\b(new[A-Za-z0-9_]*)\\s*=\\s*\\[\\s*\\]", source)
+    remaining = re.findall(r"\b(new[A-Za-z0-9_]*)\s*=\s*\[\s*\]", source)
     if sorted(remaining) != ["newActions", "newII"]:
         raise ValueError("unexpected remaining Weibo temporary arrays: " + repr(remaining))
-    return MARKER + commit + "\\n" + source
+    return MARKER + commit + "\n" + source
 
 def rewrite_plugin(plugin):
     if LOCAL in plugin:
@@ -200,10 +200,10 @@ def rewrite_plugin(plugin):
         output.append(line)
     if count != 10:
         raise ValueError("expected 10 R-Store Weibo triggers, found %d" % count)
-    result = "\\n".join(output)
+    result = "\n".join(output)
     if REMOTE in result:
         raise ValueError("remote Weibo references remain")
-    return result + ("\\n" if plugin.endswith("\\n") else "")
+    return result + ("\n" if plugin.endswith("\n") else "")
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
