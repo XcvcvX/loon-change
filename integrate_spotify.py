@@ -127,7 +127,9 @@ def integrate(plugin_path, source_path, scripts_source, scripts_dest, upstream_c
         rewritten_script_rules.append(line)
 
     plugin = Path(plugin_path).read_text(encoding="utf-8")
-    plugin, removed_rstore_script = replace_rstore_spotify_rules(\n        plugin, [*rules, *rewrites, *rewritten_script_rules]\n    )
+    plugin, removed_rstore_script = replace_rstore_spotify_rules(
+        plugin, [*rules, *rewrites, *rewritten_script_rules]
+    )
     if removed_rstore_script:
         print("Replaced %d R-Store Spotify rule/script/MITM entries with the independent Spotify source" % removed_rstore_script)
     plugin = insert_section(plugin, "Rule", rules)
