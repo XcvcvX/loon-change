@@ -14,7 +14,7 @@ class CnftpPerformanceTests(unittest.TestCase):
         source = SOURCE_PATH.read_text(encoding="utf-8")
         self.assertIn(SOURCE_MARKER, source)
         self.assertEqual(optimize_source(source), source)
-        start = source.index('    } else if (url.includes("columbus.home.query/")) {')
+        start = source.index('  } else if (url.includes("columbus.home.query/")) {')
         end = source.index('  } else if (url.includes("columbus.uc.query/")) {', start)
         branch = source[start:end]
         self.assertIn("compactInPlace(objData.nodes", branch)
@@ -42,7 +42,7 @@ if (isYK) {
     } else newNodes1.push(node1);
   }
   objData.nodes = newNodes1;
-} else if (url.includes("columbus.home.query/")) {
+  } else if (url.includes("columbus.home.query/")) {
   let newNodes1 = []; let newNode2 = []; let newNode3 = []; let newNode4 = [];
   if (node3.id === 272768) {}
   } else if (url.includes("columbus.uc.query/")) {}
