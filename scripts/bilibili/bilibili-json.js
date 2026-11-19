@@ -49,13 +49,17 @@ if (!$response.body) {
     const originalLength = items.length;
     filterInPlace(items, item => allowedNames.includes(item?.name));
     if (items.length !== originalLength) modified = true;
+    let needsSort = false;
     for (let i = 1; i < items.length; i++) {
       if (allowedNames.indexOf(items[i - 1]?.name) > allowedNames.indexOf(items[i]?.name)) {
         modified = true;
+        needsSort = true;
         break;
       }
     }
-    items.sort((a, b) => allowedNames.indexOf(a?.name) - allowedNames.indexOf(b?.name));
+    if (needsSort) {
+      items.sort((a, b) => allowedNames.indexOf(a?.name) - allowedNames.indexOf(b?.name));
+    }
     return items;
   }
 
