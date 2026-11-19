@@ -69,12 +69,42 @@ function main() {
   }
 
   const data = obj && obj.data;
+  let modified = false;
+
+  function compactTracked(items, keep) {
+    const originalLength = items.length;
+    compactInPlace(items, keep);
+    if (items.length !== originalLength) modified = true;
+    return items;
+  }
+
+  function deleteTracked(target, key) {
+    if (Object.prototype.hasOwnProperty.call(target, key)) {
+      delete target[key];
+      modified = true;
+    }
+  }
+
+  function normalizeRecycleCard(recycle) {
+    if (!recycle.showInfo || typeof recycle.showInfo !== "object") {
+      recycle.showInfo = {};
+      modified = true;
+    }
+    const holder = recycle.showInfo;
+    const current = holder.rightTagImage;
+    if (!current || typeof current !== "object" ||
+        Array.isArray(current) || Object.keys(current).length > 0) {
+      holder.rightTagImage = {};
+      // JSON.stringify ignores custom properties attached to arrays.
+      if (!Array.isArray(holder)) modified = true;
+    }
+  }
 
   if (url.includes("/mtop.taobao.idlehome.home.nextfresh")) {
     if (data && typeof data === "object") {
       // R-Store: remove homepage widgets and banner payloads.
-      delete data.widgetReturnDO;
-      delete data.bannerReturnDO;
+      deleteTracked(data, "widgetReturnDO");
+      deleteTracked(data, "bannerReturnDO");
 
       // R-Store + ishowshu: retain the same intersection of feed filters.
       if (Array.isArray(data.sections)) {
@@ -83,7 +113,7 @@ function main() {
           "idlefish_seafood_market",
           "fish_home_chat_room"
         ]);
-        compactInPlace(data.sections, section => {
+        compactTracked(data.sections, section => {
           if (!section || typeof section !== "object") return false;
           const sectionData = section.data;
           if (sectionData && (sectionData.bizType === "AD" || sectionData.bizType === "homepage")) {
@@ -103,7 +133,10 @@ function main() {
       }
 
       // ishowshu's existing handling of the newer top icon menu.
-      data.homeTopList = [];
+      if (!Array.isArray(data.homeTopList) || data.homeTopList.length > 0) {
+        data.homeTopList = [];
+        modified = true;
+      }
     }
   }
 
@@ -126,37 +159,40 @@ function main() {
 
   if (url.includes("/mtop.taobao.idle.home.whale.modulet")) {
     if (data && data.container && typeof data.container === "object") {
-      delete data.container.sections;
+      deleteTracked(data.container, "sections");
     }
   }
 
   if (url.includes("/mtop.idle.user.page.my.adapter")) {
     if (data && data.container && Array.isArray(data.container.sections)) {
       const keepIndexes = new Set(["0", "1", "3"]);
-      compactInPlace(data.container.sections, item =>
+      compactTracked(data.container.sections, item =>
         item && keepIndexes.has(String(item.index))
       );
     }
-    if (data && typeof data === "object") data.ability = [];
+    if (data && typeof data === "object" &&
+        (!Array.isArray(data.ability) || data.ability.length > 0)) {
+      data.ability = [];
+      modified = true;
+    }
   }
 
   if (url.includes("/mtop.taobao.idlehome.home.circle.list")) {
     if (data && Array.isArray(data.circleList)) {
-      compactInPlace(data.circleList, circle =>
+      compactTracked(data.circleList, circle =>
         circle && (circle.circleId === "1" || circle.circleId === "2")
       );
     }
 
     const filterHeadList = list => Array.isArray(list)
-      ? compactInPlace(list, item => item && (item.bizCode === "main" || item.bizCode === "recycle"))
+      ? compactTracked(list, item => item && (item.bizCode === "main" || item.bizCode === "recycle"))
       : list;
 
     if (data && data.next && Array.isArray(data.next.headList)) {
       data.next.headList = filterHeadList(data.next.headList);
       const recycle = data.next.headList.find(item => item.bizCode === "recycle");
       if (recycle) {
-        if (!recycle.showInfo || typeof recycle.showInfo !== "object") recycle.showInfo = {};
-        recycle.showInfo.rightTagImage = {};
+        normalizeRecycleCard(recycle);
       }
     }
 
@@ -164,20 +200,26 @@ function main() {
       data.headList = filterHeadList(data.headList);
       const recycle = data.headList.find(item => item.bizCode === "recycle");
       if (recycle) {
-        if (!recycle.showInfo || typeof recycle.showInfo !== "object") recycle.showInfo = {};
-        recycle.showInfo.rightTagImage = {};
+        normalizeRecycleCard(recycle);
       }
     }
   }
 
   if (url.includes("/mtop.taobao.idle.local.nearby.itemdetail.enter")) {
     if (data && typeof data === "object") {
-      data.targetUrl = "";
-      if (data.trackParams && typeof data.trackParams === "object") data.trackParams.itemIds = "";
-      data.nearbyItemInfoList = [];
-      data.name = "";
-      data.desc = "";
-      data.poiName = "";
+      if (data.targetUrl !== "") { data.targetUrl = ""; modified = true; }
+      if (data.trackParams && typeof data.trackParams === "object" &&
+          data.trackParams.itemIds !== "") {
+        data.trackParams.itemIds = "";
+        modified = true;
+      }
+      if (!Array.isArray(data.nearbyItemInfoList) || data.nearbyItemInfoList.length > 0) {
+        data.nearbyItemInfoList = [];
+        modified = true;
+      }
+      if (data.name !== "") { data.name = ""; modified = true; }
+      if (data.desc !== "") { data.desc = ""; modified = true; }
+      if (data.poiName !== "") { data.poiName = ""; modified = true; }
     }
   }
 
@@ -187,7 +229,7 @@ function main() {
         "idlefish_search_card_category_select",
         "idlefish_search_spu_market_publish"
       ]);
-      compactInPlace(data.resultList, element => {
+      compactTracked(data.resultList, element => {
         if (!element || typeof element !== "object") return false;
         const exContent = element.data && element.data.item &&
           element.data.item.main && element.data.item.main.exContent;
@@ -201,20 +243,23 @@ function main() {
       });
     }
     if (data && typeof data === "object") {
-      delete data.resultPrefixBar;
-      if (Array.isArray(data.topList)) data.topList = [];
+      deleteTracked(data, "resultPrefixBar");
+      if (Array.isArray(data.topList) && data.topList.length > 0) {
+        data.topList = [];
+        modified = true;
+      }
     }
   }
 
   if (url.includes("/mtop.taobao.idle.local.flow.plat.section")) {
     const components = data && data.data && data.data.components;
     if (Array.isArray(components)) {
-      compactInPlace(components, item =>
+      compactTracked(components, item =>
         item && item.key !== "fish_home_activity_enter_cardV1"
       );
     }
   }
 
-  return $done({ body: JSON.stringify(obj) });
+  return $done(modified ? { body: JSON.stringify(obj) } : {});
 }
 main();
