@@ -27,6 +27,25 @@ HELPER = """function compactInPlace(items, keep) {
 
 """
 
+HOME_FEED_BRANCH = """  } else if (url.includes("columbus.home.feed/")) {
+    // 优酷 首页信息流
+    if (obj?.data?.["2019061000"]?.data) {
+      let objData = obj.data["2019061000"].data;
+      if (objData?.nodes?.length > 0) {
+        // Reuse response arrays and compact only the nested ad-card groups.
+        compactInPlace(objData.nodes, (node1) => {
+          if (node1?.typeName === "PHONE_FEED_CARD_GROUP" &&
+              node1?.nodes?.length > 0) {
+            compactInPlace(node1.nodes, (node2) =>
+              node2?.typeName !== "PHONE_FEED_CARD_S_AD" &&
+              node2?.typeName !== "PHONE_H_UC_AD"
+            );
+          }
+          return true;
+        });
+      }
+    }
+"""
 HOME_QUERY_BRANCH = """  } else if (url.includes("columbus.home.query/")) {
     // 优酷 各菜单列表 剧集 电影 综艺 信息流
     if (obj?.data?.["2019061000"]?.data) {
@@ -111,6 +130,19 @@ def optimize_source(source: str, upstream_commit: str | None = None) -> str:
         source = re.sub(r"^// loon-change:.*\n", "", source, count=1)
         return SOURCE_MARKER + "; upstream fmz200/wool_scripts@" + upstream_commit + "\n" + source
 
+    feed_start = '  } else if (url.includes("columbus.home.feed/")) {'
+    feed_end = '  } else if (url.includes("columbus.home.query/")) {'
+    if source.count(feed_start) != 1 or source.count(feed_end) != 1:
+        raise ValueError("CNFTP Youku home.feed branch changed; refusing an unreviewed optimization")
+    feed_begin, feed_finish = source.index(feed_start), source.index(feed_end)
+    feed_branch = source[feed_begin:feed_finish]
+    feed_required = ("let newNodes1 = [];", "let newNode2 = [];",
+                     'node2?.typeName === "PHONE_FEED_CARD_S_AD"',
+                     'node2?.typeName === "PHONE_H_UC_AD"')
+    if any(token not in feed_branch for token in feed_required):
+        raise ValueError("CNFTP Youku home.feed structure changed; refusing an unreviewed optimization")
+    source = source[:feed_begin] + HOME_FEED_BRANCH + source[feed_finish:]
+
     start = '  } else if (url.includes("columbus.home.query/")) {'
     end = '  } else if (url.includes("columbus.uc.query/")) {'
     if source.count(start) != 1 or source.count(end) != 1:
@@ -176,7 +208,7 @@ def main() -> None:
         result = optimize_source(source, args.upstream_commit)
         Path(args.output).parent.mkdir(parents=True, exist_ok=True)
         Path(args.output).write_text(result, encoding="utf-8")
-        print("Optimized CNFTP Youku home.query in place; upstream=%s" % (args.upstream_commit or "unrecorded"))
+        print("Optimized CNFTP Youku home.feed and home.query in place; upstream=%s" % (args.upstream_commit or "unrecorded"))
     if args.plugin:
         path = Path(args.plugin)
         result = rewrite_plugin(path.read_text(encoding="utf-8-sig"))
