@@ -65,7 +65,7 @@ jobs:
           data['build_mode'] = 'no-rstore-base-preview'
           data['R-Store-base'] = {'status': 'excluded_intentionally'}
           data['Romeo'] = {'commit': os.environ['ROMEO_SHA'], 'status': 'pinned_independent_sources'}
-          p.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\\n')
+          p.write_text(json.dumps(data, ensure_ascii=False, indent=2))
           PY
 
       - name: Create empty base scaffold (no R-Store content)
@@ -119,7 +119,7 @@ jobs:
             'rstore_base_included':False,
             'known_scope_note':'R-Store-only base coverage and base-conditioned supplements are intentionally absent; validate app-by-app before replacing production.'
           }
-          Path('/tmp/no-rstore-preview-summary.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\\n')
+          Path('/tmp/no-rstore-preview-summary.json').write_text(json.dumps(report,ensure_ascii=False,indent=2))
           PY
 
       - name: Upload installable Loon plugin and reports
