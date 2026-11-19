@@ -205,6 +205,12 @@ process.stdout.write(JSON.stringify({ parseCalls, doneResult }));
         )
         self.assertEqual(json.loads(result.stdout)["parseCalls"], 0)
 
+    def test_upstream_patch_keeps_empty_body_guard_terminal(self):
+        patch = (ROOT / "patches" / "amap-rucu6-performance.patch").read_text(encoding="utf-8")
+        self.assertIn("-if (!$response.body) $done({});", patch)
+        self.assertIn("+if (!$response.body) {", patch)
+        self.assertIn("+} else {", patch)
+
     def test_script_uses_in_place_compaction_instead_of_filter_allocations(self):
         source = (ROOT / "sources/amap/rucu6_amap.js").read_text(encoding="utf-8")
         self.assertNotIn(".filter(", source)

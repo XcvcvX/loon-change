@@ -1,12 +1,15 @@
 diff --git a/sources/amap/rucu6_amap.js b/sources/amap/rucu6_amap.js
 --- a/sources/amap/rucu6_amap.js
 +++ b/sources/amap/rucu6_amap.js
-@@ -1,6 +1,7 @@
+@@ -1,6 +1,10 @@
  // 2026-07-21 17:50
  
  const url = $request.url;
 +const amapAdsPattern = /ads-\d+/;
- if (!$response.body) $done({});
+-if (!$response.body) $done({});
++if (!$response.body) {
++  $done({});
++} else {
  let obj = JSON.parse($response.body);
  
 @@ -110,39 +111,46 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
@@ -195,10 +198,11 @@ diff --git a/sources/amap/rucu6_amap.js b/sources/amap/rucu6_amap.js
      }
    }
  } else if (url.includes("/shield/search_poi/tips_operation_location")) {
-@@ -669,3 +690,14 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
+@@ -669,3 +690,15 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
  }
  
  $done({ body: JSON.stringify(obj) });
++}
 +
 +function compactInPlace(items, keep) {
 +  if (!Array.isArray(items) || items.length === 0) return;
