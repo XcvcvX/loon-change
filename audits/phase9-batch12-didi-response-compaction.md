@@ -17,3 +17,7 @@ The active Didi response script from R-Store contains seven assignments that rep
 Unit tests verify the exact seven-call transformation, idempotency, source-inventory drift rejection and two/four trigger migration. Node VM tests disable \`Array.prototype.filter\` and exercise scene-list filtering, homepage/profile allowlists, OTA banner removal, and the empty-body path.
 
 The optimization removes temporary result arrays from the seven reviewed filters. The deployed plugin's current retained Didi paths are covered by the same source; no measured device battery or CPU percentage is asserted.
+
+## Follow-up: preserve generated runtime assets during publication
+
+The first production build after migration confirmed that the plugin referenced the generated local Didi script, while the workflow's generated-artifact diff and staging allow-list omitted `scripts/didi/`. The Gist publisher correctly failed closed when the referenced file was absent from the main checkout. The sync allow-lists now include this directory, and a regression test checks both the diff and staging commands so the script cannot silently disappear from the published artifact set.
