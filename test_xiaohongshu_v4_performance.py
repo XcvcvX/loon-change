@@ -267,7 +267,7 @@ process.stdout.write(JSON.stringify(result));
     def test_comment_red_id_walk_avoids_per_object_keys_arrays(self):
         source = (ROOT / "scripts/xiaohongshu/xiaohongshu-v4.js").read_text(encoding="utf-8")
         start = source.index("function replaceRedIdWithFmz200(obj) {")
-        end = source.index("function deduplicateLivePhotos", start)
+        end = source.index("function selectBestStream", start)
         block = source[start:end]
         self.assertNotIn("Object.keys(current)", block)
         self.assertIn("Object.prototype.hasOwnProperty.call(current, key)", block)
