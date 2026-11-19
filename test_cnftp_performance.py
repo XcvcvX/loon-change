@@ -14,7 +14,7 @@ class CnftpPerformanceTests(unittest.TestCase):
         source = SOURCE_PATH.read_text(encoding="utf-8")
         self.assertIn(SOURCE_MARKER, source)
         self.assertEqual(optimize_source(source), source)
-        start = source.index('  } else if (url.includes("columbus.home.query/")) {')
+        start = source.index('    } else if (url.includes("columbus.home.query/")) {')
         end = source.index('  } else if (url.includes("columbus.uc.query/")) {', start)
         branch = source[start:end]
         self.assertIn("compactInPlace(objData.nodes", branch)
@@ -45,7 +45,7 @@ if (isYK) {
 } else if (url.includes("columbus.home.query/")) {
   let newNodes1 = []; let newNode2 = []; let newNode3 = []; let newNode4 = [];
   if (node3.id === 272768) {}
-} else if (url.includes("columbus.uc.query/")) {}
+  } else if (url.includes("columbus.uc.query/")) {}
 """
         optimized = optimize_source(fixture, "a" * 40)
         self.assertIn("Youku home.feed in-place compaction v1", optimized)
