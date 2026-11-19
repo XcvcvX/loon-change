@@ -639,7 +639,7 @@ jobs:
       - name: 检查是否有变化
         id: diff
         run: |
-          if git diff --quiet -- allAdRewrite.plugin README.md source-report.json rule-provenance.json rule-diff.json source-health.json rule-risk.json rule-history.json sources/amap/ sources/spotify/ sources/alipayAdBlock/ scripts/spotify/ scripts/cnftp/ scripts/xiaohongshu/ scripts/zhihu/ scripts/didi/; then
+          if git diff --quiet -- allAdRewrite.plugin README.md source-report.json rule-provenance.json rule-diff.json source-health.json rule-risk.json rule-history.json sources/amap/ sources/spotify/ sources/alipayAdBlock/ scripts/spotify/ scripts/cnftp/ scripts/xiaohongshu/ scripts/weibo/ scripts/zhihu/ scripts/didi/; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "合并产物与统计均无变化，跳过提交"
           else
@@ -652,7 +652,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add allAdRewrite.plugin README.md source-report.json rule-provenance.json rule-diff.json source-health.json rule-risk.json rule-history.json sources/amap/ sources/spotify/ sources/alipayAdBlock/ scripts/spotify/ scripts/cnftp/ scripts/xiaohongshu/ scripts/zhihu/ scripts/didi/
+          git add allAdRewrite.plugin README.md source-report.json rule-provenance.json rule-diff.json source-health.json rule-risk.json rule-history.json sources/amap/ sources/spotify/ sources/alipayAdBlock/ scripts/spotify/ scripts/cnftp/ scripts/xiaohongshu/ scripts/weibo/ scripts/zhihu/ scripts/didi/
           git commit -m "chore: sync upstream rules and plugin stats $(date -u +%Y-%m-%d)"
           # Another workflow or a PR merge may advance main after checkout.
           # Rebase the generated snapshot onto the latest main before pushing;
