@@ -26,7 +26,7 @@ class DidiOptimizerTests(unittest.TestCase):
             "if (!$response.body) $done({});",
             "let obj = JSON.parse($response.body);",
         ]
-        for index in range(EXPECTED_FILTERS - 1):
+        for index in range(EXPECTED_FILTERS - 3):
             path = "obj.data.items%d" % index
             lines.append("%s = %s.filter(item => item.keep);" % (path, path))
         lines.extend([
