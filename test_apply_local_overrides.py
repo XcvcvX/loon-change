@@ -2971,6 +2971,7 @@ class PinduoduoImageCdnScopeTests(unittest.TestCase):
         from pathlib import Path
         from apply_local_overrides import (
             PDD_IMAGE_CDN_HOST, PDD_IMAGE_CDN_BROAD_BLOCK, PDD_IMAGE_CDN_AD_PATH_RULES,
+            PDD_IMAGE_CDN_LEGACY_AD_PATH_RULES,
         )
         plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
         self.assertNotIn(PDD_IMAGE_CDN_BROAD_BLOCK, plugin)
