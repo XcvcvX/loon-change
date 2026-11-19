@@ -83,8 +83,9 @@ const context = {
   console: { log() {}, warn() {}, error() {} }
 };
 vm.createContext(context);
-vm.runInContext("Array.prototype.filter = function() { throw new Error(\'Array.filter allocation remains\'); };", context);
+const nativeFilter = Array.prototype.filter; Array.prototype.filter = function() { throw new Error("Array.filter allocation remains"); };
 vm.runInContext(source, context, { timeout: 5000 });
+Array.prototype.filter = nativeFilter;
 if (parseCalls !== 1 || stringifyCalls !== 1) throw new Error("unexpected JSON round trips");
 if (!doneResult || typeof doneResult.body !== "string") throw new Error("missing rewritten body");
 const output = nativeJSON.parse(doneResult.body);
