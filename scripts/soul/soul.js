@@ -1,4 +1,8 @@
 // loon-change: Soul lightweight response runtime and in-place cleanup v1; upstream zirawell/R-Store@d0f4dd305bade7cc6a38e3445a768d72aaea0e5b
+const GAME_TITLES_TO_REMOVE = [
+  "异世界回响", "狼人魅影", "梦想海岛王", "幻想星球",
+  "爆弹喵", "星球实验室", "兴趣群组", "群聊派对"
+];
 (function () {
   const request = typeof $request !== "undefined" && $request ? $request : {};
   const response = typeof $response !== "undefined" && $response ? $response : {};
@@ -107,7 +111,4 @@ function compactInPlace(items, keep) {
   return true;
 }
 
-const GAME_TITLES_TO_REMOVE = [
-  "异世界回响", "狼人魅影", "梦想海岛王", "幻想星球",
-  "爆弹喵", "星球实验室", "兴趣群组", "群聊派对"
-];
+
