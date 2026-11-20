@@ -87,7 +87,7 @@ def rewrite_plugin(plugin):
     if local_count and remote_count:
         raise ValueError("mixed local and remote Amap R-Store script URLs")
     if local_count:
-        if local_count != 7:
+        if local_count != 14:
             raise ValueError("Amap local trigger inventory changed: expected 14, got %d" % local_count)
         return plugin
     if remote_count != 14:
