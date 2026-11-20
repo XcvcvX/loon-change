@@ -53,7 +53,7 @@ class SMZDMOptimizerTests(unittest.TestCase):
             rewrite_plugin(mixed)
 
 
-@unittest.skipUnless(NODE, "Node.js is required for SMZDM response runtime tests")]
+@unittest.skipUnless(NODE, "Node.js is required for SMZDM response runtime tests")
 class SMZDMRuntimeTests(unittest.TestCase):
     def run_script(self, url, body):
         runner = r"""
