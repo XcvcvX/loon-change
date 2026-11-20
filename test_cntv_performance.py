@@ -21,7 +21,7 @@ class CNTVOptimizerTests(unittest.TestCase):
         source = SOURCE.read_text(encoding="utf-8")
         self.assertIn(MARKER, source)
         self.assertEqual(optimize_source(source), source)
-        self.assertEqual(source.count("compactInPlace(") - 1, 13)
+        self.assertEqual(source.count("compactInPlace(") - 1, 17)
         self.assertNotIn(".filter(", source)
         self.assertIn("if (!$response.body) {", source)
         self.assertTrue(source.rstrip().endswith("}"))
@@ -224,7 +224,7 @@ class CNTVPreParseRouteGuardTests(unittest.TestCase):
 
     def test_youku_home_query_compacts_nested_arrays_without_reordering(self):
         source = SOURCE.read_text(encoding="utf-8")
-        branch = source.split('url.includes("columbus.home.query/")', 1)[1].split('url.includes("columbus.uc.query/")', 1)[0]
+        branch = source.split('  } else if (url.includes("columbus.home.query/")) {', 1)[1].split('  } else if (url.includes("columbus.uc.query/")) {', 1)[0]
         self.assertIn("CNTV Youku home.query nested in-place compaction v1", branch)
         for temporary in ("let newNodes = []", "let newItems = []", "let newII = []", "let newIII = []"):
             self.assertNotIn(temporary, branch)
