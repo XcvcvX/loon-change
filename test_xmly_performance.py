@@ -32,8 +32,9 @@ class XimalayaOptimizerTests(unittest.TestCase):
         self.assertEqual(migrated.count(LOCAL), EXPECTED_TRIGGERS)
         self.assertNotIn(REMOTE, migrated)
         self.assertEqual(rewrite_plugin(migrated), migrated)
+        partial = chr(10).join(line for line in fixture.splitlines() if "tag=XMLY-4," not in line)
         with self.assertRaisesRegex(ValueError, "expected 5"):
-            rewrite_plugin(fixture.rsplit("\n", 2)[0])
+            rewrite_plugin(partial)
         mixed = fixture + "http-response ^https://xmly.local/api script-path=" + LOCAL
         with self.assertRaisesRegex(ValueError, "mixed local and remote"):
             rewrite_plugin(mixed)
