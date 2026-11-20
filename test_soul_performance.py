@@ -5,6 +5,7 @@ import unittest
 from pathlib import Path
 
 from optimize_soul import EXPECTED_TRIGGERS, LOCAL, MARKER, REMOTE, optimize_source, rewrite_plugin
+from apply_local_overrides import remove_identical_script_response_duplicates
 
 ROOT = Path(__file__).resolve().parent
 SOURCE = ROOT / "scripts" / "soul" / "soul.js"
@@ -157,6 +158,26 @@ process.stdout.write(stringify({
         )
         self.assertEqual(result["done"], {})
         self.assertEqual(result["stringifyCount"], 0)
+
+
+class SoulOverrideCompatibilityTests(unittest.TestCase):
+    def test_checked_in_local_rrtv_handlers_are_preserved_without_partial_consolidation(self):
+        plugin = (ROOT / "allAdRewrite.plugin").read_text(encoding="utf-8")
+        lines = plugin.splitlines()
+        result, removed = remove_identical_script_response_duplicates(lines)
+        self.assertEqual(result, lines)
+        self.assertEqual(removed, 0)
+
+    def test_localized_handler_duplicates_and_unknown_matchers_fail_closed(self):
+        known = next(line for line in (ROOT / "allAdRewrite.plugin").read_text(encoding="utf-8").splitlines()
+                     if "scripts/rrtv/rrtv.js" in line)
+        duplicate = ["[Script]", known, known, "[MITM]"]
+        with self.assertRaisesRegex(ValueError, "duplicate localized"):
+            remove_identical_script_response_duplicates(duplicate)
+
+        unknown = known.replace("tag=RRTV,", "tag=RRTV-UNKNOWN,")
+        with self.assertRaisesRegex(ValueError, "inventory changed"):
+            remove_identical_script_response_duplicates(["[Script]", unknown, "[MITM]"])
 
 
 if __name__ == "__main__":
