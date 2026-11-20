@@ -32,9 +32,21 @@ if (!$response.body) {
 const shouldProcess =
   url.includes("/aos/perception/publicTravel/beforeNavi") ||
   url.includes("/bus/plan/integrate") ||
+  url.includes("/c3frontend/af-hotel/page/main") ||
+  url.includes("/c3frontend/af-launch/page/main") ||
+  url.includes("/perception/drive/routeInfo") ||
+  url.includes("/perception/drive/routePlan") ||
+  url.includes("/shield/search/common/coupon/info") ||
+  url.includes("/shield/search/poi/detail") ||
+  url.includes("/shield/search_business/process/marketingOperationStructured") ||
   url.includes("/shield/search_poi/") ||
-  url.includes("/shield/dsp/profile/index/nodefaasv3") ||
+  url.includes("/faas/amap-navigation/card-service-plan-home") ||
+  url.includes("/faas/amap-navigation/main-page") ||
+  url.includes("/shield/frogserver/aocs/updatable/1") ||
+  url.includes("/shield/dsp/profile/index/nodefaasv") ||
   url.includes("/shield/search/nearbyrec_smart") ||
+  url.includes("/boss/car/order/content_info") ||
+  url.includes("/boss/order_web/friendly_information") ||
   url.includes("/promotion-web/resource") ||
   url.includes("/sharedtrip/taxi/order_detail_car_tips");
 if (!shouldProcess) {
