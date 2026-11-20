@@ -314,16 +314,16 @@ process.stdout.write(nativeJSON.stringify({
         body = {"data": {"2019061000": {"data": {"nodes": [
             {"data": {"nodeKey": "CHILD"}, "nodes": []},
             {"data": {"nodeKey": "NORMAL"}, "nodes": [
-                {"id": 31476, "data": {"keywords": ["remove"]}, "nodes": [
+                {"id": 31476, "data": {"keywords": ["remove"]}},
+                {"id": 35505, "data": {}},
+                {"id": 7, "typeName": "UC广告抽屉", "data": {}},
+                {"id": 8, "data": {"crmSale": {}}, "nodes": [
                     {"typeName": "NORMAL", "nodes": [
                         {"typeName": "KEEP", "data": {"title": "ok"}},
                         {"typeName": "PHONE_FEED_CARD_S_AD", "data": {}},
                         {"typeName": "KEEP_AD", "data": {"ad": {}}}
                     ]}
-                ]},
-                {"id": 35505, "data": {}},
-                {"id": 7, "typeName": "UC广告抽屉", "data": {}},
-                {"id": 8, "data": {"crmSale": {}}}
+                ]}
             ]}
         ]}}}}
         result = self.run_script("https://acs.youku.com/gw/mtop.youku.columbus.home.query/", body)
@@ -334,7 +334,7 @@ process.stdout.write(nativeJSON.stringify({
         self.assertEqual([item["id"] for item in level2], [31476, 8])
         self.assertNotIn("keywords", level2[0]["data"])
         self.assertNotIn("crmSale", level2[1]["data"])
-        level3 = level2[0]["nodes"]
+        level3 = level2[1]["nodes"]
         self.assertEqual(len(level3), 1)
         self.assertEqual(level3[0]["nodes"], [{"typeName": "KEEP", "data": {"title": "ok"}}])
         self.assertEqual(result["parseCount"], 1)
