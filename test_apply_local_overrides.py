@@ -3414,12 +3414,14 @@ class Dushu365NonAdTriggerPruningTests(unittest.TestCase):
             DUSHU365_AD_AND_UNCERTAIN_KEEP_TRIGGERS,
             apply,
         )
+        from optimize_dushu365 import LOCAL, REMOTE
         plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
         result = apply(plugin)
         for item in DUSHU365_NON_AD_REMOVE_TRIGGERS:
             self.assertNotIn(item, result)
         for item in DUSHU365_AD_AND_UNCERTAIN_KEEP_TRIGGERS:
-            self.assertEqual(result.count(item), 1)
+            expected = item.replace(REMOTE, LOCAL)
+            self.assertEqual(result.count(expected), 1)
 
 
 
