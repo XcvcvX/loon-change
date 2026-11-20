@@ -5351,6 +5351,8 @@ class CrossSyntaxShadowedResponseTriggerTests(unittest.TestCase):
             legacy_markers = (legacy_script.lower(),)
             if name == "Baidu Map ad endpoint":
                 legacy_markers += ("scripts/baidumap/baidu-map-protobuf.js",)
+            elif name in ("SMZDM article bubble", "SMZDM wallet home"):
+                legacy_markers += ("scripts/smzdm/smzdm.js",)
             legacy = [
                 line for line in candidates
                 if any(marker in line.lower() for marker in legacy_markers)
