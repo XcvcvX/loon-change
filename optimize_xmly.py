@@ -10,7 +10,9 @@ REMOTE = "https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/An
 LOCAL = "https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xmly/xmly.js"
 EXPECTED_TRIGGERS = 5
 MARKER = "// loon-change: Ximalaya in-place filters and lazy response serialization v1; upstream zirawell/R-Store@"
-HANDLER = r'''// loon-change: Ximalaya in-place filters and lazy response serialization v1; upstream zirawell/R-Store@d0f4dd305bade7cc6a38e3445a768d72aaea0e5b
+HANDLER = r'''const KEEP_CATEGORY_TYPES = new Set(["recommend", "template_category", "single_category"]);
+const KEEP_HOME_ENTRANCE_IDS = new Set([210, 213, 215]);
+
 const url = typeof $request !== "undefined" && $request ? ($request.url || "") : "";
 const body = typeof $response !== "undefined" && $response ? $response.body : "";
 
