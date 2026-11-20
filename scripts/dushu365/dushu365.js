@@ -11,11 +11,11 @@
 const pathMatch = /^(?:https?:\/\/)?[^/]+(\/[^?#]*)?/.exec($request.url || "");
 const pathname = pathMatch && pathMatch[1] || "";
 const route =
-    pathname.endsWith("/abtest-front/banner-modular/get") ? 2 :
-    pathname.endsWith("/fs-member/user/profile/v100/detail") ? 4 :
-    pathname.endsWith("/task-orchestration/taskCenter/api/v101/taskList") ? 7 :
-    pathname.endsWith("/resource-orchestration-system/book/v101/content") ? 8 :
-    pathname.endsWith("/user-orchestration/user/api/v101/ceiltip") ? 9 : 0;
+    pathname.includes("/abtest-front/banner-modular/get") ? 2 :
+    pathname.includes("/fs-member/user/profile/v100/detail") ? 4 :
+    pathname.includes("/task-orchestration/taskCenter/api/v101/taskList") ? 7 :
+    pathname.includes("/resource-orchestration-system/book/v101/content") ? 8 :
+    pathname.includes("/user-orchestration/user/api/v101/ceiltip") ? 9 : 0;
 
 if (!route || ($response.status ?? $request.statusCode) !== 200) {
     $done({});
