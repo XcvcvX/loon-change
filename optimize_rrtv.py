@@ -44,7 +44,7 @@ function compactInPlace(items, keep) {
   return true;
 }
 
-const playbackFlags = /currentQuality":"\\\\w+|canPlay":false|canShowVip":true|externalAds":true/g;
+const playbackFlags = /currentQuality":"\\w+|canPlay":false|canShowVip":true|externalAds":true/g;
 function rewritePlaybackFlags(body) {
   const rewritten = body.replace(playbackFlags, match => {
     if (match.startsWith('currentQuality":"')) return 'currentQuality":"AI_OD';
@@ -87,7 +87,7 @@ def optimize_source(source: str, commit: str = "unknown") -> str:
     source = replace_once(
         source,
         runtime_anchor,
-        RUNTIME + runtime_anchor + '\\nif (!$response || !$response.body) {\\n  $done({});\\n} else {',
+        RUNTIME + runtime_anchor + '\nif (!$response || !$response.body) {\n  $done({});\n} else {',
         "runtime initialization",
     )
     source = replace_once(
@@ -121,16 +121,16 @@ def optimize_source(source: str, commit: str = "unknown") -> str:
           }'''
     source = replace_once(source, old_ad_list, new_ad_list, "ad list no-op fast path")
 
-    old_playback = '''magicJS.response.body.replace(/currentQuality":"\\\\w+/g, 'currentQuality":"AI_OD').replace(/canPlay":false/g, 'canPlay":true').replace(/canShowVip":true/g, 'canShowVip":false').replace(/externalAds":true/g, 'externalAds":false')'''
+    old_playback = '''magicJS.response.body.replace(/currentQuality":"\\w+/g, 'currentQuality":"AI_OD').replace(/canPlay":false/g, 'canPlay":true').replace(/canShowVip":true/g, 'canShowVip":false').replace(/externalAds":true/g, 'externalAds":false')'''
     if source.count(old_playback) != 2:
         raise ValueError("RRTV playback replacement inventory changed: expected 2, got %d" % source.count(old_playback))
     source = source.replace(old_playback, "rewritePlaybackFlags(magicJS.response.body)")
 
-    helper_anchor = '\\n// @formatter:off\\nfunction MagicJS('
+    helper_anchor = '\n// @formatter:off\nfunction MagicJS('
     if source.count(helper_anchor) != 1:
         raise ValueError("RRTV MagicJS framework boundary changed")
-    source = source.split(helper_anchor, 1)[0].rstrip() + "\\n}\\n"
-    source = MARKER + commit + "\\n" + source
+    source = source.split(helper_anchor, 1)[0].rstrip() + "\n}\n"
+    source = MARKER + commit + "\n" + source
 
     if "function MagicJS(" in source or "new MagicJS(" in source:
         raise ValueError("RRTV MagicJS framework removal incomplete")
