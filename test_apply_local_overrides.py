@@ -5012,7 +5012,7 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
                 if marker in line.replace(chr(92), "").lower() and "scripts/amap/amap.js" in line.lower()
             ]
             self.assertEqual(len(rows), 1, marker)
-            self.assertIn(r"m\\d", rows[0], marker)
+            self.assertIn(r"m\d", rows[0], marker)
         self.assertIn("sources/amap/rucu6_amap.js", script)
         second, second_removed = optimize_amap_response_script_overlaps(result)
         self.assertEqual(second, result)
