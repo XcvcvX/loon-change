@@ -49104,7 +49104,7 @@
       "trace_status": "mapped"
     },
     {
-      "output_line": "http-response ^https?:\\/\\/m[0-46-9]\\.amap\\.com\\/ws\\/aos\\/perception\\/publicTravel\\/beforeNavi\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP,requires-body=true",
+      "output_line": "http-response ^https?:\\/\\/m\\d\\.amap\\.com\\/ws\\/aos\\/perception\\/publicTravel\\/beforeNavi\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/amap/amap.js,tag=AMAP,requires-body=true",
       "provenance_kind": "post_merge_transform",
       "sources": [
         {
@@ -49115,7 +49115,7 @@
       ]
     },
     {
-      "output_line": "http-response ^https?:\\/\\/m[0-46-9]\\.amap\\.com\\/ws\\/bus\\/plan\\/integrate\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-2,requires-body=true",
+      "output_line": "http-response ^https?:\\/\\/m\\d\\.amap\\.com\\/ws\\/bus\\/plan\\/integrate\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/amap/amap.js,tag=AMAP-2,requires-body=true",
       "provenance_kind": "post_merge_transform",
       "sources": [
         {
@@ -49126,41 +49126,7 @@
       ]
     },
     {
-      "canonical_key": "('guarded', '^https?://m\\\\d\\\\.amap\\\\.com/ws/shield/search_poi/(homepage|mps|search/sp|sug|tips_operation_location)', ('^https?:\\\\/\\\\/m\\\\d\\\\.amap\\\\.com\\\\/ws\\\\/shield\\\\/search_poi\\\\/', '^https?:\\\\/\\\\/m\\\\d\\\\.amap\\\\.com\\\\/ws\\\\/shield\\\\/search_poi\\\\/(homepage|mps|search\\\\/sp|sug|tips_operation_location) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-7,requires-body=true'))",
-      "output_entry_index": 21,
-      "output_line": "http-response ^https?:\\/\\/m\\d\\.amap\\.com\\/ws\\/shield\\/search_poi\\/(homepage|mps|search\\/sp|sug|tips_operation_location) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-7,requires-body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/m\\d\\.amap\\.com\\/ws\\/shield\\/search_poi\\/(homepage|mps|search\\/sp|sug|tips_operation_location) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-7,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 20
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://m\\\\d\\\\.amap\\\\.com/ws/shield/dsp/profile/index/nodefaasv\\\\d\\\\?', ('^https?:\\\\/\\\\/m\\\\d\\\\.amap\\\\.com\\\\/ws\\\\/shield\\\\/dsp\\\\/profile\\\\/index\\\\/nodefaasv\\\\d\\\\?', '^https?:\\\\/\\\\/m\\\\d\\\\.amap\\\\.com\\\\/ws\\\\/shield\\\\/dsp\\\\/profile\\\\/index\\\\/nodefaasv\\\\d\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-10,requires-body=true'))",
-      "output_entry_index": 24,
-      "output_line": "http-response ^https?:\\/\\/m\\d\\.amap\\.com\\/ws\\/shield\\/dsp\\/profile\\/index\\/nodefaasv\\d\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-10,requires-body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/m\\d\\.amap\\.com\\/ws\\/shield\\/dsp\\/profile\\/index\\/nodefaasv\\d\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-10,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 23
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "output_line": "http-response ^https?:\\/\\/m[0-46-9]\\.amap\\.com\\/ws\\/shield\\/search\\/nearbyrec_smart\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-11,requires-body=true",
+      "output_line": "http-response ^https?:\\/\\/m\\d\\.amap\\.com\\/ws\\/shield\\/search_poi\\/(homepage|mps|search\\/sp|sug|tips_operation_location) script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/amap/amap.js,tag=AMAP-7,requires-body=true",
       "provenance_kind": "post_merge_transform",
       "sources": [
         {
@@ -49171,7 +49137,7 @@
       ]
     },
     {
-      "output_line": "http-response ^https?:\\/\\/m[0-46-9]-zb\\.amap\\.com\\/ws\\/promotion-web\\/resource(\\/home)?\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-13,requires-body=true",
+      "output_line": "http-response ^https?:\\/\\/m\\d\\.amap\\.com\\/ws\\/shield\\/dsp\\/profile\\/index\\/nodefaasv\\d\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/amap/amap.js,tag=AMAP-10,requires-body=true",
       "provenance_kind": "post_merge_transform",
       "sources": [
         {
@@ -49182,21 +49148,37 @@
       ]
     },
     {
-      "canonical_key": "('guarded', '^https?://m\\\\d-zb\\\\.amap\\\\.com/ws/sharedtrip/taxi/order_detail_car_tips\\\\?', ('^https?:\\\\/\\\\/m\\\\d-zb\\\\.amap\\\\.com\\\\/ws\\\\/sharedtrip\\\\/taxi\\\\/order_detail_car_tips\\\\?', '^https?:\\\\/\\\\/m\\\\d-zb\\\\.amap\\\\.com\\\\/ws\\\\/sharedtrip\\\\/taxi\\\\/order_detail_car_tips\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-14,requires-body=true'))",
-      "output_entry_index": 28,
-      "output_line": "http-response ^https?:\\/\\/m\\d-zb\\.amap\\.com\\/ws\\/sharedtrip\\/taxi\\/order_detail_car_tips\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-14,requires-body=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/m\\d\\.amap\\.com\\/ws\\/shield\\/search\\/nearbyrec_smart\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/amap/amap.js,tag=AMAP-11,requires-body=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/m\\d-zb\\.amap\\.com\\/ws\\/sharedtrip\\/taxi\\/order_detail_car_tips\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/amap.js,tag=AMAP-14,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 27
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
+    },
+    {
+      "output_line": "http-response ^https?:\\/\\/m\\d-zb\\.amap\\.com\\/ws\\/promotion-web\\/resource(\\/home)?\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/amap/amap.js,tag=AMAP-13,requires-body=true",
+      "provenance_kind": "post_merge_transform",
+      "sources": [
+        {
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
+        }
+      ]
+    },
+    {
+      "output_line": "http-response ^https?:\\/\\/m\\d-zb\\.amap\\.com\\/ws\\/sharedtrip\\/taxi\\/order_detail_car_tips\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/amap/amap.js,tag=AMAP-14,requires-body=true",
+      "provenance_kind": "post_merge_transform",
+      "sources": [
+        {
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
+        }
+      ]
     },
     {
       "output_line": "http-response ^https?:\\/\\/api\\.zhihu\\.com\\/commercial_api\\/app_float_layer script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/zhihu/zhihu.js,tag=ZHIHU,requires-body=true",
