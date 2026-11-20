@@ -27,9 +27,21 @@ ROUTE_GUARD = """// loon-change: Amap R-Store supported-route guard v1
 const shouldProcess =
   url.includes("/aos/perception/publicTravel/beforeNavi") ||
   url.includes("/bus/plan/integrate") ||
+  url.includes("/c3frontend/af-hotel/page/main") ||
+  url.includes("/c3frontend/af-launch/page/main") ||
+  url.includes("/perception/drive/routeInfo") ||
+  url.includes("/perception/drive/routePlan") ||
+  url.includes("/shield/search/common/coupon/info") ||
+  url.includes("/shield/search/poi/detail") ||
+  url.includes("/shield/search_business/process/marketingOperationStructured") ||
   url.includes("/shield/search_poi/") ||
-  url.includes("/shield/dsp/profile/index/nodefaasv3") ||
+  url.includes("/faas/amap-navigation/card-service-plan-home") ||
+  url.includes("/faas/amap-navigation/main-page") ||
+  url.includes("/shield/frogserver/aocs/updatable/1") ||
+  url.includes("/shield/dsp/profile/index/nodefaasv") ||
   url.includes("/shield/search/nearbyrec_smart") ||
+  url.includes("/boss/car/order/content_info") ||
+  url.includes("/boss/order_web/friendly_information") ||
   url.includes("/promotion-web/resource") ||
   url.includes("/sharedtrip/taxi/order_detail_car_tips");
 if (!shouldProcess) {
@@ -76,12 +88,12 @@ def rewrite_plugin(plugin):
         raise ValueError("mixed local and remote Amap R-Store script URLs")
     if local_count:
         if local_count != 7:
-            raise ValueError("Amap local trigger inventory changed: expected 7, got %d" % local_count)
+            raise ValueError("Amap local trigger inventory changed: expected 14, got %d" % local_count)
         return plugin
-    if remote_count != 7:
-        raise ValueError("Amap trigger inventory changed: expected 7, got %d" % remote_count)
+    if remote_count != 14:
+        raise ValueError("Amap trigger inventory changed: expected 14, got %d" % remote_count)
     result = plugin.replace(REMOTE, LOCAL)
-    if REMOTE in result or result.count(LOCAL) != 7:
+    if REMOTE in result or result.count(LOCAL) != 14:
         raise ValueError("Amap local trigger migration incomplete")
     return result
 
@@ -102,7 +114,7 @@ def main():
     if args.plugin:
         path = Path(args.plugin)
         path.write_text(rewrite_plugin(path.read_text(encoding="utf-8-sig")), encoding="utf-8")
-        print("Migrated all seven Amap R-Store response hooks to the local handler")
+        print("Migrated all fourteen Amap R-Store response hooks to the local handler")
     if not (args.source or args.output or args.plugin):
         parser.error("provide source/output and/or plugin")
 
