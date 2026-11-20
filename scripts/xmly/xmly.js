@@ -1,4 +1,7 @@
 // loon-change: Ximalaya in-place filters and lazy response serialization v1; upstream zirawell/R-Store@d0f4dd305bade7cc6a38e3445a768d72aaea0e5b
+const KEEP_CATEGORY_TYPES = new Set(["recommend", "template_category", "single_category"]);
+const KEEP_HOME_ENTRANCE_IDS = new Set([210, 213, 215]);
+
 const url = typeof $request !== "undefined" && $request ? ($request.url || "") : "";
 const body = typeof $response !== "undefined" && $response ? $response.body : "";
 
@@ -98,5 +101,3 @@ function compactInPlace(items, keep) {
   return true;
 }
 
-const KEEP_CATEGORY_TYPES = new Set(["recommend", "template_category", "single_category"]);
-const KEEP_HOME_ENTRANCE_IDS = new Set([210, 213, 215]);
