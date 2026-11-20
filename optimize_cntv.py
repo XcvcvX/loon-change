@@ -135,14 +135,20 @@ def optimize_youku_home_query(source):
     start = '  } else if (url.includes("columbus.home.query/")) {'
     end = '  } else if (url.includes("columbus.uc.query/")) {'
     if YOUKU_QUERY_MARKER in source:
-        if source.count(YOUKU_QUERY_MARKER) != 1 or "let newIII = []" in source:
+        if source.count(YOUKU_QUERY_MARKER) != 1 or source.count(start) != 1 or source.count(end) != 1:
             raise ValueError("CNTV Youku home.query compaction marker/structure drift")
+        begin, finish = source.index(start), source.index(end)
+        branch = source[begin:finish]
+        if any(token in branch for token in ("let newNodes = []", "let newItems = []", "let newII = []", "let newIII = []")):
+            raise ValueError("CNTV Youku home.query temporary nested arrays remain")
         return source
     if source.count(start) != 1 or source.count(end) != 1:
         raise ValueError("CNTV Youku home.query route anchors changed")
     begin, finish = source.index(start), source.index(end)
     result = source[:begin] + YOUKU_HOME_QUERY_BRANCH + "  " + YOUKU_QUERY_MARKER + "\\n" + source[finish:]
-    if "let newIII = []" in result or "let newII = []" in result:
+    optimized_end = result.index(end, begin)
+    branch = result[begin:optimized_end]
+    if any(token in branch for token in ("let newNodes = []", "let newItems = []", "let newII = []", "let newIII = []")):
         raise ValueError("CNTV Youku home.query temporary nested arrays remain")
     return result
 
