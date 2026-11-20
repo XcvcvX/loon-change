@@ -20,19 +20,36 @@ class AmapRStoreOptimizerTests(unittest.TestCase):
         self.assertLess(source.index("const shouldProcess ="), source.index("JSON.parse($response.body)"))
         self.assertIn("if (!$response.body) {", source)
 
-    def test_exactly_seven_active_triggers_migrate_and_are_idempotent(self):
+    def test_all_fourteen_active_triggers_migrate_and_are_idempotent(self):
         fixture = "[Script]\n" + "\n".join(
             "http-response ^https://m%d.amap.com/api script-path=%s,tag=AMAP-%d,requires-body=true"
             % (index, REMOTE, index)
-            for index in range(7)
+            for index in range(14)
         ) + "\n[MITM]\nhostname = *.amap.com\n"
         result = rewrite_plugin(fixture)
-        self.assertEqual(result.count(LOCAL), 7)
+        self.assertEqual(result.count(LOCAL), 14)
         self.assertNotIn(REMOTE, result)
         self.assertEqual(rewrite_plugin(result), result)
         partial = "\n".join(line for line in fixture.splitlines() if "tag=AMAP-3," not in line)
-        with self.assertRaisesRegex(ValueError, "expected 7"):
+        with self.assertRaisesRegex(ValueError, "expected 14"):
             rewrite_plugin(partial)
+
+    def test_route_guard_covers_all_fourteen_upstream_endpoint_families(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        expected = [
+            "/aos/perception/publicTravel/beforeNavi", "/bus/plan/integrate",
+            "/c3frontend/af-hotel/page/main", "/c3frontend/af-launch/page/main",
+            "/perception/drive/routeInfo", "/perception/drive/routePlan",
+            "/shield/search/common/coupon/info", "/shield/search/poi/detail",
+            "/shield/search_business/process/marketingOperationStructured",
+            "/shield/search_poi/", "/faas/amap-navigation/card-service-plan-home",
+            "/faas/amap-navigation/main-page", "/shield/frogserver/aocs/updatable/1",
+            "/shield/dsp/profile/index/nodefaasv", "/shield/search/nearbyrec_smart",
+            "/boss/car/order/content_info", "/boss/order_web/friendly_information",
+            "/promotion-web/resource", "/sharedtrip/taxi/order_detail_car_tips"
+        ]
+        for route in expected:
+            self.assertIn('url.includes("' + route + '")', source)
 
     def run_script(self, url, body):
         runner = r"""
