@@ -12,7 +12,34 @@ https://raw.githubusercontent.com/zirawell/R-Store/main/Rule/Surge/Adblock/App/G
 ********************************/
 
 const url = $request.url;
-if (!$response.body) $done({});
+function compactInPlace(items, keep) {
+  let write = 0;
+  for (let read = 0, length = items.length; read < length; read++) {
+    const item = items[read];
+    if (keep(item, read)) {
+      if (write !== read) items[write] = item;
+      write++;
+    }
+  }
+  items.length = write;
+  return items;
+}
+
+if (!$response.body) {
+  $done({});
+} else {
+// loon-change: Amap R-Store supported-route guard v1
+const shouldProcess =
+  url.includes("/aos/perception/publicTravel/beforeNavi") ||
+  url.includes("/bus/plan/integrate") ||
+  url.includes("/shield/search_poi/") ||
+  url.includes("/shield/dsp/profile/index/nodefaasv3") ||
+  url.includes("/shield/search/nearbyrec_smart") ||
+  url.includes("/promotion-web/resource") ||
+  url.includes("/sharedtrip/taxi/order_detail_car_tips");
+if (!shouldProcess) {
+  $done({});
+} else {
 let obj = JSON.parse($response.body);
 
 if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
@@ -95,12 +122,12 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
   // 路线规划页
   if (obj?.data?.children?.length > 0) {
     // 有schema参数的为推广
-    obj.data.children = obj.data.children.filter((i) => !i.hasOwnProperty("schema"));
+    compactInPlace(obj.data.children, (i) => !i.hasOwnProperty("schema"));
   }
 } else if (url.includes("/faas/amap-navigation/main-page")) {
   // 首页底部卡片
   if (obj?.data?.cardList?.length > 0) {
-    obj.data.cardList = obj.data.cardList.filter(
+    compactInPlace(obj.data.cardList, 
         (i) =>
             i?.dataKey === "ContinueNavigationCard" || // 继续导航
             i?.dataKey === "FrequentLocation" || // 常去地点
@@ -108,19 +135,19 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
     );
   }
   if (obj?.data?.mapBizList?.length > 0) {
-    obj.data.mapBizList = obj.data.mapBizList.filter(
+    compactInPlace(obj.data.mapBizList, 
         (i) => i?.dataKey === "FindCarVirtualCard" // 显示关联车辆位置
     );
   }
 } else if (url.includes("/perception/drive/routeInfo")) {
   // 导航详情页
   if (obj?.data?.tbt?.event?.length > 0) {
-    obj.data.tbt.event = obj.data.tbt.event.filter((i) => !/ads-\d+/.test(i?.dynamic_id_s));
+    compactInPlace(obj.data.tbt.event, (i) => !/ads-\d+/.test(i?.dynamic_id_s));
   }
   if (obj?.data?.front_end) {
     if (obj?.data?.front_end?.guide_tips?.length > 0) {
       // 音乐底栏
-      obj.data.front_end.guide_tips = obj.data.front_end.guide_tips.filter((i) => i?.biz_type !== "music");
+      compactInPlace(obj.data.front_end.guide_tips, (i) => i?.biz_type !== "music");
     }
     if (obj?.data?.front_end?.assistant) {
       // 助手皮肤
@@ -128,7 +155,7 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
     }
     if (obj?.data?.front_end?.download?.length > 0) {
       // 导航插播语音广告
-      obj.data.front_end.download = obj.data.front_end.download.filter((i) => !/ads-\d+/.test(i?.dynamic_id_s));
+      compactInPlace(obj.data.front_end.download, (i) => !/ads-\d+/.test(i?.dynamic_id_s));
     }
   }
 } else if (url.includes("/perception/drive/routePlan")) {
@@ -146,11 +173,11 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
   }
   if (obj?.data?.tbt?.event?.length > 0) {
     // 导航插播语音广告
-    obj.data.tbt.event = obj.data.tbt.event.filter((i) => !/ads-\d+/.test(i?.dynamic_id_s));
+    compactInPlace(obj.data.tbt.event, (i) => !/ads-\d+/.test(i?.dynamic_id_s));
   }
   if (obj?.data?.front_end?.download?.length > 0) {
     // 导航插播语音广告
-    obj.data.front_end.download = obj.data.front_end.download.filter((i) => !/ads-\d+/.test(i?.dynamic_id_s));
+    compactInPlace(obj.data.front_end.download, (i) => !/ads-\d+/.test(i?.dynamic_id_s));
   }
 } else if (url.includes("/promotion-web/resource")) {
   // 打车页面
@@ -179,7 +206,7 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
 } else if (url.includes("/shield/dsp/profile/index/nodefaasv3")) {
   // 我的页面
   if (obj?.data?.cardList?.length > 0) {
-    obj.data.cardList = obj.data.cardList.filter((i) => i?.dataKey === "MyOrderCard");
+    compactInPlace(obj.data.cardList, (i) => i?.dataKey === "MyOrderCard");
   }
   if (obj?.data?.tipData) {
     delete obj.data.tipData;
@@ -269,7 +296,7 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
   const items = ["head", "search_hot_words", "feed_rec"];
   if (obj?.data?.modules?.length > 0) {
     if (obj?.data?.modules?.length > 0) {
-      obj.data.modules = obj.data.modules.filter((i) => items?.includes(i));
+      compactInPlace(obj.data.modules, (i) => items?.includes(i));
     }
   }
 } else if (url.includes("/shield/search/poi/detail")) {
@@ -558,7 +585,7 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
       let list = obj.data.modules.list_data.data;
       if (list?.content?.length > 0) {
         // brandAdCard广告卡片 toplist_al人气榜单 高德指南
-        list.content = list.content.filter((i) => !["brandAdCard", "toplist_al"]?.includes(i?.item_type));
+        compactInPlace(list.content, (i) => !["brandAdCard", "toplist_al"]?.includes(i?.item_type));
       }
     }
   }
@@ -636,3 +663,5 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
 }
 
 $done({body: JSON.stringify(obj)});
+}
+}
