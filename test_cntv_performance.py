@@ -21,7 +21,7 @@ class CNTVOptimizerTests(unittest.TestCase):
         source = SOURCE.read_text(encoding="utf-8")
         self.assertIn(MARKER, source)
         self.assertEqual(optimize_source(source), source)
-        self.assertEqual(source.count("compactInPlace(") - 1, 13)
+        self.assertEqual(source.count("compactInPlace(") - 1, 17)
         self.assertNotIn(".filter(", source)
         self.assertIn("if (!$response.body) {", source)
         self.assertTrue(source.rstrip().endswith("}"))
@@ -221,6 +221,7 @@ class CNTVPreParseRouteGuardTests(unittest.TestCase):
         self.assertLess(source.index("const shouldProcess ="), source.index("let obj = JSON.parse"))
         self.assertEqual(optimize_source(source), source)
 
+
     def test_supported_route_inventory_is_explicit(self):
         source = SOURCE.read_text(encoding="utf-8")
         expected = [
@@ -303,3 +304,38 @@ process.stdout.write(nativeJSON.stringify({
                 self.assertEqual(result["parseCount"], 1)
                 self.assertEqual(result["stringifyCount"], 1)
                 self.assertIsInstance(result["doneResult"].get("body"), str)
+
+    def test_youku_home_query_compacts_nested_arrays_without_reordering(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        branch = source.split('  } else if (url.includes("columbus.home.query/")) {', 1)[1].split('  } else if (url.includes("columbus.uc.query/")) {', 1)[0]
+        self.assertIn("CNTV Youku home.query nested in-place compaction v1", branch)
+        for temporary in ("let newNodes = []", "let newItems = []", "let newII = []", "let newIII = []"):
+            self.assertNotIn(temporary, branch)
+        body = {"data": {"2019061000": {"data": {"nodes": [
+            {"data": {"nodeKey": "CHILD"}, "nodes": []},
+            {"data": {"nodeKey": "NORMAL"}, "nodes": [
+                {"id": 31476, "data": {"keywords": ["remove"]}},
+                {"id": 35505, "data": {}},
+                {"id": 7, "typeName": "UC广告抽屉", "data": {}},
+                {"id": 8, "data": {"crmSale": {}}, "nodes": [
+                    {"typeName": "NORMAL", "nodes": [
+                        {"typeName": "KEEP", "data": {"title": "ok"}},
+                        {"typeName": "PHONE_FEED_CARD_S_AD", "data": {}},
+                        {"typeName": "KEEP_AD", "data": {"ad": {}}}
+                    ]}
+                ]}
+            ]}
+        ]}}}}
+        result = self.run_script("https://acs.youku.com/gw/mtop.youku.columbus.home.query/", body)
+        output = json.loads(result["doneResult"]["body"])
+        nodes = output["data"]["2019061000"]["data"]["nodes"]
+        self.assertEqual(len(nodes), 1)
+        level2 = nodes[0]["nodes"]
+        self.assertEqual([item["id"] for item in level2], [31476, 8])
+        self.assertNotIn("keywords", level2[0]["data"])
+        self.assertNotIn("crmSale", level2[1]["data"])
+        level3 = level2[1]["nodes"]
+        self.assertEqual(len(level3), 1)
+        self.assertEqual(level3[0]["nodes"], [{"typeName": "KEEP", "data": {"title": "ok"}}])
+        self.assertEqual(result["parseCount"], 1)
+

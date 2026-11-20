@@ -5005,14 +5005,14 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
             "/ws/bus/plan/integrate" in line.replace(chr(92), "").lower() and "ishowshu_amap.js" in line.lower()
             for line in script.splitlines()
         ))
+        # PR #399 moved these four response routes into the local Amap runtime.
         for marker in AMAP_VERSIONED_RSTORE_SCRIPT_MARKERS:
             rows = [
                 line for line in script.splitlines()
-                if marker in line.replace(chr(92), "").lower() and "/res/scripts/antiad/amap.js" in line.lower()
+                if marker in line.replace(chr(92), "").lower() and "scripts/amap/amap.js" in line.lower()
             ]
             self.assertEqual(len(rows), 1, marker)
-            self.assertIn("m[0-46-9]", rows[0], marker)
-            self.assertNotRegex(rows[0], r"m\\+d")
+            self.assertIn(r"m\d", rows[0], marker)
         self.assertIn("sources/amap/rucu6_amap.js", script)
         second, second_removed = optimize_amap_response_script_overlaps(result)
         self.assertEqual(second, result)
