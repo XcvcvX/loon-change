@@ -705,8 +705,7 @@ if (isIQY) {
         });
       }
     }
-  // loon-change: CNTV Youku home.query nested in-place compaction v1
-  } else if (url.includes("columbus.uc.query/")) {
+  // loon-change: CNTV Youku home.query nested in-place compaction v1\n  } else if (url.includes("columbus.uc.query/")) {
     // 优酷 我的页面组件
     if (obj?.data?.["2019061000"]?.data) {
       let objData = obj.data["2019061000"].data;
