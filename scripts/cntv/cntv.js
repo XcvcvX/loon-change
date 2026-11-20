@@ -681,7 +681,10 @@ if (isIQY) {
             compactInPlace(item.nodes, i => {
               if (i?.data?.crmSale) delete i.data.crmSale;
               if (["UC广告抽屉", "橱窗广告"]?.includes(i?.typeName)) return false;
-              if (i?.id === 31476 && i?.data?.keywords?.length > 0) delete i.data.keywords;
+              if (i?.id === 31476) {
+                if (i?.data?.keywords?.length > 0) delete i.data.keywords;
+                return true;
+              }
               if (i?.id === 35505 || i?.id === 37335) return false;
               if (i?.nodes?.length > 0) {
                 compactInPlace(i.nodes, ii => {
