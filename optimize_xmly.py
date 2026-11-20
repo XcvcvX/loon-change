@@ -112,8 +112,6 @@ function compactInPlace(items, keep) {
   return true;
 }
 
-const KEEP_CATEGORY_TYPES = new Set(["recommend", "template_category", "single_category"]);
-const KEEP_HOME_ENTRANCE_IDS = new Set([210, 213, 215]);
 '''
 
 
@@ -125,6 +123,8 @@ def optimize_source(source: str, commit: str = "unknown") -> str:
             raise ValueError("Ximalaya allocating Array.filter/map call remains")
         if source.count("function compactInPlace(items, keep)") != 1:
             raise ValueError("Ximalaya in-place compaction helper count drift")
+        if source.count("const KEEP_CATEGORY_TYPES =") != 1 or source.count("const KEEP_HOME_ENTRANCE_IDS =") != 1:
+            raise ValueError("Ximalaya shared lookup constants must be initialized exactly once")
         if source.count("$done(") != 5:
             raise ValueError("Ximalaya completion path count drift")
         return source
