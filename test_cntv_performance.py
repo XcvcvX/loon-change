@@ -327,7 +327,8 @@ process.stdout.write(nativeJSON.stringify({
             ]}
         ]}}}}
         result = self.run_script("https://acs.youku.com/gw/mtop.youku.columbus.home.query/", body)
-        output = json.loads(result["doneResult"]["body"])\n        nodes = output["data"]["2019061000"]["data"]["nodes"]
+        output = json.loads(result["doneResult"]["body"])
+        nodes = output["data"]["2019061000"]["data"]["nodes"]
         self.assertEqual(len(nodes), 1)
         level2 = nodes[0]["nodes"]
         self.assertEqual([item["id"] for item in level2], [31476, 8])
