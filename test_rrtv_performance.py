@@ -126,7 +126,7 @@ process.stdout.write(stringify({done:doneValue,output,parseCount:c.parseCount,st
     def test_user_personal_and_unmatched_routes_keep_prior_behavior(self):
         user = self.run_script("https://api.rr.tv/user/personal", json.dumps({"data":{"user":{}}}))
         self.assertEqual(user["output"]["data"]["user"]["vipInfo"]["level"], "1")
-        self.assertEqual(len(user["output"]["data"]["user"]["privilegeList"]), 9)
+        self.assertEqual(len(user["output"]["data"]["user"]["privilegeList"]), 10)
         unmatched = self.run_script("https://api.rr.tv/unmatched", '{"ok":true}')
         self.assertIsNone(unmatched["done"])
         self.assertEqual(unmatched["parseCount"], 0)
