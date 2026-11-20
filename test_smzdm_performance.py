@@ -50,10 +50,10 @@ class SMZDMOptimizerTests(unittest.TestCase):
             rewrite_plugin(partial)
         mixed = partial + "\nhttp-response ^https://smzdm.example/local script-path=" + LOCAL
         with self.assertRaisesRegex(ValueError, "mixed local and remote"):
-            rewrite_plugin(mxinged)
+            rewrite_plugin(mixed)
 
 
-[unittest.skipUnless(NODE, "Node.js is required for SMZDM response runtime tests")]
+@unittest.skipUnless(NODE, "Node.js is required for SMZDM response runtime tests")]
 class SMZDMRuntimeTests(unittest.TestCase):
     def run_script(self, url, body):
         runner = r"""
