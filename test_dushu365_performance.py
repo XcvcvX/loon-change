@@ -30,8 +30,9 @@ class Dushu365OptimizerTests(unittest.TestCase):
         self.assertEqual(migrated.count(LOCAL), EXPECTED_TRIGGERS)
         self.assertNotIn(REMOTE, migrated)
         self.assertEqual(rewrite_plugin(migrated), migrated)
+        partial = "\n".join(line for line in fixture.splitlines() if "tag=DUSHU365-4," not in line)
         with self.assertRaisesRegex(ValueError, "expected 5"):
-            rewrite_plugin(fixture.rsplit("\n", 1)[0])
+            rewrite_plugin(partial)
         mixed = fixture + "\nhttp-response ^https://g.dushu365.com/other script-path=" + LOCAL
         with self.assertRaisesRegex(ValueError, "mixed local and remote"):
             rewrite_plugin(mixed)
