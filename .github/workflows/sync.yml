@@ -247,6 +247,7 @@ jobs:
         run: node --check scripts/soul/soul.js
       - name: 检查喜马拉雅本地响应脚本语法
         run: node --check scripts/xmly/xmly.js
+        run: node --check scripts/dushu365/dushu365.js
       - name: 运行单元与合并集成测试
         run: python3 -m unittest -v test_validate_plugin.py test_fix_script_configs.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_apply_amap_local_overrides.py test_compare_rule_provenance.py test_source_health_guard.py test_finalize_provenance.py test_rule_risk_history.py test_integrate_spotify.py test_convert_qx2loon.py test_convert_filter_qx2loon.py test_stage_romeo_plugins.py test_runtime_performance_audit.py test_xiaohongshu_v4_performance.py test_xiaohongshu_performance.py test_xiaohongshu_rstore_performance.py test_weibo_rstore_performance.py test_amap_response_compaction.py test_cnftp_performance.py test_zhihu_performance.py test_bilibili_json_performance.py test_cntv_performance.py test_didi_performance.py test_response_array_compaction_performance.py test_baidumap_binary_performance.py test_taobao_optimization.py test_xianyu_jd_upstream.py test_smzdm_performance.py test_rrtv_performance.py test_soul_performance.py test_xmly_performance.py
       - name: 测试本地插件覆盖
@@ -389,6 +390,7 @@ jobs:
         run: node --check scripts/soul/soul.js
       - name: 检查喜马拉雅本地响应脚本语法
         run: node --check scripts/xmly/xmly.js
+        run: node --check scripts/dushu365/dushu365.js
 
       - name: 测试校验器与来源依赖门禁
         run: python3 -m unittest -v test_validate_plugin.py test_fix_script_configs.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_apply_amap_local_overrides.py test_compare_rule_provenance.py test_source_health_guard.py test_finalize_provenance.py test_rule_risk_history.py test_integrate_spotify.py test_convert_qx2loon.py test_convert_filter_qx2loon.py test_stage_romeo_plugins.py test_runtime_performance_audit.py test_xiaohongshu_v4_performance.py test_xiaohongshu_performance.py test_xiaohongshu_rstore_performance.py test_weibo_rstore_performance.py test_amap_response_compaction.py test_cnftp_performance.py test_zhihu_performance.py test_bilibili_json_performance.py test_cntv_performance.py test_didi_performance.py test_response_array_compaction_performance.py test_baidumap_binary_performance.py test_taobao_optimization.py test_xianyu_jd_upstream.py test_smzdm_performance.py test_rrtv_performance.py test_soul_performance.py test_xmly_performance.py
@@ -683,7 +685,7 @@ jobs:
       - name: 检查是否有变化
         id: diff
         run: |
-          if git diff --quiet -- allAdRewrite.plugin README.md source-report.json rule-provenance.json rule-history.json sources/amap/ sources/spotify/ sources/alipayAdBlock/ scripts/spotify/ scripts/cnftp/ scripts/xiaohongshu/ scripts/weibo/ scripts/zhihu/ scripts/didi/ scripts/smzdm/ scripts/rrtv/ scripts/soul/ scripts/xmly/; then
+          if git diff --quiet -- allAdRewrite.plugin README.md source-report.json rule-provenance.json rule-history.json sources/amap/ sources/spotify/ sources/alipayAdBlock/ scripts/spotify/ scripts/cnftp/ scripts/xiaohongshu/ scripts/weibo/ scripts/zhihu/ scripts/didi/ scripts/smzdm/ scripts/rrtv/ scripts/soul/ scripts/xmly/ scripts/dushu365/; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "合并产物与统计均无变化，跳过提交"
           else
@@ -696,7 +698,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add allAdRewrite.plugin README.md source-report.json rule-provenance.json rule-history.json sources/amap/ sources/spotify/ sources/alipayAdBlock/ scripts/spotify/ scripts/cnftp/ scripts/xiaohongshu/ scripts/weibo/ scripts/zhihu/ scripts/didi/ scripts/smzdm/ scripts/rrtv/ scripts/soul/ scripts/xmly/
+          git add allAdRewrite.plugin README.md source-report.json rule-provenance.json rule-history.json sources/amap/ sources/spotify/ sources/alipayAdBlock/ scripts/spotify/ scripts/cnftp/ scripts/xiaohongshu/ scripts/weibo/ scripts/zhihu/ scripts/didi/ scripts/smzdm/ scripts/rrtv/ scripts/soul/ scripts/xmly/ scripts/dushu365/
           git commit -m "chore: sync upstream rules and plugin stats $(date -u +%Y-%m-%d)"
           # Another workflow or a PR merge may advance main after checkout.
           # Rebase the generated snapshot onto the latest main before pushing;
