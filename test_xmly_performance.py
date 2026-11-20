@@ -19,6 +19,8 @@ class XimalayaOptimizerTests(unittest.TestCase):
         self.assertNotIn(".filter(", source)
         self.assertNotIn(".map(", source)
         self.assertIn("function compactInPlace(items, keep)", source)
+        self.assertEqual(source.count("const KEEP_CATEGORY_TYPES ="), 1)
+        self.assertEqual(source.count("const KEEP_HOME_ENTRANCE_IDS ="), 1)
         self.assertEqual(source.count("JSON.parse(body)"), 1)
         self.assertIn("if (modified)", source)
 
