@@ -4034,6 +4034,29 @@ IDENTICAL_SCRIPT_TRANSFORMS = {
 }
 
 
+LOCALIZED_RESPONSE_HANDLER_LINES = frozenset((
+    "http-response ^https?:\\/\\/api\\.rr\\.tv\\/\\w{3}\\/level\\/info script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/rrtv/rrtv.js,tag=RRTV,requires-body=true",
+    "http-response ^https?:\\/\\/api\\.rr\\.tv\\/v3plus\\/index\\/channel\\?pageNum=1&position=CHANNEL_MY script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/rrtv/rrtv.js,tag=RRTV-2,requires-body=true",
+    "http-response ^https?:\\/\\/api\\.rr\\.tv\\/v3plus\\/index\\/channel\\?pageNum=1&position=CHANNEL_INDEX script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/rrtv/rrtv.js,tag=RRTV-3,requires-body=true",
+    "http-response ^https?:\\/\\/api\\.rr\\.tv\\/ad\\/getAll script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/rrtv/rrtv.js,tag=RRTV-4,requires-body=true",
+    "http-response ^https?:\\/\\/api\\.rr\\.tv\\/app\\/config\\/h5NativeBar script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/rrtv/rrtv.js,tag=RRTV-5,requires-body=true",
+    "http-response ^https?:\\/\\/api\\.rr\\.tv\\/drama\\/app\\/get_combined_drama_detail script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/rrtv/rrtv.js,tag=RRTV-6,requires-body=true",
+    "http-response ^https?:\\/\\/api\\.rr\\.tv\\/watch\\/v\\d script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/rrtv/rrtv.js,tag=RRTV-7,requires-body=true",
+    "http-response ^https?:\\/\\/api\\.rr\\.tv\\/user\\/privilege\\/list script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/rrtv/rrtv.js,tag=RRTV-8,requires-body=true",
+    "http-response ^https?:\\/\\/api\\.rr\\.tv\\/user\\/profile script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/rrtv/rrtv.js,tag=RRTV-9,requires-body=true",
+    "http-response ^https?:\\/\\/api-a\\.soulapp\\.cn\\/v\\d\\/post\\/gift\\/list script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/soul/soul.js,tag=SOUL,requires-body=true",
+    "http-response ^https?:\\/\\/api-a\\.soulapp\\.cn\\/official\\/scene\\/module script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/soul/soul.js,tag=SOUL-2,requires-body=true",
+    "http-response ^https?:\\/\\/api-chat\\.soulapp\\.cn\\/chat\\/limitInfo script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/soul/soul.js,tag=SOUL-3,requires-body=true",
+    "http-response ^https?:\\/\\/api-user\\.soulapp\\.cn\\/furion\\/position\\/content script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/soul/soul.js,tag=SOUL-4,requires-body=true",
+    "http-response ^https?:\\/\\/api-pay\\.soulapp\\.cn\\/vip\\/meet\\/userInfo script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/soul/soul.js,tag=SOUL-5,requires-body=true",
+    "http-response ^https?:\\/\\/api-pay\\.soulapp\\.cn\\/privilege\\/supervip\\/status script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/soul/soul.js,tag=SOUL-6,requires-body=true",
+    "http-response ^https?:\\/\\/post\\.soulapp\\.cn\\/hot\\/soul\\/rank script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/soul/soul.js,tag=SOUL-7,requires-body=true",
+    "http-response ^https?:\\/\\/post\\.soulapp\\.cn\\/v\\d\\/post\\/homepage\\/guide\\/card script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/soul/soul.js,tag=SOUL-8,requires-body=true",
+    "http-response ^https?:\\/\\/gateway-mobile-gray\\.soulapp\\.cn\\/mobile\\/app\\/version\\/queryIos script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/soul/soul.js,tag=SOUL-9,requires-body=true",
+))
+LOCALIZED_RESPONSE_HANDLER_COUNT = {line: 0 for line in LOCALIZED_RESPONSE_HANDLER_LINES}
+
+
 def remove_identical_script_response_duplicates(lines):
     """Use one code-identical response handler while preserving the broader legacy API paths."""
     remove_counts = {item: 0 for item in IDENTICAL_SCRIPT_REMOVE_TRIGGERS}
@@ -4049,6 +4072,7 @@ def remove_identical_script_response_duplicates(lines):
     output_counts = {item: 0 for item in canonical_triggers}
     remove_set = set(IDENTICAL_SCRIPT_REMOVE_TRIGGERS)
     output, section, target_seen, removed = [], "", False, 0
+    localized_counts = dict(LOCALIZED_RESPONSE_HANDLER_COUNT)
     source_mode = any(item in lines for item in remove_set)
 
     for line in lines:
@@ -4081,6 +4105,12 @@ def remove_identical_script_response_duplicates(lines):
             continue
 
         target_seen = True
+        if line in localized_counts:
+            localized_counts[line] += 1
+            if localized_counts[line] > 1:
+                raise ValueError("duplicate localized RRTV/Soul handler; refusing ambiguous cleanup")
+            output.append(line)
+            continue
         if source_mode:
             if line in remove_counts:
                 remove_counts[line] += 1
@@ -4109,6 +4139,12 @@ def remove_identical_script_response_duplicates(lines):
 
     if not target_seen:
         return output, 0
+
+    # Local response handlers are independently optimized; do not feed them into
+    # the legacy byte-identical upstream consolidation inventory. We still
+    # validate every target above and fail closed on unknown or duplicate lines.
+    if any(localized_counts.values()):
+        return list(lines), 0
 
     if source_mode:
         # Only collapse a complete reviewed inventory. When an upstream feed is
