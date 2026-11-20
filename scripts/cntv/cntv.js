@@ -668,108 +668,41 @@ if (isIQY) {
       }
     }
   } else if (url.includes("columbus.home.query/")) {
-    // 优酷 各菜单列表 剧集 电影 综艺 信息流
+    // CNTV Youku home.query nested-list compaction: reuse all four response arrays.
     if (obj?.data?.["2019061000"]?.data) {
       let objData = obj.data["2019061000"].data;
-      if (objData?.data?.indexPositionResult?.length > 0) {
-        // 首页 第零层级 二楼
-        objData.data.indexPositionResult = [];
-      }
+      if (objData?.data?.indexPositionResult?.length > 0) objData.data.indexPositionResult = [];
       if (objData?.nodes?.length > 0) {
-        let newNodes = [];
-        for (let item of objData.nodes) {
-          // 第一层级循环
-          if (["CHILD", "COMIC2", "20230929GREATWORKMFK"]?.includes(item?.data?.nodeKey)) {
-            // 首页 少儿 动漫 国庆长假免费看
-            continue;
-          } else {
-            if (item?.data?.indexPositionResult?.length > 0) {
-              // 剧集 电影 二楼
-              item.data.indexPositionResult = [];
-            }
-            if (item?.data?.refreshImg) {
-              // 电影 综艺 纪录片 下拉刷新的背景图片
-              delete item.data.refreshImg;
-            }
-            // 首页 剧集 电影 全都有信息流广告
-            // 去掉nodeKey的判断 直接处理下一层级
-            if (item?.nodes?.length > 0) {
-              let newItems = [];
-              for (let i of item.nodes) {
-                // 第二层级循环
-                if (i?.data?.crmSale) {
-                  // 季卡会员横幅
-                  delete i.data.crmSale;
-                }
-                if (["UC广告抽屉", "橱窗广告"]?.includes(i?.typeName)) {
-                  // 横版独占广告
-                  continue;
-                } else if (i?.id === 31476) {
-                  // 正在热播
-                  if (i?.data?.keywords?.length > 0) {
-                    // 滚动热词
-                    delete i.data.keywords;
+        compactInPlace(objData.nodes, item => {
+          if (["CHILD", "COMIC2", "20230929GREATWORKMFK"]?.includes(item?.data?.nodeKey)) return false;
+          if (item?.data?.indexPositionResult?.length > 0) item.data.indexPositionResult = [];
+          if (item?.data?.refreshImg) delete item.data.refreshImg;
+          if (item?.nodes?.length > 0) {
+            compactInPlace(item.nodes, i => {
+              if (i?.data?.crmSale) delete i.data.crmSale;
+              if (["UC广告抽屉", "橱窗广告"]?.includes(i?.typeName)) return false;
+              if (i?.id === 31476 && i?.data?.keywords?.length > 0) delete i.data.keywords;
+              if (i?.id === 35505 || i?.id === 37335) return false;
+              if (i?.nodes?.length > 0) {
+                compactInPlace(i.nodes, ii => {
+                  if (["PHONE_FEED_CARD_B_AD", "PHONE_FEED_CARD_S_AD", "PHONE_H_UC_AD", "PHONE_IMG_A", "PHONE_YK_AD_BANNER"]?.includes(ii?.typeName)) return false;
+                  if (ii?.nodes?.length > 0) {
+                    compactInPlace(ii.nodes, iii =>
+                      iii?.typeName !== "PHONE_FEED_CARD_S_AD" &&
+                      !iii?.data?.hasOwnProperty("ad")
+                    );
                   }
-                } else if (i?.id === 35505) {
-                  // 优惠购会员横幅
-                  continue;
-                } else if (i?.id === 37335) {
-                  // 首页二楼
-                  continue;
-                } else {
-                  // 16214猜你在追
-                  // 38820首页顶部轮播图
-                  if (i?.nodes?.length > 0) {
-                    let newII = [];
-                    for (let ii of i.nodes) {
-                      // 第三层级循环
-                      if (
-                          [
-                            "PHONE_FEED_CARD_B_AD", // 横版独占广告
-                            "PHONE_FEED_CARD_S_AD", // 四格小图广告
-                            "PHONE_H_UC_AD", // 剧集 横版独占广告
-                            "PHONE_IMG_A", // 剧集 开通会员卡片
-                            "PHONE_YK_AD_BANNER" // 剧集 横版独占广告
-                          ]?.includes(ii?.typeName)
-                      ) {
-                        continue;
-                      } else {
-                        if (ii?.nodes?.length > 0) {
-                          let newIII = [];
-                          for (let iii of ii.nodes) {
-                            // 第四层级循环
-                            if (iii?.typeName === "PHONE_FEED_CARD_S_AD") {
-                              // 剧集 四格小图广告
-                              continue;
-                            } else if (iii?.data.hasOwnProperty("ad")) {
-                              // 有ad字段的为广告
-                              continue;
-                            } else {
-                              newIII.push(iii);
-                            }
-                          }
-                          ii.nodes = newIII;
-                          newII.push(ii);
-                        } else {
-                          newII.push(ii);
-                        }
-                      }
-                    }
-                    i.nodes = newII;
-                    newItems.push(i);
-                  } else {
-                    newItems.push(i);
-                  }
-                }
+                  return true;
+                });
               }
-              item.nodes = newItems;
-            }
-            newNodes.push(item);
+              return true;
+            });
           }
-        }
-        objData.nodes = newNodes;
+          return true;
+        });
       }
     }
+  // loon-change: CNTV Youku home.query nested in-place compaction v1
   } else if (url.includes("columbus.uc.query/")) {
     // 优酷 我的页面组件
     if (obj?.data?.["2019061000"]?.data) {
