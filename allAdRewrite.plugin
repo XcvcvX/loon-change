@@ -2,7 +2,7 @@
 #!desc=综合规则仅使用 R-Store base；保留 Romeo 独立 App 插件、高德、Spotify、瓜子影视与支付宝专项规则；单插件自包含
 #!author=R-Store / Romeo / RuCu6（Amap）/ zirawell / ddgksf2013（本仓库自动构建）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-20 07:02 UTC
+#!merged-at=2026-11-20 07:16 UTC
 #!note=综合规则只取 R-Store base；独立 App 专项规则单独保留；高德独立规则优先级最高；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store-base(QuanX->Loon)+Romeo-independent-App+Romeo-Spotify+RuCu6-Amap+zirawell-AlipayAdBlock+ddgksf2013/GuaZiVideoAds
 
@@ -3212,11 +3212,11 @@ http-response ^https?:\/\/cupid\.51job(app)?\.com\/open\/my-page\/ script-path=h
 http-response ^https?:\/\/mage(v\d)?\.if\.qidian\.com\/argus\/api\/v\d\/(deeplink\/geturl|client\/getconf|bookshelf\/getHoverAdv|dailyrecommend\/getdailyrecommend|assembly\/toolbar|user\/getaccountpage) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/qidian.js,tag=QIDIAN,requires-body=true
 http-response ^https?:\/\/webapi\.qbb6\.com\/h5\/api\/lib\/internal\/append\/get script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/qbb.js,tag=QBB,requires-body=true
 http-response ^https?:\/\/www\.myusmile\.online\/user\/plaqueTopic\/selectByType script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/usmile.js,tag=USMILE
-http-response ^https?:\/\/(?:[A-Za-z0-9-]+\.)+ximalaya\.com\/discovery-category\/customCategories script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xmly.js,tag=XMLY,requires-body=true
-http-response ^https?:\/\/(?:[A-Za-z0-9-]+\.)+ximalaya\.com\/focus-mobile\/focusPic script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xmly.js,tag=XMLY-2,requires-body=true
-http-response ^https?:\/\/(?:[A-Za-z0-9-]+\.)+ximalaya\.com\/discovery-feed\/v\d\/mix script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xmly.js,tag=XMLY-3,requires-body=true
-http-response ^https?:\/\/(?:[A-Za-z0-9-]+\.)+ximalaya\.com\/discovery-category\/v\d/category script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xmly.js,tag=XMLY-4,requires-body=true
-http-response ^https?:\/\/(?:[A-Za-z0-9-]+\.)+ximalaya\.com\/mobile-user\/v\d\/homePage script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xmly.js,tag=XMLY-5,requires-body=true
+http-response ^https?:\/\/(?:[A-Za-z0-9-]+\.)+ximalaya\.com\/discovery-category\/customCategories script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xmly/xmly.js,tag=XMLY,requires-body=true
+http-response ^https?:\/\/(?:[A-Za-z0-9-]+\.)+ximalaya\.com\/focus-mobile\/focusPic script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xmly/xmly.js,tag=XMLY-2,requires-body=true
+http-response ^https?:\/\/(?:[A-Za-z0-9-]+\.)+ximalaya\.com\/discovery-feed\/v\d\/mix script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xmly/xmly.js,tag=XMLY-3,requires-body=true
+http-response ^https?:\/\/(?:[A-Za-z0-9-]+\.)+ximalaya\.com\/discovery-category\/v\d/category script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xmly/xmly.js,tag=XMLY-4,requires-body=true
+http-response ^https?:\/\/(?:[A-Za-z0-9-]+\.)+ximalaya\.com\/mobile-user\/v\d\/homePage script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xmly/xmly.js,tag=XMLY-5,requires-body=true
 http-response ^https?:\/\/api\.m\.mi\.com\/v\d\/order\/expressView script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mishop.js,tag=MISHOP,requires-body=true
 http-response ^https?:\/\/conf-m-ssl\.xunlei\.com\/external\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xunlei.js,tag=XUNLEI,requires-body=true
 http-response ^https?:\/\/edith\.xiaohongshu\.com\/api\/sns\/v\d+\/note\/widgets script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu-rstore.js,tag=XIAOHONGSHU,requires-body=true
