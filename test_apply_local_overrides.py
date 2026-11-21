@@ -6027,7 +6027,7 @@ class PeiyinxiuNoopResponseTriggerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "duplicate"):
             remove_noop_peiyinxiu_response_triggers(fixture[:-1] + [fixture[1], fixture[-1]])
         changed = fixture.copy()
-        changed[2] = changed[2].replace("/Api/live/LiveList", "/Api/live/OtherList")
+        changed[2] = changed[2].replace("LiveList", "OtherList")
         with self.assertRaisesRegex(ValueError, "trigger changed"):
             remove_noop_peiyinxiu_response_triggers(changed)
 
