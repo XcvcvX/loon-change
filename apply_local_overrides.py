@@ -6756,6 +6756,79 @@ def remove_github_website_compatibility_overrides(lines):
     return output, removed_rewrites + removed_scripts + removed_mitm_hosts
 
 
+
+# 配音秀 R-Store handler only changes the Film/GetConfigValue response.
+# The other four configured endpoints are parsed and serialized unchanged.
+PEIYINXIU_SCRIPT_URL = "https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/peiyinxiu.js"
+PEIYINXIU_TRIGGER_PATHS = {
+    "PEIYINXIU": "/Api/Film/GetConfigValue",
+    "PEIYINXIU-2": "/Api/live/LiveList",
+    "PEIYINXIU-3": "/api/live/FollowList",
+    "PEIYINXIU-4": "/Api/Friend/GetRecommendUsers",
+    "PEIYINXIU-5": "/api/Union/HomeData",
+}
+PEIYINXIU_NOOP_TAGS = {"PEIYINXIU-2", "PEIYINXIU-3", "PEIYINXIU-4", "PEIYINXIU-5"}
+
+
+def remove_noop_peiyinxiu_response_triggers(lines):
+    """Drop only the four PEIYINXIU response hooks whose handler has no matching branch."""
+    output = []
+    section = ""
+    candidates = []
+    for index, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+            output.append(line)
+            continue
+        if section != "Script":
+            output.append(line)
+            continue
+        if PEIYINXIU_SCRIPT_URL not in stripped and "tag=PEIYINXIU" not in stripped:
+            output.append(line)
+            continue
+        normalized = stripped.replace("\\\\", "").replace("\\", "")
+        tag_match = re.search(r"(?:^|[,\s])tag=(PEIYINXIU(?:-[2-5])?)(?:[,\s]|$)", stripped)
+        if (not stripped.startswith("http-response ")
+                or PEIYINXIU_SCRIPT_URL not in stripped
+                or not tag_match
+                or tag_match.group(1) not in PEIYINXIU_TRIGGER_PATHS
+                or PEIYINXIU_TRIGGER_PATHS[tag_match.group(1)] not in normalized
+                or not re.search(r"requires[-_]body\s*=\s*true", stripped, re.I)):
+            raise ValueError("Peiyinxiu response trigger changed; refusing unreviewed cleanup: " + stripped)
+        candidates.append((index, tag_match.group(1)))
+        output.append(line)
+
+    if not candidates:
+        return output, 0
+    tags = [tag for _, tag in candidates]
+    if len(tags) != len(set(tags)):
+        raise ValueError("duplicate Peiyinxiu response trigger; refusing ambiguous cleanup")
+    if len(tags) == 1 and tags[0] == "PEIYINXIU":
+        return output, 0
+    if len(tags) != len(PEIYINXIU_TRIGGER_PATHS) or set(tags) != set(PEIYINXIU_TRIGGER_PATHS):
+        raise ValueError("Peiyinxiu response trigger inventory changed; expected five reviewed routes")
+    removed_tags = PEIYINXIU_NOOP_TAGS
+    result = []
+    section = ""
+    removed = 0
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+            result.append(line)
+            continue
+        if section == "Script" and any(
+            tag in stripped for tag in removed_tags
+        ) and PEIYINXIU_SCRIPT_URL in stripped:
+            removed += 1
+            continue
+        result.append(line)
+    if removed != len(removed_tags):
+        raise ValueError("Peiyinxiu no-op trigger cleanup count mismatch")
+    return result, removed
+
+
 def apply(text: str) -> str:
     if "[Script]" not in text or "[MITM]" not in text or "[Rewrite]" not in text:
         raise ValueError("plugin missing [Rewrite], [Script] or [MITM] section")
@@ -6899,6 +6972,7 @@ def apply(text: str) -> str:
     lines, _ = optimize_bilibili_json_native_coverage(lines)
     lines, _ = migrate_bilibili_json_script_to_local(lines)
     lines, _ = migrate_cntv_script_to_local(lines)
+    lines, _ = remove_noop_peiyinxiu_response_triggers(lines)
 
     result_lines, rewrite_lines = [], []
     section = ""
