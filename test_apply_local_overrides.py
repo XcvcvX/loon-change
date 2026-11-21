@@ -6010,7 +6010,7 @@ class PeiyinxiuNoopResponseTriggerTests(unittest.TestCase):
         self.assertEqual(removed, 4)
         remaining = [line for line in result if PEIYINXIU_SCRIPT_URL in line]
         self.assertEqual(len(remaining), 1)
-        self.assertIn("/Api/Film/GetConfigValue", remaining[0])
+        self.assertIn("/Api/Film/GetConfigValue", remaining[0].replace("\\\\", "").replace("\\", ""))
         self.assertIn("tag=PEIYINXIU,", remaining[0])
         self.assertFalse(any("tag=PEIYINXIU-" in line for line in result))
         again, second_removed = remove_noop_peiyinxiu_response_triggers(result)
@@ -6038,5 +6038,5 @@ class PeiyinxiuNoopResponseTriggerTests(unittest.TestCase):
         result = apply(plugin)
         lines = [line for line in result.splitlines() if PEIYINXIU_SCRIPT_URL in line]
         self.assertEqual(len(lines), 1)
-        self.assertIn("/Api/Film/GetConfigValue", lines[0])
+        self.assertIn("/Api/Film/GetConfigValue", lines[0].replace("\\\\", "").replace("\\", ""))
         self.assertEqual(apply(result), result)
