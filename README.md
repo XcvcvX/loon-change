@@ -62,7 +62,7 @@
 | [Argument] | 18 |
 | [Rule] | 719 |
 | [Rewrite] | 2321 |
-| [Script] | 347 |
+| [Script] | 343 |
 | [MITM] hostname 条目 | 1203 |
 | 唯一远程脚本 URL | 137 |
 <!-- AUTO_PLUGIN_STATS:END -->
