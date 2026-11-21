@@ -3293,10 +3293,6 @@ http-response ^https?:\/\/un-acs\.youku\.com\/gw\/mtop\.youku\.play\.ups\.appinf
 http-response ^https?:\/\/image\.spdbccc\.com\.cn\/group\d\/.*\.JPG$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/spdbccc.js,tag=SPDBCCC
 http-response ^https?:\/\/cdn\.sdb\.com\.cn\/bron-coms\/bron-coms\/material-image script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/sdb.js,tag=SDB
 http-response ^https?:\/\/iosapi\.peiyinxiu\.com\/Api\/Film\/GetConfigValue script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/peiyinxiu.js,tag=PEIYINXIU,requires-body=true
-http-response ^https?:\/\/iosapi\.peiyinxiu\.com\/Api\/live\/LiveList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/peiyinxiu.js,tag=PEIYINXIU-2,requires-body=true
-http-response ^https?:\/\/iosapi\.peiyinxiu\.com\/api\/live\/FollowList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/peiyinxiu.js,tag=PEIYINXIU-3,requires-body=true
-http-response ^https?:\/\/iosapi\.peiyinxiu\.com\/Api\/Friend\/GetRecommendUsers script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/peiyinxiu.js,tag=PEIYINXIU-4,requires-body=true
-http-response ^https?:\/\/iosapi\.peiyinxiu\.com\/api\/Union\/HomeData script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/peiyinxiu.js,tag=PEIYINXIU-5,requires-body=true
 http-response ^https?:\/\/.+\.pipix\.com\/bds\/feed\/channel_list\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ppx.js,tag=PPX,requires-body=true
 http-response ^https?:\/\/.+\.pipix\.com\/bds\/user\/check_in\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ppx.js,tag=PPX-2,requires-body=true
 http-response ^https?:\/\/edu\.51cto\.com\/app\.php\?$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/51cto.js,tag=51CTO,requires-body=true
