@@ -6788,13 +6788,13 @@ def remove_noop_peiyinxiu_response_triggers(lines):
             output.append(line)
             continue
         normalized = stripped.replace("\\\\", "").replace("\\", "")
-        tag_match = re.search(r"(?:^|[,\\s])tag=(PEIYINXIU(?:-[2-5])?)(?:[,\\s]|$)", stripped)
+        tag_match = re.search(r"(?:^|[,\s])tag=(PEIYINXIU(?:-[2-5])?)(?:[,\s]|$)", stripped)
         if (not stripped.startswith("http-response ")
                 or PEIYINXIU_SCRIPT_URL not in stripped
                 or not tag_match
                 or tag_match.group(1) not in PEIYINXIU_TRIGGER_PATHS
                 or PEIYINXIU_TRIGGER_PATHS[tag_match.group(1)] not in normalized
-                or not re.search(r"requires[-_]body\\s*=\\s*true", stripped, re.I)):
+                or not re.search(r"requires[-_]body\s*=\s*true", stripped, re.I)):
             raise ValueError("Peiyinxiu response trigger changed; refusing unreviewed cleanup: " + stripped)
         candidates.append((index, tag_match.group(1)))
         output.append(line)
