@@ -5988,3 +5988,55 @@ hostname = github.com, api.github.com, keep.example.com
         self.assertIn("api.github.com", hosts)
         self.assertIn("keep.example.com", mitm)
         self.assertEqual(apply(result), result)
+
+
+class PeiyinxiuNoopResponseTriggerTests(unittest.TestCase):
+    def _fixture(self):
+        from apply_local_overrides import PEIYINXIU_SCRIPT_URL, PEIYINXIU_TRIGGER_PATHS
+        return ["[Script]"] + [
+            "http-response ^https?:\\\\/\\\\/iosapi\\\\.peiyinxiu\\\\.com" +
+            path.replace("/", r"\\/") +
+            " script-path=" + PEIYINXIU_SCRIPT_URL +
+            ",tag=" + tag + ",requires-body=true"
+            for tag, path in PEIYINXIU_TRIGGER_PATHS.items()
+        ] + ["[MITM]"]
+
+    def test_removes_only_four_response_hooks_that_never_change_the_body(self):
+        from apply_local_overrides import (
+            PEIYINXIU_SCRIPT_URL, remove_noop_peiyinxiu_response_triggers,
+        )
+        fixture = self._fixture()
+        result, removed = remove_noop_peiyinxiu_response_triggers(fixture)
+        self.assertEqual(removed, 4)
+        remaining = [line for line in result if PEIYINXIU_SCRIPT_URL in line]
+        self.assertEqual(len(remaining), 1)
+        self.assertIn("/Api/Film/GetConfigValue", remaining[0])
+        self.assertIn("tag=PEIYINXIU,", remaining[0])
+        self.assertFalse(any("tag=PEIYINXIU-" in line for line in result))
+        again, second_removed = remove_noop_peiyinxiu_response_triggers(result)
+        self.assertEqual(again, result)
+        self.assertEqual(second_removed, 0)
+
+    def test_fails_closed_on_partial_duplicate_or_changed_inventory(self):
+        from apply_local_overrides import (
+            remove_noop_peiyinxiu_response_triggers,
+        )
+        fixture = self._fixture()
+        with self.assertRaisesRegex(ValueError, "inventory changed"):
+            remove_noop_peiyinxiu_response_triggers(fixture[:4] + fixture[-1:])
+        with self.assertRaisesRegex(ValueError, "duplicate"):
+            remove_noop_peiyinxiu_response_triggers(fixture[:-1] + [fixture[1], fixture[-1]])
+        changed = fixture.copy()
+        changed[2] = changed[2].replace("/Api/live/LiveList", "/Api/live/OtherList")
+        with self.assertRaisesRegex(ValueError, "trigger changed"):
+            remove_noop_peiyinxiu_response_triggers(changed)
+
+    def test_apply_removes_noop_hooks_from_production_snapshot(self):
+        from pathlib import Path
+        from apply_local_overrides import PEIYINXIU_SCRIPT_URL, apply
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        result = apply(plugin)
+        lines = [line for line in result.splitlines() if PEIYINXIU_SCRIPT_URL in line]
+        self.assertEqual(len(lines), 1)
+        self.assertIn("/Api/Film/GetConfigValue", lines[0])
+        self.assertEqual(apply(result), result)
