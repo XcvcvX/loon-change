@@ -12,8 +12,9 @@ LEGACY_MARKERS = (
     "// loon-change: CNTV response compaction optimization v1; upstream zirawell/R-Store@",
     "// loon-change: CNTV response compaction optimization v3; upstream zirawell/R-Store@",
     "// loon-change: CNTV response compaction optimization v4; upstream zirawell/R-Store@",
+    "// loon-change: CNTV response compaction optimization v5; upstream zirawell/R-Store@",
 )
-MARKER = "// loon-change: CNTV response compaction optimization v5; upstream zirawell/R-Store@"
+MARKER = "// loon-change: CNTV response compaction optimization v6; upstream zirawell/R-Store@"
 ROUTE_GUARD_MARKER = "// loon-change: CNTV pre-parse supported-route guard v1"
 IQIYI_FEED_MARKER = "// loon-change: CNTV iQIYI feed array compaction v1"
 MENUS_MARKER = "// loon-change: CNTV getMyMenus in-place compaction v1"
@@ -325,9 +326,235 @@ def optimize_iqiyi_feed_arrays(source):
     source = source.replace(anchor, anchor + "\n    " + IQIYI_FEED_MARKER, 1)
     return source
 
+
+
+MGTV_ARRAY_MARKER = "// loon-change: CNTV MangoTV response array compaction v1"
+
+
+def optimize_mgtv_arrays(source):
+    """Remove allocating array rebuilds from high-volume MangoTV feeds and page payloads."""
+    def replace_once(old, new, label):
+        nonlocal source
+        count = source.count(old)
+        if count != 1:
+            raise ValueError("CNTV MangoTV " + label + " block changed: expected 1, got %d" % count)
+        source = source.replace(old, new, 1)
+
+    if MGTV_ARRAY_MARKER in source:
+        if source.count(MGTV_ARRAY_MARKER) != 1:
+            raise ValueError("CNTV MangoTV marker count drift")
+        for token in ("newItems", "newLists", "newII", "newMods", "newList"):
+            # Only inspect the five optimized route branches, not unrelated source code.
+            pass
+        return source
+
+    old_home = """    if (obj?.data?.length > 0) {
+      let newItems = [];
+      for (let item of obj.data) {
+        // 908热剧轮播
+        if (item?.moduleEntityId === "91") {
+          // 首页正在追模块
+          if (item?.DSLList?.length > 0) {
+            let newLists = [];
+            for (let i of item.DSLList) {
+              if (i?.data?.items?.length > 0) {
+                let newII = [];
+                for (let ii of i.data.items) {
+                  if (ii?.id === 0) {
+                    // 正在追模块 艺人周边 小芒
+                    continue;
+                  } else if (["热门", "推荐"]?.includes(ii?.cornerTitle)) {
+                    continue;
+                  } else {
+                    newII.push(ii);
+                  }
+                }
+                i.data.items = newII;
+                newLists.push(i);
+              } else {
+                newLists.push(i);
+              }
+            }
+            item.DSLList = newLists;
+            newItems.push(item);
+          } else {
+            newItems.push(item);
+          }
+        } else if (["842", "2237", "5418"]?.includes(item?.moduleEntityId)) {
+          // 842会员首月特惠 2237横版购物tab 5418横版推广图片
+          continue;
+        } else {
+          newItems.push(item);
+        }
+      }
+      obj.data = newItems;
+    }"""
+    new_home = """    if (obj?.data?.length > 0) {
+      compactInPlace(obj.data, item => {
+        // 908热剧轮播
+        if (item?.moduleEntityId === "91" && item?.DSLList?.length > 0) {
+          compactInPlace(item.DSLList, entry => {
+            if (entry?.data?.items?.length > 0) {
+              compactInPlace(entry.data.items, video =>
+                video?.id !== 0 && !["热门", "推荐"]?.includes(video?.cornerTitle)
+              );
+            }
+            return true;
+          });
+        }
+        // 842会员首月特惠 2237横版购物tab 5418横版推广图片
+        return !["842", "2237", "5418"]?.includes(item?.moduleEntityId);
+      });
+    }"""
+    replace_once(old_home, new_home, "home feed")
+
+    old_tabs = """    if (obj?.data?.length > 0) {
+      let newItems = [];
+      for (let item of obj.data) {
+        if (item?.vclassId > 100033 && item?.vclassId !== 100160) {
+          // 100033热门 100043短剧 100160会员频道精选 100308短视频
+          continue;
+        } else {
+          newItems.push(item);
+        }
+      }
+      obj.data = newItems;
+    }"""
+    new_tabs = """    if (obj?.data?.length > 0) {
+      // 100033热门 100043短剧 100160会员频道精选 100308短视频
+      compactInPlace(obj.data, item => item?.vclassId <= 100033 || item?.vclassId === 100160);
+    }"""
+    replace_once(old_tabs, new_tabs, "top tabs")
+
+    old_index = """    if (obj?.data?.length > 0) {
+      let newItems = [];
+      for (let item of obj.data) {
+        if (item?.moduleType === "childslideicon") {
+          // 横版按钮
+          continue;
+        } else {
+          newItems.push(item);
+        }
+      }
+      obj.data = newItems;
+    }"""
+    new_index = """    if (obj?.data?.length > 0) {
+      // 横版按钮
+      compactInPlace(obj.data, item => item?.moduleType !== "childslideicon");
+    }"""
+    replace_once(old_index, new_index, "channel index")
+
+    old_modules = """      let newMods = [];
+      for (let item of obj.data.template.modules) {
+        if ([202, 203, 301, 601, 701, 702]?.includes(item?.dataType)) {
+          continue;
+        } else {
+          if (item?.clipInfo?.rcInfo) {
+            // 播放界面推荐语
+            delete item.clipInfo.rcInfo;
+          }
+          newMods.push(item);
+        }
+      }
+      obj.data.template.modules = newMods;"""
+    new_modules = """      compactInPlace(obj.data.template.modules, item => {
+        if ([202, 203, 301, 601, 701, 702]?.includes(item?.dataType)) return false;
+        if (item?.clipInfo?.rcInfo) {
+          // 播放界面推荐语
+          delete item.clipInfo.rcInfo;
+        }
+        return true;
+      });"""
+    replace_once(old_modules, new_modules, "vod modules")
+
+    old_list = """      let newList = [];
+      for (let item of obj.data.list) {
+        // 1顶部模块 扫一扫 消息 搜索 设置
+        // 2用户信息模块 芒果卡 个人信息
+        // 3推荐位模块 购买会员 会员周边
+        // 4用户内容模块 播放记录 追更
+        // 5大芒计划 创作中心 热门作品 征稿活动
+        // 5我的小芒 电商 订单
+        // 6banner图模块 广告轮播图
+        // 7我的服务 客服 皮肤 意见反馈
+        // 8运营商专区 芒果卡 免流
+        // 8兴趣中心 抓娃娃
+        // 8推荐功能 钱包 福袋 芒果公益
+        if ([3, 5, 6, 8]?.includes(item?.moduleType)) {
+          // 推广模块
+          continue;
+        } else if (item?.moduleType === 2 && item?.title === "用户信息模块") {
+          // 用户信息
+          if (item?.data?.length > 0) {
+            let newItems = [];
+            for (let i of item.data) {
+              if (["领取芒果卡权益", "签到赢积分"]?.includes(i?.title)) {
+                continue;
+              } else {
+                newItems.push(i);
+              }
+            }
+            item.data = newItems;
+            newList.push(item);
+          } else {
+            newList.push(item);
+          }
+        } else if (item?.moduleType === 7 && item?.title === "我的服务") {
+          // 我的服务
+          if (item?.data?.length > 0) {
+            let newItems = [];
+            for (let i of item.data) {
+              if (["功能实验室", "芒果壁纸", "我的音乐"]?.includes(i?.title)) {
+                continue;
+              } else {
+                newItems.push(i);
+              }
+            }
+            item.data = newItems;
+            newList.push(item);
+          } else {
+            newList.push(item);
+          }
+        } else {
+          newList.push(item);
+        }
+      }
+      obj.data.list = newList;"""
+    new_list = """      compactInPlace(obj.data.list, item => {
+        // 3推荐位模块 5大芒计划/我的小芒 6banner图模块 8运营商/兴趣/推荐功能
+        if ([3, 5, 6, 8]?.includes(item?.moduleType)) return false;
+        if (item?.moduleType === 2 && item?.title === "用户信息模块" && item?.data?.length > 0) {
+          compactInPlace(item.data, entry => !["领取芒果卡权益", "签到赢积分"]?.includes(entry?.title));
+        } else if (item?.moduleType === 7 && item?.title === "我的服务" && item?.data?.length > 0) {
+          compactInPlace(item.data, entry => !["功能实验室", "芒果壁纸", "我的音乐"]?.includes(entry?.title));
+        }
+        return true;
+      });"""
+    replace_once(old_list, new_list, "my page modules")
+
+    # Place the marker once at the start of the first optimized MangoTV route.
+    anchor = '  if (url.includes("/dynamic/v") && url.includes("/channel/index/")) {'
+    if source.count(anchor) != 1:
+        raise ValueError("CNTV MangoTV dispatch anchor changed")
+    source = source.replace(anchor, anchor + "\n    " + MGTV_ARRAY_MARKER, 1)
+    # Fail closed if allocating rebuilds remain in any optimized route.
+    ranges = (
+        ('  if (url.includes("/dynamic/v") && url.includes("/channel/index/")) {', '  } else if (url.includes("/channel/vrsList/")) {'),
+        ('  } else if (url.includes("/channel/vrsList/")) {', '  } else if (url.includes("/mobile/config?")) {'),
+        ('  } else if (url.includes("/channel/index?") && url.includes("/odin/c")) {', '  } else if (url.includes("/vod/info?")) {'),
+        ('  } else if (url.includes("/vod/info?")) {', '  } else if (url.includes("/module/list?")) {'),
+        ('  } else if (url.includes("/module/list?")) {', '  } else if (url.includes("/video/info?")) {'),
+    )
+    for start, end in ranges:
+        a, b = source.find(start), source.find(end)
+        if a < 0 or b < 0 or any(token in source[a:b] for token in ("newItems", "newLists", "newII", "newMods", "newList", ".push(")):
+            raise ValueError("CNTV MangoTV temporary array allocation remains in " + start)
+    return source
+
+
 def optimize_source(source, commit="unknown"):
     if MARKER in source:
-        return optimize_pre_parse_route_guard(optimize_iqiyi_feed_arrays(optimize_youku_home_query(optimize_youku_home_feed(optimize_get_my_menus(source)))))
+        return optimize_pre_parse_route_guard(optimize_mgtv_arrays(optimize_iqiyi_feed_arrays(optimize_youku_home_query(optimize_youku_home_feed(optimize_get_my_menus(source))))))
     for legacy_marker in LEGACY_MARKERS:
         if legacy_marker in source:
             source = source.replace(legacy_marker, MARKER, 1)
@@ -356,7 +583,7 @@ def optimize_source(source, commit="unknown"):
         raise ValueError("expected 11 CNTV filters to use compactInPlace")
     source = source.rstrip() + "\n}\n"
     return optimize_pre_parse_route_guard(
-        optimize_iqiyi_feed_arrays(optimize_youku_home_query(optimize_youku_home_feed(optimize_get_my_menus(MARKER + commit + "\n" + source))))
+        optimize_mgtv_arrays(optimize_iqiyi_feed_arrays(optimize_youku_home_query(optimize_youku_home_feed(optimize_get_my_menus(MARKER + commit + "\n" + source)))))
     )
 
 def rewrite_plugin(plugin):
