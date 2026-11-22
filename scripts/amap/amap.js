@@ -628,42 +628,20 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
     }
   }
 } else if (url.includes("/shield/search_poi/sug")) {
-  if (obj?.tip_list) {
-    let newLists = [];
-    if (obj?.tip_list?.length > 0) {
-      for (let item of obj.tip_list) {
-        if (
-            AMAP_STATIC_ITEMS_10.includes(item?.tip?.datatype_spec) ||
-            AMAP_STATIC_ITEMS_11.includes(item?.tip?.result_type) ||
-            AMAP_STATIC_ITEMS_12.includes(item?.tip?.task_tag)
-        ) {
-          continue;
-        } else {
-          newLists.push(item);
-        }
+  if (Array.isArray(obj?.tip_list) && obj.tip_list.length > 0) {
+    compactInPlace(obj.tip_list, item =>
+      !AMAP_STATIC_ITEMS_10.includes(item?.tip?.datatype_spec) &&
+      !AMAP_STATIC_ITEMS_11.includes(item?.tip?.result_type) &&
+      !AMAP_STATIC_ITEMS_12.includes(item?.tip?.task_tag)
+    );
+  } else if (Array.isArray(obj?.city_list) && obj.city_list.length > 0) {
+    for (const city of obj.city_list) {
+      if (Array.isArray(city?.tip_list) && city.tip_list.length > 0) {
+        compactInPlace(city.tip_list, item =>
+          !AMAP_STATIC_ITEMS_10.includes(item?.tip?.datatype_spec) &&
+          !AMAP_STATIC_ITEMS_13.includes(item?.tip?.result_type)
+        );
       }
-      obj.tip_list = newLists;
-    }
-  } else if (obj?.city_list) {
-    let newLists = [];
-    if (obj?.city_list?.length > 0) {
-      for (let item of obj.city_list) {
-        let newTips = [];
-        if (item?.tip_list?.length > 0) {
-          for (let ii of item.tip_list) {
-            if (AMAP_STATIC_ITEMS_10.includes(ii?.tip?.datatype_spec)) {
-              continue;
-            } else if (AMAP_STATIC_ITEMS_13.includes(ii?.tip?.result_type)) {
-              continue;
-            } else {
-              newTips.push(ii);
-            }
-          }
-          item.tip_list = newTips;
-        }
-        newLists.push(item);
-      }
-      obj.city_list = newLists;
     }
   }
 } else if (url.includes("/shield/search_poi/tips_operation_location")) {
