@@ -113,9 +113,34 @@ def optimize_source(src,commit="unknown"):
     src=once(src,'''      obj.data[0].note_list[0].images_list = imageEnhance(JSON.stringify(images_list));
       // 保存无水印信息
       $.setdata(JSON.stringify(images_list), "fmz200.xiaohongshu.feed.rsp");
-      console.log('已存储无水印信息♻️');''','''      // Cache original image URLs before mutating the response.
-      $.setdata(JSON.stringify(images_list), "fmz200.xiaohongshu.feed.rsp");
+      console.log('已存储无水印信息♻️');''','''      // Cache only the live-photo fields required by the save endpoint.
+      const livePhotoCache = [];
+      if (Array.isArray(images_list)) {
+        for (const image of images_list) {
+          const stream = image?.live_photo?.media?.stream?.h265?.[0];
+          const videoId = image?.live_photo?.media?.video_id;
+          if (image?.live_photo_file_id && videoId && stream?.master_url) {
+            livePhotoCache.push({
+              live_photo_file_id: image.live_photo_file_id,
+              video_id: videoId,
+              url: stream.master_url
+            });
+          }
+        }
+      }
+      $.setdata(JSON.stringify(livePhotoCache), "fmz200.xiaohongshu.feed.rsp");
       obj.data[0].note_list[0].images_list = imageEnhance(images_list);''',"image-feed JSON round trip")
+    src=between(src,"  const cache_body = JSON.parse(rsp);","  if (obj.data.datas)",'''  const cache_body = JSON.parse(rsp);
+  const new_data = [];
+  for (const images of cache_body) {
+    // Accept compact cache records and legacy full-image cache records.
+    const fileId = images.file_id || images.live_photo_file_id;
+    const videoId = images.video_id || images.live_photo?.media?.video_id;
+    const videoUrl = images.url || images.live_photo?.media?.stream?.h265?.[0]?.master_url;
+    if (fileId && videoId && videoUrl) {
+      new_data.push({file_id: fileId, video_id: videoId, url: videoUrl});
+    }
+  }''',"compact live-photo cache consumer")
     for old,new,label in [
       ('obj.data.items = obj.data.items.filter((i) => i.model_type === "note");','compactInPlace(obj.data.items, item => item?.model_type === "note");',"search"),
       ('item.hash_tag = item.hash_tag.filter(tag => tag.type !== "interact_vote");','compactInPlace(item.hash_tag, tag => tag?.type !== "interact_vote");',"hashtags"),
