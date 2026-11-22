@@ -281,3 +281,24 @@ The active local Xiaohongshu R-Store response handler called `$done({})` for an 
 
 The change removes a failed parse attempt on empty bodies; it does not claim device CPU or battery percentages without on-device Loon measurements.
 
+---
+
+# Phase 10 P0 — Xiaohongshu single-pass comment cleanup and media extraction
+
+## Finding
+
+The active R-Store comment-response path traversed the entire response once in removeRedId(obj.data), then separately walked top-level comments and their direct sub-comments to normalize media types and extract Live Photo video URLs. Identical picture.video_info JSON strings were also parsed independently.
+
+## Runtime change
+
+- Replace the separate cleanup and extraction passes with one iterative traversal that removes red_id from the full response tree while processing only top-level comments and their direct sub-comments, matching the previous scope.
+- Use a request-local Map keyed by the raw video_info string so duplicate payloads are parsed once per response.
+- Keep the existing cache merge, note ID, Live Photo field names, output URL selection, and deeper-reply behavior unchanged.
+- Remove the redundant inner empty-body completion check; the outer terminal guard remains the single empty-body exit.
+
+## Regression coverage
+
+The Node VM fixture verifies that top-level comments and direct sub-comments retain their prior transformations, deeper replies are not newly normalized, all nested red_id fields are removed, repeated video_info strings cause only one parse, and the existing deep-tree cleanup remains iterative.
+
+This removes a redundant full-tree traversal and repeated parses of identical media payloads. It does not claim device CPU or battery percentages without on-device Loon measurements.
+
