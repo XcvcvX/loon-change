@@ -11,17 +11,17 @@ const removedModules = new Set([
 ]);
 
 function keepBottomTab(tab) {
-  return tab && ALLOWED_BOTTOM_TITLES.has(tab.title)
-    && !DENIED_BOTTOM_TITLES.has(tab.title)
-    && ALLOWED_BOTTOM_LINKS.has(String(tab.link || ""));
+  return tab && allowedTitles.has(tab.title)
+    && !deniedTitles.has(tab.title)
+    && allowedLinks.has(String(tab.link || ""));
 }
 
 function keepBufferBottomTab(tab) {
-  return tab && ALLOWED_BOTTOM_LINKS.has(String(tab.link || ""));
+  return tab && allowedLinks.has(String(tab.link || ""));
 }
 
 function keepHomepageModule(item) {
-  return item && !REMOVED_HOMEPAGE_MODULES.has(item.module_name);
+  return item && !removedModules.has(item.module_name);
 }
 
 function main() {
