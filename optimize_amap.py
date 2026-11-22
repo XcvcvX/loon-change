@@ -69,7 +69,7 @@ def hoist_static_arrays(source):
             names[key] = "AMAP_STATIC_ITEMS_%02d" % (len(names) + 1)
             arrays[key] = literal
         return names[key]
-    declaration_pattern = re.compile(r"^([ \\t]*)const items = (\\[[^\\n]*?\\];|\\[[\\s\\S]*?^[ \\t]*\\]);", re.M)
+    declaration_pattern = re.compile(r"^([ \\t]*)const items = (\\[[^\\n]*?\\];?|\\[[\\s\\S]*?^[ \\t]*\\];?)(?=\\n|$)", re.M)
     source = declaration_pattern.sub(lambda match: match.group(1) + "const items = " + register(match.group(2)) + ";", source)
     source = STATIC_ARRAY_PATTERN.sub(lambda match: register(match.group(1)) + ".includes(" + match.group(2) + ")", source)
     anchor = "const url = $request.url;"
