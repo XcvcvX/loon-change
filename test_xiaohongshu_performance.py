@@ -69,6 +69,11 @@ process.stdout.write(nativeJSON.stringify({body:nativeJSON.parse(done.body),stor
         self.assertEqual(videos["videos"][0]["videId"],"comment-video-1")
         self.assertEqual(videos["videos"][0]["videoUrl"],live["livePhotos"][0]["videoUrl"])
         self.assertEqual(out["parseCalls"],2)
+    def test_video_feed_does_not_log_each_cached_item(self):
+        source=(ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")
+        self.assertNotIn("console.log(`[缓存] ID:",source)
+        self.assertIn('$.setdata(JSON.stringify(videoData), "redBookVideoFeed");',source)
+        self.assertIn("const selectedStream = selectBestStream(h265List, h264List);",source)
     def test_comment_tree_walk_avoids_object_keys_temporary_arrays(self):
         source=(ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")
         self.assertNotIn("Object.keys(current)",source)
