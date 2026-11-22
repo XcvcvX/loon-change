@@ -108,6 +108,7 @@ STREAM=r'''function selectBestStream(h265List,h264List) {
 }'''
 
 def apply_comment_optimization(src):
+    src=between(src,"function replaceRedIdWithFmz200(obj) {","\\n/**\\n * 从流列表",COMMENT_PROCESSOR,"combined comment traversal")
     src=between(src,"// 加载评论区","// 下载评论区live图/评论区视频",COMMENT_BRANCH,"comment processing branch")
     return src
 
