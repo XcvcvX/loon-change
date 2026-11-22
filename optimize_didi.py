@@ -66,13 +66,110 @@ def optimize_lazy_serialization(source):
     return source
 
 
+
+
+def optimize_didi_predicates(source):
+    """Hoist immutable allowlists and predicates out of per-response branches."""
+    if "const DIDI_KEEP_NAV_IDS" in source:
+        required = (
+            "compactInPlace(obj.data.cards, keepDidiUserCenterCard);",
+            "compactInPlace(obj.data.order_cards.nav_list_card.data, keepDidiNavItem);",
+            "compactInPlace(obj.data.disorder_cards.bottom_nav_list.data, keepDidiBottomNavItem);",
+        )
+        if any(item not in source for item in required):
+            raise ValueError("Didi hoisted predicate inventory is incomplete")
+        return source
+
+    modified_anchor = "let modified = false;"
+    helper_end = "  return items;\n}\n\nif (!$response.body)"
+    if source.count(modified_anchor) != 1 or source.count(helper_end) != 1:
+        raise ValueError("Didi predicate-hoisting anchors changed; refusing optimization")
+
+    constants = """let modified = false;
+
+const DIDI_KEEP_NAV_IDS = new Set(["dache_anycar", "driverservice", "bike"]);
+const DIDI_KEEP_BOTTOM_NAV_IDS = new Set(["v6x_home", "user_center"]);
+const DIDI_EXCLUDED_CARD_TITLES = new Set([
+  "天天领福利", "金融服务", "更多服务", "企业服务", "安全中心"
+]);
+
+"""
+    source = source.replace(modified_anchor + "\n", constants, 1)
+
+    predicates = """  return items;
+}
+
+function keepDidiSceneItem(item) {
+  return item.text !== "优惠商城";
+}
+
+function keepDidiSceneId(id) {
+  return id !== "scene_coupon_mall";
+}
+
+function keepDidiNavItem(item) {
+  return DIDI_KEEP_NAV_IDS.has(item.nav_id);
+}
+
+function keepDidiBottomNavItem(item) {
+  return DIDI_KEEP_BOTTOM_NAV_IDS.has(item.id);
+}
+
+function keepDidiWalletItem(item) {
+  return item.title === "优惠券";
+}
+
+function keepDidiWalletBottomItem(item) {
+  return item.title === "省钱套餐" || item.title === "天天神券";
+}
+
+function keepDidiUserCenterCard(card) {
+  if (DIDI_EXCLUDED_CARD_TITLES.has(card.title)) return false;
+  if (card.tag === "wallet") {
+    if (card.items) {
+      compactInPlace(card.items, keepDidiWalletItem);
+    }
+    if (card.card_type === 4 && card.bottom_items) {
+      compactInPlace(card.bottom_items, keepDidiWalletBottomItem);
+    }
+  }
+  return true;
+}
+
+if (!$response.body)"""
+    source = source.replace(helper_end, predicates, 1)
+
+    replacements = [
+        ('compactInPlace(obj.data.scene_list, item => item.text !== "优惠商城");',
+         'compactInPlace(obj.data.scene_list, keepDidiSceneItem);'),
+        ('compactInPlace(block.scene_ids, id => id !== "scene_coupon_mall");',
+         'compactInPlace(block.scene_ids, keepDidiSceneId);'),
+        ("  const keepNavIds = ['dache_anycar', 'driverservice', 'bike'];\\n", ""),
+        ('compactInPlace(obj.data.order_cards.nav_list_card.data, item => keepNavIds.includes(item.nav_id));',
+         'compactInPlace(obj.data.order_cards.nav_list_card.data, keepDidiNavItem);'),
+        ("  const keepBottomNavIds = ['v6x_home', 'user_center'];\\n", ""),
+        ('compactInPlace(obj.data.disorder_cards.bottom_nav_list.data, item => keepBottomNavIds.includes(item.id));',
+         'compactInPlace(obj.data.disorder_cards.bottom_nav_list.data, keepDidiBottomNavItem);'),
+        ("  const excludedTitles = ['天天领福利', '金融服务', '更多服务', '企业服务', '安全中心'];\\n\\n", ""),
+        ('compactInPlace(obj.data.cards, card => {\\n      if (excludedTitles.includes(card.title)) return false;\\n      if (card.tag === "wallet") {\\n        if (card.items) {\\n          compactInPlace(card.items, item => item.title === "优惠券");\\n        }\\n        if (card.card_type === 4 && card.bottom_items) {\\n          compactInPlace(card.bottom_items, item =>\\n              item.title === "省钱套餐" || item.title === "天天神券"\\n          );\\n        }\\n      }\\n      return true;\\n    });',
+         'compactInPlace(obj.data.cards, keepDidiUserCenterCard);'),
+    ]
+    for old, new in replacements:
+        if old not in source:
+            raise ValueError("Didi predicate-hoisting source pattern missing: " + old[:72])
+        source = source.replace(old, new, 1)
+
+    if "keepNavIds" in source or "keepBottomNavIds" in source or "excludedTitles" in source:
+        raise ValueError("Didi per-response allowlist allocation remains")
+    return source
+
 def optimize_source(source, commit="unknown"):
     if MARKER in source:
         if re.search(r"\.filter\s*\(", source):
             raise ValueError("Didi optimization marker exists but allocating filter remains")
         if "obj.data.cards.forEach" in source:
             raise ValueError("Didi user-center wallet traversal optimization is stale")
-        return optimize_lazy_serialization(source)
+        return optimize_didi_predicates(optimize_lazy_serialization(source))
     if LEGACY_MARKER in source:
         source = source.replace(LEGACY_MARKER, MARKER, 1)
         return optimize_lazy_serialization(source)
