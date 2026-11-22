@@ -90,7 +90,7 @@
       "path": "scripts/didi/didi.js",
       "required": [
         "// loon-change: Didi response compaction and lazy serialization optimization v2;",
-        "function compactInPlace(",
+        "function compactDidiByField(",
         "$done(modified ? {body: JSON.stringify(obj)} : {});"
       ]
     },
