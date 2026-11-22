@@ -1,18 +1,13 @@
 name: Sync allAdRewrite and runtime assets to Secret Gist
 
 on:
-  push:
-    branches:
-      - main
-  # A production sync commit is pushed with GITHUB_TOKEN, which does not
-  # trigger other push workflows. Run again after the full rule-build workflow
-  # completes so the Gist always receives the final generated plugin.
+  # Publish only after the complete production build succeeds. This replaces
+  # the duplicate push + workflow_run path: the main build is the single
+  # source of truth for when the Gist should be refreshed.
   workflow_run:
     workflows: ["Sync multi-source ad-block plugins (QuanX -> Loon)"]
     types: [completed]
     branches: [main]
-  schedule:
-    - cron: "17 3 * * *"
   # Manual recovery entry point; keep enabled for one-click Gist resyncs.
   workflow_dispatch:
 
@@ -25,12 +20,7 @@ permissions:
 
 jobs:
   sync:
-    if: >
-      (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success') &&
-      (github.event_name != 'push' ||
-        (!startsWith(github.event.head_commit.message, 'Merge pull request #') &&
-         !startsWith(github.event.head_commit.message, 'chore: sync upstream rules and plugin stats') &&
-         !contains(github.event.head_commit.message, '(#')))
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
