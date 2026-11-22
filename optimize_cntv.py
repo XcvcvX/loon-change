@@ -11,8 +11,9 @@ LEGACY_MARKERS = (
     "// loon-change: CNTV response compaction optimization v2; upstream zirawell/R-Store@",
     "// loon-change: CNTV response compaction optimization v1; upstream zirawell/R-Store@",
     "// loon-change: CNTV response compaction optimization v3; upstream zirawell/R-Store@",
+    "// loon-change: CNTV response compaction optimization v4; upstream zirawell/R-Store@",
 )
-MARKER = "// loon-change: CNTV response compaction optimization v4; upstream zirawell/R-Store@"
+MARKER = "// loon-change: CNTV response compaction optimization v5; upstream zirawell/R-Store@"
 ROUTE_GUARD_MARKER = "// loon-change: CNTV pre-parse supported-route guard v1"
 IQIYI_FEED_MARKER = "// loon-change: CNTV iQIYI feed array compaction v1"
 MENUS_MARKER = "// loon-change: CNTV getMyMenus in-place compaction v1"
@@ -134,6 +135,85 @@ YOUKU_QUERY_MARKER = "// loon-change: CNTV Youku home.query nested in-place comp
 YOUKU_HOME_QUERY_BRANCH = "  } else if (url.includes(\"columbus.home.query/\")) {\n    // CNTV Youku home.query nested-list compaction: reuse all four response arrays.\n    if (obj?.data?.[\"2019061000\"]?.data) {\n      let objData = obj.data[\"2019061000\"].data;\n      if (objData?.data?.indexPositionResult?.length > 0) objData.data.indexPositionResult = [];\n      if (objData?.nodes?.length > 0) {\n        compactInPlace(objData.nodes, item => {\n          if ([\"CHILD\", \"COMIC2\", \"20230929GREATWORKMFK\"]?.includes(item?.data?.nodeKey)) return false;\n          if (item?.data?.indexPositionResult?.length > 0) item.data.indexPositionResult = [];\n          if (item?.data?.refreshImg) delete item.data.refreshImg;\n          if (item?.nodes?.length > 0) {\n            compactInPlace(item.nodes, i => {\n              if (i?.data?.crmSale) delete i.data.crmSale;\n              if ([\"UC广告抽屉\", \"橱窗广告\"]?.includes(i?.typeName)) return false;\n              if (i?.id === 31476) {\n                if (i?.data?.keywords?.length > 0) delete i.data.keywords;\n                return true;\n              }\n              if (i?.id === 35505 || i?.id === 37335) return false;\n              if (i?.nodes?.length > 0) {\n                compactInPlace(i.nodes, ii => {\n                  if ([\"PHONE_FEED_CARD_B_AD\", \"PHONE_FEED_CARD_S_AD\", \"PHONE_H_UC_AD\", \"PHONE_IMG_A\", \"PHONE_YK_AD_BANNER\"]?.includes(ii?.typeName)) return false;\n                  if (ii?.nodes?.length > 0) {\n                    compactInPlace(ii.nodes, iii =>\n                      iii?.typeName !== \"PHONE_FEED_CARD_S_AD\" &&\n                      !iii?.data?.hasOwnProperty(\"ad\")\n                    );\n                  }\n                  return true;\n                });\n              }\n              return true;\n            });\n          }\n          return true;\n        });\n      }\n    }\n"
 
 
+YOUKU_HOME_FEED_MARKER = "// loon-change: CNTV Youku home.feed in-place compaction v1"
+
+
+def optimize_youku_home_feed(source):
+    start = '  } else if (url.includes("columbus.home.feed/")) {'
+    end = '  } else if (url.includes("columbus.home.query/")) {'
+    if YOUKU_HOME_FEED_MARKER in source:
+        if source.count(YOUKU_HOME_FEED_MARKER) != 1 or source.count(start) != 1 or source.count(end) != 1:
+            raise ValueError("CNTV Youku home.feed marker/structure drift")
+        begin, finish = source.index(start), source.index(end, source.index(start))
+        branch = source[begin:finish]
+        if "newNodes" in branch or "newItems" in branch or ".push(" in branch:
+            raise ValueError("CNTV Youku home.feed temporary array allocation remains")
+        return source
+    if source.count(start) != 1 or source.count(end) != 1:
+        raise ValueError("CNTV Youku home.feed route anchors changed")
+    begin, finish = source.index(start), source.index(end, source.index(start))
+    expected = '''  } else if (url.includes("columbus.home.feed/")) {
+    // 优酷 首页信息流
+    if (obj?.data?.["2019061000"]?.data) {
+      let objData = obj.data["2019061000"].data;
+      if (objData?.nodes?.length > 0) {
+        let newNodes = [];
+        for (let item of objData.nodes) {
+          if (item?.typeName === "PHONE_FEED_CARD_GROUP") {
+            if (item?.nodes?.length > 0) {
+              let newItems = [];
+              for (let i of item.nodes) {
+                if (i?.typeName === "PHONE_FEED_CARD_S_AD") {
+                  // 首页 四格小图广告
+                  continue;
+                } else if (i?.typeName === "PHONE_H_UC_AD") {
+                  // 首页 横版独占广告
+                  continue;
+                } else {
+                  newItems.push(i);
+                }
+              }
+              item.nodes = newItems;
+              newNodes.push(item);
+            } else {
+              newNodes.push(item);
+            }
+          } else {
+            newNodes.push(item);
+          }
+        }
+        objData.nodes = newNodes;
+      }
+    }
+'''
+    if source[begin:finish] != expected:
+        raise ValueError("CNTV Youku home.feed branch changed; refusing in-place compaction")
+    optimized = '''  } else if (url.includes("columbus.home.feed/")) {
+    // loon-change: CNTV Youku home.feed in-place compaction v1
+    // 首页信息流：原地压缩广告卡片组内节点，避免创建 newNodes/newItems 临时数组。
+    if (obj?.data?.["2019061000"]?.data) {
+      const nodes = obj.data["2019061000"].data.nodes;
+      if (nodes?.length > 0) {
+        for (let i = 0, length = nodes.length; i < length; i++) {
+          const item = nodes[i];
+          if (item?.typeName !== "PHONE_FEED_CARD_GROUP" || item?.nodes?.length <= 0) continue;
+          const items = item.nodes;
+          let write = 0;
+          for (let read = 0, itemLength = items.length; read < itemLength; read++) {
+            const card = items[read];
+            if (card?.typeName !== "PHONE_FEED_CARD_S_AD" && card?.typeName !== "PHONE_H_UC_AD") {
+              if (write !== read) items[write] = card;
+              write++;
+            }
+          }
+          items.length = write;
+        }
+      }
+    }
+'''
+    return source[:begin] + optimized + source[finish:]
+
+
 def optimize_youku_home_query(source):
     start = '  } else if (url.includes("columbus.home.query/")) {'
     end = '  } else if (url.includes("columbus.uc.query/")) {'
@@ -247,11 +327,11 @@ def optimize_iqiyi_feed_arrays(source):
 
 def optimize_source(source, commit="unknown"):
     if MARKER in source:
-        return optimize_pre_parse_route_guard(optimize_iqiyi_feed_arrays(optimize_youku_home_query(optimize_get_my_menus(source))))
+        return optimize_pre_parse_route_guard(optimize_iqiyi_feed_arrays(optimize_youku_home_query(optimize_youku_home_feed(optimize_get_my_menus(source))))
     for legacy_marker in LEGACY_MARKERS:
         if legacy_marker in source:
             source = source.replace(legacy_marker, MARKER, 1)
-            return optimize_pre_parse_route_guard(optimize_iqiyi_feed_arrays(optimize_youku_home_query(optimize_get_my_menus(source))))
+            return optimize_pre_parse_route_guard(optimize_iqiyi_feed_arrays(optimize_youku_home_query(optimize_youku_home_feed(optimize_get_my_menus(source))))
     body_guard = "if (!$response.body) $done({});"
     if source.count(body_guard) != 1:
         raise ValueError("CNTV response body guard changed; refusing optimization")
@@ -276,7 +356,7 @@ def optimize_source(source, commit="unknown"):
         raise ValueError("expected 11 CNTV filters to use compactInPlace")
     source = source.rstrip() + "\n}\n"
     return optimize_pre_parse_route_guard(
-        optimize_iqiyi_feed_arrays(optimize_youku_home_query(optimize_get_my_menus(MARKER + commit + "\n" + source)))
+        optimize_iqiyi_feed_arrays(optimize_youku_home_query(optimize_youku_home_feed(optimize_get_my_menus(MARKER + commit + "\n" + source)))
     )
 
 def rewrite_plugin(plugin):
