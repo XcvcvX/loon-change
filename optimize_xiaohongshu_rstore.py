@@ -336,7 +336,7 @@ def optimize_source(source, commit="unknown"):
                       "\n}\n\n// 小红书画质增强：加载2K分辨率的图片",
                       "terminal empty-body guard close")
 
-    result = MARKER + commit + "\\n" + source
+    result = MARKER + commit + "\n" + source
     invariants = (
         "imageEnhance(images_list)", "compactInPlace(obj.data",
         "appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)",
