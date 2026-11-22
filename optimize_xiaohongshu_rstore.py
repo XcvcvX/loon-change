@@ -317,19 +317,6 @@ def optimize_source(source, commit="unknown"):
                      '} else if (url.includes("/interaction/comment/video/download")) {',
                      COMMENT_BRANCH, "comment branch")
 
-    source = once(
-        source,
-        "commitsRsp.livePhotos = deDuplicateLivePhotos(commitsRsp.livePhotos.concat(livePhotos));",
-        "commitsRsp.livePhotos = appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos);",
-        "live-photo cache merge")
-
-    source = once(source, "const url = $request.url;",
-                  "const url = $request.url;\nif (!$response.body) { $done({}); } else {",
-                  "terminal empty-body guard")
-    source = once(source, "\n\n// 小红书画质增强：加载2K分辨率的图片",
-                  "\n}\n\n// 小红书画质增强：加载2K分辨率的图片",
-                  "terminal empty-body guard close")
-
     result = MARKER + commit + "\n" + source
     invariants = (
         "imageEnhance(images_list)", "compactInPlace(obj.data",
