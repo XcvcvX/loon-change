@@ -24,7 +24,8 @@ class RStoreXiaohongshuOptimizerTests(unittest.TestCase):
         self.assertNotIn("imageEnhance(JSON.stringify(images_list))", source)
         self.assertIn("appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)", source)
         self.assertIn("const byFileId = new Map()", source)
-        self.assertIn("const stack = [obj]", source)
+        self.assertIn("function cleanCommentsAndCollectLivePhotos(data)", source)
+        self.assertIn("const videoInfoCache = new Map()", source)
         self.assertNotIn(".filter(v => !!v.master_url && !!v.height).sort(", source)
         self.assertNotIn("let newItems = []", source)
 
@@ -153,6 +154,37 @@ process.stdout.write(JSON.stringify({
         )
         cache = json.loads(result["store"]["redBookVideoFeed"])
         self.assertEqual(cache[0]["url"], "https://video.example/2160.mp4")
+
+    def test_comment_cleanup_and_media_extraction_share_one_tree_walk(self):
+        video_info = json.dumps({"stream": {"h265": [{"master_url": "https://video.example/live.mp4"}]}})
+        body = {"data": {"comments": [{
+            "note_id": "note-1", "red_id": "remove-top", "comment_type": 3,
+            "media_source_type": 1,
+            "pictures": [{"video_id": "video-1", "video_info": video_info}],
+            "sub_comments": [{
+                "red_id": "remove-child", "comment_type": 3, "media_source_type": 1,
+                "pictures": [{"video_id": "video-2", "video_info": video_info}],
+                "sub_comments": [{
+                    "comment_type": 3,
+                    "pictures": [{"video_id": "video-deep", "video_info": video_info}]
+                }]
+            }]
+        }]}}
+        result = self.run_script(
+            "https://edith.xiaohongshu.com/api/sns/v5/note/comment/list?cursor=fixture", body
+        )
+        output = json.loads(result["doneResult"]["body"])
+        top = output["data"]["comments"][0]
+        child = top["sub_comments"][0]
+        deep = child["sub_comments"][0]
+        self.assertNotIn("red_id", top)
+        self.assertNotIn("red_id", child)
+        self.assertEqual(top["comment_type"], 2)
+        self.assertEqual(child["comment_type"], 2)
+        self.assertEqual(deep["comment_type"], 3)
+        cached = json.loads(result["store"]["xiaohongshu.comments.rsp"])
+        self.assertEqual([x["videId"] for x in cached["livePhotos"]], ["video-1", "video-2"])
+        self.assertEqual(result["parseCount"], 2)
 
     def test_comment_tree_cleanup_is_iterative_for_deep_objects(self):
         nested = {"red_id": "deep"}
