@@ -238,3 +238,25 @@ Make the empty-body branch terminal by putting JSON parsing, all existing URL-sp
 A Node VM test supplies an empty body, counts JSON.parse calls, and requires exactly zero parses plus a pass-through `$done({})`. Existing Amap in-place compaction behavior tests remain unchanged and exercise non-empty payloads.
 
 This removes the unnecessary parse attempt on empty bodies and prevents parse errors after completion. No device CPU or battery percentage is claimed without on-device measurement.
+
+
+---
+
+# Phase 9 Batch 10 — Jingdong lazy response serialization
+
+## Finding
+
+The consolidated Jingdong response handler parsed each matched response once but always serialized the complete object at the common exit, including already-clean splash, home, navigation, order and profile responses.
+
+## Runtime change
+
+- Keep all existing URL branches, allowlists, exclusions, field targets, and optional `jkds_enable` behavior unchanged.
+- Track actual stable in-place array compaction, property deletion, array clearing, and field replacement.
+- Return `$done({})` when the parsed response already matches the cleaned state; serialize once only after a real JSON-visible mutation.
+- Keep the empty-body, invalid-JSON, and non-object pass-through guards.
+
+## Regression coverage
+
+`test_jd_lazy_serialization.py` executes the real script in a Node VM. It checks no-op pass-through and zero stringify calls for all seven URL families, one stringify for changed fixtures in all seven families, and the optional welcome-home exclusions. It also verifies the original cleanup outputs.
+
+No URL trigger, MITM hostname, ad predicate, or target field value was expanded. The optimization removes a full response serialization and output-string allocation on already-clean matched responses; device CPU/battery savings remain unquantified without on-device Loon measurements.
