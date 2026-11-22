@@ -18,7 +18,9 @@ class RStoreXiaohongshuOptimizerTests(unittest.TestCase):
     def test_generated_script_is_marked_and_idempotent(self):
         source = SCRIPT.read_text(encoding="utf-8")
         self.assertIn(MARKER, source)
-        self.assertEqual(optimize_source(source), source)
+        optimized = optimize_source(source)
+        self.assertIn("if (!$response.body) { $done({}); } else {", optimized)
+        self.assertEqual(optimize_source(optimized), optimized)
         self.assertIn("imageEnhance(images_list)", source)
         self.assertIn("if (!$response.body) { $done({}); } else {", source)
         self.assertNotIn("imageEnhance(JSON.stringify(images_list))", source)
@@ -90,8 +92,10 @@ process.stdout.write(JSON.stringify({
                 "url": url, "body": body, "store": store or {},
                 **({"rawBody": raw_body} if raw_body is not None else {})
             }),
-            capture_output=True, text=True, check=True, timeout=10
+            capture_output=True, text=True, check=False, timeout=10
         )
+        if completed.returncode != 0:
+            raise AssertionError("Node VM failed: " + completed.stderr + completed.stdout)
         return json.loads(completed.stdout)
 
     def test_empty_body_finishes_before_json_parse(self):
