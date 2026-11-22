@@ -252,7 +252,7 @@ if (url.includes("/v4/note/videofeed")) {
           url: selectedStream.master_url
         };
         videoData.push(data);
-
+      } else {
       }
     }
     // 写入本地持久化缓存
