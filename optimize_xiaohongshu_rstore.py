@@ -167,10 +167,10 @@ def optimize_source(source, commit="unknown"):
             raise ValueError("marked R-Store Xiaohongshu source is incomplete")
         guard = "if (!$response.body) { $done({}); } else {"
         if guard not in source:
-            source = once(source, "const url = $request.url;", "const url = $request.url;\\n" + guard,
+            source = once(source, "const url = $request.url;", "const url = $request.url;\n" + guard,
                           "terminal empty-body guard")
-            source = once(source, "\\n\\n// 小红书画质增强：加载2K分辨率的图片",
-                          "\\n}\\n\\n// 小红书画质增强：加载2K分辨率的图片",
+            source = once(source, "\n\n// 小红书画质增强：加载2K分辨率的图片",
+                          "\n}\n\n// 小红书画质增强：加载2K分辨率的图片",
                           "terminal empty-body guard close")
         return source
 
@@ -270,6 +270,13 @@ def optimize_source(source, commit="unknown"):
         "commitsRsp.livePhotos = deDuplicateLivePhotos(commitsRsp.livePhotos.concat(livePhotos));",
         "commitsRsp.livePhotos = appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos);",
         "live-photo cache merge")
+
+    source = once(source, "const url = $request.url;",
+                  "const url = $request.url;\nif (!$response.body) { $done({}); } else {",
+                  "terminal empty-body guard")
+    source = once(source, "\n\n// 小红书画质增强：加载2K分辨率的图片",
+                  "\n}\n\n// 小红书画质增强：加载2K分辨率的图片",
+                  "terminal empty-body guard close")
 
     result = MARKER + commit + "\n" + source
     invariants = (
