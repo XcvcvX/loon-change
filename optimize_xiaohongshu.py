@@ -196,7 +196,7 @@ def optimize_source(src,commit="unknown"):
         "读取缓存val", "缓存note_id", "增量数据", "更换数据", "写入缓存val",
         "目标video_id", "匹配到无水印链接", "comment_id:", "video_id：",
         "没有[", "修改评论类型", "修改媒体类型", "提取成功", "未找到可用视频",
-        "已缓存普通视频", "添加下载按钮",
+        "已缓存普通视频", "添加下载按钮", "[缓存] ID:",
     )
     src = "".join(
         line for line in src.splitlines(keepends=True)
