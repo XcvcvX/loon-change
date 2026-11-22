@@ -31,24 +31,24 @@ def parse_rewrite_details(line):
     # Modern conditional Rewrite: the regex body may contain unescaped URL slashes.
     # Capture closing delimiter flags; dropping /i makes distinct matchers look identical.
     modern = re.match(
-        r'^(request|response)\\s+if\\s+\\$\\{url\\}\\s*~=?\\s*/',
+        r'^(request|response)\s+if\s+\$\{url\}\s*~=?\s*/',
         line, re.I
     )
     if modern:
         start = modern.end()
         closing = re.search(
-            r'/([A-Za-z]*)\\s+(?:(?:as\\s+[A-Za-z_]\\w*)\\s+)?(?=(?:then\\b|&&|\\|\\|))',
+            r'/([A-Za-z]*)\s+(?:(?:as\s+[A-Za-z_]\w*)\s+)?(?=(?:then\b|&&|\|\|))',
             line[start:], re.I
         )
         if closing:
             tail = line[start + closing.end():]
-            action = re.search(r'\\bthen\\s+(.+)$', tail, re.I)
+            action = re.search(r'\bthen\s+(.+)$', tail, re.I)
             if action:
                 matcher = line[start:start + closing.start()]
                 return modern.group(1).lower(), matcher, closing.group(1).lower(), action.group(1).strip()
 
     # Legacy form has no regex delimiter flags.
-    legacy = re.match(r'^(\\S+)\\s+([A-Za-z0-9_-]+)(?:\\s+(.*))?$', line)
+    legacy = re.match(r'^(\S+)\s+([A-Za-z0-9_-]+)(?:\s+(.*))?$', line)
     actions = {
         'reject','reject-200','reject-img','reject-dict','reject-array','reject-video',
         '302','307','header-add','header-del','header-replace','header-replace-regex',
@@ -74,6 +74,7 @@ def parse_rewrite(line):
         return None
     phase, matcher, _flags, action = parsed
     return phase, matcher, action
+
 def normalize_regex_literals(pattern):
     """Normalize escaped URL separators and literal port delimiters for scope inspection only."""
     return re.sub(r'\\+([./:])', r'\1', pattern)
