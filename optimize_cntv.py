@@ -356,7 +356,7 @@ def optimize_source(source, commit="unknown"):
         raise ValueError("expected 11 CNTV filters to use compactInPlace")
     source = source.rstrip() + "\n}\n"
     return optimize_pre_parse_route_guard(
-        optimize_iqiyi_feed_arrays(optimize_youku_home_query(optimize_youku_home_feed(optimize_get_my_menus(MARKER + commit + "\n" + source)))
+        optimize_iqiyi_feed_arrays(optimize_youku_home_query(optimize_youku_home_feed(optimize_get_my_menus(MARKER + commit + "\n" + source))))
     )
 
 def rewrite_plugin(plugin):
