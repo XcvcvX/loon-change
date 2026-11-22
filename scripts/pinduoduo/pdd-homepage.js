@@ -1,6 +1,29 @@
 // Pinduoduo homepage response cleanup.
 // Consolidates the overlapping R-Store and ishowshu handlers while preserving
 // their combined filtering behavior and the native JSON field cleanup.
+// Keep immutable lookup tables and predicates outside the response hot path.
+const ALLOWED_BOTTOM_LINKS = new Set(["index.html", "chat_list.html", "personal.html"]);
+const ALLOWED_BOTTOM_TITLES = new Set(["首页", "聊天", "个人中心"]);
+const DENIED_BOTTOM_TITLES = new Set(["多多视频", "大促会场", "搜索", "直播"]);
+const REMOVED_HOMEPAGE_MODULES = new Set([
+  "irregular_banner_dy", "irregular_banner", "ad_module",
+  "icon_set", "recommend_fresh_info", "timeline"
+]);
+
+function keepBottomTab(tab) {
+  return tab && ALLOWED_BOTTOM_TITLES.has(tab.title)
+    && !DENIED_BOTTOM_TITLES.has(tab.title)
+    && ALLOWED_BOTTOM_LINKS.has(String(tab.link || ""));
+}
+
+function keepBufferBottomTab(tab) {
+  return tab && ALLOWED_BOTTOM_LINKS.has(String(tab.link || ""));
+}
+
+function keepHomepageModule(item) {
+  return item && !REMOVED_HOMEPAGE_MODULES.has(item.module_name);
+}
+
 function main() {
   const url = $request.url || "";
 
@@ -48,19 +71,11 @@ function main() {
       deleteIfPresent(result, "search_bar_hot_query");
 
       // Preserve both upstream bottom-tab filters.
-      const allowedLinks = new Set(["index.html", "chat_list.html", "personal.html"]);
-      const allowedTitles = new Set(["首页", "聊天", "个人中心"]);
-      const deniedTitles = new Set(["多多视频", "大促会场", "搜索", "直播"]);
       if (Array.isArray(result.bottom_tabs)) {
-        compactInPlace(result.bottom_tabs, tab =>
-          tab && allowedTitles.has(tab.title) && !deniedTitles.has(tab.title)
-          && allowedLinks.has(String(tab.link || ""))
-        );
+        compactInPlace(result.bottom_tabs, keepBottomTab);
       }
       if (Array.isArray(result.buffer_bottom_tabs)) {
-        compactInPlace(result.buffer_bottom_tabs, tab =>
-          tab && allowedLinks.has(String(tab.link || ""))
-        );
+        compactInPlace(result.buffer_bottom_tabs, keepBufferBottomTab);
       }
 
       // ishowshu removes the homepage top category bar.
@@ -70,14 +85,8 @@ function main() {
       }
 
       // ishowshu's homepage feed-module cleanup.
-      const removedModules = new Set([
-        "irregular_banner_dy", "irregular_banner", "ad_module",
-        "icon_set", "recommend_fresh_info", "timeline"
-      ]);
       if (Array.isArray(result.module_order)) {
-        compactInPlace(result.module_order, item =>
-          item && !removedModules.has(item.module_name)
-        );
+        compactInPlace(result.module_order, keepHomepageModule);
       }
     }
   }
