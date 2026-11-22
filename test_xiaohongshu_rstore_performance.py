@@ -20,6 +20,7 @@ class RStoreXiaohongshuOptimizerTests(unittest.TestCase):
         self.assertIn(MARKER, source)
         self.assertEqual(optimize_source(source), source)
         self.assertIn("imageEnhance(images_list)", source)
+        self.assertIn("if (!$response.body) { $done({}); } else {", source)
         self.assertNotIn("imageEnhance(JSON.stringify(images_list))", source)
         self.assertIn("appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)", source)
         self.assertIn("const byFileId = new Map()", source)
