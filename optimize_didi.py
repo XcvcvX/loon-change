@@ -144,14 +144,14 @@ if (!$response.body)"""
          'compactInPlace(obj.data.scene_list, keepDidiSceneItem);'),
         ('compactInPlace(block.scene_ids, id => id !== "scene_coupon_mall");',
          'compactInPlace(block.scene_ids, keepDidiSceneId);'),
-        ("  const keepNavIds = ['dache_anycar', 'driverservice', 'bike'];\\n", ""),
+        ("  const keepNavIds = ['dache_anycar', 'driverservice', 'bike'];\n", ""),
         ('compactInPlace(obj.data.order_cards.nav_list_card.data, item => keepNavIds.includes(item.nav_id));',
          'compactInPlace(obj.data.order_cards.nav_list_card.data, keepDidiNavItem);'),
-        ("  const keepBottomNavIds = ['v6x_home', 'user_center'];\\n", ""),
+        ("  const keepBottomNavIds = ['v6x_home', 'user_center'];\n", ""),
         ('compactInPlace(obj.data.disorder_cards.bottom_nav_list.data, item => keepBottomNavIds.includes(item.id));',
          'compactInPlace(obj.data.disorder_cards.bottom_nav_list.data, keepDidiBottomNavItem);'),
-        ("  const excludedTitles = ['天天领福利', '金融服务', '更多服务', '企业服务', '安全中心'];\\n\\n", ""),
-        ('compactInPlace(obj.data.cards, card => {\\n      if (excludedTitles.includes(card.title)) return false;\\n      if (card.tag === "wallet") {\\n        if (card.items) {\\n          compactInPlace(card.items, item => item.title === "优惠券");\\n        }\\n        if (card.card_type === 4 && card.bottom_items) {\\n          compactInPlace(card.bottom_items, item =>\\n              item.title === "省钱套餐" || item.title === "天天神券"\\n          );\\n        }\\n      }\\n      return true;\\n    });',
+        ("  const excludedTitles = ['天天领福利', '金融服务', '更多服务', '企业服务', '安全中心'];\n\n", ""),
+        ('compactInPlace(obj.data.cards, card => {\n      if (excludedTitles.includes(card.title)) return false;\n      if (card.tag === "wallet") {\n        if (card.items) {\n          compactInPlace(card.items, item => item.title === "优惠券");\n        }\n        if (card.card_type === 4 && card.bottom_items) {\n          compactInPlace(card.bottom_items, item =>\n              item.title === "省钱套餐" || item.title === "天天神券"\n          );\n        }\n      }\n      return true;\n    });',
          'compactInPlace(obj.data.cards, keepDidiUserCenterCard);'),
     ]
     for old, new in replacements:
@@ -172,7 +172,7 @@ def optimize_source(source, commit="unknown"):
         return optimize_didi_predicates(optimize_lazy_serialization(source))
     if LEGACY_MARKER in source:
         source = source.replace(LEGACY_MARKER, MARKER, 1)
-        return optimize_lazy_serialization(source)
+        return optimize_didi_predicates(optimize_lazy_serialization(source))
 
     body_guard = "if (!$response.body) $done({});"
     if source.count(body_guard) != 1:
@@ -211,7 +211,7 @@ def optimize_source(source, commit="unknown"):
         raise ValueError("expected all seven Didi filters to use compactInPlace")
 
     source = source.rstrip() + "\n}\n"
-    return optimize_lazy_serialization(MARKER + commit + "\n" + source)
+    return optimize_didi_predicates(optimize_lazy_serialization(MARKER + commit + "\n" + source))
 
 
 def rewrite_plugin(plugin):
