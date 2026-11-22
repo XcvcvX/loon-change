@@ -1729,7 +1729,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
             "PERSON_INFO_BUSINESS_MID_EXCLUDE", "WELCOME_HOME_TYPE_INCLUDE",
             "CUSTOM_SURFACE_NAME_INCLUDE", "welcomeExtraEnabled",
             "WELCOME_HOME_EXTRA_EXCLUDE", "$argument", "jkds_enable", "JSON.parse(body)",
-            "$done({ body: JSON.stringify(obj) })",
+            "let modified = false;", "$done(modified ? { body: JSON.stringify(obj) } : {})",
         ):
             self.assertIn(marker, base_script)
         self.assertIn("catch (_)", base_script)

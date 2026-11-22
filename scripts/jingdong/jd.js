@@ -25,6 +25,8 @@
     return;
   }
 
+  let modified = false;
+
   function compactInPlace(items, keep) {
     const length = items.length;
     let write = 0;
@@ -35,8 +37,25 @@
         write++;
       }
     }
-    items.length = write;
+    if (write !== length) {
+      items.length = write;
+      modified = true;
+    }
     return items;
+  }
+
+  function deleteIfPresent(target, key) {
+    if (target && Object.prototype.hasOwnProperty.call(target, key)) {
+      delete target[key];
+      modified = true;
+    }
+  }
+
+  function clearArrayIfNeeded(target, key) {
+    if (target && Array.isArray(target[key]) && target[key].length) {
+      target[key] = [];
+      modified = true;
+    }
   }
 
   const PERSON_INFO_BUSINESS_MID_EXCLUDE = [
@@ -68,24 +87,21 @@
     if (!floor || typeof floor !== "object" || !floor.mId) return;
     if (floor.mId === "basefloorinfo") {
       if (floor.data && typeof floor.data === "object") {
-        delete floor.data.commonPopup;
-        delete floor.data.commonPopup_dynamic;
-        if (Array.isArray(floor.data.commonTips) && floor.data.commonTips.length) {
-          floor.data.commonTips = [];
-        }
-        if (Array.isArray(floor.data.commonWindows) && floor.data.commonWindows.length) {
-          floor.data.commonWindows = [];
-        }
-        delete floor.data.floatLayer;
+        deleteIfPresent(floor.data, "commonPopup");
+        deleteIfPresent(floor.data, "commonPopup_dynamic");
+        clearArrayIfNeeded(floor.data, "commonTips");
+        clearArrayIfNeeded(floor.data, "commonWindows");
+        deleteIfPresent(floor.data, "floatLayer");
       }
     } else if (floor.mId === "orderIdFloor") {
       const infos = floor.data && floor.data.commentRemindInfo && floor.data.commentRemindInfo.infos;
       if (Array.isArray(infos) && infos.length) {
         floor.data.commentRemindInfo.infos = [];
+        modified = true;
       }
     } else if (floor.mId === "userinfo") {
       if (floor.data && typeof floor.data === "object") {
-        delete floor.data.newPlusBlackCard;
+        deleteIfPresent(floor.data, "newPlusBlackCard");
       }
     }
   }
@@ -101,8 +117,14 @@
 
   if (url.includes("functionId=start")) {
     // Keep the original splash behavior from both sources.
-    if (Array.isArray(obj.images) && obj.images.length > 0) obj.images = [];
-    if (obj.showTimesDaily) obj.showTimesDaily = 0;
+    if (Array.isArray(obj.images) && obj.images.length > 0) {
+      obj.images = [];
+      modified = true;
+    }
+    if (obj.showTimesDaily) {
+      obj.showTimesDaily = 0;
+      modified = true;
+    }
   } else if (url.includes("functionId=welcomeHome")) {
     // Apply R-Store's allowlist first, then FMZ's additional exclusions.
     if (Array.isArray(obj.floorList) && obj.floorList.length > 0) {
@@ -113,8 +135,9 @@
     }
     if (Array.isArray(obj.webViewFloorList) && obj.webViewFloorList.length > 0) {
       obj.webViewFloorList = [];
+      modified = true;
     }
-    if (obj.promotionTabs) delete obj.promotionTabs;
+    if (obj.promotionTabs) deleteIfPresent(obj, "promotionTabs");
 
     // Optional FMZ exclusions are folded into the allowlist pass above.
   } else if (url.includes("functionId=readCustomSurfaceList")) {
@@ -128,7 +151,7 @@
       }
     });
   } else if (url.includes("functionId=deliverLayer") || url.includes("functionId=orderTrackBusiness")) {
-    if (obj.bannerInfo) delete obj.bannerInfo;
+    if (obj.bannerInfo) deleteIfPresent(obj, "bannerInfo");
     if (Array.isArray(obj.floors) && obj.floors.length > 0) {
       compactInPlace(obj.floors, item =>
         !["banner", "jdDeliveryBanner"].includes(item && item.mId)
@@ -136,8 +159,8 @@
     }
   } else if (url.includes("functionId=getTabHomeInfo")) {
     if (obj.result && typeof obj.result === "object") {
-      if (obj.result.iconInfo) delete obj.result.iconInfo;
-      if (obj.result.roofTop) delete obj.result.roofTop;
+      deleteIfPresent(obj.result, "iconInfo");
+      deleteIfPresent(obj.result, "roofTop");
     }
   } else if (url.includes("functionId=myOrderInfo")) {
     if (Array.isArray(obj.floors) && obj.floors.length > 0) {
@@ -159,9 +182,12 @@
         }
         if (floor && floor.mId === "customerServiceFloor" &&
             floor.data && floor.data.moreText) {
-          delete floor.data.moreIcon;
-          delete floor.data.moreIcon_dark;
-          floor.data.moreText = " ";
+          deleteIfPresent(floor.data, "moreIcon");
+          deleteIfPresent(floor.data, "moreIcon_dark");
+          if (floor.data.moreText !== " ") {
+            floor.data.moreText = " ";
+            modified = true;
+          }
         }
         return true;
       });
@@ -175,5 +201,5 @@
     }
   }
 
-  $done({ body: JSON.stringify(obj) });
+  $done(modified ? { body: JSON.stringify(obj) } : {});
 })();
