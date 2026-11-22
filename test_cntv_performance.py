@@ -386,7 +386,8 @@ process.stdout.write(nativeJSON.stringify({
             body,
             disable_push=True,
         )
-        nodes = result["output"]["data"]["2019061000"]["data"]["nodes"]
+        output = json.loads(result["doneResult"]["body"])
+        nodes = output["data"]["2019061000"]["data"]["nodes"]
         self.assertEqual([item.get("id") for item in nodes if item.get("id")], ["keep-before", "keep-after"])
         self.assertEqual([item["id"] for item in nodes[1]["nodes"]], ["keep-1", "keep-2"])
         self.assertEqual(nodes[2]["nodes"], [])
