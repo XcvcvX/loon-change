@@ -2,10 +2,10 @@
 // Consolidates the overlapping R-Store and ishowshu handlers while preserving
 // their combined filtering behavior and the native JSON field cleanup.
 // Keep immutable lookup tables and predicates outside the response hot path.
-const ALLOWED_BOTTOM_LINKS = new Set(["index.html", "chat_list.html", "personal.html"]);
-const ALLOWED_BOTTOM_TITLES = new Set(["首页", "聊天", "个人中心"]);
-const DENIED_BOTTOM_TITLES = new Set(["多多视频", "大促会场", "搜索", "直播"]);
-const REMOVED_HOMEPAGE_MODULES = new Set([
+const allowedLinks = new Set(["index.html", "chat_list.html", "personal.html"]);
+const allowedTitles = new Set(["首页", "聊天", "个人中心"]);
+const deniedTitles = new Set(["多多视频", "大促会场", "搜索", "直播"]);
+const removedModules = new Set([
   "irregular_banner_dy", "irregular_banner", "ad_module",
   "icon_set", "recommend_fresh_info", "timeline"
 ]);
