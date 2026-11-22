@@ -142,6 +142,8 @@ on:
       - 'test_bilibili_json_performance.py'
       - 'test_xiaohongshu_v4_performance.py'
       - 'test_amap_response_compaction.py'
+      - 'optimize_amap.py'
+      - 'test_amap_rstore_performance.py'
       - 'test_response_array_compaction_performance.py'
       - 'test_baidumap_binary_performance.py'
       - 'test_xianyu_jd_upstream.py test_jd_lazy_serialization.py'
