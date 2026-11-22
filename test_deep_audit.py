@@ -4,7 +4,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
-from deep_audit import audit_deep, broad_reasons, parse_rewrite
+from deep_audit import audit_deep, broad_reasons, parse_rewrite, parse_rewrite_details
 
 
 class DeepAuditTests(unittest.TestCase):
@@ -22,6 +22,34 @@ request if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/ad/ then reject-dict
         self.assertEqual(report['summary']['rewrite_action_conflict_groups'], 1)
         self.assertEqual(report['summary']['rewrite_duplicate_matcher_groups'], 1)
 
+
+    def test_regex_flags_are_preserved_and_not_misreported_as_duplicate_matchers(self):
+        sensitive = r'request if ${url} ~= /^https?:\\/\\/jad-api\\.jin10\\.com\\/ad/ then reject(404)'
+        insensitive = r'request if ${url} ~= /^https?:\\/\\/jad-api\\.jin10\\.com\\/ad/i then reject(200, " ")'
+
+        parsed = parse_rewrite_details(insensitive)
+        self.assertEqual(parsed[0], 'request')
+        self.assertEqual(parsed[1], r'^https?:\\/\\/jad-api\\.jin10\\.com\\/ad')
+        self.assertEqual(parsed[2], 'i')
+        self.assertEqual(parsed[3], 'reject(200, " ")')
+        self.assertEqual(parse_rewrite(insensitive)[1], parsed[1])
+
+        fixture = "[Rewrite]\\n" + sensitive + "\\n" + insensitive + "\\n"
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'case-flags.plugin'
+            path.write_text(fixture, encoding='utf-8')
+            report = audit_deep(path)
+
+        self.assertEqual(report['summary']['rewrite_duplicate_matcher_groups'], 0)
+        self.assertEqual(report['summary']['rewrite_action_conflict_groups'], 0)
+        self.assertEqual(report['summary']['rewrite_case_sensitivity_overlap_groups'], 1)
+        candidate = next(
+            item for item in report['rewrite_overlap_candidate_groups']
+            if item['overlap_type'] == 'case_sensitivity_scope_overlap'
+        )
+        self.assertEqual({item['flags'] for item in candidate['rules']}, {'', 'i'})
+        self.assertEqual({item['action'] for item in candidate['rules']},
+                         {'reject(404)', 'reject(200, " ")'})
 
     def test_legacy_rewrite_preserves_full_action_arguments_for_duplicate_analysis(self):
         fixture = '''[Rewrite]
