@@ -24,17 +24,17 @@ request if ${url} ~= /^https:\\/\\/api\\.example\\.com\\/ad/ then reject-dict
 
 
     def test_regex_flags_are_preserved_and_not_misreported_as_duplicate_matchers(self):
-        sensitive = r'request if ${url} ~= /^https?:\\/\\/jad-api\\.jin10\\.com\\/ad/ then reject(404)'
-        insensitive = r'request if ${url} ~= /^https?:\\/\\/jad-api\\.jin10\\.com\\/ad/i then reject(200, " ")'
+        sensitive = r'request if ${url} ~= /^https?:\/\/jad-api\.jin10\.com\/ad/ then reject(404)'
+        insensitive = r'request if ${url} ~= /^https?:\/\/jad-api\.jin10\.com\/ad/i then reject(200, " ")'
 
         parsed = parse_rewrite_details(insensitive)
         self.assertEqual(parsed[0], 'request')
-        self.assertEqual(parsed[1], r'^https?:\\/\\/jad-api\\.jin10\\.com\\/ad')
+        self.assertEqual(parsed[1], r'^https?:\/\/jad-api\.jin10\.com\/ad')
         self.assertEqual(parsed[2], 'i')
         self.assertEqual(parsed[3], 'reject(200, " ")')
         self.assertEqual(parse_rewrite(insensitive)[1], parsed[1])
 
-        fixture = "[Rewrite]\\n" + sensitive + "\\n" + insensitive + "\\n"
+        fixture = "[Rewrite]\n" + sensitive + "\n" + insensitive + "\n"
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / 'case-flags.plugin'
             path.write_text(fixture, encoding='utf-8')
