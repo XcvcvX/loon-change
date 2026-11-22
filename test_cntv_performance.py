@@ -362,7 +362,7 @@ process.stdout.write(nativeJSON.stringify({
 
     def test_youku_home_feed_compacts_nested_cards_in_place_without_temporary_arrays(self):
         source = SOURCE.read_text(encoding="utf-8")
-        branch = source.split('url.includes("columbus.home.feed/")', 1)[1].split('url.includes("columbus.home.query/")', 1)[0]
+        branch = source.split('  } else if (url.includes("columbus.home.feed/")) {', 1)[1].split('  } else if (url.includes("columbus.home.query/")) {', 1)[0]
         self.assertIn(YOUKU_HOME_FEED_MARKER, source)
         self.assertNotIn("newNodes", branch)
         self.assertNotIn("newItems", branch)
