@@ -9,7 +9,7 @@ from apply_local_overrides import (
     CNTV_REMOTE_SCRIPT_URL,
     migrate_cntv_script_to_local,
 )
-from optimize_cntv import MARKER, MENUS_MARKER, YOUKU_HOME_FEED_MARKER, optimize_source, rewrite_plugin
+from optimize_cntv import MARKER, MENUS_MARKER, STATIC_FILTER_MARKER, STATIC_FILTER_PATTERN, YOUKU_HOME_FEED_MARKER, optimize_source, rewrite_plugin
 
 ROOT = Path(__file__).resolve().parent
 SOURCE = ROOT / "scripts" / "cntv" / "cntv.js"
@@ -29,6 +29,13 @@ class CNTVOptimizerTests(unittest.TestCase):
         menus_branch = source.split('url.includes("/getMyMenus?")', 1)[1].split('url.includes("/home_top_menu?")', 1)[0]
         self.assertNotIn("newMenus", menus_branch)
         self.assertNotIn("newLists", menus_branch)
+
+    def test_static_membership_lists_are_hoisted_out_of_per_item_predicates(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        self.assertIn(STATIC_FILTER_MARKER, source)
+        self.assertGreater(len(re.findall(r"^const CNTV_STATIC_FILTER_\\d+ =", source, re.M)), 0)
+        self.assertIsNone(STATIC_FILTER_PATTERN.search(source))
+        self.assertEqual(optimize_source(source), source)
 
     def test_iqiyi_feed_branches_use_in_place_compaction_without_temporary_arrays(self):
         source = SOURCE.read_text(encoding="utf-8")
