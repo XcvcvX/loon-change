@@ -5,46 +5,6 @@
     {
       "change_counts": {
         "rewrite": {
-          "action_changed": 0,
-          "added": 2,
-          "removed": 0
-        },
-        "rule": {
-          "action_changed": 0,
-          "added": 0,
-          "removed": 0
-        },
-        "script": {
-          "action_changed": 0,
-          "added": 0,
-          "removed": 0
-        }
-      },
-      "risk_counts": {
-        "high": 0,
-        "low": 0,
-        "medium": 2
-      },
-      "run_id": "44572143425",
-      "source_changes": {
-        "zmjgen": {
-          "action_changed": 0,
-          "added": 2,
-          "removed": 0
-        }
-      },
-      "upstream_revisions": {
-        "AlipayAdBlock": "51a9b27e769c8ced6762de800da9c1bba684d60a",
-        "Amap": "51a9b27e769c8ced6762de800da9c1bba684d60a",
-        "GuaZiVideoAds": "51a9b27e769c8ced6762de800da9c1bba684d60a",
-        "aoomee": "51a9b27e769c8ced6762de800da9c1bba684d60a",
-        "source_migrations": "",
-        "zmjde": "51a9b27e769c8ced6762de800da9c1bba684d60a"
-      }
-    },
-    {
-      "change_counts": {
-        "rewrite": {
           "action_changed": 1,
           "added": 0,
           "removed": 0
@@ -1189,6 +1149,40 @@
         "source_migrations": "",
         "zmjde": "6d612450c7c9f54a8f93676bc3eba823f5897028"
       }
+    },
+    {
+      "change_counts": {
+        "rewrite": {
+          "action_changed": 0,
+          "added": 0,
+          "removed": 0
+        },
+        "rule": {
+          "action_changed": 0,
+          "added": 0,
+          "removed": 0
+        },
+        "script": {
+          "action_changed": 0,
+          "added": 0,
+          "removed": 0
+        }
+      },
+      "risk_counts": {
+        "high": 0,
+        "low": 0,
+        "medium": 0
+      },
+      "run_id": "45083214220",
+      "source_changes": {},
+      "upstream_revisions": {
+        "AlipayAdBlock": "6d612450c7c9f54a8f93676bc3eba823f5897028",
+        "Amap": "6d612450c7c9f54a8f93676bc3eba823f5897028",
+        "GuaZiVideoAds": "6d612450c7c9f54a8f93676bc3eba823f5897028",
+        "aoomee": "6d612450c7c9f54a8f93676bc3eba823f5897028",
+        "source_migrations": "",
+        "zmjde": "6d612450c7c9f54a8f93676bc3eba823f5897028"
+      }
     }
   ],
   "source_trends_last_30_snapshots": {
@@ -1215,12 +1209,6 @@
       "added": 0,
       "removed": 0,
       "snapshots_seen": 6
-    },
-    "zmjgen": {
-      "action_changed": 0,
-      "added": 2,
-      "removed": 0,
-      "snapshots_seen": 1
     }
   }
 }
