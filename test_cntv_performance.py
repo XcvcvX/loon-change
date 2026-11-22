@@ -21,7 +21,7 @@ class CNTVOptimizerTests(unittest.TestCase):
         source = SOURCE.read_text(encoding="utf-8")
         self.assertIn(MARKER, source)
         self.assertEqual(optimize_source(source), source)
-        self.assertEqual(source.count("compactInPlace(") - 1, 24)
+        self.assertEqual(source.count("compactInPlace(") - 1, 33)
         self.assertNotIn(".filter(", source)
         self.assertIn("if (!$response.body) {", source)
         self.assertTrue(source.rstrip().endswith("}"))
@@ -263,9 +263,6 @@ if (payload.body === null) {
         self.assertEqual(result["parseCount"], 0)
 
 
-if __name__ == "__main__":
-    unittest.main()
-
 
 class CNTVPreParseRouteGuardTests(unittest.TestCase):
     def test_route_guard_is_idempotent_and_precedes_json_parse(self):
@@ -428,3 +425,96 @@ process.stdout.write(nativeJSON.stringify({
         self.assertEqual(level3[0]["nodes"], [{"typeName": "KEEP", "data": {"title": "ok"}}])
         self.assertEqual(result["parseCount"], 1)
 
+
+class CNTVMangoTVArrayCompactionTests(unittest.TestCase):
+    def test_mgtv_optimizer_is_idempotent_and_removes_rebuilds(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        self.assertIn("// loon-change: CNTV MangoTV response array compaction v1", source)
+        ranges = [
+            ('  if (url.includes("/dynamic/v") && url.includes("/channel/index/")) {', '  } else if (url.includes("/channel/vrsList/")) {'),
+            ('  } else if (url.includes("/channel/vrsList/")) {', '  } else if (url.includes("/mobile/config?")) {'),
+            ('  } else if (url.includes("/channel/index?") && url.includes("/odin/c")) {', '  } else if (url.includes("/vod/info?")) {'),
+            ('  } else if (url.includes("/vod/info?")) {', '  } else if (url.includes("/module/list?")) {'),
+            ('  } else if (url.includes("/module/list?")) {', '  } else if (url.includes("/video/info?")) {'),
+        ]
+        for start, end in ranges:
+            branch = source.split(start, 1)[1].split(end, 1)[0]
+            for token in ("newItems", "newLists", "newII", "newMods", "newList", ".push("):
+                self.assertNotIn(token, branch)
+        self.assertEqual(optimize_source(source), source)
+
+    def run_mgtv(self, url, body):
+        return CNTVPreParseRouteGuardRuntimeTests().run_script(url, body, disable_push=True)
+
+    def test_mgtv_home_feed_compacts_three_nested_levels_in_place(self):
+        body = {"data": [
+            {"moduleEntityId": "842", "id": "drop-module"},
+            {"moduleEntityId": "91", "DSLList": [
+                {"data": {"items": [
+                    {"id": 0, "title": "drop-id"},
+                    {"id": 1, "cornerTitle": "热门"},
+                    {"id": 2, "cornerTitle": "推荐"},
+                    {"id": 3, "title": "keep"}
+                ]}},
+                {"data": {"items": [{"id": 4, "title": "keep-2"}]}}
+            ]},
+            {"moduleEntityId": "normal", "id": "keep-module"}
+        ], "moduleIDS": [
+            {"moduleEntityId": "842"}, {"moduleEntityId": "normal"}
+        ]}
+        result = self.run_mgtv("https://mobile.api.mgtv.com/dynamic/v1/channel/index/home", body)
+        output = json.loads(result["doneResult"]["body"])
+        self.assertEqual([x.get("id") for x in output["data"] if x.get("id")], ["keep-module"])
+        items = output["data"][0]["DSLList"][0]["data"]["items"]
+        self.assertEqual([x["id"] for x in items], [3])
+        self.assertEqual(len(output["moduleIDS"]), 1)
+        self.assertEqual(result["parseCount"], 1)
+
+    def test_mgtv_tabs_and_channel_index_compact_in_place(self):
+        tabs = {"data": [
+            {"vclassId": 100033}, {"vclassId": 100043},
+            {"vclassId": 100160}, {"vclassId": 100000}, {"id": "missing-class"}
+        ]}
+        result = self.run_mgtv("https://mobile.api.mgtv.com/channel/vrsList/list", tabs)
+        output = json.loads(result["doneResult"]["body"])
+        self.assertEqual([x.get("vclassId") for x in output["data"]], [100033, 100160, 100000, None])
+
+        index = {"data": [
+            {"moduleType": "childslideicon"}, {"moduleType": "normal", "id": 1},
+            {"moduleType": "normal", "id": 2}
+        ]}
+        result = self.run_mgtv("https://mobile.api.mgtv.com/channel/index?foo=1/odin/c", index)
+        output = json.loads(result["doneResult"]["body"])
+        self.assertEqual([x.get("id") for x in output["data"]], [1, 2])
+
+    def test_mgtv_vod_modules_and_my_page_nested_arrays_compact_in_place(self):
+        vod = {"data": {"template": {"modules": [
+            {"dataType": 202}, {"dataType": 101, "clipInfo": {"rcInfo": "remove"}},
+            {"dataType": 201}
+        ]}}}
+        result = self.run_mgtv("https://mobile.api.mgtv.com/vod/info?foo=1", vod)
+        output = json.loads(result["doneResult"]["body"])
+        modules = output["data"]["template"]["modules"]
+        self.assertEqual([x["dataType"] for x in modules], [101, 201])
+        self.assertNotIn("rcInfo", modules[0]["clipInfo"])
+
+        page = {"data": {"list": [
+            {"moduleType": 3, "id": "drop-promo"},
+            {"moduleType": 2, "title": "用户信息模块", "data": [
+                {"title": "领取芒果卡权益"}, {"title": "keep-user"}, {"title": "签到赢积分"}
+            ]},
+            {"moduleType": 7, "title": "我的服务", "data": [
+                {"title": "功能实验室"}, {"title": "keep-service"}, {"title": "我的音乐"}
+            ]},
+            {"moduleType": 1, "id": "keep"}
+        ]}}
+        result = self.run_mgtv("https://mobile.api.mgtv.com/module/list?foo=1", page)
+        output = json.loads(result["doneResult"]["body"])
+        items = output["data"]["list"]
+        self.assertEqual([x.get("id") for x in items if x.get("id")], ["keep"])
+        self.assertEqual([x["title"] for x in items[0]["data"]], ["keep-user"])
+        self.assertEqual([x["title"] for x in items[1]["data"]], ["keep-service"])
+        self.assertEqual(result["parseCount"], 1)
+
+if __name__ == "__main__":
+    unittest.main()
