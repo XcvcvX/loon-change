@@ -20,6 +20,7 @@ class RStoreXiaohongshuOptimizerTests(unittest.TestCase):
         self.assertIn(MARKER, source)
         self.assertEqual(optimize_source(source), source)
         self.assertIn("imageEnhance(images_list)", source)
+        self.assertIn("if (!$response.body) { $done({}); } else {", source)
         self.assertNotIn("imageEnhance(JSON.stringify(images_list))", source)
         self.assertIn("appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)", source)
         self.assertIn("const byFileId = new Map()", source)
@@ -51,7 +52,7 @@ class RStoreXiaohongshuOptimizerTests(unittest.TestCase):
 
 @unittest.skipUnless(NODE, "Node.js is required for R-Store Xiaohongshu runtime tests")
 class RStoreXiaohongshuRuntimeTests(unittest.TestCase):
-    def run_script(self, url, body, store=None):
+    def run_script(self, url, body, store=None, raw_body=None):
         runner = r"""
 const fs = require("fs");
 const vm = require("vm");
@@ -66,22 +67,39 @@ const context = {
     write(value, key) { store.set(key, value); return true; }
   },
   $request: {url: payload.url},
-  $response: {body: JSON.stringify(payload.body)},
+  $response: {body: payload.rawBody === undefined ? JSON.stringify(payload.body) : payload.rawBody},
   $done(value) { doneResult = value; },
+  JSON: {
+    parseCount: 0,
+    parse(value) { this.parseCount++; return JSON.parse(value); },
+    stringify(value) { return JSON.stringify(value); }
+  },
   console: {log() {}, warn() {}, error() {}}
 };
 vm.runInNewContext(source, context, {timeout: 5000});
 process.stdout.write(JSON.stringify({
   doneResult,
+  parseCount: context.JSON.parseCount,
   store: Object.fromEntries(store)
 }));
 """
         completed = subprocess.run(
             [NODE, "-e", runner, str(SCRIPT)],
-            input=json.dumps({"url": url, "body": body, "store": store or {}}),
+            input=json.dumps({
+                "url": url, "body": body, "store": store or {},
+                **({"rawBody": raw_body} if raw_body is not None else {})
+            }),
             capture_output=True, text=True, check=True, timeout=10
         )
         return json.loads(completed.stdout)
+
+    def test_empty_body_finishes_before_json_parse(self):
+        result = self.run_script(
+            "https://edith.xiaohongshu.com/api/sns/v5/note/comment/list?cursor=fixture",
+            None, raw_body=""
+        )
+        self.assertEqual(result["doneResult"], {})
+        self.assertEqual(result["parseCount"], 0)
 
     def test_imagefeed_mutates_parsed_object_without_json_round_trip(self):
         original = "https://img.example/a.jpg?imageView2/2/w/1080/format/jpg"

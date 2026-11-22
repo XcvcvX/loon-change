@@ -260,3 +260,24 @@ The consolidated Jingdong response handler parsed each matched response once but
 `test_jd_lazy_serialization.py` executes the real script in a Node VM. It checks no-op pass-through and zero stringify calls for all seven URL families, one stringify for changed fixtures in all seven families, and the optional welcome-home exclusions. It also verifies the original cleanup outputs.
 
 No URL trigger, MITM hostname, ad predicate, or target field value was expanded. The optimization removes a full response serialization and output-string allocation on already-clean matched responses; device CPU/battery savings remain unquantified without on-device Loon measurements.
+
+---
+
+# Phase 9 P0 — Xiaohongshu R-Store empty-body terminal guard
+
+## Finding
+
+The active local Xiaohongshu R-Store response handler called `$done({})` for an empty response body but did not stop execution. It continued into `JSON.parse(rsp_body)`, causing an unnecessary parse attempt and potentially logging an exception after the response had already been completed.
+
+## Runtime change
+
+- Make the empty-body branch terminal by placing URL dispatch, JSON parsing, response mutations and the final `$done` inside the non-empty `else` branch.
+- Preserve every existing URL trigger, response transformation, cache key, ad predicate and output field.
+- Update `optimize_xiaohongshu_rstore.py` so its already-optimized/idempotent path also restores this guard if a later upstream refresh removes it.
+
+## Regression coverage
+
+`test_xiaohongshu_rstore_performance.py` now executes the real script with an empty response body, counts JSON parsing, and requires exactly one `$done({})` with zero JSON.parse calls. Existing image-feed, homefeed, v4 video and deep-comment-tree fixtures continue to protect the existing transformations.
+
+The change removes a failed parse attempt on empty bodies; it does not claim device CPU or battery percentages without on-device Loon measurements.
+
