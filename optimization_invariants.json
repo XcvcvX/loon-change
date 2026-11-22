@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "description": "Reviewed invariants for generated/local runtime assets. Update this manifest alongside intentional optimization changes.",
+  "artifacts": [
+    {
+      "path": "scripts/cnftp/cnftp.js",
+      "required": [
+        "// loon-change: CNFTP response filter in-place compaction v1",
+        "compactInPlace("
+      ]
+    },
+    {
+      "path": "scripts/xiaohongshu/xiaohongshu.js",
+      "required": [
+        "// loon-change: Xiaohongshu response hot-path optimization v1;",
+        "function processCommentTree(data, livePhotos, commentVideos, noteId)",
+        "const parsedVideoInfo = new Map()",
+        "processCommentTree(obj.data, livePhotos, commentVideos, note_id);"
+      ],
+      "forbidden": [
+        "console.log(`[缓存] ID:"
+      ]
+    },
+    {
+      "path": "scripts/xiaohongshu/xiaohongshu-rstore.js",
+      "required": [
+        "// loon-change: R-Store Xiaohongshu hot-path optimization v1;",
+        "function compactInPlace("
+      ]
+    },
+    {
+      "path": "scripts/weibo/weibo-rstore.js",
+      "required": [
+        "// loon-change: R-Store Weibo in-place response compaction v1;",
+        "function compactInPlace("
+      ]
+    },
+    {
+      "path": "scripts/zhihu/zhihu.js",
+      "required": [
+        "// loon-change: Zhihu response hot-path optimization v1;",
+        "function compactInPlace("
+      ]
+    },
+    {
+      "path": "scripts/cntv/cntv.js",
+      "required": [
+        "// loon-change: CNTV response compaction optimization v6;",
+        "// loon-change: CNTV pre-parse supported-route guard v1",
+        "function compactInPlace("
+      ]
+    },
+    {
+      "path": "scripts/amap/amap.js",
+      "required": [
+        "// loon-change: Amap R-Store local fast path;",
+        "// loon-change: Amap R-Store supported-route guard v1",
+        "function compactInPlace("
+      ]
+    },
+    {
+      "path": "scripts/smzdm/smzdm.js",
+      "required": [
+        "// loon-change: SMZDM in-place compaction and lazy serialization v1;",
+        "function compactInPlace("
+      ]
+    },
+    {
+      "path": "scripts/rrtv/rrtv.js",
+      "required": [
+        "// loon-change: RRTV lightweight runtime and response fast paths v1;",
+        "function compactInPlace("
+      ]
+    },
+    {
+      "path": "scripts/soul/soul.js",
+      "required": [
+        "// loon-change: Soul lightweight response runtime and in-place cleanup v1;",
+        "function compactInPlace("
+      ]
+    },
+    {
+      "path": "scripts/xmly/xmly.js",
+      "required": [
+        "// loon-change: Ximalaya in-place filters and lazy response serialization v1;",
+        "function compactInPlace("
+      ]
+    },
+    {
+      "path": "scripts/didi/didi.js",
+      "required": [
+        "// loon-change: Didi response compaction and lazy serialization optimization v2;",
+        "function compactInPlace(",
+        "$done(modified ? {body: JSON.stringify(obj)} : {});"
+      ]
+    },
+    {
+      "path": "scripts/dushu365/dushu365.js",
+      "required": [
+        "// Dushu365 (FanShu) response optimizer",
+        "pathname.includes("
+      ]
+    },
+    {
+      "path": "scripts/baidumap/baidu-map-protobuf.js",
+      "required": [
+        "function assembleBaiduResponse(",
+        "binaryBody.subarray(",
+        "let modifiedAds = false;",
+        "body.subarray(payloadOffset)",
+        "bodyBytes: body.buffer"
+      ]
+    }
+  ]
+}
