@@ -477,7 +477,7 @@ class CNTVMangoTVArrayCompactionTests(unittest.TestCase):
         ]}
         result = self.run_mgtv("https://mobile.api.mgtv.com/channel/vrsList/list", tabs)
         output = json.loads(result["doneResult"]["body"])
-        self.assertEqual([x.get("vclassId") for x in output["data"]], [100160, 100000, None])
+        self.assertEqual([x.get("vclassId") for x in output["data"]], [100033, 100160, 100000, None])
 
         index = {"data": [
             {"moduleType": "childslideicon"}, {"moduleType": "normal", "id": 1},
