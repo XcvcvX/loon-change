@@ -216,7 +216,10 @@ def optimize_source(source, commit="unknown"):
                     "const videoInfoCache = new Map()", "const visited = new WeakSet()")
         if any(token not in source for token in required):
             raise ValueError("marked R-Store Xiaohongshu source is incomplete")
-        source = between(source, "function removeRedId(obj) {", "function Env(", COMMENT_HELPER, "comment helper")
+        if "function removeRedId(obj) {" in source:
+            source = between(source, "function removeRedId(obj) {", "function Env(", COMMENT_HELPER, "comment helper")
+        elif "function cleanCommentsAndCollectLivePhotos(data)" not in source:
+            raise ValueError("comment traversal helper is missing")
         source = between(source, '} else if (url.includes("/note/comment")) {',
                          '} else if (url.includes("/interaction/comment/video/download")) {',
                          COMMENT_BRANCH, "comment branch")
