@@ -69,98 +69,88 @@ def optimize_lazy_serialization(source):
 
 
 def optimize_didi_predicates(source):
-    """Hoist immutable allowlists and predicates out of per-response branches."""
-    if "const DIDI_KEEP_NAV_IDS" in source:
+    """Replace per-response filter closures and allowlist arrays with scalar-mode compaction."""
+    if "function compactDidiByField(items, field, mode)" in source:
         required = (
-            "compactInPlace(obj.data.cards, keepDidiUserCenterCard);",
-            "compactInPlace(obj.data.order_cards.nav_list_card.data, keepDidiNavItem);",
-            "compactInPlace(obj.data.disorder_cards.bottom_nav_list.data, keepDidiBottomNavItem);",
+            'compactDidiByField(obj.data.scene_list, "text", "scene");',
+            'compactDidiByField(obj.data.order_cards.nav_list_card.data, "nav_id", "nav");',
+            'compactDidiByField(obj.data.cards, "title", "card");',
         )
         if any(item not in source for item in required):
-            raise ValueError("Didi hoisted predicate inventory is incomplete")
+            raise ValueError("Didi specialized compaction inventory is incomplete")
         return source
 
-    modified_anchor = "let modified = false;"
-    helper_end = "  return items;\n}\n\nif (!$response.body)"
-    if source.count(modified_anchor) != 1 or source.count(helper_end) != 1:
-        raise ValueError("Didi predicate-hoisting anchors changed; refusing optimization")
+    helper_start = "function compactInPlace(items, keep) {"
+    helper_end = "\n}\n\nif (!$response.body)"
+    if source.count(helper_start) != 1:
+        raise ValueError("Didi compaction helper changed; refusing specialized rewrite")
+    start = source.index(helper_start)
+    end = source.index(helper_end, start) + 3
+    helper = """function compactDidiByField(items, field, mode) {
+  const length = items.length;
+  let write = 0;
+  for (let read = 0; read < length; read++) {
+    const item = items[read];
+    const value = mode === "sceneId" ? item : item[field];
+    let keep = true;
 
-    constants = """let modified = false;
-
-const DIDI_KEEP_NAV_IDS = new Set(["dache_anycar", "driverservice", "bike"]);
-const DIDI_KEEP_BOTTOM_NAV_IDS = new Set(["v6x_home", "user_center"]);
-const DIDI_EXCLUDED_CARD_TITLES = new Set([
-  "天天领福利", "金融服务", "更多服务", "企业服务", "安全中心"
-]);
-
-"""
-    source = source.replace(modified_anchor + "\n", constants, 1)
-
-    predicates = """  return items;
-}
-
-function keepDidiSceneItem(item) {
-  return item.text !== "优惠商城";
-}
-
-function keepDidiSceneId(id) {
-  return id !== "scene_coupon_mall";
-}
-
-function keepDidiNavItem(item) {
-  return DIDI_KEEP_NAV_IDS.has(item.nav_id);
-}
-
-function keepDidiBottomNavItem(item) {
-  return DIDI_KEEP_BOTTOM_NAV_IDS.has(item.id);
-}
-
-function keepDidiWalletItem(item) {
-  return item.title === "优惠券";
-}
-
-function keepDidiWalletBottomItem(item) {
-  return item.title === "省钱套餐" || item.title === "天天神券";
-}
-
-function keepDidiUserCenterCard(card) {
-  if (DIDI_EXCLUDED_CARD_TITLES.has(card.title)) return false;
-  if (card.tag === "wallet") {
-    if (card.items) {
-      compactInPlace(card.items, keepDidiWalletItem);
+    if (mode === "scene") {
+      keep = value !== "优惠商城";
+    } else if (mode === "sceneId") {
+      keep = value !== "scene_coupon_mall";
+    } else if (mode === "nav") {
+      keep = value === "dache_anycar" || value === "driverservice" || value === "bike";
+    } else if (mode === "bottomNav") {
+      keep = value === "v6x_home" || value === "user_center";
+    } else if (mode === "walletItem") {
+      keep = value === "优惠券";
+    } else if (mode === "walletBottom") {
+      keep = value === "省钱套餐" || value === "天天神券";
+    } else if (mode === "card") {
+      if (value === "天天领福利" || value === "金融服务" || value === "更多服务" ||
+          value === "企业服务" || value === "安全中心") {
+        keep = false;
+      } else if (item.tag === "wallet") {
+        if (item.items) compactDidiByField(item.items, "title", "walletItem");
+        if (item.card_type === 4 && item.bottom_items) {
+          compactDidiByField(item.bottom_items, "title", "walletBottom");
+        }
+      }
     }
-    if (card.card_type === 4 && card.bottom_items) {
-      compactInPlace(card.bottom_items, keepDidiWalletBottomItem);
+
+    if (keep) {
+      if (write !== read) items[write] = item;
+      write++;
     }
   }
-  return true;
-}
-
-if (!$response.body)"""
-    source = source.replace(helper_end, predicates, 1)
+  items.length = write;
+  if (write !== length) modified = true;
+  return items;
+}"""
+    source = source[:start] + helper + source[end:]
 
     replacements = [
         ('compactInPlace(obj.data.scene_list, item => item.text !== "优惠商城");',
-         'compactInPlace(obj.data.scene_list, keepDidiSceneItem);'),
+         'compactDidiByField(obj.data.scene_list, "text", "scene");'),
         ('compactInPlace(block.scene_ids, id => id !== "scene_coupon_mall");',
-         'compactInPlace(block.scene_ids, keepDidiSceneId);'),
+         'compactDidiByField(block.scene_ids, "scene_ids", "sceneId");'),
         ("  const keepNavIds = ['dache_anycar', 'driverservice', 'bike'];\n", ""),
         ('compactInPlace(obj.data.order_cards.nav_list_card.data, item => keepNavIds.includes(item.nav_id));',
-         'compactInPlace(obj.data.order_cards.nav_list_card.data, keepDidiNavItem);'),
+         'compactDidiByField(obj.data.order_cards.nav_list_card.data, "nav_id", "nav");'),
         ("  const keepBottomNavIds = ['v6x_home', 'user_center'];\n", ""),
         ('compactInPlace(obj.data.disorder_cards.bottom_nav_list.data, item => keepBottomNavIds.includes(item.id));',
-         'compactInPlace(obj.data.disorder_cards.bottom_nav_list.data, keepDidiBottomNavItem);'),
+         'compactDidiByField(obj.data.disorder_cards.bottom_nav_list.data, "id", "bottomNav");'),
         ("  const excludedTitles = ['天天领福利', '金融服务', '更多服务', '企业服务', '安全中心'];\n\n", ""),
         ('compactInPlace(obj.data.cards, card => {\n      if (excludedTitles.includes(card.title)) return false;\n      if (card.tag === "wallet") {\n        if (card.items) {\n          compactInPlace(card.items, item => item.title === "优惠券");\n        }\n        if (card.card_type === 4 && card.bottom_items) {\n          compactInPlace(card.bottom_items, item =>\n              item.title === "省钱套餐" || item.title === "天天神券"\n          );\n        }\n      }\n      return true;\n    });',
-         'compactInPlace(obj.data.cards, keepDidiUserCenterCard);'),
+         'compactDidiByField(obj.data.cards, "title", "card");'),
     ]
     for old, new in replacements:
         if old not in source:
-            raise ValueError("Didi predicate-hoisting source pattern missing: " + old[:72])
+            raise ValueError("Didi specialized compaction pattern missing: " + old[:72])
         source = source.replace(old, new, 1)
 
-    if "keepNavIds" in source or "keepBottomNavIds" in source or "excludedTitles" in source:
-        raise ValueError("Didi per-response allowlist allocation remains")
+    if re.search(r"compactInPlace\\s*\\(|keepNavIds|keepBottomNavIds|excludedTitles", source):
+        raise ValueError("Didi per-response filter callbacks or allowlist arrays remain")
     return source
 
 def optimize_source(source, commit="unknown"):
