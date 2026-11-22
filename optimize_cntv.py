@@ -10,9 +10,11 @@ LOCAL = "https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/
 LEGACY_MARKERS = (
     "// loon-change: CNTV response compaction optimization v2; upstream zirawell/R-Store@",
     "// loon-change: CNTV response compaction optimization v1; upstream zirawell/R-Store@",
+    "// loon-change: CNTV response compaction optimization v3; upstream zirawell/R-Store@",
 )
-MARKER = "// loon-change: CNTV response compaction optimization v3; upstream zirawell/R-Store@"
+MARKER = "// loon-change: CNTV response compaction optimization v4; upstream zirawell/R-Store@"
 ROUTE_GUARD_MARKER = "// loon-change: CNTV pre-parse supported-route guard v1"
+IQIYI_FEED_MARKER = "// loon-change: CNTV iQIYI feed array compaction v1"
 MENUS_MARKER = "// loon-change: CNTV getMyMenus in-place compaction v1"
 HELPER = """function compactInPlace(items, keep) {
   let write = 0;
@@ -153,13 +155,103 @@ def optimize_youku_home_query(source):
         raise ValueError("CNTV Youku home.query temporary nested arrays remain")
     return result
 
+
+def optimize_iqiyi_feed_arrays(source):
+    """Compact iQIYI feed/search arrays in place instead of allocating replacement arrays."""
+    branches = (
+        ('  } else if (url.includes("/views_category/")) {',
+         '  } else if (url.includes("/views_comment/")) {',
+         ''' 
+    // 爱奇艺各菜单列表：原地压缩 cards/blocks，避免双层临时数组。
+    if (obj?.base?.statistics?.ad_str) delete obj.base.statistics.ad_str;
+    if (obj?.cards?.length > 0) {
+      compactInPlace(obj.cards, card => {
+        if (card?.blocks?.length > 0) {
+          compactInPlace(card.blocks, item =>
+            !["block_321", "block_415", "block_416"]?.includes(item?.block_name) &&
+            item?.buttons?.[0]?.id !== "ad"
+          );
+        }
+        return true;
+      });
+    }'''),
+        ('  } else if (url.includes("/views_home/")) {',
+         '  } else if (url.includes("/views_plt/")) {',
+         ''' 
+    // 爱奇艺首页信息流：原地移除广告卡片。
+    if (obj?.base?.statistics?.ad_str) delete obj.base.statistics.ad_str;
+    if (obj?.cards?.length > 0) {
+      compactInPlace(obj.cards, card => {
+        if (["ad_mobile_flow", "ad_trueview", "focus", "qy_home_vip_opr_banner"]?.includes(card?.alias_name)) return false;
+        if (card?.top_banner?.l_blocks?.length > 0) {
+          for (let i = 0, blocks = card.top_banner.l_blocks; i < blocks.length; i++) {
+            if (blocks[i]?.buttons?.length > 0) delete blocks[i].buttons;
+          }
+        }
+        return true;
+      });
+    }'''),
+        ('  } else if (url.includes("/views_search/")) {',
+         '  } else if (url.includes("/waterfall/")) {',
+         ''' 
+    // 爱奇艺搜索结果：卡片与 blocks 均原地压缩。
+    if (obj?.cards?.length > 0) {
+      compactInPlace(obj.cards, card => {
+        if ([
+          "ad_mobile_flow", "hot_query_bottom", "hot_query_search_top_ad",
+          "search_com_related_query", "search_intent_detail_onesearch",
+          "search_mid_text_ad", "search_onebox_v2", "search_small_card_ad",
+          "search_topbanner_text", "search_vip_banner"
+        ]?.includes(card?.strategy_com_id)) return false;
+        if (card?.blocks?.length > 0) {
+          compactInPlace(card.blocks, item =>
+            item.hasOwnProperty("block_name") ||
+            (item.hasOwnProperty("block_type") && ![861, 959]?.includes(item?.block_type))
+          );
+        }
+        return true;
+      });
+    }'''),
+        ('  } else if (url.includes("/waterfall/")) {',
+         '  }\n} else if (isMG) {',
+         ''' 
+    // 爱奇艺瀑布流：外层卡片和内层 blocks 原地压缩。
+    if (obj?.base?.statistics?.ad_str) delete obj.base.statistics.ad_str;
+    if (obj?.cards?.length > 0) {
+      compactInPlace(obj.cards, card => {
+        if (card.hasOwnProperty("block_class")) return false;
+        if (card?.blocks?.length > 0) {
+          compactInPlace(card.blocks, item => !item.hasOwnProperty("block_class"));
+        }
+        return true;
+      });
+    }'''),
+    )
+    if IQIYI_FEED_MARKER in source:
+        if source.count(IQIYI_FEED_MARKER) != 1:
+            raise ValueError("CNTV iQIYI feed marker count drift")
+        for start, end, _ in branches:
+            a, b = source.find(start), source.find(end)
+            if a < 0 or b < 0 or any(token in source[a:b] for token in ("newCards", "newItems", "newBlocks")):
+                raise ValueError("CNTV iQIYI feed compaction drift")
+        return source
+    for start, end, body in branches:
+        if source.count(start) != 1 or source.count(end) != 1:
+            raise ValueError("CNTV iQIYI feed branch inventory changed: " + start)
+        a = source.index(start)
+        b = source.index(end, a + len(start))
+        source = source[:a + len(start)] + body + "\n" + source[b:]
+    anchor = '  } else if (url.includes("/views_category/")) {'
+    source = source.replace(anchor, anchor + "\n    " + IQIYI_FEED_MARKER, 1)
+    return source
+
 def optimize_source(source, commit="unknown"):
     if MARKER in source:
-        return optimize_pre_parse_route_guard(optimize_youku_home_query(optimize_get_my_menus(source)))
+        return optimize_pre_parse_route_guard(optimize_iqiyi_feed_arrays(optimize_youku_home_query(optimize_get_my_menus(source))))
     for legacy_marker in LEGACY_MARKERS:
         if legacy_marker in source:
             source = source.replace(legacy_marker, MARKER, 1)
-            return optimize_pre_parse_route_guard(optimize_youku_home_query(optimize_get_my_menus(source)))
+            return optimize_pre_parse_route_guard(optimize_iqiyi_feed_arrays(optimize_youku_home_query(optimize_get_my_menus(source))))
     body_guard = "if (!$response.body) $done({});"
     if source.count(body_guard) != 1:
         raise ValueError("CNTV response body guard changed; refusing optimization")
@@ -184,7 +276,7 @@ def optimize_source(source, commit="unknown"):
         raise ValueError("expected 11 CNTV filters to use compactInPlace")
     source = source.rstrip() + "\n}\n"
     return optimize_pre_parse_route_guard(
-        optimize_youku_home_query(optimize_get_my_menus(MARKER + commit + "\n" + source))
+        optimize_iqiyi_feed_arrays(optimize_youku_home_query(optimize_get_my_menus(MARKER + commit + "\n" + source)))
     )
 
 def rewrite_plugin(plugin):

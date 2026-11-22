@@ -1,4 +1,4 @@
-// loon-change: CNTV response compaction optimization v3; upstream zirawell/R-Store@a4f3b10d6038d77ae3e1ff68bd19a49071ebabd3
+// loon-change: CNTV response compaction optimization v4; upstream zirawell/R-Store@a4f3b10d6038d77ae3e1ff68bd19a49071ebabd3
 /********************************
 CNTV Remove Ads - Version 1.0
 Checkout Source - https://raw.githubusercontent.com/RuCu6/QuanX/main/Scripts/cnftp.js
@@ -168,32 +168,19 @@ if (isIQY) {
       obj.show_style.roll_period = 1000;
     }
   } else if (url.includes("/views_category/")) {
-    // 爱奇艺 各菜单列表 剧集 电影 综艺 信息流
-    if (obj?.base?.statistics?.ad_str) {
-      delete obj.base.statistics.ad_str;
-    }
+    // loon-change: CNTV iQIYI feed array compaction v1
+    // 爱奇艺各菜单列表：原地压缩 cards/blocks，避免双层临时数组。
+    if (obj?.base?.statistics?.ad_str) delete obj.base.statistics.ad_str;
     if (obj?.cards?.length > 0) {
-      let newCards = [];
-      for (let card of obj.cards) {
+      compactInPlace(obj.cards, card => {
         if (card?.blocks?.length > 0) {
-          let newItems = [];
-          for (let item of card.blocks) {
-            // block_321顶部轮播广告 block_415横版独占广告标题 block_416 横版独占视频广告
-            if (["block_321", "block_415", "block_416"]?.includes(item?.block_name)) {
-              continue;
-            } else if (item?.buttons?.[0]?.id === "ad") {
-              continue;
-            } else {
-              newItems.push(item);
-            }
-          }
-          card.blocks = newItems;
-          newCards.push(card);
-        } else {
-          newCards.push(card);
+          compactInPlace(card.blocks, item =>
+            !["block_321", "block_415", "block_416"]?.includes(item?.block_name) &&
+            item?.buttons?.[0]?.id !== "ad"
+          );
         }
-      }
-      obj.cards = newCards;
+        return true;
+      });
     }
   } else if (url.includes("/views_comment/")) {
     // 爱奇艺 播放页评论区
@@ -206,32 +193,18 @@ if (isIQY) {
       );
     }
   } else if (url.includes("/views_home/")) {
-    // 爱奇艺 信息流样式1
-    if (obj?.base?.statistics?.ad_str) {
-      delete obj.base.statistics.ad_str;
-    }
+    // 爱奇艺首页信息流：原地移除广告卡片。
+    if (obj?.base?.statistics?.ad_str) delete obj.base.statistics.ad_str;
     if (obj?.cards?.length > 0) {
-      let newCards = [];
-      for (let card of obj.cards) {
-        // ad_mobile_flow信息流广告 ad_trueview信息流广告 focus顶部横版广告 qy_home_vip_opr_banner会员营销banner
-        if (["ad_mobile_flow", "ad_trueview", "focus", "qy_home_vip_opr_banner"]?.includes(card?.alias_name)) {
-          continue;
-        } else {
-          if (card?.top_banner?.l_blocks?.length > 0) {
-            // 模块右边文字按钮
-            for (let item of card.top_banner.l_blocks) {
-              if (item?.buttons?.length > 0) {
-                // 移除按钮 娱乐资源
-                delete item.buttons;
-              }
-            }
-            newCards.push(card);
-          } else {
-            newCards.push(card);
+      compactInPlace(obj.cards, card => {
+        if (["ad_mobile_flow", "ad_trueview", "focus", "qy_home_vip_opr_banner"]?.includes(card?.alias_name)) return false;
+        if (card?.top_banner?.l_blocks?.length > 0) {
+          for (let i = 0, blocks = card.top_banner.l_blocks; i < blocks.length; i++) {
+            if (blocks[i]?.buttons?.length > 0) delete blocks[i].buttons;
           }
         }
-      }
-      obj.cards = newCards;
+        return true;
+      });
     }
   } else if (url.includes("/views_plt/")) {
     // 爱奇艺 播放详情页组件
@@ -283,79 +256,35 @@ if (isIQY) {
       );
     }
   } else if (url.includes("/views_search/")) {
-    // 爱奇艺 搜索结果列表
+    // 爱奇艺搜索结果：卡片与 blocks 均原地压缩。
     if (obj?.cards?.length > 0) {
-      let newCards = [];
-      for (let card of obj.cards) {
-        if (
-            [
-              "ad_mobile_flow", // 信息流广告
-              "hot_query_bottom", // 底部图标
-              "hot_query_search_top_ad", //顶部广告
-              "search_com_related_query", // 相关搜索
-              "search_intent_detail_onesearch", // 为你推荐信息流
-              "search_mid_text_ad", // 底部广告
-              "search_onebox_v2", // 搜索界面 赢年卡
-              "search_small_card_ad", // 搜索短视频小图广告
-              "search_topbanner_text", // 为你推荐标题
-              "search_vip_banner" // vip营销
-            ]?.includes(card?.strategy_com_id)
-        ) {
-          continue;
-        } else {
-          // 相关内容推荐 相关短视频
-          if (card?.blocks?.length > 0) {
-            let newBlocks = [];
-            for (let i of card.blocks) {
-              if (i.hasOwnProperty("block_name")) {
-                newBlocks.push(i);
-              } else if (i.hasOwnProperty("block_type")) {
-                if (![861, 959]?.includes(i?.block_type)) {
-                  // 861搜索页精确搜索时 第一个自动播放的内容
-                  // 959广告
-                  newBlocks.push(i);
-                }
-              }
-            }
-            card.blocks = newBlocks;
-            newCards.push(card);
-          } else {
-            newCards.push(card);
-          }
+      compactInPlace(obj.cards, card => {
+        if ([
+          "ad_mobile_flow", "hot_query_bottom", "hot_query_search_top_ad",
+          "search_com_related_query", "search_intent_detail_onesearch",
+          "search_mid_text_ad", "search_onebox_v2", "search_small_card_ad",
+          "search_topbanner_text", "search_vip_banner"
+        ]?.includes(card?.strategy_com_id)) return false;
+        if (card?.blocks?.length > 0) {
+          compactInPlace(card.blocks, item =>
+            item.hasOwnProperty("block_name") ||
+            (item.hasOwnProperty("block_type") && ![861, 959]?.includes(item?.block_type))
+          );
         }
-      }
-      obj.cards = newCards;
+        return true;
+      });
     }
   } else if (url.includes("/waterfall/")) {
-    // 爱奇艺 信息流样式2
-    if (obj?.base?.statistics?.ad_str) {
-      delete obj.base.statistics.ad_str;
-    }
+    // 爱奇艺瀑布流：外层卡片和内层 blocks 原地压缩。
+    if (obj?.base?.statistics?.ad_str) delete obj.base.statistics.ad_str;
     if (obj?.cards?.length > 0) {
-      let newCards = [];
-      for (let card of obj.cards) {
-        if (card.hasOwnProperty("block_class")) {
-          // 有block_class字段的为广告
-          continue;
-        } else {
-          if (card?.blocks?.length > 0) {
-            let newItems = [];
-            for (let item of card.blocks) {
-              if (item.hasOwnProperty("block_class")) {
-                // 有block_class字段的为广告
-                continue;
-              } else {
-                newItems.push(item);
-              }
-            }
-            card.blocks = newItems;
-            newCards.push(card);
-          } else {
-            newCards.push(card);
-          }
+      compactInPlace(obj.cards, card => {
+        if (card.hasOwnProperty("block_class")) return false;
+        if (card?.blocks?.length > 0) {
+          compactInPlace(card.blocks, item => !item.hasOwnProperty("block_class"));
         }
-      }
-      obj.cards = newCards;
+        return true;
+      });
     }
   }
 } else if (isMG) {
