@@ -21,7 +21,7 @@ class CNTVOptimizerTests(unittest.TestCase):
         source = SOURCE.read_text(encoding="utf-8")
         self.assertIn(MARKER, source)
         self.assertEqual(optimize_source(source), source)
-        self.assertEqual(source.count("compactInPlace(") - 1, 17)
+        self.assertEqual(source.count("compactInPlace(") - 1, 24)
         self.assertNotIn(".filter(", source)
         self.assertIn("if (!$response.body) {", source)
         self.assertTrue(source.rstrip().endswith("}"))
