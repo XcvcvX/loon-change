@@ -168,7 +168,7 @@ COMMENT_HELPER = r'''function cleanCommentsAndCollectLivePhotos(data) {
     }
   }
   return livePhotos;
-}
+}'''
 DEDUP = r'''function deDuplicateLivePhotos(livePhotos) {
   const seen = new Set();
   return compactInPlace(livePhotos, item => {
