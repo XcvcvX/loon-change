@@ -150,6 +150,19 @@ process.stdout.write(JSON.stringify({ output, passThrough, parseCount: context._
             ["goods"],
         )
 
+    def test_pdd_homepage_static_filters_are_not_reallocated_per_response(self):
+        source = (ROOT / "scripts/pinduoduo/pdd-homepage.js").read_text(encoding="utf-8")
+        main_start = source.index("function main()")
+        main_end = source.index("\nmain();", main_start)
+        module_scope = source[:main_start]
+        hot_path = source[main_start:main_end]
+
+        self.assertEqual(module_scope.count("new Set("), 4)
+        self.assertNotIn("new Set(", hot_path)
+        self.assertIn("compactInPlace(result.bottom_tabs, keepBottomTab)", hot_path)
+        self.assertIn("compactInPlace(result.buffer_bottom_tabs, keepBufferBottomTab)", hot_path)
+        self.assertIn("compactInPlace(result.module_order, keepHomepageModule)", hot_path)
+        self.assertNotIn("=>", hot_path)
 
     def test_meituan_linglong_image_scans_headers_without_key_array(self):
         source = ROOT / "scripts" / "meituan" / "meituan.js"
