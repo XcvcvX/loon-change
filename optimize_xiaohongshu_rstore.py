@@ -194,7 +194,7 @@ def between(source, start, end, replacement, label):
     return source[:left] + replacement + "\n\n" + source[right:]
 
 def optimize_source(source, commit="unknown"):
-    COMMENT_BRANCH = r'''} else if (url.includes("/note/comment")) {
+    COMMENT_BRANCH = r"""} else if (url.includes("/note/comment")) {
   const commentData = obj.data;
   const livePhotos = cleanCommentsAndCollectLivePhotos(commentData);
   const note_id = commentData?.comments?.[0]?.note_id || "";
@@ -213,7 +213,7 @@ def optimize_source(source, commit="unknown"):
     }
     $.setdata(JSON.stringify(commitsRsp), "xiaohongshu.comments.rsp");
   }
-'''
+"""
     if MARKER in source:
         required = ("imageEnhance(images)", "compactInPlace(obj.data", "appendUniqueLivePhotos",
                     "const byFileId = new Map()", "function cleanCommentsAndCollectLivePhotos(data)",
