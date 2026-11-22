@@ -115,7 +115,7 @@ def optimize_source(source, commit="unknown"):
             raise ValueError("Amap optimizer markers are inconsistent")
         if ".filter(" in source or "function compactInPlace(items, keep)" not in source:
             raise ValueError("Amap optimized runtime has drifted")
-        return hoist_static_arrays(compact_search_suggestions_in_place(source))
+        return compact_search_suggestions_in_place(hoist_static_arrays(source))
     body_guard = "if (!$response.body) $done({});"
     if source.count(body_guard) != 1:
         raise ValueError("Amap empty-body guard anchor changed")
@@ -140,7 +140,7 @@ def optimize_source(source, commit="unknown"):
         raise ValueError("Amap allocating Array.filter remains")
     if source.count("compactInPlace(") != 12:
         raise ValueError("Amap in-place compaction call inventory drift")
-    source = hoist_static_arrays(compact_search_suggestions_in_place(source))
+    source = compact_search_suggestions_in_place(hoist_static_arrays(source))
     return MARKER + commit + "\n" + source
 
 def rewrite_plugin(plugin):
