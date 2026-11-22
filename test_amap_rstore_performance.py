@@ -15,6 +15,7 @@ class AmapRStoreOptimizerTests(unittest.TestCase):
     def test_static_filter_arrays_are_hoisted_and_optimizer_is_idempotent(self):
         source = SOURCE.read_text(encoding="utf-8")
         self.assertIn(ARRAY_MARKER, source)
+        self.assertGreater(source.count("const AMAP_STATIC_ITEMS_"), 0)
         self.assertNotRegex(source, r"^\s*const items = \[")
         self.assertNotRegex(source, r"\[(?:\s*(?:\"[^\"\n]*\"|'[^'\n]*')\s*,?)+\s*\]\?\.includes")
         self.assertEqual(hoist_static_arrays(source), source)
