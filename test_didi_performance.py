@@ -29,11 +29,11 @@ class DidiOptimizerTests(unittest.TestCase):
         lines.extend([
             'obj.data.scene_list = obj.data.scene_list.filter(item => item.text !== "优惠商城");',
             'block.scene_ids = block.scene_ids.filter(id => id !== "scene_coupon_mall");',
-            "const keepNavIds = ['dache_anycar', 'driverservice', 'bike'];",
+            "    const keepNavIds = ['dache_anycar', 'driverservice', 'bike'];",
             "obj.data.order_cards.nav_list_card.data = obj.data.order_cards.nav_list_card.data.filter(item => keepNavIds.includes(item.nav_id));",
-            "const keepBottomNavIds = ['v6x_home', 'user_center'];",
+            "    const keepBottomNavIds = ['v6x_home', 'user_center'];",
             "obj.data.disorder_cards.bottom_nav_list.data = obj.data.disorder_cards.bottom_nav_list.data.filter(item => keepBottomNavIds.includes(item.id));",
-            "const excludedTitles = ['天天领福利', '金融服务', '更多服务', '企业服务', '安全中心'];",
+            "  const excludedTitles = ['天天领福利', '金融服务', '更多服务', '企业服务', '安全中心'];",
         ])
         lines.extend([
             "if (obj.data && obj.data.cards) {",
@@ -74,8 +74,8 @@ class DidiOptimizerTests(unittest.TestCase):
 
     def test_optimizer_fails_closed_when_upstream_filter_inventory_drifts(self):
         source = self.fixture_source().replace(
-            "obj.data.items3 = obj.data.items3.filter(item => item.keep);",
-            "obj.data.items3 = obj.data.items3;",
+            'block.scene_ids = block.scene_ids.filter(id => id !== "scene_coupon_mall");',
+            "block.scene_ids = block.scene_ids;",
         )
         with self.assertRaisesRegex(ValueError, "expected 7, got 6"):
             optimize_source(source)
