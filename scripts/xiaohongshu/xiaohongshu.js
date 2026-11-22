@@ -319,84 +319,29 @@ if (url.includes("/v6/homefeed")) {
 
 // 加载评论区
 if (url.includes("/api/sns/v5/note/comment/list?") || url.includes("/api/sns/v3/note/comment/sub_comments?")) {
-  replaceRedIdWithFmz200(obj.data);
-  let livePhotos = [];
-  let commentVideos = [];
-  let note_id = "";
-  if (obj.data?.comments?.length > 0) {
-    note_id = obj.data.comments[0].note_id;
-    for (const comment of obj.data.comments) {
-      // comment_type: 0-文字，2-图片/live，3-表情包，5-视频
-      fixCommentType(comment);
-      extractLivePhotos(comment.pictures, livePhotos, comment.id);
-
-      // 子评论处理
-      if (comment.sub_comments?.length > 0) {
-        for (const sub_comment of comment.sub_comments) {
-          fixCommentType(sub_comment);
-          extractLivePhotos(sub_comment.pictures, livePhotos, comment.id, "_sub");
-        }
-      }
-
-      // 评论视频处理 
-      if (comment?.videos?.length > 0) {
-        for (const video of comment.videos) {
-          if (video?.video_id && video?.video_info) {
-            try {
-              const videoObj = JSON.parse(video.video_info);
-              // 选择最佳画质
-              const streams = selectBestStream(videoObj?.stream?.h265, videoObj?.stream?.h264);
-              if (streams?.master_url) {
-                commentVideos.push({
-                  videId: video.video_id,
-                  videoUrl: streams.master_url,
-                  commentId: comment.id,
-                  noteId: note_id,
-                  width: streams.width,
-                  height: streams.height,
-                  bitrate: streams.video_bitrate,
-                  hdr: streams.hdr_type === 1
-                });
-              }
-            } catch (e) {
-              console.log("评论视频处理出错", e);
-            }
-          }
-        }
-      }
-      
-    }
-  }
-  // 存储评论实况照片
+  const livePhotos = [];
+  const commentVideos = [];
+  const note_id = obj.data?.comments?.[0]?.note_id || "";
+  processCommentTree(obj.data, livePhotos, commentVideos, note_id);
   if (livePhotos.length > 0) {
     let commitsRsp;
     const commitsCache = $.getdata("fmz200.xiaohongshu.comments.rsp");
-    if (!commitsCache) {
-      commitsRsp = {noteId: note_id, livePhotos: livePhotos};
-    } else {
+    if (!commitsCache) commitsRsp = {noteId: note_id, livePhotos};
+    else {
       commitsRsp = JSON.parse(commitsCache);
-      if (commitsRsp.noteId === note_id) {
-        commitsRsp.livePhotos = appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos);
-      } else {
-        commitsRsp = {noteId: note_id, livePhotos: livePhotos};
-      }
+      if (commitsRsp.noteId === note_id) commitsRsp.livePhotos = appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos);
+      else commitsRsp = {noteId: note_id, livePhotos};
     }
     $.setdata(JSON.stringify(commitsRsp), "fmz200.xiaohongshu.comments.rsp");
   }
-
-  // 存储评论视频信息
   if (commentVideos.length > 0) {
     let videosCache;
     const commitsCache = $.getdata("fmz200.xiaohongshu.comments.videos.rsp");
-    if (!commitsCache) {
-      videosCache = {noteId: note_id, videos: commentVideos};
-    } else {
+    if (!commitsCache) videosCache = {noteId: note_id, videos: commentVideos};
+    else {
       videosCache = JSON.parse(commitsCache);
-      if (videosCache.noteId === note_id) {
-        videosCache.videos = appendUniqueLivePhotos(videosCache.videos, commentVideos);
-      } else {
-        videosCache = {noteId: note_id, videos: commentVideos};
-      }
+      if (videosCache.noteId === note_id) videosCache.videos = appendUniqueLivePhotos(videosCache.videos, commentVideos);
+      else videosCache = {noteId: note_id, videos: commentVideos};
     }
     $.setdata(JSON.stringify(videosCache), "fmz200.xiaohongshu.comments.videos.rsp");
   }
@@ -487,15 +432,72 @@ function deduplicateLivePhotos(items) {
 }
 
 
-function replaceRedIdWithFmz200(obj) {
-  const stack=[obj];
-  while(stack.length){const current=stack.pop();
-    if(Array.isArray(current)){for(let i=current.length-1;i>=0;i--)if(current[i]&&typeof current[i]==="object")stack.push(current[i]);}
-    else if(current&&typeof current==="object"){if("red_id" in current){current.fmz200=current.red_id;delete current.red_id;}
-      const childStart=stack.length;for(const key in current){if(!Object.prototype.hasOwnProperty.call(current,key))continue;const child=current[key];if(child&&typeof child==="object")stack.push(child);}for(let left=childStart,right=stack.length-1;left<right;left++,right--){const temp=stack[left];stack[left]=stack[right];stack[right]=temp;}}
+function processCommentTree(data, livePhotos, commentVideos, noteId) {
+  const topLevelComments = new WeakSet();
+  const commentNodes = new WeakSet();
+  const comments = data?.comments;
+  if (Array.isArray(comments)) {
+    for (const comment of comments) {
+      if (!comment || typeof comment !== "object") continue;
+      topLevelComments.add(comment);
+      commentNodes.add(comment);
+      if (Array.isArray(comment.sub_comments)) {
+        for (const subComment of comment.sub_comments) {
+          if (subComment && typeof subComment === "object") commentNodes.add(subComment);
+        }
+      }
+    }
+  }
+  const parsedVideoInfo = new Map();
+  const parseVideoInfo = raw => {
+    if (typeof raw !== "string" || raw.length === 0) return null;
+    if (!parsedVideoInfo.has(raw)) {
+      try { parsedVideoInfo.set(raw, JSON.parse(raw)); }
+      catch (_) { parsedVideoInfo.set(raw, null); }
+    }
+    return parsedVideoInfo.get(raw);
+  };
+  const stack = [data];
+  const visited = new WeakSet();
+  while (stack.length) {
+    const current = stack.pop();
+    if (!current || typeof current !== "object" || visited.has(current)) continue;
+    visited.add(current);
+    if (!Array.isArray(current)) {
+      if ("red_id" in current) { current.fmz200 = current.red_id; delete current.red_id; }
+      if (commentNodes.has(current)) {
+        fixCommentType(current);
+        if (Array.isArray(current.pictures)) {
+          for (const picture of current.pictures) {
+            if (!picture?.video_id) continue;
+            const info = parseVideoInfo(picture.video_info);
+            const stream = selectBestStream(info?.stream?.h265, info?.stream?.h264);
+            if (stream?.master_url) livePhotos.push({videId: picture.video_id, videoUrl: stream.master_url});
+          }
+        }
+        if (topLevelComments.has(current) && Array.isArray(current.videos)) {
+          for (const video of current.videos) {
+            if (!video?.video_id || !video?.video_info) continue;
+            const info = parseVideoInfo(video.video_info);
+            const stream = selectBestStream(info?.stream?.h265, info?.stream?.h264);
+            if (stream?.master_url) commentVideos.push({
+              videId: video.video_id, videoUrl: stream.master_url, commentId: current.id, noteId,
+              width: stream.width, height: stream.height, bitrate: stream.video_bitrate, hdr: stream.hdr_type === 1
+            });
+          }
+        }
+      }
+    }
+    if (Array.isArray(current)) {
+      for (let i = current.length - 1; i >= 0; i--) { const child = current[i]; if (child && typeof child === "object") stack.push(child); }
+    } else {
+      for (const key in current) {
+        if (!Object.prototype.hasOwnProperty.call(current, key)) continue;
+        const child = current[key]; if (child && typeof child === "object") stack.push(child);
+      }
+    }
   }
 }
-
 
 /**
  * 从流列表中选择最佳流（优先 H265，降级 H264）
