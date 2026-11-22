@@ -34,6 +34,7 @@ class DidiOptimizerTests(unittest.TestCase):
             "    const keepBottomNavIds = ['v6x_home', 'user_center'];",
             "obj.data.disorder_cards.bottom_nav_list.data = obj.data.disorder_cards.bottom_nav_list.data.filter(item => keepBottomNavIds.includes(item.id));",
             "  const excludedTitles = ['天天领福利', '金融服务', '更多服务', '企业服务', '安全中心'];",
+            "",
         ])
         lines.extend([
             "if (obj.data && obj.data.cards) {",
