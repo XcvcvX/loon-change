@@ -10,9 +10,9 @@ LOCAL = "https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/cntv/
 LEGACY_MARKERS = (
     "// loon-change: CNTV response compaction optimization v2; upstream zirawell/R-Store@",
     "// loon-change: CNTV response compaction optimization v1; upstream zirawell/R-Store@",
-    "// loon-change: CNTV response compaction optimization v4; upstream zirawell/R-Store@",
+    "// loon-change: CNTV response compaction optimization v3; upstream zirawell/R-Store@",
 )
-MARKER = "// loon-change: CNTV response compaction optimization v3; upstream zirawell/R-Store@"
+MARKER = "// loon-change: CNTV response compaction optimization v4; upstream zirawell/R-Store@"
 ROUTE_GUARD_MARKER = "// loon-change: CNTV pre-parse supported-route guard v1"
 IQIYI_FEED_MARKER = "// loon-change: CNTV iQIYI feed array compaction v1"
 MENUS_MARKER = "// loon-change: CNTV getMyMenus in-place compaction v1"
@@ -213,7 +213,7 @@ def optimize_iqiyi_feed_arrays(source):
       });
     }'''),
         ('  } else if (url.includes("/waterfall/")) {',
-         '  }\\n} else if (isMG) {',
+         '  }\n} else if (isMG) {',
          ''' 
     // 爱奇艺瀑布流：外层卡片和内层 blocks 原地压缩。
     if (obj?.base?.statistics?.ad_str) delete obj.base.statistics.ad_str;
@@ -251,7 +251,7 @@ def optimize_source(source, commit="unknown"):
     for legacy_marker in LEGACY_MARKERS:
         if legacy_marker in source:
             source = source.replace(legacy_marker, MARKER, 1)
-            return optimize_pre_parse_route_guard(optimize_youku_home_query(optimize_get_my_menus(source)))
+            return optimize_pre_parse_route_guard(optimize_iqiyi_feed_arrays(optimize_youku_home_query(optimize_get_my_menus(source))))
     body_guard = "if (!$response.body) $done({});"
     if source.count(body_guard) != 1:
         raise ValueError("CNTV response body guard changed; refusing optimization")
