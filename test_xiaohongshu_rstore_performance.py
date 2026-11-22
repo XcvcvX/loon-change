@@ -69,8 +69,8 @@ const context = {
   $request: {url: payload.url},
   $response: {body: payload.rawBody === undefined ? JSON.stringify(payload.body) : payload.rawBody},
   $done(value) { doneResult = value; },
-  parseCount: 0,
   JSON: {
+    parseCount: 0,
     parse(value) { this.parseCount++; return JSON.parse(value); },
     stringify(value) { return JSON.stringify(value); }
   },
