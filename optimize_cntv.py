@@ -422,7 +422,7 @@ def optimize_mgtv_arrays(source):
     }"""
     new_tabs = """    if (obj?.data?.length > 0) {
       // 100033热门 100043短剧 100160会员频道精选 100308短视频
-      compactInPlace(obj.data, item => item?.vclassId <= 100033 || item?.vclassId === 100160);
+      compactInPlace(obj.data, item => !(item?.vclassId > 100033 && item?.vclassId !== 100160));
     }"""
     replace_once(old_tabs, new_tabs, "top tabs")
 
