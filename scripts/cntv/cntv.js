@@ -15,6 +15,34 @@ https://raw.githubusercontent.com/zirawell/R-Store/main/Rule/Surge/Adblock/App/M
 https://raw.githubusercontent.com/zirawell/R-Store/main/Rule/Surge/Adblock/App/Y/优酷视频/youku.sgmodule
 ********************************/
 
+// loon-change: CNTV hoisted static membership lists v1
+const CNTV_STATIC_FILTER_01 = ["29", "31", "34"];
+const CNTV_STATIC_FILTER_02 = ["wd_liebiao_2", "wd_liebiao_3", "wd_liebiao_4"];
+const CNTV_STATIC_FILTER_03 = ["1017", "8196", "4525518866820370"];
+const CNTV_STATIC_FILTER_04 = ["block_321", "block_415", "block_416"];
+const CNTV_STATIC_FILTER_05 = ["comment_resource_card", "comment_resource_convention_card"];
+const CNTV_STATIC_FILTER_06 = ["ad_mobile_flow", "ad_trueview", "focus", "qy_home_vip_opr_banner"];
+const CNTV_STATIC_FILTER_07 = [
+          "ad_mobile_flow", "hot_query_bottom", "hot_query_search_top_ad",
+          "search_com_related_query", "search_intent_detail_onesearch",
+          "search_mid_text_ad", "search_onebox_v2", "search_small_card_ad",
+          "search_topbanner_text", "search_vip_banner"
+        ];
+const CNTV_STATIC_FILTER_08 = [861, 959];
+const CNTV_STATIC_FILTER_09 = ["热门", "推荐"];
+const CNTV_STATIC_FILTER_10 = ["842", "2237", "5418"];
+const CNTV_STATIC_FILTER_11 = ["1", "2"];
+const CNTV_STATIC_FILTER_12 = [202, 203, 301, 601, 701, 702];
+const CNTV_STATIC_FILTER_13 = [3, 5, 6, 8];
+const CNTV_STATIC_FILTER_14 = ["领取芒果卡权益", "签到赢积分"];
+const CNTV_STATIC_FILTER_15 = ["功能实验室", "芒果壁纸", "我的音乐"];
+const CNTV_STATIC_FILTER_16 = [2, 8, 9, 14, 17];
+const CNTV_STATIC_FILTER_17 = ["detail", "planet"];
+const CNTV_STATIC_FILTER_18 = ["CHILD", "COMIC2", "20230929GREATWORKMFK"];
+const CNTV_STATIC_FILTER_19 = ["UC广告抽屉", "橱窗广告"];
+const CNTV_STATIC_FILTER_20 = ["PHONE_FEED_CARD_B_AD", "PHONE_FEED_CARD_S_AD", "PHONE_H_UC_AD", "PHONE_IMG_A", "PHONE_YK_AD_BANNER"];
+const CNTV_STATIC_FILTER_21 = [683367, 683368, 683372, 683502];
+const CNTV_STATIC_FILTER_22 = ["HOME", "NEW_UCENTER", "VIP_MEMBER"];
 const url = $request.url;
 if (!$response.body) {
   $done({});
@@ -86,7 +114,7 @@ if (isIQY) {
       let card = obj.cards[0];
       if (card?.items?.length > 0) {
         // 29首页 31会员中心 34我的 35发现 184随刻视频
-        compactInPlace(card.items, (i) => ["29", "31", "34"]?.includes(i?._id));
+        compactInPlace(card.items, (i) => CNTV_STATIC_FILTER_01.includes(i?._id));
         // 修复位置
         for (let i = 0; i < card.items.length; i++) {
           card.items[i].show_order = i + 1;
@@ -125,7 +153,7 @@ if (isIQY) {
     // 爱奇艺 我的页面
     if (obj?.data?.length > 0) {
       compactInPlace(obj.data, item => {
-        if (["wd_liebiao_2", "wd_liebiao_3", "wd_liebiao_4"]?.includes(item?.statistic?.block)) {
+        if (CNTV_STATIC_FILTER_02.includes(item?.statistic?.block)) {
           // 精简列表
           return false;
         }
@@ -142,7 +170,7 @@ if (isIQY) {
       let card = obj.cards[0];
       if (card?.items?.length > 0) {
         // 1017直播 8196热点 4525518866820370中国梦
-        compactInPlace(card.items, (i) => !["1017", "8196", "4525518866820370"]?.includes(i?._id));
+        compactInPlace(card.items, (i) => !CNTV_STATIC_FILTER_03.includes(i?._id));
         for (let i = 0; i < card.items.length; i++) {
           card.items[i].show_order = i + 1;
         }
@@ -175,7 +203,7 @@ if (isIQY) {
       compactInPlace(obj.cards, card => {
         if (card?.blocks?.length > 0) {
           compactInPlace(card.blocks, item =>
-            !["block_321", "block_415", "block_416"]?.includes(item?.block_name) &&
+            !CNTV_STATIC_FILTER_04.includes(item?.block_name) &&
             item?.buttons?.[0]?.id !== "ad"
           );
         }
@@ -189,7 +217,7 @@ if (isIQY) {
       compactInPlace(obj.cards, 
           (i) =>
               i.hasOwnProperty("alias_name") &&
-              !["comment_resource_card", "comment_resource_convention_card"]?.includes(i?.alias_name)
+              !CNTV_STATIC_FILTER_05.includes(i?.alias_name)
       );
     }
   } else if (url.includes("/views_home/")) { 
@@ -197,7 +225,7 @@ if (isIQY) {
     if (obj?.base?.statistics?.ad_str) delete obj.base.statistics.ad_str;
     if (obj?.cards?.length > 0) {
       compactInPlace(obj.cards, card => {
-        if (["ad_mobile_flow", "ad_trueview", "focus", "qy_home_vip_opr_banner"]?.includes(card?.alias_name)) return false;
+        if (CNTV_STATIC_FILTER_06.includes(card?.alias_name)) return false;
         if (card?.top_banner?.l_blocks?.length > 0) {
           for (let i = 0, blocks = card.top_banner.l_blocks; i < blocks.length; i++) {
             if (blocks[i]?.buttons?.length > 0) delete blocks[i].buttons;
@@ -259,16 +287,11 @@ if (isIQY) {
     // 爱奇艺搜索结果：卡片与 blocks 均原地压缩。
     if (obj?.cards?.length > 0) {
       compactInPlace(obj.cards, card => {
-        if ([
-          "ad_mobile_flow", "hot_query_bottom", "hot_query_search_top_ad",
-          "search_com_related_query", "search_intent_detail_onesearch",
-          "search_mid_text_ad", "search_onebox_v2", "search_small_card_ad",
-          "search_topbanner_text", "search_vip_banner"
-        ]?.includes(card?.strategy_com_id)) return false;
+        if (CNTV_STATIC_FILTER_07.includes(card?.strategy_com_id)) return false;
         if (card?.blocks?.length > 0) {
           compactInPlace(card.blocks, item =>
             item.hasOwnProperty("block_name") ||
-            (item.hasOwnProperty("block_type") && ![861, 959]?.includes(item?.block_type))
+            (item.hasOwnProperty("block_type") && !CNTV_STATIC_FILTER_08.includes(item?.block_type))
           );
         }
         return true;
@@ -301,18 +324,18 @@ if (isIQY) {
           compactInPlace(item.DSLList, entry => {
             if (entry?.data?.items?.length > 0) {
               compactInPlace(entry.data.items, video =>
-                video?.id !== 0 && !["热门", "推荐"]?.includes(video?.cornerTitle)
+                video?.id !== 0 && !CNTV_STATIC_FILTER_09.includes(video?.cornerTitle)
               );
             }
             return true;
           });
         }
         // 842会员首月特惠 2237横版购物tab 5418横版推广图片
-        return !["842", "2237", "5418"]?.includes(item?.moduleEntityId);
+        return !CNTV_STATIC_FILTER_10.includes(item?.moduleEntityId);
       });
     }
     if (obj?.moduleIDS?.length > 0) {
-      compactInPlace(obj.moduleIDS, (i) => !["842", "2237", "5418"]?.includes(i?.moduleEntityId));
+      compactInPlace(obj.moduleIDS, (i) => !CNTV_STATIC_FILTER_10.includes(i?.moduleEntityId));
     }
   } else if (url.includes("/channel/vrsList/")) {
     // 芒果 顶部tab
@@ -369,14 +392,14 @@ if (isIQY) {
     }
     if (obj?.data?.tabs?.length > 0) {
       // 播放标签页 1视频 2讨论
-      compactInPlace(obj.data.tabs, (i) => ["1", "2"]?.includes(i?.type));
+      compactInPlace(obj.data.tabs, (i) => CNTV_STATIC_FILTER_11.includes(i?.type));
     }
     if (obj?.data?.template?.modules?.length > 0) {
       // 播放页组件
       // 101简介 102点赞评论收藏 201正片列表 205会员衍生模块 206音频有声剧
       // 202精彩短片 203精选特辑 301热门内容 601周边大放送 701通栏广告 702大风车浮层广告
       compactInPlace(obj.data.template.modules, item => {
-        if ([202, 203, 301, 601, 701, 702]?.includes(item?.dataType)) return false;
+        if (CNTV_STATIC_FILTER_12.includes(item?.dataType)) return false;
         if (item?.clipInfo?.rcInfo) {
           // 播放界面推荐语
           delete item.clipInfo.rcInfo;
@@ -393,11 +416,11 @@ if (isIQY) {
     if (obj?.data?.list?.length > 0) {
       compactInPlace(obj.data.list, item => {
         // 3推荐位模块 5大芒计划/我的小芒 6banner图模块 8运营商/兴趣/推荐功能
-        if ([3, 5, 6, 8]?.includes(item?.moduleType)) return false;
+        if (CNTV_STATIC_FILTER_13.includes(item?.moduleType)) return false;
         if (item?.moduleType === 2 && item?.title === "用户信息模块" && item?.data?.length > 0) {
-          compactInPlace(item.data, entry => !["领取芒果卡权益", "签到赢积分"]?.includes(entry?.title));
+          compactInPlace(item.data, entry => !CNTV_STATIC_FILTER_14.includes(entry?.title));
         } else if (item?.moduleType === 7 && item?.title === "我的服务" && item?.data?.length > 0) {
-          compactInPlace(item.data, entry => !["功能实验室", "芒果壁纸", "我的音乐"]?.includes(entry?.title));
+          compactInPlace(item.data, entry => !CNTV_STATIC_FILTER_15.includes(entry?.title));
         }
         return true;
       });
@@ -408,7 +431,7 @@ if (isIQY) {
       // 1正片 2花絮片段 6设备信息 7未知 8看了还会看 9精华打包 10未知 14vip
       // 15未知 17周边大放送 18未知 20出品人 22未知 30未知 31系列推荐
       // 35音乐fm入口 36为你推荐 37音乐fm入口
-      compactInPlace(obj.data.categoryList, (i) => ![2, 8, 9, 14, 17]?.includes(i?.dataType));
+      compactInPlace(obj.data.categoryList, (i) => !CNTV_STATIC_FILTER_16.includes(i?.dataType));
     }
   }
 } else if (isYK) {
@@ -429,7 +452,7 @@ if (isIQY) {
         if (config?.PHONE_DETAIL_TOP_TAB?.pageTabs?.length > 0) {
           // detail视频 list热门 planet讨论
           compactInPlace(config.PHONE_DETAIL_TOP_TAB.pageTabs, (i) =>
-              ["detail", "planet"]?.includes(i?.code)
+              CNTV_STATIC_FILTER_17.includes(i?.code)
           );
         }
       }
@@ -505,13 +528,13 @@ if (isIQY) {
       if (objData?.data?.indexPositionResult?.length > 0) objData.data.indexPositionResult = [];
       if (objData?.nodes?.length > 0) {
         compactInPlace(objData.nodes, item => {
-          if (["CHILD", "COMIC2", "20230929GREATWORKMFK"]?.includes(item?.data?.nodeKey)) return false;
+          if (CNTV_STATIC_FILTER_18.includes(item?.data?.nodeKey)) return false;
           if (item?.data?.indexPositionResult?.length > 0) item.data.indexPositionResult = [];
           if (item?.data?.refreshImg) delete item.data.refreshImg;
           if (item?.nodes?.length > 0) {
             compactInPlace(item.nodes, i => {
               if (i?.data?.crmSale) delete i.data.crmSale;
-              if (["UC广告抽屉", "橱窗广告"]?.includes(i?.typeName)) return false;
+              if (CNTV_STATIC_FILTER_19.includes(i?.typeName)) return false;
               if (i?.id === 31476) {
                 if (i?.data?.keywords?.length > 0) delete i.data.keywords;
                 return true;
@@ -519,7 +542,7 @@ if (isIQY) {
               if (i?.id === 35505 || i?.id === 37335) return false;
               if (i?.nodes?.length > 0) {
                 compactInPlace(i.nodes, ii => {
-                  if (["PHONE_FEED_CARD_B_AD", "PHONE_FEED_CARD_S_AD", "PHONE_H_UC_AD", "PHONE_IMG_A", "PHONE_YK_AD_BANNER"]?.includes(ii?.typeName)) return false;
+                  if (CNTV_STATIC_FILTER_20.includes(ii?.typeName)) return false;
                   if (ii?.nodes?.length > 0) {
                     compactInPlace(ii.nodes, iii =>
                       iii?.typeName !== "PHONE_FEED_CARD_S_AD" &&
@@ -585,7 +608,7 @@ if (isIQY) {
                   for (let ii of node0.nodes) {
                     // 683364卡卷包 683359个性商城 683501TV助手 683367设置
                     // 683368我的客服 683502意见反馈 683366有奖调研 683372更多
-                    if ([683367, 683368, 683372, 683502]?.includes(ii?.id)) {
+                    if (CNTV_STATIC_FILTER_21.includes(ii?.id)) {
                       newII.push(ii);
                     }
                   }
@@ -669,7 +692,7 @@ if (isIQY) {
       if (bottom?.data?.bottomTabList?.length > 0) {
         // HOME首页 DONGTAI短视频 SEARCH淘好片 VIP_MEMBER会员 NEW_UCENTER我的
         compactInPlace(bottom.data.bottomTabList, (i) =>
-            ["HOME", "NEW_UCENTER", "VIP_MEMBER"]?.includes(i?.type)
+            CNTV_STATIC_FILTER_22.includes(i?.type)
         );
         // 修复位置
         for (let i = 0; i < bottom.data.bottomTabList.length; i++) {
