@@ -9,7 +9,7 @@ from apply_local_overrides import (
     CNTV_REMOTE_SCRIPT_URL,
     migrate_cntv_script_to_local,
 )
-from optimize_cntv import MARKER, MENUS_MARKER, optimize_source, rewrite_plugin
+from optimize_cntv import MARKER, MENUS_MARKER, YOUKU_HOME_FEED_MARKER, optimize_source, rewrite_plugin
 
 ROOT = Path(__file__).resolve().parent
 SOURCE = ROOT / "scripts" / "cntv" / "cntv.js"
@@ -358,6 +358,37 @@ process.stdout.write(nativeJSON.stringify({
                 self.assertEqual(result["parseCount"], 1)
                 self.assertEqual(result["stringifyCount"], 1)
                 self.assertIsInstance(result["doneResult"].get("body"), str)
+
+
+    def test_youku_home_feed_compacts_nested_cards_in_place_without_temporary_arrays(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        branch = source.split('url.includes("columbus.home.feed/")', 1)[1].split('url.includes("columbus.home.query/")', 1)[0]
+        self.assertIn(YOUKU_HOME_FEED_MARKER, source)
+        self.assertNotIn("newNodes", branch)
+        self.assertNotIn("newItems", branch)
+        self.assertNotIn(".push(", branch)
+        body = {"data": {"2019061000": {"data": {"nodes": [
+            {"typeName": "NORMAL", "id": "keep-before"},
+            {"typeName": "PHONE_FEED_CARD_GROUP", "nodes": [
+                {"typeName": "PHONE_FEED_CARD_S_AD", "id": "small-ad"},
+                {"typeName": "NORMAL", "id": "keep-1"},
+                {"typeName": "PHONE_H_UC_AD", "id": "wide-ad"},
+                {"typeName": "NORMAL", "id": "keep-2"}
+            ]},
+            {"typeName": "PHONE_FEED_CARD_GROUP", "nodes": []},
+            {"typeName": "NORMAL", "id": "keep-after"}
+        ]}}}}
+        result = self.run_script(
+            "https://acs.youku.com/gw/mtop.youku.columbus.home.feed/",
+            body,
+            disable_push=True,
+        )
+        nodes = result["output"]["data"]["2019061000"]["data"]["nodes"]
+        self.assertEqual([item.get("id") for item in nodes if item.get("id")], ["keep-before", "keep-after"])
+        self.assertEqual([item["id"] for item in nodes[1]["nodes"]], ["keep-1", "keep-2"])
+        self.assertEqual(nodes[2]["nodes"], [])
+        self.assertEqual(result["parseCount"], 1)
+        self.assertEqual(optimize_source(source), source)
 
     def test_youku_home_query_compacts_nested_arrays_without_reordering(self):
         source = SOURCE.read_text(encoding="utf-8")
