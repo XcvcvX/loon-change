@@ -69,7 +69,11 @@ on:
       - 'test_amap_response_compaction.py'
       - 'test_response_array_compaction_performance.py'
       - 'test_baidumap_binary_performance.py'
-      - 'test_xianyu_jd_upstream.py test_jd_lazy_serialization.py'
+      - 'test_xianyu_jd_upstream.py'
+      - 'test_jd_lazy_serialization.py'
+      - 'optimization_guard.py'
+      - 'optimization_invariants.json'
+      - 'test_optimization_guard.py'
       - '.github/workflows/sync.yml'
   pull_request:
     paths:
@@ -146,7 +150,11 @@ on:
       - 'test_amap_rstore_performance.py'
       - 'test_response_array_compaction_performance.py'
       - 'test_baidumap_binary_performance.py'
-      - 'test_xianyu_jd_upstream.py test_jd_lazy_serialization.py'
+      - 'test_xianyu_jd_upstream.py'
+      - 'test_jd_lazy_serialization.py'
+      - 'optimization_guard.py'
+      - 'optimization_invariants.json'
+      - 'test_optimization_guard.py'
       - 'apply_local_overrides.py'
       - 'test_apply_local_overrides.py'
       - 'integrate_spotify.py'
@@ -194,6 +202,9 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: 检查本地性能优化未被上游覆盖
+        run: python3 optimization_guard.py
+
       - name: 验证 Romeo 插件映射与本地快照
         run: |
           git clone --depth 1 https://github.com/ifflagged/Romeo.git /tmp/romeo-check
@@ -224,7 +235,7 @@ jobs:
           PY
 
       - name: 编译检查
-        run: python3 -m py_compile merge_plugins.py mitm_policy.py validate_plugin.py fix_script_configs.py source_guard.py stage_romeo_plugins.py audit_plugin.py deep_audit.py amap_dependency_guard.py apply_amap_local_overrides.py compare_rule_provenance.py source_health_guard.py finalize_provenance.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py integrate_spotify.py apply_local_overrides.py check_script_v2.py runtime_performance_audit.py optimize_cnftp.py optimize_xiaohongshu.py optimize_xiaohongshu_rstore.py optimize_weibo_rstore.py optimize_zhihu.py optimize_cntv.py optimize_amap.py optimize_smzdm.py optimize_rrtv.py optimize_soul.py optimize_xmly.py optimize_didi.py optimize_taobao.py
+        run: python3 -m py_compile merge_plugins.py mitm_policy.py validate_plugin.py fix_script_configs.py source_guard.py stage_romeo_plugins.py audit_plugin.py deep_audit.py amap_dependency_guard.py apply_amap_local_overrides.py compare_rule_provenance.py source_health_guard.py finalize_provenance.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py integrate_spotify.py apply_local_overrides.py check_script_v2.py runtime_performance_audit.py optimize_cnftp.py optimize_xiaohongshu.py optimize_xiaohongshu_rstore.py optimize_weibo_rstore.py optimize_zhihu.py optimize_cntv.py optimize_amap.py optimize_smzdm.py optimize_rrtv.py optimize_soul.py optimize_xmly.py optimize_didi.py optimize_taobao.py optimization_guard.py
       - name: 检查小红书本地视频脚本语法
         run: node --check scripts/xiaohongshu/xiaohongshu-v4.js
       - name: 检查小红书主响应脚本语法
@@ -258,7 +269,7 @@ jobs:
       - name: 检查帆书本地响应脚本语法
         run: node --check scripts/dushu365/dushu365.js
       - name: 运行单元与合并集成测试
-        run: python3 -m unittest -v test_validate_plugin.py test_fix_script_configs.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_apply_amap_local_overrides.py test_compare_rule_provenance.py test_source_health_guard.py test_finalize_provenance.py test_rule_risk_history.py test_integrate_spotify.py test_convert_qx2loon.py test_convert_filter_qx2loon.py test_stage_romeo_plugins.py test_runtime_performance_audit.py test_xiaohongshu_v4_performance.py test_xiaohongshu_performance.py test_xiaohongshu_rstore_performance.py test_weibo_rstore_performance.py test_amap_response_compaction.py test_cnftp_performance.py test_zhihu_performance.py test_bilibili_json_performance.py test_cntv_performance.py test_amap_rstore_performance.py test_didi_performance.py test_response_array_compaction_performance.py test_baidumap_binary_performance.py test_taobao_optimization.py test_xianyu_jd_upstream.py test_jd_lazy_serialization.py test_smzdm_performance.py test_rrtv_performance.py test_soul_performance.py test_xmly_performance.py test_dushu365_performance.py
+        run: python3 -m unittest -v test_validate_plugin.py test_fix_script_configs.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_apply_amap_local_overrides.py test_compare_rule_provenance.py test_source_health_guard.py test_finalize_provenance.py test_rule_risk_history.py test_integrate_spotify.py test_convert_qx2loon.py test_convert_filter_qx2loon.py test_stage_romeo_plugins.py test_runtime_performance_audit.py test_xiaohongshu_v4_performance.py test_xiaohongshu_performance.py test_xiaohongshu_rstore_performance.py test_weibo_rstore_performance.py test_amap_response_compaction.py test_cnftp_performance.py test_zhihu_performance.py test_bilibili_json_performance.py test_cntv_performance.py test_amap_rstore_performance.py test_didi_performance.py test_response_array_compaction_performance.py test_baidumap_binary_performance.py test_taobao_optimization.py test_xianyu_jd_upstream.py test_jd_lazy_serialization.py test_optimization_guard.py test_smzdm_performance.py test_rrtv_performance.py test_soul_performance.py test_xmly_performance.py test_dushu365_performance.py
       - name: 测试本地插件覆盖
         run: |
           # The checked-in plugin is a historical snapshot; snapshot-specific assertions
@@ -374,7 +385,7 @@ jobs:
           python-version: '3.11'
 
       - name: 编译检查
-        run: python3 -m py_compile merge_plugins.py mitm_policy.py validate_plugin.py fix_script_configs.py source_guard.py stage_romeo_plugins.py audit_plugin.py deep_audit.py amap_dependency_guard.py apply_amap_local_overrides.py compare_rule_provenance.py source_health_guard.py finalize_provenance.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py integrate_spotify.py runtime_performance_audit.py optimize_cnftp.py optimize_xiaohongshu.py optimize_xiaohongshu_rstore.py optimize_weibo_rstore.py optimize_zhihu.py optimize_cntv.py optimize_amap.py optimize_smzdm.py optimize_rrtv.py optimize_soul.py optimize_xmly.py optimize_didi.py optimize_taobao.py
+        run: python3 -m py_compile merge_plugins.py mitm_policy.py validate_plugin.py fix_script_configs.py source_guard.py stage_romeo_plugins.py audit_plugin.py deep_audit.py amap_dependency_guard.py apply_amap_local_overrides.py compare_rule_provenance.py source_health_guard.py finalize_provenance.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py integrate_spotify.py runtime_performance_audit.py optimize_cnftp.py optimize_xiaohongshu.py optimize_xiaohongshu_rstore.py optimize_weibo_rstore.py optimize_zhihu.py optimize_cntv.py optimize_amap.py optimize_smzdm.py optimize_rrtv.py optimize_soul.py optimize_xmly.py optimize_didi.py optimize_taobao.py optimization_guard.py
       - name: 检查小红书本地视频脚本语法
         run: node --check scripts/xiaohongshu/xiaohongshu-v4.js
       - name: 检查小红书主响应脚本语法
@@ -407,7 +418,7 @@ jobs:
         run: node --check scripts/dushu365/dushu365.js
 
       - name: 测试校验器与来源依赖门禁
-        run: python3 -m unittest -v test_validate_plugin.py test_fix_script_configs.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_apply_amap_local_overrides.py test_compare_rule_provenance.py test_source_health_guard.py test_finalize_provenance.py test_rule_risk_history.py test_integrate_spotify.py test_convert_qx2loon.py test_convert_filter_qx2loon.py test_stage_romeo_plugins.py test_runtime_performance_audit.py test_xiaohongshu_v4_performance.py test_xiaohongshu_performance.py test_xiaohongshu_rstore_performance.py test_weibo_rstore_performance.py test_amap_response_compaction.py test_cnftp_performance.py test_zhihu_performance.py test_bilibili_json_performance.py test_cntv_performance.py test_amap_rstore_performance.py test_didi_performance.py test_response_array_compaction_performance.py test_baidumap_binary_performance.py test_taobao_optimization.py test_xianyu_jd_upstream.py test_jd_lazy_serialization.py test_smzdm_performance.py test_rrtv_performance.py test_soul_performance.py test_xmly_performance.py test_dushu365_performance.py
+        run: python3 -m unittest -v test_validate_plugin.py test_fix_script_configs.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_apply_amap_local_overrides.py test_compare_rule_provenance.py test_source_health_guard.py test_finalize_provenance.py test_rule_risk_history.py test_integrate_spotify.py test_convert_qx2loon.py test_convert_filter_qx2loon.py test_stage_romeo_plugins.py test_runtime_performance_audit.py test_xiaohongshu_v4_performance.py test_xiaohongshu_performance.py test_xiaohongshu_rstore_performance.py test_weibo_rstore_performance.py test_amap_response_compaction.py test_cnftp_performance.py test_zhihu_performance.py test_bilibili_json_performance.py test_cntv_performance.py test_amap_rstore_performance.py test_didi_performance.py test_response_array_compaction_performance.py test_baidumap_binary_performance.py test_taobao_optimization.py test_xianyu_jd_upstream.py test_jd_lazy_serialization.py test_optimization_guard.py test_smzdm_performance.py test_rrtv_performance.py test_soul_performance.py test_xmly_performance.py test_dushu365_performance.py
 
       - name: 创建隔离构建目录
         run: |
@@ -541,6 +552,9 @@ jobs:
           git apply patches/amap-rucu6-performance.patch
           node --check sources/amap/rucu6_amap.js
           python3 -m unittest -v test_amap_response_compaction.py
+
+      - name: 检查本地性能优化未被上游覆盖
+        run: python3 optimization_guard.py
 
       - name: 合并各来源去广告规则（临时目录）
         run: python3 merge_plugins.py --base /tmp/loon-build/allAdRewrite.plugin --extra none --filter none --romeo-plugins /tmp/romeo --zmjde /tmp/romeo-zmjde --qxapp /tmp/GuaZiVideoAds.conf --amap /tmp/amap/Amap.lpx --myblockads none --alipayadblock sources/alipayAdBlock/alipayAdBlock.lpx --out /tmp/loon-build/allAdRewrite.plugin --provenance-out /tmp/loon-build/rule-provenance.json --source-report source-report.json
