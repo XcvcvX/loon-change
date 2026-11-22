@@ -120,10 +120,14 @@ COMMENT_HELPER = r'''function cleanCommentsAndCollectLivePhotos(data) {
   const stack = [data];
   const visited = new WeakSet();
   const commentNodes = new WeakSet();
+  const topLevelComments = new WeakSet();
   const videoInfoCache = new Map();
   if (Array.isArray(data?.comments)) {
     for (const comment of data.comments) {
-      if (comment && typeof comment === "object") commentNodes.add(comment);
+      if (comment && typeof comment === "object") {
+        commentNodes.add(comment);
+        topLevelComments.add(comment);
+      }
     }
   }
   while (stack.length) {
@@ -144,7 +148,7 @@ COMMENT_HELPER = r'''function cleanCommentsAndCollectLivePhotos(data) {
           if (videoUrl) livePhotos.push({videId: picture.video_id, videoUrl});
         }
       }
-      if (Array.isArray(current.sub_comments)) {
+      if (topLevelComments.has(current) && Array.isArray(current.sub_comments)) {
         for (const subComment of current.sub_comments) {
           if (subComment && typeof subComment === "object") commentNodes.add(subComment);
         }
@@ -164,7 +168,7 @@ COMMENT_HELPER = r'''function cleanCommentsAndCollectLivePhotos(data) {
     }
   }
   return livePhotos;
-}'''
+}
 DEDUP = r'''function deDuplicateLivePhotos(livePhotos) {
   const seen = new Set();
   return compactInPlace(livePhotos, item => {
@@ -217,12 +221,19 @@ def optimize_source(source, commit="unknown"):
         if any(token not in source for token in required):
             raise ValueError("marked R-Store Xiaohongshu source is incomplete")
         if "function removeRedId(obj) {" in source:
-            source = between(source, "function removeRedId(obj) {",
-                     "function Env(", COMMENT_HELPER, "comment helper")
-    source = between(source, '} else if (url.includes("/note/comment")) {',
-                     '} else if (url.includes("/interaction/comment/video/download")) {',
-                     COMMENT_BRANCH, "comment branch")
-
+            source = between(source, "function removeRedId(obj) {", "function Env(", COMMENT_HELPER, "comment helper")
+        source = between(source, '} else if (url.includes("/note/comment")) {',
+                         '} else if (url.includes("/interaction/comment/video/download")) {',
+                         COMMENT_BRANCH, "comment branch")
+        source = source.replace("if (!$response.body) $done({});" + chr(10), "")
+        guard = "if (!$response.body) { $done({}); } else {"
+        if guard not in source:
+            source = once(source, "const url = $request.url;", "const url = $request.url;\n" + guard,
+                          "terminal empty-body guard")
+            source = once(source, "\n\n// 小红书画质增强：加载2K分辨率的图片",
+                          "\n}\n\n// 小红书画质增强：加载2K分辨率的图片",
+                          "terminal empty-body guard close")
+        return source
     source = once(source, "const url = $request.url;",
                   "const url = $request.url;\n" + HELPERS.strip(), "array helpers")
 
