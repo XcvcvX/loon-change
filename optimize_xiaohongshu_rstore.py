@@ -312,7 +312,10 @@ def optimize_source(source, commit="unknown"):
     source = between(source, "function deDuplicateLivePhotos(livePhotos) {",
                      "\nfunction removeRedId(", DEDUP, "live-photo deduplication")
     source = between(source, "function removeRedId(obj) {",
-                     "\n\nfunction Env(", REMOVE_RED_ID, "comment tree traversal")
+                     "function Env(", COMMENT_HELPER, "comment helper")
+    source = between(source, '} else if (url.includes("/note/comment")) {',
+                     '} else if (url.includes("/interaction/comment/video/download")) {',
+                     COMMENT_BRANCH, "comment branch")
 
     source = once(
         source,
@@ -331,7 +334,7 @@ def optimize_source(source, commit="unknown"):
     invariants = (
         "imageEnhance(images_list)", "compactInPlace(obj.data",
         "appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)",
-        "const byFileId = new Map()", "const stack = [obj]",
+        "const byFileId = new Map()", "const stack = [data]",
         "selectedStream = null",
     )
     for token in invariants:
