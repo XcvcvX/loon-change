@@ -133,8 +133,22 @@ if (url.includes("/note/imagefeed?") || url.includes("/note/feed?")) {
 
       const images_list = obj.data[0].note_list[0].images_list;
       // 画质增强
-      // Cache original image URLs before mutating the response.
-      $.setdata(JSON.stringify(images_list), "fmz200.xiaohongshu.feed.rsp");
+      // Cache only the live-photo fields required by the save endpoint.
+      const livePhotoCache = [];
+      if (Array.isArray(images_list)) {
+        for (const image of images_list) {
+          const stream = image?.live_photo?.media?.stream?.h265?.[0];
+          const videoId = image?.live_photo?.media?.video_id;
+          if (image?.live_photo_file_id && videoId && stream?.master_url) {
+            livePhotoCache.push({
+              live_photo_file_id: image.live_photo_file_id,
+              video_id: videoId,
+              url: stream.master_url
+            });
+          }
+        }
+      }
+      $.setdata(JSON.stringify(livePhotoCache), "fmz200.xiaohongshu.feed.rsp");
       obj.data[0].note_list[0].images_list = imageEnhance(images_list);
     }
   }
@@ -146,15 +160,14 @@ if (url.includes("/note/live_photo/save")) {
     $done({body: rsp_body});
   }
   const cache_body = JSON.parse(rsp);
-  let new_data = [];
+  const new_data = [];
   for (const images of cache_body) {
-    if (images.live_photo_file_id) {
-      const item = {
-        file_id: images.live_photo_file_id,
-        video_id: images.live_photo.media.video_id,
-        url: images.live_photo.media.stream.h265[0].master_url
-      };
-      new_data.push(item);
+    // Accept compact cache records and legacy full-image cache records.
+    const fileId = images.file_id || images.live_photo_file_id;
+    const videoId = images.video_id || images.live_photo?.media?.video_id;
+    const videoUrl = images.url || images.live_photo?.media?.stream?.h265?.[0]?.master_url;
+    if (fileId && videoId && videoUrl) {
+      new_data.push({file_id: fileId, video_id: videoId, url: videoUrl});
     }
   }
   if (obj.data.datas) {
