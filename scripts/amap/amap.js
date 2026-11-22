@@ -13,20 +13,20 @@ https://raw.githubusercontent.com/zirawell/R-Store/main/Rule/Surge/Adblock/App/G
 
 const url = $request.url;
 // loon-change: Amap hoisted static filter arrays v1
-const AMAP_STATIC_ITEMS_06 = ["banners", "carouselTips", "integratedBanners", "integratedTips", "skins", "skinAndTips", "tips"];
-const AMAP_STATIC_ITEMS_07 = [
+const AMAP_STATIC_ITEMS_01 = ["banners", "carouselTips", "integratedBanners", "integratedTips", "skins", "skinAndTips", "tips"];;
+const AMAP_STATIC_ITEMS_02 = [
       "banner", // 大横幅
       "bannerList", // 滚动横幅推广
       "service_data", // 全网比价 退订便捷 入住保障 资质规则
       "sug_items_data" // 高德建议
-    ];
-const AMAP_STATIC_ITEMS_08 = [
+    ];;
+const AMAP_STATIC_ITEMS_03 = [
     "assistant", // 左上角悬浮动图
     "global_guide_data",
     "route_search",
     "start_button_tips" // 开始导航 悬浮提示 全国车道级
-  ];
-const AMAP_STATIC_ITEMS_09 = [
+  ];;
+const AMAP_STATIC_ITEMS_04 = [
     "alpha", // 出行优惠套餐
     "banner",
     "bravo", // 第三方推广 喜马拉雅月卡
@@ -37,8 +37,8 @@ const AMAP_STATIC_ITEMS_09 = [
     "popup",
     "push", // 顶部通知 发单立享优惠
     "tips"
-  ];
-const AMAP_STATIC_ITEMS_10 = [
+  ];;
+const AMAP_STATIC_ITEMS_05 = [
     "Naviendpage_Searchwords",
     "SplashScreenControl",
     "TipsTaxiButton", // 选路线页面 打车图标
@@ -92,9 +92,9 @@ const AMAP_STATIC_ITEMS_10 = [
     "tf_remind", // tf测试版
     "tips_bar_black_list",
     "vip"
-  ];
-const AMAP_STATIC_ITEMS_11 = ["head", "search_hot_words", "feed_rec"];
-const AMAP_STATIC_ITEMS_12 = [
+  ];;
+const AMAP_STATIC_ITEMS_06 = ["head", "search_hot_words", "feed_rec"];;
+const AMAP_STATIC_ITEMS_07 = [
     "CouponBanner", // 高德红包
     // "anchor",
     "adv_compliance_info", // 服务提供方
@@ -266,8 +266,8 @@ const AMAP_STATIC_ITEMS_12 = [
     "waistRecEntrance", // 更多人气好去处
     "waterFallFeed", // 附近景点瀑布流
     "waterFallFeedTitle" // 更多人气好去处
-  ];
-const AMAP_STATIC_ITEMS_13 = [
+  ];;
+const AMAP_STATIC_ITEMS_08 = [
     "belt",
     "common_float_bar",
     "common_image_banner",
@@ -279,12 +279,12 @@ const AMAP_STATIC_ITEMS_13 = [
     "operation_brand",
     "promotion_wrap_card",
     "tips_top_banner"
-  ];
-const AMAP_STATIC_ITEMS_01 = ["brandAdCard", "toplist_al"];
-const AMAP_STATIC_ITEMS_02 = ["12"];
-const AMAP_STATIC_ITEMS_03 = ["ad", "poi_ad", "toplist"];
-const AMAP_STATIC_ITEMS_04 = ["ad", "exct_query_sug_merge_theme", "query_sug_merge_theme", "sp"];
-const AMAP_STATIC_ITEMS_05 = ["ad", "poi_ad"];
+  ];;
+const AMAP_STATIC_ITEMS_09 = ["brandAdCard", "toplist_al"];
+const AMAP_STATIC_ITEMS_10 = ["12"];
+const AMAP_STATIC_ITEMS_11 = ["ad", "poi_ad", "toplist"];
+const AMAP_STATIC_ITEMS_12 = ["ad", "exct_query_sug_merge_theme", "query_sug_merge_theme", "sp"];
+const AMAP_STATIC_ITEMS_13 = ["ad", "poi_ad"];
 function compactInPlace(items, keep) {
   let write = 0;
   for (let read = 0, length = items.length; read < length; read++) {
@@ -348,7 +348,7 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
   }
 } else if (url.includes("/boss/order_web/friendly_information")) {
   // 打车页面
-  const items = AMAP_STATIC_ITEMS_06;
+  const items = AMAP_STATIC_ITEMS_01;
   if (obj?.data?.["105"]) {
     for (let i of items) {
       delete obj.data["105"][i];
@@ -382,7 +382,7 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
     delete obj.data.modules.recommended_list;
   }
   if (obj?.data?.modules?.user_filter_card) {
-    const items = AMAP_STATIC_ITEMS_07;
+    const items = AMAP_STATIC_ITEMS_02;
     if (obj?.data?.modules?.user_filter_card?.data) {
       for (let i of items) {
         delete obj.data.modules.user_filter_card.data[i];
@@ -440,7 +440,7 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
   }
 } else if (url.includes("/perception/drive/routePlan")) {
   // 路线规划页
-  const items = AMAP_STATIC_ITEMS_08;
+  const items = AMAP_STATIC_ITEMS_03;
   if (obj?.data?.front_end) {
     for (let i of items) {
       delete obj.data.front_end[i];
@@ -456,7 +456,7 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
   }
 } else if (url.includes("/promotion-web/resource")) {
   // 打车页面
-  const items = AMAP_STATIC_ITEMS_09;
+  const items = AMAP_STATIC_ITEMS_04;
   if (obj?.data) {
     for (let i of items) {
       delete obj.data[i];
@@ -489,7 +489,7 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
   }
 } else if (url.includes("/shield/frogserver/aocs/updatable/")) {
   // 整体图层
-  const items = AMAP_STATIC_ITEMS_10;
+  const items = AMAP_STATIC_ITEMS_05;
   if (obj?.data) {
     for (let i of items) {
       if (obj?.data?.[i]) {
@@ -503,7 +503,7 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
   }
 } else if (url.includes("/shield/search/nearbyrec_smart")) {
   // 附近页面
-  const items = AMAP_STATIC_ITEMS_11;
+  const items = AMAP_STATIC_ITEMS_06;
   if (obj?.data?.modules?.length > 0) {
     if (obj?.data?.modules?.length > 0) {
       compactInPlace(obj.data.modules, (i) => items?.includes(i));
@@ -511,7 +511,7 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
   }
 } else if (url.includes("/shield/search/poi/detail")) {
   // 搜索结果 模块详情
-  const items = AMAP_STATIC_ITEMS_12;
+  const items = AMAP_STATIC_ITEMS_07;
   if (obj?.data?.modules) {
     for (let i of items) {
       delete obj.data.modules[i];
@@ -623,7 +623,7 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
       let list = obj.data.modules.list_data.data;
       if (list?.content?.length > 0) {
         // brandAdCard广告卡片 toplist_al人气榜单 高德指南
-        compactInPlace(list.content, (i) => !AMAP_STATIC_ITEMS_01.includes(i?.item_type));
+        compactInPlace(list.content, (i) => !AMAP_STATIC_ITEMS_09.includes(i?.item_type));
       }
     }
   }
@@ -633,9 +633,9 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
     if (obj?.tip_list?.length > 0) {
       for (let item of obj.tip_list) {
         if (
-            AMAP_STATIC_ITEMS_02.includes(item?.tip?.datatype_spec) ||
-            AMAP_STATIC_ITEMS_03.includes(item?.tip?.result_type) ||
-            AMAP_STATIC_ITEMS_04.includes(item?.tip?.task_tag)
+            AMAP_STATIC_ITEMS_10.includes(item?.tip?.datatype_spec) ||
+            AMAP_STATIC_ITEMS_11.includes(item?.tip?.result_type) ||
+            AMAP_STATIC_ITEMS_12.includes(item?.tip?.task_tag)
         ) {
           continue;
         } else {
@@ -651,9 +651,9 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
         let newTips = [];
         if (item?.tip_list?.length > 0) {
           for (let ii of item.tip_list) {
-            if (AMAP_STATIC_ITEMS_02.includes(ii?.tip?.datatype_spec)) {
+            if (AMAP_STATIC_ITEMS_10.includes(ii?.tip?.datatype_spec)) {
               continue;
-            } else if (AMAP_STATIC_ITEMS_05.includes(ii?.tip?.result_type)) {
+            } else if (AMAP_STATIC_ITEMS_13.includes(ii?.tip?.result_type)) {
               continue;
             } else {
               newTips.push(ii);
@@ -671,7 +671,7 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
   if (obj?.data?.coupon) {
     delete obj.data.coupon;
   }
-  const items = AMAP_STATIC_ITEMS_13;
+  const items = AMAP_STATIC_ITEMS_08;
   if (obj?.data?.modules) {
     for (let i of items) {
       delete obj.data.modules[i];
