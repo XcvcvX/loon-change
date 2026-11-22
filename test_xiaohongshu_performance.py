@@ -53,7 +53,8 @@ vm.runInNewContext(source,ctx,{timeout:5000});
 process.stdout.write(JSON.stringify({body:JSON.parse(done.body),store:Object.fromEntries(store)}));
 """
         original="https://img.example/a.jpg?imageView2/2/w/1080/format/jpg"
-        body={"data":[{"note_list":[{"images_list":[{"url":original,"nested":{"url":original}}],
+        body={"data":[{"note_list":[{"images_list":[{"url":original,"nested":{"url":original},
+          "live_photo_file_id":"live-file-1","live_photo":{"media":{"video_id":"video-1","stream":{"h265":[{"master_url":"https://video.example/live.mp4"}]}}}}],
           "media_save_config":{"disable_save":True},"share_info":{"function_entries":[{"type":"share"}]},
           "note_text_press_options":[{"key":"copy"}],"hash_tag":[{"type":"normal"},{"type":"interact_vote"}]}]}]}
         run=subprocess.run([NODE,"-e",runner],input=json.dumps({"url":"https://edith.xiaohongshu.com/api/sns/v1/note/imagefeed?cursor=fixture","body":body}),
@@ -62,8 +63,13 @@ process.stdout.write(JSON.stringify({body:JSON.parse(done.body),store:Object.fro
         self.assertIn("w/2160/format",item["images_list"][0]["url"])
         self.assertIn("w/2160/format",item["images_list"][0]["nested"]["url"])
         cache=json.loads(out["store"]["fmz200.xiaohongshu.feed.rsp"])
-        self.assertEqual(cache[0]["url"],original)
-        self.assertEqual(cache[0]["nested"]["url"],original)
+        self.assertEqual(cache, [{
+            "live_photo_file_id": "live-file-1",
+            "video_id": "video-1",
+            "url": "https://video.example/live.mp4"
+        }])
+        self.assertNotIn("nested", cache[0])
+        self.assertLess(len(out["store"]["fmz200.xiaohongshu.feed.rsp"]), len(json.dumps(body["data"][0]["note_list"][0]["images_list"])))
         self.assertEqual([x["type"] for x in item["hash_tag"]],["normal"])
 
     @unittest.skipUnless(NODE,"Node required for runtime test")
