@@ -217,21 +217,11 @@ def optimize_source(source, commit="unknown"):
         if any(token not in source for token in required):
             raise ValueError("marked R-Store Xiaohongshu source is incomplete")
         if "function removeRedId(obj) {" in source:
-            source = between(source, "function removeRedId(obj) {", "function Env(", COMMENT_HELPER, "comment helper")
-        elif "function cleanCommentsAndCollectLivePhotos(data)" not in source:
-            raise ValueError("comment traversal helper is missing")
-        source = between(source, '} else if (url.includes("/note/comment")) {',
-                         '} else if (url.includes("/interaction/comment/video/download")) {',
-                         COMMENT_BRANCH, "comment branch")
-        source = source.replace("if (!$response.body) $done({});" + chr(10), "")
-        guard = "if (!$response.body) { $done({}); } else {"
-        if guard not in source:
-            source = once(source, "const url = $request.url;", "const url = $request.url;\n" + guard,
-                          "terminal empty-body guard")
-            source = once(source, "\n\n// 小红书画质增强：加载2K分辨率的图片",
-                          "\n}\n\n// 小红书画质增强：加载2K分辨率的图片",
-                          "terminal empty-body guard close")
-        return source
+            source = between(source, "function removeRedId(obj) {",
+                     "function Env(", COMMENT_HELPER, "comment helper")
+    source = between(source, '} else if (url.includes("/note/comment")) {',
+                     '} else if (url.includes("/interaction/comment/video/download")) {',
+                     COMMENT_BRANCH, "comment branch")
 
     source = once(source, "const url = $request.url;",
                   "const url = $request.url;\n" + HELPERS.strip(), "array helpers")
