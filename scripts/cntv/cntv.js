@@ -565,7 +565,7 @@ if (isIQY) {
     }
   } else if (url.includes("columbus.home.feed/")) {
     // loon-change: CNTV Youku home.feed in-place compaction v1
-    // 首页信息流：原地压缩广告卡片组内节点，避免创建 newNodes/newItems 临时数组。
+    // 首页信息流：原地压缩广告卡片组内节点，避免创建临时数组。
     if (obj?.data?.["2019061000"]?.data) {
       const nodes = obj.data["2019061000"].data.nodes;
       if (nodes?.length > 0) {
