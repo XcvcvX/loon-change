@@ -126,6 +126,38 @@ process.stdout.write(nativeJSON.stringify({doneResult, parseCount, stringifyCoun
         self.assertEqual(result["parseCount"], 1)
         self.assertEqual(result["stringifyCount"], 1)
 
+    def test_search_suggestion_filters_use_in_place_compaction(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        start = source.index('if (url.includes("/shield/search_poi/sug")) {')
+        end = source.index('} else if (url.includes("/shield/search_poi/tips_operation_location")) {', start)
+        block = source[start:end]
+        self.assertIn("compactInPlace(obj.tip_list", block)
+        self.assertIn("compactInPlace(city.tip_list", block)
+        self.assertNotIn("newLists", block)
+        self.assertNotIn("newTips", block)
+        self.assertEqual(optimize_source(source), source)
+
+    def test_city_search_suggestion_filter_preserves_city_and_tip_order(self):
+        body = {"city_list": [
+            {"city": "A", "tip_list": [
+                {"tip": {"datatype_spec": "1", "result_type": "poi"}, "id": 1},
+                {"tip": {"datatype_spec": "12", "result_type": "poi"}, "id": 2},
+                {"tip": {"datatype_spec": "1", "result_type": "ad"}, "id": 3},
+                {"tip": {"datatype_spec": "1", "result_type": "poi"}, "id": 4}
+            ]},
+            {"city": "B", "tip_list": [
+                {"tip": {"datatype_spec": "1", "result_type": "poi"}, "id": 5}
+            ]}
+        ]}
+        result = self.run_script(
+            "https://m1.amap.com/ws/shield/search_poi/sug?x=1",
+            json.dumps(body)
+        )
+        output = json.loads(result["doneResult"]["body"])
+        self.assertEqual([city["city"] for city in output["city_list"]], ["A", "B"])
+        self.assertEqual([x["id"] for x in output["city_list"][0]["tip_list"]], [1, 4])
+        self.assertEqual([x["id"] for x in output["city_list"][1]["tip_list"]], [5])
+
     def test_search_suggestion_filter_preserves_kept_item_order(self):
         body = {"tip_list": [
             {"tip": {"datatype_spec": "1", "result_type": "poi", "task_tag": "normal"}, "id": 1},

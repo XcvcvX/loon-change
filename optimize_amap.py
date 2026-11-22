@@ -98,13 +98,24 @@ def hoist_static_arrays(source):
     return source.replace(anchor, anchor + "\n" + ARRAY_MARKER + "\n" + "\n".join(declarations), 1)
 
 
+
+def compact_search_suggestions_in_place(source):
+    start = 'if (url.includes("/shield/search_poi/sug")) {'
+    end = '} else if (url.includes("/shield/search_poi/tips_operation_location")) {'
+    if source.count(start) != 1 or source.count(end) != 1:
+        raise ValueError("Amap search suggestion block boundary drift")
+    i = source.index(start)
+    j = source.index(end, i + len(start))
+    replacement = "if (url.includes(\"/shield/search_poi/sug\")) {\n  if (Array.isArray(obj?.tip_list) && obj.tip_list.length > 0) {\n    compactInPlace(obj.tip_list, item =>\n      !AMAP_STATIC_ITEMS_10.includes(item?.tip?.datatype_spec) &&\n      !AMAP_STATIC_ITEMS_11.includes(item?.tip?.result_type) &&\n      !AMAP_STATIC_ITEMS_12.includes(item?.tip?.task_tag)\n    );\n  } else if (Array.isArray(obj?.city_list) && obj.city_list.length > 0) {\n    for (const city of obj.city_list) {\n      if (Array.isArray(city?.tip_list) && city.tip_list.length > 0) {\n        compactInPlace(city.tip_list, item =>\n          !AMAP_STATIC_ITEMS_10.includes(item?.tip?.datatype_spec) &&\n          !AMAP_STATIC_ITEMS_13.includes(item?.tip?.result_type)\n        );\n      }\n    }\n  }"
+    return source[:i] + replacement + "\n" + source[j:]
+
 def optimize_source(source, commit="unknown"):
     if MARKER in source:
         if source.count(MARKER) != 1 or source.count(GUARD_MARKER) != 1:
             raise ValueError("Amap optimizer markers are inconsistent")
         if ".filter(" in source or "function compactInPlace(items, keep)" not in source:
             raise ValueError("Amap optimized runtime has drifted")
-        return hoist_static_arrays(source)
+        return compact_search_suggestions_in_place(hoist_static_arrays(source))
     body_guard = "if (!$response.body) $done({});"
     if source.count(body_guard) != 1:
         raise ValueError("Amap empty-body guard anchor changed")
@@ -129,7 +140,7 @@ def optimize_source(source, commit="unknown"):
         raise ValueError("Amap allocating Array.filter remains")
     if source.count("compactInPlace(") != 12:
         raise ValueError("Amap in-place compaction call inventory drift")
-    source = hoist_static_arrays(source)
+    source = compact_search_suggestions_in_place(hoist_static_arrays(source))
     return MARKER + commit + "\n" + source
 
 def rewrite_plugin(plugin):
