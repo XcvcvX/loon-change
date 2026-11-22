@@ -26,10 +26,10 @@ def rows(items):
             if line.strip() and not line.lstrip().startswith('#')]
 
 
-def parse_rewrite(line):
+def parse_rewrite_details(line):
+    """Parse a Rewrite while preserving regex flags as part of matcher semantics."""
     # Modern conditional Rewrite: the regex body may contain unescaped URL slashes.
-    # A closing delimiter is recognized by its syntactic context (flags/alias followed
-    # by &&, ||, or then), rather than by stopping at the first slash.
+    # Capture closing delimiter flags; dropping /i makes distinct matchers look identical.
     modern = re.match(
         r'^(request|response)\s+if\s+\$\{url\}\s*~=?\s*/',
         line, re.I
@@ -45,10 +45,9 @@ def parse_rewrite(line):
             action = re.search(r'\bthen\s+(.+)$', tail, re.I)
             if action:
                 matcher = line[start:start + closing.start()]
-                return modern.group(1).lower(), matcher, action.group(1).strip()
+                return modern.group(1).lower(), matcher, closing.group(1).lower(), action.group(1).strip()
 
-    # Legacy form: <matcher> <action> [argument]. Numeric actions such as 302
-    # are valid and must not be rejected by an alphabetic-only token pattern.
+    # Legacy form has no regex delimiter flags.
     legacy = re.match(r'^(\S+)\s+([A-Za-z0-9_-]+)(?:\s+(.*))?$', line)
     actions = {
         'reject','reject-200','reject-img','reject-dict','reject-array','reject-video',
@@ -64,8 +63,17 @@ def parse_rewrite(line):
         action = legacy.group(2).lower()
         if legacy.group(3):
             action += ' ' + legacy.group(3).strip()
-        return 'legacy', legacy.group(1), action
+        return 'legacy', legacy.group(1), '', action
     return None
+
+
+def parse_rewrite(line):
+    """Backward-compatible three-field view for audits that do not need regex flags."""
+    parsed = parse_rewrite_details(line)
+    if not parsed:
+        return None
+    phase, matcher, _flags, action = parsed
+    return phase, matcher, action
 
 def normalize_regex_literals(pattern):
     """Normalize escaped URL separators and literal port delimiters for scope inspection only."""
@@ -372,31 +380,37 @@ def audit_rewrite_overlaps(rewrite_rows, sample_cap=600, candidate_cap=500):
     """Sample-driven overlap hints; deliberately not a proof of regex intersection."""
     rules, skipped = [], []
     for line_no, line in rewrite_rows:
-        parsed = parse_rewrite(line)
+        parsed = parse_rewrite_details(line)
         if not parsed:
             skipped.append({'line': line_no, 'reason': 'unparsed_rule'})
             continue
-        phase, matcher, action = parsed
+        phase, matcher, flags, action = parsed
         phase = infer_rewrite_phase(phase, action)
+        unsupported_flags = set(flags) - {'i'}
+        if unsupported_flags:
+            skipped.append({'line': line_no, 'phase': phase, 'pattern': matcher,
+                            'flags': flags, 'reason': 'unsupported_regex_flags'})
+            continue
         safe, reason = overlap_pattern_is_safe(matcher)
         if not safe:
             skipped.append({'line': line_no, 'phase': phase, 'pattern': matcher,
-                            'reason': reason})
+                            'flags': flags, 'reason': reason})
             continue
         try:
-            compiled = re.compile(re.sub(r'\\+/', '/', matcher), re.I)
+            python_flags = re.I if 'i' in flags else 0
+            compiled = re.compile(re.sub(r'\\+/', '/', matcher), python_flags)
         except re.error:
             skipped.append({'line': line_no, 'phase': phase, 'pattern': matcher,
-                            'reason': 'python_regex_compile_error'})
+                            'flags': flags, 'reason': 'python_regex_compile_error'})
             continue
         sample = build_overlap_sample(matcher)
         if not sample:
             skipped.append({'line': line_no, 'phase': phase, 'pattern': matcher,
-                            'reason': 'no_safe_url_sample'})
+                            'flags': flags, 'reason': 'no_safe_url_sample'})
             continue
         host = sample.split('://', 1)[1].split('/', 1)[0].split(':', 1)[0].lower()
         info = classify_rewrite_action(action)
-        rules.append({'line': line_no, 'phase': phase, 'pattern': matcher,
+        rules.append({'line': line_no, 'phase': phase, 'pattern': matcher, 'flags': flags,
                       'action': action, 'families': info['families'],
                       'compiled': compiled, 'sample': sample, 'host': host})
 
@@ -424,7 +438,7 @@ def audit_rewrite_overlaps(rewrite_rows, sample_cap=600, candidate_cap=500):
                 continue
         if len(matched) < 2:
             continue
-        signature = tuple(sorted((x['line'], x['phase'], x['pattern']) for x in matched))
+        signature = tuple(sorted((x['line'], x['phase'], x['pattern'], x['flags']) for x in matched))
         if signature in seen:
             continue
         seen.add(signature)
@@ -437,7 +451,9 @@ def audit_rewrite_overlaps(rewrite_rows, sample_cap=600, candidate_cap=500):
             family for left, right in same_phase_pairs
             for family in left['families'] + right['families']
         }
-        if not same_phase_pairs and 'legacy' in {x['phase'] for x in matched}:
+        if len({x['pattern'] for x in matched}) == 1 and len({x['flags'] for x in matched}) > 1:
+            kind = 'case_sensitivity_scope_overlap'
+        elif not same_phase_pairs and 'legacy' in {x['phase'] for x in matched}:
             kind = 'phase_ambiguous_overlap'
         elif not same_phase_pairs:
             kind = 'cross_phase_only'
@@ -450,7 +466,7 @@ def audit_rewrite_overlaps(rewrite_rows, sample_cap=600, candidate_cap=500):
             'phases': sorted({x['phase'] for x in matched}),
             'lines': [x['line'] for x in matched],
             'rules': [{'line': x['line'], 'phase': x['phase'],
-                       'pattern': x['pattern'], 'action': x['action'],
+                       'pattern': x['pattern'], 'flags': x['flags'], 'action': x['action'],
                        'action_families': x['families']} for x in matched]
         })
         if len(groups) >= candidate_cap:
@@ -833,12 +849,12 @@ def audit_deep(path):
     scope_counts, scope_candidates = Counter(), []
     action_family_counts, action_review_candidates, unknown_action_candidates = Counter(), [], []
     for n, line in rewrite:
-        parsed = parse_rewrite(line)
+        parsed = parse_rewrite_details(line)
         if not parsed:
             unknown.append({'line': n, 'entry': line[:220]})
             continue
-        phase, matcher, action = parsed
-        groups[(phase, matcher)].append({'line': n, 'action': action})
+        phase, matcher, flags, action = parsed
+        groups[(phase, matcher, flags)].append({'line': n, 'action': action})
         action_info = classify_rewrite_action(action)
         families = action_info['families']
         for family in families:
@@ -846,31 +862,31 @@ def audit_deep(path):
         priority = action_review_priority(families)
         if priority != 'no_special_review':
             action_review_candidates.append({
-                'line': n, 'phase': phase, 'pattern': matcher, 'action': action,
+                'line': n, 'phase': phase, 'pattern': matcher, 'flags': flags, 'action': action,
                 'action_families': families, 'operations': action_info['operations'],
                 'review_priority': priority,
                 'reasons': action_review_reasons(families)
             })
         if 'unknown' in families:
             unknown_action_candidates.append({
-                'line': n, 'phase': phase, 'pattern': matcher, 'action': action
+                'line': n, 'phase': phase, 'pattern': matcher, 'flags': flags, 'action': action
             })
         scope = classify_rewrite_scope(matcher)
         scope_counts[scope] += 1
         if scope != 'domain_scoped':
             scope_candidates.append({'line': n, 'phase': phase, 'pattern': matcher,
-                                     'action': action, 'scope': scope})
+                                     'flags': flags, 'action': action, 'scope': scope})
         reasons = broad_reasons(matcher)
         if reasons:
             broad.append({'line': n, 'phase': phase, 'pattern': matcher,
-                          'action': action, 'reasons': reasons, 'scope': scope})
+                          'flags': flags, 'action': action, 'reasons': reasons, 'scope': scope})
     overlap_report = audit_rewrite_overlaps(rewrite)
     duplicate_json_delete_paths = audit_duplicate_json_delete_paths(rewrite)
 
     duplicates, conflicts, exact_action_duplicates = [], [], []
     block_action_variant_groups, same_family_multi_operation_groups = [], []
     cross_layer_composable_groups, cross_family_conflicts, unclassified_multi_action_groups = [], [], []
-    for (phase, matcher), entries in sorted(groups.items()):
+    for (phase, matcher, flags), entries in sorted(groups.items()):
         action_counts = Counter(x['action'] for x in entries)
         actions = sorted(action_counts)
         families = sorted({
@@ -881,6 +897,7 @@ def audit_deep(path):
         detail = [
             {
                 'line': entry['line'],
+                'flags': flags,
                 'action': entry['action'],
                 'action_families': classify_rewrite_action(entry['action'])['families'],
                 'operations': classify_rewrite_action(entry['action'])['operations']
@@ -889,7 +906,7 @@ def audit_deep(path):
         ]
         if len(entries) > 1:
             duplicates.append({
-                'phase': phase, 'pattern': matcher, 'actions': actions,
+                'phase': phase, 'pattern': matcher, 'flags': flags, 'actions': actions,
                 'lines': [x['line'] for x in entries], 'entries': detail,
                 'exact_duplicate_actions': sorted(
                     action for action, count in action_counts.items() if count > 1
@@ -898,13 +915,13 @@ def audit_deep(path):
             })
         if any(count > 1 for count in action_counts.values()):
             exact_action_duplicates.append({
-                'phase': phase, 'pattern': matcher,
+                'phase': phase, 'pattern': matcher, 'flags': flags,
                 'actions': sorted(action for action, count in action_counts.items() if count > 1),
                 'lines': [x['line'] for x in entries]
             })
         if len(actions) > 1:
             group = {
-                'phase': phase, 'pattern': matcher, 'actions': actions,
+                'phase': phase, 'pattern': matcher, 'flags': flags, 'actions': actions,
                 'lines': [x['line'] for x in entries], 'entries': detail,
                 'action_families': families
             }
@@ -1013,6 +1030,10 @@ def audit_deep(path):
             'rewrite_overlap_sampled_rules': overlap_report['rewrite_overlap_sampled_rules'],
             'rewrite_overlap_sampled_urls': overlap_report['rewrite_overlap_sampled_urls'],
             'rewrite_overlap_candidate_groups': len(overlap_report['rewrite_overlap_candidate_groups']),
+            'rewrite_case_sensitivity_overlap_groups': sum(
+                x['overlap_type'] == 'case_sensitivity_scope_overlap'
+                for x in overlap_report['rewrite_overlap_candidate_groups']
+            ),
             'rewrite_overlap_manual_review_candidates': len(overlap_report['rewrite_overlap_manual_review_candidates']),
             'rewrite_overlap_skipped_rules': overlap_report['rewrite_overlap_skipped_rules'],
             'mitm_positive_unique_hosts': len(positive),
@@ -1188,6 +1209,7 @@ def render_markdown(report):
         'rewrite_action_semantic_review_candidates':'动作语义自动诊断候选',
         'rewrite_unknown_action_candidates':'未分类动作候选',
         'rewrite_overlap_candidate_groups':'交叉命中候选组',
+        'rewrite_case_sensitivity_overlap_groups':'大小写匹配范围不同的交叉命中组',
         'rewrite_overlap_manual_review_candidates':'跳过/自动诊断警告候选',
         'mitm_positive_unique_hosts':'MITM 正向唯一主机',
         'mitm_wildcards':'MITM 通配主机',

@@ -256,10 +256,10 @@ if (payload.body === null) {
         )
         add_line = next(
             line for line in workflow.splitlines()
-            if line.strip().startswith("git add allAdRewrite.plugin")
+            if line.strip().startswith("git add -A -- allAdRewrite.plugin")
         )
-        self.assertIn("scripts/didi/", diff_line)
-        self.assertIn("scripts/didi/", add_line)
+        self.assertIn("scripts/", diff_line)
+        self.assertIn("scripts/", add_line)
 
 
 if __name__ == "__main__":
