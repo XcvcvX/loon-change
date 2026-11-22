@@ -406,7 +406,7 @@ def audit_rewrite_overlaps(rewrite_rows, sample_cap=600, candidate_cap=500):
         sample = build_overlap_sample(matcher)
         if not sample:
             skipped.append({'line': line_no, 'phase': phase, 'pattern': matcher,
-                            'reason': 'no_safe_url_sample'})
+                            'flags': flags, 'reason': 'no_safe_url_sample'})
             continue
         host = sample.split('://', 1)[1].split('/', 1)[0].split(':', 1)[0].lower()
         info = classify_rewrite_action(action)
@@ -869,17 +869,17 @@ def audit_deep(path):
             })
         if 'unknown' in families:
             unknown_action_candidates.append({
-                'line': n, 'phase': phase, 'pattern': matcher, 'action': action
+                'line': n, 'phase': phase, 'pattern': matcher, 'flags': flags, 'action': action
             })
         scope = classify_rewrite_scope(matcher)
         scope_counts[scope] += 1
         if scope != 'domain_scoped':
             scope_candidates.append({'line': n, 'phase': phase, 'pattern': matcher,
-                                     'action': action, 'scope': scope})
+                                     'flags': flags, 'action': action, 'scope': scope})
         reasons = broad_reasons(matcher)
         if reasons:
             broad.append({'line': n, 'phase': phase, 'pattern': matcher,
-                          'action': action, 'reasons': reasons, 'scope': scope})
+                          'flags': flags, 'action': action, 'reasons': reasons, 'scope': scope})
     overlap_report = audit_rewrite_overlaps(rewrite)
     duplicate_json_delete_paths = audit_duplicate_json_delete_paths(rewrite)
 
@@ -921,7 +921,7 @@ def audit_deep(path):
             })
         if len(actions) > 1:
             group = {
-                'phase': phase, 'pattern': matcher, 'actions': actions,
+                'phase': phase, 'pattern': matcher, 'flags': flags, 'actions': actions,
                 'lines': [x['line'] for x in entries], 'entries': detail,
                 'action_families': families
             }
