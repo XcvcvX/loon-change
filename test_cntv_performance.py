@@ -34,7 +34,7 @@ class CNTVOptimizerTests(unittest.TestCase):
     def test_static_membership_lists_are_hoisted_out_of_per_item_predicates(self):
         source = SOURCE.read_text(encoding="utf-8")
         self.assertIn(STATIC_FILTER_MARKER, source)
-        self.assertGreater(len(re.findall(r"^const CNTV_STATIC_FILTER_\\d+ =", source, re.M)), 0)
+        self.assertGreater(len(re.findall(r"^const CNTV_STATIC_FILTER_\d+ =", source, re.M)), 0)
         self.assertIsNone(STATIC_FILTER_PATTERN.search(source))
         self.assertEqual(optimize_source(source), source)
 
