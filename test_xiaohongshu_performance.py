@@ -38,7 +38,6 @@ vm.runInNewContext(source,ctx,{timeout:5000});
 process.stdout.write(nativeJSON.stringify({body:nativeJSON.parse(done.body),store:Object.fromEntries(store),parseCalls}));
 '''
         video_info=json.dumps({"stream":{"h265":[
-            {"master_url":"https://video.example/720.mp4","width":1280,"height":720},
             {"master_url":"https://video.example/2160.mp4","width":3840,"height":2160}
         ]}})
         body={"data":{"red_id":"root","comments":[{
