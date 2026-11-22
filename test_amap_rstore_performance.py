@@ -12,6 +12,18 @@ NODE = shutil.which("node")
 
 
 class AmapRStoreOptimizerTests(unittest.TestCase):
+    def test_hoister_repairs_a_partially_optimized_snapshot(self):
+        partial = (
+            ARRAY_MARKER + "\n"
+            + 'const AMAP_STATIC_ITEMS_01 = ["existing"];\n'
+            + '  const items = ["banner", "popup"];\n'
+        )
+        repaired = hoist_static_arrays(partial)
+        self.assertNotIn("const items = [", repaired)
+        self.assertIn('const AMAP_STATIC_ITEMS_02 = ["banner", "popup"];', repaired)
+        self.assertEqual(repaired.count(ARRAY_MARKER), 1)
+        self.assertEqual(hoist_static_arrays(repaired), repaired)
+
     def test_static_filter_arrays_are_hoisted_and_optimizer_is_idempotent(self):
         source = SOURCE.read_text(encoding="utf-8")
         self.assertIn(ARRAY_MARKER, source)
