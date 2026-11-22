@@ -52,13 +52,13 @@ const AMAP_STATIC_ITEMS_01 = ["banners", "carouselTips", "integratedBanners", "i
       "bannerList", // 滚动横幅推广
       "service_data", // 全网比价 退订便捷 入住保障 资质规则
       "sug_items_data" // 高德建议
-    ];
+    ]
 const AMAP_STATIC_ITEMS_02 = [
     "assistant", // 左上角悬浮动图
     "global_guide_data",
     "route_search",
     "start_button_tips" // 开始导航 悬浮提示 全国车道级
-  ];
+  ]
 const AMAP_STATIC_ITEMS_03 = [
     "alpha", // 出行优惠套餐
     "banner",
@@ -70,7 +70,7 @@ const AMAP_STATIC_ITEMS_03 = [
     "popup",
     "push", // 顶部通知 发单立享优惠
     "tips"
-  ];
+  ]
 const AMAP_STATIC_ITEMS_04 = [
     "Naviendpage_Searchwords",
     "SplashScreenControl",
@@ -125,7 +125,7 @@ const AMAP_STATIC_ITEMS_04 = [
     "tf_remind", // tf测试版
     "tips_bar_black_list",
     "vip"
-  ];
+  ]
 const AMAP_STATIC_ITEMS_05 = ["head", "search_hot_words", "feed_rec"];
   if (obj?.data?.modules?.length > 0) {
     if (obj?.data?.modules?.length > 0) {
@@ -306,7 +306,7 @@ const AMAP_STATIC_ITEMS_05 = ["head", "search_hot_words", "feed_rec"];
     "waistRecEntrance", // 更多人气好去处
     "waterFallFeed", // 附近景点瀑布流
     "waterFallFeedTitle" // 更多人气好去处
-  ];
+  ]
 const AMAP_STATIC_ITEMS_06 = [
     "belt",
     "common_float_bar",
@@ -319,12 +319,12 @@ const AMAP_STATIC_ITEMS_06 = [
     "operation_brand",
     "promotion_wrap_card",
     "tips_top_banner"
-  ];
-const AMAP_STATIC_ITEMS_07 = ["brandAdCard", "toplist_al"];
-const AMAP_STATIC_ITEMS_08 = ["12"];
-const AMAP_STATIC_ITEMS_09 = ["ad", "poi_ad", "toplist"];
-const AMAP_STATIC_ITEMS_10 = ["ad", "exct_query_sug_merge_theme", "query_sug_merge_theme", "sp"];
-const AMAP_STATIC_ITEMS_11 = ["ad", "poi_ad"];
+  ]
+const AMAP_STATIC_ITEMS_07 = ["brandAdCard", "toplist_al"]
+const AMAP_STATIC_ITEMS_08 = ["12"]
+const AMAP_STATIC_ITEMS_09 = ["ad", "poi_ad", "toplist"]
+const AMAP_STATIC_ITEMS_10 = ["ad", "exct_query_sug_merge_theme", "query_sug_merge_theme", "sp"]
+const AMAP_STATIC_ITEMS_11 = ["ad", "poi_ad"]
 function compactInPlace(items, keep) {
   let write = 0;
   for (let read = 0, length = items.length; read < length; read++) {
