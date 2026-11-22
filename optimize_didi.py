@@ -149,7 +149,7 @@ def optimize_didi_predicates(source):
             raise ValueError("Didi specialized compaction pattern missing: " + old[:72])
         source = source.replace(old, new, 1)
 
-    if re.search(r"compactInPlace\\s*\\(|keepNavIds|keepBottomNavIds|excludedTitles", source):
+    if re.search(r"compactInPlace\s*\(|keepNavIds|keepBottomNavIds|excludedTitles", source):
         raise ValueError("Didi per-response filter callbacks or allowlist arrays remain")
     return source
 
