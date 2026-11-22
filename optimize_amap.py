@@ -57,26 +57,45 @@ STATIC_ARRAY_PATTERN = re.compile(
 
 
 def hoist_static_arrays(source):
-    if ARRAY_MARKER in source:
-        if source.count(ARRAY_MARKER) != 1:
-            raise ValueError("Amap static array hoist marker count drift")
-        return source
+    marker_present = ARRAY_MARKER in source
+    if marker_present and source.count(ARRAY_MARKER) != 1:
+        raise ValueError("Amap static array hoist marker count drift")
+
+    existing_ids = [int(value) for value in re.findall(r"const AMAP_STATIC_ITEMS_(\d+)\s*=", source)]
+    next_id = max(existing_ids, default=0) + 1
     arrays = {}
     names = {}
+
     def register(literal):
         key = re.sub(r"\s+", " ", literal).strip()
         if key not in names:
-            names[key] = "AMAP_STATIC_ITEMS_%02d" % (len(names) + 1)
+            names[key] = "AMAP_STATIC_ITEMS_%02d" % (next_id + len(names))
             arrays[key] = literal
         return names[key]
-    declaration_pattern = re.compile(r"^([ \\t]*)const items = (\\[[^\\n]*?\\];?|\\[[\\s\\S]*?^[ \\t]*\\];?)(?=\\n|$)", re.M)
-    source = declaration_pattern.sub(lambda match: match.group(1) + "const items = " + register(match.group(2)) + ";", source)
-    source = STATIC_ARRAY_PATTERN.sub(lambda match: register(match.group(1)) + ".includes(" + match.group(2) + ")", source)
+
+    declaration_pattern = re.compile(
+        r"^([ \t]*)const items = (\[[^\n]*?\];?|\[[\s\S]*?^[ \t]*\];?)(?=\n|$)",
+        re.M,
+    )
+    source = declaration_pattern.sub(
+        lambda match: match.group(1) + "const items = " + register(match.group(2)) + ";",
+        source,
+    )
+    source = STATIC_ARRAY_PATTERN.sub(
+        lambda match: register(match.group(1)) + ".includes(" + match.group(2) + ")",
+        source,
+    )
+
+    if not arrays:
+        return source
+    declarations = ["const %s = %s;" % (names[key], literal) for key, literal in arrays.items()]
+    if marker_present:
+        return source.replace(ARRAY_MARKER, ARRAY_MARKER + "\n" + "\n".join(declarations), 1)
+
     anchor = "const url = $request.url;"
     if source.count(anchor) != 1:
         raise ValueError("Amap static array insertion anchor changed")
-    declarations = [ARRAY_MARKER] + ["const %s = %s;" % (names[key], literal) for key, literal in arrays.items()]
-    return source.replace(anchor, anchor + "\n" + "\n".join(declarations), 1)
+    return source.replace(anchor, anchor + "\n" + ARRAY_MARKER + "\n" + "\n".join(declarations), 1)
 
 
 def optimize_source(source, commit="unknown"):
