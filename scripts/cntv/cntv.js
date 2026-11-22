@@ -168,7 +168,7 @@ if (isIQY) {
       obj.show_style.roll_period = 1000;
     }
   } else if (url.includes("/views_category/")) {
-    // loon-change: CNTV iQIYI feed array compaction v1
+    // loon-change: CNTV iQIYI feed array compaction v1 
     // 爱奇艺各菜单列表：原地压缩 cards/blocks，避免双层临时数组。
     if (obj?.base?.statistics?.ad_str) delete obj.base.statistics.ad_str;
     if (obj?.cards?.length > 0) {
@@ -192,7 +192,7 @@ if (isIQY) {
               !["comment_resource_card", "comment_resource_convention_card"]?.includes(i?.alias_name)
       );
     }
-  } else if (url.includes("/views_home/")) {
+  } else if (url.includes("/views_home/")) { 
     // 爱奇艺首页信息流：原地移除广告卡片。
     if (obj?.base?.statistics?.ad_str) delete obj.base.statistics.ad_str;
     if (obj?.cards?.length > 0) {
@@ -255,7 +255,7 @@ if (isIQY) {
               ]?.includes(i?.alias_name)
       );
     }
-  } else if (url.includes("/views_search/")) {
+  } else if (url.includes("/views_search/")) { 
     // 爱奇艺搜索结果：卡片与 blocks 均原地压缩。
     if (obj?.cards?.length > 0) {
       compactInPlace(obj.cards, card => {
@@ -274,7 +274,7 @@ if (isIQY) {
         return true;
       });
     }
-  } else if (url.includes("/waterfall/")) {
+  } else if (url.includes("/waterfall/")) { 
     // 爱奇艺瀑布流：外层卡片和内层 blocks 原地压缩。
     if (obj?.base?.statistics?.ad_str) delete obj.base.statistics.ad_str;
     if (obj?.cards?.length > 0) {

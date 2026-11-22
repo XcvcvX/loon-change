@@ -17,46 +17,6 @@
         "script": {
           "action_changed": 0,
           "added": 0,
-          "removed": 2
-        }
-      },
-      "risk_counts": {
-        "high": 2,
-        "low": 0,
-        "medium": 0
-      },
-      "run_id": "44485440677",
-      "source_changes": {
-        "zmjapp": {
-          "action_changed": 0,
-          "added": 0,
-          "removed": 2
-        }
-      },
-      "upstream_revisions": {
-        "AlipayAdBlock": "5685038ec50b505d6d24691b01b5ae8ca05a6142",
-        "Amap": "5685038ec50b505d6d24691b01b5ae8ca05a6142",
-        "GuaZiVideoAds": "5685038ec50b505d6d24691b01b5ae8ca05a6142",
-        "aoomee": "5685038ec50b505d6d24691b01b5ae8ca05a6142",
-        "source_migrations": "",
-        "zmjde": "5685038ec50b505d6d24691b01b5ae8ca05a6142"
-      }
-    },
-    {
-      "change_counts": {
-        "rewrite": {
-          "action_changed": 0,
-          "added": 0,
-          "removed": 0
-        },
-        "rule": {
-          "action_changed": 0,
-          "added": 0,
-          "removed": 0
-        },
-        "script": {
-          "action_changed": 0,
-          "added": 0,
           "removed": 0
         }
       },
@@ -1260,6 +1220,40 @@
         "source_migrations": "",
         "zmjde": "1f460dde9418857944f95d036e6700f8099a445b"
       }
+    },
+    {
+      "change_counts": {
+        "rewrite": {
+          "action_changed": 0,
+          "added": 0,
+          "removed": 0
+        },
+        "rule": {
+          "action_changed": 0,
+          "added": 0,
+          "removed": 0
+        },
+        "script": {
+          "action_changed": 0,
+          "added": 0,
+          "removed": 0
+        }
+      },
+      "risk_counts": {
+        "high": 0,
+        "low": 0,
+        "medium": 0
+      },
+      "run_id": "45026844017",
+      "source_changes": {},
+      "upstream_revisions": {
+        "AlipayAdBlock": "1f460dde9418857944f95d036e6700f8099a445b",
+        "Amap": "1f460dde9418857944f95d036e6700f8099a445b",
+        "GuaZiVideoAds": "1f460dde9418857944f95d036e6700f8099a445b",
+        "aoomee": "1f460dde9418857944f95d036e6700f8099a445b",
+        "source_migrations": "",
+        "zmjde": "1f460dde9418857944f95d036e6700f8099a445b"
+      }
     }
   ],
   "source_trends_last_30_snapshots": {
@@ -1290,8 +1284,8 @@
     "zmjapp": {
       "action_changed": 12,
       "added": 0,
-      "removed": 11,
-      "snapshots_seen": 8
+      "removed": 9,
+      "snapshots_seen": 7
     },
     "zmjgen": {
       "action_changed": 0,
