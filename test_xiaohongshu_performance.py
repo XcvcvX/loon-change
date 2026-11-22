@@ -73,6 +73,25 @@ process.stdout.write(JSON.stringify({body:JSON.parse(done.body),store:Object.fro
         self.assertEqual([x["type"] for x in item["hash_tag"]],["normal"])
 
     @unittest.skipUnless(NODE,"Node required for runtime test")
+    def test_live_photo_save_reads_compact_cache(self):
+        runner=r"""
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync("scripts/xiaohongshu/xiaohongshu.js","utf8");
+const p=JSON.parse(fs.readFileSync(0,"utf8")),store=new Map(Object.entries(p.store));let done;
+const ctx={$loon:{},$persistentStore:{read:k=>store.get(k)||null,write:(v,k)=>(store.set(k,v),true)},
+$request:{url:p.url},$response:{body:JSON.stringify(p.body)},$done:v=>done=v,console:{log(){},warn(){},error(){}}};
+vm.runInNewContext(source,ctx,{timeout:5000});
+process.stdout.write(JSON.stringify(JSON.parse(done.body)));
+"""
+        compact=[{"live_photo_file_id":"live-file-1","video_id":"video-1","url":"https://video.example/live.mp4"}]
+        body={"code":0,"data":{"datas":[{"file_id":"live-file-1","url":"https://placeholder.example/video.mp4"}]}}
+        run=subprocess.run([NODE,"-e",runner],input=json.dumps({
+            "url":"https://edith.xiaohongshu.com/api/sns/v1/note/live_photo/save",
+            "body":body,"store":{"fmz200.xiaohongshu.feed.rsp":json.dumps(compact)}}),
+            cwd=ROOT,capture_output=True,text=True,check=True,timeout=10)
+        out=json.loads(run.stdout)
+        self.assertEqual(out["data"]["datas"][0]["url"],"https://video.example/live.mp4")
+
+    @unittest.skipUnless(NODE,"Node required for runtime test")
     def test_homefeed_filters_stably_and_removes_related_question(self):
         runner=r"""
 const fs=require("fs"),vm=require("vm"),source=fs.readFileSync("scripts/xiaohongshu/xiaohongshu.js","utf8");
