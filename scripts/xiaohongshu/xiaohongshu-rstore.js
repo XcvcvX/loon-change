@@ -17,6 +17,7 @@ https://raw.githubusercontent.com/zirawell/R-Store/main/Rule/Surge/Adblock/App/X
 
 const $ = new Env('小红书');
 const url = $request.url;
+if (!$response.body) { $done({}); } else {
 function compactInPlace(items, keep) {
   let write = 0;
   for (let read = 0, length = items.length; read < length; read++) {
@@ -342,6 +343,8 @@ if (url.includes("/note/imagefeed") || url.includes("/note/feed")) {
 }
 
 $done({body: JSON.stringify(obj)});
+
+}
 
 
 // 小红书画质增强：加载2K分辨率的图片
