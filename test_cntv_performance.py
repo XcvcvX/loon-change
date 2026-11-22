@@ -34,10 +34,10 @@ class CNTVOptimizerTests(unittest.TestCase):
         source = SOURCE.read_text(encoding="utf-8")
         self.assertIn("// loon-change: CNTV iQIYI feed array compaction v1", source)
         branches = [
-            ('url.includes("/views_category/")', 'url.includes("/views_comment/")'),
-            ('url.includes("/views_home/")', 'url.includes("/views_plt/")'),
-            ('url.includes("/views_search/")', 'url.includes("/waterfall/")'),
-            ('url.includes("/waterfall/")', '} else if (isMG) {'),
+            ('  } else if (url.includes("/views_category/")) {', '  } else if (url.includes("/views_comment/")) {'),
+            ('  } else if (url.includes("/views_home/")) {', '  } else if (url.includes("/views_plt/")) {'),
+            ('  } else if (url.includes("/views_search/")) {', '  } else if (url.includes("/waterfall/")) {'),
+            ('  } else if (url.includes("/waterfall/")) {', '} else if (isMG) {'),
         ]
         for start, end in branches:
             block = source.split(start, 1)[1].split(end, 1)[0]
