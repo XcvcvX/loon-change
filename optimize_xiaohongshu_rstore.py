@@ -115,17 +115,47 @@ REPLACE_URL = r'''function replaceUrlContent(collectionA, collectionB) {
   }
 }'''
 
-REMOVE_RED_ID = r'''function removeRedId(obj) {
-  const stack = [obj];
+COMMENT_HELPER = r'''function cleanCommentsAndCollectLivePhotos(data) {
+  const livePhotos = [];
+  const stack = [data];
+  const visited = new WeakSet();
+  const commentNodes = new WeakSet();
+  const videoInfoCache = new Map();
+  if (Array.isArray(data?.comments)) {
+    for (const comment of data.comments) {
+      if (comment && typeof comment === "object") commentNodes.add(comment);
+    }
+  }
   while (stack.length) {
     const current = stack.pop();
+    if (!current || typeof current !== "object" || visited.has(current)) continue;
+    visited.add(current);
+    if (!Array.isArray(current) && "red_id" in current) delete current.red_id;
+    if (commentNodes.has(current)) {
+      if (current.comment_type === 3) current.comment_type = 2;
+      if (current.media_source_type === 1) current.media_source_type = 0;
+      if (current.pictures?.length > 0) {
+        for (const picture of current.pictures) {
+          if (!picture.video_id) continue;
+          const rawVideoInfo = picture.video_info;
+          if (!videoInfoCache.has(rawVideoInfo)) videoInfoCache.set(rawVideoInfo, JSON.parse(rawVideoInfo));
+          const picObj = videoInfoCache.get(rawVideoInfo);
+          const videoUrl = picObj.stream?.h265?.[0]?.master_url;
+          if (videoUrl) livePhotos.push({videId: picture.video_id, videoUrl});
+        }
+      }
+      if (Array.isArray(current.sub_comments)) {
+        for (const subComment of current.sub_comments) {
+          if (subComment && typeof subComment === "object") commentNodes.add(subComment);
+        }
+      }
+    }
     if (Array.isArray(current)) {
       for (let index = current.length - 1; index >= 0; index--) {
         const child = current[index];
         if (child && typeof child === "object") stack.push(child);
       }
-    } else if (current && typeof current === "object") {
-      if ("red_id" in current) delete current.red_id;
+    } else {
       for (const key in current) {
         if (!Object.prototype.hasOwnProperty.call(current, key)) continue;
         const child = current[key];
@@ -133,8 +163,8 @@ REMOVE_RED_ID = r'''function removeRedId(obj) {
       }
     }
   }
+  return livePhotos;
 }'''
-
 DEDUP = r'''function deDuplicateLivePhotos(livePhotos) {
   const seen = new Set();
   return compactInPlace(livePhotos, item => {
@@ -160,11 +190,37 @@ def between(source, start, end, replacement, label):
     return source[:left] + replacement + "\n\n" + source[right:]
 
 def optimize_source(source, commit="unknown"):
+    COMMENT_BRANCH = r'''} else if (url.includes("/note/comment")) {
+  const commentData = obj.data;
+  const livePhotos = cleanCommentsAndCollectLivePhotos(commentData);
+  const note_id = commentData?.comments?.[0]?.note_id || "";
+  if (livePhotos.length > 0) {
+    let commitsRsp;
+    const commitsCache = $.getdata("xiaohongshu.comments.rsp");
+    if (!commitsCache) {
+      commitsRsp = {noteId: note_id, livePhotos: livePhotos};
+    } else {
+      commitsRsp = JSON.parse(commitsCache);
+      if (commitsRsp.noteId === note_id) {
+        commitsRsp.livePhotos = appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos);
+      } else {
+        commitsRsp = {noteId: note_id, livePhotos: livePhotos};
+      }
+    }
+    $.setdata(JSON.stringify(commitsRsp), "xiaohongshu.comments.rsp");
+  }
+'''
     if MARKER in source:
         required = ("imageEnhance(images)", "compactInPlace(obj.data", "appendUniqueLivePhotos",
-                    "const byFileId = new Map()", "const stack = [obj]")
+                    "const byFileId = new Map()", "function cleanCommentsAndCollectLivePhotos(data)",
+                    "const videoInfoCache = new Map()", "const visited = new WeakSet()")
         if any(token not in source for token in required):
             raise ValueError("marked R-Store Xiaohongshu source is incomplete")
+        source = between(source, "function removeRedId(obj) {", "function Env(", COMMENT_HELPER, "comment helper")
+        source = between(source, '} else if (url.includes("/note/comment")) {',
+                         '} else if (url.includes("/interaction/comment/video/download")) {',
+                         COMMENT_BRANCH, "comment branch")
+        source = source.replace("if (!$response.body) $done({});" + chr(10), "")
         guard = "if (!$response.body) { $done({}); } else {"
         if guard not in source:
             source = once(source, "const url = $request.url;", "const url = $request.url;\n" + guard,
