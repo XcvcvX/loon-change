@@ -240,9 +240,9 @@ def optimize_iqiyi_feed_arrays(source):
             raise ValueError("CNTV iQIYI feed branch inventory changed: " + start)
         a = source.index(start)
         b = source.index(end, a + len(start))
-        source = source[:a + len(start)] + body + "\\n" + source[b:]
+        source = source[:a + len(start)] + body + "\n" + source[b:]
     anchor = '  } else if (url.includes("/views_category/")) {'
-    source = source.replace(anchor, anchor + "\\n    " + IQIYI_FEED_MARKER, 1)
+    source = source.replace(anchor, anchor + "\n    " + IQIYI_FEED_MARKER, 1)
     return source
 
 def optimize_source(source, commit="unknown"):
