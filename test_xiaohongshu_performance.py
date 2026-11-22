@@ -38,8 +38,8 @@ vm.runInNewContext(source,ctx,{timeout:5000});
 process.stdout.write(nativeJSON.stringify({body:nativeJSON.parse(done.body),store:Object.fromEntries(store),parseCalls}));
 '''
         video_info=json.dumps({"stream":{"h265":[
-            {"master_url":"https://video.example/720.mp4","height":720},
-            {"master_url":"https://video.example/2160.mp4","height":2160}
+            {"master_url":"https://video.example/720.mp4","width":1280,"height":720},
+            {"master_url":"https://video.example/2160.mp4","width":3840,"height":2160}
         ]}})
         body={"data":{"red_id":"root","comments":[{
             "id":"top","note_id":"note-1","red_id":"top-red","comment_type":3,"media_source_type":1,
@@ -126,9 +126,10 @@ process.stdout.write(nativeJSON.stringify({body:nativeJSON.parse(done.body),stor
     def test_comment_tree_walk_avoids_object_keys_temporary_arrays(self):
         source=(ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")
         self.assertNotIn("Object.keys(current)",source)
-        self.assertIn("for(const key in current)",source)
-        self.assertIn("const childStart=stack.length;",source)
-        self.assertIn("Object.prototype.hasOwnProperty.call(current,key)",source)
+        self.assertIn("for (const key in current)",source)
+        self.assertIn("const visited = new WeakSet()",source)
+        self.assertIn("Object.prototype.hasOwnProperty.call(current, key)",source)
+        self.assertIn("processCommentTree(obj.data, livePhotos, commentVideos, note_id);",source)
 
     def test_plugin_rewrites_exact_nine_triggers(self):
         dollar=chr(36)
