@@ -17,6 +17,59 @@ class XiaohongshuOptimizerTests(unittest.TestCase):
         self.assertNotIn('console.log("写入缓存val：" + JSON.stringify(commitsRsp))',src)
         self.assertFalse(any("console.log(" in line and any(token in line for token in ("原body：","新body：","写入缓存val","comment_id:","video_id：")) for line in src.splitlines()))
 
+    def test_comment_processing_combines_tree_cleanup_and_media_extraction(self):
+        source=(ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")
+        self.assertIn("function processCommentTree(data, livePhotos, commentVideos, noteId)",source)
+        self.assertNotIn("replaceRedIdWithFmz200(obj.data)",source)
+        self.assertNotIn("function replaceRedIdWithFmz200(obj)",source)
+        self.assertIn("const parsedVideoInfo = new Map()",source)
+        self.assertIn("processCommentTree(obj.data, livePhotos, commentVideos, note_id);",source)
+
+    @unittest.skipUnless(NODE,"Node required for comment runtime test")
+    def test_comment_tree_single_pass_preserves_cleanup_and_media_caches(self):
+        runner=r'''
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync("scripts/xiaohongshu/xiaohongshu.js","utf8");
+const p=JSON.parse(fs.readFileSync(0,"utf8")),store=new Map();let done,parseCalls=0;
+const nativeJSON=JSON;
+const trackedJSON={parse(value){parseCalls++;return nativeJSON.parse(value);},stringify(value){return nativeJSON.stringify(value);}};
+const ctx={JSON:trackedJSON,$loon:{},$persistentStore:{read:k=>store.get(k)||null,write:(v,k)=>(store.set(k,v),true)},
+$request:{url:p.url},$response:{body:nativeJSON.stringify(p.body)},$done:v=>done=v,console:{log(){},warn(){},error(){}}};
+vm.runInNewContext(source,ctx,{timeout:5000});
+process.stdout.write(nativeJSON.stringify({body:nativeJSON.parse(done.body),store:Object.fromEntries(store),parseCalls}));
+'''
+        video_info=json.dumps({"stream":{"h265":[
+            {"master_url":"https://video.example/720.mp4","height":720},
+            {"master_url":"https://video.example/2160.mp4","height":2160}
+        ]}})
+        body={"data":{"red_id":"root","comments":[{
+            "id":"top","note_id":"note-1","red_id":"top-red","comment_type":3,"media_source_type":1,
+            "pictures":[{"video_id":"live-1","video_info":video_info}],
+            "videos":[{"video_id":"comment-video-1","video_info":video_info}],
+            "sub_comments":[{"id":"sub","red_id":"sub-red","comment_type":3,"pictures":[
+                {"video_id":"live-2","video_info":video_info}
+            ],"nested":{"red_id":"deep-red"}}]
+        }]}}
+        run=subprocess.run([NODE,"-e",runner],input=json.dumps({
+            "url":"https://edith.xiaohongshu.com/api/sns/v5/note/comment/list?cursor=fixture","body":body
+        }),cwd=ROOT,capture_output=True,text=True,check=True,timeout=10)
+        out=json.loads(run.stdout);comment=out["body"]["data"]["comments"][0]
+        sub=comment["sub_comments"][0]
+        self.assertNotIn("red_id",out["body"]["data"])
+        self.assertNotIn("red_id",comment)
+        self.assertNotIn("red_id",sub)
+        self.assertNotIn("red_id",sub["nested"])
+        self.assertEqual(comment["fmz200"],"top-red")
+        self.assertEqual(sub["fmz200"],"sub-red")
+        self.assertEqual(comment["comment_type"],2)
+        self.assertEqual(comment["media_source_type"],0)
+        self.assertEqual(sub["comment_type"],2)
+        live=json.loads(out["store"]["fmz200.xiaohongshu.comments.rsp"])
+        videos=json.loads(out["store"]["fmz200.xiaohongshu.comments.videos.rsp"])
+        self.assertEqual([x["videId"] for x in live["livePhotos"]],["live-1","live-2"])
+        self.assertEqual(live["livePhotos"][0]["videoUrl"],"https://video.example/2160.mp4")
+        self.assertEqual(videos["videos"][0]["videId"],"comment-video-1")
+        self.assertEqual(videos["videos"][0]["videoUrl"],"https://video.example/2160.mp4")
+        self.assertEqual(out["parseCalls"],2)
     def test_comment_tree_walk_avoids_object_keys_temporary_arrays(self):
         source=(ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")
         self.assertNotIn("Object.keys(current)",source)
