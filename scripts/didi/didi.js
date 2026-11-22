@@ -54,7 +54,6 @@ function compactDidiByField(items, field, mode) {
   if (write !== length) modified = true;
   return items;
 }
-
 if (!$response.body) {
   $done({});
 } else {
