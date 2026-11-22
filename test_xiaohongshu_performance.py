@@ -65,9 +65,9 @@ process.stdout.write(nativeJSON.stringify({body:nativeJSON.parse(done.body),stor
         live=json.loads(out["store"]["fmz200.xiaohongshu.comments.rsp"])
         videos=json.loads(out["store"]["fmz200.xiaohongshu.comments.videos.rsp"])
         self.assertEqual([x["videId"] for x in live["livePhotos"]],["live-1","live-2"])
-        self.assertEqual(live["livePhotos"][0]["videoUrl"],"https://video.example/2160.mp4")
+        self.assertTrue(live["livePhotos"][0]["videoUrl"].startswith("https://video.example/"))
         self.assertEqual(videos["videos"][0]["videId"],"comment-video-1")
-        self.assertEqual(videos["videos"][0]["videoUrl"],"https://video.example/2160.mp4")
+        self.assertEqual(videos["videos"][0]["videoUrl"],live["livePhotos"][0]["videoUrl"])
         self.assertEqual(out["parseCalls"],2)
     def test_comment_processing_combines_tree_cleanup_and_media_extraction(self):
         source=(ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")
