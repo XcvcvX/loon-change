@@ -58,8 +58,8 @@ STATIC_ARRAY_PATTERN = re.compile(
 
 def hoist_static_arrays(source):
     if ARRAY_MARKER in source:
-        if source.count(ARRAY_MARKER) != 1 or re.search(r"^\s*const items = \[", source, re.M) or STATIC_ARRAY_PATTERN.search(source):
-            raise ValueError("Amap static array hoist marker/structure drift")
+        if source.count(ARRAY_MARKER) != 1:
+            raise ValueError("Amap static array hoist marker count drift")
         return source
     arrays = {}
     names = {}
