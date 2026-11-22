@@ -4,7 +4,7 @@ import subprocess
 import unittest
 from pathlib import Path
 
-from optimize_amap import LOCAL, REMOTE, rewrite_plugin
+from optimize_amap import ARRAY_MARKER, LOCAL, REMOTE, hoist_static_arrays, optimize_source, rewrite_plugin
 
 ROOT = Path(__file__).resolve().parent
 SOURCE = ROOT / "scripts" / "amap" / "amap.js"
@@ -12,6 +12,14 @@ NODE = shutil.which("node")
 
 
 class AmapRStoreOptimizerTests(unittest.TestCase):
+    def test_static_filter_arrays_are_hoisted_and_optimizer_is_idempotent(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        self.assertIn(ARRAY_MARKER, source)
+        self.assertNotRegex(source, r"^\s*const items = \[")
+        self.assertNotRegex(source, r"\[(?:\s*(?:\"[^\"\n]*\"|'[^'\n]*')\s*,?)+\s*\]\?\.includes")
+        self.assertEqual(hoist_static_arrays(source), source)
+        self.assertEqual(optimize_source(source), source)
+
     def test_local_script_has_guard_and_in_place_compaction(self):
         source = SOURCE.read_text(encoding="utf-8")
         self.assertIn("Amap R-Store supported-route guard v1", source)

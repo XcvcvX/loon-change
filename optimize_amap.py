@@ -49,13 +49,43 @@ if (!shouldProcess) {
 } else {
 """
 
+
+ARRAY_MARKER = "// loon-change: Amap hoisted static filter arrays v1"
+STATIC_ARRAY_PATTERN = re.compile(
+    r"""(\[(?:\s*(?:"[^"\n]*"|'[^'\n]*'|-?\d+)\s*,?)+\s*\])\?\.includes\(([^()\n]*)\)"""
+)
+
+
+def hoist_static_arrays(source):
+    if ARRAY_MARKER in source:
+        if source.count(ARRAY_MARKER) != 1:
+            raise ValueError("Amap static array hoist marker count drift")
+        return source
+    arrays = {}
+    names = {}
+    def register(literal):
+        key = re.sub(r"\s+", " ", literal).strip()
+        if key not in names:
+            names[key] = "AMAP_STATIC_ITEMS_%02d" % (len(names) + 1)
+            arrays[key] = literal
+        return names[key]
+    declaration_pattern = re.compile(r"^([ \\t]*)const items = (\\[[^\\n]*?\\];?|\\[[\\s\\S]*?^[ \\t]*\\];?)(?=\\n|$)", re.M)
+    source = declaration_pattern.sub(lambda match: match.group(1) + "const items = " + register(match.group(2)) + ";", source)
+    source = STATIC_ARRAY_PATTERN.sub(lambda match: register(match.group(1)) + ".includes(" + match.group(2) + ")", source)
+    anchor = "const url = $request.url;"
+    if source.count(anchor) != 1:
+        raise ValueError("Amap static array insertion anchor changed")
+    declarations = [ARRAY_MARKER] + ["const %s = %s;" % (names[key], literal) for key, literal in arrays.items()]
+    return source.replace(anchor, anchor + "\n" + "\n".join(declarations), 1)
+
+
 def optimize_source(source, commit="unknown"):
     if MARKER in source:
         if source.count(MARKER) != 1 or source.count(GUARD_MARKER) != 1:
             raise ValueError("Amap optimizer markers are inconsistent")
         if ".filter(" in source or "function compactInPlace(items, keep)" not in source:
             raise ValueError("Amap optimized runtime has drifted")
-        return source
+        return hoist_static_arrays(source)
     body_guard = "if (!$response.body) $done({});"
     if source.count(body_guard) != 1:
         raise ValueError("Amap empty-body guard anchor changed")
@@ -80,6 +110,7 @@ def optimize_source(source, commit="unknown"):
         raise ValueError("Amap allocating Array.filter remains")
     if source.count("compactInPlace(") != 12:
         raise ValueError("Amap in-place compaction call inventory drift")
+    source = hoist_static_arrays(source)
     return MARKER + commit + "\n" + source
 
 def rewrite_plugin(plugin):

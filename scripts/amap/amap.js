@@ -12,188 +12,21 @@ https://raw.githubusercontent.com/zirawell/R-Store/main/Rule/Surge/Adblock/App/G
 ********************************/
 
 const url = $request.url;
-function compactInPlace(items, keep) {
-  let write = 0;
-  for (let read = 0, length = items.length; read < length; read++) {
-    const item = items[read];
-    if (keep(item, read)) {
-      if (write !== read) items[write] = item;
-      write++;
-    }
-  }
-  items.length = write;
-  return items;
-}
-
-if (!$response.body) {
-  $done({});
-} else {
-// loon-change: Amap R-Store supported-route guard v1
-const shouldProcess =
-  url.includes("/aos/perception/publicTravel/beforeNavi") ||
-  url.includes("/bus/plan/integrate") ||
-  url.includes("/c3frontend/af-hotel/page/main") ||
-  url.includes("/c3frontend/af-launch/page/main") ||
-  url.includes("/perception/drive/routeInfo") ||
-  url.includes("/perception/drive/routePlan") ||
-  url.includes("/shield/search/common/coupon/info") ||
-  url.includes("/shield/search/poi/detail") ||
-  url.includes("/shield/search_business/process/marketingOperationStructured") ||
-  url.includes("/shield/search_poi/") ||
-  url.includes("/faas/amap-navigation/card-service-plan-home") ||
-  url.includes("/faas/amap-navigation/main-page") ||
-  url.includes("/shield/frogserver/aocs/updatable/1") ||
-  url.includes("/shield/dsp/profile/index/nodefaasv") ||
-  url.includes("/shield/search/nearbyrec_smart") ||
-  url.includes("/boss/car/order/content_info") ||
-  url.includes("/boss/order_web/friendly_information") ||
-  url.includes("/promotion-web/resource") ||
-  url.includes("/sharedtrip/taxi/order_detail_car_tips");
-if (!shouldProcess) {
-  $done({});
-} else {
-let obj = JSON.parse($response.body);
-
-if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
-  if (obj?.data?.common_data?.bus_plan_bottom_event?.data?.length > 0) {
-    // 公交出行 底部卡路里数值
-    obj.data.common_data.bus_plan_bottom_event.data = [];
-  }
-  if (obj?.data?.common_data?.bus_plan_segment_event?.data?.length > 0) {
-    // 公交出行 中转站 卡路里数值
-    obj.data.common_data.bus_plan_segment_event.data = [];
-  }
-  // 导航选择路线页面 左上角动图
-  if (obj?.data?.front_end?.assistant?.length > 0) {
-    obj.data.front_end.assistant = [];
-  }
-} else if (url.includes("/boss/car/order/content_info")) {
-  // 打车页面
-  if (obj?.data?.lubanData?.skin?.dataList?.length > 0) {
-    // oss营销皮肤
-    obj.data.lubanData.skin.dataList = [];
-  }
-} else if (url.includes("/boss/order_web/friendly_information")) {
-  // 打车页面
-  const items = ["banners", "carouselTips", "integratedBanners", "integratedTips", "skins", "skinAndTips", "tips"];
-  if (obj?.data?.["105"]) {
-    for (let i of items) {
-      delete obj.data["105"][i];
-    }
-  }
-} else if (url.includes("/bus/plan/integrate")) {
-  // 公交列表
-  if (obj?.data?.banner_lists?.data?.length > 0) {
-    // 公交列表 顶部滚动横图
-    obj.data.banner_lists.data = [];
-  }
-  if (obj?.data?.banner_lists?.tips?.length > 0) {
-    obj.data.banner_lists.tips = [];
-  }
-  if (obj?.data?.mixed_plans?.data?.taxiPlans?.length > 0) {
-    // 公交列表 推广打车出行
-    obj.data.mixed_plans.data.taxiPlans = [];
-  }
-} else if (url.includes("/c3frontend/af-hotel/page/main")) {
-  // 酒店/民宿 景区门票 火车/飞机
-  if (obj?.data?.modules?.CouponPortalCard) {
-    // 横幅推广
-    delete obj.data.modules.CouponPortalCard;
-  }
-  if (obj?.data?.modules?.CouponWidget) {
-    // 右下角活动悬浮窗
-    delete obj.data.modules.CouponWidget;
-  }
-  if (obj?.data?.modules?.recommended_list) {
-    // 高德建议
-    delete obj.data.modules.recommended_list;
-  }
-  if (obj?.data?.modules?.user_filter_card) {
-    const items = [
+// loon-change: Amap hoisted static filter arrays v1
+const AMAP_STATIC_ITEMS_01 = ["banners", "carouselTips", "integratedBanners", "integratedTips", "skins", "skinAndTips", "tips"];
+const AMAP_STATIC_ITEMS_02 = [
       "banner", // 大横幅
       "bannerList", // 滚动横幅推广
       "service_data", // 全网比价 退订便捷 入住保障 资质规则
       "sug_items_data" // 高德建议
     ];
-    if (obj?.data?.modules?.user_filter_card?.data) {
-      for (let i of items) {
-        delete obj.data.modules.user_filter_card.data[i];
-      }
-      if (obj?.data?.modules?.user_filter_card?.data?.search_button_data?.rightbgText) {
-        // 查询按钮右上角角标
-        delete obj.data.modules.user_filter_card.data.search_button_data.rightbgText;
-      }
-    }
-  }
-} else if (url.includes("/c3frontend/af-launch/page/main")) {
-  // 步行导航结束推广卡片
-  if (obj?.data?.modules?.C1EndNaviEngine?.data) {
-    obj.data.modules.C1EndNaviEngine.data = {};
-  }
-} else if (url.includes("/faas/amap-navigation/card-service-plan-home")) {
-  // 路线规划页
-  if (obj?.data?.children?.length > 0) {
-    // 有schema参数的为推广
-    compactInPlace(obj.data.children, (i) => !i.hasOwnProperty("schema"));
-  }
-} else if (url.includes("/faas/amap-navigation/main-page")) {
-  // 首页底部卡片
-  if (obj?.data?.cardList?.length > 0) {
-    compactInPlace(obj.data.cardList, 
-        (i) =>
-            i?.dataKey === "ContinueNavigationCard" || // 继续导航
-            i?.dataKey === "FrequentLocation" || // 常去地点
-            i?.dataKey === "LoginCard" // 登陆卡片
-    );
-  }
-  if (obj?.data?.mapBizList?.length > 0) {
-    compactInPlace(obj.data.mapBizList, 
-        (i) => i?.dataKey === "FindCarVirtualCard" // 显示关联车辆位置
-    );
-  }
-} else if (url.includes("/perception/drive/routeInfo")) {
-  // 导航详情页
-  if (obj?.data?.tbt?.event?.length > 0) {
-    compactInPlace(obj.data.tbt.event, (i) => !/ads-\d+/.test(i?.dynamic_id_s));
-  }
-  if (obj?.data?.front_end) {
-    if (obj?.data?.front_end?.guide_tips?.length > 0) {
-      // 音乐底栏
-      compactInPlace(obj.data.front_end.guide_tips, (i) => i?.biz_type !== "music");
-    }
-    if (obj?.data?.front_end?.assistant) {
-      // 助手皮肤
-      delete obj.data.front_end.assistant;
-    }
-    if (obj?.data?.front_end?.download?.length > 0) {
-      // 导航插播语音广告
-      compactInPlace(obj.data.front_end.download, (i) => !/ads-\d+/.test(i?.dynamic_id_s));
-    }
-  }
-} else if (url.includes("/perception/drive/routePlan")) {
-  // 路线规划页
-  const items = [
+const AMAP_STATIC_ITEMS_03 = [
     "assistant", // 左上角悬浮动图
     "global_guide_data",
     "route_search",
     "start_button_tips" // 开始导航 悬浮提示 全国车道级
   ];
-  if (obj?.data?.front_end) {
-    for (let i of items) {
-      delete obj.data.front_end[i];
-    }
-  }
-  if (obj?.data?.tbt?.event?.length > 0) {
-    // 导航插播语音广告
-    compactInPlace(obj.data.tbt.event, (i) => !/ads-\d+/.test(i?.dynamic_id_s));
-  }
-  if (obj?.data?.front_end?.download?.length > 0) {
-    // 导航插播语音广告
-    compactInPlace(obj.data.front_end.download, (i) => !/ads-\d+/.test(i?.dynamic_id_s));
-  }
-} else if (url.includes("/promotion-web/resource")) {
-  // 打车页面
-  const items = [
+const AMAP_STATIC_ITEMS_04 = [
     "alpha", // 出行优惠套餐
     "banner",
     "bravo", // 第三方推广 喜马拉雅月卡
@@ -205,39 +38,7 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
     "push", // 顶部通知 发单立享优惠
     "tips"
   ];
-  if (obj?.data) {
-    for (let i of items) {
-      delete obj.data[i];
-    }
-  }
-} else if (url.includes("/sharedtrip/taxi/order_detail_car_tips")) {
-  // 打车页
-  if (obj.data?.carTips?.data?.popupInfo) {
-    delete obj.data.carTips.data.popupInfo;
-  }
-} else if (url.includes("/shield/dsp/profile/index/nodefaasv3")) {
-  // 我的页面
-  if (obj?.data?.cardList?.length > 0) {
-    compactInPlace(obj.data.cardList, (i) => i?.dataKey === "MyOrderCard");
-  }
-  if (obj?.data?.tipData) {
-    delete obj.data.tipData;
-  }
-  // 足迹
-  // if (obj.data.footPrintV2) {
-  //   delete obj.data.footPrintV2;
-  // }
-  // 成就勋章 lv1见习达人
-  if (obj?.data?.memberInfo) {
-    delete obj.data.memberInfo;
-  }
-  if (obj?.data?.topMixedCard) {
-    // 顶部足迹、贡献卡片
-    delete obj.data.topMixedCard;
-  }
-} else if (url.includes("/shield/frogserver/aocs/updatable/")) {
-  // 整体图层
-  const items = [
+const AMAP_STATIC_ITEMS_05 = [
     "Naviendpage_Searchwords",
     "SplashScreenControl",
     "TipsTaxiButton", // 选路线页面 打车图标
@@ -292,28 +93,8 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
     "tips_bar_black_list",
     "vip"
   ];
-  if (obj?.data) {
-    for (let i of items) {
-      if (obj?.data?.[i]) {
-        obj.data[i] = {status: 1, version: "", value: ""};
-      }
-    }
-  }
-} else if (url.includes("/shield/search/common/coupon/info")) {
-  if (obj?.data) {
-    obj.data = {};
-  }
-} else if (url.includes("/shield/search/nearbyrec_smart")) {
-  // 附近页面
-  const items = ["head", "search_hot_words", "feed_rec"];
-  if (obj?.data?.modules?.length > 0) {
-    if (obj?.data?.modules?.length > 0) {
-      compactInPlace(obj.data.modules, (i) => items?.includes(i));
-    }
-  }
-} else if (url.includes("/shield/search/poi/detail")) {
-  // 搜索结果 模块详情
-  const items = [
+const AMAP_STATIC_ITEMS_06 = ["head", "search_hot_words", "feed_rec"];
+const AMAP_STATIC_ITEMS_07 = [
     "CouponBanner", // 高德红包
     // "anchor",
     "adv_compliance_info", // 服务提供方
@@ -486,6 +267,251 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
     "waterFallFeed", // 附近景点瀑布流
     "waterFallFeedTitle" // 更多人气好去处
   ];
+const AMAP_STATIC_ITEMS_08 = [
+    "belt",
+    "common_float_bar",
+    "common_image_banner",
+    "coupon_discount_float_bar",
+    "coupon_float_bar",
+    "discount_coupon",
+    "image_cover_bar",
+    "mood_coupon_banner",
+    "operation_brand",
+    "promotion_wrap_card",
+    "tips_top_banner"
+  ];
+const AMAP_STATIC_ITEMS_09 = ["brandAdCard", "toplist_al"]
+const AMAP_STATIC_ITEMS_10 = ["12"]
+const AMAP_STATIC_ITEMS_11 = ["ad", "poi_ad", "toplist"]
+const AMAP_STATIC_ITEMS_12 = ["ad", "exct_query_sug_merge_theme", "query_sug_merge_theme", "sp"]
+const AMAP_STATIC_ITEMS_13 = ["ad", "poi_ad"]
+function compactInPlace(items, keep) {
+  let write = 0;
+  for (let read = 0, length = items.length; read < length; read++) {
+    const item = items[read];
+    if (keep(item, read)) {
+      if (write !== read) items[write] = item;
+      write++;
+    }
+  }
+  items.length = write;
+  return items;
+}
+
+if (!$response.body) {
+  $done({});
+} else {
+// loon-change: Amap R-Store supported-route guard v1
+const shouldProcess =
+  url.includes("/aos/perception/publicTravel/beforeNavi") ||
+  url.includes("/bus/plan/integrate") ||
+  url.includes("/c3frontend/af-hotel/page/main") ||
+  url.includes("/c3frontend/af-launch/page/main") ||
+  url.includes("/perception/drive/routeInfo") ||
+  url.includes("/perception/drive/routePlan") ||
+  url.includes("/shield/search/common/coupon/info") ||
+  url.includes("/shield/search/poi/detail") ||
+  url.includes("/shield/search_business/process/marketingOperationStructured") ||
+  url.includes("/shield/search_poi/") ||
+  url.includes("/faas/amap-navigation/card-service-plan-home") ||
+  url.includes("/faas/amap-navigation/main-page") ||
+  url.includes("/shield/frogserver/aocs/updatable/1") ||
+  url.includes("/shield/dsp/profile/index/nodefaasv") ||
+  url.includes("/shield/search/nearbyrec_smart") ||
+  url.includes("/boss/car/order/content_info") ||
+  url.includes("/boss/order_web/friendly_information") ||
+  url.includes("/promotion-web/resource") ||
+  url.includes("/sharedtrip/taxi/order_detail_car_tips");
+if (!shouldProcess) {
+  $done({});
+} else {
+let obj = JSON.parse($response.body);
+
+if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
+  if (obj?.data?.common_data?.bus_plan_bottom_event?.data?.length > 0) {
+    // 公交出行 底部卡路里数值
+    obj.data.common_data.bus_plan_bottom_event.data = [];
+  }
+  if (obj?.data?.common_data?.bus_plan_segment_event?.data?.length > 0) {
+    // 公交出行 中转站 卡路里数值
+    obj.data.common_data.bus_plan_segment_event.data = [];
+  }
+  // 导航选择路线页面 左上角动图
+  if (obj?.data?.front_end?.assistant?.length > 0) {
+    obj.data.front_end.assistant = [];
+  }
+} else if (url.includes("/boss/car/order/content_info")) {
+  // 打车页面
+  if (obj?.data?.lubanData?.skin?.dataList?.length > 0) {
+    // oss营销皮肤
+    obj.data.lubanData.skin.dataList = [];
+  }
+} else if (url.includes("/boss/order_web/friendly_information")) {
+  // 打车页面
+  const items = AMAP_STATIC_ITEMS_01;
+  if (obj?.data?.["105"]) {
+    for (let i of items) {
+      delete obj.data["105"][i];
+    }
+  }
+} else if (url.includes("/bus/plan/integrate")) {
+  // 公交列表
+  if (obj?.data?.banner_lists?.data?.length > 0) {
+    // 公交列表 顶部滚动横图
+    obj.data.banner_lists.data = [];
+  }
+  if (obj?.data?.banner_lists?.tips?.length > 0) {
+    obj.data.banner_lists.tips = [];
+  }
+  if (obj?.data?.mixed_plans?.data?.taxiPlans?.length > 0) {
+    // 公交列表 推广打车出行
+    obj.data.mixed_plans.data.taxiPlans = [];
+  }
+} else if (url.includes("/c3frontend/af-hotel/page/main")) {
+  // 酒店/民宿 景区门票 火车/飞机
+  if (obj?.data?.modules?.CouponPortalCard) {
+    // 横幅推广
+    delete obj.data.modules.CouponPortalCard;
+  }
+  if (obj?.data?.modules?.CouponWidget) {
+    // 右下角活动悬浮窗
+    delete obj.data.modules.CouponWidget;
+  }
+  if (obj?.data?.modules?.recommended_list) {
+    // 高德建议
+    delete obj.data.modules.recommended_list;
+  }
+  if (obj?.data?.modules?.user_filter_card) {
+    const items = AMAP_STATIC_ITEMS_02;
+    if (obj?.data?.modules?.user_filter_card?.data) {
+      for (let i of items) {
+        delete obj.data.modules.user_filter_card.data[i];
+      }
+      if (obj?.data?.modules?.user_filter_card?.data?.search_button_data?.rightbgText) {
+        // 查询按钮右上角角标
+        delete obj.data.modules.user_filter_card.data.search_button_data.rightbgText;
+      }
+    }
+  }
+} else if (url.includes("/c3frontend/af-launch/page/main")) {
+  // 步行导航结束推广卡片
+  if (obj?.data?.modules?.C1EndNaviEngine?.data) {
+    obj.data.modules.C1EndNaviEngine.data = {};
+  }
+} else if (url.includes("/faas/amap-navigation/card-service-plan-home")) {
+  // 路线规划页
+  if (obj?.data?.children?.length > 0) {
+    // 有schema参数的为推广
+    compactInPlace(obj.data.children, (i) => !i.hasOwnProperty("schema"));
+  }
+} else if (url.includes("/faas/amap-navigation/main-page")) {
+  // 首页底部卡片
+  if (obj?.data?.cardList?.length > 0) {
+    compactInPlace(obj.data.cardList, 
+        (i) =>
+            i?.dataKey === "ContinueNavigationCard" || // 继续导航
+            i?.dataKey === "FrequentLocation" || // 常去地点
+            i?.dataKey === "LoginCard" // 登陆卡片
+    );
+  }
+  if (obj?.data?.mapBizList?.length > 0) {
+    compactInPlace(obj.data.mapBizList, 
+        (i) => i?.dataKey === "FindCarVirtualCard" // 显示关联车辆位置
+    );
+  }
+} else if (url.includes("/perception/drive/routeInfo")) {
+  // 导航详情页
+  if (obj?.data?.tbt?.event?.length > 0) {
+    compactInPlace(obj.data.tbt.event, (i) => !/ads-\d+/.test(i?.dynamic_id_s));
+  }
+  if (obj?.data?.front_end) {
+    if (obj?.data?.front_end?.guide_tips?.length > 0) {
+      // 音乐底栏
+      compactInPlace(obj.data.front_end.guide_tips, (i) => i?.biz_type !== "music");
+    }
+    if (obj?.data?.front_end?.assistant) {
+      // 助手皮肤
+      delete obj.data.front_end.assistant;
+    }
+    if (obj?.data?.front_end?.download?.length > 0) {
+      // 导航插播语音广告
+      compactInPlace(obj.data.front_end.download, (i) => !/ads-\d+/.test(i?.dynamic_id_s));
+    }
+  }
+} else if (url.includes("/perception/drive/routePlan")) {
+  // 路线规划页
+  const items = AMAP_STATIC_ITEMS_03;
+  if (obj?.data?.front_end) {
+    for (let i of items) {
+      delete obj.data.front_end[i];
+    }
+  }
+  if (obj?.data?.tbt?.event?.length > 0) {
+    // 导航插播语音广告
+    compactInPlace(obj.data.tbt.event, (i) => !/ads-\d+/.test(i?.dynamic_id_s));
+  }
+  if (obj?.data?.front_end?.download?.length > 0) {
+    // 导航插播语音广告
+    compactInPlace(obj.data.front_end.download, (i) => !/ads-\d+/.test(i?.dynamic_id_s));
+  }
+} else if (url.includes("/promotion-web/resource")) {
+  // 打车页面
+  const items = AMAP_STATIC_ITEMS_04;
+  if (obj?.data) {
+    for (let i of items) {
+      delete obj.data[i];
+    }
+  }
+} else if (url.includes("/sharedtrip/taxi/order_detail_car_tips")) {
+  // 打车页
+  if (obj.data?.carTips?.data?.popupInfo) {
+    delete obj.data.carTips.data.popupInfo;
+  }
+} else if (url.includes("/shield/dsp/profile/index/nodefaasv3")) {
+  // 我的页面
+  if (obj?.data?.cardList?.length > 0) {
+    compactInPlace(obj.data.cardList, (i) => i?.dataKey === "MyOrderCard");
+  }
+  if (obj?.data?.tipData) {
+    delete obj.data.tipData;
+  }
+  // 足迹
+  // if (obj.data.footPrintV2) {
+  //   delete obj.data.footPrintV2;
+  // }
+  // 成就勋章 lv1见习达人
+  if (obj?.data?.memberInfo) {
+    delete obj.data.memberInfo;
+  }
+  if (obj?.data?.topMixedCard) {
+    // 顶部足迹、贡献卡片
+    delete obj.data.topMixedCard;
+  }
+} else if (url.includes("/shield/frogserver/aocs/updatable/")) {
+  // 整体图层
+  const items = AMAP_STATIC_ITEMS_05;
+  if (obj?.data) {
+    for (let i of items) {
+      if (obj?.data?.[i]) {
+        obj.data[i] = {status: 1, version: "", value: ""};
+      }
+    }
+  }
+} else if (url.includes("/shield/search/common/coupon/info")) {
+  if (obj?.data) {
+    obj.data = {};
+  }
+} else if (url.includes("/shield/search/nearbyrec_smart")) {
+  // 附近页面
+  const items = AMAP_STATIC_ITEMS_06;
+  if (obj?.data?.modules?.length > 0) {
+    if (obj?.data?.modules?.length > 0) {
+      compactInPlace(obj.data.modules, (i) => items?.includes(i));
+    }
+  }
+} else if (url.includes("/shield/search/poi/detail")) {
+  // 搜索结果 模块详情
+  const items = AMAP_STATIC_ITEMS_07;
   if (obj?.data?.modules) {
     for (let i of items) {
       delete obj.data.modules[i];
@@ -597,7 +623,7 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
       let list = obj.data.modules.list_data.data;
       if (list?.content?.length > 0) {
         // brandAdCard广告卡片 toplist_al人气榜单 高德指南
-        compactInPlace(list.content, (i) => !["brandAdCard", "toplist_al"]?.includes(i?.item_type));
+        compactInPlace(list.content, (i) => !AMAP_STATIC_ITEMS_09.includes(i?.item_type));
       }
     }
   }
@@ -607,9 +633,9 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
     if (obj?.tip_list?.length > 0) {
       for (let item of obj.tip_list) {
         if (
-            ["12"]?.includes(item?.tip?.datatype_spec) ||
-            ["ad", "poi_ad", "toplist"]?.includes(item?.tip?.result_type) ||
-            ["ad", "exct_query_sug_merge_theme", "query_sug_merge_theme", "sp"]?.includes(item?.tip?.task_tag)
+            AMAP_STATIC_ITEMS_10.includes(item?.tip?.datatype_spec) ||
+            AMAP_STATIC_ITEMS_11.includes(item?.tip?.result_type) ||
+            AMAP_STATIC_ITEMS_12.includes(item?.tip?.task_tag)
         ) {
           continue;
         } else {
@@ -625,9 +651,9 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
         let newTips = [];
         if (item?.tip_list?.length > 0) {
           for (let ii of item.tip_list) {
-            if (["12"]?.includes(ii?.tip?.datatype_spec)) {
+            if (AMAP_STATIC_ITEMS_10.includes(ii?.tip?.datatype_spec)) {
               continue;
-            } else if (["ad", "poi_ad"]?.includes(ii?.tip?.result_type)) {
+            } else if (AMAP_STATIC_ITEMS_13.includes(ii?.tip?.result_type)) {
               continue;
             } else {
               newTips.push(ii);
@@ -645,19 +671,7 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
   if (obj?.data?.coupon) {
     delete obj.data.coupon;
   }
-  const items = [
-    "belt",
-    "common_float_bar",
-    "common_image_banner",
-    "coupon_discount_float_bar",
-    "coupon_float_bar",
-    "discount_coupon",
-    "image_cover_bar",
-    "mood_coupon_banner",
-    "operation_brand",
-    "promotion_wrap_card",
-    "tips_top_banner"
-  ];
+  const items = AMAP_STATIC_ITEMS_08;
   if (obj?.data?.modules) {
     for (let i of items) {
       delete obj.data.modules[i];
