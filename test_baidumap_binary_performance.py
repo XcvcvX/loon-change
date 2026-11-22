@@ -107,7 +107,7 @@ class ResponseScriptAuditTests(unittest.TestCase):
         self.assertEqual(plugin.count(local_target), 4)
         self.assertNotIn(remote_target, plugin)
         self.assertNotIn("scripts/didi/didi-ads.js", plugin)
-        self.assertIn("function compactInPlace(items, keep)", source)
+        self.assertIn("function compactDidiByField(items, field, mode)", source)
         self.assertNotIn(".filter(", source)
         self.assertIn("function filterInPlace", legacy_source)
 
