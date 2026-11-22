@@ -26,9 +26,16 @@ class DidiOptimizerTests(unittest.TestCase):
             "if (!$response.body) $done({});",
             "let obj = JSON.parse($response.body);",
         ]
-        for index in range(EXPECTED_FILTERS - 3):
-            path = "obj.data.items%d" % index
-            lines.append("%s = %s.filter(item => item.keep);" % (path, path))
+        lines.extend([
+            'obj.data.scene_list = obj.data.scene_list.filter(item => item.text !== "优惠商城");',
+            'block.scene_ids = block.scene_ids.filter(id => id !== "scene_coupon_mall");',
+            "    const keepNavIds = ['dache_anycar', 'driverservice', 'bike'];",
+            "obj.data.order_cards.nav_list_card.data = obj.data.order_cards.nav_list_card.data.filter(item => keepNavIds.includes(item.nav_id));",
+            "    const keepBottomNavIds = ['v6x_home', 'user_center'];",
+            "obj.data.disorder_cards.bottom_nav_list.data = obj.data.disorder_cards.bottom_nav_list.data.filter(item => keepBottomNavIds.includes(item.id));",
+            "  const excludedTitles = ['天天领福利', '金融服务', '更多服务', '企业服务', '安全中心'];",
+            "",
+        ])
         lines.extend([
             "if (obj.data && obj.data.cards) {",
             "    obj.data.cards = obj.data.cards.filter(card => !excludedTitles.includes(card.title));",
@@ -54,8 +61,12 @@ class DidiOptimizerTests(unittest.TestCase):
         original = self.fixture_source()
         result = optimize_source(original, "0123456789abcdef0123456789abcdef01234567")
         self.assertIn(MARKER, result)
-        self.assertEqual(result.count("compactInPlace("), EXPECTED_FILTERS + 1)
+        self.assertEqual(result.count("compactDidiByField(") - 1, EXPECTED_FILTERS)
         self.assertIsNone(re.search(r"\.filter\s*\(", result))
+        self.assertNotIn("new Set(", result)
+        self.assertNotIn("keepNavIds", result)
+        self.assertNotIn("keepBottomNavIds", result)
+        self.assertNotIn("excludedTitles", result)
         self.assertIn("if (!$response.body) {", result)
         self.assertIn("$done(modified ? {body: JSON.stringify(obj)} : {});", result)
         self.assertIn("if (write !== length) modified = true;", result)
@@ -64,8 +75,8 @@ class DidiOptimizerTests(unittest.TestCase):
 
     def test_optimizer_fails_closed_when_upstream_filter_inventory_drifts(self):
         source = self.fixture_source().replace(
-            "obj.data.items3 = obj.data.items3.filter(item => item.keep);",
-            "obj.data.items3 = obj.data.items3;",
+            'block.scene_ids = block.scene_ids.filter(id => id !== "scene_coupon_mall");',
+            "block.scene_ids = block.scene_ids;",
         )
         with self.assertRaisesRegex(ValueError, "expected 7, got 6"):
             optimize_source(source)
@@ -140,15 +151,19 @@ if (payload.body === null) {
     def test_usercenter_wallet_fields_are_compacted_during_the_card_pass(self):
         source = SOURCE.read_text(encoding="utf-8")
         self.assertNotIn("obj.data.cards.forEach", source)
-        self.assertIn("if (excludedTitles.includes(card.title)) return false;", source)
-        self.assertIn('compactInPlace(card.items, item => item.title === "优惠券")', source)
-        self.assertIn("return true;", source)
+        self.assertIn('compactDidiByField(obj.data.cards, "title", "card");', source)
+        self.assertIn('compactDidiByField(item.items, "title", "walletItem")', source)
+        self.assertNotIn("new Set(", source)
+        self.assertNotIn("=>", source)
+        self.assertNotIn("excludedTitles", source)
 
     def test_generated_snapshot_has_no_allocating_filter_and_seven_compaction_calls(self):
         source = SOURCE.read_text(encoding="utf-8")
         self.assertIn(MARKER, source)
-        self.assertEqual(source.count("compactInPlace(") - 1, EXPECTED_FILTERS)
+        self.assertEqual(source.count("compactDidiByField(") - 1, EXPECTED_FILTERS)
         self.assertIsNone(re.search(r"\.filter\s*\(", source))
+        self.assertNotIn("new Set(", source)
+        self.assertNotIn("=>", source)
 
     def test_presale_scene_lists_compact_in_place_and_preserve_order(self):
         body = {

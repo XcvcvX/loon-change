@@ -66,16 +66,103 @@ def optimize_lazy_serialization(source):
     return source
 
 
+
+
+def optimize_didi_predicates(source):
+    """Replace per-response filter closures and allowlist arrays with scalar-mode compaction."""
+    if "function compactDidiByField(items, field, mode)" in source:
+        required = (
+            'compactDidiByField(obj.data.scene_list, "text", "scene");',
+            'compactDidiByField(obj.data.order_cards.nav_list_card.data, "nav_id", "nav");',
+            'compactDidiByField(obj.data.cards, "title", "card");',
+        )
+        if any(item not in source for item in required):
+            raise ValueError("Didi specialized compaction inventory is incomplete")
+        return source
+
+    helper_start = "function compactInPlace(items, keep) {"
+    helper_end = "\n}\n\nif (!$response.body)"
+    if source.count(helper_start) != 1:
+        raise ValueError("Didi compaction helper changed; refusing specialized rewrite")
+    start = source.index(helper_start)
+    end = source.index(helper_end, start) + 3
+    helper = """function compactDidiByField(items, field, mode) {
+  const length = items.length;
+  let write = 0;
+  for (let read = 0; read < length; read++) {
+    const item = items[read];
+    const value = mode === "sceneId" ? item : item[field];
+    let keep = true;
+
+    if (mode === "scene") {
+      keep = value !== "优惠商城";
+    } else if (mode === "sceneId") {
+      keep = value !== "scene_coupon_mall";
+    } else if (mode === "nav") {
+      keep = value === "dache_anycar" || value === "driverservice" || value === "bike";
+    } else if (mode === "bottomNav") {
+      keep = value === "v6x_home" || value === "user_center";
+    } else if (mode === "walletItem") {
+      keep = value === "优惠券";
+    } else if (mode === "walletBottom") {
+      keep = value === "省钱套餐" || value === "天天神券";
+    } else if (mode === "card") {
+      if (value === "天天领福利" || value === "金融服务" || value === "更多服务" ||
+          value === "企业服务" || value === "安全中心") {
+        keep = false;
+      } else if (item.tag === "wallet") {
+        if (item.items) compactDidiByField(item.items, "title", "walletItem");
+        if (item.card_type === 4 && item.bottom_items) {
+          compactDidiByField(item.bottom_items, "title", "walletBottom");
+        }
+      }
+    }
+
+    if (keep) {
+      if (write !== read) items[write] = item;
+      write++;
+    }
+  }
+  items.length = write;
+  if (write !== length) modified = true;
+  return items;
+}"""
+    source = source[:start] + helper + source[end:]
+
+    replacements = [
+        ('compactInPlace(obj.data.scene_list, item => item.text !== "优惠商城");',
+         'compactDidiByField(obj.data.scene_list, "text", "scene");'),
+        ('compactInPlace(block.scene_ids, id => id !== "scene_coupon_mall");',
+         'compactDidiByField(block.scene_ids, "scene_ids", "sceneId");'),
+        ("  const keepNavIds = ['dache_anycar', 'driverservice', 'bike'];\n", ""),
+        ('compactInPlace(obj.data.order_cards.nav_list_card.data, item => keepNavIds.includes(item.nav_id));',
+         'compactDidiByField(obj.data.order_cards.nav_list_card.data, "nav_id", "nav");'),
+        ("  const keepBottomNavIds = ['v6x_home', 'user_center'];\n", ""),
+        ('compactInPlace(obj.data.disorder_cards.bottom_nav_list.data, item => keepBottomNavIds.includes(item.id));',
+         'compactDidiByField(obj.data.disorder_cards.bottom_nav_list.data, "id", "bottomNav");'),
+        ("  const excludedTitles = ['天天领福利', '金融服务', '更多服务', '企业服务', '安全中心'];\n\n", ""),
+        ('compactInPlace(obj.data.cards, card => {\n      if (excludedTitles.includes(card.title)) return false;\n      if (card.tag === "wallet") {\n        if (card.items) {\n          compactInPlace(card.items, item => item.title === "优惠券");\n        }\n        if (card.card_type === 4 && card.bottom_items) {\n          compactInPlace(card.bottom_items, item =>\n              item.title === "省钱套餐" || item.title === "天天神券"\n          );\n        }\n      }\n      return true;\n    });',
+         'compactDidiByField(obj.data.cards, "title", "card");'),
+    ]
+    for old, new in replacements:
+        if old not in source:
+            raise ValueError("Didi specialized compaction pattern missing: " + old[:72])
+        source = source.replace(old, new, 1)
+
+    if re.search(r"compactInPlace\s*\(|keepNavIds|keepBottomNavIds|excludedTitles", source):
+        raise ValueError("Didi per-response filter callbacks or allowlist arrays remain")
+    return source
+
 def optimize_source(source, commit="unknown"):
     if MARKER in source:
         if re.search(r"\.filter\s*\(", source):
             raise ValueError("Didi optimization marker exists but allocating filter remains")
         if "obj.data.cards.forEach" in source:
             raise ValueError("Didi user-center wallet traversal optimization is stale")
-        return optimize_lazy_serialization(source)
+        return optimize_didi_predicates(optimize_lazy_serialization(source))
     if LEGACY_MARKER in source:
         source = source.replace(LEGACY_MARKER, MARKER, 1)
-        return optimize_lazy_serialization(source)
+        return optimize_didi_predicates(optimize_lazy_serialization(source))
 
     body_guard = "if (!$response.body) $done({});"
     if source.count(body_guard) != 1:
@@ -114,7 +201,7 @@ def optimize_source(source, commit="unknown"):
         raise ValueError("expected all seven Didi filters to use compactInPlace")
 
     source = source.rstrip() + "\n}\n"
-    return optimize_lazy_serialization(MARKER + commit + "\n" + source)
+    return optimize_didi_predicates(optimize_lazy_serialization(MARKER + commit + "\n" + source))
 
 
 def rewrite_plugin(plugin):
