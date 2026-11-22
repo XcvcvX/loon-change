@@ -18,7 +18,7 @@ function compactDidiByField(items, field, mode) {
   let write = 0;
   for (let read = 0; read < length; read++) {
     const item = items[read];
-    const value = item[field];
+    const value = mode === "sceneId" ? item : item[field];
     let keep = true;
 
     if (mode === "scene") {
