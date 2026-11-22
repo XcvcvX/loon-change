@@ -327,8 +327,16 @@ def optimize_source(source, commit="unknown"):
     source = between(source, '} else if (url.includes("/note/comment")) {',
                      '} else if (url.includes("/interaction/comment/video/download")) {',
                      COMMENT_BRANCH, "comment branch")
+    source = source.replace("if (!$response.body) $done({});" + chr(10), "")
+    guard = "if (!$response.body) { $done({}); } else {"
+    if guard not in source:
+        source = once(source, "const url = $request.url;", "const url = $request.url;\\n" + guard,
+                      "terminal empty-body guard")
+        source = once(source, "\\n\\n// 小红书画质增强：加载2K分辨率的图片",
+                      "\\n}\\n\\n// 小红书画质增强：加载2K分辨率的图片",
+                      "terminal empty-body guard close")
 
-    result = MARKER + commit + "\n" + source
+    result = MARKER + commit + "\\n" + source
     invariants = (
         "imageEnhance(images_list)", "compactInPlace(obj.data",
         "appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)",
