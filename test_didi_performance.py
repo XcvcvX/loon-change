@@ -54,8 +54,12 @@ class DidiOptimizerTests(unittest.TestCase):
         original = self.fixture_source()
         result = optimize_source(original, "0123456789abcdef0123456789abcdef01234567")
         self.assertIn(MARKER, result)
-        self.assertEqual(result.count("compactInPlace("), EXPECTED_FILTERS + 1)
+        self.assertEqual(result.count("compactDidiByField(") - 1, EXPECTED_FILTERS)
         self.assertIsNone(re.search(r"\.filter\s*\(", result))
+        self.assertNotIn("new Set(", result)
+        self.assertNotIn("keepNavIds", result)
+        self.assertNotIn("keepBottomNavIds", result)
+        self.assertNotIn("excludedTitles", result)
         self.assertIn("if (!$response.body) {", result)
         self.assertIn("$done(modified ? {body: JSON.stringify(obj)} : {});", result)
         self.assertIn("if (write !== length) modified = true;", result)
@@ -140,15 +144,19 @@ if (payload.body === null) {
     def test_usercenter_wallet_fields_are_compacted_during_the_card_pass(self):
         source = SOURCE.read_text(encoding="utf-8")
         self.assertNotIn("obj.data.cards.forEach", source)
-        self.assertIn("if (excludedTitles.includes(card.title)) return false;", source)
-        self.assertIn('compactInPlace(card.items, item => item.title === "优惠券")', source)
-        self.assertIn("return true;", source)
+        self.assertIn('compactDidiByField(obj.data.cards, "title", "card");', source)
+        self.assertIn('compactDidiByField(item.items, "title", "walletItem")', source)
+        self.assertNotIn("new Set(", source)
+        self.assertNotIn("=>", source)
+        self.assertNotIn("excludedTitles", source)
 
     def test_generated_snapshot_has_no_allocating_filter_and_seven_compaction_calls(self):
         source = SOURCE.read_text(encoding="utf-8")
         self.assertIn(MARKER, source)
-        self.assertEqual(source.count("compactInPlace(") - 1, EXPECTED_FILTERS)
+        self.assertEqual(source.count("compactDidiByField(") - 1, EXPECTED_FILTERS)
         self.assertIsNone(re.search(r"\.filter\s*\(", source))
+        self.assertNotIn("new Set(", source)
+        self.assertNotIn("=>", source)
 
     def test_presale_scene_lists_compact_in_place_and_preserve_order(self):
         body = {
