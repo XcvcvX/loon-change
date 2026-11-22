@@ -552,13 +552,52 @@ def optimize_mgtv_arrays(source):
     return source
 
 
+
+STATIC_FILTER_MARKER = "// loon-change: CNTV hoisted static membership lists v1"
+STATIC_FILTER_PATTERN = re.compile(
+    r"""(\[(?:\s*(?:"[^"\n]*"|'[^'\n]*'|-?\d+)\s*,?)+\s*\])\?\.includes\(([^()\n]*)\)"""
+)
+
+
+def optimize_static_filter_arrays(source):
+    """Hoist literal membership arrays so response loops do not allocate them per item."""
+    if STATIC_FILTER_MARKER in source:
+        if source.count(STATIC_FILTER_MARKER) != 1 or STATIC_FILTER_PATTERN.search(source):
+            raise ValueError("CNTV static membership-list hoist marker/structure drift")
+        return source
+    matches = list(STATIC_FILTER_PATTERN.finditer(source))
+    if not matches:
+        return source
+    literals = {}
+    for match in matches:
+        literal = match.group(1)
+        key = re.sub(r"\s+", " ", literal).strip()
+        literals.setdefault(key, literal)
+    names = {key: "CNTV_STATIC_FILTER_%02d" % (index + 1)
+             for index, key in enumerate(literals)}
+    source = STATIC_FILTER_PATTERN.sub(
+        lambda match: names[re.sub(r"\s+", " ", match.group(1)).strip()]
+        + ".includes(" + match.group(2) + ")",
+        source,
+    )
+    declarations = [STATIC_FILTER_MARKER]
+    declarations.extend(
+        "const %s = %s;" % (names[key], literal)
+        for key, literal in literals.items()
+    )
+    anchor = "const url = $request.url;"
+    if source.count(anchor) != 1:
+        raise ValueError("CNTV static membership-list insertion anchor changed")
+    return source.replace(anchor, "\n".join(declarations) + "\n" + anchor, 1)
+
+
 def optimize_source(source, commit="unknown"):
     if MARKER in source:
-        return optimize_pre_parse_route_guard(optimize_mgtv_arrays(optimize_iqiyi_feed_arrays(optimize_youku_home_query(optimize_youku_home_feed(optimize_get_my_menus(source))))))
+        return optimize_static_filter_arrays(optimize_pre_parse_route_guard(optimize_mgtv_arrays(optimize_iqiyi_feed_arrays(optimize_youku_home_query(optimize_youku_home_feed(optimize_get_my_menus(source)))))))
     for legacy_marker in LEGACY_MARKERS:
         if legacy_marker in source:
             source = source.replace(legacy_marker, MARKER, 1)
-            return optimize_pre_parse_route_guard(optimize_mgtv_arrays(optimize_iqiyi_feed_arrays(optimize_youku_home_query(optimize_youku_home_feed(optimize_get_my_menus(source))))))
+            return optimize_static_filter_arrays(optimize_pre_parse_route_guard(optimize_mgtv_arrays(optimize_iqiyi_feed_arrays(optimize_youku_home_query(optimize_youku_home_feed(optimize_get_my_menus(source)))))))
     body_guard = "if (!$response.body) $done({});"
     if source.count(body_guard) != 1:
         raise ValueError("CNTV response body guard changed; refusing optimization")
@@ -582,9 +621,9 @@ def optimize_source(source, commit="unknown"):
     if source.count("compactInPlace(") != 12:
         raise ValueError("expected 11 CNTV filters to use compactInPlace")
     source = source.rstrip() + "\n}\n"
-    return optimize_pre_parse_route_guard(
+    return optimize_static_filter_arrays(optimize_pre_parse_route_guard(
         optimize_mgtv_arrays(optimize_iqiyi_feed_arrays(optimize_youku_home_query(optimize_youku_home_feed(optimize_get_my_menus(MARKER + commit + "\n" + source)))))
-    )
+    ))
 
 def rewrite_plugin(plugin):
     local_count = plugin.count(LOCAL)
