@@ -564,36 +564,25 @@ if (isIQY) {
       }
     }
   } else if (url.includes("columbus.home.feed/")) {
-    // 优酷 首页信息流
+    // loon-change: CNTV Youku home.feed in-place compaction v1
+    // 首页信息流：原地压缩广告卡片组内节点，避免创建 newNodes/newItems 临时数组。
     if (obj?.data?.["2019061000"]?.data) {
-      let objData = obj.data["2019061000"].data;
-      if (objData?.nodes?.length > 0) {
-        let newNodes = [];
-        for (let item of objData.nodes) {
-          if (item?.typeName === "PHONE_FEED_CARD_GROUP") {
-            if (item?.nodes?.length > 0) {
-              let newItems = [];
-              for (let i of item.nodes) {
-                if (i?.typeName === "PHONE_FEED_CARD_S_AD") {
-                  // 首页 四格小图广告
-                  continue;
-                } else if (i?.typeName === "PHONE_H_UC_AD") {
-                  // 首页 横版独占广告
-                  continue;
-                } else {
-                  newItems.push(i);
-                }
-              }
-              item.nodes = newItems;
-              newNodes.push(item);
-            } else {
-              newNodes.push(item);
+      const nodes = obj.data["2019061000"].data.nodes;
+      if (nodes?.length > 0) {
+        for (let i = 0, length = nodes.length; i < length; i++) {
+          const item = nodes[i];
+          if (item?.typeName !== "PHONE_FEED_CARD_GROUP" || item?.nodes?.length <= 0) continue;
+          const items = item.nodes;
+          let write = 0;
+          for (let read = 0, itemLength = items.length; read < itemLength; read++) {
+            const card = items[read];
+            if (card?.typeName !== "PHONE_FEED_CARD_S_AD" && card?.typeName !== "PHONE_H_UC_AD") {
+              if (write !== read) items[write] = card;
+              write++;
             }
-          } else {
-            newNodes.push(item);
           }
+          items.length = write;
         }
-        objData.nodes = newNodes;
       }
     }
   } else if (url.includes("columbus.home.query/")) {
