@@ -473,11 +473,11 @@ class CNTVMangoTVArrayCompactionTests(unittest.TestCase):
     def test_mgtv_tabs_and_channel_index_compact_in_place(self):
         tabs = {"data": [
             {"vclassId": 100033}, {"vclassId": 100043},
-            {"vclassId": 100160}, {"vclassId": 100000}
+            {"vclassId": 100160}, {"vclassId": 100000}, {"id": "missing-class"}
         ]}
         result = self.run_mgtv("https://mobile.api.mgtv.com/channel/vrsList/list", tabs)
         output = json.loads(result["doneResult"]["body"])
-        self.assertEqual([x["vclassId"] for x in output["data"]], [100160, 100000])
+        self.assertEqual([x.get("vclassId") for x in output["data"]], [100160, 100000, None])
 
         index = {"data": [
             {"moduleType": "childslideicon"}, {"moduleType": "normal", "id": 1},
