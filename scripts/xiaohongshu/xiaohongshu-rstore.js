@@ -390,10 +390,14 @@ function cleanCommentsAndCollectLivePhotos(data) {
   const stack = [data];
   const visited = new WeakSet();
   const commentNodes = new WeakSet();
+  const topLevelComments = new WeakSet();
   const videoInfoCache = new Map();
   if (Array.isArray(data?.comments)) {
     for (const comment of data.comments) {
-      if (comment && typeof comment === "object") commentNodes.add(comment);
+      if (comment && typeof comment === "object") {
+        commentNodes.add(comment);
+        topLevelComments.add(comment);
+      }
     }
   }
   while (stack.length) {
@@ -414,7 +418,7 @@ function cleanCommentsAndCollectLivePhotos(data) {
           if (videoUrl) livePhotos.push({videId: picture.video_id, videoUrl});
         }
       }
-      if (Array.isArray(current.sub_comments)) {
+      if (topLevelComments.has(current) && Array.isArray(current.sub_comments)) {
         for (const subComment of current.sub_comments) {
           if (subComment && typeof subComment === "object") commentNodes.add(subComment);
         }
