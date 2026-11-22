@@ -327,11 +327,11 @@ def optimize_iqiyi_feed_arrays(source):
 
 def optimize_source(source, commit="unknown"):
     if MARKER in source:
-        return optimize_pre_parse_route_guard(optimize_iqiyi_feed_arrays(optimize_youku_home_query(optimize_youku_home_feed(optimize_get_my_menus(source))))
+        return optimize_pre_parse_route_guard(optimize_iqiyi_feed_arrays(optimize_youku_home_query(optimize_youku_home_feed(optimize_get_my_menus(source)))))
     for legacy_marker in LEGACY_MARKERS:
         if legacy_marker in source:
             source = source.replace(legacy_marker, MARKER, 1)
-            return optimize_pre_parse_route_guard(optimize_iqiyi_feed_arrays(optimize_youku_home_query(optimize_youku_home_feed(optimize_get_my_menus(source))))
+            return optimize_pre_parse_route_guard(optimize_iqiyi_feed_arrays(optimize_youku_home_query(optimize_youku_home_feed(optimize_get_my_menus(source)))))
     body_guard = "if (!$response.body) $done({});"
     if source.count(body_guard) != 1:
         raise ValueError("CNTV response body guard changed; refusing optimization")
