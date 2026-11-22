@@ -170,6 +170,7 @@ if (url.includes("/note/live_photo/save")) {
       new_data.push({file_id: fileId, video_id: videoId, url: videoUrl});
     }
   }
+
   if (obj.data.datas) {
     replaceUrlContent(obj.data.datas, new_data);
   } else {
