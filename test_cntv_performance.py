@@ -263,9 +263,6 @@ if (payload.body === null) {
         self.assertEqual(result["parseCount"], 0)
 
 
-if __name__ == "__main__":
-    unittest.main()
-
 
 class CNTVPreParseRouteGuardTests(unittest.TestCase):
     def test_route_guard_is_idempotent_and_precedes_json_parse(self):
@@ -519,3 +516,5 @@ class CNTVMangoTVArrayCompactionTests(unittest.TestCase):
         self.assertEqual([x["title"] for x in items[1]["data"]], ["keep-service"])
         self.assertEqual(result["parseCount"], 1)
 
+if __name__ == "__main__":
+    unittest.main()
