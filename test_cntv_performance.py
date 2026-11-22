@@ -30,6 +30,22 @@ class CNTVOptimizerTests(unittest.TestCase):
         self.assertNotIn("newMenus", menus_branch)
         self.assertNotIn("newLists", menus_branch)
 
+    def test_iqiyi_feed_branches_use_in_place_compaction_without_temporary_arrays(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        self.assertIn("// loon-change: CNTV iQIYI feed array compaction v1", source)
+        branches = [
+            ('url.includes("/views_category/")', 'url.includes("/views_comment/")'),
+            ('url.includes("/views_home/")', 'url.includes("/views_plt/")'),
+            ('url.includes("/views_search/")', 'url.includes("/waterfall/")'),
+            ('url.includes("/waterfall/")', '} else if (isMG) {'),
+        ]
+        for start, end in branches:
+            block = source.split(start, 1)[1].split(end, 1)[0]
+            self.assertIn("compactInPlace(", block)
+            for allocation in ("newCards", "newItems", "newBlocks"):
+                self.assertNotIn(allocation, block)
+        self.assertEqual(optimize_source(source), source)
+
     def test_all_26_response_triggers_are_migrated_and_idempotent(self):
         fixture = "[Script]\n" + "\n".join(
             "http-response ^https://cntv%d.example/api script-path=%s,tag=CNTV-%d,requires-body=true"
@@ -202,6 +218,44 @@ if (payload.body === null) {
         self.assertEqual([item["id"] for item in data[0]["menuList"]], ["keep-1", "keep-2"])
         self.assertEqual(data[1]["menuList"], [])
         self.assertEqual(result["parseCount"], 1)
+
+    def test_iqiyi_feed_and_search_paths_compact_nested_arrays_in_place(self):
+        category = {"base": {"statistics": {"ad_str": "ad"}}, "cards": [
+            {"blocks": [{"block_name": "block_321"}, {"block_name": "normal"}, {"buttons": [{"id": "ad"}]}, {"block_name": "keep"}]},
+            {"title": "card without blocks"}
+        ]}
+        result = self.run_script("https://iface2.iqiyi.com/views/3.0/views_category/list", category, disable_push=True)
+        self.assertEqual(len(result["output"]["cards"]), 2)
+        self.assertEqual(len(result["output"]["cards"][0]["blocks"]), 2)
+        self.assertNotIn("ad_str", result["output"]["base"]["statistics"])
+
+        home = {"cards": [
+            {"alias_name": "ad_mobile_flow"},
+            {"alias_name": "normal", "top_banner": {"l_blocks": [{"buttons": [{"id": "x"}]}, {"title": "keep"}]}}
+        ]}
+        result = self.run_script("https://iface2.iqiyi.com/views/3.0/views_home/list", home, disable_push=True)
+        self.assertEqual(len(result["output"]["cards"]), 1)
+        self.assertNotIn("buttons", result["output"]["cards"][0]["top_banner"]["l_blocks"][0])
+
+        search = {"cards": [
+            {"strategy_com_id": "search_vip_banner"},
+            {"strategy_com_id": "normal", "blocks": [
+                {"block_name": "keep"}, {"block_type": 959}, {"block_type": 10}, {"title": "drop"}
+            ]}
+        ]}
+        result = self.run_script("https://iface2.iqiyi.com/views/3.0/views_search/list", search, disable_push=True)
+        blocks = result["output"]["cards"][0]["blocks"]
+        self.assertEqual(len(result["output"]["cards"]), 1)
+        self.assertEqual([item.get("block_type") for item in blocks], [None, 10])
+
+        waterfall = {"cards": [
+            {"block_class": "ad"},
+            {"blocks": [{"block_class": "ad"}, {"id": "keep"}]},
+            {"id": "keep-card"}
+        ]}
+        result = self.run_script("https://iface2.iqiyi.com/views/3.0/waterfall/list", waterfall, disable_push=True)
+        self.assertEqual(len(result["output"]["cards"]), 2)
+        self.assertEqual(result["output"]["cards"][0]["blocks"], [{"id": "keep"}])
 
     def test_empty_body_does_not_attempt_json_parse(self):
         result = self.run_script("https://iface2.iqiyi.com/views/3.0/bottom_theme?version=1", None)
