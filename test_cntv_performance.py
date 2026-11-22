@@ -297,7 +297,7 @@ class CNTVPreParseRouteGuardTests(unittest.TestCase):
 
 @unittest.skipUnless(NODE, "Node.js is required for CNTV route-guard runtime tests")
 class CNTVPreParseRouteGuardRuntimeTests(unittest.TestCase):
-    def run_script(self, url, body):
+    def run_script(self, url, body, disable_push=False):
         runner = r"""
 const fs = require("fs");
 const vm = require("vm");
@@ -317,6 +317,9 @@ const context = {
   $done(value) { doneResult = value; },
   console: { log() {}, warn() {}, error() {} }
 };
+if (payload.disablePush) {
+  vm.runInNewContext("Array.prototype.push = function() { throw new Error('temporary push allocation remains'); }; Array.prototype.filter = function() { throw new Error('allocating Array.filter remains'); };", context);
+}
 vm.runInNewContext(source, context, { timeout: 5000 });
 process.stdout.write(nativeJSON.stringify({
   doneResult,
@@ -326,7 +329,7 @@ process.stdout.write(nativeJSON.stringify({
 """
         completed = subprocess.run(
             [NODE, "-e", runner, str(SOURCE)],
-            input=json.dumps({"url": url, "body": body}),
+            input=json.dumps({"url": url, "body": body, "disablePush": disable_push}),
             capture_output=True, text=True, check=True, timeout=10
         )
         return json.loads(completed.stdout)
