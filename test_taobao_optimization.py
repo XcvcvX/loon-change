@@ -77,15 +77,16 @@ const context = {
   $request: { url: payload.url },
   $response: { body: JSON.stringify(payload.body) },
   $done(value) { doneResult = value; },
-  __stringifyCount: 0
+  __stringifyCount: 0,
+  __parseCount: 0
 };
 vm.createContext(context);
 vm.runInContext(
-  "const native = JSON.stringify.bind(JSON); JSON.stringify = function(value) { __stringifyCount++; return native(value); };",
+  "const native = JSON.stringify.bind(JSON); JSON.stringify = function(value) { __stringifyCount++; return native(value); }; const nativeParse = JSON.parse.bind(JSON); JSON.parse = function(value) { __parseCount++; return nativeParse(value); };",
   context
 );
 vm.runInContext(source, context, { timeout: 5000 });
-const result = { stringifyCount: context.__stringifyCount, passThrough: !doneResult || typeof doneResult.body !== "string" };
+const result = { parseCount: context.__parseCount, stringifyCount: context.__stringifyCount, passThrough: !doneResult || typeof doneResult.body !== "string" };
 if (!result.passThrough) result.output = JSON.parse(doneResult.body);
 process.stdout.write(JSON.stringify(result));
 """
@@ -108,7 +109,7 @@ process.stdout.write(JSON.stringify(result));
         body = {"data": {"containers": {"splash_home_base": {
             "base": {"sections": [{"bizData": {"taobao-splash": {"data": [item]}}}]}
         }}}}
-        result = self.run_script("https://guide-acs.m.taobao.com/mtop.taobao.wireless.home.splash.awesome.get", body)
+        result = self.run_script("https://guide-acs.m.taobao.com/gw/mtop.taobao.wireless.home.splash.awesome.get", body)
         self.assertTrue(result["passThrough"])
         self.assertEqual(result["stringifyCount"], 0)
 
@@ -126,6 +127,19 @@ process.stdout.write(JSON.stringify(result));
         self.assertTrue(result["passThrough"])
         self.assertEqual(result["stringifyCount"], 0)
 
+
+    def test_unrelated_response_skips_json_parse(self):
+        result = self.run_script("https://acs.m.taobao.com/gw/mtop.taobao.detail.getdetail", {"large": [1, 2, 3]})
+        self.assertTrue(result["passThrough"])
+        self.assertEqual(result["parseCount"], 0)
+        self.assertEqual(result["stringifyCount"], 0)
+
+    def test_supported_routes_are_guarded_before_parse_and_guard_is_idempotent(self):
+        from optimize_taobao import RUNTIME_MARKER, optimize_runtime_source
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(RUNTIME_MARKER, source)
+        self.assertLess(source.index("const shouldProcess ="), source.index("JSON.parse($response.body)"))
+        self.assertEqual(optimize_runtime_source(source), source)
 
 if __name__ == "__main__":
     unittest.main()

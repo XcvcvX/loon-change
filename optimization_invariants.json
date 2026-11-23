@@ -143,7 +143,11 @@
       "required": [
         "function setIfDifferent(target, key, value)",
         "function clearArray(target, key)",
-        "$done(modified ? {body: JSON.stringify(obj)} : {});"
+        "$done(modified ? {body: JSON.stringify(obj)} : {});",
+        "// loon-change: Taobao pre-parse supported-route guard v1",
+        "const shouldProcess =",
+        "if (!shouldProcess) {",
+        "url.includes(\"guide-acs.m.taobao.com/gw/mtop.taobao.cloudvideo.video.query\")"
       ]
     }
   ]
