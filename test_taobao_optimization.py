@@ -175,5 +175,18 @@ process.stdout.write(JSON.stringify(result));
         self.assertIn("} else if (isPoplayer) {", source)
         self.assertEqual(optimize_runtime_source(source), source)
 
+    def test_route_optimizer_repairs_original_upstream_form(self):
+        from optimize_taobao import OLD_ROUTE_GUARD, optimize_route_classification
+        source = SCRIPT.read_text(encoding="utf-8")
+        current_guard = source[source.index("  // loon-change: Taobao pre-parse supported-route guard v1"):source.index("  const obj = JSON.parse($response.body);")]
+        source = source.replace(current_guard, OLD_ROUTE_GUARD + "\\n", 1)
+        source = source.replace("if (isCloudVideo) {", 'if (url.includes("mtop.taobao.cloudvideo.video.query")) {', 1)
+        source = source.replace("} else if (isSplash) {", '} else if (url.includes("mtop.taobao.wireless.home.splash.awesome.get")) {', 1)
+        source = source.replace("} else if (isPoplayer) {", '} else if (url.includes("poplayer.template.alibaba.com")) {', 1)
+        repaired = optimize_route_classification(source)
+        self.assertIn("const isCloudVideo = url.includes(", repaired)
+        self.assertIn("if (isCloudVideo) {", repaired)
+        self.assertEqual(optimize_route_classification(repaired), repaired)
+
 if __name__ == "__main__":
     unittest.main()
