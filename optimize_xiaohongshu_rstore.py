@@ -193,21 +193,55 @@ def between(source, start, end, replacement, label):
         raise ValueError("%s function boundary order changed" % label)
     return source[:left] + replacement + "\n\n" + source[right:]
 
-def optimize_video_save_lookup(source):
-    """Stop scanning the cached feed as soon as the requested note is found."""
-    old = """      if (item.id === obj.data.note_id) {
-        obj.data.download_url = item.url;
-      }"""
-    new = """      if (item.id === obj.data.note_id) {
-        obj.data.download_url = item.url;
-        break;
-      }"""
-    if old in source:
-        return once(source, old, new, "video-save cache lookup")
-    if new not in source:
-        raise ValueError("R-Store video-save lookup anchor drift; refusing optimization")
+def apply_live_photo_cache_optimization(source):
+    old = '''  livePhoto = JSON.parse(rsp);
+  for (let item of livePhoto) {
+    if (item.live_photo_file_id) {
+      let myData = {
+        file_id: item.live_photo_file_id,
+        video_id: item.live_photo.media.video_id,
+        url: item.live_photo.media.stream.h265[0].master_url
+      };
+      newDatas.push(myData);
+    }
+  }'''
+    new = '''  livePhoto = JSON.parse(rsp);
+  for (const item of livePhoto) {
+    if (item?.file_id) {
+      newDatas.push({
+        file_id: item.file_id,
+        video_id: item.video_id,
+        url: item.url
+      });
+    }
+  }'''
+    if "const livePhotoCache = []" not in source:
+        old_cache = '''      // Cache the original image URLs once, then mutate the parsed object in place.
+      $.setdata(JSON.stringify(images_list), "redBookLivePhoto");
+      imageEnhance(images_list);'''
+        new_cache = '''      // Cache only fields consumed by the live-photo save endpoint.
+      const livePhotoCache = [];
+      if (Array.isArray(images_list)) {
+        for (const image of images_list) {
+          if (image?.live_photo_file_id) {
+            livePhotoCache.push({
+              file_id: image.live_photo_file_id,
+              video_id: image.live_photo?.media?.video_id,
+              url: image.live_photo?.media?.stream?.h265?.[0]?.master_url
+            });
+          }
+        }
+      }
+      $.setdata(JSON.stringify(livePhotoCache), "redBookLivePhoto");
+      imageEnhance(images_list);'''
+        source = once(source, old_cache, new_cache, "compact live-photo cache writer")
+    elif "file_id: image.live_photo_file_id" not in source or 'JSON.stringify(livePhotoCache), "redBookLivePhoto"' not in source:
+        raise ValueError("compact live-photo cache writer drift")
+    if "item?.file_id" not in source:
+        source = once(source, old, new, "compact live-photo cache reader")
+    elif "item.live_photo.media.stream.h265[0].master_url" in source:
+        raise ValueError("legacy full live-photo cache reader remains")
     return source
-
 
 def optimize_source(source, commit="unknown"):
     COMMENT_BRANCH = r"""} else if (url.includes("/note/comment")) {
@@ -231,7 +265,6 @@ def optimize_source(source, commit="unknown"):
   }
 """
     if MARKER in source:
-        source = optimize_video_save_lookup(source)
         required = ("imageEnhance(images)", "compactInPlace(obj.data", "appendUniqueLivePhotos",
                     "const byFileId = new Map()", "function cleanCommentsAndCollectLivePhotos(data)",
                     "const videoInfoCache = new Map()", "const visited = new WeakSet()")
@@ -242,6 +275,7 @@ def optimize_source(source, commit="unknown"):
         source = between(source, '} else if (url.includes("/note/comment")) {',
                          '} else if (url.includes("/interaction/comment/video/download")) {',
                          COMMENT_BRANCH, "comment branch")
+        source = apply_live_photo_cache_optimization(source)
         source = source.replace("if (!$response.body) $done({});" + chr(10), "")
         guard = "if (!$response.body) { $done({}); } else {"
         if guard not in source:
@@ -253,7 +287,6 @@ def optimize_source(source, commit="unknown"):
         return source
     source = once(source, "const url = $request.url;",
                   "const url = $request.url;\n" + HELPERS.strip(), "array helpers")
-    source = optimize_video_save_lookup(source)
 
     image_block = '''      const images_list = obj.data[0].note_list[0].images_list;
       // 画质增强
@@ -261,10 +294,21 @@ def optimize_source(source, commit="unknown"):
       // 保存无水印信息
       $.setdata(JSON.stringify(images_list), "redBookLivePhoto");'''
     image_replacement = '''      const images_list = obj.data[0].note_list[0].images_list;
-      // Cache the original image URLs once, then mutate the parsed object in place.
-      $.setdata(JSON.stringify(images_list), "redBookLivePhoto");
+      // Cache only fields consumed by the live-photo save endpoint.
+      const livePhotoCache = [];
+      for (const image of images_list) {
+        if (image?.live_photo_file_id) {
+          livePhotoCache.push({
+            file_id: image.live_photo_file_id,
+            video_id: image.live_photo?.media?.video_id,
+            url: image.live_photo?.media?.stream?.h265?.[0]?.master_url
+          });
+        }
+      }
+      $.setdata(JSON.stringify(livePhotoCache), "redBookLivePhoto");
       imageEnhance(images_list);'''
     source = once(source, image_block, image_replacement, "image-feed JSON round trip")
+    source = apply_live_photo_cache_optimization(source)
 
     source = once(
         source,
