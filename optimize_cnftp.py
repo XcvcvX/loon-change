@@ -321,7 +321,12 @@ def ensure_supported_route_guard(source: str) -> str:
             raise ValueError("CNFTP supported-route terminal structure drift")
         return source
     parse_line = "let obj = JSON.parse($response.body);"
-    if source.count(parse_line) != 1:
+    if "const shouldProcess =" in source or "if (!shouldProcess)" in source:
+        raise ValueError("CNFTP supported-route guard marker/structure drift")
+    parse_count = source.count(parse_line)
+    if parse_count == 0:
+        return source
+    if parse_count != 1:
         raise ValueError("CNFTP response parse anchor changed; refusing pre-parse guard")
     if source.count('const isIQY = url.includes("iqiyi.com/");') != 1:
         raise ValueError("CNFTP domain dispatch anchor changed; refusing pre-parse guard")
