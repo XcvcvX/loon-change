@@ -145,14 +145,17 @@ def hoist_static_arrays(source):
 
 
 def compact_search_suggestions_in_place(source):
+    marker = "// loon-change: Amap cached suggestion tip access v1"
     start = 'if (url.includes("/shield/search_poi/sug")) {'
     end = '} else if (url.includes("/shield/search_poi/tips_operation_location")) {'
     if source.count(start) != 1 or source.count(end) != 1:
         raise ValueError("Amap search suggestion block boundary drift")
+    if source.count(marker) > 1:
+        raise ValueError("Amap cached suggestion marker is duplicated")
     i = source.index(start)
     j = source.index(end, i + len(start))
-    replacement = """// loon-change: Amap cached suggestion tip access v1
-if (url.includes("/shield/search_poi/sug")) {
+    prefix = marker + "\\n" if marker not in source else ""
+    replacement = prefix + """if (url.includes("/shield/search_poi/sug")) {
   if (Array.isArray(obj?.tip_list) && obj.tip_list.length > 0) {
     compactInPlace(obj.tip_list, item => {
       const tip = item?.tip;
@@ -177,7 +180,7 @@ if (url.includes("/shield/search_poi/sug")) {
       }
     }
   }"""
-    return source[:i] + replacement + "\n" + source[j:]
+    return source[:i] + replacement + "\\n" + source[j:]
 
 
 def optimize_scalar_membership(source):
