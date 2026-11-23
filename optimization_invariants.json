@@ -25,7 +25,8 @@
       "path": "scripts/xiaohongshu/xiaohongshu-rstore.js",
       "required": [
         "// loon-change: R-Store Xiaohongshu hot-path optimization v1;",
-        "function compactInPlace("
+        "function compactInPlace(",
+        "obj.data.download_url = item.url;\n        break;"
       ]
     },
     {

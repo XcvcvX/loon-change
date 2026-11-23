@@ -193,6 +193,22 @@ def between(source, start, end, replacement, label):
         raise ValueError("%s function boundary order changed" % label)
     return source[:left] + replacement + "\n\n" + source[right:]
 
+def optimize_video_save_lookup(source):
+    """Stop scanning the cached feed as soon as the requested note is found."""
+    old = """      if (item.id === obj.data.note_id) {
+        obj.data.download_url = item.url;
+      }"""
+    new = """      if (item.id === obj.data.note_id) {
+        obj.data.download_url = item.url;
+        break;
+      }"""
+    if old in source:
+        return once(source, old, new, "video-save cache lookup")
+    if new not in source:
+        raise ValueError("R-Store video-save lookup anchor drift; refusing optimization")
+    return source
+
+
 def optimize_source(source, commit="unknown"):
     COMMENT_BRANCH = r"""} else if (url.includes("/note/comment")) {
   const commentData = obj.data;
@@ -215,6 +231,7 @@ def optimize_source(source, commit="unknown"):
   }
 """
     if MARKER in source:
+        source = optimize_video_save_lookup(source)
         required = ("imageEnhance(images)", "compactInPlace(obj.data", "appendUniqueLivePhotos",
                     "const byFileId = new Map()", "function cleanCommentsAndCollectLivePhotos(data)",
                     "const videoInfoCache = new Map()", "const visited = new WeakSet()")
@@ -236,6 +253,7 @@ def optimize_source(source, commit="unknown"):
         return source
     source = once(source, "const url = $request.url;",
                   "const url = $request.url;\n" + HELPERS.strip(), "array helpers")
+    source = optimize_video_save_lookup(source)
 
     image_block = '''      const images_list = obj.data[0].note_list[0].images_list;
       // 画质增强
