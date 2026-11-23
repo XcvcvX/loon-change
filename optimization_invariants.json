@@ -218,7 +218,13 @@
         "function createBaiduMd5() {",
         "newAds, createBaiduMd5());",
         "if(!adsFound || !modifiedAds || !newResult)",
-        "// loon-change: Baidu protobuf target-only byte views v1"
+        "// loon-change: Baidu protobuf target-only byte views v1",
+        "let resultOffset = -1;",
+        "if (modifiedAds && resultOffset !== -1)",
+        "newResult = binaryBody.subarray(resultOffset, resultOffset + resultLength);"
+      ],
+      "forbidden": [
+        "newResult = binaryBody.subarray(currentOffset, currentOffset + targetDataLength);"
       ]
     },
     {
