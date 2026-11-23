@@ -28,6 +28,9 @@ class RStoreXiaohongshuOptimizerTests(unittest.TestCase):
         self.assertIn("const byFileId = new Map()", source)
         self.assertIn("function cleanCommentsAndCollectLivePhotos(data)", source)
         self.assertIn("const videoInfoCache = new Map()", source)
+        self.assertIn("// loon-change: Xiaohongshu parsed JSON tree traversal without visited WeakSet v1;", source)
+        self.assertNotIn("const visited = new WeakSet()", source)
+        self.assertNotIn("visited.has(current)", source)
         self.assertNotIn(".filter(v => !!v.master_url && !!v.height).sort(", source)
         self.assertNotIn("let newItems = []", source)
 
@@ -68,6 +71,14 @@ const source = fs.readFileSync(process.argv[1], "utf8");
 const payload = JSON.parse(fs.readFileSync(0, "utf8"));
 const store = new Map(Object.entries(payload.store || {}));
 let doneResult;
+let weakSetConstructCount = 0;
+const NativeWeakSet = WeakSet;
+class CountedWeakSet extends NativeWeakSet {
+  constructor(...args) {
+    super(...args);
+    weakSetConstructCount++;
+  }
+}
 const context = {
   $loon: {},
   $persistentStore: {
@@ -77,6 +88,7 @@ const context = {
   $request: {url: payload.url},
   $response: {body: payload.rawBody === undefined ? JSON.stringify(payload.body) : payload.rawBody},
   $done(value) { doneResult = value; },
+  WeakSet: CountedWeakSet,
   JSON: {
     parseCount: 0,
     parse(value) { this.parseCount++; return JSON.parse(value); },
@@ -88,6 +100,7 @@ vm.runInNewContext(source, context, {timeout: 5000});
 process.stdout.write(JSON.stringify({
   doneResult,
   parseCount: context.JSON.parseCount,
+  weakSetConstructCount,
   store: Object.fromEntries(store)
 }));
 """
@@ -229,6 +242,7 @@ process.stdout.write(JSON.stringify({
         cached = json.loads(result["store"]["xiaohongshu.comments.rsp"])
         self.assertEqual([x["videId"] for x in cached["livePhotos"]], ["video-1", "video-2"])
         self.assertEqual(result["parseCount"], 2)
+        self.assertEqual(result["weakSetConstructCount"], 2)
 
     def test_comment_tree_cleanup_is_iterative_for_deep_objects(self):
         nested = {"red_id": "deep"}
@@ -244,6 +258,7 @@ process.stdout.write(JSON.stringify({
             self.assertNotIn("red_id", current)
             current = current["nested"]
         self.assertNotIn("red_id", current)
+        self.assertEqual(result["weakSetConstructCount"], 2)
 
 
 if __name__ == "__main__":
