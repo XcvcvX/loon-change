@@ -47,14 +47,14 @@ def optimize_splash_loop(source):
 
 def optimize_runtime_source(source):
     if RUNTIME_MARKER not in source:
-        anchor = "  const obj = JSON.parse($response.body);\\n"
+        anchor = "  const obj = JSON.parse($response.body);\n"
         if source.count(anchor) != 1:
             raise ValueError("Expected exactly one Taobao JSON.parse anchor")
         source = source.replace(anchor, RUNTIME_GUARD + anchor, 1)
-        tail = "$done(modified ? {body: JSON.stringify(obj)} : {});\\n}\\n"
+        tail = "$done(modified ? {body: JSON.stringify(obj)} : {});\n}\n"
         if not source.endswith(tail):
             raise ValueError("Taobao runtime tail changed; refusing to add guard")
-        source = source[:-len(tail)] + tail.replace("}\\n", "  }\\n}\\n")
+        source = source[:-len(tail)] + tail.replace("}\n", "  }\n}\n")
     else:
         required = (RUNTIME_MARKER, "const shouldProcess =", "if (!shouldProcess) {",
                     'url.includes("guide-acs.m.taobao.com/gw/mtop.taobao.cloudvideo.video.query")',
