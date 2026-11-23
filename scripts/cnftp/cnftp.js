@@ -24,6 +24,49 @@ function compactInPlace(items, keep) {
 if (!$response.body) {
   $done({});
 } else {
+// loon-change: CNFTP pre-parse supported-route guard v1
+const shouldProcess =
+  (url.includes("iqiyi.com/") && (
+    url.includes("/bottom_theme?") ||
+    url.includes("/common_switch?") ||
+    url.includes("/control/") ||
+    url.includes("/getMyMenus?") ||
+    url.includes("/home_top_menu?") ||
+    url.includes("/mixer?") ||
+    url.includes("/search.video.iqiyi.com/") ||
+    url.includes("/views_category/") ||
+    url.includes("/views_comment/") ||
+    url.includes("/views_home/") ||
+    url.includes("/views_plt/") ||
+    url.includes("/views_search/") ||
+    url.includes("/waterfall/")
+  )) ||
+  (url.includes("mgtv.com/") && (
+    url.includes("/dynamic/v1/channel/index/") ||
+    url.includes("/dynamic/v1/channel/vrsList/") ||
+    url.includes("/mobile/config?") ||
+    url.includes("/mobile/recommend/v2?") ||
+    url.includes("/odin/c1/channel/index?") ||
+    url.includes("/v1/vod/info?") ||
+    url.includes("/v3/module/list?") ||
+    url.includes("/v10/video/info?")
+  )) ||
+  (url.includes("youku.com/") && (
+    url.includes("/collect-api/get_push_interval_config_wx?") ||
+    url.includes("columbus.gateway.new.execute") ||
+    url.includes("columbus.home.feed/") ||
+    url.includes("columbus.home.query/") ||
+    url.includes("columbus.uc.query/") ||
+    url.includes("columbus.ycp.query/") ||
+    url.includes("haidai.lantern.appconfig.get/") ||
+    url.includes("huluwa.dispatcher.youthmode.config2/") ||
+    url.includes("play.ups.appinfo.get/") ||
+    url.includes("soku.yksearch/")
+  ));
+
+if (!shouldProcess) {
+  $done({});
+} else {
 const isIQY = url.includes("iqiyi.com/");
 const isMG = url.includes("mgtv.com/");
 const isYK = url.includes("youku.com/");
@@ -605,4 +648,5 @@ if (isIQY) {
 }
 
 $done({body: JSON.stringify(obj)});
+}
 }
