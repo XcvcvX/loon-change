@@ -399,3 +399,25 @@ The active Didi compactor already avoided allocating replacement arrays, but it 
 The Node VM tests continue to verify all Didi response cleanup outputs and no-op serialization. Structural tests assert exactly seven specialized loops, one mode dispatch per loop, and no callback-based array transforms. The optimizer validates and re-emits the new helper so upstream updates cannot silently restore per-item mode dispatch.
 
 This removes repeated mode-selection branches from each traversed Didi list. Real-device CPU and battery changes remain unquantified without Loon on-device measurements.
+
+---
+
+# Phase 14 P1 — Xiaohongshu parsed-comment tree traversal
+
+## Finding
+
+The active R-Store Xiaohongshu script parses the response body with JSON.parse before traversing the comment payload. JSON.parse always produces a tree of newly allocated objects: it cannot contain object cycles or shared object references. The comment walker nevertheless allocated a third WeakSet and performed a has/add pair for every visited object solely to protect against cycles and aliases that cannot occur in this input.
+
+## Runtime change
+
+- Remove the redundant visited WeakSet from the iterative comment-tree walk.
+- Keep the comment-node and top-level-comment WeakSets, which still determine which nodes receive comment-specific cleanup and which nodes expose the supported one-level sub-comment collection.
+- Preserve iterative traversal, deep-tree safety, red_id cleanup, comment-type handling, live-photo extraction, and videoInfoCache deduplication.
+
+## Regression coverage
+
+- Instrument the runtime WeakSet constructor and assert that a comment response creates only the two semantically required WeakSets, not a third visited set.
+- Retain the 400-level nested-object test to verify that traversal remains iterative and does not depend on recursion depth.
+- Require the no-visited marker in optimization invariants and forbid the old allocation/check patterns so upstream regeneration cannot restore them.
+
+This removes one WeakSet allocation and two WeakSet operations per traversed object in the active comment response path. Actual device CPU and battery changes remain unquantified without Loon on-device measurements.
