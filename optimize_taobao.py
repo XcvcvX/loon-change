@@ -9,8 +9,8 @@ KELEE_PATH = "/Modules/JavaScript/Kelee/Taobao_remove_ads/kelee.one_Taobao_remov
 RUNTIME_MARKER = "// loon-change: Taobao pre-parse supported-route guard v1"
 RUNTIME_GUARD = """  %s
   const shouldProcess =
-    url.includes("guide-acs.m.taobao.com/gw/mtop/mtop.taobao.cloudvideo.video.query") ||
-    url.includes("guide-acs.m.taobao.com/gw/mtop/mtop.taobao.wireless.home.splash.awesome.get") ||
+    url.includes("guide-acs.m.taobao.com/gw/mtop.taobao.cloudvideo.video.query") ||
+    url.includes("guide-acs.m.taobao.com/gw/mtop.taobao.wireless.home.splash.awesome.get") ||
     url.includes("poplayer.template.alibaba.com/");
   if (!shouldProcess) {
     $done({});
@@ -20,8 +20,8 @@ RUNTIME_GUARD = """  %s
 def optimize_runtime_source(source):
     if RUNTIME_MARKER in source:
         required = (RUNTIME_MARKER, "const shouldProcess =", "if (!shouldProcess) {",
-                    'url.includes("guide-acs.m.taobao.com/gw/mtop/mtop.taobao.cloudvideo.video.query")',
-                    'url.includes("guide-acs.m.taobao.com/gw/mtop/mtop.taobao.wireless.home.splash.awesome.get")',
+                    'url.includes("guide-acs.m.taobao.com/gw/mtop.taobao.cloudvideo.video.query")',
+                    'url.includes("guide-acs.m.taobao.com/gw/mtop.taobao.wireless.home.splash.awesome.get")',
                     'url.includes("poplayer.template.alibaba.com/")')
         if any(token not in source for token in required):
             raise ValueError("Taobao pre-parse guard drifted; refusing to overwrite")
