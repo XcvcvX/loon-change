@@ -370,7 +370,7 @@ const personal={data:{}};personal.data["2019061000"]={data:{nodes:[{nodes:[
 ]}]}};
 const youku=run("https://acs.youku.com/gw/mtop.youku.columbus.uc.query/",personal);
 const yn=youku.data["2019061000"].data.nodes[0].nodes;
-if(yn.length!==3||yn[0].nodes[0].id!==5||yn[1].nodes[0].id!==683367||yn[1].nodes.length!==2)throw Error("Youku personal filtering/order");
+if(yn.length!==3||yn[0].nodes[0].id!==5||yn[1].nodes[0].nodes[0].id!==683367||yn[1].nodes[0].nodes.length!==2)throw Error("Youku personal filtering/order");
 const commentBody={data:{}};commentBody.data["2019061000"]={data:{nodes:[{nodes:[
 {id:23242,nodes:[{typeName:"COMPONENT_YCP_NOTICE"},{id:1},{id:113941}]},{id:23243,nodes:[{id:-1000},{id:2}]},{id:3}
 ]}]}};
