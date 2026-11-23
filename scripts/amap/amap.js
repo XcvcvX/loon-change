@@ -672,26 +672,29 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
       }
     }
   }
-} else if (url.includes("/shield/search_poi/sug")) {
+} else // loon-change: Amap cached suggestion tip access v1
+if (url.includes("/shield/search_poi/sug")) {
   if (Array.isArray(obj?.tip_list) && obj.tip_list.length > 0) {
-    compactInPlace(obj.tip_list, item =>
-      item?.tip?.datatype_spec !== "12" &&
-      item?.tip?.result_type !== "ad" &&
-      item?.tip?.result_type !== "poi_ad" &&
-      item?.tip?.result_type !== "toplist" &&
-      item?.tip?.task_tag !== "ad" &&
-      item?.tip?.task_tag !== "exct_query_sug_merge_theme" &&
-      item?.tip?.task_tag !== "query_sug_merge_theme" &&
-      item?.tip?.task_tag !== "sp"
-    );
+    compactInPlace(obj.tip_list, item => {
+      const tip = item?.tip;
+      return tip?.datatype_spec !== "12" &&
+        tip?.result_type !== "ad" &&
+        tip?.result_type !== "poi_ad" &&
+        tip?.result_type !== "toplist" &&
+        tip?.task_tag !== "ad" &&
+        tip?.task_tag !== "exct_query_sug_merge_theme" &&
+        tip?.task_tag !== "query_sug_merge_theme" &&
+        tip?.task_tag !== "sp";
+    });
   } else if (Array.isArray(obj?.city_list) && obj.city_list.length > 0) {
     for (const city of obj.city_list) {
       if (Array.isArray(city?.tip_list) && city.tip_list.length > 0) {
-        compactInPlace(city.tip_list, item =>
-          item?.tip?.datatype_spec !== "12" &&
-          item?.tip?.result_type !== "ad" &&
-          item?.tip?.result_type !== "poi_ad"
-        );
+        compactInPlace(city.tip_list, item => {
+          const tip = item?.tip;
+          return tip?.datatype_spec !== "12" &&
+            tip?.result_type !== "ad" &&
+            tip?.result_type !== "poi_ad";
+        });
       }
     }
   }
