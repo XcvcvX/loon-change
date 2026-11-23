@@ -1,3 +1,4 @@
+// loon-change: Meituan allocation-light response cleanup v1
 // Consolidated Meituan response cleaner.
 // Combines R-Store's Meituan image/mini-program handlers and the vendored
 // aoomee Meituan app handlers without widening the reviewed URL inventory.
@@ -5,19 +6,7 @@
   const url = ($request && $request.url) || "";
   const imageUrlRegex = /^https?:\/\/p\d\.meituan\.net\/linglong\//;
 
-  function compactInPlace(items, keep) {
-    const length = items.length;
-    let write = 0;
-    for (let read = 0; read < length; read++) {
-      const item = items[read];
-      if (keep(item, read)) {
-        if (write !== read) items[write] = item;
-        write++;
-      }
-    }
-    items.length = write;
-    return items;
-  }
+  // Hot-path array cleanup uses index loops: no callback or replacement-array allocation.
 
   function extractAfterAt(value) {
     const atIndex = value.lastIndexOf("@");
@@ -68,20 +57,23 @@
   function cleanTabArea(obj) {
     const resource = obj && obj.data && obj.data.resource;
     if (!isObj(resource) || !Array.isArray(resource.tabArea)) return false;
-    const original = resource.tabArea;
+    const tabs = resource.tabArea;
+    const length = tabs.length;
+    let write = 0;
     let hasHomepage = false;
     let hasMine = false;
-    const kept = [];
-    for (const tab of original) {
+    for (let read = 0; read < length; read++) {
+      const tab = tabs[read];
       if (isObj(tab)) {
         if (tab.tabName === "homepage") hasHomepage = true;
         else if (tab.tabName === "mine") hasMine = true;
         if (tab.tabName === "video" || tab.tabName === "xiaotuan") continue;
       }
-      kept.push(tab);
+      if (write !== read) tabs[write] = tab;
+      write++;
     }
-    if (!hasHomepage || !hasMine || kept.length === original.length) return false;
-    resource.tabArea = kept;
+    if (!hasHomepage || !hasMine || write === length) return false;
+    tabs.length = write;
     return true;
   }
 
@@ -98,11 +90,17 @@
 
   function cleanMine(obj) {
     if (!isObj(obj) || !Array.isArray(obj.children)) return false;
-    const originalLength = obj.children.length;
-    compactInPlace(obj.children, child =>
-      !(isObj(child) && child.name === "mine_cross_recommend")
-    );
-    if (obj.children.length === originalLength) return false;
+    const children = obj.children;
+    const length = children.length;
+    let write = 0;
+    for (let read = 0; read < length; read++) {
+      const child = children[read];
+      if (isObj(child) && child.name === "mine_cross_recommend") continue;
+      if (write !== read) children[write] = child;
+      write++;
+    }
+    if (write === length) return false;
+    children.length = write;
     return true;
   }
 
@@ -113,11 +111,11 @@
     const defaultWord = response.defaultWordRes;
     if (isObj(defaultWord) && Array.isArray(defaultWord.defaultWordItems) &&
         defaultWord.defaultWordItems.length) {
-      defaultWord.defaultWordItems = [];
+      defaultWord.defaultWordItems.length = 0;
       changed = true;
     }
     if (Array.isArray(response.HotWordInfos) && response.HotWordInfos.length) {
-      response.HotWordInfos = [];
+      response.HotWordInfos.length = 0;
       changed = true;
     }
     return changed;
@@ -127,20 +125,38 @@
     const data = obj && obj.data;
     if (!isObj(data) || !Array.isArray(data.segmentsV2)) return false;
     let changed = false;
-    compactInPlace(data.segmentsV2, segment => {
-      if (!isObj(segment) || !Array.isArray(segment.hotwordSegments)) return true;
-      const originalLength = segment.hotwordSegments.length;
-      compactInPlace(segment.hotwordSegments, hotword =>
-        !(isObj(hotword) &&
-          ["EntranceHotwordsV2Hotwords", "EntranceHotwordsV2ContentCard"].includes(hotword.pageName))
-      );
-      if (segment.hotwordSegments.length === originalLength) return true;
+    const segments = data.segmentsV2;
+    let segmentWrite = 0;
+    for (let segmentRead = 0; segmentRead < segments.length; segmentRead++) {
+      const segment = segments[segmentRead];
+      if (isObj(segment) && Array.isArray(segment.hotwordSegments)) {
+        const hotwords = segment.hotwordSegments;
+        const hotwordLength = hotwords.length;
+        let hotwordWrite = 0;
+        for (let hotwordRead = 0; hotwordRead < hotwordLength; hotwordRead++) {
+          const hotword = hotwords[hotwordRead];
+          const pageName = isObj(hotword) ? hotword.pageName : "";
+          if (pageName === "EntranceHotwordsV2Hotwords" ||
+              pageName === "EntranceHotwordsV2ContentCard") continue;
+          if (hotwordWrite !== hotwordRead) hotwords[hotwordWrite] = hotword;
+          hotwordWrite++;
+        }
+        if (hotwordWrite !== hotwordLength) {
+          hotwords.length = hotwordWrite;
+          changed = true;
+        }
+        if (hotwordWrite === 0 && hotwordLength > 0) continue;
+      }
+      if (segmentWrite !== segmentRead) segments[segmentWrite] = segment;
+      segmentWrite++;
+    }
+    if (segmentWrite !== segments.length) {
+      segments.length = segmentWrite;
       changed = true;
-      return segment.hotwordSegments.length > 0;
-    });
+    }
     const bubble = data.aiSearchBubble;
     if (isObj(bubble) && Array.isArray(bubble.bubbleTexts) && bubble.bubbleTexts.length) {
-      bubble.bubbleTexts = [];
+      bubble.bubbleTexts.length = 0;
       changed = true;
     }
     return changed;
@@ -149,24 +165,35 @@
   function cleanAiSkill(obj) {
     if (!isObj(obj) || typeof obj.data !== "string") return false;
     const data = JSON.parse(obj.data);
-    if (!isObj(data) || !isObj(data.skills) || !Object.keys(data.skills).length) return false;
-    data.skills = {};
+    if (!isObj(data) || !isObj(data.skills)) return false;
+    let hasSkills = false;
+    for (const key in data.skills) {
+      if (!Object.prototype.hasOwnProperty.call(data.skills, key)) continue;
+      delete data.skills[key];
+      hasSkills = true;
+    }
+    if (!hasSkills) return false;
     obj.data = JSON.stringify(data);
     return true;
   }
 
   function clearArea(root, key) {
-    const holders = [root, root && root.data];
     let changed = false;
-    holders.forEach((holder) => {
+    const clearHolder = holder => {
       if (!isObj(holder)) return;
-      [holder.resourcesMap, holder.resource].forEach((resource) => {
-        if (isObj(resource) && Array.isArray(resource[key]) && resource[key].length) {
-          resource[key] = [];
-          changed = true;
-        }
-      });
-    });
+      const resourcesMap = holder.resourcesMap;
+      if (isObj(resourcesMap) && Array.isArray(resourcesMap[key]) && resourcesMap[key].length) {
+        resourcesMap[key].length = 0;
+        changed = true;
+      }
+      const resource = holder.resource;
+      if (isObj(resource) && Array.isArray(resource[key]) && resource[key].length) {
+        resource[key].length = 0;
+        changed = true;
+      }
+    };
+    clearHolder(root);
+    clearHolder(root && root.data);
     return changed;
   }
 
@@ -174,11 +201,18 @@
     if (!obj || !obj.data) return false;
     if (Array.isArray(obj.data)) {
       const originalLength = obj.data.length;
-      compactInPlace(obj.data, item =>
-        item && item.name && ["首页", "神券", "我的"].includes(item.name)
-      );
-      const changed = obj.data.length !== originalLength;
-      return changed;
+      const items = obj.data;
+      let write = 0;
+      for (let read = 0; read < originalLength; read++) {
+        const item = items[read];
+        const name = item && item.name;
+        if (name !== "首页" && name !== "神券" && name !== "我的") continue;
+        if (write !== read) items[write] = item;
+        write++;
+      }
+      if (write === originalLength) return false;
+      items.length = write;
+      return true;
     }
     if (obj.data.oneCentBuy) {
       delete obj.data.oneCentBuy;
