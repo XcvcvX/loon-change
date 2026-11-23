@@ -21,6 +21,20 @@ class BaiduMapBinaryPerformanceTests(unittest.TestCase):
         self.assertNotIn("mergeResultAndAds", helper)
         self.assertIn("encodedHeader.byteLength !== headerLength", helper)
 
+
+    def test_only_result_and_ads_fields_create_binary_payload_views(self):
+        marker = "// loon-change: Baidu protobuf target-only byte views v1"
+        self.assertIn(marker, self.source)
+        start = self.source.index("for(let i = 0; i < repHeadMessage.messageHead.length; i++)")
+        end = self.source.index("\\n}\\n\\nif(!adsFound", start)
+        loop = self.source[start:end]
+        self.assertEqual(loop.count("binaryBody.subarray("), 2)
+        self.assertIn("if(name === 'Result'){", loop)
+        self.assertIn("newResult = binaryBody.subarray(currentOffset, currentOffset + targetDataLength);", loop)
+        self.assertIn("}else if(name === 'Ads'){", loop)
+        self.assertIn("const targetData = binaryBody.subarray(currentOffset, currentOffset + targetDataLength);", loop)
+        self.assertNotIn("const targetData = binaryBody.subarray", loop.split("if(name === 'Result'){", 1)[0])
+
     def test_binary_input_reuses_existing_uint8array(self):
         self.assertIn("const binaryBody = responseBytes instanceof Uint8Array", self.source)
         self.assertNotIn("new Uint8Array($response.bodyBytes)", self.source)
