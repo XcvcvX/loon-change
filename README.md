@@ -992,3 +992,8 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - Supported routes still parse the response once, but call `JSON.stringify` only when a filter or field mutation changed the parsed response. Unmodified supported responses complete with `$done({})`; unsupported routes and empty bodies retain their earlier pre-parse fast paths.
 - Extend the CNFTP upstream optimizer to reapply mutation tracking after upstream refresh, with marker/anchor validation that fails closed on structural drift. Add Node VM coverage for supported no-op responses, actual filtering, exactly-once serialization, and damaged optimizer markers.
 - This removes full response serialization and output-string allocation from supported no-op responses. It does not claim device-side CPU/battery percentages without real-device measurements.
+
+
+### Pinduoduo order response single-pass cleanup
+
+The shipping endpoint previously matched both a shipping-specific `response.json.jq` rule and the generic order `response.json.delete` rule. The generic rule already removes `shipping.banner_above_recommend`, so the redundant shipping-specific transform is removed during every build. This preserves the same field cleanup while avoiding a second JSON transformation on shipping responses.

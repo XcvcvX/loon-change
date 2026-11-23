@@ -308,6 +308,16 @@
         "if (no === AD_FIELD) return true;",
         "const out = hasTargetField(bytes, 0) ? renameField(bytes, 0,"
       ]
+    },
+    {
+      "path": "allAdRewrite.plugin",
+      "required": [
+        "# loon-change: Pinduoduo order response single-pass JSON cleanup v1",
+        "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/order\\//i then response.json.delete([\"marketing_banner_vo\", \"shipping.banner_above_recommend\"])"
+      ],
+      "forbidden": [
+        "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/order\\/\\d+-\\d+\\/shipping/i then response.json.jq(\"del(.shipping.banner_above_recommend)\")"
+      ]
     }
   ]
 }
