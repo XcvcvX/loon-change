@@ -24,7 +24,8 @@
         "let modified = false;",
         "$done(modified ? {body: JSON.stringify(obj)} : {});",
         "function setIfDifferent(",
-        "function deleteIfPresent("
+        "function deleteIfPresent(",
+        "function sameValue("
       ]
     },
     {
