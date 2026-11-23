@@ -42,7 +42,7 @@ class OptimizationGuardTests(unittest.TestCase):
             "scripts/xianyu/goofish.js": [
                 "// loon-change: Goofish per-response allocation hot-path optimization v1",
                 "const isSupportedPath =",
-                "function hasEnumerableKeys(value)",
+                "let hasKeys = false",
                 "for (const key in node)",
             ],
         }
