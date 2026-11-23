@@ -30,11 +30,14 @@
         "file_id: image.live_photo_file_id",
         "JSON.stringify(livePhotoCache), \"redBookLivePhoto\"",
         "item?.file_id",
-        "obj.data.download_url = item.url;\n        break;"
+        "obj.data.download_url = item.url;\n        break;",
+        "// loon-change: Xiaohongshu parsed JSON tree traversal without visited WeakSet v1;"
       ],
       "forbidden": [
         "JSON.stringify(images_list), \"redBookLivePhoto\"",
-        "item.live_photo.media.stream.h265[0].master_url"
+        "item.live_photo.media.stream.h265[0].master_url",
+        "const visited = new WeakSet()",
+        "visited.has(current)"
       ]
     },
     {
