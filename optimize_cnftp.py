@@ -349,6 +349,7 @@ def ensure_lazy_serialization(source: str) -> str:
         if (source.count(LAZY_SERIALIZATION_MARKER) != 1
                 or source.count("let modified = false;") != 1
                 or source.count(lazy_final) != 1
+                or "function sameValue(" not in source
                 or "function setIfDifferent(" not in source
                 or "function deleteIfPresent(" not in source):
             raise ValueError("CNFTP lazy serialization marker/structure drift")
@@ -375,8 +376,35 @@ def ensure_lazy_serialization(source: str) -> str:
         "  if (write !== length) {\n    items.length = write;\n    modified = true;\n  }\n  return items;",
         1,
     )
-    helper = """\n\n""" + LAZY_SERIALIZATION_MARKER + """\nfunction setIfDifferent(target, key, value) {
-  if (target[key] !== value) {
+    helper = """\n\n""" + LAZY_SERIALIZATION_MARKER + """\nfunction sameValue(current, value) {
+  if (current === value) return true;
+  if (Array.isArray(value)) {
+    if (!Array.isArray(current) || current.length !== value.length) return false;
+    for (let i = 0; i < value.length; i++) {
+      if (!sameValue(current[i], value[i])) return false;
+    }
+    return true;
+  }
+  if (value && typeof value === "object") {
+    if (!current || typeof current !== "object" || Array.isArray(current)) return false;
+    let valueCount = 0;
+    for (const key in value) {
+      if (!Object.prototype.hasOwnProperty.call(value, key)) continue;
+      valueCount++;
+      if (!Object.prototype.hasOwnProperty.call(current, key) ||
+          !sameValue(current[key], value[key])) return false;
+    }
+    let currentCount = 0;
+    for (const key in current) {
+      if (Object.prototype.hasOwnProperty.call(current, key)) currentCount++;
+    }
+    return valueCount === currentCount;
+  }
+  return false;
+}
+
+function setIfDifferent(target, key, value) {
+  if (!sameValue(target[key], value)) {
     target[key] = value;
     modified = true;
   }
