@@ -43,7 +43,9 @@ const shouldProcess =
   url.includes("/boss/car/order/content_info") ||
   url.includes("/boss/order_web/friendly_information") ||
   url.includes("/promotion-web/resource") ||
-  url.includes("/sharedtrip/taxi/order_detail_car_tips");
+  url.includes("/sharedtrip/taxi/order_detail_car_tips") ||
+  url.includes("/shield/search_bff/hotword") ||
+  url.includes("/valueadded/alimama/splash_screen");
 if (!shouldProcess) {
   $done({});
 } else {
@@ -109,10 +111,21 @@ def compact_search_suggestions_in_place(source):
     replacement = "if (url.includes(\"/shield/search_poi/sug\")) {\n  if (Array.isArray(obj?.tip_list) && obj.tip_list.length > 0) {\n    compactInPlace(obj.tip_list, item =>\n      !AMAP_STATIC_ITEMS_10.includes(item?.tip?.datatype_spec) &&\n      !AMAP_STATIC_ITEMS_11.includes(item?.tip?.result_type) &&\n      !AMAP_STATIC_ITEMS_12.includes(item?.tip?.task_tag)\n    );\n  } else if (Array.isArray(obj?.city_list) && obj.city_list.length > 0) {\n    for (const city of obj.city_list) {\n      if (Array.isArray(city?.tip_list) && city.tip_list.length > 0) {\n        compactInPlace(city.tip_list, item =>\n          !AMAP_STATIC_ITEMS_10.includes(item?.tip?.datatype_spec) &&\n          !AMAP_STATIC_ITEMS_13.includes(item?.tip?.result_type)\n        );\n      }\n    }\n  }"
     return source[:i] + replacement + "\n" + source[j:]
 
+def repair_supported_route_guard(source):
+    pattern = re.compile(
+        re.escape(GUARD_MARKER)
+        + r"\\nconst shouldProcess =[\\s\\S]*?if \\(!shouldProcess\\) \\{\\n  \\$done\\(\\{\\}\\);\\n\\} else \\{\\n"
+    )
+    if len(pattern.findall(source)) != 1:
+        raise ValueError("Amap supported-route guard structure changed")
+    return pattern.sub(lambda _: ROUTE_GUARD, source, count=1)
+
+
 def optimize_source(source, commit="unknown"):
     if MARKER in source:
         if source.count(MARKER) != 1 or source.count(GUARD_MARKER) != 1:
             raise ValueError("Amap optimizer markers are inconsistent")
+        source = repair_supported_route_guard(source)
         if ".filter(" in source or "function compactInPlace(items, keep)" not in source:
             raise ValueError("Amap optimized runtime has drifted")
         return compact_search_suggestions_in_place(hoist_static_arrays(source))
