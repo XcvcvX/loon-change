@@ -70,7 +70,8 @@ class DidiOptimizerTests(unittest.TestCase):
         self.assertNotIn("excludedTitles", result)
         self.assertIn("if (!$response.body) {", result)
         self.assertIn("$done(modified ? {body: JSON.stringify(obj)} : {});", result)
-        self.assertIn("if (write !== length) modified = true;", result)
+        self.assertIn("if (write !== length) {", result)
+        self.assertIn("modified = true;", result)
         self.assertIn("Didi pre-parse supported-route guard v1", result)
         self.assertLess(result.index("const shouldProcess"), result.index("JSON.parse($response.body)"))
         self.assertTrue(result.rstrip().endswith("}"))
@@ -165,8 +166,8 @@ if (payload.body === null) {
     def test_mode_dispatch_is_hoisted_outside_each_compaction_loop(self):
         source = SOURCE.read_text(encoding="utf-8")
         start = source.index(DIDI_MODE_MARKER)
-        end = source.index("\n}\nif (!$response.body)", start) + 2
-        helper = source[start:end]
+        end = source.index("if (!$response.body)", start)
+        helper = source[start:end].rstrip()
         modes = ("scene", "sceneId", "nav", "bottomNav", "walletItem", "walletBottom", "card")
         self.assertEqual(helper.count('mode === "'), len(modes))
         self.assertEqual(helper.count("for (let read = 0; read < length; read++)"), len(modes))
@@ -261,6 +262,7 @@ if (payload.body === null) {
         body = {"data": {"cards": [
             {"title": "钱包", "tag": "wallet", "items": "unexpected",
              "card_type": 4, "bottom_items": {"unexpected": True}},
+            {"title": "金融服务", "tag": "remove"},
             {"title": "普通卡片", "tag": "normal"}
         ]}}
         result = self.run_script("https://common.diditaxi.com.cn/common/v1/usercenter/me", body)
@@ -268,7 +270,7 @@ if (payload.body === null) {
         self.assertEqual(len(cards), 2)
         self.assertEqual(cards[0]["items"], "unexpected")
         self.assertEqual(cards[0]["bottom_items"], {"unexpected": True})
-        self.assertEqual(result["stringifyCount"], 0)
+        self.assertEqual(result["stringifyCount"], 1)
 
     def test_ota_top_banner_removal_is_unchanged(self):
         body = {"data": {"disorder_cards": {"top_banner_card": {"data": [
