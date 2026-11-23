@@ -108,6 +108,8 @@ class JingdongOptimizerTests(unittest.TestCase):
         self.assertIn("function isPersonInfoBusinessExcluded(id)", optimized)
         self.assertIn("function isWelcomeHomeType(type)", optimized)
         self.assertIn("function isCustomSurfaceName(name)", optimized)
+        self.assertIn("function isWelcomeExtraExcluded(type)", optimized)
+        self.assertIn("const darkNavigation = modeMap && modeMap.dark && modeMap.dark.navigationAll;", optimized)
         self.assertIn("compactInPlace(obj.floorList, item =>", optimized)
         self.assertIn("compactInPlace(serviceList, card =>", optimized)
         self.assertIn("const shouldProcess =", optimized)
@@ -151,7 +153,7 @@ class JingdongOptimizerTests(unittest.TestCase):
         fixture = (
             "[Script]\n"
             "http-response ^https://api.m.jd.com/client.action?functionId=start "
-            "script-path=" + REMOTE + ",tag=JD,requires-body=true\\n"
+            "script-path=" + REMOTE + ",tag=JD,requires-body=true\n"
             "[MITM]\nhostname = api.m.jd.com\n"
         )
         rewritten = rewrite_plugin(fixture)
@@ -161,7 +163,7 @@ class JingdongOptimizerTests(unittest.TestCase):
         self.assertEqual(rewrite_plugin(rewritten), rewritten)
 
     def test_plugin_rewrite_fails_closed_when_remote_jd_trigger_is_missing(self):
-        fixture = "[Script]\\nhttp-response ^https://example.com script-path=https://example.com/x.js\\n"
+        fixture = "[Script]\nhttp-response ^https://example.com script-path=https://example.com/x.js\n"
         with self.assertRaisesRegex(ValueError, "trigger not found"):
             rewrite_plugin(fixture)
 
