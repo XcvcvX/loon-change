@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import tempfile
+import shutil
 import unittest
 import sys
 from unittest.mock import patch
