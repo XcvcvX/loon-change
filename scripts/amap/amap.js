@@ -321,7 +321,9 @@ const shouldProcess =
   url.includes("/boss/car/order/content_info") ||
   url.includes("/boss/order_web/friendly_information") ||
   url.includes("/promotion-web/resource") ||
-  url.includes("/sharedtrip/taxi/order_detail_car_tips");
+  url.includes("/sharedtrip/taxi/order_detail_car_tips") ||
+  url.includes("/shield/search_bff/hotword") ||
+  url.includes("/valueadded/alimama/splash_screen");
 if (!shouldProcess) {
   $done({});
 } else {
