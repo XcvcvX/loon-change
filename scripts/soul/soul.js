@@ -1,4 +1,4 @@
-// loon-change: Soul lightweight response runtime and in-place cleanup v1; upstream zirawell/R-Store@a4f3b10d6038d77ae3e1ff68bd19a49071ebabd3
+// loon-change: Soul lightweight response runtime and in-place cleanup v1; upstream zirawell/R-Store@1e08bab55bcffc396be39f914f48151443344493
 const GAME_TITLES_TO_REMOVE = [
   "异世界回响", "狼人魅影", "梦想海岛王", "幻想星球",
   "爆弹喵", "星球实验室", "兴趣群组", "群聊派对"

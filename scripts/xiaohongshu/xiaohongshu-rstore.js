@@ -1,4 +1,4 @@
-// loon-change: R-Store Xiaohongshu hot-path optimization v1; upstream zirawell/R-Store@a4f3b10d6038d77ae3e1ff68bd19a49071ebabd3
+// loon-change: R-Store Xiaohongshu hot-path optimization v1; upstream zirawell/R-Store@1e08bab55bcffc396be39f914f48151443344493
 /********************************
 XiaoHongShu Remove Ads - Version 2.0
 Checkout Source: 
