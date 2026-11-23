@@ -237,9 +237,9 @@ def _transform_one(source, sequence):
         )
         between = source[declaration.end():header_start]
         header_replacement = (
-            "for (let " + read_name + " = 0, " + length_name + " = " +
-            source_name + ".length; " + read_name + " < " + length_name +
-            "; " + read_name + "++) {\n" + loop_indent + "  let " +
+            "const " + length_name + " = " + source_name + ".length;\n" +
+            loop_indent + "for (let " + read_name + " = 0; " + read_name + " < " +
+            length_name + "; " + read_name + "++) {\n" + loop_indent + "  let " +
             iterator + " = " + source_name + "[" + read_name + "];"
         )
         assignment_replacement = assignment.group("indent") + source_name + ".length = " + write_name + ";"
