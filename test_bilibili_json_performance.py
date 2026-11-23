@@ -138,7 +138,9 @@ process.stdout.write(NativeJSON.stringify({
             {"result": {"modules": modules}},
         )
         remaining = result["output"]["result"]["modules"]
-        self.assertEqual([item["module_id"] for item in remaining], [100])
+        self.assertEqual([item["module_id"] for item in remaining], [241, 1283, 1284, 1441, 100])
+        self.assertTrue(all(item["items"] == [] for item in remaining[:4]))
+        self.assertEqual(remaining[4]["items"], [{"id": 100}])
         self.assertEqual(result["parseCalls"], 1)
         self.assertEqual(result["stringifyCalls"], 1)
 
