@@ -97,7 +97,6 @@
         "// loon-change: Amap R-Store local fast path;",
         "// loon-change: Amap R-Store supported-route guard v1",
         "function compactInPlace(",
-        "const AMAP_STATIC_ITEMS_13 = [",
         "compactInPlace(obj.tip_list",
         "compactInPlace(city.tip_list",
         "url.includes(\"/shield/search_bff/hotword\")",
@@ -108,7 +107,24 @@
         "function setIfDifferent(",
         "function deleteIfPresent(",
         "if (changed) modified = true;",
-        "$done(modified ? {body: JSON.stringify(obj)} : {});"
+        "$done(modified ? {body: JSON.stringify(obj)} : {});",
+        "// loon-change: Amap scalar membership hot loops v1",
+        "i === \"head\" || i === \"search_hot_words\" || i === \"feed_rec\"",
+        "i?.item_type !== \"brandAdCard\" && i?.item_type !== \"toplist_al\"",
+        "item?.tip?.datatype_spec !== \"12\"",
+        "item?.tip?.result_type !== \"poi_ad\"",
+        "item?.tip?.task_tag !== \"query_sug_merge_theme\""
+      ],
+      "forbidden": [
+        "AMAP_STATIC_ITEMS_06",
+        "AMAP_STATIC_ITEMS_09",
+        "AMAP_STATIC_ITEMS_10",
+        "AMAP_STATIC_ITEMS_11",
+        "AMAP_STATIC_ITEMS_12",
+        "AMAP_STATIC_ITEMS_13",
+        ".includes(item?.tip?.",
+        ".includes(i?.item_type)",
+        "items?.includes(i)"
       ]
     },
     {

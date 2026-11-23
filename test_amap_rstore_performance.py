@@ -4,7 +4,7 @@ import subprocess
 import unittest
 from pathlib import Path
 
-from optimize_amap import ARRAY_MARKER, LOCAL, REMOTE, TRACKING_MARKER, hoist_static_arrays, optimize_source, rewrite_plugin
+from optimize_amap import ARRAY_MARKER, LOCAL, REMOTE, TRACKING_MARKER, SCALAR_MARKER, hoist_static_arrays, optimize_source, rewrite_plugin
 
 ROOT = Path(__file__).resolve().parent
 SOURCE = ROOT / "scripts" / "amap" / "amap.js"
@@ -110,6 +110,37 @@ process.stdout.write(nativeJSON.stringify({doneResult, parseCount, stringifyCoun
         self.assertEqual(unmatched["doneResult"], {})
         self.assertEqual(unmatched["parseCount"], 0)
         self.assertEqual(unmatched["stringifyCount"], 0)
+
+    def test_scalar_membership_hot_loops_use_direct_comparisons(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        self.assertIn(SCALAR_MARKER, source)
+        for stale in (
+            "AMAP_STATIC_ITEMS_06", "AMAP_STATIC_ITEMS_09",
+            "AMAP_STATIC_ITEMS_10", "AMAP_STATIC_ITEMS_11",
+            "AMAP_STATIC_ITEMS_12", "AMAP_STATIC_ITEMS_13",
+            ".includes(item?.tip?.", ".includes(i?.item_type)", "items?.includes(i)",
+        ):
+            self.assertNotIn(stale, source)
+        nearby_start = source.index('} else if (url.includes("/shield/search/nearbyrec_smart"))')
+        nearby_end = source.index('} else if (url.includes("/shield/search/poi/detail"))', nearby_start)
+        nearby = source[nearby_start:nearby_end]
+        self.assertIn("Array.isArray(obj?.data?.modules)", nearby)
+        self.assertEqual(nearby.count("if (obj?.data?.modules?.length > 0)"), 0)
+        self.assertIn('i === "head" || i === "search_hot_words" || i === "feed_rec"', nearby)
+        self.assertEqual(optimize_source(source), source)
+
+    def test_nearby_module_scalar_filter_preserves_order_and_values(self):
+        body = {"data": {"modules": [
+            "head", "unused", "search_hot_words", "feed_rec", "banner"
+        ]}}
+        result = self.run_script(
+            "https://m1.amap.com/ws/shield/search/nearbyrec_smart?x=1",
+            json.dumps(body)
+        )
+        output = json.loads(result["doneResult"]["body"])
+        self.assertEqual(output["data"]["modules"], ["head", "search_hot_words", "feed_rec"])
+        self.assertEqual(result["parseCount"], 1)
+        self.assertEqual(result["stringifyCount"], 1)
 
     def test_mutation_tracking_is_complete_and_optimizer_is_idempotent(self):
         source = SOURCE.read_text(encoding="utf-8")

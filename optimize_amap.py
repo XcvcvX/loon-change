@@ -9,6 +9,7 @@ REMOTE = "https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/An
 LOCAL = "https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/amap/amap.js"
 MARKER = "// loon-change: Amap R-Store local fast path; upstream zirawell/R-Store@"
 GUARD_MARKER = "// loon-change: Amap R-Store supported-route guard v1"
+SCALAR_MARKER = "// loon-change: Amap scalar membership hot loops v1"
 TRACKING_MARKER = "// loon-change: Amap mutation-aware lazy serialization v1"
 TRACKING_HELPER = """// loon-change: Amap mutation-aware lazy serialization v1
 let modified = false;
@@ -147,8 +148,94 @@ def compact_search_suggestions_in_place(source):
         raise ValueError("Amap search suggestion block boundary drift")
     i = source.index(start)
     j = source.index(end, i + len(start))
-    replacement = "if (url.includes(\"/shield/search_poi/sug\")) {\n  if (Array.isArray(obj?.tip_list) && obj.tip_list.length > 0) {\n    compactInPlace(obj.tip_list, item =>\n      !AMAP_STATIC_ITEMS_10.includes(item?.tip?.datatype_spec) &&\n      !AMAP_STATIC_ITEMS_11.includes(item?.tip?.result_type) &&\n      !AMAP_STATIC_ITEMS_12.includes(item?.tip?.task_tag)\n    );\n  } else if (Array.isArray(obj?.city_list) && obj.city_list.length > 0) {\n    for (const city of obj.city_list) {\n      if (Array.isArray(city?.tip_list) && city.tip_list.length > 0) {\n        compactInPlace(city.tip_list, item =>\n          !AMAP_STATIC_ITEMS_10.includes(item?.tip?.datatype_spec) &&\n          !AMAP_STATIC_ITEMS_13.includes(item?.tip?.result_type)\n        );\n      }\n    }\n  }"
+    replacement = """if (url.includes("/shield/search_poi/sug")) {
+  if (Array.isArray(obj?.tip_list) && obj.tip_list.length > 0) {
+    compactInPlace(obj.tip_list, item =>
+      item?.tip?.datatype_spec !== "12" &&
+      item?.tip?.result_type !== "ad" &&
+      item?.tip?.result_type !== "poi_ad" &&
+      item?.tip?.result_type !== "toplist" &&
+      item?.tip?.task_tag !== "ad" &&
+      item?.tip?.task_tag !== "exct_query_sug_merge_theme" &&
+      item?.tip?.task_tag !== "query_sug_merge_theme" &&
+      item?.tip?.task_tag !== "sp"
+    );
+  } else if (Array.isArray(obj?.city_list) && obj.city_list.length > 0) {
+    for (const city of obj.city_list) {
+      if (Array.isArray(city?.tip_list) && city.tip_list.length > 0) {
+        compactInPlace(city.tip_list, item =>
+          item?.tip?.datatype_spec !== "12" &&
+          item?.tip?.result_type !== "ad" &&
+          item?.tip?.result_type !== "poi_ad"
+        );
+      }
+    }
+  }"""
     return source[:i] + replacement + "\n" + source[j:]
+
+
+def optimize_scalar_membership(source):
+    if source.count(SCALAR_MARKER) > 1:
+        raise ValueError("Amap scalar membership marker is duplicated")
+    if SCALAR_MARKER not in source:
+        nearby_old = """  const items = AMAP_STATIC_ITEMS_06;
+  if (obj?.data?.modules?.length > 0) {
+    if (obj?.data?.modules?.length > 0) {
+      compactInPlace(obj.data.modules, (i) => items?.includes(i));
+    }
+  }"""
+        nearby_new = """  if (Array.isArray(obj?.data?.modules) && obj.data.modules.length > 0) {
+    compactInPlace(obj.data.modules, (i) =>
+      i === "head" || i === "search_hot_words" || i === "feed_rec"
+    );
+  }"""
+        if source.count(nearby_old) != 1:
+            raise ValueError("Amap nearby modules membership block changed")
+        source = source.replace(nearby_old, nearby_new, 1)
+
+        brand_old = "compactInPlace(list.content, (i) => !AMAP_STATIC_ITEMS_09.includes(i?.item_type));"
+        brand_new = """compactInPlace(list.content, (i) =>
+          i?.item_type !== "brandAdCard" && i?.item_type !== "toplist_al"
+        );"""
+        if source.count(brand_old) != 1:
+            raise ValueError("Amap search card membership block changed")
+        source = source.replace(brand_old, brand_new, 1)
+
+        for name, literal in (
+            ("AMAP_STATIC_ITEMS_06", r'\["head", "search_hot_words", "feed_rec"\]'),
+            ("AMAP_STATIC_ITEMS_09", r'\["brandAdCard", "toplist_al"\]'),
+            ("AMAP_STATIC_ITEMS_10", r'\["12"\]'),
+            ("AMAP_STATIC_ITEMS_11", r'\["ad", "poi_ad", "toplist"\]'),
+            ("AMAP_STATIC_ITEMS_12", r'\["ad", "exct_query_sug_merge_theme", "query_sug_merge_theme", "sp"\]'),
+            ("AMAP_STATIC_ITEMS_13", r'\["ad", "poi_ad"\]'),
+        ):
+            pattern = re.compile(r"^const " + name + r"\s*=\s*" + literal + r";*\s*$", re.M)
+            if len(pattern.findall(source)) != 1:
+                raise ValueError("Amap unused membership array changed: " + name)
+            source = pattern.sub("", source, count=1)
+
+        anchor = "function compactInPlace(items, keep) {"
+        if source.count(anchor) != 1:
+            raise ValueError("Amap scalar membership marker insertion anchor changed")
+        source = source.replace(anchor, SCALAR_MARKER + "\n" + anchor, 1)
+
+    if source.count(SCALAR_MARKER) != 1:
+        raise ValueError("Amap scalar membership marker count drift")
+    forbidden = (
+        "AMAP_STATIC_ITEMS_06", "AMAP_STATIC_ITEMS_09",
+        "AMAP_STATIC_ITEMS_10", "AMAP_STATIC_ITEMS_11",
+        "AMAP_STATIC_ITEMS_12", "AMAP_STATIC_ITEMS_13",
+        ".includes(item?.tip?.", ".includes(i?.item_type)",
+        "items?.includes(i)",
+    )
+    if any(value in source for value in forbidden):
+        raise ValueError("Amap scalar membership optimization is incomplete")
+    if 'i === "head" || i === "search_hot_words" || i === "feed_rec"' not in source:
+        raise ValueError("Amap nearby scalar predicate is missing")
+    if 'i?.item_type !== "brandAdCard" && i?.item_type !== "toplist_al"' not in source:
+        raise ValueError("Amap search card scalar predicate is missing")
+    return source
+
 
 def repair_supported_route_guard(source):
     pattern = re.compile(
@@ -241,6 +328,7 @@ def optimize_source(source, commit="unknown"):
         if source.count(MARKER) != 1 or source.count(GUARD_MARKER) != 1:
             raise ValueError("Amap optimizer markers are inconsistent")
         source = repair_supported_route_guard(source)
+        source = optimize_scalar_membership(compact_search_suggestions_in_place(hoist_static_arrays(source)))
         source = instrument_mutations(source)
         if ".filter(" in source or "function compactInPlace(items, keep)" not in source:
             raise ValueError("Amap optimized runtime has drifted")
@@ -270,6 +358,7 @@ def optimize_source(source, commit="unknown"):
     if source.count("compactInPlace(") != 12:
         raise ValueError("Amap in-place compaction call inventory drift")
     source = compact_search_suggestions_in_place(hoist_static_arrays(source))
+    source = optimize_scalar_membership(source)
     source = instrument_mutations(source)
     return MARKER + commit + "\n" + source
 

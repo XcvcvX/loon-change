@@ -123,7 +123,6 @@ const AMAP_STATIC_ITEMS_05 = [
     "tips_bar_black_list",
     "vip"
   ];;
-const AMAP_STATIC_ITEMS_06 = ["head", "search_hot_words", "feed_rec"];;
 const AMAP_STATIC_ITEMS_07 = [
     "CouponBanner", // 高德红包
     // "anchor",
@@ -310,11 +309,7 @@ const AMAP_STATIC_ITEMS_08 = [
     "promotion_wrap_card",
     "tips_top_banner"
   ];;
-const AMAP_STATIC_ITEMS_09 = ["brandAdCard", "toplist_al"];
-const AMAP_STATIC_ITEMS_10 = ["12"];
-const AMAP_STATIC_ITEMS_11 = ["ad", "poi_ad", "toplist"];
-const AMAP_STATIC_ITEMS_12 = ["ad", "exct_query_sug_merge_theme", "query_sug_merge_theme", "sp"];
-const AMAP_STATIC_ITEMS_13 = ["ad", "poi_ad"];
+// loon-change: Amap scalar membership hot loops v1
 function compactInPlace(items, keep) {
   let write = 0;
   let changed = false;
@@ -543,11 +538,10 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
   }
 } else if (url.includes("/shield/search/nearbyrec_smart")) {
   // 附近页面
-  const items = AMAP_STATIC_ITEMS_06;
-  if (obj?.data?.modules?.length > 0) {
-    if (obj?.data?.modules?.length > 0) {
-      compactInPlace(obj.data.modules, (i) => items?.includes(i));
-    }
+  if (Array.isArray(obj?.data?.modules) && obj.data.modules.length > 0) {
+    compactInPlace(obj.data.modules, (i) =>
+      i === "head" || i === "search_hot_words" || i === "feed_rec"
+    );
   }
 } else if (url.includes("/shield/search/poi/detail")) {
   // 搜索结果 模块详情
@@ -663,23 +657,31 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
       let list = obj.data.modules.list_data.data;
       if (list?.content?.length > 0) {
         // brandAdCard广告卡片 toplist_al人气榜单 高德指南
-        compactInPlace(list.content, (i) => !AMAP_STATIC_ITEMS_09.includes(i?.item_type));
+        compactInPlace(list.content, (i) =>
+          i?.item_type !== "brandAdCard" && i?.item_type !== "toplist_al"
+        );
       }
     }
   }
 } else if (url.includes("/shield/search_poi/sug")) {
   if (Array.isArray(obj?.tip_list) && obj.tip_list.length > 0) {
     compactInPlace(obj.tip_list, item =>
-      !AMAP_STATIC_ITEMS_10.includes(item?.tip?.datatype_spec) &&
-      !AMAP_STATIC_ITEMS_11.includes(item?.tip?.result_type) &&
-      !AMAP_STATIC_ITEMS_12.includes(item?.tip?.task_tag)
+      item?.tip?.datatype_spec !== "12" &&
+      item?.tip?.result_type !== "ad" &&
+      item?.tip?.result_type !== "poi_ad" &&
+      item?.tip?.result_type !== "toplist" &&
+      item?.tip?.task_tag !== "ad" &&
+      item?.tip?.task_tag !== "exct_query_sug_merge_theme" &&
+      item?.tip?.task_tag !== "query_sug_merge_theme" &&
+      item?.tip?.task_tag !== "sp"
     );
   } else if (Array.isArray(obj?.city_list) && obj.city_list.length > 0) {
     for (const city of obj.city_list) {
       if (Array.isArray(city?.tip_list) && city.tip_list.length > 0) {
         compactInPlace(city.tip_list, item =>
-          !AMAP_STATIC_ITEMS_10.includes(item?.tip?.datatype_spec) &&
-          !AMAP_STATIC_ITEMS_13.includes(item?.tip?.result_type)
+          item?.tip?.datatype_spec !== "12" &&
+          item?.tip?.result_type !== "ad" &&
+          item?.tip?.result_type !== "poi_ad"
         );
       }
     }
