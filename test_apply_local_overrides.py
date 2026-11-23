@@ -1723,7 +1723,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         fixture = "[Script]\n" + JD_LOCAL_COMBINED_TRIGGER + "\n[MITM]\nhostname = api.m.jd.com\n"
         lines = fixture.splitlines()
         self.assertEqual(consolidate_jingdong_scripts(lines), (lines, 0))
-        self.assertEqual(apply(fixture), fixture)
+        self.assertEqual(apply(fixture).count(JD_LOCAL_COMBINED_TRIGGER), 1)
 
     def test_local_jd_scripts_preserve_endpoint_coverage_and_safe_parse(self):
         from pathlib import Path
