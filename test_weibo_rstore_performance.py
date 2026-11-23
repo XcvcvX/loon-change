@@ -5,7 +5,7 @@ import subprocess
 import unittest
 from pathlib import Path
 
-from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, optimize_source, rewrite_plugin
+from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, LAZY_MARKER, optimize_source, rewrite_plugin
 
 ROOT = Path(__file__).resolve().parent
 SCRIPT = ROOT / "scripts/weibo/weibo-rstore.js"
@@ -16,6 +16,9 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
     def test_generated_script_is_marked_and_idempotent(self):
         source = SCRIPT.read_text(encoding="utf-8")
         self.assertIn(MARKER, source)
+        self.assertIn(LAZY_MARKER, source)
+        self.assertIn('let modified = !url.includes("/2/cardlist") && !url.includes("/2/comments/build_comments");', source)
+        self.assertIn('$done(modified ? {body: JSON.stringify(obj)} : {});', source)
         self.assertEqual(optimize_source(source), source)
         self.assertEqual(len(re.findall(r"const __loonSource\d+ =", source)), 32)
         remaining = re.findall(r"\b(new[A-Za-z0-9_]*)\s*=\s*\[\s*\]", source)
@@ -50,14 +53,22 @@ const vm = require("vm");
 const source = fs.readFileSync(process.argv[1], "utf8");
 const payload = JSON.parse(fs.readFileSync(0, "utf8"));
 let doneResult;
+let parseCount = 0, stringifyCount = 0;
+const nativeParse = JSON.parse.bind(JSON);
+const nativeStringify = JSON.stringify.bind(JSON);
+const trackedJSON = {
+  parse(value) { parseCount++; return nativeParse(value); },
+  stringify(value) { stringifyCount++; return nativeStringify(value); }
+};
 const context = {
+  JSON: trackedJSON,
   $request: {url: payload.url},
   $response: {body: JSON.stringify(payload.body)},
   $done(value) { doneResult = value; },
   console: {log() {}, warn() {}, error() {}}
 };
 vm.runInNewContext(source, context, {timeout: 5000});
-process.stdout.write(JSON.stringify({doneResult}));
+process.stdout.write(JSON.stringify({doneResult, parseCount, stringifyCount}));
 """
         completed = subprocess.run(
             [NODE, "-e", runner, str(SCRIPT)],
@@ -81,6 +92,8 @@ process.stdout.write(JSON.stringify({doneResult}));
         self.assertEqual([g["card_type"] for g in output["cards"][0]["card_group"]], [1])
         self.assertNotIn("buttons", output["cards"][0]["card_group"][0]["mblog"])
         self.assertNotIn("buttons", output["cards"][1]["mblog"])
+        self.assertEqual(result["parseCount"], 1)
+        self.assertEqual(result["stringifyCount"], 1)
 
     def test_comments_cleanup_keeps_only_allowed_items(self):
         body = {"datas": [
@@ -102,6 +115,26 @@ process.stdout.write(JSON.stringify({doneResult}));
         self.assertNotIn("icons", kept["user"])
         for key in ("comment_bubble", "comment_bullet_screens_message", "hot_icon", "vip_button"):
             self.assertNotIn(key, kept)
+        self.assertEqual(result["parseCount"], 1)
+        self.assertEqual(result["stringifyCount"], 1)
+
+    def test_clean_cardlist_and_comments_skip_response_serialization(self):
+        cardlist = {"cards": [
+            {"card_group": [{"card_type": 1, "mblog": {"id": "keep-1"}}]},
+            {"card_type": 2, "mblog": {"id": "keep-2"}}
+        ]}
+        result = self.run_script("https://api.weibo.cn/2/cardlist?containerid=clean", cardlist)
+        self.assertEqual(result["doneResult"], {})
+        self.assertEqual(result["parseCount"], 1)
+        self.assertEqual(result["stringifyCount"], 0)
+
+        comments = {"datas": [
+            {"type": 1, "data": {"user": {"name": "普通用户"}, "text": "keep"}}
+        ]}
+        result = self.run_script("https://api.weibo.cn/2/comments/build_comments?flow=clean", comments)
+        self.assertEqual(result["doneResult"], {})
+        self.assertEqual(result["parseCount"], 1)
+        self.assertEqual(result["stringifyCount"], 0)
 
     def test_hot_timeline_compaction_preserves_feed_order(self):
         body = {
