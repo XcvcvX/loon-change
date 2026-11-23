@@ -5,6 +5,8 @@
 
 const url = $request.url;
 
+let modified = false;
+
 function compactInPlace(items, keep) {
   let write = 0;
   const length = items.length;
@@ -15,8 +17,27 @@ function compactInPlace(items, keep) {
       write++;
     }
   }
-  items.length = write;
+  if (write !== length) {
+    items.length = write;
+    modified = true;
+  }
   return items;
+}
+
+
+// loon-change: CNFTP lazy response serialization v1
+function setIfDifferent(target, key, value) {
+  if (target[key] !== value) {
+    target[key] = value;
+    modified = true;
+  }
+}
+
+function deleteIfPresent(target, key) {
+  if (Object.prototype.hasOwnProperty.call(target, key)) {
+    delete target[key];
+    modified = true;
+  }
 }
 
 
@@ -82,7 +103,7 @@ if (isIQY) {
         compactInPlace(card.items, (i) => ["29", "31", "34"]?.includes(i?._id));
         // 修复位置
         for (let i = 0; i < card.items.length; i++) {
-          card.items[i].show_order = i + 1;
+          setIfDifferent(card.items[i], "show_order", i + 1);
         }
       }
     }
@@ -105,13 +126,13 @@ if (isIQY) {
         "vr"
       ];
       for (let i of items) {
-        delete obj.content.resource[i];
+        deleteIfPresent(obj.content.resource, i);
       }
     }
   } else if (url.includes("/control/")) {
     // 爱奇艺 首页左上角天气图标
     if (obj?.content?.weather) {
-      delete obj.content.weather;
+      deleteIfPresent(obj.content, "weather");
     }
   } else if (url.includes("/getMyMenus?")) {
     // 爱奇艺 我的页面
@@ -133,7 +154,7 @@ if (isIQY) {
         // 1017直播 8196热点 4525518866820370中国梦
         compactInPlace(card.items, (i) => !["1017", "8196", "4525518866820370"]?.includes(i?._id));
         for (let i = 0; i < card.items.length; i++) {
-          card.items[i].show_order = i + 1;
+          setIfDifferent(card.items[i], "show_order", i + 1);
         }
       }
     }
@@ -142,24 +163,24 @@ if (isIQY) {
     if (obj?.errorCode === 0) {
       const items = ["adSlots", "splashLottieFile", "splashUiConfig"];
       for (let i of items) {
-        delete obj[i];
+        deleteIfPresent(obj, i);
       }
     }
   } else if (url.includes("/search.video.iqiyi.com/")) {
     // 爱奇艺 搜索框填充
     if (obj?.cache_expired_sec) {
-      obj.cache_expired_sec = 1;
+      setIfDifferent(obj, "cache_expired_sec", 1);
     }
     if (obj?.data) {
-      obj.data = [{query: "搜索内容"}];
+      setIfDifferent(obj, "data", [{query: "搜索内容"}]);
     }
     if (obj?.show_style?.roll_period) {
-      obj.show_style.roll_period = 1000;
+      setIfDifferent(obj.show_style, "roll_period", 1000);
     }
   } else if (url.includes("/views_category/")) {
     // 爱奇艺 各菜单列表 剧集 电影 综艺 信息流
     if (obj?.base?.statistics?.ad_str) {
-      delete obj.base.statistics.ad_str;
+      deleteIfPresent(obj.base.statistics, "ad_str");
     }
     if (obj?.cards?.length > 0) {
       // loon-change: iQIYI category nested stable in-place compaction v1
@@ -182,7 +203,7 @@ if (isIQY) {
   } else if (url.includes("/views_home/")) {
     // 爱奇艺 信息流样式1
     if (obj?.base?.statistics?.ad_str) {
-      delete obj.base.statistics.ad_str;
+      deleteIfPresent(obj.base.statistics, "ad_str");
     }
     if (obj?.cards?.length > 0) {
       // loon-change: iQIYI home cards allocation-free traversal v1
@@ -194,7 +215,7 @@ if (isIQY) {
           for (let item of card.top_banner.l_blocks) {
             if (item?.buttons?.length > 0) {
               // 移除按钮 娱乐资源
-              delete item.buttons;
+              deleteIfPresent(item, "buttons");
             }
           }
         }
@@ -207,7 +228,7 @@ if (isIQY) {
       // activity_tab活动标签页 cloud_cinema云影院卡片 vip_fixed_card会员优惠购买卡片
       const items = ["activity_tab", "cloud_cinema", "vip_fixed_card"];
       for (let i of items) {
-        delete obj.kv_pair[i];
+        deleteIfPresent(obj.kv_pair, i);
       }
     }
     if (obj?.cards?.length > 0) {
@@ -266,7 +287,7 @@ if (isIQY) {
   } else if (url.includes("/waterfall/")) {
     // 爱奇艺 信息流样式2
     if (obj?.base?.statistics?.ad_str) {
-      delete obj.base.statistics.ad_str;
+      deleteIfPresent(obj.base.statistics, "ad_str");
     }
     if (obj?.cards?.length > 0) {
       // loon-change: iQIYI waterfall nested stable in-place compaction v1
@@ -283,7 +304,7 @@ if (isIQY) {
   if (url.includes("/dynamic/v1/channel/index/")) {
     // 芒果 首页信息流
     if (obj?.adInfo) {
-      delete obj.adInfo;
+      deleteIfPresent(obj, "adInfo");
     }
     if (obj?.data?.length > 0) {
       // loon-change: Mango dynamic channel nested stable in-place compaction v1
@@ -324,22 +345,22 @@ if (isIQY) {
     ];
     for (let i of items) {
       if (obj?.data?.[i]) {
-        obj.data[i] = "0";
+        setIfDifferent(obj.data, i, "0");
       }
     }
     if (obj?.data?.XmFsLvlCatAddr) {
-      obj.data.XmFsLvlCatAddr = "";
+      setIfDifferent(obj.data, "XmFsLvlCatAddr", "");
     }
   } else if (url.includes("/mobile/recommend/v2?")) {
     // 芒果 搜索框填充词
     if (obj?.data?.default) {
-      obj.data.default = {0: ["搜索内容"]};
+      setIfDifferent(obj.data, "default", {0: ["搜索内容"]});
     }
     if (obj?.data?.recommend) {
-      obj.data.recommend = [];
+      setIfDifferent(obj.data, "recommend", []);
     }
     if (obj?.data?.interval) {
-      obj.data.interval = 1000;
+      setIfDifferent(obj.data, "interval", 1000);
     }
   } else if (url.includes("/odin/c1/channel/index?")) {
     // 芒果 首页信息流
@@ -351,12 +372,12 @@ if (isIQY) {
     // 芒果 播放页详情页组件
     if (obj?.data?.config?.ad) {
       // 播放广告
-      obj.data.config.ad.wmShowTime = 0;
+      setIfDifferent(obj.data.config.ad, "wmShowTime", 0);
     }
     if (obj?.data?.config?.videoRcMod) {
       // 播放弹窗
-      obj.data.config.videoRcMod.toastStatus = 0;
-      obj.data.config.videoRcMod.toastTime = 0;
+      setIfDifferent(obj.data.config.videoRcMod, "toastStatus", 0);
+      setIfDifferent(obj.data.config.videoRcMod, "toastTime", 0);
     }
     if (obj?.data?.tabs?.length > 0) {
       // 播放标签页 1视频 2讨论
@@ -371,14 +392,14 @@ if (isIQY) {
         if ([202, 203, 301, 601, 701, 702]?.includes(item?.dataType)) return false;
         if (item?.clipInfo?.rcInfo) {
           // 播放界面推荐语
-          delete item.clipInfo.rcInfo;
+          deleteIfPresent(item.clipInfo, "rcInfo");
         }
         return true;
       });
     }
     if (obj?.data?.template?.theme) {
       // 播放页主题皮肤
-      delete obj.data.template.theme;
+      deleteIfPresent(obj.data.template, "theme");
     }
   } else if (url.includes("/v3/module/list?")) {
     // 芒果 我的页面组件
@@ -413,7 +434,7 @@ if (isIQY) {
     if (obj?.data) {
       const items = ["tipContent", "tipContentNew"];
       for (let i of items) {
-        delete obj.data[i];
+        deleteIfPresent(obj.data, i);
       }
     }
   } else if (url.includes("columbus.gateway.new.execute")) {
@@ -458,17 +479,17 @@ if (isIQY) {
             } else if (node0?.typeName === "FEED_CHILD_DRAWER_PAGINATION") {
               // 播放页推荐信息流
               if (node0?.nodes) {
-                node0.nodes = [];
+                setIfDifferent(node0, "nodes", []);
               }
             } else if (node0?.typeName === "FEED_DRAWER_PAGINATION") {
               // 播放页推荐信息流
               if (node0?.nodes) {
-                node0.nodes = [];
+                setIfDifferent(node0, "nodes", []);
               }
             }
           }
         } else {
-          objData.nodes = [];
+          setIfDifferent(objData, "nodes", []);
         }
       }
     }
@@ -496,7 +517,7 @@ if (isIQY) {
       let objData = obj.data["2019061000"].data;
       if (objData?.data?.indexPositionResult?.length > 0) {
         // 首页 第零层级 二楼
-        objData.data.indexPositionResult = [];
+        setIfDifferent(objData.data, "indexPositionResult", []);
       }
       if (objData?.nodes?.length > 0) {
         // Stable in-place compaction avoids four generations of nested filtered-copy arrays.
@@ -508,17 +529,17 @@ if (isIQY) {
           }
           if (node1?.data?.indexPositionResult?.length > 0) {
             // 剧集 电影 二楼
-            node1.data.indexPositionResult = [];
+            setIfDifferent(node1.data, "indexPositionResult", []);
           }
           if (node1?.data?.refreshImg) {
             // 电影 综艺 纪录片 下拉刷新的背景图片
-            delete node1.data.refreshImg;
+            deleteIfPresent(node1.data, "refreshImg");
           }
           if (node1?.nodes?.length > 0) {
             compactInPlace(node1.nodes, (node2) => {
               if (node2?.data?.crmSale) {
                 // 季卡会员横幅
-                delete node2.data.crmSale;
+                deleteIfPresent(node2.data, "crmSale");
               }
               if (node2?.typeName === "UC广告抽屉" || node2?.typeName === "橱窗广告") {
                 // 横版独占广告
@@ -526,7 +547,7 @@ if (isIQY) {
               }
               if (node2?.id === 31476 && node2?.data?.keywords?.length > 0) {
                 // 正在热播滚动热词
-                delete node2.data.keywords;
+                deleteIfPresent(node2.data, "keywords");
               }
               if (node2?.id === 35505 || node2?.id === 37335) {
                 // 优惠购会员横幅、首页二楼
@@ -621,21 +642,21 @@ if (isIQY) {
         );
         // 修复位置
         for (let i = 0; i < bottom.data.bottomTabList.length; i++) {
-          bottom.data.bottomTabList[i].menuIndex = i + 1;
+          setIfDifferent(bottom.data.bottomTabList[i], "menuIndex", i + 1);
         }
       }
     }
   } else if (url.includes("huluwa.dispatcher.youthmode.config2/")) {
     // 优酷 青少年模式弹窗
     if (obj?.data?.result) {
-      obj.data.result = {};
+      setIfDifferent(obj.data, "result", {});
     }
   } else if (url.includes("play.ups.appinfo.get/")) {
     // 优酷 开屏广告 播放广告
     if (obj?.data?.data) {
       const items = ["ad", "watermark", "ykad"];
       for (let i of items) {
-        delete obj.data.data[i];
+        deleteIfPresent(obj.data.data, i);
       }
     }
   } else if (url.includes("soku.yksearch/")) {
@@ -647,6 +668,6 @@ if (isIQY) {
   }
 }
 
-$done({body: JSON.stringify(obj)});
+$done(modified ? {body: JSON.stringify(obj)} : {});
 }
 }
