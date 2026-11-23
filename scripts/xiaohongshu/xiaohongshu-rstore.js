@@ -76,15 +76,13 @@ if (url.includes("/note/imagefeed") || url.includes("/note/feed")) {
       const images_list = obj.data[0].note_list[0].images_list;
       // Cache only fields consumed by the live-photo save endpoint.
       const livePhotoCache = [];
-      if (Array.isArray(images_list)) {
-        for (const image of images_list) {
-          if (image?.live_photo_file_id) {
-            livePhotoCache.push({
-              file_id: image.live_photo_file_id,
-              video_id: image.live_photo?.media?.video_id,
-              url: image.live_photo?.media?.stream?.h265?.[0]?.master_url
-            });
-          }
+      for (const image of images_list) {
+        if (image?.live_photo_file_id) {
+          livePhotoCache.push({
+            file_id: image.live_photo_file_id,
+            video_id: image.live_photo?.media?.video_id,
+            url: image.live_photo?.media?.stream?.h265?.[0]?.master_url
+          });
         }
       }
       $.setdata(JSON.stringify(livePhotoCache), "redBookLivePhoto");
