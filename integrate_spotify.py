@@ -219,7 +219,16 @@ def optimize_spotify_nested_script(source, kind):
     else:
         raise ValueError("unknown Spotify nested protobuf optimizer")
     if marker in source:
-        if source.count(marker) != 1 or "const out = hasTargetField(bytes, 0) ? renameField(bytes, 0," not in source:
+        start = source.find(marker)
+        end = source.find("// Parses one protobuf message", start)
+        helper = source[start:end] if end > start else ""
+        if (source.count(marker) != 1
+                or "const out = hasTargetField(bytes, 0) ? renameField(bytes, 0," not in source
+                or "function hasTargetField(buf, depth, start, end)" not in helper
+                or "let pos = start;" not in helper
+                or "while (pos < end)" not in helper
+                or predicate not in helper
+                or ".subarray(" in helper):
             raise ValueError("Spotify nested protobuf optimization structure drift")
         return source
     helper = f"""{marker}
