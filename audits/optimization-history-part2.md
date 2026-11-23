@@ -421,3 +421,25 @@ The active R-Store Xiaohongshu script parses the response body with JSON.parse b
 - Require the no-visited marker in optimization invariants and forbid the old allocation/check patterns so upstream regeneration cannot restore them.
 
 This removes one WeakSet allocation and two WeakSet operations per traversed object in the active comment response path. Actual device CPU and battery changes remain unquantified without Loon on-device measurements.
+
+---
+
+# Phase 15 P1 — Bilibili response hot-loop scalar membership
+
+## Finding
+
+The active Bilibili JSON response script is referenced by seven local response triggers. In the vertical feed compaction loop, each item evaluated a three-element array literal and called includes to decide whether to discard the item. The PGC page module loop similarly allocated a four-element numeric array for each module before testing membership.
+
+## Runtime change
+
+- Replace the vertical feed per-item array allocation/includes call with one cached cardGoto read and three strict scalar comparisons.
+- Replace the PGC module per-item array allocation/includes call with four strict numeric comparisons.
+- Preserve exact filter values, strict-equality semantics, stable feed order, mutation tracking, and lazy response serialization.
+
+## Regression coverage
+
+- Structural tests require scalar comparisons and forbid both per-item array expressions.
+- Runtime tests cover all filtered and retained vertical-feed card types, including nearby card types that must remain, and verify PGC module filtering for all four IDs.
+- The optimization invariant protects the marker and required scalar branches and forbids restoration of the allocating array membership expressions.
+
+This removes two temporary array allocations and two includes calls per traversed feed item/module in the respective hot loops. Actual device CPU and battery changes remain unquantified without Loon on-device measurements.
