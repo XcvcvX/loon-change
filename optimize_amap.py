@@ -171,7 +171,8 @@ def _split_member_path(path):
 def instrument_mutations(source):
     if source.count(TRACKING_MARKER) > 1:
         raise ValueError("Amap mutation tracking marker is duplicated")
-    if TRACKING_MARKER not in source:
+    was_instrumented = TRACKING_MARKER in source
+    if not was_instrumented:
         url_anchor = "const url = $request.url;"
         if source.count(url_anchor) != 1:
             raise ValueError("Amap mutation tracking insertion anchor changed")
@@ -193,6 +194,7 @@ def instrument_mutations(source):
     done = old_done if old_done in source else lazy_done
     end = source.index(done, start)
     body = source[start:end]
+    trailing_newlines = len(body) - len(body.rstrip("\n"))
     delete_count = 0
     set_count = 0
     rewritten = []
@@ -216,8 +218,8 @@ def instrument_mutations(source):
             set_count += 1
             continue
         rewritten.append(line)
-    body = "\n".join(rewritten)
-    if delete_count + set_count < 50:
+    body = "\n".join(rewritten) + ("\n" * trailing_newlines)
+    if not was_instrumented and delete_count + set_count < 50:
         raise ValueError(
             "Amap mutation inventory changed: delete=%d set=%d"
             % (delete_count, set_count)
