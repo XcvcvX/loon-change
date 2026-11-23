@@ -1718,6 +1718,13 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         with self.assertRaisesRegex(ValueError, "Jingdong script trigger inventory is mixed"):
             apply(mixed)
 
+    def test_accepts_already_local_combined_jd_trigger_without_duplicate_cleanup(self):
+        from apply_local_overrides import JD_LOCAL_COMBINED_TRIGGER, consolidate_jingdong_scripts
+        fixture = "[Script]\n" + JD_LOCAL_COMBINED_TRIGGER + "\n[MITM]\nhostname = api.m.jd.com\n"
+        lines = fixture.splitlines()
+        self.assertEqual(consolidate_jingdong_scripts(lines), (lines, 0))
+        self.assertEqual(apply(fixture), fixture)
+
     def test_local_jd_scripts_preserve_endpoint_coverage_and_safe_parse(self):
         from pathlib import Path
         root = Path(__file__).parent / "scripts/jingdong"
@@ -1728,9 +1735,9 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
             "functionId=readCustomSurfaceList", "functionId=deliverLayer",
             "functionId=orderTrackBusiness", "functionId=getTabHomeInfo",
             "functionId=myOrderInfo", "functionId=personinfoBusiness",
-            "PERSON_INFO_BUSINESS_MID_EXCLUDE", "WELCOME_HOME_TYPE_INCLUDE",
-            "CUSTOM_SURFACE_NAME_INCLUDE", "welcomeExtraEnabled",
-            "WELCOME_HOME_EXTRA_EXCLUDE", "$argument", "jkds_enable", "JSON.parse(body)",
+            "function isPersonInfoBusinessExcluded(id)", "function isWelcomeHomeType(type)",
+            "function isCustomSurfaceName(name)", "welcomeExtraEnabled",
+            "function isWelcomeExtraExcluded(type)", "$argument", "jkds_enable", "JSON.parse(body)",
             "let modified = false;", "$done(modified ? { body: JSON.stringify(obj) } : {})",
         ):
             self.assertIn(marker, base_script)
