@@ -1002,3 +1002,8 @@ The shipping endpoint previously matched both a shipping-specific `response.json
 ### Baidu Map target-only binary views
 
 The protobuf response loop now creates payload views only for the `Result` and `Ads` fields it actually consumes. Unknown/auxiliary fields are skipped before `subarray`, reducing short-lived typed-array view allocations without decoding or copying the large `Result` payload.
+
+
+### Amap supported-route guard completeness
+
+The Amap response handler's pre-parse allowlist now includes every implemented response branch, including search hotwords and the splash-screen creative endpoint. The upstream optimizer repairs this exact guard on every sync, and runtime tests verify both cleanup branches remain reachable. This fixes skipped cleanup paths; it does not claim lazy serialization for unchanged supported responses.
