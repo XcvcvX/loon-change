@@ -421,3 +421,27 @@ The active R-Store Xiaohongshu script parses the response body with JSON.parse b
 - Require the no-visited marker in optimization invariants and forbid the old allocation/check patterns so upstream regeneration cannot restore them.
 
 This removes one WeakSet allocation and two WeakSet operations per traversed object in the active comment response path. Actual device CPU and battery changes remain unquantified without Loon on-device measurements.
+
+---
+
+# Phase 15 P1 — Classic Xiaohongshu parsed-comment tree traversal
+
+## Finding
+
+The active classic Xiaohongshu response handler parses the response body with JSON.parse before calling processCommentTree. JSON.parse creates a tree of objects without cycles or shared object references. The iterative comment walker nevertheless allocated a third WeakSet and performed a has/add pair for every traversed object.
+
+## Runtime change
+
+- Remove only the redundant visited WeakSet and its per-node lookup/insertion.
+- Keep the topLevelComments and commentNodes WeakSets because they identify which objects receive comment-specific transformations.
+- Preserve iterative traversal, red_id migration, comment type conversion, media extraction, and parsedVideoInfo deduplication.
+
+## Regression coverage
+
+- Instrument WeakSet construction and assert exactly two semantic WeakSets remain.
+- Extend the fixture with 400 nested objects and verify every red_id is migrated without recursion.
+- Keep the existing comment media cache, URL extraction, and repeated video_info parse-count assertions.
+- Protect the marker and forbid the old visited-set allocation/check in optimization invariants.
+- Update the optimizer so an already-marked runtime snapshot is upgraded rather than silently accepted; fail closed if the old visited-set code remains after transformation.
+
+This removes one WeakSet allocation and two WeakSet operations per traversed object in the active classic comment response path. Actual device CPU and battery changes remain unquantified without on-device Loon measurements.
