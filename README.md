@@ -1045,3 +1045,7 @@ The Amap nearby-module, search-card, and suggestion filters now use direct scala
 - Preserve the exact `AMAP_STATIC_ITEMS_03` removal list, shared dynamic-ad matcher, stable array order and mutation-aware lazy serialization.
 - Extend the upstream optimizer to restore the reviewed cached-reference form after refresh, with fail-closed branch/declaration checks, idempotence tests and Node VM behavior regressions.
 - This reduces repeated nested property-chain traversal in the route-planning response path; no real-device CPU or battery percentage is claimed.
+
+### Taobao splash response traversal
+
+The Taobao splash response handler now caches the sections array, each section's `bizData`, and the nested splash-item array once, then traverses both arrays with indexed loops and cached lengths. This avoids allocating array iterator objects and repeatedly resolving the same nested property chain on the splash hot path. The existing creative-field mutations, ordering and mutation-aware lazy serialization are unchanged. The upstream optimizer reapplies the transformation with exact-anchor and idempotence checks; runtime and structural regressions cover the supported route and fail-closed behavior.
