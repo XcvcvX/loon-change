@@ -65,8 +65,7 @@ function hasTargetField(buf, depth, start, end) {\n  start = start || 0;\n  end 
     } else throw new Error("unsupported wire type " + wire);
     if (pos > end) throw new Error("truncated field");
     if (wire === 2) {
-      const f = { no };
-      if (f.no === AD_FIELD) return true;
+      if (no === AD_FIELD) return true;
       if (depth < MAX_DEPTH) {
         try {
           if (hasTargetField(buf, depth + 1, payloadStart, payloadEnd)) return true;
