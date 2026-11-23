@@ -542,6 +542,24 @@ if(out.cards.length!==1||out.cards[0].id!=="keep")throw Error("comment filtering
         result = subprocess.run([node, "-e", harness, str(SOURCE_PATH)], capture_output=True, text=True, check=False, timeout=10)
         self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
 
+
+    def test_node_runtime_mango_search_noop_skips_structurally_equal_replacements(self):
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node.js is required for CNFTP runtime tests")
+        harness = r'''
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync(process.argv[1],"utf8"),J=JSON;
+let parseCalls=0,stringifyCalls=0,result;
+const trackedJSON={parse(v){parseCalls++;return J.parse(v)},stringify(v){stringifyCalls++;return J.stringify(v)}};
+const body={data:{default:{0:["搜索内容"]},recommend:[],interval:1000}};
+const context={JSON:trackedJSON,$request:{url:"https://api.mgtv.com/mobile/recommend/v2?"},$response:{body:J.stringify(body)},$done(v){result=v},console:{log(){},warn(){},error(){}}};
+vm.runInNewContext(source,context,{timeout:5000});
+if(parseCalls!==1||stringifyCalls!==0)throw Error("structurally unchanged Mango response must skip stringify");
+if(!result||Object.keys(result).length!==0)throw Error("Mango no-op response must pass through");
+'''
+        result = subprocess.run([node, "-e", harness, str(SOURCE_PATH)], capture_output=True, text=True, check=False, timeout=10)
+        self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
+
     def test_optimizer_fails_closed_when_lazy_serialization_marker_is_removed(self):
         source = SOURCE_PATH.read_text(encoding="utf-8")
         damaged = source.replace("CNFTP lazy response serialization v1", "CNFTP lazy response serialization v2", 1)
