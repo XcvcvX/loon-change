@@ -26,6 +26,93 @@ HELPER = """function compactInPlace(items, keep) {
 }
 """
 
+DIDI_MODE_MARKER = "// loon-change: Didi hot-loop mode dispatch v1;"
+DIDI_MODE_HELPER = r"""// loon-change: Didi hot-loop mode dispatch v1;
+function compactDidiByField(items, field, mode) {
+  const length = items.length;
+  let write = 0;
+
+  if (mode === "scene") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      if (item[field] !== "优惠商城") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "sceneId") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      if (item !== "scene_coupon_mall") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "nav") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      const value = item[field];
+      if (value === "dache_anycar" || value === "driverservice" || value === "bike") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "bottomNav") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      const value = item[field];
+      if (value === "v6x_home" || value === "user_center") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "walletItem") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      if (item[field] === "优惠券") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "walletBottom") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      const value = item[field];
+      if (value === "省钱套餐" || value === "天天神券") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "card") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      const title = item[field];
+      if (title === "天天领福利" || title === "金融服务" || title === "更多服务" ||
+          title === "企业服务" || title === "安全中心") {
+        continue;
+      }
+      if (item.tag === "wallet") {
+        if (Array.isArray(item.items) && item.items.length > 0) {
+          compactDidiByField(item.items, "title", "walletItem");
+        }
+        if (item.card_type === 4 && Array.isArray(item.bottom_items) && item.bottom_items.length > 0) {
+          compactDidiByField(item.bottom_items, "title", "walletBottom");
+        }
+      }
+      if (write !== read) items[write] = item;
+      write++;
+    }
+  } else {
+    return items;
+  }
+
+  if (write !== length) {
+    items.length = write;
+    modified = true;
+  }
+  return items;
+}"""
+
 FILTER_ASSIGNMENT = re.compile(
     r"([A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*)\s*=\s*\1\.filter\s*\("
 )
@@ -69,65 +156,48 @@ def optimize_lazy_serialization(source):
 
 
 def optimize_didi_predicates(source):
-    """Replace per-response filter closures and allowlist arrays with scalar-mode compaction."""
+    """Hoist each Didi list mode dispatch outside its per-item compaction loop."""
+    required = (
+        DIDI_MODE_MARKER,
+        'if (mode === "scene") {',
+        'else if (mode === "sceneId") {',
+        'else if (mode === "nav") {',
+        'else if (mode === "bottomNav") {',
+        'else if (mode === "walletItem") {',
+        'else if (mode === "walletBottom") {',
+        'else if (mode === "card") {',
+        'compactDidiByField(obj.data.cards, "title", "card");',
+    )
+
+    def validate(result):
+        if any(token not in result for token in required):
+            raise ValueError("Didi mode-dispatch optimization is incomplete")
+        if result.count("for (let read = 0; read < length; read++)") != 7:
+            raise ValueError("Didi specialized loop inventory changed")
+        if result.count('mode === "') != 7:
+            raise ValueError("Didi per-item mode dispatch inventory changed")
+        return result
+
+    if DIDI_MODE_MARKER in source:
+        return validate(source)
+
+    # Upgrade the already-specialized v2 local snapshot without changing its
+    # route, cleanup predicates, or response completion guard.
     if "function compactDidiByField(items, field, mode)" in source:
-        required = (
-            'compactDidiByField(obj.data.scene_list, "text", "scene");',
-            'compactDidiByField(obj.data.order_cards.nav_list_card.data, "nav_id", "nav");',
-            'compactDidiByField(obj.data.cards, "title", "card");',
-        )
-        if any(item not in source for item in required):
-            raise ValueError("Didi specialized compaction inventory is incomplete")
-        return source
+        helper_start = "function compactDidiByField(items, field, mode) {"
+        helper_end = "\n}\nif (!$response.body)"
+        start = source.index(helper_start)
+        end = source.index(helper_end, start)
+        source = source[:start] + DIDI_MODE_HELPER.rstrip() + "\n" + source[end + 3:]
+        return validate(source)
 
     helper_start = "function compactInPlace(items, keep) {"
     helper_end = "\n}\n\nif (!$response.body)"
     if source.count(helper_start) != 1:
         raise ValueError("Didi compaction helper changed; refusing specialized rewrite")
     start = source.index(helper_start)
-    end = source.index(helper_end, start) + 3
-    helper = """function compactDidiByField(items, field, mode) {
-  const length = items.length;
-  let write = 0;
-  for (let read = 0; read < length; read++) {
-    const item = items[read];
-    const value = mode === "sceneId" ? item : item[field];
-    let keep = true;
-
-    if (mode === "scene") {
-      keep = value !== "优惠商城";
-    } else if (mode === "sceneId") {
-      keep = value !== "scene_coupon_mall";
-    } else if (mode === "nav") {
-      keep = value === "dache_anycar" || value === "driverservice" || value === "bike";
-    } else if (mode === "bottomNav") {
-      keep = value === "v6x_home" || value === "user_center";
-    } else if (mode === "walletItem") {
-      keep = value === "优惠券";
-    } else if (mode === "walletBottom") {
-      keep = value === "省钱套餐" || value === "天天神券";
-    } else if (mode === "card") {
-      if (value === "天天领福利" || value === "金融服务" || value === "更多服务" ||
-          value === "企业服务" || value === "安全中心") {
-        keep = false;
-      } else if (item.tag === "wallet") {
-        if (item.items) compactDidiByField(item.items, "title", "walletItem");
-        if (item.card_type === 4 && item.bottom_items) {
-          compactDidiByField(item.bottom_items, "title", "walletBottom");
-        }
-      }
-    }
-
-    if (keep) {
-      if (write !== read) items[write] = item;
-      write++;
-    }
-  }
-  items.length = write;
-  if (write !== length) modified = true;
-  return items;
-}"""
-    source = source[:start] + helper + source[end:]
+    end = source.index(helper_end, start)
+    source = source[:start] + DIDI_MODE_HELPER.rstrip() + "\n\n" + source[end + 3:]
 
     replacements = [
         ('compactInPlace(obj.data.scene_list, item => item.text !== "优惠商城");',
@@ -151,7 +221,9 @@ def optimize_didi_predicates(source):
 
     if re.search(r"compactInPlace\s*\(|keepNavIds|keepBottomNavIds|excludedTitles", source):
         raise ValueError("Didi per-response filter callbacks or allowlist arrays remain")
-    return source
+    if re.search(r"\.filter\s*\(", source):
+        raise ValueError("Didi allocating filter remains after mode specialization")
+    return validate(source)
 
 
 def optimize_preparse_route_guard(source):

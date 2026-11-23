@@ -13,45 +13,89 @@ https://raw.githubusercontent.com/zirawell/R-Store/main/Rule/Surge/Adblock/App/D
 const url = $request.url;
 let modified = false;
 
+// loon-change: Didi hot-loop mode dispatch v1;
 function compactDidiByField(items, field, mode) {
   const length = items.length;
   let write = 0;
-  for (let read = 0; read < length; read++) {
-    const item = items[read];
-    const value = mode === "sceneId" ? item : item[field];
-    let keep = true;
 
-    if (mode === "scene") {
-      keep = value !== "优惠商城";
-    } else if (mode === "sceneId") {
-      keep = value !== "scene_coupon_mall";
-    } else if (mode === "nav") {
-      keep = value === "dache_anycar" || value === "driverservice" || value === "bike";
-    } else if (mode === "bottomNav") {
-      keep = value === "v6x_home" || value === "user_center";
-    } else if (mode === "walletItem") {
-      keep = value === "优惠券";
-    } else if (mode === "walletBottom") {
-      keep = value === "省钱套餐" || value === "天天神券";
-    } else if (mode === "card") {
-      if (value === "天天领福利" || value === "金融服务" || value === "更多服务" ||
-          value === "企业服务" || value === "安全中心") {
-        keep = false;
-      } else if (item.tag === "wallet") {
-        if (item.items) compactDidiByField(item.items, "title", "walletItem");
-        if (item.card_type === 4 && item.bottom_items) {
+  if (mode === "scene") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      if (item[field] !== "优惠商城") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "sceneId") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      if (item !== "scene_coupon_mall") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "nav") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      const value = item[field];
+      if (value === "dache_anycar" || value === "driverservice" || value === "bike") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "bottomNav") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      const value = item[field];
+      if (value === "v6x_home" || value === "user_center") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "walletItem") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      if (item[field] === "优惠券") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "walletBottom") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      const value = item[field];
+      if (value === "省钱套餐" || value === "天天神券") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "card") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      const title = item[field];
+      if (title === "天天领福利" || title === "金融服务" || title === "更多服务" ||
+          title === "企业服务" || title === "安全中心") {
+        continue;
+      }
+      if (item.tag === "wallet") {
+        if (Array.isArray(item.items) && item.items.length > 0) {
+          compactDidiByField(item.items, "title", "walletItem");
+        }
+        if (item.card_type === 4 && Array.isArray(item.bottom_items) && item.bottom_items.length > 0) {
           compactDidiByField(item.bottom_items, "title", "walletBottom");
         }
       }
-    }
-
-    if (keep) {
       if (write !== read) items[write] = item;
       write++;
     }
+  } else {
+    return items;
   }
-  items.length = write;
-  if (write !== length) modified = true;
+
+  if (write !== length) {
+    items.length = write;
+    modified = true;
+  }
   return items;
 }
 if (!$response.body) {

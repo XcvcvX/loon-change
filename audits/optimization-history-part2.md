@@ -376,3 +376,26 @@ optimize_jd.py validates the upstream route/filter/allocation inventory before r
 The pinned upstream fixture tests source transformation, idempotency, inventory drift rejection, Node syntax, and plugin migration. Runtime tests verify all existing cleanup branches, unchanged-response pass-through, modified-response serialization, and optional welcome exclusions.
 
 This reduces replacement-array allocation and unnecessary serialization in active Jingdong response handling. On-device CPU and battery savings remain unquantified without Loon device measurements.
+
+
+---
+
+# Phase 13 P1 — Didi per-mode hot-loop dispatch
+
+## Finding
+
+The active Didi compactor already avoided allocating replacement arrays, but it checked the same mode discriminator repeatedly for every item in each list. A mode is constant for one compaction call, so the comparisons can be moved outside the item loop.
+
+## Runtime change
+
+- Split the shared compactor into seven specialized in-place loops selected once per call: scene, scene ID, navigation, bottom navigation, wallet item, wallet bottom item, and card.
+- Keep stable ordering and all existing allowlists/exclusions.
+- Retain single-pass wallet card handling and nested wallet compaction.
+- Track actual list-length changes and preserve lazy response serialization and the pre-parse route guard.
+- Guard nested wallet lists with Array.isArray before calling the compactor.
+
+## Regression coverage
+
+The Node VM tests continue to verify all Didi response cleanup outputs and no-op serialization. Structural tests assert exactly seven specialized loops, one mode dispatch per loop, and no callback-based array transforms. The optimizer validates and re-emits the new helper so upstream updates cannot silently restore per-item mode dispatch.
+
+This removes repeated mode-selection branches from each traversed Didi list. Real-device CPU and battery changes remain unquantified without Loon on-device measurements.

@@ -114,7 +114,22 @@
         "// loon-change: Didi pre-parse supported-route guard v1",
         "const shouldProcess =",
         "if (!shouldProcess) {",
-        "url.includes(\"/other/pGetSceneList\")"
+        "url.includes(\"/other/pGetSceneList\")",
+        "// loon-change: Didi hot-loop mode dispatch v1;",
+        "if (mode === \"scene\") {",
+        "else if (mode === \"sceneId\") {",
+        "else if (mode === \"nav\") {",
+        "else if (mode === \"bottomNav\") {",
+        "else if (mode === \"walletItem\") {",
+        "else if (mode === \"walletBottom\") {",
+        "else if (mode === \"card\") {"
+      ],
+      "forbidden": [
+        ".filter(",
+        ".forEach(",
+        "keepNavIds",
+        "keepBottomNavIds",
+        "excludedTitles"
       ]
     },
     {
