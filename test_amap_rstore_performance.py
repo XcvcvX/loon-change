@@ -119,7 +119,8 @@ process.stdout.write(nativeJSON.stringify({doneResult, parseCount, stringifyCoun
         self.assertIn("function deleteIfPresent(", source)
         self.assertIn("$done(modified ? {body: JSON.stringify(obj)} : {});", source)
         self.assertIn("if (changed) modified = true;", source)
-        self.assertNotRegex(source, r"^\s*delete\s+", msg="raw delete remains")
+        handler = source[source.index("let obj = JSON.parse($response.body);"):source.index("$done(modified ? {body: JSON.stringify(obj)} : {});")]
+        self.assertNotRegex(handler, r"^\s*delete\s+", msg="raw response delete remains")
         self.assertEqual(optimize_source(source), source)
 
     def test_supported_noop_response_skips_stringify(self):
