@@ -171,6 +171,30 @@
         "const adTemplate =",
         "AD_TEMPLATE_RE.test("
       ]
+    },
+    {
+      "path": "scripts/meituan/meituan.js",
+      "required": [
+        "// loon-change: Meituan allocation-light response cleanup v1",
+        "const tabs = resource.tabArea;",
+        "tabs.length = write;",
+        "const segments = data.segmentsV2;",
+        "hotwords.length = hotwordWrite;",
+        "defaultWord.defaultWordItems.length = 0;",
+        "response.HotWordInfos.length = 0;",
+        "function clearArea(root, key)",
+        "resourcesMap[key].length = 0;",
+        "resource[key].length = 0;",
+        "delete data.skills[key];"
+      ],
+      "forbidden": [
+        ".filter(",
+        ".map(",
+        ".forEach(",
+        "Object.keys(data.skills)",
+        "const kept = [];",
+        "compactInPlace("
+      ]
     }
   ]
 }
