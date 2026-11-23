@@ -118,7 +118,12 @@
         "AMAP_AD_DYNAMIC_ID.test(i?.dynamic_id_s)",
         "// loon-change: Amap cached suggestion tip access v1",
         "const tip = item?.tip;",
-        "const itemType = i?.item_type;"
+        "const itemType = i?.item_type;",
+        "// loon-change: Amap routeInfo cached nested references v1",
+        "const routeInfoFrontEnd = routeInfoData?.front_end;",
+        "const routeInfoEvents = routeInfoData?.tbt?.event;",
+        "const routeInfoGuideTips = routeInfoFrontEnd?.guide_tips;",
+        "const routeInfoDownloads = routeInfoFrontEnd?.download;"
       ],
       "forbidden": [
         "AMAP_STATIC_ITEMS_06",
