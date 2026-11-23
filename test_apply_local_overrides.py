@@ -1720,7 +1720,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
 
     def test_accepts_already_local_combined_jd_trigger_without_duplicate_cleanup(self):
         from apply_local_overrides import JD_LOCAL_COMBINED_TRIGGER, consolidate_jingdong_scripts
-        fixture = "[Script]\n" + JD_LOCAL_COMBINED_TRIGGER + "\n[MITM]\nhostname = api.m.jd.com\n"
+        fixture = "[Rewrite]\n[Script]\n" + JD_LOCAL_COMBINED_TRIGGER + "\n[MITM]\nhostname = api.m.jd.com\n"
         lines = fixture.splitlines()
         self.assertEqual(consolidate_jingdong_scripts(lines), (lines, 0))
         self.assertEqual(apply(fixture).count(JD_LOCAL_COMBINED_TRIGGER), 1)
