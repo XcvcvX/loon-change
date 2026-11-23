@@ -123,7 +123,11 @@
         "const routeInfoFrontEnd = routeInfoData?.front_end;",
         "const routeInfoEvents = routeInfoData?.tbt?.event;",
         "const routeInfoGuideTips = routeInfoFrontEnd?.guide_tips;",
-        "const routeInfoDownloads = routeInfoFrontEnd?.download;"
+        "const routeInfoDownloads = routeInfoFrontEnd?.download;",
+        "// loon-change: Amap routePlan cached nested references v1",
+        "const routePlanFrontEnd = routePlanData?.front_end;",
+        "const routePlanEvents = routePlanData?.tbt?.event;",
+        "const routePlanDownloads = routePlanFrontEnd?.download;"
       ],
       "forbidden": [
         "AMAP_STATIC_ITEMS_06",
