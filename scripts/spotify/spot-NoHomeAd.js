@@ -34,17 +34,6 @@ function writeVarint(value) {
 // loon-change: Spotify Home protobuf no-ad allocation fast path v1
 // Inspect section ranges directly. The common no-ad path creates no kept-array,
 // per-section subarray views, or section metadata objects.
-function getSectionName(body, start, end) {
-  let r = readVarint(body, start);
-  if (r.value !== 0x0a) return "";
-  r = readVarint(body, r.pos);
-  const headerEnd = r.pos + r.value;
-  let name = "";
-  const limit = Math.min(headerEnd, end);
-  for (let i = r.pos; i < limit; i++) name += String.fromCharCode(body[i]);
-  return name;
-}
-
 function isAdSection(body, start, end) {
   let r = readVarint(body, start);
   if (r.value !== 0x0a) return false;
