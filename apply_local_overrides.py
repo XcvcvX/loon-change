@@ -2163,7 +2163,7 @@ JD_FMZ_LEGACY_TRIGGER_CURRENT = r'response if ${url} ~= /^https:\/\/api\.m\.jd\.
 JD_FMZ_LEGACY_TRIGGERS = (JD_FMZ_LEGACY_TRIGGER, JD_FMZ_LEGACY_TRIGGER_CURRENT)
 JD_CANONICAL_TRIGGER = r"http-response ^https?:\/\/api\.m\.jd\.com\/client\.action\?functionId=(?:deliverLayer|getTabHomeInfo|myOrderInfo|orderTrackBusiness|personinfoBusiness|start|readCustomSurfaceList) script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/jingdong/jd.js,tag=JD-CONSOLIDATED,requires-body=true"
 JD_OPTIONAL_WELCOME_TRIGGER = r'response if ${url} ~= /^https:\/\/api\.m\.jd\.com\/client\.action\?functionId=welcomeHome/i then script("https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/jingdong/jd.js", {${jkds_enable}}) with tag="JD-CONSOLIDATED-WELCOME", timeout=60, requires_body=true'
-JD_LOCAL_COMBINED_TRIGGER = r"http-response ^https?:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=(?:deliverLayer|getTabHomeInfo|myOrderInfo|orderTrackBusiness|personinfoBusiness|start|welcomeHome|readCustomSurfaceList) script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/jingdong/jd.js,tag=JD,requires-body=true"
+JD_LOCAL_COMBINED_TRIGGER = r"http-response ^https?:\/\/api\.m\.jd\.com\/client\.action\?functionId=(?:deliverLayer|getTabHomeInfo|myOrderInfo|orderTrackBusiness|personinfoBusiness|start|welcomeHome|readCustomSurfaceList) script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/jingdong/jd.js,tag=JD,requires-body=true"
 
 
 def consolidate_jingdong_scripts(lines):
