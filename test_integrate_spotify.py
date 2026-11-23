@@ -5,7 +5,7 @@ import unittest
 import sys
 from unittest.mock import patch
 from pathlib import Path
-from integrate_spotify import integrate, main
+from integrate_spotify import integrate, main, optimize_spotify_home_script
 
 
 SOURCE = r"""#!name=Spotify
@@ -100,6 +100,88 @@ hostname = api.example.com, *spotify.com, spclient.wg.spotify.com
             self.assertIn("scripts/spotify/spot-NoHomeAd.js", second)
             self.assertIn("*spclient.spotify.com", second)
             self.assertEqual(len(list((root / "scripts").glob("*.js"))), 4)
+
+
+    def test_spotify_home_optimizer_is_idempotent_and_preserves_upstream_refresh(self):
+        from integrate_spotify import HOME_FAST_PATH_MARKER
+        upstream = Path(__file__).parent / "scripts" / "spotify" / "spot-NoHomeAd.js"
+        optimized = optimize_spotify_home_script(upstream.read_text(encoding="utf-8"))
+        self.assertIn(HOME_FAST_PATH_MARKER, optimized)
+        self.assertNotIn("const kept = []", optimized)
+        self.assertEqual(optimize_spotify_home_script(optimized), optimized)
+
+    @unittest.skipUnless(shutil.which("node"), "Node.js is required for Spotify binary runtime tests")
+    def test_spotify_home_clean_response_avoids_subarray_and_kept_array_allocations(self):
+        import json
+        import subprocess
+        import tempfile
+        from integrate_spotify import HOME_FAST_PATH_MARKER
+        source = (Path(__file__).parent / "scripts" / "spotify" / "spot-NoHomeAd.js").read_text(encoding="utf-8")
+        self.assertIn(HOME_FAST_PATH_MARKER, source)
+        def varint(value):
+            result = bytearray()
+            while value >= 0x80:
+                result.append((value & 0x7f) | 0x80)
+                value >>= 7
+            result.append(value)
+            return bytes(result)
+        def section(name, content_field=1):
+            header = name.encode()
+            key = varint(content_field * 8 + 2)
+            return b"\\x0a" + varint(len(header)) + header + key + b"\\x01x"
+        def wrap(items, tail=b""):
+            payload = b"".join(b"\\x0a" + varint(len(item)) + item for item in items)
+            return b"\\x0a" + varint(len(payload)) + payload + tail
+        normal = section("spotify:section:home|recommendations")
+        ad = section("spotify:section:home|brand-ad")
+        tail = b"\\x10\\x01"
+        runner = r"""
+const fs = require("fs");
+const vm = require("vm");
+const payload = JSON.parse(fs.readFileSync(0, "utf8"));
+const source = fs.readFileSync(process.argv[1], "utf8");
+let doneResult;
+let subarrayCount = 0;
+const nativeSubarray = Uint8Array.prototype.subarray;
+Uint8Array.prototype.subarray = function(...args) {
+  subarrayCount++;
+  return nativeSubarray.apply(this, args);
+};
+const context = {
+  Uint8Array,
+  $response: { body: Uint8Array.from(payload.body) },
+  $done(value) { doneResult = value; },
+  console: { log() {} }
+};
+vm.createContext(context);
+vm.runInContext(source, context, { timeout: 3000 });
+process.stdout.write(JSON.stringify({
+  emptyRewrite: !!doneResult && Object.keys(doneResult).length === 0,
+  subarrayCount,
+  output: doneResult && doneResult.body ? Array.from(doneResult.body) : null
+}));
+"""
+        with tempfile.TemporaryDirectory() as tmp:
+            script = Path(tmp) / "home.js"
+            script.write_text(source, encoding="utf-8")
+            clean = wrap([normal], tail)
+            completed = subprocess.run(
+                [shutil.which("node"), "-e", runner, str(script)],
+                input=json.dumps({"body": list(clean)}), text=True,
+                capture_output=True, check=True, timeout=10,
+            )
+            clean_result = json.loads(completed.stdout)
+            self.assertTrue(clean_result["emptyRewrite"])
+            self.assertEqual(clean_result["subarrayCount"], 0)
+            changed = wrap([normal, ad], tail)
+            completed = subprocess.run(
+                [shutil.which("node"), "-e", runner, str(script)],
+                input=json.dumps({"body": list(changed)}), text=True,
+                capture_output=True, check=True, timeout=10,
+            )
+            changed_result = json.loads(completed.stdout)
+            self.assertEqual(bytes(changed_result["output"]), wrap([normal], tail))
+            self.assertGreater(changed_result["subarrayCount"], 0)
 
 
 if __name__ == "__main__":
