@@ -6,6 +6,7 @@
       "path": "scripts/cnftp/cnftp.js",
       "required": [
         "// loon-change: CNFTP response filter in-place compaction v1",
+        "// loon-change: CNFTP pre-parse supported-route guard v1",
         "compactInPlace(",
         "iQIYI waterfall nested stable in-place compaction v1",
         "Mango vrsList stable in-place compaction v1",
