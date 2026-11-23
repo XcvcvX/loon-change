@@ -27,13 +27,6 @@ function main() {
     return items;
   }
 
-  function hasEnumerableKeys(value) {
-    for (const key in value) {
-      if (Object.prototype.hasOwnProperty.call(value, key)) return true;
-    }
-    return false;
-  }
-
   const body = $response && $response.body;
   if (!body) return $done({});
 
@@ -113,8 +106,17 @@ function main() {
     }
     const holder = recycle.showInfo;
     const current = holder.rightTagImage;
+    let hasKeys = false;
+    if (current && typeof current === "object" && !Array.isArray(current)) {
+      for (const key in current) {
+        if (Object.prototype.hasOwnProperty.call(current, key)) {
+          hasKeys = true;
+          break;
+        }
+      }
+    }
     if (!current || typeof current !== "object" ||
-        Array.isArray(current) || hasEnumerableKeys(current)) {
+        Array.isArray(current) || hasKeys) {
       holder.rightTagImage = {};
       // JSON.stringify ignores custom properties attached to arrays.
       if (!Array.isArray(holder)) modified = true;
@@ -167,8 +169,8 @@ function main() {
         const dataTemplateName = sectionData.template && sectionData.template.name;
         const cardType = sectionData.cardType || sectionData.cardTypeValue;
         return sectionData.bizType !== "AD" &&
-          !AD_TEMPLATE_NAMES.has(templateName) &&
-          !AD_TEMPLATE_NAMES.has(dataTemplateName) &&
+          !AD_TEMPLATE_NAMES.has(String(templateName || "")) &&
+          !AD_TEMPLATE_NAMES.has(String(dataTemplateName || "")) &&
           cardType !== "mamaAD" && cardType !== "homeMultiBanner";
       });
     }
