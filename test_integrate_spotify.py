@@ -37,7 +37,11 @@ class SpotifyIntegrationTests(unittest.TestCase):
             source_scripts = root / 'upstream'
             source_scripts.mkdir()
             for name in ('spot-gabo.js', 'spot-NoSearchAd.js', 'spot-NoHomeAd.js', 'spot-NoScrollAd.js'):
-                (source_scripts / name).write_text('// upstream script\n' + 'x' * 200, encoding='utf-8')
+                if name == 'spot-NoHomeAd.js':
+                    content = (Path(__file__).parent / 'scripts' / 'spotify' / name).read_text(encoding='utf-8')
+                else:
+                    content = '// upstream script\n' + 'x' * 200
+                (source_scripts / name).write_text(content, encoding='utf-8')
             plugin = root / 'allAdRewrite.plugin'
             plugin.write_text('[Rule]\n[Rewrite]\n[Script]\n[MITM]\nhostname = example.com\n', encoding='utf-8')
             meta = root / 'upstream.json'
@@ -83,7 +87,11 @@ hostname = api.example.com, *spotify.com, spclient.wg.spotify.com
             source_scripts = root / "upstream"
             source_scripts.mkdir()
             for name in ("spot-gabo.js", "spot-NoSearchAd.js", "spot-NoHomeAd.js", "spot-NoScrollAd.js"):
-                (source_scripts / name).write_text("// upstream script\n" + "x" * 200, encoding="utf-8")
+                if name == "spot-NoHomeAd.js":
+                    content = (Path(__file__).parent / "scripts" / "spotify" / name).read_text(encoding="utf-8")
+                else:
+                    content = "// upstream script\n" + "x" * 200
+                (source_scripts / name).write_text(content, encoding="utf-8")
             plugin = root / "allAdRewrite.plugin"
             plugin.write_text("[Rule]\n[Rewrite]\n[Script]\n[MITM]\nhostname = example.com\n", encoding="utf-8")
             meta = root / "upstream.json"
