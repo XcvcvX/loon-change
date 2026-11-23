@@ -5,7 +5,7 @@
     {
       "path": "allAdRewrite.plugin",
       "required": [
-        "api.pinduoduo.com\\/api\\/alexa\\/homepage\\/hub",
+        "api.pinduoduo.com",
         "response.json.jq(",
         "result.dy_module.irregular_banner_dy",
         "result.bottom_tabs?",
