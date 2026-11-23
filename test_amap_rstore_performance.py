@@ -4,7 +4,7 @@ import subprocess
 import unittest
 from pathlib import Path
 
-from optimize_amap import ARRAY_MARKER, LOCAL, REMOTE, hoist_static_arrays, optimize_source, rewrite_plugin
+from optimize_amap import ARRAY_MARKER, LOCAL, REMOTE, TRACKING_MARKER, hoist_static_arrays, optimize_source, rewrite_plugin
 
 ROOT = Path(__file__).resolve().parent
 SOURCE = ROOT / "scripts" / "amap" / "amap.js"
@@ -110,6 +110,93 @@ process.stdout.write(nativeJSON.stringify({doneResult, parseCount, stringifyCoun
         self.assertEqual(unmatched["doneResult"], {})
         self.assertEqual(unmatched["parseCount"], 0)
         self.assertEqual(unmatched["stringifyCount"], 0)
+
+    def test_mutation_tracking_is_complete_and_optimizer_is_idempotent(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        self.assertIn(TRACKING_MARKER, source)
+        self.assertIn("function sameValue(", source)
+        self.assertIn("function setIfDifferent(", source)
+        self.assertIn("function deleteIfPresent(", source)
+        self.assertIn("$done(modified ? {body: JSON.stringify(obj)} : {});", source)
+        self.assertIn("if (changed) modified = true;", source)
+        handler = source[source.index("let obj = JSON.parse($response.body);"):source.index("$done(modified ? {body: JSON.stringify(obj)} : {});")]
+        self.assertNotRegex(handler, r"^\s*delete\s+", msg="raw response delete remains")
+        self.assertEqual(optimize_source(source), source)
+
+    def test_supported_noop_response_skips_stringify(self):
+        body = {"data": {"common_data": {
+            "bus_plan_bottom_event": {"data": []},
+            "bus_plan_segment_event": {"data": []}
+        }, "front_end": {"assistant": []}}}
+        result = self.run_script(
+            "https://m1.amap.com/ws/aos/perception/publicTravel/beforeNavi?x=1",
+            json.dumps(body)
+        )
+        self.assertEqual(result["doneResult"], {})
+        self.assertEqual(result["parseCount"], 1)
+        self.assertEqual(result["stringifyCount"], 0)
+
+    def test_noop_in_place_compaction_skips_stringify(self):
+        body = {"data": {
+            "cardList": [{"dataKey": "ContinueNavigationCard"}],
+            "mapBizList": [{"dataKey": "FindCarVirtualCard"}]
+        }}
+        result = self.run_script(
+            "https://m1.amap.com/ws/faas/amap-navigation/main-page?x=1",
+            json.dumps(body)
+        )
+        self.assertEqual(result["doneResult"], {})
+        self.assertEqual(result["parseCount"], 1)
+        self.assertEqual(result["stringifyCount"], 0)
+
+    def test_real_compaction_serializes_once_and_preserves_kept_items(self):
+        body = {"data": {
+            "cardList": [
+                {"dataKey": "AdvertisementCard"},
+                {"dataKey": "ContinueNavigationCard"}
+            ],
+            "mapBizList": [{"dataKey": "FindCarVirtualCard"}]
+        }}
+        result = self.run_script(
+            "https://m1.amap.com/ws/faas/amap-navigation/main-page?x=1",
+            json.dumps(body)
+        )
+        output = json.loads(result["doneResult"]["body"])
+        self.assertEqual([x["dataKey"] for x in output["data"]["cardList"]], ["ContinueNavigationCard"])
+        self.assertEqual(result["parseCount"], 1)
+        self.assertEqual(result["stringifyCount"], 1)
+
+    def test_repeated_splash_values_skip_stringify(self):
+        body = {"data": {"ad": [{
+            "set": {"setting": {"display_time": 0}},
+            "creative": [{"start_time": 3818332800, "end_time": 3818419199}]
+        }]}}
+        result = self.run_script(
+            "https://m1.amap.com/ws/valueadded/alimama/splash_screen?x=1",
+            json.dumps(body)
+        )
+        self.assertEqual(result["doneResult"], {})
+        self.assertEqual(result["parseCount"], 1)
+        self.assertEqual(result["stringifyCount"], 0)
+
+    def test_delete_missing_promotion_fields_skips_stringify(self):
+        result = self.run_script(
+            "https://m1.amap.com/ws/promotion-web/resource?x=1",
+            json.dumps({"data": {"unrelated": 1}})
+        )
+        self.assertEqual(result["doneResult"], {})
+        self.assertEqual(result["parseCount"], 1)
+        self.assertEqual(result["stringifyCount"], 0)
+
+    def test_actual_promotion_delete_serializes_once(self):
+        result = self.run_script(
+            "https://m1.amap.com/ws/promotion-web/resource?x=1",
+            json.dumps({"data": {"alpha": {"id": 1}, "keep": 2}})
+        )
+        output = json.loads(result["doneResult"]["body"])
+        self.assertEqual(output["data"], {"keep": 2})
+        self.assertEqual(result["parseCount"], 1)
+        self.assertEqual(result["stringifyCount"], 1)
 
     def test_before_navi_keeps_existing_mutation(self):
         body = {"data": {"common_data": {

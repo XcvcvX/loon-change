@@ -1007,3 +1007,8 @@ The protobuf response loop now creates payload views only for the `Result` and `
 ### Amap supported-route guard completeness
 
 The Amap response handler's pre-parse allowlist now includes every implemented response branch, including search hotwords and the splash-screen creative endpoint. The upstream optimizer repairs this exact guard on every sync, and runtime tests verify both cleanup branches remain reachable. This fixes skipped cleanup paths; it does not claim lazy serialization for unchanged supported responses.
+
+
+### Amap mutation-aware lazy serialization
+
+The Amap response handler now tracks actual changes from property deletion, value replacement, and in-place array compaction. Supported responses that contain no removable fields and require no value changes return an empty completion object without calling `JSON.stringify`; modified responses are serialized once. The upstream optimizer re-applies this mutation tracking and validates its mutation inventory, while runtime tests cover no-op and real-change paths.

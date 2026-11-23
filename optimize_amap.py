@@ -9,17 +9,56 @@ REMOTE = "https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/An
 LOCAL = "https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/amap/amap.js"
 MARKER = "// loon-change: Amap R-Store local fast path; upstream zirawell/R-Store@"
 GUARD_MARKER = "// loon-change: Amap R-Store supported-route guard v1"
+TRACKING_MARKER = "// loon-change: Amap mutation-aware lazy serialization v1"
+TRACKING_HELPER = """// loon-change: Amap mutation-aware lazy serialization v1
+let modified = false;
+function sameValue(current, next) {
+  if (Object.is(current, next)) return true;
+  if (Array.isArray(next)) return Array.isArray(current) && current.length === next.length && next.length === 0;
+  if (!next || typeof next !== "object" || !current || typeof current !== "object" || Array.isArray(current)) return false;
+  let count = 0;
+  for (const key in next) {
+    if (!Object.prototype.hasOwnProperty.call(next, key)) continue;
+    count++;
+    if (!Object.prototype.hasOwnProperty.call(current, key) || !Object.is(current[key], next[key])) return false;
+  }
+  for (const key in current) {
+    if (Object.prototype.hasOwnProperty.call(current, key)) count--;
+  }
+  return count === 0;
+}
+function setIfDifferent(target, key, value) {
+  if (sameValue(target[key], value)) return false;
+  target[key] = value;
+  modified = true;
+  return true;
+}
+function deleteIfPresent(target, key) {
+  if (!Object.prototype.hasOwnProperty.call(target, key)) return false;
+  delete target[key];
+  modified = true;
+  return true;
+}
+"""
 HELPER = """function compactInPlace(items, keep) {
   let write = 0;
+  let changed = false;
   for (let read = 0, length = items.length; read < length; read++) {
     const item = items[read];
     if (keep(item, read)) {
-      if (write !== read) items[write] = item;
+      if (write !== read) {
+        items[write] = item;
+        changed = true;
+      }
       write++;
     }
   }
-  items.length = write;
-  return items;
+  if (write !== items.length) {
+    items.length = write;
+    changed = true;
+  }
+  if (changed) modified = true;
+  return changed;
 }
 """
 FILTER_ASSIGNMENT = re.compile(r"([A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*)\s*=\s*\1\.filter\s*\(")
@@ -120,11 +159,89 @@ def repair_supported_route_guard(source):
         raise ValueError("Amap supported-route guard structure changed")
     return pattern.sub(lambda _: ROUTE_GUARD, source, count=1)
 
+
+def _split_member_path(path):
+    match = re.match(r"^(.*)(?:\.([A-Za-z_$][\w$]*)|\[([^\]]+)\])$", path)
+    if not match or not match.group(1):
+        raise ValueError("Amap mutation target is unsupported: " + path)
+    key = '"' + match.group(2) + '"' if match.group(2) else match.group(3).strip()
+    return match.group(1), key
+
+
+def instrument_mutations(source):
+    if source.count(TRACKING_MARKER) > 1:
+        raise ValueError("Amap mutation tracking marker is duplicated")
+    was_instrumented = TRACKING_MARKER in source
+    if not was_instrumented:
+        url_anchor = "const url = $request.url;"
+        if source.count(url_anchor) != 1:
+            raise ValueError("Amap mutation tracking insertion anchor changed")
+        source = source.replace(url_anchor, url_anchor + "\n" + TRACKING_HELPER, 1)
+
+    compact_pattern = re.compile(r"function compactInPlace\(items, keep\) \{[\s\S]*?\n\}")
+    if len(compact_pattern.findall(source)) != 1:
+        raise ValueError("Amap compaction helper structure changed")
+    source = compact_pattern.sub(lambda _: HELPER.rstrip(), source, count=1)
+
+    parse_anchor = "let obj = JSON.parse($response.body);"
+    old_done = "$done({body: JSON.stringify(obj)});"
+    lazy_done = "$done(modified ? {body: JSON.stringify(obj)} : {});"
+    if source.count(parse_anchor) != 1:
+        raise ValueError("Amap mutation tracking parse anchor changed")
+    if source.count(old_done) + source.count(lazy_done) != 1:
+        raise ValueError("Amap mutation tracking completion anchor changed")
+    start = source.index(parse_anchor)
+    done = old_done if old_done in source else lazy_done
+    end = source.index(done, start)
+    body = source[start:end]
+    delete_count = 0
+    set_count = 0
+    rewritten = []
+    for raw_line in body.splitlines(keepends=True):
+        line = raw_line[:-1] if raw_line.endswith("\n") else raw_line
+        ending = "\n" if raw_line.endswith("\n") else ""
+        match = re.match(r"^(\s*)delete\s+(.+?);(\s*(?://.*)?)$", line)
+        if match:
+            parent, key = _split_member_path(match.group(2))
+            rewritten.append(match.group(1) + "deleteIfPresent(" + parent + ", " + key + ");" + match.group(3) + ending)
+            delete_count += 1
+            continue
+        match = re.match(
+            r"^(\s*)([A-Za-z_$][\w$]*(?:(?:\.[A-Za-z_$][\w$]*)|(?:\[[^\]]+\]))*)\s*=\s*(.+?);(\s*(?://.*)?)$",
+            line,
+        )
+        if match:
+            parent, key = _split_member_path(match.group(2))
+            rewritten.append(
+                match.group(1) + "setIfDifferent(" + parent + ", " + key + ", "
+                + match.group(3) + ");" + match.group(4) + ending
+            )
+            set_count += 1
+            continue
+        rewritten.append(raw_line)
+    body = "".join(rewritten)
+    if not was_instrumented and delete_count + set_count < 50:
+        raise ValueError(
+            "Amap mutation inventory changed: delete=%d set=%d"
+            % (delete_count, set_count)
+        )
+    if re.search(r"^\s*delete\s+", body, re.M):
+        raise ValueError("Untracked Amap delete remains")
+    # Handler mutations are rooted in the parsed response object or its item aliases.
+    if re.search(r"^\s*(?:obj|item|list|poi|hookData)\b.*(?:\.|\[).*\s=(?!=)", body, re.M):
+        raise ValueError("Untracked Amap response assignment remains")
+
+    source = source[:start] + body + source[end:]
+    if done == old_done:
+        source = source.replace(old_done, lazy_done, 1)
+    return source
+
 def optimize_source(source, commit="unknown"):
     if MARKER in source:
         if source.count(MARKER) != 1 or source.count(GUARD_MARKER) != 1:
             raise ValueError("Amap optimizer markers are inconsistent")
         source = repair_supported_route_guard(source)
+        source = instrument_mutations(source)
         if ".filter(" in source or "function compactInPlace(items, keep)" not in source:
             raise ValueError("Amap optimized runtime has drifted")
         return compact_search_suggestions_in_place(hoist_static_arrays(source))
@@ -153,6 +270,7 @@ def optimize_source(source, commit="unknown"):
     if source.count("compactInPlace(") != 12:
         raise ValueError("Amap in-place compaction call inventory drift")
     source = compact_search_suggestions_in_place(hoist_static_arrays(source))
+    source = instrument_mutations(source)
     return MARKER + commit + "\n" + source
 
 def rewrite_plugin(plugin):
