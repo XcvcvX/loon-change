@@ -147,9 +147,9 @@
       "required": [
         "// loon-change: Goofish per-response allocation hot-path optimization v1",
         "const isSupportedPath =",
-        "function hasEnumerableKeys(value)",
+        "let hasKeys = false",
         "for (const key in node)",
-        "AD_TEMPLATE_NAMES.has(templateName)",
+        "AD_TEMPLATE_NAMES.has(String(templateName || \"\"))",
         "index === \"0\" || index === \"1\" || index === \"3\"",
         "templateName !== \"idlefish_search_card_category_select\""
       ],
