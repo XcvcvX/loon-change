@@ -4,7 +4,7 @@ import subprocess
 import unittest
 from pathlib import Path
 
-from optimize_amap import ARRAY_MARKER, LOCAL, REMOTE, TRACKING_MARKER, SCALAR_MARKER, hoist_static_arrays, optimize_source, rewrite_plugin
+from optimize_amap import ARRAY_MARKER, LOCAL, REMOTE, TRACKING_MARKER, SCALAR_MARKER, DYNAMIC_MATCHER_MARKER, hoist_static_arrays, optimize_source, rewrite_plugin
 
 ROOT = Path(__file__).resolve().parent
 SOURCE = ROOT / "scripts" / "amap" / "amap.js"
@@ -32,6 +32,24 @@ class AmapRStoreOptimizerTests(unittest.TestCase):
         self.assertNotRegex(source, r"\[(?:\s*(?:\"[^\"\n]*\"|'[^'\n]*')\s*,?)+\s*\]\?\.includes")
         self.assertEqual(hoist_static_arrays(source), source)
         self.assertEqual(optimize_source(source), source)
+
+    def test_route_info_uses_one_shared_dynamic_ad_matcher_and_optimizer_repairs_it(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        self.assertIn(DYNAMIC_MATCHER_MARKER, source)
+        self.assertEqual(source.count("const AMAP_AD_DYNAMIC_ID = /ads-\\\\d+/;"), 1)
+        self.assertEqual(source.count("AMAP_AD_DYNAMIC_ID.test(i?.dynamic_id_s)"), 4)
+        self.assertNotIn("/ads-\\\\d+/.test(i?.dynamic_id_s)", source)
+        self.assertEqual(optimize_source(source), source)
+
+        damaged = source.replace(
+            DYNAMIC_MATCHER_MARKER + "\\nconst AMAP_AD_DYNAMIC_ID = /ads-\\\\d+/;\\n\\n",
+            "",
+            1,
+        ).replace("AMAP_AD_DYNAMIC_ID.test(i?.dynamic_id_s)", "/ads-\\\\d+/.test(i?.dynamic_id_s)")
+        repaired = optimize_source(damaged)
+        self.assertIn(DYNAMIC_MATCHER_MARKER, repaired)
+        self.assertEqual(repaired.count("AMAP_AD_DYNAMIC_ID.test(i?.dynamic_id_s)"), 4)
+        self.assertEqual(optimize_source(repaired), repaired)
 
     def test_local_script_has_guard_and_in_place_compaction(self):
         source = SOURCE.read_text(encoding="utf-8")
