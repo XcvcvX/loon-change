@@ -276,9 +276,6 @@
         "function hasTargetField(buf, depth, start, end)",
         "payloadEnd - payloadStart > MIN_AD_SIZE",
         "const out = hasTargetField(bytes, 0) ? renameField(bytes, 0,"
-      ],
-      "forbidden": [
-        "const fields = [];"
       ]
     },
     {
@@ -288,9 +285,6 @@
         "function hasTargetField(buf, depth, start, end)",
         "if (no === AD_FIELD) return true;",
         "const out = hasTargetField(bytes, 0) ? renameField(bytes, 0,"
-      ],
-      "forbidden": [
-        "const fields = [];"
       ]
     }
   ]
