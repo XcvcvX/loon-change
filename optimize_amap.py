@@ -154,7 +154,7 @@ def compact_search_suggestions_in_place(source):
         raise ValueError("Amap cached suggestion marker is duplicated")
     i = source.index(start)
     j = source.index(end, i + len(start))
-    prefix = marker + "\\n" if marker not in source else ""
+    prefix = marker + "\n" if marker not in source else ""
     replacement = prefix + """if (url.includes("/shield/search_poi/sug")) {
   if (Array.isArray(obj?.tip_list) && obj.tip_list.length > 0) {
     compactInPlace(obj.tip_list, item => {
@@ -180,7 +180,7 @@ def compact_search_suggestions_in_place(source):
       }
     }
   }"""
-    return source[:i] + replacement + "\\n" + source[j:]
+    return source[:i] + replacement + "\n" + source[j:]
 
 
 def optimize_scalar_membership(source):
