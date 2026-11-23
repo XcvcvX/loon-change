@@ -109,7 +109,15 @@ process.stdout.write(JSON.stringify({
     def test_imagefeed_mutates_parsed_object_without_json_round_trip(self):
         original = "https://img.example/a.jpg?imageView2/2/w/1080/format/jpg"
         body = {"data": [{"note_list": [{
-            "images_list": [{"url": original, "nested": {"url": original}}],
+            "images_list": [{
+                "url": original,
+                "nested": {"url": original},
+                "live_photo_file_id": "live-file-1",
+                "live_photo": {"media": {
+                    "video_id": "video-1",
+                    "stream": {"h265": [{"master_url": "https://video.example/live.mp4"}]}
+                }}
+            }],
             "media_save_config": {"disable_save": True},
             "share_info": {"function_entries": [{"type": "share"}]},
             "hash_tag": [{"type": "normal"}, {"type": "interact_vote"}]
