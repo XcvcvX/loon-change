@@ -118,7 +118,7 @@ def optimize_source(source: str) -> str:
                           "recycle-card key check")
     source = replace_once(
         source,
-        'const AD_TEMPLATE_RE = /^(fish_home_advertise_card_d[34]|fish_local_advertise_card_d4|idlefish_local_feed2_marketing|fish_home_feeds_pager_banner|detail_recommend_ad_card)$/;\\n',
+        'const AD_TEMPLATE_RE = /^(fish_home_advertise_card_d[34]|fish_local_advertise_card_d4|idlefish_local_feed2_marketing|fish_home_feeds_pager_banner|detail_recommend_ad_card)$/;\n',
         "",
         "unused template regex",
     )
@@ -136,14 +136,14 @@ def optimize_source(source: str) -> str:
     source = replace_once(
         source,
         "excludedTemplates.has(templateName) || AD_TEMPLATE_NAMES.has(templateName) ||",
-        '(templateName === "fish_home_yunying_card_d3" ||\\n'
-        '             templateName === "idlefish_seafood_market" ||\\n'
+        '(templateName === "fish_home_yunying_card_d3" ||\n'
+        '             templateName === "idlefish_seafood_market" ||\n'
         '             templateName === "fish_home_chat_room") || AD_TEMPLATE_NAMES.has(templateName) ||',
         "homepage Set lookup",
     )
     source = replace_once(
         source,
-        '        const adTemplate = /^(fish_home_advertise_card_d[34]|fish_local_advertise_card_d4|idlefish_local_feed2_marketing|fish_home_feeds_pager_banner|detail_recommend_ad_card)$/;\\n',
+        '        const adTemplate = /^(fish_home_advertise_card_d[34]|fish_local_advertise_card_d4|idlefish_local_feed2_marketing|fish_home_feeds_pager_banner|detail_recommend_ad_card)$/;\n',
         "",
         "unused local template regex",
     )
@@ -176,11 +176,11 @@ def optimize_source(source: str) -> str:
     source = replace_once(
         source,
         "return !excludedTemplates.has(templateName);",
-        'return templateName !== "idlefish_search_card_category_select" &&\\n'
+        'return templateName !== "idlefish_search_card_category_select" &&\n'
         '          templateName !== "idlefish_search_spu_market_publish";',
         "search Set lookup",
     )
-    return validate_optimized_source(MARKER + "\\n" + source)
+    return validate_optimized_source(MARKER + "\n" + source)
 
 
 def main() -> None:
