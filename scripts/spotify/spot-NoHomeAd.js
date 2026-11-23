@@ -31,25 +31,35 @@ function writeVarint(value) {
   return out;
 }
 
-// Reads the header name and the content field number of a section message.
-function describeSection(section) {
-  let r = readVarint(section, 0);
-  if (r.value !== 0x0a) return null; // header must be field 1, length-delimited
-  r = readVarint(section, r.pos);
+// loon-change: Spotify Home protobuf no-ad allocation fast path v1
+// Inspect section ranges directly. The common no-ad path creates no kept-array,
+// per-section subarray views, or section metadata objects.
+function getSectionName(body, start, end) {
+  let r = readVarint(body, start);
+  if (r.value !== 0x0a) return "";
+  r = readVarint(body, r.pos);
   const headerEnd = r.pos + r.value;
-  const header = section.subarray(r.pos, headerEnd);
   let name = "";
-  for (let i = 0; i < header.length; i++) name += String.fromCharCode(header[i]);
-  let contentField = -1;
-  if (headerEnd < section.length) {
-    const key = readVarint(section, headerEnd);
-    contentField = Math.floor(key.value / 8);
-  }
-  return { name, contentField };
+  const limit = Math.min(headerEnd, end);
+  for (let i = r.pos; i < limit; i++) name += String.fromCharCode(body[i]);
+  return name;
 }
 
-function isAd(info) {
-  return info !== null && (AD_NAME.test(info.name) || AD_FIELDS.has(info.contentField));
+function isAdSection(body, start, end) {
+  let r = readVarint(body, start);
+  if (r.value !== 0x0a) return false;
+  r = readVarint(body, r.pos);
+  const headerEnd = r.pos + r.value;
+  let name = "";
+  const limit = Math.min(headerEnd, end);
+  for (let i = r.pos; i < limit; i++) name += String.fromCharCode(body[i]);
+  let contentField = -1;
+  if (headerEnd < end) {
+    const key = readVarint(body, headerEnd);
+    contentField = Math.floor(key.value / 8);
+  }
+  if (AD_NAME.test(name) || AD_FIELDS.has(contentField)) return name;
+  return false;
 }
 
 function stripAds(body) {
@@ -61,8 +71,10 @@ function stripAds(body) {
   const listEnd = listStart + r.value;
   if (listEnd > body.length) return null;
 
-  const kept = [];
+  // First pass validates the complete section list and detects whether any
+  // section needs removal. Clean responses return without allocating views/arrays.
   let removed = 0;
+  let keptLength = 0;
   let pos = listStart;
   while (pos < listEnd) {
     const itemStart = pos;
@@ -72,29 +84,43 @@ function stripAds(body) {
     const dataStart = len.pos;
     const itemEnd = dataStart + len.value;
     if (itemEnd > listEnd) return null;
-    const item = body.subarray(itemStart, itemEnd);
-    const info = key.value === 0x0a ? describeSection(body.subarray(dataStart, itemEnd)) : null;
-    if (isAd(info)) {
-      removed++;
-      console.log(`Spotify Home: removed section ${info.name.slice(info.name.indexOf("|") + 1)}`);
+    if (key.value === 0x0a) {
+      const adName = isAdSection(body, dataStart, itemEnd);
+      if (adName !== false) {
+        removed++;
+        console.log(`Spotify Home: removed section ${adName.slice(adName.indexOf("|") + 1)}`);
+      } else {
+        keptLength += itemEnd - itemStart;
+      }
     } else {
-      kept.push(item);
+      keptLength += itemEnd - itemStart;
     }
     pos = itemEnd;
   }
   if (removed === 0) return null;
 
-  const newListLen = kept.reduce((n, item) => n + item.length, 0);
-  const prefix = [0x0a].concat(writeVarint(newListLen));
-  const tail = body.subarray(listEnd);
-  const out = new Uint8Array(prefix.length + newListLen + tail.length);
+  const prefix = [0x0a].concat(writeVarint(keptLength));
+  const tailLength = body.length - listEnd;
+  const out = new Uint8Array(prefix.length + keptLength + tailLength);
   out.set(prefix, 0);
   let off = prefix.length;
-  for (const item of kept) {
-    out.set(item, off);
-    off += item.length;
+
+  // Second pass copies retained wire ranges directly into the final buffer.
+  pos = listStart;
+  while (pos < listEnd) {
+    const itemStart = pos;
+    const key = readVarint(body, pos);
+    const len = readVarint(body, key.pos);
+    const dataStart = len.pos;
+    const itemEnd = dataStart + len.value;
+    const adName = key.value === 0x0a ? isAdSection(body, dataStart, itemEnd) : false;
+    if (adName === false) {
+      out.set(body.subarray(itemStart, itemEnd), off);
+      off += itemEnd - itemStart;
+    }
+    pos = itemEnd;
   }
-  out.set(tail, off);
+  out.set(body.subarray(listEnd), off);
   return out;
 }
 
