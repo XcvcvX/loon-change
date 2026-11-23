@@ -13,6 +13,11 @@ from optimize_jd import LOCAL, REMOTE, MARKER_PREFIX, optimize_source, rewrite_p
 
 @unittest.skipUnless(NODE, "Node.js is required for Jingdong runtime tests")
 class JingdongLazySerializationTests(unittest.TestCase):
+    def test_aggregate_plugin_uses_local_jd_response_runtime(self):
+        plugin = (ROOT / "allAdRewrite.plugin").read_text(encoding="utf-8")
+        self.assertEqual(plugin.count("script-path=" + LOCAL), 1)
+        self.assertNotIn("script-path=" + REMOTE, plugin)
+
     def run_script(self, url, body, argument=None):
         runner = r"""
 const fs = require("fs");
