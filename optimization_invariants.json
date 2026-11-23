@@ -262,7 +262,18 @@
         "// loon-change: Taobao pre-parse supported-route guard v1",
         "const shouldProcess =",
         "if (!shouldProcess) {",
-        "url.includes(\"guide-acs.m.taobao.com/gw/mtop.taobao.cloudvideo.video.query\")"
+        "url.includes(\"guide-acs.m.taobao.com/gw/mtop.taobao.cloudvideo.video.query\")",
+        "// loon-change: Taobao indexed splash traversal v1",
+        "const sectionCount = sections.length;",
+        "const bizData = sections[sectionIndex]?.bizData;",
+        "const splashItems = bizData?.[\"taobao-splash\"]?.data;",
+        "const itemCount = splashItems.length;",
+        "for (let sectionIndex = 0; sectionIndex < sectionCount; sectionIndex++)",
+        "for (let itemIndex = 0; itemIndex < itemCount; itemIndex++)"
+      ],
+      "forbidden": [
+        "for (let items of splash.base.sections)",
+        "for (let item of items.bizData[\"taobao-splash\"].data)"
       ]
     },
     {
