@@ -1025,3 +1025,11 @@ The navigation routeInfo/routePlan filters now reuse one module-level regular ex
 ### Amap scalar membership hot loops
 
 The Amap nearby-module, search-card, and suggestion filters now use direct scalar comparisons instead of calling `Array.includes` for each response item. This removes repeated method dispatch and the small static membership arrays from these hot loops while preserving the same retained values and order. The upstream optimizer re-applies the transformation with structural checks; runtime tests cover nearby-module filtering and existing search-suggestion fixtures. The search-card predicate also caches each candidate's `item_type` once before applying the two exclusion checks, and the optimizer restores this form after upstream refresh.
+
+
+### Amap navigation routeInfo nested-reference caching
+
+- The high-frequency navigation `routeInfo` response handler now caches its `data`, `front_end`, TBT event list, guide-tip list and voice-download list references once per response, then reuses those references for the existing checks and in-place filters.
+- Preserve the existing `ads-<digits>` matcher, music exclusion, assistant removal, array ordering and mutation-aware lazy serialization. The change does not alter route matching or filtering semantics.
+- Extend the upstream Amap optimizer to restore the cached-reference form after refresh and fail closed if the reviewed branch structure drifts; add optimizer idempotence and Node VM response regressions.
+- This removes repeated nested property-chain traversal in the navigation hot path; no device-side CPU or battery percentage is claimed without real-device measurement.
