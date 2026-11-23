@@ -98,6 +98,8 @@ function compactDidiByField(items, field, mode) {
   }
   return items;
 }
+
+
 if (!$response.body) {
   $done({});
 } else {
