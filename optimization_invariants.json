@@ -101,7 +101,14 @@
         "compactInPlace(obj.tip_list",
         "compactInPlace(city.tip_list",
         "url.includes(\"/shield/search_bff/hotword\")",
-        "url.includes(\"/valueadded/alimama/splash_screen\")"
+        "url.includes(\"/valueadded/alimama/splash_screen\")",
+        "// loon-change: Amap mutation-aware lazy serialization v1",
+        "let modified = false;",
+        "function sameValue(",
+        "function setIfDifferent(",
+        "function deleteIfPresent(",
+        "if (changed) modified = true;",
+        "$done(modified ? {body: JSON.stringify(obj)} : {});"
       ]
     },
     {
