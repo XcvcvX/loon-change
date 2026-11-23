@@ -2163,6 +2163,7 @@ JD_FMZ_LEGACY_TRIGGER_CURRENT = r'response if ${url} ~= /^https:\/\/api\.m\.jd\.
 JD_FMZ_LEGACY_TRIGGERS = (JD_FMZ_LEGACY_TRIGGER, JD_FMZ_LEGACY_TRIGGER_CURRENT)
 JD_CANONICAL_TRIGGER = r"http-response ^https?:\/\/api\.m\.jd\.com\/client\.action\?functionId=(?:deliverLayer|getTabHomeInfo|myOrderInfo|orderTrackBusiness|personinfoBusiness|start|readCustomSurfaceList) script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/jingdong/jd.js,tag=JD-CONSOLIDATED,requires-body=true"
 JD_OPTIONAL_WELCOME_TRIGGER = r'response if ${url} ~= /^https:\/\/api\.m\.jd\.com\/client\.action\?functionId=welcomeHome/i then script("https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/jingdong/jd.js", {${jkds_enable}}) with tag="JD-CONSOLIDATED-WELCOME", timeout=60, requires_body=true'
+JD_LOCAL_COMBINED_TRIGGER = r"http-response ^https?:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=(?:deliverLayer|getTabHomeInfo|myOrderInfo|orderTrackBusiness|personinfoBusiness|start|welcomeHome|readCustomSurfaceList) script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/jingdong/jd.js,tag=JD,requires-body=true"
 
 
 def consolidate_jingdong_scripts(lines):
@@ -2178,8 +2179,10 @@ def consolidate_jingdong_scripts(lines):
     rstore_count = scoped.count(JD_RSTORE_LEGACY_TRIGGER)
     fmz_counts = {trigger: scoped.count(trigger) for trigger in JD_FMZ_LEGACY_TRIGGERS}
     fmz_count = sum(fmz_counts.values())
+    combined_count = scoped.count(JD_LOCAL_COMBINED_TRIGGER)
     known_triggers = {JD_RSTORE_LEGACY_TRIGGER, *JD_FMZ_LEGACY_TRIGGERS,
-                      JD_CANONICAL_TRIGGER, JD_OPTIONAL_WELCOME_TRIGGER}
+                      JD_CANONICAL_TRIGGER, JD_OPTIONAL_WELCOME_TRIGGER,
+                      JD_LOCAL_COMBINED_TRIGGER}
     unknown_triggers = [
         line for line in scoped
         if "api.m.jd.com/client.action?functionId=" in line.replace("\\", "")
@@ -2190,6 +2193,10 @@ def consolidate_jingdong_scripts(lines):
         raise ValueError("Jingdong legacy trigger changed; refusing unreviewed cleanup: " + unknown_triggers[0])
     canonical_count = scoped.count(JD_CANONICAL_TRIGGER)
     optional_count = scoped.count(JD_OPTIONAL_WELCOME_TRIGGER)
+    if combined_count:
+        if combined_count == 1 and not (rstore_count or fmz_count or canonical_count or optional_count):
+            return list(lines), 0
+        raise ValueError("Jingdong script trigger inventory is mixed or duplicated")
 
     # Unrelated App test fixtures do not contain Jingdong triggers.
     # Skip this override when none of the reviewed trigger variants is present.
