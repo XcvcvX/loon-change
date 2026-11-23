@@ -266,7 +266,7 @@ let source = fs.readFileSync(process.argv[1], "utf8").replace(
 );
 source = source.replace(
   "const isQuanX =",
-  "function countedSubarray(buffer, ...args) { globalThis.__subarrayCount = (globalThis.__subarrayCount || 0) + 1; return buffer.subarray(...args); }\\nconst isQuanX ="
+  "function countedSubarray(buffer, ...args) { globalThis.__subarrayCount = (globalThis.__subarrayCount || 0) + 1; return buffer.subarray(...args); }\nconst isQuanX ="
 );
 source = source
   .replace("hash(body.subarray(payloadOffset))", "hash(countedSubarray(body, payloadOffset))")
@@ -321,14 +321,7 @@ function fixture(type, start, end, includeAds) {
 
 const input = fixture(process.argv[2], Number(process.argv[3]), Number(process.argv[4]), process.argv[5] !== "no-ads");
 let doneResult;
-class CountedUint8Array extends Uint8Array {
-  subarray(...args) {
-    globalThis.__subarrayCount = (globalThis.__subarrayCount || 0) + 1;
-    return super.subarray(...args);
-  }
-}
 const context = {
-  Uint8Array: CountedUint8Array,
   $response: { body: input },
   $done(value) { doneResult = value; },
   console: { log() {}, warn() {}, error() {} }
