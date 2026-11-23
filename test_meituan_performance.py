@@ -95,15 +95,17 @@ process.stdout.write(nativeJSON.stringify({
 
     def test_already_clean_responses_skip_serialization(self):
         cases = [
-            ("/usercenter/display", {"children":[{"name":"ordinary"}]}),
-            ("/aggroup/indexTab", {"data":{"resource":{"tabArea":[{"tabName":"homepage"},{"tabName":"mine"}]}}}),
-            ("/searchpage/defaultword", {"searchIntroduceResponse":{"defaultWordRes":{"defaultWordItems":[]},"HotWordInfos":[]}}),
-            ("/assistant/getAppClientHornConfig", {"data":json.dumps({"skills":{},"other":1})}),
+            ("/usercenter/display", {"children":[{"name":"ordinary"}]}, 1),
+            ("/aggroup/indexTab", {"data":{"resource":{"tabArea":[{"tabName":"homepage"},{"tabName":"mine"}]}}}, 1),
+            ("/searchpage/defaultword", {"searchIntroduceResponse":{"defaultWordRes":{"defaultWordItems":[]},"HotWordInfos":[]}}, 1),
+            # The nested skills field is itself JSON text and must be parsed to
+            # distinguish an already-empty skills object from a populated one.
+            ("/assistant/getAppClientHornConfig", {"data":json.dumps({"skills":{},"other":1})}, 2),
         ]
-        for path, body in cases:
+        for path, body, expected_parses in cases:
             with self.subTest(path=path):
                 result = self.run_script(path, body)
-                self.assertEqual(result["parseCalls"], 1)
+                self.assertEqual(result["parseCalls"], expected_parses)
                 self.assertEqual(result["stringifyCalls"], 0)
                 self.assertEqual(result["done"], {})
 
