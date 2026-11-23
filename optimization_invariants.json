@@ -113,7 +113,10 @@
         "i?.item_type !== \"brandAdCard\" && i?.item_type !== \"toplist_al\"",
         "item?.tip?.datatype_spec !== \"12\"",
         "item?.tip?.result_type !== \"poi_ad\"",
-        "item?.tip?.task_tag !== \"query_sug_merge_theme\""
+        "item?.tip?.task_tag !== \"query_sug_merge_theme\"",
+        "// loon-change: Amap shared dynamic ad matcher v1",
+        "const AMAP_AD_DYNAMIC_ID = /ads-\\\\d+/;",
+        "AMAP_AD_DYNAMIC_ID.test(i?.dynamic_id_s)"
       ],
       "forbidden": [
         "AMAP_STATIC_ITEMS_06",
@@ -124,7 +127,8 @@
         "AMAP_STATIC_ITEMS_13",
         ".includes(item?.tip?.",
         ".includes(i?.item_type)",
-        "items?.includes(i)"
+        "items?.includes(i)",
+        "/ads-\\\\d+/.test(i?.dynamic_id_s)"
       ]
     },
     {
