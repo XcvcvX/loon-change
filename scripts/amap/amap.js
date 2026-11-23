@@ -465,21 +465,27 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
   }
 } else if (url.includes("/perception/drive/routeInfo")) {
   // 导航详情页
-  if (obj?.data?.tbt?.event?.length > 0) {
-    compactInPlace(obj.data.tbt.event, (i) => !AMAP_AD_DYNAMIC_ID.test(i?.dynamic_id_s));
+  // loon-change: Amap routeInfo cached nested references v1
+  const routeInfoData = obj?.data;
+  const routeInfoFrontEnd = routeInfoData?.front_end;
+  const routeInfoEvents = routeInfoData?.tbt?.event;
+  const routeInfoGuideTips = routeInfoFrontEnd?.guide_tips;
+  const routeInfoDownloads = routeInfoFrontEnd?.download;
+  if (routeInfoEvents?.length > 0) {
+    compactInPlace(routeInfoEvents, (i) => !AMAP_AD_DYNAMIC_ID.test(i?.dynamic_id_s));
   }
-  if (obj?.data?.front_end) {
-    if (obj?.data?.front_end?.guide_tips?.length > 0) {
+  if (routeInfoFrontEnd) {
+    if (routeInfoGuideTips?.length > 0) {
       // 音乐底栏
-      compactInPlace(obj.data.front_end.guide_tips, (i) => i?.biz_type !== "music");
+      compactInPlace(routeInfoGuideTips, (i) => i?.biz_type !== "music");
     }
-    if (obj?.data?.front_end?.assistant) {
+    if (routeInfoFrontEnd?.assistant) {
       // 助手皮肤
-      deleteIfPresent(obj.data.front_end, "assistant");
+      deleteIfPresent(routeInfoFrontEnd, "assistant");
     }
-    if (obj?.data?.front_end?.download?.length > 0) {
+    if (routeInfoDownloads?.length > 0) {
       // 导航插播语音广告
-      compactInPlace(obj.data.front_end.download, (i) => !AMAP_AD_DYNAMIC_ID.test(i?.dynamic_id_s));
+      compactInPlace(routeInfoDownloads, (i) => !AMAP_AD_DYNAMIC_ID.test(i?.dynamic_id_s));
     }
   }
 } else if (url.includes("/perception/drive/routePlan")) {

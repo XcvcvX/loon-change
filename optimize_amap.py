@@ -12,6 +12,7 @@ GUARD_MARKER = "// loon-change: Amap R-Store supported-route guard v1"
 SCALAR_MARKER = "// loon-change: Amap scalar membership hot loops v1"
 TRACKING_MARKER = "// loon-change: Amap mutation-aware lazy serialization v1"
 DYNAMIC_MATCHER_MARKER = "// loon-change: Amap shared dynamic ad matcher v1"
+ROUTE_INFO_MARKER = "// loon-change: Amap routeInfo cached nested references v1"
 DYNAMIC_MATCHER_LITERAL = "/ads-\\d+/.test(i?.dynamic_id_s)"
 DYNAMIC_MATCHER_CALL = "AMAP_AD_DYNAMIC_ID.test(i?.dynamic_id_s)"
 TRACKING_HELPER = """// loon-change: Amap mutation-aware lazy serialization v1
@@ -287,6 +288,61 @@ def optimize_shared_dynamic_ad_matcher(source):
     return source
 
 
+
+def optimize_route_info_cached_references(source):
+    if source.count(ROUTE_INFO_MARKER) > 1:
+        raise ValueError("Amap routeInfo cache marker is duplicated")
+    start = '} else if (url.includes("/perception/drive/routeInfo")) {'
+    end = '} else if (url.includes("/perception/drive/routePlan")) {'
+    if source.count(start) != 1 or source.count(end) != 1:
+        raise ValueError("Amap routeInfo branch boundary drift")
+    i = source.index(start)
+    j = source.index(end, i + len(start))
+    block = source[i:j]
+    if ROUTE_INFO_MARKER in block:
+        required = (
+            "const routeInfoData = obj?.data;",
+            "const routeInfoFrontEnd = routeInfoData?.front_end;",
+            "const routeInfoEvents = routeInfoData?.tbt?.event;",
+            "const routeInfoGuideTips = routeInfoFrontEnd?.guide_tips;",
+            "const routeInfoDownloads = routeInfoFrontEnd?.download;",
+        )
+        if any(value not in block for value in required):
+            raise ValueError("Amap routeInfo cached reference declarations drift")
+        return source
+
+    replacements = (
+        ("obj?.data?.tbt?.event?.length", "routeInfoEvents?.length"),
+        ("obj.data.tbt.event", "routeInfoEvents"),
+        ("obj?.data?.front_end?.guide_tips?.length", "routeInfoGuideTips?.length"),
+        ("obj.data.front_end.guide_tips", "routeInfoGuideTips"),
+        ("obj?.data?.front_end?.download?.length", "routeInfoDownloads?.length"),
+        ("obj.data.front_end.download", "routeInfoDownloads"),
+        ("obj?.data?.front_end", "routeInfoFrontEnd"),
+        ("obj.data.front_end", "routeInfoFrontEnd"),
+    )
+    for old, new in replacements:
+        block = block.replace(old, new)
+
+    required_accesses = (
+        "routeInfoEvents?.length", "compactInPlace(routeInfoEvents,",
+        "routeInfoFrontEnd", "routeInfoGuideTips", "routeInfoDownloads",
+    )
+    if any(value not in block for value in required_accesses):
+        raise ValueError("Amap routeInfo nested access inventory changed")
+    declaration = """  // loon-change: Amap routeInfo cached nested references v1
+  const routeInfoData = obj?.data;
+  const routeInfoFrontEnd = routeInfoData?.front_end;
+  const routeInfoEvents = routeInfoData?.tbt?.event;
+  const routeInfoGuideTips = routeInfoFrontEnd?.guide_tips;
+  const routeInfoDownloads = routeInfoFrontEnd?.download;"""
+    comment = "  // 导航详情页"
+    if block.count(comment) != 1:
+        raise ValueError("Amap routeInfo declaration anchor changed")
+    block = block.replace(comment, comment + "\n" + declaration, 1)
+    return source[:i] + block + source[j:]
+
+
 def repair_supported_route_guard(source):
     pattern = re.compile(
         re.escape(GUARD_MARKER)
@@ -379,6 +435,7 @@ def optimize_source(source, commit="unknown"):
             raise ValueError("Amap optimizer markers are inconsistent")
         source = repair_supported_route_guard(source)
         source = optimize_shared_dynamic_ad_matcher(optimize_scalar_membership(compact_search_suggestions_in_place(hoist_static_arrays(source))))
+        source = optimize_route_info_cached_references(source)
         source = instrument_mutations(source)
         if ".filter(" in source or "function compactInPlace(items, keep)" not in source:
             raise ValueError("Amap optimized runtime has drifted")
@@ -410,6 +467,7 @@ def optimize_source(source, commit="unknown"):
     source = compact_search_suggestions_in_place(hoist_static_arrays(source))
     source = optimize_scalar_membership(source)
     source = optimize_shared_dynamic_ad_matcher(source)
+    source = optimize_route_info_cached_references(source)
     source = instrument_mutations(source)
     return MARKER + commit + "\n" + source
 
