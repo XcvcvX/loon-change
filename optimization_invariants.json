@@ -32,7 +32,7 @@
         "item?.file_id"
       ],
       "forbidden": [
-        "JSON.stringify(images_list), \"redBookLivePhoto\""
+        "JSON.stringify(images_list), \"redBookLivePhoto\"",
         "item.live_photo.media.stream.h265[0].master_url"
       ]
     },
