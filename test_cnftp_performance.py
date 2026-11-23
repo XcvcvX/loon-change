@@ -338,5 +338,15 @@ if (mg2.data.length!==2 || mg2.data[0].id!==1 || mg2.data[1].id!==2) throw new E
         self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
 
 
+    def test_iqiyi_mango_hot_array_markers_and_optimizer_idempotence(self):
+        source = SOURCE_PATH.read_text(encoding="utf-8")
+        for marker in (
+            "iQIYI category nested stable in-place compaction v1",
+            "iQIYI search nested stable in-place compaction v1",
+            "Mango dynamic channel nested stable in-place compaction v1",
+        ):
+            self.assertIn(marker, source)
+        self.assertEqual(optimize_source(source), source)
+
 if __name__ == "__main__":
     unittest.main()
