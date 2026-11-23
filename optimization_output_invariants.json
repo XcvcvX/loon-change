@@ -10,11 +10,13 @@
         "result.dy_module.irregular_banner_dy",
         "result.bottom_tabs?",
         "result.buffer_bottom_tabs?",
-        "result.all_top_opts?"
+        "result.all_top_opts?",
+        "script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/jingdong/jd.js"
       ],
       "forbidden": [
         "pdd-homepage.js",
-        "ishowshu_pdd.js"
+        "ishowshu_pdd.js",
+        "script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/jd.js"
       ]
     }
   ]

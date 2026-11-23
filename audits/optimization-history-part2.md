@@ -347,3 +347,32 @@ The active BaiduMap binary response handler includes a roughly 12 KB MD5 impleme
 The Node VM tests instrument the lazy initializer. All three no-op cases must report zero MD5 initializations; the changed-target case must report exactly one. Existing binary assembly tests continue to verify payload order, metadata lengths, and the final MD5 value.
 
 The optimization avoids executing the MD5 implementation on no-op responses. The source code remains present for changed responses; real-device CPU and battery deltas have not been quantified without Loon on-device measurements.
+
+
+---
+
+# Phase 12 P0 — Jingdong local response runtime activation and in-place compaction
+
+## Finding
+
+The aggregate plugin still pointed its Jingdong api.m.jd.com/client.action response trigger at the remote R-Store script, even though the repository already contained a locally optimized Jingdong cleaner. The remote cleaner allocated replacement arrays for welcome-home floors, both custom navigation lists, delivery floors, order floors, virtual service centers, service cards, and personal-profile floors. It also serialized every matching response, including responses whose content was already clean.
+
+## Runtime change
+
+- Route the eight supported Jingdong functionId handlers to the protected local runtime.
+- Convert filtering into stable in-place array compaction; eliminate the temporary newFloors, newItems, and newCards arrays.
+- Replace small allowlist arrays and repeated includes scans with direct scalar predicates.
+- Use indexed traversal for the fixed dark/normal navigation branches and nested virtual service-center arrays.
+- Guard optional navigation arrays before traversal so absent branches pass through safely.
+- Track actual mutations and skip JSON.stringify for already-clean responses.
+- Keep each upstream route and its cleanup predicates; preserve the existing optional jkds_enable-gated welcome exclusions.
+
+## Upstream and release protection
+
+optimize_jd.py validates the upstream route/filter/allocation inventory before regenerating scripts/jingdong/jd.js, then migrates exactly one Jingdong response trigger to the local URL. A changed upstream inventory fails closed. Runtime and final-plugin invariants require the local compaction, safe navigation guards, and lazy serialization markers, and forbid the old allocation/array-callback patterns and remote trigger.
+
+## Regression coverage
+
+The pinned upstream fixture tests source transformation, idempotency, inventory drift rejection, Node syntax, and plugin migration. Runtime tests verify all existing cleanup branches, unchanged-response pass-through, modified-response serialization, and optional welcome exclusions.
+
+This reduces replacement-array allocation and unnecessary serialization in active Jingdong response handling. On-device CPU and battery savings remain unquantified without Loon device measurements.

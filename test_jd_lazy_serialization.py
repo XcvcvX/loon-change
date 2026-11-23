@@ -1,15 +1,23 @@
 import json
 import shutil
 import subprocess
+import tempfile
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 NODE = shutil.which("node")
 
+from optimize_jd import LOCAL, REMOTE, MARKER_PREFIX, optimize_source, rewrite_plugin
+
 
 @unittest.skipUnless(NODE, "Node.js is required for Jingdong runtime tests")
 class JingdongLazySerializationTests(unittest.TestCase):
+    def test_aggregate_plugin_uses_local_jd_response_runtime(self):
+        plugin = (ROOT / "allAdRewrite.plugin").read_text(encoding="utf-8")
+        self.assertEqual(plugin.count("script-path=" + LOCAL), 1)
+        self.assertNotIn("script-path=" + REMOTE, plugin)
+
     def run_script(self, url, body, argument=None):
         runner = r"""
 const fs = require("fs");
@@ -50,6 +58,7 @@ process.stdout.write(nativeJSON.stringify({
                 "dark": {"navigationAll": [{"functionId": "index"}]},
                 "normal": {"navigationAll": [{"functionId": "home"}]}
             }}}),
+            ("functionId=readCustomSurfaceList", {"result": {"modeMap": {"dark": {}, "normal": {}}}}),
             ("functionId=deliverLayer", {"floors": [{"mId": "normal"}]}),
             ("functionId=getTabHomeInfo", {"result": {"keep": 1}}),
             ("functionId=myOrderInfo", {"floors": [{"mId": "normal"}]}),
@@ -86,6 +95,88 @@ process.stdout.write(nativeJSON.stringify({
         result = self.run_script("https://api.m.jd.com/client.action?functionId=welcomeHome", body, {"jkds_enable": True})
         self.assertEqual(result["stringifyCalls"], 1)
         self.assertEqual([x["type"] for x in result["body"]["floorList"]], ["topTab"])
+
+
+
+
+class JingdongOptimizerTests(unittest.TestCase):
+    def test_upstream_source_is_rebuilt_as_in_place_lazy_runtime(self):
+        upstream = (ROOT / "tests/fixtures/jd-upstream.js").read_text(encoding="utf-8")
+        optimized = optimize_source(upstream, "0123456789abcdef0123456789abcdef01234567")
+        self.assertIn(MARKER_PREFIX + "0123456789abcdef0123456789abcdef01234567", optimized)
+        self.assertIn("function compactInPlace(items, keep)", optimized)
+        self.assertIn("function isPersonInfoBusinessExcluded(id)", optimized)
+        self.assertIn("function isWelcomeHomeType(type)", optimized)
+        self.assertIn("function isCustomSurfaceName(name)", optimized)
+        self.assertIn("function isWelcomeExtraExcluded(type)", optimized)
+        self.assertIn("const darkNavigation = modeMap && modeMap.dark && modeMap.dark.navigationAll;", optimized)
+        self.assertIn("compactInPlace(obj.floorList, item =>", optimized)
+        self.assertIn("compactInPlace(serviceList, card =>", optimized)
+        self.assertIn("const shouldProcess =", optimized)
+        self.assertIn('$done(modified ? { body: JSON.stringify(obj) } : {});', optimized)
+        self.assertNotIn(".filter(", optimized)
+        self.assertNotIn(".map(", optimized)
+        self.assertNotIn(".forEach(", optimized)
+        self.assertNotIn("newFloors = []", optimized)
+        self.assertNotIn("newItems = []", optimized)
+        self.assertNotIn("newCards = []", optimized)
+        self.assertEqual(optimize_source(optimized), optimized)
+
+    def test_upstream_inventory_drift_fails_closed(self):
+        upstream = (ROOT / "tests/fixtures/jd-upstream.js").read_text(encoding="utf-8")
+        broken = upstream.replace(
+            'obj.floorList = obj.floorList.filter((i) => WELCOME_HOME_TYPE_INCLUDE.includes(i?.type));',
+            'obj.floorList = obj.floorList;',
+            1,
+        )
+        with self.assertRaisesRegex(ValueError, "four reviewed filters"):
+            optimize_source(broken)
+
+    def test_generated_runtime_passes_node_syntax_check(self):
+        if not NODE:
+            self.skipTest("Node.js is required for Jingdong optimizer syntax validation")
+        upstream = (ROOT / "tests/fixtures/jd-upstream.js").read_text(encoding="utf-8")
+        optimized = optimize_source(upstream, "fixture")
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "jd.js"
+            path.write_text(optimized, encoding="utf-8")
+            completed = subprocess.run(
+                [NODE, "--check", str(path)],
+                capture_output=True,
+                text=True,
+                check=False,
+                timeout=10,
+            )
+            self.assertEqual(completed.returncode, 0, completed.stderr or completed.stdout)
+
+    def test_plugin_rewrite_routes_only_the_jd_handler_to_local_runtime(self):
+        fixture = (
+            "[Script]\n"
+            "http-response ^https://api.m.jd.com/client.action?functionId=start "
+            "script-path=" + REMOTE + ",tag=JD,requires-body=true\n"
+            "[MITM]\nhostname = api.m.jd.com\n"
+        )
+        rewritten = rewrite_plugin(fixture)
+        self.assertEqual(rewritten.count(LOCAL), 1)
+        self.assertNotIn(REMOTE, rewritten)
+        self.assertIn("[MITM]", rewritten)
+        self.assertEqual(rewrite_plugin(rewritten), rewritten)
+
+    def test_plugin_rewrite_keeps_reviewed_core_and_optional_welcome_pair(self):
+        from apply_local_overrides import JD_CANONICAL_TRIGGER, JD_OPTIONAL_WELCOME_TRIGGER
+        fixture = "[Script]\n" + JD_CANONICAL_TRIGGER + "\n" + JD_OPTIONAL_WELCOME_TRIGGER + "\n[MITM]\nhostname = api.m.jd.com\n"
+        self.assertEqual(rewrite_plugin(fixture), fixture)
+
+    def test_plugin_rewrite_keeps_reviewed_full_local_trigger(self):
+        from apply_local_overrides import JD_LOCAL_COMBINED_TRIGGER
+        fixture = "[Script]\n" + JD_LOCAL_COMBINED_TRIGGER + "\n[MITM]\nhostname = api.m.jd.com\n"
+        self.assertEqual(rewrite_plugin(fixture), fixture)
+
+    def test_plugin_rewrite_fails_closed_when_remote_jd_trigger_is_missing(self):
+        fixture = "[Script]\nhttp-response ^https://example.com script-path=https://example.com/x.js\n"
+        with self.assertRaisesRegex(ValueError, "trigger not found"):
+            rewrite_plugin(fixture)
+
 
 
 if __name__ == "__main__":

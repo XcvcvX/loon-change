@@ -31,7 +31,7 @@ class OptimizationGuardTests(unittest.TestCase):
         expected = {
             "scripts/jingdong/jd.js": [
                 "function compactInPlace(items, keep)",
-                "const WELCOME_HOME_EXTRA_EXCLUDE = new Set([",
+                "function isWelcomeExtraExcluded(type)",
                 "$done(modified ? { body: JSON.stringify(obj) } : {});",
             ],
             "scripts/taobao/taobao.js": [

@@ -140,10 +140,27 @@
     {
       "path": "scripts/jingdong/jd.js",
       "required": [
+        "// loon-change: Jingdong in-place response compaction and lazy serialization v1; upstream zirawell/R-Store@",
         "function compactInPlace(items, keep)",
-        "const PERSON_INFO_BUSINESS_MID_EXCLUDE = [",
-        "const WELCOME_HOME_EXTRA_EXCLUDE = new Set([",
-        "$done(modified ? { body: JSON.stringify(obj) } : {});"
+        "function isPersonInfoBusinessExcluded(id)",
+        "function isWelcomeHomeType(type)",
+        "function isWelcomeExtraExcluded(type)",
+        "function isCustomSurfaceName(name)",
+        "const shouldProcess =",
+        "compactInPlace(obj.floorList, item =>",
+        "compactInPlace(serviceList, card =>",
+        "$done(modified ? { body: JSON.stringify(obj) } : {});",
+        "const darkNavigation = modeMap && modeMap.dark && modeMap.dark.navigationAll;",
+        "Array.isArray(darkNavigation)",
+        "const normalNavigation = modeMap && modeMap.normal && modeMap.normal.navigationAll;"
+      ],
+      "forbidden": [
+        ".filter(",
+        ".forEach(",
+        ".map(",
+        "newFloors = []",
+        "newItems = []",
+        "newCards = []"
       ]
     },
     {
