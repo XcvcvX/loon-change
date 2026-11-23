@@ -83,8 +83,13 @@ process.stdout.write(JSON.stringify({doneResult, parseCount, stringifyCount}));
         completed = subprocess.run(
             [NODE, "-e", runner, str(SCRIPT)],
             input=json.dumps({"url": url, "body": body}),
-            capture_output=True, text=True, check=True, timeout=10
+            capture_output=True, text=True, check=False, timeout=10
         )
+        if completed.returncode:
+            raise AssertionError(
+                "Node VM failed (exit %s):\\n%s\\nstdout:\\n%s"
+                % (completed.returncode, completed.stderr, completed.stdout)
+            )
         return json.loads(completed.stdout)
 
     def test_cardlist_nested_arrays_compact_in_place_without_changing_order(self):
