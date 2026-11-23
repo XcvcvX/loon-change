@@ -114,7 +114,15 @@ process.stdout.write(JSON.stringify({
     def test_imagefeed_mutates_parsed_object_without_json_round_trip(self):
         original = "https://img.example/a.jpg?imageView2/2/w/1080/format/jpg"
         body = {"data": [{"note_list": [{
-            "images_list": [{"url": original, "nested": {"url": original}}],
+            "images_list": [{
+                "url": original,
+                "nested": {"url": original},
+                "live_photo_file_id": "live-file-1",
+                "live_photo": {"media": {
+                    "video_id": "video-1",
+                    "stream": {"h265": [{"master_url": "https://video.example/live.mp4"}]}
+                }}
+            }],
             "media_save_config": {"disable_save": True},
             "share_info": {"function_entries": [{"type": "share"}]},
             "hash_tag": [{"type": "normal"}, {"type": "interact_vote"}]
@@ -128,8 +136,35 @@ process.stdout.write(JSON.stringify({
         self.assertIn("w/2160/format", item["images_list"][0]["nested"]["url"])
         self.assertEqual([tag["type"] for tag in item["hash_tag"]], ["normal"])
         cached = json.loads(result["store"]["redBookLivePhoto"])
-        self.assertEqual(cached[0]["url"], original)
-        self.assertEqual(cached[0]["nested"]["url"], original)
+        self.assertEqual(cached, [{
+            "file_id": "live-file-1",
+            "video_id": "video-1",
+            "url": "https://video.example/live.mp4"
+        }])
+        self.assertNotIn("nested", cached[0])
+        self.assertLess(
+            len(result["store"]["redBookLivePhoto"]),
+            len(json.dumps(body["data"][0]["note_list"][0]["images_list"]))
+        )
+
+
+    def test_live_photo_save_consumes_compact_cache_records(self):
+        compact = [{
+            "file_id": "live-file-1",
+            "video_id": "video-1",
+            "url": "https://video.example/live.mp4"
+        }]
+        body = {"code": 0, "data": {"datas": [{
+            "file_id": "live-file-1",
+            "url": "https://placeholder.example/video.mp4"
+        }]}}
+        result = self.run_script(
+            "https://edith.xiaohongshu.com/api/sns/v1/note/live_photo/save",
+            body,
+            store={"redBookLivePhoto": json.dumps(compact)}
+        )
+        output = json.loads(result["doneResult"]["body"])
+        self.assertEqual(output["data"]["datas"][0]["url"], "https://video.example/live.mp4")
 
     def test_homefeed_compaction_is_stable_and_keeps_null_items(self):
         body = {"data": [
