@@ -26,6 +26,8 @@ class BaiduMapBinaryPerformanceTests(unittest.TestCase):
         self.assertNotIn("new Uint8Array($response.bodyBytes)", self.source)
         self.assertIn("$done({bodyBytes: body.buffer})", self.source)
         self.assertNotIn("body.buffer.slice(", self.source)
+        self.assertIn("function createBaiduMd5() {", self.source)
+        self.assertIn("newAds, createBaiduMd5());", self.source)
 
     @unittest.skipUnless(NODE, "Node.js is required for binary assembly regression tests")
     def test_actual_assembly_helper_preserves_payload_and_header_metadata(self):
@@ -232,7 +234,10 @@ class BaiduMapNoopRebuildRuntimeTests(unittest.TestCase):
     runner = r"""
 const fs = require("fs");
 const vm = require("vm");
-const source = fs.readFileSync(process.argv[1], "utf8");
+const source = fs.readFileSync(process.argv[1], "utf8").replace(
+  "function createBaiduMd5() {",
+  "function createBaiduMd5() { globalThis.__md5InitCount = (globalThis.__md5InitCount || 0) + 1;"
+);
 
 function varint(value) {
   const out = [];
@@ -308,12 +313,14 @@ if (doneResult.body) {
     originalLength: input.length,
     outputLength: output.length,
     md5: decoded.md5,
+    md5InitCount: context.__md5InitCount || 0,
     item: decoded.item
   }));
 } else {
   process.stdout.write(JSON.stringify({
     hasBody: false,
-    originalLength: input.length
+    originalLength: input.length,
+    md5InitCount: context.__md5InitCount || 0
   }));
 }
 """
@@ -333,14 +340,17 @@ if (doneResult.body) {
     def test_missing_ads_section_passes_through_without_reassembly(self):
         result = self.run_script("normal", 1, 2, include_ads=False)
         self.assertFalse(result["hasBody"])
+        self.assertEqual(result["md5InitCount"], 0)
 
     def test_non_target_ads_skip_protobuf_encode_md5_and_body_reassembly(self):
         result = self.run_script("normal", 1, 2)
         self.assertFalse(result["hasBody"])
+        self.assertEqual(result["md5InitCount"], 0)
 
     def test_already_clean_target_ads_skip_protobuf_encode_md5_and_body_reassembly(self):
         result = self.run_script("home_banner", 1648746061, 1648832461)
         self.assertFalse(result["hasBody"])
+        self.assertEqual(result["md5InitCount"], 0)
 
     def test_changed_target_ads_still_rebuild_with_correct_values(self):
         result = self.run_script("home_banner", 1, 2)
@@ -349,6 +359,7 @@ if (doneResult.body) {
         self.assertEqual(result["item"]["end"], 1648832461)
         self.assertEqual(len(result["md5"]), 32)
         self.assertGreater(result["outputLength"], 0)
+        self.assertEqual(result["md5InitCount"], 1)
 
 
 if __name__ == "__main__":
