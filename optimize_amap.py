@@ -243,7 +243,7 @@ def optimize_scalar_membership(source):
     if 'i === "head" || i === "search_hot_words" || i === "feed_rec"' not in source:
         raise ValueError("Amap nearby scalar predicate is missing")
     card_pattern = re.compile(
-        r'compactInPlace\(list\.content, \((\w+)\) =>\s*\1\?\.item_type !== "brandAdCard" && \1\?\.item_type !== "toplist_al"\);'
+        r'compactInPlace\(list\.content, \((\w+)\) =>\s*\1\?\.item_type !== "brandAdCard" && \1\?\.item_type !== "toplist_al"\s*\);'
     )
     source, card_rewrites = card_pattern.subn(
         lambda match: (
