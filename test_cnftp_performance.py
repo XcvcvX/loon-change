@@ -387,5 +387,68 @@ if(ml.length!==3||ml[0].data.length!==1||ml[1].data.length!==1||ml[1].data[0].ti
         result = subprocess.run([node, "-e", harness, str(SOURCE_PATH)], capture_output=True, text=True, check=False, timeout=10)
         self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
 
+
+    def test_iqiyi_personal_home_and_mango_player_compaction_markers(self):
+        source = SOURCE_PATH.read_text(encoding="utf-8")
+        for marker in (
+            "iQIYI personal menus nested stable in-place compaction v1",
+            "iQIYI home cards allocation-free traversal v1",
+            "Mango player modules stable in-place compaction v1",
+        ):
+            self.assertIn(marker, source)
+        self.assertNotIn("let newMenus = []", source)
+        self.assertNotIn("let newLists = []", source)
+        self.assertNotIn("let newCards = []", source)
+        self.assertNotIn("let newMods = []", source)
+        self.assertEqual(optimize_source(source), source)
+
+    def test_node_runtime_iqiyi_personal_home_and_mango_player(self):
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node.js is required for CNFTP runtime tests")
+        harness = r'''
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync(process.argv[1],"utf8"),J=JSON;
+function run(url,body){let result,pc=0,sc=0;const c={JSON:{parse(v){pc++;return J.parse(v)},stringify(v){sc++;return J.stringify(v)}},$request:{url},$response:{body:J.stringify(body)},$done(v){result=v},console:{log(){},warn(){},error(){}}};vm.runInNewContext(source,c,{timeout:5000});if(pc!==1||sc!==1)throw Error("JSON roundtrip "+pc+"/"+sc);return J.parse(result.body);}
+const my=run("https://iface2.iqiyi.com/getMyMenus?",{data:[
+ {statistic:{block:"wd_liebiao_2"},menuList:[{menuType:1}]},
+ {statistic:{block:"keep"},menuList:[{menuType:121},{menuType:1,id:"menu-keep"}]},
+ {statistic:{block:"keep-2"},menuList:[]}
+]});
+if(my.data.length!==2||my.data[0].menuList.length!==1||my.data[0].menuList[0].id!=="menu-keep"||my.data[1].statistic.block!=="keep-2")throw Error("iQIYI personal menu semantics/order");
+const home=run("https://iface2.iqiyi.com/views_home/",{cards:[
+ {alias_name:"ad_mobile_flow"},
+ {alias_name:"normal",top_banner:{l_blocks:[{buttons:[1]},{buttons:[]},{text:"keep"}]}},
+ {alias_name:"normal-2"}
+]});
+if(home.cards.length!==2||home.cards[0].alias_name!=="normal"||home.cards[1].alias_name!=="normal-2")throw Error("iQIYI home card filtering/order");
+if("buttons" in home.cards[0].top_banner.l_blocks[0]||home.cards[0].top_banner.l_blocks[2].text!=="keep")throw Error("iQIYI home banner cleanup");
+const mango=run("https://api.mgtv.com/v1/vod/info?",{data:{template:{modules:[
+ {dataType:202,id:"remove"},{dataType:101,id:"keep-1",clipInfo:{rcInfo:"remove"}},
+ {dataType:201,id:"keep-2",clipInfo:{other:"keep"}},{dataType:702,id:"remove-2"}
+]}}});
+const mods=mango.data.template.modules;
+if(mods.length!==2||mods[0].id!=="keep-1"||mods[1].id!=="keep-2")throw Error("Mango module filtering/order");
+if("rcInfo" in mods[0].clipInfo||mods[1].clipInfo.other!=="keep")throw Error("Mango recommendation cleanup");
+'''
+        result = subprocess.run(
+            [node, "-e", harness, str(SOURCE_PATH)],
+            capture_output=True, text=True, check=False, timeout=10,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
+
+    def test_optimizer_fails_closed_for_changed_iqiyi_personal_menu_block(self):
+        source = SOURCE_PATH.read_text(encoding="utf-8")
+        changed = source.replace(
+            "iQIYI personal menus nested stable in-place compaction v1",
+            "iQIYI personal menus nested stable in-place compaction v2",
+        )
+        changed = changed.replace(
+            'url.includes("/getMyMenus?")',
+            'url.includes("/getMyMenus?")',
+            1,
+        )
+        with self.assertRaisesRegex(ValueError, "iQIYI personal menus upstream structure changed"):
+            optimize_source(changed)
+
 if __name__ == "__main__":
     unittest.main()

@@ -73,30 +73,14 @@ if (isIQY) {
   } else if (url.includes("/getMyMenus?")) {
     // 爱奇艺 我的页面
     if (obj?.data?.length > 0) {
-      let newMenus = [];
-      for (let item of obj.data) {
-        if (["wd_liebiao_2", "wd_liebiao_3", "wd_liebiao_4"]?.includes(item?.statistic?.block)) {
-          // 精简列表
-          continue;
-        } else {
-          if (item?.menuList?.length > 0) {
-            let newLists = [];
-            for (let i of item.menuList) {
-              if (i?.menuType === 121) {
-                // 121有奖限时问卷
-                continue;
-              } else {
-                newLists.push(i);
-              }
-            }
-            item.menuList = newLists;
-            newMenus.push(item);
-          } else {
-            newMenus.push(item);
-          }
+      // loon-change: iQIYI personal menus nested stable in-place compaction v1
+      compactInPlace(obj.data, (item) => {
+        if (["wd_liebiao_2", "wd_liebiao_3", "wd_liebiao_4"]?.includes(item?.statistic?.block)) return false;
+        if (item?.menuList?.length > 0) {
+          compactInPlace(item.menuList, (entry) => entry?.menuType !== 121);
         }
-      }
-      obj.data = newMenus;
+        return true;
+      });
     }
   } else if (url.includes("/home_top_menu?")) {
     // 爱奇艺 顶部tab
@@ -158,27 +142,21 @@ if (isIQY) {
       delete obj.base.statistics.ad_str;
     }
     if (obj?.cards?.length > 0) {
-      let newCards = [];
-      for (let card of obj.cards) {
+      // loon-change: iQIYI home cards allocation-free traversal v1
+      compactInPlace(obj.cards, (card) => {
         // ad_mobile_flow信息流广告 ad_trueview信息流广告 focus顶部横版广告 qy_home_vip_opr_banner会员营销banner
-        if (["ad_mobile_flow", "ad_trueview", "focus", "qy_home_vip_opr_banner"]?.includes(card?.alias_name)) {
-          continue;
-        } else {
-          if (card?.top_banner?.l_blocks?.length > 0) {
-            // 模块右边文字按钮
-            for (let item of card.top_banner.l_blocks) {
-              if (item?.buttons?.length > 0) {
-                // 移除按钮 娱乐资源
-                delete item.buttons;
-              }
+        if (["ad_mobile_flow", "ad_trueview", "focus", "qy_home_vip_opr_banner"]?.includes(card?.alias_name)) return false;
+        if (card?.top_banner?.l_blocks?.length > 0) {
+          // 模块右边文字按钮
+          for (let item of card.top_banner.l_blocks) {
+            if (item?.buttons?.length > 0) {
+              // 移除按钮 娱乐资源
+              delete item.buttons;
             }
-            newCards.push(card);
-          } else {
-            newCards.push(card);
           }
         }
-      }
-      obj.cards = newCards;
+        return true;
+      });
     }
   } else if (url.includes("/views_plt/")) {
     // 爱奇艺 播放详情页组件
@@ -345,19 +323,15 @@ if (isIQY) {
       // 播放页组件
       // 101简介 102点赞评论收藏 201正片列表 205会员衍生模块 206音频有声剧
       // 202精彩短片 203精选特辑 301热门内容 601周边大放送 701通栏广告 702大风车浮层广告
-      let newMods = [];
-      for (let item of obj.data.template.modules) {
-        if ([202, 203, 301, 601, 701, 702]?.includes(item?.dataType)) {
-          continue;
-        } else {
-          if (item?.clipInfo?.rcInfo) {
-            // 播放界面推荐语
-            delete item.clipInfo.rcInfo;
-          }
-          newMods.push(item);
+      // loon-change: Mango player modules stable in-place compaction v1
+      compactInPlace(obj.data.template.modules, (item) => {
+        if ([202, 203, 301, 601, 701, 702]?.includes(item?.dataType)) return false;
+        if (item?.clipInfo?.rcInfo) {
+          // 播放界面推荐语
+          delete item.clipInfo.rcInfo;
         }
-      }
-      obj.data.template.modules = newMods;
+        return true;
+      });
     }
     if (obj?.data?.template?.theme) {
       // 播放页主题皮肤
