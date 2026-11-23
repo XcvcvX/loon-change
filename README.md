@@ -997,3 +997,8 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 ### Pinduoduo order response single-pass cleanup
 
 The shipping endpoint previously matched both a shipping-specific `response.json.jq` rule and the generic order `response.json.delete` rule. The generic rule already removes `shipping.banner_above_recommend`, so the redundant shipping-specific transform is removed during every build. This preserves the same field cleanup while avoiding a second JSON transformation on shipping responses.
+
+
+### Baidu Map target-only binary views
+
+The protobuf response loop now creates payload views only for the `Result` and `Ads` fields it actually consumes. Unknown/auxiliary fields are skipped before `subarray`, reducing short-lived typed-array view allocations without decoding or copying the large `Result` payload.

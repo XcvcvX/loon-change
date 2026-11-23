@@ -66,6 +66,7 @@ let newAds = null;
 let adsFound = false;
 let modifiedAds = false;
 const dataBeginOffset = beginOffset + prefixLength;
+// loon-change: Baidu protobuf target-only byte views v1
 for(let i = 0; i < repHeadMessage.messageHead.length; i++) {
   let messageHead = repHeadMessage.messageHead[i];
   const name = messageHead.name;
@@ -73,13 +74,14 @@ for(let i = 0; i < repHeadMessage.messageHead.length; i++) {
 
   // 开始解析 Result和Ads
   const currentOffset = dataBeginOffset + messageHead.offset;
-  const targetData = binaryBody.subarray(currentOffset, currentOffset + targetDataLength);
 
   if(name === 'Result'){
     // Result is unchanged; retain a zero-copy view instead of decoding and re-encoding it.
-    newResult = targetData;
+    newResult = binaryBody.subarray(currentOffset, currentOffset + targetDataLength);
   }else if(name === 'Ads'){
     adsFound = true;
+    // Only the Ads field needs a view for protobuf decoding; ignore unrelated fields without allocating views.
+    const targetData = binaryBody.subarray(currentOffset, currentOffset + targetDataLength);
     // Decode once to inspect the small ad list, but avoid protobuf re-encode,
     // MD5 hashing and full binary-body reconstruction when no target field changes.
     const adsType = baiduMapRoot.lookupType(name);

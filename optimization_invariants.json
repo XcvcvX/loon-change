@@ -174,7 +174,8 @@
         "bodyBytes: body.buffer",
         "function createBaiduMd5() {",
         "newAds, createBaiduMd5());",
-        "if(!adsFound || !modifiedAds || !newResult)"
+        "if(!adsFound || !modifiedAds || !newResult)",
+        "// loon-change: Baidu protobuf target-only byte views v1"
       ]
     },
     {
