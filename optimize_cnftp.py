@@ -174,12 +174,95 @@ HOME_QUERY_BRANCH = """  } else if (url.includes("columbus.home.query/")) {
       }
     }
 """
+MANGO_VRSLIST_OLD = """      let newItems = [];
+      for (let item of obj.data) {
+        if (item?.vclassId > 100033 && item?.vclassId !== 100160) {
+          // 100033热门 100043短剧 100160会员频道精选 100308短视频
+          continue;
+        } else {
+          newItems.push(item);
+        }
+      }
+      obj.data = newItems;"""
+MANGO_VRSLIST_NEW = """      // loon-change: Mango vrsList stable in-place compaction v1
+      compactInPlace(obj.data, (item) =>
+        !(item?.vclassId > 100033 && item?.vclassId !== 100160)
+      );"""
+MANGO_ODIN_OLD = """      let newItems = [];
+      for (let item of obj.data) {
+        if (item?.moduleType === "childslideicon") {
+          // 横版按钮
+          continue;
+        } else {
+          newItems.push(item);
+        }
+      }
+      obj.data = newItems;"""
+MANGO_ODIN_NEW = """      // loon-change: Mango odin channel stable in-place compaction v1
+      compactInPlace(obj.data, (item) => item?.moduleType !== "childslideicon");"""
+IQIYI_WATERFALL_OLD = """      let newCards = [];
+      for (let card of obj.cards) {
+        if (card.hasOwnProperty("block_class")) {
+          // 有block_class字段的为广告
+          continue;
+        } else {
+          if (card?.blocks?.length > 0) {
+            let newItems = [];
+            for (let item of card.blocks) {
+              if (item.hasOwnProperty("block_class")) {
+                // 有block_class字段的为广告
+                continue;
+              } else {
+                newItems.push(item);
+              }
+            }
+            card.blocks = newItems;
+            newCards.push(card);
+          } else {
+            newCards.push(card);
+          }
+        }
+      }
+      obj.cards = newCards;"""
+IQIYI_WATERFALL_NEW = """      // loon-change: iQIYI waterfall nested stable in-place compaction v1
+      compactInPlace(obj.cards, (card) => {
+        if (card.hasOwnProperty("block_class")) return false;
+        if (card?.blocks?.length > 0) {
+          compactInPlace(card.blocks, (item) => !item.hasOwnProperty("block_class"));
+        }
+        return true;
+      });"""
+
+
+def ensure_iqiyi_mango_compaction(source: str) -> str:
+    """Reapply three audited high-frequency array-copy removals after upstream refresh."""
+    replacements = (
+        (MANGO_VRSLIST_OLD, MANGO_VRSLIST_NEW, "Mango vrsList", 'url.includes("/dynamic/v1/channel/vrsList/")'),
+        (MANGO_ODIN_OLD, MANGO_ODIN_NEW, "Mango odin", 'url.includes("/odin/c1/channel/index?")'),
+        (IQIYI_WATERFALL_OLD, IQIYI_WATERFALL_NEW, "iQIYI waterfall", 'url.includes("/waterfall/")'),
+    )
+    for old, new, label, route_anchor in replacements:
+        marker = new.splitlines()[0]
+        if marker in source:
+            if source.count(marker) != 1 or old in source:
+                raise ValueError(label + " compaction marker/structure drift")
+            continue
+        if source.count(old) != 1:
+            # A source may legitimately remove an entire optional route. If its route
+            # still exists but its reviewed loop changed, stop rather than guessing.
+            if route_anchor not in source:
+                continue
+            raise ValueError(label + " upstream structure changed; refusing an unreviewed optimization")
+        source = source.replace(old, new, 1)
+    return source
+
+
 
 def optimize_source(source: str, upstream_commit: str | None = None) -> str:
     """Replace Youku home.query's nested filtered-copy arrays with stable in-place compaction."""
     if SOURCE_MARKER in source:
         if not upstream_commit:
-            return compact_response_filters(ensure_terminal_empty_body_guard(source))
+            return compact_response_filters(ensure_terminal_empty_body_guard(ensure_iqiyi_mango_compaction(source)))
         if not re.fullmatch(r"[0-9a-f]{40}", upstream_commit):
             raise ValueError("invalid Wool Scripts upstream commit")
         source = re.sub(r"^// loon-change:.*\n", "", source, count=1)
@@ -219,7 +302,7 @@ def optimize_source(source: str, upstream_commit: str | None = None) -> str:
     else:
         upstream_commit = "unrecorded"
     result = SOURCE_MARKER + "; upstream fmz200/wool_scripts@" + upstream_commit + "\n// loon-change: Youku home.feed in-place compaction v1\n" + source
-    return compact_response_filters(ensure_terminal_empty_body_guard(result))
+    return compact_response_filters(ensure_terminal_empty_body_guard(ensure_iqiyi_mango_compaction(result)))
 
 
 def rewrite_plugin(plugin: str) -> str:

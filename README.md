@@ -940,3 +940,11 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - Update the upstream optimizer to reapply the new processor after every upstream refresh and to fail closed if its structural anchors drift; update runtime tests and optimization invariants.
 - Node VM regression coverage instruments WeakSet construction (exactly the two semantic sets), checks 400 nested levels without recursion overflow, and verifies comment transformations, media extraction, and parse deduplication.
 - This removes one per-response WeakSet allocation and per-object `has/add` operations; no device-side CPU or battery percentage is claimed without on-device measurement.
+
+## Phase 19 P1 — iQIYI/Mango response-array allocation reduction
+
+- iQIYI waterfall: compact the outer cards and nested blocks in place, preserving the existing `block_class` ad predicate and stable item order.
+- Mango vrsList and Odin channel: replace temporary `newItems` arrays with stable in-place compaction; preserve the original vclassId/moduleType predicates and item order.
+- Extend the CNFTP upstream optimizer so all three transformations are reapplied after upstream refresh and fail closed when their exact source anchors drift.
+- Add Node VM regression coverage for filtering semantics, order, and one JSON parse/stringify per response; add required markers to the optimization invariant manifest.
+- This reduces temporary response-array allocations only; no device-side CPU or battery percentage is claimed without on-device measurement.
