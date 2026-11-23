@@ -46,7 +46,7 @@ class RStoreXiaohongshuOptimizerTests(unittest.TestCase):
 
     def test_video_save_lookup_stops_after_first_matching_note(self):
         source = SCRIPT.read_text(encoding="utf-8")
-        self.assertIn("obj.data.download_url = item.url;\\n        break;", source)
+        self.assertIn("obj.data.download_url = item.url;\n        break;", source)
         self.assertEqual(optimize_source(source), source)
 
     def test_array_filters_and_video_sort_are_removed_from_hot_paths(self):
