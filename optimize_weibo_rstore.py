@@ -296,70 +296,7 @@ def add_lazy_serialization_guard(source):
         if len(loop_markers) != EXPECTED:
             raise ValueError('Weibo lazy-serialization loop inventory drift')
         for target in delete_targets:
-            pattern = re.compile(r'(?m)^([ \t]*)modified = true;\n[ \t]*delete ' + re.escape(target) + r';    if MARKER in source:
-        if "__loonSource32" not in source or "compactInPlace(items, keep)" not in source:
-            raise ValueError("marked Weibo script is incomplete")
-        return source
-    source = source.replace("const url = $request.url;", "const url = $request.url;\n\n" + HELPER, 1)
-    if source.count(HELPER) != 1:
-        raise ValueError("Weibo helper insertion failed")
-    source = compact_collecting_loops(source)
-    for old, new, label in FILTER_REWRITES:
-        if source.count(old) != 1:
-            raise ValueError(label + " filter anchor drift")
-        source = source.replace(old, new, 1)
-    remaining = re.findall(r"\b(new[A-Za-z0-9_]*)\s*=\s*\[\s*\]", source)
-    if sorted(remaining) != ["newActions", "newII"]:
-        raise ValueError("unexpected remaining Weibo temporary arrays: " + repr(remaining))
-    return MARKER + commit + "\n" + source
-
-def rewrite_plugin(plugin):
-    if LOCAL in plugin:
-        if REMOTE in plugin:
-            raise ValueError("mixed local and remote Weibo references")
-        return plugin
-    section = None
-    count = 0
-    output = []
-    for line in plugin.splitlines():
-        stripped = line.strip()
-        if stripped.startswith("[") and stripped.endswith("]"):
-            section = stripped[1:-1].strip().lower()
-        if section == "script" and REMOTE in line:
-            count += line.count(REMOTE)
-            line = line.replace(REMOTE, LOCAL)
-        output.append(line)
-    if count != 10:
-        raise ValueError("expected 10 R-Store Weibo triggers, found %d" % count)
-    result = "\n".join(output)
-    if REMOTE in result:
-        raise ValueError("remote Weibo references remain")
-    return result + ("\n" if plugin.endswith("\n") else "")
-
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--source")
-    parser.add_argument("--output")
-    parser.add_argument("--upstream-commit", default="unknown")
-    parser.add_argument("--plugin")
-    args = parser.parse_args()
-    if args.source or args.output:
-        if not args.source or not args.output:
-            parser.error("--source and --output must be supplied together")
-        result = optimize_source(Path(args.source).read_text(encoding="utf-8-sig"), args.upstream_commit)
-        Path(args.output).parent.mkdir(parents=True, exist_ok=True)
-        Path(args.output).write_text(result, encoding="utf-8")
-        print("Optimized R-Store Weibo script", len(result))
-    if args.plugin:
-        path = Path(args.plugin)
-        path.write_text(rewrite_plugin(path.read_text(encoding="utf-8-sig")), encoding="utf-8")
-        print("Routed 10 Weibo triggers to the local optimized handler")
-    if not (args.source or args.output or args.plugin):
-        parser.error("provide --source/--output and/or --plugin")
-
-if __name__ == "__main__":
-    main()
-)
+            pattern = re.compile(r'(?m)^([ \t]*)modified = true;\n[ \t]*delete ' + re.escape(target) + r';$')
             if not pattern.search(source):
                 raise ValueError('Weibo tracked-delete marker missing for ' + target)
         return source
@@ -374,70 +311,7 @@ if __name__ == "__main__":
     elif HELPER not in source:
         raise ValueError('Weibo compaction helper anchor drift')
 
-    loop_pattern = re.compile(r'(?m)^([ \t]*)__loonSource(\d+)\.length = __loonWrite\2;    if MARKER in source:
-        if "__loonSource32" not in source or "compactInPlace(items, keep)" not in source:
-            raise ValueError("marked Weibo script is incomplete")
-        return source
-    source = source.replace("const url = $request.url;", "const url = $request.url;\n\n" + HELPER, 1)
-    if source.count(HELPER) != 1:
-        raise ValueError("Weibo helper insertion failed")
-    source = compact_collecting_loops(source)
-    for old, new, label in FILTER_REWRITES:
-        if source.count(old) != 1:
-            raise ValueError(label + " filter anchor drift")
-        source = source.replace(old, new, 1)
-    remaining = re.findall(r"\b(new[A-Za-z0-9_]*)\s*=\s*\[\s*\]", source)
-    if sorted(remaining) != ["newActions", "newII"]:
-        raise ValueError("unexpected remaining Weibo temporary arrays: " + repr(remaining))
-    return MARKER + commit + "\n" + source
-
-def rewrite_plugin(plugin):
-    if LOCAL in plugin:
-        if REMOTE in plugin:
-            raise ValueError("mixed local and remote Weibo references")
-        return plugin
-    section = None
-    count = 0
-    output = []
-    for line in plugin.splitlines():
-        stripped = line.strip()
-        if stripped.startswith("[") and stripped.endswith("]"):
-            section = stripped[1:-1].strip().lower()
-        if section == "script" and REMOTE in line:
-            count += line.count(REMOTE)
-            line = line.replace(REMOTE, LOCAL)
-        output.append(line)
-    if count != 10:
-        raise ValueError("expected 10 R-Store Weibo triggers, found %d" % count)
-    result = "\n".join(output)
-    if REMOTE in result:
-        raise ValueError("remote Weibo references remain")
-    return result + ("\n" if plugin.endswith("\n") else "")
-
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--source")
-    parser.add_argument("--output")
-    parser.add_argument("--upstream-commit", default="unknown")
-    parser.add_argument("--plugin")
-    args = parser.parse_args()
-    if args.source or args.output:
-        if not args.source or not args.output:
-            parser.error("--source and --output must be supplied together")
-        result = optimize_source(Path(args.source).read_text(encoding="utf-8-sig"), args.upstream_commit)
-        Path(args.output).parent.mkdir(parents=True, exist_ok=True)
-        Path(args.output).write_text(result, encoding="utf-8")
-        print("Optimized R-Store Weibo script", len(result))
-    if args.plugin:
-        path = Path(args.plugin)
-        path.write_text(rewrite_plugin(path.read_text(encoding="utf-8-sig")), encoding="utf-8")
-        print("Routed 10 Weibo triggers to the local optimized handler")
-    if not (args.source or args.output or args.plugin):
-        parser.error("provide --source/--output and/or --plugin")
-
-if __name__ == "__main__":
-    main()
-)
+    loop_pattern = re.compile(r'(?m)^([ \t]*)__loonSource(\d+)\.length = __loonWrite\2;$')
     def mark_loop(match):
         index = match.group(2)
         return match.group(0) + '\n' + match.group(1) + 'if (__loonWrite' + index + ' !== __loonLength' + index + ') modified = true;'
@@ -446,70 +320,7 @@ if __name__ == "__main__":
         raise ValueError('Weibo compact-loop inventory drift: expected %d, got %d' % (EXPECTED, loop_count))
 
     for target in delete_targets:
-        pattern = re.compile(r'(?m)^([ \t]*)delete ' + re.escape(target) + r';    if MARKER in source:
-        if "__loonSource32" not in source or "compactInPlace(items, keep)" not in source:
-            raise ValueError("marked Weibo script is incomplete")
-        return source
-    source = source.replace("const url = $request.url;", "const url = $request.url;\n\n" + HELPER, 1)
-    if source.count(HELPER) != 1:
-        raise ValueError("Weibo helper insertion failed")
-    source = compact_collecting_loops(source)
-    for old, new, label in FILTER_REWRITES:
-        if source.count(old) != 1:
-            raise ValueError(label + " filter anchor drift")
-        source = source.replace(old, new, 1)
-    remaining = re.findall(r"\b(new[A-Za-z0-9_]*)\s*=\s*\[\s*\]", source)
-    if sorted(remaining) != ["newActions", "newII"]:
-        raise ValueError("unexpected remaining Weibo temporary arrays: " + repr(remaining))
-    return MARKER + commit + "\n" + source
-
-def rewrite_plugin(plugin):
-    if LOCAL in plugin:
-        if REMOTE in plugin:
-            raise ValueError("mixed local and remote Weibo references")
-        return plugin
-    section = None
-    count = 0
-    output = []
-    for line in plugin.splitlines():
-        stripped = line.strip()
-        if stripped.startswith("[") and stripped.endswith("]"):
-            section = stripped[1:-1].strip().lower()
-        if section == "script" and REMOTE in line:
-            count += line.count(REMOTE)
-            line = line.replace(REMOTE, LOCAL)
-        output.append(line)
-    if count != 10:
-        raise ValueError("expected 10 R-Store Weibo triggers, found %d" % count)
-    result = "\n".join(output)
-    if REMOTE in result:
-        raise ValueError("remote Weibo references remain")
-    return result + ("\n" if plugin.endswith("\n") else "")
-
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--source")
-    parser.add_argument("--output")
-    parser.add_argument("--upstream-commit", default="unknown")
-    parser.add_argument("--plugin")
-    args = parser.parse_args()
-    if args.source or args.output:
-        if not args.source or not args.output:
-            parser.error("--source and --output must be supplied together")
-        result = optimize_source(Path(args.source).read_text(encoding="utf-8-sig"), args.upstream_commit)
-        Path(args.output).parent.mkdir(parents=True, exist_ok=True)
-        Path(args.output).write_text(result, encoding="utf-8")
-        print("Optimized R-Store Weibo script", len(result))
-    if args.plugin:
-        path = Path(args.plugin)
-        path.write_text(rewrite_plugin(path.read_text(encoding="utf-8-sig")), encoding="utf-8")
-        print("Routed 10 Weibo triggers to the local optimized handler")
-    if not (args.source or args.output or args.plugin):
-        parser.error("provide --source/--output and/or --plugin")
-
-if __name__ == "__main__":
-    main()
-)
+        pattern = re.compile(r'(?m)^([ \t]*)delete ' + re.escape(target) + r';$')
         source, count = pattern.subn(lambda match: match.group(1) + 'modified = true;\n' + match.group(0), source)
         if count != 1:
             raise ValueError('Weibo tracked-delete inventory drift for ' + target)
@@ -522,6 +333,7 @@ if __name__ == "__main__":
     if first_line_end < 0:
         raise ValueError('Weibo header marker is missing')
     return source[:first_line_end + 1] + LAZY_MARKER + '\n' + source[first_line_end + 1:]
+
 
 def optimize_source(source, commit="unknown"):
     if MARKER in source:
@@ -536,11 +348,10 @@ def optimize_source(source, commit="unknown"):
         if source.count(old) != 1:
             raise ValueError(label + " filter anchor drift")
         source = source.replace(old, new, 1)
-    remaining = re.findall(r"\b(new[A-Za-z0-9_]*)\s*=\s*\[\s*\]", source)
+    remaining = re.findall(r"\\b(new[A-Za-z0-9_]*)\\s*=\\s*\\[\\s*\\]", source)
     if sorted(remaining) != ["newActions", "newII"]:
         raise ValueError("unexpected remaining Weibo temporary arrays: " + repr(remaining))
-    return add_lazy_serialization_guard(MARKER + commit + "\n" + source)
-
+    return add_lazy_serialization_guard(MARKER + commit + "\\n" + source)
 def rewrite_plugin(plugin):
     if LOCAL in plugin:
         if REMOTE in plugin:
