@@ -38,7 +38,7 @@ class BaiduMapBinaryPerformanceTests(unittest.TestCase):
     def test_result_payload_view_is_deferred_until_ads_change(self):
         marker = "// loon-change: Baidu protobuf target-only byte views v1"
         self.assertIn(marker, self.source)
-        start = self.source.index(marker)
+        start = self.source.index("let newResult = null;")
         end = self.source.index("\n\nif(!adsFound", start)
         loop = self.source[start:end]
         self.assertIn("let resultOffset = -1;", loop)
@@ -260,10 +260,19 @@ class BaiduMapNoopRebuildRuntimeTests(unittest.TestCase):
     runner = r"""
 const fs = require("fs");
 const vm = require("vm");
-const source = fs.readFileSync(process.argv[1], "utf8").replace(
+let source = fs.readFileSync(process.argv[1], "utf8").replace(
   "function createBaiduMd5() {",
   "function createBaiduMd5() { globalThis.__md5InitCount = (globalThis.__md5InitCount || 0) + 1;"
 );
+source = source.replace(
+  "const isQuanX =",
+  "function countedSubarray(buffer, ...args) { globalThis.__subarrayCount = (globalThis.__subarrayCount || 0) + 1; return buffer.subarray(...args); }\\nconst isQuanX ="
+);
+source = source
+  .replace("hash(body.subarray(payloadOffset))", "hash(countedSubarray(body, payloadOffset))")
+  .replace("binaryBody.subarray(beginOffset, beginOffset + prefixLength)", "countedSubarray(binaryBody, beginOffset, beginOffset + prefixLength)")
+  .replace("binaryBody.subarray(currentOffset, currentOffset + targetDataLength)", "countedSubarray(binaryBody, currentOffset, currentOffset + targetDataLength)")
+  .replace("binaryBody.subarray(resultOffset, resultOffset + resultLength)", "countedSubarray(binaryBody, resultOffset, resultOffset + resultLength)");
 
 function varint(value) {
   const out = [];
