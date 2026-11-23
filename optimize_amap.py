@@ -252,12 +252,12 @@ def optimize_shared_dynamic_ad_matcher(source):
             raise ValueError("Amap shared matcher insertion anchor changed")
         source = source.replace(
             anchor,
-            DYNAMIC_MATCHER_MARKER + "\\nconst AMAP_AD_DYNAMIC_ID = /ads-\\\\d+/;\\n\\n" + anchor,
+            DYNAMIC_MATCHER_MARKER + "\nconst AMAP_AD_DYNAMIC_ID = /ads-\\d+/;\n\n" + anchor,
             1,
         )
     if source.count(DYNAMIC_MATCHER_MARKER) != 1:
         raise ValueError("Amap shared dynamic matcher marker count drift")
-    if source.count("const AMAP_AD_DYNAMIC_ID = /ads-\\\\d+/;") != 1:
+    if source.count(r"const AMAP_AD_DYNAMIC_ID = /ads-\d+;/) != 1:
         raise ValueError("Amap shared dynamic matcher declaration drift")
     if source.count(DYNAMIC_MATCHER_CALL) != 4 or DYNAMIC_MATCHER_LITERAL in source:
         raise ValueError("Amap shared dynamic matcher call inventory drift")
