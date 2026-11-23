@@ -67,7 +67,8 @@ class AmapRStoreOptimizerTests(unittest.TestCase):
             "/faas/amap-navigation/main-page", "/shield/frogserver/aocs/updatable/1",
             "/shield/dsp/profile/index/nodefaasv", "/shield/search/nearbyrec_smart",
             "/boss/car/order/content_info", "/boss/order_web/friendly_information",
-            "/promotion-web/resource", "/sharedtrip/taxi/order_detail_car_tips"
+            "/promotion-web/resource", "/sharedtrip/taxi/order_detail_car_tips",
+            "/shield/search_bff/hotword", "/valueadded/alimama/splash_screen"
         ]
         for route in expected:
             self.assertIn('url.includes("' + route + '")', source)
@@ -125,6 +126,43 @@ process.stdout.write(nativeJSON.stringify({doneResult, parseCount, stringifyCoun
         self.assertEqual(output["data"]["front_end"]["assistant"], [])
         self.assertEqual(result["parseCount"], 1)
         self.assertEqual(result["stringifyCount"], 1)
+
+    def test_search_hotword_route_is_reachable_and_clears_header_hotwords(self):
+        body = {"data": {"headerHotWord": [{"id": 1}, {"id": 2}]}}
+        result = self.run_script(
+            "https://m1.amap.com/ws/shield/search_bff/hotword?x=1",
+            json.dumps(body)
+        )
+        output = json.loads(result["doneResult"]["body"])
+        self.assertEqual(output["data"]["headerHotWord"], [])
+        self.assertEqual(result["parseCount"], 1)
+        self.assertEqual(result["stringifyCount"], 1)
+
+    def test_splash_route_is_reachable_and_disables_creative_display(self):
+        body = {"data": {"ad": [{
+            "set": {"setting": {"display_time": 10}},
+            "creative": [{"start_time": 1, "end_time": 2}]
+        }]}}
+        result = self.run_script(
+            "https://m1.amap.com/ws/valueadded/alimama/splash_screen?x=1",
+            json.dumps(body)
+        )
+        output = json.loads(result["doneResult"]["body"])
+        ad = output["data"]["ad"][0]
+        self.assertEqual(ad["set"]["setting"]["display_time"], 0)
+        self.assertEqual(ad["creative"][0]["start_time"], 3818332800)
+        self.assertEqual(ad["creative"][0]["end_time"], 3818419199)
+        self.assertEqual(result["parseCount"], 1)
+        self.assertEqual(result["stringifyCount"], 1)
+
+    def test_optimizer_repairs_missing_supported_routes_after_upstream_refresh(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        damaged = source.replace('  url.includes("/shield/search_bff/hotword") ||\\n', "", 1)
+        self.assertNotEqual(damaged, source)
+        repaired = optimize_source(damaged)
+        self.assertIn('url.includes("/shield/search_bff/hotword")', repaired)
+        self.assertIn('url.includes("/valueadded/alimama/splash_screen")', repaired)
+        self.assertEqual(optimize_source(repaired), repaired)
 
     def test_search_suggestion_filters_use_in_place_compaction(self):
         source = SOURCE.read_text(encoding="utf-8")
