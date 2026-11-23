@@ -58,6 +58,7 @@ process.stdout.write(nativeJSON.stringify({
                 "dark": {"navigationAll": [{"functionId": "index"}]},
                 "normal": {"navigationAll": [{"functionId": "home"}]}
             }}}),
+            ("functionId=readCustomSurfaceList", {"result": {"modeMap": {"dark": {}, "normal": {}}}}),
             ("functionId=deliverLayer", {"floors": [{"mId": "normal"}]}),
             ("functionId=getTabHomeInfo", {"result": {"keep": 1}}),
             ("functionId=myOrderInfo", {"floors": [{"mId": "normal"}]}),
