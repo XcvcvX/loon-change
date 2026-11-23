@@ -36744,27 +36744,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/order/\\\\d+-\\\\d+/shipping', ('response.json.jq', 'response.json.jq(\"del(.shipping.banner_above_recommend)\")'))",
-      "output_entry_index": 2121,
-      "output_line": "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/order\\/\\d+-\\d+\\/shipping/i then response.json.jq(\"del(.shipping.banner_above_recommend)\")",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/order\\/\\d+-\\d+\\/shipping/i then response.json.jq(\"del(.shipping.banner_above_recommend)\")",
-          "input_section": "Rewrite",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 260,
-          "source_file": "plugins/pdd-rewrite.lpx",
-          "source_line_number": 10,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/order\\/\\d+-\\d+\\/shipping/i then response.json.jq(\"del(.shipping.banner_above_recommend)\")"
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/cappuccino/splash', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
       "output_entry_index": 2122,
       "output_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/cappuccino\\/splash/i then reject_dict(200)",
@@ -54050,7 +54029,7 @@
       "included": 0
     },
     "post_transform_reconciled": true,
-    "rewrite_output_entries": 2321,
+    "rewrite_output_entries": 2320,
     "rule_covered_or_duplicate_events": 121,
     "rule_included_events": 723,
     "rule_output_entries": 719,
