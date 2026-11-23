@@ -153,13 +153,42 @@ def optimize_didi_predicates(source):
         raise ValueError("Didi per-response filter callbacks or allowlist arrays remain")
     return source
 
+
+def optimize_preparse_route_guard(source):
+    """Skip unrelated Didi response bodies before JSON.parse."""
+    marker = "// loon-change: Didi pre-parse supported-route guard v1"
+    routes = (
+        'url.includes("/other/pGetSceneList")',
+        '(url.includes("/homepage/v") && url.includes("/core"))',
+        'url.includes("/ota/na/yuantu/infoList")',
+        'url.includes("/usercenter/me")',
+    )
+    if marker in source:
+        marker_at = source.index(marker)
+        parse_at = source.find("JSON.parse($response.body)")
+        if parse_at < 0 or marker_at > parse_at or any(route not in source for route in routes):
+            raise ValueError("Didi pre-parse route guard is incomplete or misplaced")
+        return source
+
+    parse_line = "let obj = JSON.parse($response.body);"
+    if source.count(parse_line) != 1:
+        raise ValueError("Didi JSON parse anchor changed; refusing pre-parse guard")
+    guard = (
+        marker + "\\nconst shouldProcess =\\n  " + " ||\\n  ".join(routes) +
+        ";\\nif (!shouldProcess) {\\n  $done({});\\n} else {\\n  " + parse_line
+    )
+    source = source.replace(parse_line, guard, 1)
+    if not source.rstrip().endswith("}"):
+        raise ValueError("Didi response handler closing brace missing")
+    return source.rstrip() + "\\n}\\n"
+
 def optimize_source(source, commit="unknown"):
     if MARKER in source:
         if re.search(r"\.filter\s*\(", source):
             raise ValueError("Didi optimization marker exists but allocating filter remains")
         if "obj.data.cards.forEach" in source:
             raise ValueError("Didi user-center wallet traversal optimization is stale")
-        return optimize_didi_predicates(optimize_lazy_serialization(source))
+        return optimize_preparse_route_guard(optimize_didi_predicates(optimize_lazy_serialization(source)))
     if LEGACY_MARKER in source:
         source = source.replace(LEGACY_MARKER, MARKER, 1)
         return optimize_didi_predicates(optimize_lazy_serialization(source))
@@ -201,7 +230,7 @@ def optimize_source(source, commit="unknown"):
         raise ValueError("expected all seven Didi filters to use compactInPlace")
 
     source = source.rstrip() + "\n}\n"
-    return optimize_didi_predicates(optimize_lazy_serialization(MARKER + commit + "\n" + source))
+    return optimize_preparse_route_guard(optimize_didi_predicates(optimize_lazy_serialization(MARKER + commit + "\n" + source)))
 
 
 def rewrite_plugin(plugin):
