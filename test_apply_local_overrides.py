@@ -5220,7 +5220,7 @@ class PinduoduoHomepageNativeConsolidationTests(unittest.TestCase):
         self.assertEqual(removed, 1)
         self.assertIn(PDD_HOMEPAGE_NATIVE_JQ_RULE, result)
         self.assertFalse(any("pdd-homepage.js" in line for line in result))
-        self.assertEqual(sum("response.json.jq(" in line and "api.pinduoduo.com" in line for line in result), 1)
+        self.assertEqual(sum("response.json.jq(" in line and "api.pinduoduo.com" in line.replace(chr(92), "") for line in result), 1)
         self.assertEqual(consolidate_pdd_homepage_native_response(result), (result, 0))
 
     def test_pdd_upstream_script_consolidation_always_emits_native_rule(self):
@@ -5251,8 +5251,15 @@ class PinduoduoHomepageNativeConsolidationTests(unittest.TestCase):
         native = PDD_HOMEPAGE_NATIVE_JQ_RULE
         script_index = next(i for i, line in enumerate(duplicate) if line.strip() == "[Script]")
         duplicate.insert(script_index, native)
-        with self.assertRaisesRegex(ValueError, "duplicate Pinduoduo homepage native response rule"):
-            consolidate_pdd_homepage_native_response(duplicate)
+        deduplicated, removed = consolidate_pdd_homepage_native_response(duplicate)
+        self.assertEqual(removed, 1)
+        self.assertEqual(sum("response.json.jq(" in line for line in deduplicated), 1)
+        self.assertFalse(any("pdd-homepage.js" in line for line in deduplicated))
+
+        conflicting = list(duplicate)
+        conflicting.insert(script_index, native.replace("all_top_opts", "all_top_options"))
+        with self.assertRaisesRegex(ValueError, "native rule changed"):
+            consolidate_pdd_homepage_native_response(conflicting)
 
 
 class ShadowedAmdcResponseTriggerTests(unittest.TestCase):
