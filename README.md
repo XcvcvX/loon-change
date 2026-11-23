@@ -930,3 +930,13 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 只有确认存在目标广告字段后，才进入原有重建流程；搜索仍严格要求 field 6 payload 大于 12000 bytes，Scroll 仍匹配 field 30，保留原有首个匹配字段重编号、嵌套长度重算和异常透传语义。
 - Spotify 上游整合器在每次拉取脚本后重新应用两项优化；解析锚点或目标谓词漂移时 fail-closed。Node VM 测试检查 no-op 响应的 subarray 调用数为 0，并覆盖目标字段存在时进入原有重建路径。
 - 本批不改变 URL matcher、MITM、广告阈值或字段编号；性能结论仅限于无广告响应减少临时数组/对象/视图分配，未宣称未经真机测量的 CPU 或耗电百分比。
+
+
+## Phase 18 P1 — Xiaohongshu classic comment-tree traversal without redundant visited set
+
+- Rebuild the classic comment-tree processor from the current `main` snapshot, removing only the traversal-level `visited WeakSet`. The response body is decoded with `JSON.parse`, so the resulting object graph is a tree and cannot contain cycles or shared object references.
+- Retain the two semantic WeakSets that identify top-level comments and comment nodes, plus the video-info Map that avoids parsing identical embedded JSON strings repeatedly; these serve distinct correctness/deduplication purposes and are not redundant traversal guards.
+- Keep iterative depth-first traversal, own-property checks, child ordering, red_id migration, comment-type normalization, Live Photo/video extraction, and persistent-cache behavior unchanged.
+- Update the upstream optimizer to reapply the new processor after every upstream refresh and to fail closed if its structural anchors drift; update runtime tests and optimization invariants.
+- Node VM regression coverage instruments WeakSet construction (exactly the two semantic sets), checks 400 nested levels without recursion overflow, and verifies comment transformations, media extraction, and parse deduplication.
+- This removes one per-response WeakSet allocation and per-object `has/add` operations; no device-side CPU or battery percentage is claimed without on-device measurement.
