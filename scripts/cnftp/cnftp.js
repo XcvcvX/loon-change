@@ -292,30 +292,14 @@ if (isIQY) {
       delete obj.base.statistics.ad_str;
     }
     if (obj?.cards?.length > 0) {
-      let newCards = [];
-      for (let card of obj.cards) {
-        if (card.hasOwnProperty("block_class")) {
-          // 有block_class字段的为广告
-          continue;
-        } else {
-          if (card?.blocks?.length > 0) {
-            let newItems = [];
-            for (let item of card.blocks) {
-              if (item.hasOwnProperty("block_class")) {
-                // 有block_class字段的为广告
-                continue;
-              } else {
-                newItems.push(item);
-              }
-            }
-            card.blocks = newItems;
-            newCards.push(card);
-          } else {
-            newCards.push(card);
-          }
+      // loon-change: iQIYI waterfall nested stable in-place compaction v1
+      compactInPlace(obj.cards, (card) => {
+        if (card.hasOwnProperty("block_class")) return false;
+        if (card?.blocks?.length > 0) {
+          compactInPlace(card.blocks, (item) => !item.hasOwnProperty("block_class"));
         }
-      }
-      obj.cards = newCards;
+        return true;
+      });
     }
   }
 } else if (isMG) {
@@ -371,16 +355,10 @@ if (isIQY) {
   } else if (url.includes("/dynamic/v1/channel/vrsList/")) {
     // 芒果 顶部tab
     if (obj?.data?.length > 0) {
-      let newItems = [];
-      for (let item of obj.data) {
-        if (item?.vclassId > 100033 && item?.vclassId !== 100160) {
-          // 100033热门 100043短剧 100160会员频道精选 100308短视频
-          continue;
-        } else {
-          newItems.push(item);
-        }
-      }
-      obj.data = newItems;
+      // loon-change: Mango vrsList stable in-place compaction v1
+      compactInPlace(obj.data, (item) =>
+        !(item?.vclassId > 100033 && item?.vclassId !== 100160)
+      );
     }
   } else if (url.includes("/mobile/config?")) {
     // 芒果 底部tab
@@ -415,16 +393,8 @@ if (isIQY) {
   } else if (url.includes("/odin/c1/channel/index?")) {
     // 芒果 首页信息流
     if (obj?.data?.length > 0) {
-      let newItems = [];
-      for (let item of obj.data) {
-        if (item?.moduleType === "childslideicon") {
-          // 横版按钮
-          continue;
-        } else {
-          newItems.push(item);
-        }
-      }
-      obj.data = newItems;
+      // loon-change: Mango odin channel stable in-place compaction v1
+      compactInPlace(obj.data, (item) => item?.moduleType !== "childslideicon");
     }
   } else if (url.includes("/v1/vod/info?")) {
     // 芒果 播放页详情页组件
