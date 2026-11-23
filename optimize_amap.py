@@ -176,7 +176,15 @@ if (url.includes("/shield/search_poi/sug")) {
         });
       }
     }
-  }"""  const items = AMAP_STATIC_ITEMS_06;
+  }"""
+    return source[:i] + replacement + "\n" + source[j:]
+
+
+def optimize_scalar_membership(source):
+    if source.count(SCALAR_MARKER) > 1:
+        raise ValueError("Amap scalar membership marker is duplicated")
+    if SCALAR_MARKER not in source:
+        nearby_old = """  const items = AMAP_STATIC_ITEMS_06;
   if (obj?.data?.modules?.length > 0) {
     if (obj?.data?.modules?.length > 0) {
       compactInPlace(obj.data.modules, (i) => items?.includes(i));
