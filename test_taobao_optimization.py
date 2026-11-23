@@ -109,7 +109,7 @@ process.stdout.write(JSON.stringify(result));
         body = {"data": {"containers": {"splash_home_base": {
             "base": {"sections": [{"bizData": {"taobao-splash": {"data": [item]}}}]}
         }}}}
-        result = self.run_script("https://guide-acs.m.taobao.com/mtop.taobao.wireless.home.splash.awesome.get", body)
+        result = self.run_script("https://guide-acs.m.taobao.com/gw/mtop.taobao.wireless.home.splash.awesome.get", body)
         self.assertTrue(result["passThrough"])
         self.assertEqual(result["stringifyCount"], 0)
 
@@ -129,7 +129,7 @@ process.stdout.write(JSON.stringify(result));
 
 
     def test_unrelated_response_skips_json_parse(self):
-        result = self.run_script("https://acs.m.taobao.com/gw/mtop/mtop.taobao.detail.getdetail", {"large": [1, 2, 3]})
+        result = self.run_script("https://acs.m.taobao.com/gw/mtop.taobao.detail.getdetail", {"large": [1, 2, 3]})
         self.assertTrue(result["passThrough"])
         self.assertEqual(result["parseCount"], 0)
         self.assertEqual(result["stringifyCount"], 0)
