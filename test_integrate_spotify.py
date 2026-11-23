@@ -136,13 +136,13 @@ hostname = api.example.com, *spotify.com, spclient.wg.spotify.com
         def section(name, content_field=1):
             header = name.encode()
             key = varint(content_field * 8 + 2)
-            return b"\\x0a" + varint(len(header)) + header + key + b"\\x01x"
+            return b"\x0a" + varint(len(header)) + header + key + b"\x01x"
         def wrap(items, tail=b""):
-            payload = b"".join(b"\\x0a" + varint(len(item)) + item for item in items)
-            return b"\\x0a" + varint(len(payload)) + payload + tail
+            payload = b"".join(b"\x0a" + varint(len(item)) + item for item in items)
+            return b"\x0a" + varint(len(payload)) + payload + tail
         normal = section("spotify:section:home|recommendations")
         ad = section("spotify:section:home|brand-ad")
-        tail = b"\\x10\\x01"
+        tail = b"\x10\x01"
         runner = r"""
 const fs = require("fs");
 const vm = require("vm");
