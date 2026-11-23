@@ -490,19 +490,24 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
   }
 } else if (url.includes("/perception/drive/routePlan")) {
   // 路线规划页
+  // loon-change: Amap routePlan cached nested references v1
+  const routePlanData = obj?.data;
+  const routePlanFrontEnd = routePlanData?.front_end;
+  const routePlanEvents = routePlanData?.tbt?.event;
+  const routePlanDownloads = routePlanFrontEnd?.download;
   const items = AMAP_STATIC_ITEMS_03;
-  if (obj?.data?.front_end) {
+  if (routePlanFrontEnd) {
     for (let i of items) {
-      deleteIfPresent(obj.data.front_end, i);
+      deleteIfPresent(routePlanFrontEnd, i);
     }
   }
-  if (obj?.data?.tbt?.event?.length > 0) {
+  if (routePlanEvents?.length > 0) {
     // 导航插播语音广告
-    compactInPlace(obj.data.tbt.event, (i) => !AMAP_AD_DYNAMIC_ID.test(i?.dynamic_id_s));
+    compactInPlace(routePlanEvents, (i) => !AMAP_AD_DYNAMIC_ID.test(i?.dynamic_id_s));
   }
-  if (obj?.data?.front_end?.download?.length > 0) {
+  if (routePlanDownloads?.length > 0) {
     // 导航插播语音广告
-    compactInPlace(obj.data.front_end.download, (i) => !AMAP_AD_DYNAMIC_ID.test(i?.dynamic_id_s));
+    compactInPlace(routePlanDownloads, (i) => !AMAP_AD_DYNAMIC_ID.test(i?.dynamic_id_s));
   }
 } else if (url.includes("/promotion-web/resource")) {
   // 打车页面
