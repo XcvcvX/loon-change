@@ -123,6 +123,7 @@ const AMAP_STATIC_ITEMS_05 = [
     "tips_bar_black_list",
     "vip"
   ];;
+
 const AMAP_STATIC_ITEMS_07 = [
     "CouponBanner", // 高德红包
     // "anchor",
@@ -309,6 +310,11 @@ const AMAP_STATIC_ITEMS_08 = [
     "promotion_wrap_card",
     "tips_top_banner"
   ];;
+
+
+
+
+
 // loon-change: Amap scalar membership hot loops v1
 function compactInPlace(items, keep) {
   let write = 0;
