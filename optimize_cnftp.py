@@ -317,7 +317,11 @@ def ensure_supported_route_guard(source: str) -> str:
             raise ValueError("CNFTP supported-route guard marker/structure drift")
         if source.count("let obj = JSON.parse($response.body);") != 1:
             raise ValueError("CNFTP supported-route parse anchor drift")
-        if not source.rstrip().endswith("$done({body: JSON.stringify(obj)});\n}\n}"):
+        terminal_forms = (
+            "$done({body: JSON.stringify(obj)});\\n}\\n}",
+            "$done(modified ? {body: JSON.stringify(obj)} : {});\\n}\\n}",
+        )
+        if not any(source.rstrip().endswith(terminal) for terminal in terminal_forms):
             raise ValueError("CNFTP supported-route terminal structure drift")
         return source
     parse_line = "let obj = JSON.parse($response.body);"
