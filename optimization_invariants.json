@@ -147,7 +147,7 @@
         "// loon-change: Taobao pre-parse supported-route guard v1",
         "const shouldProcess =",
         "if (!shouldProcess) {",
-        "url.includes(\"guide-acs.m.taobao.com/gw/mtop/mtop.taobao.cloudvideo.video.query\")"
+        "url.includes(\"guide-acs.m.taobao.com/gw/mtop.taobao.cloudvideo.video.query\")"
       ]
     }
   ]
