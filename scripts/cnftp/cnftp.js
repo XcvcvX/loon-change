@@ -135,27 +135,14 @@ if (isIQY) {
       delete obj.base.statistics.ad_str;
     }
     if (obj?.cards?.length > 0) {
-      let newCards = [];
-      for (let card of obj.cards) {
-        if (card?.blocks?.length > 0) {
-          let newItems = [];
-          for (let item of card.blocks) {
-            // block_321顶部轮播广告 block_415横版独占广告标题 block_416 横版独占视频广告
-            if (["block_321", "block_415", "block_416"]?.includes(item?.block_name)) {
-              continue;
-            } else if (item?.buttons?.[0]?.id === "ad") {
-              continue;
-            } else {
-              newItems.push(item);
-            }
-          }
-          card.blocks = newItems;
-          newCards.push(card);
-        } else {
-          newCards.push(card);
-        }
-      }
-      obj.cards = newCards;
+      // loon-change: iQIYI category nested stable in-place compaction v1
+      compactInPlace(obj.cards, (card) => {
+        if (card?.blocks?.length > 0) compactInPlace(card.blocks, (item) =>
+          !["block_321", "block_415", "block_416"]?.includes(item?.block_name) &&
+          item?.buttons?.[0]?.id !== "ad"
+        );
+        return true;
+      });
     }
   } else if (url.includes("/views_comment/")) {
     // 爱奇艺 播放页评论区
@@ -245,46 +232,15 @@ if (isIQY) {
   } else if (url.includes("/views_search/")) {
     // 爱奇艺 搜索结果列表
     if (obj?.cards?.length > 0) {
-      let newCards = [];
-      for (let card of obj.cards) {
-        if (
-          [
-            "ad_mobile_flow", // 信息流广告
-            "hot_query_bottom", // 底部图标
-            "hot_query_search_top_ad", //顶部广告
-            "search_com_related_query", // 相关搜索
-            "search_intent_detail_onesearch", // 为你推荐信息流
-            "search_mid_text_ad", // 底部广告
-            "search_onebox_v2", // 搜索界面 赢年卡
-            "search_small_card_ad", // 搜索短视频小图广告
-            "search_topbanner_text", // 为你推荐标题
-            "search_vip_banner" // vip营销
-          ]?.includes(card?.strategy_com_id)
-        ) {
-          continue;
-        } else {
-          // 相关内容推荐 相关短视频
-          if (card?.blocks?.length > 0) {
-            let newBlocks = [];
-            for (let i of card.blocks) {
-              if (i.hasOwnProperty("block_name")) {
-                newBlocks.push(i);
-              } else if (i.hasOwnProperty("block_type")) {
-                if (![861, 959]?.includes(i?.block_type)) {
-                  // 861搜索页精确搜索时 第一个自动播放的内容
-                  // 959广告
-                  newBlocks.push(i);
-                }
-              }
-            }
-            card.blocks = newBlocks;
-            newCards.push(card);
-          } else {
-            newCards.push(card);
-          }
-        }
-      }
-      obj.cards = newCards;
+      // loon-change: iQIYI search nested stable in-place compaction v1
+      compactInPlace(obj.cards, (card) => {
+        if (["ad_mobile_flow","hot_query_bottom","hot_query_search_top_ad","search_com_related_query","search_intent_detail_onesearch","search_mid_text_ad","search_onebox_v2","search_small_card_ad","search_topbanner_text","search_vip_banner"]?.includes(card?.strategy_com_id)) return false;
+        if (card?.blocks?.length > 0) compactInPlace(card.blocks, (item) =>
+          item.hasOwnProperty("block_name") ||
+          (item.hasOwnProperty("block_type") && ![861,959]?.includes(item?.block_type))
+        );
+        return true;
+      });
     }
   } else if (url.includes("/waterfall/")) {
     // 爱奇艺 信息流样式2
@@ -309,45 +265,19 @@ if (isIQY) {
       delete obj.adInfo;
     }
     if (obj?.data?.length > 0) {
-      let newItems = [];
-      for (let item of obj.data) {
-        // 908热剧轮播
-        if (item?.moduleEntityId === "91") {
-          // 首页正在追模块
-          if (item?.DSLList?.length > 0) {
-            let newLists = [];
-            for (let i of item.DSLList) {
-              if (i?.data?.items?.length > 0) {
-                let newII = [];
-                for (let ii of i.data.items) {
-                  if (ii?.id === 0) {
-                    // 正在追模块 艺人周边 小芒
-                    continue;
-                  } else if (["热门", "推荐"]?.includes(ii?.cornerTitle)) {
-                    continue;
-                  } else {
-                    newII.push(ii);
-                  }
-                }
-                i.data.items = newII;
-                newLists.push(i);
-              } else {
-                newLists.push(i);
-              }
-            }
-            item.DSLList = newLists;
-            newItems.push(item);
-          } else {
-            newItems.push(item);
-          }
-        } else if (["842", "2237", "5418"]?.includes(item?.moduleEntityId)) {
-          // 842会员首月特惠 2237横版购物tab 5418横版推广图片
-          continue;
-        } else {
-          newItems.push(item);
+      // loon-change: Mango dynamic channel nested stable in-place compaction v1
+      compactInPlace(obj.data, (item) => {
+        if (["842","2237","5418"]?.includes(item?.moduleEntityId)) return false;
+        if (item?.moduleEntityId === "91" && item?.DSLList?.length > 0) {
+          compactInPlace(item.DSLList, (list) => {
+            if (list?.data?.items?.length > 0) compactInPlace(list.data.items, (entry) =>
+              entry?.id !== 0 && !["热门","推荐"]?.includes(entry?.cornerTitle)
+            );
+            return true;
+          });
         }
-      }
-      obj.data = newItems;
+        return true;
+      });
     }
     if (obj?.moduleIDS?.length > 0) {
       compactInPlace(obj.moduleIDS, (i) => !["842", "2237", "5418"]?.includes(i?.moduleEntityId));
