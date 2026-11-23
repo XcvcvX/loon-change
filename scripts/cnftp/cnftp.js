@@ -366,59 +366,20 @@ if (isIQY) {
   } else if (url.includes("/v3/module/list?")) {
     // 芒果 我的页面组件
     if (obj?.data?.list?.length > 0) {
-      let newList = [];
-      for (let item of obj.data.list) {
-        // 1顶部模块 扫一扫 消息 搜索 设置
-        // 2用户信息模块 芒果卡 个人信息
-        // 3推荐位模块 购买会员 会员周边
-        // 4用户内容模块 播放记录 追更
-        // 5大芒计划 创作中心 热门作品 征稿活动
-        // 5我的小芒 电商 订单
-        // 6banner图模块 广告轮播图
-        // 7我的服务 客服 皮肤 意见反馈
-        // 8运营商专区 芒果卡 免流
-        // 8兴趣中心 抓娃娃
-        // 8推荐功能 钱包 福袋 芒果公益
-        if ([3, 5, 6, 8]?.includes(item?.moduleType)) {
-          // 推广模块
-          continue;
-        } else if (item?.moduleType === 2 && item?.title === "用户信息模块") {
-          // 用户信息
-          if (item?.data?.length > 0) {
-            let newItems = [];
-            for (let i of item.data) {
-              if (["领取芒果卡权益", "签到赢积分"]?.includes(i?.title)) {
-                continue;
-              } else {
-                newItems.push(i);
-              }
-            }
-            item.data = newItems;
-            newList.push(item);
-          } else {
-            newList.push(item);
-          }
-        } else if (item?.moduleType === 7 && item?.title === "我的服务") {
-          // 我的服务
-          if (item?.data?.length > 0) {
-            let newItems = [];
-            for (let i of item.data) {
-              if (["功能实验室", "芒果壁纸", "我的音乐"]?.includes(i?.title)) {
-                continue;
-              } else {
-                newItems.push(i);
-              }
-            }
-            item.data = newItems;
-            newList.push(item);
-          } else {
-            newList.push(item);
-          }
-        } else {
-          newList.push(item);
+      // loon-change: Mango personal center nested stable in-place compaction v1
+      compactInPlace(obj.data.list, (item) => {
+        if ([3, 5, 6, 8]?.includes(item?.moduleType)) return false;
+        if (item?.moduleType === 2 && item?.title === "用户信息模块" && item?.data?.length > 0) {
+          compactInPlace(item.data, (entry) =>
+            !["领取芒果卡权益", "签到赢积分"]?.includes(entry?.title)
+          );
+        } else if (item?.moduleType === 7 && item?.title === "我的服务" && item?.data?.length > 0) {
+          compactInPlace(item.data, (entry) =>
+            !["功能实验室", "芒果壁纸", "我的音乐"]?.includes(entry?.title)
+          );
         }
-      }
-      obj.data.list = newList;
+        return true;
+      });
     }
   } else if (url.includes("/v10/video/info?")) {
     // 芒果 播放详情页组件
@@ -591,68 +552,21 @@ if (isIQY) {
       if (objData?.nodes?.length > 0) {
         let objNodes = objData.nodes[0];
         if (objNodes?.nodes?.length > 0) {
-          let newNodes = [];
-          for (let item of objNodes.nodes) {
-            if (item?.id === 32133) {
-              // 横幅视频广告
-              continue;
-            } else if (item?.id === 32775) {
-              // 个人中心二楼
-              continue;
-            } else if (item?.id === 22570) {
-              // 横版轮播图
-              continue;
-            } else if (item?.id === 28912) {
-              // 我的下载 收藏 购买 场景
-              if (item?.nodes?.length > 0) {
-                let newII = [];
-                for (let ii of item.nodes) {
-                  if (ii?.id === 110429) {
-                    // 免费兑换VIP
-                    continue;
-                  }
-                  newII.push(ii);
-                }
-                item.nodes = newII;
-                newNodes.push(item);
-              } else {
-                newNodes.push(item);
+          // loon-change: Youku personal center nested stable in-place compaction v1
+          compactInPlace(objNodes.nodes, (item) => {
+            if ([32133, 32775, 22570, 35942, 36014, 38466]?.includes(item?.id)) return false;
+            if (item?.id === 28912 && item?.nodes?.length > 0) {
+              compactInPlace(item.nodes, (ii) => ii?.id !== 110429);
+            } else if (item?.id === 36015 && item?.nodes?.length > 0) {
+              const node0 = item.nodes[0];
+              if (node0?.nodes?.length > 0) {
+                compactInPlace(node0.nodes, (ii) =>
+                  [683367, 683368, 683372, 683502]?.includes(ii?.id)
+                );
               }
-            } else if (item?.id === 35942) {
-              // 我的专属推荐
-              continue;
-            } else if (item?.id === 36014) {
-              // 业务区 星光币 优酷购 数字藏品
-              continue;
-            } else if (item?.id === 36015) {
-              // 功能区 卡卷包 商城 设置
-              if (item?.nodes?.length > 0) {
-                let node0 = item.nodes[0];
-                if (node0?.nodes?.length > 0) {
-                  let newII = [];
-                  for (let ii of node0.nodes) {
-                    // 683364卡卷包 683359个性商城 683501TV助手 683367设置
-                    // 683368我的客服 683502意见反馈 683366有奖调研 683372更多
-                    if ([683367, 683368, 683372, 683502]?.includes(ii?.id)) {
-                      newII.push(ii);
-                    }
-                  }
-                  node0.nodes = newII;
-                  newNodes.push(item);
-                } else {
-                  newNodes.push(item);
-                }
-              } else {
-                newNodes.push(item);
-              }
-            } else if (item?.id === 38466) {
-              // 横幅广告
-              continue;
-            } else {
-              newNodes.push(item);
             }
-          }
-          objNodes.nodes = newNodes;
+            return true;
+          });
         }
       }
     }
@@ -663,50 +577,19 @@ if (isIQY) {
       if (objData?.nodes?.length > 0) {
         let objNodes = objData.nodes[0];
         if (objNodes?.nodes?.length > 0) {
-          let newNodes = [];
-          for (let item of objNodes.nodes) {
-            if (item?.id === 23242) {
-              // 评论区顶部
-              if (item?.nodes?.length > 0) {
-                let newItems = [];
-                for (let i of item.nodes) {
-                  if (i?.typeName === "COMPONENT_YCP_NOTICE") {
-                    // 评论区守则 轮播通告
-                    continue;
-                  } else if (i?.id === 113941) {
-                    // 明星空降评论区
-                    continue;
-                  } else {
-                    newItems.push(i);
-                  }
-                }
-                item.nodes = newItems;
-                newNodes.push(item);
+          // loon-change: Youku comment nested stable in-place compaction v1
+          compactInPlace(objNodes.nodes, (item) => {
+            if ((item?.id === 23242 || item?.id === 23243) && item?.nodes?.length > 0) {
+              if (item.id === 23242) {
+                compactInPlace(item.nodes, (entry) =>
+                  entry?.typeName !== "COMPONENT_YCP_NOTICE" && entry?.id !== 113941
+                );
               } else {
-                newNodes.push(item);
+                compactInPlace(item.nodes, (entry) => entry?.id !== -1000);
               }
-            } else if (item?.id === 23243) {
-              // 评论区留言
-              if (item?.nodes?.length > 0) {
-                let newItems = [];
-                for (let i of item.nodes) {
-                  if (i?.id === -1000) {
-                    // 评论区广告
-                    continue;
-                  } else {
-                    newItems.push(i);
-                  }
-                }
-                item.nodes = newItems;
-                newNodes.push(item);
-              } else {
-                newNodes.push(item);
-              }
-            } else {
-              newNodes.push(item);
             }
-          }
-          objNodes.nodes = newNodes;
+            return true;
+          });
         }
       }
     }

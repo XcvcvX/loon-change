@@ -348,5 +348,44 @@ if (mg2.data.length!==2 || mg2.data[0].id!==1 || mg2.data[1].id!==2) throw new E
             self.assertIn(marker, source)
         self.assertEqual(optimize_source(source), source)
 
+    def test_youku_mango_personal_compaction_markers_and_idempotence(self):
+        source = SOURCE_PATH.read_text(encoding="utf-8")
+        for marker in (
+            "Youku personal center nested stable in-place compaction v1",
+            "Youku comment nested stable in-place compaction v1",
+            "Mango personal center nested stable in-place compaction v1",
+        ):
+            self.assertIn(marker, source)
+        self.assertEqual(optimize_source(source), source)
+
+    def test_node_runtime_youku_personal_comment_and_mango_personal(self):
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node.js is required for CNFTP runtime tests")
+        harness = r'''
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync(process.argv[1],"utf8");
+function run(url,body){let result,pc=0,sc=0;const J=JSON;const c={JSON:{parse(v){pc++;return J.parse(v)},stringify(v){sc++;return J.stringify(v)}},$request:{url},$response:{body:J.stringify(body)},$done(v){result=v},console:{log(){},warn(){},error(){}}};vm.runInNewContext(source,c,{timeout:5000});if(pc!==1||sc!==1)throw Error("JSON roundtrip "+pc+"/"+sc);return J.parse(result.body);}
+const personal={data:{}};personal.data["2019061000"]={data:{nodes:[{nodes:[
+{id:32133},{id:28912,nodes:[{id:110429},{id:5}]},{id:36015,nodes:[{nodes:[{id:683367},{id:683364},{id:683372}]}]},{id:50000}
+]}]}};
+const youku=run("https://acs.youku.com/gw/mtop.youku.columbus.uc.query/",personal);
+const yn=youku.data["2019061000"].data.nodes[0].nodes;
+if(yn.length!==3||yn[0].nodes[0].id!==5||yn[1].nodes[0].nodes[0].id!==683367||yn[1].nodes[0].nodes.length!==2)throw Error("Youku personal filtering/order");
+const commentBody={data:{}};commentBody.data["2019061000"]={data:{nodes:[{nodes:[
+{id:23242,nodes:[{typeName:"COMPONENT_YCP_NOTICE"},{id:1},{id:113941}]},{id:23243,nodes:[{id:-1000},{id:2}]},{id:3}
+]}]}};
+const comment=run("https://acs.youku.com/gw/mtop.youku.columbus.ycp.query/",commentBody);
+const cn=comment.data["2019061000"].data.nodes[0].nodes;
+if(cn.length!==3||cn[0].nodes.length!==1||cn[0].nodes[0].id!==1||cn[1].nodes.length!==1||cn[1].nodes[0].id!==2)throw Error("Youku comment filtering");
+const mango=run("https://api.mgtv.com/v3/module/list?",{data:{list:[
+{moduleType:3},{moduleType:2,title:"用户信息模块",data:[{title:"领取芒果卡权益"},{title:"保留"}]},
+{moduleType:7,title:"我的服务",data:[{title:"我的音乐"},{title:"客服"}]},{moduleType:1}
+]}});
+const ml=mango.data.list;
+if(ml.length!==3||ml[0].data.length!==1||ml[1].data.length!==1||ml[1].data[0].title!=="客服")throw Error("Mango personal filtering/order");
+'''
+        result = subprocess.run([node, "-e", harness, str(SOURCE_PATH)], capture_output=True, text=True, check=False, timeout=10)
+        self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
+
 if __name__ == "__main__":
     unittest.main()

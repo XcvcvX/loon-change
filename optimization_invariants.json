@@ -12,7 +12,10 @@
         "Mango odin channel stable in-place compaction v1",
         "iQIYI category nested stable in-place compaction v1",
         "iQIYI search nested stable in-place compaction v1",
-        "Mango dynamic channel nested stable in-place compaction v1"
+        "Mango dynamic channel nested stable in-place compaction v1",
+        "Youku personal center nested stable in-place compaction v1",
+        "Youku comment nested stable in-place compaction v1",
+        "Mango personal center nested stable in-place compaction v1"
       ]
     },
     {

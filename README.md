@@ -956,3 +956,11 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - Extend the CNFTP upstream optimizer to reapply each exact transformation after refresh and fail closed if a still-present route's reviewed source structure drifts. Upstream-removed optional routes remain allowed.
 - Add optimizer idempotence and required-marker checks.
 - The change reduces temporary arrays on these response paths; no device-side CPU or battery percentage is claimed without on-device measurement.
+
+## Phase 21 P1 — Youku personal/comment and Mango personal response arrays
+
+- Youku personal center: compact top-level modules and nested download/function lists in place, preserving the exact retained module IDs and order.
+- Youku comment page: compact the two nested comment groups in place while preserving notice/advertisement exclusions.
+- Mango personal page: compact module list and nested user/service entries in place, preserving existing module and title predicates.
+- Extend upstream reapplication with exact reviewed source anchors and fail-closed drift handling; add Node VM runtime assertions and marker/idempotence checks.
+- This removes temporary arrays on these response paths; real-device CPU and battery gains remain unquantified.
