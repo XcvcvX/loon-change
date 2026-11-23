@@ -149,7 +149,10 @@
         "const shouldProcess =",
         "compactInPlace(obj.floorList, item =>",
         "compactInPlace(serviceList, card =>",
-        "$done(modified ? { body: JSON.stringify(obj) } : {});"
+        "$done(modified ? { body: JSON.stringify(obj) } : {});",
+        "const darkNavigation = modeMap && modeMap.dark && modeMap.dark.navigationAll;",
+        "Array.isArray(darkNavigation)",
+        "const normalNavigation = modeMap && modeMap.normal && modeMap.normal.navigationAll;"
       ],
       "forbidden": [
         ".filter(",
