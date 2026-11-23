@@ -47,7 +47,9 @@
       "required": [
         "// loon-change: CNTV response compaction optimization v6;",
         "// loon-change: CNTV pre-parse supported-route guard v1",
-        "function compactInPlace("
+        "function compactInPlace(",
+        "// loon-change: CNTV hoisted static membership lists v1",
+        "const CNTV_STATIC_FILTER_22 = ["
       ]
     },
     {
@@ -55,7 +57,10 @@
       "required": [
         "// loon-change: Amap R-Store local fast path;",
         "// loon-change: Amap R-Store supported-route guard v1",
-        "function compactInPlace("
+        "function compactInPlace(",
+        "const AMAP_STATIC_ITEMS_13 = [",
+        "compactInPlace(obj.tip_list",
+        "compactInPlace(city.tip_list"
       ]
     },
     {
@@ -109,6 +114,32 @@
         "let modifiedAds = false;",
         "body.subarray(payloadOffset)",
         "bodyBytes: body.buffer"
+      ]
+    },
+    {
+      "path": "scripts/pinduoduo/pdd-homepage.js",
+      "required": [
+        "const allowedLinks = new Set([\"index.html\", \"chat_list.html\", \"personal.html\"]);",
+        "const removedModules = new Set([",
+        "function compactInPlace(items, keep)",
+        "return $done(modified ? { body: JSON.stringify(obj) } : {});"
+      ]
+    },
+    {
+      "path": "scripts/jingdong/jd.js",
+      "required": [
+        "function compactInPlace(items, keep)",
+        "const PERSON_INFO_BUSINESS_MID_EXCLUDE = [",
+        "const WELCOME_HOME_EXTRA_EXCLUDE = new Set([",
+        "$done(modified ? { body: JSON.stringify(obj) } : {});"
+      ]
+    },
+    {
+      "path": "scripts/taobao/taobao.js",
+      "required": [
+        "function setIfDifferent(target, key, value)",
+        "function clearArray(target, key)",
+        "$done(modified ? {body: JSON.stringify(obj)} : {});"
       ]
     }
   ]
