@@ -299,7 +299,7 @@ def optimize_source(source, commit="unknown"):
                          '} else if (url.includes("/interaction/comment/video/download")) {',
                          COMMENT_BRANCH, "comment branch")
         source = apply_live_photo_cache_optimization(source)
-        if (COMMENT_TREE_MARKER not in source or "visited.has(current)" in source or "const visited = new WeakSet()" in source:
+        if (COMMENT_TREE_MARKER not in source or "visited.has(current)" in source or "const visited = new WeakSet()" in source):
             raise ValueError("comment traversal still allocates/checks a visited WeakSet")
         source = source.replace("if (!$response.body) $done({});" + chr(10), "")
         guard = "if (!$response.body) { $done({}); } else {"
