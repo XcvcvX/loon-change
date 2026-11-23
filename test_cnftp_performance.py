@@ -287,5 +287,56 @@ if (node1.nodes[1].nodes.length !== 1 || node1.nodes[1].nodes[0].id !== 3) throw
         self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
 
 
+    def test_iqiyi_waterfall_and_mango_lists_use_in_place_compaction(self):
+        source = SOURCE_PATH.read_text(encoding="utf-8")
+        self.assertIn("iQIYI waterfall nested stable in-place compaction v1", source)
+        self.assertIn("Mango vrsList stable in-place compaction v1", source)
+        self.assertIn("Mango odin channel stable in-place compaction v1", source)
+        vrs = source[source.index('url.includes("/dynamic/v1/channel/vrsList/")'):source.index('url.includes("/mobile/config?")')]
+        self.assertNotIn("obj.data = newItems;", vrs)
+        self.assertEqual(optimize_source(source), source)
+
+    def test_node_runtime_compaction_preserves_iqiyi_and_mango_order(self):
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node.js is required for CNFTP runtime tests")
+        harness = r'''
+const fs = require("fs"), vm = require("vm");
+const source = fs.readFileSync(process.argv[1], "utf8");
+function run(url, body) {
+  let doneResult, parseCalls = 0, stringifyCalls = 0;
+  const nativeJSON = JSON;
+  const trackedJSON = {
+    parse(value) { parseCalls++; return nativeJSON.parse(value); },
+    stringify(value) { stringifyCalls++; return nativeJSON.stringify(value); }
+  };
+  const context = {
+    JSON: trackedJSON, $request: {url}, $response: {body: nativeJSON.stringify(body)},
+    $done(value) { doneResult = value; }, console: {log(){},warn(){},error(){}}
+  };
+  vm.runInNewContext(source, context, {timeout:5000});
+  if (parseCalls !== 1 || stringifyCalls !== 1) throw new Error("unexpected JSON roundtrip");
+  return nativeJSON.parse(doneResult.body);
+}
+const iq = run("https://iface2.iqiyi.com/waterfall/", {cards:[
+  {id:"ad",block_class:"ad",blocks:[]},
+  {id:"keep1",blocks:[{id:"a",block_class:"ad"},{id:"b"},{id:"c"}]},
+  {id:"keep2",blocks:[{id:"d"}]}
+]});
+if (iq.cards.length!==2 || iq.cards[0].id!=="keep1" || iq.cards[1].id!=="keep2") throw new Error("iQIYI outer order/filter changed");
+if (iq.cards[0].blocks.length!==2 || iq.cards[0].blocks[0].id!=="b") throw new Error("iQIYI nested filter changed");
+const mg1 = run("https://api.mgtv.com/dynamic/v1/channel/vrsList/", {data:[
+  {vclassId:100043,id:"remove"},{vclassId:100160,id:"keep1"},{vclassId:100033,id:"keep2"}
+]});
+if (mg1.data.length!==2 || mg1.data[0].id!=="keep1" || mg1.data[1].id!=="keep2") throw new Error("Mango vrsList semantics changed");
+const mg2 = run("https://api.mgtv.com/odin/c1/channel/index?", {data:[
+  {moduleType:"childslideicon"},{moduleType:"normal",id:1},{moduleType:"normal",id:2}
+]});
+if (mg2.data.length!==2 || mg2.data[0].id!==1 || mg2.data[1].id!==2) throw new Error("Mango odin semantics changed");
+'''
+        result = subprocess.run([node, "-e", harness, str(SOURCE_PATH)], capture_output=True, text=True, check=False, timeout=10)
+        self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
+
+
 if __name__ == "__main__":
     unittest.main()
