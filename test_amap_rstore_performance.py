@@ -157,7 +157,7 @@ process.stdout.write(nativeJSON.stringify({doneResult, parseCount, stringifyCoun
 
     def test_optimizer_repairs_missing_supported_routes_after_upstream_refresh(self):
         source = SOURCE.read_text(encoding="utf-8")
-        damaged = source.replace('  url.includes("/shield/search_bff/hotword") ||\\n', "", 1)
+        damaged = source.replace('  url.includes("/shield/search_bff/hotword") ||\n', "", 1)
         self.assertNotEqual(damaged, source)
         repaired = optimize_source(damaged)
         self.assertIn('url.includes("/shield/search_bff/hotword")', repaired)
