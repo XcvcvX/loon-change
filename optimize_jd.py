@@ -9,6 +9,9 @@ from pathlib import Path
 
 REMOTE = "https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/jd.js"
 LOCAL = "https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/jingdong/jd.js"
+LOCAL_FULL_TRIGGER = r"http-response ^https?:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=(?:deliverLayer|getTabHomeInfo|myOrderInfo|orderTrackBusiness|personinfoBusiness|start|welcomeHome|readCustomSurfaceList) script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/jingdong/jd.js,tag=JD,requires-body=true"
+LOCAL_CORE_TRIGGER = r"http-response ^https?:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=(?:deliverLayer|getTabHomeInfo|myOrderInfo|orderTrackBusiness|personinfoBusiness|start|readCustomSurfaceList) script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/jingdong/jd.js,tag=JD-CONSOLIDATED,requires-body=true"
+LOCAL_OPTIONAL_WELCOME_TRIGGER = r'response if ${url} ~= /^https:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=welcomeHome/i then script("https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/jingdong/jd.js", {${jkds_enable}}) with tag="JD-CONSOLIDATED-WELCOME", timeout=60, requires_body=true'
 MARKER_PREFIX = "// loon-change: Jingdong in-place response compaction and lazy serialization v1; upstream zirawell/R-Store@"
 ROUTES = (
     "start",
@@ -424,29 +427,45 @@ def optimize_source(source: str, upstream_commit: str = "unknown") -> str:
 def rewrite_plugin(plugin: str) -> str:
     lines = plugin.splitlines(keepends=True)
     section = ""
-    remote_count = 0
-    local_count = 0
-    output = []
+    script_lines = []
     for line in lines:
         stripped = line.strip()
         if stripped.startswith("[") and stripped.endswith("]"):
             section = stripped[1:-1].lower()
-        if section == "script":
-            remote_count += line.count(REMOTE)
-            local_count += line.count(LOCAL)
-            line = line.replace(REMOTE, LOCAL)
-        output.append(line)
+        elif section == "script":
+            script_lines.append(stripped)
 
-    if remote_count and local_count:
-        raise ValueError("mixed remote and local Jingdong script triggers")
-    if remote_count not in (0, 1) or local_count not in (0, 1):
-        raise ValueError("Jingdong trigger inventory changed: expected one remote or one local script")
-    if not remote_count and not local_count:
-        raise ValueError("Jingdong remote script trigger not found in [Script]")
-    result = "".join(output)
-    if REMOTE in result or result.count(LOCAL) != 1:
-        raise ValueError("Jingdong local script route migration incomplete")
-    return result
+    remote_full_count = sum(line.count(REMOTE) for line in script_lines)
+    full_local_count = script_lines.count(LOCAL_FULL_TRIGGER)
+    core_count = script_lines.count(LOCAL_CORE_TRIGGER)
+    optional_count = script_lines.count(LOCAL_OPTIONAL_WELCOME_TRIGGER)
+
+    # The checked-in snapshot uses one combined local matcher; the build-time
+    # JD consolidation emits a core matcher plus the switch-gated welcome route.
+    # Both reviewed layouts are already optimized and must remain unchanged.
+    if full_local_count == 1 and not (remote_full_count or core_count or optional_count):
+        return plugin
+    if core_count == 1 and optional_count == 1 and not (remote_full_count or full_local_count):
+        return plugin
+
+    if remote_full_count == 1 and not (full_local_count or core_count or optional_count):
+        output = []
+        section = ""
+        for line in lines:
+            stripped = line.strip()
+            if stripped.startswith("[") and stripped.endswith("]"):
+                section = stripped[1:-1].lower()
+            if section == "script":
+                line = line.replace(REMOTE, LOCAL)
+            output.append(line)
+        result = "".join(output)
+        if REMOTE in result or result.count(LOCAL) != 1:
+            raise ValueError("Jingdong local script route migration incomplete")
+        return result
+
+    if not (remote_full_count or full_local_count or core_count or optional_count):
+        raise ValueError("Jingdong response trigger not found in [Script]")
+    raise ValueError("Jingdong trigger inventory changed: expected one reviewed local layout")
 
 
 def main() -> None:
