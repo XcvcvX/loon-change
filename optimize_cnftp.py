@@ -265,16 +265,83 @@ def ensure_iqiyi_mango_compaction(source: str) -> str:
 
 
 
+SUPPORTED_ROUTE_MARKER = "// loon-change: CNFTP pre-parse supported-route guard v1"
+SUPPORTED_ROUTE_GUARD = """// loon-change: CNFTP pre-parse supported-route guard v1
+const shouldProcess =
+  (url.includes("iqiyi.com/") && (
+    url.includes("/bottom_theme?") ||
+    url.includes("/common_switch?") ||
+    url.includes("/control/") ||
+    url.includes("/getMyMenus?") ||
+    url.includes("/home_top_menu?") ||
+    url.includes("/mixer?") ||
+    url.includes("/search.video.iqiyi.com/") ||
+    url.includes("/views_category/") ||
+    url.includes("/views_comment/") ||
+    url.includes("/views_home/") ||
+    url.includes("/views_plt/") ||
+    url.includes("/views_search/") ||
+    url.includes("/waterfall/")
+  )) ||
+  (url.includes("mgtv.com/") && (
+    url.includes("/dynamic/v1/channel/index/") ||
+    url.includes("/dynamic/v1/channel/vrsList/") ||
+    url.includes("/mobile/config?") ||
+    url.includes("/mobile/recommend/v2?") ||
+    url.includes("/odin/c1/channel/index?") ||
+    url.includes("/v1/vod/info?") ||
+    url.includes("/v3/module/list?") ||
+    url.includes("/v10/video/info?")
+  )) ||
+  (url.includes("youku.com/") && (
+    url.includes("/collect-api/get_push_interval_config_wx?") ||
+    url.includes("columbus.gateway.new.execute") ||
+    url.includes("columbus.home.feed/") ||
+    url.includes("columbus.home.query/") ||
+    url.includes("columbus.uc.query/") ||
+    url.includes("columbus.ycp.query/") ||
+    url.includes("haidai.lantern.appconfig.get/") ||
+    url.includes("huluwa.dispatcher.youthmode.config2/") ||
+    url.includes("play.ups.appinfo.get/") ||
+    url.includes("soku.yksearch/")
+  ));
+
+if (!shouldProcess) {
+  $done({});
+} else {"""
+ 
+def ensure_supported_route_guard(source: str) -> str:
+    """Skip JSON parsing for host responses outside the CNFTP script's handled routes."""
+    if SUPPORTED_ROUTE_MARKER in source:
+        if source.count(SUPPORTED_ROUTE_MARKER) != 1 or source.count(SUPPORTED_ROUTE_GUARD) != 1:
+            raise ValueError("CNFTP supported-route guard marker/structure drift")
+        if source.count("let obj = JSON.parse($response.body);") != 1:
+            raise ValueError("CNFTP supported-route parse anchor drift")
+        if not source.rstrip().endswith("$done({body: JSON.stringify(obj)});\\n}\\n}\\n"):
+            raise ValueError("CNFTP supported-route terminal structure drift")
+        return source
+    parse_line = "let obj = JSON.parse($response.body);"
+    if source.count(parse_line) != 1:
+        raise ValueError("CNFTP response parse anchor changed; refusing pre-parse guard")
+    if source.count("const isIQY = url.includes(\\"iqiyi.com/\\");") != 1:
+        raise ValueError("CNFTP domain dispatch anchor changed; refusing pre-parse guard")
+    if not source.rstrip().endswith("$done({body: JSON.stringify(obj)});\\n}\\n"):
+        raise ValueError("CNFTP terminal response structure changed; refusing pre-parse guard")
+    source = source.replace(parse_line, SUPPORTED_ROUTE_GUARD + "\\n" + parse_line, 1)
+    source = source.rstrip()[:-len("}\\n")] + "}\\n}\\n"
+    return source
+
+
 def optimize_source(source: str, upstream_commit: str | None = None) -> str:
     """Replace Youku home.query's nested filtered-copy arrays with stable in-place compaction."""
     if SOURCE_MARKER in source:
         if not upstream_commit:
-            return compact_response_filters(ensure_terminal_empty_body_guard(ensure_iqiyi_mango_compaction(source)))
+            return compact_response_filters(ensure_terminal_empty_body_guard(ensure_supported_route_guard(ensure_iqiyi_mango_compaction(source))))
         if not re.fullmatch(r"[0-9a-f]{40}", upstream_commit):
             raise ValueError("invalid Wool Scripts upstream commit")
         source = re.sub(r"^// loon-change:.*\n", "", source, count=1)
         source = SOURCE_MARKER + "; upstream fmz200/wool_scripts@" + upstream_commit + "\n" + source
-        return compact_response_filters(ensure_terminal_empty_body_guard(ensure_iqiyi_mango_compaction(source)))
+        return compact_response_filters(ensure_terminal_empty_body_guard(ensure_supported_route_guard(ensure_iqiyi_mango_compaction(source))))
 
     feed_start = '  } else if (url.includes("columbus.home.feed/")) {'
     feed_end = '  } else if (url.includes("columbus.home.query/")) {'
@@ -309,7 +376,7 @@ def optimize_source(source: str, upstream_commit: str | None = None) -> str:
     else:
         upstream_commit = "unrecorded"
     result = SOURCE_MARKER + "; upstream fmz200/wool_scripts@" + upstream_commit + "\n// loon-change: Youku home.feed in-place compaction v1\n" + source
-    return compact_response_filters(ensure_terminal_empty_body_guard(ensure_iqiyi_mango_compaction(result)))
+    return compact_response_filters(ensure_terminal_empty_body_guard(ensure_supported_route_guard(ensure_iqiyi_mango_compaction(result))))
 
 
 def rewrite_plugin(plugin: str) -> str:
