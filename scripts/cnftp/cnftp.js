@@ -24,6 +24,9 @@ function compactInPlace(items, keep) {
 if (!$response.body) {
   $done({});
 } else {
+const isIQY = url.includes("iqiyi.com/");
+const isMG = url.includes("mgtv.com/");
+const isYK = url.includes("youku.com/");
 // loon-change: CNFTP pre-parse supported-route guard v1
 const shouldProcess =
   (url.includes("iqiyi.com/") && (
@@ -67,9 +70,6 @@ const shouldProcess =
 if (!shouldProcess) {
   $done({});
 } else {
-const isIQY = url.includes("iqiyi.com/");
-const isMG = url.includes("mgtv.com/");
-const isYK = url.includes("youku.com/");
 let obj = JSON.parse($response.body);
 
 if (isIQY) {
