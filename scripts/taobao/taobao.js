@@ -30,8 +30,8 @@ if (!$response.body) {
   }
   // loon-change: Taobao pre-parse supported-route guard v1
   const shouldProcess =
-    url.includes("guide-acs.m.taobao.com/gw/mtop/mtop.taobao.cloudvideo.video.query") ||
-    url.includes("guide-acs.m.taobao.com/gw/mtop/mtop.taobao.wireless.home.splash.awesome.get") ||
+    url.includes("guide-acs.m.taobao.com/gw/mtop.taobao.cloudvideo.video.query") ||
+    url.includes("guide-acs.m.taobao.com/gw/mtop.taobao.wireless.home.splash.awesome.get") ||
     url.includes("poplayer.template.alibaba.com/");
   if (!shouldProcess) {
     $done({});
