@@ -96,7 +96,11 @@
       "required": [
         "// loon-change: Didi response compaction and lazy serialization optimization v2;",
         "function compactDidiByField(",
-        "$done(modified ? {body: JSON.stringify(obj)} : {});"
+        "$done(modified ? {body: JSON.stringify(obj)} : {});",
+        "// loon-change: Didi pre-parse supported-route guard v1",
+        "const shouldProcess =",
+        "if (!shouldProcess) {",
+        "url.includes(\"/other/pGetSceneList\")"
       ]
     },
     {
