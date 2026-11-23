@@ -695,7 +695,8 @@ class BaiduMapZeroCopyProtobufRuntimeTests(unittest.TestCase):
         self.assertNotIn("Uint8Array.from([...", app)
         self.assertNotIn("resultType.decode", app)
         self.assertNotIn("console.log(", app)
-        self.assertEqual(app.count("binaryBody.subarray("), 2)
+        # One header view plus the two consumed payload views (Result and Ads).
+        self.assertEqual(app.count("binaryBody.subarray("), 3)
 
         harness = r'''
 const fs = require("fs");
