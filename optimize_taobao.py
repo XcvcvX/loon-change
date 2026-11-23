@@ -45,6 +45,60 @@ def optimize_splash_loop(source):
     return optimized
 
 
+ROUTE_CLASSIFICATION_MARKER = "// loon-change: Taobao cached route classification v1"
+OLD_ROUTE_GUARD = """  // loon-change: Taobao pre-parse supported-route guard v1
+  const shouldProcess =
+    url.includes("guide-acs.m.taobao.com/gw/mtop.taobao.cloudvideo.video.query") ||
+    url.includes("guide-acs.m.taobao.com/gw/mtop.taobao.wireless.home.splash.awesome.get") ||
+    url.includes("poplayer.template.alibaba.com/");
+  if (!shouldProcess) {
+    $done({});
+  } else {"""
+NEW_ROUTE_GUARD = """  // loon-change: Taobao pre-parse supported-route guard v1
+  %s
+  const isCloudVideo = url.includes("guide-acs.m.taobao.com/gw/mtop.taobao.cloudvideo.video.query");
+  const isSplash = url.includes("guide-acs.m.taobao.com/gw/mtop.taobao.wireless.home.splash.awesome.get");
+  const isPoplayer = url.includes("poplayer.template.alibaba.com/");
+  const shouldProcess = isCloudVideo || isSplash || isPoplayer;
+  if (!shouldProcess) {
+    $done({});
+  } else {""" % ROUTE_CLASSIFICATION_MARKER
+
+def optimize_route_classification(source):
+    if ROUTE_CLASSIFICATION_MARKER in source:
+        required = (
+            "const isCloudVideo = url.includes(",
+            "const isSplash = url.includes(",
+            "const isPoplayer = url.includes(",
+            "const shouldProcess = isCloudVideo || isSplash || isPoplayer;",
+            "if (isCloudVideo) {",
+            "} else if (isSplash) {",
+            "} else if (isPoplayer) {",
+        )
+        if any(token not in source for token in required):
+            raise ValueError("Taobao cached route classification drifted; refusing to overwrite")
+        for route in (
+            'url.includes("guide-acs.m.taobao.com/gw/mtop.taobao.cloudvideo.video.query")',
+            'url.includes("guide-acs.m.taobao.com/gw/mtop.taobao.wireless.home.splash.awesome.get")',
+            'url.includes("poplayer.template.alibaba.com/")',
+        ):
+            if source.count(route) != 1:
+                raise ValueError("Taobao route must be classified exactly once")
+        return source
+    if source.count(OLD_ROUTE_GUARD) != 1:
+        raise ValueError("Expected exactly one Taobao pre-parse route guard")
+    source = source.replace(OLD_ROUTE_GUARD, NEW_ROUTE_GUARD, 1)
+    replacements = (
+        ('if (url.includes("mtop.taobao.cloudvideo.video.query")) {', "if (isCloudVideo) {"),
+        ('} else if (url.includes("mtop.taobao.wireless.home.splash.awesome.get")) {', "} else if (isSplash) {"),
+        ('} else if (url.includes("poplayer.template.alibaba.com")) {', "} else if (isPoplayer) {"),
+    )
+    for old, new in replacements:
+        if source.count(old) != 1:
+            raise ValueError("Expected exactly one Taobao route branch: " + old)
+        source = source.replace(old, new, 1)
+    return source
+
 def optimize_runtime_source(source):
     if RUNTIME_MARKER not in source:
         anchor = "  const obj = JSON.parse($response.body);\n"
@@ -65,6 +119,7 @@ def optimize_runtime_source(source):
         if source.index("const shouldProcess =") > source.index("JSON.parse($response.body)"):
             raise ValueError("Taobao pre-parse guard moved after JSON.parse")
     source = optimize_splash_loop(source)
+    source = optimize_route_classification(source)
     if source.index("const shouldProcess =") > source.index("JSON.parse($response.body)"):
         raise ValueError("Taobao pre-parse guard insertion order invalid")
     return source

@@ -29,15 +29,16 @@ if (!$response.body) {
     }
   }
   // loon-change: Taobao pre-parse supported-route guard v1
-  const shouldProcess =
-    url.includes("guide-acs.m.taobao.com/gw/mtop.taobao.cloudvideo.video.query") ||
-    url.includes("guide-acs.m.taobao.com/gw/mtop.taobao.wireless.home.splash.awesome.get") ||
-    url.includes("poplayer.template.alibaba.com/");
+  // loon-change: Taobao cached route classification v1
+  const isCloudVideo = url.includes("guide-acs.m.taobao.com/gw/mtop.taobao.cloudvideo.video.query");
+  const isSplash = url.includes("guide-acs.m.taobao.com/gw/mtop.taobao.wireless.home.splash.awesome.get");
+  const isPoplayer = url.includes("poplayer.template.alibaba.com/");
+  const shouldProcess = isCloudVideo || isSplash || isPoplayer;
   if (!shouldProcess) {
     $done({});
   } else {
   const obj = JSON.parse($response.body);
-if (url.includes("mtop.taobao.cloudvideo.video.query")) {
+if (isCloudVideo) {
   if (obj?.data?.duration) {
     setIfDifferent(obj.data, "duration", "0");
   }
@@ -46,7 +47,7 @@ if (url.includes("mtop.taobao.cloudvideo.video.query")) {
   if (obj?.data?.respTimeInMs) {
     setIfDifferent(obj.data, "respTimeInMs", "3818332800000");
   }
-} else if (url.includes("mtop.taobao.wireless.home.splash.awesome.get")) {
+} else if (isSplash) {
   if (obj?.data?.containers?.splash_home_base) {
     const sections = obj.data.containers.splash_home_base.base?.sections;
     if (Array.isArray(sections) && sections.length > 0) {
@@ -79,7 +80,7 @@ if (url.includes("mtop.taobao.cloudvideo.video.query")) {
       }
     }
   }
-} else if (url.includes("poplayer.template.alibaba.com")) {
+} else if (isPoplayer) {
   clearArray(obj?.res || {}, "images");
   clearArray(obj?.res || {}, "videos");
   if (obj?.enable) {
