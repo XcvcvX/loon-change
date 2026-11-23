@@ -73,6 +73,7 @@ if (!$response.body) {
     return items;
   }
 
+// loon-change: Bilibili hot-loop scalar membership v1
 if (url.includes("/x/resource/show/tab/")) {
   // 底部选项卡
   if (obj?.data?.bottom?.length > 0) {
@@ -213,16 +214,15 @@ if (url.includes("/x/resource/show/tab/")) {
     let itemWrite = 0;
     for (let itemRead = 0, itemLength = items.length; itemRead < itemLength; itemRead++) {
       let item = items[itemRead];
-      if (item?.hasOwnProperty("ad_info")) {
-        continue;
-      } else if (["vertical_ad_av", "vertical_live", "vertical_pgc"]?.includes(item?.card_goto)) {
-        continue;
-      } else {
-        deleteTracked(item, "creative_entrance"); // 推荐话题搜索框
-        deleteTracked(item, "story_cart_icon"); // 相关话题图标
-        if (itemWrite !== itemRead) items[itemWrite] = item;
-        itemWrite++;
-      }
+      if (item?.hasOwnProperty("ad_info")) continue;
+      const cardGoto = item?.card_goto;
+      if (cardGoto === "vertical_ad_av" ||
+          cardGoto === "vertical_live" ||
+          cardGoto === "vertical_pgc") continue;
+      deleteTracked(item, "creative_entrance"); // 推荐话题搜索框
+      deleteTracked(item, "story_cart_icon"); // 相关话题图标
+      if (itemWrite !== itemRead) items[itemWrite] = item;
+      itemWrite++;
     }
     items.length = itemWrite;
     if (itemWrite !== originalItemLength) modified = true;
@@ -280,7 +280,8 @@ if (url.includes("/x/resource/show/tab/")) {
         if (i?.items?.length > 0) {
           filterTracked(i.items, (ii) => ii?.blink?.startsWith("bilibili"));
         }
-      } else if ([241, 1283, 1284, 1441]?.includes(i?.module_id)) {
+      } else if (i?.module_id === 241 || i?.module_id === 1283 ||
+                 i?.module_id === 1284 || i?.module_id === 1441) {
         if (i?.items?.length > 0) {
           i.items = [];
           modified = true;
