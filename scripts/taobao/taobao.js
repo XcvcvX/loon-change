@@ -28,6 +28,14 @@ if (!$response.body) {
       modified = true;
     }
   }
+  // loon-change: Taobao pre-parse supported-route guard v1
+  const shouldProcess =
+    url.includes("guide-acs.m.taobao.com/gw/mtop/mtop.taobao.cloudvideo.video.query") ||
+    url.includes("guide-acs.m.taobao.com/gw/mtop/mtop.taobao.wireless.home.splash.awesome.get") ||
+    url.includes("poplayer.template.alibaba.com/");
+  if (!shouldProcess) {
+    $done({});
+  } else {
   const obj = JSON.parse($response.body);
 if (url.includes("mtop.taobao.cloudvideo.video.query")) {
   if (obj?.data?.duration) {
@@ -76,4 +84,5 @@ if (url.includes("mtop.taobao.cloudvideo.video.query")) {
   clearArray(obj?.mainRes || {}, "images");
 }
 $done(modified ? {body: JSON.stringify(obj)} : {});
+  }
 }
