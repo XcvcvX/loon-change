@@ -399,7 +399,8 @@ function deDuplicateLivePhotos(livePhotos) {
 function cleanCommentsAndCollectLivePhotos(data) {
   const livePhotos = [];
   const stack = [data];
-  const visited = new WeakSet();
+  // loon-change: Xiaohongshu parsed JSON tree traversal without visited WeakSet v1;
+  // JSON.parse creates a tree: nodes cannot be cyclic or shared by reference.
   const commentNodes = new WeakSet();
   const topLevelComments = new WeakSet();
   const videoInfoCache = new Map();
@@ -413,8 +414,7 @@ function cleanCommentsAndCollectLivePhotos(data) {
   }
   while (stack.length) {
     const current = stack.pop();
-    if (!current || typeof current !== "object" || visited.has(current)) continue;
-    visited.add(current);
+    if (!current || typeof current !== "object") continue;
     if (!Array.isArray(current) && "red_id" in current) delete current.red_id;
     if (commentNodes.has(current)) {
       if (current.comment_type === 3) current.comment_type = 2;
