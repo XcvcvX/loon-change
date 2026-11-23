@@ -456,12 +456,12 @@ function processCommentTree(data, livePhotos, commentVideos, noteId) {
     }
     return parsedVideoInfo.get(raw);
   };
+  // loon-change: Xiaohongshu parsed JSON comment tree without visited WeakSet v1;
+  // JSON.parse creates a tree with no cycles or shared object references.
   const stack = [data];
-  const visited = new WeakSet();
   while (stack.length) {
     const current = stack.pop();
-    if (!current || typeof current !== "object" || visited.has(current)) continue;
-    visited.add(current);
+    if (!current || typeof current !== "object") continue;
     if (!Array.isArray(current)) {
       if ("red_id" in current) { current.fmz200 = current.red_id; delete current.red_id; }
       if (commentNodes.has(current)) {
