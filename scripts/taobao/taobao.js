@@ -48,29 +48,33 @@ if (url.includes("mtop.taobao.cloudvideo.video.query")) {
   }
 } else if (url.includes("mtop.taobao.wireless.home.splash.awesome.get")) {
   if (obj?.data?.containers?.splash_home_base) {
-    let splash = obj.data.containers.splash_home_base;
-    if (splash?.base?.sections?.length > 0) {
-      for (let items of splash.base.sections) {
-        if ("taobao-splash" in items.bizData) {
-          if (items?.bizData?.["taobao-splash"]?.data?.length > 0) {
-            for (let item of items.bizData["taobao-splash"].data) {
-              setIfDifferent(item, "waitTime", "0");
-              setIfDifferent(item, "times", "0");
-              setIfDifferent(item, "hotStart", "false");
-              setIfDifferent(item, "haveVoice", "false");
-              setIfDifferent(item, "hideTBLogo", "false");
-              setIfDifferent(item, "enable4G", "false");
-              setIfDifferent(item, "coldStart", "false");
-              setIfDifferent(item, "startTime", "3818332800000");
-              setIfDifferent(item, "endTime", "3818419199000");
-              setIfDifferent(item, "gmtStart", "2090-12-31 00:00:00");
-              setIfDifferent(item, "gmtEnd", "2090-12-31 23:59:59");
-              setIfDifferent(item, "gmtStartMs", "3818332800000");
-              setIfDifferent(item, "gmtEndMs", "3818419199000");
-              if (item?.imgUrl) setIfDifferent(item, "imgUrl", "");
-              if (item?.videoUrl) setIfDifferent(item, "videoUrl", "");
-            }
-          }
+    const sections = obj.data.containers.splash_home_base.base?.sections;
+    if (Array.isArray(sections) && sections.length > 0) {
+      // loon-change: Taobao indexed splash traversal v1
+      const sectionCount = sections.length;
+      for (let sectionIndex = 0; sectionIndex < sectionCount; sectionIndex++) {
+        const bizData = sections[sectionIndex]?.bizData;
+        const splashItems = bizData?.["taobao-splash"]?.data;
+        if (!Array.isArray(splashItems) || splashItems.length === 0) continue;
+
+        const itemCount = splashItems.length;
+        for (let itemIndex = 0; itemIndex < itemCount; itemIndex++) {
+          const item = splashItems[itemIndex];
+          setIfDifferent(item, "waitTime", "0");
+          setIfDifferent(item, "times", "0");
+          setIfDifferent(item, "hotStart", "false");
+          setIfDifferent(item, "haveVoice", "false");
+          setIfDifferent(item, "hideTBLogo", "false");
+          setIfDifferent(item, "enable4G", "false");
+          setIfDifferent(item, "coldStart", "false");
+          setIfDifferent(item, "startTime", "3818332800000");
+          setIfDifferent(item, "endTime", "3818419199000");
+          setIfDifferent(item, "gmtStart", "2090-12-31 00:00:00");
+          setIfDifferent(item, "gmtEnd", "2090-12-31 23:59:59");
+          setIfDifferent(item, "gmtStartMs", "3818332800000");
+          setIfDifferent(item, "gmtEndMs", "3818419199000");
+          if (item?.imgUrl) setIfDifferent(item, "imgUrl", "");
+          if (item?.videoUrl) setIfDifferent(item, "videoUrl", "");
         }
       }
     }
