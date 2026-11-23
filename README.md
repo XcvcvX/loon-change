@@ -1014,6 +1014,10 @@ The Amap response handler's pre-parse allowlist now includes every implemented r
 The Amap response handler now tracks actual changes from property deletion, value replacement, and in-place array compaction. Supported responses that contain no removable fields and require no value changes return an empty completion object without calling `JSON.stringify`; modified responses are serialized once. The upstream optimizer re-applies this mutation tracking and validates its mutation inventory, while runtime tests cover no-op and real-change paths.
 
 
+### Amap shared navigation ad matcher
+
+The navigation routeInfo/routePlan filters now reuse one module-level regular expression for dynamic ad IDs instead of evaluating a regex literal for every event item. This removes repeated matcher-object creation across the TBT event and voice-download arrays while preserving the same `ads-<digits>` predicate and stable in-place filtering. The upstream optimizer restores the shared matcher after source refresh and validates all four call sites.
+
 ### Amap scalar membership hot loops
 
 The Amap nearby-module, search-card, and suggestion filters now use direct scalar comparisons instead of calling `Array.includes` for each response item. This removes repeated method dispatch and the small static membership arrays from these hot loops while preserving the same retained values and order. The upstream optimizer re-applies the transformation with structural checks; runtime tests cover nearby-module filtering and existing search-suggestion fixtures.
