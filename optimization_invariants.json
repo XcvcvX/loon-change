@@ -116,7 +116,9 @@
         "item?.tip?.task_tag !== \"query_sug_merge_theme\"",
         "// loon-change: Amap shared dynamic ad matcher v1",
         "const AMAP_AD_DYNAMIC_ID = /ads-\\d+/;",
-        "AMAP_AD_DYNAMIC_ID.test(i?.dynamic_id_s)"
+        "AMAP_AD_DYNAMIC_ID.test(i?.dynamic_id_s)",
+        "// loon-change: Amap cached suggestion tip access v1",
+        "const tip = item?.tip;"
       ],
       "forbidden": [
         "AMAP_STATIC_ITEMS_06",
@@ -128,7 +130,8 @@
         ".includes(item?.tip?.",
         ".includes(i?.item_type)",
         "items?.includes(i)",
-        "/ads-\\d+/.test(i?.dynamic_id_s)"
+        "/ads-\\d+/.test(i?.dynamic_id_s)",
+        "item?.tip?.task_tag"
       ]
     },
     {
