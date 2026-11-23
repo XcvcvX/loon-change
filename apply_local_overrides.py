@@ -381,19 +381,10 @@ def consolidate_pdd_homepage_script(lines):
 
 
 PDD_HOMEPAGE_NATIVE_JQ_RULE = "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/homepage\\/hub\\?/i then response.json.jq(\"if (.result | type) == \\\"object\\\" then del(.result.dy_module.irregular_banner_dy, .result.icon_set, .result.search_bar_hot_query) | .result.bottom_tabs? |= (if type == \\\"array\\\" then map(select(. != null and (.title | IN(\\\"首页\\\", \\\"聊天\\\", \\\"个人中心\\\")) and ((.link // \\\"\\\") | tostring | IN(\\\"index.html\\\", \\\"chat_list.html\\\", \\\"personal.html\\\")))) else . end) | .result.buffer_bottom_tabs? |= (if type == \\\"array\\\" then map(select(. != null and ((.link // \\\"\\\") | tostring | IN(\\\"index.html\\\", \\\"chat_list.html\\\", \\\"personal.html\\\")))) else . end) | .result.all_top_opts? |= (if type == \\\"array\\\" then [] else . end) | .result.module_order? |= (if type == \\\"array\\\" then map(select(. != null and . != false and . != 0 and . != \\\"\\\" and ((.module_name // \\\"\\\") | IN(\\\"irregular_banner_dy\\\", \\\"irregular_banner\\\", \\\"ad_module\\\", \\\"icon_set\\\", \\\"recommend_fresh_info\\\", \\\"timeline\\\") | not))) else . end) else . end\")"
-PDD_HOMEPAGE_NATIVE_REQUIRED_MARKERS = (
-    "response.json.delete(",
-    "result.dy_module.irregular_banner_dy",
-    "result.icon_set",
-    "result.search_bar_hot_query",
-    "bottom_tabs?",
-    "buffer_bottom_tabs?",
-    "all_top_opts",
-)
-
+PDD_HOMEPAGE_LEGACY_NATIVE_RULE = r'response if ${url} ~= /^https:\/\/api\.pinduoduo\.com\/api\/alexa\/homepage\/hub\?/i then response.json.delete(["result.dy_module.irregular_banner_dy", "result.icon_set", "result.search_bar_hot_query"]) | response.json.jq(".result.bottom_tabs? |= map(select(.link | IN(\\"index.html\\", \\"chat_list.html\\", \\"personal.html\\"))) | .result.buffer_bottom_tabs? |= map(select(.link | IN(\\"index.html\\", \\"chat_list.html\\", \\"personal.html\\"))) | .result.all_top_opts |= map(del(.selected_image, .image, .height, .width))")'
 
 def consolidate_pdd_homepage_native_response(lines):
-    """Replace split PDD homepage cleanup with one native jq response pass."""
+    """Migrate legacy PDD homepage JS to one canonical native jq rule."""
     output = list(lines)
     section = ""
     script_indices, rewrite_indices = [], []
@@ -415,26 +406,63 @@ def consolidate_pdd_homepage_native_response(lines):
 
     if len(script_indices) > 1:
         raise ValueError("duplicate Pinduoduo homepage local script trigger")
-    if len(rewrite_indices) > 1:
-        raise ValueError("duplicate Pinduoduo homepage native response rule")
-    if not script_indices or not rewrite_indices:
+    if not script_indices:
         return output, 0
 
-    rewrite_index = rewrite_indices[0]
-    native_line = output[rewrite_index]
-    native_normalized = normalize(native_line)
-    canonical_normalized = normalize(PDD_HOMEPAGE_NATIVE_JQ_RULE)
-    if native_normalized != canonical_normalized:
-        missing = [
-            item for item in PDD_HOMEPAGE_NATIVE_REQUIRED_MARKERS
-            if item not in native_normalized
-        ]
-        if missing:
-            raise ValueError("Pinduoduo homepage native rule changed; refusing unreviewed replacement: " + ", ".join(missing))
-        output[rewrite_index] = PDD_HOMEPAGE_NATIVE_JQ_RULE
+    canonical = normalize(PDD_HOMEPAGE_NATIVE_JQ_RULE)
+    approved_existing = {
+        canonical,
+        normalize(PDD_HOMEPAGE_LEGACY_NATIVE_RULE),
+    }
+    if rewrite_indices:
+        if any(normalize(output[index]) not in approved_existing for index in rewrite_indices):
+            details = " || ".join(output[index].strip()[:700] for index in rewrite_indices)
+            raise ValueError("Pinduoduo homepage native rule changed; refusing unreviewed replacement: " + details)
+        # Replace the reviewed upstream legacy variant and collapse duplicate
+        # copies to one canonical native pass.
+        keep = rewrite_indices[0]
+        output[keep] = PDD_HOMEPAGE_NATIVE_JQ_RULE
+        duplicate_indices = set(rewrite_indices[1:])
+        output = [line for index, line in enumerate(output) if index not in duplicate_indices]
+    else:
+        rewrite_header = next(
+            (i for i, line in enumerate(output)
+             if line.strip().lower() == "[rewrite]"),
+            None,
+        )
+        if rewrite_header is None:
+            script_header = next(
+                (i for i, line in enumerate(output)
+                 if line.strip().lower() == "[script]"),
+                None,
+            )
+            if script_header is None:
+                raise ValueError("Pinduoduo homepage cannot migrate to native jq: [Script] section is missing")
+            output.insert(script_header, "[Rewrite]")
+            rewrite_header = script_header
+        insert_at = next(
+            (i for i in range(rewrite_header + 1, len(output))
+             if output[i].strip().startswith("[") and output[i].strip().endswith("]")),
+            len(output),
+        )
+        output.insert(insert_at, PDD_HOMEPAGE_NATIVE_JQ_RULE)
 
-    output[script_indices[0]] = None
-    return [line for line in output if line is not None], 1
+    # Remove only the reviewed local PDD homepage script trigger.
+    result = []
+    section = ""
+    for line in output:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+            result.append(line)
+        elif not (
+            section == "Script"
+            and marker in normalize(line)
+            and "scripts/pinduoduo/pdd-homepage.js" in normalize(line)
+        ):
+            result.append(line)
+    return result, 1
+
 
 
 # 拼多多 images.pinduoduo.com 是商品图片 CDN；只拦截其广告素材路径，不整域拒绝。

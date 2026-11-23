@@ -97,72 +97,17 @@ process.stdout.write(JSON.stringify({ output, passThrough, parseCount: context._
         self.assertEqual(result["output"]["webViewFloorList"], [])
         self.assertNotIn("promotionTabs", result["output"])
 
-    def test_pdd_homepage_skips_serialization_when_already_clean(self):
-        body = {"result": {
-            "bottom_tabs": [
-                {"title": "首页", "link": "index.html"},
-                {"title": "聊天", "link": "chat_list.html"},
-                {"title": "个人中心", "link": "personal.html"},
-            ],
-            "buffer_bottom_tabs": [
-                {"title": "首页", "link": "index.html"},
-                {"title": "聊天", "link": "chat_list.html"},
-            ],
-            "module_order": [{"module_name": "goods"}, {"module_name": "feed"}],
-        }}
-        result = self.run_script(
-            "scripts/pinduoduo/pdd-homepage.js",
-            "https://api.pinduoduo.com/api/alexa/homepage/hub",
-            body,
-        )
-        self.assert_single_parse(result)
-        self.assertTrue(result["passThrough"])
-        self.assertEqual(result["stringifyCount"], 0)
-
-    def test_pdd_homepage_compacts_tabs_and_modules(self):
-        body = {"result": {
-            "bottom_tabs": [
-                {"title": "首页", "link": "index.html"},
-                {"title": "多多视频", "link": "index.html"},
-                {"title": "个人中心", "link": "personal.html"},
-            ],
-            "buffer_bottom_tabs": [
-                {"title": "聊天", "link": "chat_list.html"},
-                {"title": "bad", "link": "other.html"},
-            ],
-            "module_order": [
-                {"module_name": "ad_module"}, {"module_name": "goods"},
-                {"module_name": "timeline"},
-            ],
-        }}
-        result = self.run_script(
-            "scripts/pinduoduo/pdd-homepage.js",
-            "https://api.pinduoduo.com/api/alexa/homepage/hub",
-            body,
-        )
-        self.assert_single_parse(result)
-        self.assertEqual(
-            [x["title"] for x in result["output"]["result"]["bottom_tabs"]],
-            ["首页", "个人中心"],
-        )
-        self.assertEqual(
-            [x["module_name"] for x in result["output"]["result"]["module_order"]],
-            ["goods"],
-        )
-
-    def test_pdd_homepage_static_filters_are_not_reallocated_per_response(self):
-        source = (ROOT / "scripts/pinduoduo/pdd-homepage.js").read_text(encoding="utf-8")
-        main_start = source.index("function main()")
-        main_end = source.index("\nmain();", main_start)
-        module_scope = source[:main_start]
-        hot_path = source[main_start:main_end]
-
-        self.assertEqual(module_scope.count("new Set("), 4)
-        self.assertNotIn("new Set(", hot_path)
-        self.assertIn("compactInPlace(result.bottom_tabs, keepBottomTab)", hot_path)
-        self.assertIn("compactInPlace(result.buffer_bottom_tabs, keepBufferBottomTab)", hot_path)
-        self.assertIn("compactInPlace(result.module_order, keepHomepageModule)", hot_path)
-        self.assertNotIn("=>", hot_path)
+    def test_pdd_homepage_uses_native_jq_in_aggregate_plugin(self):
+        from apply_local_overrides import PDD_HOMEPAGE_NATIVE_JQ_RULE
+        plugin = (ROOT / "allAdRewrite.plugin").read_text(encoding="utf-8")
+        matching = [
+            line.replace(chr(92), "")
+            for line in plugin.splitlines()
+            if "api.pinduoduo.com/api/alexa/homepage/hub" in line.replace(chr(92), "")
+            and "response.json.jq(" in line
+        ]
+        self.assertEqual(matching, [PDD_HOMEPAGE_NATIVE_JQ_RULE.replace(chr(92), "")])
+        self.assertNotIn("pdd-homepage.js", plugin)
 
     def test_meituan_linglong_image_scans_headers_without_key_array(self):
         source = ROOT / "scripts" / "meituan" / "meituan.js"

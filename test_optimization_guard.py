@@ -29,11 +29,6 @@ class OptimizationGuardTests(unittest.TestCase):
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         artifacts = {item["path"]: item for item in manifest["artifacts"]}
         expected = {
-            "scripts/pinduoduo/pdd-homepage.js": [
-                "const allowedLinks = new Set([\"index.html\", \"chat_list.html\", \"personal.html\"]);",
-                "function compactInPlace(items, keep)",
-                "return $done(modified ? { body: JSON.stringify(obj) } : {});",
-            ],
             "scripts/jingdong/jd.js": [
                 "function compactInPlace(items, keep)",
                 "const WELCOME_HOME_EXTRA_EXCLUDE = new Set([",

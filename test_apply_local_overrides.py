@@ -618,7 +618,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
     def test_consolidates_pdd_homepage_scripts_and_preserves_unrelated_scripts(self):
         from apply_local_overrides import (
             PDD_RSTORE_HOMEPAGE_TRIGGER, PDD_LOCAL_HOMEPAGE_TRIGGER,
-            PDD_ISHOWSHU_HOMEPAGE_TRIGGER,
+            PDD_ISHOWSHU_HOMEPAGE_TRIGGER, PDD_HOMEPAGE_NATIVE_JQ_RULE,
         )
         unrelated = 'response if ${url} ~= /api.example.com/ then script("https://example.invalid/keep.js")'
         fixture = BASE.replace(
@@ -628,10 +628,12 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         )
         result = apply(fixture)
         script = result.split("[Script]", 1)[1].split("[MITM]", 1)[0]
-        self.assertEqual(script.count(PDD_LOCAL_HOMEPAGE_TRIGGER), 1)
+        rewrite = result.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
+        self.assertNotIn(PDD_LOCAL_HOMEPAGE_TRIGGER, script)
         self.assertNotIn(PDD_RSTORE_HOMEPAGE_TRIGGER, script)
         self.assertNotIn(PDD_ISHOWSHU_HOMEPAGE_TRIGGER, script)
         self.assertIn(unrelated, script)
+        self.assertIn(PDD_HOMEPAGE_NATIVE_JQ_RULE, rewrite)
         self.assertEqual(apply(result), result)
 
     def test_consolidates_current_romeo_ishowshu_response_script_trigger(self):
@@ -5127,21 +5129,11 @@ class PinduoduoHomepageNativeConsolidationTests(unittest.TestCase):
         self.assertFalse(any("scripts/pinduoduo/pdd-homepage.js" in line for line in result))
         self.assertEqual(consolidate_pdd_homepage_native_response(result), (result, 0))
 
-    def test_pdd_native_jq_covers_the_merged_script_behavior(self):
+    def test_pdd_native_jq_covers_all_homepage_cleanup_paths_without_js_asset(self):
         from pathlib import Path
         from apply_local_overrides import PDD_HOMEPAGE_NATIVE_JQ_RULE
-        script = (Path(__file__).parent / "scripts/pinduoduo/pdd-homepage.js").read_text(encoding="utf-8")
-        for marker in (
-            'deleteIfPresent(result.dy_module, "irregular_banner_dy")',
-            'deleteIfPresent(result, "icon_set")',
-            'deleteIfPresent(result, "search_bar_hot_query")',
-            "allowedTitles",
-            "allowedLinks",
-            "result.all_top_opts = []",
-            "removedModules",
-            "result.module_order",
-        ):
-            self.assertIn(marker, script)
+        root = Path(__file__).parent
+        self.assertFalse((root / "scripts/pinduoduo/pdd-homepage.js").exists())
         for marker in (
             "result.dy_module.irregular_banner_dy",
             "result.icon_set",
@@ -5150,6 +5142,9 @@ class PinduoduoHomepageNativeConsolidationTests(unittest.TestCase):
             ".result.buffer_bottom_tabs",
             ".result.all_top_opts? |=",
             ".result.module_order",
+            "irregular_banner",
+            "recommend_fresh_info",
+            "timeline",
         ):
             self.assertIn(marker, PDD_HOMEPAGE_NATIVE_JQ_RULE)
         self.assertEqual(PDD_HOMEPAGE_NATIVE_JQ_RULE.count("response.json.jq("), 1)
@@ -5216,6 +5211,50 @@ class PinduoduoHomepageNativeConsolidationTests(unittest.TestCase):
         self.assertEqual(removed, 0)
         self.assertEqual(result, without_script)
 
+    def test_pdd_reviewed_upstream_jq_variant_is_replaced_by_complete_canonical_rule(self):
+        from apply_local_overrides import (
+            PDD_HOMEPAGE_LEGACY_NATIVE_RULE,
+            PDD_HOMEPAGE_NATIVE_JQ_RULE,
+            PDD_LOCAL_HOMEPAGE_TRIGGER,
+            consolidate_pdd_homepage_native_response,
+        )
+        fixture = ["[Rewrite]", PDD_HOMEPAGE_LEGACY_NATIVE_RULE, "[Script]", PDD_LOCAL_HOMEPAGE_TRIGGER, "[MITM]"]
+        result, removed = consolidate_pdd_homepage_native_response(fixture)
+        self.assertEqual(removed, 1)
+        self.assertIn(PDD_HOMEPAGE_NATIVE_JQ_RULE, result)
+        self.assertNotIn(PDD_HOMEPAGE_LEGACY_NATIVE_RULE, result)
+        self.assertFalse(any("pdd-homepage.js" in line for line in result))
+
+    def test_pdd_legacy_script_is_migrated_to_native_jq_even_when_upstream_jq_is_missing(self):
+        from apply_local_overrides import (
+            PDD_LOCAL_HOMEPAGE_TRIGGER,
+            PDD_HOMEPAGE_NATIVE_JQ_RULE,
+            consolidate_pdd_homepage_native_response,
+        )
+        fixture = ["[Rewrite]", "[Script]", PDD_LOCAL_HOMEPAGE_TRIGGER, "[MITM]"]
+        result, removed = consolidate_pdd_homepage_native_response(fixture)
+        self.assertEqual(removed, 1)
+        self.assertIn(PDD_HOMEPAGE_NATIVE_JQ_RULE, result)
+        self.assertFalse(any("pdd-homepage.js" in line for line in result))
+        self.assertEqual(sum("response.json.jq(" in line and "api.pinduoduo.com" in line.replace(chr(92), "") for line in result), 1)
+        self.assertEqual(consolidate_pdd_homepage_native_response(result), (result, 0))
+
+    def test_pdd_upstream_script_consolidation_always_emits_native_rule(self):
+        from apply_local_overrides import (
+            PDD_RSTORE_HOMEPAGE_TRIGGER,
+            PDD_ISHOWSHU_HOMEPAGE_TRIGGER,
+            PDD_HOMEPAGE_NATIVE_JQ_RULE,
+            consolidate_pdd_homepage_script,
+        )
+        fixture = ["[Rewrite]", "[Script]", PDD_RSTORE_HOMEPAGE_TRIGGER, PDD_ISHOWSHU_HOMEPAGE_TRIGGER, "[MITM]"]
+        result, removed = consolidate_pdd_homepage_script(fixture)
+        self.assertEqual(removed, 2)
+        from apply_local_overrides import consolidate_pdd_homepage_native_response
+        result, native_removed = consolidate_pdd_homepage_native_response(result)
+        self.assertEqual(native_removed, 1)
+        self.assertIn(PDD_HOMEPAGE_NATIVE_JQ_RULE, result)
+        self.assertFalse(any("pdd-homepage.js" in line or "ishowshu_pdd.js" in line for line in result))
+
     def test_pdd_homepage_native_rule_fails_closed_on_drift_or_duplicates(self):
         from apply_local_overrides import consolidate_pdd_homepage_native_response
         from apply_local_overrides import PDD_HOMEPAGE_NATIVE_JQ_RULE, PDD_LOCAL_HOMEPAGE_TRIGGER
@@ -5231,8 +5270,15 @@ class PinduoduoHomepageNativeConsolidationTests(unittest.TestCase):
         native = PDD_HOMEPAGE_NATIVE_JQ_RULE
         script_index = next(i for i, line in enumerate(duplicate) if line.strip() == "[Script]")
         duplicate.insert(script_index, native)
-        with self.assertRaisesRegex(ValueError, "duplicate Pinduoduo homepage native response rule"):
-            consolidate_pdd_homepage_native_response(duplicate)
+        deduplicated, removed = consolidate_pdd_homepage_native_response(duplicate)
+        self.assertEqual(removed, 1)
+        self.assertEqual(sum("response.json.jq(" in line for line in deduplicated), 1)
+        self.assertFalse(any("pdd-homepage.js" in line for line in deduplicated))
+
+        conflicting = list(duplicate)
+        conflicting.insert(script_index, native.replace("all_top_opts", "all_top_options"))
+        with self.assertRaisesRegex(ValueError, "native rule changed"):
+            consolidate_pdd_homepage_native_response(conflicting)
 
 
 class ShadowedAmdcResponseTriggerTests(unittest.TestCase):

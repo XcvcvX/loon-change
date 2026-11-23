@@ -121,15 +121,6 @@
       ]
     },
     {
-      "path": "scripts/pinduoduo/pdd-homepage.js",
-      "required": [
-        "const allowedLinks = new Set([\"index.html\", \"chat_list.html\", \"personal.html\"]);",
-        "const removedModules = new Set([",
-        "function compactInPlace(items, keep)",
-        "return $done(modified ? { body: JSON.stringify(obj) } : {});"
-      ]
-    },
-    {
       "path": "scripts/jingdong/jd.js",
       "required": [
         "function compactInPlace(items, keep)",
