@@ -147,9 +147,9 @@ def optimize_source(source: str) -> str:
         "unused local template regex",
     )
     source = replace_once(source, '!AD_TEMPLATE_RE.test(templateName || "")',
-                          "!AD_TEMPLATE_NAMES.has(String(templateName || ""))", "local-home template matcher")
+                          '!AD_TEMPLATE_NAMES.has(String(templateName || ""))', "local-home template matcher")
     source = replace_once(source, '!AD_TEMPLATE_RE.test(dataTemplateName || "")',
-                          "!AD_TEMPLATE_NAMES.has(String(dataTemplateName || ""))", "local-home data-template matcher")
+                          '!AD_TEMPLATE_NAMES.has(String(dataTemplateName || ""))', "local-home data-template matcher")
     source = replace_once(
         source,
         '''      const keepIndexes = new Set(["0", "1", "3"]);
