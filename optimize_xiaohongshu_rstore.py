@@ -7,6 +7,7 @@ from pathlib import Path
 REMOTE = "https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaohongshu.js"
 LOCAL = "https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xiaohongshu/xiaohongshu-rstore.js"
 MARKER = "// loon-change: R-Store Xiaohongshu hot-path optimization v1; upstream zirawell/R-Store@"
+COMMENT_TREE_MARKER = "// loon-change: Xiaohongshu parsed JSON tree traversal without visited WeakSet v1;"
 
 HELPERS = r'''
 function compactInPlace(items, keep) {
@@ -118,7 +119,8 @@ REPLACE_URL = r'''function replaceUrlContent(collectionA, collectionB) {
 COMMENT_HELPER = r'''function cleanCommentsAndCollectLivePhotos(data) {
   const livePhotos = [];
   const stack = [data];
-  const visited = new WeakSet();
+  // loon-change: Xiaohongshu parsed JSON tree traversal without visited WeakSet v1;
+  // JSON.parse creates a tree: nodes cannot be cyclic or shared by reference.
   const commentNodes = new WeakSet();
   const topLevelComments = new WeakSet();
   const videoInfoCache = new Map();
@@ -132,8 +134,7 @@ COMMENT_HELPER = r'''function cleanCommentsAndCollectLivePhotos(data) {
   }
   while (stack.length) {
     const current = stack.pop();
-    if (!current || typeof current !== "object" || visited.has(current)) continue;
-    visited.add(current);
+    if (!current || typeof current !== "object") continue;
     if (!Array.isArray(current) && "red_id" in current) delete current.red_id;
     if (commentNodes.has(current)) {
       if (current.comment_type === 3) current.comment_type = 2;
@@ -284,15 +285,22 @@ def optimize_source(source, commit="unknown"):
         source = optimize_video_save_lookup(source)
         required = ("imageEnhance(images)", "compactInPlace(obj.data", "appendUniqueLivePhotos",
                     "const byFileId = new Map()", "function cleanCommentsAndCollectLivePhotos(data)",
-                    "const videoInfoCache = new Map()", "const visited = new WeakSet()")
+                    "const videoInfoCache = new Map()")
         if any(token not in source for token in required):
             raise ValueError("marked R-Store Xiaohongshu source is incomplete")
         if "function removeRedId(obj) {" in source:
             source = between(source, "function removeRedId(obj) {", "function Env(", COMMENT_HELPER, "comment helper")
+        elif "function cleanCommentsAndCollectLivePhotos(data) {" in source:
+            source = between(source, "function cleanCommentsAndCollectLivePhotos(data) {",
+                             "function Env(", COMMENT_HELPER, "comment helper refresh")
+        else:
+            raise ValueError("R-Store comment traversal helper anchor missing; refusing upgrade")
         source = between(source, '} else if (url.includes("/note/comment")) {',
                          '} else if (url.includes("/interaction/comment/video/download")) {',
                          COMMENT_BRANCH, "comment branch")
         source = apply_live_photo_cache_optimization(source)
+        if (COMMENT_TREE_MARKER not in source or "visited.has(current)" in source or "const visited = new WeakSet()" in source:
+            raise ValueError("comment traversal still allocates/checks a visited WeakSet")
         source = source.replace("if (!$response.body) $done({});" + chr(10), "")
         guard = "if (!$response.body) { $done({}); } else {"
         if guard not in source:
@@ -421,7 +429,7 @@ def optimize_source(source, commit="unknown"):
         "imageEnhance(images_list)", "compactInPlace(obj.data",
         "appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)",
         "const byFileId = new Map()", "const stack = [data]",
-        "selectedStream = null",
+        COMMENT_TREE_MARKER, "selectedStream = null",
     )
     for token in invariants:
         if token not in result:
@@ -430,6 +438,8 @@ def optimize_source(source, commit="unknown"):
         raise ValueError("image-feed JSON round trip remains")
     if ".filter(v => !!v.master_url && !!v.height).sort(" in result:
         raise ValueError("video filter/sort allocation remains")
+    if "const visited = new WeakSet()" in result or "visited.has(current)" in result:
+        raise ValueError("comment traversal visited WeakSet overhead remains")
     return result
 
 def rewrite_plugin(plugin):
