@@ -123,8 +123,35 @@ process.stdout.write(JSON.stringify({
         self.assertIn("w/2160/format", item["images_list"][0]["nested"]["url"])
         self.assertEqual([tag["type"] for tag in item["hash_tag"]], ["normal"])
         cached = json.loads(result["store"]["redBookLivePhoto"])
-        self.assertEqual(cached[0]["url"], original)
-        self.assertEqual(cached[0]["nested"]["url"], original)
+        self.assertEqual(cached, [{
+            "file_id": "live-file-1",
+            "video_id": "video-1",
+            "url": "https://video.example/live.mp4"
+        }])
+        self.assertNotIn("nested", cached[0])
+        self.assertLess(
+            len(result["store"]["redBookLivePhoto"]),
+            len(json.dumps(body["data"][0]["note_list"][0]["images_list"]))
+        )
+
+
+    def test_live_photo_save_consumes_compact_cache_records(self):
+        compact = [{
+            "file_id": "live-file-1",
+            "video_id": "video-1",
+            "url": "https://video.example/live.mp4"
+        }]
+        body = {"code": 0, "data": {"datas": [{
+            "file_id": "live-file-1",
+            "url": "https://placeholder.example/video.mp4"
+        }]}}
+        result = self.run_script(
+            "https://edith.xiaohongshu.com/api/sns/v1/note/live_photo/save",
+            body,
+            store={"redBookLivePhoto": json.dumps(compact)}
+        )
+        output = json.loads(result["doneResult"]["body"])
+        self.assertEqual(output["data"]["datas"][0]["url"], "https://video.example/live.mp4")
 
     def test_homefeed_compaction_is_stable_and_keeps_null_items(self):
         body = {"data": [
