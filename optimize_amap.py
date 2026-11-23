@@ -203,9 +203,10 @@ def optimize_scalar_membership(source):
         source = source.replace(nearby_old, nearby_new, 1)
 
         brand_old = "compactInPlace(list.content, (i) => !AMAP_STATIC_ITEMS_09.includes(i?.item_type));"
-        brand_new = """compactInPlace(list.content, (i) =>
-          i?.item_type !== "brandAdCard" && i?.item_type !== "toplist_al"
-        );"""
+        brand_new = """compactInPlace(list.content, (i) => {
+          const itemType = i?.item_type;
+          return itemType !== "brandAdCard" && itemType !== "toplist_al";
+        });"""
         if source.count(brand_old) != 1:
             raise ValueError("Amap search card membership block changed")
         source = source.replace(brand_old, brand_new, 1)
@@ -241,8 +242,24 @@ def optimize_scalar_membership(source):
         raise ValueError("Amap scalar membership optimization is incomplete")
     if 'i === "head" || i === "search_hot_words" || i === "feed_rec"' not in source:
         raise ValueError("Amap nearby scalar predicate is missing")
-    if 'i?.item_type !== "brandAdCard" && i?.item_type !== "toplist_al"' not in source:
-        raise ValueError("Amap search card scalar predicate is missing")
+    card_pattern = re.compile(
+        r'compactInPlace\(list\.content, \((\w+)\) =>\s*\1\?\.item_type !== "brandAdCard" && \1\?\.item_type !== "toplist_al"\s*\);'
+    )
+    source, card_rewrites = card_pattern.subn(
+        lambda match: (
+            "compactInPlace(list.content, (" + match.group(1) + ") => {\n"
+            "          const itemType = " + match.group(1) + "?.item_type;\n"
+            "          return itemType !== \"brandAdCard\" && itemType !== \"toplist_al\";\n"
+            "        });"
+        ),
+        source,
+    )
+    if card_rewrites > 1:
+        raise ValueError("Amap search card itemType cache anchor is duplicated")
+    if not re.search(r"const itemType = \w+\?\.item_type;", source):
+        raise ValueError("Amap search card itemType cache is missing")
+    if re.search(r"\b\w+\?\.item_type !== \"(?:brandAdCard|toplist_al)\"", source):
+        raise ValueError("Amap repeated search card itemType access remains")
     return source
 
 

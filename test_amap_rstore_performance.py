@@ -300,6 +300,28 @@ process.stdout.write(nativeJSON.stringify({doneResult, parseCount, stringifyCoun
         self.assertIn('url.includes("/valueadded/alimama/splash_screen")', repaired)
         self.assertEqual(optimize_source(repaired), repaired)
 
+    def test_search_card_filter_caches_item_type_and_optimizer_repairs_upstream_form(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        self.assertEqual(source.count("const itemType = i?.item_type;"), 1)
+        self.assertNotIn('i?.item_type !== "brandAdCard"', source)
+        self.assertNotIn('i?.item_type !== "toplist_al"', source)
+        self.assertEqual(optimize_source(source), source)
+
+        # Simulate the pre-cache upstream predicate and verify automatic repair.
+        cached = """compactInPlace(list.content, (i) => {
+          const itemType = i?.item_type;
+          return itemType !== "brandAdCard" && itemType !== "toplist_al";
+        });"""
+        upstream = """compactInPlace(list.content, (item) =>
+          item?.item_type !== "brandAdCard" && item?.item_type !== "toplist_al"
+        );"""
+        damaged = source.replace(cached, upstream, 1)
+        self.assertNotEqual(damaged, source)
+        repaired = optimize_source(damaged)
+        self.assertIn("const itemType = item?.item_type;", repaired)
+        self.assertNotIn('item?.item_type !== "brandAdCard"', repaired)
+        self.assertEqual(optimize_source(repaired), repaired)
+
     def test_search_suggestion_caches_tip_reference_once_per_item(self):
         source = SOURCE.read_text(encoding="utf-8")
         start = 'if (url.includes("/shield/search_poi/sug")) {'
