@@ -964,3 +964,13 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - Mango personal page: compact module list and nested user/service entries in place, preserving existing module and title predicates.
 - Extend upstream reapplication with exact reviewed source anchors and fail-closed drift handling; add Node VM runtime assertions and marker/idempotence checks.
 - This removes temporary arrays on these response paths; real-device CPU and battery gains remain unquantified.
+
+
+## 第八阶段：CNFTP 爱奇艺个人页/首页与芒果播放页数组分配优化
+
+- 爱奇艺「我的」页面将外层菜单与每个 `menuList` 的过滤改为稳定原地压缩，避免为菜单及嵌套列表分别创建新数组。
+- 爱奇艺首页保留原有广告卡片过滤与按钮清理语义，直接对原数组稳定压缩，不再创建并整体替换 `newCards`。
+- 芒果播放页组件列表改为稳定原地压缩，保留原有模块筛选及推荐语字段清理。
+- 优化器增加精确旧代码块、唯一 marker 与 route anchor 检查；上游结构漂移时 fail-closed，确保同步时自动重应用而不静默丢失优化。
+- 增加 Node.js 运行时回归，验证三个接口的过滤结果、顺序、嵌套字段清理及 JSON 往返次数；静态不变量同步登记。
+- 这些改动减少响应处理期间的临时数组创建，不代表未经真机测量的 CPU/耗电百分比。
