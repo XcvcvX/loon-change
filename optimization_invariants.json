@@ -29,7 +29,8 @@
         "const livePhotoCache = []",
         "file_id: image.live_photo_file_id",
         "JSON.stringify(livePhotoCache), \"redBookLivePhoto\"",
-        "item?.file_id"
+        "item?.file_id",
+        "obj.data.download_url = item.url;\\n        break;"
       ],
       "forbidden": [
         "JSON.stringify(images_list), \"redBookLivePhoto\"",
