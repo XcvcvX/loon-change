@@ -316,6 +316,9 @@ const AMAP_STATIC_ITEMS_08 = [
 
 
 // loon-change: Amap scalar membership hot loops v1
+// loon-change: Amap shared dynamic ad matcher v1
+const AMAP_AD_DYNAMIC_ID = /ads-\d+/;
+
 function compactInPlace(items, keep) {
   let write = 0;
   let changed = false;
@@ -463,7 +466,7 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
 } else if (url.includes("/perception/drive/routeInfo")) {
   // 导航详情页
   if (obj?.data?.tbt?.event?.length > 0) {
-    compactInPlace(obj.data.tbt.event, (i) => !/ads-\d+/.test(i?.dynamic_id_s));
+    compactInPlace(obj.data.tbt.event, (i) => !AMAP_AD_DYNAMIC_ID.test(i?.dynamic_id_s));
   }
   if (obj?.data?.front_end) {
     if (obj?.data?.front_end?.guide_tips?.length > 0) {
@@ -476,7 +479,7 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
     }
     if (obj?.data?.front_end?.download?.length > 0) {
       // 导航插播语音广告
-      compactInPlace(obj.data.front_end.download, (i) => !/ads-\d+/.test(i?.dynamic_id_s));
+      compactInPlace(obj.data.front_end.download, (i) => !AMAP_AD_DYNAMIC_ID.test(i?.dynamic_id_s));
     }
   }
 } else if (url.includes("/perception/drive/routePlan")) {
@@ -489,11 +492,11 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
   }
   if (obj?.data?.tbt?.event?.length > 0) {
     // 导航插播语音广告
-    compactInPlace(obj.data.tbt.event, (i) => !/ads-\d+/.test(i?.dynamic_id_s));
+    compactInPlace(obj.data.tbt.event, (i) => !AMAP_AD_DYNAMIC_ID.test(i?.dynamic_id_s));
   }
   if (obj?.data?.front_end?.download?.length > 0) {
     // 导航插播语音广告
-    compactInPlace(obj.data.front_end.download, (i) => !/ads-\d+/.test(i?.dynamic_id_s));
+    compactInPlace(obj.data.front_end.download, (i) => !AMAP_AD_DYNAMIC_ID.test(i?.dynamic_id_s));
   }
 } else if (url.includes("/promotion-web/resource")) {
   // 打车页面
