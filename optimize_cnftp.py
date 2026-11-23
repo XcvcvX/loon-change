@@ -237,17 +237,21 @@ IQIYI_WATERFALL_NEW = """      // loon-change: iQIYI waterfall nested stable in-
 def ensure_iqiyi_mango_compaction(source: str) -> str:
     """Reapply three audited high-frequency array-copy removals after upstream refresh."""
     replacements = (
-        (MANGO_VRSLIST_OLD, MANGO_VRSLIST_NEW, "Mango vrsList"),
-        (MANGO_ODIN_OLD, MANGO_ODIN_NEW, "Mango odin"),
-        (IQIYI_WATERFALL_OLD, IQIYI_WATERFALL_NEW, "iQIYI waterfall"),
+        (MANGO_VRSLIST_OLD, MANGO_VRSLIST_NEW, "Mango vrsList", 'url.includes("/dynamic/v1/channel/vrsList/")'),
+        (MANGO_ODIN_OLD, MANGO_ODIN_NEW, "Mango odin", 'url.includes("/odin/c1/channel/index?")'),
+        (IQIYI_WATERFALL_OLD, IQIYI_WATERFALL_NEW, "iQIYI waterfall", 'url.includes("/waterfall/")'),
     )
-    for old, new, label in replacements:
+    for old, new, label, route_anchor in replacements:
         marker = new.splitlines()[0]
         if marker in source:
             if source.count(marker) != 1 or old in source:
                 raise ValueError(label + " compaction marker/structure drift")
             continue
         if source.count(old) != 1:
+            # A source may legitimately remove an entire optional route. If its route
+            # still exists but its reviewed loop changed, stop rather than guessing.
+            if route_anchor not in source:
+                continue
             raise ValueError(label + " upstream structure changed; refusing an unreviewed optimization")
         source = source.replace(old, new, 1)
     return source
