@@ -35,6 +35,18 @@ class BaiduMapBinaryPerformanceTests(unittest.TestCase):
         self.assertIn("const targetData = binaryBody.subarray(currentOffset, currentOffset + targetDataLength);", loop)
         self.assertNotIn("const targetData = binaryBody.subarray", loop.split("if(name === 'Result'){", 1)[0])
 
+    def test_result_payload_view_is_deferred_until_ads_change(self):
+        marker = "// loon-change: Baidu protobuf target-only byte views v1"
+        self.assertIn(marker, self.source)
+        start = self.source.index(marker)
+        end = self.source.index("\\n\\nif(!adsFound", start)
+        loop = self.source[start:end]
+        self.assertIn("let resultOffset = -1;", loop)
+        self.assertIn("resultOffset = dataBeginOffset + messageHead.offset;", loop)
+        self.assertNotIn("newResult = binaryBody.subarray(currentOffset", loop)
+        self.assertIn("if (modifiedAds && resultOffset !== -1)", loop)
+        self.assertIn("newResult = binaryBody.subarray(resultOffset, resultOffset + resultLength);", loop)
+
     def test_binary_input_reuses_existing_uint8array(self):
         self.assertIn("const binaryBody = responseBytes instanceof Uint8Array", self.source)
         self.assertNotIn("new Uint8Array($response.bodyBytes)", self.source)
@@ -300,7 +312,14 @@ function fixture(type, start, end, includeAds) {
 
 const input = fixture(process.argv[2], Number(process.argv[3]), Number(process.argv[4]), process.argv[5] !== "no-ads");
 let doneResult;
+class CountedUint8Array extends Uint8Array {
+  subarray(...args) {
+    globalThis.__subarrayCount = (globalThis.__subarrayCount || 0) + 1;
+    return super.subarray(...args);
+  }
+}
 const context = {
+  Uint8Array: CountedUint8Array,
   $response: { body: input },
   $done(value) { doneResult = value; },
   console: { log() {}, warn() {}, error() {} }
@@ -328,13 +347,15 @@ if (doneResult.body) {
     outputLength: output.length,
     md5: decoded.md5,
     md5InitCount: context.__md5InitCount || 0,
+    subarrayCount: context.__subarrayCount || 0,
     item: decoded.item
   }));
 } else {
   process.stdout.write(JSON.stringify({
     hasBody: false,
     originalLength: input.length,
-    md5InitCount: context.__md5InitCount || 0
+    md5InitCount: context.__md5InitCount || 0,
+    subarrayCount: context.__subarrayCount || 0
   }));
 }
 """
@@ -355,16 +376,19 @@ if (doneResult.body) {
         result = self.run_script("normal", 1, 2, include_ads=False)
         self.assertFalse(result["hasBody"])
         self.assertEqual(result["md5InitCount"], 0)
+        self.assertEqual(result["subarrayCount"], 1)
 
     def test_non_target_ads_skip_protobuf_encode_md5_and_body_reassembly(self):
         result = self.run_script("normal", 1, 2)
         self.assertFalse(result["hasBody"])
         self.assertEqual(result["md5InitCount"], 0)
+        self.assertEqual(result["subarrayCount"], 2)
 
     def test_already_clean_target_ads_skip_protobuf_encode_md5_and_body_reassembly(self):
         result = self.run_script("home_banner", 1648746061, 1648832461)
         self.assertFalse(result["hasBody"])
         self.assertEqual(result["md5InitCount"], 0)
+        self.assertEqual(result["subarrayCount"], 2)
 
     def test_changed_target_ads_still_rebuild_with_correct_values(self):
         result = self.run_script("home_banner", 1, 2)
@@ -374,6 +398,7 @@ if (doneResult.body) {
         self.assertEqual(len(result["md5"]), 32)
         self.assertGreater(result["outputLength"], 0)
         self.assertEqual(result["md5InitCount"], 1)
+        self.assertEqual(result["subarrayCount"], 4)
 
 
 if __name__ == "__main__":
