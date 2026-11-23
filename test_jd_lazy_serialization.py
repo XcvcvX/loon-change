@@ -162,6 +162,16 @@ class JingdongOptimizerTests(unittest.TestCase):
         self.assertIn("[MITM]", rewritten)
         self.assertEqual(rewrite_plugin(rewritten), rewritten)
 
+    def test_plugin_rewrite_keeps_reviewed_core_and_optional_welcome_pair(self):
+        from apply_local_overrides import JD_CANONICAL_TRIGGER, JD_OPTIONAL_WELCOME_TRIGGER
+        fixture = "[Script]\n" + JD_CANONICAL_TRIGGER + "\n" + JD_OPTIONAL_WELCOME_TRIGGER + "\n[MITM]\nhostname = api.m.jd.com\n"
+        self.assertEqual(rewrite_plugin(fixture), fixture)
+
+    def test_plugin_rewrite_keeps_reviewed_full_local_trigger(self):
+        from apply_local_overrides import JD_LOCAL_COMBINED_TRIGGER
+        fixture = "[Script]\n" + JD_LOCAL_COMBINED_TRIGGER + "\n[MITM]\nhostname = api.m.jd.com\n"
+        self.assertEqual(rewrite_plugin(fixture), fixture)
+
     def test_plugin_rewrite_fails_closed_when_remote_jd_trigger_is_missing(self):
         fixture = "[Script]\nhttp-response ^https://example.com script-path=https://example.com/x.js\n"
         with self.assertRaisesRegex(ValueError, "trigger not found"):
