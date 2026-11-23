@@ -30,7 +30,7 @@ class OptimizationGuardTests(unittest.TestCase):
         artifacts = {item["path"]: item for item in manifest["artifacts"]}
         expected = {
             "scripts/pinduoduo/pdd-homepage.js": [
-                "const allowedLinks = new Set(",
+                const allowedLinks = new Set(["index.html", "chat_list.html", "personal.html"]);",
                 "function compactInPlace(items, keep)",
                 "return $done(modified ? { body: JSON.stringify(obj) } : {});",
             ],
