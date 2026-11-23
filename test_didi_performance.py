@@ -70,6 +70,8 @@ class DidiOptimizerTests(unittest.TestCase):
         self.assertIn("if (!$response.body) {", result)
         self.assertIn("$done(modified ? {body: JSON.stringify(obj)} : {});", result)
         self.assertIn("if (write !== length) modified = true;", result)
+        self.assertIn("Didi pre-parse supported-route guard v1", result)
+        self.assertLess(result.index("const shouldProcess"), result.index("JSON.parse($response.body)"))
         self.assertTrue(result.rstrip().endswith("}"))
         self.assertEqual(optimize_source(result), result)
 
@@ -254,6 +256,11 @@ if (payload.body === null) {
         self.assertEqual(result["parseCount"], 1)
         self.assertEqual(result["stringifyCount"], 0)
 
+    def test_unrelated_response_skips_json_parse_before_body_decode(self):
+        result = self.run_script("https://api.diditaxi.com.cn/unrelated/large-response", {"large": [1, 2, 3]})
+        self.assertTrue(result["passThrough"])
+        self.assertEqual(result["parseCount"], 0)
+        self.assertEqual(result["stringifyCount"], 0)
     def test_empty_body_skips_json_parse(self):
         result = self.run_script(
             "https://api.udache.com/gulfstream/pre-sale/v1/other/pGetSceneList",
