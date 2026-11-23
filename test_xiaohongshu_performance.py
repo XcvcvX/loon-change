@@ -24,23 +24,30 @@ class XiaohongshuOptimizerTests(unittest.TestCase):
         self.assertNotIn("function replaceRedIdWithFmz200(obj)",source)
         self.assertIn("const parsedVideoInfo = new Map()",source)
         self.assertIn("processCommentTree(obj.data, livePhotos, commentVideos, note_id);",source)
+        self.assertIn("// loon-change: Xiaohongshu parsed JSON comment tree without visited WeakSet v1;",source)
+        self.assertNotIn("const visited = new WeakSet()",source)
+        self.assertNotIn("visited.has(current)",source)
 
     @unittest.skipUnless(NODE,"Node required for comment runtime test")
     def test_comment_tree_single_pass_preserves_cleanup_and_media_caches(self):
         runner=r'''
 const fs=require("fs"),vm=require("vm"),source=fs.readFileSync("scripts/xiaohongshu/xiaohongshu.js","utf8");
-const p=JSON.parse(fs.readFileSync(0,"utf8")),store=new Map();let done,parseCalls=0;
-const nativeJSON=JSON;
+const p=JSON.parse(fs.readFileSync(0,"utf8")),store=new Map();let done,parseCalls=0,weakSetConstructCount=0;
+const nativeJSON=JSON,NativeWeakSet=WeakSet;
+class CountedWeakSet extends NativeWeakSet { constructor(...args){super(...args);weakSetConstructCount++;} }
 const trackedJSON={parse(value){parseCalls++;return nativeJSON.parse(value);},stringify(value){return nativeJSON.stringify(value);}};
-const ctx={JSON:trackedJSON,$loon:{},$persistentStore:{read:k=>store.get(k)||null,write:(v,k)=>(store.set(k,v),true)},
+const ctx={JSON:trackedJSON,WeakSet:CountedWeakSet,$loon:{},$persistentStore:{read:k=>store.get(k)||null,write:(v,k)=>(store.set(k,v),true)},
 $request:{url:p.url},$response:{body:nativeJSON.stringify(p.body)},$done:v=>done=v,console:{log(){},warn(){},error(){}}};
 vm.runInNewContext(source,ctx,{timeout:5000});
-process.stdout.write(nativeJSON.stringify({body:nativeJSON.parse(done.body),store:Object.fromEntries(store),parseCalls}));
+process.stdout.write(nativeJSON.stringify({body:nativeJSON.parse(done.body),store:Object.fromEntries(store),parseCalls,weakSetConstructCount}));
 '''
         video_info=json.dumps({"stream":{"h265":[
             {"master_url":"https://video.example/2160.mp4","width":3840,"height":2160}
         ]}})
-        body={"data":{"red_id":"root","comments":[{
+        deep={"red_id":"deep-400"}
+        for depth in range(400):
+            deep={"nested":deep,"red_id":f"deep-{depth}"}
+        body={"data":{"red_id":"root","deep":deep,"comments":[{
             "id":"top","note_id":"note-1","red_id":"top-red","comment_type":3,"media_source_type":1,
             "pictures":[{"video_id":"live-1","video_info":video_info}],
             "videos":[{"video_id":"comment-video-1","video_info":video_info}],
@@ -69,6 +76,15 @@ process.stdout.write(nativeJSON.stringify({body:nativeJSON.parse(done.body),stor
         self.assertEqual(videos["videos"][0]["videId"],"comment-video-1")
         self.assertEqual(videos["videos"][0]["videoUrl"],live["livePhotos"][0]["videoUrl"])
         self.assertEqual(out["parseCalls"],2)
+        self.assertEqual(out["weakSetConstructCount"],2)
+        current=out["body"]["data"]["deep"]
+        depth=0
+        while "nested" in current:
+            self.assertNotIn("red_id",current)
+            current=current["nested"]
+            depth+=1
+        self.assertEqual(depth,400)
+        self.assertNotIn("red_id",current)
     def test_video_feed_does_not_log_each_cached_item(self):
         source=(ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")
         self.assertNotIn("console.log(`[缓存] ID:",source)
@@ -78,7 +94,9 @@ process.stdout.write(nativeJSON.stringify({body:nativeJSON.parse(done.body),stor
         source=(ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")
         self.assertNotIn("Object.keys(current)",source)
         self.assertIn("for (const key in current)",source)
-        self.assertIn("const visited = new WeakSet()",source)
+        self.assertIn("// loon-change: Xiaohongshu parsed JSON comment tree without visited WeakSet v1;",source)
+        self.assertNotIn("const visited = new WeakSet()",source)
+        self.assertNotIn("visited.has(current)",source)
         self.assertIn("Object.prototype.hasOwnProperty.call(current, key)",source)
         self.assertIn("processCommentTree(obj.data, livePhotos, commentVideos, note_id);",source)
 
