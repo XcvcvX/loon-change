@@ -74,8 +74,18 @@ if (url.includes("/note/imagefeed") || url.includes("/note/feed")) {
       }
 
       const images_list = obj.data[0].note_list[0].images_list;
-      // Cache the original image URLs once, then mutate the parsed object in place.
-      $.setdata(JSON.stringify(images_list), "redBookLivePhoto");
+      // Cache only fields consumed by the live-photo save endpoint.
+      const livePhotoCache = [];
+      for (const image of images_list) {
+        if (image?.live_photo_file_id) {
+          livePhotoCache.push({
+            file_id: image.live_photo_file_id,
+            video_id: image.live_photo?.media?.video_id,
+            url: image.live_photo?.media?.stream?.h265?.[0]?.master_url
+          });
+        }
+      }
+      $.setdata(JSON.stringify(livePhotoCache), "redBookLivePhoto");
       imageEnhance(images_list);
     }
   }
@@ -88,14 +98,13 @@ if (url.includes("/note/imagefeed") || url.includes("/note/feed")) {
     $done({body: rsp_body});
   }
   livePhoto = JSON.parse(rsp);
-  for (let item of livePhoto) {
-    if (item.live_photo_file_id) {
-      let myData = {
-        file_id: item.live_photo_file_id,
-        video_id: item.live_photo.media.video_id,
-        url: item.live_photo.media.stream.h265[0].master_url
-      };
-      newDatas.push(myData);
+  for (const item of livePhoto) {
+    if (item?.file_id) {
+      newDatas.push({
+        file_id: item.file_id,
+        video_id: item.video_id,
+        url: item.url
+      });
     }
   }
   if (obj?.data?.datas?.length > 0) {
