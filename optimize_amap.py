@@ -205,7 +205,7 @@ def optimize_scalar_membership(source):
             ("AMAP_STATIC_ITEMS_06", r'\["head", "search_hot_words", "feed_rec"\]'),
             ("AMAP_STATIC_ITEMS_09", r'\["brandAdCard", "toplist_al"\]'),
         ):
-            pattern = re.compile(r"^const " + name + r"\s*=\s*" + literal + r";?\s*$", re.M)
+            pattern = re.compile(r"^const " + name + r"\s*=\s*" + literal + r";*\s*$", re.M)
             if len(pattern.findall(source)) != 1:
                 raise ValueError("Amap unused membership array changed: " + name)
             source = pattern.sub("", source, count=1)
