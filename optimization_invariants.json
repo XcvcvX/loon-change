@@ -110,7 +110,6 @@
         "$done(modified ? {body: JSON.stringify(obj)} : {});",
         "// loon-change: Amap scalar membership hot loops v1",
         "i === \"head\" || i === \"search_hot_words\" || i === \"feed_rec\"",
-        "i?.item_type !== \"brandAdCard\" && i?.item_type !== \"toplist_al\"",
         "tip?.datatype_spec !== \"12\"",
         "tip?.result_type !== \"poi_ad\"",
         "tip?.task_tag !== \"query_sug_merge_theme\"",
