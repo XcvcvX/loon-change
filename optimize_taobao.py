@@ -57,7 +57,7 @@ def rewrite_plugin(plugin):
             kind = classify(line)
             if kind: local[kind] += 1
         if KELEE_PATH in line:
-            if section != "script" or "response if \${url}" not in line or "requires_body=true" not in line:
+            if section != "script" or ("response if " + "$" + "{url}") not in line or "requires_body=true" not in line:
                 raise ValueError("Unreviewed Taobao Kelee handler section/format; refusing cleanup")
             kind = classify(line)
             if not kind: raise ValueError("Unrecognized Taobao Kelee URL matcher; refusing cleanup")
