@@ -948,3 +948,11 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - Extend the CNFTP upstream optimizer so all three transformations are reapplied after upstream refresh and fail closed when their exact source anchors drift.
 - Add Node VM regression coverage for filtering semantics, order, and one JSON parse/stringify per response; add required markers to the optimization invariant manifest.
 - This reduces temporary response-array allocations only; no device-side CPU or battery percentage is claimed without on-device measurement.
+
+## Phase 20 P1 — iQIYI/Mango high-traffic nested response arrays
+
+- iQIYI category and search responses: replace outer/nested temporary arrays with stable in-place compaction while preserving the original ad predicates and stable order.
+- Mango dynamic channel: compact outer modules, DSL lists and nested items in place; preserve the original module IDs, corner-title exclusions and order.
+- Extend the CNFTP upstream optimizer to reapply each exact transformation after refresh and fail closed if a still-present route's reviewed source structure drifts. Upstream-removed optional routes remain allowed.
+- Add optimizer idempotence and required-marker checks.
+- The change reduces temporary arrays on these response paths; no device-side CPU or battery percentage is claimed without on-device measurement.
