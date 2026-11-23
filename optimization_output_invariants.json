@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "description": "Fail-closed invariants for the final generated plugin, checked before replacing the published artifact.",
+  "artifacts": [
+    {
+      "path": "allAdRewrite.plugin",
+      "required": [
+        "api.pinduoduo.com",
+        "response.json.jq(",
+        "result.dy_module.irregular_banner_dy",
+        "result.bottom_tabs?",
+        "result.buffer_bottom_tabs?",
+        "result.all_top_opts?"
+      ],
+      "forbidden": [
+        "pdd-homepage.js",
+        "ishowshu_pdd.js"
+      ]
+    }
+  ]
+}
