@@ -58,6 +58,7 @@ on:
       - 'optimize_xmly.py'
       - 'optimize_didi.py'
       - 'optimize_taobao.py'
+      - 'optimize_jd.py'
       - 'optimize_xianyu.py'
       - 'test_taobao_optimization.py'
       - 'test_zhihu_performance.py'
@@ -75,6 +76,7 @@ on:
       - 'test_xianyu_jd_upstream.py'
       - 'test_xianyu_runtime_performance.py'
       - 'test_jd_lazy_serialization.py'
+      - 'tests/fixtures/jd-upstream.js'
       - 'optimization_guard.py'
       - 'optimization_invariants.json'
       - 'scripts/meituan/meituan.js'
@@ -144,6 +146,7 @@ on:
       - 'optimize_xmly.py'
       - 'optimize_didi.py'
       - 'optimize_taobao.py'
+      - 'optimize_jd.py'
       - 'optimize_xianyu.py'
       - 'test_taobao_optimization.py'
       - 'test_zhihu_performance.py'
@@ -163,6 +166,7 @@ on:
       - 'test_xianyu_jd_upstream.py'
       - 'test_xianyu_runtime_performance.py'
       - 'test_jd_lazy_serialization.py'
+      - 'tests/fixtures/jd-upstream.js'
       - 'optimization_guard.py'
       - 'optimization_invariants.json'
       - 'scripts/meituan/meituan.js'
@@ -203,6 +207,7 @@ jobs:
           python3 optimize_cntv.py --source /tmp/r-store-check/Res/Scripts/AntiAd/cntv.js --output scripts/cntv/cntv.js --upstream-commit "$RSTORE_SHA"
           python3 optimize_amap.py --source /tmp/r-store-check/Res/Scripts/AntiAd/amap.js --output scripts/amap/amap.js --upstream-commit "$RSTORE_SHA"
           python3 optimize_didi.py --source /tmp/r-store-check/Res/Scripts/AntiAd/didi.js --output scripts/didi/didi.js --upstream-commit "$RSTORE_SHA"
+          python3 optimize_jd.py --source /tmp/r-store-check/Res/Scripts/AntiAd/jd.js --output /tmp/jd-check.js --upstream-commit "$RSTORE_SHA"
           python3 optimize_xiaohongshu_rstore.py --source /tmp/r-store-check/Res/Scripts/AntiAd/xiaohongshu.js --output scripts/xiaohongshu/xiaohongshu-rstore.js --upstream-commit "$RSTORE_SHA"
           python3 optimize_weibo_rstore.py --source /tmp/r-store-check/Res/Scripts/AntiAd/weibo.js --output scripts/weibo/weibo-rstore.js --upstream-commit "$RSTORE_SHA"
           python3 optimize_smzdm.py --source /tmp/r-store-check/Res/Scripts/AntiAd/smzdm.js --output scripts/smzdm/smzdm.js --upstream-commit "$RSTORE_SHA"
@@ -249,7 +254,7 @@ jobs:
           PY
 
       - name: 编译检查
-        run: python3 -m py_compile merge_plugins.py mitm_policy.py validate_plugin.py fix_script_configs.py source_guard.py stage_romeo_plugins.py audit_plugin.py deep_audit.py amap_dependency_guard.py apply_amap_local_overrides.py compare_rule_provenance.py source_health_guard.py finalize_provenance.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py integrate_spotify.py apply_local_overrides.py check_script_v2.py runtime_performance_audit.py optimize_cnftp.py optimize_xiaohongshu.py optimize_xiaohongshu_rstore.py optimize_weibo_rstore.py optimize_zhihu.py optimize_cntv.py optimize_amap.py optimize_smzdm.py optimize_rrtv.py optimize_soul.py optimize_xmly.py optimize_didi.py optimize_taobao.py optimize_xianyu.py optimization_guard.py
+        run: python3 -m py_compile merge_plugins.py mitm_policy.py validate_plugin.py fix_script_configs.py source_guard.py stage_romeo_plugins.py audit_plugin.py deep_audit.py amap_dependency_guard.py apply_amap_local_overrides.py compare_rule_provenance.py source_health_guard.py finalize_provenance.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py integrate_spotify.py apply_local_overrides.py check_script_v2.py runtime_performance_audit.py optimize_cnftp.py optimize_xiaohongshu.py optimize_xiaohongshu_rstore.py optimize_weibo_rstore.py optimize_zhihu.py optimize_cntv.py optimize_amap.py optimize_smzdm.py optimize_rrtv.py optimize_soul.py optimize_xmly.py optimize_didi.py optimize_taobao.py optimize_jd.py optimize_xianyu.py optimization_guard.py
       - name: 检查小红书本地视频脚本语法
         run: node --check scripts/xiaohongshu/xiaohongshu-v4.js
       - name: 检查小红书主响应脚本语法
@@ -387,6 +392,7 @@ jobs:
           python3 optimize_cntv.py --source /tmp/r-store/Res/Scripts/AntiAd/cntv.js --output scripts/cntv/cntv.js --upstream-commit "$RSTORE_SHA"
           python3 optimize_amap.py --source /tmp/r-store/Res/Scripts/AntiAd/amap.js --output scripts/amap/amap.js --upstream-commit "$RSTORE_SHA"
           python3 optimize_didi.py --source /tmp/r-store/Res/Scripts/AntiAd/didi.js --output scripts/didi/didi.js --upstream-commit "$RSTORE_SHA"
+          python3 optimize_jd.py --source /tmp/r-store/Res/Scripts/AntiAd/jd.js --output scripts/jingdong/jd.js --upstream-commit "$RSTORE_SHA"
           python3 optimize_xiaohongshu_rstore.py --source /tmp/r-store/Res/Scripts/AntiAd/xiaohongshu.js --output scripts/xiaohongshu/xiaohongshu-rstore.js --upstream-commit "$RSTORE_SHA"
           python3 optimize_weibo_rstore.py --source /tmp/r-store/Res/Scripts/AntiAd/weibo.js --output scripts/weibo/weibo-rstore.js --upstream-commit "$RSTORE_SHA"
           python3 optimize_smzdm.py --source /tmp/r-store/Res/Scripts/AntiAd/smzdm.js --output scripts/smzdm/smzdm.js --upstream-commit "$RSTORE_SHA"
@@ -404,7 +410,7 @@ jobs:
           python-version: '3.11'
 
       - name: 编译检查
-        run: python3 -m py_compile merge_plugins.py mitm_policy.py validate_plugin.py fix_script_configs.py source_guard.py stage_romeo_plugins.py audit_plugin.py deep_audit.py amap_dependency_guard.py apply_amap_local_overrides.py compare_rule_provenance.py source_health_guard.py finalize_provenance.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py integrate_spotify.py runtime_performance_audit.py optimize_cnftp.py optimize_xiaohongshu.py optimize_xiaohongshu_rstore.py optimize_weibo_rstore.py optimize_zhihu.py optimize_cntv.py optimize_amap.py optimize_smzdm.py optimize_rrtv.py optimize_soul.py optimize_xmly.py optimize_didi.py optimize_taobao.py optimize_xianyu.py optimization_guard.py
+        run: python3 -m py_compile merge_plugins.py mitm_policy.py validate_plugin.py fix_script_configs.py source_guard.py stage_romeo_plugins.py audit_plugin.py deep_audit.py amap_dependency_guard.py apply_amap_local_overrides.py compare_rule_provenance.py source_health_guard.py finalize_provenance.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py integrate_spotify.py runtime_performance_audit.py optimize_cnftp.py optimize_xiaohongshu.py optimize_xiaohongshu_rstore.py optimize_weibo_rstore.py optimize_zhihu.py optimize_cntv.py optimize_amap.py optimize_smzdm.py optimize_rrtv.py optimize_soul.py optimize_xmly.py optimize_didi.py optimize_taobao.py optimize_jd.py optimize_xianyu.py optimization_guard.py
       - name: 检查小红书本地视频脚本语法
         run: node --check scripts/xiaohongshu/xiaohongshu-v4.js
       - name: 检查小红书主响应脚本语法
@@ -425,6 +431,8 @@ jobs:
         run: node --check scripts/amap/amap.js
       - name: 检查滴滴本地响应脚本语法
         run: node --check scripts/didi/didi.js
+      - name: 检查京东本地响应脚本语法
+        run: node --check scripts/jingdong/jd.js
       - name: 检查闲鱼本地响应脚本语法
         run: node --check scripts/xianyu/goofish.js
       - name: 检查什么值得买本地响应脚本语法
@@ -597,6 +605,7 @@ jobs:
           python3 apply_local_overrides.py --plugin /tmp/loon-build/allAdRewrite.plugin
           python3 optimize_didi.py --plugin /tmp/loon-build/allAdRewrite.plugin
           python3 optimize_taobao.py --plugin /tmp/loon-build/allAdRewrite.plugin --runtime scripts/taobao/taobao.js
+          python3 optimize_jd.py --plugin /tmp/loon-build/allAdRewrite.plugin
           python3 optimize_cnftp.py --plugin /tmp/loon-build/allAdRewrite.plugin
           python3 optimize_xiaohongshu.py --plugin /tmp/loon-build/allAdRewrite.plugin
           python3 optimize_xiaohongshu_rstore.py --plugin /tmp/loon-build/allAdRewrite.plugin
