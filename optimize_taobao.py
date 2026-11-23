@@ -17,8 +17,45 @@ RUNTIME_GUARD = """  %s
   } else {
 """ % RUNTIME_MARKER
 
+SPLASH_LOOP_MARKER = "// loon-change: Taobao indexed splash traversal v1"
+OLD_SPLASH_BLOCK = "  if (obj?.data?.containers?.splash_home_base) {\n    let splash = obj.data.containers.splash_home_base;\n    if (splash?.base?.sections?.length > 0) {\n      for (let items of splash.base.sections) {\n        if (\"taobao-splash\" in items.bizData) {\n          if (items?.bizData?.[\"taobao-splash\"]?.data?.length > 0) {\n            for (let item of items.bizData[\"taobao-splash\"].data) {\n              setIfDifferent(item, \"waitTime\", \"0\");\n              setIfDifferent(item, \"times\", \"0\");\n              setIfDifferent(item, \"hotStart\", \"false\");\n              setIfDifferent(item, \"haveVoice\", \"false\");\n              setIfDifferent(item, \"hideTBLogo\", \"false\");\n              setIfDifferent(item, \"enable4G\", \"false\");\n              setIfDifferent(item, \"coldStart\", \"false\");\n              setIfDifferent(item, \"startTime\", \"3818332800000\");\n              setIfDifferent(item, \"endTime\", \"3818419199000\");\n              setIfDifferent(item, \"gmtStart\", \"2090-12-31 00:00:00\");\n              setIfDifferent(item, \"gmtEnd\", \"2090-12-31 23:59:59\");\n              setIfDifferent(item, \"gmtStartMs\", \"3818332800000\");\n              setIfDifferent(item, \"gmtEndMs\", \"3818419199000\");\n              if (item?.imgUrl) setIfDifferent(item, \"imgUrl\", \"\");\n              if (item?.videoUrl) setIfDifferent(item, \"videoUrl\", \"\");\n            }\n          }\n        }\n      }\n    }\n  }"
+NEW_SPLASH_BLOCK = "  if (obj?.data?.containers?.splash_home_base) {\n    const sections = obj.data.containers.splash_home_base.base?.sections;\n    if (Array.isArray(sections) && sections.length > 0) {\n      // loon-change: Taobao indexed splash traversal v1\n      const sectionCount = sections.length;\n      for (let sectionIndex = 0; sectionIndex < sectionCount; sectionIndex++) {\n        const bizData = sections[sectionIndex]?.bizData;\n        const splashItems = bizData?.[\"taobao-splash\"]?.data;\n        if (!Array.isArray(splashItems) || splashItems.length === 0) continue;\n\n        const itemCount = splashItems.length;\n        for (let itemIndex = 0; itemIndex < itemCount; itemIndex++) {\n          const item = splashItems[itemIndex];\n          setIfDifferent(item, \"waitTime\", \"0\");\n          setIfDifferent(item, \"times\", \"0\");\n          setIfDifferent(item, \"hotStart\", \"false\");\n          setIfDifferent(item, \"haveVoice\", \"false\");\n          setIfDifferent(item, \"hideTBLogo\", \"false\");\n          setIfDifferent(item, \"enable4G\", \"false\");\n          setIfDifferent(item, \"coldStart\", \"false\");\n          setIfDifferent(item, \"startTime\", \"3818332800000\");\n          setIfDifferent(item, \"endTime\", \"3818419199000\");\n          setIfDifferent(item, \"gmtStart\", \"2090-12-31 00:00:00\");\n          setIfDifferent(item, \"gmtEnd\", \"2090-12-31 23:59:59\");\n          setIfDifferent(item, \"gmtStartMs\", \"3818332800000\");\n          setIfDifferent(item, \"gmtEndMs\", \"3818419199000\");\n          if (item?.imgUrl) setIfDifferent(item, \"imgUrl\", \"\");\n          if (item?.videoUrl) setIfDifferent(item, \"videoUrl\", \"\");\n        }\n      }\n    }\n  }"
+
+def optimize_splash_loop(source):
+    if SPLASH_LOOP_MARKER in source:
+        required = (
+            SPLASH_LOOP_MARKER,
+            "const sections = obj.data.containers.splash_home_base.base?.sections;",
+            "const sectionCount = sections.length;",
+            "const bizData = sections[sectionIndex]?.bizData;",
+            'const splashItems = bizData?.["taobao-splash"]?.data;',
+            "const itemCount = splashItems.length;",
+            "for (let itemIndex = 0; itemIndex < itemCount; itemIndex++)",
+        )
+        if any(token not in source for token in required):
+            raise ValueError("Taobao indexed splash traversal drifted; refusing to overwrite")
+        if "for (let items of splash.base.sections)" in source or 'for (let item of items.bizData["taobao-splash"].data)' in source:
+            raise ValueError("Legacy Taobao splash iterator remains beside optimization marker")
+        return source
+    if source.count(OLD_SPLASH_BLOCK) != 1:
+        raise ValueError("Expected exactly one Taobao splash traversal anchor")
+    optimized = source.replace(OLD_SPLASH_BLOCK, NEW_SPLASH_BLOCK, 1)
+    if optimized.count(SPLASH_LOOP_MARKER) != 1:
+        raise ValueError("Taobao indexed splash traversal postcondition failed")
+    return optimized
+
+
 def optimize_runtime_source(source):
-    if RUNTIME_MARKER in source:
+    if RUNTIME_MARKER not in source:
+        anchor = "  const obj = JSON.parse($response.body);\\n"
+        if source.count(anchor) != 1:
+            raise ValueError("Expected exactly one Taobao JSON.parse anchor")
+        source = source.replace(anchor, RUNTIME_GUARD + anchor, 1)
+        tail = "$done(modified ? {body: JSON.stringify(obj)} : {});\\n}\\n"
+        if not source.endswith(tail):
+            raise ValueError("Taobao runtime tail changed; refusing to add guard")
+        source = source[:-len(tail)] + tail.replace("}\\n", "  }\\n}\\n")
+    else:
         required = (RUNTIME_MARKER, "const shouldProcess =", "if (!shouldProcess) {",
                     'url.includes("guide-acs.m.taobao.com/gw/mtop.taobao.cloudvideo.video.query")',
                     'url.includes("guide-acs.m.taobao.com/gw/mtop.taobao.wireless.home.splash.awesome.get")',
@@ -27,17 +64,9 @@ def optimize_runtime_source(source):
             raise ValueError("Taobao pre-parse guard drifted; refusing to overwrite")
         if source.index("const shouldProcess =") > source.index("JSON.parse($response.body)"):
             raise ValueError("Taobao pre-parse guard moved after JSON.parse")
-        return source
-    anchor = "  const obj = JSON.parse($response.body);\n"
-    if source.count(anchor) != 1:
-        raise ValueError("Expected exactly one Taobao JSON.parse anchor")
-    source = source.replace(anchor, RUNTIME_GUARD + anchor, 1)
-    tail = "$done(modified ? {body: JSON.stringify(obj)} : {});\n}\n"
-    if not source.endswith(tail):
-        raise ValueError("Taobao runtime tail changed; refusing to add guard")
-    source = source[:-len(tail)] + tail.replace("}\n", "  }\n}\n")
+    source = optimize_splash_loop(source)
     if source.index("const shouldProcess =") > source.index("JSON.parse($response.body)"):
-        raise ValueError("Taobao guard insertion order invalid")
+        raise ValueError("Taobao pre-parse guard insertion order invalid")
     return source
 
 def classify(line):
