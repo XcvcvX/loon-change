@@ -15,7 +15,10 @@
         "Mango dynamic channel nested stable in-place compaction v1",
         "Youku personal center nested stable in-place compaction v1",
         "Youku comment nested stable in-place compaction v1",
-        "Mango personal center nested stable in-place compaction v1"
+        "Mango personal center nested stable in-place compaction v1",
+        "iQIYI personal menus nested stable in-place compaction v1",
+        "iQIYI home cards allocation-free traversal v1",
+        "Mango player modules stable in-place compaction v1"
       ]
     },
     {
