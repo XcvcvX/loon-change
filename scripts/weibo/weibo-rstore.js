@@ -1,4 +1,5 @@
 // loon-change: R-Store Weibo in-place response compaction v1; upstream zirawell/R-Store@1e08bab55bcffc396be39f914f48151443344493
+// loon-change: Weibo feed and comment lazy serialization v1
 /********************************
 Weibo Remove Ads - Version 1.0
 Checkout Source - https://raw.githubusercontent.com/RuCu6/QuanX/main/Scripts/weibo.js
@@ -12,10 +13,12 @@ https://raw.githubusercontent.com/zirawell/R-Store/main/Rule/Surge/Adblock/App/W
 ********************************/
 
 const url = $request.url;
+let modified = !url.includes("/2/cardlist") && !url.includes("/2/comments/build_comments");
 
 function compactInPlace(items, keep) {
+  const length = items.length;
   let write = 0;
-  for (let read = 0, length = items.length; read < length; read++) {
+  for (let read = 0; read < length; read++) {
     const item = items[read];
     if (keep(item, read)) {
       if (write !== read) items[write] = item;
@@ -23,6 +26,7 @@ function compactInPlace(items, keep) {
     }
   }
   items.length = write;
+  if (write !== length) modified = true;
   return items;
 }
 if (!$response) $done({});
@@ -119,6 +123,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
             __loonSource31[__loonWrite31++] = group;
           }
           __loonSource31.length = __loonWrite31;
+          if (__loonWrite31 !== __loonLength31) modified = true;
           __loonSource32[__loonWrite32++] = card;
         } else {
           let cardType = card.card_type;
@@ -134,6 +139,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
         }
       }
       __loonSource32.length = __loonWrite32;
+      if (__loonWrite32 !== __loonLength32) modified = true;
     }
   } else if (url.includes("/2/checkin/show")) {
     // 首页签到
@@ -167,18 +173,22 @@ if (url.includes("/interface/sdk/sdkad.php")) {
             }
             // 评论气泡
             if (item?.data?.comment_bubble) {
+              modified = true;
               delete item.data.comment_bubble;
             }
             // 评论弹幕
             if (item?.data?.comment_bullet_screens_message) {
+              modified = true;
               delete item.data.comment_bullet_screens_message;
             }
             // 热评小图标 弹幕 首评
             if (item?.data?.hot_icon) {
+              modified = true;
               delete item.data.hot_icon;
             }
             // 会员气泡按钮
             if (item?.data?.vip_button) {
+              modified = true;
               delete item.data.vip_button;
             }
             // 6为你推荐更多精彩内容 15过滤提示
@@ -193,6 +203,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
         }
       }
       __loonSource30.length = __loonWrite30;
+      if (__loonWrite30 !== __loonLength30) modified = true;
     } else if (obj?.root_comments?.length > 0) {
       const __loonSource29 = obj.root_comments;
       let __loonWrite29 = 0;
@@ -209,41 +220,50 @@ if (url.includes("/interface/sdk/sdkad.php")) {
           }
           // 评论气泡
           if (item?.comment_bubble) {
+            modified = true;
             delete item.comment_bubble;
           }
           // 评论弹幕
           if (item?.comment_bullet_screens_message) {
+            modified = true;
             delete item.comment_bullet_screens_message;
           }
           // 热评小图标 弹幕 首评
           if (item?.hot_icon) {
+            modified = true;
             delete item.hot_icon;
           }
           // 会员气泡按钮
           if (item?.vip_button) {
+            modified = true;
             delete item.vip_button;
           }
           __loonSource29[__loonWrite29++] = item;
         }
       }
       __loonSource29.length = __loonWrite29;
+      if (__loonWrite29 !== __loonLength29) modified = true;
     } else if (obj?.comments?.length > 0) {
       const __loonSource28 = obj.comments;
       let __loonWrite28 = 0;
       for (let __loonRead28 = 0, __loonLength28 = __loonSource28.length; __loonRead28 < __loonLength28; __loonRead28++) {
         let item = __loonSource28[__loonRead28];
         if (item?.user?.icons) {
+          modified = true;
           delete item.user.icons;
         }
         if (item?.reply_comment?.comment_badge) {
+          modified = true;
           delete item.reply_comment.comment_badge;
         }
         __loonSource28[__loonWrite28++] = item;
       }
       __loonSource28.length = __loonWrite28;
+      if (__loonWrite28 !== __loonLength28) modified = true;
     }
     if (obj?.rootComment) {
       if (obj?.rootComment?.comment_bubble) {
+        modified = true;
         delete obj.rootComment.comment_bubble;
       }
     }
@@ -278,6 +298,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
         __loonSource27[__loonWrite27++] = item;
       }
       __loonSource27.length = __loonWrite27;
+      if (__loonWrite27 !== __loonLength27) modified = true;
     }
   } else if (url.includes("/2/direct_messages/user_list")) {
     if (obj?.user_list?.length > 0) {
@@ -313,6 +334,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
         }
       }
       __loonSource26.length = __loonWrite26;
+      if (__loonWrite26 !== __loonLength26) modified = true;
     }
   } else if (url.includes("/2/flowpage")) {
     // 热搜列表
@@ -341,10 +363,12 @@ if (url.includes("/interface/sdk/sdkad.php")) {
             }
           }
           __loonSource24.length = __loonWrite24;
+          if (__loonWrite24 !== __loonLength24) modified = true;
         }
         __loonSource25[__loonWrite25++] = item;
       }
       __loonSource25.length = __loonWrite25;
+      if (__loonWrite25 !== __loonLength25) modified = true;
     }
   } else if (url.includes("/2/groups/allgroups/v2")) {
     // 顶部tab
@@ -380,16 +404,19 @@ if (url.includes("/interface/sdk/sdkad.php")) {
                     }
                   }
                   __loonSource21.length = __loonWrite21;
+                  if (__loonWrite21 !== __loonLength21) modified = true;
                 }
               }
               __loonSource22[__loonWrite22++] = i;
             }
             __loonSource22.length = __loonWrite22;
+            if (__loonWrite22 !== __loonLength22) modified = true;
           }
           __loonSource23[__loonWrite23++] = item;
         }
       }
       __loonSource23.length = __loonWrite23;
+      if (__loonWrite23 !== __loonLength23) modified = true;
     }
   } else if (url.includes("/2/messageflow/notice")) {
     // 消息动态页
@@ -405,6 +432,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
         }
       }
       __loonSource20.length = __loonWrite20;
+      if (__loonWrite20 !== __loonLength20) modified = true;
     }
   } else if (url.includes("/2/page")) {
     // 搜索页列表,超话
@@ -498,6 +526,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
                 }
               }
               __loonSource18.length = __loonWrite18;
+              if (__loonWrite18 !== __loonLength18) modified = true;
             }
             __loonSource19[__loonWrite19++] = item;
           } else if (item?.category === "feed") {
@@ -520,6 +549,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
         }
       }
       __loonSource19.length = __loonWrite19;
+      if (__loonWrite19 !== __loonLength19) modified = true;
     }
   } else if (url.includes("/2/profile/dealatt") || url.includes("/2/friendships/")) {
     // 个人主页点击关注后展示菜单
@@ -545,6 +575,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
         }
       }
       __loonSource17.length = __loonWrite17;
+      if (__loonWrite17 !== __loonLength17) modified = true;
     }
   } else if (url.includes("/2/profile/me")) {
     // 我的页面
@@ -609,6 +640,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
         }
       }
       __loonSource16.length = __loonWrite16;
+      if (__loonWrite16 !== __loonLength16) modified = true;
     }
   } else if (url.includes("/2/profile/statuses/tab")) {
     if (obj?.cards?.length > 0) {
@@ -635,6 +667,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
             __loonSource14[__loonWrite14++] = group;
           }
           __loonSource14.length = __loonWrite14;
+          if (__loonWrite14 !== __loonLength14) modified = true;
           __loonSource15[__loonWrite15++] = card;
         } else {
           if (card?.mblog) {
@@ -647,6 +680,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
         }
       }
       __loonSource15.length = __loonWrite15;
+      if (__loonWrite15 !== __loonLength15) modified = true;
     }
     // 我的热搜
     if (obj?.cardlistInfo?.page_type === "08") {
@@ -676,6 +710,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
           }
         }
         __loonSource13.length = __loonWrite13;
+        if (__loonWrite13 !== __loonLength13) modified = true;
       }
       if (toolbar?.lottie_guide) {
         // 弹窗
@@ -749,11 +784,13 @@ if (url.includes("/interface/sdk/sdkad.php")) {
                 }
               }
               __loonSource11.length = __loonWrite11;
+              if (__loonWrite11 !== __loonLength11) modified = true;
             }
             __loonSource12[__loonWrite12++] = item;
           }
         }
         __loonSource12.length = __loonWrite12;
+        if (__loonWrite12 !== __loonLength12) modified = true;
       }
       if (obj?.loadedInfo) {
         delete obj?.loadedInfo;
@@ -819,11 +856,13 @@ if (url.includes("/interface/sdk/sdkad.php")) {
                       }
                     }
                     __loonSource9.length = __loonWrite9;
+                    if (__loonWrite9 !== __loonLength9) modified = true;
                   }
                   __loonSource10[__loonWrite10++] = item;
                 }
               }
               __loonSource10.length = __loonWrite10;
+              if (__loonWrite10 !== __loonLength10) modified = true;
             }
           }
         }
@@ -910,6 +949,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
             }
           }
           __loonSource7.length = __loonWrite7;
+          if (__loonWrite7 !== __loonLength7) modified = true;
           __loonSource8[__loonWrite8++] = card;
         } else {
           if (card?.mblog) {
@@ -946,6 +986,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
         }
       }
       __loonSource8.length = __loonWrite8;
+      if (__loonWrite8 !== __loonLength8) modified = true;
     }
     // 13.11.1版本obj下的cards变为了items 2023-11-26
     if (obj?.items?.length > 0) {
@@ -984,6 +1025,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
                 }
               }
               __loonSource5.length = __loonWrite5;
+              if (__loonWrite5 !== __loonLength5) modified = true;
             }
             __loonSource6[__loonWrite6++] = item;
           } else {
@@ -992,6 +1034,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
         }
       }
       __loonSource6.length = __loonWrite6;
+      if (__loonWrite6 !== __loonLength6) modified = true;
     }
   } else if (url.includes("/2/statuses/container_timeline_hot") || url.includes("/2/statuses/unread_hot_timeline")) {
     // 首页推荐tab信息流
@@ -1019,6 +1062,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
         }
       }
       __loonSource4.length = __loonWrite4;
+      if (__loonWrite4 !== __loonLength4) modified = true;
     }
     if (obj?.statuses?.length > 0) {
       const __loonSource3 = obj.statuses;
@@ -1032,6 +1076,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
         }
       }
       __loonSource3.length = __loonWrite3;
+      if (__loonWrite3 !== __loonLength3) modified = true;
     }
   } else if (url.includes("/2/statuses/container_timeline?") || url.includes("/2/statuses/container_timeline_unread")) {
     // 首页关注tab信息流
@@ -1093,6 +1138,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
         }
       }
       __loonSource2.length = __loonWrite2;
+      if (__loonWrite2 !== __loonLength2) modified = true;
     }
   } else if (url.includes("/2/statuses/container_timeline_topic")) {
     // 超话信息流
@@ -1179,6 +1225,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
         }
       }
       __loonSource1.length = __loonWrite1;
+      if (__loonWrite1 !== __loonLength1) modified = true;
     }
   } else if (url.includes("/2/statuses/extend")) {
     // 微博详情页
@@ -1300,7 +1347,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
       }
     }
   }
-  $done({body: JSON.stringify(obj)});
+  $done(modified ? {body: JSON.stringify(obj)} : {});
 }
 
 // 判断信息流
@@ -1326,38 +1373,49 @@ function isAd(data) {
 // 移除头像挂件,关注按钮
 function removeAvatar(data) {
   if (data?.block_card_bg) {
+    modified = true;
     delete data.block_card_bg;
   }
   if (data?.buttons) {
+    modified = true;
     delete data.buttons;
   }
   if (data?.cardid) {
+    modified = true;
     delete data.cardid;
   }
   if (data?.icons) {
+    modified = true;
     delete data.icons;
   }
   if (data?.mblog_buttons) {
     // 转发按钮图标
+    modified = true;
     delete data.mblog_buttons;
   }
   if (data?.pic_bg_new) {
+    modified = true;
     delete data.pic_bg_new;
   }
   if (data?.user?.avatargj_id) {
+    modified = true;
     delete data.user.avatargj_id;
   }
   if (data?.user?.avatar_extend_info) {
+    modified = true;
     delete data.user.avatar_extend_info;
   }
   if (data?.user?.cardid) {
+    modified = true;
     delete data.user.cardid;
   }
   if (data?.user?.icons) {
+    modified = true;
     delete data.user.icons;
   }
   if (data?.user?.mbtype) {
     // 会员等级图标
+    modified = true;
     delete data.user.mbtype;
   }
 }
@@ -1386,6 +1444,7 @@ function removeFeedAd(item) {
 // 移除投票窗口
 function removeVoteInfo(item) {
   if (item?.page_info?.media_info?.vote_info) {
+    modified = true;
     delete item.page_info.media_info.vote_info;
   }
 }
