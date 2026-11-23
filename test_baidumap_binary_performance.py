@@ -39,7 +39,7 @@ class BaiduMapBinaryPerformanceTests(unittest.TestCase):
         marker = "// loon-change: Baidu protobuf target-only byte views v1"
         self.assertIn(marker, self.source)
         start = self.source.index(marker)
-        end = self.source.index("\\n\\nif(!adsFound", start)
+        end = self.source.index("\n\nif(!adsFound", start)
         loop = self.source[start:end]
         self.assertIn("let resultOffset = -1;", loop)
         self.assertIn("resultOffset = dataBeginOffset + messageHead.offset;", loop)
