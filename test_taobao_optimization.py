@@ -163,5 +163,17 @@ process.stdout.write(JSON.stringify(result));
         self.assertLess(source.index("const shouldProcess ="), source.index("JSON.parse($response.body)"))
         self.assertEqual(optimize_runtime_source(source), source)
 
+    def test_route_classification_is_cached_once_and_reused(self):
+        from optimize_taobao import ROUTE_CLASSIFICATION_MARKER, optimize_runtime_source
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(ROUTE_CLASSIFICATION_MARKER, source)
+        self.assertEqual(source.count('url.includes("guide-acs.m.taobao.com/gw/mtop.taobao.cloudvideo.video.query")'), 1)
+        self.assertEqual(source.count('url.includes("guide-acs.m.taobao.com/gw/mtop.taobao.wireless.home.splash.awesome.get")'), 1)
+        self.assertEqual(source.count('url.includes("poplayer.template.alibaba.com/")'), 1)
+        self.assertIn("if (isCloudVideo) {", source)
+        self.assertIn("} else if (isSplash) {", source)
+        self.assertIn("} else if (isPoplayer) {", source)
+        self.assertEqual(optimize_runtime_source(source), source)
+
 if __name__ == "__main__":
     unittest.main()
