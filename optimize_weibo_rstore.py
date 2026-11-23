@@ -348,10 +348,10 @@ def optimize_source(source, commit="unknown"):
         if source.count(old) != 1:
             raise ValueError(label + " filter anchor drift")
         source = source.replace(old, new, 1)
-    remaining = re.findall(r"\\b(new[A-Za-z0-9_]*)\\s*=\\s*\\[\\s*\\]", source)
+    remaining = re.findall(r"\b(new[A-Za-z0-9_]*)\s*=\s*\[\s*\]", source)
     if sorted(remaining) != ["newActions", "newII"]:
         raise ValueError("unexpected remaining Weibo temporary arrays: " + repr(remaining))
-    return add_lazy_serialization_guard(MARKER + commit + "\\n" + source)
+    return add_lazy_serialization_guard(MARKER + commit + "\n" + source)
 def rewrite_plugin(plugin):
     if LOCAL in plugin:
         if REMOTE in plugin:
