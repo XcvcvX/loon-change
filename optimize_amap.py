@@ -204,6 +204,10 @@ def optimize_scalar_membership(source):
         for name, literal in (
             ("AMAP_STATIC_ITEMS_06", r'\["head", "search_hot_words", "feed_rec"\]'),
             ("AMAP_STATIC_ITEMS_09", r'\["brandAdCard", "toplist_al"\]'),
+            ("AMAP_STATIC_ITEMS_10", r'\["12"\]'),
+            ("AMAP_STATIC_ITEMS_11", r'\["ad", "poi_ad", "toplist"\]'),
+            ("AMAP_STATIC_ITEMS_12", r'\["ad", "exct_query_sug_merge_theme", "query_sug_merge_theme", "sp"\]'),
+            ("AMAP_STATIC_ITEMS_13", r'\["ad", "poi_ad"\]'),
         ):
             pattern = re.compile(r"^const " + name + r"\s*=\s*" + literal + r";*\s*$", re.M)
             if len(pattern.findall(source)) != 1:
@@ -219,6 +223,8 @@ def optimize_scalar_membership(source):
         raise ValueError("Amap scalar membership marker count drift")
     forbidden = (
         "AMAP_STATIC_ITEMS_06", "AMAP_STATIC_ITEMS_09",
+        "AMAP_STATIC_ITEMS_10", "AMAP_STATIC_ITEMS_11",
+        "AMAP_STATIC_ITEMS_12", "AMAP_STATIC_ITEMS_13",
         ".includes(item?.tip?.", ".includes(i?.item_type)",
         "items?.includes(i)",
     )
