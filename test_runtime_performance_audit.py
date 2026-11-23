@@ -738,7 +738,7 @@ const context = {
   $response: { body: input },
   $done(value) { doneResult = value; }
 };
-vm.runInNewContext(source + "\nglobalThis.__testRoot = baiduMapRoot; globalThis.__testMd5 = md5;", context);
+vm.runInNewContext(source + "\nglobalThis.__testRoot = baiduMapRoot; globalThis.__testMd5 = createBaiduMd5();", context);
 if (!doneResult || !(doneResult.body instanceof Uint8Array)) throw new Error("Baidu handler did not return a binary body");
 if (logs.length !== 0) throw new Error("Baidu handler emitted runtime debug logs");
 const output = doneResult.body;

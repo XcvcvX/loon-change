@@ -131,7 +131,10 @@
         "binaryBody.subarray(",
         "let modifiedAds = false;",
         "body.subarray(payloadOffset)",
-        "bodyBytes: body.buffer"
+        "bodyBytes: body.buffer",
+        "function createBaiduMd5() {",
+        "newAds, createBaiduMd5());",
+        "if(!adsFound || !modifiedAds || !newResult)"
       ]
     },
     {
