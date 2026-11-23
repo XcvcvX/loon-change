@@ -300,6 +300,25 @@ process.stdout.write(nativeJSON.stringify({doneResult, parseCount, stringifyCoun
         self.assertIn('url.includes("/valueadded/alimama/splash_screen")', repaired)
         self.assertEqual(optimize_source(repaired), repaired)
 
+    def test_search_suggestion_caches_tip_reference_once_per_item(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        start = 'if (url.includes("/shield/search_poi/sug")) {'
+        end = '} else if (url.includes("/shield/search_poi/tips_operation_location")) {'
+        i = source.index(start)
+        j = source.index(end, i + len(start))
+        block = source[i:j]
+        self.assertEqual(block.count("const tip = item?.tip;"), 2)
+        self.assertNotIn("item?.tip?.", block)
+        self.assertEqual(optimize_source(source), source)
+
+        # Simulate the unoptimized upstream block and verify automatic repair.
+        upstream_block = "if (url.includes(\"/shield/search_poi/sug\")) {\n  if (Array.isArray(obj?.tip_list) && obj.tip_list.length > 0) {\n    compactInPlace(obj.tip_list, item =>\n      item?.tip?.datatype_spec !== \"12\" &&\n      item?.tip?.result_type !== \"ad\" &&\n      item?.tip?.result_type !== \"poi_ad\" &&\n      item?.tip?.result_type !== \"toplist\" &&\n      item?.tip?.task_tag !== \"ad\" &&\n      item?.tip?.task_tag !== \"exct_query_sug_merge_theme\" &&\n      item?.tip?.task_tag !== \"query_sug_merge_theme\" &&\n      item?.tip?.task_tag !== \"sp\"\n    );\n  } else if (Array.isArray(obj?.city_list) && obj.city_list.length > 0) {\n    for (const city of obj.city_list) {\n      if (Array.isArray(city?.tip_list) && city.tip_list.length > 0) {\n        compactInPlace(city.tip_list, item =>\n          item?.tip?.datatype_spec !== \"12\" &&\n          item?.tip?.result_type !== \"ad\" &&\n          item?.tip?.result_type !== \"poi_ad\"\n        );\n      }\n    }\n  }\n"
+        damaged = source[:i] + upstream_block + source[j:]
+        repaired = optimize_source(damaged)
+        self.assertIn("// loon-change: Amap cached suggestion tip access v1", repaired)
+        self.assertEqual(repaired.count("const tip = item?.tip;"), 2)
+        self.assertEqual(optimize_source(repaired), repaired)
+
     def test_search_suggestion_filters_use_in_place_compaction(self):
         source = SOURCE.read_text(encoding="utf-8")
         start = source.index('if (url.includes("/shield/search_poi/sug")) {')

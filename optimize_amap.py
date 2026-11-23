@@ -145,32 +145,38 @@ def hoist_static_arrays(source):
 
 
 def compact_search_suggestions_in_place(source):
+    marker = "// loon-change: Amap cached suggestion tip access v1"
     start = 'if (url.includes("/shield/search_poi/sug")) {'
     end = '} else if (url.includes("/shield/search_poi/tips_operation_location")) {'
     if source.count(start) != 1 or source.count(end) != 1:
         raise ValueError("Amap search suggestion block boundary drift")
+    if source.count(marker) > 1:
+        raise ValueError("Amap cached suggestion marker is duplicated")
     i = source.index(start)
     j = source.index(end, i + len(start))
-    replacement = """if (url.includes("/shield/search_poi/sug")) {
+    prefix = marker + "\n" if marker not in source else ""
+    replacement = prefix + """if (url.includes("/shield/search_poi/sug")) {
   if (Array.isArray(obj?.tip_list) && obj.tip_list.length > 0) {
-    compactInPlace(obj.tip_list, item =>
-      item?.tip?.datatype_spec !== "12" &&
-      item?.tip?.result_type !== "ad" &&
-      item?.tip?.result_type !== "poi_ad" &&
-      item?.tip?.result_type !== "toplist" &&
-      item?.tip?.task_tag !== "ad" &&
-      item?.tip?.task_tag !== "exct_query_sug_merge_theme" &&
-      item?.tip?.task_tag !== "query_sug_merge_theme" &&
-      item?.tip?.task_tag !== "sp"
-    );
+    compactInPlace(obj.tip_list, item => {
+      const tip = item?.tip;
+      return tip?.datatype_spec !== "12" &&
+        tip?.result_type !== "ad" &&
+        tip?.result_type !== "poi_ad" &&
+        tip?.result_type !== "toplist" &&
+        tip?.task_tag !== "ad" &&
+        tip?.task_tag !== "exct_query_sug_merge_theme" &&
+        tip?.task_tag !== "query_sug_merge_theme" &&
+        tip?.task_tag !== "sp";
+    });
   } else if (Array.isArray(obj?.city_list) && obj.city_list.length > 0) {
     for (const city of obj.city_list) {
       if (Array.isArray(city?.tip_list) && city.tip_list.length > 0) {
-        compactInPlace(city.tip_list, item =>
-          item?.tip?.datatype_spec !== "12" &&
-          item?.tip?.result_type !== "ad" &&
-          item?.tip?.result_type !== "poi_ad"
-        );
+        compactInPlace(city.tip_list, item => {
+          const tip = item?.tip;
+          return tip?.datatype_spec !== "12" &&
+            tip?.result_type !== "ad" &&
+            tip?.result_type !== "poi_ad";
+        });
       }
     }
   }"""
