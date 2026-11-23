@@ -1,3 +1,4 @@
+// loon-change: Goofish per-response allocation hot-path optimization v1
 // Consolidated Xianyu response cleanup.
 const AD_TEMPLATE_NAMES = new Set([
   "fish_home_advertise_card_d3",
@@ -7,7 +8,6 @@ const AD_TEMPLATE_NAMES = new Set([
   "fish_home_feeds_pager_banner",
   "detail_recommend_ad_card"
 ]);
-const AD_TEMPLATE_RE = /^(fish_home_advertise_card_d[34]|fish_local_advertise_card_d4|idlefish_local_feed2_marketing|fish_home_feeds_pager_banner|detail_recommend_ad_card)$/;
 // Combines the overlapping R-Store and ishowshu goofish handlers so each
 // response is parsed once while preserving the previously configured filters.
 function main() {
@@ -26,6 +26,7 @@ function main() {
     items.length = write;
     return items;
   }
+
   const body = $response && $response.body;
   if (!body) return $done({});
 
@@ -48,29 +49,30 @@ function main() {
         for (let i = 0; i < node.length; i++) stack.push(node[i]);
         continue;
       }
-      for (const key of Object.keys(node)) {
-        if (key === "realTimeAd" && node[key] && typeof node[key] === "object") {
+      for (const key in node) {
+        if (!Object.prototype.hasOwnProperty.call(node, key)) continue;
+        const child = node[key];
+        if (key === "realTimeAd" && child && typeof child === "object") {
           delete node[key];
           removed++;
         } else {
-          stack.push(node[key]);
+          stack.push(child);
         }
       }
     }
     return removed ? $done({ body: JSON.stringify(splash) }) : $done({});
   }
 
-  const supportedPaths = [
-      "/mtop.taobao.idlehome.home.nextfresh",
-      "/mtop.taobao.idle.local.home",
-      "/mtop.taobao.idle.home.whale.modulet",
-      "/mtop.idle.user.page.my.adapter",
-      "/mtop.taobao.idlehome.home.circle.list",
-      "/mtop.taobao.idle.local.nearby.itemdetail.enter",
-      "/mtop.taobao.idlemtopsearch.search",
-      "/mtop.taobao.idle.local.flow.plat.section"
-    ];
-    if (!supportedPaths.some(path => url.includes(path))) return $done({});
+  const isSupportedPath =
+    url.includes("/mtop.taobao.idlehome.home.nextfresh") ||
+    url.includes("/mtop.taobao.idle.local.home") ||
+    url.includes("/mtop.taobao.idle.home.whale.modulet") ||
+    url.includes("/mtop.idle.user.page.my.adapter") ||
+    url.includes("/mtop.taobao.idlehome.home.circle.list") ||
+    url.includes("/mtop.taobao.idle.local.nearby.itemdetail.enter") ||
+    url.includes("/mtop.taobao.idlemtopsearch.search") ||
+    url.includes("/mtop.taobao.idle.local.flow.plat.section");
+  if (!isSupportedPath) return $done({});
 
     let obj;
   try {
@@ -104,8 +106,17 @@ function main() {
     }
     const holder = recycle.showInfo;
     const current = holder.rightTagImage;
+    let hasKeys = false;
+    if (current && typeof current === "object" && !Array.isArray(current)) {
+      for (const key in current) {
+        if (Object.prototype.hasOwnProperty.call(current, key)) {
+          hasKeys = true;
+          break;
+        }
+      }
+    }
     if (!current || typeof current !== "object" ||
-        Array.isArray(current) || Object.keys(current).length > 0) {
+        Array.isArray(current) || hasKeys) {
       holder.rightTagImage = {};
       // JSON.stringify ignores custom properties attached to arrays.
       if (!Array.isArray(holder)) modified = true;
@@ -120,11 +131,6 @@ function main() {
 
       // R-Store + ishowshu: retain the same intersection of feed filters.
       if (Array.isArray(data.sections)) {
-        const excludedTemplates = new Set([
-          "fish_home_yunying_card_d3",
-          "idlefish_seafood_market",
-          "fish_home_chat_room"
-        ]);
         compactTracked(data.sections, section => {
           if (!section || typeof section !== "object") return false;
           const sectionData = section.data;
@@ -134,7 +140,9 @@ function main() {
           const templateName = section.template && section.template.name;
           const dataTemplateName = sectionData && sectionData.template && sectionData.template.name;
           const cardType = sectionData && (sectionData.cardType || sectionData.cardTypeValue);
-          if (excludedTemplates.has(templateName) || AD_TEMPLATE_NAMES.has(templateName) ||
+          if ((templateName === "fish_home_yunying_card_d3" ||
+             templateName === "idlefish_seafood_market" ||
+             templateName === "fish_home_chat_room") || AD_TEMPLATE_NAMES.has(templateName) ||
               AD_TEMPLATE_NAMES.has(dataTemplateName) || cardType === "mamaAD" ||
               cardType === "homeMultiBanner") return false;
           const exContent = sectionData && sectionData.item && sectionData.item.main &&
@@ -160,10 +168,9 @@ function main() {
         const templateName = section.template && section.template.name;
         const dataTemplateName = sectionData.template && sectionData.template.name;
         const cardType = sectionData.cardType || sectionData.cardTypeValue;
-        const adTemplate = /^(fish_home_advertise_card_d[34]|fish_local_advertise_card_d4|idlefish_local_feed2_marketing|fish_home_feeds_pager_banner|detail_recommend_ad_card)$/;
         return sectionData.bizType !== "AD" &&
-          !AD_TEMPLATE_RE.test(templateName || "") &&
-          !AD_TEMPLATE_RE.test(dataTemplateName || "") &&
+          !AD_TEMPLATE_NAMES.has(String(templateName || "")) &&
+          !AD_TEMPLATE_NAMES.has(String(dataTemplateName || "")) &&
           cardType !== "mamaAD" && cardType !== "homeMultiBanner";
       });
     }
@@ -177,10 +184,10 @@ function main() {
 
   if (url.includes("/mtop.idle.user.page.my.adapter")) {
     if (data && data.container && Array.isArray(data.container.sections)) {
-      const keepIndexes = new Set(["0", "1", "3"]);
-      compactTracked(data.container.sections, item =>
-        item && keepIndexes.has(String(item.index))
-      );
+      compactTracked(data.container.sections, item => {
+        const index = item && String(item.index);
+        return index === "0" || index === "1" || index === "3";
+      });
     }
     if (data && typeof data === "object" &&
         (!Array.isArray(data.ability) || data.ability.length > 0)) {
@@ -237,10 +244,6 @@ function main() {
 
   if (url.includes("/mtop.taobao.idlemtopsearch.search")) {
     if (data && Array.isArray(data.resultList)) {
-      const excludedTemplates = new Set([
-        "idlefish_search_card_category_select",
-        "idlefish_search_spu_market_publish"
-      ]);
       compactTracked(data.resultList, element => {
         if (!element || typeof element !== "object") return false;
         const exContent = element.data && element.data.item &&
@@ -251,7 +254,8 @@ function main() {
         const cardType = element.data && element.data.cardType;
         if (cardType === "mamaAD" || cardType === "homeMultiBanner") return false;
         const templateName = element.data && element.data.template && element.data.template.name;
-        return !excludedTemplates.has(templateName);
+        return templateName !== "idlefish_search_card_category_select" &&
+          templateName !== "idlefish_search_spu_market_publish";
       });
     }
     if (data && typeof data === "object") {

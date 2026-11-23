@@ -56,6 +56,7 @@ on:
       - 'optimize_xmly.py'
       - 'optimize_didi.py'
       - 'optimize_taobao.py'
+      - 'optimize_xianyu.py'
       - 'test_taobao_optimization.py'
       - 'test_zhihu_performance.py'
       - 'test_cntv_performance.py'
@@ -70,6 +71,7 @@ on:
       - 'test_response_array_compaction_performance.py'
       - 'test_baidumap_binary_performance.py'
       - 'test_xianyu_jd_upstream.py'
+      - 'test_xianyu_runtime_performance.py'
       - 'test_jd_lazy_serialization.py'
       - 'optimization_guard.py'
       - 'optimization_invariants.json'
@@ -135,6 +137,7 @@ on:
       - 'optimize_xmly.py'
       - 'optimize_didi.py'
       - 'optimize_taobao.py'
+      - 'optimize_xianyu.py'
       - 'test_taobao_optimization.py'
       - 'test_zhihu_performance.py'
       - 'test_cntv_performance.py'
@@ -151,6 +154,7 @@ on:
       - 'test_response_array_compaction_performance.py'
       - 'test_baidumap_binary_performance.py'
       - 'test_xianyu_jd_upstream.py'
+      - 'test_xianyu_runtime_performance.py'
       - 'test_jd_lazy_serialization.py'
       - 'optimization_guard.py'
       - 'optimization_invariants.json'
@@ -235,7 +239,7 @@ jobs:
           PY
 
       - name: 编译检查
-        run: python3 -m py_compile merge_plugins.py mitm_policy.py validate_plugin.py fix_script_configs.py source_guard.py stage_romeo_plugins.py audit_plugin.py deep_audit.py amap_dependency_guard.py apply_amap_local_overrides.py compare_rule_provenance.py source_health_guard.py finalize_provenance.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py integrate_spotify.py apply_local_overrides.py check_script_v2.py runtime_performance_audit.py optimize_cnftp.py optimize_xiaohongshu.py optimize_xiaohongshu_rstore.py optimize_weibo_rstore.py optimize_zhihu.py optimize_cntv.py optimize_amap.py optimize_smzdm.py optimize_rrtv.py optimize_soul.py optimize_xmly.py optimize_didi.py optimize_taobao.py optimization_guard.py
+        run: python3 -m py_compile merge_plugins.py mitm_policy.py validate_plugin.py fix_script_configs.py source_guard.py stage_romeo_plugins.py audit_plugin.py deep_audit.py amap_dependency_guard.py apply_amap_local_overrides.py compare_rule_provenance.py source_health_guard.py finalize_provenance.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py integrate_spotify.py apply_local_overrides.py check_script_v2.py runtime_performance_audit.py optimize_cnftp.py optimize_xiaohongshu.py optimize_xiaohongshu_rstore.py optimize_weibo_rstore.py optimize_zhihu.py optimize_cntv.py optimize_amap.py optimize_smzdm.py optimize_rrtv.py optimize_soul.py optimize_xmly.py optimize_didi.py optimize_taobao.py optimize_xianyu.py optimization_guard.py
       - name: 检查小红书本地视频脚本语法
         run: node --check scripts/xiaohongshu/xiaohongshu-v4.js
       - name: 检查小红书主响应脚本语法
@@ -256,6 +260,8 @@ jobs:
         run: node --check scripts/amap/amap.js
       - name: 检查滴滴本地响应脚本语法
         run: node --check scripts/didi/didi.js
+      - name: 检查闲鱼本地响应脚本语法
+        run: node --check scripts/xianyu/goofish.js
       - name: 检查京东本地响应脚本语法
         run: node --check scripts/jingdong/jd.js
       - name: 检查什么值得买本地响应脚本语法
@@ -269,7 +275,7 @@ jobs:
       - name: 检查帆书本地响应脚本语法
         run: node --check scripts/dushu365/dushu365.js
       - name: 运行单元与合并集成测试
-        run: python3 -m unittest -v test_validate_plugin.py test_fix_script_configs.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_apply_amap_local_overrides.py test_compare_rule_provenance.py test_source_health_guard.py test_finalize_provenance.py test_rule_risk_history.py test_integrate_spotify.py test_convert_qx2loon.py test_convert_filter_qx2loon.py test_stage_romeo_plugins.py test_runtime_performance_audit.py test_xiaohongshu_v4_performance.py test_xiaohongshu_performance.py test_xiaohongshu_rstore_performance.py test_weibo_rstore_performance.py test_amap_response_compaction.py test_cnftp_performance.py test_zhihu_performance.py test_bilibili_json_performance.py test_cntv_performance.py test_amap_rstore_performance.py test_didi_performance.py test_response_array_compaction_performance.py test_baidumap_binary_performance.py test_taobao_optimization.py test_xianyu_jd_upstream.py test_jd_lazy_serialization.py test_optimization_guard.py test_smzdm_performance.py test_rrtv_performance.py test_soul_performance.py test_xmly_performance.py test_dushu365_performance.py
+        run: python3 -m unittest -v test_validate_plugin.py test_fix_script_configs.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_apply_amap_local_overrides.py test_compare_rule_provenance.py test_source_health_guard.py test_finalize_provenance.py test_rule_risk_history.py test_integrate_spotify.py test_convert_qx2loon.py test_convert_filter_qx2loon.py test_stage_romeo_plugins.py test_runtime_performance_audit.py test_xiaohongshu_v4_performance.py test_xiaohongshu_performance.py test_xiaohongshu_rstore_performance.py test_weibo_rstore_performance.py test_amap_response_compaction.py test_cnftp_performance.py test_zhihu_performance.py test_bilibili_json_performance.py test_cntv_performance.py test_amap_rstore_performance.py test_didi_performance.py test_response_array_compaction_performance.py test_baidumap_binary_performance.py test_taobao_optimization.py test_xianyu_jd_upstream.py test_xianyu_runtime_performance.py test_jd_lazy_serialization.py test_optimization_guard.py test_smzdm_performance.py test_rrtv_performance.py test_soul_performance.py test_xmly_performance.py test_dushu365_performance.py
       - name: 测试本地插件覆盖
         run: |
           # The checked-in plugin is a historical snapshot; snapshot-specific assertions
@@ -376,6 +382,7 @@ jobs:
           python3 optimize_soul.py --source /tmp/r-store/Res/Scripts/AntiAd/soul.js --output scripts/soul/soul.js --upstream-commit "$RSTORE_SHA"
           python3 optimize_xmly.py --source /tmp/r-store/Res/Scripts/AntiAd/xmly.js --output scripts/xmly/xmly.js --upstream-commit "$RSTORE_SHA"
           python3 optimize_dushu365.py --source /tmp/r-store/Res/Scripts/AntiAd/dushu365.js --output scripts/dushu365/dushu365.js --upstream-commit "$RSTORE_SHA"
+          python3 optimize_xianyu.py --runtime scripts/xianyu/goofish.js
           echo "CNFTP upstream: fmz200/wool_scripts@$WOOL_SHA"
 
 
@@ -385,7 +392,7 @@ jobs:
           python-version: '3.11'
 
       - name: 编译检查
-        run: python3 -m py_compile merge_plugins.py mitm_policy.py validate_plugin.py fix_script_configs.py source_guard.py stage_romeo_plugins.py audit_plugin.py deep_audit.py amap_dependency_guard.py apply_amap_local_overrides.py compare_rule_provenance.py source_health_guard.py finalize_provenance.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py integrate_spotify.py runtime_performance_audit.py optimize_cnftp.py optimize_xiaohongshu.py optimize_xiaohongshu_rstore.py optimize_weibo_rstore.py optimize_zhihu.py optimize_cntv.py optimize_amap.py optimize_smzdm.py optimize_rrtv.py optimize_soul.py optimize_xmly.py optimize_didi.py optimize_taobao.py optimization_guard.py
+        run: python3 -m py_compile merge_plugins.py mitm_policy.py validate_plugin.py fix_script_configs.py source_guard.py stage_romeo_plugins.py audit_plugin.py deep_audit.py amap_dependency_guard.py apply_amap_local_overrides.py compare_rule_provenance.py source_health_guard.py finalize_provenance.py rule_risk_history.py convert_qx2loon.py convert_filter_qx2loon.py integrate_spotify.py runtime_performance_audit.py optimize_cnftp.py optimize_xiaohongshu.py optimize_xiaohongshu_rstore.py optimize_weibo_rstore.py optimize_zhihu.py optimize_cntv.py optimize_amap.py optimize_smzdm.py optimize_rrtv.py optimize_soul.py optimize_xmly.py optimize_didi.py optimize_taobao.py optimize_xianyu.py optimization_guard.py
       - name: 检查小红书本地视频脚本语法
         run: node --check scripts/xiaohongshu/xiaohongshu-v4.js
       - name: 检查小红书主响应脚本语法
@@ -406,6 +413,8 @@ jobs:
         run: node --check scripts/amap/amap.js
       - name: 检查滴滴本地响应脚本语法
         run: node --check scripts/didi/didi.js
+      - name: 检查闲鱼本地响应脚本语法
+        run: node --check scripts/xianyu/goofish.js
       - name: 检查什么值得买本地响应脚本语法
         run: node --check scripts/smzdm/smzdm.js
       - name: 检查人人视频本地响应脚本语法
@@ -418,7 +427,7 @@ jobs:
         run: node --check scripts/dushu365/dushu365.js
 
       - name: 测试校验器与来源依赖门禁
-        run: python3 -m unittest -v test_validate_plugin.py test_fix_script_configs.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_apply_amap_local_overrides.py test_compare_rule_provenance.py test_source_health_guard.py test_finalize_provenance.py test_rule_risk_history.py test_integrate_spotify.py test_convert_qx2loon.py test_convert_filter_qx2loon.py test_stage_romeo_plugins.py test_runtime_performance_audit.py test_xiaohongshu_v4_performance.py test_xiaohongshu_performance.py test_xiaohongshu_rstore_performance.py test_weibo_rstore_performance.py test_amap_response_compaction.py test_cnftp_performance.py test_zhihu_performance.py test_bilibili_json_performance.py test_cntv_performance.py test_amap_rstore_performance.py test_didi_performance.py test_response_array_compaction_performance.py test_baidumap_binary_performance.py test_taobao_optimization.py test_xianyu_jd_upstream.py test_jd_lazy_serialization.py test_optimization_guard.py test_smzdm_performance.py test_rrtv_performance.py test_soul_performance.py test_xmly_performance.py test_dushu365_performance.py
+        run: python3 -m unittest -v test_validate_plugin.py test_fix_script_configs.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_apply_amap_local_overrides.py test_compare_rule_provenance.py test_source_health_guard.py test_finalize_provenance.py test_rule_risk_history.py test_integrate_spotify.py test_convert_qx2loon.py test_convert_filter_qx2loon.py test_stage_romeo_plugins.py test_runtime_performance_audit.py test_xiaohongshu_v4_performance.py test_xiaohongshu_performance.py test_xiaohongshu_rstore_performance.py test_weibo_rstore_performance.py test_amap_response_compaction.py test_cnftp_performance.py test_zhihu_performance.py test_bilibili_json_performance.py test_cntv_performance.py test_amap_rstore_performance.py test_didi_performance.py test_response_array_compaction_performance.py test_baidumap_binary_performance.py test_taobao_optimization.py test_xianyu_jd_upstream.py test_xianyu_runtime_performance.py test_jd_lazy_serialization.py test_optimization_guard.py test_smzdm_performance.py test_rrtv_performance.py test_soul_performance.py test_xmly_performance.py test_dushu365_performance.py
 
       - name: 创建隔离构建目录
         run: |

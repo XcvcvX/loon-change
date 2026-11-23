@@ -39,6 +39,12 @@ class OptimizationGuardTests(unittest.TestCase):
                 "function clearArray(target, key)",
                 "$done(modified ? {body: JSON.stringify(obj)} : {});",
             ],
+            "scripts/xianyu/goofish.js": [
+                "// loon-change: Goofish per-response allocation hot-path optimization v1",
+                "const isSupportedPath =",
+                "let hasKeys = false",
+                "for (const key in node)",
+            ],
         }
         for path, tokens in expected.items():
             self.assertIn(path, artifacts)

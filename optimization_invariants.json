@@ -149,6 +149,28 @@
         "if (!shouldProcess) {",
         "url.includes(\"guide-acs.m.taobao.com/gw/mtop.taobao.cloudvideo.video.query\")"
       ]
+    },
+    {
+      "path": "scripts/xianyu/goofish.js",
+      "required": [
+        "// loon-change: Goofish per-response allocation hot-path optimization v1",
+        "const isSupportedPath =",
+        "let hasKeys = false",
+        "for (const key in node)",
+        "AD_TEMPLATE_NAMES.has(String(templateName || \"\"))",
+        "index === \"0\" || index === \"1\" || index === \"3\"",
+        "templateName !== \"idlefish_search_card_category_select\""
+      ],
+      "forbidden": [
+        "const supportedPaths = [",
+        "supportedPaths.some(",
+        "Object.keys(node)",
+        "Object.keys(current)",
+        "const keepIndexes = new Set([",
+        "const excludedTemplates = new Set([",
+        "const adTemplate =",
+        "AD_TEMPLATE_RE.test("
+      ]
     }
   ]
 }
