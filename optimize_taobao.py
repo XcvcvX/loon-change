@@ -57,7 +57,7 @@ OLD_ROUTE_GUARD = """  // loon-change: Taobao pre-parse supported-route guard v1
 NEW_ROUTE_GUARD = """  // loon-change: Taobao pre-parse supported-route guard v1
   %s
   const isCloudVideo = url.includes("guide-acs.m.taobao.com/gw/mtop.taobao.cloudvideo.video.query");
-  const isSplash = url.includes("guide-acs.m.taobao.wireless.home.splash.awesome.get");
+  const isSplash = url.includes("guide-acs.m.taobao.com/gw/mtop.taobao.wireless.home.splash.awesome.get");
   const isPoplayer = url.includes("poplayer.template.alibaba.com/");
   const shouldProcess = isCloudVideo || isSplash || isPoplayer;
   if (!shouldProcess) {
