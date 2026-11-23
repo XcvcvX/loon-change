@@ -359,19 +359,19 @@ def ensure_lazy_serialization(source: str) -> str:
         raise ValueError("CNFTP URL initialization changed; refusing lazy serialization")
     if source.count("function compactInPlace(items, keep) {") != 1:
         raise ValueError("CNFTP compaction helper changed; refusing lazy serialization")
-    if source.count("  items.length = write;\\n  return items;") != 1:
+    if source.count("  items.length = write;\n  return items;") != 1:
         raise ValueError("CNFTP compaction mutation anchor changed; refusing lazy serialization")
     if source.count(final) != 1 or source.count("let obj = JSON.parse($response.body);") != 1:
         raise ValueError("CNFTP response parse/serialize anchors changed; refusing lazy serialization")
 
     source = source.replace("const url = $request.url;",
-                            "const url = $request.url;\\n\\nlet modified = false;", 1)
+                            "const url = $request.url;\n\nlet modified = false;", 1)
     source = source.replace(
-        "  items.length = write;\\n  return items;",
-        "  if (write !== length) {\\n    items.length = write;\\n    modified = true;\\n  }\\n  return items;",
+        "  items.length = write;\n  return items;",
+        "  if (write !== length) {\n    items.length = write;\n    modified = true;\n  }\n  return items;",
         1,
     )
-    helper = """\\n\\n""" + LAZY_SERIALIZATION_MARKER + """\\nfunction setIfDifferent(target, key, value) {
+    helper = """\n\n""" + LAZY_SERIALIZATION_MARKER + """\nfunction setIfDifferent(target, key, value) {
   if (target[key] !== value) {
     target[key] = value;
     modified = true;
@@ -385,7 +385,7 @@ function deleteIfPresent(target, key) {
   }
 }
 """
-    compact_end = "  return items;\\n}\\n"
+    compact_end = "  return items;\n}\n"
     if source.count(compact_end) != 1:
         raise ValueError("CNFTP compaction helper insertion anchor changed")
     source = source.replace(compact_end, compact_end + helper, 1)
@@ -394,28 +394,28 @@ function deleteIfPresent(target, key) {
     start, finish = source.index(parse_line), source.index(final)
     body = source[start:finish]
     body, deleted = re.subn(
-        r"^([ \\t]*)delete\\s+(.+)\\.([A-Za-z_$][\\w$]*);$",
+        r"^([ \t]*)delete\s+(.+)\.([A-Za-z_$][\w$]*);$",
         lambda m: m.group(1) + "deleteIfPresent(" + m.group(2) + ', "' + m.group(3) + ');',
         body, flags=re.MULTILINE,
     )
     body, deleted_index = re.subn(
-        r"^([ \\t]*)delete\\s+(.+)\\[([^]\\n]+)\\];$",
+        r"^([ \t]*)delete\s+(.+)\[([^]\n]+)\];$",
         lambda m: m.group(1) + "deleteIfPresent(" + m.group(2) + ", " + m.group(3) + ");",
         body, flags=re.MULTILINE,
     )
     body, assigned = re.subn(
-        r"^([ \\t]*)([A-Za-z_$][\\w$]*(?:(?:\\.[A-Za-z_$][\\w$]*)|(?:\\[[^]\\n]+\\]))*)\\.([A-Za-z_$][\\w$]*)\\s*=\\s*(.*);$",
+        r"^([ \t]*)([A-Za-z_$][\w$]*(?:(?:\.[A-Za-z_$][\w$]*)|(?:\[[^]\n]+\]))*)\.([A-Za-z_$][\w$]*)\s*=\s*(.*);$",
         lambda m: m.group(1) + "setIfDifferent(" + m.group(2) + ', "' + m.group(3) + '", ' + m.group(4) + ");",
         body, flags=re.MULTILINE,
     )
     body, assigned_index = re.subn(
-        r"^([ \\t]*)([A-Za-z_$][\\w$]*(?:(?:\\.[A-Za-z_$][\\w$]*)|(?:\\[[^]\\n]+\\]))*)\\[([^]\\n]+)\\]\\s*=\\s*(.*);$",
+        r"^([ \t]*)([A-Za-z_$][\w$]*(?:(?:\.[A-Za-z_$][\w$]*)|(?:\[[^]\n]+\]))*)\[([^]\n]+)\]\s*=\s*(.*);$",
         lambda m: m.group(1) + "setIfDifferent(" + m.group(2) + ", " + m.group(3) + ", " + m.group(4) + ");",
         body, flags=re.MULTILINE,
     )
     if deleted + deleted_index + assigned + assigned_index == 0:
         raise ValueError("CNFTP mutation inventory unexpectedly empty")
-    if re.search(r"^[ \\t]*delete\\s+", body, re.MULTILINE):
+    if re.search(r"^[ \t]*delete\s+", body, re.MULTILINE):
         raise ValueError("CNFTP untracked delete remains; refusing lazy serialization")
     source = source[:start] + body + source[finish:]
     source = source.replace(final, lazy_final, 1)
