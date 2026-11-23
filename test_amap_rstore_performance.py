@@ -107,6 +107,64 @@ class AmapRStoreOptimizerTests(unittest.TestCase):
         self.assertEqual(result["parseCount"], 1)
         self.assertEqual(result["stringifyCount"], 1)
 
+    def test_route_plan_caches_nested_references_and_optimizer_repairs_upstream_form(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        start = '} else if (url.includes("/perception/drive/routePlan")) {'
+        end = '} else if (url.includes("/promotion-web/resource")) {'
+        i = source.index(start)
+        j = source.index(end, i + len(start))
+        block = source[i:j]
+        self.assertIn("// loon-change: Amap routePlan cached nested references v1", block)
+        for declaration in (
+            "const routePlanFrontEnd = routePlanData?.front_end;",
+            "const routePlanEvents = routePlanData?.tbt?.event;",
+            "const routePlanDownloads = routePlanFrontEnd?.download;",
+        ):
+            self.assertIn(declaration, block)
+        self.assertNotIn("obj?.data?.front_end", block)
+        self.assertNotIn("obj?.data?.tbt?.event", block)
+        self.assertEqual(optimize_source(source), source)
+
+        damaged = source.replace(
+            "  // loon-change: Amap routePlan cached nested references v1\n"
+            "  const routePlanData = obj?.data;\n"
+            "  const routePlanFrontEnd = routePlanData?.front_end;\n"
+            "  const routePlanEvents = routePlanData?.tbt?.event;\n"
+            "  const routePlanDownloads = routePlanFrontEnd?.download;",
+            "",
+            1,
+        )
+        self.assertNotEqual(damaged, source)
+        repaired = optimize_source(damaged)
+        self.assertIn("// loon-change: Amap routePlan cached nested references v1", repaired)
+        self.assertIn("const routePlanEvents = routePlanData?.tbt?.event;", repaired)
+        self.assertEqual(optimize_source(repaired), repaired)
+
+    def test_route_plan_cached_references_preserve_filtering_and_lazy_serialization(self):
+        body = {"data": {
+            "front_end": {
+                "assistant": {"skin": "ad"},
+                "global_guide_data": {"promo": True},
+                "route_search": {"promo": True},
+                "start_button_tips": {"promo": True},
+                "download": [{"dynamic_id_s": "ads-789"}, {"dynamic_id_s": "normal-route-voice"}],
+            },
+            "tbt": {"event": [{"dynamic_id_s": "ads-321"}, {"dynamic_id_s": "normal-route-event"}]},
+        }}
+        result = self.run_script(
+            "https://m1.amap.com/ws/perception/drive/routePlan?x=1",
+            json.dumps(body),
+        )
+        output = json.loads(result["doneResult"]["body"])
+        self.assertEqual(output["data"]["tbt"]["event"], [{"dynamic_id_s": "normal-route-event"}])
+        self.assertEqual(output["data"]["front_end"]["download"], [{"dynamic_id_s": "normal-route-voice"}])
+        self.assertNotIn("assistant", output["data"]["front_end"])
+        self.assertNotIn("global_guide_data", output["data"]["front_end"])
+        self.assertNotIn("route_search", output["data"]["front_end"])
+        self.assertNotIn("start_button_tips", output["data"]["front_end"])
+        self.assertEqual(result["parseCount"], 1)
+        self.assertEqual(result["stringifyCount"], 1)
+
     def test_local_script_has_guard_and_in_place_compaction(self):
         source = SOURCE.read_text(encoding="utf-8")
         self.assertIn("Amap R-Store supported-route guard v1", source)
