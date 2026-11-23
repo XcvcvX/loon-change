@@ -317,7 +317,7 @@ def ensure_supported_route_guard(source: str) -> str:
             raise ValueError("CNFTP supported-route guard marker/structure drift")
         if source.count("let obj = JSON.parse($response.body);") != 1:
             raise ValueError("CNFTP supported-route parse anchor drift")
-        if not source.rstrip().endswith("$done({body: JSON.stringify(obj)});\\n}\\n}\\n"):
+        if not source.rstrip().endswith("$done({body: JSON.stringify(obj)});\n}\n}\n"):
             raise ValueError("CNFTP supported-route terminal structure drift")
         return source
     parse_line = "let obj = JSON.parse($response.body);"
@@ -325,10 +325,10 @@ def ensure_supported_route_guard(source: str) -> str:
         raise ValueError("CNFTP response parse anchor changed; refusing pre-parse guard")
     if source.count("const isIQY = url.includes(\\"iqiyi.com/\\");") != 1:
         raise ValueError("CNFTP domain dispatch anchor changed; refusing pre-parse guard")
-    if not source.rstrip().endswith("$done({body: JSON.stringify(obj)});\\n}\\n"):
+    if not source.rstrip().endswith("$done({body: JSON.stringify(obj)});\n}\n"):
         raise ValueError("CNFTP terminal response structure changed; refusing pre-parse guard")
-    source = source.replace(parse_line, SUPPORTED_ROUTE_GUARD + "\\n" + parse_line, 1)
-    source = source.rstrip()[:-len("}\\n")] + "}\\n}\\n"
+    source = source.replace(parse_line, SUPPORTED_ROUTE_GUARD + "\n" + parse_line, 1)
+    source = source.rstrip()[:-len("}\n")] + "}\n}\n"
     return source
 
 
