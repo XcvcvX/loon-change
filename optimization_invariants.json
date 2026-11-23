@@ -188,11 +188,12 @@
         "delete data.skills[key];"
       ],
       "forbidden": [
-        "const kept = [];",
-        "compactInPlace(",
+        ".filter(",
+        ".map(",
+        ".forEach(",
         "Object.keys(data.skills)",
-        "holders.forEach(",
-        "resourcesMap, holder.resource"
+        "const kept = [];",
+        "compactInPlace("
       ]
     }
   ]
