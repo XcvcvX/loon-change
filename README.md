@@ -921,3 +921,12 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - Spotify 上游整合流程在复制脚本后自动应用该本地优化；上游解析锚点漂移时 fail-closed，避免同步时静默丢失优化。
 - Node VM 回归测试检查无广告响应的 `subarray` 调用数为 0，并验证含广告响应的输出字节与尾部数据；优化不改变 URL matcher、MITM 或其他 Spotify 功能。
 - 性能收益限于减少无广告响应的临时对象和视图分配；未宣称未经设备测量的 CPU 或电量百分比。
+
+
+## Phase 17 P1 — Spotify Search/Scroll protobuf no-op preflight
+
+- Spotify Search 与 Scroll 的原有 Protobuf 处理器会先构建字段对象数组，并为每个 length-delimited 字段创建 `subarray` 视图；即使目标广告字段不存在，也会产生这些临时分配。
+- 新增 allocation-free range preflight：按原始缓冲区偏移递归扫描最多三层，只读取字段号、wire type 和长度，不构建字段数组、字段对象或子数组视图。
+- 只有确认存在目标广告字段后，才进入原有重建流程；搜索仍严格要求 field 6 payload 大于 12000 bytes，Scroll 仍匹配 field 30，保留原有首个匹配字段重编号、嵌套长度重算和异常透传语义。
+- Spotify 上游整合器在每次拉取脚本后重新应用两项优化；解析锚点或目标谓词漂移时 fail-closed。Node VM 测试检查 no-op 响应的 subarray 调用数为 0，并覆盖目标字段存在时进入原有重建路径。
+- 本批不改变 URL matcher、MITM、广告阈值或字段编号；性能结论仅限于无广告响应减少临时数组/对象/视图分配，未宣称未经真机测量的 CPU 或耗电百分比。

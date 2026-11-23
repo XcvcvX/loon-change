@@ -44,6 +44,44 @@ function concat(parts) {
   return out;
 }
 
+// loon-change: Spotify Search protobuf no-ad allocation preflight v1
+// Scan wire ranges without materializing field arrays or subarray views.
+// The existing allocating rewrite is entered only after a target field is found.
+function hasTargetField(buf, depth, start, end) {
+  start = start || 0;
+  end = end === undefined ? buf.length : end;
+  let pos = start;
+  while (pos < end) {
+    const key = readVarint(buf, pos);
+    const no = Math.floor(key.value / 8);
+    const wire = key.value % 8;
+    pos = key.pos;
+    let payloadStart = -1;
+    let payloadEnd = -1;
+    if (wire === 0) pos = readVarint(buf, pos).pos;
+    else if (wire === 1) pos += 8;
+    else if (wire === 5) pos += 4;
+    else if (wire === 2) {
+      const len = readVarint(buf, pos);
+      payloadStart = len.pos;
+      payloadEnd = len.pos + len.value;
+      pos = payloadEnd;
+    } else throw new Error("unsupported wire type " + wire);
+    if (pos > end) throw new Error("truncated field");
+    if (wire === 2) {
+      if (no === AD_FIELD && payloadEnd - payloadStart > MIN_AD_SIZE) return true;
+      if (depth < MAX_DEPTH) {
+        try {
+          if (hasTargetField(buf, depth + 1, payloadStart, payloadEnd)) return true;
+        } catch (e) {
+          // Non-message strings/bytes are expected; match the original parser's behavior.
+        }
+      }
+    }
+  }
+  return false;
+}
+
 // Parses one protobuf message into its fields (raw bytes of each field are kept).
 function parseFields(buf) {
   const fields = [];
@@ -104,7 +142,7 @@ function renameField(buf, depth, matches) {
 try {
   const body = $response.body;
   const bytes = body instanceof Uint8Array ? body : new Uint8Array(body);
-  const out = renameField(bytes, 0, (f, payload) => f.no === AD_FIELD && payload.length > MIN_AD_SIZE);
+  const out = hasTargetField(bytes, 0) ? renameField(bytes, 0, (f, payload) => f.no === AD_FIELD && payload.length > MIN_AD_SIZE) : null;
   if (out) {
     console.log("Spotify search: sponsored block hidden");
     $done({ body: out });
