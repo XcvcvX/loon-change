@@ -194,15 +194,16 @@ def instrument_mutations(source):
     done = old_done if old_done in source else lazy_done
     end = source.index(done, start)
     body = source[start:end]
-    trailing_newlines = len(body) - len(body.rstrip("\n"))
     delete_count = 0
     set_count = 0
     rewritten = []
-    for line in body.splitlines():
+    for raw_line in body.splitlines(keepends=True):
+        line = raw_line[:-1] if raw_line.endswith("\n") else raw_line
+        ending = "\n" if raw_line.endswith("\n") else ""
         match = re.match(r"^(\s*)delete\s+(.+?);(\s*(?://.*)?)$", line)
         if match:
             parent, key = _split_member_path(match.group(2))
-            rewritten.append(match.group(1) + "deleteIfPresent(" + parent + ", " + key + ");" + match.group(3))
+            rewritten.append(match.group(1) + "deleteIfPresent(" + parent + ", " + key + ");" + match.group(3) + ending)
             delete_count += 1
             continue
         match = re.match(
@@ -213,12 +214,12 @@ def instrument_mutations(source):
             parent, key = _split_member_path(match.group(2))
             rewritten.append(
                 match.group(1) + "setIfDifferent(" + parent + ", " + key + ", "
-                + match.group(3) + ");" + match.group(4)
+                + match.group(3) + ");" + match.group(4) + ending
             )
             set_count += 1
             continue
-        rewritten.append(line)
-    body = "\n".join(rewritten) + ("\n" * trailing_newlines)
+        rewritten.append(raw_line)
+    body = "".join(rewritten)
     if not was_instrumented and delete_count + set_count < 50:
         raise ValueError(
             "Amap mutation inventory changed: delete=%d set=%d"
