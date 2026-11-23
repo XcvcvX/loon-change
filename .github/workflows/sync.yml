@@ -75,6 +75,7 @@ on:
       - 'test_jd_lazy_serialization.py'
       - 'optimization_guard.py'
       - 'optimization_invariants.json'
+      - 'optimization_output_invariants.json'
       - 'test_optimization_guard.py'
       - '.github/workflows/sync.yml'
   pull_request:
@@ -158,6 +159,7 @@ on:
       - 'test_jd_lazy_serialization.py'
       - 'optimization_guard.py'
       - 'optimization_invariants.json'
+      - 'optimization_output_invariants.json'
       - 'test_optimization_guard.py'
       - 'apply_local_overrides.py'
       - 'test_apply_local_overrides.py'
@@ -709,6 +711,9 @@ jobs:
             /tmp/runtime-performance-sync.md
           if-no-files-found: error
           retention-days: 14
+
+      - name: 校验最终生成插件仍保留关键性能优化
+        run: python3 optimization_guard.py --root /tmp/loon-build --manifest optimization_output_invariants.json
 
       - name: 校验通过后替换正式产物
         run: |
