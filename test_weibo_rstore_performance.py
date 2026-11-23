@@ -5,7 +5,7 @@ import subprocess
 import unittest
 from pathlib import Path
 
-from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, LAZY_MARKER, optimize_source, rewrite_plugin
+from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, LAZY_MARKER, GUARD_DECLARATION, HELPER, LEGACY_HELPER, optimize_source, rewrite_plugin
 
 ROOT = Path(__file__).resolve().parent
 SCRIPT = ROOT / "scripts/weibo/weibo-rstore.js"
@@ -29,6 +29,16 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         self.assertNotIn("obj.elements = obj.elements.filter(", source)
         self.assertNotIn("obj.user_list = obj.user_list.filter(", source)
         self.assertNotIn("obj.channelInfo.channel_list = obj.channelInfo.channel_list.filter(", source)
+
+    def test_old_optimized_snapshot_regains_lazy_serialization_guard(self):
+        source = SCRIPT.read_text(encoding="utf-8")
+        legacy = source.replace(LAZY_MARKER + "\n", "", 1)
+        legacy = legacy.replace(GUARD_DECLARATION + "\n", "", 1)
+        legacy = legacy.replace(HELPER, LEGACY_HELPER, 1)
+        legacy = re.sub(r"(?m)^([ \t]*)if \(__loonWrite\d+ !== __loonLength\d+\) modified = true;\n", "", legacy)
+        legacy = re.sub(r"(?m)^([ \t]*)modified = true;\n([ \t]*delete .+;)$", r"\2", legacy)
+        legacy = legacy.replace("$done(modified ? {body: JSON.stringify(obj)} : {});", "$done({body: JSON.stringify(obj)});", 1)
+        self.assertEqual(optimize_source(legacy), source)
 
     def test_exactly_ten_live_rstore_triggers_are_routed_to_local_script(self):
         plugin = (ROOT / "allAdRewrite.plugin").read_text(encoding="utf-8")
@@ -135,6 +145,12 @@ process.stdout.write(JSON.stringify({doneResult, parseCount, stringifyCount}));
         self.assertEqual(result["doneResult"], {})
         self.assertEqual(result["parseCount"], 1)
         self.assertEqual(result["stringifyCount"], 0)
+
+    def test_other_response_routes_keep_legacy_serialization(self):
+        result = self.run_script("https://api.weibo.cn/2/checkin/show", {})
+        self.assertEqual(result["parseCount"], 1)
+        self.assertEqual(result["stringifyCount"], 1)
+        self.assertIn("body", result["doneResult"])
 
     def test_hot_timeline_compaction_preserves_feed_order(self):
         body = {
