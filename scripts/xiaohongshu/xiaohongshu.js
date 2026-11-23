@@ -457,11 +457,11 @@ function processCommentTree(data, livePhotos, commentVideos, noteId) {
     return parsedVideoInfo.get(raw);
   };
   const stack = [data];
-  const visited = new WeakSet();
+  // loon-change: Xiaohongshu parsed JSON comment tree without visited WeakSet v1;
+  // The response was parsed with JSON.parse: this object graph is a tree.
   while (stack.length) {
     const current = stack.pop();
-    if (!current || typeof current !== "object" || visited.has(current)) continue;
-    visited.add(current);
+    if (!current || typeof current !== "object") continue;
     if (!Array.isArray(current)) {
       if ("red_id" in current) { current.fmz200 = current.red_id; delete current.red_id; }
       if (commentNodes.has(current)) {
