@@ -173,7 +173,7 @@ def optimize_source(source: str, upstream_commit: str = "unknown") -> str:
             "function isWelcomeHomeType(type)",
             "function isCustomSurfaceName(name)",
             'compactInPlace(obj.floorList, item =>',
-            'compactInPlace(navigation, item =>',
+            'compactInPlace(darkNavigation, item =>',
             'compactInPlace(obj.floors, floor =>',
             '$done(modified ? { body: JSON.stringify(obj) } : {});',
         )
