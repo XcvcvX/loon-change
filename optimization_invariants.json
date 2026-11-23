@@ -9,7 +9,10 @@
         "compactInPlace(",
         "iQIYI waterfall nested stable in-place compaction v1",
         "Mango vrsList stable in-place compaction v1",
-        "Mango odin channel stable in-place compaction v1"
+        "Mango odin channel stable in-place compaction v1",
+        "iQIYI category nested stable in-place compaction v1",
+        "iQIYI search nested stable in-place compaction v1",
+        "Mango dynamic channel nested stable in-place compaction v1"
       ]
     },
     {
