@@ -24,6 +24,34 @@ class OptimizationGuardTests(unittest.TestCase):
             }), encoding="utf-8")
             self.assertEqual(validate(root, manifest), ["runtime.js"])
 
+    def test_manifest_covers_recent_high_cost_response_hot_paths(self):
+        manifest_path = Path(__file__).with_name("optimization_invariants.json")
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        artifacts = {item["path"]: item for item in manifest["artifacts"]}
+        expected = {
+            "scripts/pinduoduo/pdd-homepage.js": [
+                "const allowedLinks = new Set(",
+                "function compactInPlace(items, keep)",
+                "return $done(modified ? { body: JSON.stringify(obj) } : {});",
+            ],
+            "scripts/jingdong/jd.js": [
+                "function compactInPlace(items, keep)",
+                "const WELCOME_HOME_EXTRA_EXCLUDE = new Set(",
+                "$done(modified ? { body: JSON.stringify(obj) } : {});",
+            ],
+            "scripts/taobao/taobao.js": [
+                "function setIfDifferent(target, key, value)",
+                "function clearArray(target, key)",
+                "$done(modified ? {body: JSON.stringify(obj)} : {});",
+            ],
+        }
+        for path, tokens in expected.items():
+            self.assertIn(path, artifacts)
+            for token in tokens:
+                self.assertIn(token, artifacts[path]["required"])
+        self.assertEqual(validate(Path(__file__).resolve().parent, manifest_path),
+                         list(artifacts))
+
     def test_fails_closed_when_upstream_overwrites_optimization(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
