@@ -618,7 +618,7 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
     def test_consolidates_pdd_homepage_scripts_and_preserves_unrelated_scripts(self):
         from apply_local_overrides import (
             PDD_RSTORE_HOMEPAGE_TRIGGER, PDD_LOCAL_HOMEPAGE_TRIGGER,
-            PDD_ISHOWSHU_HOMEPAGE_TRIGGER,
+            PDD_ISHOWSHU_HOMEPAGE_TRIGGER, PDD_HOMEPAGE_NATIVE_JQ_RULE,
         )
         unrelated = 'response if ${url} ~= /api.example.com/ then script("https://example.invalid/keep.js")'
         fixture = BASE.replace(
@@ -628,10 +628,12 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
         )
         result = apply(fixture)
         script = result.split("[Script]", 1)[1].split("[MITM]", 1)[0]
-        self.assertEqual(script.count(PDD_LOCAL_HOMEPAGE_TRIGGER), 1)
+        rewrite = result.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
+        self.assertNotIn(PDD_LOCAL_HOMEPAGE_TRIGGER, script)
         self.assertNotIn(PDD_RSTORE_HOMEPAGE_TRIGGER, script)
         self.assertNotIn(PDD_ISHOWSHU_HOMEPAGE_TRIGGER, script)
         self.assertIn(unrelated, script)
+        self.assertIn(PDD_HOMEPAGE_NATIVE_JQ_RULE, rewrite)
         self.assertEqual(apply(result), result)
 
     def test_consolidates_current_romeo_ishowshu_response_script_trigger(self):
@@ -5233,6 +5235,9 @@ class PinduoduoHomepageNativeConsolidationTests(unittest.TestCase):
         fixture = ["[Rewrite]", "[Script]", PDD_RSTORE_HOMEPAGE_TRIGGER, PDD_ISHOWSHU_HOMEPAGE_TRIGGER, "[MITM]"]
         result, removed = consolidate_pdd_homepage_script(fixture)
         self.assertEqual(removed, 2)
+        from apply_local_overrides import consolidate_pdd_homepage_native_response
+        result, native_removed = consolidate_pdd_homepage_native_response(result)
+        self.assertEqual(native_removed, 1)
         self.assertIn(PDD_HOMEPAGE_NATIVE_JQ_RULE, result)
         self.assertFalse(any("pdd-homepage.js" in line or "ishowshu_pdd.js" in line for line in result))
 
