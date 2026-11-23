@@ -361,7 +361,11 @@ def ensure_lazy_serialization(source: str) -> str:
         raise ValueError("CNFTP compaction helper changed; refusing lazy serialization")
     if source.count("  items.length = write;\n  return items;") != 1:
         raise ValueError("CNFTP compaction mutation anchor changed; refusing lazy serialization")
-    if source.count(final) != 1 or source.count("let obj = JSON.parse($response.body);") != 1:
+    parse_count = source.count("let obj = JSON.parse($response.body);")
+    final_count = source.count(final)
+    if parse_count == 0 and final_count == 0:
+        return source
+    if parse_count != 1 or final_count != 1:
         raise ValueError("CNFTP response parse/serialize anchors changed; refusing lazy serialization")
 
     source = source.replace("const url = $request.url;",
@@ -399,17 +403,17 @@ function deleteIfPresent(target, key) {
         body, flags=re.MULTILINE,
     )
     body, deleted_index = re.subn(
-        r"^([ \t]*)delete\s+(.+)\[([^]\n]+)\];$",
+        r"^([ \t]*)delete\s+(.+)\[([^\\]\n]+)\];$",
         lambda m: m.group(1) + "deleteIfPresent(" + m.group(2) + ", " + m.group(3) + ");",
         body, flags=re.MULTILINE,
     )
     body, assigned = re.subn(
-        r"^([ \t]*)([A-Za-z_$][\w$]*(?:(?:\.[A-Za-z_$][\w$]*)|(?:\[[^]\n]+\]))*)\.([A-Za-z_$][\w$]*)\s*=\s*(.*);$",
+        r"^([ \t]*)([A-Za-z_$][\w$]*(?:(?:\.[A-Za-z_$][\w$]*)|(?:\[[^\\]\n]+\]))*)\.([A-Za-z_$][\w$]*)\s*=\s*(.*);$",
         lambda m: m.group(1) + "setIfDifferent(" + m.group(2) + ', "' + m.group(3) + '", ' + m.group(4) + ");",
         body, flags=re.MULTILINE,
     )
     body, assigned_index = re.subn(
-        r"^([ \t]*)([A-Za-z_$][\w$]*(?:(?:\.[A-Za-z_$][\w$]*)|(?:\[[^]\n]+\]))*)\[([^]\n]+)\]\s*=\s*(.*);$",
+        r"^([ \t]*)([A-Za-z_$][\w$]*(?:(?:\.[A-Za-z_$][\w$]*)|(?:\[[^\\]\n]+\]))*)\[([^\\]\n]+)\]\s*=\s*(.*);$",
         lambda m: m.group(1) + "setIfDifferent(" + m.group(2) + ", " + m.group(3) + ", " + m.group(4) + ");",
         body, flags=re.MULTILINE,
     )
