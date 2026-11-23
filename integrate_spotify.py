@@ -205,6 +205,76 @@ def optimize_spotify_home_script(source):
     return source[:start] + HOME_FAST_PATH + source[end:]
 
 
+SEARCH_FAST_PATH_MARKER = "// loon-change: Spotify Search protobuf no-ad allocation preflight v1"
+SCROLL_FAST_PATH_MARKER = "// loon-change: Spotify Scroll protobuf no-ad allocation preflight v1"
+
+
+def optimize_spotify_nested_script(source, kind):
+    if kind == "search":
+        marker = SEARCH_FAST_PATH_MARKER
+        predicate = "no === AD_FIELD && payloadEnd - payloadStart > MIN_AD_SIZE"
+    elif kind == "scroll":
+        marker = SCROLL_FAST_PATH_MARKER
+        predicate = "no === AD_FIELD"
+    else:
+        raise ValueError("unknown Spotify nested protobuf optimizer")
+    if marker in source:
+        if source.count(marker) != 1 or "const out = hasTargetField(bytes, 0) ? renameField(bytes, 0," not in source:
+            raise ValueError("Spotify nested protobuf optimization structure drift")
+        return source
+    helper = f"""{marker}
+// Scan wire ranges without materializing field arrays or subarray views.
+// The existing allocating rewrite is entered only after a target field is found.
+function hasTargetField(buf, depth, start, end) {{
+  start = start || 0;
+  end = end === undefined ? buf.length : end;
+  let pos = start;
+  while (pos < end) {{
+    const key = readVarint(buf, pos);
+    const no = Math.floor(key.value / 8);
+    const wire = key.value % 8;
+    pos = key.pos;
+    let payloadStart = -1;
+    let payloadEnd = -1;
+    if (wire === 0) pos = readVarint(buf, pos).pos;
+    else if (wire === 1) pos += 8;
+    else if (wire === 5) pos += 4;
+    else if (wire === 2) {{
+      const len = readVarint(buf, pos);
+      payloadStart = len.pos;
+      payloadEnd = len.pos + len.value;
+      pos = payloadEnd;
+    }} else throw new Error("unsupported wire type " + wire);
+    if (pos > end) throw new Error("truncated field");
+    if (wire === 2) {{
+      if ({predicate}) return true;
+      if (depth < MAX_DEPTH) {{
+        try {{
+          if (hasTargetField(buf, depth + 1, payloadStart, payloadEnd)) return true;
+        }} catch (e) {{
+          // Non-message strings/bytes are expected; match the original parser's behavior.
+        }}
+      }}
+    }}
+  }}
+  return false;
+}}
+"""
+    anchor = "// Parses one protobuf message into its fields (raw bytes of each field are kept)."
+    if source.count(anchor) != 1 or source.count("function renameField(buf, depth, matches)") != 1:
+        raise ValueError("Spotify nested protobuf parser anchors changed; refusing optimization")
+    source = source.replace(anchor, helper + "\n" + anchor)
+    call = "const out = renameField(bytes, 0,"
+    if source.count(call) != 1:
+        raise ValueError("Spotify nested protobuf rewrite call changed; refusing optimization")
+    source = source.replace(call, "const out = hasTargetField(bytes, 0) ? renameField(bytes, 0,", 1)
+    ending = "payload.length > MIN_AD_SIZE);" if kind == "search" else "f.no === AD_FIELD);"
+    if source.count(ending) != 1:
+        raise ValueError("Spotify nested protobuf ad predicate changed; refusing optimization")
+    source = source.replace(ending, ending[:-1] + " : null;", 1)
+    return source
+
+
 def integrate(plugin_path, source_path, scripts_source, scripts_dest, upstream_commit, metadata_path):
     source = Path(source_path).read_text(encoding="utf-8")
     rules, rewrites, script_rules = selected_source(source)
@@ -218,11 +288,16 @@ def integrate(plugin_path, source_path, scripts_source, scripts_dest, upstream_c
             raise ValueError(f"上游脚本缺失或异常: {src}")
         data = src.read_bytes()
         script_hashes[filename] = hashlib.sha256(data).hexdigest()
+        decoded = data.decode("utf-8")
         if filename == "spot-NoHomeAd.js":
-            optimized = optimize_spotify_home_script(data.decode("utf-8"))
-            (dst_dir / filename).write_text(optimized, encoding="utf-8")
+            optimized = optimize_spotify_home_script(decoded)
+        elif filename == "spot-NoSearchAd.js":
+            optimized = optimize_spotify_nested_script(decoded, "search")
+        elif filename == "spot-NoScrollAd.js":
+            optimized = optimize_spotify_nested_script(decoded, "scroll")
         else:
-            shutil.copyfile(src, dst_dir / filename)
+            optimized = decoded
+        (dst_dir / filename).write_text(optimized, encoding="utf-8")
         line = re.sub(
             r"script-path=https://raw\.githubusercontent\.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/Spotify/[^,\s]+",
             f"script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/spotify/{filename}",
