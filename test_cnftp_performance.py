@@ -447,7 +447,7 @@ if("rcInfo" in mods[0].clipInfo||mods[1].clipInfo.other!=="keep")throw Error("Ma
             'url.includes("/getMyMenus?")',
             1,
         )
-        with self.assertRaisesRegex(ValueError, "iQIYI personal menus compaction marker/structure drift"):
+        with self.assertRaisesRegex(ValueError, "iQIYI personal menus upstream structure changed"):
             optimize_source(changed)
 
 if __name__ == "__main__":
