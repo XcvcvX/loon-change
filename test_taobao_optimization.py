@@ -134,6 +134,28 @@ process.stdout.write(JSON.stringify(result));
         self.assertEqual(result["parseCount"], 0)
         self.assertEqual(result["stringifyCount"], 0)
 
+    def test_splash_traversal_uses_cached_references_and_indexed_loops(self):
+        from optimize_taobao import SPLASH_LOOP_MARKER, optimize_runtime_source
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(SPLASH_LOOP_MARKER, source)
+        self.assertIn("const sectionCount = sections.length;", source)
+        self.assertIn("const bizData = sections[sectionIndex]?.bizData;", source)
+        self.assertIn('const splashItems = bizData?.["taobao-splash"]?.data;', source)
+        self.assertIn("const itemCount = splashItems.length;", source)
+        self.assertIn("for (let sectionIndex = 0; sectionIndex < sectionCount; sectionIndex++)", source)
+        self.assertIn("for (let itemIndex = 0; itemIndex < itemCount; itemIndex++)", source)
+        self.assertNotIn("for (let items of splash.base.sections)", source)
+        self.assertNotIn('for (let item of items.bizData["taobao-splash"].data)', source)
+        self.assertEqual(optimize_runtime_source(source), source)
+
+    def test_splash_optimizer_fails_closed_on_unknown_upstream_shape(self):
+        from optimize_taobao import optimize_splash_loop
+        source = SCRIPT.read_text(encoding="utf-8")
+        damaged = source.replace("// loon-change: Taobao indexed splash traversal v1", "", 1)
+        damaged = damaged.replace("const sections = obj.data.containers.splash_home_base.base?.sections;", "const sections = obj.data.other;", 1)
+        with self.assertRaisesRegex(ValueError, "splash traversal anchor"):
+            optimize_splash_loop(damaged)
+
     def test_supported_routes_are_guarded_before_parse_and_guard_is_idempotent(self):
         from optimize_taobao import RUNTIME_MARKER, optimize_runtime_source
         source = SCRIPT.read_text(encoding="utf-8")
