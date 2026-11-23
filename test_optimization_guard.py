@@ -93,5 +93,27 @@ class OptimizationGuardTests(unittest.TestCase):
                 validate(root, manifest)
 
 
+    def test_final_plugin_manifest_protects_native_pdd_jq_migration(self):
+        manifest_path = Path(__file__).with_name("optimization_output_invariants.json")
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        artifacts = {item["path"]: item for item in manifest["artifacts"]}
+        self.assertIn("allAdRewrite.plugin", artifacts)
+        required = artifacts["allAdRewrite.plugin"]["required"]
+        forbidden = artifacts["allAdRewrite.plugin"]["forbidden"]
+        for token in (
+            "response.json.jq(",
+            "result.dy_module.irregular_banner_dy",
+            "result.bottom_tabs?",
+            "result.buffer_bottom_tabs?",
+            "result.all_top_opts?",
+        ):
+            self.assertIn(token, required)
+        self.assertIn("pdd-homepage.js", forbidden)
+        self.assertIn("ishowshu_pdd.js", forbidden)
+        self.assertEqual(
+            validate(Path(__file__).resolve().parent, manifest_path),
+            ["allAdRewrite.plugin"],
+        )
+
 if __name__ == "__main__":
     unittest.main()
