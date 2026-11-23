@@ -436,6 +436,7 @@ def rewrite_plugin(plugin: str) -> str:
             script_lines.append(stripped)
 
     remote_full_count = sum(line.count(REMOTE) for line in script_lines)
+    local_path_count = sum(line.count(LOCAL) for line in script_lines)
     full_local_count = script_lines.count(LOCAL_FULL_TRIGGER)
     core_count = script_lines.count(LOCAL_CORE_TRIGGER)
     optional_count = script_lines.count(LOCAL_OPTIONAL_WELCOME_TRIGGER)
@@ -443,7 +444,7 @@ def rewrite_plugin(plugin: str) -> str:
     # The checked-in snapshot uses one combined local matcher; the build-time
     # JD consolidation emits a core matcher plus the switch-gated welcome route.
     # Both reviewed layouts are already optimized and must remain unchanged.
-    if full_local_count == 1 and not (remote_full_count or core_count or optional_count):
+    if local_path_count == 1 and not (remote_full_count or core_count or optional_count):
         return plugin
     if core_count == 1 and optional_count == 1 and not (remote_full_count or full_local_count):
         return plugin
@@ -463,7 +464,7 @@ def rewrite_plugin(plugin: str) -> str:
             raise ValueError("Jingdong local script route migration incomplete")
         return result
 
-    if not (remote_full_count or full_local_count or core_count or optional_count):
+    if not (remote_full_count or local_path_count or core_count or optional_count):
         raise ValueError("Jingdong response trigger not found in [Script]")
     raise ValueError("Jingdong trigger inventory changed: expected one reviewed local layout")
 
