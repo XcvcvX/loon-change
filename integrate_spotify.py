@@ -199,7 +199,7 @@ def optimize_spotify_home_script(source):
             raise ValueError("Spotify Home optimized helper missing")
         return source
     start = source.find("// Reads the header name and the content field number of a section message.")
-    end = source.find("\\ntry {", start)
+    end = source.find("\ntry {", start)
     if start < 0 or end < 0 or source.count("function stripAds(body)") != 1:
         raise ValueError("Spotify Home protobuf parser anchors changed; refusing optimization")
     return source[:start] + HOME_FAST_PATH + source[end:]
