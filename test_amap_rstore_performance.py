@@ -36,7 +36,7 @@ class AmapRStoreOptimizerTests(unittest.TestCase):
     def test_route_info_uses_one_shared_dynamic_ad_matcher_and_optimizer_repairs_it(self):
         source = SOURCE.read_text(encoding="utf-8")
         self.assertIn(DYNAMIC_MATCHER_MARKER, source)
-        self.assertEqual(source.count(r"const AMAP_AD_DYNAMIC_ID = /ads-\d+;/), 1)
+        self.assertEqual(source.count(r"const AMAP_AD_DYNAMIC_ID = /ads-\d+/), 1)
         self.assertEqual(source.count("AMAP_AD_DYNAMIC_ID.test(i?.dynamic_id_s)"), 4)
         self.assertNotIn(r"/ads-\d+/.test(i?.dynamic_id_s)", source)
         self.assertEqual(optimize_source(source), source)
