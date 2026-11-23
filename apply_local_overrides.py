@@ -410,7 +410,8 @@ def consolidate_pdd_homepage_native_response(lines):
     canonical = normalize(PDD_HOMEPAGE_NATIVE_JQ_RULE)
     if rewrite_indices:
         if any(normalize(output[index]) != canonical for index in rewrite_indices):
-            raise ValueError("Pinduoduo homepage native rule changed; refusing unreviewed replacement")
+            details = " || ".join(output[index].strip()[:700] for index in rewrite_indices)
+            raise ValueError("Pinduoduo homepage native rule changed; refusing unreviewed replacement: " + details)
         # Duplicate identical native handlers are redundant; keep exactly one.
         keep = rewrite_indices[0]
         duplicate_indices = set(rewrite_indices[1:])
