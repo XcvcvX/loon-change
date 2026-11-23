@@ -256,6 +256,18 @@
         "[\"vertical_ad_av\", \"vertical_live\", \"vertical_pgc\"]?.includes(item?.card_goto)",
         "[241, 1283, 1284, 1441]?.includes(i?.module_id)"
       ]
+    },
+    {
+      "path": "scripts/spotify/spot-NoHomeAd.js",
+      "required": [
+        "// loon-change: Spotify Home protobuf no-ad allocation fast path v1",
+        "function isAdSection(body, start, end)",
+        "if (removed === 0) return null;"
+      ],
+      "forbidden": [
+        "const kept = []",
+        "function describeSection(section)"
+      ]
     }
   ]
 }

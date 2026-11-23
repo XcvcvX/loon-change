@@ -105,6 +105,106 @@ def replace_rstore_spotify_rules(plugin, independent_entries=()):
     return "\n".join(output).rstrip() + "\n", removed
 
 
+HOME_FAST_PATH_MARKER = "// loon-change: Spotify Home protobuf no-ad allocation fast path v1"
+
+HOME_FAST_PATH = """// loon-change: Spotify Home protobuf no-ad allocation fast path v1
+// Inspect section ranges directly. The common no-ad path creates no kept-array,
+// per-section subarray views, or section metadata objects.
+function isAdSection(body, start, end) {
+  let r = readVarint(body, start);
+  if (r.value !== 0x0a) return false;
+  r = readVarint(body, r.pos);
+  const headerEnd = r.pos + r.value;
+  let name = "";
+  const limit = Math.min(headerEnd, end);
+  for (let i = r.pos; i < limit; i++) name += String.fromCharCode(body[i]);
+  let contentField = -1;
+  if (headerEnd < end) {
+    const key = readVarint(body, headerEnd);
+    contentField = Math.floor(key.value / 8);
+  }
+  if (AD_NAME.test(name) || AD_FIELDS.has(contentField)) return name;
+  return false;
+}
+
+function stripAds(body) {
+  // Top level: field 1 (key 0x0a) wrapping the section list.
+  let r = readVarint(body, 0);
+  if (r.value !== 0x0a) return null;
+  r = readVarint(body, r.pos);
+  const listStart = r.pos;
+  const listEnd = listStart + r.value;
+  if (listEnd > body.length) return null;
+
+  // First pass validates the complete section list and detects whether any
+  // section needs removal. Clean responses return without allocating views/arrays.
+  let removed = 0;
+  let keptLength = 0;
+  let pos = listStart;
+  while (pos < listEnd) {
+    const itemStart = pos;
+    const key = readVarint(body, pos);
+    if ((key.value & 7) !== 2) return null;
+    const len = readVarint(body, key.pos);
+    const dataStart = len.pos;
+    const itemEnd = dataStart + len.value;
+    if (itemEnd > listEnd) return null;
+    if (key.value === 0x0a) {
+      const adName = isAdSection(body, dataStart, itemEnd);
+      if (adName !== false) {
+        removed++;
+        console.log(`Spotify Home: removed section ${adName.slice(adName.indexOf("|") + 1)}`);
+      } else {
+        keptLength += itemEnd - itemStart;
+      }
+    } else {
+      keptLength += itemEnd - itemStart;
+    }
+    pos = itemEnd;
+  }
+  if (removed === 0) return null;
+
+  const prefix = [0x0a].concat(writeVarint(keptLength));
+  const tailLength = body.length - listEnd;
+  const out = new Uint8Array(prefix.length + keptLength + tailLength);
+  out.set(prefix, 0);
+  let off = prefix.length;
+
+  // Second pass copies retained wire ranges directly into the final buffer.
+  pos = listStart;
+  while (pos < listEnd) {
+    const itemStart = pos;
+    const key = readVarint(body, pos);
+    const len = readVarint(body, key.pos);
+    const dataStart = len.pos;
+    const itemEnd = dataStart + len.value;
+    const adName = key.value === 0x0a ? isAdSection(body, dataStart, itemEnd) : false;
+    if (adName === false) {
+      out.set(body.subarray(itemStart, itemEnd), off);
+      off += itemEnd - itemStart;
+    }
+    pos = itemEnd;
+  }
+  out.set(body.subarray(listEnd), off);
+  return out;
+}
+"""
+
+
+def optimize_spotify_home_script(source):
+    if HOME_FAST_PATH_MARKER in source:
+        if source.count(HOME_FAST_PATH_MARKER) != 1 or "const kept = []" in source:
+            raise ValueError("Spotify Home optimized marker/structure drift")
+        if "function isAdSection(body, start, end)" not in source:
+            raise ValueError("Spotify Home optimized helper missing")
+        return source
+    start = source.find("// Reads the header name and the content field number of a section message.")
+    end = source.find("\ntry {", start)
+    if start < 0 or end < 0 or source.count("function stripAds(body)") != 1:
+        raise ValueError("Spotify Home protobuf parser anchors changed; refusing optimization")
+    return source[:start] + HOME_FAST_PATH + source[end:]
+
+
 def integrate(plugin_path, source_path, scripts_source, scripts_dest, upstream_commit, metadata_path):
     source = Path(source_path).read_text(encoding="utf-8")
     rules, rewrites, script_rules = selected_source(source)
@@ -118,7 +218,11 @@ def integrate(plugin_path, source_path, scripts_source, scripts_dest, upstream_c
             raise ValueError(f"上游脚本缺失或异常: {src}")
         data = src.read_bytes()
         script_hashes[filename] = hashlib.sha256(data).hexdigest()
-        shutil.copyfile(src, dst_dir / filename)
+        if filename == "spot-NoHomeAd.js":
+            optimized = optimize_spotify_home_script(data.decode("utf-8"))
+            (dst_dir / filename).write_text(optimized, encoding="utf-8")
+        else:
+            shutil.copyfile(src, dst_dir / filename)
         line = re.sub(
             r"script-path=https://raw\.githubusercontent\.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/Spotify/[^,\s]+",
             f"script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/spotify/{filename}",
