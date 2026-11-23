@@ -238,6 +238,24 @@
         "const kept = [];",
         "compactInPlace("
       ]
+    },
+    {
+      "path": "scripts/bilibili/bilibili-json.js",
+      "required": [
+        "// loon-change: Bilibili hot-loop scalar membership v1",
+        "const cardGoto = item?.card_goto;",
+        "cardGoto === \"vertical_ad_av\"",
+        "cardGoto === \"vertical_live\"",
+        "cardGoto === \"vertical_pgc\"",
+        "i?.module_id === 241",
+        "i?.module_id === 1283",
+        "i?.module_id === 1284",
+        "i?.module_id === 1441"
+      ],
+      "forbidden": [
+        "[\"vertical_ad_av\", \"vertical_live\", \"vertical_pgc\"]?.includes(item?.card_goto)",
+        "[241, 1283, 1284, 1441]?.includes(i?.module_id)"
+      ]
     }
   ]
 }

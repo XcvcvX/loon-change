@@ -100,6 +100,50 @@ process.stdout.write(NativeJSON.stringify({
         self.assertEqual(result["stringifyCalls"], 0)
         self.assertFalse(result["hasBody"])
 
+    def test_story_and_pgc_hot_loops_use_scalar_membership(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        self.assertIn("// loon-change: Bilibili hot-loop scalar membership v1", source)
+        story = source.split('url.includes("/feed/index/story")', 1)[1].split('url.includes("/search/square")', 1)[0]
+        self.assertIn('cardGoto === "vertical_ad_av"', story)
+        self.assertIn('cardGoto === "vertical_live"', story)
+        self.assertIn('cardGoto === "vertical_pgc"', story)
+        self.assertNotIn('["vertical_ad_av", "vertical_live", "vertical_pgc"]', story)
+        pgc = source.split('url.includes("/pgc/page/")', 1)[1].split('url.includes("/index/getInfoByRoom")', 1)[0]
+        for module_id in (241, 1283, 1284, 1441):
+            self.assertIn(f"i?.module_id === {module_id}", pgc)
+        self.assertNotIn("[241, 1283, 1284, 1441]", pgc)
+
+    def test_story_feed_scalar_membership_preserves_exact_filter_behavior(self):
+        items = [
+            {"id": "ad", "ad_info": {}},
+            {"id": "vertical-av", "card_goto": "vertical_ad_av"},
+            {"id": "live", "card_goto": "vertical_live"},
+            {"id": "pgc", "card_goto": "vertical_pgc"},
+            {"id": "kept-ad-live", "card_goto": "vertical_ad_live"},
+            {"id": "kept-picture", "card_goto": "vertical_ad_picture"},
+            {"id": "kept-normal", "card_goto": "av"},
+        ]
+        result = self.run_script("https://app.bilibili.com/x/v2/feed/index/story?pull=1", items)
+        self.assertEqual(
+            [item["id"] for item in result["output"]["data"]["items"]],
+            ["kept-ad-live", "kept-picture", "kept-normal"],
+        )
+        self.assertEqual(result["parseCalls"], 1)
+        self.assertEqual(result["stringifyCalls"], 1)
+
+    def test_pgc_module_scalar_membership_preserves_filter_behavior(self):
+        modules = [{"module_id": value, "items": [{"id": value}]} for value in (241, 1283, 1284, 1441, 100)]
+        result = self.run_body(
+            "https://api.bilibili.com/pgc/page/bangumi?build=1",
+            {"result": {"modules": modules}},
+        )
+        remaining = result["output"]["result"]["modules"]
+        self.assertEqual([item["module_id"] for item in remaining], [241, 1283, 1284, 1441, 100])
+        self.assertTrue(all(item["items"] == [] for item in remaining[:4]))
+        self.assertEqual(remaining[4]["items"], [{"id": 100}])
+        self.assertEqual(result["parseCalls"], 1)
+        self.assertEqual(result["stringifyCalls"], 1)
+
     def test_unchanged_tab_profile_splash_and_page_responses_skip_stringify(self):
         cases = [
             (
