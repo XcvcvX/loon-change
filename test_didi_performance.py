@@ -7,6 +7,7 @@ from pathlib import Path
 
 from optimize_didi import (
     EXPECTED_FILTERS,
+    DIDI_MODE_MARKER,
     LOCAL,
     MARKER,
     REMOTE,
@@ -74,6 +75,8 @@ class DidiOptimizerTests(unittest.TestCase):
         self.assertLess(result.index("const shouldProcess"), result.index("JSON.parse($response.body)"))
         self.assertTrue(result.rstrip().endswith("}"))
         self.assertEqual(optimize_source(result), result)
+        self.assertIn(DIDI_MODE_MARKER, result)
+        self.assertEqual(result.count("for (let read = 0; read < length; read++)"), 7)
 
     def test_optimizer_fails_closed_when_upstream_filter_inventory_drifts(self):
         source = self.fixture_source().replace(
@@ -159,9 +162,34 @@ if (payload.body === null) {
         self.assertNotIn("=>", source)
         self.assertNotIn("excludedTitles", source)
 
+    def test_mode_dispatch_is_hoisted_outside_each_compaction_loop(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        start = source.index(DIDI_MODE_MARKER)
+        end = source.index("\n}\nif (!$response.body)", start) + 2
+        helper = source[start:end]
+        modes = ("scene", "sceneId", "nav", "bottomNav", "walletItem", "walletBottom", "card")
+        self.assertEqual(helper.count('mode === "'), len(modes))
+        self.assertEqual(helper.count("for (let read = 0; read < length; read++)"), len(modes))
+        for index, mode in enumerate(modes):
+            selector = ('if (mode === "' if index == 0 else 'else if (mode === "') + mode + '") {'
+            branch_start = helper.index(selector)
+            next_candidates = [
+                helper.find('  } else if (mode === "', branch_start + len(selector)),
+                helper.find("  } else {", branch_start + len(selector)),
+            ]
+            next_candidates = [value for value in next_candidates if value >= 0]
+            branch_end = min(next_candidates) if next_candidates else len(helper)
+            branch = helper[branch_start:branch_end]
+            loop_start = branch.index("for (let read = 0; read < length; read++)")
+            self.assertNotIn("mode ===", branch[loop_start:])
+        self.assertNotIn(".filter(", helper)
+        self.assertNotIn(".forEach(", helper)
+
     def test_generated_snapshot_has_no_allocating_filter_and_seven_compaction_calls(self):
         source = SOURCE.read_text(encoding="utf-8")
         self.assertIn(MARKER, source)
+        self.assertIn(DIDI_MODE_MARKER, source)
+        self.assertEqual(source.count("for (let read = 0; read < length; read++)"), 7)
         self.assertEqual(source.count("compactDidiByField(") - 1, EXPECTED_FILTERS)
         self.assertIsNone(re.search(r"\.filter\s*\(", source))
         self.assertNotIn("new Set(", source)
@@ -228,6 +256,19 @@ if (payload.body === null) {
             [item["title"] for item in cards[1]["bottom_items"]],
             ["省钱套餐", "天天神券"],
         )
+
+    def test_wallet_nested_non_array_fields_are_left_untouched(self):
+        body = {"data": {"cards": [
+            {"title": "钱包", "tag": "wallet", "items": "unexpected",
+             "card_type": 4, "bottom_items": {"unexpected": True}},
+            {"title": "普通卡片", "tag": "normal"}
+        ]}}
+        result = self.run_script("https://common.diditaxi.com.cn/common/v1/usercenter/me", body)
+        cards = result["output"]["data"]["cards"]
+        self.assertEqual(len(cards), 2)
+        self.assertEqual(cards[0]["items"], "unexpected")
+        self.assertEqual(cards[0]["bottom_items"], {"unexpected": True})
+        self.assertEqual(result["stringifyCount"], 0)
 
     def test_ota_top_banner_removal_is_unchanged(self):
         body = {"data": {"disorder_cards": {"top_banner_card": {"data": [
