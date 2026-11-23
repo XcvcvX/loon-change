@@ -317,7 +317,11 @@ def ensure_supported_route_guard(source: str) -> str:
             raise ValueError("CNFTP supported-route guard marker/structure drift")
         if source.count("let obj = JSON.parse($response.body);") != 1:
             raise ValueError("CNFTP supported-route parse anchor drift")
-        if not source.rstrip().endswith("$done({body: JSON.stringify(obj)});\n}\n}"):
+        terminal_forms = (
+            "$done({body: JSON.stringify(obj)});\n}\n}",
+            "$done(modified ? {body: JSON.stringify(obj)} : {});\n}\n}",
+        )
+        if not any(source.rstrip().endswith(terminal) for terminal in terminal_forms):
             raise ValueError("CNFTP supported-route terminal structure drift")
         return source
     parse_line = "let obj = JSON.parse($response.body);"
@@ -337,16 +341,140 @@ def ensure_supported_route_guard(source: str) -> str:
     return source
 
 
+
+LAZY_SERIALIZATION_MARKER = "// loon-change: CNFTP lazy response serialization v1"
+
+
+def ensure_lazy_serialization(source: str) -> str:
+    """Serialize only when a reviewed CNFTP mutation actually changes the response."""
+    final = "$done({body: JSON.stringify(obj)});"
+    lazy_final = "$done(modified ? {body: JSON.stringify(obj)} : {});"
+    if LAZY_SERIALIZATION_MARKER in source:
+        if (source.count(LAZY_SERIALIZATION_MARKER) != 1
+                or source.count("let modified = false;") != 1
+                or source.count(lazy_final) != 1
+                or "function sameValue(" not in source
+                or "function setIfDifferent(" not in source
+                or "function deleteIfPresent(" not in source):
+            raise ValueError("CNFTP lazy serialization marker/structure drift")
+        parse_line = "let obj = JSON.parse($response.body);"
+        start, finish = source.index(parse_line), source.index(lazy_final)
+        body = source[start:finish]
+        if (re.search(r"^[ \t]*delete\s+", body, re.MULTILINE)
+                or re.search(r"^[ \t]*[A-Za-z_$][\w$]*(?:(?:\.[A-Za-z_$][\w$]*)|(?:\[[^\]]+\]))+\s*=(?!=).*;$", body, re.MULTILINE)):
+            raise ValueError("CNFTP lazy serialization untracked mutation; refusing unsafe pass-through")
+        return source
+    if "let modified = false;" in source or lazy_final in source:
+        raise ValueError("CNFTP lazy serialization marker/structure drift")
+    if source.count("const url = $request.url;") != 1:
+        raise ValueError("CNFTP URL initialization changed; refusing lazy serialization")
+    if source.count("function compactInPlace(items, keep) {") != 1:
+        raise ValueError("CNFTP compaction helper changed; refusing lazy serialization")
+    if source.count("  items.length = write;\n  return items;") != 1:
+        raise ValueError("CNFTP compaction mutation anchor changed; refusing lazy serialization")
+    parse_count = source.count("let obj = JSON.parse($response.body);")
+    final_count = source.count(final)
+    if parse_count == 0 and final_count == 0:
+        return source
+    if parse_count != 1 or final_count != 1:
+        raise ValueError("CNFTP response parse/serialize anchors changed; refusing lazy serialization")
+
+    source = source.replace("const url = $request.url;",
+                            "const url = $request.url;\n\nlet modified = false;", 1)
+    source = source.replace(
+        "  items.length = write;\n  return items;",
+        "  if (write !== length) {\n    items.length = write;\n    modified = true;\n  }\n  return items;",
+        1,
+    )
+    helper = """\n\n""" + LAZY_SERIALIZATION_MARKER + """\nfunction sameValue(current, value) {
+  if (current === value) return true;
+  if (Array.isArray(value)) {
+    if (!Array.isArray(current) || current.length !== value.length) return false;
+    for (let i = 0; i < value.length; i++) {
+      if (!sameValue(current[i], value[i])) return false;
+    }
+    return true;
+  }
+  if (value && typeof value === "object") {
+    if (!current || typeof current !== "object" || Array.isArray(current)) return false;
+    let valueCount = 0;
+    for (const key in value) {
+      if (!Object.prototype.hasOwnProperty.call(value, key)) continue;
+      valueCount++;
+      if (!Object.prototype.hasOwnProperty.call(current, key) ||
+          !sameValue(current[key], value[key])) return false;
+    }
+    let currentCount = 0;
+    for (const key in current) {
+      if (Object.prototype.hasOwnProperty.call(current, key)) currentCount++;
+    }
+    return valueCount === currentCount;
+  }
+  return false;
+}
+
+function setIfDifferent(target, key, value) {
+  if (!sameValue(target[key], value)) {
+    target[key] = value;
+    modified = true;
+  }
+}
+
+function deleteIfPresent(target, key) {
+  if (Object.prototype.hasOwnProperty.call(target, key)) {
+    delete target[key];
+    modified = true;
+  }
+}
+"""
+    compact_end = "  return items;\n}\n"
+    if source.count(compact_end) != 1:
+        raise ValueError("CNFTP compaction helper insertion anchor changed")
+    source = source.replace(compact_end, compact_end + helper, 1)
+
+    parse_line = "let obj = JSON.parse($response.body);"
+    start, finish = source.index(parse_line), source.index(final)
+    body = source[start:finish]
+    body, deleted = re.subn(
+        r"^([ \t]*)delete\s+(.+)\.([A-Za-z_$][\w$]*);$",
+        lambda m: m.group(1) + "deleteIfPresent(" + m.group(2) + ', "' + m.group(3) + '");',
+        body, flags=re.MULTILINE,
+    )
+    body, deleted_index = re.subn(
+        r"^([ \t]*)delete\s+(.+)\[([^\]]+)\];$",
+        lambda m: m.group(1) + "deleteIfPresent(" + m.group(2) + ", " + m.group(3) + ");",
+        body, flags=re.MULTILINE,
+    )
+    body, assigned = re.subn(
+        r"^([ \t]*)([A-Za-z_$][\w$]*(?:(?:\.[A-Za-z_$][\w$]*)|(?:\[[^\]]+\]))*)\.([A-Za-z_$][\w$]*)\s*=\s*(.*);$",
+        lambda m: m.group(1) + "setIfDifferent(" + m.group(2) + ', "' + m.group(3) + '", ' + m.group(4) + ");",
+        body, flags=re.MULTILINE,
+    )
+    body, assigned_index = re.subn(
+        r"^([ \t]*)([A-Za-z_$][\w$]*(?:(?:\.[A-Za-z_$][\w$]*)|(?:\[[^\]]+\]))*)\[([^\]]+)\]\s*=\s*(.*);$",
+        lambda m: m.group(1) + "setIfDifferent(" + m.group(2) + ", " + m.group(3) + ", " + m.group(4) + ");",
+        body, flags=re.MULTILINE,
+    )
+    if deleted + deleted_index + assigned + assigned_index == 0:
+        raise ValueError("CNFTP mutation inventory unexpectedly empty")
+    if re.search(r"^[ \t]*delete\s+", body, re.MULTILINE):
+        raise ValueError("CNFTP untracked delete remains; refusing lazy serialization")
+    source = source[:start] + body + source[finish:]
+    source = source.replace(final, lazy_final, 1)
+    return source
+
+
+
 def optimize_source(source: str, upstream_commit: str | None = None) -> str:
     """Replace Youku home.query's nested filtered-copy arrays with stable in-place compaction."""
     if SOURCE_MARKER in source:
         if not upstream_commit:
-            return compact_response_filters(ensure_supported_route_guard(ensure_terminal_empty_body_guard(ensure_iqiyi_mango_compaction(source))))
+            return ensure_lazy_serialization(compact_response_filters(ensure_supported_route_guard(ensure_terminal_empty_body_guard(ensure_iqiyi_mango_compaction(source)))))
         if not re.fullmatch(r"[0-9a-f]{40}", upstream_commit):
             raise ValueError("invalid Wool Scripts upstream commit")
         source = re.sub(r"^// loon-change:.*\n", "", source, count=1)
         source = SOURCE_MARKER + "; upstream fmz200/wool_scripts@" + upstream_commit + "\n" + source
-        return compact_response_filters(ensure_supported_route_guard(ensure_terminal_empty_body_guard(ensure_iqiyi_mango_compaction(source))))
+        return ensure_lazy_serialization(compact_response_filters(ensure_supported_route_guard(ensure_terminal_empty_body_guard(ensure_iqiyi_mango_compaction(source)))))
 
     feed_start = '  } else if (url.includes("columbus.home.feed/")) {'
     feed_end = '  } else if (url.includes("columbus.home.query/")) {'
@@ -381,7 +509,7 @@ def optimize_source(source: str, upstream_commit: str | None = None) -> str:
     else:
         upstream_commit = "unrecorded"
     result = SOURCE_MARKER + "; upstream fmz200/wool_scripts@" + upstream_commit + "\n// loon-change: Youku home.feed in-place compaction v1\n" + source
-    return compact_response_filters(ensure_supported_route_guard(ensure_terminal_empty_body_guard(ensure_iqiyi_mango_compaction(result))))
+    return ensure_lazy_serialization(compact_response_filters(ensure_supported_route_guard(ensure_terminal_empty_body_guard(ensure_iqiyi_mango_compaction(result)))))
 
 
 def rewrite_plugin(plugin: str) -> str:

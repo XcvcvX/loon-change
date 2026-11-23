@@ -497,5 +497,75 @@ if(out.cards.length!==1||out.cards[0].id!=="keep")throw Error("supported route f
         with self.assertRaisesRegex(ValueError, "CNFTP supported-route guard marker/structure drift"):
             optimize_source(damaged)
 
+
+    def test_cnftp_lazy_serialization_marker_and_optimizer_idempotence(self):
+        source = SOURCE_PATH.read_text(encoding="utf-8")
+        self.assertIn("CNFTP lazy response serialization v1", source)
+        self.assertIn("$done(modified ? {body: JSON.stringify(obj)} : {});", source)
+        self.assertIn("function setIfDifferent(", source)
+        self.assertIn("function deleteIfPresent(", source)
+        self.assertEqual(optimize_source(source), source)
+
+    def test_node_runtime_supported_noop_skips_stringify(self):
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node.js is required for CNFTP runtime tests")
+        harness = r'''
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync(process.argv[1],"utf8"),J=JSON;
+let parseCalls=0,stringifyCalls=0,doneCalls=0,result;
+const trackedJSON={parse(v){parseCalls++;return J.parse(v)},stringify(v){stringifyCalls++;return J.stringify(v)}};
+const body={cards:[{alias_name:"normal",id:"keep-1"},{alias_name:"normal",id:"keep-2"}]};
+const context={JSON:trackedJSON,$request:{url:"https://iface2.iqiyi.com/views_comment/"},$response:{body:J.stringify(body)},$done(v){doneCalls++;result=v},console:{log(){},warn(){},error(){}}};
+vm.runInNewContext(source,context,{timeout:5000});
+if(parseCalls!==1||stringifyCalls!==0)throw Error("no-op supported response must parse once and skip stringify: "+parseCalls+"/"+stringifyCalls);
+if(doneCalls!==1||!result||Object.keys(result).length!==0)throw Error("no-op supported response must pass through once");
+'''
+        result = subprocess.run([node, "-e", harness, str(SOURCE_PATH)], capture_output=True, text=True, check=False, timeout=10)
+        self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
+
+    def test_node_runtime_actual_mutation_serializes_once_and_preserves_output(self):
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node.js is required for CNFTP runtime tests")
+        harness = r'''
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync(process.argv[1],"utf8"),J=JSON;
+let parseCalls=0,stringifyCalls=0,doneCalls=0,result;
+const trackedJSON={parse(v){parseCalls++;return J.parse(v)},stringify(v){stringifyCalls++;return J.stringify(v)}};
+const body={cards:[{id:"ad"},{id:"keep",alias_name:"normal"}]};
+const context={JSON:trackedJSON,$request:{url:"https://iface2.iqiyi.com/views_comment/"},$response:{body:J.stringify(body)},$done(v){doneCalls++;result=v},console:{log(){},warn(){},error(){}}};
+vm.runInNewContext(source,context,{timeout:5000});
+if(parseCalls!==1||stringifyCalls!==1)throw Error("mutated response must stringify once");
+if(doneCalls!==1||!result||typeof result.body!=="string")throw Error("mutated response body missing");
+const out=J.parse(result.body);
+if(out.cards.length!==1||out.cards[0].id!=="keep")throw Error("comment filtering changed");
+'''
+        result = subprocess.run([node, "-e", harness, str(SOURCE_PATH)], capture_output=True, text=True, check=False, timeout=10)
+        self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
+
+
+    def test_node_runtime_mango_search_noop_skips_structurally_equal_replacements(self):
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node.js is required for CNFTP runtime tests")
+        harness = r'''
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync(process.argv[1],"utf8"),J=JSON;
+let parseCalls=0,stringifyCalls=0,result;
+const trackedJSON={parse(v){parseCalls++;return J.parse(v)},stringify(v){stringifyCalls++;return J.stringify(v)}};
+const body={data:{default:{0:["搜索内容"]},recommend:[],interval:1000}};
+const context={JSON:trackedJSON,$request:{url:"https://api.mgtv.com/mobile/recommend/v2?"},$response:{body:J.stringify(body)},$done(v){result=v},console:{log(){},warn(){},error(){}}};
+vm.runInNewContext(source,context,{timeout:5000});
+if(parseCalls!==1||stringifyCalls!==0)throw Error("structurally unchanged Mango response must skip stringify");
+if(!result||Object.keys(result).length!==0)throw Error("Mango no-op response must pass through");
+'''
+        result = subprocess.run([node, "-e", harness, str(SOURCE_PATH)], capture_output=True, text=True, check=False, timeout=10)
+        self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
+
+    def test_optimizer_fails_closed_when_lazy_serialization_marker_is_removed(self):
+        source = SOURCE_PATH.read_text(encoding="utf-8")
+        damaged = source.replace("CNFTP lazy response serialization v1", "CNFTP lazy response serialization v2", 1)
+        with self.assertRaisesRegex(ValueError, "CNFTP lazy serialization marker/structure drift"):
+            optimize_source(damaged)
+
+
 if __name__ == "__main__":
     unittest.main()

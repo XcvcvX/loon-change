@@ -984,3 +984,11 @@ GitHub Actions 每天北京时间 09:07 / 21:23 执行：转换 R-Store → 拉�
 - 上游重应用器增加精确 guard marker、解析锚点和终止结构检查；结构漂移时 fail-closed。
 - 新增 Node.js 测试：非目标路由 parse/stringify 调用均为 0；目标路由仍执行原有过滤；优化器保持幂等并检测 guard 损坏。
 - 该阶段减少的是非目标请求的无效处理开销，不对命中白名单的无修改响应声称已实现惰性序列化。
+
+
+## Phase 22 P1 — CNFTP lazy response serialization
+
+- Track actual response mutations across all supported iQIYI, Mango TV and Youku routes. Stable in-place compaction marks the response modified only when it removes entries; field assignments and deletions go through mutation helpers that mark only real value changes or existing-property deletions.
+- Supported routes still parse the response once, but call `JSON.stringify` only when a filter or field mutation changed the parsed response. Unmodified supported responses complete with `$done({})`; unsupported routes and empty bodies retain their earlier pre-parse fast paths.
+- Extend the CNFTP upstream optimizer to reapply mutation tracking after upstream refresh, with marker/anchor validation that fails closed on structural drift. Add Node VM coverage for supported no-op responses, actual filtering, exactly-once serialization, and damaged optimizer markers.
+- This removes full response serialization and output-string allocation from supported no-op responses. It does not claim device-side CPU/battery percentages without real-device measurements.
