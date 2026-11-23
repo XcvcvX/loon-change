@@ -221,13 +221,15 @@ def apply_live_photo_cache_optimization(source):
       imageEnhance(images_list);'''
         new_cache = '''      // Cache only fields consumed by the live-photo save endpoint.
       const livePhotoCache = [];
-      for (const image of images_list) {
-        if (image?.live_photo_file_id) {
-          livePhotoCache.push({
-            file_id: image.live_photo_file_id,
-            video_id: image.live_photo?.media?.video_id,
-            url: image.live_photo?.media?.stream?.h265?.[0]?.master_url
-          });
+      if (Array.isArray(images_list)) {
+        for (const image of images_list) {
+          if (image?.live_photo_file_id) {
+            livePhotoCache.push({
+              file_id: image.live_photo_file_id,
+              video_id: image.live_photo?.media?.video_id,
+              url: image.live_photo?.media?.stream?.h265?.[0]?.master_url
+            });
+          }
         }
       }
       $.setdata(JSON.stringify(livePhotoCache), "redBookLivePhoto");
