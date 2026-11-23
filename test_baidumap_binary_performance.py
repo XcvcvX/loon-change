@@ -26,14 +26,18 @@ class BaiduMapBinaryPerformanceTests(unittest.TestCase):
         marker = "// loon-change: Baidu protobuf target-only byte views v1"
         self.assertIn(marker, self.source)
         start = self.source.index("for(let i = 0; i < repHeadMessage.messageHead.length; i++)")
-        end = self.source.index("\n}\n\nif(!adsFound", start)
+        end = self.source.index("\n}\n\nif (modifiedAds && resultOffset !== -1)", start)
         loop = self.source[start:end]
-        self.assertEqual(loop.count("binaryBody.subarray("), 2)
+        self.assertEqual(loop.count("binaryBody.subarray("), 1)
         self.assertIn("if(name === 'Result'){", loop)
-        self.assertIn("newResult = binaryBody.subarray(currentOffset, currentOffset + targetDataLength);", loop)
+        self.assertIn("resultOffset = dataBeginOffset + messageHead.offset;", loop)
+        self.assertNotIn("newResult = binaryBody.subarray", loop)
         self.assertIn("}else if(name === 'Ads'){", loop)
         self.assertIn("const targetData = binaryBody.subarray(currentOffset, currentOffset + targetDataLength);", loop)
         self.assertNotIn("const targetData = binaryBody.subarray", loop.split("if(name === 'Result'){", 1)[0])
+        deferred = self.source[end:self.source.index("\n\nif(!adsFound", end)]
+        self.assertIn("if (modifiedAds && resultOffset !== -1)", deferred)
+        self.assertIn("newResult = binaryBody.subarray(resultOffset, resultOffset + resultLength);", deferred)
 
     def test_result_payload_view_is_deferred_until_ads_change(self):
         marker = "// loon-change: Baidu protobuf target-only byte views v1"
