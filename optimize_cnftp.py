@@ -360,8 +360,8 @@ def ensure_lazy_serialization(source: str) -> str:
         parse_line = "let obj = JSON.parse($response.body);"
         start, finish = source.index(parse_line), source.index(lazy_final)
         body = source[start:finish]
-        if (re.search(r"^[ \\t]*delete\\s+", body, re.MULTILINE)
-                or re.search(r"^[ \\t]*[A-Za-z_$][\\w$]*(?:(?:\\.[A-Za-z_$][\\w$]*)|(?:\\[[^\\]\\n]+\\]))+\\s*=(?!=).*;$", body, re.MULTILINE)):
+        if (re.search(r"^[ \t]*delete\s+", body, re.MULTILINE)
+                or re.search(r"^[ \t]*[A-Za-z_$][\w$]*(?:(?:\.[A-Za-z_$][\w$]*)|(?:\[[^\]]+\]))+\s*=(?!=).*;$", body, re.MULTILINE)):
             raise ValueError("CNFTP lazy serialization untracked mutation; refusing unsafe pass-through")
         return source
     if "let modified = false;" in source or lazy_final in source:
