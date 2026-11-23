@@ -300,6 +300,27 @@ process.stdout.write(nativeJSON.stringify({doneResult, parseCount, stringifyCoun
         self.assertIn('url.includes("/valueadded/alimama/splash_screen")', repaired)
         self.assertEqual(optimize_source(repaired), repaired)
 
+    def test_search_suggestion_caches_tip_reference_once_per_item(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        start = source.index('if (url.includes("/shield/search_poi/sug")) {')
+        end = source.index('} else if (url.includes("/shield/search_poi/tips_operation_location")) {', start)
+        block = source[start:end]
+        self.assertEqual(block.count("const tip = item?.tip;"), 2)
+        self.assertNotIn("item?.tip?.", block)
+        self.assertEqual(optimize_source(source), source)
+
+        # Simulate an upstream refresh to the previous repeated-access implementation.
+        upstream = block.replace(
+            "const tip = item?.tip;\n      return tip?.",
+            "return item?.tip?.",
+        )
+        upstream = upstream.replace("tip?.", "item?.tip?.")
+        damaged = source[:start] + upstream + source[end:]
+        repaired = optimize_source(damaged)
+        self.assertIn("// loon-change: Amap cached suggestion tip access v1", repaired)
+        self.assertEqual(repaired.count("const tip = item?.tip;"), 2)
+        self.assertEqual(optimize_source(repaired), repaired)
+
     def test_search_suggestion_filters_use_in_place_compaction(self):
         source = SOURCE.read_text(encoding="utf-8")
         start = source.index('if (url.includes("/shield/search_poi/sug")) {')
