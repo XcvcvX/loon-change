@@ -101,6 +101,7 @@ class OptimizationGuardTests(unittest.TestCase):
         required = artifacts["allAdRewrite.plugin"]["required"]
         forbidden = artifacts["allAdRewrite.plugin"]["forbidden"]
         for token in (
+            "api.pinduoduo.com",
             "response.json.jq(",
             "result.dy_module.irregular_banner_dy",
             "result.bottom_tabs?",
