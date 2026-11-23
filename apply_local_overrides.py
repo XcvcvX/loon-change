@@ -376,16 +376,13 @@ def consolidate_pdd_homepage_script(lines):
         return output, 0
     if counts["rstore"] + counts["local"] != 1:
         raise ValueError("Pinduoduo canonical homepage script inventory changed; expected exactly one R-Store/local trigger")
-    # Convert the intermediate legacy-script inventory directly to the native
-    # response.json.jq rule. The generated plugin must never ship a PDD JS handler.
-    output, _ = consolidate_pdd_homepage_native_response(output, ensure_native=True)
     return output, counts["ishowshu"] + counts["rstore"]
 
 
 
 PDD_HOMEPAGE_NATIVE_JQ_RULE = "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/homepage\\/hub\\?/i then response.json.jq(\"if (.result | type) == \\\"object\\\" then del(.result.dy_module.irregular_banner_dy, .result.icon_set, .result.search_bar_hot_query) | .result.bottom_tabs? |= (if type == \\\"array\\\" then map(select(. != null and (.title | IN(\\\"首页\\\", \\\"聊天\\\", \\\"个人中心\\\")) and ((.link // \\\"\\\") | tostring | IN(\\\"index.html\\\", \\\"chat_list.html\\\", \\\"personal.html\\\")))) else . end) | .result.buffer_bottom_tabs? |= (if type == \\\"array\\\" then map(select(. != null and ((.link // \\\"\\\") | tostring | IN(\\\"index.html\\\", \\\"chat_list.html\\\", \\\"personal.html\\\")))) else . end) | .result.all_top_opts? |= (if type == \\\"array\\\" then [] else . end) | .result.module_order? |= (if type == \\\"array\\\" then map(select(. != null and . != false and . != 0 and . != \\\"\\\" and ((.module_name // \\\"\\\") | IN(\\\"irregular_banner_dy\\\", \\\"irregular_banner\\\", \\\"ad_module\\\", \\\"icon_set\\\", \\\"recommend_fresh_info\\\", \\\"timeline\\\") | not))) else . end) else . end\")"
-def consolidate_pdd_homepage_native_response(lines, ensure_native=False):
-    """Keep the PDD homepage on one canonical native jq pass; never ship its JS handler."""
+def consolidate_pdd_homepage_native_response(lines):
+    """Migrate legacy PDD homepage JS to one canonical native jq rule."""
     output = list(lines)
     section = ""
     script_indices, rewrite_indices = [], []
@@ -407,49 +404,55 @@ def consolidate_pdd_homepage_native_response(lines, ensure_native=False):
 
     if len(script_indices) > 1:
         raise ValueError("duplicate Pinduoduo homepage local script trigger")
-    if len(rewrite_indices) > 1:
-        raise ValueError("duplicate Pinduoduo homepage native response rule")
-    if not script_indices and not ensure_native:
+    if not script_indices:
         return output, 0
 
-    # A legacy script trigger is only removed after the canonical native rule
-    # is present (or inserted). Any non-canonical existing rule fails closed.
+    canonical = normalize(PDD_HOMEPAGE_NATIVE_JQ_RULE)
     if rewrite_indices:
-        rewrite_index = rewrite_indices[0]
-        if normalize(output[rewrite_index]) != normalize(PDD_HOMEPAGE_NATIVE_JQ_RULE):
+        if any(normalize(output[index]) != canonical for index in rewrite_indices):
             raise ValueError("Pinduoduo homepage native rule changed; refusing unreviewed replacement")
+        # Duplicate identical native handlers are redundant; keep exactly one.
+        keep = rewrite_indices[0]
+        duplicate_indices = set(rewrite_indices[1:])
+        output = [line for index, line in enumerate(output) if index not in duplicate_indices]
     else:
-        if not ensure_native and not script_indices:
-            return output, 0
         rewrite_header = next(
             (i for i, line in enumerate(output)
              if line.strip().lower() == "[rewrite]"),
             None,
         )
         if rewrite_header is None:
-            raise ValueError("Pinduoduo homepage cannot migrate to native jq: [Rewrite] section is missing")
+            script_header = next(
+                (i for i, line in enumerate(output)
+                 if line.strip().lower() == "[script]"),
+                None,
+            )
+            if script_header is None:
+                raise ValueError("Pinduoduo homepage cannot migrate to native jq: [Script] section is missing")
+            output.insert(script_header, "[Rewrite]")
+            rewrite_header = script_header
         insert_at = next(
             (i for i in range(rewrite_header + 1, len(output))
              if output[i].strip().startswith("[") and output[i].strip().endswith("]")),
             len(output),
         )
         output.insert(insert_at, PDD_HOMEPAGE_NATIVE_JQ_RULE)
-        # Insertion may shift the script index; recompute it below.
 
-    if script_indices:
-        # Re-scan because inserting the native rule can shift subsequent lines.
-        output = [
-            line for line in output
-            if not (
-                line.strip().startswith("http-response")
-                or line.strip().startswith("response ")
-            ) or not (
-                marker in normalize(line)
-                and "scripts/pinduoduo/pdd-homepage.js" in normalize(line)
-            )
-        ]
-        return output, 1
-    return output, 0
+    # Remove only the reviewed local PDD homepage script trigger.
+    result = []
+    section = ""
+    for line in output:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1]
+            result.append(line)
+        elif not (
+            section == "Script"
+            and marker in normalize(line)
+            and "scripts/pinduoduo/pdd-homepage.js" in normalize(line)
+        ):
+            result.append(line)
+    return result, 1
 
 
 
