@@ -257,22 +257,29 @@ def optimize_source(source: str, upstream_commit: str = "unknown") -> str:
         "deleteIfPresent(obj, \"promotionTabs\");",
         "Jingdong welcomeHome promotion delete",
     )
-    source = replace_once(
-        source,
-        "obj.result.modeMap.dark.navigationAll = obj.result.modeMap.dark.navigationAll.filter((i) => CUSTOM_SURFACE_NAME_INCLUDE.includes(i?.functionId));",
-        "compactInPlace(obj.result.modeMap.dark.navigationAll, item =>\n"
-        "      isCustomSurfaceName(item && item.functionId)\n"
-        "    );",
-        "Jingdong dark custom-surface filter",
-    )
-    source = replace_once(
-        source,
-        "obj.result.modeMap.normal.navigationAll = obj.result.modeMap.normal.navigationAll.filter((i) => CUSTOM_SURFACE_NAME_INCLUDE.includes(i?.functionId));",
-        "compactInPlace(obj.result.modeMap.normal.navigationAll, item =>\n"
-        "      isCustomSurfaceName(item && item.functionId)\n"
-        "    );",
-        "Jingdong normal custom-surface filter",
-    )
+    read_start = '} else if (url.includes("functionId=readCustomSurfaceList")) {'
+    deliver_start = '}else if (url.includes("functionId=deliverLayer")'
+    if source.count(read_start) != 1 or source.count(deliver_start) != 1:
+        raise ValueError("Jingdong custom-surface route boundaries changed")
+    start = source.index(read_start)
+    end = source.index(deliver_start, start)
+    read_branch = """} else if (url.includes("functionId=readCustomSurfaceList")) {
+  const modeMap = obj.result && obj.result.modeMap;
+  const darkNavigation = modeMap && modeMap.dark && modeMap.dark.navigationAll;
+  if (Array.isArray(darkNavigation) && darkNavigation.length > 0) {
+    compactInPlace(darkNavigation, item =>
+      isCustomSurfaceName(item && item.functionId)
+    );
+  }
+  const normalNavigation = modeMap && modeMap.normal && modeMap.normal.navigationAll;
+  if (Array.isArray(normalNavigation) && normalNavigation.length > 0) {
+    compactInPlace(normalNavigation, item =>
+      isCustomSurfaceName(item && item.functionId)
+    );
+  }
+"""
+    source = source[:start] + read_branch + "} else if (url.includes(\"functionId=deliverLayer\")" + source[end + len(deliver_start):]
+
     source = replace_once(
         source, "delete obj.bannerInfo;",
         "deleteIfPresent(obj, \"bannerInfo\");",
@@ -398,6 +405,7 @@ def optimize_source(source: str, upstream_commit: str = "unknown") -> str:
         "function isPersonInfoBusinessExcluded(id)",
         "function isWelcomeHomeType(type)",
         "function isCustomSurfaceName(name)",
+        "const modeMap = obj.result && obj.result.modeMap;",
         "const shouldProcess =",
         "compactInPlace(obj.floorList, item =>",
         "compactInPlace(obj.floors, floor =>",
