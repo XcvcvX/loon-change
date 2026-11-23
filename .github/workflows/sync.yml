@@ -573,7 +573,7 @@ jobs:
           python3 optimize_amap.py --plugin /tmp/loon-build/allAdRewrite.plugin
           python3 apply_local_overrides.py --plugin /tmp/loon-build/allAdRewrite.plugin
           python3 optimize_didi.py --plugin /tmp/loon-build/allAdRewrite.plugin
-          python3 optimize_taobao.py --plugin /tmp/loon-build/allAdRewrite.plugin
+          python3 optimize_taobao.py --plugin /tmp/loon-build/allAdRewrite.plugin --runtime scripts/taobao/taobao.js
           python3 optimize_cnftp.py --plugin /tmp/loon-build/allAdRewrite.plugin
           python3 optimize_xiaohongshu.py --plugin /tmp/loon-build/allAdRewrite.plugin
           python3 optimize_xiaohongshu_rstore.py --plugin /tmp/loon-build/allAdRewrite.plugin
