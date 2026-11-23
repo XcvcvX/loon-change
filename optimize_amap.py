@@ -13,6 +13,7 @@ SCALAR_MARKER = "// loon-change: Amap scalar membership hot loops v1"
 TRACKING_MARKER = "// loon-change: Amap mutation-aware lazy serialization v1"
 DYNAMIC_MATCHER_MARKER = "// loon-change: Amap shared dynamic ad matcher v1"
 ROUTE_INFO_MARKER = "// loon-change: Amap routeInfo cached nested references v1"
+ROUTE_PLAN_MARKER = "// loon-change: Amap routePlan cached nested references v1"
 DYNAMIC_MATCHER_LITERAL = "/ads-\\d+/.test(i?.dynamic_id_s)"
 DYNAMIC_MATCHER_CALL = "AMAP_AD_DYNAMIC_ID.test(i?.dynamic_id_s)"
 TRACKING_HELPER = """// loon-change: Amap mutation-aware lazy serialization v1
@@ -343,6 +344,53 @@ def optimize_route_info_cached_references(source):
     return source[:i] + block + source[j:]
 
 
+def optimize_route_plan_cached_references(source):
+    if source.count(ROUTE_PLAN_MARKER) > 1:
+        raise ValueError("Amap routePlan cache marker is duplicated")
+    start = '} else if (url.includes("/perception/drive/routePlan")) {'
+    end = '} else if (url.includes("/promotion-web/resource")) {'
+    if source.count(start) != 1 or source.count(end) != 1:
+        raise ValueError("Amap routePlan branch boundary drift")
+    i = source.index(start)
+    j = source.index(end, i + len(start))
+    block = source[i:j]
+    if ROUTE_PLAN_MARKER in block:
+        required = (
+            "const routePlanData = obj?.data;",
+            "const routePlanFrontEnd = routePlanData?.front_end;",
+            "const routePlanEvents = routePlanData?.tbt?.event;",
+            "const routePlanDownloads = routePlanFrontEnd?.download;",
+        )
+        if any(value not in block for value in required):
+            raise ValueError("Amap routePlan cached reference declarations drift")
+        return source
+    replacements = (
+        ("obj?.data?.tbt?.event?.length", "routePlanEvents?.length"),
+        ("obj.data.tbt.event", "routePlanEvents"),
+        ("obj?.data?.front_end?.download?.length", "routePlanDownloads?.length"),
+        ("obj.data.front_end.download", "routePlanDownloads"),
+        ("obj?.data?.front_end", "routePlanFrontEnd"),
+        ("obj.data.front_end", "routePlanFrontEnd"),
+    )
+    for old, new in replacements:
+        block = block.replace(old, new)
+    required_accesses = (
+        "routePlanEvents?.length", "compactInPlace(routePlanEvents,",
+        "routePlanFrontEnd", "routePlanDownloads",
+    )
+    if any(value not in block for value in required_accesses):
+        raise ValueError("Amap routePlan nested access inventory changed")
+    declaration = """  // loon-change: Amap routePlan cached nested references v1
+  const routePlanData = obj?.data;
+  const routePlanFrontEnd = routePlanData?.front_end;
+  const routePlanEvents = routePlanData?.tbt?.event;
+  const routePlanDownloads = routePlanFrontEnd?.download;"""
+    comment = "  // 路线规划页"
+    if block.count(comment) != 1:
+        raise ValueError("Amap routePlan declaration anchor changed")
+    block = block.replace(comment, comment + "\n" + declaration, 1)
+    return source[:i] + block + source[j:]
+
 def repair_supported_route_guard(source):
     pattern = re.compile(
         re.escape(GUARD_MARKER)
@@ -436,6 +484,7 @@ def optimize_source(source, commit="unknown"):
         source = repair_supported_route_guard(source)
         source = optimize_shared_dynamic_ad_matcher(optimize_scalar_membership(compact_search_suggestions_in_place(hoist_static_arrays(source))))
         source = optimize_route_info_cached_references(source)
+        source = optimize_route_plan_cached_references(source)
         source = instrument_mutations(source)
         if ".filter(" in source or "function compactInPlace(items, keep)" not in source:
             raise ValueError("Amap optimized runtime has drifted")
@@ -468,6 +517,7 @@ def optimize_source(source, commit="unknown"):
     source = optimize_scalar_membership(source)
     source = optimize_shared_dynamic_ad_matcher(source)
     source = optimize_route_info_cached_references(source)
+    source = optimize_route_plan_cached_references(source)
     source = instrument_mutations(source)
     return MARKER + commit + "\n" + source
 
