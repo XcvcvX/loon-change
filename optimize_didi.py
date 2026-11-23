@@ -174,13 +174,13 @@ def optimize_preparse_route_guard(source):
     if source.count(parse_line) != 1:
         raise ValueError("Didi JSON parse anchor changed; refusing pre-parse guard")
     guard = (
-        marker + "\\nconst shouldProcess =\\n  " + " ||\\n  ".join(routes) +
-        ";\\nif (!shouldProcess) {\\n  $done({});\\n} else {\\n  " + parse_line
+        marker + "\nconst shouldProcess =\n  " + " ||\n  ".join(routes) +
+        ";\nif (!shouldProcess) {\n  $done({});\n} else {\n  " + parse_line
     )
     source = source.replace(parse_line, guard, 1)
     if not source.rstrip().endswith("}"):
         raise ValueError("Didi response handler closing brace missing")
-    return source.rstrip() + "\\n}\\n"
+    return source.rstrip() + "\n}\n"
 
 def optimize_source(source, commit="unknown"):
     if MARKER in source:
