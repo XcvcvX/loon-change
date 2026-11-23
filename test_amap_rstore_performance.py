@@ -121,7 +121,9 @@ process.stdout.write(nativeJSON.stringify({doneResult, parseCount, stringifyCoun
             ".includes(item?.tip?.", ".includes(i?.item_type)", "items?.includes(i)",
         ):
             self.assertNotIn(stale, source)
-        nearby = source[source.index('url.includes("/shield/search/nearbyrec_smart")'):source.index('url.includes("/shield/search/poi/detail")')]
+        nearby_start = source.index('} else if (url.includes("/shield/search/nearbyrec_smart"))')
+        nearby_end = source.index('} else if (url.includes("/shield/search/poi/detail"))', nearby_start)
+        nearby = source[nearby_start:nearby_end]
         self.assertIn("Array.isArray(obj?.data?.modules)", nearby)
         self.assertEqual(nearby.count("if (obj?.data?.modules?.length > 0)"), 0)
         self.assertIn('i === "head" || i === "search_hot_words" || i === "feed_rec"', nearby)
