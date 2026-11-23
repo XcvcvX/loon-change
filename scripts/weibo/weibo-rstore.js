@@ -1,4 +1,5 @@
 // loon-change: R-Store Weibo in-place response compaction v1; upstream zirawell/R-Store@1e08bab55bcffc396be39f914f48151443344493
+// loon-change: Weibo feed and comment lazy serialization v1
 /********************************
 Weibo Remove Ads - Version 1.0
 Checkout Source - https://raw.githubusercontent.com/RuCu6/QuanX/main/Scripts/weibo.js
@@ -12,10 +13,12 @@ https://raw.githubusercontent.com/zirawell/R-Store/main/Rule/Surge/Adblock/App/W
 ********************************/
 
 const url = $request.url;
+let modified = !url.includes("/2/cardlist") && !url.includes("/2/comments/build_comments");
 
 function compactInPlace(items, keep) {
+  const length = items.length;
   let write = 0;
-  for (let read = 0, length = items.length; read < length; read++) {
+  for (let read = 0; read < length; read++) {
     const item = items[read];
     if (keep(item, read)) {
       if (write !== read) items[write] = item;
@@ -23,6 +26,7 @@ function compactInPlace(items, keep) {
     }
   }
   items.length = write;
+  if (write !== length) modified = true;
   return items;
 }
 if (!$response) $done({});
@@ -96,12 +100,14 @@ if (url.includes("/interface/sdk/sdkad.php")) {
     if (obj?.cards?.length > 0) {
       const __loonSource32 = obj.cards;
       let __loonWrite32 = 0;
-      for (let __loonRead32 = 0, __loonLength32 = __loonSource32.length; __loonRead32 < __loonLength32; __loonRead32++) {
+      const __loonLength32 = __loonSource32.length;
+      for (let __loonRead32 = 0; __loonRead32 < __loonLength32; __loonRead32++) {
         let card = __loonSource32[__loonRead32];
         if (card?.card_group?.length > 0) {
           const __loonSource31 = card.card_group;
           let __loonWrite31 = 0;
-          for (let __loonRead31 = 0, __loonLength31 = __loonSource31.length; __loonRead31 < __loonLength31; __loonRead31++) {
+          const __loonLength31 = __loonSource31.length;
+          for (let __loonRead31 = 0; __loonRead31 < __loonLength31; __loonRead31++) {
             let group = __loonSource31[__loonRead31];
             let cardType = group.card_type;
             // 120,145 视频版块轮播图 192横版热门视频 电影 颜值 电视剧等
@@ -119,6 +125,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
             __loonSource31[__loonWrite31++] = group;
           }
           __loonSource31.length = __loonWrite31;
+          if (__loonWrite31 !== __loonLength31) modified = true;
           __loonSource32[__loonWrite32++] = card;
         } else {
           let cardType = card.card_type;
@@ -134,6 +141,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
         }
       }
       __loonSource32.length = __loonWrite32;
+      if (__loonWrite32 !== __loonLength32) modified = true;
     }
   } else if (url.includes("/2/checkin/show")) {
     // 首页签到
@@ -153,7 +161,8 @@ if (url.includes("/interface/sdk/sdkad.php")) {
     if (obj?.datas?.length > 0) {
       const __loonSource30 = obj.datas;
       let __loonWrite30 = 0;
-      for (let __loonRead30 = 0, __loonLength30 = __loonSource30.length; __loonRead30 < __loonLength30; __loonRead30++) {
+      const __loonLength30 = __loonSource30.length;
+      for (let __loonRead30 = 0; __loonRead30 < __loonLength30; __loonRead30++) {
         let item = __loonSource30[__loonRead30];
         if (item?.data) {
           if (!isAd(item?.data)) {
@@ -167,18 +176,22 @@ if (url.includes("/interface/sdk/sdkad.php")) {
             }
             // 评论气泡
             if (item?.data?.comment_bubble) {
+              modified = true;
               delete item.data.comment_bubble;
             }
             // 评论弹幕
             if (item?.data?.comment_bullet_screens_message) {
+              modified = true;
               delete item.data.comment_bullet_screens_message;
             }
             // 热评小图标 弹幕 首评
             if (item?.data?.hot_icon) {
+              modified = true;
               delete item.data.hot_icon;
             }
             // 会员气泡按钮
             if (item?.data?.vip_button) {
+              modified = true;
               delete item.data.vip_button;
             }
             // 6为你推荐更多精彩内容 15过滤提示
@@ -193,10 +206,12 @@ if (url.includes("/interface/sdk/sdkad.php")) {
         }
       }
       __loonSource30.length = __loonWrite30;
+      if (__loonWrite30 !== __loonLength30) modified = true;
     } else if (obj?.root_comments?.length > 0) {
       const __loonSource29 = obj.root_comments;
       let __loonWrite29 = 0;
-      for (let __loonRead29 = 0, __loonLength29 = __loonSource29.length; __loonRead29 < __loonLength29; __loonRead29++) {
+      const __loonLength29 = __loonSource29.length;
+      for (let __loonRead29 = 0; __loonRead29 < __loonLength29; __loonRead29++) {
         let item = __loonSource29[__loonRead29];
         if (!isAd(item)) {
           // 微博伪装评论
@@ -209,41 +224,51 @@ if (url.includes("/interface/sdk/sdkad.php")) {
           }
           // 评论气泡
           if (item?.comment_bubble) {
+            modified = true;
             delete item.comment_bubble;
           }
           // 评论弹幕
           if (item?.comment_bullet_screens_message) {
+            modified = true;
             delete item.comment_bullet_screens_message;
           }
           // 热评小图标 弹幕 首评
           if (item?.hot_icon) {
+            modified = true;
             delete item.hot_icon;
           }
           // 会员气泡按钮
           if (item?.vip_button) {
+            modified = true;
             delete item.vip_button;
           }
           __loonSource29[__loonWrite29++] = item;
         }
       }
       __loonSource29.length = __loonWrite29;
+      if (__loonWrite29 !== __loonLength29) modified = true;
     } else if (obj?.comments?.length > 0) {
       const __loonSource28 = obj.comments;
       let __loonWrite28 = 0;
-      for (let __loonRead28 = 0, __loonLength28 = __loonSource28.length; __loonRead28 < __loonLength28; __loonRead28++) {
+      const __loonLength28 = __loonSource28.length;
+      for (let __loonRead28 = 0; __loonRead28 < __loonLength28; __loonRead28++) {
         let item = __loonSource28[__loonRead28];
         if (item?.user?.icons) {
+          modified = true;
           delete item.user.icons;
         }
         if (item?.reply_comment?.comment_badge) {
+          modified = true;
           delete item.reply_comment.comment_badge;
         }
         __loonSource28[__loonWrite28++] = item;
       }
       __loonSource28.length = __loonWrite28;
+      if (__loonWrite28 !== __loonLength28) modified = true;
     }
     if (obj?.rootComment) {
       if (obj?.rootComment?.comment_bubble) {
+        modified = true;
         delete obj.rootComment.comment_bubble;
       }
     }
@@ -255,7 +280,8 @@ if (url.includes("/interface/sdk/sdkad.php")) {
     if (obj?.items?.length > 0) {
       const __loonSource27 = obj.items;
       let __loonWrite27 = 0;
-      for (let __loonRead27 = 0, __loonLength27 = __loonSource27.length; __loonRead27 < __loonLength27; __loonRead27++) {
+      const __loonLength27 = __loonSource27.length;
+      for (let __loonRead27 = 0; __loonRead27 < __loonLength27; __loonRead27++) {
         let item = __loonSource27[__loonRead27];
         // 关注按钮
         removeAvatar(item?.data);
@@ -278,6 +304,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
         __loonSource27[__loonWrite27++] = item;
       }
       __loonSource27.length = __loonWrite27;
+      if (__loonWrite27 !== __loonLength27) modified = true;
     }
   } else if (url.includes("/2/direct_messages/user_list")) {
     if (obj?.user_list?.length > 0) {
@@ -300,7 +327,8 @@ if (url.includes("/interface/sdk/sdkad.php")) {
     if (obj?.channelInfo?.channels?.length > 0) {
       const __loonSource26 = obj.channelInfo.channels;
       let __loonWrite26 = 0;
-      for (let __loonRead26 = 0, __loonLength26 = __loonSource26.length; __loonRead26 < __loonLength26; __loonRead26++) {
+      const __loonLength26 = __loonSource26.length;
+      for (let __loonRead26 = 0; __loonRead26 < __loonLength26; __loonRead26++) {
         let tab = __loonSource26[__loonRead26];
         if (/_selfrecomm/.test(tab?.flowId)) {
           // 关注页推荐tab
@@ -313,13 +341,15 @@ if (url.includes("/interface/sdk/sdkad.php")) {
         }
       }
       __loonSource26.length = __loonWrite26;
+      if (__loonWrite26 !== __loonLength26) modified = true;
     }
   } else if (url.includes("/2/flowpage")) {
     // 热搜列表
     if (obj?.items?.length > 0) {
       const __loonSource25 = obj.items;
       let __loonWrite25 = 0;
-      for (let __loonRead25 = 0, __loonLength25 = __loonSource25.length; __loonRead25 < __loonLength25; __loonRead25++) {
+      const __loonLength25 = __loonSource25.length;
+      for (let __loonRead25 = 0; __loonRead25 < __loonLength25; __loonRead25++) {
         let item = __loonSource25[__loonRead25];
         if (item?.data?.itemid === "hot-search-push-notice") {
           // 开启推送通知的提示
@@ -328,7 +358,8 @@ if (url.includes("/interface/sdk/sdkad.php")) {
         if (item?.items?.length > 0) {
           const __loonSource24 = item.items;
           let __loonWrite24 = 0;
-          for (let __loonRead24 = 0, __loonLength24 = __loonSource24.length; __loonRead24 < __loonLength24; __loonRead24++) {
+          const __loonLength24 = __loonSource24.length;
+          for (let __loonRead24 = 0; __loonRead24 < __loonLength24; __loonRead24++) {
             let i = __loonSource24[__loonRead24];
             if (i?.data?.hasOwnProperty("promotion")) {
               // 热搜列表中的推广项目
@@ -341,10 +372,12 @@ if (url.includes("/interface/sdk/sdkad.php")) {
             }
           }
           __loonSource24.length = __loonWrite24;
+          if (__loonWrite24 !== __loonLength24) modified = true;
         }
         __loonSource25[__loonWrite25++] = item;
       }
       __loonSource25.length = __loonWrite25;
+      if (__loonWrite25 !== __loonLength25) modified = true;
     }
   } else if (url.includes("/2/groups/allgroups/v2")) {
     // 顶部tab
@@ -352,7 +385,8 @@ if (url.includes("/interface/sdk/sdkad.php")) {
       // homeFeed关注 homeHot推荐
       const __loonSource23 = obj.pageDatas;
       let __loonWrite23 = 0;
-      for (let __loonRead23 = 0, __loonLength23 = __loonSource23.length; __loonRead23 < __loonLength23; __loonRead23++) {
+      const __loonLength23 = __loonSource23.length;
+      for (let __loonRead23 = 0; __loonRead23 < __loonLength23; __loonRead23++) {
         let item = __loonSource23[__loonRead23];
         if (item?.pageDataType === "homeExtend") {
           // 多余的推广tab 比如华为Mate60
@@ -361,13 +395,15 @@ if (url.includes("/interface/sdk/sdkad.php")) {
           if (item?.categories?.length > 0) {
             const __loonSource22 = item.categories;
             let __loonWrite22 = 0;
-            for (let __loonRead22 = 0, __loonLength22 = __loonSource22.length; __loonRead22 < __loonLength22; __loonRead22++) {
+            const __loonLength22 = __loonSource22.length;
+            for (let __loonRead22 = 0; __loonRead22 < __loonLength22; __loonRead22++) {
               let i = __loonSource22[__loonRead22];
               if (i?.title === "默认分组") {
                 if (i?.pageDatas?.length > 0) {
                   const __loonSource21 = i.pageDatas;
                   let __loonWrite21 = 0;
-                  for (let __loonRead21 = 0, __loonLength21 = __loonSource21.length; __loonRead21 < __loonLength21; __loonRead21++) {
+                  const __loonLength21 = __loonSource21.length;
+                  for (let __loonRead21 = 0; __loonRead21 < __loonLength21; __loonRead21++) {
                     let ii = __loonSource21[__loonRead21];
                     if (["最新微博", "特别关注", "好友圈", "视频"]?.includes(ii?.title)) {
                       // 白名单列表
@@ -380,23 +416,27 @@ if (url.includes("/interface/sdk/sdkad.php")) {
                     }
                   }
                   __loonSource21.length = __loonWrite21;
+                  if (__loonWrite21 !== __loonLength21) modified = true;
                 }
               }
               __loonSource22[__loonWrite22++] = i;
             }
             __loonSource22.length = __loonWrite22;
+            if (__loonWrite22 !== __loonLength22) modified = true;
           }
           __loonSource23[__loonWrite23++] = item;
         }
       }
       __loonSource23.length = __loonWrite23;
+      if (__loonWrite23 !== __loonLength23) modified = true;
     }
   } else if (url.includes("/2/messageflow/notice")) {
     // 消息动态页
     if (obj?.messages?.length > 0) {
       const __loonSource20 = obj.messages;
       let __loonWrite20 = 0;
-      for (let __loonRead20 = 0, __loonLength20 = __loonSource20.length; __loonRead20 < __loonLength20; __loonRead20++) {
+      const __loonLength20 = __loonSource20.length;
+      for (let __loonRead20 = 0; __loonRead20 < __loonLength20; __loonRead20++) {
         let msg = __loonSource20[__loonRead20];
         if (msg?.msg_card?.ad_tag) {
           continue;
@@ -405,6 +445,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
         }
       }
       __loonSource20.length = __loonWrite20;
+      if (__loonWrite20 !== __loonLength20) modified = true;
     }
   } else if (url.includes("/2/page")) {
     // 搜索页列表,超话
@@ -432,7 +473,8 @@ if (url.includes("/interface/sdk/sdkad.php")) {
     if (obj?.items?.length > 0) {
       const __loonSource19 = obj.items;
       let __loonWrite19 = 0;
-      for (let __loonRead19 = 0, __loonLength19 = __loonSource19.length; __loonRead19 < __loonLength19; __loonRead19++) {
+      const __loonLength19 = __loonSource19.length;
+      for (let __loonRead19 = 0; __loonRead19 < __loonLength19; __loonRead19++) {
         let item = __loonSource19[__loonRead19];
         if (item?.data?.left_hint?.[0]?.content === "全部微博(0)" && item?.data?.card_type === 216) {
           // 全部微博为0的博主
@@ -467,7 +509,8 @@ if (url.includes("/interface/sdk/sdkad.php")) {
             if (item?.items?.length > 0) {
               const __loonSource18 = item.items;
               let __loonWrite18 = 0;
-              for (let __loonRead18 = 0, __loonLength18 = __loonSource18.length; __loonRead18 < __loonLength18; __loonRead18++) {
+              const __loonLength18 = __loonSource18.length;
+              for (let __loonRead18 = 0; __loonRead18 < __loonLength18; __loonRead18++) {
                 let ii = __loonSource18[__loonRead18];
                 if (ii?.category === "feed") {
                   // 头像挂件,关注按钮
@@ -498,6 +541,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
                 }
               }
               __loonSource18.length = __loonWrite18;
+              if (__loonWrite18 !== __loonLength18) modified = true;
             }
             __loonSource19[__loonWrite19++] = item;
           } else if (item?.category === "feed") {
@@ -520,6 +564,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
         }
       }
       __loonSource19.length = __loonWrite19;
+      if (__loonWrite19 !== __loonLength19) modified = true;
     }
   } else if (url.includes("/2/profile/dealatt") || url.includes("/2/friendships/")) {
     // 个人主页点击关注后展示菜单
@@ -532,7 +577,8 @@ if (url.includes("/interface/sdk/sdkad.php")) {
       // 底部菜单
       const __loonSource17 = toolbar.items;
       let __loonWrite17 = 0;
-      for (let __loonRead17 = 0, __loonLength17 = __loonSource17.length; __loonRead17 < __loonLength17; __loonRead17++) {
+      const __loonLength17 = __loonSource17.length;
+      for (let __loonRead17 = 0; __loonRead17 < __loonLength17; __loonRead17++) {
         let item = __loonSource17[__loonRead17];
         if (item?.identifier === "recommend") {
           // 相关推荐
@@ -545,6 +591,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
         }
       }
       __loonSource17.length = __loonWrite17;
+      if (__loonWrite17 !== __loonLength17) modified = true;
     }
   } else if (url.includes("/2/profile/me")) {
     // 我的页面
@@ -554,7 +601,8 @@ if (url.includes("/interface/sdk/sdkad.php")) {
     if (obj?.items?.length > 0) {
       const __loonSource16 = obj.items;
       let __loonWrite16 = 0;
-      for (let __loonRead16 = 0, __loonLength16 = __loonSource16.length; __loonRead16 < __loonLength16; __loonRead16++) {
+      const __loonLength16 = __loonSource16.length;
+      for (let __loonRead16 = 0; __loonRead16 < __loonLength16; __loonRead16++) {
         let item = __loonSource16[__loonRead16];
         let itemId = item.itemId;
         if (itemId === "profileme_mine") {
@@ -609,17 +657,20 @@ if (url.includes("/interface/sdk/sdkad.php")) {
         }
       }
       __loonSource16.length = __loonWrite16;
+      if (__loonWrite16 !== __loonLength16) modified = true;
     }
   } else if (url.includes("/2/profile/statuses/tab")) {
     if (obj?.cards?.length > 0) {
       const __loonSource15 = obj.cards;
       let __loonWrite15 = 0;
-      for (let __loonRead15 = 0, __loonLength15 = __loonSource15.length; __loonRead15 < __loonLength15; __loonRead15++) {
+      const __loonLength15 = __loonSource15.length;
+      for (let __loonRead15 = 0; __loonRead15 < __loonLength15; __loonRead15++) {
         let card = __loonSource15[__loonRead15];
         if (card?.card_group?.length > 0) {
           const __loonSource14 = card.card_group;
           let __loonWrite14 = 0;
-          for (let __loonRead14 = 0, __loonLength14 = __loonSource14.length; __loonRead14 < __loonLength14; __loonRead14++) {
+          const __loonLength14 = __loonSource14.length;
+          for (let __loonRead14 = 0; __loonRead14 < __loonLength14; __loonRead14++) {
             let group = __loonSource14[__loonRead14];
             let cardType = group.card_type;
             // 22那年今天
@@ -635,6 +686,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
             __loonSource14[__loonWrite14++] = group;
           }
           __loonSource14.length = __loonWrite14;
+          if (__loonWrite14 !== __loonLength14) modified = true;
           __loonSource15[__loonWrite15++] = card;
         } else {
           if (card?.mblog) {
@@ -647,6 +699,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
         }
       }
       __loonSource15.length = __loonWrite15;
+      if (__loonWrite15 !== __loonLength15) modified = true;
     }
     // 我的热搜
     if (obj?.cardlistInfo?.page_type === "08") {
@@ -660,7 +713,8 @@ if (url.includes("/interface/sdk/sdkad.php")) {
       if (toolbar?.items?.length > 0) {
         const __loonSource13 = toolbar.items;
         let __loonWrite13 = 0;
-        for (let __loonRead13 = 0, __loonLength13 = __loonSource13.length; __loonRead13 < __loonLength13; __loonRead13++) {
+        const __loonLength13 = __loonSource13.length;
+        for (let __loonRead13 = 0; __loonRead13 < __loonLength13; __loonRead13++) {
           let item = __loonSource13[__loonRead13];
           if (item?.identifier === "recommend") {
             // 相关推荐
@@ -676,6 +730,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
           }
         }
         __loonSource13.length = __loonWrite13;
+        if (__loonWrite13 !== __loonLength13) modified = true;
       }
       if (toolbar?.lottie_guide) {
         // 弹窗
@@ -711,7 +766,8 @@ if (url.includes("/interface/sdk/sdkad.php")) {
       if (obj?.items?.length > 0) {
         const __loonSource12 = obj.items;
         let __loonWrite12 = 0;
-        for (let __loonRead12 = 0, __loonLength12 = __loonSource12.length; __loonRead12 < __loonLength12; __loonRead12++) {
+        const __loonLength12 = __loonSource12.length;
+        for (let __loonRead12 = 0; __loonRead12 < __loonLength12; __loonRead12++) {
           let item = __loonSource12[__loonRead12];
           if (item?.category === "feed") {
             if (!isAd(item?.data)) {
@@ -739,7 +795,8 @@ if (url.includes("/interface/sdk/sdkad.php")) {
             if (item?.items?.length > 0) {
               const __loonSource11 = item.items;
               let __loonWrite11 = 0;
-              for (let __loonRead11 = 0, __loonLength11 = __loonSource11.length; __loonRead11 < __loonLength11; __loonRead11++) {
+              const __loonLength11 = __loonSource11.length;
+              for (let __loonRead11 = 0; __loonRead11 < __loonLength11; __loonRead11++) {
                 let ii = __loonSource11[__loonRead11];
                 // 118横版广告图片 182热议话题 217错过了热词 247横版视频广告
                 if ([118, 182, 217, 247]?.includes(ii?.data?.card_type)) {
@@ -749,11 +806,13 @@ if (url.includes("/interface/sdk/sdkad.php")) {
                 }
               }
               __loonSource11.length = __loonWrite11;
+              if (__loonWrite11 !== __loonLength11) modified = true;
             }
             __loonSource12[__loonWrite12++] = item;
           }
         }
         __loonSource12.length = __loonWrite12;
+        if (__loonWrite12 !== __loonLength12) modified = true;
       }
       if (obj?.loadedInfo) {
         delete obj?.loadedInfo;
@@ -781,7 +840,8 @@ if (url.includes("/interface/sdk/sdkad.php")) {
             if (payload?.items?.length > 0) {
               const __loonSource10 = payload.items;
               let __loonWrite10 = 0;
-              for (let __loonRead10 = 0, __loonLength10 = __loonSource10.length; __loonRead10 < __loonLength10; __loonRead10++) {
+              const __loonLength10 = __loonSource10.length;
+              for (let __loonRead10 = 0; __loonRead10 < __loonLength10; __loonRead10++) {
                 let item = __loonSource10[__loonRead10];
                 if (item?.category === "feed") {
                   if (!isAd(item?.data)) {
@@ -809,7 +869,8 @@ if (url.includes("/interface/sdk/sdkad.php")) {
                   if (item?.items?.length > 0) {
                     const __loonSource9 = item.items;
                     let __loonWrite9 = 0;
-                    for (let __loonRead9 = 0, __loonLength9 = __loonSource9.length; __loonRead9 < __loonLength9; __loonRead9++) {
+                    const __loonLength9 = __loonSource9.length;
+                    for (let __loonRead9 = 0; __loonRead9 < __loonLength9; __loonRead9++) {
                       let ii = __loonSource9[__loonRead9];
                       // 118横版广告图片 182热议话题 192横版好看视频 217错过了热词 247横版视频广告
                       if ([118, 182, 192, 217, 247]?.includes(ii?.data?.card_type)) {
@@ -819,11 +880,13 @@ if (url.includes("/interface/sdk/sdkad.php")) {
                       }
                     }
                     __loonSource9.length = __loonWrite9;
+                    if (__loonWrite9 !== __loonLength9) modified = true;
                   }
                   __loonSource10[__loonWrite10++] = item;
                 }
               }
               __loonSource10.length = __loonWrite10;
+              if (__loonWrite10 !== __loonLength10) modified = true;
             }
           }
         }
@@ -859,12 +922,14 @@ if (url.includes("/interface/sdk/sdkad.php")) {
     if (obj?.cards?.length > 0) {
       const __loonSource8 = obj.cards;
       let __loonWrite8 = 0;
-      for (let __loonRead8 = 0, __loonLength8 = __loonSource8.length; __loonRead8 < __loonLength8; __loonRead8++) {
+      const __loonLength8 = __loonSource8.length;
+      for (let __loonRead8 = 0; __loonRead8 < __loonLength8; __loonRead8++) {
         let card = __loonSource8[__loonRead8];
         if (card?.card_group?.length > 0) {
           const __loonSource7 = card.card_group;
           let __loonWrite7 = 0;
-          for (let __loonRead7 = 0, __loonLength7 = __loonSource7.length; __loonRead7 < __loonLength7; __loonRead7++) {
+          const __loonLength7 = __loonSource7.length;
+          for (let __loonRead7 = 0; __loonRead7 < __loonLength7; __loonRead7++) {
             let group = __loonSource7[__loonRead7];
             if (group?.card_type === 22) {
               // 先筛选card_group里面的card_type
@@ -910,6 +975,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
             }
           }
           __loonSource7.length = __loonWrite7;
+          if (__loonWrite7 !== __loonLength7) modified = true;
           __loonSource8[__loonWrite8++] = card;
         } else {
           if (card?.mblog) {
@@ -946,12 +1012,14 @@ if (url.includes("/interface/sdk/sdkad.php")) {
         }
       }
       __loonSource8.length = __loonWrite8;
+      if (__loonWrite8 !== __loonLength8) modified = true;
     }
     // 13.11.1版本obj下的cards变为了items 2023-11-26
     if (obj?.items?.length > 0) {
       const __loonSource6 = obj.items;
       let __loonWrite6 = 0;
-      for (let __loonRead6 = 0, __loonLength6 = __loonSource6.length; __loonRead6 < __loonLength6; __loonRead6++) {
+      const __loonLength6 = __loonSource6.length;
+      for (let __loonRead6 = 0; __loonRead6 < __loonLength6; __loonRead6++) {
         let item = __loonSource6[__loonRead6];
         if (!isAd(item?.data)) {
           if (item?.category === "feed") {
@@ -964,7 +1032,8 @@ if (url.includes("/interface/sdk/sdkad.php")) {
             if (item?.items?.length > 0) {
               const __loonSource5 = item.items;
               let __loonWrite5 = 0;
-              for (let __loonRead5 = 0, __loonLength5 = __loonSource5.length; __loonRead5 < __loonLength5; __loonRead5++) {
+              const __loonLength5 = __loonSource5.length;
+              for (let __loonRead5 = 0; __loonRead5 < __loonLength5; __loonRead5++) {
                 let ii = __loonSource5[__loonRead5];
                 if (!isAd(ii?.data)) {
                   if (ii?.data) {
@@ -984,6 +1053,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
                 }
               }
               __loonSource5.length = __loonWrite5;
+              if (__loonWrite5 !== __loonLength5) modified = true;
             }
             __loonSource6[__loonWrite6++] = item;
           } else {
@@ -992,6 +1062,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
         }
       }
       __loonSource6.length = __loonWrite6;
+      if (__loonWrite6 !== __loonLength6) modified = true;
     }
   } else if (url.includes("/2/statuses/container_timeline_hot") || url.includes("/2/statuses/unread_hot_timeline")) {
     // 首页推荐tab信息流
@@ -1003,7 +1074,8 @@ if (url.includes("/interface/sdk/sdkad.php")) {
     if (obj?.items?.length > 0) {
       const __loonSource4 = obj.items;
       let __loonWrite4 = 0;
-      for (let __loonRead4 = 0, __loonLength4 = __loonSource4.length; __loonRead4 < __loonLength4; __loonRead4++) {
+      const __loonLength4 = __loonSource4.length;
+      for (let __loonRead4 = 0; __loonRead4 < __loonLength4; __loonRead4++) {
         let item = __loonSource4[__loonRead4];
         if (!isAd(item?.data)) {
           if (item?.category === "feed") {
@@ -1019,11 +1091,13 @@ if (url.includes("/interface/sdk/sdkad.php")) {
         }
       }
       __loonSource4.length = __loonWrite4;
+      if (__loonWrite4 !== __loonLength4) modified = true;
     }
     if (obj?.statuses?.length > 0) {
       const __loonSource3 = obj.statuses;
       let __loonWrite3 = 0;
-      for (let __loonRead3 = 0, __loonLength3 = __loonSource3.length; __loonRead3 < __loonLength3; __loonRead3++) {
+      const __loonLength3 = __loonSource3.length;
+      for (let __loonRead3 = 0; __loonRead3 < __loonLength3; __loonRead3++) {
         let item = __loonSource3[__loonRead3];
         if (!isAd(item)) {
           // 信息流推广
@@ -1032,6 +1106,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
         }
       }
       __loonSource3.length = __loonWrite3;
+      if (__loonWrite3 !== __loonLength3) modified = true;
     }
   } else if (url.includes("/2/statuses/container_timeline?") || url.includes("/2/statuses/container_timeline_unread")) {
     // 首页关注tab信息流
@@ -1045,7 +1120,8 @@ if (url.includes("/interface/sdk/sdkad.php")) {
     if (obj?.items?.length > 0) {
       const __loonSource2 = obj.items;
       let __loonWrite2 = 0;
-      for (let __loonRead2 = 0, __loonLength2 = __loonSource2.length; __loonRead2 < __loonLength2; __loonRead2++) {
+      const __loonLength2 = __loonSource2.length;
+      for (let __loonRead2 = 0; __loonRead2 < __loonLength2; __loonRead2++) {
         let item = __loonSource2[__loonRead2];
         if (!isAd(item?.data)) {
           if (item?.category === "feed") {
@@ -1093,6 +1169,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
         }
       }
       __loonSource2.length = __loonWrite2;
+      if (__loonWrite2 !== __loonLength2) modified = true;
     }
   } else if (url.includes("/2/statuses/container_timeline_topic")) {
     // 超话信息流
@@ -1103,7 +1180,8 @@ if (url.includes("/interface/sdk/sdkad.php")) {
     if (obj?.items?.length > 0) {
       const __loonSource1 = obj.items;
       let __loonWrite1 = 0;
-      for (let __loonRead1 = 0, __loonLength1 = __loonSource1.length; __loonRead1 < __loonLength1; __loonRead1++) {
+      const __loonLength1 = __loonSource1.length;
+      for (let __loonRead1 = 0; __loonRead1 < __loonLength1; __loonRead1++) {
         let item = __loonSource1[__loonRead1];
         if (item?.category === "feed") {
           if (item.data) {
@@ -1179,6 +1257,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
         }
       }
       __loonSource1.length = __loonWrite1;
+      if (__loonWrite1 !== __loonLength1) modified = true;
     }
   } else if (url.includes("/2/statuses/extend")) {
     // 微博详情页
@@ -1300,7 +1379,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
       }
     }
   }
-  $done({body: JSON.stringify(obj)});
+  $done(modified ? {body: JSON.stringify(obj)} : {});
 }
 
 // 判断信息流
@@ -1326,38 +1405,49 @@ function isAd(data) {
 // 移除头像挂件,关注按钮
 function removeAvatar(data) {
   if (data?.block_card_bg) {
+    modified = true;
     delete data.block_card_bg;
   }
   if (data?.buttons) {
+    modified = true;
     delete data.buttons;
   }
   if (data?.cardid) {
+    modified = true;
     delete data.cardid;
   }
   if (data?.icons) {
+    modified = true;
     delete data.icons;
   }
   if (data?.mblog_buttons) {
     // 转发按钮图标
+    modified = true;
     delete data.mblog_buttons;
   }
   if (data?.pic_bg_new) {
+    modified = true;
     delete data.pic_bg_new;
   }
   if (data?.user?.avatargj_id) {
+    modified = true;
     delete data.user.avatargj_id;
   }
   if (data?.user?.avatar_extend_info) {
+    modified = true;
     delete data.user.avatar_extend_info;
   }
   if (data?.user?.cardid) {
+    modified = true;
     delete data.user.cardid;
   }
   if (data?.user?.icons) {
+    modified = true;
     delete data.user.icons;
   }
   if (data?.user?.mbtype) {
     // 会员等级图标
+    modified = true;
     delete data.user.mbtype;
   }
 }
@@ -1386,6 +1476,7 @@ function removeFeedAd(item) {
 // 移除投票窗口
 function removeVoteInfo(item) {
   if (item?.page_info?.media_info?.vote_info) {
+    modified = true;
     delete item.page_info.media_info.vote_info;
   }
 }

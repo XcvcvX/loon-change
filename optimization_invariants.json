@@ -41,7 +41,12 @@
       "path": "scripts/weibo/weibo-rstore.js",
       "required": [
         "// loon-change: R-Store Weibo in-place response compaction v1;",
-        "function compactInPlace("
+        "function compactInPlace(",
+        "// loon-change: Weibo feed and comment lazy serialization v1",
+        "let modified = !url.includes(\"/2/cardlist\") && !url.includes(\"/2/comments/build_comments\");",
+        "if (__loonWrite32 !== __loonLength32) modified = true;",
+        "$done(modified ? {body: JSON.stringify(obj)} : {});",
+        "const __loonLength32 = __loonSource32.length;"
       ]
     },
     {

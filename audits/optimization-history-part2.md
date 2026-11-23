@@ -302,3 +302,26 @@ The Node VM fixture verifies that top-level comments and direct sub-comments ret
 
 This removes a redundant full-tree traversal and repeated parses of identical media payloads. It does not claim device CPU or battery percentages without on-device Loon measurements.
 
+
+
+---
+
+# Phase 10 P1 — Weibo feed and comment lazy response serialization
+
+## Finding
+
+The active local R-Store Weibo handler is referenced by ten response triggers and is a roughly 48 KB script. Its card-list and comment endpoints already compact arrays in place, but still serialized the complete parsed object for every matched response, including payloads that were already clean.
+
+## Runtime change
+
+- Add change tracking to the existing 32 in-place compaction loops and the shared compaction helper.
+- Track the exact field deletions performed by the card-list and comment cleanup paths, including nested avatar metadata, comment decorations, and vote controls.
+- For `/2/cardlist` and `/2/comments/build_comments` only, return `$done({})` when no array or field changed; serialize once when an existing cleanup actually changes the response.
+- Keep all other Weibo response routes on their previous serialization path. Preserve every URL matcher, ad predicate, field target, and array ordering.
+- Add the required marker and behavior checks to `optimization_invariants.json`; the upstream optimizer reproduces the guard on every sync and fails closed if the expected loop/delete inventory drifts.
+
+## Regression coverage
+
+The Node VM tests count JSON.parse/JSON.stringify calls. Clean card-list and comment fixtures must parse once and stringify zero times; changed fixtures must preserve their existing cleanup output and stringify once. Existing array compaction and filter behavior checks remain in place.
+
+This removes redundant full-object serialization and its output-string allocation on already-clean card-list and comment responses. Real-device CPU and battery savings have not been quantified without Loon on-device measurements.
