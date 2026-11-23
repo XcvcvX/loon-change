@@ -97,7 +97,6 @@
         "// loon-change: Amap R-Store local fast path;",
         "// loon-change: Amap R-Store supported-route guard v1",
         "function compactInPlace(",
-        "const AMAP_STATIC_ITEMS_13 = [",
         "compactInPlace(obj.tip_list",
         "compactInPlace(city.tip_list",
         "url.includes(\"/shield/search_bff/hotword\")",
