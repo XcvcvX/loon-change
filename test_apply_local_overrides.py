@@ -5211,6 +5211,20 @@ class PinduoduoHomepageNativeConsolidationTests(unittest.TestCase):
         self.assertEqual(removed, 0)
         self.assertEqual(result, without_script)
 
+    def test_pdd_reviewed_upstream_jq_variant_is_replaced_by_complete_canonical_rule(self):
+        from apply_local_overrides import (
+            PDD_HOMEPAGE_LEGACY_NATIVE_RULE,
+            PDD_HOMEPAGE_NATIVE_JQ_RULE,
+            PDD_LOCAL_HOMEPAGE_TRIGGER,
+            consolidate_pdd_homepage_native_response,
+        )
+        fixture = ["[Rewrite]", PDD_HOMEPAGE_LEGACY_NATIVE_RULE, "[Script]", PDD_LOCAL_HOMEPAGE_TRIGGER, "[MITM]"]
+        result, removed = consolidate_pdd_homepage_native_response(fixture)
+        self.assertEqual(removed, 1)
+        self.assertIn(PDD_HOMEPAGE_NATIVE_JQ_RULE, result)
+        self.assertNotIn(PDD_HOMEPAGE_LEGACY_NATIVE_RULE, result)
+        self.assertFalse(any("pdd-homepage.js" in line for line in result))
+
     def test_pdd_legacy_script_is_migrated_to_native_jq_even_when_upstream_jq_is_missing(self):
         from apply_local_overrides import (
             PDD_LOCAL_HOMEPAGE_TRIGGER,
