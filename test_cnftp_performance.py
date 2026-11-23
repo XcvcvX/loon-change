@@ -450,5 +450,52 @@ if("rcInfo" in mods[0].clipInfo||mods[1].clipInfo.other!=="keep")throw Error("Ma
         with self.assertRaisesRegex(ValueError, "iQIYI personal menus upstream structure changed"):
             optimize_source(changed)
 
+
+    def test_supported_route_guard_is_present_and_optimizer_is_idempotent(self):
+        source = SOURCE_PATH.read_text(encoding="utf-8")
+        self.assertIn("CNFTP pre-parse supported-route guard v1", source)
+        self.assertEqual(optimize_source(source), source)
+        self.assertEqual(source.count("let obj = JSON.parse($response.body);"), 1)
+        self.assertLess(source.index("const shouldProcess ="), source.index("let obj = JSON.parse($response.body);"))
+
+    def test_node_runtime_unsupported_routes_skip_json_parse_and_stringify(self):
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node.js is required for CNFTP runtime tests")
+        harness = r'''
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync(process.argv[1],"utf8"),nativeJSON=JSON;
+let parseCalls=0,stringifyCalls=0,doneCalls=0,result;
+const trackedJSON={parse(v){parseCalls++;return nativeJSON.parse(v)},stringify(v){stringifyCalls++;return nativeJSON.stringify(v)}};
+const context={JSON:trackedJSON,$request:{url:"https://iface2.iqiyi.com/unhandled/large/response"},$response:{body:'{"large":[1,2,3]}'},$done(v){doneCalls++;result=v},console:{log(){},warn(){},error(){}}};
+vm.runInNewContext(source,context,{timeout:5000});
+if(parseCalls!==0||stringifyCalls!==0)throw Error("unsupported route parsed or serialized response");
+if(doneCalls!==1||!result||Object.keys(result).length!==0)throw Error("unsupported route must pass through once");
+'''
+        result = subprocess.run([node, "-e", harness, str(SOURCE_PATH)], capture_output=True, text=True, check=False, timeout=10)
+        self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
+
+    def test_node_runtime_supported_route_still_applies_filter(self):
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node.js is required for CNFTP runtime tests")
+        harness = r'''
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync(process.argv[1],"utf8"),J=JSON;
+let parseCalls=0,stringifyCalls=0,result;
+const trackedJSON={parse(v){parseCalls++;return J.parse(v)},stringify(v){stringifyCalls++;return J.stringify(v)}};
+const context={JSON:trackedJSON,$request:{url:"https://iface2.iqiyi.com/views_comment/"},$response:{body:J.stringify({cards:[{id:"ad"},{id:"keep",alias_name:"normal"}]})},$done(v){result=v},console:{log(){},warn(){},error(){}}};
+vm.runInNewContext(source,context,{timeout:5000});
+if(parseCalls!==1||stringifyCalls!==1)throw Error("supported route must parse and serialize once");
+const out=J.parse(result.body);
+if(out.cards.length!==1||out.cards[0].id!=="keep")throw Error("supported route filtering changed");
+'''
+        result = subprocess.run([node, "-e", harness, str(SOURCE_PATH)], capture_output=True, text=True, check=False, timeout=10)
+        self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
+
+    def test_optimizer_fails_closed_when_supported_route_guard_is_damaged(self):
+        source = SOURCE_PATH.read_text(encoding="utf-8")
+        damaged = source.replace("CNFTP pre-parse supported-route guard v1", "CNFTP pre-parse supported-route guard v2", 1)
+        with self.assertRaisesRegex(ValueError, "CNFTP supported-route guard marker/structure drift"):
+            optimize_source(damaged)
+
 if __name__ == "__main__":
     unittest.main()
