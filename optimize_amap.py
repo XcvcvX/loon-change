@@ -256,9 +256,9 @@ def optimize_scalar_membership(source):
     )
     if card_rewrites > 1:
         raise ValueError("Amap search card itemType cache anchor is duplicated")
-    if "const itemType = i?.item_type;" not in source:
+    if not re.search(r"const itemType = \\w+\\?\\.item_type;", source):
         raise ValueError("Amap search card itemType cache is missing")
-    if 'i?.item_type !== "brandAdCard"' in source or 'i?.item_type !== "toplist_al"' in source:
+    if re.search(r"\\b\\w+\\?\\.item_type !== \\"(?:brandAdCard|toplist_al)\\"", source):
         raise ValueError("Amap repeated search card itemType access remains")
     return source
 
