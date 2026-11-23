@@ -15,10 +15,13 @@
         "// loon-change: Xiaohongshu response hot-path optimization v1;",
         "function processCommentTree(data, livePhotos, commentVideos, noteId)",
         "const parsedVideoInfo = new Map()",
-        "processCommentTree(obj.data, livePhotos, commentVideos, note_id);"
+        "processCommentTree(obj.data, livePhotos, commentVideos, note_id);",
+        "Xiaohongshu parsed JSON comment tree without visited WeakSet v1;"
       ],
       "forbidden": [
-        "console.log(`[缓存] ID:"
+        "console.log(`[缓存] ID:",
+        "const visited = new WeakSet()",
+        "visited.has(current)"
       ]
     },
     {
