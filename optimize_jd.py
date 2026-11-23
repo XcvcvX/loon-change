@@ -1,0 +1,469 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""Generate the local Jingdong response cleaner and route the aggregate trigger to it."""
+from __future__ import annotations
+
+import argparse
+import re
+from pathlib import Path
+
+REMOTE = "https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/jd.js"
+LOCAL = "https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/jingdong/jd.js"
+MARKER_PREFIX = "// loon-change: Jingdong in-place response compaction and lazy serialization v1; upstream zirawell/R-Store@"
+ROUTES = (
+    "start",
+    "welcomeHome",
+    "readCustomSurfaceList",
+    "deliverLayer",
+    "orderTrackBusiness",
+    "getTabHomeInfo",
+    "myOrderInfo",
+    "personinfoBusiness",
+)
+
+HEADER = """{marker}
+(function () {{
+  const url = ($request && $request.url) || "";
+  const body = $response && $response.body;
+  const argument = typeof $argument !== "undefined" ? $argument : null;
+  const welcomeExtraEnabled = Boolean(
+    argument && typeof argument === "object" && argument.jkds_enable === true
+  );
+
+  const shouldProcess =
+    url.includes("functionId=start") ||
+    url.includes("functionId=welcomeHome") ||
+    url.includes("functionId=readCustomSurfaceList") ||
+    url.includes("functionId=deliverLayer") ||
+    url.includes("functionId=orderTrackBusiness") ||
+    url.includes("functionId=getTabHomeInfo") ||
+    url.includes("functionId=myOrderInfo") ||
+    url.includes("functionId=personinfoBusiness");
+  if (!shouldProcess || typeof body !== "string" || !body) {{
+    $done({{}});
+    return;
+  }}
+
+  let obj;
+  try {{
+    obj = JSON.parse(body);
+  }} catch (_) {{
+    $done({{}});
+    return;
+  }}
+  if (!obj || typeof obj !== "object" || Array.isArray(obj)) {{
+    $done({{}});
+    return;
+  }}
+
+  let modified = false;
+
+  function compactInPlace(items, keep) {{
+    const length = items.length;
+    let write = 0;
+    for (let read = 0; read < length; read++) {{
+      const item = items[read];
+      if (keep(item, read)) {{
+        if (write !== read) items[write] = item;
+        write++;
+      }}
+    }}
+    if (write !== length) {{
+      items.length = write;
+      modified = true;
+    }}
+    return items;
+  }}
+
+  function deleteIfPresent(target, key) {{
+    if (target && Object.prototype.hasOwnProperty.call(target, key)) {{
+      delete target[key];
+      modified = true;
+    }}
+  }}
+
+  function clearArrayIfNeeded(target, key) {{
+    if (target && Array.isArray(target[key]) && target[key].length > 0) {{
+      target[key] = [];
+      modified = true;
+    }}
+  }}
+
+  function isPersonInfoBusinessExcluded(id) {{
+    return id === "bigSaleFloor" || id === "buyOften" ||
+      id === "newAttentionCard" || id === "newBigSaleFloor" ||
+      id === "newStyleAttentionCard" || id === "newsFloor" ||
+      id === "noticeFloor" || id === "recommendfloor";
+  }}
+
+  function isWelcomeHomeType(type) {{
+    return type === "topTab" || type === "searchC" ||
+      type === "dynamicIcon" || type === "locPermission" ||
+      type === "login" || type === "hybrid" || type === "recommend";
+  }}
+
+  function isWelcomeExtraExcluded(type) {{
+    return type === "bottomXview" || type === "float" ||
+      type === "photoCeiling" || type === "ruleFloat" ||
+      type === "searchIcon" || type === "topRotate" ||
+      type === "tabBarAtmosphere";
+  }}
+
+  function isCustomSurfaceName(name) {{
+    return name === "index" || name === "messagenew" ||
+      name === "cart" || name === "home";
+  }}
+
+"""
+ 
+def replace_once(source: str, old: str, new: str, description: str) -> str:
+    count = source.count(old)
+    if count != 1:
+        raise ValueError("%s anchor count changed: expected 1, got %d" % (description, count))
+    return source.replace(old, new, 1)
+
+
+def _replace_array_constant(source: str, name: str, function: str) -> str:
+    pattern = re.compile(r"const " + re.escape(name) + r"\s*=\s*\[[\s\S]*?\];")
+    source, count = pattern.subn(function, source, count=1)
+    if count != 1:
+        raise ValueError("%s upstream allowlist changed; refusing optimization" % name)
+    return source
+
+
+def _validate_upstream(source: str) -> None:
+    for route in ROUTES:
+        token = "functionId=" + route
+        if source.count(token) != 1:
+            raise ValueError("Jingdong route inventory changed: %s count != 1" % route)
+    if source.count(".filter(") != 4:
+        raise ValueError("Jingdong array-filter inventory changed; expected four reviewed filters")
+    expected_arrays = {
+        "newFloors": 2,
+        "newItems": 1,
+        "newCards": 1,
+    }
+    for name, expected in expected_arrays.items():
+        count = len(re.findall(r"\b(?:let|const)\s+" + name + r"\s*=\s*\[\]", source))
+        if count != expected:
+            raise ValueError("Jingdong %s allocation inventory changed: expected %d, got %d"
+                             % (name, expected, count))
+    for token in (
+        'obj.floorList = obj.floorList.filter((i) => WELCOME_HOME_TYPE_INCLUDE.includes(i?.type));',
+        'obj.result.modeMap.dark.navigationAll = obj.result.modeMap.dark.navigationAll.filter((i) => CUSTOM_SURFACE_NAME_INCLUDE.includes(i?.functionId));',
+        'obj.result.modeMap.normal.navigationAll = obj.result.modeMap.normal.navigationAll.filter((i) => CUSTOM_SURFACE_NAME_INCLUDE.includes(i?.functionId));',
+        'obj.floors = obj.floors.filter((i) => !["banner", "jdDeliveryBanner"]?.includes(i?.mId));',
+        'if (card?.serviceTitle === "精选特惠") {',
+        'floor.data.virtualServiceCenters = newItems;',
+        'floor.data.moreText = " ";',
+        'newFloors.push(floor);',
+        'floor.data?.commonPopup_dynamic;',
+        'floor.data?.commonWindows?.length',
+        'floor.data?.newPlusBlackCard;',
+    ):
+        if token not in source:
+            raise ValueError("Jingdong upstream behavior marker missing: " + token)
+
+
+def optimize_source(source: str, upstream_commit: str = "unknown") -> str:
+    if MARKER_PREFIX in source:
+        required = (
+            "function compactInPlace(items, keep)",
+            "function isPersonInfoBusinessExcluded(id)",
+            "function isWelcomeHomeType(type)",
+            "function isCustomSurfaceName(name)",
+            'compactInPlace(obj.floorList, item =>',
+            'compactInPlace(navigation, item =>',
+            'compactInPlace(obj.floors, floor =>',
+            '$done(modified ? { body: JSON.stringify(obj) } : {});',
+        )
+        if any(token not in source for token in required):
+            raise ValueError("Jingdong optimization marker exists but required behavior is incomplete")
+        if ".filter(" in source or "newFloors = []" in source or "newItems = []" in source or "newCards = []" in source:
+            raise ValueError("Jingdong optimization marker exists but allocation regression remains")
+        if "readCustomSurfaceList\").*forEach" in source:
+            raise ValueError("Jingdong custom-surface callback traversal remains")
+        return source
+
+    _validate_upstream(source)
+    head = (
+        'const url = $request.url;\n'
+        'if (!$response.body) $done({});\n'
+        'let obj = JSON.parse($response.body);'
+    )
+    if source.count(head) != 1:
+        raise ValueError("Jingdong response entry point changed; refusing optimization")
+    source = replace_once(
+        source, head, HEADER.format(marker=MARKER_PREFIX + upstream_commit),
+        "Jingdong response entry point",
+    )
+
+    source = _replace_array_constant(
+        source,
+        "PERSON_INFO_BUSINESS_MID_EXCLUDE",
+        "function isPersonInfoBusinessExcluded(id) {\n"
+        "  return id === \"bigSaleFloor\" || id === \"buyOften\" ||\n"
+        "    id === \"newAttentionCard\" || id === \"newBigSaleFloor\" ||\n"
+        "    id === \"newStyleAttentionCard\" || id === \"newsFloor\" ||\n"
+        "    id === \"noticeFloor\" || id === \"recommendfloor\";\n"
+        "}",
+    )
+    source = _replace_array_constant(
+        source,
+        "WELCOME_HOME_TYPE_INCLUDE",
+        "function isWelcomeHomeType(type) {\n"
+        "  return type === \"topTab\" || type === \"searchC\" ||\n"
+        "    type === \"dynamicIcon\" || type === \"locPermission\" ||\n"
+        "    type === \"login\" || type === \"hybrid\" || type === \"recommend\";\n"
+        "}",
+    )
+    source = _replace_array_constant(
+        source,
+        "CUSTOM_SURFACE_NAME_INCLUDE",
+        "function isCustomSurfaceName(name) {\n"
+        "  return name === \"index\" || name === \"messagenew\" ||\n"
+        "    name === \"cart\" || name === \"home\";\n"
+        "}",
+    )
+
+    source = replace_once(
+        source,
+        "obj.images = [];",
+        "obj.images = [];\n    modified = true;",
+        "Jingdong splash image clear",
+    )
+    source = replace_once(
+        source,
+        "obj.showTimesDaily = 0;",
+        "obj.showTimesDaily = 0;\n    modified = true;",
+        "Jingdong splash daily count",
+    )
+    source = replace_once(
+        source,
+        "obj.floorList = obj.floorList.filter((i) => WELCOME_HOME_TYPE_INCLUDE.includes(i?.type));",
+        "compactInPlace(obj.floorList, item =>\n"
+        "      isWelcomeHomeType(item && item.type) &&\n"
+        "      (!welcomeExtraEnabled || !isWelcomeExtraExcluded(item && item.type))\n"
+        "    );",
+        "Jingdong welcomeHome floor filter",
+    )
+    source = replace_once(
+        source, "obj.webViewFloorList = [];",
+        "clearArrayIfNeeded(obj, \"webViewFloorList\");",
+        "Jingdong welcomeHome webview clear",
+    )
+    source = replace_once(
+        source, "delete obj.promotionTabs;",
+        "deleteIfPresent(obj, \"promotionTabs\");",
+        "Jingdong welcomeHome promotion delete",
+    )
+    source = replace_once(
+        source,
+        "obj.result.modeMap.dark.navigationAll = obj.result.modeMap.dark.navigationAll.filter((i) => CUSTOM_SURFACE_NAME_INCLUDE.includes(i?.functionId));",
+        "compactInPlace(obj.result.modeMap.dark.navigationAll, item =>\n"
+        "      isCustomSurfaceName(item && item.functionId)\n"
+        "    );",
+        "Jingdong dark custom-surface filter",
+    )
+    source = replace_once(
+        source,
+        "obj.result.modeMap.normal.navigationAll = obj.result.modeMap.normal.navigationAll.filter((i) => CUSTOM_SURFACE_NAME_INCLUDE.includes(i?.functionId));",
+        "compactInPlace(obj.result.modeMap.normal.navigationAll, item =>\n"
+        "      isCustomSurfaceName(item && item.functionId)\n"
+        "    );",
+        "Jingdong normal custom-surface filter",
+    )
+    source = replace_once(
+        source, "delete obj.bannerInfo;",
+        "deleteIfPresent(obj, \"bannerInfo\");",
+        "Jingdong delivery banner delete",
+    )
+    source = replace_once(
+        source,
+        'obj.floors = obj.floors.filter((i) => !["banner", "jdDeliveryBanner"]?.includes(i?.mId));',
+        "compactInPlace(obj.floors, item => {\n"
+        "      const id = item && item.mId;\n"
+        "      return id !== \"banner\" && id !== \"jdDeliveryBanner\";\n"
+        "    });",
+        "Jingdong delivery floor filter",
+    )
+    source = replace_once(
+        source, "delete obj.result.iconInfo;",
+        'deleteIfPresent(obj.result, "iconInfo");',
+        "Jingdong new-products floating icon delete",
+    )
+    source = replace_once(
+        source, "delete obj.result.roofTop;",
+        'deleteIfPresent(obj.result, "roofTop");',
+        "Jingdong new-products roof delete",
+    )
+
+    my_order_start = '} else if (url.includes("functionId=myOrderInfo")) {'
+    person_start = '} else if (url.includes("functionId=personinfoBusiness")) {'
+    if source.count(my_order_start) != 1 or source.count(person_start) != 1:
+        raise ValueError("Jingdong order/profile route boundaries changed")
+    start = source.index(my_order_start)
+    end = source.index(person_start, start)
+    my_order = """} else if (url.includes("functionId=myOrderInfo")) {
+  if (Array.isArray(obj.floors) && obj.floors.length > 0) {
+    compactInPlace(obj.floors, floor => {
+      const id = floor && floor.mId;
+      if (id === "bannerFloor" || id === "bpDynamicFloor" || id === "plusFloor") {
+        return false;
+      }
+      if (id === "virtualServiceCenter") {
+        const centers = floor.data && floor.data.virtualServiceCenters;
+        if (Array.isArray(centers) && centers.length > 0) {
+          for (let index = 0; index < centers.length; index++) {
+            const item = centers[index];
+            const serviceList = item && item.serviceList;
+            if (Array.isArray(serviceList) && serviceList.length > 0) {
+              compactInPlace(serviceList, card =>
+                !(card && card.serviceTitle === "精选特惠")
+              );
+            }
+          }
+        }
+      }
+      if (id === "customerServiceFloor" && floor.data && floor.data.moreText) {
+        deleteIfPresent(floor.data, "moreIcon");
+        deleteIfPresent(floor.data, "moreIcon_dark");
+        if (floor.data.moreText !== " ") {
+          floor.data.moreText = " ";
+          modified = true;
+        }
+      }
+      return true;
+    });
+  }
+"""
+    source = source[:start] + my_order + source[end:]
+
+    source = replace_once(
+        source,
+        "$done({body: JSON.stringify(obj)});",
+        "$done(modified ? { body: JSON.stringify(obj) } : {});",
+        "Jingdong lazy serialization",
+    )
+
+    clean_start = "/**\n * 清理单个楼层数据"
+    process_start = "/**\n * 过滤并处理楼层数组"
+    if source.count(clean_start) != 1 or source.count(process_start) != 1:
+        raise ValueError("Jingdong floor helper boundaries changed")
+    start = source.index(clean_start)
+    end = source.index(process_start, start)
+    clean_helper = """function cleanFloorData(floor) {
+  if (!floor || !floor.mId) return;
+  const data = floor.data;
+
+  if (floor.mId === "basefloorinfo") {
+    deleteIfPresent(data, "commonPopup");
+    deleteIfPresent(data, "commonPopup_dynamic");
+    clearArrayIfNeeded(data, "commonTips");
+    clearArrayIfNeeded(data, "commonWindows");
+    deleteIfPresent(data, "floatLayer");
+  } else if (floor.mId === "orderIdFloor") {
+    const infos = data && data.commentRemindInfo && data.commentRemindInfo.infos;
+    if (Array.isArray(infos) && infos.length > 0) {
+      data.commentRemindInfo.infos = [];
+      modified = true;
+    }
+  } else if (floor.mId === "userinfo") {
+    deleteIfPresent(data, "newPlusBlackCard");
+  }
+}
+
+"""
+    source = source[:start] + clean_helper + source[end:]
+
+    process_start = "/**\n * 过滤并处理楼层数组"
+    if source.count(process_start) != 1:
+        raise ValueError("Jingdong processFloors helper missing")
+    start = source.index(process_start)
+    process_helper = """function processFloors(floors) {
+  if (!Array.isArray(floors) || floors.length === 0) return floors;
+  return compactInPlace(floors, floor => {
+    if (isPersonInfoBusinessExcluded(floor && floor.mId)) return false;
+    cleanFloorData(floor);
+    return true;
+  });
+}
+"""
+    source = source[:start] + process_helper
+
+    source = source.rstrip() + "\n})();\n"
+    required = (
+        MARKER_PREFIX + upstream_commit,
+        "function compactInPlace(items, keep)",
+        "function isPersonInfoBusinessExcluded(id)",
+        "function isWelcomeHomeType(type)",
+        "function isCustomSurfaceName(name)",
+        "const shouldProcess =",
+        "compactInPlace(obj.floorList, item =>",
+        "compactInPlace(obj.floors, floor =>",
+        'compactInPlace(serviceList, card =>',
+        "$done(modified ? { body: JSON.stringify(obj) } : {});",
+    )
+    if any(token not in source for token in required):
+        raise ValueError("Jingdong generated runtime is missing a required optimization marker")
+    if ".filter(" in source or "newFloors = []" in source or "newItems = []" in source or "newCards = []" in source:
+        raise ValueError("Jingdong generated runtime retains allocating array transforms")
+    if ".forEach(" in source or ".map(" in source:
+        raise ValueError("Jingdong generated runtime retains callback array traversals")
+    return source
+
+
+def rewrite_plugin(plugin: str) -> str:
+    lines = plugin.splitlines(keepends=True)
+    section = ""
+    remote_count = 0
+    local_count = 0
+    output = []
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped[1:-1].lower()
+        if section == "script":
+            remote_count += line.count(REMOTE)
+            local_count += line.count(LOCAL)
+            line = line.replace(REMOTE, LOCAL)
+        output.append(line)
+
+    if remote_count and local_count:
+        raise ValueError("mixed remote and local Jingdong script triggers")
+    if remote_count not in (0, 1) or local_count not in (0, 1):
+        raise ValueError("Jingdong trigger inventory changed: expected one remote or one local script")
+    if not remote_count and not local_count:
+        raise ValueError("Jingdong remote script trigger not found in [Script]")
+    result = "".join(output)
+    if REMOTE in result or result.count(LOCAL) != 1:
+        raise ValueError("Jingdong local script route migration incomplete")
+    return result
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--source")
+    parser.add_argument("--output")
+    parser.add_argument("--upstream-commit", default="unknown")
+    parser.add_argument("--plugin")
+    args = parser.parse_args()
+    if args.source or args.output:
+        if not args.source or not args.output:
+            parser.error("--source and --output must be supplied together")
+        source = Path(args.source).read_text(encoding="utf-8-sig")
+        result = optimize_source(source, args.upstream_commit)
+        target = Path(args.output)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(result, encoding="utf-8")
+        print("Generated optimized Jingdong runtime: %s (%d bytes)" % (target, len(result)))
+    if args.plugin:
+        path = Path(args.plugin)
+        path.write_text(rewrite_plugin(path.read_text(encoding="utf-8-sig")), encoding="utf-8")
+        print("Routed the Jingdong response trigger to the protected local runtime")
+    if not (args.source or args.output or args.plugin):
+        parser.error("provide --source/--output and/or --plugin")
+
+
+if __name__ == "__main__":
+    main()
