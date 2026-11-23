@@ -45,9 +45,11 @@ function concat(parts) {
 // loon-change: Spotify Scroll protobuf no-ad allocation preflight v1
 // Scan wire ranges without materializing field arrays or subarray views.
 // The existing allocating rewrite is entered only after a target field is found.
-function hasTargetField(buf, depth, start, end) {\n  start = start || 0;\n  end = end === undefined ? buf.length : end;
-  let pos = 0;
-  while (pos < buf.length) {
+function hasTargetField(buf, depth, start, end) {
+  start = start || 0;
+  end = end === undefined ? buf.length : end;
+  let pos = start;
+  while (pos < end) {
     const key = readVarint(buf, pos);
     const no = Math.floor(key.value / 8);
     const wire = key.value % 8;
