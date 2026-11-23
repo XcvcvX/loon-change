@@ -399,7 +399,7 @@ function deleteIfPresent(target, key) {
     body = source[start:finish]
     body, deleted = re.subn(
         r"^([ \t]*)delete\s+(.+)\.([A-Za-z_$][\w$]*);$",
-        lambda m: m.group(1) + "deleteIfPresent(" + m.group(2) + ', "' + m.group(3) + ');',
+        lambda m: m.group(1) + "deleteIfPresent(" + m.group(2) + ', "' + m.group(3) + '");',
         body, flags=re.MULTILINE,
     )
     body, deleted_index = re.subn(
