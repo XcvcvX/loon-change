@@ -36,7 +36,7 @@ class OptimizationGuardTests(unittest.TestCase):
             ],
             "scripts/jingdong/jd.js": [
                 "function compactInPlace(items, keep)",
-                "const WELCOME_HOME_EXTRA_EXCLUDE = new Set(",
+                "const WELCOME_HOME_EXTRA_EXCLUDE = new Set([",
                 "$done(modified ? { body: JSON.stringify(obj) } : {});",
             ],
             "scripts/taobao/taobao.js": [
