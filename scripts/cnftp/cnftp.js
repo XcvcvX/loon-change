@@ -26,8 +26,35 @@ function compactInPlace(items, keep) {
 
 
 // loon-change: CNFTP lazy response serialization v1
+function sameValue(current, value) {
+  if (current === value) return true;
+  if (Array.isArray(value)) {
+    if (!Array.isArray(current) || current.length !== value.length) return false;
+    for (let i = 0; i < value.length; i++) {
+      if (!sameValue(current[i], value[i])) return false;
+    }
+    return true;
+  }
+  if (value && typeof value === "object") {
+    if (!current || typeof current !== "object" || Array.isArray(current)) return false;
+    let valueCount = 0;
+    for (const key in value) {
+      if (!Object.prototype.hasOwnProperty.call(value, key)) continue;
+      valueCount++;
+      if (!Object.prototype.hasOwnProperty.call(current, key) ||
+          !sameValue(current[key], value[key])) return false;
+    }
+    let currentCount = 0;
+    for (const key in current) {
+      if (Object.prototype.hasOwnProperty.call(current, key)) currentCount++;
+    }
+    return valueCount === currentCount;
+  }
+  return false;
+}
+
 function setIfDifferent(target, key, value) {
-  if (target[key] !== value) {
+  if (!sameValue(target[key], value)) {
     target[key] = value;
     modified = true;
   }
