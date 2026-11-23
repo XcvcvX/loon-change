@@ -1049,3 +1049,8 @@ The Amap nearby-module, search-card, and suggestion filters now use direct scala
 ### Taobao splash response traversal
 
 The Taobao splash response handler now caches the sections array, each section's `bizData`, and the nested splash-item array once, then traverses both arrays with indexed loops and cached lengths. This avoids allocating array iterator objects and repeatedly resolving the same nested property chain on the splash hot path. The existing creative-field mutations, ordering and mutation-aware lazy serialization are unchanged. The upstream optimizer reapplies the transformation with exact-anchor and idempotence checks; runtime and structural regressions cover the supported route and fail-closed behavior.
+
+
+### Taobao response route classification
+
+The Taobao response handler now classifies cloud-video, splash and Poplayer URLs once before JSON parsing, then reuses the cached booleans for branch dispatch. Previously, each supported response repeated the same URL substring checks after passing the pre-parse guard. This removes duplicate URL scans without changing the supported route set, JSON parsing behavior, or response mutations. The upstream optimizer restores the cached classification with exact-anchor checks, and structural/runtime tests protect all three branches.
