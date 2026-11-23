@@ -20,9 +20,9 @@ def validate_optimized_source(source: str) -> str:
     required = (
         MARKER,
         "const isSupportedPath =",
-        "function hasEnumerableKeys(value)",
+        "let hasKeys = false",
         "for (const key in node)",
-        "AD_TEMPLATE_NAMES.has(templateName)",
+        'AD_TEMPLATE_NAMES.has(String(templateName || ""))',
         'index === "0" || index === "1" || index === "3"',
         'templateName !== "idlefish_search_card_category_select"',
     )
@@ -98,24 +98,23 @@ def optimize_source(source: str) -> str:
     )
     source = replace_once(
         source,
-        """    return items;
-  }
-  const body = $response && $response.body;""",
-        """    return items;
-  }
-
-  function hasEnumerableKeys(value) {
-    for (const key in value) {
-      if (Object.prototype.hasOwnProperty.call(value, key)) return true;
+        """    const current = holder.rightTagImage;
+    if (!current || typeof current !== "object" ||
+        Array.isArray(current) || Object.keys(current).length > 0) {""",
+        """    const current = holder.rightTagImage;
+    let hasKeys = false;
+    if (current && typeof current === "object" && !Array.isArray(current)) {
+      for (const key in current) {
+        if (Object.prototype.hasOwnProperty.call(current, key)) {
+          hasKeys = true;
+          break;
+        }
+      }
     }
-    return false;
-  }
-
-  const body = $response && $response.body;""",
-        "enumerable-key helper",
+    if (!current || typeof current !== "object" ||
+        Array.isArray(current) || hasKeys) {""",
+        "recycle-card key scan",
     )
-    source = replace_once(source, "Object.keys(current).length > 0", "hasEnumerableKeys(current)",
-                          "recycle-card key check")
     source = replace_once(
         source,
         'const AD_TEMPLATE_RE = /^(fish_home_advertise_card_d[34]|fish_local_advertise_card_d4|idlefish_local_feed2_marketing|fish_home_feeds_pager_banner|detail_recommend_ad_card)$/;\n',
@@ -148,9 +147,9 @@ def optimize_source(source: str) -> str:
         "unused local template regex",
     )
     source = replace_once(source, '!AD_TEMPLATE_RE.test(templateName || "")',
-                          "!AD_TEMPLATE_NAMES.has(templateName)", "local-home template matcher")
+                          "!AD_TEMPLATE_NAMES.has(String(templateName || ""))", "local-home template matcher")
     source = replace_once(source, '!AD_TEMPLATE_RE.test(dataTemplateName || "")',
-                          "!AD_TEMPLATE_NAMES.has(dataTemplateName)", "local-home data-template matcher")
+                          "!AD_TEMPLATE_NAMES.has(String(dataTemplateName || ""))", "local-home data-template matcher")
     source = replace_once(
         source,
         '''      const keepIndexes = new Set(["0", "1", "3"]);
