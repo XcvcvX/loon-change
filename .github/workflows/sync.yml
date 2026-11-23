@@ -13,6 +13,8 @@ on:
       - 'deep_audit.py'
       - 'runtime_performance_audit.py'
       - 'test_runtime_performance_audit.py'
+      - 'scripts/meituan/meituan.js'
+      - 'test_meituan_performance.py'
       - 'source_guard.py'
       - 'stage_romeo_plugins.py'
       - 'test_stage_romeo_plugins.py'
@@ -75,6 +77,8 @@ on:
       - 'test_jd_lazy_serialization.py'
       - 'optimization_guard.py'
       - 'optimization_invariants.json'
+      - 'scripts/meituan/meituan.js'
+      - 'test_meituan_performance.py'
       - 'optimization_output_invariants.json'
       - 'test_optimization_guard.py'
       - '.github/workflows/sync.yml'
@@ -98,6 +102,8 @@ on:
       - 'test_deep_audit.py'
       - 'runtime_performance_audit.py'
       - 'test_runtime_performance_audit.py'
+      - 'scripts/meituan/meituan.js'
+      - 'test_meituan_performance.py'
       - 'amap_dependency_guard.py'
       - 'test_amap_dependency_guard.py'
       - 'apply_amap_local_overrides.py'
@@ -159,6 +165,8 @@ on:
       - 'test_jd_lazy_serialization.py'
       - 'optimization_guard.py'
       - 'optimization_invariants.json'
+      - 'scripts/meituan/meituan.js'
+      - 'test_meituan_performance.py'
       - 'optimization_output_invariants.json'
       - 'test_optimization_guard.py'
       - 'apply_local_overrides.py'
@@ -276,8 +284,10 @@ jobs:
         run: node --check scripts/xmly/xmly.js
       - name: 检查帆书本地响应脚本语法
         run: node --check scripts/dushu365/dushu365.js
+      - name: 检查美团本地响应脚本语法
+        run: node --check scripts/meituan/meituan.js
       - name: 运行单元与合并集成测试
-        run: python3 -m unittest -v test_validate_plugin.py test_fix_script_configs.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_apply_amap_local_overrides.py test_compare_rule_provenance.py test_source_health_guard.py test_finalize_provenance.py test_rule_risk_history.py test_integrate_spotify.py test_convert_qx2loon.py test_convert_filter_qx2loon.py test_stage_romeo_plugins.py test_runtime_performance_audit.py test_xiaohongshu_v4_performance.py test_xiaohongshu_performance.py test_xiaohongshu_rstore_performance.py test_weibo_rstore_performance.py test_amap_response_compaction.py test_cnftp_performance.py test_zhihu_performance.py test_bilibili_json_performance.py test_cntv_performance.py test_amap_rstore_performance.py test_didi_performance.py test_response_array_compaction_performance.py test_baidumap_binary_performance.py test_taobao_optimization.py test_xianyu_jd_upstream.py test_xianyu_runtime_performance.py test_jd_lazy_serialization.py test_optimization_guard.py test_smzdm_performance.py test_rrtv_performance.py test_soul_performance.py test_xmly_performance.py test_dushu365_performance.py
+        run: python3 -m unittest -v test_validate_plugin.py test_fix_script_configs.py test_merge_plugins.py test_source_guard.py test_audit_plugin.py test_deep_audit.py test_mitm_policy.py test_amap_dependency_guard.py test_apply_amap_local_overrides.py test_compare_rule_provenance.py test_source_health_guard.py test_finalize_provenance.py test_rule_risk_history.py test_integrate_spotify.py test_convert_qx2loon.py test_convert_filter_qx2loon.py test_stage_romeo_plugins.py test_runtime_performance_audit.py test_xiaohongshu_v4_performance.py test_xiaohongshu_performance.py test_xiaohongshu_rstore_performance.py test_weibo_rstore_performance.py test_amap_response_compaction.py test_cnftp_performance.py test_zhihu_performance.py test_bilibili_json_performance.py test_cntv_performance.py test_amap_rstore_performance.py test_didi_performance.py test_response_array_compaction_performance.py test_baidumap_binary_performance.py test_taobao_optimization.py test_xianyu_jd_upstream.py test_xianyu_runtime_performance.py test_jd_lazy_serialization.py test_optimization_guard.py test_smzdm_performance.py test_rrtv_performance.py test_soul_performance.py test_xmly_performance.py test_dushu365_performance.py test_meituan_performance.py
       - name: 测试本地插件覆盖
         run: |
           # The checked-in plugin is a historical snapshot; snapshot-specific assertions
