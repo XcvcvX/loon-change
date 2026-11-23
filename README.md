@@ -1033,3 +1033,11 @@ The Amap nearby-module, search-card, and suggestion filters now use direct scala
 - Preserve the existing `ads-<digits>` matcher, music exclusion, assistant removal, array ordering and mutation-aware lazy serialization. The change does not alter route matching or filtering semantics.
 - Extend the upstream Amap optimizer to restore the cached-reference form after refresh and fail closed if the reviewed branch structure drifts; add optimizer idempotence and Node VM response regressions.
 - This removes repeated nested property-chain traversal in the navigation hot path; no device-side CPU or battery percentage is claimed without real-device measurement.
+
+
+### Amap navigation routePlan nested-reference caching
+
+- Cache the navigation `routePlan` response `data`, `front_end`, TBT event list and voice-download list references once per response; reuse them for the existing key removals and in-place ad filters.
+- Preserve the exact `AMAP_STATIC_ITEMS_03` removal list, shared dynamic-ad matcher, stable array order and mutation-aware lazy serialization.
+- Extend the upstream optimizer to restore the reviewed cached-reference form after refresh, with fail-closed branch/declaration checks, idempotence tests and Node VM behavior regressions.
+- This reduces repeated nested property-chain traversal in the route-planning response path; no real-device CPU or battery percentage is claimed.
