@@ -114,12 +114,11 @@ def compact_search_suggestions_in_place(source):
 def repair_supported_route_guard(source):
     pattern = re.compile(
         re.escape(GUARD_MARKER)
-        + r"\\nconst shouldProcess =[\\s\\S]*?if \\(!shouldProcess\\) \\{\\n  \\$done\\(\\{\\}\\);\\n\\} else \\{\\n"
+        + r"\nconst shouldProcess =[\s\S]*?if \(!shouldProcess\) \{\n  \$done\(\{\}\);\n\} else \{\n"
     )
     if len(pattern.findall(source)) != 1:
         raise ValueError("Amap supported-route guard structure changed")
     return pattern.sub(lambda _: ROUTE_GUARD, source, count=1)
-
 
 def optimize_source(source, commit="unknown"):
     if MARKER in source:
