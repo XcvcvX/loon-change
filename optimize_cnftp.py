@@ -403,17 +403,17 @@ function deleteIfPresent(target, key) {
         body, flags=re.MULTILINE,
     )
     body, deleted_index = re.subn(
-        r"^([ \t]*)delete\s+(.+)\[([^\\]\n]+)\];$",
+        r"^([ \t]*)delete\s+(.+)\[([^\]]+)\];$",
         lambda m: m.group(1) + "deleteIfPresent(" + m.group(2) + ", " + m.group(3) + ");",
         body, flags=re.MULTILINE,
     )
     body, assigned = re.subn(
-        r"^([ \t]*)([A-Za-z_$][\w$]*(?:(?:\.[A-Za-z_$][\w$]*)|(?:\[[^\\]\n]+\]))*)\.([A-Za-z_$][\w$]*)\s*=\s*(.*);$",
+        r"^([ \t]*)([A-Za-z_$][\w$]*(?:(?:\.[A-Za-z_$][\w$]*)|(?:\[[^\]]+\]))*)\.([A-Za-z_$][\w$]*)\s*=\s*(.*);$",
         lambda m: m.group(1) + "setIfDifferent(" + m.group(2) + ', "' + m.group(3) + '", ' + m.group(4) + ");",
         body, flags=re.MULTILINE,
     )
     body, assigned_index = re.subn(
-        r"^([ \t]*)([A-Za-z_$][\w$]*(?:(?:\.[A-Za-z_$][\w$]*)|(?:\[[^\\]\n]+\]))*)\[([^\\]\n]+)\]\s*=\s*(.*);$",
+        r"^([ \t]*)([A-Za-z_$][\w$]*(?:(?:\.[A-Za-z_$][\w$]*)|(?:\[[^\]]+\]))*)\[([^\]]+)\]\s*=\s*(.*);$",
         lambda m: m.group(1) + "setIfDifferent(" + m.group(2) + ", " + m.group(3) + ", " + m.group(4) + ");",
         body, flags=re.MULTILINE,
     )
