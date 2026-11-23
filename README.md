@@ -1003,6 +1003,10 @@ The shipping endpoint previously matched both a shipping-specific `response.json
 
 The protobuf response loop now creates payload views only for the `Result` and `Ads` fields it actually consumes. Unknown/auxiliary fields are skipped before `subarray`, reducing short-lived typed-array view allocations without decoding or copying the large `Result` payload.
 
+### Baidu Map deferred Result payload view
+
+The binary handler now records the unchanged `Result` payload's numeric offset and length while scanning the protobuf header, but delays creating its `Uint8Array` view until an `Ads` mutation actually requires response reconstruction. No-op and non-target responses therefore avoid the otherwise unused Result view; changed responses retain the same zero-copy payload and byte ordering. Runtime tests count the view allocations across no-ads, no-op and changed-response cases.
+
 
 ### Amap supported-route guard completeness
 

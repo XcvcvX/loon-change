@@ -62,6 +62,8 @@ const repHeadType = baiduMapRoot.lookupType("RepHead");
 const repHeadMessage = repHeadType.decode(repHeadData);
 
 let newResult = null;
+let resultOffset = -1;
+let resultLength = 0;
 let newAds = null;
 let adsFound = false;
 let modifiedAds = false;
@@ -72,14 +74,14 @@ for(let i = 0; i < repHeadMessage.messageHead.length; i++) {
   const name = messageHead.name;
   const targetDataLength = messageHead.length;
 
-  // 开始解析 Result和Ads
-  const currentOffset = dataBeginOffset + messageHead.offset;
-
+  // Defer payload offset arithmetic and views until a consumed field is found.
   if(name === 'Result'){
-    // Result is unchanged; retain a zero-copy view instead of decoding and re-encoding it.
-    newResult = binaryBody.subarray(currentOffset, currentOffset + targetDataLength);
+    // Keep only numeric bounds until Ads proves that response reconstruction is necessary.
+    resultOffset = dataBeginOffset + messageHead.offset;
+    resultLength = targetDataLength;
   }else if(name === 'Ads'){
     adsFound = true;
+    const currentOffset = dataBeginOffset + messageHead.offset;
     // Only the Ads field needs a view for protobuf decoding; ignore unrelated fields without allocating views.
     const targetData = binaryBody.subarray(currentOffset, currentOffset + targetDataLength);
     // Decode once to inspect the small ad list, but avoid protobuf re-encode,
@@ -100,6 +102,11 @@ for(let i = 0; i < repHeadMessage.messageHead.length; i++) {
     }
     if(modifiedAds) newAds = adsType.encode(adsMessage).finish();
   }
+}
+
+if (modifiedAds && resultOffset !== -1) {
+  // Allocate the unchanged Result view only on the rebuild path.
+  newResult = binaryBody.subarray(resultOffset, resultOffset + resultLength);
 }
 
 if(!adsFound || !modifiedAds || !newResult) {
