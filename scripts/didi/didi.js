@@ -58,7 +58,16 @@ if (!$response.body) {
   $done({});
 } else {
 
-let obj = JSON.parse($response.body);
+// loon-change: Didi pre-parse supported-route guard v1
+const shouldProcess =
+  url.includes("/other/pGetSceneList") ||
+  (url.includes("/homepage/v") && url.includes("/core")) ||
+  url.includes("/ota/na/yuantu/infoList") ||
+  url.includes("/usercenter/me");
+if (!shouldProcess) {
+  $done({});
+} else {
+  let obj = JSON.parse($response.body);
 
 if (url.includes("/other/pGetSceneList")) {
   if (obj && obj.data && obj.data.scene_list instanceof Array) {
@@ -101,4 +110,5 @@ if (url.includes("/usercenter/me")) {
 }
 
 $done(modified ? {body: JSON.stringify(obj)} : {});
+}
 }
