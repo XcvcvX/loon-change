@@ -11,6 +11,9 @@ MARKER = "// loon-change: Amap R-Store local fast path; upstream zirawell/R-Stor
 GUARD_MARKER = "// loon-change: Amap R-Store supported-route guard v1"
 SCALAR_MARKER = "// loon-change: Amap scalar membership hot loops v1"
 TRACKING_MARKER = "// loon-change: Amap mutation-aware lazy serialization v1"
+DYNAMIC_MATCHER_MARKER = "// loon-change: Amap shared dynamic ad matcher v1"
+DYNAMIC_MATCHER_LITERAL = "/ads-\\d+/.test(i?.dynamic_id_s)"
+DYNAMIC_MATCHER_CALL = "AMAP_AD_DYNAMIC_ID.test(i?.dynamic_id_s)"
 TRACKING_HELPER = """// loon-change: Amap mutation-aware lazy serialization v1
 let modified = false;
 function sameValue(current, next) {
@@ -237,6 +240,30 @@ def optimize_scalar_membership(source):
     return source
 
 
+def optimize_shared_dynamic_ad_matcher(source):
+    if source.count(DYNAMIC_MATCHER_MARKER) > 1:
+        raise ValueError("Amap shared dynamic matcher marker is duplicated")
+    if DYNAMIC_MATCHER_MARKER not in source:
+        if source.count(DYNAMIC_MATCHER_LITERAL) != 4:
+            raise ValueError("Amap dynamic ad matcher inventory changed")
+        source = source.replace(DYNAMIC_MATCHER_LITERAL, DYNAMIC_MATCHER_CALL)
+        anchor = "function compactInPlace(items, keep) {"
+        if source.count(anchor) != 1:
+            raise ValueError("Amap shared matcher insertion anchor changed")
+        source = source.replace(
+            anchor,
+            DYNAMIC_MATCHER_MARKER + "\\nconst AMAP_AD_DYNAMIC_ID = /ads-\\\\d+/;\\n\\n" + anchor,
+            1,
+        )
+    if source.count(DYNAMIC_MATCHER_MARKER) != 1:
+        raise ValueError("Amap shared dynamic matcher marker count drift")
+    if source.count("const AMAP_AD_DYNAMIC_ID = /ads-\\\\d+/;") != 1:
+        raise ValueError("Amap shared dynamic matcher declaration drift")
+    if source.count(DYNAMIC_MATCHER_CALL) != 4 or DYNAMIC_MATCHER_LITERAL in source:
+        raise ValueError("Amap shared dynamic matcher call inventory drift")
+    return source
+
+
 def repair_supported_route_guard(source):
     pattern = re.compile(
         re.escape(GUARD_MARKER)
@@ -328,7 +355,7 @@ def optimize_source(source, commit="unknown"):
         if source.count(MARKER) != 1 or source.count(GUARD_MARKER) != 1:
             raise ValueError("Amap optimizer markers are inconsistent")
         source = repair_supported_route_guard(source)
-        source = optimize_scalar_membership(compact_search_suggestions_in_place(hoist_static_arrays(source)))
+        source = optimize_shared_dynamic_ad_matcher(optimize_scalar_membership(compact_search_suggestions_in_place(hoist_static_arrays(source))))
         source = instrument_mutations(source)
         if ".filter(" in source or "function compactInPlace(items, keep)" not in source:
             raise ValueError("Amap optimized runtime has drifted")
@@ -359,6 +386,7 @@ def optimize_source(source, commit="unknown"):
         raise ValueError("Amap in-place compaction call inventory drift")
     source = compact_search_suggestions_in_place(hoist_static_arrays(source))
     source = optimize_scalar_membership(source)
+    source = optimize_shared_dynamic_ad_matcher(source)
     source = instrument_mutations(source)
     return MARKER + commit + "\n" + source
 
