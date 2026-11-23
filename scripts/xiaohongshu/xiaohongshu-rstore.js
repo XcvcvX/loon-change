@@ -204,6 +204,7 @@ if (url.includes("/note/imagefeed") || url.includes("/note/feed")) {
     for (let item of videoFeed) {
       if (item.id === obj.data.note_id) {
         obj.data.download_url = item.url;
+        break;
       }
     }
   }
