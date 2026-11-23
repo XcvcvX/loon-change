@@ -101,11 +101,12 @@ process.stdout.write(JSON.stringify({ output, passThrough, parseCount: context._
         from apply_local_overrides import PDD_HOMEPAGE_NATIVE_JQ_RULE
         plugin = (ROOT / "allAdRewrite.plugin").read_text(encoding="utf-8")
         matching = [
-            line for line in plugin.splitlines()
-            if "api.pinduoduo.com/api/alexa/homepage/hub" in line
+            line.replace(chr(92), "")
+            for line in plugin.splitlines()
+            if "api.pinduoduo.com/api/alexa/homepage/hub" in line.replace(chr(92), "")
             and "response.json.jq(" in line
         ]
-        self.assertEqual(matching, [PDD_HOMEPAGE_NATIVE_JQ_RULE])
+        self.assertEqual(matching, [PDD_HOMEPAGE_NATIVE_JQ_RULE.replace(chr(92), "")])
         self.assertNotIn("pdd-homepage.js", plugin)
 
     def test_meituan_linglong_image_scans_headers_without_key_array(self):
