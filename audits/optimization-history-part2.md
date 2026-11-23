@@ -325,3 +325,25 @@ The active local R-Store Weibo handler is referenced by ten response triggers an
 The Node VM tests count JSON.parse/JSON.stringify calls. Clean card-list and comment fixtures must parse once and stringify zero times; changed fixtures must preserve their existing cleanup output and stringify once. Existing array compaction and filter behavior checks remain in place.
 
 This removes redundant full-object serialization and its output-string allocation on already-clean card-list and comment responses. Real-device CPU and battery savings have not been quantified without Loon on-device measurements.
+
+
+---
+
+# Phase 11 P0 — BaiduMap deferred MD5 initialization
+
+## Finding
+
+The active BaiduMap binary response handler includes a roughly 12 KB MD5 implementation. It initialized that implementation eagerly on every matching binary response, even though hashing is only needed when a targeted ad's start/end fields actually change and the response body is rebuilt.
+
+## Runtime change
+
+- Move the existing MD5 implementation into a function without changing its algorithm or exports.
+- Initialize it only inside the modified-Ads response branch, at the point where the final binary response is assembled.
+- Responses without an Ads section, with non-target ads, or with already-clean target values now skip MD5 library initialization entirely.
+- Keep protobuf decoding, ad predicates, target timestamps, response header offsets, payload bytes, and MD5 output unchanged.
+
+## Regression coverage
+
+The Node VM tests instrument the lazy initializer. All three no-op cases must report zero MD5 initializations; the changed-target case must report exactly one. Existing binary assembly tests continue to verify payload order, metadata lengths, and the final MD5 value.
+
+The optimization avoids executing the MD5 implementation on no-op responses. The source code remains present for changed responses; real-device CPU and battery deltas have not been quantified without Loon on-device measurements.
