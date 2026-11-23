@@ -6,7 +6,7 @@ import unittest
 import sys
 from unittest.mock import patch
 from pathlib import Path
-from integrate_spotify import integrate, main, optimize_spotify_home_script
+from integrate_spotify import integrate, main, optimize_spotify_home_script, optimize_spotify_nested_script
 
 
 SOURCE = r"""#!name=Spotify
@@ -38,7 +38,7 @@ class SpotifyIntegrationTests(unittest.TestCase):
             source_scripts = root / 'upstream'
             source_scripts.mkdir()
             for name in ('spot-gabo.js', 'spot-NoSearchAd.js', 'spot-NoHomeAd.js', 'spot-NoScrollAd.js'):
-                if name == 'spot-NoHomeAd.js':
+                if name in ('spot-NoHomeAd.js', 'spot-NoSearchAd.js', 'spot-NoScrollAd.js'):
                     content = (Path(__file__).parent / 'scripts' / 'spotify' / name).read_text(encoding='utf-8')
                 else:
                     content = '// upstream script\n' + 'x' * 200
@@ -88,7 +88,7 @@ hostname = api.example.com, *spotify.com, spclient.wg.spotify.com
             source_scripts = root / "upstream"
             source_scripts.mkdir()
             for name in ("spot-gabo.js", "spot-NoSearchAd.js", "spot-NoHomeAd.js", "spot-NoScrollAd.js"):
-                if name == "spot-NoHomeAd.js":
+                if name in ("spot-NoHomeAd.js", "spot-NoSearchAd.js", "spot-NoScrollAd.js"):
                     content = (Path(__file__).parent / "scripts" / "spotify" / name).read_text(encoding="utf-8")
                 else:
                     content = "// upstream script\n" + "x" * 200
@@ -191,6 +191,68 @@ process.stdout.write(JSON.stringify({
             changed_result = json.loads(completed.stdout)
             self.assertEqual(bytes(changed_result["output"]), wrap([normal], tail))
             self.assertGreater(changed_result["subarrayCount"], 0)
+
+
+    def test_spotify_search_and_scroll_optimizers_are_idempotent(self):
+        from integrate_spotify import SEARCH_FAST_PATH_MARKER, SCROLL_FAST_PATH_MARKER
+        root = Path(__file__).parent / "scripts" / "spotify"
+        for filename, kind, marker in (
+            ("spot-NoSearchAd.js", "search", SEARCH_FAST_PATH_MARKER),
+            ("spot-NoScrollAd.js", "scroll", SCROLL_FAST_PATH_MARKER),
+        ):
+            upstream = (root / filename).read_text(encoding="utf-8")
+            optimized = optimize_spotify_nested_script(upstream, kind)
+            self.assertIn(marker, optimized)
+            self.assertIn("function hasTargetField(buf, depth, start, end)", optimized)
+            self.assertIn("const out = hasTargetField(bytes, 0) ? renameField(bytes, 0,", optimized)
+            self.assertEqual(optimize_spotify_nested_script(optimized, kind), optimized)
+
+    @unittest.skipUnless(shutil.which("node"), "Node.js is required for Spotify binary runtime tests")
+    def test_spotify_search_and_scroll_noop_preflight_avoids_subarray_views(self):
+        import json
+        import subprocess
+        import tempfile
+        root = Path(__file__).parent / "scripts" / "spotify"
+        def varint(value):
+            out = bytearray()
+            while value >= 128:
+                out.append((value & 127) | 128)
+                value >>= 7
+            out.append(value)
+            return bytes(out)
+        def field(number, payload):
+            return varint(number * 8 + 2) + varint(len(payload)) + payload
+        clean = field(1, field(2, b"clean"))
+        cases = (
+            ("spot-NoSearchAd.js", "search", field(6, b"x" * 12001)),
+            ("spot-NoScrollAd.js", "scroll", field(30, b"x")),
+        )
+        runner = r"""
+const fs = require("fs"), vm = require("vm"), payload = JSON.parse(fs.readFileSync(0, "utf8"));
+const source = fs.readFileSync(process.argv[1], "utf8");
+let result, subarrayCount = 0;
+const native = Uint8Array.prototype.subarray;
+Uint8Array.prototype.subarray = function(...args) { subarrayCount++; return native.apply(this,args); };
+const context = { Uint8Array, $response:{body:Uint8Array.from(payload.body)}, $done(v){result=v;}, console:{log(){}} };
+vm.createContext(context); vm.runInContext(source,context,{timeout:3000});
+process.stdout.write(JSON.stringify({result: result && result.body ? Array.from(result.body) : null, subarrayCount, empty: !!result && Object.keys(result).length===0}));
+"""
+        with tempfile.TemporaryDirectory() as tmp:
+            for filename, kind, ad_field in cases:
+                source = (root / filename).read_text(encoding="utf-8")
+                script = Path(tmp) / filename
+                script.write_text(source, encoding="utf-8")
+                completed = subprocess.run([shutil.which("node"), "-e", runner, str(script)],
+                    input=json.dumps({"body": list(clean)}), text=True, capture_output=True, check=True, timeout=10)
+                no_op = json.loads(completed.stdout)
+                self.assertTrue(no_op["empty"])
+                self.assertEqual(no_op["subarrayCount"], 0)
+                changed = field(1, ad_field)
+                completed = subprocess.run([shutil.which("node"), "-e", runner, str(script)],
+                    input=json.dumps({"body": list(changed)}), text=True, capture_output=True, check=True, timeout=10)
+                changed_result = json.loads(completed.stdout)
+                self.assertIsNotNone(changed_result["result"])
+                self.assertGreater(changed_result["subarrayCount"], 0)
 
 
 if __name__ == "__main__":
