@@ -336,12 +336,12 @@ def optimize_source(source: str, upstream_commit: str | None = None) -> str:
     """Replace Youku home.query's nested filtered-copy arrays with stable in-place compaction."""
     if SOURCE_MARKER in source:
         if not upstream_commit:
-            return compact_response_filters(ensure_terminal_empty_body_guard(ensure_supported_route_guard(ensure_iqiyi_mango_compaction(source))))
+            return compact_response_filters(ensure_supported_route_guard(ensure_terminal_empty_body_guard(ensure_iqiyi_mango_compaction(source))))
         if not re.fullmatch(r"[0-9a-f]{40}", upstream_commit):
             raise ValueError("invalid Wool Scripts upstream commit")
         source = re.sub(r"^// loon-change:.*\n", "", source, count=1)
         source = SOURCE_MARKER + "; upstream fmz200/wool_scripts@" + upstream_commit + "\n" + source
-        return compact_response_filters(ensure_terminal_empty_body_guard(ensure_supported_route_guard(ensure_iqiyi_mango_compaction(source))))
+        return compact_response_filters(ensure_supported_route_guard(ensure_terminal_empty_body_guard(ensure_iqiyi_mango_compaction(source))))
 
     feed_start = '  } else if (url.includes("columbus.home.feed/")) {'
     feed_end = '  } else if (url.includes("columbus.home.query/")) {'
@@ -376,7 +376,7 @@ def optimize_source(source: str, upstream_commit: str | None = None) -> str:
     else:
         upstream_commit = "unrecorded"
     result = SOURCE_MARKER + "; upstream fmz200/wool_scripts@" + upstream_commit + "\n// loon-change: Youku home.feed in-place compaction v1\n" + source
-    return compact_response_filters(ensure_terminal_empty_body_guard(ensure_supported_route_guard(ensure_iqiyi_mango_compaction(result))))
+    return compact_response_filters(ensure_supported_route_guard(ensure_terminal_empty_body_guard(ensure_iqiyi_mango_compaction(result))))
 
 
 def rewrite_plugin(plugin: str) -> str:
