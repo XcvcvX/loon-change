@@ -207,7 +207,7 @@ jobs:
           python3 optimize_cntv.py --source /tmp/r-store-check/Res/Scripts/AntiAd/cntv.js --output scripts/cntv/cntv.js --upstream-commit "$RSTORE_SHA"
           python3 optimize_amap.py --source /tmp/r-store-check/Res/Scripts/AntiAd/amap.js --output scripts/amap/amap.js --upstream-commit "$RSTORE_SHA"
           python3 optimize_didi.py --source /tmp/r-store-check/Res/Scripts/AntiAd/didi.js --output scripts/didi/didi.js --upstream-commit "$RSTORE_SHA"
-          python3 optimize_jd.py --source /tmp/r-store-check/Res/Scripts/AntiAd/jd.js --output /tmp/jd-check.js --upstream-commit "$RSTORE_SHA"
+          python3 optimize_jd.py --source /tmp/r-store-check/Res/Scripts/AntiAd/jd.js --output scripts/jingdong/jd.js --upstream-commit "$RSTORE_SHA"
           python3 optimize_xiaohongshu_rstore.py --source /tmp/r-store-check/Res/Scripts/AntiAd/xiaohongshu.js --output scripts/xiaohongshu/xiaohongshu-rstore.js --upstream-commit "$RSTORE_SHA"
           python3 optimize_weibo_rstore.py --source /tmp/r-store-check/Res/Scripts/AntiAd/weibo.js --output scripts/weibo/weibo-rstore.js --upstream-commit "$RSTORE_SHA"
           python3 optimize_smzdm.py --source /tmp/r-store-check/Res/Scripts/AntiAd/smzdm.js --output scripts/smzdm/smzdm.js --upstream-commit "$RSTORE_SHA"
