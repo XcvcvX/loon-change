@@ -149,10 +149,10 @@ class JingdongOptimizerTests(unittest.TestCase):
 
     def test_plugin_rewrite_routes_only_the_jd_handler_to_local_runtime(self):
         fixture = (
-            "[Script]\\n"
+            "[Script]\n"
             "http-response ^https://api.m.jd.com/client.action?functionId=start "
             "script-path=" + REMOTE + ",tag=JD,requires-body=true\\n"
-            "[MITM]\\nhostname = api.m.jd.com\\n"
+            "[MITM]\nhostname = api.m.jd.com\n"
         )
         rewritten = rewrite_plugin(fixture)
         self.assertEqual(rewritten.count(LOCAL), 1)
