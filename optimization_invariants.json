@@ -19,7 +19,12 @@
         "Mango personal center nested stable in-place compaction v1",
         "iQIYI personal menus nested stable in-place compaction v1",
         "iQIYI home cards allocation-free traversal v1",
-        "Mango player modules stable in-place compaction v1"
+        "Mango player modules stable in-place compaction v1",
+        "// loon-change: CNFTP lazy response serialization v1",
+        "let modified = false;",
+        "$done(modified ? {body: JSON.stringify(obj)} : {});",
+        "function setIfDifferent(",
+        "function deleteIfPresent("
       ]
     },
     {
