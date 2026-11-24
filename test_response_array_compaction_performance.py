@@ -97,6 +97,23 @@ process.stdout.write(JSON.stringify({ output, passThrough, parseCount: context._
         self.assertEqual(result["output"]["webViewFloorList"], [])
         self.assertNotIn("promotionTabs", result["output"])
 
+    def test_didi_show_data_caches_nested_array_and_length(self):
+        body = {"data": {"show_data": [
+            {"scene_ids": ["scene_coupon_mall", "ride", "taxi"]},
+            {"scene_ids": ["ride", "scene_coupon_mall"]},
+            {"scene_ids": "not-an-array"},
+        ]}}
+        result = self.run_script(
+            "scripts/didi/didi.js",
+            "https://api.didialift.com/other/pGetSceneList",
+            body,
+        )
+        self.assert_single_parse(result)
+        self.assertEqual(result["output"]["data"]["show_data"][0]["scene_ids"], ["ride", "taxi"])
+        self.assertEqual(result["output"]["data"]["show_data"][1]["scene_ids"], ["ride"])
+        self.assertEqual(result["output"]["data"]["show_data"][2]["scene_ids"], "not-an-array")
+
+
     def test_pdd_homepage_uses_native_jq_in_aggregate_plugin(self):
         from apply_local_overrides import PDD_HOMEPAGE_NATIVE_JQ_RULE
         plugin = (ROOT / "allAdRewrite.plugin").read_text(encoding="utf-8")
