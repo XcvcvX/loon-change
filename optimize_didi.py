@@ -392,16 +392,56 @@ def optimize_didi_nested_traversal_property_cache(source):
     return source
 
 
+
+def optimize_info_list_cached_references(source):
+    """Cache the nested top-banner array and first item on the Didi info-list path."""
+    marker = "loon-change: Didi info-list cached nested references v1"
+    old = '''if (isInfoList) {
+  if (obj.data && obj.data.disorder_cards && obj.data.disorder_cards.top_banner_card && obj.data.disorder_cards.top_banner_card.data && obj.data.disorder_cards.top_banner_card.data[0] && obj.data.disorder_cards.top_banner_card.data[0].T === "yuentu_top_banner") {
+    // 移除顶部卡片
+    obj.data.disorder_cards.top_banner_card.data.splice(0, 1);
+    modified = true;
+  }
+}'''
+    new = '''if (isInfoList) {
+  // loon-change: Didi info-list cached nested references v1
+  const topBannerData = obj.data?.disorder_cards?.top_banner_card?.data;
+  const firstTopBanner = topBannerData?.[0];
+  if (firstTopBanner?.T === "yuentu_top_banner") {
+    // 移除顶部卡片
+    topBannerData.splice(0, 1);
+    modified = true;
+  }
+}'''
+    if marker in source:
+        required = (
+            "const topBannerData = obj.data?.disorder_cards?.top_banner_card?.data;",
+            "const firstTopBanner = topBannerData?.[0];",
+            'if (firstTopBanner?.T === "yuentu_top_banner")',
+            "topBannerData.splice(0, 1);",
+        )
+        if source.count(marker) != 1 or any(value not in source for value in required) or old in source:
+            raise ValueError("Didi info-list reference cache structure is incomplete")
+        return source
+    if "if (isInfoList) {" not in source:
+        return source
+    if source.count(old) != 1:
+        raise ValueError("Didi info-list nested reference anchor changed; refusing cache rewrite")
+    source = source.replace(old, new, 1)
+    if marker not in source or old in source:
+        raise ValueError("Didi info-list reference cache validation failed")
+    return source
+
 def optimize_source(source, commit="unknown"):
     if MARKER in source:
         if re.search(r"\.filter\s*\(", source):
             raise ValueError("Didi optimization marker exists but allocating filter remains")
         if "obj.data.cards.forEach" in source:
             raise ValueError("Didi user-center wallet traversal optimization is stale")
-        return optimize_didi_route_dispatch_cache(optimize_didi_nested_traversal_property_cache(optimize_wallet_nested_property_cache(optimize_preparse_route_guard(optimize_didi_predicates(optimize_lazy_serialization(source))))))
+        return optimize_info_list_cached_references(optimize_didi_route_dispatch_cache(optimize_didi_nested_traversal_property_cache(optimize_wallet_nested_property_cache(optimize_preparse_route_guard(optimize_didi_predicates(optimize_lazy_serialization(source)))))))
     if LEGACY_MARKER in source:
         source = source.replace(LEGACY_MARKER, MARKER, 1)
-        return optimize_didi_route_dispatch_cache(optimize_didi_nested_traversal_property_cache(optimize_wallet_nested_property_cache(optimize_didi_predicates(optimize_lazy_serialization(source)))))
+        return optimize_info_list_cached_references(optimize_didi_route_dispatch_cache(optimize_didi_nested_traversal_property_cache(optimize_wallet_nested_property_cache(optimize_didi_predicates(optimize_lazy_serialization(source))))))
 
     body_guard = "if (!$response.body) $done({});"
     if source.count(body_guard) != 1:
@@ -440,7 +480,7 @@ def optimize_source(source, commit="unknown"):
         raise ValueError("expected all seven Didi filters to use compactInPlace")
 
     source = source.rstrip() + "\n}\n"
-    return optimize_didi_route_dispatch_cache(optimize_didi_nested_traversal_property_cache(optimize_wallet_nested_property_cache(optimize_preparse_route_guard(optimize_didi_predicates(optimize_lazy_serialization(MARKER + commit + "\n" + source))))))
+    return optimize_info_list_cached_references(optimize_didi_route_dispatch_cache(optimize_didi_nested_traversal_property_cache(optimize_wallet_nested_property_cache(optimize_preparse_route_guard(optimize_didi_predicates(optimize_lazy_serialization(MARKER + commit + "\n" + source)))))))
 
 
 def rewrite_plugin(plugin):

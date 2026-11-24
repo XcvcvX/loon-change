@@ -311,6 +311,19 @@ if (payload.body === null) {
         self.assertEqual(cards[0]["bottom_items"], {"unexpected": True})
         self.assertEqual(result["stringifyCount"], 1)
 
+    def test_info_list_caches_nested_top_banner_references(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        marker = "loon-change: Didi info-list cached nested references v1"
+        self.assertIn(marker, source)
+        start = source.index("if (isInfoList) {")
+        end = source.index("\n}\n", start)
+        branch = source[start:end]
+        self.assertIn("const topBannerData = obj.data?.disorder_cards?.top_banner_card?.data;", branch)
+        self.assertIn("const firstTopBanner = topBannerData?.[0];", branch)
+        self.assertIn('if (firstTopBanner?.T === "yuentu_top_banner")', branch)
+        self.assertIn("topBannerData.splice(0, 1);", branch)
+        self.assertNotIn("obj.data.disorder_cards.top_banner_card.data", branch)
+
     def test_ota_top_banner_removal_is_unchanged(self):
         body = {"data": {"disorder_cards": {"top_banner_card": {"data": [
             {"T": "yuentu_top_banner"}, {"T": "keep"}

@@ -151,9 +151,12 @@ if (isHomepageCore) {
 }
 
 if (isInfoList) {
-  if (obj.data && obj.data.disorder_cards && obj.data.disorder_cards.top_banner_card && obj.data.disorder_cards.top_banner_card.data && obj.data.disorder_cards.top_banner_card.data[0] && obj.data.disorder_cards.top_banner_card.data[0].T === "yuentu_top_banner") {
+  // loon-change: Didi info-list cached nested references v1
+  const topBannerData = obj.data?.disorder_cards?.top_banner_card?.data;
+  const firstTopBanner = topBannerData?.[0];
+  if (firstTopBanner?.T === "yuentu_top_banner") {
     // 移除顶部卡片
-    obj.data.disorder_cards.top_banner_card.data.splice(0, 1);
+    topBannerData.splice(0, 1);
     modified = true;
   }
 }
