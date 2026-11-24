@@ -305,7 +305,12 @@
         "const messageHeadLength = messageHeadEntries.length;",
         "const messageHead = repHeadMessage.messageHead;",
         "const resultHead = messageHead[0];",
-        "const adsHead = messageHead[1];"
+        "const adsHead = messageHead[1];",
+        "// loon-change: Baidu protobuf single-encode MD5 header patch v1",
+        "const encodedHeader = repHeadType.encode(repHeadMessage).finish();",
+        "const digest = hash(body.subarray(payloadOffset));",
+        "let digestOffset = -1;",
+        "encodedHeader[digestOffset + i] = digest.charCodeAt(i);"
       ],
       "forbidden": [
         "newResult = binaryBody.subarray(currentOffset, currentOffset + targetDataLength);",

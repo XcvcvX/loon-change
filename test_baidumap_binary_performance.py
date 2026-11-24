@@ -19,7 +19,11 @@ class BaiduMapBinaryPerformanceTests(unittest.TestCase):
         self.assertIn('new Uint8Array(payloadOffset + payloadLength)', helper)
         self.assertIn("hash(body.subarray(payloadOffset))", helper)
         self.assertNotIn("mergeResultAndAds", helper)
-        self.assertIn("encodedHeader.byteLength !== headerLength", helper)
+        self.assertIn("// loon-change: Baidu protobuf single-encode MD5 header patch v1", helper)
+        self.assertIn("const encodedHeader = repHeadType.encode(repHeadMessage).finish();", helper)
+        self.assertIn("encodedHeader[digestOffset + i] = digest.charCodeAt(i);", helper)
+        self.assertNotIn("encodedHeader.byteLength !== headerLength", helper)
+        self.assertEqual(helper.count("repHeadType.encode(repHeadMessage).finish()"), 1)
 
 
     def test_only_result_and_ads_fields_create_binary_payload_views(self):
@@ -112,6 +116,7 @@ const start = source.indexOf("function assembleBaiduResponse(");
 if (start < 0) throw new Error("assembly helper not found");
 const end = source.indexOf("\n}\n", start) + 2;
 if (end < 2) throw new Error("assembly helper end not found");
+let encodeCalls = 0;
 const context = {
   Uint8Array,
   DataView,
@@ -121,6 +126,7 @@ const context = {
   },
   repHeadType: {
     encode(value) {
+      encodeCalls++;
       return { finish() { return new TextEncoder().encode(JSON.stringify(value)); } };
     }
   }
@@ -137,6 +143,7 @@ const header = {
   ]
 };
 const body = context.run(header, context.repHeadType, result, ads, context.md5);
+if (encodeCalls !== 1) throw new Error("RepHead must be encoded exactly once");
 const headerLength = new DataView(body.buffer, body.byteOffset, 4).getInt32(0);
 const decodedHeader = JSON.parse(new TextDecoder().decode(body.subarray(4, 4 + headerLength)));
 const payloadOffset = 4 + headerLength;
@@ -503,3 +510,12 @@ if (doneResult.body) {
 
 if __name__ == "__main__":
     unittest.main()
+
+    def test_rephead_md5_placeholder_is_patched_without_reencoding(self):
+        start = self.source.index("function assembleBaiduResponse(")
+        end = self.source.index("\\n}\\n", start) + 2
+        helper = self.source[start:end]
+        self.assertEqual(helper.count("repHeadType.encode(repHeadMessage).finish()"), 1)
+        self.assertIn("let digestOffset = -1;", helper)
+        self.assertIn("encodedHeader[digestOffset + i] = digest.charCodeAt(i);", helper)
+        self.assertIn('throw new Error("BaiduMap MD5 placeholder is ambiguous");', helper)
