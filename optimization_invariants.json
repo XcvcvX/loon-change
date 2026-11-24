@@ -49,7 +49,10 @@
         "let parsed = parsedVideoInfo.get(raw);",
         "// loon-change: Xiaohongshu video-save cache reverse early-exit lookup v1;",
         "for (let i = videoFeed.length - 1; i >= 0; i--)",
-        "if (item.id === noteId)"
+        "if (item.id === noteId)",
+        "// loon-change: Xiaohongshu best-stream selection without per-call closure v1;",
+        "for (let pass = 0; pass < 2; pass++)",
+        "const list = pass === 0 ? h265List : h264List;"
       ],
       "forbidden": [
         "console.log(`[缓存] ID:",
@@ -60,7 +63,8 @@
         "const commentNodes = new WeakSet()",
         "const topLevelComments = new WeakSet()",
         "parsedVideoInfo.has(raw)",
-        "for (let item of videoFeed)"
+        "for (let item of videoFeed)",
+        "const choose=list=>"
       ]
     },
     {
