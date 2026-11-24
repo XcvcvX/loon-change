@@ -74,19 +74,10 @@ if (url.includes("/note/imagefeed") || url.includes("/note/feed")) {
       }
 
       const images_list = obj.data[0].note_list[0].images_list;
-      // Cache only fields consumed by the live-photo save endpoint.
+      // Collect live-photo save fields during the image-enhancement traversal.
       const livePhotoCache = [];
-      for (const image of images_list) {
-        if (image?.live_photo_file_id) {
-          livePhotoCache.push({
-            file_id: image.live_photo_file_id,
-            video_id: image.live_photo?.media?.video_id,
-            url: image.live_photo?.media?.stream?.h265?.[0]?.master_url
-          });
-        }
-      }
+      imageEnhance(images_list, livePhotoCache);
       $.setdata(JSON.stringify(livePhotoCache), "redBookLivePhoto");
-      imageEnhance(images_list);
     }
   }
 // 实况照片保存请求
@@ -307,14 +298,16 @@ $done({body: JSON.stringify(obj)});
 }
 
 // 小红书画质增强：加载2K分辨率的图片
-function imageEnhance(images) {
+// loon-change: Xiaohongshu imagefeed single traversal live-photo extraction v1
+function imageEnhance(images, livePhotoCache) {
   if (!images || typeof images !== "object") return images;
+  const livePhotoTarget = Array.isArray(livePhotoCache) ? livePhotoCache : null;
   const quality = $.getdata("xiaohongshu.imageQuality");
   const originalPattern = /\?imageView2\/2[^&]*(?:&redImage\/frame\/0)/;
   const widthPattern = /imageView2\/2\/w\/\d+\/format/g;
   const heightPattern = /imageView2\/2\/h\/\d+\/format/g;
   let originalDone = false;
-  const stack = [{value: images, index: 0, keys: null}];
+  const stack = [{value: images, index: 0, keys: null, root: true}];
   while (stack.length) {
     const frame = stack[stack.length - 1];
     const value = frame.value;
@@ -325,6 +318,14 @@ function imageEnhance(images) {
       }
       const key = frame.index++;
       const child = value[key];
+      if (frame.root && livePhotoTarget && child && typeof child === "object" && child.live_photo_file_id) {
+        const livePhoto = child.live_photo;
+        livePhotoTarget.push({
+          file_id: child.live_photo_file_id,
+          video_id: livePhoto?.media?.video_id,
+          url: livePhoto?.media?.stream?.h265?.[0]?.master_url
+        });
+      }
       if (typeof child === "string" && child.includes("imageView2/2")) {
         if (quality === "original") {
           if (!originalDone) {
@@ -339,7 +340,7 @@ function imageEnhance(images) {
             .replace(heightPattern, "imageView2/2/h/2160/format");
         }
       } else if (child && typeof child === "object") {
-        stack.push({value: child, index: 0, keys: null});
+        stack.push({value: child, index: 0, keys: null, root: false});
       }
     } else {
       if (frame.keys === null) frame.keys = Object.keys(value);
@@ -363,13 +364,12 @@ function imageEnhance(images) {
             .replace(heightPattern, "imageView2/2/h/2160/format");
         }
       } else if (child && typeof child === "object") {
-        stack.push({value: child, index: 0, keys: null});
+        stack.push({value: child, index: 0, keys: null, root: false});
       }
     }
   }
   return images;
 }
-
 
 function replaceUrlContent(collectionA, collectionB) {
   const byFileId = new Map();
