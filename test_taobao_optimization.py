@@ -210,7 +210,7 @@ class TaobaoCachedResponseObjectTests(unittest.TestCase):
         from optimize_taobao import OBJECT_CACHE_MARKER, optimize_route_object_access
         source = SCRIPT.read_text(encoding="utf-8")
         self.assertEqual(optimize_route_object_access(source), source)
-        self.assertEqual(source.count(OBJECT_CACHE_MARKER), 2)
+        self.assertEqual(source.count(OBJECT_CACHE_MARKER), 1)
         damaged = source.replace("const videoData = obj?.data;", "const videoData = obj?.payload;", 1)
         with self.assertRaisesRegex(ValueError, "cached response object access drifted"):
             optimize_route_object_access(damaged)
