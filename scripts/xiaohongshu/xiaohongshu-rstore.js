@@ -399,25 +399,21 @@ function deDuplicateLivePhotos(livePhotos) {
 
 function cleanCommentsAndCollectLivePhotos(data) {
   const livePhotos = [];
-  const stack = [data];
-  // loon-change: Xiaohongshu parsed JSON tree traversal without visited WeakSet v1;
-  // JSON.parse creates a tree: nodes cannot be cyclic or shared by reference.
-  const commentNodes = new WeakSet();
-  const topLevelComments = new WeakSet();
+  const commentFrameTag = {};
   const videoInfoCache = new Map();
-  if (Array.isArray(data?.comments)) {
-    for (const comment of data.comments) {
-      if (comment && typeof comment === "object") {
-        commentNodes.add(comment);
-        topLevelComments.add(comment);
-      }
-    }
-  }
+  // loon-change: Xiaohongshu parsed JSON tree traversal without visited WeakSet v1;
+  // loon-change: Xiaohongshu comment classification stack frames v1;
+  // JSON.parse creates a tree: nodes cannot be cyclic or shared by reference.
+  // Only top-level comments and their direct sub-comments receive comment frames.
+  const stack = [data];
   while (stack.length) {
-    const current = stack.pop();
+    const entry = stack.pop();
+    const isCommentFrame = Array.isArray(entry) && entry[0] === commentFrameTag;
+    const current = isCommentFrame ? entry[1] : entry;
+    const isTopLevelComment = isCommentFrame && entry[2] === true;
     if (!current || typeof current !== "object") continue;
     if (!Array.isArray(current) && "red_id" in current) delete current.red_id;
-    if (commentNodes.has(current)) {
+    if (isCommentFrame) {
       if (current.comment_type === 3) current.comment_type = 2;
       if (current.media_source_type === 1) current.media_source_type = 0;
       if (current.pictures?.length > 0) {
@@ -434,11 +430,6 @@ function cleanCommentsAndCollectLivePhotos(data) {
           if (videoUrl) livePhotos.push({videId: picture.video_id, videoUrl});
         }
       }
-      if (topLevelComments.has(current) && Array.isArray(current.sub_comments)) {
-        for (const subComment of current.sub_comments) {
-          if (subComment && typeof subComment === "object") commentNodes.add(subComment);
-        }
-      }
     }
     if (Array.isArray(current)) {
       for (let index = current.length - 1; index >= 0; index--) {
@@ -449,7 +440,18 @@ function cleanCommentsAndCollectLivePhotos(data) {
       for (const key in current) {
         if (!Object.prototype.hasOwnProperty.call(current, key)) continue;
         const child = current[key];
-        if (child && typeof child === "object") stack.push(child);
+        if (!child || typeof child !== "object") continue;
+        if (current === data && key === "comments" && Array.isArray(child)) {
+          for (let index = child.length - 1; index >= 0; index--) {
+            const comment = child[index];
+            if (comment && typeof comment === "object") stack.push([commentFrameTag, comment, true]);
+          }
+        } else if (isCommentFrame && isTopLevelComment && key === "sub_comments" && Array.isArray(child)) {
+          for (let index = child.length - 1; index >= 0; index--) {
+            const subComment = child[index];
+            if (subComment && typeof subComment === "object") stack.push([commentFrameTag, subComment, false]);
+          }
+        } else stack.push(child);
       }
     }
   }

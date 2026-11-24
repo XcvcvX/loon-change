@@ -128,25 +128,21 @@ REPLACE_URL = r'''function replaceUrlContent(collectionA, collectionB) {
 
 COMMENT_HELPER = r'''function cleanCommentsAndCollectLivePhotos(data) {
   const livePhotos = [];
-  const stack = [data];
-  // loon-change: Xiaohongshu parsed JSON tree traversal without visited WeakSet v1;
-  // JSON.parse creates a tree: nodes cannot be cyclic or shared by reference.
-  const commentNodes = new WeakSet();
-  const topLevelComments = new WeakSet();
+  const commentFrameTag = {};
   const videoInfoCache = new Map();
-  if (Array.isArray(data?.comments)) {
-    for (const comment of data.comments) {
-      if (comment && typeof comment === "object") {
-        commentNodes.add(comment);
-        topLevelComments.add(comment);
-      }
-    }
-  }
+  // loon-change: Xiaohongshu parsed JSON tree traversal without visited WeakSet v1;
+  // loon-change: Xiaohongshu comment classification stack frames v1;
+  // JSON.parse creates a tree: nodes cannot be cyclic or shared by reference.
+  // Only top-level comments and their direct sub-comments receive comment frames.
+  const stack = [data];
   while (stack.length) {
-    const current = stack.pop();
+    const entry = stack.pop();
+    const isCommentFrame = Array.isArray(entry) && entry[0] === commentFrameTag;
+    const current = isCommentFrame ? entry[1] : entry;
+    const isTopLevelComment = isCommentFrame && entry[2] === true;
     if (!current || typeof current !== "object") continue;
     if (!Array.isArray(current) && "red_id" in current) delete current.red_id;
-    if (commentNodes.has(current)) {
+    if (isCommentFrame) {
       if (current.comment_type === 3) current.comment_type = 2;
       if (current.media_source_type === 1) current.media_source_type = 0;
       if (current.pictures?.length > 0) {
@@ -163,11 +159,6 @@ COMMENT_HELPER = r'''function cleanCommentsAndCollectLivePhotos(data) {
           if (videoUrl) livePhotos.push({videId: picture.video_id, videoUrl});
         }
       }
-      if (topLevelComments.has(current) && Array.isArray(current.sub_comments)) {
-        for (const subComment of current.sub_comments) {
-          if (subComment && typeof subComment === "object") commentNodes.add(subComment);
-        }
-      }
     }
     if (Array.isArray(current)) {
       for (let index = current.length - 1; index >= 0; index--) {
@@ -178,7 +169,18 @@ COMMENT_HELPER = r'''function cleanCommentsAndCollectLivePhotos(data) {
       for (const key in current) {
         if (!Object.prototype.hasOwnProperty.call(current, key)) continue;
         const child = current[key];
-        if (child && typeof child === "object") stack.push(child);
+        if (!child || typeof child !== "object") continue;
+        if (current === data && key === "comments" && Array.isArray(child)) {
+          for (let index = child.length - 1; index >= 0; index--) {
+            const comment = child[index];
+            if (comment && typeof comment === "object") stack.push([commentFrameTag, comment, true]);
+          }
+        } else if (isCommentFrame && isTopLevelComment && key === "sub_comments" && Array.isArray(child)) {
+          for (let index = child.length - 1; index >= 0; index--) {
+            const subComment = child[index];
+            if (subComment && typeof subComment === "object") stack.push([commentFrameTag, subComment, false]);
+          }
+        } else stack.push(child);
       }
     }
   }
@@ -362,7 +364,7 @@ def optimize_source(source, commit="unknown"):
                          COMMENT_BRANCH, "comment branch")
         source = apply_live_photo_cache_optimization(source)
         source = optimize_imagefeed_single_traversal(source)
-        if (COMMENT_TREE_MARKER not in source or "visited.has(current)" in source or "const visited = new WeakSet()" in source):
+        if (COMMENT_TREE_MARKER not in source or "Xiaohongshu comment classification stack frames v1;" not in source or "const commentFrameTag = {};" not in source or "new WeakSet()" in source or "visited.has(current)" in source or "const visited = new WeakSet()" in source):
             raise ValueError("comment traversal still allocates/checks a visited WeakSet")
         source = source.replace("if (!$response.body) $done({});" + chr(10), "")
         guard = "if (!$response.body) { $done({}); } else {"
@@ -482,7 +484,7 @@ def optimize_source(source, commit="unknown"):
     invariants = (
         "imageEnhance(images_list, livePhotoCache)", "compactInPlace(obj.data",
         "appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)",
-        "const byFileId = new Map()", "const stack = [data]",
+        "const byFileId = new Map()", "const stack = [data]", "Xiaohongshu comment classification stack frames v1;", "const commentFrameTag = {}", "stack.push([commentFrameTag, comment, true])",
         COMMENT_TREE_MARKER, "selectedStream = null",
         "// loon-change: Xiaohongshu comment video-info cache single lookup v1",
         "let picObj = videoInfoCache.get(rawVideoInfo);",
@@ -494,7 +496,7 @@ def optimize_source(source, commit="unknown"):
         raise ValueError("image-feed JSON round trip remains")
     if ".filter(v => !!v.master_url && !!v.height).sort(" in result:
         raise ValueError("video filter/sort allocation remains")
-    if "const visited = new WeakSet()" in result or "visited.has(current)" in result:
+    if "new WeakSet()" in result or "const visited = new WeakSet()" in result or "visited.has(current)" in result:
         raise ValueError("comment traversal visited WeakSet overhead remains")
     return result
 

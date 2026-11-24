@@ -41,14 +41,19 @@
         "const livePhotoTarget = Array.isArray(livePhotoCache) ? livePhotoCache : null;",
         "const stack=[{value:images,index:0,keys:null,root:true}];",
         "frame.root && livePhotoTarget",
-        "imageEnhance(images_list, livePhotoCache);"
+        "imageEnhance(images_list, livePhotoCache);",
+        "Xiaohongshu comment classification stack frames v1;",
+        "const commentFrameTag = {};",
+        "stack.push([commentFrameTag, comment, true])"
       ],
       "forbidden": [
         "console.log(`[缓存] ID:",
         "const visited = new WeakSet()",
         "visited.has(current)",
         "for (const image of images_list)",
-        "imageEnhance(JSON.stringify(images_list))"
+        "imageEnhance(JSON.stringify(images_list))",
+        "const commentNodes = new WeakSet()",
+        "const topLevelComments = new WeakSet()"
       ]
     },
     {
@@ -68,7 +73,10 @@
         "imageEnhance(images_list, livePhotoCache);",
         "file_id: child.live_photo_file_id",
         "// loon-change: Xiaohongshu comment video-info cache single lookup v1",
-        "let picObj = videoInfoCache.get(rawVideoInfo);"
+        "let picObj = videoInfoCache.get(rawVideoInfo);",
+        "Xiaohongshu comment classification stack frames v1;",
+        "const commentFrameTag = {};",
+        "stack.push([commentFrameTag, comment, true])"
       ],
       "forbidden": [
         "JSON.stringify(images_list), \"redBookLivePhoto\"",
@@ -76,7 +84,9 @@
         "const visited = new WeakSet()",
         "visited.has(current)",
         "for (const image of images_list)",
-        "videoInfoCache.has(rawVideoInfo)"
+        "videoInfoCache.has(rawVideoInfo)",
+        "const commentNodes = new WeakSet()",
+        "const topLevelComments = new WeakSet()"
       ]
     },
     {
