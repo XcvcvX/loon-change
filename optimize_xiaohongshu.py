@@ -174,6 +174,27 @@ def apply_comment_optimization(src):
     src=between(src,"// 加载评论区","// 下载评论区live图/评论区视频",COMMENT_BRANCH,"comment processing branch")
     return src
 
+COMMENT_MEDIA_CACHE_MARKER = "// loon-change: Xiaohongshu comment media collection property cache v1;"
+
+def optimize_comment_media_property_cache(src):
+    if COMMENT_MEDIA_CACHE_MARKER in src:
+        required = (
+            COMMENT_MEDIA_CACHE_MARKER,
+            "const pictures = current.pictures;",
+            "const pictureVideoId = picture?.video_id;",
+            "const pictureVideoInfo = picture.video_info;",
+            "const videos = current.videos;",
+            "const videoId = video?.video_id;",
+            "const videoInfo = video?.video_info;",
+        )
+        if any(token not in src for token in required) or "if (!picture?.video_id) continue;" in src or "if (!video?.video_id || !video?.video_info) continue;" in src:
+            raise ValueError("Xiaohongshu comment media property-cache marker is stale")
+        return src
+    old = "        if (Array.isArray(current.pictures)) {\n          for (const picture of current.pictures) {\n            if (!picture?.video_id) continue;\n            const info = parseVideoInfo(picture.video_info);\n            const stream = selectBestStream(info?.stream?.h265, info?.stream?.h264);\n            if (stream?.master_url) livePhotos.push({videId: picture.video_id, videoUrl: stream.master_url});\n          }\n        }\n        if (isTopLevelComment && Array.isArray(current.videos)) {\n          for (const video of current.videos) {\n            if (!video?.video_id || !video?.video_info) continue;\n            const info = parseVideoInfo(video.video_info);\n            const stream = selectBestStream(info?.stream?.h265, info?.stream?.h264);\n            if (stream?.master_url) commentVideos.push({\n              videId: video.video_id, videoUrl: stream.master_url, commentId: current.id, noteId,\n              width: stream.width, height: stream.height, bitrate: stream.video_bitrate, hdr: stream.hdr_type === 1\n            });\n          }\n        }"
+    new = "        // loon-change: Xiaohongshu comment media collection property cache v1;\n        const pictures = current.pictures;\n        if (Array.isArray(pictures)) {\n          for (const picture of pictures) {\n            const pictureVideoId = picture?.video_id;\n            if (!pictureVideoId) continue;\n            const pictureVideoInfo = picture.video_info;\n            const info = parseVideoInfo(pictureVideoInfo);\n            const stream = selectBestStream(info?.stream?.h265, info?.stream?.h264);\n            if (stream?.master_url) livePhotos.push({videId: pictureVideoId, videoUrl: stream.master_url});\n          }\n        }\n        if (isTopLevelComment) {\n          const videos = current.videos;\n          if (Array.isArray(videos)) {\n            for (const video of videos) {\n              const videoId = video?.video_id;\n              const videoInfo = video?.video_info;\n              if (!videoId || !videoInfo) continue;\n              const info = parseVideoInfo(videoInfo);\n              const stream = selectBestStream(info?.stream?.h265, info?.stream?.h264);\n              if (stream?.master_url) commentVideos.push({\n                videId: videoId, videoUrl: stream.master_url, commentId: current.id, noteId,\n                width: stream.width, height: stream.height, bitrate: stream.video_bitrate, hdr: stream.hdr_type === 1\n              });\n            }\n          }\n        }"
+    return once(src, old, new, "comment media property cache")
+
+
 COMMENT_CACHE_MARKER = "// loon-change: Xiaohongshu comment video-info cache single lookup v2;"
 
 def optimize_comment_video_info_cache(src):
@@ -296,13 +317,16 @@ def optimize_source(src,commit="unknown"):
             src = optimize_imagefeed_single_traversal(src)
             src = optimize_imagefeed_live_photo_property_cache(src)
             src = optimize_comment_video_info_cache(src)
+            src = optimize_comment_media_property_cache(src)
             src = optimize_video_save_cache_lookup(src)
             src = optimize_v4_video_feed_function_entry_scan(src)
             return optimize_stream_selection_no_closure(src)
         src = apply_comment_optimization(src)
+        src = optimize_comment_media_property_cache(src)
         src = optimize_imagefeed_single_traversal(src)
         src = optimize_imagefeed_live_photo_property_cache(src)
         src = optimize_comment_video_info_cache(src)
+        src = optimize_comment_media_property_cache(src)
         src = optimize_video_save_cache_lookup(src)
         src = optimize_v4_video_feed_function_entry_scan(src)
         return optimize_stream_selection_no_closure(src)
@@ -391,6 +415,7 @@ def optimize_source(src,commit="unknown"):
         if not ("console.log(" in line and any(token in line for token in log_tokens))
     )
     result = apply_comment_optimization(MARKER+commit+"\n"+src)
+    result = optimize_comment_media_property_cache(result)
     result = optimize_imagefeed_live_photo_property_cache(optimize_imagefeed_single_traversal(result))
     result = optimize_comment_video_info_cache(result)
     result = optimize_video_save_cache_lookup(result)

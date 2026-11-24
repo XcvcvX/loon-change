@@ -59,7 +59,11 @@
         "const list = pass === 0 ? h265List : h264List;",
         "// loon-change: Xiaohongshu v4 video-feed function-entry scan without callback v1;",
         "const functionEntries = item?.share_info?.function_entries;",
-        "for (const entry of functionEntries)"
+        "for (const entry of functionEntries)",
+        "// loon-change: Xiaohongshu comment media collection property cache v1;",
+        "const pictures = current.pictures;",
+        "const pictureVideoId = picture?.video_id;",
+        "const videoId = video?.video_id;"
       ],
       "forbidden": [
         "console.log(`[缓存] ID:",
@@ -73,7 +77,9 @@
         "for (let item of videoFeed)",
         "const choose=list=>",
         "function_entries.some(",
-        "child.live_photo?.media?.stream?.h265?.[0]"
+        "child.live_photo?.media?.stream?.h265?.[0]",
+        "if (!picture?.video_id) continue;",
+        "if (!video?.video_id || !video?.video_info) continue;"
       ]
     },
     {
