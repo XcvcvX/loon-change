@@ -370,6 +370,9 @@
         "if (!shouldProcess) {",
         "url.includes(\"guide-acs.m.taobao.com/gw/mtop.taobao.cloudvideo.video.query\")",
         "// loon-change: Taobao indexed splash traversal v1",
+        "// loon-change: Taobao cached splash home object v1",
+        "const splashHome = obj?.data?.containers?.splash_home_base;",
+        "const sections = splashHome.base?.sections;",
         "const sectionCount = sections.length;",
         "const bizData = sections[sectionIndex]?.bizData;",
         "const splashItems = bizData?.[\"taobao-splash\"]?.data;",
@@ -412,7 +415,8 @@
         "setIfDifferent(item, \"videoUrl\", \"\")",
         "clearArray(videoData || {},",
         "clearArray(poplayerRes || {},",
-        "clearArray(mainRes || {},"
+        "clearArray(mainRes || {},",
+        "const sections = obj.data.containers.splash_home_base.base?.sections;"
       ]
     },
     {

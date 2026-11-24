@@ -6,7 +6,7 @@ from pathlib import Path
 
 NODE = shutil.which("node")
 SCRIPT = Path(__file__).resolve().parent / "scripts" / "taobao" / "taobao.js"
-from optimize_taobao import KELEE_PATH, LOCAL, CLEAR_ARRAY_PROPERTY_MARKER, optimize_clear_array_property_access, optimize_runtime_source, rewrite_plugin
+from optimize_taobao import KELEE_PATH, LOCAL, CLEAR_ARRAY_PROPERTY_MARKER, SPLASH_HOME_OBJECT_MARKER, optimize_clear_array_property_access, optimize_splash_home_object, optimize_runtime_source, rewrite_plugin
 
 ROOT = Path(__file__).resolve().parent
 PLUGIN = ROOT / "allAdRewrite.plugin"
@@ -439,3 +439,43 @@ process.stdout.write("ok");
             capture_output=True, text=True, check=True, timeout=10,
         )
         self.assertEqual(completed.stdout, "ok")
+
+
+class TaobaoSplashHomeObjectCacheTests(unittest.TestCase):
+    def test_splash_home_cache_is_idempotent_and_fails_closed(self):
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertEqual(optimize_splash_home_object(source), source)
+        self.assertEqual(source.count(SPLASH_HOME_OBJECT_MARKER), 1)
+        self.assertIn("const splashHome = obj?.data?.containers?.splash_home_base;", source)
+        self.assertIn("const sections = splashHome.base?.sections;", source)
+        self.assertNotIn("const sections = obj.data.containers.splash_home_base.base?.sections;", source)
+        damaged = source.replace("const sections = splashHome.base?.sections;", "const sections = obj.data.containers.splash_home_base.base?.sections;", 1)
+        with self.assertRaisesRegex(ValueError, "cached splash home object drifted"):
+            optimize_splash_home_object(damaged)
+
+    @unittest.skipUnless(NODE, "Node.js is required for Taobao splash object cache tests")
+    def test_splash_home_container_is_read_once(self):
+        runner = r""" 
+const fs = require("fs"), vm = require("vm");
+let source = fs.readFileSync(process.argv[1], "utf8");
+source = source.replace(
+  "const obj = JSON.parse($response.body);",
+  "const obj = JSON.parse($response.body); let splashHomeReads = 0; const splashHomeValue = obj.data.containers.splash_home_base; Object.defineProperty(obj.data.containers, 'splash_home_base', { configurable: true, get() { splashHomeReads++; return splashHomeValue; } });"
+);
+let done;
+const context = {
+  $request: {url: "https://guide-acs.m.taobao.com/gw/mtop.taobao.wireless.home.splash.awesome.get"},
+  $response: {body: JSON.stringify({data:{containers:{splash_home_base:{base:{sections:[]}}}}})},
+  $done(value) { done = value; },
+  console
+};
+vm.createContext(context);
+vm.runInContext(source, context, {timeout: 5000});
+if (!done || Object.prototype.hasOwnProperty.call(done, "body")) throw new Error("empty splash response must pass through");
+process.stdout.write(String(context.splashHomeReads));
+"""
+        completed = subprocess.run(
+            [NODE, "-e", runner, str(SCRIPT)],
+            capture_output=True, text=True, check=True, timeout=10,
+        )
+        self.assertEqual(completed.stdout, "1")
