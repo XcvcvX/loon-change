@@ -309,6 +309,15 @@ process.stdout.write(nativeJSON.stringify({
 
 
 
+    def test_rephead_md5_placeholder_is_patched_without_reencoding(self):
+        start = self.source.index("function assembleBaiduResponse(")
+        end = self.source.index("\n}\n", start) + 2
+        helper = self.source[start:end]
+        self.assertEqual(helper.count("repHeadType.encode(repHeadMessage).finish()"), 1)
+        self.assertIn("let digestOffset = -1;", helper)
+        self.assertIn("encodedHeader[digestOffset + i] = digest.charCodeAt(i);", helper)
+        self.assertIn('throw new Error("BaiduMap MD5 placeholder is ambiguous");', helper)
+
 class BaiduMapNoopRebuildRuntimeTests(unittest.TestCase):
     runner = r"""
 const fs = require("fs");
@@ -507,15 +516,6 @@ if (doneResult.body) {
         self.assertEqual(result["adsEndReads"], 0)
         self.assertEqual(result["item"]["start"], 1648746061)
         self.assertEqual(result["item"]["end"], 1648832461)
-
-    def test_rephead_md5_placeholder_is_patched_without_reencoding(self):
-        start = self.source.index("function assembleBaiduResponse(")
-        end = self.source.index("\n}\n", start) + 2
-        helper = self.source[start:end]
-        self.assertEqual(helper.count("repHeadType.encode(repHeadMessage).finish()"), 1)
-        self.assertIn("let digestOffset = -1;", helper)
-        self.assertIn("encodedHeader[digestOffset + i] = digest.charCodeAt(i);", helper)
-        self.assertIn('throw new Error("BaiduMap MD5 placeholder is ambiguous");', helper)
 
 if __name__ == "__main__":
     unittest.main()
