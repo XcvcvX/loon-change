@@ -64,13 +64,18 @@ if (!$response.body) {
 if (isCloudVideo) {
   // loon-change: Taobao cached video response object v1
   const videoData = obj?.data;
-  if (videoData?.duration) {
-    setIfDifferent(videoData, "duration", "0");
+  // loon-change: Taobao cloud-video single property reads v1
+  const duration = videoData?.duration;
+  if (duration && duration !== "0") {
+    videoData.duration = "0";
+    modified = true;
   }
   clearArray(videoData, "resources");
   clearArray(videoData, "caches");
-  if (videoData?.respTimeInMs) {
-    setIfDifferent(videoData, "respTimeInMs", "3818332800000");
+  const respTimeInMs = videoData?.respTimeInMs;
+  if (respTimeInMs && respTimeInMs !== "3818332800000") {
+    videoData.respTimeInMs = "3818332800000";
+    modified = true;
   }
 } else if (isSplash) {
   // loon-change: Taobao cached splash home object v1

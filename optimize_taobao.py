@@ -171,6 +171,51 @@ def optimize_route_object_access(source):
 
 
 
+
+CLOUD_VIDEO_SINGLE_READ_MARKER = "// loon-change: Taobao cloud-video single property reads v1"
+OLD_CLOUD_VIDEO_DURATION = """  if (videoData?.duration) {
+    setIfDifferent(videoData, "duration", "0");
+  }"""
+NEW_CLOUD_VIDEO_DURATION = """  // loon-change: Taobao cloud-video single property reads v1
+  const duration = videoData?.duration;
+  if (duration && duration !== "0") {
+    videoData.duration = "0";
+    modified = true;
+  }"""
+OLD_CLOUD_VIDEO_RESP_TIME = """  if (videoData?.respTimeInMs) {
+    setIfDifferent(videoData, "respTimeInMs", "3818332800000");
+  }"""
+NEW_CLOUD_VIDEO_RESP_TIME = """  const respTimeInMs = videoData?.respTimeInMs;
+  if (respTimeInMs && respTimeInMs !== "3818332800000") {
+    videoData.respTimeInMs = "3818332800000";
+    modified = true;
+  }"""
+
+def optimize_cloud_video_single_property_reads(source):
+    if CLOUD_VIDEO_SINGLE_READ_MARKER in source:
+        required = (
+            CLOUD_VIDEO_SINGLE_READ_MARKER,
+            "const duration = videoData?.duration;",
+            'if (duration && duration !== "0")',
+            'videoData.duration = "0";',
+            "const respTimeInMs = videoData?.respTimeInMs;",
+            'if (respTimeInMs && respTimeInMs !== "3818332800000")',
+            'videoData.respTimeInMs = "3818332800000";',
+        )
+        if source.count(CLOUD_VIDEO_SINGLE_READ_MARKER) != 1 or any(token not in source for token in required):
+            raise ValueError("Taobao cloud-video single property read optimization drifted; refusing to overwrite")
+        if OLD_CLOUD_VIDEO_DURATION in source or OLD_CLOUD_VIDEO_RESP_TIME in source:
+            raise ValueError("Repeated Taobao cloud-video property reads remain")
+        return source
+    if source.count(OLD_CLOUD_VIDEO_DURATION) != 1 or source.count(OLD_CLOUD_VIDEO_RESP_TIME) != 1:
+        raise ValueError("Expected exactly one Taobao cloud-video duration and response-time setter")
+    source = source.replace(OLD_CLOUD_VIDEO_DURATION, NEW_CLOUD_VIDEO_DURATION, 1)
+    source = source.replace(OLD_CLOUD_VIDEO_RESP_TIME, NEW_CLOUD_VIDEO_RESP_TIME, 1)
+    if source.count(CLOUD_VIDEO_SINGLE_READ_MARKER) != 1:
+        raise ValueError("Taobao cloud-video single property read postcondition failed")
+    return source
+
+
 CLEAR_ARRAY_PROPERTY_MARKER = "// loon-change: Taobao clearArray caches property value once v1"
 OLD_CLEAR_ARRAY_HELPER = """  function clearArray(target, key) {
     if (Array.isArray(target[key]) && target[key].length > 0) {
@@ -327,6 +372,7 @@ def optimize_runtime_source(source):
     source = optimize_splash_item_updates(source)
     source = optimize_route_classification(source)
     source = optimize_route_object_access(source)
+    source = optimize_cloud_video_single_property_reads(source)
     source = optimize_clear_array_property_access(source)
     source = optimize_clear_array_null_targets(source)
     if source.index("const shouldProcess =") > source.index("JSON.parse($response.body)"):
