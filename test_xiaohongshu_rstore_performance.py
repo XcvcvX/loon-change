@@ -21,7 +21,9 @@ class RStoreXiaohongshuOptimizerTests(unittest.TestCase):
         optimized = optimize_source(source)
         self.assertIn("if (!$response.body) { $done({}); } else {", optimized)
         self.assertEqual(optimize_source(optimized), optimized)
-        self.assertIn("imageEnhance(images_list)", source)
+        self.assertIn("// loon-change: Xiaohongshu imagefeed single traversal live-photo extraction v1", source)
+        self.assertIn("imageEnhance(images_list, livePhotoCache)", source)
+        self.assertNotIn("for (const image of images_list)", source)
         self.assertIn("if (!$response.body) { $done({}); } else {", optimized)
         self.assertNotIn("imageEnhance(JSON.stringify(images_list))", source)
         self.assertIn("appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)", source)
@@ -47,6 +49,15 @@ class RStoreXiaohongshuOptimizerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "expected 10"):
             rewrite_plugin("[Script]\nhttp-response ^https://example.invalid script-path=" + REMOTE + "\n")
 
+    def test_imagefeed_single_traversal_optimizer_is_idempotent_and_fails_closed(self):
+        from optimize_xiaohongshu_rstore import IMAGE_FEED_MARKER, optimize_imagefeed_single_traversal
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(IMAGE_FEED_MARKER, source)
+        self.assertEqual(optimize_imagefeed_single_traversal(source), source)
+        damaged = source.replace("function imageEnhance(images, livePhotoCache)", "function imageEnhance(images)")
+        with self.assertRaisesRegex(ValueError, "single-traversal image helper drifted"):
+            optimize_imagefeed_single_traversal(damaged)
+
     def test_video_save_lookup_stops_after_first_matching_note(self):
         source = SCRIPT.read_text(encoding="utf-8")
         self.assertIn("obj.data.download_url = item.url;\n        break;", source)
@@ -71,6 +82,8 @@ const source = fs.readFileSync(process.argv[1], "utf8");
 const payload = JSON.parse(fs.readFileSync(0, "utf8"));
 const store = new Map(Object.entries(payload.store || {}));
 let doneResult;
+let imageArrayReads = 0;
+let trackImageArrayReads = true;
 let weakSetConstructCount = 0;
 const NativeWeakSet = WeakSet;
 class CountedWeakSet extends NativeWeakSet {
@@ -91,8 +104,30 @@ const context = {
   WeakSet: CountedWeakSet,
   JSON: {
     parseCount: 0,
-    parse(value) { this.parseCount++; return JSON.parse(value); },
-    stringify(value) { return JSON.stringify(value); }
+    parse(value) {
+      this.parseCount++;
+      const parsed = JSON.parse(value);
+      if (payload.url.includes("/note/imagefeed") || payload.url.includes("/note/feed")) {
+        const images = parsed?.data?.[0]?.note_list?.[0]?.images_list;
+        if (Array.isArray(images)) {
+          parsed.data[0].note_list[0].images_list = new Proxy(images, {
+            get(target, property, receiver) {
+              if (trackImageArrayReads && typeof property === "string" && /^\\d+$/.test(property)) {
+                imageArrayReads++;
+              }
+              return Reflect.get(target, property, receiver);
+            }
+          });
+        }
+      }
+      return parsed;
+    },
+    stringify(value) {
+      const previous = trackImageArrayReads;
+      trackImageArrayReads = false;
+      try { return JSON.stringify(value); }
+      finally { trackImageArrayReads = previous; }
+    }
   },
   console: {log() {}, warn() {}, error() {}}
 };
@@ -100,6 +135,7 @@ vm.runInNewContext(source, context, {timeout: 5000});
 process.stdout.write(JSON.stringify({
   doneResult,
   parseCount: context.JSON.parseCount,
+  imageArrayReads,
   weakSetConstructCount,
   store: Object.fromEntries(store)
 }));
@@ -148,6 +184,7 @@ process.stdout.write(JSON.stringify({
         self.assertIn("w/2160/format", item["images_list"][0]["url"])
         self.assertIn("w/2160/format", item["images_list"][0]["nested"]["url"])
         self.assertEqual([tag["type"] for tag in item["hash_tag"]], ["normal"])
+        self.assertEqual(result["imageArrayReads"], 1)
         cached = json.loads(result["store"]["redBookLivePhoto"])
         self.assertEqual(cached, [{
             "file_id": "live-file-1",
@@ -160,6 +197,49 @@ process.stdout.write(JSON.stringify({
             len(json.dumps(body["data"][0]["note_list"][0]["images_list"]))
         )
 
+
+    def test_imagefeed_live_photo_cache_uses_same_traversal_and_only_top_level_records(self):
+        body = {"data": [{"note_list": [
+            {"images_list": [
+                {
+                    "url": "https://img.example/a.jpg?imageView2/2/w/1080/format/jpg",
+                    "live_photo_file_id": "live-file-1",
+                    "live_photo": {"media": {"video_id": "video-1", "stream": {"h265": [
+                        {"master_url": "https://video.example/one.mp4"}
+                    ]}}},
+                    "nested": {
+                        "live_photo_file_id": "nested-file-must-not-cache",
+                        "live_photo": {"media": {"video_id": "nested-video", "stream": {"h265": [
+                            {"master_url": "https://video.example/nested.mp4"}
+                        ]}}}
+                    }
+                },
+                {
+                    "url": "https://img.example/b.jpg?imageView2/2/w/1080/format/jpg",
+                    "live_photo_file_id": "live-file-2",
+                    "live_photo": {"media": {"video_id": "video-2", "stream": {"h265": [
+                        {"master_url": "https://video.example/two.mp4"}
+                    ]}}}
+                }
+            ]}
+        ]}]}
+        result = self.run_script(
+            "https://edith.xiaohongshu.com/api/sns/v1/note/imagefeed?cursor=single-pass",
+            body
+        )
+        output = json.loads(result["doneResult"]["body"])
+        images = output["data"][0]["note_list"][0]["images_list"]
+        self.assertIn("w/2160/format", images[0]["url"])
+        self.assertIn("w/2160/format", images[1]["url"])
+        self.assertEqual(result["imageArrayReads"], 2)
+        cache = json.loads(result["store"]["redBookLivePhoto"])
+        self.assertEqual(
+            cache,
+            [
+                {"file_id": "live-file-1", "video_id": "video-1", "url": "https://video.example/one.mp4"},
+                {"file_id": "live-file-2", "video_id": "video-2", "url": "https://video.example/two.mp4"}
+            ]
+        )
 
     def test_live_photo_save_consumes_compact_cache_records(self):
         compact = [{
