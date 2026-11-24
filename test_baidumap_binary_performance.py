@@ -28,7 +28,7 @@ class BaiduMapBinaryPerformanceTests(unittest.TestCase):
 
     def test_only_result_and_ads_fields_create_binary_payload_views(self):
         marker = "// loon-change: Baidu protobuf target-only byte views v1"
-        self.assertIn(marker, self.source)
+        self.assertIn(marker, source)
         start = self.source.index("for(let i = 0; i < messageHeadLength; i++)")
         end = self.source.index("\n}\n\nif (modifiedAds && resultOffset !== -1)", start)
         loop = self.source[start:end]
@@ -46,7 +46,7 @@ class BaiduMapBinaryPerformanceTests(unittest.TestCase):
     def test_rephead_message_head_collection_and_length_are_cached(self):
         marker = "// loon-change: Baidu protobuf header collection cache v1"
         self.assertIn(marker, self.source)
-        start = self.source.index(marker)
+        start = source.index(marker)
         end = self.source.index("\n}\n\nif (modifiedAds && resultOffset !== -1)", start)
         loop = self.source[start:end]
         self.assertIn("const messageHeadEntries = repHeadMessage.messageHead;", loop)
@@ -71,7 +71,7 @@ class BaiduMapBinaryPerformanceTests(unittest.TestCase):
         marker = "// loon-change: Baidu protobuf Ads content array cache v1"
         self.assertIn(marker, self.source)
         start = self.source.index(marker)
-        end = self.source.index("if(modifiedAds) newAds = adsType.encode(adsMessage).finish();", start)
+        end = self.source.index("if (adsSegmentModified) {", start)
         loop = self.source[start:end]
         self.assertIn("const adsContent = adsMessage.content;", loop)
         self.assertIn("const adsContentLength = adsContent.length;", loop)
@@ -390,8 +390,8 @@ source = source.replace(
   "for (let k = 0; k < trackedAdsContent.length; k++) { const target = trackedAdsContent[k]; trackedAdsContent[k] = new Proxy(target, { get(target, key, receiver) { if (globalThis.__trackAdsProperties && key === 'start') globalThis.__adsStartReads++; if (globalThis.__trackAdsProperties && key === 'end') globalThis.__adsEndReads++; return Reflect.get(target, key, receiver); } }); }"
 );
 source = source.replace(
-  "if(modifiedAds) newAds = adsType.encode(adsMessage).finish();",
-  "if(modifiedAds) { globalThis.__trackAdsProperties = false; newAds = adsType.encode(adsMessage).finish(); }"
+  "if (adsSegmentModified) {\\n      modifiedAds = true;\\n      newAds = adsType.encode(adsMessage).finish();\\n    }",
+  "if (adsSegmentModified) { globalThis.__trackAdsProperties = false; modifiedAds = true; newAds = adsType.encode(adsMessage).finish(); }"
 );
 
 
@@ -627,6 +627,7 @@ process.stdout.write("ok");
 
 
     def test_ads_reencoding_is_gated_by_current_segment_mutation(self):
+        source = (ROOT / "scripts/baidumap/baidu-map-protobuf.js").read_text(encoding="utf-8")
         marker = "// loon-change: Baidu protobuf per-segment Ads mutation gate v1"
         self.assertIn(marker, self.source)
         start = self.source.index(marker)
