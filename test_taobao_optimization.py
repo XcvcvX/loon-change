@@ -301,7 +301,6 @@ class TaobaoCachedResponseObjectTests(unittest.TestCase):
             optimize_route_object_access(damaged)
 
 
-
 class TaobaoSplashHotLoopOptimizationTests(unittest.TestCase):
     def test_specialized_splash_item_optimizer_is_idempotent_and_fails_closed(self):
         from optimize_taobao import SPLASH_ITEM_UPDATE_MARKER, optimize_splash_item_updates
@@ -316,14 +315,14 @@ class TaobaoSplashHotLoopOptimizationTests(unittest.TestCase):
         source = SCRIPT.read_text(encoding="utf-8")
         self.assertIn("// loon-change: Taobao splash item specialized updates v1", source)
         start = source.index("for (let itemIndex = 0; itemIndex < itemCount; itemIndex++)")
-        end = source.index("\n        }\n      }\n    }\n  }\n} else if (isPoplayer)", start)
+        end = source.index("\\n        }\\n      }\\n    }\\n  }\\n} else if (isPoplayer)", start)
         loop = source[start:end]
         self.assertEqual(loop.count("normalizeSplashItem(item);"), 1)
         self.assertNotIn("setIfDifferent(item,", loop)
 
     @unittest.skipUnless(NODE, "Node.js is required for Taobao splash hot-loop runtime tests")
     def test_specialized_updater_reads_each_target_property_once(self):
-        runner = r""" 
+        runner = r\"\"\"
 const fs = require("fs");
 const vm = require("vm");
 const payload = JSON.parse(fs.readFileSync(0, "utf8"));
@@ -363,7 +362,7 @@ vm.createContext(context);
 vm.runInContext(source, context, { timeout: 5000 });
 const output = nativeJSON.parse(doneResult.body);
 process.stdout.write(nativeJSON.stringify({ reads, writes, item: output.data.containers.splash_home_base.base.sections[0].bizData["taobao-splash"].data[0] }));
-"""
+\"\"\";
         item = {
             "waitTime": "5", "times": "5", "hotStart": "true", "haveVoice": "true",
             "hideTBLogo": "true", "enable4G": "true", "coldStart": "true",
@@ -386,3 +385,4 @@ process.stdout.write(nativeJSON.stringify({ reads, writes, item: output.data.con
         self.assertEqual(result["item"]["imgUrl"], "")
         self.assertEqual(result["item"]["videoUrl"], "")
         self.assertEqual(result["item"]["gmtEndMs"], "3818419199000")
+
