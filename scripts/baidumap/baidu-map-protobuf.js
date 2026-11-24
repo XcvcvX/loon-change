@@ -17,26 +17,28 @@ const baiduMapJson = {"options":{"java_package":"com.smile.baidumap.model"},"nes
 const baiduMapRoot = protobuf.Root.fromJSON(baiduMapJson);
 
 // loon-change: Baidu protobuf raw-signature Ads preflight v2
-// A raw byte scan is conservative: any false positive only triggers the
-// existing decoder, while a valid target UTF-8 type cannot be missed.
+// Both target signatures contain an underscore. Typed-array indexOf skips
+// unrelated bytes natively instead of branching through every JS byte.
+// loon-change: BaiduMap underscore-indexed Ads signature scan v1
 function hasBaiduTargetAds(buffer, start, length) {
   if (start < 0 || length < 0 || start > buffer.length || length > buffer.length - start) return true;
   const end = start + length;
-  for (let i = start; i < end; i++) {
-    const byte = buffer[i];
-    if (byte === 95 && i + 6 < end &&
-        buffer[i + 1] === 98 && buffer[i + 2] === 97 &&
-        buffer[i + 3] === 110 && buffer[i + 4] === 110 &&
-        buffer[i + 5] === 101 && buffer[i + 6] === 114) return true;
-    if (byte === 115 && i + 16 < end &&
-        buffer[i + 1] === 112 && buffer[i + 2] === 108 &&
-        buffer[i + 3] === 97 && buffer[i + 4] === 115 &&
-        buffer[i + 5] === 104 && buffer[i + 6] === 95 &&
-        buffer[i + 7] === 115 && buffer[i + 8] === 99 &&
-        buffer[i + 9] === 114 && buffer[i + 10] === 101 &&
-        buffer[i + 11] === 101 && buffer[i + 12] === 110 &&
-        buffer[i + 13] === 49 && buffer[i + 14] === 48 &&
-        buffer[i + 15] === 52 && buffer[i + 16] === 48) return true;
+  let index = buffer.indexOf(95, start);
+  while (index !== -1 && index < end) {
+    if (index + 6 < end &&
+        buffer[index + 1] === 98 && buffer[index + 2] === 97 &&
+        buffer[index + 3] === 110 && buffer[index + 4] === 110 &&
+        buffer[index + 5] === 101 && buffer[index + 6] === 114) return true;
+    if (index >= start + 6 && index + 10 < end &&
+        buffer[index - 6] === 115 && buffer[index - 5] === 112 &&
+        buffer[index - 4] === 108 && buffer[index - 3] === 97 &&
+        buffer[index - 2] === 115 && buffer[index - 1] === 104 &&
+        buffer[index + 1] === 115 && buffer[index + 2] === 99 &&
+        buffer[index + 3] === 114 && buffer[index + 4] === 101 &&
+        buffer[index + 5] === 101 && buffer[index + 6] === 110 &&
+        buffer[index + 7] === 49 && buffer[index + 8] === 48 &&
+        buffer[index + 9] === 52 && buffer[index + 10] === 48) return true;
+    index = buffer.indexOf(95, index + 1);
   }
   return false;
 }
