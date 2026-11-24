@@ -48,7 +48,6 @@
         "imageEnhance(images_list, livePhotoCache);",
         "Xiaohongshu comment classification stack frames v1;",
         "const commentFrameTag = {};",
-        "stack.push([commentFrameTag, comment, true])",
         "// loon-change: Xiaohongshu comment video-info cache single lookup v2;",
         "let parsed = parsedVideoInfo.get(raw);",
         "// loon-change: Xiaohongshu video-save cache reverse early-exit lookup v1;",
