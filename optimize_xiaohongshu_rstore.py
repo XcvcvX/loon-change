@@ -274,7 +274,7 @@ def optimize_imagefeed_single_traversal(source):
         return source
 
     source = between(source, "function imageEnhance(images) {",
-                     "\\n\\nfunction replaceUrlContent(", IMAGE, "single-traversal imageEnhance")
+                     "function replaceUrlContent(", IMAGE, "single-traversal imageEnhance")
     old = '''      const images_list = obj.data[0].note_list[0].images_list;
       // Cache only fields consumed by the live-photo save endpoint.
       const livePhotoCache = [];
