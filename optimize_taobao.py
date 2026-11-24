@@ -99,7 +99,7 @@ def optimize_route_classification(source):
         source = source.replace(old, new, 1)
     return source
 
-OBJECT_CACHE_MARKER = "// loon-change: Taobao cached video and Poplayer objects v1"
+OBJECT_CACHE_MARKER = "// loon-change: Taobao cached video response object v1"
 OLD_VIDEO_OBJECT_BLOCK = "if (isCloudVideo) {\n  if (obj?.data?.duration) {\n    setIfDifferent(obj.data, \"duration\", \"0\");\n  }\n  clearArray(obj?.data || {}, \"resources\");\n  clearArray(obj?.data || {}, \"caches\");\n  if (obj?.data?.respTimeInMs) {\n    setIfDifferent(obj.data, \"respTimeInMs\", \"3818332800000\");\n  }\n}"
 NEW_VIDEO_OBJECT_BLOCK = "if (isCloudVideo) {\n  // loon-change: Taobao cached video response object v1\n  const videoData = obj?.data;\n  if (videoData?.duration) {\n    setIfDifferent(videoData, \"duration\", \"0\");\n  }\n  clearArray(videoData || {}, \"resources\");\n  clearArray(videoData || {}, \"caches\");\n  if (videoData?.respTimeInMs) {\n    setIfDifferent(videoData, \"respTimeInMs\", \"3818332800000\");\n  }\n}"
 OLD_POPLAYER_OBJECT_BLOCK = "} else if (isPoplayer) {\n  clearArray(obj?.res || {}, \"images\");\n  clearArray(obj?.res || {}, \"videos\");\n  if (obj?.enable) {\n    setIfDifferent(obj, \"enable\", false);\n  }\n  clearArray(obj?.mainRes || {}, \"images\");\n}"
@@ -126,7 +126,8 @@ def optimize_route_object_access(source):
         raise ValueError("Expected exactly one Taobao video and Poplayer object access block")
     source = source.replace(OLD_VIDEO_OBJECT_BLOCK, NEW_VIDEO_OBJECT_BLOCK, 1)
     source = source.replace(OLD_POPLAYER_OBJECT_BLOCK, NEW_POPLAYER_OBJECT_BLOCK, 1)
-    if source.count(OBJECT_CACHE_MARKER) != 2:
+    if (source.count(OBJECT_CACHE_MARKER) != 1
+            or source.count("// loon-change: Taobao cached Poplayer response objects v1") != 1):
         raise ValueError("Taobao cached response object access postcondition failed")
     return source
 
