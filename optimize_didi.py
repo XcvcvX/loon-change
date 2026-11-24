@@ -480,7 +480,7 @@ def optimize_source(source, commit="unknown"):
         raise ValueError("expected all seven Didi filters to use compactInPlace")
 
     source = source.rstrip() + "\n}\n"
-    return optimize_didi_route_dispatch_cache(optimize_didi_nested_traversal_property_cache(optimize_wallet_nested_property_cache(optimize_preparse_route_guard(optimize_didi_predicates(optimize_lazy_serialization(MARKER + commit + "\n" + source))))))
+    return optimize_info_list_cached_references(optimize_didi_route_dispatch_cache(optimize_didi_nested_traversal_property_cache(optimize_wallet_nested_property_cache(optimize_preparse_route_guard(optimize_didi_predicates(optimize_lazy_serialization(MARKER + commit + "\n" + source)))))))
 
 
 def rewrite_plugin(plugin):
