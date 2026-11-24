@@ -25,7 +25,7 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         self.assertNotRegex(source, r"for \(let __loonRead\d+ = 0, __loonLength\d+")
         self.assertNotRegex(source, r"\[[^\]\n]+\]\??\.includes\(")
         remaining = re.findall(r"\b(new[A-Za-z0-9_]*)\s*=\s*\[\s*\]", source)
-        self.assertEqual(sorted(remaining), ["newActions", "newII"])
+        self.assertEqual(sorted(remaining), ["newActions"])
         self.assertIn("compactInPlace(obj.elements", source)
         self.assertIn("compactInPlace(obj.user_list", source)
         self.assertIn("compactInPlace(obj.cards", source)
