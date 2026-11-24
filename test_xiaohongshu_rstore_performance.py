@@ -112,7 +112,7 @@ const context = {
         if (Array.isArray(images)) {
           parsed.data[0].note_list[0].images_list = new Proxy(images, {
             get(target, property, receiver) {
-              if (trackImageArrayReads && typeof property === "string" && /^\\d+$/.test(property)) {
+              if (trackImageArrayReads && typeof property === "string" && /^\d+$/.test(property)) {
                 imageArrayReads++;
               }
               return Reflect.get(target, property, receiver);
