@@ -163,8 +163,8 @@ process.stdout.write(JSON.stringify(JSON.parse(done.body)));
             {"id":"absent","share_info":{}},
             {"id":"no-share"},
             {"id":"switches","function_switch":[
-                {"type":"video_download","enable":false,"reason":"restricted"},
-                {"type":"other","enable":false,"reason":"keep"}
+                {"type":"video_download","enable":False,"reason":"restricted"},
+                {"type":"other","enable":False,"reason":"keep"}
             ]}
         ]}
         run=subprocess.run([NODE,"-e",runner],input=json.dumps(body),cwd=ROOT,capture_output=True,text=True,check=False,timeout=10)
