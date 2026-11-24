@@ -341,7 +341,7 @@ def optimize_source(source, commit="unknown"):
 """
     if MARKER in source:
         source = optimize_video_save_lookup(source)
-        required = ("imageEnhance(images)", "compactInPlace(obj.data", "appendUniqueLivePhotos",
+        required = ("function imageEnhance(images, livePhotoCache)", "compactInPlace(obj.data", "appendUniqueLivePhotos",
                     "const byFileId = new Map()", "function cleanCommentsAndCollectLivePhotos(data)",
                     "const videoInfoCache = new Map()")
         if any(token not in source for token in required):
