@@ -55,7 +55,8 @@ function compactDidiByField(items, field, mode) {
   } else if (mode === "walletItem") {
     for (let read = 0; read < length; read++) {
       const item = items[read];
-      if (item[field] === "优惠券") {
+      const value = item[field];
+      if (value === "优惠券") {
         if (write !== read) items[write] = item;
         write++;
       }
@@ -125,11 +126,14 @@ if (url.includes("/other/pGetSceneList")) {
     compactDidiByField(obj.data.scene_list, "text", "scene");
   }
   if (obj && obj.data && obj.data.show_data instanceof Array) {
+    // loon-change: Didi show_data nested traversal cache v1
     const showData = obj.data.show_data;
-    for (let read = 0; read < showData.length; read++) {
+    const showDataLength = showData.length;
+    for (let read = 0; read < showDataLength; read++) {
       const block = showData[read];
-      if (block.scene_ids instanceof Array) {
-        compactDidiByField(block.scene_ids, "scene_ids", "sceneId");
+      const sceneIds = block.scene_ids;
+      if (sceneIds instanceof Array) {
+        compactDidiByField(sceneIds, "scene_ids", "sceneId");
       }
     }
   }
