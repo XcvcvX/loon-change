@@ -17,7 +17,7 @@
       "search_poi_detail.jq"
     ],
     "upstream_repository": "https://github.com/ifflagged/Romeo",
-    "upstream_commit": "21f6a85401632b6ce3d07a8733e0267de22ef7ae",
+    "upstream_commit": "34b2aa16ed5f8ca8def7b42f4740d82f1964229f",
     "assets": {
       "rucu6_amap.js": {
         "bytes": 23517,
@@ -38,11 +38,11 @@
     }
   },
   "aoomee": {
-    "commit": "21f6a85401632b6ce3d07a8733e0267de22ef7ae",
+    "commit": "34b2aa16ed5f8ca8def7b42f4740d82f1964229f",
     "plugin_files": 32,
     "rule_lines": 692,
     "upstream_repository": "https://github.com/ifflagged/Romeo",
-    "upstream_commit": "21f6a85401632b6ce3d07a8733e0267de22ef7ae",
+    "upstream_commit": "34b2aa16ed5f8ca8def7b42f4740d82f1964229f",
     "source_mode": "Romeo Modules/Loon (including Kelee WeChat/Weidian plugins) + pinned AOOMEE-only local snapshots",
     "legacy_snapshot_files": [
       "51cg.plugin",
@@ -83,7 +83,7 @@
     "compatibility_key": "aoomee (retained only to preserve historical provenance continuity)"
   },
   "zmjde": {
-    "commit": "21f6a85401632b6ce3d07a8733e0267de22ef7ae",
+    "commit": "34b2aa16ed5f8ca8def7b42f4740d82f1964229f",
     "required_plugins": 8,
     "rule_lines": 766,
     "upstream_repository": "https://github.com/ifflagged/Romeo",
@@ -242,14 +242,14 @@
         "reason": "Nested page chunk rewritten by the Pinduoduo response script; no matching standalone asset is present in the Romeo Git tree."
       }
     ],
-    "upstream_commit": "21f6a85401632b6ce3d07a8733e0267de22ef7ae",
+    "upstream_commit": "34b2aa16ed5f8ca8def7b42f4740d82f1964229f",
     "compatibility_key": "zmjde (retained only for historical merge/provenance continuity)"
   },
   "GuaZiVideoAds": {
     "bytes": 3448,
     "entries": 6,
     "upstream_repository": "https://github.com/ifflagged/Romeo",
-    "upstream_commit": "21f6a85401632b6ce3d07a8733e0267de22ef7ae",
+    "upstream_commit": "34b2aa16ed5f8ca8def7b42f4740d82f1964229f",
     "upstream_path": "Modules/QuantumultX/ddgksf2013/Official/GuaZiVideoAds.conf"
   },
   "AlipayAdBlock": {
@@ -272,7 +272,7 @@
       "m5-zb.amap.com"
     ],
     "upstream_repository": "https://github.com/ifflagged/Romeo",
-    "upstream_commit": "21f6a85401632b6ce3d07a8733e0267de22ef7ae",
+    "upstream_commit": "34b2aa16ed5f8ca8def7b42f4740d82f1964229f",
     "upstream_path": "Modules/Loon/zirawell/Beta/alipayAdBlock.lpx"
   },
   "retired_rule_sources": [
