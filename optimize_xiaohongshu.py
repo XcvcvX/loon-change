@@ -368,7 +368,7 @@ def optimize_source(src,commit="unknown"):
         line for line in src.splitlines(keepends=True)
         if not ("console.log(" in line and any(token in line for token in log_tokens))
     )
-    result=optimize_stream_selection_no_closure(optimize_video_save_cache_lookup(optimize_comment_video_info_cache(apply_comment_optimization(MARKER+commit+"\n"+src))))
+    result=optimize_stream_selection_no_closure(optimize_v4_video_feed_function_entry_scan(optimize_video_save_cache_lookup(optimize_comment_video_info_cache(apply_comment_optimization(MARKER+commit+"\n"+src)))))
     for token in ("imageEnhance(images_list, livePhotoCache)", IMAGE_FEED_MARKER, "compactInPlace(obj.data","appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)","const byFileId=new Map()", "Xiaohongshu comment classification stack frames v1;", "const commentFrameTag = {};", "stack.push([commentFrameTag, comment, true])", COMMENT_CACHE_MARKER, "let parsed = parsedVideoInfo.get(raw);", VIDEO_SAVE_LOOKUP_MARKER, "for (let i = videoFeed.length - 1; i >= 0; i--)", STREAM_SELECTION_MARKER, "for (let pass = 0; pass < 2; pass++)"):
         if token not in result:raise ValueError("missing optimizer invariant: "+token)
     if "imageEnhance(JSON.stringify(images_list))" in result:raise ValueError("image-feed serialization round trip remains")
