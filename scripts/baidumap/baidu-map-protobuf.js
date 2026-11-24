@@ -20,6 +20,7 @@ const baiduMapRoot = protobuf.Root.fromJSON(baiduMapJson);
 // Scan the Ads wire envelope and Content.type strings before allocating
 // Protobuf messages. Unknown wire forms or malformed bounds fall back to decode.
 function hasBaiduTargetAds(buffer, start, length) {
+  if (start < 0 || length < 0 || start > buffer.length || length > buffer.length - start) return true;
   let cursor = start;
   const end = start + length;
   function readVarint(limit) {
@@ -52,6 +53,7 @@ function hasBaiduTargetAds(buffer, start, length) {
     if (tag <= 0) return true;
     const fieldNumber = Math.floor(tag / 8);
     const wireType = tag & 7;
+    if (fieldNumber === 2 && wireType !== 2) return true;
     if (fieldNumber === 2 && wireType === 2) {
       const contentLength = readVarint(end);
       if (contentLength < 0 || contentLength > end - cursor) return true;
@@ -61,6 +63,7 @@ function hasBaiduTargetAds(buffer, start, length) {
         if (contentTag <= 0) return true;
         const contentField = Math.floor(contentTag / 8);
         const contentWire = contentTag & 7;
+        if (contentField === 1 && contentWire !== 2) return true;
         if (contentField === 1 && contentWire === 2) {
           const typeLength = readVarint(contentEnd);
           if (typeLength < 0 || typeLength > contentEnd - cursor) return true;
