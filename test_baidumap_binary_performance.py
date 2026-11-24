@@ -625,5 +625,21 @@ process.stdout.write("ok");
         )
         self.assertEqual(completed.stdout, "ok")
 
+
+    def test_ads_reencoding_is_gated_by_current_segment_mutation(self):
+        marker = "// loon-change: Baidu protobuf per-segment Ads mutation gate v1"
+        self.assertIn(marker, self.source)
+        start = self.source.index(marker)
+        end = self.source.index("    }\n  }\n}", start)
+        segment = self.source[start:end]
+        self.assertIn("let adsSegmentModified = false;", segment)
+        self.assertIn("adsSegmentModified = true;", segment)
+        self.assertIn("if (adsSegmentModified) {", segment)
+        self.assertIn("modifiedAds = true;", segment)
+        self.assertIn("newAds = adsType.encode(adsMessage).finish();", segment)
+        self.assertNotIn("if(modifiedAds) newAds =", segment)
+        self.assertEqual(segment.count("adsType.encode(adsMessage).finish()"), 1)
+
+
 if __name__ == "__main__":
     unittest.main()

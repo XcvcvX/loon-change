@@ -155,6 +155,9 @@ for(let i = 0; i < messageHeadLength; i++) {
     // loon-change: Baidu protobuf Ads content array cache v1
     const adsContent = adsMessage.content;
     const adsContentLength = adsContent.length;
+    // loon-change: Baidu protobuf per-segment Ads mutation gate v1
+    // A response-wide mutation must not trigger encoding of an unchanged segment.
+    let adsSegmentModified = false;
     for(let j = 0; j < adsContentLength; j++) {
       const item = adsContent[j];
       const type = item.type;
@@ -163,11 +166,14 @@ for(let i = 0; i < messageHeadLength; i++) {
         if(item.start !== 1648746061 || item.end !== 1648832461) {
           item.start = 1648746061;
           item.end = 1648832461;
-          modifiedAds = true;
+          adsSegmentModified = true;
         }
       }
     }
-    if(modifiedAds) newAds = adsType.encode(adsMessage).finish();
+    if (adsSegmentModified) {
+      modifiedAds = true;
+      newAds = adsType.encode(adsMessage).finish();
+    }
   }
 }
 
