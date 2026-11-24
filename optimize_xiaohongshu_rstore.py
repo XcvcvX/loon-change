@@ -39,14 +39,16 @@ function appendUniqueLivePhotos(existing, incoming) {
 }
 '''
 
-IMAGE = r'''function imageEnhance(images) {
+IMAGE = r'''// loon-change: Xiaohongshu imagefeed single traversal live-photo extraction v1
+function imageEnhance(images, livePhotoCache) {
   if (!images || typeof images !== "object") return images;
+  const livePhotoTarget = Array.isArray(livePhotoCache) ? livePhotoCache : null;
   const quality = $.getdata("xiaohongshu.imageQuality");
   const originalPattern = /\?imageView2\/2[^&]*(?:&redImage\/frame\/0)/;
   const widthPattern = /imageView2\/2\/w\/\d+\/format/g;
   const heightPattern = /imageView2\/2\/h\/\d+\/format/g;
   let originalDone = false;
-  const stack = [{value: images, index: 0, keys: null}];
+  const stack = [{value: images, index: 0, keys: null, root: true}];
   while (stack.length) {
     const frame = stack[stack.length - 1];
     const value = frame.value;
@@ -57,6 +59,14 @@ IMAGE = r'''function imageEnhance(images) {
       }
       const key = frame.index++;
       const child = value[key];
+      if (frame.root && livePhotoTarget && child && typeof child === "object" && child.live_photo_file_id) {
+        const livePhoto = child.live_photo;
+        livePhotoTarget.push({
+          file_id: child.live_photo_file_id,
+          video_id: livePhoto?.media?.video_id,
+          url: livePhoto?.media?.stream?.h265?.[0]?.master_url
+        });
+      }
       if (typeof child === "string" && child.includes("imageView2/2")) {
         if (quality === "original") {
           if (!originalDone) {
@@ -71,7 +81,7 @@ IMAGE = r'''function imageEnhance(images) {
             .replace(heightPattern, "imageView2/2/h/2160/format");
         }
       } else if (child && typeof child === "object") {
-        stack.push({value: child, index: 0, keys: null});
+        stack.push({value: child, index: 0, keys: null, root: false});
       }
     } else {
       if (frame.keys === null) frame.keys = Object.keys(value);
@@ -95,7 +105,7 @@ IMAGE = r'''function imageEnhance(images) {
             .replace(heightPattern, "imageView2/2/h/2160/format");
         }
       } else if (child && typeof child === "object") {
-        stack.push({value: child, index: 0, keys: null});
+        stack.push({value: child, index: 0, keys: null, root: false});
       }
     }
   }
@@ -244,6 +254,48 @@ def apply_live_photo_cache_optimization(source):
         raise ValueError("legacy full live-photo cache reader remains")
     return source
 
+IMAGE_FEED_MARKER = "// loon-change: Xiaohongshu imagefeed single traversal live-photo extraction v1"
+
+def optimize_imagefeed_single_traversal(source):
+    if IMAGE_FEED_MARKER in source:
+        required = (
+            IMAGE_FEED_MARKER,
+            "function imageEnhance(images, livePhotoCache)",
+            "const livePhotoTarget = Array.isArray(livePhotoCache) ? livePhotoCache : null;",
+            "frame.root && livePhotoTarget",
+            "stack.push({value: child, index: 0, keys: null, root: false});",
+            "imageEnhance(images_list, livePhotoCache);",
+            'JSON.stringify(livePhotoCache), "redBookLivePhoto"',
+        )
+        if any(token not in source for token in required):
+            raise ValueError("Xiaohongshu single-traversal image helper drifted; refusing overwrite")
+        if "for (const image of images_list)" in source:
+            raise ValueError("Separate Xiaohongshu live-photo image traversal remains")
+        return source
+
+    source = between(source, "function imageEnhance(images) {",
+                     "\\n\\nfunction replaceUrlContent(", IMAGE, "single-traversal imageEnhance")
+    old = '''      const images_list = obj.data[0].note_list[0].images_list;
+      // Cache only fields consumed by the live-photo save endpoint.
+      const livePhotoCache = [];
+      for (const image of images_list) {
+        if (image?.live_photo_file_id) {
+          livePhotoCache.push({
+            file_id: image.live_photo_file_id,
+            video_id: image.live_photo?.media?.video_id,
+            url: image.live_photo?.media?.stream?.h265?.[0]?.master_url
+          });
+        }
+      }
+      $.setdata(JSON.stringify(livePhotoCache), "redBookLivePhoto");
+      imageEnhance(images_list);'''
+    new = '''      const images_list = obj.data[0].note_list[0].images_list;
+      // Collect live-photo save fields during the image-enhancement traversal.
+      const livePhotoCache = [];
+      imageEnhance(images_list, livePhotoCache);
+      $.setdata(JSON.stringify(livePhotoCache), "redBookLivePhoto");'''
+    return once(source, old, new, "single-traversal imagefeed live-photo extraction")
+
 def optimize_video_save_lookup(source):
     """Stop scanning the cached feed as soon as the requested note is found."""
     old = """      if (item.id === obj.data.note_id) {
@@ -299,6 +351,7 @@ def optimize_source(source, commit="unknown"):
                          '} else if (url.includes("/interaction/comment/video/download")) {',
                          COMMENT_BRANCH, "comment branch")
         source = apply_live_photo_cache_optimization(source)
+        source = optimize_imagefeed_single_traversal(source)
         if (COMMENT_TREE_MARKER not in source or "visited.has(current)" in source or "const visited = new WeakSet()" in source):
             raise ValueError("comment traversal still allocates/checks a visited WeakSet")
         source = source.replace("if (!$response.body) $done({});" + chr(10), "")
@@ -320,21 +373,13 @@ def optimize_source(source, commit="unknown"):
       // 保存无水印信息
       $.setdata(JSON.stringify(images_list), "redBookLivePhoto");'''
     image_replacement = '''      const images_list = obj.data[0].note_list[0].images_list;
-      // Cache only fields consumed by the live-photo save endpoint.
+      // Collect live-photo save fields during the image-enhancement traversal.
       const livePhotoCache = [];
-      for (const image of images_list) {
-        if (image?.live_photo_file_id) {
-          livePhotoCache.push({
-            file_id: image.live_photo_file_id,
-            video_id: image.live_photo?.media?.video_id,
-            url: image.live_photo?.media?.stream?.h265?.[0]?.master_url
-          });
-        }
-      }
-      $.setdata(JSON.stringify(livePhotoCache), "redBookLivePhoto");
-      imageEnhance(images_list);'''
+      imageEnhance(images_list, livePhotoCache);
+      $.setdata(JSON.stringify(livePhotoCache), "redBookLivePhoto");'''
     source = once(source, image_block, image_replacement, "image-feed JSON round trip")
     source = apply_live_photo_cache_optimization(source)
+    source = optimize_imagefeed_single_traversal(source)
 
     source = once(
         source,
