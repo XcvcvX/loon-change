@@ -269,6 +269,32 @@ def optimize_preparse_route_guard(source):
 def optimize_didi_route_dispatch_cache(source):
     """Evaluate each supported Didi URL route predicate once and reuse it."""
     marker = "// loon-change: Didi route dispatch cache v1"
+    replacements = (
+        ('if (url.includes("/other/pGetSceneList")) {', "if (isSceneList) {"),
+        ('if (url.includes("/homepage/v") && url.includes("/core")) {', "if (isHomepageCore) {"),
+        ('if (url.includes("/ota/na/yuantu/infoList")) {', "if (isInfoList) {"),
+        ('if (url.includes("/usercenter/me")) {', "if (isUserCenter) {"),
+    )
+    if marker in source:
+        required = (
+            'const isSceneList = url.includes("/other/pGetSceneList");',
+            'const isHomepageCore = url.includes("/homepage/v") && url.includes("/core");',
+            'const isInfoList = url.includes("/ota/na/yuantu/infoList");',
+            'const isUserCenter = url.includes("/usercenter/me");',
+            "if (isSceneList) {", "if (isHomepageCore) {",
+            "if (isInfoList) {", "if (isUserCenter) {",
+        )
+        if any(token not in source for token in required):
+            raise ValueError("Didi cached route dispatch structure is incomplete")
+        if any(source.count(token) != 1 for token in required[:4]):
+            raise ValueError("Didi route predicates are repeated")
+        return source
+    counts = [source.count(old) for old, _ in replacements]
+    # Compact optimizer fixtures omit response dispatch branches; preserve them without adding a route marker.
+    if counts == [0, 0, 0, 0]:
+        return source
+    if counts != [1, 1, 1, 1]:
+        raise ValueError("Didi route branch anchor changed; refusing route cache rewrite")
     old_guard = '''// loon-change: Didi pre-parse supported-route guard v1
 const shouldProcess =
   url.includes("/other/pGetSceneList") ||
@@ -282,42 +308,12 @@ const isHomepageCore = url.includes("/homepage/v") && url.includes("/core");
 const isInfoList = url.includes("/ota/na/yuantu/infoList");
 const isUserCenter = url.includes("/usercenter/me");
 const shouldProcess = isSceneList || isHomepageCore || isInfoList || isUserCenter;'''
-    if marker in source:
-        required = (
-            'const isSceneList = url.includes("/other/pGetSceneList");',
-            'const isHomepageCore = url.includes("/homepage/v") && url.includes("/core");',
-            'const isInfoList = url.includes("/ota/na/yuantu/infoList");',
-            'const isUserCenter = url.includes("/usercenter/me");',
-            "if (isSceneList) {", "if (isHomepageCore) {",
-            "if (isInfoList) {", "if (isUserCenter) {",
-        )
-        if any(token not in source for token in required):
-            raise ValueError("Didi cached route dispatch structure is incomplete")
-        if source.count('url.includes("/other/pGetSceneList")') != 1:
-            raise ValueError("Didi scene-list route predicate is repeated")
-        if source.count('url.includes("/homepage/v")') != 1 or source.count('url.includes("/core")') != 1:
-            raise ValueError("Didi homepage route predicates are repeated")
-        if source.count('url.includes("/ota/na/yuantu/infoList")') != 1 or source.count('url.includes("/usercenter/me")') != 1:
-            raise ValueError("Didi route predicates are repeated")
-        return source
     if source.count(old_guard) != 1:
         raise ValueError("Didi route guard anchor changed; refusing route cache rewrite")
     source = source.replace(old_guard, new_guard, 1)
-    replacements = (
-        ('if (url.includes("/other/pGetSceneList")) {', "if (isSceneList) {"),
-        ('if (url.includes("/homepage/v") && url.includes("/core")) {', "if (isHomepageCore) {"),
-        ('if (url.includes("/ota/na/yuantu/infoList")) {', "if (isInfoList) {"),
-        ('if (url.includes("/usercenter/me")) {', "if (isUserCenter) {"),
-    )
-    counts = [source.count(old) for old, _ in replacements]
-    # Compact optimizer fixtures omit response dispatch branches; preserve them.
-    if counts == [0, 0, 0, 0]:
-        return source
-    if counts != [1, 1, 1, 1]:
-        raise ValueError("Didi route branch anchor changed; refusing route cache rewrite")
     for old, new in replacements:
         source = source.replace(old, new, 1)
-    return optimize_didi_route_dispatch_cache(source)
+    return source
 
 def optimize_wallet_nested_property_cache(source):
     """Cache nested wallet array references instead of re-reading card properties."""
