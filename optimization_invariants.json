@@ -268,10 +268,21 @@
         "// loon-change: Baidu protobuf target-only byte views v1",
         "let resultOffset = -1;",
         "if (modifiedAds && resultOffset !== -1)",
-        "newResult = binaryBody.subarray(resultOffset, resultOffset + resultLength);"
+        "newResult = binaryBody.subarray(resultOffset, resultOffset + resultLength);",
+        "// loon-change: Baidu protobuf Ads content array cache v1",
+        "const adsContent = adsMessage.content;",
+        "const adsContentLength = adsContent.length;",
+        "for(let j = 0; j < adsContentLength; j++)",
+        "const item = adsContent[j];",
+        "const start = item.start;",
+        "const end = item.end;"
       ],
       "forbidden": [
-        "newResult = binaryBody.subarray(currentOffset, currentOffset + targetDataLength);"
+        "newResult = binaryBody.subarray(currentOffset, currentOffset + targetDataLength);",
+        "adsMessage.content.length",
+        "adsMessage.content[j]",
+        "item.start !== 1648746061",
+        "item.end !== 1648832461"
       ]
     },
     {
