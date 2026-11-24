@@ -256,7 +256,8 @@ VIDEO_ENTRY_MARKER = "// loon-change: Xiaohongshu v4 video-feed function-entry s
 def optimize_v4_video_feed_function_entry_scan(src):
     if VIDEO_ENTRY_MARKER in src:
         start = src.index(VIDEO_ENTRY_MARKER)
-        block = src[start:src.find("\\n      // 提取最佳视频流", start)]
+        end = src.find("\n      // 提取最佳视频流", start)
+        block = src[start:end] if end >= 0 else ""
         required = (
             VIDEO_ENTRY_MARKER,
             "const functionEntries = item?.share_info?.function_entries;",
@@ -270,7 +271,7 @@ def optimize_v4_video_feed_function_entry_scan(src):
     if src.count("      if (item?.share_info?.function_entries?.length > 0) {\n        const hasDownload = item.share_info.function_entries.some(entry => entry.type === \"video_download\");\n        if (!hasDownload) {\n          item.share_info.function_entries.push({type: \"video_download\"});\n        }\n      }") != 1:
         raise ValueError("Xiaohongshu v4 function-entry scan anchor drift")
     src = src.replace("      if (item?.share_info?.function_entries?.length > 0) {\n        const hasDownload = item.share_info.function_entries.some(entry => entry.type === \"video_download\");\n        if (!hasDownload) {\n          item.share_info.function_entries.push({type: \"video_download\"});\n        }\n      }", "      const functionEntries = item?.share_info?.function_entries;\n      if (functionEntries?.length > 0) {\n        let hasDownload = false;\n        for (const entry of functionEntries) {\n          if (entry.type === \"video_download\") {\n            hasDownload = true;\n            break;\n          }\n        }\n        if (!hasDownload) {\n          functionEntries.push({type: \"video_download\"});\n        }\n      }", 1)
-    anchor = "function selectBestStream(h265List,h264List) {"
+    anchor = "      const functionEntries = item?.share_info?.function_entries;"
     if src.count(anchor) != 1:
         raise ValueError("Xiaohongshu v4 function-entry marker insertion anchor drift")
     return src.replace(anchor, VIDEO_ENTRY_MARKER + "\\n" + anchor, 1)
