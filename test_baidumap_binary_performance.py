@@ -510,7 +510,7 @@ if (doneResult.body) {
 
     def test_rephead_md5_placeholder_is_patched_without_reencoding(self):
         start = self.source.index("function assembleBaiduResponse(")
-        end = self.source.index("\\n}\\n", start) + 2
+        end = self.source.index("\x5cn}\x5cn", start) + 2
         helper = self.source[start:end]
         self.assertEqual(helper.count("repHeadType.encode(repHeadMessage).finish()"), 1)
         self.assertIn("let digestOffset = -1;", helper)
