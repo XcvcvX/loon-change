@@ -113,14 +113,15 @@ def optimize_route_object_access(source):
             "const poplayerRes = obj?.res;",
             "const mainRes = obj?.mainRes;",
             "const poplayerEnabled = obj?.enable;",
-            'clearArray(poplayerRes || {}, "images");',
-            'clearArray(poplayerRes || {}, "videos");',
-            'clearArray(mainRes || {}, "images");',
+            'clearArray(poplayerRes, "images");',
+            'clearArray(poplayerRes, "videos");',
+            'clearArray(mainRes, "images");',
         )
         if any(token not in source for token in required):
             raise ValueError("Taobao cached response object access drifted; refusing to overwrite")
-        if "clearArray(obj?.res || {}, " in source or "clearArray(obj?.mainRes || {}, " in source:
-            raise ValueError("Repeated Taobao Poplayer object access remains")
+        if ("clearArray(obj?.res || {}, " in source or "clearArray(obj?.mainRes || {}, " in source
+                or "clearArray(poplayerRes || {}, " in source or "clearArray(mainRes || {}, " in source):
+            raise ValueError("Repeated Taobao Poplayer object access or fallback allocation remains")
         return source
     if source.count(OLD_VIDEO_OBJECT_BLOCK) != 1 or source.count(OLD_POPLAYER_OBJECT_BLOCK) != 1:
         raise ValueError("Expected exactly one Taobao video and Poplayer object access block")
