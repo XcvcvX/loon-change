@@ -250,13 +250,38 @@ def optimize_stream_selection_no_closure(src):
         return src
     return between(src, "function selectBestStream(h265List, h264List) {", "\n/**\n * 修复评论类型", "function selectBestStream(h265List,h264List) {\n  // loon-change: Xiaohongshu best-stream selection without per-call closure v1;\n  for (let pass = 0; pass < 2; pass++) {\n    const list = pass === 0 ? h265List : h264List;\n    if (!Array.isArray(list) || !list.length) continue;\n    let best = null, pixelsBest = 0, rateBest = 0;\n    for (const item of list) {\n      if (!item || !item.master_url) continue;\n      const pixels = (item.width || 0) * (item.height || 0);\n      const rate = Number(item.avg_bitrate) || 0;\n      if (best === null || pixels > pixelsBest || (pixels === pixelsBest && rate > rateBest)) {\n        best = item;\n        pixelsBest = pixels;\n        rateBest = rate;\n      }\n    }\n    if (best) return best;\n  }\n  return null;\n}", "stream selection without per-call closure")
 
+
+VIDEO_ENTRY_MARKER = "// loon-change: Xiaohongshu v4 video-feed function-entry scan without callback v1;"
+
+def optimize_v4_video_feed_function_entry_scan(src):
+    if VIDEO_ENTRY_MARKER in src:
+        start = src.index(VIDEO_ENTRY_MARKER)
+        block = src[start:src.find("\\n      // 提取最佳视频流", start)]
+        required = (
+            VIDEO_ENTRY_MARKER,
+            "const functionEntries = item?.share_info?.function_entries;",
+            "for (const entry of functionEntries)",
+            'if (entry.type === "video_download")',
+            'functionEntries.push({type: "video_download"});',
+        )
+        if not block or any(token not in block for token in required) or ".some(" in block:
+            raise ValueError("Xiaohongshu v4 function-entry scan marker is stale")
+        return src
+    if src.count("      if (item?.share_info?.function_entries?.length > 0) {\n        const hasDownload = item.share_info.function_entries.some(entry => entry.type === \"video_download\");\n        if (!hasDownload) {\n          item.share_info.function_entries.push({type: \"video_download\"});\n        }\n      }") != 1:
+        raise ValueError("Xiaohongshu v4 function-entry scan anchor drift")
+    src = src.replace("      if (item?.share_info?.function_entries?.length > 0) {\n        const hasDownload = item.share_info.function_entries.some(entry => entry.type === \"video_download\");\n        if (!hasDownload) {\n          item.share_info.function_entries.push({type: \"video_download\"});\n        }\n      }", "      const functionEntries = item?.share_info?.function_entries;\n      if (functionEntries?.length > 0) {\n        let hasDownload = false;\n        for (const entry of functionEntries) {\n          if (entry.type === \"video_download\") {\n            hasDownload = true;\n            break;\n          }\n        }\n        if (!hasDownload) {\n          functionEntries.push({type: \"video_download\"});\n        }\n      }", 1)
+    anchor = "function selectBestStream(h265List,h264List) {"
+    if src.count(anchor) != 1:
+        raise ValueError("Xiaohongshu v4 function-entry marker insertion anchor drift")
+    return src.replace(anchor, VIDEO_ENTRY_MARKER + "\\n" + anchor, 1)
+
 def optimize_source(src,commit="unknown"):
     if MARKER in src:
         if "Object.keys(current)" in src: raise ValueError("Xiaohongshu traversal optimization is stale")
         has_comment_processor = "function processCommentTree(data, livePhotos, commentVideos, noteId)" in src
         has_no_visited_set = "const visited = new WeakSet()" not in src and "visited.has(current)" not in src
         if has_comment_processor and has_no_visited_set and "Xiaohongshu parsed JSON comment tree without visited WeakSet v1;" in src and "Xiaohongshu comment classification stack frames v1;" in src and "const commentFrameTag = {};" in src and "processCommentTree(obj.data, livePhotos, commentVideos, note_id);" in src:
-            return optimize_stream_selection_no_closure(optimize_video_save_cache_lookup(optimize_comment_video_info_cache(optimize_imagefeed_single_traversal(src))))
+            return optimize_stream_selection_no_closure(optimize_v4_video_feed_function_entry_scan(optimize_video_save_cache_lookup(optimize_comment_video_info_cache(optimize_imagefeed_single_traversal(src)))))
         return optimize_stream_selection_no_closure(optimize_video_save_cache_lookup(optimize_comment_video_info_cache(optimize_imagefeed_single_traversal(apply_comment_optimization(src)))))
     src=once(src,"const url = $request.url;","const url = $request.url;\n"+HELPERS.strip(),"helpers")
     src=once(src,"  console.log('打印原body：' + JSON.stringify(obj));\n","","full-body logging")

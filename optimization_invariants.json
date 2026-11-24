@@ -52,7 +52,10 @@
         "if (item.id === noteId)",
         "// loon-change: Xiaohongshu best-stream selection without per-call closure v1;",
         "for (let pass = 0; pass < 2; pass++)",
-        "const list = pass === 0 ? h265List : h264List;"
+        "const list = pass === 0 ? h265List : h264List;",
+        "// loon-change: Xiaohongshu v4 video-feed function-entry scan without callback v1;",
+        "const functionEntries = item?.share_info?.function_entries;",
+        "for (const entry of functionEntries)"
       ],
       "forbidden": [
         "console.log(`[缓存] ID:",
@@ -64,7 +67,8 @@
         "const topLevelComments = new WeakSet()",
         "parsedVideoInfo.has(raw)",
         "for (let item of videoFeed)",
-        "const choose=list=>"
+        "const choose=list=>",
+        "function_entries.some("
       ]
     },
     {

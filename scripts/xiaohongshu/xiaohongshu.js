@@ -219,10 +219,17 @@ if (url.includes("/v4/note/videofeed")) {
       }
 
       // 添加下载按钮（如果未存在）
-      if (item?.share_info?.function_entries?.length > 0) {
-        const hasDownload = item.share_info.function_entries.some(entry => entry.type === "video_download");
+      const functionEntries = item?.share_info?.function_entries;
+      if (functionEntries?.length > 0) {
+        let hasDownload = false;
+        for (const entry of functionEntries) {
+          if (entry.type === "video_download") {
+            hasDownload = true;
+            break;
+          }
+        }
         if (!hasDownload) {
-          item.share_info.function_entries.push({type: "video_download"});
+          functionEntries.push({type: "video_download"});
         }
       }
 
@@ -518,6 +525,7 @@ function processCommentTree(data, livePhotos, commentVideos, noteId) {
  * @param {Array} h264List - H264 流列表
  * @returns {Object|null} - 选中的流对象或 null
  */
+// loon-change: Xiaohongshu v4 video-feed function-entry scan without callback v1;
 function selectBestStream(h265List,h264List) {
   // loon-change: Xiaohongshu best-stream selection without per-call closure v1;
   for (let pass = 0; pass < 2; pass++) {
