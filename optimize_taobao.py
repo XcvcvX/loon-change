@@ -54,9 +54,6 @@ def optimize_splash_loop(source):
     if SPLASH_LOOP_MARKER in source:
         required = (
             SPLASH_LOOP_MARKER,
-            SPLASH_HOME_OBJECT_MARKER,
-            "const splashHome = obj?.data?.containers?.splash_home_base;",
-            "const sections = splashHome.base?.sections;",
             "const sectionCount = sections.length;",
             "const bizData = sections[sectionIndex]?.bizData;",
             'const splashItems = bizData?.["taobao-splash"]?.data;',
@@ -65,6 +62,15 @@ def optimize_splash_loop(source):
         )
         if any(token not in source for token in required):
             raise ValueError("Taobao indexed splash traversal drifted; refusing to overwrite")
+        if SPLASH_HOME_OBJECT_MARKER in source:
+            cached = (
+                "const splashHome = obj?.data?.containers?.splash_home_base;",
+                "const sections = splashHome.base?.sections;",
+            )
+            if source.count(SPLASH_HOME_OBJECT_MARKER) != 1 or any(token not in source for token in cached):
+                raise ValueError("Taobao cached splash home object drifted; refusing to overwrite")
+        elif "const sections = obj.data.containers.splash_home_base.base?.sections;" not in source:
+            raise ValueError("Taobao splash-home traversal anchor drifted; refusing to overwrite")
         if "for (let items of splash.base.sections)" in source or 'for (let item of items.bizData["taobao-splash"].data)' in source:
             raise ValueError("Legacy Taobao splash iterator remains beside optimization marker")
         return source
