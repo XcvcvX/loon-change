@@ -339,7 +339,7 @@ def optimize_source(source, commit="unknown"):
     if MARKER in source:
         if "__loonSource32" not in source or "compactInPlace(items, keep)" not in source:
             raise ValueError("marked Weibo script is incomplete")
-        return add_lazy_serialization_guard(source)
+        return optimize_scalar_membership(add_lazy_serialization_guard(source))
     source = source.replace("const url = $request.url;", "const url = $request.url;\n" + GUARD_DECLARATION + "\n\n" + HELPER, 1)
     if source.count(HELPER) != 1:
         raise ValueError("Weibo helper insertion failed")
@@ -351,7 +351,48 @@ def optimize_source(source, commit="unknown"):
     remaining = re.findall(r"\b(new[A-Za-z0-9_]*)\s*=\s*\[\s*\]", source)
     if sorted(remaining) != ["newActions", "newII"]:
         raise ValueError("unexpected remaining Weibo temporary arrays: " + repr(remaining))
-    return add_lazy_serialization_guard(MARKER + commit + "\n" + source)
+    return optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source))
+
+SCALAR_MEMBERSHIP_MARKER = "// loon-change: Weibo hot-loop scalar membership v1"
+SCALAR_MEMBERSHIP_REWRITES = [
+    ("[120, 145, 192]?.includes(cardType)", "(cardType === 120 || cardType === 145 || cardType === 192)", 1),
+    ("[6, 101]?.includes(cardType)", "(cardType === 6 || cardType === 101)", 1),
+    ("[17, 58]?.includes(cardType)", "(cardType === 17 || cardType === 58)", 1),
+    ("[\"超话社区\", \"微博开新年\", \"微博热搜\", \"微博视频\"]?.includes(item.data?.user?.name)", "(item.data?.user?.name === \"超话社区\" || item.data?.user?.name === \"微博开新年\" || item.data?.user?.name === \"微博热搜\" || item.data?.user?.name === \"微博视频\")", 1),
+    ("![\"活动通知\", \"闪聊\"].includes(i?.user?.name)", "!(i?.user?.name === \"活动通知\" || i?.user?.name === \"闪聊\")", 1),
+    ("[\"最新微博\", \"特别关注\", \"好友圈\", \"视频\"]?.includes(ii?.title)", "(ii?.title === \"最新微博\" || ii?.title === \"特别关注\" || ii?.title === \"好友圈\" || ii?.title === \"视频\")", 1),
+    ("[58, 216]?.includes(item?.data?.card_type)", "(item?.data?.card_type === 58 || item?.data?.card_type === 216)", 1),
+    ("[10, 48, 176]?.includes(ii?.data?.card_type)", "(ii?.data?.card_type === 10 || ii?.data?.card_type === 48 || ii?.data?.card_type === 176)", 1),
+    ("[22]?.includes(cardType)", "cardType === 22", 1),
+    ("[19, 118, 206, 208, 217, 236, 249, 261]?.includes(item?.data?.card_type)", "(item?.data?.card_type === 19 || item?.data?.card_type === 118 || item?.data?.card_type === 206 || item?.data?.card_type === 208 || item?.data?.card_type === 217 || item?.data?.card_type === 236 || item?.data?.card_type === 249 || item?.data?.card_type === 261)", 2),
+    ("[118, 182, 217, 247]?.includes(ii?.data?.card_type)", "(ii?.data?.card_type === 118 || ii?.data?.card_type === 182 || ii?.data?.card_type === 217 || ii?.data?.card_type === 247)", 1),
+    ("[118, 182, 192, 217, 247]?.includes(ii?.data?.card_type)", "(ii?.data?.card_type === 118 || ii?.data?.card_type === 182 || ii?.data?.card_type === 192 || ii?.data?.card_type === 217 || ii?.data?.card_type === 247)", 1),
+    ("[3, 17, 22, 30, 42, 89, 206, 236]?.includes(ii?.data?.card_type)", "(ii?.data?.card_type === 3 || ii?.data?.card_type === 17 || ii?.data?.card_type === 22 || ii?.data?.card_type === 30 || ii?.data?.card_type === 42 || ii?.data?.card_type === 89 || ii?.data?.card_type === 206 || ii?.data?.card_type === 236)", 1),
+    ("![4, 197, 1012]?.includes(item?.data?.card_type)", "!(item?.data?.card_type === 4 || item?.data?.card_type === 197 || item?.data?.card_type === 1012)", 1),
+]
+
+def optimize_scalar_membership(source):
+    if SCALAR_MEMBERSHIP_MARKER in source:
+        if source.count(SCALAR_MEMBERSHIP_MARKER) != 1:
+            raise ValueError("Weibo scalar-membership marker duplicated")
+        for old, _, _ in SCALAR_MEMBERSHIP_REWRITES:
+            if old in source:
+                raise ValueError("Weibo scalar-membership marker/structure drift")
+        return source
+    for old, new, expected in SCALAR_MEMBERSHIP_REWRITES:
+        count = source.count(old)
+        if count != expected:
+            raise ValueError("Weibo scalar-membership inventory drift: expected %d for %s, got %d" % (expected, old, count))
+        source = source.replace(old, new)
+    if source.count(LAZY_MARKER) != 1:
+        raise ValueError("Weibo lazy marker anchor drift")
+    source = source.replace(LAZY_MARKER, LAZY_MARKER + "\\n" + SCALAR_MEMBERSHIP_MARKER, 1)
+    for old, _, _ in SCALAR_MEMBERSHIP_REWRITES:
+        if old in source:
+            raise ValueError("Weibo scalar-membership postcondition failed")
+    return source
+
+
 def rewrite_plugin(plugin):
     if LOCAL in plugin:
         if REMOTE in plugin:

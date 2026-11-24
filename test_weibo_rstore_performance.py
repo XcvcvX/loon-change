@@ -32,6 +32,16 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         self.assertNotIn("obj.user_list = obj.user_list.filter(", source)
         self.assertNotIn("obj.channelInfo.channel_list = obj.channelInfo.channel_list.filter(", source)
 
+    def test_hot_loop_membership_uses_scalar_comparisons(self):
+        source = SCRIPT.read_text(encoding="utf-8")
+        marker = "// loon-change: Weibo hot-loop scalar membership v1"
+        self.assertEqual(source.count(marker), 1)
+        self.assertEqual(optimize_source(source), source)
+        self.assertNotRegex(source, r"\\[[^\\]\\n]+\\]\\??\\.includes\\(")
+        self.assertIn("cardType === 120 || cardType === 145 || cardType === 192", source)
+        self.assertIn("item?.data?.card_type === 19 || item?.data?.card_type === 118", source)
+        self.assertIn("!(item?.data?.card_type === 4 || item?.data?.card_type === 197", source)
+
     def test_old_optimized_snapshot_regains_lazy_serialization_guard(self):
         source = SCRIPT.read_text(encoding="utf-8")
         legacy = source.replace(LAZY_MARKER + "\n", "", 1)

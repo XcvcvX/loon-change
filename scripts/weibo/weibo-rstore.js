@@ -1,5 +1,6 @@
 // loon-change: R-Store Weibo in-place response compaction v1; upstream zirawell/R-Store@52fcb40b118a15610686b9167a7ee8e59bc04709
 // loon-change: Weibo feed and comment lazy serialization v1
+// loon-change: Weibo hot-loop scalar membership v1
 /********************************
 Weibo Remove Ads - Version 1.0
 Checkout Source - https://raw.githubusercontent.com/RuCu6/QuanX/main/Scripts/weibo.js
@@ -111,11 +112,11 @@ if (url.includes("/interface/sdk/sdkad.php")) {
             let group = __loonSource31[__loonRead31];
             let cardType = group.card_type;
             // 120,145 视频版块轮播图 192横版热门视频 电影 颜值 电视剧等
-            if ([120, 145, 192]?.includes(cardType)) {
+            if ((cardType === 120 || cardType === 145 || cardType === 192)) {
               continue;
             }
             // 我的热搜 查看更多热搜
-            if ([6, 101]?.includes(cardType)) {
+            if ((cardType === 6 || cardType === 101)) {
               continue;
             }
             if (group?.mblog) {
@@ -130,7 +131,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
         } else {
           let cardType = card.card_type;
           // 17猜你想搜 58搜索偏好设置
-          if ([17, 58]?.includes(cardType)) {
+          if ((cardType === 17 || cardType === 58)) {
             continue;
           }
           if (card?.mblog) {
@@ -170,7 +171,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
             if (item?.data?.user) {
               // 头像挂件,关注按钮
               removeAvatar(item?.data);
-              if (["超话社区", "微博开新年", "微博热搜", "微博视频"]?.includes(item.data?.user?.name)) {
+              if ((item.data?.user?.name === "超话社区" || item.data?.user?.name === "微博开新年" || item.data?.user?.name === "微博热搜" || item.data?.user?.name === "微博视频")) {
                 continue;
               }
             }
@@ -308,7 +309,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
     }
   } else if (url.includes("/2/direct_messages/user_list")) {
     if (obj?.user_list?.length > 0) {
-      compactInPlace(obj.user_list, i => !["活动通知", "闪聊"].includes(i?.user?.name));
+      compactInPlace(obj.user_list, i => !(i?.user?.name === "活动通知" || i?.user?.name === "闪聊"));
     }
   } else if (url.includes("/2/flowlist")) {
     // 关注列表
@@ -405,7 +406,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
                   const __loonLength21 = __loonSource21.length;
                   for (let __loonRead21 = 0; __loonRead21 < __loonLength21; __loonRead21++) {
                     let ii = __loonSource21[__loonRead21];
-                    if (["最新微博", "特别关注", "好友圈", "视频"]?.includes(ii?.title)) {
+                    if ((ii?.title === "最新微博" || ii?.title === "特别关注" || ii?.title === "好友圈" || ii?.title === "视频")) {
                       // 白名单列表
                       __loonSource21[__loonWrite21++] = ii;
                     } else {
@@ -485,7 +486,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
         } else {
           if (item?.category === "card") {
             // 58微博展示时间段提示 216筛选按钮
-            if ([58, 216]?.includes(item?.data?.card_type)) {
+            if ((item?.data?.card_type === 58 || item?.data?.card_type === 216)) {
               if (/没有公开博文，为你推荐以下精彩内容/.test(item?.data?.name)) {
                 // 个人微博页刷完后的推荐信息流
                 continue;
@@ -525,7 +526,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
                   }
                   __loonSource18[__loonWrite18++] = ii;
                 } else if (ii?.category === "card") {
-                  if ([10, 48, 176]?.includes(ii?.data?.card_type)) {
+                  if ((ii?.data?.card_type === 10 || ii?.data?.card_type === 48 || ii?.data?.card_type === 176)) {
                     // 最近关注与互动过的博主
                     continue;
                   }
@@ -674,7 +675,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
             let group = __loonSource14[__loonRead14];
             let cardType = group.card_type;
             // 22那年今天
-            if ([22]?.includes(cardType)) {
+            if (cardType === 22) {
               continue;
             }
             if (group?.mblog) {
@@ -777,7 +778,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
             }
           } else if (item?.category === "card") {
             // 19热议等tab 118横版广告图片 206,249横版视频广告 208实况热聊 217错过了热词 236微博趋势 261奥运滚动横幅
-            if ([19, 118, 206, 208, 217, 236, 249, 261]?.includes(item?.data?.card_type)) {
+            if ((item?.data?.card_type === 19 || item?.data?.card_type === 118 || item?.data?.card_type === 206 || item?.data?.card_type === 208 || item?.data?.card_type === 217 || item?.data?.card_type === 236 || item?.data?.card_type === 249 || item?.data?.card_type === 261)) {
               continue;
             } else if (item?.data?.card_type === 101 && item?.data?.cate_id === "1114") {
               // 微博趋势标题
@@ -799,7 +800,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
               for (let __loonRead11 = 0; __loonRead11 < __loonLength11; __loonRead11++) {
                 let ii = __loonSource11[__loonRead11];
                 // 118横版广告图片 182热议话题 217错过了热词 247横版视频广告
-                if ([118, 182, 217, 247]?.includes(ii?.data?.card_type)) {
+                if ((ii?.data?.card_type === 118 || ii?.data?.card_type === 182 || ii?.data?.card_type === 217 || ii?.data?.card_type === 247)) {
                   continue;
                 } else {
                   __loonSource11[__loonWrite11++] = ii;
@@ -851,7 +852,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
                   }
                 } else if (item?.category === "card") {
                   // 19热议等tab 118横版广告图片 206,249横版视频广告 208实况热聊 217错过了热词 236微博趋势 261奥运滚动横幅
-                  if ([19, 118, 206, 208, 217, 236, 249, 261]?.includes(item?.data?.card_type)) {
+                  if ((item?.data?.card_type === 19 || item?.data?.card_type === 118 || item?.data?.card_type === 206 || item?.data?.card_type === 208 || item?.data?.card_type === 217 || item?.data?.card_type === 236 || item?.data?.card_type === 249 || item?.data?.card_type === 261)) {
                     continue;
                   } else if (item?.data?.card_type === 101 && item?.data?.cate_id === "1114") {
                     // 微博趋势标题
@@ -873,7 +874,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
                     for (let __loonRead9 = 0; __loonRead9 < __loonLength9; __loonRead9++) {
                       let ii = __loonSource9[__loonRead9];
                       // 118横版广告图片 182热议话题 192横版好看视频 217错过了热词 247横版视频广告
-                      if ([118, 182, 192, 217, 247]?.includes(ii?.data?.card_type)) {
+                      if ((ii?.data?.card_type === 118 || ii?.data?.card_type === 182 || ii?.data?.card_type === 192 || ii?.data?.card_type === 217 || ii?.data?.card_type === 247)) {
                         continue;
                       } else {
                         __loonSource9[__loonWrite9++] = ii;
@@ -1039,7 +1040,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
                   if (ii?.data) {
                     removeAvatar(ii?.data);
                     // 3推广卡片 17相关搜索 22广告图 30推荐博主 42,236智搜问答 89商品推广视频 206推广视频
-                    if ([3, 17, 22, 30, 42, 89, 206, 236]?.includes(ii?.data?.card_type)) {
+                    if ((ii?.data?.card_type === 3 || ii?.data?.card_type === 17 || ii?.data?.card_type === 22 || ii?.data?.card_type === 30 || ii?.data?.card_type === 42 || ii?.data?.card_type === 89 || ii?.data?.card_type === 206 || ii?.data?.card_type === 236)) {
                       continue;
                     }
                     // 商品推广desc
@@ -1196,7 +1197,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
             }
           }
         } else if (item?.category === "card") {
-          if (![4, 197, 1012]?.includes(item?.data?.card_type)) {
+          if (!(item?.data?.card_type === 4 || item?.data?.card_type === 197 || item?.data?.card_type === 1012)) {
             // 4 你可能感兴趣的超话
             // 197 你可能感兴趣的超话
             // 1012 热门超话
