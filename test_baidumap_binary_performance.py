@@ -25,7 +25,7 @@ class BaiduMapBinaryPerformanceTests(unittest.TestCase):
     def test_only_result_and_ads_fields_create_binary_payload_views(self):
         marker = "// loon-change: Baidu protobuf target-only byte views v1"
         self.assertIn(marker, self.source)
-        start = self.source.index("for(let i = 0; i < repHeadMessage.messageHead.length; i++)")
+        start = self.source.index("for(let i = 0; i < messageHeadLength; i++)")
         end = self.source.index("\n}\n\nif (modifiedAds && resultOffset !== -1)", start)
         loop = self.source[start:end]
         self.assertEqual(loop.count("binaryBody.subarray("), 1)
