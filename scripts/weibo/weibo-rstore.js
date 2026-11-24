@@ -1215,31 +1215,39 @@ if (url.includes("/interface/sdk/sdkad.php")) {
           if (item?.items?.length > 0) {
             if (item?.itemId === null) {
               // 超话页顶部乱七八糟
-              let newII = [];
-              for (let ii of item.items) {
-                if (ii?.data?.hasOwnProperty("itemid")) {
-                  if (ii?.data?.itemid?.includes("mine_topics")) {
+              // loon-change: Weibo topic-group in-place item compaction v1;
+              const groupItems = item.items;
+              const groupLength = groupItems.length;
+              let groupWrite = 0;
+              for (let groupRead = 0; groupRead < groupLength; groupRead++) {
+                const ii = groupItems[groupRead];
+                const itemData = ii?.data;
+                const itemId = itemData?.itemid;
+                let keep = false;
+                if (itemData?.hasOwnProperty("itemid")) {
+                  if (itemId?.includes("mine_topics")) {
                     // 保留我的超话
-                    newII.push(ii);
-                  } else if (ii?.data?.itemid?.includes("tab_search_input")) {
+                    keep = true;
+                  } else if (itemId?.includes("tab_search_input")) {
                     // 保留搜索框
-                    if (ii?.data?.hotwords) {
+                    if (itemData?.hotwords) {
                       // 删除热搜词
-                      ii.data.hotwords = [{word: "搜索超话"}];
+                      itemData.hotwords = [{word: "搜索超话"}];
                     }
-                    newII.push(ii);
-                  } else if (ii?.data?.itemid?.includes("poiRankList")) {
+                    keep = true;
+                  } else if (itemId?.includes("poiRankList")) {
                     // 保留地点超话 地标人气榜
-                    newII.push(ii);
+                    keep = true;
                   }
                 } else {
                   // 放行无itemid字段的内容
-                  newII.push(ii);
+                  keep = true;
                 }
+                if (keep) groupItems[groupWrite++] = ii;
                 // 头像挂件,关注按钮
-                removeAvatar(ii?.data);
-                item.items = newII;
+                removeAvatar(itemData);
               }
+              groupItems.length = groupWrite;
             } else {
               for (let ii of item.items) {
                 if (ii?.data) {
