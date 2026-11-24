@@ -32,10 +32,13 @@ def optimize_order_rules(plugin: str) -> str:
 
 def optimize_redundant_query_matchers(plugin: str) -> str:
     lines = plugin.splitlines()
-    narrow_rules = [
-        line for line in lines
-        if "pinduoduo" in line and "\\?/i then reject_dict(200)" in line
-    ]
+    narrow_rules = []
+    for line in lines:
+        if "pinduoduo" not in line or not line.endswith(r"\\?/i then reject_dict(200)"):
+            continue
+        broad = line.replace(r"\\?/i then reject_dict(200)", "/i then reject_dict(200)")
+        if lines.count(broad) == 1:
+            narrow_rules.append(line)
     if QUERY_MATCHER_MARKER in plugin:
         if plugin.count(QUERY_MATCHER_MARKER) != 1 or narrow_rules:
             raise ValueError("Pinduoduo query matcher marker/structure drift")
