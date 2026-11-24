@@ -371,6 +371,7 @@ function imageEnhance(images, livePhotoCache) {
   return images;
 }
 
+
 function replaceUrlContent(collectionA, collectionB) {
   const byFileId = new Map();
   for (const item of collectionB) {
