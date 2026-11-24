@@ -441,6 +441,63 @@ process.stdout.write("ok");
         self.assertEqual(completed.stdout, "ok")
 
 
+
+class TaobaoCloudVideoSinglePropertyReadTests(unittest.TestCase):
+    def test_cloud_video_optimizer_is_idempotent_and_fails_closed(self):
+        from optimize_taobao import CLOUD_VIDEO_SINGLE_READ_MARKER, optimize_cloud_video_single_property_reads
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertEqual(optimize_cloud_video_single_property_reads(source), source)
+        self.assertEqual(source.count(CLOUD_VIDEO_SINGLE_READ_MARKER), 1)
+        damaged = source.replace("const duration = videoData?.duration;", "const duration = videoData.duration;", 1)
+        with self.assertRaisesRegex(ValueError, "single property read optimization drifted"):
+            optimize_cloud_video_single_property_reads(damaged)
+
+    @unittest.skipUnless(NODE, "Node.js is required for Taobao cloud-video property read tests")
+    def test_cloud_video_duration_and_response_time_are_read_once(self):
+        runner = r"""
+const fs = require("fs"), vm = require("vm");
+let source = fs.readFileSync(process.argv[1], "utf8");
+source = source.replace(
+  "const obj = JSON.parse($response.body);",
+  "const obj = JSON.parse($response.body); " +
+  "globalThis.__reads = { duration: 0, respTimeInMs: 0 }; " +
+  "globalThis.__values = { duration: obj.data.duration, respTimeInMs: obj.data.respTimeInMs }; " +
+  "for (const key of ['duration', 'respTimeInMs']) Object.defineProperty(obj.data, key, { configurable: true, " +
+  "get() { if (globalThis.__trackReads) globalThis.__reads[key]++; return globalThis.__values[key]; }, " +
+  "set(value) { globalThis.__values[key] = value; } });"
+);
+let done;
+const context = {
+  __trackReads: true,
+  $request: {url: "https://guide-acs.m.taobao.com/gw/mtop.taobao.cloudvideo.video.query"},
+  $response: {body: JSON.stringify({data:{duration:"12",respTimeInMs:"12345",resources:[],caches:[]}})},
+  $done(value) { done = value; },
+  console
+};
+vm.createContext(context);
+vm.runInContext(source, context, {timeout: 5000});
+const output = JSON.parse(done.body);
+process.stdout.write(JSON.stringify({reads:context.__reads, duration:output.data.duration, respTimeInMs:output.data.respTimeInMs}));
+""";
+        completed = subprocess.run(
+            [NODE, "-e", runner, str(SCRIPT)],
+            capture_output=True, text=True, check=True, timeout=10,
+        )
+        result = json.loads(completed.stdout)
+        self.assertEqual(result["reads"], {"duration": 1, "respTimeInMs": 1})
+        self.assertEqual(result["duration"], "0")
+        self.assertEqual(result["respTimeInMs"], "3818332800000")
+
+    @unittest.skipUnless(NODE, "Node.js is required for Taobao cloud-video property read tests")
+    def test_cloud_video_falsy_values_keep_existing_behavior(self):
+        result = TaobaoLazySerializationTests().run_script(
+            "https://guide-acs.m.taobao.com/gw/mtop.taobao.cloudvideo.video.query",
+            {"data": {"duration": 0, "respTimeInMs": "", "resources": [], "caches": []}},
+        )
+        self.assertTrue(result["passThrough"])
+        self.assertEqual(result["stringifyCount"], 0)
+
+
 class TaobaoSplashHomeObjectCacheTests(unittest.TestCase):
     def test_splash_home_cache_is_idempotent_and_fails_closed(self):
         source = SCRIPT.read_text(encoding="utf-8")

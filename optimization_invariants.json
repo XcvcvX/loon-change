@@ -408,7 +408,14 @@
         "clearArray(videoData, \"caches\");",
         "clearArray(poplayerRes, \"images\");",
         "clearArray(poplayerRes, \"videos\");",
-        "clearArray(mainRes, \"images\");"
+        "clearArray(mainRes, \"images\");",
+        "// loon-change: Taobao cloud-video single property reads v1",
+        "const duration = videoData?.duration;",
+        "if (duration && duration !== \"0\")",
+        "videoData.duration = \"0\";",
+        "const respTimeInMs = videoData?.respTimeInMs;",
+        "if (respTimeInMs && respTimeInMs !== \"3818332800000\")",
+        "videoData.respTimeInMs = \"3818332800000\";"
       ],
       "forbidden": [
         "for (let items of splash.base.sections)",
@@ -424,7 +431,9 @@
         "clearArray(videoData || {},",
         "clearArray(poplayerRes || {},",
         "clearArray(mainRes || {},",
-        "const sections = obj.data.containers.splash_home_base.base?.sections;"
+        "const sections = obj.data.containers.splash_home_base.base?.sections;",
+        "setIfDifferent(videoData, \"duration\", \"0\")",
+        "setIfDifferent(videoData, \"respTimeInMs\", \"3818332800000\")"
       ]
     },
     {
