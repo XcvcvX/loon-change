@@ -362,7 +362,7 @@ vm.createContext(context);
 vm.runInContext(source, context, { timeout: 5000 });
 const output = nativeJSON.parse(doneResult.body);
 process.stdout.write(nativeJSON.stringify({ reads, writes, item: output.data.containers.splash_home_base.base.sections[0].bizData["taobao-splash"].data[0] }));
-\"\"\";
+""";
         item = {
             "waitTime": "5", "times": "5", "hotStart": "true", "haveVoice": "true",
             "hideTBLogo": "true", "enable4G": "true", "coldStart": "true",
