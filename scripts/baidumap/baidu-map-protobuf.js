@@ -96,9 +96,7 @@ for(let i = 0; i < repHeadMessage.messageHead.length; i++) {
       const type = item.type;
       if((type.indexOf('_banner') !== -1 || type.indexOf('splash_screen1040') !== -1)
         && item.hasOwnProperty('start') && item.hasOwnProperty('end')){
-        const start = item.start;
-        const end = item.end;
-        if(start !== 1648746061 || end !== 1648832461) {
+        if(item.start !== 1648746061 || item.end !== 1648832461) {
           item.start = 1648746061;
           item.end = 1648832461;
           modifiedAds = true;

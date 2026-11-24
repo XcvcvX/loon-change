@@ -1,4 +1,4 @@
-# BaiduMap Protobuf Ads array and field access cache
+# BaiduMap Protobuf Ads collection cache
 
 ## Scope
 
@@ -6,16 +6,16 @@ Optimize the decoded `Ads.content` scan in `scripts/baidumap/baidu-map-protobuf.
 
 ## Change
 
-Cache the decoded content array and its length before the scan rather than reading `adsMessage.content` and `.length` during each iteration. For qualifying banner/splash entries with both own `start` and `end` fields, cache those numeric values once before comparing them with the replacement timestamps.
+Cache the decoded `Ads.content` array and its length before the scan rather than repeatedly evaluating `adsMessage.content` and `adsMessage.content.length` in the loop condition and item access. For an array of N entries, this changes the collection-property access pattern from 2N+1 reads to one read, plus one cached length read.
 
-The Protobuf schema, field matching, own-property checks, mutation values, repeated-field order, binary layout, MD5 calculation, and no-op pass-through behavior are unchanged.
+The per-item date condition remains the original short-circuit expression: `end` is read only when `start` already equals the target timestamp. No date-field read reduction is claimed. The Protobuf schema, field matching, own-property checks, mutation values, repeated-field order, binary layout, MD5 calculation, and no-op pass-through behavior remain unchanged.
 
 ## Validation
 
-- Source invariants require the cached array, length, item, start and end locals, and forbid the repeated property expressions.
-- Runtime tests instrument the decoded Ads message and each decoded Content item with getters/proxies. A 64-entry fixture verifies one collection-property read and one read each of `start` and `end` per eligible item.
+- Source invariants require the cached array and length, and forbid repeated `adsMessage.content` property expressions in the loop.
+- Runtime tests instrument the decoded Ads message and Content items with getters/proxies. A 64-entry fixture verifies one `Ads.content` property read for the entire scan. Additional fixtures verify the original short-circuit behavior: `end` has zero reads when `start` differs and one read per item when `start` matches.
 - Existing tests continue to validate byte-view counts, no-op behavior, rebuilt payload order, MD5, and header metadata.
 
 ## Limits
 
-This is a source-level reduction in repeated property reads during the Protobuf ad scan. Device-level battery, thermal, and latency changes have not been measured.
+This is a source-level reduction in repeated collection-property reads during the Protobuf ad scan. Device-level battery, thermal, and latency changes have not been measured.

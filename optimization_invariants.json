@@ -273,16 +273,12 @@
         "const adsContent = adsMessage.content;",
         "const adsContentLength = adsContent.length;",
         "for(let j = 0; j < adsContentLength; j++)",
-        "const item = adsContent[j];",
-        "const start = item.start;",
-        "const end = item.end;"
+        "const item = adsContent[j];"
       ],
       "forbidden": [
         "newResult = binaryBody.subarray(currentOffset, currentOffset + targetDataLength);",
         "adsMessage.content.length",
-        "adsMessage.content[j]",
-        "item.start !== 1648746061",
-        "item.end !== 1648832461"
+        "adsMessage.content[j]"
       ]
     },
     {
