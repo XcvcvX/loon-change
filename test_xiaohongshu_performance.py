@@ -1,6 +1,6 @@
 import json, shutil, subprocess, unittest
 from pathlib import Path
-from optimize_xiaohongshu import LOCAL, REMOTE, MARKER, IMAGE_FEED_MARKER, VIDEO_SAVE_LOOKUP_MARKER, optimize_comment_video_info_cache, optimize_imagefeed_single_traversal, optimize_video_save_cache_lookup, optimize_source, rewrite_plugin
+from optimize_xiaohongshu import LOCAL, REMOTE, MARKER, IMAGE_FEED_MARKER, VIDEO_SAVE_LOOKUP_MARKER, STREAM_SELECTION_MARKER, optimize_comment_video_info_cache, optimize_imagefeed_single_traversal, optimize_video_save_cache_lookup, optimize_stream_selection_no_closure, optimize_source, rewrite_plugin
 
 ROOT=Path(__file__).resolve().parent
 NODE=shutil.which("node")
@@ -20,6 +20,12 @@ class XiaohongshuOptimizerTests(unittest.TestCase):
         self.assertIn(VIDEO_SAVE_LOOKUP_MARKER,src)
         self.assertIn("for (let i = videoFeed.length - 1; i >= 0; i--)",src)
         self.assertNotIn("for (let item of videoFeed)",src)
+        self.assertIn(STREAM_SELECTION_MARKER,src)
+        stream_start=src.index("function selectBestStream(h265List,h264List) {")
+        stream_end=src.index("\\n\\n\\n/**",stream_start)
+        stream_block=src[stream_start:stream_end]
+        self.assertNotIn("const choose",stream_block)
+        self.assertNotIn("=>",stream_block)
         self.assertNotIn("console.log('新body：' + JSON.stringify(obj))",src)
         self.assertNotIn('console.log("写入缓存val：" + JSON.stringify(commitsRsp))',src)
         self.assertFalse(any("console.log(" in line and any(token in line for token in ("原body：","新body：","写入缓存val","comment_id:","video_id：")) for line in src.splitlines()))
@@ -49,6 +55,63 @@ class XiaohongshuOptimizerTests(unittest.TestCase):
         damaged=source.replace("let parsed = parsedVideoInfo.get(raw);","let parsed = parsedVideoInfo.has(raw);")
         with self.assertRaisesRegex(ValueError,"marker is stale"):
             optimize_comment_video_info_cache(damaged)
+
+    def test_stream_selection_optimizer_is_idempotent_and_fails_closed(self):
+        source=(ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")
+        self.assertEqual(optimize_stream_selection_no_closure(source),source)
+        damaged=source.replace("for (let pass = 0; pass < 2; pass++)","for (let pass = 0; pass < 1; pass++)",1)
+        self.assertNotEqual(damaged,source)
+        with self.assertRaisesRegex(ValueError,"marker is stale"):
+            optimize_stream_selection_no_closure(damaged)
+
+    @unittest.skipUnless(NODE,"Node required for stream selection runtime test")
+    def test_video_feed_stream_selection_preserves_codec_resolution_bitrate_priority(self):
+        runner=r'''
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync("scripts/xiaohongshu/xiaohongshu.js","utf8");
+const p=JSON.parse(fs.readFileSync(0,"utf8")),store=new Map();let done;
+const ctx={$loon:{},$persistentStore:{read:k=>store.has(k)?store.get(k):null,write:(v,k)=>(store.set(k,v),true)},
+$request:{url:p.url},$response:{body:JSON.stringify(p.body)},$done:v=>done=v,console:{log(){},warn(){},error(){}}};
+vm.runInNewContext(source,ctx,{timeout:5000});
+process.stdout.write(JSON.stringify({body:JSON.parse(done.body),cache:JSON.parse(store.get("redBookVideoFeed"))}));
+'''
+        body={"data":[
+            {"id":"prefer-h265","video_info_v2":{"media":{"stream":{
+                "h265":[
+                    {"master_url":"","width":7680,"height":4320,"avg_bitrate":999},
+                    {"master_url":"https://video.example/h265-720.mp4","width":1280,"height":720,"avg_bitrate":30},
+                    {"master_url":"https://video.example/h265-1080-low.mp4","width":1920,"height":1080,"avg_bitrate":40},
+                    {"master_url":"https://video.example/h265-1080-high.mp4","width":1920,"height":1080,"avg_bitrate":80}
+                ],
+                "h264":[{"master_url":"https://video.example/h264-4k.mp4","width":3840,"height":2160,"avg_bitrate":999}]
+            }}}},
+            {"id":"h264-fallback","video_info_v2":{"media":{"stream":{
+                "h265":[],
+                "h264":[
+                    {"master_url":"https://video.example/h264-720.mp4","width":1280,"height":720,"avg_bitrate":20},
+                    {"master_url":"https://video.example/h264-1080.mp4","width":1920,"height":1080,"avg_bitrate":40}
+                ]
+            }}}},
+            {"id":"invalid-h265-fallback","video_info_v2":{"media":{"stream":{
+                "h265":[{"width":7680,"height":4320,"avg_bitrate":999}],
+                "h264":[{"master_url":"https://video.example/h264-valid.mp4","width":640,"height":360,"avg_bitrate":5}]
+            }}}},
+            {"id":"stable-tie","video_info_v2":{"media":{"stream":{
+                "h265":[
+                    {"master_url":"https://video.example/first-tie.mp4","width":1920,"height":1080,"avg_bitrate":50},
+                    {"master_url":"https://video.example/second-tie.mp4","width":1920,"height":1080,"avg_bitrate":50}
+                ],"h264":[]
+            }}}}
+        ]}
+        run=subprocess.run([NODE,"-e",runner],input=json.dumps({
+            "url":"https://edith.xiaohongshu.com/api/sns/v4/note/videofeed?cursor=fixture","body":body
+        }),cwd=ROOT,capture_output=True,text=True,check=True,timeout=10)
+        out=json.loads(run.stdout)
+        self.assertEqual([item["url"] for item in out["cache"]],[
+            "https://video.example/h265-1080-high.mp4",
+            "https://video.example/h264-1080.mp4",
+            "https://video.example/h264-valid.mp4",
+            "https://video.example/first-tie.mp4"
+        ])
 
     def test_video_save_cache_optimizer_is_idempotent_and_fails_closed(self):
         source=(ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")
