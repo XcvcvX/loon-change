@@ -323,12 +323,15 @@ class BaiduMapAdsPreflightTests(unittest.TestCase):
         self.source = (ROOT / "scripts/baidumap/baidu-map-protobuf.js").read_text(encoding="utf-8")
 
     def test_ads_preflight_runs_before_payload_view_and_protobuf_decode(self):
-        self.assertIn("// loon-change: Baidu protobuf allocation-free Ads preflight v1", self.source)
+        self.assertIn("// loon-change: Baidu protobuf raw-signature Ads preflight v2", self.source)
         start = self.source.index("}else if(name === 'Ads'){")
         end = self.source.index("const adsType = baiduMapRoot.lookupType(name);", start)
         block = self.source[start:end]
         self.assertIn("if (!hasBaiduTargetAds(binaryBody, currentOffset, targetDataLength)) continue;", block)
         self.assertLess(block.index("hasBaiduTargetAds("), block.index("const targetData = binaryBody.subarray("))
+        self.assertIn("for (let i = start; i < end; i++)", self.source)
+        self.assertNotIn("function readVarint(limit)", self.source)
+        self.assertNotIn("function skipField(wireType, limit)", self.source)
 
     @unittest.skipUnless(NODE, "Node.js is required for BaiduMap protobuf preflight tests")
     def test_preflight_skips_non_target_content_and_decodes_target_content(self):

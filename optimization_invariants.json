@@ -311,7 +311,7 @@
         "const digest = hash(body.subarray(payloadOffset));",
         "let digestOffset = -1;",
         "encodedHeader[digestOffset + i] = digest.charCodeAt(i);",
-        "// loon-change: Baidu protobuf allocation-free Ads preflight v1",
+        "// loon-change: Baidu protobuf raw-signature Ads preflight v2",
         "function hasBaiduTargetAds(",
         "if (!hasBaiduTargetAds(binaryBody, currentOffset, targetDataLength)) continue;"
       ],
