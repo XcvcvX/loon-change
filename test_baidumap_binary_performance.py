@@ -71,7 +71,7 @@ class BaiduMapBinaryPerformanceTests(unittest.TestCase):
         marker = "// loon-change: Baidu protobuf Ads content array cache v1"
         self.assertIn(marker, self.source)
         start = self.source.index(marker)
-        end = self.source.index("if(modifiedAds) newAds = adsType.encode(adsMessage).finish();", start)
+        end = self.source.index("if (adsSegmentModified) {", start)
         loop = self.source[start:end]
         self.assertIn("const adsContent = adsMessage.content;", loop)
         self.assertIn("const adsContentLength = adsContent.length;", loop)
@@ -390,8 +390,8 @@ source = source.replace(
   "for (let k = 0; k < trackedAdsContent.length; k++) { const target = trackedAdsContent[k]; trackedAdsContent[k] = new Proxy(target, { get(target, key, receiver) { if (globalThis.__trackAdsProperties && key === 'start') globalThis.__adsStartReads++; if (globalThis.__trackAdsProperties && key === 'end') globalThis.__adsEndReads++; return Reflect.get(target, key, receiver); } }); }"
 );
 source = source.replace(
-  "if(modifiedAds) newAds = adsType.encode(adsMessage).finish();",
-  "if(modifiedAds) { globalThis.__trackAdsProperties = false; newAds = adsType.encode(adsMessage).finish(); }"
+  "if (adsSegmentModified) {\n      modifiedAds = true;\n      newAds = adsType.encode(adsMessage).finish();\n    }",
+  "if (adsSegmentModified) { globalThis.__trackAdsProperties = false; modifiedAds = true; newAds = adsType.encode(adsMessage).finish(); }"
 );
 
 
@@ -624,6 +624,23 @@ process.stdout.write("ok");
             capture_output=True, text=True, check=True, timeout=10,
         )
         self.assertEqual(completed.stdout, "ok")
+
+
+    def test_ads_reencoding_is_gated_by_current_segment_mutation(self):
+        source = (ROOT / "scripts/baidumap/baidu-map-protobuf.js").read_text(encoding="utf-8")
+        marker = "// loon-change: Baidu protobuf per-segment Ads mutation gate v1"
+        self.assertIn(marker, source)
+        start = source.index(marker)
+        end = source.index("    }\n  }\n}", start)
+        segment = source[start:end]
+        self.assertIn("let adsSegmentModified = false;", segment)
+        self.assertIn("adsSegmentModified = true;", segment)
+        self.assertIn("if (adsSegmentModified) {", segment)
+        self.assertIn("modifiedAds = true;", segment)
+        self.assertIn("newAds = adsType.encode(adsMessage).finish();", segment)
+        self.assertNotIn("if(modifiedAds) newAds =", segment)
+        self.assertEqual(segment.count("adsType.encode(adsMessage).finish()"), 1)
+
 
 if __name__ == "__main__":
     unittest.main()
