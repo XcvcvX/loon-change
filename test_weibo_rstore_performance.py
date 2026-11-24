@@ -152,7 +152,7 @@ process.stdout.write(JSON.stringify({doneResult, parseCount, stringifyCount}));
             {"itemid": "infeed_pagemanual3:1"},
             {"itemid": "infeed_weibo_mall:1"},
             {"itemid": "normal-card", "mblog": {"mblogtypename": "广告"}},
-            {"itemid": {"itemid": "keep-1"},
+            {"itemid": "keep-1"},
             {"itemid": "keep-2"}
         ]}
         result = self.run_script("https://api.weibo.cn/2/page?containerid=fixture", body)
