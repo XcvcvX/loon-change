@@ -339,7 +339,7 @@ def optimize_source(source, commit="unknown"):
     if MARKER in source:
         if "__loonSource32" not in source or "compactInPlace(items, keep)" not in source:
             raise ValueError("marked Weibo script is incomplete")
-        return optimize_scalar_membership(add_lazy_serialization_guard(source))
+        return optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source)))
     source = source.replace("const url = $request.url;", "const url = $request.url;\n" + GUARD_DECLARATION + "\n\n" + HELPER, 1)
     if source.count(HELPER) != 1:
         raise ValueError("Weibo helper insertion failed")
@@ -351,7 +351,7 @@ def optimize_source(source, commit="unknown"):
     remaining = re.findall(r"\b(new[A-Za-z0-9_]*)\s*=\s*\[\s*\]", source)
     if sorted(remaining) != ["newActions", "newII"]:
         raise ValueError("unexpected remaining Weibo temporary arrays: " + repr(remaining))
-    return optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source))
+    return optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source)))
 
 SCALAR_MEMBERSHIP_MARKER = "// loon-change: Weibo hot-loop scalar membership v1"
 SCALAR_MEMBERSHIP_REWRITES = [
@@ -390,6 +390,27 @@ def optimize_scalar_membership(source):
     for old, _, _ in SCALAR_MEMBERSHIP_REWRITES:
         if old in source:
             raise ValueError("Weibo scalar-membership postcondition failed")
+    return source
+
+
+
+PAGE_ITEMID_MARKER = "// loon-change: Weibo /2/page cached itemid reads v1"
+PAGE_ITEMID_OLD = "      if (obj?.cards?.[0]?.card_group?.length > 0) {\n        compactInPlace(obj.cards[0].card_group, c => !(c?.actionlog?.ext?.includes(\"ads_word\") || c?.itemid?.includes(\"t:51\") || c?.itemid?.includes(\"ads_word\")));\n      }\n      compactInPlace(obj.cards, i => !(\n          i.itemid?.includes(\"feed_-_invite\") ||\n          i.itemid?.includes(\"infeed_friends_recommend\") ||\n          i.itemid?.includes(\"infeed_may_interest_in\") ||\n          i.itemid?.includes(\"infeed_pagemanual3\") ||\n          i.itemid?.includes(\"infeed_weibo_mall\") ||\n          i?.mblog?.mblogtypename?.includes(\"广告\")\n        ));"
+PAGE_ITEMID_NEW = "      if (obj?.cards?.[0]?.card_group?.length > 0) {\n        compactInPlace(obj.cards[0].card_group, c => {\n          if (c?.actionlog?.ext?.includes(\"ads_word\")) return false;\n          const itemId = c?.itemid;\n          return !(itemId?.includes(\"t:51\") || itemId?.includes(\"ads_word\"));\n        });\n      }\n      compactInPlace(obj.cards, i => {\n        const itemId = i.itemid;\n        return !(\n          itemId?.includes(\"feed_-_invite\") ||\n          itemId?.includes(\"infeed_friends_recommend\") ||\n          itemId?.includes(\"infeed_may_interest_in\") ||\n          itemId?.includes(\"infeed_pagemanual3\") ||\n          itemId?.includes(\"infeed_weibo_mall\") ||\n          i?.mblog?.mblogtypename?.includes(\"广告\")\n        );\n      });"
+
+def optimize_page_filter_cached_itemid(source):
+    if PAGE_ITEMID_MARKER in source:
+        if source.count(PAGE_ITEMID_MARKER) != 1 or PAGE_ITEMID_OLD in source:
+            raise ValueError("Weibo /2/page cached-itemid marker/structure drift")
+        if PAGE_ITEMID_NEW not in source:
+            raise ValueError("Weibo /2/page cached-itemid transformed block missing")
+        return source
+    if source.count(PAGE_ITEMID_OLD) != 1:
+        raise ValueError("Weibo /2/page filter anchor drift")
+    source = source.replace(PAGE_ITEMID_OLD, PAGE_ITEMID_NEW, 1)
+    if source.count(SCALAR_MEMBERSHIP_MARKER) != 1:
+        raise ValueError("Weibo scalar membership marker anchor drift")
+    source = source.replace(SCALAR_MEMBERSHIP_MARKER, SCALAR_MEMBERSHIP_MARKER + "\\n" + PAGE_ITEMID_MARKER, 1)
     return source
 
 

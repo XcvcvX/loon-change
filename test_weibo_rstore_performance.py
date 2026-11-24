@@ -5,7 +5,7 @@ import subprocess
 import unittest
 from pathlib import Path
 
-from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, LAZY_MARKER, GUARD_DECLARATION, HELPER, LEGACY_HELPER, optimize_source, rewrite_plugin
+from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, LAZY_MARKER, GUARD_DECLARATION, HELPER, LEGACY_HELPER, optimize_source, rewrite_plugin, optimize_page_filter_cached_itemid
 
 ROOT = Path(__file__).resolve().parent
 SCRIPT = ROOT / "scripts/weibo/weibo-rstore.js"
@@ -42,6 +42,20 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         self.assertIn("cardType === 120 || cardType === 145 || cardType === 192", source)
         self.assertIn("item?.data?.card_type === 19 || item?.data?.card_type === 118", source)
         self.assertIn("!(item?.data?.card_type === 4 || item?.data?.card_type === 197", source)
+
+
+    def test_page_filter_caches_repeated_itemid_property_reads(self):
+        source = SCRIPT.read_text(encoding="utf-8")
+        marker = "// loon-change: Weibo /2/page cached itemid reads v1"
+        self.assertEqual(source.count(marker), 1)
+        self.assertEqual(optimize_page_filter_cached_itemid(source), source)
+        self.assertIn("const itemId = c?.itemid;", source)
+        self.assertIn("const itemId = i.itemid;", source)
+        self.assertEqual(source.count("i.itemid?.includes("), 0)
+        self.assertEqual(source.count("c?.itemid?.includes("), 0)
+        damaged = source.replace("const itemId = i.itemid;", "const cachedItemId = i.itemid;", 1)
+        with self.assertRaisesRegex(ValueError, "transformed block missing"):
+            optimize_page_filter_cached_itemid(damaged)
 
     def test_old_optimized_snapshot_regains_lazy_serialization_guard(self):
         source = SCRIPT.read_text(encoding="utf-8")
@@ -122,6 +136,29 @@ process.stdout.write(JSON.stringify({doneResult, parseCount, stringifyCount}));
         self.assertNotIn("buttons", output["cards"][1]["mblog"])
         self.assertEqual(result["parseCount"], 1)
         self.assertEqual(result["stringifyCount"], 1)
+
+
+    def test_search_page_filters_preserve_order_and_ads_semantics(self):
+        body = {"cards": [
+            {"card_group": [
+                {"itemid": "normal"},
+                {"itemid": "t:51:banner"},
+                {"actionlog": {"ext": "ads_word"}, "itemid": "normal-2"},
+                {"itemid": "ads_word"}
+            ]},
+            {"itemid": "feed_-_invite:1"},
+            {"itemid": "infeed_friends_recommend:1"},
+            {"itemid": "infeed_may_interest_in:1"},
+            {"itemid": "infeed_pagemanual3:1"},
+            {"itemid": "infeed_weibo_mall:1"},
+            {"itemid": "normal-card", "mblog": {"mblogtypename": "广告"}},
+            {"itemid": "keep-1"},
+            {"itemid": "keep-2"}
+        ]}
+        result = self.run_script("https://api.weibo.cn/2/page?containerid=fixture", body)
+        output = json.loads(result["doneResult"]["body"])
+        self.assertEqual([item["itemid"] for item in output["cards"]], ["keep-1", "keep-2"])
+        self.assertEqual([item["itemid"] for item in output["cards"][0]["card_group"]], ["normal"])
 
     def test_comments_cleanup_keeps_only_allowed_items(self):
         body = {"datas": [
