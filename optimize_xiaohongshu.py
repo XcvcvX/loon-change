@@ -215,7 +215,7 @@ def optimize_video_save_cache_lookup(src):
             "        break;",
         )
         marker_pos = src.index(VIDEO_SAVE_LOOKUP_MARKER)
-        block_end = src.find("\\n  }\\n  // 解除下载限制", marker_pos)
+        block_end = src.find("\n  }\n  // 解除下载限制", marker_pos)
         block = src[marker_pos:block_end] if block_end >= 0 else ""
         if block_end < 0 or any(token not in block for token in required) or "for (let item of videoFeed)" in block:
             raise ValueError("Xiaohongshu video-save reverse lookup marker is stale")
