@@ -277,11 +277,19 @@
         "const splashItems = bizData?.[\"taobao-splash\"]?.data;",
         "const itemCount = splashItems.length;",
         "for (let sectionIndex = 0; sectionIndex < sectionCount; sectionIndex++)",
-        "for (let itemIndex = 0; itemIndex < itemCount; itemIndex++)"
+        "for (let itemIndex = 0; itemIndex < itemCount; itemIndex++)",
+        "// loon-change: Taobao cached video response object v1",
+        "// loon-change: Taobao cached Poplayer response objects v1",
+        "const videoData = obj?.data;",
+        "const poplayerRes = obj?.res;",
+        "const mainRes = obj?.mainRes;",
+        "const poplayerEnabled = obj?.enable;"
       ],
       "forbidden": [
         "for (let items of splash.base.sections)",
-        "for (let item of items.bizData[\"taobao-splash\"].data)"
+        "for (let item of items.bizData[\"taobao-splash\"].data)",
+        "clearArray(obj?.res || {},",
+        "clearArray(obj?.mainRes || {},"
       ]
     },
     {
