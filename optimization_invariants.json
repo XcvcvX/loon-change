@@ -130,7 +130,11 @@
         "item?.data?.card_type === 19 || item?.data?.card_type === 118",
         "// loon-change: Weibo /2/page cached itemid reads v1",
         "const itemId = c?.itemid;",
-        "const itemId = i.itemid;"
+        "const itemId = i.itemid;",
+        "// loon-change: Weibo topic-group in-place item compaction v1",
+        "const groupItems = item.items;",
+        "const groupLength = groupItems.length;",
+        "groupItems.length = groupWrite;"
       ],
       "forbidden": [
         "[120, 145, 192]?.includes(cardType)",
@@ -148,7 +152,10 @@
         "[3, 17, 22, 30, 42, 89, 206, 236]?.includes(ii?.data?.card_type)",
         "![4, 197, 1012]?.includes(item?.data?.card_type)",
         "c?.itemid?.includes(\"t:51\")",
-        "i.itemid?.includes(\"feed_-_invite\")"
+        "i.itemid?.includes(\"feed_-_invite\")",
+        "let newII = [];",
+        "item.items = newII;",
+        "newII.push(ii);"
       ]
     },
     {

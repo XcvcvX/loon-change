@@ -5,7 +5,7 @@ import subprocess
 import unittest
 from pathlib import Path
 
-from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, LAZY_MARKER, GUARD_DECLARATION, HELPER, LEGACY_HELPER, optimize_source, rewrite_plugin, optimize_page_filter_cached_itemid
+from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, LAZY_MARKER, GUARD_DECLARATION, HELPER, LEGACY_HELPER, optimize_source, rewrite_plugin, optimize_page_filter_cached_itemid, TOPIC_GROUP_MARKER, optimize_topic_group_in_place
 
 ROOT = Path(__file__).resolve().parent
 SCRIPT = ROOT / "scripts/weibo/weibo-rstore.js"
@@ -56,6 +56,19 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         damaged = source.replace("const itemId = i.itemid;", "const cachedItemId = i.itemid;", 1)
         with self.assertRaisesRegex(ValueError, "transformed block missing"):
             optimize_page_filter_cached_itemid(damaged)
+
+    def test_topic_group_compaction_is_in_place_idempotent_and_fails_closed(self):
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertEqual(optimize_topic_group_in_place(source), source)
+        self.assertEqual(source.count(TOPIC_GROUP_MARKER), 1)
+        self.assertIn("const groupItems = item.items;", source)
+        self.assertIn("const groupLength = groupItems.length;", source)
+        self.assertIn("groupItems.length = groupWrite;", source)
+        self.assertNotIn("let newII = [];", source)
+        self.assertNotIn("item.items = newII;", source)
+        damaged = source.replace("const groupItems = item.items;", "const groupItems = undefined;", 1)
+        with self.assertRaisesRegex(ValueError, "marker/structure drift"):
+            optimize_topic_group_in_place(damaged)
 
     def test_old_optimized_snapshot_regains_lazy_serialization_guard(self):
         source = SCRIPT.read_text(encoding="utf-8")
@@ -228,6 +241,31 @@ process.stdout.write(JSON.stringify({doneResult, parseCount, stringifyCount}));
         self.assertEqual([x["id"] for x in output["statuses"]], ["keep-status"])
         self.assertNotIn("ad", output)
         self.assertNotIn("trends", output)
+
+    def test_topic_group_top_items_compact_in_place_preserving_order_and_hotwords(self):
+        body = {"items": [{
+            "category": "group",
+            "itemId": None,
+            "items": [
+                {"data": {"itemid": "mine_topics_1", "buttons": [{"type": "follow"}]}},
+                {"data": {"itemid": "tab_search_input", "hotwords": [{"word": "old"}], "icons": [{"type": "x"}]}},
+                {"data": {"itemid": "poiRankList"}},
+                {"data": {"itemid": "unwanted_recommend"}},
+                {"data": {"title": "no itemid", "buttons": [{"type": "follow"}]}},
+                {"title": "missing data"}
+            ]
+        }]}
+        result = self.run_script("https://api.weibo.cn/2/statuses/container_timeline_topic?fixture=1", body)
+        output = json.loads(result["doneResult"]["body"])
+        kept = output["items"][0]["items"]
+        self.assertEqual(len(kept), 5)
+        self.assertEqual([x.get("data", {}).get("itemid") for x in kept[:3]],
+                         ["mine_topics_1", "tab_search_input", "poiRankList"])
+        self.assertEqual(kept[1]["data"]["hotwords"], [{"word": "搜索超话"}])
+        self.assertNotIn("buttons", kept[0]["data"])
+        self.assertNotIn("icons", kept[1]["data"])
+        self.assertEqual(kept[3]["data"]["title"], "no itemid")
+        self.assertEqual(kept[4]["title"], "missing data")
 
     def test_search_page_filters_ads_in_place(self):
         body = {"cards": [

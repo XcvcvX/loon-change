@@ -339,7 +339,7 @@ def optimize_source(source, commit="unknown"):
     if MARKER in source:
         if "__loonSource32" not in source or "compactInPlace(items, keep)" not in source:
             raise ValueError("marked Weibo script is incomplete")
-        return optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source)))
+        return optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source))))
     source = source.replace("const url = $request.url;", "const url = $request.url;\n" + GUARD_DECLARATION + "\n\n" + HELPER, 1)
     if source.count(HELPER) != 1:
         raise ValueError("Weibo helper insertion failed")
@@ -351,7 +351,7 @@ def optimize_source(source, commit="unknown"):
     remaining = re.findall(r"\b(new[A-Za-z0-9_]*)\s*=\s*\[\s*\]", source)
     if sorted(remaining) != ["newActions", "newII"]:
         raise ValueError("unexpected remaining Weibo temporary arrays: " + repr(remaining))
-    return optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source)))
+    return optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source))))
 
 SCALAR_MEMBERSHIP_MARKER = "// loon-change: Weibo hot-loop scalar membership v1"
 SCALAR_MEMBERSHIP_REWRITES = [
@@ -411,6 +411,83 @@ def optimize_page_filter_cached_itemid(source):
     if source.count(SCALAR_MEMBERSHIP_MARKER) != 1:
         raise ValueError("Weibo scalar membership marker anchor drift")
     source = source.replace(SCALAR_MEMBERSHIP_MARKER, SCALAR_MEMBERSHIP_MARKER + "\n" + PAGE_ITEMID_MARKER, 1)
+    return source
+
+
+TOPIC_GROUP_MARKER = "// loon-change: Weibo topic-group in-place item compaction v1"
+TOPIC_GROUP_OLD = """              // 超话页顶部乱七八糟
+              let newII = [];
+              for (let ii of item.items) {
+                if (ii?.data?.hasOwnProperty(\"itemid\")) {
+                  if (ii?.data?.itemid?.includes(\"mine_topics\")) {
+                    // 保留我的超话
+                    newII.push(ii);
+                  } else if (ii?.data?.itemid?.includes(\"tab_search_input\")) {
+                    // 保留搜索框
+                    if (ii?.data?.hotwords) {
+                      // 删除热搜词
+                      ii.data.hotwords = [{word: \"搜索超话\"}];
+                    }
+                    newII.push(ii);
+                  } else if (ii?.data?.itemid?.includes(\"poiRankList\")) {
+                    // 保留地点超话 地标人气榜
+                    newII.push(ii);
+                  }
+                } else {
+                  // 放行无itemid字段的内容
+                  newII.push(ii);
+                }
+                // 头像挂件,关注按钮
+                removeAvatar(ii?.data);
+                item.items = newII;
+              }"""
+TOPIC_GROUP_NEW = """              // 超话页顶部乱七八糟
+              // loon-change: Weibo topic-group in-place item compaction v1;
+              const groupItems = item.items;
+              const groupLength = groupItems.length;
+              let groupWrite = 0;
+              for (let groupRead = 0; groupRead < groupLength; groupRead++) {
+                const ii = groupItems[groupRead];
+                const itemData = ii?.data;
+                const itemId = itemData?.itemid;
+                let keep = false;
+                if (itemData?.hasOwnProperty(\"itemid\")) {
+                  if (itemId?.includes(\"mine_topics\")) {
+                    // 保留我的超话
+                    keep = true;
+                  } else if (itemId?.includes(\"tab_search_input\")) {
+                    // 保留搜索框
+                    if (itemData?.hotwords) {
+                      // 删除热搜词
+                      itemData.hotwords = [{word: \"搜索超话\"}];
+                    }
+                    keep = true;
+                  } else if (itemId?.includes(\"poiRankList\")) {
+                    // 保留地点超话 地标人气榜
+                    keep = true;
+                  }
+                } else {
+                  // 放行无itemid字段的内容
+                  keep = true;
+                }
+                if (keep) groupItems[groupWrite++] = ii;
+                // 头像挂件,关注按钮
+                removeAvatar(itemData);
+              }
+              groupItems.length = groupWrite;"""
+
+def optimize_topic_group_in_place(source):
+    if TOPIC_GROUP_MARKER in source:
+        if source.count(TOPIC_GROUP_MARKER) != 1 or TOPIC_GROUP_OLD in source or TOPIC_GROUP_NEW not in source:
+            raise ValueError("Weibo topic-group compaction marker/structure drift")
+        if "let newII = [];" in source or "item.items = newII;" in source:
+            raise ValueError("Weibo topic-group compaction legacy allocation remains")
+        return source
+    if source.count(TOPIC_GROUP_OLD) != 1:
+        raise ValueError("Weibo topic-group compaction anchor drift")
+    source = source.replace(TOPIC_GROUP_OLD, TOPIC_GROUP_NEW, 1)
+    if source.count(TOPIC_GROUP_MARKER) != 1 or "let newII = [];" in source:
+        raise ValueError("Weibo topic-group compaction postcondition failed")
     return source
 
 
