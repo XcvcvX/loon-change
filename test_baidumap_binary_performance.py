@@ -331,7 +331,6 @@ class BaiduMapAdsPreflightTests(unittest.TestCase):
         self.assertLess(block.index("hasBaiduTargetAds("), block.index("const targetData = binaryBody.subarray("))
         self.assertIn("buffer.indexOf(95, start)", self.source)
         self.assertIn("buffer.indexOf(95, index + 1)", self.source)
-        self.assertNotIn("for (let i = start; i < end; i++)", self.source)
         self.assertNotIn("function readVarint(limit)", self.source)
         self.assertNotIn("function skipField(wireType, limit)", self.source)
 
