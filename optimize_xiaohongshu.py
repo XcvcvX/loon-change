@@ -274,7 +274,7 @@ def optimize_v4_video_feed_function_entry_scan(src):
     anchor = "      const functionEntries = item?.share_info?.function_entries;"
     if src.count(anchor) != 1:
         raise ValueError("Xiaohongshu v4 function-entry marker insertion anchor drift")
-    return src.replace(anchor, VIDEO_ENTRY_MARKER + "\\n" + anchor, 1)
+    return src.replace(anchor, VIDEO_ENTRY_MARKER + "\n" + anchor, 1)
 
 def optimize_source(src,commit="unknown"):
     if MARKER in src:
