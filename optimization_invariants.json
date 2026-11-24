@@ -48,7 +48,6 @@
         "imageEnhance(images_list, livePhotoCache);",
         "Xiaohongshu comment classification stack frames v1;",
         "const commentFrameTag = {};",
-        "stack.push([commentFrameTag, comment, true])",
         "// loon-change: Xiaohongshu comment video-info cache single lookup v2;",
         "let parsed = parsedVideoInfo.get(raw);",
         "// loon-change: Xiaohongshu video-save cache reverse early-exit lookup v1;",
@@ -63,7 +62,11 @@
         "// loon-change: Xiaohongshu comment media collection property cache v1;",
         "const pictures = current.pictures;",
         "const pictureVideoId = picture?.video_id;",
-        "const videoId = video?.video_id;"
+        "const videoId = video?.video_id;",
+        "// loon-change: Xiaohongshu comment frame stack flat encoding v1;",
+        "const isCommentFrame = entry === commentFrameTag;",
+        "stack.push(true, comment, commentFrameTag);",
+        "stack.push(false, subComment, commentFrameTag);"
       ],
       "forbidden": [
         "console.log(`[缓存] ID:",
@@ -79,7 +82,10 @@
         "function_entries.some(",
         "child.live_photo?.media?.stream?.h265?.[0]",
         "if (!picture?.video_id) continue;",
-        "if (!video?.video_id || !video?.video_info) continue;"
+        "if (!video?.video_id || !video?.video_info) continue;",
+        "const isCommentFrame = Array.isArray(entry) && entry[0] === commentFrameTag;",
+        "stack.push([commentFrameTag, comment, true]);",
+        "stack.push([commentFrameTag, subComment, false]);"
       ]
     },
     {

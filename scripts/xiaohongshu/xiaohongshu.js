@@ -466,12 +466,13 @@ function processCommentTree(data, livePhotos, commentVideos, noteId) {
   // JSON.parse creates a tree with no cycles or shared object references.
   // Comment classification travels with only comment stack entries; other nodes
   // remain plain references and require no WeakSet membership structure.
+  // loon-change: Xiaohongshu comment frame stack flat encoding v1;
   const stack = [data];
   while (stack.length) {
     const entry = stack.pop();
-    const isCommentFrame = Array.isArray(entry) && entry[0] === commentFrameTag;
-    const current = isCommentFrame ? entry[1] : entry;
-    const isTopLevelComment = isCommentFrame && entry[2] === true;
+    const isCommentFrame = entry === commentFrameTag;
+    const current = isCommentFrame ? stack.pop() : entry;
+    const isTopLevelComment = isCommentFrame && stack.pop() === true;
     if (!current || typeof current !== "object") continue;
     if (!Array.isArray(current)) {
       if ("red_id" in current) { current.fmz200 = current.red_id; delete current.red_id; }
@@ -520,12 +521,12 @@ function processCommentTree(data, livePhotos, commentVideos, noteId) {
         if (current === data && key === "comments" && Array.isArray(child)) {
           for (let i = child.length - 1; i >= 0; i--) {
             const comment = child[i];
-            if (comment && typeof comment === "object") stack.push([commentFrameTag, comment, true]);
+            if (comment && typeof comment === "object") stack.push(true, comment, commentFrameTag);
           }
         } else if (isCommentFrame && isTopLevelComment && key === "sub_comments" && Array.isArray(child)) {
           for (let i = child.length - 1; i >= 0; i--) {
             const subComment = child[i];
-            if (subComment && typeof subComment === "object") stack.push([commentFrameTag, subComment, false]);
+            if (subComment && typeof subComment === "object") stack.push(false, subComment, commentFrameTag);
           }
         } else stack.push(child);
       }
