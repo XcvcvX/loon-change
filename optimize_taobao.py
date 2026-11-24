@@ -17,6 +17,35 @@ RUNTIME_GUARD = """  %s
   } else {
 """ % RUNTIME_MARKER
 
+SPLASH_HOME_OBJECT_MARKER = "// loon-change: Taobao cached splash home object v1"
+OLD_SPLASH_HOME_OBJECT_BLOCK = """  if (obj?.data?.containers?.splash_home_base) {
+    const sections = obj.data.containers.splash_home_base.base?.sections;"""
+NEW_SPLASH_HOME_OBJECT_BLOCK = """  // loon-change: Taobao cached splash home object v1
+  const splashHome = obj?.data?.containers?.splash_home_base;
+  if (splashHome) {
+    const sections = splashHome.base?.sections;"""
+
+def optimize_splash_home_object(source):
+    if SPLASH_HOME_OBJECT_MARKER in source:
+        required = (
+            SPLASH_HOME_OBJECT_MARKER,
+            "const splashHome = obj?.data?.containers?.splash_home_base;",
+            "if (splashHome) {",
+            "const sections = splashHome.base?.sections;",
+        )
+        if source.count(SPLASH_HOME_OBJECT_MARKER) != 1 or any(token not in source for token in required):
+            raise ValueError("Taobao cached splash home object drifted; refusing to overwrite")
+        if OLD_SPLASH_HOME_OBJECT_BLOCK in source:
+            raise ValueError("Repeated Taobao splash home object traversal remains")
+        return source
+    if source.count(OLD_SPLASH_HOME_OBJECT_BLOCK) != 1:
+        raise ValueError("Expected exactly one Taobao splash home object block")
+    source = source.replace(OLD_SPLASH_HOME_OBJECT_BLOCK, NEW_SPLASH_HOME_OBJECT_BLOCK, 1)
+    if source.count(SPLASH_HOME_OBJECT_MARKER) != 1:
+        raise ValueError("Taobao cached splash home object postcondition failed")
+    return source
+
+
 SPLASH_LOOP_MARKER = "// loon-change: Taobao indexed splash traversal v1"
 OLD_SPLASH_BLOCK = "  if (obj?.data?.containers?.splash_home_base) {\n    let splash = obj.data.containers.splash_home_base;\n    if (splash?.base?.sections?.length > 0) {\n      for (let items of splash.base.sections) {\n        if (\"taobao-splash\" in items.bizData) {\n          if (items?.bizData?.[\"taobao-splash\"]?.data?.length > 0) {\n            for (let item of items.bizData[\"taobao-splash\"].data) {\n              setIfDifferent(item, \"waitTime\", \"0\");\n              setIfDifferent(item, \"times\", \"0\");\n              setIfDifferent(item, \"hotStart\", \"false\");\n              setIfDifferent(item, \"haveVoice\", \"false\");\n              setIfDifferent(item, \"hideTBLogo\", \"false\");\n              setIfDifferent(item, \"enable4G\", \"false\");\n              setIfDifferent(item, \"coldStart\", \"false\");\n              setIfDifferent(item, \"startTime\", \"3818332800000\");\n              setIfDifferent(item, \"endTime\", \"3818419199000\");\n              setIfDifferent(item, \"gmtStart\", \"2090-12-31 00:00:00\");\n              setIfDifferent(item, \"gmtEnd\", \"2090-12-31 23:59:59\");\n              setIfDifferent(item, \"gmtStartMs\", \"3818332800000\");\n              setIfDifferent(item, \"gmtEndMs\", \"3818419199000\");\n              if (item?.imgUrl) setIfDifferent(item, \"imgUrl\", \"\");\n              if (item?.videoUrl) setIfDifferent(item, \"videoUrl\", \"\");\n            }\n          }\n        }\n      }\n    }\n  }"
 NEW_SPLASH_BLOCK = "  if (obj?.data?.containers?.splash_home_base) {\n    const sections = obj.data.containers.splash_home_base.base?.sections;\n    if (Array.isArray(sections) && sections.length > 0) {\n      // loon-change: Taobao indexed splash traversal v1\n      const sectionCount = sections.length;\n      for (let sectionIndex = 0; sectionIndex < sectionCount; sectionIndex++) {\n        const bizData = sections[sectionIndex]?.bizData;\n        const splashItems = bizData?.[\"taobao-splash\"]?.data;\n        if (!Array.isArray(splashItems) || splashItems.length === 0) continue;\n\n        const itemCount = splashItems.length;\n        for (let itemIndex = 0; itemIndex < itemCount; itemIndex++) {\n          const item = splashItems[itemIndex];\n          setIfDifferent(item, \"waitTime\", \"0\");\n          setIfDifferent(item, \"times\", \"0\");\n          setIfDifferent(item, \"hotStart\", \"false\");\n          setIfDifferent(item, \"haveVoice\", \"false\");\n          setIfDifferent(item, \"hideTBLogo\", \"false\");\n          setIfDifferent(item, \"enable4G\", \"false\");\n          setIfDifferent(item, \"coldStart\", \"false\");\n          setIfDifferent(item, \"startTime\", \"3818332800000\");\n          setIfDifferent(item, \"endTime\", \"3818419199000\");\n          setIfDifferent(item, \"gmtStart\", \"2090-12-31 00:00:00\");\n          setIfDifferent(item, \"gmtEnd\", \"2090-12-31 23:59:59\");\n          setIfDifferent(item, \"gmtStartMs\", \"3818332800000\");\n          setIfDifferent(item, \"gmtEndMs\", \"3818419199000\");\n          if (item?.imgUrl) setIfDifferent(item, \"imgUrl\", \"\");\n          if (item?.videoUrl) setIfDifferent(item, \"videoUrl\", \"\");\n        }\n      }\n    }\n  }"
@@ -25,7 +54,6 @@ def optimize_splash_loop(source):
     if SPLASH_LOOP_MARKER in source:
         required = (
             SPLASH_LOOP_MARKER,
-            "const sections = obj.data.containers.splash_home_base.base?.sections;",
             "const sectionCount = sections.length;",
             "const bizData = sections[sectionIndex]?.bizData;",
             'const splashItems = bizData?.["taobao-splash"]?.data;',
@@ -34,6 +62,15 @@ def optimize_splash_loop(source):
         )
         if any(token not in source for token in required):
             raise ValueError("Taobao indexed splash traversal drifted; refusing to overwrite")
+        if SPLASH_HOME_OBJECT_MARKER in source:
+            cached = (
+                "const splashHome = obj?.data?.containers?.splash_home_base;",
+                "const sections = splashHome.base?.sections;",
+            )
+            if source.count(SPLASH_HOME_OBJECT_MARKER) != 1 or any(token not in source for token in cached):
+                raise ValueError("Taobao cached splash home object drifted; refusing to overwrite")
+        elif "const sections = obj.data.containers.splash_home_base.base?.sections;" not in source:
+            raise ValueError("Taobao splash-home traversal anchor drifted; refusing to overwrite")
         if "for (let items of splash.base.sections)" in source or 'for (let item of items.bizData["taobao-splash"].data)' in source:
             raise ValueError("Legacy Taobao splash iterator remains beside optimization marker")
         return source
@@ -286,6 +323,7 @@ def optimize_runtime_source(source):
         if source.index("const shouldProcess =") > source.index("JSON.parse($response.body)"):
             raise ValueError("Taobao pre-parse guard moved after JSON.parse")
     source = optimize_splash_loop(source)
+    source = optimize_splash_home_object(source)
     source = optimize_splash_item_updates(source)
     source = optimize_route_classification(source)
     source = optimize_route_object_access(source)

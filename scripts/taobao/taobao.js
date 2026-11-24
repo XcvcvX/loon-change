@@ -73,8 +73,10 @@ if (isCloudVideo) {
     setIfDifferent(videoData, "respTimeInMs", "3818332800000");
   }
 } else if (isSplash) {
-  if (obj?.data?.containers?.splash_home_base) {
-    const sections = obj.data.containers.splash_home_base.base?.sections;
+  // loon-change: Taobao cached splash home object v1
+  const splashHome = obj?.data?.containers?.splash_home_base;
+  if (splashHome) {
+    const sections = splashHome.base?.sections;
     if (Array.isArray(sections) && sections.length > 0) {
       // loon-change: Taobao indexed splash traversal v1
       const sectionCount = sections.length;
