@@ -164,6 +164,15 @@ process.stdout.write("ok");
         self.assertEqual(completed.stdout, "ok")
 
 
+    def test_rephead_md5_placeholder_is_patched_without_reencoding(self):
+        start = self.source.index("function assembleBaiduResponse(")
+        end = self.source.index("\n}\n", start) + 2
+        helper = self.source[start:end]
+        self.assertEqual(helper.count("repHeadType.encode(repHeadMessage).finish()"), 1)
+        self.assertIn("let digestOffset = -1;", helper)
+        self.assertIn("encodedHeader[digestOffset + i] = digest.charCodeAt(i);", helper)
+        self.assertIn('throw new Error("BaiduMap MD5 placeholder is ambiguous");', helper)
+
 class ResponseScriptAuditTests(unittest.TestCase):
     def test_taobao_handler_has_one_parse_and_no_allocating_array_transform(self):
         source = (ROOT / "scripts/taobao/taobao.js").read_text(encoding="utf-8")
@@ -308,15 +317,6 @@ process.stdout.write(nativeJSON.stringify({
         self.assertEqual(result["stringifyCalls"], 0)
 
 
-
-    def test_rephead_md5_placeholder_is_patched_without_reencoding(self):
-        start = self.source.index("function assembleBaiduResponse(")
-        end = self.source.index("\n}\n", start) + 2
-        helper = self.source[start:end]
-        self.assertEqual(helper.count("repHeadType.encode(repHeadMessage).finish()"), 1)
-        self.assertIn("let digestOffset = -1;", helper)
-        self.assertIn("encodedHeader[digestOffset + i] = digest.charCodeAt(i);", helper)
-        self.assertIn('throw new Error("BaiduMap MD5 placeholder is ambiguous");', helper)
 
 class BaiduMapNoopRebuildRuntimeTests(unittest.TestCase):
     runner = r"""
