@@ -519,11 +519,24 @@ function processCommentTree(data, livePhotos, commentVideos, noteId) {
  * @returns {Object|null} - 选中的流对象或 null
  */
 function selectBestStream(h265List,h264List) {
-  const choose=list=>{if(!Array.isArray(list)||!list.length)return null;let best=null,pixelsBest=0,rateBest=0;
-    for(const item of list){if(!item||!item.master_url)continue;const pixels=(item.width||0)*(item.height||0),rate=Number(item.avg_bitrate)||0;
-      if(best===null||pixels>pixelsBest||(pixels===pixelsBest&&rate>rateBest)){best=item;pixelsBest=pixels;rateBest=rate;}}
-    return best;};
-  return choose(h265List)||choose(h264List);
+  // loon-change: Xiaohongshu best-stream selection without per-call closure v1;
+  for (let pass = 0; pass < 2; pass++) {
+    const list = pass === 0 ? h265List : h264List;
+    if (!Array.isArray(list) || !list.length) continue;
+    let best = null, pixelsBest = 0, rateBest = 0;
+    for (const item of list) {
+      if (!item || !item.master_url) continue;
+      const pixels = (item.width || 0) * (item.height || 0);
+      const rate = Number(item.avg_bitrate) || 0;
+      if (best === null || pixels > pixelsBest || (pixels === pixelsBest && rate > rateBest)) {
+        best = item;
+        pixelsBest = pixels;
+        rateBest = rate;
+      }
+    }
+    if (best) return best;
+  }
+  return null;
 }
 
 
