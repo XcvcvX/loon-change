@@ -299,3 +299,90 @@ class TaobaoCachedResponseObjectTests(unittest.TestCase):
         damaged = source.replace("const videoData = obj?.data;", "const videoData = obj?.payload;", 1)
         with self.assertRaisesRegex(ValueError, "cached response object access drifted"):
             optimize_route_object_access(damaged)
+
+
+class TaobaoSplashHotLoopOptimizationTests(unittest.TestCase):
+    def test_specialized_splash_item_optimizer_is_idempotent_and_fails_closed(self):
+        from optimize_taobao import SPLASH_ITEM_UPDATE_MARKER, optimize_splash_item_updates
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertEqual(optimize_splash_item_updates(source), source)
+        self.assertEqual(source.count(SPLASH_ITEM_UPDATE_MARKER), 1)
+        damaged = source.replace('if (item.waitTime !== "0")', 'if (item.waitTime != "0")', 1)
+        with self.assertRaisesRegex(ValueError, "specialized splash item update drifted"):
+            optimize_splash_item_updates(damaged)
+
+    def test_splash_loop_calls_one_specialized_updater_per_item(self):
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertIn("// loon-change: Taobao splash item specialized updates v1", source)
+        start = source.index("for (let itemIndex = 0; itemIndex < itemCount; itemIndex++)")
+        end = source.index("normalizeSplashItem(item);", start) + len("normalizeSplashItem(item);")
+        loop = source[start:end]
+        self.assertEqual(loop.count("normalizeSplashItem(item);"), 1)
+        self.assertNotIn("setIfDifferent(item,", loop)
+
+    @unittest.skipUnless(NODE, "Node.js is required for Taobao splash hot-loop runtime tests")
+    def test_specialized_updater_reads_each_target_property_once(self):
+        runner = r"""
+const fs = require("fs");
+const vm = require("vm");
+const payload = JSON.parse(fs.readFileSync(0, "utf8"));
+const source = fs.readFileSync(process.argv[1], "utf8");
+let doneResult, track = true;
+const reads = Object.create(null), writes = Object.create(null);
+const nativeJSON = JSON;
+const trackedJSON = {
+  parse(value) {
+    const parsed = nativeJSON.parse(value);
+    const items = parsed.data.containers.splash_home_base.base.sections[0].bizData["taobao-splash"].data;
+    items[0] = new Proxy(items[0], {
+      get(target, key, receiver) {
+        if (track && typeof key === "string") reads[key] = (reads[key] || 0) + 1;
+        return Reflect.get(target, key, receiver);
+      },
+      set(target, key, value, receiver) {
+        if (track && typeof key === "string") writes[key] = (writes[key] || 0) + 1;
+        return Reflect.set(target, key, value, receiver);
+      }
+    });
+    return parsed;
+  },
+  stringify(value) {
+    track = false;
+    try { return nativeJSON.stringify(value); }
+    finally { track = true; }
+  }
+};
+const context = {
+  JSON: trackedJSON,
+  $request: { url: "https://guide-acs.m.taobao.com/gw/mtop.taobao.wireless.home.splash.awesome.get" },
+  $response: { body: nativeJSON.stringify(payload) },
+  $done(value) { doneResult = value; }
+};
+vm.createContext(context);
+vm.runInContext(source, context, { timeout: 5000 });
+const output = nativeJSON.parse(doneResult.body);
+process.stdout.write(nativeJSON.stringify({ reads, writes, item: output.data.containers.splash_home_base.base.sections[0].bizData["taobao-splash"].data[0] }));
+""";
+        item = {
+            "waitTime": "5", "times": "5", "hotStart": "true", "haveVoice": "true",
+            "hideTBLogo": "true", "enable4G": "true", "coldStart": "true",
+            "startTime": "1", "endTime": "2", "gmtStart": "old", "gmtEnd": "old",
+            "gmtStartMs": "1", "gmtEndMs": "2", "imgUrl": "ad.png", "videoUrl": "ad.mp4",
+        }
+        body = {"data": {"containers": {"splash_home_base": {"base": {"sections": [
+            {"bizData": {"taobao-splash": {"data": [item]}}}
+        ]}}}}}
+        completed = subprocess.run(
+            [NODE, "-e", runner, str(SCRIPT)],
+            input=json.dumps(body), capture_output=True, text=True, check=True, timeout=10,
+        )
+        result = json.loads(completed.stdout)
+        expected = set(item)
+        self.assertEqual(set(result["reads"]), expected)
+        self.assertTrue(all(count == 1 for count in result["reads"].values()))
+        self.assertEqual(sum(result["writes"].values()), len(expected))
+        self.assertEqual(result["item"]["waitTime"], "0")
+        self.assertEqual(result["item"]["imgUrl"], "")
+        self.assertEqual(result["item"]["videoUrl"], "")
+        self.assertEqual(result["item"]["gmtEndMs"], "3818419199000")
+
