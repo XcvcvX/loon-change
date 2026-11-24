@@ -39106,111 +39106,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/search_hotquery\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 2248,
-      "output_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/search_hotquery\\?/i then reject_dict(200)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/search_hotquery\\?/i then reject_dict(200)",
-          "input_section": "Rewrite",
-          "priority": 0,
-          "source": "zmjapp",
-          "source_entry_index": 31,
-          "source_file": "Plugin/PinDuoDuo_remove_ads.lpx",
-          "source_line_number": 37,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/search_hotquery\\?/i then reject_dict(200)"
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/zaire_biz/chat/resource/get_list_data\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 2249,
-      "output_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/zaire_biz\\/chat\\/resource\\/get_list_data\\?/i then reject_dict(200)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/zaire_biz\\/chat\\/resource\\/get_list_data\\?/i then reject_dict(200)",
-          "input_section": "Rewrite",
-          "priority": 0,
-          "source": "zmjapp",
-          "source_entry_index": 32,
-          "source_file": "Plugin/PinDuoDuo_remove_ads.lpx",
-          "source_line_number": 38,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/zaire_biz\\/chat\\/resource\\/get_list_data\\?/i then reject_dict(200)"
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/caterham/v3/query/new_chat_group\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 2250,
-      "output_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/caterham\\/v3\\/query\\/new_chat_group\\?/i then reject_dict(200)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/caterham\\/v3\\/query\\/new_chat_group\\?/i then reject_dict(200)",
-          "input_section": "Rewrite",
-          "priority": 0,
-          "source": "zmjapp",
-          "source_entry_index": 33,
-          "source_file": "Plugin/PinDuoDuo_remove_ads.lpx",
-          "source_line_number": 39,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/caterham\\/v3\\/query\\/new_chat_group\\?/i then reject_dict(200)"
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/alexa/goods/back_up\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 2251,
-      "output_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/goods\\/back_up\\?/i then reject_dict(200)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/goods\\/back_up\\?/i then reject_dict(200)",
-          "input_section": "Rewrite",
-          "priority": 0,
-          "source": "zmjapp",
-          "source_entry_index": 34,
-          "source_file": "Plugin/PinDuoDuo_remove_ads.lpx",
-          "source_line_number": 40,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/goods\\/back_up\\?/i then reject_dict(200)"
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/caterham/v3/query/personal\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 2252,
-      "output_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/caterham\\/v3\\/query\\/personal\\?/i then reject_dict(200)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/caterham\\/v3\\/query\\/personal\\?/i then reject_dict(200)",
-          "input_section": "Rewrite",
-          "priority": 0,
-          "source": "zmjapp",
-          "source_entry_index": 35,
-          "source_file": "Plugin/PinDuoDuo_remove_ads.lpx",
-          "source_line_number": 41,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/caterham\\/v3\\/query\\/personal\\?/i then reject_dict(200)"
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/brand-olay/goods_detail/bybt_guide\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
       "output_entry_index": 2253,
       "output_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/brand-olay\\/goods_detail\\/bybt_guide\\?/i then reject_dict(200)",
@@ -39248,48 +39143,6 @@
           "source_line_number": 43,
           "source_original_section": "Rewrite",
           "source_raw_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/engels\\/reviews\\/require\\/append\\?/i then reject_dict(200)"
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/caterham/v3/query/my_order_group\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 2255,
-      "output_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/caterham\\/v3\\/query\\/my_order_group\\?/i then reject_dict(200)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/caterham\\/v3\\/query\\/my_order_group\\?/i then reject_dict(200)",
-          "input_section": "Rewrite",
-          "priority": 0,
-          "source": "zmjapp",
-          "source_entry_index": 38,
-          "source_file": "Plugin/PinDuoDuo_remove_ads.lpx",
-          "source_line_number": 44,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/caterham\\/v3\\/query\\/my_order_group\\?/i then reject_dict(200)"
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://api\\\\.pinduoduo\\\\.com/api/caterham/v3/query/likes\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
-      "output_entry_index": 2256,
-      "output_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/caterham\\/v3\\/query\\/likes\\?/i then reject_dict(200)",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/caterham\\/v3\\/query\\/likes\\?/i then reject_dict(200)",
-          "input_section": "Rewrite",
-          "priority": 0,
-          "source": "zmjapp",
-          "source_entry_index": 39,
-          "source_file": "Plugin/PinDuoDuo_remove_ads.lpx",
-          "source_line_number": 45,
-          "source_original_section": "Rewrite",
-          "source_raw_line": "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/caterham\\/v3\\/query\\/likes\\?/i then reject_dict(200)"
         }
       ],
       "trace_status": "mapped"
@@ -54029,7 +53882,7 @@
       "included": 0
     },
     "post_transform_reconciled": true,
-    "rewrite_output_entries": 2320,
+    "rewrite_output_entries": 2313,
     "rule_covered_or_duplicate_events": 121,
     "rule_included_events": 723,
     "rule_output_entries": 719,
