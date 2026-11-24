@@ -113,13 +113,7 @@ TRAVERSE=r'''function replaceRedIdWithFmz200(obj) {
 COMMENT_PROCESSOR="function processCommentTree(data, livePhotos, commentVideos, noteId) {\n  // loon-change: Xiaohongshu comment classification stack frames v1;\n  const commentFrameTag = {};\n  const parsedVideoInfo = new Map();\n  const parseVideoInfo = raw => {\n    if (typeof raw !== \"string\" || raw.length === 0) return null;\n    // loon-change: Xiaohongshu comment video-info cache single lookup v2;\n    let parsed = parsedVideoInfo.get(raw);\n    if (parsed === undefined) {\n      try { parsed = JSON.parse(raw); }\n      catch (_) { parsed = null; }\n      parsedVideoInfo.set(raw, parsed);\n    }\n    return parsed;\n  };\n  // loon-change: Xiaohongshu parsed JSON comment tree without visited WeakSet v1;\n  // JSON.parse creates a tree with no cycles or shared object references.\n  // Comment classification travels with only comment stack entries; other nodes\n  // remain plain references and require no WeakSet membership structure.\n  const stack = [data];\n  while (stack.length) {\n    const entry = stack.pop();\n    const isCommentFrame = Array.isArray(entry) && entry[0] === commentFrameTag;\n    const current = isCommentFrame ? entry[1] : entry;\n    const isTopLevelComment = isCommentFrame && entry[2] === true;\n    if (!current || typeof current !== \"object\") continue;\n    if (!Array.isArray(current)) {\n      if (\"red_id\" in current) { current.fmz200 = current.red_id; delete current.red_id; }\n      if (isCommentFrame) {\n        fixCommentType(current);\n        if (Array.isArray(current.pictures)) {\n          for (const picture of current.pictures) {\n            if (!picture?.video_id) continue;\n            const info = parseVideoInfo(picture.video_info);\n            const stream = selectBestStream(info?.stream?.h265, info?.stream?.h264);\n            if (stream?.master_url) livePhotos.push({videId: picture.video_id, videoUrl: stream.master_url});\n          }\n        }\n        if (isTopLevelComment && Array.isArray(current.videos)) {\n          for (const video of current.videos) {\n            if (!video?.video_id || !video?.video_info) continue;\n            const info = parseVideoInfo(video.video_info);\n            const stream = selectBestStream(info?.stream?.h265, info?.stream?.h264);\n            if (stream?.master_url) commentVideos.push({\n              videId: video.video_id, videoUrl: stream.master_url, commentId: current.id, noteId,\n              width: stream.width, height: stream.height, bitrate: stream.video_bitrate, hdr: stream.hdr_type === 1\n            });\n          }\n        }\n      }\n    }\n    if (Array.isArray(current)) {\n      for (let i = current.length - 1; i >= 0; i--) {\n        const child = current[i];\n        if (child && typeof child === \"object\") stack.push(child);\n      }\n    } else {\n      for (const key in current) {\n        if (!Object.prototype.hasOwnProperty.call(current, key)) continue;\n        const child = current[key];\n        if (!child || typeof child !== \"object\") continue;\n        if (current === data && key === \"comments\" && Array.isArray(child)) {\n          for (let i = child.length - 1; i >= 0; i--) {\n            const comment = child[i];\n            if (comment && typeof comment === \"object\") stack.push([commentFrameTag, comment, true]);\n          }\n        } else if (isCommentFrame && isTopLevelComment && key === \"sub_comments\" && Array.isArray(child)) {\n          for (let i = child.length - 1; i >= 0; i--) {\n            const subComment = child[i];\n            if (subComment && typeof subComment === \"object\") stack.push([commentFrameTag, subComment, false]);\n          }\n        } else stack.push(child);\n      }\n    }\n  }\n}"
 COMMENT_BRANCH="// 加载评论区\nif (url.includes(\"/api/sns/v5/note/comment/list?\") || url.includes(\"/api/sns/v3/note/comment/sub_comments?\")) {\n  const livePhotos = [];\n  const commentVideos = [];\n  const note_id = obj.data?.comments?.[0]?.note_id || \"\";\n  processCommentTree(obj.data, livePhotos, commentVideos, note_id);\n  if (livePhotos.length > 0) {\n    let commitsRsp;\n    const commitsCache = $.getdata(\"fmz200.xiaohongshu.comments.rsp\");\n    if (!commitsCache) commitsRsp = {noteId: note_id, livePhotos};\n    else {\n      commitsRsp = JSON.parse(commitsCache);\n      if (commitsRsp.noteId === note_id) commitsRsp.livePhotos = appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos);\n      else commitsRsp = {noteId: note_id, livePhotos};\n    }\n    $.setdata(JSON.stringify(commitsRsp), \"fmz200.xiaohongshu.comments.rsp\");\n  }\n  if (commentVideos.length > 0) {\n    let videosCache;\n    const commitsCache = $.getdata(\"fmz200.xiaohongshu.comments.videos.rsp\");\n    if (!commitsCache) videosCache = {noteId: note_id, videos: commentVideos};\n    else {\n      videosCache = JSON.parse(commitsCache);\n      if (videosCache.noteId === note_id) videosCache.videos = appendUniqueLivePhotos(videosCache.videos, commentVideos);\n      else videosCache = {noteId: note_id, videos: commentVideos};\n    }\n    $.setdata(JSON.stringify(videosCache), \"fmz200.xiaohongshu.comments.videos.rsp\");\n  }\n}"
 
-STREAM=r'''function selectBestStream(h265List,h264List) {
-  const choose=list=>{if(!Array.isArray(list)||!list.length)return null;let best=null,pixelsBest=0,rateBest=0;
-    for(const item of list){if(!item||!item.master_url)continue;const pixels=(item.width||0)*(item.height||0),rate=Number(item.avg_bitrate)||0;
-      if(best===null||pixels>pixelsBest||(pixels===pixelsBest&&rate>rateBest)){best=item;pixelsBest=pixels;rateBest=rate;}}
-    return best;};
-  return choose(h265List)||choose(h264List);
-}'''
+
 
 
 IMAGE_FEED_MARKER = "// loon-change: Xiaohongshu imagefeed single traversal live-photo extraction v1"
@@ -236,14 +230,34 @@ def optimize_video_save_cache_lookup(src):
     }"""
     return once(src, old, new, "video-save cache reverse early-exit lookup")
 
+
+STREAM_SELECTION_MARKER = "// loon-change: Xiaohongshu best-stream selection without per-call closure v1;"
+
+def optimize_stream_selection_no_closure(src):
+    if STREAM_SELECTION_MARKER in src:
+        start = src.index("function selectBestStream(h265List,h264List) {")
+        end = src.find("\\n\\n\\n/**", start)
+        block = src[start:end] if end >= 0 else ""
+        required = (
+            STREAM_SELECTION_MARKER,
+            "for (let pass = 0; pass < 2; pass++)",
+            "const list = pass === 0 ? h265List : h264List;",
+            "if (best) return best;",
+            "return null;",
+        )
+        if end < 0 or any(token not in block for token in required) or "const choose" in block or "=>" in block:
+            raise ValueError("Xiaohongshu stream-selection no-closure marker is stale")
+        return src
+    return between(src, "function selectBestStream(h265List, h264List) {", "\\n/**\\n * 修复评论类型", "function selectBestStream(h265List,h264List) {\n  // loon-change: Xiaohongshu best-stream selection without per-call closure v1;\n  for (let pass = 0; pass < 2; pass++) {\n    const list = pass === 0 ? h265List : h264List;\n    if (!Array.isArray(list) || !list.length) continue;\n    let best = null, pixelsBest = 0, rateBest = 0;\n    for (const item of list) {\n      if (!item || !item.master_url) continue;\n      const pixels = (item.width || 0) * (item.height || 0);\n      const rate = Number(item.avg_bitrate) || 0;\n      if (best === null || pixels > pixelsBest || (pixels === pixelsBest && rate > rateBest)) {\n        best = item;\n        pixelsBest = pixels;\n        rateBest = rate;\n      }\n    }\n    if (best) return best;\n  }\n  return null;\n}", "stream selection without per-call closure")
+
 def optimize_source(src,commit="unknown"):
     if MARKER in src:
         if "Object.keys(current)" in src: raise ValueError("Xiaohongshu traversal optimization is stale")
         has_comment_processor = "function processCommentTree(data, livePhotos, commentVideos, noteId)" in src
         has_no_visited_set = "const visited = new WeakSet()" not in src and "visited.has(current)" not in src
         if has_comment_processor and has_no_visited_set and "Xiaohongshu parsed JSON comment tree without visited WeakSet v1;" in src and "Xiaohongshu comment classification stack frames v1;" in src and "const commentFrameTag = {};" in src and "processCommentTree(obj.data, livePhotos, commentVideos, note_id);" in src:
-            return optimize_video_save_cache_lookup(optimize_comment_video_info_cache(optimize_imagefeed_single_traversal(src)))
-        return optimize_video_save_cache_lookup(optimize_comment_video_info_cache(optimize_imagefeed_single_traversal(apply_comment_optimization(src))))
+            return optimize_stream_selection_no_closure(optimize_video_save_cache_lookup(optimize_comment_video_info_cache(optimize_imagefeed_single_traversal(src))))
+        return optimize_stream_selection_no_closure(optimize_video_save_cache_lookup(optimize_comment_video_info_cache(optimize_imagefeed_single_traversal(apply_comment_optimization(src)))))
     src=once(src,"const url = $request.url;","const url = $request.url;\n"+HELPERS.strip(),"helpers")
     src=once(src,"  console.log('打印原body：' + JSON.stringify(obj));\n","","full-body logging")
     src=once(src,'''      obj.data[0].note_list[0].images_list = imageEnhance(JSON.stringify(images_list));
@@ -314,7 +328,7 @@ def optimize_source(src,commit="unknown"):
     src=optimize_imagefeed_single_traversal(src)
     src=between(src,"function replaceUrlContent(collectionA, collectionB) {","\nfunction deduplicateLivePhotos(",URLMAP,"live-photo URL lookup")
     src=between(src,"function deduplicateLivePhotos(livePhotos) {","\nfunction replaceRedIdWithFmz200(",DEDUP,"live-photo dedup")
-    src=between(src,"function selectBestStream(h265List, h264List) {","\n/**\n * 修复评论类型",STREAM,"stream selection")
+    src=optimize_stream_selection_no_closure(src)
     src=src.replace("commitsRsp.livePhotos = deduplicateLivePhotos(commitsRsp.livePhotos.concat(livePhotos));","commitsRsp.livePhotos = appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos);")
     src=src.replace("videosCache.videos = deduplicateLivePhotos(videosCache.videos.concat(commentVideos));","videosCache.videos = appendUniqueLivePhotos(videosCache.videos, commentVideos);")
     log_tokens = (
@@ -328,8 +342,8 @@ def optimize_source(src,commit="unknown"):
         line for line in src.splitlines(keepends=True)
         if not ("console.log(" in line and any(token in line for token in log_tokens))
     )
-    result=optimize_video_save_cache_lookup(optimize_comment_video_info_cache(apply_comment_optimization(MARKER+commit+"\n"+src)))
-    for token in ("imageEnhance(images_list, livePhotoCache)", IMAGE_FEED_MARKER, "compactInPlace(obj.data","appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)","const byFileId=new Map()", "Xiaohongshu comment classification stack frames v1;", "const commentFrameTag = {};", "stack.push([commentFrameTag, comment, true])", COMMENT_CACHE_MARKER, "let parsed = parsedVideoInfo.get(raw);", VIDEO_SAVE_LOOKUP_MARKER, "for (let i = videoFeed.length - 1; i >= 0; i--)"):
+    result=optimize_stream_selection_no_closure(optimize_video_save_cache_lookup(optimize_comment_video_info_cache(apply_comment_optimization(MARKER+commit+"\n"+src))))
+    for token in ("imageEnhance(images_list, livePhotoCache)", IMAGE_FEED_MARKER, "compactInPlace(obj.data","appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)","const byFileId=new Map()", "Xiaohongshu comment classification stack frames v1;", "const commentFrameTag = {};", "stack.push([commentFrameTag, comment, true])", COMMENT_CACHE_MARKER, "let parsed = parsedVideoInfo.get(raw);", VIDEO_SAVE_LOOKUP_MARKER, "for (let i = videoFeed.length - 1; i >= 0; i--)", STREAM_SELECTION_MARKER, "for (let pass = 0; pass < 2; pass++)"):
         if token not in result:raise ValueError("missing optimizer invariant: "+token)
     if "imageEnhance(JSON.stringify(images_list))" in result:raise ValueError("image-feed serialization round trip remains")
     if "for (const image of images_list)" in result:raise ValueError("image-feed second cache traversal remains")
