@@ -464,7 +464,8 @@ source = source.replace(
   "globalThis.__values = { duration: obj.data.duration, respTimeInMs: obj.data.respTimeInMs }; " +
   "for (const key of ['duration', 'respTimeInMs']) Object.defineProperty(obj.data, key, { configurable: true, " +
   "get() { if (globalThis.__trackReads) globalThis.__reads[key]++; return globalThis.__values[key]; }, " +
-  "set(value) { globalThis.__values[key] = value; } });"
+  "set(value) { globalThis.__values[key] = value; } }); " +
+  "const nativeStringify = JSON.stringify.bind(JSON); JSON.stringify = function(value) { globalThis.__trackReads = false; return nativeStringify(value); };"
 );
 let done;
 const context = {
