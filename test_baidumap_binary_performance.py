@@ -318,6 +318,35 @@ process.stdout.write(nativeJSON.stringify({
 
 
 
+class BaiduMapAdsPreflightTests(unittest.TestCase):
+    def setUp(self):
+        self.source = (ROOT / "scripts/baidumap/baidu-map-protobuf.js").read_text(encoding="utf-8")
+
+    def test_ads_preflight_runs_before_payload_view_and_protobuf_decode(self):
+        self.assertIn("// loon-change: Baidu protobuf allocation-free Ads preflight v1", self.source)
+        start = self.source.index("}else if(name === 'Ads'){")
+        end = self.source.index("const adsType = baiduMapRoot.lookupType(name);", start)
+        block = self.source[start:end]
+        self.assertIn("if (!hasBaiduTargetAds(binaryBody, currentOffset, targetDataLength)) continue;", block)
+        self.assertLess(block.index("hasBaiduTargetAds("), block.index("const targetData = binaryBody.subarray("))
+
+    @unittest.skipUnless(NODE, "Node.js is required for BaiduMap protobuf preflight tests")
+    def test_preflight_skips_non_target_content_and_decodes_target_content(self):
+        cases = [
+            ("home_banner", True),
+            ("splash_screen1040", True),
+            ("normal", False),
+            ("ordinary_creative", False),
+        ]
+        for content_type, expected_body in cases:
+            with self.subTest(content_type=content_type):
+                result = BaiduMapNoopRebuildRuntimeTests().run_script(content_type, 1, 2)
+                self.assertEqual(result["hasBody"], expected_body)
+                if not expected_body:
+                    self.assertEqual(result["subarrayCount"], 1)
+                    self.assertEqual(result["adsContentReads"], 0)
+
+
 class BaiduMapNoopRebuildRuntimeTests(unittest.TestCase):
     runner = r"""
 const fs = require("fs");
@@ -476,12 +505,12 @@ if (doneResult.body) {
         self.assertEqual(result["md5InitCount"], 0)
         self.assertEqual(result["subarrayCount"], 1)
 
-    def test_non_target_ads_skip_protobuf_encode_md5_and_body_reassembly(self):
+    def test_non_target_ads_skip_protobuf_decode_encode_md5_and_payload_view(self):
         result = self.run_script("normal", 1, 2)
         self.assertFalse(result["hasBody"])
         self.assertEqual(result["md5InitCount"], 0)
-        self.assertEqual(result["subarrayCount"], 2)
-        self.assertEqual(result["adsContentReads"], 1)
+        self.assertEqual(result["subarrayCount"], 1)
+        self.assertEqual(result["adsContentReads"], 0)
         self.assertEqual(result["adsStartReads"], 0)
         self.assertEqual(result["adsEndReads"], 0)
 

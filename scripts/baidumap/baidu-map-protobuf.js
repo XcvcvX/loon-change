@@ -16,6 +16,90 @@ function createBaiduMd5() { let md5=null;(function(){'use strict';var ERROR='inp
 const baiduMapJson = {"options":{"java_package":"com.smile.baidumap.model"},"nested":{"RepHead":{"fields":{"md5":{"type":"string","id":1},"range":{"type":"string","id":2},"messageHead":{"rule":"repeated","type":"MessageHead","id":3}}},"MessageHead":{"fields":{"offset":{"type":"int32","id":1},"length":{"type":"int32","id":2},"name":{"type":"string","id":3}}},"Result":{"fields":{"type":{"type":"int32","id":1},"error":{"type":"int32","id":2}}},"Ads":{"fields":{"option":{"type":"Option","id":1},"content":{"rule":"repeated","type":"Content","id":2}}},"Option":{"fields":{"lasttime":{"type":"int32","id":1},"checkcode":{"type":"string","id":2},"errmsg":{"type":"string","id":3}}},"Content":{"fields":{"type":{"type":"string","id":1},"data":{"type":"string","id":2},"intval":{"type":"int32","id":3},"start":{"type":"int32","id":4},"end":{"type":"int32","id":5},"id":{"type":"int32","id":6},"updatetime":{"type":"int32","id":7},"order":{"type":"int32","id":8},"ctrlMode":{"type":"string","id":9},"dayTimes":{"type":"int32","id":10}}}}};
 const baiduMapRoot = protobuf.Root.fromJSON(baiduMapJson);
 
+// loon-change: Baidu protobuf allocation-free Ads preflight v1
+// Scan the Ads wire envelope and Content.type strings before allocating
+// Protobuf messages. Unknown wire forms or malformed bounds fall back to decode.
+function hasBaiduTargetAds(buffer, start, length) {
+  if (start < 0 || length < 0 || start > buffer.length || length > buffer.length - start) return true;
+  let cursor = start;
+  const end = start + length;
+  function readVarint(limit) {
+    let value = 0;
+    let multiplier = 1;
+    for (let count = 0; count < 5; count++) {
+      if (cursor >= limit) return -1;
+      const byte = buffer[cursor++];
+      value += (byte & 0x7f) * multiplier;
+      if ((byte & 0x80) === 0) return value;
+      multiplier *= 128;
+    }
+    return -1;
+  }
+  function skipField(wireType, limit) {
+    let size;
+    if (wireType === 0) return readVarint(limit) >= 0;
+    if (wireType === 1) size = 8;
+    else if (wireType === 2) {
+      size = readVarint(limit);
+      if (size < 0) return false;
+    } else if (wireType === 5) size = 4;
+    else return false;
+    if (size > limit - cursor) return false;
+    cursor += size;
+    return true;
+  }
+  while (cursor < end) {
+    const tag = readVarint(end);
+    if (tag <= 0) return true;
+    const fieldNumber = Math.floor(tag / 8);
+    const wireType = tag & 7;
+    if (fieldNumber === 2 && wireType !== 2) return true;
+    if (fieldNumber === 2 && wireType === 2) {
+      const contentLength = readVarint(end);
+      if (contentLength < 0 || contentLength > end - cursor) return true;
+      const contentEnd = cursor + contentLength;
+      while (cursor < contentEnd) {
+        const contentTag = readVarint(contentEnd);
+        if (contentTag <= 0) return true;
+        const contentField = Math.floor(contentTag / 8);
+        const contentWire = contentTag & 7;
+        if (contentField === 1 && contentWire !== 2) return true;
+        if (contentField === 1 && contentWire === 2) {
+          const typeLength = readVarint(contentEnd);
+          if (typeLength < 0 || typeLength > contentEnd - cursor) return true;
+          const typeEnd = cursor + typeLength;
+          let banner = false;
+          let splash = false;
+          for (let i = cursor; i < typeEnd; i++) {
+            const byte = buffer[i];
+            if (byte === 95 && i + 6 < typeEnd &&
+                buffer[i + 1] === 98 && buffer[i + 2] === 97 &&
+                buffer[i + 3] === 110 && buffer[i + 4] === 110 &&
+                buffer[i + 5] === 101 && buffer[i + 6] === 114) banner = true;
+            if (byte === 115 && i + 16 < typeEnd &&
+                buffer[i + 1] === 112 && buffer[i + 2] === 108 &&
+                buffer[i + 3] === 97 && buffer[i + 4] === 115 &&
+                buffer[i + 5] === 104 && buffer[i + 6] === 95 &&
+                buffer[i + 7] === 115 && buffer[i + 8] === 99 &&
+                buffer[i + 9] === 114 && buffer[i + 10] === 101 &&
+                buffer[i + 11] === 101 && buffer[i + 12] === 110 &&
+                buffer[i + 13] === 49 && buffer[i + 14] === 48 &&
+                buffer[i + 15] === 52 && buffer[i + 16] === 48) splash = true;
+          }
+          if (banner || splash) return true;
+          cursor = typeEnd;
+        } else if (!skipField(contentWire, contentEnd)) {
+          return true;
+        }
+      }
+      if (cursor !== contentEnd) return true;
+    } else if (!skipField(wireType, end)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function assembleBaiduResponse(repHeadMessage, repHeadType, newResult, newAds, hash) {
   const beginOffset = 4;
   const payloadLength = newResult.byteLength + newAds.byteLength;
@@ -113,10 +197,11 @@ for(let i = 0; i < messageHeadLength; i++) {
   }else if(name === 'Ads'){
     adsFound = true;
     const currentOffset = dataBeginOffset + messageHead.offset;
-    // Only the Ads field needs a view for protobuf decoding; ignore unrelated fields without allocating views.
+    // Inspect wire bytes first; ordinary ad payloads avoid both a byte view
+    // and the Protobuf object graph allocation.
+    if (!hasBaiduTargetAds(binaryBody, currentOffset, targetDataLength)) continue;
     const targetData = binaryBody.subarray(currentOffset, currentOffset + targetDataLength);
-    // Decode once to inspect the small ad list, but avoid protobuf re-encode,
-    // MD5 hashing and full binary-body reconstruction when no target field changes.
+    // Decode only when a target creative type is present.
     const adsType = baiduMapRoot.lookupType(name);
     const adsMessage = adsType.decode(targetData);
     // loon-change: Baidu protobuf Ads content array cache v1
