@@ -322,6 +322,7 @@ def optimize_source(src,commit="unknown"):
             src = optimize_v4_video_feed_function_entry_scan(src)
             return optimize_stream_selection_no_closure(src)
         src = apply_comment_optimization(src)
+        src = optimize_comment_media_property_cache(src)
         src = optimize_imagefeed_single_traversal(src)
         src = optimize_imagefeed_live_photo_property_cache(src)
         src = optimize_comment_video_info_cache(src)
