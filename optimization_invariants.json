@@ -231,7 +231,12 @@
         "else if (mode === \"card\") {",
         "// loon-change: Didi wallet nested property cache v1",
         "const walletItems = item.items;",
-        "const walletBottomItems = item.bottom_items;"
+        "const walletBottomItems = item.bottom_items;",
+        "// loon-change: Didi show_data nested traversal cache v1",
+        "const showDataLength = showData.length;",
+        "const sceneIds = block.scene_ids;",
+        "compactDidiByField(sceneIds, \"scene_ids\", \"sceneId\");",
+        "const value = item[field];"
       ],
       "forbidden": [
         ".filter(",
@@ -244,7 +249,10 @@
         "compactDidiByField(item.items",
         "Array.isArray(item.bottom_items)",
         "item.bottom_items.length",
-        "compactDidiByField(item.bottom_items"
+        "compactDidiByField(item.bottom_items",
+        "read < showData.length",
+        "if (block.scene_ids instanceof Array)",
+        "compactDidiByField(block.scene_ids, \"scene_ids\", \"sceneId\");"
       ]
     },
     {
