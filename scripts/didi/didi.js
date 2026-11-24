@@ -55,8 +55,7 @@ function compactDidiByField(items, field, mode) {
   } else if (mode === "walletItem") {
     for (let read = 0; read < length; read++) {
       const item = items[read];
-      const value = item[field];
-      if (value === "优惠券") {
+      if (item[field] === "优惠券") {
         if (write !== read) items[write] = item;
         write++;
       }
