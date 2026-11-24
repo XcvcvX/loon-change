@@ -500,10 +500,18 @@
       "path": "allAdRewrite.plugin",
       "required": [
         "# loon-change: Pinduoduo order response single-pass JSON cleanup v1",
-        "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/order\\//i then response.json.delete([\"marketing_banner_vo\", \"shipping.banner_above_recommend\"])"
+        "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/order\\//i then response.json.delete([\"marketing_banner_vo\", \"shipping.banner_above_recommend\"])",
+        "# loon-change: Pinduoduo redundant query matcher consolidation v1"
       ],
       "forbidden": [
-        "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/order\\/\\d+-\\d+\\/shipping/i then response.json.jq(\"del(.shipping.banner_above_recommend)\")"
+        "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/order\\/\\d+-\\d+\\/shipping/i then response.json.jq(\"del(.shipping.banner_above_recommend)\")",
+        "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/search_hotquery\\?/i then reject_dict(200)",
+        "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/zaire_biz\\/chat\\/resource\\/get_list_data\\?/i then reject_dict(200)",
+        "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/caterham\\/v3\\/query\\/new_chat_group\\?/i then reject_dict(200)",
+        "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/alexa\\/goods\\/back_up\\?/i then reject_dict(200)",
+        "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/caterham\\/v3\\/query\\/personal\\?/i then reject_dict(200)",
+        "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/caterham\\/v3\\/query\\/my_order_group\\?/i then reject_dict(200)",
+        "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/caterham\\/v3\\/query\\/likes\\?/i then reject_dict(200)"
       ]
     }
   ]
