@@ -219,6 +219,7 @@ if (url.includes("/v4/note/videofeed")) {
       }
 
       // 添加下载按钮（如果未存在）
+      // loon-change: Xiaohongshu v4 video-feed function-entry scan without callback v1;
       const functionEntries = item?.share_info?.function_entries;
       if (functionEntries?.length > 0) {
         let hasDownload = false;
@@ -525,7 +526,6 @@ function processCommentTree(data, livePhotos, commentVideos, noteId) {
  * @param {Array} h264List - H264 流列表
  * @returns {Object|null} - 选中的流对象或 null
  */
-// loon-change: Xiaohongshu v4 video-feed function-entry scan without callback v1;
 function selectBestStream(h265List,h264List) {
   // loon-change: Xiaohongshu best-stream selection without per-call closure v1;
   for (let pass = 0; pass < 2; pass++) {
