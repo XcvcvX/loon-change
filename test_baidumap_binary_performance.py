@@ -420,6 +420,16 @@ if (doneResult.body) {
             raise AssertionError(completed.stderr or completed.stdout)
         return __import__("json").loads(completed.stdout)
 
+    def test_end_field_is_read_only_when_start_already_matches(self):
+        count = 3
+        result = self.run_script("home_banner", 1648746061, 1, content_count=count)
+        self.assertTrue(result["hasBody"])
+        self.assertEqual(result["adsContentReads"], 1)
+        self.assertEqual(result["adsStartReads"], count)
+        self.assertEqual(result["adsEndReads"], count)
+        self.assertEqual(result["item"]["start"], 1648746061)
+        self.assertEqual(result["item"]["end"], 1648832461)
+
     def test_missing_ads_section_passes_through_without_reassembly(self):
         result = self.run_script("normal", 1, 2, include_ads=False)
         self.assertFalse(result["hasBody"])
@@ -455,15 +465,15 @@ if (doneResult.body) {
         self.assertEqual(result["subarrayCount"], 4)
         self.assertEqual(result["adsContentReads"], 1)
         self.assertEqual(result["adsStartReads"], 1)
-        self.assertEqual(result["adsEndReads"], 1)
+        self.assertEqual(result["adsEndReads"], 0)
 
-    def test_large_ads_content_array_reads_collection_once_and_fields_once(self):
+    def test_large_ads_content_array_reads_collection_once_and_preserves_short_circuit(self):
         count = 64
         result = self.run_script("home_banner", 1, 2, content_count=count)
         self.assertTrue(result["hasBody"])
         self.assertEqual(result["adsContentReads"], 1)
         self.assertEqual(result["adsStartReads"], count)
-        self.assertEqual(result["adsEndReads"], count)
+        self.assertEqual(result["adsEndReads"], 0)
         self.assertEqual(result["item"]["start"], 1648746061)
         self.assertEqual(result["item"]["end"], 1648832461)
 
