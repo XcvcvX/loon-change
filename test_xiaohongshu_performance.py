@@ -65,7 +65,7 @@ const p=JSON.parse(fs.readFileSync(0,"utf8")),store=new Map(Object.entries(p.sto
 const nativeJSON=JSON;
 const trackedJSON={
   parse(value){const parsed=nativeJSON.parse(value);if(Array.isArray(parsed))return new Proxy(parsed,{get(target,key,receiver){
-    if(typeof key==="string"&&/^\\d+$/.test(key))cacheIndexReads++;
+    if(typeof key==="string"&&/^\d+$/.test(key))cacheIndexReads++;
     return Reflect.get(target,key,receiver);
   }});return parsed;},
   stringify(value){return nativeJSON.stringify(value);}
