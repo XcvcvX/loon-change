@@ -245,7 +245,11 @@
         "if (isSceneList) {",
         "if (isHomepageCore) {",
         "if (isInfoList) {",
-        "if (isUserCenter) {"
+        "if (isUserCenter) {",
+        "// loon-change: Didi info-list cached nested references v1",
+        "const topBannerData = obj.data?.disorder_cards?.top_banner_card?.data;",
+        "const firstTopBanner = topBannerData?.[0];",
+        "topBannerData.splice(0, 1);"
       ],
       "forbidden": [
         ".filter(",
@@ -265,7 +269,8 @@
         "if (url.includes(\"/other/pGetSceneList\")) {",
         "if (url.includes(\"/homepage/v\") && url.includes(\"/core\")) {",
         "if (url.includes(\"/ota/na/yuantu/infoList\")) {",
-        "if (url.includes(\"/usercenter/me\")) {"
+        "if (url.includes(\"/usercenter/me\")) {",
+        "obj.data.disorder_cards.top_banner_card.data[0].T === \"yuentu_top_banner\""
       ]
     },
     {
