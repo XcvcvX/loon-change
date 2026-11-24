@@ -23,7 +23,9 @@ if (!$response.body) {
   }
 
   function clearArray(target, key) {
-    if (Array.isArray(target[key]) && target[key].length > 0) {
+    // loon-change: Taobao clearArray caches property value once v1
+    const current = target[key];
+    if (Array.isArray(current) && current.length > 0) {
       target[key] = [];
       modified = true;
     }

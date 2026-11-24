@@ -6,7 +6,7 @@ from pathlib import Path
 
 NODE = shutil.which("node")
 SCRIPT = Path(__file__).resolve().parent / "scripts" / "taobao" / "taobao.js"
-from optimize_taobao import KELEE_PATH, LOCAL, rewrite_plugin
+from optimize_taobao import KELEE_PATH, LOCAL, CLEAR_ARRAY_PROPERTY_MARKER, optimize_clear_array_property_access, optimize_runtime_source, rewrite_plugin
 
 ROOT = Path(__file__).resolve().parent
 PLUGIN = ROOT / "allAdRewrite.plugin"
@@ -190,6 +190,91 @@ process.stdout.write(JSON.stringify(result));
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TaobaoClearArrayPropertyAccessTests(unittest.TestCase):
+    def test_clear_array_optimizer_is_idempotent_and_fails_closed(self):
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertEqual(optimize_clear_array_property_access(source), source)
+        self.assertEqual(source.count(CLEAR_ARRAY_PROPERTY_MARKER), 1)
+        damaged = source.replace("const current = target[key];", "const current = target.payload;", 1)
+        self.assertNotEqual(damaged, source)
+        with self.assertRaisesRegex(ValueError, "cached property access drifted"):
+            optimize_clear_array_property_access(damaged)
+
+    @unittest.skipUnless(NODE, "Node.js is required for Taobao property access runtime tests")
+    def test_poplayer_clear_array_reads_each_target_property_once(self):
+        runner = r"""
+const fs = require("fs");
+const vm = require("vm");
+const payload = JSON.parse(fs.readFileSync(0, "utf8"));
+const source = fs.readFileSync(process.argv[1], "utf8");
+let doneResult, trackReads = true;
+const reads = Object.create(null);
+const nativeJSON = JSON;
+const trackedJSON = {
+  parse(value) {
+    const parsed = nativeJSON.parse(value);
+    const wrap = (name, target) => new Proxy(target, {
+      get(object, key, receiver) {
+        if (trackReads && (key === "images" || key === "videos")) {
+          const index = name + "." + String(key);
+          reads[index] = (reads[index] || 0) + 1;
+        }
+        return Reflect.get(object, key, receiver);
+      }
+    });
+    if (parsed.res) parsed.res = wrap("res", parsed.res);
+    if (parsed.mainRes) parsed.mainRes = wrap("mainRes", parsed.mainRes);
+    return parsed;
+  },
+  stringify(value) {
+    trackReads = false;
+    try { return nativeJSON.stringify(value); }
+    finally { trackReads = true; }
+  }
+};
+const context = {
+  JSON: trackedJSON,
+  $request: { url: payload.url },
+  $response: { body: nativeJSON.stringify(payload.body) },
+  $done(value) { doneResult = value; },
+  console: { log() {}, warn() {}, error() {} }
+};
+vm.createContext(context);
+vm.runInContext(source, context, { timeout: 5000 });
+const output = doneResult && typeof doneResult.body === "string" ? nativeJSON.parse(doneResult.body) : null;
+process.stdout.write(nativeJSON.stringify({ output, reads }));
+"""
+        body = {
+            "res": {"images": ["ad.png"], "videos": ["ad.mp4"]},
+            "mainRes": {"images": ["main-ad.png"]},
+            "enable": True,
+        }
+        completed = subprocess.run(
+            [NODE, "-e", runner, str(SCRIPT)],
+            input=json.dumps({
+                "url": "https://poplayer.template.alibaba.com/mtop",
+                "body": body,
+            }),
+            capture_output=True, text=True, check=True, timeout=10,
+        )
+        result = json.loads(completed.stdout)
+        self.assertEqual(result["reads"], {
+            "res.images": 1,
+            "res.videos": 1,
+            "mainRes.images": 1,
+        })
+        self.assertEqual(result["output"]["res"]["images"], [])
+        self.assertEqual(result["output"]["res"]["videos"], [])
+        self.assertEqual(result["output"]["mainRes"]["images"], [])
+        self.assertFalse(result["output"]["enable"])
+
+    def test_runtime_optimizer_generates_cached_clear_array_helper(self):
+        source = SCRIPT.read_text(encoding="utf-8")
+        generated = optimize_runtime_source(source)
+        self.assertIn(CLEAR_ARRAY_PROPERTY_MARKER, generated)
+        self.assertEqual(optimize_runtime_source(generated), generated)
 
 
 class TaobaoCachedResponseObjectTests(unittest.TestCase):

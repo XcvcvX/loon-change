@@ -321,13 +321,19 @@
         "const videoData = obj?.data;",
         "const poplayerRes = obj?.res;",
         "const mainRes = obj?.mainRes;",
-        "const poplayerEnabled = obj?.enable;"
+        "const poplayerEnabled = obj?.enable;",
+        "// loon-change: Taobao clearArray caches property value once v1",
+        "const current = target[key];",
+        "Array.isArray(current)",
+        "current.length > 0"
       ],
       "forbidden": [
         "for (let items of splash.base.sections)",
         "for (let item of items.bizData[\"taobao-splash\"].data)",
         "clearArray(obj?.res || {},",
-        "clearArray(obj?.mainRes || {},"
+        "clearArray(obj?.mainRes || {},",
+        "Array.isArray(target[key])",
+        "target[key].length > 0"
       ]
     },
     {
