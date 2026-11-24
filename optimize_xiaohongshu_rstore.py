@@ -152,9 +152,13 @@ COMMENT_HELPER = r'''function cleanCommentsAndCollectLivePhotos(data) {
       if (current.pictures?.length > 0) {
         for (const picture of current.pictures) {
           if (!picture.video_id) continue;
+          // loon-change: Xiaohongshu comment video-info cache single lookup v1
           const rawVideoInfo = picture.video_info;
-          if (!videoInfoCache.has(rawVideoInfo)) videoInfoCache.set(rawVideoInfo, JSON.parse(rawVideoInfo));
-          const picObj = videoInfoCache.get(rawVideoInfo);
+          let picObj = videoInfoCache.get(rawVideoInfo);
+          if (picObj === undefined) {
+            picObj = JSON.parse(rawVideoInfo);
+            videoInfoCache.set(rawVideoInfo, picObj);
+          }
           const videoUrl = picObj.stream?.h265?.[0]?.master_url;
           if (videoUrl) livePhotos.push({videId: picture.video_id, videoUrl});
         }
@@ -480,6 +484,8 @@ def optimize_source(source, commit="unknown"):
         "appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)",
         "const byFileId = new Map()", "const stack = [data]",
         COMMENT_TREE_MARKER, "selectedStream = null",
+        "// loon-change: Xiaohongshu comment video-info cache single lookup v1",
+        "let picObj = videoInfoCache.get(rawVideoInfo);",
     )
     for token in invariants:
         if token not in result:
