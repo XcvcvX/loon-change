@@ -29,6 +29,9 @@ class RStoreXiaohongshuOptimizerTests(unittest.TestCase):
         self.assertIn("appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)", source)
         self.assertIn("const byFileId = new Map()", source)
         self.assertIn("function cleanCommentsAndCollectLivePhotos(data)", source)
+        self.assertIn("Xiaohongshu comment classification stack frames v1;", source)
+        self.assertIn("const commentFrameTag = {};", source)
+        self.assertNotIn("new WeakSet()", source)
         self.assertIn("const videoInfoCache = new Map()", source)
         self.assertIn("// loon-change: Xiaohongshu comment video-info cache single lookup v1", source)
         self.assertIn("let picObj = videoInfoCache.get(rawVideoInfo);", source)
@@ -341,7 +344,7 @@ process.stdout.write(JSON.stringify({
         cached = json.loads(result["store"]["xiaohongshu.comments.rsp"])
         self.assertEqual([x["videId"] for x in cached["livePhotos"]], ["video-1", "video-2"])
         self.assertEqual(result["parseCount"], 2)
-        self.assertEqual(result["weakSetConstructCount"], 2)
+        self.assertEqual(result["weakSetConstructCount"], 0)
         self.assertEqual(result["mapGetCount"], 2)
         self.assertEqual(result["mapHasCount"], 0)
 
@@ -384,7 +387,7 @@ process.stdout.write(JSON.stringify({
             self.assertNotIn("red_id", current)
             current = current["nested"]
         self.assertNotIn("red_id", current)
-        self.assertEqual(result["weakSetConstructCount"], 2)
+        self.assertEqual(result["weakSetConstructCount"], 0)
 
 
 if __name__ == "__main__":

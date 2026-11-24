@@ -34,6 +34,9 @@ class XiaohongshuOptimizerTests(unittest.TestCase):
         self.assertNotIn("function replaceRedIdWithFmz200(obj)",source)
         self.assertIn("const parsedVideoInfo = new Map()",source)
         self.assertIn("processCommentTree(obj.data, livePhotos, commentVideos, note_id);",source)
+        self.assertIn("Xiaohongshu comment classification stack frames v1;",source)
+        self.assertIn("const commentFrameTag = {};",source)
+        self.assertNotIn("new WeakSet()",source)
 
     @unittest.skipUnless(NODE,"Node required for comment runtime test")
     def test_comment_tree_single_pass_preserves_cleanup_and_media_caches(self):
@@ -60,7 +63,7 @@ process.stdout.write(nativeJSON.stringify({body:nativeJSON.parse(done.body),stor
             "videos":[{"video_id":"comment-video-1","video_info":video_info}],
             "sub_comments":[{"id":"sub","red_id":"sub-red","comment_type":3,"pictures":[
                 {"video_id":"live-2","video_info":video_info}
-            ],"nested":{"red_id":"deep-red"}}]
+            ],"nested":{"red_id":"deep-red"},"sub_comments":[{"comment_type":3,"pictures":[{"video_id":"deep-live","video_info":video_info}]}]}]
         }]}}
         run=subprocess.run([NODE,"-e",runner],input=json.dumps({
             "url":"https://edith.xiaohongshu.com/api/sns/v5/note/comment/list?cursor=fixture","body":body
@@ -76,6 +79,7 @@ process.stdout.write(nativeJSON.stringify({body:nativeJSON.parse(done.body),stor
         self.assertEqual(comment["comment_type"],2)
         self.assertEqual(comment["media_source_type"],0)
         self.assertEqual(sub["comment_type"],2)
+        self.assertEqual(sub["sub_comments"][0]["comment_type"],3)
         live=json.loads(out["store"]["fmz200.xiaohongshu.comments.rsp"])
         videos=json.loads(out["store"]["fmz200.xiaohongshu.comments.videos.rsp"])
         self.assertEqual([x["videId"] for x in live["livePhotos"]],["live-1","live-2"])
@@ -83,7 +87,7 @@ process.stdout.write(nativeJSON.stringify({body:nativeJSON.parse(done.body),stor
         self.assertEqual(videos["videos"][0]["videId"],"comment-video-1")
         self.assertEqual(videos["videos"][0]["videoUrl"],live["livePhotos"][0]["videoUrl"])
         self.assertEqual(out["parseCalls"],2)
-        self.assertEqual(out["weakSetConstructCount"],2)
+        self.assertEqual(out["weakSetConstructCount"],0)
         cursor=out["body"]["data"]["deep"]
         depth=0
         while isinstance(cursor,dict):
@@ -105,6 +109,9 @@ process.stdout.write(nativeJSON.stringify({body:nativeJSON.parse(done.body),stor
         self.assertIn("Xiaohongshu parsed JSON comment tree without visited WeakSet v1;",source)
         self.assertIn("Object.prototype.hasOwnProperty.call(current, key)",source)
         self.assertIn("processCommentTree(obj.data, livePhotos, commentVideos, note_id);",source)
+        self.assertIn("Xiaohongshu comment classification stack frames v1;",source)
+        self.assertIn("const commentFrameTag = {};",source)
+        self.assertNotIn("new WeakSet()",source)
 
     def test_plugin_rewrites_exact_nine_triggers(self):
         dollar=chr(36)

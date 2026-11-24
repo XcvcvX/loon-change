@@ -431,21 +431,8 @@ function deduplicateLivePhotos(items) {
 
 
 function processCommentTree(data, livePhotos, commentVideos, noteId) {
-  const topLevelComments = new WeakSet();
-  const commentNodes = new WeakSet();
-  const comments = data?.comments;
-  if (Array.isArray(comments)) {
-    for (const comment of comments) {
-      if (!comment || typeof comment !== "object") continue;
-      topLevelComments.add(comment);
-      commentNodes.add(comment);
-      if (Array.isArray(comment.sub_comments)) {
-        for (const subComment of comment.sub_comments) {
-          if (subComment && typeof subComment === "object") commentNodes.add(subComment);
-        }
-      }
-    }
-  }
+  // loon-change: Xiaohongshu comment classification stack frames v1;
+  const commentFrameTag = {};
   const parsedVideoInfo = new Map();
   const parseVideoInfo = raw => {
     if (typeof raw !== "string" || raw.length === 0) return null;
@@ -457,13 +444,18 @@ function processCommentTree(data, livePhotos, commentVideos, noteId) {
   };
   // loon-change: Xiaohongshu parsed JSON comment tree without visited WeakSet v1;
   // JSON.parse creates a tree with no cycles or shared object references.
+  // Comment classification travels with only comment stack entries; other nodes
+  // remain plain references and require no WeakSet membership structure.
   const stack = [data];
   while (stack.length) {
-    const current = stack.pop();
+    const entry = stack.pop();
+    const isCommentFrame = Array.isArray(entry) && entry[0] === commentFrameTag;
+    const current = isCommentFrame ? entry[1] : entry;
+    const isTopLevelComment = isCommentFrame && entry[2] === true;
     if (!current || typeof current !== "object") continue;
     if (!Array.isArray(current)) {
       if ("red_id" in current) { current.fmz200 = current.red_id; delete current.red_id; }
-      if (commentNodes.has(current)) {
+      if (isCommentFrame) {
         fixCommentType(current);
         if (Array.isArray(current.pictures)) {
           for (const picture of current.pictures) {
@@ -473,7 +465,7 @@ function processCommentTree(data, livePhotos, commentVideos, noteId) {
             if (stream?.master_url) livePhotos.push({videId: picture.video_id, videoUrl: stream.master_url});
           }
         }
-        if (topLevelComments.has(current) && Array.isArray(current.videos)) {
+        if (isTopLevelComment && Array.isArray(current.videos)) {
           for (const video of current.videos) {
             if (!video?.video_id || !video?.video_info) continue;
             const info = parseVideoInfo(video.video_info);
@@ -487,11 +479,26 @@ function processCommentTree(data, livePhotos, commentVideos, noteId) {
       }
     }
     if (Array.isArray(current)) {
-      for (let i = current.length - 1; i >= 0; i--) { const child = current[i]; if (child && typeof child === "object") stack.push(child); }
+      for (let i = current.length - 1; i >= 0; i--) {
+        const child = current[i];
+        if (child && typeof child === "object") stack.push(child);
+      }
     } else {
       for (const key in current) {
         if (!Object.prototype.hasOwnProperty.call(current, key)) continue;
-        const child = current[key]; if (child && typeof child === "object") stack.push(child);
+        const child = current[key];
+        if (!child || typeof child !== "object") continue;
+        if (current === data && key === "comments" && Array.isArray(child)) {
+          for (let i = child.length - 1; i >= 0; i--) {
+            const comment = child[i];
+            if (comment && typeof comment === "object") stack.push([commentFrameTag, comment, true]);
+          }
+        } else if (isCommentFrame && isTopLevelComment && key === "sub_comments" && Array.isArray(child)) {
+          for (let i = child.length - 1; i >= 0; i--) {
+            const subComment = child[i];
+            if (subComment && typeof subComment === "object") stack.push([commentFrameTag, subComment, false]);
+          }
+        } else stack.push(child);
       }
     }
   }
