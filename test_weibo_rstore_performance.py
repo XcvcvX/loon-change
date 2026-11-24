@@ -140,7 +140,7 @@ process.stdout.write(JSON.stringify({doneResult, parseCount, stringifyCount}));
 
     def test_search_page_filters_preserve_order_and_ads_semantics(self):
         body = {"cards": [
-            {"card_group": [
+            {"itemid": "keep-group", "card_group": [
                 {"itemid": "normal"},
                 {"itemid": "t:51:banner"},
                 {"actionlog": {"ext": "ads_word"}, "itemid": "normal-2"},
@@ -152,12 +152,12 @@ process.stdout.write(JSON.stringify({doneResult, parseCount, stringifyCount}));
             {"itemid": "infeed_pagemanual3:1"},
             {"itemid": "infeed_weibo_mall:1"},
             {"itemid": "normal-card", "mblog": {"mblogtypename": "广告"}},
-            {"itemid": "keep-1"},
+            {"itemid": {"itemid": "keep-1"},
             {"itemid": "keep-2"}
         ]}
         result = self.run_script("https://api.weibo.cn/2/page?containerid=fixture", body)
         output = json.loads(result["doneResult"]["body"])
-        self.assertEqual([item["itemid"] for item in output["cards"]], ["keep-1", "keep-2"])
+        self.assertEqual([item["itemid"] for item in output["cards"]], ["keep-group", "keep-1", "keep-2"])
         self.assertEqual([item["itemid"] for item in output["cards"][0]["card_group"]], ["normal"])
 
     def test_comments_cleanup_keeps_only_allowed_items(self):
