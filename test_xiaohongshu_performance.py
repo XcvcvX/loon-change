@@ -84,7 +84,8 @@ process.stdout.write(JSON.stringify(JSON.parse(done.body)));
             {"id":"absent","share_info":{}},
             {"id":"no-share"}
         ]}
-        run=subprocess.run([NODE,"-e",runner],input=json.dumps(body),cwd=ROOT,capture_output=True,text=True,check=True,timeout=10)
+        run=subprocess.run([NODE,"-e",runner],input=json.dumps(body),cwd=ROOT,capture_output=True,text=True,check=False,timeout=10)
+        self.assertEqual(run.returncode,0,run.stderr)
         out=json.loads(run.stdout)
         items=out["data"]
         self.assertEqual(items[0]["share_info"]["function_entries"],[{"type":"share"},{"type":"copy"},{"type":"video_download"}])
@@ -141,7 +142,8 @@ process.stdout.write(JSON.stringify({body:JSON.parse(done.body),cache:JSON.parse
         ]}
         run=subprocess.run([NODE,"-e",runner],input=json.dumps({
             "url":"https://edith.xiaohongshu.com/api/sns/v4/note/videofeed?cursor=fixture","body":body
-        }),cwd=ROOT,capture_output=True,text=True,check=True,timeout=10)
+        }),cwd=ROOT,capture_output=True,text=True,check=False,timeout=10)
+        self.assertEqual(run.returncode,0,run.stderr)
         out=json.loads(run.stdout)
         self.assertEqual([item["url"] for item in out["cache"]],[
             "https://video.example/h265-1080-high.mp4",
