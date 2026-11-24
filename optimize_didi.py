@@ -312,22 +312,21 @@ def optimize_wallet_nested_property_cache(source):
 
 
 def optimize_didi_nested_traversal_property_cache(source):
-    """Cache show_data length and nested scene_ids and wallet title references."""
+    """Cache show_data length and each nested scene_ids reference once per block."""
     marker = "// loon-change: Didi show_data nested traversal cache v1"
-    old_scene = "    const showData = obj.data.show_data;\n    for (let read = 0; read < showData.length; read++) {\n      const block = showData[read];\n      if (block.scene_ids instanceof Array) {\n        compactDidiByField(block.scene_ids, \"scene_ids\", \"sceneId\");\n      }\n    }"
-    new_scene = "    // loon-change: Didi show_data nested traversal cache v1\n    const showData = obj.data.show_data;\n    const showDataLength = showData.length;\n    for (let read = 0; read < showDataLength; read++) {\n      const block = showData[read];\n      const sceneIds = block.scene_ids;\n      if (sceneIds instanceof Array) {\n        compactDidiByField(sceneIds, \"scene_ids\", \"sceneId\");\n      }\n    }"
-    old_wallet = "      const item = items[read];\n      if (item[field] === \"优惠券\") {\n        if (write !== read) items[write] = item;\n        write++;\n      }"
-    new_wallet = "      const item = items[read];\n      const value = item[field];\n      if (value === \"优惠券\") {\n        if (write !== read) items[write] = item;\n        write++;\n      }"
+    old = "    const showData = obj.data.show_data;\n    for (let read = 0; read < showData.length; read++) {\n      const block = showData[read];\n      if (block.scene_ids instanceof Array) {\n        compactDidiByField(block.scene_ids, \"scene_ids\", \"sceneId\");\n      }\n    }"
+    new = "    // loon-change: Didi show_data nested traversal cache v1\n    const showData = obj.data.show_data;\n    const showDataLength = showData.length;\n    for (let read = 0; read < showDataLength; read++) {\n      const block = showData[read];\n      const sceneIds = block.scene_ids;\n      if (sceneIds instanceof Array) {\n        compactDidiByField(sceneIds, \"scene_ids\", \"sceneId\");\n      }\n    }"
     if marker in source:
-        if new_scene not in source or new_wallet not in source or old_scene in source or old_wallet in source:
+        if new not in source or old in source:
             raise ValueError("Didi nested traversal cache structure is incomplete")
         return source
-    if source.count(old_scene) != 1 or source.count(old_wallet) != 1:
-        raise ValueError("Didi traversal anchors changed; refusing cache rewrite")
-    source = source.replace(old_scene, new_scene, 1).replace(old_wallet, new_wallet, 1)
-    if new_scene not in source or new_wallet not in source or old_scene in source or old_wallet in source:
+    if source.count(old) != 1:
+        raise ValueError("Didi show_data traversal anchor changed; refusing cache rewrite")
+    source = source.replace(old, new, 1)
+    if new not in source or old in source:
         raise ValueError("Didi nested traversal cache validation failed")
     return source
+
 
 def optimize_source(source, commit="unknown"):
     if MARKER in source:
