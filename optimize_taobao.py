@@ -132,6 +132,44 @@ def optimize_route_object_access(source):
     return source
 
 
+
+CLEAR_ARRAY_PROPERTY_MARKER = "// loon-change: Taobao clearArray caches property value once v1"
+OLD_CLEAR_ARRAY_HELPER = """  function clearArray(target, key) {
+    if (Array.isArray(target[key]) && target[key].length > 0) {
+      target[key] = [];
+      modified = true;
+    }
+  }"""
+NEW_CLEAR_ARRAY_HELPER = """  function clearArray(target, key) {
+    // loon-change: Taobao clearArray caches property value once v1
+    const current = target[key];
+    if (Array.isArray(current) && current.length > 0) {
+      target[key] = [];
+      modified = true;
+    }
+  }"""
+
+def optimize_clear_array_property_access(source):
+    if CLEAR_ARRAY_PROPERTY_MARKER in source:
+        required = (
+            CLEAR_ARRAY_PROPERTY_MARKER,
+            "const current = target[key];",
+            "Array.isArray(current)",
+            "current.length > 0",
+            "target[key] = [];",
+        )
+        if source.count(CLEAR_ARRAY_PROPERTY_MARKER) != 1 or any(token not in source for token in required):
+            raise ValueError("Taobao clearArray cached property access drifted; refusing to overwrite")
+        if "Array.isArray(target[key])" in source or "target[key].length > 0" in source:
+            raise ValueError("Repeated Taobao clearArray property reads remain")
+        return source
+    if source.count(OLD_CLEAR_ARRAY_HELPER) != 1:
+        raise ValueError("Expected exactly one Taobao clearArray helper")
+    source = source.replace(OLD_CLEAR_ARRAY_HELPER, NEW_CLEAR_ARRAY_HELPER, 1)
+    if source.count(CLEAR_ARRAY_PROPERTY_MARKER) != 1:
+        raise ValueError("Taobao clearArray cached property access postcondition failed")
+    return source
+
 def optimize_runtime_source(source):
     if RUNTIME_MARKER not in source:
         anchor = "  const obj = JSON.parse($response.body);\n"
@@ -154,6 +192,7 @@ def optimize_runtime_source(source):
     source = optimize_splash_loop(source)
     source = optimize_route_classification(source)
     source = optimize_route_object_access(source)
+    source = optimize_clear_array_property_access(source)
     if source.index("const shouldProcess =") > source.index("JSON.parse($response.body)"):
         raise ValueError("Taobao pre-parse guard insertion order invalid")
     return source
