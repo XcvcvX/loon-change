@@ -5,7 +5,7 @@ import subprocess
 import unittest
 from pathlib import Path
 
-from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, LAZY_MARKER, GUARD_DECLARATION, HELPER, LEGACY_HELPER, optimize_source, rewrite_plugin, optimize_page_filter_cached_itemid, TOPIC_GROUP_MARKER, optimize_topic_group_in_place, COMMENT_DATA_CACHE_MARKER, optimize_comment_data_reference_cache
+from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, LAZY_MARKER, GUARD_DECLARATION, HELPER, LEGACY_HELPER, optimize_source, rewrite_plugin, optimize_page_filter_cached_itemid, TOPIC_GROUP_MARKER, optimize_topic_group_in_place, COMMENT_DATA_CACHE_MARKER, COMMENT_DATA_CACHE_OLD, COMMENT_DATA_CACHE_NEW, optimize_comment_data_reference_cache
 
 ROOT = Path(__file__).resolve().parent
 SCRIPT = ROOT / "scripts/weibo/weibo-rstore.js"
@@ -83,6 +83,12 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         damaged = source.replace("const commentData = item?.data;", "const cachedCommentData = item?.data;", 1)
         with self.assertRaisesRegex(ValueError, "marker/structure drift"):
             optimize_comment_data_reference_cache(damaged)
+
+    def test_comment_cache_transform_applies_to_unoptimized_source(self):
+        source = SCRIPT.read_text(encoding="utf-8")
+        legacy = source.replace(COMMENT_DATA_CACHE_NEW, COMMENT_DATA_CACHE_OLD, 1)
+        self.assertNotEqual(legacy, source)
+        self.assertEqual(optimize_comment_data_reference_cache(legacy), source)
 
     def test_old_optimized_snapshot_regains_lazy_serialization_guard(self):
         source = SCRIPT.read_text(encoding="utf-8")

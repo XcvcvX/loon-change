@@ -368,7 +368,7 @@ def optimize_source(source, commit="unknown"):
     remaining = re.findall(r"\b(new[A-Za-z0-9_]*)\s*=\s*\[\s*\]", source)
     if sorted(remaining) != ["newActions", "newII"]:
         raise ValueError("unexpected remaining Weibo temporary arrays: " + repr(remaining))
-    return optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source))))
+    return optimize_comment_data_reference_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source)))))
 
 SCALAR_MEMBERSHIP_MARKER = "// loon-change: Weibo hot-loop scalar membership v1"
 SCALAR_MEMBERSHIP_REWRITES = [
