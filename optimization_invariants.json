@@ -145,7 +145,10 @@
         "// loon-change: Weibo topic-group in-place item compaction v1",
         "const groupItems = item.items;",
         "const groupLength = groupItems.length;",
-        "groupItems.length = groupWrite;"
+        "groupItems.length = groupWrite;",
+        "// loon-change: Weibo comment data reference cache v1",
+        "const commentData = item?.data;",
+        "if (!isAd(commentData))"
       ],
       "forbidden": [
         "[120, 145, 192]?.includes(cardType)",
@@ -166,7 +169,10 @@
         "i.itemid?.includes(\"feed_-_invite\")",
         "let newII = [];",
         "item.items = newII;",
-        "newII.push(ii);"
+        "newII.push(ii);",
+        "isAd(item?.data)",
+        "removeAvatar(item?.data)",
+        "delete item.data.comment_bubble"
       ]
     },
     {

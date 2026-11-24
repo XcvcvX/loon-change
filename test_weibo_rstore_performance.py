@@ -5,7 +5,7 @@ import subprocess
 import unittest
 from pathlib import Path
 
-from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, LAZY_MARKER, GUARD_DECLARATION, HELPER, LEGACY_HELPER, optimize_source, rewrite_plugin, optimize_page_filter_cached_itemid, TOPIC_GROUP_MARKER, optimize_topic_group_in_place
+from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, LAZY_MARKER, GUARD_DECLARATION, HELPER, LEGACY_HELPER, optimize_source, rewrite_plugin, optimize_page_filter_cached_itemid, TOPIC_GROUP_MARKER, optimize_topic_group_in_place, COMMENT_DATA_CACHE_MARKER, optimize_comment_data_reference_cache
 
 ROOT = Path(__file__).resolve().parent
 SCRIPT = ROOT / "scripts/weibo/weibo-rstore.js"
@@ -69,6 +69,20 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         damaged = source.replace("const groupItems = item.items;", "const groupItems = undefined;", 1)
         with self.assertRaisesRegex(ValueError, "marker/structure drift"):
             optimize_topic_group_in_place(damaged)
+
+    def test_comment_loop_caches_data_reference_once_and_fails_closed(self):
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertEqual(source.count(COMMENT_DATA_CACHE_MARKER), 1)
+        self.assertEqual(optimize_comment_data_reference_cache(source), source)
+        self.assertIn("const commentData = item?.data;", source)
+        self.assertIn("if (!isAd(commentData))", source)
+        self.assertIn("removeAvatar(commentData);", source)
+        self.assertNotIn("isAd(item?.data)", source)
+        self.assertNotIn("removeAvatar(item?.data)", source)
+        self.assertNotIn("delete item.data.comment_bubble", source)
+        damaged = source.replace("const commentData = item?.data;", "const cachedCommentData = item?.data;", 1)
+        with self.assertRaisesRegex(ValueError, "marker/structure drift"):
+            optimize_comment_data_reference_cache(damaged)
 
     def test_old_optimized_snapshot_regains_lazy_serialization_guard(self):
         source = SCRIPT.read_text(encoding="utf-8")

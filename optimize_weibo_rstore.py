@@ -335,11 +335,28 @@ def add_lazy_serialization_guard(source):
     return source[:first_line_end + 1] + LAZY_MARKER + '\n' + source[first_line_end + 1:]
 
 
+COMMENT_DATA_CACHE_MARKER = "// loon-change: Weibo comment data reference cache v1"
+COMMENT_DATA_CACHE_OLD = "        let item = __loonSource30[__loonRead30];\n        if (item?.data) {\n          if (!isAd(item?.data)) {\n            // 微博伪装评论\n            if (item?.data?.user) {\n              // 头像挂件,关注按钮\n              removeAvatar(item?.data);\n              if ((item.data?.user?.name === \"超话社区\" || item.data?.user?.name === \"微博开新年\" || item.data?.user?.name === \"微博热搜\" || item.data?.user?.name === \"微博视频\")) {\n                continue;\n              }\n            }\n            // 评论气泡\n            if (item?.data?.comment_bubble) {\n              modified = true;\n              delete item.data.comment_bubble;\n            }\n            // 评论弹幕\n            if (item?.data?.comment_bullet_screens_message) {\n              modified = true;\n              delete item.data.comment_bullet_screens_message;\n            }\n            // 热评小图标 弹幕 首评\n            if (item?.data?.hot_icon) {\n              modified = true;\n              delete item.data.hot_icon;\n            }\n            // 会员气泡按钮\n            if (item?.data?.vip_button) {\n              modified = true;\n              delete item.data.vip_button;\n            }\n            // 6为你推荐更多精彩内容 15过滤提示\n            if (item?.type === 6 || item?.type === 15) {\n              continue;\n            }\n            if (item?.adType === \"相关内容\" || item?.adType === \"相关评论\" || item?.adType === \"推荐\") {\n              continue;\n            }\n            __loonSource30[__loonWrite30++] = item;\n          }\n        }"
+COMMENT_DATA_CACHE_NEW = "        let item = __loonSource30[__loonRead30];\n        // loon-change: Weibo comment data reference cache v1\n        const commentData = item?.data;\n        if (commentData) {\n          if (!isAd(commentData)) {\n            // 微博伪装评论\n            if (commentData?.user) {\n              // 头像挂件,关注按钮\n              removeAvatar(commentData);\n              if ((commentData.user?.name === \"超话社区\" || commentData.user?.name === \"微博开新年\" || commentData.user?.name === \"微博热搜\" || commentData.user?.name === \"微博视频\")) {\n                continue;\n              }\n            }\n            // 评论气泡\n            if (commentData?.comment_bubble) {\n              modified = true;\n              delete commentData.comment_bubble;\n            }\n            // 评论弹幕\n            if (commentData?.comment_bullet_screens_message) {\n              modified = true;\n              delete commentData.comment_bullet_screens_message;\n            }\n            // 热评小图标 弹幕 首评\n            if (commentData?.hot_icon) {\n              modified = true;\n              delete commentData.hot_icon;\n            }\n            // 会员气泡按钮\n            if (commentData?.vip_button) {\n              modified = true;\n              delete commentData.vip_button;\n            }\n            // 6为你推荐更多精彩内容 15过滤提示\n            if (item?.type === 6 || item?.type === 15) {\n              continue;\n            }\n            if (item?.adType === \"相关内容\" || item?.adType === \"相关评论\" || item?.adType === \"推荐\") {\n              continue;\n            }\n            __loonSource30[__loonWrite30++] = item;\n          }\n        }"
+
+def optimize_comment_data_reference_cache(source):
+    if COMMENT_DATA_CACHE_MARKER in source:
+        if source.count(COMMENT_DATA_CACHE_MARKER) != 1 or COMMENT_DATA_CACHE_OLD in source or COMMENT_DATA_CACHE_NEW not in source:
+            raise ValueError("Weibo comment data-cache marker/structure drift")
+        return source
+    if source.count(COMMENT_DATA_CACHE_OLD) != 1:
+        raise ValueError("Weibo comment data-cache anchor drift")
+    source = source.replace(COMMENT_DATA_CACHE_OLD, COMMENT_DATA_CACHE_NEW, 1)
+    if source.count(COMMENT_DATA_CACHE_MARKER) != 1:
+        raise ValueError("Weibo comment data-cache postcondition failed")
+    return source
+
+
 def optimize_source(source, commit="unknown"):
     if MARKER in source:
         if "__loonSource32" not in source or "compactInPlace(items, keep)" not in source:
             raise ValueError("marked Weibo script is incomplete")
-        return optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source))))
+        return optimize_comment_data_reference_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source)))))
     source = source.replace("const url = $request.url;", "const url = $request.url;\n" + GUARD_DECLARATION + "\n\n" + HELPER, 1)
     if source.count(HELPER) != 1:
         raise ValueError("Weibo helper insertion failed")
