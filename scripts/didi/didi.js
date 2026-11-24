@@ -110,17 +110,18 @@ if (!$response.body) {
 } else {
 
 // loon-change: Didi pre-parse supported-route guard v1
-const shouldProcess =
-  url.includes("/other/pGetSceneList") ||
-  (url.includes("/homepage/v") && url.includes("/core")) ||
-  url.includes("/ota/na/yuantu/infoList") ||
-  url.includes("/usercenter/me");
+// loon-change: Didi route dispatch cache v1
+const isSceneList = url.includes("/other/pGetSceneList");
+const isHomepageCore = url.includes("/homepage/v") && url.includes("/core");
+const isInfoList = url.includes("/ota/na/yuantu/infoList");
+const isUserCenter = url.includes("/usercenter/me");
+const shouldProcess = isSceneList || isHomepageCore || isInfoList || isUserCenter;
 if (!shouldProcess) {
   $done({});
 } else {
   let obj = JSON.parse($response.body);
 
-if (url.includes("/other/pGetSceneList")) {
+if (isSceneList) {
   if (obj && obj.data && obj.data.scene_list instanceof Array) {
     compactDidiByField(obj.data.scene_list, "text", "scene");
   }
@@ -138,7 +139,7 @@ if (url.includes("/other/pGetSceneList")) {
   }
 }
 
-if (url.includes("/homepage/v") && url.includes("/core")) {
+if (isHomepageCore) {
   // 保留打车、代驾、青桔骑行
   if (obj.data && obj.data.order_cards && obj.data.order_cards.nav_list_card && obj.data.order_cards.nav_list_card.data) {
     compactDidiByField(obj.data.order_cards.nav_list_card.data, "nav_id", "nav");
@@ -149,7 +150,7 @@ if (url.includes("/homepage/v") && url.includes("/core")) {
   }
 }
 
-if (url.includes("/ota/na/yuantu/infoList")) {
+if (isInfoList) {
   if (obj.data && obj.data.disorder_cards && obj.data.disorder_cards.top_banner_card && obj.data.disorder_cards.top_banner_card.data && obj.data.disorder_cards.top_banner_card.data[0] && obj.data.disorder_cards.top_banner_card.data[0].T === "yuentu_top_banner") {
     // 移除顶部卡片
     obj.data.disorder_cards.top_banner_card.data.splice(0, 1);
@@ -157,7 +158,7 @@ if (url.includes("/ota/na/yuantu/infoList")) {
   }
 }
 
-if (url.includes("/usercenter/me")) {
+if (isUserCenter) {
   if (obj.data && obj.data.cards) {
     compactDidiByField(obj.data.cards, "title", "card");
   }

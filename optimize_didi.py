@@ -338,10 +338,10 @@ def optimize_source(source, commit="unknown"):
             raise ValueError("Didi optimization marker exists but allocating filter remains")
         if "obj.data.cards.forEach" in source:
             raise ValueError("Didi user-center wallet traversal optimization is stale")
-        return optimize_didi_nested_traversal_property_cache(optimize_wallet_nested_property_cache(optimize_preparse_route_guard(optimize_didi_predicates(optimize_lazy_serialization(source)))))
+        return optimize_didi_route_dispatch_cache(optimize_didi_nested_traversal_property_cache(optimize_wallet_nested_property_cache(optimize_preparse_route_guard(optimize_didi_predicates(optimize_lazy_serialization(source))))))
     if LEGACY_MARKER in source:
         source = source.replace(LEGACY_MARKER, MARKER, 1)
-        return optimize_didi_nested_traversal_property_cache(optimize_wallet_nested_property_cache(optimize_didi_predicates(optimize_lazy_serialization(source))))
+        return optimize_didi_route_dispatch_cache(optimize_didi_nested_traversal_property_cache(optimize_wallet_nested_property_cache(optimize_didi_predicates(optimize_lazy_serialization(source)))))
 
     body_guard = "if (!$response.body) $done({});"
     if source.count(body_guard) != 1:
@@ -380,7 +380,7 @@ def optimize_source(source, commit="unknown"):
         raise ValueError("expected all seven Didi filters to use compactInPlace")
 
     source = source.rstrip() + "\n}\n"
-    return optimize_didi_nested_traversal_property_cache(optimize_wallet_nested_property_cache(optimize_preparse_route_guard(optimize_didi_predicates(optimize_lazy_serialization(MARKER + commit + "\n" + source)))))
+    return optimize_didi_route_dispatch_cache(optimize_didi_nested_traversal_property_cache(optimize_wallet_nested_property_cache(optimize_preparse_route_guard(optimize_didi_predicates(optimize_lazy_serialization(MARKER + commit + "\n" + source))))))
 
 
 def rewrite_plugin(plugin):
