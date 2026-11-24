@@ -222,7 +222,7 @@ def optimize_video_save_cache_lookup(src):
         obj.data.download_url = item.url;
       }
     }"""
-    new = """    // // loon-change: Xiaohongshu video-save cache reverse early-exit lookup v1;
+    new = """    // loon-change: Xiaohongshu video-save cache reverse early-exit lookup v1;
     const noteId = obj.data.note_id;
     for (let i = videoFeed.length - 1; i >= 0; i--) {
       const item = videoFeed[i];
