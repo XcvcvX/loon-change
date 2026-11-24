@@ -390,7 +390,7 @@ source = source.replace(
   "for (let k = 0; k < trackedAdsContent.length; k++) { const target = trackedAdsContent[k]; trackedAdsContent[k] = new Proxy(target, { get(target, key, receiver) { if (globalThis.__trackAdsProperties && key === 'start') globalThis.__adsStartReads++; if (globalThis.__trackAdsProperties && key === 'end') globalThis.__adsEndReads++; return Reflect.get(target, key, receiver); } }); }"
 );
 source = source.replace(
-  "if (adsSegmentModified) {\\n      modifiedAds = true;\\n      newAds = adsType.encode(adsMessage).finish();\\n    }",
+  "if (adsSegmentModified) {\n      modifiedAds = true;\n      newAds = adsType.encode(adsMessage).finish();\n    }",
   "if (adsSegmentModified) { globalThis.__trackAdsProperties = false; modifiedAds = true; newAds = adsType.encode(adsMessage).finish(); }"
 );
 
