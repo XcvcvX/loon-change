@@ -310,7 +310,10 @@
         "const encodedHeader = repHeadType.encode(repHeadMessage).finish();",
         "const digest = hash(body.subarray(payloadOffset));",
         "let digestOffset = -1;",
-        "encodedHeader[digestOffset + i] = digest.charCodeAt(i);"
+        "encodedHeader[digestOffset + i] = digest.charCodeAt(i);",
+        "// loon-change: Baidu protobuf allocation-free Ads preflight v1",
+        "function hasBaiduTargetAds(",
+        "if (!hasBaiduTargetAds(binaryBody, currentOffset, targetDataLength)) continue;"
       ],
       "forbidden": [
         "newResult = binaryBody.subarray(currentOffset, currentOffset + targetDataLength);",
