@@ -1,4 +1,4 @@
-// loon-change: Ximalaya in-place filters and lazy response serialization v1; upstream zirawell/R-Store@1e08bab55bcffc396be39f914f48151443344493
+// loon-change: Ximalaya in-place filters and lazy response serialization v1; upstream zirawell/R-Store@52fcb40b118a15610686b9167a7ee8e59bc04709
 const KEEP_CATEGORY_TYPES = new Set(["recommend", "template_category", "single_category"]);
 const KEEP_HOME_ENTRANCE_IDS = new Set([210, 213, 215]);
 

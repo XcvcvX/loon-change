@@ -1,4 +1,4 @@
-// loon-change: R-Store Weibo in-place response compaction v1; upstream zirawell/R-Store@1e08bab55bcffc396be39f914f48151443344493
+// loon-change: R-Store Weibo in-place response compaction v1; upstream zirawell/R-Store@52fcb40b118a15610686b9167a7ee8e59bc04709
 // loon-change: Weibo feed and comment lazy serialization v1
 /********************************
 Weibo Remove Ads - Version 1.0

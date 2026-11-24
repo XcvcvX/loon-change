@@ -1,4 +1,4 @@
-// loon-change: RRTV lightweight runtime and response fast paths v1; upstream zirawell/R-Store@1e08bab55bcffc396be39f914f48151443344493
+// loon-change: RRTV lightweight runtime and response fast paths v1; upstream zirawell/R-Store@52fcb40b118a15610686b9167a7ee8e59bc04709
 /********************************
 RRTV Remove Ads - Version 1.0
 Checkout Source - https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/rrtv_json.js
