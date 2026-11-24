@@ -1,6 +1,6 @@
 import json, shutil, subprocess, unittest
 from pathlib import Path
-from optimize_xiaohongshu import LOCAL, REMOTE, MARKER, IMAGE_FEED_MARKER, VIDEO_SAVE_LOOKUP_MARKER, STREAM_SELECTION_MARKER, VIDEO_ENTRY_MARKER, IMAGE_LIVE_PHOTO_CACHE_MARKER, COMMENT_MEDIA_CACHE_MARKER, COMMENT_STACK_FRAME_MARKER, optimize_comment_stack_frame_allocation, optimize_comment_media_property_cache, optimize_imagefeed_live_photo_property_cache, optimize_comment_video_info_cache, optimize_imagefeed_single_traversal, optimize_video_save_cache_lookup, optimize_stream_selection_no_closure, optimize_v4_video_feed_function_entry_scan, optimize_source, rewrite_plugin
+from optimize_xiaohongshu import LOCAL, REMOTE, MARKER, IMAGE_FEED_MARKER, VIDEO_SAVE_LOOKUP_MARKER, STREAM_SELECTION_MARKER, VIDEO_ENTRY_MARKER, IMAGE_LIVE_PHOTO_CACHE_MARKER, COMMENT_MEDIA_CACHE_MARKER, COMMENT_STACK_FRAME_MARKER, FUNCTION_SWITCH_MARKER, optimize_v4_function_switch_indexed_scan, optimize_comment_stack_frame_allocation, optimize_comment_media_property_cache, optimize_imagefeed_live_photo_property_cache, optimize_comment_video_info_cache, optimize_imagefeed_single_traversal, optimize_video_save_cache_lookup, optimize_stream_selection_no_closure, optimize_v4_video_feed_function_entry_scan, optimize_source, rewrite_plugin
 
 ROOT=Path(__file__).resolve().parent
 NODE=shutil.which("node")
@@ -101,6 +101,18 @@ class XiaohongshuOptimizerTests(unittest.TestCase):
             optimize_comment_video_info_cache(damaged)
 
 
+    def test_v4_function_switch_indexed_scan_is_idempotent_and_fails_closed(self):
+        source=(ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")
+        self.assertEqual(optimize_v4_function_switch_indexed_scan(source),source)
+        self.assertIn(FUNCTION_SWITCH_MARKER,source)
+        self.assertIn("const functionSwitch = item?.function_switch;",source)
+        self.assertIn("for (let switchIndex = 0; switchIndex < functionSwitch.length; switchIndex++)",source)
+        self.assertNotIn("for (let switchItem of item.function_switch)",source)
+        damaged=source.replace("const switchItem = functionSwitch[switchIndex];","const switchItem = functionSwitch[switchIndex + 1];",1)
+        with self.assertRaisesRegex(ValueError,"marker is stale"):
+            optimize_v4_function_switch_indexed_scan(damaged)
+
+
     def test_v4_function_entry_scan_is_cached_and_fails_closed(self):
         source=(ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")
         self.assertEqual(optimize_v4_video_feed_function_entry_scan(source),source)
@@ -149,7 +161,11 @@ process.stdout.write(JSON.stringify(JSON.parse(done.body)));
             {"id":"present","share_info":{"function_entries":[{"type":"video_download"},{"type":"share"}]}},
             {"id":"empty","share_info":{"function_entries":[]}},
             {"id":"absent","share_info":{}},
-            {"id":"no-share"}
+            {"id":"no-share"},
+            {"id":"switches","function_switch":[
+                {"type":"video_download","enable":false,"reason":"restricted"},
+                {"type":"other","enable":false,"reason":"keep"}
+            ]}
         ]}
         run=subprocess.run([NODE,"-e",runner],input=json.dumps(body),cwd=ROOT,capture_output=True,text=True,check=False,timeout=10)
         self.assertEqual(run.returncode,0,run.stderr)
@@ -160,6 +176,10 @@ process.stdout.write(JSON.stringify(JSON.parse(done.body)));
         self.assertEqual(items[2]["share_info"]["function_entries"],[])
         self.assertEqual(items[3]["share_info"],{})
         self.assertNotIn("share_info",items[4])
+        self.assertTrue(items[5]["function_switch"][0]["enable"])
+        self.assertNotIn("reason",items[5]["function_switch"][0])
+        self.assertFalse(items[5]["function_switch"][1]["enable"])
+        self.assertEqual(items[5]["function_switch"][1]["reason"],"keep")
 
     def test_stream_selection_optimizer_is_idempotent_and_fails_closed(self):
         source=(ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")
