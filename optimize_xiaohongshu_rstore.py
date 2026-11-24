@@ -246,7 +246,13 @@ def apply_live_photo_cache_optimization(source):
       $.setdata(JSON.stringify(livePhotoCache), "redBookLivePhoto");
       imageEnhance(images_list);'''
         source = once(source, old_cache, new_cache, "compact live-photo cache writer")
-    elif "file_id: image.live_photo_file_id" not in source or 'JSON.stringify(livePhotoCache), "redBookLivePhoto"' not in source:
+    elif (
+        'JSON.stringify(livePhotoCache), "redBookLivePhoto"' not in source
+        or (
+            "file_id: image.live_photo_file_id" not in source
+            and "imageEnhance(images_list, livePhotoCache)" not in source
+        )
+    ):
         raise ValueError("compact live-photo cache writer drift")
     if "item?.file_id" not in source:
         source = once(source, old, new, "compact live-photo cache reader")
@@ -379,7 +385,6 @@ def optimize_source(source, commit="unknown"):
       $.setdata(JSON.stringify(livePhotoCache), "redBookLivePhoto");'''
     source = once(source, image_block, image_replacement, "image-feed JSON round trip")
     source = apply_live_photo_cache_optimization(source)
-    source = optimize_imagefeed_single_traversal(source)
 
     source = once(
         source,
@@ -471,7 +476,7 @@ def optimize_source(source, commit="unknown"):
 
     result = MARKER + commit + "\n" + source
     invariants = (
-        "imageEnhance(images_list)", "compactInPlace(obj.data",
+        "imageEnhance(images_list, livePhotoCache)", "compactInPlace(obj.data",
         "appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)",
         "const byFileId = new Map()", "const stack = [data]",
         COMMENT_TREE_MARKER, "selectedStream = null",
