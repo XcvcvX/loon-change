@@ -97,7 +97,7 @@ process.stdout.write(nativeJSON.stringify({body:nativeJSON.parse(done.body),stor
         self.assertEqual(videos["videos"][0]["videId"],"comment-video-1")
         self.assertEqual(videos["videos"][0]["videoUrl"],live["livePhotos"][0]["videoUrl"])
         self.assertEqual(out["parseCalls"],2)
-        self.assertEqual(out["mapGetCount"],2)
+        self.assertEqual(out["mapGetCount"],3)
         self.assertEqual(out["mapHasCount"],0)
         self.assertEqual(out["weakSetConstructCount"],0)
         cursor=out["body"]["data"]["deep"]
