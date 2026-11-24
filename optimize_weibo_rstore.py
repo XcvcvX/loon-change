@@ -386,7 +386,7 @@ def optimize_scalar_membership(source):
         source = source.replace(old, new)
     if source.count(LAZY_MARKER) != 1:
         raise ValueError("Weibo lazy marker anchor drift")
-    source = source.replace(LAZY_MARKER, LAZY_MARKER + "\\n" + SCALAR_MEMBERSHIP_MARKER, 1)
+    source = source.replace(LAZY_MARKER, LAZY_MARKER + "\n" + SCALAR_MEMBERSHIP_MARKER, 1)
     for old, _, _ in SCALAR_MEMBERSHIP_REWRITES:
         if old in source:
             raise ValueError("Weibo scalar-membership postcondition failed")
