@@ -22,7 +22,7 @@ class XiaohongshuOptimizerTests(unittest.TestCase):
         self.assertNotIn("for (let item of videoFeed)",src)
         self.assertIn(STREAM_SELECTION_MARKER,src)
         stream_start=src.index("function selectBestStream(h265List,h264List) {")
-        stream_end=src.index("\\n\\n\\n/**",stream_start)
+        stream_end=src.index("\n\n\n/**",stream_start)
         stream_block=src[stream_start:stream_end]
         self.assertNotIn("const choose",stream_block)
         self.assertNotIn("=>",stream_block)
