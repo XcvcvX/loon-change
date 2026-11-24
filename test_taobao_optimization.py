@@ -386,3 +386,56 @@ process.stdout.write(nativeJSON.stringify({ reads, writes, item: output.data.con
         self.assertEqual(result["item"]["videoUrl"], "")
         self.assertEqual(result["item"]["gmtEndMs"], "3818419199000")
 
+
+
+class TaobaoNullTargetClearArrayTests(unittest.TestCase):
+    def test_null_target_optimizer_is_idempotent_and_fails_closed(self):
+        from optimize_taobao import CLEAR_ARRAY_NULL_TARGET_MARKER, optimize_clear_array_null_targets
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertEqual(optimize_clear_array_null_targets(source), source)
+        self.assertEqual(source.count(CLEAR_ARRAY_NULL_TARGET_MARKER), 1)
+        self.assertIn("if (target == null) return;", source)
+        for token in (
+            'clearArray(videoData, "resources");',
+            'clearArray(videoData, "caches");',
+            'clearArray(poplayerRes, "images");',
+            'clearArray(poplayerRes, "videos");',
+            'clearArray(mainRes, "images");',
+        ):
+            self.assertIn(token, source)
+        self.assertNotIn(" || {},", source)
+        damaged = source.replace("if (target == null) return;", "if (!target) return;", 1)
+        with self.assertRaisesRegex(ValueError, "null-target clearArray fast path drifted"):
+            optimize_clear_array_null_targets(damaged)
+
+    def test_missing_video_and_poplayer_objects_are_noop_without_serialization(self):
+        from pathlib import Path
+        runner = r""" 
+const fs = require("fs"), vm = require("vm");
+const source = fs.readFileSync(process.argv[1], "utf8");
+for (const url of [
+  "https://guide-acs.m.taobao.com/gw/mtop.taobao.cloudvideo.video.query",
+  "https://poplayer.template.alibaba.com/mtop"
+]) {
+  let done;
+  const context = {
+    $request: {url},
+    $response: {body: "{}"},
+    $done(value) { done = value; },
+    console
+  };
+  vm.createContext(context);
+  vm.runInContext(source, context, {timeout: 5000});
+  if (!done || Object.prototype.hasOwnProperty.call(done, "body")) {
+    throw new Error("missing target object must remain a no-op: " + url);
+  }
+}
+process.stdout.write("ok");
+"""
+        if not NODE:
+            self.skipTest("Node.js is required for Taobao null-target runtime tests")
+        completed = subprocess.run(
+            [NODE, "-e", runner, str(SCRIPT)],
+            capture_output=True, text=True, check=True, timeout=10,
+        )
+        self.assertEqual(completed.stdout, "ok")
