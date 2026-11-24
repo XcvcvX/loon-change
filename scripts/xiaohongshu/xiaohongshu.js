@@ -219,10 +219,18 @@ if (url.includes("/v4/note/videofeed")) {
       }
 
       // 添加下载按钮（如果未存在）
-      if (item?.share_info?.function_entries?.length > 0) {
-        const hasDownload = item.share_info.function_entries.some(entry => entry.type === "video_download");
+      // loon-change: Xiaohongshu v4 video-feed function-entry scan without callback v1;
+      const functionEntries = item?.share_info?.function_entries;
+      if (functionEntries?.length > 0) {
+        let hasDownload = false;
+        for (const entry of functionEntries) {
+          if (entry.type === "video_download") {
+            hasDownload = true;
+            break;
+          }
+        }
         if (!hasDownload) {
-          item.share_info.function_entries.push({type: "video_download"});
+          functionEntries.push({type: "video_download"});
         }
       }
 

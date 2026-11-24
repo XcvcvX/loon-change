@@ -1,6 +1,6 @@
 import json, shutil, subprocess, unittest
 from pathlib import Path
-from optimize_xiaohongshu import LOCAL, REMOTE, MARKER, IMAGE_FEED_MARKER, VIDEO_SAVE_LOOKUP_MARKER, STREAM_SELECTION_MARKER, optimize_comment_video_info_cache, optimize_imagefeed_single_traversal, optimize_video_save_cache_lookup, optimize_stream_selection_no_closure, optimize_source, rewrite_plugin
+from optimize_xiaohongshu import LOCAL, REMOTE, MARKER, IMAGE_FEED_MARKER, VIDEO_SAVE_LOOKUP_MARKER, STREAM_SELECTION_MARKER, VIDEO_ENTRY_MARKER, optimize_comment_video_info_cache, optimize_imagefeed_single_traversal, optimize_video_save_cache_lookup, optimize_stream_selection_no_closure, optimize_v4_video_feed_function_entry_scan, optimize_source, rewrite_plugin
 
 ROOT=Path(__file__).resolve().parent
 NODE=shutil.which("node")
@@ -56,6 +56,67 @@ class XiaohongshuOptimizerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"marker is stale"):
             optimize_comment_video_info_cache(damaged)
 
+
+    def test_v4_function_entry_scan_is_cached_and_fails_closed(self):
+        source=(ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")
+        self.assertEqual(optimize_v4_video_feed_function_entry_scan(source),source)
+        self.assertIn("const functionEntries = item?.share_info?.function_entries;",source)
+        self.assertNotIn("function_entries.some(",source)
+        new_block="""      const functionEntries = item?.share_info?.function_entries;
+      if (functionEntries?.length > 0) {
+        let hasDownload = false;
+        for (const entry of functionEntries) {
+          if (entry.type === "video_download") {
+            hasDownload = true;
+            break;
+          }
+        }
+        if (!hasDownload) {
+          functionEntries.push({type: "video_download"});
+        }
+      }"""
+        old_block="""      if (item?.share_info?.function_entries?.length > 0) {
+        const hasDownload = item.share_info.function_entries.some(entry => entry.type === "video_download");
+        if (!hasDownload) {
+          item.share_info.function_entries.push({type: "video_download"});
+        }
+      }"""
+        raw=source.replace(VIDEO_ENTRY_MARKER+chr(10),"",1).replace(new_block,old_block,1)
+        optimized=optimize_source(raw)
+        self.assertIn(VIDEO_ENTRY_MARKER+chr(10)+"      const functionEntries",optimized)
+        self.assertNotIn(VIDEO_ENTRY_MARKER+chr(92)+"n      const functionEntries",optimized)
+        damaged=source.replace("for (const entry of functionEntries)","for (const entry of functionEntries.values())",1)
+        with self.assertRaisesRegex(ValueError,"marker is stale"):
+            optimize_v4_video_feed_function_entry_scan(damaged)
+
+    @unittest.skipUnless(NODE,"Node required for v4 video-feed runtime test")
+    def test_v4_video_feed_download_entry_scan_preserves_behavior(self):
+        runner=r'''
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync("scripts/xiaohongshu/xiaohongshu.js","utf8");
+const p=JSON.parse(fs.readFileSync(0,"utf8"));let done;
+const ctx={$loon:{},$persistentStore:{read(){return null},write(){return true}},
+$request:{url:"https://edith.xiaohongshu.com/api/sns/v4/note/videofeed"},$response:{body:JSON.stringify(p)},
+$done:v=>done=v,console:{log(){},warn(){},error(){}}};
+vm.runInNewContext(source,ctx,{timeout:5000});
+process.stdout.write(JSON.stringify(JSON.parse(done.body)));
+'''
+        body={"data":[
+            {"id":"missing","share_info":{"function_entries":[{"type":"share"},{"type":"copy"}]}},
+            {"id":"present","share_info":{"function_entries":[{"type":"video_download"},{"type":"share"}]}},
+            {"id":"empty","share_info":{"function_entries":[]}},
+            {"id":"absent","share_info":{}},
+            {"id":"no-share"}
+        ]}
+        run=subprocess.run([NODE,"-e",runner],input=json.dumps(body),cwd=ROOT,capture_output=True,text=True,check=False,timeout=10)
+        self.assertEqual(run.returncode,0,run.stderr)
+        out=json.loads(run.stdout)
+        items=out["data"]
+        self.assertEqual(items[0]["share_info"]["function_entries"],[{"type":"share"},{"type":"copy"},{"type":"video_download"}])
+        self.assertEqual(items[1]["share_info"]["function_entries"],[{"type":"video_download"},{"type":"share"}])
+        self.assertEqual(items[2]["share_info"]["function_entries"],[])
+        self.assertEqual(items[3]["share_info"],{})
+        self.assertNotIn("share_info",items[4])
+
     def test_stream_selection_optimizer_is_idempotent_and_fails_closed(self):
         source=(ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")
         self.assertEqual(optimize_stream_selection_no_closure(source),source)
@@ -104,7 +165,8 @@ process.stdout.write(JSON.stringify({body:JSON.parse(done.body),cache:JSON.parse
         ]}
         run=subprocess.run([NODE,"-e",runner],input=json.dumps({
             "url":"https://edith.xiaohongshu.com/api/sns/v4/note/videofeed?cursor=fixture","body":body
-        }),cwd=ROOT,capture_output=True,text=True,check=True,timeout=10)
+        }),cwd=ROOT,capture_output=True,text=True,check=False,timeout=10)
+        self.assertEqual(run.returncode,0,run.stderr)
         out=json.loads(run.stdout)
         self.assertEqual([item["url"] for item in out["cache"]],[
             "https://video.example/h265-1080-high.mp4",
