@@ -299,9 +299,9 @@ source = source
 
 source = source.replace(
   "const adsMessage = adsType.decode(targetData);",
-  "const adsMessage = adsType.decode(targetData);\\n" +
-  "globalThis.__adsContentReads = 0; globalThis.__adsStartReads = 0; globalThis.__adsEndReads = 0; globalThis.__trackAdsProperties = true;\\n" +
-  "let trackedAdsContent = adsMessage.content; Object.defineProperty(adsMessage, 'content', { configurable: true, enumerable: true, get() { if (globalThis.__trackAdsProperties) globalThis.__adsContentReads++; return trackedAdsContent; }, set(value) { trackedAdsContent = value; } });\\n" +
+  "const adsMessage = adsType.decode(targetData);\n" +
+  "globalThis.__adsContentReads = 0; globalThis.__adsStartReads = 0; globalThis.__adsEndReads = 0; globalThis.__trackAdsProperties = true;\n" +
+  "let trackedAdsContent = adsMessage.content; Object.defineProperty(adsMessage, 'content', { configurable: true, enumerable: true, get() { if (globalThis.__trackAdsProperties) globalThis.__adsContentReads++; return trackedAdsContent; }, set(value) { trackedAdsContent = value; } });\n" +
   "for (let k = 0; k < trackedAdsContent.length; k++) { const target = trackedAdsContent[k]; trackedAdsContent[k] = new Proxy(target, { get(target, key, receiver) { if (globalThis.__trackAdsProperties && key === 'start') globalThis.__adsStartReads++; if (globalThis.__trackAdsProperties && key === 'end') globalThis.__adsEndReads++; return Reflect.get(target, key, receiver); } }); }"
 );
 source = source.replace(
