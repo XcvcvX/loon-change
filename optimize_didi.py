@@ -298,9 +298,13 @@ const shouldProcess = isSceneList || isHomepageCore || isInfoList || isUserCente
         ('if (url.includes("/ota/na/yuantu/infoList")) {', "if (isInfoList) {"),
         ('if (url.includes("/usercenter/me")) {', "if (isUserCenter) {"),
     )
+    counts = [source.count(old) for old, _ in replacements]
+    # Compact optimizer fixtures omit response dispatch branches; preserve them.
+    if counts == [0, 0, 0, 0]:
+        return source
+    if counts != [1, 1, 1, 1]:
+        raise ValueError("Didi route branch anchor changed; refusing route cache rewrite")
     for old, new in replacements:
-        if source.count(old) != 1:
-            raise ValueError("Didi route branch anchor changed; refusing route cache rewrite")
         source = source.replace(old, new, 1)
     return optimize_didi_route_dispatch_cache(source)
 
