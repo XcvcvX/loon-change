@@ -28,7 +28,7 @@ class BaiduMapBinaryPerformanceTests(unittest.TestCase):
 
     def test_only_result_and_ads_fields_create_binary_payload_views(self):
         marker = "// loon-change: Baidu protobuf target-only byte views v1"
-        self.assertIn(marker, source)
+        self.assertIn(marker, self.source)
         start = self.source.index("for(let i = 0; i < messageHeadLength; i++)")
         end = self.source.index("\n}\n\nif (modifiedAds && resultOffset !== -1)", start)
         loop = self.source[start:end]
@@ -46,7 +46,7 @@ class BaiduMapBinaryPerformanceTests(unittest.TestCase):
     def test_rephead_message_head_collection_and_length_are_cached(self):
         marker = "// loon-change: Baidu protobuf header collection cache v1"
         self.assertIn(marker, self.source)
-        start = source.index(marker)
+        start = self.source.index(marker)
         end = self.source.index("\n}\n\nif (modifiedAds && resultOffset !== -1)", start)
         loop = self.source[start:end]
         self.assertIn("const messageHeadEntries = repHeadMessage.messageHead;", loop)
@@ -629,10 +629,10 @@ process.stdout.write("ok");
     def test_ads_reencoding_is_gated_by_current_segment_mutation(self):
         source = (ROOT / "scripts/baidumap/baidu-map-protobuf.js").read_text(encoding="utf-8")
         marker = "// loon-change: Baidu protobuf per-segment Ads mutation gate v1"
-        self.assertIn(marker, self.source)
-        start = self.source.index(marker)
-        end = self.source.index("    }\n  }\n}", start)
-        segment = self.source[start:end]
+        self.assertIn(marker, source)
+        start = source.index(marker)
+        end = source.index("    }\n  }\n}", start)
+        segment = source[start:end]
         self.assertIn("let adsSegmentModified = false;", segment)
         self.assertIn("adsSegmentModified = true;", segment)
         self.assertIn("if (adsSegmentModified) {", segment)
