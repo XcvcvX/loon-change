@@ -329,6 +329,52 @@ def optimize_imagefeed_live_photo_property_cache(src):
         return src
     return once(src, "      if(frame.root && livePhotoTarget && child && typeof child === \"object\") {\n        const stream = child.live_photo?.media?.stream?.h265?.[0];\n        const videoId = child.live_photo?.media?.video_id;\n        if (child.live_photo_file_id && videoId && stream?.master_url) {\n          livePhotoTarget.push({\n            live_photo_file_id: child.live_photo_file_id,\n            video_id: videoId,\n            url: stream.master_url\n          });\n        }\n      }", "      if(frame.root && livePhotoTarget && child && typeof child === \"object\") {\n        // loon-change: Xiaohongshu imagefeed live-photo property cache v1;\n        const livePhoto = child.live_photo;\n        const media = livePhoto?.media;\n        const stream = media?.stream?.h265?.[0];\n        const fileId = child.live_photo_file_id;\n        const videoId = media?.video_id;\n        const masterUrl = stream?.master_url;\n        if (fileId && videoId && masterUrl) {\n          livePhotoTarget.push({\n            live_photo_file_id: fileId,\n            video_id: videoId,\n            url: masterUrl\n          });\n        }\n      }", "imagefeed live-photo property cache")
 
+
+FUNCTION_SWITCH_MARKER = "// loon-change: Xiaohongshu v4 function-switch indexed scan v1;"
+
+def optimize_v4_function_switch_indexed_scan(src):
+    if FUNCTION_SWITCH_MARKER in src:
+        start = src.index(FUNCTION_SWITCH_MARKER)
+        end = src.find("\n      // 添加下载按钮", start)
+        block = src[start:end] if end >= 0 else ""
+        required = (
+            FUNCTION_SWITCH_MARKER,
+            "const functionSwitch = item?.function_switch;",
+            "for (let switchIndex = 0; switchIndex < functionSwitch.length; switchIndex++)",
+            "const switchItem = functionSwitch[switchIndex];",
+            'if (switchItem.type === "video_download")',
+            "if (switchItem.reason) delete switchItem.reason;",
+        )
+        if not block or any(token not in block for token in required) or "for (let switchItem of item.function_switch)" in block:
+            raise ValueError("Xiaohongshu v4 function-switch marker is stale")
+        return src
+    old_block = """      if (item?.function_switch?.length > 0) {
+        for (let switchItem of item.function_switch) {
+          if (switchItem.type === "video_download") {
+            switchItem.enable = true;
+            if (switchItem.reason) delete switchItem.reason;
+          }
+        }
+      }"""
+    if src.count(old_block) != 1:
+        raise ValueError("Xiaohongshu v4 function-switch loop anchor drift")
+    new_block = """      // loon-change: Xiaohongshu v4 function-switch indexed scan v1;
+      const functionSwitch = item?.function_switch;
+      if (functionSwitch?.length > 0) {
+        for (let switchIndex = 0; switchIndex < functionSwitch.length; switchIndex++) {
+          const switchItem = functionSwitch[switchIndex];
+          if (switchItem.type === "video_download") {
+            switchItem.enable = true;
+            if (switchItem.reason) delete switchItem.reason;
+          }
+        }
+      }"""
+    src = src.replace(old_block, new_block, 1)
+    if FUNCTION_SWITCH_MARKER not in src or "for (let switchItem of item.function_switch)" in src:
+        raise ValueError("Xiaohongshu v4 function-switch postcondition failed")
+    return src
+
+
 VIDEO_ENTRY_MARKER = "// loon-change: Xiaohongshu v4 video-feed function-entry scan without callback v1;"
 
 def optimize_v4_video_feed_function_entry_scan(src):
@@ -367,6 +413,7 @@ def optimize_source(src,commit="unknown"):
             src = optimize_comment_stack_frame_allocation(src)
             src = optimize_video_save_cache_lookup(src)
             src = optimize_v4_video_feed_function_entry_scan(src)
+            src = optimize_v4_function_switch_indexed_scan(src)
             return optimize_stream_selection_no_closure(src)
         src = apply_comment_optimization(src)
         src = optimize_comment_media_property_cache(src)
@@ -377,6 +424,7 @@ def optimize_source(src,commit="unknown"):
         src = optimize_comment_stack_frame_allocation(src)
         src = optimize_video_save_cache_lookup(src)
         src = optimize_v4_video_feed_function_entry_scan(src)
+        src = optimize_v4_function_switch_indexed_scan(src)
         return optimize_stream_selection_no_closure(src)
     src=once(src,"const url = $request.url;","const url = $request.url;\n"+HELPERS.strip(),"helpers")
     src=once(src,"  console.log('打印原body：' + JSON.stringify(obj));\n","","full-body logging")
@@ -469,8 +517,9 @@ def optimize_source(src,commit="unknown"):
     result = optimize_comment_stack_frame_allocation(result)
     result = optimize_video_save_cache_lookup(result)
     result = optimize_v4_video_feed_function_entry_scan(result)
+    result = optimize_v4_function_switch_indexed_scan(result)
     result = optimize_stream_selection_no_closure(result)
-    for token in ("imageEnhance(images_list, livePhotoCache)", IMAGE_FEED_MARKER, "compactInPlace(obj.data","appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)","const byFileId=new Map()", "Xiaohongshu comment classification stack frames v1;", "const commentFrameTag = {};", "stack.push(true, comment, commentFrameTag);", "stack.push(false, subComment, commentFrameTag);", COMMENT_STACK_FRAME_MARKER, COMMENT_CACHE_MARKER, "let parsed = parsedVideoInfo.get(raw);", VIDEO_SAVE_LOOKUP_MARKER, "for (let i = videoFeed.length - 1; i >= 0; i--)", STREAM_SELECTION_MARKER, "for (let pass = 0; pass < 2; pass++)"):
+    for token in ("imageEnhance(images_list, livePhotoCache)", IMAGE_FEED_MARKER, "compactInPlace(obj.data","appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)","const byFileId=new Map()", "Xiaohongshu comment classification stack frames v1;", "const commentFrameTag = {};", "stack.push(true, comment, commentFrameTag);", "stack.push(false, subComment, commentFrameTag);", FUNCTION_SWITCH_MARKER, COMMENT_STACK_FRAME_MARKER, COMMENT_CACHE_MARKER, "let parsed = parsedVideoInfo.get(raw);", VIDEO_SAVE_LOOKUP_MARKER, "for (let i = videoFeed.length - 1; i >= 0; i--)", STREAM_SELECTION_MARKER, "for (let pass = 0; pass < 2; pass++)"):
         if token not in result:raise ValueError("missing optimizer invariant: "+token)
     if "imageEnhance(JSON.stringify(images_list))" in result:raise ValueError("image-feed serialization round trip remains")
     if "for (const image of images_list)" in result:raise ValueError("image-feed second cache traversal remains")

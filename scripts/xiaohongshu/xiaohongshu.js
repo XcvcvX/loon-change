@@ -209,8 +209,11 @@ if (url.includes("/v4/note/videofeed")) {
       }
 
       // 处理 function_switch (修复按钮置灰)
-      if (item?.function_switch?.length > 0) {
-        for (let switchItem of item.function_switch) {
+      // loon-change: Xiaohongshu v4 function-switch indexed scan v1;
+      const functionSwitch = item?.function_switch;
+      if (functionSwitch?.length > 0) {
+        for (let switchIndex = 0; switchIndex < functionSwitch.length; switchIndex++) {
+          const switchItem = functionSwitch[switchIndex];
           if (switchItem.type === "video_download") {
             switchItem.enable = true;
             if (switchItem.reason) delete switchItem.reason;

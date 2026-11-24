@@ -66,7 +66,11 @@
         "// loon-change: Xiaohongshu comment frame stack flat encoding v1;",
         "const isCommentFrame = entry === commentFrameTag;",
         "stack.push(true, comment, commentFrameTag);",
-        "stack.push(false, subComment, commentFrameTag);"
+        "stack.push(false, subComment, commentFrameTag);",
+        "// loon-change: Xiaohongshu v4 function-switch indexed scan v1;",
+        "const functionSwitch = item?.function_switch;",
+        "for (let switchIndex = 0; switchIndex < functionSwitch.length; switchIndex++)",
+        "const switchItem = functionSwitch[switchIndex];"
       ],
       "forbidden": [
         "console.log(`[缓存] ID:",
@@ -85,7 +89,8 @@
         "if (!video?.video_id || !video?.video_info) continue;",
         "const isCommentFrame = Array.isArray(entry) && entry[0] === commentFrameTag;",
         "stack.push([commentFrameTag, comment, true]);",
-        "stack.push([commentFrameTag, subComment, false]);"
+        "stack.push([commentFrameTag, subComment, false]);",
+        "for (let switchItem of item.function_switch)"
       ]
     },
     {
