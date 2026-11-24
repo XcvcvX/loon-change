@@ -34,9 +34,9 @@ def optimize_redundant_query_matchers(plugin: str) -> str:
     lines = plugin.splitlines()
     narrow_rules = []
     for line in lines:
-        if "pinduoduo" not in line or not line.endswith(r"\\?/i then reject_dict(200)"):
+        if "pinduoduo" not in line or not line.endswith(r"\?/i then reject_dict(200)"):
             continue
-        broad = line.replace(r"\\?/i then reject_dict(200)", "/i then reject_dict(200)")
+        broad = line.replace(r"\?/i then reject_dict(200)", "/i then reject_dict(200)")
         if lines.count(broad) == 1:
             narrow_rules.append(line)
     if QUERY_MATCHER_MARKER in plugin:
