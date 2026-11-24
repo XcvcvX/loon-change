@@ -174,6 +174,52 @@ def apply_comment_optimization(src):
     src=between(src,"// 加载评论区","// 下载评论区live图/评论区视频",COMMENT_BRANCH,"comment processing branch")
     return src
 
+
+COMMENT_STACK_FRAME_MARKER = "// loon-change: Xiaohongshu comment frame stack flat encoding v1;"
+
+def optimize_comment_stack_frame_allocation(src):
+    required = (
+        COMMENT_STACK_FRAME_MARKER,
+        "const isCommentFrame = entry === commentFrameTag;",
+        "const current = isCommentFrame ? stack.pop() : entry;",
+        "const isTopLevelComment = isCommentFrame && stack.pop() === true;",
+        "stack.push(true, comment, commentFrameTag);",
+        "stack.push(false, subComment, commentFrameTag);",
+    )
+    legacy = (
+        "const isCommentFrame = Array.isArray(entry) && entry[0] === commentFrameTag;",
+        "stack.push([commentFrameTag, comment, true]);",
+        "stack.push([commentFrameTag, subComment, false]);",
+    )
+    if COMMENT_STACK_FRAME_MARKER in src:
+        if src.count(COMMENT_STACK_FRAME_MARKER) != 1 or any(token not in src for token in required) or any(token in src for token in legacy):
+            raise ValueError("Xiaohongshu flat comment stack-frame marker is stale")
+        return src
+    old_setup = """  const stack = [data];
+  while (stack.length) {
+    const entry = stack.pop();
+    const isCommentFrame = Array.isArray(entry) && entry[0] === commentFrameTag;
+    const current = isCommentFrame ? entry[1] : entry;
+    const isTopLevelComment = isCommentFrame && entry[2] === true;"""
+    new_setup = """  // loon-change: Xiaohongshu comment frame stack flat encoding v1;
+  const stack = [data];
+  while (stack.length) {
+    const entry = stack.pop();
+    const isCommentFrame = entry === commentFrameTag;
+    const current = isCommentFrame ? stack.pop() : entry;
+    const isTopLevelComment = isCommentFrame && stack.pop() === true;"""
+    if src.count(old_setup) != 1:
+        raise ValueError("Xiaohongshu comment stack-frame setup anchor drift")
+    src = src.replace(old_setup, new_setup, 1)
+    if src.count("stack.push([commentFrameTag, comment, true]);") != 1 or src.count("stack.push([commentFrameTag, subComment, false]);") != 1:
+        raise ValueError("Xiaohongshu comment stack-frame push anchor drift")
+    src = src.replace("stack.push([commentFrameTag, comment, true]);", "stack.push(true, comment, commentFrameTag);", 1)
+    src = src.replace("stack.push([commentFrameTag, subComment, false]);", "stack.push(false, subComment, commentFrameTag);", 1)
+    if any(token not in src for token in required) or any(token in src for token in legacy):
+        raise ValueError("Xiaohongshu flat comment stack-frame postcondition failed")
+    return src
+
+
 COMMENT_MEDIA_CACHE_MARKER = "// loon-change: Xiaohongshu comment media collection property cache v1;"
 
 def optimize_comment_media_property_cache(src):
@@ -318,6 +364,7 @@ def optimize_source(src,commit="unknown"):
             src = optimize_imagefeed_live_photo_property_cache(src)
             src = optimize_comment_video_info_cache(src)
             src = optimize_comment_media_property_cache(src)
+            src = optimize_comment_stack_frame_allocation(src)
             src = optimize_video_save_cache_lookup(src)
             src = optimize_v4_video_feed_function_entry_scan(src)
             return optimize_stream_selection_no_closure(src)
@@ -327,6 +374,7 @@ def optimize_source(src,commit="unknown"):
         src = optimize_imagefeed_live_photo_property_cache(src)
         src = optimize_comment_video_info_cache(src)
         src = optimize_comment_media_property_cache(src)
+        src = optimize_comment_stack_frame_allocation(src)
         src = optimize_video_save_cache_lookup(src)
         src = optimize_v4_video_feed_function_entry_scan(src)
         return optimize_stream_selection_no_closure(src)

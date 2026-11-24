@@ -1,6 +1,6 @@
 import json, shutil, subprocess, unittest
 from pathlib import Path
-from optimize_xiaohongshu import LOCAL, REMOTE, MARKER, IMAGE_FEED_MARKER, VIDEO_SAVE_LOOKUP_MARKER, STREAM_SELECTION_MARKER, VIDEO_ENTRY_MARKER, IMAGE_LIVE_PHOTO_CACHE_MARKER, COMMENT_MEDIA_CACHE_MARKER, optimize_comment_media_property_cache, optimize_imagefeed_live_photo_property_cache, optimize_comment_video_info_cache, optimize_imagefeed_single_traversal, optimize_video_save_cache_lookup, optimize_stream_selection_no_closure, optimize_v4_video_feed_function_entry_scan, optimize_source, rewrite_plugin
+from optimize_xiaohongshu import LOCAL, REMOTE, MARKER, IMAGE_FEED_MARKER, VIDEO_SAVE_LOOKUP_MARKER, STREAM_SELECTION_MARKER, VIDEO_ENTRY_MARKER, IMAGE_LIVE_PHOTO_CACHE_MARKER, COMMENT_MEDIA_CACHE_MARKER, COMMENT_STACK_FRAME_MARKER, optimize_comment_stack_frame_allocation, optimize_comment_media_property_cache, optimize_imagefeed_live_photo_property_cache, optimize_comment_video_info_cache, optimize_imagefeed_single_traversal, optimize_video_save_cache_lookup, optimize_stream_selection_no_closure, optimize_v4_video_feed_function_entry_scan, optimize_source, rewrite_plugin
 
 ROOT=Path(__file__).resolve().parent
 NODE=shutil.which("node")
@@ -63,7 +63,22 @@ class XiaohongshuOptimizerTests(unittest.TestCase):
         self.assertIn("processCommentTree(obj.data, livePhotos, commentVideos, note_id);",source)
         self.assertIn("Xiaohongshu comment classification stack frames v1;",source)
         self.assertIn("const commentFrameTag = {};",source)
+        self.assertIn(COMMENT_STACK_FRAME_MARKER,source)
         self.assertNotIn("new WeakSet()",source)
+
+    def test_comment_stack_frames_use_flat_stack_without_tuple_allocations(self):
+        source=(ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")
+        self.assertEqual(optimize_comment_stack_frame_allocation(source),source)
+        self.assertIn(COMMENT_STACK_FRAME_MARKER,source)
+        self.assertIn("const isCommentFrame = entry === commentFrameTag;",source)
+        self.assertIn("stack.push(true, comment, commentFrameTag);",source)
+        self.assertIn("stack.push(false, subComment, commentFrameTag);",source)
+        self.assertNotIn("stack.push([commentFrameTag, comment, true]);",source)
+        self.assertNotIn("stack.push([commentFrameTag, subComment, false]);",source)
+        damaged=source.replace("stack.push(true, comment, commentFrameTag);","stack.push(comment, commentFrameTag);",1)
+        with self.assertRaisesRegex(ValueError,"marker is stale"):
+            optimize_comment_stack_frame_allocation(damaged)
+
 
     def test_comment_media_property_cache_is_idempotent_and_fails_closed(self):
         source=(ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")
@@ -324,6 +339,7 @@ process.stdout.write(nativeJSON.stringify({body:nativeJSON.parse(done.body),stor
         self.assertIn("processCommentTree(obj.data, livePhotos, commentVideos, note_id);",source)
         self.assertIn("Xiaohongshu comment classification stack frames v1;",source)
         self.assertIn("const commentFrameTag = {};",source)
+        self.assertIn(COMMENT_STACK_FRAME_MARKER,source)
         self.assertNotIn("new WeakSet()",source)
 
     def test_plugin_rewrites_exact_nine_triggers(self):
