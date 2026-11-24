@@ -39,6 +39,30 @@ class BaiduMapBinaryPerformanceTests(unittest.TestCase):
         self.assertIn("if (modifiedAds && resultOffset !== -1)", deferred)
         self.assertIn("newResult = binaryBody.subarray(resultOffset, resultOffset + resultLength);", deferred)
 
+    def test_rephead_message_head_collection_and_length_are_cached(self):
+        marker = "// loon-change: Baidu protobuf header collection cache v1"
+        self.assertIn(marker, self.source)
+        start = self.source.index(marker)
+        end = self.source.index("\n}\n\nif (modifiedAds && resultOffset !== -1)", start)
+        loop = self.source[start:end]
+        self.assertIn("const messageHeadEntries = repHeadMessage.messageHead;", loop)
+        self.assertIn("const messageHeadLength = messageHeadEntries.length;", loop)
+        self.assertIn("for(let i = 0; i < messageHeadLength; i++)", loop)
+        self.assertIn("let messageHead = messageHeadEntries[i];", loop)
+        self.assertNotIn("repHeadMessage.messageHead.length", loop)
+        self.assertNotIn("repHeadMessage.messageHead[i]", loop)
+
+    def test_response_assembly_caches_header_entries(self):
+        start = self.source.index("function assembleBaiduResponse(")
+        end = self.source.index("\n}\n", start) + 2
+        helper = self.source[start:end]
+        self.assertIn("const messageHead = repHeadMessage.messageHead;", helper)
+        self.assertIn("const resultHead = messageHead[0];", helper)
+        self.assertIn("const adsHead = messageHead[1];", helper)
+        self.assertNotIn("repHeadMessage.messageHead[0]", helper)
+        self.assertNotIn("repHeadMessage.messageHead[1]", helper)
+
+
     def test_ads_content_collection_and_length_are_cached(self):
         marker = "// loon-change: Baidu protobuf Ads content array cache v1"
         self.assertIn(marker, self.source)

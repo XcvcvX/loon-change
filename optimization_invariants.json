@@ -281,12 +281,22 @@
         "const adsContent = adsMessage.content;",
         "const adsContentLength = adsContent.length;",
         "for(let j = 0; j < adsContentLength; j++)",
-        "const item = adsContent[j];"
+        "const item = adsContent[j];",
+        "// loon-change: Baidu protobuf header collection cache v1",
+        "const messageHeadEntries = repHeadMessage.messageHead;",
+        "const messageHeadLength = messageHeadEntries.length;",
+        "const messageHead = repHeadMessage.messageHead;",
+        "const resultHead = messageHead[0];",
+        "const adsHead = messageHead[1];"
       ],
       "forbidden": [
         "newResult = binaryBody.subarray(currentOffset, currentOffset + targetDataLength);",
         "adsMessage.content.length",
-        "adsMessage.content[j]"
+        "adsMessage.content[j]",
+        "repHeadMessage.messageHead.length",
+        "repHeadMessage.messageHead[i]",
+        "repHeadMessage.messageHead[0]",
+        "repHeadMessage.messageHead[1]"
       ]
     },
     {
