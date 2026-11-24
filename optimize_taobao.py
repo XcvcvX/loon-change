@@ -54,7 +54,9 @@ def optimize_splash_loop(source):
     if SPLASH_LOOP_MARKER in source:
         required = (
             SPLASH_LOOP_MARKER,
-            "const sections = obj.data.containers.splash_home_base.base?.sections;",
+            SPLASH_HOME_OBJECT_MARKER,
+            "const splashHome = obj?.data?.containers?.splash_home_base;",
+            "const sections = splashHome.base?.sections;",
             "const sectionCount = sections.length;",
             "const bizData = sections[sectionIndex]?.bizData;",
             'const splashItems = bizData?.["taobao-splash"]?.data;',

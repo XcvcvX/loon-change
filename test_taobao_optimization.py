@@ -460,7 +460,7 @@ const fs = require("fs"), vm = require("vm");
 let source = fs.readFileSync(process.argv[1], "utf8");
 source = source.replace(
   "const obj = JSON.parse($response.body);",
-  "const obj = JSON.parse($response.body); let splashHomeReads = 0; const splashHomeValue = obj.data.containers.splash_home_base; Object.defineProperty(obj.data.containers, 'splash_home_base', { configurable: true, get() { splashHomeReads++; return splashHomeValue; } });"
+  "const obj = JSON.parse($response.body); globalThis.__splashHomeReads = 0; const splashHomeValue = obj.data.containers.splash_home_base; Object.defineProperty(obj.data.containers, 'splash_home_base', { configurable: true, get() { globalThis.__splashHomeReads++; return splashHomeValue; } });"
 );
 let done;
 const context = {
@@ -472,7 +472,7 @@ const context = {
 vm.createContext(context);
 vm.runInContext(source, context, {timeout: 5000});
 if (!done || Object.prototype.hasOwnProperty.call(done, "body")) throw new Error("empty splash response must pass through");
-process.stdout.write(String(context.splashHomeReads));
+process.stdout.write(String(context.__splashHomeReads));
 """
         completed = subprocess.run(
             [NODE, "-e", runner, str(SCRIPT)],
