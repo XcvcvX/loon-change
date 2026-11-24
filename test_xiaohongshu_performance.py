@@ -54,7 +54,8 @@ const fs=require("fs"),vm=require("vm"),source=fs.readFileSync("scripts/xiaohong
 const p=JSON.parse(fs.readFileSync(0,"utf8")),store=new Map();let done,parseCalls=0,weakSetConstructCount=0,mapGetCount=0,mapHasCount=0;
 const nativeJSON=JSON,NativeWeakSet=WeakSet;
 class CountedWeakSet extends NativeWeakSet { constructor(...args){super(...args);weakSetConstructCount++;} }
-const trackedJSON={parse(value){parseCalls++;return nativeJSON.parse(value);},stringify(value){return nativeJSON.stringify(value);}};\nclass CountedMap extends Map { get(key){mapGetCount++;return super.get(key);} has(key){mapHasCount++;return super.has(key);} }
+const trackedJSON={parse(value){parseCalls++;return nativeJSON.parse(value);},stringify(value){return nativeJSON.stringify(value);}};
+class CountedMap extends Map { get(key){mapGetCount++;return super.get(key);} has(key){mapHasCount++;return super.has(key);} }
 const ctx={JSON:trackedJSON,WeakSet:CountedWeakSet,Map:CountedMap,$loon:{},$persistentStore:{read:k=>store.get(k)||null,write:(v,k)=>(store.set(k,v),true)},
 $request:{url:p.url},$response:{body:nativeJSON.stringify(p.body)},$done:v=>done=v,console:{log(){},warn(){},error(){}}};
 vm.runInNewContext(source,ctx,{timeout:5000});
