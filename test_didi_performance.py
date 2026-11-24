@@ -136,6 +136,8 @@ const context = {
   $done(value) { doneResult = value; },
   __parseCount: 0,
   __stringifyCount: 0,
+  __walletPropertyReads: { tag: 0, items: 0, card_type: 0, bottom_items: 0 },
+  __trackWalletPropertyReads: true,
   __captureWalletPropertyReads: payload.trackWalletProperties,
   console: { log() {}, warn() {}, error() {} }
 };
