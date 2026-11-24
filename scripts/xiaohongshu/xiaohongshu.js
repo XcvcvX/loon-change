@@ -436,11 +436,14 @@ function processCommentTree(data, livePhotos, commentVideos, noteId) {
   const parsedVideoInfo = new Map();
   const parseVideoInfo = raw => {
     if (typeof raw !== "string" || raw.length === 0) return null;
-    if (!parsedVideoInfo.has(raw)) {
-      try { parsedVideoInfo.set(raw, JSON.parse(raw)); }
-      catch (_) { parsedVideoInfo.set(raw, null); }
+    // loon-change: Xiaohongshu comment video-info cache single lookup v2;
+    let parsed = parsedVideoInfo.get(raw);
+    if (parsed === undefined) {
+      try { parsed = JSON.parse(raw); }
+      catch (_) { parsed = null; }
+      parsedVideoInfo.set(raw, parsed);
     }
-    return parsedVideoInfo.get(raw);
+    return parsed;
   };
   // loon-change: Xiaohongshu parsed JSON comment tree without visited WeakSet v1;
   // JSON.parse creates a tree with no cycles or shared object references.

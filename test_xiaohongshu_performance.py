@@ -1,6 +1,6 @@
 import json, shutil, subprocess, unittest
 from pathlib import Path
-from optimize_xiaohongshu import LOCAL, REMOTE, MARKER, IMAGE_FEED_MARKER, optimize_imagefeed_single_traversal, optimize_source, rewrite_plugin
+from optimize_xiaohongshu import LOCAL, REMOTE, MARKER, IMAGE_FEED_MARKER, optimize_comment_video_info_cache, optimize_imagefeed_single_traversal, optimize_source, rewrite_plugin
 
 ROOT=Path(__file__).resolve().parent
 NODE=shutil.which("node")
@@ -15,6 +15,8 @@ class XiaohongshuOptimizerTests(unittest.TestCase):
         self.assertIn(IMAGE_FEED_MARKER,src)
         self.assertNotIn("for (const image of images_list)",src)
         self.assertIn("const byFileId=new Map()",src)
+        self.assertIn("// loon-change: Xiaohongshu comment video-info cache single lookup v2;",src)
+        self.assertNotIn("parsedVideoInfo.has(raw)",src)
         self.assertNotIn("console.log('新body：' + JSON.stringify(obj))",src)
         self.assertNotIn('console.log("写入缓存val：" + JSON.stringify(commitsRsp))',src)
         self.assertFalse(any("console.log(" in line and any(token in line for token in ("原body：","新body：","写入缓存val","comment_id:","video_id：")) for line in src.splitlines()))
@@ -38,18 +40,26 @@ class XiaohongshuOptimizerTests(unittest.TestCase):
         self.assertIn("const commentFrameTag = {};",source)
         self.assertNotIn("new WeakSet()",source)
 
+    def test_comment_video_info_cache_optimizer_is_idempotent_and_fails_closed(self):
+        source=(ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")
+        self.assertEqual(optimize_comment_video_info_cache(source),source)
+        damaged=source.replace("let parsed = parsedVideoInfo.get(raw);","let parsed = parsedVideoInfo.has(raw);")
+        with self.assertRaisesRegex(ValueError,"marker is stale"):
+            optimize_comment_video_info_cache(damaged)
+
     @unittest.skipUnless(NODE,"Node required for comment runtime test")
     def test_comment_tree_single_pass_preserves_cleanup_and_media_caches(self):
         runner=r'''
 const fs=require("fs"),vm=require("vm"),source=fs.readFileSync("scripts/xiaohongshu/xiaohongshu.js","utf8");
-const p=JSON.parse(fs.readFileSync(0,"utf8")),store=new Map();let done,parseCalls=0,weakSetConstructCount=0;
+const p=JSON.parse(fs.readFileSync(0,"utf8")),store=new Map();let done,parseCalls=0,weakSetConstructCount=0,mapGetCount=0,mapHasCount=0;
 const nativeJSON=JSON,NativeWeakSet=WeakSet;
 class CountedWeakSet extends NativeWeakSet { constructor(...args){super(...args);weakSetConstructCount++;} }
 const trackedJSON={parse(value){parseCalls++;return nativeJSON.parse(value);},stringify(value){return nativeJSON.stringify(value);}};
-const ctx={JSON:trackedJSON,WeakSet:CountedWeakSet,$loon:{},$persistentStore:{read:k=>store.get(k)||null,write:(v,k)=>(store.set(k,v),true)},
+class CountedMap extends Map { get(key){mapGetCount++;return super.get(key);} has(key){mapHasCount++;return super.has(key);} }
+const ctx={JSON:trackedJSON,WeakSet:CountedWeakSet,Map:CountedMap,$loon:{},$persistentStore:{read:k=>store.get(k)||null,write:(v,k)=>(store.set(k,v),true)},
 $request:{url:p.url},$response:{body:nativeJSON.stringify(p.body)},$done:v=>done=v,console:{log(){},warn(){},error(){}}};
 vm.runInNewContext(source,ctx,{timeout:5000});
-process.stdout.write(nativeJSON.stringify({body:nativeJSON.parse(done.body),store:Object.fromEntries(store),parseCalls,weakSetConstructCount}));
+process.stdout.write(nativeJSON.stringify({body:nativeJSON.parse(done.body),store:Object.fromEntries(store),parseCalls,weakSetConstructCount,mapGetCount,mapHasCount}));
 '''
         video_info=json.dumps({"stream":{"h265":[
             {"master_url":"https://video.example/2160.mp4","width":3840,"height":2160}
@@ -87,6 +97,8 @@ process.stdout.write(nativeJSON.stringify({body:nativeJSON.parse(done.body),stor
         self.assertEqual(videos["videos"][0]["videId"],"comment-video-1")
         self.assertEqual(videos["videos"][0]["videoUrl"],live["livePhotos"][0]["videoUrl"])
         self.assertEqual(out["parseCalls"],2)
+        self.assertEqual(out["mapGetCount"],3)
+        self.assertEqual(out["mapHasCount"],0)
         self.assertEqual(out["weakSetConstructCount"],0)
         cursor=out["body"]["data"]["deep"]
         depth=0
