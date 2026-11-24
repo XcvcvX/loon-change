@@ -44,7 +44,9 @@
         "imageEnhance(images_list, livePhotoCache);",
         "Xiaohongshu comment classification stack frames v1;",
         "const commentFrameTag = {};",
-        "stack.push([commentFrameTag, comment, true])"
+        "stack.push([commentFrameTag, comment, true])",
+        "// loon-change: Xiaohongshu comment video-info cache single lookup v2;",
+        "let parsed = parsedVideoInfo.get(raw);"
       ],
       "forbidden": [
         "console.log(`[缓存] ID:",
@@ -53,7 +55,8 @@
         "for (const image of images_list)",
         "imageEnhance(JSON.stringify(images_list))",
         "const commentNodes = new WeakSet()",
-        "const topLevelComments = new WeakSet()"
+        "const topLevelComments = new WeakSet()",
+        "parsedVideoInfo.has(raw)"
       ]
     },
     {
