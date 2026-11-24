@@ -99,6 +99,39 @@ def optimize_route_classification(source):
         source = source.replace(old, new, 1)
     return source
 
+OBJECT_CACHE_MARKER = "// loon-change: Taobao cached video response object v1"
+OLD_VIDEO_OBJECT_BLOCK = "if (isCloudVideo) {\n  if (obj?.data?.duration) {\n    setIfDifferent(obj.data, \"duration\", \"0\");\n  }\n  clearArray(obj?.data || {}, \"resources\");\n  clearArray(obj?.data || {}, \"caches\");\n  if (obj?.data?.respTimeInMs) {\n    setIfDifferent(obj.data, \"respTimeInMs\", \"3818332800000\");\n  }\n}"
+NEW_VIDEO_OBJECT_BLOCK = "if (isCloudVideo) {\n  // loon-change: Taobao cached video response object v1\n  const videoData = obj?.data;\n  if (videoData?.duration) {\n    setIfDifferent(videoData, \"duration\", \"0\");\n  }\n  clearArray(videoData || {}, \"resources\");\n  clearArray(videoData || {}, \"caches\");\n  if (videoData?.respTimeInMs) {\n    setIfDifferent(videoData, \"respTimeInMs\", \"3818332800000\");\n  }\n}"
+OLD_POPLAYER_OBJECT_BLOCK = "} else if (isPoplayer) {\n  clearArray(obj?.res || {}, \"images\");\n  clearArray(obj?.res || {}, \"videos\");\n  if (obj?.enable) {\n    setIfDifferent(obj, \"enable\", false);\n  }\n  clearArray(obj?.mainRes || {}, \"images\");\n}"
+NEW_POPLAYER_OBJECT_BLOCK = "} else if (isPoplayer) {\n  // loon-change: Taobao cached Poplayer response objects v1\n  const poplayerRes = obj?.res;\n  const mainRes = obj?.mainRes;\n  const poplayerEnabled = obj?.enable;\n  clearArray(poplayerRes || {}, \"images\");\n  clearArray(poplayerRes || {}, \"videos\");\n  if (poplayerEnabled) {\n    setIfDifferent(obj, \"enable\", false);\n  }\n  clearArray(mainRes || {}, \"images\");\n}"
+
+def optimize_route_object_access(source):
+    if OBJECT_CACHE_MARKER in source:
+        required = (
+            OBJECT_CACHE_MARKER,
+            "const videoData = obj?.data;",
+            "const poplayerRes = obj?.res;",
+            "const mainRes = obj?.mainRes;",
+            "const poplayerEnabled = obj?.enable;",
+            'clearArray(poplayerRes || {}, "images");',
+            'clearArray(poplayerRes || {}, "videos");',
+            'clearArray(mainRes || {}, "images");',
+        )
+        if any(token not in source for token in required):
+            raise ValueError("Taobao cached response object access drifted; refusing to overwrite")
+        if "clearArray(obj?.res || {}, " in source or "clearArray(obj?.mainRes || {}, " in source:
+            raise ValueError("Repeated Taobao Poplayer object access remains")
+        return source
+    if source.count(OLD_VIDEO_OBJECT_BLOCK) != 1 or source.count(OLD_POPLAYER_OBJECT_BLOCK) != 1:
+        raise ValueError("Expected exactly one Taobao video and Poplayer object access block")
+    source = source.replace(OLD_VIDEO_OBJECT_BLOCK, NEW_VIDEO_OBJECT_BLOCK, 1)
+    source = source.replace(OLD_POPLAYER_OBJECT_BLOCK, NEW_POPLAYER_OBJECT_BLOCK, 1)
+    if (source.count(OBJECT_CACHE_MARKER) != 1
+            or source.count("// loon-change: Taobao cached Poplayer response objects v1") != 1):
+        raise ValueError("Taobao cached response object access postcondition failed")
+    return source
+
+
 def optimize_runtime_source(source):
     if RUNTIME_MARKER not in source:
         anchor = "  const obj = JSON.parse($response.body);\n"
@@ -120,6 +153,7 @@ def optimize_runtime_source(source):
             raise ValueError("Taobao pre-parse guard moved after JSON.parse")
     source = optimize_splash_loop(source)
     source = optimize_route_classification(source)
+    source = optimize_route_object_access(source)
     if source.index("const shouldProcess =") > source.index("JSON.parse($response.body)"):
         raise ValueError("Taobao pre-parse guard insertion order invalid")
     return source
