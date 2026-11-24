@@ -109,7 +109,26 @@
         "let modified = !url.includes(\"/2/cardlist\") && !url.includes(\"/2/comments/build_comments\");",
         "if (__loonWrite32 !== __loonLength32) modified = true;",
         "$done(modified ? {body: JSON.stringify(obj)} : {});",
-        "const __loonLength32 = __loonSource32.length;"
+        "const __loonLength32 = __loonSource32.length;",
+        "// loon-change: Weibo hot-loop scalar membership v1",
+        "cardType === 120 || cardType === 145 || cardType === 192",
+        "item?.data?.card_type === 19 || item?.data?.card_type === 118"
+      ],
+      "forbidden": [
+        "[120, 145, 192]?.includes(cardType)",
+        "[6, 101]?.includes(cardType)",
+        "[17, 58]?.includes(cardType)",
+        "[\"超话社区\", \"微博开新年\", \"微博热搜\", \"微博视频\"]?.includes(item.data?.user?.name)",
+        "![\"活动通知\", \"闪聊\"].includes(i?.user?.name)",
+        "[\"最新微博\", \"特别关注\", \"好友圈\", \"视频\"]?.includes(ii?.title)",
+        "[58, 216]?.includes(item?.data?.card_type)",
+        "[10, 48, 176]?.includes(ii?.data?.card_type)",
+        "[22]?.includes(cardType)",
+        "[19, 118, 206, 208, 217, 236, 249, 261]?.includes(item?.data?.card_type)",
+        "[118, 182, 217, 247]?.includes(ii?.data?.card_type)",
+        "[118, 182, 192, 217, 247]?.includes(ii?.data?.card_type)",
+        "[3, 17, 22, 30, 42, 89, 206, 236]?.includes(ii?.data?.card_type)",
+        "![4, 197, 1012]?.includes(item?.data?.card_type)"
       ]
     },
     {

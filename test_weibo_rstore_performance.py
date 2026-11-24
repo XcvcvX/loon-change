@@ -23,6 +23,7 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         self.assertEqual(len(re.findall(r"const __loonSource\d+ =", source)), 32)
         self.assertEqual(len(re.findall(r"(?m)^\s*const __loonLength\d+ = __loonSource\d+\.length;$", source)), 32)
         self.assertNotRegex(source, r"for \(let __loonRead\d+ = 0, __loonLength\d+")
+        self.assertNotRegex(source, r"\[[^\]\n]+\]\??\.includes\(")
         remaining = re.findall(r"\b(new[A-Za-z0-9_]*)\s*=\s*\[\s*\]", source)
         self.assertEqual(sorted(remaining), ["newActions", "newII"])
         self.assertIn("compactInPlace(obj.elements", source)
@@ -31,6 +32,16 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         self.assertNotIn("obj.elements = obj.elements.filter(", source)
         self.assertNotIn("obj.user_list = obj.user_list.filter(", source)
         self.assertNotIn("obj.channelInfo.channel_list = obj.channelInfo.channel_list.filter(", source)
+
+    def test_hot_loop_membership_uses_scalar_comparisons(self):
+        source = SCRIPT.read_text(encoding="utf-8")
+        marker = "// loon-change: Weibo hot-loop scalar membership v1"
+        self.assertEqual(source.count(marker), 1)
+        self.assertEqual(optimize_source(source), source)
+        self.assertNotRegex(source, r"\[[^\]\n]+\]\??\.includes\(")
+        self.assertIn("cardType === 120 || cardType === 145 || cardType === 192", source)
+        self.assertIn("item?.data?.card_type === 19 || item?.data?.card_type === 118", source)
+        self.assertIn("!(item?.data?.card_type === 4 || item?.data?.card_type === 197", source)
 
     def test_old_optimized_snapshot_regains_lazy_serialization_guard(self):
         source = SCRIPT.read_text(encoding="utf-8")
