@@ -209,7 +209,7 @@ const fs = require("fs");
 const vm = require("vm");
 const payload = JSON.parse(fs.readFileSync(0, "utf8"));
 const source = fs.readFileSync(process.argv[1], "utf8");
-let doneResult;
+let doneResult, trackReads = true;
 const reads = Object.create(null);
 const nativeJSON = JSON;
 const trackedJSON = {
@@ -217,7 +217,7 @@ const trackedJSON = {
     const parsed = nativeJSON.parse(value);
     const wrap = (name, target) => new Proxy(target, {
       get(object, key, receiver) {
-        if (key === "images" || key === "videos") {
+        if (trackReads && (key === "images" || key === "videos")) {
           const index = name + "." + String(key);
           reads[index] = (reads[index] || 0) + 1;
         }
@@ -228,7 +228,11 @@ const trackedJSON = {
     if (parsed.mainRes) parsed.mainRes = wrap("mainRes", parsed.mainRes);
     return parsed;
   },
-  stringify(value) { return nativeJSON.stringify(value); }
+  stringify(value) {
+    trackReads = false;
+    try { return nativeJSON.stringify(value); }
+    finally { trackReads = true; }
+  }
 };
 const context = {
   JSON: trackedJSON,
