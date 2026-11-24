@@ -1,6 +1,7 @@
 // loon-change: R-Store Weibo in-place response compaction v1; upstream zirawell/R-Store@52fcb40b118a15610686b9167a7ee8e59bc04709
 // loon-change: Weibo feed and comment lazy serialization v1
 // loon-change: Weibo hot-loop scalar membership v1
+// loon-change: Weibo /2/page cached itemid reads v1
 /********************************
 Weibo Remove Ads - Version 1.0
 Checkout Source - https://raw.githubusercontent.com/RuCu6/QuanX/main/Scripts/weibo.js
@@ -452,16 +453,23 @@ if (url.includes("/interface/sdk/sdkad.php")) {
     // 搜索页列表,超话
     if (obj?.cards?.length > 0) {
       if (obj?.cards?.[0]?.card_group?.length > 0) {
-        compactInPlace(obj.cards[0].card_group, c => !(c?.actionlog?.ext?.includes("ads_word") || c?.itemid?.includes("t:51") || c?.itemid?.includes("ads_word")));
+        compactInPlace(obj.cards[0].card_group, c => {
+          if (c?.actionlog?.ext?.includes("ads_word")) return false;
+          const itemId = c?.itemid;
+          return !(itemId?.includes("t:51") || itemId?.includes("ads_word"));
+        });
       }
-      compactInPlace(obj.cards, i => !(
-          i.itemid?.includes("feed_-_invite") ||
-          i.itemid?.includes("infeed_friends_recommend") ||
-          i.itemid?.includes("infeed_may_interest_in") ||
-          i.itemid?.includes("infeed_pagemanual3") ||
-          i.itemid?.includes("infeed_weibo_mall") ||
+      compactInPlace(obj.cards, i => {
+        const itemId = i.itemid;
+        return !(
+          itemId?.includes("feed_-_invite") ||
+          itemId?.includes("infeed_friends_recommend") ||
+          itemId?.includes("infeed_may_interest_in") ||
+          itemId?.includes("infeed_pagemanual3") ||
+          itemId?.includes("infeed_weibo_mall") ||
           i?.mblog?.mblogtypename?.includes("广告")
-        ));
+        );
+      });
     } else if (obj?.card_group?.length > 0) {
       compactInPlace(obj.card_group, i => i?.desc?.includes("你可能感兴趣的超话"));
     }

@@ -112,7 +112,10 @@
         "const __loonLength32 = __loonSource32.length;",
         "// loon-change: Weibo hot-loop scalar membership v1",
         "cardType === 120 || cardType === 145 || cardType === 192",
-        "item?.data?.card_type === 19 || item?.data?.card_type === 118"
+        "item?.data?.card_type === 19 || item?.data?.card_type === 118",
+        "// loon-change: Weibo /2/page cached itemid reads v1",
+        "const itemId = c?.itemid;",
+        "const itemId = i.itemid;"
       ],
       "forbidden": [
         "[120, 145, 192]?.includes(cardType)",
@@ -128,7 +131,9 @@
         "[118, 182, 217, 247]?.includes(ii?.data?.card_type)",
         "[118, 182, 192, 217, 247]?.includes(ii?.data?.card_type)",
         "[3, 17, 22, 30, 42, 89, 206, 236]?.includes(ii?.data?.card_type)",
-        "![4, 197, 1012]?.includes(item?.data?.card_type)"
+        "![4, 197, 1012]?.includes(item?.data?.card_type)",
+        "c?.itemid?.includes(\"t:51\")",
+        "i.itemid?.includes(\"feed_-_invite\")"
       ]
     },
     {
