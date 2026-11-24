@@ -1,6 +1,6 @@
 import json, shutil, subprocess, unittest
 from pathlib import Path
-from optimize_xiaohongshu import LOCAL, REMOTE, MARKER, IMAGE_FEED_MARKER, VIDEO_SAVE_LOOKUP_MARKER, STREAM_SELECTION_MARKER, optimize_comment_video_info_cache, optimize_imagefeed_single_traversal, optimize_video_save_cache_lookup, optimize_stream_selection_no_closure, optimize_v4_video_feed_function_entry_scan, optimize_source, rewrite_plugin
+from optimize_xiaohongshu import LOCAL, REMOTE, MARKER, IMAGE_FEED_MARKER, VIDEO_SAVE_LOOKUP_MARKER, STREAM_SELECTION_MARKER, VIDEO_ENTRY_MARKER, optimize_comment_video_info_cache, optimize_imagefeed_single_traversal, optimize_video_save_cache_lookup, optimize_stream_selection_no_closure, optimize_v4_video_feed_function_entry_scan, optimize_source, rewrite_plugin
 
 ROOT=Path(__file__).resolve().parent
 NODE=shutil.which("node")
@@ -62,6 +62,29 @@ class XiaohongshuOptimizerTests(unittest.TestCase):
         self.assertEqual(optimize_v4_video_feed_function_entry_scan(source),source)
         self.assertIn("const functionEntries = item?.share_info?.function_entries;",source)
         self.assertNotIn("function_entries.some(",source)
+        new_block="""      const functionEntries = item?.share_info?.function_entries;
+      if (functionEntries?.length > 0) {
+        let hasDownload = false;
+        for (const entry of functionEntries) {
+          if (entry.type === "video_download") {
+            hasDownload = true;
+            break;
+          }
+        }
+        if (!hasDownload) {
+          functionEntries.push({type: "video_download"});
+        }
+      }"""
+        old_block="""      if (item?.share_info?.function_entries?.length > 0) {
+        const hasDownload = item.share_info.function_entries.some(entry => entry.type === "video_download");
+        if (!hasDownload) {
+          item.share_info.function_entries.push({type: "video_download"});
+        }
+      }"""
+        raw=source.replace(VIDEO_ENTRY_MARKER+"\\n","",1).replace(new_block,old_block,1)
+        optimized=optimize_source(raw)
+        self.assertIn(VIDEO_ENTRY_MARKER+"\\n      const functionEntries",optimized)
+        self.assertNotIn(VIDEO_ENTRY_MARKER+"\\\\n      const functionEntries",optimized)
         damaged=source.replace("for (const entry of functionEntries)","for (const entry of functionEntries.values())",1)
         with self.assertRaisesRegex(ValueError,"marker is stale"):
             optimize_v4_video_feed_function_entry_scan(damaged)
