@@ -477,23 +477,32 @@ function processCommentTree(data, livePhotos, commentVideos, noteId) {
       if ("red_id" in current) { current.fmz200 = current.red_id; delete current.red_id; }
       if (isCommentFrame) {
         fixCommentType(current);
-        if (Array.isArray(current.pictures)) {
-          for (const picture of current.pictures) {
-            if (!picture?.video_id) continue;
-            const info = parseVideoInfo(picture.video_info);
+        // loon-change: Xiaohongshu comment media collection property cache v1;
+        const pictures = current.pictures;
+        if (Array.isArray(pictures)) {
+          for (const picture of pictures) {
+            const pictureVideoId = picture?.video_id;
+            if (!pictureVideoId) continue;
+            const pictureVideoInfo = picture.video_info;
+            const info = parseVideoInfo(pictureVideoInfo);
             const stream = selectBestStream(info?.stream?.h265, info?.stream?.h264);
-            if (stream?.master_url) livePhotos.push({videId: picture.video_id, videoUrl: stream.master_url});
+            if (stream?.master_url) livePhotos.push({videId: pictureVideoId, videoUrl: stream.master_url});
           }
         }
-        if (isTopLevelComment && Array.isArray(current.videos)) {
-          for (const video of current.videos) {
-            if (!video?.video_id || !video?.video_info) continue;
-            const info = parseVideoInfo(video.video_info);
-            const stream = selectBestStream(info?.stream?.h265, info?.stream?.h264);
-            if (stream?.master_url) commentVideos.push({
-              videId: video.video_id, videoUrl: stream.master_url, commentId: current.id, noteId,
-              width: stream.width, height: stream.height, bitrate: stream.video_bitrate, hdr: stream.hdr_type === 1
-            });
+        if (isTopLevelComment) {
+          const videos = current.videos;
+          if (Array.isArray(videos)) {
+            for (const video of videos) {
+              const videoId = video?.video_id;
+              const videoInfo = video?.video_info;
+              if (!videoId || !videoInfo) continue;
+              const info = parseVideoInfo(videoInfo);
+              const stream = selectBestStream(info?.stream?.h265, info?.stream?.h264);
+              if (stream?.master_url) commentVideos.push({
+                videId: videoId, videoUrl: stream.master_url, commentId: current.id, noteId,
+                width: stream.width, height: stream.height, bitrate: stream.video_bitrate, hdr: stream.hdr_type === 1
+              });
+            }
           }
         }
       }

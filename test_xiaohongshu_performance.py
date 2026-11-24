@@ -1,6 +1,6 @@
 import json, shutil, subprocess, unittest
 from pathlib import Path
-from optimize_xiaohongshu import LOCAL, REMOTE, MARKER, IMAGE_FEED_MARKER, VIDEO_SAVE_LOOKUP_MARKER, STREAM_SELECTION_MARKER, VIDEO_ENTRY_MARKER, IMAGE_LIVE_PHOTO_CACHE_MARKER, optimize_imagefeed_live_photo_property_cache, optimize_comment_video_info_cache, optimize_imagefeed_single_traversal, optimize_video_save_cache_lookup, optimize_stream_selection_no_closure, optimize_v4_video_feed_function_entry_scan, optimize_source, rewrite_plugin
+from optimize_xiaohongshu import LOCAL, REMOTE, MARKER, IMAGE_FEED_MARKER, VIDEO_SAVE_LOOKUP_MARKER, STREAM_SELECTION_MARKER, VIDEO_ENTRY_MARKER, IMAGE_LIVE_PHOTO_CACHE_MARKER, COMMENT_MEDIA_CACHE_MARKER, optimize_comment_media_property_cache, optimize_imagefeed_live_photo_property_cache, optimize_comment_video_info_cache, optimize_imagefeed_single_traversal, optimize_video_save_cache_lookup, optimize_stream_selection_no_closure, optimize_v4_video_feed_function_entry_scan, optimize_source, rewrite_plugin
 
 ROOT=Path(__file__).resolve().parent
 NODE=shutil.which("node")
@@ -57,10 +57,26 @@ class XiaohongshuOptimizerTests(unittest.TestCase):
         self.assertNotIn("replaceRedIdWithFmz200(obj.data)",source)
         self.assertNotIn("function replaceRedIdWithFmz200(obj)",source)
         self.assertIn("const parsedVideoInfo = new Map()",source)
+        self.assertIn(COMMENT_MEDIA_CACHE_MARKER,source)
+        self.assertIn("const pictures = current.pictures;",source)
+        self.assertIn("const videos = current.videos;",source)
         self.assertIn("processCommentTree(obj.data, livePhotos, commentVideos, note_id);",source)
         self.assertIn("Xiaohongshu comment classification stack frames v1;",source)
         self.assertIn("const commentFrameTag = {};",source)
         self.assertNotIn("new WeakSet()",source)
+
+    def test_comment_media_property_cache_is_idempotent_and_fails_closed(self):
+        source=(ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")
+        self.assertEqual(optimize_comment_media_property_cache(source),source)
+        self.assertIn(COMMENT_MEDIA_CACHE_MARKER,source)
+        self.assertIn("const pictureVideoId = picture?.video_id;",source)
+        self.assertIn("const pictureVideoInfo = picture.video_info;",source)
+        self.assertIn("const videoId = video?.video_id;",source)
+        self.assertIn("const videoInfo = video?.video_info;",source)
+        damaged=source.replace("const pictureVideoId = picture?.video_id;","const pictureVideoId = undefined;",1)
+        with self.assertRaisesRegex(ValueError,"property-cache marker is stale"):
+            optimize_comment_media_property_cache(damaged)
+
 
     def test_comment_video_info_cache_optimizer_is_idempotent_and_fails_closed(self):
         source=(ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")
