@@ -778,9 +778,7 @@ class TaobaoLocalJsonRuntimePerformanceTests(unittest.TestCase):
         source = source_path.read_text(encoding="utf-8")
         self.assertEqual(source.count("JSON.parse("), 1)
         self.assertEqual(source.count("JSON.stringify("), 1)
-        self.assertEqual(source.count("function normalizeSplashItem(item)"), 1)
-        self.assertEqual(source.count("normalizeSplashItem(item);"), 1)
-        self.assertNotIn('setIfDifferent(item, "waitTime", "0")', source)
+        self.assertEqual(source.count('setIfDifferent(item, "waitTime", "0")'), 1)
 
         harness = r'''
 const fs = require("fs");

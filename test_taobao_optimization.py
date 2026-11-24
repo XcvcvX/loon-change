@@ -322,7 +322,7 @@ class TaobaoSplashHotLoopOptimizationTests(unittest.TestCase):
 
     @unittest.skipUnless(NODE, "Node.js is required for Taobao splash hot-loop runtime tests")
     def test_specialized_updater_reads_each_target_property_once(self):
-        runner = r\"\"\"
+        runner = r"""
 const fs = require("fs");
 const vm = require("vm");
 const payload = JSON.parse(fs.readFileSync(0, "utf8"));
