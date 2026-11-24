@@ -83,7 +83,7 @@ class XiaohongshuOptimizerTests(unittest.TestCase):
       }"""
         raw=source.replace(VIDEO_ENTRY_MARKER+"\n","",1).replace(new_block,old_block,1)
         optimized=optimize_source(raw)
-        self.assertIn(VIDEO_ENTRY_MARKER+"\\n      const functionEntries",optimized)
+        self.assertIn(VIDEO_ENTRY_MARKER+"\n      const functionEntries",optimized)
         self.assertNotIn(VIDEO_ENTRY_MARKER+"\\n      const functionEntries",optimized)
         damaged=source.replace("for (const entry of functionEntries)","for (const entry of functionEntries.values())",1)
         with self.assertRaisesRegex(ValueError,"marker is stale"):
