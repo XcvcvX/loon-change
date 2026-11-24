@@ -1,6 +1,6 @@
 import json, shutil, subprocess, unittest
 from pathlib import Path
-from optimize_xiaohongshu import LOCAL, REMOTE, MARKER, IMAGE_FEED_MARKER, VIDEO_SAVE_LOOKUP_MARKER, STREAM_SELECTION_MARKER, VIDEO_ENTRY_MARKER, optimize_comment_video_info_cache, optimize_imagefeed_single_traversal, optimize_video_save_cache_lookup, optimize_stream_selection_no_closure, optimize_v4_video_feed_function_entry_scan, optimize_source, rewrite_plugin
+from optimize_xiaohongshu import LOCAL, REMOTE, MARKER, IMAGE_FEED_MARKER, VIDEO_SAVE_LOOKUP_MARKER, STREAM_SELECTION_MARKER, VIDEO_ENTRY_MARKER, IMAGE_LIVE_PHOTO_CACHE_MARKER, optimize_imagefeed_live_photo_property_cache, optimize_comment_video_info_cache, optimize_imagefeed_single_traversal, optimize_video_save_cache_lookup, optimize_stream_selection_no_closure, optimize_v4_video_feed_function_entry_scan, optimize_source, rewrite_plugin
 
 ROOT=Path(__file__).resolve().parent
 NODE=shutil.which("node")
@@ -37,6 +37,19 @@ class XiaohongshuOptimizerTests(unittest.TestCase):
         damaged=source.replace("frame.root && livePhotoTarget","false && livePhotoTarget")
         with self.assertRaisesRegex(ValueError,"imagefeed single-traversal structure drifted"):
             optimize_imagefeed_single_traversal(damaged)
+
+
+    def test_imagefeed_live_photo_property_cache_is_idempotent_and_fails_closed(self):
+        source=(ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")
+        self.assertIn(IMAGE_LIVE_PHOTO_CACHE_MARKER,source)
+        self.assertEqual(optimize_imagefeed_live_photo_property_cache(source),source)
+        self.assertIn("const livePhoto = child.live_photo;",source)
+        self.assertIn("const media = livePhoto?.media;",source)
+        self.assertIn("const masterUrl = stream?.master_url;",source)
+        self.assertNotIn("child.live_photo?.media?.stream?.h265?.[0]",source)
+        damaged=source.replace("const masterUrl = stream?.master_url;","const masterUrl = undefined;",1)
+        with self.assertRaisesRegex(ValueError,"property-cache marker is stale"):
+            optimize_imagefeed_live_photo_property_cache(damaged)
 
     def test_comment_processing_combines_tree_cleanup_and_media_extraction(self):
         source=(ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")

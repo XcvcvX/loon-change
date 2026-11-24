@@ -251,6 +251,17 @@ def optimize_stream_selection_no_closure(src):
     return between(src, "function selectBestStream(h265List, h264List) {", "\n/**\n * 修复评论类型", "function selectBestStream(h265List,h264List) {\n  // loon-change: Xiaohongshu best-stream selection without per-call closure v1;\n  for (let pass = 0; pass < 2; pass++) {\n    const list = pass === 0 ? h265List : h264List;\n    if (!Array.isArray(list) || !list.length) continue;\n    let best = null, pixelsBest = 0, rateBest = 0;\n    for (const item of list) {\n      if (!item || !item.master_url) continue;\n      const pixels = (item.width || 0) * (item.height || 0);\n      const rate = Number(item.avg_bitrate) || 0;\n      if (best === null || pixels > pixelsBest || (pixels === pixelsBest && rate > rateBest)) {\n        best = item;\n        pixelsBest = pixels;\n        rateBest = rate;\n      }\n    }\n    if (best) return best;\n  }\n  return null;\n}", "stream selection without per-call closure")
 
 
+
+IMAGE_LIVE_PHOTO_CACHE_MARKER = "// loon-change: Xiaohongshu imagefeed live-photo property cache v1;"
+
+def optimize_imagefeed_live_photo_property_cache(src):
+    if IMAGE_LIVE_PHOTO_CACHE_MARKER in src:
+        required = (IMAGE_LIVE_PHOTO_CACHE_MARKER, "const livePhoto = child.live_photo;", "const media = livePhoto?.media;", "const masterUrl = stream?.master_url;", "live_photo_file_id: fileId", "url: masterUrl")
+        if any(token not in src for token in required) or "child.live_photo?.media?.stream?.h265?.[0]" in src:
+            raise ValueError("Xiaohongshu imagefeed live-photo property-cache marker is stale")
+        return src
+    return once(src, "      if(frame.root && livePhotoTarget && child && typeof child === \"object\") {\n        const stream = child.live_photo?.media?.stream?.h265?.[0];\n        const videoId = child.live_photo?.media?.video_id;\n        if (child.live_photo_file_id && videoId && stream?.master_url) {\n          livePhotoTarget.push({\n            live_photo_file_id: child.live_photo_file_id,\n            video_id: videoId,\n            url: stream.master_url\n          });\n        }\n      }", "      if(frame.root && livePhotoTarget && child && typeof child === \"object\") {\n        // loon-change: Xiaohongshu imagefeed live-photo property cache v1;\n        const livePhoto = child.live_photo;\n        const media = livePhoto?.media;\n        const stream = media?.stream?.h265?.[0];\n        const fileId = child.live_photo_file_id;\n        const videoId = media?.video_id;\n        const masterUrl = stream?.master_url;\n        if (fileId && videoId && masterUrl) {\n          livePhotoTarget.push({\n            live_photo_file_id: fileId,\n            video_id: videoId,\n            url: masterUrl\n          });\n        }\n      }", "imagefeed live-photo property cache")
+
 VIDEO_ENTRY_MARKER = "// loon-change: Xiaohongshu v4 video-feed function-entry scan without callback v1;"
 
 def optimize_v4_video_feed_function_entry_scan(src):
@@ -282,8 +293,8 @@ def optimize_source(src,commit="unknown"):
         has_comment_processor = "function processCommentTree(data, livePhotos, commentVideos, noteId)" in src
         has_no_visited_set = "const visited = new WeakSet()" not in src and "visited.has(current)" not in src
         if has_comment_processor and has_no_visited_set and "Xiaohongshu parsed JSON comment tree without visited WeakSet v1;" in src and "Xiaohongshu comment classification stack frames v1;" in src and "const commentFrameTag = {};" in src and "processCommentTree(obj.data, livePhotos, commentVideos, note_id);" in src:
-            return optimize_stream_selection_no_closure(optimize_v4_video_feed_function_entry_scan(optimize_video_save_cache_lookup(optimize_comment_video_info_cache(optimize_imagefeed_single_traversal(src)))))
-        return optimize_stream_selection_no_closure(optimize_video_save_cache_lookup(optimize_comment_video_info_cache(optimize_imagefeed_single_traversal(apply_comment_optimization(src)))))
+            return optimize_stream_selection_no_closure(optimize_v4_video_feed_function_entry_scan(optimize_video_save_cache_lookup(optimize_comment_video_info_cache(optimize_imagefeed_live_photo_property_cache(optimize_imagefeed_single_traversal(src))))))
+        return optimize_stream_selection_no_closure(optimize_v4_video_feed_function_entry_scan(optimize_video_save_cache_lookup(optimize_comment_video_info_cache(optimize_imagefeed_live_photo_property_cache(optimize_imagefeed_single_traversal(apply_comment_optimization(src))))))
     src=once(src,"const url = $request.url;","const url = $request.url;\n"+HELPERS.strip(),"helpers")
     src=once(src,"  console.log('打印原body：' + JSON.stringify(obj));\n","","full-body logging")
     src=once(src,'''      obj.data[0].note_list[0].images_list = imageEnhance(JSON.stringify(images_list));
@@ -368,7 +379,7 @@ def optimize_source(src,commit="unknown"):
         line for line in src.splitlines(keepends=True)
         if not ("console.log(" in line and any(token in line for token in log_tokens))
     )
-    result=optimize_stream_selection_no_closure(optimize_v4_video_feed_function_entry_scan(optimize_video_save_cache_lookup(optimize_comment_video_info_cache(apply_comment_optimization(MARKER+commit+"\n"+src)))))
+    result=optimize_stream_selection_no_closure(optimize_v4_video_feed_function_entry_scan(optimize_video_save_cache_lookup(optimize_comment_video_info_cache(optimize_imagefeed_live_photo_property_cache(apply_comment_optimization(MARKER+commit+"\n"+src))))))
     for token in ("imageEnhance(images_list, livePhotoCache)", IMAGE_FEED_MARKER, "compactInPlace(obj.data","appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)","const byFileId=new Map()", "Xiaohongshu comment classification stack frames v1;", "const commentFrameTag = {};", "stack.push([commentFrameTag, comment, true])", COMMENT_CACHE_MARKER, "let parsed = parsedVideoInfo.get(raw);", VIDEO_SAVE_LOOKUP_MARKER, "for (let i = videoFeed.length - 1; i >= 0; i--)", STREAM_SELECTION_MARKER, "for (let pass = 0; pass < 2; pass++)"):
         if token not in result:raise ValueError("missing optimizer invariant: "+token)
     if "imageEnhance(JSON.stringify(images_list))" in result:raise ValueError("image-feed serialization round trip remains")

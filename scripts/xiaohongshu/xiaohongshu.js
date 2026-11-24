@@ -390,13 +390,18 @@ function imageEnhance(images, livePhotoCache) {
       if(frame.index>=value.length){stack.pop();continue;}
       const key=frame.index++, child=value[key];
       if(frame.root && livePhotoTarget && child && typeof child === "object") {
-        const stream = child.live_photo?.media?.stream?.h265?.[0];
-        const videoId = child.live_photo?.media?.video_id;
-        if (child.live_photo_file_id && videoId && stream?.master_url) {
+        // loon-change: Xiaohongshu imagefeed live-photo property cache v1;
+        const livePhoto = child.live_photo;
+        const media = livePhoto?.media;
+        const stream = media?.stream?.h265?.[0];
+        const fileId = child.live_photo_file_id;
+        const videoId = media?.video_id;
+        const masterUrl = stream?.master_url;
+        if (fileId && videoId && masterUrl) {
           livePhotoTarget.push({
-            live_photo_file_id: child.live_photo_file_id,
+            live_photo_file_id: fileId,
             video_id: videoId,
-            url: stream.master_url
+            url: masterUrl
           });
         }
       }
