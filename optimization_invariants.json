@@ -455,6 +455,23 @@
       "forbidden": [
         "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/order\\/\\d+-\\d+\\/shipping/i then response.json.jq(\"del(.shipping.banner_above_recommend)\")"
       ]
+    },
+    {
+      "path": "scripts/didi/didi.js",
+      "required": [
+        "// loon-change: Didi show_data nested traversal cache v1",
+        "const showDataLength = showData.length;",
+        "const sceneIds = block.scene_ids;",
+        "compactDidiByField(sceneIds, \"scene_ids\", \"sceneId\");",
+        "const value = item[field];",
+        "if (value === \"优惠券\")"
+      ],
+      "forbidden": [
+        "read < showData.length",
+        "if (block.scene_ids instanceof Array)",
+        "compactDidiByField(block.scene_ids, \"scene_ids\", \"sceneId\");",
+        "if (item[field] === \"优惠券\")"
+      ]
     }
   ]
 }
