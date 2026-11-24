@@ -199,7 +199,7 @@ def optimize_splash_item_updates(source):
     source = source.replace(OLD_SPLASH_ITEM_UPDATES, NEW_SPLASH_ITEM_UPDATE, 1)
     source = source.replace(
         "  // loon-change: Taobao pre-parse supported-route guard v1",
-        SPLASH_ITEM_UPDATE_HELPER + "\\n  // loon-change: Taobao pre-parse supported-route guard v1",
+        SPLASH_ITEM_UPDATE_HELPER + "\n  // loon-change: Taobao pre-parse supported-route guard v1",
         1,
     )
     if source.count(SPLASH_ITEM_UPDATE_MARKER) != 1 or OLD_SPLASH_ITEM_UPDATES in source:
