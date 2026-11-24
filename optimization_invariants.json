@@ -236,8 +236,7 @@
         "const showDataLength = showData.length;",
         "const sceneIds = block.scene_ids;",
         "compactDidiByField(sceneIds, \"scene_ids\", \"sceneId\");",
-        "const value = item[field];",
-        "if (value === \"优惠券\")"
+        "const value = item[field];"
       ],
       "forbidden": [
         ".filter(",
@@ -253,8 +252,7 @@
         "compactDidiByField(item.bottom_items",
         "read < showData.length",
         "if (block.scene_ids instanceof Array)",
-        "compactDidiByField(block.scene_ids, \"scene_ids\", \"sceneId\");",
-        "if (item[field] === \"优惠券\")"
+        "compactDidiByField(block.scene_ids, \"scene_ids\", \"sceneId\");"
       ]
     },
     {
