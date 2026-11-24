@@ -54,6 +54,7 @@ class XiaohongshuOptimizerTests(unittest.TestCase):
         source=(ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")
         self.assertEqual(optimize_video_save_cache_lookup(source),source)
         damaged=source.replace("        obj.data.download_url = item.url;\n        break;","        obj.data.download_url = item.url;",1)
+        self.assertNotEqual(damaged,source)
         with self.assertRaisesRegex(ValueError,"marker is stale"):
             optimize_video_save_cache_lookup(damaged)
 
