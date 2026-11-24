@@ -4,7 +4,6 @@
 
 - Cache `show_data.length` before indexed traversal.
 - Read each block's `scene_ids` property once and reuse the local reference for validation and compaction.
-- Cache the wallet-item title lookup once per visited item.
 
 ## Behavior
 
@@ -16,4 +15,4 @@ A response runtime fixture covers multiple blocks, filtered and retained IDs, an
 
 ## Expected benefit
 
-One array-length lookup per show-data response instead of one per loop condition; one `scene_ids` property lookup per block instead of two; one wallet title lookup per item. Device battery and thermal impact has not been measured.
+One array-length lookup per show-data response instead of one per loop condition; one `scene_ids` property lookup per block instead of two. Device battery and thermal impact has not been measured.
