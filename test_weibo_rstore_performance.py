@@ -22,7 +22,7 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         self.assertEqual(optimize_source(source), source)
         self.assertEqual(len(re.findall(r"const __loonSource\d+ =", source)), 32)
         self.assertEqual(len(re.findall(r"(?m)^\s*const __loonLength\d+ = __loonSource\d+\.length;$", source)), 32)
-        self.assertNotRegex(source, r"for \(let __loonRead\d+ = 0, __loonLength\d+")
+        self.assertNotRegex(source, r"\[[^\]\n]+\]\??\.includes\(")
         remaining = re.findall(r"\b(new[A-Za-z0-9_]*)\s*=\s*\[\s*\]", source)
         self.assertEqual(sorted(remaining), ["newActions", "newII"])
         self.assertIn("compactInPlace(obj.elements", source)
