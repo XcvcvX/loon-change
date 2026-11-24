@@ -377,7 +377,12 @@
         "// loon-change: Taobao clearArray caches property value once v1",
         "const current = target[key];",
         "Array.isArray(current)",
-        "current.length > 0"
+        "current.length > 0",
+        "// loon-change: Taobao splash item specialized updates v1",
+        "function normalizeSplashItem(item) {",
+        "if (item.waitTime !== \"0\")",
+        "if (item.gmtEndMs !== \"3818419199000\")",
+        "normalizeSplashItem(item);"
       ],
       "forbidden": [
         "for (let items of splash.base.sections)",
@@ -385,7 +390,11 @@
         "clearArray(obj?.res || {},",
         "clearArray(obj?.mainRes || {},",
         "Array.isArray(target[key])",
-        "target[key].length > 0"
+        "target[key].length > 0",
+        "setIfDifferent(item, \"waitTime\", \"0\")",
+        "setIfDifferent(item, \"gmtEndMs\", \"3818419199000\")",
+        "setIfDifferent(item, \"imgUrl\", \"\")",
+        "setIfDifferent(item, \"videoUrl\", \"\")"
       ]
     },
     {

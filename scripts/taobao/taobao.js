@@ -30,6 +30,25 @@ if (!$response.body) {
       modified = true;
     }
   }
+  // loon-change: Taobao splash item specialized updates v1
+  function normalizeSplashItem(item) {
+    if (item.waitTime !== "0") { item.waitTime = "0"; modified = true; }
+    if (item.times !== "0") { item.times = "0"; modified = true; }
+    if (item.hotStart !== "false") { item.hotStart = "false"; modified = true; }
+    if (item.haveVoice !== "false") { item.haveVoice = "false"; modified = true; }
+    if (item.hideTBLogo !== "false") { item.hideTBLogo = "false"; modified = true; }
+    if (item.enable4G !== "false") { item.enable4G = "false"; modified = true; }
+    if (item.coldStart !== "false") { item.coldStart = "false"; modified = true; }
+    if (item.startTime !== "3818332800000") { item.startTime = "3818332800000"; modified = true; }
+    if (item.endTime !== "3818419199000") { item.endTime = "3818419199000"; modified = true; }
+    if (item.gmtStart !== "2090-12-31 00:00:00") { item.gmtStart = "2090-12-31 00:00:00"; modified = true; }
+    if (item.gmtEnd !== "2090-12-31 23:59:59") { item.gmtEnd = "2090-12-31 23:59:59"; modified = true; }
+    if (item.gmtStartMs !== "3818332800000") { item.gmtStartMs = "3818332800000"; modified = true; }
+    if (item.gmtEndMs !== "3818419199000") { item.gmtEndMs = "3818419199000"; modified = true; }
+    if (item?.imgUrl) { item.imgUrl = ""; modified = true; }
+    if (item?.videoUrl) { item.videoUrl = ""; modified = true; }
+  }
+
   // loon-change: Taobao pre-parse supported-route guard v1
   // loon-change: Taobao cached route classification v1
   const isCloudVideo = url.includes("guide-acs.m.taobao.com/gw/mtop.taobao.cloudvideo.video.query");
@@ -65,21 +84,7 @@ if (isCloudVideo) {
         const itemCount = splashItems.length;
         for (let itemIndex = 0; itemIndex < itemCount; itemIndex++) {
           const item = splashItems[itemIndex];
-          setIfDifferent(item, "waitTime", "0");
-          setIfDifferent(item, "times", "0");
-          setIfDifferent(item, "hotStart", "false");
-          setIfDifferent(item, "haveVoice", "false");
-          setIfDifferent(item, "hideTBLogo", "false");
-          setIfDifferent(item, "enable4G", "false");
-          setIfDifferent(item, "coldStart", "false");
-          setIfDifferent(item, "startTime", "3818332800000");
-          setIfDifferent(item, "endTime", "3818419199000");
-          setIfDifferent(item, "gmtStart", "2090-12-31 00:00:00");
-          setIfDifferent(item, "gmtEnd", "2090-12-31 23:59:59");
-          setIfDifferent(item, "gmtStartMs", "3818332800000");
-          setIfDifferent(item, "gmtEndMs", "3818419199000");
-          if (item?.imgUrl) setIfDifferent(item, "imgUrl", "");
-          if (item?.videoUrl) setIfDifferent(item, "videoUrl", "");
+          normalizeSplashItem(item);
         }
       }
     }

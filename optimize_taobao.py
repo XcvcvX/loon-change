@@ -170,6 +170,43 @@ def optimize_clear_array_property_access(source):
         raise ValueError("Taobao clearArray cached property access postcondition failed")
     return source
 
+SPLASH_ITEM_UPDATE_MARKER = "// loon-change: Taobao splash item specialized updates v1"
+SPLASH_ITEM_UPDATE_HELPER = "  // loon-change: Taobao splash item specialized updates v1\n  function normalizeSplashItem(item) {\n    if (item.waitTime !== \"0\") { item.waitTime = \"0\"; modified = true; }\n    if (item.times !== \"0\") { item.times = \"0\"; modified = true; }\n    if (item.hotStart !== \"false\") { item.hotStart = \"false\"; modified = true; }\n    if (item.haveVoice !== \"false\") { item.haveVoice = \"false\"; modified = true; }\n    if (item.hideTBLogo !== \"false\") { item.hideTBLogo = \"false\"; modified = true; }\n    if (item.enable4G !== \"false\") { item.enable4G = \"false\"; modified = true; }\n    if (item.coldStart !== \"false\") { item.coldStart = \"false\"; modified = true; }\n    if (item.startTime !== \"3818332800000\") { item.startTime = \"3818332800000\"; modified = true; }\n    if (item.endTime !== \"3818419199000\") { item.endTime = \"3818419199000\"; modified = true; }\n    if (item.gmtStart !== \"2090-12-31 00:00:00\") { item.gmtStart = \"2090-12-31 00:00:00\"; modified = true; }\n    if (item.gmtEnd !== \"2090-12-31 23:59:59\") { item.gmtEnd = \"2090-12-31 23:59:59\"; modified = true; }\n    if (item.gmtStartMs !== \"3818332800000\") { item.gmtStartMs = \"3818332800000\"; modified = true; }\n    if (item.gmtEndMs !== \"3818419199000\") { item.gmtEndMs = \"3818419199000\"; modified = true; }\n    if (item?.imgUrl) { item.imgUrl = \"\"; modified = true; }\n    if (item?.videoUrl) { item.videoUrl = \"\"; modified = true; }\n  }\n"
+OLD_SPLASH_ITEM_UPDATES = "          setIfDifferent(item, \"waitTime\", \"0\");\n          setIfDifferent(item, \"times\", \"0\");\n          setIfDifferent(item, \"hotStart\", \"false\");\n          setIfDifferent(item, \"haveVoice\", \"false\");\n          setIfDifferent(item, \"hideTBLogo\", \"false\");\n          setIfDifferent(item, \"enable4G\", \"false\");\n          setIfDifferent(item, \"coldStart\", \"false\");\n          setIfDifferent(item, \"startTime\", \"3818332800000\");\n          setIfDifferent(item, \"endTime\", \"3818419199000\");\n          setIfDifferent(item, \"gmtStart\", \"2090-12-31 00:00:00\");\n          setIfDifferent(item, \"gmtEnd\", \"2090-12-31 23:59:59\");\n          setIfDifferent(item, \"gmtStartMs\", \"3818332800000\");\n          setIfDifferent(item, \"gmtEndMs\", \"3818419199000\");\n          if (item?.imgUrl) setIfDifferent(item, \"imgUrl\", \"\");\n          if (item?.videoUrl) setIfDifferent(item, \"videoUrl\", \"\");"
+NEW_SPLASH_ITEM_UPDATE = "          normalizeSplashItem(item);"
+
+
+def optimize_splash_item_updates(source):
+    if SPLASH_ITEM_UPDATE_MARKER in source:
+        required = (
+            SPLASH_ITEM_UPDATE_MARKER,
+            "function normalizeSplashItem(item) {",
+            'if (item.waitTime !== "0")',
+            'if (item.gmtEndMs !== "3818419199000")',
+            'if (item?.imgUrl) { item.imgUrl = ""; modified = true; }',
+            'if (item?.videoUrl) { item.videoUrl = ""; modified = true; }',
+            NEW_SPLASH_ITEM_UPDATE,
+        )
+        if source.count(SPLASH_ITEM_UPDATE_MARKER) != 1 or any(token not in source for token in required):
+            raise ValueError("Taobao specialized splash item update drifted; refusing to overwrite")
+        if OLD_SPLASH_ITEM_UPDATES in source:
+            raise ValueError("Repeated Taobao splash setter calls remain beside specialized helper")
+        return source
+    if source.count(OLD_SPLASH_ITEM_UPDATES) != 1:
+        raise ValueError("Expected exactly one Taobao splash item update block")
+    if source.count("  // loon-change: Taobao pre-parse supported-route guard v1") != 1:
+        raise ValueError("Expected exactly one Taobao helper insertion anchor")
+    source = source.replace(OLD_SPLASH_ITEM_UPDATES, NEW_SPLASH_ITEM_UPDATE, 1)
+    source = source.replace(
+        "  // loon-change: Taobao pre-parse supported-route guard v1",
+        SPLASH_ITEM_UPDATE_HELPER + "\\n  // loon-change: Taobao pre-parse supported-route guard v1",
+        1,
+    )
+    if source.count(SPLASH_ITEM_UPDATE_MARKER) != 1 or OLD_SPLASH_ITEM_UPDATES in source:
+        raise ValueError("Taobao specialized splash item update postcondition failed")
+    return source
+
+
 def optimize_runtime_source(source):
     if RUNTIME_MARKER not in source:
         anchor = "  const obj = JSON.parse($response.body);\n"
@@ -190,6 +227,7 @@ def optimize_runtime_source(source):
         if source.index("const shouldProcess =") > source.index("JSON.parse($response.body)"):
             raise ValueError("Taobao pre-parse guard moved after JSON.parse")
     source = optimize_splash_loop(source)
+    source = optimize_splash_item_updates(source)
     source = optimize_route_classification(source)
     source = optimize_route_object_access(source)
     source = optimize_clear_array_property_access(source)
