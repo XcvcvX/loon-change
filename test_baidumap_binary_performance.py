@@ -173,6 +173,18 @@ process.stdout.write("ok");
         self.assertIn("encodedHeader[digestOffset + i] = digest.charCodeAt(i);", helper)
         self.assertIn('throw new Error("BaiduMap MD5 placeholder is ambiguous");', helper)
 
+    def test_md5_placeholder_scan_uses_native_candidate_indexing(self):
+        start = self.source.index("function assembleBaiduResponse(")
+        end = self.source.index("\n}\n", start) + 2
+        helper = self.source[start:end]
+        self.assertIn("// loon-change: Baidu protobuf MD5 placeholder indexed scan v1", helper)
+        self.assertIn("let candidateOffset = encodedHeader.indexOf(0x30);", helper)
+        self.assertIn("encodedHeader.indexOf(0x30, candidateOffset + 1)", helper)
+        self.assertNotIn("for (let i = 0; i <= encodedHeader.byteLength - 32; i++)", helper)
+        self.assertIn('throw new Error("BaiduMap MD5 placeholder is ambiguous");', helper)
+        self.assertIn('throw new Error("BaiduMap MD5 placeholder not found in encoded RepHead");', helper)
+
+
 class ResponseScriptAuditTests(unittest.TestCase):
     def test_taobao_handler_has_one_parse_and_no_allocating_array_transform(self):
         source = (ROOT / "scripts/taobao/taobao.js").read_text(encoding="utf-8")

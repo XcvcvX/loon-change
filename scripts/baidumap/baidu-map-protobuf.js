@@ -74,11 +74,15 @@ function assembleBaiduResponse(repHeadMessage, repHeadType, newResult, newAds, h
 
   // Patch the unique fixed-width placeholder in the already encoded header.
   // This avoids a second Protobuf encode and cannot change any byte offsets.
+  // loon-change: Baidu protobuf MD5 placeholder indexed scan v1
+  // Native indexOf skips bytes that cannot begin the fixed-width placeholder.
   let digestOffset = -1;
-  for (let i = 0; i <= encodedHeader.byteLength - 32; i++) {
+  let candidateOffset = encodedHeader.indexOf(0x30);
+  const lastCandidateOffset = encodedHeader.byteLength - 32;
+  while (candidateOffset !== -1 && candidateOffset <= lastCandidateOffset) {
     let matches = true;
     for (let j = 0; j < 32; j++) {
-      if (encodedHeader[i + j] !== 0x30) {
+      if (encodedHeader[candidateOffset + j] !== 0x30) {
         matches = false;
         break;
       }
@@ -87,8 +91,9 @@ function assembleBaiduResponse(repHeadMessage, repHeadType, newResult, newAds, h
       if (digestOffset !== -1) {
         throw new Error("BaiduMap MD5 placeholder is ambiguous");
       }
-      digestOffset = i;
+      digestOffset = candidateOffset;
     }
+    candidateOffset = encodedHeader.indexOf(0x30, candidateOffset + 1);
   }
   if (digestOffset === -1) {
     throw new Error("BaiduMap MD5 placeholder not found in encoded RepHead");
