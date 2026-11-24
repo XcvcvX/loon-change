@@ -27,6 +27,7 @@ HELPER = """function compactInPlace(items, keep) {
 """
 
 DIDI_MODE_MARKER = "// loon-change: Didi hot-loop mode dispatch v1;"
+DIDI_WALLET_PROPERTY_CACHE_MARKER = "// loon-change: Didi wallet nested property cache v1"
 DIDI_MODE_HELPER = r"""// loon-change: Didi hot-loop mode dispatch v1;
 function compactDidiByField(items, field, mode) {
   const length = items.length;
@@ -254,16 +255,71 @@ def optimize_preparse_route_guard(source):
         raise ValueError("Didi response handler closing brace missing")
     return source.rstrip() + "\n}\n"
 
+def optimize_wallet_nested_property_cache(source):
+    """Cache nested wallet array references instead of re-reading card properties."""
+    marker = DIDI_WALLET_PROPERTY_CACHE_MARKER
+    old = """      if (item.tag === "wallet") {
+        if (Array.isArray(item.items) && item.items.length > 0) {
+          compactDidiByField(item.items, "title", "walletItem");
+        }
+        if (item.card_type === 4 && Array.isArray(item.bottom_items) && item.bottom_items.length > 0) {
+          compactDidiByField(item.bottom_items, "title", "walletBottom");
+        }
+      }"""
+    new = """      if (item.tag === "wallet") {
+        // loon-change: Didi wallet nested property cache v1
+        const walletItems = item.items;
+        if (Array.isArray(walletItems) && walletItems.length > 0) {
+          compactDidiByField(walletItems, "title", "walletItem");
+        }
+        if (item.card_type === 4) {
+          const walletBottomItems = item.bottom_items;
+          if (Array.isArray(walletBottomItems) && walletBottomItems.length > 0) {
+            compactDidiByField(walletBottomItems, "title", "walletBottom");
+          }
+        }
+      }"""
+    required = (
+        marker,
+        "const walletItems = item.items;",
+        "Array.isArray(walletItems)",
+        'compactDidiByField(walletItems, "title", "walletItem");',
+        "const walletBottomItems = item.bottom_items;",
+        "Array.isArray(walletBottomItems)",
+        'compactDidiByField(walletBottomItems, "title", "walletBottom");',
+    )
+    forbidden = (
+        "Array.isArray(item.items)",
+        "item.items.length",
+        'compactDidiByField(item.items, "title", "walletItem")',
+        "Array.isArray(item.bottom_items)",
+        "item.bottom_items.length",
+        'compactDidiByField(item.bottom_items, "title", "walletBottom")',
+    )
+    if marker in source:
+        if source.count(marker) != 1 or any(token not in source for token in required):
+            raise ValueError("Didi wallet property-cache structure is incomplete")
+        if any(token in source for token in forbidden):
+            raise ValueError("Didi repeated wallet property reads remain")
+        return source
+    if source.count(old) != 1:
+        raise ValueError("Didi wallet card branch changed; refusing property-cache rewrite")
+    source = source.replace(old, new, 1)
+    if any(token not in source for token in required) or any(token in source for token in forbidden):
+        raise ValueError("Didi wallet property-cache validation failed")
+    return source
+
+
 def optimize_source(source, commit="unknown"):
     if MARKER in source:
         if re.search(r"\.filter\s*\(", source):
             raise ValueError("Didi optimization marker exists but allocating filter remains")
         if "obj.data.cards.forEach" in source:
             raise ValueError("Didi user-center wallet traversal optimization is stale")
-        return optimize_preparse_route_guard(optimize_didi_predicates(optimize_lazy_serialization(source)))
+        return optimize_wallet_nested_property_cache(optimize_preparse_route_guard(optimize_didi_predicates(optimize_lazy_serialization(source))))
     if LEGACY_MARKER in source:
         source = source.replace(LEGACY_MARKER, MARKER, 1)
-        return optimize_didi_predicates(optimize_lazy_serialization(source))
+        return optimize_wallet_nested_property_cache(optimize_didi_predicates(optimize_lazy_serialization(source)))
 
     body_guard = "if (!$response.body) $done({});"
     if source.count(body_guard) != 1:
@@ -302,7 +358,7 @@ def optimize_source(source, commit="unknown"):
         raise ValueError("expected all seven Didi filters to use compactInPlace")
 
     source = source.rstrip() + "\n}\n"
-    return optimize_preparse_route_guard(optimize_didi_predicates(optimize_lazy_serialization(MARKER + commit + "\n" + source)))
+    return optimize_wallet_nested_property_cache(optimize_preparse_route_guard(optimize_didi_predicates(optimize_lazy_serialization(MARKER + commit + "\n" + source))))
 
 
 def rewrite_plugin(plugin):

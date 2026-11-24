@@ -8,6 +8,7 @@ from pathlib import Path
 from optimize_didi import (
     EXPECTED_FILTERS,
     DIDI_MODE_MARKER,
+    DIDI_WALLET_PROPERTY_CACHE_MARKER,
     LOCAL,
     MARKER,
     REMOTE,
@@ -78,6 +79,11 @@ class DidiOptimizerTests(unittest.TestCase):
         self.assertEqual(optimize_source(result), result)
         self.assertIn(DIDI_MODE_MARKER, result)
         self.assertEqual(result.count("for (let read = 0; read < length; read++)"), 7)
+        self.assertIn(DIDI_WALLET_PROPERTY_CACHE_MARKER, result)
+        self.assertIn("const walletItems = item.items;", result)
+        self.assertIn("const walletBottomItems = item.bottom_items;", result)
+        self.assertNotIn("Array.isArray(item.items)", result)
+        self.assertNotIn("Array.isArray(item.bottom_items)", result)
 
     def test_optimizer_fails_closed_when_upstream_filter_inventory_drifts(self):
         source = self.fixture_source().replace(
@@ -86,6 +92,12 @@ class DidiOptimizerTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(ValueError, "expected 7, got 6"):
             optimize_source(source)
+
+    def test_wallet_property_cache_fails_closed_when_cached_reference_drifts(self):
+        result = optimize_source(self.fixture_source(), "0123456789abcdef0123456789abcdef01234567")
+        broken = result.replace("const walletItems = item.items;", "const walletItems = item.other_items;", 1)
+        with self.assertRaisesRegex(ValueError, "wallet property-cache structure is incomplete"):
+            optimize_source(broken)
 
     def test_plugin_migration_accepts_the_reviewed_two_or_four_trigger_inventory(self):
         for count in (2, 4):
@@ -111,7 +123,7 @@ class DidiOptimizerTests(unittest.TestCase):
 
 @unittest.skipUnless(NODE, "Node.js is required for Didi response runtime tests")
 class DidiRuntimeTests(unittest.TestCase):
-    def run_script(self, url, body, disable_for_each=False):
+    def run_script(self, url, body, disable_for_each=False, track_wallet_properties=False):
         runner = r"""
 const fs = require("fs");
 const vm = require("vm");
@@ -124,11 +136,14 @@ const context = {
   $done(value) { doneResult = value; },
   __parseCount: 0,
   __stringifyCount: 0,
+  __walletPropertyReads: { tag: 0, items: 0, card_type: 0, bottom_items: 0 },
+  __trackWalletPropertyReads: true,
+  __captureWalletPropertyReads: payload.trackWalletProperties,
   console: { log() {}, warn() {}, error() {} }
 };
 vm.createContext(context);
 vm.runInContext(
-  "const nativeParse = JSON.parse.bind(JSON); JSON.parse = function(value) { __parseCount++; return nativeParse(value); }; const nativeStringify = JSON.stringify.bind(JSON); JSON.stringify = function(value) { __stringifyCount++; return nativeStringify(value); }; Array.prototype.filter = function() { throw new Error('allocating Array.filter remains'); };",
+  "const nativeParse = JSON.parse.bind(JSON); JSON.parse = function(value) { __parseCount++; const parsed = nativeParse(value); if (__captureWalletPropertyReads) { const wallet = parsed?.data?.cards?.[0]; if (wallet && wallet.tag === 'wallet') { for (const key of ['tag', 'items', 'card_type', 'bottom_items']) { let current = wallet[key]; Object.defineProperty(wallet, key, { enumerable: true, configurable: true, get() { if (__trackWalletPropertyReads) __walletPropertyReads[key]++; return current; }, set(value) { current = value; } }); } } } return parsed; }; const nativeStringify = JSON.stringify.bind(JSON); JSON.stringify = function(value) { __stringifyCount++; const tracking = __trackWalletPropertyReads; __trackWalletPropertyReads = false; try { return nativeStringify(value); } finally { __trackWalletPropertyReads = tracking; } }; Array.prototype.filter = function() { throw new Error('allocating Array.filter remains'); };",
   context
 );
 if (payload.disableForEach) {
@@ -141,12 +156,12 @@ if (payload.body === null) {
 } else if (!doneResult || typeof doneResult.body !== "string") {
   process.stdout.write(JSON.stringify({ parseCount: context.__parseCount, stringifyCount: context.__stringifyCount, passThrough: true }));
 } else {
-  process.stdout.write(JSON.stringify({ parseCount: context.__parseCount, stringifyCount: context.__stringifyCount, output: JSON.parse(doneResult.body) }));
+  process.stdout.write(JSON.stringify({ parseCount: context.__parseCount, stringifyCount: context.__stringifyCount, walletPropertyReads: context.__walletPropertyReads, output: JSON.parse(doneResult.body) }));
 }
 """
         completed = subprocess.run(
             [NODE, "-e", runner, str(SOURCE)],
-            input=json.dumps({"url": url, "body": body}),
+            input=json.dumps({"url": url, "body": body, "trackWalletProperties": track_wallet_properties}),
             capture_output=True,
             text=True,
             check=True,
@@ -158,7 +173,10 @@ if (payload.body === null) {
         source = SOURCE.read_text(encoding="utf-8")
         self.assertNotIn("obj.data.cards.forEach", source)
         self.assertIn('compactDidiByField(obj.data.cards, "title", "card");', source)
-        self.assertIn('compactDidiByField(item.items, "title", "walletItem")', source)
+        self.assertIn('compactDidiByField(walletItems, "title", "walletItem")', source)
+        self.assertIn('compactDidiByField(walletBottomItems, "title", "walletBottom")', source)
+        self.assertNotIn('compactDidiByField(item.items, "title", "walletItem")', source)
+        self.assertNotIn('compactDidiByField(item.bottom_items, "title", "walletBottom")', source)
         self.assertNotIn("new Set(", source)
         self.assertNotIn("=>", source)
         self.assertNotIn("excludedTitles", source)
@@ -257,6 +275,27 @@ if (payload.body === null) {
             [item["title"] for item in cards[1]["bottom_items"]],
             ["省钱套餐", "天天神券"],
         )
+
+    def test_wallet_nested_array_properties_are_read_once_per_wallet_card(self):
+        body = {"data": {"cards": [
+            {"title": "钱包", "tag": "wallet", "items": [
+                {"title": "余额"}, {"title": "优惠券"}
+            ], "card_type": 4, "bottom_items": [
+                {"title": "其他"}, {"title": "天天神券"}
+            ]},
+            {"title": "普通卡片", "tag": "normal"}
+        ]}}
+        result = self.run_script(
+            "https://common.diditaxi.com.cn/common/v1/usercenter/me",
+            body,
+            track_wallet_properties=True,
+        )
+        self.assertEqual(result["walletPropertyReads"], {
+            "tag": 1, "items": 1, "card_type": 1, "bottom_items": 1,
+        })
+        wallet = result["output"]["data"]["cards"][0]
+        self.assertEqual([item["title"] for item in wallet["items"]], ["优惠券"])
+        self.assertEqual([item["title"] for item in wallet["bottom_items"]], ["天天神券"])
 
     def test_wallet_nested_non_array_fields_are_left_untouched(self):
         body = {"data": {"cards": [

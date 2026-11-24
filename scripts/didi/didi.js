@@ -78,11 +78,16 @@ function compactDidiByField(items, field, mode) {
         continue;
       }
       if (item.tag === "wallet") {
-        if (Array.isArray(item.items) && item.items.length > 0) {
-          compactDidiByField(item.items, "title", "walletItem");
+        // loon-change: Didi wallet nested property cache v1
+        const walletItems = item.items;
+        if (Array.isArray(walletItems) && walletItems.length > 0) {
+          compactDidiByField(walletItems, "title", "walletItem");
         }
-        if (item.card_type === 4 && Array.isArray(item.bottom_items) && item.bottom_items.length > 0) {
-          compactDidiByField(item.bottom_items, "title", "walletBottom");
+        if (item.card_type === 4) {
+          const walletBottomItems = item.bottom_items;
+          if (Array.isArray(walletBottomItems) && walletBottomItems.length > 0) {
+            compactDidiByField(walletBottomItems, "title", "walletBottom");
+          }
         }
       }
       if (write !== read) items[write] = item;
