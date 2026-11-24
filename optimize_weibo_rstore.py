@@ -410,7 +410,7 @@ def optimize_page_filter_cached_itemid(source):
     source = source.replace(PAGE_ITEMID_OLD, PAGE_ITEMID_NEW, 1)
     if source.count(SCALAR_MEMBERSHIP_MARKER) != 1:
         raise ValueError("Weibo scalar membership marker anchor drift")
-    source = source.replace(SCALAR_MEMBERSHIP_MARKER, SCALAR_MEMBERSHIP_MARKER + "\\n" + PAGE_ITEMID_MARKER, 1)
+    source = source.replace(SCALAR_MEMBERSHIP_MARKER, SCALAR_MEMBERSHIP_MARKER + "\n" + PAGE_ITEMID_MARKER, 1)
     return source
 
 
