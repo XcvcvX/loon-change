@@ -236,7 +236,16 @@
         "const showDataLength = showData.length;",
         "const sceneIds = block.scene_ids;",
         "compactDidiByField(sceneIds, \"scene_ids\", \"sceneId\");",
-        "const value = item[field];"
+        "const value = item[field];",
+        "// loon-change: Didi route dispatch cache v1",
+        "const isSceneList = url.includes(\"/other/pGetSceneList\");",
+        "const isHomepageCore = url.includes(\"/homepage/v\") && url.includes(\"/core\");",
+        "const isInfoList = url.includes(\"/ota/na/yuantu/infoList\");",
+        "const isUserCenter = url.includes(\"/usercenter/me\");",
+        "if (isSceneList) {",
+        "if (isHomepageCore) {",
+        "if (isInfoList) {",
+        "if (isUserCenter) {"
       ],
       "forbidden": [
         ".filter(",
@@ -252,7 +261,11 @@
         "compactDidiByField(item.bottom_items",
         "read < showData.length",
         "if (block.scene_ids instanceof Array)",
-        "compactDidiByField(block.scene_ids, \"scene_ids\", \"sceneId\");"
+        "compactDidiByField(block.scene_ids, \"scene_ids\", \"sceneId\");",
+        "if (url.includes(\"/other/pGetSceneList\")) {",
+        "if (url.includes(\"/homepage/v\") && url.includes(\"/core\")) {",
+        "if (url.includes(\"/ota/na/yuantu/infoList\")) {",
+        "if (url.includes(\"/usercenter/me\")) {"
       ]
     },
     {

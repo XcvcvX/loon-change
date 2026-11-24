@@ -239,7 +239,18 @@ def optimize_preparse_route_guard(source):
     if marker in source:
         marker_at = source.index(marker)
         parse_at = source.find("JSON.parse($response.body)")
-        if parse_at < 0 or marker_at > parse_at or any(route not in source for route in routes):
+        if "// loon-change: Didi route dispatch cache v1" in source:
+            cached_routes = (
+                "const isSceneList = url.includes(\"/other/pGetSceneList\");",
+                "const isHomepageCore = url.includes(\"/homepage/v\") && url.includes(\"/core\");",
+                "const isInfoList = url.includes(\"/ota/na/yuantu/infoList\");",
+                "const isUserCenter = url.includes(\"/usercenter/me\");",
+                "const shouldProcess = isSceneList || isHomepageCore || isInfoList || isUserCenter;",
+            )
+            valid_routes = all(route in source for route in cached_routes)
+        else:
+            valid_routes = all(route in source for route in routes)
+        if parse_at < 0 or marker_at > parse_at or not valid_routes:
             raise ValueError("Didi pre-parse route guard is incomplete or misplaced")
         return source
 
@@ -254,6 +265,55 @@ def optimize_preparse_route_guard(source):
     if not source.rstrip().endswith("}"):
         raise ValueError("Didi response handler closing brace missing")
     return source.rstrip() + "\n}\n"
+
+def optimize_didi_route_dispatch_cache(source):
+    """Evaluate each supported Didi URL route predicate once and reuse it."""
+    marker = "// loon-change: Didi route dispatch cache v1"
+    replacements = (
+        ('if (url.includes("/other/pGetSceneList")) {', "if (isSceneList) {"),
+        ('if (url.includes("/homepage/v") && url.includes("/core")) {', "if (isHomepageCore) {"),
+        ('if (url.includes("/ota/na/yuantu/infoList")) {', "if (isInfoList) {"),
+        ('if (url.includes("/usercenter/me")) {', "if (isUserCenter) {"),
+    )
+    if marker in source:
+        required = (
+            'const isSceneList = url.includes("/other/pGetSceneList");',
+            'const isHomepageCore = url.includes("/homepage/v") && url.includes("/core");',
+            'const isInfoList = url.includes("/ota/na/yuantu/infoList");',
+            'const isUserCenter = url.includes("/usercenter/me");',
+            "if (isSceneList) {", "if (isHomepageCore) {",
+            "if (isInfoList) {", "if (isUserCenter) {",
+        )
+        if any(token not in source for token in required):
+            raise ValueError("Didi cached route dispatch structure is incomplete")
+        if any(source.count(token) != 1 for token in required[:4]):
+            raise ValueError("Didi route predicates are repeated")
+        return source
+    counts = [source.count(old) for old, _ in replacements]
+    # Compact optimizer fixtures omit response dispatch branches; preserve them without adding a route marker.
+    if counts == [0, 0, 0, 0]:
+        return source
+    if counts != [1, 1, 1, 1]:
+        raise ValueError("Didi route branch anchor changed; refusing route cache rewrite")
+    old_guard = '''// loon-change: Didi pre-parse supported-route guard v1
+const shouldProcess =
+  url.includes("/other/pGetSceneList") ||
+  (url.includes("/homepage/v") && url.includes("/core")) ||
+  url.includes("/ota/na/yuantu/infoList") ||
+  url.includes("/usercenter/me");'''
+    new_guard = '''// loon-change: Didi pre-parse supported-route guard v1
+// loon-change: Didi route dispatch cache v1
+const isSceneList = url.includes("/other/pGetSceneList");
+const isHomepageCore = url.includes("/homepage/v") && url.includes("/core");
+const isInfoList = url.includes("/ota/na/yuantu/infoList");
+const isUserCenter = url.includes("/usercenter/me");
+const shouldProcess = isSceneList || isHomepageCore || isInfoList || isUserCenter;'''
+    if source.count(old_guard) != 1:
+        raise ValueError("Didi route guard anchor changed; refusing route cache rewrite")
+    source = source.replace(old_guard, new_guard, 1)
+    for old, new in replacements:
+        source = source.replace(old, new, 1)
+    return source
 
 def optimize_wallet_nested_property_cache(source):
     """Cache nested wallet array references instead of re-reading card properties."""
@@ -338,10 +398,10 @@ def optimize_source(source, commit="unknown"):
             raise ValueError("Didi optimization marker exists but allocating filter remains")
         if "obj.data.cards.forEach" in source:
             raise ValueError("Didi user-center wallet traversal optimization is stale")
-        return optimize_didi_nested_traversal_property_cache(optimize_wallet_nested_property_cache(optimize_preparse_route_guard(optimize_didi_predicates(optimize_lazy_serialization(source)))))
+        return optimize_didi_route_dispatch_cache(optimize_didi_nested_traversal_property_cache(optimize_wallet_nested_property_cache(optimize_preparse_route_guard(optimize_didi_predicates(optimize_lazy_serialization(source))))))
     if LEGACY_MARKER in source:
         source = source.replace(LEGACY_MARKER, MARKER, 1)
-        return optimize_didi_nested_traversal_property_cache(optimize_wallet_nested_property_cache(optimize_didi_predicates(optimize_lazy_serialization(source))))
+        return optimize_didi_route_dispatch_cache(optimize_didi_nested_traversal_property_cache(optimize_wallet_nested_property_cache(optimize_didi_predicates(optimize_lazy_serialization(source)))))
 
     body_guard = "if (!$response.body) $done({});"
     if source.count(body_guard) != 1:
@@ -380,7 +440,7 @@ def optimize_source(source, commit="unknown"):
         raise ValueError("expected all seven Didi filters to use compactInPlace")
 
     source = source.rstrip() + "\n}\n"
-    return optimize_didi_nested_traversal_property_cache(optimize_wallet_nested_property_cache(optimize_preparse_route_guard(optimize_didi_predicates(optimize_lazy_serialization(MARKER + commit + "\n" + source)))))
+    return optimize_didi_route_dispatch_cache(optimize_didi_nested_traversal_property_cache(optimize_wallet_nested_property_cache(optimize_preparse_route_guard(optimize_didi_predicates(optimize_lazy_serialization(MARKER + commit + "\n" + source))))))
 
 
 def rewrite_plugin(plugin):

@@ -97,6 +97,25 @@ process.stdout.write(JSON.stringify({ output, passThrough, parseCount: context._
         self.assertEqual(result["output"]["webViewFloorList"], [])
         self.assertNotIn("promotionTabs", result["output"])
 
+    def test_didi_route_dispatch_predicates_are_cached_once(self):
+        source = (ROOT / "scripts" / "didi" / "didi.js").read_text(encoding="utf-8")
+        self.assertIn("// loon-change: Didi route dispatch cache v1", source)
+        for route in (
+            'url.includes("/other/pGetSceneList")',
+            'url.includes("/homepage/v")',
+            'url.includes("/core")',
+            'url.includes("/ota/na/yuantu/infoList")',
+            'url.includes("/usercenter/me")',
+        ):
+            self.assertEqual(source.count(route), 1, route)
+        for branch in (
+            "if (isSceneList) {",
+            "if (isHomepageCore) {",
+            "if (isInfoList) {",
+            "if (isUserCenter) {",
+        ):
+            self.assertIn(branch, source)
+
     def test_didi_show_data_caches_nested_array_and_length(self):
         body = {"data": {"show_data": [
             {"scene_ids": ["scene_coupon_mall", "ride", "taxi"]},
