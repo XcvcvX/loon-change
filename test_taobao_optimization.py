@@ -241,7 +241,7 @@ vm.createContext(context);
 vm.runInContext(source, context, { timeout: 5000 });
 const output = doneResult && typeof doneResult.body === "string" ? nativeJSON.parse(doneResult.body) : null;
 process.stdout.write(nativeJSON.stringify({ output, reads }));
-\"\"\"
+"""
         body = {
             "res": {"images": ["ad.png"], "videos": ["ad.mp4"]},
             "mainRes": {"images": ["main-ad.png"]},
