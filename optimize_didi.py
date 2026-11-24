@@ -239,7 +239,18 @@ def optimize_preparse_route_guard(source):
     if marker in source:
         marker_at = source.index(marker)
         parse_at = source.find("JSON.parse($response.body)")
-        if parse_at < 0 or marker_at > parse_at or any(route not in source for route in routes):
+        if "// loon-change: Didi route dispatch cache v1" in source:
+            cached_routes = (
+                "const isSceneList = url.includes(\"/other/pGetSceneList\");",
+                "const isHomepageCore = url.includes(\"/homepage/v\") && url.includes(\"/core\");",
+                "const isInfoList = url.includes(\"/ota/na/yuantu/infoList\");",
+                "const isUserCenter = url.includes(\"/usercenter/me\");",
+                "const shouldProcess = isSceneList || isHomepageCore || isInfoList || isUserCenter;",
+            )
+            valid_routes = all(route in source for route in cached_routes)
+        else:
+            valid_routes = all(route in source for route in routes)
+        if parse_at < 0 or marker_at > parse_at or not valid_routes:
             raise ValueError("Didi pre-parse route guard is incomplete or misplaced")
         return source
 
