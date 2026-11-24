@@ -49,7 +49,6 @@
         "// loon-change: R-Store Xiaohongshu hot-path optimization v1;",
         "function compactInPlace(",
         "const livePhotoCache = []",
-        "file_id: image.live_photo_file_id",
         "JSON.stringify(livePhotoCache), \"redBookLivePhoto\"",
         "item?.file_id",
         "obj.data.download_url = item.url;\n        break;",
@@ -58,7 +57,8 @@
         "function imageEnhance(images, livePhotoCache)",
         "const livePhotoTarget = Array.isArray(livePhotoCache) ? livePhotoCache : null;",
         "frame.root && livePhotoTarget",
-        "imageEnhance(images_list, livePhotoCache);"
+        "imageEnhance(images_list, livePhotoCache);",
+        "file_id: child.live_photo_file_id"
       ],
       "forbidden": [
         "JSON.stringify(images_list), \"redBookLivePhoto\"",
