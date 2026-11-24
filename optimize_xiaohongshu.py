@@ -293,8 +293,19 @@ def optimize_source(src,commit="unknown"):
         has_comment_processor = "function processCommentTree(data, livePhotos, commentVideos, noteId)" in src
         has_no_visited_set = "const visited = new WeakSet()" not in src and "visited.has(current)" not in src
         if has_comment_processor and has_no_visited_set and "Xiaohongshu parsed JSON comment tree without visited WeakSet v1;" in src and "Xiaohongshu comment classification stack frames v1;" in src and "const commentFrameTag = {};" in src and "processCommentTree(obj.data, livePhotos, commentVideos, note_id);" in src:
-            return optimize_stream_selection_no_closure(optimize_v4_video_feed_function_entry_scan(optimize_video_save_cache_lookup(optimize_comment_video_info_cache(optimize_imagefeed_live_photo_property_cache(optimize_imagefeed_single_traversal(src))))))
-        return optimize_stream_selection_no_closure(optimize_v4_video_feed_function_entry_scan(optimize_video_save_cache_lookup(optimize_comment_video_info_cache(optimize_imagefeed_live_photo_property_cache(optimize_imagefeed_single_traversal(apply_comment_optimization(src))))))
+            src = optimize_imagefeed_single_traversal(src)
+            src = optimize_imagefeed_live_photo_property_cache(src)
+            src = optimize_comment_video_info_cache(src)
+            src = optimize_video_save_cache_lookup(src)
+            src = optimize_v4_video_feed_function_entry_scan(src)
+            return optimize_stream_selection_no_closure(src)
+        src = apply_comment_optimization(src)
+        src = optimize_imagefeed_single_traversal(src)
+        src = optimize_imagefeed_live_photo_property_cache(src)
+        src = optimize_comment_video_info_cache(src)
+        src = optimize_video_save_cache_lookup(src)
+        src = optimize_v4_video_feed_function_entry_scan(src)
+        return optimize_stream_selection_no_closure(src)
     src=once(src,"const url = $request.url;","const url = $request.url;\n"+HELPERS.strip(),"helpers")
     src=once(src,"  console.log('打印原body：' + JSON.stringify(obj));\n","","full-body logging")
     src=once(src,'''      obj.data[0].note_list[0].images_list = imageEnhance(JSON.stringify(images_list));
@@ -379,7 +390,12 @@ def optimize_source(src,commit="unknown"):
         line for line in src.splitlines(keepends=True)
         if not ("console.log(" in line and any(token in line for token in log_tokens))
     )
-    result=optimize_stream_selection_no_closure(optimize_v4_video_feed_function_entry_scan(optimize_video_save_cache_lookup(optimize_comment_video_info_cache(optimize_imagefeed_live_photo_property_cache(apply_comment_optimization(MARKER+commit+"\n"+src))))))
+    result = apply_comment_optimization(MARKER+commit+"\n"+src)
+    result = optimize_imagefeed_live_photo_property_cache(optimize_imagefeed_single_traversal(result))
+    result = optimize_comment_video_info_cache(result)
+    result = optimize_video_save_cache_lookup(result)
+    result = optimize_v4_video_feed_function_entry_scan(result)
+    result = optimize_stream_selection_no_closure(result)
     for token in ("imageEnhance(images_list, livePhotoCache)", IMAGE_FEED_MARKER, "compactInPlace(obj.data","appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)","const byFileId=new Map()", "Xiaohongshu comment classification stack frames v1;", "const commentFrameTag = {};", "stack.push([commentFrameTag, comment, true])", COMMENT_CACHE_MARKER, "let parsed = parsedVideoInfo.get(raw);", VIDEO_SAVE_LOOKUP_MARKER, "for (let i = videoFeed.length - 1; i >= 0; i--)", STREAM_SELECTION_MARKER, "for (let pass = 0; pass < 2; pass++)"):
         if token not in result:raise ValueError("missing optimizer invariant: "+token)
     if "imageEnhance(JSON.stringify(images_list))" in result:raise ValueError("image-feed serialization round trip remains")
