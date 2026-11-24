@@ -58,14 +58,17 @@
         "const livePhotoTarget = Array.isArray(livePhotoCache) ? livePhotoCache : null;",
         "frame.root && livePhotoTarget",
         "imageEnhance(images_list, livePhotoCache);",
-        "file_id: child.live_photo_file_id"
+        "file_id: child.live_photo_file_id",
+        "// loon-change: Xiaohongshu comment video-info cache single lookup v1",
+        "let picObj = videoInfoCache.get(rawVideoInfo);"
       ],
       "forbidden": [
         "JSON.stringify(images_list), \"redBookLivePhoto\"",
         "item.live_photo.media.stream.h265[0].master_url",
         "const visited = new WeakSet()",
         "visited.has(current)",
-        "for (const image of images_list)"
+        "for (const image of images_list)",
+        "videoInfoCache.has(rawVideoInfo)"
       ]
     },
     {

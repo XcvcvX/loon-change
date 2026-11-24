@@ -30,6 +30,9 @@ class RStoreXiaohongshuOptimizerTests(unittest.TestCase):
         self.assertIn("const byFileId = new Map()", source)
         self.assertIn("function cleanCommentsAndCollectLivePhotos(data)", source)
         self.assertIn("const videoInfoCache = new Map()", source)
+        self.assertIn("// loon-change: Xiaohongshu comment video-info cache single lookup v1", source)
+        self.assertIn("let picObj = videoInfoCache.get(rawVideoInfo);", source)
+        self.assertNotIn("videoInfoCache.has(rawVideoInfo)", source)
         self.assertIn("// loon-change: Xiaohongshu parsed JSON tree traversal without visited WeakSet v1;", source)
         self.assertNotIn("const visited = new WeakSet()", source)
         self.assertNotIn("visited.has(current)", source)
@@ -85,6 +88,19 @@ let doneResult;
 let imageArrayReads = 0;
 let trackImageArrayReads = true;
 let weakSetConstructCount = 0;
+let mapGetCount = 0;
+let mapHasCount = 0;
+const NativeMap = Map;
+class CountedMap extends NativeMap {
+  get(key) {
+    mapGetCount++;
+    return super.get(key);
+  }
+  has(key) {
+    mapHasCount++;
+    return super.has(key);
+  }
+}
 const NativeWeakSet = WeakSet;
 class CountedWeakSet extends NativeWeakSet {
   constructor(...args) {
@@ -102,6 +118,7 @@ const context = {
   $response: {body: payload.rawBody === undefined ? JSON.stringify(payload.body) : payload.rawBody},
   $done(value) { doneResult = value; },
   WeakSet: CountedWeakSet,
+  Map: CountedMap,
   JSON: {
     parseCount: 0,
     parse(value) {
@@ -137,6 +154,8 @@ process.stdout.write(JSON.stringify({
   parseCount: context.JSON.parseCount,
   imageArrayReads,
   weakSetConstructCount,
+  mapGetCount,
+  mapHasCount,
   store: Object.fromEntries(store)
 }));
 """
@@ -323,6 +342,33 @@ process.stdout.write(JSON.stringify({
         self.assertEqual([x["videId"] for x in cached["livePhotos"]], ["video-1", "video-2"])
         self.assertEqual(result["parseCount"], 2)
         self.assertEqual(result["weakSetConstructCount"], 2)
+        self.assertEqual(result["mapGetCount"], 2)
+        self.assertEqual(result["mapHasCount"], 0)
+
+    def test_comment_video_info_cache_uses_one_map_lookup_per_picture(self):
+        video_info = json.dumps({"stream": {"h265": [
+            {"master_url": "https://video.example/shared.mp4"}
+        ]}})
+        body = {"data": {"comments": [{
+            "note_id": "note-cache",
+            "pictures": [
+                {"video_id": "video-1", "video_info": video_info},
+                {"video_id": "video-2", "video_info": video_info},
+                {"video_id": "video-3", "video_info": video_info}
+            ]
+        }]}}
+        result = self.run_script(
+            "https://edith.xiaohongshu.com/api/sns/v5/note/comment/list?cursor=cache-single-lookup",
+            body
+        )
+        cached = json.loads(result["store"]["xiaohongshu.comments.rsp"])
+        self.assertEqual(
+            [item["videId"] for item in cached["livePhotos"]],
+            ["video-1", "video-2", "video-3"]
+        )
+        self.assertEqual(result["parseCount"], 2)
+        self.assertEqual(result["mapGetCount"], 3)
+        self.assertEqual(result["mapHasCount"], 0)
 
     def test_comment_tree_cleanup_is_iterative_for_deep_objects(self):
         nested = {"red_id": "deep"}

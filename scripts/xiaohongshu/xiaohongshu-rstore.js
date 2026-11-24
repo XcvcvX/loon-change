@@ -423,9 +423,13 @@ function cleanCommentsAndCollectLivePhotos(data) {
       if (current.pictures?.length > 0) {
         for (const picture of current.pictures) {
           if (!picture.video_id) continue;
+          // loon-change: Xiaohongshu comment video-info cache single lookup v1
           const rawVideoInfo = picture.video_info;
-          if (!videoInfoCache.has(rawVideoInfo)) videoInfoCache.set(rawVideoInfo, JSON.parse(rawVideoInfo));
-          const picObj = videoInfoCache.get(rawVideoInfo);
+          let picObj = videoInfoCache.get(rawVideoInfo);
+          if (picObj === undefined) {
+            picObj = JSON.parse(rawVideoInfo);
+            videoInfoCache.set(rawVideoInfo, picObj);
+          }
           const videoUrl = picObj.stream?.h265?.[0]?.master_url;
           if (videoUrl) livePhotos.push({videId: picture.video_id, videoUrl});
         }
