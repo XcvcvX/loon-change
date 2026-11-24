@@ -39,7 +39,7 @@ class BaiduMapBinaryPerformanceTests(unittest.TestCase):
         self.assertIn("if (modifiedAds && resultOffset !== -1)", deferred)
         self.assertIn("newResult = binaryBody.subarray(resultOffset, resultOffset + resultLength);", deferred)
 
-    def test_ads_content_collection_and_item_fields_are_cached(self):
+    def test_ads_content_collection_and_length_are_cached(self):
         marker = "// loon-change: Baidu protobuf Ads content array cache v1"
         self.assertIn(marker, self.source)
         start = self.source.index(marker)
@@ -49,12 +49,12 @@ class BaiduMapBinaryPerformanceTests(unittest.TestCase):
         self.assertIn("const adsContentLength = adsContent.length;", loop)
         self.assertIn("for(let j = 0; j < adsContentLength; j++)", loop)
         self.assertIn("const item = adsContent[j];", loop)
-        self.assertIn("const start = item.start;", loop)
-        self.assertIn("const end = item.end;", loop)
+        self.assertIn("item.start !== 1648746061", loop)
+        self.assertIn("item.end !== 1648832461", loop)
+        self.assertNotIn("const start = item.start;", loop)
+        self.assertNotIn("const end = item.end;", loop)
         self.assertNotIn("adsMessage.content.length", loop)
         self.assertNotIn("adsMessage.content[j]", loop)
-        self.assertNotIn("item.start !==", loop)
-        self.assertNotIn("item.end !==", loop)
 
 
     def test_result_payload_view_is_deferred_until_ads_change(self):
