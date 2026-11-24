@@ -313,7 +313,10 @@
         "encodedHeader[digestOffset + i] = digest.charCodeAt(i);",
         "// loon-change: Baidu protobuf raw-signature Ads preflight v2",
         "function hasBaiduTargetAds(",
-        "if (!hasBaiduTargetAds(binaryBody, currentOffset, targetDataLength)) continue;"
+        "if (!hasBaiduTargetAds(binaryBody, currentOffset, targetDataLength)) continue;",
+        "// loon-change: BaiduMap underscore-indexed Ads signature scan v1",
+        "buffer.indexOf(95, start)",
+        "buffer.indexOf(95, index + 1)"
       ],
       "forbidden": [
         "newResult = binaryBody.subarray(currentOffset, currentOffset + targetDataLength);",
@@ -322,7 +325,8 @@
         "repHeadMessage.messageHead.length",
         "repHeadMessage.messageHead[i]",
         "repHeadMessage.messageHead[0]",
-        "repHeadMessage.messageHead[1]"
+        "repHeadMessage.messageHead[1]",
+        "for (let i = start; i < end; i++)"
       ]
     },
     {

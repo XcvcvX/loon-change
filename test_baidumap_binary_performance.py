@@ -549,5 +549,67 @@ if (doneResult.body) {
         self.assertEqual(result["item"]["start"], 1648746061)
         self.assertEqual(result["item"]["end"], 1648832461)
 
+
+    def test_raw_signature_scan_uses_native_underscore_index(self):
+        marker = "// loon-change: BaiduMap underscore-indexed Ads signature scan v1"
+        self.assertIn(marker, self.source)
+        start = self.source.index(marker)
+        end = self.source.index("\n}", start) + 2
+        helper = self.source[start:end]
+        self.assertIn("buffer.indexOf(95, start)", helper)
+        self.assertIn("buffer.indexOf(95, index + 1)", helper)
+        self.assertNotIn("for (let i = start; i < end; i++)", helper)
+
+    @unittest.skipUnless(NODE, "Node.js is required for BaiduMap signature scan tests")
+    def test_indexed_signature_scan_matches_reference_across_bounds_and_payloads(self):
+        runner = r"""
+const fs = require("fs"), vm = require("vm");
+const source = fs.readFileSync(process.argv[1], "utf8");
+const marker = "// loon-change: BaiduMap underscore-indexed Ads signature scan v1";
+const start = source.indexOf(marker);
+const end = source.indexOf("\n}", start) + 2;
+const context = {};
+vm.createContext(context);
+vm.runInContext(source.slice(start, end) + "; globalThis.scan = hasBaiduTargetAds;", context);
+function reference(buffer, start, length) {
+  if (start < 0 || length < 0 || start > buffer.length || length > buffer.length - start) return true;
+  const end = start + length;
+  for (let i = start; i < end; i++) {
+    const byte = buffer[i];
+    if (byte === 95 && i + 6 < end && buffer[i+1] === 98 && buffer[i+2] === 97 && buffer[i+3] === 110 && buffer[i+4] === 110 && buffer[i+5] === 101 && buffer[i+6] === 114) return true;
+    if (byte === 115 && i + 16 < end && buffer[i+1] === 112 && buffer[i+2] === 108 && buffer[i+3] === 97 && buffer[i+4] === 115 && buffer[i+5] === 104 && buffer[i+6] === 95 && buffer[i+7] === 115 && buffer[i+8] === 99 && buffer[i+9] === 114 && buffer[i+10] === 101 && buffer[i+11] === 101 && buffer[i+12] === 110 && buffer[i+13] === 49 && buffer[i+14] === 48 && buffer[i+15] === 52 && buffer[i+16] === 48) return true;
+  }
+  return false;
+}
+const cases = [
+  ["xx_bannerzz", 2, 7, true], ["xxsplash_screen1040zz", 2, 17, true],
+  ["xxordinary_creativezz", 2, 18, false], ["_banner", 0, 7, true],
+  ["splash_screen1040", 0, 17, true], ["splash_screen104", 0, 16, false],
+  ["x_banner", 1, 6, false], ["x_banner", 2, 7, true],
+  ["splash_screen1040", 1, 16, false], ["splash_screen1040", -1, 5, true],
+  ["splash_screen1040", 0, 99, true]
+];
+for (const [raw, offset, length, expected] of cases) {
+  const bytes = new Uint8Array(Buffer.from(raw));
+  const actual = context.scan(bytes, offset, length);
+  if (actual !== expected || actual !== reference(bytes, offset, length)) throw new Error("fixture mismatch " + raw);
+}
+let seed = 0x12345678;
+for (let n = 0; n < 500; n++) {
+  const length = n % 257, bytes = new Uint8Array(length + 8);
+  for (let i = 0; i < bytes.length; i++) { seed = (seed * 1664525 + 1013904223) >>> 0; bytes[i] = seed >>> 24; }
+  if (n % 3 === 0 && length >= 7) bytes.set(Buffer.from("_banner"), 4 + (n % (length - 6)));
+  if (n % 5 === 0 && length >= 17) bytes.set(Buffer.from("splash_screen1040"), 4 + (n % (length - 16)));
+  const from = n % 5 === 0 ? 4 : 0, span = n % 7 === 0 ? length : Math.max(0, length - (n % 9));
+  if (context.scan(bytes, from, span) !== reference(bytes, from, span)) throw new Error("random mismatch " + n);
+}
+process.stdout.write("ok");
+"""
+        completed = subprocess.run(
+            [NODE, "-e", runner, str(ROOT / "scripts/baidumap/baidu-map-protobuf.js")],
+            capture_output=True, text=True, check=True, timeout=10,
+        )
+        self.assertEqual(completed.stdout, "ok")
+
 if __name__ == "__main__":
     unittest.main()
