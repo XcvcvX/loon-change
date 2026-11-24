@@ -175,7 +175,7 @@ process.stdout.write("ok");
 
     def test_md5_placeholder_scan_uses_native_candidate_indexing(self):
         start = self.source.index("function assembleBaiduResponse(")
-        end = self.source.index("\\n}\\n", start) + 2
+        end = self.source.index("\n}\n", start) + 2
         helper = self.source[start:end]
         self.assertIn("// loon-change: Baidu protobuf MD5 placeholder indexed scan v1", helper)
         self.assertIn("let candidateOffset = encodedHeader.indexOf(0x30);", helper)
