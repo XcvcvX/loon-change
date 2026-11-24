@@ -219,7 +219,7 @@ if (url.includes("/v4/note/videofeed")) {
       }
 
       // 添加下载按钮（如果未存在）
-      // loon-change: Xiaohongshu v4 video-feed function-entry scan without callback v1;
+// loon-change: Xiaohongshu v4 video-feed function-entry scan without callback v1;
       const functionEntries = item?.share_info?.function_entries;
       if (functionEntries?.length > 0) {
         let hasDownload = false;
