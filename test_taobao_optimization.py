@@ -190,3 +190,27 @@ process.stdout.write(JSON.stringify(result));
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TaobaoCachedResponseObjectTests(unittest.TestCase):
+    def test_video_and_poplayer_reuse_route_objects(self):
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertIn("// loon-change: Taobao cached video response object v1", source)
+        self.assertIn("// loon-change: Taobao cached Poplayer response objects v1", source)
+        self.assertIn("const videoData = obj?.data;", source)
+        self.assertIn("const poplayerRes = obj?.res;", source)
+        self.assertIn("const mainRes = obj?.mainRes;", source)
+        self.assertIn("const poplayerEnabled = obj?.enable;", source)
+        self.assertNotIn("clearArray(obj?.res || {},", source)
+        self.assertNotIn("clearArray(obj?.mainRes || {},", source)
+        self.assertEqual(source.count("JSON.parse("), 1)
+        self.assertEqual(source.count("JSON.stringify("), 1)
+
+    def test_object_cache_optimizer_is_idempotent_and_fails_closed(self):
+        from optimize_taobao import OBJECT_CACHE_MARKER, optimize_route_object_access
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertEqual(optimize_route_object_access(source), source)
+        self.assertEqual(source.count(OBJECT_CACHE_MARKER), 2)
+        damaged = source.replace("const videoData = obj?.data;", "const videoData = obj?.payload;", 1)
+        with self.assertRaisesRegex(ValueError, "cached response object access drifted"):
+            optimize_route_object_access(damaged)
