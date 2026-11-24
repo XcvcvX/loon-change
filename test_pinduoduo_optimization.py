@@ -21,8 +21,8 @@ PDD_PATHS = (
 
 
 def request_rules(path):
-    escaped = path.replace("/", r"\\/")
-    broad = r"request if ${url} ~= /^https:\/\/api\.pinduoduo\.com" + escaped + r"/i then reject_dict(200)"
+    escaped = path.replace("/", r"\/")
+    broad = "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com" + escaped + "/i then reject_dict(200)"
     narrow = broad.replace("/i then", r"\?/i then")
     return broad, narrow
 
