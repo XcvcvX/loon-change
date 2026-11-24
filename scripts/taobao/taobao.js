@@ -39,13 +39,15 @@ if (!$response.body) {
   } else {
   const obj = JSON.parse($response.body);
 if (isCloudVideo) {
-  if (obj?.data?.duration) {
-    setIfDifferent(obj.data, "duration", "0");
+  // loon-change: Taobao cached video response object v1
+  const videoData = obj?.data;
+  if (videoData?.duration) {
+    setIfDifferent(videoData, "duration", "0");
   }
-  clearArray(obj?.data || {}, "resources");
-  clearArray(obj?.data || {}, "caches");
-  if (obj?.data?.respTimeInMs) {
-    setIfDifferent(obj.data, "respTimeInMs", "3818332800000");
+  clearArray(videoData || {}, "resources");
+  clearArray(videoData || {}, "caches");
+  if (videoData?.respTimeInMs) {
+    setIfDifferent(videoData, "respTimeInMs", "3818332800000");
   }
 } else if (isSplash) {
   if (obj?.data?.containers?.splash_home_base) {
@@ -81,12 +83,16 @@ if (isCloudVideo) {
     }
   }
 } else if (isPoplayer) {
-  clearArray(obj?.res || {}, "images");
-  clearArray(obj?.res || {}, "videos");
-  if (obj?.enable) {
+  // loon-change: Taobao cached Poplayer response objects v1
+  const poplayerRes = obj?.res;
+  const mainRes = obj?.mainRes;
+  const poplayerEnabled = obj?.enable;
+  clearArray(poplayerRes || {}, "images");
+  clearArray(poplayerRes || {}, "videos");
+  if (poplayerEnabled) {
     setIfDifferent(obj, "enable", false);
   }
-  clearArray(obj?.mainRes || {}, "images");
+  clearArray(mainRes || {}, "images");
 }
 $done(modified ? {body: JSON.stringify(obj)} : {});
   }
