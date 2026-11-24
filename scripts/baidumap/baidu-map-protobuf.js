@@ -31,19 +31,43 @@ function assembleBaiduResponse(repHeadMessage, repHeadType, newResult, newAds, h
   adsHead.offset = newResult.byteLength;
   adsHead.length = newAds.byteLength;
 
-  const headerLength = repHeadType.encode(repHeadMessage).finish().byteLength;
+  // loon-change: Baidu protobuf single-encode MD5 header patch v1
+  const encodedHeader = repHeadType.encode(repHeadMessage).finish();
+  const headerLength = encodedHeader.byteLength;
   const payloadOffset = beginOffset + headerLength;
   const body = new Uint8Array(payloadOffset + payloadLength);
 
   body.set(newResult, payloadOffset);
   body.set(newAds, payloadOffset + newResult.byteLength);
-  repHeadMessage.md5 = hash(body.subarray(payloadOffset));
+  const digest = hash(body.subarray(payloadOffset));
+  if (typeof digest !== "string" || !/^[0-9a-f]{32}$/i.test(digest)) {
+    throw new Error("BaiduMap MD5 digest must be 32 hexadecimal characters");
+  }
+  repHeadMessage.md5 = digest;
 
-  const encodedHeader = repHeadType.encode(repHeadMessage).finish();
-  // Both MD5 values are 32 characters; a different header size would mean
-  // the schema or hash contract changed and must not silently corrupt offsets.
-  if (encodedHeader.byteLength !== headerLength) {
-    throw new Error("BaiduMap RepHead size changed after MD5 calculation");
+  // Patch the unique fixed-width placeholder in the already encoded header.
+  // This avoids a second Protobuf encode and cannot change any byte offsets.
+  let digestOffset = -1;
+  for (let i = 0; i <= encodedHeader.byteLength - 32; i++) {
+    let matches = true;
+    for (let j = 0; j < 32; j++) {
+      if (encodedHeader[i + j] !== 0x30) {
+        matches = false;
+        break;
+      }
+    }
+    if (matches) {
+      if (digestOffset !== -1) {
+        throw new Error("BaiduMap MD5 placeholder is ambiguous");
+      }
+      digestOffset = i;
+    }
+  }
+  if (digestOffset === -1) {
+    throw new Error("BaiduMap MD5 placeholder not found in encoded RepHead");
+  }
+  for (let i = 0; i < 32; i++) {
+    encodedHeader[digestOffset + i] = digest.charCodeAt(i);
   }
 
   new DataView(body.buffer, body.byteOffset, beginOffset).setInt32(0, headerLength);
