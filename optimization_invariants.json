@@ -41,6 +41,10 @@
         "const livePhotoTarget = Array.isArray(livePhotoCache) ? livePhotoCache : null;",
         "const stack=[{value:images,index:0,keys:null,root:true}];",
         "frame.root && livePhotoTarget",
+        "// loon-change: Xiaohongshu imagefeed live-photo property cache v1;",
+        "const livePhoto = child.live_photo;",
+        "const media = livePhoto?.media;",
+        "const masterUrl = stream?.master_url;",
         "imageEnhance(images_list, livePhotoCache);",
         "Xiaohongshu comment classification stack frames v1;",
         "const commentFrameTag = {};",
@@ -68,7 +72,8 @@
         "parsedVideoInfo.has(raw)",
         "for (let item of videoFeed)",
         "const choose=list=>",
-        "function_entries.some("
+        "function_entries.some(",
+        "child.live_photo?.media?.stream?.h265?.[0]"
       ]
     },
     {
