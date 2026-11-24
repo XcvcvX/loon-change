@@ -53,13 +53,19 @@
         "JSON.stringify(livePhotoCache), \"redBookLivePhoto\"",
         "item?.file_id",
         "obj.data.download_url = item.url;\n        break;",
-        "// loon-change: Xiaohongshu parsed JSON tree traversal without visited WeakSet v1;"
+        "// loon-change: Xiaohongshu parsed JSON tree traversal without visited WeakSet v1;",
+        "// loon-change: Xiaohongshu imagefeed single traversal live-photo extraction v1",
+        "function imageEnhance(images, livePhotoCache)",
+        "const livePhotoTarget = Array.isArray(livePhotoCache) ? livePhotoCache : null;",
+        "frame.root && livePhotoTarget",
+        "imageEnhance(images_list, livePhotoCache);"
       ],
       "forbidden": [
         "JSON.stringify(images_list), \"redBookLivePhoto\"",
         "item.live_photo.media.stream.h265[0].master_url",
         "const visited = new WeakSet()",
-        "visited.has(current)"
+        "visited.has(current)",
+        "for (const image of images_list)"
       ]
     },
     {
