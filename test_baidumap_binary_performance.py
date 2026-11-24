@@ -329,7 +329,9 @@ class BaiduMapAdsPreflightTests(unittest.TestCase):
         block = self.source[start:end]
         self.assertIn("if (!hasBaiduTargetAds(binaryBody, currentOffset, targetDataLength)) continue;", block)
         self.assertLess(block.index("hasBaiduTargetAds("), block.index("const targetData = binaryBody.subarray("))
-        self.assertIn("for (let i = start; i < end; i++)", self.source)
+        self.assertIn("buffer.indexOf(95, start)", self.source)
+        self.assertIn("buffer.indexOf(95, index + 1)", self.source)
+        self.assertNotIn("for (let i = start; i < end; i++)", self.source)
         self.assertNotIn("function readVarint(limit)", self.source)
         self.assertNotIn("function skipField(wireType, limit)", self.source)
 
@@ -551,6 +553,7 @@ if (doneResult.body) {
 
 
     def test_raw_signature_scan_uses_native_underscore_index(self):
+        self.source = (ROOT / "scripts/baidumap/baidu-map-protobuf.js").read_text(encoding="utf-8")
         marker = "// loon-change: BaiduMap underscore-indexed Ads signature scan v1"
         self.assertIn(marker, self.source)
         start = self.source.index(marker)
