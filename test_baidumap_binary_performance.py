@@ -39,6 +39,24 @@ class BaiduMapBinaryPerformanceTests(unittest.TestCase):
         self.assertIn("if (modifiedAds && resultOffset !== -1)", deferred)
         self.assertIn("newResult = binaryBody.subarray(resultOffset, resultOffset + resultLength);", deferred)
 
+    def test_ads_content_collection_and_item_fields_are_cached(self):
+        marker = "// loon-change: Baidu protobuf Ads content array cache v1"
+        self.assertIn(marker, self.source)
+        start = self.source.index(marker)
+        end = self.source.index("if(modifiedAds) newAds = adsType.encode(adsMessage).finish();", start)
+        loop = self.source[start:end]
+        self.assertIn("const adsContent = adsMessage.content;", loop)
+        self.assertIn("const adsContentLength = adsContent.length;", loop)
+        self.assertIn("for(let j = 0; j < adsContentLength; j++)", loop)
+        self.assertIn("const item = adsContent[j];", loop)
+        self.assertIn("const start = item.start;", loop)
+        self.assertIn("const end = item.end;", loop)
+        self.assertNotIn("adsMessage.content.length", loop)
+        self.assertNotIn("adsMessage.content[j]", loop)
+        self.assertNotIn("item.start !==", loop)
+        self.assertNotIn("item.end !==", loop)
+
+
     def test_result_payload_view_is_deferred_until_ads_change(self):
         marker = "// loon-change: Baidu protobuf target-only byte views v1"
         self.assertIn(marker, self.source)
@@ -278,6 +296,20 @@ source = source
   .replace("binaryBody.subarray(currentOffset, currentOffset + targetDataLength)", "countedSubarray(binaryBody, currentOffset, currentOffset + targetDataLength)")
   .replace("binaryBody.subarray(resultOffset, resultOffset + resultLength)", "countedSubarray(binaryBody, resultOffset, resultOffset + resultLength)");
 
+
+source = source.replace(
+  "const adsMessage = adsType.decode(targetData);",
+  "const adsMessage = adsType.decode(targetData);\\n" +
+  "globalThis.__adsContentReads = 0; globalThis.__adsStartReads = 0; globalThis.__adsEndReads = 0; globalThis.__trackAdsProperties = true;\\n" +
+  "let trackedAdsContent = adsMessage.content; Object.defineProperty(adsMessage, 'content', { configurable: true, enumerable: true, get() { if (globalThis.__trackAdsProperties) globalThis.__adsContentReads++; return trackedAdsContent; }, set(value) { trackedAdsContent = value; } });\\n" +
+  "for (let k = 0; k < trackedAdsContent.length; k++) { const target = trackedAdsContent[k]; trackedAdsContent[k] = new Proxy(target, { get(target, key, receiver) { if (globalThis.__trackAdsProperties && key === 'start') globalThis.__adsStartReads++; if (globalThis.__trackAdsProperties && key === 'end') globalThis.__adsEndReads++; return Reflect.get(target, key, receiver); } }); }"
+);
+source = source.replace(
+  "if(modifiedAds) newAds = adsType.encode(adsMessage).finish();",
+  "if(modifiedAds) { globalThis.__trackAdsProperties = false; newAds = adsType.encode(adsMessage).finish(); }"
+);
+
+
 function varint(value) {
   const out = [];
   value >>>= 0;
@@ -310,7 +342,11 @@ function fixture(type, start, end, includeAds) {
   ];
   const payload = result.slice();
   if (includeAds) {
-    const ads = bytesField(2, content(type, start, end));
+    const contentCount = Math.max(1, Number(process.argv[6]) || 1);
+    const ads = [];
+    for (let index = 0; index < contentCount; index++) {
+      ads.push(...bytesField(2, content(type, start, end)));
+    }
     fields.push(bytesField(3, [
       ...intField(1, result.length), ...intField(2, ads.length), ...stringField(3, "Ads")
     ]));
@@ -354,6 +390,9 @@ if (doneResult.body) {
     md5: decoded.md5,
     md5InitCount: context.__md5InitCount || 0,
     subarrayCount: context.__subarrayCount || 0,
+    adsContentReads: context.__adsContentReads || 0,
+    adsStartReads: context.__adsStartReads || 0,
+    adsEndReads: context.__adsEndReads || 0,
     item: decoded.item
   }));
 } else {
@@ -361,17 +400,20 @@ if (doneResult.body) {
     hasBody: false,
     originalLength: input.length,
     md5InitCount: context.__md5InitCount || 0,
-    subarrayCount: context.__subarrayCount || 0
+    subarrayCount: context.__subarrayCount || 0,
+    adsContentReads: context.__adsContentReads || 0,
+    adsStartReads: context.__adsStartReads || 0,
+    adsEndReads: context.__adsEndReads || 0
   }));
 }
 """
 
-    def run_script(self, content_type, start, end, include_ads=True):
+    def run_script(self, content_type, start, end, include_ads=True, content_count=1):
         if not NODE:
             self.skipTest("Node.js is required for BaiduMap protobuf runtime tests")
         completed = subprocess.run(
             [NODE, "-e", self.runner, str(ROOT / "scripts/baidumap/baidu-map-protobuf.js"),
-             content_type, str(start), str(end), "with-ads" if include_ads else "no-ads"],
+             content_type, str(start), str(end), "with-ads" if include_ads else "no-ads", str(content_count)],
             capture_output=True, text=True, check=False, timeout=15,
         )
         if completed.returncode:
@@ -389,12 +431,18 @@ if (doneResult.body) {
         self.assertFalse(result["hasBody"])
         self.assertEqual(result["md5InitCount"], 0)
         self.assertEqual(result["subarrayCount"], 2)
+        self.assertEqual(result["adsContentReads"], 1)
+        self.assertEqual(result["adsStartReads"], 0)
+        self.assertEqual(result["adsEndReads"], 0)
 
     def test_already_clean_target_ads_skip_protobuf_encode_md5_and_body_reassembly(self):
         result = self.run_script("home_banner", 1648746061, 1648832461)
         self.assertFalse(result["hasBody"])
         self.assertEqual(result["md5InitCount"], 0)
         self.assertEqual(result["subarrayCount"], 2)
+        self.assertEqual(result["adsContentReads"], 1)
+        self.assertEqual(result["adsStartReads"], 1)
+        self.assertEqual(result["adsEndReads"], 1)
 
     def test_changed_target_ads_still_rebuild_with_correct_values(self):
         result = self.run_script("home_banner", 1, 2)
@@ -405,7 +453,19 @@ if (doneResult.body) {
         self.assertGreater(result["outputLength"], 0)
         self.assertEqual(result["md5InitCount"], 1)
         self.assertEqual(result["subarrayCount"], 4)
+        self.assertEqual(result["adsContentReads"], 1)
+        self.assertEqual(result["adsStartReads"], 1)
+        self.assertEqual(result["adsEndReads"], 1)
 
+    def test_large_ads_content_array_reads_collection_once_and_fields_once(self):
+        count = 64
+        result = self.run_script("home_banner", 1, 2, content_count=count)
+        self.assertTrue(result["hasBody"])
+        self.assertEqual(result["adsContentReads"], 1)
+        self.assertEqual(result["adsStartReads"], count)
+        self.assertEqual(result["adsEndReads"], count)
+        self.assertEqual(result["item"]["start"], 1648746061)
+        self.assertEqual(result["item"]["end"], 1648832461)
 
 if __name__ == "__main__":
     unittest.main()
