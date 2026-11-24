@@ -315,7 +315,7 @@ class TaobaoSplashHotLoopOptimizationTests(unittest.TestCase):
         source = SCRIPT.read_text(encoding="utf-8")
         self.assertIn("// loon-change: Taobao splash item specialized updates v1", source)
         start = source.index("for (let itemIndex = 0; itemIndex < itemCount; itemIndex++)")
-        end = source.index("\\n        }\\n      }\\n    }\\n  }\\n} else if (isPoplayer)", start)
+        end = source.index("normalizeSplashItem(item);", start) + len("normalizeSplashItem(item);")
         loop = source[start:end]
         self.assertEqual(loop.count("normalizeSplashItem(item);"), 1)
         self.assertNotIn("setIfDifferent(item,", loop)
