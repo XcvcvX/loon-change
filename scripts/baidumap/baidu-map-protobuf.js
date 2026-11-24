@@ -19,13 +19,17 @@ const baiduMapRoot = protobuf.Root.fromJSON(baiduMapJson);
 function assembleBaiduResponse(repHeadMessage, repHeadType, newResult, newAds, hash) {
   const beginOffset = 4;
   const payloadLength = newResult.byteLength + newAds.byteLength;
+  // loon-change: Baidu protobuf assembly header references cache v1
+  const messageHead = repHeadMessage.messageHead;
+  const resultHead = messageHead[0];
+  const adsHead = messageHead[1];
 
   // MD5 is a fixed 32-character hex string, so the placeholder preserves
   // the encoded RepHead size while the final payload buffer is assembled.
   repHeadMessage.md5 = "00000000000000000000000000000000";
-  repHeadMessage.messageHead[0].length = newResult.byteLength;
-  repHeadMessage.messageHead[1].offset = newResult.byteLength;
-  repHeadMessage.messageHead[1].length = newAds.byteLength;
+  resultHead.length = newResult.byteLength;
+  adsHead.offset = newResult.byteLength;
+  adsHead.length = newAds.byteLength;
 
   const headerLength = repHeadType.encode(repHeadMessage).finish().byteLength;
   const payloadOffset = beginOffset + headerLength;
@@ -68,9 +72,12 @@ let newAds = null;
 let adsFound = false;
 let modifiedAds = false;
 const dataBeginOffset = beginOffset + prefixLength;
+// loon-change: Baidu protobuf header collection cache v1
+const messageHeadEntries = repHeadMessage.messageHead;
+const messageHeadLength = messageHeadEntries.length;
 // loon-change: Baidu protobuf target-only byte views v1
-for(let i = 0; i < repHeadMessage.messageHead.length; i++) {
-  let messageHead = repHeadMessage.messageHead[i];
+for(let i = 0; i < messageHeadLength; i++) {
+  let messageHead = messageHeadEntries[i];
   const name = messageHead.name;
   const targetDataLength = messageHead.length;
 
