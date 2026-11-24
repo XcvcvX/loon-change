@@ -113,14 +113,15 @@ def optimize_route_object_access(source):
             "const poplayerRes = obj?.res;",
             "const mainRes = obj?.mainRes;",
             "const poplayerEnabled = obj?.enable;",
-            'clearArray(poplayerRes || {}, "images");',
-            'clearArray(poplayerRes || {}, "videos");',
-            'clearArray(mainRes || {}, "images");',
+            'clearArray(poplayerRes, "images");',
+            'clearArray(poplayerRes, "videos");',
+            'clearArray(mainRes, "images");',
         )
         if any(token not in source for token in required):
             raise ValueError("Taobao cached response object access drifted; refusing to overwrite")
-        if "clearArray(obj?.res || {}, " in source or "clearArray(obj?.mainRes || {}, " in source:
-            raise ValueError("Repeated Taobao Poplayer object access remains")
+        if ("clearArray(obj?.res || {}, " in source or "clearArray(obj?.mainRes || {}, " in source
+                or "clearArray(poplayerRes || {}, " in source or "clearArray(mainRes || {}, " in source):
+            raise ValueError("Repeated Taobao Poplayer object access or fallback allocation remains")
         return source
     if source.count(OLD_VIDEO_OBJECT_BLOCK) != 1 or source.count(OLD_POPLAYER_OBJECT_BLOCK) != 1:
         raise ValueError("Expected exactly one Taobao video and Poplayer object access block")
@@ -169,6 +170,64 @@ def optimize_clear_array_property_access(source):
     if source.count(CLEAR_ARRAY_PROPERTY_MARKER) != 1:
         raise ValueError("Taobao clearArray cached property access postcondition failed")
     return source
+
+CLEAR_ARRAY_NULL_TARGET_MARKER = "// loon-change: Taobao clearArray null-target fast path v1"
+OLD_CLEAR_ARRAY_NULL_TARGET_HELPER = """  function clearArray(target, key) {
+    // loon-change: Taobao clearArray caches property value once v1
+    const current = target[key];
+    if (Array.isArray(current) && current.length > 0) {
+      target[key] = [];
+      modified = true;
+    }
+  }"""
+NEW_CLEAR_ARRAY_NULL_TARGET_HELPER = """  function clearArray(target, key) {
+    // loon-change: Taobao clearArray null-target fast path v1
+    if (target == null) return;
+    // loon-change: Taobao clearArray caches property value once v1
+    const current = target[key];
+    if (Array.isArray(current) && current.length > 0) {
+      target[key] = [];
+      modified = true;
+    }
+  }"""
+CLEAR_ARRAY_NULL_TARGET_CALLS = (
+    ('clearArray(videoData || {}, "resources");', 'clearArray(videoData, "resources");'),
+    ('clearArray(videoData || {}, "caches");', 'clearArray(videoData, "caches");'),
+    ('clearArray(poplayerRes || {}, "images");', 'clearArray(poplayerRes, "images");'),
+    ('clearArray(poplayerRes || {}, "videos");', 'clearArray(poplayerRes, "videos");'),
+    ('clearArray(mainRes || {}, "images");', 'clearArray(mainRes, "images");'),
+)
+
+def optimize_clear_array_null_targets(source):
+    if CLEAR_ARRAY_NULL_TARGET_MARKER in source:
+        required = (
+            CLEAR_ARRAY_NULL_TARGET_MARKER,
+            "if (target == null) return;",
+            "const current = target[key];",
+            'clearArray(videoData, "resources");',
+            'clearArray(videoData, "caches");',
+            'clearArray(poplayerRes, "images");',
+            'clearArray(poplayerRes, "videos");',
+            'clearArray(mainRes, "images");',
+        )
+        if source.count(CLEAR_ARRAY_NULL_TARGET_MARKER) != 1 or any(token not in source for token in required):
+            raise ValueError("Taobao null-target clearArray fast path drifted; refusing to overwrite")
+        if " || {}, \"resources\"" in source or " || {}, \"caches\"" in source:
+            raise ValueError("Taobao clearArray fallback object allocations remain")
+        if " || {}, \"images\"" in source or " || {}, \"videos\"" in source:
+            raise ValueError("Taobao clearArray fallback object allocations remain")
+        return source
+    if source.count(OLD_CLEAR_ARRAY_NULL_TARGET_HELPER) != 1:
+        raise ValueError("Expected exactly one Taobao cached clearArray helper")
+    source = source.replace(OLD_CLEAR_ARRAY_NULL_TARGET_HELPER, NEW_CLEAR_ARRAY_NULL_TARGET_HELPER, 1)
+    for old, new in CLEAR_ARRAY_NULL_TARGET_CALLS:
+        if source.count(old) != 1:
+            raise ValueError("Expected exactly one Taobao null-target call site: " + old)
+        source = source.replace(old, new, 1)
+    if source.count(CLEAR_ARRAY_NULL_TARGET_MARKER) != 1:
+        raise ValueError("Taobao null-target clearArray fast path postcondition failed")
+    return source
+
 
 SPLASH_ITEM_UPDATE_MARKER = "// loon-change: Taobao splash item specialized updates v1"
 SPLASH_ITEM_UPDATE_HELPER = "  // loon-change: Taobao splash item specialized updates v1\n  function normalizeSplashItem(item) {\n    if (item.waitTime !== \"0\") { item.waitTime = \"0\"; modified = true; }\n    if (item.times !== \"0\") { item.times = \"0\"; modified = true; }\n    if (item.hotStart !== \"false\") { item.hotStart = \"false\"; modified = true; }\n    if (item.haveVoice !== \"false\") { item.haveVoice = \"false\"; modified = true; }\n    if (item.hideTBLogo !== \"false\") { item.hideTBLogo = \"false\"; modified = true; }\n    if (item.enable4G !== \"false\") { item.enable4G = \"false\"; modified = true; }\n    if (item.coldStart !== \"false\") { item.coldStart = \"false\"; modified = true; }\n    if (item.startTime !== \"3818332800000\") { item.startTime = \"3818332800000\"; modified = true; }\n    if (item.endTime !== \"3818419199000\") { item.endTime = \"3818419199000\"; modified = true; }\n    if (item.gmtStart !== \"2090-12-31 00:00:00\") { item.gmtStart = \"2090-12-31 00:00:00\"; modified = true; }\n    if (item.gmtEnd !== \"2090-12-31 23:59:59\") { item.gmtEnd = \"2090-12-31 23:59:59\"; modified = true; }\n    if (item.gmtStartMs !== \"3818332800000\") { item.gmtStartMs = \"3818332800000\"; modified = true; }\n    if (item.gmtEndMs !== \"3818419199000\") { item.gmtEndMs = \"3818419199000\"; modified = true; }\n    if (item?.imgUrl) { item.imgUrl = \"\"; modified = true; }\n    if (item?.videoUrl) { item.videoUrl = \"\"; modified = true; }\n  }\n"
@@ -231,6 +290,7 @@ def optimize_runtime_source(source):
     source = optimize_route_classification(source)
     source = optimize_route_object_access(source)
     source = optimize_clear_array_property_access(source)
+    source = optimize_clear_array_null_targets(source)
     if source.index("const shouldProcess =") > source.index("JSON.parse($response.body)"):
         raise ValueError("Taobao pre-parse guard insertion order invalid")
     return source

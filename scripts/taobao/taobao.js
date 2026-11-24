@@ -23,6 +23,8 @@ if (!$response.body) {
   }
 
   function clearArray(target, key) {
+    // loon-change: Taobao clearArray null-target fast path v1
+    if (target == null) return;
     // loon-change: Taobao clearArray caches property value once v1
     const current = target[key];
     if (Array.isArray(current) && current.length > 0) {
@@ -65,8 +67,8 @@ if (isCloudVideo) {
   if (videoData?.duration) {
     setIfDifferent(videoData, "duration", "0");
   }
-  clearArray(videoData || {}, "resources");
-  clearArray(videoData || {}, "caches");
+  clearArray(videoData, "resources");
+  clearArray(videoData, "caches");
   if (videoData?.respTimeInMs) {
     setIfDifferent(videoData, "respTimeInMs", "3818332800000");
   }
@@ -94,12 +96,12 @@ if (isCloudVideo) {
   const poplayerRes = obj?.res;
   const mainRes = obj?.mainRes;
   const poplayerEnabled = obj?.enable;
-  clearArray(poplayerRes || {}, "images");
-  clearArray(poplayerRes || {}, "videos");
+  clearArray(poplayerRes, "images");
+  clearArray(poplayerRes, "videos");
   if (poplayerEnabled) {
     setIfDifferent(obj, "enable", false);
   }
-  clearArray(mainRes || {}, "images");
+  clearArray(mainRes, "images");
 }
 $done(modified ? {body: JSON.stringify(obj)} : {});
   }

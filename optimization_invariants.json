@@ -383,6 +383,8 @@
         "const mainRes = obj?.mainRes;",
         "const poplayerEnabled = obj?.enable;",
         "// loon-change: Taobao clearArray caches property value once v1",
+        "// loon-change: Taobao clearArray null-target fast path v1",
+        "if (target == null) return;",
         "const current = target[key];",
         "Array.isArray(current)",
         "current.length > 0",
@@ -390,7 +392,12 @@
         "function normalizeSplashItem(item) {",
         "if (item.waitTime !== \"0\")",
         "if (item.gmtEndMs !== \"3818419199000\")",
-        "normalizeSplashItem(item);"
+        "normalizeSplashItem(item);",
+        "clearArray(videoData, \"resources\");",
+        "clearArray(videoData, \"caches\");",
+        "clearArray(poplayerRes, \"images\");",
+        "clearArray(poplayerRes, \"videos\");",
+        "clearArray(mainRes, \"images\");"
       ],
       "forbidden": [
         "for (let items of splash.base.sections)",
@@ -402,7 +409,10 @@
         "setIfDifferent(item, \"waitTime\", \"0\")",
         "setIfDifferent(item, \"gmtEndMs\", \"3818419199000\")",
         "setIfDifferent(item, \"imgUrl\", \"\")",
-        "setIfDifferent(item, \"videoUrl\", \"\")"
+        "setIfDifferent(item, \"videoUrl\", \"\")",
+        "clearArray(videoData || {},",
+        "clearArray(poplayerRes || {},",
+        "clearArray(mainRes || {},"
       ]
     },
     {
