@@ -88,12 +88,17 @@ for(let i = 0; i < repHeadMessage.messageHead.length; i++) {
     // MD5 hashing and full binary-body reconstruction when no target field changes.
     const adsType = baiduMapRoot.lookupType(name);
     const adsMessage = adsType.decode(targetData);
-    for(let j = 0; j < adsMessage.content.length; j++) {
-      const item = adsMessage.content[j];
+    // loon-change: Baidu protobuf Ads content array cache v1
+    const adsContent = adsMessage.content;
+    const adsContentLength = adsContent.length;
+    for(let j = 0; j < adsContentLength; j++) {
+      const item = adsContent[j];
       const type = item.type;
       if((type.indexOf('_banner') !== -1 || type.indexOf('splash_screen1040') !== -1)
         && item.hasOwnProperty('start') && item.hasOwnProperty('end')){
-        if(item.start !== 1648746061 || item.end !== 1648832461) {
+        const start = item.start;
+        const end = item.end;
+        if(start !== 1648746061 || end !== 1648832461) {
           item.start = 1648746061;
           item.end = 1648832461;
           modifiedAds = true;
