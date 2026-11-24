@@ -236,7 +236,7 @@ STREAM_SELECTION_MARKER = "// loon-change: Xiaohongshu best-stream selection wit
 def optimize_stream_selection_no_closure(src):
     if STREAM_SELECTION_MARKER in src:
         start = src.index("function selectBestStream(h265List,h264List) {")
-        end = src.find("\\n\\n\\n/**", start)
+        end = src.find("\n\n\n/**", start)
         block = src[start:end] if end >= 0 else ""
         required = (
             STREAM_SELECTION_MARKER,
@@ -248,7 +248,7 @@ def optimize_stream_selection_no_closure(src):
         if end < 0 or any(token not in block for token in required) or "const choose" in block or "=>" in block:
             raise ValueError("Xiaohongshu stream-selection no-closure marker is stale")
         return src
-    return between(src, "function selectBestStream(h265List, h264List) {", "\\n/**\\n * 修复评论类型", "function selectBestStream(h265List,h264List) {\n  // loon-change: Xiaohongshu best-stream selection without per-call closure v1;\n  for (let pass = 0; pass < 2; pass++) {\n    const list = pass === 0 ? h265List : h264List;\n    if (!Array.isArray(list) || !list.length) continue;\n    let best = null, pixelsBest = 0, rateBest = 0;\n    for (const item of list) {\n      if (!item || !item.master_url) continue;\n      const pixels = (item.width || 0) * (item.height || 0);\n      const rate = Number(item.avg_bitrate) || 0;\n      if (best === null || pixels > pixelsBest || (pixels === pixelsBest && rate > rateBest)) {\n        best = item;\n        pixelsBest = pixels;\n        rateBest = rate;\n      }\n    }\n    if (best) return best;\n  }\n  return null;\n}", "stream selection without per-call closure")
+    return between(src, "function selectBestStream(h265List, h264List) {", "\n/**\n * 修复评论类型", "function selectBestStream(h265List,h264List) {\n  // loon-change: Xiaohongshu best-stream selection without per-call closure v1;\n  for (let pass = 0; pass < 2; pass++) {\n    const list = pass === 0 ? h265List : h264List;\n    if (!Array.isArray(list) || !list.length) continue;\n    let best = null, pixelsBest = 0, rateBest = 0;\n    for (const item of list) {\n      if (!item || !item.master_url) continue;\n      const pixels = (item.width || 0) * (item.height || 0);\n      const rate = Number(item.avg_bitrate) || 0;\n      if (best === null || pixels > pixelsBest || (pixels === pixelsBest && rate > rateBest)) {\n        best = item;\n        pixelsBest = pixels;\n        rateBest = rate;\n      }\n    }\n    if (best) return best;\n  }\n  return null;\n}", "stream selection without per-call closure")
 
 def optimize_source(src,commit="unknown"):
     if MARKER in src:
