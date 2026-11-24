@@ -81,10 +81,10 @@ class XiaohongshuOptimizerTests(unittest.TestCase):
           item.share_info.function_entries.push({type: "video_download"});
         }
       }"""
-        raw=source.replace(VIDEO_ENTRY_MARKER+"\n","",1).replace(new_block,old_block,1)
+        raw=source.replace(VIDEO_ENTRY_MARKER+chr(10),"",1).replace(new_block,old_block,1)
         optimized=optimize_source(raw)
-        self.assertIn(VIDEO_ENTRY_MARKER+"\n      const functionEntries",optimized)
-        self.assertNotIn(VIDEO_ENTRY_MARKER+"\\n      const functionEntries",optimized)
+        self.assertIn(VIDEO_ENTRY_MARKER+chr(10)+"      const functionEntries",optimized)
+        self.assertNotIn(VIDEO_ENTRY_MARKER+chr(92)+"n      const functionEntries",optimized)
         damaged=source.replace("for (const entry of functionEntries)","for (const entry of functionEntries.values())",1)
         with self.assertRaisesRegex(ValueError,"marker is stale"):
             optimize_v4_video_feed_function_entry_scan(damaged)
