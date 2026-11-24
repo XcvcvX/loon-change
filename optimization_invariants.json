@@ -35,12 +35,20 @@
         "function processCommentTree(data, livePhotos, commentVideos, noteId)",
         "const parsedVideoInfo = new Map()",
         "processCommentTree(obj.data, livePhotos, commentVideos, note_id);",
-        "Xiaohongshu parsed JSON comment tree without visited WeakSet v1;"
+        "Xiaohongshu parsed JSON comment tree without visited WeakSet v1;",
+        "// loon-change: Xiaohongshu imagefeed single traversal live-photo extraction v1",
+        "function imageEnhance(images, livePhotoCache)",
+        "const livePhotoTarget = Array.isArray(livePhotoCache) ? livePhotoCache : null;",
+        "const stack=[{value:images,index:0,keys:null,root:true}];",
+        "frame.root && livePhotoTarget",
+        "imageEnhance(images_list, livePhotoCache);"
       ],
       "forbidden": [
         "console.log(`[缓存] ID:",
         "const visited = new WeakSet()",
-        "visited.has(current)"
+        "visited.has(current)",
+        "for (const image of images_list)",
+        "imageEnhance(JSON.stringify(images_list))"
       ]
     },
     {

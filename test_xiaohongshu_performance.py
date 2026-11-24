@@ -1,6 +1,6 @@
 import json, shutil, subprocess, unittest
 from pathlib import Path
-from optimize_xiaohongshu import LOCAL, REMOTE, MARKER, optimize_source, rewrite_plugin
+from optimize_xiaohongshu import LOCAL, REMOTE, MARKER, IMAGE_FEED_MARKER, optimize_imagefeed_single_traversal, optimize_source, rewrite_plugin
 
 ROOT=Path(__file__).resolve().parent
 NODE=shutil.which("node")
@@ -11,11 +11,21 @@ class XiaohongshuOptimizerTests(unittest.TestCase):
         self.assertIn(MARKER,src)
         self.assertEqual(optimize_source(src),src)
         self.assertNotIn("imageEnhance(JSON.stringify(images_list))",src)
-        self.assertIn("imageEnhance(images_list)",src)
+        self.assertIn("imageEnhance(images_list, livePhotoCache)",src)
+        self.assertIn(IMAGE_FEED_MARKER,src)
+        self.assertNotIn("for (const image of images_list)",src)
         self.assertIn("const byFileId=new Map()",src)
         self.assertNotIn("console.log('新body：' + JSON.stringify(obj))",src)
         self.assertNotIn('console.log("写入缓存val：" + JSON.stringify(commitsRsp))',src)
         self.assertFalse(any("console.log(" in line and any(token in line for token in ("原body：","新body：","写入缓存val","comment_id:","video_id：")) for line in src.splitlines()))
+
+    def test_imagefeed_optimizer_is_idempotent_and_fails_closed(self):
+        source=(ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")
+        self.assertIn(IMAGE_FEED_MARKER,source)
+        self.assertEqual(optimize_imagefeed_single_traversal(source),source)
+        damaged=source.replace("frame.root && livePhotoTarget","false && livePhotoTarget")
+        with self.assertRaisesRegex(ValueError,"imagefeed single-traversal structure drifted"):
+            optimize_imagefeed_single_traversal(damaged)
 
     def test_comment_processing_combines_tree_cleanup_and_media_extraction(self):
         source=(ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")
@@ -118,11 +128,31 @@ process.stdout.write(nativeJSON.stringify({body:nativeJSON.parse(done.body),stor
     def test_imagefeed_cache_remains_original_and_response_is_enhanced(self):
         runner=r"""
 const fs=require("fs"),vm=require("vm"),source=fs.readFileSync("scripts/xiaohongshu/xiaohongshu.js","utf8");
-const p=JSON.parse(fs.readFileSync(0,"utf8")),store=new Map();let done;
-const ctx={$loon:{},$persistentStore:{read:k=>store.get(k)||null,write:(v,k)=>(store.set(k,v),true)},
-$request:{url:p.url},$response:{body:JSON.stringify(p.body)},$done:v=>done=v,console:{log(){},warn(){},error(){}}};
+const p=JSON.parse(fs.readFileSync(0,"utf8")),store=new Map(Object.entries(p.store||{}));let done,imageArrayReads=0,trackImageArrayReads=true;
+const nativeJSON=JSON;
+const trackedJSON={
+  parse(value){
+    const parsed=nativeJSON.parse(value);
+    if(p.url.includes("/note/imagefeed?")||p.url.includes("/note/feed?")){
+      const images=parsed?.data?.[0]?.note_list?.[0]?.images_list;
+      if(Array.isArray(images)) parsed.data[0].note_list[0].images_list=new Proxy(images,{
+        get(target,property,receiver){
+          if(trackImageArrayReads&&typeof property==="string"&&/^\d+$/.test(property)) imageArrayReads++;
+          return Reflect.get(target,property,receiver);
+        }
+      });
+    }
+    return parsed;
+  },
+  stringify(value){
+    const previous=trackImageArrayReads;trackImageArrayReads=false;
+    try{return nativeJSON.stringify(value);}finally{trackImageArrayReads=previous;}
+  }
+};
+const ctx={JSON:trackedJSON,$loon:{},$persistentStore:{read:k=>store.has(k)?store.get(k):null,write:(v,k)=>(store.set(k,v),true)},
+$request:{url:p.url},$response:{body:nativeJSON.stringify(p.body)},$done:v=>done=v,console:{log(){},warn(){},error(){}}};
 vm.runInNewContext(source,ctx,{timeout:5000});
-process.stdout.write(JSON.stringify({body:JSON.parse(done.body),store:Object.fromEntries(store)}));
+process.stdout.write(JSON.stringify({body:nativeJSON.parse(done.body),store:Object.fromEntries(store),imageArrayReads}));
 """
         original="https://img.example/a.jpg?imageView2/2/w/1080/format/jpg"
         body={"data":[{"note_list":[{"images_list":[{"url":original,"nested":{"url":original},
@@ -143,6 +173,73 @@ process.stdout.write(JSON.stringify({body:JSON.parse(done.body),store:Object.fro
         self.assertNotIn("nested", cache[0])
         self.assertLess(len(out["store"]["fmz200.xiaohongshu.feed.rsp"]), len(json.dumps(body["data"][0]["note_list"][0]["images_list"])))
         self.assertEqual([x["type"] for x in item["hash_tag"]],["normal"])
+        self.assertEqual(out["imageArrayReads"],1)
+
+    @unittest.skipUnless(NODE,"Node required for runtime test")
+    def test_imagefeed_cache_and_enhancement_share_one_root_array_traversal(self):
+        runner=r"""
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync("scripts/xiaohongshu/xiaohongshu.js","utf8");
+const p=JSON.parse(fs.readFileSync(0,"utf8")),store=new Map();let done,imageArrayReads=0,track=true;
+const nativeJSON=JSON;
+const trackedJSON={
+  parse(value){const parsed=nativeJSON.parse(value);if(p.url.includes("/note/imagefeed?")){
+    const images=parsed?.data?.[0]?.note_list?.[0]?.images_list;
+    if(Array.isArray(images))parsed.data[0].note_list[0].images_list=new Proxy(images,{get(target,key,receiver){
+      if(track&&typeof key==="string"&&/^\d+$/.test(key))imageArrayReads++;return Reflect.get(target,key,receiver);
+    }});
+  }return parsed;},
+  stringify(value){const prior=track;track=false;try{return nativeJSON.stringify(value);}finally{track=prior;}}
+};
+const ctx={JSON:trackedJSON,$loon:{},$persistentStore:{read:k=>store.get(k)||null,write:(v,k)=>(store.set(k,v),true)},
+$request:{url:p.url},$response:{body:nativeJSON.stringify(p.body)},$done:v=>done=v,console:{log(){},warn(){},error(){}}};
+vm.runInNewContext(source,ctx,{timeout:5000});
+process.stdout.write(JSON.stringify({body:nativeJSON.parse(done.body),store:Object.fromEntries(store),imageArrayReads}));
+"""
+        original="https://img.example/a.jpg?imageView2/2/w/1080/format/jpg"
+        body={"data":[{"note_list":[{"images_list":[
+            {"url":original,"live_photo_file_id":"file-1","live_photo":{"media":{"video_id":"video-1","stream":{"h265":[{"master_url":"https://video.example/one.mp4"}]}}}},
+            {"url":original,"live_photo_file_id":"file-2","live_photo":{"media":{"video_id":"video-2","stream":{"h265":[{"master_url":"https://video.example/two.mp4"}]}}},"nested":{
+                "live_photo_file_id":"nested-file","live_photo":{"media":{"video_id":"nested-video","stream":{"h265":[{"master_url":"https://video.example/nested.mp4"}]}}}
+            }}
+        ]}]}]}
+        run=subprocess.run([NODE,"-e",runner],input=json.dumps({
+            "url":"https://edith.xiaohongshu.com/api/sns/v1/note/imagefeed?cursor=two-items","body":body
+        }),cwd=ROOT,capture_output=True,text=True,check=True,timeout=10)
+        out=json.loads(run.stdout)
+        images=out["body"]["data"][0]["note_list"][0]["images_list"]
+        self.assertEqual(out["imageArrayReads"],2)
+        self.assertTrue(all("w/2160/format" in item["url"] for item in images))
+        self.assertEqual(json.loads(out["store"]["fmz200.xiaohongshu.feed.rsp"]),[
+            {"live_photo_file_id":"file-1","video_id":"video-1","url":"https://video.example/one.mp4"},
+            {"live_photo_file_id":"file-2","video_id":"video-2","url":"https://video.example/two.mp4"}
+        ])
+
+    @unittest.skipUnless(NODE,"Node required for runtime test")
+    def test_original_quality_replacement_remains_single_and_live_photo_cache_is_unchanged(self):
+        runner=r"""
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync("scripts/xiaohongshu/xiaohongshu.js","utf8");
+const p=JSON.parse(fs.readFileSync(0,"utf8")),store=new Map([["fmz200.xiaohongshu.imageQuality","original"]]);let done;
+const ctx={$loon:{},$persistentStore:{read:k=>store.get(k)||null,write:(v,k)=>(store.set(k,v),true)},
+$request:{url:p.url},$response:{body:JSON.stringify(p.body)},$done:v=>done=v,console:{log(){},warn(){},error(){}}};
+vm.runInNewContext(source,ctx,{timeout:5000});
+process.stdout.write(JSON.stringify({body:JSON.parse(done.body),store:Object.fromEntries(store)}));
+"""
+        original="https://img.example/a.jpg?imageView2/2/w/1080/format/jpg&redImage/frame/0"
+        second="https://img.example/b.jpg?imageView2/2/w/1080/format/jpg&redImage/frame/0"
+        body={"data":[{"note_list":[{"images_list":[
+            {"url":original,"live_photo_file_id":"file-1","live_photo":{"media":{"video_id":"video-1","stream":{"h265":[{"master_url":"https://video.example/live.mp4"}]}}}},
+            {"url":second}
+        ]}]}]}
+        run=subprocess.run([NODE,"-e",runner],input=json.dumps({
+            "url":"https://edith.xiaohongshu.com/api/sns/v1/note/imagefeed?cursor=original-mode","body":body
+        }),cwd=ROOT,capture_output=True,text=True,check=True,timeout=10)
+        out=json.loads(run.stdout)
+        images=out["body"]["data"][0]["note_list"][0]["images_list"]
+        self.assertIn("imageView2/0/format/png",images[0]["url"])
+        self.assertIn("imageView2/2/w/1080/format",images[1]["url"])
+        self.assertEqual(json.loads(out["store"]["fmz200.xiaohongshu.feed.rsp"]),[
+            {"live_photo_file_id":"file-1","video_id":"video-1","url":"https://video.example/live.mp4"}
+        ])
 
     @unittest.skipUnless(NODE,"Node required for runtime test")
     def test_live_photo_save_reads_compact_cache(self):

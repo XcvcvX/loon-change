@@ -40,23 +40,36 @@ function appendUniqueLivePhotos(existing, incoming) {
   return existing;
 }
 '''
-IMAGE=r'''function imageEnhance(images) {
+IMAGE=r'''// loon-change: Xiaohongshu imagefeed single traversal live-photo extraction v1
+function imageEnhance(images, livePhotoCache) {
   if (!images || typeof images !== "object") return [];
+  const livePhotoTarget = Array.isArray(livePhotoCache) ? livePhotoCache : null;
   const quality=$.getdata("fmz200.xiaohongshu.imageQuality");
   const originalPattern=/\?imageView2\/2[^&]*(?:&redImage\/frame\/0)/;
   const widthPattern=/imageView2\/2\/w\/\d+\/format/g, heightPattern=/imageView2\/2\/h\/\d+\/format/g;
   let originalDone=false;
-  const stack=[{value:images,index:0,keys:null}];
+  const stack=[{value:images,index:0,keys:null,root:true}];
   while(stack.length) {
     const frame=stack[stack.length-1], value=frame.value;
     if(Array.isArray(value)) {
       if(frame.index>=value.length){stack.pop();continue;}
       const key=frame.index++, child=value[key];
+      if(frame.root && livePhotoTarget && child && typeof child === "object") {
+        const stream = child.live_photo?.media?.stream?.h265?.[0];
+        const videoId = child.live_photo?.media?.video_id;
+        if (child.live_photo_file_id && videoId && stream?.master_url) {
+          livePhotoTarget.push({
+            live_photo_file_id: child.live_photo_file_id,
+            video_id: videoId,
+            url: stream.master_url
+          });
+        }
+      }
       if(typeof child==="string" && child.includes("imageView2/2")) {
         if(quality==="original") {
           if(!originalDone){const changed=child.replace(originalPattern,"?imageView2/0/format/png&redImage/frame/0");if(changed!==child){value[key]=changed;originalDone=true;}}
         } else value[key]=child.replace(widthPattern,"imageView2/2/w/2160/format").replace(heightPattern,"imageView2/2/h/2160/format");
-      } else if(child && typeof child==="object") stack.push({value:child,index:0,keys:null});
+      } else if(child && typeof child==="object") stack.push({value:child,index:0,keys:null,root:false});
     } else {
       if(frame.keys===null) frame.keys=Object.keys(value);
       if(frame.index>=frame.keys.length){stack.pop();continue;}
@@ -65,11 +78,12 @@ IMAGE=r'''function imageEnhance(images) {
         if(quality==="original") {
           if(!originalDone){const changed=child.replace(originalPattern,"?imageView2/0/format/png&redImage/frame/0");if(changed!==child){value[key]=changed;originalDone=true;}}
         } else value[key]=child.replace(widthPattern,"imageView2/2/w/2160/format").replace(heightPattern,"imageView2/2/h/2160/format");
-      } else if(child && typeof child==="object") stack.push({value:child,index:0,keys:null});
+      } else if(child && typeof child==="object") stack.push({value:child,index:0,keys:null,root:false});
     }
   }
   return images;
 }'''
+
 URLMAP=r'''function replaceUrlContent(collectionA, collectionB) {
   const byFileId=new Map();
   for(const item of collectionB) if(item && !byFileId.has(item.file_id)) byFileId.set(item.file_id,item);
@@ -107,6 +121,60 @@ STREAM=r'''function selectBestStream(h265List,h264List) {
   return choose(h265List)||choose(h264List);
 }'''
 
+
+IMAGE_FEED_MARKER = "// loon-change: Xiaohongshu imagefeed single traversal live-photo extraction v1"
+
+def optimize_imagefeed_single_traversal(source):
+    if IMAGE_FEED_MARKER in source:
+        required = (
+            IMAGE_FEED_MARKER,
+            "function imageEnhance(images, livePhotoCache)",
+            "const livePhotoTarget = Array.isArray(livePhotoCache) ? livePhotoCache : null;",
+            "const stack=[{value:images,index:0,keys:null,root:true}];",
+            "frame.root && livePhotoTarget",
+            "stack.push({value:child,index:0,keys:null,root:false});",
+            "imageEnhance(images_list, livePhotoCache);",
+            'JSON.stringify(livePhotoCache), "fmz200.xiaohongshu.feed.rsp"',
+        )
+        if any(token not in source for token in required):
+            raise ValueError("Xiaohongshu imagefeed single-traversal structure drifted; refusing overwrite")
+        if "for (const image of images_list)" in source:
+            raise ValueError("Separate Xiaohongshu imagefeed cache traversal remains")
+        return source
+
+    old_block = '''      const images_list = obj.data[0].note_list[0].images_list;
+      // 画质增强
+      // Cache only the live-photo fields required by the save endpoint.
+      const livePhotoCache = [];
+      if (Array.isArray(images_list)) {
+        for (const image of images_list) {
+          const stream = image?.live_photo?.media?.stream?.h265?.[0];
+          const videoId = image?.live_photo?.media?.video_id;
+          if (image?.live_photo_file_id && videoId && stream?.master_url) {
+            livePhotoCache.push({
+              live_photo_file_id: image.live_photo_file_id,
+              video_id: videoId,
+              url: stream.master_url
+            });
+          }
+        }
+      }
+      $.setdata(JSON.stringify(livePhotoCache), "fmz200.xiaohongshu.feed.rsp");
+      obj.data[0].note_list[0].images_list = imageEnhance(images_list);'''
+    new_block = '''      const images_list = obj.data[0].note_list[0].images_list;
+      // Collect compact live-photo fields during the image enhancement traversal.
+      const livePhotoCache = [];
+      obj.data[0].note_list[0].images_list = imageEnhance(images_list, livePhotoCache);
+      $.setdata(JSON.stringify(livePhotoCache), "fmz200.xiaohongshu.feed.rsp");'''
+    source = once(source, old_block, new_block, "single-traversal imagefeed writer")
+
+    start = "function imageEnhance(jsonStr) {" if source.count("function imageEnhance(jsonStr) {") == 1 else "function imageEnhance(images) {"
+    if source.count(start) != 1:
+        raise ValueError("Xiaohongshu imageEnhance source signature drifted; refusing optimization")
+    source = between(source, start, "\nfunction replaceUrlContent(", IMAGE, "imageEnhance")
+    return source
+
+
 def apply_comment_optimization(src):
     src=between(src,"function replaceRedIdWithFmz200(obj) {","\n/**\n * 从流列表",COMMENT_PROCESSOR,"combined comment traversal")
     src=between(src,"// 加载评论区","// 下载评论区live图/评论区视频",COMMENT_BRANCH,"comment processing branch")
@@ -118,8 +186,8 @@ def optimize_source(src,commit="unknown"):
         has_comment_processor = "function processCommentTree(data, livePhotos, commentVideos, noteId)" in src
         has_no_visited_set = "const visited = new WeakSet()" not in src and "visited.has(current)" not in src
         if has_comment_processor and has_no_visited_set and "Xiaohongshu parsed JSON comment tree without visited WeakSet v1;" in src and "processCommentTree(obj.data, livePhotos, commentVideos, note_id);" in src:
-            return src
-        return apply_comment_optimization(src)
+            return optimize_imagefeed_single_traversal(src)
+        return optimize_imagefeed_single_traversal(apply_comment_optimization(src))
     src=once(src,"const url = $request.url;","const url = $request.url;\n"+HELPERS.strip(),"helpers")
     src=once(src,"  console.log('打印原body：' + JSON.stringify(obj));\n","","full-body logging")
     src=once(src,'''      obj.data[0].note_list[0].images_list = imageEnhance(JSON.stringify(images_list));
@@ -187,7 +255,7 @@ def optimize_source(src,commit="unknown"):
       return true;
     });'''
     src=once(src,home_old,home_new,"homefeed")
-    src=between(src,"function imageEnhance(jsonStr) {","\nfunction replaceUrlContent(",IMAGE,"imageEnhance")
+    src=optimize_imagefeed_single_traversal(src)
     src=between(src,"function replaceUrlContent(collectionA, collectionB) {","\nfunction deduplicateLivePhotos(",URLMAP,"live-photo URL lookup")
     src=between(src,"function deduplicateLivePhotos(livePhotos) {","\nfunction replaceRedIdWithFmz200(",DEDUP,"live-photo dedup")
     src=between(src,"function selectBestStream(h265List, h264List) {","\n/**\n * 修复评论类型",STREAM,"stream selection")
@@ -205,9 +273,10 @@ def optimize_source(src,commit="unknown"):
         if not ("console.log(" in line and any(token in line for token in log_tokens))
     )
     result=MARKER+commit+"\n"+src
-    for token in ("imageEnhance(images_list)","compactInPlace(obj.data","appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)","const byFileId=new Map()"):
+    for token in ("imageEnhance(images_list, livePhotoCache)", IMAGE_FEED_MARKER, "compactInPlace(obj.data","appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)","const byFileId=new Map()"):
         if token not in result:raise ValueError("missing optimizer invariant: "+token)
     if "imageEnhance(JSON.stringify(images_list))" in result:raise ValueError("image-feed serialization round trip remains")
+    if "for (const image of images_list)" in result:raise ValueError("image-feed second cache traversal remains")
     return apply_comment_optimization(result)
 
 def rewrite_plugin(plugin):
