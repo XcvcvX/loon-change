@@ -415,6 +415,7 @@ def optimize_source(src,commit="unknown"):
         if not ("console.log(" in line and any(token in line for token in log_tokens))
     )
     result = apply_comment_optimization(MARKER+commit+"\n"+src)
+    result = optimize_comment_media_property_cache(result)
     result = optimize_imagefeed_live_photo_property_cache(optimize_imagefeed_single_traversal(result))
     result = optimize_comment_video_info_cache(result)
     result = optimize_video_save_cache_lookup(result)
