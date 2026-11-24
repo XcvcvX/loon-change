@@ -202,14 +202,48 @@ def optimize_comment_video_info_cache(src):
     return parsed;"""
     return once(src, old, new, "comment video-info cache single lookup")
 
+VIDEO_SAVE_LOOKUP_MARKER = "// loon-change: Xiaohongshu video-save cache reverse early-exit lookup v1;"
+
+def optimize_video_save_cache_lookup(src):
+    if VIDEO_SAVE_LOOKUP_MARKER in src:
+        required = (
+            VIDEO_SAVE_LOOKUP_MARKER,
+            "for (let i = videoFeed.length - 1; i >= 0; i--)",
+            "const item = videoFeed[i];",
+            "if (item.id === noteId)",
+            "obj.data.download_url = item.url;",
+            "        break;",
+        )
+        marker_pos = src.index(VIDEO_SAVE_LOOKUP_MARKER)
+        block_end = src.find("\n  }\n  // 解除下载限制", marker_pos)
+        block = src[marker_pos:block_end] if block_end >= 0 else ""
+        if block_end < 0 or any(token not in block for token in required) or "for (let item of videoFeed)" in block:
+            raise ValueError("Xiaohongshu video-save reverse lookup marker is stale")
+        return src
+    old = """    for (let item of videoFeed) {
+      if (item.id === obj.data.note_id) {
+        obj.data.download_url = item.url;
+      }
+    }"""
+    new = """    // loon-change: Xiaohongshu video-save cache reverse early-exit lookup v1;
+    const noteId = obj.data.note_id;
+    for (let i = videoFeed.length - 1; i >= 0; i--) {
+      const item = videoFeed[i];
+      if (item.id === noteId) {
+        obj.data.download_url = item.url;
+        break;
+      }
+    }"""
+    return once(src, old, new, "video-save cache reverse early-exit lookup")
+
 def optimize_source(src,commit="unknown"):
     if MARKER in src:
         if "Object.keys(current)" in src: raise ValueError("Xiaohongshu traversal optimization is stale")
         has_comment_processor = "function processCommentTree(data, livePhotos, commentVideos, noteId)" in src
         has_no_visited_set = "const visited = new WeakSet()" not in src and "visited.has(current)" not in src
         if has_comment_processor and has_no_visited_set and "Xiaohongshu parsed JSON comment tree without visited WeakSet v1;" in src and "Xiaohongshu comment classification stack frames v1;" in src and "const commentFrameTag = {};" in src and "processCommentTree(obj.data, livePhotos, commentVideos, note_id);" in src:
-            return optimize_comment_video_info_cache(optimize_imagefeed_single_traversal(src))
-        return optimize_comment_video_info_cache(optimize_imagefeed_single_traversal(apply_comment_optimization(src)))
+            return optimize_video_save_cache_lookup(optimize_comment_video_info_cache(optimize_imagefeed_single_traversal(src)))
+        return optimize_video_save_cache_lookup(optimize_comment_video_info_cache(optimize_imagefeed_single_traversal(apply_comment_optimization(src))))
     src=once(src,"const url = $request.url;","const url = $request.url;\n"+HELPERS.strip(),"helpers")
     src=once(src,"  console.log('打印原body：' + JSON.stringify(obj));\n","","full-body logging")
     src=once(src,'''      obj.data[0].note_list[0].images_list = imageEnhance(JSON.stringify(images_list));
@@ -294,12 +328,13 @@ def optimize_source(src,commit="unknown"):
         line for line in src.splitlines(keepends=True)
         if not ("console.log(" in line and any(token in line for token in log_tokens))
     )
-    result=optimize_comment_video_info_cache(apply_comment_optimization(MARKER+commit+"\n"+src))
-    for token in ("imageEnhance(images_list, livePhotoCache)", IMAGE_FEED_MARKER, "compactInPlace(obj.data","appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)","const byFileId=new Map()", "Xiaohongshu comment classification stack frames v1;", "const commentFrameTag = {};", "stack.push([commentFrameTag, comment, true])", COMMENT_CACHE_MARKER, "let parsed = parsedVideoInfo.get(raw);"):
+    result=optimize_video_save_cache_lookup(optimize_comment_video_info_cache(apply_comment_optimization(MARKER+commit+"\n"+src)))
+    for token in ("imageEnhance(images_list, livePhotoCache)", IMAGE_FEED_MARKER, "compactInPlace(obj.data","appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)","const byFileId=new Map()", "Xiaohongshu comment classification stack frames v1;", "const commentFrameTag = {};", "stack.push([commentFrameTag, comment, true])", COMMENT_CACHE_MARKER, "let parsed = parsedVideoInfo.get(raw);", VIDEO_SAVE_LOOKUP_MARKER, "for (let i = videoFeed.length - 1; i >= 0; i--)"):
         if token not in result:raise ValueError("missing optimizer invariant: "+token)
     if "imageEnhance(JSON.stringify(images_list))" in result:raise ValueError("image-feed serialization round trip remains")
     if "for (const image of images_list)" in result:raise ValueError("image-feed second cache traversal remains")
     if "parsedVideoInfo.has(raw)" in result:raise ValueError("comment cache double lookup remains")
+    if "for (let item of videoFeed)" in result:raise ValueError("video-save cache full scan remains")
     return result
 
 def rewrite_plugin(plugin):

@@ -1,6 +1,6 @@
 import json, shutil, subprocess, unittest
 from pathlib import Path
-from optimize_xiaohongshu import LOCAL, REMOTE, MARKER, IMAGE_FEED_MARKER, optimize_comment_video_info_cache, optimize_imagefeed_single_traversal, optimize_source, rewrite_plugin
+from optimize_xiaohongshu import LOCAL, REMOTE, MARKER, IMAGE_FEED_MARKER, VIDEO_SAVE_LOOKUP_MARKER, optimize_comment_video_info_cache, optimize_imagefeed_single_traversal, optimize_video_save_cache_lookup, optimize_source, rewrite_plugin
 
 ROOT=Path(__file__).resolve().parent
 NODE=shutil.which("node")
@@ -17,6 +17,9 @@ class XiaohongshuOptimizerTests(unittest.TestCase):
         self.assertIn("const byFileId=new Map()",src)
         self.assertIn("// loon-change: Xiaohongshu comment video-info cache single lookup v2;",src)
         self.assertNotIn("parsedVideoInfo.has(raw)",src)
+        self.assertIn(VIDEO_SAVE_LOOKUP_MARKER,src)
+        self.assertIn("for (let i = videoFeed.length - 1; i >= 0; i--)",src)
+        self.assertNotIn("for (let item of videoFeed)",src)
         self.assertNotIn("console.log('新body：' + JSON.stringify(obj))",src)
         self.assertNotIn('console.log("写入缓存val：" + JSON.stringify(commitsRsp))',src)
         self.assertFalse(any("console.log(" in line and any(token in line for token in ("原body：","新body：","写入缓存val","comment_id:","video_id：")) for line in src.splitlines()))
@@ -46,6 +49,50 @@ class XiaohongshuOptimizerTests(unittest.TestCase):
         damaged=source.replace("let parsed = parsedVideoInfo.get(raw);","let parsed = parsedVideoInfo.has(raw);")
         with self.assertRaisesRegex(ValueError,"marker is stale"):
             optimize_comment_video_info_cache(damaged)
+
+    def test_video_save_cache_optimizer_is_idempotent_and_fails_closed(self):
+        source=(ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")
+        self.assertEqual(optimize_video_save_cache_lookup(source),source)
+        damaged=source.replace("        obj.data.download_url = item.url;\n        break;","        obj.data.download_url = item.url;",1)
+        self.assertNotEqual(damaged,source)
+        with self.assertRaisesRegex(ValueError,"marker is stale"):
+            optimize_video_save_cache_lookup(damaged)
+
+    @unittest.skipUnless(NODE,"Node required for video-save cache runtime test")
+    def test_video_save_cache_reverse_lookup_stops_at_last_duplicate(self):
+        runner=r'''
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync("scripts/xiaohongshu/xiaohongshu.js","utf8");
+const p=JSON.parse(fs.readFileSync(0,"utf8")),store=new Map(Object.entries(p.store));let done,cacheIndexReads=0;
+const nativeJSON=JSON;
+const trackedJSON={
+  parse(value){const parsed=nativeJSON.parse(value);if(Array.isArray(parsed))return new Proxy(parsed,{get(target,key,receiver){
+    if(typeof key==="string"&&/^\d+$/.test(key))cacheIndexReads++;
+    return Reflect.get(target,key,receiver);
+  }});return parsed;},
+  stringify(value){return nativeJSON.stringify(value);}
+};
+const ctx={JSON:trackedJSON,$loon:{},$persistentStore:{read:k=>store.has(k)?store.get(k):null,write:(v,k)=>(store.set(k,v),true)},
+$request:{url:p.url},$response:{body:nativeJSON.stringify(p.body)},$done:v=>done=v,console:{log(){},warn(){},error(){}}};
+vm.runInNewContext(source,ctx,{timeout:5000});
+process.stdout.write(nativeJSON.stringify({body:nativeJSON.parse(done.body),cacheIndexReads}));
+'''
+        cache=[
+            {"id":"target","url":"https://video.example/first.mp4"},
+            {"id":"other","url":"https://video.example/other.mp4"},
+            {"id":"target","url":"https://video.example/last.mp4"},
+            {"id":"tail","url":"https://video.example/tail.mp4"}
+        ]
+        body={"data":{"note_id":"target","download_url":"https://video.example/original.mp4","disable":True,"msg":"restricted"}}
+        run=subprocess.run([NODE,"-e",runner],input=json.dumps({
+            "url":"https://edith.xiaohongshu.com/api/sns/v10/note/video/save","body":body,
+            "store":{"redBookVideoFeed":json.dumps(cache)}
+        }),cwd=ROOT,capture_output=True,text=True,check=True,timeout=10)
+        out=json.loads(run.stdout);data=out["body"]["data"]
+        self.assertEqual(data["download_url"],"https://video.example/last.mp4")
+        self.assertNotIn("disable",data)
+        self.assertNotIn("msg",data)
+        self.assertEqual(data["status"],2)
+        self.assertEqual(out["cacheIndexReads"],2)
 
     @unittest.skipUnless(NODE,"Node required for comment runtime test")
     def test_comment_tree_single_pass_preserves_cleanup_and_media_caches(self):

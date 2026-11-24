@@ -250,9 +250,13 @@ if (url.includes("/v4/note/videofeed")) {
 if (url.includes("/v10/note/video/save")) {
   let videoFeed = JSON.parse($.getdata("redBookVideoFeed")); // 读取持久化存储
   if (obj.data?.note_id !== "" && videoFeed?.length > 0) {
-    for (let item of videoFeed) {
-      if (item.id === obj.data.note_id) {
+    // loon-change: Xiaohongshu video-save cache reverse early-exit lookup v1;
+    const noteId = obj.data.note_id;
+    for (let i = videoFeed.length - 1; i >= 0; i--) {
+      const item = videoFeed[i];
+      if (item.id === noteId) {
         obj.data.download_url = item.url;
+        break;
       }
     }
   }
