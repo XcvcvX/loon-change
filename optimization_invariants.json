@@ -357,12 +357,10 @@
         "body.subarray(payloadOffset)",
         "bodyBytes: body.buffer",
         "function createBaiduMd5() {",
-        "newAds, createBaiduMd5());",
-        "if(!adsFound || !modifiedAds || !newResult)",
+        "replacementSegments, createBaiduMd5()",
+        "if(invalidSegmentLayout || !adsFound || !modifiedAds || resultCount !== 1)",
         "// loon-change: Baidu protobuf target-only byte views v1",
         "let resultOffset = -1;",
-        "if (modifiedAds && resultOffset !== -1)",
-        "newResult = binaryBody.subarray(resultOffset, resultOffset + resultLength);",
         "// loon-change: Baidu protobuf Ads content array cache v1",
         "const adsContent = adsMessage.content;",
         "const adsContentLength = adsContent.length;",
@@ -391,7 +389,11 @@
         "// loon-change: Baidu protobuf per-segment Ads mutation gate v1",
         "let adsSegmentModified = false;",
         "if (adsSegmentModified) {",
-        "newAds = adsType.encode(adsMessage).finish();"
+        "newAds = adsType.encode(adsMessage).finish();",
+        "// loon-change: Baidu protobuf multi-Ads segment reconstruction v1",
+        "const replacementSegments = [];",
+        "replacementSegments[i] = adsType.encode(adsMessage).finish();",
+        "assembleBaiduResponseSegments("
       ],
       "forbidden": [
         "newResult = binaryBody.subarray(currentOffset, currentOffset + targetDataLength);",
