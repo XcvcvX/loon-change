@@ -265,35 +265,32 @@ def compact_collecting_loops(source):
 
 def add_lazy_serialization_guard(source):
     delete_targets = [
-        "data.block_card_bg",
-        "data.buttons",
-        "data.cardid",
-        "data.icons",
-        "data.mblog_buttons",
-        "data.pic_bg_new",
-        "data.user.avatargj_id",
-        "data.user.avatar_extend_info",
-        "data.user.cardid",
-        "data.user.icons",
-        "data.user.mbtype",
-        "item.data.comment_bubble",
-        "item.data.comment_bullet_screens_message",
-        "item.data.hot_icon",
-        "item.data.vip_button",
-        "item.comment_bubble",
-        "item.comment_bullet_screens_message",
-        "item.hot_icon",
-        "item.vip_button",
-        "item.user.icons",
-        "item.reply_comment.comment_badge",
-        "item.page_info.media_info.vote_info",
-        "obj.rootComment.comment_bubble",
+        "data.block_card_bg", "data.buttons", "data.cardid", "data.icons",
+        "data.mblog_buttons", "data.pic_bg_new", "data.user.avatargj_id",
+        "data.user.avatar_extend_info", "data.user.cardid", "data.user.icons",
+        "data.user.mbtype", "item.data.comment_bubble",
+        "item.data.comment_bullet_screens_message", "item.data.hot_icon",
+        "item.data.vip_button", "item.comment_bubble",
+        "item.comment_bullet_screens_message", "item.hot_icon", "item.vip_button",
+        "item.user.icons", "item.reply_comment.comment_badge",
+        "item.page_info.media_info.vote_info", "obj.rootComment.comment_bubble",
     ]
+    if COMMENT_DATA_CACHE_MARKER in source:
+        delete_targets = [
+            target.replace("item.data.", "commentData.") if target.startswith("item.data.") else target
+            for target in delete_targets
+        ]
+    elif "item.data.hot_icon" not in source:
+        delete_targets.remove("item.data.hot_icon")
+
     if LAZY_MARKER in source:
         if GUARD_DECLARATION not in source or '$done(modified ? {body: JSON.stringify(obj)} : {});' not in source:
             raise ValueError('marked Weibo lazy-serialization guard is incomplete')
         loop_markers = re.findall(r'if \(__loonWrite\d+ !== __loonLength\d+\) modified = true;', source)
-        if len(loop_markers) != EXPECTED:
+        allowed_loop_counts = {EXPECTED}
+        if TOPIC_GROUP_MARKER in source:
+            allowed_loop_counts.add(EXPECTED - 1)
+        if len(loop_markers) not in allowed_loop_counts:
             raise ValueError('Weibo lazy-serialization loop inventory drift')
         for target in delete_targets:
             pattern = re.compile(r'(?m)^([ \t]*)modified = true;\n[ \t]*delete ' + re.escape(target) + r';$')
@@ -335,11 +332,32 @@ def add_lazy_serialization_guard(source):
     return source[:first_line_end + 1] + LAZY_MARKER + '\n' + source[first_line_end + 1:]
 
 
+COMMENT_DATA_CACHE_MARKER = "// loon-change: Weibo comment data reference cache v1"
+COMMENT_DATA_CACHE_OLD = "        let item = __loonSource30[__loonRead30];\n        if (item?.data) {\n          if (!isAd(item?.data)) {\n            // 微博伪装评论\n            if (item?.data?.user) {\n              // 头像挂件,关注按钮\n              removeAvatar(item?.data);\n              if ((item.data?.user?.name === \"超话社区\" || item.data?.user?.name === \"微博开新年\" || item.data?.user?.name === \"微博热搜\" || item.data?.user?.name === \"微博视频\")) {\n                continue;\n              }\n            }\n            // 评论气泡\n            if (item?.data?.comment_bubble) {\n              modified = true;\n              delete item.data.comment_bubble;\n            }\n            // 评论弹幕\n            if (item?.data?.comment_bullet_screens_message) {\n              modified = true;\n              delete item.data.comment_bullet_screens_message;\n            }\n            // 热评小图标 弹幕 首评\n            if (item?.data?.hot_icon) {\n              modified = true;\n              delete item.data.hot_icon;\n            }\n            // 会员气泡按钮\n            if (item?.data?.vip_button) {\n              modified = true;\n              delete item.data.vip_button;\n            }\n            // 6为你推荐更多精彩内容 15过滤提示\n            if (item?.type === 6 || item?.type === 15) {\n              continue;\n            }\n            if (item?.adType === \"相关内容\" || item?.adType === \"相关评论\" || item?.adType === \"推荐\") {\n              continue;\n            }\n            __loonSource30[__loonWrite30++] = item;\n          }\n        }"
+COMMENT_DATA_CACHE_OLD_UNTRACKED_HOT_ICON = COMMENT_DATA_CACHE_OLD.replace("              modified = true;" + chr(10) + "              delete item.data.hot_icon;", "              delete item.data.hot_icon;")
+COMMENT_DATA_CACHE_NEW = "        let item = __loonSource30[__loonRead30];\n        // loon-change: Weibo comment data reference cache v1\n        const commentData = item?.data;\n        if (commentData) {\n          if (!isAd(commentData)) {\n            // 微博伪装评论\n            if (commentData?.user) {\n              // 头像挂件,关注按钮\n              removeAvatar(commentData);\n              if ((commentData.user?.name === \"超话社区\" || commentData.user?.name === \"微博开新年\" || commentData.user?.name === \"微博热搜\" || commentData.user?.name === \"微博视频\")) {\n                continue;\n              }\n            }\n            // 评论气泡\n            if (commentData?.comment_bubble) {\n              modified = true;\n              delete commentData.comment_bubble;\n            }\n            // 评论弹幕\n            if (commentData?.comment_bullet_screens_message) {\n              modified = true;\n              delete commentData.comment_bullet_screens_message;\n            }\n            // 热评小图标 弹幕 首评\n            if (commentData?.hot_icon) {\n              modified = true;\n              delete commentData.hot_icon;\n            }\n            // 会员气泡按钮\n            if (commentData?.vip_button) {\n              modified = true;\n              delete commentData.vip_button;\n            }\n            // 6为你推荐更多精彩内容 15过滤提示\n            if (item?.type === 6 || item?.type === 15) {\n              continue;\n            }\n            if (item?.adType === \"相关内容\" || item?.adType === \"相关评论\" || item?.adType === \"推荐\") {\n              continue;\n            }\n            __loonSource30[__loonWrite30++] = item;\n          }\n        }"
+
+def optimize_comment_data_reference_cache(source):
+    if COMMENT_DATA_CACHE_MARKER in source:
+        if source.count(COMMENT_DATA_CACHE_MARKER) != 1 or COMMENT_DATA_CACHE_OLD in source or COMMENT_DATA_CACHE_NEW not in source:
+            raise ValueError("Weibo comment data-cache marker/structure drift")
+        return source
+    old_block = COMMENT_DATA_CACHE_OLD
+    if source.count(old_block) != 1:
+        old_block = COMMENT_DATA_CACHE_OLD_UNTRACKED_HOT_ICON
+    if source.count(old_block) != 1:
+        raise ValueError("Weibo comment data-cache anchor drift")
+    source = source.replace(old_block, COMMENT_DATA_CACHE_NEW, 1)
+    if source.count(COMMENT_DATA_CACHE_MARKER) != 1:
+        raise ValueError("Weibo comment data-cache postcondition failed")
+    return source
+
+
 def optimize_source(source, commit="unknown"):
     if MARKER in source:
         if "__loonSource32" not in source or "compactInPlace(items, keep)" not in source:
             raise ValueError("marked Weibo script is incomplete")
-        return optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source))))
+        return optimize_comment_data_reference_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source)))))
     source = source.replace("const url = $request.url;", "const url = $request.url;\n" + GUARD_DECLARATION + "\n\n" + HELPER, 1)
     if source.count(HELPER) != 1:
         raise ValueError("Weibo helper insertion failed")
@@ -351,7 +369,7 @@ def optimize_source(source, commit="unknown"):
     remaining = re.findall(r"\b(new[A-Za-z0-9_]*)\s*=\s*\[\s*\]", source)
     if sorted(remaining) != ["newActions", "newII"]:
         raise ValueError("unexpected remaining Weibo temporary arrays: " + repr(remaining))
-    return optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source))))
+    return optimize_comment_data_reference_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source)))))
 
 SCALAR_MEMBERSHIP_MARKER = "// loon-change: Weibo hot-loop scalar membership v1"
 SCALAR_MEMBERSHIP_REWRITES = [

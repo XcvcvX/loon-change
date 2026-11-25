@@ -5,7 +5,7 @@ import subprocess
 import unittest
 from pathlib import Path
 
-from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, LAZY_MARKER, GUARD_DECLARATION, HELPER, LEGACY_HELPER, optimize_source, rewrite_plugin, optimize_page_filter_cached_itemid, TOPIC_GROUP_MARKER, optimize_topic_group_in_place
+from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, LAZY_MARKER, GUARD_DECLARATION, HELPER, LEGACY_HELPER, optimize_source, rewrite_plugin, optimize_page_filter_cached_itemid, TOPIC_GROUP_MARKER, optimize_topic_group_in_place, COMMENT_DATA_CACHE_MARKER, COMMENT_DATA_CACHE_OLD, COMMENT_DATA_CACHE_NEW, optimize_comment_data_reference_cache
 
 ROOT = Path(__file__).resolve().parent
 SCRIPT = ROOT / "scripts/weibo/weibo-rstore.js"
@@ -70,6 +70,24 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "marker/structure drift"):
             optimize_topic_group_in_place(damaged)
 
+    def test_comment_loop_caches_data_reference_once_and_fails_closed(self):
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertEqual(source.count(COMMENT_DATA_CACHE_MARKER), 1)
+        self.assertEqual(optimize_comment_data_reference_cache(source), source)
+        self.assertIn("const commentData = item?.data;", source)
+        self.assertIn("if (!isAd(commentData))", source)
+        self.assertIn("removeAvatar(commentData);", source)
+        self.assertNotIn(COMMENT_DATA_CACHE_OLD, source)
+        damaged = source.replace("const commentData = item?.data;", "const cachedCommentData = item?.data;", 1)
+        with self.assertRaisesRegex(ValueError, "marker/structure drift"):
+            optimize_comment_data_reference_cache(damaged)
+
+    def test_comment_cache_transform_applies_to_unoptimized_source(self):
+        source = SCRIPT.read_text(encoding="utf-8")
+        legacy = source.replace(COMMENT_DATA_CACHE_NEW, COMMENT_DATA_CACHE_OLD, 1)
+        self.assertNotEqual(legacy, source)
+        self.assertEqual(optimize_comment_data_reference_cache(legacy), source)
+
     def test_old_optimized_snapshot_regains_lazy_serialization_guard(self):
         source = SCRIPT.read_text(encoding="utf-8")
         legacy = source.replace(LAZY_MARKER + "\n", "", 1)
@@ -78,7 +96,12 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         legacy = re.sub(r"(?m)^([ \t]*)if \(__loonWrite\d+ !== __loonLength\d+\) modified = true;\n", "", legacy)
         legacy = re.sub(r"(?m)^([ \t]*)modified = true;\n([ \t]*delete .+;)$", r"\2", legacy)
         legacy = legacy.replace("$done(modified ? {body: JSON.stringify(obj)} : {});", "$done({body: JSON.stringify(obj)});", 1)
-        self.assertEqual(optimize_source(legacy), source)
+        rebuilt = optimize_source(legacy)
+        self.assertIn(LAZY_MARKER, rebuilt)
+        self.assertIn(COMMENT_DATA_CACHE_MARKER, rebuilt)
+        self.assertIn(GUARD_DECLARATION, rebuilt)
+        self.assertIn("delete commentData.comment_bubble;", rebuilt)
+        self.assertEqual(optimize_source(rebuilt), rebuilt)
 
     def test_exactly_ten_live_rstore_triggers_are_routed_to_local_script(self):
         plugin = (ROOT / "allAdRewrite.plugin").read_text(encoding="utf-8")

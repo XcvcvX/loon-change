@@ -166,35 +166,37 @@ if (url.includes("/interface/sdk/sdkad.php")) {
       const __loonLength30 = __loonSource30.length;
       for (let __loonRead30 = 0; __loonRead30 < __loonLength30; __loonRead30++) {
         let item = __loonSource30[__loonRead30];
-        if (item?.data) {
-          if (!isAd(item?.data)) {
+        // loon-change: Weibo comment data reference cache v1
+        const commentData = item?.data;
+        if (commentData) {
+          if (!isAd(commentData)) {
             // 微博伪装评论
-            if (item?.data?.user) {
+            if (commentData?.user) {
               // 头像挂件,关注按钮
-              removeAvatar(item?.data);
-              if ((item.data?.user?.name === "超话社区" || item.data?.user?.name === "微博开新年" || item.data?.user?.name === "微博热搜" || item.data?.user?.name === "微博视频")) {
+              removeAvatar(commentData);
+              if ((commentData.user?.name === "超话社区" || commentData.user?.name === "微博开新年" || commentData.user?.name === "微博热搜" || commentData.user?.name === "微博视频")) {
                 continue;
               }
             }
             // 评论气泡
-            if (item?.data?.comment_bubble) {
+            if (commentData?.comment_bubble) {
               modified = true;
-              delete item.data.comment_bubble;
+              delete commentData.comment_bubble;
             }
             // 评论弹幕
-            if (item?.data?.comment_bullet_screens_message) {
+            if (commentData?.comment_bullet_screens_message) {
               modified = true;
-              delete item.data.comment_bullet_screens_message;
+              delete commentData.comment_bullet_screens_message;
             }
             // 热评小图标 弹幕 首评
-            if (item?.data?.hot_icon) {
+            if (commentData?.hot_icon) {
               modified = true;
-              delete item.data.hot_icon;
+              delete commentData.hot_icon;
             }
             // 会员气泡按钮
-            if (item?.data?.vip_button) {
+            if (commentData?.vip_button) {
               modified = true;
-              delete item.data.vip_button;
+              delete commentData.vip_button;
             }
             // 6为你推荐更多精彩内容 15过滤提示
             if (item?.type === 6 || item?.type === 15) {
