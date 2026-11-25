@@ -35,8 +35,10 @@ class OptimizationGuardTests(unittest.TestCase):
                 "$done(modified ? { body: JSON.stringify(obj) } : {});",
             ],
             "scripts/taobao/taobao.js": [
-                "function setIfDifferent(target, key, value)",
                 "function clearArray(target, key)",
+                "const poplayerEnabled = obj?.enable;",
+                "if (poplayerEnabled) {",
+                "obj.enable = false;",
                 "$done(modified ? {body: JSON.stringify(obj)} : {});",
             ],
             "scripts/xianyu/goofish.js": [
