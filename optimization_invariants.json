@@ -70,7 +70,10 @@
         "// loon-change: Xiaohongshu v4 function-switch indexed scan v1;",
         "const functionSwitch = item?.function_switch;",
         "for (let switchIndex = 0; switchIndex < functionSwitch.length; switchIndex++)",
-        "const switchItem = functionSwitch[switchIndex];"
+        "const switchItem = functionSwitch[switchIndex];",
+        "// loon-change: Xiaohongshu comment node array classification cache v1;",
+        "const currentIsArray = Array.isArray(current);",
+        "if (currentIsArray) {"
       ],
       "forbidden": [
         "console.log(`[缓存] ID:",
@@ -90,7 +93,8 @@
         "const isCommentFrame = Array.isArray(entry) && entry[0] === commentFrameTag;",
         "stack.push([commentFrameTag, comment, true]);",
         "stack.push([commentFrameTag, subComment, false]);",
-        "for (let switchItem of item.function_switch)"
+        "for (let switchItem of item.function_switch)",
+        "if (Array.isArray(current)) {"
       ]
     },
     {

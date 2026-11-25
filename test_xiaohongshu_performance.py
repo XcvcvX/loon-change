@@ -66,6 +66,20 @@ class XiaohongshuOptimizerTests(unittest.TestCase):
         self.assertIn(COMMENT_STACK_FRAME_MARKER,source)
         self.assertNotIn("new WeakSet()",source)
 
+
+    def test_comment_node_array_classification_is_cached_and_fails_closed(self):
+        source = (ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")
+        self.assertEqual(source.count(COMMENT_NODE_ARRAY_MARKER), 1)
+        self.assertEqual(optimize_comment_node_array_classification(source), source)
+        start = source.index("function processCommentTree")
+        end = source.index("\\n\\n\\n/**", start)
+        block = source[start:end]
+        self.assertEqual(block.count("Array.isArray(current)"), 1)
+        self.assertEqual(block.count("if (currentIsArray) {"), 1)
+        damaged = source.replace("const currentIsArray = Array.isArray(current);", "const currentIsArray = Boolean(current);", 1)
+        with self.assertRaisesRegex(ValueError, "marker/structure drift"):
+            optimize_comment_node_array_classification(damaged)
+
     def test_comment_stack_frames_use_flat_stack_without_tuple_allocations(self):
         source=(ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")
         self.assertEqual(optimize_comment_stack_frame_allocation(source),source)
