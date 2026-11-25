@@ -171,10 +171,13 @@ if (url.includes("/interface/sdk/sdkad.php")) {
         if (commentData) {
           if (!isAd(commentData)) {
             // 微博伪装评论
-            if (commentData?.user) {
+            // loon-change: Weibo comment user/name reference cache v1
+            const commentUser = commentData?.user;
+            if (commentUser) {
               // 头像挂件,关注按钮
-              removeAvatar(commentData);
-              if ((commentData.user?.name === "超话社区" || commentData.user?.name === "微博开新年" || commentData.user?.name === "微博热搜" || commentData.user?.name === "微博视频")) {
+              removeAvatar(commentData, commentUser);
+              const commentUserName = commentUser.name;
+              if (commentUserName === "超话社区" || commentUserName === "微博开新年" || commentUserName === "微博热搜" || commentUserName === "微博视频") {
                 continue;
               }
             }
@@ -1425,7 +1428,8 @@ function isAd(data) {
 }
 
 // 移除头像挂件,关注按钮
-function removeAvatar(data) {
+function removeAvatar(data, user = data?.user) {
+  // loon-change: Weibo removeAvatar cached user reference v1
   if (data?.block_card_bg) {
     modified = true;
     delete data.block_card_bg;
@@ -1451,26 +1455,26 @@ function removeAvatar(data) {
     modified = true;
     delete data.pic_bg_new;
   }
-  if (data?.user?.avatargj_id) {
+  if (user?.avatargj_id) {
     modified = true;
-    delete data.user.avatargj_id;
+    delete user.avatargj_id;
   }
-  if (data?.user?.avatar_extend_info) {
+  if (user?.avatar_extend_info) {
     modified = true;
-    delete data.user.avatar_extend_info;
+    delete user.avatar_extend_info;
   }
-  if (data?.user?.cardid) {
+  if (user?.cardid) {
     modified = true;
-    delete data.user.cardid;
+    delete user.cardid;
   }
-  if (data?.user?.icons) {
+  if (user?.icons) {
     modified = true;
-    delete data.user.icons;
+    delete user.icons;
   }
-  if (data?.user?.mbtype) {
+  if (user?.mbtype) {
     // 会员等级图标
     modified = true;
-    delete data.user.mbtype;
+    delete user.mbtype;
   }
 }
 
