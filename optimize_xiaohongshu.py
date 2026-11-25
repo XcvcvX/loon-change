@@ -402,24 +402,42 @@ def optimize_v4_video_feed_function_entry_scan(src):
 
 
 COMMENT_NODE_ARRAY_MARKER = "// loon-change: Xiaohongshu comment node array classification cache v1;"
-COMMENT_NODE_ARRAY_OLD = "    if (!Array.isArray(current)) {\\n"
-COMMENT_NODE_ARRAY_NEW = "    // loon-change: Xiaohongshu comment node array classification cache v1;\\n    const currentIsArray = Array.isArray(current);\\n    if (!currentIsArray) {\\n"
 
 def optimize_comment_node_array_classification(src):
     if COMMENT_NODE_ARRAY_MARKER in src:
-        if src.count(COMMENT_NODE_ARRAY_MARKER) != 1 or COMMENT_NODE_ARRAY_OLD in src or src.count("if (currentIsArray) {") != 1:
+        if src.count(COMMENT_NODE_ARRAY_MARKER) != 1:
+            raise ValueError("Xiaohongshu comment node array-classification marker drift")
+        start = src.find("function processCommentTree(data, livePhotos, commentVideos, noteId)")
+        end = src.find("\\n\\n\\n/**", start)
+        if start < 0:
+            raise ValueError("Xiaohongshu comment processor missing")
+        block = src[start:end if end >= 0 else len(src)]
+        if block.count("Array.isArray(current)") != 1 or block.count("if (currentIsArray) {") != 1 or "const currentIsArray = Array.isArray(current);" not in block:
             raise ValueError("Xiaohongshu comment node array-classification marker/structure drift")
         return src
-    if src.count(COMMENT_NODE_ARRAY_OLD) != 1:
+    start = src.find("function processCommentTree(data, livePhotos, commentVideos, noteId)")
+    if start < 0:
+        raise ValueError("Xiaohongshu comment processor missing")
+    end = src.find("\\n\\n\\n/**", start)
+    if end < 0:
+        raise ValueError("Xiaohongshu comment processor boundary missing")
+    block = src[start:end]
+    first = re.search(r"(?m)^([ \\t]*)if \\(!Array\\.isArray\\(current\\)\\) \\{$", block)
+    second = re.search(r"(?m)^([ \\t]*)if \\(Array\\.isArray\\(current\\)\\) \\{$", block)
+    if not first or not second or first.group(1) != second.group(1):
         raise ValueError("Xiaohongshu comment node array-classification anchor drift")
-    src = src.replace(COMMENT_NODE_ARRAY_OLD, COMMENT_NODE_ARRAY_NEW, 1)
-    old_branch = "    if (Array.isArray(current)) {\\n"
-    if src.count(old_branch) != 1:
+    indent = first.group(1)
+    new_first = indent + COMMENT_NODE_ARRAY_MARKER + "\\n" + indent + "const currentIsArray = Array.isArray(current);\\n" + indent + "if (!currentIsArray) {"
+    block = block[:first.start()] + new_first + block[first.end():]
+    second = re.search(r"(?m)^([ \\t]*)if \\(Array\\.isArray\\(current\\)\\) \\{$", block)
+    if not second or second.group(1) != indent:
         raise ValueError("Xiaohongshu comment node array branch anchor drift")
-    src = src.replace(old_branch, "    if (currentIsArray) {\\n", 1)
-    if src.count(COMMENT_NODE_ARRAY_MARKER) != 1 or src.count("Array.isArray(current)") != 1 or src.count("if (currentIsArray) {") != 1:
+    block = block[:second.start()] + indent + "if (currentIsArray) {" + block[second.end():]
+    if block.count(COMMENT_NODE_ARRAY_MARKER) != 1 or block.count("Array.isArray(current)") != 1 or block.count("if (currentIsArray) {") != 1:
         raise ValueError("Xiaohongshu comment node array-classification postcondition failed")
-    return src
+    return src[:start] + block + src[end:]
+
+
 
 
 def optimize_source(src,commit="unknown"):
