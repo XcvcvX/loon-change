@@ -1105,24 +1105,28 @@ if (url.includes("/interface/sdk/sdkad.php")) {
       if (__loonWrite6 !== __loonLength6) modified = true;
     }
   } else if (url.includes("/2/statuses/container_timeline_hot") || url.includes("/2/statuses/unread_hot_timeline")) {
+    // loon-change: Weibo hot timeline nested reference cache v1
     // 首页推荐tab信息流
     for (let s of ["ad", "advertises", "trends", "headers"]) {
       if (obj?.[s]) {
         delete obj[s];
       }
     }
-    if (obj?.items?.length > 0) {
-      const __loonSource4 = obj.items;
+    const hotItems = obj?.items;
+    const hotItemsLength = hotItems?.length || 0;
+    if (hotItemsLength > 0) {
+      const __loonSource4 = hotItems;
       let __loonWrite4 = 0;
-      const __loonLength4 = __loonSource4.length;
+      const __loonLength4 = hotItemsLength;
       for (let __loonRead4 = 0; __loonRead4 < __loonLength4; __loonRead4++) {
         let item = __loonSource4[__loonRead4];
-        if (!isAd(item?.data)) {
+        const itemData = item?.data;
+        if (!isAd(itemData)) {
           if (item?.category === "feed") {
             // 信息流推广
-            removeFeedAd(item?.data);
+            removeFeedAd(itemData);
             // 投票窗口
-            removeVoteInfo(item?.data);
+            removeVoteInfo(itemData);
             __loonSource4[__loonWrite4++] = item;
           } else {
             // 移除其他推广
@@ -1133,10 +1137,12 @@ if (url.includes("/interface/sdk/sdkad.php")) {
       __loonSource4.length = __loonWrite4;
       if (__loonWrite4 !== __loonLength4) modified = true;
     }
-    if (obj?.statuses?.length > 0) {
-      const __loonSource3 = obj.statuses;
+    const hotStatuses = obj?.statuses;
+    const hotStatusesLength = hotStatuses?.length || 0;
+    if (hotStatusesLength > 0) {
+      const __loonSource3 = hotStatuses;
       let __loonWrite3 = 0;
-      const __loonLength3 = __loonSource3.length;
+      const __loonLength3 = hotStatusesLength;
       for (let __loonRead3 = 0; __loonRead3 < __loonLength3; __loonRead3++) {
         let item = __loonSource3[__loonRead3];
         if (!isAd(item)) {
