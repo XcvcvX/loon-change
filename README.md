@@ -1090,3 +1090,6 @@ The Taobao response handler now classifies cloud-video, splash and Poplayer URLs
 - The remaining cloud-video duration/respTimeInMs fields already use cached locals and a single JSON parse/conditional stringify.
 - Splash traversal already caches section/item counts and nested references; Poplayer caches response objects and clears arrays in place.
 - No additional property-cache change is justified without a demonstrated duplicate access in a hot response path.
+
+
+Phase 10 batch 38 compatibility fixtures cover 0–3 Ads segments, reversed messageHead order, unknown fields, gaps, trailing payload bytes, replacement-length changes, duplicate Result headers, overlapping segments, and out-of-range descriptors.
