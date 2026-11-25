@@ -138,29 +138,41 @@ if (url.includes("/note/imagefeed") || url.includes("/note/feed")) {
 // 信息流 视频
 } else if (url.includes("/note/videofeed")) {
   if (url.includes("/v3/")) {
-    if (obj?.data?.length > 0) {
-      for (let item of obj.data) {
-        if (item?.media_save_config) {
+    // loon-change: Xiaohongshu V3 video-feed cached item references v1
+    const videoFeedItemsV3 = obj?.data;
+    const videoFeedItemsV3Length = videoFeedItemsV3?.length || 0;
+    if (videoFeedItemsV3Length > 0) {
+      for (let itemIndex = 0; itemIndex < videoFeedItemsV3Length; itemIndex++) {
+        const item = videoFeedItemsV3[itemIndex];
+        const mediaSaveConfig = item?.media_save_config;
+        if (mediaSaveConfig) {
           // 水印开关
-          item.media_save_config.disable_save = false;
-          item.media_save_config.disable_watermark = true;
-          item.media_save_config.disable_weibo_cover = true;
+          mediaSaveConfig.disable_save = false;
+          mediaSaveConfig.disable_watermark = true;
+          mediaSaveConfig.disable_weibo_cover = true;
         }
-        if (item?.share_info?.function_entries?.length > 0) {
+        const shareInfo = item?.share_info;
+        const functionEntries = shareInfo?.function_entries;
+        const functionEntriesLength = functionEntries?.length || 0;
+        if (functionEntriesLength > 0) {
           // 下载限制
           const additem = {type: "video_download"};
-          let func = item.share_info.function_entries[0];
+          const func = functionEntries[0];
           if (func?.type !== "video_download") {
             // 向数组开头添加对象
-            item.share_info.function_entries.unshift(additem);
+            functionEntries.unshift(additem);
           }
         }
       }
     }
   } else if (url.includes("/v4/")) {
     let videoData = [];
-    if (obj.data?.length > 0) {
-        for (let item of obj.data) {
+    // loon-change: Xiaohongshu V4 video-feed cached item references v1
+    const videoFeedItemsV4 = obj?.data;
+    const videoFeedItemsV4Length = videoFeedItemsV4?.length || 0;
+    if (videoFeedItemsV4Length > 0) {
+        for (let itemIndex = 0; itemIndex < videoFeedItemsV4Length; itemIndex++) {
+          const item = videoFeedItemsV4[itemIndex];
           // 添加下载按钮（如果未存在）
           // loon-change: Xiaohongshu v4 function-entry indexed scan v1
           const shareInfo = item?.share_info;
@@ -181,30 +193,35 @@ if (url.includes("/note/imagefeed") || url.includes("/note/feed")) {
           }
     
           // 提取 H.265 视频流
-          const h265List = item?.video_info_v2?.media?.stream?.h265 || [];
-          if (!Array.isArray(h265List) || h265List.length === 0) {
+          const videoInfoV2 = item?.video_info_v2;
+          const mediaInfo = videoInfoV2?.media;
+          const streamInfo = mediaInfo?.stream;
+          const h265List = streamInfo?.h265 || [];
+          const h265ListLength = Array.isArray(h265List) ? h265List.length : 0;
+          if (h265ListLength === 0) {
             continue;
           }
     
           // Select the highest-resolution stream in one pass; preserve first item on ties.
-          let selectedStream = null;
+          let selectedStreamUrl = "";
           let selectedHeight = -Infinity;
-          for (const stream of h265List) {
-            if (!stream || !stream.master_url || !stream.height) continue;
-            const streamHeight = Number(stream.height);
+          for (let streamIndex = 0; streamIndex < h265ListLength; streamIndex++) {
+            const stream = h265List[streamIndex];
+            if (!stream) continue;
+            const streamUrl = stream.master_url;
+            const rawHeight = stream.height;
+            if (!streamUrl || !rawHeight) continue;
+            const streamHeight = Number(rawHeight);
             if (streamHeight > selectedHeight) {
-              selectedStream = stream;
+              selectedStreamUrl = streamUrl;
               selectedHeight = streamHeight;
             }
           }
     
           // 存入缓存数组
-          if (item?.id && selectedStream?.master_url) {
-            const data = {
-              id: item.id,
-              url: selectedStream.master_url
-            };
-            videoData.push(data);
+          const noteId = item?.id;
+          if (noteId && selectedStreamUrl) {
+            videoData.push({id: noteId, url: selectedStreamUrl});
           }
         }
         // 写入本地持久化缓存
