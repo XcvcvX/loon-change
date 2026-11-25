@@ -78,6 +78,10 @@ class RStoreXiaohongshuOptimizerTests(unittest.TestCase):
         self.assertIn("compactInPlace(obj.data.items", source)
         self.assertIn("compactInPlace(item.hash_tag", source)
         self.assertIn("for (const stream of h265List)", source)
+        self.assertIn("let selectedHeight = -Infinity;", source)
+        self.assertIn("const streamHeight = Number(stream.height);", source)
+        self.assertIn("if (streamHeight > selectedHeight)", source)
+        self.assertNotIn("Number(selectedStream.height)", source)
         self.assertNotIn("h265List.filter(", source)
         self.assertNotIn("obj.data = newItems", source)
 
