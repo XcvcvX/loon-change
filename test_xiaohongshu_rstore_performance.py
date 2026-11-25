@@ -44,7 +44,7 @@ class RStoreXiaohongshuOptimizerTests(unittest.TestCase):
         self.assertIn("commentPictures = current.pictures;", source)
         self.assertIn('const child = isCommentFrame && key === "pictures" ? commentPictures : current[key];', source)
         self.assertEqual(source.count(XIAOHONGSHU_V4_FUNCTION_ENTRY_MARKER), 1)
-        self.assertIn("const functionEntryCount = functionEntries.length;", source)
+        self.assertIn("const functionEntryCount = functionEntries?.length || 0;", source)
         self.assertNotIn("functionEntries.some(", source)
         self.assertIn("// loon-change: Xiaohongshu parsed JSON tree traversal without visited WeakSet v1;", source)
         self.assertNotIn("const visited = new WeakSet()", source)
