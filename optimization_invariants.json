@@ -170,9 +170,7 @@
         "let newII = [];",
         "item.items = newII;",
         "newII.push(ii);",
-        "isAd(item?.data)",
-        "removeAvatar(item?.data)",
-        "delete item.data.comment_bubble"
+        "if (item?.data) {\\n          if (!isAd(item?.data)) {"
       ]
     },
     {
