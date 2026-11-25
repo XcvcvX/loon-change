@@ -35,7 +35,9 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         self.assertIn('$done(modified ? {body: JSON.stringify(obj)} : {});', source)
         self.assertEqual(optimize_source(source), source)
         self.assertEqual(len(re.findall(r"const __loonSource\d+ =", source)), 32)
-        self.assertEqual(len(re.findall(r"(?m)^\s*const __loonLength\d+ = __loonSource\d+\.length;$", source)), 32)
+        self.assertEqual(len(re.findall(r"(?m)^\s*const __loonLength\d+ = __loonSource\d+\.length;$", source)), 25)
+        for cached_length in ("timelineItemsLength", "hotItemsLength", "hotStatusesLength", "asynItemsLength", "flowItemsLength", "searchItemsLength", "groupItemsLength"):
+            self.assertIn(cached_length, source)
         self.assertNotRegex(source, r"for \(let __loonRead\d+ = 0, __loonLength\d+")
         self.assertNotRegex(source, r"\[[^\]\n]+\]\??\.includes\(")
         remaining = re.findall(r"\b(new[A-Za-z0-9_]*)\s*=\s*\[\s*\]", source)
@@ -335,7 +337,7 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         self.assertIn("const commentUserName = commentUser.name;", source)
 
         damaged_helper = source.replace("const avatarGjId = user?.avatargj_id;", "const avatarGjId = data?.user?.avatargj_id;", 1)
-        with self.assertRaisesRegex(ValueError, "removeAvatar user-cache marker/structure drift"):
+        with self.assertRaisesRegex(ValueError, "removeAvatar user-cache avatar field cache drift"):
             optimize_comment_user_reference_cache(damaged_helper)
 
         damaged_comment = source.replace("const commentUserName = commentUser.name;", "const commentUserName = commentUser.username;", 1)
@@ -951,6 +953,8 @@ const trackedJSON={
     wrap(data,"screen_name_suffix_new","data.screen_name_suffix_new");
     wrap(data,"user","data.user");
     wrap(data,"tag_struct","data.tag_struct");
+    counts["suffix.length"]=0;
+    counts["suffix[3]"]=0;
     data.screen_name_suffix_new=new Proxy(data.screen_name_suffix_new,{get(target,key,receiver){
       if(tracking&&key==="length")counts["suffix.length"]++;
       if(tracking&&key==="3")counts["suffix[3]"]++;
