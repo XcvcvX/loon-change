@@ -85,17 +85,14 @@ class BaiduMapBinaryPerformanceTests(unittest.TestCase):
         self.assertNotIn("adsMessage.content[j]", loop)
 
 
-    def test_result_payload_view_is_deferred_until_ads_change(self):
-        marker = "// loon-change: Baidu protobuf target-only byte views v1"
-        self.assertIn(marker, self.source)
-        start = self.source.index("let newResult = null;")
-        end = self.source.index("\n\nif(!adsFound", start)
-        loop = self.source[start:end]
-        self.assertIn("let resultOffset = -1;", loop)
-        self.assertIn("resultOffset = dataBeginOffset + messageHead.offset;", loop)
-        self.assertNotIn("newResult = binaryBody.subarray(currentOffset", loop)
-        self.assertIn("if (modifiedAds && resultOffset !== -1)", loop)
-        self.assertIn("newResult = binaryBody.subarray(resultOffset, resultOffset + resultLength);", loop)
+    def test_all_ads_segments_are_collected_without_a_separate_result_copy(self):
+        self.assertIn("const replacementSegments = [];", self.source)
+        self.assertIn("replacementSegments[i] = adsType.encode(adsMessage).finish();", self.source)
+        self.assertIn("assembleBaiduResponseSegments(", self.source)
+        self.assertNotIn("newResult = binaryBody.subarray", self.source)
+        self.assertNotIn("newAds = adsType.encode(adsMessage).finish();", self.source)
+        self.assertIn("resultCount !== 1", self.source)
+        self.assertIn("invalidSegmentLayout", self.source)
 
     def test_binary_input_reuses_existing_uint8array(self):
         self.assertIn("const binaryBody = responseBytes instanceof Uint8Array", self.source)
@@ -103,7 +100,7 @@ class BaiduMapBinaryPerformanceTests(unittest.TestCase):
         self.assertIn("$done({bodyBytes: body.buffer})", self.source)
         self.assertNotIn("body.buffer.slice(", self.source)
         self.assertIn("function createBaiduMd5() {", self.source)
-        self.assertIn("newAds, createBaiduMd5());", self.source)
+        self.assertIn("replacementSegments, createBaiduMd5()", self.source)
 
     @unittest.skipUnless(NODE, "Node.js is required for binary assembly regression tests")
     def test_actual_assembly_helper_preserves_payload_and_header_metadata(self):
