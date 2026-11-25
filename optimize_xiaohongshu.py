@@ -404,6 +404,54 @@ def optimize_imagefeed_live_photo_property_cache(src):
     return once(src, "      if(frame.root && livePhotoTarget && child && typeof child === \"object\") {\n        const stream = child.live_photo?.media?.stream?.h265?.[0];\n        const videoId = child.live_photo?.media?.video_id;\n        if (child.live_photo_file_id && videoId && stream?.master_url) {\n          livePhotoTarget.push({\n            live_photo_file_id: child.live_photo_file_id,\n            video_id: videoId,\n            url: stream.master_url\n          });\n        }\n      }", "      if(frame.root && livePhotoTarget && child && typeof child === \"object\") {\n        // loon-change: Xiaohongshu imagefeed live-photo property cache v1;\n        const livePhoto = child.live_photo;\n        const media = livePhoto?.media;\n        const stream = media?.stream?.h265?.[0];\n        const fileId = child.live_photo_file_id;\n        const videoId = media?.video_id;\n        const masterUrl = stream?.master_url;\n        if (fileId && videoId && masterUrl) {\n          livePhotoTarget.push({\n            live_photo_file_id: fileId,\n            video_id: videoId,\n            url: masterUrl\n          });\n        }\n      }", "imagefeed live-photo property cache")
 
 
+
+IMAGE_ARRAY_LENGTH_MARKER = "// loon-change: Xiaohongshu image traversal array-frame length cache v1;"
+
+def optimize_imagefeed_array_length_cache(src):
+    """Read each array-frame length once while traversing imagefeed payloads."""
+    if IMAGE_ARRAY_LENGTH_MARKER in src:
+        required = (
+            IMAGE_ARRAY_LENGTH_MARKER,
+            "const stack=[{value:images,index:0,keys:null,length:Array.isArray(images)?images.length:0,root:true}];",
+            "if(frame.index>=frame.length){stack.pop();continue;}",
+            "length:Array.isArray(child)?child.length:0",
+        )
+        if any(token not in src for token in required) or "if(frame.index>=value.length)" in src:
+            raise ValueError("Xiaohongshu image array-frame length-cache marker is stale")
+        if src.count("length:Array.isArray(child)?child.length:0") != 2:
+            raise ValueError("Xiaohongshu image array-frame push structure drift")
+        return src
+
+    old_stack = "const stack=[{value:images,index:0,keys:null,root:true}];"
+    new_stack = "const stack=[{value:images,index:0,keys:null,length:Array.isArray(images)?images.length:0,root:true}];"
+    if src.count(old_stack) != 1:
+        raise ValueError("Xiaohongshu image traversal root-frame anchor drift")
+    src = src.replace(old_stack, new_stack, 1)
+    old_check = "if(frame.index>=value.length){stack.pop();continue;}"
+    new_check = "if(frame.index>=frame.length){stack.pop();continue;}"
+    if src.count(old_check) != 1:
+        raise ValueError("Xiaohongshu image traversal array-length check anchor drift")
+    src = src.replace(old_check, new_check, 1)
+    old_push = "stack.push({value:child,index:0,keys:null,root:false});"
+    new_push = "stack.push({value:child,index:0,keys:null,length:Array.isArray(child)?child.length:0,root:false});"
+    if src.count(old_push) != 2:
+        raise ValueError("Xiaohongshu image traversal child-frame anchors drift")
+    src = src.replace(old_push, new_push)
+    anchor = "function imageEnhance(images, livePhotoCache) {"
+    if src.count(anchor) != 1:
+        raise ValueError("Xiaohongshu image traversal function anchor drift")
+    src = src.replace(anchor, anchor + "\\n  " + IMAGE_ARRAY_LENGTH_MARKER, 1)
+    required = (
+        IMAGE_ARRAY_LENGTH_MARKER,
+        "const stack=[{value:images,index:0,keys:null,length:Array.isArray(images)?images.length:0,root:true}];",
+        "if(frame.index>=frame.length){stack.pop();continue;}",
+        "length:Array.isArray(child)?child.length:0",
+    )
+    if any(token not in src for token in required) or src.count("length:Array.isArray(child)?child.length:0") != 2:
+        raise ValueError("Xiaohongshu image array-frame length-cache postcondition failed")
+    return src
+
+
 FUNCTION_SWITCH_MARKER = "// loon-change: Xiaohongshu v4 function-switch indexed scan v1;"
 
 def optimize_v4_function_switch_indexed_scan(src):
@@ -819,7 +867,7 @@ def optimize_source(src,commit="unknown"):
     )
     result = apply_comment_optimization(MARKER+commit+"\n"+src)
     result = optimize_comment_media_property_cache(result)
-    result = optimize_imagefeed_live_photo_property_cache(optimize_imagefeed_single_traversal(result))
+    result = optimize_imagefeed_array_length_cache(optimize_imagefeed_live_photo_property_cache(optimize_imagefeed_single_traversal(result)))
     result = optimize_comment_video_info_cache(result)
     result = optimize_comment_stack_frame_allocation(result)
     result = optimize_comment_node_array_classification(result)
@@ -830,7 +878,7 @@ def optimize_source(src,commit="unknown"):
     result = optimize_v3_video_feed_item_reference_cache(result)
     result = optimize_v4_video_feed_nested_reference_cache(result)
     result = optimize_stream_selection_no_closure(result)
-    for token in ("imageEnhance(images_list, livePhotoCache)", IMAGE_FEED_MARKER, "compactInPlace(obj.data","appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)","const byFileId=new Map()", "Xiaohongshu comment classification stack frames v1;", "const commentFrameTag = {};", "stack.push(true, comment, commentFrameTag);", "stack.push(false, subComment, commentFrameTag);", FUNCTION_SWITCH_MARKER, VIDEO_V3_ITEM_CACHE_MARKER, VIDEO_FEED_REFERENCE_CACHE_MARKER, COMMENT_STACK_FRAME_MARKER, COMMENT_CACHE_MARKER, "let parsed = parsedVideoInfo.get(raw);", VIDEO_SAVE_LOOKUP_MARKER, VIDEO_SAVE_LAZY_PARSE_MARKER, "const noteId = obj.data?.note_id;", "for (let i = videoFeed.length - 1; i >= 0; i--)", STREAM_SELECTION_MARKER, "for (let pass = 0; pass < 2; pass++)"):
+    for token in ("imageEnhance(images_list, livePhotoCache)", IMAGE_FEED_MARKER, IMAGE_ARRAY_LENGTH_MARKER, "frame.index>=frame.length", "compactInPlace(obj.data","appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)","const byFileId=new Map()", "Xiaohongshu comment classification stack frames v1;", "const commentFrameTag = {};", "stack.push(true, comment, commentFrameTag);", "stack.push(false, subComment, commentFrameTag);", FUNCTION_SWITCH_MARKER, VIDEO_V3_ITEM_CACHE_MARKER, VIDEO_FEED_REFERENCE_CACHE_MARKER, COMMENT_STACK_FRAME_MARKER, COMMENT_CACHE_MARKER, "let parsed = parsedVideoInfo.get(raw);", VIDEO_SAVE_LOOKUP_MARKER, VIDEO_SAVE_LAZY_PARSE_MARKER, "const noteId = obj.data?.note_id;", "for (let i = videoFeed.length - 1; i >= 0; i--)", STREAM_SELECTION_MARKER, "for (let pass = 0; pass < 2; pass++)"):
         if token not in result:raise ValueError("missing optimizer invariant: "+token)
     if "imageEnhance(JSON.stringify(images_list))" in result:raise ValueError("image-feed serialization round trip remains")
     if "for (const image of images_list)" in result:raise ValueError("image-feed second cache traversal remains")
