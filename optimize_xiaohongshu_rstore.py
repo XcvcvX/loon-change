@@ -766,22 +766,7 @@ def optimize_source(source, commit="unknown"):
     });'''
     source = once(source, home_old, home_new, "homefeed allocation")
 
-    sort_old = '''          // 分辨率从高到低排序
-          const sortedList = h265List.filter(v => !!v.master_url && !!v.height).sort((a, b) => b.height - a.height);
-          // 选择分辨率最高的
-          let selectedStream = sortedList[0];'''
-    sort_new = '''          // Select the highest-resolution stream in one pass; preserve first item on ties.
-          let selectedStream = null;
-          let selectedHeight = -Infinity;
-          for (const stream of h265List) {
-            if (!stream || !stream.master_url || !stream.height) continue;
-            const streamHeight = Number(stream.height);
-            if (streamHeight > selectedHeight) {
-              selectedStream = stream;
-              selectedHeight = streamHeight;
-            }
-          }'''
-    source = once(source, sort_old, sort_new, "video stream sort")
+    # H.265 single-pass selection is applied by optimize_videofeed_hotpath_references.
 
     source = between(source, "function imageEnhance(jsonStr) {",
                      "\nfunction replaceUrlContent(", IMAGE, "imageEnhance")
@@ -808,7 +793,7 @@ def optimize_source(source, commit="unknown"):
         "imageEnhance(images_list, livePhotoCache)", "compactInPlace(obj.data",
         "appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)",
         "const byFileId = new Map()", "const stack = [data]", "Xiaohongshu flat comment stack frames v2;", "const commentFrameTag = {}", "stack.push(comment, commentFrameTag, true)", "stack.push(subComment, commentFrameTag, false)",
-        COMMENT_TREE_MARKER, "selectedStream = null",
+        COMMENT_TREE_MARKER, "let selectedStreamUrl = \"\";",
         "// loon-change: Xiaohongshu comment video-info cache single lookup v1",
         "let picObj = videoInfoCache.get(rawVideoInfo);",
       COMMENT_ARRAY_LENGTH_MARKER,
