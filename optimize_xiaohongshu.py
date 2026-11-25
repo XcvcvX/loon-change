@@ -475,6 +475,105 @@ def optimize_v4_video_feed_function_entry_scan(src):
     return src.replace(anchor, VIDEO_ENTRY_MARKER + "\n" + anchor, 1)
 
 
+VIDEO_FEED_REFERENCE_CACHE_MARKER = "// loon-change: Xiaohongshu v4 video-feed nested reference cache v1;"
+
+def optimize_v4_video_feed_nested_reference_cache(src):
+    """Cache repeated v4 feed item/media/stream references before normalization and cache extraction."""
+    start = 'if (url.includes("/v4/note/videofeed")) {'
+    end = "\\n\\n// 视频保存请求"
+    marker = VIDEO_FEED_REFERENCE_CACHE_MARKER
+    if marker in src:
+        left = src.find(start)
+        right = src.find(end, left) if left >= 0 else -1
+        block = src[left:right] if left >= 0 and right >= 0 else ""
+        required = (
+            marker,
+            "const mediaSaveConfig = item?.media_save_config;",
+            "mediaSaveConfig.disable_save = false;",
+            "mediaSaveConfig.disable_watermark = true;",
+            "mediaSaveConfig.disable_weibo_cover = true;",
+            "const videoInfo = item?.video_info_v2;",
+            "const videoMedia = videoInfo?.media;",
+            "const videoStream = videoMedia?.stream;",
+            "const h265List = videoStream?.h265 || [];",
+            "const h264List = videoStream?.h264 || [];",
+            "const itemId = item?.id;",
+            "const selectedMasterUrl = selectedStream?.master_url;",
+            "if (itemId && selectedMasterUrl) {",
+            "id: itemId,",
+            "url: selectedMasterUrl",
+        )
+        stale = (
+            "if (item?.media_save_config) {",
+            "item.media_save_config.disable_save",
+            "item.media_save_config.disable_watermark",
+            "item.media_save_config.disable_weibo_cover",
+            "item?.video_info_v2?.media?.stream?.h265",
+            "item?.video_info_v2?.media?.stream?.h264",
+            "if (item?.id && selectedStream?.master_url)",
+            "id: item.id,",
+            "url: selectedStream.master_url",
+        )
+        if not block or any(token not in block for token in required) or any(token in block for token in stale):
+            raise ValueError("Xiaohongshu v4 video-feed reference-cache marker/structure drift")
+        return src
+    if src.count(start) != 1 or src.count(end) != 1:
+        raise ValueError("Xiaohongshu v4 video-feed route boundaries changed")
+    left = src.index(start)
+    right = src.index(end, left)
+    block = src[left:right]
+    old_permission = '''// 强制开启权限
+      if (item?.media_save_config) {
+        item.media_save_config.disable_save = false;
+        item.media_save_config.disable_watermark = true;
+        item.media_save_config.disable_weibo_cover = true;
+      }'''
+    new_permission = '''// 强制开启权限
+      // loon-change: Xiaohongshu v4 video-feed nested reference cache v1;
+      const mediaSaveConfig = item?.media_save_config;
+      if (mediaSaveConfig) {
+        mediaSaveConfig.disable_save = false;
+        mediaSaveConfig.disable_watermark = true;
+        mediaSaveConfig.disable_weibo_cover = true;
+      }'''
+    if block.count(old_permission) != 1:
+        raise ValueError("Xiaohongshu v4 media-save property anchor drift")
+    block = block.replace(old_permission, new_permission, 1)
+    old_streams = '''const h265List = item?.video_info_v2?.media?.stream?.h265 || [];
+      const h264List = item?.video_info_v2?.media?.stream?.h264 || [];'''
+    new_streams = '''const videoInfo = item?.video_info_v2;
+      const videoMedia = videoInfo?.media;
+      const videoStream = videoMedia?.stream;
+      const h265List = videoStream?.h265 || [];
+      const h264List = videoStream?.h264 || [];'''
+    if block.count(old_streams) != 1:
+        raise ValueError("Xiaohongshu v4 stream-property anchor drift")
+    block = block.replace(old_streams, new_streams, 1)
+    old_cache = '''if (item?.id && selectedStream?.master_url) {
+        const data = {
+          id: item.id,
+          url: selectedStream.master_url
+        };
+        videoData.push(data);
+      } else {
+      }'''
+    new_cache = '''const itemId = item?.id;
+      const selectedMasterUrl = selectedStream?.master_url;
+      if (itemId && selectedMasterUrl) {
+        videoData.push({
+          id: itemId,
+          url: selectedMasterUrl
+        });
+      }'''
+    if block.count(old_cache) != 1:
+        raise ValueError("Xiaohongshu v4 cache-record anchor drift")
+    block = block.replace(old_cache, new_cache, 1)
+    src = src[:left] + block + src[right:]
+    return src
+
+
+
+
 COMMENT_NODE_ARRAY_MARKER = "// loon-change: Xiaohongshu comment node array classification cache v1;"
 
 def optimize_comment_node_array_classification(src):
@@ -531,7 +630,7 @@ def optimize_source(src,commit="unknown"):
             src = optimize_video_save_lazy_cache_parse(src)
             src = optimize_v4_video_feed_function_entry_scan(src)
             src = optimize_v4_function_switch_indexed_scan(src)
-            return optimize_stream_selection_no_closure(src)
+            return optimize_stream_selection_no_closure(optimize_v4_video_feed_nested_reference_cache(src))
         src = apply_comment_optimization(src)
         src = optimize_comment_media_property_cache(src)
         src = optimize_imagefeed_single_traversal(src)
@@ -544,7 +643,7 @@ def optimize_source(src,commit="unknown"):
         src = optimize_video_save_lazy_cache_parse(src)
         src = optimize_v4_video_feed_function_entry_scan(src)
         src = optimize_v4_function_switch_indexed_scan(src)
-        return optimize_stream_selection_no_closure(src)
+        return optimize_stream_selection_no_closure(optimize_v4_video_feed_nested_reference_cache(src))
     src=once(src,"const url = $request.url;","const url = $request.url;\n"+HELPERS.strip(),"helpers")
     src=once(src,"  console.log('打印原body：' + JSON.stringify(obj));\n","","full-body logging")
     src=once(src,'''      obj.data[0].note_list[0].images_list = imageEnhance(JSON.stringify(images_list));
@@ -640,7 +739,7 @@ def optimize_source(src,commit="unknown"):
     result = optimize_v4_video_feed_function_entry_scan(result)
     result = optimize_v4_function_switch_indexed_scan(result)
     result = optimize_stream_selection_no_closure(result)
-    for token in ("imageEnhance(images_list, livePhotoCache)", IMAGE_FEED_MARKER, "compactInPlace(obj.data","appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)","const byFileId=new Map()", "Xiaohongshu comment classification stack frames v1;", "const commentFrameTag = {};", "stack.push(true, comment, commentFrameTag);", "stack.push(false, subComment, commentFrameTag);", FUNCTION_SWITCH_MARKER, COMMENT_STACK_FRAME_MARKER, COMMENT_CACHE_MARKER, "let parsed = parsedVideoInfo.get(raw);", VIDEO_SAVE_LOOKUP_MARKER, VIDEO_SAVE_LAZY_PARSE_MARKER, "const noteId = obj.data?.note_id;", "for (let i = videoFeed.length - 1; i >= 0; i--)", STREAM_SELECTION_MARKER, "for (let pass = 0; pass < 2; pass++)"):
+    for token in ("imageEnhance(images_list, livePhotoCache)", IMAGE_FEED_MARKER, "compactInPlace(obj.data","appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)","const byFileId=new Map()", "Xiaohongshu comment classification stack frames v1;", "const commentFrameTag = {};", "stack.push(true, comment, commentFrameTag);", "stack.push(false, subComment, commentFrameTag);", FUNCTION_SWITCH_MARKER, VIDEO_FEED_REFERENCE_CACHE_MARKER, COMMENT_STACK_FRAME_MARKER, COMMENT_CACHE_MARKER, "let parsed = parsedVideoInfo.get(raw);", VIDEO_SAVE_LOOKUP_MARKER, VIDEO_SAVE_LAZY_PARSE_MARKER, "const noteId = obj.data?.note_id;", "for (let i = videoFeed.length - 1; i >= 0; i--)", STREAM_SELECTION_MARKER, "for (let pass = 0; pass < 2; pass++)"):
         if token not in result:raise ValueError("missing optimizer invariant: "+token)
     if "imageEnhance(JSON.stringify(images_list))" in result:raise ValueError("image-feed serialization round trip remains")
     if "for (const image of images_list)" in result:raise ValueError("image-feed second cache traversal remains")
