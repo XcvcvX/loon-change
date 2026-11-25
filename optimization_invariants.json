@@ -95,7 +95,11 @@
         "const mediaSaveConfig = item?.media_save_config;",
         "const functionEntries = item?.share_info?.function_entries;",
         "const firstFunctionEntry = functionEntries[0];",
-        "functionEntries.unshift({type: \"video_download\"});"
+        "functionEntries.unshift({type: \"video_download\"});",
+        "// loon-change: Xiaohongshu image traversal array-frame length cache v1;",
+        "length:Array.isArray(images)?images.length:0",
+        "if(frame.index>=frame.length)",
+        "length:Array.isArray(child)?child.length:0"
       ],
       "forbidden": [
         "console.log(`[缓存] ID:",
@@ -122,7 +126,8 @@
         "item?.video_info_v2?.media?.stream?.h264",
         "if (item?.id && selectedStream?.master_url)",
         "id: item.id,",
-        "url: selectedStream.master_url"
+        "url: selectedStream.master_url",
+        "if(frame.index>=value.length)"
       ]
     },
     {
