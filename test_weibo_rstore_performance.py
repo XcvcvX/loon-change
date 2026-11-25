@@ -5,7 +5,7 @@ import subprocess
 import unittest
 from pathlib import Path
 
-from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, LAZY_MARKER, GUARD_DECLARATION, HELPER, LEGACY_HELPER, optimize_source, rewrite_plugin, optimize_page_filter_cached_itemid, TOPIC_GROUP_MARKER, optimize_topic_group_in_place, COMMENT_DATA_CACHE_MARKER, COMMENT_DATA_CACHE_OLD, COMMENT_DATA_CACHE_NEW, optimize_comment_data_reference_cache, REMOVE_AVATAR_USER_CACHE_MARKER, COMMENT_USER_CACHE_MARKER, COMMENT_USER_CACHE_OLD, COMMENT_USER_CACHE_NEW, optimize_comment_user_reference_cache, TOPIC_GROUP_NESTED_DATA_MARKER, optimize_topic_group_nested_data_cache, ROOT_COMMENT_USER_CACHE_MARKER, optimize_root_comment_user_cache
+from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, LAZY_MARKER, GUARD_DECLARATION, HELPER, LEGACY_HELPER, optimize_source, rewrite_plugin, optimize_page_filter_cached_itemid, TOPIC_GROUP_MARKER, optimize_topic_group_in_place, COMMENT_DATA_CACHE_MARKER, COMMENT_DATA_CACHE_OLD, COMMENT_DATA_CACHE_NEW, optimize_comment_data_reference_cache, REMOVE_AVATAR_USER_CACHE_MARKER, COMMENT_USER_CACHE_MARKER, COMMENT_USER_CACHE_OLD, COMMENT_USER_CACHE_NEW, optimize_comment_user_reference_cache, TOPIC_GROUP_NESTED_DATA_MARKER, optimize_topic_group_nested_data_cache, ROOT_COMMENT_USER_CACHE_MARKER, optimize_root_comment_user_cache, REMOVE_AVATAR_PROPERTY_CACHE_MARKER, optimize_remove_avatar_property_cache
 
 ROOT = Path(__file__).resolve().parent
 SCRIPT = ROOT / "scripts/weibo/weibo-rstore.js"
@@ -97,6 +97,29 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         damaged = source.replace("const commentUser = item.user;", "const commentUser = null;", 1)
         with self.assertRaisesRegex(ValueError, "user-cache structure drift"):
             optimize_root_comment_user_cache(damaged)
+
+
+    def test_remove_avatar_properties_are_read_once_before_deletion(self):
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(REMOVE_AVATAR_PROPERTY_CACHE_MARKER, source)
+        self.assertEqual(optimize_remove_avatar_property_cache(source), source)
+        for token in (
+            "const blockCardBg = data?.block_card_bg;",
+            "const buttons = data?.buttons;",
+            "const cardId = data?.cardid;",
+            "const icons = data?.icons;",
+            "const mblogButtons = data?.mblog_buttons;",
+            "const picBgNew = data?.pic_bg_new;",
+            "const avatarGjId = user?.avatargj_id;",
+            "const avatarExtendInfo = user?.avatar_extend_info;",
+            "const userCardId = user?.cardid;",
+            "const userIcons = user?.icons;",
+            "const memberType = user?.mbtype;",
+        ):
+            self.assertIn(token, source)
+        damaged = source.replace("const buttons = data?.buttons;", "const buttons = null;", 1)
+        with self.assertRaisesRegex(ValueError, "single-read cache structure drift"):
+            optimize_remove_avatar_property_cache(damaged)
 
     def test_profile_timeline_caches_nested_data_references_once(self):
         from optimize_weibo_rstore import PROFILE_TIMELINE_DATA_CACHE_MARKER, optimize_profile_timeline_data_cache
@@ -282,6 +305,68 @@ process.stdout.write(JSON.stringify({doneResult, parseCount, stringifyCount}));
             self.assertNotIn(key, kept)
         self.assertEqual(result["parseCount"], 1)
         self.assertEqual(result["stringifyCount"], 1)
+
+
+    def test_remove_avatar_reads_each_decoration_property_once(self):
+        runner = r"""
+const fs=require("fs"),vm=require("vm");
+const source=fs.readFileSync(process.argv[1],"utf8"),payload=JSON.parse(fs.readFileSync(0,"utf8"));
+let doneResult,tracking=false;
+const dataKeys=["block_card_bg","buttons","cardid","icons","mblog_buttons","pic_bg_new"];
+const userKeys=["avatargj_id","avatar_extend_info","cardid","icons","mbtype"];
+const dataReads=Object.create(null),userReads=Object.create(null);
+const nativeParse=JSON.parse.bind(JSON),nativeStringify=JSON.stringify.bind(JSON);
+const trackedJSON={
+  parse(value){
+    const parsed=nativeParse(value);
+    for(const entry of parsed.datas||[]){
+      const data=entry?.data;
+      if(!data)continue;
+      const user=data.user;
+      for(const key of dataKeys){
+        let current=data[key];
+        dataReads[key]=0;
+        Object.defineProperty(data,key,{enumerable:true,configurable:true,get(){if(tracking)dataReads[key]++;return current;},set(value){current=value;}});
+      }
+      if(user){
+        for(const key of userKeys){
+          let current=user[key];
+          userReads[key]=0;
+          Object.defineProperty(user,key,{enumerable:true,configurable:true,get(){if(tracking)userReads[key]++;return current;},set(value){current=value;}});
+        }
+      }
+    }
+    tracking=true;
+    return parsed;
+  },
+  stringify(value){tracking=false;return nativeStringify(value);}
+};
+const context={JSON:trackedJSON,$request:{url:payload.url},$response:{body:nativeStringify(payload.body)},$done(value){doneResult=value;},console:{log(){},warn(){},error(){}}};
+vm.runInNewContext(source,context,{timeout:5000});
+process.stdout.write(nativeStringify({doneResult,dataReads,userReads}));
+""";
+        constBody = {"datas": [{"type": 1, "data": {
+            "user": {"name": "ordinary", "avatargj_id": "x", "avatar_extend_info": "x",
+                     "cardid": "u", "icons": [{"type": "vip"}], "mbtype": 2},
+            "block_card_bg": "x", "buttons": [{"type": "follow"}], "cardid": "d",
+            "icons": [{"type": "x"}], "mblog_buttons": [{"type": "forward"}], "pic_bg_new": "x",
+            "comment_bubble": {"text": "remove"}
+        }}]}
+        completed = subprocess.run(
+            [NODE, "-e", runner, str(SCRIPT)],
+            input=json.dumps({"url": "https://api.weibo.cn/2/comments/build_comments?fixture=remove-avatar-reads", "body": constBody}),
+            capture_output=True, text=True, check=False, timeout=10
+        )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        result = json.loads(completed.stdout)
+        output = json.loads(result["doneResult"]["body"])
+        self.assertEqual(len(output["datas"]), 1)
+        self.assertEqual(set(result["dataReads"].values()), {1})
+        self.assertEqual(set(result["userReads"].values()), {1})
+        for key in ("block_card_bg", "buttons", "cardid", "icons", "mblog_buttons", "pic_bg_new"):
+            self.assertNotIn(key, output["datas"][0]["data"])
+        for key in ("avatargj_id", "avatar_extend_info", "cardid", "icons", "mbtype"):
+            self.assertNotIn(key, output["datas"][0]["data"]["user"])
 
     def test_comment_user_and_name_accessors_are_read_once_per_comment(self):
         runner = r"""
