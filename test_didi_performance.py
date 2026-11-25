@@ -11,6 +11,8 @@ from optimize_didi import (
     DIDI_WALLET_PROPERTY_CACHE_MARKER,
     DIDI_HOMEPAGE_CORE_CACHE_MARKER,
     optimize_homepage_core_cached_references,
+    DIDI_ROUTE_ARRAY_REFERENCE_CACHE_MARKER,
+    optimize_route_array_reference_cache,
     LOCAL,
     MARKER,
     REMOTE,
@@ -371,6 +373,31 @@ if (payload.body === null) {
         self.assertEqual(cards[0]["items"], "unexpected")
         self.assertEqual(cards[0]["bottom_items"], {"unexpected": True})
         self.assertEqual(result["stringifyCount"], 1)
+
+
+    def test_scene_and_usercenter_route_arrays_are_cached_once(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        self.assertIn(DIDI_ROUTE_ARRAY_REFERENCE_CACHE_MARKER, source)
+        self.assertEqual(optimize_route_array_reference_cache(source), source)
+        self.assertIn("const sceneList = responseData?.scene_list;", source)
+        self.assertIn("const showData = responseData?.show_data;", source)
+        self.assertIn("const userCenterCards = responseData?.cards;", source)
+        self.assertNotIn("responseData.scene_list", source)
+        self.assertNotIn("responseData.show_data", source)
+        self.assertNotIn("responseData.cards", source)
+        damaged = source.replace("const sceneList = responseData?.scene_list;", "const sceneList = null;", 1)
+        with self.assertRaisesRegex(ValueError, "structure is incomplete"):
+            optimize_route_array_reference_cache(damaged)
+        body = {"data": {
+            "scene_list": [{"text": "优惠商城"}, {"text": "打车"}],
+            "show_data": [{"scene_ids": ["scene_coupon_mall", "ride"]}],
+        }}
+        result = self.run_script(
+            "https://api.udache.com/gulfstream/pre-sale/v1/other/pGetSceneList",
+            body,
+        )
+        self.assertEqual([item["text"] for item in result["output"]["data"]["scene_list"]], ["打车"])
+        self.assertEqual(result["output"]["data"]["show_data"][0]["scene_ids"], ["ride"])
 
     def test_root_response_data_reference_is_read_once_per_response(self):
         from optimize_didi import optimize_response_data_reference_cache
