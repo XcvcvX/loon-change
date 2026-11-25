@@ -939,6 +939,7 @@ def optimize_source(src,commit="unknown"):
     result = optimize_comment_video_info_cache(result)
     result = optimize_comment_stack_frame_allocation(result)
     result = optimize_comment_node_array_classification(result)
+    result = optimize_comment_array_length_cache(result)
     result = optimize_video_save_cache_lookup(result)
     result = optimize_video_save_lazy_cache_parse(result)
     result = optimize_v4_video_feed_function_entry_scan(result)
@@ -946,7 +947,11 @@ def optimize_source(src,commit="unknown"):
     result = optimize_v3_video_feed_item_reference_cache(result)
     result = optimize_v4_video_feed_nested_reference_cache(result)
     result = optimize_stream_selection_no_closure(result)
-    for token in ("imageEnhance(images_list, livePhotoCache)", IMAGE_FEED_MARKER, IMAGE_ARRAY_LENGTH_MARKER, "frame.index>=frame.length", "compactInPlace(obj.data","appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)","const byFileId=new Map()", "Xiaohongshu comment classification stack frames v1;", "const commentFrameTag = {};", "stack.push(true, comment, commentFrameTag);", "stack.push(false, subComment, commentFrameTag);", FUNCTION_SWITCH_MARKER, VIDEO_V3_ITEM_CACHE_MARKER, VIDEO_FEED_REFERENCE_CACHE_MARKER, COMMENT_STACK_FRAME_MARKER, COMMENT_CACHE_MARKER, "let parsed = parsedVideoInfo.get(raw);", VIDEO_SAVE_LOOKUP_MARKER, VIDEO_SAVE_LAZY_PARSE_MARKER, "const noteId = obj.data?.note_id;", "for (let i = videoFeed.length - 1; i >= 0; i--)", STREAM_SELECTION_MARKER, "for (let pass = 0; pass < 2; pass++)"):
+    for token in ("imageEnhance(images_list, livePhotoCache)", IMAGE_FEED_MARKER, IMAGE_ARRAY_LENGTH_MARKER, "frame.index>=frame.length", "compactInPlace(obj.data","appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)","const byFileId=new Map()", "Xiaohongshu comment classification stack frames v1;", "const commentFrameTag = {};",
+        COMMENT_ARRAY_LENGTH_MARKER,
+        "const currentLength = current.length;",
+        "const commentsLength = child.length;",
+        "const subCommentsLength = child.length;", "stack.push(true, comment, commentFrameTag);", "stack.push(false, subComment, commentFrameTag);", FUNCTION_SWITCH_MARKER, VIDEO_V3_ITEM_CACHE_MARKER, VIDEO_FEED_REFERENCE_CACHE_MARKER, COMMENT_STACK_FRAME_MARKER, COMMENT_CACHE_MARKER, "let parsed = parsedVideoInfo.get(raw);", VIDEO_SAVE_LOOKUP_MARKER, VIDEO_SAVE_LAZY_PARSE_MARKER, "const noteId = obj.data?.note_id;", "for (let i = videoFeed.length - 1; i >= 0; i--)", STREAM_SELECTION_MARKER, "for (let pass = 0; pass < 2; pass++)"):
         if token not in result:raise ValueError("missing optimizer invariant: "+token)
     if "imageEnhance(JSON.stringify(images_list))" in result:raise ValueError("image-feed serialization round trip remains")
     if "for (const image of images_list)" in result:raise ValueError("image-feed second cache traversal remains")
