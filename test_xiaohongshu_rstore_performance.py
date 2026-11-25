@@ -78,14 +78,17 @@ class RStoreXiaohongshuOptimizerTests(unittest.TestCase):
         v3 = """    if (obj?.data?.length > 0) {
       for (let item of obj.data) {
         if (item?.media_save_config) {
+          // 水印开关
           item.media_save_config.disable_save = false;
           item.media_save_config.disable_watermark = true;
           item.media_save_config.disable_weibo_cover = true;
         }
         if (item?.share_info?.function_entries?.length > 0) {
+          // 下载限制
           const additem = {type: "video_download"};
           let func = item.share_info.function_entries[0];
           if (func?.type !== "video_download") {
+            // 向数组开头添加对象
             item.share_info.function_entries.unshift(additem);
           }
         }
