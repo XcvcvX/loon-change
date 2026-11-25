@@ -162,10 +162,21 @@ if (url.includes("/note/imagefeed") || url.includes("/note/feed")) {
     if (obj.data?.length > 0) {
         for (let item of obj.data) {
           // 添加下载按钮（如果未存在）
-          if (item?.share_info?.function_entries?.length > 0) {
-            const hasDownload = item.share_info.function_entries.some(entry => entry.type === "video_download");
+          // loon-change: Xiaohongshu v4 function-entry indexed scan v1
+          const shareInfo = item?.share_info;
+          const functionEntries = shareInfo?.function_entries;
+          if (functionEntries?.length > 0) {
+            let hasDownload = false;
+            const functionEntryCount = functionEntries.length;
+            for (let entryIndex = 0; entryIndex < functionEntryCount; entryIndex++) {
+              const entry = functionEntries[entryIndex];
+              if (entry.type === "video_download") {
+                hasDownload = true;
+                break;
+              }
+            }
             if (!hasDownload) {
-              item.share_info.function_entries.push({type: "video_download"});
+              functionEntries.push({type: "video_download"});
             }
           }
     
@@ -416,6 +427,7 @@ function cleanCommentsAndCollectLivePhotos(data) {
       stack[stack.length - 1] === commentFrameTag;
     const isTopLevelComment = isCommentFrame && entry === true;
     let current = entry;
+    let commentPictures = null;
     if (isCommentFrame) {
       stack.pop(); // commentFrameTag
       current = stack.pop();
@@ -425,9 +437,12 @@ function cleanCommentsAndCollectLivePhotos(data) {
     if (isCommentFrame) {
       if (current.comment_type === 3) current.comment_type = 2;
       if (current.media_source_type === 1) current.media_source_type = 0;
-      if (current.pictures?.length > 0) {
-        for (const picture of current.pictures) {
-          if (!picture.video_id) continue;
+      // loon-change: Xiaohongshu comment pictures reference cache v1
+      commentPictures = current.pictures;
+      if (commentPictures?.length > 0) {
+        for (const picture of commentPictures) {
+          const videoId = picture.video_id;
+          if (!videoId) continue;
           // loon-change: Xiaohongshu comment video-info cache single lookup v1
           const rawVideoInfo = picture.video_info;
           let picObj = videoInfoCache.get(rawVideoInfo);
@@ -436,7 +451,7 @@ function cleanCommentsAndCollectLivePhotos(data) {
             videoInfoCache.set(rawVideoInfo, picObj);
           }
           const videoUrl = picObj.stream?.h265?.[0]?.master_url;
-          if (videoUrl) livePhotos.push({videId: picture.video_id, videoUrl});
+          if (videoUrl) livePhotos.push({videId: videoId, videoUrl});
         }
       }
     }
@@ -448,7 +463,8 @@ function cleanCommentsAndCollectLivePhotos(data) {
     } else {
       for (const key in current) {
         if (!Object.prototype.hasOwnProperty.call(current, key)) continue;
-        const child = current[key];
+        // Reuse the already-read pictures reference on comment frames.
+        const child = isCommentFrame && key === "pictures" ? commentPictures : current[key];
         if (!child || typeof child !== "object") continue;
         if (current === data && key === "comments" && Array.isArray(child)) {
           for (let index = child.length - 1; index >= 0; index--) {
