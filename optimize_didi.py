@@ -446,7 +446,7 @@ def optimize_response_data_reference_cache(source):
         return source
     if source.count(parse) != 1:
         raise ValueError("Didi response data cache parse anchor drift")
-    source = source.replace(parse, parse + "\\n  " + DIDI_RESPONSE_DATA_CACHE_MARKER + "\\n  const responseData = obj.data;", 1)
+    source = source.replace(parse, parse + "\n  " + DIDI_RESPONSE_DATA_CACHE_MARKER + "\n  const responseData = obj.data;", 1)
     source = source.replace("obj.data", "responseData")
     source = source.replace("const responseData = responseData;", "const responseData = obj.data;")
     if source.count("obj.data") != 1:
