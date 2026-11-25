@@ -434,7 +434,7 @@ def optimize_source(source, commit="unknown"):
     if MARKER in source:
         if "__loonSource32" not in source or "compactInPlace(items, keep)" not in source:
             raise ValueError("marked Weibo script is incomplete")
-        return optimize_profile_timeline_data_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source)))))))))
+        return optimize_profile_timeline_data_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_remove_avatar_property_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source))))))))))
     source = source.replace("const url = $request.url;", "const url = $request.url;\n" + GUARD_DECLARATION + "\n\n" + HELPER, 1)
     if source.count(HELPER) != 1:
         raise ValueError("Weibo helper insertion failed")
@@ -446,7 +446,7 @@ def optimize_source(source, commit="unknown"):
     remaining = re.findall(r"\b(new[A-Za-z0-9_]*)\s*=\s*\[\s*\]", source)
     if sorted(remaining) != ["newActions", "newII"]:
         raise ValueError("unexpected remaining Weibo temporary arrays: " + repr(remaining))
-    return optimize_profile_timeline_data_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source)))))))))
+    return optimize_profile_timeline_data_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_remove_avatar_property_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source))))))))))
 
 SCALAR_MEMBERSHIP_MARKER = "// loon-change: Weibo hot-loop scalar membership v1"
 SCALAR_MEMBERSHIP_REWRITES = [
@@ -801,6 +801,42 @@ def optimize_root_comment_user_cache(source):
     source = source.replace(ROOT_COMMENT_USER_CACHE_OLD, ROOT_COMMENT_USER_CACHE_NEW, 1)
     if source.count(marker) != 1 or any(token not in source for token in required):
         raise ValueError("Weibo root-comment user-cache postcondition failed")
+    return source
+
+
+
+REMOVE_AVATAR_PROPERTY_CACHE_MARKER = "// loon-change: Weibo removeAvatar single-read property cache v1"
+REMOVE_AVATAR_HELPER_PROPERTY_CACHE_NEW = "function removeAvatar(data, user = data?.user) {\n  // loon-change: Weibo removeAvatar cached user reference v1\n  // loon-change: Weibo removeAvatar single-read property cache v1\n  const blockCardBg = data?.block_card_bg;\n  if (blockCardBg) {\n    modified = true;\n    delete data.block_card_bg;\n  }\n  const buttons = data?.buttons;\n  if (buttons) {\n    modified = true;\n    delete data.buttons;\n  }\n  const cardId = data?.cardid;\n  if (cardId) {\n    modified = true;\n    delete data.cardid;\n  }\n  const icons = data?.icons;\n  if (icons) {\n    modified = true;\n    delete data.icons;\n  }\n  const mblogButtons = data?.mblog_buttons;\n  if (mblogButtons) {\n    // 转发按钮图标\n    modified = true;\n    delete data.mblog_buttons;\n  }\n  const picBgNew = data?.pic_bg_new;\n  if (picBgNew) {\n    modified = true;\n    delete data.pic_bg_new;\n  }\n  const avatarGjId = user?.avatargj_id;\n  if (avatarGjId) {\n    modified = true;\n    delete user.avatargj_id;\n  }\n  const avatarExtendInfo = user?.avatar_extend_info;\n  if (avatarExtendInfo) {\n    modified = true;\n    delete user.avatar_extend_info;\n  }\n  const userCardId = user?.cardid;\n  if (userCardId) {\n    modified = true;\n    delete user.cardid;\n  }\n  const userIcons = user?.icons;\n  if (userIcons) {\n    modified = true;\n    delete user.icons;\n  }\n  const memberType = user?.mbtype;\n  if (memberType) {\n    // 会员等级图标\n    modified = true;\n    delete user.mbtype;\n  }\n}"
+
+def optimize_remove_avatar_property_cache(source):
+    """Read each removable Weibo avatar decoration field once before deleting it."""
+    marker = REMOVE_AVATAR_PROPERTY_CACHE_MARKER
+    start_token = "function removeAvatar(data, user = data?.user) {"
+    end_token = "\n}\n\n// 移除信息流关注按钮"
+    if start_token not in source or end_token not in source:
+        raise ValueError("Weibo removeAvatar property-cache helper boundary drift")
+    start = source.index(start_token)
+    end = source.index(end_token, start) + 2
+    block = source[start:end]
+    required = (
+        marker,
+        "const blockCardBg = data?.block_card_bg;",
+        "const mblogButtons = data?.mblog_buttons;",
+        "const avatarGjId = user?.avatargj_id;",
+        "const avatarExtendInfo = user?.avatar_extend_info;",
+        "const userCardId = user?.cardid;",
+        "const userIcons = user?.icons;",
+        "const memberType = user?.mbtype;",
+    )
+    if marker in block:
+        if block.count(marker) != 1 or any(token not in block for token in required):
+            raise ValueError("Weibo removeAvatar single-read cache structure drift")
+        if "if (data?.block_card_bg)" in block or "if (user?.avatargj_id)" in block:
+            raise ValueError("Weibo repeated removeAvatar property reads remain")
+        return source
+    if block != REMOVE_AVATAR_HELPER_NEW:
+        raise ValueError("Weibo removeAvatar property-cache source anchor changed")
+    source = source[:start] + REMOVE_AVATAR_HELPER_PROPERTY_CACHE_NEW + source[end:]
     return source
 
 
