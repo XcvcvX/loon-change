@@ -22,7 +22,7 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
 }"""
         optimized = optimize_vote_info_nested_reference_cache(source)
         self.assertIn(VOTE_INFO_NESTED_REFERENCE_CACHE_MARKER, optimized)
-        self.assertIn("const pageInfo = item?.page_info;", optimized)
+        self.assertIn("const pageInfo = hasCachedPageInfo ? cachedPageInfo : item?.page_info;", optimized)
         self.assertIn("const mediaInfo = pageInfo?.media_info;", optimized)
         self.assertIn("const voteInfo = mediaInfo?.vote_info;", optimized)
         self.assertIn("delete mediaInfo.vote_info;", optimized)
@@ -33,7 +33,7 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
     def test_fresh_source_transform_order_caches_user_before_avatar_fields(self):
         optimizer = Path(__file__).with_name("optimize_weibo_rstore.py").read_text(encoding="utf-8")
         lines = [line.strip() for line in optimizer.splitlines()
-                 if "return optimize_vote_info_nested_reference_cache(" in line]
+                 if "return optimize_comment_status_page_info_cache(" in line]
         self.assertEqual(len(lines), 2)
         for line in lines:
             comment_data = line.index("optimize_comment_data_reference_cache(")
@@ -60,7 +60,7 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         remaining = re.findall(r"\b(new[A-Za-z0-9_]*)\s*=\s*\[\s*\]", source)
         self.assertEqual(sorted(remaining), ["newActions"])
         self.assertIn(VOTE_INFO_NESTED_REFERENCE_CACHE_MARKER, source)
-        self.assertIn("const pageInfo = item?.page_info;", source)
+        self.assertIn("const pageInfo = hasCachedPageInfo ? cachedPageInfo : item?.page_info;", source)
         self.assertIn("const mediaInfo = pageInfo?.media_info;", source)
         self.assertIn("const voteInfo = mediaInfo?.vote_info;", source)
         self.assertNotIn("item?.page_info?.media_info?.vote_info", source)
