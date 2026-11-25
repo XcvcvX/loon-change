@@ -126,6 +126,8 @@ REPLACE_URL = r'''function replaceUrlContent(collectionA, collectionB) {
   }
 }'''
 
+COMMENT_ARRAY_LENGTH_MARKER = "// loon-change: Xiaohongshu comment traversal cached array lengths v1"
+
 COMMENT_HELPER = r'''function cleanCommentsAndCollectLivePhotos(data) {
   const livePhotos = [];
   const commentFrameTag = {};
@@ -154,8 +156,11 @@ COMMENT_HELPER = r'''function cleanCommentsAndCollectLivePhotos(data) {
       if (current.media_source_type === 1) current.media_source_type = 0;
       // loon-change: Xiaohongshu comment pictures reference cache v1
       commentPictures = current.pictures;
-      if (commentPictures?.length > 0) {
-        for (const picture of commentPictures) {
+      // loon-change: Xiaohongshu comment traversal cached array lengths v1
+      const commentPictureCount = commentPictures?.length || 0;
+      if (commentPictureCount > 0) {
+        for (let pictureIndex = 0; pictureIndex < commentPictureCount; pictureIndex++) {
+          const picture = commentPictures[pictureIndex];
           const videoId = picture.video_id;
           if (!videoId) continue;
           // loon-change: Xiaohongshu comment video-info cache single lookup v1
@@ -171,7 +176,8 @@ COMMENT_HELPER = r'''function cleanCommentsAndCollectLivePhotos(data) {
       }
     }
     if (Array.isArray(current)) {
-      for (let index = current.length - 1; index >= 0; index--) {
+      const currentLength = current.length;
+      for (let index = currentLength - 1; index >= 0; index--) {
         const child = current[index];
         if (child && typeof child === "object") stack.push(child);
       }
@@ -182,12 +188,14 @@ COMMENT_HELPER = r'''function cleanCommentsAndCollectLivePhotos(data) {
         const child = isCommentFrame && key === "pictures" ? commentPictures : current[key];
         if (!child || typeof child !== "object") continue;
         if (current === data && key === "comments" && Array.isArray(child)) {
-          for (let index = child.length - 1; index >= 0; index--) {
+          const commentCount = child.length;
+          for (let index = commentCount - 1; index >= 0; index--) {
             const comment = child[index];
             if (comment && typeof comment === "object") stack.push(comment, commentFrameTag, true);
           }
         } else if (isCommentFrame && isTopLevelComment && key === "sub_comments" && Array.isArray(child)) {
-          for (let index = child.length - 1; index >= 0; index--) {
+          const subCommentCount = child.length;
+          for (let index = subCommentCount - 1; index >= 0; index--) {
             const subComment = child[index];
             if (subComment && typeof subComment === "object") stack.push(subComment, commentFrameTag, false);
           }
@@ -486,7 +494,7 @@ def optimize_source(source, commit="unknown"):
         source = optimize_v4_function_entry_scan(source)
         required = ("function imageEnhance(images, livePhotoCache)", "compactInPlace(obj.data", "appendUniqueLivePhotos",
                     "const byFileId = new Map()", "function cleanCommentsAndCollectLivePhotos(data)",
-                    "const videoInfoCache = new Map()", "let commentPictures = null;", "commentPictures = current.pictures;", "commentPictures : current[key]")
+                    "const videoInfoCache = new Map()", "let commentPictures = null;", "commentPictures = current.pictures;", COMMENT_ARRAY_LENGTH_MARKER, "const commentPictureCount = commentPictures?.length || 0;", "const currentLength = current.length;", "const commentCount = child.length;", "const subCommentCount = child.length", "commentPictures : current[key]")
         if any(token not in source for token in required):
             raise ValueError("marked R-Store Xiaohongshu source is incomplete")
         if "function removeRedId(obj) {" in source:
@@ -629,6 +637,11 @@ def optimize_source(source, commit="unknown"):
         COMMENT_TREE_MARKER, "selectedStream = null",
         "// loon-change: Xiaohongshu comment video-info cache single lookup v1",
         "let picObj = videoInfoCache.get(rawVideoInfo);",
+      COMMENT_ARRAY_LENGTH_MARKER,
+      "const commentPictureCount = commentPictures?.length || 0;",
+      "const currentLength = current.length;",
+      "const commentCount = child.length;",
+      "const subCommentCount = child.length",
     )
     for token in invariants:
         if token not in result:
