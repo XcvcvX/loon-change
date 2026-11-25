@@ -120,14 +120,16 @@ if (!shouldProcess) {
   $done({});
 } else {
   let obj = JSON.parse($response.body);
+  // loon-change: Didi response data reference cache v1
+  const responseData = obj.data;
 
 if (isSceneList) {
-  if (obj && obj.data && obj.data.scene_list instanceof Array) {
-    compactDidiByField(obj.data.scene_list, "text", "scene");
+  if (obj && responseData && responseData.scene_list instanceof Array) {
+    compactDidiByField(responseData.scene_list, "text", "scene");
   }
-  if (obj && obj.data && obj.data.show_data instanceof Array) {
+  if (obj && responseData && responseData.show_data instanceof Array) {
     // loon-change: Didi show_data nested traversal cache v1
-    const showData = obj.data.show_data;
+    const showData = responseData.show_data;
     const showDataLength = showData.length;
     for (let read = 0; read < showDataLength; read++) {
       const block = showData[read];
@@ -141,18 +143,18 @@ if (isSceneList) {
 
 if (isHomepageCore) {
   // 保留打车、代驾、青桔骑行
-  if (obj.data && obj.data.order_cards && obj.data.order_cards.nav_list_card && obj.data.order_cards.nav_list_card.data) {
-    compactDidiByField(obj.data.order_cards.nav_list_card.data, "nav_id", "nav");
+  if (responseData && responseData.order_cards && responseData.order_cards.nav_list_card && responseData.order_cards.nav_list_card.data) {
+    compactDidiByField(responseData.order_cards.nav_list_card.data, "nav_id", "nav");
   }
   // 保留底部tap首页、我的
-  if (obj.data && obj.data.disorder_cards && obj.data.disorder_cards.bottom_nav_list && obj.data.disorder_cards.bottom_nav_list.data) {
-    compactDidiByField(obj.data.disorder_cards.bottom_nav_list.data, "id", "bottomNav");
+  if (responseData && responseData.disorder_cards && responseData.disorder_cards.bottom_nav_list && responseData.disorder_cards.bottom_nav_list.data) {
+    compactDidiByField(responseData.disorder_cards.bottom_nav_list.data, "id", "bottomNav");
   }
 }
 
 if (isInfoList) {
   // loon-change: Didi info-list cached nested references v1
-  const topBannerData = obj.data?.disorder_cards?.top_banner_card?.data;
+  const topBannerData = responseData?.disorder_cards?.top_banner_card?.data;
   const firstTopBanner = topBannerData?.[0];
   if (firstTopBanner?.T === "yuentu_top_banner") {
     // 移除顶部卡片
@@ -162,8 +164,8 @@ if (isInfoList) {
 }
 
 if (isUserCenter) {
-  if (obj.data && obj.data.cards) {
-    compactDidiByField(obj.data.cards, "title", "card");
+  if (responseData && responseData.cards) {
+    compactDidiByField(responseData.cards, "title", "card");
   }
 }
 
