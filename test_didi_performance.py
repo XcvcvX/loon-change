@@ -202,7 +202,8 @@ if (payload.body === null) {
     def test_usercenter_wallet_fields_are_compacted_during_the_card_pass(self):
         source = SOURCE.read_text(encoding="utf-8")
         self.assertNotIn("obj.data.cards.forEach", source)
-        self.assertIn('compactDidiByField(responseData.cards, "title", "card");', source)
+        self.assertIn("const userCenterCards = responseData?.cards;", source)
+        self.assertIn('compactDidiByField(userCenterCards, "title", "card");', source)
         self.assertIn('compactDidiByField(walletItems, "title", "walletItem")', source)
         self.assertIn('compactDidiByField(walletBottomItems, "title", "walletBottom")', source)
         self.assertNotIn('compactDidiByField(item.items, "title", "walletItem")', source)
