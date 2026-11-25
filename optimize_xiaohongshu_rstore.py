@@ -370,7 +370,7 @@ def optimize_source(source, commit="unknown"):
                          COMMENT_BRANCH, "comment branch")
         source = apply_live_photo_cache_optimization(source)
         source = optimize_imagefeed_single_traversal(source)
-        if (COMMENT_TREE_MARKER not in source or "Xiaohongshu comment classification stack frames v1;" not in source or "const commentFrameTag = {};" not in source or "new WeakSet()" in source or "visited.has(current)" in source or "const visited = new WeakSet()" in source):
+        if (COMMENT_TREE_MARKER not in source or "Xiaohongshu flat comment stack frames v2;" not in source or "const commentFrameTag = {};" not in source or "new WeakSet()" in source or "visited.has(current)" in source or "const visited = new WeakSet()" in source):
             raise ValueError("comment traversal still allocates/checks a visited WeakSet")
         source = source.replace("if (!$response.body) $done({});" + chr(10), "")
         guard = "if (!$response.body) { $done({}); } else {"
@@ -504,6 +504,8 @@ def optimize_source(source, commit="unknown"):
         raise ValueError("video filter/sort allocation remains")
     if "new WeakSet()" in result or "const visited = new WeakSet()" in result or "visited.has(current)" in result:
         raise ValueError("comment traversal visited WeakSet overhead remains")
+    if "stack.push([commentFrameTag" in result or "Array.isArray(entry) && entry[0] === commentFrameTag" in result:
+        raise ValueError("comment traversal tuple-frame allocation remains")
     return result
 
 def rewrite_plugin(plugin):
