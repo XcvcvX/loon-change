@@ -107,6 +107,127 @@ function assembleBaiduResponse(repHeadMessage, repHeadType, newResult, newAds, h
   return body;
 }
 
+
+function assembleBaiduResponseSegments(repHeadMessage, repHeadType, binaryBody, dataBeginOffset, replacements, hash) {
+  // loon-change: Baidu protobuf multi-Ads segment reconstruction v1
+  const messageHead = repHeadMessage.messageHead;
+  if (!Array.isArray(messageHead) || !Array.isArray(replacements)) {
+    throw new Error("BaiduMap segment metadata must be arrays");
+  }
+  const payloadLength = binaryBody.byteLength - dataBeginOffset;
+  if (!Number.isInteger(dataBeginOffset) || dataBeginOffset < 0 || payloadLength < 0) {
+    throw new Error("BaiduMap payload boundary is invalid");
+  }
+
+  const segments = [];
+  let resultCount = 0;
+  for (let i = 0; i < messageHead.length; i++) {
+    const header = messageHead[i];
+    if (!header || !Number.isInteger(header.offset) || !Number.isInteger(header.length) ||
+        header.offset < 0 || header.length < 0 ||
+        header.offset > payloadLength || header.length > payloadLength - header.offset) {
+      throw new Error("BaiduMap segment bounds are invalid");
+    }
+    if (header.name === "Result") resultCount++;
+    segments.push({header, index: i, offset: header.offset, length: header.length});
+  }
+  if (resultCount !== 1) {
+    throw new Error("BaiduMap response must contain exactly one Result segment");
+  }
+
+  // Header order is not assumed to match payload order. Sort only on the rebuild path.
+  segments.sort((left, right) => left.offset - right.offset);
+  const chunks = [];
+  let sourceCursor = 0;
+  let outputLength = 0;
+  for (let i = 0; i < segments.length; i++) {
+    const segment = segments[i];
+    if (segment.offset < sourceCursor) {
+      throw new Error("BaiduMap segments overlap");
+    }
+    if (segment.offset > sourceCursor) {
+      const gap = binaryBody.subarray(
+        dataBeginOffset + sourceCursor,
+        dataBeginOffset + segment.offset
+      );
+      chunks.push(gap);
+      outputLength += gap.byteLength;
+    }
+
+    const replacement = replacements[segment.index];
+    const part = replacement === undefined || replacement === null
+      ? binaryBody.subarray(
+          dataBeginOffset + segment.offset,
+          dataBeginOffset + segment.offset + segment.length
+        )
+      : replacement;
+    if (!(part instanceof Uint8Array)) {
+      throw new Error("BaiduMap replacement segment must be Uint8Array");
+    }
+    segment.header.offset = outputLength;
+    segment.header.length = part.byteLength;
+    chunks.push(part);
+    outputLength += part.byteLength;
+    sourceCursor = segment.offset + segment.length;
+  }
+
+  if (sourceCursor < payloadLength) {
+    const trailing = binaryBody.subarray(dataBeginOffset + sourceCursor);
+    chunks.push(trailing);
+    outputLength += trailing.byteLength;
+  }
+
+  // Exactly one rebuilt payload allocation; unchanged segments and gaps stay byte views.
+  const payload = new Uint8Array(outputLength);
+  let payloadWrite = 0;
+  for (let i = 0; i < chunks.length; i++) {
+    const chunk = chunks[i];
+    payload.set(chunk, payloadWrite);
+    payloadWrite += chunk.byteLength;
+  }
+
+  const beginOffset = 4;
+  repHeadMessage.md5 = "00000000000000000000000000000000";
+  // loon-change: Baidu protobuf multi-segment single-encode header v1
+  const encodedHeader = repHeadType.encode(repHeadMessage).finish();
+  const headerLength = encodedHeader.byteLength;
+  const payloadOffset = beginOffset + headerLength;
+  const body = new Uint8Array(payloadOffset + payload.byteLength);
+  body.set(payload, payloadOffset);
+  const digest = hash(body.subarray(payloadOffset));
+  if (typeof digest !== "string" || !/^[0-9a-f]{32}$/i.test(digest)) {
+    throw new Error("BaiduMap MD5 digest must be 32 hexadecimal characters");
+  }
+  repHeadMessage.md5 = digest;
+
+  let digestOffset = -1;
+  let candidateOffset = encodedHeader.indexOf(0x30);
+  const lastCandidateOffset = encodedHeader.byteLength - 32;
+  while (candidateOffset !== -1 && candidateOffset <= lastCandidateOffset) {
+    let matches = true;
+    for (let j = 0; j < 32; j++) {
+      if (encodedHeader[candidateOffset + j] !== 0x30) {
+        matches = false;
+        break;
+      }
+    }
+    if (matches) {
+      if (digestOffset !== -1) throw new Error("BaiduMap MD5 placeholder is ambiguous");
+      digestOffset = candidateOffset;
+    }
+    candidateOffset = encodedHeader.indexOf(0x30, candidateOffset + 1);
+  }
+  if (digestOffset === -1) {
+    throw new Error("BaiduMap MD5 placeholder not found in encoded RepHead");
+  }
+  for (let i = 0; i < 32; i++) {
+    encodedHeader[digestOffset + i] = digest.charCodeAt(i);
+  }
+  new DataView(body.buffer, body.byteOffset, beginOffset).setInt32(0, headerLength);
+  body.set(encodedHeader, beginOffset);
+  return body;
+}
+
 const isQuanX = typeof $task != "undefined";
 const responseBytes = isQuanX ? $response.bodyBytes : $response.body;
 const binaryBody = responseBytes instanceof Uint8Array
@@ -121,12 +242,11 @@ const repHeadData = binaryBody.subarray(beginOffset, beginOffset + prefixLength)
 const repHeadType = baiduMapRoot.lookupType("RepHead");
 const repHeadMessage = repHeadType.decode(repHeadData);
 
-let newResult = null;
-let resultOffset = -1;
-let resultLength = 0;
-let newAds = null;
+let resultCount = 0;
+let invalidSegmentLayout = false;
 let adsFound = false;
 let modifiedAds = false;
+const replacementSegments = [];
 const dataBeginOffset = beginOffset + prefixLength;
 // loon-change: Baidu protobuf header collection cache v1
 const messageHeadEntries = repHeadMessage.messageHead;
@@ -139,11 +259,27 @@ for(let i = 0; i < messageHeadLength; i++) {
 
   // Defer payload offset arithmetic and views until a consumed field is found.
   if(name === 'Result'){
-    // Keep only numeric bounds until Ads proves that response reconstruction is necessary.
-    resultOffset = dataBeginOffset + messageHead.offset;
-    resultLength = targetDataLength;
+    if (resultCount !== 0) {
+      invalidSegmentLayout = true;
+      break;
+    }
+    resultCount++;
+    if (!Number.isInteger(messageHead.offset) || !Number.isInteger(targetDataLength) ||
+        messageHead.offset < 0 || targetDataLength < 0 ||
+        messageHead.offset > binaryBody.byteLength - dataBeginOffset ||
+        targetDataLength > binaryBody.byteLength - dataBeginOffset - messageHead.offset) {
+      invalidSegmentLayout = true;
+      break;
+    }
   }else if(name === 'Ads'){
     adsFound = true;
+    if (!Number.isInteger(messageHead.offset) || !Number.isInteger(targetDataLength) ||
+        messageHead.offset < 0 || targetDataLength < 0 ||
+        messageHead.offset > binaryBody.byteLength - dataBeginOffset ||
+        targetDataLength > binaryBody.byteLength - dataBeginOffset - messageHead.offset) {
+      invalidSegmentLayout = true;
+      break;
+    }
     const currentOffset = dataBeginOffset + messageHead.offset;
     // Inspect wire bytes first; ordinary ad payloads avoid both a byte view
     // and the Protobuf object graph allocation.
@@ -172,22 +308,19 @@ for(let i = 0; i < messageHeadLength; i++) {
     }
     if (adsSegmentModified) {
       modifiedAds = true;
-      newAds = adsType.encode(adsMessage).finish();
+      replacementSegments[i] = adsType.encode(adsMessage).finish();
     }
   }
 }
 
-if (modifiedAds && resultOffset !== -1) {
-  // Allocate the unchanged Result view only on the rebuild path.
-  newResult = binaryBody.subarray(resultOffset, resultOffset + resultLength);
-}
-
-if(!adsFound || !modifiedAds || !newResult) {
-  // No JSON-visible/binary field change: preserve the original response bytes.
+if(invalidSegmentLayout || !adsFound || !modifiedAds || resultCount !== 1) {
+  // Invalid or unchanged segment layouts preserve the original response bytes.
   $done({});
 } else {
-  // Build the final payload in one allocation; hash its zero-copy view.
-  const body = assembleBaiduResponse(repHeadMessage, repHeadType, newResult, newAds, createBaiduMd5());
+  // Rebuild every Result/Ads/unknown segment in original byte order; all modified Ads segments are retained.
+  const body = assembleBaiduResponseSegments(
+    repHeadMessage, repHeadType, binaryBody, dataBeginOffset, replacementSegments, createBaiduMd5()
+  );
 
   if(isQuanX){
     $done({bodyBytes: body.buffer});
