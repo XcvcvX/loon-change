@@ -15,6 +15,10 @@ class XiaohongshuOptimizerTests(unittest.TestCase):
         self.assertIn(IMAGE_FEED_MARKER,src)
         self.assertIn(IMAGE_ARRAY_LENGTH_MARKER,src)
         self.assertIn("frame.index>=frame.length",src)
+        self.assertIn(COMMENT_ARRAY_LENGTH_MARKER,src)
+        self.assertIn("const currentLength = current.length;",src)
+        self.assertIn("const commentsLength = child.length;",src)
+        self.assertIn("const subCommentsLength = child.length;",src)
         self.assertNotIn("if(frame.index>=value.length)",src)
         self.assertNotIn("for (const image of images_list)",src)
         self.assertIn("const byFileId=new Map()",src)
@@ -35,6 +39,13 @@ class XiaohongshuOptimizerTests(unittest.TestCase):
         self.assertNotIn("console.log('新body：' + JSON.stringify(obj))",src)
         self.assertNotIn('console.log("写入缓存val：" + JSON.stringify(commitsRsp))',src)
         self.assertFalse(any("console.log(" in line and any(token in line for token in ("原body：","新body：","写入缓存val","comment_id:","video_id：")) for line in src.splitlines()))
+
+
+    def test_optimizer_wires_comment_array_cache_for_fresh_and_cached_sources(self):
+        optimizer=(ROOT/"optimize_xiaohongshu.py").read_text(encoding="utf-8")
+        self.assertIn("src = optimize_comment_array_length_cache(src)",optimizer)
+        self.assertIn("result = optimize_comment_array_length_cache(result)",optimizer)
+        self.assertIn("COMMENT_ARRAY_LENGTH_MARKER,",optimizer)
 
     def test_imagefeed_optimizer_is_idempotent_and_fails_closed(self):
         source=(ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")
