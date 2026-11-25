@@ -490,7 +490,7 @@ def optimize_source(source, commit="unknown"):
     invariants = (
         "imageEnhance(images_list, livePhotoCache)", "compactInPlace(obj.data",
         "appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)",
-        "const byFileId = new Map()", "const stack = [data]", "Xiaohongshu comment classification stack frames v1;", "const commentFrameTag = {}", "stack.push(comment, commentFrameTag, true)", "stack.push(subComment, commentFrameTag, false)",
+        "const byFileId = new Map()", "const stack = [data]", "Xiaohongshu flat comment stack frames v2;", "const commentFrameTag = {}", "stack.push(comment, commentFrameTag, true)", "stack.push(subComment, commentFrameTag, false)",
         COMMENT_TREE_MARKER, "selectedStream = null",
         "// loon-change: Xiaohongshu comment video-info cache single lookup v1",
         "let picObj = videoInfoCache.get(rawVideoInfo);",
