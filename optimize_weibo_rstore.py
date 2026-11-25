@@ -508,9 +508,13 @@ def optimize_profile_timeline_property_cache(source):
                   "const itemCardType = itemData?.card_type;", "const itemName = itemData?.name;",
                   "const itemLeftHint = itemData?.left_hint;", "const groupItems = item?.items;",
                   "const iiData = ii?.data;", "const iiCategory = ii?.category;",
-                  "const iiCardType = iiData?.card_type;", "const itemHeaderData = itemHeader?.data;",
+                  "const iiCardType = iiData?.card_type;", "const iiRightImage = iiData?.rightImage;",
+                  "const iiBackgroundImage = iiData?.backgroundImage;", "const enableCommentGuide = iiData?.enable_comment_guide;",
+                  "const itemSource = itemData?.source;", "const itemHeaderData = itemHeader?.data;",
                   "const itemTitle = itemData?.title;"):
             stripped = stripped.replace(x, "")
+        if "removeAvatar(iiData);" in block or block.count("removeFeedAd(iiData);") != 1:
+            raise ValueError("Weibo profile duplicate avatar-cleanup structure drift")
         if "removeAvatar(iiData);" in block or block.count("removeFeedAd(iiData);") != 1:
             raise ValueError("Weibo profile duplicate avatar-cleanup structure drift")
         if any(x in stripped for x in ("obj?.items?.length", "item?.data", "item?.category",
@@ -533,7 +537,7 @@ def optimize_profile_timeline_property_cache(source):
       ("              const __loonLength18 = __loonSource18.length;", "              const __loonLength18 = groupItemsLength;"),
       ("                let ii = __loonSource18[__loonRead18];", "                let ii = __loonSource18[__loonRead18];\\n                const iiCategory = ii?.category;"),
       ("                if (ii?.category === \\"feed\\") {", "                  if (iiCategory === \\"feed\\") {"),
-      ("                } else if (ii?.category === \\"card\\") {", "                  } else if (iiCategory === \\"card\\") {\\n                    const iiCardType = iiData?.card_type;"),
+      ("                } else if (ii?.category === \\"card\\") {", "                  } else if (iiCategory === \\"card\\") {\\n                  const iiCardType = iiData?.card_type;"),
       ("                  if ((iiData?.card_type === 10 || iiData?.card_type === 48 || iiData?.card_type === 176)) {", "                  if ((iiCardType === 10 || iiCardType === 48 || iiCardType === 176)) {"),
       ("                  if (iiData?.rightImage) {", "                  const iiRightImage = iiData?.rightImage;\\n                  if (iiRightImage) {"),
       ("                  if (iiData?.backgroundImage) {", "                  const iiBackgroundImage = iiData?.backgroundImage;\\n                  if (iiBackgroundImage) {"),
@@ -567,6 +571,8 @@ def optimize_profile_timeline_property_cache(source):
                     ("const iiCategory = iiCategory;","const iiCategory = ii?.category;")):
         block = block.replace(old, new)
     block = block.replace(start, start + "\\n    " + PROFILE_TIMELINE_PROPERTY_CACHE_MARKER, 1)
+    if "removeAvatar(iiData);" in block or block.count("removeFeedAd(iiData);") != 1:
+        raise ValueError("Weibo profile duplicate avatar-cleanup postcondition failed")
     if any(x not in block for x in required):
         raise ValueError("Weibo profile property-cache postcondition failed")
     stripped = block
@@ -574,7 +580,9 @@ def optimize_profile_timeline_property_cache(source):
               "const itemCardType = itemData?.card_type;", "const itemName = itemData?.name;",
               "const itemLeftHint = itemData?.left_hint;", "const groupItems = item?.items;",
               "const iiData = ii?.data;", "const iiCategory = ii?.category;",
-              "const iiCardType = iiData?.card_type;", "const itemHeaderData = itemHeader?.data;",
+              "const iiCardType = iiData?.card_type;", "const iiRightImage = iiData?.rightImage;",
+              "const iiBackgroundImage = iiData?.backgroundImage;", "const enableCommentGuide = iiData?.enable_comment_guide;",
+              "const itemSource = itemData?.source;", "const itemHeaderData = itemHeader?.data;",
               "const itemTitle = itemData?.title;"):
         stripped = stripped.replace(x, "")
     if any(x in stripped for x in ("obj?.items?.length", "item?.data", "item?.category",
