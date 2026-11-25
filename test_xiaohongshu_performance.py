@@ -72,7 +72,7 @@ class XiaohongshuOptimizerTests(unittest.TestCase):
         self.assertEqual(source.count(COMMENT_NODE_ARRAY_MARKER), 1)
         self.assertEqual(optimize_comment_node_array_classification(source), source)
         start = source.index("function processCommentTree")
-        end = source.index("\\n\\n\\n/**", start)
+        end = source.index("\n\n\n/**", start)
         block = source[start:end]
         self.assertEqual(block.count("Array.isArray(current)"), 1)
         self.assertEqual(block.count("if (currentIsArray) {"), 1)
