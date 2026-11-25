@@ -1146,3 +1146,20 @@ Phase 10 batch 38 compatibility fixtures cover 0–3 Ads segments, reversed mess
 
 ## Access effect
 Reduces repeated nested property resolution in the homepage-core path without adding an array, object, callback, or JSON operation.
+
+
+# Phase 10 batch 40 — Xiaohongshu lazy video-save cache parsing
+
+## Change
+- Read and parse the persisted `redBookVideoFeed` only after the response has a non-empty `note_id`.
+- Cache `note_id` once and retain the reverse, early-exit lookup so the latest duplicate ID still wins.
+- Keep download restriction cleanup active even when `note_id` is empty or absent.
+- Extend the reproducible optimizer with marker and fail-closed structure validation.
+
+## Validation
+- Node VM runtime coverage verifies the latest duplicate match, exactly one cache read/parse for a valid ID, and zero cache reads/parses when `note_id` is empty—even when the stored cache text is invalid JSON.
+- Existing response cleanup and reverse-lookup index-read assertions remain in place.
+- No device-level CPU, battery, thermal, or latency improvement is claimed without real-device measurements.
+
+## Access effect
+Avoids an unnecessary persistent-store read and JSON parse on the empty-ID path. Normal valid-ID lookup behavior remains unchanged.

@@ -299,6 +299,79 @@ def optimize_video_save_cache_lookup(src):
     return once(src, old, new, "video-save cache reverse early-exit lookup")
 
 
+VIDEO_SAVE_LAZY_PARSE_MARKER = "// loon-change: Xiaohongshu video-save lazy cache parse v1;"
+
+def optimize_video_save_lazy_cache_parse(src):
+    """Skip the persisted video-feed read and JSON.parse when note_id is empty."""
+    start = 'if (url.includes("/v10/note/video/save")) {'
+    next_route = chr(10) + chr(10) + 'if (url.includes("/user/followings/followfeed")) {'
+    marker = VIDEO_SAVE_LAZY_PARSE_MARKER
+    if marker in src:
+        block_start = src.index(start) if start in src else -1
+        block_end = src.find(next_route, block_start) if block_start >= 0 else -1
+        block = src[block_start:block_end] if block_end >= 0 else ""
+        required = (
+            marker,
+            "const noteId = obj.data?.note_id;",
+            'if (noteId !== "") {',
+            'const videoFeed = JSON.parse($.getdata("redBookVideoFeed"));',
+            "if (videoFeed?.length > 0) {",
+            VIDEO_SAVE_LOOKUP_MARKER,
+            "if (item.id === noteId)",
+            "obj.data.download_url = item.url;",
+            "        break;",
+        )
+        parse_at = block.find('const videoFeed = JSON.parse($.getdata("redBookVideoFeed"));')
+        guard_at = block.find('if (noteId !== "") {')
+        if block_end < 0 or any(token not in block for token in required) or guard_at < 0 or parse_at < guard_at:
+            raise ValueError("Xiaohongshu video-save lazy-cache marker is stale")
+        if 'let videoFeed = JSON.parse($.getdata("redBookVideoFeed"));' in block:
+            raise ValueError("Xiaohongshu video-save eager cache parse remains")
+        return src
+
+    if start not in src or next_route not in src:
+        raise ValueError("Xiaohongshu video-save route boundaries changed; refusing lazy parse")
+    block_start = src.index(start)
+    block_end = src.index(next_route, block_start)
+    old_block = src[block_start:block_end]
+    required_old = (
+        'let videoFeed = JSON.parse($.getdata("redBookVideoFeed"));',
+        'if (obj.data?.note_id !== "" && videoFeed?.length > 0) {',
+        VIDEO_SAVE_LOOKUP_MARKER,
+        "const noteId = obj.data.note_id;",
+        "for (let i = videoFeed.length - 1; i >= 0; i--)",
+        "// 解除下载限制",
+    )
+    if any(token not in old_block for token in required_old):
+        raise ValueError("Xiaohongshu video-save cache block changed; refusing lazy parse")
+    new_block = '''if (url.includes("/v10/note/video/save")) {
+  const noteId = obj.data?.note_id;
+  if (noteId !== "") {
+    // loon-change: Xiaohongshu video-save lazy cache parse v1;
+    const videoFeed = JSON.parse($.getdata("redBookVideoFeed"));
+    if (videoFeed?.length > 0) {
+      // loon-change: Xiaohongshu video-save cache reverse early-exit lookup v1;
+      for (let i = videoFeed.length - 1; i >= 0; i--) {
+        const item = videoFeed[i];
+        if (item.id === noteId) {
+          obj.data.download_url = item.url;
+          break;
+        }
+      }
+    }
+  }
+  // 解除下载限制
+  if (obj.data?.disable) {
+    delete obj.data.disable;
+    delete obj.data.msg;
+    obj.data.status = 2;
+  }
+}'''
+    return src[:block_start] + new_block + src[block_end:]
+
+
+
+
 STREAM_SELECTION_MARKER = "// loon-change: Xiaohongshu best-stream selection without per-call closure v1;"
 
 def optimize_stream_selection_no_closure(src):
@@ -455,6 +528,7 @@ def optimize_source(src,commit="unknown"):
             src = optimize_comment_stack_frame_allocation(src)
             src = optimize_comment_node_array_classification(src)
             src = optimize_video_save_cache_lookup(src)
+            src = optimize_video_save_lazy_cache_parse(src)
             src = optimize_v4_video_feed_function_entry_scan(src)
             src = optimize_v4_function_switch_indexed_scan(src)
             return optimize_stream_selection_no_closure(src)
@@ -467,6 +541,7 @@ def optimize_source(src,commit="unknown"):
         src = optimize_comment_stack_frame_allocation(src)
         src = optimize_comment_node_array_classification(src)
         src = optimize_video_save_cache_lookup(src)
+        src = optimize_video_save_lazy_cache_parse(src)
         src = optimize_v4_video_feed_function_entry_scan(src)
         src = optimize_v4_function_switch_indexed_scan(src)
         return optimize_stream_selection_no_closure(src)
@@ -561,10 +636,11 @@ def optimize_source(src,commit="unknown"):
     result = optimize_comment_stack_frame_allocation(result)
     result = optimize_comment_node_array_classification(result)
     result = optimize_video_save_cache_lookup(result)
+    result = optimize_video_save_lazy_cache_parse(result)
     result = optimize_v4_video_feed_function_entry_scan(result)
     result = optimize_v4_function_switch_indexed_scan(result)
     result = optimize_stream_selection_no_closure(result)
-    for token in ("imageEnhance(images_list, livePhotoCache)", IMAGE_FEED_MARKER, "compactInPlace(obj.data","appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)","const byFileId=new Map()", "Xiaohongshu comment classification stack frames v1;", "const commentFrameTag = {};", "stack.push(true, comment, commentFrameTag);", "stack.push(false, subComment, commentFrameTag);", FUNCTION_SWITCH_MARKER, COMMENT_STACK_FRAME_MARKER, COMMENT_CACHE_MARKER, "let parsed = parsedVideoInfo.get(raw);", VIDEO_SAVE_LOOKUP_MARKER, "for (let i = videoFeed.length - 1; i >= 0; i--)", STREAM_SELECTION_MARKER, "for (let pass = 0; pass < 2; pass++)"):
+    for token in ("imageEnhance(images_list, livePhotoCache)", IMAGE_FEED_MARKER, "compactInPlace(obj.data","appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)","const byFileId=new Map()", "Xiaohongshu comment classification stack frames v1;", "const commentFrameTag = {};", "stack.push(true, comment, commentFrameTag);", "stack.push(false, subComment, commentFrameTag);", FUNCTION_SWITCH_MARKER, COMMENT_STACK_FRAME_MARKER, COMMENT_CACHE_MARKER, "let parsed = parsedVideoInfo.get(raw);", VIDEO_SAVE_LOOKUP_MARKER, VIDEO_SAVE_LAZY_PARSE_MARKER, "const noteId = obj.data?.note_id;", "for (let i = videoFeed.length - 1; i >= 0; i--)", STREAM_SELECTION_MARKER, "for (let pass = 0; pass < 2; pass++)"):
         if token not in result:raise ValueError("missing optimizer invariant: "+token)
     if "imageEnhance(JSON.stringify(images_list))" in result:raise ValueError("image-feed serialization round trip remains")
     if "for (const image of images_list)" in result:raise ValueError("image-feed second cache traversal remains")
