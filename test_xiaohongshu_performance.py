@@ -259,7 +259,7 @@ process.stdout.write(JSON.stringify({body:JSON.parse(done.body),cache:JSON.parse
     def test_video_save_cache_optimizer_is_idempotent_and_fails_closed(self):
         source=(ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")
         self.assertEqual(optimize_video_save_cache_lookup(source),source)
-        damaged=source.replace("        obj.data.download_url = item.url;\n        break;","        obj.data.download_url = item.url;",1)
+        damaged=source.replace("if (item.id === noteId)","if (item.other_id === noteId)",1)
         self.assertNotEqual(damaged,source)
         with self.assertRaisesRegex(ValueError,"marker is stale"):
             optimize_video_save_cache_lookup(damaged)
