@@ -76,14 +76,14 @@ if (url.includes("/system_service/splash_config")) {
   const adsGroupLength = adsGroups?.length || 0;
   for (let groupIndex = 0; groupIndex < adsGroupLength; groupIndex++) {
     const group = adsGroups[groupIndex];
-    group.start_time = 3818332800;
-    group.end_time = 3818419199;
+    group.start_time = 3818332800; // Unix 时间戳 2090-12-31 00:00:00
+    group.end_time = 3818419199; // Unix 时间戳 2090-12-31 23:59:59
     const ads = group?.ads;
     const adsLength = ads?.length || 0;
     for (let adIndex = 0; adIndex < adsLength; adIndex++) {
       const ad = ads[adIndex];
-      ad.start_time = 3818332800;
-      ad.end_time = 3818419199;
+      ad.start_time = 3818332800; // Unix 时间戳 2090-12-31 00:00:00
+      ad.end_time = 3818419199; // Unix 时间戳 2090-12-31 23:59:59
     }
   }
 }
@@ -179,6 +179,7 @@ if (url.includes("/v3/note/videofeed?")) {
   const videoFeedLength = videoFeed?.length || 0;
   for (let videoIndex = 0; videoIndex < videoFeedLength; videoIndex++) {
     const item = videoFeed[videoIndex];
+    // loon-change: Xiaohongshu v3 video-feed item reference cache v1;
     const mediaSaveConfig = item?.media_save_config;
     if (mediaSaveConfig) {
       mediaSaveConfig.disable_save = false;
