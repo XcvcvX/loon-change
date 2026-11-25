@@ -353,11 +353,46 @@ def optimize_comment_data_reference_cache(source):
     return source
 
 
+PROFILE_TIMELINE_DATA_CACHE_MARKER = "// loon-change: Weibo profile timeline cached nested data v1"
+
+def optimize_profile_timeline_data_cache(source):
+    """Cache top-level and nested feed data references in the profile timeline hot loop."""
+    start = '} else if (url.includes("/2/profile/container_timeline")) {'
+    end = '} else if (url.includes("/2/profile/dealatt") || url.includes("/2/friendships/")) {'
+    if source.count(start) != 1 or source.count(end) != 1:
+        raise ValueError("Weibo profile timeline block boundary drift")
+    left = source.index(start)
+    right = source.index(end, left + len(start))
+    block = source[left:right]
+    if PROFILE_TIMELINE_DATA_CACHE_MARKER in block:
+        required = ("const itemData = item?.data;", "const iiData = ii?.data;")
+        stripped = block.replace(required[0], "").replace(required[1], "")
+        if block.count(PROFILE_TIMELINE_DATA_CACHE_MARKER) != 1 or any(token not in block for token in required):
+            raise ValueError("Weibo profile timeline data-cache marker/structure drift")
+        if any(token in stripped for token in ("item?.data", "ii?.data", "ii.data")):
+            raise ValueError("Weibo repeated profile timeline data reads remain")
+        return source
+    item_anchor = "        let item = __loonSource19[__loonRead19];"
+    ii_anchor = "                let ii = __loonSource18[__loonRead18];"
+    if block.count(item_anchor) != 1 or block.count(ii_anchor) != 1:
+        raise ValueError("Weibo profile timeline loop anchors drifted")
+    block = block.replace(item_anchor, item_anchor + "\n        const itemData = item?.data;", 1)
+    block = block.replace(ii_anchor, ii_anchor + "\n                const iiData = ii?.data;", 1)
+    block = block.replace("item?.data", "itemData").replace("ii?.data", "iiData").replace("ii.data", "iiData")
+    block = block.replace("const itemData = itemData;", "const itemData = item?.data;")
+    block = block.replace("const iiData = iiData;", "const iiData = ii?.data;")
+    block = block.replace(start, start + "\n    " + PROFILE_TIMELINE_DATA_CACHE_MARKER, 1)
+    stripped = block.replace("const itemData = item?.data;", "").replace("const iiData = ii?.data;", "")
+    if any(token in stripped for token in ("item?.data", "ii?.data", "ii.data")):
+        raise ValueError("Weibo profile timeline cache postcondition failed")
+    return source[:left] + block + source[right:]
+
+
 def optimize_source(source, commit="unknown"):
     if MARKER in source:
         if "__loonSource32" not in source or "compactInPlace(items, keep)" not in source:
             raise ValueError("marked Weibo script is incomplete")
-        return optimize_comment_data_reference_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source)))))
+        return optimize_profile_timeline_data_cache(optimize_comment_data_reference_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source))))))
     source = source.replace("const url = $request.url;", "const url = $request.url;\n" + GUARD_DECLARATION + "\n\n" + HELPER, 1)
     if source.count(HELPER) != 1:
         raise ValueError("Weibo helper insertion failed")
@@ -369,7 +404,7 @@ def optimize_source(source, commit="unknown"):
     remaining = re.findall(r"\b(new[A-Za-z0-9_]*)\s*=\s*\[\s*\]", source)
     if sorted(remaining) != ["newActions", "newII"]:
         raise ValueError("unexpected remaining Weibo temporary arrays: " + repr(remaining))
-    return optimize_comment_data_reference_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source)))))
+    return optimize_profile_timeline_data_cache(optimize_comment_data_reference_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source))))))
 
 SCALAR_MEMBERSHIP_MARKER = "// loon-change: Weibo hot-loop scalar membership v1"
 SCALAR_MEMBERSHIP_REWRITES = [

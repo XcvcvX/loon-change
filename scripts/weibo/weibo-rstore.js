@@ -476,6 +476,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
       compactInPlace(obj.card_group, i => i?.desc?.includes("你可能感兴趣的超话"));
     }
   } else if (url.includes("/2/profile/container_timeline")) {
+    // loon-change: Weibo profile timeline cached nested data v1
     // 个人主页关注弹窗
     if (obj?.loadedInfo?.follow_guide_info) {
       delete obj.loadedInfo.follow_guide_info;
@@ -487,17 +488,18 @@ if (url.includes("/interface/sdk/sdkad.php")) {
       const __loonLength19 = __loonSource19.length;
       for (let __loonRead19 = 0; __loonRead19 < __loonLength19; __loonRead19++) {
         let item = __loonSource19[__loonRead19];
-        if (item?.data?.left_hint?.[0]?.content === "全部微博(0)" && item?.data?.card_type === 216) {
+        const itemData = item?.data;
+        if (itemData?.left_hint?.[0]?.content === "全部微博(0)" && itemData?.card_type === 216) {
           // 全部微博为0的博主
           break;
-        } else if (/内容/?.test(item?.data?.name) && item?.data?.card_type === 58) {
+        } else if (/内容/?.test(itemData?.name) && itemData?.card_type === 58) {
           // 个人微博页刷完后的推荐微博
           break;
         } else {
           if (item?.category === "card") {
             // 58微博展示时间段提示 216筛选按钮
-            if ((item?.data?.card_type === 58 || item?.data?.card_type === 216)) {
-              if (/没有公开博文，为你推荐以下精彩内容/.test(item?.data?.name)) {
+            if ((itemData?.card_type === 58 || itemData?.card_type === 216)) {
+              if (/没有公开博文，为你推荐以下精彩内容/.test(itemData?.name)) {
                 // 个人微博页刷完后的推荐信息流
                 continue;
               }
@@ -523,30 +525,31 @@ if (url.includes("/interface/sdk/sdkad.php")) {
               const __loonLength18 = __loonSource18.length;
               for (let __loonRead18 = 0; __loonRead18 < __loonLength18; __loonRead18++) {
                 let ii = __loonSource18[__loonRead18];
+                const iiData = ii?.data;
                 if (ii?.category === "feed") {
                   // 头像挂件,关注按钮
-                  removeAvatar(ii?.data);
+                  removeAvatar(iiData);
                   // 信息流推广
-                  removeFeedAd(ii?.data);
+                  removeFeedAd(iiData);
                   // 投票窗口
-                  removeVoteInfo(ii?.data);
+                  removeVoteInfo(iiData);
                   // 评论指引
-                  if (ii?.data?.enable_comment_guide) {
-                    ii.data.enable_comment_guide = false;
+                  if (iiData?.enable_comment_guide) {
+                    iiData.enable_comment_guide = false;
                   }
                   __loonSource18[__loonWrite18++] = ii;
                 } else if (ii?.category === "card") {
-                  if ((ii?.data?.card_type === 10 || ii?.data?.card_type === 48 || ii?.data?.card_type === 176)) {
+                  if ((iiData?.card_type === 10 || iiData?.card_type === 48 || iiData?.card_type === 176)) {
                     // 最近关注与互动过的博主
                     continue;
                   }
-                  if (ii?.data?.rightImage) {
+                  if (iiData?.rightImage) {
                     // 新版置顶微博皇冠
-                    delete ii.data.rightImage;
+                    delete iiData.rightImage;
                   }
-                  if (ii?.data?.backgroundImage) {
+                  if (iiData?.backgroundImage) {
                     // 新版置顶微博背景图
-                    delete ii.data.backgroundImage;
+                    delete iiData.backgroundImage;
                   }
                   __loonSource18[__loonWrite18++] = ii;
                 }
@@ -556,16 +559,16 @@ if (url.includes("/interface/sdk/sdkad.php")) {
             }
             __loonSource19[__loonWrite19++] = item;
           } else if (item?.category === "feed") {
-            if (!isAd(item?.data)) {
+            if (!isAd(itemData)) {
               // 信息流推广
-              removeFeedAd(item?.data);
+              removeFeedAd(itemData);
               // 投票窗口
-              removeVoteInfo(item?.data);
-              if (item?.data?.source?.includes("生日动态")) {
+              removeVoteInfo(itemData);
+              if (itemData?.source?.includes("生日动态")) {
                 // 移除生日祝福微博
                 continue;
               }
-              if (item?.data?.title?.text !== "热门" && item?.data?.title?.structs?.length > 0) {
+              if (itemData?.title?.text !== "热门" && itemData?.title?.structs?.length > 0) {
                 // 移除赞过的微博 保留热门内容
                 continue;
               }
