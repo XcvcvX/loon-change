@@ -112,10 +112,12 @@ if (url.includes("/note/imagefeed?") || url.includes("/note/feed?")) {
         if (firstFunctionEntry?.type !== "video_download") functionEntries.unshift({type: "video_download"});
       }
       const functionSwitch = item?.function_switch;
-      const functionSwitchLength = functionSwitch?.length || 0;
-      for (let switchIndex = 0; switchIndex < functionSwitchLength; switchIndex++) {
-        const switchItem = functionSwitch[switchIndex];
-        if (switchItem?.type === "image_download") switchItem.enable = true;
+      if (Array.isArray(functionSwitch)) {
+        const functionSwitchLength = functionSwitch.length;
+        for (let switchIndex = 0; switchIndex < functionSwitchLength; switchIndex++) {
+          const switchItem = functionSwitch[switchIndex];
+          if (switchItem?.type === "image_download") switchItem.enable = true;
+        }
       }
       const options = item?.note_text_press_options;
       if (Array.isArray(options)) {
