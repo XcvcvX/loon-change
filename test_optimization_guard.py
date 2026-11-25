@@ -39,6 +39,10 @@ class OptimizationGuardTests(unittest.TestCase):
                 "const poplayerEnabled = obj?.enable;",
                 "if (poplayerEnabled) {",
                 "obj.enable = false;",
+                "// loon-change: Taobao splash array length single-read cache v1",
+                "const sectionCount = Array.isArray(sections) ? sections.length : 0;",
+                "const itemCount = Array.isArray(splashItems) ? splashItems.length : 0;",
+                "if (itemCount === 0) continue;",
                 "$done(modified ? {body: JSON.stringify(obj)} : {});",
             ],
             "scripts/xianyu/goofish.js": [
