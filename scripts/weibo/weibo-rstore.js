@@ -160,8 +160,12 @@ if (url.includes("/interface/sdk/sdkad.php")) {
     }
   } else if (url.includes("/2/comments/build_comments")) {
     // 评论区
-    if (obj?.datas?.length > 0) {
-      const __loonSource30 = obj.datas;
+    // loon-change: Weibo comment top-level array reference cache v1
+    const commentDatas = obj?.datas;
+    let rootComments;
+    let replyComments;
+    if (commentDatas?.length > 0) {
+      const __loonSource30 = commentDatas;
       let __loonWrite30 = 0;
       const __loonLength30 = __loonSource30.length;
       for (let __loonRead30 = 0; __loonRead30 < __loonLength30; __loonRead30++) {
@@ -219,8 +223,8 @@ if (url.includes("/interface/sdk/sdkad.php")) {
       }
       __loonSource30.length = __loonWrite30;
       if (__loonWrite30 !== __loonLength30) modified = true;
-    } else if (obj?.root_comments?.length > 0) {
-      const __loonSource29 = obj.root_comments;
+    } else if ((rootComments = obj?.root_comments)?.length > 0) {
+      const __loonSource29 = rootComments;
       let __loonWrite29 = 0;
       const __loonLength29 = __loonSource29.length;
       for (let __loonRead29 = 0; __loonRead29 < __loonLength29; __loonRead29++) {
@@ -267,8 +271,8 @@ if (url.includes("/interface/sdk/sdkad.php")) {
       }
       __loonSource29.length = __loonWrite29;
       if (__loonWrite29 !== __loonLength29) modified = true;
-    } else if (obj?.comments?.length > 0) {
-      const __loonSource28 = obj.comments;
+    } else if ((replyComments = obj?.comments)?.length > 0) {
+      const __loonSource28 = replyComments;
       let __loonWrite28 = 0;
       const __loonLength28 = __loonSource28.length;
       for (let __loonRead28 = 0; __loonRead28 < __loonLength28; __loonRead28++) {
