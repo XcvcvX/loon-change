@@ -314,7 +314,9 @@
         "// loon-change: Didi info-list cached nested references v1",
         "const topBannerData = obj.data?.disorder_cards?.top_banner_card?.data;",
         "const firstTopBanner = topBannerData?.[0];",
-        "topBannerData.splice(0, 1);"
+        "topBannerData.splice(0, 1);",
+        "// loon-change: Didi response data reference cache v1",
+        "const responseData = obj.data;"
       ],
       "forbidden": [
         ".filter(",
