@@ -772,7 +772,7 @@ process.stdout.write("ok");
         self.assertNotIn("i < segments.length", helper)
         self.assertNotIn("i < chunks.length", helper)
         self.assertNotIn("header.offset", helper[helper.index("const segmentOffset = header.offset;") + 1:helper.index("if (header.name === \"Result\")")])
-        self.assertNotIn("header.length", helper[helper.index("const segmentLength = header.length;") + 1:helper.index("if (header.name === \"Result\")"])
+        self.assertNotIn("header.length", helper[helper.index("const segmentLength = header.length;") + 1:helper.index("if (header.name === \"Result\")")])
 
     @unittest.skipUnless(NODE, "Node.js is required for BaiduMap metadata getter tests")
     def test_multi_segment_header_offsets_and_lengths_are_read_once(self):
