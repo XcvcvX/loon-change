@@ -222,10 +222,13 @@ if (url.includes("/interface/sdk/sdkad.php")) {
         let item = __loonSource29[__loonRead29];
         if (!isAd(item)) {
           // 微博伪装评论
-          if (item.user) {
+          // loon-change: Weibo root-comment user reference cache v1
+          const commentUser = item.user;
+          if (commentUser) {
             // 头像挂件,关注按钮
-            removeAvatar(item);
-            if (item?.user?.name === "超话社区" || item?.user?.name === "微博视频") {
+            removeAvatar(item, commentUser);
+            const commentUserName = commentUser.name;
+            if (commentUserName === "超话社区" || commentUserName === "微博视频") {
               continue;
             }
           }
