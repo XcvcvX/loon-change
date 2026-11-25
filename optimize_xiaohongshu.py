@@ -773,6 +773,7 @@ def optimize_source(src,commit="unknown"):
         src = optimize_comment_media_property_cache(src)
         src = optimize_imagefeed_single_traversal(src)
         src = optimize_imagefeed_live_photo_property_cache(src)
+        src = optimize_imagefeed_array_length_cache(src)
         src = optimize_comment_video_info_cache(src)
         src = optimize_comment_media_property_cache(src)
         src = optimize_comment_stack_frame_allocation(src)
