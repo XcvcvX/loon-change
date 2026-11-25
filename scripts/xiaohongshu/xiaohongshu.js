@@ -390,17 +390,18 @@ $done({body: JSON.stringify(obj)});
 // 小红书画质增强：加载2K分辨率的图片
 // loon-change: Xiaohongshu imagefeed single traversal live-photo extraction v1
 function imageEnhance(images, livePhotoCache) {
+  // loon-change: Xiaohongshu image traversal array-frame length cache v1;
   if (!images || typeof images !== "object") return [];
   const livePhotoTarget = Array.isArray(livePhotoCache) ? livePhotoCache : null;
   const quality=$.getdata("fmz200.xiaohongshu.imageQuality");
   const originalPattern=/\?imageView2\/2[^&]*(?:&redImage\/frame\/0)/;
   const widthPattern=/imageView2\/2\/w\/\d+\/format/g, heightPattern=/imageView2\/2\/h\/\d+\/format/g;
   let originalDone=false;
-  const stack=[{value:images,index:0,keys:null,root:true}];
+  const stack=[{value:images,index:0,keys:null,length:Array.isArray(images)?images.length:0,root:true}];
   while(stack.length) {
     const frame=stack[stack.length-1], value=frame.value;
     if(Array.isArray(value)) {
-      if(frame.index>=value.length){stack.pop();continue;}
+      if(frame.index>=frame.length){stack.pop();continue;}
       const key=frame.index++, child=value[key];
       if(frame.root && livePhotoTarget && child && typeof child === "object") {
         // loon-change: Xiaohongshu imagefeed live-photo property cache v1;
@@ -422,7 +423,7 @@ function imageEnhance(images, livePhotoCache) {
         if(quality==="original") {
           if(!originalDone){const changed=child.replace(originalPattern,"?imageView2/0/format/png&redImage/frame/0");if(changed!==child){value[key]=changed;originalDone=true;}}
         } else value[key]=child.replace(widthPattern,"imageView2/2/w/2160/format").replace(heightPattern,"imageView2/2/h/2160/format");
-      } else if(child && typeof child==="object") stack.push({value:child,index:0,keys:null,root:false});
+      } else if(child && typeof child==="object") stack.push({value:child,index:0,keys:null,length:Array.isArray(child)?child.length:0,root:false});
     } else {
       if(frame.keys===null) frame.keys=Object.keys(value);
       if(frame.index>=frame.keys.length){stack.pop();continue;}
