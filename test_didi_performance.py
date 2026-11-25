@@ -9,6 +9,7 @@ from optimize_didi import (
     EXPECTED_FILTERS,
     DIDI_MODE_MARKER,
     DIDI_WALLET_PROPERTY_CACHE_MARKER,
+    DIDI_HOMEPAGE_CORE_CACHE_MARKER,
     LOCAL,
     MARKER,
     REMOTE,
@@ -84,6 +85,9 @@ class DidiOptimizerTests(unittest.TestCase):
         self.assertIn("const walletBottomItems = item.bottom_items;", result)
         self.assertNotIn("Array.isArray(item.items)", result)
         self.assertNotIn("Array.isArray(item.bottom_items)", result)
+        self.assertIn(DIDI_HOMEPAGE_CORE_CACHE_MARKER, result)
+        self.assertIn("const navListData = navListCard?.data;", result)
+        self.assertIn("const bottomNavData = bottomNavList?.data;", result)
 
     def test_optimizer_fails_closed_when_upstream_filter_inventory_drifts(self):
         source = self.fixture_source().replace(
@@ -123,7 +127,7 @@ class DidiOptimizerTests(unittest.TestCase):
 
 @unittest.skipUnless(NODE, "Node.js is required for Didi response runtime tests")
 class DidiRuntimeTests(unittest.TestCase):
-    def run_script(self, url, body, disable_for_each=False, track_wallet_properties=False, track_response_data=False):
+    def run_script(self, url, body, disable_for_each=False, track_wallet_properties=False, track_response_data=False, track_homepage_properties=False):
         runner = r"""
 const fs = require("fs");
 const vm = require("vm");
@@ -138,6 +142,9 @@ const context = {
   __stringifyCount: 0,
   __walletPropertyReads: { tag: 0, items: 0, card_type: 0, bottom_items: 0 },
   __responseDataReads: 0,
+  __homepagePropertyReads: { order_cards: 0, nav_list_card: 0, nav_data: 0, disorder_cards: 0, bottom_nav_list: 0, bottom_nav_data: 0 },
+  __trackHomepagePropertyReads: true,
+  __captureHomepagePropertyReads: payload.trackHomepageProperties,
   __trackResponseDataReads: true,
   __trackWalletPropertyReads: true,
   __captureWalletPropertyReads: payload.trackWalletProperties,
@@ -146,7 +153,7 @@ const context = {
 };
 vm.createContext(context);
 vm.runInContext(
-  "const nativeParse = JSON.parse.bind(JSON); JSON.parse = function(value) { __parseCount++; const parsed = nativeParse(value); if (__captureResponseDataReads && parsed && Object.prototype.hasOwnProperty.call(parsed, 'data')) { let currentData = parsed.data; Object.defineProperty(parsed, 'data', { enumerable: true, configurable: true, get() { if (__trackResponseDataReads) __responseDataReads++; return currentData; }, set(value) { currentData = value; } }); } if (__captureWalletPropertyReads) { const wallet = parsed?.data?.cards?.[0]; if (wallet && wallet.tag === 'wallet') { for (const key of ['tag', 'items', 'card_type', 'bottom_items']) { let current = wallet[key]; Object.defineProperty(wallet, key, { enumerable: true, configurable: true, get() { if (__trackWalletPropertyReads) __walletPropertyReads[key]++; return current; }, set(value) { current = value; } }); } } } return parsed; }; const nativeStringify = JSON.stringify.bind(JSON); JSON.stringify = function(value) { __stringifyCount++; const tracking = __trackWalletPropertyReads; const dataTracking = __trackResponseDataReads; __trackWalletPropertyReads = false; __trackResponseDataReads = false; try { return nativeStringify(value); } finally { __trackWalletPropertyReads = tracking; __trackResponseDataReads = dataTracking; } }; Array.prototype.filter = function() { throw new Error('allocating Array.filter remains'); };",
+  "const nativeParse = JSON.parse.bind(JSON); JSON.parse = function(value) { __parseCount++; const parsed = nativeParse(value); if (__captureResponseDataReads && parsed && Object.prototype.hasOwnProperty.call(parsed, 'data')) { let currentData = parsed.data; Object.defineProperty(parsed, 'data', { enumerable: true, configurable: true, get() { if (__trackResponseDataReads) __responseDataReads++; return currentData; }, set(value) { currentData = value; } }); } if (__captureHomepagePropertyReads && parsed?.data) { const data = parsed.data; for (const key of ['order_cards', 'disorder_cards']) { let current = data[key]; Object.defineProperty(data, key, { enumerable: true, configurable: true, get() { if (__trackHomepagePropertyReads) __homepagePropertyReads[key]++; return current; }, set(value) { current = value; } }); } const orderCards = data.order_cards; if (orderCards) { let current = orderCards.nav_list_card; Object.defineProperty(orderCards, 'nav_list_card', { enumerable: true, configurable: true, get() { if (__trackHomepagePropertyReads) __homepagePropertyReads.nav_list_card++; return current; }, set(value) { current = value; } }); if (current) { let nested = current.data; Object.defineProperty(current, 'data', { enumerable: true, configurable: true, get() { if (__trackHomepagePropertyReads) __homepagePropertyReads.nav_data++; return nested; }, set(value) { nested = value; } }); } } const disorderCards = data.disorder_cards; if (disorderCards) { let current = disorderCards.bottom_nav_list; Object.defineProperty(disorderCards, 'bottom_nav_list', { enumerable: true, configurable: true, get() { if (__trackHomepagePropertyReads) __homepagePropertyReads.bottom_nav_list++; return current; }, set(value) { current = value; } }); if (current) { let nested = current.data; Object.defineProperty(current, 'data', { enumerable: true, configurable: true, get() { if (__trackHomepagePropertyReads) __homepagePropertyReads.bottom_nav_data++; return nested; }, set(value) { nested = value; } }); } } } if (__captureWalletPropertyReads) { const wallet = parsed?.data?.cards?.[0]; if (wallet && wallet.tag === 'wallet') { for (const key of ['tag', 'items', 'card_type', 'bottom_items']) { let current = wallet[key]; Object.defineProperty(wallet, key, { enumerable: true, configurable: true, get() { if (__trackWalletPropertyReads) __walletPropertyReads[key]++; return current; }, set(value) { current = value; } }); } } } return parsed; }; const nativeStringify = JSON.stringify.bind(JSON); JSON.stringify = function(value) { __stringifyCount++; const tracking = __trackWalletPropertyReads; const dataTracking = __trackResponseDataReads; __trackWalletPropertyReads = false; __trackResponseDataReads = false; __trackHomepagePropertyReads = false; try { return nativeStringify(value); } finally { __trackWalletPropertyReads = tracking; __trackResponseDataReads = dataTracking; __trackHomepagePropertyReads = true; } }; Array.prototype.filter = function() { throw new Error('allocating Array.filter remains'); };",
   context
 );
 if (payload.disableForEach) {
@@ -159,12 +166,12 @@ if (payload.body === null) {
 } else if (!doneResult || typeof doneResult.body !== "string") {
   process.stdout.write(JSON.stringify({ parseCount: context.__parseCount, stringifyCount: context.__stringifyCount, responseDataReads: context.__responseDataReads, passThrough: true }));
 } else {
-  process.stdout.write(JSON.stringify({ parseCount: context.__parseCount, stringifyCount: context.__stringifyCount, responseDataReads: context.__responseDataReads, walletPropertyReads: context.__walletPropertyReads, output: JSON.parse(doneResult.body) }));
+  process.stdout.write(JSON.stringify({ parseCount: context.__parseCount, stringifyCount: context.__stringifyCount, responseDataReads: context.__responseDataReads, walletPropertyReads: context.__walletPropertyReads, homepagePropertyReads: context.__homepagePropertyReads, output: JSON.parse(doneResult.body) }));
 }
 """
         completed = subprocess.run(
             [NODE, "-e", runner, str(SOURCE)],
-            input=json.dumps({"url": url, "body": body, "trackWalletProperties": track_wallet_properties, "trackResponseData": track_response_data}),
+            input=json.dumps({"url": url, "body": body, "trackWalletProperties": track_wallet_properties, "trackResponseData": track_response_data, "trackHomepageProperties": track_homepage_properties}),
             capture_output=True,
             text=True,
             check=True,
@@ -277,6 +284,39 @@ if (payload.body === null) {
         self.assertEqual(
             [item["title"] for item in cards[1]["bottom_items"]],
             ["省钱套餐", "天天神券"],
+        )
+
+    def test_homepage_core_nested_references_are_read_once(self):
+        body = {"data": {
+            "order_cards": {"nav_list_card": {"data": [
+                {"nav_id": "promo"}, {"nav_id": "dache_anycar"}
+            ]}},
+            "disorder_cards": {"bottom_nav_list": {"data": [
+                {"id": "promo"}, {"id": "user_center"}
+            ]}},
+        }}
+        result = self.run_script(
+            "https://conf.diditaxi.com.cn/homepage/v1/core",
+            body,
+            track_response_data=True,
+            track_homepage_properties=True,
+        )
+        self.assertEqual(result["responseDataReads"], 1)
+        self.assertEqual(result["homepagePropertyReads"], {
+            "order_cards": 1,
+            "nav_list_card": 1,
+            "nav_data": 1,
+            "disorder_cards": 1,
+            "bottom_nav_list": 1,
+            "bottom_nav_data": 1,
+        })
+        self.assertEqual(
+            [item["nav_id"] for item in result["output"]["data"]["order_cards"]["nav_list_card"]["data"]],
+            ["dache_anycar"],
+        )
+        self.assertEqual(
+            [item["id"] for item in result["output"]["data"]["disorder_cards"]["bottom_nav_list"]["data"]],
+            ["user_center"],
         )
 
     def test_wallet_nested_array_properties_are_read_once_per_wallet_card(self):
