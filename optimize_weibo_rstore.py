@@ -1069,10 +1069,10 @@ def optimize_comment_array_reference_cache(source):
         return source
     replacements = (
         ("    if (obj?.datas?.length > 0) {",
-         "    // loon-change: Weibo comment top-level array reference cache v1\\n"
-         "    const commentDatas = obj?.datas;\\n"
-         "    let rootComments;\\n"
-         "    let replyComments;\\n"
+         "    // loon-change: Weibo comment top-level array reference cache v1\n"
+         "    const commentDatas = obj?.datas;\n"
+         "    let rootComments;\n"
+         "    let replyComments;\n"
          "    if (commentDatas?.length > 0) {"),
         ("    } else if (obj?.root_comments?.length > 0) {",
          "    } else if ((rootComments = obj?.root_comments)?.length > 0) {"),
