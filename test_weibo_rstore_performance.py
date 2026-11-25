@@ -5,7 +5,7 @@ import subprocess
 import unittest
 from pathlib import Path
 
-from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, LAZY_MARKER, GUARD_DECLARATION, HELPER, LEGACY_HELPER, optimize_source, rewrite_plugin, optimize_page_filter_cached_itemid, TOPIC_GROUP_MARKER, optimize_topic_group_in_place, COMMENT_DATA_CACHE_MARKER, COMMENT_DATA_CACHE_OLD, COMMENT_DATA_CACHE_NEW, optimize_comment_data_reference_cache, REMOVE_AVATAR_USER_CACHE_MARKER, COMMENT_USER_CACHE_MARKER, COMMENT_USER_CACHE_OLD, COMMENT_USER_CACHE_NEW, optimize_comment_user_reference_cache, TOPIC_GROUP_NESTED_DATA_MARKER, optimize_topic_group_nested_data_cache, ROOT_COMMENT_USER_CACHE_MARKER, optimize_root_comment_user_cache, REMOVE_AVATAR_PROPERTY_CACHE_MARKER, optimize_remove_avatar_property_cache, COMMENT_DECORATION_SINGLE_READ_MARKER, ROOT_COMMENT_DECORATION_SINGLE_READ_MARKER, REPLY_DECORATION_SINGLE_READ_MARKER, ROOT_COMMENT_BUBBLE_SINGLE_READ_MARKER, optimize_comment_decoration_single_read, COMMENT_ARRAY_REFERENCE_CACHE_MARKER, optimize_comment_array_reference_cache, FOLLOWING_TIMELINE_DATA_CACHE_MARKER, optimize_following_timeline_data_cache, HOT_TIMELINE_DATA_CACHE_MARKER, optimize_hot_timeline_data_cache
+from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, LAZY_MARKER, GUARD_DECLARATION, HELPER, LEGACY_HELPER, optimize_source, rewrite_plugin, optimize_page_filter_cached_itemid, TOPIC_GROUP_MARKER, optimize_topic_group_in_place, COMMENT_DATA_CACHE_MARKER, COMMENT_DATA_CACHE_OLD, COMMENT_DATA_CACHE_NEW, optimize_comment_data_reference_cache, REMOVE_AVATAR_USER_CACHE_MARKER, COMMENT_USER_CACHE_MARKER, COMMENT_USER_CACHE_OLD, COMMENT_USER_CACHE_NEW, optimize_comment_user_reference_cache, TOPIC_GROUP_NESTED_DATA_MARKER, optimize_topic_group_nested_data_cache, ROOT_COMMENT_USER_CACHE_MARKER, optimize_root_comment_user_cache, REMOVE_AVATAR_PROPERTY_CACHE_MARKER, optimize_remove_avatar_property_cache, COMMENT_DECORATION_SINGLE_READ_MARKER, ROOT_COMMENT_DECORATION_SINGLE_READ_MARKER, REPLY_DECORATION_SINGLE_READ_MARKER, ROOT_COMMENT_BUBBLE_SINGLE_READ_MARKER, optimize_comment_decoration_single_read, COMMENT_ARRAY_REFERENCE_CACHE_MARKER, optimize_comment_array_reference_cache, FOLLOWING_TIMELINE_DATA_CACHE_MARKER, optimize_following_timeline_data_cache, HOT_TIMELINE_DATA_CACHE_MARKER, optimize_hot_timeline_data_cache, FLOWLIST_ASYN_REFERENCE_CACHE_MARKER, optimize_flowlist_asyn_nested_reference_cache
 
 ROOT = Path(__file__).resolve().parent
 SCRIPT = ROOT / "scripts/weibo/weibo-rstore.js"
@@ -98,6 +98,26 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "user-cache structure drift"):
             optimize_root_comment_user_cache(damaged)
 
+
+    def test_flowlist_asyn_nested_reference_cache_is_idempotent_and_fails_closed(self):
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(FLOWLIST_ASYN_REFERENCE_CACHE_MARKER, source)
+        self.assertEqual(optimize_flowlist_asyn_nested_reference_cache(source), source)
+        for token in (
+            "const asynItems = obj?.items;",
+            "const asynItemsLength = asynItems?.length || 0;",
+            "const itemData = item?.data;",
+            "const itemId = item?.itemId;",
+            "const nestedData = nestedItem?.data;",
+            "const flowItems = obj?.items;",
+            "const channelInfo = obj?.channelInfo;",
+            "const flowChannels = channelInfo?.channels;",
+            "const flowId = tab?.flowId;",
+        ):
+            self.assertIn(token, source)
+        damaged = source.replace("const flowId = tab?.flowId;", "const flowId = null;", 1)
+        with self.assertRaisesRegex(ValueError, "structure drift"):
+            optimize_flowlist_asyn_nested_reference_cache(damaged)
 
     def test_hot_timeline_caches_arrays_and_item_data(self):
         source = SCRIPT.read_text(encoding="utf-8")
@@ -314,6 +334,107 @@ process.stdout.write(JSON.stringify({doneResult, parseCount, stringifyCount}));
                 % (completed.returncode, completed.stderr, completed.stdout)
             )
         return json.loads(completed.stdout)
+
+    def test_flowlist_and_container_asyn_cache_nested_array_and_data_references(self):
+        runner = r"""
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync(process.argv[1],"utf8");
+const payload=JSON.parse(fs.readFileSync(0,"utf8"));
+let doneResult,tracking=false;
+const counts=Object.create(null);
+const nativeParse=JSON.parse.bind(JSON),nativeStringify=JSON.stringify.bind(JSON);
+const wrap=(target,key,label)=>{
+  let current=target[key];counts[label]=0;
+  Object.defineProperty(target,key,{enumerable:true,configurable:true,
+    get(){if(tracking)counts[label]++;return current;},set(value){current=value;}});
+};
+const trackedJSON={
+  parse(value){
+    const parsed=nativeParse(value);
+    if(payload.case==="asyn"){
+      const items=parsed.items;
+      const itemsProxy=new Proxy(items,{get(target,key,receiver){
+        if(tracking&&key==="length")counts["items.length"]++;
+        return Reflect.get(target,key,receiver);
+      }});
+      parsed.items=itemsProxy;counts["items.length"]=0;
+      const card=itemsProxy[0],nested=card.items;
+      const nestedProxy=new Proxy(nested,{get(target,key,receiver){
+        if(tracking&&key==="length")counts["nested.length"]++;
+        return Reflect.get(target,key,receiver);
+      }});
+      wrap(parsed,"items","response.items");
+      wrap(card,"itemId","item.itemId");
+      wrap(card,"items","item.items");
+      card.items=nestedProxy;
+      wrap(nested[0],"data","nested.data");
+    } else {
+      const items=parsed.items;
+      const itemsProxy=new Proxy(items,{get(target,key,receiver){
+        if(tracking&&key==="length")counts["items.length"]++;
+        return Reflect.get(target,key,receiver);
+      }});
+      parsed.items=itemsProxy;counts["items.length"]=0;
+      const card=itemsProxy[0],nested=card.items;
+      const nestedProxy=new Proxy(nested,{get(target,key,receiver){
+        if(tracking&&key==="length")counts["nested.length"]++;
+        return Reflect.get(target,key,receiver);
+      }});
+      wrap(parsed,"items","response.items");
+      wrap(card,"items","item.items");
+      card.items=nestedProxy;
+      wrap(nested[0],"data","nested.data");
+      const channelInfo=parsed.channelInfo,channels=channelInfo.channels;
+      const channelsProxy=new Proxy(channels,{get(target,key,receiver){
+        if(tracking&&key==="length")counts["channels.length"]++;
+        return Reflect.get(target,key,receiver);
+      }});
+      wrap(parsed,"channelInfo","response.channelInfo");
+      wrap(channelInfo,"channels","channelInfo.channels");
+      channelInfo.channels=channelsProxy;
+      for(let index=0;index<channels.length;index++)wrap(channels[index],"flowId","tab"+index+".flowId");
+      counts["channels.length"]=0;
+    }
+    tracking=true;
+    return parsed;
+  },
+  stringify(value){tracking=false;return nativeStringify(value);}
+};
+const context={JSON:trackedJSON,$request:{url:payload.url},$response:{body:nativeStringify(payload.body)},
+  $done(value){doneResult=value;},console:{log(){},warn(){},error(){}}};
+vm.runInNewContext(source,context,{timeout:5000});
+process.stdout.write(nativeStringify({doneResult,counts}));
+""";
+        cases = [
+            ("asyn", "https://api.weibo.cn/2/container/asyn?fixture=cache",
+             {"items": [{"itemId": "normal-card", "data": {}, "items": [{"data": {
+                 "buttons": [{"type": "follow"}], "page_info": {"media_info": {"vote_info": {"id": 1}}}
+             }}]}, {"itemId": "infeed_may_interest_in_1", "items": []}]},
+             {"response.items": 1, "items.length": 1, "item.itemId": 1, "item.items": 1, "nested.length": 1, "nested.data": 1}),
+            ("flow", "https://api.weibo.cn/2/flowlist?fixture=cache",
+             {"items": [{"items": [{"data": {
+                 "buttons": [{"type": "follow"}], "page_info": {"media_info": {"vote_info": {"id": 1}}}
+             }}]}],
+              "channelInfo": {"channels": [
+                  {"flowId": "normal"}, {"flowId": "x_selfrecomm"}, {"flowId": "x_chaohua"}
+              ]}},
+             {"response.items": 1, "items.length": 1, "item.items": 1, "nested.length": 1, "nested.data": 1,
+              "response.channelInfo": 1, "channelInfo.channels": 1, "channels.length": 1,
+              "tab0.flowId": 1, "tab1.flowId": 1, "tab2.flowId": 1}),
+        ]
+        for case_name, url, body, expected in cases:
+            completed = subprocess.run(
+                [NODE, "-e", runner],
+                input=json.dumps({"case": case_name, "url": url, "body": body}),
+                capture_output=True, text=True, check=False, timeout=10
+            )
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+            result = json.loads(completed.stdout)
+            self.assertEqual(result["counts"], expected)
+            output = json.loads(result["doneResult"]["body"])
+            self.assertNotIn("buttons", output["items"][0]["items"][0]["data"])
+            self.assertNotIn("vote_info", output["items"][0]["items"][0]["data"]["page_info"]["media_info"])
+            if case_name == "flow":
+                self.assertEqual([x["flowId"] for x in output["channelInfo"]["channels"]], ["normal"])
 
     def test_cardlist_nested_arrays_compact_in_place_without_changing_order(self):
         body = {"cards": [
