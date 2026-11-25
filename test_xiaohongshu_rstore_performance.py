@@ -7,7 +7,7 @@ import unittest
 sys.setrecursionlimit(10000)
 from pathlib import Path
 
-from optimize_xiaohongshu_rstore import LOCAL, REMOTE, MARKER, optimize_source, rewrite_plugin, XIAOHONGSHU_V4_FUNCTION_ENTRY_MARKER, optimize_v4_function_entry_scan, VIDEO_SAVE_LOOKUP_MARKER, optimize_video_save_lookup
+from optimize_xiaohongshu_rstore import LOCAL, REMOTE, MARKER, optimize_source, rewrite_plugin, XIAOHONGSHU_V4_FUNCTION_ENTRY_MARKER, optimize_v4_function_entry_scan, VIDEO_FEED_HOTPATH_MARKER, optimize_videofeed_hotpath_references, VIDEO_SAVE_LOOKUP_MARKER, optimize_video_save_lookup
 
 ROOT = Path(__file__).resolve().parent
 SCRIPT = ROOT / "scripts/xiaohongshu/xiaohongshu-rstore.js"
@@ -44,7 +44,7 @@ class RStoreXiaohongshuOptimizerTests(unittest.TestCase):
         self.assertIn("commentPictures = current.pictures;", source)
         self.assertIn('const child = isCommentFrame && key === "pictures" ? commentPictures : current[key];', source)
         self.assertEqual(source.count(XIAOHONGSHU_V4_FUNCTION_ENTRY_MARKER), 1)
-        self.assertIn("const functionEntryCount = functionEntries.length;", source)
+        self.assertIn("const functionEntryCount = functionEntries?.length || 0;", source)
         self.assertNotIn("functionEntries.some(", source)
         self.assertIn("// loon-change: Xiaohongshu parsed JSON tree traversal without visited WeakSet v1;", source)
         self.assertNotIn("const visited = new WeakSet()", source)
@@ -73,6 +73,27 @@ class RStoreXiaohongshuOptimizerTests(unittest.TestCase):
         damaged = source.replace("function imageEnhance(images, livePhotoCache)", "function imageEnhance(images)")
         with self.assertRaisesRegex(ValueError, "single-traversal image helper drifted"):
             optimize_imagefeed_single_traversal(damaged)
+
+    def test_videofeed_hotpath_reference_optimizer_is_idempotent_and_fails_closed(self):
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(VIDEO_FEED_HOTPATH_MARKER, source)
+        self.assertEqual(optimize_videofeed_hotpath_references(source), source)
+        for token in (
+            "const videoFeedItemsV3 = obj?.data;",
+            "const mediaSaveConfig = item?.media_save_config;",
+            "const functionEntries = shareInfo?.function_entries;",
+            "const functionEntryCount = functionEntries?.length || 0;",
+            "const videoFeedItemsV4 = obj?.data;",
+            "const videoInfoV2 = item?.video_info_v2;",
+            "const h265ListLength = Array.isArray(h265List) ? h265List.length : 0;",
+            "const streamUrl = stream.master_url;",
+            "const rawHeight = stream.height;",
+            "const noteId = item?.id;",
+        ):
+            self.assertIn(token, source)
+        damaged = source.replace("const streamUrl = stream.master_url;", "const streamUrl = null;", 1)
+        with self.assertRaisesRegex(ValueError, "structure drift"):
+            optimize_videofeed_hotpath_references(damaged)
 
     def test_v4_function_entry_scan_is_indexed_idempotent_and_fails_closed(self):
         source = SCRIPT.read_text(encoding="utf-8")
@@ -471,6 +492,156 @@ process.stdout.write(nativeStringify({doneResult,reads,pictureLengthReads,pictur
         self.assertEqual(result["pictureIndexReads"], 2)
         cached = json.loads(result["store"]["xiaohongshu.comments.rsp"])
         self.assertEqual([item["videId"] for item in cached["livePhotos"]], ["video-1", "video-2"])
+
+    def test_v3_video_feed_caches_item_and_nested_references(self):
+        runner = r"""
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync(process.argv[1],"utf8");
+const payload=JSON.parse(fs.readFileSync(0,"utf8")),store=new Map();
+let doneResult,tracking=false;
+const counts=Object.create(null);
+const nativeParse=JSON.parse.bind(JSON),nativeStringify=JSON.stringify.bind(JSON);
+const trackedJSON={
+  parse(value){
+    const parsed=nativeParse(value);
+    const wrap=(target,key,label)=>{
+      let current=target[key];counts[label]=0;
+      Object.defineProperty(target,key,{enumerable:true,configurable:true,
+        get(){if(tracking)counts[label]++;return current;},set(value){current=value;}});
+    };
+    const items=parsed.data;
+    const proxiedItems=new Proxy(items,{get(target,key,receiver){
+      if(tracking&&key==="length")counts["data.length"]++;
+      return Reflect.get(target,key,receiver);
+    }});
+    parsed.data=proxiedItems;
+    counts["data.length"]=0;
+    const item=proxiedItems[0];
+    const saveConfig=item.media_save_config;
+    const shareInfo=item.share_info;
+    const entries=shareInfo.function_entries;
+    wrap(parsed,"data","response.data");
+    wrap(item,"media_save_config","item.media_save_config");
+    wrap(item,"share_info","item.share_info");
+    wrap(shareInfo,"function_entries","share_info.function_entries");
+    const contextSaveConfig=saveConfig;
+    tracking=true;
+    return parsed;
+  },
+  stringify(value){tracking=false;return nativeStringify(value);}
+};
+const context={$loon:{},$persistentStore:{
+  read(key){return store.has(key)?store.get(key):null;},
+  write(value,key){store.set(key,value);return true;}
+},$request:{url:payload.url},$response:{body:nativeStringify(payload.body)},
+  $done(value){doneResult=value;},JSON:trackedJSON,console:{log(){},warn(){},error(){}}};
+vm.createContext(context);
+vm.runInNewContext(source,context,{timeout:5000});
+process.stdout.write(nativeStringify({doneResult,counts,store:Object.fromEntries(store)}));
+""";
+        body = {"data": [{
+            "id": "v3-note",
+            "media_save_config": {"disable_save": True, "disable_watermark": False, "disable_weibo_cover": False},
+            "share_info": {"function_entries": [{"type": "share"}]}
+        }]}
+        completed = subprocess.run(
+            [NODE, "-e", runner],
+            input=json.dumps({"url": "https://edith.xiaohongshu.com/api/sns/v3/note/videofeed?fixture=cache", "body": body}),
+            capture_output=True, text=True, check=False, timeout=10
+        )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        result = json.loads(completed.stdout)
+        self.assertEqual(
+            result["counts"],
+            {"data.length": 1, "response.data": 1, "item.media_save_config": 1,
+             "item.share_info": 1, "share_info.function_entries": 1}
+        )
+        output = json.loads(result["doneResult"]["body"])
+        self.assertEqual(output["data"][0]["media_save_config"], {
+            "disable_save": False, "disable_watermark": True, "disable_weibo_cover": True
+        })
+        self.assertEqual([entry["type"] for entry in output["data"][0]["share_info"]["function_entries"]],
+                         ["video_download", "share"])
+
+    def test_v4_video_feed_caches_h265_candidate_fields_once(self):
+        runner = r"""
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync(process.argv[1],"utf8");
+const payload=JSON.parse(fs.readFileSync(0,"utf8")),store=new Map();
+let doneResult,tracking=false;
+const counts=Object.create(null);
+const nativeParse=JSON.parse.bind(JSON),nativeStringify=JSON.stringify.bind(JSON);
+const wrap=(target,key,label)=>{
+  let current=target[key];counts[label]=0;
+  Object.defineProperty(target,key,{enumerable:true,configurable:true,
+    get(){if(tracking)counts[label]++;return current;},set(value){current=value;}});
+};
+const trackedJSON={
+  parse(value){
+    const parsed=nativeParse(value);
+    const items=parsed.data;
+    const list=new Proxy(items,{get(target,key,receiver){
+      if(tracking&&key==="length")counts["data.length"]++;
+      return Reflect.get(target,key,receiver);
+    }});
+    parsed.data=list;counts["data.length"]=0;
+    const item=list[0],videoInfo=item.video_info_v2,media=videoInfo.media,streamInfo=media.stream;
+    const h265=streamInfo.h265;
+    const h265Proxy=new Proxy(h265,{get(target,key,receiver){
+      if(tracking&&key==="length")counts["h265.length"]++;
+      if(tracking&&typeof key==="string"&&/^\d+$/.test(key))counts["h265.index"]++;
+      return Reflect.get(target,key,receiver);
+    }});
+    wrap(parsed,"data","response.data");
+    wrap(item,"video_info_v2","item.video_info_v2");
+    wrap(videoInfo,"media","videoInfoV2.media");
+    wrap(media,"stream","media.stream");
+    wrap(streamInfo,"h265","stream.h265");
+    streamInfo.h265=h265Proxy;
+    wrap(item,"id","item.id");
+    const stream0=h265[0],stream1=h265[1];
+    wrap(stream0,"master_url","stream0.master_url");
+    wrap(stream0,"height","stream0.height");
+    wrap(stream1,"master_url","stream1.master_url");
+    wrap(stream1,"height","stream1.height");
+    tracking=true;
+    return parsed;
+  },
+  stringify(value){tracking=false;return nativeStringify(value);}
+};
+const context={$loon:{},$persistentStore:{
+  read(key){return store.has(key)?store.get(key):null;},
+  write(value,key){store.set(key,value);return true;}
+},$request:{url:payload.url},$response:{body:nativeStringify(payload.body)},
+  $done(value){doneResult=value;},JSON:trackedJSON,console:{log(){},warn(){},error(){}}};
+vm.createContext(context);vm.runInNewContext(source,context,{timeout:5000});
+process.stdout.write(nativeStringify({doneResult,counts,store:Object.fromEntries(store)}));
+""";
+        body = {"data": [{
+            "id": "v4-note",
+            "video_info_v2": {"media": {"stream": {"h265": [
+                {"master_url": "https://video.example/720.mp4", "height": "720"},
+                {"master_url": "https://video.example/1080.mp4", "height": "1080"}
+            ]}}}
+        }]}
+        completed = subprocess.run(
+            [NODE, "-e", runner],
+            input=json.dumps({"url": "https://edith.xiaohongshu.com/api/sns/v4/note/videofeed?fixture=field-cache", "body": body}),
+            capture_output=True, text=True, check=False, timeout=10
+        )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        result = json.loads(completed.stdout)
+        expected = {
+            "data.length", "response.data", "item.video_info_v2", "videoInfoV2.media",
+            "media.stream", "stream.h265", "item.id", "h265.length", "h265.index",
+            "stream0.master_url", "stream0.height", "stream1.master_url", "stream1.height"
+        }
+        self.assertEqual(set(result["counts"]), expected)
+        self.assertEqual(
+            {key: value for key, value in result["counts"].items() if key != "h265.index"},
+            {key: 1 for key in expected if key != "h265.index"}
+        )
+        self.assertEqual(result["counts"]["h265.index"], 2)
+        cached = json.loads(result["store"]["redBookVideoFeed"])
+        self.assertEqual(cached, [{"id": "v4-note", "url": "https://video.example/1080.mp4"}])
 
     def test_v4_video_feed_uses_indexed_function_entry_scan_without_some(self):
         runner = r"""

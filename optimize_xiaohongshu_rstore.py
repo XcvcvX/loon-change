@@ -422,9 +422,9 @@ OLD_V4_FUNCTION_ENTRY_BLOCK = """          if (item?.share_info?.function_entrie
 NEW_V4_FUNCTION_ENTRY_BLOCK = """          // loon-change: Xiaohongshu v4 function-entry indexed scan v1
           const shareInfo = item?.share_info;
           const functionEntries = shareInfo?.function_entries;
-          if (functionEntries?.length > 0) {
+          const functionEntryCount = functionEntries?.length || 0;
+          if (functionEntryCount > 0) {
             let hasDownload = false;
-            const functionEntryCount = functionEntries.length;
             for (let entryIndex = 0; entryIndex < functionEntryCount; entryIndex++) {
               const entry = functionEntries[entryIndex];
               if (entry.type === "video_download") {
@@ -444,7 +444,7 @@ def optimize_v4_function_entry_scan(source):
         marker,
         "const shareInfo = item?.share_info;",
         "const functionEntries = shareInfo?.function_entries;",
-        "const functionEntryCount = functionEntries.length;",
+        "const functionEntryCount = functionEntries?.length || 0;",
         "for (let entryIndex = 0; entryIndex < functionEntryCount; entryIndex++)",
         "const entry = functionEntries[entryIndex];",
         'if (entry.type === "video_download")',
@@ -466,6 +466,178 @@ def optimize_v4_function_entry_scan(source):
     if "functionEntries.some(" in source or "item.share_info.function_entries.some(" in source:
         raise ValueError("Xiaohongshu V4 some callback remains")
     return source
+
+
+VIDEO_FEED_HOTPATH_MARKER = "// loon-change: Xiaohongshu V3/V4 video-feed hot-path reference cache v1"
+
+def optimize_videofeed_hotpath_references(source):
+    """Cache V3/V4 video-feed arrays, per-item nested references, and H.265 stream fields."""
+    start = '} else if (url.includes("/note/videofeed")) {'
+    end = '// 视频保存请求\n} else if (url.includes("/note/video/save")) {'
+    if source.count(start) != 1 or source.count(end) != 1:
+        raise ValueError("Xiaohongshu video-feed route boundary drift")
+    left = source.index(start)
+    right = source.index(end, left + len(start))
+    block = source[left:right]
+    required = (
+        VIDEO_FEED_HOTPATH_MARKER,
+        "const videoFeedItemsV3 = obj?.data;",
+        "const videoFeedItemsV3Length = videoFeedItemsV3?.length || 0;",
+        "const mediaSaveConfig = item?.media_save_config;",
+        "const shareInfo = item?.share_info;",
+        "const functionEntries = shareInfo?.function_entries;",
+        "const functionEntryCount = functionEntries?.length || 0;",
+        "if (functionEntryCount > 0)",
+        "const videoFeedItemsV4 = obj?.data;",
+        "const videoFeedItemsV4Length = videoFeedItemsV4?.length || 0;",
+        "const videoInfoV2 = item?.video_info_v2;",
+        "const h265ListLength = Array.isArray(h265List) ? h265List.length : 0;",
+        "const streamUrl = stream.master_url;",
+        "const rawHeight = stream.height;",
+        "const noteId = item?.id;",
+    )
+    if VIDEO_FEED_HOTPATH_MARKER in block:
+        if block.count(VIDEO_FEED_HOTPATH_MARKER) != 1 or any(token not in block for token in required):
+            raise ValueError("Xiaohongshu video-feed cache structure drift")
+        forbidden = (
+            "for (let item of obj.data)",
+            "if (obj?.data?.length > 0)",
+            "if (obj.data?.length > 0)",
+            "item?.share_info?.function_entries",
+            "item.media_save_config.",
+            "item.share_info.function_entries",
+            "item?.video_info_v2?.media?.stream?.h265",
+            "stream.master_url || !stream.height",
+            "Number(stream.height)",
+            "selectedStream?.master_url",
+        )
+        if any(token in block for token in forbidden):
+            raise ValueError("Xiaohongshu repeated video-feed response reads remain")
+        return source
+    oldV3 = '''    if (obj?.data?.length > 0) {
+      for (let item of obj.data) {
+        if (item?.media_save_config) {
+          // 水印开关
+          item.media_save_config.disable_save = false;
+          item.media_save_config.disable_watermark = true;
+          item.media_save_config.disable_weibo_cover = true;
+        }
+        if (item?.share_info?.function_entries?.length > 0) {
+          // 下载限制
+          const additem = {type: "video_download"};
+          let func = item.share_info.function_entries[0];
+          if (func?.type !== "video_download") {
+            // 向数组开头添加对象
+            item.share_info.function_entries.unshift(additem);
+          }
+        }
+      }
+    }'''
+    newV3 = '''    // loon-change: Xiaohongshu V3 video-feed cached item references v1
+    const videoFeedItemsV3 = obj?.data;
+    const videoFeedItemsV3Length = videoFeedItemsV3?.length || 0;
+    if (videoFeedItemsV3Length > 0) {
+      for (let itemIndex = 0; itemIndex < videoFeedItemsV3Length; itemIndex++) {
+        const item = videoFeedItemsV3[itemIndex];
+        const mediaSaveConfig = item?.media_save_config;
+        if (mediaSaveConfig) {
+          // 水印开关
+          mediaSaveConfig.disable_save = false;
+          mediaSaveConfig.disable_watermark = true;
+          mediaSaveConfig.disable_weibo_cover = true;
+        }
+        const shareInfo = item?.share_info;
+        const functionEntries = shareInfo?.function_entries;
+        const functionEntriesLength = functionEntries?.length || 0;
+        if (functionEntriesLength > 0) {
+          // 下载限制
+          const additem = {type: "video_download"};
+          const func = functionEntries[0];
+          if (func?.type !== "video_download") {
+            // 向数组开头添加对象
+            functionEntries.unshift(additem);
+          }
+        }
+      }
+    }'''
+    oldV4Start = '    let videoData = [];\n    if (obj.data?.length > 0) {'
+    oldV4End = '        $.setdata(JSON.stringify(videoData), "redBookVideoFeed");\n    }'
+    newV4 = '''    let videoData = [];
+    // loon-change: Xiaohongshu V4 video-feed cached item references v1
+    const videoFeedItemsV4 = obj?.data;
+    const videoFeedItemsV4Length = videoFeedItemsV4?.length || 0;
+    if (videoFeedItemsV4Length > 0) {
+        for (let itemIndex = 0; itemIndex < videoFeedItemsV4Length; itemIndex++) {
+          const item = videoFeedItemsV4[itemIndex];
+          // 添加下载按钮（如果未存在）
+          // loon-change: Xiaohongshu v4 function-entry indexed scan v1
+          const shareInfo = item?.share_info;
+          const functionEntries = shareInfo?.function_entries;
+          const functionEntryCount = functionEntries?.length || 0;
+          if (functionEntryCount > 0) {
+            let hasDownload = false;
+            for (let entryIndex = 0; entryIndex < functionEntryCount; entryIndex++) {
+              const entry = functionEntries[entryIndex];
+              if (entry.type === "video_download") {
+                hasDownload = true;
+                break;
+              }
+            }
+            if (!hasDownload) {
+              functionEntries.push({type: "video_download"});
+            }
+          }
+    
+          // 提取 H.265 视频流
+          const videoInfoV2 = item?.video_info_v2;
+          const mediaInfo = videoInfoV2?.media;
+          const streamInfo = mediaInfo?.stream;
+          const h265List = streamInfo?.h265 || [];
+          const h265ListLength = Array.isArray(h265List) ? h265List.length : 0;
+          if (h265ListLength === 0) {
+            continue;
+          }
+    
+          // Select the highest-resolution stream in one pass; preserve first item on ties.
+          let selectedStreamUrl = "";
+          let selectedHeight = -Infinity;
+          for (let streamIndex = 0; streamIndex < h265ListLength; streamIndex++) {
+            const stream = h265List[streamIndex];
+            if (!stream) continue;
+            const streamUrl = stream.master_url;
+            const rawHeight = stream.height;
+            if (!streamUrl || !rawHeight) continue;
+            const streamHeight = Number(rawHeight);
+            if (streamHeight > selectedHeight) {
+              selectedStreamUrl = streamUrl;
+              selectedHeight = streamHeight;
+            }
+          }
+    
+          // 存入缓存数组
+          const noteId = item?.id;
+          if (noteId && selectedStreamUrl) {
+            videoData.push({id: noteId, url: selectedStreamUrl});
+          }
+        }
+        // 写入本地持久化缓存
+        $.setdata(JSON.stringify(videoData), "redBookVideoFeed");
+    }'''
+    if source.count(oldV3) != 1:
+        raise ValueError("Xiaohongshu V3 video-feed cache anchor drift")
+    source = source.replace(oldV3, newV3, 1)
+    if source.count(oldV4Start) != 1 or source.count(oldV4End) != 1:
+        raise ValueError("Xiaohongshu V4 video-feed cache anchor drift")
+    leftV4 = source.index(oldV4Start)
+    rightV4 = source.index(oldV4End, leftV4) + len(oldV4End)
+    source = source[:leftV4] + newV4 + source[rightV4:]
+    left = source.index(start)
+    right = source.index(end, left + len(start))
+    block = source[left:right]
+    block = block.replace(start, start + "\n  " + VIDEO_FEED_HOTPATH_MARKER, 1)
+    if any(token not in block for token in required):
+        raise ValueError("Xiaohongshu video-feed cache postcondition failed")
+    return source[:left] + block + source[right:]
 
 
 def optimize_source(source, commit="unknown"):
@@ -492,6 +664,7 @@ def optimize_source(source, commit="unknown"):
     if MARKER in source:
         source = optimize_video_save_lookup(source)
         source = optimize_v4_function_entry_scan(source)
+        source = optimize_videofeed_hotpath_references(source)
         required = ("function imageEnhance(images, livePhotoCache)", "compactInPlace(obj.data", "appendUniqueLivePhotos",
                     "const byFileId = new Map()", "function cleanCommentsAndCollectLivePhotos(data)",
                     "const videoInfoCache = new Map()", "let commentPictures = null;", "commentPictures = current.pictures;", COMMENT_ARRAY_LENGTH_MARKER, "const commentPictureCount = commentPictures?.length || 0;", "const currentLength = current.length;", "const commentCount = child.length;", "const subCommentCount = child.length", "commentPictures : current[key]")
@@ -524,6 +697,7 @@ def optimize_source(source, commit="unknown"):
                   "const url = $request.url;\n" + HELPERS.strip(), "array helpers")
     source = optimize_video_save_lookup(source)
     source = optimize_v4_function_entry_scan(source)
+    source = optimize_videofeed_hotpath_references(source)
 
     image_block = '''      const images_list = obj.data[0].note_list[0].images_list;
       // 画质增强
