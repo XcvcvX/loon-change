@@ -1149,6 +1149,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
       if (__loonWrite3 !== __loonLength3) modified = true;
     }
   } else if (url.includes("/2/statuses/container_timeline?") || url.includes("/2/statuses/container_timeline_unread")) {
+    // loon-change: Weibo following timeline nested reference cache v1
     // 首页关注tab信息流
     if (obj?.loadedInfo?.headers) {
       delete obj.loadedInfo.headers;
@@ -1157,46 +1158,53 @@ if (url.includes("/interface/sdk/sdkad.php")) {
     if (obj?.common_struct) {
       delete obj?.common_struct;
     }
-    if (obj?.items?.length > 0) {
-      const __loonSource2 = obj.items;
+    const timelineItems = obj?.items;
+    const timelineItemsLength = timelineItems?.length || 0;
+    if (timelineItemsLength > 0) {
+      const __loonSource2 = timelineItems;
       let __loonWrite2 = 0;
-      const __loonLength2 = __loonSource2.length;
+      const __loonLength2 = timelineItemsLength;
       for (let __loonRead2 = 0; __loonRead2 < __loonLength2; __loonRead2++) {
         let item = __loonSource2[__loonRead2];
-        if (!isAd(item?.data)) {
+        const itemData = item?.data;
+        if (!isAd(itemData)) {
           if (item?.category === "feed") {
             // 信息流推广
-            removeFeedAd(item?.data);
-            if (item.data?.title?.structs) {
+            removeFeedAd(itemData);
+            const itemTitle = itemData?.title;
+            if (itemTitle?.structs) {
               // 移除 未关注人消息 (你关注的博主，他自己关注的别的博主的微博消息)
               continue;
             }
-            if (item?.data?.action_button_icon_dic) {
-              delete item.data.action_button_icon_dic;
+            if (itemData?.action_button_icon_dic) {
+              delete itemData.action_button_icon_dic;
             }
             // 投票窗口
-            removeVoteInfo(item?.data);
+            removeVoteInfo(itemData);
             // 快转内容
-            if (item?.data?.screen_name_suffix_new?.length > 0) {
-              if (item?.data?.screen_name_suffix_new?.[3]?.content === "快转了") {
+            const screenNameSuffixNew = itemData?.screen_name_suffix_new;
+            if (screenNameSuffixNew?.length > 0) {
+              if (screenNameSuffixNew[3]?.content === "快转了") {
                 continue;
               }
             }
             // 美妆精选季
-            if (item?.data?.title?.text?.includes("精选")) {
+            if (itemTitle?.text?.includes("精选")) {
               continue;
             }
             // 未关注博主
-            if (item?.data?.user?.following === false) {
+            const itemUser = itemData?.user;
+            if (itemUser?.following === false) {
               continue;
             }
             // 关闭关注推荐
-            if (item?.data?.user?.unfollowing_recom_switch === 1) {
-              item.data.user.unfollowing_recom_switch = 0;
+            if (itemUser?.unfollowing_recom_switch === 1) {
+              itemUser.unfollowing_recom_switch = 0;
             }
             // 博主top100
-            if (item?.data?.tag_struct?.length > 0) {
-              item.data.tag_struct = [];
+            const tagStruct = itemData?.tag_struct;
+            if (tagStruct?.length > 0) {
+              itemData.tag_struct = [];
             }
             __loonSource2[__loonWrite2++] = item;
           } else if (item?.category === "feedBiz") {
