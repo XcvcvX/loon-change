@@ -5,7 +5,7 @@ import subprocess
 import unittest
 from pathlib import Path
 
-from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, LAZY_MARKER, GUARD_DECLARATION, HELPER, LEGACY_HELPER, optimize_source, rewrite_plugin, optimize_page_filter_cached_itemid, TOPIC_GROUP_MARKER, optimize_topic_group_in_place, COMMENT_DATA_CACHE_MARKER, COMMENT_DATA_CACHE_OLD, COMMENT_DATA_CACHE_NEW, optimize_comment_data_reference_cache, REMOVE_AVATAR_USER_CACHE_MARKER, COMMENT_USER_CACHE_MARKER, COMMENT_USER_CACHE_OLD, COMMENT_USER_CACHE_NEW, optimize_comment_user_reference_cache
+from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, LAZY_MARKER, GUARD_DECLARATION, HELPER, LEGACY_HELPER, optimize_source, rewrite_plugin, optimize_page_filter_cached_itemid, TOPIC_GROUP_MARKER, optimize_topic_group_in_place, COMMENT_DATA_CACHE_MARKER, COMMENT_DATA_CACHE_OLD, COMMENT_DATA_CACHE_NEW, optimize_comment_data_reference_cache, REMOVE_AVATAR_USER_CACHE_MARKER, COMMENT_USER_CACHE_MARKER, COMMENT_USER_CACHE_OLD, COMMENT_USER_CACHE_NEW, optimize_comment_user_reference_cache, TOPIC_GROUP_NESTED_DATA_MARKER, optimize_topic_group_nested_data_cache
 
 ROOT = Path(__file__).resolve().parent
 SCRIPT = ROOT / "scripts/weibo/weibo-rstore.js"
@@ -69,6 +69,21 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         damaged = source.replace("const groupItems = item.items;", "const groupItems = undefined;", 1)
         with self.assertRaisesRegex(ValueError, "marker/structure drift"):
             optimize_topic_group_in_place(damaged)
+
+
+    def test_nested_topic_group_data_references_are_cached(self):
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertEqual(optimize_topic_group_nested_data_cache(source), source)
+        self.assertEqual(source.count(TOPIC_GROUP_NESTED_DATA_MARKER), 1)
+        self.assertIn("const nestedItems = item?.items;", source)
+        self.assertIn("const nestedLength = nestedItems.length;", source)
+        self.assertIn("const iiData = ii?.data;", source)
+        self.assertIn("const commonStruct = iiData.common_struct;", source)
+        self.assertNotIn("for (let ii of item.items)", source)
+        self.assertNotIn("removeAvatar(ii?.data)", source)
+        damaged = source.replace("const iiData = ii?.data;", "const iiData = undefined;", 1)
+        with self.assertRaisesRegex(ValueError, "data-cache structure drift"):
+            optimize_topic_group_nested_data_cache(damaged)
 
     def test_profile_timeline_caches_nested_data_references_once(self):
         from optimize_weibo_rstore import PROFILE_TIMELINE_DATA_CACHE_MARKER, optimize_profile_timeline_data_cache
