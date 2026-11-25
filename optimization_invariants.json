@@ -39,7 +39,6 @@
         "// loon-change: Xiaohongshu imagefeed single traversal live-photo extraction v1",
         "function imageEnhance(images, livePhotoCache)",
         "const livePhotoTarget = Array.isArray(livePhotoCache) ? livePhotoCache : null;",
-        "const stack=[{value:images,index:0,keys:null,root:true}];",
         "frame.root && livePhotoTarget",
         "// loon-change: Xiaohongshu imagefeed live-photo property cache v1;",
         "const livePhoto = child.live_photo;",
