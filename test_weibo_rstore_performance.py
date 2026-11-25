@@ -93,7 +93,7 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         legacy = source.replace(LAZY_MARKER + "\n", "", 1)
         legacy = legacy.replace(GUARD_DECLARATION + "\n", "", 1)
         legacy = legacy.replace(HELPER, LEGACY_HELPER, 1)
-        legacy = re.sub(r"(?m)^([ \t]*)if \(__loonWrite\d+ !== __loonLength\d+\) modified = true;\n", "", legacy)
+        legacy = re.sub(r"(?m)^([ \\t]*)modified = true;\\n(?=[ \\t]*delete )", "", legacy)
         legacy = re.sub(r"(?m)^([ \t]*)modified = true;\n([ \t]*delete .+;)$", r"\2", legacy)
         legacy = legacy.replace("$done(modified ? {body: JSON.stringify(obj)} : {});", "$done({body: JSON.stringify(obj)});", 1)
         self.assertEqual(optimize_source(legacy), source)
