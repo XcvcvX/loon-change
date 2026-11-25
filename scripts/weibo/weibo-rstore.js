@@ -544,24 +544,23 @@ if (url.includes("/interface/sdk/sdkad.php")) {
         const itemCardType = itemData?.card_type;
         const itemName = itemData?.name;
         const itemLeftHint = itemData?.left_hint;
-        const itemData = item?.data;
-        if (itemData?.left_hint?.[0]?.content === "全部微博(0)" && itemData?.card_type === 216) {
+        if (itemLeftHint?.[0]?.content === "全部微博(0)" && itemCardType === 216) {
           // 全部微博为0的博主
           break;
-        } else if (/内容/?.test(itemData?.name) && itemData?.card_type === 58) {
+        } else if (/内容/?.test(itemName) && itemCardType === 58) {
           // 个人微博页刷完后的推荐微博
           break;
         } else {
-          if (item?.category === "card") {
+          if (itemCategory === "card") {
             // 58微博展示时间段提示 216筛选按钮
-            if ((itemData?.card_type === 58 || itemData?.card_type === 216)) {
-              if (/没有公开博文，为你推荐以下精彩内容/.test(itemData?.name)) {
+            if ((itemCardType === 58 || itemCardType === 216)) {
+              if (/没有公开博文，为你推荐以下精彩内容/.test(itemName)) {
                 // 个人微博页刷完后的推荐信息流
                 continue;
               }
             }
             __loonSource19[__loonWrite19++] = item;
-          } else if (item?.category === "group") {
+          } else if (itemCategory === "group") {
             // 遍历group,保留置顶微博
             const itemHeader = item?.header;
             const itemHeaderData = itemHeader?.data;
@@ -589,7 +588,6 @@ if (url.includes("/interface/sdk/sdkad.php")) {
                 let ii = __loonSource18[__loonRead18];
                 const iiData = ii?.data;
                 const iiCategory = ii?.category;
-                const iiData = ii?.data;
                 if (iiCategory === "feed") {
                   // 信息流推广（removeFeedAd 内部已处理头像挂件与关注按钮）
                   removeFeedAd(iiData);
@@ -624,7 +622,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
               if (__loonWrite18 !== __loonLength18) modified = true;
             }
             __loonSource19[__loonWrite19++] = item;
-          } else if (item?.category === "feed") {
+          } else if (itemCategory === "feed") {
             if (!isAd(itemData)) {
               // 信息流推广
               removeFeedAd(itemData);
