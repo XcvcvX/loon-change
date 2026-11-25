@@ -1067,3 +1067,6 @@ The Taobao response handler now classifies cloud-video, splash and Poplayer URLs
 ## Validation
 - Node VM tests verify a homepage response still retains only the existing nav allowlists and reads the root `data` property once.
 - No device-level CPU, battery, thermal, or latency improvement is claimed without real-device measurements.
+
+
+Phase 10 batch 37 validation note: the Didi response-data cache is guarded by a Node VM getter-count regression that verifies one root `data` read per supported response, while JSON serialization is excluded from the getter count.
