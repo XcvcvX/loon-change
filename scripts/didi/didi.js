@@ -124,12 +124,14 @@ if (!shouldProcess) {
   const responseData = obj.data;
 
 if (isSceneList) {
-  if (obj && responseData && responseData.scene_list instanceof Array) {
-    compactDidiByField(responseData.scene_list, "text", "scene");
+  // loon-change: Didi scene-list and show-data array reference cache v1
+  const sceneList = responseData?.scene_list;
+  if (sceneList instanceof Array) {
+    compactDidiByField(sceneList, "text", "scene");
   }
-  if (obj && responseData && responseData.show_data instanceof Array) {
+  const showData = responseData?.show_data;
+  if (showData instanceof Array) {
     // loon-change: Didi show_data nested traversal cache v1
-    const showData = responseData.show_data;
     const showDataLength = showData.length;
     for (let read = 0; read < showDataLength; read++) {
       const block = showData[read];
@@ -170,8 +172,10 @@ if (isInfoList) {
 }
 
 if (isUserCenter) {
-  if (responseData && responseData.cards) {
-    compactDidiByField(responseData.cards, "title", "card");
+  // loon-change: Didi user-center cards array reference cache v1
+  const userCenterCards = responseData?.cards;
+  if (userCenterCards) {
+    compactDidiByField(userCenterCards, "title", "card");
   }
 }
 
