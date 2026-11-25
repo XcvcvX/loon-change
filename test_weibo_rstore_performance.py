@@ -1342,5 +1342,63 @@ process.stdout.write(nativeStringify({doneResult,counts}));
         self.assertNotIn("vote_info", output["status"]["page_info"]["media_info"])
 
 
+    def test_comment_adtype_single_read_optimizer_is_idempotent_and_fails_closed(self):
+        from optimize_weibo_rstore import (
+            COMMENT_ADTYPE_SINGLE_READ_MARKER,
+            optimize_comment_adtype_single_read,
+        )
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(COMMENT_ADTYPE_SINGLE_READ_MARKER, source)
+        self.assertEqual(optimize_comment_adtype_single_read(source), source)
+        self.assertIn("const commentAdType = item?.adType;", source)
+        self.assertIn('commentAdType === "相关内容" || commentAdType === "相关评论" || commentAdType === "推荐"', source)
+        damaged = source.replace("const commentAdType = item?.adType;", "const commentAdType = null;", 1)
+        with self.assertRaisesRegex(ValueError, "marker/structure drift"):
+            optimize_comment_adtype_single_read(damaged)
+
+    def test_deep_comment_adtype_is_read_once_and_filtering_is_unchanged(self):
+        runner = r"""
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync(process.argv[1],"utf8");
+const payload=JSON.parse(fs.readFileSync(0,"utf8"));
+let doneResult,tracking=false;
+const counts=[];
+const nativeParse=JSON.parse.bind(JSON),nativeStringify=JSON.stringify.bind(JSON);
+const trackedJSON={
+  parse(value){
+    const parsed=nativeParse(value);
+    parsed.datas.forEach((entry,index)=>{
+      let current=entry.adType;counts[index]=0;
+      Object.defineProperty(entry,"adType",{enumerable:true,configurable:true,
+        get(){if(tracking)counts[index]++;return current;},set(value){current=value;}});
+    });
+    tracking=true;return parsed;
+  },
+  stringify(value){tracking=false;return nativeStringify(value);}
+};
+const context={JSON:trackedJSON,$request:{url:payload.url},$response:{body:nativeStringify(payload.body)},
+  $done(value){doneResult=value;},console:{log(){},warn(){},error(){}}};
+vm.runInNewContext(source,context,{timeout:5000});
+process.stdout.write(nativeStringify({doneResult,counts}));
+"""
+        body = {"datas": [
+            {"adType": "相关内容", "data": {"user": {"name": "普通用户"}}},
+            {"adType": "相关评论", "data": {"user": {"name": "普通用户"}}},
+            {"adType": "推荐", "data": {"user": {"name": "普通用户"}}},
+            {"adType": "普通评论", "data": {"user": {"name": "普通用户"}, "text": "保留"}}
+        ]}
+        completed = subprocess.run(
+            [NODE, "-e", runner, str(SCRIPT)],
+            input=json.dumps({"url": "https://api.weibo.cn/2/comments/build_comments?fixture=adtype-cache",
+                              "body": body}),
+            capture_output=True, text=True, check=False, timeout=10
+        )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        result = json.loads(completed.stdout)
+        self.assertEqual(result["counts"], [1, 1, 1, 1])
+        output = json.loads(result["doneResult"]["body"])
+        self.assertEqual(len(output["datas"]), 1)
+        self.assertEqual(output["datas"][0]["data"]["text"], "保留")
+
+
 if __name__ == "__main__":
     unittest.main()

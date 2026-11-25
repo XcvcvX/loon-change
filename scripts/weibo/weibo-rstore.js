@@ -215,7 +215,9 @@ if (url.includes("/interface/sdk/sdkad.php")) {
             if (item?.type === 6 || item?.type === 15) {
               continue;
             }
-            if (item?.adType === "相关内容" || item?.adType === "相关评论" || item?.adType === "推荐") {
+            // loon-change: Weibo comment adType single-read cache v1
+            const commentAdType = item?.adType;
+            if (commentAdType === "相关内容" || commentAdType === "相关评论" || commentAdType === "推荐") {
               continue;
             }
             __loonSource30[__loonWrite30++] = item;
