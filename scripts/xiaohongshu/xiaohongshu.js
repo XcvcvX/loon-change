@@ -177,19 +177,21 @@ if (url.includes("/v3/note/videofeed?")) {
   // 信息流 视频
   if (obj?.data?.length > 0) {
     for (let item of obj.data) {
-      if (item?.media_save_config) {
+      // loon-change: Xiaohongshu v3 video-feed item reference cache v1;
+      const mediaSaveConfig = item?.media_save_config;
+      if (mediaSaveConfig) {
         // 水印
-        item.media_save_config.disable_save = false;
-        item.media_save_config.disable_watermark = true;
-        item.media_save_config.disable_weibo_cover = true;
+        mediaSaveConfig.disable_save = false;
+        mediaSaveConfig.disable_watermark = true;
+        mediaSaveConfig.disable_weibo_cover = true;
       }
-      if (item?.share_info?.function_entries?.length > 0) {
+      const functionEntries = item?.share_info?.function_entries;
+      if (functionEntries?.length > 0) {
         // 下载限制
-        const addItem = {type: "video_download"};
-        let func = item.share_info.function_entries[0];
-        if (func?.type !== "video_download") {
+        const firstFunctionEntry = functionEntries[0];
+        if (firstFunctionEntry?.type !== "video_download") {
           // 向数组开头添加对象
-          item.share_info.function_entries.unshift(addItem);
+          functionEntries.unshift({type: "video_download"});
         }
       }
     }
