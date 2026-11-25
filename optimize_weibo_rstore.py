@@ -947,20 +947,41 @@ function removeVoteInfo(item, cachedPageInfo, hasCachedPageInfo) {
   }
 }"""
 
+COMMENT_ADTYPE_SINGLE_READ_MARKER = "// loon-change: Weibo comment adType single-read cache v1"
+COMMENT_ADTYPE_OLD = '            if (item?.adType === "相关内容" || item?.adType === "相关评论" || item?.adType === "推荐") {'
+COMMENT_ADTYPE_NEW = """            // loon-change: Weibo comment adType single-read cache v1
+            const commentAdType = item?.adType;
+            if (commentAdType === "相关内容" || commentAdType === "相关评论" || commentAdType === "推荐") {"""
+
+def optimize_comment_adtype_single_read(source):
+    if COMMENT_ADTYPE_SINGLE_READ_MARKER in source:
+        if (source.count(COMMENT_ADTYPE_SINGLE_READ_MARKER) != 1
+                or COMMENT_ADTYPE_NEW not in source
+                or COMMENT_ADTYPE_OLD in source):
+            raise ValueError("Weibo comment adType marker/structure drift")
+        return source
+    if source.count(COMMENT_ADTYPE_OLD) != 1:
+        raise ValueError("Weibo comment adType cache anchor drift")
+    source = source.replace(COMMENT_ADTYPE_OLD, COMMENT_ADTYPE_NEW, 1)
+    if source.count(COMMENT_ADTYPE_SINGLE_READ_MARKER) != 1:
+        raise ValueError("Weibo comment adType cache postcondition failed")
+    return source
+
+
 def optimize_comment_status_page_info_cache(source):
     if COMMENT_STATUS_PAGE_INFO_CACHE_MARKER in source:
         if (source.count(COMMENT_STATUS_PAGE_INFO_CACHE_MARKER) != 1
                 or COMMENT_STATUS_NEW not in source
                 or VOTE_INFO_HELPER_NEW not in source):
             raise ValueError("Weibo comment-status page-info marker/structure drift")
-        return source
+        return optimize_comment_adtype_single_read(source)
     if source.count(COMMENT_STATUS_OLD) != 1 or source.count(VOTE_INFO_HELPER_OLD) != 1:
         raise ValueError("Weibo comment-status page-info cache anchor drift")
     source = source.replace(COMMENT_STATUS_OLD, COMMENT_STATUS_NEW, 1)
     source = source.replace(VOTE_INFO_HELPER_OLD, VOTE_INFO_HELPER_NEW, 1)
     if source.count(COMMENT_STATUS_PAGE_INFO_CACHE_MARKER) != 1:
         raise ValueError("Weibo comment-status page-info cache postcondition failed")
-    return source
+    return optimize_comment_adtype_single_read(source)
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
