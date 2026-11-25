@@ -402,15 +402,21 @@ function cleanCommentsAndCollectLivePhotos(data) {
   const commentFrameTag = {};
   const videoInfoCache = new Map();
   // loon-change: Xiaohongshu parsed JSON tree traversal without visited WeakSet v1;
-  // loon-change: Xiaohongshu comment classification stack frames v1;
+  // loon-change: Xiaohongshu flat comment stack frames v2;
   // JSON.parse creates a tree: nodes cannot be cyclic or shared by reference.
   // Only top-level comments and their direct sub-comments receive comment frames.
   const stack = [data];
   while (stack.length) {
     const entry = stack.pop();
-    const isCommentFrame = Array.isArray(entry) && entry[0] === commentFrameTag;
-    const current = isCommentFrame ? entry[1] : entry;
-    const isTopLevelComment = isCommentFrame && entry[2] === true;
+    // Flat metadata slots avoid allocating a three-element tuple per comment.
+    const isCommentFrame = (entry === true || entry === false) &&
+      stack[stack.length - 1] === commentFrameTag;
+    const isTopLevelComment = isCommentFrame && entry === true;
+    let current = entry;
+    if (isCommentFrame) {
+      stack.pop(); // commentFrameTag
+      current = stack.pop();
+    }
     if (!current || typeof current !== "object") continue;
     if (!Array.isArray(current) && "red_id" in current) delete current.red_id;
     if (isCommentFrame) {
@@ -444,12 +450,12 @@ function cleanCommentsAndCollectLivePhotos(data) {
         if (current === data && key === "comments" && Array.isArray(child)) {
           for (let index = child.length - 1; index >= 0; index--) {
             const comment = child[index];
-            if (comment && typeof comment === "object") stack.push([commentFrameTag, comment, true]);
+            if (comment && typeof comment === "object") stack.push(comment, commentFrameTag, true);
           }
         } else if (isCommentFrame && isTopLevelComment && key === "sub_comments" && Array.isArray(child)) {
           for (let index = child.length - 1; index >= 0; index--) {
             const subComment = child[index];
-            if (subComment && typeof subComment === "object") stack.push([commentFrameTag, subComment, false]);
+            if (subComment && typeof subComment === "object") stack.push(subComment, commentFrameTag, false);
           }
         } else stack.push(child);
       }
