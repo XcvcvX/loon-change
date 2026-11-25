@@ -905,8 +905,8 @@ VOTE_INFO_NESTED_REFERENCE_CACHE_OLD = """function removeVoteInfo(item) {
   }
 }"""
 VOTE_INFO_NESTED_REFERENCE_CACHE_NEW = """// loon-change: Weibo vote-info nested reference cache v1
-function removeVoteInfo(item) {
-  const pageInfo = item?.page_info;
+function removeVoteInfo(item, cachedPageInfo, hasCachedPageInfo) {
+  const pageInfo = hasCachedPageInfo ? cachedPageInfo : item?.page_info;
   const mediaInfo = pageInfo?.media_info;
   const voteInfo = mediaInfo?.vote_info;
   if (voteInfo) {
