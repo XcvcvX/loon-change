@@ -1129,3 +1129,20 @@ Phase 10 batch 37 validation note: the Didi response-data cache is guarded by a 
 
 
 Phase 10 batch 38 compatibility fixtures cover 0–3 Ads segments, reversed messageHead order, unknown fields, gaps, trailing payload bytes, replacement-length changes, duplicate Result headers, overlapping segments, and out-of-range descriptors.
+
+
+# Phase 10 batch 39 — Didi homepage-core nested reference cache
+
+## Change
+- Cache `order_cards`, `nav_list_card`, and its `data` array once before compacting the homepage navigation allowlist.
+- Cache `disorder_cards`, `bottom_nav_list`, and its `data` array once before compacting the bottom-navigation allowlist.
+- Preserve the existing allowlist values, in-place compaction, array order, route dispatch, and lazy serialization behavior.
+- Extend the source optimizer with marker validation and fail-closed structure checks.
+
+## Validation
+- Node VM getter-count regression instruments all six nested properties and verifies one access per property for a homepage-core response.
+- Existing homepage navigation output fixtures continue to verify the retained navigation entries and order.
+- No device-level CPU, battery, thermal, or latency improvement is claimed without real-device measurements.
+
+## Access effect
+Reduces repeated nested property resolution in the homepage-core path without adding an array, object, callback, or JSON operation.
