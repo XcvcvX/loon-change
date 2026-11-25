@@ -458,10 +458,13 @@ def optimize_source(source, commit="unknown"):
           let selectedStream = sortedList[0];'''
     sort_new = '''          // Select the highest-resolution stream in one pass; preserve first item on ties.
           let selectedStream = null;
+          let selectedHeight = -Infinity;
           for (const stream of h265List) {
             if (!stream || !stream.master_url || !stream.height) continue;
-            if (!selectedStream || Number(stream.height) > Number(selectedStream.height)) {
+            const streamHeight = Number(stream.height);
+            if (streamHeight > selectedHeight) {
               selectedStream = stream;
+              selectedHeight = streamHeight;
             }
           }'''
     source = once(source, sort_old, sort_new, "video stream sort")
