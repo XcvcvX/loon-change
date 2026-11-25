@@ -30,7 +30,7 @@ class BaiduMapBinaryPerformanceTests(unittest.TestCase):
         marker = "// loon-change: Baidu protobuf target-only byte views v1"
         self.assertIn(marker, self.source)
         start = self.source.index("for(let i = 0; i < messageHeadLength; i++)")
-        end = self.source.index("\n}\n\nif (modifiedAds && resultOffset !== -1)", start)
+        end = self.source.index("\n}\n\nif(invalidSegmentLayout || !adsFound", start)
         loop = self.source[start:end]
         self.assertEqual(loop.count("binaryBody.subarray("), 1)
         self.assertIn("if(name === 'Result'){", loop)
@@ -47,7 +47,7 @@ class BaiduMapBinaryPerformanceTests(unittest.TestCase):
         marker = "// loon-change: Baidu protobuf header collection cache v1"
         self.assertIn(marker, self.source)
         start = self.source.index(marker)
-        end = self.source.index("\n}\n\nif (modifiedAds && resultOffset !== -1)", start)
+        end = self.source.index("\n}\n\nif(invalidSegmentLayout || !adsFound", start)
         loop = self.source[start:end]
         self.assertIn("const messageHeadEntries = repHeadMessage.messageHead;", loop)
         self.assertIn("const messageHeadLength = messageHeadEntries.length;", loop)
@@ -85,17 +85,14 @@ class BaiduMapBinaryPerformanceTests(unittest.TestCase):
         self.assertNotIn("adsMessage.content[j]", loop)
 
 
-    def test_result_payload_view_is_deferred_until_ads_change(self):
-        marker = "// loon-change: Baidu protobuf target-only byte views v1"
-        self.assertIn(marker, self.source)
-        start = self.source.index("let newResult = null;")
-        end = self.source.index("\n\nif(!adsFound", start)
-        loop = self.source[start:end]
-        self.assertIn("let resultOffset = -1;", loop)
-        self.assertIn("resultOffset = dataBeginOffset + messageHead.offset;", loop)
-        self.assertNotIn("newResult = binaryBody.subarray(currentOffset", loop)
-        self.assertIn("if (modifiedAds && resultOffset !== -1)", loop)
-        self.assertIn("newResult = binaryBody.subarray(resultOffset, resultOffset + resultLength);", loop)
+    def test_all_ads_segments_are_collected_without_a_separate_result_copy(self):
+        self.assertIn("const replacementSegments = [];", self.source)
+        self.assertIn("replacementSegments[i] = adsType.encode(adsMessage).finish();", self.source)
+        self.assertIn("assembleBaiduResponseSegments(", self.source)
+        self.assertNotIn("newResult = binaryBody.subarray", self.source)
+        self.assertNotIn("newAds = adsType.encode(adsMessage).finish();", self.source)
+        self.assertIn("resultCount !== 1", self.source)
+        self.assertIn("invalidSegmentLayout", self.source)
 
     def test_binary_input_reuses_existing_uint8array(self):
         self.assertIn("const binaryBody = responseBytes instanceof Uint8Array", self.source)
@@ -103,7 +100,7 @@ class BaiduMapBinaryPerformanceTests(unittest.TestCase):
         self.assertIn("$done({bodyBytes: body.buffer})", self.source)
         self.assertNotIn("body.buffer.slice(", self.source)
         self.assertIn("function createBaiduMd5() {", self.source)
-        self.assertIn("newAds, createBaiduMd5());", self.source)
+        self.assertIn("replacementSegments, createBaiduMd5()", self.source)
 
     @unittest.skipUnless(NODE, "Node.js is required for binary assembly regression tests")
     def test_actual_assembly_helper_preserves_payload_and_header_metadata(self):
@@ -163,6 +160,124 @@ process.stdout.write("ok");
         )
         self.assertEqual(completed.stdout, "ok")
 
+
+    @unittest.skipUnless(NODE, "Node.js is required for multi-Ads reconstruction tests")
+    def test_multi_ads_reconstruction_supports_zero_through_three_segments_and_fails_closed(self):
+        runner = r"""
+const fs = require("fs");
+const vm = require("vm");
+const crypto = require("crypto");
+const source = fs.readFileSync(process.argv[1], "utf8");
+const start = source.indexOf("function assembleBaiduResponseSegments(");
+if (start < 0) throw new Error("multi-segment assembly helper not found");
+const end = source.indexOf("\n}\n", start) + 2;
+if (end < 2) throw new Error("multi-segment helper end not found");
+let encodeCalls = 0;
+const context = {
+  Uint8Array,
+  DataView,
+  TextEncoder,
+  md5(bytes) { return crypto.createHash("md5").update(Buffer.from(bytes)).digest("hex"); },
+  repHeadType: {
+    encode(value) {
+      encodeCalls++;
+      return { finish() { return new TextEncoder().encode(JSON.stringify(value)); } };
+    }
+  }
+};
+vm.createContext(context);
+vm.runInContext(source.slice(start, end) + "; globalThis.run = assembleBaiduResponseSegments;", context);
+
+for (let adsCount = 0; adsCount <= 3; adsCount++) {
+  const payload = [0xA0, 0xA1];
+  const headers = [];
+  function add(name, bytes) {
+    if (payload.length % 2 === 1) payload.push(0xEE);
+    const offset = payload.length;
+    for (const byte of bytes) payload.push(byte);
+    headers.push({name, offset, length: bytes.length});
+  }
+  add("Result", [1, 2, 3]);
+  for (let i = 0; i < adsCount; i++) add("Ads", [10 + i, 20 + i]);
+  add("Opaque", [77, 78, 79]);
+  payload.push(0xAF, 0xB0);
+
+  // Deliberately reverse messageHead order: it must not be treated as payload order.
+  const messageHead = headers.slice().reverse().map(h => ({...h}));
+  const replacements = [];
+  for (let i = 0; i < messageHead.length; i++) {
+    if (messageHead[i].name === "Ads") {
+      replacements[i] = new Uint8Array([120 + i, 121 + i, 122 + i, 123 + i]);
+    }
+  }
+
+  const expectedPayload = [];
+  const expectedOffsets = [];
+  const expectedLengths = [];
+  const sorted = messageHead.map((h, index) => ({...h, index})).sort((a, b) => a.offset - b.offset);
+  let sourceCursor = 0;
+  for (const segment of sorted) {
+    for (let p = sourceCursor; p < segment.offset; p++) expectedPayload.push(payload[p]);
+    const replacement = replacements[segment.index];
+    expectedOffsets[segment.index] = expectedPayload.length;
+    expectedLengths[segment.index] = replacement ? replacement.length : segment.length;
+    if (replacement) {
+      for (const byte of replacement) expectedPayload.push(byte);
+    } else {
+      for (let p = segment.offset; p < segment.offset + segment.length; p++) expectedPayload.push(payload[p]);
+    }
+    sourceCursor = segment.offset + segment.length;
+  }
+  for (let p = sourceCursor; p < payload.length; p++) expectedPayload.push(payload[p]);
+
+  const header = {md5: "", messageHead};
+  const beforeEncode = encodeCalls;
+  const body = context.run(header, context.repHeadType, new Uint8Array(payload), 0, replacements, context.md5);
+  if (encodeCalls - beforeEncode !== 1) throw new Error("RepHead must be encoded exactly once");
+  const headerLength = new DataView(body.buffer, body.byteOffset, 4).getInt32(0);
+  const decodedHeader = JSON.parse(new TextDecoder().decode(body.subarray(4, 4 + headerLength)));
+  const outputPayload = body.subarray(4 + headerLength);
+  if (Buffer.from(outputPayload).compare(Buffer.from(expectedPayload)) !== 0) {
+    throw new Error("multi-segment payload order, gaps, or trailing bytes changed for Ads count " + adsCount);
+  }
+  if (decodedHeader.messageHead.length !== messageHead.length) throw new Error("header entry count changed");
+  for (let i = 0; i < messageHead.length; i++) {
+    if (decodedHeader.messageHead[i].offset !== expectedOffsets[i]) throw new Error("segment offset mismatch");
+    if (decodedHeader.messageHead[i].length !== expectedLengths[i]) throw new Error("segment length mismatch");
+    if (decodedHeader.messageHead[i].name !== messageHead[i].name) throw new Error("messageHead order changed");
+  }
+  const digest = crypto.createHash("md5").update(Buffer.from(outputPayload)).digest("hex");
+  if (decodedHeader.md5 !== digest) throw new Error("rebuilt payload MD5 mismatch");
+}
+
+function expectThrow(header, bytes, message) {
+  let threw = false;
+  try {
+    context.run(header, context.repHeadType, new Uint8Array(bytes), 0, [], context.md5);
+  } catch (error) {
+    threw = true;
+    if (!String(error.message).includes(message)) throw error;
+  }
+  if (!threw) throw new Error("expected fail-closed error: " + message);
+}
+expectThrow({md5: "", messageHead: [
+  {name: "Result", offset: 0, length: 1},
+  {name: "Result", offset: 1, length: 1}
+]}, [1, 2], "exactly one Result");
+expectThrow({md5: "", messageHead: [
+  {name: "Result", offset: 0, length: 2},
+  {name: "Ads", offset: 1, length: 1}
+]}, [1, 2], "overlap");
+expectThrow({md5: "", messageHead: [
+  {name: "Result", offset: 0, length: 3}
+]}, [1, 2], "bounds");
+process.stdout.write("ok");
+"""
+        completed = subprocess.run(
+            [NODE, "-e", runner, str(ROOT / "scripts/baidumap/baidu-map-protobuf.js")],
+            capture_output=True, text=True, check=True, timeout=10,
+        )
+        self.assertEqual(completed.stdout, "ok")
 
     def test_rephead_md5_placeholder_is_patched_without_reencoding(self):
         start = self.source.index("function assembleBaiduResponse(")
@@ -390,8 +505,8 @@ source = source.replace(
   "for (let k = 0; k < trackedAdsContent.length; k++) { const target = trackedAdsContent[k]; trackedAdsContent[k] = new Proxy(target, { get(target, key, receiver) { if (globalThis.__trackAdsProperties && key === 'start') globalThis.__adsStartReads++; if (globalThis.__trackAdsProperties && key === 'end') globalThis.__adsEndReads++; return Reflect.get(target, key, receiver); } }); }"
 );
 source = source.replace(
-  "if (adsSegmentModified) {\n      modifiedAds = true;\n      newAds = adsType.encode(adsMessage).finish();\n    }",
-  "if (adsSegmentModified) { globalThis.__trackAdsProperties = false; modifiedAds = true; newAds = adsType.encode(adsMessage).finish(); }"
+  "if (adsSegmentModified) {\n      globalThis.__trackAdsProperties = false;\n      modifiedAds = true;\n      replacementSegments[i] = adsType.encode(adsMessage).finish();\n    }",
+  "if (adsSegmentModified) { globalThis.__trackAdsProperties = false; modifiedAds = true; replacementSegments[i] = adsType.encode(adsMessage).finish(); }"
 );
 
 
@@ -547,7 +662,7 @@ if (doneResult.body) {
         self.assertEqual(len(result["md5"]), 32)
         self.assertGreater(result["outputLength"], 0)
         self.assertEqual(result["md5InitCount"], 1)
-        self.assertEqual(result["subarrayCount"], 4)
+        self.assertEqual(result["subarrayCount"], 2)
         self.assertEqual(result["adsContentReads"], 1)
         self.assertEqual(result["adsStartReads"], 1)
         self.assertEqual(result["adsEndReads"], 0)
@@ -637,7 +752,7 @@ process.stdout.write("ok");
         self.assertIn("adsSegmentModified = true;", segment)
         self.assertIn("if (adsSegmentModified) {", segment)
         self.assertIn("modifiedAds = true;", segment)
-        self.assertIn("newAds = adsType.encode(adsMessage).finish();", segment)
+        self.assertIn("replacementSegments[i] = adsType.encode(adsMessage).finish();", segment)
         self.assertNotIn("if(modifiedAds) newAds =", segment)
         self.assertEqual(segment.count("adsType.encode(adsMessage).finish()"), 1)
 
