@@ -1220,11 +1220,13 @@ if (url.includes("/interface/sdk/sdkad.php")) {
             __loonSource1[__loonWrite1++] = item;
           }
         } else if (item?.category === "group") {
-          if (item?.items?.length > 0) {
+          // loon-change: Weibo topic-group nested array reference cache v1
+          const nestedItems = item?.items;
+          if (nestedItems?.length > 0) {
             if (item?.itemId === null) {
               // 超话页顶部乱七八糟
               // loon-change: Weibo topic-group in-place item compaction v1;
-              const groupItems = item.items;
+              const groupItems = nestedItems;
               const groupLength = groupItems.length;
               let groupWrite = 0;
               for (let groupRead = 0; groupRead < groupLength; groupRead++) {
@@ -1257,11 +1259,16 @@ if (url.includes("/interface/sdk/sdkad.php")) {
               }
               groupItems.length = groupWrite;
             } else {
-              for (let ii of item.items) {
-                if (ii?.data) {
-                  removeAvatar(ii?.data);
-                  if (ii?.data?.common_struct) {
-                    delete ii.data.common_struct;
+              // loon-change: Weibo topic-group nested data reference cache v1
+              const nestedLength = nestedItems.length;
+              for (let nestedIndex = 0; nestedIndex < nestedLength; nestedIndex++) {
+                const ii = nestedItems[nestedIndex];
+                const iiData = ii?.data;
+                if (iiData) {
+                  removeAvatar(iiData);
+                  const commonStruct = iiData.common_struct;
+                  if (commonStruct) {
+                    delete iiData.common_struct;
                   }
                 }
               }
