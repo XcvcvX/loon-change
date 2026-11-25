@@ -1163,3 +1163,21 @@ Reduces repeated nested property resolution in the homepage-core path without ad
 
 ## Access effect
 Avoids an unnecessary persistent-store read and JSON parse on the empty-ID path. Normal valid-ID lookup behavior remains unchanged.
+
+
+# Phase 10 batch 41 — Weibo comment user reference caching
+
+## Change
+- Cache each comment's `user` reference once and reuse it for avatar cleanup and special-account filtering.
+- Read `user.name` once per comment instead of repeating the same nested lookup for each blocked account name.
+- Update `removeAvatar` to accept an optional already-resolved user object; its other callers resolve `data.user` once through the default parameter.
+- Keep the four existing special-account exclusions, avatar-field removals, comment cleanup, filtering order, and in-place compaction unchanged.
+
+## Validation
+- Node VM accessor-count regression verifies one `data.user` read and one `user.name` read for each comment with a user.
+- Existing comment allowlist/cleanup tests continue to cover the retained comment set and deleted fields.
+- Optimizer tests validate idempotence and fail closed if either cached-reference block drifts.
+- No device-level CPU, battery, thermal, or latency improvement is claimed without real-device measurements.
+
+## Access effect
+Reduces repeated nested user-property accesses in comment cleanup and reuses the same user reference inside the common avatar-cleanup helper.

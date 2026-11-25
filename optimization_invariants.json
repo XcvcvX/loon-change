@@ -164,7 +164,15 @@
         "if (!isAd(commentData))",
         "// loon-change: Weibo profile timeline cached nested data v1",
         "const itemData = item?.data;",
-        "const iiData = ii?.data;"
+        "const iiData = ii?.data;",
+        "// loon-change: Weibo removeAvatar cached user reference v1",
+        "function removeAvatar(data, user = data?.user)",
+        "if (user?.avatargj_id)",
+        "delete user.avatargj_id;",
+        "// loon-change: Weibo comment user/name reference cache v1",
+        "const commentUser = commentData?.user;",
+        "removeAvatar(commentData, commentUser);",
+        "const commentUserName = commentUser.name;"
       ],
       "forbidden": [
         "[120, 145, 192]?.includes(cardType)",
@@ -186,7 +194,13 @@
         "let newII = [];",
         "item.items = newII;",
         "newII.push(ii);",
-        "if (item?.data) {\\n          if (!isAd(item?.data)) {"
+        "if (item?.data) {\\n          if (!isAd(item?.data)) {",
+        "if (data?.user?.avatargj_id)",
+        "if (data?.user?.avatar_extend_info)",
+        "if (data?.user?.cardid)",
+        "if (data?.user?.icons)",
+        "if (data?.user?.mbtype)",
+        "commentData.user?.name ==="
       ]
     },
     {
