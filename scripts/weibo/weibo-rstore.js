@@ -307,28 +307,37 @@ if (url.includes("/interface/sdk/sdkad.php")) {
       removeVoteInfo(obj?.status);
     }
   } else if (url.includes("/2/container/asyn")) {
-    if (obj?.items?.length > 0) {
-      const __loonSource27 = obj.items;
+    // loon-change: Weibo container/asyn nested reference cache v1
+    const asynItems = obj?.items;
+    const asynItemsLength = asynItems?.length || 0;
+    if (asynItemsLength > 0) {
+      const __loonSource27 = asynItems;
       let __loonWrite27 = 0;
-      const __loonLength27 = __loonSource27.length;
+      const __loonLength27 = asynItemsLength;
       for (let __loonRead27 = 0; __loonRead27 < __loonLength27; __loonRead27++) {
         let item = __loonSource27[__loonRead27];
+        const itemData = item?.data;
+        const itemId = item?.itemId;
         // 关注按钮
-        removeAvatar(item?.data);
-        if (/infeed_may_interest_in/.test(item?.itemId)) {
+        removeAvatar(itemData);
+        if (/infeed_may_interest_in/.test(itemId)) {
           // 你可能感兴趣的超话
           continue;
         }
-        if (item?.itemId === null) {
+        if (itemId === null) {
           // 横版博主卡片
           continue;
         }
-        if (item?.items?.length > 0) {
-          for (let i of item.items) {
+        const nestedItems = item?.items;
+        const nestedItemsLength = nestedItems?.length || 0;
+        if (nestedItemsLength > 0) {
+          for (let nestedIndex = 0; nestedIndex < nestedItemsLength; nestedIndex++) {
+            const nestedItem = nestedItems[nestedIndex];
+            const nestedData = nestedItem?.data;
             // 背景卡片
-            removeAvatar(i?.data);
+            removeAvatar(nestedData);
             // 投票窗口
-            removeVoteInfo(i?.data);
+            removeVoteInfo(nestedData);
           }
         }
         __loonSource27[__loonWrite27++] = item;
@@ -341,29 +350,41 @@ if (url.includes("/interface/sdk/sdkad.php")) {
       compactInPlace(obj.user_list, i => !(i?.user?.name === "活动通知" || i?.user?.name === "闪聊"));
     }
   } else if (url.includes("/2/flowlist")) {
+    // loon-change: Weibo flowlist nested reference cache v1
     // 关注列表
-    if (obj?.items?.length > 0) {
-      for (let item of obj.items) {
-        if (item?.items?.length > 0) {
-          for (let i of item.items) {
+    const flowItems = obj?.items;
+    const flowItemsLength = flowItems?.length || 0;
+    if (flowItemsLength > 0) {
+      for (let itemIndex = 0; itemIndex < flowItemsLength; itemIndex++) {
+        const item = flowItems[itemIndex];
+        const nestedItems = item?.items;
+        const nestedItemsLength = nestedItems?.length || 0;
+        if (nestedItemsLength > 0) {
+          for (let nestedIndex = 0; nestedIndex < nestedItemsLength; nestedIndex++) {
+            const nestedItem = nestedItems[nestedIndex];
+            const nestedData = nestedItem?.data;
             // 背景卡片
-            removeAvatar(i?.data);
+            removeAvatar(nestedData);
             // 投票窗口
-            removeVoteInfo(i?.data);
+            removeVoteInfo(nestedData);
           }
         }
       }
     }
-    if (obj?.channelInfo?.channels?.length > 0) {
-      const __loonSource26 = obj.channelInfo.channels;
+    const channelInfo = obj?.channelInfo;
+    const flowChannels = channelInfo?.channels;
+    const flowChannelCount = flowChannels?.length || 0;
+    if (flowChannelCount > 0) {
+      const __loonSource26 = flowChannels;
       let __loonWrite26 = 0;
-      const __loonLength26 = __loonSource26.length;
+      const __loonLength26 = flowChannelCount;
       for (let __loonRead26 = 0; __loonRead26 < __loonLength26; __loonRead26++) {
         let tab = __loonSource26[__loonRead26];
-        if (/_selfrecomm/.test(tab?.flowId)) {
+        const flowId = tab?.flowId;
+        if (/_selfrecomm/.test(flowId)) {
           // 关注页推荐tab
           continue;
-        } else if (/_chaohua/.test(tab?.flowId)) {
+        } else if (/_chaohua/.test(flowId)) {
           // 关注页超话tab
           continue;
         } else {
