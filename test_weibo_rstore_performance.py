@@ -5,7 +5,7 @@ import subprocess
 import unittest
 from pathlib import Path
 
-from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, LAZY_MARKER, GUARD_DECLARATION, HELPER, LEGACY_HELPER, optimize_source, rewrite_plugin, optimize_page_filter_cached_itemid, TOPIC_GROUP_MARKER, optimize_topic_group_in_place, COMMENT_DATA_CACHE_MARKER, COMMENT_DATA_CACHE_OLD, COMMENT_DATA_CACHE_NEW, optimize_comment_data_reference_cache, REMOVE_AVATAR_USER_CACHE_MARKER, COMMENT_USER_CACHE_MARKER, COMMENT_USER_CACHE_OLD, COMMENT_USER_CACHE_NEW, optimize_comment_user_reference_cache, TOPIC_GROUP_NESTED_DATA_MARKER, optimize_topic_group_nested_data_cache, ROOT_COMMENT_USER_CACHE_MARKER, optimize_root_comment_user_cache, REMOVE_AVATAR_PROPERTY_CACHE_MARKER, REMOVE_AVATAR_HELPER_NEW, optimize_remove_avatar_property_cache, COMMENT_DECORATION_SINGLE_READ_MARKER, ROOT_COMMENT_DECORATION_SINGLE_READ_MARKER, REPLY_DECORATION_SINGLE_READ_MARKER, ROOT_COMMENT_BUBBLE_SINGLE_READ_MARKER, optimize_comment_decoration_single_read, COMMENT_ARRAY_REFERENCE_CACHE_MARKER, optimize_comment_array_reference_cache, FOLLOWING_TIMELINE_DATA_CACHE_MARKER, optimize_following_timeline_data_cache, HOT_TIMELINE_DATA_CACHE_MARKER, optimize_hot_timeline_data_cache, FLOWLIST_ASYN_REFERENCE_CACHE_MARKER, optimize_flowlist_asyn_nested_reference_cache, SEARCH_TIMELINE_REFERENCE_CACHE_MARKER, optimize_search_timeline_nested_reference_cache
+from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, LAZY_MARKER, GUARD_DECLARATION, HELPER, LEGACY_HELPER, optimize_source, rewrite_plugin, optimize_page_filter_cached_itemid, TOPIC_GROUP_MARKER, optimize_topic_group_in_place, COMMENT_DATA_CACHE_MARKER, COMMENT_DATA_CACHE_OLD, COMMENT_DATA_CACHE_NEW, optimize_comment_data_reference_cache, REMOVE_AVATAR_USER_CACHE_MARKER, COMMENT_USER_CACHE_MARKER, COMMENT_USER_CACHE_OLD, COMMENT_USER_CACHE_NEW, optimize_comment_user_reference_cache, TOPIC_GROUP_NESTED_DATA_MARKER, optimize_topic_group_nested_data_cache, ROOT_COMMENT_USER_CACHE_MARKER, optimize_root_comment_user_cache, REMOVE_AVATAR_PROPERTY_CACHE_MARKER, REMOVE_AVATAR_HELPER_NEW, optimize_remove_avatar_property_cache, COMMENT_DECORATION_SINGLE_READ_MARKER, ROOT_COMMENT_DECORATION_SINGLE_READ_MARKER, REPLY_DECORATION_SINGLE_READ_MARKER, ROOT_COMMENT_BUBBLE_SINGLE_READ_MARKER, optimize_comment_decoration_single_read, COMMENT_ARRAY_REFERENCE_CACHE_MARKER, optimize_comment_array_reference_cache, FOLLOWING_TIMELINE_DATA_CACHE_MARKER, optimize_following_timeline_data_cache, HOT_TIMELINE_DATA_CACHE_MARKER, optimize_hot_timeline_data_cache, FLOWLIST_ASYN_REFERENCE_CACHE_MARKER, optimize_flowlist_asyn_nested_reference_cache, SEARCH_TIMELINE_REFERENCE_CACHE_MARKER, optimize_search_timeline_nested_reference_cache, PROFILE_TIMELINE_PROPERTY_CACHE_MARKER, optimize_profile_timeline_property_cache, IS_AD_PROPERTY_CACHE_MARKER, optimize_is_ad_property_cache
 
 ROOT = Path(__file__).resolve().parent
 SCRIPT = ROOT / "scripts/weibo/weibo-rstore.js"
@@ -1087,3 +1087,164 @@ process.stdout.write(nativeStringify({doneResult,counts}));
 
 if __name__ == "__main__":
     unittest.main()
+
+
+    def test_profile_hot_property_cache_is_idempotent_and_fails_closed(self):
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(PROFILE_TIMELINE_PROPERTY_CACHE_MARKER, source)
+        self.assertEqual(optimize_profile_timeline_property_cache(source), source)
+        for token in (
+            "const profileItems = obj?.items;",
+            "const profileItemsLength = profileItems?.length || 0;",
+            "const itemCategory = item?.category;",
+            "const groupItems = item?.items;",
+            "const groupItemsLength = groupItems?.length || 0;",
+            "const iiCategory = ii?.category;",
+            "const iiCardType = iiData?.card_type;",
+            "const itemHeaderData = itemHeader?.data;",
+            "const itemTitle = itemData?.title;",
+        ):
+            self.assertIn(token, source)
+        damaged = source.replace("const groupItemsLength = groupItems?.length || 0;",
+                                "const groupItemsLength = 0;", 1)
+        with self.assertRaisesRegex(ValueError, "marker/structure drift"):
+            optimize_profile_timeline_property_cache(damaged)
+
+    def test_profile_hot_property_getters_and_array_lengths_are_read_once(self):
+        runner = r"""
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync(process.argv[1],"utf8");
+const payload=JSON.parse(fs.readFileSync(0,"utf8"));
+let doneResult,tracking=false;
+const counts=Object.create(null);
+const nativeParse=JSON.parse.bind(JSON),nativeStringify=JSON.stringify.bind(JSON);
+const trackedJSON={
+  parse(value){
+    const parsed=nativeParse(value);
+    const wrap=(target,key,label)=>{
+      let current=target[key];counts[label]=0;
+      Object.defineProperty(target,key,{enumerable:true,configurable:true,
+        get(){if(tracking)counts[label]++;return current;},set(value){current=value;}});
+    };
+    const proxyArray=(array,label)=>{
+      return new Proxy(array,{get(target,key,receiver){
+        if(tracking&&key==="length")counts[label+".length"]=(counts[label+".length"]||0)+1;
+        return Reflect.get(target,key,receiver);
+      }});
+    };
+    const group=parsed.items[0],header=group.header,headerData=header.data;
+    const feed=group.items[0],card=group.items[1],feedData=feed.data,cardData=card.data;
+    wrap(parsed,"items","profile.items");
+    const profileItems=proxyArray(parsed.items,"profile.items");
+    Object.defineProperty(parsed,"items",{enumerable:true,configurable:true,get(){if(tracking)counts["profile.items.ref"]++;return profileItems;}});
+    wrap(group,"data","group.data");wrap(group,"category","group.category");
+    wrap(group,"header","group.header");wrap(header,"data","group.header.data");wrap(headerData,"icon","group.header.icon");
+    wrap(group,"itemId","group.itemId");wrap(group,"profile_type_id","group.profile_type_id");
+    wrap(group,"items","group.items");
+    const groupItems=proxyArray(group.items,"group.items");
+    Object.defineProperty(group,"items",{enumerable:true,configurable:true,get(){if(tracking)counts["group.items.ref"]++;return groupItems;}});
+    for(const [item,label,data] of [[feed,"feed",feedData],[card,"card",cardData]]){
+      wrap(item,"category",label+".category");wrap(item,"data",label+".data");
+    }
+    wrap(feedData,"enable_comment_guide","feed.enable_comment_guide");
+    wrap(feedData,"source","feed.source");wrap(feedData,"title","feed.title");
+    wrap(cardData,"card_type","card.card_type");wrap(cardData,"rightImage","card.rightImage");
+    wrap(cardData,"backgroundImage","card.backgroundImage");
+    tracking=true;
+    return parsed;
+  },
+  stringify(value){tracking=false;return nativeStringify(value);}
+};
+const context={JSON:trackedJSON,$request:{url:payload.url},$response:{body:nativeStringify(payload.body)},
+  $done(value){doneResult=value;},console:{log(){},warn(){},error(){}}};
+vm.runInNewContext(source,context,{timeout:5000});
+process.stdout.write(nativeStringify({doneResult,counts}));
+"""
+        body = {"items": [{
+            "category": "group", "data": {}, "header": {"data": {"icon": "remove"}},
+            "itemId": "ordinary", "profile_type_id": "regular",
+            "items": [
+                {"category": "feed", "data": {"enable_comment_guide": True, "source": "normal",
+                                                 "title": {"text": "热门", "structs": []}}},
+                {"category": "card", "data": {"card_type": 1, "rightImage": "x", "backgroundImage": "y"}}
+            ]
+        }]}
+        completed = subprocess.run(
+            [NODE, "-e", runner, str(SCRIPT)],
+            input=json.dumps({"url": "https://api.weibo.cn/2/profile/container_timeline?fixture=cache",
+                              "body": body}),
+            capture_output=True, text=True, check=False, timeout=10
+        )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        result = json.loads(completed.stdout)
+        output = json.loads(result["doneResult"]["body"])
+        counts = result["counts"]
+        for key in ("profile.items.ref", "profile.items.length", "group.category", "group.data",
+                    "group.header", "group.header.data", "group.header.icon", "group.itemId",
+                    "group.profile_type_id", "group.items.ref", "group.items.length",
+                    "feed.category", "feed.data", "card.category", "card.data",
+                    "feed.enable_comment_guide", "feed.source", "feed.title",
+                    "card.card_type", "card.rightImage", "card.backgroundImage"):
+            self.assertEqual(counts.get(key), 1, key)
+        self.assertEqual(len(output["items"][0]["items"]), 2)
+        self.assertNotIn("icon", output["items"][0]["header"]["data"])
+        self.assertNotIn("rightImage", output["items"][0]["items"][1]["data"])
+        self.assertNotIn("backgroundImage", output["items"][0]["items"][1]["data"])
+        self.assertFalse(output["items"][0]["items"][0]["data"]["enable_comment_guide"])
+
+    def test_shared_is_ad_cache_is_idempotent_and_preserves_all_predicates(self):
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(IS_AD_PROPERTY_CACHE_MARKER, source)
+        self.assertEqual(optimize_is_ad_property_cache(source), source)
+        for data in (
+            {"mblogtypename": "广告"},
+            {"mblogtypename": "热推"},
+            {"promotion": {"type": "native_ad"}},
+            {"content_auth_info": {"content_auth_title": "广告"}},
+            {"ads_material_info": {"is_ads": True}},
+        ):
+            result = self.run_script("https://api.weibo.cn/2/comments/build_comments?fixture=is-ad",
+                                     {"datas": [{"data": data}]})
+            output = json.loads(result["doneResult"]["body"])
+            self.assertEqual(output["datas"], [])
+
+    def test_shared_is_ad_nested_properties_are_read_once_on_deep_comments(self):
+        runner = r"""
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync(process.argv[1],"utf8");
+const payload=JSON.parse(fs.readFileSync(0,"utf8"));
+let doneResult,tracking=false;
+const counts=Object.create(null);
+const nativeParse=JSON.parse.bind(JSON),nativeStringify=JSON.stringify.bind(JSON);
+const trackedJSON={
+  parse(value){
+    const parsed=nativeParse(value),data=parsed.datas[0].data;
+    for(const key of ["mblogtypename","promotion","content_auth_info","ads_material_info"]){
+      let current=data[key];counts[key]=0;
+      Object.defineProperty(data,key,{enumerable:true,configurable:true,
+        get(){if(tracking)counts[key]++;return current;},set(value){current=value;}});
+    }
+    tracking=true;return parsed;
+  },
+  stringify(value){tracking=false;return nativeStringify(value);}
+};
+const context={JSON:trackedJSON,$request:{url:payload.url},$response:{body:nativeStringify(payload.body)},
+  $done(value){doneResult=value;},console:{log(){},warn(){},error(){}}};
+vm.runInNewContext(source,context,{timeout:5000});
+process.stdout.write(nativeStringify({doneResult,counts}));
+"""
+        body = {"datas": [{"type": 1, "data": {
+            "mblogtypename": "普通内容", "promotion": {"type": "normal"},
+            "content_auth_info": {"content_auth_title": ""},
+            "ads_material_info": {"is_ads": False}, "user": {"name": "普通用户"}
+        }}]}
+        completed = subprocess.run(
+            [NODE, "-e", runner, str(SCRIPT)],
+            input=json.dumps({"url": "https://api.weibo.cn/2/comments/build_comments?fixture=is-ad-reads",
+                              "body": body}),
+            capture_output=True, text=True, check=False, timeout=10
+        )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        result = json.loads(completed.stdout)
+        self.assertEqual(result["doneResult"], {})
+        for key in ("mblogtypename", "promotion", "content_auth_info", "ads_material_info"):
+            self.assertEqual(result["counts"].get(key), 1, key)
+
