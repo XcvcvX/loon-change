@@ -600,7 +600,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
                   }
                   __loonSource18[__loonWrite18++] = ii;
                 } else if (iiCategory === "card") {
-                    const iiCardType = iiData?.card_type;
+                  const iiCardType = iiData?.card_type;
                   if ((iiCardType === 10 || iiCardType === 48 || iiCardType === 176)) {
                     // 最近关注与互动过的博主
                     continue;
