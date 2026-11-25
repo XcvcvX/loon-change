@@ -155,7 +155,7 @@ class RStoreXiaohongshuOptimizerTests(unittest.TestCase):
         self.assertEqual(optimize_v4_function_entry_scan(source), source)
         self.assertEqual(source.count(XIAOHONGSHU_V4_FUNCTION_ENTRY_MARKER), 1)
         self.assertNotIn("functionEntries.some(", source)
-        damaged = source.replace("const functionEntryCount = functionEntries.length;", "const functionEntryCount = 0;", 1)
+        damaged = source.replace("const functionEntryCount = functionEntries?.length || 0;", "const functionEntryCount = 0;", 1)
         with self.assertRaisesRegex(ValueError, "function-entry scan structure drift"):
             optimize_v4_function_entry_scan(damaged)
 
@@ -539,7 +539,7 @@ process.stdout.write(nativeStringify({doneResult,reads,pictureLengthReads,pictur
             "sub_comments": [{"pictures": [{"video_id": "video-2", "video_info": video_info}]}]
         }]}}
         completed = subprocess.run(
-            [NODE, "-e", runner],
+            [NODE, "-e", runner, str(SCRIPT)],
             input=json.dumps({"url": "https://edith.xiaohongshu.com/api/sns/v5/note/comment/list?cursor=picture-reads", "body": body}),
             capture_output=True, text=True, check=False, timeout=10
         )
@@ -602,7 +602,7 @@ process.stdout.write(nativeStringify({doneResult,counts,store:Object.fromEntries
             "share_info": {"function_entries": [{"type": "share"}]}
         }]}
         completed = subprocess.run(
-            [NODE, "-e", runner],
+            [NODE, "-e", runner, str(SCRIPT)],
             input=json.dumps({"url": "https://edith.xiaohongshu.com/api/sns/v3/note/videofeed?fixture=cache", "body": body}),
             capture_output=True, text=True, check=False, timeout=10
         )
@@ -681,7 +681,7 @@ process.stdout.write(nativeStringify({doneResult,counts,store:Object.fromEntries
             ]}}}
         }]}
         completed = subprocess.run(
-            [NODE, "-e", runner],
+            [NODE, "-e", runner, str(SCRIPT)],
             input=json.dumps({"url": "https://edith.xiaohongshu.com/api/sns/v4/note/videofeed?fixture=field-cache", "body": body}),
             capture_output=True, text=True, check=False, timeout=10
         )
@@ -729,7 +729,7 @@ process.stdout.write(JSON.stringify(output));
             ]}},
         ]}
         completed = subprocess.run(
-            [NODE, "-e", runner],
+            [NODE, "-e", runner, str(SCRIPT)],
             input=json.dumps({"url": "https://edith.xiaohongshu.com/api/sns/v4/note/videofeed?cursor=function-entry-scan", "body": body}),
             capture_output=True, text=True, check=False, timeout=10
         )
