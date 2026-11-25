@@ -1030,7 +1030,7 @@ const ctx={JSON:trackedJSON,$loon:{},$persistentStore:{read(){return null},write
 __stopTrack(){tracking=false;},
 $request:{url:"https://edith.xiaohongshu.com/api/sns/v4/note/videofeed"},
 $response:{body:nativeStringify(payload)},$done:value=>done=value,console:{log(){},warn(){},error(){}}};
-let instrumented=source.replace("      // 提取最佳视频流","      globalThis.__stopTrack();\\n      // 提取最佳视频流");
+let instrumented=source.replace("      // 提取最佳视频流","      globalThis.__stopTrack();\n      // 提取最佳视频流");
 vm.runInNewContext(instrumented,ctx,{timeout:5000});
 const out=nativeParse(done.body);
 process.stdout.write(nativeStringify({counts,entries:out.data.map(x=>x.share_info.function_entries)}));
@@ -1041,7 +1041,7 @@ process.stdout.write(nativeStringify({counts,entries:out.data.map(x=>x.share_inf
         run=subprocess.run([NODE,"-e",runner,str(SCRIPT)],input=json.dumps(body),cwd=ROOT,capture_output=True,text=True,check=False,timeout=10)
         self.assertEqual(run.returncode,0,run.stderr)
         result=json.loads(run.stdout)
-        # The two push operations each perform one internal length read.
+        # The existing download-entry scan performs one explicit length read.
         self.assertEqual(result["counts"],{"length":1,"iterator":0})
         self.assertEqual(result["entries"][0],[{"type":"share"},{"type":"video_download"},{"type":"copy"}])
 
