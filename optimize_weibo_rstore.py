@@ -283,6 +283,12 @@ def add_lazy_serialization_guard(source):
     elif "item.data.hot_icon" not in source:
         delete_targets.remove("item.data.hot_icon")
 
+    if REMOVE_AVATAR_USER_CACHE_MARKER in source:
+        delete_targets = [
+            target.replace("data.user.", "user.") if target.startswith("data.user.") else target
+            for target in delete_targets
+        ]
+
     if LAZY_MARKER in source:
         if GUARD_DECLARATION not in source or '$done(modified ? {body: JSON.stringify(obj)} : {});' not in source:
             raise ValueError('marked Weibo lazy-serialization guard is incomplete')
