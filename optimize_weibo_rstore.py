@@ -419,13 +419,20 @@ def optimize_comment_user_reference_cache(source):
         source = source.replace(REMOVE_AVATAR_HELPER_OLD, REMOVE_AVATAR_HELPER_NEW, 1)
 
     if COMMENT_USER_CACHE_MARKER in source:
+        if source.count(COMMENT_USER_CACHE_MARKER) != 1 or COMMENT_USER_CACHE_OLD in source:
+            raise ValueError("Weibo comment user-cache marker/structure drift")
+        marker_start = source.index(COMMENT_USER_CACHE_MARKER)
+        next_marker = source.find(COMMENT_DECORATION_SINGLE_READ_MARKER, marker_start + len(COMMENT_USER_CACHE_MARKER))
+        if next_marker < 0:
+            raise ValueError("Weibo comment user-cache following boundary drift")
+        comment_user_block = source[marker_start:next_marker]
         required_comment_user = (
             COMMENT_USER_CACHE_MARKER,
             "const commentUser = commentData?.user;",
             "removeAvatar(commentData, commentUser);",
             "const commentUserName = commentUser.name;",
         )
-        if source.count(COMMENT_USER_CACHE_MARKER) != 1 or COMMENT_USER_CACHE_OLD in source or any(token not in source for token in required_comment_user):
+        if any(token not in comment_user_block for token in required_comment_user):
             raise ValueError("Weibo comment user-cache marker/structure drift")
     else:
         if source.count(COMMENT_USER_CACHE_OLD) != 1:
