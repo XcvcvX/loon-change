@@ -1069,7 +1069,9 @@ def optimize_feed_nested_loop_property_cache(src):
     const functionEntriesLength = functionEntries?.length || 0;
     if (functionEntriesLength > 0) {
       const firstFunctionEntry = functionEntries[0];
-      if (firstFunctionEntry?.type !== "video_download") functionEntries.unshift({type: "video_download"});
+      if (firstFunctionEntry?.type !== "video_download") {
+        functionEntries.unshift({type: "video_download"});
+      }
     }
   }
 }'''
