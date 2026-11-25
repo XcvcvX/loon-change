@@ -1385,7 +1385,13 @@ def optimize_flowlist_asyn_nested_reference_cache(source):
         raise ValueError("Weibo flowlist/asyn reference-cache postcondition failed")
     asyn = asyn.replace(asyn_start, asyn_start + "\n    // loon-change: Weibo container/asyn nested reference cache v1", 1)
     flow = flow.replace(flow_start, flow_start + "\n    // loon-change: Weibo flowlist nested reference cache v1", 1)
-    return source[:source.index(asyn_start)] + asyn + source[source.index(asyn_end):source.index(flow_start)] + flow + source[source.index(flow_end):]
+    result = source[:source.index(asyn_start)] + asyn + source[source.index(asyn_end):source.index(flow_start)] + flow + source[source.index(flow_end):]
+    if FLOWLIST_ASYN_REFERENCE_CACHE_MARKER not in result:
+        first_line_end = result.find("\\n")
+        if first_line_end < 0:
+            raise ValueError("Weibo flowlist/asyn marker insertion anchor missing")
+        result = result[:first_line_end + 1] + FLOWLIST_ASYN_REFERENCE_CACHE_MARKER + "\\n" + result[first_line_end + 1:]
+    return result
 
 
 
