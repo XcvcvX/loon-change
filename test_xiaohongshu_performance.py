@@ -1,6 +1,6 @@
 import json, shutil, subprocess, unittest
 from pathlib import Path
-from optimize_xiaohongshu import LOCAL, REMOTE, MARKER, IMAGE_FEED_MARKER, VIDEO_SAVE_LOOKUP_MARKER, STREAM_SELECTION_MARKER, VIDEO_ENTRY_MARKER, IMAGE_LIVE_PHOTO_CACHE_MARKER, COMMENT_MEDIA_CACHE_MARKER, COMMENT_STACK_FRAME_MARKER, FUNCTION_SWITCH_MARKER, optimize_v4_function_switch_indexed_scan, optimize_comment_stack_frame_allocation, optimize_comment_media_property_cache, optimize_imagefeed_live_photo_property_cache, optimize_comment_video_info_cache, optimize_imagefeed_single_traversal, optimize_video_save_cache_lookup, optimize_stream_selection_no_closure, optimize_v4_video_feed_function_entry_scan, optimize_comment_node_array_classification, COMMENT_NODE_ARRAY_MARKER, optimize_source, rewrite_plugin
+from optimize_xiaohongshu import LOCAL, REMOTE, MARKER, IMAGE_FEED_MARKER, VIDEO_SAVE_LOOKUP_MARKER, VIDEO_SAVE_LAZY_PARSE_MARKER, STREAM_SELECTION_MARKER, VIDEO_ENTRY_MARKER, IMAGE_LIVE_PHOTO_CACHE_MARKER, COMMENT_MEDIA_CACHE_MARKER, COMMENT_STACK_FRAME_MARKER, FUNCTION_SWITCH_MARKER, optimize_v4_function_switch_indexed_scan, optimize_comment_stack_frame_allocation, optimize_comment_media_property_cache, optimize_imagefeed_live_photo_property_cache, optimize_comment_video_info_cache, optimize_imagefeed_single_traversal, optimize_video_save_cache_lookup, optimize_video_save_lazy_cache_parse, optimize_stream_selection_no_closure, optimize_v4_video_feed_function_entry_scan, optimize_comment_node_array_classification, COMMENT_NODE_ARRAY_MARKER, optimize_source, rewrite_plugin
 
 ROOT=Path(__file__).resolve().parent
 NODE=shutil.which("node")
@@ -18,6 +18,9 @@ class XiaohongshuOptimizerTests(unittest.TestCase):
         self.assertIn("// loon-change: Xiaohongshu comment video-info cache single lookup v2;",src)
         self.assertNotIn("parsedVideoInfo.has(raw)",src)
         self.assertIn(VIDEO_SAVE_LOOKUP_MARKER,src)
+        self.assertIn(VIDEO_SAVE_LAZY_PARSE_MARKER,src)
+        self.assertIn('const noteId = obj.data?.note_id;',src)
+        self.assertNotIn('let videoFeed = JSON.parse($.getdata("redBookVideoFeed"));',src)
         self.assertIn("for (let i = videoFeed.length - 1; i >= 0; i--)",src)
         self.assertNotIn("for (let item of videoFeed)",src)
         self.assertIn(STREAM_SELECTION_MARKER,src)
@@ -261,23 +264,30 @@ process.stdout.write(JSON.stringify({body:JSON.parse(done.body),cache:JSON.parse
         with self.assertRaisesRegex(ValueError,"marker is stale"):
             optimize_video_save_cache_lookup(damaged)
 
+    def test_video_save_lazy_cache_parse_optimizer_is_idempotent_and_fails_closed(self):
+        source=(ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")
+        self.assertEqual(optimize_video_save_lazy_cache_parse(source),source)
+        damaged=source.replace('if (noteId !== "") {','if (noteId === "") {',1)
+        with self.assertRaisesRegex(ValueError,"lazy-cache marker is stale"):
+            optimize_video_save_lazy_cache_parse(damaged)
+
     @unittest.skipUnless(NODE,"Node required for video-save cache runtime test")
     def test_video_save_cache_reverse_lookup_stops_at_last_duplicate(self):
         runner=r'''
 const fs=require("fs"),vm=require("vm"),source=fs.readFileSync("scripts/xiaohongshu/xiaohongshu.js","utf8");
-const p=JSON.parse(fs.readFileSync(0,"utf8")),store=new Map(Object.entries(p.store));let done,cacheIndexReads=0;
+const p=JSON.parse(fs.readFileSync(0,"utf8")),store=new Map(Object.entries(p.store));let done,cacheIndexReads=0,cacheReads=0,cacheParseCalls=0;
 const nativeJSON=JSON;
 const trackedJSON={
-  parse(value){const parsed=nativeJSON.parse(value);if(Array.isArray(parsed))return new Proxy(parsed,{get(target,key,receiver){
+  parse(value){if(value===store.get("redBookVideoFeed"))cacheParseCalls++;const parsed=nativeJSON.parse(value);if(Array.isArray(parsed))return new Proxy(parsed,{get(target,key,receiver){
     if(typeof key==="string"&&/^\d+$/.test(key))cacheIndexReads++;
     return Reflect.get(target,key,receiver);
   }});return parsed;},
   stringify(value){return nativeJSON.stringify(value);}
 };
-const ctx={JSON:trackedJSON,$loon:{},$persistentStore:{read:k=>store.has(k)?store.get(k):null,write:(v,k)=>(store.set(k,v),true)},
+const ctx={JSON:trackedJSON,$loon:{},$persistentStore:{read:k=>{if(k==="redBookVideoFeed")cacheReads++;return store.has(k)?store.get(k):null;},write:(v,k)=>(store.set(k,v),true)},
 $request:{url:p.url},$response:{body:nativeJSON.stringify(p.body)},$done:v=>done=v,console:{log(){},warn(){},error(){}}};
 vm.runInNewContext(source,ctx,{timeout:5000});
-process.stdout.write(nativeJSON.stringify({body:nativeJSON.parse(done.body),cacheIndexReads}));
+process.stdout.write(nativeJSON.stringify({body:nativeJSON.parse(done.body),cacheIndexReads,cacheReads,cacheParseCalls}));
 '''
         cache=[
             {"id":"target","url":"https://video.example/first.mp4"},
@@ -296,6 +306,20 @@ process.stdout.write(nativeJSON.stringify({body:nativeJSON.parse(done.body),cach
         self.assertNotIn("msg",data)
         self.assertEqual(data["status"],2)
         self.assertEqual(out["cacheIndexReads"],2)
+        self.assertEqual(out["cacheReads"],1)
+        self.assertEqual(out["cacheParseCalls"],1)
+
+        empty_body={"data":{"note_id":"","disable":True,"msg":"restricted"}}
+        empty_run=subprocess.run([NODE,"-e",runner],input=json.dumps({
+            "url":"https://edith.xiaohongshu.com/api/sns/v10/note/video/save","body":empty_body,
+            "store":{"redBookVideoFeed":"not-json"}
+        }),cwd=ROOT,capture_output=True,text=True,check=False,timeout=10)
+        self.assertEqual(empty_run.returncode,0,empty_run.stderr)
+        empty_out=json.loads(empty_run.stdout)
+        self.assertEqual(empty_out["cacheReads"],0)
+        self.assertEqual(empty_out["cacheParseCalls"],0)
+        self.assertEqual(empty_out["body"]["data"]["status"],2)
+        self.assertNotIn("disable",empty_out["body"]["data"])
 
     @unittest.skipUnless(NODE,"Node required for comment runtime test")
     def test_comment_tree_single_pass_preserves_cleanup_and_media_caches(self):
