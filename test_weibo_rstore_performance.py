@@ -16,7 +16,7 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
     def test_fresh_source_transform_order_caches_user_before_avatar_fields(self):
         optimizer = Path(__file__).with_name("optimize_weibo_rstore.py").read_text(encoding="utf-8")
         lines = [line.strip() for line in optimizer.splitlines()
-                 if "return optimize_search_timeline_nested_reference_cache(" in line]
+                 if "return optimize_is_ad_property_cache(" in line]
         self.assertEqual(len(lines), 2)
         for line in lines:
             comment_data = line.index("optimize_comment_data_reference_cache(")
@@ -1134,13 +1134,13 @@ const trackedJSON={
     const group=parsed.items[0],header=group.header,headerData=header.data;
     const feed=group.items[0],card=group.items[1],feedData=feed.data,cardData=card.data;
     wrap(parsed,"items","profile.items");
-    const profileItems=proxyArray(parsed.items,"profile.items");
+    const profileItems=proxyArray(parsed.items,"profile.items");counts["profile.items.ref"]=0;
     Object.defineProperty(parsed,"items",{enumerable:true,configurable:true,get(){if(tracking)counts["profile.items.ref"]++;return profileItems;}});
     wrap(group,"data","group.data");wrap(group,"category","group.category");
     wrap(group,"header","group.header");wrap(header,"data","group.header.data");wrap(headerData,"icon","group.header.icon");
     wrap(group,"itemId","group.itemId");wrap(group,"profile_type_id","group.profile_type_id");
     wrap(group,"items","group.items");
-    const groupItems=proxyArray(group.items,"group.items");
+    const groupItems=proxyArray(group.items,"group.items");counts["group.items.ref"]=0;
     Object.defineProperty(group,"items",{enumerable:true,configurable:true,get(){if(tracking)counts["group.items.ref"]++;return groupItems;}});
     for(const [item,label,data] of [[feed,"feed",feedData],[card,"card",cardData]]){
       wrap(item,"category",label+".category");wrap(item,"data",label+".data");
