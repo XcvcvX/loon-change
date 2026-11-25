@@ -10,6 +10,7 @@ from optimize_didi import (
     DIDI_MODE_MARKER,
     DIDI_WALLET_PROPERTY_CACHE_MARKER,
     DIDI_HOMEPAGE_CORE_CACHE_MARKER,
+    optimize_homepage_core_cached_references,
     LOCAL,
     MARKER,
     REMOTE,
@@ -78,6 +79,26 @@ class DidiOptimizerTests(unittest.TestCase):
         self.assertLess(result.index("const shouldProcess"), result.index("JSON.parse($response.body)"))
         self.assertTrue(result.rstrip().endswith("}"))
         self.assertEqual(optimize_source(result), result)
+
+    def test_homepage_core_optimizer_caches_nested_references_and_is_idempotent(self):
+        source = '''if (isHomepageCore) {
+  // 保留打车、代驾、青桔骑行
+  if (responseData && responseData.order_cards && responseData.order_cards.nav_list_card && responseData.order_cards.nav_list_card.data) {
+    compactDidiByField(responseData.order_cards.nav_list_card.data, "nav_id", "nav");
+  }
+  // 保留底部tap首页、我的
+  if (responseData && responseData.disorder_cards && responseData.disorder_cards.bottom_nav_list && responseData.disorder_cards.bottom_nav_list.data) {
+    compactDidiByField(responseData.disorder_cards.bottom_nav_list.data, "id", "bottomNav");
+  }
+}'''
+        result = optimize_homepage_core_cached_references(source)
+        self.assertIn(DIDI_HOMEPAGE_CORE_CACHE_MARKER, result)
+        self.assertIn("const navListData = navListCard?.data;", result)
+        self.assertIn("const bottomNavData = bottomNavList?.data;", result)
+        self.assertEqual(optimize_homepage_core_cached_references(result), result)
+        damaged = result.replace("const navListData = navListCard?.data;", "const navListData = navListCard?.other;", 1)
+        with self.assertRaisesRegex(ValueError, "reference cache structure is incomplete"):
+            optimize_homepage_core_cached_references(damaged)
         self.assertIn(DIDI_MODE_MARKER, result)
         self.assertEqual(result.count("for (let read = 0; read < length; read++)"), 7)
         self.assertIn(DIDI_WALLET_PROPERTY_CACHE_MARKER, result)
@@ -85,9 +106,6 @@ class DidiOptimizerTests(unittest.TestCase):
         self.assertIn("const walletBottomItems = item.bottom_items;", result)
         self.assertNotIn("Array.isArray(item.items)", result)
         self.assertNotIn("Array.isArray(item.bottom_items)", result)
-        self.assertIn(DIDI_HOMEPAGE_CORE_CACHE_MARKER, result)
-        self.assertIn("const navListData = navListCard?.data;", result)
-        self.assertIn("const bottomNavData = bottomNavList?.data;", result)
 
     def test_optimizer_fails_closed_when_upstream_filter_inventory_drifts(self):
         source = self.fixture_source().replace(
@@ -153,7 +171,7 @@ const context = {
 };
 vm.createContext(context);
 vm.runInContext(
-  "const nativeParse = JSON.parse.bind(JSON); JSON.parse = function(value) { __parseCount++; const parsed = nativeParse(value); if (__captureResponseDataReads && parsed && Object.prototype.hasOwnProperty.call(parsed, 'data')) { let currentData = parsed.data; Object.defineProperty(parsed, 'data', { enumerable: true, configurable: true, get() { if (__trackResponseDataReads) __responseDataReads++; return currentData; }, set(value) { currentData = value; } }); } if (__captureHomepagePropertyReads && parsed?.data) { const data = parsed.data; for (const key of ['order_cards', 'disorder_cards']) { let current = data[key]; Object.defineProperty(data, key, { enumerable: true, configurable: true, get() { if (__trackHomepagePropertyReads) __homepagePropertyReads[key]++; return current; }, set(value) { current = value; } }); } const orderCards = data.order_cards; if (orderCards) { let current = orderCards.nav_list_card; Object.defineProperty(orderCards, 'nav_list_card', { enumerable: true, configurable: true, get() { if (__trackHomepagePropertyReads) __homepagePropertyReads.nav_list_card++; return current; }, set(value) { current = value; } }); if (current) { let nested = current.data; Object.defineProperty(current, 'data', { enumerable: true, configurable: true, get() { if (__trackHomepagePropertyReads) __homepagePropertyReads.nav_data++; return nested; }, set(value) { nested = value; } }); } } const disorderCards = data.disorder_cards; if (disorderCards) { let current = disorderCards.bottom_nav_list; Object.defineProperty(disorderCards, 'bottom_nav_list', { enumerable: true, configurable: true, get() { if (__trackHomepagePropertyReads) __homepagePropertyReads.bottom_nav_list++; return current; }, set(value) { current = value; } }); if (current) { let nested = current.data; Object.defineProperty(current, 'data', { enumerable: true, configurable: true, get() { if (__trackHomepagePropertyReads) __homepagePropertyReads.bottom_nav_data++; return nested; }, set(value) { nested = value; } }); } } } __homepagePropertyReads.order_cards = 0; __homepagePropertyReads.disorder_cards = 0; if (__captureWalletPropertyReads) { const wallet = parsed?.data?.cards?.[0]; if (wallet && wallet.tag === 'wallet') { for (const key of ['tag', 'items', 'card_type', 'bottom_items']) { let current = wallet[key]; Object.defineProperty(wallet, key, { enumerable: true, configurable: true, get() { if (__trackWalletPropertyReads) __walletPropertyReads[key]++; return current; }, set(value) { current = value; } }); } } } return parsed; }; const nativeStringify = JSON.stringify.bind(JSON); JSON.stringify = function(value) { __stringifyCount++; const tracking = __trackWalletPropertyReads; const dataTracking = __trackResponseDataReads; __trackWalletPropertyReads = false; __trackResponseDataReads = false; __trackHomepagePropertyReads = false; try { return nativeStringify(value); } finally { __trackWalletPropertyReads = tracking; __trackResponseDataReads = dataTracking; __trackHomepagePropertyReads = true; } }; Array.prototype.filter = function() { throw new Error('allocating Array.filter remains'); };",
+  "const nativeParse = JSON.parse.bind(JSON); JSON.parse = function(value) { __parseCount++; const parsed = nativeParse(value); if (__captureResponseDataReads && parsed && Object.prototype.hasOwnProperty.call(parsed, 'data')) { let currentData = parsed.data; Object.defineProperty(parsed, 'data', { enumerable: true, configurable: true, get() { if (__trackResponseDataReads) __responseDataReads++; return currentData; }, set(value) { currentData = value; } }); } if (__captureHomepagePropertyReads && parsed?.data) { const data = parsed.data; for (const key of ['order_cards', 'disorder_cards']) { let current = data[key]; Object.defineProperty(data, key, { enumerable: true, configurable: true, get() { if (__trackHomepagePropertyReads) __homepagePropertyReads[key]++; return current; }, set(value) { current = value; } }); } const orderCards = data.order_cards; if (orderCards) { let current = orderCards.nav_list_card; Object.defineProperty(orderCards, 'nav_list_card', { enumerable: true, configurable: true, get() { if (__trackHomepagePropertyReads) __homepagePropertyReads.nav_list_card++; return current; }, set(value) { current = value; } }); if (current) { let nested = current.data; Object.defineProperty(current, 'data', { enumerable: true, configurable: true, get() { if (__trackHomepagePropertyReads) __homepagePropertyReads.nav_data++; return nested; }, set(value) { nested = value; } }); } } const disorderCards = data.disorder_cards; if (disorderCards) { let current = disorderCards.bottom_nav_list; Object.defineProperty(disorderCards, 'bottom_nav_list', { enumerable: true, configurable: true, get() { if (__trackHomepagePropertyReads) __homepagePropertyReads.bottom_nav_list++; return current; }, set(value) { current = value; } }); if (current) { let nested = current.data; Object.defineProperty(current, 'data', { enumerable: true, configurable: true, get() { if (__trackHomepagePropertyReads) __homepagePropertyReads.bottom_nav_data++; return nested; }, set(value) { nested = value; } }); } } } __homepagePropertyReads.order_cards = 0; __homepagePropertyReads.disorder_cards = 0; if (__captureWalletPropertyReads) { const wallet = parsed?.data?.cards?.[0]; if (wallet && wallet.tag === 'wallet') { for (const key of ['tag', 'items', 'card_type', 'bottom_items']) { let current = wallet[key]; Object.defineProperty(wallet, key, { enumerable: true, configurable: true, get() { if (__trackWalletPropertyReads) __walletPropertyReads[key]++; return current; }, set(value) { current = value; } }); } } } __responseDataReads = 0; __homepagePropertyReads.order_cards = 0; __homepagePropertyReads.disorder_cards = 0; return parsed; }; const nativeStringify = JSON.stringify.bind(JSON); JSON.stringify = function(value) { __stringifyCount++; const tracking = __trackWalletPropertyReads; const dataTracking = __trackResponseDataReads; __trackWalletPropertyReads = false; __trackResponseDataReads = false; __trackHomepagePropertyReads = false; try { return nativeStringify(value); } finally { __trackWalletPropertyReads = tracking; __trackResponseDataReads = dataTracking; __trackHomepagePropertyReads = true; } }; Array.prototype.filter = function() { throw new Error('allocating Array.filter remains'); };",
   context
 );
 if (payload.disableForEach) {
