@@ -121,15 +121,22 @@ function assembleBaiduResponseSegments(repHeadMessage, repHeadType, binaryBody, 
 
   const segments = [];
   let resultCount = 0;
-  for (let i = 0; i < messageHead.length; i++) {
+  // loon-change: Baidu protobuf segment metadata scalar cache v1
+  const messageHeadLength = messageHead.length;
+  for (let i = 0; i < messageHeadLength; i++) {
     const header = messageHead[i];
-    if (!header || !Number.isInteger(header.offset) || !Number.isInteger(header.length) ||
-        header.offset < 0 || header.length < 0 ||
-        header.offset > payloadLength || header.length > payloadLength - header.offset) {
+    if (!header) {
+      throw new Error("BaiduMap segment bounds are invalid");
+    }
+    const segmentOffset = header.offset;
+    const segmentLength = header.length;
+    if (!Number.isInteger(segmentOffset) || !Number.isInteger(segmentLength) ||
+        segmentOffset < 0 || segmentLength < 0 ||
+        segmentOffset > payloadLength || segmentLength > payloadLength - segmentOffset) {
       throw new Error("BaiduMap segment bounds are invalid");
     }
     if (header.name === "Result") resultCount++;
-    segments.push({header, index: i, offset: header.offset, length: header.length});
+    segments.push({header, index: i, offset: segmentOffset, length: segmentLength});
   }
   if (resultCount !== 1) {
     throw new Error("BaiduMap response must contain exactly one Result segment");
@@ -140,7 +147,8 @@ function assembleBaiduResponseSegments(repHeadMessage, repHeadType, binaryBody, 
   const chunks = [];
   let sourceCursor = 0;
   let outputLength = 0;
-  for (let i = 0; i < segments.length; i++) {
+  const segmentsLength = segments.length;
+  for (let i = 0; i < segmentsLength; i++) {
     const segment = segments[i];
     if (segment.offset < sourceCursor) {
       throw new Error("BaiduMap segments overlap");
@@ -180,7 +188,8 @@ function assembleBaiduResponseSegments(repHeadMessage, repHeadType, binaryBody, 
   // Exactly one rebuilt payload allocation; unchanged segments and gaps stay byte views.
   const payload = new Uint8Array(outputLength);
   let payloadWrite = 0;
-  for (let i = 0; i < chunks.length; i++) {
+  const chunksLength = chunks.length;
+  for (let i = 0; i < chunksLength; i++) {
     const chunk = chunks[i];
     payload.set(chunk, payloadWrite);
     payloadWrite += chunk.byteLength;
