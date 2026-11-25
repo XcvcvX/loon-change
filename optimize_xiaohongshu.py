@@ -867,26 +867,219 @@ def optimize_v4_feed_array_length_snapshot(src):
 
 
 
+
 FEED_NESTED_LOOP_MARKER = "// loon-change: Xiaohongshu feed nested-loop property cache v1;"
 
 
 def optimize_feed_nested_loop_property_cache(src):
-    """Validate the checked-in feed array/reference cache transform."""
-    required = (
-        FEED_NESTED_LOOP_MARKER,
-        "const adsGroups = obj?.data?.ads_groups;",
-        "const adsGroupLength = adsGroups?.length || 0;",
-        "const feedData = obj?.data;",
-        "const noteList = firstFeedPage?.note_list;",
-        "const functionSwitchLength = functionSwitch?.length || 0;",
-        "let hasCopy = false;",
-        "const videoFeedLength = videoFeed?.length || 0;",
-    )
-    if src.count(FEED_NESTED_LOOP_MARKER) != 3 or any(token not in src for token in required):
-        raise ValueError("Xiaohongshu feed nested-loop cache marker/structure drift")
-    if "options.some(item => item.key === 'copy')" in src or "item.function_switch.forEach(" in src:
-        raise ValueError("Xiaohongshu feed nested-loop legacy scans remain")
+    """Cache hot feed references/lengths; exact anchors keep the transform fail-closed."""
+    if FEED_NESTED_LOOP_MARKER in src:
+        required = (
+            "const adsGroups = obj?.data?.ads_groups;",
+            "const adsGroupLength = adsGroups?.length || 0;",
+            "const feedData = obj?.data;",
+            "const noteList = firstFeedPage?.note_list;",
+            "if (Array.isArray(functionSwitch)) {",
+            "const functionSwitchLength = functionSwitch.length;",
+            "let hasCopy = false;",
+            "const videoFeedLength = videoFeed?.length || 0;",
+        )
+        if src.count(FEED_NESTED_LOOP_MARKER) != 3 or any(token not in src for token in required):
+            raise ValueError("Xiaohongshu feed nested-loop cache marker/structure drift")
+        if "options.some(item => item.key === 'copy')" in src or "item.function_switch.forEach(" in src:
+            raise ValueError("Xiaohongshu feed nested-loop legacy scans remain")
+        return src
+
+    splash_old = '''if (url.includes("/system_service/splash_config")) {
+  // 开屏广告
+  if (obj?.data?.ads_groups?.length > 0) {
+    for (let i of obj.data.ads_groups) {
+      i.start_time = 3818332800; // Unix 时间戳 2090-12-31 00:00:00
+      i.end_time = 3818419199; // Unix 时间戳 2090-12-31 23:59:59
+      if (i?.ads?.length > 0) {
+        for (let ii of i.ads) {
+          ii.start_time = 3818332800; // Unix 时间戳 2090-12-31 00:00:00
+          ii.end_time = 3818419199; // Unix 时间戳 2090-12-31 23:59:59
+        }
+      }
+    }
+  }
+}'''
+    splash_new = '''if (url.includes("/system_service/splash_config")) {
+  // 开屏广告
+  // loon-change: Xiaohongshu feed nested-loop property cache v1;
+  const adsGroups = obj?.data?.ads_groups;
+  const adsGroupLength = adsGroups?.length || 0;
+  for (let groupIndex = 0; groupIndex < adsGroupLength; groupIndex++) {
+    const group = adsGroups[groupIndex];
+    group.start_time = 3818332800; // Unix 时间戳 2090-12-31 00:00:00
+    group.end_time = 3818419199; // Unix 时间戳 2090-12-31 23:59:59
+    const ads = group?.ads;
+    const adsLength = ads?.length || 0;
+    for (let adIndex = 0; adIndex < adsLength; adIndex++) {
+      const ad = ads[adIndex];
+      ad.start_time = 3818332800; // Unix 时间戳 2090-12-31 00:00:00
+      ad.end_time = 3818419199; // Unix 时间戳 2090-12-31 23:59:59
+    }
+  }
+}'''
+    feed_old = '''if (url.includes("/note/imagefeed?") || url.includes("/note/feed?")) {
+  // 信息流 图片
+  if (obj?.data?.length > 0) {
+    if (obj.data[0]?.note_list?.length > 0) {
+      for (let item of obj.data[0].note_list) {
+        if (item?.media_save_config) {
+          // 水印开关
+          item.media_save_config.disable_save = false;
+          item.media_save_config.disable_watermark = true;
+          item.media_save_config.disable_weibo_cover = true;
+        }
+        if (item?.share_info?.function_entries?.length > 0) {
+          // 下载限制
+          const addItem = {type: "video_download"};
+          let func = item.share_info.function_entries[0];
+          if (func?.type !== "video_download") {
+            // 向数组开头添加对象
+            item.share_info.function_entries.unshift(addItem);
+          }
+        }
+        // 新版下载限制
+        if (Array.isArray(item.function_switch)) {
+          item.function_switch.forEach(item => {
+            if (item?.type === 'image_download') {
+              item.enable = true;
+            }
+          });
+        }
+        // 复制权限
+        const options = item.note_text_press_options;
+        if (Array.isArray(options)) {
+          const hasCopy = options.some(item => item.key === 'copy');
+          if (!hasCopy) {
+            options.push({
+              key: 'copy',
+              extra: ''
+            });
+          }
+        }
+
+        // 处理帖子引用的标签
+        if (item.hash_tag) {
+          compactInPlace(item.hash_tag, tag => tag?.type !== "interact_vote");
+        }
+      }
+
+      const images_list = obj.data[0].note_list[0].images_list;
+      // Collect compact live-photo fields during the image enhancement traversal.
+      const livePhotoCache = [];
+      obj.data[0].note_list[0].images_list = imageEnhance(images_list, livePhotoCache);
+      $.setdata(JSON.stringify(livePhotoCache), "fmz200.xiaohongshu.feed.rsp");
+    }
+  }
+} '''
+    feed_new = '''if (url.includes("/note/imagefeed?") || url.includes("/note/feed?")) {
+  // 信息流 图片
+  // loon-change: Xiaohongshu feed nested-loop property cache v1;
+  const feedData = obj?.data;
+  const feedDataLength = feedData?.length || 0;
+  const firstFeedPage = feedData?.[0];
+  const noteList = firstFeedPage?.note_list;
+  const noteListLength = noteList?.length || 0;
+  if (feedDataLength > 0 && noteListLength > 0) {
+    for (let noteIndex = 0; noteIndex < noteListLength; noteIndex++) {
+      const item = noteList[noteIndex];
+      const mediaSaveConfig = item?.media_save_config;
+      if (mediaSaveConfig) {
+        mediaSaveConfig.disable_save = false;
+        mediaSaveConfig.disable_watermark = true;
+        mediaSaveConfig.disable_weibo_cover = true;
+      }
+      const functionEntries = item?.share_info?.function_entries;
+      const functionEntriesLength = functionEntries?.length || 0;
+      if (functionEntriesLength > 0) {
+        const firstFunctionEntry = functionEntries[0];
+        if (firstFunctionEntry?.type !== "video_download") functionEntries.unshift({type: "video_download"});
+      }
+      const functionSwitch = item?.function_switch;
+      if (Array.isArray(functionSwitch)) {
+        const functionSwitchLength = functionSwitch.length;
+        for (let switchIndex = 0; switchIndex < functionSwitchLength; switchIndex++) {
+          const switchItem = functionSwitch[switchIndex];
+          if (switchItem?.type === "image_download") switchItem.enable = true;
+        }
+      }
+      const options = item?.note_text_press_options;
+      if (Array.isArray(options)) {
+        const optionsLength = options.length;
+        let hasCopy = false;
+        for (let optionIndex = 0; optionIndex < optionsLength; optionIndex++) {
+          if (options[optionIndex]?.key === "copy") { hasCopy = true; break; }
+        }
+        if (!hasCopy) options.push({key: "copy", extra: ""});
+      }
+      const hashTag = item?.hash_tag;
+      if (hashTag) compactInPlace(hashTag, tag => tag?.type !== "interact_vote");
+    }
+    const firstNote = noteList[0];
+    const images_list = firstNote?.images_list;
+    const livePhotoCache = [];
+    firstNote.images_list = imageEnhance(images_list, livePhotoCache);
+    $.setdata(JSON.stringify(livePhotoCache), "fmz200.xiaohongshu.feed.rsp");
+  }
+} '''
+    v3_old = '''if (url.includes("/v3/note/videofeed?")) {
+  // 信息流 视频
+  if (obj?.data?.length > 0) {
+    for (let item of obj.data) {
+      // loon-change: Xiaohongshu v3 video-feed item reference cache v1;
+      const mediaSaveConfig = item?.media_save_config;
+      if (mediaSaveConfig) {
+        // 水印
+        mediaSaveConfig.disable_save = false;
+        mediaSaveConfig.disable_watermark = true;
+        mediaSaveConfig.disable_weibo_cover = true;
+      }
+      const functionEntries = item?.share_info?.function_entries;
+      if (functionEntries?.length > 0) {
+        // 下载限制
+        const firstFunctionEntry = functionEntries[0];
+        if (firstFunctionEntry?.type !== "video_download") {
+          // 向数组开头添加对象
+          functionEntries.unshift({type: "video_download"});
+        }
+      }
+    }
+  }
+}'''
+    v3_new = '''if (url.includes("/v3/note/videofeed?")) {
+  // 信息流 视频
+  // loon-change: Xiaohongshu feed nested-loop property cache v1;
+  const videoFeed = obj?.data;
+  const videoFeedLength = videoFeed?.length || 0;
+  for (let videoIndex = 0; videoIndex < videoFeedLength; videoIndex++) {
+    const item = videoFeed[videoIndex];
+    // loon-change: Xiaohongshu v3 video-feed item reference cache v1;
+    const mediaSaveConfig = item?.media_save_config;
+    if (mediaSaveConfig) {
+      mediaSaveConfig.disable_save = false;
+      mediaSaveConfig.disable_watermark = true;
+      mediaSaveConfig.disable_weibo_cover = true;
+    }
+    const functionEntries = item?.share_info?.function_entries;
+    const functionEntriesLength = functionEntries?.length || 0;
+    if (functionEntriesLength > 0) {
+      const firstFunctionEntry = functionEntries[0];
+      if (firstFunctionEntry?.type !== "video_download") functionEntries.unshift({type: "video_download"});
+    }
+  }
+}'''
+    src = once(src, splash_old, splash_new, "splash nested-loop cache")
+    src = once(src, feed_old, feed_new, "imagefeed nested-loop cache")
+    src = once(src, v3_old, v3_new, "v3 video-feed nested-loop cache")
+    if src.count(FEED_NESTED_LOOP_MARKER) != 3:
+        raise ValueError("Xiaohongshu feed nested-loop cache postcondition failed")
     return src
+
 
 
 def optimize_source(src,commit="unknown"):
