@@ -603,7 +603,7 @@ VIDEO_ENTRY_INDEXED_MARKER = "// loon-change: Xiaohongshu v4 video-feed function
 def optimize_v4_video_feed_function_entry_indexed_scan(src):
     """Use a cached length and indexed scan to avoid allocating an array iterator."""
     start = 'if (url.includes("/v4/note/videofeed")) {'
-    end = "\\n\\n// 视频保存请求"
+    end = "\n\n// 视频保存请求"
     left = src.find(start)
     right = src.find(end, left) if left >= 0 else -1
     block = src[left:right] if left >= 0 and right >= 0 else ""
