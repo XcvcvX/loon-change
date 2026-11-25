@@ -142,6 +142,7 @@ COMMENT_HELPER = r'''function cleanCommentsAndCollectLivePhotos(data) {
       stack[stack.length - 1] === commentFrameTag;
     const isTopLevelComment = isCommentFrame && entry === true;
     let current = entry;
+    let commentPictures = null;
     if (isCommentFrame) {
       stack.pop(); // commentFrameTag
       current = stack.pop();
@@ -151,9 +152,12 @@ COMMENT_HELPER = r'''function cleanCommentsAndCollectLivePhotos(data) {
     if (isCommentFrame) {
       if (current.comment_type === 3) current.comment_type = 2;
       if (current.media_source_type === 1) current.media_source_type = 0;
-      if (current.pictures?.length > 0) {
-        for (const picture of current.pictures) {
-          if (!picture.video_id) continue;
+      // loon-change: Xiaohongshu comment pictures reference cache v1
+      commentPictures = current.pictures;
+      if (commentPictures?.length > 0) {
+        for (const picture of commentPictures) {
+          const videoId = picture.video_id;
+          if (!videoId) continue;
           // loon-change: Xiaohongshu comment video-info cache single lookup v1
           const rawVideoInfo = picture.video_info;
           let picObj = videoInfoCache.get(rawVideoInfo);
@@ -162,7 +166,7 @@ COMMENT_HELPER = r'''function cleanCommentsAndCollectLivePhotos(data) {
             videoInfoCache.set(rawVideoInfo, picObj);
           }
           const videoUrl = picObj.stream?.h265?.[0]?.master_url;
-          if (videoUrl) livePhotos.push({videId: picture.video_id, videoUrl});
+          if (videoUrl) livePhotos.push({videId: videoId, videoUrl});
         }
       }
     }
@@ -174,7 +178,8 @@ COMMENT_HELPER = r'''function cleanCommentsAndCollectLivePhotos(data) {
     } else {
       for (const key in current) {
         if (!Object.prototype.hasOwnProperty.call(current, key)) continue;
-        const child = current[key];
+        // Reuse the already-read pictures reference on comment frames.
+        const child = isCommentFrame && key === "pictures" ? commentPictures : current[key];
         if (!child || typeof child !== "object") continue;
         if (current === data && key === "comments" && Array.isArray(child)) {
           for (let index = child.length - 1; index >= 0; index--) {
@@ -330,6 +335,63 @@ def optimize_video_save_lookup(source):
     return source
 
 
+
+XIAOHONGSHU_V4_FUNCTION_ENTRY_MARKER = "// loon-change: Xiaohongshu v4 function-entry indexed scan v1"
+OLD_V4_FUNCTION_ENTRY_BLOCK = """          if (item?.share_info?.function_entries?.length > 0) {
+            const hasDownload = item.share_info.function_entries.some(entry => entry.type === "video_download");
+            if (!hasDownload) {
+              item.share_info.function_entries.push({type: "video_download"});
+            }
+          }"""
+NEW_V4_FUNCTION_ENTRY_BLOCK = """          // loon-change: Xiaohongshu v4 function-entry indexed scan v1
+          const shareInfo = item?.share_info;
+          const functionEntries = shareInfo?.function_entries;
+          if (functionEntries?.length > 0) {
+            let hasDownload = false;
+            const functionEntryCount = functionEntries.length;
+            for (let entryIndex = 0; entryIndex < functionEntryCount; entryIndex++) {
+              const entry = functionEntries[entryIndex];
+              if (entry.type === "video_download") {
+                hasDownload = true;
+                break;
+              }
+            }
+            if (!hasDownload) {
+              functionEntries.push({type: "video_download"});
+            }
+          }"""
+
+def optimize_v4_function_entry_scan(source):
+    """Cache V4 share-info/entries references and replace per-item some callbacks with an indexed scan."""
+    marker = XIAOHONGSHU_V4_FUNCTION_ENTRY_MARKER
+    required = (
+        marker,
+        "const shareInfo = item?.share_info;",
+        "const functionEntries = shareInfo?.function_entries;",
+        "const functionEntryCount = functionEntries.length;",
+        "for (let entryIndex = 0; entryIndex < functionEntryCount; entryIndex++)",
+        "const entry = functionEntries[entryIndex];",
+        'if (entry.type === "video_download")',
+        'functionEntries.push({type: "video_download"});',
+    )
+    if marker in source:
+        if source.count(marker) != 1 or any(token not in source for token in required):
+            raise ValueError("Xiaohongshu V4 function-entry scan structure drift")
+        if "functionEntries.some(" in source or "item.share_info.function_entries.some(" in source:
+            raise ValueError("Xiaohongshu V4 some callback remains")
+        return source
+    if source.count(OLD_V4_FUNCTION_ENTRY_BLOCK) != 1:
+        if '.some(entry => entry.type === "video_download")' in source:
+            raise ValueError("Xiaohongshu V4 function-entry anchor drift")
+        return source
+    source = source.replace(OLD_V4_FUNCTION_ENTRY_BLOCK, NEW_V4_FUNCTION_ENTRY_BLOCK, 1)
+    if source.count(marker) != 1 or any(token not in source for token in required):
+        raise ValueError("Xiaohongshu V4 function-entry scan postcondition failed")
+    if "functionEntries.some(" in source or "item.share_info.function_entries.some(" in source:
+        raise ValueError("Xiaohongshu V4 some callback remains")
+    return source
+
+
 def optimize_source(source, commit="unknown"):
     COMMENT_BRANCH = r"""} else if (url.includes("/note/comment")) {
   const commentData = obj.data;
@@ -353,9 +415,10 @@ def optimize_source(source, commit="unknown"):
 """
     if MARKER in source:
         source = optimize_video_save_lookup(source)
+        source = optimize_v4_function_entry_scan(source)
         required = ("function imageEnhance(images, livePhotoCache)", "compactInPlace(obj.data", "appendUniqueLivePhotos",
                     "const byFileId = new Map()", "function cleanCommentsAndCollectLivePhotos(data)",
-                    "const videoInfoCache = new Map()")
+                    "const videoInfoCache = new Map()", "let commentPictures = null;", "commentPictures = current.pictures;", "commentPictures : current[key]")
         if any(token not in source for token in required):
             raise ValueError("marked R-Store Xiaohongshu source is incomplete")
         if "function removeRedId(obj) {" in source:
@@ -384,6 +447,7 @@ def optimize_source(source, commit="unknown"):
     source = once(source, "const url = $request.url;",
                   "const url = $request.url;\n" + HELPERS.strip(), "array helpers")
     source = optimize_video_save_lookup(source)
+    source = optimize_v4_function_entry_scan(source)
 
     image_block = '''      const images_list = obj.data[0].note_list[0].images_list;
       // 画质增强
