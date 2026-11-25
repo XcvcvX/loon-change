@@ -291,30 +291,54 @@ def add_lazy_serialization_guard(source):
     ]
     if COMMENT_DATA_CACHE_MARKER in source:
         delete_targets = [
-            target.replace("item.data.", "commentData.", 1) if target.startswith("item.data.") else target
+            target.replace("item.data.", "commentData.") if target.startswith("item.data.comment_") else target
             for target in delete_targets
         ]
+
     if LAZY_MARKER in source:
         if GUARD_DECLARATION not in source or '$done(modified ? {body: JSON.stringify(obj)} : {});' not in source:
             raise ValueError('marked Weibo lazy-serialization guard is incomplete')
-        loop_markers = re.findall(r'if \(__loonWrite\d+ !== __loonLength\d+\) modified = true;', source)
+        loop_markers = re.findall(r'if \\(__loonWrite\\d+ !== __loonLength\\d+\\) modified = true;', source)
         if len(loop_markers) != EXPECTED:
             raise ValueError('Weibo lazy-serialization loop inventory drift')
         for target in delete_targets:
-        tracked_target = target.replace("item.data.", "commentData.") if COMMENT_DATA_CACHE_MARKER in source and target.startswith("item.data.comment_") else target
-        pattern = re.compile(r'(?m)^([ \t]*)delete ' + re.escape(tracked_target) + r';$')
-        source, count = pattern.subn(lambda match: match.group(1) + 'modified = true;\n' + match.group(0), source)
+            pattern = re.compile(r'(?m)^([ \\t]*)modified = true;\\n[ \\t]*delete ' + re.escape(target) + r';$')
+            if not pattern.search(source):
+                raise ValueError('Weibo tracked-delete marker missing for ' + target)
+        return source
+
+    if GUARD_DECLARATION not in source:
+        anchor = 'const url = $request.url;'
+        if source.count(anchor) != 1:
+            raise ValueError('Weibo URL declaration anchor drift')
+        source = source.replace(anchor, anchor + '\\n' + GUARD_DECLARATION, 1)
+    if LEGACY_HELPER in source:
+        source = source.replace(LEGACY_HELPER, HELPER, 1)
+    elif HELPER not in source:
+        raise ValueError('Weibo compaction helper anchor drift')
+
+    loop_pattern = re.compile(r'(?m)^([ \\t]*)__loonSource(\\d+)\\.length = __loonWrite\\2;$')
+    def mark_loop(match):
+        index = match.group(2)
+        return match.group(0) + '\\n' + match.group(1) + 'if (__loonWrite' + index + ' !== __loonLength' + index + ') modified = true;'
+    source, loop_count = loop_pattern.subn(mark_loop, source)
+    if loop_count != EXPECTED:
+        raise ValueError('Weibo compact-loop inventory drift: expected %d, got %d' % (EXPECTED, loop_count))
+
+    for target in delete_targets:
+        pattern = re.compile(r'(?m)^([ \\t]*)delete ' + re.escape(target) + r';$')
+        source, count = pattern.subn(lambda match: match.group(1) + 'modified = true;\\n' + match.group(0), source)
         if count != 1:
-            raise ValueError('Weibo tracked-delete inventory drift for ' + tracked_target)
+            raise ValueError('Weibo tracked-delete inventory drift for ' + target)
 
     final_call = '$done({body: JSON.stringify(obj)});'
     if source.count(final_call) != 1:
         raise ValueError('Weibo common final response anchor drift')
     source = source.replace(final_call, '$done(modified ? {body: JSON.stringify(obj)} : {});', 1)
-    first_line_end = source.find('\n')
+    first_line_end = source.find('\\n')
     if first_line_end < 0:
         raise ValueError('Weibo header marker is missing')
-    return source[:first_line_end + 1] + LAZY_MARKER + '\n' + source[first_line_end + 1:]
+    return source[:first_line_end + 1] + LAZY_MARKER + '\\n' + source[first_line_end + 1:]
 
 
 COMMENT_DATA_CACHE_MARKER = "// loon-change: Weibo comment data reference cache v1"
