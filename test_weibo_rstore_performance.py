@@ -163,16 +163,25 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
     def test_hot_feed_cache_markers_are_inserted_before_postconditions(self):
         optimizer = Path(__file__).with_name("optimize_weibo_rstore.py").read_text(encoding="utf-8")
         specs = (
-            ("optimize_following_timeline_data_cache", "FOLLOWING_TIMELINE_DATA_CACHE_MARKER", "if any(token not in block for token in required):"),
-            ("optimize_hot_timeline_data_cache", "HOT_TIMELINE_DATA_CACHE_MARKER", "if any(token not in block for token in required):"),
-            ("optimize_flowlist_asyn_nested_reference_cache", "Weibo container/asyn nested reference cache v1", "if any(x not in asyn for x in required_asyn)"),
-            ("optimize_search_timeline_nested_reference_cache", "SEARCH_TIMELINE_REFERENCE_CACHE_MARKER", "if any(token not in block for token in required):"),
+            ("optimize_following_timeline_data_cache",
+             'block = block.replace(start, start + "\\n    " + FOLLOWING_TIMELINE_DATA_CACHE_MARKER, 1)',
+             "if any(token not in block for token in required):"),
+            ("optimize_hot_timeline_data_cache",
+             'block = block.replace(start, start + "\\n    " + HOT_TIMELINE_DATA_CACHE_MARKER, 1)',
+             "if any(token not in block for token in required):"),
+            ("optimize_flowlist_asyn_nested_reference_cache",
+             'asyn = asyn.replace(asyn_start, asyn_start + "\\n    // loon-change: Weibo container/asyn nested reference cache v1", 1)',
+             "if any(x not in asyn for x in required_asyn)"),
+            ("optimize_search_timeline_nested_reference_cache",
+             'block = block.replace(start, start + "\\n      " + SEARCH_TIMELINE_REFERENCE_CACHE_MARKER, 1)',
+             "if any(token not in block for token in required):"),
         )
-        for function_name, marker, postcondition in specs:
+        for function_name, marker_insertion, postcondition in specs:
             start = optimizer.index("def " + function_name + "(")
-            next_def = optimizer.find("\\ndef ", start + 1)
+            next_def = optimizer.find("\\n" + "def ", start + 1)
             block = optimizer[start: next_def if next_def >= 0 else len(optimizer)]
-            self.assertLess(block.index(marker), block.index(postcondition), function_name)
+            self.assertLess(block.index(marker_insertion), block.index(postcondition), function_name)
+
 
     def test_hot_timeline_caches_arrays_and_item_data(self):
         source = SCRIPT.read_text(encoding="utf-8")
