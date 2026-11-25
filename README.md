@@ -1198,3 +1198,21 @@ Reduces repeated nested user-property accesses in comment cleanup and reuses the
 
 ## Access effect
 Reduces repeated nested property resolution in each video-feed item without introducing new arrays, objects, closures, or JSON parse operations in the hot loop.
+
+
+# Phase 10 batch 43 — Xiaohongshu v3 video-feed item cache
+
+## Change
+- Cache each v3 feed item's `media_save_config` and `share_info.function_entries` references once.
+- Cache the first function-entry object once and construct the download-entry object only when the first entry is not already `video_download`.
+- Preserve the existing behavior of inspecting only the first entry: when the first entry is not a download entry, prepend a new one even if a later entry already has that type.
+- Keep all existing watermark/download permission mutations.
+
+## Validation
+- Node VM getter-count regression verifies one read each for `media_save_config`, `share_info`, `function_entries`, and the first entry on nonempty arrays.
+- Runtime fixtures verify no insertion when the first entry is already a download entry, insertion when the first entry is another action, and no insertion for empty arrays.
+- Optimizer tests validate idempotence and fail closed if the v3 route structure drifts.
+- No device-level CPU, battery, thermal, or latency improvement is claimed without real-device measurements.
+
+## Allocation / access effect
+Eliminates one unnecessary temporary object allocation for each nonempty v3 function-entry array whose first item is already the download action, while reducing repeated nested property reads.

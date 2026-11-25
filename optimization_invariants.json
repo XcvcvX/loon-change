@@ -90,7 +90,12 @@
         "const selectedMasterUrl = selectedStream?.master_url;",
         "if (itemId && selectedMasterUrl) {",
         "id: itemId,",
-        "url: selectedMasterUrl"
+        "url: selectedMasterUrl",
+        "// loon-change: Xiaohongshu v3 video-feed item reference cache v1;",
+        "const mediaSaveConfig = item?.media_save_config;",
+        "const functionEntries = item?.share_info?.function_entries;",
+        "const firstFunctionEntry = functionEntries[0];",
+        "functionEntries.unshift({type: \"video_download\"});"
       ],
       "forbidden": [
         "console.log(`[缓存] ID:",
