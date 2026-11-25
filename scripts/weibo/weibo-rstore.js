@@ -1440,48 +1440,60 @@ function isAd(data) {
 // 移除头像挂件,关注按钮
 function removeAvatar(data, user = data?.user) {
   // loon-change: Weibo removeAvatar cached user reference v1
-  if (data?.block_card_bg) {
+  // loon-change: Weibo removeAvatar single-read property cache v1
+  const blockCardBg = data?.block_card_bg;
+  if (blockCardBg) {
     modified = true;
     delete data.block_card_bg;
   }
-  if (data?.buttons) {
+  const buttons = data?.buttons;
+  if (buttons) {
     modified = true;
     delete data.buttons;
   }
-  if (data?.cardid) {
+  const cardId = data?.cardid;
+  if (cardId) {
     modified = true;
     delete data.cardid;
   }
-  if (data?.icons) {
+  const icons = data?.icons;
+  if (icons) {
     modified = true;
     delete data.icons;
   }
-  if (data?.mblog_buttons) {
+  const mblogButtons = data?.mblog_buttons;
+  if (mblogButtons) {
     // 转发按钮图标
     modified = true;
     delete data.mblog_buttons;
   }
-  if (data?.pic_bg_new) {
+  const picBgNew = data?.pic_bg_new;
+  if (picBgNew) {
     modified = true;
     delete data.pic_bg_new;
   }
-  if (user?.avatargj_id) {
+  const avatarGjId = user?.avatargj_id;
+  if (avatarGjId) {
     modified = true;
     delete user.avatargj_id;
   }
-  if (user?.avatar_extend_info) {
+  const avatarExtendInfo = user?.avatar_extend_info;
+  if (avatarExtendInfo) {
     modified = true;
     delete user.avatar_extend_info;
   }
-  if (user?.cardid) {
+  const userCardId = user?.cardid;
+  if (userCardId) {
     modified = true;
     delete user.cardid;
   }
-  if (user?.icons) {
+  const userIcons = user?.icons;
+  if (userIcons) {
     modified = true;
     delete user.icons;
   }
-  if (user?.mbtype) {
+  const memberType = user?.mbtype;
+  if (memberType) {
     // 会员等级图标
     modified = true;
     delete user.mbtype;
