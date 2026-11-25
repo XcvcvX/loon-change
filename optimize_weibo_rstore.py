@@ -299,6 +299,11 @@ def add_lazy_serialization_guard(source):
             "rootComment.comment_bubble" if target == "obj.rootComment.comment_bubble" else target
             for target in delete_targets
         ]
+    if "// loon-change: Weibo vote-info nested reference cache v1" in source:
+        delete_targets = [
+            "mediaInfo.vote_info" if target == "item.page_info.media_info.vote_info" else target
+            for target in delete_targets
+        ]
 
     if LAZY_MARKER in source:
         if GUARD_DECLARATION not in source or '$done(modified ? {body: JSON.stringify(obj)} : {});' not in source:
