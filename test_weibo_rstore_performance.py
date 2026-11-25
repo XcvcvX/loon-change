@@ -70,6 +70,23 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "marker/structure drift"):
             optimize_topic_group_in_place(damaged)
 
+    def test_profile_timeline_caches_nested_data_references_once(self):
+        from optimize_weibo_rstore import PROFILE_TIMELINE_DATA_CACHE_MARKER, optimize_profile_timeline_data_cache
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(PROFILE_TIMELINE_DATA_CACHE_MARKER, source)
+        self.assertEqual(optimize_profile_timeline_data_cache(source), source)
+        start = source.index('} else if (url.includes("/2/profile/container_timeline")) {')
+        end = source.index('} else if (url.includes("/2/profile/dealatt")', start)
+        block = source[start:end]
+        self.assertIn("const itemData = item?.data;", block)
+        self.assertIn("const iiData = ii?.data;", block)
+        self.assertNotIn("item?.data", block.replace("const itemData = item?.data;", ""))
+        self.assertNotIn("ii?.data", block.replace("const iiData = ii?.data;", ""))
+        self.assertNotIn("ii.data", block.replace("const iiData = ii?.data;", ""))
+        damaged = source.replace("const itemData = item?.data;", "const cachedItemData = item?.data;", 1)
+        with self.assertRaisesRegex(ValueError, "marker/structure drift"):
+            optimize_profile_timeline_data_cache(damaged)
+
     def test_comment_loop_caches_data_reference_once_and_fails_closed(self):
         source = SCRIPT.read_text(encoding="utf-8")
         self.assertEqual(source.count(COMMENT_DATA_CACHE_MARKER), 1)
