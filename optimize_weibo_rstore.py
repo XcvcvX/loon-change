@@ -515,8 +515,6 @@ def optimize_profile_timeline_property_cache(source):
             stripped = stripped.replace(x, "")
         if "removeAvatar(iiData);" in block or block.count("removeFeedAd(iiData);") != 1:
             raise ValueError("Weibo profile duplicate avatar-cleanup structure drift")
-        if "removeAvatar(iiData);" in block or block.count("removeFeedAd(iiData);") != 1:
-            raise ValueError("Weibo profile duplicate avatar-cleanup structure drift")
         if any(x in stripped for x in ("obj?.items?.length", "item?.data", "item?.category",
                   "itemData?.card_type", "itemData?.name", "itemData?.left_hint", "item?.items?.length",
                   "ii?.data", "ii?.category", "iiData?.card_type", "iiData?.rightImage",
@@ -536,8 +534,8 @@ def optimize_profile_timeline_property_cache(source):
       ("              const __loonSource18 = item.items;", "              const __loonSource18 = groupItems;"),
       ("              const __loonLength18 = __loonSource18.length;", "              const __loonLength18 = groupItemsLength;"),
       ("                let ii = __loonSource18[__loonRead18];", "                let ii = __loonSource18[__loonRead18];\\n                const iiCategory = ii?.category;"),
-      ("                if (ii?.category === \\"feed\\") {", "                  if (iiCategory === \\"feed\\") {"),
-      ("                } else if (ii?.category === \\"card\\") {", "                  } else if (iiCategory === \\"card\\") {\\n                  const iiCardType = iiData?.card_type;"),
+      ("                if (ii?.category === \\"feed\\") {", "                if (iiCategory === \\"feed\\") {"),
+      ("                } else if (ii?.category === \\"card\\") {", "                } else if (iiCategory === \\"card\\") {\\n                  const iiCardType = iiData?.card_type;"),
       ("                  if ((iiData?.card_type === 10 || iiData?.card_type === 48 || iiData?.card_type === 176)) {", "                  if ((iiCardType === 10 || iiCardType === 48 || iiCardType === 176)) {"),
       ("                  if (iiData?.rightImage) {", "                  const iiRightImage = iiData?.rightImage;\\n                  if (iiRightImage) {"),
       ("                  if (iiData?.backgroundImage) {", "                  const iiBackgroundImage = iiData?.backgroundImage;\\n                  if (iiBackgroundImage) {"),
