@@ -1,6 +1,6 @@
 import json, shutil, subprocess, unittest
 from pathlib import Path
-from optimize_xiaohongshu import LOCAL, REMOTE, MARKER, IMAGE_FEED_MARKER, VIDEO_SAVE_LOOKUP_MARKER, STREAM_SELECTION_MARKER, VIDEO_ENTRY_MARKER, IMAGE_LIVE_PHOTO_CACHE_MARKER, COMMENT_MEDIA_CACHE_MARKER, COMMENT_STACK_FRAME_MARKER, FUNCTION_SWITCH_MARKER, optimize_v4_function_switch_indexed_scan, optimize_comment_stack_frame_allocation, optimize_comment_media_property_cache, optimize_imagefeed_live_photo_property_cache, optimize_comment_video_info_cache, optimize_imagefeed_single_traversal, optimize_video_save_cache_lookup, optimize_stream_selection_no_closure, optimize_v4_video_feed_function_entry_scan, optimize_source, rewrite_plugin
+from optimize_xiaohongshu import LOCAL, REMOTE, MARKER, IMAGE_FEED_MARKER, VIDEO_SAVE_LOOKUP_MARKER, STREAM_SELECTION_MARKER, VIDEO_ENTRY_MARKER, IMAGE_LIVE_PHOTO_CACHE_MARKER, COMMENT_MEDIA_CACHE_MARKER, COMMENT_STACK_FRAME_MARKER, FUNCTION_SWITCH_MARKER, optimize_v4_function_switch_indexed_scan, optimize_comment_stack_frame_allocation, optimize_comment_media_property_cache, optimize_imagefeed_live_photo_property_cache, optimize_comment_video_info_cache, optimize_imagefeed_single_traversal, optimize_video_save_cache_lookup, optimize_stream_selection_no_closure, optimize_v4_video_feed_function_entry_scan, optimize_comment_node_array_classification, COMMENT_NODE_ARRAY_MARKER, optimize_source, rewrite_plugin
 
 ROOT=Path(__file__).resolve().parent
 NODE=shutil.which("node")
@@ -65,6 +65,20 @@ class XiaohongshuOptimizerTests(unittest.TestCase):
         self.assertIn("const commentFrameTag = {};",source)
         self.assertIn(COMMENT_STACK_FRAME_MARKER,source)
         self.assertNotIn("new WeakSet()",source)
+
+
+    def test_comment_node_array_classification_is_cached_and_fails_closed(self):
+        source = (ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")
+        self.assertEqual(source.count(COMMENT_NODE_ARRAY_MARKER), 1)
+        self.assertEqual(optimize_comment_node_array_classification(source), source)
+        start = source.index("function processCommentTree")
+        end = source.index("\n\n\n/**", start)
+        block = source[start:end]
+        self.assertEqual(block.count("Array.isArray(current)"), 1)
+        self.assertEqual(block.count("if (currentIsArray) {"), 1)
+        damaged = source.replace("const currentIsArray = Array.isArray(current);", "const currentIsArray = Boolean(current);", 1)
+        with self.assertRaisesRegex(ValueError, "marker/structure drift"):
+            optimize_comment_node_array_classification(damaged)
 
     def test_comment_stack_frames_use_flat_stack_without_tuple_allocations(self):
         source=(ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")

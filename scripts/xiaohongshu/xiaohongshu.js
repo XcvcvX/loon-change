@@ -477,7 +477,9 @@ function processCommentTree(data, livePhotos, commentVideos, noteId) {
     const current = isCommentFrame ? stack.pop() : entry;
     const isTopLevelComment = isCommentFrame && stack.pop() === true;
     if (!current || typeof current !== "object") continue;
-    if (!Array.isArray(current)) {
+    // loon-change: Xiaohongshu comment node array classification cache v1;
+    const currentIsArray = Array.isArray(current);
+    if (!currentIsArray) {
       if ("red_id" in current) { current.fmz200 = current.red_id; delete current.red_id; }
       if (isCommentFrame) {
         fixCommentType(current);
@@ -511,7 +513,7 @@ function processCommentTree(data, livePhotos, commentVideos, noteId) {
         }
       }
     }
-    if (Array.isArray(current)) {
+    if (currentIsArray) {
       for (let i = current.length - 1; i >= 0; i--) {
         const child = current[i];
         if (child && typeof child === "object") stack.push(child);

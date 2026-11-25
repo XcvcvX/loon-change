@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import re
 """Reproducible performance transforms for the Xiaohongshu response script."""
 import argparse
 from pathlib import Path
@@ -400,6 +401,47 @@ def optimize_v4_video_feed_function_entry_scan(src):
         raise ValueError("Xiaohongshu v4 function-entry marker insertion anchor drift")
     return src.replace(anchor, VIDEO_ENTRY_MARKER + "\n" + anchor, 1)
 
+
+COMMENT_NODE_ARRAY_MARKER = "// loon-change: Xiaohongshu comment node array classification cache v1;"
+
+def optimize_comment_node_array_classification(src):
+    if COMMENT_NODE_ARRAY_MARKER in src:
+        if src.count(COMMENT_NODE_ARRAY_MARKER) != 1:
+            raise ValueError("Xiaohongshu comment node array-classification marker drift")
+        start = src.find("function processCommentTree(data, livePhotos, commentVideos, noteId)")
+        end = src.find("\n\n\n/**", start)
+        if start < 0:
+            raise ValueError("Xiaohongshu comment processor missing")
+        block = src[start:end if end >= 0 else len(src)]
+        if block.count("Array.isArray(current)") != 1 or block.count("if (currentIsArray) {") != 1 or "const currentIsArray = Array.isArray(current);" not in block:
+            raise ValueError("Xiaohongshu comment node array-classification marker/structure drift")
+        return src
+    start = src.find("function processCommentTree(data, livePhotos, commentVideos, noteId)")
+    if start < 0:
+        raise ValueError("Xiaohongshu comment processor missing")
+    end = src.find("\n\n\n/**", start)
+    if end < 0:
+        raise ValueError("Xiaohongshu comment processor boundary missing")
+    block = src[start:end]
+    first = re.search(r"(?m)^([ \t]*)if \(!Array\.isArray\(current\)\) \{$", block)
+    second = re.search(r"(?m)^([ \t]*)if \(Array\.isArray\(current\)\) \{$", block)
+    if not first or not second or first.group(1) != second.group(1):
+        raise ValueError("Xiaohongshu comment node array-classification anchor drift")
+    indent = first.group(1)
+    new_first = indent + COMMENT_NODE_ARRAY_MARKER + "\n" + indent + "const currentIsArray = Array.isArray(current);\n" + indent + "if (!currentIsArray) {"
+    block = block[:first.start()] + new_first + block[first.end():]
+    second = re.search(r"(?m)^([ \t]*)if \(Array\.isArray\(current\)\) \{$", block)
+    if not second or second.group(1) != indent:
+        raise ValueError("Xiaohongshu comment node array branch anchor drift")
+    block = block[:second.start()] + indent + "if (currentIsArray) {" + block[second.end():]
+    if block.count(COMMENT_NODE_ARRAY_MARKER) != 1 or block.count("Array.isArray(current)") != 1 or block.count("if (currentIsArray) {") != 1:
+        raise ValueError("Xiaohongshu comment node array-classification postcondition failed")
+    return src[:start] + block + src[end:]
+
+
+
+
+
 def optimize_source(src,commit="unknown"):
     if MARKER in src:
         if "Object.keys(current)" in src: raise ValueError("Xiaohongshu traversal optimization is stale")
@@ -411,6 +453,7 @@ def optimize_source(src,commit="unknown"):
             src = optimize_comment_video_info_cache(src)
             src = optimize_comment_media_property_cache(src)
             src = optimize_comment_stack_frame_allocation(src)
+            src = optimize_comment_node_array_classification(src)
             src = optimize_video_save_cache_lookup(src)
             src = optimize_v4_video_feed_function_entry_scan(src)
             src = optimize_v4_function_switch_indexed_scan(src)
@@ -422,6 +465,7 @@ def optimize_source(src,commit="unknown"):
         src = optimize_comment_video_info_cache(src)
         src = optimize_comment_media_property_cache(src)
         src = optimize_comment_stack_frame_allocation(src)
+        src = optimize_comment_node_array_classification(src)
         src = optimize_video_save_cache_lookup(src)
         src = optimize_v4_video_feed_function_entry_scan(src)
         src = optimize_v4_function_switch_indexed_scan(src)
@@ -515,6 +559,7 @@ def optimize_source(src,commit="unknown"):
     result = optimize_imagefeed_live_photo_property_cache(optimize_imagefeed_single_traversal(result))
     result = optimize_comment_video_info_cache(result)
     result = optimize_comment_stack_frame_allocation(result)
+    result = optimize_comment_node_array_classification(result)
     result = optimize_video_save_cache_lookup(result)
     result = optimize_v4_video_feed_function_entry_scan(result)
     result = optimize_v4_function_switch_indexed_scan(result)
