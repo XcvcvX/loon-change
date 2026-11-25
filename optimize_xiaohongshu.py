@@ -125,13 +125,17 @@ def optimize_imagefeed_single_traversal(source):
             IMAGE_FEED_MARKER,
             "function imageEnhance(images, livePhotoCache)",
             "const livePhotoTarget = Array.isArray(livePhotoCache) ? livePhotoCache : null;",
-            "const stack=[{value:images,index:0,keys:null,root:true}];",
             "frame.root && livePhotoTarget",
-            "stack.push({value:child,index:0,keys:null,root:false});",
             "imageEnhance(images_list, livePhotoCache);",
             'JSON.stringify(livePhotoCache), "fmz200.xiaohongshu.feed.rsp"',
         )
-        if any(token not in source for token in required):
+        old_root_frame = "const stack=[{value:images,index:0,keys:null,root:true}];"
+        cached_root_frame = "const stack=[{value:images,index:0,keys:null,length:Array.isArray(images)?images.length:0,root:true}];"
+        old_child_frame = "stack.push({value:child,index:0,keys:null,root:false});"
+        cached_child_frame = "stack.push({value:child,index:0,keys:null,length:Array.isArray(child)?child.length:0,root:false});"
+        has_old_layout = old_root_frame in source and source.count(old_child_frame) == 1
+        has_cached_layout = cached_root_frame in source and source.count(cached_child_frame) == 2
+        if any(token not in source for token in required) or has_old_layout == has_cached_layout:
             raise ValueError("Xiaohongshu imagefeed single-traversal structure drifted; refusing overwrite")
         if "for (const image of images_list)" in source:
             raise ValueError("Separate Xiaohongshu imagefeed cache traversal remains")
