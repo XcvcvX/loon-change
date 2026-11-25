@@ -3,6 +3,7 @@ from pathlib import Path
 from optimize_xiaohongshu import LOCAL, REMOTE, MARKER, IMAGE_FEED_MARKER, VIDEO_SAVE_LOOKUP_MARKER, VIDEO_SAVE_LAZY_PARSE_MARKER, STREAM_SELECTION_MARKER, VIDEO_ENTRY_MARKER, IMAGE_LIVE_PHOTO_CACHE_MARKER, COMMENT_MEDIA_CACHE_MARKER, COMMENT_STACK_FRAME_MARKER, FUNCTION_SWITCH_MARKER, VIDEO_V3_ITEM_CACHE_MARKER, V4_FEED_ARRAY_LENGTH_MARKER, optimize_v4_feed_array_length_snapshot, optimize_v3_video_feed_item_reference_cache, VIDEO_FEED_REFERENCE_CACHE_MARKER, optimize_v4_video_feed_nested_reference_cache, optimize_v4_function_switch_indexed_scan, optimize_comment_stack_frame_allocation, optimize_comment_media_property_cache, optimize_imagefeed_live_photo_property_cache, optimize_comment_video_info_cache, optimize_imagefeed_single_traversal, optimize_video_save_cache_lookup, optimize_video_save_lazy_cache_parse, optimize_stream_selection_no_closure, optimize_v4_video_feed_function_entry_scan, optimize_comment_node_array_classification, COMMENT_NODE_ARRAY_MARKER, IMAGE_ARRAY_LENGTH_MARKER, optimize_imagefeed_array_length_cache, COMMENT_ARRAY_LENGTH_MARKER, optimize_comment_array_length_cache, optimize_source, rewrite_plugin
 
 ROOT=Path(__file__).resolve().parent
+SCRIPT=ROOT/"scripts/xiaohongshu/xiaohongshu.js"
 NODE=shutil.which("node")
 
 class XiaohongshuOptimizerTests(unittest.TestCase):
@@ -205,7 +206,10 @@ process.stdout.write(nativeJSON.stringify({body:nativeJSON.parse(done.body),leng
         self.assertIn("const functionSwitch = item?.function_switch;",source)
         self.assertIn("for (let switchIndex = 0; switchIndex < functionSwitchLength; switchIndex++)",source)
         self.assertNotIn("for (let switchItem of item.function_switch)",source)
-        damaged=source.replace("const switchItem = functionSwitch[switchIndex];","const switchItem = functionSwitch[switchIndex + 1];",1)
+        marker_start=source.index(FUNCTION_SWITCH_MARKER)
+        damaged=source[:marker_start]+source[marker_start:].replace(
+            "const switchItem = functionSwitch[switchIndex];",
+            "const switchItem = functionSwitch[switchIndex + 1];",1)
         with self.assertRaisesRegex(ValueError,"marker is stale"):
             optimize_v4_function_switch_indexed_scan(damaged)
 
@@ -253,7 +257,9 @@ process.stdout.write(nativeJSON.stringify({body:nativeJSON.parse(done.body),leng
         end=source.index("\n\n// 信息流 视频\nif (url.includes(\"/v4/note/videofeed\")) {",start)
         v3_block=source[start:end]
         self.assertNotIn('const addItem = {type: "video_download"};',v3_block)
-        damaged=source.replace("const firstFunctionEntry = functionEntries[0];","const firstFunctionEntry = functionEntries[1];",1)
+        damaged=source[:start]+source[start:].replace(
+            "const firstFunctionEntry = functionEntries[0];",
+            "const firstFunctionEntry = functionEntries[1];",1)
         with self.assertRaisesRegex(ValueError,"reference-cache marker/structure drift"):
             optimize_v3_video_feed_item_reference_cache(damaged)
 
@@ -922,3 +928,81 @@ process.stdout.write(nativeStringify({body:nativeParse(done.body),reads,cache:na
         self.assertNotIn("reason",item["function_switch"][0])
         self.assertEqual(item["share_info"]["function_entries"],[{"type":"share"},{"type":"video_download"}])
         self.assertEqual(out["cache"],[{"id":"one","url":"https://video.example/one.mp4"}])
+
+class XiaohongshuFeedNestedLoopPropertyCacheTests(unittest.TestCase):
+    def test_feed_nested_loop_cache_markers_and_legacy_scans(self):
+        from optimize_xiaohongshu import FEED_NESTED_LOOP_MARKER, optimize_feed_nested_loop_property_cache
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertEqual(source.count(FEED_NESTED_LOOP_MARKER), 3)
+        self.assertEqual(optimize_feed_nested_loop_property_cache(source), source)
+        self.assertIn("const adsGroupLength = adsGroups?.length || 0;", source)
+        self.assertIn("const noteList = firstFeedPage?.note_list;", source)
+        self.assertIn("const functionSwitchLength = functionSwitch?.length || 0;", source)
+        self.assertIn("const videoFeedLength = videoFeed?.length || 0;", source)
+        self.assertNotIn("options.some(item => item.key === 'copy')", source)
+        self.assertNotIn("item.function_switch.forEach(", source)
+        damaged = source.replace("const noteList = firstFeedPage?.note_list;", "const noteList = obj.data[0].note_list;", 1)
+        with self.assertRaisesRegex(ValueError, "marker/structure drift"):
+            optimize_feed_nested_loop_property_cache(damaged)
+
+    @unittest.skipUnless(NODE, "Node.js is required for feed array-access counter tests")
+    def test_imagefeed_nested_arrays_are_length_read_once_and_mutations_preserved(self):
+        runner = r"""
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync(process.argv[1],"utf8");
+const p=JSON.parse(fs.readFileSync(0,"utf8")),nativeParse=JSON.parse.bind(JSON),nativeStringify=JSON.stringify.bind(JSON);
+let done,tracking=false;const reads={feedData:0,noteList:0,functionSwitch:0,options:0};
+const trackedJSON={parse(raw){const root=nativeParse(raw);if(p.url.includes("/note/imagefeed")){
+ const wrap=(array,key)=>new Proxy(array,{get(target,prop,receiver){if(tracking&&prop==="length")reads[key]++;return Reflect.get(target,prop,receiver);}});
+ root.data=wrap(root.data,"feedData");root.data[0].note_list=wrap(root.data[0].note_list,"noteList");
+ for(const item of root.data[0].note_list){item.function_switch=wrap(item.function_switch,"functionSwitch");item.note_text_press_options=wrap(item.note_text_press_options,"options");}
+ }tracking=true;return root;},stringify(value){tracking=false;return nativeStringify(value);}};
+const store=new Map();const ctx={JSON:trackedJSON,$loon:{},$persistentStore:{read:k=>store.get(k)||null,write:(v,k)=>(store.set(k,v),true)},
+$request:{url:p.url},$response:{body:nativeStringify(p.body)},$done:v=>done=v,console:{log(){},warn(){},error(){}}};
+vm.runInNewContext(source,ctx,{timeout:5000});process.stdout.write(nativeStringify({body:nativeParse(done.body),reads}));
+""";
+        body={"data":[{"note_list":[
+            {"media_save_config":{},"share_info":{"function_entries":[{"type":"share"}]},
+             "function_switch":[{"type":"image_download","enable":False}],
+             "note_text_press_options":[{"key":"share"}],"hash_tag":[{"type":"interact_vote"},{"type":"normal"}],"images_list":[]},
+            {"media_save_config":{},"share_info":{"function_entries":[{"type":"video_download"}]},
+             "function_switch":[{"type":"other"}],"note_text_press_options":[{"key":"copy"}],"hash_tag":[],"images_list":[]}
+        ]}]}
+        run=subprocess.run([NODE,"-e",runner,str(SCRIPT)],input=json.dumps({
+            "url":"https://edith.xiaohongshu.com/api/sns/web/v1/note/imagefeed?cursor=counter","body":body
+        }),cwd=ROOT,capture_output=True,text=True,check=False,timeout=10)
+        self.assertEqual(run.returncode,0,run.stderr)
+        result=json.loads(run.stdout)
+        # Array.prototype.push reads the target array length once when inserting the missing copy option.
+        self.assertEqual(result["reads"],{"feedData":1,"noteList":1,"functionSwitch":2,"options":3})
+        first=result["body"]["data"][0]["note_list"][0]
+        self.assertTrue(first["media_save_config"]["disable_watermark"])
+        self.assertTrue(first["function_switch"][0]["enable"])
+        self.assertEqual(first["note_text_press_options"],[{"key":"share"},{"key":"copy","extra":""}])
+        self.assertEqual([tag["type"] for tag in first["hash_tag"]],["normal"])
+
+    @unittest.skipUnless(NODE, "Node.js is required for feed array-access counter tests")
+    def test_splash_nested_arrays_are_length_read_once_and_mutations_preserved(self):
+        runner = r"""
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync(process.argv[1],"utf8");
+const p=JSON.parse(fs.readFileSync(0,"utf8")),nativeParse=JSON.parse.bind(JSON),nativeStringify=JSON.stringify.bind(JSON);
+let done,tracking=false;const reads={groups:0,ads:0};
+const trackedJSON={parse(raw){const root=nativeParse(raw);const wrap=(array,key)=>new Proxy(array,{get(target,prop,receiver){if(tracking&&prop==="length")reads[key]++;return Reflect.get(target,prop,receiver);}});
+ root.data.ads_groups=wrap(root.data.ads_groups,"groups");for(const group of root.data.ads_groups)group.ads=wrap(group.ads,"ads");tracking=true;return root;},
+ stringify(value){tracking=false;return nativeStringify(value);}};
+const ctx={JSON:trackedJSON,$loon:{},$persistentStore:{read(){return null},write(){return true;}},
+$request:{url:p.url},$response:{body:nativeStringify(p.body)},$done:v=>done=v,console:{log(){},warn(){},error(){}}};
+vm.runInNewContext(source,ctx,{timeout:5000});process.stdout.write(nativeStringify({body:nativeParse(done.body),reads}));
+""";
+        body={"data":{"ads_groups":[{"ads":[{},{}]},{"ads":[{}]}]}}
+        run=subprocess.run([NODE,"-e",runner,str(SCRIPT)],input=json.dumps({
+            "url":"https://edith.xiaohongshu.com/api/sns/web/v1/system_service/splash_config","body":body
+        }),cwd=ROOT,capture_output=True,text=True,check=False,timeout=10)
+        self.assertEqual(run.returncode,0,run.stderr)
+        result=json.loads(run.stdout)
+        self.assertEqual(result["reads"],{"groups":1,"ads":2})
+        for group in result["body"]["data"]["ads_groups"]:
+            self.assertEqual(group["start_time"],3818332800)
+            for ad in group["ads"]:
+                self.assertEqual(ad["end_time"],3818419199)
+
+
