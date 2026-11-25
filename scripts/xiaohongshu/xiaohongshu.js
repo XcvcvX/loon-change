@@ -247,9 +247,9 @@ if (url.includes("/v4/note/videofeed")) {
       const h264List = videoStream?.h264 || [];
 
       const selectedStream = selectBestStream(h265List, h264List);
+      // 存入缓存数组
       const itemId = item?.id;
       const selectedMasterUrl = selectedStream?.master_url;
-      // 存入缓存数组
       if (itemId && selectedMasterUrl) {
         videoData.push({
           id: itemId,
