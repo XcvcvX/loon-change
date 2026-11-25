@@ -5,7 +5,7 @@ import subprocess
 import unittest
 from pathlib import Path
 
-from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, LAZY_MARKER, GUARD_DECLARATION, HELPER, LEGACY_HELPER, optimize_source, rewrite_plugin, optimize_page_filter_cached_itemid, TOPIC_GROUP_MARKER, optimize_topic_group_in_place, COMMENT_DATA_CACHE_MARKER, COMMENT_DATA_CACHE_OLD, COMMENT_DATA_CACHE_NEW, optimize_comment_data_reference_cache, REMOVE_AVATAR_USER_CACHE_MARKER, COMMENT_USER_CACHE_MARKER, COMMENT_USER_CACHE_OLD, COMMENT_USER_CACHE_NEW, optimize_comment_user_reference_cache, TOPIC_GROUP_NESTED_DATA_MARKER, optimize_topic_group_nested_data_cache, ROOT_COMMENT_USER_CACHE_MARKER, optimize_root_comment_user_cache, REMOVE_AVATAR_PROPERTY_CACHE_MARKER, REMOVE_AVATAR_HELPER_NEW, optimize_remove_avatar_property_cache, COMMENT_DECORATION_SINGLE_READ_MARKER, ROOT_COMMENT_DECORATION_SINGLE_READ_MARKER, REPLY_DECORATION_SINGLE_READ_MARKER, ROOT_COMMENT_BUBBLE_SINGLE_READ_MARKER, optimize_comment_decoration_single_read, COMMENT_ARRAY_REFERENCE_CACHE_MARKER, optimize_comment_array_reference_cache, FOLLOWING_TIMELINE_DATA_CACHE_MARKER, optimize_following_timeline_data_cache, HOT_TIMELINE_DATA_CACHE_MARKER, optimize_hot_timeline_data_cache, FLOWLIST_ASYN_REFERENCE_CACHE_MARKER, optimize_flowlist_asyn_nested_reference_cache, SEARCH_TIMELINE_REFERENCE_CACHE_MARKER, optimize_search_timeline_nested_reference_cache, PROFILE_TIMELINE_PROPERTY_CACHE_MARKER, optimize_profile_timeline_property_cache, IS_AD_PROPERTY_CACHE_MARKER, optimize_is_ad_property_cache
+from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, LAZY_MARKER, GUARD_DECLARATION, HELPER, LEGACY_HELPER, optimize_source, rewrite_plugin, optimize_page_filter_cached_itemid, TOPIC_GROUP_MARKER, optimize_topic_group_in_place, COMMENT_DATA_CACHE_MARKER, COMMENT_DATA_CACHE_OLD, COMMENT_DATA_CACHE_NEW, optimize_comment_data_reference_cache, REMOVE_AVATAR_USER_CACHE_MARKER, COMMENT_USER_CACHE_MARKER, COMMENT_USER_CACHE_OLD, COMMENT_USER_CACHE_NEW, optimize_comment_user_reference_cache, TOPIC_GROUP_NESTED_DATA_MARKER, optimize_topic_group_nested_data_cache, ROOT_COMMENT_USER_CACHE_MARKER, optimize_root_comment_user_cache, REMOVE_AVATAR_PROPERTY_CACHE_MARKER, REMOVE_AVATAR_HELPER_NEW, optimize_remove_avatar_property_cache, COMMENT_DECORATION_SINGLE_READ_MARKER, ROOT_COMMENT_DECORATION_SINGLE_READ_MARKER, REPLY_DECORATION_SINGLE_READ_MARKER, ROOT_COMMENT_BUBBLE_SINGLE_READ_MARKER, optimize_comment_decoration_single_read, COMMENT_ARRAY_REFERENCE_CACHE_MARKER, optimize_comment_array_reference_cache, FOLLOWING_TIMELINE_DATA_CACHE_MARKER, optimize_following_timeline_data_cache, HOT_TIMELINE_DATA_CACHE_MARKER, optimize_hot_timeline_data_cache, FLOWLIST_ASYN_REFERENCE_CACHE_MARKER, optimize_flowlist_asyn_nested_reference_cache, SEARCH_TIMELINE_REFERENCE_CACHE_MARKER, optimize_search_timeline_nested_reference_cache, PROFILE_TIMELINE_PROPERTY_CACHE_MARKER, optimize_profile_timeline_property_cache, IS_AD_PROPERTY_CACHE_MARKER, optimize_is_ad_property_cache, REMOVE_FEED_AD_CACHE_MARKER, optimize_shared_feed_cleanup_cache
 
 ROOT = Path(__file__).resolve().parent
 SCRIPT = ROOT / "scripts/weibo/weibo-rstore.js"
@@ -16,7 +16,7 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
     def test_fresh_source_transform_order_caches_user_before_avatar_fields(self):
         optimizer = Path(__file__).with_name("optimize_weibo_rstore.py").read_text(encoding="utf-8")
         lines = [line.strip() for line in optimizer.splitlines()
-                 if "return optimize_is_ad_property_cache(" in line]
+                 if "return optimize_shared_feed_cleanup_cache(" in line]
         self.assertEqual(len(lines), 2)
         for line in lines:
             comment_data = line.index("optimize_comment_data_reference_cache(")
@@ -1146,6 +1146,8 @@ const trackedJSON={
       wrap(item,"category",label+".category");wrap(item,"data",label+".data");
     }
     wrap(feedData,"enable_comment_guide","feed.enable_comment_guide");
+    wrap(feedData,"block_card_bg","feed.block_card_bg");
+    wrap(feedData,"retweeted_status","feed.retweeted_status");
     wrap(feedData,"source","feed.source");wrap(feedData,"title","feed.title");
     wrap(cardData,"card_type","card.card_type");wrap(cardData,"rightImage","card.rightImage");
     wrap(cardData,"backgroundImage","card.backgroundImage");
@@ -1163,7 +1165,7 @@ process.stdout.write(nativeStringify({doneResult,counts}));
             "category": "group", "data": {}, "header": {"data": {"icon": "remove"}},
             "itemId": "ordinary", "profile_type_id": "regular",
             "items": [
-                {"category": "feed", "data": {"enable_comment_guide": True, "source": "normal",
+                {"category": "feed", "data": {"enable_comment_guide": True, "block_card_bg": "x", "retweeted_status": {"user": {}}, "source": "normal",
                                                  "title": {"text": "热门", "structs": []}}},
                 {"category": "card", "data": {"card_type": 1, "rightImage": "x", "backgroundImage": "y"}}
             ]
@@ -1182,7 +1184,7 @@ process.stdout.write(nativeStringify({doneResult,counts}));
                     "group.header", "group.header.data", "group.header.icon", "group.itemId",
                     "group.profile_type_id", "group.items.ref", "group.items.length",
                     "feed.category", "feed.data", "card.category", "card.data",
-                    "feed.enable_comment_guide", "feed.source", "feed.title",
+                    "feed.enable_comment_guide", "feed.source", "feed.title", "feed.block_card_bg", "feed.retweeted_status",
                     "card.card_type", "card.rightImage", "card.backgroundImage"):
             self.assertEqual(counts.get(key), 1, key)
         self.assertEqual(len(output["items"][0]["items"]), 2)
@@ -1247,4 +1249,25 @@ process.stdout.write(nativeStringify({doneResult,counts}));
         self.assertEqual(result["doneResult"], {})
         for key in ("mblogtypename", "promotion", "content_auth_info", "ads_material_info"):
             self.assertEqual(result["counts"].get(key), 1, key)
+
+
+
+    def test_profile_group_feed_does_not_call_avatar_cleanup_twice(self):
+        source = SCRIPT.read_text(encoding="utf-8")
+        start = source.index('} else if (url.includes("/2/profile/container_timeline")) {')
+        end = source.index('} else if (url.includes("/2/profile/dealatt")', start)
+        block = source[start:end]
+        self.assertNotIn("removeAvatar(iiData);", block)
+        self.assertEqual(block.count("removeFeedAd(iiData);"), 1)
+
+    def test_shared_feed_cleanup_cache_is_idempotent_and_fails_closed(self):
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(REMOVE_FEED_AD_CACHE_MARKER, source)
+        self.assertEqual(optimize_shared_feed_cleanup_cache(source), source)
+        self.assertIn("const retweetedStatus = item?.retweeted_status;", source)
+        self.assertNotIn("removeAvatar(item?.retweeted_status);", source)
+        damaged = source.replace("const retweetedStatus = item?.retweeted_status;",
+                                 "const retweetedStatus = null;", 1)
+        with self.assertRaisesRegex(ValueError, "marker/structure drift"):
+            optimize_shared_feed_cleanup_cache(damaged)
 
