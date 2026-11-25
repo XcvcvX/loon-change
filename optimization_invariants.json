@@ -46,7 +46,7 @@
         "const media = livePhoto?.media;",
         "const masterUrl = stream?.master_url;",
         "imageEnhance(images_list, livePhotoCache);",
-        "Xiaohongshu flat comment stack frames v2;",
+        "Xiaohongshu comment classification stack frames v1;",
         "const commentFrameTag = {};",
         "// loon-change: Xiaohongshu comment video-info cache single lookup v2;",
         "let parsed = parsedVideoInfo.get(raw);",
