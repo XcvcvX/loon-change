@@ -189,7 +189,9 @@ if (url.includes("/v3/note/videofeed?")) {
     const functionEntriesLength = functionEntries?.length || 0;
     if (functionEntriesLength > 0) {
       const firstFunctionEntry = functionEntries[0];
-      if (firstFunctionEntry?.type !== "video_download") functionEntries.unshift({type: "video_download"});
+      if (firstFunctionEntry?.type !== "video_download") {
+        functionEntries.unshift({type: "video_download"});
+      }
     }
   }
 }
