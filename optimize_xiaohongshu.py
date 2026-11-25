@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import re
 """Reproducible performance transforms for the Xiaohongshu response script."""
 import argparse
 from pathlib import Path
