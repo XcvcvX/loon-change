@@ -105,7 +105,13 @@
         "const commentsLength = child.length;",
         "for (let i = commentsLength - 1; i >= 0; i--)",
         "const subCommentsLength = child.length;",
-        "for (let i = subCommentsLength - 1; i >= 0; i--)"
+        "for (let i = subCommentsLength - 1; i >= 0; i--)",
+        "// loon-change: Xiaohongshu v4 feed array length snapshot v1;",
+        "const videoDataSource = obj.data;",
+        "const videoDataLength = videoDataSource?.length || 0;",
+        "for (let videoIndex = 0; videoIndex < videoDataLength; videoIndex++)",
+        "const functionSwitchLength = functionSwitch?.length || 0;",
+        "for (let switchIndex = 0; switchIndex < functionSwitchLength; switchIndex++)"
       ],
       "forbidden": [
         "console.log(`[缓存] ID:",
@@ -135,7 +141,9 @@
         "url: selectedStream.master_url",
         "if(frame.index>=value.length)",
         "for (let i = current.length - 1; i >= 0; i--)",
-        "for (let i = child.length - 1; i >= 0; i--)"
+        "for (let i = child.length - 1; i >= 0; i--)",
+        "for (let item of obj.data)",
+        "switchIndex < functionSwitch.length"
       ]
     },
     {
