@@ -1,3 +1,4 @@
+import json
 import shutil
 import subprocess
 import unittest
@@ -755,6 +756,68 @@ process.stdout.write("ok");
         self.assertIn("replacementSegments[i] = adsType.encode(adsMessage).finish();", segment)
         self.assertNotIn("if(modifiedAds) newAds =", segment)
         self.assertEqual(segment.count("adsType.encode(adsMessage).finish()"), 1)
+
+
+    def test_multi_segment_reconstruction_caches_metadata_scalars_and_stable_lengths(self):
+        source = (ROOT / "scripts/baidumap/baidu-map-protobuf.js").read_text(encoding="utf-8")
+        start = source.index("function assembleBaiduResponseSegments(")
+        end = source.index("\n}\n", start) + 2
+        helper = source[start:end]
+        self.assertIn("// loon-change: Baidu protobuf segment metadata scalar cache v1", helper)
+        self.assertIn("const messageHeadLength = messageHead.length;", helper)
+        self.assertIn("const segmentOffset = header.offset;", helper)
+        self.assertIn("const segmentLength = header.length;", helper)
+        self.assertIn("const segmentsLength = segments.length;", helper)
+        self.assertIn("const chunksLength = chunks.length;", helper)
+        self.assertNotIn("i < messageHead.length", helper)
+        self.assertNotIn("i < segments.length", helper)
+        self.assertNotIn("i < chunks.length", helper)
+        self.assertNotIn("header.offset", helper[helper.index("const segmentOffset = header.offset;") + len("const segmentOffset = header.offset;"):helper.index("if (header.name === \"Result\")")])
+        self.assertNotIn("header.length", helper[helper.index("const segmentLength = header.length;") + len("const segmentLength = header.length;"):helper.index("if (header.name === \"Result\")")])
+
+    @unittest.skipUnless(NODE, "Node.js is required for BaiduMap metadata getter tests")
+    def test_multi_segment_header_offsets_and_lengths_are_read_once(self):
+        runner = r"""
+const fs=require("fs"),vm=require("vm");
+const source=fs.readFileSync(process.argv[1],"utf8");
+const start=source.indexOf("function assembleBaiduResponseSegments(");
+const end=source.indexOf("\n}\n",start)+2;
+const counts={arrayLength:0,headers:[]};
+const headers=[
+  {name:"Result",offset:0,length:2},
+  {name:"Ads",offset:2,length:2}
+].map((entry,index)=>{
+  const state={offset:entry.offset,length:entry.length};
+  const count={offset:0,length:0};counts.headers[index]=count;
+  const header={name:entry.name};
+  Object.defineProperties(header,{
+    offset:{enumerable:true,get(){count.offset++;return state.offset;},set(v){state.offset=v;}},
+    length:{enumerable:true,get(){count.length++;return state.length;},set(v){state.length=v;}}
+  });
+  return header;
+});
+const messageHead=new Proxy(headers,{get(target,key,receiver){if(key==="length")counts.arrayLength++;return Reflect.get(target,key,receiver);}});
+const context={Uint8Array,DataView,TextEncoder,repHeadType:{encode(){return{finish(){return new TextEncoder().encode('{"md5":"00000000000000000000000000000000"}')}}}}};
+vm.createContext(context);
+vm.runInContext(source.slice(start,end)+";globalThis.run=assembleBaiduResponseSegments;",context);
+context.run({md5:"",messageHead},context.repHeadType,new Uint8Array([1,2,3,4]),0,[],()=> "00000000000000000000000000000000");
+if(counts.arrayLength!==1)throw new Error("messageHead length reads: "+counts.arrayLength);
+for(const count of counts.headers){
+  if(count.offset!==1||count.length!==1)throw new Error("header scalar reads: "+JSON.stringify(count));
+}
+process.stdout.write(JSON.stringify(counts));
+"""
+        completed = subprocess.run(
+            [NODE, "-e", runner, str(ROOT / "scripts/baidumap/baidu-map-protobuf.js")],
+            capture_output=True, text=True, check=False, timeout=10,
+        )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        result = json.loads(completed.stdout)
+        self.assertEqual(result["arrayLength"], 1)
+        self.assertEqual(result["headers"], [
+            {"offset": 1, "length": 1},
+            {"offset": 1, "length": 1},
+        ])
 
 
 if __name__ == "__main__":
