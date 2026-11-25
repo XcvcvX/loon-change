@@ -74,6 +74,58 @@ class RStoreXiaohongshuOptimizerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "single-traversal image helper drifted"):
             optimize_imagefeed_single_traversal(damaged)
 
+    def test_videofeed_hotpath_optimizer_handles_unmodified_upstream_v3_v4_routes(self):
+        v3 = """    if (obj?.data?.length > 0) {
+      for (let item of obj.data) {
+        if (item?.media_save_config) {
+          item.media_save_config.disable_save = false;
+          item.media_save_config.disable_watermark = true;
+          item.media_save_config.disable_weibo_cover = true;
+        }
+        if (item?.share_info?.function_entries?.length > 0) {
+          const additem = {type: "video_download"};
+          let func = item.share_info.function_entries[0];
+          if (func?.type !== "video_download") {
+            item.share_info.function_entries.unshift(additem);
+          }
+        }
+      }
+    }"""
+        v4 = """    let videoData = [];
+    if (obj.data?.length > 0) {
+        for (let item of obj.data) {
+          if (item?.share_info?.function_entries?.length > 0) {
+            const hasDownload = item.share_info.function_entries.some(entry => entry.type === "video_download");
+            if (!hasDownload) item.share_info.function_entries.push({type: "video_download"});
+          }
+          const h265List = item?.video_info_v2?.media?.stream?.h265 || [];
+          if (!Array.isArray(h265List) || h265List.length === 0) continue;
+          const sortedList = h265List.filter(v => !!v.master_url && !!v.height).sort((a, b) => b.height - a.height);
+          let selectedStream = sortedList[0];
+          if (item?.id && selectedStream?.master_url) {
+            const data = {id: item.id, url: selectedStream.master_url};
+            videoData.push(data);
+          }
+        }
+        $.setdata(JSON.stringify(videoData), "redBookVideoFeed");
+    }"""
+        upstream = (
+            'const url = $request.url;\n'
+            '} else if (url.includes("/note/videofeed")) {\n'
+            + v3 + "\n"
+            + v4 + "\n"
+            + '// 视频保存请求\n} else if (url.includes("/note/video/save")) {\n'
+        )
+        generated = optimize_videofeed_hotpath_references(upstream)
+        self.assertIn(VIDEO_FEED_HOTPATH_MARKER, generated)
+        self.assertIn("const videoFeedItemsV3 = obj?.data;", generated)
+        self.assertIn("const videoFeedItemsV4 = obj?.data;", generated)
+        self.assertIn('let selectedStreamUrl = "";', generated)
+        self.assertIn("const rawHeight = stream.height;", generated)
+        self.assertNotIn(".filter(v => !!v.master_url && !!v.height).sort(", generated)
+        self.assertNotIn("functionEntries.some(", generated)
+        self.assertEqual(optimize_videofeed_hotpath_references(generated), generated)
+
     def test_videofeed_hotpath_reference_optimizer_is_idempotent_and_fails_closed(self):
         source = SCRIPT.read_text(encoding="utf-8")
         self.assertIn(VIDEO_FEED_HOTPATH_MARKER, source)
