@@ -206,7 +206,10 @@ process.stdout.write(nativeJSON.stringify({body:nativeJSON.parse(done.body),leng
         self.assertIn("const functionSwitch = item?.function_switch;",source)
         self.assertIn("for (let switchIndex = 0; switchIndex < functionSwitchLength; switchIndex++)",source)
         self.assertNotIn("for (let switchItem of item.function_switch)",source)
-        damaged=source.replace("const switchItem = functionSwitch[switchIndex];","const switchItem = functionSwitch[switchIndex + 1];",1)
+        marker_start=source.index(FUNCTION_SWITCH_MARKER)
+        damaged=source[:marker_start]+source[marker_start:].replace(
+            "const switchItem = functionSwitch[switchIndex];",
+            "const switchItem = functionSwitch[switchIndex + 1];",1)
         with self.assertRaisesRegex(ValueError,"marker is stale"):
             optimize_v4_function_switch_indexed_scan(damaged)
 
@@ -967,7 +970,8 @@ vm.runInNewContext(source,ctx,{timeout:5000});process.stdout.write(nativeStringi
         }),cwd=ROOT,capture_output=True,text=True,check=False,timeout=10)
         self.assertEqual(run.returncode,0,run.stderr)
         result=json.loads(run.stdout)
-        self.assertEqual(result["reads"],{"feedData":1,"noteList":1,"functionSwitch":2,"options":2})
+        # Array.prototype.push reads the target array length once when inserting the missing copy option.
+        self.assertEqual(result["reads"],{"feedData":1,"noteList":1,"functionSwitch":2,"options":3})
         first=result["body"]["data"][0]["note_list"][0]
         self.assertTrue(first["media_save_config"]["disable_watermark"])
         self.assertTrue(first["function_switch"][0]["enable"])
