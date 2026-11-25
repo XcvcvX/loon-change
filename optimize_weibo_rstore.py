@@ -277,7 +277,7 @@ def add_lazy_serialization_guard(source):
     ]
     if COMMENT_DATA_CACHE_MARKER in source:
         delete_targets = [
-            target.replace("item.data.", "commentData.") if target.startswith("item.data.comment_") else target
+            target.replace("item.data.", "commentData.") if target.startswith("item.data.") else target
             for target in delete_targets
         ]
 
