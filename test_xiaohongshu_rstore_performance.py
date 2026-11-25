@@ -7,7 +7,7 @@ import unittest
 sys.setrecursionlimit(10000)
 from pathlib import Path
 
-from optimize_xiaohongshu_rstore import LOCAL, REMOTE, MARKER, optimize_source, rewrite_plugin, XIAOHONGSHU_V4_FUNCTION_ENTRY_MARKER, optimize_v4_function_entry_scan
+from optimize_xiaohongshu_rstore import LOCAL, REMOTE, MARKER, optimize_source, rewrite_plugin, XIAOHONGSHU_V4_FUNCTION_ENTRY_MARKER, optimize_v4_function_entry_scan, VIDEO_SAVE_LOOKUP_MARKER, optimize_video_save_lookup
 
 ROOT = Path(__file__).resolve().parent
 SCRIPT = ROOT / "scripts/xiaohongshu/xiaohongshu-rstore.js"
@@ -83,9 +83,22 @@ class RStoreXiaohongshuOptimizerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "function-entry scan structure drift"):
             optimize_v4_function_entry_scan(damaged)
 
-    def test_video_save_lookup_stops_after_first_matching_note(self):
+    def test_video_save_lookup_caches_note_id_and_uses_indexed_early_exit(self):
         source = SCRIPT.read_text(encoding="utf-8")
-        self.assertIn("obj.data.download_url = item.url;\n        break;", source)
+        self.assertEqual(source.count(VIDEO_SAVE_LOOKUP_MARKER), 1)
+        self.assertIn("const saveData = obj.data;", source)
+        self.assertIn("const noteId = saveData?.note_id;", source)
+        self.assertIn("const videoFeedLength = videoFeed?.length || 0;", source)
+        self.assertIn("for (let read = 0; read < videoFeedLength; read++)", source)
+        self.assertIn("if (item.id === noteId)", source)
+        self.assertIn("saveData.download_url = item.url;\n        break;", source)
+        self.assertNotIn("obj.data.note_id", source)
+        self.assertNotIn("obj.data.download_url", source)
+        self.assertNotIn("for (let item of videoFeed)", source)
+        self.assertEqual(optimize_video_save_lookup(source), source)
+        damaged = source.replace("const noteId = saveData?.note_id;", "const noteId = null;", 1)
+        with self.assertRaisesRegex(ValueError, "video-save lookup structure drift"):
+            optimize_video_save_lookup(damaged)
         self.assertEqual(optimize_source(source), source)
 
     def test_array_filters_and_video_sort_are_removed_from_hot_paths(self):
@@ -103,7 +116,7 @@ class RStoreXiaohongshuOptimizerTests(unittest.TestCase):
 
 @unittest.skipUnless(NODE, "Node.js is required for R-Store Xiaohongshu runtime tests")
 class RStoreXiaohongshuRuntimeTests(unittest.TestCase):
-    def run_script(self, url, body, store=None, raw_body=None):
+    def run_script(self, url, body, store=None, raw_body=None, track_video_save_lookup_reads=False):
         runner = r"""
 const fs = require("fs");
 const vm = require("vm");
@@ -116,6 +129,11 @@ let trackImageArrayReads = true;
 let weakSetConstructCount = 0;
 let mapGetCount = 0;
 let mapHasCount = 0;
+let videoDataReads = 0;
+let videoNoteIdReads = 0;
+let videoFeedLengthReads = 0;
+let videoFeedIndexReads = 0;
+let trackVideoSaveReads = false;
 const NativeMap = Map;
 class CountedMap extends NativeMap {
   get(key) {
@@ -149,7 +167,31 @@ const context = {
     parseCount: 0,
     parse(value) {
       this.parseCount++;
-      const parsed = JSON.parse(value);
+      let parsed = JSON.parse(value);
+      if (payload.trackVideoSaveLookupReads && parsed && !Array.isArray(parsed) && parsed.data && !trackVideoSaveReads) {
+        let currentData = parsed.data;
+        Object.defineProperty(parsed, "data", {
+          enumerable: true, configurable: true,
+          get() { if (trackVideoSaveReads) videoDataReads++; return currentData; },
+          set(value) { currentData = value; }
+        });
+        let currentNoteId = currentData.note_id;
+        Object.defineProperty(currentData, "note_id", {
+          enumerable: true, configurable: true,
+          get() { if (trackVideoSaveReads) videoNoteIdReads++; return currentNoteId; },
+          set(value) { currentNoteId = value; }
+        });
+        trackVideoSaveReads = true;
+      } else if (payload.trackVideoSaveLookupReads && Array.isArray(parsed) && trackVideoSaveReads) {
+        const target = parsed;
+        parsed = new Proxy(target, {
+          get(object, key, receiver) {
+            if (trackVideoSaveReads && key === "length") videoFeedLengthReads++;
+            if (trackVideoSaveReads && typeof key === "string" && /^\d+$/.test(key)) videoFeedIndexReads++;
+            return Reflect.get(object, key, receiver);
+          }
+        });
+      }
       if (payload.url.includes("/note/imagefeed") || payload.url.includes("/note/feed")) {
         const images = parsed?.data?.[0]?.note_list?.[0]?.images_list;
         if (Array.isArray(images)) {
@@ -167,9 +209,14 @@ const context = {
     },
     stringify(value) {
       const previous = trackImageArrayReads;
+      const previousVideoTracking = trackVideoSaveReads;
       trackImageArrayReads = false;
+      trackVideoSaveReads = false;
       try { return JSON.stringify(value); }
-      finally { trackImageArrayReads = previous; }
+      finally {
+        trackImageArrayReads = previous;
+        trackVideoSaveReads = previousVideoTracking;
+      }
     }
   },
   console: {log() {}, warn() {}, error() {}}
@@ -182,6 +229,10 @@ process.stdout.write(JSON.stringify({
   weakSetConstructCount,
   mapGetCount,
   mapHasCount,
+  videoDataReads,
+  videoNoteIdReads,
+  videoFeedLengthReads,
+  videoFeedIndexReads,
   store: Object.fromEntries(store)
 }));
 """
@@ -189,6 +240,7 @@ process.stdout.write(JSON.stringify({
             [NODE, "-e", runner, str(SCRIPT)],
             input=json.dumps({
                 "url": url, "body": body, "store": store or {},
+                "trackVideoSaveLookupReads": track_video_save_lookup_reads,
                 **({"rawBody": raw_body} if raw_body is not None else {})
             }),
             capture_output=True, text=True, check=False, timeout=10
@@ -321,6 +373,29 @@ process.stdout.write(JSON.stringify({
         self.assertEqual([item["id"] for item in output["data"] if item], ["keep1", "keep2"])
         self.assertIsNone(output["data"][1])
         self.assertNotIn("related_ques", output["data"][0])
+
+    def test_video_save_lookup_reads_note_id_and_feed_length_once(self):
+        video_feed = [
+            {"id": "note-first", "url": "https://video.example/first.mp4"},
+            {"id": "note-target", "url": "https://video.example/target.mp4"},
+            {"id": "note-after", "url": "https://video.example/after.mp4"},
+        ]
+        body = {"data": {"note_id": "note-target", "disable": True, "msg": "disabled"}}
+        result = self.run_script(
+            "https://edith.xiaohongshu.com/api/sns/v1/note/video/save?fixture=lookup-cache",
+            body,
+            store={"redBookVideoFeed": json.dumps(video_feed)},
+            track_video_save_lookup_reads=True,
+        )
+        output = json.loads(result["doneResult"]["body"])
+        self.assertEqual(result["videoDataReads"], 1)
+        self.assertEqual(result["videoNoteIdReads"], 1)
+        self.assertEqual(result["videoFeedLengthReads"], 1)
+        self.assertEqual(result["videoFeedIndexReads"], 2)
+        self.assertEqual(output["data"]["download_url"], "https://video.example/target.mp4")
+        self.assertEqual(output["data"]["status"], 2)
+        self.assertNotIn("disable", output["data"])
+        self.assertNotIn("msg", output["data"])
 
     def test_comment_picture_array_reference_is_read_once_per_processed_comment(self):
         runner = r"""

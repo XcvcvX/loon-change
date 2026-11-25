@@ -213,20 +213,25 @@ if (url.includes("/note/imagefeed") || url.includes("/note/feed")) {
   }
 // 视频保存请求
 } else if (url.includes("/note/video/save")) {
-  let videoFeed = JSON.parse($.getdata("redBookVideoFeed")); // 读取持久化存储
-  if (obj.data?.note_id !== "" && videoFeed?.length > 0) {
-    for (let item of videoFeed) {
-      if (item.id === obj.data.note_id) {
-        obj.data.download_url = item.url;
+  // loon-change: Xiaohongshu video-save cached response and note ID v1
+  const saveData = obj.data;
+  const noteId = saveData?.note_id;
+  const videoFeed = JSON.parse($.getdata("redBookVideoFeed"));
+  const videoFeedLength = videoFeed?.length || 0;
+  if (noteId !== "" && videoFeedLength > 0) {
+    for (let read = 0; read < videoFeedLength; read++) {
+      const item = videoFeed[read];
+      if (item.id === noteId) {
+        saveData.download_url = item.url;
         break;
       }
     }
   }
   // 解除下载限制
-  if (obj.data?.disable) {
-    delete obj.data.disable;
-    delete obj.data.msg;
-    obj.data.status = 2;
+  if (saveData?.disable) {
+    delete saveData.disable;
+    delete saveData.msg;
+    saveData.status = 2;
   }
 // 关注列表
 } else if (url.includes("/followfeed") && !url.includes("/user/followings")) {

@@ -319,22 +319,90 @@ def optimize_imagefeed_single_traversal(source):
       $.setdata(JSON.stringify(livePhotoCache), "redBookLivePhoto");'''
     return once(source, old, new, "single-traversal imagefeed live-photo extraction")
 
-def optimize_video_save_lookup(source):
-    """Stop scanning the cached feed as soon as the requested note is found."""
-    old = """      if (item.id === obj.data.note_id) {
-        obj.data.download_url = item.url;
-      }"""
-    new = """      if (item.id === obj.data.note_id) {
+
+VIDEO_SAVE_LOOKUP_MARKER = "// loon-change: Xiaohongshu video-save cached response and note ID v1"
+VIDEO_SAVE_LOOKUP_OLD_WITH_BREAK = """} else if (url.includes("/note/video/save")) {
+  let videoFeed = JSON.parse($.getdata("redBookVideoFeed")); // 读取持久化存储
+  if (obj.data?.note_id !== "" && videoFeed?.length > 0) {
+    for (let item of videoFeed) {
+      if (item.id === obj.data.note_id) {
         obj.data.download_url = item.url;
         break;
-      }"""
-    if old in source:
-        return once(source, old, new, "video-save cache lookup")
-    if new not in source:
+      }
+    }
+  }
+  // 解除下载限制
+  if (obj.data?.disable) {
+    delete obj.data.disable;
+    delete obj.data.msg;
+    obj.data.status = 2;
+  }"""
+VIDEO_SAVE_LOOKUP_OLD_WITHOUT_BREAK = """} else if (url.includes("/note/video/save")) {
+  let videoFeed = JSON.parse($.getdata("redBookVideoFeed")); // 读取持久化存储
+  if (obj.data?.note_id !== "" && videoFeed?.length > 0) {
+    for (let item of videoFeed) {
+      if (item.id === obj.data.note_id) {
+        obj.data.download_url = item.url;
+      }
+    }
+  }
+  // 解除下载限制
+  if (obj.data?.disable) {
+    delete obj.data.disable;
+    delete obj.data.msg;
+    obj.data.status = 2;
+  }"""
+VIDEO_SAVE_LOOKUP_NEW = """} else if (url.includes("/note/video/save")) {
+  // loon-change: Xiaohongshu video-save cached response and note ID v1
+  const saveData = obj.data;
+  const noteId = saveData?.note_id;
+  const videoFeed = JSON.parse($.getdata("redBookVideoFeed"));
+  const videoFeedLength = videoFeed?.length || 0;
+  if (noteId !== "" && videoFeedLength > 0) {
+    for (let read = 0; read < videoFeedLength; read++) {
+      const item = videoFeed[read];
+      if (item.id === noteId) {
+        saveData.download_url = item.url;
+        break;
+      }
+    }
+  }
+  // 解除下载限制
+  if (saveData?.disable) {
+    delete saveData.disable;
+    delete saveData.msg;
+    saveData.status = 2;
+  }"""
+
+def optimize_video_save_lookup(source):
+    """Cache the response data, note ID and feed length before an indexed early-exit search."""
+    required = (
+        VIDEO_SAVE_LOOKUP_MARKER,
+        "const saveData = obj.data;",
+        "const noteId = saveData?.note_id;",
+        "const videoFeedLength = videoFeed?.length || 0;",
+        "for (let read = 0; read < videoFeedLength; read++)",
+        "const item = videoFeed[read];",
+        "if (item.id === noteId)",
+        "saveData.download_url = item.url;",
+        "if (saveData?.disable)",
+    )
+    if VIDEO_SAVE_LOOKUP_MARKER in source:
+        if source.count(VIDEO_SAVE_LOOKUP_MARKER) != 1 or any(token not in source for token in required):
+            raise ValueError("Xiaohongshu video-save lookup structure drift")
+        if "obj.data.note_id" in source or "obj.data.download_url" in source or "for (let item of videoFeed)" in source:
+            raise ValueError("Xiaohongshu repeated video-save response reads remain")
+        return source
+    if source.count(VIDEO_SAVE_LOOKUP_OLD_WITH_BREAK) == 1:
+        old = VIDEO_SAVE_LOOKUP_OLD_WITH_BREAK
+    elif source.count(VIDEO_SAVE_LOOKUP_OLD_WITHOUT_BREAK) == 1:
+        old = VIDEO_SAVE_LOOKUP_OLD_WITHOUT_BREAK
+    else:
         raise ValueError("R-Store video-save lookup anchor drift; refusing optimization")
+    source = source.replace(old, VIDEO_SAVE_LOOKUP_NEW, 1)
+    if source.count(VIDEO_SAVE_LOOKUP_MARKER) != 1 or any(token not in source for token in required):
+        raise ValueError("Xiaohongshu video-save lookup postcondition failed")
     return source
-
-
 
 XIAOHONGSHU_V4_FUNCTION_ENTRY_MARKER = "// loon-change: Xiaohongshu v4 function-entry indexed scan v1"
 OLD_V4_FUNCTION_ENTRY_BLOCK = """          if (item?.share_info?.function_entries?.length > 0) {
