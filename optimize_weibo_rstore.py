@@ -289,6 +289,11 @@ def add_lazy_serialization_guard(source):
         "item.page_info.media_info.vote_info",
         "obj.rootComment.comment_bubble",
     ]
+    if COMMENT_DATA_CACHE_MARKER in source:
+        delete_targets = [
+            target.replace("item.data.", "commentData.", 1) if target.startswith("item.data.") else target
+            for target in delete_targets
+        ]
     if LAZY_MARKER in source:
         if GUARD_DECLARATION not in source or '$done(modified ? {body: JSON.stringify(obj)} : {});' not in source:
             raise ValueError('marked Weibo lazy-serialization guard is incomplete')
@@ -356,7 +361,7 @@ def optimize_source(source, commit="unknown"):
     if MARKER in source:
         if "__loonSource32" not in source or "compactInPlace(items, keep)" not in source:
             raise ValueError("marked Weibo script is incomplete")
-        return optimize_comment_data_reference_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source)))))
+        return optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(optimize_comment_data_reference_cache(source)))))
     source = source.replace("const url = $request.url;", "const url = $request.url;\n" + GUARD_DECLARATION + "\n\n" + HELPER, 1)
     if source.count(HELPER) != 1:
         raise ValueError("Weibo helper insertion failed")
@@ -368,7 +373,7 @@ def optimize_source(source, commit="unknown"):
     remaining = re.findall(r"\b(new[A-Za-z0-9_]*)\s*=\s*\[\s*\]", source)
     if sorted(remaining) != ["newActions", "newII"]:
         raise ValueError("unexpected remaining Weibo temporary arrays: " + repr(remaining))
-    return optimize_comment_data_reference_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source)))))
+    return optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(optimize_comment_data_reference_cache(MARKER + commit + "\n" + source)))))
 
 SCALAR_MEMBERSHIP_MARKER = "// loon-change: Weibo hot-loop scalar membership v1"
 SCALAR_MEMBERSHIP_REWRITES = [
