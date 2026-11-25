@@ -167,12 +167,14 @@ def optimize_didi_predicates(source):
         'else if (mode === "walletItem") {',
         'else if (mode === "walletBottom") {',
         'else if (mode === "card") {',
-        'compactDidiByField(obj.data.cards, "title", "card");',
     )
 
     def validate(result):
         if any(token not in result for token in required):
             raise ValueError("Didi mode-dispatch optimization is incomplete")
+        if ('compactDidiByField(responseData.cards, "title", "card");' not in result and
+                'compactDidiByField(obj.data.cards, "title", "card");' not in result):
+            raise ValueError("Didi mode-dispatch card compaction is incomplete")
         if result.count("for (let read = 0; read < length; read++)") != 7:
             raise ValueError("Didi specialized loop inventory changed")
         if result.count('mode === "') != 7:
@@ -374,15 +376,33 @@ def optimize_wallet_nested_property_cache(source):
 def optimize_didi_nested_traversal_property_cache(source):
     """Cache show_data length and each nested scene_ids reference once per block."""
     marker = "// loon-change: Didi show_data nested traversal cache v1"
-    old = "    const showData = obj.data.show_data;\n    for (let read = 0; read < showData.length; read++) {\n      const block = showData[read];\n      if (block.scene_ids instanceof Array) {\n        compactDidiByField(block.scene_ids, \"scene_ids\", \"sceneId\");\n      }\n    }"
-    new = "    // loon-change: Didi show_data nested traversal cache v1\n    const showData = obj.data.show_data;\n    const showDataLength = showData.length;\n    for (let read = 0; read < showDataLength; read++) {\n      const block = showData[read];\n      const sceneIds = block.scene_ids;\n      if (sceneIds instanceof Array) {\n        compactDidiByField(sceneIds, \"scene_ids\", \"sceneId\");\n      }\n    }"
+    root = "responseData" if "const responseData = obj.data;" in source else "obj.data"
+    old = (
+        "    const showData = " + root + ".show_data;\n"
+        "    for (let read = 0; read < showData.length; read++) {\n"
+        "      const block = showData[read];\n"
+        "      if (block.scene_ids instanceof Array) {\n"
+        "        compactDidiByField(block.scene_ids, \"scene_ids\", \"sceneId\");\n"
+        "      }\n"
+        "    }"
+    )
+    new = (
+        "    // loon-change: Didi show_data nested traversal cache v1\n"
+        "    const showData = " + root + ".show_data;\n"
+        "    const showDataLength = showData.length;\n"
+        "    for (let read = 0; read < showDataLength; read++) {\n"
+        "      const block = showData[read];\n"
+        "      const sceneIds = block.scene_ids;\n"
+        "      if (sceneIds instanceof Array) {\n"
+        "        compactDidiByField(sceneIds, \"scene_ids\", \"sceneId\");\n"
+        "      }\n"
+        "    }"
+    )
     if marker in source:
-        if new not in source or old in source:
+        if "const showDataLength = showData.length;" not in source or "const sceneIds = block.scene_ids;" not in source:
             raise ValueError("Didi nested traversal cache structure is incomplete")
         return source
-    # The optimizer's compact unit fixtures may intentionally omit the
-    # show_data response branch. Preserve those partial fixtures unchanged.
-    if "obj.data.show_data" not in source:
+    if root + ".show_data" not in source:
         return source
     if source.count(old) != 1:
         raise ValueError("Didi show_data traversal anchor changed; refusing cache rewrite")
@@ -392,30 +412,30 @@ def optimize_didi_nested_traversal_property_cache(source):
     return source
 
 
-
 def optimize_info_list_cached_references(source):
     """Cache the nested top-banner array and first item on the Didi info-list path."""
     marker = "loon-change: Didi info-list cached nested references v1"
+    root = "responseData" if "const responseData = obj.data;" in source else "obj.data"
     old = '''if (isInfoList) {
-  if (obj.data && obj.data.disorder_cards && obj.data.disorder_cards.top_banner_card && obj.data.disorder_cards.top_banner_card.data && obj.data.disorder_cards.top_banner_card.data[0] && obj.data.disorder_cards.top_banner_card.data[0].T === "yuentu_top_banner") {
+  if (ROOT.disorder_cards && ROOT.disorder_cards.top_banner_card && ROOT.disorder_cards.top_banner_card.data && ROOT.disorder_cards.top_banner_card.data[0] && ROOT.disorder_cards.top_banner_card.data[0].T === "yuentu_top_banner") {
     // 移除顶部卡片
-    obj.data.disorder_cards.top_banner_card.data.splice(0, 1);
+    ROOT.disorder_cards.top_banner_card.data.splice(0, 1);
     modified = true;
   }
-}'''
+}'''.replace("ROOT", root)
     new = '''if (isInfoList) {
   // loon-change: Didi info-list cached nested references v1
-  const topBannerData = obj.data?.disorder_cards?.top_banner_card?.data;
+  const topBannerData = ROOT?.disorder_cards?.top_banner_card?.data;
   const firstTopBanner = topBannerData?.[0];
   if (firstTopBanner?.T === "yuentu_top_banner") {
     // 移除顶部卡片
     topBannerData.splice(0, 1);
     modified = true;
   }
-}'''
+}'''.replace("ROOT", root)
     if marker in source:
         required = (
-            "const topBannerData = obj.data?.disorder_cards?.top_banner_card?.data;",
+            "const topBannerData = " + root + "?.disorder_cards?.top_banner_card?.data;",
             "const firstTopBanner = topBannerData?.[0];",
             'if (firstTopBanner?.T === "yuentu_top_banner")',
             "topBannerData.splice(0, 1);",
