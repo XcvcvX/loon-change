@@ -1207,19 +1207,19 @@ def optimize_hot_timeline_data_cache(source):
         return source
     replacements = (
         ("    if (obj?.items?.length > 0) {",
-         "    const hotItems = obj?.items;\\n"
-         "    const hotItemsLength = hotItems?.length || 0;\\n"
+         "    const hotItems = obj?.items;\n"
+         "    const hotItemsLength = hotItems?.length || 0;\n"
          "    if (hotItemsLength > 0) {"),
         ("      const __loonSource4 = obj.items;", "      const __loonSource4 = hotItems;"),
         ("      const __loonLength4 = __loonSource4.length;", "      const __loonLength4 = hotItemsLength;"),
         ("        let item = __loonSource4[__loonRead4];",
-         "        let item = __loonSource4[__loonRead4];\\n        const itemData = item?.data;"),
+         "        let item = __loonSource4[__loonRead4];\n        const itemData = item?.data;"),
         ("        if (!isAd(item?.data)) {", "        if (!isAd(itemData)) {"),
         ("            removeFeedAd(item?.data);", "            removeFeedAd(itemData);"),
         ("            removeVoteInfo(item?.data);", "            removeVoteInfo(itemData);"),
         ("    if (obj?.statuses?.length > 0) {",
-         "    const hotStatuses = obj?.statuses;\\n"
-         "    const hotStatusesLength = hotStatuses?.length || 0;\\n"
+         "    const hotStatuses = obj?.statuses;\n"
+         "    const hotStatusesLength = hotStatuses?.length || 0;\n"
          "    if (hotStatusesLength > 0) {"),
         ("      const __loonSource3 = obj.statuses;", "      const __loonSource3 = hotStatuses;"),
         ("      const __loonLength3 = __loonSource3.length;", "      const __loonLength3 = hotStatusesLength;"),
@@ -1230,7 +1230,7 @@ def optimize_hot_timeline_data_cache(source):
         block = block.replace(old, new, 1)
     if any(token not in block for token in required):
         raise ValueError("Weibo hot timeline cache postcondition failed")
-    block = block.replace(start, start + "\\n    " + HOT_TIMELINE_DATA_CACHE_MARKER, 1)
+    block = block.replace(start, start + "\n    " + HOT_TIMELINE_DATA_CACHE_MARKER, 1)
     stripped = block.replace("const itemData = item?.data;", "")
     if any(token in stripped for token in ("item?.data", "obj?.items?.length", "obj?.statuses?.length",
                                             "const __loonLength4 = __loonSource4.length;",
