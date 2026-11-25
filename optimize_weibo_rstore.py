@@ -287,7 +287,10 @@ def add_lazy_serialization_guard(source):
         if GUARD_DECLARATION not in source or '$done(modified ? {body: JSON.stringify(obj)} : {});' not in source:
             raise ValueError('marked Weibo lazy-serialization guard is incomplete')
         loop_markers = re.findall(r'if \(__loonWrite\d+ !== __loonLength\d+\) modified = true;', source)
-        if len(loop_markers) != EXPECTED:
+        allowed_loop_counts = {EXPECTED}
+        if TOPIC_GROUP_MARKER in source:
+            allowed_loop_counts.add(EXPECTED - 1)
+        if len(loop_markers) not in allowed_loop_counts:
             raise ValueError('Weibo lazy-serialization loop inventory drift')
         for target in delete_targets:
             pattern = re.compile(r'(?m)^([ \t]*)modified = true;\n[ \t]*delete ' + re.escape(target) + r';$')
