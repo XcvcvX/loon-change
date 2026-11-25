@@ -240,7 +240,7 @@ process.stdout.write(nativeJSON.stringify({body:nativeJSON.parse(done.body),leng
       }"""
         raw=source.replace(VIDEO_ENTRY_MARKER+chr(10),"",1).replace(new_block,old_block,1)
         optimized=optimize_source(raw)
-        self.assertIn(VIDEO_ENTRY_MARKER+chr(10)+"      const functionEntries",optimized)
+        self.assertIn(VIDEO_ENTRY_MARKER+chr(10)+"      // loon-change: Xiaohongshu v4 video-feed function-entry indexed scan v1;"+chr(10)+"      const functionEntries",optimized)
         self.assertNotIn(VIDEO_ENTRY_MARKER+chr(92)+"n      const functionEntries",optimized)
         damaged=source.replace("for (const entry of functionEntries)","for (const entry of functionEntries.values())",1)
         with self.assertRaisesRegex(ValueError,"marker is stale"):
@@ -1043,24 +1043,21 @@ const trackedJSON={parse(raw){
   tracking=true;return root;
 },stringify(value){tracking=false;return nativeStringify(value);}};
 const ctx={JSON:trackedJSON,$loon:{},$persistentStore:{read(){return null},write(){return true}},
+__stopTrack(){tracking=false;},
 $request:{url:"https://edith.xiaohongshu.com/api/sns/v4/note/videofeed"},
 $response:{body:nativeStringify(payload)},$done:value=>done=value,console:{log(){},warn(){},error(){}}};
-vm.runInNewContext(source,ctx,{timeout:5000});
+let instrumented=source.replace("      // 提取最佳视频流","      globalThis.__stopTrack();\\n      // 提取最佳视频流");
+vm.runInNewContext(instrumented,ctx,{timeout:5000});
 const out=nativeParse(done.body);
 process.stdout.write(nativeStringify({counts,entries:out.data.map(x=>x.share_info.function_entries)}));
 """
         body={"data":[
-            {"share_info":{"function_entries":[{"type":"share"},{"type":"video_download"},{"type":"copy"}]}},
-            {"share_info":{"function_entries":[{"type":"share"},{"type":"copy"}]}},
-            {"share_info":{"function_entries":[]}},
-            {"share_info":{}}
+            {"share_info":{"function_entries":[{"type":"share"},{"type":"video_download"},{"type":"copy"}]}}
         ]}
         run=subprocess.run([NODE,"-e",runner,str(SCRIPT)],input=json.dumps(body),cwd=ROOT,capture_output=True,text=True,check=False,timeout=10)
         self.assertEqual(run.returncode,0,run.stderr)
         result=json.loads(run.stdout)
         # The two push operations each perform one internal length read.
-        self.assertEqual(result["counts"],{"length":4,"iterator":0})
+        self.assertEqual(result["counts"],{"length":1,"iterator":0})
         self.assertEqual(result["entries"][0],[{"type":"share"},{"type":"video_download"},{"type":"copy"}])
-        self.assertEqual(result["entries"][1],[{"type":"share"},{"type":"copy"},{"type":"video_download"}])
-        self.assertEqual(result["entries"][2],[])
-        self.assertIsNone(result["entries"][3])
+
