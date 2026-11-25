@@ -1616,9 +1616,13 @@ function removeFeedAd(item) {
 }
 
 // 移除投票窗口
+// loon-change: Weibo vote-info nested reference cache v1
 function removeVoteInfo(item) {
-  if (item?.page_info?.media_info?.vote_info) {
+  const pageInfo = item?.page_info;
+  const mediaInfo = pageInfo?.media_info;
+  const voteInfo = mediaInfo?.vote_info;
+  if (voteInfo) {
     modified = true;
-    delete item.page_info.media_info.vote_info;
+    delete mediaInfo.vote_info;
   }
 }
