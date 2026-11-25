@@ -434,7 +434,7 @@ def optimize_source(source, commit="unknown"):
     if MARKER in source:
         if "__loonSource32" not in source or "compactInPlace(items, keep)" not in source:
             raise ValueError("marked Weibo script is incomplete")
-        return optimize_profile_timeline_data_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_remove_avatar_property_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source))))))))))
+        return optimize_profile_timeline_data_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source)))))))))))
     source = source.replace("const url = $request.url;", "const url = $request.url;\n" + GUARD_DECLARATION + "\n\n" + HELPER, 1)
     if source.count(HELPER) != 1:
         raise ValueError("Weibo helper insertion failed")
@@ -446,7 +446,7 @@ def optimize_source(source, commit="unknown"):
     remaining = re.findall(r"\b(new[A-Za-z0-9_]*)\s*=\s*\[\s*\]", source)
     if sorted(remaining) != ["newActions", "newII"]:
         raise ValueError("unexpected remaining Weibo temporary arrays: " + repr(remaining))
-    return optimize_profile_timeline_data_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_remove_avatar_property_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source))))))))))
+    return optimize_profile_timeline_data_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source)))))))))))
 
 SCALAR_MEMBERSHIP_MARKER = "// loon-change: Weibo hot-loop scalar membership v1"
 SCALAR_MEMBERSHIP_REWRITES = [
@@ -837,6 +837,196 @@ def optimize_remove_avatar_property_cache(source):
     if block != REMOVE_AVATAR_HELPER_NEW:
         raise ValueError("Weibo removeAvatar property-cache source anchor changed")
     source = source[:start] + REMOVE_AVATAR_HELPER_PROPERTY_CACHE_NEW + source[end:]
+    return source
+
+
+
+COMMENT_DECORATION_SINGLE_READ_MARKER = "// loon-change: Weibo comment data decoration single-read cache v1"
+ROOT_COMMENT_DECORATION_SINGLE_READ_MARKER = "// loon-change: Weibo root-comment decoration single-read cache v1"
+REPLY_DECORATION_SINGLE_READ_MARKER = "// loon-change: Weibo reply-comment decoration single-read cache v1"
+ROOT_COMMENT_BUBBLE_SINGLE_READ_MARKER = "// loon-change: Weibo rootComment bubble single-read cache v1"
+
+COMMENT_DECORATION_OLD_TOP = """            // 评论气泡
+            if (commentData?.comment_bubble) {
+              modified = true;
+              delete commentData.comment_bubble;
+            }
+            // 评论弹幕
+            if (commentData?.comment_bullet_screens_message) {
+              modified = true;
+              delete commentData.comment_bullet_screens_message;
+            }
+            // 热评小图标 弹幕 首评
+            if (commentData?.hot_icon) {
+              modified = true;
+              delete commentData.hot_icon;
+            }
+            // 会员气泡按钮
+            if (commentData?.vip_button) {
+              modified = true;
+              delete commentData.vip_button;
+            }"""
+COMMENT_DECORATION_NEW_TOP = """            // loon-change: Weibo comment data decoration single-read cache v1
+            // 评论气泡
+            const commentBubble = commentData?.comment_bubble;
+            if (commentBubble) {
+              modified = true;
+              delete commentData.comment_bubble;
+            }
+            // 评论弹幕
+            const commentBulletMessage = commentData?.comment_bullet_screens_message;
+            if (commentBulletMessage) {
+              modified = true;
+              delete commentData.comment_bullet_screens_message;
+            }
+            // 热评小图标 弹幕 首评
+            const commentHotIcon = commentData?.hot_icon;
+            if (commentHotIcon) {
+              modified = true;
+              delete commentData.hot_icon;
+            }
+            // 会员气泡按钮
+            const commentVipButton = commentData?.vip_button;
+            if (commentVipButton) {
+              modified = true;
+              delete commentData.vip_button;
+            }"""
+COMMENT_DECORATION_OLD_ROOT = """          // 评论气泡
+          if (item?.comment_bubble) {
+            modified = true;
+            delete item.comment_bubble;
+          }
+          // 评论弹幕
+          if (item?.comment_bullet_screens_message) {
+            modified = true;
+            delete item.comment_bullet_screens_message;
+          }
+          // 热评小图标 弹幕 首评
+          if (item?.hot_icon) {
+            modified = true;
+            delete item.hot_icon;
+          }
+          // 会员气泡按钮
+          if (item?.vip_button) {
+            modified = true;
+            delete item.vip_button;
+          }"""
+COMMENT_DECORATION_NEW_ROOT = """          // loon-change: Weibo root-comment decoration single-read cache v1
+          // 评论气泡
+          const rootCommentBubble = item?.comment_bubble;
+          if (rootCommentBubble) {
+            modified = true;
+            delete item.comment_bubble;
+          }
+          // 评论弹幕
+          const rootCommentBulletMessage = item?.comment_bullet_screens_message;
+          if (rootCommentBulletMessage) {
+            modified = true;
+            delete item.comment_bullet_screens_message;
+          }
+          // 热评小图标 弹幕 首评
+          const rootCommentHotIcon = item?.hot_icon;
+          if (rootCommentHotIcon) {
+            modified = true;
+            delete item.hot_icon;
+          }
+          // 会员气泡按钮
+          const rootCommentVipButton = item?.vip_button;
+          if (rootCommentVipButton) {
+            modified = true;
+            delete item.vip_button;
+          }"""
+COMMENT_DECORATION_OLD_REPLIES = """        if (item?.user?.icons) {
+          modified = true;
+          delete item.user.icons;
+        }
+        if (item?.reply_comment?.comment_badge) {
+          modified = true;
+          delete item.reply_comment.comment_badge;
+        }"""
+COMMENT_DECORATION_NEW_REPLIES = """        // loon-change: Weibo reply-comment decoration single-read cache v1
+        const replyUser = item?.user;
+        const replyUserIcons = replyUser?.icons;
+        if (replyUserIcons) {
+          modified = true;
+          delete replyUser.icons;
+        }
+        const replyComment = item?.reply_comment;
+        const replyCommentBadge = replyComment?.comment_badge;
+        if (replyCommentBadge) {
+          modified = true;
+          delete replyComment.comment_badge;
+        }"""
+COMMENT_DECORATION_OLD_ROOT_COMMENT = """    if (obj?.rootComment) {
+      if (obj?.rootComment?.comment_bubble) {
+        modified = true;
+        delete obj.rootComment.comment_bubble;
+      }
+    }"""
+COMMENT_DECORATION_NEW_ROOT_COMMENT = """    // loon-change: Weibo rootComment bubble single-read cache v1
+    const rootComment = obj?.rootComment;
+    const rootCommentBubble = rootComment?.comment_bubble;
+    if (rootCommentBubble) {
+      modified = true;
+      delete rootComment.comment_bubble;
+    }"""
+
+def optimize_comment_decoration_single_read(source):
+    """Cache frequently removed Weibo comment decoration values once before deletion."""
+    markers = (
+        COMMENT_DECORATION_SINGLE_READ_MARKER,
+        ROOT_COMMENT_DECORATION_SINGLE_READ_MARKER,
+        REPLY_DECORATION_SINGLE_READ_MARKER,
+        ROOT_COMMENT_BUBBLE_SINGLE_READ_MARKER,
+    )
+    required = (
+        "const commentBubble = commentData?.comment_bubble;",
+        "const commentBulletMessage = commentData?.comment_bullet_screens_message;",
+        "const commentHotIcon = commentData?.hot_icon;",
+        "const commentVipButton = commentData?.vip_button;",
+        "const rootCommentBubble = item?.comment_bubble;",
+        "const rootCommentBulletMessage = item?.comment_bullet_screens_message;",
+        "const rootCommentHotIcon = item?.hot_icon;",
+        "const rootCommentVipButton = item?.vip_button;",
+        "const replyUser = item?.user;",
+        "const replyUserIcons = replyUser?.icons;",
+        "const replyComment = item?.reply_comment;",
+        "const replyCommentBadge = replyComment?.comment_badge;",
+        "const rootComment = obj?.rootComment;",
+        "const rootCommentBubble = rootComment?.comment_bubble;",
+    )
+    if any(marker in source for marker in markers):
+        if any(source.count(marker) != 1 for marker in markers) or any(token not in source for token in required):
+            raise ValueError("Weibo comment decoration single-read cache structure drift")
+        old_patterns = (
+            "if (commentData?.comment_bubble)",
+            "if (commentData?.comment_bullet_screens_message)",
+            "if (commentData?.hot_icon)",
+            "if (commentData?.vip_button)",
+            "if (item?.comment_bubble)",
+            "if (item?.comment_bullet_screens_message)",
+            "if (item?.hot_icon)",
+            "if (item?.vip_button)",
+            "if (item?.user?.icons)",
+            "if (item?.reply_comment?.comment_badge)",
+            "if (obj?.rootComment?.comment_bubble)",
+        )
+        if any(token in source for token in old_patterns):
+            raise ValueError("Weibo repeated comment decoration property reads remain")
+        return source
+
+    replacements = (
+        (COMMENT_DECORATION_OLD_TOP, COMMENT_DECORATION_NEW_TOP, "datas comment decorations"),
+        (COMMENT_DECORATION_OLD_ROOT, COMMENT_DECORATION_NEW_ROOT, "root comment decorations"),
+        (COMMENT_DECORATION_OLD_REPLIES, COMMENT_DECORATION_NEW_REPLIES, "reply comment decorations"),
+        (COMMENT_DECORATION_OLD_ROOT_COMMENT, COMMENT_DECORATION_NEW_ROOT_COMMENT, "rootComment bubble"),
+    )
+    for old, new, label in replacements:
+        if source.count(old) != 1:
+            raise ValueError("Weibo " + label + " cache anchor drift")
+        source = source.replace(old, new, 1)
+    if any(source.count(marker) != 1 for marker in markers) or any(token not in source for token in required):
+        raise ValueError("Weibo comment decoration single-read cache postcondition failed")
     return source
 
 

@@ -181,23 +181,28 @@ if (url.includes("/interface/sdk/sdkad.php")) {
                 continue;
               }
             }
+            // loon-change: Weibo comment data decoration single-read cache v1
             // 评论气泡
-            if (commentData?.comment_bubble) {
+            const commentBubble = commentData?.comment_bubble;
+            if (commentBubble) {
               modified = true;
               delete commentData.comment_bubble;
             }
             // 评论弹幕
-            if (commentData?.comment_bullet_screens_message) {
+            const commentBulletMessage = commentData?.comment_bullet_screens_message;
+            if (commentBulletMessage) {
               modified = true;
               delete commentData.comment_bullet_screens_message;
             }
             // 热评小图标 弹幕 首评
-            if (commentData?.hot_icon) {
+            const commentHotIcon = commentData?.hot_icon;
+            if (commentHotIcon) {
               modified = true;
               delete commentData.hot_icon;
             }
             // 会员气泡按钮
-            if (commentData?.vip_button) {
+            const commentVipButton = commentData?.vip_button;
+            if (commentVipButton) {
               modified = true;
               delete commentData.vip_button;
             }
@@ -232,23 +237,28 @@ if (url.includes("/interface/sdk/sdkad.php")) {
               continue;
             }
           }
+          // loon-change: Weibo root-comment decoration single-read cache v1
           // 评论气泡
-          if (item?.comment_bubble) {
+          const rootCommentBubble = item?.comment_bubble;
+          if (rootCommentBubble) {
             modified = true;
             delete item.comment_bubble;
           }
           // 评论弹幕
-          if (item?.comment_bullet_screens_message) {
+          const rootCommentBulletMessage = item?.comment_bullet_screens_message;
+          if (rootCommentBulletMessage) {
             modified = true;
             delete item.comment_bullet_screens_message;
           }
           // 热评小图标 弹幕 首评
-          if (item?.hot_icon) {
+          const rootCommentHotIcon = item?.hot_icon;
+          if (rootCommentHotIcon) {
             modified = true;
             delete item.hot_icon;
           }
           // 会员气泡按钮
-          if (item?.vip_button) {
+          const rootCommentVipButton = item?.vip_button;
+          if (rootCommentVipButton) {
             modified = true;
             delete item.vip_button;
           }
@@ -263,24 +273,30 @@ if (url.includes("/interface/sdk/sdkad.php")) {
       const __loonLength28 = __loonSource28.length;
       for (let __loonRead28 = 0; __loonRead28 < __loonLength28; __loonRead28++) {
         let item = __loonSource28[__loonRead28];
-        if (item?.user?.icons) {
+        // loon-change: Weibo reply-comment decoration single-read cache v1
+        const replyUser = item?.user;
+        const replyUserIcons = replyUser?.icons;
+        if (replyUserIcons) {
           modified = true;
-          delete item.user.icons;
+          delete replyUser.icons;
         }
-        if (item?.reply_comment?.comment_badge) {
+        const replyComment = item?.reply_comment;
+        const replyCommentBadge = replyComment?.comment_badge;
+        if (replyCommentBadge) {
           modified = true;
-          delete item.reply_comment.comment_badge;
+          delete replyComment.comment_badge;
         }
         __loonSource28[__loonWrite28++] = item;
       }
       __loonSource28.length = __loonWrite28;
       if (__loonWrite28 !== __loonLength28) modified = true;
     }
-    if (obj?.rootComment) {
-      if (obj?.rootComment?.comment_bubble) {
-        modified = true;
-        delete obj.rootComment.comment_bubble;
-      }
+    // loon-change: Weibo rootComment bubble single-read cache v1
+    const rootComment = obj?.rootComment;
+    const rootCommentBubble = rootComment?.comment_bubble;
+    if (rootCommentBubble) {
+      modified = true;
+      delete rootComment.comment_bubble;
     }
     // 投票窗口
     if (obj?.status?.page_info) {
