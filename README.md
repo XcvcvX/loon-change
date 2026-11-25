@@ -1054,3 +1054,16 @@ The Taobao splash response handler now caches the sections array, each section's
 ### Taobao response route classification
 
 The Taobao response handler now classifies cloud-video, splash and Poplayer URLs once before JSON parsing, then reuses the cached booleans for branch dispatch. Previously, each supported response repeated the same URL substring checks after passing the pre-parse guard. This removes duplicate URL scans without changing the supported route set, JSON parsing behavior, or response mutations. The upstream optimizer restores the cached classification with exact-anchor checks, and structural/runtime tests protect all three branches.
+
+
+# Phase 10 batch 37 — Didi root response-data reference cache
+
+## Change
+- Read the parsed response's root `data` property once and reuse the reference across scene-list, homepage-core, info-list, and user-center branches.
+- Preserve all nested filtering predicates, stable array order, lazy serialization, and route dispatch.
+- Add a getter-count runtime regression to prove the root `data` accessor is evaluated once per supported response.
+- Extend the upstream optimizer with marker, idempotence, and fail-closed checks.
+
+## Validation
+- Node VM tests verify a homepage response still retains only the existing nav allowlists and reads the root `data` property once.
+- No device-level CPU, battery, thermal, or latency improvement is claimed without real-device measurements.
