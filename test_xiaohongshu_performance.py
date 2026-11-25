@@ -92,7 +92,7 @@ class XiaohongshuOptimizerTests(unittest.TestCase):
         self.assertEqual(optimize_comment_array_length_cache(source),source)
         self.assertEqual(source.count(COMMENT_ARRAY_LENGTH_MARKER),1)
         start=source.index("function processCommentTree")
-        end=source.index("\\n\\n\\n/**",start)
+        end=source.index("\n\n\n/**",start)
         block=source[start:end]
         self.assertEqual(block.count("current.length"),1)
         self.assertEqual(block.count("child.length"),2)
