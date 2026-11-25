@@ -5,7 +5,7 @@ import subprocess
 import unittest
 from pathlib import Path
 
-from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, LAZY_MARKER, GUARD_DECLARATION, HELPER, LEGACY_HELPER, optimize_source, rewrite_plugin, optimize_page_filter_cached_itemid, TOPIC_GROUP_MARKER, optimize_topic_group_in_place, COMMENT_DATA_CACHE_MARKER, COMMENT_DATA_CACHE_OLD, COMMENT_DATA_CACHE_NEW, optimize_comment_data_reference_cache, REMOVE_AVATAR_USER_CACHE_MARKER, COMMENT_USER_CACHE_MARKER, COMMENT_USER_CACHE_OLD, COMMENT_USER_CACHE_NEW, optimize_comment_user_reference_cache, TOPIC_GROUP_NESTED_DATA_MARKER, optimize_topic_group_nested_data_cache
+from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, LAZY_MARKER, GUARD_DECLARATION, HELPER, LEGACY_HELPER, optimize_source, rewrite_plugin, optimize_page_filter_cached_itemid, TOPIC_GROUP_MARKER, optimize_topic_group_in_place, COMMENT_DATA_CACHE_MARKER, COMMENT_DATA_CACHE_OLD, COMMENT_DATA_CACHE_NEW, optimize_comment_data_reference_cache, REMOVE_AVATAR_USER_CACHE_MARKER, COMMENT_USER_CACHE_MARKER, COMMENT_USER_CACHE_OLD, COMMENT_USER_CACHE_NEW, optimize_comment_user_reference_cache, TOPIC_GROUP_NESTED_DATA_MARKER, optimize_topic_group_nested_data_cache, ROOT_COMMENT_USER_CACHE_MARKER, optimize_root_comment_user_cache
 
 ROOT = Path(__file__).resolve().parent
 SCRIPT = ROOT / "scripts/weibo/weibo-rstore.js"
@@ -84,6 +84,19 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         damaged = source.replace("const iiData = ii?.data;", "const iiData = undefined;", 1)
         with self.assertRaisesRegex(ValueError, "data-cache structure drift"):
             optimize_topic_group_nested_data_cache(damaged)
+
+
+    def test_root_comment_user_reference_is_cached_once(self):
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertEqual(optimize_root_comment_user_cache(source), source)
+        self.assertEqual(source.count(ROOT_COMMENT_USER_CACHE_MARKER), 1)
+        self.assertIn("const commentUser = item.user;", source)
+        self.assertIn("removeAvatar(item, commentUser);", source)
+        self.assertIn("const commentUserName = commentUser.name;", source)
+        self.assertNotIn('item?.user?.name === "超话社区"', source)
+        damaged = source.replace("const commentUser = item.user;", "const commentUser = null;", 1)
+        with self.assertRaisesRegex(ValueError, "user-cache structure drift"):
+            optimize_root_comment_user_cache(damaged)
 
     def test_profile_timeline_caches_nested_data_references_once(self):
         from optimize_weibo_rstore import PROFILE_TIMELINE_DATA_CACHE_MARKER, optimize_profile_timeline_data_cache
