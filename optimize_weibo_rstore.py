@@ -434,7 +434,7 @@ def optimize_source(source, commit="unknown"):
     if MARKER in source:
         if "__loonSource32" not in source or "compactInPlace(items, keep)" not in source:
             raise ValueError("marked Weibo script is incomplete")
-        return optimize_flowlist_asyn_nested_reference_cache(optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source)))))))))))))))
+        return optimize_search_timeline_nested_reference_cache(optimize_flowlist_asyn_nested_reference_cache(optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source))))))))))))))))
     source = source.replace("const url = $request.url;", "const url = $request.url;\n" + GUARD_DECLARATION + "\n\n" + HELPER, 1)
     if source.count(HELPER) != 1:
         raise ValueError("Weibo helper insertion failed")
@@ -446,7 +446,7 @@ def optimize_source(source, commit="unknown"):
     remaining = re.findall(r"\b(new[A-Za-z0-9_]*)\s*=\s*\[\s*\]", source)
     if sorted(remaining) != ["newActions", "newII"]:
         raise ValueError("unexpected remaining Weibo temporary arrays: " + repr(remaining))
-    return optimize_flowlist_asyn_nested_reference_cache(optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source)))))))))))))))
+    return optimize_search_timeline_nested_reference_cache(optimize_flowlist_asyn_nested_reference_cache(optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source))))))))))))))))
 
 SCALAR_MEMBERSHIP_MARKER = "// loon-change: Weibo hot-loop scalar membership v1"
 SCALAR_MEMBERSHIP_REWRITES = [
@@ -1395,6 +1395,107 @@ def optimize_flowlist_asyn_nested_reference_cache(source):
         result = result[:first_line_end + 1] + FLOWLIST_ASYN_REFERENCE_CACHE_MARKER + "\n" + result[first_line_end + 1:]
     return result
 
+
+
+SEARCH_TIMELINE_REFERENCE_CACHE_MARKER = "// loon-change: Weibo search timeline nested reference cache v1"
+
+def optimize_search_timeline_nested_reference_cache(source):
+    """Cache search timeline arrays and card data only in branches that consume them."""
+    start = '    if (url.includes("container_timeline")) {'
+    end = '    } else if (url.includes("finder")) {'
+    if source.count(start) != 1 or source.count(end) != 1:
+        raise ValueError("Weibo search timeline route boundary drift")
+    left = source.index(start)
+    right = source.index(end, left + len(start))
+    block = source[left:right]
+    required = (
+        SEARCH_TIMELINE_REFERENCE_CACHE_MARKER,
+        "const searchItems = obj?.items;",
+        "const searchItemsLength = searchItems?.length || 0;",
+        "const __loonLength12 = searchItemsLength;",
+        "const itemData = item?.data;",
+        "const cardData = item?.data;",
+        "const cardType = cardData?.card_type;",
+        "const groupItems = item?.items;",
+        "const groupItemsLength = groupItems?.length || 0;",
+        "const innerData = ii?.data;",
+        "const innerCardType = innerData?.card_type;",
+    )
+    if SEARCH_TIMELINE_REFERENCE_CACHE_MARKER in block:
+        if block.count(SEARCH_TIMELINE_REFERENCE_CACHE_MARKER) != 1 or any(token not in block for token in required):
+            raise ValueError("Weibo search timeline cache structure drift")
+        stripped = block.replace("const itemData = item?.data;", "").replace("const cardData = item?.data;", "").replace("const innerData = ii?.data;", "")
+        forbidden = (
+            "obj?.items?.length", "const __loonSource12 = obj.items;",
+            "item?.data?.card_type", "item?.data?.cate_id", "item?.data?.hasOwnProperty",
+            "item?.items?.length", "const __loonSource11 = item.items;", "ii?.data?.card_type",
+        )
+        if any(token in stripped for token in forbidden):
+            raise ValueError("Weibo search timeline repeated property reads remain")
+        return source
+    changes = (
+        ("      if (obj?.items?.length > 0) {\n"
+         "        const __loonSource12 = obj.items;\n"
+         "        let __loonWrite12 = 0;\n"
+         "        const __loonLength12 = __loonSource12.length;",
+         "      const searchItems = obj?.items;\n"
+         "      const searchItemsLength = searchItems?.length || 0;\n"
+         "      if (searchItemsLength > 0) {\n"
+         "        const __loonSource12 = searchItems;\n"
+         "        let __loonWrite12 = 0;\n"
+         "        const __loonLength12 = searchItemsLength;"),
+        ("          if (item?.category === \"feed\") {\n"
+         "            if (!isAd(item?.data)) {\n"
+         "              // 信息流推广\n"
+         "              removeFeedAd(item?.data);",
+         "          if (item?.category === \"feed\") {\n"
+         "            const itemData = item?.data;\n"
+         "            if (!isAd(itemData)) {\n"
+         "              // 信息流推广\n"
+         "              removeFeedAd(itemData);"),
+        ("          } else if (item?.category === \"card\") {\n"
+         "            // 19热议等tab 118横版广告图片 206,249横版视频广告 208实况热聊 217错过了热词 236微博趋势 261奥运滚动横幅\n"
+         "            if ((item?.data?.card_type === 19 || item?.data?.card_type === 118 || item?.data?.card_type === 206 || item?.data?.card_type === 208 || item?.data?.card_type === 217 || item?.data?.card_type === 236 || item?.data?.card_type === 249 || item?.data?.card_type === 261)) {\n"
+         "              continue;\n"
+         "            } else if (item?.data?.card_type === 101 && item?.data?.cate_id === \"1114\") {",
+         "          } else if (item?.category === \"card\") {\n"
+         "            // 19热议等tab 118横版广告图片 206,249横版视频广告 208实况热聊 217错过了热词 236微博趋势 261奥运滚动横幅\n"
+         "            const cardData = item?.data;\n"
+         "            const cardType = cardData?.card_type;\n"
+         "            if ((cardType === 19 || cardType === 118 || cardType === 206 || cardType === 208 || cardType === 217 || cardType === 236 || cardType === 249 || cardType === 261)) {\n"
+         "              continue;\n"
+         "            } else if (cardType === 101 && cardData?.cate_id === \"1114\") {"),
+        ("            } else if (item?.data?.card_type === 196 && item?.data?.hasOwnProperty(\"rank\")) {",
+         "            } else if (cardType === 196 && cardData?.hasOwnProperty(\"rank\")) {"),
+        ("          } else if (item?.category === \"group\") {\n"
+         "            if (item?.items?.length > 0) {\n"
+         "              const __loonSource11 = item.items;\n"
+         "              let __loonWrite11 = 0;\n"
+         "              const __loonLength11 = __loonSource11.length;",
+         "          } else if (item?.category === \"group\") {\n"
+         "            const groupItems = item?.items;\n"
+         "            const groupItemsLength = groupItems?.length || 0;\n"
+         "            if (groupItemsLength > 0) {\n"
+         "              const __loonSource11 = groupItems;\n"
+         "              let __loonWrite11 = 0;\n"
+         "              const __loonLength11 = groupItemsLength;"),
+        ("                let ii = __loonSource11[__loonRead11];\n"
+         "                // 118横版广告图片 182热议话题 217错过了热词 247横版视频广告\n"
+         "                if ((ii?.data?.card_type === 118 || ii?.data?.card_type === 182 || ii?.data?.card_type === 217 || ii?.data?.card_type === 247)) {",
+         "                let ii = __loonSource11[__loonRead11];\n"
+         "                const innerData = ii?.data;\n"
+         "                const innerCardType = innerData?.card_type;\n"
+         "                // 118横版广告图片 182热议话题 217错过了热词 247横版视频广告\n"
+         "                if ((innerCardType === 118 || innerCardType === 182 || innerCardType === 217 || innerCardType === 247)) {"),
+    )
+    for old, new in changes:
+        if block.count(old) != 1:
+            raise ValueError("Weibo search timeline cache anchor drift: " + old[:80])
+        block = block.replace(old, new, 1)
+    if any(token not in block for token in required):
+        raise ValueError("Weibo search timeline cache postcondition failed")
+    block = block.replace(start, start + "\n      " + SEARCH_TIMELINE_REFERENCE_CACHE_MARKER, 1)
+    return source[:left] + block + source[right:]
 
 
 if __name__ == "__main__":
