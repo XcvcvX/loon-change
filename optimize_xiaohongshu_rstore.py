@@ -161,6 +161,7 @@ COMMENT_HELPER = r'''function cleanCommentsAndCollectLivePhotos(data) {
       if (commentPictureCount > 0) {
         for (let pictureIndex = 0; pictureIndex < commentPictureCount; pictureIndex++) {
           const picture = commentPictures[pictureIndex];
+          if (picture && typeof picture === "object" && "red_id" in picture) delete picture.red_id;
           const videoId = picture.video_id;
           if (!videoId) continue;
           // loon-change: Xiaohongshu comment video-info cache single lookup v1
@@ -184,8 +185,10 @@ COMMENT_HELPER = r'''function cleanCommentsAndCollectLivePhotos(data) {
     } else {
       for (const key in current) {
         if (!Object.prototype.hasOwnProperty.call(current, key)) continue;
-        // Reuse the already-read pictures reference on comment frames.
-        const child = isCommentFrame && key === "pictures" ? commentPictures : current[key];
+        // Comment pictures were already traversed in the cached-length video pass.
+        // Clean their direct red_id fields there and do not schedule the same array again.
+        if (isCommentFrame && key === "pictures") continue;
+        const child = current[key];
         if (!child || typeof child !== "object") continue;
         if (current === data && key === "comments" && Array.isArray(child)) {
           const commentCount = child.length;
@@ -667,7 +670,7 @@ def optimize_source(source, commit="unknown"):
         source = optimize_videofeed_hotpath_references(source)
         required = ("function imageEnhance(images, livePhotoCache)", "compactInPlace(obj.data", "appendUniqueLivePhotos",
                     "const byFileId = new Map()", "function cleanCommentsAndCollectLivePhotos(data)",
-                    "const videoInfoCache = new Map()", "let commentPictures = null;", "commentPictures = current.pictures;", COMMENT_ARRAY_LENGTH_MARKER, "const commentPictureCount = commentPictures?.length || 0;", "const currentLength = current.length;", "const commentCount = child.length;", "const subCommentCount = child.length", "commentPictures : current[key]")
+                    "const videoInfoCache = new Map()", "let commentPictures = null;", "commentPictures = current.pictures;", COMMENT_ARRAY_LENGTH_MARKER, "const commentPictureCount = commentPictures?.length || 0;", "if (isCommentFrame && key === \"pictures\") continue;", "const currentLength = current.length;", "const commentCount = child.length;", "const subCommentCount = child.length")
         if any(token not in source for token in required):
             raise ValueError("marked R-Store Xiaohongshu source is incomplete")
         if "function removeRedId(obj) {" in source:
