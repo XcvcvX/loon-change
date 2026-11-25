@@ -408,7 +408,7 @@ def optimize_comment_node_array_classification(src):
         if src.count(COMMENT_NODE_ARRAY_MARKER) != 1:
             raise ValueError("Xiaohongshu comment node array-classification marker drift")
         start = src.find("function processCommentTree(data, livePhotos, commentVideos, noteId)")
-        end = src.find("\\n\\n\\n/**", start)
+        end = src.find("\n\n\n/**", start)
         if start < 0:
             raise ValueError("Xiaohongshu comment processor missing")
         block = src[start:end if end >= 0 else len(src)]
@@ -418,24 +418,25 @@ def optimize_comment_node_array_classification(src):
     start = src.find("function processCommentTree(data, livePhotos, commentVideos, noteId)")
     if start < 0:
         raise ValueError("Xiaohongshu comment processor missing")
-    end = src.find("\\n\\n\\n/**", start)
+    end = src.find("\n\n\n/**", start)
     if end < 0:
         raise ValueError("Xiaohongshu comment processor boundary missing")
     block = src[start:end]
-    first = re.search(r"(?m)^([ \\t]*)if \\(!Array\\.isArray\\(current\\)\\) \\{$", block)
-    second = re.search(r"(?m)^([ \\t]*)if \\(Array\\.isArray\\(current\\)\\) \\{$", block)
+    first = re.search(r"(?m)^([ \t]*)if \(!Array\.isArray\(current\)\) \{$", block)
+    second = re.search(r"(?m)^([ \t]*)if \(Array\.isArray\(current\)\) \{$", block)
     if not first or not second or first.group(1) != second.group(1):
         raise ValueError("Xiaohongshu comment node array-classification anchor drift")
     indent = first.group(1)
-    new_first = indent + COMMENT_NODE_ARRAY_MARKER + "\\n" + indent + "const currentIsArray = Array.isArray(current);\\n" + indent + "if (!currentIsArray) {"
+    new_first = indent + COMMENT_NODE_ARRAY_MARKER + "\n" + indent + "const currentIsArray = Array.isArray(current);\n" + indent + "if (!currentIsArray) {"
     block = block[:first.start()] + new_first + block[first.end():]
-    second = re.search(r"(?m)^([ \\t]*)if \\(Array\\.isArray\\(current\\)\\) \\{$", block)
+    second = re.search(r"(?m)^([ \t]*)if \(Array\.isArray\(current\)\) \{$", block)
     if not second or second.group(1) != indent:
         raise ValueError("Xiaohongshu comment node array branch anchor drift")
     block = block[:second.start()] + indent + "if (currentIsArray) {" + block[second.end():]
     if block.count(COMMENT_NODE_ARRAY_MARKER) != 1 or block.count("Array.isArray(current)") != 1 or block.count("if (currentIsArray) {") != 1:
         raise ValueError("Xiaohongshu comment node array-classification postcondition failed")
     return src[:start] + block + src[end:]
+
 
 
 
