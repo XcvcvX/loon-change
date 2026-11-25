@@ -328,7 +328,9 @@ if(invalidSegmentLayout || !adsFound || !modifiedAds || resultCount !== 1) {
     $done({});
   }
 
-  if(isQuanX){
+  if (!body) {
+    $done({});
+  } else if(isQuanX){
     $done({bodyBytes: body.buffer});
   } else {
     $done({body});
