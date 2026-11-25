@@ -1101,8 +1101,10 @@ def optimize_source(src,commit="unknown"):
             src = optimize_v4_video_feed_function_entry_scan(src)
             src = optimize_v4_function_switch_indexed_scan(src)
             src = optimize_v4_feed_array_length_snapshot(src)
+            src = optimize_v3_video_feed_item_reference_cache(src)
+            src = optimize_v4_video_feed_nested_reference_cache(src)
             src = optimize_feed_nested_loop_property_cache(src)
-            return optimize_stream_selection_no_closure(optimize_v4_video_feed_nested_reference_cache(optimize_v3_video_feed_item_reference_cache(src)))
+            return optimize_stream_selection_no_closure(src)
         src = apply_comment_optimization(src)
         src = optimize_comment_media_property_cache(src)
         src = optimize_imagefeed_single_traversal(src)
@@ -1118,8 +1120,10 @@ def optimize_source(src,commit="unknown"):
         src = optimize_v4_video_feed_function_entry_scan(src)
         src = optimize_v4_function_switch_indexed_scan(src)
         src = optimize_v4_feed_array_length_snapshot(src)
+        src = optimize_v3_video_feed_item_reference_cache(src)
+        src = optimize_v4_video_feed_nested_reference_cache(src)
         src = optimize_feed_nested_loop_property_cache(src)
-        return optimize_stream_selection_no_closure(optimize_v4_video_feed_nested_reference_cache(optimize_v3_video_feed_item_reference_cache(src)))
+        return optimize_stream_selection_no_closure(src)
     src=once(src,"const url = $request.url;","const url = $request.url;\n"+HELPERS.strip(),"helpers")
     src=once(src,"  console.log('打印原body：' + JSON.stringify(obj));\n","","full-body logging")
     src=once(src,'''      obj.data[0].note_list[0].images_list = imageEnhance(JSON.stringify(images_list));
@@ -1218,6 +1222,7 @@ def optimize_source(src,commit="unknown"):
     result = optimize_v4_feed_array_length_snapshot(result)
     result = optimize_v3_video_feed_item_reference_cache(result)
     result = optimize_v4_video_feed_nested_reference_cache(result)
+    result = optimize_feed_nested_loop_property_cache(result)
     result = optimize_stream_selection_no_closure(result)
     for token in ("imageEnhance(images_list, livePhotoCache)", IMAGE_FEED_MARKER, IMAGE_ARRAY_LENGTH_MARKER, "frame.index>=frame.length", "compactInPlace(obj.data","appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)","const byFileId=new Map()", "Xiaohongshu comment classification stack frames v1;", "const commentFrameTag = {};",
         COMMENT_ARRAY_LENGTH_MARKER,
