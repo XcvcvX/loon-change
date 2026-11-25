@@ -304,7 +304,7 @@ VIDEO_SAVE_LAZY_PARSE_MARKER = "// loon-change: Xiaohongshu video-save lazy cach
 def optimize_video_save_lazy_cache_parse(src):
     """Skip the persisted video-feed read and JSON.parse when note_id is empty."""
     start = 'if (url.includes("/v10/note/video/save")) {'
-    next_route = "\\n\\nif (url.includes(\"/user/followings/followfeed\")) {"
+    next_route = chr(10) + chr(10) + 'if (url.includes("/user/followings/followfeed")) {'
     marker = VIDEO_SAVE_LAZY_PARSE_MARKER
     if marker in src:
         block_start = src.index(start) if start in src else -1
