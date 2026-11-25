@@ -486,6 +486,8 @@ def optimize_videofeed_hotpath_references(source):
         "const mediaSaveConfig = item?.media_save_config;",
         "const shareInfo = item?.share_info;",
         "const functionEntries = shareInfo?.function_entries;",
+        "const functionEntryCount = functionEntries?.length || 0;",
+        "if (functionEntryCount > 0)",
         "const videoFeedItemsV4 = obj?.data;",
         "const videoFeedItemsV4Length = videoFeedItemsV4?.length || 0;",
         "const videoInfoV2 = item?.video_info_v2;",
@@ -571,9 +573,9 @@ def optimize_videofeed_hotpath_references(source):
           // loon-change: Xiaohongshu v4 function-entry indexed scan v1
           const shareInfo = item?.share_info;
           const functionEntries = shareInfo?.function_entries;
-          if (functionEntries?.length > 0) {
+          const functionEntryCount = functionEntries?.length || 0;
+          if (functionEntryCount > 0) {
             let hasDownload = false;
-            const functionEntryCount = functionEntries.length;
             for (let entryIndex = 0; entryIndex < functionEntryCount; entryIndex++) {
               const entry = functionEntries[entryIndex];
               if (entry.type === "video_download") {
