@@ -325,7 +325,7 @@ if(invalidSegmentLayout || !adsFound || !modifiedAds || resultCount !== 1) {
     );
   } catch (error) {
     // Invalid segment metadata must not produce a partially rebuilt response.
-    $done({});
+    body = null;
   }
 
   if (!body) {
