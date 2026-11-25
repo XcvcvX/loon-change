@@ -105,8 +105,10 @@ if (isCloudVideo) {
   const poplayerEnabled = obj?.enable;
   clearArray(poplayerRes, "images");
   clearArray(poplayerRes, "videos");
+  // loon-change: Taobao Poplayer enable direct update v1
   if (poplayerEnabled) {
-    setIfDifferent(obj, "enable", false);
+    obj.enable = false;
+    modified = true;
   }
   clearArray(mainRes, "images");
 }
