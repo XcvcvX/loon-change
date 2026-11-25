@@ -172,13 +172,16 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
             ("optimize_flowlist_asyn_nested_reference_cache",
              'asyn = asyn.replace(asyn_start, asyn_start + "\\n    // loon-change: Weibo container/asyn nested reference cache v1", 1)',
              "if any(x not in asyn for x in required_asyn)"),
+            ("optimize_flowlist_asyn_nested_reference_cache",
+             'flow = flow.replace(flow_start, flow_start + "\n    // loon-change: Weibo flowlist nested reference cache v1", 1)',
+             "if any(x not in flow for x in required_flow)"),
             ("optimize_search_timeline_nested_reference_cache",
              'block = block.replace(start, start + "\\n      " + SEARCH_TIMELINE_REFERENCE_CACHE_MARKER, 1)',
              "if any(token not in block for token in required):"),
         )
         for function_name, marker_insertion, postcondition in specs:
             start = optimizer.index("def " + function_name + "(")
-            next_def = optimizer.find("\\n" + "def ", start + 1)
+            next_def = optimizer.find("\n" + "def ", start + 1)
             block = optimizer[start: next_def if next_def >= 0 else len(optimizer)]
             self.assertLess(block.index(marker_insertion), block.index(postcondition), function_name)
 
