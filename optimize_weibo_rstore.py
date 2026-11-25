@@ -543,6 +543,15 @@ def optimize_profile_timeline_property_cache(source):
         if block.count(old) != 1:
             raise ValueError("Weibo profile property-cache anchor drift: " + old[:72])
         block = block.replace(old, new, 1)
+    duplicate_avatar = """                  // 头像挂件,关注按钮
+                  removeAvatar(iiData);
+                  // 信息流推广
+                  removeFeedAd(iiData);"""
+    compact_avatar = """                  // 信息流推广（removeFeedAd 内部已处理头像挂件与关注按钮）
+                  removeFeedAd(iiData);"""
+    if block.count(duplicate_avatar) != 1:
+        raise ValueError("Weibo profile duplicate avatar-cleanup anchor drift")
+    block = block.replace(duplicate_avatar, compact_avatar, 1)
     block = block.replace("item?.data", "itemData").replace("item?.category", "itemCategory")
     block = block.replace("itemData?.card_type", "itemCardType").replace("itemData?.name", "itemName")
     block = block.replace("itemData?.left_hint", "itemLeftHint")
@@ -632,11 +641,67 @@ def optimize_is_ad_property_cache(source):
     return source
 
 
+
+
+REMOVE_FEED_AD_CACHE_MARKER = "// loon-change: Weibo shared feed cleanup nested reference cache v1"
+REMOVE_FEED_AD_OLD = '''function removeFeedAd(item) {
+  // 头像挂件,关注按钮
+  removeAvatar(item);
+  if (item?.retweeted_status) {
+    removeAvatar(item?.retweeted_status);
+  }
+  // 商品橱窗
+  if (item?.common_struct) {
+    delete item.common_struct;
+  }
+  // 移除信息流中的热评
+  if (item?.comment_summary) {
+    delete item.comment_summary;
+  }
+  // 商品橱窗
+  if (item?.semantic_brand_params) {
+    delete item.semantic_brand_params;
+  }
+}'''
+REMOVE_FEED_AD_NEW = '''function removeFeedAd(item) {
+  // loon-change: Weibo shared feed cleanup nested reference cache v1
+  // 头像挂件,关注按钮
+  removeAvatar(item);
+  const retweetedStatus = item?.retweeted_status;
+  if (retweetedStatus) {
+    removeAvatar(retweetedStatus);
+  }
+  // 商品橱窗
+  if (item?.common_struct) {
+    delete item.common_struct;
+  }
+  // 移除信息流中的热评
+  if (item?.comment_summary) {
+    delete item.comment_summary;
+  }
+  // 商品橱窗
+  if (item?.semantic_brand_params) {
+    delete item.semantic_brand_params;
+  }
+}'''
+def optimize_shared_feed_cleanup_cache(source):
+    if REMOVE_FEED_AD_CACHE_MARKER in source:
+        if source.count(REMOVE_FEED_AD_CACHE_MARKER) != 1 or REMOVE_FEED_AD_NEW not in source:
+            raise ValueError("Weibo shared feed-cleanup cache marker/structure drift")
+        return source
+    if source.count(REMOVE_FEED_AD_OLD) != 1:
+        raise ValueError("Weibo shared feed-cleanup cache anchor drift")
+    source = source.replace(REMOVE_FEED_AD_OLD, REMOVE_FEED_AD_NEW, 1)
+    if source.count(REMOVE_FEED_AD_CACHE_MARKER) != 1:
+        raise ValueError("Weibo shared feed-cleanup cache postcondition failed")
+    return source
+
+
 def optimize_source(source, commit="unknown"):
     if MARKER in source:
         if "__loonSource32" not in source or "compactInPlace(items, keep)" not in source:
             raise ValueError("marked Weibo script is incomplete")
-        return optimize_is_ad_property_cache(optimize_profile_timeline_property_cache(optimize_search_timeline_nested_reference_cache(optimize_flowlist_asyn_nested_reference_cache(optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source))))))))))))))))) )
+        return optimize_shared_feed_cleanup_cache(optimize_is_ad_property_cache(optimize_profile_timeline_property_cache(optimize_search_timeline_nested_reference_cache(optimize_flowlist_asyn_nested_reference_cache(optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source))))))))))))))))) ))
     source = source.replace("const url = $request.url;", "const url = $request.url;\n" + GUARD_DECLARATION + "\n\n" + HELPER, 1)
     if source.count(HELPER) != 1:
         raise ValueError("Weibo helper insertion failed")
@@ -648,7 +713,7 @@ def optimize_source(source, commit="unknown"):
     remaining = re.findall(r"\b(new[A-Za-z0-9_]*)\s*=\s*\[\s*\]", source)
     if sorted(remaining) != ["newActions", "newII"]:
         raise ValueError("unexpected remaining Weibo temporary arrays: " + repr(remaining))
-    return optimize_is_ad_property_cache(optimize_profile_timeline_property_cache(optimize_search_timeline_nested_reference_cache(optimize_flowlist_asyn_nested_reference_cache(optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source))))))))))))))))) )
+    return optimize_shared_feed_cleanup_cache(optimize_is_ad_property_cache(optimize_profile_timeline_property_cache(optimize_search_timeline_nested_reference_cache(optimize_flowlist_asyn_nested_reference_cache(optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source))))))))))))))))) ))
 
 SCALAR_MEMBERSHIP_MARKER = "// loon-change: Weibo hot-loop scalar membership v1"
 SCALAR_MEMBERSHIP_REWRITES = [
