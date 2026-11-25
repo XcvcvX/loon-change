@@ -417,7 +417,7 @@ def optimize_info_list_cached_references(source):
     marker = "loon-change: Didi info-list cached nested references v1"
     root = "responseData" if "const responseData = obj.data;" in source else "obj.data"
     old = '''if (isInfoList) {
-  if (ROOT.disorder_cards && ROOT.disorder_cards.top_banner_card && ROOT.disorder_cards.top_banner_card.data && ROOT.disorder_cards.top_banner_card.data[0] && ROOT.disorder_cards.top_banner_card.data[0].T === "yuentu_top_banner") {
+  if (ROOT && ROOT.disorder_cards && ROOT.disorder_cards.top_banner_card && ROOT.disorder_cards.top_banner_card.data && ROOT.disorder_cards.top_banner_card.data[0] && ROOT.disorder_cards.top_banner_card.data[0].T === "yuentu_top_banner") {
     // 移除顶部卡片
     ROOT.disorder_cards.top_banner_card.data.splice(0, 1);
     modified = true;
