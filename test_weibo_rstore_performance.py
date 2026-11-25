@@ -5,7 +5,7 @@ import subprocess
 import unittest
 from pathlib import Path
 
-from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, LAZY_MARKER, GUARD_DECLARATION, HELPER, LEGACY_HELPER, optimize_source, rewrite_plugin, optimize_page_filter_cached_itemid, TOPIC_GROUP_MARKER, optimize_topic_group_in_place, COMMENT_DATA_CACHE_MARKER, COMMENT_DATA_CACHE_OLD, COMMENT_DATA_CACHE_NEW, optimize_comment_data_reference_cache, REMOVE_AVATAR_USER_CACHE_MARKER, COMMENT_USER_CACHE_MARKER, COMMENT_USER_CACHE_OLD, COMMENT_USER_CACHE_NEW, optimize_comment_user_reference_cache, TOPIC_GROUP_NESTED_DATA_MARKER, optimize_topic_group_nested_data_cache, ROOT_COMMENT_USER_CACHE_MARKER, optimize_root_comment_user_cache, REMOVE_AVATAR_PROPERTY_CACHE_MARKER, optimize_remove_avatar_property_cache, COMMENT_DECORATION_SINGLE_READ_MARKER, ROOT_COMMENT_DECORATION_SINGLE_READ_MARKER, REPLY_DECORATION_SINGLE_READ_MARKER, ROOT_COMMENT_BUBBLE_SINGLE_READ_MARKER, optimize_comment_decoration_single_read, COMMENT_ARRAY_REFERENCE_CACHE_MARKER, optimize_comment_array_reference_cache, FOLLOWING_TIMELINE_DATA_CACHE_MARKER, optimize_following_timeline_data_cache
+from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, LAZY_MARKER, GUARD_DECLARATION, HELPER, LEGACY_HELPER, optimize_source, rewrite_plugin, optimize_page_filter_cached_itemid, TOPIC_GROUP_MARKER, optimize_topic_group_in_place, COMMENT_DATA_CACHE_MARKER, COMMENT_DATA_CACHE_OLD, COMMENT_DATA_CACHE_NEW, optimize_comment_data_reference_cache, REMOVE_AVATAR_USER_CACHE_MARKER, COMMENT_USER_CACHE_MARKER, COMMENT_USER_CACHE_OLD, COMMENT_USER_CACHE_NEW, optimize_comment_user_reference_cache, TOPIC_GROUP_NESTED_DATA_MARKER, optimize_topic_group_nested_data_cache, ROOT_COMMENT_USER_CACHE_MARKER, optimize_root_comment_user_cache, REMOVE_AVATAR_PROPERTY_CACHE_MARKER, optimize_remove_avatar_property_cache, COMMENT_DECORATION_SINGLE_READ_MARKER, ROOT_COMMENT_DECORATION_SINGLE_READ_MARKER, REPLY_DECORATION_SINGLE_READ_MARKER, ROOT_COMMENT_BUBBLE_SINGLE_READ_MARKER, optimize_comment_decoration_single_read, COMMENT_ARRAY_REFERENCE_CACHE_MARKER, optimize_comment_array_reference_cache, FOLLOWING_TIMELINE_DATA_CACHE_MARKER, optimize_following_timeline_data_cache, HOT_TIMELINE_DATA_CACHE_MARKER, optimize_hot_timeline_data_cache
 
 ROOT = Path(__file__).resolve().parent
 SCRIPT = ROOT / "scripts/weibo/weibo-rstore.js"
@@ -98,6 +98,22 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "user-cache structure drift"):
             optimize_root_comment_user_cache(damaged)
 
+
+    def test_hot_timeline_caches_arrays_and_item_data(self):
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(HOT_TIMELINE_DATA_CACHE_MARKER, source)
+        self.assertEqual(optimize_hot_timeline_data_cache(source), source)
+        for token in (
+            "const hotItemsLength = hotItems?.length || 0;",
+            "const __loonLength4 = hotItemsLength;",
+            "const itemData = item?.data;",
+            "const hotStatusesLength = hotStatuses?.length || 0;",
+            "const __loonLength3 = hotStatusesLength;",
+        ):
+            self.assertIn(token, source)
+        damaged = source.replace("const __loonSource4 = hotItems;", "const __loonSource4 = obj.items;", 1)
+        with self.assertRaisesRegex(ValueError, "structure drift"):
+            optimize_hot_timeline_data_cache(damaged)
 
     def test_following_timeline_caches_nested_data_references(self):
         source = SCRIPT.read_text(encoding="utf-8")
@@ -564,6 +580,74 @@ process.stdout.write(nativeStringify({doneResult,userReads,nameReads}));
         self.assertEqual(result["parseCount"], 1)
         self.assertEqual(result["stringifyCount"], 1)
         self.assertIn("body", result["doneResult"])
+
+    def test_hot_timeline_reads_top_level_arrays_and_item_data_once(self):
+        runner = r"""
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync(process.argv[1],"utf8");
+const payload=JSON.parse(fs.readFileSync(0,"utf8"));
+let doneResult,tracking=false;
+const counts=Object.create(null);
+const nativeParse=JSON.parse.bind(JSON),nativeStringify=JSON.stringify.bind(JSON);
+const trackedJSON={
+  parse(value){
+    const parsed=nativeParse(value);
+    const wrap=(target,key,label)=>{
+      let current=target[key];counts[label]=0;
+      Object.defineProperty(target,key,{enumerable:true,configurable:true,
+        get(){if(tracking)counts[label]++;return current;},set(value){current=value;}});
+    };
+    parsed.items=new Proxy(parsed.items,{get(target,key,receiver){
+      if(tracking&&key==="length")counts["items.length"]++;
+      return Reflect.get(target,key,receiver);
+    }});
+    parsed.statuses=new Proxy(parsed.statuses,{get(target,key,receiver){
+      if(tracking&&key==="length")counts["statuses.length"]++;
+      return Reflect.get(target,key,receiver);
+    }});
+    counts["items.length"]=0;counts["statuses.length"]=0;
+    const card=parsed.items[0];
+    wrap(parsed,"items","top.items");
+    wrap(parsed,"statuses","top.statuses");
+    wrap(card,"data","item.data");
+    tracking=true;
+    return parsed;
+  },
+  stringify(value){tracking=false;return nativeStringify(value);}
+};
+const context={JSON:trackedJSON,$request:{url:payload.url},$response:{body:nativeStringify(payload.body)},
+  $done(value){doneResult=value;},console:{log(){},warn(){},error(){}}};
+vm.runInNewContext(source,context,{timeout:5000});
+process.stdout.write(nativeStringify({doneResult,counts}));
+""";
+        body = {
+            "items": [{"category": "feed", "data": {
+                "mblogtypename": "普通微博",
+                "common_struct": {"type": "shop"},
+                "comment_summary": {"text": "summary"},
+                "semantic_brand_params": {"brand": "brand"},
+                "page_info": {"media_info": {"vote_info": {"id": 1}}}
+            }}],
+            "statuses": [{"id": "status-1", "mblogtypename": "普通微博"}]
+        }
+        completed = subprocess.run(
+            [NODE, "-e", runner, str(SCRIPT)],
+            input=json.dumps({"url": "https://api.weibo.cn/2/statuses/container_timeline_hot?fixture=ref-cache", "body": body}),
+            capture_output=True, text=True, check=False, timeout=10
+        )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        result = json.loads(completed.stdout)
+        self.assertEqual(
+            set(result["counts"]),
+            {"top.items", "items.length", "item.data", "top.statuses", "statuses.length"}
+        )
+        self.assertEqual(set(result["counts"].values()), {1})
+        output = json.loads(result["doneResult"]["body"])
+        self.assertEqual([item["id"] for item in output["statuses"]], ["status-1"])
+        data = output["items"][0]["data"]
+        self.assertNotIn("common_struct", data)
+        self.assertNotIn("comment_summary", data)
+        self.assertNotIn("semantic_brand_params", data)
+        self.assertNotIn("vote_info", data["page_info"]["media_info"])
 
     def test_following_timeline_reads_each_nested_hot_reference_once(self):
         runner = r"""
