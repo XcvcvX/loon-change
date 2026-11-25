@@ -1084,7 +1084,7 @@ process.stdout.write(nativeStringify({doneResult,counts}));
         self.assertEqual([x["itemid"] for x in output["cards"]], ["normal", "keep-2"])
         self.assertEqual([x["itemid"] for x in output["cards"][0]["card_group"]], ["normal-group"])
 
-def test_profile_hot_property_cache_is_idempotent_and_fails_closed(self):
+    def test_profile_hot_property_cache_is_idempotent_and_fails_closed(self):
         source = SCRIPT.read_text(encoding="utf-8")
         self.assertIn(PROFILE_TIMELINE_PROPERTY_CACHE_MARKER, source)
         self.assertEqual(optimize_profile_timeline_property_cache(source), source)
