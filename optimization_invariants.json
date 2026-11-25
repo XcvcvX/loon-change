@@ -152,7 +152,10 @@
         "groupItems.length = groupWrite;",
         "// loon-change: Weibo comment data reference cache v1",
         "const commentData = item?.data;",
-        "if (!isAd(commentData))"
+        "if (!isAd(commentData))",
+        "// loon-change: Weibo profile timeline cached nested data v1",
+        "const itemData = item?.data;",
+        "const iiData = ii?.data;"
       ],
       "forbidden": [
         "[120, 145, 192]?.includes(cardType)",
