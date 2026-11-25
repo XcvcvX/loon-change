@@ -184,7 +184,8 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
             start = optimizer.index("def " + function_name + "(")
             next_def = optimizer.find("\n" + "def ", start + 1)
             block = optimizer[start: next_def if next_def >= 0 else len(optimizer)]
-            self.assertLess(block.index(marker_insertion), block.index(postcondition), function_name)
+            insertion_index = block.index(marker_insertion)
+            self.assertLess(insertion_index, block.index(postcondition, insertion_index), function_name)
 
 
     def test_hot_timeline_caches_arrays_and_item_data(self):
@@ -333,7 +334,7 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         self.assertIn("removeAvatar(commentData, commentUser);", source)
         self.assertIn("const commentUserName = commentUser.name;", source)
 
-        damaged_helper = source.replace("if (user?.avatargj_id)", "if (data?.user?.avatargj_id)", 1)
+        damaged_helper = source.replace("const avatarGjId = user?.avatargj_id;", "const avatarGjId = data?.user?.avatargj_id;", 1)
         with self.assertRaisesRegex(ValueError, "removeAvatar user-cache marker/structure drift"):
             optimize_comment_user_reference_cache(damaged_helper)
 
@@ -509,6 +510,7 @@ const trackedJSON={
       }});
       parsed.items=itemsProxy;counts["items.length"]=0;
       const card=itemsProxy[0],nested=card.items;
+      counts["nested.length"]=0;
       const nestedProxy=new Proxy(nested,{get(target,key,receiver){
         if(tracking&&key==="length")counts["nested.length"]++;
         return Reflect.get(target,key,receiver);
@@ -526,6 +528,7 @@ const trackedJSON={
       }});
       parsed.items=itemsProxy;counts["items.length"]=0;
       const card=itemsProxy[0],nested=card.items;
+      counts["nested.length"]=0;
       const nestedProxy=new Proxy(nested,{get(target,key,receiver){
         if(tracking&&key==="length")counts["nested.length"]++;
         return Reflect.get(target,key,receiver);
@@ -967,7 +970,7 @@ process.stdout.write(nativeStringify({doneResult,counts}));
             "category": "feed",
             "data": {
                 "mblogtypename": "普通微博",
-                "title": {"text": "普通内容", "structs": null},
+                "title": {"text": "普通内容", "structs": None},
                 "action_button_icon_dic": {"follow": 1},
                 "screen_name_suffix_new": [{}, {}, {}, {"content": "普通文案"}],
                 "user": {"following": True, "unfollowing_recom_switch": 1},
