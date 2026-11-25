@@ -203,7 +203,7 @@ process.stdout.write(nativeJSON.stringify({body:nativeJSON.parse(done.body),leng
         self.assertEqual(optimize_v4_function_switch_indexed_scan(source),source)
         self.assertIn(FUNCTION_SWITCH_MARKER,source)
         self.assertIn("const functionSwitch = item?.function_switch;",source)
-        self.assertIn("for (let switchIndex = 0; switchIndex < functionSwitch.length; switchIndex++)",source)
+        self.assertIn("for (let switchIndex = 0; switchIndex < functionSwitchLength; switchIndex++)",source)
         self.assertNotIn("for (let switchItem of item.function_switch)",source)
         damaged=source.replace("const switchItem = functionSwitch[switchIndex];","const switchItem = functionSwitch[switchIndex + 1];",1)
         with self.assertRaisesRegex(ValueError,"marker is stale"):

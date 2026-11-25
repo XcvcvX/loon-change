@@ -526,12 +526,16 @@ def optimize_v4_function_switch_indexed_scan(src):
         required = (
             FUNCTION_SWITCH_MARKER,
             "const functionSwitch = item?.function_switch;",
-            "for (let switchIndex = 0; switchIndex < functionSwitch.length; switchIndex++)",
             "const switchItem = functionSwitch[switchIndex];",
             'if (switchItem.type === "video_download")',
             "if (switchItem.reason) delete switchItem.reason;",
         )
-        if not block or any(token not in block for token in required) or "for (let switchItem of item.function_switch)" in block:
+        has_dynamic_length = "for (let switchIndex = 0; switchIndex < functionSwitch.length; switchIndex++)" in block
+        has_cached_length = (
+            "const functionSwitchLength = functionSwitch?.length || 0;" in block
+            and "for (let switchIndex = 0; switchIndex < functionSwitchLength; switchIndex++)" in block
+        )
+        if not block or any(token not in block for token in required) or not (has_dynamic_length or has_cached_length) or "for (let switchItem of item.function_switch)" in block:
             raise ValueError("Xiaohongshu v4 function-switch marker is stale")
         return src
     old_block = """      if (item?.function_switch?.length > 0) {
