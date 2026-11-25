@@ -522,26 +522,26 @@ def optimize_profile_timeline_property_cache(source):
             raise ValueError("Weibo repeated profile hot-property reads remain")
         return source
     changes = (
-      ("    if (obj?.items?.length > 0) {", "    const profileItems = obj?.items;\\n    const profileItemsLength = profileItems?.length || 0;\\n    if (profileItemsLength > 0) {"),
+      ("    if (obj?.items?.length > 0) {", "    const profileItems = obj?.items;\n    const profileItemsLength = profileItems?.length || 0;\n    if (profileItemsLength > 0) {"),
       ("      const __loonSource19 = obj.items;", "      const __loonSource19 = profileItems;"),
       ("      const __loonLength19 = __loonSource19.length;", "      const __loonLength19 = profileItemsLength;"),
-      ("        let item = __loonSource19[__loonRead19];", "        let item = __loonSource19[__loonRead19];\\n        const itemCategory = item?.category;\\n        const itemCardType = itemData?.card_type;\\n        const itemName = itemData?.name;\\n        const itemLeftHint = itemData?.left_hint;"),
-      ("            if (item?.header?.data?.icon) {", "            const itemHeader = item?.header;\\n            const itemHeaderData = itemHeader?.data;\\n            if (itemHeaderData?.icon) {"),
+      ("        let item = __loonSource19[__loonRead19];", "        let item = __loonSource19[__loonRead19];\n        const itemCategory = item?.category;\n        const itemCardType = itemData?.card_type;\n        const itemName = itemData?.name;\n        const itemLeftHint = itemData?.left_hint;"),
+      ("            if (item?.header?.data?.icon) {", "            const itemHeader = item?.header;\n            const itemHeaderData = itemHeader?.data;\n            if (itemHeaderData?.icon) {"),
       ("              delete item.header.data.icon;", "              delete itemHeaderData.icon;"),
-      ("            if (item?.itemId?.includes(\\"INTEREST_PEOPLE\\")) {", "            const itemId = item?.itemId;\\n            if (itemId?.includes(\\"INTEREST_PEOPLE\\")) {"),
-      ("            if (item?.profile_type_id === \\"weibo_cardpics\\") {", "            const profileTypeId = item?.profile_type_id;\\n            if (profileTypeId === \\"weibo_cardpics\\") {"),
-      ("            if (item?.items?.length > 0) {", "            const groupItems = item?.items;\\n            const groupItemsLength = groupItems?.length || 0;\\n            if (groupItemsLength > 0) {"),
+      ("            if (item?.itemId?.includes(\"INTEREST_PEOPLE\")) {", "            const itemId = item?.itemId;\n            if (itemId?.includes(\"INTEREST_PEOPLE\")) {"),
+      ("            if (item?.profile_type_id === \"weibo_cardpics\") {", "            const profileTypeId = item?.profile_type_id;\n            if (profileTypeId === \"weibo_cardpics\") {"),
+      ("            if (item?.items?.length > 0) {", "            const groupItems = item?.items;\n            const groupItemsLength = groupItems?.length || 0;\n            if (groupItemsLength > 0) {"),
       ("              const __loonSource18 = item.items;", "              const __loonSource18 = groupItems;"),
       ("              const __loonLength18 = __loonSource18.length;", "              const __loonLength18 = groupItemsLength;"),
-      ("                let ii = __loonSource18[__loonRead18];", "                let ii = __loonSource18[__loonRead18];\\n                const iiCategory = ii?.category;"),
-      ("                if (ii?.category === \\"feed\\") {", "                if (iiCategory === \\"feed\\") {"),
-      ("                } else if (ii?.category === \\"card\\") {", "                } else if (iiCategory === \\"card\\") {\\n                  const iiCardType = iiData?.card_type;"),
+      ("                let ii = __loonSource18[__loonRead18];", "                let ii = __loonSource18[__loonRead18];\n                const iiCategory = ii?.category;"),
+      ("                if (ii?.category === \"feed\") {", "                if (iiCategory === \"feed\") {"),
+      ("                } else if (ii?.category === \"card\") {", "                } else if (iiCategory === \"card\") {\n                  const iiCardType = iiData?.card_type;"),
       ("                  if ((iiData?.card_type === 10 || iiData?.card_type === 48 || iiData?.card_type === 176)) {", "                  if ((iiCardType === 10 || iiCardType === 48 || iiCardType === 176)) {"),
-      ("                  if (iiData?.rightImage) {", "                  const iiRightImage = iiData?.rightImage;\\n                  if (iiRightImage) {"),
-      ("                  if (iiData?.backgroundImage) {", "                  const iiBackgroundImage = iiData?.backgroundImage;\\n                  if (iiBackgroundImage) {"),
-      ("                  if (iiData?.enable_comment_guide) {", "                  const enableCommentGuide = iiData?.enable_comment_guide;\\n                  if (enableCommentGuide) {"),
-      ("              if (itemData?.source?.includes(\\"生日动态\\")) {", "              const itemSource = itemData?.source;\\n              if (itemSource?.includes(\\"生日动态\\")) {"),
-      ("              if (itemData?.title?.text !== \\"热门\\" && itemData?.title?.structs?.length > 0) {", "              const itemTitle = itemData?.title;\\n              if (itemTitle?.text !== \\"热门\\" && itemTitle?.structs?.length > 0) {"),
+      ("                  if (iiData?.rightImage) {", "                  const iiRightImage = iiData?.rightImage;\n                  if (iiRightImage) {"),
+      ("                  if (iiData?.backgroundImage) {", "                  const iiBackgroundImage = iiData?.backgroundImage;\n                  if (iiBackgroundImage) {"),
+      ("                  if (iiData?.enable_comment_guide) {", "                  const enableCommentGuide = iiData?.enable_comment_guide;\n                  if (enableCommentGuide) {"),
+      ("              if (itemData?.source?.includes(\"生日动态\")) {", "              const itemSource = itemData?.source;\n              if (itemSource?.includes(\"生日动态\")) {"),
+      ("              if (itemData?.title?.text !== \"热门\" && itemData?.title?.structs?.length > 0) {", "              const itemTitle = itemData?.title;\n              if (itemTitle?.text !== \"热门\" && itemTitle?.structs?.length > 0) {"),
     )
     for old, new in changes:
         if block.count(old) != 1:
@@ -568,7 +568,7 @@ def optimize_profile_timeline_property_cache(source):
                     ("const iiData = iiData;","const iiData = ii?.data;"),
                     ("const iiCategory = iiCategory;","const iiCategory = ii?.category;")):
         block = block.replace(old, new)
-    block = block.replace(start, start + "\\n    " + PROFILE_TIMELINE_PROPERTY_CACHE_MARKER, 1)
+    block = block.replace(start, start + "\n    " + PROFILE_TIMELINE_PROPERTY_CACHE_MARKER, 1)
     if "removeAvatar(iiData);" in block or block.count("removeFeedAd(iiData);") != 1:
         raise ValueError("Weibo profile duplicate avatar-cleanup postcondition failed")
     if any(x not in block for x in required):
