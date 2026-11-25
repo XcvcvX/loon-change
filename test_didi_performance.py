@@ -315,8 +315,10 @@ if (payload.body === null) {
         self.assertEqual(result["stringifyCount"], 1)
 
     def test_root_response_data_reference_is_read_once_per_response(self):
+        from optimize_didi import optimize_response_data_reference_cache
         source = SOURCE.read_text(encoding="utf-8")
         self.assertIn("Didi response data reference cache v1", source)
+        self.assertEqual(optimize_response_data_reference_cache(source), source)
         self.assertEqual(source.count("obj.data"), 1)
         body = {"data": {
             "order_cards": {"nav_list_card": {"data": [
