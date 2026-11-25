@@ -5,7 +5,7 @@ import subprocess
 import unittest
 from pathlib import Path
 
-from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, LAZY_MARKER, GUARD_DECLARATION, HELPER, LEGACY_HELPER, optimize_source, rewrite_plugin, optimize_page_filter_cached_itemid, TOPIC_GROUP_MARKER, optimize_topic_group_in_place, COMMENT_DATA_CACHE_MARKER, COMMENT_DATA_CACHE_OLD, COMMENT_DATA_CACHE_NEW, optimize_comment_data_reference_cache, REMOVE_AVATAR_USER_CACHE_MARKER, COMMENT_USER_CACHE_MARKER, COMMENT_USER_CACHE_OLD, COMMENT_USER_CACHE_NEW, optimize_comment_user_reference_cache, TOPIC_GROUP_NESTED_DATA_MARKER, optimize_topic_group_nested_data_cache, ROOT_COMMENT_USER_CACHE_MARKER, optimize_root_comment_user_cache, REMOVE_AVATAR_PROPERTY_CACHE_MARKER, optimize_remove_avatar_property_cache
+from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, LAZY_MARKER, GUARD_DECLARATION, HELPER, LEGACY_HELPER, optimize_source, rewrite_plugin, optimize_page_filter_cached_itemid, TOPIC_GROUP_MARKER, optimize_topic_group_in_place, COMMENT_DATA_CACHE_MARKER, COMMENT_DATA_CACHE_OLD, COMMENT_DATA_CACHE_NEW, optimize_comment_data_reference_cache, REMOVE_AVATAR_USER_CACHE_MARKER, COMMENT_USER_CACHE_MARKER, COMMENT_USER_CACHE_OLD, COMMENT_USER_CACHE_NEW, optimize_comment_user_reference_cache, TOPIC_GROUP_NESTED_DATA_MARKER, optimize_topic_group_nested_data_cache, ROOT_COMMENT_USER_CACHE_MARKER, optimize_root_comment_user_cache, REMOVE_AVATAR_PROPERTY_CACHE_MARKER, optimize_remove_avatar_property_cache, COMMENT_DECORATION_SINGLE_READ_MARKER, ROOT_COMMENT_DECORATION_SINGLE_READ_MARKER, REPLY_DECORATION_SINGLE_READ_MARKER, ROOT_COMMENT_BUBBLE_SINGLE_READ_MARKER, optimize_comment_decoration_single_read
 
 ROOT = Path(__file__).resolve().parent
 SCRIPT = ROOT / "scripts/weibo/weibo-rstore.js"
@@ -98,6 +98,31 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "user-cache structure drift"):
             optimize_root_comment_user_cache(damaged)
 
+
+    def test_comment_decoration_optimizer_is_idempotent_and_fails_closed(self):
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertEqual(optimize_comment_decoration_single_read(source), source)
+        for marker in (
+            COMMENT_DECORATION_SINGLE_READ_MARKER,
+            ROOT_COMMENT_DECORATION_SINGLE_READ_MARKER,
+            REPLY_DECORATION_SINGLE_READ_MARKER,
+            ROOT_COMMENT_BUBBLE_SINGLE_READ_MARKER,
+        ):
+            self.assertEqual(source.count(marker), 1)
+        for token in (
+            "const commentBubble = commentData?.comment_bubble;",
+            "const commentBulletMessage = commentData?.comment_bullet_screens_message;",
+            "const commentHotIcon = commentData?.hot_icon;",
+            "const commentVipButton = commentData?.vip_button;",
+            "const rootCommentBubble = item?.comment_bubble;",
+            "const replyUser = item?.user;",
+            "const replyComment = item?.reply_comment;",
+            "const rootComment = obj?.rootComment;",
+        ):
+            self.assertIn(token, source)
+        damaged = source.replace("const commentBubble = commentData?.comment_bubble;", "const commentBubble = null;", 1)
+        with self.assertRaisesRegex(ValueError, "structure drift"):
+            optimize_comment_decoration_single_read(damaged)
 
     def test_remove_avatar_properties_are_read_once_before_deletion(self):
         source = SCRIPT.read_text(encoding="utf-8")
@@ -282,6 +307,70 @@ process.stdout.write(JSON.stringify({doneResult, parseCount, stringifyCount}));
         output = json.loads(result["doneResult"]["body"])
         self.assertEqual([item["itemid"] for item in output["cards"]], ["keep-group", "keep-1", "keep-2"])
         self.assertEqual([item["itemid"] for item in output["cards"][0]["card_group"]], ["normal"])
+
+    def test_comment_decoration_properties_are_read_once(self):
+        runner = r"""
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync(process.argv[1],"utf8");
+const payload=JSON.parse(fs.readFileSync(0,"utf8"));
+let doneResult,tracking=false;
+const nativeParse=JSON.parse.bind(JSON),nativeStringify=JSON.stringify.bind(JSON);
+const counts=Object.create(null);
+const trackedJSON={
+  parse(value){
+    const parsed=nativeParse(value);
+    const wrap=(target,key,label)=>{
+      if(!target)return;
+      let current=target[key]; counts[label]=0;
+      Object.defineProperty(target,key,{enumerable:true,configurable:true,
+        get(){if(tracking)counts[label]++;return current;},set(value){current=value;}});
+    };
+    if(parsed.datas)for(const entry of parsed.datas)if(entry?.data){
+      for(const key of ["comment_bubble","comment_bullet_screens_message","hot_icon","vip_button"])wrap(entry.data,key,"datas."+key);
+    }
+    if(parsed.root_comments)for(const item of parsed.root_comments)if(item){
+      for(const key of ["comment_bubble","comment_bullet_screens_message","hot_icon","vip_button"])wrap(item,key,"root."+key);
+    }
+    if(parsed.comments)for(const item of parsed.comments)if(item){
+      if(item.user)wrap(item.user,"icons","reply.user.icons");
+      if(item.reply_comment)wrap(item.reply_comment,"comment_badge","reply.comment_badge");
+    }
+    if(parsed.rootComment)wrap(parsed.rootComment,"comment_bubble","rootComment.comment_bubble");
+    tracking=true;
+    return parsed;
+  },
+  stringify(value){tracking=false;return nativeStringify(value);}
+};
+const context={JSON:trackedJSON,$request:{url:payload.url},$response:{body:nativeStringify(payload.body)},
+  $done(value){doneResult=value;},console:{log(){},warn(){},error(){}}};
+vm.runInNewContext(source,context,{timeout:5000});
+process.stdout.write(nativeStringify({doneResult,counts}));
+""";
+        cases = [
+            ("https://api.weibo.cn/2/comments/build_comments?fixture=read-count", {"datas": [
+                {"type": 1, "data": {"user": {"name": "ordinary"},
+                    "comment_bubble": {"x": 1}, "comment_bullet_screens_message": {"x": 1},
+                    "hot_icon": {"x": 1}, "vip_button": {"x": 1}}}
+            ]}, {"datas.comment_bubble", "datas.comment_bullet_screens_message", "datas.hot_icon", "datas.vip_button"}),
+            ("https://api.weibo.cn/2/comments/build_comments?fixture=root-read-count", {"root_comments": [
+                {"user": {"name": "ordinary"}, "comment_bubble": {"x": 1},
+                 "comment_bullet_screens_message": {"x": 1}, "hot_icon": {"x": 1}, "vip_button": {"x": 1}}
+            ]}, {"root.comment_bubble", "root.comment_bullet_screens_message", "root.hot_icon", "root.vip_button"}),
+            ("https://api.weibo.cn/2/comments/build_comments?fixture=reply-read-count", {"comments": [
+                {"user": {"icons": [{"x": 1}]}, "reply_comment": {"comment_badge": {"x": 1}}}
+            ]}, {"reply.user.icons", "reply.comment_badge"}),
+            ("https://api.weibo.cn/2/comments/build_comments?fixture=root-comment-read-count", {"rootComment": {"comment_bubble": {"x": 1}}}, {"rootComment.comment_bubble"}),
+        ]
+        for url, body, expected_keys in cases:
+            completed = subprocess.run(
+                [NODE, "-e", runner, str(SCRIPT)],
+                input=json.dumps({"url": url, "body": body}),
+                capture_output=True, text=True, check=False, timeout=10
+            )
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+            result = json.loads(completed.stdout)
+            self.assertEqual(set(result["counts"]), expected_keys)
+            self.assertEqual(set(result["counts"].values()), {1})
+            self.assertIn("doneResult", result)
 
     def test_comments_cleanup_keeps_only_allowed_items(self):
         body = {"datas": [
