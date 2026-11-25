@@ -340,7 +340,15 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "removeAvatar user-cache avatar field cache drift"):
             optimize_comment_user_reference_cache(damaged_helper)
 
-        damaged_comment = source.replace("const commentUserName = commentUser.name;", "const commentUserName = commentUser.username;", 1)
+        user_marker_index = source.index(COMMENT_USER_CACHE_MARKER)
+        damaged_comment = (
+            source[:user_marker_index]
+            + source[user_marker_index:].replace(
+                "const commentUserName = commentUser.name;",
+                "const commentUserName = commentUser.username;",
+                1
+            )
+        )
         with self.assertRaisesRegex(ValueError, "comment user-cache marker/structure drift"):
             optimize_comment_user_reference_cache(damaged_comment)
 
