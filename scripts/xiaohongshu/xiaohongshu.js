@@ -432,7 +432,7 @@ function imageEnhance(images, livePhotoCache) {
         if(quality==="original") {
           if(!originalDone){const changed=child.replace(originalPattern,"?imageView2/0/format/png&redImage/frame/0");if(changed!==child){value[key]=changed;originalDone=true;}}
         } else value[key]=child.replace(widthPattern,"imageView2/2/w/2160/format").replace(heightPattern,"imageView2/2/h/2160/format");
-      } else if(child && typeof child==="object") stack.push({value:child,index:0,keys:null,root:false});
+      } else if(child && typeof child==="object") stack.push({value:child,index:0,keys:null,length:Array.isArray(child)?child.length:0,root:false});
     }
   }
   return images;
