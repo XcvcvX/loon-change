@@ -173,10 +173,13 @@ process.stdout.write(nativeStringify({doneResult,readCount,enableValue}));
         from optimize_taobao import SPLASH_LOOP_MARKER, optimize_runtime_source
         source = SCRIPT.read_text(encoding="utf-8")
         self.assertIn(SPLASH_LOOP_MARKER, source)
-        self.assertIn("const sectionCount = sections.length;", source)
+        from optimize_taobao import SPLASH_ARRAY_LENGTH_MARKER
+        self.assertIn(SPLASH_ARRAY_LENGTH_MARKER, source)
+        self.assertIn("const sectionCount = Array.isArray(sections) ? sections.length : 0;", source)
         self.assertIn("const bizData = sections[sectionIndex]?.bizData;", source)
         self.assertIn('const splashItems = bizData?.["taobao-splash"]?.data;', source)
-        self.assertIn("const itemCount = splashItems.length;", source)
+        self.assertIn("const itemCount = Array.isArray(splashItems) ? splashItems.length : 0;", source)
+        self.assertIn("if (itemCount === 0) continue;", source)
         self.assertIn("for (let sectionIndex = 0; sectionIndex < sectionCount; sectionIndex++)", source)
         self.assertIn("for (let itemIndex = 0; itemIndex < itemCount; itemIndex++)", source)
         self.assertNotIn("for (let items of splash.base.sections)", source)
@@ -436,6 +439,78 @@ process.stdout.write(nativeJSON.stringify({ reads, writes, item: output.data.con
         self.assertEqual(result["item"]["videoUrl"], "")
         self.assertEqual(result["item"]["gmtEndMs"], "3818419199000")
 
+
+
+
+    def test_splash_array_length_cache_is_idempotent_and_fails_closed(self):
+        from optimize_taobao import (
+            SPLASH_ARRAY_LENGTH_MARKER,
+            optimize_splash_array_length_reads,
+        )
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(SPLASH_ARRAY_LENGTH_MARKER, source)
+        self.assertEqual(optimize_splash_array_length_reads(source), source)
+        self.assertIn("const sectionCount = Array.isArray(sections) ? sections.length : 0;", source)
+        self.assertIn("const itemCount = Array.isArray(splashItems) ? splashItems.length : 0;", source)
+        damaged = source.replace(
+            "const itemCount = Array.isArray(splashItems) ? splashItems.length : 0;",
+            "const itemCount = 0;", 1
+        )
+        with self.assertRaisesRegex(ValueError, "marker/structure drift"):
+            optimize_splash_array_length_reads(damaged)
+
+    @unittest.skipUnless(NODE, "Node.js is required for Taobao splash array-length tests")
+    def test_splash_section_and_item_array_lengths_are_read_once(self):
+        runner = r"""
+const fs=require("fs"),vm=require("vm");
+const payload=JSON.parse(fs.readFileSync(0,"utf8"));
+const source=fs.readFileSync(process.argv[1],"utf8");
+let doneResult,tracking=false;
+const counts={sections:0,items:0};
+const nativeJSON=JSON;
+const trackedJSON={
+  parse(value){
+    const parsed=nativeJSON.parse(value);
+    const base=parsed.data.containers.splash_home_base.base;
+    const sections=base.sections;
+    const wrap=(array,key)=>new Proxy(array,{get(target,property,receiver){
+      if(tracking&&property==="length")counts[key]++;
+      return Reflect.get(target,property,receiver);
+    }});
+    base.sections=wrap(sections,"sections");
+    for(const section of sections){
+      const items=section.bizData["taobao-splash"].data;
+      section.bizData["taobao-splash"].data=wrap(items,"items");
+    }
+    tracking=true;
+    return parsed;
+  },
+  stringify(value){tracking=false;return nativeJSON.stringify(value);}
+};
+const context={JSON:trackedJSON,$request:{url:"https://guide-acs.m.taobao.com/gw/mtop.taobao.wireless.home.splash.awesome.get"},
+  $response:{body:nativeJSON.stringify(payload)},$done(value){doneResult=value;}};
+vm.createContext(context);
+vm.runInContext(source,context,{timeout:5000});
+process.stdout.write(nativeJSON.stringify({counts,hasBody:!!doneResult.body}));
+""";
+        item = {
+            "waitTime": "5", "times": "5", "hotStart": "true", "haveVoice": "true",
+            "hideTBLogo": "true", "enable4G": "true", "coldStart": "true",
+            "startTime": "1", "endTime": "2", "gmtStart": "old", "gmtEnd": "old",
+            "gmtStartMs": "1", "gmtEndMs": "2", "imgUrl": "ad.png", "videoUrl": "ad.mp4",
+        }
+        body = {"data": {"containers": {"splash_home_base": {"base": {"sections": [
+            {"bizData": {"taobao-splash": {"data": [item, dict(item)]}}},
+            {"bizData": {"taobao-splash": {"data": []}}}
+        ]}}}}}
+        completed = subprocess.run(
+            [NODE, "-e", runner, str(SCRIPT)],
+            input=json.dumps(body), capture_output=True, text=False, check=False, timeout=10,
+        )
+        self.assertEqual(completed.returncode, 0, completed.stderr.decode("utf-8", "replace"))
+        result = json.loads(completed.stdout)
+        self.assertEqual(result["counts"], {"sections": 1, "items": 2})
+        self.assertTrue(result["hasBody"])
 
 
 class TaobaoNullTargetClearArrayTests(unittest.TestCase):
