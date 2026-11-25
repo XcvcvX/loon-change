@@ -76,15 +76,14 @@ if (isCloudVideo) {
   const splashHome = obj?.data?.containers?.splash_home_base;
   if (splashHome) {
     const sections = splashHome.base?.sections;
-    if (Array.isArray(sections) && sections.length > 0) {
-      // loon-change: Taobao indexed splash traversal v1
-      const sectionCount = sections.length;
+    // loon-change: Taobao splash array length single-read cache v1
+    const sectionCount = Array.isArray(sections) ? sections.length : 0;
+    if (sectionCount > 0) {
       for (let sectionIndex = 0; sectionIndex < sectionCount; sectionIndex++) {
         const bizData = sections[sectionIndex]?.bizData;
         const splashItems = bizData?.["taobao-splash"]?.data;
-        if (!Array.isArray(splashItems) || splashItems.length === 0) continue;
-
-        const itemCount = splashItems.length;
+        const itemCount = Array.isArray(splashItems) ? splashItems.length : 0;
+        if (itemCount === 0) continue;
         for (let itemIndex = 0; itemIndex < itemCount; itemIndex++) {
           const item = splashItems[itemIndex];
           normalizeSplashItem(item);
