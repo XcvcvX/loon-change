@@ -7,7 +7,7 @@ import unittest
 sys.setrecursionlimit(10000)
 from pathlib import Path
 
-from optimize_xiaohongshu_rstore import LOCAL, REMOTE, MARKER, optimize_source, rewrite_plugin
+from optimize_xiaohongshu_rstore import LOCAL, REMOTE, MARKER, optimize_source, rewrite_plugin, XIAOHONGSHU_V4_FUNCTION_ENTRY_MARKER, optimize_v4_function_entry_scan
 
 ROOT = Path(__file__).resolve().parent
 SCRIPT = ROOT / "scripts/xiaohongshu/xiaohongshu-rstore.js"
@@ -40,6 +40,12 @@ class RStoreXiaohongshuOptimizerTests(unittest.TestCase):
         self.assertIn("// loon-change: Xiaohongshu comment video-info cache single lookup v1", source)
         self.assertIn("let picObj = videoInfoCache.get(rawVideoInfo);", source)
         self.assertNotIn("videoInfoCache.has(rawVideoInfo)", source)
+        self.assertIn("let commentPictures = null;", source)
+        self.assertIn("commentPictures = current.pictures;", source)
+        self.assertIn('const child = isCommentFrame && key === "pictures" ? commentPictures : current[key];', source)
+        self.assertEqual(source.count(XIAOHONGSHU_V4_FUNCTION_ENTRY_MARKER), 1)
+        self.assertIn("const functionEntryCount = functionEntries.length;", source)
+        self.assertNotIn("functionEntries.some(", source)
         self.assertIn("// loon-change: Xiaohongshu parsed JSON tree traversal without visited WeakSet v1;", source)
         self.assertNotIn("const visited = new WeakSet()", source)
         self.assertNotIn("visited.has(current)", source)
@@ -67,6 +73,15 @@ class RStoreXiaohongshuOptimizerTests(unittest.TestCase):
         damaged = source.replace("function imageEnhance(images, livePhotoCache)", "function imageEnhance(images)")
         with self.assertRaisesRegex(ValueError, "single-traversal image helper drifted"):
             optimize_imagefeed_single_traversal(damaged)
+
+    def test_v4_function_entry_scan_is_indexed_idempotent_and_fails_closed(self):
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertEqual(optimize_v4_function_entry_scan(source), source)
+        self.assertEqual(source.count(XIAOHONGSHU_V4_FUNCTION_ENTRY_MARKER), 1)
+        self.assertNotIn("functionEntries.some(", source)
+        damaged = source.replace("const functionEntryCount = functionEntries.length;", "const functionEntryCount = 0;", 1)
+        with self.assertRaisesRegex(ValueError, "function-entry scan structure drift"):
+            optimize_v4_function_entry_scan(damaged)
 
     def test_video_save_lookup_stops_after_first_matching_note(self):
         source = SCRIPT.read_text(encoding="utf-8")
@@ -306,6 +321,98 @@ process.stdout.write(JSON.stringify({
         self.assertEqual([item["id"] for item in output["data"] if item], ["keep1", "keep2"])
         self.assertIsNone(output["data"][1])
         self.assertNotIn("related_ques", output["data"][0])
+
+    def test_comment_picture_array_reference_is_read_once_per_processed_comment(self):
+        runner = r"""
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync(process.argv[1],"utf8");
+const payload=JSON.parse(fs.readFileSync(0,"utf8")),store=new Map();
+let doneResult,reads=0,tracking=false;
+const nativeParse=JSON.parse.bind(JSON),nativeStringify=JSON.stringify.bind(JSON);
+const trackedJSON={
+  parse(value){
+    const parsed=nativeParse(value);
+    const track=comment=>{
+      if(!comment||typeof comment!=="object")return;
+      let pictures=comment.pictures;
+      Object.defineProperty(comment,"pictures",{enumerable:true,configurable:true,
+        get(){if(tracking)reads++;return pictures;},set(value){pictures=value;}});
+    };
+    for(const comment of parsed?.data?.comments||[]){
+      track(comment);
+      for(const child of comment.sub_comments||[])track(child);
+    }
+    tracking=true;
+    return parsed;
+  },
+  stringify(value){tracking=false;return nativeStringify(value);}
+};
+const context={
+  $loon:{},
+  $persistentStore:{read(key){return store.has(key)?store.get(key):null;},write(value,key){store.set(key,value);return true;}},
+  $request:{url:payload.url},
+  $response:{body:nativeStringify(payload.body)},
+  $done(value){doneResult=value;},
+  JSON:trackedJSON,
+  console:{log(){},warn(){},error(){}}
+};
+vm.createContext(context);
+vm.runInNewContext(source,context,{timeout:5000});
+process.stdout.write(nativeStringify({doneResult,reads,store:Object.fromEntries(store)}));
+""";
+        video_info = json.dumps({"stream": {"h265": [{"master_url": "https://video.example/live.mp4"}]}})
+        body = {"data": {"comments": [{
+            "note_id": "note-reads",
+            "pictures": [{"video_id": "video-1", "video_info": video_info}],
+            "sub_comments": [{"pictures": [{"video_id": "video-2", "video_info": video_info}]}]
+        }]}}
+        completed = subprocess.run(
+            [NODE, "-e", runner],
+            input=json.dumps({"url": "https://edith.xiaohongshu.com/api/sns/v5/note/comment/list?cursor=picture-reads", "body": body}),
+            capture_output=True, text=True, check=False, timeout=10
+        )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        result = json.loads(completed.stdout)
+        self.assertEqual(result["reads"], 2)
+        cached = json.loads(result["store"]["xiaohongshu.comments.rsp"])
+        self.assertEqual([item["videId"] for item in cached["livePhotos"]], ["video-1", "video-2"])
+
+    def test_v4_video_feed_uses_indexed_function_entry_scan_without_some(self):
+        runner = r"""
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync(process.argv[1],"utf8");
+const payload=JSON.parse(fs.readFileSync(0,"utf8")),store=new Map();
+let doneResult;
+const context={
+  $loon:{},
+  $persistentStore:{read(key){return store.has(key)?store.get(key):null;},write(value,key){store.set(key,value);return true;}},
+  $request:{url:payload.url},
+  $response:{body:JSON.stringify(payload.body)},
+  $done(value){doneResult=value;},
+  console:{log(){},warn(){},error(){}}
+};
+vm.createContext(context);
+vm.runInNewContext("Array.prototype.some = function() { throw new Error('Array.some callback remains'); };",context);
+vm.runInNewContext(source,context,{timeout:5000});
+const output=JSON.parse(doneResult.body);
+process.stdout.write(JSON.stringify(output));
+""";
+        body = {"data": [
+            {"id": "note-existing", "share_info": {"function_entries": [
+                {"type": "share"}, {"type": "video_download"}
+            ]}},
+            {"id": "note-missing", "share_info": {"function_entries": [
+                {"type": "share"}
+            ]}},
+        ]}
+        completed = subprocess.run(
+            [NODE, "-e", runner],
+            input=json.dumps({"url": "https://edith.xiaohongshu.com/api/sns/v4/note/videofeed?cursor=function-entry-scan", "body": body}),
+            capture_output=True, text=True, check=False, timeout=10
+        )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        output = json.loads(completed.stdout)
+        entries = {item["id"]: item["share_info"]["function_entries"] for item in output["data"]}
+        self.assertEqual([entry["type"] for entry in entries["note-existing"]], ["share", "video_download"])
+        self.assertEqual([entry["type"] for entry in entries["note-missing"]], ["share", "video_download"])
 
     def test_v4_video_stream_selection_uses_single_pass_highest_height(self):
         body = {"data": [{
