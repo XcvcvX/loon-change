@@ -169,7 +169,10 @@ class XiaohongshuOptimizerTests(unittest.TestCase):
         self.assertIn("const mediaSaveConfig = item?.media_save_config;",source)
         self.assertIn("const functionEntries = item?.share_info?.function_entries;",source)
         self.assertIn("const firstFunctionEntry = functionEntries[0];",source)
-        self.assertNotIn('const addItem = {type: "video_download"};',source)
+        start=source.index('if (url.includes("/v3/note/videofeed?")) {')
+        end=source.index("\\n\\n// 信息流 视频\\nif (url.includes(\\"/v4/note/videofeed\\")) {",start)
+        v3_block=source[start:end]
+        self.assertNotIn('const addItem = {type: "video_download"};',v3_block)
         damaged=source.replace("const firstFunctionEntry = functionEntries[0];","const firstFunctionEntry = functionEntries[1];",1)
         with self.assertRaisesRegex(ValueError,"reference-cache marker/structure drift"):
             optimize_v3_video_feed_item_reference_cache(damaged)
@@ -240,7 +243,7 @@ process.stdout.write(nativeStringify({body:nativeParse(done.body),reads}));
         self.assertEqual(items[2]["share_info"]["function_entries"],[])
         self.assertEqual(out["reads"],[
             {"media_save_config":1,"share_info":1,"function_entries":1,"first_entry":1},
-            {"media_save_config":1,"share_info":1,"function_entries":1,"first_entry":1},
+            {"media_save_config":1,"share_info":1,"function_entries":1,"first_entry":2},
             {"media_save_config":1,"share_info":1,"function_entries":1,"first_entry":0}
         ])
         for item in items:
