@@ -50,6 +50,11 @@
         "const commentFrameTag = {};",
         "// loon-change: Xiaohongshu comment video-info cache single lookup v2;",
         "let parsed = parsedVideoInfo.get(raw);",
+        "// loon-change: Xiaohongshu video-save lazy cache parse v1;",
+        "const noteId = obj.data?.note_id;",
+        "if (noteId !== \"\") {",
+        "const videoFeed = JSON.parse($.getdata(\"redBookVideoFeed\"));",
+        "if (videoFeed?.length > 0) {",
         "// loon-change: Xiaohongshu video-save cache reverse early-exit lookup v1;",
         "for (let i = videoFeed.length - 1; i >= 0; i--)",
         "if (item.id === noteId)",
@@ -94,7 +99,8 @@
         "stack.push([commentFrameTag, comment, true]);",
         "stack.push([commentFrameTag, subComment, false]);",
         "for (let switchItem of item.function_switch)",
-        "if (Array.isArray(current)) {"
+        "if (Array.isArray(current)) {",
+        "let videoFeed = JSON.parse($.getdata(\"redBookVideoFeed\"));"
       ]
     },
     {
