@@ -78,7 +78,19 @@
         "const switchItem = functionSwitch[switchIndex];",
         "// loon-change: Xiaohongshu comment node array classification cache v1;",
         "const currentIsArray = Array.isArray(current);",
-        "if (currentIsArray) {"
+        "if (currentIsArray) {",
+        "// loon-change: Xiaohongshu v4 video-feed nested reference cache v1;",
+        "const mediaSaveConfig = item?.media_save_config;",
+        "const videoInfo = item?.video_info_v2;",
+        "const videoMedia = videoInfo?.media;",
+        "const videoStream = videoMedia?.stream;",
+        "const h265List = videoStream?.h265 || [];",
+        "const h264List = videoStream?.h264 || [];",
+        "const itemId = item?.id;",
+        "const selectedMasterUrl = selectedStream?.master_url;",
+        "if (itemId && selectedMasterUrl) {",
+        "id: itemId,",
+        "url: selectedMasterUrl"
       ],
       "forbidden": [
         "console.log(`[缓存] ID:",
@@ -100,7 +112,12 @@
         "stack.push([commentFrameTag, subComment, false]);",
         "for (let switchItem of item.function_switch)",
         "if (Array.isArray(current)) {",
-        "let videoFeed = JSON.parse($.getdata(\"redBookVideoFeed\"));"
+        "let videoFeed = JSON.parse($.getdata(\"redBookVideoFeed\"));",
+        "item?.video_info_v2?.media?.stream?.h265",
+        "item?.video_info_v2?.media?.stream?.h264",
+        "if (item?.id && selectedStream?.master_url)",
+        "id: item.id,",
+        "url: selectedStream.master_url"
       ]
     },
     {

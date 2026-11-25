@@ -1,6 +1,6 @@
 import json, shutil, subprocess, unittest
 from pathlib import Path
-from optimize_xiaohongshu import LOCAL, REMOTE, MARKER, IMAGE_FEED_MARKER, VIDEO_SAVE_LOOKUP_MARKER, VIDEO_SAVE_LAZY_PARSE_MARKER, STREAM_SELECTION_MARKER, VIDEO_ENTRY_MARKER, IMAGE_LIVE_PHOTO_CACHE_MARKER, COMMENT_MEDIA_CACHE_MARKER, COMMENT_STACK_FRAME_MARKER, FUNCTION_SWITCH_MARKER, optimize_v4_function_switch_indexed_scan, optimize_comment_stack_frame_allocation, optimize_comment_media_property_cache, optimize_imagefeed_live_photo_property_cache, optimize_comment_video_info_cache, optimize_imagefeed_single_traversal, optimize_video_save_cache_lookup, optimize_video_save_lazy_cache_parse, optimize_stream_selection_no_closure, optimize_v4_video_feed_function_entry_scan, optimize_comment_node_array_classification, COMMENT_NODE_ARRAY_MARKER, optimize_source, rewrite_plugin
+from optimize_xiaohongshu import LOCAL, REMOTE, MARKER, IMAGE_FEED_MARKER, VIDEO_SAVE_LOOKUP_MARKER, VIDEO_SAVE_LAZY_PARSE_MARKER, STREAM_SELECTION_MARKER, VIDEO_ENTRY_MARKER, IMAGE_LIVE_PHOTO_CACHE_MARKER, COMMENT_MEDIA_CACHE_MARKER, COMMENT_STACK_FRAME_MARKER, FUNCTION_SWITCH_MARKER, VIDEO_FEED_REFERENCE_CACHE_MARKER, optimize_v4_video_feed_nested_reference_cache, optimize_v4_function_switch_indexed_scan, optimize_comment_stack_frame_allocation, optimize_comment_media_property_cache, optimize_imagefeed_live_photo_property_cache, optimize_comment_video_info_cache, optimize_imagefeed_single_traversal, optimize_video_save_cache_lookup, optimize_video_save_lazy_cache_parse, optimize_stream_selection_no_closure, optimize_v4_video_feed_function_entry_scan, optimize_comment_node_array_classification, COMMENT_NODE_ARRAY_MARKER, optimize_source, rewrite_plugin
 
 ROOT=Path(__file__).resolve().parent
 NODE=shutil.which("node")
@@ -162,6 +162,20 @@ class XiaohongshuOptimizerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"marker is stale"):
             optimize_v4_video_feed_function_entry_scan(damaged)
 
+    def test_v4_video_feed_reference_cache_is_idempotent_and_fails_closed(self):
+        source=(ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")
+        self.assertEqual(optimize_v4_video_feed_nested_reference_cache(source),source)
+        self.assertIn(VIDEO_FEED_REFERENCE_CACHE_MARKER,source)
+        self.assertIn("const mediaSaveConfig = item?.media_save_config;",source)
+        self.assertIn("const videoInfo = item?.video_info_v2;",source)
+        self.assertIn("const videoMedia = videoInfo?.media;",source)
+        self.assertIn("const videoStream = videoMedia?.stream;",source)
+        self.assertIn("const itemId = item?.id;",source)
+        self.assertIn("const selectedMasterUrl = selectedStream?.master_url;",source)
+        damaged=source.replace("const videoMedia = videoInfo?.media;","const videoMedia = undefined;",1)
+        with self.assertRaisesRegex(ValueError,"reference-cache marker/structure drift"):
+            optimize_v4_video_feed_nested_reference_cache(damaged)
+
     @unittest.skipUnless(NODE,"Node required for v4 video-feed runtime test")
     def test_v4_video_feed_download_entry_scan_preserves_behavior(self):
         runner=r'''
@@ -207,6 +221,72 @@ process.stdout.write(JSON.stringify(JSON.parse(done.body)));
             optimize_stream_selection_no_closure(damaged)
 
     @unittest.skipUnless(NODE,"Node required for stream selection runtime test")
+    @unittest.skipUnless(NODE,"Node required for v4 video-feed property-read runtime test")
+    def test_v4_video_feed_nested_references_are_read_once_per_item(self):
+        runner=r'''
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync("scripts/xiaohongshu/xiaohongshu.js","utf8");
+const p=JSON.parse(fs.readFileSync(0,"utf8"));let done,tracking=false;
+const reads={media_save_config:0,video_info_v2:0,media:0,stream:0,h265:0,h264:0,id:0};
+const nativeParse=JSON.parse.bind(JSON),nativeStringify=JSON.stringify.bind(JSON);
+const trackedJSON={
+  parse(value){
+    const parsed=nativeParse(value);
+    for(const item of parsed.data||[]){
+      let mediaSave=item.media_save_config;
+      Object.defineProperty(item,"media_save_config",{enumerable:true,configurable:true,get(){if(tracking)reads.media_save_config++;return mediaSave;},set(v){mediaSave=v;}});
+      let videoInfo=item.video_info_v2;
+      if(videoInfo){
+        Object.defineProperty(item,"video_info_v2",{enumerable:true,configurable:true,get(){if(tracking)reads.video_info_v2++;return videoInfo;},set(v){videoInfo=v;}});
+        let media=videoInfo.media;
+        if(media){
+          Object.defineProperty(videoInfo,"media",{enumerable:true,configurable:true,get(){if(tracking)reads.media++;return media;},set(v){media=v;}});
+          let stream=media.stream;
+          if(stream){
+            Object.defineProperty(media,"stream",{enumerable:true,configurable:true,get(){if(tracking)reads.stream++;return stream;},set(v){stream=v;}});
+            for(const key of ["h265","h264"]){
+              let value=stream[key];
+              Object.defineProperty(stream,key,{enumerable:true,configurable:true,get(){if(tracking)reads[key]++;return value;},set(v){value=v;}});
+            }
+          }
+        }
+      }
+      let id=item.id;
+      Object.defineProperty(item,"id",{enumerable:true,configurable:true,get(){if(tracking)reads.id++;return id;},set(v){id=v;}});
+    }
+    tracking=true;
+    return parsed;
+  },
+  stringify(value){tracking=false;return nativeStringify(value);}
+};
+const store=new Map();
+const ctx={JSON:trackedJSON,$loon:{},$persistentStore:{read:k=>store.get(k)||null,write:(v,k)=>(store.set(k,v),true)},
+$request:{url:"https://edith.xiaohongshu.com/api/sns/v4/note/videofeed"},$response:{body:nativeStringify(p)},
+$done:v=>done=v,console:{log(){},warn(){},error(){}}};
+vm.runInNewContext(source,ctx,{timeout:5000});
+process.stdout.write(nativeStringify({body:nativeParse(done.body),cache:nativeParse(store.get("redBookVideoFeed")),reads}));
+'''
+        body={"data":[{
+            "id":"cache-item",
+            "media_save_config":{"disable_save":True,"disable_watermark":False,"disable_weibo_cover":False},
+            "share_info":{"function_entries":[{"type":"video_download"}]},
+            "function_switch":[{"type":"video_download","enable":True}],
+            "video_info_v2":{"media":{"stream":{
+                "h265":[{"master_url":"https://video.example/cache.mp4","width":1280,"height":720,"avg_bitrate":20}],
+                "h264":[]
+            }}}
+        }]}
+        run=subprocess.run([NODE,"-e",runner],input=json.dumps(body),cwd=ROOT,capture_output=True,text=True,check=False,timeout=10)
+        self.assertEqual(run.returncode,0,run.stderr)
+        out=json.loads(run.stdout)
+        self.assertEqual(out["reads"],{
+            "media_save_config":1,"video_info_v2":1,"media":1,"stream":1,"h265":1,"h264":1,"id":1
+        })
+        self.assertEqual(out["cache"],[{"id":"cache-item","url":"https://video.example/cache.mp4"}])
+        item=out["body"]["data"][0]
+        self.assertFalse(item["media_save_config"]["disable_save"])
+        self.assertTrue(item["media_save_config"]["disable_watermark"])
+        self.assertTrue(item["media_save_config"]["disable_weibo_cover"])
+
     def test_video_feed_stream_selection_preserves_codec_resolution_bitrate_priority(self):
         runner=r'''
 const fs=require("fs"),vm=require("vm"),source=fs.readFileSync("scripts/xiaohongshu/xiaohongshu.js","utf8");

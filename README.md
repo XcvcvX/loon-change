@@ -1181,3 +1181,20 @@ Avoids an unnecessary persistent-store read and JSON parse on the empty-ID path.
 
 ## Access effect
 Reduces repeated nested user-property accesses in comment cleanup and reuses the same user reference inside the common avatar-cleanup helper.
+
+
+# Phase 10 batch 42 — Xiaohongshu v4 video-feed nested reference cache
+
+## Change
+- Cache each feed item's `media_save_config`, `video_info_v2`, nested `media` and `stream`, plus H.265/H.264 stream arrays before applying permissions and selecting a stream.
+- Cache the feed item ID and selected stream URL once before appending the persisted video-cache record.
+- Preserve stream selection priority (H.265 first, then H.264; highest resolution, then bitrate; stable first-entry tie behavior), download permission mutations, and cache record shape.
+- Extend the deterministic source optimizer and invariant manifest with fail-closed structural checks.
+
+## Validation
+- Node VM getter-count regression verifies one read each for the seven cached references on a v4 feed item.
+- Existing runtime fixtures continue to verify function-switch updates, download-entry insertion, codec/resolution/bitrate selection, fallback behavior, and cache output.
+- No device-level CPU, battery, thermal, or latency improvement is claimed without real-device measurements.
+
+## Access effect
+Reduces repeated nested property resolution in each video-feed item without introducing new arrays, objects, closures, or JSON parse operations in the hot loop.
