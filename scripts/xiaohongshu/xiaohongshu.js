@@ -202,10 +202,12 @@ if (url.includes("/v4/note/videofeed")) {
   if (obj.data?.length > 0) {
     for (let item of obj.data) {
       // 强制开启权限
-      if (item?.media_save_config) {
-        item.media_save_config.disable_save = false;
-        item.media_save_config.disable_watermark = true;
-        item.media_save_config.disable_weibo_cover = true;
+      // loon-change: Xiaohongshu v4 video-feed nested reference cache v1;
+      const mediaSaveConfig = item?.media_save_config;
+      if (mediaSaveConfig) {
+        mediaSaveConfig.disable_save = false;
+        mediaSaveConfig.disable_watermark = true;
+        mediaSaveConfig.disable_weibo_cover = true;
       }
 
       // 处理 function_switch (修复按钮置灰)
@@ -238,18 +240,21 @@ if (url.includes("/v4/note/videofeed")) {
       }
 
       // 提取最佳视频流 (修复逻辑：分辨率相同优先选码率高的)
-      const h265List = item?.video_info_v2?.media?.stream?.h265 || [];
-      const h264List = item?.video_info_v2?.media?.stream?.h264 || [];
+      const videoInfo = item?.video_info_v2;
+      const videoMedia = videoInfo?.media;
+      const videoStream = videoMedia?.stream;
+      const h265List = videoStream?.h265 || [];
+      const h264List = videoStream?.h264 || [];
 
       const selectedStream = selectBestStream(h265List, h264List);
+      const itemId = item?.id;
+      const selectedMasterUrl = selectedStream?.master_url;
       // 存入缓存数组
-      if (item?.id && selectedStream?.master_url) {
-        const data = {
-          id: item.id,
-          url: selectedStream.master_url
-        };
-        videoData.push(data);
-      } else {
+      if (itemId && selectedMasterUrl) {
+        videoData.push({
+          id: itemId,
+          url: selectedMasterUrl
+        });
       }
     }
     // 写入本地持久化缓存
