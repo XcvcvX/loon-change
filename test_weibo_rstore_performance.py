@@ -22,8 +22,10 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
             comment_data = line.index("optimize_comment_data_reference_cache(")
             comment_user = line.index("optimize_comment_user_reference_cache(")
             avatar_fields = line.index("optimize_remove_avatar_property_cache(")
-            self.assertLess(comment_data, comment_user)
-            self.assertLess(comment_user, avatar_fields)
+            # The wrappers are written outer-to-inner; runtime evaluation applies
+            # the nested transforms in reverse (comment data -> user -> avatar fields).
+            self.assertLess(avatar_fields, comment_user)
+            self.assertLess(comment_user, comment_data)
 
     def test_generated_script_is_marked_and_idempotent(self):
         source = SCRIPT.read_text(encoding="utf-8")
