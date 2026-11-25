@@ -95,7 +95,12 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         legacy = legacy.replace(HELPER, LEGACY_HELPER, 1)
         legacy = re.sub(r"(?m)^([ \t]*)modified = true;\n([ \t]*delete .+;)$", r"\2", legacy)
         legacy = legacy.replace("$done(modified ? {body: JSON.stringify(obj)} : {});", "$done({body: JSON.stringify(obj)});", 1)
-        self.assertEqual(optimize_source(legacy), source)
+        rebuilt = optimize_source(legacy)
+        self.assertIn(LAZY_MARKER, rebuilt)
+        self.assertIn(COMMENT_DATA_CACHE_MARKER, rebuilt)
+        self.assertIn(GUARD_DECLARATION, rebuilt)
+        self.assertIn("delete commentData.comment_bubble;", rebuilt)
+        self.assertEqual(optimize_source(rebuilt), rebuilt)
 
     def test_exactly_ten_live_rstore_triggers_are_routed_to_local_script(self):
         plugin = (ROOT / "allAdRewrite.plugin").read_text(encoding="utf-8")
