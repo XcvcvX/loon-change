@@ -175,7 +175,7 @@ if (payload.body === null) {
     def test_usercenter_wallet_fields_are_compacted_during_the_card_pass(self):
         source = SOURCE.read_text(encoding="utf-8")
         self.assertNotIn("obj.data.cards.forEach", source)
-        self.assertIn('compactDidiByField(obj.data.cards, "title", "card");', source)
+        self.assertIn('compactDidiByField(responseData.cards, "title", "card");', source)
         self.assertIn('compactDidiByField(walletItems, "title", "walletItem")', source)
         self.assertIn('compactDidiByField(walletBottomItems, "title", "walletBottom")', source)
         self.assertNotIn('compactDidiByField(item.items, "title", "walletItem")', source)
@@ -345,7 +345,7 @@ if (payload.body === null) {
         start = source.index("if (isInfoList) {")
         end = source.index("\n}\n", start)
         branch = source[start:end]
-        self.assertIn("const topBannerData = obj.data?.disorder_cards?.top_banner_card?.data;", branch)
+        self.assertIn("const topBannerData = responseData?.disorder_cards?.top_banner_card?.data;", branch)
         self.assertIn("const firstTopBanner = topBannerData?.[0];", branch)
         self.assertIn('if (firstTopBanner?.T === "yuentu_top_banner")', branch)
         self.assertIn("topBannerData.splice(0, 1);", branch)
