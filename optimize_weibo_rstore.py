@@ -294,6 +294,11 @@ def add_lazy_serialization_guard(source):
             "item.reply_comment.comment_badge": "replyComment.comment_badge",
         }
         delete_targets = [reply_target_map.get(target, target) for target in delete_targets]
+    if ROOT_COMMENT_BUBBLE_SINGLE_READ_MARKER in source:
+        delete_targets = [
+            "rootComment.comment_bubble" if target == "obj.rootComment.comment_bubble" else target
+            for target in delete_targets
+        ]
 
     if LAZY_MARKER in source:
         if GUARD_DECLARATION not in source or '$done(modified ? {body: JSON.stringify(obj)} : {});' not in source:
@@ -355,8 +360,6 @@ def optimize_comment_data_reference_cache(source):
             COMMENT_DATA_CACHE_MARKER,
             "const commentData = item?.data;",
             "if (!isAd(commentData))",
-            "const commentUser = commentData?.user;",
-            "removeAvatar(commentData, commentUser);",
             "delete commentData.comment_bubble;",
             "delete commentData.comment_bullet_screens_message;",
             "delete commentData.hot_icon;",
@@ -364,6 +367,22 @@ def optimize_comment_data_reference_cache(source):
         )
         if source.count(COMMENT_DATA_CACHE_MARKER) != 1 or COMMENT_DATA_CACHE_OLD in source or any(token not in source for token in required):
             raise ValueError("Weibo comment data-cache marker/structure drift")
+        if COMMENT_USER_CACHE_MARKER in source:
+            user_required = (
+                "const commentUser = commentData?.user;",
+                "removeAvatar(commentData, commentUser);",
+                "const commentUserName = commentUser.name;",
+            )
+            if any(token not in source for token in user_required):
+                raise ValueError("Weibo comment data/user-cache composed structure drift")
+        else:
+            intermediate_user_required = (
+                "if (commentData?.user)",
+                "removeAvatar(commentData);",
+                "commentData.user?.name ===",
+            )
+            if any(token not in source for token in intermediate_user_required):
+                raise ValueError("Weibo comment data-cache intermediate user structure drift")
         return source
     old_block = COMMENT_DATA_CACHE_OLD
     if source.count(old_block) != 1:
@@ -392,6 +411,8 @@ def optimize_comment_user_reference_cache(source):
                 "function removeAvatar(data, user = data?.user)" not in source or
                 "delete user.avatargj_id;" not in source):
             raise ValueError("Weibo removeAvatar user-cache marker/structure drift")
+        if REMOVE_AVATAR_PROPERTY_CACHE_MARKER in source and "const avatarGjId = user?.avatargj_id;" not in source:
+            raise ValueError("Weibo removeAvatar user-cache avatar field cache drift")
     else:
         if source.count(REMOVE_AVATAR_HELPER_OLD) != 1:
             raise ValueError("Weibo removeAvatar helper anchor drift")
