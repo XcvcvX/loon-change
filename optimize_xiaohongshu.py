@@ -655,8 +655,9 @@ def optimize_v4_video_feed_function_entry_indexed_scan(src):
       }"""
     if block.count(old) != 1:
         raise ValueError("Xiaohongshu v4 function-entry indexed scan anchor drift")
-    block = block.replace(old,new,1)
+    block = block.replace(old, new, 1)
     return src[:left] + block + src[right:]
+
 
 VIDEO_V3_ITEM_CACHE_MARKER = "// loon-change: Xiaohongshu v3 video-feed item reference cache v1;"
 
@@ -1182,7 +1183,7 @@ def optimize_source(src,commit="unknown"):
         src = optimize_video_save_cache_lookup(src)
         src = optimize_video_save_lazy_cache_parse(src)
         src = optimize_v4_video_feed_function_entry_scan(src)
-            src = optimize_v4_video_feed_function_entry_indexed_scan(src)
+        src = optimize_v4_video_feed_function_entry_indexed_scan(src)
         src = optimize_v4_function_switch_indexed_scan(src)
         src = optimize_v4_feed_array_length_snapshot(src)
         src = optimize_v3_video_feed_item_reference_cache(src)
