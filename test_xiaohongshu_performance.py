@@ -1,6 +1,6 @@
 import json, shutil, subprocess, unittest
 from pathlib import Path
-from optimize_xiaohongshu import LOCAL, REMOTE, MARKER, IMAGE_FEED_MARKER, VIDEO_SAVE_LOOKUP_MARKER, VIDEO_SAVE_LAZY_PARSE_MARKER, STREAM_SELECTION_MARKER, VIDEO_ENTRY_MARKER, IMAGE_LIVE_PHOTO_CACHE_MARKER, COMMENT_MEDIA_CACHE_MARKER, COMMENT_STACK_FRAME_MARKER, FUNCTION_SWITCH_MARKER, VIDEO_V3_ITEM_CACHE_MARKER, optimize_v3_video_feed_item_reference_cache, VIDEO_FEED_REFERENCE_CACHE_MARKER, optimize_v4_video_feed_nested_reference_cache, optimize_v4_function_switch_indexed_scan, optimize_comment_stack_frame_allocation, optimize_comment_media_property_cache, optimize_imagefeed_live_photo_property_cache, optimize_comment_video_info_cache, optimize_imagefeed_single_traversal, optimize_video_save_cache_lookup, optimize_video_save_lazy_cache_parse, optimize_stream_selection_no_closure, optimize_v4_video_feed_function_entry_scan, optimize_comment_node_array_classification, COMMENT_NODE_ARRAY_MARKER, IMAGE_ARRAY_LENGTH_MARKER, optimize_imagefeed_array_length_cache, optimize_source, rewrite_plugin
+from optimize_xiaohongshu import LOCAL, REMOTE, MARKER, IMAGE_FEED_MARKER, VIDEO_SAVE_LOOKUP_MARKER, VIDEO_SAVE_LAZY_PARSE_MARKER, STREAM_SELECTION_MARKER, VIDEO_ENTRY_MARKER, IMAGE_LIVE_PHOTO_CACHE_MARKER, COMMENT_MEDIA_CACHE_MARKER, COMMENT_STACK_FRAME_MARKER, FUNCTION_SWITCH_MARKER, VIDEO_V3_ITEM_CACHE_MARKER, optimize_v3_video_feed_item_reference_cache, VIDEO_FEED_REFERENCE_CACHE_MARKER, optimize_v4_video_feed_nested_reference_cache, optimize_v4_function_switch_indexed_scan, optimize_comment_stack_frame_allocation, optimize_comment_media_property_cache, optimize_imagefeed_live_photo_property_cache, optimize_comment_video_info_cache, optimize_imagefeed_single_traversal, optimize_video_save_cache_lookup, optimize_video_save_lazy_cache_parse, optimize_stream_selection_no_closure, optimize_v4_video_feed_function_entry_scan, optimize_comment_node_array_classification, COMMENT_NODE_ARRAY_MARKER, IMAGE_ARRAY_LENGTH_MARKER, optimize_imagefeed_array_length_cache, COMMENT_ARRAY_LENGTH_MARKER, optimize_comment_array_length_cache, optimize_source, rewrite_plugin
 
 ROOT=Path(__file__).resolve().parent
 NODE=shutil.which("node")
@@ -85,6 +85,72 @@ class XiaohongshuOptimizerTests(unittest.TestCase):
         damaged = source.replace("const currentIsArray = Array.isArray(current);", "const currentIsArray = Boolean(current);", 1)
         with self.assertRaisesRegex(ValueError, "marker/structure drift"):
             optimize_comment_node_array_classification(damaged)
+
+
+    def test_comment_array_length_cache_is_idempotent_and_fails_closed(self):
+        source=(ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")
+        self.assertEqual(optimize_comment_array_length_cache(source),source)
+        self.assertEqual(source.count(COMMENT_ARRAY_LENGTH_MARKER),1)
+        start=source.index("function processCommentTree")
+        end=source.index("\\n\\n\\n/**",start)
+        block=source[start:end]
+        self.assertEqual(block.count("current.length"),1)
+        self.assertEqual(block.count("child.length"),2)
+        self.assertIn("for (let i = currentLength - 1; i >= 0; i--)",block)
+        self.assertIn("for (let i = commentsLength - 1; i >= 0; i--)",block)
+        self.assertIn("for (let i = subCommentsLength - 1; i >= 0; i--)",block)
+        damaged=source.replace("const commentsLength = child.length;","const commentsLength = 0;",1)
+        with self.assertRaisesRegex(ValueError,"array-length cache marker is stale"):
+            optimize_comment_array_length_cache(damaged)
+
+    @unittest.skipUnless(NODE,"Node required for comment array-length runtime test")
+    def test_comment_tree_reads_each_traversal_array_length_once(self):
+        runner=r"""
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync("scripts/xiaohongshu/xiaohongshu.js","utf8");
+const p=JSON.parse(fs.readFileSync(0,"utf8")),store=new Map();let done,track=true;
+const nativeJSON=JSON,lengthReads=Object.create(null);
+function wrap(value,path){
+  if(Array.isArray(value)){
+    const mapped=value.map((child,index)=>wrap(child,path+"["+index+"]"));
+    const tracked=path==="data.comments"||path==="data.comments[0].sub_comments"||path==="data.deep_array";
+    return tracked?new Proxy(mapped,{get(target,key,receiver){
+      if(track&&key==="length")lengthReads[path]=(lengthReads[path]||0)+1;
+      return Reflect.get(target,key,receiver);
+    }}):mapped;
+  }
+  if(value&&typeof value==="object"){
+    for(const key of Object.keys(value))value[key]=wrap(value[key],path?path+"."+key:key);
+  }
+  return value;
+}
+const trackedJSON={
+  parse(value){const parsed=nativeJSON.parse(value);return p.url.includes("/note/comment/list")?wrap(parsed,""):parsed;},
+  stringify(value){const previous=track;track=false;try{return nativeJSON.stringify(value);}finally{track=previous;}}
+};
+const ctx={JSON:trackedJSON,$loon:{},$persistentStore:{read:k=>store.get(k)||null,write:(v,k)=>(store.set(k,v),true)},
+$request:{url:p.url},$response:{body:nativeJSON.stringify(p.body)},$done:v=>done=v,console:{log(){},warn(){},error(){}}};
+vm.runInNewContext(source,ctx,{timeout:5000});
+process.stdout.write(nativeJSON.stringify({body:nativeJSON.parse(done.body),lengthReads}));
+"""
+        body={"data":{"comments":[
+            {"id":"top-1","comment_type":3,"sub_comments":[{"id":"sub-1","red_id":"sub-red-1"},{"id":"sub-2","red_id":"sub-red-2"}]},
+            {"id":"top-2","red_id":"top-red-2"},
+            {"id":"top-3","red_id":"top-red-3"}
+        ],"deep_array":[{"red_id":"array-red-1"},{"red_id":"array-red-2"}]}}
+        run=subprocess.run([NODE,"-e",runner],input=json.dumps({
+            "url":"https://edith.xiaohongshu.com/api/sns/v5/note/comment/list?cursor=array-length","body":body
+        }),cwd=ROOT,capture_output=True,text=True,check=True,timeout=10)
+        out=json.loads(run.stdout)
+        comments=out["body"]["data"]["comments"]
+        self.assertEqual(len(comments),3)
+        self.assertEqual(comments[0]["comment_type"],2)
+        self.assertEqual(comments[0]["sub_comments"][1]["fmz200"],"sub-red-2")
+        self.assertEqual(out["body"]["data"]["deep_array"][1]["fmz200"],"array-red-2")
+        self.assertEqual(out["lengthReads"],{
+            "data.comments":1,
+            "data.comments[0].sub_comments":1,
+            "data.deep_array":1
+        })
 
     def test_comment_stack_frames_use_flat_stack_without_tuple_allocations(self):
         source=(ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")
