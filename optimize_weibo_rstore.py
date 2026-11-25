@@ -1281,9 +1281,11 @@ def optimize_flowlist_asyn_nested_reference_cache(source):
     if FLOWLIST_ASYN_REFERENCE_CACHE_MARKER in source:
         if source.count(FLOWLIST_ASYN_REFERENCE_CACHE_MARKER) != 1 or any(x not in asyn for x in required_asyn) or any(x not in flow for x in required_flow):
             raise ValueError("Weibo flowlist/asyn reference cache structure drift")
+        stripped_asyn = asyn.replace("const itemId = item?.itemId;", "")
+        stripped_flow = flow.replace("const flowId = tab?.flowId;", "")
         forbidden_asyn = ("obj?.items?.length", "const __loonSource27 = obj.items;", "item?.items?.length", "for (let i of item.items)", "removeAvatar(i?.data)", "removeVoteInfo(i?.data)", "item?.itemId")
         forbidden_flow = ("obj?.items?.length", "obj?.channelInfo?.channels?.length", "const __loonSource26 = obj.channelInfo.channels;", "item?.items?.length", "for (let i of item.items)", "removeAvatar(i?.data)", "removeVoteInfo(i?.data)", "tab?.flowId")
-        if any(x in asyn for x in forbidden_asyn) or any(x in flow for x in forbidden_flow):
+        if any(x in stripped_asyn for x in forbidden_asyn) or any(x in stripped_flow for x in forbidden_flow):
             raise ValueError("Weibo flowlist/asyn repeated property reads remain")
         return source
     changes_asyn = (
@@ -1387,10 +1389,10 @@ def optimize_flowlist_asyn_nested_reference_cache(source):
     flow = flow.replace(flow_start, flow_start + "\n    // loon-change: Weibo flowlist nested reference cache v1", 1)
     result = source[:source.index(asyn_start)] + asyn + source[source.index(asyn_end):source.index(flow_start)] + flow + source[source.index(flow_end):]
     if FLOWLIST_ASYN_REFERENCE_CACHE_MARKER not in result:
-        first_line_end = result.find("\\n")
+        first_line_end = result.find("\n")
         if first_line_end < 0:
             raise ValueError("Weibo flowlist/asyn marker insertion anchor missing")
-        result = result[:first_line_end + 1] + FLOWLIST_ASYN_REFERENCE_CACHE_MARKER + "\\n" + result[first_line_end + 1:]
+        result = result[:first_line_end + 1] + FLOWLIST_ASYN_REFERENCE_CACHE_MARKER + "\n" + result[first_line_end + 1:]
     return result
 
 
