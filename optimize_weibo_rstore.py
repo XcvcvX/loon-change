@@ -291,18 +291,18 @@ def add_lazy_serialization_guard(source):
     ]
     if COMMENT_DATA_CACHE_MARKER in source:
         delete_targets = [
-            target.replace("item.data.", "commentData.") if target.startswith("item.data.comment_") else target
+            target.replace("item.data.", "commentData.", 1) if target.startswith("item.data.comment_") else target
             for target in delete_targets
         ]
 
     if LAZY_MARKER in source:
         if GUARD_DECLARATION not in source or '$done(modified ? {body: JSON.stringify(obj)} : {});' not in source:
             raise ValueError('marked Weibo lazy-serialization guard is incomplete')
-        loop_markers = re.findall(r'if \\(__loonWrite\\d+ !== __loonLength\\d+\\) modified = true;', source)
+        loop_markers = re.findall(r'if \(__loonWrite\d+ !== __loonLength\d+\) modified = true;', source)
         if len(loop_markers) != EXPECTED:
             raise ValueError('Weibo lazy-serialization loop inventory drift')
         for target in delete_targets:
-            pattern = re.compile(r'(?m)^([ \\t]*)modified = true;\\n[ \\t]*delete ' + re.escape(target) + r';$')
+            pattern = re.compile(r'(?m)^([ \t]*)modified = true;\n[ \t]*delete ' + re.escape(target) + r';$')
             if not pattern.search(source):
                 raise ValueError('Weibo tracked-delete marker missing for ' + target)
         return source
@@ -311,23 +311,23 @@ def add_lazy_serialization_guard(source):
         anchor = 'const url = $request.url;'
         if source.count(anchor) != 1:
             raise ValueError('Weibo URL declaration anchor drift')
-        source = source.replace(anchor, anchor + '\\n' + GUARD_DECLARATION, 1)
+        source = source.replace(anchor, anchor + '\n' + GUARD_DECLARATION, 1)
     if LEGACY_HELPER in source:
         source = source.replace(LEGACY_HELPER, HELPER, 1)
     elif HELPER not in source:
         raise ValueError('Weibo compaction helper anchor drift')
 
-    loop_pattern = re.compile(r'(?m)^([ \\t]*)__loonSource(\\d+)\\.length = __loonWrite\\2;$')
+    loop_pattern = re.compile(r'(?m)^([ \t]*)__loonSource(\d+)\.length = __loonWrite\2;$')
     def mark_loop(match):
         index = match.group(2)
-        return match.group(0) + '\\n' + match.group(1) + 'if (__loonWrite' + index + ' !== __loonLength' + index + ') modified = true;'
+        return match.group(0) + '\n' + match.group(1) + 'if (__loonWrite' + index + ' !== __loonLength' + index + ') modified = true;'
     source, loop_count = loop_pattern.subn(mark_loop, source)
     if loop_count != EXPECTED:
         raise ValueError('Weibo compact-loop inventory drift: expected %d, got %d' % (EXPECTED, loop_count))
 
     for target in delete_targets:
-        pattern = re.compile(r'(?m)^([ \\t]*)delete ' + re.escape(target) + r';$')
-        source, count = pattern.subn(lambda match: match.group(1) + 'modified = true;\\n' + match.group(0), source)
+        pattern = re.compile(r'(?m)^([ \t]*)delete ' + re.escape(target) + r';$')
+        source, count = pattern.subn(lambda match: match.group(1) + 'modified = true;\n' + match.group(0), source)
         if count != 1:
             raise ValueError('Weibo tracked-delete inventory drift for ' + target)
 
@@ -335,11 +335,10 @@ def add_lazy_serialization_guard(source):
     if source.count(final_call) != 1:
         raise ValueError('Weibo common final response anchor drift')
     source = source.replace(final_call, '$done(modified ? {body: JSON.stringify(obj)} : {});', 1)
-    first_line_end = source.find('\\n')
+    first_line_end = source.find('\n')
     if first_line_end < 0:
         raise ValueError('Weibo header marker is missing')
-    return source[:first_line_end + 1] + LAZY_MARKER + '\\n' + source[first_line_end + 1:]
-
+    return source[:first_line_end + 1] + LAZY_MARKER + '\n' + source[first_line_end + 1:]
 
 COMMENT_DATA_CACHE_MARKER = "// loon-change: Weibo comment data reference cache v1"
 COMMENT_DATA_CACHE_OLD = "        let item = __loonSource30[__loonRead30];\n        if (item?.data) {\n          if (!isAd(item?.data)) {\n            // 微博伪装评论\n            if (item?.data?.user) {\n              // 头像挂件,关注按钮\n              removeAvatar(item?.data);\n              if ((item.data?.user?.name === \"超话社区\" || item.data?.user?.name === \"微博开新年\" || item.data?.user?.name === \"微博热搜\" || item.data?.user?.name === \"微博视频\")) {\n                continue;\n              }\n            }\n            // 评论气泡\n            if (item?.data?.comment_bubble) {\n              modified = true;\n              delete item.data.comment_bubble;\n            }\n            // 评论弹幕\n            if (item?.data?.comment_bullet_screens_message) {\n              modified = true;\n              delete item.data.comment_bullet_screens_message;\n            }\n            // 热评小图标 弹幕 首评\n            if (item?.data?.hot_icon) {\n              modified = true;\n              delete item.data.hot_icon;\n            }\n            // 会员气泡按钮\n            if (item?.data?.vip_button) {\n              modified = true;\n              delete item.data.vip_button;\n            }\n            // 6为你推荐更多精彩内容 15过滤提示\n            if (item?.type === 6 || item?.type === 15) {\n              continue;\n            }\n            if (item?.adType === \"相关内容\" || item?.adType === \"相关评论\" || item?.adType === \"推荐\") {\n              continue;\n            }\n            __loonSource30[__loonWrite30++] = item;\n          }\n        }"
