@@ -434,7 +434,7 @@ def optimize_source(source, commit="unknown"):
     if MARKER in source:
         if "__loonSource32" not in source or "compactInPlace(items, keep)" not in source:
             raise ValueError("marked Weibo script is incomplete")
-        return optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source))))))))))))))
+        return optimize_flowlist_asyn_nested_reference_cache(optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source)))))))))))))))
     source = source.replace("const url = $request.url;", "const url = $request.url;\n" + GUARD_DECLARATION + "\n\n" + HELPER, 1)
     if source.count(HELPER) != 1:
         raise ValueError("Weibo helper insertion failed")
@@ -446,7 +446,7 @@ def optimize_source(source, commit="unknown"):
     remaining = re.findall(r"\b(new[A-Za-z0-9_]*)\s*=\s*\[\s*\]", source)
     if sorted(remaining) != ["newActions", "newII"]:
         raise ValueError("unexpected remaining Weibo temporary arrays: " + repr(remaining))
-    return optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source))))))))))))))
+    return optimize_flowlist_asyn_nested_reference_cache(optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source)))))))))))))))
 
 SCALAR_MEMBERSHIP_MARKER = "// loon-change: Weibo hot-loop scalar membership v1"
 SCALAR_MEMBERSHIP_REWRITES = [
@@ -1237,6 +1237,164 @@ def optimize_hot_timeline_data_cache(source):
                                             "const __loonLength3 = __loonSource3.length;")):
         raise ValueError("Weibo hot timeline repeated response reads remain")
     return source[:left] + block + source[right:]
+
+
+FLOWLIST_ASYN_REFERENCE_CACHE_MARKER = "// loon-change: Weibo flowlist/asyn nested reference cache v1"
+
+def optimize_flowlist_asyn_nested_reference_cache(source):
+    """Cache top-level/nested array and card references on Weibo flowlist/asyn paths."""
+    asyn_start = '} else if (url.includes("/2/container/asyn")) {'
+    asyn_end = '} else if (url.includes("/2/direct_messages/user_list")) {'
+    flow_start = '} else if (url.includes("/2/flowlist")) {'
+    flow_end = '} else if (url.includes("/2/flowpage")) {'
+    if any(source.count(token) != 1 for token in (asyn_start, asyn_end, flow_start, flow_end)):
+        raise ValueError("Weibo flowlist/asyn route boundary drift")
+    def extract(start, end):
+        left = source.index(start)
+        right = source.index(end, left + len(start))
+        return source[left:right]
+    asyn = extract(asyn_start, asyn_end)
+    flow = extract(flow_start, flow_end)
+    required_asyn = (
+        "// loon-change: Weibo container/asyn nested reference cache v1",
+        "const asynItems = obj?.items;",
+        "const asynItemsLength = asynItems?.length || 0;",
+        "const itemData = item?.data;",
+        "const itemId = item?.itemId;",
+        "const nestedItems = item?.items;",
+        "const nestedItemsLength = nestedItems?.length || 0;",
+        "const nestedData = nestedItem?.data;",
+    )
+    required_flow = (
+        "// loon-change: Weibo flowlist nested reference cache v1",
+        "const flowItems = obj?.items;",
+        "const flowItemsLength = flowItems?.length || 0;",
+        "const channelInfo = obj?.channelInfo;",
+        "const flowChannels = channelInfo?.channels;",
+        "const flowChannelCount = flowChannels?.length || 0;",
+        "const nestedItems = item?.items;",
+        "const nestedItemsLength = nestedItems?.length || 0;",
+        "const nestedData = nestedItem?.data;",
+        "const flowId = tab?.flowId;",
+        "const __loonLength26 = flowChannelCount;",
+    )
+    if FLOWLIST_ASYN_REFERENCE_CACHE_MARKER in source:
+        if source.count(FLOWLIST_ASYN_REFERENCE_CACHE_MARKER) != 1 or any(x not in asyn for x in required_asyn) or any(x not in flow for x in required_flow):
+            raise ValueError("Weibo flowlist/asyn reference cache structure drift")
+        stripped_asyn = asyn.replace("const itemId = item?.itemId;", "")
+        stripped_flow = flow.replace("const flowId = tab?.flowId;", "")
+        forbidden_asyn = ("obj?.items?.length", "const __loonSource27 = obj.items;", "item?.items?.length", "for (let i of item.items)", "removeAvatar(i?.data)", "removeVoteInfo(i?.data)", "item?.itemId")
+        forbidden_flow = ("obj?.items?.length", "obj?.channelInfo?.channels?.length", "const __loonSource26 = obj.channelInfo.channels;", "item?.items?.length", "for (let i of item.items)", "removeAvatar(i?.data)", "removeVoteInfo(i?.data)", "tab?.flowId")
+        if any(x in stripped_asyn for x in forbidden_asyn) or any(x in stripped_flow for x in forbidden_flow):
+            raise ValueError("Weibo flowlist/asyn repeated property reads remain")
+        return source
+    changes_asyn = (
+        ("    if (obj?.items?.length > 0) {",
+         "    const asynItems = obj?.items;\n"
+         "    const asynItemsLength = asynItems?.length || 0;\n"
+         "    if (asynItemsLength > 0) {"),
+        ("      const __loonSource27 = obj.items;", "      const __loonSource27 = asynItems;"),
+        ("      const __loonLength27 = __loonSource27.length;", "      const __loonLength27 = asynItemsLength;"),
+        ("        let item = __loonSource27[__loonRead27];\n"
+         "        // 关注按钮\n"
+         "        removeAvatar(item?.data);\n"
+         "        if (/infeed_may_interest_in/.test(item?.itemId)) {",
+         "        let item = __loonSource27[__loonRead27];\n"
+         "        const itemData = item?.data;\n"
+         "        const itemId = item?.itemId;\n"
+         "        // 关注按钮\n"
+         "        removeAvatar(itemData);\n"
+         "        if (/infeed_may_interest_in/.test(itemId)) {"),
+        ("        if (item?.itemId === null) {", "        if (itemId === null) {"),
+        ("        if (item?.items?.length > 0) {\n"
+         "          for (let i of item.items) {\n"
+         "            // 背景卡片\n"
+         "            removeAvatar(i?.data);\n"
+         "            // 投票窗口\n"
+         "            removeVoteInfo(i?.data);\n"
+         "          }\n"
+         "        }",
+         "        const nestedItems = item?.items;\n"
+         "        const nestedItemsLength = nestedItems?.length || 0;\n"
+         "        if (nestedItemsLength > 0) {\n"
+         "          for (let nestedIndex = 0; nestedIndex < nestedItemsLength; nestedIndex++) {\n"
+         "            const nestedItem = nestedItems[nestedIndex];\n"
+         "            const nestedData = nestedItem?.data;\n"
+         "            // 背景卡片\n"
+         "            removeAvatar(nestedData);\n"
+         "            // 投票窗口\n"
+         "            removeVoteInfo(nestedData);\n"
+         "          }\n"
+         "        }"),
+    )
+    changes_flow = (
+        ("    if (obj?.items?.length > 0) {\n"
+         "      for (let item of obj.items) {\n"
+         "        if (item?.items?.length > 0) {\n"
+         "          for (let i of item.items) {\n"
+         "            // 背景卡片\n"
+         "            removeAvatar(i?.data);\n"
+         "            // 投票窗口\n"
+         "            removeVoteInfo(i?.data);\n"
+         "          }\n"
+         "        }\n"
+         "      }\n"
+         "    }\n"
+         "    if (obj?.channelInfo?.channels?.length > 0) {\n"
+         "      const __loonSource26 = obj.channelInfo.channels;",
+         "    const flowItems = obj?.items;\n"
+         "    const flowItemsLength = flowItems?.length || 0;\n"
+         "    if (flowItemsLength > 0) {\n"
+         "      for (let itemIndex = 0; itemIndex < flowItemsLength; itemIndex++) {\n"
+         "        const item = flowItems[itemIndex];\n"
+         "        const nestedItems = item?.items;\n"
+         "        const nestedItemsLength = nestedItems?.length || 0;\n"
+         "        if (nestedItemsLength > 0) {\n"
+         "          for (let nestedIndex = 0; nestedIndex < nestedItemsLength; nestedIndex++) {\n"
+         "            const nestedItem = nestedItems[nestedIndex];\n"
+         "            const nestedData = nestedItem?.data;\n"
+         "            // 背景卡片\n"
+         "            removeAvatar(nestedData);\n"
+         "            // 投票窗口\n"
+         "            removeVoteInfo(nestedData);\n"
+         "          }\n"
+         "        }\n"
+         "      }\n"
+         "    }\n"
+         "    const channelInfo = obj?.channelInfo;\n"
+         "    const flowChannels = channelInfo?.channels;\n"
+         "    const flowChannelCount = flowChannels?.length || 0;\n"
+         "    if (flowChannelCount > 0) {\n"
+         "      const __loonSource26 = flowChannels;"),
+        ("      const __loonLength26 = __loonSource26.length;", "      const __loonLength26 = flowChannelCount;"),
+        ("        let tab = __loonSource26[__loonRead26];\n"
+         "        if (/_selfrecomm/.test(tab?.flowId)) {",
+         "        let tab = __loonSource26[__loonRead26];\n"
+         "        const flowId = tab?.flowId;\n"
+         "        if (/_selfrecomm/.test(flowId)) {"),
+        ("        } else if (/_chaohua/.test(tab?.flowId)) {",
+         "        } else if (/_chaohua/.test(flowId)) {"),
+    )
+    def patch_block(source_block, changes, label):
+        for old, new in changes:
+            if source_block.count(old) != 1:
+                raise ValueError("Weibo " + label + " cache anchor drift: " + old[:72])
+            source_block = source_block.replace(old, new, 1)
+        return source_block
+    asyn = patch_block(asyn, changes_asyn, "container/asyn")
+    flow = patch_block(flow, changes_flow, "flowlist")
+    if any(x not in asyn for x in required_asyn) or any(x not in flow for x in required_flow):
+        raise ValueError("Weibo flowlist/asyn reference-cache postcondition failed")
+    asyn = asyn.replace(asyn_start, asyn_start + "\n    // loon-change: Weibo container/asyn nested reference cache v1", 1)
+    flow = flow.replace(flow_start, flow_start + "\n    // loon-change: Weibo flowlist nested reference cache v1", 1)
+    result = source[:source.index(asyn_start)] + asyn + source[source.index(asyn_end):source.index(flow_start)] + flow + source[source.index(flow_end):]
+    if FLOWLIST_ASYN_REFERENCE_CACHE_MARKER not in result:
+        first_line_end = result.find("\n")
+        if first_line_end < 0:
+            raise ValueError("Weibo flowlist/asyn marker insertion anchor missing")
+        result = result[:first_line_end + 1] + FLOWLIST_ASYN_REFERENCE_CACHE_MARKER + "\n" + result[first_line_end + 1:]
+    return result
+
 
 
 if __name__ == "__main__":
