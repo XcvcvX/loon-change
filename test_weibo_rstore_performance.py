@@ -5,7 +5,7 @@ import subprocess
 import unittest
 from pathlib import Path
 
-from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, LAZY_MARKER, GUARD_DECLARATION, HELPER, LEGACY_HELPER, optimize_source, rewrite_plugin, optimize_page_filter_cached_itemid, TOPIC_GROUP_MARKER, optimize_topic_group_in_place, COMMENT_DATA_CACHE_MARKER, COMMENT_DATA_CACHE_OLD, COMMENT_DATA_CACHE_NEW, optimize_comment_data_reference_cache
+from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, LAZY_MARKER, GUARD_DECLARATION, HELPER, LEGACY_HELPER, optimize_source, rewrite_plugin, optimize_page_filter_cached_itemid, TOPIC_GROUP_MARKER, optimize_topic_group_in_place, COMMENT_DATA_CACHE_MARKER, COMMENT_DATA_CACHE_OLD, COMMENT_DATA_CACHE_NEW, optimize_comment_data_reference_cache, REMOVE_AVATAR_USER_CACHE_MARKER, COMMENT_USER_CACHE_MARKER, optimize_comment_user_reference_cache
 
 ROOT = Path(__file__).resolve().parent
 SCRIPT = ROOT / "scripts/weibo/weibo-rstore.js"
@@ -98,6 +98,23 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         damaged = source.replace("const commentData = item?.data;", "const cachedCommentData = item?.data;", 1)
         with self.assertRaisesRegex(ValueError, "marker/structure drift"):
             optimize_comment_data_reference_cache(damaged)
+
+    def test_comment_user_reference_cache_is_idempotent_and_fails_closed(self):
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertEqual(optimize_comment_user_reference_cache(source), source)
+        self.assertIn(REMOVE_AVATAR_USER_CACHE_MARKER, source)
+        self.assertIn(COMMENT_USER_CACHE_MARKER, source)
+        self.assertIn("function removeAvatar(data, user = data?.user)", source)
+        self.assertIn("removeAvatar(commentData, commentUser);", source)
+        self.assertIn("const commentUserName = commentUser.name;", source)
+
+        damaged_helper = source.replace("if (user?.avatargj_id)", "if (data?.user?.avatargj_id)", 1)
+        with self.assertRaisesRegex(ValueError, "removeAvatar user-cache marker/structure drift"):
+            optimize_comment_user_reference_cache(damaged_helper)
+
+        damaged_comment = source.replace("const commentUserName = commentUser.name;", "const commentUserName = commentUser.username;", 1)
+        with self.assertRaisesRegex(ValueError, "comment user-cache marker/structure drift"):
+            optimize_comment_user_reference_cache(damaged_comment)
 
     def test_comment_cache_transform_applies_to_unoptimized_source(self):
         source = SCRIPT.read_text(encoding="utf-8")
@@ -235,6 +252,57 @@ process.stdout.write(JSON.stringify({doneResult, parseCount, stringifyCount}));
             self.assertNotIn(key, kept)
         self.assertEqual(result["parseCount"], 1)
         self.assertEqual(result["stringifyCount"], 1)
+
+    def test_comment_user_and_name_accessors_are_read_once_per_comment(self):
+        runner = r"""
+const fs=require("fs"),vm=require("vm");
+const source=fs.readFileSync(process.argv[1],"utf8"),payload=JSON.parse(fs.readFileSync(0,"utf8"));
+let doneResult,trackReads=false,userReads=0,nameReads=0;
+const nativeParse=JSON.parse.bind(JSON),nativeStringify=JSON.stringify.bind(JSON);
+const trackedJSON={
+  parse(value){
+    const parsed=nativeParse(value);
+    for(const entry of parsed.datas||[]){
+      const data=entry?.data;
+      if(!data||!data.user)continue;
+      let user=data.user;
+      Object.defineProperty(data,"user",{enumerable:true,configurable:true,get(){if(trackReads)userReads++;return user;},set(value){user=value;}});
+      let name=user.name;
+      Object.defineProperty(user,"name",{enumerable:true,configurable:true,get(){if(trackReads)nameReads++;return name;},set(value){name=value;}});
+    }
+    userReads=0;nameReads=0;trackReads=true;
+    return parsed;
+  },
+  stringify(value){trackReads=false;return nativeStringify(value);}
+};
+const context={JSON:trackedJSON,$request:{url:payload.url},$response:{body:nativeStringify(payload.body)},$done(value){doneResult=value;},console:{log(){},warn(){},error(){}}};
+vm.runInNewContext(source,context,{timeout:5000});
+process.stdout.write(nativeStringify({doneResult,userReads,nameReads}));
+"""
+        body = {"datas": [
+            {"type": 1, "data": {"user": {
+                "name": "普通用户", "avatargj_id": "x", "avatar_extend_info": "x",
+                "cardid": "x", "icons": [{"type": "vip"}], "mbtype": 2
+            }, "comment_bubble": {"text": "remove"}}},
+            {"type": 1, "data": {"user": {
+                "name": "超话社区", "avatargj_id": "y", "icons": [{"type": "vip"}]
+            }, "text": "filtered"}}
+        ]}
+        completed = subprocess.run(
+            [NODE, "-e", runner, str(SCRIPT)],
+            input=json.dumps({"url": "https://api.weibo.cn/2/comments/build_comments?fixture=reads", "body": body}),
+            capture_output=True, text=True, check=False, timeout=10
+        )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        result = json.loads(completed.stdout)
+        output = json.loads(result["doneResult"]["body"])
+        self.assertEqual(len(output["datas"]), 1)
+        user = output["datas"][0]["data"]["user"]
+        for key in ("avatargj_id", "avatar_extend_info", "cardid", "icons", "mbtype"):
+            self.assertNotIn(key, user)
+        self.assertNotIn("comment_bubble", output["datas"][0]["data"])
+        self.assertEqual(result["userReads"], 2)
+        self.assertEqual(result["nameReads"], 2)
 
     def test_clean_cardlist_and_comments_skip_response_serialization(self):
         cardlist = {"cards": [
