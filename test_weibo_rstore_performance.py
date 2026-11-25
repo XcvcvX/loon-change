@@ -5,7 +5,7 @@ import subprocess
 import unittest
 from pathlib import Path
 
-from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, LAZY_MARKER, GUARD_DECLARATION, HELPER, LEGACY_HELPER, optimize_source, rewrite_plugin, optimize_page_filter_cached_itemid, TOPIC_GROUP_MARKER, optimize_topic_group_in_place, COMMENT_DATA_CACHE_MARKER, COMMENT_DATA_CACHE_OLD, COMMENT_DATA_CACHE_NEW, optimize_comment_data_reference_cache, REMOVE_AVATAR_USER_CACHE_MARKER, COMMENT_USER_CACHE_MARKER, COMMENT_USER_CACHE_OLD, COMMENT_USER_CACHE_NEW, optimize_comment_user_reference_cache, TOPIC_GROUP_NESTED_DATA_MARKER, optimize_topic_group_nested_data_cache, ROOT_COMMENT_USER_CACHE_MARKER, optimize_root_comment_user_cache, REMOVE_AVATAR_PROPERTY_CACHE_MARKER, REMOVE_AVATAR_HELPER_NEW, optimize_remove_avatar_property_cache, COMMENT_DECORATION_SINGLE_READ_MARKER, ROOT_COMMENT_DECORATION_SINGLE_READ_MARKER, REPLY_DECORATION_SINGLE_READ_MARKER, ROOT_COMMENT_BUBBLE_SINGLE_READ_MARKER, optimize_comment_decoration_single_read, COMMENT_ARRAY_REFERENCE_CACHE_MARKER, optimize_comment_array_reference_cache, FOLLOWING_TIMELINE_DATA_CACHE_MARKER, optimize_following_timeline_data_cache, HOT_TIMELINE_DATA_CACHE_MARKER, optimize_hot_timeline_data_cache, FLOWLIST_ASYN_REFERENCE_CACHE_MARKER, optimize_flowlist_asyn_nested_reference_cache, SEARCH_TIMELINE_REFERENCE_CACHE_MARKER, optimize_search_timeline_nested_reference_cache, PROFILE_TIMELINE_PROPERTY_CACHE_MARKER, optimize_profile_timeline_property_cache, IS_AD_PROPERTY_CACHE_MARKER, optimize_is_ad_property_cache, REMOVE_FEED_AD_CACHE_MARKER, optimize_shared_feed_cleanup_cache
+from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, LAZY_MARKER, GUARD_DECLARATION, HELPER, LEGACY_HELPER, optimize_source, rewrite_plugin, optimize_page_filter_cached_itemid, TOPIC_GROUP_MARKER, optimize_topic_group_in_place, COMMENT_DATA_CACHE_MARKER, COMMENT_DATA_CACHE_OLD, COMMENT_DATA_CACHE_NEW, optimize_comment_data_reference_cache, REMOVE_AVATAR_USER_CACHE_MARKER, COMMENT_USER_CACHE_MARKER, COMMENT_USER_CACHE_OLD, COMMENT_USER_CACHE_NEW, optimize_comment_user_reference_cache, TOPIC_GROUP_NESTED_DATA_MARKER, optimize_topic_group_nested_data_cache, ROOT_COMMENT_USER_CACHE_MARKER, optimize_root_comment_user_cache, REMOVE_AVATAR_PROPERTY_CACHE_MARKER, REMOVE_AVATAR_HELPER_NEW, optimize_remove_avatar_property_cache, COMMENT_DECORATION_SINGLE_READ_MARKER, ROOT_COMMENT_DECORATION_SINGLE_READ_MARKER, REPLY_DECORATION_SINGLE_READ_MARKER, ROOT_COMMENT_BUBBLE_SINGLE_READ_MARKER, optimize_comment_decoration_single_read, COMMENT_ARRAY_REFERENCE_CACHE_MARKER, optimize_comment_array_reference_cache, FOLLOWING_TIMELINE_DATA_CACHE_MARKER, optimize_following_timeline_data_cache, HOT_TIMELINE_DATA_CACHE_MARKER, optimize_hot_timeline_data_cache, FLOWLIST_ASYN_REFERENCE_CACHE_MARKER, optimize_flowlist_asyn_nested_reference_cache, SEARCH_TIMELINE_REFERENCE_CACHE_MARKER, optimize_search_timeline_nested_reference_cache, PROFILE_TIMELINE_PROPERTY_CACHE_MARKER, optimize_profile_timeline_property_cache, IS_AD_PROPERTY_CACHE_MARKER, optimize_is_ad_property_cache, REMOVE_FEED_AD_CACHE_MARKER, optimize_shared_feed_cleanup_cache, VOTE_INFO_NESTED_REFERENCE_CACHE_MARKER, optimize_vote_info_nested_reference_cache
 
 ROOT = Path(__file__).resolve().parent
 SCRIPT = ROOT / "scripts/weibo/weibo-rstore.js"
@@ -13,6 +13,23 @@ NODE = shutil.which("node")
 
 
 class RStoreWeiboOptimizerTests(unittest.TestCase):
+    def test_vote_info_nested_reference_cache_is_idempotent_and_fails_closed(self):
+        source = """function removeVoteInfo(item) {
+  if (item?.page_info?.media_info?.vote_info) {
+    modified = true;
+    delete item.page_info.media_info.vote_info;
+  }
+}"""
+        optimized = optimize_vote_info_nested_reference_cache(source)
+        self.assertIn(VOTE_INFO_NESTED_REFERENCE_CACHE_MARKER, optimized)
+        self.assertIn("const pageInfo = item?.page_info;", optimized)
+        self.assertIn("const mediaInfo = pageInfo?.media_info;", optimized)
+        self.assertIn("const voteInfo = mediaInfo?.vote_info;", optimized)
+        self.assertIn("delete mediaInfo.vote_info;", optimized)
+        self.assertEqual(optimize_vote_info_nested_reference_cache(optimized), optimized)
+        with self.assertRaises(ValueError):
+            optimize_vote_info_nested_reference_cache("function removeVoteInfo(item) {}")
+
     def test_fresh_source_transform_order_caches_user_before_avatar_fields(self):
         optimizer = Path(__file__).with_name("optimize_weibo_rstore.py").read_text(encoding="utf-8")
         lines = [line.strip() for line in optimizer.splitlines()
@@ -42,6 +59,11 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         self.assertNotRegex(source, r"\[[^\]\n]+\]\??\.includes\(")
         remaining = re.findall(r"\b(new[A-Za-z0-9_]*)\s*=\s*\[\s*\]", source)
         self.assertEqual(sorted(remaining), ["newActions"])
+        self.assertIn(VOTE_INFO_NESTED_REFERENCE_CACHE_MARKER, source)
+        self.assertIn("const pageInfo = item?.page_info;", source)
+        self.assertIn("const mediaInfo = pageInfo?.media_info;", source)
+        self.assertIn("const voteInfo = mediaInfo?.vote_info;", source)
+        self.assertNotIn("item?.page_info?.media_info?.vote_info", source)
         self.assertIn("compactInPlace(obj.elements", source)
         self.assertIn("compactInPlace(obj.user_list", source)
         self.assertIn("compactInPlace(obj.cards", source)
