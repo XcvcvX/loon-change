@@ -537,10 +537,10 @@ def optimize_source(source, commit="unknown"):
             raise ValueError("Didi optimization marker exists but allocating filter remains")
         if "obj.data.cards.forEach" in source:
             raise ValueError("Didi user-center wallet traversal optimization is stale")
-        return optimize_homepage_core_cached_references(optimize_response_data_reference_cache(optimize_info_list_cached_references(optimize_didi_route_dispatch_cache(optimize_didi_nested_traversal_property_cache(optimize_wallet_nested_property_cache(optimize_preparse_route_guard(optimize_didi_predicates(optimize_lazy_serialization(source)))))))))
+        return optimize_route_array_reference_cache(optimize_homepage_core_cached_references(optimize_response_data_reference_cache(optimize_info_list_cached_references(optimize_didi_route_dispatch_cache(optimize_didi_nested_traversal_property_cache(optimize_wallet_nested_property_cache(optimize_preparse_route_guard(optimize_didi_predicates(optimize_lazy_serialization(source))))))))))
     if LEGACY_MARKER in source:
         source = source.replace(LEGACY_MARKER, MARKER, 1)
-        return optimize_homepage_core_cached_references(optimize_response_data_reference_cache(optimize_info_list_cached_references(optimize_didi_route_dispatch_cache(optimize_didi_nested_traversal_property_cache(optimize_wallet_nested_property_cache(optimize_didi_predicates(optimize_lazy_serialization(source))))))))
+        return optimize_route_array_reference_cache(optimize_homepage_core_cached_references(optimize_response_data_reference_cache(optimize_info_list_cached_references(optimize_didi_route_dispatch_cache(optimize_didi_nested_traversal_property_cache(optimize_wallet_nested_property_cache(optimize_didi_predicates(optimize_lazy_serialization(source)))))))))
 
     body_guard = "if (!$response.body) $done({});"
     if source.count(body_guard) != 1:
@@ -579,7 +579,7 @@ def optimize_source(source, commit="unknown"):
         raise ValueError("expected all seven Didi filters to use compactInPlace")
 
     source = source.rstrip() + "\n}\n"
-    return optimize_homepage_core_cached_references(optimize_response_data_reference_cache(optimize_info_list_cached_references(optimize_didi_route_dispatch_cache(optimize_didi_nested_traversal_property_cache(optimize_wallet_nested_property_cache(optimize_preparse_route_guard(optimize_didi_predicates(optimize_lazy_serialization(MARKER + commit + "\n" + source)))))))))
+    return optimize_route_array_reference_cache(optimize_homepage_core_cached_references(optimize_response_data_reference_cache(optimize_info_list_cached_references(optimize_didi_route_dispatch_cache(optimize_didi_nested_traversal_property_cache(optimize_wallet_nested_property_cache(optimize_preparse_route_guard(optimize_didi_predicates(optimize_lazy_serialization(MARKER + commit + "\n" + source))))))))))
 
 
 def rewrite_plugin(plugin):
@@ -652,6 +652,87 @@ def main():
 
     if not (args.source or args.output or args.plugin):
         parser.error("provide source/output and/or plugin")
+
+
+
+DIDI_ROUTE_ARRAY_REFERENCE_CACHE_MARKER = "// loon-change: Didi scene-list and show-data array reference cache v1"
+DIDI_ROUTE_ARRAY_OLD_SCENE = """if (isSceneList) {
+  if (obj && responseData && responseData.scene_list instanceof Array) {
+    compactDidiByField(responseData.scene_list, "text", "scene");
+  }
+  if (obj && responseData && responseData.show_data instanceof Array) {
+    // loon-change: Didi show_data nested traversal cache v1
+    const showData = responseData.show_data;
+    const showDataLength = showData.length;
+    for (let read = 0; read < showDataLength; read++) {
+      const block = showData[read];
+      const sceneIds = block.scene_ids;
+      if (sceneIds instanceof Array) {
+        compactDidiByField(sceneIds, "scene_ids", "sceneId");
+      }
+    }
+  }
+}"""
+DIDI_ROUTE_ARRAY_NEW_SCENE = """if (isSceneList) {
+  // loon-change: Didi scene-list and show-data array reference cache v1
+  const sceneList = responseData?.scene_list;
+  if (sceneList instanceof Array) {
+    compactDidiByField(sceneList, "text", "scene");
+  }
+  const showData = responseData?.show_data;
+  if (showData instanceof Array) {
+    // loon-change: Didi show_data nested traversal cache v1
+    const showDataLength = showData.length;
+    for (let read = 0; read < showDataLength; read++) {
+      const block = showData[read];
+      const sceneIds = block.scene_ids;
+      if (sceneIds instanceof Array) {
+        compactDidiByField(sceneIds, "scene_ids", "sceneId");
+      }
+    }
+  }
+}"""
+DIDI_ROUTE_ARRAY_OLD_USER = """if (isUserCenter) {
+  if (responseData && responseData.cards) {
+    compactDidiByField(responseData.cards, "title", "card");
+  }
+}"""
+DIDI_ROUTE_ARRAY_NEW_USER = """if (isUserCenter) {
+  // loon-change: Didi user-center cards array reference cache v1
+  const userCenterCards = responseData?.cards;
+  if (userCenterCards) {
+    compactDidiByField(userCenterCards, "title", "card");
+  }
+}"""
+
+def optimize_route_array_reference_cache(source):
+    """Cache Didi scene-list, show-data, and user-center array references once."""
+    marker = DIDI_ROUTE_ARRAY_REFERENCE_CACHE_MARKER
+    required = (
+        marker,
+        "const sceneList = responseData?.scene_list;",
+        "const showData = responseData?.show_data;",
+        "const userCenterCards = responseData?.cards;",
+        'compactDidiByField(sceneList, "text", "scene");',
+        'compactDidiByField(userCenterCards, "title", "card");',
+    )
+    if marker in source:
+        if source.count(marker) != 1 or any(token not in source for token in required):
+            raise ValueError("Didi route array-reference cache structure is incomplete")
+        if "responseData.scene_list" in source or "responseData.show_data" in source or "responseData.cards" in source:
+            raise ValueError("Didi repeated route array property reads remain")
+        return source
+    if source.count(DIDI_ROUTE_ARRAY_OLD_SCENE) != 1 or source.count(DIDI_ROUTE_ARRAY_OLD_USER) != 1:
+        if "if (isSceneList) {" not in source and "if (isUserCenter) {" not in source:
+            return source
+        raise ValueError("Didi scene-list/user-center cache anchors changed")
+    source = source.replace(DIDI_ROUTE_ARRAY_OLD_SCENE, DIDI_ROUTE_ARRAY_NEW_SCENE, 1)
+    source = source.replace(DIDI_ROUTE_ARRAY_OLD_USER, DIDI_ROUTE_ARRAY_NEW_USER, 1)
+    if source.count(marker) != 1 or any(token not in source for token in required):
+        raise ValueError("Didi route array-reference cache postcondition failed")
+    if "responseData.scene_list" in source or "responseData.show_data" in source or "responseData.cards" in source:
+        raise ValueError("Didi repeated route array property reads remain")
+    return source
 
 
 if __name__ == "__main__":
