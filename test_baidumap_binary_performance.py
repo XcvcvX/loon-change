@@ -30,7 +30,7 @@ class BaiduMapBinaryPerformanceTests(unittest.TestCase):
         marker = "// loon-change: Baidu protobuf target-only byte views v1"
         self.assertIn(marker, self.source)
         start = self.source.index("for(let i = 0; i < messageHeadLength; i++)")
-        end = self.source.index("\n}\n\nif (modifiedAds && resultOffset !== -1)", start)
+        end = self.source.index("\n}\n\nif(invalidSegmentLayout || !adsFound", start)
         loop = self.source[start:end]
         self.assertEqual(loop.count("binaryBody.subarray("), 1)
         self.assertIn("if(name === 'Result'){", loop)
@@ -47,7 +47,7 @@ class BaiduMapBinaryPerformanceTests(unittest.TestCase):
         marker = "// loon-change: Baidu protobuf header collection cache v1"
         self.assertIn(marker, self.source)
         start = self.source.index(marker)
-        end = self.source.index("\n}\n\nif (modifiedAds && resultOffset !== -1)", start)
+        end = self.source.index("\n}\n\nif(invalidSegmentLayout || !adsFound", start)
         loop = self.source[start:end]
         self.assertIn("const messageHeadEntries = repHeadMessage.messageHead;", loop)
         self.assertIn("const messageHeadLength = messageHeadEntries.length;", loop)
@@ -505,8 +505,8 @@ source = source.replace(
   "for (let k = 0; k < trackedAdsContent.length; k++) { const target = trackedAdsContent[k]; trackedAdsContent[k] = new Proxy(target, { get(target, key, receiver) { if (globalThis.__trackAdsProperties && key === 'start') globalThis.__adsStartReads++; if (globalThis.__trackAdsProperties && key === 'end') globalThis.__adsEndReads++; return Reflect.get(target, key, receiver); } }); }"
 );
 source = source.replace(
-  "if (adsSegmentModified) {\n      modifiedAds = true;\n      newAds = adsType.encode(adsMessage).finish();\n    }",
-  "if (adsSegmentModified) { globalThis.__trackAdsProperties = false; modifiedAds = true; newAds = adsType.encode(adsMessage).finish(); }"
+  "if (adsSegmentModified) {\n      globalThis.__trackAdsProperties = false;\n      modifiedAds = true;\n      replacementSegments[i] = adsType.encode(adsMessage).finish();\n    }",
+  "if (adsSegmentModified) { globalThis.__trackAdsProperties = false; modifiedAds = true; replacementSegments[i] = adsType.encode(adsMessage).finish(); }"
 );
 
 
@@ -662,7 +662,7 @@ if (doneResult.body) {
         self.assertEqual(len(result["md5"]), 32)
         self.assertGreater(result["outputLength"], 0)
         self.assertEqual(result["md5InitCount"], 1)
-        self.assertEqual(result["subarrayCount"], 4)
+        self.assertEqual(result["subarrayCount"], 2)
         self.assertEqual(result["adsContentReads"], 1)
         self.assertEqual(result["adsStartReads"], 1)
         self.assertEqual(result["adsEndReads"], 0)
@@ -752,7 +752,7 @@ process.stdout.write("ok");
         self.assertIn("adsSegmentModified = true;", segment)
         self.assertIn("if (adsSegmentModified) {", segment)
         self.assertIn("modifiedAds = true;", segment)
-        self.assertIn("newAds = adsType.encode(adsMessage).finish();", segment)
+        self.assertIn("replacementSegments[i] = adsType.encode(adsMessage).finish();", segment)
         self.assertNotIn("if(modifiedAds) newAds =", segment)
         self.assertEqual(segment.count("adsType.encode(adsMessage).finish()"), 1)
 
