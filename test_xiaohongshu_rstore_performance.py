@@ -643,6 +643,8 @@ const trackedJSON={
     parsed.data=list;counts["data.length"]=0;
     const item=list[0],videoInfo=item.video_info_v2,media=videoInfo.media,streamInfo=media.stream;
     const h265=streamInfo.h265;
+    counts["h265.length"]=0;
+    counts["h265.index"]=0;
     const h265Proxy=new Proxy(h265,{get(target,key,receiver){
       if(tracking&&key==="length")counts["h265.length"]++;
       if(tracking&&typeof key==="string"&&/^\d+$/.test(key))counts["h265.index"]++;
