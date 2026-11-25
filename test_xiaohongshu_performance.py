@@ -242,9 +242,10 @@ process.stdout.write(nativeJSON.stringify({body:nativeJSON.parse(done.body),leng
         optimized=optimize_source(raw)
         self.assertIn(VIDEO_ENTRY_MARKER+chr(10)+"      // loon-change: Xiaohongshu v4 video-feed function-entry indexed scan v1;"+chr(10)+"      const functionEntries",optimized)
         self.assertNotIn(VIDEO_ENTRY_MARKER+chr(92)+"n      const functionEntries",optimized)
-        damaged=source.replace("for (const entry of functionEntries)","for (const entry of functionEntries.values())",1)
-        with self.assertRaisesRegex(ValueError,"marker is stale"):
-            optimize_v4_video_feed_function_entry_scan(damaged)
+        from optimize_xiaohongshu import optimize_v4_video_feed_function_entry_indexed_scan
+        damaged=source.replace("for (let entryIndex = 0; entryIndex < functionEntriesLength; entryIndex++)","for (let entryIndex = 0; entryIndex < functionEntries.length; entryIndex++)",1)
+        with self.assertRaisesRegex(ValueError,"marker/structure drift"):
+            optimize_v4_video_feed_function_entry_indexed_scan(damaged)
 
     def test_v3_video_feed_item_cache_is_idempotent_and_fails_closed(self):
         source=(ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")
