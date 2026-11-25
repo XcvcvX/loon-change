@@ -187,7 +187,7 @@ const context = {
         parsed = new Proxy(target, {
           get(object, key, receiver) {
             if (trackVideoSaveReads && key === "length") videoFeedLengthReads++;
-            if (trackVideoSaveReads && typeof key === "string" && /^\\d+$/.test(key)) videoFeedIndexReads++;
+            if (trackVideoSaveReads && typeof key === "string" && /^\d+$/.test(key)) videoFeedIndexReads++;
             return Reflect.get(object, key, receiver);
           }
         });
