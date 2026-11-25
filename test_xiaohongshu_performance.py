@@ -257,7 +257,9 @@ process.stdout.write(nativeJSON.stringify({body:nativeJSON.parse(done.body),leng
         end=source.index("\n\n// 信息流 视频\nif (url.includes(\"/v4/note/videofeed\")) {",start)
         v3_block=source[start:end]
         self.assertNotIn('const addItem = {type: "video_download"};',v3_block)
-        damaged=source.replace("const firstFunctionEntry = functionEntries[0];","const firstFunctionEntry = functionEntries[1];",1)
+        damaged=source[:start]+source[start:].replace(
+            "const firstFunctionEntry = functionEntries[0];",
+            "const firstFunctionEntry = functionEntries[1];",1)
         with self.assertRaisesRegex(ValueError,"reference-cache marker/structure drift"):
             optimize_v3_video_feed_item_reference_cache(damaged)
 
