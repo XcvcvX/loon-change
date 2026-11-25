@@ -170,7 +170,7 @@ class XiaohongshuOptimizerTests(unittest.TestCase):
         self.assertIn("const functionEntries = item?.share_info?.function_entries;",source)
         self.assertIn("const firstFunctionEntry = functionEntries[0];",source)
         start=source.index('if (url.includes("/v3/note/videofeed?")) {')
-        end=source.index("\\n\\n// 信息流 视频\\nif (url.includes(\\"/v4/note/videofeed\\")) {",start)
+        end=source.index("\n\n// 信息流 视频\nif (url.includes(\"/v4/note/videofeed\")) {",start)
         v3_block=source[start:end]
         self.assertNotIn('const addItem = {type: "video_download"};',v3_block)
         damaged=source.replace("const firstFunctionEntry = functionEntries[0];","const firstFunctionEntry = functionEntries[1];",1)
