@@ -5,7 +5,7 @@ import subprocess
 import unittest
 from pathlib import Path
 
-from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, LAZY_MARKER, GUARD_DECLARATION, HELPER, LEGACY_HELPER, optimize_source, rewrite_plugin, optimize_page_filter_cached_itemid, TOPIC_GROUP_MARKER, optimize_topic_group_in_place, COMMENT_DATA_CACHE_MARKER, COMMENT_DATA_CACHE_OLD, COMMENT_DATA_CACHE_NEW, optimize_comment_data_reference_cache, REMOVE_AVATAR_USER_CACHE_MARKER, COMMENT_USER_CACHE_MARKER, COMMENT_USER_CACHE_OLD, COMMENT_USER_CACHE_NEW, optimize_comment_user_reference_cache, TOPIC_GROUP_NESTED_DATA_MARKER, optimize_topic_group_nested_data_cache, ROOT_COMMENT_USER_CACHE_MARKER, optimize_root_comment_user_cache, REMOVE_AVATAR_PROPERTY_CACHE_MARKER, optimize_remove_avatar_property_cache, COMMENT_DECORATION_SINGLE_READ_MARKER, ROOT_COMMENT_DECORATION_SINGLE_READ_MARKER, REPLY_DECORATION_SINGLE_READ_MARKER, ROOT_COMMENT_BUBBLE_SINGLE_READ_MARKER, optimize_comment_decoration_single_read
+from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, LAZY_MARKER, GUARD_DECLARATION, HELPER, LEGACY_HELPER, optimize_source, rewrite_plugin, optimize_page_filter_cached_itemid, TOPIC_GROUP_MARKER, optimize_topic_group_in_place, COMMENT_DATA_CACHE_MARKER, COMMENT_DATA_CACHE_OLD, COMMENT_DATA_CACHE_NEW, optimize_comment_data_reference_cache, REMOVE_AVATAR_USER_CACHE_MARKER, COMMENT_USER_CACHE_MARKER, COMMENT_USER_CACHE_OLD, COMMENT_USER_CACHE_NEW, optimize_comment_user_reference_cache, TOPIC_GROUP_NESTED_DATA_MARKER, optimize_topic_group_nested_data_cache, ROOT_COMMENT_USER_CACHE_MARKER, optimize_root_comment_user_cache, REMOVE_AVATAR_PROPERTY_CACHE_MARKER, optimize_remove_avatar_property_cache, COMMENT_DECORATION_SINGLE_READ_MARKER, ROOT_COMMENT_DECORATION_SINGLE_READ_MARKER, REPLY_DECORATION_SINGLE_READ_MARKER, ROOT_COMMENT_BUBBLE_SINGLE_READ_MARKER, optimize_comment_decoration_single_read, COMMENT_ARRAY_REFERENCE_CACHE_MARKER, optimize_comment_array_reference_cache
 
 ROOT = Path(__file__).resolve().parent
 SCRIPT = ROOT / "scripts/weibo/weibo-rstore.js"
@@ -98,6 +98,20 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "user-cache structure drift"):
             optimize_root_comment_user_cache(damaged)
 
+
+    def test_comment_array_reference_cache_is_branch_lazy_and_fails_closed(self):
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(COMMENT_ARRAY_REFERENCE_CACHE_MARKER, source)
+        self.assertEqual(optimize_comment_array_reference_cache(source), source)
+        self.assertIn("const commentDatas = obj?.datas;", source)
+        self.assertIn("(rootComments = obj?.root_comments)?.length > 0", source)
+        self.assertIn("(replyComments = obj?.comments)?.length > 0", source)
+        self.assertNotIn("if (obj?.datas?.length > 0)", source)
+        self.assertNotIn("else if (obj?.root_comments?.length > 0)", source)
+        self.assertNotIn("else if (obj?.comments?.length > 0)", source)
+        damaged = source.replace("const __loonSource30 = commentDatas;", "const __loonSource30 = obj.datas;", 1)
+        with self.assertRaisesRegex(ValueError, "structure drift"):
+            optimize_comment_array_reference_cache(damaged)
 
     def test_comment_decoration_optimizer_is_idempotent_and_fails_closed(self):
         source = SCRIPT.read_text(encoding="utf-8")
@@ -324,6 +338,7 @@ const trackedJSON={
       Object.defineProperty(target,key,{enumerable:true,configurable:true,
         get(){if(tracking)counts[label]++;return current;},set(value){current=value;}});
     };
+    for(const key of ["datas","root_comments","comments"])wrap(parsed,key,"top."+key);
     if(parsed.datas)for(const entry of parsed.datas)if(entry?.data){
       for(const key of ["comment_bubble","comment_bullet_screens_message","hot_icon","vip_button"])wrap(entry.data,key,"datas."+key);
     }
@@ -350,15 +365,15 @@ process.stdout.write(nativeStringify({doneResult,counts}));
                 {"type": 1, "data": {"user": {"name": "ordinary"},
                     "comment_bubble": {"x": 1}, "comment_bullet_screens_message": {"x": 1},
                     "hot_icon": {"x": 1}, "vip_button": {"x": 1}}}
-            ]}, {"datas.comment_bubble", "datas.comment_bullet_screens_message", "datas.hot_icon", "datas.vip_button"}),
+            ]}, {"top.datas", "datas.comment_bubble", "datas.comment_bullet_screens_message", "datas.hot_icon", "datas.vip_button"}),
             ("https://api.weibo.cn/2/comments/build_comments?fixture=root-read-count", {"root_comments": [
                 {"user": {"name": "ordinary"}, "comment_bubble": {"x": 1},
                  "comment_bullet_screens_message": {"x": 1}, "hot_icon": {"x": 1}, "vip_button": {"x": 1}}
-            ]}, {"root.comment_bubble", "root.comment_bullet_screens_message", "root.hot_icon", "root.vip_button"}),
+            ]}, {"top.datas", "top.root_comments", "root.comment_bubble", "root.comment_bullet_screens_message", "root.hot_icon", "root.vip_button"}),
             ("https://api.weibo.cn/2/comments/build_comments?fixture=reply-read-count", {"comments": [
                 {"user": {"icons": [{"x": 1}]}, "reply_comment": {"comment_badge": {"x": 1}}}
-            ]}, {"reply.user.icons", "reply.comment_badge"}),
-            ("https://api.weibo.cn/2/comments/build_comments?fixture=root-comment-read-count", {"rootComment": {"comment_bubble": {"x": 1}}}, {"rootComment.comment_bubble"}),
+            ]}, {"top.datas", "top.root_comments", "top.comments", "reply.user.icons", "reply.comment_badge"}),
+            ("https://api.weibo.cn/2/comments/build_comments?fixture=root-comment-read-count", {"rootComment": {"comment_bubble": {"x": 1}}}, {"top.datas", "top.root_comments", "top.comments", "rootComment.comment_bubble"}),
         ]
         for url, body, expected_keys in cases:
             completed = subprocess.run(

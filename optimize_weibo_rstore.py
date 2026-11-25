@@ -434,7 +434,7 @@ def optimize_source(source, commit="unknown"):
     if MARKER in source:
         if "__loonSource32" not in source or "compactInPlace(items, keep)" not in source:
             raise ValueError("marked Weibo script is incomplete")
-        return optimize_profile_timeline_data_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source)))))))))))
+        return optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source))))))))))))
     source = source.replace("const url = $request.url;", "const url = $request.url;\n" + GUARD_DECLARATION + "\n\n" + HELPER, 1)
     if source.count(HELPER) != 1:
         raise ValueError("Weibo helper insertion failed")
@@ -446,7 +446,7 @@ def optimize_source(source, commit="unknown"):
     remaining = re.findall(r"\b(new[A-Za-z0-9_]*)\s*=\s*\[\s*\]", source)
     if sorted(remaining) != ["newActions", "newII"]:
         raise ValueError("unexpected remaining Weibo temporary arrays: " + repr(remaining))
-    return optimize_profile_timeline_data_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source)))))))))))
+    return optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source))))))))))))
 
 SCALAR_MEMBERSHIP_MARKER = "// loon-change: Weibo hot-loop scalar membership v1"
 SCALAR_MEMBERSHIP_REWRITES = [
@@ -1028,6 +1028,67 @@ def optimize_comment_decoration_single_read(source):
     if any(source.count(marker) != 1 for marker in markers) or any(token not in source for token in required):
         raise ValueError("Weibo comment decoration single-read cache postcondition failed")
     return source
+
+
+COMMENT_ARRAY_REFERENCE_CACHE_MARKER = "// loon-change: Weibo comment top-level array reference cache v1"
+
+def optimize_comment_array_reference_cache(source):
+    """Read the mutually exclusive Weibo comment response arrays once per tested branch."""
+    start = '} else if (url.includes("/2/comments/build_comments")) {'
+    end = '} else if (url.includes("/2/container/asyn")) {'
+    if source.count(start) != 1 or source.count(end) != 1:
+        raise ValueError("Weibo comment-array cache route boundary drift")
+    left = source.index(start)
+    right = source.index(end, left + len(start))
+    block = source[left:right]
+    required = (
+        COMMENT_ARRAY_REFERENCE_CACHE_MARKER,
+        "const commentDatas = obj?.datas;",
+        "let rootComments;",
+        "let replyComments;",
+        "if (commentDatas?.length > 0)",
+        "(rootComments = obj?.root_comments)?.length > 0",
+        "(replyComments = obj?.comments)?.length > 0",
+        "const __loonSource30 = commentDatas;",
+        "const __loonSource29 = rootComments;",
+        "const __loonSource28 = replyComments;",
+    )
+    if COMMENT_ARRAY_REFERENCE_CACHE_MARKER in block:
+        if block.count(COMMENT_ARRAY_REFERENCE_CACHE_MARKER) != 1 or any(token not in block for token in required):
+            raise ValueError("Weibo comment-array reference cache structure drift")
+        old = (
+            "if (obj?.datas?.length > 0)",
+            "obj?.root_comments?.length > 0",
+            "obj?.comments?.length > 0",
+            "const __loonSource30 = obj.datas;",
+            "const __loonSource29 = obj.root_comments;",
+            "const __loonSource28 = obj.comments;",
+        )
+        if any(token in block for token in old):
+            raise ValueError("Weibo repeated top-level comment array reads remain")
+        return source
+    replacements = (
+        ("    if (obj?.datas?.length > 0) {",
+         "    // loon-change: Weibo comment top-level array reference cache v1\n"
+         "    const commentDatas = obj?.datas;\n"
+         "    let rootComments;\n"
+         "    let replyComments;\n"
+         "    if (commentDatas?.length > 0) {"),
+        ("    } else if (obj?.root_comments?.length > 0) {",
+         "    } else if ((rootComments = obj?.root_comments)?.length > 0) {"),
+        ("    } else if (obj?.comments?.length > 0) {",
+         "    } else if ((replyComments = obj?.comments)?.length > 0) {"),
+        ("      const __loonSource30 = obj.datas;", "      const __loonSource30 = commentDatas;"),
+        ("      const __loonSource29 = obj.root_comments;", "      const __loonSource29 = rootComments;"),
+        ("      const __loonSource28 = obj.comments;", "      const __loonSource28 = replyComments;"),
+    )
+    for old, new in replacements:
+        if block.count(old) != 1:
+            raise ValueError("Weibo comment-array cache anchor drift: " + old[:70])
+        block = block.replace(old, new, 1)
+    if any(token not in block for token in required):
+        raise ValueError("Weibo comment-array reference cache postcondition failed")
+    return source[:left] + block + source[right:]
 
 
 if __name__ == "__main__":
