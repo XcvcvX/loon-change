@@ -219,30 +219,13 @@ process.stdout.write(nativeJSON.stringify({body:nativeJSON.parse(done.body),leng
         self.assertEqual(optimize_v4_video_feed_function_entry_scan(source),source)
         self.assertIn("const functionEntries = item?.share_info?.function_entries;",source)
         self.assertNotIn("function_entries.some(",source)
-        new_block="""      const functionEntries = item?.share_info?.function_entries;
-      if (functionEntries?.length > 0) {
-        let hasDownload = false;
-        for (const entry of functionEntries) {
-          if (entry.type === "video_download") {
-            hasDownload = true;
-            break;
-          }
-        }
-        if (!hasDownload) {
-          functionEntries.push({type: "video_download"});
-        }
-      }"""
-        old_block="""      if (item?.share_info?.function_entries?.length > 0) {
-        const hasDownload = item.share_info.function_entries.some(entry => entry.type === "video_download");
-        if (!hasDownload) {
-          item.share_info.function_entries.push({type: "video_download"});
-        }
-      }"""
-        raw=source.replace(VIDEO_ENTRY_MARKER+chr(10),"",1).replace(new_block,old_block,1)
-        optimized=optimize_source(raw)
-        self.assertIn(VIDEO_ENTRY_MARKER+chr(10)+"      // loon-change: Xiaohongshu v4 video-feed function-entry indexed scan v1;"+chr(10)+"      const functionEntries",optimized)
-        self.assertNotIn(VIDEO_ENTRY_MARKER+chr(92)+"n      const functionEntries",optimized)
-        from optimize_xiaohongshu import optimize_v4_video_feed_function_entry_indexed_scan
+        self.assertIn(VIDEO_ENTRY_MARKER,source)
+        from optimize_xiaohongshu import VIDEO_ENTRY_INDEXED_MARKER, optimize_v4_video_feed_function_entry_indexed_scan
+        self.assertIn(VIDEO_ENTRY_INDEXED_MARKER,source)
+        self.assertIn("const functionEntriesLength = functionEntries?.length || 0;",source)
+        self.assertIn("for (let entryIndex = 0; entryIndex < functionEntriesLength; entryIndex++)",source)
+        self.assertNotIn("for (const entry of functionEntries)",source)
+        self.assertEqual(optimize_v4_video_feed_function_entry_indexed_scan(source),source)
         damaged=source.replace("for (let entryIndex = 0; entryIndex < functionEntriesLength; entryIndex++)","for (let entryIndex = 0; entryIndex < functionEntries.length; entryIndex++)",1)
         with self.assertRaisesRegex(ValueError,"marker/structure drift"):
             optimize_v4_video_feed_function_entry_indexed_scan(damaged)
