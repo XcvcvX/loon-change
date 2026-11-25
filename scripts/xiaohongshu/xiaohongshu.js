@@ -231,10 +231,13 @@ if (url.includes("/v4/note/videofeed")) {
 
       // 添加下载按钮（如果未存在）
 // loon-change: Xiaohongshu v4 video-feed function-entry scan without callback v1;
+      // loon-change: Xiaohongshu v4 video-feed function-entry indexed scan v1;
       const functionEntries = item?.share_info?.function_entries;
-      if (functionEntries?.length > 0) {
+      const functionEntriesLength = functionEntries?.length || 0;
+      if (functionEntriesLength > 0) {
         let hasDownload = false;
-        for (const entry of functionEntries) {
+        for (let entryIndex = 0; entryIndex < functionEntriesLength; entryIndex++) {
+          const entry = functionEntries[entryIndex];
           if (entry.type === "video_download") {
             hasDownload = true;
             break;
