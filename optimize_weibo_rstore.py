@@ -630,10 +630,6 @@ def main():
     if not (args.source or args.output or args.plugin):
         parser.error("provide --source/--output and/or --plugin")
 
-if __name__ == "__main__":
-    main()
-
-
 TOPIC_GROUP_NESTED_DATA_MARKER = "// loon-change: Weibo topic-group nested data reference cache v1"
 TOPIC_GROUP_NESTED_DATA_OLD = """          if (item?.items?.length > 0) {
             if (item?.itemId === null) {
@@ -762,3 +758,7 @@ def optimize_topic_group_nested_data_cache(source):
     if "for (let ii of item.items)" in source or "removeAvatar(ii?.data)" in source:
         raise ValueError("Weibo repeated nested topic-group property reads remain")
     return source
+
+
+if __name__ == "__main__":
+    main()
