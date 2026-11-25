@@ -79,6 +79,13 @@ class DidiOptimizerTests(unittest.TestCase):
         self.assertLess(result.index("const shouldProcess"), result.index("JSON.parse($response.body)"))
         self.assertTrue(result.rstrip().endswith("}"))
         self.assertEqual(optimize_source(result), result)
+        self.assertIn(DIDI_MODE_MARKER, result)
+        self.assertEqual(result.count("for (let read = 0; read < length; read++)"), 7)
+        self.assertIn(DIDI_WALLET_PROPERTY_CACHE_MARKER, result)
+        self.assertIn("const walletItems = item.items;", result)
+        self.assertIn("const walletBottomItems = item.bottom_items;", result)
+        self.assertNotIn("Array.isArray(item.items)", result)
+        self.assertNotIn("Array.isArray(item.bottom_items)", result)
 
     def test_homepage_core_optimizer_caches_nested_references_and_is_idempotent(self):
         source = '''if (isHomepageCore) {
@@ -99,13 +106,6 @@ class DidiOptimizerTests(unittest.TestCase):
         damaged = result.replace("const navListData = navListCard?.data;", "const navListData = navListCard?.other;", 1)
         with self.assertRaisesRegex(ValueError, "reference cache structure is incomplete"):
             optimize_homepage_core_cached_references(damaged)
-        self.assertIn(DIDI_MODE_MARKER, result)
-        self.assertEqual(result.count("for (let read = 0; read < length; read++)"), 7)
-        self.assertIn(DIDI_WALLET_PROPERTY_CACHE_MARKER, result)
-        self.assertIn("const walletItems = item.items;", result)
-        self.assertIn("const walletBottomItems = item.bottom_items;", result)
-        self.assertNotIn("Array.isArray(item.items)", result)
-        self.assertNotIn("Array.isArray(item.bottom_items)", result)
 
     def test_optimizer_fails_closed_when_upstream_filter_inventory_drifts(self):
         source = self.fixture_source().replace(
