@@ -76,6 +76,7 @@ if (isCloudVideo) {
   const splashHome = obj?.data?.containers?.splash_home_base;
   if (splashHome) {
     const sections = splashHome.base?.sections;
+      // loon-change: Taobao indexed splash traversal v1
     // loon-change: Taobao splash array length single-read cache v1
     const sectionCount = Array.isArray(sections) ? sections.length : 0;
     if (sectionCount > 0) {
