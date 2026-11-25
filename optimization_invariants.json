@@ -146,7 +146,8 @@
         "Xiaohongshu flat comment stack frames v2;",
         "const commentFrameTag = {};",
         "stack.push(comment, commentFrameTag, true)",
-        "stack.push(subComment, commentFrameTag, false)"
+        "stack.push(subComment, commentFrameTag, false)",
+        "if (isCommentFrame && key === \"pictures\") continue;"
       ],
       "forbidden": [
         "JSON.stringify(images_list), \"redBookLivePhoto\"",
