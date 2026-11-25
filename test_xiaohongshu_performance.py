@@ -219,32 +219,16 @@ process.stdout.write(nativeJSON.stringify({body:nativeJSON.parse(done.body),leng
         self.assertEqual(optimize_v4_video_feed_function_entry_scan(source),source)
         self.assertIn("const functionEntries = item?.share_info?.function_entries;",source)
         self.assertNotIn("function_entries.some(",source)
-        new_block="""      const functionEntries = item?.share_info?.function_entries;
-      if (functionEntries?.length > 0) {
-        let hasDownload = false;
-        for (const entry of functionEntries) {
-          if (entry.type === "video_download") {
-            hasDownload = true;
-            break;
-          }
-        }
-        if (!hasDownload) {
-          functionEntries.push({type: "video_download"});
-        }
-      }"""
-        old_block="""      if (item?.share_info?.function_entries?.length > 0) {
-        const hasDownload = item.share_info.function_entries.some(entry => entry.type === "video_download");
-        if (!hasDownload) {
-          item.share_info.function_entries.push({type: "video_download"});
-        }
-      }"""
-        raw=source.replace(VIDEO_ENTRY_MARKER+chr(10),"",1).replace(new_block,old_block,1)
-        optimized=optimize_source(raw)
-        self.assertIn(VIDEO_ENTRY_MARKER+chr(10)+"      const functionEntries",optimized)
-        self.assertNotIn(VIDEO_ENTRY_MARKER+chr(92)+"n      const functionEntries",optimized)
-        damaged=source.replace("for (const entry of functionEntries)","for (const entry of functionEntries.values())",1)
-        with self.assertRaisesRegex(ValueError,"marker is stale"):
-            optimize_v4_video_feed_function_entry_scan(damaged)
+        self.assertIn(VIDEO_ENTRY_MARKER,source)
+        from optimize_xiaohongshu import VIDEO_ENTRY_INDEXED_MARKER, optimize_v4_video_feed_function_entry_indexed_scan
+        self.assertIn(VIDEO_ENTRY_INDEXED_MARKER,source)
+        self.assertIn("const functionEntriesLength = functionEntries?.length || 0;",source)
+        self.assertIn("for (let entryIndex = 0; entryIndex < functionEntriesLength; entryIndex++)",source)
+        self.assertNotIn("for (const entry of functionEntries)",source)
+        self.assertEqual(optimize_v4_video_feed_function_entry_indexed_scan(source),source)
+        damaged=source.replace("for (let entryIndex = 0; entryIndex < functionEntriesLength; entryIndex++)","for (let entryIndex = 0; entryIndex < functionEntries.length; entryIndex++)",1)
+        with self.assertRaisesRegex(ValueError,"marker/structure drift"):
+            optimize_v4_video_feed_function_entry_indexed_scan(damaged)
 
     def test_v3_video_feed_item_cache_is_idempotent_and_fails_closed(self):
         source=(ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")
@@ -1005,4 +989,62 @@ vm.runInNewContext(source,ctx,{timeout:5000});process.stdout.write(nativeStringi
             for ad in group["ads"]:
                 self.assertEqual(ad["end_time"],3818419199)
 
+
+
+
+class XiaohongshuV4FunctionEntryIndexedScanTests(unittest.TestCase):
+    def test_indexed_scan_optimizer_is_idempotent_and_fails_closed(self):
+        from optimize_xiaohongshu import VIDEO_ENTRY_INDEXED_MARKER, optimize_v4_video_feed_function_entry_indexed_scan
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertEqual(source.count(VIDEO_ENTRY_INDEXED_MARKER), 1)
+        self.assertEqual(optimize_v4_video_feed_function_entry_indexed_scan(source), source)
+        self.assertIn("const functionEntriesLength = functionEntries?.length || 0;", source)
+        self.assertIn("for (let entryIndex = 0; entryIndex < functionEntriesLength; entryIndex++)", source)
+        self.assertNotIn("for (const entry of functionEntries)", source)
+        marker_start = source.index(VIDEO_ENTRY_INDEXED_MARKER)
+        v4_block = source[marker_start:]
+        damaged_block = v4_block.replace("const functionEntriesLength = functionEntries?.length || 0;", "const functionEntriesLength = 0;", 1)
+        damaged = source[:marker_start] + damaged_block
+        with self.assertRaisesRegex(ValueError, "marker/structure drift"):
+            optimize_v4_video_feed_function_entry_indexed_scan(damaged)
+
+    @unittest.skipUnless(NODE, "Node.js is required for function-entry indexed scan counter tests")
+    def test_function_entries_use_cached_length_without_array_iterator(self):
+        runner = r"""
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync(process.argv[1],"utf8");
+const nativeParse=JSON.parse.bind(JSON),nativeStringify=JSON.stringify.bind(JSON);
+const payload=JSON.parse(fs.readFileSync(0,"utf8"));
+let done,tracking=false;
+const counts={length:0,iterator:0};
+const trackedJSON={parse(raw){
+  const root=nativeParse(raw);
+  for(const item of root.data){
+    const entries=item.share_info && item.share_info.function_entries;
+    if(!Array.isArray(entries)) continue;
+    item.share_info.function_entries=new Proxy(entries,{get(target,prop,receiver){
+      if(tracking&&prop==="length") counts.length++;
+      if(tracking&&prop===Symbol.iterator) counts.iterator++;
+      return Reflect.get(target,prop,receiver);
+    }});
+  }
+  tracking=true;return root;
+},stringify(value){tracking=false;return nativeStringify(value);}};
+const ctx={JSON:trackedJSON,$loon:{},$persistentStore:{read(){return null},write(){return true}},
+__stopTrack(){tracking=false;},
+$request:{url:"https://edith.xiaohongshu.com/api/sns/v4/note/videofeed"},
+$response:{body:nativeStringify(payload)},$done:value=>done=value,console:{log(){},warn(){},error(){}}};
+let instrumented=source.replace("      // 提取最佳视频流","      globalThis.__stopTrack();\n      // 提取最佳视频流");
+vm.runInNewContext(instrumented,ctx,{timeout:5000});
+const out=nativeParse(done.body);
+process.stdout.write(nativeStringify({counts,entries:out.data.map(x=>x.share_info.function_entries)}));
+"""
+        body={"data":[
+            {"share_info":{"function_entries":[{"type":"share"},{"type":"video_download"},{"type":"copy"}]}}
+        ]}
+        run=subprocess.run([NODE,"-e",runner,str(SCRIPT)],input=json.dumps(body),cwd=ROOT,capture_output=True,text=True,check=False,timeout=10)
+        self.assertEqual(run.returncode,0,run.stderr)
+        result=json.loads(run.stdout)
+        # The existing download-entry scan performs one explicit length read.
+        self.assertEqual(result["counts"],{"length":1,"iterator":0})
+        self.assertEqual(result["entries"][0],[{"type":"share"},{"type":"video_download"},{"type":"copy"}])
 

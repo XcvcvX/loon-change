@@ -62,7 +62,6 @@
         "const list = pass === 0 ? h265List : h264List;",
         "// loon-change: Xiaohongshu v4 video-feed function-entry scan without callback v1;",
         "const functionEntries = item?.share_info?.function_entries;",
-        "for (const entry of functionEntries)",
         "// loon-change: Xiaohongshu comment media collection property cache v1;",
         "const pictures = current.pictures;",
         "const pictureVideoId = picture?.video_id;",
@@ -111,7 +110,11 @@
         "const videoDataLength = videoDataSource?.length || 0;",
         "for (let videoIndex = 0; videoIndex < videoDataLength; videoIndex++)",
         "const functionSwitchLength = functionSwitch?.length || 0;",
-        "for (let switchIndex = 0; switchIndex < functionSwitchLength; switchIndex++)"
+        "for (let switchIndex = 0; switchIndex < functionSwitchLength; switchIndex++)",
+        "// loon-change: Xiaohongshu v4 video-feed function-entry indexed scan v1;",
+        "const functionEntriesLength = functionEntries?.length || 0;",
+        "for (let entryIndex = 0; entryIndex < functionEntriesLength; entryIndex++)",
+        "const entry = functionEntries[entryIndex];"
       ],
       "forbidden": [
         "console.log(`[缓存] ID:",
@@ -142,7 +145,8 @@
         "if(frame.index>=value.length)",
         "for (let i = current.length - 1; i >= 0; i--)",
         "for (let i = child.length - 1; i >= 0; i--)",
-        "switchIndex < functionSwitch.length"
+        "switchIndex < functionSwitch.length",
+        "for (const entry of functionEntries)"
       ]
     },
     {
