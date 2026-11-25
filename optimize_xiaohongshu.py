@@ -469,10 +469,16 @@ def optimize_v4_video_feed_function_entry_scan(src):
     if src.count("      if (item?.share_info?.function_entries?.length > 0) {\n        const hasDownload = item.share_info.function_entries.some(entry => entry.type === \"video_download\");\n        if (!hasDownload) {\n          item.share_info.function_entries.push({type: \"video_download\"});\n        }\n      }") != 1:
         raise ValueError("Xiaohongshu v4 function-entry scan anchor drift")
     src = src.replace("      if (item?.share_info?.function_entries?.length > 0) {\n        const hasDownload = item.share_info.function_entries.some(entry => entry.type === \"video_download\");\n        if (!hasDownload) {\n          item.share_info.function_entries.push({type: \"video_download\"});\n        }\n      }", "      const functionEntries = item?.share_info?.function_entries;\n      if (functionEntries?.length > 0) {\n        let hasDownload = false;\n        for (const entry of functionEntries) {\n          if (entry.type === \"video_download\") {\n            hasDownload = true;\n            break;\n          }\n        }\n        if (!hasDownload) {\n          functionEntries.push({type: \"video_download\"});\n        }\n      }", 1)
+    v4_start = 'if (url.includes("/v4/note/videofeed")) {'
+    v4_end = "\n\n// 视频保存请求"
+    left = src.index(v4_start) if v4_start in src else -1
+    right = src.find(v4_end, left) if left >= 0 else -1
+    block = src[left:right] if left >= 0 and right >= 0 else ""
     anchor = "      const functionEntries = item?.share_info?.function_entries;"
-    if src.count(anchor) != 1:
+    if not block or block.count(anchor) != 1:
         raise ValueError("Xiaohongshu v4 function-entry marker insertion anchor drift")
-    return src.replace(anchor, VIDEO_ENTRY_MARKER + "\n" + anchor, 1)
+    block = block.replace(anchor, VIDEO_ENTRY_MARKER + "\n" + anchor, 1)
+    return src[:left] + block + src[right:]
 
 
 VIDEO_V3_ITEM_CACHE_MARKER = "// loon-change: Xiaohongshu v3 video-feed item reference cache v1;"
