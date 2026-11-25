@@ -318,9 +318,15 @@ if(invalidSegmentLayout || !adsFound || !modifiedAds || resultCount !== 1) {
   $done({});
 } else {
   // Rebuild every Result/Ads/unknown segment in original byte order; all modified Ads segments are retained.
-  const body = assembleBaiduResponseSegments(
-    repHeadMessage, repHeadType, binaryBody, dataBeginOffset, replacementSegments, createBaiduMd5()
-  );
+  let body;
+  try {
+    body = assembleBaiduResponseSegments(
+      repHeadMessage, repHeadType, binaryBody, dataBeginOffset, replacementSegments, createBaiduMd5()
+    );
+  } catch (error) {
+    // Invalid segment metadata must not produce a partially rebuilt response.
+    $done({});
+  }
 
   if(isQuanX){
     $done({bodyBytes: body.buffer});
