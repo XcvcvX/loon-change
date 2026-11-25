@@ -144,7 +144,7 @@ vm.runInContext(source,context,{timeout:5000});
 process.stdout.write(nativeStringify({doneResult,readCount,enableValue}));
 """;
         completed = subprocess.run(
-            [NODE, "-e", runner],
+            [NODE, "-e", runner, str(SCRIPT)],
             input=json.dumps({
                 "url": "https://poplayer.template.alibaba.com/mtop",
                 "body": {"res": {"images": []}, "mainRes": {"images": []}, "enable": True}

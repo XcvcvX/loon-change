@@ -288,6 +288,17 @@ def add_lazy_serialization_guard(source):
             target.replace("data.user.", "user.") if target.startswith("data.user.") else target
             for target in delete_targets
         ]
+    if REPLY_DECORATION_SINGLE_READ_MARKER in source:
+        reply_target_map = {
+            "item.user.icons": "replyUser.icons",
+            "item.reply_comment.comment_badge": "replyComment.comment_badge",
+        }
+        delete_targets = [reply_target_map.get(target, target) for target in delete_targets]
+    if ROOT_COMMENT_BUBBLE_SINGLE_READ_MARKER in source:
+        delete_targets = [
+            "rootComment.comment_bubble" if target == "obj.rootComment.comment_bubble" else target
+            for target in delete_targets
+        ]
 
     if LAZY_MARKER in source:
         if GUARD_DECLARATION not in source or '$done(modified ? {body: JSON.stringify(obj)} : {});' not in source:
@@ -345,11 +356,33 @@ COMMENT_DATA_CACHE_NEW = "        let item = __loonSource30[__loonRead30];\n    
 
 def optimize_comment_data_reference_cache(source):
     if COMMENT_DATA_CACHE_MARKER in source:
-        expected_new = COMMENT_DATA_CACHE_NEW
-        if "COMMENT_USER_CACHE_NEW" in globals() and "COMMENT_USER_CACHE_OLD" in globals():
-            expected_new = expected_new.replace(COMMENT_USER_CACHE_OLD, COMMENT_USER_CACHE_NEW, 1)
-        if source.count(COMMENT_DATA_CACHE_MARKER) != 1 or COMMENT_DATA_CACHE_OLD in source or expected_new not in source:
+        required = (
+            COMMENT_DATA_CACHE_MARKER,
+            "const commentData = item?.data;",
+            "if (!isAd(commentData))",
+            "delete commentData.comment_bubble;",
+            "delete commentData.comment_bullet_screens_message;",
+            "delete commentData.hot_icon;",
+            "delete commentData.vip_button;",
+        )
+        if source.count(COMMENT_DATA_CACHE_MARKER) != 1 or COMMENT_DATA_CACHE_OLD in source or any(token not in source for token in required):
             raise ValueError("Weibo comment data-cache marker/structure drift")
+        if COMMENT_USER_CACHE_MARKER in source:
+            user_required = (
+                "const commentUser = commentData?.user;",
+                "removeAvatar(commentData, commentUser);",
+                "const commentUserName = commentUser.name;",
+            )
+            if any(token not in source for token in user_required):
+                raise ValueError("Weibo comment data/user-cache composed structure drift")
+        else:
+            intermediate_user_required = (
+                "if (commentData?.user)",
+                "removeAvatar(commentData);",
+                "commentData.user?.name ===",
+            )
+            if any(token not in source for token in intermediate_user_required):
+                raise ValueError("Weibo comment data-cache intermediate user structure drift")
         return source
     old_block = COMMENT_DATA_CACHE_OLD
     if source.count(old_block) != 1:
@@ -373,15 +406,33 @@ COMMENT_USER_CACHE_NEW = "            // loon-change: Weibo comment user/name re
 def optimize_comment_user_reference_cache(source):
     """Cache each comment's user/name and reuse the user reference in removeAvatar."""
     if REMOVE_AVATAR_USER_CACHE_MARKER in source:
-        if source.count(REMOVE_AVATAR_USER_CACHE_MARKER) != 1 or REMOVE_AVATAR_HELPER_OLD in source or REMOVE_AVATAR_HELPER_NEW not in source:
+        if (source.count(REMOVE_AVATAR_USER_CACHE_MARKER) != 1 or
+                REMOVE_AVATAR_HELPER_OLD in source or
+                "function removeAvatar(data, user = data?.user)" not in source or
+                "delete user.avatargj_id;" not in source):
             raise ValueError("Weibo removeAvatar user-cache marker/structure drift")
+        if REMOVE_AVATAR_PROPERTY_CACHE_MARKER in source and "const avatarGjId = user?.avatargj_id;" not in source:
+            raise ValueError("Weibo removeAvatar user-cache avatar field cache drift")
     else:
         if source.count(REMOVE_AVATAR_HELPER_OLD) != 1:
             raise ValueError("Weibo removeAvatar helper anchor drift")
         source = source.replace(REMOVE_AVATAR_HELPER_OLD, REMOVE_AVATAR_HELPER_NEW, 1)
 
     if COMMENT_USER_CACHE_MARKER in source:
-        if source.count(COMMENT_USER_CACHE_MARKER) != 1 or COMMENT_USER_CACHE_OLD in source or COMMENT_USER_CACHE_NEW not in source:
+        if source.count(COMMENT_USER_CACHE_MARKER) != 1 or COMMENT_USER_CACHE_OLD in source:
+            raise ValueError("Weibo comment user-cache marker/structure drift")
+        marker_start = source.index(COMMENT_USER_CACHE_MARKER)
+        next_marker = source.find(COMMENT_DECORATION_SINGLE_READ_MARKER, marker_start + len(COMMENT_USER_CACHE_MARKER))
+        if next_marker < 0:
+            raise ValueError("Weibo comment user-cache following boundary drift")
+        comment_user_block = source[marker_start:next_marker]
+        required_comment_user = (
+            COMMENT_USER_CACHE_MARKER,
+            "const commentUser = commentData?.user;",
+            "removeAvatar(commentData, commentUser);",
+            "const commentUserName = commentUser.name;",
+        )
+        if any(token not in comment_user_block for token in required_comment_user):
             raise ValueError("Weibo comment user-cache marker/structure drift")
     else:
         if source.count(COMMENT_USER_CACHE_OLD) != 1:
@@ -573,7 +624,14 @@ TOPIC_GROUP_NEW = """              // 超话页顶部乱七八糟
 
 def optimize_topic_group_in_place(source):
     if TOPIC_GROUP_MARKER in source:
-        if source.count(TOPIC_GROUP_MARKER) != 1 or TOPIC_GROUP_OLD in source or TOPIC_GROUP_NEW not in source:
+        required = (
+            TOPIC_GROUP_MARKER,
+            "const groupItems = nestedItems;",
+            "const groupLength = groupItems.length;",
+            "if (keep) groupItems[groupWrite++] = ii;",
+            "groupItems.length = groupWrite;",
+        )
+        if (source.count(TOPIC_GROUP_MARKER) != 1 or TOPIC_GROUP_OLD in source or any(token not in source for token in required)):
             raise ValueError("Weibo topic-group compaction marker/structure drift")
         if "let newII = [];" in source or "item.items = newII;" in source:
             raise ValueError("Weibo topic-group compaction legacy allocation remains")
@@ -832,7 +890,11 @@ def optimize_remove_avatar_property_cache(source):
     required = (
         marker,
         "const blockCardBg = data?.block_card_bg;",
+        "const buttons = data?.buttons;",
+        "const cardId = data?.cardid;",
+        "const icons = data?.icons;",
         "const mblogButtons = data?.mblog_buttons;",
+        "const picBgNew = data?.pic_bg_new;",
         "const avatarGjId = user?.avatargj_id;",
         "const avatarExtendInfo = user?.avatar_extend_info;",
         "const userCardId = user?.cardid;",
@@ -1186,9 +1248,9 @@ def optimize_following_timeline_data_cache(source):
         if block.count(old) != 1:
             raise ValueError("Weibo following timeline cache anchor drift: " + old[:75])
         block = block.replace(old, new, 1)
+    block = block.replace(start, start + "\n    " + FOLLOWING_TIMELINE_DATA_CACHE_MARKER, 1)
     if any(token not in block for token in required):
         raise ValueError("Weibo following timeline cache postcondition failed")
-    block = block.replace(start, start + "\n    " + FOLLOWING_TIMELINE_DATA_CACHE_MARKER, 1)
     stripped = block.replace("const itemData = item?.data;", "")
     if any(token in stripped for token in ("item?.data", "item.data", "obj?.items?.length", "const __loonLength2 = __loonSource2.length;")):
         raise ValueError("Weibo following timeline repeated data/array reads remain")
@@ -1253,9 +1315,9 @@ def optimize_hot_timeline_data_cache(source):
         if block.count(old) != 1:
             raise ValueError("Weibo hot timeline cache anchor drift: " + old[:75])
         block = block.replace(old, new, 1)
+    block = block.replace(start, start + "\n    " + HOT_TIMELINE_DATA_CACHE_MARKER, 1)
     if any(token not in block for token in required):
         raise ValueError("Weibo hot timeline cache postcondition failed")
-    block = block.replace(start, start + "\n    " + HOT_TIMELINE_DATA_CACHE_MARKER, 1)
     stripped = block.replace("const itemData = item?.data;", "")
     if any(token in stripped for token in ("item?.data", "obj?.items?.length", "obj?.statuses?.length",
                                             "const __loonLength4 = __loonSource4.length;",
@@ -1408,10 +1470,10 @@ def optimize_flowlist_asyn_nested_reference_cache(source):
         return source_block
     asyn = patch_block(asyn, changes_asyn, "container/asyn")
     flow = patch_block(flow, changes_flow, "flowlist")
-    if any(x not in asyn for x in required_asyn) or any(x not in flow for x in required_flow):
-        raise ValueError("Weibo flowlist/asyn reference-cache postcondition failed")
     asyn = asyn.replace(asyn_start, asyn_start + "\n    // loon-change: Weibo container/asyn nested reference cache v1", 1)
     flow = flow.replace(flow_start, flow_start + "\n    // loon-change: Weibo flowlist nested reference cache v1", 1)
+    if any(x not in asyn for x in required_asyn) or any(x not in flow for x in required_flow):
+        raise ValueError("Weibo flowlist/asyn reference-cache postcondition failed")
     result = source[:source.index(asyn_start)] + asyn + source[source.index(asyn_end):source.index(flow_start)] + flow + source[source.index(flow_end):]
     if FLOWLIST_ASYN_REFERENCE_CACHE_MARKER not in result:
         first_line_end = result.find("\n")
@@ -1517,9 +1579,9 @@ def optimize_search_timeline_nested_reference_cache(source):
         if block.count(old) != 1:
             raise ValueError("Weibo search timeline cache anchor drift: " + old[:80])
         block = block.replace(old, new, 1)
+    block = block.replace(start, start + "\n      " + SEARCH_TIMELINE_REFERENCE_CACHE_MARKER, 1)
     if any(token not in block for token in required):
         raise ValueError("Weibo search timeline cache postcondition failed")
-    block = block.replace(start, start + "\n      " + SEARCH_TIMELINE_REFERENCE_CACHE_MARKER, 1)
     return source[:left] + block + source[right:]
 
 

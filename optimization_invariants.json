@@ -133,7 +133,7 @@
         "const livePhotoCache = []",
         "JSON.stringify(livePhotoCache), \"redBookLivePhoto\"",
         "item?.file_id",
-        "obj.data.download_url = item.url;\n        break;",
+        "saveData.download_url = item.url;\n        break;",
         "// loon-change: Xiaohongshu parsed JSON tree traversal without visited WeakSet v1;",
         "// loon-change: Xiaohongshu imagefeed single traversal live-photo extraction v1",
         "function imageEnhance(images, livePhotoCache)",
@@ -146,7 +146,8 @@
         "Xiaohongshu flat comment stack frames v2;",
         "const commentFrameTag = {};",
         "stack.push(comment, commentFrameTag, true)",
-        "stack.push(subComment, commentFrameTag, false)"
+        "stack.push(subComment, commentFrameTag, false)",
+        "if (isCommentFrame && key === \"pictures\") continue;"
       ],
       "forbidden": [
         "JSON.stringify(images_list), \"redBookLivePhoto\"",
@@ -178,7 +179,7 @@
         "const itemId = c?.itemid;",
         "const itemId = i.itemid;",
         "// loon-change: Weibo topic-group in-place item compaction v1",
-        "const groupItems = item.items;",
+        "const groupItems = nestedItems;",
         "const groupLength = groupItems.length;",
         "groupItems.length = groupWrite;",
         "// loon-change: Weibo comment data reference cache v1",
@@ -189,12 +190,13 @@
         "const iiData = ii?.data;",
         "// loon-change: Weibo removeAvatar cached user reference v1",
         "function removeAvatar(data, user = data?.user)",
-        "if (user?.avatargj_id)",
+        "const avatarGjId = user?.avatargj_id;",
         "delete user.avatargj_id;",
         "// loon-change: Weibo comment user/name reference cache v1",
         "const commentUser = commentData?.user;",
         "removeAvatar(commentData, commentUser);",
-        "const commentUserName = commentUser.name;"
+        "const commentUserName = commentUser.name;",
+        "if (avatarGjId)"
       ],
       "forbidden": [
         "[120, 145, 192]?.includes(cardType)",
@@ -493,7 +495,6 @@
     {
       "path": "scripts/taobao/taobao.js",
       "required": [
-        "function setIfDifferent(target, key, value)",
         "function clearArray(target, key)",
         "$done(modified ? {body: JSON.stringify(obj)} : {});",
         "// loon-change: Taobao pre-parse supported-route guard v1",
@@ -546,7 +547,10 @@
         "videoData.duration = \"0\";",
         "const respTimeInMs = videoData?.respTimeInMs;",
         "if (respTimeInMs && respTimeInMs !== \"3818332800000\")",
-        "videoData.respTimeInMs = \"3818332800000\";"
+        "videoData.respTimeInMs = \"3818332800000\";",
+        "// loon-change: Taobao Poplayer enable direct update v1",
+        "if (poplayerEnabled) {",
+        "obj.enable = false;"
       ],
       "forbidden": [
         "for (let items of splash.base.sections)",
