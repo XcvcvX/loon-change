@@ -46,7 +46,7 @@
         "const media = livePhoto?.media;",
         "const masterUrl = stream?.master_url;",
         "imageEnhance(images_list, livePhotoCache);",
-        "Xiaohongshu comment classification stack frames v1;",
+        "Xiaohongshu flat comment stack frames v2;",
         "const commentFrameTag = {};",
         "// loon-change: Xiaohongshu comment video-info cache single lookup v2;",
         "let parsed = parsedVideoInfo.get(raw);",
@@ -91,7 +91,7 @@
         "if (!picture?.video_id) continue;",
         "if (!video?.video_id || !video?.video_info) continue;",
         "const isCommentFrame = Array.isArray(entry) && entry[0] === commentFrameTag;",
-        "stack.push([commentFrameTag, comment, true]);",
+        "stack.push(comment, commentFrameTag, true);",
         "stack.push([commentFrameTag, subComment, false]);",
         "for (let switchItem of item.function_switch)",
         "if (Array.isArray(current)) {"
@@ -115,9 +115,9 @@
         "file_id: child.live_photo_file_id",
         "// loon-change: Xiaohongshu comment video-info cache single lookup v1",
         "let picObj = videoInfoCache.get(rawVideoInfo);",
-        "Xiaohongshu comment classification stack frames v1;",
+        "Xiaohongshu flat comment stack frames v2;",
         "const commentFrameTag = {};",
-        "stack.push([commentFrameTag, comment, true])"
+        "stack.push(comment, commentFrameTag, true)"
       ],
       "forbidden": [
         "JSON.stringify(images_list), \"redBookLivePhoto\"",
