@@ -440,7 +440,7 @@ def optimize_imagefeed_array_length_cache(src):
     anchor = "function imageEnhance(images, livePhotoCache) {"
     if src.count(anchor) != 1:
         raise ValueError("Xiaohongshu image traversal function anchor drift")
-    src = src.replace(anchor, anchor + "\\n  " + IMAGE_ARRAY_LENGTH_MARKER, 1)
+    src = src.replace(anchor, anchor + "\n  " + IMAGE_ARRAY_LENGTH_MARKER, 1)
     required = (
         IMAGE_ARRAY_LENGTH_MARKER,
         "const stack=[{value:images,index:0,keys:null,length:Array.isArray(images)?images.length:0,root:true}];",
@@ -759,6 +759,7 @@ def optimize_source(src,commit="unknown"):
         if has_comment_processor and has_no_visited_set and "Xiaohongshu parsed JSON comment tree without visited WeakSet v1;" in src and "Xiaohongshu comment classification stack frames v1;" in src and "const commentFrameTag = {};" in src and "processCommentTree(obj.data, livePhotos, commentVideos, note_id);" in src:
             src = optimize_imagefeed_single_traversal(src)
             src = optimize_imagefeed_live_photo_property_cache(src)
+            src = optimize_imagefeed_array_length_cache(src)
             src = optimize_comment_video_info_cache(src)
             src = optimize_comment_media_property_cache(src)
             src = optimize_comment_stack_frame_allocation(src)
