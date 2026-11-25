@@ -177,10 +177,13 @@ if (url.includes("/note/imagefeed") || url.includes("/note/feed")) {
     
           // Select the highest-resolution stream in one pass; preserve first item on ties.
           let selectedStream = null;
+          let selectedHeight = -Infinity;
           for (const stream of h265List) {
             if (!stream || !stream.master_url || !stream.height) continue;
-            if (!selectedStream || Number(stream.height) > Number(selectedStream.height)) {
+            const streamHeight = Number(stream.height);
+            if (streamHeight > selectedHeight) {
               selectedStream = stream;
+              selectedHeight = streamHeight;
             }
           }
     
