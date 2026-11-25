@@ -376,12 +376,12 @@ def optimize_profile_timeline_data_cache(source):
     ii_anchor = "                let ii = __loonSource18[__loonRead18];"
     if block.count(item_anchor) != 1 or block.count(ii_anchor) != 1:
         raise ValueError("Weibo profile timeline loop anchors drifted")
-    block = block.replace(item_anchor, item_anchor + "\\n        const itemData = item?.data;", 1)
-    block = block.replace(ii_anchor, ii_anchor + "\\n                const iiData = ii?.data;", 1)
+    block = block.replace(item_anchor, item_anchor + "\n        const itemData = item?.data;", 1)
+    block = block.replace(ii_anchor, ii_anchor + "\n                const iiData = ii?.data;", 1)
     block = block.replace("item?.data", "itemData").replace("ii?.data", "iiData").replace("ii.data", "iiData")
     block = block.replace("const itemData = itemData;", "const itemData = item?.data;")
     block = block.replace("const iiData = iiData;", "const iiData = ii?.data;")
-    block = block.replace(start, start + "\\n    " + PROFILE_TIMELINE_DATA_CACHE_MARKER, 1)
+    block = block.replace(start, start + "\n    " + PROFILE_TIMELINE_DATA_CACHE_MARKER, 1)
     stripped = block.replace("const itemData = item?.data;", "").replace("const iiData = ii?.data;", "")
     if any(token in stripped for token in ("item?.data", "ii?.data", "ii.data")):
         raise ValueError("Weibo profile timeline cache postcondition failed")
