@@ -474,14 +474,14 @@ def optimize_comment_array_length_cache(src):
         if any(token not in src for token in required):
             raise ValueError("Xiaohongshu comment array-length cache marker is stale")
         block_start = src.find("function processCommentTree(data, livePhotos, commentVideos, noteId)")
-        block_end = src.find("\\n\\n\\n/**", block_start)
+        block_end = src.find("\n\n\n/**", block_start)
         block = src[block_start:block_end if block_end >= 0 else len(src)]
         if block.count("current.length") != 1 or block.count("child.length") != 2:
             raise ValueError("Xiaohongshu comment array-length cache structure drift")
         return src
 
     start = src.find("function processCommentTree(data, livePhotos, commentVideos, noteId)")
-    end = src.find("\\n\\n\\n/**", start)
+    end = src.find("\n\n\n/**", start)
     if start < 0 or end < 0:
         raise ValueError("Xiaohongshu comment processor boundary missing")
     block = src[start:end]
