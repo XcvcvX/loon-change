@@ -75,15 +75,22 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         source = SCRIPT.read_text(encoding="utf-8")
         self.assertEqual(optimize_topic_group_nested_data_cache(source), source)
         self.assertEqual(source.count(TOPIC_GROUP_NESTED_DATA_MARKER), 1)
-        self.assertIn("const nestedItems = item?.items;", source)
-        self.assertIn("const nestedLength = nestedItems.length;", source)
-        self.assertIn("const iiData = ii?.data;", source)
-        self.assertIn("const commonStruct = iiData.common_struct;", source)
-        self.assertNotIn("for (let ii of item.items)", source)
-        self.assertNotIn("removeAvatar(ii?.data)", source)
+        start = '} else if (url.includes("/2/statuses/container_timeline_topic")) {'
+        end = '} else if (url.includes("/2/statuses/extend")) {'
+        block = source[source.index(start):source.index(end, source.index(start) + len(start))]
+        self.assertIn("const nestedItems = item?.items;", block)
+        self.assertIn("const nestedLength = nestedItems.length;", block)
+        self.assertIn("const iiData = ii?.data;", block)
+        self.assertIn("const commonStruct = iiData.common_struct;", block)
+        self.assertNotIn("for (let ii of item.items)", block)
+        self.assertNotIn("removeAvatar(ii?.data)", block)
         damaged = source.replace("const iiData = ii?.data;", "const iiData = undefined;", 1)
         with self.assertRaisesRegex(ValueError, "data-cache structure drift"):
             optimize_topic_group_nested_data_cache(damaged)
+
+        # Other Weibo response routes may legitimately retain the same source pattern.
+        unrelated = source + "\nfor (let ii of item.items) { removeAvatar(ii?.data); }\n"
+        self.assertEqual(optimize_topic_group_nested_data_cache(unrelated), unrelated)
 
 
     def test_root_comment_user_reference_is_cached_once(self):
