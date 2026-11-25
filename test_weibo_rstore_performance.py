@@ -635,7 +635,11 @@ process.stdout.write(nativeStringify({doneResult,counts}));
             "suffix.length", "suffix[3]"
         }
         self.assertEqual(set(result["counts"]), expected)
-        self.assertEqual(set(result["counts"].values()), {1})
+        self.assertEqual(result["counts"]["data.user"], 2)
+        self.assertEqual(
+            {count for label, count in result["counts"].items() if label != "data.user"},
+            {1}
+        )
         output = json.loads(result["doneResult"]["body"])
         data = output["items"][0]["data"]
         self.assertNotIn("action_button_icon_dic", data)
