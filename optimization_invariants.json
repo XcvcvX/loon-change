@@ -321,6 +321,15 @@
         "const topBannerData = responseData?.disorder_cards?.top_banner_card?.data;",
         "const firstTopBanner = topBannerData?.[0];",
         "topBannerData.splice(0, 1);",
+        "// loon-change: Didi homepage-core cached nested references v1",
+        "const orderCards = responseData?.order_cards;",
+        "const navListCard = orderCards?.nav_list_card;",
+        "const navListData = navListCard?.data;",
+        "const disorderCards = responseData?.disorder_cards;",
+        "const bottomNavList = disorderCards?.bottom_nav_list;",
+        "const bottomNavData = bottomNavList?.data;",
+        "compactDidiByField(navListData, \"nav_id\", \"nav\");",
+        "compactDidiByField(bottomNavData, \"id\", \"bottomNav\");",
         "// loon-change: Didi response data reference cache v1",
         "const responseData = obj.data;"
       ],
@@ -343,7 +352,9 @@
         "if (url.includes(\"/homepage/v\") && url.includes(\"/core\")) {",
         "if (url.includes(\"/ota/na/yuantu/infoList\")) {",
         "if (url.includes(\"/usercenter/me\")) {",
-        "obj.data.disorder_cards.top_banner_card.data[0].T === \"yuentu_top_banner\""
+        "obj.data.disorder_cards.top_banner_card.data[0].T === \"yuentu_top_banner\"",
+        "responseData.order_cards && responseData.order_cards.nav_list_card",
+        "responseData.disorder_cards && responseData.disorder_cards.bottom_nav_list"
       ]
     },
     {

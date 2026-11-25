@@ -142,13 +142,19 @@ if (isSceneList) {
 }
 
 if (isHomepageCore) {
-  // 保留打车、代驾、青桔骑行
-  if (responseData && responseData.order_cards && responseData.order_cards.nav_list_card && responseData.order_cards.nav_list_card.data) {
-    compactDidiByField(responseData.order_cards.nav_list_card.data, "nav_id", "nav");
+  // loon-change: Didi homepage-core cached nested references v1
+  const orderCards = responseData?.order_cards;
+  const navListCard = orderCards?.nav_list_card;
+  const navListData = navListCard?.data;
+  if (navListData) {
+    compactDidiByField(navListData, "nav_id", "nav");
   }
-  // 保留底部tap首页、我的
-  if (responseData && responseData.disorder_cards && responseData.disorder_cards.bottom_nav_list && responseData.disorder_cards.bottom_nav_list.data) {
-    compactDidiByField(responseData.disorder_cards.bottom_nav_list.data, "id", "bottomNav");
+
+  const disorderCards = responseData?.disorder_cards;
+  const bottomNavList = disorderCards?.bottom_nav_list;
+  const bottomNavData = bottomNavList?.data;
+  if (bottomNavData) {
+    compactDidiByField(bottomNavData, "id", "bottomNav");
   }
 }
 

@@ -474,16 +474,73 @@ def optimize_response_data_reference_cache(source):
     return source
 
 
+
+DIDI_HOMEPAGE_CORE_CACHE_MARKER = "// loon-change: Didi homepage-core cached nested references v1"
+
+def optimize_homepage_core_cached_references(source):
+    """Cache homepage nav/card references once before in-place allowlist compaction."""
+    marker = DIDI_HOMEPAGE_CORE_CACHE_MARKER
+    old = '''if (isHomepageCore) {
+  // 保留打车、代驾、青桔骑行
+  if (responseData && responseData.order_cards && responseData.order_cards.nav_list_card && responseData.order_cards.nav_list_card.data) {
+    compactDidiByField(responseData.order_cards.nav_list_card.data, "nav_id", "nav");
+  }
+  // 保留底部tap首页、我的
+  if (responseData && responseData.disorder_cards && responseData.disorder_cards.bottom_nav_list && responseData.disorder_cards.bottom_nav_list.data) {
+    compactDidiByField(responseData.disorder_cards.bottom_nav_list.data, "id", "bottomNav");
+  }
+}'''
+    new = '''if (isHomepageCore) {
+  // loon-change: Didi homepage-core cached nested references v1
+  const orderCards = responseData?.order_cards;
+  const navListCard = orderCards?.nav_list_card;
+  const navListData = navListCard?.data;
+  if (navListData) {
+    compactDidiByField(navListData, "nav_id", "nav");
+  }
+
+  const disorderCards = responseData?.disorder_cards;
+  const bottomNavList = disorderCards?.bottom_nav_list;
+  const bottomNavData = bottomNavList?.data;
+  if (bottomNavData) {
+    compactDidiByField(bottomNavData, "id", "bottomNav");
+  }
+}'''
+    required = (
+        marker,
+        "const orderCards = responseData?.order_cards;",
+        "const navListCard = orderCards?.nav_list_card;",
+        "const navListData = navListCard?.data;",
+        "const disorderCards = responseData?.disorder_cards;",
+        "const bottomNavList = disorderCards?.bottom_nav_list;",
+        "const bottomNavData = bottomNavList?.data;",
+        'compactDidiByField(navListData, "nav_id", "nav");',
+        'compactDidiByField(bottomNavData, "id", "bottomNav");',
+    )
+    if marker in source:
+        if any(token not in source for token in required) or old in source:
+            raise ValueError("Didi homepage-core reference cache structure is incomplete")
+        return source
+    if "if (isHomepageCore) {" not in source:
+        return source
+    if source.count(old) != 1:
+        raise ValueError("Didi homepage-core nested reference anchor changed; refusing cache rewrite")
+    source = source.replace(old, new, 1)
+    if any(token not in source for token in required) or old in source:
+        raise ValueError("Didi homepage-core reference cache validation failed")
+    return source
+
+
 def optimize_source(source, commit="unknown"):
     if MARKER in source:
         if re.search(r"\.filter\s*\(", source):
             raise ValueError("Didi optimization marker exists but allocating filter remains")
         if "obj.data.cards.forEach" in source:
             raise ValueError("Didi user-center wallet traversal optimization is stale")
-        return optimize_response_data_reference_cache(optimize_info_list_cached_references(optimize_didi_route_dispatch_cache(optimize_didi_nested_traversal_property_cache(optimize_wallet_nested_property_cache(optimize_preparse_route_guard(optimize_didi_predicates(optimize_lazy_serialization(source))))))))
+        return optimize_homepage_core_cached_references(optimize_response_data_reference_cache(optimize_info_list_cached_references(optimize_didi_route_dispatch_cache(optimize_didi_nested_traversal_property_cache(optimize_wallet_nested_property_cache(optimize_preparse_route_guard(optimize_didi_predicates(optimize_lazy_serialization(source)))))))))
     if LEGACY_MARKER in source:
         source = source.replace(LEGACY_MARKER, MARKER, 1)
-        return optimize_response_data_reference_cache(optimize_info_list_cached_references(optimize_didi_route_dispatch_cache(optimize_didi_nested_traversal_property_cache(optimize_wallet_nested_property_cache(optimize_didi_predicates(optimize_lazy_serialization(source)))))))
+        return optimize_homepage_core_cached_references(optimize_response_data_reference_cache(optimize_info_list_cached_references(optimize_didi_route_dispatch_cache(optimize_didi_nested_traversal_property_cache(optimize_wallet_nested_property_cache(optimize_didi_predicates(optimize_lazy_serialization(source))))))))
 
     body_guard = "if (!$response.body) $done({});"
     if source.count(body_guard) != 1:
@@ -522,7 +579,7 @@ def optimize_source(source, commit="unknown"):
         raise ValueError("expected all seven Didi filters to use compactInPlace")
 
     source = source.rstrip() + "\n}\n"
-    return optimize_response_data_reference_cache(optimize_info_list_cached_references(optimize_didi_route_dispatch_cache(optimize_didi_nested_traversal_property_cache(optimize_wallet_nested_property_cache(optimize_preparse_route_guard(optimize_didi_predicates(optimize_lazy_serialization(MARKER + commit + "\n" + source))))))))
+    return optimize_homepage_core_cached_references(optimize_response_data_reference_cache(optimize_info_list_cached_references(optimize_didi_route_dispatch_cache(optimize_didi_nested_traversal_property_cache(optimize_wallet_nested_property_cache(optimize_preparse_route_guard(optimize_didi_predicates(optimize_lazy_serialization(MARKER + commit + "\n" + source)))))))))
 
 
 def rewrite_plugin(plugin):
