@@ -591,9 +591,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
                 const iiCategory = ii?.category;
                 const iiData = ii?.data;
                 if (iiCategory === "feed") {
-                  // 头像挂件,关注按钮
-                  removeAvatar(iiData);
-                  // 信息流推广
+                  // 信息流推广（removeFeedAd 内部已处理头像挂件与关注按钮）
                   removeFeedAd(iiData);
                   // 投票窗口
                   removeVoteInfo(iiData);
@@ -1598,10 +1596,12 @@ function removeAvatar(data, user = data?.user) {
 
 // 移除信息流关注按钮,推广,热评
 function removeFeedAd(item) {
+  // loon-change: Weibo shared feed cleanup nested reference cache v1
   // 头像挂件,关注按钮
   removeAvatar(item);
-  if (item?.retweeted_status) {
-    removeAvatar(item?.retweeted_status);
+  const retweetedStatus = item?.retweeted_status;
+  if (retweetedStatus) {
+    removeAvatar(retweetedStatus);
   }
   // 商品橱窗
   if (item?.common_struct) {
