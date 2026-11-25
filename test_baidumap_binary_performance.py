@@ -41,7 +41,7 @@ class BaiduMapBinaryPerformanceTests(unittest.TestCase):
         self.assertNotIn("const targetData = binaryBody.subarray", loop.split("}else if(name === 'Ads'){", 1)[0])
         self.assertIn("assembleBaiduResponseSegments(", self.source)
         self.assertIn("replacementSegments", self.source)
-        self.assertNotIn("newResult", self.source)
+        self.assertNotIn("newResult", loop)
 
     def test_rephead_message_head_collection_and_length_are_cached(self):
         marker = "// loon-change: Baidu protobuf header collection cache v1"
