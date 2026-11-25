@@ -526,12 +526,16 @@ def optimize_v4_function_switch_indexed_scan(src):
         required = (
             FUNCTION_SWITCH_MARKER,
             "const functionSwitch = item?.function_switch;",
-            "for (let switchIndex = 0; switchIndex < functionSwitch.length; switchIndex++)",
             "const switchItem = functionSwitch[switchIndex];",
             'if (switchItem.type === "video_download")',
             "if (switchItem.reason) delete switchItem.reason;",
         )
-        if not block or any(token not in block for token in required) or "for (let switchItem of item.function_switch)" in block:
+        has_dynamic_length = "for (let switchIndex = 0; switchIndex < functionSwitch.length; switchIndex++)" in block
+        has_cached_length = (
+            "const functionSwitchLength = functionSwitch?.length || 0;" in block
+            and "for (let switchIndex = 0; switchIndex < functionSwitchLength; switchIndex++)" in block
+        )
+        if not block or any(token not in block for token in required) or not (has_dynamic_length or has_cached_length) or "for (let switchItem of item.function_switch)" in block:
             raise ValueError("Xiaohongshu v4 function-switch marker is stale")
         return src
     old_block = """      if (item?.function_switch?.length > 0) {
@@ -814,6 +818,53 @@ def optimize_comment_node_array_classification(src):
 
 
 
+V4_FEED_ARRAY_LENGTH_MARKER = "// loon-change: Xiaohongshu v4 feed array length snapshot v1;"
+
+def optimize_v4_feed_array_length_snapshot(src):
+    """Snapshot v4 feed and function-switch lengths once per response/item."""
+    start = 'if (url.includes("/v4/note/videofeed")) {'
+    end = "\n\n// 视频保存请求"
+    left = src.find(start)
+    right = src.find(end, left) if left >= 0 else -1
+    block = src[left:right] if left >= 0 and right >= 0 else ""
+    if "// loon-change: Xiaohongshu v4 feed array length snapshot v1;" in block:
+        required = (
+            "// loon-change: Xiaohongshu v4 feed array length snapshot v1;",
+            "const videoDataSource = obj.data;",
+            "const videoDataLength = videoDataSource?.length || 0;",
+            "for (let videoIndex = 0; videoIndex < videoDataLength; videoIndex++)",
+            "const item = videoDataSource[videoIndex];",
+            "const functionSwitchLength = functionSwitch?.length || 0;",
+            "for (let switchIndex = 0; switchIndex < functionSwitchLength; switchIndex++)",
+        )
+        if not block or any(token not in block for token in required) or "for (let item of obj.data)" in block or "switchIndex < functionSwitch.length" in block:
+            raise ValueError("Xiaohongshu v4 feed array-length marker is stale")
+        return src
+    old_outer = """  let videoData = [];
+  if (obj.data?.length > 0) {
+    for (let item of obj.data) {"""
+    new_outer = """  // loon-change: Xiaohongshu v4 feed array length snapshot v1;
+  const videoData = [];
+  const videoDataSource = obj.data;
+  const videoDataLength = videoDataSource?.length || 0;
+  if (videoDataLength > 0) {
+    for (let videoIndex = 0; videoIndex < videoDataLength; videoIndex++) {
+      const item = videoDataSource[videoIndex];"""
+    if block.count(old_outer) != 1:
+        raise ValueError("Xiaohongshu v4 feed outer-loop anchor drift")
+    block = block.replace(old_outer, new_outer, 1)
+    old_switch = """      const functionSwitch = item?.function_switch;
+      if (functionSwitch?.length > 0) {
+        for (let switchIndex = 0; switchIndex < functionSwitch.length; switchIndex++) {"""
+    new_switch = """      const functionSwitch = item?.function_switch;
+      const functionSwitchLength = functionSwitch?.length || 0;
+      if (functionSwitchLength > 0) {
+        for (let switchIndex = 0; switchIndex < functionSwitchLength; switchIndex++) {"""
+    if block.count(old_switch) != 1:
+        raise ValueError("Xiaohongshu v4 function-switch length anchor drift")
+    block = block.replace(old_switch, new_switch, 1)
+    return src[:left] + block + src[right:]
+
 
 def optimize_source(src,commit="unknown"):
     if MARKER in src:
@@ -833,6 +884,7 @@ def optimize_source(src,commit="unknown"):
             src = optimize_video_save_lazy_cache_parse(src)
             src = optimize_v4_video_feed_function_entry_scan(src)
             src = optimize_v4_function_switch_indexed_scan(src)
+            src = optimize_v4_feed_array_length_snapshot(src)
             return optimize_stream_selection_no_closure(optimize_v4_video_feed_nested_reference_cache(optimize_v3_video_feed_item_reference_cache(src)))
         src = apply_comment_optimization(src)
         src = optimize_comment_media_property_cache(src)
@@ -848,6 +900,7 @@ def optimize_source(src,commit="unknown"):
         src = optimize_video_save_lazy_cache_parse(src)
         src = optimize_v4_video_feed_function_entry_scan(src)
         src = optimize_v4_function_switch_indexed_scan(src)
+        src = optimize_v4_feed_array_length_snapshot(src)
         return optimize_stream_selection_no_closure(optimize_v4_video_feed_nested_reference_cache(optimize_v3_video_feed_item_reference_cache(src)))
     src=once(src,"const url = $request.url;","const url = $request.url;\n"+HELPERS.strip(),"helpers")
     src=once(src,"  console.log('打印原body：' + JSON.stringify(obj));\n","","full-body logging")
@@ -944,6 +997,7 @@ def optimize_source(src,commit="unknown"):
     result = optimize_video_save_lazy_cache_parse(result)
     result = optimize_v4_video_feed_function_entry_scan(result)
     result = optimize_v4_function_switch_indexed_scan(result)
+    result = optimize_v4_feed_array_length_snapshot(result)
     result = optimize_v3_video_feed_item_reference_cache(result)
     result = optimize_v4_video_feed_nested_reference_cache(result)
     result = optimize_stream_selection_no_closure(result)
@@ -951,7 +1005,7 @@ def optimize_source(src,commit="unknown"):
         COMMENT_ARRAY_LENGTH_MARKER,
         "const currentLength = current.length;",
         "const commentsLength = child.length;",
-        "const subCommentsLength = child.length;", "stack.push(true, comment, commentFrameTag);", "stack.push(false, subComment, commentFrameTag);", FUNCTION_SWITCH_MARKER, VIDEO_V3_ITEM_CACHE_MARKER, VIDEO_FEED_REFERENCE_CACHE_MARKER, COMMENT_STACK_FRAME_MARKER, COMMENT_CACHE_MARKER, "let parsed = parsedVideoInfo.get(raw);", VIDEO_SAVE_LOOKUP_MARKER, VIDEO_SAVE_LAZY_PARSE_MARKER, "const noteId = obj.data?.note_id;", "for (let i = videoFeed.length - 1; i >= 0; i--)", STREAM_SELECTION_MARKER, "for (let pass = 0; pass < 2; pass++)"):
+        "const subCommentsLength = child.length;", "stack.push(true, comment, commentFrameTag);", "stack.push(false, subComment, commentFrameTag);", FUNCTION_SWITCH_MARKER, V4_FEED_ARRAY_LENGTH_MARKER, VIDEO_V3_ITEM_CACHE_MARKER, VIDEO_FEED_REFERENCE_CACHE_MARKER, COMMENT_STACK_FRAME_MARKER, COMMENT_CACHE_MARKER, "let parsed = parsedVideoInfo.get(raw);", VIDEO_SAVE_LOOKUP_MARKER, VIDEO_SAVE_LAZY_PARSE_MARKER, "const noteId = obj.data?.note_id;", "for (let i = videoFeed.length - 1; i >= 0; i--)", STREAM_SELECTION_MARKER, "for (let pass = 0; pass < 2; pass++)"):
         if token not in result:raise ValueError("missing optimizer invariant: "+token)
     if "imageEnhance(JSON.stringify(images_list))" in result:raise ValueError("image-feed serialization round trip remains")
     if "for (const image of images_list)" in result:raise ValueError("image-feed second cache traversal remains")

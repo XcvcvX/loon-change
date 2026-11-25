@@ -200,9 +200,13 @@ if (url.includes("/v3/note/videofeed?")) {
 
 // 信息流 视频
 if (url.includes("/v4/note/videofeed")) {
-  let videoData = [];
-  if (obj.data?.length > 0) {
-    for (let item of obj.data) {
+  // loon-change: Xiaohongshu v4 feed array length snapshot v1;
+  const videoData = [];
+  const videoDataSource = obj.data;
+  const videoDataLength = videoDataSource?.length || 0;
+  if (videoDataLength > 0) {
+    for (let videoIndex = 0; videoIndex < videoDataLength; videoIndex++) {
+      const item = videoDataSource[videoIndex];
       // 强制开启权限
       // loon-change: Xiaohongshu v4 video-feed nested reference cache v1;
       const mediaSaveConfig = item?.media_save_config;
@@ -215,8 +219,9 @@ if (url.includes("/v4/note/videofeed")) {
       // 处理 function_switch (修复按钮置灰)
       // loon-change: Xiaohongshu v4 function-switch indexed scan v1;
       const functionSwitch = item?.function_switch;
-      if (functionSwitch?.length > 0) {
-        for (let switchIndex = 0; switchIndex < functionSwitch.length; switchIndex++) {
+      const functionSwitchLength = functionSwitch?.length || 0;
+      if (functionSwitchLength > 0) {
+        for (let switchIndex = 0; switchIndex < functionSwitchLength; switchIndex++) {
           const switchItem = functionSwitch[switchIndex];
           if (switchItem.type === "video_download") {
             switchItem.enable = true;
