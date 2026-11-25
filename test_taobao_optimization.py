@@ -505,7 +505,7 @@ process.stdout.write(nativeJSON.stringify({counts,hasBody:!!doneResult.body}));
         ]}}}}}
         completed = subprocess.run(
             [NODE, "-e", runner, str(SCRIPT)],
-            input=json.dumps(body), capture_output=True, text=False, check=False, timeout=10,
+            input=json.dumps(body).encode("utf-8"), capture_output=True, text=False, check=False, timeout=10,
         )
         self.assertEqual(completed.returncode, 0, completed.stderr.decode("utf-8", "replace"))
         result = json.loads(completed.stdout)
