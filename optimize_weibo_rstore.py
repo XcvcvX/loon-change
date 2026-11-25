@@ -743,21 +743,30 @@ TOPIC_GROUP_NESTED_DATA_REQUIRED = (
 
 def optimize_topic_group_nested_data_cache(source):
     """Cache nested topic-group arrays and per-item data references on hot-topic paths."""
+    start = '} else if (url.includes("/2/statuses/container_timeline_topic")) {'
+    end = '} else if (url.includes("/2/statuses/extend")) {'
+    if source.count(start) != 1 or source.count(end) != 1:
+        raise ValueError("Weibo nested topic-group route boundary drift")
+    left = source.index(start)
+    right = source.index(end, left + len(start))
+    block = source[left:right]
     marker = TOPIC_GROUP_NESTED_DATA_MARKER
-    if marker in source:
-        if source.count(marker) != 1 or any(token not in source for token in TOPIC_GROUP_NESTED_DATA_REQUIRED):
+    if marker in block:
+        if block.count(marker) != 1 or any(token not in block for token in TOPIC_GROUP_NESTED_DATA_REQUIRED):
             raise ValueError("Weibo nested topic-group data-cache structure drift")
-        if TOPIC_GROUP_NESTED_DATA_OLD in source or "for (let ii of item.items)" in source or "removeAvatar(ii?.data)" in source:
+        if (TOPIC_GROUP_NESTED_DATA_OLD in block or
+                "for (let ii of item.items)" in block or
+                "removeAvatar(ii?.data)" in block):
             raise ValueError("Weibo repeated nested topic-group property reads remain")
         return source
-    if source.count(TOPIC_GROUP_NESTED_DATA_OLD) != 1:
+    if block.count(TOPIC_GROUP_NESTED_DATA_OLD) != 1:
         raise ValueError("Weibo nested topic-group cache anchor drift")
-    source = source.replace(TOPIC_GROUP_NESTED_DATA_OLD, TOPIC_GROUP_NESTED_DATA_NEW, 1)
-    if source.count(marker) != 1 or any(token not in source for token in TOPIC_GROUP_NESTED_DATA_REQUIRED):
+    block = block.replace(TOPIC_GROUP_NESTED_DATA_OLD, TOPIC_GROUP_NESTED_DATA_NEW, 1)
+    if block.count(marker) != 1 or any(token not in block for token in TOPIC_GROUP_NESTED_DATA_REQUIRED):
         raise ValueError("Weibo nested topic-group data-cache postcondition failed")
-    if "for (let ii of item.items)" in source or "removeAvatar(ii?.data)" in source:
+    if "for (let ii of item.items)" in block or "removeAvatar(ii?.data)" in block:
         raise ValueError("Weibo repeated nested topic-group property reads remain")
-    return source
+    return source[:left] + block + source[right:]
 
 
 
