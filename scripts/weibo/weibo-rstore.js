@@ -304,8 +304,11 @@ if (url.includes("/interface/sdk/sdkad.php")) {
       delete rootComment.comment_bubble;
     }
     // 投票窗口
-    if (obj?.status?.page_info) {
-      removeVoteInfo(obj?.status);
+    // loon-change: Weibo comment-status page-info reference cache v1
+    const commentStatus = obj?.status;
+    const commentStatusPageInfo = commentStatus?.page_info;
+    if (commentStatusPageInfo) {
+      removeVoteInfo(commentStatus, commentStatusPageInfo, true);
     }
   } else if (url.includes("/2/container/asyn")) {
     // loon-change: Weibo container/asyn nested reference cache v1
@@ -1617,8 +1620,8 @@ function removeFeedAd(item) {
 
 // 移除投票窗口
 // loon-change: Weibo vote-info nested reference cache v1
-function removeVoteInfo(item) {
-  const pageInfo = item?.page_info;
+function removeVoteInfo(item, cachedPageInfo, hasCachedPageInfo) {
+  const pageInfo = hasCachedPageInfo ? cachedPageInfo : item?.page_info;
   const mediaInfo = pageInfo?.media_info;
   const voteInfo = mediaInfo?.vote_info;
   if (voteInfo) {

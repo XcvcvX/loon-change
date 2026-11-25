@@ -22,7 +22,7 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
 }"""
         optimized = optimize_vote_info_nested_reference_cache(source)
         self.assertIn(VOTE_INFO_NESTED_REFERENCE_CACHE_MARKER, optimized)
-        self.assertIn("const pageInfo = item?.page_info;", optimized)
+        self.assertIn("const pageInfo = hasCachedPageInfo ? cachedPageInfo : item?.page_info;", optimized)
         self.assertIn("const mediaInfo = pageInfo?.media_info;", optimized)
         self.assertIn("const voteInfo = mediaInfo?.vote_info;", optimized)
         self.assertIn("delete mediaInfo.vote_info;", optimized)
@@ -33,7 +33,7 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
     def test_fresh_source_transform_order_caches_user_before_avatar_fields(self):
         optimizer = Path(__file__).with_name("optimize_weibo_rstore.py").read_text(encoding="utf-8")
         lines = [line.strip() for line in optimizer.splitlines()
-                 if "return optimize_vote_info_nested_reference_cache(" in line]
+                 if "return optimize_comment_status_page_info_cache(" in line]
         self.assertEqual(len(lines), 2)
         for line in lines:
             comment_data = line.index("optimize_comment_data_reference_cache(")
@@ -60,7 +60,7 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         remaining = re.findall(r"\b(new[A-Za-z0-9_]*)\s*=\s*\[\s*\]", source)
         self.assertEqual(sorted(remaining), ["newActions"])
         self.assertIn(VOTE_INFO_NESTED_REFERENCE_CACHE_MARKER, source)
-        self.assertIn("const pageInfo = item?.page_info;", source)
+        self.assertIn("const pageInfo = hasCachedPageInfo ? cachedPageInfo : item?.page_info;", source)
         self.assertIn("const mediaInfo = pageInfo?.media_info;", source)
         self.assertIn("const voteInfo = mediaInfo?.vote_info;", source)
         self.assertNotIn("item?.page_info?.media_info?.vote_info", source)
@@ -1286,6 +1286,60 @@ process.stdout.write(nativeStringify({doneResult,counts}));
                                  "const retweetedStatus = null;", 1)
         with self.assertRaisesRegex(ValueError, "marker/structure drift"):
             optimize_shared_feed_cleanup_cache(damaged)
+
+    def test_comment_status_page_info_cache_is_idempotent_and_fails_closed(self):
+        from optimize_weibo_rstore import (
+            COMMENT_STATUS_PAGE_INFO_CACHE_MARKER,
+            optimize_comment_status_page_info_cache,
+        )
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(COMMENT_STATUS_PAGE_INFO_CACHE_MARKER, source)
+        self.assertEqual(optimize_comment_status_page_info_cache(source), source)
+        self.assertIn("const commentStatus = obj?.status;", source)
+        self.assertIn("const commentStatusPageInfo = commentStatus?.page_info;", source)
+        self.assertIn("removeVoteInfo(commentStatus, commentStatusPageInfo, true);", source)
+        damaged = source.replace("const commentStatusPageInfo = commentStatus?.page_info;",
+                                 "const commentStatusPageInfo = null;", 1)
+        with self.assertRaisesRegex(ValueError, "marker/structure drift"):
+            optimize_comment_status_page_info_cache(damaged)
+
+    def test_comment_status_and_page_info_are_read_once_on_comment_response(self):
+        runner = r"""
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync(process.argv[1],"utf8");
+const payload=JSON.parse(fs.readFileSync(0,"utf8"));
+let doneResult,tracking=false;
+const counts={status:0,page_info:0};
+const nativeParse=JSON.parse.bind(JSON),nativeStringify=JSON.stringify.bind(JSON);
+const trackedJSON={
+  parse(value){
+    const parsed=nativeParse(value),status=parsed.status;
+    let currentStatus=status;
+    Object.defineProperty(parsed,"status",{enumerable:true,configurable:true,
+      get(){if(tracking)counts.status++;return currentStatus;},set(value){currentStatus=value;}});
+    let currentPageInfo=status.page_info;
+    Object.defineProperty(status,"page_info",{enumerable:true,configurable:true,
+      get(){if(tracking)counts.page_info++;return currentPageInfo;},set(value){currentPageInfo=value;}});
+    tracking=true;return parsed;
+  },
+  stringify(value){tracking=false;return nativeStringify(value);}
+};
+const context={JSON:trackedJSON,$request:{url:payload.url},$response:{body:nativeStringify(payload.body)},
+  $done(value){doneResult=value;},console:{log(){},warn(){},error(){}}};
+vm.runInNewContext(source,context,{timeout:5000});
+process.stdout.write(nativeStringify({doneResult,counts}));
+"""
+        body = {"status": {"page_info": {"media_info": {"vote_info": {"id": 1}}}}}
+        completed = subprocess.run(
+            [NODE, "-e", runner, str(SCRIPT)],
+            input=json.dumps({"url": "https://api.weibo.cn/2/comments/build_comments?fixture=status-cache",
+                              "body": body}),
+            capture_output=True, text=True, check=False, timeout=10
+        )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        result = json.loads(completed.stdout)
+        self.assertEqual(result["counts"], {"status": 1, "page_info": 1})
+        output = json.loads(result["doneResult"]["body"])
+        self.assertNotIn("vote_info", output["status"]["page_info"]["media_info"])
 
 
 if __name__ == "__main__":

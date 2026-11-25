@@ -714,7 +714,7 @@ def optimize_source(source, commit="unknown"):
     if MARKER in source:
         if "__loonSource32" not in source or "compactInPlace(items, keep)" not in source:
             raise ValueError("marked Weibo script is incomplete")
-        return optimize_vote_info_nested_reference_cache(optimize_shared_feed_cleanup_cache(optimize_is_ad_property_cache(optimize_profile_timeline_property_cache(optimize_search_timeline_nested_reference_cache(optimize_flowlist_asyn_nested_reference_cache(optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source))))))))))))))))) )))
+        return optimize_comment_status_page_info_cache(optimize_vote_info_nested_reference_cache(optimize_shared_feed_cleanup_cache(optimize_is_ad_property_cache(optimize_profile_timeline_property_cache(optimize_search_timeline_nested_reference_cache(optimize_flowlist_asyn_nested_reference_cache(optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source))))))))))))))))) ))))
     source = source.replace("const url = $request.url;", "const url = $request.url;\n" + GUARD_DECLARATION + "\n\n" + HELPER, 1)
     if source.count(HELPER) != 1:
         raise ValueError("Weibo helper insertion failed")
@@ -726,7 +726,7 @@ def optimize_source(source, commit="unknown"):
     remaining = re.findall(r"\b(new[A-Za-z0-9_]*)\s*=\s*\[\s*\]", source)
     if sorted(remaining) != ["newActions", "newII"]:
         raise ValueError("unexpected remaining Weibo temporary arrays: " + repr(remaining))
-    return optimize_vote_info_nested_reference_cache(optimize_shared_feed_cleanup_cache(optimize_is_ad_property_cache(optimize_profile_timeline_property_cache(optimize_search_timeline_nested_reference_cache(optimize_flowlist_asyn_nested_reference_cache(optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source))))))))))))))))) )))
+    return optimize_comment_status_page_info_cache(optimize_vote_info_nested_reference_cache(optimize_shared_feed_cleanup_cache(optimize_is_ad_property_cache(optimize_profile_timeline_property_cache(optimize_search_timeline_nested_reference_cache(optimize_flowlist_asyn_nested_reference_cache(optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source))))))))))))))))) ))))
 
 SCALAR_MEMBERSHIP_MARKER = "// loon-change: Weibo hot-loop scalar membership v1"
 SCALAR_MEMBERSHIP_REWRITES = [
@@ -905,8 +905,8 @@ VOTE_INFO_NESTED_REFERENCE_CACHE_OLD = """function removeVoteInfo(item) {
   }
 }"""
 VOTE_INFO_NESTED_REFERENCE_CACHE_NEW = """// loon-change: Weibo vote-info nested reference cache v1
-function removeVoteInfo(item) {
-  const pageInfo = item?.page_info;
+function removeVoteInfo(item, cachedPageInfo, hasCachedPageInfo) {
+  const pageInfo = hasCachedPageInfo ? cachedPageInfo : item?.page_info;
   const mediaInfo = pageInfo?.media_info;
   const voteInfo = mediaInfo?.vote_info;
   if (voteInfo) {
@@ -924,6 +924,43 @@ def optimize_vote_info_nested_reference_cache(source):
     if source.count(VOTE_INFO_NESTED_REFERENCE_CACHE_OLD) != 1:
         raise ValueError("Weibo removeVoteInfo helper anchor drift")
     return source.replace(VOTE_INFO_NESTED_REFERENCE_CACHE_OLD, VOTE_INFO_NESTED_REFERENCE_CACHE_NEW, 1)
+
+COMMENT_STATUS_PAGE_INFO_CACHE_MARKER = "// loon-change: Weibo comment-status page-info reference cache v1"
+COMMENT_STATUS_OLD = """    if (obj?.status?.page_info) {
+      removeVoteInfo(obj?.status);
+    }"""
+COMMENT_STATUS_NEW = """    // loon-change: Weibo comment-status page-info reference cache v1
+    const commentStatus = obj?.status;
+    const commentStatusPageInfo = commentStatus?.page_info;
+    if (commentStatusPageInfo) {
+      removeVoteInfo(commentStatus, commentStatusPageInfo, true);
+    }"""
+VOTE_INFO_HELPER_OLD = VOTE_INFO_NESTED_REFERENCE_CACHE_NEW
+VOTE_INFO_HELPER_NEW = """// loon-change: Weibo vote-info nested reference cache v1
+function removeVoteInfo(item, cachedPageInfo, hasCachedPageInfo) {
+  const pageInfo = hasCachedPageInfo ? cachedPageInfo : item?.page_info;
+  const mediaInfo = pageInfo?.media_info;
+  const voteInfo = mediaInfo?.vote_info;
+  if (voteInfo) {
+    modified = true;
+    delete mediaInfo.vote_info;
+  }
+}"""
+
+def optimize_comment_status_page_info_cache(source):
+    if COMMENT_STATUS_PAGE_INFO_CACHE_MARKER in source:
+        if (source.count(COMMENT_STATUS_PAGE_INFO_CACHE_MARKER) != 1
+                or COMMENT_STATUS_NEW not in source
+                or VOTE_INFO_HELPER_NEW not in source):
+            raise ValueError("Weibo comment-status page-info marker/structure drift")
+        return source
+    if source.count(COMMENT_STATUS_OLD) != 1 or source.count(VOTE_INFO_HELPER_OLD) != 1:
+        raise ValueError("Weibo comment-status page-info cache anchor drift")
+    source = source.replace(COMMENT_STATUS_OLD, COMMENT_STATUS_NEW, 1)
+    source = source.replace(VOTE_INFO_HELPER_OLD, VOTE_INFO_HELPER_NEW, 1)
+    if source.count(COMMENT_STATUS_PAGE_INFO_CACHE_MARKER) != 1:
+        raise ValueError("Weibo comment-status page-info cache postcondition failed")
+    return source
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
