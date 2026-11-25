@@ -83,6 +83,20 @@ class RStoreXiaohongshuOptimizerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "function-entry scan structure drift"):
             optimize_v4_function_entry_scan(damaged)
 
+    def test_comment_traversal_caches_hot_array_lengths(self):
+        source = SCRIPT.read_text(encoding="utf-8")
+        marker = "// loon-change: Xiaohongshu comment traversal cached array lengths v1"
+        self.assertEqual(source.count(marker), 1)
+        self.assertIn("const commentPictureCount = commentPictures?.length || 0;", source)
+        self.assertIn("const currentLength = current.length;", source)
+        self.assertIn("const commentCount = child.length;", source)
+        self.assertIn("const subCommentCount = child.length;", source)
+        self.assertNotIn("for (const picture of commentPictures)", source)
+        self.assertNotRegex(source, r"for \(let index = (?:current|child)\.length - 1")
+        damaged = source.replace("const commentPictureCount = commentPictures?.length || 0;", "const commentPictureCount = 0;", 1)
+        with self.assertRaisesRegex(ValueError, "comment helper refresh"):
+            optimize_source(damaged)
+
     def test_video_save_lookup_caches_note_id_and_uses_indexed_early_exit(self):
         source = SCRIPT.read_text(encoding="utf-8")
         self.assertEqual(source.count(VIDEO_SAVE_LOOKUP_MARKER), 1)
@@ -401,14 +415,19 @@ process.stdout.write(JSON.stringify({
         runner = r"""
 const fs=require("fs"),vm=require("vm"),source=fs.readFileSync(process.argv[1],"utf8");
 const payload=JSON.parse(fs.readFileSync(0,"utf8")),store=new Map();
-let doneResult,reads=0,tracking=false;
+let doneResult,reads=0,tracking=false,pictureLengthReads=0,pictureIndexReads=0;
 const nativeParse=JSON.parse.bind(JSON),nativeStringify=JSON.stringify.bind(JSON);
 const trackedJSON={
   parse(value){
     const parsed=nativeParse(value);
     const track=comment=>{
       if(!comment||typeof comment!=="object")return;
-      let pictures=comment.pictures;
+      const rawPictures=comment.pictures;
+      const pictures=new Proxy(rawPictures||[],{get(target,key,receiver){
+        if(tracking&&key==="length")pictureLengthReads++;
+        if(tracking&&typeof key==="string"&&/^\d+$/.test(key))pictureIndexReads++;
+        return Reflect.get(target,key,receiver);
+      }});
       Object.defineProperty(comment,"pictures",{enumerable:true,configurable:true,
         get(){if(tracking)reads++;return pictures;},set(value){pictures=value;}});
     };
@@ -432,7 +451,7 @@ const context={
 };
 vm.createContext(context);
 vm.runInNewContext(source,context,{timeout:5000});
-process.stdout.write(nativeStringify({doneResult,reads,store:Object.fromEntries(store)}));
+process.stdout.write(nativeStringify({doneResult,reads,pictureLengthReads,pictureIndexReads,store:Object.fromEntries(store)}));
 """;
         video_info = json.dumps({"stream": {"h265": [{"master_url": "https://video.example/live.mp4"}]}})
         body = {"data": {"comments": [{
@@ -448,6 +467,8 @@ process.stdout.write(nativeStringify({doneResult,reads,store:Object.fromEntries(
         self.assertEqual(completed.returncode, 0, completed.stderr)
         result = json.loads(completed.stdout)
         self.assertEqual(result["reads"], 2)
+        self.assertEqual(result["pictureLengthReads"], 2)
+        self.assertEqual(result["pictureIndexReads"], 2)
         cached = json.loads(result["store"]["xiaohongshu.comments.rsp"])
         self.assertEqual([item["videId"] for item in cached["livePhotos"]], ["video-1", "video-2"])
 
