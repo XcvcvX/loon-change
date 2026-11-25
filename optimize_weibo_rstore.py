@@ -345,7 +345,10 @@ COMMENT_DATA_CACHE_NEW = "        let item = __loonSource30[__loonRead30];\n    
 
 def optimize_comment_data_reference_cache(source):
     if COMMENT_DATA_CACHE_MARKER in source:
-        if source.count(COMMENT_DATA_CACHE_MARKER) != 1 or COMMENT_DATA_CACHE_OLD in source or COMMENT_DATA_CACHE_NEW not in source:
+        expected_new = COMMENT_DATA_CACHE_NEW
+        if "COMMENT_USER_CACHE_NEW" in globals() and "COMMENT_USER_CACHE_OLD" in globals():
+            expected_new = expected_new.replace(COMMENT_USER_CACHE_OLD, COMMENT_USER_CACHE_NEW, 1)
+        if source.count(COMMENT_DATA_CACHE_MARKER) != 1 or COMMENT_DATA_CACHE_OLD in source or expected_new not in source:
             raise ValueError("Weibo comment data-cache marker/structure drift")
         return source
     old_block = COMMENT_DATA_CACHE_OLD
