@@ -1186,9 +1186,9 @@ def optimize_following_timeline_data_cache(source):
         if block.count(old) != 1:
             raise ValueError("Weibo following timeline cache anchor drift: " + old[:75])
         block = block.replace(old, new, 1)
+    block = block.replace(start, start + "\n    " + FOLLOWING_TIMELINE_DATA_CACHE_MARKER, 1)
     if any(token not in block for token in required):
         raise ValueError("Weibo following timeline cache postcondition failed")
-    block = block.replace(start, start + "\n    " + FOLLOWING_TIMELINE_DATA_CACHE_MARKER, 1)
     stripped = block.replace("const itemData = item?.data;", "")
     if any(token in stripped for token in ("item?.data", "item.data", "obj?.items?.length", "const __loonLength2 = __loonSource2.length;")):
         raise ValueError("Weibo following timeline repeated data/array reads remain")
@@ -1253,9 +1253,9 @@ def optimize_hot_timeline_data_cache(source):
         if block.count(old) != 1:
             raise ValueError("Weibo hot timeline cache anchor drift: " + old[:75])
         block = block.replace(old, new, 1)
+    block = block.replace(start, start + "\n    " + HOT_TIMELINE_DATA_CACHE_MARKER, 1)
     if any(token not in block for token in required):
         raise ValueError("Weibo hot timeline cache postcondition failed")
-    block = block.replace(start, start + "\n    " + HOT_TIMELINE_DATA_CACHE_MARKER, 1)
     stripped = block.replace("const itemData = item?.data;", "")
     if any(token in stripped for token in ("item?.data", "obj?.items?.length", "obj?.statuses?.length",
                                             "const __loonLength4 = __loonSource4.length;",
@@ -1408,10 +1408,10 @@ def optimize_flowlist_asyn_nested_reference_cache(source):
         return source_block
     asyn = patch_block(asyn, changes_asyn, "container/asyn")
     flow = patch_block(flow, changes_flow, "flowlist")
-    if any(x not in asyn for x in required_asyn) or any(x not in flow for x in required_flow):
-        raise ValueError("Weibo flowlist/asyn reference-cache postcondition failed")
     asyn = asyn.replace(asyn_start, asyn_start + "\n    // loon-change: Weibo container/asyn nested reference cache v1", 1)
     flow = flow.replace(flow_start, flow_start + "\n    // loon-change: Weibo flowlist nested reference cache v1", 1)
+    if any(x not in asyn for x in required_asyn) or any(x not in flow for x in required_flow):
+        raise ValueError("Weibo flowlist/asyn reference-cache postcondition failed")
     result = source[:source.index(asyn_start)] + asyn + source[source.index(asyn_end):source.index(flow_start)] + flow + source[source.index(flow_end):]
     if FLOWLIST_ASYN_REFERENCE_CACHE_MARKER not in result:
         first_line_end = result.find("\n")
@@ -1517,9 +1517,9 @@ def optimize_search_timeline_nested_reference_cache(source):
         if block.count(old) != 1:
             raise ValueError("Weibo search timeline cache anchor drift: " + old[:80])
         block = block.replace(old, new, 1)
+    block = block.replace(start, start + "\n      " + SEARCH_TIMELINE_REFERENCE_CACHE_MARKER, 1)
     if any(token not in block for token in required):
         raise ValueError("Weibo search timeline cache postcondition failed")
-    block = block.replace(start, start + "\n      " + SEARCH_TIMELINE_REFERENCE_CACHE_MARKER, 1)
     return source[:left] + block + source[right:]
 
 
