@@ -825,26 +825,32 @@ if (url.includes("/interface/sdk/sdkad.php")) {
   } else if (url.includes("/2/search/")) {
     // 搜索页信息流
     if (url.includes("container_timeline")) {
-      if (obj?.items?.length > 0) {
-        const __loonSource12 = obj.items;
+      // loon-change: Weibo search timeline nested reference cache v1
+      const searchItems = obj?.items;
+      const searchItemsLength = searchItems?.length || 0;
+      if (searchItemsLength > 0) {
+        const __loonSource12 = searchItems;
         let __loonWrite12 = 0;
-        const __loonLength12 = __loonSource12.length;
+        const __loonLength12 = searchItemsLength;
         for (let __loonRead12 = 0; __loonRead12 < __loonLength12; __loonRead12++) {
           let item = __loonSource12[__loonRead12];
           if (item?.category === "feed") {
-            if (!isAd(item?.data)) {
+            const itemData = item?.data;
+            if (!isAd(itemData)) {
               // 信息流推广
-              removeFeedAd(item?.data);
+              removeFeedAd(itemData);
               __loonSource12[__loonWrite12++] = item;
             }
           } else if (item?.category === "card") {
             // 19热议等tab 118横版广告图片 206,249横版视频广告 208实况热聊 217错过了热词 236微博趋势 261奥运滚动横幅
-            if ((item?.data?.card_type === 19 || item?.data?.card_type === 118 || item?.data?.card_type === 206 || item?.data?.card_type === 208 || item?.data?.card_type === 217 || item?.data?.card_type === 236 || item?.data?.card_type === 249 || item?.data?.card_type === 261)) {
+            const cardData = item?.data;
+            const cardType = cardData?.card_type;
+            if ((cardType === 19 || cardType === 118 || cardType === 206 || cardType === 208 || cardType === 217 || cardType === 236 || cardType === 249 || cardType === 261)) {
               continue;
-            } else if (item?.data?.card_type === 101 && item?.data?.cate_id === "1114") {
+            } else if (cardType === 101 && cardData?.cate_id === "1114") {
               // 微博趋势标题
               continue;
-            } else if (item?.data?.card_type === 196 && item?.data?.hasOwnProperty("rank")) {
+            } else if (cardType === 196 && cardData?.hasOwnProperty("rank")) {
               // 奥运等排行榜
               continue;
             } else {
@@ -854,14 +860,18 @@ if (url.includes("/interface/sdk/sdkad.php")) {
             // 保留信息流分割线
             __loonSource12[__loonWrite12++] = item;
           } else if (item?.category === "group") {
-            if (item?.items?.length > 0) {
-              const __loonSource11 = item.items;
+            const groupItems = item?.items;
+            const groupItemsLength = groupItems?.length || 0;
+            if (groupItemsLength > 0) {
+              const __loonSource11 = groupItems;
               let __loonWrite11 = 0;
-              const __loonLength11 = __loonSource11.length;
+              const __loonLength11 = groupItemsLength;
               for (let __loonRead11 = 0; __loonRead11 < __loonLength11; __loonRead11++) {
                 let ii = __loonSource11[__loonRead11];
+                const innerData = ii?.data;
+                const innerCardType = innerData?.card_type;
                 // 118横版广告图片 182热议话题 217错过了热词 247横版视频广告
-                if ((ii?.data?.card_type === 118 || ii?.data?.card_type === 182 || ii?.data?.card_type === 217 || ii?.data?.card_type === 247)) {
+                if ((innerCardType === 118 || innerCardType === 182 || innerCardType === 217 || innerCardType === 247)) {
                   continue;
                 } else {
                   __loonSource11[__loonWrite11++] = ii;
