@@ -219,6 +219,7 @@ const payload = JSON.parse(fs.readFileSync(0, "utf8"));
 const store = new Map(Object.entries(payload.store || {}));
 let doneResult;
 let imageArrayReads = 0;
+let imageArrayLengthReads = 0;
 let trackImageArrayReads = true;
 let weakSetConstructCount = 0;
 let mapGetCount = 0;
@@ -291,6 +292,7 @@ const context = {
         if (Array.isArray(images)) {
           parsed.data[0].note_list[0].images_list = new Proxy(images, {
             get(target, property, receiver) {
+              if (trackImageArrayReads && property === "length") imageArrayLengthReads++;
               if (trackImageArrayReads && typeof property === "string" && /^\d+$/.test(property)) {
                 imageArrayReads++;
               }
@@ -320,6 +322,7 @@ process.stdout.write(JSON.stringify({
   doneResult,
   parseCount: context.JSON.parseCount,
   imageArrayReads,
+  imageArrayLengthReads,
   weakSetConstructCount,
   mapGetCount,
   mapHasCount,
@@ -376,6 +379,7 @@ process.stdout.write(JSON.stringify({
         self.assertIn("w/2160/format", item["images_list"][0]["nested"]["url"])
         self.assertEqual([tag["type"] for tag in item["hash_tag"]], ["normal"])
         self.assertEqual(result["imageArrayReads"], 1)
+        self.assertEqual(result["imageArrayLengthReads"], 1)
         cached = json.loads(result["store"]["redBookLivePhoto"])
         self.assertEqual(cached, [{
             "file_id": "live-file-1",
@@ -423,6 +427,7 @@ process.stdout.write(JSON.stringify({
         self.assertIn("w/2160/format", images[0]["url"])
         self.assertIn("w/2160/format", images[1]["url"])
         self.assertEqual(result["imageArrayReads"], 2)
+        self.assertEqual(result["imageArrayLengthReads"], 1)
         cache = json.loads(result["store"]["redBookLivePhoto"])
         self.assertEqual(
             cache,
