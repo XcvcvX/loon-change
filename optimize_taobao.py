@@ -54,13 +54,24 @@ def optimize_splash_loop(source):
     if SPLASH_LOOP_MARKER in source:
         required = (
             SPLASH_LOOP_MARKER,
-            "const sectionCount = sections.length;",
             "const bizData = sections[sectionIndex]?.bizData;",
             'const splashItems = bizData?.["taobao-splash"]?.data;',
-            "const itemCount = splashItems.length;",
+            "for (let sectionIndex = 0; sectionIndex < sectionCount; sectionIndex++)",
             "for (let itemIndex = 0; itemIndex < itemCount; itemIndex++)",
         )
-        if any(token not in source for token in required):
+        if SPLASH_ARRAY_LENGTH_MARKER in source:
+            length_required = (
+                SPLASH_ARRAY_LENGTH_MARKER,
+                "const sectionCount = Array.isArray(sections) ? sections.length : 0;",
+                "const itemCount = Array.isArray(splashItems) ? splashItems.length : 0;",
+                "if (itemCount === 0) continue;",
+            )
+        else:
+            length_required = (
+                "const sectionCount = sections.length;",
+                "const itemCount = splashItems.length;",
+            )
+        if any(token not in source for token in required + length_required):
             raise ValueError("Taobao indexed splash traversal drifted; refusing to overwrite")
         if SPLASH_HOME_OBJECT_MARKER in source:
             cached = (
@@ -80,6 +91,45 @@ def optimize_splash_loop(source):
     if optimized.count(SPLASH_LOOP_MARKER) != 1:
         raise ValueError("Taobao indexed splash traversal postcondition failed")
     return optimized
+
+
+SPLASH_ARRAY_LENGTH_MARKER = "// loon-change: Taobao splash array length single-read cache v1"
+SPLASH_ARRAY_LENGTH_OLD_SECTION = """    if (Array.isArray(sections) && sections.length > 0) {
+      // loon-change: Taobao indexed splash traversal v1
+      const sectionCount = sections.length;"""
+SPLASH_ARRAY_LENGTH_NEW_SECTION = """    // loon-change: Taobao splash array length single-read cache v1
+    const sectionCount = Array.isArray(sections) ? sections.length : 0;
+    if (sectionCount > 0) {"""
+SPLASH_ARRAY_LENGTH_OLD_ITEMS = """        if (!Array.isArray(splashItems) || splashItems.length === 0) continue;
+
+        const itemCount = splashItems.length;"""
+SPLASH_ARRAY_LENGTH_NEW_ITEMS = """        const itemCount = Array.isArray(splashItems) ? splashItems.length : 0;
+        if (itemCount === 0) continue;"""
+
+
+def optimize_splash_array_length_reads(source):
+    if SPLASH_ARRAY_LENGTH_MARKER in source:
+        required = (
+            SPLASH_ARRAY_LENGTH_MARKER,
+            SPLASH_ARRAY_LENGTH_NEW_SECTION,
+            SPLASH_ARRAY_LENGTH_NEW_ITEMS,
+            "for (let sectionIndex = 0; sectionIndex < sectionCount; sectionIndex++)",
+            "for (let itemIndex = 0; itemIndex < itemCount; itemIndex++)",
+        )
+        if source.count(SPLASH_ARRAY_LENGTH_MARKER) != 1 or any(token not in source for token in required):
+            raise ValueError("Taobao splash array-length cache marker/structure drift")
+        if SPLASH_ARRAY_LENGTH_OLD_SECTION in source or SPLASH_ARRAY_LENGTH_OLD_ITEMS in source:
+            raise ValueError("Taobao splash array-length cache left repeated length reads")
+        return source
+    if source.count(SPLASH_LOOP_MARKER) != 1:
+        raise ValueError("Taobao splash array-length cache requires indexed traversal")
+    if source.count(SPLASH_ARRAY_LENGTH_OLD_SECTION) != 1 or source.count(SPLASH_ARRAY_LENGTH_OLD_ITEMS) != 1:
+        raise ValueError("Taobao splash array-length cache anchor drift")
+    source = source.replace(SPLASH_ARRAY_LENGTH_OLD_SECTION, SPLASH_ARRAY_LENGTH_NEW_SECTION, 1)
+    source = source.replace(SPLASH_ARRAY_LENGTH_OLD_ITEMS, SPLASH_ARRAY_LENGTH_NEW_ITEMS, 1)
+    if source.count(SPLASH_ARRAY_LENGTH_MARKER) != 1:
+        raise ValueError("Taobao splash array-length cache postcondition failed")
+    return source
 
 
 ROUTE_CLASSIFICATION_MARKER = "// loon-change: Taobao cached route classification v1"
@@ -408,6 +458,7 @@ def optimize_runtime_source(source):
         if source.index("const shouldProcess =") > source.index("JSON.parse($response.body)"):
             raise ValueError("Taobao pre-parse guard moved after JSON.parse")
     source = optimize_splash_loop(source)
+    source = optimize_splash_array_length_reads(source)
     source = optimize_splash_home_object(source)
     source = optimize_splash_item_updates(source)
     source = optimize_route_classification(source)
