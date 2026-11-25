@@ -422,9 +422,9 @@ OLD_V4_FUNCTION_ENTRY_BLOCK = """          if (item?.share_info?.function_entrie
 NEW_V4_FUNCTION_ENTRY_BLOCK = """          // loon-change: Xiaohongshu v4 function-entry indexed scan v1
           const shareInfo = item?.share_info;
           const functionEntries = shareInfo?.function_entries;
-          if (functionEntries?.length > 0) {
+          const functionEntryCount = functionEntries?.length || 0;
+          if (functionEntryCount > 0) {
             let hasDownload = false;
-            const functionEntryCount = functionEntries.length;
             for (let entryIndex = 0; entryIndex < functionEntryCount; entryIndex++) {
               const entry = functionEntries[entryIndex];
               if (entry.type === "video_download") {
@@ -444,7 +444,7 @@ def optimize_v4_function_entry_scan(source):
         marker,
         "const shareInfo = item?.share_info;",
         "const functionEntries = shareInfo?.function_entries;",
-        "const functionEntryCount = functionEntries.length;",
+        "const functionEntryCount = functionEntries?.length || 0;",
         "for (let entryIndex = 0; entryIndex < functionEntryCount; entryIndex++)",
         "const entry = functionEntries[entryIndex];",
         'if (entry.type === "video_download")',
