@@ -539,6 +539,7 @@ def optimize_source(src,commit="unknown"):
     result = optimize_imagefeed_live_photo_property_cache(optimize_imagefeed_single_traversal(result))
     result = optimize_comment_video_info_cache(result)
     result = optimize_comment_stack_frame_allocation(result)
+    result = optimize_comment_node_array_classification(result)
     result = optimize_video_save_cache_lookup(result)
     result = optimize_v4_video_feed_function_entry_scan(result)
     result = optimize_v4_function_switch_indexed_scan(result)
