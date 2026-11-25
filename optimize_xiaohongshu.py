@@ -480,7 +480,7 @@ VIDEO_V3_ITEM_CACHE_MARKER = "// loon-change: Xiaohongshu v3 video-feed item ref
 def optimize_v3_video_feed_item_reference_cache(src):
     """Cache v3 video-feed references and defer the insertion object allocation."""
     start = 'if (url.includes("/v3/note/videofeed?")) {'
-    end = "\\n\\n// 信息流 视频\\nif (url.includes(\"/v4/note/videofeed\")) {"
+    end = "\n\n// 信息流 视频\nif (url.includes("/v4/note/videofeed")) {
     marker = VIDEO_V3_ITEM_CACHE_MARKER
     if marker in src:
         left = src.find(start)
