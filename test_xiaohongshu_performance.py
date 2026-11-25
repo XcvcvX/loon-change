@@ -1,6 +1,6 @@
 import json, shutil, subprocess, unittest
 from pathlib import Path
-from optimize_xiaohongshu import LOCAL, REMOTE, MARKER, IMAGE_FEED_MARKER, VIDEO_SAVE_LOOKUP_MARKER, VIDEO_SAVE_LAZY_PARSE_MARKER, STREAM_SELECTION_MARKER, VIDEO_ENTRY_MARKER, IMAGE_LIVE_PHOTO_CACHE_MARKER, COMMENT_MEDIA_CACHE_MARKER, COMMENT_STACK_FRAME_MARKER, FUNCTION_SWITCH_MARKER, VIDEO_V3_ITEM_CACHE_MARKER, optimize_v3_video_feed_item_reference_cache, VIDEO_FEED_REFERENCE_CACHE_MARKER, optimize_v4_video_feed_nested_reference_cache, optimize_v4_function_switch_indexed_scan, optimize_comment_stack_frame_allocation, optimize_comment_media_property_cache, optimize_imagefeed_live_photo_property_cache, optimize_comment_video_info_cache, optimize_imagefeed_single_traversal, optimize_video_save_cache_lookup, optimize_video_save_lazy_cache_parse, optimize_stream_selection_no_closure, optimize_v4_video_feed_function_entry_scan, optimize_comment_node_array_classification, COMMENT_NODE_ARRAY_MARKER, optimize_source, rewrite_plugin
+from optimize_xiaohongshu import LOCAL, REMOTE, MARKER, IMAGE_FEED_MARKER, VIDEO_SAVE_LOOKUP_MARKER, VIDEO_SAVE_LAZY_PARSE_MARKER, STREAM_SELECTION_MARKER, VIDEO_ENTRY_MARKER, IMAGE_LIVE_PHOTO_CACHE_MARKER, COMMENT_MEDIA_CACHE_MARKER, COMMENT_STACK_FRAME_MARKER, FUNCTION_SWITCH_MARKER, VIDEO_V3_ITEM_CACHE_MARKER, optimize_v3_video_feed_item_reference_cache, VIDEO_FEED_REFERENCE_CACHE_MARKER, optimize_v4_video_feed_nested_reference_cache, optimize_v4_function_switch_indexed_scan, optimize_comment_stack_frame_allocation, optimize_comment_media_property_cache, optimize_imagefeed_live_photo_property_cache, optimize_comment_video_info_cache, optimize_imagefeed_single_traversal, optimize_video_save_cache_lookup, optimize_video_save_lazy_cache_parse, optimize_stream_selection_no_closure, optimize_v4_video_feed_function_entry_scan, optimize_comment_node_array_classification, COMMENT_NODE_ARRAY_MARKER, IMAGE_ARRAY_LENGTH_MARKER, optimize_imagefeed_array_length_cache, optimize_source, rewrite_plugin
 
 ROOT=Path(__file__).resolve().parent
 NODE=shutil.which("node")
@@ -13,6 +13,9 @@ class XiaohongshuOptimizerTests(unittest.TestCase):
         self.assertNotIn("imageEnhance(JSON.stringify(images_list))",src)
         self.assertIn("imageEnhance(images_list, livePhotoCache)",src)
         self.assertIn(IMAGE_FEED_MARKER,src)
+        self.assertIn(IMAGE_ARRAY_LENGTH_MARKER,src)
+        self.assertIn("frame.index>=frame.length",src)
+        self.assertNotIn("if(frame.index>=value.length)",src)
         self.assertNotIn("for (const image of images_list)",src)
         self.assertIn("const byFileId=new Map()",src)
         self.assertIn("// loon-change: Xiaohongshu comment video-info cache single lookup v2;",src)
@@ -726,3 +729,66 @@ vm.runInNewContext(source,ctx,{timeout:5000});process.stdout.write(JSON.stringif
         self.assertEqual([x["id"] for x in out["data"] if x],["keep1","keep2"])
         self.assertIsNone(out["data"][1])
         self.assertNotIn("related_ques",out["data"][0])
+
+
+    def test_imagefeed_array_frame_length_cache_is_idempotent_and_fails_closed(self):
+        source=(ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")
+        self.assertEqual(optimize_imagefeed_array_length_cache(source),source)
+        self.assertEqual(source.count(IMAGE_ARRAY_LENGTH_MARKER),1)
+        self.assertIn("length:Array.isArray(images)?images.length:0",source)
+        self.assertIn("if(frame.index>=frame.length)",source)
+        self.assertEqual(source.count("length:Array.isArray(child)?child.length:0"),2)
+        damaged=source.replace("if(frame.index>=frame.length)", "if(frame.index>=value.length)", 1)
+        with self.assertRaisesRegex(ValueError,"marker is stale"):
+            optimize_imagefeed_array_length_cache(damaged)
+
+    @unittest.skipUnless(NODE,"Node required for image traversal runtime test")
+    def test_imagefeed_array_lengths_are_read_once_per_array_frame(self):
+        runner=r"""
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync("scripts/xiaohongshu/xiaohongshu.js","utf8");
+const p=JSON.parse(fs.readFileSync(0,"utf8")),store=new Map();let done,track=true;
+const lengthReads=Object.create(null),nativeJSON=JSON;
+function wrapArrays(value,path){
+  if(Array.isArray(value)){
+    const wrapped=value.map((child,index)=>wrapArrays(child,path+"["+index+"]"));
+    return new Proxy(wrapped,{get(target,key,receiver){
+      if(track&&key==="length")lengthReads[path]=(lengthReads[path]||0)+1;
+      return Reflect.get(target,key,receiver);
+    }});
+  }
+  if(value&&typeof value==="object"){
+    for(const key of Object.keys(value))value[key]=wrapArrays(value[key],path+"."+key);
+  }
+  return value;
+}
+const trackedJSON={
+  parse(value){
+    const parsed=nativeJSON.parse(value);
+    if(p.url.includes("/note/imagefeed?")){
+      const images=parsed?.data?.[0]?.note_list?.[0]?.images_list;
+      if(Array.isArray(images))parsed.data[0].note_list[0].images_list=wrapArrays(images,"root");
+    }
+    return parsed;
+  },
+  stringify(value){const previous=track;track=false;try{return nativeJSON.stringify(value);}finally{track=previous;}}
+};
+const ctx={JSON:trackedJSON,$loon:{},$persistentStore:{read:k=>store.get(k)||null,write:(v,k)=>(store.set(k,v),true)},
+$request:{url:p.url},$response:{body:nativeJSON.stringify(p.body)},$done:v=>done=v,console:{log(){},warn(){},error(){}}};
+vm.runInNewContext(source,ctx,{timeout:5000});
+process.stdout.write(nativeJSON.stringify({body:nativeJSON.parse(done.body),lengthReads}));
+"""
+        original="https://img.example/a.jpg?imageView2/2/w/1080/format/jpg"
+        body={"data":[{"note_list":[{"images_list":[
+            {"url":original,"nested":[{"url":original},{"url":original}]},
+            {"url":original}
+        ]}]}]}
+        run=subprocess.run([NODE,"-e",runner],input=json.dumps({
+            "url":"https://edith.xiaohongshu.com/api/sns/v1/note/imagefeed?cursor=array-length","body":body
+        }),cwd=ROOT,capture_output=True,text=True,check=True,timeout=10)
+        out=json.loads(run.stdout)
+        images=out["body"]["data"][0]["note_list"][0]["images_list"]
+        self.assertIn("w/2160/format",images[0]["url"])
+        self.assertIn("w/2160/format",images[0]["nested"][0]["url"])
+        self.assertIn("w/2160/format",images[1]["url"])
+        self.assertEqual(out["lengthReads"],{"root":1,"root[0].nested":1})
+
