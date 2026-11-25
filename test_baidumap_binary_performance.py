@@ -30,7 +30,7 @@ class BaiduMapBinaryPerformanceTests(unittest.TestCase):
         marker = "// loon-change: Baidu protobuf target-only byte views v1"
         self.assertIn(marker, self.source)
         start = self.source.index("for(let i = 0; i < messageHeadLength; i++)")
-        end = self.source.index("\\n}\\n\\nif(invalidSegmentLayout || !adsFound", start)
+        end = self.source.index("\n}\n\nif(invalidSegmentLayout || !adsFound", start)
         loop = self.source[start:end]
         self.assertEqual(loop.count("binaryBody.subarray("), 1)
         self.assertIn("if(name === 'Result'){", loop)
