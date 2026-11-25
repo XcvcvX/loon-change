@@ -288,6 +288,12 @@ def add_lazy_serialization_guard(source):
             target.replace("data.user.", "user.") if target.startswith("data.user.") else target
             for target in delete_targets
         ]
+    if REPLY_DECORATION_SINGLE_READ_MARKER in source:
+        reply_target_map = {
+            "item.user.icons": "replyUser.icons",
+            "item.reply_comment.comment_badge": "replyComment.comment_badge",
+        }
+        delete_targets = [reply_target_map.get(target, target) for target in delete_targets]
 
     if LAZY_MARKER in source:
         if GUARD_DECLARATION not in source or '$done(modified ? {body: JSON.stringify(obj)} : {});' not in source:
@@ -345,10 +351,18 @@ COMMENT_DATA_CACHE_NEW = "        let item = __loonSource30[__loonRead30];\n    
 
 def optimize_comment_data_reference_cache(source):
     if COMMENT_DATA_CACHE_MARKER in source:
-        expected_new = COMMENT_DATA_CACHE_NEW
-        if "COMMENT_USER_CACHE_NEW" in globals() and "COMMENT_USER_CACHE_OLD" in globals():
-            expected_new = expected_new.replace(COMMENT_USER_CACHE_OLD, COMMENT_USER_CACHE_NEW, 1)
-        if source.count(COMMENT_DATA_CACHE_MARKER) != 1 or COMMENT_DATA_CACHE_OLD in source or expected_new not in source:
+        required = (
+            COMMENT_DATA_CACHE_MARKER,
+            "const commentData = item?.data;",
+            "if (!isAd(commentData))",
+            "const commentUser = commentData?.user;",
+            "removeAvatar(commentData, commentUser);",
+            "delete commentData.comment_bubble;",
+            "delete commentData.comment_bullet_screens_message;",
+            "delete commentData.hot_icon;",
+            "delete commentData.vip_button;",
+        )
+        if source.count(COMMENT_DATA_CACHE_MARKER) != 1 or COMMENT_DATA_CACHE_OLD in source or any(token not in source for token in required):
             raise ValueError("Weibo comment data-cache marker/structure drift")
         return source
     old_block = COMMENT_DATA_CACHE_OLD
@@ -373,7 +387,10 @@ COMMENT_USER_CACHE_NEW = "            // loon-change: Weibo comment user/name re
 def optimize_comment_user_reference_cache(source):
     """Cache each comment's user/name and reuse the user reference in removeAvatar."""
     if REMOVE_AVATAR_USER_CACHE_MARKER in source:
-        if source.count(REMOVE_AVATAR_USER_CACHE_MARKER) != 1 or REMOVE_AVATAR_HELPER_OLD in source or REMOVE_AVATAR_HELPER_NEW not in source:
+        if (source.count(REMOVE_AVATAR_USER_CACHE_MARKER) != 1 or
+                REMOVE_AVATAR_HELPER_OLD in source or
+                "function removeAvatar(data, user = data?.user)" not in source or
+                "delete user.avatargj_id;" not in source):
             raise ValueError("Weibo removeAvatar user-cache marker/structure drift")
     else:
         if source.count(REMOVE_AVATAR_HELPER_OLD) != 1:
@@ -381,7 +398,13 @@ def optimize_comment_user_reference_cache(source):
         source = source.replace(REMOVE_AVATAR_HELPER_OLD, REMOVE_AVATAR_HELPER_NEW, 1)
 
     if COMMENT_USER_CACHE_MARKER in source:
-        if source.count(COMMENT_USER_CACHE_MARKER) != 1 or COMMENT_USER_CACHE_OLD in source or COMMENT_USER_CACHE_NEW not in source:
+        required_comment_user = (
+            COMMENT_USER_CACHE_MARKER,
+            "const commentUser = commentData?.user;",
+            "removeAvatar(commentData, commentUser);",
+            "const commentUserName = commentUser.name;",
+        )
+        if source.count(COMMENT_USER_CACHE_MARKER) != 1 or COMMENT_USER_CACHE_OLD in source or any(token not in source for token in required_comment_user):
             raise ValueError("Weibo comment user-cache marker/structure drift")
     else:
         if source.count(COMMENT_USER_CACHE_OLD) != 1:
@@ -573,7 +596,14 @@ TOPIC_GROUP_NEW = """              // 超话页顶部乱七八糟
 
 def optimize_topic_group_in_place(source):
     if TOPIC_GROUP_MARKER in source:
-        if source.count(TOPIC_GROUP_MARKER) != 1 or TOPIC_GROUP_OLD in source or TOPIC_GROUP_NEW not in source:
+        required = (
+            TOPIC_GROUP_MARKER,
+            "const groupItems = nestedItems;",
+            "const groupLength = groupItems.length;",
+            "if (keep) groupItems[groupWrite++] = ii;",
+            "groupItems.length = groupWrite;",
+        )
+        if (source.count(TOPIC_GROUP_MARKER) != 1 or TOPIC_GROUP_OLD in source or any(token not in source for token in required)):
             raise ValueError("Weibo topic-group compaction marker/structure drift")
         if "let newII = [];" in source or "item.items = newII;" in source:
             raise ValueError("Weibo topic-group compaction legacy allocation remains")
@@ -832,7 +862,11 @@ def optimize_remove_avatar_property_cache(source):
     required = (
         marker,
         "const blockCardBg = data?.block_card_bg;",
+        "const buttons = data?.buttons;",
+        "const cardId = data?.cardid;",
+        "const icons = data?.icons;",
         "const mblogButtons = data?.mblog_buttons;",
+        "const picBgNew = data?.pic_bg_new;",
         "const avatarGjId = user?.avatargj_id;",
         "const avatarExtendInfo = user?.avatar_extend_info;",
         "const userCardId = user?.cardid;",
