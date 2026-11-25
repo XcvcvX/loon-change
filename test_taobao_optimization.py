@@ -6,7 +6,7 @@ from pathlib import Path
 
 NODE = shutil.which("node")
 SCRIPT = Path(__file__).resolve().parent / "scripts" / "taobao" / "taobao.js"
-from optimize_taobao import KELEE_PATH, LOCAL, CLEAR_ARRAY_PROPERTY_MARKER, SPLASH_HOME_OBJECT_MARKER, optimize_clear_array_property_access, optimize_splash_home_object, optimize_runtime_source, rewrite_plugin
+from optimize_taobao import KELEE_PATH, LOCAL, CLEAR_ARRAY_PROPERTY_MARKER, SPLASH_HOME_OBJECT_MARKER, optimize_clear_array_property_access, optimize_splash_home_object, optimize_runtime_source, rewrite_plugin, UNUSED_SETTER_HELPER_MARKER, optimize_unused_setter_helper
 
 ROOT = Path(__file__).resolve().parent
 PLUGIN = ROOT / "allAdRewrite.plugin"
@@ -120,6 +120,41 @@ process.stdout.write(JSON.stringify(result));
         self.assertEqual(result["stringifyCount"], 1)
         self.assertEqual(result["output"]["mainRes"]["images"], [])
         self.assertFalse(result["output"]["enable"])
+
+    def test_poplayer_enable_value_is_read_once_before_direct_update(self):
+        runner = r"""
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync(process.argv[1],"utf8");
+const payload=JSON.parse(fs.readFileSync(0,"utf8")),nativeParse=JSON.parse.bind(JSON),nativeStringify=JSON.stringify.bind(JSON);
+let doneResult,readCount=0,tracking=true,enableValue=payload.body.enable;
+const trackedJSON={
+  parse(value){
+    const parsed=nativeParse(value);
+    Object.defineProperty(parsed,"enable",{enumerable:true,configurable:true,
+      get(){if(tracking)readCount++;return enableValue;},set(value){enableValue=value;}});
+    return parsed;
+  },
+  stringify(value){tracking=false;return nativeStringify(value);}
+};
+const context={
+  JSON:trackedJSON,$request:{url:payload.url},$response:{body:nativeStringify(payload.body)},
+  $done(value){doneResult=value;},console:{log(){},warn(){},error(){}}
+};
+vm.createContext(context);
+vm.runInContext(source,context,{timeout:5000});
+process.stdout.write(nativeStringify({doneResult,readCount,enableValue}));
+""";
+        completed = subprocess.run(
+            [NODE, "-e", runner],
+            input=json.dumps({
+                "url": "https://poplayer.template.alibaba.com/mtop",
+                "body": {"res": {"images": []}, "mainRes": {"images": []}, "enable": True}
+            }),
+            capture_output=True, text=True, check=True, timeout=10
+        )
+        result = json.loads(completed.stdout)
+        self.assertEqual(result["readCount"], 1)
+        self.assertFalse(result["enableValue"])
+        self.assertEqual(json.loads(result["doneResult"]["body"])["enable"], False)
 
     def test_already_clean_poplayer_skips_serialization(self):
         body = {"res": {"images": [], "videos": []}, "mainRes": {"images": []}, "enable": False}
@@ -286,10 +321,25 @@ class TaobaoCachedResponseObjectTests(unittest.TestCase):
         self.assertIn("const poplayerRes = obj?.res;", source)
         self.assertIn("const mainRes = obj?.mainRes;", source)
         self.assertIn("const poplayerEnabled = obj?.enable;", source)
+        self.assertIn("// loon-change: Taobao Poplayer enable direct update v1", source)
+        self.assertIn("obj.enable = false;", source)
+        self.assertIn(UNUSED_SETTER_HELPER_MARKER, source)
+        self.assertNotIn("function setIfDifferent(", source)
+        self.assertNotIn("setIfDifferent(", source)
         self.assertNotIn("clearArray(obj?.res || {},", source)
         self.assertNotIn("clearArray(obj?.mainRes || {},", source)
         self.assertEqual(source.count("JSON.parse("), 1)
         self.assertEqual(source.count("JSON.stringify("), 1)
+
+    def test_poplayer_direct_enable_update_removes_unused_generic_setter(self):
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertEqual(optimize_unused_setter_helper(source), source)
+        self.assertEqual(source.count(UNUSED_SETTER_HELPER_MARKER), 1)
+        self.assertNotIn("function setIfDifferent(", source)
+        self.assertNotIn("setIfDifferent(", source)
+        damaged = source.replace("obj.enable = false;", "obj.enable = true;", 1)
+        with self.assertRaisesRegex(ValueError, "direct update postcondition missing"):
+            optimize_unused_setter_helper(damaged)
 
     def test_object_cache_optimizer_is_idempotent_and_fails_closed(self):
         from optimize_taobao import OBJECT_CACHE_MARKER, optimize_route_object_access

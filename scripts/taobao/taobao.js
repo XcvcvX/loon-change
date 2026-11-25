@@ -15,13 +15,6 @@ if (!$response.body) {
   const url = $request.url;
   let modified = false;
 
-  function setIfDifferent(target, key, value) {
-    if (target[key] !== value) {
-      target[key] = value;
-      modified = true;
-    }
-  }
-
   function clearArray(target, key) {
     // loon-change: Taobao clearArray null-target fast path v1
     if (target == null) return;
@@ -51,6 +44,7 @@ if (!$response.body) {
     if (item?.videoUrl) { item.videoUrl = ""; modified = true; }
   }
 
+  // loon-change: Taobao unused setter helper removed v1
   // loon-change: Taobao pre-parse supported-route guard v1
   // loon-change: Taobao cached route classification v1
   const isCloudVideo = url.includes("guide-acs.m.taobao.com/gw/mtop.taobao.cloudvideo.video.query");
@@ -105,8 +99,10 @@ if (isCloudVideo) {
   const poplayerEnabled = obj?.enable;
   clearArray(poplayerRes, "images");
   clearArray(poplayerRes, "videos");
+  // loon-change: Taobao Poplayer enable direct update v1
   if (poplayerEnabled) {
-    setIfDifferent(obj, "enable", false);
+    obj.enable = false;
+    modified = true;
   }
   clearArray(mainRes, "images");
 }

@@ -140,7 +140,7 @@ OBJECT_CACHE_MARKER = "// loon-change: Taobao cached video response object v1"
 OLD_VIDEO_OBJECT_BLOCK = "if (isCloudVideo) {\n  if (obj?.data?.duration) {\n    setIfDifferent(obj.data, \"duration\", \"0\");\n  }\n  clearArray(obj?.data || {}, \"resources\");\n  clearArray(obj?.data || {}, \"caches\");\n  if (obj?.data?.respTimeInMs) {\n    setIfDifferent(obj.data, \"respTimeInMs\", \"3818332800000\");\n  }\n}"
 NEW_VIDEO_OBJECT_BLOCK = "if (isCloudVideo) {\n  // loon-change: Taobao cached video response object v1\n  const videoData = obj?.data;\n  if (videoData?.duration) {\n    setIfDifferent(videoData, \"duration\", \"0\");\n  }\n  clearArray(videoData || {}, \"resources\");\n  clearArray(videoData || {}, \"caches\");\n  if (videoData?.respTimeInMs) {\n    setIfDifferent(videoData, \"respTimeInMs\", \"3818332800000\");\n  }\n}"
 OLD_POPLAYER_OBJECT_BLOCK = "} else if (isPoplayer) {\n  clearArray(obj?.res || {}, \"images\");\n  clearArray(obj?.res || {}, \"videos\");\n  if (obj?.enable) {\n    setIfDifferent(obj, \"enable\", false);\n  }\n  clearArray(obj?.mainRes || {}, \"images\");\n}"
-NEW_POPLAYER_OBJECT_BLOCK = "} else if (isPoplayer) {\n  // loon-change: Taobao cached Poplayer response objects v1\n  const poplayerRes = obj?.res;\n  const mainRes = obj?.mainRes;\n  const poplayerEnabled = obj?.enable;\n  clearArray(poplayerRes || {}, \"images\");\n  clearArray(poplayerRes || {}, \"videos\");\n  if (poplayerEnabled) {\n    setIfDifferent(obj, \"enable\", false);\n  }\n  clearArray(mainRes || {}, \"images\");\n}"
+NEW_POPLAYER_OBJECT_BLOCK = "} else if (isPoplayer) {\n  // loon-change: Taobao cached Poplayer response objects v1\n  const poplayerRes = obj?.res;\n  const mainRes = obj?.mainRes;\n  const poplayerEnabled = obj?.enable;\n  clearArray(poplayerRes || {}, \"images\");\n  clearArray(poplayerRes || {}, \"videos\");\n  // loon-change: Taobao Poplayer enable direct update v1\n  if (poplayerEnabled) {\n    obj.enable = false;\n    modified = true;\n  }\n  clearArray(mainRes || {}, \"images\");\n}"
 
 def optimize_route_object_access(source):
     if OBJECT_CACHE_MARKER in source:
@@ -150,6 +150,9 @@ def optimize_route_object_access(source):
             "const poplayerRes = obj?.res;",
             "const mainRes = obj?.mainRes;",
             "const poplayerEnabled = obj?.enable;",
+            "// loon-change: Taobao Poplayer enable direct update v1",
+            "obj.enable = false;",
+            "modified = true;",
             'clearArray(poplayerRes, "images");',
             'clearArray(poplayerRes, "videos");',
             'clearArray(mainRes, "images");',
@@ -157,7 +160,8 @@ def optimize_route_object_access(source):
         if any(token not in source for token in required):
             raise ValueError("Taobao cached response object access drifted; refusing to overwrite")
         if ("clearArray(obj?.res || {}, " in source or "clearArray(obj?.mainRes || {}, " in source
-                or "clearArray(poplayerRes || {}, " in source or "clearArray(mainRes || {}, " in source):
+                or "clearArray(poplayerRes || {}, " in source or "clearArray(mainRes || {}, " in source
+                or 'setIfDifferent(obj, "enable", false);' in source):
             raise ValueError("Repeated Taobao Poplayer object access or fallback allocation remains")
         return source
     if source.count(OLD_VIDEO_OBJECT_BLOCK) != 1 or source.count(OLD_POPLAYER_OBJECT_BLOCK) != 1:
@@ -348,6 +352,42 @@ def optimize_splash_item_updates(source):
     return source
 
 
+
+UNUSED_SETTER_HELPER_MARKER = "// loon-change: Taobao unused setter helper removed v1"
+SET_IF_DIFFERENT_HELPER = """  function setIfDifferent(target, key, value) {
+    if (target[key] !== value) {
+      target[key] = value;
+      modified = true;
+    }
+  }
+
+"""
+
+def optimize_unused_setter_helper(source):
+    """Remove the generic setter after all active routes have specialized writes."""
+    marker = UNUSED_SETTER_HELPER_MARKER
+    if marker in source:
+        if source.count(marker) != 1:
+            raise ValueError("Taobao unused setter helper marker duplicated")
+        if "function setIfDifferent(" in source or "setIfDifferent(" in source:
+            raise ValueError("Taobao unused setter helper remains after removal marker")
+        if "obj.enable = false;" not in source or "modified = true;" not in source:
+            raise ValueError("Taobao Poplayer direct update postcondition missing")
+        return source
+    if source.count(SET_IF_DIFFERENT_HELPER) != 1:
+        raise ValueError("Expected exactly one unused Taobao setIfDifferent helper")
+    if source.count("setIfDifferent(") != 1:
+        raise ValueError("Taobao generic setter still has active call sites")
+    anchor = "  // loon-change: Taobao pre-parse supported-route guard v1"
+    if source.count(anchor) != 1:
+        raise ValueError("Taobao pre-parse guard marker anchor drift")
+    source = source.replace(SET_IF_DIFFERENT_HELPER, "", 1)
+    source = source.replace(anchor, "  " + marker + "\n" + anchor, 1)
+    if "function setIfDifferent(" in source or "setIfDifferent(" in source:
+        raise ValueError("Taobao unused setter helper removal left references")
+    return source
+
+
 def optimize_runtime_source(source):
     if RUNTIME_MARKER not in source:
         anchor = "  const obj = JSON.parse($response.body);\n"
@@ -375,6 +415,7 @@ def optimize_runtime_source(source):
     source = optimize_cloud_video_single_property_reads(source)
     source = optimize_clear_array_property_access(source)
     source = optimize_clear_array_null_targets(source)
+    source = optimize_unused_setter_helper(source)
     if source.index("const shouldProcess =") > source.index("JSON.parse($response.body)"):
         raise ValueError("Taobao pre-parse guard insertion order invalid")
     return source
