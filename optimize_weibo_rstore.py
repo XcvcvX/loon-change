@@ -434,7 +434,7 @@ def optimize_source(source, commit="unknown"):
     if MARKER in source:
         if "__loonSource32" not in source or "compactInPlace(items, keep)" not in source:
             raise ValueError("marked Weibo script is incomplete")
-        return optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source))))))))))))
+        return optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source))))))))))))
     source = source.replace("const url = $request.url;", "const url = $request.url;\n" + GUARD_DECLARATION + "\n\n" + HELPER, 1)
     if source.count(HELPER) != 1:
         raise ValueError("Weibo helper insertion failed")
@@ -446,7 +446,7 @@ def optimize_source(source, commit="unknown"):
     remaining = re.findall(r"\b(new[A-Za-z0-9_]*)\s*=\s*\[\s*\]", source)
     if sorted(remaining) != ["newActions", "newII"]:
         raise ValueError("unexpected remaining Weibo temporary arrays: " + repr(remaining))
-    return optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source)))))))))))))
+    return optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source))))))))))))))
 
 SCALAR_MEMBERSHIP_MARKER = "// loon-change: Weibo hot-loop scalar membership v1"
 SCALAR_MEMBERSHIP_REWRITES = [
@@ -1167,6 +1167,75 @@ def optimize_following_timeline_data_cache(source):
     stripped = block.replace("const itemData = item?.data;", "")
     if any(token in stripped for token in ("item?.data", "item.data", "obj?.items?.length", "const __loonLength2 = __loonSource2.length;")):
         raise ValueError("Weibo following timeline repeated data/array reads remain")
+    return source[:left] + block + source[right:]
+
+
+HOT_TIMELINE_DATA_CACHE_MARKER = "// loon-change: Weibo hot timeline nested reference cache v1"
+
+def optimize_hot_timeline_data_cache(source):
+    """Cache item/status arrays, their lengths, and each hot-feed card data reference."""
+    start = '} else if (url.includes("/2/statuses/container_timeline_hot") || url.includes("/2/statuses/unread_hot_timeline")) {'
+    end = '} else if (url.includes("/2/statuses/container_timeline?") || url.includes("/2/statuses/container_timeline_unread")) {'
+    if source.count(start) != 1 or source.count(end) != 1:
+        raise ValueError("Weibo hot timeline cache route boundary drift")
+    left = source.index(start)
+    right = source.index(end, left + len(start))
+    block = source[left:right]
+    required = (
+        HOT_TIMELINE_DATA_CACHE_MARKER,
+        "const hotItems = obj?.items;",
+        "const hotItemsLength = hotItems?.length || 0;",
+        "const __loonSource4 = hotItems;",
+        "const __loonLength4 = hotItemsLength;",
+        "const itemData = item?.data;",
+        "if (!isAd(itemData))",
+        "removeFeedAd(itemData);",
+        "removeVoteInfo(itemData);",
+        "const hotStatuses = obj?.statuses;",
+        "const hotStatusesLength = hotStatuses?.length || 0;",
+        "const __loonSource3 = hotStatuses;",
+        "const __loonLength3 = hotStatusesLength;",
+    )
+    if HOT_TIMELINE_DATA_CACHE_MARKER in block:
+        if block.count(HOT_TIMELINE_DATA_CACHE_MARKER) != 1 or any(token not in block for token in required):
+            raise ValueError("Weibo hot timeline cache structure drift")
+        stripped = block.replace("const itemData = item?.data;", "")
+        old = ("item?.data", "obj?.items?.length", "obj?.statuses?.length",
+               "const __loonLength4 = __loonSource4.length;", "const __loonLength3 = __loonSource3.length;")
+        if any(token in stripped for token in old):
+            raise ValueError("Weibo hot timeline repeated response reads remain")
+        return source
+    replacements = (
+        ("    if (obj?.items?.length > 0) {",
+         "    const hotItems = obj?.items;\\n"
+         "    const hotItemsLength = hotItems?.length || 0;\\n"
+         "    if (hotItemsLength > 0) {"),
+        ("      const __loonSource4 = obj.items;", "      const __loonSource4 = hotItems;"),
+        ("      const __loonLength4 = __loonSource4.length;", "      const __loonLength4 = hotItemsLength;"),
+        ("        let item = __loonSource4[__loonRead4];",
+         "        let item = __loonSource4[__loonRead4];\\n        const itemData = item?.data;"),
+        ("        if (!isAd(item?.data)) {", "        if (!isAd(itemData)) {"),
+        ("            removeFeedAd(item?.data);", "            removeFeedAd(itemData);"),
+        ("            removeVoteInfo(item?.data);", "            removeVoteInfo(itemData);"),
+        ("    if (obj?.statuses?.length > 0) {",
+         "    const hotStatuses = obj?.statuses;\\n"
+         "    const hotStatusesLength = hotStatuses?.length || 0;\\n"
+         "    if (hotStatusesLength > 0) {"),
+        ("      const __loonSource3 = obj.statuses;", "      const __loonSource3 = hotStatuses;"),
+        ("      const __loonLength3 = __loonSource3.length;", "      const __loonLength3 = hotStatusesLength;"),
+    )
+    for old, new in replacements:
+        if block.count(old) != 1:
+            raise ValueError("Weibo hot timeline cache anchor drift: " + old[:75])
+        block = block.replace(old, new, 1)
+    if any(token not in block for token in required):
+        raise ValueError("Weibo hot timeline cache postcondition failed")
+    block = block.replace(start, start + "\\n    " + HOT_TIMELINE_DATA_CACHE_MARKER, 1)
+    stripped = block.replace("const itemData = item?.data;", "")
+    if any(token in stripped for token in ("item?.data", "obj?.items?.length", "obj?.statuses?.length",
+                                            "const __loonLength4 = __loonSource4.length;",
+                                            "const __loonLength3 = __loonSource3.length;")):
+        raise ValueError("Weibo hot timeline repeated response reads remain")
     return source[:left] + block + source[right:]
 
 
