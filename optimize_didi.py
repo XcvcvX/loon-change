@@ -432,16 +432,38 @@ def optimize_info_list_cached_references(source):
         raise ValueError("Didi info-list reference cache validation failed")
     return source
 
+DIDI_RESPONSE_DATA_CACHE_MARKER = "// loon-change: Didi response data reference cache v1"
+
+def optimize_response_data_reference_cache(source):
+    """Read the parsed response's root data reference once and reuse it across routes."""
+    parse = "let obj = JSON.parse($response.body);"
+    if DIDI_RESPONSE_DATA_CACHE_MARKER in source:
+        required = (DIDI_RESPONSE_DATA_CACHE_MARKER, "const responseData = obj.data;")
+        if source.count(DIDI_RESPONSE_DATA_CACHE_MARKER) != 1 or any(token not in source for token in required):
+            raise ValueError("Didi response data reference cache structure is incomplete")
+        if source.count("obj.data") != 1:
+            raise ValueError("Didi repeated response data root access remains")
+        return source
+    if source.count(parse) != 1:
+        raise ValueError("Didi response data cache parse anchor drift")
+    source = source.replace(parse, parse + "\\n  " + DIDI_RESPONSE_DATA_CACHE_MARKER + "\\n  const responseData = obj.data;", 1)
+    source = source.replace("obj.data", "responseData")
+    source = source.replace("const responseData = responseData;", "const responseData = obj.data;")
+    if source.count("obj.data") != 1:
+        raise ValueError("Didi response data cache postcondition failed")
+    return source
+
+
 def optimize_source(source, commit="unknown"):
     if MARKER in source:
         if re.search(r"\.filter\s*\(", source):
             raise ValueError("Didi optimization marker exists but allocating filter remains")
         if "obj.data.cards.forEach" in source:
             raise ValueError("Didi user-center wallet traversal optimization is stale")
-        return optimize_info_list_cached_references(optimize_didi_route_dispatch_cache(optimize_didi_nested_traversal_property_cache(optimize_wallet_nested_property_cache(optimize_preparse_route_guard(optimize_didi_predicates(optimize_lazy_serialization(source)))))))
+        return optimize_response_data_reference_cache(optimize_info_list_cached_references(optimize_didi_route_dispatch_cache(optimize_didi_nested_traversal_property_cache(optimize_wallet_nested_property_cache(optimize_preparse_route_guard(optimize_didi_predicates(optimize_lazy_serialization(source))))))))
     if LEGACY_MARKER in source:
         source = source.replace(LEGACY_MARKER, MARKER, 1)
-        return optimize_info_list_cached_references(optimize_didi_route_dispatch_cache(optimize_didi_nested_traversal_property_cache(optimize_wallet_nested_property_cache(optimize_didi_predicates(optimize_lazy_serialization(source))))))
+        return optimize_response_data_reference_cache(optimize_info_list_cached_references(optimize_didi_route_dispatch_cache(optimize_didi_nested_traversal_property_cache(optimize_wallet_nested_property_cache(optimize_didi_predicates(optimize_lazy_serialization(source)))))))
 
     body_guard = "if (!$response.body) $done({});"
     if source.count(body_guard) != 1:
@@ -480,7 +502,7 @@ def optimize_source(source, commit="unknown"):
         raise ValueError("expected all seven Didi filters to use compactInPlace")
 
     source = source.rstrip() + "\n}\n"
-    return optimize_info_list_cached_references(optimize_didi_route_dispatch_cache(optimize_didi_nested_traversal_property_cache(optimize_wallet_nested_property_cache(optimize_preparse_route_guard(optimize_didi_predicates(optimize_lazy_serialization(MARKER + commit + "\n" + source)))))))
+    return optimize_response_data_reference_cache(optimize_info_list_cached_references(optimize_didi_route_dispatch_cache(optimize_didi_nested_traversal_property_cache(optimize_wallet_nested_property_cache(optimize_preparse_route_guard(optimize_didi_predicates(optimize_lazy_serialization(MARKER + commit + "\n" + source))))))))
 
 
 def rewrite_plugin(plugin):
