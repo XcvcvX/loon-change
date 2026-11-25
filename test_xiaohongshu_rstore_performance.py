@@ -94,7 +94,7 @@ class RStoreXiaohongshuOptimizerTests(unittest.TestCase):
         self.assertNotIn("for (const picture of commentPictures)", source)
         self.assertNotRegex(source, r"for \(let index = (?:current|child)\.length - 1")
         damaged = source.replace("const commentPictureCount = commentPictures?.length || 0;", "const commentPictureCount = 0;", 1)
-        with self.assertRaisesRegex(ValueError, "comment helper refresh"):
+        with self.assertRaisesRegex(ValueError, "marked R-Store Xiaohongshu source is incomplete"):
             optimize_source(damaged)
 
     def test_video_save_lookup_caches_note_id_and_uses_indexed_early_exit(self):
@@ -423,7 +423,7 @@ const trackedJSON={
     const track=comment=>{
       if(!comment||typeof comment!=="object")return;
       const rawPictures=comment.pictures;
-      const pictures=new Proxy(rawPictures||[],{get(target,key,receiver){
+      let pictures=new Proxy(rawPictures||[],{get(target,key,receiver){
         if(tracking&&key==="length")pictureLengthReads++;
         if(tracking&&typeof key==="string"&&/^\d+$/.test(key))pictureIndexReads++;
         return Reflect.get(target,key,receiver);
