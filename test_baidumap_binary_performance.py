@@ -759,7 +759,7 @@ process.stdout.write("ok");
 
     def test_multi_segment_reconstruction_caches_metadata_scalars_and_stable_lengths(self):
         start = self.source.index("function assembleBaiduResponseSegments(")
-        end = self.source.index("\\n}\\n", start) + 2
+        end = self.source.index("\n}\n", start) + 2
         helper = self.source[start:end]
         self.assertIn("// loon-change: Baidu protobuf segment metadata scalar cache v1", helper)
         self.assertIn("const messageHeadLength = messageHead.length;", helper)
@@ -779,7 +779,7 @@ process.stdout.write("ok");
 const fs=require("fs"),vm=require("vm");
 const source=fs.readFileSync(process.argv[1],"utf8");
 const start=source.indexOf("function assembleBaiduResponseSegments(");
-const end=source.indexOf("\\n}\\n",start)+2;
+const end=source.indexOf("\n}\n",start)+2;
 const counts={arrayLength:0,headers:[]};
 const headers=[
   {name:"Result",offset:0,length:2},
