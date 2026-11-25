@@ -93,7 +93,7 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         self.assertEqual(optimize_comment_data_reference_cache(source), source)
         self.assertIn("const commentData = item?.data;", source)
         self.assertIn("if (!isAd(commentData))", source)
-        self.assertIn("removeAvatar(commentData);", source)
+        self.assertIn("removeAvatar(commentData, commentUser);", source)
         self.assertNotIn(COMMENT_DATA_CACHE_OLD, source)
         damaged = source.replace("const commentData = item?.data;", "const cachedCommentData = item?.data;", 1)
         with self.assertRaisesRegex(ValueError, "marker/structure drift"):
