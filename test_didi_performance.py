@@ -123,7 +123,7 @@ class DidiOptimizerTests(unittest.TestCase):
 
 @unittest.skipUnless(NODE, "Node.js is required for Didi response runtime tests")
 class DidiRuntimeTests(unittest.TestCase):
-    def run_script(self, url, body, disable_for_each=False, track_wallet_properties=False):
+    def run_script(self, url, body, disable_for_each=False, track_wallet_properties=False, track_response_data=False):
         runner = r"""
 const fs = require("fs");
 const vm = require("vm");
@@ -137,13 +137,16 @@ const context = {
   __parseCount: 0,
   __stringifyCount: 0,
   __walletPropertyReads: { tag: 0, items: 0, card_type: 0, bottom_items: 0 },
+  __responseDataReads: 0,
+  __trackResponseDataReads: true,
   __trackWalletPropertyReads: true,
   __captureWalletPropertyReads: payload.trackWalletProperties,
+  __captureResponseDataReads: payload.trackResponseData,
   console: { log() {}, warn() {}, error() {} }
 };
 vm.createContext(context);
 vm.runInContext(
-  "const nativeParse = JSON.parse.bind(JSON); JSON.parse = function(value) { __parseCount++; const parsed = nativeParse(value); if (__captureWalletPropertyReads) { const wallet = parsed?.data?.cards?.[0]; if (wallet && wallet.tag === 'wallet') { for (const key of ['tag', 'items', 'card_type', 'bottom_items']) { let current = wallet[key]; Object.defineProperty(wallet, key, { enumerable: true, configurable: true, get() { if (__trackWalletPropertyReads) __walletPropertyReads[key]++; return current; }, set(value) { current = value; } }); } } } return parsed; }; const nativeStringify = JSON.stringify.bind(JSON); JSON.stringify = function(value) { __stringifyCount++; const tracking = __trackWalletPropertyReads; __trackWalletPropertyReads = false; try { return nativeStringify(value); } finally { __trackWalletPropertyReads = tracking; } }; Array.prototype.filter = function() { throw new Error('allocating Array.filter remains'); };",
+  "const nativeParse = JSON.parse.bind(JSON); JSON.parse = function(value) { __parseCount++; const parsed = nativeParse(value); if (__captureResponseDataReads && parsed && Object.prototype.hasOwnProperty.call(parsed, 'data')) { let currentData = parsed.data; Object.defineProperty(parsed, 'data', { enumerable: true, configurable: true, get() { if (__trackResponseDataReads) __responseDataReads++; return currentData; }, set(value) { currentData = value; } }); } if (__captureWalletPropertyReads) { const wallet = parsed?.data?.cards?.[0]; if (wallet && wallet.tag === 'wallet') { for (const key of ['tag', 'items', 'card_type', 'bottom_items']) { let current = wallet[key]; Object.defineProperty(wallet, key, { enumerable: true, configurable: true, get() { if (__trackWalletPropertyReads) __walletPropertyReads[key]++; return current; }, set(value) { current = value; } }); } } } return parsed; }; const nativeStringify = JSON.stringify.bind(JSON); JSON.stringify = function(value) { __stringifyCount++; const tracking = __trackWalletPropertyReads; const dataTracking = __trackResponseDataReads; __trackWalletPropertyReads = false; __trackResponseDataReads = false; try { return nativeStringify(value); } finally { __trackWalletPropertyReads = tracking; __trackResponseDataReads = dataTracking; } }; Array.prototype.filter = function() { throw new Error('allocating Array.filter remains'); };",
   context
 );
 if (payload.disableForEach) {
@@ -152,16 +155,16 @@ if (payload.disableForEach) {
 vm.runInContext(source, context, { timeout: 5000 });
 if (payload.body === null) {
   if (!doneResult || Object.keys(doneResult).length !== 0) throw new Error("empty body did not complete cleanly");
-  process.stdout.write(JSON.stringify({ parseCount: context.__parseCount, stringifyCount: context.__stringifyCount, empty: true }));
+  process.stdout.write(JSON.stringify({ parseCount: context.__parseCount, stringifyCount: context.__stringifyCount, responseDataReads: context.__responseDataReads, empty: true }));
 } else if (!doneResult || typeof doneResult.body !== "string") {
-  process.stdout.write(JSON.stringify({ parseCount: context.__parseCount, stringifyCount: context.__stringifyCount, passThrough: true }));
+  process.stdout.write(JSON.stringify({ parseCount: context.__parseCount, stringifyCount: context.__stringifyCount, responseDataReads: context.__responseDataReads, passThrough: true }));
 } else {
-  process.stdout.write(JSON.stringify({ parseCount: context.__parseCount, stringifyCount: context.__stringifyCount, walletPropertyReads: context.__walletPropertyReads, output: JSON.parse(doneResult.body) }));
+  process.stdout.write(JSON.stringify({ parseCount: context.__parseCount, stringifyCount: context.__stringifyCount, responseDataReads: context.__responseDataReads, walletPropertyReads: context.__walletPropertyReads, output: JSON.parse(doneResult.body) }));
 }
 """
         completed = subprocess.run(
             [NODE, "-e", runner, str(SOURCE)],
-            input=json.dumps({"url": url, "body": body, "trackWalletProperties": track_wallet_properties}),
+            input=json.dumps({"url": url, "body": body, "trackWalletProperties": track_wallet_properties, "trackResponseData": track_response_data}),
             capture_output=True,
             text=True,
             check=True,
@@ -172,7 +175,7 @@ if (payload.body === null) {
     def test_usercenter_wallet_fields_are_compacted_during_the_card_pass(self):
         source = SOURCE.read_text(encoding="utf-8")
         self.assertNotIn("obj.data.cards.forEach", source)
-        self.assertIn('compactDidiByField(obj.data.cards, "title", "card");', source)
+        self.assertIn('compactDidiByField(responseData.cards, "title", "card");', source)
         self.assertIn('compactDidiByField(walletItems, "title", "walletItem")', source)
         self.assertIn('compactDidiByField(walletBottomItems, "title", "walletBottom")', source)
         self.assertNotIn('compactDidiByField(item.items, "title", "walletItem")', source)
@@ -311,6 +314,30 @@ if (payload.body === null) {
         self.assertEqual(cards[0]["bottom_items"], {"unexpected": True})
         self.assertEqual(result["stringifyCount"], 1)
 
+    def test_root_response_data_reference_is_read_once_per_response(self):
+        from optimize_didi import optimize_response_data_reference_cache
+        source = SOURCE.read_text(encoding="utf-8")
+        self.assertIn("Didi response data reference cache v1", source)
+        self.assertEqual(optimize_response_data_reference_cache(source), source)
+        self.assertEqual(source.count("obj.data"), 1)
+        body = {"data": {
+            "order_cards": {"nav_list_card": {"data": [
+                {"nav_id": "dache_anycar"}, {"nav_id": "unrelated"}
+            ]}},
+            "disorder_cards": {"bottom_nav_list": {"data": [
+                {"id": "v6x_home"}, {"id": "unrelated"}
+            ]}}
+        }}
+        result = self.run_script(
+            "https://api.didialift.com/homepage/v1/core?fixture=1",
+            body,
+            track_response_data=True,
+        )
+        self.assertEqual(result["responseDataReads"], 1)
+        output = result["output"]
+        self.assertEqual([x["nav_id"] for x in output["data"]["order_cards"]["nav_list_card"]["data"]], ["dache_anycar"])
+        self.assertEqual([x["id"] for x in output["data"]["disorder_cards"]["bottom_nav_list"]["data"]], ["v6x_home"])
+
     def test_info_list_caches_nested_top_banner_references(self):
         source = SOURCE.read_text(encoding="utf-8")
         marker = "loon-change: Didi info-list cached nested references v1"
@@ -318,7 +345,7 @@ if (payload.body === null) {
         start = source.index("if (isInfoList) {")
         end = source.index("\n}\n", start)
         branch = source[start:end]
-        self.assertIn("const topBannerData = obj.data?.disorder_cards?.top_banner_card?.data;", branch)
+        self.assertIn("const topBannerData = responseData?.disorder_cards?.top_banner_card?.data;", branch)
         self.assertIn("const firstTopBanner = topBannerData?.[0];", branch)
         self.assertIn('if (firstTopBanner?.T === "yuentu_top_banner")', branch)
         self.assertIn("topBannerData.splice(0, 1);", branch)
