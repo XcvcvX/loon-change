@@ -26,22 +26,22 @@ class BaiduMapBinaryPerformanceTests(unittest.TestCase):
         self.assertEqual(helper.count("repHeadType.encode(repHeadMessage).finish()"), 1)
 
 
-    def test_only_result_and_ads_fields_create_binary_payload_views(self):
+    def test_only_ads_fields_create_binary_payload_views(self):
         marker = "// loon-change: Baidu protobuf target-only byte views v1"
         self.assertIn(marker, self.source)
         start = self.source.index("for(let i = 0; i < messageHeadLength; i++)")
-        end = self.source.index("\n}\n\nif(invalidSegmentLayout || !adsFound", start)
+        end = self.source.index("\\n}\\n\\nif(invalidSegmentLayout || !adsFound", start)
         loop = self.source[start:end]
         self.assertEqual(loop.count("binaryBody.subarray("), 1)
         self.assertIn("if(name === 'Result'){", loop)
-        self.assertIn("resultOffset = dataBeginOffset + messageHead.offset;", loop)
-        self.assertNotIn("newResult = binaryBody.subarray", loop)
+        self.assertIn("resultCount++;", loop)
+        self.assertNotIn("resultOffset", loop)
         self.assertIn("}else if(name === 'Ads'){", loop)
         self.assertIn("const targetData = binaryBody.subarray(currentOffset, currentOffset + targetDataLength);", loop)
-        self.assertNotIn("const targetData = binaryBody.subarray", loop.split("if(name === 'Result'){", 1)[0])
-        deferred = self.source[end:self.source.index("\n\nif(!adsFound", end)]
-        self.assertIn("if (modifiedAds && resultOffset !== -1)", deferred)
-        self.assertIn("newResult = binaryBody.subarray(resultOffset, resultOffset + resultLength);", deferred)
+        self.assertNotIn("const targetData = binaryBody.subarray", loop.split("}else if(name === 'Ads'){", 1)[0])
+        self.assertIn("assembleBaiduResponseSegments(", self.source)
+        self.assertIn("replacementSegments", self.source)
+        self.assertNotIn("newResult", self.source)
 
     def test_rephead_message_head_collection_and_length_are_cached(self):
         marker = "// loon-change: Baidu protobuf header collection cache v1"
@@ -505,7 +505,7 @@ source = source.replace(
   "for (let k = 0; k < trackedAdsContent.length; k++) { const target = trackedAdsContent[k]; trackedAdsContent[k] = new Proxy(target, { get(target, key, receiver) { if (globalThis.__trackAdsProperties && key === 'start') globalThis.__adsStartReads++; if (globalThis.__trackAdsProperties && key === 'end') globalThis.__adsEndReads++; return Reflect.get(target, key, receiver); } }); }"
 );
 source = source.replace(
-  "if (adsSegmentModified) {\n      globalThis.__trackAdsProperties = false;\n      modifiedAds = true;\n      replacementSegments[i] = adsType.encode(adsMessage).finish();\n    }",
+  "if (adsSegmentModified) {\n      modifiedAds = true;\n      replacementSegments[i] = adsType.encode(adsMessage).finish();\n    }",
   "if (adsSegmentModified) { globalThis.__trackAdsProperties = false; modifiedAds = true; replacementSegments[i] = adsType.encode(adsMessage).finish(); }"
 );
 
