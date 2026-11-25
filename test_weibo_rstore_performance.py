@@ -75,12 +75,12 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         source = SCRIPT.read_text(encoding="utf-8")
         self.assertEqual(optimize_topic_group_in_place(source), source)
         self.assertEqual(source.count(TOPIC_GROUP_MARKER), 1)
-        self.assertIn("const groupItems = item.items;", source)
+        self.assertIn("const groupItems = nestedItems;", source)
         self.assertIn("const groupLength = groupItems.length;", source)
         self.assertIn("groupItems.length = groupWrite;", source)
         self.assertNotIn("let newII = [];", source)
         self.assertNotIn("item.items = newII;", source)
-        damaged = source.replace("const groupItems = item.items;", "const groupItems = undefined;", 1)
+        damaged = source.replace("const groupItems = nestedItems;", "const groupItems = undefined;", 1)
         with self.assertRaisesRegex(ValueError, "marker/structure drift"):
             optimize_topic_group_in_place(damaged)
 
@@ -98,7 +98,8 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         self.assertIn("const commonStruct = iiData.common_struct;", block)
         self.assertNotIn("for (let ii of item.items)", block)
         self.assertNotIn("removeAvatar(ii?.data)", block)
-        damaged = source.replace("const iiData = ii?.data;", "const iiData = undefined;", 1)
+        damaged_block = block.replace("const iiData = ii?.data;", "const iiData = undefined;", 1)
+        damaged = source[:source.index(start)] + damaged_block + source[source.index(end, source.index(start) + len(start)):]
         with self.assertRaisesRegex(ValueError, "data-cache structure drift"):
             optimize_topic_group_nested_data_cache(damaged)
 
@@ -174,7 +175,7 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
              "if any(x not in asyn for x in required_asyn)"),
             ("optimize_flowlist_asyn_nested_reference_cache",
              'flow = flow.replace(flow_start, flow_start + "\\n    // loon-change: Weibo flowlist nested reference cache v1", 1)',
-             "if any(x not in flow for x in required_flow)"),
+             "or any(x not in flow for x in required_flow)"),
             ("optimize_search_timeline_nested_reference_cache",
              'block = block.replace(start, start + "\\n      " + SEARCH_TIMELINE_REFERENCE_CACHE_MARKER, 1)',
              "if any(token not in block for token in required):"),
@@ -216,7 +217,10 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
             "const tagStruct = itemData?.tag_struct;",
         ):
             self.assertIn(token, source)
-        damaged = source.replace("const itemData = item?.data;", "const cachedData = item?.data;", 1)
+        start = source.index('} else if (url.includes("/2/statuses/container_timeline?") || url.includes("/2/statuses/container_timeline_unread")) {')
+        end = source.index('} else if (url.includes("/2/statuses/container_timeline_topic")) {', start)
+        block = source[start:end].replace("const itemData = item?.data;", "const cachedData = item?.data;", 1)
+        damaged = source[:start] + block + source[end:]
         with self.assertRaisesRegex(ValueError, "structure drift"):
             optimize_following_timeline_data_cache(damaged)
 
@@ -303,7 +307,8 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         self.assertNotIn("item?.data", block.replace("const itemData = item?.data;", ""))
         self.assertNotIn("ii?.data", block.replace("const iiData = ii?.data;", ""))
         self.assertNotIn("ii.data", block.replace("const iiData = ii?.data;", ""))
-        damaged = source.replace("const itemData = item?.data;", "const cachedItemData = item?.data;", 1)
+        damaged_block = block.replace("const itemData = item?.data;", "const cachedItemData = item?.data;", 1)
+        damaged = source[:start] + damaged_block + source[end:]
         with self.assertRaisesRegex(ValueError, "marker/structure drift"):
             optimize_profile_timeline_data_cache(damaged)
 
@@ -569,7 +574,7 @@ process.stdout.write(nativeStringify({doneResult,counts}));
         ]
         for case_name, url, body, expected in cases:
             completed = subprocess.run(
-                [NODE, "-e", runner],
+                [NODE, "-e", runner, str(SCRIPT)],
                 input=json.dumps({"case": case_name, "url": url, "body": body}),
                 capture_output=True, text=True, check=False, timeout=10
             )
@@ -635,9 +640,9 @@ const trackedJSON={
     const parsed=nativeParse(value);
     const wrap=(target,key,label)=>{
       if(!target)return;
-      let current=target[key]; counts[label]=0;
+      let current=target[key];
       Object.defineProperty(target,key,{enumerable:true,configurable:true,
-        get(){if(tracking)counts[label]++;return current;},set(value){current=value;}});
+        get(){if(tracking)counts[label]=(counts[label]||0)+1;return current;},set(value){current=value;}});
     };
     for(const key of ["datas","root_comments","comments"])wrap(parsed,key,"top."+key);
     if(parsed.datas)for(const entry of parsed.datas)if(entry?.data){
@@ -962,7 +967,7 @@ process.stdout.write(nativeStringify({doneResult,counts}));
             "category": "feed",
             "data": {
                 "mblogtypename": "普通微博",
-                "title": {"text": "普通内容", "structs": []},
+                "title": {"text": "普通内容", "structs": null},
                 "action_button_icon_dic": {"follow": 1},
                 "screen_name_suffix_new": [{}, {}, {}, {"content": "普通文案"}],
                 "user": {"following": True, "unfollowing_recom_switch": 1},
