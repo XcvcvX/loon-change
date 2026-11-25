@@ -524,18 +524,26 @@ if (url.includes("/interface/sdk/sdkad.php")) {
       compactInPlace(obj.card_group, i => i?.desc?.includes("你可能感兴趣的超话"));
     }
   } else if (url.includes("/2/profile/container_timeline")) {
+    // loon-change: Weibo profile timeline hot-property cache v1
     // loon-change: Weibo profile timeline cached nested data v1
     // 个人主页关注弹窗
     if (obj?.loadedInfo?.follow_guide_info) {
       delete obj.loadedInfo.follow_guide_info;
     }
     // 个人主页信息流
-    if (obj?.items?.length > 0) {
-      const __loonSource19 = obj.items;
+    const profileItems = obj?.items;
+    const profileItemsLength = profileItems?.length || 0;
+    if (profileItemsLength > 0) {
+      const __loonSource19 = profileItems;
       let __loonWrite19 = 0;
-      const __loonLength19 = __loonSource19.length;
+      const __loonLength19 = profileItemsLength;
       for (let __loonRead19 = 0; __loonRead19 < __loonLength19; __loonRead19++) {
         let item = __loonSource19[__loonRead19];
+        const itemData = item?.data;
+        const itemCategory = item?.category;
+        const itemCardType = itemData?.card_type;
+        const itemName = itemData?.name;
+        const itemLeftHint = itemData?.left_hint;
         const itemData = item?.data;
         if (itemData?.left_hint?.[0]?.content === "全部微博(0)" && itemData?.card_type === 216) {
           // 全部微博为0的博主
@@ -555,26 +563,34 @@ if (url.includes("/interface/sdk/sdkad.php")) {
             __loonSource19[__loonWrite19++] = item;
           } else if (item?.category === "group") {
             // 遍历group,保留置顶微博
-            if (item?.header?.data?.icon) {
+            const itemHeader = item?.header;
+            const itemHeaderData = itemHeader?.data;
+            if (itemHeaderData?.icon) {
               // 置顶微博背景图
-              delete item.header.data.icon;
+              delete itemHeaderData.icon;
             }
-            if (item?.itemId?.includes("INTEREST_PEOPLE")) {
+            const itemId = item?.itemId;
+            if (itemId?.includes("INTEREST_PEOPLE")) {
               // 可能感兴趣的人
               continue;
             }
-            if (item?.profile_type_id === "weibo_cardpics") {
+            const profileTypeId = item?.profile_type_id;
+            if (profileTypeId === "weibo_cardpics") {
               // 近期热门 精选微博 那年今日等横版内容
               continue;
             }
-            if (item?.items?.length > 0) {
-              const __loonSource18 = item.items;
+            const groupItems = item?.items;
+            const groupItemsLength = groupItems?.length || 0;
+            if (groupItemsLength > 0) {
+              const __loonSource18 = groupItems;
               let __loonWrite18 = 0;
-              const __loonLength18 = __loonSource18.length;
+              const __loonLength18 = groupItemsLength;
               for (let __loonRead18 = 0; __loonRead18 < __loonLength18; __loonRead18++) {
                 let ii = __loonSource18[__loonRead18];
                 const iiData = ii?.data;
-                if (ii?.category === "feed") {
+                const iiCategory = ii?.category;
+                const iiData = ii?.data;
+                if (iiCategory === "feed") {
                   // 头像挂件,关注按钮
                   removeAvatar(iiData);
                   // 信息流推广
@@ -582,20 +598,24 @@ if (url.includes("/interface/sdk/sdkad.php")) {
                   // 投票窗口
                   removeVoteInfo(iiData);
                   // 评论指引
-                  if (iiData?.enable_comment_guide) {
+                  const enableCommentGuide = iiData?.enable_comment_guide;
+                  if (enableCommentGuide) {
                     iiData.enable_comment_guide = false;
                   }
                   __loonSource18[__loonWrite18++] = ii;
-                } else if (ii?.category === "card") {
-                  if ((iiData?.card_type === 10 || iiData?.card_type === 48 || iiData?.card_type === 176)) {
+                } else if (iiCategory === "card") {
+                    const iiCardType = iiData?.card_type;
+                  if ((iiCardType === 10 || iiCardType === 48 || iiCardType === 176)) {
                     // 最近关注与互动过的博主
                     continue;
                   }
-                  if (iiData?.rightImage) {
+                  const iiRightImage = iiData?.rightImage;
+                  if (iiRightImage) {
                     // 新版置顶微博皇冠
                     delete iiData.rightImage;
                   }
-                  if (iiData?.backgroundImage) {
+                  const iiBackgroundImage = iiData?.backgroundImage;
+                  if (iiBackgroundImage) {
                     // 新版置顶微博背景图
                     delete iiData.backgroundImage;
                   }
@@ -612,11 +632,13 @@ if (url.includes("/interface/sdk/sdkad.php")) {
               removeFeedAd(itemData);
               // 投票窗口
               removeVoteInfo(itemData);
-              if (itemData?.source?.includes("生日动态")) {
+              const itemSource = itemData?.source;
+              if (itemSource?.includes("生日动态")) {
                 // 移除生日祝福微博
                 continue;
               }
-              if (itemData?.title?.text !== "热门" && itemData?.title?.structs?.length > 0) {
+              const itemTitle = itemData?.title;
+              if (itemTitle?.text !== "热门" && itemTitle?.structs?.length > 0) {
                 // 移除赞过的微博 保留热门内容
                 continue;
               }
@@ -1485,19 +1507,27 @@ if (url.includes("/interface/sdk/sdkad.php")) {
 
 // 判断信息流
 function isAd(data) {
-  if (data?.mblogtypename?.includes("广告")) {
+  // loon-change: Weibo shared ad predicate single-read cache v1
+  const mblogTypeName = data?.mblogtypename;
+  if (mblogTypeName?.includes("广告")) {
     return true;
   }
-  if (data?.mblogtypename?.includes("热推")) {
+  if (mblogTypeName?.includes("热推")) {
     return true;
   }
-  if (data?.promotion?.type?.includes("ad")) {
+  const promotion = data?.promotion;
+  const promotionType = promotion?.type;
+  if (promotionType?.includes("ad")) {
     return true;
   }
-  if (data?.content_auth_info?.content_auth_title?.includes("广告")) {
+  const contentAuthInfo = data?.content_auth_info;
+  const contentAuthTitle = contentAuthInfo?.content_auth_title;
+  if (contentAuthTitle?.includes("广告")) {
     return true;
   }
-  if (data?.ads_material_info?.is_ads === true) {
+  const adsMaterialInfo = data?.ads_material_info;
+  const isAds = adsMaterialInfo?.is_ads;
+  if (isAds === true) {
     return true;
   }
   return false;
