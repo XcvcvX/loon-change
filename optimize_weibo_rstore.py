@@ -635,13 +635,108 @@ if __name__ == "__main__":
 
 
 TOPIC_GROUP_NESTED_DATA_MARKER = "// loon-change: Weibo topic-group nested data reference cache v1"
-TOPIC_GROUP_NESTED_DATA_OLD = """          // loon-change: Weibo topic-group nested array reference cache v1
+TOPIC_GROUP_NESTED_DATA_OLD = """          if (item?.items?.length > 0) {
+            if (item?.itemId === null) {
+              // 超话页顶部乱七八糟
+              // loon-change: Weibo topic-group in-place item compaction v1;
+              const groupItems = item.items;
+              const groupLength = groupItems.length;
+              let groupWrite = 0;
+              for (let groupRead = 0; groupRead < groupLength; groupRead++) {
+                const ii = groupItems[groupRead];
+                const itemData = ii?.data;
+                const itemId = itemData?.itemid;
+                let keep = false;
+                if (itemData?.hasOwnProperty("itemid")) {
+                  if (itemId?.includes("mine_topics")) {
+                    // 保留我的超话
+                    keep = true;
+                  } else if (itemId?.includes("tab_search_input")) {
+                    // 保留搜索框
+                    if (itemData?.hotwords) {
+                      // 删除热搜词
+                      itemData.hotwords = [{word: "搜索超话"}];
+                    }
+                    keep = true;
+                  } else if (itemId?.includes("poiRankList")) {
+                    // 保留地点超话 地标人气榜
+                    keep = true;
+                  }
+                } else {
+                  // 放行无itemid字段的内容
+                  keep = true;
+                }
+                if (keep) groupItems[groupWrite++] = ii;
+                // 头像挂件,关注按钮
+                removeAvatar(itemData);
+              }
+              groupItems.length = groupWrite;
+            } else {
+              for (let ii of item.items) {
+                if (ii?.data) {
+                  removeAvatar(ii?.data);
+                  if (ii?.data?.common_struct) {
+                    delete ii.data.common_struct;
+                  }
+                }
+              }
+            }
+          }"""
+TOPIC_GROUP_NESTED_DATA_NEW = """          // loon-change: Weibo topic-group nested array reference cache v1
           const nestedItems = item?.items;
           if (nestedItems?.length > 0) {
             if (item?.itemId === null) {
               // 超话页顶部乱七八糟
               // loon-change: Weibo topic-group in-place item compaction v1;
-              const groupItems = item.items;"""
+              const groupItems = nestedItems;
+              const groupLength = groupItems.length;
+              let groupWrite = 0;
+              for (let groupRead = 0; groupRead < groupLength; groupRead++) {
+                const ii = groupItems[groupRead];
+                const itemData = ii?.data;
+                const itemId = itemData?.itemid;
+                let keep = false;
+                if (itemData?.hasOwnProperty("itemid")) {
+                  if (itemId?.includes("mine_topics")) {
+                    // 保留我的超话
+                    keep = true;
+                  } else if (itemId?.includes("tab_search_input")) {
+                    // 保留搜索框
+                    if (itemData?.hotwords) {
+                      // 删除热搜词
+                      itemData.hotwords = [{word: "搜索超话"}];
+                    }
+                    keep = true;
+                  } else if (itemId?.includes("poiRankList")) {
+                    // 保留地点超话 地标人气榜
+                    keep = true;
+                  }
+                } else {
+                  // 放行无itemid字段的内容
+                  keep = true;
+                }
+                if (keep) groupItems[groupWrite++] = ii;
+                // 头像挂件,关注按钮
+                removeAvatar(itemData);
+              }
+              groupItems.length = groupWrite;
+            } else {
+              // loon-change: Weibo topic-group nested data reference cache v1
+              const nestedLength = nestedItems.length;
+              for (let nestedIndex = 0; nestedIndex < nestedLength; nestedIndex++) {
+                const ii = nestedItems[nestedIndex];
+                const iiData = ii?.data;
+                if (iiData) {
+                  removeAvatar(iiData);
+                  const commonStruct = iiData.common_struct;
+                  if (commonStruct) {
+                    delete iiData.common_struct;
+                  }
+                }
+              }
+            }
+          }"""
+
 TOPIC_GROUP_NESTED_DATA_REQUIRED = (
     "const nestedItems = item?.items;",
     "const nestedLength = nestedItems.length;",
@@ -653,21 +748,17 @@ TOPIC_GROUP_NESTED_DATA_REQUIRED = (
 def optimize_topic_group_nested_data_cache(source):
     """Cache nested topic-group arrays and per-item data references on hot-topic paths."""
     marker = TOPIC_GROUP_NESTED_DATA_MARKER
-    required = TOPIC_GROUP_NESTED_DATA_REQUIRED
     if marker in source:
-        if source.count(marker) != 1 or any(token not in source for token in required):
+        if source.count(marker) != 1 or any(token not in source for token in TOPIC_GROUP_NESTED_DATA_REQUIRED):
             raise ValueError("Weibo nested topic-group data-cache structure drift")
-        if "for (let ii of item.items)" in source or "removeAvatar(ii?.data)" in source:
+        if TOPIC_GROUP_NESTED_DATA_OLD in source or "for (let ii of item.items)" in source or "removeAvatar(ii?.data)" in source:
             raise ValueError("Weibo repeated nested topic-group property reads remain")
         return source
-    if source.count("const nestedItems = item?.items;") != 1:
-        raise ValueError("Weibo topic-group nested array cache anchor drift")
-    source = source.replace(
-        "// loon-change: Weibo topic-group nested data reference cache v1\n              const nestedLength",
-        marker + "\n              const nestedLength",
-        1
-    )
-    if source.count(marker) != 1 or any(token not in source for token in required):
+    if source.count(TOPIC_GROUP_NESTED_DATA_OLD) != 1:
+        raise ValueError("Weibo nested topic-group cache anchor drift")
+    source = source.replace(TOPIC_GROUP_NESTED_DATA_OLD, TOPIC_GROUP_NESTED_DATA_NEW, 1)
+    if source.count(marker) != 1 or any(token not in source for token in TOPIC_GROUP_NESTED_DATA_REQUIRED):
         raise ValueError("Weibo nested topic-group data-cache postcondition failed")
+    if "for (let ii of item.items)" in source or "removeAvatar(ii?.data)" in source:
+        raise ValueError("Weibo repeated nested topic-group property reads remain")
     return source
-
