@@ -13,6 +13,18 @@ NODE = shutil.which("node")
 
 
 class RStoreWeiboOptimizerTests(unittest.TestCase):
+    def test_fresh_source_transform_order_caches_user_before_avatar_fields(self):
+        optimizer = Path(__file__).with_name("optimize_weibo_rstore.py").read_text(encoding="utf-8")
+        lines = [line.strip() for line in optimizer.splitlines()
+                 if "return optimize_search_timeline_nested_reference_cache(" in line]
+        self.assertEqual(len(lines), 2)
+        for line in lines:
+            comment_data = line.index("optimize_comment_data_reference_cache(")
+            comment_user = line.index("optimize_comment_user_reference_cache(")
+            avatar_fields = line.index("optimize_remove_avatar_property_cache(")
+            self.assertLess(comment_data, comment_user)
+            self.assertLess(comment_user, avatar_fields)
+
     def test_generated_script_is_marked_and_idempotent(self):
         source = SCRIPT.read_text(encoding="utf-8")
         self.assertIn(MARKER, source)
