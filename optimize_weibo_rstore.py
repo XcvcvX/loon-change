@@ -821,11 +821,13 @@ def optimize_remove_avatar_property_cache(source):
     """Read each removable Weibo avatar decoration field once before deleting it."""
     marker = REMOVE_AVATAR_PROPERTY_CACHE_MARKER
     start_token = "function removeAvatar(data, user = data?.user) {"
-    end_token = "\n}\n\n// 移除信息流关注按钮"
-    if start_token not in source or end_token not in source:
-        raise ValueError("Weibo removeAvatar property-cache helper boundary drift")
-    start = source.index(start_token)
-    end = source.index(end_token, start) + 2
+    start = source.find(start_token)
+    if start < 0:
+        raise ValueError("Weibo removeAvatar property-cache helper start anchor drift")
+    opening = source.find("{", start + len("function removeAvatar(data, user = data?.user) "))
+    if opening < 0:
+        raise ValueError("Weibo removeAvatar property-cache helper opening brace missing")
+    end = _matching_brace(source, opening) + 1
     block = source[start:end]
     required = (
         marker,
@@ -843,8 +845,22 @@ def optimize_remove_avatar_property_cache(source):
         if "if (data?.block_card_bg)" in block or "if (user?.avatargj_id)" in block:
             raise ValueError("Weibo repeated removeAvatar property reads remain")
         return source
-    if block != REMOVE_AVATAR_HELPER_NEW:
-        raise ValueError("Weibo removeAvatar property-cache source anchor changed")
+    expected_old = (
+        "function removeAvatar(data, user = data?.user) {",
+        "if (data?.block_card_bg)",
+        "if (data?.buttons)",
+        "if (data?.cardid)",
+        "if (data?.icons)",
+        "if (data?.mblog_buttons)",
+        "if (data?.pic_bg_new)",
+        "if (user?.avatargj_id)",
+        "if (user?.avatar_extend_info)",
+        "if (user?.cardid)",
+        "if (user?.icons)",
+        "if (user?.mbtype)",
+    )
+    if any(token not in block for token in expected_old):
+        raise ValueError("Weibo removeAvatar property-cache source structure drift")
     source = source[:start] + REMOVE_AVATAR_HELPER_PROPERTY_CACHE_NEW + source[end:]
     return source
 
