@@ -758,9 +758,10 @@ process.stdout.write("ok");
 
 
     def test_multi_segment_reconstruction_caches_metadata_scalars_and_stable_lengths(self):
-        start = self.source.index("function assembleBaiduResponseSegments(")
-        end = self.source.index("\n}\n", start) + 2
-        helper = self.source[start:end]
+        source = (ROOT / "scripts/baidumap/baidu-map-protobuf.js").read_text(encoding="utf-8")
+        start = source.index("function assembleBaiduResponseSegments(")
+        end = source.index("\n}\n", start) + 2
+        helper = source[start:end]
         self.assertIn("// loon-change: Baidu protobuf segment metadata scalar cache v1", helper)
         self.assertIn("const messageHeadLength = messageHead.length;", helper)
         self.assertIn("const segmentOffset = header.offset;", helper)
