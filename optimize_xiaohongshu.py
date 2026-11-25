@@ -475,6 +475,89 @@ def optimize_v4_video_feed_function_entry_scan(src):
     return src.replace(anchor, VIDEO_ENTRY_MARKER + "\n" + anchor, 1)
 
 
+VIDEO_V3_ITEM_CACHE_MARKER = "// loon-change: Xiaohongshu v3 video-feed item reference cache v1;"
+
+def optimize_v3_video_feed_item_reference_cache(src):
+    """Cache v3 video-feed references and defer the insertion object allocation."""
+    start = 'if (url.includes("/v3/note/videofeed?")) {'
+    end = "\\n\\n// 信息流 视频\\nif (url.includes(\"/v4/note/videofeed\")) {"
+    marker = VIDEO_V3_ITEM_CACHE_MARKER
+    if marker in src:
+        left = src.find(start)
+        right = src.find(end, left) if left >= 0 else -1
+        block = src[left:right] if left >= 0 and right >= 0 else ""
+        required = (
+            marker,
+            "const mediaSaveConfig = item?.media_save_config;",
+            "mediaSaveConfig.disable_save = false;",
+            "mediaSaveConfig.disable_watermark = true;",
+            "mediaSaveConfig.disable_weibo_cover = true;",
+            "const functionEntries = item?.share_info?.function_entries;",
+            "const firstFunctionEntry = functionEntries[0];",
+            'if (firstFunctionEntry?.type !== "video_download") {',
+            'functionEntries.unshift({type: "video_download"});',
+        )
+        stale = (
+            "if (item?.media_save_config) {",
+            "item.media_save_config.disable_save",
+            "item.media_save_config.disable_watermark",
+            "item.media_save_config.disable_weibo_cover",
+            "if (item?.share_info?.function_entries?.length > 0)",
+            'const addItem = {type: "video_download"};',
+            "let func = item.share_info.function_entries[0];",
+            "item.share_info.function_entries.unshift(addItem);",
+        )
+        if not block or any(token not in block for token in required) or any(token in block for token in stale):
+            raise ValueError("Xiaohongshu v3 video-feed reference-cache marker/structure drift")
+        return src
+    if src.count(start) != 1 or src.count(end) != 1:
+        raise ValueError("Xiaohongshu v3 video-feed route boundaries changed")
+    left = src.index(start)
+    right = src.index(end,left)
+    block = src[left:right]
+    old_permission = '''if (item?.media_save_config) {
+        // 水印
+        item.media_save_config.disable_save = false;
+        item.media_save_config.disable_watermark = true;
+        item.media_save_config.disable_weibo_cover = true;
+      }'''
+    new_permission = '''// loon-change: Xiaohongshu v3 video-feed item reference cache v1;
+      const mediaSaveConfig = item?.media_save_config;
+      if (mediaSaveConfig) {
+        // 水印
+        mediaSaveConfig.disable_save = false;
+        mediaSaveConfig.disable_watermark = true;
+        mediaSaveConfig.disable_weibo_cover = true;
+      }'''
+    if block.count(old_permission) != 1:
+        raise ValueError("Xiaohongshu v3 media-save property anchor drift")
+    block = block.replace(old_permission,new_permission,1)
+    old_entries = '''if (item?.share_info?.function_entries?.length > 0) {
+        // 下载限制
+        const addItem = {type: "video_download"};
+        let func = item.share_info.function_entries[0];
+        if (func?.type !== "video_download") {
+          // 向数组开头添加对象
+          item.share_info.function_entries.unshift(addItem);
+        }
+      }'''
+    new_entries = '''const functionEntries = item?.share_info?.function_entries;
+      if (functionEntries?.length > 0) {
+        // 下载限制
+        const firstFunctionEntry = functionEntries[0];
+        if (firstFunctionEntry?.type !== "video_download") {
+          // 向数组开头添加对象
+          functionEntries.unshift({type: "video_download"});
+        }
+      }'''
+    if block.count(old_entries) != 1:
+        raise ValueError("Xiaohongshu v3 function-entry property anchor drift")
+    block = block.replace(old_entries,new_entries,1)
+    return src[:left] + block + src[right:]
+
+
+
+
 VIDEO_FEED_REFERENCE_CACHE_MARKER = "// loon-change: Xiaohongshu v4 video-feed nested reference cache v1;"
 
 def optimize_v4_video_feed_nested_reference_cache(src):
@@ -630,7 +713,7 @@ def optimize_source(src,commit="unknown"):
             src = optimize_video_save_lazy_cache_parse(src)
             src = optimize_v4_video_feed_function_entry_scan(src)
             src = optimize_v4_function_switch_indexed_scan(src)
-            return optimize_stream_selection_no_closure(optimize_v4_video_feed_nested_reference_cache(src))
+            return optimize_stream_selection_no_closure(optimize_v4_video_feed_nested_reference_cache(optimize_v3_video_feed_item_reference_cache(src)))
         src = apply_comment_optimization(src)
         src = optimize_comment_media_property_cache(src)
         src = optimize_imagefeed_single_traversal(src)
@@ -643,7 +726,7 @@ def optimize_source(src,commit="unknown"):
         src = optimize_video_save_lazy_cache_parse(src)
         src = optimize_v4_video_feed_function_entry_scan(src)
         src = optimize_v4_function_switch_indexed_scan(src)
-        return optimize_stream_selection_no_closure(optimize_v4_video_feed_nested_reference_cache(src))
+        return optimize_stream_selection_no_closure(optimize_v4_video_feed_nested_reference_cache(optimize_v3_video_feed_item_reference_cache(src)))
     src=once(src,"const url = $request.url;","const url = $request.url;\n"+HELPERS.strip(),"helpers")
     src=once(src,"  console.log('打印原body：' + JSON.stringify(obj));\n","","full-body logging")
     src=once(src,'''      obj.data[0].note_list[0].images_list = imageEnhance(JSON.stringify(images_list));
@@ -738,9 +821,10 @@ def optimize_source(src,commit="unknown"):
     result = optimize_video_save_lazy_cache_parse(result)
     result = optimize_v4_video_feed_function_entry_scan(result)
     result = optimize_v4_function_switch_indexed_scan(result)
+    result = optimize_v3_video_feed_item_reference_cache(result)
     result = optimize_v4_video_feed_nested_reference_cache(result)
     result = optimize_stream_selection_no_closure(result)
-    for token in ("imageEnhance(images_list, livePhotoCache)", IMAGE_FEED_MARKER, "compactInPlace(obj.data","appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)","const byFileId=new Map()", "Xiaohongshu comment classification stack frames v1;", "const commentFrameTag = {};", "stack.push(true, comment, commentFrameTag);", "stack.push(false, subComment, commentFrameTag);", FUNCTION_SWITCH_MARKER, VIDEO_FEED_REFERENCE_CACHE_MARKER, COMMENT_STACK_FRAME_MARKER, COMMENT_CACHE_MARKER, "let parsed = parsedVideoInfo.get(raw);", VIDEO_SAVE_LOOKUP_MARKER, VIDEO_SAVE_LAZY_PARSE_MARKER, "const noteId = obj.data?.note_id;", "for (let i = videoFeed.length - 1; i >= 0; i--)", STREAM_SELECTION_MARKER, "for (let pass = 0; pass < 2; pass++)"):
+    for token in ("imageEnhance(images_list, livePhotoCache)", IMAGE_FEED_MARKER, "compactInPlace(obj.data","appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)","const byFileId=new Map()", "Xiaohongshu comment classification stack frames v1;", "const commentFrameTag = {};", "stack.push(true, comment, commentFrameTag);", "stack.push(false, subComment, commentFrameTag);", FUNCTION_SWITCH_MARKER, VIDEO_V3_ITEM_CACHE_MARKER, VIDEO_FEED_REFERENCE_CACHE_MARKER, COMMENT_STACK_FRAME_MARKER, COMMENT_CACHE_MARKER, "let parsed = parsedVideoInfo.get(raw);", VIDEO_SAVE_LOOKUP_MARKER, VIDEO_SAVE_LAZY_PARSE_MARKER, "const noteId = obj.data?.note_id;", "for (let i = videoFeed.length - 1; i >= 0; i--)", STREAM_SELECTION_MARKER, "for (let pass = 0; pass < 2; pass++)"):
         if token not in result:raise ValueError("missing optimizer invariant: "+token)
     if "imageEnhance(JSON.stringify(images_list))" in result:raise ValueError("image-feed serialization round trip remains")
     if "for (const image of images_list)" in result:raise ValueError("image-feed second cache traversal remains")
