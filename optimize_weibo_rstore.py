@@ -353,6 +353,39 @@ def optimize_comment_data_reference_cache(source):
     return source
 
 
+REMOVE_AVATAR_USER_CACHE_MARKER = "// loon-change: Weibo removeAvatar cached user reference v1"
+REMOVE_AVATAR_HELPER_OLD = "function removeAvatar(data) {\n  if (data?.block_card_bg) {\n    modified = true;\n    delete data.block_card_bg;\n  }\n  if (data?.buttons) {\n    modified = true;\n    delete data.buttons;\n  }\n  if (data?.cardid) {\n    modified = true;\n    delete data.cardid;\n  }\n  if (data?.icons) {\n    modified = true;\n    delete data.icons;\n  }\n  if (data?.mblog_buttons) {\n    // 转发按钮图标\n    modified = true;\n    delete data.mblog_buttons;\n  }\n  if (data?.pic_bg_new) {\n    modified = true;\n    delete data.pic_bg_new;\n  }\n  if (data?.user?.avatargj_id) {\n    modified = true;\n    delete data.user.avatargj_id;\n  }\n  if (data?.user?.avatar_extend_info) {\n    modified = true;\n    delete data.user.avatar_extend_info;\n  }\n  if (data?.user?.cardid) {\n    modified = true;\n    delete data.user.cardid;\n  }\n  if (data?.user?.icons) {\n    modified = true;\n    delete data.user.icons;\n  }\n  if (data?.user?.mbtype) {\n    // 会员等级图标\n    modified = true;\n    delete data.user.mbtype;\n  }\n}"
+REMOVE_AVATAR_HELPER_NEW = "function removeAvatar(data, user = data?.user) {\n  // loon-change: Weibo removeAvatar cached user reference v1\n  if (data?.block_card_bg) {\n    modified = true;\n    delete data.block_card_bg;\n  }\n  if (data?.buttons) {\n    modified = true;\n    delete data.buttons;\n  }\n  if (data?.cardid) {\n    modified = true;\n    delete data.cardid;\n  }\n  if (data?.icons) {\n    modified = true;\n    delete data.icons;\n  }\n  if (data?.mblog_buttons) {\n    // 转发按钮图标\n    modified = true;\n    delete data.mblog_buttons;\n  }\n  if (data?.pic_bg_new) {\n    modified = true;\n    delete data.pic_bg_new;\n  }\n  if (user?.avatargj_id) {\n    modified = true;\n    delete user.avatargj_id;\n  }\n  if (user?.avatar_extend_info) {\n    modified = true;\n    delete user.avatar_extend_info;\n  }\n  if (user?.cardid) {\n    modified = true;\n    delete user.cardid;\n  }\n  if (user?.icons) {\n    modified = true;\n    delete user.icons;\n  }\n  if (user?.mbtype) {\n    // 会员等级图标\n    modified = true;\n    delete user.mbtype;\n  }\n}"
+
+COMMENT_USER_CACHE_MARKER = "// loon-change: Weibo comment user/name reference cache v1"
+COMMENT_USER_CACHE_OLD = "            if (commentData?.user) {\n              // 头像挂件,关注按钮\n              removeAvatar(commentData);\n              if ((commentData.user?.name === \"超话社区\" || commentData.user?.name === \"微博开新年\" || commentData.user?.name === \"微博热搜\" || commentData.user?.name === \"微博视频\")) {\n                continue;\n              }\n            }"
+COMMENT_USER_CACHE_NEW = "            // loon-change: Weibo comment user/name reference cache v1\n            const commentUser = commentData?.user;\n            if (commentUser) {\n              // 头像挂件,关注按钮\n              removeAvatar(commentData, commentUser);\n              const commentUserName = commentUser.name;\n              if (commentUserName === \"超话社区\" || commentUserName === \"微博开新年\" || commentUserName === \"微博热搜\" || commentUserName === \"微博视频\") {\n                continue;\n              }\n            }"
+
+def optimize_comment_user_reference_cache(source):
+    """Cache each comment's user/name and reuse the user reference in removeAvatar."""
+    if REMOVE_AVATAR_USER_CACHE_MARKER in source:
+        if source.count(REMOVE_AVATAR_USER_CACHE_MARKER) != 1 or REMOVE_AVATAR_HELPER_OLD in source or REMOVE_AVATAR_HELPER_NEW not in source:
+            raise ValueError("Weibo removeAvatar user-cache marker/structure drift")
+    else:
+        if source.count(REMOVE_AVATAR_HELPER_OLD) != 1:
+            raise ValueError("Weibo removeAvatar helper anchor drift")
+        source = source.replace(REMOVE_AVATAR_HELPER_OLD, REMOVE_AVATAR_HELPER_NEW, 1)
+
+    if COMMENT_USER_CACHE_MARKER in source:
+        if source.count(COMMENT_USER_CACHE_MARKER) != 1 or COMMENT_USER_CACHE_OLD in source or COMMENT_USER_CACHE_NEW not in source:
+            raise ValueError("Weibo comment user-cache marker/structure drift")
+    else:
+        if source.count(COMMENT_USER_CACHE_OLD) != 1:
+            raise ValueError("Weibo comment user-cache anchor drift")
+        source = source.replace(COMMENT_USER_CACHE_OLD, COMMENT_USER_CACHE_NEW, 1)
+
+    if source.count(REMOVE_AVATAR_USER_CACHE_MARKER) != 1 or source.count(COMMENT_USER_CACHE_MARKER) != 1:
+        raise ValueError("Weibo comment user-cache postcondition failed")
+    return source
+
+
+
+
 PROFILE_TIMELINE_DATA_CACHE_MARKER = "// loon-change: Weibo profile timeline cached nested data v1"
 
 def optimize_profile_timeline_data_cache(source):
@@ -392,7 +425,7 @@ def optimize_source(source, commit="unknown"):
     if MARKER in source:
         if "__loonSource32" not in source or "compactInPlace(items, keep)" not in source:
             raise ValueError("marked Weibo script is incomplete")
-        return optimize_profile_timeline_data_cache(optimize_comment_data_reference_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source))))))
+        return optimize_profile_timeline_data_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source)))))))
     source = source.replace("const url = $request.url;", "const url = $request.url;\n" + GUARD_DECLARATION + "\n\n" + HELPER, 1)
     if source.count(HELPER) != 1:
         raise ValueError("Weibo helper insertion failed")
@@ -404,7 +437,7 @@ def optimize_source(source, commit="unknown"):
     remaining = re.findall(r"\b(new[A-Za-z0-9_]*)\s*=\s*\[\s*\]", source)
     if sorted(remaining) != ["newActions", "newII"]:
         raise ValueError("unexpected remaining Weibo temporary arrays: " + repr(remaining))
-    return optimize_profile_timeline_data_cache(optimize_comment_data_reference_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source))))))
+    return optimize_profile_timeline_data_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source)))))))
 
 SCALAR_MEMBERSHIP_MARKER = "// loon-change: Weibo hot-loop scalar membership v1"
 SCALAR_MEMBERSHIP_REWRITES = [
