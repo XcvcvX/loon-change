@@ -137,6 +137,7 @@ if (url.includes("/note/imagefeed") || url.includes("/note/feed")) {
   }
 // 信息流 视频
 } else if (url.includes("/note/videofeed")) {
+  // loon-change: Xiaohongshu V3/V4 video-feed hot-path reference cache v1
   if (url.includes("/v3/")) {
     // loon-change: Xiaohongshu V3 video-feed cached item references v1
     const videoFeedItemsV3 = obj?.data;
