@@ -481,11 +481,162 @@ def optimize_profile_timeline_data_cache(source):
     return source[:left] + block + source[right:]
 
 
+
+
+PROFILE_TIMELINE_PROPERTY_CACHE_MARKER = "// loon-change: Weibo profile timeline hot-property cache v1"
+def optimize_profile_timeline_property_cache(source):
+    start = '} else if (url.includes("/2/profile/container_timeline")) {'
+    end = '} else if (url.includes("/2/profile/dealatt") || url.includes("/2/friendships/")) {'
+    if source.count(start) != 1 or source.count(end) != 1:
+        raise ValueError("Weibo profile property-cache route boundary drift")
+    left, right = source.index(start), source.index(end, source.index(start) + len(start))
+    block = source[left:right]
+    required = (
+        PROFILE_TIMELINE_PROPERTY_CACHE_MARKER, "const profileItems = obj?.items;",
+        "const profileItemsLength = profileItems?.length || 0;", "const itemCategory = item?.category;",
+        "const itemCardType = itemData?.card_type;", "const itemName = itemData?.name;",
+        "const itemLeftHint = itemData?.left_hint;", "const groupItems = item?.items;",
+        "const groupItemsLength = groupItems?.length || 0;", "const iiCategory = ii?.category;",
+        "const iiCardType = iiData?.card_type;", "const itemHeaderData = itemHeader?.data;",
+        "const itemTitle = itemData?.title;",
+    )
+    if PROFILE_TIMELINE_PROPERTY_CACHE_MARKER in block:
+        if block.count(PROFILE_TIMELINE_PROPERTY_CACHE_MARKER) != 1 or any(x not in block for x in required):
+            raise ValueError("Weibo profile property-cache marker/structure drift")
+        stripped = block
+        for x in ("const itemData = item?.data;", "const itemCategory = item?.category;",
+                  "const itemCardType = itemData?.card_type;", "const itemName = itemData?.name;",
+                  "const itemLeftHint = itemData?.left_hint;", "const groupItems = item?.items;",
+                  "const iiData = ii?.data;", "const iiCategory = ii?.category;",
+                  "const iiCardType = iiData?.card_type;", "const itemHeaderData = itemHeader?.data;",
+                  "const itemTitle = itemData?.title;"):
+            stripped = stripped.replace(x, "")
+        if any(x in stripped for x in ("obj?.items?.length", "item?.data", "item?.category",
+                  "itemData?.card_type", "itemData?.name", "itemData?.left_hint", "item?.items?.length",
+                  "ii?.data", "ii?.category", "iiData?.card_type", "iiData?.rightImage",
+                  "iiData?.backgroundImage", "itemData?.source", "itemData?.title?.")):
+            raise ValueError("Weibo repeated profile hot-property reads remain")
+        return source
+    changes = (
+      ("    if (obj?.items?.length > 0) {", "    const profileItems = obj?.items;\\n    const profileItemsLength = profileItems?.length || 0;\\n    if (profileItemsLength > 0) {"),
+      ("      const __loonSource19 = obj.items;", "      const __loonSource19 = profileItems;"),
+      ("      const __loonLength19 = __loonSource19.length;", "      const __loonLength19 = profileItemsLength;"),
+      ("        let item = __loonSource19[__loonRead19];", "        let item = __loonSource19[__loonRead19];\\n        const itemData = item?.data;\\n        const itemCategory = item?.category;\\n        const itemCardType = itemData?.card_type;\\n        const itemName = itemData?.name;\\n        const itemLeftHint = itemData?.left_hint;"),
+      ("            if (item?.header?.data?.icon) {", "            const itemHeader = item?.header;\\n            const itemHeaderData = itemHeader?.data;\\n            if (itemHeaderData?.icon) {"),
+      ("              delete item.header.data.icon;", "              delete itemHeaderData.icon;"),
+      ("            if (item?.itemId?.includes(\\"INTEREST_PEOPLE\\")) {", "            const itemId = item?.itemId;\\n            if (itemId?.includes(\\"INTEREST_PEOPLE\\")) {"),
+      ("            if (item?.profile_type_id === \\"weibo_cardpics\\") {", "            const profileTypeId = item?.profile_type_id;\\n            if (profileTypeId === \\"weibo_cardpics\\") {"),
+      ("            if (item?.items?.length > 0) {", "            const groupItems = item?.items;\\n            const groupItemsLength = groupItems?.length || 0;\\n            if (groupItemsLength > 0) {"),
+      ("              const __loonSource18 = item.items;", "              const __loonSource18 = groupItems;"),
+      ("              const __loonLength18 = __loonSource18.length;", "              const __loonLength18 = groupItemsLength;"),
+      ("                let ii = __loonSource18[__loonRead18];", "                let ii = __loonSource18[__loonRead18];\\n                const iiData = ii?.data;\\n                const iiCategory = ii?.category;"),
+      ("                  if (ii?.category === \\"feed\\") {", "                  if (iiCategory === \\"feed\\") {"),
+      ("                  } else if (ii?.category === \\"card\\") {", "                  } else if (iiCategory === \\"card\\") {\\n                    const iiCardType = iiData?.card_type;"),
+      ("                  if ((iiData?.card_type === 10 || iiData?.card_type === 48 || iiData?.card_type === 176)) {", "                  if ((iiCardType === 10 || iiCardType === 48 || iiCardType === 176)) {"),
+      ("                  if (iiData?.rightImage) {", "                  const iiRightImage = iiData?.rightImage;\\n                  if (iiRightImage) {"),
+      ("                  if (iiData?.backgroundImage) {", "                  const iiBackgroundImage = iiData?.backgroundImage;\\n                  if (iiBackgroundImage) {"),
+      ("                  if (iiData?.enable_comment_guide) {", "                  const enableCommentGuide = iiData?.enable_comment_guide;\\n                  if (enableCommentGuide) {"),
+      ("              if (itemData?.source?.includes(\\"生日动态\\")) {", "              const itemSource = itemData?.source;\\n              if (itemSource?.includes(\\"生日动态\\")) {"),
+      ("              if (itemData?.title?.text !== \\"热门\\" && itemData?.title?.structs?.length > 0) {", "              const itemTitle = itemData?.title;\\n              if (itemTitle?.text !== \\"热门\\" && itemTitle?.structs?.length > 0) {"),
+    )
+    for old, new in changes:
+        if block.count(old) != 1:
+            raise ValueError("Weibo profile property-cache anchor drift: " + old[:72])
+        block = block.replace(old, new, 1)
+    block = block.replace("item?.data", "itemData").replace("item?.category", "itemCategory")
+    block = block.replace("itemData?.card_type", "itemCardType").replace("itemData?.name", "itemName")
+    block = block.replace("itemData?.left_hint", "itemLeftHint")
+    block = block.replace("ii?.data", "iiData").replace("ii?.category", "iiCategory")
+    for old,new in (("const itemData = itemData;","const itemData = item?.data;"),
+                    ("const itemCategory = itemCategory;","const itemCategory = item?.category;"),
+                    ("const itemCardType = itemCardType;","const itemCardType = itemData?.card_type;"),
+                    ("const itemName = itemName;","const itemName = itemData?.name;"),
+                    ("const itemLeftHint = itemLeftHint;","const itemLeftHint = itemData?.left_hint;"),
+                    ("const iiData = iiData;","const iiData = ii?.data;"),
+                    ("const iiCategory = iiCategory;","const iiCategory = ii?.category;")):
+        block = block.replace(old, new)
+    block = block.replace(start, start + "\\n    " + PROFILE_TIMELINE_PROPERTY_CACHE_MARKER, 1)
+    if any(x not in block for x in required):
+        raise ValueError("Weibo profile property-cache postcondition failed")
+    stripped = block
+    for x in ("const itemData = item?.data;", "const itemCategory = item?.category;",
+              "const itemCardType = itemData?.card_type;", "const itemName = itemData?.name;",
+              "const itemLeftHint = itemData?.left_hint;", "const groupItems = item?.items;",
+              "const iiData = ii?.data;", "const iiCategory = ii?.category;",
+              "const iiCardType = iiData?.card_type;", "const itemHeaderData = itemHeader?.data;",
+              "const itemTitle = itemData?.title;"):
+        stripped = stripped.replace(x, "")
+    if any(x in stripped for x in ("obj?.items?.length", "item?.data", "item?.category",
+              "itemData?.card_type", "itemData?.name", "itemData?.left_hint", "item?.items?.length",
+              "ii?.data", "ii?.category", "iiData?.card_type", "iiData?.rightImage",
+              "iiData?.backgroundImage", "itemData?.source", "itemData?.title?.")):
+        raise ValueError("Weibo profile property-cache repeated-read postcondition failed")
+    return source[:left] + block + source[right:]
+
+
+IS_AD_PROPERTY_CACHE_MARKER = "// loon-change: Weibo shared ad predicate single-read cache v1"
+IS_AD_OLD = '''function isAd(data) {
+  if (data?.mblogtypename?.includes("广告")) {
+    return true;
+  }
+  if (data?.mblogtypename?.includes("热推")) {
+    return true;
+  }
+  if (data?.promotion?.type?.includes("ad")) {
+    return true;
+  }
+  if (data?.content_auth_info?.content_auth_title?.includes("广告")) {
+    return true;
+  }
+  if (data?.ads_material_info?.is_ads === true) {
+    return true;
+  }
+  return false;
+}'''
+IS_AD_NEW = '''function isAd(data) {
+  // loon-change: Weibo shared ad predicate single-read cache v1
+  const mblogTypeName = data?.mblogtypename;
+  if (mblogTypeName?.includes("广告")) {
+    return true;
+  }
+  if (mblogTypeName?.includes("热推")) {
+    return true;
+  }
+  const promotion = data?.promotion;
+  const promotionType = promotion?.type;
+  if (promotionType?.includes("ad")) {
+    return true;
+  }
+  const contentAuthInfo = data?.content_auth_info;
+  const contentAuthTitle = contentAuthInfo?.content_auth_title;
+  if (contentAuthTitle?.includes("广告")) {
+    return true;
+  }
+  const adsMaterialInfo = data?.ads_material_info;
+  const isAds = adsMaterialInfo?.is_ads;
+  if (isAds === true) {
+    return true;
+  }
+  return false;
+}'''
+def optimize_is_ad_property_cache(source):
+    if IS_AD_PROPERTY_CACHE_MARKER in source:
+        if source.count(IS_AD_PROPERTY_CACHE_MARKER) != 1 or IS_AD_NEW not in source:
+            raise ValueError("Weibo isAd cache marker/structure drift")
+        return source
+    if source.count(IS_AD_OLD) != 1:
+        raise ValueError("Weibo isAd cache anchor drift")
+    source = source.replace(IS_AD_OLD, IS_AD_NEW, 1)
+    if source.count(IS_AD_PROPERTY_CACHE_MARKER) != 1:
+        raise ValueError("Weibo isAd cache postcondition failed")
+    return source
+
+
 def optimize_source(source, commit="unknown"):
     if MARKER in source:
         if "__loonSource32" not in source or "compactInPlace(items, keep)" not in source:
             raise ValueError("marked Weibo script is incomplete")
-        return optimize_search_timeline_nested_reference_cache(optimize_flowlist_asyn_nested_reference_cache(optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source))))))))))))))))
+        return optimize_is_ad_property_cache(optimize_profile_timeline_property_cache(optimize_search_timeline_nested_reference_cache(optimize_flowlist_asyn_nested_reference_cache(optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source))))))))))))))))
     source = source.replace("const url = $request.url;", "const url = $request.url;\n" + GUARD_DECLARATION + "\n\n" + HELPER, 1)
     if source.count(HELPER) != 1:
         raise ValueError("Weibo helper insertion failed")
@@ -497,7 +648,7 @@ def optimize_source(source, commit="unknown"):
     remaining = re.findall(r"\b(new[A-Za-z0-9_]*)\s*=\s*\[\s*\]", source)
     if sorted(remaining) != ["newActions", "newII"]:
         raise ValueError("unexpected remaining Weibo temporary arrays: " + repr(remaining))
-    return optimize_search_timeline_nested_reference_cache(optimize_flowlist_asyn_nested_reference_cache(optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source))))))))))))))))
+    return optimize_is_ad_property_cache(optimize_profile_timeline_property_cache(optimize_search_timeline_nested_reference_cache(optimize_flowlist_asyn_nested_reference_cache(optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source))))))))))))))))
 
 SCALAR_MEMBERSHIP_MARKER = "// loon-change: Weibo hot-loop scalar membership v1"
 SCALAR_MEMBERSHIP_REWRITES = [
