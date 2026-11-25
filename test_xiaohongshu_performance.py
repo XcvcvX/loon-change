@@ -1001,7 +1001,10 @@ class XiaohongshuV4FunctionEntryIndexedScanTests(unittest.TestCase):
         self.assertIn("const functionEntriesLength = functionEntries?.length || 0;", source)
         self.assertIn("for (let entryIndex = 0; entryIndex < functionEntriesLength; entryIndex++)", source)
         self.assertNotIn("for (const entry of functionEntries)", source)
-        damaged = source.replace("const functionEntriesLength = functionEntries?.length || 0;", "const functionEntriesLength = 0;", 1)
+        marker_start = source.index(VIDEO_ENTRY_INDEXED_MARKER)
+        v4_block = source[marker_start:]
+        damaged_block = v4_block.replace("const functionEntriesLength = functionEntries?.length || 0;", "const functionEntriesLength = 0;", 1)
+        damaged = source[:marker_start] + damaged_block
         with self.assertRaisesRegex(ValueError, "marker/structure drift"):
             optimize_v4_video_feed_function_entry_indexed_scan(damaged)
 
