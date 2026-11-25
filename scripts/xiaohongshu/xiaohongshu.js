@@ -525,7 +525,9 @@ function processCommentTree(data, livePhotos, commentVideos, noteId) {
       }
     }
     if (currentIsArray) {
-      for (let i = current.length - 1; i >= 0; i--) {
+      // loon-change: Xiaohongshu comment traversal array length cache v1;
+      const currentLength = current.length;
+      for (let i = currentLength - 1; i >= 0; i--) {
         const child = current[i];
         if (child && typeof child === "object") stack.push(child);
       }
@@ -535,12 +537,14 @@ function processCommentTree(data, livePhotos, commentVideos, noteId) {
         const child = current[key];
         if (!child || typeof child !== "object") continue;
         if (current === data && key === "comments" && Array.isArray(child)) {
-          for (let i = child.length - 1; i >= 0; i--) {
+          const commentsLength = child.length;
+          for (let i = commentsLength - 1; i >= 0; i--) {
             const comment = child[i];
             if (comment && typeof comment === "object") stack.push(true, comment, commentFrameTag);
           }
         } else if (isCommentFrame && isTopLevelComment && key === "sub_comments" && Array.isArray(child)) {
-          for (let i = child.length - 1; i >= 0; i--) {
+          const subCommentsLength = child.length;
+          for (let i = subCommentsLength - 1; i >= 0; i--) {
             const subComment = child[i];
             if (subComment && typeof subComment === "object") stack.push(false, subComment, commentFrameTag);
           }

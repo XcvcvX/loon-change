@@ -456,6 +456,66 @@ def optimize_imagefeed_array_length_cache(src):
     return src
 
 
+
+COMMENT_ARRAY_LENGTH_MARKER = "// loon-change: Xiaohongshu comment traversal array length cache v1;"
+
+def optimize_comment_array_length_cache(src):
+    """Snapshot each comment-tree array length once per traversal frame."""
+    if COMMENT_ARRAY_LENGTH_MARKER in src:
+        required = (
+            COMMENT_ARRAY_LENGTH_MARKER,
+            "const currentLength = current.length;",
+            "for (let i = currentLength - 1; i >= 0; i--)",
+            "const commentsLength = child.length;",
+            "for (let i = commentsLength - 1; i >= 0; i--)",
+            "const subCommentsLength = child.length;",
+            "for (let i = subCommentsLength - 1; i >= 0; i--)",
+        )
+        if any(token not in src for token in required):
+            raise ValueError("Xiaohongshu comment array-length cache marker is stale")
+        block_start = src.find("function processCommentTree(data, livePhotos, commentVideos, noteId)")
+        block_end = src.find("\n\n\n/**", block_start)
+        block = src[block_start:block_end if block_end >= 0 else len(src)]
+        if block.count("current.length") != 1 or block.count("child.length") != 2:
+            raise ValueError("Xiaohongshu comment array-length cache structure drift")
+        return src
+
+    start = src.find("function processCommentTree(data, livePhotos, commentVideos, noteId)")
+    end = src.find("\n\n\n/**", start)
+    if start < 0 or end < 0:
+        raise ValueError("Xiaohongshu comment processor boundary missing")
+    block = src[start:end]
+    old_current = """    if (currentIsArray) {
+      for (let i = current.length - 1; i >= 0; i--) {"""
+    new_current = """    if (currentIsArray) {
+      // loon-change: Xiaohongshu comment traversal array length cache v1;
+      const currentLength = current.length;
+      for (let i = currentLength - 1; i >= 0; i--) {"""
+    if block.count(old_current) != 1:
+        raise ValueError("Xiaohongshu comment current-array loop anchor drift")
+    block = block.replace(old_current, new_current, 1)
+    old_comments = """        if (current === data && key === "comments" && Array.isArray(child)) {
+          for (let i = child.length - 1; i >= 0; i--) {"""
+    new_comments = """        if (current === data && key === "comments" && Array.isArray(child)) {
+          const commentsLength = child.length;
+          for (let i = commentsLength - 1; i >= 0; i--) {"""
+    if block.count(old_comments) != 1:
+        raise ValueError("Xiaohongshu top-level comments array loop anchor drift")
+    block = block.replace(old_comments, new_comments, 1)
+    old_sub = """        } else if (isCommentFrame && isTopLevelComment && key === "sub_comments" && Array.isArray(child)) {
+          for (let i = child.length - 1; i >= 0; i--) {"""
+    new_sub = """        } else if (isCommentFrame && isTopLevelComment && key === "sub_comments" && Array.isArray(child)) {
+          const subCommentsLength = child.length;
+          for (let i = subCommentsLength - 1; i >= 0; i--) {"""
+    if block.count(old_sub) != 1:
+        raise ValueError("Xiaohongshu sub-comments array loop anchor drift")
+    block = block.replace(old_sub, new_sub, 1)
+    if block.count(COMMENT_ARRAY_LENGTH_MARKER) != 1 or block.count("current.length") != 1 or block.count("child.length") != 2:
+        raise ValueError("Xiaohongshu comment array-length cache postcondition failed")
+    return src[:start] + block + src[end:]
+
+
+
 FUNCTION_SWITCH_MARKER = "// loon-change: Xiaohongshu v4 function-switch indexed scan v1;"
 
 def optimize_v4_function_switch_indexed_scan(src):
@@ -768,6 +828,7 @@ def optimize_source(src,commit="unknown"):
             src = optimize_comment_media_property_cache(src)
             src = optimize_comment_stack_frame_allocation(src)
             src = optimize_comment_node_array_classification(src)
+            src = optimize_comment_array_length_cache(src)
             src = optimize_video_save_cache_lookup(src)
             src = optimize_video_save_lazy_cache_parse(src)
             src = optimize_v4_video_feed_function_entry_scan(src)
@@ -782,6 +843,7 @@ def optimize_source(src,commit="unknown"):
         src = optimize_comment_media_property_cache(src)
         src = optimize_comment_stack_frame_allocation(src)
         src = optimize_comment_node_array_classification(src)
+        src = optimize_comment_array_length_cache(src)
         src = optimize_video_save_cache_lookup(src)
         src = optimize_video_save_lazy_cache_parse(src)
         src = optimize_v4_video_feed_function_entry_scan(src)
@@ -877,6 +939,7 @@ def optimize_source(src,commit="unknown"):
     result = optimize_comment_video_info_cache(result)
     result = optimize_comment_stack_frame_allocation(result)
     result = optimize_comment_node_array_classification(result)
+    result = optimize_comment_array_length_cache(result)
     result = optimize_video_save_cache_lookup(result)
     result = optimize_video_save_lazy_cache_parse(result)
     result = optimize_v4_video_feed_function_entry_scan(result)
@@ -884,7 +947,11 @@ def optimize_source(src,commit="unknown"):
     result = optimize_v3_video_feed_item_reference_cache(result)
     result = optimize_v4_video_feed_nested_reference_cache(result)
     result = optimize_stream_selection_no_closure(result)
-    for token in ("imageEnhance(images_list, livePhotoCache)", IMAGE_FEED_MARKER, IMAGE_ARRAY_LENGTH_MARKER, "frame.index>=frame.length", "compactInPlace(obj.data","appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)","const byFileId=new Map()", "Xiaohongshu comment classification stack frames v1;", "const commentFrameTag = {};", "stack.push(true, comment, commentFrameTag);", "stack.push(false, subComment, commentFrameTag);", FUNCTION_SWITCH_MARKER, VIDEO_V3_ITEM_CACHE_MARKER, VIDEO_FEED_REFERENCE_CACHE_MARKER, COMMENT_STACK_FRAME_MARKER, COMMENT_CACHE_MARKER, "let parsed = parsedVideoInfo.get(raw);", VIDEO_SAVE_LOOKUP_MARKER, VIDEO_SAVE_LAZY_PARSE_MARKER, "const noteId = obj.data?.note_id;", "for (let i = videoFeed.length - 1; i >= 0; i--)", STREAM_SELECTION_MARKER, "for (let pass = 0; pass < 2; pass++)"):
+    for token in ("imageEnhance(images_list, livePhotoCache)", IMAGE_FEED_MARKER, IMAGE_ARRAY_LENGTH_MARKER, "frame.index>=frame.length", "compactInPlace(obj.data","appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)","const byFileId=new Map()", "Xiaohongshu comment classification stack frames v1;", "const commentFrameTag = {};",
+        COMMENT_ARRAY_LENGTH_MARKER,
+        "const currentLength = current.length;",
+        "const commentsLength = child.length;",
+        "const subCommentsLength = child.length;", "stack.push(true, comment, commentFrameTag);", "stack.push(false, subComment, commentFrameTag);", FUNCTION_SWITCH_MARKER, VIDEO_V3_ITEM_CACHE_MARKER, VIDEO_FEED_REFERENCE_CACHE_MARKER, COMMENT_STACK_FRAME_MARKER, COMMENT_CACHE_MARKER, "let parsed = parsedVideoInfo.get(raw);", VIDEO_SAVE_LOOKUP_MARKER, VIDEO_SAVE_LAZY_PARSE_MARKER, "const noteId = obj.data?.note_id;", "for (let i = videoFeed.length - 1; i >= 0; i--)", STREAM_SELECTION_MARKER, "for (let pass = 0; pass < 2; pass++)"):
         if token not in result:raise ValueError("missing optimizer invariant: "+token)
     if "imageEnhance(JSON.stringify(images_list))" in result:raise ValueError("image-feed serialization round trip remains")
     if "for (const image of images_list)" in result:raise ValueError("image-feed second cache traversal remains")

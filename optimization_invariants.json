@@ -98,7 +98,14 @@
         "// loon-change: Xiaohongshu image traversal array-frame length cache v1;",
         "length:Array.isArray(images)?images.length:0",
         "if(frame.index>=frame.length)",
-        "length:Array.isArray(child)?child.length:0"
+        "length:Array.isArray(child)?child.length:0",
+        "// loon-change: Xiaohongshu comment traversal array length cache v1;",
+        "const currentLength = current.length;",
+        "for (let i = currentLength - 1; i >= 0; i--)",
+        "const commentsLength = child.length;",
+        "for (let i = commentsLength - 1; i >= 0; i--)",
+        "const subCommentsLength = child.length;",
+        "for (let i = subCommentsLength - 1; i >= 0; i--)"
       ],
       "forbidden": [
         "console.log(`[缓存] ID:",
@@ -126,7 +133,9 @@
         "if (item?.id && selectedStream?.master_url)",
         "id: item.id,",
         "url: selectedStream.master_url",
-        "if(frame.index>=value.length)"
+        "if(frame.index>=value.length)",
+        "for (let i = current.length - 1; i >= 0; i--)",
+        "for (let i = child.length - 1; i >= 0; i--)"
       ]
     },
     {
