@@ -97,7 +97,8 @@ SPLASH_ARRAY_LENGTH_MARKER = "// loon-change: Taobao splash array length single-
 SPLASH_ARRAY_LENGTH_OLD_SECTION = """    if (Array.isArray(sections) && sections.length > 0) {
       // loon-change: Taobao indexed splash traversal v1
       const sectionCount = sections.length;"""
-SPLASH_ARRAY_LENGTH_NEW_SECTION = """    // loon-change: Taobao splash array length single-read cache v1
+SPLASH_ARRAY_LENGTH_NEW_SECTION = """      // loon-change: Taobao indexed splash traversal v1
+    // loon-change: Taobao splash array length single-read cache v1
     const sectionCount = Array.isArray(sections) ? sections.length : 0;
     if (sectionCount > 0) {"""
 SPLASH_ARRAY_LENGTH_OLD_ITEMS = """        if (!Array.isArray(splashItems) || splashItems.length === 0) continue;
