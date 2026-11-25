@@ -866,6 +866,29 @@ def optimize_v4_feed_array_length_snapshot(src):
     return src[:left] + block + src[right:]
 
 
+
+FEED_NESTED_LOOP_MARKER = "// loon-change: Xiaohongshu feed nested-loop property cache v1;"
+
+
+def optimize_feed_nested_loop_property_cache(src):
+    """Validate the checked-in feed array/reference cache transform."""
+    required = (
+        FEED_NESTED_LOOP_MARKER,
+        "const adsGroups = obj?.data?.ads_groups;",
+        "const adsGroupLength = adsGroups?.length || 0;",
+        "const feedData = obj?.data;",
+        "const noteList = firstFeedPage?.note_list;",
+        "const functionSwitchLength = functionSwitch?.length || 0;",
+        "let hasCopy = false;",
+        "const videoFeedLength = videoFeed?.length || 0;",
+    )
+    if src.count(FEED_NESTED_LOOP_MARKER) != 3 or any(token not in src for token in required):
+        raise ValueError("Xiaohongshu feed nested-loop cache marker/structure drift")
+    if "options.some(item => item.key === 'copy')" in src or "item.function_switch.forEach(" in src:
+        raise ValueError("Xiaohongshu feed nested-loop legacy scans remain")
+    return src
+
+
 def optimize_source(src,commit="unknown"):
     if MARKER in src:
         if "Object.keys(current)" in src: raise ValueError("Xiaohongshu traversal optimization is stale")
@@ -885,6 +908,7 @@ def optimize_source(src,commit="unknown"):
             src = optimize_v4_video_feed_function_entry_scan(src)
             src = optimize_v4_function_switch_indexed_scan(src)
             src = optimize_v4_feed_array_length_snapshot(src)
+            src = optimize_feed_nested_loop_property_cache(src)
             return optimize_stream_selection_no_closure(optimize_v4_video_feed_nested_reference_cache(optimize_v3_video_feed_item_reference_cache(src)))
         src = apply_comment_optimization(src)
         src = optimize_comment_media_property_cache(src)
@@ -901,6 +925,7 @@ def optimize_source(src,commit="unknown"):
         src = optimize_v4_video_feed_function_entry_scan(src)
         src = optimize_v4_function_switch_indexed_scan(src)
         src = optimize_v4_feed_array_length_snapshot(src)
+        src = optimize_feed_nested_loop_property_cache(src)
         return optimize_stream_selection_no_closure(optimize_v4_video_feed_nested_reference_cache(optimize_v3_video_feed_item_reference_cache(src)))
     src=once(src,"const url = $request.url;","const url = $request.url;\n"+HELPERS.strip(),"helpers")
     src=once(src,"  console.log('打印原body：' + JSON.stringify(obj));\n","","full-body logging")
