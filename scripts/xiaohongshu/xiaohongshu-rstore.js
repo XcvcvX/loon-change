@@ -444,8 +444,11 @@ function cleanCommentsAndCollectLivePhotos(data) {
       if (current.media_source_type === 1) current.media_source_type = 0;
       // loon-change: Xiaohongshu comment pictures reference cache v1
       commentPictures = current.pictures;
-      if (commentPictures?.length > 0) {
-        for (const picture of commentPictures) {
+      // loon-change: Xiaohongshu comment traversal cached array lengths v1
+      const commentPictureCount = commentPictures?.length || 0;
+      if (commentPictureCount > 0) {
+        for (let pictureIndex = 0; pictureIndex < commentPictureCount; pictureIndex++) {
+          const picture = commentPictures[pictureIndex];
           const videoId = picture.video_id;
           if (!videoId) continue;
           // loon-change: Xiaohongshu comment video-info cache single lookup v1
@@ -461,7 +464,8 @@ function cleanCommentsAndCollectLivePhotos(data) {
       }
     }
     if (Array.isArray(current)) {
-      for (let index = current.length - 1; index >= 0; index--) {
+      const currentLength = current.length;
+      for (let index = currentLength - 1; index >= 0; index--) {
         const child = current[index];
         if (child && typeof child === "object") stack.push(child);
       }
@@ -472,12 +476,14 @@ function cleanCommentsAndCollectLivePhotos(data) {
         const child = isCommentFrame && key === "pictures" ? commentPictures : current[key];
         if (!child || typeof child !== "object") continue;
         if (current === data && key === "comments" && Array.isArray(child)) {
-          for (let index = child.length - 1; index >= 0; index--) {
+          const commentCount = child.length;
+          for (let index = commentCount - 1; index >= 0; index--) {
             const comment = child[index];
             if (comment && typeof comment === "object") stack.push(comment, commentFrameTag, true);
           }
         } else if (isCommentFrame && isTopLevelComment && key === "sub_comments" && Array.isArray(child)) {
-          for (let index = child.length - 1; index >= 0; index--) {
+          const subCommentCount = child.length;
+          for (let index = subCommentCount - 1; index >= 0; index--) {
             const subComment = child[index];
             if (subComment && typeof subComment === "object") stack.push(subComment, commentFrameTag, false);
           }
