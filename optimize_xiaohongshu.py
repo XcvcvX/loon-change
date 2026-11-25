@@ -480,7 +480,7 @@ VIDEO_FEED_REFERENCE_CACHE_MARKER = "// loon-change: Xiaohongshu v4 video-feed n
 def optimize_v4_video_feed_nested_reference_cache(src):
     """Cache repeated v4 feed item/media/stream references before normalization and cache extraction."""
     start = 'if (url.includes("/v4/note/videofeed")) {'
-    end = "\\n\\n// 视频保存请求"
+    end = "\n\n// 视频保存请求"
     marker = VIDEO_FEED_REFERENCE_CACHE_MARKER
     if marker in src:
         left = src.find(start)
