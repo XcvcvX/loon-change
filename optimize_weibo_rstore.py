@@ -434,7 +434,7 @@ def optimize_source(source, commit="unknown"):
     if MARKER in source:
         if "__loonSource32" not in source or "compactInPlace(items, keep)" not in source:
             raise ValueError("marked Weibo script is incomplete")
-        return optimize_profile_timeline_data_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source))))))))
+        return optimize_profile_timeline_data_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source)))))))))
     source = source.replace("const url = $request.url;", "const url = $request.url;\n" + GUARD_DECLARATION + "\n\n" + HELPER, 1)
     if source.count(HELPER) != 1:
         raise ValueError("Weibo helper insertion failed")
@@ -446,7 +446,7 @@ def optimize_source(source, commit="unknown"):
     remaining = re.findall(r"\b(new[A-Za-z0-9_]*)\s*=\s*\[\s*\]", source)
     if sorted(remaining) != ["newActions", "newII"]:
         raise ValueError("unexpected remaining Weibo temporary arrays: " + repr(remaining))
-    return optimize_profile_timeline_data_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source))))))))
+    return optimize_profile_timeline_data_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source)))))))))
 
 SCALAR_MEMBERSHIP_MARKER = "// loon-change: Weibo hot-loop scalar membership v1"
 SCALAR_MEMBERSHIP_REWRITES = [
@@ -757,6 +757,50 @@ def optimize_topic_group_nested_data_cache(source):
         raise ValueError("Weibo nested topic-group data-cache postcondition failed")
     if "for (let ii of item.items)" in source or "removeAvatar(ii?.data)" in source:
         raise ValueError("Weibo repeated nested topic-group property reads remain")
+    return source
+
+
+
+ROOT_COMMENT_USER_CACHE_MARKER = "// loon-change: Weibo root-comment user reference cache v1"
+ROOT_COMMENT_USER_CACHE_OLD = """          if (item.user) {
+            // 头像挂件,关注按钮
+            removeAvatar(item);
+            if (item?.user?.name === "超话社区" || item?.user?.name === "微博视频") {
+              continue;
+            }
+          }"""
+ROOT_COMMENT_USER_CACHE_NEW = """          // loon-change: Weibo root-comment user reference cache v1
+          const commentUser = item.user;
+          if (commentUser) {
+            // 头像挂件,关注按钮
+            removeAvatar(item, commentUser);
+            const commentUserName = commentUser.name;
+            if (commentUserName === "超话社区" || commentUserName === "微博视频") {
+              continue;
+            }
+          }"""
+
+def optimize_root_comment_user_cache(source):
+    """Reuse root-comment user/name references during the high-frequency comment loop."""
+    marker = ROOT_COMMENT_USER_CACHE_MARKER
+    required = (
+        marker,
+        "const commentUser = item.user;",
+        "removeAvatar(item, commentUser);",
+        "const commentUserName = commentUser.name;",
+        'commentUserName === "超话社区" || commentUserName === "微博视频"',
+    )
+    if marker in source:
+        if source.count(marker) != 1 or any(token not in source for token in required):
+            raise ValueError("Weibo root-comment user-cache structure drift")
+        if "item?.user?.name ===" in source or "removeAvatar(item);" in source[source.index(marker):source.index(marker)+600]:
+            raise ValueError("Weibo repeated root-comment user property reads remain")
+        return source
+    if source.count(ROOT_COMMENT_USER_CACHE_OLD) != 1:
+        raise ValueError("Weibo root-comment user-cache anchor drift")
+    source = source.replace(ROOT_COMMENT_USER_CACHE_OLD, ROOT_COMMENT_USER_CACHE_NEW, 1)
+    if source.count(marker) != 1 or any(token not in source for token in required):
+        raise ValueError("Weibo root-comment user-cache postcondition failed")
     return source
 
 
