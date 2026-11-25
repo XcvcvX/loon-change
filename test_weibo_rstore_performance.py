@@ -160,6 +160,20 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "structure drift"):
             optimize_flowlist_asyn_nested_reference_cache(damaged)
 
+    def test_hot_feed_cache_markers_are_inserted_before_postconditions(self):
+        optimizer = Path(__file__).with_name("optimize_weibo_rstore.py").read_text(encoding="utf-8")
+        specs = (
+            ("optimize_following_timeline_data_cache", "FOLLOWING_TIMELINE_DATA_CACHE_MARKER", "if any(token not in block for token in required):"),
+            ("optimize_hot_timeline_data_cache", "HOT_TIMELINE_DATA_CACHE_MARKER", "if any(token not in block for token in required):"),
+            ("optimize_flowlist_asyn_nested_reference_cache", "Weibo container/asyn nested reference cache v1", "if any(x not in asyn for x in required_asyn)"),
+            ("optimize_search_timeline_nested_reference_cache", "SEARCH_TIMELINE_REFERENCE_CACHE_MARKER", "if any(token not in block for token in required):"),
+        )
+        for function_name, marker, postcondition in specs:
+            start = optimizer.index("def " + function_name + "(")
+            next_def = optimizer.find("\\ndef ", start + 1)
+            block = optimizer[start: next_def if next_def >= 0 else len(optimizer)]
+            self.assertLess(block.index(marker), block.index(postcondition), function_name)
+
     def test_hot_timeline_caches_arrays_and_item_data(self):
         source = SCRIPT.read_text(encoding="utf-8")
         self.assertIn(HOT_TIMELINE_DATA_CACHE_MARKER, source)
