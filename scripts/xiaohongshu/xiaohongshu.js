@@ -200,7 +200,7 @@ if (url.includes("/v3/note/videofeed?")) {
 
 // 信息流 视频
 if (url.includes("/v4/note/videofeed")) {
-  // // loon-change: Xiaohongshu v4 feed array length snapshot v1;
+  // loon-change: Xiaohongshu v4 feed array length snapshot v1;
   const videoData = [];
   const videoDataSource = obj.data;
   const videoDataLength = videoDataSource?.length || 0;

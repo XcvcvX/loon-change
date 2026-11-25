@@ -869,3 +869,56 @@ process.stdout.write(nativeJSON.stringify({body:nativeJSON.parse(done.body),leng
         self.assertIn("w/2160/format",images[1]["url"])
         self.assertEqual(out["lengthReads"],{"root":1,"root[0].nested":1})
 
+
+    def test_v4_feed_array_length_snapshot_is_idempotent_and_fails_closed(self):
+        source=(ROOT/"scripts/xiaohongshu/xiaohongshu.js").read_text(encoding="utf-8")
+        self.assertEqual(optimize_v4_feed_array_length_snapshot(source),source)
+        self.assertIn(V4_FEED_ARRAY_LENGTH_MARKER,source)
+        self.assertIn("const videoDataLength = videoDataSource?.length || 0;",source)
+        self.assertIn("for (let videoIndex = 0; videoIndex < videoDataLength; videoIndex++)",source)
+        self.assertIn("const functionSwitchLength = functionSwitch?.length || 0;",source)
+        self.assertIn("for (let switchIndex = 0; switchIndex < functionSwitchLength; switchIndex++)",source)
+        damaged=source.replace("const videoDataLength = videoDataSource?.length || 0;","const videoDataLength = 0;",1)
+        with self.assertRaisesRegex(ValueError,"array-length marker is stale"):
+            optimize_v4_feed_array_length_snapshot(damaged)
+
+    @unittest.skipUnless(NODE,"Node required for v4 feed array-length runtime test")
+    def test_v4_feed_and_function_switch_lengths_are_read_once(self):
+        runner=r'''
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync("scripts/xiaohongshu/xiaohongshu.js","utf8");
+const p=JSON.parse(fs.readFileSync(0,"utf8")),nativeParse=JSON.parse.bind(JSON),nativeStringify=JSON.stringify.bind(JSON);
+let done,tracking=false;const reads={data:0,functionSwitch:0};
+const trackedJSON={
+  parse(value){
+    const parsed=nativeParse(value);
+    if(p.url.includes("/v4/note/videofeed")&&Array.isArray(parsed.data)){
+      const item=parsed.data[0];
+      if(item&&Array.isArray(item.function_switch)){
+        item.function_switch=new Proxy(item.function_switch,{get(target,key,receiver){if(tracking&&key==="length")reads.functionSwitch++;return Reflect.get(target,key,receiver);}});
+      }
+      parsed.data=new Proxy(parsed.data,{get(target,key,receiver){if(tracking&&key==="length")reads.data++;return Reflect.get(target,key,receiver);}});
+    }
+    tracking=true;return parsed;
+  },
+  stringify(value){tracking=false;return nativeStringify(value);}
+};
+const store=new Map();
+const ctx={JSON:trackedJSON,$loon:{},$persistentStore:{read:k=>store.get(k)||null,write:(v,k)=>(store.set(k,v),true)},
+$request:{url:p.url},$response:{body:nativeStringify(p.body)},$done:v=>done=v,console:{log(){},warn(){},error(){}}};
+vm.runInNewContext(source,ctx,{timeout:5000});
+process.stdout.write(nativeStringify({body:nativeParse(done.body),reads,cache:nativeParse(store.get("redBookVideoFeed"))}));
+'''
+        body={"data":[{"id":"one","function_switch":[{"type":"video_download","enable":False,"reason":"disabled"}],
+            "share_info":{"function_entries":[{"type":"share"}]},
+            "video_info_v2":{"media":{"stream":{"h265":[{"master_url":"https://video.example/one.mp4","width":1280,"height":720,"avg_bitrate":20}],"h264":[]}}}},
+            {"id":"two","function_switch":[],"share_info":{"function_entries":[{"type":"video_download"}]},
+            "video_info_v2":{"media":{"stream":{"h265":[],"h264":[]}}}}]}
+        run=subprocess.run([NODE,"-e",runner],input=json.dumps({"url":"https://edith.xiaohongshu.com/api/sns/v4/note/videofeed?cursor=length","body":body}),cwd=ROOT,capture_output=True,text=True,check=False,timeout=10)
+        self.assertEqual(run.returncode,0,run.stderr)
+        out=json.loads(run.stdout)
+        self.assertEqual(out["reads"],{"data":1,"functionSwitch":1})
+        item=out["body"]["data"][0]
+        self.assertTrue(item["function_switch"][0]["enable"])
+        self.assertNotIn("reason",item["function_switch"][0])
+        self.assertEqual(item["share_info"]["function_entries"],[{"type":"share"},{"type":"video_download"}])
+        self.assertEqual(out["cache"],[{"id":"one","url":"https://video.example/one.mp4"}])

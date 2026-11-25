@@ -819,7 +819,7 @@ V4_FEED_ARRAY_LENGTH_MARKER = "// loon-change: Xiaohongshu v4 feed array length 
 def optimize_v4_feed_array_length_snapshot(src):
     """Snapshot v4 feed and function-switch lengths once per response/item."""
     start = 'if (url.includes("/v4/note/videofeed")) {'
-    end = "\\n\\n// 视频保存请求"
+    end = "\n\n// 视频保存请求"
     left = src.find(start)
     right = src.find(end, left) if left >= 0 else -1
     block = src[left:right] if left >= 0 and right >= 0 else ""
@@ -839,7 +839,7 @@ def optimize_v4_feed_array_length_snapshot(src):
     old_outer = """  let videoData = [];
   if (obj.data?.length > 0) {
     for (let item of obj.data) {"""
-    new_outer = """  // // loon-change: Xiaohongshu v4 feed array length snapshot v1;
+    new_outer = """  // loon-change: Xiaohongshu v4 feed array length snapshot v1;
   const videoData = [];
   const videoDataSource = obj.data;
   const videoDataLength = videoDataSource?.length || 0;
