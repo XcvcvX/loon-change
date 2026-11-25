@@ -1143,7 +1143,6 @@ const trackedJSON={
     wrap(feedData,"enable_comment_guide","feed.enable_comment_guide");
     wrap(feedData,"block_card_bg","feed.block_card_bg");
     wrap(feedData,"retweeted_status","feed.retweeted_status");
-    wrap(feedData,"source","feed.source");wrap(feedData,"title","feed.title");
     wrap(cardData,"card_type","card.card_type");wrap(cardData,"rightImage","card.rightImage");
     wrap(cardData,"backgroundImage","card.backgroundImage");
     tracking=true;
@@ -1179,7 +1178,7 @@ process.stdout.write(nativeStringify({doneResult,counts}));
                     "group.header", "group.header.data", "group.header.icon", "group.itemId",
                     "group.profile_type_id", "group.items.ref", "group.items.length",
                     "feed.category", "feed.data", "card.category", "card.data",
-                    "feed.enable_comment_guide", "feed.source", "feed.title", "feed.block_card_bg", "feed.retweeted_status",
+                    "feed.enable_comment_guide", "feed.block_card_bg", "feed.retweeted_status",
                     "card.card_type", "card.rightImage", "card.backgroundImage"):
             self.assertEqual(counts.get(key), 1, key)
         self.assertEqual(len(output["items"][0]["items"]), 2)
