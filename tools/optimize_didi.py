@@ -172,8 +172,8 @@ def optimize_didi_predicates(source):
     def validate(result):
         if any(token not in result for token in required):
             raise ValueError("Didi mode-dispatch optimization is incomplete")
-        if ('compactDidiByField(responseData.cards, "title", "card");' not in result and
-                'compactDidiByField(obj.data.cards, "title", "card");' not in result):
+        if ('compactDidiByField(responseData.cards, "card");' not in result and
+                'compactDidiByField(obj.data.cards, "card");' not in result):
             raise ValueError("Didi mode-dispatch card compaction is incomplete")
         if result.count("for (let read = 0; read < length; read++)") != 7:
             raise ValueError("Didi specialized loop inventory changed")
@@ -186,6 +186,11 @@ def optimize_didi_predicates(source):
         return result
 
     if DIDI_MODE_MARKER in source:
+        return validate(source)
+
+    legacy_mode_marker = "// loon-change: Didi hot-loop mode dispatch v1;"
+    if legacy_mode_marker in source:
+        source = source.replace(legacy_mode_marker, DIDI_MODE_MARKER, 1)
         source, count = re.subn(
             r'compactDidiByField\(([^,\n]+),\s*"[^"]+",\s*"([^"]+)"\)',
             r'compactDidiByField(\1, "\2")',
@@ -193,7 +198,6 @@ def optimize_didi_predicates(source):
         )
         if count != 7:
             raise ValueError("Didi specialized callsite inventory changed during v2 upgrade")
-        return validate(source)
 
     # Upgrade the already-specialized v2 local snapshot without changing its
     # route, cleanup predicates, or response completion guard.
@@ -203,6 +207,14 @@ def optimize_didi_predicates(source):
         start = source.index(helper_start)
         end = source.index(helper_end, start)
         source = source[:start] + DIDI_MODE_HELPER.rstrip() + "\n" + source[end + 3:]
+        if legacy_mode_marker not in source:
+            source, count = re.subn(
+                r'compactDidiByField\(([^,\n]+),\s*"[^"]+",\s*"([^"]+)"\)',
+                r'compactDidiByField(\1, "\2")',
+                source,
+            )
+            if count != 7:
+                raise ValueError("Didi specialized callsite inventory changed during v2 upgrade")
         return validate(source)
 
     helper_start = "function compactInPlace(items, keep) {"
@@ -237,6 +249,13 @@ def optimize_didi_predicates(source):
         raise ValueError("Didi per-response filter callbacks or allowlist arrays remain")
     if re.search(r"\.filter\s*\(", source):
         raise ValueError("Didi allocating filter remains after mode specialization")
+    source, count = re.subn(
+        r'compactDidiByField\(([^,\n]+),\s*"[^"]+",\s*"([^"]+)"\)',
+        r'compactDidiByField(\1, "\2")',
+        source,
+    )
+    if count != 7:
+        raise ValueError("Didi specialized callsite inventory changed during upstream generation")
     return validate(source)
 
 
