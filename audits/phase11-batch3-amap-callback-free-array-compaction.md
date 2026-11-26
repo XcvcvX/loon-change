@@ -3,7 +3,7 @@
 ## Scope
 - Runtime: scripts/amap/amap.js
 - Upstream regeneration: tools/optimize_amap.py
-- Existing local response-hook fan-out remains unchanged (14 trigger references).
+- The upstream plugin rewrite inventory remains guarded at 14 references. The merged root subscription currently has 7 grouped response-rule entries pointing to this script; none were changed by this optimization.
 
 ## Finding
 The Amap response handler already compacted arrays in place, avoiding replacement arrays created by Array.filter(). However, 13 compaction call sites still supplied inline predicate callbacks to a generic helper. Each matching response created short-lived callback functions, and the helper performed an indirect function call for every array element. It also reread the array length after the traversal.
