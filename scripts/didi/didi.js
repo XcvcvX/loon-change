@@ -13,15 +13,15 @@ https://raw.githubusercontent.com/zirawell/R-Store/main/Rule/Surge/Adblock/App/D
 const url = $request.url;
 let modified = false;
 
-// loon-change: Didi hot-loop mode dispatch v1;
-function compactDidiByField(items, field, mode) {
+// loon-change: Didi hot-loop specialized property loops v2;
+function compactDidiByField(items, mode) {
   const length = items.length;
   let write = 0;
 
   if (mode === "scene") {
     for (let read = 0; read < length; read++) {
       const item = items[read];
-      if (item[field] !== "优惠商城") {
+      if (item.text !== "优惠商城") {
         if (write !== read) items[write] = item;
         write++;
       }
@@ -37,7 +37,7 @@ function compactDidiByField(items, field, mode) {
   } else if (mode === "nav") {
     for (let read = 0; read < length; read++) {
       const item = items[read];
-      const value = item[field];
+      const value = item.nav_id;
       if (value === "dache_anycar" || value === "driverservice" || value === "bike") {
         if (write !== read) items[write] = item;
         write++;
@@ -46,7 +46,7 @@ function compactDidiByField(items, field, mode) {
   } else if (mode === "bottomNav") {
     for (let read = 0; read < length; read++) {
       const item = items[read];
-      const value = item[field];
+      const value = item.id;
       if (value === "v6x_home" || value === "user_center") {
         if (write !== read) items[write] = item;
         write++;
@@ -55,7 +55,7 @@ function compactDidiByField(items, field, mode) {
   } else if (mode === "walletItem") {
     for (let read = 0; read < length; read++) {
       const item = items[read];
-      if (item[field] === "优惠券") {
+      if (item.title === "优惠券") {
         if (write !== read) items[write] = item;
         write++;
       }
@@ -63,7 +63,7 @@ function compactDidiByField(items, field, mode) {
   } else if (mode === "walletBottom") {
     for (let read = 0; read < length; read++) {
       const item = items[read];
-      const value = item[field];
+      const value = item.title;
       if (value === "省钱套餐" || value === "天天神券") {
         if (write !== read) items[write] = item;
         write++;
@@ -72,7 +72,7 @@ function compactDidiByField(items, field, mode) {
   } else if (mode === "card") {
     for (let read = 0; read < length; read++) {
       const item = items[read];
-      const title = item[field];
+      const title = item.title;
       if (title === "天天领福利" || title === "金融服务" || title === "更多服务" ||
           title === "企业服务" || title === "安全中心") {
         continue;
@@ -81,12 +81,12 @@ function compactDidiByField(items, field, mode) {
         // loon-change: Didi wallet nested property cache v1
         const walletItems = item.items;
         if (Array.isArray(walletItems) && walletItems.length > 0) {
-          compactDidiByField(walletItems, "title", "walletItem");
+          compactDidiByField(walletItems, "walletItem");
         }
         if (item.card_type === 4) {
           const walletBottomItems = item.bottom_items;
           if (Array.isArray(walletBottomItems) && walletBottomItems.length > 0) {
-            compactDidiByField(walletBottomItems, "title", "walletBottom");
+            compactDidiByField(walletBottomItems, "walletBottom");
           }
         }
       }
@@ -127,7 +127,7 @@ if (isSceneList) {
   // loon-change: Didi scene-list and show-data array reference cache v1
   const sceneList = responseData?.scene_list;
   if (sceneList instanceof Array) {
-    compactDidiByField(sceneList, "text", "scene");
+    compactDidiByField(sceneList, "scene");
   }
   const showData = responseData?.show_data;
   if (showData instanceof Array) {
@@ -137,7 +137,7 @@ if (isSceneList) {
       const block = showData[read];
       const sceneIds = block.scene_ids;
       if (sceneIds instanceof Array) {
-        compactDidiByField(sceneIds, "scene_ids", "sceneId");
+        compactDidiByField(sceneIds, "sceneId");
       }
     }
   }
@@ -149,14 +149,14 @@ if (isHomepageCore) {
   const navListCard = orderCards?.nav_list_card;
   const navListData = navListCard?.data;
   if (navListData) {
-    compactDidiByField(navListData, "nav_id", "nav");
+    compactDidiByField(navListData, "nav");
   }
 
   const disorderCards = responseData?.disorder_cards;
   const bottomNavList = disorderCards?.bottom_nav_list;
   const bottomNavData = bottomNavList?.data;
   if (bottomNavData) {
-    compactDidiByField(bottomNavData, "id", "bottomNav");
+    compactDidiByField(bottomNavData, "bottomNav");
   }
 }
 
@@ -175,7 +175,7 @@ if (isUserCenter) {
   // loon-change: Didi user-center cards array reference cache v1
   const userCenterCards = responseData?.cards;
   if (userCenterCards) {
-    compactDidiByField(userCenterCards, "title", "card");
+    compactDidiByField(userCenterCards, "card");
   }
 }
 
