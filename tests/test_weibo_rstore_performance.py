@@ -66,7 +66,7 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         self.assertNotIn("item?.page_info?.media_info?.vote_info", source)
         self.assertIn('compactWeiboInPlace(obj.elements, "publisher")', source)
         self.assertIn('compactWeiboInPlace(obj.user_list, "directMessages")', source)
-        self.assertIn('compactWeiboInPlace(obj.cards, "pageCards")', source)
+        self.assertIn('compactWeiboInPlace(pageCards, "pageCards", pageCardsLength)', source)
         self.assertNotIn("obj.elements = obj.elements.filter(", source)
         self.assertNotIn("obj.user_list = obj.user_list.filter(", source)
         self.assertNotIn("obj.channelInfo.channel_list = obj.channelInfo.channel_list.filter(", source)
