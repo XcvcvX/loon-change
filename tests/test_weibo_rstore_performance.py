@@ -160,7 +160,7 @@ process.stdout.write(nativeStringify({doneResult,counts,traces}));
         self.assertEqual(result["counts"], {
             "cards.ref": 1, "cards.length": 1,
             "group.ref": 1, "group.length": 1,
-        })
+        }, json.dumps(result.get("traces", [])))
         output = json.loads(result["doneResult"]["body"])
         self.assertEqual(output["cards"][0]["itemid"], "keep-card")
         self.assertEqual(output["cards"][0]["card_group"][0]["itemid"], "keep-group")
