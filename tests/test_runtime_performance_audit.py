@@ -591,7 +591,7 @@ class DidiLocalJsonRuntimePerformanceTests(unittest.TestCase):
         node = shutil.which("node")
         if not node:
             self.skipTest("Node.js is required for the Didi runtime integration test")
-        source_path = Path(__file__).with_name("scripts").joinpath("didi", "didi-ads.js")
+        source_path = Path(__file__).with_name("fixtures").joinpath("legacy", "didi-ads.js")
         source = source_path.read_text(encoding="utf-8")
         self.assertNotIn(".filter(", source)
         self.assertNotIn(".forEach(", source)

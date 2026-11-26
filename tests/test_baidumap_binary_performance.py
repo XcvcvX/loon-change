@@ -319,7 +319,7 @@ class ResponseScriptAuditTests(unittest.TestCase):
     def test_didi_response_triggers_use_the_local_compacted_runtime(self):
         plugin = (ROOT / "allAdRewrite.plugin").read_text(encoding="utf-8")
         source = (ROOT / "scripts/didi/didi.js").read_text(encoding="utf-8")
-        legacy_source = (ROOT / "scripts/didi/didi-ads.js").read_text(encoding="utf-8")
+        legacy_source = (ROOT / "fixtures/legacy/didi-ads.js").read_text(encoding="utf-8")
         local_target = "script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/didi/didi.js"
         remote_target = "script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/didi.js"
         self.assertEqual(plugin.count(local_target), 4)
