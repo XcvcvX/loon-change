@@ -14,7 +14,7 @@ class BaiduMapBinaryPerformanceTests(unittest.TestCase):
 
     def test_response_assembly_uses_one_payload_allocation_and_hashes_a_view(self):
         start = self.source.index("function assembleBaiduResponse(")
-        end = source.index("\n}\n", start) + 2
+        end = self.source.index("\n}\n", start) + 2
         helper = source[start:end]
 
         self.assertIn('new Uint8Array(payloadOffset + payloadLength)', helper)
@@ -115,7 +115,7 @@ const crypto = require("crypto");
 const source = fs.readFileSync(process.argv[1], "utf8");
 const start = source.indexOf("function assembleBaiduResponse(");
 if (start < 0) throw new Error("assembly helper not found");
-const end = source.indexOf("\n}\n", start) + 2;
+const end = source.indexOf("\n}\n", start) + 2
 if (end < 2) throw new Error("assembly helper end not found");
 let encodeCalls = 0;
 const context = {
@@ -174,7 +174,7 @@ const crypto = require("crypto");
 const source = fs.readFileSync(process.argv[1], "utf8");
 const start = source.indexOf("function assembleBaiduResponseSegments(");
 if (start < 0) throw new Error("multi-segment assembly helper not found");
-const end = source.indexOf("\n}\n", start) + 2;
+const end = source.indexOf("\n}\n", start) + 2
 if (end < 2) throw new Error("multi-segment helper end not found");
 let encodeCalls = 0;
 const context = {
@@ -711,7 +711,7 @@ const fs = require("fs"), vm = require("vm");
 const source = fs.readFileSync(process.argv[1], "utf8");
 const marker = "// loon-change: BaiduMap underscore-indexed Ads signature scan v1";
 const start = source.indexOf(marker);
-const end = source.indexOf("\n}", start) + 2;
+const end = source.indexOf("\n}", start) + 2
 const context = {};
 vm.createContext(context);
 vm.runInContext(source.slice(start, end) + "; globalThis.scan = hasBaiduTargetAds;", context);
@@ -790,7 +790,7 @@ process.stdout.write("ok");
     def test_multi_segment_rebuild_copies_directly_without_chunk_array(self):
         source = (ROOT / "scripts/baidumap/baidu-map-protobuf.js").read_text(encoding="utf-8")
         start = source.index("function assembleBaiduResponseSegments(")
-        end = self.source.index("\n}\n", start) + 2
+        end = source.index("\n}\n", start) + 2
         helper = self.source[start:end]
         self.assertIn("// loon-change: Baidu protobuf segment rebuild without chunks v1", helper)
         self.assertIn("const payload = new Uint8Array(outputLength);", helper)
