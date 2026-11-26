@@ -7,7 +7,7 @@ import unittest
 sys.setrecursionlimit(10000)
 from pathlib import Path
 
-from optimize_xiaohongshu_rstore import LOCAL, REMOTE, MARKER, optimize_source, rewrite_plugin, XIAOHONGSHU_V4_FUNCTION_ENTRY_MARKER, optimize_v4_function_entry_scan, VIDEO_FEED_HOTPATH_MARKER, optimize_videofeed_hotpath_references, VIDEO_SAVE_LOOKUP_MARKER, optimize_video_save_lookup
+from optimize_xiaohongshu_rstore import LOCAL, REMOTE, MARKER, optimize_source, rewrite_plugin, XIAOHONGSHU_V4_FUNCTION_ENTRY_MARKER, optimize_v4_function_entry_scan, VIDEO_FEED_HOTPATH_MARKER, optimize_videofeed_hotpath_references, VIDEO_SAVE_LOOKUP_MARKER, optimize_video_save_lookup, COMPACTION_MARKER, optimize_callback_free_compaction
 
 ROOT = Path(__file__).resolve().parent
 SCRIPT = ROOT / "scripts/xiaohongshu/xiaohongshu-rstore.js"
@@ -52,6 +52,10 @@ class RStoreXiaohongshuOptimizerTests(unittest.TestCase):
         self.assertNotIn("visited.has(current)", source)
         self.assertNotIn(".filter(v => !!v.master_url && !!v.height).sort(", source)
         self.assertNotIn("let newItems = []", source)
+        self.assertIn(COMPACTION_MARKER, source)
+        self.assertNotIn("compactInPlace(", source)
+        self.assertIn('compactXhsInPlace(item.hash_tag, "removeVoteTags");', source)
+        self.assertIn('compactXhsInPlace(obj.data, "removeHomefeedAds");', source)
 
     def test_exactly_ten_live_rstore_triggers_are_routed_to_local_script(self):
         plugin = (ROOT / "allAdRewrite.plugin").read_text(encoding="utf-8")
@@ -192,10 +196,35 @@ class RStoreXiaohongshuOptimizerTests(unittest.TestCase):
             optimize_video_save_lookup(damaged)
         self.assertEqual(optimize_source(source), source)
 
+
+    def test_callback_free_compaction_optimizer_is_idempotent_and_fails_closed(self):
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertEqual(source.count(COMPACTION_MARKER), 1)
+        self.assertEqual(optimize_callback_free_compaction(source), source)
+        for token in (
+            "function compactXhsInPlace(items, mode, seen)",
+            'mode === "removeVoteTags"',
+            'mode === "keepFriendPosts"',
+            'mode === "removeRecommendUsers"',
+            'mode === "keepNotes"',
+            'mode === "removeHomefeedAds"',
+            'mode === "dedupeLivePhotos"',
+        ):
+            self.assertIn(token, source)
+        self.assertNotIn("compactInPlace(", source)
+        damaged = source.replace(
+            'compactXhsInPlace(item.hash_tag, "removeVoteTags");',
+            'compactXhsInPlace(item.hash_tag, "unknownMode");', 1
+        )
+        with self.assertRaisesRegex(ValueError, "marker/structure drift"):
+            optimize_callback_free_compaction(damaged)
+
     def test_array_filters_and_video_sort_are_removed_from_hot_paths(self):
         source = SCRIPT.read_text(encoding="utf-8")
-        self.assertIn("compactInPlace(obj.data.items", source)
-        self.assertIn("compactInPlace(item.hash_tag", source)
+        self.assertIn('compactXhsInPlace(obj.data.items, "keepFriendPosts");', source)
+        self.assertIn('compactXhsInPlace(obj.data.items, "removeRecommendUsers");', source)
+        self.assertIn('compactXhsInPlace(obj.data.items, "keepNotes");', source)
+        self.assertNotIn("compactInPlace(", source)
         self.assertIn("const h265ListLength = Array.isArray(h265List) ? h265List.length : 0;", source)
         self.assertIn("for (let streamIndex = 0; streamIndex < h265ListLength; streamIndex++)", source)
         self.assertIn("const streamUrl = stream.master_url;", source)
@@ -454,6 +483,61 @@ process.stdout.write(JSON.stringify({
         )
         output = json.loads(result["doneResult"]["body"])
         self.assertEqual(output["data"]["datas"][0]["url"], "https://video.example/live.mp4")
+
+
+    def test_callback_free_compaction_modes_preserve_filter_semantics(self):
+        cases = [
+            (
+                "https://edith.xiaohongshu.com/api/sns/v6/search/notes?fixture=compact",
+                {"data": {"items": [
+                    {"id": "note", "model_type": "note"},
+                    {"id": "user", "model_type": "user"},
+                    None
+                ]}},
+                ["note"]
+            ),
+            (
+                "https://edith.xiaohongshu.com/api/sns/v5/user/followings/followfeed?fixture=compact",
+                {"data": {"items": [
+                    {"id": "friend", "recommend_reason": "friend_post"},
+                    {"id": "recommend", "recommend_reason": "recommend_user"},
+                    None
+                ]}},
+                ["friend"]
+            ),
+            (
+                "https://edith.xiaohongshu.com/api/sns/v6/followfeed?fixture=compact",
+                {"data": {"items": [
+                    {"id": "recommend", "recommend_reason": "recommend_user"},
+                    {"id": "friend", "recommend_reason": "friend_post"},
+                    None
+                ]}},
+                ["friend", None]
+            ),
+            (
+                "https://edith.xiaohongshu.com/api/sns/v6/homefeed?fixture=compact",
+                {"data": [
+                    {"id": "keep1", "related_ques": {}},
+                    None,
+                    {"id": "ad", "ads_info": {}},
+                    {"id": "live", "model_type": "live_v2"},
+                    {"id": "shop", "note_attributes": ["goods"]},
+                    {"id": "card", "card_icon": None},
+                    {"id": "keep2"}
+                ]},
+                ["keep1", None, "keep2"]
+            )
+        ]
+        for url, body, expected in cases:
+            with self.subTest(url=url):
+                result = self.run_script(url, body)
+                output = json.loads(result["doneResult"]["body"])
+                if "/homefeed" in url:
+                    actual = [item.get("id") if item else None for item in output["data"]]
+                    self.assertNotIn("related_ques", output["data"][0])
+                else:
+                    actual = [item.get("id") if item else None for item in output["data"]["items"]]
+                self.assertEqual(actual, expected)
 
     def test_homefeed_compaction_is_stable_and_keeps_null_items(self):
         body = {"data": [
