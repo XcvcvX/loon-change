@@ -559,7 +559,8 @@ if (isIQY) {
         });
       }
     }
-  // loon-change: CNTV Youku home.query nested in-place compaction v1\n  } else if (url.includes("columbus.uc.query/")) {
+  // loon-change: CNTV Youku home.query nested in-place compaction v1
+  } else if (url.includes("columbus.uc.query/")) {
     // loon-change: CNTV Youku user-center nested in-place compaction v1
     // 保留原有 allowlist 和顺序，直接压缩个人中心节点及两层子节点。
     if (obj?.data?.["2019061000"]?.data) {
