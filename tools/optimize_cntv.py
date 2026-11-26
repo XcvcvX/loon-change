@@ -229,7 +229,7 @@ def optimize_youku_home_query(source):
     if source.count(start) != 1 or source.count(end) != 1:
         raise ValueError("CNTV Youku home.query route anchors changed")
     begin, finish = source.index(start), source.index(end)
-    result = source[:begin] + YOUKU_HOME_QUERY_BRANCH + "  " + YOUKU_QUERY_MARKER + "\\n" + source[finish:]
+    result = source[:begin] + YOUKU_HOME_QUERY_BRANCH + "  " + YOUKU_QUERY_MARKER + "\n" + source[finish:]
     optimized_end = result.index(end, begin)
     branch = result[begin:optimized_end]
     if any(token in branch for token in ("let newNodes = []", "let newItems = []", "let newII = []", "let newIII = []")):
