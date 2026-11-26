@@ -764,16 +764,21 @@ if (url.includes("/interface/sdk/sdkad.php")) {
       if (__loonWrite16 !== __loonLength16) modified = true;
     }
   } else if (url.includes("/2/profile/statuses/tab")) {
-    if (obj?.cards?.length > 0) {
-      const __loonSource15 = obj.cards;
+     // loon-change: Weibo profile/statuses tab array cache v1
+    const profileStatusCards = obj?.cards;
+    const profileStatusCardsLength = profileStatusCards?.length || 0;
+    if (profileStatusCardsLength > 0) {
+      const __loonSource15 = profileStatusCards;
       let __loonWrite15 = 0;
-      const __loonLength15 = __loonSource15.length;
+      const __loonLength15 = profileStatusCardsLength;
       for (let __loonRead15 = 0; __loonRead15 < __loonLength15; __loonRead15++) {
         let card = __loonSource15[__loonRead15];
-        if (card?.card_group?.length > 0) {
-          const __loonSource14 = card.card_group;
+        const cardGroup = card?.card_group;
+        const cardGroupLength = cardGroup?.length || 0;
+        if (cardGroupLength > 0) {
+          const __loonSource14 = cardGroup;
           let __loonWrite14 = 0;
-          const __loonLength14 = __loonSource14.length;
+          const __loonLength14 = cardGroupLength;
           for (let __loonRead14 = 0; __loonRead14 < __loonLength14; __loonRead14++) {
             let group = __loonSource14[__loonRead14];
             let cardType = group.card_type;
@@ -781,11 +786,12 @@ if (url.includes("/interface/sdk/sdkad.php")) {
             if (cardType === 22) {
               continue;
             }
-            if (group?.mblog) {
+            const groupMblog = group?.mblog;
+            if (groupMblog) {
               // 卡片挂件,关注按钮
-              removeAvatar(group?.mblog);
+              removeAvatar(groupMblog);
               // 投票窗口
-              removeVoteInfo(group?.mblog);
+              removeVoteInfo(groupMblog);
             }
             __loonSource14[__loonWrite14++] = group;
           }
@@ -793,11 +799,12 @@ if (url.includes("/interface/sdk/sdkad.php")) {
           if (__loonWrite14 !== __loonLength14) modified = true;
           __loonSource15[__loonWrite15++] = card;
         } else {
-          if (card?.mblog) {
+          const cardMblog = card?.mblog;
+          if (cardMblog) {
             // 卡片挂件,关注按钮
-            removeAvatar(card?.mblog);
+            removeAvatar(cardMblog);
             // 投票窗口
-            removeVoteInfo(card?.mblog);
+            removeVoteInfo(cardMblog);
           }
           __loonSource15[__loonWrite15++] = card;
         }
