@@ -109,6 +109,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
   let obj = JSON.parse(body);
   if (url.includes("/2/cardlist")) {
     // loon-change: Weibo cardlist array references and lengths cached v1
+    // loon-change: Weibo cardlist mblog reference cache v1
     const cardlistCards = obj?.cards;
     const cardlistCardsLength = cardlistCards?.length || 0;
     if (cardlistCardsLength > 0) {
@@ -134,9 +135,10 @@ if (url.includes("/interface/sdk/sdkad.php")) {
             if ((cardType === 6 || cardType === 101)) {
               continue;
             }
-            if (group?.mblog) {
+            const groupMblog = group?.mblog;
+            if (groupMblog) {
               // 卡片挂件,关注按钮
-              removeAvatar(group?.mblog);
+              removeAvatar(groupMblog);
             }
             __loonSource31[__loonWrite31++] = group;
           }
@@ -149,9 +151,10 @@ if (url.includes("/interface/sdk/sdkad.php")) {
           if ((cardType === 17 || cardType === 58)) {
             continue;
           }
-          if (card?.mblog) {
+          const cardMblog = card?.mblog;
+          if (cardMblog) {
             // 卡片挂件,关注按钮
-            removeAvatar(card?.mblog);
+            removeAvatar(cardMblog);
           }
           __loonSource32[__loonWrite32++] = card;
         }

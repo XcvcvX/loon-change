@@ -5,7 +5,7 @@ import subprocess
 import unittest
 from pathlib import Path
 
-from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, LAZY_MARKER, GUARD_DECLARATION, HELPER, LEGACY_HELPER, optimize_source, rewrite_plugin, optimize_page_filter_cached_itemid, TOPIC_GROUP_MARKER, optimize_topic_group_in_place, COMMENT_DATA_CACHE_MARKER, COMMENT_DATA_CACHE_OLD, COMMENT_DATA_CACHE_NEW, optimize_comment_data_reference_cache, REMOVE_AVATAR_USER_CACHE_MARKER, COMMENT_USER_CACHE_MARKER, COMMENT_USER_CACHE_OLD, COMMENT_USER_CACHE_NEW, optimize_comment_user_reference_cache, TOPIC_GROUP_NESTED_DATA_MARKER, optimize_topic_group_nested_data_cache, ROOT_COMMENT_USER_CACHE_MARKER, optimize_root_comment_user_cache, REMOVE_AVATAR_PROPERTY_CACHE_MARKER, REMOVE_AVATAR_HELPER_NEW, optimize_remove_avatar_property_cache, COMMENT_DECORATION_SINGLE_READ_MARKER, ROOT_COMMENT_DECORATION_SINGLE_READ_MARKER, REPLY_DECORATION_SINGLE_READ_MARKER, ROOT_COMMENT_BUBBLE_SINGLE_READ_MARKER, optimize_comment_decoration_single_read, COMMENT_ARRAY_REFERENCE_CACHE_MARKER, optimize_comment_array_reference_cache, FOLLOWING_TIMELINE_DATA_CACHE_MARKER, optimize_following_timeline_data_cache, HOT_TIMELINE_DATA_CACHE_MARKER, optimize_hot_timeline_data_cache, FLOWLIST_ASYN_REFERENCE_CACHE_MARKER, optimize_flowlist_asyn_nested_reference_cache, SEARCH_TIMELINE_REFERENCE_CACHE_MARKER, optimize_search_timeline_nested_reference_cache, PROFILE_TIMELINE_PROPERTY_CACHE_MARKER, optimize_profile_timeline_property_cache, IS_AD_PROPERTY_CACHE_MARKER, optimize_is_ad_property_cache, REMOVE_FEED_AD_CACHE_MARKER, optimize_shared_feed_cleanup_cache, VOTE_INFO_NESTED_REFERENCE_CACHE_MARKER, optimize_vote_info_nested_reference_cache, CARDLIST_ARRAY_CACHE_MARKER, optimize_cardlist_array_reference_length_cache, PAGE_ROUTE_ARRAY_CACHE_MARKER, optimize_page_route_array_reference_cache
+from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, LAZY_MARKER, GUARD_DECLARATION, HELPER, LEGACY_HELPER, optimize_source, rewrite_plugin, optimize_page_filter_cached_itemid, TOPIC_GROUP_MARKER, optimize_topic_group_in_place, COMMENT_DATA_CACHE_MARKER, COMMENT_DATA_CACHE_OLD, COMMENT_DATA_CACHE_NEW, optimize_comment_data_reference_cache, REMOVE_AVATAR_USER_CACHE_MARKER, COMMENT_USER_CACHE_MARKER, COMMENT_USER_CACHE_OLD, COMMENT_USER_CACHE_NEW, optimize_comment_user_reference_cache, TOPIC_GROUP_NESTED_DATA_MARKER, optimize_topic_group_nested_data_cache, ROOT_COMMENT_USER_CACHE_MARKER, optimize_root_comment_user_cache, REMOVE_AVATAR_PROPERTY_CACHE_MARKER, REMOVE_AVATAR_HELPER_NEW, optimize_remove_avatar_property_cache, COMMENT_DECORATION_SINGLE_READ_MARKER, ROOT_COMMENT_DECORATION_SINGLE_READ_MARKER, REPLY_DECORATION_SINGLE_READ_MARKER, ROOT_COMMENT_BUBBLE_SINGLE_READ_MARKER, optimize_comment_decoration_single_read, COMMENT_ARRAY_REFERENCE_CACHE_MARKER, optimize_comment_array_reference_cache, FOLLOWING_TIMELINE_DATA_CACHE_MARKER, optimize_following_timeline_data_cache, HOT_TIMELINE_DATA_CACHE_MARKER, optimize_hot_timeline_data_cache, FLOWLIST_ASYN_REFERENCE_CACHE_MARKER, optimize_flowlist_asyn_nested_reference_cache, SEARCH_TIMELINE_REFERENCE_CACHE_MARKER, optimize_search_timeline_nested_reference_cache, PROFILE_TIMELINE_PROPERTY_CACHE_MARKER, optimize_profile_timeline_property_cache, IS_AD_PROPERTY_CACHE_MARKER, optimize_is_ad_property_cache, REMOVE_FEED_AD_CACHE_MARKER, optimize_shared_feed_cleanup_cache, VOTE_INFO_NESTED_REFERENCE_CACHE_MARKER, optimize_vote_info_nested_reference_cache, CARDLIST_ARRAY_CACHE_MARKER, optimize_cardlist_array_reference_length_cache, CARDLIST_MBLOG_REFERENCE_CACHE_MARKER, optimize_cardlist_mblog_reference_cache, PAGE_ROUTE_ARRAY_CACHE_MARKER, optimize_page_route_array_reference_cache
 
 ROOT = Path(__file__).resolve().parent
 SCRIPT = ROOT.parent / "scripts/weibo/weibo-rstore.js"
@@ -850,6 +850,27 @@ process.stdout.write(nativeStringify({doneResult,counts}));
             self.assertNotIn("vote_info", output["items"][0]["items"][0]["data"]["page_info"]["media_info"])
             if case_name == "flow":
                 self.assertEqual([x["flowId"] for x in output["channelInfo"]["channels"]], ["normal"])
+
+    def test_cardlist_mblog_references_are_cached_once_and_optimizer_fails_closed(self):
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertEqual(source.count(CARDLIST_MBLOG_REFERENCE_CACHE_MARKER), 1)
+        self.assertEqual(optimize_cardlist_mblog_reference_cache(source), source)
+        self.assertEqual(optimize_source(source), source)
+        start = source.index('  if (url.includes("/2/cardlist")) {')
+        end = source.index('  } else if (url.includes("/2/checkin/show")) {', start)
+        block = source[start:end]
+        for token in (
+            "const groupMblog = group?.mblog;",
+            "removeAvatar(groupMblog);",
+            "const cardMblog = card?.mblog;",
+            "removeAvatar(cardMblog);",
+        ):
+            self.assertIn(token, block)
+        for token in ("if (group?.mblog)", "removeAvatar(group?.mblog)", "if (card?.mblog)", "removeAvatar(card?.mblog)"):
+            self.assertNotIn(token, block)
+        damaged = source.replace("const groupMblog = group?.mblog;", "const groupMblog = null;", 1)
+        with self.assertRaisesRegex(ValueError, "marker/structure drift"):
+            optimize_cardlist_mblog_reference_cache(damaged)
 
     def test_cardlist_nested_arrays_compact_in_place_without_changing_order(self):
         body = {"cards": [
