@@ -426,7 +426,7 @@
         "else if (mode === \"walletItem\") {",
         "else if (mode === \"walletBottom\") {",
         "else if (mode === \"card\") {",
-        "// loon-change: Didi wallet nested property cache v1",
+        "// loon-change: Didi wallet nested property cache v2",
         "const walletItems = item.items;",
         "const walletBottomItems = item.bottom_items;",
         "// loon-change: Didi show_data nested traversal cache v1",
@@ -462,7 +462,9 @@
         "if (item.text !== \"优惠商城\")",
         "const value = item.id;",
         "const value = item.title;",
-        "const title = item.title;"
+        "const title = item.title;",
+        "if (Array.isArray(walletItems)) {",
+        "if (Array.isArray(walletBottomItems)) {"
       ],
       "forbidden": [
         ".filter(",
@@ -485,7 +487,9 @@
         "if (url.includes(\"/usercenter/me\")) {",
         "obj.data.disorder_cards.top_banner_card.data[0].T === \"yuentu_top_banner\"",
         "responseData.order_cards && responseData.order_cards.nav_list_card",
-        "responseData.disorder_cards && responseData.disorder_cards.bottom_nav_list"
+        "responseData.disorder_cards && responseData.disorder_cards.bottom_nav_list",
+        "walletItems.length",
+        "walletBottomItems.length"
       ]
     },
     {
