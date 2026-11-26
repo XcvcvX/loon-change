@@ -4,7 +4,7 @@ on:
   pull_request:
     paths:
       - 'check_script_v2.py'
-      - 'test_check_script_v2.py'
+      - 'tests/tests.test_check_script_v2'
       - 'allAdRewrite.plugin'
       - '.github/workflows/sync-alladrewrite-gist.yml'
       - '.github/workflows/script-v2-guard.yml'
@@ -12,7 +12,7 @@ on:
     branches: [main]
     paths:
       - 'check_script_v2.py'
-      - 'test_check_script_v2.py'
+      - 'tests/tests.test_check_script_v2'
       - 'allAdRewrite.plugin'
       - '.github/workflows/sync-alladrewrite-gist.yml'
       - '.github/workflows/script-v2-guard.yml'
@@ -35,6 +35,6 @@ jobs:
       - name: Compile syntax guard
         run: python3 -m py_compile check_script_v2.py
       - name: Run regression tests
-        run: python3 -m unittest -v test_check_script_v2.py
+        run: python3 -m unittest -v tests.test_check_script_v2
       - name: Validate current subscription plugin
         run: python3 check_script_v2.py allAdRewrite.plugin
