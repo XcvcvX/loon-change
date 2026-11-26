@@ -123,15 +123,19 @@ HELPER = """function compactInPlace(items, mode) {
     for (let read = 0; read < length; read++) {
       const item = items[read];
       const tip = item?.tip;
+      // loon-change: Amap suggestion scalar property cache v1
+      const datatypeSpec = tip?.datatype_spec;
+      const resultType = tip?.result_type;
+      const taskTag = tip?.task_tag;
       if (
-        tip?.datatype_spec !== "12" &&
-        tip?.result_type !== "ad" &&
-        tip?.result_type !== "poi_ad" &&
-        tip?.result_type !== "toplist" &&
-        tip?.task_tag !== "ad" &&
-        tip?.task_tag !== "exct_query_sug_merge_theme" &&
-        tip?.task_tag !== "query_sug_merge_theme" &&
-        tip?.task_tag !== "sp"
+        datatypeSpec !== "12" &&
+        resultType !== "ad" &&
+        resultType !== "poi_ad" &&
+        resultType !== "toplist" &&
+        taskTag !== "ad" &&
+        taskTag !== "exct_query_sug_merge_theme" &&
+        taskTag !== "query_sug_merge_theme" &&
+        taskTag !== "sp"
       ) {
         if (write !== read) items[write] = item;
         write++;
@@ -141,10 +145,13 @@ HELPER = """function compactInPlace(items, mode) {
     for (let read = 0; read < length; read++) {
       const item = items[read];
       const tip = item?.tip;
+      // loon-change: Amap suggestion scalar property cache v1
+      const datatypeSpec = tip?.datatype_spec;
+      const resultType = tip?.result_type;
       if (
-        tip?.datatype_spec !== "12" &&
-        tip?.result_type !== "ad" &&
-        tip?.result_type !== "poi_ad"
+        datatypeSpec !== "12" &&
+        resultType !== "ad" &&
+        resultType !== "poi_ad"
       ) {
         if (write !== read) items[write] = item;
         write++;
@@ -367,6 +374,21 @@ def optimize_compaction_modes(source):
         raise ValueError("Amap per-item compaction callback remains")
     if source.count(COMPACTION_MARKER) != 1 or source.count(helper_end) != 1:
         raise ValueError("Amap specialized compaction marker/signature drift")
+    scalar_marker = "// loon-change: Amap suggestion scalar property cache v1"
+    if source.count(scalar_marker) != 2:
+        raise ValueError("Amap suggestion scalar property cache marker drift")
+    for token in (
+        "const datatypeSpec = tip?.datatype_spec;",
+        "const resultType = tip?.result_type;",
+        "const taskTag = tip?.task_tag;",
+        'datatypeSpec !== "12"',
+        'resultType !== "ad"',
+        'taskTag !== "sp"',
+    ):
+        if token not in source:
+            raise ValueError("Amap suggestion scalar property cache missing: " + token)
+    if "tip?.result_type !==" in source or "tip?.task_tag !==" in source or "tip?.datatype_spec !==" in source:
+        raise ValueError("Amap repeated suggestion scalar property reads remain")
     return source
 
 

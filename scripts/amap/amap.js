@@ -394,15 +394,19 @@ function compactInPlace(items, mode) {
     for (let read = 0; read < length; read++) {
       const item = items[read];
       const tip = item?.tip;
+      // loon-change: Amap suggestion scalar property cache v1
+      const datatypeSpec = tip?.datatype_spec;
+      const resultType = tip?.result_type;
+      const taskTag = tip?.task_tag;
       if (
-        tip?.datatype_spec !== "12" &&
-        tip?.result_type !== "ad" &&
-        tip?.result_type !== "poi_ad" &&
-        tip?.result_type !== "toplist" &&
-        tip?.task_tag !== "ad" &&
-        tip?.task_tag !== "exct_query_sug_merge_theme" &&
-        tip?.task_tag !== "query_sug_merge_theme" &&
-        tip?.task_tag !== "sp"
+        datatypeSpec !== "12" &&
+        resultType !== "ad" &&
+        resultType !== "poi_ad" &&
+        resultType !== "toplist" &&
+        taskTag !== "ad" &&
+        taskTag !== "exct_query_sug_merge_theme" &&
+        taskTag !== "query_sug_merge_theme" &&
+        taskTag !== "sp"
       ) {
         if (write !== read) items[write] = item;
         write++;
@@ -412,10 +416,13 @@ function compactInPlace(items, mode) {
     for (let read = 0; read < length; read++) {
       const item = items[read];
       const tip = item?.tip;
+      // loon-change: Amap suggestion scalar property cache v1
+      const datatypeSpec = tip?.datatype_spec;
+      const resultType = tip?.result_type;
       if (
-        tip?.datatype_spec !== "12" &&
-        tip?.result_type !== "ad" &&
-        tip?.result_type !== "poi_ad"
+        datatypeSpec !== "12" &&
+        resultType !== "ad" &&
+        resultType !== "poi_ad"
       ) {
         if (write !== read) items[write] = item;
         write++;
