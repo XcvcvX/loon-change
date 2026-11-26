@@ -17,6 +17,8 @@ ROUTE_PLAN_MARKER = "// loon-change: Amap routePlan cached nested references v1"
 COMPACTION_MARKER = "// loon-change: Amap specialized in-place compaction v1"
 DYNAMIC_MATCHER_LITERAL = "/ads-\\d+/.test(i?.dynamic_id_s)"
 DYNAMIC_MATCHER_CALL = "AMAP_AD_DYNAMIC_ID.test(i?.dynamic_id_s)"
+DYNAMIC_MATCHER_ITEM_LITERAL = "/ads-\\d+/.test(item?.dynamic_id_s)"
+DYNAMIC_MATCHER_ITEM_CALL = "AMAP_AD_DYNAMIC_ID.test(item?.dynamic_id_s)"
 TRACKING_HELPER = """// loon-change: Amap mutation-aware lazy serialization v1
 let modified = false;
 function sameValue(current, next) {
@@ -429,7 +431,11 @@ def optimize_scalar_membership(source):
     )
     if any(value in source for value in forbidden):
         raise ValueError("Amap scalar membership optimization is incomplete")
-    if 'i === "head" || i === "search_hot_words" || i === "feed_rec"' not in source:
+    nearby_predicates = (
+        'i === "head" || i === "search_hot_words" || i === "feed_rec"',
+        'item === "head" || item === "search_hot_words" || item === "feed_rec"',
+    )
+    if not any(predicate in source for predicate in nearby_predicates):
         raise ValueError("Amap nearby scalar predicate is missing")
     card_pattern = re.compile(
         r'compactInPlace\(list\.content, \((\w+)\) =>\s*\1\?\.item_type !== "brandAdCard" && \1\?\.item_type !== "toplist_al"\s*\);'
@@ -455,10 +461,15 @@ def optimize_scalar_membership(source):
 def optimize_shared_dynamic_ad_matcher(source):
     if source.count(DYNAMIC_MATCHER_MARKER) > 1:
         raise ValueError("Amap shared dynamic matcher marker is duplicated")
+    specialized = "function compactInPlace(items, mode) {" in source
+    expected_calls = 1 if specialized else 4
+    literal = DYNAMIC_MATCHER_ITEM_LITERAL if specialized else DYNAMIC_MATCHER_LITERAL
+    call = DYNAMIC_MATCHER_ITEM_CALL if specialized else DYNAMIC_MATCHER_CALL
+
     if DYNAMIC_MATCHER_MARKER not in source:
-        if source.count(DYNAMIC_MATCHER_LITERAL) != 4:
+        if source.count(literal) != expected_calls:
             raise ValueError("Amap dynamic ad matcher inventory changed")
-        source = source.replace(DYNAMIC_MATCHER_LITERAL, DYNAMIC_MATCHER_CALL)
+        source = source.replace(literal, call)
         anchors = (
             "function compactInPlace(items, mode) {",
             "function compactInPlace(items, keep) {",
@@ -468,17 +479,20 @@ def optimize_shared_dynamic_ad_matcher(source):
             raise ValueError("Amap shared matcher insertion anchor changed")
         source = source.replace(
             anchor,
-            DYNAMIC_MATCHER_MARKER + "\nconst AMAP_AD_DYNAMIC_ID = /ads-\\d+/;\n\n" + anchor,
+            DYNAMIC_MATCHER_MARKER + "\\nconst AMAP_AD_DYNAMIC_ID = /ads-\\\\d+/;\\n\\n" + anchor,
             1,
         )
+
     if source.count(DYNAMIC_MATCHER_MARKER) != 1:
         raise ValueError("Amap shared dynamic matcher marker count drift")
-    if source.count(r"const AMAP_AD_DYNAMIC_ID = /ads-\d+/;") != 1:
+    if source.count(r"const AMAP_AD_DYNAMIC_ID = /ads-\\d+/;") != 1:
         raise ValueError("Amap shared dynamic matcher declaration drift")
-    if source.count(DYNAMIC_MATCHER_CALL) != 4 or DYNAMIC_MATCHER_LITERAL in source:
+    if source.count(call) != expected_calls or literal in source:
         raise ValueError("Amap shared dynamic matcher call inventory drift")
+    other_call = DYNAMIC_MATCHER_CALL if specialized else DYNAMIC_MATCHER_ITEM_CALL
+    if other_call in source:
+        raise ValueError("Amap mixed dynamic matcher call signatures")
     return source
-
 
 
 def optimize_route_info_cached_references(source):
