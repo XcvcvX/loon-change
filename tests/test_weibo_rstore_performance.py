@@ -111,6 +111,7 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         runner = r"""
 const fs=require("fs"),vm=require("vm"),source=fs.readFileSync(process.argv[1],"utf8");
 const payload=JSON.parse(fs.readFileSync(0,"utf8"));
+const responseBody=JSON.stringify(payload.body);
 let doneResult,tracking=false;
 const counts={"cards.ref":0,"cards.length":0,"group.ref":0,"group.length":0};
 const nativeParse=JSON.parse.bind(JSON),nativeStringify=JSON.stringify.bind(JSON);
@@ -123,6 +124,7 @@ function trackArray(array,label){
 const trackedJSON={
   parse(value){
     const parsed=nativeParse(value);
+    if(value!==responseBody)return parsed;
     const rawCards=parsed.cards;
     const first=rawCards[0];
     const rawGroup=first.card_group;
@@ -141,7 +143,7 @@ const trackedJSON={
   stringify(value){tracking=false;return nativeStringify(value);}
 };
 const context={JSON:trackedJSON,$request:{url:payload.url},
-  $response:{body:nativeStringify(payload.body)},
+  $response:{body:responseBody},
   $done(value){doneResult=value;},console:{log(){},warn(){},error(){}}};
 vm.runInNewContext(source,context,{timeout:5000});
 process.stdout.write(nativeStringify({doneResult,counts}));
