@@ -288,16 +288,14 @@
         "if (obj?.items?.length > 0) {\n      const __loonSource16 = obj.items;",
         "for (let d of item.items)",
         "compactInPlace(item.items, i =>",
-        "if (obj?.cards?.length > 0)",
-        "const __loonSource15 = obj.cards;",
-        "if (card?.card_group?.length > 0)",
-        "const __loonSource14 = card.card_group;",
-        "if (group?.mblog)",
-        "removeAvatar(group?.mblog);",
-        "removeVoteInfo(group?.mblog);",
-        "if (card?.mblog)",
-        "removeAvatar(card?.mblog);",
-        "removeVoteInfo(card?.mblog);"
+        "} else if (url.includes(\"/2/profile/statuses/tab\")) {\n     if (obj?.cards?.length > 0)",
+        "} else if (url.includes(\"/2/profile/statuses/tab\")) {\n     if (obj?.cards?.length > 0) {\n       const __loonSource15 = obj.cards;",
+        "        let card = __loonSource15[__loonRead15];\n        if (card?.card_group?.length > 0)",
+        "        let card = __loonSource15[__loonRead15];\n        if (card?.card_group?.length > 0) {\n          const __loonSource14 = card.card_group;",
+        "            if (group?.mblog) {\n              // 卡片挂件,关注按钮\n              removeAvatar(group?.mblog);",
+        "            if (group?.mblog) {\n              // 卡片挂件,关注按钮\n              removeAvatar(group?.mblog);\n              // 投票窗口\n              removeVoteInfo(group?.mblog);",
+        "        } else {\n          if (card?.mblog) {\n            // 卡片挂件,关注按钮\n            removeAvatar(card?.mblog);",
+        "        } else {\n          if (card?.mblog) {\n            // 卡片挂件,关注按钮\n            removeAvatar(card?.mblog);\n            // 投票窗口\n            removeVoteInfo(card?.mblog);"
       ]
     },
     {
