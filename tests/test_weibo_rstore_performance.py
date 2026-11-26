@@ -88,10 +88,10 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         self.assertEqual(source.count(marker), 1)
         self.assertEqual(optimize_page_filter_cached_itemid(source), source)
         self.assertIn("const itemId = item?.itemid;", source)
-        self.assertIn("const itemId = i.itemid;", source)
+        self.assertIn("const itemId = item.itemid;", source)
         self.assertEqual(source.count("i.itemid?.includes("), 0)
         self.assertEqual(source.count("c?.itemid?.includes("), 0)
-        damaged = source.replace("const itemId = i.itemid;", "const cachedItemId = i.itemid;", 1)
+        damaged = source.replace("const itemId = item.itemid;", "const cachedItemId = item.itemid;", 1)
         with self.assertRaisesRegex(ValueError, "transformed block missing"):
             optimize_page_filter_cached_itemid(damaged)
 
