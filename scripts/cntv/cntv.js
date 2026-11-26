@@ -559,130 +559,95 @@ if (isIQY) {
         });
       }
     }
-  // loon-change: CNTV Youku home.query nested in-place compaction v1\n  } else if (url.includes("columbus.uc.query/")) {
-    // 优酷 我的页面组件
+  // loon-change: CNTV Youku home.query nested in-place compaction v1
+  } else if (url.includes("columbus.uc.query/")) {
+    // loon-change: CNTV Youku user-center nested in-place compaction v1
+    // 保留原有 allowlist 和顺序，直接压缩个人中心节点及两层子节点。
     if (obj?.data?.["2019061000"]?.data) {
-      let objData = obj.data["2019061000"].data;
-      if (objData?.nodes?.length > 0) {
-        let objNodes = objData.nodes[0];
-        if (objNodes?.nodes?.length > 0) {
-          let newNodes = [];
-          for (let item of objNodes.nodes) {
-            if (item?.id === 32133) {
-              // 横幅视频广告
-              continue;
-            } else if (item?.id === 32775) {
-              // 个人中心二楼
-              continue;
-            } else if (item?.id === 22570) {
-              // 横版轮播图
-              continue;
-            } else if (item?.id === 28912) {
-              // 我的下载 收藏 购买 场景
-              if (item?.nodes?.length > 0) {
-                let newII = [];
-                for (let ii of item.nodes) {
-                  if (ii?.id === 110429) {
-                    // 免费兑换VIP
-                    continue;
-                  }
-                  newII.push(ii);
-                }
-                item.nodes = newII;
-                newNodes.push(item);
-              } else {
-                newNodes.push(item);
+      const objNodes = obj.data["2019061000"].data.nodes?.[0];
+      const userCenterNodes = objNodes?.nodes;
+      const userCenterLength = userCenterNodes?.length || 0;
+      if (userCenterLength > 0) {
+        let userCenterWrite = 0;
+        for (let userCenterRead = 0; userCenterRead < userCenterLength; userCenterRead++) {
+          const item = userCenterNodes[userCenterRead];
+          const itemId = item?.id;
+          if (itemId === 32133 || itemId === 32775 || itemId === 22570 ||
+              itemId === 35942 || itemId === 36014 || itemId === 38466) {
+            continue;
+          }
+          if (itemId === 28912) {
+            // 我的下载 收藏 购买 场景
+            const downloadNodes = item?.nodes;
+            const downloadLength = downloadNodes?.length || 0;
+            if (downloadLength > 0) {
+              let downloadWrite = 0;
+              for (let downloadRead = 0; downloadRead < downloadLength; downloadRead++) {
+                const downloadItem = downloadNodes[downloadRead];
+                if (downloadItem?.id === 110429) continue;
+                if (downloadWrite !== downloadRead) downloadNodes[downloadWrite] = downloadItem;
+                downloadWrite++;
               }
-            } else if (item?.id === 35942) {
-              // 我的专属推荐
-              continue;
-            } else if (item?.id === 36014) {
-              // 业务区 星光币 优酷购 数字藏品
-              continue;
-            } else if (item?.id === 36015) {
-              // 功能区 卡卷包 商城 设置
-              if (item?.nodes?.length > 0) {
-                let node0 = item.nodes[0];
-                if (node0?.nodes?.length > 0) {
-                  let newII = [];
-                  for (let ii of node0.nodes) {
-                    // 683364卡卷包 683359个性商城 683501TV助手 683367设置
-                    // 683368我的客服 683502意见反馈 683366有奖调研 683372更多
-                    if (CNTV_STATIC_FILTER_21.includes(ii?.id)) {
-                      newII.push(ii);
-                    }
-                  }
-                  node0.nodes = newII;
-                  newNodes.push(item);
-                } else {
-                  newNodes.push(item);
+              downloadNodes.length = downloadWrite;
+            }
+          } else if (itemId === 36015) {
+            // 功能区 卡卷包 商城 设置
+            const itemNodes = item?.nodes;
+            if (itemNodes?.length > 0) {
+              const firstNode = itemNodes[0];
+              const settingNodes = firstNode?.nodes;
+              const settingLength = settingNodes?.length || 0;
+              if (settingLength > 0) {
+                let settingWrite = 0;
+                for (let settingRead = 0; settingRead < settingLength; settingRead++) {
+                  const settingItem = settingNodes[settingRead];
+                  if (!CNTV_STATIC_FILTER_21.includes(settingItem?.id)) continue;
+                  if (settingWrite !== settingRead) settingNodes[settingWrite] = settingItem;
+                  settingWrite++;
                 }
-              } else {
-                newNodes.push(item);
+                settingNodes.length = settingWrite;
               }
-            } else if (item?.id === 38466) {
-              // 横幅广告
-              continue;
-            } else {
-              newNodes.push(item);
             }
           }
-          objNodes.nodes = newNodes;
+          if (userCenterWrite !== userCenterRead) userCenterNodes[userCenterWrite] = item;
+          userCenterWrite++;
         }
+        userCenterNodes.length = userCenterWrite;
       }
     }
   } else if (url.includes("columbus.ycp.query/")) {
-    // 优酷 播放页评论区
+    // loon-change: CNTV Youku comment-list nested in-place compaction v1
+    // 评论区节点及其子节点原地压缩，保持父子顺序和原有过滤条件。
     if (obj?.data?.["2019061000"]?.data) {
-      let objData = obj.data["2019061000"].data;
-      if (objData?.nodes?.length > 0) {
-        let objNodes = objData.nodes[0];
-        if (objNodes?.nodes?.length > 0) {
-          let newNodes = [];
-          for (let item of objNodes.nodes) {
-            if (item?.id === 23242) {
-              // 评论区顶部
-              if (item?.nodes?.length > 0) {
-                let newItems = [];
-                for (let i of item.nodes) {
-                  if (i?.typeName === "COMPONENT_YCP_NOTICE") {
-                    // 评论区守则 轮播通告
-                    continue;
-                  } else if (i?.id === 113941) {
-                    // 明星空降评论区
-                    continue;
-                  } else {
-                    newItems.push(i);
-                  }
-                }
-                item.nodes = newItems;
-                newNodes.push(item);
-              } else {
-                newNodes.push(item);
+      const objNodes = obj.data["2019061000"].data.nodes?.[0];
+      const commentNodes = objNodes?.nodes;
+      const commentLength = commentNodes?.length || 0;
+      if (commentLength > 0) {
+        let commentWrite = 0;
+        for (let commentRead = 0; commentRead < commentLength; commentRead++) {
+          const item = commentNodes[commentRead];
+          const itemId = item?.id;
+          if (itemId === 23242 || itemId === 23243) {
+            const childNodes = item?.nodes;
+            const childLength = childNodes?.length || 0;
+            if (childLength > 0) {
+              let childWrite = 0;
+              for (let childRead = 0; childRead < childLength; childRead++) {
+                const child = childNodes[childRead];
+                const removeNotice = itemId === 23242 &&
+                  (child?.typeName === "COMPONENT_YCP_NOTICE" || child?.id === 113941);
+                const removeAd = itemId === 23243 && child?.id === -1000;
+                if (removeNotice || removeAd) continue;
+                if (childWrite !== childRead) childNodes[childWrite] = child;
+                childWrite++;
               }
-            } else if (item?.id === 23243) {
-              // 评论区留言
-              if (item?.nodes?.length > 0) {
-                let newItems = [];
-                for (let i of item.nodes) {
-                  if (i?.id === -1000) {
-                    // 评论区广告
-                    continue;
-                  } else {
-                    newItems.push(i);
-                  }
-                }
-                item.nodes = newItems;
-                newNodes.push(item);
-              } else {
-                newNodes.push(item);
-              }
-            } else {
-              newNodes.push(item);
+              childNodes.length = childWrite;
             }
           }
-          objNodes.nodes = newNodes;
+          if (commentWrite !== commentRead) commentNodes[commentWrite] = item;
+          commentWrite++;
         }
+        commentNodes.length = commentWrite;
       }
     }
   } else if (url.includes("haidai.lantern.appconfig.get/")) {

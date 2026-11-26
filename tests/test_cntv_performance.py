@@ -10,10 +10,10 @@ from apply_local_overrides import (
     CNTV_REMOTE_SCRIPT_URL,
     migrate_cntv_script_to_local,
 )
-from optimize_cntv import MARKER, MENUS_MARKER, STATIC_FILTER_MARKER, STATIC_FILTER_PATTERN, YOUKU_HOME_FEED_MARKER, optimize_source, rewrite_plugin
+from optimize_cntv import MARKER, MENUS_MARKER, STATIC_FILTER_MARKER, STATIC_FILTER_PATTERN, YOUKU_HOME_FEED_MARKER, YOUKU_PROFILE_MARKER, YOUKU_COMMENT_MARKER, optimize_source, optimize_youku_profile_comment_arrays, rewrite_plugin
 
 ROOT = Path(__file__).resolve().parent
-SOURCE = ROOT / "scripts" / "cntv" / "cntv.js"
+SOURCE = ROOT.parent / "scripts" / "cntv" / "cntv.js"
 NODE = shutil.which("node")
 
 
@@ -432,6 +432,105 @@ process.stdout.write(nativeJSON.stringify({
         self.assertEqual(len(level3), 1)
         self.assertEqual(level3[0]["nodes"], [{"typeName": "KEEP", "data": {"title": "ok"}}])
         self.assertEqual(result["parseCount"], 1)
+
+
+
+class CNTVYoukuProfileCommentArrayCompactionTests(unittest.TestCase):
+    def test_profile_and_comment_branches_are_idempotent_and_allocation_free(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        self.assertIn(YOUKU_PROFILE_MARKER, source)
+        self.assertIn(YOUKU_COMMENT_MARKER, source)
+        self.assertEqual(optimize_youku_profile_comment_arrays(source), source)
+        self.assertEqual(optimize_source(source), source)
+
+        branches = (
+            (
+                '  } else if (url.includes("columbus.uc.query/")) {',
+                '  } else if (url.includes("columbus.ycp.query/")) {',
+                YOUKU_PROFILE_MARKER,
+            ),
+            (
+                '  } else if (url.includes("columbus.ycp.query/")) {',
+                '  } else if (url.includes("haidai.lantern.appconfig.get/")) {',
+                YOUKU_COMMENT_MARKER,
+            ),
+        )
+        for start, end, marker in branches:
+            branch = source.split(start, 1)[1].split(end, 1)[0]
+            self.assertIn(marker, branch)
+            for temporary in ("newNodes", "newItems", "newII", ".push("):
+                self.assertNotIn(temporary, branch)
+
+        damaged = source.replace(
+            "const settingNodes = firstNode?.nodes;",
+            "const settingNodes = null;",
+            1,
+        )
+        with self.assertRaisesRegex(ValueError, "branch structure drift"):
+            optimize_youku_profile_comment_arrays(damaged)
+
+    def run_youku(self, route, body):
+        return CNTVPreParseRouteGuardRuntimeTests().run_script(
+            "https://acs.youku.com/gw/mtop.youku.%s/" % route,
+            body,
+            disable_push=True,
+        )
+
+    def test_user_center_compacts_outer_and_nested_lists_in_place(self):
+        body = {"data": {"2019061000": {"data": {"nodes": [{
+            "nodes": [
+                {"id": 32133, "name": "banner"},
+                {"id": 11, "name": "keep-before"},
+                {"id": 28912, "nodes": [
+                    {"id": 1}, {"id": 110429}, {"id": 2}
+                ]},
+                {"id": 32775, "name": "second-floor"},
+                {"id": 36015, "nodes": [{
+                    "nodes": [
+                        {"id": 683367}, {"id": 683366}, {"id": 683372}
+                    ]
+                }]},
+                {"id": 22570, "name": "carousel"},
+                {"id": 35942, "name": "personal-recommend"},
+                {"id": 36014, "name": "business-area"},
+                {"id": 38466, "name": "banner-ad"},
+                {"id": 12, "name": "keep-after"},
+            ]
+        }]}}}}
+        result = self.run_youku("columbus.uc.query", body)
+        output = json.loads(result["doneResult"]["body"])
+        nodes = output["data"]["2019061000"]["data"]["nodes"][0]["nodes"]
+        self.assertEqual([item["id"] for item in nodes], [11, 28912, 36015, 12])
+        self.assertEqual([item["id"] for item in nodes[1]["nodes"]], [1, 2])
+        setting_nodes = nodes[2]["nodes"][0]["nodes"]
+        self.assertEqual([item["id"] for item in setting_nodes], [683367, 683372])
+        self.assertEqual(result["parseCount"], 1)
+        self.assertEqual(result["stringifyCount"], 1)
+
+    def test_comment_lists_compact_parent_and_child_arrays_in_place(self):
+        body = {"data": {"2019061000": {"data": {"nodes": [{
+            "nodes": [
+                {"id": 23242, "nodes": [
+                    {"typeName": "COMPONENT_YCP_NOTICE", "id": 1},
+                    {"id": 113941, "name": "celebrity-entry"},
+                    {"id": 2, "name": "keep-top"},
+                ]},
+                {"id": 23243, "nodes": [
+                    {"id": -1000, "name": "comment-ad"},
+                    {"id": 3, "name": "keep-comment"},
+                ]},
+                {"id": 99, "name": "unmodified-section"},
+            ]
+        }]}}}}
+        result = self.run_youku("columbus.ycp.query", body)
+        output = json.loads(result["doneResult"]["body"])
+        nodes = output["data"]["2019061000"]["data"]["nodes"][0]["nodes"]
+        self.assertEqual([item["id"] for item in nodes], [23242, 23243, 99])
+        self.assertEqual([item["id"] for item in nodes[0]["nodes"]], [2])
+        self.assertEqual([item["id"] for item in nodes[1]["nodes"]], [3])
+        self.assertEqual(nodes[2]["name"], "unmodified-section")
+        self.assertEqual(result["parseCount"], 1)
+        self.assertEqual(result["stringifyCount"], 1)
 
 
 class CNTVMangoTVArrayCompactionTests(unittest.TestCase):
