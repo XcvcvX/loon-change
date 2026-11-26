@@ -52,7 +52,7 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         self.assertIn('$done(modified ? {body: JSON.stringify(obj)} : {});', source)
         self.assertEqual(optimize_source(source), source)
         self.assertEqual(len(re.findall(r"const __loonSource\d+ =", source)), 32)
-        self.assertEqual(len(re.findall(r"(?m)^\s*const __loonLength\d+ = __loonSource\d+\.length;$", source)), 17)
+        self.assertEqual(len(re.findall(r"(?m)^\s*const __loonLength\d+ = __loonSource\d+\.length;$", source)), 15)
         for cached_length in ("timelineItemsLength", "hotItemsLength", "hotStatusesLength", "asynItemsLength", "flowItemsLength", "searchItemsLength", "groupItemsLength"):
             self.assertIn(cached_length, source)
         self.assertNotRegex(source, r"for \(let __loonRead\d+ = 0, __loonLength\d+")
@@ -433,10 +433,17 @@ class WeiboProfileMeArrayCacheOptimizerTests(unittest.TestCase):
             "removeVoteInfo(cardMblog);",
         ):
             self.assertIn(token, source)
-        damaged = source.replace(
+        start = '} else if (url.includes("/2/profile/statuses/tab")) {'
+        end = '} else if (url.includes("/2/profile/userinfo")) {'
+        left = source.index(start)
+        right = source.index(end, left + len(start))
+        block = source[left:right]
+        self.assertEqual(block.count("const cardGroupLength = cardGroup?.length || 0;"), 1)
+        damaged_block = block.replace(
             "const cardGroupLength = cardGroup?.length || 0;",
             "const cardGroupLength = 0;", 1
         )
+        damaged = source[:left] + damaged_block + source[right:]
         with self.assertRaisesRegex(ValueError, "marker/structure drift"):
             optimize_profile_statuses_tab_array_cache(damaged)
 
