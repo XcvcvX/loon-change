@@ -651,6 +651,173 @@ def optimize_videofeed_hotpath_references(source):
     return source[:left] + block + source[right:]
 
 
+
+COMPACTION_MARKER = "// loon-change: Xiaohongshu callback-free mode-dispatched compaction v1"
+COMPACT_HELPER = r'''// loon-change: Xiaohongshu callback-free mode-dispatched compaction v1
+function compactXhsInPlace(items, mode, seen) {
+  const length = items.length;
+  let write = 0;
+
+  if (mode === "removeVoteTags") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      if (item?.type !== "interact_vote") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "keepFriendPosts") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      if (item?.recommend_reason === "friend_post") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "removeRecommendUsers") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      if (item?.recommend_reason !== "recommend_user") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "keepNotes") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      if (item?.model_type === "note") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "removeHomefeedAds") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      if (!item) {
+        if (write !== read) items[write] = item;
+        write++;
+        continue;
+      }
+      if (item.model_type === "live_v2" ||
+          Object.prototype.hasOwnProperty.call(item, "ads_info") ||
+          Object.prototype.hasOwnProperty.call(item, "card_icon") ||
+          item.note_attributes?.includes("goods")) continue;
+      if (item.related_ques) delete item.related_ques;
+      if (write !== read) items[write] = item;
+      write++;
+    }
+  } else if (mode === "dedupeLivePhotos") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      const videoId = item.videId;
+      if (seen.has(videoId)) continue;
+      seen.add(videoId);
+      if (write !== read) items[write] = item;
+      write++;
+    }
+  } else {
+    return items;
+  }
+
+  if (write !== length) items.length = write;
+  return items;
+}'''
+APPEND_UNIQUE_OLD = r'''function appendUniqueLivePhotos(existing, incoming) {
+  const seen = new Set();
+  compactInPlace(existing, item => {
+    if (seen.has(item.videId)) return false;
+    seen.add(item.videId);
+    return true;
+  });
+  for (const item of incoming) {
+    if (!seen.has(item.videId)) {
+      seen.add(item.videId);
+      existing.push(item);
+    }
+  }
+  return existing;
+}'''
+APPEND_UNIQUE_NEW = r'''function appendUniqueLivePhotos(existing, incoming) {
+  const seen = new Set();
+  compactXhsInPlace(existing, "dedupeLivePhotos", seen);
+  for (const item of incoming) {
+    const videoId = item.videId;
+    if (!seen.has(videoId)) {
+      seen.add(videoId);
+      existing.push(item);
+    }
+  }
+  return existing;
+}'''
+HOMEFEED_OLD = r'''compactInPlace(obj.data, item => {
+      if (!item) return true;
+      if (item.model_type === "live_v2" ||
+          Object.prototype.hasOwnProperty.call(item, "ads_info") ||
+          Object.prototype.hasOwnProperty.call(item, "card_icon") ||
+          item.note_attributes?.includes("goods")) return false;
+      if (item.related_ques) delete item.related_ques;
+      return true;
+    });'''
+HOMEFEED_NEW = r'''compactXhsInPlace(obj.data, "removeHomefeedAds");'''
+DEDUP_NEW = r'''function deDuplicateLivePhotos(livePhotos) {
+  const seen = new Set();
+  return compactXhsInPlace(livePhotos, "dedupeLivePhotos", seen);
+}'''
+
+
+def optimize_callback_free_compaction(source):
+    """Replace predicate callbacks with explicit stable in-place compaction loops."""
+    if COMPACTION_MARKER in source:
+        required = (
+            COMPACTION_MARKER,
+            "function compactXhsInPlace(items, mode, seen)",
+            'compactXhsInPlace(item.hash_tag, "removeVoteTags");',
+            'compactXhsInPlace(obj.data.items, "keepFriendPosts");',
+            'compactXhsInPlace(obj.data.items, "removeRecommendUsers");',
+            'compactXhsInPlace(obj.data, "removeHomefeedAds");',
+            'compactXhsInPlace(obj.data.items, "keepNotes");',
+            'compactXhsInPlace(existing, "dedupeLivePhotos", seen);',
+            'return compactXhsInPlace(livePhotos, "dedupeLivePhotos", seen);',
+        )
+        if source.count(COMPACTION_MARKER) != 1 or any(token not in source for token in required):
+            raise ValueError("Xiaohongshu callback-free compaction marker/structure drift")
+        if "compactInPlace(" in source or "keep(item, read)" in source:
+            raise ValueError("Xiaohongshu predicate-callback compaction remains")
+        return source
+
+    old_helper = """function compactInPlace(items, keep) {
+  let write = 0;
+  for (let read = 0, length = items.length; read < length; read++) {
+    const item = items[read];
+    if (keep(item, read)) {
+      if (write !== read) items[write] = item;
+      write++;
+    }
+  }
+  items.length = write;
+  return items;
+}"""
+    if source.count(old_helper) != 1:
+        raise ValueError("Xiaohongshu generic compaction helper anchor drift")
+    source = source.replace(old_helper, COMPACT_HELPER, 1)
+    source = once(source, APPEND_UNIQUE_OLD, APPEND_UNIQUE_NEW, "append unique live-photo compaction")
+    source = once(source, 'compactInPlace(item.hash_tag, tag => tag?.type !== "interact_vote");',
+                  'compactXhsInPlace(item.hash_tag, "removeVoteTags");', "hashtag compaction")
+    source = once(source, 'compactInPlace(obj.data.items, item => item?.recommend_reason === "friend_post");',
+                  'compactXhsInPlace(obj.data.items, "keepFriendPosts");', "followings compaction")
+    source = once(source, 'compactInPlace(obj.data.items, item => item?.recommend_reason !== "recommend_user");',
+                  'compactXhsInPlace(obj.data.items, "removeRecommendUsers");', "follow-list compaction")
+    source = once(source, 'compactInPlace(obj.data.items, item => item?.model_type === "note");',
+                  'compactXhsInPlace(obj.data.items, "keepNotes");', "search compaction")
+    source = once(source, HOMEFEED_OLD, HOMEFEED_NEW, "homefeed compaction")
+    source = once(source, DEDUP, DEDUP_NEW, "live-photo deduplication")
+    if "compactInPlace(" in source:
+        raise ValueError("Xiaohongshu generic predicate compaction remains")
+    if source.count(COMPACTION_MARKER) != 1:
+        raise ValueError("Xiaohongshu callback-free compaction marker postcondition failed")
+    return source
+
+
 def optimize_source(source, commit="unknown"):
     COMMENT_BRANCH = r"""} else if (url.includes("/note/comment")) {
   const commentData = obj.data;
@@ -676,7 +843,7 @@ def optimize_source(source, commit="unknown"):
         source = optimize_video_save_lookup(source)
         source = optimize_v4_function_entry_scan(source)
         source = optimize_videofeed_hotpath_references(source)
-        required = ("function imageEnhance(images, livePhotoCache)", "compactInPlace(obj.data", "appendUniqueLivePhotos",
+        required = ("function imageEnhance(images, livePhotoCache)", "appendUniqueLivePhotos",
                     "const byFileId = new Map()", "function cleanCommentsAndCollectLivePhotos(data)",
                     "const videoInfoCache = new Map()", "let commentPictures = null;", "commentPictures = current.pictures;", COMMENT_ARRAY_LENGTH_MARKER, "const commentPictureCount = commentPictures?.length || 0;", "if (isCommentFrame && key === \"pictures\") continue;", "const currentLength = current.length;", "const commentCount = child.length;", "const subCommentCount = child.length")
         if any(token not in source for token in required):
@@ -693,6 +860,7 @@ def optimize_source(source, commit="unknown"):
                          COMMENT_BRANCH, "comment branch")
         source = apply_live_photo_cache_optimization(source)
         source = optimize_imagefeed_single_traversal(source)
+        source = optimize_callback_free_compaction(source)
         if (COMMENT_TREE_MARKER not in source or "Xiaohongshu flat comment stack frames v2;" not in source or "const commentFrameTag = {};" not in source or "new WeakSet()" in source or "visited.has(current)" in source or "const visited = new WeakSet()" in source):
             raise ValueError("comment traversal still allocates/checks a visited WeakSet")
         source = source.replace("if (!$response.body) $done({});" + chr(10), "")
@@ -799,9 +967,10 @@ def optimize_source(source, commit="unknown"):
                       "\n}\n\n// 小红书画质增强：加载2K分辨率的图片",
                       "terminal empty-body guard close")
 
+    source = optimize_callback_free_compaction(source)
     result = MARKER + commit + "\n" + source
     invariants = (
-        "imageEnhance(images_list, livePhotoCache)", "compactInPlace(obj.data",
+        "imageEnhance(images_list, livePhotoCache)", COMPACTION_MARKER,
         "appendUniqueLivePhotos(commitsRsp.livePhotos, livePhotos)",
         "const byFileId = new Map()", "const stack = [data]", "Xiaohongshu flat comment stack frames v2;", "const commentFrameTag = {}", "stack.push(comment, commentFrameTag, true)", "stack.push(subComment, commentFrameTag, false)",
         COMMENT_TREE_MARKER, "let selectedStreamUrl = \"\";",
