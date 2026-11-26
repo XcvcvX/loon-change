@@ -33,7 +33,7 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
     def test_fresh_source_transform_order_caches_user_before_avatar_fields(self):
         optimizer = Path(__file__).with_name("optimize_weibo_rstore.py").read_text(encoding="utf-8")
         lines = [line.strip() for line in optimizer.splitlines()
-                 if "return optimize_comment_status_page_info_cache(" in line]
+                 if "optimized = optimize_comment_status_page_info_cache(" in line]
         self.assertEqual(len(lines), 2)
         for line in lines:
             comment_data = line.index("optimize_comment_data_reference_cache(")
@@ -52,7 +52,7 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         self.assertIn('$done(modified ? {body: JSON.stringify(obj)} : {});', source)
         self.assertEqual(optimize_source(source), source)
         self.assertEqual(len(re.findall(r"const __loonSource\d+ =", source)), 32)
-        self.assertEqual(len(re.findall(r"(?m)^\s*const __loonLength\d+ = __loonSource\d+\.length;$", source)), 23)
+        self.assertEqual(len(re.findall(r"(?m)^\s*const __loonLength\d+ = __loonSource\d+\.length;$", source)), 20)
         for cached_length in ("timelineItemsLength", "hotItemsLength", "hotStatusesLength", "asynItemsLength", "flowItemsLength", "searchItemsLength", "groupItemsLength"):
             self.assertIn(cached_length, source)
         self.assertNotRegex(source, r"for \(let __loonRead\d+ = 0, __loonLength\d+")
@@ -254,8 +254,8 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         self.assertIn(COMMENT_ARRAY_REFERENCE_CACHE_MARKER, source)
         self.assertEqual(optimize_comment_array_reference_cache(source), source)
         self.assertIn("const commentDatas = obj?.datas;", source)
-        self.assertIn("(rootComments = obj?.root_comments)?.length > 0", source)
-        self.assertIn("(replyComments = obj?.comments)?.length > 0", source)
+        self.assertIn("(rootComments = obj?.root_comments) && (rootCommentsLength = rootComments.length) > 0", source)
+        self.assertIn("(replyComments = obj?.comments) && (replyCommentsLength = replyComments.length) > 0", source)
         self.assertNotIn("if (obj?.datas?.length > 0)", source)
         self.assertNotIn("else if (obj?.root_comments?.length > 0)", source)
         self.assertNotIn("else if (obj?.comments?.length > 0)", source)
@@ -1402,3 +1402,119 @@ process.stdout.write(nativeStringify({doneResult,counts}));
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class WeiboCommentArrayLengthCacheTests(unittest.TestCase):
+    def test_optimizer_is_idempotent_and_fails_closed(self):
+        from optimize_weibo_rstore import (
+            COMMENT_ARRAY_LENGTH_CACHE_MARKER,
+            optimize_comment_array_length_cache,
+        )
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(COMMENT_ARRAY_LENGTH_CACHE_MARKER, source)
+        self.assertEqual(optimize_comment_array_length_cache(source), source)
+        for token in (
+            "const commentDatasLength = commentDatas?.length || 0;",
+            "let rootCommentsLength = 0;",
+            "let replyCommentsLength = 0;",
+            "if (commentDatasLength > 0)",
+            "(rootCommentsLength = rootComments.length) > 0",
+            "(replyCommentsLength = replyComments.length) > 0",
+            "const __loonLength30 = commentDatasLength;",
+            "const __loonLength29 = rootCommentsLength;",
+            "const __loonLength28 = replyCommentsLength;",
+        ):
+            self.assertIn(token, source)
+        damaged = source.replace(
+            "const commentDatasLength = commentDatas?.length || 0;",
+            "const commentDatasLength = 0;", 1
+        )
+        with self.assertRaisesRegex(ValueError, "marker/structure drift"):
+            optimize_comment_array_length_cache(damaged)
+
+    @unittest.skipUnless(NODE, "Node.js is required for Weibo comment-array length counter tests")
+    def test_each_comment_array_length_is_read_once_and_branch_precedence_is_preserved(self):
+        runner = r"""
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync(process.argv[1],"utf8");
+const cases=JSON.parse(fs.readFileSync(0,"utf8"));
+const nativeParse=JSON.parse.bind(JSON),nativeStringify=JSON.stringify.bind(JSON);
+const results=[];
+for(const testCase of cases){
+  let tracking=false,doneResult;
+  const counts={};
+  const trackedJSON={
+    parse(raw){
+      const parsed=nativeParse(raw);
+      for(const key of ["datas","root_comments","comments"]){
+        if(!Array.isArray(parsed[key])) continue;
+        counts[key]=0;
+        parsed[key]=new Proxy(parsed[key],{get(target,property,receiver){
+          if(tracking&&property==="length") counts[key]++;
+          return Reflect.get(target,property,receiver);
+        }});
+      }
+      tracking=true;
+      return parsed;
+    },
+    stringify(value){tracking=false;return nativeStringify(value);}
+  };
+  const context={
+    JSON:trackedJSON,
+    $request:{url:"https://api.weibo.cn/2/comments/build_comments?fixture=array-length"},
+    $response:{body:nativeStringify(testCase.body)},
+    $done(value){doneResult=value;},
+    console:{log(){},warn(){},error(){}}
+  };
+  vm.runInNewContext(source,context,{timeout:5000});
+  const output=doneResult&&doneResult.body?nativeParse(doneResult.body):testCase.body;
+  results.push({name:testCase.name,counts,output});
+}
+process.stdout.write(nativeStringify(results));
+"""
+        cases = [
+            {
+                "name": "datas",
+                "body": {"datas": [{
+                    "type": 1, "adType": "普通评论",
+                    "data": {"user": {"name": "普通用户"}, "comment_bubble": {"text": "remove"}}
+                }]}
+            },
+            {
+                "name": "root_comments",
+                "body": {"root_comments": [{
+                    "user": {"name": "普通用户"}, "comment_bubble": {"text": "remove"}
+                }]}
+            },
+            {
+                "name": "comments",
+                "body": {"comments": [{
+                    "user": {"icons": [{"type": "vip"}]}, "reply_comment": {}
+                }]}
+            },
+            {
+                "name": "empty_datas_falls_back_to_root",
+                "body": {
+                    "datas": [],
+                    "root_comments": [{
+                        "user": {"name": "普通用户"}, "comment_bubble": {"text": "remove"}
+                    }],
+                    "comments": [{"user": {"icons": [{"type": "vip"}]}}]
+                }
+            },
+        ]
+        completed = subprocess.run(
+            [NODE, "-e", runner, str(SCRIPT)],
+            input=json.dumps(cases), capture_output=True, text=True,
+            check=False, timeout=15
+        )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        results = json.loads(completed.stdout)
+        self.assertEqual(results[0]["counts"], {"datas": 1})
+        self.assertEqual(results[1]["counts"], {"root_comments": 1})
+        self.assertEqual(results[2]["counts"], {"comments": 1})
+        self.assertEqual(results[3]["counts"], {"datas": 1, "root_comments": 1, "comments": 0})
+        self.assertNotIn("comment_bubble", results[0]["output"]["datas"][0]["data"])
+        self.assertNotIn("comment_bubble", results[1]["output"]["root_comments"][0])
+        self.assertNotIn("icons", results[2]["output"]["comments"][0]["user"])
+        self.assertEqual(len(results[3]["output"]["root_comments"]), 1)
+        self.assertEqual(results[3]["output"]["comments"][0]["user"]["icons"], [{"type": "vip"}])

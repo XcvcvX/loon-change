@@ -220,7 +220,17 @@
         "const commentUser = commentData?.user;",
         "removeAvatar(commentData, commentUser);",
         "const commentUserName = commentUser.name;",
-        "if (avatarGjId)"
+        "if (avatarGjId)",
+        "// loon-change: Weibo comment top-level array length cache v1",
+        "const commentDatasLength = commentDatas?.length || 0;",
+        "let rootCommentsLength = 0;",
+        "let replyCommentsLength = 0;",
+        "if (commentDatasLength > 0)",
+        "(rootCommentsLength = rootComments.length) > 0",
+        "(replyCommentsLength = replyComments.length) > 0",
+        "const __loonLength30 = commentDatasLength;",
+        "const __loonLength29 = rootCommentsLength;",
+        "const __loonLength28 = replyCommentsLength;"
       ],
       "forbidden": [
         "[120, 145, 192]?.includes(cardType)",
@@ -248,7 +258,13 @@
         "if (data?.user?.cardid)",
         "if (data?.user?.icons)",
         "if (data?.user?.mbtype)",
-        "commentData.user?.name ==="
+        "commentData.user?.name ===",
+        "if (commentDatas?.length > 0)",
+        "(rootComments = obj?.root_comments)?.length > 0",
+        "(replyComments = obj?.comments)?.length > 0",
+        "const __loonLength30 = __loonSource30.length;",
+        "const __loonLength29 = __loonSource29.length;",
+        "const __loonLength28 = __loonSource28.length;"
       ]
     },
     {

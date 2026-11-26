@@ -714,7 +714,8 @@ def optimize_source(source, commit="unknown"):
     if MARKER in source:
         if "__loonSource32" not in source or "compactInPlace(items, keep)" not in source:
             raise ValueError("marked Weibo script is incomplete")
-        return optimize_comment_status_page_info_cache(optimize_vote_info_nested_reference_cache(optimize_shared_feed_cleanup_cache(optimize_is_ad_property_cache(optimize_profile_timeline_property_cache(optimize_search_timeline_nested_reference_cache(optimize_flowlist_asyn_nested_reference_cache(optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source))))))))))))))))) ))))
+        optimized = optimize_comment_status_page_info_cache(optimize_vote_info_nested_reference_cache(optimize_shared_feed_cleanup_cache(optimize_is_ad_property_cache(optimize_profile_timeline_property_cache(optimize_search_timeline_nested_reference_cache(optimize_flowlist_asyn_nested_reference_cache(optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source))))))))))))))))) ))))
+        return optimize_comment_array_length_cache(optimized)
     source = source.replace("const url = $request.url;", "const url = $request.url;\n" + GUARD_DECLARATION + "\n\n" + HELPER, 1)
     if source.count(HELPER) != 1:
         raise ValueError("Weibo helper insertion failed")
@@ -726,7 +727,8 @@ def optimize_source(source, commit="unknown"):
     remaining = re.findall(r"\b(new[A-Za-z0-9_]*)\s*=\s*\[\s*\]", source)
     if sorted(remaining) != ["newActions", "newII"]:
         raise ValueError("unexpected remaining Weibo temporary arrays: " + repr(remaining))
-    return optimize_comment_status_page_info_cache(optimize_vote_info_nested_reference_cache(optimize_shared_feed_cleanup_cache(optimize_is_ad_property_cache(optimize_profile_timeline_property_cache(optimize_search_timeline_nested_reference_cache(optimize_flowlist_asyn_nested_reference_cache(optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source))))))))))))))))) ))))
+    optimized = optimize_comment_status_page_info_cache(optimize_vote_info_nested_reference_cache(optimize_shared_feed_cleanup_cache(optimize_is_ad_property_cache(optimize_profile_timeline_property_cache(optimize_search_timeline_nested_reference_cache(optimize_flowlist_asyn_nested_reference_cache(optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source))))))))))))))))) ))))
+    return optimize_comment_array_length_cache(optimized)
 
 SCALAR_MEMBERSHIP_MARKER = "// loon-change: Weibo hot-loop scalar membership v1"
 SCALAR_MEMBERSHIP_REWRITES = [
@@ -1449,9 +1451,6 @@ def optimize_comment_array_reference_cache(source):
         "const commentDatas = obj?.datas;",
         "let rootComments;",
         "let replyComments;",
-        "if (commentDatas?.length > 0)",
-        "(rootComments = obj?.root_comments)?.length > 0",
-        "(replyComments = obj?.comments)?.length > 0",
         "const __loonSource30 = commentDatas;",
         "const __loonSource29 = rootComments;",
         "const __loonSource28 = replyComments;",
@@ -1459,6 +1458,15 @@ def optimize_comment_array_reference_cache(source):
     if COMMENT_ARRAY_REFERENCE_CACHE_MARKER in block:
         if block.count(COMMENT_ARRAY_REFERENCE_CACHE_MARKER) != 1 or any(token not in block for token in required):
             raise ValueError("Weibo comment-array reference cache structure drift")
+        branch_shapes = (
+            ("if (commentDatas?.length > 0)", "if (commentDatasLength > 0)"),
+            ("(rootComments = obj?.root_comments)?.length > 0",
+             "(rootComments = obj?.root_comments) && (rootCommentsLength = rootComments.length) > 0"),
+            ("(replyComments = obj?.comments)?.length > 0",
+             "(replyComments = obj?.comments) && (replyCommentsLength = replyComments.length) > 0"),
+        )
+        if any(not any(token in block for token in variants) for variants in branch_shapes):
+            raise ValueError("Weibo comment-array reference cache branch structure drift")
         old = (
             "if (obj?.datas?.length > 0)",
             "obj?.root_comments?.length > 0",
@@ -1491,6 +1499,92 @@ def optimize_comment_array_reference_cache(source):
         block = block.replace(old, new, 1)
     if any(token not in block for token in required):
         raise ValueError("Weibo comment-array reference cache postcondition failed")
+    return source[:left] + block + source[right:]
+
+
+
+COMMENT_ARRAY_LENGTH_CACHE_MARKER = "// loon-change: Weibo comment top-level array length cache v1"
+
+def optimize_comment_array_length_cache(source):
+    """Read each selected top-level comment-array length once, including branch selection."""
+    start = '} else if (url.includes("/2/comments/build_comments")) {'
+    end = '} else if (url.includes("/2/container/asyn")) {'
+    if source.count(start) != 1 or source.count(end) != 1:
+        raise ValueError("Weibo comment-array length-cache route boundary drift")
+    left = source.index(start)
+    right = source.index(end, left + len(start))
+    block = source[left:right]
+    required = (
+        COMMENT_ARRAY_LENGTH_CACHE_MARKER,
+        "const commentDatas = obj?.datas;",
+        "const commentDatasLength = commentDatas?.length || 0;",
+        "let rootCommentsLength = 0;",
+        "let replyCommentsLength = 0;",
+        "if (commentDatasLength > 0)",
+        "(rootCommentsLength = rootComments.length) > 0",
+        "(replyCommentsLength = replyComments.length) > 0",
+        "const __loonLength30 = commentDatasLength;",
+        "const __loonLength29 = rootCommentsLength;",
+        "const __loonLength28 = replyCommentsLength;",
+    )
+    if COMMENT_ARRAY_LENGTH_CACHE_MARKER in block:
+        if block.count(COMMENT_ARRAY_LENGTH_CACHE_MARKER) != 1 or any(token not in block for token in required):
+            raise ValueError("Weibo comment-array length-cache marker/structure drift")
+        repeated = (
+            "if (commentDatas?.length > 0)",
+            "(rootComments = obj?.root_comments)?.length > 0",
+            "(replyComments = obj?.comments)?.length > 0",
+            "const __loonLength30 = __loonSource30.length;",
+            "const __loonLength29 = __loonSource29.length;",
+            "const __loonLength28 = __loonSource28.length;",
+        )
+        if any(token in block for token in repeated):
+            raise ValueError("Weibo repeated top-level comment-array length reads remain")
+        return source
+
+    replacements = (
+        (
+            "    const commentDatas = obj?.datas;\n"
+            "    let rootComments;\n"
+            "    let replyComments;\n"
+            "    if (commentDatas?.length > 0) {",
+            "    const commentDatas = obj?.datas;\n"
+            "    // loon-change: Weibo comment top-level array length cache v1\n"
+            "    const commentDatasLength = commentDatas?.length || 0;\n"
+            "    let rootComments;\n"
+            "    let rootCommentsLength = 0;\n"
+            "    let replyComments;\n"
+            "    let replyCommentsLength = 0;\n"
+            "    if (commentDatasLength > 0) {",
+        ),
+        (
+            "    } else if ((rootComments = obj?.root_comments)?.length > 0) {",
+            "    } else if ((rootComments = obj?.root_comments) && (rootCommentsLength = rootComments.length) > 0) {",
+        ),
+        (
+            "    } else if ((replyComments = obj?.comments)?.length > 0) {",
+            "    } else if ((replyComments = obj?.comments) && (replyCommentsLength = replyComments.length) > 0) {",
+        ),
+        ("      const __loonLength30 = __loonSource30.length;", "      const __loonLength30 = commentDatasLength;"),
+        ("      const __loonLength29 = __loonSource29.length;", "      const __loonLength29 = rootCommentsLength;"),
+        ("      const __loonLength28 = __loonSource28.length;", "      const __loonLength28 = replyCommentsLength;"),
+    )
+    for old, new in replacements:
+        if block.count(old) != 1:
+            raise ValueError("Weibo comment-array length-cache anchor drift: " + old[:75])
+        block = block.replace(old, new, 1)
+    if any(token not in block for token in required):
+        raise ValueError("Weibo comment-array length-cache postcondition failed")
+    repeated = (
+        "if (commentDatas?.length > 0)",
+        "(rootComments = obj?.root_comments)?.length > 0",
+        "(replyComments = obj?.comments)?.length > 0",
+        "const __loonLength30 = __loonSource30.length;",
+        "const __loonLength29 = __loonSource29.length;",
+        "const __loonLength28 = __loonSource28.length;",
+    )
+    if any(token in block for token in repeated):
+        raise ValueError("Weibo repeated top-level comment-array length reads remain")
     return source[:left] + block + source[right:]
 
 

@@ -163,12 +163,16 @@ if (url.includes("/interface/sdk/sdkad.php")) {
     // 评论区
     // loon-change: Weibo comment top-level array reference cache v1
     const commentDatas = obj?.datas;
+    // loon-change: Weibo comment top-level array length cache v1
+    const commentDatasLength = commentDatas?.length || 0;
     let rootComments;
+    let rootCommentsLength = 0;
     let replyComments;
-    if (commentDatas?.length > 0) {
+    let replyCommentsLength = 0;
+    if (commentDatasLength > 0) {
       const __loonSource30 = commentDatas;
       let __loonWrite30 = 0;
-      const __loonLength30 = __loonSource30.length;
+      const __loonLength30 = commentDatasLength;
       for (let __loonRead30 = 0; __loonRead30 < __loonLength30; __loonRead30++) {
         let item = __loonSource30[__loonRead30];
         // loon-change: Weibo comment data reference cache v1
@@ -226,10 +230,10 @@ if (url.includes("/interface/sdk/sdkad.php")) {
       }
       __loonSource30.length = __loonWrite30;
       if (__loonWrite30 !== __loonLength30) modified = true;
-    } else if ((rootComments = obj?.root_comments)?.length > 0) {
+    } else if ((rootComments = obj?.root_comments) && (rootCommentsLength = rootComments.length) > 0) {
       const __loonSource29 = rootComments;
       let __loonWrite29 = 0;
-      const __loonLength29 = __loonSource29.length;
+      const __loonLength29 = rootCommentsLength;
       for (let __loonRead29 = 0; __loonRead29 < __loonLength29; __loonRead29++) {
         let item = __loonSource29[__loonRead29];
         if (!isAd(item)) {
@@ -274,10 +278,10 @@ if (url.includes("/interface/sdk/sdkad.php")) {
       }
       __loonSource29.length = __loonWrite29;
       if (__loonWrite29 !== __loonLength29) modified = true;
-    } else if ((replyComments = obj?.comments)?.length > 0) {
+    } else if ((replyComments = obj?.comments) && (replyCommentsLength = replyComments.length) > 0) {
       const __loonSource28 = replyComments;
       let __loonWrite28 = 0;
-      const __loonLength28 = __loonSource28.length;
+      const __loonLength28 = replyCommentsLength;
       for (let __loonRead28 = 0; __loonRead28 < __loonLength28; __loonRead28++) {
         let item = __loonSource28[__loonRead28];
         // loon-change: Weibo reply-comment decoration single-read cache v1
