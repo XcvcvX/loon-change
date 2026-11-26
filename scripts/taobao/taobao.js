@@ -40,8 +40,11 @@ if (!$response.body) {
     if (item.gmtEnd !== "2090-12-31 23:59:59") { item.gmtEnd = "2090-12-31 23:59:59"; modified = true; }
     if (item.gmtStartMs !== "3818332800000") { item.gmtStartMs = "3818332800000"; modified = true; }
     if (item.gmtEndMs !== "3818419199000") { item.gmtEndMs = "3818419199000"; modified = true; }
-    if (item?.imgUrl) { item.imgUrl = ""; modified = true; }
-    if (item?.videoUrl) { item.videoUrl = ""; modified = true; }
+    // loon-change: Taobao splash media property single-read cache v1
+    const imgUrl = item?.imgUrl;
+    if (imgUrl) { item.imgUrl = ""; modified = true; }
+    const videoUrl = item?.videoUrl;
+    if (videoUrl) { item.videoUrl = ""; modified = true; }
   }
 
   // loon-change: Taobao unused setter helper removed v1
