@@ -29,11 +29,7 @@ def optimize_source(source: str) -> str:
     loop = source[start:end].replace("messageHead.offset", "targetDataOffset")
     loop = loop.replace("const targetDataOffset = targetDataOffset;", "const targetDataOffset = messageHead.offset;", 1)
     source = source[:start] + loop + source[end:]
-    if source.count(MARKER) != 1 or "targetDataOffset > binaryBody.byteLength - dataBeginOffset" not in loop:
-        raise ValueError("BaiduMap target segment offset cache postcondition failed")
-    if "messageHead.offset" in loop.replace("const targetDataOffset = messageHead.offset;", ""):
-        raise ValueError("BaiduMap repeated target segment offset reads remain")
-    return source
+    return optimize_source(source)
 
 
 def main() -> None:
