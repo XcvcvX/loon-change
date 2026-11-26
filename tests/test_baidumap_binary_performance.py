@@ -54,6 +54,9 @@ class BaiduMapBinaryPerformanceTests(unittest.TestCase):
         self.assertIn("const messageHeadLength = messageHeadEntries.length;", loop)
         self.assertIn("for(let i = 0; i < messageHeadLength; i++)", loop)
         self.assertIn("let messageHead = messageHeadEntries[i];", loop)
+        self.assertIn("// loon-change: Baidu protobuf target segment offset cache v1", loop)
+        self.assertIn("const targetDataOffset = messageHead.offset;", loop)
+        self.assertNotIn("messageHead.offset", loop.replace("const targetDataOffset = messageHead.offset;", ""))
         self.assertNotIn("repHeadMessage.messageHead.length", loop)
         self.assertNotIn("repHeadMessage.messageHead[i]", loop)
 
@@ -499,6 +502,14 @@ source = source
 
 
 source = source.replace(
+  "const messageHeadEntries = repHeadMessage.messageHead;",
+  "const messageHeadEntries = repHeadMessage.messageHead; globalThis.__headerOffsetReads = 0; globalThis.__trackHeaderOffsetReads = true; for (let h = 0; h < messageHeadEntries.length; h++) { const entry = messageHeadEntries[h]; let offset = entry.offset; Object.defineProperty(entry, 'offset', { configurable: true, enumerable: true, get() { if (globalThis.__trackHeaderOffsetReads) globalThis.__headerOffsetReads++; return offset; }, set(value) { offset = value; } }); }"
+);
+source = source.replace(
+  "\n}\n\nif(invalidSegmentLayout || !adsFound",
+  "\n}\nglobalThis.__trackHeaderOffsetReads = false;\n\nif(invalidSegmentLayout || !adsFound"
+);
+source = source.replace(
   "const adsMessage = adsType.decode(targetData);",
   "const adsMessage = adsType.decode(targetData);\n" +
   "globalThis.__adsContentReads = 0; globalThis.__adsStartReads = 0; globalThis.__adsEndReads = 0; globalThis.__trackAdsProperties = true;\n" +
@@ -592,6 +603,7 @@ if (doneResult.body) {
     md5InitCount: context.__md5InitCount || 0,
     subarrayCount: context.__subarrayCount || 0,
     adsContentReads: context.__adsContentReads || 0,
+    headerOffsetReads: context.__headerOffsetReads || 0,
     adsStartReads: context.__adsStartReads || 0,
     adsEndReads: context.__adsEndReads || 0,
     item: decoded.item
@@ -603,6 +615,7 @@ if (doneResult.body) {
     md5InitCount: context.__md5InitCount || 0,
     subarrayCount: context.__subarrayCount || 0,
     adsContentReads: context.__adsContentReads || 0,
+    headerOffsetReads: context.__headerOffsetReads || 0,
     adsStartReads: context.__adsStartReads || 0,
     adsEndReads: context.__adsEndReads || 0
   }));
@@ -665,6 +678,7 @@ if (doneResult.body) {
         self.assertEqual(result["md5InitCount"], 1)
         self.assertEqual(result["subarrayCount"], 2)
         self.assertEqual(result["adsContentReads"], 1)
+        self.assertEqual(result["headerOffsetReads"], 2)
         self.assertEqual(result["adsStartReads"], 1)
         self.assertEqual(result["adsEndReads"], 0)
 

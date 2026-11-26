@@ -538,7 +538,11 @@
         "// loon-change: Baidu protobuf multi-Ads segment reconstruction v1",
         "const replacementSegments = [];",
         "replacementSegments[i] = adsType.encode(adsMessage).finish();",
-        "assembleBaiduResponseSegments("
+        "assembleBaiduResponseSegments(",
+        "// loon-change: Baidu protobuf target segment offset cache v1",
+        "const targetDataOffset = messageHead.offset;",
+        "targetDataOffset > binaryBody.byteLength - dataBeginOffset",
+        "targetDataLength > binaryBody.byteLength - dataBeginOffset - targetDataOffset"
       ],
       "forbidden": [
         "newResult = binaryBody.subarray(currentOffset, currentOffset + targetDataLength);",

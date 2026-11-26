@@ -265,6 +265,8 @@ for(let i = 0; i < messageHeadLength; i++) {
   let messageHead = messageHeadEntries[i];
   const name = messageHead.name;
   const targetDataLength = messageHead.length;
+  // loon-change: Baidu protobuf target segment offset cache v1
+  const targetDataOffset = messageHead.offset;
 
   // Defer payload offset arithmetic and views until a consumed field is found.
   if(name === 'Result'){
@@ -273,23 +275,23 @@ for(let i = 0; i < messageHeadLength; i++) {
       break;
     }
     resultCount++;
-    if (!Number.isInteger(messageHead.offset) || !Number.isInteger(targetDataLength) ||
-        messageHead.offset < 0 || targetDataLength < 0 ||
-        messageHead.offset > binaryBody.byteLength - dataBeginOffset ||
-        targetDataLength > binaryBody.byteLength - dataBeginOffset - messageHead.offset) {
+    if (!Number.isInteger(targetDataOffset) || !Number.isInteger(targetDataLength) ||
+        targetDataOffset < 0 || targetDataLength < 0 ||
+        targetDataOffset > binaryBody.byteLength - dataBeginOffset ||
+        targetDataLength > binaryBody.byteLength - dataBeginOffset - targetDataOffset) {
       invalidSegmentLayout = true;
       break;
     }
   }else if(name === 'Ads'){
     adsFound = true;
-    if (!Number.isInteger(messageHead.offset) || !Number.isInteger(targetDataLength) ||
-        messageHead.offset < 0 || targetDataLength < 0 ||
-        messageHead.offset > binaryBody.byteLength - dataBeginOffset ||
-        targetDataLength > binaryBody.byteLength - dataBeginOffset - messageHead.offset) {
+    if (!Number.isInteger(targetDataOffset) || !Number.isInteger(targetDataLength) ||
+        targetDataOffset < 0 || targetDataLength < 0 ||
+        targetDataOffset > binaryBody.byteLength - dataBeginOffset ||
+        targetDataLength > binaryBody.byteLength - dataBeginOffset - targetDataOffset) {
       invalidSegmentLayout = true;
       break;
     }
-    const currentOffset = dataBeginOffset + messageHead.offset;
+    const currentOffset = dataBeginOffset + targetDataOffset;
     // Inspect wire bytes first; ordinary ad payloads avoid both a byte view
     // and the Protobuf object graph allocation.
     if (!hasBaiduTargetAds(binaryBody, currentOffset, targetDataLength)) continue;
