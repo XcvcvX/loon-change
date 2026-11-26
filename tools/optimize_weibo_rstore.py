@@ -925,41 +925,40 @@ def optimize_cardlist_mblog_reference_cache(source):
             raise ValueError("Weibo cardlist mblog-cache marker/structure drift")
         return source
 
-    group_old = (
-        "            if (group?.mblog) {\\n"
-        "              // 卡片挂件,关注按钮\\n"
-        "              removeAvatar(group?.mblog);\\n"
-        "            }"
-    )
-    group_new = (
-        "            const groupMblog = group?.mblog;\\n"
-        "            if (groupMblog) {\\n"
-        "              // 卡片挂件,关注按钮\\n"
-        "              removeAvatar(groupMblog);\\n"
-        "            }"
-    )
-    card_old = (
-        "          if (card?.mblog) {\\n"
-        "            // 卡片挂件,关注按钮\\n"
-        "            removeAvatar(card?.mblog);\\n"
-        "          }"
-    )
-    card_new = (
-        "          const cardMblog = card?.mblog;\\n"
-        "          if (cardMblog) {\\n"
-        "            // 卡片挂件,关注按钮\\n"
-        "            removeAvatar(cardMblog);\\n"
-        "          }"
-    )
+    group_old = "\n".join((
+        "            if (group?.mblog) {",
+        "              // 卡片挂件,关注按钮",
+        "              removeAvatar(group?.mblog);",
+        "            }",
+    ))
+    group_new = "\n".join((
+        "            const groupMblog = group?.mblog;",
+        "            if (groupMblog) {",
+        "              // 卡片挂件,关注按钮",
+        "              removeAvatar(groupMblog);",
+        "            }",
+    ))
+    card_old = "\n".join((
+        "          if (card?.mblog) {",
+        "            // 卡片挂件,关注按钮",
+        "            removeAvatar(card?.mblog);",
+        "          }",
+    ))
+    card_new = "\n".join((
+        "          const cardMblog = card?.mblog;",
+        "          if (cardMblog) {",
+        "            // 卡片挂件,关注按钮",
+        "            removeAvatar(cardMblog);",
+        "          }",
+    ))
     if block.count(group_old) != 1 or block.count(card_old) != 1:
         raise ValueError("Weibo cardlist mblog-cache anchor drift")
     block = block.replace(group_old, group_new, 1)
     block = block.replace(card_old, card_new, 1)
-    block = block.replace(CARDLIST_ARRAY_CACHE_MARKER, CARDLIST_ARRAY_CACHE_MARKER + "\\n    " + CARDLIST_MBLOG_REFERENCE_CACHE_MARKER, 1)
+    block = block.replace(CARDLIST_ARRAY_CACHE_MARKER, CARDLIST_ARRAY_CACHE_MARKER + "\n    " + CARDLIST_MBLOG_REFERENCE_CACHE_MARKER, 1)
     if any(token not in block for token in required) or any(token in block for token in forbidden):
         raise ValueError("Weibo cardlist mblog-cache postcondition failed")
     return source[:left] + block + source[right:]
-
 
 def optimize_source(source, commit="unknown"):
     if MARKER in source:
