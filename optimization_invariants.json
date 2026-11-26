@@ -265,7 +265,17 @@
         "const __loonSource32 = cardlistCards;",
         "const __loonLength32 = cardlistCardsLength;",
         "const __loonSource31 = cardGroup;",
-        "const __loonLength31 = cardGroupLength;"
+        "const __loonLength31 = cardGroupLength;",
+        "// loon-change: Weibo /2/page array references and lengths cached v1",
+        "function compactWeiboInPlace(items, mode, knownLength)",
+        "const length = knownLength === undefined ? items.length : knownLength;",
+        "const pageCards = obj?.cards;",
+        "const pageCardsLength = pageCards?.length || 0;",
+        "const firstPageCard = pageCards[0];",
+        "const pageCardGroup = firstPageCard?.card_group;",
+        "const pageCardGroupLength = pageCardGroup?.length || 0;",
+        "const topicCardGroup = obj?.card_group;",
+        "const topicCardGroupLength = topicCardGroup?.length || 0;"
       ],
       "forbidden": [
         "[120, 145, 192]?.includes(cardType)",
@@ -309,7 +319,10 @@
         "if (obj?.cards?.length > 0) {\n      const __loonSource32 = obj.cards;",
         "if (card?.card_group?.length > 0) {\n          const __loonSource31 = card.card_group;",
         "const __loonLength32 = __loonSource32.length;",
-        "const __loonLength31 = __loonSource31.length;"
+        "const __loonLength31 = __loonSource31.length;",
+        "obj?.cards?.length > 0",
+        "obj.cards[0].card_group",
+        "obj?.card_group?.length > 0"
       ]
     },
     {
