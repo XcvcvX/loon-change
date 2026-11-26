@@ -15,7 +15,7 @@ class BaiduMapBinaryPerformanceTests(unittest.TestCase):
     def test_response_assembly_uses_one_payload_allocation_and_hashes_a_view(self):
         start = self.source.index("function assembleBaiduResponse(")
         end = self.source.index("\n}\n", start) + 2
-        helper = source[start:end]
+        helper = self.source[start:end]
 
         self.assertIn('new Uint8Array(payloadOffset + payloadLength)', helper)
         self.assertIn("hash(body.subarray(payloadOffset))", helper)
@@ -791,7 +791,7 @@ process.stdout.write("ok");
         source = (ROOT / "scripts/baidumap/baidu-map-protobuf.js").read_text(encoding="utf-8")
         start = source.index("function assembleBaiduResponseSegments(")
         end = source.index("\n}\n", start) + 2
-        helper = self.source[start:end]
+        helper = source[start:end]
         self.assertIn("// loon-change: Baidu protobuf segment rebuild without chunks v1", helper)
         self.assertIn("const payload = new Uint8Array(outputLength);", helper)
         self.assertIn("payload.set(part, payloadWrite);", helper)
