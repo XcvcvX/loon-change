@@ -1544,7 +1544,7 @@ def optimize_profile_me_array_cache(source):
 
     replacements = (
         (
-            " } else if (url.includes(\"/2/profile/me\")) {\n     // 我的页面\n",
+            "} else if (url.includes(\"/2/profile/me\")) {\n     // 我的页面\n",
             " } else if (url.includes(\"/2/profile/me\")) {\n     " + PROFILE_ME_ARRAY_CACHE_MARKER + "\n     // 我的页面\n",
         ),
         (
