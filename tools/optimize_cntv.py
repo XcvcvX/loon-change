@@ -288,7 +288,12 @@ def optimize_youku_profile_comment_arrays(source):
             continue
         if branch != spec["old"]:
             raise ValueError("CNTV Youku profile/comment source drift; refusing in-place rewrite: " + marker)
-        source = source[:begin] + spec["new"] + source[finish:]
+        replacement = spec["new"]
+        # The next route anchor begins with the closing brace for this branch.
+        if not replacement.endswith("  }\n"):
+            raise ValueError("CNTV Youku replacement branch boundary changed: " + marker)
+        replacement = replacement[:-4]
+        source = source[:begin] + replacement + source[finish:]
     return source
 
 
