@@ -327,7 +327,7 @@ def add_lazy_serialization_guard(source):
         source = source.replace(anchor, anchor + '\n' + GUARD_DECLARATION, 1)
     if LEGACY_HELPER in source:
         source = source.replace(LEGACY_HELPER, HELPER, 1)
-    elif HELPER not in source and "function compactWeiboInPlace(items, mode, knownLength)" not in source:
+    elif HELPER not in source and "function compactWeiboInPlace(items, mode)" not in source:
         raise ValueError('Weibo compaction helper anchor drift')
 
     loop_pattern = re.compile(r'(?m)^([ \t]*)__loonSource(\d+)\.length = __loonWrite\2;$')
@@ -716,8 +716,8 @@ CALLBACK_FREE_COMPACTION_HELPER = "// loon-change: Weibo callback-free mode-disp
 
 def optimize_callback_free_compaction(source):
     if CALLBACK_FREE_COMPACTION_MARKER in source:
-        required = ["function compactWeiboInPlace(items, mode, knownLength)", 'compactWeiboInPlace(obj.elements, "publisher");', 'compactWeiboInPlace(obj.user_list, "directMessages");', 'compactWeiboInPlace(obj.cards[0].card_group, "pageCardGroup");', 'compactWeiboInPlace(obj.cards, "pageCards");', 'compactWeiboInPlace(obj.card_group, "topicCardGroup");', 'compactWeiboInPlace(obj.footer.data.menus, "footerMenus");', 'compactWeiboInPlace(obj.channelInfo.channel_list, "channelList");']
-        if source.count(CALLBACK_FREE_COMPACTION_MARKER) != 1 or any(x not in source for x in required) or "compactInPlace(" in source:
+        required = ['compactWeiboInPlace(obj.elements, "publisher");', 'compactWeiboInPlace(obj.user_list, "directMessages");', 'compactWeiboInPlace(obj.cards[0].card_group, "pageCardGroup");', 'compactWeiboInPlace(obj.cards, "pageCards");', 'compactWeiboInPlace(obj.card_group, "topicCardGroup");', 'compactWeiboInPlace(obj.footer.data.menus, "footerMenus");', 'compactWeiboInPlace(obj.channelInfo.channel_list, "channelList");']
+        if source.count(CALLBACK_FREE_COMPACTION_MARKER) != 1 or any(x not in source for x in required) or not any(signature in source for signature in ("function compactWeiboInPlace(items, mode)", "function compactWeiboInPlace(items, mode, knownLength)")) or "compactInPlace(" in source:
             raise ValueError("Weibo callback-free compaction marker/structure drift")
         return source
     if source.count("function compactInPlace(items, keep)") != 1:
@@ -855,7 +855,7 @@ def optimize_page_route_array_reference_cache(source):
         raise ValueError("Weibo /2/page array-cache insertion anchor drift")
     replacement = (
         comment
-        + PAGE_ROUTE_ARRAY_CACHE_MARKER + "\n"
+        + "    " + PAGE_ROUTE_ARRAY_CACHE_MARKER + "\n"
         + "    const pageCards = obj?.cards;\n"
         + "    const pageCardsLength = pageCards?.length || 0;\n"
         + "    if (pageCardsLength > 0) {\n"
