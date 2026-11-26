@@ -5,7 +5,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
 
-from optimize_baidumap import MARKER, optimize_source
+from optimize_baidumap import MARKER, REBUILD_MARKER, optimize_segment_rebuild_without_chunks, optimize_source
 
 
 class BaiduMapOffsetOptimizerTests(unittest.TestCase):
@@ -35,6 +35,14 @@ if(invalidSegmentLayout || !adsFound) {}
         self.assertEqual(result.count("const targetDataOffset = messageHead.offset;"), 1)
         self.assertNotIn("messageHead.offset", result.replace("const targetDataOffset = messageHead.offset;", ""))
         self.assertEqual(optimize_source(result), result)
+
+    def test_segment_rebuild_optimizer_is_idempotent_and_fails_closed(self):
+        source = (ROOT / "scripts/baidumap/baidu-map-protobuf.js").read_text(encoding="utf-8")
+        self.assertIn(REBUILD_MARKER, source)
+        self.assertEqual(optimize_segment_rebuild_without_chunks(source), source)
+        damaged = source.replace("const payload = new Uint8Array(outputLength);", "const payload = new Uint8Array(0);", 1)
+        with self.assertRaisesRegex(ValueError, "structure drift"):
+            optimize_segment_rebuild_without_chunks(damaged)
 
     def test_drifted_cache_fails_closed(self):
         source = (ROOT / "scripts/baidumap/baidu-map-protobuf.js").read_text(encoding="utf-8")
