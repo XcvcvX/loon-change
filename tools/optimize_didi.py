@@ -94,10 +94,10 @@ function compactDidiByField(items, mode) {
       }
       if (item.tag === "wallet") {
         if (Array.isArray(item.items) && item.items.length > 0) {
-          compactDidiByField(item.items, "title", "walletItem");
+          compactDidiByField(item.items, "walletItem");
         }
         if (item.card_type === 4 && Array.isArray(item.bottom_items) && item.bottom_items.length > 0) {
-          compactDidiByField(item.bottom_items, "title", "walletBottom");
+          compactDidiByField(item.bottom_items, "walletBottom");
         }
       }
       if (write !== read) items[write] = item;
