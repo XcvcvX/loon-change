@@ -614,7 +614,6 @@ if (isIQY) {
         userCenterNodes.length = userCenterWrite;
       }
     }
-  }
   } else if (url.includes("columbus.ycp.query/")) {
     // loon-change: CNTV Youku comment-list nested in-place compaction v1
     // 评论区节点及其子节点原地压缩，保持父子顺序和原有过滤条件。
@@ -650,7 +649,6 @@ if (isIQY) {
         commentNodes.length = commentWrite;
       }
     }
-  }
   } else if (url.includes("haidai.lantern.appconfig.get/")) {
     // 优酷 底部tab
     if (obj?.data?.model?.configInfo?.bottomNavigate) {
