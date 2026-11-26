@@ -643,7 +643,10 @@
         "// loon-change: Taobao splash array length single-read cache v1",
         "const sectionCount = Array.isArray(sections) ? sections.length : 0;",
         "const itemCount = Array.isArray(splashItems) ? splashItems.length : 0;",
-        "if (itemCount === 0) continue;"
+        "if (itemCount === 0) continue;",
+        "// loon-change: Taobao splash media property single-read cache v1",
+        "const imgUrl = item?.imgUrl;",
+        "const videoUrl = item?.videoUrl;"
       ],
       "forbidden": [
         "for (let items of splash.base.sections)",
@@ -661,7 +664,9 @@
         "clearArray(mainRes || {},",
         "const sections = obj.data.containers.splash_home_base.base?.sections;",
         "setIfDifferent(videoData, \"duration\", \"0\")",
-        "setIfDifferent(videoData, \"respTimeInMs\", \"3818332800000\")"
+        "setIfDifferent(videoData, \"respTimeInMs\", \"3818332800000\")",
+        "if (item?.imgUrl)",
+        "if (item?.videoUrl)"
       ]
     },
     {

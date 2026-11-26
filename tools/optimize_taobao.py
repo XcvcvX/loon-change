@@ -379,8 +379,11 @@ def optimize_splash_item_updates(source):
             "function normalizeSplashItem(item) {",
             'if (item.waitTime !== "0")',
             'if (item.gmtEndMs !== "3818419199000")',
-            'if (item?.imgUrl) { item.imgUrl = ""; modified = true; }',
-            'if (item?.videoUrl) { item.videoUrl = ""; modified = true; }',
+            "// loon-change: Taobao splash media property single-read cache v1",
+            "const imgUrl = item?.imgUrl;",
+            'if (imgUrl) { item.imgUrl = ""; modified = true; }',
+            "const videoUrl = item?.videoUrl;",
+            'if (videoUrl) { item.videoUrl = ""; modified = true; }',
             NEW_SPLASH_ITEM_UPDATE,
         )
         if source.count(SPLASH_ITEM_UPDATE_MARKER) != 1 or any(token not in source for token in required):
@@ -403,6 +406,33 @@ def optimize_splash_item_updates(source):
     return source
 
 
+
+
+SPLASH_MEDIA_SINGLE_READ_MARKER = "// loon-change: Taobao splash media property single-read cache v1"
+OLD_SPLASH_MEDIA_READS = '''    if (item?.imgUrl) { item.imgUrl = ""; modified = true; }
+    if (item?.videoUrl) { item.videoUrl = ""; modified = true; }'''
+NEW_SPLASH_MEDIA_READS = '''    // loon-change: Taobao splash media property single-read cache v1
+    const imgUrl = item?.imgUrl;
+    if (imgUrl) { item.imgUrl = ""; modified = true; }
+    const videoUrl = item?.videoUrl;
+    if (videoUrl) { item.videoUrl = ""; modified = true; }'''
+
+def optimize_splash_media_property_reads(source):
+    if SPLASH_MEDIA_SINGLE_READ_MARKER in source:
+        required = (SPLASH_MEDIA_SINGLE_READ_MARKER, "const imgUrl = item?.imgUrl;",
+                    "const videoUrl = item?.videoUrl;", 'if (imgUrl) { item.imgUrl = ""; modified = true; }',
+                    'if (videoUrl) { item.videoUrl = ""; modified = true; }')
+        if source.count(SPLASH_MEDIA_SINGLE_READ_MARKER) != 1 or any(token not in source for token in required):
+            raise ValueError("Taobao splash media single-read cache drifted; refusing to overwrite")
+        if "if (item?.imgUrl)" in source or "if (item?.videoUrl)" in source:
+            raise ValueError("Repeated Taobao splash media property reads remain")
+        return source
+    if source.count(OLD_SPLASH_MEDIA_READS) != 1:
+        raise ValueError("Expected exactly one Taobao splash media property update pair")
+    source = source.replace(OLD_SPLASH_MEDIA_READS, NEW_SPLASH_MEDIA_READS, 1)
+    if source.count(SPLASH_MEDIA_SINGLE_READ_MARKER) != 1:
+        raise ValueError("Taobao splash media single-read cache postcondition failed")
+    return source
 
 UNUSED_SETTER_HELPER_MARKER = "// loon-change: Taobao unused setter helper removed v1"
 SET_IF_DIFFERENT_HELPER = """  function setIfDifferent(target, key, value) {
@@ -462,6 +492,7 @@ def optimize_runtime_source(source):
     source = optimize_splash_array_length_reads(source)
     source = optimize_splash_home_object(source)
     source = optimize_splash_item_updates(source)
+    source = optimize_splash_media_property_reads(source)
     source = optimize_route_classification(source)
     source = optimize_route_object_access(source)
     source = optimize_cloud_video_single_property_reads(source)

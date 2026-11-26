@@ -226,6 +226,48 @@ process.stdout.write(nativeStringify({doneResult,readCount,enableValue}));
         self.assertIn("if (isCloudVideo) {", repaired)
         self.assertEqual(optimize_route_classification(repaired), repaired)
 
+
+class TaobaoSplashMediaSingleReadTests(unittest.TestCase):
+    def test_optimizer_is_idempotent_and_fails_closed(self):
+        from optimize_taobao import SPLASH_MEDIA_SINGLE_READ_MARKER, optimize_splash_media_property_reads
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertEqual(optimize_splash_media_property_reads(source), source)
+        self.assertEqual(source.count(SPLASH_MEDIA_SINGLE_READ_MARKER), 1)
+        self.assertIn("const imgUrl = item?.imgUrl;", source)
+        self.assertIn("const videoUrl = item?.videoUrl;", source)
+        damaged = source.replace("const imgUrl = item?.imgUrl;", "const imgUrl = item.imgUrl;", 1)
+        with self.assertRaisesRegex(ValueError, "single-read cache drifted"):
+            optimize_splash_media_property_reads(damaged)
+
+    @unittest.skipUnless(NODE, "Node.js is required for Taobao splash media property tests")
+    def test_nonempty_media_properties_are_read_once_and_cleared(self):
+        runner = r"""
+const fs = require("fs"), vm = require("vm");
+let source = fs.readFileSync(process.argv[1], "utf8");
+source = source.replace(
+  "const obj = JSON.parse($response.body);",
+  "const obj = JSON.parse($response.body); globalThis.__reads = {imgUrl:0, videoUrl:0}; globalThis.__values = {}; const item = obj.data.containers.splash_home_base.base.sections[0].bizData['taobao-splash'].data[0]; for (const key of ['imgUrl','videoUrl']) { __values[key] = item[key]; Object.defineProperty(item,key,{configurable:true,enumerable:true,get(){if(globalThis.__trackReads)globalThis.__reads[key]++;return __values[key];},set(value){__values[key]=value;}}); } const nativeStringify=JSON.stringify.bind(JSON); JSON.stringify=function(value){globalThis.__trackReads=false;return nativeStringify(value);};"
+);
+let done;
+const context = {
+  __trackReads: true,
+  $request:{url:"https://guide-acs.m.taobao.com/gw/mtop.taobao.wireless.home.splash.awesome.get"},
+  $response:{body:JSON.stringify({data:{containers:{splash_home_base:{base:{sections:[{bizData:{"taobao-splash":{data:[{imgUrl:"ad.png",videoUrl:"ad.mp4"}]}}}]}}}}})},
+  $done(value){done=value;},console
+};
+vm.createContext(context);
+vm.runInContext(source,context,{timeout:5000});
+const output=JSON.parse(done.body);
+const item=output.data.containers.splash_home_base.base.sections[0].bizData["taobao-splash"].data[0];
+process.stdout.write(JSON.stringify({reads:context.__reads,imgUrl:item.imgUrl,videoUrl:item.videoUrl}));
+""";
+        completed = subprocess.run([NODE, "-e", runner, str(SCRIPT)], capture_output=True, text=True, check=True, timeout=10)
+        result = json.loads(completed.stdout)
+        self.assertEqual(result["reads"], {"imgUrl": 1, "videoUrl": 1})
+        self.assertEqual(result["imgUrl"], "")
+        self.assertEqual(result["videoUrl"], "")
+
+
 if __name__ == "__main__":
     unittest.main()
 
