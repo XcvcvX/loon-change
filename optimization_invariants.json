@@ -153,7 +153,14 @@
       "path": "scripts/xiaohongshu/xiaohongshu-rstore.js",
       "required": [
         "// loon-change: R-Store Xiaohongshu hot-path optimization v1;",
-        "function compactInPlace(",
+        "// loon-change: Xiaohongshu callback-free mode-dispatched compaction v1",
+        "function compactXhsInPlace(items, mode, seen)",
+        "compactXhsInPlace(item.hash_tag, \"removeVoteTags\");",
+        "compactXhsInPlace(obj.data.items, \"keepFriendPosts\");",
+        "compactXhsInPlace(obj.data.items, \"removeRecommendUsers\");",
+        "compactXhsInPlace(obj.data, \"removeHomefeedAds\");",
+        "compactXhsInPlace(obj.data.items, \"keepNotes\");",
+        "compactXhsInPlace(existing, \"dedupeLivePhotos\", seen);",
         "const livePhotoCache = []",
         "JSON.stringify(livePhotoCache), \"redBookLivePhoto\"",
         "item?.file_id",
@@ -183,7 +190,9 @@
         "const commentNodes = new WeakSet()",
         "const topLevelComments = new WeakSet()",
         "stack.push([commentFrameTag, comment, true])",
-        "stack.push([commentFrameTag, subComment, false])"
+        "stack.push([commentFrameTag, subComment, false])",
+        "function compactInPlace(",
+        "compactInPlace("
       ]
     },
     {

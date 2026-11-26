@@ -18,28 +18,82 @@ https://raw.githubusercontent.com/zirawell/R-Store/main/Rule/Surge/Adblock/App/X
 const $ = new Env('小红书');
 const url = $request.url;
 if (!$response.body) { $done({}); } else {
-function compactInPlace(items, keep) {
+// loon-change: Xiaohongshu callback-free mode-dispatched compaction v1
+function compactXhsInPlace(items, mode, seen) {
+  const length = items.length;
   let write = 0;
-  for (let read = 0, length = items.length; read < length; read++) {
-    const item = items[read];
-    if (keep(item, read)) {
+
+  if (mode === "removeVoteTags") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      if (item?.type !== "interact_vote") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "keepFriendPosts") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      if (item?.recommend_reason === "friend_post") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "removeRecommendUsers") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      if (item?.recommend_reason !== "recommend_user") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "keepNotes") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      if (item?.model_type === "note") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "removeHomefeedAds") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      if (!item) {
+        if (write !== read) items[write] = item;
+        write++;
+        continue;
+      }
+      if (item.model_type === "live_v2" ||
+          Object.prototype.hasOwnProperty.call(item, "ads_info") ||
+          Object.prototype.hasOwnProperty.call(item, "card_icon") ||
+          item.note_attributes?.includes("goods")) continue;
+      if (item.related_ques) delete item.related_ques;
       if (write !== read) items[write] = item;
       write++;
     }
+  } else if (mode === "dedupeLivePhotos") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      const videoId = item.videId;
+      if (seen.has(videoId)) continue;
+      seen.add(videoId);
+      if (write !== read) items[write] = item;
+      write++;
+    }
+  } else {
+    return items;
   }
-  items.length = write;
+
+  if (write !== length) items.length = write;
   return items;
 }
 function appendUniqueLivePhotos(existing, incoming) {
   const seen = new Set();
-  compactInPlace(existing, item => {
-    if (seen.has(item.videId)) return false;
-    seen.add(item.videId);
-    return true;
-  });
+  compactXhsInPlace(existing, "dedupeLivePhotos", seen);
   for (const item of incoming) {
-    if (!seen.has(item.videId)) {
-      seen.add(item.videId);
+    const videoId = item.videId;
+    if (!seen.has(videoId)) {
+      seen.add(videoId);
       existing.push(item);
     }
   }
@@ -69,7 +123,7 @@ if (url.includes("/note/imagefeed") || url.includes("/note/feed")) {
         }
         // 处理帖子引用的标签
         if (item.hash_tag) {
-          compactInPlace(item.hash_tag, tag => tag?.type !== "interact_vote");
+          compactXhsInPlace(item.hash_tag, "removeVoteTags");
         }
       }
 
@@ -133,7 +187,7 @@ if (url.includes("/note/imagefeed") || url.includes("/note/feed")) {
 } else if (url.includes("/user/followings/followfeed")) {
   if (obj?.data?.items?.length > 0) {
     // 白名单
-    compactInPlace(obj.data.items, item => item?.recommend_reason === "friend_post");
+    compactXhsInPlace(obj.data.items, "keepFriendPosts");
   }
 // 信息流 视频
 } else if (url.includes("/note/videofeed")) {
@@ -255,7 +309,7 @@ if (url.includes("/note/imagefeed") || url.includes("/note/feed")) {
 } else if (url.includes("/followfeed") && !url.includes("/user/followings")) {
   if (obj?.data?.items?.length > 0) {
     // recommend_user可能感兴趣的人
-    compactInPlace(obj.data.items, item => item?.recommend_reason !== "recommend_user");
+    compactXhsInPlace(obj.data.items, "removeRecommendUsers");
   }
 // 搜索栏填充词
 } else if (url.includes("/search/hint")) {
@@ -278,20 +332,12 @@ if (url.includes("/note/imagefeed") || url.includes("/note/feed")) {
 // 信息流广告
 } else if (url.includes("/homefeed")) {
   if (obj?.data?.length > 0) {
-    compactInPlace(obj.data, item => {
-      if (!item) return true;
-      if (item.model_type === "live_v2" ||
-          Object.prototype.hasOwnProperty.call(item, "ads_info") ||
-          Object.prototype.hasOwnProperty.call(item, "card_icon") ||
-          item.note_attributes?.includes("goods")) return false;
-      if (item.related_ques) delete item.related_ques;
-      return true;
-    });
+    compactXhsInPlace(obj.data, "removeHomefeedAds");
   }
 // 搜索结果
 } else if (url.includes("/search/notes")) {
   if (obj?.data?.items?.length > 0) {
-    compactInPlace(obj.data.items, item => item?.model_type === "note");
+    compactXhsInPlace(obj.data.items, "keepNotes");
   }
 // 加载评论区
 } else if (url.includes("/note/comment")) {
@@ -427,11 +473,7 @@ function replaceUrlContent(collectionA, collectionB) {
 
 function deDuplicateLivePhotos(livePhotos) {
   const seen = new Set();
-  return compactInPlace(livePhotos, item => {
-    if (seen.has(item.videId)) return false;
-    seen.add(item.videId);
-    return true;
-  });
+  return compactXhsInPlace(livePhotos, "dedupeLivePhotos", seen);
 }
 
 
