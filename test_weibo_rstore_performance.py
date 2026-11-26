@@ -1517,4 +1517,4 @@ process.stdout.write(nativeStringify(results));
         self.assertNotIn("comment_bubble", results[1]["output"]["root_comments"][0])
         self.assertNotIn("icons", results[2]["output"]["comments"][0]["user"])
         self.assertEqual(len(results[3]["output"]["root_comments"]), 1)
-        self.assertNotIn("comments", results[3]["output"])
+        self.assertEqual(results[3]["output"]["comments"][0]["user"]["icons"], [{"type": "vip"}])
