@@ -324,7 +324,7 @@ def optimize_compaction_modes(source):
     def replace_call(match):
         mode = mode_for(match.group(4))
         actual[mode] += 1
-        return 'compactInPlace(%s, "%s")' % (match.group(1).strip(), mode)
+        return 'compactInPlace(%s, "%s");' % (match.group(1).strip(), mode)
 
     source = callback.sub(replace_call, source)
     if any(actual[name] > expected[name] for name in expected):
