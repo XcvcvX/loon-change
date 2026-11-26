@@ -14,8 +14,11 @@ TRACKING_MARKER = "// loon-change: Amap mutation-aware lazy serialization v1"
 DYNAMIC_MATCHER_MARKER = "// loon-change: Amap shared dynamic ad matcher v1"
 ROUTE_INFO_MARKER = "// loon-change: Amap routeInfo cached nested references v1"
 ROUTE_PLAN_MARKER = "// loon-change: Amap routePlan cached nested references v1"
+COMPACTION_MARKER = "// loon-change: Amap specialized in-place compaction v1"
 DYNAMIC_MATCHER_LITERAL = "/ads-\\d+/.test(i?.dynamic_id_s)"
 DYNAMIC_MATCHER_CALL = "AMAP_AD_DYNAMIC_ID.test(i?.dynamic_id_s)"
+DYNAMIC_MATCHER_ITEM_LITERAL = "/ads-\\d+/.test(item?.dynamic_id_s)"
+DYNAMIC_MATCHER_ITEM_CALL = "AMAP_AD_DYNAMIC_ID.test(item?.dynamic_id_s)"
 TRACKING_HELPER = """// loon-change: Amap mutation-aware lazy serialization v1
 let modified = false;
 function sameValue(current, next) {
@@ -46,25 +49,117 @@ function deleteIfPresent(target, key) {
   return true;
 }
 """
-HELPER = """function compactInPlace(items, keep) {
+HELPER = """function compactInPlace(items, mode) {
+  const length = items.length;
   let write = 0;
-  let changed = false;
-  for (let read = 0, length = items.length; read < length; read++) {
-    const item = items[read];
-    if (keep(item, read)) {
-      if (write !== read) {
-        items[write] = item;
-        changed = true;
+
+  if (mode === "withoutSchema") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      if (!item || !Object.prototype.hasOwnProperty.call(item, "schema")) {
+        if (write !== read) items[write] = item;
+        write++;
       }
-      write++;
     }
+  } else if (mode === "homeCards") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      const key = item?.dataKey;
+      if (key === "ContinueNavigationCard" || key === "FrequentLocation" || key === "LoginCard") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "findCar") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      if (item?.dataKey === "FindCarVirtualCard") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "dynamicAds") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      if (!AMAP_AD_DYNAMIC_ID.test(item?.dynamic_id_s)) {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "nonMusic") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      if (item?.biz_type !== "music") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "myOrder") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      if (item?.dataKey === "MyOrderCard") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "nearbyModules") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      if (item === "head" || item === "search_hot_words" || item === "feed_rec") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "searchContent") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      const itemType = item?.item_type;
+      if (itemType !== "brandAdCard" && itemType !== "toplist_al") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "suggestions") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      const tip = item?.tip;
+      if (
+        tip?.datatype_spec !== "12" &&
+        tip?.result_type !== "ad" &&
+        tip?.result_type !== "poi_ad" &&
+        tip?.result_type !== "toplist" &&
+        tip?.task_tag !== "ad" &&
+        tip?.task_tag !== "exct_query_sug_merge_theme" &&
+        tip?.task_tag !== "query_sug_merge_theme" &&
+        tip?.task_tag !== "sp"
+      ) {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "citySuggestions") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      const tip = item?.tip;
+      if (
+        tip?.datatype_spec !== "12" &&
+        tip?.result_type !== "ad" &&
+        tip?.result_type !== "poi_ad"
+      ) {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else {
+    return false;
   }
-  if (write !== items.length) {
+
+  if (write !== length) {
     items.length = write;
-    changed = true;
+    modified = true;
+    return true;
   }
-  if (changed) modified = true;
-  return changed;
+  return false;
 }
 """
 FILTER_ASSIGNMENT = re.compile(r"([A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*)\s*=\s*\1\.filter\s*\(")
@@ -185,6 +280,96 @@ def compact_search_suggestions_in_place(source):
     return source[:i] + replacement + "\n" + source[j:]
 
 
+def optimize_compaction_modes(source):
+    """Replace callback predicates with mode-specialized direct loops."""
+    callback = re.compile(
+        r'compactInPlace\(([^,\n]+),\s*(?:\(([A-Za-z_$][\w$]*)\)|([A-Za-z_$][\w$]*))\s*=>\s*([\s\S]*?)\);'
+    )
+    expected = {
+        "withoutSchema": 1,
+        "homeCards": 1,
+        "findCar": 1,
+        "dynamicAds": 4,
+        "nonMusic": 1,
+        "myOrder": 1,
+        "nearbyModules": 1,
+        "searchContent": 1,
+        "suggestions": 1,
+        "citySuggestions": 1,
+    }
+
+    def mode_for(predicate):
+        if "hasOwnProperty" in predicate and "schema" in predicate:
+            return "withoutSchema"
+        if "ContinueNavigationCard" in predicate:
+            return "homeCards"
+        if "FindCarVirtualCard" in predicate:
+            return "findCar"
+        if "AMAP_AD_DYNAMIC_ID.test" in predicate:
+            return "dynamicAds"
+        if "biz_type" in predicate and '"music"' in predicate:
+            return "nonMusic"
+        if "MyOrderCard" in predicate:
+            return "myOrder"
+        if '"head"' in predicate and "search_hot_words" in predicate and "feed_rec" in predicate:
+            return "nearbyModules"
+        if "item_type" in predicate and "brandAdCard" in predicate and "toplist_al" in predicate:
+            return "searchContent"
+        if "task_tag" in predicate and "exct_query_sug_merge_theme" in predicate:
+            return "suggestions"
+        if "datatype_spec" in predicate and "poi_ad" in predicate and "task_tag" not in predicate:
+            return "citySuggestions"
+        raise ValueError("Amap compaction predicate is not in the reviewed inventory")
+
+    actual = {name: 0 for name in expected}
+
+    def replace_call(match):
+        mode = mode_for(match.group(4))
+        actual[mode] += 1
+        return 'compactInPlace(%s, "%s");' % (match.group(1).strip(), mode)
+
+    source = callback.sub(replace_call, source)
+    if any(actual[name] > expected[name] for name in expected):
+        raise ValueError("Amap callback compaction inventory drift: %r" % actual)
+
+    helper_start = "function compactInPlace(items, keep) {"
+    helper_end = "function compactInPlace(items, mode) {"
+    marker_count = source.count(COMPACTION_MARKER)
+    if marker_count > 1:
+        raise ValueError("Amap specialized compaction marker is duplicated")
+    if helper_start in source:
+        if source.count(helper_start) != 1 or marker_count:
+            raise ValueError("Amap legacy compaction helper/marker drift")
+        start = source.index(helper_start)
+        end = source.index("\n}", start) + 2
+        source = source[:start] + HELPER.strip() + source[end:]
+    elif source.count(helper_end) != 1:
+        raise ValueError("Amap specialized compaction helper signature drift")
+
+    if source.count(COMPACTION_MARKER) == 0:
+        source = source.replace(helper_end, COMPACTION_MARKER + "\n" + helper_end, 1)
+    elif source.count(COMPACTION_MARKER) != 1:
+        raise ValueError("Amap specialized compaction marker count drift")
+
+    for name, count in expected.items():
+        actual_count = source.count(', "' + name + '")')
+        if actual_count != count:
+            raise ValueError(
+                "Amap specialized mode %s expected %d call(s), found %d"
+                % (name, count, actual_count)
+            )
+    if source.count("compactInPlace(") != 14:
+        raise ValueError("Amap specialized compaction call inventory drift")
+    if re.search(
+        r'compactInPlace\([^,\n]+,\s*(?:\([^)]*\)|[A-Za-z_$][\w$]*)\s*=>',
+        source,
+    ):
+        raise ValueError("Amap per-item compaction callback remains")
+    if source.count(COMPACTION_MARKER) != 1 or source.count(helper_end) != 1:
+        raise ValueError("Amap specialized compaction marker/signature drift")
+    return source
+
+
 def optimize_scalar_membership(source):
     if source.count(SCALAR_MARKER) > 1:
         raise ValueError("Amap scalar membership marker is duplicated")
@@ -226,8 +411,12 @@ def optimize_scalar_membership(source):
                 raise ValueError("Amap unused membership array changed: " + name)
             source = pattern.sub("", source, count=1)
 
-        anchor = "function compactInPlace(items, keep) {"
-        if source.count(anchor) != 1:
+        anchors = (
+            "function compactInPlace(items, mode) {",
+            "function compactInPlace(items, keep) {",
+        )
+        anchor = next((value for value in anchors if source.count(value) == 1), None)
+        if anchor is None:
             raise ValueError("Amap scalar membership marker insertion anchor changed")
         source = source.replace(anchor, SCALAR_MARKER + "\n" + anchor, 1)
 
@@ -242,7 +431,11 @@ def optimize_scalar_membership(source):
     )
     if any(value in source for value in forbidden):
         raise ValueError("Amap scalar membership optimization is incomplete")
-    if 'i === "head" || i === "search_hot_words" || i === "feed_rec"' not in source:
+    nearby_predicates = (
+        'i === "head" || i === "search_hot_words" || i === "feed_rec"',
+        'item === "head" || item === "search_hot_words" || item === "feed_rec"',
+    )
+    if not any(predicate in source for predicate in nearby_predicates):
         raise ValueError("Amap nearby scalar predicate is missing")
     card_pattern = re.compile(
         r'compactInPlace\(list\.content, \((\w+)\) =>\s*\1\?\.item_type !== "brandAdCard" && \1\?\.item_type !== "toplist_al"\s*\);'
@@ -268,26 +461,45 @@ def optimize_scalar_membership(source):
 def optimize_shared_dynamic_ad_matcher(source):
     if source.count(DYNAMIC_MATCHER_MARKER) > 1:
         raise ValueError("Amap shared dynamic matcher marker is duplicated")
+    specialized = "function compactInPlace(items, mode) {" in source
+
     if DYNAMIC_MATCHER_MARKER not in source:
-        if source.count(DYNAMIC_MATCHER_LITERAL) != 4:
+        old_literal_count = source.count(DYNAMIC_MATCHER_LITERAL)
+        item_literal_count = source.count(DYNAMIC_MATCHER_ITEM_LITERAL)
+        if old_literal_count == 4:
+            source = source.replace(DYNAMIC_MATCHER_LITERAL, DYNAMIC_MATCHER_CALL)
+        elif specialized and old_literal_count == 0 and item_literal_count == 1:
+            source = source.replace(DYNAMIC_MATCHER_ITEM_LITERAL, DYNAMIC_MATCHER_ITEM_CALL)
+        else:
             raise ValueError("Amap dynamic ad matcher inventory changed")
-        source = source.replace(DYNAMIC_MATCHER_LITERAL, DYNAMIC_MATCHER_CALL)
-        anchor = "function compactInPlace(items, keep) {"
-        if source.count(anchor) != 1:
+
+        anchors = (
+            "function compactInPlace(items, mode) {",
+            "function compactInPlace(items, keep) {",
+        )
+        anchor = next((value for value in anchors if source.count(value) == 1), None)
+        if anchor is None:
             raise ValueError("Amap shared matcher insertion anchor changed")
         source = source.replace(
             anchor,
             DYNAMIC_MATCHER_MARKER + "\nconst AMAP_AD_DYNAMIC_ID = /ads-\\d+/;\n\n" + anchor,
             1,
         )
+
     if source.count(DYNAMIC_MATCHER_MARKER) != 1:
         raise ValueError("Amap shared dynamic matcher marker count drift")
     if source.count(r"const AMAP_AD_DYNAMIC_ID = /ads-\d+/;") != 1:
         raise ValueError("Amap shared dynamic matcher declaration drift")
-    if source.count(DYNAMIC_MATCHER_CALL) != 4 or DYNAMIC_MATCHER_LITERAL in source:
-        raise ValueError("Amap shared dynamic matcher call inventory drift")
-    return source
 
+    if specialized:
+        if source.count(DYNAMIC_MATCHER_ITEM_CALL) != 1 or DYNAMIC_MATCHER_ITEM_LITERAL in source:
+            raise ValueError("Amap specialized dynamic matcher helper drift")
+        if source.count(DYNAMIC_MATCHER_CALL) not in (0, 4) or DYNAMIC_MATCHER_LITERAL in source:
+            raise ValueError("Amap upstream dynamic matcher transition drift")
+    else:
+        if source.count(DYNAMIC_MATCHER_CALL) != 4 or DYNAMIC_MATCHER_LITERAL in source:
+            raise ValueError("Amap shared dynamic matcher call inventory drift")
+    return source
 
 
 def optimize_route_info_cached_references(source):
@@ -419,7 +631,7 @@ def instrument_mutations(source):
             raise ValueError("Amap mutation tracking insertion anchor changed")
         source = source.replace(url_anchor, url_anchor + "\n" + TRACKING_HELPER, 1)
 
-    compact_pattern = re.compile(r"function compactInPlace\(items, keep\) \{[\s\S]*?\n\}")
+    compact_pattern = re.compile(r"function compactInPlace\(items, (?:keep|mode)\) \{[\s\S]*?\n\}")
     if len(compact_pattern.findall(source)) != 1:
         raise ValueError("Amap compaction helper structure changed")
     source = compact_pattern.sub(lambda _: HELPER.rstrip(), source, count=1)
@@ -486,9 +698,11 @@ def optimize_source(source, commit="unknown"):
         source = optimize_route_info_cached_references(source)
         source = optimize_route_plan_cached_references(source)
         source = instrument_mutations(source)
-        if ".filter(" in source or "function compactInPlace(items, keep)" not in source:
+        source = compact_search_suggestions_in_place(hoist_static_arrays(source))
+        source = optimize_compaction_modes(source)
+        if ".filter(" in source or "function compactInPlace(items, mode)" not in source:
             raise ValueError("Amap optimized runtime has drifted")
-        return compact_search_suggestions_in_place(hoist_static_arrays(source))
+        return source
     body_guard = "if (!$response.body) $done({});"
     if source.count(body_guard) != 1:
         raise ValueError("Amap empty-body guard anchor changed")
@@ -519,6 +733,7 @@ def optimize_source(source, commit="unknown"):
     source = optimize_route_info_cached_references(source)
     source = optimize_route_plan_cached_references(source)
     source = instrument_mutations(source)
+    source = optimize_compaction_modes(source)
     return MARKER + commit + "\n" + source
 
 def rewrite_plugin(plugin):

@@ -319,25 +319,118 @@ const AMAP_STATIC_ITEMS_08 = [
 // loon-change: Amap shared dynamic ad matcher v1
 const AMAP_AD_DYNAMIC_ID = /ads-\d+/;
 
-function compactInPlace(items, keep) {
+// loon-change: Amap specialized in-place compaction v1
+function compactInPlace(items, mode) {
+  const length = items.length;
   let write = 0;
-  let changed = false;
-  for (let read = 0, length = items.length; read < length; read++) {
-    const item = items[read];
-    if (keep(item, read)) {
-      if (write !== read) {
-        items[write] = item;
-        changed = true;
+
+  if (mode === "withoutSchema") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      if (!item || !Object.prototype.hasOwnProperty.call(item, "schema")) {
+        if (write !== read) items[write] = item;
+        write++;
       }
-      write++;
     }
+  } else if (mode === "homeCards") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      const key = item?.dataKey;
+      if (key === "ContinueNavigationCard" || key === "FrequentLocation" || key === "LoginCard") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "findCar") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      if (item?.dataKey === "FindCarVirtualCard") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "dynamicAds") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      if (!AMAP_AD_DYNAMIC_ID.test(item?.dynamic_id_s)) {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "nonMusic") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      if (item?.biz_type !== "music") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "myOrder") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      if (item?.dataKey === "MyOrderCard") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "nearbyModules") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      if (item === "head" || item === "search_hot_words" || item === "feed_rec") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "searchContent") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      const itemType = item?.item_type;
+      if (itemType !== "brandAdCard" && itemType !== "toplist_al") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "suggestions") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      const tip = item?.tip;
+      if (
+        tip?.datatype_spec !== "12" &&
+        tip?.result_type !== "ad" &&
+        tip?.result_type !== "poi_ad" &&
+        tip?.result_type !== "toplist" &&
+        tip?.task_tag !== "ad" &&
+        tip?.task_tag !== "exct_query_sug_merge_theme" &&
+        tip?.task_tag !== "query_sug_merge_theme" &&
+        tip?.task_tag !== "sp"
+      ) {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "citySuggestions") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      const tip = item?.tip;
+      if (
+        tip?.datatype_spec !== "12" &&
+        tip?.result_type !== "ad" &&
+        tip?.result_type !== "poi_ad"
+      ) {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else {
+    return false;
   }
-  if (write !== items.length) {
+
+  if (write !== length) {
     items.length = write;
-    changed = true;
+    modified = true;
+    return true;
   }
-  if (changed) modified = true;
-  return changed;
+  return false;
 }
 
 if (!$response.body) {
@@ -446,22 +539,15 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
   // 路线规划页
   if (obj?.data?.children?.length > 0) {
     // 有schema参数的为推广
-    compactInPlace(obj.data.children, (i) => !i.hasOwnProperty("schema"));
+    compactInPlace(obj.data.children, "withoutSchema");
   }
 } else if (url.includes("/faas/amap-navigation/main-page")) {
   // 首页底部卡片
   if (obj?.data?.cardList?.length > 0) {
-    compactInPlace(obj.data.cardList, 
-        (i) =>
-            i?.dataKey === "ContinueNavigationCard" || // 继续导航
-            i?.dataKey === "FrequentLocation" || // 常去地点
-            i?.dataKey === "LoginCard" // 登陆卡片
-    );
+    compactInPlace(obj.data.cardList, "homeCards");
   }
   if (obj?.data?.mapBizList?.length > 0) {
-    compactInPlace(obj.data.mapBizList, 
-        (i) => i?.dataKey === "FindCarVirtualCard" // 显示关联车辆位置
-    );
+    compactInPlace(obj.data.mapBizList, "findCar");
   }
 } else if (url.includes("/perception/drive/routeInfo")) {
   // 导航详情页
@@ -472,12 +558,12 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
   const routeInfoGuideTips = routeInfoFrontEnd?.guide_tips;
   const routeInfoDownloads = routeInfoFrontEnd?.download;
   if (routeInfoEvents?.length > 0) {
-    compactInPlace(routeInfoEvents, (i) => !AMAP_AD_DYNAMIC_ID.test(i?.dynamic_id_s));
+    compactInPlace(routeInfoEvents, "dynamicAds");
   }
   if (routeInfoFrontEnd) {
     if (routeInfoGuideTips?.length > 0) {
       // 音乐底栏
-      compactInPlace(routeInfoGuideTips, (i) => i?.biz_type !== "music");
+      compactInPlace(routeInfoGuideTips, "nonMusic");
     }
     if (routeInfoFrontEnd?.assistant) {
       // 助手皮肤
@@ -485,7 +571,7 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
     }
     if (routeInfoDownloads?.length > 0) {
       // 导航插播语音广告
-      compactInPlace(routeInfoDownloads, (i) => !AMAP_AD_DYNAMIC_ID.test(i?.dynamic_id_s));
+      compactInPlace(routeInfoDownloads, "dynamicAds");
     }
   }
 } else if (url.includes("/perception/drive/routePlan")) {
@@ -503,11 +589,11 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
   }
   if (routePlanEvents?.length > 0) {
     // 导航插播语音广告
-    compactInPlace(routePlanEvents, (i) => !AMAP_AD_DYNAMIC_ID.test(i?.dynamic_id_s));
+    compactInPlace(routePlanEvents, "dynamicAds");
   }
   if (routePlanDownloads?.length > 0) {
     // 导航插播语音广告
-    compactInPlace(routePlanDownloads, (i) => !AMAP_AD_DYNAMIC_ID.test(i?.dynamic_id_s));
+    compactInPlace(routePlanDownloads, "dynamicAds");
   }
 } else if (url.includes("/promotion-web/resource")) {
   // 打车页面
@@ -525,7 +611,7 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
 } else if (url.includes("/shield/dsp/profile/index/nodefaasv3")) {
   // 我的页面
   if (obj?.data?.cardList?.length > 0) {
-    compactInPlace(obj.data.cardList, (i) => i?.dataKey === "MyOrderCard");
+    compactInPlace(obj.data.cardList, "myOrder");
   }
   if (obj?.data?.tipData) {
     deleteIfPresent(obj.data, "tipData");
@@ -559,9 +645,7 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
 } else if (url.includes("/shield/search/nearbyrec_smart")) {
   // 附近页面
   if (Array.isArray(obj?.data?.modules) && obj.data.modules.length > 0) {
-    compactInPlace(obj.data.modules, (i) =>
-      i === "head" || i === "search_hot_words" || i === "feed_rec"
-    );
+    compactInPlace(obj.data.modules, "nearbyModules");
   }
 } else if (url.includes("/shield/search/poi/detail")) {
   // 搜索结果 模块详情
@@ -677,36 +761,18 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
       let list = obj.data.modules.list_data.data;
       if (list?.content?.length > 0) {
         // brandAdCard广告卡片 toplist_al人气榜单 高德指南
-        compactInPlace(list.content, (i) => {
-          const itemType = i?.item_type;
-          return itemType !== "brandAdCard" && itemType !== "toplist_al";
-        });
+        compactInPlace(list.content, "searchContent");
       }
     }
   }
 } else // loon-change: Amap cached suggestion tip access v1
 if (url.includes("/shield/search_poi/sug")) {
   if (Array.isArray(obj?.tip_list) && obj.tip_list.length > 0) {
-    compactInPlace(obj.tip_list, item => {
-      const tip = item?.tip;
-      return tip?.datatype_spec !== "12" &&
-        tip?.result_type !== "ad" &&
-        tip?.result_type !== "poi_ad" &&
-        tip?.result_type !== "toplist" &&
-        tip?.task_tag !== "ad" &&
-        tip?.task_tag !== "exct_query_sug_merge_theme" &&
-        tip?.task_tag !== "query_sug_merge_theme" &&
-        tip?.task_tag !== "sp";
-    });
+    compactInPlace(obj.tip_list, "suggestions");
   } else if (Array.isArray(obj?.city_list) && obj.city_list.length > 0) {
     for (const city of obj.city_list) {
       if (Array.isArray(city?.tip_list) && city.tip_list.length > 0) {
-        compactInPlace(city.tip_list, item => {
-          const tip = item?.tip;
-          return tip?.datatype_spec !== "12" &&
-            tip?.result_type !== "ad" &&
-            tip?.result_type !== "poi_ad";
-        });
+        compactInPlace(city.tip_list, "citySuggestions");
       }
     }
   }
