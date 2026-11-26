@@ -715,7 +715,7 @@ def optimize_source(source, commit="unknown"):
         if "__loonSource32" not in source or "compactInPlace(items, keep)" not in source:
             raise ValueError("marked Weibo script is incomplete")
         optimized = optimize_comment_status_page_info_cache(optimize_vote_info_nested_reference_cache(optimize_shared_feed_cleanup_cache(optimize_is_ad_property_cache(optimize_profile_timeline_property_cache(optimize_search_timeline_nested_reference_cache(optimize_flowlist_asyn_nested_reference_cache(optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source))))))))))))))))) ))))
-        return optimize_profile_me_array_cache(optimize_comment_array_length_cache(optimized))
+        return optimize_profile_statuses_tab_array_cache(optimize_profile_me_array_cache(optimize_comment_array_length_cache(optimized)))
     source = source.replace("const url = $request.url;", "const url = $request.url;\n" + GUARD_DECLARATION + "\n\n" + HELPER, 1)
     if source.count(HELPER) != 1:
         raise ValueError("Weibo helper insertion failed")
@@ -728,7 +728,7 @@ def optimize_source(source, commit="unknown"):
     if sorted(remaining) != ["newActions", "newII"]:
         raise ValueError("unexpected remaining Weibo temporary arrays: " + repr(remaining))
     optimized = optimize_comment_status_page_info_cache(optimize_vote_info_nested_reference_cache(optimize_shared_feed_cleanup_cache(optimize_is_ad_property_cache(optimize_profile_timeline_property_cache(optimize_search_timeline_nested_reference_cache(optimize_flowlist_asyn_nested_reference_cache(optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source))))))))))))))))) ))))
-    return optimize_profile_me_array_cache(optimize_comment_array_length_cache(optimized))
+    return optimize_profile_statuses_tab_array_cache(optimize_profile_me_array_cache(optimize_comment_array_length_cache(optimized)))
 
 SCALAR_MEMBERSHIP_MARKER = "// loon-change: Weibo hot-loop scalar membership v1"
 SCALAR_MEMBERSHIP_REWRITES = [
@@ -1603,6 +1603,155 @@ def optimize_profile_me_array_cache(source):
         raise ValueError("Weibo profile/me cache postcondition failed")
     if any(token in block for token in forbidden):
         raise ValueError("Weibo repeated profile/me array reads remain")
+    return source[:left] + block + source[right:]
+
+
+
+PROFILE_STATUSES_TAB_ARRAY_CACHE_MARKER = "// loon-change: Weibo profile/statuses tab array cache v1"
+
+def optimize_profile_statuses_tab_array_cache(source):
+    """Cache profile/statuses/tab arrays and mblog references within the selected route."""
+    start = '} else if (url.includes("/2/profile/statuses/tab")) {'
+    end = '} else if (url.includes("/2/profile/userinfo")) {'
+    if source.count(start) != 1 or source.count(end) != 1:
+        raise ValueError("Weibo profile/statuses-tab route boundary drift")
+    left = source.index(start)
+    right = source.index(end, left + len(start))
+    block = source[left:right]
+    required = (
+        PROFILE_STATUSES_TAB_ARRAY_CACHE_MARKER,
+        "const profileStatusCards = obj?.cards;",
+        "const profileStatusCardsLength = profileStatusCards?.length || 0;",
+        "const __loonLength15 = profileStatusCardsLength;",
+        "const cardGroup = card?.card_group;",
+        "const cardGroupLength = cardGroup?.length || 0;",
+        "const __loonLength14 = cardGroupLength;",
+        "const groupMblog = group?.mblog;",
+        "removeAvatar(groupMblog);",
+        "removeVoteInfo(groupMblog);",
+        "const cardMblog = card?.mblog;",
+        "removeAvatar(cardMblog);",
+        "removeVoteInfo(cardMblog);",
+    )
+    forbidden = (
+        "if (obj?.cards?.length > 0)",
+        "const __loonSource15 = obj.cards;",
+        "if (card?.card_group?.length > 0)",
+        "const __loonSource14 = card.card_group;",
+        "if (group?.mblog)",
+        "removeAvatar(group?.mblog);",
+        "removeVoteInfo(group?.mblog);",
+        "if (card?.mblog)",
+        "removeAvatar(card?.mblog);",
+        "removeVoteInfo(card?.mblog);",
+    )
+    if PROFILE_STATUSES_TAB_ARRAY_CACHE_MARKER in block:
+        if block.count(PROFILE_STATUSES_TAB_ARRAY_CACHE_MARKER) != 1 or any(token not in block for token in required):
+            raise ValueError("Weibo profile/statuses-tab cache marker/structure drift")
+        if any(token in block for token in forbidden):
+            raise ValueError("Weibo repeated profile/statuses-tab property reads remain")
+        return source
+
+    block = block.replace(start, start + "\n     " + PROFILE_STATUSES_TAB_ARRAY_CACHE_MARKER, 1)
+    old = (
+        "    if (obj?.cards?.length > 0) {\n"
+        "      const __loonSource15 = obj.cards;\n"
+        "      let __loonWrite15 = 0;\n"
+        "      const __loonLength15 = __loonSource15.length;\n"
+        "      for (let __loonRead15 = 0; __loonRead15 < __loonLength15; __loonRead15++) {\n"
+        "        let card = __loonSource15[__loonRead15];\n"
+        "        if (card?.card_group?.length > 0) {\n"
+        "          const __loonSource14 = card.card_group;\n"
+        "          let __loonWrite14 = 0;\n"
+        "          const __loonLength14 = __loonSource14.length;\n"
+        "          for (let __loonRead14 = 0; __loonRead14 < __loonLength14; __loonRead14++) {\n"
+        "            let group = __loonSource14[__loonRead14];\n"
+        "            let cardType = group.card_type;\n"
+        "            // 22那年今天\n"
+        "            if (cardType === 22) {\n"
+        "              continue;\n"
+        "            }\n"
+        "            if (group?.mblog) {\n"
+        "              // 卡片挂件,关注按钮\n"
+        "              removeAvatar(group?.mblog);\n"
+        "              // 投票窗口\n"
+        "              removeVoteInfo(group?.mblog);\n"
+        "            }\n"
+        "            __loonSource14[__loonWrite14++] = group;\n"
+        "          }\n"
+        "          __loonSource14.length = __loonWrite14;\n"
+        "          if (__loonWrite14 !== __loonLength14) modified = true;\n"
+        "          __loonSource15[__loonWrite15++] = card;\n"
+        "        } else {\n"
+        "          if (card?.mblog) {\n"
+        "            // 卡片挂件,关注按钮\n"
+        "            removeAvatar(card?.mblog);\n"
+        "            // 投票窗口\n"
+        "            removeVoteInfo(card?.mblog);\n"
+        "          }\n"
+        "          __loonSource15[__loonWrite15++] = card;\n"
+        "        }\n"
+        "      }\n"
+        "      __loonSource15.length = __loonWrite15;\n"
+        "      if (__loonWrite15 !== __loonLength15) modified = true;\n"
+        "    }"
+    )
+    new = (
+        "    const profileStatusCards = obj?.cards;\n"
+        "    const profileStatusCardsLength = profileStatusCards?.length || 0;\n"
+        "    if (profileStatusCardsLength > 0) {\n"
+        "      const __loonSource15 = profileStatusCards;\n"
+        "      let __loonWrite15 = 0;\n"
+        "      const __loonLength15 = profileStatusCardsLength;\n"
+        "      for (let __loonRead15 = 0; __loonRead15 < __loonLength15; __loonRead15++) {\n"
+        "        let card = __loonSource15[__loonRead15];\n"
+        "        const cardGroup = card?.card_group;\n"
+        "        const cardGroupLength = cardGroup?.length || 0;\n"
+        "        if (cardGroupLength > 0) {\n"
+        "          const __loonSource14 = cardGroup;\n"
+        "          let __loonWrite14 = 0;\n"
+        "          const __loonLength14 = cardGroupLength;\n"
+        "          for (let __loonRead14 = 0; __loonRead14 < __loonLength14; __loonRead14++) {\n"
+        "            let group = __loonSource14[__loonRead14];\n"
+        "            let cardType = group.card_type;\n"
+        "            // 22那年今日\n"
+        "            if (cardType === 22) {\n"
+        "              continue;\n"
+        "            }\n"
+        "            const groupMblog = group?.mblog;\n"
+        "            if (groupMblog) {\n"
+        "              // 卡片挂件,关注按钮\n"
+        "              removeAvatar(groupMblog);\n"
+        "              // 投票窗口\n"
+        "              removeVoteInfo(groupMblog);\n"
+        "            }\n"
+        "            __loonSource14[__loonWrite14++] = group;\n"
+        "          }\n"
+        "          __loonSource14.length = __loonWrite14;\n"
+        "          if (__loonWrite14 !== __loonLength14) modified = true;\n"
+        "          __loonSource15[__loonWrite15++] = card;\n"
+        "        } else {\n"
+        "          const cardMblog = card?.mblog;\n"
+        "          if (cardMblog) {\n"
+        "            // 卡片挂件,关注按钮\n"
+        "            removeAvatar(cardMblog);\n"
+        "            // 投票窗口\n"
+        "            removeVoteInfo(cardMblog);\n"
+        "          }\n"
+        "          __loonSource15[__loonWrite15++] = card;\n"
+        "        }\n"
+        "      }\n"
+        "      __loonSource15.length = __loonWrite15;\n"
+        "      if (__loonWrite15 !== __loonLength15) modified = true;\n"
+        "    }"
+    )
+    if block.count(old) != 1:
+        raise ValueError("Weibo profile/statuses-tab cache anchor drift")
+    block = block.replace(old, new, 1)
+    if any(token not in block for token in required):
+        raise ValueError("Weibo profile/statuses-tab cache postcondition failed")
+    if any(token in block for token in forbidden):
+        raise ValueError("Weibo repeated profile/statuses-tab property reads remain")
     return source[:left] + block + source[right:]
 
 

@@ -52,7 +52,7 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         self.assertIn('$done(modified ? {body: JSON.stringify(obj)} : {});', source)
         self.assertEqual(optimize_source(source), source)
         self.assertEqual(len(re.findall(r"const __loonSource\d+ =", source)), 32)
-        self.assertEqual(len(re.findall(r"(?m)^\s*const __loonLength\d+ = __loonSource\d+\.length;$", source)), 19)
+        self.assertEqual(len(re.findall(r"(?m)^\s*const __loonLength\d+ = __loonSource\d+\.length;$", source)), 17)
         for cached_length in ("timelineItemsLength", "hotItemsLength", "hotStatusesLength", "asynItemsLength", "flowItemsLength", "searchItemsLength", "groupItemsLength"):
             self.assertIn(cached_length, source)
         self.assertNotRegex(source, r"for \(let __loonRead\d+ = 0, __loonLength\d+")
@@ -413,6 +413,34 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
 
 
 class WeiboProfileMeArrayCacheOptimizerTests(unittest.TestCase):
+
+    def test_profile_statuses_tab_array_cache_is_idempotent_and_fails_closed(self):
+        from optimize_weibo_rstore import (
+            PROFILE_STATUSES_TAB_ARRAY_CACHE_MARKER,
+            optimize_profile_statuses_tab_array_cache,
+        )
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(PROFILE_STATUSES_TAB_ARRAY_CACHE_MARKER, source)
+        self.assertEqual(optimize_profile_statuses_tab_array_cache(source), source)
+        for token in (
+            "const profileStatusCards = obj?.cards;",
+            "const profileStatusCardsLength = profileStatusCards?.length || 0;",
+            "const cardGroup = card?.card_group;",
+            "const cardGroupLength = cardGroup?.length || 0;",
+            "const groupMblog = group?.mblog;",
+            "const cardMblog = card?.mblog;",
+            "removeAvatar(groupMblog);",
+            "removeVoteInfo(cardMblog);",
+        ):
+            self.assertIn(token, source)
+        damaged = source.replace(
+            "const cardGroupLength = cardGroup?.length || 0;",
+            "const cardGroupLength = 0;", 1
+        )
+        with self.assertRaisesRegex(ValueError, "marker/structure drift"):
+            optimize_profile_statuses_tab_array_cache(damaged)
+
+
     def test_profile_me_array_cache_is_idempotent_and_fails_closed(self):
         from optimize_weibo_rstore import (
             PROFILE_ME_ARRAY_CACHE_MARKER,
@@ -1236,6 +1264,98 @@ process.stdout.write(nativeStringify({doneResult,counts}));
         self.assertNotIn("rightImage", output["items"][0]["items"][1]["data"])
         self.assertNotIn("backgroundImage", output["items"][0]["items"][1]["data"])
         self.assertFalse(output["items"][0]["items"][0]["data"]["enable_comment_guide"])
+
+
+
+    def test_profile_statuses_tab_arrays_and_mblog_references_are_read_once(self):
+        runner = r"""
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync(process.argv[1],"utf8");
+const payload=JSON.parse(fs.readFileSync(0,"utf8"));
+let doneResult,tracking=false;
+const counts=Object.create(null);
+const nativeParse=JSON.parse.bind(JSON),nativeStringify=JSON.stringify.bind(JSON);
+const proxyArray=(array,label)=>{
+  counts[label+".ref"]=0;counts[label+".length"]=0;
+  return new Proxy(array,{get(target,key,receiver){
+    if(tracking&&key==="length")counts[label+".length"]++;
+    return Reflect.get(target,key,receiver);
+  }});
+};
+const trackValue=(target,key,label,value)=>{
+  counts[label]=0;
+  Object.defineProperty(target,key,{enumerable:true,configurable:true,
+    get(){if(tracking)counts[label]++;return value;},
+    set(next){value=next;}
+  });
+};
+const trackedJSON={
+  parse(raw){
+    const parsed=nativeParse(raw);
+    const cardsProxy=proxyArray(parsed.cards,"cards");
+    trackValue(parsed,"cards","cards.ref",cardsProxy);
+    const first=parsed.cards[0],second=parsed.cards[1],third=parsed.cards[2];
+    const firstGroups=proxyArray(first.card_group,"first.card_group");
+    trackValue(first,"card_group","first.card_group.ref",firstGroups);
+    trackValue(second,"card_group","second.card_group.ref",undefined);
+    const emptyGroups=proxyArray(third.card_group,"third.card_group");
+    trackValue(third,"card_group","third.card_group.ref",emptyGroups);
+    for(const [group,label] of [[firstGroups[0],"removedGroup"],[firstGroups[1],"keptGroup"]]){
+      trackValue(group,"mblog",label+".mblog.ref",group.mblog);
+    }
+    trackValue(second,"mblog","second.mblog.ref",second.mblog);
+    trackValue(third,"mblog","third.mblog.ref",third.mblog);
+    tracking=true;
+    return parsed;
+  },
+  stringify(value){tracking=false;return nativeStringify(value);}
+};
+const context={JSON:trackedJSON,$request:{url:payload.url},$response:{body:nativeStringify(payload.body)},
+  $done(value){doneResult=value;},console:{log(){},warn(){},error(){}}};
+vm.runInNewContext(source,context,{timeout:5000});
+process.stdout.write(nativeStringify({doneResult,counts}));
+"""
+        cleaned_mblog = {
+            "block_card_bg": "remove",
+            "user": {"avatargj_id": "remove"},
+            "page_info": {"media_info": {"vote_info": {"id": 1}}},
+        }
+        body = {
+            "cards": [
+                {"card_group": [
+                    {"card_type": 22, "mblog": {"block_card_bg": "not visited"}},
+                    {"card_type": 1, "mblog": dict(cleaned_mblog)},
+                ]},
+                {"mblog": dict(cleaned_mblog)},
+                {"card_group": [], "mblog": dict(cleaned_mblog)},
+            ],
+            "cardlistInfo": {"page_type": "07"},
+        }
+        completed = subprocess.run(
+            [NODE, "-e", runner, str(SCRIPT)],
+            input=json.dumps({"url": "https://api.weibo.cn/2/profile/statuses/tab?fixture=array-cache",
+                              "body": body}),
+            capture_output=True, text=True, check=False, timeout=10
+        )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        result = json.loads(completed.stdout)
+        output = json.loads(result["doneResult"]["body"])
+        counts = result["counts"]
+        for key in (
+            "cards.ref", "cards.length",
+            "first.card_group.ref", "first.card_group.length",
+            "second.card_group.ref", "third.card_group.ref", "third.card_group.length",
+            "keptGroup.mblog.ref", "second.mblog.ref", "third.mblog.ref",
+        ):
+            self.assertEqual(counts.get(key), 1, key)
+        self.assertEqual(len(output["cards"]), 3)
+        self.assertEqual([g["card_type"] for g in output["cards"][0]["card_group"]], [1])
+        self.assertNotIn("block_card_bg", output["cards"][0]["card_group"][0]["mblog"])
+        self.assertNotIn("avatargj_id", output["cards"][0]["card_group"][0]["mblog"]["user"])
+        self.assertNotIn("vote_info", output["cards"][0]["card_group"][0]["mblog"]["page_info"]["media_info"])
+        for card in output["cards"][1:]:
+            self.assertNotIn("block_card_bg", card["mblog"])
+            self.assertNotIn("avatargj_id", card["mblog"]["user"])
+            self.assertNotIn("vote_info", card["mblog"]["page_info"]["media_info"])
 
 
     def test_profile_me_array_references_and_lengths_are_read_once(self):
