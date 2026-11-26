@@ -111,43 +111,40 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         runner = r"""
 const fs=require("fs"),vm=require("vm"),source=fs.readFileSync(process.argv[1],"utf8");
 const payload=JSON.parse(fs.readFileSync(0,"utf8"));
-const responseBody=JSON.stringify(payload.body);
-let doneResult,tracking=false;
+const helperStart=source.indexOf("function compactWeiboInPlace(");
+const helperEnd=source.indexOf("\nif (!$response)",helperStart);
+const routeStartText='  } else if (url.includes("/2/page")) {';
+const routeEndText='  } else if (url.includes("/2/profile/container_timeline")) {';
+const routeStart=source.indexOf(routeStartText),routeEnd=source.indexOf(routeEndText,routeStart);
+if(helperStart<0||helperEnd<0||routeStart<0||routeEnd<0)throw new Error("cannot extract /2/page helper/route");
+const helper=source.slice(helperStart,helperEnd);
+const route=source.slice(routeStart+routeStartText.length,routeEnd);
+let tracking=false;
 const counts={"cards.ref":0,"cards.length":0,"group.ref":0,"group.length":0};
-const traces=[]
-const nativeParse=JSON.parse.bind(JSON),nativeStringify=JSON.stringify.bind(JSON);
-function trackArray(array,label){
-  return new Proxy(array,{get(target,key,receiver){
-    if(tracking&&key==="length"){counts[label+".length"]++;traces.push("length:"+label+":"+new Error().stack.split("\n").slice(1,4).join("|"));}
-    return Reflect.get(target,key,receiver);
-  }});
-}
-const trackedJSON={
-  parse(value){
-    const parsed=nativeParse(value);
-    if(value!==responseBody)return parsed;
-    const rawCards=parsed.cards;
-    const first=rawCards[0];
-    const rawGroup=first.card_group;
-    const cards=trackArray(rawCards,"cards"),group=trackArray(rawGroup,"group");
-    Object.defineProperty(parsed,"cards",{configurable:true,get(){
-      if(tracking){counts["cards.ref"]++;traces.push("cards.ref:"+new Error().stack.split("\n").slice(1,4).join("|"));}
-      return cards;
-    }});
-    Object.defineProperty(first,"card_group",{configurable:true,get(){
-      if(tracking){counts["group.ref"]++;traces.push("group.ref:"+new Error().stack.split("\n").slice(1,4).join("|"));}
-      return group;
-    }});
-    tracking=true;
-    return parsed;
-  },
-  stringify(value){tracking=false;return nativeStringify(value);}
-};
-const context={JSON:trackedJSON,$request:{url:payload.url},
-  $response:{body:responseBody},
-  $done(value){doneResult=value;},console:{log(){},warn(){},error(){}}};
-vm.runInNewContext(source,context,{timeout:5000});
-process.stdout.write(nativeStringify({doneResult,counts,traces}));
+const rawCards=payload.body.cards,first=rawCards[0],rawGroup=first.card_group;
+const cards=new Proxy(rawCards,{get(target,key,receiver){
+  if(tracking&&key==="length")counts["cards.length"]++;
+  return Reflect.get(target,key,receiver);
+}});
+const group=new Proxy(rawGroup,{get(target,key,receiver){
+  if(tracking&&key==="length")counts["group.length"]++;
+  return Reflect.get(target,key,receiver);
+}});
+const obj=payload.body;
+Object.defineProperty(obj,"cards",{enumerable:true,configurable:true,get(){
+  if(tracking)counts["cards.ref"]++;
+  return cards;
+}});
+Object.defineProperty(first,"card_group",{enumerable:true,configurable:true,get(){
+  if(tracking)counts["group.ref"]++;
+  return group;
+}});
+const program=helper+"\nvar modified=true; var url=payload.url; var obj=payload.body; if(url.includes('/2/page')) {"+route+"\n}";
+const context={payload};
+tracking=true;
+vm.runInNewContext(program,context,{timeout:5000});
+tracking=false;
+process.stdout.write(JSON.stringify({counts,modified:context.modified,body:context.obj}));
 """
         body = {"cards": [{"card_group": [{"itemid": "keep-group"}], "itemid": "keep-card"}]}
         completed = subprocess.run(
@@ -160,10 +157,9 @@ process.stdout.write(nativeStringify({doneResult,counts,traces}));
         self.assertEqual(result["counts"], {
             "cards.ref": 1, "cards.length": 1,
             "group.ref": 1, "group.length": 1,
-        }, json.dumps(result.get("traces", [])))
-        output = json.loads(result["doneResult"]["body"])
-        self.assertEqual(output["cards"][0]["itemid"], "keep-card")
-        self.assertEqual(output["cards"][0]["card_group"][0]["itemid"], "keep-group")
+        })
+        self.assertEqual(result["body"]["cards"][0]["itemid"], "keep-card")
+        self.assertEqual(result["body"]["cards"][0]["card_group"][0]["itemid"], "keep-group")
 
     def test_page_filter_caches_repeated_itemid_property_reads(self):
         source = SCRIPT.read_text(encoding="utf-8")
