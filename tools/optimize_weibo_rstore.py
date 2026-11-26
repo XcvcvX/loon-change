@@ -845,7 +845,7 @@ def optimize_page_route_array_reference_cache(source):
         'compactWeiboInPlace(topicCardGroup, "topicCardGroup", topicCardGroupLength);',
     )
     if PAGE_ROUTE_ARRAY_CACHE_MARKER in block:
-        forbidden = ()
+        forbidden = ("if (obj?.cards?.length > 0) {", 'compactWeiboInPlace(obj.cards[0].card_group, "pageCardGroup");', "else if (obj?.card_group?.length > 0) {")
         missing = [x for x in required if x not in block]
         present_forbidden = [x for x in forbidden if x in block]
         if block.count(PAGE_ROUTE_ARRAY_CACHE_MARKER) != 1 or missing or present_forbidden:
@@ -876,8 +876,9 @@ def optimize_page_route_array_reference_cache(source):
         + "      }\n"
         + "    }\n"
     )
-    block = block.replace(comment, replacement, 1)
-    if any(x not in block for x in required):
+    comment_index = block.index(comment)
+    block = block[:comment_index] + replacement
+    if any(x not in block for x in required) or any(x in block for x in forbidden):
         raise ValueError("Weibo /2/page array-cache postcondition failed")
     return source[:left] + block + source[right:]
 
