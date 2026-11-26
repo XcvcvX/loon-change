@@ -523,7 +523,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
     }
   } else if (url.includes("/2/page")) {
     // 搜索页列表,超话
-// loon-change: Weibo /2/page array references and lengths cached v1
+    // loon-change: Weibo /2/page array references and lengths cached v1
     const pageCards = obj?.cards;
     const pageCardsLength = pageCards?.length || 0;
     if (pageCardsLength > 0) {
