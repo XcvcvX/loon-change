@@ -506,3 +506,9 @@ class DidiSpecializedPropertyLoopTests(unittest.TestCase):
         self.assertNotIn("item[field]", source)
         self.assertNotIn("compactDidiByField(items, field, mode)", source)
         self.assertEqual(source.count("compactDidiByField("), 8)
+
+
+class DidiSpecializedPropertyLoopMigrationTests(unittest.TestCase):
+    def test_optimizer_keeps_v2_runtime_idempotent(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        self.assertEqual(optimize_source(source), source)
