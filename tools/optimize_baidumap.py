@@ -10,7 +10,7 @@ NEW = OLD + "\n  " + MARKER + "\n  const targetDataOffset = messageHead.offset;"
 
 
 REBUILD_MARKER = "// loon-change: Baidu protobuf segment rebuild without chunks v1"
-REBUILD_OLD_START = "  const chunks = [];\\n  let sourceCursor = 0;\\n  let outputLength = 0;"
+REBUILD_OLD_START = "  const chunks = [];\n  let sourceCursor = 0;\n  let outputLength = 0;"
 REBUILD_OLD_END = "  const beginOffset = 4;"
 REBUILD_NEW = """  // loon-change: Baidu protobuf segment rebuild without chunks v1
   let sourceCursor = 0;
@@ -68,8 +68,10 @@ REBUILD_NEW = """  // loon-change: Baidu protobuf segment rebuild without chunks
 
 """
 def optimize_segment_rebuild_without_chunks(source: str) -> str:
-    start = source.index("function assembleBaiduResponseSegments(")
-    end = source.index("\\n}\\n", start) + 2
+    start = source.find("function assembleBaiduResponseSegments(")
+    if start < 0:
+        return source
+    end = source.index("\n}\n", start) + 2
     helper = source[start:end]
     if REBUILD_MARKER in helper:
         if helper.count(REBUILD_MARKER) != 1 or "const chunks = [];" in helper or "chunks.push(" in helper:
