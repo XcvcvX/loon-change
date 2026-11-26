@@ -144,24 +144,45 @@ function assembleBaiduResponseSegments(repHeadMessage, repHeadType, binaryBody, 
 
   // Header order is not assumed to match payload order. Sort only on the rebuild path.
   segments.sort((left, right) => left.offset - right.offset);
-  const chunks = [];
+  // loon-change: Baidu protobuf segment rebuild without chunks v1
   let sourceCursor = 0;
   let outputLength = 0;
   const segmentsLength = segments.length;
+  // First pass computes final offsets and validates replacements without allocating chunk views.
   for (let i = 0; i < segmentsLength; i++) {
     const segment = segments[i];
     if (segment.offset < sourceCursor) {
       throw new Error("BaiduMap segments overlap");
     }
+    outputLength += segment.offset - sourceCursor;
+    const replacement = replacements[segment.index];
+    if (replacement !== undefined && replacement !== null && !(replacement instanceof Uint8Array)) {
+      throw new Error("BaiduMap replacement segment must be Uint8Array");
+    }
+    const replacementLength = replacement === undefined || replacement === null
+      ? segment.length
+      : replacement.byteLength;
+    segment.header.offset = outputLength;
+    segment.header.length = replacementLength;
+    outputLength += replacementLength;
+    sourceCursor = segment.offset + segment.length;
+  }
+  if (sourceCursor < payloadLength) outputLength += payloadLength - sourceCursor;
+
+  // One payload allocation; copy source ranges and replacements directly into their final positions.
+  const payload = new Uint8Array(outputLength);
+  sourceCursor = 0;
+  let payloadWrite = 0;
+  for (let i = 0; i < segmentsLength; i++) {
+    const segment = segments[i];
     if (segment.offset > sourceCursor) {
-      const gap = binaryBody.subarray(
+      const gapLength = segment.offset - sourceCursor;
+      payload.set(binaryBody.subarray(
         dataBeginOffset + sourceCursor,
         dataBeginOffset + segment.offset
-      );
-      chunks.push(gap);
-      outputLength += gap.byteLength;
+      ), payloadWrite);
+      payloadWrite += gapLength;
     }
-
     const replacement = replacements[segment.index];
     const part = replacement === undefined || replacement === null
       ? binaryBody.subarray(
@@ -169,30 +190,12 @@ function assembleBaiduResponseSegments(repHeadMessage, repHeadType, binaryBody, 
           dataBeginOffset + segment.offset + segment.length
         )
       : replacement;
-    if (!(part instanceof Uint8Array)) {
-      throw new Error("BaiduMap replacement segment must be Uint8Array");
-    }
-    segment.header.offset = outputLength;
-    segment.header.length = part.byteLength;
-    chunks.push(part);
-    outputLength += part.byteLength;
+    payload.set(part, payloadWrite);
+    payloadWrite += part.byteLength;
     sourceCursor = segment.offset + segment.length;
   }
-
   if (sourceCursor < payloadLength) {
-    const trailing = binaryBody.subarray(dataBeginOffset + sourceCursor);
-    chunks.push(trailing);
-    outputLength += trailing.byteLength;
-  }
-
-  // Exactly one rebuilt payload allocation; unchanged segments and gaps stay byte views.
-  const payload = new Uint8Array(outputLength);
-  let payloadWrite = 0;
-  const chunksLength = chunks.length;
-  for (let i = 0; i < chunksLength; i++) {
-    const chunk = chunks[i];
-    payload.set(chunk, payloadWrite);
-    payloadWrite += chunk.byteLength;
+    payload.set(binaryBody.subarray(dataBeginOffset + sourceCursor), payloadWrite);
   }
 
   const beginOffset = 4;
