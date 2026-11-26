@@ -27,7 +27,7 @@ HELPER = """function compactInPlace(items, keep) {
 """
 
 DIDI_MODE_MARKER = "// loon-change: Didi hot-loop specialized property loops v2;"
-DIDI_WALLET_PROPERTY_CACHE_MARKER = "// loon-change: Didi wallet nested property cache v1"
+DIDI_WALLET_PROPERTY_CACHE_MARKER = "// loon-change: Didi wallet nested property cache v2"
 DIDI_MODE_HELPER = r"""// loon-change: Didi hot-loop specialized property loops v2;
 function compactDidiByField(items, mode) {
   const length = items.length;
@@ -341,8 +341,9 @@ const shouldProcess = isSceneList || isHomepageCore || isInfoList || isUserCente
     return source
 
 def optimize_wallet_nested_property_cache(source):
-    """Cache nested wallet array references instead of re-reading card properties."""
+    """Cache wallet arrays and let the compactor handle empty arrays without a duplicate length read."""
     marker = DIDI_WALLET_PROPERTY_CACHE_MARKER
+    legacy_marker = "// loon-change: Didi wallet nested property cache v1"
     old = """      if (item.tag === "wallet") {
         if (Array.isArray(item.items) && item.items.length > 0) {
           compactDidiByField(item.items, "walletItem");
@@ -351,7 +352,7 @@ def optimize_wallet_nested_property_cache(source):
           compactDidiByField(item.bottom_items, "walletBottom");
         }
       }"""
-    new = """      if (item.tag === "wallet") {
+    legacy = """      if (item.tag === "wallet") {
         // loon-change: Didi wallet nested property cache v1
         const walletItems = item.items;
         if (Array.isArray(walletItems) && walletItems.length > 0) {
@@ -360,6 +361,19 @@ def optimize_wallet_nested_property_cache(source):
         if (item.card_type === 4) {
           const walletBottomItems = item.bottom_items;
           if (Array.isArray(walletBottomItems) && walletBottomItems.length > 0) {
+            compactDidiByField(walletBottomItems, "walletBottom");
+          }
+        }
+      }"""
+    new = """      if (item.tag === "wallet") {
+        // loon-change: Didi wallet nested property cache v2
+        const walletItems = item.items;
+        if (Array.isArray(walletItems)) {
+          compactDidiByField(walletItems, "walletItem");
+        }
+        if (item.card_type === 4) {
+          const walletBottomItems = item.bottom_items;
+          if (Array.isArray(walletBottomItems)) {
             compactDidiByField(walletBottomItems, "walletBottom");
           }
         }
@@ -380,16 +394,23 @@ def optimize_wallet_nested_property_cache(source):
         "Array.isArray(item.bottom_items)",
         "item.bottom_items.length",
         'compactDidiByField(item.bottom_items, "walletBottom")',
+        "walletItems.length",
+        "walletBottomItems.length",
     )
     if marker in source:
         if source.count(marker) != 1 or any(token not in source for token in required):
             raise ValueError("Didi wallet property-cache structure is incomplete")
         if any(token in source for token in forbidden):
-            raise ValueError("Didi repeated wallet property reads remain")
+            raise ValueError("Didi duplicate wallet array-length reads remain")
         return source
-    if source.count(old) != 1:
-        raise ValueError("Didi wallet card branch changed; refusing property-cache rewrite")
-    source = source.replace(old, new, 1)
+    if legacy_marker in source:
+        if source.count(legacy_marker) != 1 or source.count(legacy) != 1:
+            raise ValueError("Didi legacy wallet property-cache structure changed")
+        source = source.replace(legacy, new, 1)
+    else:
+        if source.count(old) != 1:
+            raise ValueError("Didi wallet card branch changed; refusing property-cache rewrite")
+        source = source.replace(old, new, 1)
     if any(token not in source for token in required) or any(token in source for token in forbidden):
         raise ValueError("Didi wallet property-cache validation failed")
     return source

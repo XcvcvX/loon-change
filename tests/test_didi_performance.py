@@ -11,6 +11,7 @@ from optimize_didi import (
     DIDI_WALLET_PROPERTY_CACHE_MARKER,
     DIDI_HOMEPAGE_CORE_CACHE_MARKER,
     optimize_homepage_core_cached_references,
+    optimize_wallet_nested_property_cache,
     DIDI_ROUTE_ARRAY_REFERENCE_CACHE_MARKER,
     optimize_route_array_reference_cache,
     LOCAL,
@@ -492,6 +493,70 @@ if (payload.body === null) {
         )
         self.assertIn("scripts/", diff_line)
         self.assertIn("scripts/", add_line)
+
+
+
+class DidiWalletArrayLengthReadTests(unittest.TestCase):
+    def test_wallet_cache_v2_migrates_v1_and_is_idempotent(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        self.assertIn(DIDI_WALLET_PROPERTY_CACHE_MARKER, source)
+        self.assertNotIn("walletItems.length", source)
+        self.assertNotIn("walletBottomItems.length", source)
+        self.assertEqual(optimize_wallet_nested_property_cache(source), source)
+        legacy = source.replace(
+            "// loon-change: Didi wallet nested property cache v2",
+            "// loon-change: Didi wallet nested property cache v1",
+            1,
+        ).replace(
+            "if (Array.isArray(walletItems)) {",
+            "if (Array.isArray(walletItems) && walletItems.length > 0) {",
+            1,
+        ).replace(
+            "if (Array.isArray(walletBottomItems)) {",
+            "if (Array.isArray(walletBottomItems) && walletBottomItems.length > 0) {",
+            1,
+        )
+        migrated = optimize_wallet_nested_property_cache(legacy)
+        self.assertIn(DIDI_WALLET_PROPERTY_CACHE_MARKER, migrated)
+        self.assertNotIn("walletItems.length", migrated)
+        self.assertNotIn("walletBottomItems.length", migrated)
+        self.assertEqual(optimize_wallet_nested_property_cache(migrated), migrated)
+
+    @unittest.skipUnless(NODE, "Node.js is required for Didi wallet array-length tests")
+    def test_each_wallet_array_length_is_read_once_including_empty_arrays(self):
+        runner = r"""
+const fs = require("fs"), vm = require("vm");
+const source = fs.readFileSync(process.argv[1], "utf8");
+let done;
+const context = {
+  $request: {url:"https://common.diditaxi.com.cn/common/v1/usercenter/me"},
+  $response: {body:JSON.stringify({data:{cards:[
+    {title:"钱包",tag:"wallet",items:[{title:"余额"},{title:"优惠券"}],
+     card_type:4,bottom_items:[]},
+    {title:"普通卡片",tag:"normal"}
+  ]}})},
+  $done(value){done=value;},
+  __track:true,
+  __lengthReads:{items:0,bottom_items:0},
+  console:{log(){},warn(){},error(){}}
+};
+vm.createContext(context);
+vm.runInContext(
+  "const nativeParse=JSON.parse.bind(JSON); JSON.parse=function(text){const parsed=nativeParse(text);const card=parsed.data.cards[0];for(const key of ['items','bottom_items']){const array=card[key];card[key]=new Proxy(array,{get(target,property,receiver){if(property==='length'&&__track)__lengthReads[key]++;return Reflect.get(target,property,receiver);}});}return parsed;};const nativeStringify=JSON.stringify.bind(JSON);JSON.stringify=function(value){__track=false;return nativeStringify(value);};",
+  context
+);
+vm.runInContext(source,context,{timeout:5000});
+const output=JSON.parse(done.body);
+process.stdout.write(JSON.stringify({reads:context.__lengthReads,items:output.data.cards[0].items,bottom:output.data.cards[0].bottom_items}));
+""";
+        completed = subprocess.run(
+            [NODE, "-e", runner, str(SOURCE)],
+            capture_output=True, text=True, check=True, timeout=10,
+        )
+        result = json.loads(completed.stdout)
+        self.assertEqual(result["reads"], {"items": 1, "bottom_items": 1})
+        self.assertEqual([item["title"] for item in result["items"]], ["优惠券"])
+        self.assertEqual(result["bottom"], [])
 
 
 if __name__ == "__main__":

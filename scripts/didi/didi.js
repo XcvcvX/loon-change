@@ -78,14 +78,14 @@ function compactDidiByField(items, mode) {
         continue;
       }
       if (item.tag === "wallet") {
-        // loon-change: Didi wallet nested property cache v1
+        // loon-change: Didi wallet nested property cache v2
         const walletItems = item.items;
-        if (Array.isArray(walletItems) && walletItems.length > 0) {
+        if (Array.isArray(walletItems)) {
           compactDidiByField(walletItems, "walletItem");
         }
         if (item.card_type === 4) {
           const walletBottomItems = item.bottom_items;
-          if (Array.isArray(walletBottomItems) && walletBottomItems.length > 0) {
+          if (Array.isArray(walletBottomItems)) {
             compactDidiByField(walletBottomItems, "walletBottom");
           }
         }
