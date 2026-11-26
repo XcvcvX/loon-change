@@ -726,7 +726,7 @@ def optimize_source(source, commit="unknown"):
     remaining = re.findall(r"\b(new[A-Za-z0-9_]*)\s*=\s*\[\s*\]", source)
     if sorted(remaining) != ["newActions", "newII"]:
         raise ValueError("unexpected remaining Weibo temporary arrays: " + repr(remaining))
-    return optimize_comment_status_page_info_cache(optimize_vote_info_nested_reference_cache(optimize_shared_feed_cleanup_cache(optimize_is_ad_property_cache(optimize_profile_timeline_property_cache(optimize_search_timeline_nested_reference_cache(optimize_flowlist_asyn_nested_reference_cache(optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source))))))))))))))))) ))))
+    return optimize_comment_array_length_cache(optimize_comment_status_page_info_cache(optimize_vote_info_nested_reference_cache(optimize_shared_feed_cleanup_cache(optimize_is_ad_property_cache(optimize_profile_timeline_property_cache(optimize_search_timeline_nested_reference_cache(optimize_flowlist_asyn_nested_reference_cache(optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source))))))))))))))))) ))))
 
 SCALAR_MEMBERSHIP_MARKER = "// loon-change: Weibo hot-loop scalar membership v1"
 SCALAR_MEMBERSHIP_REWRITES = [
@@ -1536,17 +1536,17 @@ def optimize_comment_array_length_cache(source):
 
     replacements = (
         (
-            "    const commentDatas = obj?.datas;\\n"
-            "    let rootComments;\\n"
-            "    let replyComments;\\n"
+            "    const commentDatas = obj?.datas;\n"
+            "    let rootComments;\n"
+            "    let replyComments;\n"
             "    if (commentDatas?.length > 0) {",
-            "    const commentDatas = obj?.datas;\\n"
-            "    // loon-change: Weibo comment top-level array length cache v1\\n"
-            "    const commentDatasLength = commentDatas?.length || 0;\\n"
-            "    let rootComments;\\n"
-            "    let rootCommentsLength = 0;\\n"
-            "    let replyComments;\\n"
-            "    let replyCommentsLength = 0;\\n"
+            "    const commentDatas = obj?.datas;\n"
+            "    // loon-change: Weibo comment top-level array length cache v1\n"
+            "    const commentDatasLength = commentDatas?.length || 0;\n"
+            "    let rootComments;\n"
+            "    let rootCommentsLength = 0;\n"
+            "    let replyComments;\n"
+            "    let replyCommentsLength = 0;\n"
             "    if (commentDatasLength > 0) {",
         ),
         (
