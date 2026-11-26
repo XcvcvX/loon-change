@@ -5,7 +5,7 @@ import subprocess
 import unittest
 from pathlib import Path
 
-from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, LAZY_MARKER, GUARD_DECLARATION, HELPER, LEGACY_HELPER, optimize_source, rewrite_plugin, optimize_page_filter_cached_itemid, TOPIC_GROUP_MARKER, optimize_topic_group_in_place, COMMENT_DATA_CACHE_MARKER, COMMENT_DATA_CACHE_OLD, COMMENT_DATA_CACHE_NEW, optimize_comment_data_reference_cache, REMOVE_AVATAR_USER_CACHE_MARKER, COMMENT_USER_CACHE_MARKER, COMMENT_USER_CACHE_OLD, COMMENT_USER_CACHE_NEW, optimize_comment_user_reference_cache, TOPIC_GROUP_NESTED_DATA_MARKER, optimize_topic_group_nested_data_cache, ROOT_COMMENT_USER_CACHE_MARKER, optimize_root_comment_user_cache, REMOVE_AVATAR_PROPERTY_CACHE_MARKER, REMOVE_AVATAR_HELPER_NEW, optimize_remove_avatar_property_cache, COMMENT_DECORATION_SINGLE_READ_MARKER, ROOT_COMMENT_DECORATION_SINGLE_READ_MARKER, REPLY_DECORATION_SINGLE_READ_MARKER, ROOT_COMMENT_BUBBLE_SINGLE_READ_MARKER, optimize_comment_decoration_single_read, COMMENT_ARRAY_REFERENCE_CACHE_MARKER, optimize_comment_array_reference_cache, FOLLOWING_TIMELINE_DATA_CACHE_MARKER, optimize_following_timeline_data_cache, HOT_TIMELINE_DATA_CACHE_MARKER, optimize_hot_timeline_data_cache, FLOWLIST_ASYN_REFERENCE_CACHE_MARKER, optimize_flowlist_asyn_nested_reference_cache, SEARCH_TIMELINE_REFERENCE_CACHE_MARKER, optimize_search_timeline_nested_reference_cache, PROFILE_TIMELINE_PROPERTY_CACHE_MARKER, optimize_profile_timeline_property_cache, IS_AD_PROPERTY_CACHE_MARKER, optimize_is_ad_property_cache, REMOVE_FEED_AD_CACHE_MARKER, optimize_shared_feed_cleanup_cache, VOTE_INFO_NESTED_REFERENCE_CACHE_MARKER, optimize_vote_info_nested_reference_cache
+from optimize_weibo_rstore import LOCAL, REMOTE, MARKER, LAZY_MARKER, GUARD_DECLARATION, HELPER, LEGACY_HELPER, optimize_source, rewrite_plugin, optimize_page_filter_cached_itemid, TOPIC_GROUP_MARKER, optimize_topic_group_in_place, COMMENT_DATA_CACHE_MARKER, COMMENT_DATA_CACHE_OLD, COMMENT_DATA_CACHE_NEW, optimize_comment_data_reference_cache, REMOVE_AVATAR_USER_CACHE_MARKER, COMMENT_USER_CACHE_MARKER, COMMENT_USER_CACHE_OLD, COMMENT_USER_CACHE_NEW, optimize_comment_user_reference_cache, TOPIC_GROUP_NESTED_DATA_MARKER, optimize_topic_group_nested_data_cache, ROOT_COMMENT_USER_CACHE_MARKER, optimize_root_comment_user_cache, REMOVE_AVATAR_PROPERTY_CACHE_MARKER, REMOVE_AVATAR_HELPER_NEW, optimize_remove_avatar_property_cache, COMMENT_DECORATION_SINGLE_READ_MARKER, ROOT_COMMENT_DECORATION_SINGLE_READ_MARKER, REPLY_DECORATION_SINGLE_READ_MARKER, ROOT_COMMENT_BUBBLE_SINGLE_READ_MARKER, optimize_comment_decoration_single_read, COMMENT_ARRAY_REFERENCE_CACHE_MARKER, optimize_comment_array_reference_cache, FOLLOWING_TIMELINE_DATA_CACHE_MARKER, optimize_following_timeline_data_cache, HOT_TIMELINE_DATA_CACHE_MARKER, optimize_hot_timeline_data_cache, FLOWLIST_ASYN_REFERENCE_CACHE_MARKER, optimize_flowlist_asyn_nested_reference_cache, SEARCH_TIMELINE_REFERENCE_CACHE_MARKER, optimize_search_timeline_nested_reference_cache, PROFILE_TIMELINE_PROPERTY_CACHE_MARKER, optimize_profile_timeline_property_cache, IS_AD_PROPERTY_CACHE_MARKER, optimize_is_ad_property_cache, REMOVE_FEED_AD_CACHE_MARKER, optimize_shared_feed_cleanup_cache, VOTE_INFO_NESTED_REFERENCE_CACHE_MARKER, optimize_vote_info_nested_reference_cache, CARDLIST_ARRAY_CACHE_MARKER, optimize_cardlist_array_reference_length_cache
 
 ROOT = Path(__file__).resolve().parent
 SCRIPT = ROOT / "scripts/weibo/weibo-rstore.js"
@@ -467,6 +467,32 @@ class WeiboProfileMeArrayCacheOptimizerTests(unittest.TestCase):
             optimize_profile_me_array_cache(damaged)
 
 
+    def test_cardlist_array_reference_length_cache_is_idempotent_and_fails_closed(self):
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertEqual(source.count(CARDLIST_ARRAY_CACHE_MARKER), 1)
+        self.assertEqual(optimize_cardlist_array_reference_length_cache(source), source)
+        self.assertEqual(optimize_source(source), source)
+        for token in (
+            "const cardlistCards = obj?.cards;",
+            "const cardlistCardsLength = cardlistCards?.length || 0;",
+            "const __loonSource32 = cardlistCards;",
+            "const __loonLength32 = cardlistCardsLength;",
+            "const cardGroup = card?.card_group;",
+            "const cardGroupLength = cardGroup?.length || 0;",
+            "const __loonSource31 = cardGroup;",
+            "const __loonLength31 = cardGroupLength;",
+        ):
+            self.assertIn(token, source)
+        damaged = source.replace(
+            "const cardlistCardsLength = cardlistCards?.length || 0;",
+            "const cardlistCardsLength = 0;", 1
+        )
+        with self.assertRaisesRegex(ValueError, "marker/structure drift"):
+            optimize_cardlist_array_reference_length_cache(damaged)
+
+
+
+
 @unittest.skipUnless(NODE, "Node.js is required for Weibo runtime regression tests")
 class RStoreWeiboRuntimeTests(unittest.TestCase):
     def run_script(self, url, body):
@@ -504,6 +530,67 @@ process.stdout.write(JSON.stringify({doneResult, parseCount, stringifyCount}));
                 % (completed.returncode, completed.stderr, completed.stdout)
             )
         return json.loads(completed.stdout)
+
+
+    def test_cardlist_array_references_and_lengths_are_read_once(self):
+        runner = r"""
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync(process.argv[1],"utf8");
+const payload=JSON.parse(fs.readFileSync(0,"utf8"));
+let doneResult,tracking=false;
+const nativeParse=JSON.parse.bind(JSON),nativeStringify=JSON.stringify.bind(JSON);
+const counts={"cards.ref":0,"cards.length":0,"card_group.ref":0,"card_group.length":0};
+function trackedArray(array,label){
+  return new Proxy(array,{get(target,key,receiver){
+    if(tracking&&key==="length")counts[label+".length"]++;
+    return Reflect.get(target,key,receiver);
+  }});
+}
+const trackedJSON={
+  parse(value){
+    const parsed=nativeParse(value);
+    const cards=parsed.cards;
+    const firstCard=cards[0];
+    const groups=firstCard.card_group;
+    const cardsProxy=trackedArray(cards,"cards");
+    const groupsProxy=trackedArray(groups,"card_group");
+    Object.defineProperty(parsed,"cards",{configurable:true,get(){
+      if(tracking)counts["cards.ref"]++;
+      return cardsProxy;
+    }});
+    Object.defineProperty(firstCard,"card_group",{configurable:true,get(){
+      if(tracking)counts["card_group.ref"]++;
+      return groupsProxy;
+    }});
+    tracking=true;
+    return parsed;
+  },
+  stringify(value){return nativeStringify(value);}
+};
+const context={
+  JSON:trackedJSON,
+  $request:{url:payload.url},
+  $response:{body:nativeStringify(payload.body)},
+  $done(value){doneResult=value;},
+  console:{log(){},warn(){},error(){}}
+};
+vm.runInNewContext(source,context,{timeout:5000});
+process.stdout.write(nativeStringify({doneResult,counts}));
+"""
+        body = {"cards": [{"card_group": [{"card_type": 1}]}]}
+        completed = subprocess.run(
+            [NODE, "-e", runner, str(SCRIPT)],
+            input=json.dumps({"url": "https://api.weibo.cn/2/cardlist?fixture=array-reads", "body": body}),
+            capture_output=True, text=True, check=False, timeout=10
+        )
+        if completed.returncode:
+            raise AssertionError(completed.stderr)
+        result = json.loads(completed.stdout)
+        self.assertEqual(result["counts"], {
+            "cards.ref": 1, "cards.length": 1,
+            "card_group.ref": 1, "card_group.length": 1,
+        })
+        self.assertEqual(result["doneResult"], {})
+
 
     def test_search_timeline_caches_data_and_group_references_once(self):
         runner = r"""
