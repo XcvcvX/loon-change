@@ -24,7 +24,7 @@ function run(url, body) {
   const context = {
     JSON: json,
     $request: { url },
-    $response: { body: JSON.stringify(body) },
+    $response: { body: body === "" ? "" : JSON.stringify(body) },
     $done(value) { result = value; }
   };
   vm.runInNewContext(source, context);
