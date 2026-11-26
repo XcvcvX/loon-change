@@ -979,6 +979,8 @@ def optimize_page_filter_cached_itemid(source):
             PAGE_ROUTE_ARRAY_CACHE_MARKER in source
             and "const pageCards = obj?.cards;" in source
             and 'compactWeiboInPlace(pageCards, "pageCards", pageCardsLength);' in source
+            and "const itemId = item?.itemid;" in source
+            and "const itemId = item.itemid;" in source
         )
         if PAGE_ITEMID_NEW not in source and not callback_free_page_block and not cached_page_route_block:
             raise ValueError("Weibo /2/page cached-itemid transformed block missing")
