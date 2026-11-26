@@ -104,6 +104,7 @@
 - [phase11 batch4 Xiaohongshu R-Store callback-free array compaction](phase11-batch4-xiaohongshu-rstore-callback-free-array-compaction.md)
 - [phase11 batch11 Weibo cardlist array reference and length cache](phase11-batch11-weibo-cardlist-array-reference-length-cache.md)
 - [phase11 batch12 Weibo /2/page array reference and length cache](phase11-batch12-weibo-page-array-reference-length-cache.md)
+- [phase11 batch13 Weibo cardlist mblog reference cache](phase11-batch13-weibo-cardlist-mblog-reference-cache.md)
 
 ## 其他专项审计
 
