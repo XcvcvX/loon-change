@@ -204,7 +204,6 @@
         "let modified = !url.includes(\"/2/cardlist\") && !url.includes(\"/2/comments/build_comments\");",
         "if (__loonWrite32 !== __loonLength32) modified = true;",
         "$done(modified ? {body: JSON.stringify(obj)} : {});",
-        "const __loonLength32 = __loonSource32.length;",
         "// loon-change: Weibo hot-loop scalar membership v1",
         "cardType === 120 || cardType === 145 || cardType === 192",
         "item?.data?.card_type === 19 || item?.data?.card_type === 118",
@@ -308,7 +307,9 @@
         "        let card = __loonSource15[__loonRead15];\n        if (card?.card_group?.length > 0) {\n          const __loonSource14 = card.card_group;",
         "} else if (url.includes(\"/2/profile/statuses/tab\")) {\n    if (obj?.cards?.length > 0) {\n      const __loonSource15 = obj.cards;\n      let __loonWrite15 = 0;\n      const __loonLength15 = __loonSource15.length;\n      for (let __loonRead15 = 0; __loonRead15 < __loonLength15; __loonRead15++) {\n        let card = __loonSource15[__loonRead15];\n        if (card?.card_group?.length > 0) {\n          const __loonSource14 = card.card_group;\n          let __loonWrite14 = 0;\n          const __loonLength14 = __loonSource14.length;\n          for (let __loonRead14 = 0; __loonRead14 < __loonLength14; __loonRead14++) {\n            let group = __loonSource14[__loonRead14];\n            let cardType = group.card_type;\n            // 22那年今天\n            if (cardType === 22) {\n              continue;\n            }\n            if (group?.mblog) {\n              // 卡片挂件,关注按钮\n              removeAvatar(group?.mblog);\n              // 投票窗口\n              removeVoteInfo(group?.mblog);\n            }\n            __loonSource14[__loonWrite14++] = group;\n          }\n          __loonSource14.length = __loonWrite14;\n          if (__loonWrite14 !== __loonLength14) modified = true;\n          __loonSource15[__loonWrite15++] = card;\n        } else {\n          if (card?.mblog) {\n            // 卡片挂件,关注按钮\n            removeAvatar(card?.mblog);\n            // 投票窗口\n            removeVoteInfo(card?.mblog);\n          }\n          __loonSource15[__loonWrite15++] = card;\n        }\n      }\n      __loonSource15.length = __loonWrite15;\n      if (__loonWrite15 !== __loonLength15) modified = true;\n    }",
         "if (obj?.cards?.length > 0) {\n      const __loonSource32 = obj.cards;",
-        "if (card?.card_group?.length > 0) {\n          const __loonSource31 = card.card_group;"
+        "if (card?.card_group?.length > 0) {\n          const __loonSource31 = card.card_group;",
+        "const __loonLength32 = __loonSource32.length;",
+        "const __loonLength31 = __loonSource31.length;"
       ]
     },
     {
