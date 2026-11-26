@@ -314,8 +314,8 @@ jobs:
           # Keep all transformation/fixture tests, excluding only stale snapshot assertions.
           python3 - <<'PY'
           import unittest
-          import test_apply_local_overrides
-          import test_integrate_spotify
+          from tests import test_apply_local_overrides
+          from tests import test_integrate_spotify
 
           stale_snapshot_tests = {
               "test_generated_plugin_has_no_legacy_amap_scripts_and_keeps_native_handlers",
