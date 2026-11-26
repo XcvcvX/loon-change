@@ -102,6 +102,7 @@
 - [phase11 batch2 Youku profile and comment array compaction](phase11-batch2-youku-profile-comment-array-compaction.md)
 - [phase11 batch3 Amap callback-free array compaction](phase11-batch3-amap-callback-free-array-compaction.md)
 - [phase11 batch4 Xiaohongshu R-Store callback-free array compaction](phase11-batch4-xiaohongshu-rstore-callback-free-array-compaction.md)
+- [phase11 batch11 Weibo cardlist array reference and length cache](phase11-batch11-weibo-cardlist-array-reference-length-cache.md)
 
 ## 其他专项审计
 

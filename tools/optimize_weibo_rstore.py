@@ -732,12 +732,90 @@ def optimize_callback_free_compaction(source):
         raise ValueError("Weibo callback-free compaction postcondition failed")
     return source
 
+
+CARDLIST_ARRAY_CACHE_MARKER = "// loon-change: Weibo cardlist array references and lengths cached v1"
+
+def optimize_cardlist_array_reference_length_cache(source):
+    """Reuse both cardlist array references and their length snapshots."""
+    start = '  if (url.includes("/2/cardlist")) {'
+    end = '  } else if (url.includes("/2/checkin/show")) {'
+    if source.count(start) != 1 or source.count(end) != 1:
+        raise ValueError("Weibo cardlist route boundary drift")
+    left = source.index(start)
+    right = source.index(end, left + len(start))
+    block = source[left:right]
+    required = (
+        CARDLIST_ARRAY_CACHE_MARKER,
+        "const cardlistCards = obj?.cards;",
+        "const cardlistCardsLength = cardlistCards?.length || 0;",
+        "if (cardlistCardsLength > 0) {",
+        "const __loonSource32 = cardlistCards;",
+        "const __loonLength32 = cardlistCardsLength;",
+        "const cardGroup = card?.card_group;",
+        "const cardGroupLength = cardGroup?.length || 0;",
+        "if (cardGroupLength > 0) {",
+        "const __loonSource31 = cardGroup;",
+        "const __loonLength31 = cardGroupLength;",
+    )
+    if CARDLIST_ARRAY_CACHE_MARKER in block:
+        forbidden = (
+            "obj?.cards?.length",
+            "const __loonSource32 = obj.cards;",
+            "card?.card_group?.length",
+            "const __loonSource31 = card.card_group;",
+            "const __loonLength32 = __loonSource32.length;",
+            "const __loonLength31 = __loonSource31.length;",
+        )
+        if block.count(CARDLIST_ARRAY_CACHE_MARKER) != 1 or any(token not in block for token in required) or any(token in block for token in forbidden):
+            raise ValueError("Weibo cardlist array-cache marker/structure drift")
+        return source
+
+    changes = (
+        (
+            "  if (url.includes(\"/2/cardlist\")) {\n"
+            "    if (obj?.cards?.length > 0) {\n"
+            "      const __loonSource32 = obj.cards;\n"
+            "      let __loonWrite32 = 0;\n"
+            "      const __loonLength32 = __loonSource32.length;",
+            "  if (url.includes(\"/2/cardlist\")) {\n"
+            "    " + CARDLIST_ARRAY_CACHE_MARKER + "\n"
+            "    const cardlistCards = obj?.cards;\n"
+            "    const cardlistCardsLength = cardlistCards?.length || 0;\n"
+            "    if (cardlistCardsLength > 0) {\n"
+            "      const __loonSource32 = cardlistCards;\n"
+            "      let __loonWrite32 = 0;\n"
+            "      const __loonLength32 = cardlistCardsLength;",
+        ),
+        (
+            "        let card = __loonSource32[__loonRead32];\n"
+            "        if (card?.card_group?.length > 0) {\n"
+            "          const __loonSource31 = card.card_group;\n"
+            "          let __loonWrite31 = 0;\n"
+            "          const __loonLength31 = __loonSource31.length;",
+            "        let card = __loonSource32[__loonRead32];\n"
+            "        const cardGroup = card?.card_group;\n"
+            "        const cardGroupLength = cardGroup?.length || 0;\n"
+            "        if (cardGroupLength > 0) {\n"
+            "          const __loonSource31 = cardGroup;\n"
+            "          let __loonWrite31 = 0;\n"
+            "          const __loonLength31 = cardGroupLength;",
+        ),
+    )
+    for old, new in changes:
+        if block.count(old) != 1:
+            raise ValueError("Weibo cardlist array-cache anchor drift: " + old[:80])
+        block = block.replace(old, new, 1)
+    if any(token not in block for token in required):
+        raise ValueError("Weibo cardlist array-cache postcondition failed")
+    return source[:left] + block + source[right:]
+
+
 def optimize_source(source, commit="unknown"):
     if MARKER in source:
         if "__loonSource32" not in source or "compactWeiboInPlace(items, mode)" not in source:
             raise ValueError("marked Weibo script is incomplete")
         optimized = optimize_comment_status_page_info_cache(optimize_vote_info_nested_reference_cache(optimize_shared_feed_cleanup_cache(optimize_is_ad_property_cache(optimize_profile_timeline_property_cache(optimize_search_timeline_nested_reference_cache(optimize_flowlist_asyn_nested_reference_cache(optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source))))))))))))))))) ))))
-        return optimize_callback_free_compaction(optimize_profile_statuses_tab_array_cache(optimize_profile_me_array_cache(optimize_comment_array_length_cache(optimized))))
+        return optimize_cardlist_array_reference_length_cache(optimize_callback_free_compaction(optimize_profile_statuses_tab_array_cache(optimize_profile_me_array_cache(optimize_comment_array_length_cache(optimized)))))
     source = source.replace("const url = $request.url;", "const url = $request.url;\n" + GUARD_DECLARATION + "\n\n" + HELPER, 1)
     if source.count(HELPER) != 1:
         raise ValueError("Weibo helper insertion failed")
@@ -750,7 +828,7 @@ def optimize_source(source, commit="unknown"):
     if sorted(remaining) != ["newActions", "newII"]:
         raise ValueError("unexpected remaining Weibo temporary arrays: " + repr(remaining))
     optimized = optimize_comment_status_page_info_cache(optimize_vote_info_nested_reference_cache(optimize_shared_feed_cleanup_cache(optimize_is_ad_property_cache(optimize_profile_timeline_property_cache(optimize_search_timeline_nested_reference_cache(optimize_flowlist_asyn_nested_reference_cache(optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source))))))))))))))))) ))))
-    return optimize_callback_free_compaction(optimize_profile_statuses_tab_array_cache(optimize_profile_me_array_cache(optimize_comment_array_length_cache(optimized))))
+    return optimize_cardlist_array_reference_length_cache(optimize_callback_free_compaction(optimize_profile_statuses_tab_array_cache(optimize_profile_me_array_cache(optimize_comment_array_length_cache(optimized)))))
 
 SCALAR_MEMBERSHIP_MARKER = "// loon-change: Weibo hot-loop scalar membership v1"
 SCALAR_MEMBERSHIP_REWRITES = [
