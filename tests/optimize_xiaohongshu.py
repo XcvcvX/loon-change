@@ -1,1 +1,1 @@
-../optimize_xiaohongshu.py
+../tools/optimize_xiaohongshu.py

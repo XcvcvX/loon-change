@@ -51,13 +51,13 @@ FILTER_MIRRORS = [
 MYBLOCKADS_URL = ('https://raw.githubusercontent.com/ifflagged/Romeo/main/'
                   'Modules/Loon/rucu6/myblockads.lpx')
 MYBLOCKADS_CACHE = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), 'myblockads.lpx')
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'myblockads.lpx')
 
 # zirawell 支付宝小程序去广告合集：与 MyBlockAds 共用固定 Romeo commit。
 ALIPAY_ADBLOCK_URL = ('https://raw.githubusercontent.com/ifflagged/Romeo/main/'
                       'Modules/Loon/zirawell/Beta/alipayAdBlock.lpx')
 ALIPAY_ADBLOCK_CACHE = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)),
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
     'sources', 'alipayAdBlock', 'alipayAdBlock.lpx')
 
 # Romeo 独立 App 来源（含 Kelee 微信/微店模块）；少数无等价模块以仓库内快照保留。

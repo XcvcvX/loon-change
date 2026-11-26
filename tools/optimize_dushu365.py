@@ -82,7 +82,7 @@ def main() -> None:
     if args.source or args.output:
         if not args.source or not args.output:
             parser.error("--source and --output must be supplied together")
-        template_path = Path(__file__).parent / "scripts" / "dushu365" / "dushu365.js"
+        template_path = Path(__file__).resolve().parents[1] / "scripts" / "dushu365" / "dushu365.js"
         template = template_path.read_text(encoding="utf-8")
         result = optimize_source(Path(args.source).read_text(encoding="utf-8-sig"), template, args.upstream_commit)
         output = Path(args.output)

@@ -12,7 +12,7 @@ import re
 import subprocess
 from pathlib import Path
 
-MANIFEST_PATH = Path(__file__).with_name("romeo_resource_map.json")
+MANIFEST_PATH = Path(__file__).resolve().parents[1] / "romeo_resource_map.json"
 MANIFEST = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
 
 ROMEO_PLUGIN_MAP = MANIFEST["slots"]["aoomee_compat"]["plugins"]

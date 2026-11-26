@@ -46,7 +46,7 @@ def main() -> None:
     parser.add_argument("--root", type=Path, default=Path("."))
     parser.add_argument(
         "--manifest", type=Path,
-        default=Path(__file__).with_name("optimization_invariants.json"),
+        default=Path(__file__).resolve().parents[1] / "optimization_invariants.json",
     )
     args = parser.parse_args()
     checked = validate(args.root.resolve(), args.manifest.resolve())

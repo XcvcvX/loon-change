@@ -1,1 +1,1 @@
-../optimize_weibo_rstore.py
+../tools/optimize_weibo_rstore.py
