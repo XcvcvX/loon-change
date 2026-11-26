@@ -94,6 +94,8 @@
 
 ## 第十一阶段专项记录
 
+- [phase11 batch6 didi specialized property loops](phase11-batch6-didi-specialized-property-loops.md)
+
 - [phase11 batch5 weibo callback-free response-array compaction](phase11-batch5-weibo-callback-free-response-array-compaction.md)
 
 - [phase11 batch1 xiaohongshu feed nested loop cache](phase11-batch1-xiaohongshu-feed-nested-loop-cache.md)

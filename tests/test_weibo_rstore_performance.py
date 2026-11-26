@@ -64,9 +64,9 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         self.assertIn("const mediaInfo = pageInfo?.media_info;", source)
         self.assertIn("const voteInfo = mediaInfo?.vote_info;", source)
         self.assertNotIn("item?.page_info?.media_info?.vote_info", source)
-        self.assertIn("compactInPlace(obj.elements", source)
-        self.assertIn("compactInPlace(obj.user_list", source)
-        self.assertIn("compactInPlace(obj.cards", source)
+        self.assertIn('compactWeiboInPlace(obj.elements, "publisher")', source)
+        self.assertIn('compactWeiboInPlace(obj.user_list, "directMessages")', source)
+        self.assertIn('compactWeiboInPlace(obj.cards, "pageCards")', source)
         self.assertNotIn("obj.elements = obj.elements.filter(", source)
         self.assertNotIn("obj.user_list = obj.user_list.filter(", source)
         self.assertNotIn("obj.channelInfo.channel_list = obj.channelInfo.channel_list.filter(", source)
@@ -87,11 +87,11 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         marker = "// loon-change: Weibo /2/page cached itemid reads v1"
         self.assertEqual(source.count(marker), 1)
         self.assertEqual(optimize_page_filter_cached_itemid(source), source)
-        self.assertIn("const itemId = c?.itemid;", source)
-        self.assertIn("const itemId = i.itemid;", source)
+        self.assertIn("const itemId = item?.itemid;", source)
+        self.assertIn("const itemId = item.itemid;", source)
         self.assertEqual(source.count("i.itemid?.includes("), 0)
         self.assertEqual(source.count("c?.itemid?.includes("), 0)
-        damaged = source.replace("const itemId = i.itemid;", "const cachedItemId = i.itemid;", 1)
+        damaged = source.replace("const itemId = item.itemid;", "const cachedItemId = item.itemid;", 1)
         with self.assertRaisesRegex(ValueError, "transformed block missing"):
             optimize_page_filter_cached_itemid(damaged)
 

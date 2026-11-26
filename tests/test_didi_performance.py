@@ -68,6 +68,8 @@ class DidiOptimizerTests(unittest.TestCase):
         result = optimize_source(original, "0123456789abcdef0123456789abcdef01234567")
         self.assertIn(MARKER, result)
         self.assertEqual(result.count("compactDidiByField(") - 1, EXPECTED_FILTERS)
+        self.assertIn("function compactDidiByField(items, mode)", result)
+        self.assertNotIn("item[field]", result)
         self.assertIsNone(re.search(r"\.filter\s*\(", result))
         self.assertNotIn("new Set(", result)
         self.assertNotIn("keepNavIds", result)
@@ -93,11 +95,11 @@ class DidiOptimizerTests(unittest.TestCase):
         source = '''if (isHomepageCore) {
   // 保留打车、代驾、青桔骑行
   if (responseData && responseData.order_cards && responseData.order_cards.nav_list_card && responseData.order_cards.nav_list_card.data) {
-    compactDidiByField(responseData.order_cards.nav_list_card.data, "nav_id", "nav");
+    compactDidiByField(responseData.order_cards.nav_list_card.data, "nav");
   }
   // 保留底部tap首页、我的
   if (responseData && responseData.disorder_cards && responseData.disorder_cards.bottom_nav_list && responseData.disorder_cards.bottom_nav_list.data) {
-    compactDidiByField(responseData.disorder_cards.bottom_nav_list.data, "id", "bottomNav");
+    compactDidiByField(responseData.disorder_cards.bottom_nav_list.data, "bottomNav");
   }
 }'''
         result = optimize_homepage_core_cached_references(source)
@@ -203,11 +205,11 @@ if (payload.body === null) {
         source = SOURCE.read_text(encoding="utf-8")
         self.assertNotIn("obj.data.cards.forEach", source)
         self.assertIn("const userCenterCards = responseData?.cards;", source)
-        self.assertIn('compactDidiByField(userCenterCards, "title", "card");', source)
-        self.assertIn('compactDidiByField(walletItems, "title", "walletItem")', source)
-        self.assertIn('compactDidiByField(walletBottomItems, "title", "walletBottom")', source)
-        self.assertNotIn('compactDidiByField(item.items, "title", "walletItem")', source)
-        self.assertNotIn('compactDidiByField(item.bottom_items, "title", "walletBottom")', source)
+        self.assertIn('compactDidiByField(userCenterCards, "card");', source)
+        self.assertIn('compactDidiByField(walletItems, "walletItem")', source)
+        self.assertIn('compactDidiByField(walletBottomItems, "walletBottom")', source)
+        self.assertNotIn('compactDidiByField(item.items, "walletItem")', source)
+        self.assertNotIn('compactDidiByField(item.bottom_items, "walletBottom")', source)
         self.assertNotIn("new Set(", source)
         self.assertNotIn("=>", source)
         self.assertNotIn("excludedTitles", source)
@@ -494,3 +496,19 @@ if (payload.body === null) {
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class DidiSpecializedPropertyLoopTests(unittest.TestCase):
+    def test_active_runtime_uses_fixed_property_access_per_mode(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        self.assertIn("Didi hot-loop specialized property loops v2", source)
+        self.assertIn("function compactDidiByField(items, mode)", source)
+        self.assertNotIn("item[field]", source)
+        self.assertNotIn("compactDidiByField(items, field, mode)", source)
+        self.assertEqual(source.count("compactDidiByField("), 8)
+
+
+class DidiSpecializedPropertyLoopMigrationTests(unittest.TestCase):
+    def test_optimizer_keeps_v2_runtime_idempotent(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        self.assertEqual(optimize_source(source), source)
