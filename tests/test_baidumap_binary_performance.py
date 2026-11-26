@@ -790,7 +790,7 @@ process.stdout.write("ok");
     @unittest.skipUnless(NODE, "Node.js is required for BaiduMap metadata getter tests")
     def test_multi_segment_rebuild_copies_directly_without_chunk_array(self):
         start = self.source.index("function assembleBaiduResponseSegments(")
-        end = self.source.index("\\n}\\n", start) + 2
+        end = self.source.index("\n}\n", start) + 2
         helper = self.source[start:end]
         self.assertIn("// loon-change: Baidu protobuf segment rebuild without chunks v1", helper)
         self.assertIn("const payload = new Uint8Array(outputLength);", helper)
