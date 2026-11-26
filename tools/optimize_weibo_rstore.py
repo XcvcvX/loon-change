@@ -327,7 +327,7 @@ def add_lazy_serialization_guard(source):
         source = source.replace(anchor, anchor + '\n' + GUARD_DECLARATION, 1)
     if LEGACY_HELPER in source:
         source = source.replace(LEGACY_HELPER, HELPER, 1)
-    elif HELPER not in source and "function compactWeiboInPlace(items, mode)" not in source:
+    elif HELPER not in source and "function compactWeiboInPlace(items, mode, knownLength)" not in source:
         raise ValueError('Weibo compaction helper anchor drift')
 
     loop_pattern = re.compile(r'(?m)^([ \t]*)__loonSource(\d+)\.length = __loonWrite\2;$')
@@ -716,7 +716,7 @@ CALLBACK_FREE_COMPACTION_HELPER = "// loon-change: Weibo callback-free mode-disp
 
 def optimize_callback_free_compaction(source):
     if CALLBACK_FREE_COMPACTION_MARKER in source:
-        required = ["function compactWeiboInPlace(items, mode)", 'compactWeiboInPlace(obj.elements, "publisher");', 'compactWeiboInPlace(obj.user_list, "directMessages");', 'compactWeiboInPlace(obj.cards[0].card_group, "pageCardGroup");', 'compactWeiboInPlace(obj.cards, "pageCards");', 'compactWeiboInPlace(obj.card_group, "topicCardGroup");', 'compactWeiboInPlace(obj.footer.data.menus, "footerMenus");', 'compactWeiboInPlace(obj.channelInfo.channel_list, "channelList");']
+        required = ["function compactWeiboInPlace(items, mode, knownLength)", 'compactWeiboInPlace(obj.elements, "publisher");', 'compactWeiboInPlace(obj.user_list, "directMessages");', 'compactWeiboInPlace(obj.cards[0].card_group, "pageCardGroup");', 'compactWeiboInPlace(obj.cards, "pageCards");', 'compactWeiboInPlace(obj.card_group, "topicCardGroup");', 'compactWeiboInPlace(obj.footer.data.menus, "footerMenus");', 'compactWeiboInPlace(obj.channelInfo.channel_list, "channelList");']
         if source.count(CALLBACK_FREE_COMPACTION_MARKER) != 1 or any(x not in source for x in required) or "compactInPlace(" in source:
             raise ValueError("Weibo callback-free compaction marker/structure drift")
         return source
@@ -810,12 +810,82 @@ def optimize_cardlist_array_reference_length_cache(source):
     return source[:left] + block + source[right:]
 
 
+
+PAGE_ROUTE_ARRAY_CACHE_MARKER = "// loon-change: Weibo /2/page array references and lengths cached v1"
+
+def optimize_page_route_array_reference_cache(source):
+    """Cache /2/page array references and pass length snapshots into compaction."""
+    old_helper = "function compactWeiboInPlace(items, mode) {\n  const length = items.length;"
+    new_helper = "function compactWeiboInPlace(items, mode, knownLength) {\n  const length = knownLength === undefined ? items.length : knownLength;"
+    if old_helper in source:
+        if source.count(old_helper) != 1:
+            raise ValueError("Weibo compaction helper length-cache anchor drift")
+        source = source.replace(old_helper, new_helper, 1)
+    elif source.count(new_helper) != 1:
+        raise ValueError("Weibo compaction helper length-cache structure drift")
+
+    start = '  } else if (url.includes("/2/page")) {'
+    end = '  } else if (url.includes("/2/profile/container_timeline")) {'
+    if source.count(start) != 1 or source.count(end) != 1:
+        raise ValueError("Weibo /2/page route boundary drift")
+    left = source.index(start)
+    right = source.index(end, left + len(start))
+    block = source[left:right]
+    required = (
+        PAGE_ROUTE_ARRAY_CACHE_MARKER,
+        "const pageCards = obj?.cards;",
+        "const pageCardsLength = pageCards?.length || 0;",
+        "const firstPageCard = pageCards[0];",
+        "const pageCardGroup = firstPageCard?.card_group;",
+        "const pageCardGroupLength = pageCardGroup?.length || 0;",
+        'compactWeiboInPlace(pageCardGroup, "pageCardGroup", pageCardGroupLength);',
+        'compactWeiboInPlace(pageCards, "pageCards", pageCardsLength);',
+        "const topicCardGroup = obj?.card_group;",
+        "const topicCardGroupLength = topicCardGroup?.length || 0;",
+        'compactWeiboInPlace(topicCardGroup, "topicCardGroup", topicCardGroupLength);',
+    )
+    if PAGE_ROUTE_ARRAY_CACHE_MARKER in block:
+        forbidden = ("obj?.cards?.length", "obj.cards[0].card_group", "obj?.card_group?.length")
+        if block.count(PAGE_ROUTE_ARRAY_CACHE_MARKER) != 1 or any(x not in block for x in required) or any(x in block for x in forbidden):
+            raise ValueError("Weibo /2/page array-cache marker/structure drift")
+        return source
+
+    comment = "    // 搜索页列表,超话\n"
+    if block.count(comment) != 1:
+        raise ValueError("Weibo /2/page array-cache insertion anchor drift")
+    replacement = (
+        comment
+        + PAGE_ROUTE_ARRAY_CACHE_MARKER + "\n"
+        + "    const pageCards = obj?.cards;\n"
+        + "    const pageCardsLength = pageCards?.length || 0;\n"
+        + "    if (pageCardsLength > 0) {\n"
+        + "      const firstPageCard = pageCards[0];\n"
+        + "      const pageCardGroup = firstPageCard?.card_group;\n"
+        + "      const pageCardGroupLength = pageCardGroup?.length || 0;\n"
+        + "      if (pageCardGroupLength > 0) {\n"
+        + '        compactWeiboInPlace(pageCardGroup, "pageCardGroup", pageCardGroupLength);\n'
+        + "      }\n"
+        + '      compactWeiboInPlace(pageCards, "pageCards", pageCardsLength);\n'
+        + "    } else {\n"
+        + "      const topicCardGroup = obj?.card_group;\n"
+        + "      const topicCardGroupLength = topicCardGroup?.length || 0;\n"
+        + "      if (topicCardGroupLength > 0) {\n"
+        + '        compactWeiboInPlace(topicCardGroup, "topicCardGroup", topicCardGroupLength);\n'
+        + "      }\n"
+        + "    }\n"
+    )
+    block = block.replace(comment, replacement, 1)
+    if any(x not in block for x in required):
+        raise ValueError("Weibo /2/page array-cache postcondition failed")
+    return source[:left] + block + source[right:]
+
+
 def optimize_source(source, commit="unknown"):
     if MARKER in source:
         if "__loonSource32" not in source or "compactWeiboInPlace(items, mode)" not in source:
             raise ValueError("marked Weibo script is incomplete")
         optimized = optimize_comment_status_page_info_cache(optimize_vote_info_nested_reference_cache(optimize_shared_feed_cleanup_cache(optimize_is_ad_property_cache(optimize_profile_timeline_property_cache(optimize_search_timeline_nested_reference_cache(optimize_flowlist_asyn_nested_reference_cache(optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source))))))))))))))))) ))))
-        return optimize_cardlist_array_reference_length_cache(optimize_callback_free_compaction(optimize_profile_statuses_tab_array_cache(optimize_profile_me_array_cache(optimize_comment_array_length_cache(optimized)))))
+        return optimize_page_route_array_reference_cache(optimize_cardlist_array_reference_length_cache(optimize_callback_free_compaction(optimize_profile_statuses_tab_array_cache(optimize_profile_me_array_cache(optimize_comment_array_length_cache(optimized))))))
     source = source.replace("const url = $request.url;", "const url = $request.url;\n" + GUARD_DECLARATION + "\n\n" + HELPER, 1)
     if source.count(HELPER) != 1:
         raise ValueError("Weibo helper insertion failed")
@@ -828,7 +898,7 @@ def optimize_source(source, commit="unknown"):
     if sorted(remaining) != ["newActions", "newII"]:
         raise ValueError("unexpected remaining Weibo temporary arrays: " + repr(remaining))
     optimized = optimize_comment_status_page_info_cache(optimize_vote_info_nested_reference_cache(optimize_shared_feed_cleanup_cache(optimize_is_ad_property_cache(optimize_profile_timeline_property_cache(optimize_search_timeline_nested_reference_cache(optimize_flowlist_asyn_nested_reference_cache(optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source))))))))))))))))) ))))
-    return optimize_cardlist_array_reference_length_cache(optimize_callback_free_compaction(optimize_profile_statuses_tab_array_cache(optimize_profile_me_array_cache(optimize_comment_array_length_cache(optimized)))))
+    return optimize_page_route_array_reference_cache(optimize_cardlist_array_reference_length_cache(optimize_callback_free_compaction(optimize_profile_statuses_tab_array_cache(optimize_profile_me_array_cache(optimize_comment_array_length_cache(optimized))))))
 
 SCALAR_MEMBERSHIP_MARKER = "// loon-change: Weibo hot-loop scalar membership v1"
 SCALAR_MEMBERSHIP_REWRITES = [
