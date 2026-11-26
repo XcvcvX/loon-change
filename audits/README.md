@@ -105,6 +105,7 @@
 - [phase11 batch11 Weibo cardlist array reference and length cache](phase11-batch11-weibo-cardlist-array-reference-length-cache.md)
 - [phase11 batch12 Weibo /2/page array reference and length cache](phase11-batch12-weibo-page-array-reference-length-cache.md)
 - [phase11 batch13 Weibo cardlist mblog reference cache](phase11-batch13-weibo-cardlist-mblog-reference-cache.md)
+- [phase11 batch14 BaiduMap protobuf segment rebuild without chunk arrays](phase11-batch14-baidumap-segment-rebuild-without-chunks.md)
 
 ## 其他专项审计
 
