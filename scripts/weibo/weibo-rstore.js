@@ -19,8 +19,8 @@ const url = $request.url;
 let modified = !url.includes("/2/cardlist") && !url.includes("/2/comments/build_comments");
 
 // loon-change: Weibo callback-free mode-dispatched compaction v1
-function compactWeiboInPlace(items, mode) {
-  const length = items.length;
+function compactWeiboInPlace(items, mode, knownLength) {
+  const length = knownLength === undefined ? items.length : knownLength;
   let write = 0;
   if (mode === "publisher") {
     for (let read = 0; read < length; read++) { const item = items[read]; if (item.app_name === "写微博" || item.app_name === "图片" || item.app_name === "视频") { if (write !== read) items[write] = item; write++; } }
@@ -523,13 +523,23 @@ if (url.includes("/interface/sdk/sdkad.php")) {
     }
   } else if (url.includes("/2/page")) {
     // 搜索页列表,超话
-    if (obj?.cards?.length > 0) {
-      if (obj?.cards?.[0]?.card_group?.length > 0) {
-        compactWeiboInPlace(obj.cards[0].card_group, "pageCardGroup");
+    // loon-change: Weibo /2/page array references and lengths cached v1
+    const pageCards = obj?.cards;
+    const pageCardsLength = pageCards?.length || 0;
+    if (pageCardsLength > 0) {
+      const firstPageCard = pageCards[0];
+      const pageCardGroup = firstPageCard?.card_group;
+      const pageCardGroupLength = pageCardGroup?.length || 0;
+      if (pageCardGroupLength > 0) {
+        compactWeiboInPlace(pageCardGroup, "pageCardGroup", pageCardGroupLength);
       }
-      compactWeiboInPlace(obj.cards, "pageCards");
-    } else if (obj?.card_group?.length > 0) {
-      compactWeiboInPlace(obj.card_group, "topicCardGroup");
+      compactWeiboInPlace(pageCards, "pageCards", pageCardsLength);
+    } else {
+      const topicCardGroup = obj?.card_group;
+      const topicCardGroupLength = topicCardGroup?.length || 0;
+      if (topicCardGroupLength > 0) {
+        compactWeiboInPlace(topicCardGroup, "topicCardGroup", topicCardGroupLength);
+      }
     }
   } else if (url.includes("/2/profile/container_timeline")) {
     // loon-change: Weibo profile timeline hot-property cache v1
