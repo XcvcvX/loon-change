@@ -327,7 +327,7 @@ def add_lazy_serialization_guard(source):
         source = source.replace(anchor, anchor + '\n' + GUARD_DECLARATION, 1)
     if LEGACY_HELPER in source:
         source = source.replace(LEGACY_HELPER, HELPER, 1)
-    elif HELPER not in source and "function compactWeiboInPlace(items, mode)" not in source:
+    elif HELPER not in source and not any(signature in source for signature in ("function compactWeiboInPlace(items, mode)", "function compactWeiboInPlace(items, mode, knownLength")):
         raise ValueError('Weibo compaction helper anchor drift')
 
     loop_pattern = re.compile(r'(?m)^([ \t]*)__loonSource(\d+)\.length = __loonWrite\2;$')
