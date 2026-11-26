@@ -142,7 +142,7 @@ jobs:
 
           # Validate the exact rewritten subscription payload as well as the source file.
           import sys
-          sys.path.insert(0, str(Path.cwd()))
+          sys.path.insert(0, str(Path.cwd() / "tools"))
           from check_script_v2 import inspect_text
           syntax_errors = inspect_text(plugin, "published allAdRewrite.plugin")
           if syntax_errors:
