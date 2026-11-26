@@ -683,14 +683,17 @@ if (url.includes("/interface/sdk/sdkad.php")) {
       if (__loonWrite17 !== __loonLength17) modified = true;
     }
   } else if (url.includes("/2/profile/me")) {
+     // loon-change: Weibo profile/me nested array cache v1
     // 我的页面
     if (obj?.vipHeaderBgImage) {
       delete obj.vipHeaderBgImage;
     }
-    if (obj?.items?.length > 0) {
-      const __loonSource16 = obj.items;
+    const profileMeItems = obj?.items;
+    const profileMeItemsLength = profileMeItems?.length || 0;
+    if (profileMeItemsLength > 0) {
+      const __loonSource16 = profileMeItems;
       let __loonWrite16 = 0;
-      const __loonLength16 = __loonSource16.length;
+      const __loonLength16 = profileMeItemsLength;
       for (let __loonRead16 = 0; __loonRead16 < __loonLength16; __loonRead16++) {
         let item = __loonSource16[__loonRead16];
         let itemId = item.itemId;
@@ -700,8 +703,11 @@ if (url.includes("/interface/sdk/sdkad.php")) {
             delete item.header.vipCenter;
             delete item.header.vipIcon;
           }
-          if (item?.items?.length > 0) {
-            for (let d of item.items) {
+          const mineItems = item?.items;
+          const mineItemsLength = mineItems?.length || 0;
+          if (mineItemsLength > 0) {
+            for (let mineIndex = 0; mineIndex < mineItemsLength; mineIndex++) {
+              const d = mineItems[mineIndex];
               if (d.itemId === "mainnums_friends") {
                 let s = d.click.modules[0].scheme;
                 d.click.modules[0].scheme = s.replace("231093_-_selfrecomm", "231093_-_selffollowed");
@@ -710,13 +716,22 @@ if (url.includes("/interface/sdk/sdkad.php")) {
           }
           __loonSource16[__loonWrite16++] = item;
         } else if (itemId === "100505_-_top8") {
-          if (item?.items?.length > 0) {
-            compactInPlace(item.items, i =>
-            i.itemId === "100505_-_album" ||
-            i.itemId === "100505_-_like" ||
-            i.itemId === "100505_-_watchhistory" ||
-            i.itemId === "100505_-_draft"
-          );
+          const topItems = item?.items;
+          const topItemsLength = topItems?.length || 0;
+          if (topItemsLength > 0) {
+            let topItemsWrite = 0;
+            for (let topItemsRead = 0; topItemsRead < topItemsLength; topItemsRead++) {
+              const topItem = topItems[topItemsRead];
+              if (topItem.itemId === "100505_-_album" ||
+                  topItem.itemId === "100505_-_like" ||
+                  topItem.itemId === "100505_-_watchhistory" ||
+                  topItem.itemId === "100505_-_draft") {
+                if (topItemsWrite !== topItemsRead) topItems[topItemsWrite] = topItem;
+                topItemsWrite++;
+              }
+            }
+            topItems.length = topItemsWrite;
+            if (topItemsWrite !== topItemsLength) modified = true;
           }
           __loonSource16[__loonWrite16++] = item;
         } else if (itemId === "100505_-_manage") {
