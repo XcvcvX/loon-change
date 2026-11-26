@@ -1766,3 +1766,27 @@ class WeiboCallbackFreeCompactionTests(unittest.TestCase):
         damaged = source.replace('compactWeiboInPlace(obj.elements, "publisher");', 'compactWeiboInPlace(obj.elements, "unknown");', 1)
         with self.assertRaisesRegex(ValueError, "marker/structure drift"):
             optimize_callback_free_compaction(damaged)
+    @unittest.skipUnless(NODE, "Node.js is required for Weibo callback-free compaction tests")
+    def test_callback_free_compaction_preserves_filtering_and_order(self):
+        runner = r"""
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync(process.argv[1],"utf8");
+const cases=JSON.parse(fs.readFileSync(0,"utf8"));const parse=JSON.parse.bind(JSON),stringify=JSON.stringify.bind(JSON);const results=[];
+for(const item of cases){let doneResult;const context={JSON,$request:{url:item.url},$response:{body:stringify(item.body)},$done(value){doneResult=value;},console:{log(){},warn(){},error(){}}};vm.runInNewContext(source,context,{timeout:5000});results.push(doneResult&&doneResult.body?parse(doneResult.body):item.body);}
+process.stdout.write(stringify(results));
+"""
+        cases = [
+            {"url": "https://api.weibo.cn/2/client/publisher_list", "body": {"elements": [{"app_name": "图片"}, {"app_name": "直播"}, {"app_name": "写微博"}, {"app_name": "视频"}]}},
+            {"url": "https://api.weibo.cn/2/direct_messages/user_list", "body": {"user_list": [{"user": {"name": "普通用户"}}, {"user": {"name": "活动通知"}}, {"user": {"name": "闪聊"}}, {"user": {"name": "另一个用户"}}]}},
+            {"url": "https://api.weibo.cn/2/page", "body": {"cards": [{"card_group": [{"itemid": "keep"}, {"itemid": "ads_word_x"}, {"actionlog": {"ext": "ads_word"}}]}, {"itemid": "feed_-_invite_x"}, {"itemid": "normal_card"}]}},
+            {"url": "https://api.weibo.cn/2/!/huati/discovery_home_bottom_channels", "body": {"channelInfo": {"channel_list": [{"title": "广场"}, {"title": "推荐"}, {"title": "关注"}]}}},
+        ]
+        completed = subprocess.run([NODE, "-e", runner, str(SCRIPT)], input=json.dumps(cases), capture_output=True, text=True, check=False, timeout=15)
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        output = json.loads(completed.stdout)
+        self.assertEqual([x["app_name"] for x in output[0]["elements"]], ["图片", "写微博", "视频"])
+        self.assertEqual([x["user"]["name"] for x in output[1]["user_list"]], ["普通用户", "另一个用户"])
+        self.assertEqual(len(output[2]["cards"]), 2)
+        self.assertEqual([x["itemid"] for x in output[2]["cards"][0]["card_group"]], ["keep"])
+        self.assertEqual(output[2]["cards"][1]["itemid"], "normal_card")
+        self.assertEqual([x["title"] for x in output[3]["channelInfo"]["channel_list"]], ["推荐", "关注"])
+
