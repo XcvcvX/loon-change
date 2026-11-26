@@ -114,10 +114,11 @@ const payload=JSON.parse(fs.readFileSync(0,"utf8"));
 const responseBody=JSON.stringify(payload.body);
 let doneResult,tracking=false;
 const counts={"cards.ref":0,"cards.length":0,"group.ref":0,"group.length":0};
+const traces=[]
 const nativeParse=JSON.parse.bind(JSON),nativeStringify=JSON.stringify.bind(JSON);
 function trackArray(array,label){
   return new Proxy(array,{get(target,key,receiver){
-    if(tracking&&key==="length")counts[label+".length"]++;
+    if(tracking&&key==="length"){counts[label+".length"]++;traces.push("length:"+label+":"+new Error().stack.split("\\n").slice(1,4).join("|"));}
     return Reflect.get(target,key,receiver);
   }});
 }
@@ -130,11 +131,11 @@ const trackedJSON={
     const rawGroup=first.card_group;
     const cards=trackArray(rawCards,"cards"),group=trackArray(rawGroup,"group");
     Object.defineProperty(parsed,"cards",{configurable:true,get(){
-      if(tracking)counts["cards.ref"]++;
+      if(tracking){counts["cards.ref"]++;traces.push("cards.ref:"+new Error().stack.split("\\n").slice(1,4).join("|"));}
       return cards;
     }});
     Object.defineProperty(first,"card_group",{configurable:true,get(){
-      if(tracking)counts["group.ref"]++;
+      if(tracking){counts["group.ref"]++;traces.push("group.ref:"+new Error().stack.split("\\n").slice(1,4).join("|"));}
       return group;
     }});
     tracking=true;
@@ -146,7 +147,7 @@ const context={JSON:trackedJSON,$request:{url:payload.url},
   $response:{body:responseBody},
   $done(value){doneResult=value;},console:{log(){},warn(){},error(){}}};
 vm.runInNewContext(source,context,{timeout:5000});
-process.stdout.write(nativeStringify({doneResult,counts}));
+process.stdout.write(nativeStringify({doneResult,counts,traces}));
 """
         body = {"cards": [{"card_group": [{"itemid": "keep-group"}], "itemid": "keep-card"}]}
         completed = subprocess.run(
