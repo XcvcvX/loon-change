@@ -36,19 +36,21 @@ class AmapRStoreOptimizerTests(unittest.TestCase):
     def test_route_info_uses_one_shared_dynamic_ad_matcher_and_optimizer_repairs_it(self):
         source = SOURCE.read_text(encoding="utf-8")
         self.assertIn(DYNAMIC_MATCHER_MARKER, source)
-        self.assertEqual(source.count(r"const AMAP_AD_DYNAMIC_ID = /ads-\d+/;"), 1)
-        self.assertEqual(source.count("AMAP_AD_DYNAMIC_ID.test(i?.dynamic_id_s)"), 4)
-        self.assertNotIn(r"/ads-\d+/.test(i?.dynamic_id_s)", source)
+        self.assertEqual(source.count(r"const AMAP_AD_DYNAMIC_ID = /ads-\d+\/;"), 1)
+        self.assertEqual(source.count("AMAP_AD_DYNAMIC_ID.test(item?.dynamic_id_s)"), 1)
+        self.assertEqual(source.count(', "dynamicAds")'), 4)
+        self.assertNotIn(r"/ads-\d+/.test(item?.dynamic_id_s)", source)
         self.assertEqual(optimize_source(source), source)
 
         declaration = DYNAMIC_MATCHER_MARKER + "\nconst AMAP_AD_DYNAMIC_ID = /ads-\\d+/;\n\n"
         damaged = source.replace(declaration, "", 1).replace(
-            "AMAP_AD_DYNAMIC_ID.test(i?.dynamic_id_s)",
-            r"/ads-\d+/.test(i?.dynamic_id_s)",
+            "AMAP_AD_DYNAMIC_ID.test(item?.dynamic_id_s)",
+            r"/ads-\d+/.test(item?.dynamic_id_s)",
         )
         repaired = optimize_source(damaged)
         self.assertIn(DYNAMIC_MATCHER_MARKER, repaired)
-        self.assertEqual(repaired.count("AMAP_AD_DYNAMIC_ID.test(i?.dynamic_id_s)"), 4)
+        self.assertEqual(repaired.count("AMAP_AD_DYNAMIC_ID.test(item?.dynamic_id_s)"), 1)
+        self.assertEqual(repaired.count(', "dynamicAds")'), 4)
         self.assertEqual(optimize_source(repaired), repaired)
 
     def test_route_info_caches_nested_response_references_and_optimizer_repairs_upstream_form(self):
@@ -283,7 +285,9 @@ process.stdout.write(nativeJSON.stringify({doneResult, parseCount, stringifyCoun
         self.assertIn("function setIfDifferent(", source)
         self.assertIn("function deleteIfPresent(", source)
         self.assertIn("$done(modified ? {body: JSON.stringify(obj)} : {});", source)
-        self.assertIn("if (changed) modified = true;", source)
+        self.assertIn("if (write !== length)", source)
+        self.assertIn("items.length = write;", source)
+        self.assertIn("modified = true;", source)
         handler = source[source.index("let obj = JSON.parse($response.body);"):source.index("$done(modified ? {body: JSON.stringify(obj)} : {});")]
         self.assertNotRegex(handler, r"^\s*delete\s+", msg="raw response delete remains")
         self.assertEqual(optimize_source(source), source)
