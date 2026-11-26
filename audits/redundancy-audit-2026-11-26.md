@@ -19,14 +19,14 @@ This is a static reference and workflow audit. It does not claim device-side beh
 
 | File | Evidence |
 |---|---|
-| `scripts/didi/didi-ads.js` | No reference from the published plugin, workflows, tests, or docs. Its scene-list and homepage-core handling is present in the consolidated `scripts/didi/didi.js` runtime. The active plugin routes the retained Didi response handlers to that consolidated script. |
-| `scripts/jingdong/jd-welcome.js` | No reference from the published plugin, workflows, tests, or docs. The active `scripts/jingdong/jd.js` handler explicitly handles `functionId=welcomeHome`; the plugin's JD response trigger points to that consolidated runtime. |
-| `scripts/pupu/pupu-splash.js` | No reference from the published plugin, workflows, tests, or docs. The current plugin handles Pupu response endpoints using native response rules; its CI tests explicitly protect the checked-in local Pupu handlers and ensure there is no duplicate Romeo trigger. |
+| `scripts/jingdong/jd-welcome.js` | No reference from the published plugin, workflows, tests, or docs. The active `scripts/jingdong/jd.js` handler explicitly handles `functionId=welcomeHome`; the plugin's JD response trigger points to this consolidated runtime. |
+| `scripts/pupu/pupu-splash.js` | No reference from the published plugin, workflows, tests, or docs. The current plugin handles Pupu response endpoints using native response rules; its CI tests protect the checked-in local Pupu handlers and ensure there is no duplicate Romeo trigger. |
 
-These three files were therefore dead copies rather than current build inputs or published runtime dependencies. Their deletion does not change `allAdRewrite.plugin`, active script URLs, MITM hostnames, or rule behavior.
+These two files were therefore dead copies rather than current build inputs or published runtime dependencies. Their deletion does not change `allAdRewrite.plugin`, active script URLs, MITM hostnames, or rule behavior.
 
-### Audited and deliberately retained
+### Retained after test/reference verification
 
+- `scripts/didi/didi-ads.js`: retained. Although it is not a current production trigger, it is directly read by `tests/test_runtime_performance_audit.py` and `tests/test_baidumap_binary_performance.py` through the `tests/scripts` compatibility alias. The fixtures exercise legacy Didi paths including `pInTripLayout` and `common/v5`, which are not all represented in the current `scripts/didi/didi.js` handler. Deleting it would remove a regression fixture and silently discard coverage for those legacy route behaviors. It is not counted as an orphan.
 - `patches/amap-rucu6-performance.patch`: retained; `.github/workflows/sync.yml` explicitly runs `git apply --check` and then applies this patch to the staged Amap source.
 - `audits/`: retained; all 84 historical reports were linked from `audits/README.md`, with no missing links and no unindexed report files. The two similarly titled Xiaohongshu flat-stack reports describe separate batches and different optimizer/validation details; neither has identical blob content.
 - `source-report.json`, `rule-provenance.json`, and `rule-history.json`: retained as previous-run baselines consumed by the sync workflow and provenance/risk-history tools.
@@ -45,10 +45,10 @@ At the audited revision:
 - 0 broken audit-index links.
 - 0 unindexed audit reports.
 - 0 duplicate Git blob contents across tracked files.
-- 3 orphan runtime JavaScript assets removed by this cleanup.
+- 2 orphan runtime JavaScript assets removed by this cleanup.
 
-After adding this report, the repository gains one audit record while losing the three orphan scripts (net change: minus two tracked files).
+After adding this report, the repository gains one audit record while losing two orphan scripts (net change: minus one tracked file). The Didi legacy file is preserved unchanged.
 
 ## Safety boundary
 
-No production plugin content, script trigger, rule, MITM entry, source mapping, optimization implementation, or generated runtime asset was edited. Only the three unreferenced legacy scripts and the audit index/document were changed.
+No production plugin content, script trigger, rule, MITM entry, source mapping, optimization implementation, or generated runtime asset was edited. The only runtime deletions are the two verified unreferenced files; the Didi regression fixture remains intact.
