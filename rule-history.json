@@ -25,40 +25,6 @@
         "low": 0,
         "medium": 0
       },
-      "run_id": "45588596669",
-      "source_changes": {},
-      "upstream_revisions": {
-        "AlipayAdBlock": "34b2aa16ed5f8ca8def7b42f4740d82f1964229f",
-        "Amap": "34b2aa16ed5f8ca8def7b42f4740d82f1964229f",
-        "GuaZiVideoAds": "34b2aa16ed5f8ca8def7b42f4740d82f1964229f",
-        "aoomee": "34b2aa16ed5f8ca8def7b42f4740d82f1964229f",
-        "source_migrations": "",
-        "zmjde": "34b2aa16ed5f8ca8def7b42f4740d82f1964229f"
-      }
-    },
-    {
-      "change_counts": {
-        "rewrite": {
-          "action_changed": 0,
-          "added": 0,
-          "removed": 0
-        },
-        "rule": {
-          "action_changed": 0,
-          "added": 0,
-          "removed": 0
-        },
-        "script": {
-          "action_changed": 0,
-          "added": 0,
-          "removed": 0
-        }
-      },
-      "risk_counts": {
-        "high": 0,
-        "low": 0,
-        "medium": 0
-      },
       "run_id": "45631112241",
       "source_changes": {},
       "upstream_revisions": {
@@ -1051,6 +1017,40 @@
           "removed": 0
         }
       },
+      "upstream_revisions": {
+        "AlipayAdBlock": "029eddfa70b483674c54c82b123e407aee4afbaf",
+        "Amap": "029eddfa70b483674c54c82b123e407aee4afbaf",
+        "GuaZiVideoAds": "029eddfa70b483674c54c82b123e407aee4afbaf",
+        "aoomee": "029eddfa70b483674c54c82b123e407aee4afbaf",
+        "source_migrations": "",
+        "zmjde": "029eddfa70b483674c54c82b123e407aee4afbaf"
+      }
+    },
+    {
+      "change_counts": {
+        "rewrite": {
+          "action_changed": 0,
+          "added": 0,
+          "removed": 0
+        },
+        "rule": {
+          "action_changed": 0,
+          "added": 0,
+          "removed": 0
+        },
+        "script": {
+          "action_changed": 0,
+          "added": 0,
+          "removed": 0
+        }
+      },
+      "risk_counts": {
+        "high": 0,
+        "low": 0,
+        "medium": 0
+      },
+      "run_id": "45904968469",
+      "source_changes": {},
       "upstream_revisions": {
         "AlipayAdBlock": "029eddfa70b483674c54c82b123e407aee4afbaf",
         "Amap": "029eddfa70b483674c54c82b123e407aee4afbaf",
