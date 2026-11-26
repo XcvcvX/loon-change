@@ -219,18 +219,18 @@ def optimize_didi_predicates(source):
 
     replacements = [
         ('compactInPlace(obj.data.scene_list, item => item.text !== "优惠商城");',
-         'compactDidiByField(obj.data.scene_list, "text", "scene");'),
+         'compactDidiByField(obj.data.scene_list, "scene");'),
         ('compactInPlace(block.scene_ids, id => id !== "scene_coupon_mall");',
-         'compactDidiByField(block.scene_ids, "scene_ids", "sceneId");'),
+         'compactDidiByField(block.scene_ids, "sceneId");'),
         ("  const keepNavIds = ['dache_anycar', 'driverservice', 'bike'];\n", ""),
         ('compactInPlace(obj.data.order_cards.nav_list_card.data, item => keepNavIds.includes(item.nav_id));',
-         'compactDidiByField(obj.data.order_cards.nav_list_card.data, "nav_id", "nav");'),
+         'compactDidiByField(obj.data.order_cards.nav_list_card.data, "nav");'),
         ("  const keepBottomNavIds = ['v6x_home', 'user_center'];\n", ""),
         ('compactInPlace(obj.data.disorder_cards.bottom_nav_list.data, item => keepBottomNavIds.includes(item.id));',
-         'compactDidiByField(obj.data.disorder_cards.bottom_nav_list.data, "id", "bottomNav");'),
+         'compactDidiByField(obj.data.disorder_cards.bottom_nav_list.data, "bottomNav");'),
         ("  const excludedTitles = ['天天领福利', '金融服务', '更多服务', '企业服务', '安全中心'];\n\n", ""),
         ('compactInPlace(obj.data.cards, card => {\n      if (excludedTitles.includes(card.title)) return false;\n      if (card.tag === "wallet") {\n        if (card.items) {\n          compactInPlace(card.items, item => item.title === "优惠券");\n        }\n        if (card.card_type === 4 && card.bottom_items) {\n          compactInPlace(card.bottom_items, item =>\n              item.title === "省钱套餐" || item.title === "天天神券"\n          );\n        }\n      }\n      return true;\n    });',
-         'compactDidiByField(obj.data.cards, "title", "card");'),
+         'compactDidiByField(obj.data.cards, "card");'),
     ]
     for old, new in replacements:
         if old not in source:
@@ -246,7 +246,7 @@ def optimize_didi_predicates(source):
         r'compactDidiByField(\1, "\2")',
         source,
     )
-    if count != 7:
+    if count not in (0, 7):
         raise ValueError("Didi specialized callsite inventory changed during upstream generation")
     return validate(source)
 
@@ -344,22 +344,22 @@ def optimize_wallet_nested_property_cache(source):
     marker = DIDI_WALLET_PROPERTY_CACHE_MARKER
     old = """      if (item.tag === "wallet") {
         if (Array.isArray(item.items) && item.items.length > 0) {
-          compactDidiByField(item.items, "title", "walletItem");
+          compactDidiByField(item.items, "walletItem");
         }
         if (item.card_type === 4 && Array.isArray(item.bottom_items) && item.bottom_items.length > 0) {
-          compactDidiByField(item.bottom_items, "title", "walletBottom");
+          compactDidiByField(item.bottom_items, "walletBottom");
         }
       }"""
     new = """      if (item.tag === "wallet") {
         // loon-change: Didi wallet nested property cache v1
         const walletItems = item.items;
         if (Array.isArray(walletItems) && walletItems.length > 0) {
-          compactDidiByField(walletItems, "title", "walletItem");
+          compactDidiByField(walletItems, "walletItem");
         }
         if (item.card_type === 4) {
           const walletBottomItems = item.bottom_items;
           if (Array.isArray(walletBottomItems) && walletBottomItems.length > 0) {
-            compactDidiByField(walletBottomItems, "title", "walletBottom");
+            compactDidiByField(walletBottomItems, "walletBottom");
           }
         }
       }"""
@@ -367,18 +367,18 @@ def optimize_wallet_nested_property_cache(source):
         marker,
         "const walletItems = item.items;",
         "Array.isArray(walletItems)",
-        'compactDidiByField(walletItems, "title", "walletItem");',
+        'compactDidiByField(walletItems, "walletItem");',
         "const walletBottomItems = item.bottom_items;",
         "Array.isArray(walletBottomItems)",
-        'compactDidiByField(walletBottomItems, "title", "walletBottom");',
+        'compactDidiByField(walletBottomItems, "walletBottom");',
     )
     forbidden = (
         "Array.isArray(item.items)",
         "item.items.length",
-        'compactDidiByField(item.items, "title", "walletItem")',
+        'compactDidiByField(item.items, "walletItem")',
         "Array.isArray(item.bottom_items)",
         "item.bottom_items.length",
-        'compactDidiByField(item.bottom_items, "title", "walletBottom")',
+        'compactDidiByField(item.bottom_items, "walletBottom")',
     )
     if marker in source:
         if source.count(marker) != 1 or any(token not in source for token in required):
@@ -505,11 +505,11 @@ def optimize_homepage_core_cached_references(source):
     old = '''if (isHomepageCore) {
   // 保留打车、代驾、青桔骑行
   if (responseData && responseData.order_cards && responseData.order_cards.nav_list_card && responseData.order_cards.nav_list_card.data) {
-    compactDidiByField(responseData.order_cards.nav_list_card.data, "nav_id", "nav");
+    compactDidiByField(responseData.order_cards.nav_list_card.data, "nav");
   }
   // 保留底部tap首页、我的
   if (responseData && responseData.disorder_cards && responseData.disorder_cards.bottom_nav_list && responseData.disorder_cards.bottom_nav_list.data) {
-    compactDidiByField(responseData.disorder_cards.bottom_nav_list.data, "id", "bottomNav");
+    compactDidiByField(responseData.disorder_cards.bottom_nav_list.data, "bottomNav");
   }
 }'''
     new = '''if (isHomepageCore) {
@@ -518,14 +518,14 @@ def optimize_homepage_core_cached_references(source):
   const navListCard = orderCards?.nav_list_card;
   const navListData = navListCard?.data;
   if (navListData) {
-    compactDidiByField(navListData, "nav_id", "nav");
+    compactDidiByField(navListData, "nav");
   }
 
   const disorderCards = responseData?.disorder_cards;
   const bottomNavList = disorderCards?.bottom_nav_list;
   const bottomNavData = bottomNavList?.data;
   if (bottomNavData) {
-    compactDidiByField(bottomNavData, "id", "bottomNav");
+    compactDidiByField(bottomNavData, "bottomNav");
   }
 }'''
     required = (
@@ -536,8 +536,8 @@ def optimize_homepage_core_cached_references(source):
         "const disorderCards = responseData?.disorder_cards;",
         "const bottomNavList = disorderCards?.bottom_nav_list;",
         "const bottomNavData = bottomNavList?.data;",
-        'compactDidiByField(navListData, "nav_id", "nav");',
-        'compactDidiByField(bottomNavData, "id", "bottomNav");',
+        'compactDidiByField(navListData, "nav");',
+        'compactDidiByField(bottomNavData, "bottomNav");',
     )
     if marker in source:
         if any(token not in source for token in required) or old in source:
@@ -680,7 +680,7 @@ def main():
 DIDI_ROUTE_ARRAY_REFERENCE_CACHE_MARKER = "// loon-change: Didi scene-list and show-data array reference cache v1"
 DIDI_ROUTE_ARRAY_OLD_SCENE = """if (isSceneList) {
   if (obj && responseData && responseData.scene_list instanceof Array) {
-    compactDidiByField(responseData.scene_list, "text", "scene");
+    compactDidiByField(responseData.scene_list, "scene");
   }
   if (obj && responseData && responseData.show_data instanceof Array) {
     // loon-change: Didi show_data nested traversal cache v1
@@ -690,7 +690,7 @@ DIDI_ROUTE_ARRAY_OLD_SCENE = """if (isSceneList) {
       const block = showData[read];
       const sceneIds = block.scene_ids;
       if (sceneIds instanceof Array) {
-        compactDidiByField(sceneIds, "scene_ids", "sceneId");
+        compactDidiByField(sceneIds, "sceneId");
       }
     }
   }
@@ -699,7 +699,7 @@ DIDI_ROUTE_ARRAY_NEW_SCENE = """if (isSceneList) {
   // loon-change: Didi scene-list and show-data array reference cache v1
   const sceneList = responseData?.scene_list;
   if (sceneList instanceof Array) {
-    compactDidiByField(sceneList, "text", "scene");
+    compactDidiByField(sceneList, "scene");
   }
   const showData = responseData?.show_data;
   if (showData instanceof Array) {
@@ -709,21 +709,21 @@ DIDI_ROUTE_ARRAY_NEW_SCENE = """if (isSceneList) {
       const block = showData[read];
       const sceneIds = block.scene_ids;
       if (sceneIds instanceof Array) {
-        compactDidiByField(sceneIds, "scene_ids", "sceneId");
+        compactDidiByField(sceneIds, "sceneId");
       }
     }
   }
 }"""
 DIDI_ROUTE_ARRAY_OLD_USER = """if (isUserCenter) {
   if (responseData && responseData.cards) {
-    compactDidiByField(responseData.cards, "title", "card");
+    compactDidiByField(responseData.cards, "card");
   }
 }"""
 DIDI_ROUTE_ARRAY_NEW_USER = """if (isUserCenter) {
   // loon-change: Didi user-center cards array reference cache v1
   const userCenterCards = responseData?.cards;
   if (userCenterCards) {
-    compactDidiByField(userCenterCards, "title", "card");
+    compactDidiByField(userCenterCards, "card");
   }
 }"""
 
@@ -735,8 +735,8 @@ def optimize_route_array_reference_cache(source):
         "const sceneList = responseData?.scene_list;",
         "const showData = responseData?.show_data;",
         "const userCenterCards = responseData?.cards;",
-        'compactDidiByField(sceneList, "text", "scene");',
-        'compactDidiByField(userCenterCards, "title", "card");',
+        'compactDidiByField(sceneList, "scene");',
+        'compactDidiByField(userCenterCards, "card");',
     )
     if marker in source:
         if source.count(marker) != 1 or any(token not in source for token in required):
