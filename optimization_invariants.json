@@ -325,19 +325,19 @@
         "function sameValue(",
         "function setIfDifferent(",
         "function deleteIfPresent(",
-        "if (changed) modified = true;",
+        "items.length = write;",
         "$done(modified ? {body: JSON.stringify(obj)} : {});",
         "// loon-change: Amap scalar membership hot loops v1",
-        "i === \"head\" || i === \"search_hot_words\" || i === \"feed_rec\"",
+        "item === \"head\" || item === \"search_hot_words\" || item === \"feed_rec\"",
         "tip?.datatype_spec !== \"12\"",
         "tip?.result_type !== \"poi_ad\"",
         "tip?.task_tag !== \"query_sug_merge_theme\"",
         "// loon-change: Amap shared dynamic ad matcher v1",
         "const AMAP_AD_DYNAMIC_ID = /ads-\\d+/;",
-        "AMAP_AD_DYNAMIC_ID.test(i?.dynamic_id_s)",
+        "AMAP_AD_DYNAMIC_ID.test(item?.dynamic_id_s)",
         "// loon-change: Amap cached suggestion tip access v1",
         "const tip = item?.tip;",
-        "const itemType = i?.item_type;",
+        "const itemType = item?.item_type;",
         "// loon-change: Amap routeInfo cached nested references v1",
         "const routeInfoFrontEnd = routeInfoData?.front_end;",
         "const routeInfoEvents = routeInfoData?.tbt?.event;",
@@ -346,7 +346,11 @@
         "// loon-change: Amap routePlan cached nested references v1",
         "const routePlanFrontEnd = routePlanData?.front_end;",
         "const routePlanEvents = routePlanData?.tbt?.event;",
-        "const routePlanDownloads = routePlanFrontEnd?.download;"
+        "const routePlanDownloads = routePlanFrontEnd?.download;",
+        "// loon-change: Amap specialized in-place compaction v1",
+        "function compactInPlace(items, mode)",
+        "const length = items.length;",
+        "modified = true;"
       ],
       "forbidden": [
         "AMAP_STATIC_ITEMS_06",
@@ -361,7 +365,10 @@
         "/ads-\\d+/.test(i?.dynamic_id_s)",
         "item?.tip?.task_tag",
         "i?.item_type !== \"brandAdCard\"",
-        "i?.item_type !== \"toplist_al\""
+        "i?.item_type !== \"toplist_al\"",
+        "function compactInPlace(items, keep)",
+        "compactInPlace(obj.tip_list, item =>",
+        "compactInPlace(city.tip_list, item =>"
       ]
     },
     {
