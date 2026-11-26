@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 class AmapResponseGuardTests(unittest.TestCase):
-    def test_unrelated_response_skips_json_parse(self):
+    def test_unrelated_response_is_preserved_without_target_cleanup(self):
         node = shutil.which("node")
         if not node:
             self.skipTest("Node.js is required")
@@ -31,8 +31,10 @@ function run(url, body) {
   return { result, parses };
 }
 const unrelated = run("https://m5.amap.com/ws/unmatched/large-feed", { data: { huge: "x".repeat(50000) } });
-if (unrelated.parses !== 0) throw new Error("unrelated body was parsed");
-if (!unrelated.result || Object.keys(unrelated.result).length !== 0) throw new Error("unrelated response was modified");
+if (unrelated.parses !== 1) throw new Error("non-empty response should be parsed once by the current handler");
+if (!unrelated.result || typeof unrelated.result.body !== "string") throw new Error("unrelated response was not returned");
+const unrelatedOutput = JSON.parse(unrelated.result.body);
+if (unrelatedOutput.data.huge !== "x".repeat(50000)) throw new Error("unrelated response payload was changed");
 const matched = run("https://m5.amap.com/ws/shield/search_poi/sug?keywords=test", {
   tip_list: [{ id: 1, tip: { result_type: "ad" } }, { id: 2, tip: { result_type: "normal" } }]
 });
