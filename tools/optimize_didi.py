@@ -26,17 +26,17 @@ HELPER = """function compactInPlace(items, keep) {
 }
 """
 
-DIDI_MODE_MARKER = "// loon-change: Didi hot-loop mode dispatch v1;"
+DIDI_MODE_MARKER = "// loon-change: Didi hot-loop specialized property loops v2;"
 DIDI_WALLET_PROPERTY_CACHE_MARKER = "// loon-change: Didi wallet nested property cache v1"
-DIDI_MODE_HELPER = r"""// loon-change: Didi hot-loop mode dispatch v1;
-function compactDidiByField(items, field, mode) {
+DIDI_MODE_HELPER = r"""// loon-change: Didi hot-loop specialized property loops v2;
+function compactDidiByField(items, mode) {
   const length = items.length;
   let write = 0;
 
   if (mode === "scene") {
     for (let read = 0; read < length; read++) {
       const item = items[read];
-      if (item[field] !== "优惠商城") {
+      if (item.text !== "优惠商城") {
         if (write !== read) items[write] = item;
         write++;
       }
@@ -52,7 +52,7 @@ function compactDidiByField(items, field, mode) {
   } else if (mode === "nav") {
     for (let read = 0; read < length; read++) {
       const item = items[read];
-      const value = item[field];
+      const value = item.nav_id;
       if (value === "dache_anycar" || value === "driverservice" || value === "bike") {
         if (write !== read) items[write] = item;
         write++;
@@ -61,7 +61,7 @@ function compactDidiByField(items, field, mode) {
   } else if (mode === "bottomNav") {
     for (let read = 0; read < length; read++) {
       const item = items[read];
-      const value = item[field];
+      const value = item.id;
       if (value === "v6x_home" || value === "user_center") {
         if (write !== read) items[write] = item;
         write++;
@@ -70,7 +70,7 @@ function compactDidiByField(items, field, mode) {
   } else if (mode === "walletItem") {
     for (let read = 0; read < length; read++) {
       const item = items[read];
-      if (item[field] === "优惠券") {
+      if (item.title === "优惠券") {
         if (write !== read) items[write] = item;
         write++;
       }
@@ -78,7 +78,7 @@ function compactDidiByField(items, field, mode) {
   } else if (mode === "walletBottom") {
     for (let read = 0; read < length; read++) {
       const item = items[read];
-      const value = item[field];
+      const value = item.title;
       if (value === "省钱套餐" || value === "天天神券") {
         if (write !== read) items[write] = item;
         write++;
@@ -87,7 +87,7 @@ function compactDidiByField(items, field, mode) {
   } else if (mode === "card") {
     for (let read = 0; read < length; read++) {
       const item = items[read];
-      const title = item[field];
+      const title = item.title;
       if (title === "天天领福利" || title === "金融服务" || title === "更多服务" ||
           title === "企业服务" || title === "安全中心") {
         continue;
@@ -179,9 +179,20 @@ def optimize_didi_predicates(source):
             raise ValueError("Didi specialized loop inventory changed")
         if result.count('mode === "') != 7:
             raise ValueError("Didi per-item mode dispatch inventory changed")
+        if "item[field]" in result or "compactDidiByField(items, field, mode)" in result:
+            raise ValueError("Didi dynamic property access remains in specialized loops")
+        if result.count("compactDidiByField(") != 8:
+            raise ValueError("Didi specialized callsite inventory changed")
         return result
 
     if DIDI_MODE_MARKER in source:
+        source, count = re.subn(
+            r'compactDidiByField\(([^,\n]+),\s*"[^"]+",\s*"([^"]+)"\)',
+            r'compactDidiByField(\1, "\2")',
+            source,
+        )
+        if count != 7:
+            raise ValueError("Didi specialized callsite inventory changed during v2 upgrade")
         return validate(source)
 
     # Upgrade the already-specialized v2 local snapshot without changing its
