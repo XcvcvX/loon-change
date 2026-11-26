@@ -496,6 +496,12 @@ process.stdout.write(nativeJSON.stringify({doneResult, parseCount, stringifyCoun
         self.assertIn('compactInPlace(city.tip_list, "citySuggestions")', block)
         self.assertEqual(source.count("const tip = item?.tip;"), 2)
         self.assertNotIn("item?.tip?.", source)
+        self.assertEqual(source.count("// loon-change: Amap suggestion scalar property cache v1"), 2)
+        self.assertEqual(source.count("const datatypeSpec = tip?.datatype_spec;"), 2)
+        self.assertEqual(source.count("const resultType = tip?.result_type;"), 2)
+        self.assertEqual(source.count("const taskTag = tip?.task_tag;"), 1)
+        self.assertNotIn("tip?.result_type !==", source)
+        self.assertNotIn("tip?.task_tag !==", source)
         self.assertEqual(optimize_source(source), source)
 
         upstream_block = """if (url.includes("/shield/search_poi/sug")) {
