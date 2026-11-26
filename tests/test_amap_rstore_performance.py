@@ -4,7 +4,7 @@ import subprocess
 import unittest
 from pathlib import Path
 
-from optimize_amap import ARRAY_MARKER, LOCAL, REMOTE, TRACKING_MARKER, SCALAR_MARKER, DYNAMIC_MATCHER_MARKER, hoist_static_arrays, optimize_source, rewrite_plugin
+from optimize_amap import ARRAY_MARKER, LOCAL, REMOTE, TRACKING_MARKER, SCALAR_MARKER, DYNAMIC_MATCHER_MARKER, COMPACTION_MARKER, hoist_static_arrays, optimize_source, rewrite_plugin
 
 ROOT = Path(__file__).resolve().parent
 SOURCE = ROOT / "scripts" / "amap" / "amap.js"
@@ -168,7 +168,8 @@ class AmapRStoreOptimizerTests(unittest.TestCase):
     def test_local_script_has_guard_and_in_place_compaction(self):
         source = SOURCE.read_text(encoding="utf-8")
         self.assertIn("Amap R-Store supported-route guard v1", source)
-        self.assertIn("function compactInPlace(items, keep)", source)
+        self.assertIn(COMPACTION_MARKER, source)
+        self.assertIn("function compactInPlace(items, mode)", source)
         self.assertNotIn(".filter(", source)
         self.assertLess(source.index("const shouldProcess ="), source.index("JSON.parse($response.body)"))
         self.assertIn("if (!$response.body) {", source)
@@ -258,7 +259,8 @@ process.stdout.write(nativeJSON.stringify({doneResult, parseCount, stringifyCoun
         nearby = source[nearby_start:nearby_end]
         self.assertIn("Array.isArray(obj?.data?.modules)", nearby)
         self.assertEqual(nearby.count("if (obj?.data?.modules?.length > 0)"), 0)
-        self.assertIn('i === "head" || i === "search_hot_words" || i === "feed_rec"', nearby)
+        self.assertIn('compactInPlace(obj.data.modules, "nearbyModules")', nearby)
+        self.assertIn('item === "head" || item === "search_hot_words" || item === "feed_rec"', source)
         self.assertEqual(optimize_source(source), source)
 
     def test_nearby_module_scalar_filter_preserves_order_and_values(self):
@@ -414,45 +416,90 @@ process.stdout.write(nativeJSON.stringify({doneResult, parseCount, stringifyCoun
         self.assertIn('url.includes("/valueadded/alimama/splash_screen")', repaired)
         self.assertEqual(optimize_source(repaired), repaired)
 
-    def test_search_card_filter_caches_item_type_and_optimizer_repairs_upstream_form(self):
+    def test_specialized_compaction_modes_remove_per_item_callbacks(self):
         source = SOURCE.read_text(encoding="utf-8")
-        self.assertEqual(source.count("const itemType = i?.item_type;"), 1)
-        self.assertNotIn('i?.item_type !== "brandAdCard"', source)
-        self.assertNotIn('i?.item_type !== "toplist_al"', source)
+        self.assertEqual(source.count(COMPACTION_MARKER), 1)
+        self.assertEqual(source.count("compactInPlace("), 14)
+        for mode, count in (
+            ("withoutSchema", 1), ("homeCards", 1), ("findCar", 1),
+            ("dynamicAds", 4), ("nonMusic", 1), ("myOrder", 1),
+            ("nearbyModules", 1), ("searchContent", 1),
+            ("suggestions", 1), ("citySuggestions", 1),
+        ):
+            self.assertEqual(source.count(', "' + mode + '")'), count)
+        self.assertNotRegex(
+            source,
+            r'compactInPlace\([^,\n]+,\s*(?:\([^)]*\)|[A-Za-z_$][\w$]*)\s*=>',
+        )
+        self.assertIn("const length = items.length;", source)
         self.assertEqual(optimize_source(source), source)
 
-        # Simulate the pre-cache upstream predicate and verify automatic repair.
-        cached = """compactInPlace(list.content, (i) => {
-          const itemType = i?.item_type;
-          return itemType !== "brandAdCard" && itemType !== "toplist_al";
-        });"""
-        upstream = """compactInPlace(list.content, (item) =>
-          item?.item_type !== "brandAdCard" && item?.item_type !== "toplist_al"
-        );"""
-        damaged = source.replace(cached, upstream, 1)
+    def test_homepage_card_modes_keep_only_expected_items_and_order(self):
+        body = {"data": {
+            "cardList": [
+                {"dataKey": "ContinueNavigationCard"},
+                {"dataKey": "PromotionCard"},
+                {"dataKey": "FrequentLocation"},
+                {"dataKey": "LoginCard"},
+            ],
+            "mapBizList": [
+                {"dataKey": "FindCarVirtualCard"},
+                {"dataKey": "PromotionCard"},
+            ],
+        }}
+        result = self.run_script(
+            "https://m1.amap.com/ws/faas/amap-navigation/main-page?x=1",
+            json.dumps(body),
+        )
+        output = json.loads(result["doneResult"]["body"])
+        self.assertEqual(
+            [item["dataKey"] for item in output["data"]["cardList"]],
+            ["ContinueNavigationCard", "FrequentLocation", "LoginCard"],
+        )
+        self.assertEqual(
+            [item["dataKey"] for item in output["data"]["mapBizList"]],
+            ["FindCarVirtualCard"],
+        )
+        self.assertEqual(result["parseCount"], 1)
+        self.assertEqual(result["stringifyCount"], 1)
+
+    def test_search_card_filter_uses_specialized_direct_loop_and_optimizer_repairs_upstream_form(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        self.assertIn(COMPACTION_MARKER, source)
+        self.assertIn('compactInPlace(list.content, "searchContent")', source)
+        self.assertIn('const itemType = item?.item_type;', source)
+        self.assertNotIn('compactInPlace(list.content, (', source)
+        self.assertEqual(optimize_source(source), source)
+
+        damaged = source.replace(
+            'compactInPlace(list.content, "searchContent")',
+            'compactInPlace(list.content, (item) => item?.item_type !== "brandAdCard" && item?.item_type !== "toplist_al");',
+            1,
+        )
         self.assertNotEqual(damaged, source)
         repaired = optimize_source(damaged)
-        self.assertIn("const itemType = item?.item_type;", repaired)
-        self.assertNotIn('item?.item_type !== "brandAdCard"', repaired)
+        self.assertIn('compactInPlace(list.content, "searchContent")', repaired)
         self.assertEqual(optimize_source(repaired), repaired)
 
-    def test_search_suggestion_caches_tip_reference_once_per_item(self):
+    def test_search_suggestion_modes_cache_tip_reference_in_direct_loops(self):
         source = SOURCE.read_text(encoding="utf-8")
         start = 'if (url.includes("/shield/search_poi/sug")) {'
         end = '} else if (url.includes("/shield/search_poi/tips_operation_location")) {'
         i = source.index(start)
         j = source.index(end, i + len(start))
         block = source[i:j]
-        self.assertEqual(block.count("const tip = item?.tip;"), 2)
-        self.assertNotIn("item?.tip?.", block)
+        self.assertIn('compactInPlace(obj.tip_list, "suggestions")', block)
+        self.assertIn('compactInPlace(city.tip_list, "citySuggestions")', block)
+        self.assertEqual(source.count("const tip = item?.tip;"), 2)
+        self.assertNotIn("item?.tip?.", source)
         self.assertEqual(optimize_source(source), source)
 
-        # Simulate the unoptimized upstream block and verify automatic repair.
-        upstream_block = "if (url.includes(\"/shield/search_poi/sug\")) {\n  if (Array.isArray(obj?.tip_list) && obj.tip_list.length > 0) {\n    compactInPlace(obj.tip_list, item =>\n      item?.tip?.datatype_spec !== \"12\" &&\n      item?.tip?.result_type !== \"ad\" &&\n      item?.tip?.result_type !== \"poi_ad\" &&\n      item?.tip?.result_type !== \"toplist\" &&\n      item?.tip?.task_tag !== \"ad\" &&\n      item?.tip?.task_tag !== \"exct_query_sug_merge_theme\" &&\n      item?.tip?.task_tag !== \"query_sug_merge_theme\" &&\n      item?.tip?.task_tag !== \"sp\"\n    );\n  } else if (Array.isArray(obj?.city_list) && obj.city_list.length > 0) {\n    for (const city of obj.city_list) {\n      if (Array.isArray(city?.tip_list) && city.tip_list.length > 0) {\n        compactInPlace(city.tip_list, item =>\n          item?.tip?.datatype_spec !== \"12\" &&\n          item?.tip?.result_type !== \"ad\" &&\n          item?.tip?.result_type !== \"poi_ad\"\n        );\n      }\n    }\n  }\n"
+        upstream_block = "if (url.includes(\\"/shield/search_poi/sug\\")) {\\n  if (Array.isArray(obj?.tip_list) && obj.tip_list.length > 0) {\\n    compactInPlace(obj.tip_list, item =>\\n      item?.tip?.datatype_spec !== \\"12\\" &&\\n      item?.tip?.result_type !== \\"ad\\" &&\\n      item?.tip?.result_type !== \\"poi_ad\\" &&\\n      item?.tip?.result_type !== \\"toplist\\" &&\\n      item?.tip?.task_tag !== \\"ad\\" &&\\n      item?.tip?.task_tag !== \\"exct_query_sug_merge_theme\\" &&\\n      item?.tip?.task_tag !== \\"query_sug_merge_theme\\" &&\\n      item?.tip?.task_tag !== \\"sp\\"\\n    );\\n  } else if (Array.isArray(obj?.city_list) && obj.city_list.length > 0) {\\n    for (const city of obj.city_list) {\\n      if (Array.isArray(city?.tip_list) && city.tip_list.length > 0) {\\n        compactInPlace(city.tip_list, item =>\\n          item?.tip?.datatype_spec !== \\"12\\" &&\\n          item?.tip?.result_type !== \\"ad\\" &&\\n          item?.tip?.result_type !== \\"poi_ad\\"\\n        );\\n      }\\n    }\\n  }\\n"
         damaged = source[:i] + upstream_block + source[j:]
         repaired = optimize_source(damaged)
-        self.assertIn("// loon-change: Amap cached suggestion tip access v1", repaired)
-        self.assertEqual(repaired.count("const tip = item?.tip;"), 2)
+        self.assertIn(COMPACTION_MARKER, repaired)
+        self.assertIn('compactInPlace(obj.tip_list, "suggestions")', repaired)
+        self.assertIn('compactInPlace(city.tip_list, "citySuggestions")', repaired)
         self.assertEqual(optimize_source(repaired), repaired)
 
     def test_search_suggestion_filters_use_in_place_compaction(self):
@@ -460,8 +507,8 @@ process.stdout.write(nativeJSON.stringify({doneResult, parseCount, stringifyCoun
         start = source.index('if (url.includes("/shield/search_poi/sug")) {')
         end = source.index('} else if (url.includes("/shield/search_poi/tips_operation_location")) {', start)
         block = source[start:end]
-        self.assertIn("compactInPlace(obj.tip_list", block)
-        self.assertIn("compactInPlace(city.tip_list", block)
+        self.assertIn('compactInPlace(obj.tip_list, "suggestions")', block)
+        self.assertIn('compactInPlace(city.tip_list, "citySuggestions")', block)
         self.assertNotIn("newLists", block)
         self.assertNotIn("newTips", block)
         self.assertEqual(optimize_source(source), source)
