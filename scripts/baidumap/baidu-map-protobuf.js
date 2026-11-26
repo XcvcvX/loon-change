@@ -266,7 +266,7 @@ for(let i = 0; i < messageHeadLength; i++) {
   const name = messageHead.name;
   const targetDataLength = messageHead.length;
   // loon-change: Baidu protobuf target segment offset cache v1
-  const targetDataOffset = targetDataOffset;
+  const targetDataOffset = messageHead.offset;
 
   // Defer payload offset arithmetic and views until a consumed field is found.
   if(name === 'Result'){
