@@ -95,6 +95,7 @@
 ## 第十一阶段专项记录
 
 - [phase11 batch1 xiaohongshu feed nested loop cache](phase11-batch1-xiaohongshu-feed-nested-loop-cache.md)
+- [phase11 batch2 Youku profile and comment array compaction](phase11-batch2-youku-profile-comment-array-compaction.md)
 
 ## 其他专项审计
 
