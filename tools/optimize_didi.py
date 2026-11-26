@@ -173,7 +173,8 @@ def optimize_didi_predicates(source):
         if any(token not in result for token in required):
             raise ValueError("Didi mode-dispatch optimization is incomplete")
         if ('compactDidiByField(responseData.cards, "card");' not in result and
-                'compactDidiByField(obj.data.cards, "card");' not in result):
+                'compactDidiByField(obj.data.cards, "card");' not in result and
+                'compactDidiByField(userCenterCards, "card");' not in result):
             raise ValueError("Didi mode-dispatch card compaction is incomplete")
         if result.count("for (let read = 0; read < length; read++)") != 7:
             raise ValueError("Didi specialized loop inventory changed")
