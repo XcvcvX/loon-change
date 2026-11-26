@@ -1727,9 +1727,10 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
 
     def test_local_jd_scripts_preserve_endpoint_coverage_and_safe_parse(self):
         from pathlib import Path
-        root = Path(__file__).parent / "scripts/jingdong"
-        base_script = (root / "jd.js").read_text(encoding="utf-8")
-        welcome_script = (root / "jd-welcome.js").read_text(encoding="utf-8")
+        scripts_root = Path(__file__).parent / "scripts/jingdong"
+        fixtures_root = Path(__file__).parent / "fixtures/legacy"
+        base_script = (scripts_root / "jd.js").read_text(encoding="utf-8")
+        welcome_script = (fixtures_root / "jd-welcome.js").read_text(encoding="utf-8")
         for marker in (
             "functionId=start", "functionId=welcomeHome",
             "functionId=readCustomSurfaceList", "functionId=deliverLayer",
@@ -5479,7 +5480,7 @@ class PupuLocalResponseOptimizationTests(unittest.TestCase):
 
     def test_local_handler_parses_and_serializes_response_once(self):
         from pathlib import Path
-        source = Path(__file__).with_name("scripts").joinpath("pupu", "pupu-splash.js").read_text(encoding="utf-8")
+        source = Path(__file__).with_name("fixtures").joinpath("legacy", "pupu-splash.js").read_text(encoding="utf-8")
         self.assertEqual(source.count("JSON.parse("), 1)
         self.assertEqual(source.count("JSON.stringify(obj)"), 1)
         self.assertEqual(source.count("$done("), 2)

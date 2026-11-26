@@ -15,24 +15,26 @@ This is a static reference and workflow audit. It does not claim device-side beh
 
 ## Findings
 
-### Removed as orphaned runtime assets
+### Reclassified from production script assets to test fixtures
 
-| File | Evidence |
-|---|---|
-| `scripts/jingdong/jd-welcome.js` | No reference from the published plugin, workflows, tests, or docs. The active `scripts/jingdong/jd.js` handler explicitly handles `functionId=welcomeHome`; the plugin's JD response trigger points to this consolidated runtime. |
-| `scripts/pupu/pupu-splash.js` | No reference from the published plugin, workflows, tests, or docs. The current plugin handles Pupu response endpoints using native response rules; its CI tests protect the checked-in local Pupu handlers and ensure there is no duplicate Romeo trigger. |
+Three old standalone JavaScript snapshots were still referenced by regression tests. They are not current production triggers, but deleting the contents outright would destroy useful historical coverage. The files have therefore been moved unchanged from `scripts/` into `tests/fixtures/legacy/`, and all tests now read them from that explicit fixture location.
 
-These two files were therefore dead copies rather than current build inputs or published runtime dependencies. Their deletion does not change `allAdRewrite.plugin`, active script URLs, MITM hostnames, or rule behavior.
+| Previous location | Test-fixture location | Why retained |
+|---|---|---|
+| `scripts/didi/didi-ads.js` | `tests/fixtures/legacy/didi-ads.js` | Two regression tests exercise the old response handler, including `pInTripLayout` and `common/v5` paths that are not all represented by the current consolidated Didi handler. |
+| `scripts/jingdong/jd-welcome.js` | `tests/fixtures/legacy/jd-welcome.js` | A JD consolidation test keeps the optional welcome-page filter's legacy field allow/deny behavior and safe-parse coverage. The active plugin routes JD responses to the consolidated `scripts/jingdong/jd.js`. |
+| `scripts/pupu/pupu-splash.js` | `tests/fixtures/legacy/pupu-splash.js` | A regression test checks the legacy handler's parse/serialize contract and endpoint-branch inventory. The published plugin currently uses native response rules for Pupu. |
 
-### Retained after test/reference verification
+Moving these files changes only repository organization. The contents are byte-for-byte preserved, no test was skipped or weakened, and no production trigger points to the test-fixture paths.
 
-- `scripts/didi/didi-ads.js`: retained. Although it is not a current production trigger, it is directly read by `tests/test_runtime_performance_audit.py` and `tests/test_baidumap_binary_performance.py` through the `tests/scripts` compatibility alias. The fixtures exercise legacy Didi paths including `pInTripLayout` and `common/v5`, which are not all represented in the current `scripts/didi/didi.js` handler. Deleting it would remove a regression fixture and silently discard coverage for those legacy route behaviors. It is not counted as an orphan.
+### Audited and deliberately retained elsewhere
+
 - `patches/amap-rucu6-performance.patch`: retained; `.github/workflows/sync.yml` explicitly runs `git apply --check` and then applies this patch to the staged Amap source.
 - `audits/`: retained; all 84 historical reports were linked from `audits/README.md`, with no missing links and no unindexed report files. The two similarly titled Xiaohongshu flat-stack reports describe separate batches and different optimizer/validation details; neither has identical blob content.
 - `source-report.json`, `rule-provenance.json`, and `rule-history.json`: retained as previous-run baselines consumed by the sync workflow and provenance/risk-history tools.
 - `romeo_resource_map.json`: retained as the mapping input for the Romeo staging tool and its tests.
 - `optimization_invariants.json` and `optimization_output_invariants.json`: retained as fail-closed guard manifests used by optimization validation and tests.
-- `sources/amap/`, `sources/alipayAdBlock/`, `sources/romeo_legacy/`, `sources/spotify/`, and corresponding `scripts/` assets: retained because build/sync steps stage, validate, patch, or integrate them.
+- `sources/amap/`, `sources/alipayAdBlock/`, `sources/romeo_legacy/`, `sources/spotify/`, and corresponding active `scripts/` assets: retained because build/sync steps stage, validate, patch, or integrate them.
 - `scripts/cnftp/cnftp.js` and the non-R-Store Xiaohongshu source script: retained despite not being referenced by the current checked-in plugin snapshot, because the sync workflow regenerates them from pinned/upstream sources and the curated tests cover their optimizer/runtime behavior.
 - `scripts/xiaohongshu/xiaohongshu-v4.js`: retained for now as a standalone legacy/test asset; it is not referenced by the current plugin, but it has a dedicated regression test and a workflow syntax check. Removing it would require an intentional retirement of that test-only compatibility surface, not just deleting an unnoticed orphan.
 - Small entries under `tests/` that point back to repository resources: retained as compatibility aliases required by the relocated legacy test suite's path assumptions.
@@ -45,10 +47,9 @@ At the audited revision:
 - 0 broken audit-index links.
 - 0 unindexed audit reports.
 - 0 duplicate Git blob contents across tracked files.
-- 2 orphan runtime JavaScript assets removed by this cleanup.
 
-After adding this report, the repository gains one audit record while losing two orphan scripts (net change: minus one tracked file). The Didi legacy file is preserved unchanged.
+The cleanup adds one audit report and one fixture README, while moving three legacy snapshots out of the production `scripts/` tree. It does not discard their contents or alter the generated plugin.
 
 ## Safety boundary
 
-No production plugin content, script trigger, rule, MITM entry, source mapping, optimization implementation, or generated runtime asset was edited. The only runtime deletions are the two verified unreferenced files; the Didi regression fixture remains intact.
+No production plugin content, script trigger, rule, MITM entry, source mapping, optimization implementation, or generated runtime asset was edited. The only runtime-directory changes are moves of three test-only legacy snapshots into `tests/fixtures/legacy/`; production behavior is unchanged.
