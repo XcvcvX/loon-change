@@ -882,7 +882,7 @@ def optimize_page_route_array_reference_cache(source):
 
 def optimize_source(source, commit="unknown"):
     if MARKER in source:
-        if "__loonSource32" not in source or "compactWeiboInPlace(items, mode)" not in source:
+        if "__loonSource32" not in source or not any(signature in source for signature in ("compactWeiboInPlace(items, mode)", "compactWeiboInPlace(items, mode, knownLength")):
             raise ValueError("marked Weibo script is incomplete")
         optimized = optimize_comment_status_page_info_cache(optimize_vote_info_nested_reference_cache(optimize_shared_feed_cleanup_cache(optimize_is_ad_property_cache(optimize_profile_timeline_property_cache(optimize_search_timeline_nested_reference_cache(optimize_flowlist_asyn_nested_reference_cache(optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source))))))))))))))))) ))))
         return optimize_page_route_array_reference_cache(optimize_cardlist_array_reference_length_cache(optimize_callback_free_compaction(optimize_profile_statuses_tab_array_cache(optimize_profile_me_array_cache(optimize_comment_array_length_cache(optimized))))))
