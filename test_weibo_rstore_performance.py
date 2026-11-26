@@ -33,7 +33,7 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
     def test_fresh_source_transform_order_caches_user_before_avatar_fields(self):
         optimizer = Path(__file__).with_name("optimize_weibo_rstore.py").read_text(encoding="utf-8")
         lines = [line.strip() for line in optimizer.splitlines()
-                 if "return optimize_comment_status_page_info_cache(" in line]
+                 if "optimized = optimize_comment_status_page_info_cache(" in line]
         self.assertEqual(len(lines), 2)
         for line in lines:
             comment_data = line.index("optimize_comment_data_reference_cache(")
@@ -52,7 +52,7 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         self.assertIn('$done(modified ? {body: JSON.stringify(obj)} : {});', source)
         self.assertEqual(optimize_source(source), source)
         self.assertEqual(len(re.findall(r"const __loonSource\d+ =", source)), 32)
-        self.assertEqual(len(re.findall(r"(?m)^\s*const __loonLength\d+ = __loonSource\d+\.length;$", source)), 23)
+        self.assertEqual(len(re.findall(r"(?m)^\s*const __loonLength\d+ = __loonSource\d+\.length;$", source)), 20)
         for cached_length in ("timelineItemsLength", "hotItemsLength", "hotStatusesLength", "asynItemsLength", "flowItemsLength", "searchItemsLength", "groupItemsLength"):
             self.assertIn(cached_length, source)
         self.assertNotRegex(source, r"for \(let __loonRead\d+ = 0, __loonLength\d+")
