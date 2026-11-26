@@ -494,7 +494,30 @@ process.stdout.write(nativeJSON.stringify({doneResult, parseCount, stringifyCoun
         self.assertNotIn("item?.tip?.", source)
         self.assertEqual(optimize_source(source), source)
 
-        upstream_block = "if (url.includes(\\"/shield/search_poi/sug\\")) {\\n  if (Array.isArray(obj?.tip_list) && obj.tip_list.length > 0) {\\n    compactInPlace(obj.tip_list, item =>\\n      item?.tip?.datatype_spec !== \\"12\\" &&\\n      item?.tip?.result_type !== \\"ad\\" &&\\n      item?.tip?.result_type !== \\"poi_ad\\" &&\\n      item?.tip?.result_type !== \\"toplist\\" &&\\n      item?.tip?.task_tag !== \\"ad\\" &&\\n      item?.tip?.task_tag !== \\"exct_query_sug_merge_theme\\" &&\\n      item?.tip?.task_tag !== \\"query_sug_merge_theme\\" &&\\n      item?.tip?.task_tag !== \\"sp\\"\\n    );\\n  } else if (Array.isArray(obj?.city_list) && obj.city_list.length > 0) {\\n    for (const city of obj.city_list) {\\n      if (Array.isArray(city?.tip_list) && city.tip_list.length > 0) {\\n        compactInPlace(city.tip_list, item =>\\n          item?.tip?.datatype_spec !== \\"12\\" &&\\n          item?.tip?.result_type !== \\"ad\\" &&\\n          item?.tip?.result_type !== \\"poi_ad\\"\\n        );\\n      }\\n    }\\n  }\\n"
+        upstream_block = """if (url.includes("/shield/search_poi/sug")) {
+  if (Array.isArray(obj?.tip_list) && obj.tip_list.length > 0) {
+    compactInPlace(obj.tip_list, item =>
+      item?.tip?.datatype_spec !== "12" &&
+      item?.tip?.result_type !== "ad" &&
+      item?.tip?.result_type !== "poi_ad" &&
+      item?.tip?.result_type !== "toplist" &&
+      item?.tip?.task_tag !== "ad" &&
+      item?.tip?.task_tag !== "exct_query_sug_merge_theme" &&
+      item?.tip?.task_tag !== "query_sug_merge_theme" &&
+      item?.tip?.task_tag !== "sp"
+    );
+  } else if (Array.isArray(obj?.city_list) && obj.city_list.length > 0) {
+    for (const city of obj.city_list) {
+      if (Array.isArray(city?.tip_list) && city.tip_list.length > 0) {
+        compactInPlace(city.tip_list, item =>
+          item?.tip?.datatype_spec !== "12" &&
+          item?.tip?.result_type !== "ad" &&
+          item?.tip?.result_type !== "poi_ad"
+        );
+      }
+    }
+  }
+"""
         damaged = source[:i] + upstream_block + source[j:]
         repaired = optimize_source(damaged)
         self.assertIn(COMPACTION_MARKER, repaired)
