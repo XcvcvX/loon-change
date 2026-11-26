@@ -27,6 +27,7 @@ class BaiduMapOffsetOptimizerTests(unittest.TestCase):
     const currentOffset = dataBeginOffset + messageHead.offset;
   }
 }
+
 if(invalidSegmentLayout || !adsFound) {}
 """
         result = optimize_source(source)
