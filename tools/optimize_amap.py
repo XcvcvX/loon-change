@@ -462,14 +462,17 @@ def optimize_shared_dynamic_ad_matcher(source):
     if source.count(DYNAMIC_MATCHER_MARKER) > 1:
         raise ValueError("Amap shared dynamic matcher marker is duplicated")
     specialized = "function compactInPlace(items, mode) {" in source
-    expected_calls = 1 if specialized else 4
-    literal = DYNAMIC_MATCHER_ITEM_LITERAL if specialized else DYNAMIC_MATCHER_LITERAL
-    call = DYNAMIC_MATCHER_ITEM_CALL if specialized else DYNAMIC_MATCHER_CALL
 
     if DYNAMIC_MATCHER_MARKER not in source:
-        if source.count(literal) != expected_calls:
+        old_literal_count = source.count(DYNAMIC_MATCHER_LITERAL)
+        item_literal_count = source.count(DYNAMIC_MATCHER_ITEM_LITERAL)
+        if old_literal_count == 4:
+            source = source.replace(DYNAMIC_MATCHER_LITERAL, DYNAMIC_MATCHER_CALL)
+        elif specialized and old_literal_count == 0 and item_literal_count == 1:
+            source = source.replace(DYNAMIC_MATCHER_ITEM_LITERAL, DYNAMIC_MATCHER_ITEM_CALL)
+        else:
             raise ValueError("Amap dynamic ad matcher inventory changed")
-        source = source.replace(literal, call)
+
         anchors = (
             "function compactInPlace(items, mode) {",
             "function compactInPlace(items, keep) {",
@@ -487,11 +490,15 @@ def optimize_shared_dynamic_ad_matcher(source):
         raise ValueError("Amap shared dynamic matcher marker count drift")
     if source.count(r"const AMAP_AD_DYNAMIC_ID = /ads-\d+/;") != 1:
         raise ValueError("Amap shared dynamic matcher declaration drift")
-    if source.count(call) != expected_calls or literal in source:
-        raise ValueError("Amap shared dynamic matcher call inventory drift")
-    other_call = DYNAMIC_MATCHER_CALL if specialized else DYNAMIC_MATCHER_ITEM_CALL
-    if other_call in source:
-        raise ValueError("Amap mixed dynamic matcher call signatures")
+
+    if specialized:
+        if source.count(DYNAMIC_MATCHER_ITEM_CALL) != 1 or DYNAMIC_MATCHER_ITEM_LITERAL in source:
+            raise ValueError("Amap specialized dynamic matcher helper drift")
+        if source.count(DYNAMIC_MATCHER_CALL) not in (0, 4) or DYNAMIC_MATCHER_LITERAL in source:
+            raise ValueError("Amap upstream dynamic matcher transition drift")
+    else:
+        if source.count(DYNAMIC_MATCHER_CALL) != 4 or DYNAMIC_MATCHER_LITERAL in source:
+            raise ValueError("Amap shared dynamic matcher call inventory drift")
     return source
 
 
