@@ -803,7 +803,9 @@ def optimize_page_filter_cached_itemid(source):
             raise ValueError("Weibo /2/page cached-itemid marker/structure drift")
         callback_free_page_block = (
             'compactWeiboInPlace(obj.cards[0].card_group, "pageCardGroup");' in source and
-            'compactWeiboInPlace(obj.cards, "pageCards");' in source
+            'compactWeiboInPlace(obj.cards, "pageCards");' in source and
+            "const itemId = item?.itemid;" in source and
+            "const itemId = item.itemid;" in source
         )
         if PAGE_ITEMID_NEW not in source and not callback_free_page_block:
             raise ValueError("Weibo /2/page cached-itemid transformed block missing")
