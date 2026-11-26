@@ -13,7 +13,7 @@ from apply_local_overrides import (
 from optimize_cntv import MARKER, MENUS_MARKER, STATIC_FILTER_MARKER, STATIC_FILTER_PATTERN, YOUKU_HOME_FEED_MARKER, YOUKU_PROFILE_MARKER, YOUKU_COMMENT_MARKER, optimize_source, optimize_youku_profile_comment_arrays, rewrite_plugin
 
 ROOT = Path(__file__).resolve().parent
-SOURCE = ROOT / "scripts" / "cntv" / "cntv.js"
+SOURCE = ROOT.parent / "scripts" / "cntv" / "cntv.js"
 NODE = shutil.which("node")
 
 
