@@ -1,5 +1,5 @@
 // Dushu365 (FanShu) response optimizer
-// Upstream: zirawell/R-Store 52fcb40b118a15610686b9167a7ee8e59bc04709
+// Upstream: zirawell/R-Store 237da8f819708af7a7c1933ae6e9f9597d3aad3f
 // Active plugin routes: DUSHU365-2/-4/-7/-8/-9 only.
 // https://www.npmjs.com/package/base-64
 // prettier-ignore
