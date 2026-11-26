@@ -101,7 +101,7 @@ process.stdout.write(nativeJSON.stringify({
 
 class JingdongOptimizerTests(unittest.TestCase):
     def test_upstream_source_is_rebuilt_as_in_place_lazy_runtime(self):
-        upstream = (ROOT / "tests/fixtures/jd-upstream.js").read_text(encoding="utf-8")
+        upstream = (ROOT / "fixtures/jd-upstream.js").read_text(encoding="utf-8")
         optimized = optimize_source(upstream, "0123456789abcdef0123456789abcdef01234567")
         self.assertIn(MARKER_PREFIX + "0123456789abcdef0123456789abcdef01234567", optimized)
         self.assertIn("function compactInPlace(items, keep)", optimized)
@@ -123,7 +123,7 @@ class JingdongOptimizerTests(unittest.TestCase):
         self.assertEqual(optimize_source(optimized), optimized)
 
     def test_upstream_inventory_drift_fails_closed(self):
-        upstream = (ROOT / "tests/fixtures/jd-upstream.js").read_text(encoding="utf-8")
+        upstream = (ROOT / "fixtures/jd-upstream.js").read_text(encoding="utf-8")
         broken = upstream.replace(
             'obj.floorList = obj.floorList.filter((i) => WELCOME_HOME_TYPE_INCLUDE.includes(i?.type));',
             'obj.floorList = obj.floorList;',
@@ -135,7 +135,7 @@ class JingdongOptimizerTests(unittest.TestCase):
     def test_generated_runtime_passes_node_syntax_check(self):
         if not NODE:
             self.skipTest("Node.js is required for Jingdong optimizer syntax validation")
-        upstream = (ROOT / "tests/fixtures/jd-upstream.js").read_text(encoding="utf-8")
+        upstream = (ROOT / "fixtures/jd-upstream.js").read_text(encoding="utf-8")
         optimized = optimize_source(upstream, "fixture")
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "jd.js"
