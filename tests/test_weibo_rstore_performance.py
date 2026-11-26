@@ -1754,3 +1754,15 @@ process.stdout.write(nativeStringify(results));
         self.assertNotIn("icons", results[2]["output"]["comments"][0]["user"])
         self.assertEqual(len(results[3]["output"]["root_comments"]), 1)
         self.assertEqual(results[3]["output"]["comments"][0]["user"]["icons"], [{"type": "vip"}])
+
+
+class WeiboCallbackFreeCompactionTests(unittest.TestCase):
+    def test_callback_free_optimizer_is_idempotent_and_fails_closed(self):
+        from optimize_weibo_rstore import CALLBACK_FREE_COMPACTION_MARKER, optimize_callback_free_compaction
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(CALLBACK_FREE_COMPACTION_MARKER, source)
+        self.assertEqual(optimize_callback_free_compaction(source), source)
+        self.assertNotIn("compactInPlace(", source)
+        damaged = source.replace('compactWeiboInPlace(obj.elements, "publisher");', 'compactWeiboInPlace(obj.elements, "unknown");', 1)
+        with self.assertRaisesRegex(ValueError, "marker/structure drift"):
+            optimize_callback_free_compaction(damaged)
