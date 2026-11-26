@@ -9,7 +9,7 @@ class AmapResponseGuardTests(unittest.TestCase):
         node = shutil.which("node")
         if not node:
             self.skipTest("Node.js is required")
-        source = Path(__file__).with_name("sources").joinpath("amap", "rucu6_amap.js")
+        source = (Path(__file__).resolve().parents[1] / "sources").joinpath("amap", "rucu6_amap.js")
         harness = r"""
 const fs = require("fs");
 const vm = require("vm");
@@ -49,7 +49,7 @@ if (empty.parses !== 0 || !empty.result || Object.keys(empty.result).length !== 
         self.assertEqual(completed.returncode, 0, msg=completed.stderr or completed.stdout)
 
     def test_supported_path_inventory_matches_response_branches(self):
-        source = Path(__file__).with_name("sources").joinpath("amap", "rucu6_amap.js").read_text(encoding="utf-8")
+        source = (Path(__file__).resolve().parents[1] / "sources").joinpath("amap", "rucu6_amap.js").read_text(encoding="utf-8")
         expected = [
             "/aos/perception/publicTravel/beforeNavi", "/boss/car/order/content_info",
             "/boss/order_web/friendly_information", "/bus/plan/integrate",
