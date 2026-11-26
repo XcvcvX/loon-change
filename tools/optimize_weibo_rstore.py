@@ -716,7 +716,24 @@ CALLBACK_FREE_COMPACTION_HELPER = "// loon-change: Weibo callback-free mode-disp
 
 def optimize_callback_free_compaction(source):
     if CALLBACK_FREE_COMPACTION_MARKER in source:
-        required = ['compactWeiboInPlace(obj.elements, "publisher");', 'compactWeiboInPlace(obj.user_list, "directMessages");', 'compactWeiboInPlace(obj.cards[0].card_group, "pageCardGroup");', 'compactWeiboInPlace(obj.cards, "pageCards");', 'compactWeiboInPlace(obj.card_group, "topicCardGroup");', 'compactWeiboInPlace(obj.footer.data.menus, "footerMenus");', 'compactWeiboInPlace(obj.channelInfo.channel_list, "channelList");']
+        required = [
+            'compactWeiboInPlace(obj.elements, "publisher");',
+            'compactWeiboInPlace(obj.user_list, "directMessages");',
+            'compactWeiboInPlace(obj.footer.data.menus, "footerMenus");',
+            'compactWeiboInPlace(obj.channelInfo.channel_list, "channelList");',
+        ]
+        if PAGE_ROUTE_ARRAY_CACHE_MARKER in source:
+            required.extend((
+                'compactWeiboInPlace(pageCardGroup, "pageCardGroup", pageCardGroupLength);',
+                'compactWeiboInPlace(pageCards, "pageCards", pageCardsLength);',
+                'compactWeiboInPlace(topicCardGroup, "topicCardGroup", topicCardGroupLength);',
+            ))
+        else:
+            required.extend((
+                'compactWeiboInPlace(obj.cards[0].card_group, "pageCardGroup");',
+                'compactWeiboInPlace(obj.cards, "pageCards");',
+                'compactWeiboInPlace(obj.card_group, "topicCardGroup");',
+            ))
         if source.count(CALLBACK_FREE_COMPACTION_MARKER) != 1 or any(x not in source for x in required) or not any(signature in source for signature in ("function compactWeiboInPlace(items, mode)", "function compactWeiboInPlace(items, mode, knownLength)")) or "compactInPlace(" in source:
             raise ValueError("Weibo callback-free compaction marker/structure drift")
         return source
@@ -958,7 +975,12 @@ def optimize_page_filter_cached_itemid(source):
             "const itemId = item?.itemid;" in source and
             "const itemId = item.itemid;" in source
         )
-        if PAGE_ITEMID_NEW not in source and not callback_free_page_block:
+        cached_page_route_block = (
+            PAGE_ROUTE_ARRAY_CACHE_MARKER in source
+            and "const pageCards = obj?.cards;" in source
+            and 'compactWeiboInPlace(pageCards, "pageCards", pageCardsLength);' in source
+        )
+        if PAGE_ITEMID_NEW not in source and not callback_free_page_block and not cached_page_route_block:
             raise ValueError("Weibo /2/page cached-itemid transformed block missing")
         return source
     if source.count(PAGE_ITEMID_OLD) != 1:
