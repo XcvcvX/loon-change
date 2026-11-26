@@ -199,7 +199,6 @@
       "path": "scripts/weibo/weibo-rstore.js",
       "required": [
         "// loon-change: R-Store Weibo in-place response compaction v1;",
-        "function compactWeiboInPlace(items, mode)",
         "// loon-change: Weibo feed and comment lazy serialization v1",
         "let modified = !url.includes(\"/2/cardlist\") && !url.includes(\"/2/comments/build_comments\");",
         "if (__loonWrite32 !== __loonLength32) modified = true;",
@@ -319,10 +318,7 @@
         "if (obj?.cards?.length > 0) {\n      const __loonSource32 = obj.cards;",
         "if (card?.card_group?.length > 0) {\n          const __loonSource31 = card.card_group;",
         "const __loonLength32 = __loonSource32.length;",
-        "const __loonLength31 = __loonSource31.length;",
-        "obj?.cards?.length > 0",
-        "obj.cards[0].card_group",
-        "obj?.card_group?.length > 0"
+        "const __loonLength31 = __loonSource31.length;"
       ]
     },
     {
