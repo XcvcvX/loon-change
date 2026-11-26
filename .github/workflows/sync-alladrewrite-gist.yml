@@ -1,9 +1,14 @@
 name: Sync allAdRewrite and runtime assets to Secret Gist
 
 on:
-  # Publish only after the complete production build succeeds. This replaces
-  # the duplicate push + workflow_run path: the main build is the single
-  # source of truth for when the Gist should be refreshed.
+  # Re-run publication when this workflow's own selection/publish logic changes.
+  # This narrow path does not duplicate regular production-build publications.
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/sync-alladrewrite-gist.yml'
+  # Publish only after the complete production build succeeds. The main build
+  # remains the source of truth for routine plugin/runtime publication.
   workflow_run:
     workflows: ["Sync multi-source ad-block plugins (QuanX -> Loon)"]
     types: [completed]
