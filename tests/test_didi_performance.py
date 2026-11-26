@@ -68,6 +68,8 @@ class DidiOptimizerTests(unittest.TestCase):
         result = optimize_source(original, "0123456789abcdef0123456789abcdef01234567")
         self.assertIn(MARKER, result)
         self.assertEqual(result.count("compactDidiByField(") - 1, EXPECTED_FILTERS)
+        self.assertIn("function compactDidiByField(items, mode)", result)
+        self.assertNotIn("item[field]", result)
         self.assertIsNone(re.search(r"\.filter\s*\(", result))
         self.assertNotIn("new Set(", result)
         self.assertNotIn("keepNavIds", result)
@@ -494,3 +496,13 @@ if (payload.body === null) {
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class DidiSpecializedPropertyLoopTests(unittest.TestCase):
+    def test_active_runtime_uses_fixed_property_access_per_mode(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        self.assertIn("Didi hot-loop specialized property loops v2", source)
+        self.assertIn("function compactDidiByField(items, mode)", source)
+        self.assertNotIn("item[field]", source)
+        self.assertNotIn("compactDidiByField(items, field, mode)", source)
+        self.assertEqual(source.count("compactDidiByField("), 8)
