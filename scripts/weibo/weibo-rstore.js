@@ -18,18 +18,26 @@ https://raw.githubusercontent.com/zirawell/R-Store/main/Rule/Surge/Adblock/App/W
 const url = $request.url;
 let modified = !url.includes("/2/cardlist") && !url.includes("/2/comments/build_comments");
 
-function compactInPlace(items, keep) {
+// loon-change: Weibo callback-free mode-dispatched compaction v1
+function compactWeiboInPlace(items, mode) {
   const length = items.length;
   let write = 0;
-  for (let read = 0; read < length; read++) {
-    const item = items[read];
-    if (keep(item, read)) {
-      if (write !== read) items[write] = item;
-      write++;
-    }
-  }
-  items.length = write;
-  if (write !== length) modified = true;
+  if (mode === "publisher") {
+    for (let read = 0; read < length; read++) { const item = items[read]; if (item.app_name === "写微博" || item.app_name === "图片" || item.app_name === "视频") { if (write !== read) items[write] = item; write++; } }
+  } else if (mode === "directMessages") {
+    for (let read = 0; read < length; read++) { const item = items[read]; if (!(item?.user?.name === "活动通知" || item?.user?.name === "闪聊")) { if (write !== read) items[write] = item; write++; } }
+  } else if (mode === "pageCardGroup") {
+    for (let read = 0; read < length; read++) { const item = items[read]; if (item?.actionlog?.ext?.includes("ads_word")) continue; const itemId = item?.itemid; if (!(itemId?.includes("t:51") || itemId?.includes("ads_word"))) { if (write !== read) items[write] = item; write++; } }
+  } else if (mode === "pageCards") {
+    for (let read = 0; read < length; read++) { const item = items[read]; const itemId = item.itemid; if (!(itemId?.includes("feed_-_invite") || itemId?.includes("infeed_friends_recommend") || itemId?.includes("infeed_may_interest_in") || itemId?.includes("infeed_pagemanual3") || itemId?.includes("infeed_weibo_mall") || item?.mblog?.mblogtypename?.includes("广告"))) { if (write !== read) items[write] = item; write++; } }
+  } else if (mode === "topicCardGroup") {
+    for (let read = 0; read < length; read++) { const item = items[read]; if (item?.desc?.includes("你可能感兴趣的超话")) { if (write !== read) items[write] = item; write++; } }
+  } else if (mode === "footerMenus") {
+    for (let read = 0; read < length; read++) { const item = items[read]; if (!/\d+_ai\./.test(item?.pic)) { if (write !== read) items[write] = item; write++; } }
+  } else if (mode === "channelList") {
+    for (let read = 0; read < length; read++) { const item = items[read]; if (item.title !== "广场") { if (write !== read) items[write] = item; write++; } }
+  } else { return items; }
+  if (write !== length) { items.length = write; modified = true; }
   return items;
 }
 if (!$response) $done({});
@@ -157,7 +165,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
   } else if (url.includes("/2/client/publisher_list")) {
     // 首页右上角按钮
     if (obj?.elements?.length > 0) {
-      compactInPlace(obj.elements, i => i.app_name === "写微博" || i.app_name === "图片" || i.app_name === "视频");
+      compactWeiboInPlace(obj.elements, "publisher");
     }
   } else if (url.includes("/2/comments/build_comments")) {
     // 评论区
@@ -357,7 +365,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
     }
   } else if (url.includes("/2/direct_messages/user_list")) {
     if (obj?.user_list?.length > 0) {
-      compactInPlace(obj.user_list, i => !(i?.user?.name === "活动通知" || i?.user?.name === "闪聊"));
+      compactWeiboInPlace(obj.user_list, "directMessages");
     }
   } else if (url.includes("/2/flowlist")) {
     // loon-change: Weibo flowlist nested reference cache v1
@@ -512,25 +520,11 @@ if (url.includes("/interface/sdk/sdkad.php")) {
     // 搜索页列表,超话
     if (obj?.cards?.length > 0) {
       if (obj?.cards?.[0]?.card_group?.length > 0) {
-        compactInPlace(obj.cards[0].card_group, c => {
-          if (c?.actionlog?.ext?.includes("ads_word")) return false;
-          const itemId = c?.itemid;
-          return !(itemId?.includes("t:51") || itemId?.includes("ads_word"));
-        });
+        compactWeiboInPlace(obj.cards[0].card_group, "pageCardGroup");
       }
-      compactInPlace(obj.cards, i => {
-        const itemId = i.itemid;
-        return !(
-          itemId?.includes("feed_-_invite") ||
-          itemId?.includes("infeed_friends_recommend") ||
-          itemId?.includes("infeed_may_interest_in") ||
-          itemId?.includes("infeed_pagemanual3") ||
-          itemId?.includes("infeed_weibo_mall") ||
-          i?.mblog?.mblogtypename?.includes("广告")
-        );
-      });
+      compactWeiboInPlace(obj.cards, "pageCards");
     } else if (obj?.card_group?.length > 0) {
-      compactInPlace(obj.card_group, i => i?.desc?.includes("你可能感兴趣的超话"));
+      compactWeiboInPlace(obj.card_group, "topicCardGroup");
     }
   } else if (url.includes("/2/profile/container_timeline")) {
     // loon-change: Weibo profile timeline hot-property cache v1
@@ -1037,7 +1031,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
       }
       if (obj?.footer?.data?.menus?.length > 0) {
         // 底部菜单
-        compactInPlace(obj.footer.data.menus, i => !/\d+_ai\./.test(i?.pic));
+        compactWeiboInPlace(obj.footer.data.menus, "footerMenus");
       }
     }
     if (obj?.cards?.length > 0) {
@@ -1490,7 +1484,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
     }
     // 广场页
     if (obj?.channelInfo?.channel_list?.length > 0) {
-      compactInPlace(obj.channelInfo.channel_list, t => t.title !== "广场");
+      compactWeiboInPlace(obj.channelInfo.channel_list, "channelList");
     }
   } else if (url.includes("/aj/appicon/list")) {
     if (obj?.data?.list?.length > 0) {
