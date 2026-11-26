@@ -237,6 +237,61 @@ def optimize_youku_home_query(source):
     return result
 
 
+
+YOUKU_PROFILE_MARKER = "// loon-change: CNTV Youku user-center nested in-place compaction v1"
+YOUKU_COMMENT_MARKER = "// loon-change: CNTV Youku comment-list nested in-place compaction v1"
+
+
+def optimize_youku_profile_comment_arrays(source):
+    """Remove nested replacement-array allocations from Youku profile and comment responses."""
+    specs = (
+        {
+            "start": '  } else if (url.includes("columbus.uc.query/")) {',
+            "end": '  } else if (url.includes("columbus.ycp.query/")) {',
+            "marker": YOUKU_PROFILE_MARKER,
+            "required": (
+                "const userCenterNodes = objNodes?.nodes;",
+                "const downloadNodes = item?.nodes;",
+                "const settingNodes = firstNode?.nodes;",
+                "userCenterNodes.length = userCenterWrite;",
+            ),
+            "old": "  } else if (url.includes(\"columbus.uc.query/\")) {\n    // 优酷 我的页面组件\n    if (obj?.data?.[\"2019061000\"]?.data) {\n      let objData = obj.data[\"2019061000\"].data;\n      if (objData?.nodes?.length > 0) {\n        let objNodes = objData.nodes[0];\n        if (objNodes?.nodes?.length > 0) {\n          let newNodes = [];\n          for (let item of objNodes.nodes) {\n            if (item?.id === 32133) {\n              // 横幅视频广告\n              continue;\n            } else if (item?.id === 32775) {\n              // 个人中心二楼\n              continue;\n            } else if (item?.id === 22570) {\n              // 横版轮播图\n              continue;\n            } else if (item?.id === 28912) {\n              // 我的下载 收藏 购买 场景\n              if (item?.nodes?.length > 0) {\n                let newII = [];\n                for (let ii of item.nodes) {\n                  if (ii?.id === 110429) {\n                    // 免费兑换VIP\n                    continue;\n                  }\n                  newII.push(ii);\n                }\n                item.nodes = newII;\n                newNodes.push(item);\n              } else {\n                newNodes.push(item);\n              }\n            } else if (item?.id === 35942) {\n              // 我的专属推荐\n              continue;\n            } else if (item?.id === 36014) {\n              // 业务区 星光币 优酷购 数字藏品\n              continue;\n            } else if (item?.id === 36015) {\n              // 功能区 卡卷包 商城 设置\n              if (item?.nodes?.length > 0) {\n                let node0 = item.nodes[0];\n                if (node0?.nodes?.length > 0) {\n                  let newII = [];\n                  for (let ii of node0.nodes) {\n                    // 683364卡卷包 683359个性商城 683501TV助手 683367设置\n                    // 683368我的客服 683502意见反馈 683366有奖调研 683372更多\n                    if (CNTV_STATIC_FILTER_21.includes(ii?.id)) {\n                      newII.push(ii);\n                    }\n                  }\n                  node0.nodes = newII;\n                  newNodes.push(item);\n                } else {\n                  newNodes.push(item);\n                }\n              } else {\n                newNodes.push(item);\n              }\n            } else if (item?.id === 38466) {\n              // 横幅广告\n              continue;\n            } else {\n              newNodes.push(item);\n            }\n          }\n          objNodes.nodes = newNodes;\n        }\n      }\n    }\n",
+            "new": "  } else if (url.includes(\"columbus.uc.query/\")) {\n    // loon-change: CNTV Youku user-center nested in-place compaction v1\n    // 保留原有 allowlist 和顺序，直接压缩个人中心节点及两层子节点。\n    if (obj?.data?.[\"2019061000\"]?.data) {\n      const objNodes = obj.data[\"2019061000\"].data.nodes?.[0];\n      const userCenterNodes = objNodes?.nodes;\n      const userCenterLength = userCenterNodes?.length || 0;\n      if (userCenterLength > 0) {\n        let userCenterWrite = 0;\n        for (let userCenterRead = 0; userCenterRead < userCenterLength; userCenterRead++) {\n          const item = userCenterNodes[userCenterRead];\n          const itemId = item?.id;\n          if (itemId === 32133 || itemId === 32775 || itemId === 22570 ||\n              itemId === 35942 || itemId === 36014 || itemId === 38466) {\n            continue;\n          }\n          if (itemId === 28912) {\n            // 我的下载 收藏 购买 场景\n            const downloadNodes = item?.nodes;\n            const downloadLength = downloadNodes?.length || 0;\n            if (downloadLength > 0) {\n              let downloadWrite = 0;\n              for (let downloadRead = 0; downloadRead < downloadLength; downloadRead++) {\n                const downloadItem = downloadNodes[downloadRead];\n                if (downloadItem?.id === 110429) continue;\n                if (downloadWrite !== downloadRead) downloadNodes[downloadWrite] = downloadItem;\n                downloadWrite++;\n              }\n              downloadNodes.length = downloadWrite;\n            }\n          } else if (itemId === 36015) {\n            // 功能区 卡卷包 商城 设置\n            const itemNodes = item?.nodes;\n            if (itemNodes?.length > 0) {\n              const firstNode = itemNodes[0];\n              const settingNodes = firstNode?.nodes;\n              const settingLength = settingNodes?.length || 0;\n              if (settingLength > 0) {\n                let settingWrite = 0;\n                for (let settingRead = 0; settingRead < settingLength; settingRead++) {\n                  const settingItem = settingNodes[settingRead];\n                  if (!CNTV_STATIC_FILTER_21.includes(settingItem?.id)) continue;\n                  if (settingWrite !== settingRead) settingNodes[settingWrite] = settingItem;\n                  settingWrite++;\n                }\n                settingNodes.length = settingWrite;\n              }\n            }\n          }\n          if (userCenterWrite !== userCenterRead) userCenterNodes[userCenterWrite] = item;\n          userCenterWrite++;\n        }\n        userCenterNodes.length = userCenterWrite;\n      }\n    }\n  }\n",
+        },
+        {
+            "start": '  } else if (url.includes("columbus.ycp.query/")) {',
+            "end": '  } else if (url.includes("haidai.lantern.appconfig.get/")) {',
+            "marker": YOUKU_COMMENT_MARKER,
+            "required": (
+                "const commentNodes = objNodes?.nodes;",
+                "const childNodes = item?.nodes;",
+                "commentNodes.length = commentWrite;",
+            ),
+            "old": "  } else if (url.includes(\"columbus.ycp.query/\")) {\n    // 优酷 播放页评论区\n    if (obj?.data?.[\"2019061000\"]?.data) {\n      let objData = obj.data[\"2019061000\"].data;\n      if (objData?.nodes?.length > 0) {\n        let objNodes = objData.nodes[0];\n        if (objNodes?.nodes?.length > 0) {\n          let newNodes = [];\n          for (let item of objNodes.nodes) {\n            if (item?.id === 23242) {\n              // 评论区顶部\n              if (item?.nodes?.length > 0) {\n                let newItems = [];\n                for (let i of item.nodes) {\n                  if (i?.typeName === \"COMPONENT_YCP_NOTICE\") {\n                    // 评论区守则 轮播通告\n                    continue;\n                  } else if (i?.id === 113941) {\n                    // 明星空降评论区\n                    continue;\n                  } else {\n                    newItems.push(i);\n                  }\n                }\n                item.nodes = newItems;\n                newNodes.push(item);\n              } else {\n                newNodes.push(item);\n              }\n            } else if (item?.id === 23243) {\n              // 评论区留言\n              if (item?.nodes?.length > 0) {\n                let newItems = [];\n                for (let i of item.nodes) {\n                  if (i?.id === -1000) {\n                    // 评论区广告\n                    continue;\n                  } else {\n                    newItems.push(i);\n                  }\n                }\n                item.nodes = newItems;\n                newNodes.push(item);\n              } else {\n                newNodes.push(item);\n              }\n            } else {\n              newNodes.push(item);\n            }\n          }\n          objNodes.nodes = newNodes;\n        }\n      }\n    }\n",
+            "new": "  } else if (url.includes(\"columbus.ycp.query/\")) {\n    // loon-change: CNTV Youku comment-list nested in-place compaction v1\n    // 评论区节点及其子节点原地压缩，保持父子顺序和原有过滤条件。\n    if (obj?.data?.[\"2019061000\"]?.data) {\n      const objNodes = obj.data[\"2019061000\"].data.nodes?.[0];\n      const commentNodes = objNodes?.nodes;\n      const commentLength = commentNodes?.length || 0;\n      if (commentLength > 0) {\n        let commentWrite = 0;\n        for (let commentRead = 0; commentRead < commentLength; commentRead++) {\n          const item = commentNodes[commentRead];\n          const itemId = item?.id;\n          if (itemId === 23242 || itemId === 23243) {\n            const childNodes = item?.nodes;\n            const childLength = childNodes?.length || 0;\n            if (childLength > 0) {\n              let childWrite = 0;\n              for (let childRead = 0; childRead < childLength; childRead++) {\n                const child = childNodes[childRead];\n                const removeNotice = itemId === 23242 &&\n                  (child?.typeName === \"COMPONENT_YCP_NOTICE\" || child?.id === 113941);\n                const removeAd = itemId === 23243 && child?.id === -1000;\n                if (removeNotice || removeAd) continue;\n                if (childWrite !== childRead) childNodes[childWrite] = child;\n                childWrite++;\n              }\n              childNodes.length = childWrite;\n            }\n          }\n          if (commentWrite !== commentRead) commentNodes[commentWrite] = item;\n          commentWrite++;\n        }\n        commentNodes.length = commentWrite;\n      }\n    }\n  }\n",
+        },
+    )
+    for spec in specs:
+        start, end, marker = spec["start"], spec["end"], spec["marker"]
+        if source.count(start) != 1 or source.count(end) != 1:
+            raise ValueError("CNTV Youku profile/comment route anchors changed: " + start)
+        begin = source.index(start)
+        finish = source.index(end, begin + len(start))
+        branch = source[begin:finish]
+        if marker in source:
+            if source.count(marker) != 1:
+                raise ValueError("CNTV Youku profile/comment marker count drift: " + marker)
+            if any(token in branch for token in ("newNodes", "newItems", "newII", ".push(")):
+                raise ValueError("CNTV Youku profile/comment temporary arrays remain: " + marker)
+            if marker not in branch or any(token not in branch for token in spec["required"]):
+                raise ValueError("CNTV Youku profile/comment branch structure drift: " + marker)
+            continue
+        if branch != spec["old"]:
+            raise ValueError("CNTV Youku profile/comment source drift; refusing in-place rewrite: " + marker)
+        source = source[:begin] + spec["new"] + source[finish:]
+    return source
+
+
 def optimize_iqiyi_feed_arrays(source):
     """Compact iQIYI feed/search arrays in place instead of allocating replacement arrays."""
     branches = (
@@ -593,11 +648,11 @@ def optimize_static_filter_arrays(source):
 
 def optimize_source(source, commit="unknown"):
     if MARKER in source:
-        return optimize_static_filter_arrays(optimize_pre_parse_route_guard(optimize_mgtv_arrays(optimize_iqiyi_feed_arrays(optimize_youku_home_query(optimize_youku_home_feed(optimize_get_my_menus(source)))))))
+        return optimize_static_filter_arrays(optimize_pre_parse_route_guard(optimize_mgtv_arrays(optimize_iqiyi_feed_arrays(optimize_youku_profile_comment_arrays(optimize_youku_home_query(optimize_youku_home_feed(optimize_get_my_menus(source))))))))
     for legacy_marker in LEGACY_MARKERS:
         if legacy_marker in source:
             source = source.replace(legacy_marker, MARKER, 1)
-            return optimize_static_filter_arrays(optimize_pre_parse_route_guard(optimize_mgtv_arrays(optimize_iqiyi_feed_arrays(optimize_youku_home_query(optimize_youku_home_feed(optimize_get_my_menus(source)))))))
+            return optimize_static_filter_arrays(optimize_pre_parse_route_guard(optimize_mgtv_arrays(optimize_iqiyi_feed_arrays(optimize_youku_profile_comment_arrays(optimize_youku_home_query(optimize_youku_home_feed(optimize_get_my_menus(source))))))))
     body_guard = "if (!$response.body) $done({});"
     if source.count(body_guard) != 1:
         raise ValueError("CNTV response body guard changed; refusing optimization")
