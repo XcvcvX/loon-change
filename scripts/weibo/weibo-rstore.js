@@ -108,16 +108,21 @@ if (url.includes("/interface/sdk/sdkad.php")) {
 } else {
   let obj = JSON.parse(body);
   if (url.includes("/2/cardlist")) {
-    if (obj?.cards?.length > 0) {
-      const __loonSource32 = obj.cards;
+    // loon-change: Weibo cardlist array references and lengths cached v1
+    const cardlistCards = obj?.cards;
+    const cardlistCardsLength = cardlistCards?.length || 0;
+    if (cardlistCardsLength > 0) {
+      const __loonSource32 = cardlistCards;
       let __loonWrite32 = 0;
-      const __loonLength32 = __loonSource32.length;
+      const __loonLength32 = cardlistCardsLength;
       for (let __loonRead32 = 0; __loonRead32 < __loonLength32; __loonRead32++) {
         let card = __loonSource32[__loonRead32];
-        if (card?.card_group?.length > 0) {
-          const __loonSource31 = card.card_group;
+        const cardGroup = card?.card_group;
+        const cardGroupLength = cardGroup?.length || 0;
+        if (cardGroupLength > 0) {
+          const __loonSource31 = cardGroup;
           let __loonWrite31 = 0;
-          const __loonLength31 = __loonSource31.length;
+          const __loonLength31 = cardGroupLength;
           for (let __loonRead31 = 0; __loonRead31 < __loonLength31; __loonRead31++) {
             let group = __loonSource31[__loonRead31];
             let cardType = group.card_type;
