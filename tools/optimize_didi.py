@@ -404,7 +404,7 @@ def optimize_didi_nested_traversal_property_cache(source):
         "    for (let read = 0; read < showData.length; read++) {\n"
         "      const block = showData[read];\n"
         "      if (block.scene_ids instanceof Array) {\n"
-        "        compactDidiByField(block.scene_ids, \"scene_ids\", \"sceneId\");\n"
+        "        compactDidiByField(block.scene_ids, \"sceneId\");\n"
         "      }\n"
         "    }"
     )
@@ -416,7 +416,7 @@ def optimize_didi_nested_traversal_property_cache(source):
         "      const block = showData[read];\n"
         "      const sceneIds = block.scene_ids;\n"
         "      if (sceneIds instanceof Array) {\n"
-        "        compactDidiByField(sceneIds, \"scene_ids\", \"sceneId\");\n"
+        "        compactDidiByField(sceneIds, \"sceneId\");\n"
         "      }\n"
         "    }"
     )
