@@ -2,7 +2,7 @@
 #!desc=综合规则仅使用 R-Store base；保留 Romeo 独立 App 插件、高德、Spotify、瓜子影视与支付宝专项规则；单插件自包含
 #!author=R-Store / Romeo / RuCu6（Amap）/ zirawell / ddgksf2013（本仓库自动构建）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-26 06:31 UTC
+#!merged-at=2026-11-26 06:56 UTC
 #!note=综合规则只取 R-Store base；独立 App 专项规则单独保留；高德独立规则优先级最高；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store-base(QuanX->Loon)+Romeo-independent-App+Romeo-Spotify+RuCu6-Amap+zirawell-AlipayAdBlock+ddgksf2013/GuaZiVideoAds
 
