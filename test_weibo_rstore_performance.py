@@ -1320,7 +1320,7 @@ process.stdout.write(nativeStringify({doneResult,counts}));
             self.assertEqual(counts.get(key), 1, key)
         self.assertEqual([item["itemId"] for item in output["items"]],
                          ["profileme_mine", "100505_-_top8", "100505_-_chaohua"])
-        self.assertEqual([item["itemId"] for item in output["items"][1]["items"]], ["keep", "keep-too"])
+        self.assertEqual([item["itemId"] for item in output["items"][1]["items"]], ["100505_-_album"])
         self.assertIn("231093_-_selffollowed",
                       output["items"][0]["items"][1]["click"]["modules"][0]["scheme"])
 
