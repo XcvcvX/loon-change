@@ -539,15 +539,15 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
   // 路线规划页
   if (obj?.data?.children?.length > 0) {
     // 有schema参数的为推广
-    compactInPlace(obj.data.children, "withoutSchema")
+    compactInPlace(obj.data.children, "withoutSchema");
   }
 } else if (url.includes("/faas/amap-navigation/main-page")) {
   // 首页底部卡片
   if (obj?.data?.cardList?.length > 0) {
-    compactInPlace(obj.data.cardList, "homeCards")
+    compactInPlace(obj.data.cardList, "homeCards");
   }
   if (obj?.data?.mapBizList?.length > 0) {
-    compactInPlace(obj.data.mapBizList, "findCar")
+    compactInPlace(obj.data.mapBizList, "findCar");
   }
 } else if (url.includes("/perception/drive/routeInfo")) {
   // 导航详情页
@@ -558,12 +558,12 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
   const routeInfoGuideTips = routeInfoFrontEnd?.guide_tips;
   const routeInfoDownloads = routeInfoFrontEnd?.download;
   if (routeInfoEvents?.length > 0) {
-    compactInPlace(routeInfoEvents, "dynamicAds")
+    compactInPlace(routeInfoEvents, "dynamicAds");
   }
   if (routeInfoFrontEnd) {
     if (routeInfoGuideTips?.length > 0) {
       // 音乐底栏
-      compactInPlace(routeInfoGuideTips, "nonMusic")
+      compactInPlace(routeInfoGuideTips, "nonMusic");
     }
     if (routeInfoFrontEnd?.assistant) {
       // 助手皮肤
@@ -571,7 +571,7 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
     }
     if (routeInfoDownloads?.length > 0) {
       // 导航插播语音广告
-      compactInPlace(routeInfoDownloads, "dynamicAds")
+      compactInPlace(routeInfoDownloads, "dynamicAds");
     }
   }
 } else if (url.includes("/perception/drive/routePlan")) {
@@ -589,11 +589,11 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
   }
   if (routePlanEvents?.length > 0) {
     // 导航插播语音广告
-    compactInPlace(routePlanEvents, "dynamicAds")
+    compactInPlace(routePlanEvents, "dynamicAds");
   }
   if (routePlanDownloads?.length > 0) {
     // 导航插播语音广告
-    compactInPlace(routePlanDownloads, "dynamicAds")
+    compactInPlace(routePlanDownloads, "dynamicAds");
   }
 } else if (url.includes("/promotion-web/resource")) {
   // 打车页面
@@ -611,7 +611,7 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
 } else if (url.includes("/shield/dsp/profile/index/nodefaasv3")) {
   // 我的页面
   if (obj?.data?.cardList?.length > 0) {
-    compactInPlace(obj.data.cardList, "myOrder")
+    compactInPlace(obj.data.cardList, "myOrder");
   }
   if (obj?.data?.tipData) {
     deleteIfPresent(obj.data, "tipData");
@@ -645,7 +645,7 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
 } else if (url.includes("/shield/search/nearbyrec_smart")) {
   // 附近页面
   if (Array.isArray(obj?.data?.modules) && obj.data.modules.length > 0) {
-    compactInPlace(obj.data.modules, "nearbyModules")
+    compactInPlace(obj.data.modules, "nearbyModules");
   }
 } else if (url.includes("/shield/search/poi/detail")) {
   // 搜索结果 模块详情
@@ -761,18 +761,18 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
       let list = obj.data.modules.list_data.data;
       if (list?.content?.length > 0) {
         // brandAdCard广告卡片 toplist_al人气榜单 高德指南
-        compactInPlace(list.content, "searchContent")
+        compactInPlace(list.content, "searchContent");
       }
     }
   }
 } else // loon-change: Amap cached suggestion tip access v1
 if (url.includes("/shield/search_poi/sug")) {
   if (Array.isArray(obj?.tip_list) && obj.tip_list.length > 0) {
-    compactInPlace(obj.tip_list, "suggestions")
+    compactInPlace(obj.tip_list, "suggestions");
   } else if (Array.isArray(obj?.city_list) && obj.city_list.length > 0) {
     for (const city of obj.city_list) {
       if (Array.isArray(city?.tip_list) && city.tip_list.length > 0) {
-        compactInPlace(city.tip_list, "citySuggestions")
+        compactInPlace(city.tip_list, "citySuggestions");
       }
     }
   }
