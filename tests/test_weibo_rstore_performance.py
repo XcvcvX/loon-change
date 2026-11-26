@@ -121,23 +121,22 @@ const helper=source.slice(helperStart,helperEnd);
 const route=source.slice(routeStart+routeStartText.length,routeEnd);
 let tracking=false;
 const counts={"cards.ref":0,"cards.length":0,"group.ref":0,"group.length":0};
-const traces=[];
 const rawCards=payload.body.cards,first=rawCards[0],rawGroup=first.card_group;
 const cards=new Proxy(rawCards,{get(target,key,receiver){
-  if(tracking&&key==="length"){counts["cards.length"]++;traces.push(new Error().stack.split("\n").slice(1,4).join("|"));}
+  if(tracking&&key==="length"){counts["cards.length"]++;}
   return Reflect.get(target,key,receiver);
 }});
 const group=new Proxy(rawGroup,{get(target,key,receiver){
-  if(tracking&&key==="length"){counts["group.length"]++;traces.push(new Error().stack.split("\n").slice(1,4).join("|"));}
+  if(tracking&&key==="length"){counts["group.length"]++;}
   return Reflect.get(target,key,receiver);
 }});
 const obj=payload.body;
 Object.defineProperty(obj,"cards",{enumerable:true,configurable:true,get(){
-  if(tracking){counts["cards.ref"]++;traces.push(new Error().stack.split("\n").slice(1,4).join("|"));}
+  if(tracking){counts["cards.ref"]++;}
   return cards;
 }});
 Object.defineProperty(first,"card_group",{enumerable:true,configurable:true,get(){
-  if(tracking){counts["group.ref"]++;traces.push(new Error().stack.split("\n").slice(1,4).join("|"));}
+  if(tracking){counts["group.ref"]++;}
   return group;
 }});
 const program=helper+"\nvar modified=true; var url=payload.url; var obj=payload.body; if(url.includes('/2/page')) {"+route+"\n}";
@@ -145,7 +144,7 @@ const context={payload};
 tracking=true;
 vm.runInNewContext(program,context,{timeout:5000});
 tracking=false;
-process.stdout.write(JSON.stringify({counts,traces,modified:context.modified,body:context.obj,route}));
+process.stdout.write(JSON.stringify({counts,modified:context.modified,body:context.obj}));
 """
         body = {"cards": [{"card_group": [{"itemid": "keep-group"}], "itemid": "keep-card"}]}
         completed = subprocess.run(
@@ -158,7 +157,7 @@ process.stdout.write(JSON.stringify({counts,traces,modified:context.modified,bod
         self.assertEqual(result["counts"], {
             "cards.ref": 1, "cards.length": 1,
             "group.ref": 1, "group.length": 1,
-        }, json.dumps({"traces": result["traces"], "route": result["route"]}))
+        })
         self.assertEqual(result["body"]["cards"][0]["itemid"], "keep-card")
         self.assertEqual(result["body"]["cards"][0]["card_group"][0]["itemid"], "keep-group")
 
