@@ -327,7 +327,7 @@ def add_lazy_serialization_guard(source):
         source = source.replace(anchor, anchor + '\n' + GUARD_DECLARATION, 1)
     if LEGACY_HELPER in source:
         source = source.replace(LEGACY_HELPER, HELPER, 1)
-    elif HELPER not in source:
+    elif HELPER not in source and "function compactWeiboInPlace(items, mode)" not in source:
         raise ValueError('Weibo compaction helper anchor drift')
 
     loop_pattern = re.compile(r'(?m)^([ \t]*)__loonSource(\d+)\.length = __loonWrite\2;$')
@@ -801,7 +801,11 @@ def optimize_page_filter_cached_itemid(source):
     if PAGE_ITEMID_MARKER in source:
         if source.count(PAGE_ITEMID_MARKER) != 1 or PAGE_ITEMID_OLD in source:
             raise ValueError("Weibo /2/page cached-itemid marker/structure drift")
-        if PAGE_ITEMID_NEW not in source:
+        callback_free_page_block = (
+            'compactWeiboInPlace(obj.cards[0].card_group, "pageCardGroup");' in source and
+            'compactWeiboInPlace(obj.cards, "pageCards");' in source
+        )
+        if PAGE_ITEMID_NEW not in source and not callback_free_page_block:
             raise ValueError("Weibo /2/page cached-itemid transformed block missing")
         return source
     if source.count(PAGE_ITEMID_OLD) != 1:
@@ -1200,7 +1204,8 @@ def optimize_root_comment_user_cache(source):
     if marker in source:
         if source.count(marker) != 1 or any(token not in source for token in required):
             raise ValueError("Weibo root-comment user-cache structure drift")
-        if "item?.user?.name ===" in source or "removeAvatar(item);" in source[source.index(marker):source.index(marker)+600]:
+        root_block = source[source.index(marker):source.index(marker) + 600]
+        if "item?.user?.name ===" in root_block or "removeAvatar(item);" in root_block:
             raise ValueError("Weibo repeated root-comment user property reads remain")
         return source
     if source.count(ROOT_COMMENT_USER_CACHE_OLD) != 1:
