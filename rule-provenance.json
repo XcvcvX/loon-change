@@ -50091,14 +50091,14 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://oss-zjrs\\\\.haier\\\\.net/resource/confFile/\\\\d{22}\\\\.json$', ('^https?:\\\\/\\\\/oss-zjrs\\\\.haier\\\\.net\\\\/resource\\\\/conffile\\\\/\\\\d{22}\\\\.json$', '^https?:\\\\/\\\\/oss-zjrs\\\\.haier\\\\.net\\\\/resource\\\\/confFile\\\\/\\\\d{22}\\\\.json$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/haier.js,tag=EHAIER,requires-body=true'))",
+      "canonical_key": "('guarded', '^https?://trade-acs\\\\.m\\\\.taobao\\\\.com/gw/mtop\\\\.trade\\\\.query\\\\.bag', ('^https?:\\\\/\\\\/trade-acs\\\\.m\\\\.taobao\\\\.com\\\\/gw\\\\/mtop\\\\.trade\\\\.query\\\\.bag', '^https?:\\\\/\\\\/trade-acs\\\\.m\\\\.taobao\\\\.com\\\\/gw\\\\/mtop\\\\.trade\\\\.query\\\\.bag script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/freshippo.js,tag=FRESHIPPO-2,requires-body=true'))",
       "output_entry_index": 114,
-      "output_line": "http-response ^https?:\\/\\/oss-zjrs\\.haier\\.net\\/resource\\/confFile\\/\\d{22}\\.json$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/haier.js,tag=EHAIER,requires-body=true",
+      "output_line": "http-response ^https?:\\/\\/trade-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.trade\\.query\\.bag script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/freshippo.js,tag=FRESHIPPO-2,requires-body=true",
       "section": "Script",
       "sources": [
         {
           "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/oss-zjrs\\.haier\\.net\\/resource\\/confFile\\/\\d{22}\\.json$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/haier.js,tag=EHAIER,requires-body=true",
+          "input_line": "http-response ^https?:\\/\\/trade-acs\\.m\\.taobao\\.com\\/gw\\/mtop\\.trade\\.query\\.bag script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/freshippo.js,tag=FRESHIPPO-2,requires-body=true",
           "input_section": "Script",
           "priority": 4,
           "source": "base",
@@ -50108,14 +50108,14 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://zj\\\\.haier\\\\.net/omsappapi/resource/v\\\\d/get/resourceBag$', ('^https?:\\\\/\\\\/zj\\\\.haier\\\\.net\\\\/omsappapi\\\\/resource\\\\/v\\\\d\\\\/get\\\\/resourcebag$', '^https?:\\\\/\\\\/zj\\\\.haier\\\\.net\\\\/omsappapi\\\\/resource\\\\/v\\\\d\\\\/get\\\\/resourceBag$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/haier.js,tag=EHAIER-2,requires-body=true'))",
+      "canonical_key": "('guarded', '^https?://oss-zjrs\\\\.haier\\\\.net/resource/confFile/\\\\d{22}\\\\.json$', ('^https?:\\\\/\\\\/oss-zjrs\\\\.haier\\\\.net\\\\/resource\\\\/conffile\\\\/\\\\d{22}\\\\.json$', '^https?:\\\\/\\\\/oss-zjrs\\\\.haier\\\\.net\\\\/resource\\\\/confFile\\\\/\\\\d{22}\\\\.json$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/haier.js,tag=EHAIER,requires-body=true'))",
       "output_entry_index": 115,
-      "output_line": "http-response ^https?:\\/\\/zj\\.haier\\.net\\/omsappapi\\/resource\\/v\\d\\/get\\/resourceBag$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/haier.js,tag=EHAIER-2,requires-body=true",
+      "output_line": "http-response ^https?:\\/\\/oss-zjrs\\.haier\\.net\\/resource\\/confFile\\/\\d{22}\\.json$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/haier.js,tag=EHAIER,requires-body=true",
       "section": "Script",
       "sources": [
         {
           "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/zj\\.haier\\.net\\/omsappapi\\/resource\\/v\\d\\/get\\/resourceBag$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/haier.js,tag=EHAIER-2,requires-body=true",
+          "input_line": "http-response ^https?:\\/\\/oss-zjrs\\.haier\\.net\\/resource\\/confFile\\/\\d{22}\\.json$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/haier.js,tag=EHAIER,requires-body=true",
           "input_section": "Script",
           "priority": 4,
           "source": "base",
@@ -50125,8 +50125,25 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://creditcardapp\\\\.bankcomm\\\\.(com|cn)/rcg/index\\\\.html\\\\?callbackurl=rcg/index\\\\.html&orclogin=1&', ('^https?:\\\\/\\\\/creditcardapp\\\\.bankcomm\\\\.', '^https?:\\\\/\\\\/creditcardapp\\\\.bankcomm\\\\.(com|cn)\\\\/rcg\\\\/index\\\\.html\\\\?callbackurl=rcg\\\\/index\\\\.html&orclogin=1& script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mdb.js,tag=BANKCOMM,requires-body=true'))",
+      "canonical_key": "('guarded', '^https?://zj\\\\.haier\\\\.net/omsappapi/resource/v\\\\d/get/resourceBag$', ('^https?:\\\\/\\\\/zj\\\\.haier\\\\.net\\\\/omsappapi\\\\/resource\\\\/v\\\\d\\\\/get\\\\/resourcebag$', '^https?:\\\\/\\\\/zj\\\\.haier\\\\.net\\\\/omsappapi\\\\/resource\\\\/v\\\\d\\\\/get\\\\/resourceBag$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/haier.js,tag=EHAIER-2,requires-body=true'))",
       "output_entry_index": 116,
+      "output_line": "http-response ^https?:\\/\\/zj\\.haier\\.net\\/omsappapi\\/resource\\/v\\d\\/get\\/resourceBag$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/haier.js,tag=EHAIER-2,requires-body=true",
+      "section": "Script",
+      "sources": [
+        {
+          "disposition": "selected",
+          "input_line": "http-response ^https?:\\/\\/zj\\.haier\\.net\\/omsappapi\\/resource\\/v\\d\\/get\\/resourceBag$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/haier.js,tag=EHAIER-2,requires-body=true",
+          "input_section": "Script",
+          "priority": 4,
+          "source": "base",
+          "source_entry_index": 115
+        }
+      ],
+      "trace_status": "mapped"
+    },
+    {
+      "canonical_key": "('guarded', '^https?://creditcardapp\\\\.bankcomm\\\\.(com|cn)/rcg/index\\\\.html\\\\?callbackurl=rcg/index\\\\.html&orclogin=1&', ('^https?:\\\\/\\\\/creditcardapp\\\\.bankcomm\\\\.', '^https?:\\\\/\\\\/creditcardapp\\\\.bankcomm\\\\.(com|cn)\\\\/rcg\\\\/index\\\\.html\\\\?callbackurl=rcg\\\\/index\\\\.html&orclogin=1& script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mdb.js,tag=BANKCOMM,requires-body=true'))",
+      "output_entry_index": 117,
       "output_line": "http-response ^https?:\\/\\/creditcardapp\\.bankcomm\\.(com|cn)\\/rcg\\/index\\.html\\?callbackurl=rcg\\/index\\.html&orclogin=1& script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mdb.js,tag=BANKCOMM,requires-body=true",
       "section": "Script",
       "sources": [
@@ -50136,7 +50153,7 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 115
+          "source_entry_index": 116
         }
       ],
       "trace_status": "mapped"
@@ -50231,7 +50248,7 @@
     },
     {
       "canonical_key": "('guarded', '^https?://(h3\\\\.)?open\\\\.taou\\\\.com/maimai/(feed|gossip)/v\\\\d/(?:focus_feed|gossip_detail_comment|feed_detail_comment)', ('^https?:\\\\/\\\\/', '^https?:\\\\/\\\\/(h3\\\\.)?open\\\\.taou\\\\.com\\\\/maimai\\\\/(feed|gossip)\\\\/v\\\\d\\\\/(?:focus_feed|gossip_detail_comment|feed_detail_comment) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/maimai.js,tag=MAIMAI,requires-body=true'))",
-      "output_entry_index": 125,
+      "output_entry_index": 126,
       "output_line": "http-response ^https?:\\/\\/(h3\\.)?open\\.taou\\.com\\/maimai\\/(feed|gossip)\\/v\\d\\/(?:focus_feed|gossip_detail_comment|feed_detail_comment) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/maimai.js,tag=MAIMAI,requires-body=true",
       "section": "Script",
       "sources": [
@@ -50241,14 +50258,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 124
+          "source_entry_index": 125
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://mapi\\\\.mafengwo\\\\.cn/user/profile/get_(?:list|profile)', ('^https?:\\\\/\\\\/mapi\\\\.mafengwo\\\\.cn\\\\/user\\\\/profile\\\\/get_', '^https?:\\\\/\\\\/mapi\\\\.mafengwo\\\\.cn\\\\/user\\\\/profile\\\\/get_(?:list|profile) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mafengwo.js,tag=MAFENGWO,requires-body=true'))",
-      "output_entry_index": 126,
+      "output_entry_index": 127,
       "output_line": "http-response ^https?:\\/\\/mapi\\.mafengwo\\.cn\\/user\\/profile\\/get_(?:list|profile) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mafengwo.js,tag=MAFENGWO,requires-body=true",
       "section": "Script",
       "sources": [
@@ -50258,14 +50275,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 125
+          "source_entry_index": 126
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://((h5|api)\\\\.xiuxiu|api-sub|api\\\\.posters)\\\\.meitu\\\\.com/.+/(vip|user|h\\\\d|center|home)', ('^https?:\\\\/\\\\/', '^https?:\\\\/\\\\/((h5|api)\\\\.xiuxiu|api-sub|api\\\\.posters)\\\\.meitu\\\\.com\\\\/.+\\\\/(vip|user|h\\\\d|center|home) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/Unlock/meitu.js,tag=MEITU,requires-body=true'))",
-      "output_entry_index": 127,
+      "output_entry_index": 128,
       "output_line": "http-response ^https?:\\/\\/((h5|api)\\.xiuxiu|api-sub|api\\.posters)\\.meitu\\.com\\/.+\\/(vip|user|h\\d|center|home) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/Unlock/meitu.js,tag=MEITU,requires-body=true",
       "section": "Script",
       "sources": [
@@ -50275,14 +50292,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 126
+          "source_entry_index": 127
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://\\\\w+\\\\.juneyaoair\\\\.com(/server)?/data/index/getPictureList', ('^https?:\\\\/\\\\/\\\\w+\\\\.juneyaoair\\\\.com', '^https?:\\\\/\\\\/\\\\w+\\\\.juneyaoair\\\\.com(\\\\/server)?\\\\/data\\\\/index\\\\/getPictureList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/juneyaoair.js,tag=JUNEYAOAIR,requires-body=true'))",
-      "output_entry_index": 128,
+      "output_entry_index": 129,
       "output_line": "http-response ^https?:\\/\\/\\w+\\.juneyaoair\\.com(\\/server)?\\/data\\/index\\/getPictureList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/juneyaoair.js,tag=JUNEYAOAIR,requires-body=true",
       "section": "Script",
       "sources": [
@@ -50292,14 +50309,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 127
+          "source_entry_index": 128
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://api(dd)?\\\\.btyjscl\\\\.com/api/v\\\\d/(?:ads|startup|users|movies)', ('^https?:\\\\/\\\\/api', '^https?:\\\\/\\\\/api(dd)?\\\\.btyjscl\\\\.com\\\\/api\\\\/v\\\\d\\\\/(?:ads|startup|users|movies) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/javdb.js,tag=JAVDB,requires-body=true'))",
-      "output_entry_index": 129,
+      "output_entry_index": 130,
       "output_line": "http-response ^https?:\\/\\/api(dd)?\\.btyjscl\\.com\\/api\\/v\\d\\/(?:ads|startup|users|movies) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/javdb.js,tag=JAVDB,requires-body=true",
       "section": "Script",
       "sources": [
@@ -50309,7 +50326,7 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 128
+          "source_entry_index": 129
         }
       ],
       "trace_status": "mapped"
@@ -50327,7 +50344,7 @@
     },
     {
       "canonical_key": "('guarded', '^https?://yunbusiness\\\\.ccb\\\\.com/(?:basic_service|clp_service)/txCtrl\\\\?txcode=A3341(?:SB16|C147|MB22|A009|A120|AB03|AB04|A068|A095|AB08)', ('^https?:\\\\/\\\\/yunbusiness\\\\.ccb\\\\.com\\\\/', '^https?:\\\\/\\\\/yunbusiness\\\\.ccb\\\\.com\\\\/(?:basic_service|clp_service)\\\\/txCtrl\\\\?txcode=A3341(?:SB16|C147|MB22|A009|A120|AB03|AB04|A068|A095|AB08) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ccblife.js,tag=CCBLIFE,requires-body=true'))",
-      "output_entry_index": 131,
+      "output_entry_index": 132,
       "output_line": "http-response ^https?:\\/\\/yunbusiness\\.ccb\\.com\\/(?:basic_service|clp_service)\\/txCtrl\\?txcode=A3341(?:SB16|C147|MB22|A009|A120|AB03|AB04|A068|A095|AB08) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ccblife.js,tag=CCBLIFE,requires-body=true",
       "section": "Script",
       "sources": [
@@ -50337,14 +50354,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 130
+          "source_entry_index": 131
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://mapi\\\\.chaogejiaoyu\\\\.com/api/ad/getPageAdList', ('^https?:\\\\/\\\\/mapi\\\\.chaogejiaoyu\\\\.com\\\\/api\\\\/ad\\\\/getpageadlist', '^https?:\\\\/\\\\/mapi\\\\.chaogejiaoyu\\\\.com\\\\/api\\\\/ad\\\\/getPageAdList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/chaoge.js,tag=CHAOGE,requires-body=true'))",
-      "output_entry_index": 132,
+      "output_entry_index": 133,
       "output_line": "http-response ^https?:\\/\\/mapi\\.chaogejiaoyu\\.com\\/api\\/ad\\/getPageAdList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/chaoge.js,tag=CHAOGE,requires-body=true",
       "section": "Script",
       "sources": [
@@ -50354,14 +50371,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 131
+          "source_entry_index": 132
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://mapi\\\\.chaogejiaoyu\\\\.com/api/outline/getAppBanner', ('^https?:\\\\/\\\\/mapi\\\\.chaogejiaoyu\\\\.com\\\\/api\\\\/outline\\\\/getappbanner', '^https?:\\\\/\\\\/mapi\\\\.chaogejiaoyu\\\\.com\\\\/api\\\\/outline\\\\/getAppBanner script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/chaoge.js,tag=CHAOGE-2,requires-body=true'))",
-      "output_entry_index": 133,
+      "output_entry_index": 134,
       "output_line": "http-response ^https?:\\/\\/mapi\\.chaogejiaoyu\\.com\\/api\\/outline\\/getAppBanner script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/chaoge.js,tag=CHAOGE-2,requires-body=true",
       "section": "Script",
       "sources": [
@@ -50371,14 +50388,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 132
+          "source_entry_index": 133
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://cn-acs\\\\.m\\\\.cainiao\\\\.com/gw/mtop\\\\.cainiao\\\\.nbpresentation\\\\.(pickup\\\\.empty\\\\.page|protocol\\\\.homepage)\\\\.get', ('^https?:\\\\/\\\\/cn-acs\\\\.m\\\\.cainiao\\\\.com\\\\/gw\\\\/mtop\\\\.cainiao\\\\.nbpresentation\\\\.', '^https?:\\\\/\\\\/cn-acs\\\\.m\\\\.cainiao\\\\.com\\\\/gw\\\\/mtop\\\\.cainiao\\\\.nbpresentation\\\\.(pickup\\\\.empty\\\\.page|protocol\\\\.homepage)\\\\.get script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cainiao.js,tag=CAINIAO,requires-body=true'))",
-      "output_entry_index": 134,
+      "output_entry_index": 135,
       "output_line": "http-response ^https?:\\/\\/cn-acs\\.m\\.cainiao\\.com\\/gw\\/mtop\\.cainiao\\.nbpresentation\\.(pickup\\.empty\\.page|protocol\\.homepage)\\.get script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cainiao.js,tag=CAINIAO,requires-body=true",
       "section": "Script",
       "sources": [
@@ -50388,14 +50405,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 133
+          "source_entry_index": 134
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://cn-acs\\\\.m\\\\.cainiao\\\\.com/gw/mtop\\\\.nbfriend\\\\.message\\\\.conversation\\\\.list\\\\.cn', ('^https?:\\\\/\\\\/cn-acs\\\\.m\\\\.cainiao\\\\.com\\\\/gw\\\\/mtop\\\\.nbfriend\\\\.message\\\\.conversation\\\\.list\\\\.cn', '^https?:\\\\/\\\\/cn-acs\\\\.m\\\\.cainiao\\\\.com\\\\/gw\\\\/mtop\\\\.nbfriend\\\\.message\\\\.conversation\\\\.list\\\\.cn script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cainiao.js,tag=CAINIAO-2,requires-body=true'))",
-      "output_entry_index": 135,
+      "output_entry_index": 136,
       "output_line": "http-response ^https?:\\/\\/cn-acs\\.m\\.cainiao\\.com\\/gw\\/mtop\\.nbfriend\\.message\\.conversation\\.list\\.cn script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cainiao.js,tag=CAINIAO-2,requires-body=true",
       "section": "Script",
       "sources": [
@@ -50405,14 +50422,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 134
+          "source_entry_index": 135
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://(www|api)\\\\.duitang\\\\.com/napi/settings/', ('^https?:\\\\/\\\\/', '^https?:\\\\/\\\\/(www|api)\\\\.duitang\\\\.com\\\\/napi\\\\/settings\\\\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/duitang.js,tag=DUITANG,requires-body=true'))",
-      "output_entry_index": 136,
+      "output_entry_index": 137,
       "output_line": "http-response ^https?:\\/\\/(www|api)\\.duitang\\.com\\/napi\\/settings\\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/duitang.js,tag=DUITANG,requires-body=true",
       "section": "Script",
       "sources": [
@@ -50422,14 +50439,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 135
+          "source_entry_index": 136
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://maicai\\\\.api\\\\.ddxq\\\\.mobi/homeApi/(?:bottomNavi|homeFlowDetail)', ('^https?:\\\\/\\\\/maicai\\\\.api\\\\.ddxq\\\\.mobi\\\\/homeapi\\\\/', '^https?:\\\\/\\\\/maicai\\\\.api\\\\.ddxq\\\\.mobi\\\\/homeApi\\\\/(?:bottomNavi|homeFlowDetail) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ddxq.js,tag=DDXQ,requires-body=true'))",
-      "output_entry_index": 137,
+      "output_entry_index": 138,
       "output_line": "http-response ^https?:\\/\\/maicai\\.api\\.ddxq\\.mobi\\/homeApi\\/(?:bottomNavi|homeFlowDetail) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ddxq.js,tag=DDXQ,requires-body=true",
       "section": "Script",
       "sources": [
@@ -50439,14 +50456,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 136
+          "source_entry_index": 137
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://maicai\\\\.api\\\\.ddxq\\\\.mobi/tool/getConfig', ('^https?:\\\\/\\\\/maicai\\\\.api\\\\.ddxq\\\\.mobi\\\\/tool\\\\/getconfig', '^https?:\\\\/\\\\/maicai\\\\.api\\\\.ddxq\\\\.mobi\\\\/tool\\\\/getConfig script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ddxq.js,tag=DDXQ-2,requires-body=true'))",
-      "output_entry_index": 138,
+      "output_entry_index": 139,
       "output_line": "http-response ^https?:\\/\\/maicai\\.api\\.ddxq\\.mobi\\/tool\\/getConfig script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ddxq.js,tag=DDXQ-2,requires-body=true",
       "section": "Script",
       "sources": [
@@ -50456,14 +50473,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 137
+          "source_entry_index": 138
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://user\\\\.api\\\\.ddxq\\\\.mobi/userportal-service/api/v\\\\d/user/queryMyPage', ('^https?:\\\\/\\\\/user\\\\.api\\\\.ddxq\\\\.mobi\\\\/userportal-service\\\\/api\\\\/v\\\\d\\\\/user\\\\/querymypage', '^https?:\\\\/\\\\/user\\\\.api\\\\.ddxq\\\\.mobi\\\\/userportal-service\\\\/api\\\\/v\\\\d\\\\/user\\\\/queryMyPage script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ddxq.js,tag=DDXQ-3,requires-body=true'))",
-      "output_entry_index": 139,
+      "output_entry_index": 140,
       "output_line": "http-response ^https?:\\/\\/user\\.api\\.ddxq\\.mobi\\/userportal-service\\/api\\/v\\d\\/user\\/queryMyPage script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ddxq.js,tag=DDXQ-3,requires-body=true",
       "section": "Script",
       "sources": [
@@ -50473,7 +50490,7 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 138
+          "source_entry_index": 139
         }
       ],
       "trace_status": "mapped"
@@ -50524,7 +50541,7 @@
     },
     {
       "canonical_key": "('guarded', '^https?://apiv2\\\\.douyucdn\\\\.cn/mgapi/livenc/home/getRecV3', ('^https?:\\\\/\\\\/apiv2\\\\.douyucdn\\\\.cn\\\\/mgapi\\\\/livenc\\\\/home\\\\/getrecv3', '^https?:\\\\/\\\\/apiv2\\\\.douyucdn\\\\.cn\\\\/mgapi\\\\/livenc\\\\/home\\\\/getRecV3 script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/douyu.js,tag=DOUYU,requires-body=true'))",
-      "output_entry_index": 144,
+      "output_entry_index": 145,
       "output_line": "http-response ^https?:\\/\\/apiv2\\.douyucdn\\.cn\\/mgapi\\/livenc\\/home\\/getRecV3 script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/douyu.js,tag=DOUYU,requires-body=true",
       "section": "Script",
       "sources": [
@@ -50534,14 +50551,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 143
+          "source_entry_index": 144
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://apiv2\\\\.douyucdn\\\\.cn/japi/entrance/roomRes/nc/m/list', ('^https?:\\\\/\\\\/apiv2\\\\.douyucdn\\\\.cn\\\\/japi\\\\/entrance\\\\/roomres\\\\/nc\\\\/m\\\\/list', '^https?:\\\\/\\\\/apiv2\\\\.douyucdn\\\\.cn\\\\/japi\\\\/entrance\\\\/roomRes\\\\/nc\\\\/m\\\\/list script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/douyu.js,tag=DOUYU-2,requires-body=true'))",
-      "output_entry_index": 145,
+      "output_entry_index": 146,
       "output_line": "http-response ^https?:\\/\\/apiv2\\.douyucdn\\.cn\\/japi\\/entrance\\/roomRes\\/nc\\/m\\/list script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/douyu.js,tag=DOUYU-2,requires-body=true",
       "section": "Script",
       "sources": [
@@ -50551,14 +50568,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 144
+          "source_entry_index": 145
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://venus\\\\.douyucdn\\\\.cn/venus/config/static/update.+keyCodeSet=flow_config', ('^https?:\\\\/\\\\/venus\\\\.douyucdn\\\\.cn\\\\/venus\\\\/config\\\\/static\\\\/update.+keycodeset=flow_config', '^https?:\\\\/\\\\/venus\\\\.douyucdn\\\\.cn\\\\/venus\\\\/config\\\\/static\\\\/update.+keyCodeSet=flow_config script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/douyu.js,tag=DOUYU-3,requires-body=true'))",
-      "output_entry_index": 146,
+      "output_entry_index": 147,
       "output_line": "http-response ^https?:\\/\\/venus\\.douyucdn\\.cn\\/venus\\/config\\/static\\/update.+keyCodeSet=flow_config script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/douyu.js,tag=DOUYU-3,requires-body=true",
       "section": "Script",
       "sources": [
@@ -50568,14 +50585,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 145
+          "source_entry_index": 146
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://img\\\\.meituan\\\\.net/(?:dpmobile|goodsawardpic)/', ('^https?:\\\\/\\\\/img\\\\.meituan\\\\.net\\\\/', '^https?:\\\\/\\\\/img\\\\.meituan\\\\.net\\\\/(?:dpmobile|goodsawardpic)\\\\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/dianping.js,tag=DIANPING,requires-body=true'))",
-      "output_entry_index": 147,
+      "output_entry_index": 148,
       "output_line": "http-response ^https?:\\/\\/img\\.meituan\\.net\\/(?:dpmobile|goodsawardpic)\\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/dianping.js,tag=DIANPING,requires-body=true",
       "section": "Script",
       "sources": [
@@ -50585,14 +50602,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 146
+          "source_entry_index": 147
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://ddplus\\\\.meituan\\\\.net/v\\\\d/mss_\\\\w+/picassovc', ('^https?:\\\\/\\\\/ddplus\\\\.meituan\\\\.net\\\\/v\\\\d\\\\/mss_\\\\w+\\\\/picassovc', '^https?:\\\\/\\\\/ddplus\\\\.meituan\\\\.net\\\\/v\\\\d\\\\/mss_\\\\w+\\\\/picassovc script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/dianping.js,tag=DIANPING-2,requires-body=true'))",
-      "output_entry_index": 148,
+      "output_entry_index": 149,
       "output_line": "http-response ^https?:\\/\\/ddplus\\.meituan\\.net\\/v\\d\\/mss_\\w+\\/picassovc script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/dianping.js,tag=DIANPING-2,requires-body=true",
       "section": "Script",
       "sources": [
@@ -50602,14 +50619,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 147
+          "source_entry_index": 148
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://iqushangwang\\\\.8quan\\\\.com/index\\\\.php/i/index/index', ('^https?:\\\\/\\\\/iqushangwang\\\\.8quan\\\\.com\\\\/index\\\\.php\\\\/i\\\\/index\\\\/index', '^https?:\\\\/\\\\/iqushangwang\\\\.8quan\\\\.com\\\\/index\\\\.php\\\\/i\\\\/index\\\\/index script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/quda.js,tag=QUDA,requires-body=true'))",
-      "output_entry_index": 149,
+      "output_entry_index": 150,
       "output_line": "http-response ^https?:\\/\\/iqushangwang\\.8quan\\.com\\/index\\.php\\/i\\/index\\/index script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/quda.js,tag=QUDA,requires-body=true",
       "section": "Script",
       "sources": [
@@ -50619,14 +50636,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 148
+          "source_entry_index": 149
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://cupid\\\\.51job(app)?\\\\.com/open/noauth/recommend/job-tab-dynamic', ('^https?:\\\\/\\\\/cupid\\\\.51job', '^https?:\\\\/\\\\/cupid\\\\.51job(app)?\\\\.com\\\\/open\\\\/noauth\\\\/recommend\\\\/job-tab-dynamic script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/51job.js,tag=51JOB,requires-body=true'))",
-      "output_entry_index": 150,
+      "output_entry_index": 151,
       "output_line": "http-response ^https?:\\/\\/cupid\\.51job(app)?\\.com\\/open\\/noauth\\/recommend\\/job-tab-dynamic script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/51job.js,tag=51JOB,requires-body=true",
       "section": "Script",
       "sources": [
@@ -50636,14 +50653,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 149
+          "source_entry_index": 150
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://cupid\\\\.51job(app)?\\\\.com/open/my-page/', ('^https?:\\\\/\\\\/cupid\\\\.51job', '^https?:\\\\/\\\\/cupid\\\\.51job(app)?\\\\.com\\\\/open\\\\/my-page\\\\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/51job.js,tag=51JOB-2,requires-body=true'))",
-      "output_entry_index": 151,
+      "output_entry_index": 152,
       "output_line": "http-response ^https?:\\/\\/cupid\\.51job(app)?\\.com\\/open\\/my-page\\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/51job.js,tag=51JOB-2,requires-body=true",
       "section": "Script",
       "sources": [
@@ -50653,14 +50670,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 150
+          "source_entry_index": 151
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://mage(v\\\\d)?\\\\.if\\\\.qidian\\\\.com/argus/api/v\\\\d/(deeplink/geturl|client/getconf|bookshelf/getHoverAdv|dailyrecommend/getdailyrecommend|assembly/toolbar|user/getaccountpage)', ('^https?:\\\\/\\\\/mage', '^https?:\\\\/\\\\/mage(v\\\\d)?\\\\.if\\\\.qidian\\\\.com\\\\/argus\\\\/api\\\\/v\\\\d\\\\/(deeplink\\\\/geturl|client\\\\/getconf|bookshelf\\\\/getHoverAdv|dailyrecommend\\\\/getdailyrecommend|assembly\\\\/toolbar|user\\\\/getaccountpage) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/qidian.js,tag=QIDIAN,requires-body=true'))",
-      "output_entry_index": 152,
+      "output_entry_index": 153,
       "output_line": "http-response ^https?:\\/\\/mage(v\\d)?\\.if\\.qidian\\.com\\/argus\\/api\\/v\\d\\/(deeplink\\/geturl|client\\/getconf|bookshelf\\/getHoverAdv|dailyrecommend\\/getdailyrecommend|assembly\\/toolbar|user\\/getaccountpage) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/qidian.js,tag=QIDIAN,requires-body=true",
       "section": "Script",
       "sources": [
@@ -50670,14 +50687,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 151
+          "source_entry_index": 152
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://webapi\\\\.qbb6\\\\.com/h5/api/lib/internal/append/get', ('^https?:\\\\/\\\\/webapi\\\\.qbb6\\\\.com\\\\/h5\\\\/api\\\\/lib\\\\/internal\\\\/append\\\\/get', '^https?:\\\\/\\\\/webapi\\\\.qbb6\\\\.com\\\\/h5\\\\/api\\\\/lib\\\\/internal\\\\/append\\\\/get script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/qbb.js,tag=QBB,requires-body=true'))",
-      "output_entry_index": 153,
+      "output_entry_index": 154,
       "output_line": "http-response ^https?:\\/\\/webapi\\.qbb6\\.com\\/h5\\/api\\/lib\\/internal\\/append\\/get script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/qbb.js,tag=QBB,requires-body=true",
       "section": "Script",
       "sources": [
@@ -50687,7 +50704,7 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 152
+          "source_entry_index": 153
         }
       ],
       "trace_status": "mapped"
@@ -50760,7 +50777,7 @@
     },
     {
       "canonical_key": "('guarded', '^https?://api\\\\.m\\\\.mi\\\\.com/v\\\\d/order/expressView', ('^https?:\\\\/\\\\/api\\\\.m\\\\.mi\\\\.com\\\\/v\\\\d\\\\/order\\\\/expressview', '^https?:\\\\/\\\\/api\\\\.m\\\\.mi\\\\.com\\\\/v\\\\d\\\\/order\\\\/expressView script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mishop.js,tag=MISHOP,requires-body=true'))",
-      "output_entry_index": 163,
+      "output_entry_index": 164,
       "output_line": "http-response ^https?:\\/\\/api\\.m\\.mi\\.com\\/v\\d\\/order\\/expressView script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mishop.js,tag=MISHOP,requires-body=true",
       "section": "Script",
       "sources": [
@@ -50770,14 +50787,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 162
+          "source_entry_index": 163
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://conf-m-ssl\\\\.xunlei\\\\.com/external/', ('^https?:\\\\/\\\\/conf-m-ssl\\\\.xunlei\\\\.com\\\\/external\\\\/', '^https?:\\\\/\\\\/conf-m-ssl\\\\.xunlei\\\\.com\\\\/external\\\\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xunlei.js,tag=XUNLEI,requires-body=true'))",
-      "output_entry_index": 164,
+      "output_entry_index": 165,
       "output_line": "http-response ^https?:\\/\\/conf-m-ssl\\.xunlei\\.com\\/external\\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xunlei.js,tag=XUNLEI,requires-body=true",
       "section": "Script",
       "sources": [
@@ -50787,7 +50804,7 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 163
+          "source_entry_index": 164
         }
       ],
       "trace_status": "mapped"
@@ -50904,7 +50921,7 @@
     },
     {
       "canonical_key": "('guarded', '^https?://api\\\\.xiaoheihe\\\\.cn/bbs/app/feeds/news', ('^https?:\\\\/\\\\/api\\\\.xiaoheihe\\\\.cn\\\\/bbs\\\\/app\\\\/feeds\\\\/news', '^https?:\\\\/\\\\/api\\\\.xiaoheihe\\\\.cn\\\\/bbs\\\\/app\\\\/feeds\\\\/news script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaoheihe.js,tag=XIAOHEIHE,requires-body=true'))",
-      "output_entry_index": 176,
+      "output_entry_index": 177,
       "output_line": "http-response ^https?:\\/\\/api\\.xiaoheihe\\.cn\\/bbs\\/app\\/feeds\\/news script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xiaoheihe.js,tag=XIAOHEIHE,requires-body=true",
       "section": "Script",
       "sources": [
@@ -50914,14 +50931,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 175
+          "source_entry_index": 176
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://mgesq\\\\.api\\\\.mgtv\\\\.com/dsl/index\\\\.+', ('^https?:\\\\/\\\\/mgesq\\\\.api\\\\.mgtv\\\\.com\\\\/dsl\\\\/index\\\\.+', '^https?:\\\\/\\\\/mgesq\\\\.api\\\\.mgtv\\\\.com\\\\/dsl\\\\/index\\\\.+ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xmgtv.js,tag=XMGTV,requires-body=true'))",
-      "output_entry_index": 177,
+      "output_entry_index": 178,
       "output_line": "http-response ^https?:\\/\\/mgesq\\.api\\.mgtv\\.com\\/dsl\\/index\\.+ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/xmgtv.js,tag=XMGTV,requires-body=true",
       "section": "Script",
       "sources": [
@@ -50931,14 +50948,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 176
+          "source_entry_index": 177
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://api\\\\.boohee\\\\.com/meta-interface/v\\\\d/index/plaza-flow\\\\?', ('^https?:\\\\/\\\\/api\\\\.boohee\\\\.com\\\\/meta-interface\\\\/v\\\\d\\\\/index\\\\/plaza-flow\\\\?', '^https?:\\\\/\\\\/api\\\\.boohee\\\\.com\\\\/meta-interface\\\\/v\\\\d\\\\/index\\\\/plaza-flow\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/boohee.js,tag=BOOHEE,requires-body=true'))",
-      "output_entry_index": 178,
+      "output_entry_index": 179,
       "output_line": "http-response ^https?:\\/\\/api\\.boohee\\.com\\/meta-interface\\/v\\d\\/index\\/plaza-flow\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/boohee.js,tag=BOOHEE,requires-body=true",
       "section": "Script",
       "sources": [
@@ -50948,14 +50965,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 177
+          "source_entry_index": 178
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://api\\\\.boohee\\\\.com/meta-interface/v\\\\d/index\\\\?', ('^https?:\\\\/\\\\/api\\\\.boohee\\\\.com\\\\/meta-interface\\\\/v\\\\d\\\\/index\\\\?', '^https?:\\\\/\\\\/api\\\\.boohee\\\\.com\\\\/meta-interface\\\\/v\\\\d\\\\/index\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/boohee.js,tag=BOOHEE-2,requires-body=true'))",
-      "output_entry_index": 179,
+      "output_entry_index": 180,
       "output_line": "http-response ^https?:\\/\\/api\\.boohee\\.com\\/meta-interface\\/v\\d\\/index\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/boohee.js,tag=BOOHEE-2,requires-body=true",
       "section": "Script",
       "sources": [
@@ -50965,14 +50982,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 178
+          "source_entry_index": 179
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://api\\\\.boohee\\\\.com/meta-interface/v\\\\d/index/plaza\\\\?', ('^https?:\\\\/\\\\/api\\\\.boohee\\\\.com\\\\/meta-interface\\\\/v\\\\d\\\\/index\\\\/plaza\\\\?', '^https?:\\\\/\\\\/api\\\\.boohee\\\\.com\\\\/meta-interface\\\\/v\\\\d\\\\/index\\\\/plaza\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/boohee.js,tag=BOOHEE-3,requires-body=true'))",
-      "output_entry_index": 180,
+      "output_entry_index": 181,
       "output_line": "http-response ^https?:\\/\\/api\\.boohee\\.com\\/meta-interface\\/v\\d\\/index\\/plaza\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/boohee.js,tag=BOOHEE-3,requires-body=true",
       "section": "Script",
       "sources": [
@@ -50982,14 +50999,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 179
+          "source_entry_index": 180
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://api\\\\.boohee\\\\.com/open-interface/v\\\\d/string/market_page\\\\?title=metabolism_config$', ('^https?:\\\\/\\\\/api\\\\.boohee\\\\.com\\\\/open-interface\\\\/v\\\\d\\\\/string\\\\/market_page\\\\?title=metabolism_config$', '^https?:\\\\/\\\\/api\\\\.boohee\\\\.com\\\\/open-interface\\\\/v\\\\d\\\\/string\\\\/market_page\\\\?title=metabolism_config$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/boohee.js,tag=BOOHEE-4,requires-body=true'))",
-      "output_entry_index": 181,
+      "output_entry_index": 182,
       "output_line": "http-response ^https?:\\/\\/api\\.boohee\\.com\\/open-interface\\/v\\d\\/string\\/market_page\\?title=metabolism_config$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/boohee.js,tag=BOOHEE-4,requires-body=true",
       "section": "Script",
       "sources": [
@@ -50999,14 +51016,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 180
+          "source_entry_index": 181
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://c\\\\.tieba\\\\.baidu\\\\.com/c/f/(excellent/personalized|frs/(?:generalTabList|page|threadlist)|pb/(pic)?page)$', ('^https?:\\\\/\\\\/c\\\\.tieba\\\\.baidu\\\\.com\\\\/c\\\\/f\\\\/', '^https?:\\\\/\\\\/c\\\\.tieba\\\\.baidu\\\\.com\\\\/c\\\\/f\\\\/(excellent\\\\/personalized|frs\\\\/(?:generalTabList|page|threadlist)|pb\\\\/(pic)?page)$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/tiebaJson.js,tag=BAIDUTIEBA,requires-body=true'))",
-      "output_entry_index": 182,
+      "output_entry_index": 183,
       "output_line": "http-response ^https?:\\/\\/c\\.tieba\\.baidu\\.com\\/c\\/f\\/(excellent\\/personalized|frs\\/(?:generalTabList|page|threadlist)|pb\\/(pic)?page)$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/tiebaJson.js,tag=BAIDUTIEBA,requires-body=true",
       "section": "Script",
       "sources": [
@@ -51016,14 +51033,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 181
+          "source_entry_index": 182
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://c\\\\.tieba\\\\.baidu\\\\.com/c/f/(excellent/personalized|frs/(?:generalTabList|page|threadlist)|pb/(pic)?page)\\\\?cmd', ('^https?:\\\\/\\\\/c\\\\.tieba\\\\.baidu\\\\.com\\\\/c\\\\/f\\\\/', '^https?:\\\\/\\\\/c\\\\.tieba\\\\.baidu\\\\.com\\\\/c\\\\/f\\\\/(excellent\\\\/personalized|frs\\\\/(?:generalTabList|page|threadlist)|pb\\\\/(pic)?page)\\\\?cmd script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/tiebaProto.js,tag=BAIDUTIEBA-2,requires-body=true,binary-body-mode=true'))",
-      "output_entry_index": 183,
+      "output_entry_index": 184,
       "output_line": "http-response ^https?:\\/\\/c\\.tieba\\.baidu\\.com\\/c\\/f\\/(excellent\\/personalized|frs\\/(?:generalTabList|page|threadlist)|pb\\/(pic)?page)\\?cmd script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/tiebaProto.js,tag=BAIDUTIEBA-2,requires-body=true,binary-body-mode=true",
       "section": "Script",
       "sources": [
@@ -51033,14 +51050,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 182
+          "source_entry_index": 183
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://c\\\\.tieba\\\\.baidu\\\\.com/c/s/sync$', ('^https?:\\\\/\\\\/c\\\\.tieba\\\\.baidu\\\\.com\\\\/c\\\\/s\\\\/sync$', '^https?:\\\\/\\\\/c\\\\.tieba\\\\.baidu\\\\.com\\\\/c\\\\/s\\\\/sync$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/tiebaJson.js,tag=BAIDUTIEBA-3,requires-body=true'))",
-      "output_entry_index": 184,
+      "output_entry_index": 185,
       "output_line": "http-response ^https?:\\/\\/c\\.tieba\\.baidu\\.com\\/c\\/s\\/sync$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/tiebaJson.js,tag=BAIDUTIEBA-3,requires-body=true",
       "section": "Script",
       "sources": [
@@ -51050,14 +51067,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 183
+          "source_entry_index": 184
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://tiebac\\\\.baidu\\\\.com/tiebaads/commonbatch\\\\?', ('^https?:\\\\/\\\\/tiebac\\\\.baidu\\\\.com\\\\/tiebaads\\\\/commonbatch\\\\?', '^https?:\\\\/\\\\/tiebac\\\\.baidu\\\\.com\\\\/tiebaads\\\\/commonbatch\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/tiebaJson.js,tag=BAIDUTIEBA-4,requires-body=true'))",
-      "output_entry_index": 185,
+      "output_entry_index": 186,
       "output_line": "http-response ^https?:\\/\\/tiebac\\.baidu\\.com\\/tiebaads\\/commonbatch\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/tiebaJson.js,tag=BAIDUTIEBA-4,requires-body=true",
       "section": "Script",
       "sources": [
@@ -51067,14 +51084,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 184
+          "source_entry_index": 185
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://manga\\\\.bilibili\\\\.com/twirp/user\\\\.v\\\\d\\\\.User/(?:UCenterConf|GetInitInfo)', ('^https?:\\\\/\\\\/manga\\\\.bilibili\\\\.com\\\\/twirp\\\\/user\\\\.v\\\\d\\\\.user\\\\/', '^https?:\\\\/\\\\/manga\\\\.bilibili\\\\.com\\\\/twirp\\\\/user\\\\.v\\\\d\\\\.User\\\\/(?:UCenterConf|GetInitInfo) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliManga.js,tag=BILIBILIMANGA,requires-body=true'))",
-      "output_entry_index": 186,
+      "output_entry_index": 187,
       "output_line": "http-response ^https?:\\/\\/manga\\.bilibili\\.com\\/twirp\\/user\\.v\\d\\.User\\/(?:UCenterConf|GetInitInfo) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliManga.js,tag=BILIBILIMANGA,requires-body=true",
       "section": "Script",
       "sources": [
@@ -51084,14 +51101,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 185
+          "source_entry_index": 186
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://manga\\\\.bilibili\\\\.com/twirp/comic\\\\.v\\\\d\\\\.Home/HomeFeed', ('^https?:\\\\/\\\\/manga\\\\.bilibili\\\\.com\\\\/twirp\\\\/comic\\\\.v\\\\d\\\\.home\\\\/homefeed', '^https?:\\\\/\\\\/manga\\\\.bilibili\\\\.com\\\\/twirp\\\\/comic\\\\.v\\\\d\\\\.Home\\\\/HomeFeed script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliManga.js,tag=BILIBILIMANGA-2,requires-body=true'))",
-      "output_entry_index": 187,
+      "output_entry_index": 188,
       "output_line": "http-response ^https?:\\/\\/manga\\.bilibili\\.com\\/twirp\\/comic\\.v\\d\\.Home\\/HomeFeed script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliManga.js,tag=BILIBILIMANGA-2,requires-body=true",
       "section": "Script",
       "sources": [
@@ -51101,14 +51118,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 186
+          "source_entry_index": 187
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://manga\\\\.bilibili\\\\.com/twirp/comic\\\\.v\\\\d\\\\.Comment/Main', ('^https?:\\\\/\\\\/manga\\\\.bilibili\\\\.com\\\\/twirp\\\\/comic\\\\.v\\\\d\\\\.comment\\\\/main', '^https?:\\\\/\\\\/manga\\\\.bilibili\\\\.com\\\\/twirp\\\\/comic\\\\.v\\\\d\\\\.Comment\\\\/Main script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliManga.js,tag=BILIBILIMANGA-3,requires-body=true'))",
-      "output_entry_index": 188,
+      "output_entry_index": 189,
       "output_line": "http-response ^https?:\\/\\/manga\\.bilibili\\.com\\/twirp\\/comic\\.v\\d\\.Comment\\/Main script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliManga.js,tag=BILIBILIMANGA-3,requires-body=true",
       "section": "Script",
       "sources": [
@@ -51118,14 +51135,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 187
+          "source_entry_index": 188
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://manga\\\\.bilibili\\\\.com/twirp/comic\\\\.v\\\\d\\\\.Comic/GetCommonBanner', ('^https?:\\\\/\\\\/manga\\\\.bilibili\\\\.com\\\\/twirp\\\\/comic\\\\.v\\\\d\\\\.comic\\\\/getcommonbanner', '^https?:\\\\/\\\\/manga\\\\.bilibili\\\\.com\\\\/twirp\\\\/comic\\\\.v\\\\d\\\\.Comic\\\\/GetCommonBanner script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliManga.js,tag=BILIBILIMANGA-4,requires-body=true'))",
-      "output_entry_index": 189,
+      "output_entry_index": 190,
       "output_line": "http-response ^https?:\\/\\/manga\\.bilibili\\.com\\/twirp\\/comic\\.v\\d\\.Comic\\/GetCommonBanner script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliManga.js,tag=BILIBILIMANGA-4,requires-body=true",
       "section": "Script",
       "sources": [
@@ -51135,14 +51152,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 188
+          "source_entry_index": 189
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://api\\\\.gamer\\\\.com\\\\.tw/mobile_app/anime/v\\\\d/(?:token|m3u8).php\\\\?', ('^https?:\\\\/\\\\/api\\\\.gamer\\\\.com\\\\.tw\\\\/mobile_app\\\\/anime\\\\/v\\\\d/', '^https?:\\\\/\\\\/api\\\\.gamer\\\\.com\\\\.tw\\\\/mobile_app\\\\/anime\\\\/v\\\\d/(?:token|m3u8).php\\\\? script-path=https://raw.githubusercontent.com/NobyDa/Script/master/Bahamut/BahamutAnimeAds.js,tag=GAMER,requires-body=true'))",
-      "output_entry_index": 190,
+      "output_entry_index": 191,
       "output_line": "http-response ^https?:\\/\\/api\\.gamer\\.com\\.tw\\/mobile_app\\/anime\\/v\\d/(?:token|m3u8).php\\? script-path=https://raw.githubusercontent.com/NobyDa/Script/master/Bahamut/BahamutAnimeAds.js,tag=GAMER,requires-body=true",
       "section": "Script",
       "sources": [
@@ -51152,14 +51169,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 189
+          "source_entry_index": 190
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://pan\\\\.baidu\\\\.com/api/getsyscfg\\\\?', ('^https?:\\\\/\\\\/pan\\\\.baidu\\\\.com\\\\/api\\\\/getsyscfg\\\\?', '^https?:\\\\/\\\\/pan\\\\.baidu\\\\.com\\\\/api\\\\/getsyscfg\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/baiduPan.js,tag=BAIDUPAN,requires-body=true'))",
-      "output_entry_index": 191,
+      "output_entry_index": 192,
       "output_line": "http-response ^https?:\\/\\/pan\\.baidu\\.com\\/api\\/getsyscfg\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/baiduPan.js,tag=BAIDUPAN,requires-body=true",
       "section": "Script",
       "sources": [
@@ -51169,14 +51186,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 190
+          "source_entry_index": 191
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://pan\\\\.baidu\\\\.com/rest/\\\\d\\\\.\\\\d/membership/user', ('^https?:\\\\/\\\\/pan\\\\.baidu\\\\.com\\\\/rest\\\\/\\\\d\\\\.\\\\d\\\\/membership\\\\/user', '^https?:\\\\/\\\\/pan\\\\.baidu\\\\.com\\\\/rest\\\\/\\\\d\\\\.\\\\d\\\\/membership\\\\/user script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/baiduPan.js,tag=BAIDUPAN-2,requires-body=true'))",
-      "output_entry_index": 192,
+      "output_entry_index": 193,
       "output_line": "http-response ^https?:\\/\\/pan\\.baidu\\.com\\/rest\\/\\d\\.\\d\\/membership\\/user script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/baiduPan.js,tag=BAIDUPAN-2,requires-body=true",
       "section": "Script",
       "sources": [
@@ -51186,14 +51203,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 191
+          "source_entry_index": 192
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://go\\\\.babytree\\\\.com/go_pregnancy/api/(?:app_index|cms_column)', ('^https?:\\\\/\\\\/go\\\\.babytree\\\\.com\\\\/go_pregnancy\\\\/api\\\\/', '^https?:\\\\/\\\\/go\\\\.babytree\\\\.com\\\\/go_pregnancy\\\\/api\\\\/(?:app_index|cms_column) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/babytree.js,tag=BABYTREE,requires-body=true'))",
-      "output_entry_index": 193,
+      "output_entry_index": 194,
       "output_line": "http-response ^https?:\\/\\/go\\.babytree\\.com\\/go_pregnancy\\/api\\/(?:app_index|cms_column) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/babytree.js,tag=BABYTREE,requires-body=true",
       "section": "Script",
       "sources": [
@@ -51203,14 +51220,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 192
+          "source_entry_index": 193
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://(?:app\\\\.bilibili\\\\.com|grpc\\\\.biliapi\\\\.net)/bilibili\\\\.app\\\\.dynamic\\\\.v\\\\d\\\\.Dynamic/DynAll', ('^https?:\\\\/\\\\/', '^https?:\\\\/\\\\/(?:app\\\\.bilibili\\\\.com|grpc\\\\.biliapi\\\\.net)\\\\/bilibili\\\\.app\\\\.dynamic\\\\.v\\\\d\\\\.Dynamic\\\\/DynAll script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN,requires-body=true,binary-body-mode=true'))",
-      "output_entry_index": 194,
+      "output_entry_index": 195,
       "output_line": "http-response ^https?:\\/\\/(?:app\\.bilibili\\.com|grpc\\.biliapi\\.net)\\/bilibili\\.app\\.dynamic\\.v\\d\\.Dynamic\\/DynAll script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN,requires-body=true,binary-body-mode=true",
       "section": "Script",
       "sources": [
@@ -51220,14 +51237,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 193
+          "source_entry_index": 194
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://(?:app\\\\.bilibili\\\\.com|grpc\\\\.biliapi\\\\.net)/bilibili\\\\.app\\\\.interface\\\\.v\\\\d\\\\.Teenagers/ModeStatus', ('^https?:\\\\/\\\\/', '^https?:\\\\/\\\\/(?:app\\\\.bilibili\\\\.com|grpc\\\\.biliapi\\\\.net)\\\\/bilibili\\\\.app\\\\.interface\\\\.v\\\\d\\\\.Teenagers\\\\/ModeStatus script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-2,requires-body=true,binary-body-mode=true'))",
-      "output_entry_index": 195,
+      "output_entry_index": 196,
       "output_line": "http-response ^https?:\\/\\/(?:app\\.bilibili\\.com|grpc\\.biliapi\\.net)\\/bilibili\\.app\\.interface\\.v\\d\\.Teenagers\\/ModeStatus script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-2,requires-body=true,binary-body-mode=true",
       "section": "Script",
       "sources": [
@@ -51237,14 +51254,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 194
+          "source_entry_index": 195
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://(?:app\\\\.bilibili\\\\.com|grpc\\\\.biliapi\\\\.net)/bilibili\\\\.app\\\\.(?:view|viewunite)\\\\.v\\\\d\\\\.View/View', ('^https?:\\\\/\\\\/', '^https?:\\\\/\\\\/(?:app\\\\.bilibili\\\\.com|grpc\\\\.biliapi\\\\.net)\\\\/bilibili\\\\.app\\\\.(?:view|viewunite)\\\\.v\\\\d\\\\.View\\\\/View script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-3,requires-body=true,binary-body-mode=true'))",
-      "output_entry_index": 196,
+      "output_entry_index": 197,
       "output_line": "http-response ^https?:\\/\\/(?:app\\.bilibili\\.com|grpc\\.biliapi\\.net)\\/bilibili\\.app\\.(?:view|viewunite)\\.v\\d\\.View\\/View script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-3,requires-body=true,binary-body-mode=true",
       "section": "Script",
       "sources": [
@@ -51254,14 +51271,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 195
+          "source_entry_index": 196
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://(?:app\\\\.bilibili\\\\.com|grpc\\\\.biliapi\\\\.net)/bilibili\\\\.community\\\\.service\\\\.dm\\\\.v\\\\d\\\\.DM/DmView', ('^https?:\\\\/\\\\/', '^https?:\\\\/\\\\/(?:app\\\\.bilibili\\\\.com|grpc\\\\.biliapi\\\\.net)\\\\/bilibili\\\\.community\\\\.service\\\\.dm\\\\.v\\\\d\\\\.DM\\\\/DmView script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-4,requires-body=true,binary-body-mode=true'))",
-      "output_entry_index": 197,
+      "output_entry_index": 198,
       "output_line": "http-response ^https?:\\/\\/(?:app\\.bilibili\\.com|grpc\\.biliapi\\.net)\\/bilibili\\.community\\.service\\.dm\\.v\\d\\.DM\\/DmView script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-4,requires-body=true,binary-body-mode=true",
       "section": "Script",
       "sources": [
@@ -51271,14 +51288,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 196
+          "source_entry_index": 197
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://(?:app\\\\.bilibili\\\\.com|grpc\\\\.biliapi\\\\.net)/bilibili\\\\.main\\\\.community\\\\.reply\\\\.v\\\\d\\\\.Reply/MainList', ('^https?:\\\\/\\\\/', '^https?:\\\\/\\\\/(?:app\\\\.bilibili\\\\.com|grpc\\\\.biliapi\\\\.net)\\\\/bilibili\\\\.main\\\\.community\\\\.reply\\\\.v\\\\d\\\\.Reply\\\\/MainList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-5,requires-body=true,binary-body-mode=true'))",
-      "output_entry_index": 198,
+      "output_entry_index": 199,
       "output_line": "http-response ^https?:\\/\\/(?:app\\.bilibili\\.com|grpc\\.biliapi\\.net)\\/bilibili\\.main\\.community\\.reply\\.v\\d\\.Reply\\/MainList script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-5,requires-body=true,binary-body-mode=true",
       "section": "Script",
       "sources": [
@@ -51288,14 +51305,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 197
+          "source_entry_index": 198
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://(?:app\\\\.bilibili\\\\.com|grpc\\\\.biliapi\\\\.net)/bilibili\\\\.polymer\\\\.app\\\\.search\\\\.v\\\\d\\\\.Search/SearchAll', ('^https?:\\\\/\\\\/', '^https?:\\\\/\\\\/(?:app\\\\.bilibili\\\\.com|grpc\\\\.biliapi\\\\.net)\\\\/bilibili\\\\.polymer\\\\.app\\\\.search\\\\.v\\\\d\\\\.Search\\\\/SearchAll script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-6,requires-body=true,binary-body-mode=true'))",
-      "output_entry_index": 199,
+      "output_entry_index": 200,
       "output_line": "http-response ^https?:\\/\\/(?:app\\.bilibili\\.com|grpc\\.biliapi\\.net)\\/bilibili\\.polymer\\.app\\.search\\.v\\d\\.Search\\/SearchAll script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/bilibiliProtoA.js,tag=BAICIZHAN-6,requires-body=true,binary-body-mode=true",
       "section": "Script",
       "sources": [
@@ -51305,7 +51322,7 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 198
+          "source_entry_index": 199
         }
       ],
       "trace_status": "mapped"
@@ -51389,7 +51406,7 @@
     },
     {
       "canonical_key": "('guarded', '^https?://social\\\\.blued\\\\.cn/users/.+/more/ios\\\\?v=\\\\d', ('^https?:\\\\/\\\\/social\\\\.blued\\\\.cn\\\\/users\\\\/.+\\\\/more\\\\/ios\\\\?v=\\\\d', '^https?:\\\\/\\\\/social\\\\.blued\\\\.cn\\\\/users\\\\/.+\\\\/more\\\\/ios\\\\?v=\\\\d script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/blued.js,tag=BLUED,requires-body=true'))",
-      "output_entry_index": 207,
+      "output_entry_index": 208,
       "output_line": "http-response ^https?:\\/\\/social\\.blued\\.cn\\/users\\/.+\\/more\\/ios\\?v=\\d script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/blued.js,tag=BLUED,requires-body=true",
       "section": "Script",
       "sources": [
@@ -51399,7 +51416,7 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 206
+          "source_entry_index": 207
         }
       ],
       "trace_status": "mapped"
@@ -51417,7 +51434,7 @@
     },
     {
       "canonical_key": "('guarded', '^https?://api\\\\.gotokeep\\\\.com/athena/v\\\\d/people/my$', ('^https?:\\\\/\\\\/api\\\\.gotokeep\\\\.com\\\\/athena\\\\/v\\\\d\\\\/people\\\\/my$', '^https?:\\\\/\\\\/api\\\\.gotokeep\\\\.com\\\\/athena\\\\/v\\\\d\\\\/people\\\\/my$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/keep.js,tag=KEEP,requires-body=true'))",
-      "output_entry_index": 209,
+      "output_entry_index": 210,
       "output_line": "http-response ^https?:\\/\\/api\\.gotokeep\\.com\\/athena\\/v\\d\\/people\\/my$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/keep.js,tag=KEEP,requires-body=true",
       "section": "Script",
       "sources": [
@@ -51427,14 +51444,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 208
+          "source_entry_index": 209
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://api\\\\.gotokeep\\\\.com/config/v\\\\d/basic', ('^https?:\\\\/\\\\/api\\\\.gotokeep\\\\.com\\\\/config\\\\/v\\\\d\\\\/basic', '^https?:\\\\/\\\\/api\\\\.gotokeep\\\\.com\\\\/config\\\\/v\\\\d\\\\/basic script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/keep.js,tag=KEEP-2,requires-body=true'))",
-      "output_entry_index": 210,
+      "output_entry_index": 211,
       "output_line": "http-response ^https?:\\/\\/api\\.gotokeep\\.com\\/config\\/v\\d\\/basic script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/keep.js,tag=KEEP-2,requires-body=true",
       "section": "Script",
       "sources": [
@@ -51444,14 +51461,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 209
+          "source_entry_index": 210
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://api\\\\.gotokeep\\\\.com/homepage/v\\\\d/tab', ('^https?:\\\\/\\\\/api\\\\.gotokeep\\\\.com\\\\/homepage\\\\/v\\\\d\\\\/tab', '^https?:\\\\/\\\\/api\\\\.gotokeep\\\\.com\\\\/homepage\\\\/v\\\\d\\\\/tab script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/keep.js,tag=KEEP-3,requires-body=true'))",
-      "output_entry_index": 211,
+      "output_entry_index": 212,
       "output_line": "http-response ^https?:\\/\\/api\\.gotokeep\\.com\\/homepage\\/v\\d\\/tab script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/keep.js,tag=KEEP-3,requires-body=true",
       "section": "Script",
       "sources": [
@@ -51461,14 +51478,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 210
+          "source_entry_index": 211
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://api\\\\.gotokeep\\\\.com/nuocha/course/v\\\\d/\\\\w+/preview', ('^https?:\\\\/\\\\/api\\\\.gotokeep\\\\.com\\\\/nuocha\\\\/course\\\\/v\\\\d/\\\\w+\\\\/preview', '^https?:\\\\/\\\\/api\\\\.gotokeep\\\\.com\\\\/nuocha\\\\/course\\\\/v\\\\d/\\\\w+\\\\/preview script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/keep.js,tag=KEEP-4,requires-body=true'))",
-      "output_entry_index": 212,
+      "output_entry_index": 213,
       "output_line": "http-response ^https?:\\/\\/api\\.gotokeep\\.com\\/nuocha\\/course\\/v\\d/\\w+\\/preview script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/keep.js,tag=KEEP-4,requires-body=true",
       "section": "Script",
       "sources": [
@@ -51478,14 +51495,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 211
+          "source_entry_index": 212
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://api\\\\.gotokeep\\\\.com/sportpage/sport/v\\\\d/mysport', ('^https?:\\\\/\\\\/api\\\\.gotokeep\\\\.com\\\\/sportpage\\\\/sport\\\\/v\\\\d\\\\/mysport', '^https?:\\\\/\\\\/api\\\\.gotokeep\\\\.com\\\\/sportpage\\\\/sport\\\\/v\\\\d\\\\/mysport script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/keep.js,tag=KEEP-5,requires-body=true'))",
-      "output_entry_index": 213,
+      "output_entry_index": 214,
       "output_line": "http-response ^https?:\\/\\/api\\.gotokeep\\.com\\/sportpage\\/sport\\/v\\d\\/mysport script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/keep.js,tag=KEEP-5,requires-body=true",
       "section": "Script",
       "sources": [
@@ -51495,14 +51512,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 212
+          "source_entry_index": 213
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://open\\\\.e\\\\.kuaishou\\\\.com/rest/e/v\\\\d/open/univ$', ('^https?:\\\\/\\\\/open\\\\.e\\\\.kuaishou\\\\.com\\\\/rest\\\\/e\\\\/v\\\\d\\\\/open\\\\/univ$', '^https?:\\\\/\\\\/open\\\\.e\\\\.kuaishou\\\\.com\\\\/rest\\\\/e\\\\/v\\\\d\\\\/open\\\\/univ$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/adsense.js,tag=KUAISHOU,requires-body=true'))",
-      "output_entry_index": 214,
+      "output_entry_index": 215,
       "output_line": "http-response ^https?:\\/\\/open\\.e\\.kuaishou\\.com\\/rest\\/e\\/v\\d\\/open\\/univ$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/adsense.js,tag=KUAISHOU,requires-body=true",
       "section": "Script",
       "sources": [
@@ -51512,14 +51529,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 213
+          "source_entry_index": 214
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://api\\\\.coolapk\\\\.com/v\\\\d/feed/(detail|replyList)\\\\?', ('^https?:\\\\/\\\\/api\\\\.coolapk\\\\.com\\\\/v\\\\d\\\\/feed\\\\/', '^https?:\\\\/\\\\/api\\\\.coolapk\\\\.com\\\\/v\\\\d\\\\/feed\\\\/(detail|replyList)\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/coolapk.js,tag=COOLAPK,requires-body=true'))",
-      "output_entry_index": 215,
+      "output_entry_index": 216,
       "output_line": "http-response ^https?:\\/\\/api\\.coolapk\\.com\\/v\\d\\/feed\\/(detail|replyList)\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/coolapk.js,tag=COOLAPK,requires-body=true",
       "section": "Script",
       "sources": [
@@ -51529,14 +51546,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 214
+          "source_entry_index": 215
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://api\\\\.coolapk\\\\.com/v\\\\d/main/(?:dataList|indexV|init)', ('^https?:\\\\/\\\\/api\\\\.coolapk\\\\.com\\\\/v\\\\d\\\\/main\\\\/', '^https?:\\\\/\\\\/api\\\\.coolapk\\\\.com\\\\/v\\\\d\\\\/main\\\\/(?:dataList|indexV|init) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/coolapk.js,tag=COOLAPK-2,requires-body=true'))",
-      "output_entry_index": 216,
+      "output_entry_index": 217,
       "output_line": "http-response ^https?:\\/\\/api\\.coolapk\\.com\\/v\\d\\/main\\/(?:dataList|indexV|init) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/coolapk.js,tag=COOLAPK-2,requires-body=true",
       "section": "Script",
       "sources": [
@@ -51546,14 +51563,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 215
+          "source_entry_index": 216
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://api\\\\.coolapk\\\\.com/v\\\\d/page/dataList\\\\?', ('^https?:\\\\/\\\\/api\\\\.coolapk\\\\.com\\\\/v\\\\d\\\\/page\\\\/datalist\\\\?', '^https?:\\\\/\\\\/api\\\\.coolapk\\\\.com\\\\/v\\\\d\\\\/page\\\\/dataList\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/coolapk.js,tag=COOLAPK-3,requires-body=true'))",
-      "output_entry_index": 217,
+      "output_entry_index": 218,
       "output_line": "http-response ^https?:\\/\\/api\\.coolapk\\.com\\/v\\d\\/page\\/dataList\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/coolapk.js,tag=COOLAPK-3,requires-body=true",
       "section": "Script",
       "sources": [
@@ -51563,14 +51580,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 216
+          "source_entry_index": 217
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://open-cms-api\\\\.quark\\\\.cn/open-cms', ('^https?:\\\\/\\\\/open-cms-api\\\\.quark\\\\.cn\\\\/open-cms', '^https?:\\\\/\\\\/open-cms-api\\\\.quark\\\\.cn\\\\/open-cms script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/quark.js,tag=QUARK,requires-body=true'))",
-      "output_entry_index": 218,
+      "output_entry_index": 219,
       "output_line": "http-response ^https?:\\/\\/open-cms-api\\.quark\\.cn\\/open-cms script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/quark.js,tag=QUARK,requires-body=true",
       "section": "Script",
       "sources": [
@@ -51580,14 +51597,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 217
+          "source_entry_index": 218
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://(cdn-)?api\\\\.kkmh\\\\.com/v\\\\d/ironman/comic/recommend', ('^https?:\\\\/\\\\/', '^https?:\\\\/\\\\/(cdn-)?api\\\\.kkmh\\\\.com\\\\/v\\\\d\\\\/ironman\\\\/comic\\\\/recommend script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/kkmh.js,tag=KKMH,requires-body=true'))",
-      "output_entry_index": 219,
+      "output_entry_index": 220,
       "output_line": "http-response ^https?:\\/\\/(cdn-)?api\\.kkmh\\.com\\/v\\d\\/ironman\\/comic\\/recommend script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/kkmh.js,tag=KKMH,requires-body=true",
       "section": "Script",
       "sources": [
@@ -51597,14 +51614,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 218
+          "source_entry_index": 219
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://(cdn-)?api\\\\.kkmh\\\\.com/v\\\\d/ironman/discovery_v\\\\d/tab_list_v\\\\d', ('^https?:\\\\/\\\\/', '^https?:\\\\/\\\\/(cdn-)?api\\\\.kkmh\\\\.com\\\\/v\\\\d\\\\/ironman\\\\/discovery_v\\\\d\\\\/tab_list_v\\\\d script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/kkmh.js,tag=KKMH-2,requires-body=true'))",
-      "output_entry_index": 220,
+      "output_entry_index": 221,
       "output_line": "http-response ^https?:\\/\\/(cdn-)?api\\.kkmh\\.com\\/v\\d\\/ironman\\/discovery_v\\d\\/tab_list_v\\d script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/kkmh.js,tag=KKMH-2,requires-body=true",
       "section": "Script",
       "sources": [
@@ -51614,14 +51631,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 219
+          "source_entry_index": 220
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://(cdn-)?social\\\\.kkmh\\\\.com/v\\\\d/graph/homepage/comicVideo/v\\\\d/configs', ('^https?:\\\\/\\\\/', '^https?:\\\\/\\\\/(cdn-)?social\\\\.kkmh\\\\.com\\\\/v\\\\d\\\\/graph\\\\/homepage\\\\/comicVideo\\\\/v\\\\d\\\\/configs script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/kkmh.js,tag=KKMH-3,requires-body=true'))",
-      "output_entry_index": 221,
+      "output_entry_index": 222,
       "output_line": "http-response ^https?:\\/\\/(cdn-)?social\\.kkmh\\.com\\/v\\d\\/graph\\/homepage\\/comicVideo\\/v\\d\\/configs script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/kkmh.js,tag=KKMH-3,requires-body=true",
       "section": "Script",
       "sources": [
@@ -51631,14 +51648,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 220
+          "source_entry_index": 221
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://(cdn-)?social\\\\.kkmh\\\\.com/v\\\\d/graph/unified_feed', ('^https?:\\\\/\\\\/', '^https?:\\\\/\\\\/(cdn-)?social\\\\.kkmh\\\\.com\\\\/v\\\\d\\\\/graph\\\\/unified_feed script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/kkmh.js,tag=KKMH-4,requires-body=true'))",
-      "output_entry_index": 222,
+      "output_entry_index": 223,
       "output_line": "http-response ^https?:\\/\\/(cdn-)?social\\.kkmh\\.com\\/v\\d\\/graph\\/unified_feed script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/kkmh.js,tag=KKMH-4,requires-body=true",
       "section": "Script",
       "sources": [
@@ -51648,14 +51665,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 221
+          "source_entry_index": 222
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://(mgxhtj|nmobi|searchrecterm)\\\\.kuwo\\\\.cn/(mgxh|mobi|recterm)\\\\.s', ('^https?:\\\\/\\\\/', '^https?:\\\\/\\\\/(mgxhtj|nmobi|searchrecterm)\\\\.kuwo\\\\.cn\\\\/(mgxh|mobi|recterm)\\\\.s script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/Unlock/kuwo.js,tag=KUWO,requires-body=true'))",
-      "output_entry_index": 223,
+      "output_entry_index": 224,
       "output_line": "http-response ^https?:\\/\\/(mgxhtj|nmobi|searchrecterm)\\.kuwo\\.cn\\/(mgxh|mobi|recterm)\\.s script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/Unlock/kuwo.js,tag=KUWO,requires-body=true",
       "section": "Script",
       "sources": [
@@ -51665,14 +51682,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 222
+          "source_entry_index": 223
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://audiobookpay\\\\.kuwo\\\\.cn/a\\\\.p', ('^https?:\\\\/\\\\/audiobookpay\\\\.kuwo\\\\.cn\\\\/a\\\\.p', '^https?:\\\\/\\\\/audiobookpay\\\\.kuwo\\\\.cn\\\\/a\\\\.p script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/Unlock/kuwo.js,tag=KUWO-2,requires-body=true'))",
-      "output_entry_index": 224,
+      "output_entry_index": 225,
       "output_line": "http-response ^https?:\\/\\/audiobookpay\\.kuwo\\.cn\\/a\\.p script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/Unlock/kuwo.js,tag=KUWO-2,requires-body=true",
       "section": "Script",
       "sources": [
@@ -51682,14 +51699,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 223
+          "source_entry_index": 224
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://musicpay\\\\.kuwo\\\\.cn/music\\\\.pay', ('^https?:\\\\/\\\\/musicpay\\\\.kuwo\\\\.cn\\\\/music\\\\.pay', '^https?:\\\\/\\\\/musicpay\\\\.kuwo\\\\.cn\\\\/music\\\\.pay script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/Unlock/kuwo.js,tag=KUWO-3,requires-body=true'))",
-      "output_entry_index": 225,
+      "output_entry_index": 226,
       "output_line": "http-response ^https?:\\/\\/musicpay\\.kuwo\\.cn\\/music\\.pay script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/Unlock/kuwo.js,tag=KUWO-3,requires-body=true",
       "section": "Script",
       "sources": [
@@ -51699,14 +51716,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 224
+          "source_entry_index": 225
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://vip\\\\d\\\\.kuwo\\\\.cn/vip/(enc/user/vip\\\\?op=ui|v\\\\d/theme\\\\?op=gd)', ('^https?:\\\\/\\\\/vip\\\\d\\\\.kuwo\\\\.cn\\\\/vip\\\\/', '^https?:\\\\/\\\\/vip\\\\d\\\\.kuwo\\\\.cn\\\\/vip\\\\/(enc\\\\/user\\\\/vip\\\\?op=ui|v\\\\d\\\\/theme\\\\?op=gd) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/Unlock/kuwo.js,tag=KUWO-4,requires-body=true'))",
-      "output_entry_index": 226,
+      "output_entry_index": 227,
       "output_line": "http-response ^https?:\\/\\/vip\\d\\.kuwo\\.cn\\/vip\\/(enc\\/user\\/vip\\?op=ui|v\\d\\/theme\\?op=gd) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/Unlock/kuwo.js,tag=KUWO-4,requires-body=true",
       "section": "Script",
       "sources": [
@@ -51716,14 +51733,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 225
+          "source_entry_index": 226
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://vip\\\\d\\\\.kuwo\\\\.cn/vip/v\\\\d/user/vip\\\\?op=ui', ('^https?:\\\\/\\\\/vip\\\\d\\\\.kuwo\\\\.cn\\\\/vip\\\\/v\\\\d\\\\/user\\\\/vip\\\\?op=ui', '^https?:\\\\/\\\\/vip\\\\d\\\\.kuwo\\\\.cn\\\\/vip\\\\/v\\\\d\\\\/user\\\\/vip\\\\?op=ui script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/Unlock/kuwo.js,tag=KUWO-5,requires-body=true'))",
-      "output_entry_index": 227,
+      "output_entry_index": 228,
       "output_line": "http-response ^https?:\\/\\/vip\\d\\.kuwo\\.cn\\/vip\\/v\\d\\/user\\/vip\\?op=ui script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/Unlock/kuwo.js,tag=KUWO-5,requires-body=true",
       "section": "Script",
       "sources": [
@@ -51733,14 +51750,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 226
+          "source_entry_index": 227
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://www\\\\.1314zhilv\\\\.com/ltsstnew/(common/getJGQIconNew|city/getAllBannelByCity)', ('^https?:\\\\/\\\\/www\\\\.1314zhilv\\\\.com\\\\/ltsstnew\\\\/', '^https?:\\\\/\\\\/www\\\\.1314zhilv\\\\.com\\\\/ltsstnew\\\\/(common\\\\/getJGQIconNew|city\\\\/getAllBannelByCity) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ltsst.js,tag=1314ZHILV,requires-body=true'))",
-      "output_entry_index": 228,
+      "output_entry_index": 229,
       "output_line": "http-response ^https?:\\/\\/www\\.1314zhilv\\.com\\/ltsstnew\\/(common\\/getJGQIconNew|city\\/getAllBannelByCity) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ltsst.js,tag=1314ZHILV,requires-body=true",
       "section": "Script",
       "sources": [
@@ -51750,14 +51767,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 227
+          "source_entry_index": 228
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://youtubei\\\\.googleapis\\\\.com/(youtubei/v\\\\d/(browse|next|player|search|reel/reel_watch_sequence|guide|account/get_setting|get_watch))(\\\\?(.*))?$', ('^https?:\\\\/\\\\/youtubei\\\\.googleapis\\\\.com\\\\/', '^https?:\\\\/\\\\/youtubei\\\\.googleapis\\\\.com\\\\/(youtubei\\\\/v\\\\d\\\\/(browse|next|player|search|reel\\\\/reel_watch_sequence|guide|account\\\\/get_setting|get_watch))(\\\\?(.*))?$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/youtube.js,tag=YOUTUBE,requires-body=true,binary-body-mode=true'))",
-      "output_entry_index": 229,
+      "output_entry_index": 230,
       "output_line": "http-response ^https?:\\/\\/youtubei\\.googleapis\\.com\\/(youtubei\\/v\\d\\/(browse|next|player|search|reel\\/reel_watch_sequence|guide|account\\/get_setting|get_watch))(\\?(.*))?$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/youtube.js,tag=YOUTUBE,requires-body=true,binary-body-mode=true",
       "section": "Script",
       "sources": [
@@ -51767,14 +51784,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 228
+          "source_entry_index": 229
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://\\\\w+\\\\.ys7\\\\.com/v\\\\d/valueadded/operation/config/master/station', ('^https?:\\\\/\\\\/\\\\w+\\\\.ys7\\\\.com\\\\/v\\\\d\\\\/valueadded\\\\/operation\\\\/config\\\\/master\\\\/station', '^https?:\\\\/\\\\/\\\\w+\\\\.ys7\\\\.com\\\\/v\\\\d\\\\/valueadded\\\\/operation\\\\/config\\\\/master\\\\/station script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ys7.js,tag=YS7,requires-body=true'))",
-      "output_entry_index": 230,
+      "output_entry_index": 231,
       "output_line": "http-response ^https?:\\/\\/\\w+\\.ys7\\.com\\/v\\d\\/valueadded\\/operation\\/config\\/master\\/station script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ys7.js,tag=YS7,requires-body=true",
       "section": "Script",
       "sources": [
@@ -51784,7 +51801,7 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 229
+          "source_entry_index": 230
         }
       ],
       "trace_status": "mapped"
@@ -51879,7 +51896,7 @@
     },
     {
       "canonical_key": "('guarded', '^https?://iosapi\\\\.peiyinxiu\\\\.com/Api/Film/GetConfigValue', ('^https?:\\\\/\\\\/iosapi\\\\.peiyinxiu\\\\.com\\\\/api\\\\/film\\\\/getconfigvalue', '^https?:\\\\/\\\\/iosapi\\\\.peiyinxiu\\\\.com\\\\/Api\\\\/Film\\\\/GetConfigValue script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/peiyinxiu.js,tag=PEIYINXIU,requires-body=true'))",
-      "output_entry_index": 241,
+      "output_entry_index": 242,
       "output_line": "http-response ^https?:\\/\\/iosapi\\.peiyinxiu\\.com\\/Api\\/Film\\/GetConfigValue script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/peiyinxiu.js,tag=PEIYINXIU,requires-body=true",
       "section": "Script",
       "sources": [
@@ -51889,14 +51906,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 240
+          "source_entry_index": 241
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://.+\\\\.pipix\\\\.com/bds/feed/channel_list/', ('^https?:\\\\/\\\\/.+\\\\.pipix\\\\.com\\\\/bds\\\\/feed\\\\/channel_list\\\\/', '^https?:\\\\/\\\\/.+\\\\.pipix\\\\.com\\\\/bds\\\\/feed\\\\/channel_list\\\\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ppx.js,tag=PPX,requires-body=true'))",
-      "output_entry_index": 246,
+      "output_entry_index": 247,
       "output_line": "http-response ^https?:\\/\\/.+\\.pipix\\.com\\/bds\\/feed\\/channel_list\\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ppx.js,tag=PPX,requires-body=true",
       "section": "Script",
       "sources": [
@@ -51906,14 +51923,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 245
+          "source_entry_index": 246
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://.+\\\\.pipix\\\\.com/bds/user/check_in/', ('^https?:\\\\/\\\\/.+\\\\.pipix\\\\.com\\\\/bds\\\\/user\\\\/check_in\\\\/', '^https?:\\\\/\\\\/.+\\\\.pipix\\\\.com\\\\/bds\\\\/user\\\\/check_in\\\\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ppx.js,tag=PPX-2,requires-body=true'))",
-      "output_entry_index": 247,
+      "output_entry_index": 248,
       "output_line": "http-response ^https?:\\/\\/.+\\.pipix\\.com\\/bds\\/user\\/check_in\\/ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ppx.js,tag=PPX-2,requires-body=true",
       "section": "Script",
       "sources": [
@@ -51923,14 +51940,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 246
+          "source_entry_index": 247
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://edu\\\\.51cto\\\\.com/app\\\\.php\\\\?$', ('^https?:\\\\/\\\\/edu\\\\.51cto\\\\.com\\\\/app\\\\.php\\\\?$', '^https?:\\\\/\\\\/edu\\\\.51cto\\\\.com\\\\/app\\\\.php\\\\?$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/51cto.js,tag=51CTO,requires-body=true'))",
-      "output_entry_index": 248,
+      "output_entry_index": 249,
       "output_line": "http-response ^https?:\\/\\/edu\\.51cto\\.com\\/app\\.php\\?$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/51cto.js,tag=51CTO,requires-body=true",
       "section": "Script",
       "sources": [
@@ -51940,14 +51957,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 247
+          "source_entry_index": 248
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://jia\\\\.360\\\\.cn/conf/v\\\\d\\\\.json', ('^https?:\\\\/\\\\/jia\\\\.360\\\\.cn\\\\/conf\\\\/v\\\\d\\\\.json', '^https?:\\\\/\\\\/jia\\\\.360\\\\.cn\\\\/conf\\\\/v\\\\d\\\\.json script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/360cam.js,tag=360CAM,requires-body=true'))",
-      "output_entry_index": 249,
+      "output_entry_index": 250,
       "output_line": "http-response ^https?:\\/\\/jia\\.360\\.cn\\/conf\\/v\\d\\.json script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/360cam.js,tag=360CAM,requires-body=true",
       "section": "Script",
       "sources": [
@@ -51957,14 +51974,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 248
+          "source_entry_index": 249
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://mobile\\\\.12306\\\\.cn/otsmobile/app/mgs/mgw\\\\.htm$', ('^https?:\\\\/\\\\/mobile\\\\.12306\\\\.cn\\\\/otsmobile\\\\/app\\\\/mgs\\\\/mgw\\\\.htm$', '^https?:\\\\/\\\\/mobile\\\\.12306\\\\.cn\\\\/otsmobile\\\\/app\\\\/mgs\\\\/mgw\\\\.htm$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=12306'))",
-      "output_entry_index": 250,
+      "output_entry_index": 251,
       "output_line": "http-response ^https?:\\/\\/mobile\\.12306\\.cn\\/otsmobile\\/app\\/mgs\\/mgw\\.htm$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/mgw.js,tag=12306",
       "section": "Script",
       "sources": [
@@ -51974,14 +51991,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 249
+          "source_entry_index": 250
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://dict\\\\.youdao\\\\.com/(homepage/promotion|course/tab/home|homepage/tile)', ('^https?:\\\\/\\\\/dict\\\\.youdao\\\\.com\\\\/', '^https?:\\\\/\\\\/dict\\\\.youdao\\\\.com\\\\/(homepage\\\\/promotion|course\\\\/tab\\\\/home|homepage\\\\/tile) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/163youdao.js,tag=163YOUDAO,requires-body=true'))",
-      "output_entry_index": 251,
+      "output_entry_index": 252,
       "output_line": "http-response ^https?:\\/\\/dict\\.youdao\\.com\\/(homepage\\/promotion|course\\/tab\\/home|homepage\\/tile) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/163youdao.js,tag=163YOUDAO,requires-body=true",
       "section": "Script",
       "sources": [
@@ -51991,14 +52008,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 250
+          "source_entry_index": 251
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://(weixin110\\\\.qq|security.wechat)\\\\.com/cgi-bin/mmspamsupport-bin/newredirectconfirmcgi\\\\?', ('^https?:\\\\/\\\\/', '^https?:\\\\/\\\\/(weixin110\\\\.qq|security.wechat)\\\\.com\\\\/cgi-bin\\\\/mmspamsupport-bin\\\\/newredirectconfirmcgi\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/Plugins/Wechat_Unblock_URL.js,tag=WECHAT,requires-body=true'))",
-      "output_entry_index": 252,
+      "output_entry_index": 253,
       "output_line": "http-response ^https?:\\/\\/(weixin110\\.qq|security.wechat)\\.com\\/cgi-bin\\/mmspamsupport-bin\\/newredirectconfirmcgi\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/Plugins/Wechat_Unblock_URL.js,tag=WECHAT,requires-body=true",
       "section": "Script",
       "sources": [
@@ -52008,14 +52025,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 251
+          "source_entry_index": 252
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://interface\\\\d?\\\\.music\\\\.163\\\\.com/w?e?api/(batch|v\\\\d/resource/comment/floor/get)', ('^https?:\\\\/\\\\/interface\\\\d?\\\\.music\\\\.163\\\\.com\\\\/w?e?api\\\\/', '^https?:\\\\/\\\\/interface\\\\d?\\\\.music\\\\.163\\\\.com\\\\/w?e?api\\\\/(batch|v\\\\d\\\\/resource\\\\/comment\\\\/floor\\\\/get) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/163music.js,tag=163MUSIC,requires-body=true'))",
-      "output_entry_index": 253,
+      "output_entry_index": 254,
       "output_line": "http-response ^https?:\\/\\/interface\\d?\\.music\\.163\\.com\\/w?e?api\\/(batch|v\\d\\/resource\\/comment\\/floor\\/get) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/163music.js,tag=163MUSIC,requires-body=true",
       "section": "Script",
       "sources": [
@@ -52025,14 +52042,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 252
+          "source_entry_index": 253
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://interface\\\\d?\\\\.music\\\\.163\\\\.com/w?e?api/link/home/framework/tab', ('^https?:\\\\/\\\\/interface\\\\d?\\\\.music\\\\.163\\\\.com\\\\/w?e?api\\\\/link\\\\/home\\\\/framework\\\\/tab', '^https?:\\\\/\\\\/interface\\\\d?\\\\.music\\\\.163\\\\.com\\\\/w?e?api\\\\/link\\\\/home\\\\/framework\\\\/tab script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/163music.js,tag=163MUSIC-2,requires-body=true'))",
-      "output_entry_index": 254,
+      "output_entry_index": 255,
       "output_line": "http-response ^https?:\\/\\/interface\\d?\\.music\\.163\\.com\\/w?e?api\\/link\\/home\\/framework\\/tab script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/163music.js,tag=163MUSIC-2,requires-body=true",
       "section": "Script",
       "sources": [
@@ -52042,14 +52059,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 253
+          "source_entry_index": 254
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://interface\\\\d?\\\\.music\\\\.163\\\\.com/w?e?api/(homepage/block/page|link/page/rcmd/(resource/show|block/resource/multi/refresh))', ('^https?:\\\\/\\\\/interface\\\\d?\\\\.music\\\\.163\\\\.com\\\\/w?e?api\\\\/', '^https?:\\\\/\\\\/interface\\\\d?\\\\.music\\\\.163\\\\.com\\\\/w?e?api\\\\/(homepage\\\\/block\\\\/page|link\\\\/page\\\\/rcmd\\\\/(resource\\\\/show|block\\\\/resource\\\\/multi\\\\/refresh)) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/163music.js,tag=163MUSIC-3,requires-body=true'))",
-      "output_entry_index": 255,
+      "output_entry_index": 256,
       "output_line": "http-response ^https?:\\/\\/interface\\d?\\.music\\.163\\.com\\/w?e?api\\/(homepage\\/block\\/page|link\\/page\\/rcmd\\/(resource\\/show|block\\/resource\\/multi\\/refresh)) script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/163music.js,tag=163MUSIC-3,requires-body=true",
       "section": "Script",
       "sources": [
@@ -52059,14 +52076,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 254
+          "source_entry_index": 255
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://interface\\\\d?\\\\.music\\\\.163\\\\.com/w?e?api/link/page/discovery/resource/show', ('^https?:\\\\/\\\\/interface\\\\d?\\\\.music\\\\.163\\\\.com\\\\/w?e?api\\\\/link\\\\/page\\\\/discovery\\\\/resource\\\\/show', '^https?:\\\\/\\\\/interface\\\\d?\\\\.music\\\\.163\\\\.com\\\\/w?e?api\\\\/link\\\\/page\\\\/discovery\\\\/resource\\\\/show script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/163music.js,tag=163MUSIC-4,requires-body=true'))",
-      "output_entry_index": 256,
+      "output_entry_index": 257,
       "output_line": "http-response ^https?:\\/\\/interface\\d?\\.music\\.163\\.com\\/w?e?api\\/link\\/page\\/discovery\\/resource\\/show script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/163music.js,tag=163MUSIC-4,requires-body=true",
       "section": "Script",
       "sources": [
@@ -52076,14 +52093,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 255
+          "source_entry_index": 256
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://interface\\\\d?\\\\.music\\\\.163\\\\.com/w?e?api/song/play/more/list/v\\\\d', ('^https?:\\\\/\\\\/interface\\\\d?\\\\.music\\\\.163\\\\.com\\\\/w?e?api\\\\/song\\\\/play\\\\/more\\\\/list\\\\/v\\\\d', '^https?:\\\\/\\\\/interface\\\\d?\\\\.music\\\\.163\\\\.com\\\\/w?e?api\\\\/song\\\\/play\\\\/more\\\\/list\\\\/v\\\\d script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/163music.js,tag=163MUSIC-5,requires-body=true'))",
-      "output_entry_index": 257,
+      "output_entry_index": 258,
       "output_line": "http-response ^https?:\\/\\/interface\\d?\\.music\\.163\\.com\\/w?e?api\\/song\\/play\\/more\\/list\\/v\\d script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/163music.js,tag=163MUSIC-5,requires-body=true",
       "section": "Script",
       "sources": [
@@ -52093,14 +52110,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 256
+          "source_entry_index": 257
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://interface\\\\d?\\\\.music\\\\.163\\\\.com/w?e?api/link/position/show/resource', ('^https?:\\\\/\\\\/interface\\\\d?\\\\.music\\\\.163\\\\.com\\\\/w?e?api\\\\/link\\\\/position\\\\/show\\\\/resource', '^https?:\\\\/\\\\/interface\\\\d?\\\\.music\\\\.163\\\\.com\\\\/w?e?api\\\\/link\\\\/position\\\\/show\\\\/resource script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/163music.js,tag=163MUSIC-6,requires-body=true'))",
-      "output_entry_index": 258,
+      "output_entry_index": 259,
       "output_line": "http-response ^https?:\\/\\/interface\\d?\\.music\\.163\\.com\\/w?e?api\\/link\\/position\\/show\\/resource script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/163music.js,tag=163MUSIC-6,requires-body=true",
       "section": "Script",
       "sources": [
@@ -52110,14 +52127,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 257
+          "source_entry_index": 258
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://interface\\\\d?\\\\.music\\\\.163\\\\.com/w?e?api/user/follow/users/mixed/get', ('^https?:\\\\/\\\\/interface\\\\d?\\\\.music\\\\.163\\\\.com\\\\/w?e?api\\\\/user\\\\/follow\\\\/users\\\\/mixed\\\\/get', '^https?:\\\\/\\\\/interface\\\\d?\\\\.music\\\\.163\\\\.com\\\\/w?e?api\\\\/user\\\\/follow\\\\/users\\\\/mixed\\\\/get script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/163music.js,tag=163MUSIC-7,requires-body=true'))",
-      "output_entry_index": 259,
+      "output_entry_index": 260,
       "output_line": "http-response ^https?:\\/\\/interface\\d?\\.music\\.163\\.com\\/w?e?api\\/user\\/follow\\/users\\/mixed\\/get script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/163music.js,tag=163MUSIC-7,requires-body=true",
       "section": "Script",
       "sources": [
@@ -52127,14 +52144,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 258
+          "source_entry_index": 259
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://gw\\\\.m\\\\.163\\\\.com/nc/api/v\\\\d/feed/dynamic/headline-list\\\\?', ('^https?:\\\\/\\\\/gw\\\\.m\\\\.163\\\\.com\\\\/nc\\\\/api\\\\/v\\\\d\\\\/feed\\\\/dynamic\\\\/headline-list\\\\?', '^https?:\\\\/\\\\/gw\\\\.m\\\\.163\\\\.com\\\\/nc\\\\/api\\\\/v\\\\d\\\\/feed\\\\/dynamic\\\\/headline-list\\\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/163news.js,tag=163NEWS,requires-body=true'))",
-      "output_entry_index": 260,
+      "output_entry_index": 261,
       "output_line": "http-response ^https?:\\/\\/gw\\.m\\.163\\.com\\/nc\\/api\\/v\\d\\/feed\\/dynamic\\/headline-list\\? script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/163news.js,tag=163NEWS,requires-body=true",
       "section": "Script",
       "sources": [
@@ -52144,14 +52161,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 259
+          "source_entry_index": 260
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://gw\\\\.m\\\\.163\\\\.com/nc/api/v\\\\d/search/hot-word', ('^https?:\\\\/\\\\/gw\\\\.m\\\\.163\\\\.com\\\\/nc\\\\/api\\\\/v\\\\d\\\\/search\\\\/hot-word', '^https?:\\\\/\\\\/gw\\\\.m\\\\.163\\\\.com\\\\/nc\\\\/api\\\\/v\\\\d\\\\/search\\\\/hot-word script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/163news.js,tag=163NEWS-2,requires-body=true'))",
-      "output_entry_index": 261,
+      "output_entry_index": 262,
       "output_line": "http-response ^https?:\\/\\/gw\\.m\\.163\\.com\\/nc\\/api\\/v\\d\\/search\\/hot-word script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/163news.js,tag=163NEWS-2,requires-body=true",
       "section": "Script",
       "sources": [
@@ -52161,14 +52178,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 260
+          "source_entry_index": 261
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://nex\\\\.163\\\\.com/q', ('^https?:\\\\/\\\\/nex\\\\.163\\\\.com\\\\/q', '^https?:\\\\/\\\\/nex\\\\.163\\\\.com\\\\/q script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/163news.js,tag=163NEWS-3,requires-body=true'))",
-      "output_entry_index": 262,
+      "output_entry_index": 263,
       "output_line": "http-response ^https?:\\/\\/nex\\.163\\.com\\/q script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/163news.js,tag=163NEWS-3,requires-body=true",
       "section": "Script",
       "sources": [
@@ -52178,7 +52195,7 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 261
+          "source_entry_index": 262
         }
       ],
       "trace_status": "mapped"
@@ -52295,7 +52312,7 @@
     },
     {
       "canonical_key": "('guarded', '^https?://waimai-guide\\\\.ele\\\\.me/(gw|h5)/mtop\\\\.alsc\\\\.eleme\\\\.miniapp\\\\.homepage', ('^https?:\\\\/\\\\/waimai-guide\\\\.ele\\\\.me\\\\/', '^https?:\\\\/\\\\/waimai-guide\\\\.ele\\\\.me\\\\/(gw|h5)\\\\/mtop\\\\.alsc\\\\.eleme\\\\.miniapp\\\\.homepage script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/eleme.js,tag=ELEME,requires-body=true'))",
-      "output_entry_index": 282,
+      "output_entry_index": 283,
       "output_line": "http-response ^https?:\\/\\/waimai-guide\\.ele\\.me\\/(gw|h5)\\/mtop\\.alsc\\.eleme\\.miniapp\\.homepage script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/eleme.js,tag=ELEME,requires-body=true",
       "section": "Script",
       "sources": [
@@ -52305,14 +52322,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 281
+          "source_entry_index": 282
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://xyk\\\\.cmbchina\\\\.com/WebAppConfigService/get(Page)?ResourceBits', ('^https?:\\\\/\\\\/xyk\\\\.cmbchina\\\\.com\\\\/webappconfigservice\\\\/get', '^https?:\\\\/\\\\/xyk\\\\.cmbchina\\\\.com\\\\/WebAppConfigService\\\\/get(Page)?ResourceBits script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cmbcc.js,tag=CMBCC,requires-body=true'))",
-      "output_entry_index": 283,
+      "output_entry_index": 284,
       "output_line": "http-response ^https?:\\/\\/xyk\\.cmbchina\\.com\\/WebAppConfigService\\/get(Page)?ResourceBits script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cmbcc.js,tag=CMBCC,requires-body=true",
       "section": "Script",
       "sources": [
@@ -52322,14 +52339,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 282
+          "source_entry_index": 283
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://weclub\\\\.ccc\\\\.cmbchina\\\\.com/SCRMMiniAppCenterNode/resource/gateway/get-page-resource', ('^https?:\\\\/\\\\/weclub\\\\.ccc\\\\.cmbchina\\\\.com\\\\/scrmminiappcenternode\\\\/resource\\\\/gateway\\\\/get-page-resource', '^https?:\\\\/\\\\/weclub\\\\.ccc\\\\.cmbchina\\\\.com\\\\/SCRMMiniAppCenterNode\\\\/resource\\\\/gateway\\\\/get-page-resource script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cmbcc.js,tag=CMBCC-2,requires-body=true'))",
-      "output_entry_index": 284,
+      "output_entry_index": 285,
       "output_line": "http-response ^https?:\\/\\/weclub\\.ccc\\.cmbchina\\.com\\/SCRMMiniAppCenterNode\\/resource\\/gateway\\/get-page-resource script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cmbcc.js,tag=CMBCC-2,requires-body=true",
       "section": "Script",
       "sources": [
@@ -52339,14 +52356,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 283
+          "source_entry_index": 284
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://wx\\\\.mygolbs\\\\.com/WxBusServer/ApiData\\\\.do', ('^https?:\\\\/\\\\/wx\\\\.mygolbs\\\\.com\\\\/wxbusserver\\\\/apidata\\\\.do', '^https?:\\\\/\\\\/wx\\\\.mygolbs\\\\.com\\\\/WxBusServer\\\\/ApiData\\\\.do script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zsgj.js,tag=MYGOLBS,requires-body=true'))",
-      "output_entry_index": 285,
+      "output_entry_index": 286,
       "output_line": "http-response ^https?:\\/\\/wx\\.mygolbs\\.com\\/WxBusServer\\/ApiData\\.do script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zsgj.js,tag=MYGOLBS,requires-body=true",
       "section": "Script",
       "sources": [
@@ -52356,14 +52373,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 284
+          "source_entry_index": 285
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://app\\\\.zhuanzhuan\\\\.com/zz/v\\\\d/zzlogic/mywxcontinenthomepage', ('^https?:\\\\/\\\\/app\\\\.zhuanzhuan\\\\.com\\\\/zz\\\\/v\\\\d\\\\/zzlogic\\\\/mywxcontinenthomepage', '^https?:\\\\/\\\\/app\\\\.zhuanzhuan\\\\.com\\\\/zz\\\\/v\\\\d\\\\/zzlogic\\\\/mywxcontinenthomepage script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhuanzhuan.js,tag=ZHUANZHUAN-2,requires-body=true'))",
-      "output_entry_index": 286,
+      "output_entry_index": 287,
       "output_line": "http-response ^https?:\\/\\/app\\.zhuanzhuan\\.com\\/zz\\/v\\d\\/zzlogic\\/mywxcontinenthomepage script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/zhuanzhuan.js,tag=ZHUANZHUAN-2,requires-body=true",
       "section": "Script",
       "sources": [
@@ -52373,14 +52390,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 285
+          "source_entry_index": 286
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://tf\\\\d+\\\\.istrongcloud\\\\.com/member/v[0-9.]+/home', ('^https?:\\\\/\\\\/tf\\\\d+\\\\.istrongcloud\\\\.com\\\\/member\\\\/v[0-9.]+\\\\/home', '^https?:\\\\/\\\\/tf\\\\d+\\\\.istrongcloud\\\\.com\\\\/member\\\\/v[0-9.]+\\\\/home script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/tflj.js,tag=TFLJ,requires-body=true'))",
-      "output_entry_index": 287,
+      "output_entry_index": 288,
       "output_line": "http-response ^https?:\\/\\/tf\\d+\\.istrongcloud\\.com\\/member\\/v[0-9.]+\\/home script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/tflj.js,tag=TFLJ,requires-body=true",
       "section": "Script",
       "sources": [
@@ -52390,14 +52407,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 286
+          "source_entry_index": 287
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://tf\\\\d+\\\\.istrongcloud\\\\.com/data/commonConfig/typhoon-mp-config/webModuleConfig', ('^https?:\\\\/\\\\/tf\\\\d+\\\\.istrongcloud\\\\.com\\\\/data\\\\/commonconfig\\\\/typhoon-mp-config\\\\/webmoduleconfig', '^https?:\\\\/\\\\/tf\\\\d+\\\\.istrongcloud\\\\.com\\\\/data\\\\/commonConfig\\\\/typhoon-mp-config\\\\/webModuleConfig script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/tflj.js,tag=TFLJ-2,requires-body=true'))",
-      "output_entry_index": 288,
+      "output_entry_index": 289,
       "output_line": "http-response ^https?:\\/\\/tf\\d+\\.istrongcloud\\.com\\/data\\/commonConfig\\/typhoon-mp-config\\/webModuleConfig script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/tflj.js,tag=TFLJ-2,requires-body=true",
       "section": "Script",
       "sources": [
@@ -52407,14 +52424,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 287
+          "source_entry_index": 288
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://apis\\\\.folidaymall\\\\.com/online/capi/component/getPageComponents', ('^https?:\\\\/\\\\/apis\\\\.folidaymall\\\\.com\\\\/online\\\\/capi\\\\/component\\\\/getpagecomponents', '^https?:\\\\/\\\\/apis\\\\.folidaymall\\\\.com\\\\/online\\\\/capi\\\\/component\\\\/getPageComponents script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/foliday.js,tag=FOLIDAY,requires-body=true'))",
-      "output_entry_index": 289,
+      "output_entry_index": 290,
       "output_line": "http-response ^https?:\\/\\/apis\\.folidaymall\\.com\\/online\\/capi\\/component\\/getPageComponents script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/foliday.js,tag=FOLIDAY,requires-body=true",
       "section": "Script",
       "sources": [
@@ -52424,14 +52441,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 288
+          "source_entry_index": 289
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://(?:webapi|miniapp)\\\\.qmai\\\\.cn/web/catering([0-9]-apiserver)?/advertising/ad/advertiseInfo', ('^https?:\\\\/\\\\/', '^https?:\\\\/\\\\/(?:webapi|miniapp)\\\\.qmai\\\\.cn\\\\/web\\\\/catering([0-9]-apiserver)?\\\\/advertising\\\\/ad\\\\/advertiseInfo script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/qmai.js,tag=WechatAppletGeneral,requires-body=true'))",
-      "output_entry_index": 290,
+      "output_entry_index": 291,
       "output_line": "http-response ^https?:\\/\\/(?:webapi|miniapp)\\.qmai\\.cn\\/web\\/catering([0-9]-apiserver)?\\/advertising\\/ad\\/advertiseInfo script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/qmai.js,tag=WechatAppletGeneral,requires-body=true",
       "section": "Script",
       "sources": [
@@ -52441,14 +52458,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 289
+          "source_entry_index": 290
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://saas-ad\\\\.cloudpnr\\\\.com/huifuad-base-api/api/tactics/ad', ('^https?:\\\\/\\\\/saas-ad\\\\.cloudpnr\\\\.com\\\\/huifuad-base-api\\\\/api\\\\/tactics\\\\/ad', '^https?:\\\\/\\\\/saas-ad\\\\.cloudpnr\\\\.com\\\\/huifuad-base-api\\\\/api\\\\/tactics\\\\/ad script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/wechatApplet.js,tag=CLOUDPNR,requires-body=true'))",
-      "output_entry_index": 291,
+      "output_entry_index": 292,
       "output_line": "http-response ^https?:\\/\\/saas-ad\\.cloudpnr\\.com\\/huifuad-base-api\\/api\\/tactics\\/ad script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/wechatApplet.js,tag=CLOUDPNR,requires-body=true",
       "section": "Script",
       "sources": [
@@ -52458,37 +52475,20 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 290
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https?://acs\\\\.m\\\\.shyhhema\\\\.com/h5/mtop\\\\.wdk\\\\.render\\\\.query(?:index|my)page', ('^https?:\\\\/\\\\/acs\\\\.m\\\\.shyhhema\\\\.com\\\\/h5\\\\/mtop\\\\.wdk\\\\.render\\\\.query', '^https?:\\\\/\\\\/acs\\\\.m\\\\.shyhhema\\\\.com\\\\/h5\\\\/mtop\\\\.wdk\\\\.render\\\\.query(?:index|my)page script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/freshippo.js,tag=FRESHIPPO-2,requires-body=true'))",
-      "output_entry_index": 292,
-      "output_line": "http-response ^https?:\\/\\/acs\\.m\\.shyhhema\\.com\\/h5\\/mtop\\.wdk\\.render\\.query(?:index|my)page script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/freshippo.js,tag=FRESHIPPO-2,requires-body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/acs\\.m\\.shyhhema\\.com\\/h5\\/mtop\\.wdk\\.render\\.query(?:index|my)page script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/freshippo.js,tag=FRESHIPPO-2,requires-body=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
           "source_entry_index": 291
         }
       ],
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://triangle\\\\.wearemanner\\\\.com/mp-api/v\\\\d/ads', ('^https?:\\\\/\\\\/triangle\\\\.wearemanner\\\\.com\\\\/mp-api\\\\/v\\\\d\\\\/ads', '^https?:\\\\/\\\\/triangle\\\\.wearemanner\\\\.com\\\\/mp-api\\\\/v\\\\d\\\\/ads script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/manner.js,tag=MANNER,requires-body=true'))",
+      "canonical_key": "('guarded', '^https?://acs\\\\.m\\\\.shyhhema\\\\.com/h5/mtop\\\\.wdk\\\\.render\\\\.query(?:index|my)page', ('^https?:\\\\/\\\\/acs\\\\.m\\\\.shyhhema\\\\.com\\\\/h5\\\\/mtop\\\\.wdk\\\\.render\\\\.query', '^https?:\\\\/\\\\/acs\\\\.m\\\\.shyhhema\\\\.com\\\\/h5\\\\/mtop\\\\.wdk\\\\.render\\\\.query(?:index|my)page script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/freshippo.js,tag=FRESHIPPO-3,requires-body=true'))",
       "output_entry_index": 293,
-      "output_line": "http-response ^https?:\\/\\/triangle\\.wearemanner\\.com\\/mp-api\\/v\\d\\/ads script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/manner.js,tag=MANNER,requires-body=true",
+      "output_line": "http-response ^https?:\\/\\/acs\\.m\\.shyhhema\\.com\\/h5\\/mtop\\.wdk\\.render\\.query(?:index|my)page script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/freshippo.js,tag=FRESHIPPO-3,requires-body=true",
       "section": "Script",
       "sources": [
         {
           "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/triangle\\.wearemanner\\.com\\/mp-api\\/v\\d\\/ads script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/manner.js,tag=MANNER,requires-body=true",
+          "input_line": "http-response ^https?:\\/\\/acs\\.m\\.shyhhema\\.com\\/h5\\/mtop\\.wdk\\.render\\.query(?:index|my)page script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/freshippo.js,tag=FRESHIPPO-3,requires-body=true",
           "input_section": "Script",
           "priority": 4,
           "source": "base",
@@ -52498,8 +52498,25 @@
       "trace_status": "mapped"
     },
     {
+      "canonical_key": "('guarded', '^https?://triangle\\\\.wearemanner\\\\.com/mp-api/v\\\\d/ads', ('^https?:\\\\/\\\\/triangle\\\\.wearemanner\\\\.com\\\\/mp-api\\\\/v\\\\d\\\\/ads', '^https?:\\\\/\\\\/triangle\\\\.wearemanner\\\\.com\\\\/mp-api\\\\/v\\\\d\\\\/ads script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/manner.js,tag=MANNER,requires-body=true'))",
+      "output_entry_index": 294,
+      "output_line": "http-response ^https?:\\/\\/triangle\\.wearemanner\\.com\\/mp-api\\/v\\d\\/ads script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/manner.js,tag=MANNER,requires-body=true",
+      "section": "Script",
+      "sources": [
+        {
+          "disposition": "selected",
+          "input_line": "http-response ^https?:\\/\\/triangle\\.wearemanner\\.com\\/mp-api\\/v\\d\\/ads script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/manner.js,tag=MANNER,requires-body=true",
+          "input_section": "Script",
+          "priority": 4,
+          "source": "base",
+          "source_entry_index": 293
+        }
+      ],
+      "trace_status": "mapped"
+    },
+    {
       "canonical_key": "('guarded', '^https?://opss\\\\.qiye\\\\.ccbhome\\\\.cn/ccbhome-open/home/common', ('^https?:\\\\/\\\\/opss\\\\.qiye\\\\.ccbhome\\\\.cn\\\\/ccbhome-open\\\\/home\\\\/common', '^https?:\\\\/\\\\/opss\\\\.qiye\\\\.ccbhome\\\\.cn\\\\/ccbhome-open\\\\/home\\\\/common script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ccbHome.js,tag=CCBHOME,requires-body=true'))",
-      "output_entry_index": 297,
+      "output_entry_index": 298,
       "output_line": "http-response ^https?:\\/\\/opss\\.qiye\\.ccbhome\\.cn\\/ccbhome-open\\/home\\/common script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ccbHome.js,tag=CCBHOME,requires-body=true",
       "section": "Script",
       "sources": [
@@ -52509,14 +52526,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 296
+          "source_entry_index": 297
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://miniapp\\\\.sexytea2013\\\\.com/cms/slot/queryByCodes\\\\?codes=INDEX_TOP_BANNER', ('^https?:\\\\/\\\\/miniapp\\\\.sexytea2013\\\\.com\\\\/cms\\\\/slot\\\\/querybycodes\\\\?codes=index_top_banner', '^https?:\\\\/\\\\/miniapp\\\\.sexytea2013\\\\.com\\\\/cms\\\\/slot\\\\/queryByCodes\\\\?codes=INDEX_TOP_BANNER script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/wechatApplet.js,tag=SEXYTEA,requires-body=true'))",
-      "output_entry_index": 299,
+      "output_entry_index": 300,
       "output_line": "http-response ^https?:\\/\\/miniapp\\.sexytea2013\\.com\\/cms\\/slot\\/queryByCodes\\?codes=INDEX_TOP_BANNER script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/wechatApplet.js,tag=SEXYTEA,requires-body=true",
       "section": "Script",
       "sources": [
@@ -52526,14 +52543,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 298
+          "source_entry_index": 299
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://\\\\w+\\\\.ems\\\\.com\\\\.cn/[A-Za-z-]+/redis/pageInfoByChannel', ('^https?:\\\\/\\\\/\\\\w+\\\\.ems\\\\.com\\\\.cn\\\\/[a-za-z-]+\\\\/redis\\\\/pageinfobychannel', '^https?:\\\\/\\\\/\\\\w+\\\\.ems\\\\.com\\\\.cn\\\\/[A-Za-z-]+\\\\/redis\\\\/pageInfoByChannel script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/wechatApplet.js,tag=EMS,requires-body=true'))",
-      "output_entry_index": 303,
+      "output_entry_index": 304,
       "output_line": "http-response ^https?:\\/\\/\\w+\\.ems\\.com\\.cn\\/[A-Za-z-]+\\/redis\\/pageInfoByChannel script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/wechatApplet.js,tag=EMS,requires-body=true",
       "section": "Script",
       "sources": [
@@ -52543,14 +52560,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 302
+          "source_entry_index": 303
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://gateway\\\\.cotticoffee\\\\.com/cotti-capi/customer/position/list$', ('^https?:\\\\/\\\\/gateway\\\\.cotticoffee\\\\.com\\\\/cotti-capi\\\\/customer\\\\/position\\\\/list$', '^https?:\\\\/\\\\/gateway\\\\.cotticoffee\\\\.com\\\\/cotti-capi\\\\/customer\\\\/position\\\\/list$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cotti.js,tag=COTTI,requires-body=true'))",
-      "output_entry_index": 304,
+      "output_entry_index": 305,
       "output_line": "http-request ^https?:\\/\\/gateway\\.cotticoffee\\.com\\/cotti-capi\\/customer\\/position\\/list$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/cotti.js,tag=COTTI,requires-body=true",
       "section": "Script",
       "sources": [
@@ -52560,14 +52577,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 303
+          "source_entry_index": 304
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://lawsonapi\\\\.yorentown\\\\.com/area/sh-lawson/app/v\\\\d', ('^https?:\\\\/\\\\/lawsonapi\\\\.yorentown\\\\.com\\\\/area\\\\/sh-lawson\\\\/app\\\\/v\\\\d', '^https?:\\\\/\\\\/lawsonapi\\\\.yorentown\\\\.com\\\\/area\\\\/sh-lawson\\\\/app\\\\/v\\\\d script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/wechatApplet.js,tag=LAWSON,requires-body=true'))",
-      "output_entry_index": 305,
+      "output_entry_index": 306,
       "output_line": "http-response ^https?:\\/\\/lawsonapi\\.yorentown\\.com\\/area\\/sh-lawson\\/app\\/v\\d script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/wechatApplet.js,tag=LAWSON,requires-body=true",
       "section": "Script",
       "sources": [
@@ -52577,14 +52594,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 304
+          "source_entry_index": 305
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://mbpxapi\\\\.yundasys\\\\.com(:\\\\d+)?/gateway/interface', ('^https?:\\\\/\\\\/mbpxapi\\\\.yundasys\\\\.com', '^https?:\\\\/\\\\/mbpxapi\\\\.yundasys\\\\.com(:\\\\d+)?\\\\/gateway\\\\/interface script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/yunda.js,tag=YUNDA,requires-body=true'))",
-      "output_entry_index": 306,
+      "output_entry_index": 307,
       "output_line": "http-request ^https?:\\/\\/mbpxapi\\.yundasys\\.com(:\\d+)?\\/gateway\\/interface script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/yunda.js,tag=YUNDA,requires-body=true",
       "section": "Script",
       "sources": [
@@ -52594,14 +52611,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 305
+          "source_entry_index": 306
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://kaoshi\\\\.wjx\\\\.top/wjx/join/completemobile', ('^https?:\\\\/\\\\/kaoshi\\\\.wjx\\\\.top\\\\/wjx\\\\/join\\\\/completemobile', '^https?:\\\\/\\\\/kaoshi\\\\.wjx\\\\.top\\\\/wjx\\\\/join\\\\/completemobile script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/wjx.js,tag=WJX,requires-body=true'))",
-      "output_entry_index": 307,
+      "output_entry_index": 308,
       "output_line": "http-response ^https?:\\/\\/kaoshi\\.wjx\\.top\\/wjx\\/join\\/completemobile script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/wjx.js,tag=WJX,requires-body=true",
       "section": "Script",
       "sources": [
@@ -52611,14 +52628,14 @@
           "input_section": "Script",
           "priority": 4,
           "source": "base",
-          "source_entry_index": 306
+          "source_entry_index": 307
         }
       ],
       "trace_status": "mapped"
     },
     {
       "canonical_key": "('guarded', '^https?://ad\\\\.12306\\\\.cn/ad/ser/getAdList', ('^https?:\\\\/\\\\/ad\\\\.12306\\\\.cn\\\\/ad\\\\/ser\\\\/getadlist', '^https?:\\\\/\\\\/ad\\\\.12306\\\\.cn\\\\/ad\\\\/ser\\\\/getAdList script-path=https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/fmz200/12306/kokoryh_12306.js, requires-body=true, timeout=60, tag=12306, enable={12306_enable}'))",
-      "output_entry_index": 308,
+      "output_entry_index": 309,
       "output_line": "http-request ^https?:\\/\\/ad\\.12306\\.cn\\/ad\\/ser\\/getAdList script-path=https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/fmz200/12306/kokoryh_12306.js, requires-body=true, timeout=60, tag=12306, enable={12306_enable}",
       "section": "Script",
       "sources": [
@@ -52635,7 +52652,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://thor\\\\.weidian\\\\.com/appconf/getAppConfig/', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/Kelee/Weidian_remove_ads/kelee_getAppConfig.js\") with tag=\"配置修改\", requires_body=true, binary_body_mode=true'))",
-      "output_entry_index": 309,
+      "output_entry_index": 310,
       "output_line": "response if ${url} ~= /^https:\\/\\/thor\\.weidian\\.com\\/appconf\\/getAppConfig\\//i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/Kelee/Weidian_remove_ads/kelee_getAppConfig.js\") with tag=\"配置修改\", requires_body=true, binary_body_mode=true",
       "section": "Script",
       "sources": [
@@ -52652,7 +52669,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://thor\\\\.weidian\\\\.com/wgs/wallet\\\\.query\\\\.order\\\\.entrance/', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/Kelee/Weidian_remove_ads/kelee_wallet.js\") with tag=\"精简钱包区\", requires_body=true, binary_body_mode=true'))",
-      "output_entry_index": 310,
+      "output_entry_index": 311,
       "output_line": "response if ${url} ~= /^https:\\/\\/thor\\.weidian\\.com\\/wgs\\/wallet\\.query\\.order\\.entrance\\//i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/Kelee/Weidian_remove_ads/kelee_wallet.js\") with tag=\"精简钱包区\", requires_body=true, binary_body_mode=true",
       "section": "Script",
       "sources": [
@@ -52669,7 +52686,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://webapi\\\\.qmai\\\\.cn/web/catering/design/homePage-Config', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_kff.js\") with tag=\"企迈点单系统去广告\", requires_body=true'))",
-      "output_entry_index": 311,
+      "output_entry_index": 312,
       "output_line": "response if ${url} ~= /^https:\\/\\/webapi\\.qmai\\.cn\\/web\\/catering\\/design\\/homePage-Config/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_kff.js\") with tag=\"企迈点单系统去广告\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -52686,7 +52703,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://ump\\\\.ems\\\\.com\\\\.cn/new-generation-extend/redis/pageInfoByChannel', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_ems.js\") with tag=\"EMS中国邮政物流速递去广告\", requires_body=true'))",
-      "output_entry_index": 312,
+      "output_entry_index": 313,
       "output_line": "response if ${url} ~= /^https:\\/\\/ump\\.ems\\.com\\.cn\\/new-generation-extend\\/redis\\/pageInfoByChannel/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_ems.js\") with tag=\"EMS中国邮政物流速递去广告\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -52703,7 +52720,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://mapi\\\\.xiaotucc\\\\.com/(mall/main|main_page/index/getActivity)', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_xiaotucc.js\") with tag=\"小兔充充去广告\", requires_body=true'))",
-      "output_entry_index": 313,
+      "output_entry_index": 314,
       "output_line": "response if ${url} ~= /^https:\\/\\/mapi\\.xiaotucc\\.com\\/(mall\\/main|main_page\\/index\\/getActivity)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_xiaotucc.js\") with tag=\"小兔充充去广告\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -52720,7 +52737,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://minifm\\\\.maxxipoint\\\\.com/banner/list', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_FamilyMart.js\") with tag=\"全家微会员去广告\", requires_body=true'))",
-      "output_entry_index": 314,
+      "output_entry_index": 315,
       "output_line": "response if ${url} ~= /^https:\\/\\/minifm\\.maxxipoint\\.com\\/banner\\/list/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_FamilyMart.js\") with tag=\"全家微会员去广告\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -52737,7 +52754,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://lawsonapi\\\\.yorentown\\\\.com/area/sh-lawson/app/v1/home', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_lawson.js\") with tag=\"罗森点点去广告\", requires_body=true'))",
-      "output_entry_index": 315,
+      "output_entry_index": 316,
       "output_line": "response if ${url} ~= /^https:\\/\\/lawsonapi\\.yorentown\\.com\\/area\\/sh-lawson\\/app\\/v1\\/home/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_lawson.js\") with tag=\"罗森点点去广告\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -52754,7 +52771,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://miniapp\\\\.sexytea2013\\\\.com/cms/slot/queryByCodes\\\\?codes=INDEX_TOP_BANNER', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_chayanyuese_remove_ads.js\") with tag=\"茶颜悦色去广告\", requires_body=true'))",
-      "output_entry_index": 316,
+      "output_entry_index": 317,
       "output_line": "response if ${url} ~= /^https:\\/\\/miniapp\\.sexytea2013\\.com\\/cms\\/slot\\/queryByCodes\\?codes=INDEX_TOP_BANNER/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_chayanyuese_remove_ads.js\") with tag=\"茶颜悦色去广告\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -52771,7 +52788,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://coco-com\\\\.e\\\\.verystar\\\\.net/v1/home/info', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_coco.js\") with tag=\"COCO点单去广告\", requires_body=true'))",
-      "output_entry_index": 317,
+      "output_entry_index": 318,
       "output_line": "response if ${url} ~= /^https:\\/\\/coco-com\\.e\\.verystar\\.net\\/v1\\/home\\/info/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_coco.js\") with tag=\"COCO点单去广告\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -52788,7 +52805,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://htwkop\\\\.xiaojukeji\\\\.com/gateway\\\\?api=hm\\\\.fa\\\\.homeConfig', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_qingju.js\") with tag=\"滴滴青桔去广告\", requires_body=true'))",
-      "output_entry_index": 318,
+      "output_entry_index": 319,
       "output_line": "response if ${url} ~= /^https:\\/\\/htwkop\\.xiaojukeji\\.com\\/gateway\\?api=hm\\.fa\\.homeConfig/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_qingju.js\") with tag=\"滴滴青桔去广告\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -52805,7 +52822,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://cappapi\\\\.alittle-tea\\\\.com/open\\\\?method=catering\\\\.set\\\\.ad', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_alittle-tea.js\") with tag=\"一点点+去广告\", requires_body=true'))",
-      "output_entry_index": 319,
+      "output_entry_index": 320,
       "output_line": "response if ${url} ~= /^https:\\/\\/cappapi\\.alittle-tea\\.com\\/open\\?method=catering\\.set\\.ad/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_alittle-tea.js\") with tag=\"一点点+去广告\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -52822,7 +52839,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.prod\\\\.dj\\\\.mstand\\\\.cn/scrm/mini/app/index/info', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_M_Stand.js\") with tag=\"M Stand去广告\", requires_body=true'))",
-      "output_entry_index": 320,
+      "output_entry_index": 321,
       "output_line": "response if ${url} ~= /^https:\\/\\/api\\.prod\\.dj\\.mstand\\.cn\\/scrm\\/mini\\/app\\/index\\/info/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_M_Stand.js\") with tag=\"M Stand去广告\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -52839,7 +52856,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://passenger\\\\.t3go\\\\.cn/(solution\\\\-|common\\\\-)?(passenger\\\\-)?(activity\\\\-|app\\\\-)?api/notoken/(trip/)?api/(home/|common/)?(v[1-3]/)?(ad/getNegativescreen|solution/passenger/open/getHomeMenu|leftmenu|getHomeInfoGlobal)', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_T3.js\") with tag=\"T3出行去广告\", requires_body=true'))",
-      "output_entry_index": 321,
+      "output_entry_index": 322,
       "output_line": "response if ${url} ~= /^https:\\/\\/passenger\\.t3go\\.cn\\/(solution\\-|common\\-)?(passenger\\-)?(activity\\-|app\\-)?api\\/notoken\\/(trip\\/)?api\\/(home\\/|common\\/)?(v[1-3]\\/)?(ad\\/getNegativescreen|solution\\/passenger\\/open\\/getHomeMenu|leftmenu|getHomeInfoGlobal)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_T3.js\") with tag=\"T3出行去广告\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -52856,7 +52873,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://newton\\\\.gumingnc\\\\.com/newton-buyer/newton/buyer/(ump|touch|external/front)', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_ming.js\") with tag=\"古茗去广告\", requires_body=true'))",
-      "output_entry_index": 322,
+      "output_entry_index": 323,
       "output_line": "response if ${url} ~= /^https:\\/\\/newton\\.gumingnc\\.com\\/newton-buyer\\/newton\\/buyer\\/(ump|touch|external\\/front)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/Kelee/WexinMiniPrograms_Remove_ads/kelee_ming.js\") with tag=\"古茗去广告\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -52873,7 +52890,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/shield/search_bff/hotword\\\\?', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true'))",
-      "output_entry_index": 328,
+      "output_entry_index": 329,
       "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_bff\\/hotword\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
       "section": "Script",
       "sources": [
@@ -52890,7 +52907,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/shield/search_poi/homepage', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true'))",
-      "output_entry_index": 329,
+      "output_entry_index": 330,
       "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_poi\\/homepage/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
       "section": "Script",
       "sources": [
@@ -52907,7 +52924,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/shield/dsp/profile/index/nodefaasv3\\\\?', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true'))",
-      "output_entry_index": 334,
+      "output_entry_index": 335,
       "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/dsp\\/profile\\/index\\/nodefaasv3\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
       "section": "Script",
       "sources": [
@@ -52924,7 +52941,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://m5-zb\\\\.amap\\\\.com/ws/boss/(car/order/content_info|order_web/friendly_information)', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true'))",
-      "output_entry_index": 338,
+      "output_entry_index": 339,
       "output_line": "response if ${url} ~= /^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/boss\\/(car\\/order\\/content_info|order_web\\/friendly_information)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
       "section": "Script",
       "sources": [
@@ -52941,7 +52958,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://m5-zb\\\\.amap\\\\.com/ws/sharedtrip/taxi/order_detail_car_tips\\\\?', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true'))",
-      "output_entry_index": 340,
+      "output_entry_index": 341,
       "output_line": "response if ${url} ~= /^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/sharedtrip\\/taxi\\/order_detail_car_tips\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
       "section": "Script",
       "sources": [
@@ -52969,7 +52986,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api\\\\.gotokeep\\\\.com/config/v3/basic\\\\?', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ishowshu/keep/ishowshu_keep.js\") with tag=\"keep\", timeout=60, requires_body=true'))",
-      "output_entry_index": 351,
+      "output_entry_index": 352,
       "output_line": "response if ${url} ~= /^https:\\/\\/api\\.gotokeep\\.com\\/config\\/v3\\/basic\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ishowshu/keep/ishowshu_keep.js\") with tag=\"keep\", timeout=60, requires_body=true",
       "section": "Script",
       "sources": [
@@ -52986,7 +53003,7 @@
     },
     {
       "canonical_key": "('guarded', '^https?://apimobile\\\\.meituan\\\\.com/aggroup/indexTab', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true'))",
-      "output_entry_index": 352,
+      "output_entry_index": 353,
       "output_line": "response if ${url} ~= /^https?:\\/\\/apimobile\\.meituan\\.com\\/aggroup\\/indexTab/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
       "section": "Script",
       "sources": [
@@ -53003,7 +53020,7 @@
     },
     {
       "canonical_key": "('guarded', '^https?://feedguess\\\\.meituan\\\\.com/lycoris/scene/(gwc_feed1_2265|personalcenter_2154)(\\\\?|$)', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true'))",
-      "output_entry_index": 353,
+      "output_entry_index": 354,
       "output_line": "response if ${url} ~= /^https?:\\/\\/feedguess\\.meituan\\.com\\/lycoris\\/scene\\/(gwc_feed1_2265|personalcenter_2154)(\\?|$)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
       "section": "Script",
       "sources": [
@@ -53020,7 +53037,7 @@
     },
     {
       "canonical_key": "('guarded', '^https?://mt-personalcenter\\\\.meituan\\\\.com/usercenter/display', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true'))",
-      "output_entry_index": 354,
+      "output_entry_index": 355,
       "output_line": "response if ${url} ~= /^https?:\\/\\/mt-personalcenter\\.meituan\\.com\\/usercenter\\/display/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
       "section": "Script",
       "sources": [
@@ -53037,7 +53054,7 @@
     },
     {
       "canonical_key": "('guarded', '^https?://apimobile\\\\.meituan\\\\.com/group/v1/deal/searchpage/defaultword', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true'))",
-      "output_entry_index": 355,
+      "output_entry_index": 356,
       "output_line": "response if ${url} ~= /^https?:\\/\\/apimobile\\.meituan\\.com\\/group\\/v1\\/deal\\/searchpage\\/defaultword/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
       "section": "Script",
       "sources": [
@@ -53054,7 +53071,7 @@
     },
     {
       "canonical_key": "('guarded', '^https?://apimobile\\\\.meituan\\\\.com/group/v1/deal/searchpage/hotword/city/divide/hotrecommend/', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true'))",
-      "output_entry_index": 356,
+      "output_entry_index": 357,
       "output_line": "response if ${url} ~= /^https?:\\/\\/apimobile\\.meituan\\.com\\/group\\/v1\\/deal\\/searchpage\\/hotword\\/city\\/divide\\/hotrecommend\\//i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
       "section": "Script",
       "sources": [
@@ -53071,7 +53088,7 @@
     },
     {
       "canonical_key": "('guarded', '^https?://assistify\\\\.meituan\\\\.com/assistant/getAppClientHornConfig', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true'))",
-      "output_entry_index": 357,
+      "output_entry_index": 358,
       "output_line": "response if ${url} ~= /^https?:\\/\\/assistify\\.meituan\\.com\\/assistant\\/getAppClientHornConfig/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
       "section": "Script",
       "sources": [
@@ -53088,7 +53105,7 @@
     },
     {
       "canonical_key": "('guarded', '^https?://mop\\\\.meituan\\\\.com/mop/entry/shoppingCartEntry', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true'))",
-      "output_entry_index": 358,
+      "output_entry_index": 359,
       "output_line": "response if ${url} ~= /^https?:\\/\\/mop\\.meituan\\.com\\/mop\\/entry\\/shoppingCartEntry/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
       "section": "Script",
       "sources": [
@@ -53105,7 +53122,7 @@
     },
     {
       "canonical_key": "('guarded', '^https?://mop\\\\.meituan\\\\.com/api/entryModule/startupPicture', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true'))",
-      "output_entry_index": 359,
+      "output_entry_index": 360,
       "output_line": "response if ${url} ~= /^https?:\\/\\/mop\\.meituan\\.com\\/api\\/entryModule\\/startupPicture/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js\") with tag=\"MT\", timeout=60, requires_body=true",
       "section": "Script",
       "sources": [
@@ -53122,7 +53139,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://j1\\\\.pupuapi\\\\.com/client/marketing/advertisement/v1', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ishowshu/pupu/ishowshu_pp.js\") with tag=\"pp\", timeout=60, requires_body=true'))",
-      "output_entry_index": 361,
+      "output_entry_index": 362,
       "output_line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/marketing\\/advertisement\\/v1/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ishowshu/pupu/ishowshu_pp.js\") with tag=\"pp\", timeout=60, requires_body=true",
       "section": "Script",
       "sources": [
@@ -53139,7 +53156,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://j1\\\\.pupuapi\\\\.com/client/order/orders/list/v4', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ishowshu/pupu/ishowshu_pp.js\") with tag=\"pp\", timeout=60, requires_body=true'))",
-      "output_entry_index": 362,
+      "output_entry_index": 363,
       "output_line": "response if ${url} ~= /^https:\\/\\/j1\\.pupuapi\\.com\\/client\\/order\\/orders\\/list\\/v4/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ishowshu/pupu/ishowshu_pp.js\") with tag=\"pp\", timeout=60, requires_body=true",
       "section": "Script",
       "sources": [
@@ -53156,7 +53173,7 @@
     },
     {
       "canonical_key": "('guarded', '^https?://(?:slugger|minislugger|homefront|homeback|qbi|lang|qde|client)\\\\.qunar\\\\.com/', ('^https?:\\\\/\\\\/', '^https?:\\\\/\\\\/(?:slugger|minislugger|homefront|homeback|qbi|lang|qde|client)\\\\.qunar\\\\.com\\\\/ script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/romeo_legacy/qunar-clean.js,requires-body=true,timeout=10,tag=去哪儿配套清理'))",
-      "output_entry_index": 363,
+      "output_entry_index": 364,
       "output_line": "http-response ^https?:\\/\\/(?:slugger|minislugger|homefront|homeback|qbi|lang|qde|client)\\.qunar\\.com\\/ script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/romeo_legacy/qunar-clean.js,requires-body=true,timeout=10,tag=去哪儿配套清理",
       "section": "Script",
       "sources": [
@@ -53173,7 +53190,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://slugger\\\\.qunar\\\\.com/slugger-proxy\\\\?(?:[^#]*&)?qrt=(?:p_homeRecommend|qpub_animateSloganView|p_secondScreen_cards|pp_gw_u_myMainCard|pp_gw_u_myHeadInfo|suggestion_operation_app|innovation_popular_recommend|innovation_rankinglist_head|innovation_single_rankinglist|content_api_common_desert_damo_getPostList|content_api_common_feed_open_postList)(?:&[^#]*)?$', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ccyykk666/qunar_ad/ccyykk666_qunar_ad_filter.js\") with tag=\"去哪儿旅行去广告\", timeout=10, requires_body=true, binary_body_mode=true'))",
-      "output_entry_index": 364,
+      "output_entry_index": 365,
       "output_line": "response if ${url} ~= /^https:\\/\\/slugger\\.qunar\\.com\\/slugger-proxy\\?(?:[^#]*&)?qrt=(?:p_homeRecommend|qpub_animateSloganView|p_secondScreen_cards|pp_gw_u_myMainCard|pp_gw_u_myHeadInfo|suggestion_operation_app|innovation_popular_recommend|innovation_rankinglist_head|innovation_single_rankinglist|content_api_common_desert_damo_getPostList|content_api_common_feed_open_postList)(?:&[^#]*)?$/ && ${request.method} == \"POST\" && ${response.status} == 200 then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ccyykk666/qunar_ad/ccyykk666_qunar_ad_filter.js\") with tag=\"去哪儿旅行去广告\", timeout=10, requires_body=true, binary_body_mode=true",
       "section": "Script",
       "sources": [
@@ -53190,7 +53207,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api-chat\\\\.soulapp\\\\.cn/chat/limitInfo', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ishowshu/soul/ishowshu_soul_qx.js\") with tag=\"soul_qx\", timeout=60, requires_body=true'))",
-      "output_entry_index": 365,
+      "output_entry_index": 366,
       "output_line": "response if ${url} ~= /^https:\\/\\/api-chat\\.soulapp\\.cn\\/chat\\/limitInfo/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ishowshu/soul/ishowshu_soul_qx.js\") with tag=\"soul_qx\", timeout=60, requires_body=true",
       "section": "Script",
       "sources": [
@@ -53207,7 +53224,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://api-chat\\\\.soulapp\\\\.cn/snapchat/url', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ishowshu/soul/ishowshu_soul_qx.js\") with tag=\"soul_qx\", timeout=60, requires_body=true'))",
-      "output_entry_index": 366,
+      "output_entry_index": 367,
       "output_line": "response if ${url} ~= /^https:\\/\\/api-chat\\.soulapp\\.cn\\/snapchat\\/url/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ishowshu/soul/ishowshu_soul_qx.js\") with tag=\"soul_qx\", timeout=60, requires_body=true",
       "section": "Script",
       "sources": [
@@ -53224,7 +53241,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://(?:sns|appmsg|home|umehome|opactivity|activity|umerp|flightstatus|umeflightstatus|startup|umestartup|user|umeuser|event)\\\\.umetrip\\\\.com/gateway/api/umetrip/native(?:\\\\?.*)?$', ('^https:\\\\/\\\\/', '^https:\\\\/\\\\/(?:sns|appmsg|home|umehome|opactivity|activity|umerp|flightstatus|umeflightstatus|startup|umestartup|user|umeuser|event)\\\\.umetrip\\\\.com\\\\/gateway\\\\/api\\\\/umetrip\\\\/native(?:\\\\?.*)?$ script-path=https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ddgksf2013/UmetripAds/ddgksf2013_umetrip.ads.js, requires-body=true, timeout=60, tag=umetrip.ads'))",
-      "output_entry_index": 367,
+      "output_entry_index": 368,
       "output_line": "http-response ^https:\\/\\/(?:sns|appmsg|home|umehome|opactivity|activity|umerp|flightstatus|umeflightstatus|startup|umestartup|user|umeuser|event)\\.umetrip\\.com\\/gateway\\/api\\/umetrip\\/native(?:\\?.*)?$ script-path=https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/ddgksf2013/UmetripAds/ddgksf2013_umetrip.ads.js, requires-body=true, timeout=60, tag=umetrip.ads",
       "section": "Script",
       "sources": [
@@ -53241,7 +53258,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://(?:www\\\\.|m\\\\.)?youtube\\\\.com/api/timedtext\\\\?[^#]+$', ('^https:\\\\/\\\\/', '^https:\\\\/\\\\/(?:www\\\\.|m\\\\.)?youtube\\\\.com\\\\/api\\\\/timedtext\\\\?[^#]+$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=false,timeout=10,enable={translation_enabled},argument={translation_enabled,translation_target},tag=YouTube 字幕目标语言'))",
-      "output_entry_index": 368,
+      "output_entry_index": 369,
       "output_line": "http-request ^https:\\/\\/(?:www\\.|m\\.)?youtube\\.com\\/api\\/timedtext\\?[^#]+$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=false,timeout=10,enable={translation_enabled},argument={translation_enabled,translation_target},tag=YouTube 字幕目标语言",
       "section": "Script",
       "sources": [
@@ -53258,7 +53275,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://[\\\\w-]+\\\\.googlevideo\\\\.com/videoplayback(?:\\\\?[^#]*)?$', ('script', 'script(\"https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js\", {${log_enabled}, ${log_level}, ${capture_budget}, ${quality_research}}) with requires_body=true, binary_body_mode=true, timeout=10, tag=\"YouTube 画质分析请求采样\"'))",
-      "output_entry_index": 369,
+      "output_entry_index": 370,
       "output_line": "request if ${url} ~= /^https:\\/\\/[\\w-]+\\.googlevideo\\.com\\/videoplayback(?:\\?[^#]*)?$/i && ${request.method} == \"POST\" && ${log_enabled} == true && ${quality_research} == true then script(\"https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js\", {${log_enabled}, ${log_level}, ${capture_budget}, ${quality_research}}) with requires_body=true, binary_body_mode=true, timeout=10, tag=\"YouTube 画质分析请求采样\"",
       "section": "Script",
       "sources": [
@@ -53275,7 +53292,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.|music\\\\.)?youtube\\\\.com)/youtubei/v1/(?:browse|next|search|reel/reel_watch_sequence)(?:\\\\?[^#]*)?$|^https://[\\\\w-]+\\\\.googlevideo\\\\.com/videoplayback\\\\?[^#]*$|^http://youtube-logs\\\\.invalid(?::80)?(?:/[^#]*)?$|^https://[\\\\w-]+\\\\.googlevideo\\\\.com/initplayback(?:\\\\?[^#]*)?$', ('^https:\\\\/\\\\/', '^https:\\\\/\\\\/(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.|music\\\\.)?youtube\\\\.com)\\\\/youtubei\\\\/v1\\\\/(?:browse|next|search|reel\\\\/reel_watch_sequence)(?:\\\\?[^#]*)?$|^https:\\\\/\\\\/[\\\\w-]+\\\\.googlevideo\\\\.com\\\\/videoplayback\\\\?[^#]*$|^http:\\\\/\\\\/youtube-logs\\\\.invalid(?::80)?(?:\\\\/[^#]*)?$|^https:\\\\/\\\\/[\\\\w-]+\\\\.googlevideo\\\\.com\\\\/initplayback(?:\\\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=false,timeout=10,enable={log_enabled},argument={log_enabled,log_level,capture_budget,background_playback,media_capture_mode,quality_research},tag=YouTube 日志与导出'))",
-      "output_entry_index": 370,
+      "output_entry_index": 371,
       "output_line": "http-request ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/(?:browse|next|search|reel\\/reel_watch_sequence)(?:\\?[^#]*)?$|^https:\\/\\/[\\w-]+\\.googlevideo\\.com\\/videoplayback\\?[^#]*$|^http:\\/\\/youtube-logs\\.invalid(?::80)?(?:\\/[^#]*)?$|^https:\\/\\/[\\w-]+\\.googlevideo\\.com\\/initplayback(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=false,timeout=10,enable={log_enabled},argument={log_enabled,log_level,capture_budget,background_playback,media_capture_mode,quality_research},tag=YouTube 日志与导出",
       "section": "Script",
       "sources": [
@@ -53292,7 +53309,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.)?youtube\\\\.com)/youtubei/v1/log_event(?:\\\\?[^#]*)?$', ('^https:\\\\/\\\\/', '^https:\\\\/\\\\/(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.)?youtube\\\\.com)\\\\/youtubei\\\\/v1\\\\/log_event(?:\\\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument={log_enabled,log_level,capture_budget,playback_region},tag=YouTube 配置请求处理'))",
-      "output_entry_index": 371,
+      "output_entry_index": 372,
       "output_line": "http-request ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.)?youtube\\.com)\\/youtubei\\/v1\\/log_event(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument={log_enabled,log_level,capture_budget,playback_region},tag=YouTube 配置请求处理",
       "section": "Script",
       "sources": [
@@ -53309,7 +53326,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://[\\\\w-]+\\\\.googlevideo\\\\.com/(?:videoplayback|initplayback)(?:\\\\?[^#]*)?$', ('script', 'script(\"https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js\", {${log_enabled}, ${log_level}, ${capture_budget}, ${media_capture_mode}}) with requires_body=true, binary_body_mode=true, timeout=30, tag=\"YouTube 完整媒体开发采样\"'))",
-      "output_entry_index": 372,
+      "output_entry_index": 373,
       "output_line": "response if ${url} ~= /^https:\\/\\/[\\w-]+\\.googlevideo\\.com\\/(?:videoplayback|initplayback)(?:\\?[^#]*)?$/i && ${log_enabled} == true && ${media_capture_mode} == \"full\" then script(\"https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js\", {${log_enabled}, ${log_level}, ${capture_budget}, ${media_capture_mode}}) with requires_body=true, binary_body_mode=true, timeout=30, tag=\"YouTube 完整媒体开发采样\"",
       "section": "Script",
       "sources": [
@@ -53326,7 +53343,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://[\\\\w-]+\\\\.googlevideo\\\\.com/(?:videoplayback|initplayback)(?:\\\\?[^#]*)?$', ('^https:\\\\/\\\\/[\\\\w-]+\\\\.googlevideo\\\\.com\\\\/', '^https:\\\\/\\\\/[\\\\w-]+\\\\.googlevideo\\\\.com\\\\/(?:videoplayback|initplayback)(?:\\\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=false,timeout=10,enable={log_enabled},argument={log_enabled,log_level,capture_budget},tag=YouTube 媒体响应日志'))",
-      "output_entry_index": 373,
+      "output_entry_index": 374,
       "output_line": "http-response ^https:\\/\\/[\\w-]+\\.googlevideo\\.com\\/(?:videoplayback|initplayback)(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=false,timeout=10,enable={log_enabled},argument={log_enabled,log_level,capture_budget},tag=YouTube 媒体响应日志",
       "section": "Script",
       "sources": [
@@ -53343,7 +53360,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.)?youtube\\\\.com)/youtubei/v1/(?:config|log_event)(?:\\\\?[^#]*)?$', ('^https:\\\\/\\\\/', '^https:\\\\/\\\\/(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.)?youtube\\\\.com)\\\\/youtubei\\\\/v1\\\\/(?:config|log_event)(?:\\\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument={log_enabled,log_level,capture_budget},tag=YouTube Onesie 配置缓存'))",
-      "output_entry_index": 374,
+      "output_entry_index": 375,
       "output_line": "http-response ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.)?youtube\\.com)\\/youtubei\\/v1\\/(?:config|log_event)(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument={log_enabled,log_level,capture_budget},tag=YouTube Onesie 配置缓存",
       "section": "Script",
       "sources": [
@@ -53360,7 +53377,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.|music\\\\.)?youtube\\\\.com)/youtubei/v1/(?:player|get_watch)(?:\\\\?[^#]*)?$|^https://(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.|music\\\\.)?youtube\\\\.com)/youtubei/v1/player/ad_break(?:\\\\?[^#]*)?$', ('^https:\\\\/\\\\/', '^https:\\\\/\\\\/(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.|music\\\\.)?youtube\\\\.com)\\\\/youtubei\\\\/v1\\\\/(?:player|get_watch)(?:\\\\?[^#]*)?$|^https:\\\\/\\\\/(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.|music\\\\.)?youtube\\\\.com)\\\\/youtubei\\\\/v1\\\\/player\\\\/ad_break(?:\\\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument={log_enabled,log_level,capture_budget,playback_region},tag=YouTube 播放请求与广告配置处理'))",
-      "output_entry_index": 375,
+      "output_entry_index": 376,
       "output_line": "http-request ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/(?:player|get_watch)(?:\\?[^#]*)?$|^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/player\\/ad_break(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument={log_enabled,log_level,capture_budget,playback_region},tag=YouTube 播放请求与广告配置处理",
       "section": "Script",
       "sources": [
@@ -53377,7 +53394,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.|music\\\\.)?youtube\\\\.com)/youtubei/v1/(browse|next|search)(\\\\?[^#]*)?$', ('^https:\\\\/\\\\/', '^https:\\\\/\\\\/(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.|music\\\\.)?youtube\\\\.com)\\\\/youtubei\\\\/v1\\\\/(browse|next|search)(\\\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument={log_enabled,log_level,capture_budget,hide_home_shorts,blocked_channels,blocked_channels_url},tag=YouTube 信息流广告与首页 Shorts 处理'))",
-      "output_entry_index": 376,
+      "output_entry_index": 377,
       "output_line": "http-response ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/(browse|next|search)(\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument={log_enabled,log_level,capture_budget,hide_home_shorts,blocked_channels,blocked_channels_url},tag=YouTube 信息流广告与首页 Shorts 处理",
       "section": "Script",
       "sources": [
@@ -53394,7 +53411,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.|music\\\\.)?youtube\\\\.com)/youtubei/v1/(player|get_watch)(\\\\?[^#]*)?$|^https://(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.|music\\\\.)?youtube\\\\.com)/youtubei/v1/reel/reel_watch_sequence(?:\\\\?[^#]*)?$', ('^https:\\\\/\\\\/', '^https:\\\\/\\\\/(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.|music\\\\.)?youtube\\\\.com)\\\\/youtubei\\\\/v1\\\\/(player|get_watch)(\\\\?[^#]*)?$|^https:\\\\/\\\\/(?:youtubei(?:-att)?\\\\.googleapis\\\\.com|(?:www\\\\.|m\\\\.|music\\\\.)?youtube\\\\.com)\\\\/youtubei\\\\/v1\\\\/reel\\\\/reel_watch_sequence(?:\\\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument={log_enabled,log_level,capture_budget,background_playback,quality_research},tag=YouTube 播放响应与后台播放'))",
-      "output_entry_index": 377,
+      "output_entry_index": 378,
       "output_line": "http-response ^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/(player|get_watch)(\\?[^#]*)?$|^https:\\/\\/(?:youtubei(?:-att)?\\.googleapis\\.com|(?:www\\.|m\\.|music\\.)?youtube\\.com)\\/youtubei\\/v1\\/reel\\/reel_watch_sequence(?:\\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument={log_enabled,log_level,capture_budget,background_playback,quality_research},tag=YouTube 播放响应与后台播放",
       "section": "Script",
       "sources": [
@@ -53433,7 +53450,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/c3frontend/(?:af-(?:hotel|launch)/page/main|af-nearby/nearby)', ('script', 'script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除导航详情页底部酒店、处理附近页\", requires_body=true'))",
-      "output_entry_index": 381,
+      "output_entry_index": 382,
       "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/c3frontend\\/(?:af-(?:hotel|launch)\\/page\\/main|af-nearby\\/nearby)/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除导航详情页底部酒店、处理附近页\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -53450,7 +53467,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/perception/drive/(?:routeInfo|routePlan)', ('script', 'script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除路线规划推广\", requires_body=true'))",
-      "output_entry_index": 382,
+      "output_entry_index": 383,
       "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/perception\\/drive\\/(?:routeInfo|routePlan)/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除路线规划推广\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -53467,7 +53484,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/shield/search_poi/(?:mps|search/sp|sug|tips_operation_location)', ('script', 'script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除搜索详情页推广\", requires_body=true'))",
-      "output_entry_index": 383,
+      "output_entry_index": 384,
       "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_poi\\/(?:mps|search\\/sp|sug|tips_operation_location)/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除搜索详情页推广\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -53484,7 +53501,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/faas/amap-navigation/(?:card-service-plan-home|main-page)', ('script', 'script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除首页推广\", requires_body=true'))",
-      "output_entry_index": 384,
+      "output_entry_index": 385,
       "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/faas\\/amap-navigation\\/(?:card-service-plan-home|main-page)/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除首页推广\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -53501,7 +53518,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/shield/frogserver/aocs/updatable/1\\\\?', ('script', 'script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除首页推广\", requires_body=true'))",
-      "output_entry_index": 385,
+      "output_entry_index": 386,
       "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/frogserver\\/aocs\\/updatable\\/1\\?/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除首页推广\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -53518,7 +53535,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/shield/search/nearbyrec_smart\\\\?', ('script', 'script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除附近页推广\", requires_body=true'))",
-      "output_entry_index": 386,
+      "output_entry_index": 387,
       "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search\\/nearbyrec_smart\\?/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除附近页推广\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -53535,7 +53552,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/valueadded/alimama/splash_screen\\\\?', ('script', 'script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除开屏广告\", requires_body=true'))",
-      "output_entry_index": 387,
+      "output_entry_index": 388,
       "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/valueadded\\/alimama\\/splash_screen\\?/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除开屏广告\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -53552,7 +53569,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://m5-zb\\\\.amap\\\\.com/ws/boss/(?:car/order/content_info|order_web/friendly_information)', ('script', 'script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除打车页推广卡片、弹窗\", requires_body=true'))",
-      "output_entry_index": 388,
+      "output_entry_index": 389,
       "output_line": "response if ${url} ~= /^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/boss\\/(?:car\\/order\\/content_info|order_web\\/friendly_information)/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除打车页推广卡片、弹窗\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -53569,7 +53586,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://m5-zb\\\\.amap\\\\.com/ws/promotion-web/resource(/home)?\\\\?', ('script', 'script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除打车页红点角标、天气图标\", requires_body=true'))",
-      "output_entry_index": 389,
+      "output_entry_index": 390,
       "output_line": "response if ${url} ~= /^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/promotion-web\\/resource(\\/home)?\\?/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除打车页红点角标、天气图标\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -53586,7 +53603,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://(?:info|m5)\\\\.amap\\\\.com/ws/shield/search/(?:common/coupon/info|poi/detail)', ('script', 'script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除导航详情页推广\", requires_body=true'))",
-      "output_entry_index": 390,
+      "output_entry_index": 391,
       "output_line": "response if ${url} ~= /^https:\\/\\/(?:info|m5)\\.amap\\.com\\/ws\\/shield\\/search\\/(?:common\\/coupon\\/info|poi\\/detail)/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除导航详情页推广\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -53603,7 +53620,7 @@
     },
     {
       "canonical_key": "('guarded', '^https://m\\\\.pinduoduo\\\\.net/mdkd/package\\\\?from_app_scan', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/Kelee/PinDuoDuo_remove_ads/kelee.one_PinDuoDuo_remove_ads.js\") with tag=\"移除扫码取件页面商品推荐及弹窗\", requires_body=true'))",
-      "output_entry_index": 391,
+      "output_entry_index": 392,
       "output_line": "response if ${url} ~= /^https:\\/\\/m\\.pinduoduo\\.net\\/mdkd\\/package\\?from_app_scan/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/34b2aa16ed5f8ca8def7b42f4740d82f1964229f/Modules/JavaScript/Kelee/PinDuoDuo_remove_ads/kelee.one_PinDuoDuo_remove_ads.js\") with tag=\"移除扫码取件页面商品推荐及弹窗\", requires_body=true",
       "section": "Script",
       "sources": [
@@ -53624,7 +53641,7 @@
     },
     {
       "canonical_key": "('unguarded', 'generic', 'https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/romeo_legacy/qunar-clean.js')",
-      "output_entry_index": 395,
+      "output_entry_index": 396,
       "output_line": "generic script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/romeo_legacy/qunar-clean.js,tag=去哪儿清理运行状态,timeout=10",
       "section": "Script",
       "sources": [
@@ -53641,7 +53658,7 @@
     },
     {
       "canonical_key": "('unguarded', 'cron', 'https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js')",
-      "output_entry_index": 396,
+      "output_entry_index": 397,
       "output_line": "cron \"0 * * * *\" script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,timeout=10,argument={blocked_channels_url},tag=YouTube 定时更新屏蔽频道列表",
       "section": "Script",
       "sources": [
@@ -53658,7 +53675,7 @@
     },
     {
       "canonical_key": "('unguarded', 'generic', 'https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js')",
-      "output_entry_index": 397,
+      "output_entry_index": 398,
       "output_line": "generic script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,timeout=10,argument={blocked_channels_url},tag=YouTube 手动更新屏蔽频道列表,img-url=person.crop.circle.badge.xmark.system",
       "section": "Script",
       "sources": [
@@ -53807,7 +53824,7 @@
     },
     {
       "canonical_key": "('guarded', '^https?://(?:g-)?acs\\\\.m\\\\.goofish\\\\.com/gw/mtop\\\\.taobao\\\\.idlecommerce\\\\.splash\\\\.(?:ads|async\\\\.ads|config)/', ('script', 'script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js\") with tag=\"GOOFISH-SPLASH\", timeout=20, requires_body=true'))",
-      "output_entry_index": 394,
+      "output_entry_index": 395,
       "output_line": "response if ${url} ~= /^https?:\\/\\/(?:g-)?acs\\.m\\.goofish\\.com\\/gw\\/mtop\\.taobao\\.idlecommerce\\.splash\\.(?:ads|async\\.ads|config)\\//i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/xianyu/goofish.js\") with tag=\"GOOFISH-SPLASH\", timeout=20, requires_body=true",
       "section": "Script",
       "sources": [
@@ -53889,7 +53906,7 @@
     "rule_safety_excluded_events": 3,
     "rule_scope_adjustments": 0,
     "rule_source_events": 847,
-    "script_output_entries": 343
+    "script_output_entries": 344
   },
   "upstream_revisions": {
     "AlipayAdBlock": {

@@ -782,7 +782,7 @@ if (url.includes("/interface/sdk/sdkad.php")) {
           for (let __loonRead14 = 0; __loonRead14 < __loonLength14; __loonRead14++) {
             let group = __loonSource14[__loonRead14];
             let cardType = group.card_type;
-            // 22那年今天
+            // 22那年今日
             if (cardType === 22) {
               continue;
             }
