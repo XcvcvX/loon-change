@@ -1,1 +1,1 @@
-../merge_plugins.py
+../tools/merge_plugins.py

@@ -50,7 +50,7 @@ jobs:
           PLUGIN_FILE: ${{ steps.plugin.outputs.file }}
         run: |
           python3 -m unittest -v tests.test_check_script_v2
-          python3 check_script_v2.py "$PLUGIN_FILE"
+          python3 tools/check_script_v2.py "$PLUGIN_FILE"
 
       - name: Build, publish and verify Gist payload
         env:

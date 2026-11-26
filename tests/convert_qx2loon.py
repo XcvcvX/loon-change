@@ -1,1 +1,1 @@
-../convert_qx2loon.py
+../tools/convert_qx2loon.py

@@ -1,1 +1,1 @@
-../optimize_dushu365.py
+../tools/optimize_dushu365.py
