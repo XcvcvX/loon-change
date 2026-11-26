@@ -47,8 +47,7 @@ function deleteIfPresent(target, key) {
   return true;
 }
 """
-HELPER = """// loon-change: Amap specialized in-place compaction v1
-function compactInPlace(items, mode) {
+HELPER = """function compactInPlace(items, mode) {
   const length = items.length;
   let write = 0;
 
@@ -342,8 +341,13 @@ def optimize_compaction_modes(source):
         start = source.index(helper_start)
         end = source.index("\n}", start) + 2
         source = source[:start] + HELPER.strip() + source[end:]
-    elif source.count(helper_end) != 1 or marker_count != 1:
-        raise ValueError("Amap specialized compaction helper signature/marker drift")
+    elif source.count(helper_end) != 1:
+        raise ValueError("Amap specialized compaction helper signature drift")
+
+    if source.count(COMPACTION_MARKER) == 0:
+        source = source.replace(helper_end, COMPACTION_MARKER + "\n" + helper_end, 1)
+    elif source.count(COMPACTION_MARKER) != 1:
+        raise ValueError("Amap specialized compaction marker count drift")
 
     for name, count in expected.items():
         actual_count = source.count(', "' + name + '")')
@@ -405,8 +409,12 @@ def optimize_scalar_membership(source):
                 raise ValueError("Amap unused membership array changed: " + name)
             source = pattern.sub("", source, count=1)
 
-        anchor = "function compactInPlace(items, keep) {"
-        if source.count(anchor) != 1:
+        anchors = (
+            "function compactInPlace(items, mode) {",
+            "function compactInPlace(items, keep) {",
+        )
+        anchor = next((value for value in anchors if source.count(value) == 1), None)
+        if anchor is None:
             raise ValueError("Amap scalar membership marker insertion anchor changed")
         source = source.replace(anchor, SCALAR_MARKER + "\n" + anchor, 1)
 
@@ -451,8 +459,12 @@ def optimize_shared_dynamic_ad_matcher(source):
         if source.count(DYNAMIC_MATCHER_LITERAL) != 4:
             raise ValueError("Amap dynamic ad matcher inventory changed")
         source = source.replace(DYNAMIC_MATCHER_LITERAL, DYNAMIC_MATCHER_CALL)
-        anchor = "function compactInPlace(items, keep) {"
-        if source.count(anchor) != 1:
+        anchors = (
+            "function compactInPlace(items, mode) {",
+            "function compactInPlace(items, keep) {",
+        )
+        anchor = next((value for value in anchors if source.count(value) == 1), None)
+        if anchor is None:
             raise ValueError("Amap shared matcher insertion anchor changed")
         source = source.replace(
             anchor,
@@ -598,7 +610,7 @@ def instrument_mutations(source):
             raise ValueError("Amap mutation tracking insertion anchor changed")
         source = source.replace(url_anchor, url_anchor + "\n" + TRACKING_HELPER, 1)
 
-    compact_pattern = re.compile(r"function compactInPlace\(items, keep\) \{[\s\S]*?\n\}")
+    compact_pattern = re.compile(r"function compactInPlace\(items, (?:keep|mode)\) \{[\s\S]*?\n\}")
     if len(compact_pattern.findall(source)) != 1:
         raise ValueError("Amap compaction helper structure changed")
     source = compact_pattern.sub(lambda _: HELPER.rstrip(), source, count=1)
