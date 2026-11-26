@@ -782,14 +782,24 @@ process.stdout.write("ok");
         self.assertIn("const segmentOffset = header.offset;", helper)
         self.assertIn("const segmentLength = header.length;", helper)
         self.assertIn("const segmentsLength = segments.length;", helper)
-        self.assertIn("const chunksLength = chunks.length;", helper)
         self.assertNotIn("i < messageHead.length", helper)
         self.assertNotIn("i < segments.length", helper)
-        self.assertNotIn("i < chunks.length", helper)
         self.assertNotIn("header.offset", helper[helper.index("const segmentOffset = header.offset;") + len("const segmentOffset = header.offset;"):helper.index("if (header.name === \"Result\")")])
         self.assertNotIn("header.length", helper[helper.index("const segmentLength = header.length;") + len("const segmentLength = header.length;"):helper.index("if (header.name === \"Result\")")])
 
     @unittest.skipUnless(NODE, "Node.js is required for BaiduMap metadata getter tests")
+    def test_multi_segment_rebuild_copies_directly_without_chunk_array(self):
+        start = self.source.index("function assembleBaiduResponseSegments(")
+        end = self.source.index("\\n}\\n", start) + 2
+        helper = self.source[start:end]
+        self.assertIn("// loon-change: Baidu protobuf segment rebuild without chunks v1", helper)
+        self.assertIn("const payload = new Uint8Array(outputLength);", helper)
+        self.assertIn("payload.set(part, payloadWrite);", helper)
+        self.assertIn("const segmentsLength = segments.length;", helper)
+        self.assertNotIn("const chunks = [];", helper)
+        self.assertNotIn("chunks.push(", helper)
+        self.assertNotIn("const chunksLength = chunks.length;", helper)
+
     def test_multi_segment_header_offsets_and_lengths_are_read_once(self):
         runner = r"""
 const fs=require("fs"),vm=require("vm");
