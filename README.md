@@ -26,9 +26,9 @@
 |---|---|
 | allAdRewrite.plugin | 单插件自包含：开关 + 分流 + 重写 + 脚本 + MITM |
 | tools/validate_plugin.py | 静态质量门禁：结构、MITM、动作、Argument、重复触发器与风险提示 |
-| tests/source_guard.py | 上游来源防损坏测试：空响应、HTML、规则数量、必需插件 |
-| tests/validate_plugin.py | 校验器单元测试 |
-| tests/merge_plugins.py | 合并器集成测试：重复区块、reject 动作、TLD hostname、高德最高优先级与互补动作 |
+| tests/test_source_guard.py | 上游来源防损坏测试：空响应、HTML、规则数量、必需插件 |
+| tests/test_validate_plugin.py | 校验器单元测试 |
+| tests/test_merge_plugins.py | 合并器集成测试：重复区块、reject 动作、TLD hostname、高德最高优先级与互补动作 |
 | sources/amap/ | 高德上游插件、JS 与 3 份 JQ 依赖的可追溯缓存 |
 | sources/alipayAdBlock/ | zirawell AlipayAdBlock 上游 Loon 插件缓存（固定 Romeo commit） |
 | sources/romeo_legacy/ | Romeo 无完整等价版本的 7 个 AOOMEE 专项插件快照 |
@@ -36,7 +36,7 @@
 | 运行时外部依赖 | 拼多多脚本内部引用的 Kelee CDN 页面资源，单独登记并在同步时校验 |
 | romeo_resource_map.json | AOOMEE 与原 zmjde 两批插件、Script/JQ 资源的唯一映射清单 |
 | tools/stage_romeo_plugins.py | 按同一固定 Romeo commit 构建 AOOMEE 与原 zmjde 两个历史合并槽，并固定其运行时依赖 |
-| tests/stage_romeo_plugins.py | Romeo 来源映射、快照完整性与旧脚本 URL 回归测试 |
+| tests/test_stage_romeo_plugins.py | Romeo 来源映射、快照完整性与旧脚本 URL 回归测试 |
 | tools/source_guard.py | 上游响应/仓库结构完整性门禁，阻止 HTML 错误页、空文件和缺失源 |
 | rule-provenance.json | 逐条 Rewrite/Script/Rule 来源、合并胜出/重复/覆盖关系与上游版本追溯 |
 | Actions artifact：rule-diff.json | 每次同步生成的规则新增、删除、动作变化及上游版本差异报告（不在仓库长期留存） |
