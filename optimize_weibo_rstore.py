@@ -715,7 +715,7 @@ def optimize_source(source, commit="unknown"):
         if "__loonSource32" not in source or "compactInPlace(items, keep)" not in source:
             raise ValueError("marked Weibo script is incomplete")
         optimized = optimize_comment_status_page_info_cache(optimize_vote_info_nested_reference_cache(optimize_shared_feed_cleanup_cache(optimize_is_ad_property_cache(optimize_profile_timeline_property_cache(optimize_search_timeline_nested_reference_cache(optimize_flowlist_asyn_nested_reference_cache(optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source))))))))))))))))) ))))
-        return optimize_comment_array_length_cache(optimized)
+        return optimize_profile_me_array_cache(optimize_comment_array_length_cache(optimized))
     source = source.replace("const url = $request.url;", "const url = $request.url;\n" + GUARD_DECLARATION + "\n\n" + HELPER, 1)
     if source.count(HELPER) != 1:
         raise ValueError("Weibo helper insertion failed")
@@ -728,7 +728,7 @@ def optimize_source(source, commit="unknown"):
     if sorted(remaining) != ["newActions", "newII"]:
         raise ValueError("unexpected remaining Weibo temporary arrays: " + repr(remaining))
     optimized = optimize_comment_status_page_info_cache(optimize_vote_info_nested_reference_cache(optimize_shared_feed_cleanup_cache(optimize_is_ad_property_cache(optimize_profile_timeline_property_cache(optimize_search_timeline_nested_reference_cache(optimize_flowlist_asyn_nested_reference_cache(optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source))))))))))))))))) ))))
-    return optimize_comment_array_length_cache(optimized)
+    return optimize_profile_me_array_cache(optimize_comment_array_length_cache(optimized))
 
 SCALAR_MEMBERSHIP_MARKER = "// loon-change: Weibo hot-loop scalar membership v1"
 SCALAR_MEMBERSHIP_REWRITES = [
@@ -1501,6 +1501,109 @@ def optimize_comment_array_reference_cache(source):
         raise ValueError("Weibo comment-array reference cache postcondition failed")
     return source[:left] + block + source[right:]
 
+
+
+
+PROFILE_ME_ARRAY_CACHE_MARKER = "// loon-change: Weibo profile/me nested array cache v1"
+
+def optimize_profile_me_array_cache(source):
+    """Cache Weibo profile/me arrays while preserving in-place filtering and order."""
+    start = '} else if (url.includes("/2/profile/me")) {'
+    end = '} else if (url.includes("/2/profile/statuses/tab")) {'
+    if source.count(start) != 1 or source.count(end) != 1:
+        raise ValueError("Weibo profile/me route boundary drift")
+    left = source.index(start)
+    right = source.index(end, left + len(start))
+    block = source[left:right]
+    required = (
+        PROFILE_ME_ARRAY_CACHE_MARKER,
+        "const profileMeItems = obj?.items;",
+        "const profileMeItemsLength = profileMeItems?.length || 0;",
+        "const __loonLength16 = profileMeItemsLength;",
+        "const mineItems = item?.items;",
+        "const mineItemsLength = mineItems?.length || 0;",
+        "for (let mineIndex = 0; mineIndex < mineItemsLength; mineIndex++)",
+        "const d = mineItems[mineIndex];",
+        "const topItems = item?.items;",
+        "const topItemsLength = topItems?.length || 0;",
+        "for (let topItemsRead = 0; topItemsRead < topItemsLength; topItemsRead++)",
+        "topItems.length = topItemsWrite;",
+    )
+    forbidden = (
+        "if (obj?.items?.length > 0)",
+        "for (let d of item.items)",
+        "if (item?.items?.length > 0)",
+        "compactInPlace(item.items",
+    )
+    if PROFILE_ME_ARRAY_CACHE_MARKER in block:
+        if block.count(PROFILE_ME_ARRAY_CACHE_MARKER) != 1 or any(token not in block for token in required):
+            raise ValueError("Weibo profile/me cache marker/structure drift")
+        if any(token in block for token in forbidden):
+            raise ValueError("Weibo repeated profile/me array reads remain")
+        return source
+
+    block = block.replace(start, start + "\n     " + PROFILE_ME_ARRAY_CACHE_MARKER, 1)
+    replacements = (
+        (
+            "    if (obj?.items?.length > 0) {\n"
+            "      const __loonSource16 = obj.items;\n"
+            "      let __loonWrite16 = 0;\n"
+            "      const __loonLength16 = __loonSource16.length;",
+            "    const profileMeItems = obj?.items;\n"
+            "    const profileMeItemsLength = profileMeItems?.length || 0;\n"
+            "    if (profileMeItemsLength > 0) {\n"
+            "      const __loonSource16 = profileMeItems;\n"
+            "      let __loonWrite16 = 0;\n"
+            "      const __loonLength16 = profileMeItemsLength;",
+        ),
+        (
+            "          if (item?.items?.length > 0) {\n"
+            "            for (let d of item.items) {\n"
+            "              if (d.itemId === \"mainnums_friends\") {",
+            "          const mineItems = item?.items;\n"
+            "          const mineItemsLength = mineItems?.length || 0;\n"
+            "          if (mineItemsLength > 0) {\n"
+            "            for (let mineIndex = 0; mineIndex < mineItemsLength; mineIndex++) {\n"
+            "              const d = mineItems[mineIndex];\n"
+            "              if (d.itemId === \"mainnums_friends\") {",
+        ),
+        (
+            "          if (item?.items?.length > 0) {\n"
+            "            compactInPlace(item.items, i =>\n"
+            "            i.itemId === \"100505_-_album\" ||\n"
+            "            i.itemId === \"100505_-_like\" ||\n"
+            "            i.itemId === \"100505_-_watchhistory\" ||\n"
+            "            i.itemId === \"100505_-_draft\"\n"
+            "          );\n"
+            "          }",
+            "          const topItems = item?.items;\n"
+            "          const topItemsLength = topItems?.length || 0;\n"
+            "          if (topItemsLength > 0) {\n"
+            "            let topItemsWrite = 0;\n"
+            "            for (let topItemsRead = 0; topItemsRead < topItemsLength; topItemsRead++) {\n"
+            "              const topItem = topItems[topItemsRead];\n"
+            "              if (topItem.itemId === \"100505_-_album\" ||\n"
+            "                  topItem.itemId === \"100505_-_like\" ||\n"
+            "                  topItem.itemId === \"100505_-_watchhistory\" ||\n"
+            "                  topItem.itemId === \"100505_-_draft\") {\n"
+            "                if (topItemsWrite !== topItemsRead) topItems[topItemsWrite] = topItem;\n"
+            "                topItemsWrite++;\n"
+            "              }\n"
+            "            }\n"
+            "            topItems.length = topItemsWrite;\n"
+            "            if (topItemsWrite !== topItemsLength) modified = true;\n"
+            "          }",
+        ),
+    )
+    for old, new in replacements:
+        if block.count(old) != 1:
+            raise ValueError("Weibo profile/me cache anchor drift: " + old[:80])
+        block = block.replace(old, new, 1)
+    if any(token not in block for token in required):
+        raise ValueError("Weibo profile/me cache postcondition failed")
+    if any(token in block for token in forbidden):
+        raise ValueError("Weibo repeated profile/me array reads remain")
+    return source[:left] + block + source[right:]
 
 
 COMMENT_ARRAY_LENGTH_CACHE_MARKER = "// loon-change: Weibo comment top-level array length cache v1"

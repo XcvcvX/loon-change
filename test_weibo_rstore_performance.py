@@ -52,7 +52,7 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         self.assertIn('$done(modified ? {body: JSON.stringify(obj)} : {});', source)
         self.assertEqual(optimize_source(source), source)
         self.assertEqual(len(re.findall(r"const __loonSource\d+ =", source)), 32)
-        self.assertEqual(len(re.findall(r"(?m)^\s*const __loonLength\d+ = __loonSource\d+\.length;$", source)), 20)
+        self.assertEqual(len(re.findall(r"(?m)^\s*const __loonLength\d+ = __loonSource\d+\.length;$", source)), 19)
         for cached_length in ("timelineItemsLength", "hotItemsLength", "hotStatusesLength", "asynItemsLength", "flowItemsLength", "searchItemsLength", "groupItemsLength"):
             self.assertIn(cached_length, source)
         self.assertNotRegex(source, r"for \(let __loonRead\d+ = 0, __loonLength\d+")
@@ -409,6 +409,34 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
     def test_trigger_count_drift_fails_closed(self):
         with self.assertRaisesRegex(ValueError, "expected 10"):
             rewrite_plugin("[Script]\nhttp-response ^https://example.invalid script-path=" + REMOTE + "\n")
+
+
+
+class WeiboProfileMeArrayCacheOptimizerTests(unittest.TestCase):
+    def test_profile_me_array_cache_is_idempotent_and_fails_closed(self):
+        from optimize_weibo_rstore import (
+            PROFILE_ME_ARRAY_CACHE_MARKER,
+            optimize_profile_me_array_cache,
+        )
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(PROFILE_ME_ARRAY_CACHE_MARKER, source)
+        self.assertEqual(optimize_profile_me_array_cache(source), source)
+        for token in (
+            "const profileMeItems = obj?.items;",
+            "const profileMeItemsLength = profileMeItems?.length || 0;",
+            "const mineItems = item?.items;",
+            "const mineItemsLength = mineItems?.length || 0;",
+            "const topItems = item?.items;",
+            "const topItemsLength = topItems?.length || 0;",
+            "topItems.length = topItemsWrite;",
+        ):
+            self.assertIn(token, source)
+        damaged = source.replace(
+            "const mineItemsLength = mineItems?.length || 0;",
+            "const mineItemsLength = 0;", 1
+        )
+        with self.assertRaisesRegex(ValueError, "marker/structure drift"):
+            optimize_profile_me_array_cache(damaged)
 
 
 @unittest.skipUnless(NODE, "Node.js is required for Weibo runtime regression tests")
@@ -1208,6 +1236,94 @@ process.stdout.write(nativeStringify({doneResult,counts}));
         self.assertNotIn("rightImage", output["items"][0]["items"][1]["data"])
         self.assertNotIn("backgroundImage", output["items"][0]["items"][1]["data"])
         self.assertFalse(output["items"][0]["items"][0]["data"]["enable_comment_guide"])
+
+
+    def test_profile_me_array_references_and_lengths_are_read_once(self):
+        runner = r"""
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync(process.argv[1],"utf8");
+const payload=JSON.parse(fs.readFileSync(0,"utf8"));
+let doneResult,tracking=false;
+const counts=Object.create(null);
+const nativeParse=JSON.parse.bind(JSON),nativeStringify=JSON.stringify.bind(JSON);
+const wrap=(target,key,label)=>{
+  let current=target[key];counts[label]=0;
+  Object.defineProperty(target,key,{enumerable:true,configurable:true,
+    get(){if(tracking)counts[label]++;return current;},set(value){current=value;}});
+};
+const proxyArray=(array,label)=>{
+  counts[label+".ref"]=0;
+  return new Proxy(array,{get(target,key,receiver){
+    if(tracking&&key==="length")counts[label+".length"]=(counts[label+".length"]||0)+1;
+    return Reflect.get(target,key,receiver);
+  }});
+};
+const trackedJSON={
+  parse(value){
+    const parsed=nativeParse(value),mine=parsed.items[0],top=parsed.items[1];
+    wrap(parsed,"items","profile.items");
+    const profileItems=proxyArray(parsed.items,"profile.items");
+    Object.defineProperty(parsed,"items",{enumerable:true,configurable:true,
+      get(){if(tracking)counts["profile.items.ref"]++;return profileItems;}});
+    for(const [item,label] of [[mine,"mine"],[top,"top8"]]){
+      wrap(item,"items",label+".items");
+      const nested=proxyArray(item.items,label+".items");
+      Object.defineProperty(item,"items",{enumerable:true,configurable:true,
+        get(){if(tracking)counts[label+".items.ref"]++;return nested;}});
+    }
+    tracking=true;
+    return parsed;
+  },
+  stringify(value){tracking=false;return nativeStringify(value);}
+};
+const context={JSON:trackedJSON,$request:{url:payload.url},$response:{body:nativeStringify(payload.body)},
+  $done(value){doneResult=value;},console:{log(){},warn(){},error(){}}};
+vm.runInNewContext(source,context,{timeout:5000});
+process.stdout.write(nativeStringify({doneResult,counts}));
+"""
+        body = {
+            "items": [
+                {
+                    "itemId": "profileme_mine",
+                    "header": {},
+                    "items": [
+                        {"itemId": "ordinary"},
+                        {"itemId": "mainnums_friends", "click": {"modules": [
+                            {"scheme": "sinaweibo://page?containerid=231093_-_selfrecomm"}
+                        ]}},
+                    ],
+                },
+                {
+                    "itemId": "100505_-_top8",
+                    "items": [
+                        {"itemId": "keep"},
+                        {"itemId": "100505_-_album"},
+                        {"itemId": "keep-too"},
+                    ],
+                },
+                {"itemId": "100505_-_chaohua"},
+                {"itemId": "remove-me"},
+            ]
+        }
+        completed = subprocess.run(
+            [NODE, "-e", runner, str(SCRIPT)],
+            input=json.dumps({"url": "https://api.weibo.cn/2/profile/me?fixture=array-cache",
+                              "body": body}),
+            capture_output=True, text=True, check=False, timeout=10
+        )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        result = json.loads(completed.stdout)
+        output = json.loads(result["doneResult"]["body"])
+        counts = result["counts"]
+        for key in ("profile.items.ref", "profile.items.length",
+                    "mine.items.ref", "mine.items.length",
+                    "top8.items.ref", "top8.items.length"):
+            self.assertEqual(counts.get(key), 1, key)
+        self.assertEqual([item["itemId"] for item in output["items"]],
+                         ["profileme_mine", "100505_-_top8", "100505_-_chaohua"])
+        self.assertEqual([item["itemId"] for item in output["items"][1]["items"]], ["100505_-_album"])
+        self.assertIn("231093_-_selffollowed",
+                      output["items"][0]["items"][1]["click"]["modules"][0]["scheme"])
+
 
     def test_shared_is_ad_cache_is_idempotent_and_preserves_all_predicates(self):
         source = SCRIPT.read_text(encoding="utf-8")

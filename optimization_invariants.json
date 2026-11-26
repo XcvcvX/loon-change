@@ -230,7 +230,16 @@
         "(replyCommentsLength = replyComments.length) > 0",
         "const __loonLength30 = commentDatasLength;",
         "const __loonLength29 = rootCommentsLength;",
-        "const __loonLength28 = replyCommentsLength;"
+        "const __loonLength28 = replyCommentsLength;",
+        "// loon-change: Weibo profile/me nested array cache v1",
+        "const profileMeItems = obj?.items;",
+        "const profileMeItemsLength = profileMeItems?.length || 0;",
+        "const mineItems = item?.items;",
+        "const mineItemsLength = mineItems?.length || 0;",
+        "for (let mineIndex = 0; mineIndex < mineItemsLength; mineIndex++)",
+        "const topItems = item?.items;",
+        "const topItemsLength = topItems?.length || 0;",
+        "topItems.length = topItemsWrite;"
       ],
       "forbidden": [
         "[120, 145, 192]?.includes(cardType)",
@@ -264,7 +273,10 @@
         "(replyComments = obj?.comments)?.length > 0",
         "const __loonLength30 = __loonSource30.length;",
         "const __loonLength29 = __loonSource29.length;",
-        "const __loonLength28 = __loonSource28.length;"
+        "const __loonLength28 = __loonSource28.length;",
+        "if (obj?.items?.length > 0) {\n      const __loonSource16 = obj.items;",
+        "for (let d of item.items)",
+        "compactInPlace(item.items, i =>"
       ]
     },
     {
