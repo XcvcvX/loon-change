@@ -1542,11 +1542,8 @@ def optimize_profile_me_array_cache(source):
             raise ValueError("Weibo repeated profile/me array reads remain")
         return source
 
+    block = block.replace(start, start + "\n     " + PROFILE_ME_ARRAY_CACHE_MARKER, 1)
     replacements = (
-        (
-            "} else if (url.includes(\"/2/profile/me\")) {\n     // 我的页面\n",
-            " } else if (url.includes(\"/2/profile/me\")) {\n     " + PROFILE_ME_ARRAY_CACHE_MARKER + "\n     // 我的页面\n",
-        ),
         (
             "    if (obj?.items?.length > 0) {\n"
             "      const __loonSource16 = obj.items;\n"
