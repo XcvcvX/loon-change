@@ -900,12 +900,73 @@ def optimize_page_route_array_reference_cache(source):
     return source[:left] + block + source[right:]
 
 
+
+CARDLIST_MBLOG_REFERENCE_CACHE_MARKER = "// loon-change: Weibo cardlist mblog reference cache v1"
+
+def optimize_cardlist_mblog_reference_cache(source):
+    """Reuse card/group mblog references in the high-frequency /2/cardlist loop."""
+    start = '  if (url.includes("/2/cardlist")) {'
+    end = '  } else if (url.includes("/2/checkin/show")) {'
+    if source.count(start) != 1 or source.count(end) != 1:
+        raise ValueError("Weibo cardlist mblog-cache route boundary drift")
+    left = source.index(start)
+    right = source.index(end, left + len(start))
+    block = source[left:right]
+    required = (
+        CARDLIST_MBLOG_REFERENCE_CACHE_MARKER,
+        "const groupMblog = group?.mblog;",
+        "removeAvatar(groupMblog);",
+        "const cardMblog = card?.mblog;",
+        "removeAvatar(cardMblog);",
+    )
+    forbidden = ("if (group?.mblog)", "removeAvatar(group?.mblog)", "if (card?.mblog)", "removeAvatar(card?.mblog)")
+    if CARDLIST_MBLOG_REFERENCE_CACHE_MARKER in block:
+        if block.count(CARDLIST_MBLOG_REFERENCE_CACHE_MARKER) != 1 or any(token not in block for token in required) or any(token in block for token in forbidden):
+            raise ValueError("Weibo cardlist mblog-cache marker/structure drift")
+        return source
+
+    group_old = (
+        "            if (group?.mblog) {\\n"
+        "              // 卡片挂件,关注按钮\\n"
+        "              removeAvatar(group?.mblog);\\n"
+        "            }"
+    )
+    group_new = (
+        "            const groupMblog = group?.mblog;\\n"
+        "            if (groupMblog) {\\n"
+        "              // 卡片挂件,关注按钮\\n"
+        "              removeAvatar(groupMblog);\\n"
+        "            }"
+    )
+    card_old = (
+        "          if (card?.mblog) {\\n"
+        "            // 卡片挂件,关注按钮\\n"
+        "            removeAvatar(card?.mblog);\\n"
+        "          }"
+    )
+    card_new = (
+        "          const cardMblog = card?.mblog;\\n"
+        "          if (cardMblog) {\\n"
+        "            // 卡片挂件,关注按钮\\n"
+        "            removeAvatar(cardMblog);\\n"
+        "          }"
+    )
+    if block.count(group_old) != 1 or block.count(card_old) != 1:
+        raise ValueError("Weibo cardlist mblog-cache anchor drift")
+    block = block.replace(group_old, group_new, 1)
+    block = block.replace(card_old, card_new, 1)
+    block = block.replace(CARDLIST_ARRAY_CACHE_MARKER, CARDLIST_ARRAY_CACHE_MARKER + "\\n    " + CARDLIST_MBLOG_REFERENCE_CACHE_MARKER, 1)
+    if any(token not in block for token in required) or any(token in block for token in forbidden):
+        raise ValueError("Weibo cardlist mblog-cache postcondition failed")
+    return source[:left] + block + source[right:]
+
+
 def optimize_source(source, commit="unknown"):
     if MARKER in source:
         if "__loonSource32" not in source or not any(signature in source for signature in ("compactWeiboInPlace(items, mode)", "compactWeiboInPlace(items, mode, knownLength")):
             raise ValueError("marked Weibo script is incomplete")
         optimized = optimize_comment_status_page_info_cache(optimize_vote_info_nested_reference_cache(optimize_shared_feed_cleanup_cache(optimize_is_ad_property_cache(optimize_profile_timeline_property_cache(optimize_search_timeline_nested_reference_cache(optimize_flowlist_asyn_nested_reference_cache(optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source))))))))))))))))) ))))
-        return optimize_page_route_array_reference_cache(optimize_cardlist_array_reference_length_cache(optimize_callback_free_compaction(optimize_profile_statuses_tab_array_cache(optimize_profile_me_array_cache(optimize_comment_array_length_cache(optimized))))))
+        return optimize_cardlist_mblog_reference_cache(optimize_page_route_array_reference_cache(optimize_cardlist_array_reference_length_cache(optimize_callback_free_compaction(optimize_profile_statuses_tab_array_cache(optimize_profile_me_array_cache(optimize_comment_array_length_cache(optimized)))))))
     source = source.replace("const url = $request.url;", "const url = $request.url;\n" + GUARD_DECLARATION + "\n\n" + HELPER, 1)
     if source.count(HELPER) != 1:
         raise ValueError("Weibo helper insertion failed")
@@ -918,7 +979,7 @@ def optimize_source(source, commit="unknown"):
     if sorted(remaining) != ["newActions", "newII"]:
         raise ValueError("unexpected remaining Weibo temporary arrays: " + repr(remaining))
     optimized = optimize_comment_status_page_info_cache(optimize_vote_info_nested_reference_cache(optimize_shared_feed_cleanup_cache(optimize_is_ad_property_cache(optimize_profile_timeline_property_cache(optimize_search_timeline_nested_reference_cache(optimize_flowlist_asyn_nested_reference_cache(optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source))))))))))))))))) ))))
-    return optimize_page_route_array_reference_cache(optimize_cardlist_array_reference_length_cache(optimize_callback_free_compaction(optimize_profile_statuses_tab_array_cache(optimize_profile_me_array_cache(optimize_comment_array_length_cache(optimized))))))
+    return optimize_cardlist_mblog_reference_cache(optimize_page_route_array_reference_cache(optimize_cardlist_array_reference_length_cache(optimize_callback_free_compaction(optimize_profile_statuses_tab_array_cache(optimize_profile_me_array_cache(optimize_comment_array_length_cache(optimized)))))))
 
 SCALAR_MEMBERSHIP_MARKER = "// loon-change: Weibo hot-loop scalar membership v1"
 SCALAR_MEMBERSHIP_REWRITES = [
