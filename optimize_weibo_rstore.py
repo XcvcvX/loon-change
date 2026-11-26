@@ -1451,9 +1451,6 @@ def optimize_comment_array_reference_cache(source):
         "const commentDatas = obj?.datas;",
         "let rootComments;",
         "let replyComments;",
-        "if (commentDatas?.length > 0)",
-        "(rootComments = obj?.root_comments)?.length > 0",
-        "(replyComments = obj?.comments)?.length > 0",
         "const __loonSource30 = commentDatas;",
         "const __loonSource29 = rootComments;",
         "const __loonSource28 = replyComments;",
@@ -1461,6 +1458,15 @@ def optimize_comment_array_reference_cache(source):
     if COMMENT_ARRAY_REFERENCE_CACHE_MARKER in block:
         if block.count(COMMENT_ARRAY_REFERENCE_CACHE_MARKER) != 1 or any(token not in block for token in required):
             raise ValueError("Weibo comment-array reference cache structure drift")
+        branch_shapes = (
+            ("if (commentDatas?.length > 0)", "if (commentDatasLength > 0)"),
+            ("(rootComments = obj?.root_comments)?.length > 0",
+             "(rootComments = obj?.root_comments) && (rootCommentsLength = rootComments.length) > 0"),
+            ("(replyComments = obj?.comments)?.length > 0",
+             "(replyComments = obj?.comments) && (replyCommentsLength = replyComments.length) > 0"),
+        )
+        if any(not any(token in block for token in variants) for variants in branch_shapes):
+            raise ValueError("Weibo comment-array reference cache branch structure drift")
         old = (
             "if (obj?.datas?.length > 0)",
             "obj?.root_comments?.length > 0",
