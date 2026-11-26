@@ -59,15 +59,18 @@ process.stdout.write(nativeJSON.stringify({ result, parseCalls, stringifyCalls }
         self.assertEqual(result["stringifyCalls"], 1)
         self.assertNotIn("widgetReturnDO", __import__("json").loads(result["result"]["body"])["data"])
 
-    def test_zhihu_unknown_route_skips_parse_and_stringify(self):
+    def test_zhihu_unknown_route_preserves_payload(self):
         result = self.run_script(
             "scripts/zhihu/zhihu.js",
             "https://api.zhihu.com/unhandled/large-feed",
             {"data": [{"payload": "x" * 20000}]}
         )
-        self.assertEqual(result["result"], {})
-        self.assertEqual(result["parseCalls"], 0)
-        self.assertEqual(result["stringifyCalls"], 0)
+        self.assertEqual(result["parseCalls"], 1)
+        self.assertEqual(result["stringifyCalls"], 1)
+        self.assertEqual(
+            __import__("json").loads(result["result"]["body"]),
+            {"data": [{"payload": "x" * 20000}]},
+        )
 
     def test_zhihu_supported_route_keeps_existing_cleanup(self):
         result = self.run_script(
