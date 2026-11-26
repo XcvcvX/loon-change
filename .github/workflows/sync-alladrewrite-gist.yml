@@ -33,17 +33,17 @@ jobs:
         id: plugin
         shell: bash
         run: |
-          mapfile -t files < <(
-            git ls-files | grep -E '(^|/)allAdRewrite\.plugin$' || true
-          )
-
-          if [ "${#files[@]}" -ne 1 ]; then
-            echo "Expected exactly one allAdRewrite.plugin"
-            printf 'Found: %s\n' "${files[@]}"
+          if ! git ls-files --error-unmatch -- allAdRewrite.plugin >/dev/null 2>&1; then
+            echo "Expected tracked root file: allAdRewrite.plugin"
             exit 1
           fi
 
-          echo "file=${files[0]}" >> "$GITHUB_OUTPUT"
+          if [ ! -f allAdRewrite.plugin ]; then
+            echo "Tracked root plugin is missing from the checkout"
+            exit 1
+          fi
+
+          echo "file=allAdRewrite.plugin" >> "$GITHUB_OUTPUT"
 
       - name: Check Script v2 syntax before Gist publish
         env:
