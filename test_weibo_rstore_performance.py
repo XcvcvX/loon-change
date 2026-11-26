@@ -1512,7 +1512,7 @@ process.stdout.write(nativeStringify(results));
         self.assertEqual(results[0]["counts"], {"datas": 1})
         self.assertEqual(results[1]["counts"], {"root_comments": 1})
         self.assertEqual(results[2]["counts"], {"comments": 1})
-        self.assertEqual(results[3]["counts"], {"datas": 1, "root_comments": 1})
+        self.assertEqual(results[3]["counts"], {"datas": 1, "root_comments": 1, "comments": 0})
         self.assertNotIn("comment_bubble", results[0]["output"]["datas"][0]["data"])
         self.assertNotIn("comment_bubble", results[1]["output"]["root_comments"][0])
         self.assertNotIn("icons", results[2]["output"]["comments"][0]["user"])
