@@ -338,9 +338,6 @@
         "$done(modified ? {body: JSON.stringify(obj)} : {});",
         "// loon-change: Amap scalar membership hot loops v1",
         "item === \"head\" || item === \"search_hot_words\" || item === \"feed_rec\"",
-        "tip?.datatype_spec !== \"12\"",
-        "tip?.result_type !== \"poi_ad\"",
-        "tip?.task_tag !== \"query_sug_merge_theme\"",
         "// loon-change: Amap shared dynamic ad matcher v1",
         "const AMAP_AD_DYNAMIC_ID = /ads-\\d+/;",
         "AMAP_AD_DYNAMIC_ID.test(item?.dynamic_id_s)",
@@ -359,7 +356,10 @@
         "// loon-change: Amap specialized in-place compaction v1",
         "function compactInPlace(items, mode)",
         "const length = items.length;",
-        "modified = true;"
+        "modified = true;",
+        "datatypeSpec !== \"12\"",
+        "resultType !== \"poi_ad\"",
+        "taskTag !== \"query_sug_merge_theme\""
       ],
       "forbidden": [
         "AMAP_STATIC_ITEMS_06",
