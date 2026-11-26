@@ -239,7 +239,18 @@
         "for (let mineIndex = 0; mineIndex < mineItemsLength; mineIndex++)",
         "const topItems = item?.items;",
         "const topItemsLength = topItems?.length || 0;",
-        "topItems.length = topItemsWrite;"
+        "topItems.length = topItemsWrite;",
+        "// loon-change: Weibo profile/statuses tab array cache v1",
+        "const profileStatusCards = obj?.cards;",
+        "const profileStatusCardsLength = profileStatusCards?.length || 0;",
+        "const cardGroup = card?.card_group;",
+        "const cardGroupLength = cardGroup?.length || 0;",
+        "const groupMblog = group?.mblog;",
+        "const cardMblog = card?.mblog;",
+        "removeAvatar(groupMblog);",
+        "removeAvatar(cardMblog);",
+        "removeVoteInfo(groupMblog);",
+        "removeVoteInfo(cardMblog);"
       ],
       "forbidden": [
         "[120, 145, 192]?.includes(cardType)",
@@ -276,7 +287,17 @@
         "const __loonLength28 = __loonSource28.length;",
         "if (obj?.items?.length > 0) {\n      const __loonSource16 = obj.items;",
         "for (let d of item.items)",
-        "compactInPlace(item.items, i =>"
+        "compactInPlace(item.items, i =>",
+        "if (obj?.cards?.length > 0)",
+        "const __loonSource15 = obj.cards;",
+        "if (card?.card_group?.length > 0)",
+        "const __loonSource14 = card.card_group;",
+        "if (group?.mblog)",
+        "removeAvatar(group?.mblog);",
+        "removeVoteInfo(group?.mblog);",
+        "if (card?.mblog)",
+        "removeAvatar(card?.mblog);",
+        "removeVoteInfo(card?.mblog);"
       ]
     },
     {
