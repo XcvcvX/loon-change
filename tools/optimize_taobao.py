@@ -379,8 +379,11 @@ def optimize_splash_item_updates(source):
             "function normalizeSplashItem(item) {",
             'if (item.waitTime !== "0")',
             'if (item.gmtEndMs !== "3818419199000")',
-            'if (item?.imgUrl) { item.imgUrl = ""; modified = true; }',
-            'if (item?.videoUrl) { item.videoUrl = ""; modified = true; }',
+            "// loon-change: Taobao splash media property single-read cache v1",
+            "const imgUrl = item?.imgUrl;",
+            'if (imgUrl) { item.imgUrl = ""; modified = true; }',
+            "const videoUrl = item?.videoUrl;",
+            'if (videoUrl) { item.videoUrl = ""; modified = true; }',
             NEW_SPLASH_ITEM_UPDATE,
         )
         if source.count(SPLASH_ITEM_UPDATE_MARKER) != 1 or any(token not in source for token in required):
