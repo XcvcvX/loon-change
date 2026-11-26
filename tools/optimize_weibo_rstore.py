@@ -846,8 +846,10 @@ def optimize_page_route_array_reference_cache(source):
     )
     if PAGE_ROUTE_ARRAY_CACHE_MARKER in block:
         forbidden = ("obj?.cards?.length", "obj.cards[0].card_group", "obj?.card_group?.length")
-        if block.count(PAGE_ROUTE_ARRAY_CACHE_MARKER) != 1 or any(x not in block for x in required) or any(x in block for x in forbidden):
-            raise ValueError("Weibo /2/page array-cache marker/structure drift")
+        missing = [x for x in required if x not in block]
+        present_forbidden = [x for x in forbidden if x in block]
+        if block.count(PAGE_ROUTE_ARRAY_CACHE_MARKER) != 1 or missing or present_forbidden:
+            raise ValueError("Weibo /2/page array-cache marker/structure drift: missing=%r forbidden=%r" % (missing, present_forbidden))
         return source
 
     comment = "    // 搜索页列表,超话\n"
