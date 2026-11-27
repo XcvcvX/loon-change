@@ -2,7 +2,7 @@
 #!desc=综合规则仅使用 R-Store base；保留 Romeo 独立 App 插件、高德、Spotify、瓜子影视与支付宝专项规则；单插件自包含
 #!author=R-Store / Romeo / RuCu6（Amap）/ zirawell / ddgksf2013（本仓库自动构建）
 #!homepage=https://github.com/XcvcvX/loon-change
-#!merged-at=2026-11-27 09:39 UTC
+#!merged-at=2026-11-27 10:22 UTC
 #!note=综合规则只取 R-Store base；独立 App 专项规则单独保留；高德独立规则优先级最高；脚本/JQ 依赖本仓库镜像。
 #!sources=R-Store-base(QuanX->Loon)+Romeo-independent-App+Romeo-Spotify+RuCu6-Amap+zirawell-AlipayAdBlock+ddgksf2013/GuaZiVideoAds
 
@@ -749,6 +749,8 @@ DOMAIN,open-pixon.ads-pixiv.net,REJECT
 # Spotify ad-block rules; generated from upstream by integrate_spotify.py
 DOMAIN,aet.spotify.com,REJECT
 [Rewrite]
+# loon-change: Pinduoduo mrk matcher consolidation v1
+request if ${url} ~= /^https:\/\/(?:t-dsp\.pinduoduo\.com\/dspcb\/i\/mrk_|images\.pinduoduo\.com\/(?:mrk|marketing_api)\/)/i then reject(404)
 response if ${url} ~= /^https?:\/\/api\.weibo\.cn\/2\/messageflow\/notice\?/ then response.json.jq("if (.messages | type) == \"array\" then .messages |= map(select((.msg_card.ad_tag // false) != true)) else . end")
 response if ${url} ~= /^https?:\/\/api\.weibo\.cn\/2\/push\/active\?/ then response.json.jq("if .feed_redpacket then .feed_redpacket.starttime = \"2208960000\" | .feed_redpacket.interval = \"31536000\" | .feed_redpacket.endtime = \"2209046399\" else . end")
 response if ${url} ~= /^https?:\/\/bootpreload\.uve\.weibo\.com\/v[12]\/ad\/preload/ then response.json.jq("if (.ads | type) == \"array\" and (.ads | length) > 0 then .ads |= map(.start_time = 3818332800 | .end_time = 3818419199 | .daily_display_cnt = 50 | .display_duration = 0) else . end")
@@ -2525,9 +2527,6 @@ request if ${url} ~= /^https:\/\/msglb\.91160\.com\/msg\/outer\/broker\/get$/i t
 request if ${url} ~= /^https:\/\/gslbali\.ximalaya\.com\/linkeye-cloud\/httpdns\//i then reject(404)
 request if ${url} ~= /^https:\/\/ucdc\d?-upaas\.uc\.cn\/api\/v\d\/dns_query\?/i then reject_dict(200)
 request if ${url} ~= /^https:\/\/gw-cn\.jiaoliuqu\.com\/taqu-im-broadcast-srv\/v\d\/Comet\/get\?/i then reject_dict(200)
-request if ${url} ~= /^https:\/\/t-dsp\.pinduoduo\.com\/dspcb\/i\/mrk_/i then reject(404)
-request if ${url} ~= /^https:\/\/images\.pinduoduo\.com\/mrk\//i then reject(404)
-request if ${url} ~= /^https:\/\/images\.pinduoduo\.com\/marketing_api\//i then reject(404)
 request if ${url} ~= /^https?:\/\/api-access\.pangolin-sdk-toutiao\.com\/api\/ad\/union\/sdk/i then reject(404)
 request if ${url} ~= /^https:\/\/cdn\.web\.chelaile\.net\.cn\/info-flow\/index\.html/i then reject(404)
 request if ${url} ~= /^http:\/\/mercury-gateway\.ixiaochuan\.cn\/mercury\/v1\/ad\//i then reject(404)
@@ -3356,14 +3355,7 @@ response if ${url} ~= /^https:\/\/m5-zb\.amap\.com\/ws\/boss\/(car\/order\/conte
 response if ${url} ~= /^https:\/\/m5-zb\.amap\.com\/ws\/sharedtrip\/taxi\/order_detail_car_tips\?/i then script("https://raw.githubusercontent.com/ifflagged/Romeo/1a724bb3c7ae08b3852a9ab94210d7f7fcb2e3a7/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js") with tag="amap", timeout=60, requires_body=true
 http-response ^https?:\/\/(api|cdn\.api)\.chelaile(?:app)?(?:\.net)?\.cn\/goocity\/flowPos\/listByPos script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/romeo_legacy/chelaile-flowpos.js, requires-body=true, timeout=20
 response if ${url} ~= /^https:\/\/api\.gotokeep\.com\/config\/v3\/basic\?/i then script("https://raw.githubusercontent.com/ifflagged/Romeo/1a724bb3c7ae08b3852a9ab94210d7f7fcb2e3a7/Modules/JavaScript/ishowshu/keep/ishowshu_keep.js") with tag="keep", timeout=60, requires_body=true
-response if ${url} ~= /^https?:\/\/apimobile\.meituan\.com\/aggroup\/indexTab/i then script("https://raw.githubusercontent.com/ifflagged/Romeo/1a724bb3c7ae08b3852a9ab94210d7f7fcb2e3a7/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js") with tag="MT", timeout=60, requires_body=true
-response if ${url} ~= /^https?:\/\/feedguess\.meituan\.com\/lycoris\/scene\/(gwc_feed1_2265|personalcenter_2154)(\?|$)/i then script("https://raw.githubusercontent.com/ifflagged/Romeo/1a724bb3c7ae08b3852a9ab94210d7f7fcb2e3a7/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js") with tag="MT", timeout=60, requires_body=true
-response if ${url} ~= /^https?:\/\/mt-personalcenter\.meituan\.com\/usercenter\/display/i then script("https://raw.githubusercontent.com/ifflagged/Romeo/1a724bb3c7ae08b3852a9ab94210d7f7fcb2e3a7/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js") with tag="MT", timeout=60, requires_body=true
-response if ${url} ~= /^https?:\/\/apimobile\.meituan\.com\/group\/v1\/deal\/searchpage\/defaultword/i then script("https://raw.githubusercontent.com/ifflagged/Romeo/1a724bb3c7ae08b3852a9ab94210d7f7fcb2e3a7/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js") with tag="MT", timeout=60, requires_body=true
-response if ${url} ~= /^https?:\/\/apimobile\.meituan\.com\/group\/v1\/deal\/searchpage\/hotword\/city\/divide\/hotrecommend\//i then script("https://raw.githubusercontent.com/ifflagged/Romeo/1a724bb3c7ae08b3852a9ab94210d7f7fcb2e3a7/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js") with tag="MT", timeout=60, requires_body=true
-response if ${url} ~= /^https?:\/\/assistify\.meituan\.com\/assistant\/getAppClientHornConfig/i then script("https://raw.githubusercontent.com/ifflagged/Romeo/1a724bb3c7ae08b3852a9ab94210d7f7fcb2e3a7/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js") with tag="MT", timeout=60, requires_body=true
-response if ${url} ~= /^https?:\/\/mop\.meituan\.com\/mop\/entry\/shoppingCartEntry/i then script("https://raw.githubusercontent.com/ifflagged/Romeo/1a724bb3c7ae08b3852a9ab94210d7f7fcb2e3a7/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js") with tag="MT", timeout=60, requires_body=true
-response if ${url} ~= /^https?:\/\/mop\.meituan\.com\/api\/entryModule\/startupPicture/i then script("https://raw.githubusercontent.com/ifflagged/Romeo/1a724bb3c7ae08b3852a9ab94210d7f7fcb2e3a7/Modules/JavaScript/ZenmoFeiShi/MT/ZenmoFeiShi_MT.js") with tag="MT", timeout=60, requires_body=true
+# loon-change: Meituan legacy trigger consolidation v1
 response if ${url} ~= /^https:\/\/j1\.pupuapi\.com\/client\/marketing\/advertisement\/v1/i then script("https://raw.githubusercontent.com/ifflagged/Romeo/1a724bb3c7ae08b3852a9ab94210d7f7fcb2e3a7/Modules/JavaScript/ishowshu/pupu/ishowshu_pp.js") with tag="pp", timeout=60, requires_body=true
 response if ${url} ~= /^https:\/\/j1\.pupuapi\.com\/client\/order\/orders\/list\/v4/i then script("https://raw.githubusercontent.com/ifflagged/Romeo/1a724bb3c7ae08b3852a9ab94210d7f7fcb2e3a7/Modules/JavaScript/ishowshu/pupu/ishowshu_pp.js") with tag="pp", timeout=60, requires_body=true
 http-response ^https?:\/\/(?:slugger|minislugger|homefront|homeback|qbi|lang|qde|client)\.qunar\.com\/ script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/romeo_legacy/qunar-clean.js,requires-body=true,timeout=10,tag=去哪儿配套清理
