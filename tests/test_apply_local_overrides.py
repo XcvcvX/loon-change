@@ -5095,18 +5095,17 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
             "/ws/bus/plan/integrate" in line.replace(chr(92), "").lower() and "ishowshu_amap.js" in line.lower()
             for line in script.splitlines()
         ))
-        # PR #399 moved these four response routes into the local Amap runtime.
-        for marker in AMAP_VERSIONED_RSTORE_SCRIPT_MARKERS:
-            rows = [
-                line for line in script.splitlines()
-                if marker in line.replace(chr(92), "").lower() and "scripts/amap/amap.js" in line.lower()
-            ]
-            self.assertEqual(len(rows), 1, marker)
-            if marker in ("/ws/aos/perception/publictravel/beforenavi", "/ws/bus/plan/integrate"):
-                self.assertIn("m[0-46-9]", rows[0], marker)
-                self.assertNotIn("m5.amap", rows[0], marker)
-            else:
-                self.assertIn(r"m\d", rows[0], marker)
+        # The consolidated Amap handler owns all four routes in one matcher.
+        canonical_rows = [
+            line for line in script.splitlines()
+            if "AMAP-CONSOLIDATED" in line and "scripts/amap/amap.js" in line
+        ]
+        self.assertEqual(len(canonical_rows), 1)
+        canonical = canonical_rows[0]
+        for token in ("beforeNavi", "bus/plan/integrate", "nearbyrec_smart", "promotion-web/resource"):
+            self.assertIn(token.lower(), canonical.replace(chr(92), "").lower())
+        self.assertIn("m[0-46-9]", canonical)
+        self.assertIn(r"m\d", canonical)
         self.assertIn("scripts/amap/amap.js", script)
         second, second_removed = optimize_amap_response_script_overlaps(result)
         self.assertEqual(second, result)
@@ -5135,8 +5134,7 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
         ))
         nearby_marker = AMAP_ISHOWSHU_REDUNDANT_SCRIPT_MARKERS[1]
         without_local = [
-            line for line in lines
-            if not (nearby_marker in line.replace(chr(92), "").lower() and "sources/amap/rucu6_amap.js" in line.lower())
+            line for line in lines if "AMAP-CONSOLIDATED" not in line
         ]
         preserved, _ = optimize_amap_response_script_overlaps(without_local)
         preserved_script = "\n".join(preserved).split("[Script]", 1)[1].split("[MITM]", 1)[0]
@@ -5146,8 +5144,7 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
         ))
         route_marker = AMAP_ISHOWSHU_REDUNDANT_SCRIPT_MARKERS[-1]
         without_route_local = [
-            line for line in lines
-            if not (route_marker in line.replace(chr(92), "").lower() and "sources/amap/rucu6_amap.js" in line.lower())
+            line for line in lines if "AMAP-CONSOLIDATED" not in line
         ]
         preserved, _ = optimize_amap_response_script_overlaps(without_route_local)
         preserved_script = "\n".join(preserved).split("[Script]", 1)[1].split("[MITM]", 1)[0]
@@ -5157,8 +5154,7 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
         ))
         splash_marker = "/ws/valueadded/alimama/splash_screen"
         without_splash_local = [
-            line for line in lines
-            if not (splash_marker in line.replace(chr(92), "").lower() and "sources/amap/rucu6_amap.js" in line.lower())
+            line for line in lines if "AMAP-CONSOLIDATED" not in line
         ]
         preserved, _ = optimize_amap_response_script_overlaps(without_splash_local)
         preserved_script = "\n".join(preserved).split("[Script]", 1)[1].split("[MITM]", 1)[0]
