@@ -13,6 +13,7 @@ class AmapCanonicalScriptTests(unittest.TestCase):
         self.assertIn('url.includes("/c3frontend/af-nearby/nearby")', SCRIPT)
         self.assertIn('setIfDifferent(obj.data.modules, "banner", {})', SCRIPT)
         self.assertIn('setIfDifferent(obj.data.modules, "contentPoster", {})', SCRIPT)
+        self.assertIn('bus_plan_bottom_tips', SCRIPT)
 
     def test_canonical_script_preserves_ishowshu_hotword_cleanup(self):
         self.assertIn('url.includes("/shield/search_bff/hotword")', SCRIPT)
