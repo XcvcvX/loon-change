@@ -41,8 +41,8 @@ function appendUniqueLivePhotos(existing, incoming) {
 
 IMAGE = r'''// loon-change: Xiaohongshu imagefeed single traversal live-photo extraction v1
 // loon-change: Xiaohongshu image traversal array-frame length cache v1
-// loon-change: Xiaohongshu image traversal array classification cache v1
 function imageEnhance(images, livePhotoCache) {
+  // loon-change: Xiaohongshu image traversal array classification cache v1
   if (!images || typeof images !== "object") return images;
   const livePhotoTarget = Array.isArray(livePhotoCache) ? livePhotoCache : null;
   const quality = $.getdata("xiaohongshu.imageQuality");
@@ -297,17 +297,31 @@ IMAGE_FEED_MARKER = "// loon-change: Xiaohongshu imagefeed single traversal live
 IMAGE_ARRAY_LENGTH_MARKER = "// loon-change: Xiaohongshu image traversal array-frame length cache v1"
 IMAGE_ARRAY_CLASSIFICATION_MARKER = "// loon-change: Xiaohongshu image traversal array classification cache v1"
 
+def replace_image_enhance_helper(source, signature, label):
+    end_marker = "function replaceUrlContent("
+    if source.count(signature) != 1 or source.count(end_marker) != 1:
+        raise ValueError("%s function boundary drift" % label)
+    left = source.index(signature)
+    prefix = source[:left]
+    for marker in (IMAGE_ARRAY_LENGTH_MARKER, IMAGE_FEED_MARKER):
+        marker_line = marker + "\\n"
+        if prefix.endswith(marker_line):
+            prefix = prefix[:-len(marker_line)]
+    right = source.index(end_marker, left + len(signature))
+    return prefix + IMAGE + "\\n\\n" + source[right:]
+
+
 def optimize_imagefeed_single_traversal(source):
     if IMAGE_FEED_MARKER in source:
         if IMAGE_ARRAY_LENGTH_MARKER not in source or IMAGE_ARRAY_CLASSIFICATION_MARKER not in source:
-            source = between(source, "function imageEnhance(images, livePhotoCache) {",
-                             "function replaceUrlContent(", IMAGE, "image traversal classification cache")
+            source = replace_image_enhance_helper(
+                source, "function imageEnhance(images, livePhotoCache) {",
+                "image traversal classification cache"
+            )
         helper_start = source.index("function imageEnhance(images, livePhotoCache) {")
         helper_end = source.index("function replaceUrlContent(", helper_start)
         helper = source[helper_start:helper_end]
         required = (
-            IMAGE_FEED_MARKER,
-            IMAGE_ARRAY_LENGTH_MARKER,
             IMAGE_ARRAY_CLASSIFICATION_MARKER,
             "function imageEnhance(images, livePhotoCache)",
             "const livePhotoTarget = Array.isArray(livePhotoCache) ? livePhotoCache : null;",
@@ -318,10 +332,8 @@ def optimize_imagefeed_single_traversal(source):
             "isArray: childIsArray",
             "if (frame.index >= frame.length)",
             "frame.root && livePhotoTarget",
-            "imageEnhance(images_list, livePhotoCache);",
-            'JSON.stringify(livePhotoCache), "redBookLivePhoto"',
         )
-        if any(token not in helper for token in required):
+        if IMAGE_FEED_MARKER not in source or IMAGE_ARRAY_LENGTH_MARKER not in source or any(token not in helper for token in required):
             raise ValueError("Xiaohongshu single-traversal image helper drifted; refusing overwrite")
         if helper.count("Array.isArray(") != 4 or "if (Array.isArray(value))" in helper:
             raise ValueError("Xiaohongshu image array classification is not cached per traversal frame")
@@ -329,8 +341,9 @@ def optimize_imagefeed_single_traversal(source):
             raise ValueError("Repeated image-array traversal or live-photo image traversal remains")
         return source
 
-    source = between(source, "function imageEnhance(images) {",
-                     "function replaceUrlContent(", IMAGE, "single-traversal imageEnhance")
+    source = replace_image_enhance_helper(
+        source, "function imageEnhance(images) {", "single-traversal imageEnhance"
+    )
     old = '''      const images_list = obj.data[0].note_list[0].images_list;
       // Cache only fields consumed by the live-photo save endpoint.
       const livePhotoCache = [];
