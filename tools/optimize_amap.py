@@ -15,6 +15,9 @@ DYNAMIC_MATCHER_MARKER = "// loon-change: Amap shared dynamic ad matcher v1"
 ROUTE_INFO_MARKER = "// loon-change: Amap routeInfo cached nested references v1"
 ROUTE_PLAN_MARKER = "// loon-change: Amap routePlan cached nested references v1"
 COMPACTION_MARKER = "// loon-change: Amap specialized in-place compaction v1"
+AF_NEARBY_MARKER = "// loon-change: Amap af-nearby promotion cleanup v1"
+HOTWORD_MARKER = "// loon-change: Amap hotWordWithIcon cleanup v1"
+NODEFAAS_MARKER = "// loon-change: Amap nodefaasv3 merged profile cleanup v1"
 DYNAMIC_MATCHER_LITERAL = "/ads-\\d+/.test(i?.dynamic_id_s)"
 DYNAMIC_MATCHER_CALL = "AMAP_AD_DYNAMIC_ID.test(i?.dynamic_id_s)"
 DYNAMIC_MATCHER_ITEM_LITERAL = "/ads-\\d+/.test(item?.dynamic_id_s)"
@@ -413,6 +416,97 @@ def optimize_compaction_modes(source):
     if "tip?.result_type !==" in source or "tip?.task_tag !==" in source or "tip?.datatype_spec !==" in source:
         raise ValueError("Amap repeated suggestion scalar property reads remain")
     return source
+
+
+
+def optimize_nodefaasv3_profile_cleanup(source):
+    anchor = '''if (obj?.data?.cardList?.length > 0) {
+    compactInPlace(obj.data.cardList, "myOrder");
+  }'''
+    if source.count(NODEFAAS_MARKER) > 1:
+        raise ValueError("Amap nodefaasv3 merge marker is duplicated")
+    if NODEFAAS_MARKER in source:
+        required = (
+            'compactInPlace(content.entranceList_1, "myOrderEntrance1")',
+            'compactInPlace(content.entranceList_2, "myOrderEntrance2")',
+            'deleteIfPresent(obj.data, "wallet")',
+            "MineNewFootprintCard",
+            "MineNewBEntranceCardV4",
+        )
+        if any(token not in source for token in required):
+            raise ValueError("Amap nodefaasv3 merged profile cleanup drift")
+        return source
+    if source.count(anchor) != 1:
+        raise ValueError("Amap nodefaasv3 profile insertion anchor changed")
+    replacement = anchor + '''
+  // loon-change: Amap nodefaasv3 merged profile cleanup v1
+  for (let i = 0; i < obj.data.cardList.length; i++) {
+    const card = obj.data.cardList[i];
+    if (card?.dataKey === "MineNewBEntranceCardV4") {
+      const content = card.content;
+      if (Array.isArray(content?.entranceList_1)) {
+        compactInPlace(content.entranceList_1, "myOrderEntrance1");
+      }
+      if (Array.isArray(content?.entranceList_2)) {
+        compactInPlace(content.entranceList_2, "myOrderEntrance2");
+      }
+    }
+  }
+  if (obj?.data?.wallet) {
+    deleteIfPresent(obj.data, "wallet");
+  }'''
+    return source.replace(anchor, replacement, 1)
+
+
+def optimize_af_nearby(source):
+    if source.count(AF_NEARBY_MARKER) > 1:
+        raise ValueError("Amap af-nearby marker is duplicated")
+    if AF_NEARBY_MARKER in source:
+        required = (
+            'url.includes("/c3frontend/af-nearby/nearby")',
+            'setIfDifferent(obj.data.modules, "banner", {})',
+            'setIfDifferent(obj.data.modules, "contentPoster", {})',
+        )
+        if any(token not in source for token in required):
+            raise ValueError("Amap af-nearby cleanup drift")
+        return source
+    anchor = '} else if (url.includes("/faas/amap-navigation/card-service-plan-home")) {'
+    if source.count(anchor) != 1:
+        raise ValueError("Amap af-nearby branch insertion anchor changed")
+    branch = '''} else if (url.includes("/c3frontend/af-nearby/nearby")) {
+  // loon-change: Amap af-nearby promotion cleanup v1
+  if (obj?.data?.modules?.banner) {
+    setIfDifferent(obj.data.modules, "banner", {});
+  }
+  if (obj?.data?.modules?.contentPoster) {
+    setIfDifferent(obj.data.modules, "contentPoster", {});
+  }
+''' + anchor
+    return source.replace(anchor, branch, 1)
+
+
+def optimize_hotword(source):
+    if source.count(HOTWORD_MARKER) > 1:
+        raise ValueError("Amap hotWordWithIcon marker is duplicated")
+    if HOTWORD_MARKER in source:
+        required = (
+            'setIfDifferent(obj.data, "headerHotWord", [])',
+            'setIfDifferent(obj.data, "hotWordWithIcon", [])',
+        )
+        if any(token not in source for token in required):
+            raise ValueError("Amap hotWordWithIcon cleanup drift")
+        return source
+    anchor = '''if (obj?.data?.headerHotWord?.length > 0) {
+    setIfDifferent(obj.data, "headerHotWord", []);
+  }'''
+    if source.count(anchor) != 1:
+        raise ValueError("Amap hotword cleanup insertion anchor changed")
+    replacement = anchor + '''
+  // loon-change: Amap hotWordWithIcon cleanup v1
+  if (obj?.data?.hotWordWithIcon?.length > 0) {
+    setIfDifferent(obj.data, "hotWordWithIcon", []);
+  }'''
+    return source.replace(anchor, replacement, 1)
 
 
 def optimize_scalar_membership(source):
