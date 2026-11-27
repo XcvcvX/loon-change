@@ -31,16 +31,6 @@ function writeVarint(value) {
   return out;
 }
 
-function concat(parts) {
-  const total = parts.reduce((n, p) => n + p.length, 0);
-  const out = new Uint8Array(total);
-  let off = 0;
-  for (const p of parts) {
-    out.set(p, off);
-    off += p.length;
-  }
-  return out;
-}
 
 // loon-change: Spotify Scroll protobuf no-ad allocation preflight v1
 // Scan wire ranges without materializing field arrays or subarray views.
@@ -80,18 +70,42 @@ function hasTargetField(buf, depth, start, end) {
   return false;
 }
 
-// Parses one protobuf message into its fields (raw bytes of each field are kept).
-function parseFields(buf) {
-  const fields = [];
-  let pos = 0;
-  while (pos < buf.length) {
-    const start = pos;
+// loon-change: Spotify nested protobuf allocation-light rewrite v2
+// Only materialize byte views when a matching ad field is found. Rebuild each
+// ancestor directly into one output buffer; no per-field objects or map/reduce arrays.
+function wrap(no, payload) {
+  const key = writeVarint(no * 8 + 2);
+  const size = writeVarint(payload.length);
+  const out = new Uint8Array(key.length + size.length + payload.length);
+  let offset = 0;
+  for (let i = 0; i < key.length; i++) out[offset++] = key[i];
+  for (let i = 0; i < size.length; i++) out[offset++] = size[i];
+  out.set(payload, offset);
+  return out;
+}
+
+function replaceRange(buf, start, end, fieldStart, fieldEnd, replacement) {
+  const prefixLength = fieldStart - start;
+  const suffixLength = end - fieldEnd;
+  const out = new Uint8Array(prefixLength + replacement.length + suffixLength);
+  out.set(buf.subarray(start, fieldStart), 0);
+  out.set(replacement, prefixLength);
+  out.set(buf.subarray(fieldEnd, end), prefixLength + replacement.length);
+  return out;
+}
+
+// Return the first depth-first matching field with all parent lengths rebuilt.
+function renameField(buf, depth, start, end, kind) {
+  let pos = start;
+  while (pos < end) {
+    const fieldStart = pos;
     const key = readVarint(buf, pos);
     const no = Math.floor(key.value / 8);
     const wire = key.value % 8;
     pos = key.pos;
     let payloadStart = -1;
     let payloadEnd = -1;
+
     if (wire === 0) pos = readVarint(buf, pos).pos;
     else if (wire === 1) pos += 8;
     else if (wire === 5) pos += 4;
@@ -101,37 +115,27 @@ function parseFields(buf) {
       payloadEnd = len.pos + len.value;
       pos = payloadEnd;
     } else throw new Error("unsupported wire type " + wire);
-    if (pos > buf.length) throw new Error("truncated field");
-    fields.push({ no, wire, raw: buf.subarray(start, pos), payloadStart, payloadEnd });
-  }
-  return fields;
-}
 
-function wrap(no, payload) {
-  return concat([Uint8Array.from(writeVarint(no * 8 + 2)), Uint8Array.from(writeVarint(payload.length)), payload]);
-}
+    if (pos > end) throw new Error("truncated field");
+    if (wire !== 2) continue;
 
-// Returns the rebuilt message with the first matching field renamed, or null if absent.
-function renameField(buf, depth, matches) {
-  const fields = parseFields(buf);
-  for (let i = 0; i < fields.length; i++) {
-    const f = fields[i];
-    if (f.wire !== 2) continue;
-    const payload = buf.subarray(f.payloadStart, f.payloadEnd);
-    let replacement = null;
-    if (matches(f, payload)) replacement = wrap(UNKNOWN_FIELD, payload);
-    else if (depth < MAX_DEPTH) {
+    const isTarget = no === AD_FIELD &&
+      (kind === "scroll" || payloadEnd - payloadStart > MIN_AD_SIZE);
+    if (isTarget) {
+      const replacement = wrap(UNKNOWN_FIELD, buf.subarray(payloadStart, payloadEnd));
+      return replaceRange(buf, start, end, fieldStart, pos, replacement);
+    }
+
+    if (depth < MAX_DEPTH) {
       let inner = null;
       try {
-        inner = renameField(payload, depth + 1, matches);
+        inner = renameField(buf, depth + 1, payloadStart, payloadEnd, kind);
       } catch (e) {
-        inner = null; // the payload is not a message (string or bytes)
+        // Non-message strings/bytes are expected; preserve the original payload.
       }
-      if (inner) replacement = wrap(f.no, inner);
-    }
-    if (replacement) {
-      const parts = fields.map((g, j) => (j === i ? replacement : g.raw));
-      return concat(parts);
+      if (inner) {
+        return replaceRange(buf, start, end, fieldStart, pos, wrap(no, inner));
+      }
     }
   }
   return null;
@@ -140,7 +144,7 @@ function renameField(buf, depth, matches) {
 try {
   const body = $response.body;
   const bytes = body instanceof Uint8Array ? body : new Uint8Array(body);
-  const out = hasTargetField(bytes, 0) ? renameField(bytes, 0, (f) => f.no === AD_FIELD) : null;
+  const out = hasTargetField(bytes, 0) ? renameField(bytes, 0, 0, bytes.length, "scroll") : null;
   if (out) {
     console.log("Spotify scroll: ad block hidden");
     $done({ body: out });
