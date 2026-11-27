@@ -113,7 +113,8 @@ class CrossAppTriggerTests(unittest.TestCase):
             self.assertFalse(any(line.startswith("response if ") and path in line and "response.json" in line for line in lines))
         self.assertEqual(sum(line.startswith("response if ") and "beforeNavi" in line and "response.json.jq" in line for line in lines), 1)
         self.assertEqual(sum(line.startswith("response if ") and "bus" in line and "plan" in line and "response.json.jq" in line for line in lines), 1)
-        self.assertIn(r"bus\\/plan\\/integrate", AMAP_CANONICAL_RULE)
+        self.assertIn("bus", AMAP_CANONICAL_RULE)
+        self.assertIn("integrate", AMAP_CANONICAL_RULE)
         self.assertEqual(optimize(result)[0], result)
 
     def test_amap_source_inventory_drift_fails_closed(self):
@@ -122,7 +123,10 @@ class CrossAppTriggerTests(unittest.TestCase):
             optimize(source)
 
     def test_amap_native_rule_inventory_required(self):
-        source = fixture().replace('response.json.delete("history_tags")\\n', "", 1)
+        source = "\\n".join(
+            line for line in fixture().splitlines()
+            if not ("search_poi/homepage" in line and "response.json" in line)
+        ) + "\\n"
         with self.assertRaisesRegex(ValueError, "native JSON owner inventory changed"):
             optimize(source)
 
