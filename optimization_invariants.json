@@ -810,7 +810,8 @@
         ".forEach(",
         ".sort(",
         "for (let i of del)",
-        "for (let i of obj.data.list)"
+        "for (let i of obj.data.list)",
+        "const item = [\"account\", \"event_list\", \"preload\", \"show\"];"
       ]
     },
     {
