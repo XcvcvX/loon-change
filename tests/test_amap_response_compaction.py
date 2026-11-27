@@ -216,7 +216,10 @@ process.stdout.write(JSON.stringify({ parseCalls, doneResult }));
         self.assertNotIn(".filter(", source)
         self.assertNotIn("newLists", source)
         self.assertNotIn("newTips", source)
-        self.assertIn("function compactInPlace", source)
+        self.assertIn("function compactAmapRucu6(items, mode)", source)
+        self.assertNotIn("function compactInPlace(", source)
+        self.assertNotIn("compactInPlace(", source)
+        self.assertEqual(source.count("const length = items.length;"), 1)
         self.assertIn("tips[write++] = item", source)
         self.assertIn("tips.length = write", source)
 

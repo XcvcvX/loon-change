@@ -822,6 +822,32 @@
         "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/caterham\\/v3\\/query\\/my_order_group\\?/i then reject_dict(200)",
         "request if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/api\\/caterham\\/v3\\/query\\/likes\\?/i then reject_dict(200)"
       ]
+    },
+    {
+      "path": "sources/amap/rucu6_amap.js",
+      "required": [
+        "// loon-change: Amap rucu6 callback-free compaction v1",
+        "// loon-change: Amap rucu6 callback-free route calls v1",
+        "function compactAmapRucu6(items, mode)",
+        "const length = items.length;",
+        "compactAmapRucu6(obj.data.children, \"withoutSchema\");",
+        "compactAmapRucu6(obj.data.cardList, \"homeCards\");",
+        "compactAmapRucu6(obj.data.mapBizList, \"findCar\");",
+        "compactAmapRucu6(obj.data.tbt.event, \"dynamicAds\");",
+        "compactAmapRucu6(obj.data.front_end.download, \"dynamicAds\");",
+        "compactAmapRucu6(obj.data.front_end.guide_tips, \"nonMusic\");",
+        "compactAmapRucu6(obj.data.cardList, \"myOrder\");",
+        "compactAmapRucu6(modules, \"nearbyModules\");",
+        "compactAmapRucu6(list.content, \"searchContent\");",
+        "if (write !== read) items[write] = item;",
+        "if (write !== length) items.length = write;"
+      ],
+      "forbidden": [
+        "function compactInPlace(",
+        "compactInPlace(",
+        "keep(item)",
+        "items[read] = item"
+      ]
     }
   ]
 }

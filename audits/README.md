@@ -109,6 +109,7 @@
 - [phase11 batch15 Xiaohongshu image traversal array classification cache](phase11-batch15-xiaohongshu-image-traversal-array-classification-cache.md)
 - [phase11 batch16 Weibo reply-comment no-op array compaction removal](phase11-batch16-weibo-reply-comment-noop-compaction-removal.md)
 - [phase11 batch17 Youku home.query callback-free nested compaction](phase11-batch17-youku-home-query-callback-free-nested-compaction.md)
+- [phase11 batch18 Amap Rucu6 callback-free compaction](phase11-batch18-amap-rucu6-callback-free-compaction.md)
 
 ## 其他专项审计
 
