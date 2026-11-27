@@ -38204,40 +38204,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/shield/search_business/process/marketingOperationStructured\\\\?', ('response.json.delete', 'response.json.delete([\"data.tipsOperationLocation\", \"data.resourcePlacement\"])'))",
-      "output_entry_index": 2197,
-      "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_business\\/process\\/marketingOperationStructured\\?/i then response.json.delete([\"data.tipsOperationLocation\", \"data.resourcePlacement\"])",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_business\\/process\\/marketingOperationStructured\\?/i then response.json.delete([\"data.tipsOperationLocation\", \"data.resourcePlacement\"])",
-          "input_section": "Rewrite",
-          "priority": -1,
-          "source": "amap",
-          "source_entry_index": 2
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/shield/search_poi/homepage\\\\?', ('response.json.delete', 'response.json.delete(\"history_tags\")'))",
-      "output_entry_index": 2198,
-      "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_poi\\/homepage\\?/i then response.json.delete(\"history_tags\")",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_poi\\/homepage\\?/i then response.json.delete(\"history_tags\")",
-          "input_section": "Rewrite",
-          "priority": -1,
-          "source": "amap",
-          "source_entry_index": 3
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https://ai\\\\.amap\\\\.com/v1/ai_rec/home_qs\\\\?', ('REJECT', 'reject_dict', 'reject_dict(200)'))",
       "output_entry_index": 2199,
       "output_line": "request if ${url} ~= /^https:\\/\\/ai\\.amap\\.com\\/v1\\/ai_rec\\/home_qs\\?/i then reject_dict(200)",
@@ -38335,40 +38301,6 @@
           "priority": -1,
           "source": "amap",
           "source_entry_index": 14
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://m5-zb\\\\.amap\\\\.com/ws/sharedtrip/taxi/order_detail_car_tips\\\\?', ('response.json.delete', 'response.json.delete(\"data.carTips.data.popupInfo\")'))",
-      "output_entry_index": 2205,
-      "output_line": "response if ${url} ~= /^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/sharedtrip\\/taxi\\/order_detail_car_tips\\?/i then response.json.delete(\"data.carTips.data.popupInfo\")",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/sharedtrip\\/taxi\\/order_detail_car_tips\\?/i then response.json.delete(\"data.carTips.data.popupInfo\")",
-          "input_section": "Rewrite",
-          "priority": -1,
-          "source": "amap",
-          "source_entry_index": 15
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/shield/dsp/profile/index/nodefaasv3\\\\?', ('response.json.jq', 'response.json.jq(\"del(.data.tipData, .data.wallet) | .data.cardList |= map(select(.dataKey == \\\\\"MineNewFootprintCard\\\\\" or .dataKey == \\\\\"MineNewBEntranceCardV4\\\\\")) | (.data.cardList[] | select(.dataKey == \\\\\"MineNewBEntranceCardV4\\\\\") | .content.entranceList_1) |= map(select(.id == 7 or .id == 8 or .id == 10 or .id == 17)) | (.data.cardList[] | select(.dataKey == \\\\\"MineNewBEntranceCardV4\\\\\") | .content.entranceList_2) |= map(select(.id == 1 or .id == 32 or .id == 9 or .id == 14))\")'))",
-      "output_entry_index": 2206,
-      "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/dsp\\/profile\\/index\\/nodefaasv3\\?/i then response.json.jq(\"del(.data.tipData, .data.wallet) | .data.cardList |= map(select(.dataKey == \\\"MineNewFootprintCard\\\" or .dataKey == \\\"MineNewBEntranceCardV4\\\")) | (.data.cardList[] | select(.dataKey == \\\"MineNewBEntranceCardV4\\\") | .content.entranceList_1) |= map(select(.id == 7 or .id == 8 or .id == 10 or .id == 17)) | (.data.cardList[] | select(.dataKey == \\\"MineNewBEntranceCardV4\\\") | .content.entranceList_2) |= map(select(.id == 1 or .id == 32 or .id == 9 or .id == 14))\")",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/dsp\\/profile\\/index\\/nodefaasv3\\?/i then response.json.jq(\"del(.data.tipData, .data.wallet) | .data.cardList |= map(select(.dataKey == \\\"MineNewFootprintCard\\\" or .dataKey == \\\"MineNewBEntranceCardV4\\\")) | (.data.cardList[] | select(.dataKey == \\\"MineNewBEntranceCardV4\\\") | .content.entranceList_1) |= map(select(.id == 7 or .id == 8 or .id == 10 or .id == 17)) | (.data.cardList[] | select(.dataKey == \\\"MineNewBEntranceCardV4\\\") | .content.entranceList_2) |= map(select(.id == 1 or .id == 32 or .id == 9 or .id == 14))\")",
-          "input_section": "Rewrite",
-          "priority": -1,
-          "source": "amap",
-          "source_entry_index": 16
         }
       ],
       "trace_status": "mapped"
@@ -38539,23 +38471,6 @@
           "priority": -1,
           "source": "amap",
           "source_entry_index": 26
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/shield/search_bff/hotword\\\\?', ('response.json.jq', 'response.json.jq(\"(if (try (.data.headerHotWord | type) catch null) == \\\\\"array\\\\\" then .data.headerHotWord = [] else . end)\")'))",
-      "output_entry_index": 2217,
-      "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_bff\\/hotword\\?/i then response.json.jq(\"(if (try (.data.headerHotWord | type) catch null) == \\\"array\\\" then .data.headerHotWord = [] else . end)\")",
-      "section": "Rewrite",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_bff\\/hotword\\?/i then response.json.jq(\"(if (try (.data.headerHotWord | type) catch null) == \\\"array\\\" then .data.headerHotWord = [] else . end)\")",
-          "input_section": "Rewrite",
-          "priority": -1,
-          "source": "amap",
-          "source_entry_index": 27
         }
       ],
       "trace_status": "mapped"
@@ -48763,6 +48678,17 @@
   ],
   "script": [
     {
+      "output_line": "http-response ^https?:\\/\\/(?:(?:m[0-46-9]\\.amap\\.com\\/ws\\/(?:aos\\/perception\\/publicTravel\\/beforeNavi|bus\\/plan\\/integrate))|(?:m\\d\\.amap\\.com\\/ws\\/(?:c3frontend\\/(?:af-(?:hotel|launch)\\/page\\/main|af-nearby\\/nearby)|perception\\/drive\\/(?:routeInfo|routePlan)|shield\\/(?:search\\/(?:common\\/coupon\\/info|poi\\/detail|nearbyrec_smart)|search_poi\\/(?:homepage|mps|search\\/sp|sug|tips_operation_location)|search_bff\\/hotword|search_business\\/process\\/marketingOperationStructured|dsp\\/profile\\/index\\/nodefaasv3|frogserver\\/aocs\\/updatable\\/1)|faas\\/amap-navigation\\/(?:card-service-plan-home|main-page)|valueadded\\/alimama\\/splash_screen))|(?:m\\d-zb\\.amap\\.com\\/ws\\/(?:boss\\/(?:car\\/order\\/content_info|order_web\\/friendly_information)|promotion-web\\/resource(?:\\/home)?|sharedtrip\\/taxi\\/order_detail_car_tips))|(?:info\\.amap\\.com\\/ws\\/shield\\/search\\/(?:common\\/coupon\\/info|poi\\/detail))) script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/amap/amap.js,tag=AMAP-CONSOLIDATED,requires-body=true",
+      "provenance_kind": "post_merge_transform",
+      "sources": [
+        {
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
+        }
+      ]
+    },
+    {
       "canonical_key": "('guarded', '^https?://gql(-fed)?\\\\.reddit\\\\.com', ('^https?:\\\\/\\\\/gql', '^https?:\\\\/\\\\/gql(-fed)?\\\\.reddit\\\\.com script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/reddit.js,tag=REDDIT,requires-body=true'))",
       "output_entry_index": 1,
       "output_line": "http-response ^https?:\\/\\/gql(-fed)?\\.reddit\\.com script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/reddit.js,tag=REDDIT,requires-body=true",
@@ -48894,83 +48820,6 @@
         }
       ],
       "trace_status": "mapped"
-    },
-    {
-      "output_line": "http-response ^https?:\\/\\/m[0-46-9]\\.amap\\.com\\/ws\\/aos\\/perception\\/publicTravel\\/beforeNavi\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/amap/amap.js,tag=AMAP,requires-body=true",
-      "provenance_kind": "post_merge_transform",
-      "sources": [
-        {
-          "source": "local_overrides",
-          "source_file": "apply_local_overrides.py",
-          "transform_stage": "local_overrides"
-        }
-      ]
-    },
-    {
-      "output_line": "http-response ^https?:\\/\\/m[0-46-9]\\.amap\\.com\\/ws\\/bus\\/plan\\/integrate\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/amap/amap.js,tag=AMAP-2,requires-body=true",
-      "provenance_kind": "post_merge_transform",
-      "sources": [
-        {
-          "source": "local_overrides",
-          "source_file": "apply_local_overrides.py",
-          "transform_stage": "local_overrides"
-        }
-      ]
-    },
-    {
-      "output_line": "http-response ^https?:\\/\\/m\\d\\.amap\\.com\\/ws\\/shield\\/search_poi\\/(homepage|mps|search\\/sp|sug|tips_operation_location) script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/amap/amap.js,tag=AMAP-7,requires-body=true",
-      "provenance_kind": "post_merge_transform",
-      "sources": [
-        {
-          "source": "local_overrides",
-          "source_file": "apply_local_overrides.py",
-          "transform_stage": "local_overrides"
-        }
-      ]
-    },
-    {
-      "output_line": "http-response ^https?:\\/\\/m\\d\\.amap\\.com\\/ws\\/shield\\/dsp\\/profile\\/index\\/nodefaasv\\d\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/amap/amap.js,tag=AMAP-10,requires-body=true",
-      "provenance_kind": "post_merge_transform",
-      "sources": [
-        {
-          "source": "local_overrides",
-          "source_file": "apply_local_overrides.py",
-          "transform_stage": "local_overrides"
-        }
-      ]
-    },
-    {
-      "output_line": "http-response ^https?:\\/\\/m\\d\\.amap\\.com\\/ws\\/shield\\/search\\/nearbyrec_smart\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/amap/amap.js,tag=AMAP-11,requires-body=true",
-      "provenance_kind": "post_merge_transform",
-      "sources": [
-        {
-          "source": "local_overrides",
-          "source_file": "apply_local_overrides.py",
-          "transform_stage": "local_overrides"
-        }
-      ]
-    },
-    {
-      "output_line": "http-response ^https?:\\/\\/m\\d-zb\\.amap\\.com\\/ws\\/promotion-web\\/resource(\\/home)?\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/amap/amap.js,tag=AMAP-13,requires-body=true",
-      "provenance_kind": "post_merge_transform",
-      "sources": [
-        {
-          "source": "local_overrides",
-          "source_file": "apply_local_overrides.py",
-          "transform_stage": "local_overrides"
-        }
-      ]
-    },
-    {
-      "output_line": "http-response ^https?:\\/\\/m\\d-zb\\.amap\\.com\\/ws\\/sharedtrip\\/taxi\\/order_detail_car_tips\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/amap/amap.js,tag=AMAP-14,requires-body=true",
-      "provenance_kind": "post_merge_transform",
-      "sources": [
-        {
-          "source": "local_overrides",
-          "source_file": "apply_local_overrides.py",
-          "transform_stage": "local_overrides"
-        }
-      ]
     },
     {
       "output_line": "http-response ^https?:\\/\\/api\\.zhihu\\.com\\/commercial_api\\/app_float_layer script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/zhihu/zhihu.js,tag=ZHIHU,requires-body=true",
@@ -52843,91 +52692,6 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/shield/search_bff/hotword\\\\?', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1a724bb3c7ae08b3852a9ab94210d7f7fcb2e3a7/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true'))",
-      "output_entry_index": 329,
-      "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_bff\\/hotword\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1a724bb3c7ae08b3852a9ab94210d7f7fcb2e3a7/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_bff\\/hotword\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1a724bb3c7ae08b3852a9ab94210d7f7fcb2e3a7/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 20
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/shield/search_poi/homepage', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1a724bb3c7ae08b3852a9ab94210d7f7fcb2e3a7/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true'))",
-      "output_entry_index": 330,
-      "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_poi\\/homepage/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1a724bb3c7ae08b3852a9ab94210d7f7fcb2e3a7/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_poi\\/homepage/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1a724bb3c7ae08b3852a9ab94210d7f7fcb2e3a7/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 21
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/shield/dsp/profile/index/nodefaasv3\\\\?', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1a724bb3c7ae08b3852a9ab94210d7f7fcb2e3a7/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true'))",
-      "output_entry_index": 335,
-      "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/dsp\\/profile\\/index\\/nodefaasv3\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1a724bb3c7ae08b3852a9ab94210d7f7fcb2e3a7/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/dsp\\/profile\\/index\\/nodefaasv3\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1a724bb3c7ae08b3852a9ab94210d7f7fcb2e3a7/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 26
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://m5-zb\\\\.amap\\\\.com/ws/boss/(car/order/content_info|order_web/friendly_information)', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1a724bb3c7ae08b3852a9ab94210d7f7fcb2e3a7/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true'))",
-      "output_entry_index": 339,
-      "output_line": "response if ${url} ~= /^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/boss\\/(car\\/order\\/content_info|order_web\\/friendly_information)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1a724bb3c7ae08b3852a9ab94210d7f7fcb2e3a7/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/boss\\/(car\\/order\\/content_info|order_web\\/friendly_information)/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1a724bb3c7ae08b3852a9ab94210d7f7fcb2e3a7/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 30
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://m5-zb\\\\.amap\\\\.com/ws/sharedtrip/taxi/order_detail_car_tips\\\\?', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1a724bb3c7ae08b3852a9ab94210d7f7fcb2e3a7/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true'))",
-      "output_entry_index": 341,
-      "output_line": "response if ${url} ~= /^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/sharedtrip\\/taxi\\/order_detail_car_tips\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1a724bb3c7ae08b3852a9ab94210d7f7fcb2e3a7/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/sharedtrip\\/taxi\\/order_detail_car_tips\\?/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1a724bb3c7ae08b3852a9ab94210d7f7fcb2e3a7/Modules/JavaScript/ishowshu/amap/ishowshu_amap.js\") with tag=\"amap\", timeout=60, requires_body=true",
-          "input_section": "Script",
-          "priority": 2,
-          "source": "aoomee",
-          "source_entry_index": 32
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "output_line": "http-response ^https?:\\/\\/(api|cdn\\.api)\\.chelaile(?:app)?(?:\\.net)?\\.cn\\/goocity\\/flowPos\\/listByPos script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/romeo_legacy/chelaile-flowpos.js, requires-body=true, timeout=20",
       "provenance_kind": "post_merge_transform",
       "sources": [
@@ -53267,176 +53031,6 @@
       ]
     },
     {
-      "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/c3frontend/(?:af-(?:hotel|launch)/page/main|af-nearby/nearby)', ('script', 'script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除导航详情页底部酒店、处理附近页\", requires_body=true'))",
-      "output_entry_index": 382,
-      "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/c3frontend\\/(?:af-(?:hotel|launch)\\/page\\/main|af-nearby\\/nearby)/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除导航详情页底部酒店、处理附近页\", requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/c3frontend\\/(?:af-(?:hotel|launch)\\/page\\/main|af-nearby\\/nearby)/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除导航详情页底部酒店、处理附近页\", requires_body=true",
-          "input_section": "Script",
-          "priority": -1,
-          "source": "amap",
-          "source_entry_index": 0
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/perception/drive/(?:routeInfo|routePlan)', ('script', 'script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除路线规划推广\", requires_body=true'))",
-      "output_entry_index": 383,
-      "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/perception\\/drive\\/(?:routeInfo|routePlan)/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除路线规划推广\", requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/perception\\/drive\\/(?:routeInfo|routePlan)/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除路线规划推广\", requires_body=true",
-          "input_section": "Script",
-          "priority": -1,
-          "source": "amap",
-          "source_entry_index": 1
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/shield/search_poi/(?:mps|search/sp|sug|tips_operation_location)', ('script', 'script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除搜索详情页推广\", requires_body=true'))",
-      "output_entry_index": 384,
-      "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_poi\\/(?:mps|search\\/sp|sug|tips_operation_location)/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除搜索详情页推广\", requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search_poi\\/(?:mps|search\\/sp|sug|tips_operation_location)/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除搜索详情页推广\", requires_body=true",
-          "input_section": "Script",
-          "priority": -1,
-          "source": "amap",
-          "source_entry_index": 2
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/faas/amap-navigation/(?:card-service-plan-home|main-page)', ('script', 'script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除首页推广\", requires_body=true'))",
-      "output_entry_index": 385,
-      "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/faas\\/amap-navigation\\/(?:card-service-plan-home|main-page)/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除首页推广\", requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/faas\\/amap-navigation\\/(?:card-service-plan-home|main-page)/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除首页推广\", requires_body=true",
-          "input_section": "Script",
-          "priority": -1,
-          "source": "amap",
-          "source_entry_index": 3
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/shield/frogserver/aocs/updatable/1\\\\?', ('script', 'script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除首页推广\", requires_body=true'))",
-      "output_entry_index": 386,
-      "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/frogserver\\/aocs\\/updatable\\/1\\?/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除首页推广\", requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/frogserver\\/aocs\\/updatable\\/1\\?/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除首页推广\", requires_body=true",
-          "input_section": "Script",
-          "priority": -1,
-          "source": "amap",
-          "source_entry_index": 4
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/shield/search/nearbyrec_smart\\\\?', ('script', 'script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除附近页推广\", requires_body=true'))",
-      "output_entry_index": 387,
-      "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search\\/nearbyrec_smart\\?/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除附近页推广\", requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/shield\\/search\\/nearbyrec_smart\\?/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除附近页推广\", requires_body=true",
-          "input_section": "Script",
-          "priority": -1,
-          "source": "amap",
-          "source_entry_index": 5
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://m5\\\\.amap\\\\.com/ws/valueadded/alimama/splash_screen\\\\?', ('script', 'script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除开屏广告\", requires_body=true'))",
-      "output_entry_index": 388,
-      "output_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/valueadded\\/alimama\\/splash_screen\\?/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除开屏广告\", requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/valueadded\\/alimama\\/splash_screen\\?/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除开屏广告\", requires_body=true",
-          "input_section": "Script",
-          "priority": -1,
-          "source": "amap",
-          "source_entry_index": 6
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://m5-zb\\\\.amap\\\\.com/ws/boss/(?:car/order/content_info|order_web/friendly_information)', ('script', 'script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除打车页推广卡片、弹窗\", requires_body=true'))",
-      "output_entry_index": 389,
-      "output_line": "response if ${url} ~= /^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/boss\\/(?:car\\/order\\/content_info|order_web\\/friendly_information)/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除打车页推广卡片、弹窗\", requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/boss\\/(?:car\\/order\\/content_info|order_web\\/friendly_information)/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除打车页推广卡片、弹窗\", requires_body=true",
-          "input_section": "Script",
-          "priority": -1,
-          "source": "amap",
-          "source_entry_index": 7
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://m5-zb\\\\.amap\\\\.com/ws/promotion-web/resource(/home)?\\\\?', ('script', 'script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除打车页红点角标、天气图标\", requires_body=true'))",
-      "output_entry_index": 390,
-      "output_line": "response if ${url} ~= /^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/promotion-web\\/resource(\\/home)?\\?/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除打车页红点角标、天气图标\", requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/m5-zb\\.amap\\.com\\/ws\\/promotion-web\\/resource(\\/home)?\\?/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除打车页红点角标、天气图标\", requires_body=true",
-          "input_section": "Script",
-          "priority": -1,
-          "source": "amap",
-          "source_entry_index": 8
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
-      "canonical_key": "('guarded', '^https://(?:info|m5)\\\\.amap\\\\.com/ws/shield/search/(?:common/coupon/info|poi/detail)', ('script', 'script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除导航详情页推广\", requires_body=true'))",
-      "output_entry_index": 391,
-      "output_line": "response if ${url} ~= /^https:\\/\\/(?:info|m5)\\.amap\\.com\\/ws\\/shield\\/search\\/(?:common\\/coupon\\/info|poi\\/detail)/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除导航详情页推广\", requires_body=true",
-      "section": "Script",
-      "sources": [
-        {
-          "disposition": "selected",
-          "input_line": "response if ${url} ~= /^https:\\/\\/(?:info|m5)\\.amap\\.com\\/ws\\/shield\\/search\\/(?:common\\/coupon\\/info|poi\\/detail)/i then script(\"https://raw.githubusercontent.com/XcvcvX/loon-change/main/sources/amap/rucu6_amap.js\") with tag=\"[高德地图]移除导航详情页推广\", requires_body=true",
-          "input_section": "Script",
-          "priority": -1,
-          "source": "amap",
-          "source_entry_index": 9
-        }
-      ],
-      "trace_status": "mapped"
-    },
-    {
       "canonical_key": "('guarded', '^https://m\\\\.pinduoduo\\\\.net/mdkd/package\\\\?from_app_scan', ('script', 'script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1a724bb3c7ae08b3852a9ab94210d7f7fcb2e3a7/Modules/JavaScript/Kelee/PinDuoDuo_remove_ads/kelee.one_PinDuoDuo_remove_ads.js\") with tag=\"移除扫码取件页面商品推荐及弹窗\", requires_body=true'))",
       "output_entry_index": 392,
       "output_line": "response if ${url} ~= /^https:\\/\\/m\\.pinduoduo\\.net\\/mdkd\\/package\\?from_app_scan/i then script(\"https://raw.githubusercontent.com/ifflagged/Romeo/1a724bb3c7ae08b3852a9ab94210d7f7fcb2e3a7/Modules/JavaScript/Kelee/PinDuoDuo_remove_ads/kelee.one_PinDuoDuo_remove_ads.js\") with tag=\"移除扫码取件页面商品推荐及弹窗\", requires_body=true",
@@ -53717,14 +53311,14 @@
       "included": 0
     },
     "post_transform_reconciled": true,
-    "rewrite_output_entries": 2311,
+    "rewrite_output_entries": 2306,
     "rule_covered_or_duplicate_events": 121,
     "rule_included_events": 723,
     "rule_output_entries": 719,
     "rule_safety_excluded_events": 3,
     "rule_scope_adjustments": 0,
     "rule_source_events": 847,
-    "script_output_entries": 336
+    "script_output_entries": 315
   },
   "upstream_revisions": {
     "AlipayAdBlock": {
@@ -53754,19 +53348,27 @@
       "assets": {
         "loon_Amap.recommend.jq": {
           "bytes": 10743,
-          "sha256": "0ab7e100686443a41b6df2b44c39c70c2e2af037bdf48c170d05171e7b5ca2c9"
+          "git_blob_sha1": "27405f18ea127bb92abc1b9ffaf64c6d2608f897",
+          "sha256": "0ab7e100686443a41b6df2b44c39c70c2e2af037bdf48c170d05171e7b5ca2c9",
+          "upstream_path": "Modules/JavaScript/sooyaaabo/Amap/loon_Amap.recommend.jq"
         },
         "rucu6_amap.js": {
           "bytes": 23517,
-          "sha256": "90be0dca3a927df667c805470c31f75e2abd9a7d1c7903dd40e17ecb12c54004"
+          "git_blob_sha1": "3080d0de552db9e523fa4c195e609d2cc9609047",
+          "sha256": "90be0dca3a927df667c805470c31f75e2abd9a7d1c7903dd40e17ecb12c54004",
+          "upstream_path": "Modules/JavaScript/sooyaaabo/Amap/rucu6_amap.js"
         },
         "search_poi_detail.jq": {
           "bytes": 11158,
-          "sha256": "7def102b752835f8cbe63167b75dbe19997cb532f7e35d8283de4eeb5f2d4eb6"
+          "git_blob_sha1": "0c9673ea5a463e06359d9e698192af2ffda8200c",
+          "sha256": "7def102b752835f8cbe63167b75dbe19997cb532f7e35d8283de4eeb5f2d4eb6",
+          "upstream_path": "Modules/JavaScript/Kelee/Amap_remove_ads/kelee_search_poi_detail.jq"
         },
         "updatable.jq": {
           "bytes": 10810,
-          "sha256": "dba0888e3e4491e282ce58e547e3a4125f6fd96057d0d5eaf878450fa40bd647"
+          "git_blob_sha1": "94c07642e913b2b9c082fe1f22633d01ccf2413d",
+          "sha256": "dba0888e3e4491e282ce58e547e3a4125f6fd96057d0d5eaf878450fa40bd647",
+          "upstream_path": "Modules/JavaScript/Kelee/Amap_remove_ads/kelee_updatable.jq"
         }
       },
       "bytes": 15000,
@@ -53774,6 +53376,11 @@
       "mitm_hosts": [
         "*.amap.com"
       ],
+      "plugin": {
+        "bytes": 15000,
+        "git_blob_sha1": "7af2dfb72fb5a6783ea7776c1ae0fe42363973a3",
+        "sha256": "5d9c0f57e18de06cc61844c5484e4e4d22b533c81ba3fe4e8cb30cdffce6f1bb"
+      },
       "required_assets": [
         "rucu6_amap.js",
         "loon_Amap.recommend.jq",

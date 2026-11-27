@@ -496,6 +496,7 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
     // 公交出行 底部卡路里数值
     setIfDifferent(obj.data.common_data.bus_plan_bottom_event, "data", []);
   }
+  // loon-change: Amap beforeNavi bottom-tip cleanup v1
   if (obj?.data?.common_data?.bus_plan_bottom_tips?.data?.length > 0) {
     setIfDifferent(obj.data.common_data.bus_plan_bottom_tips, "data", []);
   }
@@ -566,7 +567,7 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
     setIfDifferent(obj.data.modules.C1EndNaviEngine, "data", {});
   }
 } else if (url.includes("/c3frontend/af-nearby/nearby")) {
-  // 附近页面横版推广图片与笔记推广
+  // loon-change: Amap af-nearby promotion cleanup v1
   if (obj?.data?.modules?.banner) {
     setIfDifferent(obj.data.modules, "banner", {});
   }
@@ -650,16 +651,17 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
   // 我的页面
   if (obj?.data?.cardList?.length > 0) {
     compactInPlace(obj.data.cardList, "myOrder");
-    for (let i = 0; i < obj.data.cardList.length; i++) {
-      const card = obj.data.cardList[i];
-      if (card?.dataKey === "MineNewBEntranceCardV4") {
-        const content = card.content;
-        if (Array.isArray(content?.entranceList_1)) {
-          compactInPlace(content.entranceList_1, "myOrderEntrance1");
-        }
-        if (Array.isArray(content?.entranceList_2)) {
-          compactInPlace(content.entranceList_2, "myOrderEntrance2");
-        }
+  }
+  // loon-change: Amap nodefaasv3 merged profile cleanup v1
+  for (let i = 0; i < obj.data.cardList.length; i++) {
+    const card = obj.data.cardList[i];
+    if (card?.dataKey === "MineNewBEntranceCardV4") {
+      const content = card.content;
+      if (Array.isArray(content?.entranceList_1)) {
+        compactInPlace(content.entranceList_1, "myOrderEntrance1");
+      }
+      if (Array.isArray(content?.entranceList_2)) {
+        compactInPlace(content.entranceList_2, "myOrderEntrance2");
       }
     }
   }
@@ -709,10 +711,11 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
     }
   }
 } else if (url.includes("/shield/search_bff/hotword")) {
-  // 搜索框热词与菜单推广
+  // 搜索框 热榜logo
   if (obj?.data?.headerHotWord?.length > 0) {
     setIfDifferent(obj.data, "headerHotWord", []);
   }
+  // loon-change: Amap hotWordWithIcon cleanup v1
   if (obj?.data?.hotWordWithIcon?.length > 0) {
     setIfDifferent(obj.data, "hotWordWithIcon", []);
   }

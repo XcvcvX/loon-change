@@ -18,22 +18,35 @@
     ],
     "upstream_repository": "https://github.com/ifflagged/Romeo",
     "upstream_commit": "1a724bb3c7ae08b3852a9ab94210d7f7fcb2e3a7",
+    "plugin": {
+      "bytes": 15000,
+      "sha256": "5d9c0f57e18de06cc61844c5484e4e4d22b533c81ba3fe4e8cb30cdffce6f1bb",
+      "git_blob_sha1": "7af2dfb72fb5a6783ea7776c1ae0fe42363973a3"
+    },
     "assets": {
       "rucu6_amap.js": {
         "bytes": 23517,
-        "sha256": "90be0dca3a927df667c805470c31f75e2abd9a7d1c7903dd40e17ecb12c54004"
+        "sha256": "90be0dca3a927df667c805470c31f75e2abd9a7d1c7903dd40e17ecb12c54004",
+        "git_blob_sha1": "3080d0de552db9e523fa4c195e609d2cc9609047",
+        "upstream_path": "Modules/JavaScript/sooyaaabo/Amap/rucu6_amap.js"
       },
       "loon_Amap.recommend.jq": {
         "bytes": 10743,
-        "sha256": "0ab7e100686443a41b6df2b44c39c70c2e2af037bdf48c170d05171e7b5ca2c9"
+        "sha256": "0ab7e100686443a41b6df2b44c39c70c2e2af037bdf48c170d05171e7b5ca2c9",
+        "git_blob_sha1": "27405f18ea127bb92abc1b9ffaf64c6d2608f897",
+        "upstream_path": "Modules/JavaScript/sooyaaabo/Amap/loon_Amap.recommend.jq"
       },
       "updatable.jq": {
         "bytes": 10810,
-        "sha256": "dba0888e3e4491e282ce58e547e3a4125f6fd96057d0d5eaf878450fa40bd647"
+        "sha256": "dba0888e3e4491e282ce58e547e3a4125f6fd96057d0d5eaf878450fa40bd647",
+        "git_blob_sha1": "94c07642e913b2b9c082fe1f22633d01ccf2413d",
+        "upstream_path": "Modules/JavaScript/Kelee/Amap_remove_ads/kelee_updatable.jq"
       },
       "search_poi_detail.jq": {
         "bytes": 11158,
-        "sha256": "7def102b752835f8cbe63167b75dbe19997cb532f7e35d8283de4eeb5f2d4eb6"
+        "sha256": "7def102b752835f8cbe63167b75dbe19997cb532f7e35d8283de4eeb5f2d4eb6",
+        "git_blob_sha1": "0c9673ea5a463e06359d9e698192af2ffda8200c",
+        "upstream_path": "Modules/JavaScript/Kelee/Amap_remove_ads/kelee_search_poi_detail.jq"
       }
     }
   },
