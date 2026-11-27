@@ -394,9 +394,9 @@ def optimize_youku_home_query_callback_free(source):
         "compactInPlace(item.nodes, i => {",
         "compactInPlace(i.nodes, ii => {",
         "compactInPlace(ii.nodes, iii =>",
-        "CNTV_STATIC_FILTER_18.includes(item?.data?.nodeKey)",
-        "CNTV_STATIC_FILTER_19.includes(i?.typeName)",
-        "CNTV_STATIC_FILTER_20.includes(ii?.typeName)",
+        '["CHILD", "COMIC2", "20230929GREATWORKMFK"]?.includes(item?.data?.nodeKey)',
+        '["UC广告抽屉", "橱窗广告"]?.includes(i?.typeName)',
+        '["PHONE_FEED_CARD_B_AD", "PHONE_FEED_CARD_S_AD", "PHONE_H_UC_AD", "PHONE_IMG_A", "PHONE_YK_AD_BANNER"]?.includes(ii?.typeName)',
         'iii?.typeName !== "PHONE_FEED_CARD_S_AD"',
         'i?.id === 35505 || i?.id === 37335',
     )
