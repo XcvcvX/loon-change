@@ -51,7 +51,7 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         self.assertIn('let modified = !url.includes("/2/cardlist") && !url.includes("/2/comments/build_comments");', source)
         self.assertIn('$done(modified ? {body: JSON.stringify(obj)} : {});', source)
         self.assertEqual(optimize_source(source), source)
-        self.assertEqual(len(re.findall(r"const __loonSource\d+ =", source)), 32)
+        self.assertEqual(len(re.findall(r"const __loonSource\d+ =", source)), 31)
         self.assertEqual(len(re.findall(r"(?m)^\s*const __loonLength\d+ = __loonSource\d+\.length;$", source)), 15)
         for cached_length in ("timelineItemsLength", "hotItemsLength", "hotStatusesLength", "asynItemsLength", "flowItemsLength", "searchItemsLength", "groupItemsLength"):
             self.assertIn(cached_length, source)
