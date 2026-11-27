@@ -378,7 +378,7 @@ def optimize_youku_home_query_callback_free(source):
         if "compactInPlace(" in branch or "=>" in branch:
             raise ValueError("CNTV Youku home.query route still contains predicate callbacks")
         helper_start = source.index(YOUKU_HOME_QUERY_CALLBACK_FREE_HELPER_MARKER)
-        helper_end = source.find("\\n}\\n\\n", helper_start)
+        helper_end = source.find("\n}\n\n", helper_start)
         if helper_end < 0:
             raise ValueError("CNTV Youku home.query callback-free helper boundary drift")
         helper = source[helper_start:helper_end + 2]
