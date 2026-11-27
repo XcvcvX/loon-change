@@ -98,8 +98,8 @@ class CNTVOptimizerTests(unittest.TestCase):
         ]
         lines, changed = migrate_cntv_script_to_local(fixture)
         self.assertEqual(changed, 1)
-        self.assertIn(CNTV_LOCAL_SCRIPT_URL, "\\n".join(lines))
-        self.assertNotIn(CNTV_REMOTE_SCRIPT_URL, "\\n".join(lines))
+        self.assertIn(CNTV_LOCAL_SCRIPT_URL, "\n".join(lines))
+        self.assertNotIn(CNTV_REMOTE_SCRIPT_URL, "\n".join(lines))
 
     def test_partial_trigger_inventory_fails_closed(self):
         fixture = ["[Script]"] + [
@@ -107,7 +107,7 @@ class CNTVOptimizerTests(unittest.TestCase):
             % CNTV_REMOTE_SCRIPT_URL
         ] + ["[MITM]", "hostname = cntv.example"]
         with self.assertRaisesRegex(ValueError, "expected 26"):
-            rewrite_plugin("\\n".join(fixture))
+            rewrite_plugin("\n".join(fixture))
 
 
 @unittest.skipUnless(NODE, "Node.js is required for CNTV response runtime tests")
@@ -415,7 +415,7 @@ process.stdout.write(nativeJSON.stringify({
         self.assertNotIn("=>", branch)
 
         helper_start = source.index(YOUKU_HOME_QUERY_CALLBACK_FREE_HELPER_MARKER)
-        helper_end = source.index("\\n}\\n\\n", helper_start)
+        helper_end = source.index("\n}\n\n", helper_start)
         helper = source[helper_start:helper_end + 2]
         for token in (
             'if (mode === "root")', 'if (mode === "level2")',
@@ -432,9 +432,9 @@ process.stdout.write(nativeJSON.stringify({
         self.assertNotIn(".map(", helper)
         self.assertNotIn(".forEach(", helper)
 
-        legacy = source[:begin] + YOUKU_HOME_QUERY_BRANCH + "  " + YOUKU_QUERY_MARKER + "\\n" + source[finish:]
+        legacy = source[:begin] + YOUKU_HOME_QUERY_BRANCH + "  " + YOUKU_QUERY_MARKER + "\n" + source[finish:]
         legacy_helper_start = legacy.index(YOUKU_HOME_QUERY_CALLBACK_FREE_HELPER_MARKER)
-        legacy_helper_end = legacy.index("\\n}\\n\\n", legacy_helper_start)
+        legacy_helper_end = legacy.index("\n}\n\n", legacy_helper_start)
         legacy = legacy[:legacy_helper_start] + legacy[legacy_helper_end + 4:]
         migrated = optimize_youku_home_query_callback_free(legacy)
         self.assertIn(YOUKU_HOME_QUERY_CALLBACK_FREE_HELPER_MARKER, migrated)
