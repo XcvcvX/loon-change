@@ -113,30 +113,21 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
   // 路线规划页
   if (obj?.data?.children?.length > 0) {
     // 有schema参数的为推广
-    compactInPlace(obj.data.children, (item) =>
-      !item || !Object.prototype.hasOwnProperty.call(item, "schema")
-    );
+    // loon-change: Amap rucu6 callback-free route calls v1
+    compactAmapRucu6(obj.data.children, "withoutSchema");
   }
 } else if (url.includes("/faas/amap-navigation/main-page")) {
   // 首页底部卡片
   if (obj?.data?.cardList?.length > 0) {
-    compactInPlace(obj.data.cardList, (item) =>
-      item?.dataKey === "ContinueNavigationCard" ||
-      item?.dataKey === "FrequentLocation" ||
-      item?.dataKey === "LoginCard"
-    );
+    compactAmapRucu6(obj.data.cardList, "homeCards");
   }
   if (obj?.data?.mapBizList?.length > 0) {
-    compactInPlace(obj.data.mapBizList, (item) =>
-      item?.dataKey === "FindCarVirtualCard"
-    );
+    compactAmapRucu6(obj.data.mapBizList, "findCar");
   }
 } else if (url.includes("/perception/drive/routeInfo")) {
   // 导航详情页
   if (obj?.data?.tbt?.event?.length > 0) {
-    compactInPlace(obj.data.tbt.event, (item) =>
-      !amapAdsPattern.test(item?.dynamic_id_s)
-    );
+    compactAmapRucu6(obj.data.tbt.event, "dynamicAds");
   }
   if (obj?.data?.front_end) {
     if (obj?.data?.front_end?.assistant) {
@@ -144,15 +135,11 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
     }
     if (obj?.data?.front_end?.guide_tips?.length > 0) {
       // 音乐底栏
-      compactInPlace(obj.data.front_end.guide_tips, (item) =>
-        item?.biz_type !== "music"
-      );
+      compactAmapRucu6(obj.data.front_end.guide_tips, "nonMusic");
     }
     if (obj?.data?.front_end?.download?.length > 0) {
       // 导航插播语音广告
-      compactInPlace(obj.data.front_end.download, (item) =>
-        !amapAdsPattern.test(item?.dynamic_id_s)
-      );
+      compactAmapRucu6(obj.data.front_end.download, "dynamicAds");
     }
   }
 } else if (url.includes("/perception/drive/routePlan")) {
@@ -170,15 +157,11 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
   }
   if (obj?.data?.tbt?.event?.length > 0) {
     // 导航插播语音广告
-    compactInPlace(obj.data.tbt.event, (item) =>
-      !amapAdsPattern.test(item?.dynamic_id_s)
-    );
+    compactAmapRucu6(obj.data.tbt.event, "dynamicAds");
   }
   if (obj?.data?.front_end?.download?.length > 0) {
     // 导航插播语音广告
-    compactInPlace(obj.data.front_end.download, (item) =>
-      !amapAdsPattern.test(item?.dynamic_id_s)
-    );
+    compactAmapRucu6(obj.data.front_end.download, "dynamicAds");
   }
 } else if (url.includes("/promotion-web/resource")) {
   // 打车页面
@@ -213,7 +196,7 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
       delete obj.data.topMixedCard; // 顶部足迹、贡献卡片
     }
     if (obj?.data?.cardList?.length > 0) {
-      compactInPlace(obj.data.cardList, (item) => item?.dataKey === "MyOrderCard");
+      compactAmapRucu6(obj.data.cardList, "myOrder");
     }
   }
 } else if (url.includes("/shield/frogserver/aocs/updatable/")) {
@@ -289,9 +272,7 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
   // 附近页面
   const modules = obj?.data?.modules;
   if (Array.isArray(modules) && modules.length > 0) {
-    compactInPlace(modules, (item) =>
-      item === "head" || item === "search_hot_words" || item === "feed_rec"
-    );
+    compactAmapRucu6(modules, "nearbyModules");
   }
 } else if (url.includes("/shield/search/poi/detail")) {
   // 搜索结果 模块详情
@@ -605,9 +586,7 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
       let list = obj.data.modules.list_data.data;
       if (list?.content?.length > 0) {
         // brandAdCard广告卡片 toplist_al人气榜单 高德指南
-        compactInPlace(list.content, (item) =>
-          item?.item_type !== "brandAdCard" && item?.item_type !== "toplist_al"
-        );
+        compactAmapRucu6(list.content, "searchContent");
       }
     }
   }
@@ -694,13 +673,83 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
 $done({ body: JSON.stringify(obj) });
 }
 
-function compactInPlace(items, keep) {
-  if (!Array.isArray(items) || items.length === 0) return;
+// loon-change: Amap rucu6 callback-free compaction v1
+function compactAmapRucu6(items, mode) {
+  if (!Array.isArray(items)) return;
+  const length = items.length;
+  if (length === 0) return;
   let write = 0;
-  for (let read = 0; read < items.length; read++) {
-    const item = items[read];
-    if (!keep(item)) continue;
-    items[write++] = item;
+
+  if (mode === "withoutSchema") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      if (item && Object.prototype.hasOwnProperty.call(item, "schema")) continue;
+      if (write !== read) items[write] = item;
+      write++;
+    }
+  } else if (mode === "homeCards") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      const dataKey = item?.dataKey;
+      if (dataKey === "ContinueNavigationCard" ||
+          dataKey === "FrequentLocation" ||
+          dataKey === "LoginCard") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "findCar") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      if (item?.dataKey === "FindCarVirtualCard") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "dynamicAds") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      if (!amapAdsPattern.test(item?.dynamic_id_s)) {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "nonMusic") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      if (item?.biz_type !== "music") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "myOrder") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      if (item?.dataKey === "MyOrderCard") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "nearbyModules") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      if (item === "head" || item === "search_hot_words" || item === "feed_rec") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "searchContent") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      const itemType = item?.item_type;
+      if (itemType !== "brandAdCard" && itemType !== "toplist_al") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else {
+    return;
   }
-  items.length = write;
+
+  if (write !== length) items.length = write;
 }
