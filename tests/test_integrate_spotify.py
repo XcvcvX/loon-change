@@ -202,9 +202,15 @@ process.stdout.write(JSON.stringify({
         ):
             upstream = (root / filename).read_text(encoding="utf-8")
             optimized = optimize_spotify_nested_script(upstream, kind)
+            from integrate_spotify import NESTED_REWRITE_MARKER
             self.assertIn(marker, optimized)
+            self.assertIn(NESTED_REWRITE_MARKER, optimized)
             self.assertIn("function hasTargetField(buf, depth, start, end)", optimized)
-            self.assertIn("const out = hasTargetField(bytes, 0) ? renameField(bytes, 0,", optimized)
+            self.assertIn("function renameField(buf, depth, start, end, kind)", optimized)
+            self.assertIn('renameField(bytes, 0, 0, bytes.length, "' + kind + '")', optimized)
+            self.assertNotIn("function parseFields(", optimized)
+            self.assertNotIn("fields.map(", optimized)
+            self.assertNotIn("parts.reduce(", optimized)
             self.assertEqual(optimize_spotify_nested_script(optimized, kind), optimized)
 
     @unittest.skipUnless(shutil.which("node"), "Node.js is required for Spotify binary runtime tests")
