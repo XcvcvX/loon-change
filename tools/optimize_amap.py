@@ -97,7 +97,26 @@ HELPER = """function compactInPlace(items, mode) {
   } else if (mode === "myOrder") {
     for (let read = 0; read < length; read++) {
       const item = items[read];
-      if (item?.dataKey === "MyOrderCard") {
+      const key = item?.dataKey;
+      if (key === "MyOrderCard" || key === "MineNewFootprintCard" || key === "MineNewBEntranceCardV4") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "myOrderEntrance1") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      const id = item?.id;
+      if (id === 7 || id === 8 || id === 10 || id === 17) {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "myOrderEntrance2") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      const id = item?.id;
+      if (id === 1 || id === 32 || id === 9 || id === 14) {
         if (write !== read) items[write] = item;
         write++;
       }
@@ -176,6 +195,7 @@ const shouldProcess =
   url.includes("/bus/plan/integrate") ||
   url.includes("/c3frontend/af-hotel/page/main") ||
   url.includes("/c3frontend/af-launch/page/main") ||
+  url.includes("/c3frontend/af-nearby/nearby") ||
   url.includes("/perception/drive/routeInfo") ||
   url.includes("/perception/drive/routePlan") ||
   url.includes("/shield/search/common/coupon/info") ||
@@ -299,6 +319,8 @@ def optimize_compaction_modes(source):
         "dynamicAds": 4,
         "nonMusic": 1,
         "myOrder": 1,
+        "myOrderEntrance1": 1 if NODEFAAS_MARKER in source else 0,
+        "myOrderEntrance2": 1 if NODEFAAS_MARKER in source else 0,
         "nearbyModules": 1,
         "searchContent": 1,
         "suggestions": 1,
@@ -365,7 +387,8 @@ def optimize_compaction_modes(source):
                 "Amap specialized mode %s expected %d call(s), found %d"
                 % (name, count, actual_count)
             )
-    if source.count("compactInPlace(") != 14:
+    expected_calls = 16 if NODEFAAS_MARKER in source else 14
+    if source.count("compactInPlace(") != expected_calls:
         raise ValueError("Amap specialized compaction call inventory drift")
     if re.search(
         r'compactInPlace\([^,\n]+,\s*(?:\([^)]*\)|[A-Za-z_$][\w$]*)\s*=>',
