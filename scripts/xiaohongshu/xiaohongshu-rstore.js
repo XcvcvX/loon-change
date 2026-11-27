@@ -383,6 +383,9 @@ $done({body: JSON.stringify(obj)});
 // 小红书画质增强：加载2K分辨率的图片
 // loon-change: Xiaohongshu imagefeed single traversal live-photo extraction v1
 // loon-change: Xiaohongshu image traversal array-frame length cache v1
+// loon-change: Xiaohongshu imagefeed single traversal live-photo extraction v1
+// loon-change: Xiaohongshu image traversal array-frame length cache v1
+// loon-change: Xiaohongshu image traversal array classification cache v1
 function imageEnhance(images, livePhotoCache) {
   if (!images || typeof images !== "object") return images;
   const livePhotoTarget = Array.isArray(livePhotoCache) ? livePhotoCache : null;
@@ -391,11 +394,12 @@ function imageEnhance(images, livePhotoCache) {
   const widthPattern = /imageView2\/2\/w\/\d+\/format/g;
   const heightPattern = /imageView2\/2\/h\/\d+\/format/g;
   let originalDone = false;
-  const stack = [{value: images, index: 0, keys: null, length: Array.isArray(images) ? images.length : 0, root: true}];
+  const imagesIsArray = Array.isArray(images);
+  const stack = [{value: images, index: 0, keys: null, length: imagesIsArray ? images.length : 0, root: true, isArray: imagesIsArray}];
   while (stack.length) {
     const frame = stack[stack.length - 1];
     const value = frame.value;
-    if (Array.isArray(value)) {
+    if (frame.isArray) {
       if (frame.index >= frame.length) {
         stack.pop();
         continue;
@@ -424,7 +428,8 @@ function imageEnhance(images, livePhotoCache) {
             .replace(heightPattern, "imageView2/2/h/2160/format");
         }
       } else if (child && typeof child === "object") {
-        stack.push({value: child, index: 0, keys: null, length: Array.isArray(child) ? child.length : 0, root: false});
+        const childIsArray = Array.isArray(child);
+        stack.push({value: child, index: 0, keys: null, length: childIsArray ? child.length : 0, root: false, isArray: childIsArray});
       }
     } else {
       if (frame.keys === null) frame.keys = Object.keys(value);
@@ -448,13 +453,13 @@ function imageEnhance(images, livePhotoCache) {
             .replace(heightPattern, "imageView2/2/h/2160/format");
         }
       } else if (child && typeof child === "object") {
-        stack.push({value: child, index: 0, keys: null, length: Array.isArray(child) ? child.length : 0, root: false});
+        const childIsArray = Array.isArray(child);
+        stack.push({value: child, index: 0, keys: null, length: childIsArray ? child.length : 0, root: false, isArray: childIsArray});
       }
     }
   }
   return images;
 }
-
 
 function replaceUrlContent(collectionA, collectionB) {
   const byFileId = new Map();
