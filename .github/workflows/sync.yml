@@ -289,7 +289,7 @@ jobs:
       - name: 检查知乎本地响应脚本语法
         run: node --check scripts/zhihu/zhihu.js
       - name: 检查高德本地响应脚本语法
-        run: node --check sources/amap/rucu6_amap.js
+        run: node --check sources/amap/rucu6_amap.js && node --check scripts/amap/amap.js
       - name: 检查 CNFTP 本地响应脚本语法
         run: node --check scripts/cnftp/cnftp.js
       - name: 检查 CNTV 本地响应脚本语法
