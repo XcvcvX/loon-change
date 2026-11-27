@@ -423,7 +423,7 @@ process.stdout.write(nativeJSON.stringify({doneResult, parseCount, stringifyCoun
     def test_specialized_compaction_modes_remove_per_item_callbacks(self):
         source = SOURCE.read_text(encoding="utf-8")
         self.assertEqual(source.count(COMPACTION_MARKER), 1)
-        self.assertEqual(source.count("compactInPlace("), 14)
+        self.assertEqual(source.count("compactInPlace("), 16)
         for mode, count in (
             ("withoutSchema", 1), ("homeCards", 1), ("findCar", 1),
             ("dynamicAds", 4), ("nonMusic", 1), ("myOrder", 1),
