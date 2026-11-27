@@ -180,6 +180,13 @@ def _replace_array_constant(source: str, name: str, function: str) -> str:
     return source
 
 
+def _remove_array_constant(source: str, name: str) -> str:
+    pattern = re.compile(r"const " + re.escape(name) + r"\\s*=\\s*\\[[\\s\\S]*?\\];")
+    source, count = pattern.subn("", source, count=1)
+    if count != 1:
+        raise ValueError("%s upstream allowlist changed; refusing optimization" % name)
+    return source
+
 def _validate_upstream(source: str) -> None:
     for route in ROUTES:
         token = "functionId=" + route
@@ -257,23 +264,8 @@ def optimize_source(source: str, upstream_commit: str = "unknown") -> str:
         "    id === \"noticeFloor\" || id === \"recommendfloor\";\n"
         "}",
     )
-    source = _replace_array_constant(
-        source,
-        "WELCOME_HOME_TYPE_INCLUDE",
-        "function isWelcomeHomeType(type) {\n"
-        "  return type === \"topTab\" || type === \"searchC\" ||\n"
-        "    type === \"dynamicIcon\" || type === \"locPermission\" ||\n"
-        "    type === \"login\" || type === \"hybrid\" || type === \"recommend\";\n"
-        "}",
-    )
-    source = _replace_array_constant(
-        source,
-        "CUSTOM_SURFACE_NAME_INCLUDE",
-        "function isCustomSurfaceName(name) {\n"
-        "  return name === \"index\" || name === \"messagenew\" ||\n"
-        "    name === \"cart\" || name === \"home\";\n"
-        "}",
-    )
+    source = _remove_array_constant(source, "WELCOME_HOME_TYPE_INCLUDE")
+    source = _remove_array_constant(source, "CUSTOM_SURFACE_NAME_INCLUDE")
 
     source = replace_once(
         source,
@@ -290,10 +282,7 @@ def optimize_source(source: str, upstream_commit: str = "unknown") -> str:
     source = replace_once(
         source,
         "obj.floorList = obj.floorList.filter((i) => WELCOME_HOME_TYPE_INCLUDE.includes(i?.type));",
-        "compactInPlace(obj.floorList, item =>\n"
-        "      isWelcomeHomeType(item && item.type) &&\n"
-        "      (!welcomeExtraEnabled || !isWelcomeExtraExcluded(item && item.type))\n"
-        "    );",
+        "compactJdInPlace(obj.floorList, \"welcome\", welcomeExtraEnabled);",
         "Jingdong welcomeHome floor filter",
     )
     source = replace_once(
@@ -316,15 +305,11 @@ def optimize_source(source: str, upstream_commit: str = "unknown") -> str:
   const modeMap = obj.result && obj.result.modeMap;
   const darkNavigation = modeMap && modeMap.dark && modeMap.dark.navigationAll;
   if (Array.isArray(darkNavigation) && darkNavigation.length > 0) {
-    compactInPlace(darkNavigation, item =>
-      isCustomSurfaceName(item && item.functionId)
-    );
+    compactJdInPlace(darkNavigation, "custom");
   }
   const normalNavigation = modeMap && modeMap.normal && modeMap.normal.navigationAll;
   if (Array.isArray(normalNavigation) && normalNavigation.length > 0) {
-    compactInPlace(normalNavigation, item =>
-      isCustomSurfaceName(item && item.functionId)
-    );
+    compactJdInPlace(normalNavigation, "custom");
   }
 """
     source = source[:start] + read_branch + "} else if (url.includes(\"functionId=deliverLayer\")" + source[end + len(deliver_start):]
@@ -337,10 +322,7 @@ def optimize_source(source: str, upstream_commit: str = "unknown") -> str:
     source = replace_once(
         source,
         'obj.floors = obj.floors.filter((i) => !["banner", "jdDeliveryBanner"]?.includes(i?.mId));',
-        "compactInPlace(obj.floors, item => {\n"
-        "      const id = item && item.mId;\n"
-        "      return id !== \"banner\" && id !== \"jdDeliveryBanner\";\n"
-        "    });",
+        "compactJdInPlace(obj.floors, \"delivery\");",
         "Jingdong delivery floor filter",
     )
     source = replace_once(
