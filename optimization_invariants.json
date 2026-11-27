@@ -25,7 +25,21 @@
         "$done(modified ? {body: JSON.stringify(obj)} : {});",
         "function setIfDifferent(",
         "function deleteIfPresent(",
-        "function sameValue("
+        "function sameValue(",
+        "// loon-change: Youku home.query callback-free nested compaction v1",
+        "// loon-change: Youku home.query callback-free route v1",
+        "function compactYoukuHomeQuery(items, mode, knownLength)",
+        "const length = knownLength === undefined ? items.length : knownLength;",
+        "compactYoukuHomeQuery(rootNodes, \"root\", rootNodesLength);",
+        "compactYoukuHomeQuery(node1Nodes, \"level2\", node1NodesLength);",
+        "compactYoukuHomeQuery(node2Nodes, \"level3\", node2NodesLength);",
+        "compactYoukuHomeQuery(node3Nodes, \"level4\", node3NodesLength);"
+      ],
+      "forbidden": [
+        "compactInPlace(objData.nodes, (node1) =>",
+        "compactInPlace(node1.nodes, (node2) =>",
+        "compactInPlace(node2.nodes, (node3) =>",
+        "compactInPlace(node3.nodes, (node4) =>"
       ]
     },
     {
