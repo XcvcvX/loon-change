@@ -316,7 +316,7 @@ def ensure_youku_home_query_helper(source: str) -> str:
         if source.count(YOUKU_HOME_QUERY_HELPER_MARKER) != 1 or any(token not in source for token in required):
             raise ValueError("Youku home.query callback-free helper marker/structure drift")
         helper_start = source.index(YOUKU_HOME_QUERY_HELPER_MARKER)
-        helper_end = source.index("\\n}\\n\\n", helper_start)
+        helper_end = source.index("\n}\n\n", helper_start)
         if helper_end < 0:
             raise ValueError("Youku home.query helper closing boundary drift")
         helper = source[helper_start:helper_end + 2]
