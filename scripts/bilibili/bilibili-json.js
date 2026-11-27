@@ -16,25 +16,136 @@ if (!$response.body) {
 } else {
   let obj = JSON.parse($response.body);
 
-  function filterInPlace(items, predicate) {
-    let write = 0;
-    for (let read = 0, length = items.length; read < length; read++) {
-      const item = items[read];
-      if (predicate(item, read)) {
-        if (write !== read) items[write] = item;
-        write++;
-      }
-    }
-    items.length = write;
-    return items;
-  }
-
   let modified = false;
 
-  function filterTracked(items, predicate) {
-    const originalLength = items.length;
-    filterInPlace(items, predicate);
-    if (items.length !== originalLength) modified = true;
+  // loon-change: Bilibili callback-free response list compaction v1
+  function bilibiliTabRank(name, mode) {
+    if (mode === "bottomTab") {
+      if (name === "首页") return 0;
+      if (name === "动态") return 1;
+      if (name === "关注") return 2;
+      if (name === "我的") return 3;
+    } else {
+      if (name === "推荐") return 0;
+      if (name === "热门") return 1;
+      if (name === "影视") return 2;
+      if (name === "动画") return 3;
+    }
+    return -1;
+  }
+
+  function compactBilibiliList(items, mode) {
+    const length = items.length;
+    let write = 0;
+
+    if (mode === "bottomTab") {
+      for (let read = 0; read < length; read++) {
+        const item = items[read];
+        const name = item?.name;
+        if (name === "首页" || name === "动态" || name === "关注" || name === "我的") {
+          if (write !== read) items[write] = item;
+          write++;
+        }
+      }
+    } else if (mode === "homeTab") {
+      for (let read = 0; read < length; read++) {
+        const item = items[read];
+        const name = item?.name;
+        if (name === "推荐" || name === "热门" || name === "影视" || name === "动画") {
+          if (write !== read) items[write] = item;
+          write++;
+        }
+      }
+    } else if (mode === "topMessage") {
+      for (let read = 0; read < length; read++) {
+        const item = items[read];
+        if (item?.name === "消息") {
+          if (write !== read) items[write] = item;
+          write++;
+        }
+      }
+    } else if (mode === "ipadRecommend") {
+      for (let read = 0; read < length; read++) {
+        const item = items[read];
+        const id = item.id;
+        if (id === 789 || id === 790) {
+          if (write !== read) items[write] = item;
+          write++;
+        }
+      }
+    } else if (mode === "ipadMore") {
+      for (let read = 0; read < length; read++) {
+        const item = items[read];
+        const id = item.id;
+        if (id === 797 || id === 798) {
+          if (write !== read) items[write] = item;
+          write++;
+        }
+      }
+    } else if (mode === "feedAv") {
+      for (let read = 0; read < length; read++) {
+        const item = items[read];
+        if (item?.card_goto === "av") {
+          if (write !== read) items[write] = item;
+          write++;
+        }
+      }
+    } else if (mode === "pgcBanner") {
+      for (let read = 0; read < length; read++) {
+        const item = items[read];
+        if (item?.link?.includes("play")) {
+          if (write !== read) items[write] = item;
+          write++;
+        }
+      }
+    } else if (mode === "pgcFunction") {
+      for (let read = 0; read < length; read++) {
+        const item = items[read];
+        if (item?.blink?.startsWith("bilibili")) {
+          if (write !== read) items[write] = item;
+          write++;
+        }
+      }
+    } else if (mode === "liveOuterList") {
+      for (let read = 0; read < length; read++) {
+        const item = items[read];
+        if (item?.biz_id !== 33) {
+          if (write !== read) items[write] = item;
+          write++;
+        }
+      }
+    } else {
+      return items;
+    }
+
+    if (write !== length) {
+      items.length = write;
+      modified = true;
+    }
+
+    if (mode === "bottomTab" || mode === "homeTab") {
+      let needsSort = false;
+      for (let read = 1; read < write; read++) {
+        if (bilibiliTabRank(items[read - 1]?.name, mode) >
+            bilibiliTabRank(items[read]?.name, mode)) {
+          needsSort = true;
+          break;
+        }
+      }
+      if (needsSort) {
+        modified = true;
+        for (let read = 1; read < write; read++) {
+          const item = items[read];
+          const rank = bilibiliTabRank(item?.name, mode);
+          let insert = read - 1;
+          while (insert >= 0 && bilibiliTabRank(items[insert]?.name, mode) > rank) {
+            items[insert + 1] = items[insert];
+            insert--;
+          }
+          if (insert + 1 !== read) items[insert + 1] = item;
+        }
+      }
+    }
     return items;
   }
 
@@ -55,50 +166,29 @@ if (!$response.body) {
     return count;
   }
 
-  function filterAndSortAllowed(items, allowedNames) {
-    const originalLength = items.length;
-    filterInPlace(items, item => allowedNames.includes(item?.name));
-    if (items.length !== originalLength) modified = true;
-    let needsSort = false;
-    for (let i = 1; i < items.length; i++) {
-      if (allowedNames.indexOf(items[i - 1]?.name) > allowedNames.indexOf(items[i]?.name)) {
-        modified = true;
-        needsSort = true;
-        break;
-      }
-    }
-    if (needsSort) {
-      items.sort((a, b) => allowedNames.indexOf(a?.name) - allowedNames.indexOf(b?.name));
-    }
-    return items;
-  }
-
 // loon-change: Bilibili hot-loop scalar membership v1
 if (url.includes("/x/resource/show/tab/")) {
   // 底部选项卡
   if (obj?.data?.bottom?.length > 0) {
-    const sortLists = ["首页", "动态", "关注", "我的"];
-    filterAndSortAllowed(obj.data.bottom, sortLists);
+    compactBilibiliList(obj.data.bottom, "bottomTab");
   }
   // 首页导航栏
   if (obj?.data?.tab?.length > 0) {
-    const sortLists = ["推荐", "热门", "影视", "动画"];
-    filterAndSortAllowed(obj.data.tab, sortLists);
+    compactBilibiliList(obj.data.tab, "homeTab");
   }
   // 右上角按钮
   if (obj?.data?.top?.length > 0) {
-    filterTracked(obj.data.top, (i) => i?.name === "消息");
+    compactBilibiliList(obj.data.top, "topMessage");
     if (obj?.data?.top?.[0]?.pos) {
       if (obj.data.top[0].pos !== 1) { obj.data.top[0].pos = 1; modified = true; }
     }
   }
 } else if (url.includes("/account/mine?")) {
   // 我的页面
-  const del = ["rework_v1", "vip_section", "vip_section_v2"];
-  for (let i of del) {
-    // 不必要项目
-    deleteTracked(obj.data, i);
-  }
+  // 不必要项目
+  deleteTracked(obj.data, "rework_v1");
+  deleteTracked(obj.data, "vip_section");
+  deleteTracked(obj.data, "vip_section_v2");
   if (obj?.data?.sections_v2?.length > 0) {
     const sections = obj.data.sections_v2;
     const originalSectionLength = sections.length;
@@ -175,13 +265,11 @@ if (url.includes("/x/resource/show/tab/")) {
   deleteTracked(obj.data, "ipad_upper_sections"); // 投稿 创作首页 稿件管理 有奖活动
   if (obj?.data?.ipad_recommend_sections?.length > 0) {
     // 789我的关注 790我的消息 791我的钱包 792直播中心 793大会员 794我的课程 2542我的游戏
-    const itemList = [789, 790];
-    filterTracked(obj.data.ipad_recommend_sections, (i) => itemList.includes(i.id));
+    compactBilibiliList(obj.data.ipad_recommend_sections, "ipadRecommend");
   }
   if (obj?.data?.ipad_more_sections?.length > 0) {
     // 797我的客服 798设置 1070青少年守护
-    const itemList = [797, 798];
-    filterTracked(obj.data.ipad_more_sections, (i) => itemList.includes(i.id));
+    compactBilibiliList(obj.data.ipad_more_sections, "ipadMore");
   }
 } else if (url.includes("/account/myinfo")) {
   // 非会员开启会员专属清晰度
@@ -198,7 +286,7 @@ if (url.includes("/x/resource/show/tab/")) {
   // 首页推荐信息流
   if (obj?.data?.items?.length > 0) {
     // 白名单
-    filterTracked(obj.data.items, (i) => i?.card_goto === "av");
+    compactBilibiliList(obj.data.items, "feedAv");
   }
   if (obj?.data?.config?.toast?.has_toast) {
     obj.data.config.toast.has_toast = false;
@@ -245,9 +333,10 @@ if (url.includes("/x/resource/show/tab/")) {
   // 开屏广告
   if (obj?.data) {
     const item = ["account", "event_list", "preload", "show"];
-    item.forEach((i) => {
-      deleteTracked(obj.data, i);
-    });
+    deleteTracked(obj.data, "account");
+    deleteTracked(obj.data, "event_list");
+    deleteTracked(obj.data, "preload");
+    deleteTracked(obj.data, "show");
     if (obj?.data?.max_time) {
       if (obj.data.max_time !== 0) { obj.data.max_time = 0; modified = true; }
     }
@@ -258,7 +347,10 @@ if (url.includes("/x/resource/show/tab/")) {
       if (obj.data.pull_interval !== 31536000) { obj.data.pull_interval = 31536000; modified = true; }
     }
     if (obj?.data?.list?.length > 0) {
-      for (let i of obj.data.list) {
+      const splashList = obj.data.list;
+      const splashListLength = splashList.length;
+      for (let splashIndex = 0; splashIndex < splashListLength; splashIndex++) {
+        const i = splashList[splashIndex];
         if (i.duration !== 0 || i.enable_pre_download !== false ||
             i.begin_time !== 3818332800 || i.end_time !== 3818419199) modified = true;
         i.duration = 0;
@@ -271,14 +363,17 @@ if (url.includes("/x/resource/show/tab/")) {
 } else if (url.includes("/pgc/page/")) {
   // 观影页
   if (obj.result?.modules?.length > 0) {
-    obj.result.modules.forEach((i) => {
+    const modules = obj.result.modules;
+    const modulesLength = modules.length;
+    for (let moduleRead = 0; moduleRead < modulesLength; moduleRead++) {
+      const i = modules[moduleRead];
       if (i?.style?.startsWith("banner")) {
         if (i?.items?.length > 0) {
-          filterTracked(i.items, (ii) => ii?.link?.includes("play"));
+          compactBilibiliList(i.items, "pgcBanner");
         }
       } else if (i?.style?.startsWith("function")) {
         if (i?.items?.length > 0) {
-          filterTracked(i.items, (ii) => ii?.blink?.startsWith("bilibili"));
+          compactBilibiliList(i.items, "pgcFunction");
         }
       } else if (i?.module_id === 241 || i?.module_id === 1283 ||
                  i?.module_id === 1284 || i?.module_id === 1441) {
@@ -292,7 +387,7 @@ if (url.includes("/x/resource/show/tab/")) {
           modified = true;
         }
       }
-    });
+    }
   }
 } else if (url.includes("/index/getInfoByRoom")) {
   // 直播
@@ -309,7 +404,7 @@ if (url.includes("/x/resource/show/tab/")) {
     }
   }
   if (obj?.data?.new_tab_info?.outer_list?.length > 0) {
-    filterTracked(obj.data.new_tab_info.outer_list, (i) => i?.biz_id !== 33);
+    compactBilibiliList(obj.data.new_tab_info.outer_list, "liveOuterList");
   }
 }
 
