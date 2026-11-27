@@ -140,11 +140,12 @@ def consolidate_amap_youtube_ownership(text):
                 native_seen[matched_native] += 1
                 continue
         if YOUTUBE_RSTORE in line and "tag=YOUTUBE" in line:
-            if r"youtubei\/v\d\/" not in line:
-                raise ValueError("R-Store YouTube matcher changed unexpectedly")
             if line.count(YOUTUBE_RSTORE) != 1:
                 raise ValueError("R-Store YouTube handler duplicated")
-            line = line.replace(r"youtubei\/v\d\/", r"youtubei\/v[2-9]\/", 1)
+            if r"youtubei\/v\d\/" in line:
+                line = line.replace(r"youtubei\/v\d\/", r"youtubei\/v[2-9]\/", 1)
+            elif r"youtubei\/v[2-9]\/" not in line:
+                raise ValueError("R-Store YouTube matcher changed unexpectedly")
         output.append(line)
 
     if (amap_seen["scripts/amap/amap.js"] not in AMAP_SCRIPT_COUNTS["scripts/amap/amap.js"] or
