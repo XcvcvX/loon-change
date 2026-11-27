@@ -839,6 +839,11 @@ def optimize_source(source, commit="unknown"):
         source = instrument_mutations(source)
         source = compact_search_suggestions_in_place(hoist_static_arrays(source))
         source = optimize_compaction_modes(source)
+        source = optimize_nodefaasv3_profile_cleanup(source)
+        source = optimize_compaction_modes(source)
+        source = optimize_af_nearby(source)
+        source = optimize_hotword(source)
+        source = instrument_mutations(source)
         if ".filter(" in source or "function compactInPlace(items, mode)" not in source:
             raise ValueError("Amap optimized runtime has drifted")
         return source
@@ -873,6 +878,11 @@ def optimize_source(source, commit="unknown"):
     source = optimize_route_plan_cached_references(source)
     source = instrument_mutations(source)
     source = optimize_compaction_modes(source)
+    source = optimize_nodefaasv3_profile_cleanup(source)
+    source = optimize_compaction_modes(source)
+    source = optimize_af_nearby(source)
+    source = optimize_hotword(source)
+    source = instrument_mutations(source)
     return MARKER + commit + "\n" + source
 
 def rewrite_plugin(plugin):
