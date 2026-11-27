@@ -49,31 +49,31 @@ def optimize_source(source: str) -> str:
         raise ValueError("Bilibili generic filter helper boundary changed; refusing rewrite")
     start = source.index(start_token)
     end = source.index(end_token, start)
-    source = source[:start] + "  let modified = false;\\n\\n" + HELPER + end_token + source[end + len(end_token):]
+    source = source[:start] + "  let modified = false;\n\n" + HELPER + end_token + source[end + len(end_token):]
 
     sort_start = source.index("  function filterAndSortAllowed(items, allowedNames) {")
     hot_marker = source.index("// loon-change: Bilibili hot-loop scalar membership v1", sort_start)
     source = source[:sort_start] + source[hot_marker:]
 
     replacements = (
-        ('    const sortLists = ["首页", "动态", "关注", "我的"];\\n    filterAndSortAllowed(obj.data.bottom, sortLists);',
+        ('    const sortLists = ["首页", "动态", "关注", "我的"];\n    filterAndSortAllowed(obj.data.bottom, sortLists);',
          '    compactBilibiliList(obj.data.bottom, "bottomTab");', "bottom tab"),
-        ('    const sortLists = ["推荐", "热门", "影视", "动画"];\\n    filterAndSortAllowed(obj.data.tab, sortLists);',
+        ('    const sortLists = ["推荐", "热门", "影视", "动画"];\n    filterAndSortAllowed(obj.data.tab, sortLists);',
          '    compactBilibiliList(obj.data.tab, "homeTab");', "home tab"),
         ('    filterTracked(obj.data.top, (i) => i?.name === "消息");',
          '    compactBilibiliList(obj.data.top, "topMessage");', "top message"),
-        ('  const del = ["rework_v1", "vip_section", "vip_section_v2"];\\n  for (let i of del) {\\n    // 不必要项目\\n    deleteTracked(obj.data, i);\\n  }',
-         '  // 不必要项目\\n  deleteTracked(obj.data, "rework_v1");\\n  deleteTracked(obj.data, "vip_section");\\n  deleteTracked(obj.data, "vip_section_v2");', "profile removals"),
-        ('    const itemList = [789, 790];\\n    filterTracked(obj.data.ipad_recommend_sections, (i) => itemList.includes(i.id));',
+        ('  const del = ["rework_v1", "vip_section", "vip_section_v2"];\n  for (let i of del) {\n    // 不必要项目\n    deleteTracked(obj.data, i);\n  }',
+         '  // 不必要项目\n  deleteTracked(obj.data, "rework_v1");\n  deleteTracked(obj.data, "vip_section");\n  deleteTracked(obj.data, "vip_section_v2");', "profile removals"),
+        ('    const itemList = [789, 790];\n    filterTracked(obj.data.ipad_recommend_sections, (i) => itemList.includes(i.id));',
          '    compactBilibiliList(obj.data.ipad_recommend_sections, "ipadRecommend");', "iPad recommend"),
-        ('    const itemList = [797, 798];\\n    filterTracked(obj.data.ipad_more_sections, (i) => itemList.includes(i.id));',
+        ('    const itemList = [797, 798];\n    filterTracked(obj.data.ipad_more_sections, (i) => itemList.includes(i.id));',
          '    compactBilibiliList(obj.data.ipad_more_sections, "ipadMore");', "iPad more"),
         ('    filterTracked(obj.data.items, (i) => i?.card_goto === "av");',
          '    compactBilibiliList(obj.data.items, "feedAv");', "feed index"),
-        ('    item.forEach((i) => {\\n      deleteTracked(obj.data, i);\\n    });',
-         '    deleteTracked(obj.data, "account");\\n    deleteTracked(obj.data, "event_list");\\n    deleteTracked(obj.data, "preload");\\n    deleteTracked(obj.data, "show");', "splash fields"),
-        ('      for (let i of obj.data.list) {\\n        if (i.duration !== 0 || i.enable_pre_download !== false ||\\n            i.begin_time !== 3818332800 || i.end_time !== 3818419199) modified = true;\\n        i.duration = 0;\\n        i.enable_pre_download = false;\\n        i.begin_time = 3818332800; // Unix 时间戳 2090-12-31 00:00:00\\n        i.end_time = 3818419199; // Unix 时间戳 2090-12-31 23:59:59\\n      }',
-         '      const splashList = obj.data.list;\\n      const splashListLength = splashList.length;\\n      for (let splashIndex = 0; splashIndex < splashListLength; splashIndex++) {\\n        const i = splashList[splashIndex];\\n        if (i.duration !== 0 || i.enable_pre_download !== false ||\\n            i.begin_time !== 3818332800 || i.end_time !== 3818419199) modified = true;\\n        i.duration = 0;\\n        i.enable_pre_download = false;\\n        i.begin_time = 3818332800; // Unix 时间戳 2090-12-31 00:00:00\\n        i.end_time = 3818419199; // Unix 时间戳 2090-12-31 23:59:59\\n      }', "splash list"),
+        ('    item.forEach((i) => {\n      deleteTracked(obj.data, i);\n    });',
+         '    deleteTracked(obj.data, "account");\n    deleteTracked(obj.data, "event_list");\n    deleteTracked(obj.data, "preload");\n    deleteTracked(obj.data, "show");', "splash fields"),
+        ('      for (let i of obj.data.list) {\n        if (i.duration !== 0 || i.enable_pre_download !== false ||\n            i.begin_time !== 3818332800 || i.end_time !== 3818419199) modified = true;\n        i.duration = 0;\n        i.enable_pre_download = false;\n        i.begin_time = 3818332800; // Unix 时间戳 2090-12-31 00:00:00\n        i.end_time = 3818419199; // Unix 时间戳 2090-12-31 23:59:59\n      }',
+         '      const splashList = obj.data.list;\n      const splashListLength = splashList.length;\n      for (let splashIndex = 0; splashIndex < splashListLength; splashIndex++) {\n        const i = splashList[splashIndex];\n        if (i.duration !== 0 || i.enable_pre_download !== false ||\n            i.begin_time !== 3818332800 || i.end_time !== 3818419199) modified = true;\n        i.duration = 0;\n        i.enable_pre_download = false;\n        i.begin_time = 3818332800; // Unix 时间戳 2090-12-31 00:00:00\n        i.end_time = 3818419199; // Unix 时间戳 2090-12-31 23:59:59\n      }', "splash list"),
         ('          filterTracked(i.items, (ii) => ii?.link?.includes("play"));',
          '          compactBilibiliList(i.items, "pgcBanner");', "PGC banner"),
         ('          filterTracked(i.items, (ii) => ii?.blink?.startsWith("bilibili"));',
@@ -90,10 +90,10 @@ def optimize_source(source: str) -> str:
     pgc = replace_once(
         pgc,
         "    obj.result.modules.forEach((i) => {",
-        "    const modules = obj.result.modules;\\n    const modulesLength = modules.length;\\n    for (let moduleRead = 0; moduleRead < modulesLength; moduleRead++) {\\n      const i = modules[moduleRead];",
+        "    const modules = obj.result.modules;\n    const modulesLength = modules.length;\n    for (let moduleRead = 0; moduleRead < modulesLength; moduleRead++) {\n      const i = modules[moduleRead];",
         "PGC module loop",
     )
-    pgc = replace_once(pgc, "    });\\n  }\\n", "    }\\n  }\\n", "PGC module loop close")
+    pgc = replace_once(pgc, "    });\n  }\n", "    }\n  }\n", "PGC module loop close")
     source = source[:pgc_start] + pgc + source[pgc_end:]
     return validate(source)
 
