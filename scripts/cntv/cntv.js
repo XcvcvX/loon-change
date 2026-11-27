@@ -63,6 +63,86 @@ function compactInPlace(items, keep) {
   return items;
 }
 
+// loon-change: CNTV Youku home.query callback-free nested compaction v1
+function compactCntvYoukuHomeQuery(items, mode, knownLength) {
+  const length = knownLength === undefined ? items.length : knownLength;
+  let write = 0;
+
+  if (mode === "root") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      const itemData = item?.data;
+      const nodeKey = itemData?.nodeKey;
+      if (nodeKey === "CHILD" || nodeKey === "COMIC2" || nodeKey === "20230929GREATWORKMFK") continue;
+
+      const indexPositionResult = itemData?.indexPositionResult;
+      if (indexPositionResult?.length > 0) itemData.indexPositionResult = [];
+      if (itemData?.refreshImg) delete itemData.refreshImg;
+
+      const childNodes = item?.nodes;
+      const childLength = childNodes?.length || 0;
+      if (childLength > 0) compactCntvYoukuHomeQuery(childNodes, "level2", childLength);
+
+      if (write !== read) items[write] = item;
+      write++;
+    }
+  } else if (mode === "level2") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      const itemData = item?.data;
+      if (itemData?.crmSale) delete itemData.crmSale;
+
+      const itemTypeName = item?.typeName;
+      if (itemTypeName === "UC广告抽屉" || itemTypeName === "橱窗广告") continue;
+
+      const itemId = item?.id;
+      if (itemId === 31476) {
+        const keywords = itemData?.keywords;
+        if (keywords?.length > 0) delete itemData.keywords;
+      } else {
+        if (itemId === 35505 || itemId === 37335) continue;
+        const childNodes = item?.nodes;
+        const childLength = childNodes?.length || 0;
+        if (childLength > 0) compactCntvYoukuHomeQuery(childNodes, "level3", childLength);
+      }
+
+      if (write !== read) items[write] = item;
+      write++;
+    }
+  } else if (mode === "level3") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      const itemTypeName = item?.typeName;
+      if (itemTypeName === "PHONE_FEED_CARD_B_AD" ||
+          itemTypeName === "PHONE_FEED_CARD_S_AD" ||
+          itemTypeName === "PHONE_H_UC_AD" ||
+          itemTypeName === "PHONE_IMG_A" ||
+          itemTypeName === "PHONE_YK_AD_BANNER") continue;
+
+      const childNodes = item?.nodes;
+      const childLength = childNodes?.length || 0;
+      if (childLength > 0) compactCntvYoukuHomeQuery(childNodes, "level4", childLength);
+
+      if (write !== read) items[write] = item;
+      write++;
+    }
+  } else if (mode === "level4") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      const itemTypeName = item?.typeName;
+      const itemData = item?.data;
+      if (itemTypeName === "PHONE_FEED_CARD_S_AD" || itemData?.hasOwnProperty("ad")) continue;
+      if (write !== read) items[write] = item;
+      write++;
+    }
+  } else {
+    return items;
+  }
+
+  if (write !== length) items.length = write;
+  return items;
+}
+
 // loon-change: CNTV pre-parse supported-route guard v1
 const shouldProcess =
   (isIQY && (
@@ -443,52 +523,23 @@ if (isIQY) {
         delete obj.data[i];
       }
     }
-  } else if (url.includes("columbus.gateway.new.execute")) {
-    // 优酷 播放详情页组件
-    if (obj?.data?.["2019030100"]?.data) {
-      let objData = obj.data["2019030100"].data;
-      if (objData?.data?.global) {
-        let config = objData.data.global;
-        if (config?.PHONE_DETAIL_TOP_TAB?.pageTabs?.length > 0) {
-          // detail视频 list热门 planet讨论
-          compactInPlace(config.PHONE_DETAIL_TOP_TAB.pageTabs, (i) =>
-              CNTV_STATIC_FILTER_17.includes(i?.code)
-          );
-        }
+    } else if (url.includes("columbus.home.query/")) {
+    // 优酷首页菜单与信息流：四层节点直接遍历，不创建逐项回调。
+    if (obj?.data?.["2019061000"]?.data) {
+      const objData = obj.data["2019061000"].data;
+      const homeData = objData?.data;
+      const indexPositionResult = homeData?.indexPositionResult;
+      if (indexPositionResult?.length > 0) homeData.indexPositionResult = [];
+
+      const rootNodes = objData?.nodes;
+      const rootNodesLength = rootNodes?.length || 0;
+      if (rootNodesLength > 0) {
+        compactCntvYoukuHomeQuery(rootNodes, "root", rootNodesLength);
       }
-      if (objData?.nodes?.length > 0) {
-        if (objData?.nodes?.length === 1) {
-          let node0 = objData.nodes[0];
-          if (node0?.nodes?.length > 0) {
-            if (node0?.typeName === "NORMAL") {
-              compactInPlace(node0.nodes, 
-                  (i) =>
-                      ![
-                        "PHONE_CHD_AGE_DETAIL_2",
-                        "PHONE_CHILD_SERIES_A",
-                        "PHONE_CHILD_STAR_A",
-                        "PHONE_DEFALT_SCROLL_C",
-                        "Phone运营banner",
-                        "播放页触达组件", // 新版
-                        "播放页广告组件",
-                        "播放页会员引导组件",
-                        "播放页活动组件",
-                        "播放页全屏播后推荐组件",
-                        "播放页少儿品牌专区组件",
-                        "播放页推荐组件",
-                        "播放页用户触达组件", // 旧版
-                        "播放页有料不能停组件",
-                        "球区自动化组件",
-                        "优酷购"
-                      ]?.includes(i?.typeName)
-              );
-            } else if (node0?.typeName === "FEED_CHILD_DRAWER_PAGINATION") {
-              // 播放页推荐信息流
-              if (node0?.nodes) {
-                node0.nodes = [];
-              }
-            } else if (node0?.typeName === "FEED_DRAWER_PAGINATION") {
-              // 播放页推荐信息流
+    }
+  // loon-change: CNTV Youku home.query callback-free route v1
+  // loon-change: CNTV Youku home.query nested in-place compaction v1
+       // 播放页推荐信息流
               if (node0?.nodes) {
                 node0.nodes = [];
               }
