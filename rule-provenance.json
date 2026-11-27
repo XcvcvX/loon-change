@@ -48896,7 +48896,7 @@
       "trace_status": "mapped"
     },
     {
-      "output_line": "http-response ^https?:\\/\\/m\\d\\.amap\\.com\\/ws\\/aos\\/perception\\/publicTravel\\/beforeNavi\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/amap/amap.js,tag=AMAP,requires-body=true",
+      "output_line": "http-response ^https?:\\/\\/m[0-46-9]\\.amap\\.com\\/ws\\/aos\\/perception\\/publicTravel\\/beforeNavi\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/amap/amap.js,tag=AMAP,requires-body=true",
       "provenance_kind": "post_merge_transform",
       "sources": [
         {
@@ -48907,7 +48907,7 @@
       ]
     },
     {
-      "output_line": "http-response ^https?:\\/\\/m\\d\\.amap\\.com\\/ws\\/bus\\/plan\\/integrate\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/amap/amap.js,tag=AMAP-2,requires-body=true",
+      "output_line": "http-response ^https?:\\/\\/m[0-46-9]\\.amap\\.com\\/ws\\/bus\\/plan\\/integrate\\? script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/amap/amap.js,tag=AMAP-2,requires-body=true",
       "provenance_kind": "post_merge_transform",
       "sources": [
         {
@@ -51733,7 +51733,7 @@
       "trace_status": "mapped"
     },
     {
-      "output_line": "http-response ^https?:\\/\\/youtubei\\.googleapis\\.com\\/(youtubei\\/v\\d\\/(browse|next|player|search|reel\\/reel_watch_sequence|get_watch))(\\?(.*))?$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/youtube.js,tag=YOUTUBE,requires-body=true,binary-body-mode=true",
+      "output_line": "http-response ^https?:\\/\\/youtubei\\.googleapis\\.com\\/(youtubei\\/v[2-9]\\/(browse|next|player|search|reel\\/reel_watch_sequence|get_watch))(\\?(.*))?$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/youtube.js,tag=YOUTUBE,requires-body=true,binary-body-mode=true",
       "provenance_kind": "post_merge_transform",
       "sources": [
         {
