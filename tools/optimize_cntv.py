@@ -225,7 +225,7 @@ def optimize_youku_home_query(source):
         branch = source[begin:finish]
         if any(token in branch for token in ("let newNodes = []", "let newItems = []", "let newII = []", "let newIII = []")):
             raise ValueError("CNTV Youku home.query temporary nested arrays remain")
-        return source
+        return optimize_youku_home_query_callback_free(source)
     if source.count(start) != 1 or source.count(end) != 1:
         raise ValueError("CNTV Youku home.query route anchors changed")
     begin, finish = source.index(start), source.index(end)
@@ -234,7 +234,183 @@ def optimize_youku_home_query(source):
     branch = result[begin:optimized_end]
     if any(token in branch for token in ("let newNodes = []", "let newItems = []", "let newII = []", "let newIII = []")):
         raise ValueError("CNTV Youku home.query temporary nested arrays remain")
-    return result
+    return optimize_youku_home_query_callback_free(result)
+
+
+
+YOUKU_HOME_QUERY_CALLBACK_FREE_HELPER_MARKER = "// loon-change: CNTV Youku home.query callback-free nested compaction v1"
+YOUKU_HOME_QUERY_CALLBACK_FREE_ROUTE_MARKER = "// loon-change: CNTV Youku home.query callback-free route v1"
+
+YOUKU_HOME_QUERY_CALLBACK_FREE_HELPER = """// loon-change: CNTV Youku home.query callback-free nested compaction v1
+function compactCntvYoukuHomeQuery(items, mode, knownLength) {
+  const length = knownLength === undefined ? items.length : knownLength;
+  let write = 0;
+
+  if (mode === "root") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      const itemData = item?.data;
+      const nodeKey = itemData?.nodeKey;
+      if (nodeKey === "CHILD" || nodeKey === "COMIC2" || nodeKey === "20230929GREATWORKMFK") continue;
+
+      const indexPositionResult = itemData?.indexPositionResult;
+      if (indexPositionResult?.length > 0) itemData.indexPositionResult = [];
+      if (itemData?.refreshImg) delete itemData.refreshImg;
+
+      const childNodes = item?.nodes;
+      const childLength = childNodes?.length || 0;
+      if (childLength > 0) compactCntvYoukuHomeQuery(childNodes, "level2", childLength);
+
+      if (write !== read) items[write] = item;
+      write++;
+    }
+  } else if (mode === "level2") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      const itemData = item?.data;
+      if (itemData?.crmSale) delete itemData.crmSale;
+
+      const itemTypeName = item?.typeName;
+      if (itemTypeName === "UC广告抽屉" || itemTypeName === "橱窗广告") continue;
+
+      const itemId = item?.id;
+      if (itemId === 31476) {
+        const keywords = itemData?.keywords;
+        if (keywords?.length > 0) delete itemData.keywords;
+      } else {
+        if (itemId === 35505 || itemId === 37335) continue;
+        const childNodes = item?.nodes;
+        const childLength = childNodes?.length || 0;
+        if (childLength > 0) compactCntvYoukuHomeQuery(childNodes, "level3", childLength);
+      }
+
+      if (write !== read) items[write] = item;
+      write++;
+    }
+  } else if (mode === "level3") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      const itemTypeName = item?.typeName;
+      if (itemTypeName === "PHONE_FEED_CARD_B_AD" ||
+          itemTypeName === "PHONE_FEED_CARD_S_AD" ||
+          itemTypeName === "PHONE_H_UC_AD" ||
+          itemTypeName === "PHONE_IMG_A" ||
+          itemTypeName === "PHONE_YK_AD_BANNER") continue;
+
+      const childNodes = item?.nodes;
+      const childLength = childNodes?.length || 0;
+      if (childLength > 0) compactCntvYoukuHomeQuery(childNodes, "level4", childLength);
+
+      if (write !== read) items[write] = item;
+      write++;
+    }
+  } else if (mode === "level4") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      const itemTypeName = item?.typeName;
+      const itemData = item?.data;
+      if (itemTypeName === "PHONE_FEED_CARD_S_AD" || itemData?.hasOwnProperty("ad")) continue;
+      if (write !== read) items[write] = item;
+      write++;
+    }
+  } else {
+    return items;
+  }
+
+  if (write !== length) items.length = write;
+  return items;
+}"""
+
+YOUKU_HOME_QUERY_CALLBACK_FREE_BRANCH = """  } else if (url.includes("columbus.home.query/")) {
+    // 优酷首页菜单与信息流：四层节点直接遍历，不创建逐项回调。
+    if (obj?.data?.["2019061000"]?.data) {
+      const objData = obj.data["2019061000"].data;
+      const homeData = objData?.data;
+      const indexPositionResult = homeData?.indexPositionResult;
+      if (indexPositionResult?.length > 0) homeData.indexPositionResult = [];
+
+      const rootNodes = objData?.nodes;
+      const rootNodesLength = rootNodes?.length || 0;
+      if (rootNodesLength > 0) {
+        compactCntvYoukuHomeQuery(rootNodes, "root", rootNodesLength);
+      }
+    }
+  // loon-change: CNTV Youku home.query callback-free route v1
+  // loon-change: CNTV Youku home.query nested in-place compaction v1
+"""
+
+
+def optimize_youku_home_query_callback_free(source):
+    """Replace all four predicate-callback traversals with a fixed-mode indexed walker."""
+    start = '  } else if (url.includes("columbus.home.query/")) {'
+    end = '  } else if (url.includes("columbus.uc.query/")) {'
+    if source.count(start) != 1 or source.count(end) != 1:
+        raise ValueError("CNTV Youku home.query callback-free route boundary drift")
+    begin = source.index(start)
+    finish = source.index(end, begin + len(start))
+    branch = source[begin:finish]
+
+    required_helper = (
+        "function compactCntvYoukuHomeQuery(items, mode, knownLength) {",
+        'if (mode === "root")',
+        'if (mode === "level2")',
+        'if (mode === "level3")',
+        'if (mode === "level4")',
+        "const length = knownLength === undefined ? items.length : knownLength;",
+        'compactCntvYoukuHomeQuery(childNodes, "level2", childLength);',
+        'compactCntvYoukuHomeQuery(childNodes, "level3", childLength);',
+        'compactCntvYoukuHomeQuery(childNodes, "level4", childLength);',
+    )
+    required_route = (
+        YOUKU_HOME_QUERY_CALLBACK_FREE_ROUTE_MARKER,
+        "const rootNodes = objData?.nodes;",
+        "const rootNodesLength = rootNodes?.length || 0;",
+        'compactCntvYoukuHomeQuery(rootNodes, "root", rootNodesLength);',
+    )
+
+    if YOUKU_HOME_QUERY_CALLBACK_FREE_ROUTE_MARKER in branch:
+        if branch.count(YOUKU_HOME_QUERY_CALLBACK_FREE_ROUTE_MARKER) != 1:
+            raise ValueError("CNTV Youku home.query callback-free route marker count drift")
+        if source.count(YOUKU_HOME_QUERY_CALLBACK_FREE_HELPER_MARKER) != 1:
+            raise ValueError("CNTV Youku home.query callback-free helper marker count drift")
+        if any(token not in branch for token in required_route):
+            raise ValueError("CNTV Youku home.query callback-free route structure drift")
+        if "compactInPlace(" in branch or "=>" in branch:
+            raise ValueError("CNTV Youku home.query route still contains predicate callbacks")
+        helper_start = source.index(YOUKU_HOME_QUERY_CALLBACK_FREE_HELPER_MARKER)
+        helper_end = source.find("\\n}\\n\\n", helper_start)
+        if helper_end < 0:
+            raise ValueError("CNTV Youku home.query callback-free helper boundary drift")
+        helper = source[helper_start:helper_end + 2]
+        if any(token not in helper for token in required_helper):
+            raise ValueError("CNTV Youku home.query callback-free helper structure drift")
+        if "=>" in helper or "compactInPlace(" in helper or ".filter(" in helper or ".map(" in helper or ".forEach(" in helper:
+            raise ValueError("CNTV Youku home.query helper retains callback-based traversal")
+        return source
+
+    legacy_required = (
+        YOUKU_QUERY_MARKER,
+        "compactInPlace(objData.nodes, item => {",
+        "compactInPlace(item.nodes, i => {",
+        "compactInPlace(i.nodes, ii => {",
+        "compactInPlace(ii.nodes, iii =>",
+        "CNTV_STATIC_FILTER_18.includes(item?.data?.nodeKey)",
+        "CNTV_STATIC_FILTER_19.includes(i?.typeName)",
+        "CNTV_STATIC_FILTER_20.includes(ii?.typeName)",
+        'iii?.typeName !== "PHONE_FEED_CARD_S_AD"',
+        'i?.id === 35505 || i?.id === 37335',
+    )
+    if branch.count("compactInPlace(") != 4 or branch.count("=>") != 4 or any(token not in branch for token in legacy_required):
+        raise ValueError("CNTV Youku home.query callback branch drift; refusing unreviewed rewrite")
+
+    if source.count(YOUKU_HOME_QUERY_CALLBACK_FREE_HELPER_MARKER) != 0:
+        raise ValueError("CNTV Youku home.query partial helper marker exists without route marker")
+    helper_anchor = ROUTE_GUARD_MARKER
+    if source.count(helper_anchor) != 1:
+        raise ValueError("CNTV Youku home.query helper insertion anchor drift")
+    source = source.replace(helper_anchor, YOUKU_HOME_QUERY_CALLBACK_FREE_HELPER + "\\n\\n" + helper_anchor, 1)
+    source = source[:begin] + YOUKU_HOME_QUERY_CALLBACK_FREE_BRANCH + source[finish:]
+    return optimize_youku_home_query_callback_free(source)
 
 
 
