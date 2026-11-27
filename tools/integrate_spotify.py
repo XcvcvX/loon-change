@@ -329,7 +329,7 @@ def optimize_spotify_nested_script(source, kind):
     if concat_start < 0 or concat_end < 0 or source.count("function concat(parts)") != 1:
         raise ValueError("Spotify nested protobuf concat helper changed; refusing optimization")
     concat_end += 3
-    if source.count("concat(") != 2:
+    if source.count("concat(") != 3:
         raise ValueError("Spotify nested protobuf concat usage changed; refusing optimization")
     source = source[:concat_start] + source[concat_end:]
 
