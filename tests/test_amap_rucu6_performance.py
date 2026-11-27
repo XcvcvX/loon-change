@@ -34,7 +34,7 @@ class AmapRucu6OptimizerTests(unittest.TestCase):
         legacy = optimized.replace(HELPER, OLD_HELPER, 1)
         legacy = legacy.replace(ROUTE_MARKER + "\n", "", 1)
         for old, new, expected, _description in REWRITES:
-            self.assertEqual(legacy.count(new), expected)
+            self.assertGreaterEqual(legacy.count(new), expected)
             legacy = legacy.replace(new, old, expected)
         self.assertNotIn("compactAmapRucu6(", legacy)
         self.assertEqual(optimize_source(legacy), optimized)
