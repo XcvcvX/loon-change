@@ -335,8 +335,16 @@ def optimize_imagefeed_single_traversal(source):
             "if (frame.index >= frame.length)",
             "frame.root && livePhotoTarget",
         )
-        if IMAGE_FEED_MARKER not in source or IMAGE_ARRAY_LENGTH_MARKER not in source or any(token not in helper for token in required):
-            raise ValueError("Xiaohongshu single-traversal image helper drifted; refusing overwrite")
+        missing = [token for token in required if token not in helper]
+        missing_source_markers = [
+            marker for marker in (IMAGE_FEED_MARKER, IMAGE_ARRAY_LENGTH_MARKER)
+            if marker not in source
+        ]
+        if missing or missing_source_markers:
+            raise ValueError(
+                "Xiaohongshu single-traversal image helper drifted; refusing overwrite; "
+                "missing helper invariants=%r source markers=%r" % (missing, missing_source_markers)
+            )
         if helper.count("Array.isArray(") != 4 or "if (Array.isArray(value))" in helper:
             raise ValueError("Xiaohongshu image array classification is not cached per traversal frame")
         if "if (frame.index >= value.length)" in helper or "for (const image of images_list)" in source:
