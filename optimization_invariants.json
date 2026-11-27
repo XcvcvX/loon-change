@@ -635,18 +635,20 @@
       "path": "scripts/jingdong/jd.js",
       "required": [
         "// loon-change: Jingdong in-place response compaction and lazy serialization v1; upstream zirawell/R-Store@",
-        "function compactInPlace(items, keep)",
-        "function isPersonInfoBusinessExcluded(id)",
-        "function isWelcomeHomeType(type)",
-        "function isWelcomeExtraExcluded(type)",
-        "function isCustomSurfaceName(name)",
         "const shouldProcess =",
-        "compactInPlace(obj.floorList, item =>",
-        "compactInPlace(serviceList, card =>",
         "$done(modified ? { body: JSON.stringify(obj) } : {});",
         "const darkNavigation = modeMap && modeMap.dark && modeMap.dark.navigationAll;",
         "Array.isArray(darkNavigation)",
-        "const normalNavigation = modeMap && modeMap.normal && modeMap.normal.navigationAll;"
+        "const normalNavigation = modeMap && modeMap.normal && modeMap.normal.navigationAll;",
+        "function compactJdInPlace(items, mode, welcomeExtraEnabled)",
+        "function compactJdServiceList(items)",
+        "compactJdInPlace(obj.floorList, \"welcome\", welcomeExtraEnabled);",
+        "compactJdInPlace(darkNavigation, \"custom\");",
+        "compactJdInPlace(normalNavigation, \"custom\");",
+        "compactJdInPlace(obj.floors, \"delivery\");",
+        "compactJdInPlace(obj.floors, \"order\");",
+        "compactJdServiceList(serviceList);",
+        "function processFloors(floors)"
       ],
       "forbidden": [
         ".filter(",
@@ -654,7 +656,8 @@
         ".map(",
         "newFloors = []",
         "newItems = []",
-        "newCards = []"
+        "newCards = []",
+        "compactInPlace("
       ]
     },
     {
@@ -840,7 +843,16 @@
         "// loon-change: Spotify Search protobuf no-ad allocation preflight v1",
         "function hasTargetField(buf, depth, start, end)",
         "payloadEnd - payloadStart > MIN_AD_SIZE",
-        "const out = hasTargetField(bytes, 0) ? renameField(bytes, 0,"
+        "const out = hasTargetField(bytes, 0) ? renameField(bytes, 0,",
+        "// loon-change: Spotify nested protobuf allocation-light rewrite v2",
+        "function renameField(buf, depth, start, end, kind)",
+        "function replaceRange(buf, start, end, fieldStart, fieldEnd, replacement)"
+      ],
+      "forbidden": [
+        "function parseFields(",
+        "function concat(parts)",
+        "fields.map(",
+        "parts.reduce("
       ]
     },
     {
@@ -849,7 +861,16 @@
         "// loon-change: Spotify Scroll protobuf no-ad allocation preflight v1",
         "function hasTargetField(buf, depth, start, end)",
         "if (no === AD_FIELD) return true;",
-        "const out = hasTargetField(bytes, 0) ? renameField(bytes, 0,"
+        "const out = hasTargetField(bytes, 0) ? renameField(bytes, 0,",
+        "// loon-change: Spotify nested protobuf allocation-light rewrite v2",
+        "function renameField(buf, depth, start, end, kind)",
+        "function replaceRange(buf, start, end, fieldStart, fieldEnd, replacement)"
+      ],
+      "forbidden": [
+        "function parseFields(",
+        "function concat(parts)",
+        "fields.map(",
+        "parts.reduce("
       ]
     },
     {
@@ -857,7 +878,8 @@
       "required": [
         "# loon-change: Pinduoduo order response single-pass JSON cleanup v1",
         "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/order\\//i then response.json.delete([\"marketing_banner_vo\", \"shipping.banner_above_recommend\"])",
-        "# loon-change: Pinduoduo redundant query matcher consolidation v1"
+        "# loon-change: Pinduoduo redundant query matcher consolidation v1",
+        "youtubei\\/v\\d\\/(browse|next|player|search|reel\\/reel_watch_sequence|get_watch)"
       ],
       "forbidden": [
         "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/order\\/\\d+-\\d+\\/shipping/i then response.json.jq(\"del(.shipping.banner_above_recommend)\")",

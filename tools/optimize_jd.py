@@ -61,13 +61,13 @@ HEADER = """{marker}
 
   let modified = false;
 
-  function compactInPlace(items, keep) {{
+  function compactJdServiceList(items) {{
     const length = items.length;
     let write = 0;
     for (let read = 0; read < length; read++) {{
-      const item = items[read];
-      if (keep(item, read)) {{
-        if (write !== read) items[write] = item;
+      const card = items[read];
+      if (!(card && card.serviceTitle === "精选特惠")) {{
+        if (write !== read) items[write] = card;
         write++;
       }}
     }}
@@ -75,9 +75,78 @@ HEADER = """{marker}
       items.length = write;
       modified = true;
     }}
-    return items;
   }}
 
+  // Dispatch once per array, then walk by index without per-item predicate callbacks.
+  function compactJdInPlace(items, mode, welcomeExtraEnabled) {{
+    if (!Array.isArray(items)) return items;
+    const length = items.length;
+    let write = 0;
+    if (mode === "welcome") {{
+      for (let read = 0; read < length; read++) {{
+        const item = items[read];
+        const type = item && item.type;
+        const included = type === "topTab" || type === "searchC" || type === "dynamicIcon" ||
+          type === "locPermission" || type === "login" || type === "hybrid" || type === "recommend";
+        const extraExcluded = type === "bottomXview" || type === "float" || type === "photoCeiling" ||
+          type === "ruleFloat" || type === "searchIcon" || type === "topRotate" || type === "tabBarAtmosphere";
+        if (included && (!welcomeExtraEnabled || !extraExcluded)) {{
+          if (write !== read) items[write] = item;
+          write++;
+        }}
+      }}
+    }} else if (mode === "custom") {{
+      for (let read = 0; read < length; read++) {{
+        const item = items[read];
+        const name = item && item.functionId;
+        if (name === "index" || name === "messagenew" || name === "cart" || name === "home") {{
+          if (write !== read) items[write] = item;
+          write++;
+        }}
+      }}
+    }} else if (mode === "delivery") {{
+      for (let read = 0; read < length; read++) {{
+        const item = items[read];
+        const id = item && item.mId;
+        if (id !== "banner" && id !== "jdDeliveryBanner") {{
+          if (write !== read) items[write] = item;
+          write++;
+        }}
+      }}
+    }} else if (mode === "order") {{
+      for (let read = 0; read < length; read++) {{
+        const floor = items[read];
+        const id = floor && floor.mId;
+        if (id === "bannerFloor" || id === "bpDynamicFloor" || id === "plusFloor") continue;
+        if (id === "virtualServiceCenter") {{
+          const data = floor.data;
+          const centers = data && data.virtualServiceCenters;
+          if (Array.isArray(centers)) {{
+            const centerLength = centers.length;
+            for (let centerIndex = 0; centerIndex < centerLength; centerIndex++) {{
+              const center = centers[centerIndex];
+              const serviceList = center && center.serviceList;
+              if (Array.isArray(serviceList) && serviceList.length > 0) compactJdServiceList(serviceList);
+            }}
+          }}
+        }} else if (id === "customerServiceFloor") {{
+          const data = floor.data;
+          if (data && data.moreText) {{
+            deleteIfPresent(data, "moreIcon");
+            deleteIfPresent(data, "moreIcon_dark");
+            if (data.moreText !== " ") {{ data.moreText = " "; modified = true; }}
+          }}
+        }}
+        if (write !== read) items[write] = floor;
+        write++;
+      }}
+    }} else return items;
+    if (write !== length) {{
+      items.length = write;
+      modified = true;
+    }}
+    return items;
+  }}
   function deleteIfPresent(target, key) {{
     if (target && Object.prototype.hasOwnProperty.call(target, key)) {{
       delete target[key];
@@ -92,30 +161,7 @@ HEADER = """{marker}
     }}
   }}
 
-  function isPersonInfoBusinessExcluded(id) {{
-    return id === "bigSaleFloor" || id === "buyOften" ||
-      id === "newAttentionCard" || id === "newBigSaleFloor" ||
-      id === "newStyleAttentionCard" || id === "newsFloor" ||
-      id === "noticeFloor" || id === "recommendfloor";
-  }}
 
-  function isWelcomeHomeType(type) {{
-    return type === "topTab" || type === "searchC" ||
-      type === "dynamicIcon" || type === "locPermission" ||
-      type === "login" || type === "hybrid" || type === "recommend";
-  }}
-
-  function isWelcomeExtraExcluded(type) {{
-    return type === "bottomXview" || type === "float" ||
-      type === "photoCeiling" || type === "ruleFloat" ||
-      type === "searchIcon" || type === "topRotate" ||
-      type === "tabBarAtmosphere";
-  }}
-
-  function isCustomSurfaceName(name) {{
-    return name === "index" || name === "messagenew" ||
-      name === "cart" || name === "home";
-  }}
 
 """
  
@@ -133,6 +179,13 @@ def _replace_array_constant(source: str, name: str, function: str) -> str:
         raise ValueError("%s upstream allowlist changed; refusing optimization" % name)
     return source
 
+
+def _remove_array_constant(source: str, name: str) -> str:
+    pattern = re.compile(r"const " + re.escape(name) + r"\s*=\s*\[[\s\S]*?\];")
+    source, count = pattern.subn("", source, count=1)
+    if count != 1:
+        raise ValueError("%s upstream allowlist changed; refusing optimization" % name)
+    return source
 
 def _validate_upstream(source: str) -> None:
     for route in ROUTES:
@@ -171,18 +224,20 @@ def _validate_upstream(source: str) -> None:
 def optimize_source(source: str, upstream_commit: str = "unknown") -> str:
     if MARKER_PREFIX in source:
         required = (
-            "function compactInPlace(items, keep)",
-            "function isPersonInfoBusinessExcluded(id)",
-            "function isWelcomeHomeType(type)",
-            "function isCustomSurfaceName(name)",
-            'compactInPlace(obj.floorList, item =>',
-            'compactInPlace(darkNavigation, item =>',
-            'compactInPlace(obj.floors, floor =>',
+            "function compactJdInPlace(items, mode, welcomeExtraEnabled)",
+            "function compactJdServiceList(items)",
+            "function processFloors(floors)",
+            'compactJdInPlace(obj.floorList, "welcome", welcomeExtraEnabled);',
+            'compactJdInPlace(darkNavigation, "custom");',
+            'compactJdInPlace(normalNavigation, "custom");',
+            'compactJdInPlace(obj.floors, "delivery");',
+            'compactJdInPlace(obj.floors, "order");',
+            "compactJdServiceList(serviceList);",
             '$done(modified ? { body: JSON.stringify(obj) } : {});',
         )
         if any(token not in source for token in required):
             raise ValueError("Jingdong optimization marker exists but required behavior is incomplete")
-        if ".filter(" in source or "newFloors = []" in source or "newItems = []" in source or "newCards = []" in source:
+        if any(token in source for token in ("compactInPlace(", ".filter(", ".map(", ".forEach(", "newFloors = []", "newItems = []", "newCards = []")):
             raise ValueError("Jingdong optimization marker exists but allocation regression remains")
         if "readCustomSurfaceList\").*forEach" in source:
             raise ValueError("Jingdong custom-surface callback traversal remains")
@@ -201,33 +256,9 @@ def optimize_source(source: str, upstream_commit: str = "unknown") -> str:
         "Jingdong response entry point",
     )
 
-    source = _replace_array_constant(
-        source,
-        "PERSON_INFO_BUSINESS_MID_EXCLUDE",
-        "function isPersonInfoBusinessExcluded(id) {\n"
-        "  return id === \"bigSaleFloor\" || id === \"buyOften\" ||\n"
-        "    id === \"newAttentionCard\" || id === \"newBigSaleFloor\" ||\n"
-        "    id === \"newStyleAttentionCard\" || id === \"newsFloor\" ||\n"
-        "    id === \"noticeFloor\" || id === \"recommendfloor\";\n"
-        "}",
-    )
-    source = _replace_array_constant(
-        source,
-        "WELCOME_HOME_TYPE_INCLUDE",
-        "function isWelcomeHomeType(type) {\n"
-        "  return type === \"topTab\" || type === \"searchC\" ||\n"
-        "    type === \"dynamicIcon\" || type === \"locPermission\" ||\n"
-        "    type === \"login\" || type === \"hybrid\" || type === \"recommend\";\n"
-        "}",
-    )
-    source = _replace_array_constant(
-        source,
-        "CUSTOM_SURFACE_NAME_INCLUDE",
-        "function isCustomSurfaceName(name) {\n"
-        "  return name === \"index\" || name === \"messagenew\" ||\n"
-        "    name === \"cart\" || name === \"home\";\n"
-        "}",
-    )
+    source = _remove_array_constant(source, "PERSON_INFO_BUSINESS_MID_EXCLUDE")
+    source = _remove_array_constant(source, "WELCOME_HOME_TYPE_INCLUDE")
+    source = _remove_array_constant(source, "CUSTOM_SURFACE_NAME_INCLUDE")
 
     source = replace_once(
         source,
@@ -244,10 +275,7 @@ def optimize_source(source: str, upstream_commit: str = "unknown") -> str:
     source = replace_once(
         source,
         "obj.floorList = obj.floorList.filter((i) => WELCOME_HOME_TYPE_INCLUDE.includes(i?.type));",
-        "compactInPlace(obj.floorList, item =>\n"
-        "      isWelcomeHomeType(item && item.type) &&\n"
-        "      (!welcomeExtraEnabled || !isWelcomeExtraExcluded(item && item.type))\n"
-        "    );",
+        "compactJdInPlace(obj.floorList, \"welcome\", welcomeExtraEnabled);",
         "Jingdong welcomeHome floor filter",
     )
     source = replace_once(
@@ -270,15 +298,11 @@ def optimize_source(source: str, upstream_commit: str = "unknown") -> str:
   const modeMap = obj.result && obj.result.modeMap;
   const darkNavigation = modeMap && modeMap.dark && modeMap.dark.navigationAll;
   if (Array.isArray(darkNavigation) && darkNavigation.length > 0) {
-    compactInPlace(darkNavigation, item =>
-      isCustomSurfaceName(item && item.functionId)
-    );
+    compactJdInPlace(darkNavigation, "custom");
   }
   const normalNavigation = modeMap && modeMap.normal && modeMap.normal.navigationAll;
   if (Array.isArray(normalNavigation) && normalNavigation.length > 0) {
-    compactInPlace(normalNavigation, item =>
-      isCustomSurfaceName(item && item.functionId)
-    );
+    compactJdInPlace(normalNavigation, "custom");
   }
 """
     source = source[:start] + read_branch + "} else if (url.includes(\"functionId=deliverLayer\")" + source[end + len(deliver_start):]
@@ -291,10 +315,7 @@ def optimize_source(source: str, upstream_commit: str = "unknown") -> str:
     source = replace_once(
         source,
         'obj.floors = obj.floors.filter((i) => !["banner", "jdDeliveryBanner"]?.includes(i?.mId));',
-        "compactInPlace(obj.floors, item => {\n"
-        "      const id = item && item.mId;\n"
-        "      return id !== \"banner\" && id !== \"jdDeliveryBanner\";\n"
-        "    });",
+        "compactJdInPlace(obj.floors, \"delivery\");",
         "Jingdong delivery floor filter",
     )
     source = replace_once(
@@ -316,35 +337,7 @@ def optimize_source(source: str, upstream_commit: str = "unknown") -> str:
     end = source.index(person_start, start)
     my_order = """} else if (url.includes("functionId=myOrderInfo")) {
   if (Array.isArray(obj.floors) && obj.floors.length > 0) {
-    compactInPlace(obj.floors, floor => {
-      const id = floor && floor.mId;
-      if (id === "bannerFloor" || id === "bpDynamicFloor" || id === "plusFloor") {
-        return false;
-      }
-      if (id === "virtualServiceCenter") {
-        const centers = floor.data && floor.data.virtualServiceCenters;
-        if (Array.isArray(centers) && centers.length > 0) {
-          for (let index = 0; index < centers.length; index++) {
-            const item = centers[index];
-            const serviceList = item && item.serviceList;
-            if (Array.isArray(serviceList) && serviceList.length > 0) {
-              compactInPlace(serviceList, card =>
-                !(card && card.serviceTitle === "精选特惠")
-              );
-            }
-          }
-        }
-      }
-      if (id === "customerServiceFloor" && floor.data && floor.data.moreText) {
-        deleteIfPresent(floor.data, "moreIcon");
-        deleteIfPresent(floor.data, "moreIcon_dark");
-        if (floor.data.moreText !== " ") {
-          floor.data.moreText = " ";
-          modified = true;
-        }
-      }
-      return true;
-    });
+    compactJdInPlace(obj.floors, "order");
   }
 """
     source = source[:start] + my_order + source[end:]
@@ -392,32 +385,47 @@ def optimize_source(source: str, upstream_commit: str = "unknown") -> str:
     start = source.index(process_start)
     process_helper = """function processFloors(floors) {
   if (!Array.isArray(floors) || floors.length === 0) return floors;
-  return compactInPlace(floors, floor => {
-    if (isPersonInfoBusinessExcluded(floor && floor.mId)) return false;
+  const length = floors.length;
+  let write = 0;
+  for (let read = 0; read < length; read++) {
+    const floor = floors[read];
+    const id = floor && floor.mId;
+    if (
+      id === "bigSaleFloor" || id === "buyOften" || id === "newAttentionCard" ||
+      id === "newBigSaleFloor" || id === "newStyleAttentionCard" ||
+      id === "newsFloor" || id === "noticeFloor" || id === "recommendfloor"
+    ) continue;
     cleanFloorData(floor);
-    return true;
-  });
-}
-"""
+    if (write !== read) floors[write] = floor;
+    write++;
+  }
+  if (write !== length) {
+    floors.length = write;
+    modified = true;
+  }
+  return floors;
+}"""
     source = source[:start] + process_helper
 
     source = source.rstrip() + "\n})();\n"
     required = (
         MARKER_PREFIX + upstream_commit,
-        "function compactInPlace(items, keep)",
-        "function isPersonInfoBusinessExcluded(id)",
-        "function isWelcomeHomeType(type)",
-        "function isCustomSurfaceName(name)",
+        "function compactJdInPlace(items, mode, welcomeExtraEnabled)",
+        "function compactJdServiceList(items)",
+        "function processFloors(floors)",
         "const modeMap = obj.result && obj.result.modeMap;",
         "const shouldProcess =",
-        "compactInPlace(obj.floorList, item =>",
-        "compactInPlace(obj.floors, floor =>",
-        'compactInPlace(serviceList, card =>',
+        'compactJdInPlace(obj.floorList, "welcome", welcomeExtraEnabled);',
+        'compactJdInPlace(darkNavigation, "custom");',
+        'compactJdInPlace(normalNavigation, "custom");',
+        'compactJdInPlace(obj.floors, "delivery");',
+        'compactJdInPlace(obj.floors, "order");',
+        "compactJdServiceList(serviceList);",
         "$done(modified ? { body: JSON.stringify(obj) } : {});",
     )
     if any(token not in source for token in required):
         raise ValueError("Jingdong generated runtime is missing a required optimization marker")
-    if ".filter(" in source or "newFloors = []" in source or "newItems = []" in source or "newCards = []" in source:
+    if any(token in source for token in ("compactInPlace(", ".filter(", ".map(", ".forEach(", "newFloors = []", "newItems = []", "newCards = []")):
         raise ValueError("Jingdong generated runtime retains allocating array transforms")
     if ".forEach(" in source or ".map(" in source:
         raise ValueError("Jingdong generated runtime retains callback array traversals")

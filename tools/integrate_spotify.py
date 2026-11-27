@@ -207,81 +207,193 @@ def optimize_spotify_home_script(source):
 
 SEARCH_FAST_PATH_MARKER = "// loon-change: Spotify Search protobuf no-ad allocation preflight v1"
 SCROLL_FAST_PATH_MARKER = "// loon-change: Spotify Scroll protobuf no-ad allocation preflight v1"
+NESTED_REWRITE_MARKER = "// loon-change: Spotify nested protobuf allocation-light rewrite v2"
 
 
-def optimize_spotify_nested_script(source, kind):
-    if kind == "search":
-        marker = SEARCH_FAST_PATH_MARKER
-        predicate = "no === AD_FIELD && payloadEnd - payloadStart > MIN_AD_SIZE"
-    elif kind == "scroll":
-        marker = SCROLL_FAST_PATH_MARKER
-        predicate = "no === AD_FIELD"
-    else:
-        raise ValueError("unknown Spotify nested protobuf optimizer")
-    if marker in source:
-        start = source.find(marker)
-        end = source.find("// Parses one protobuf message", start)
-        helper = source[start:end] if end > start else ""
-        if (source.count(marker) != 1
-                or "const out = hasTargetField(bytes, 0) ? renameField(bytes, 0," not in source
-                or "function hasTargetField(buf, depth, start, end)" not in helper
-                or "let pos = start;" not in helper
-                or "while (pos < end)" not in helper
-                or predicate not in helper
-                or ".subarray(" in helper):
-            raise ValueError("Spotify nested protobuf optimization structure drift")
-        return source
-    helper = f"""{marker}
-// Scan wire ranges without materializing field arrays or subarray views.
-// The existing allocating rewrite is entered only after a target field is found.
-function hasTargetField(buf, depth, start, end) {{
-  start = start || 0;
-  end = end === undefined ? buf.length : end;
+NESTED_REWRITE_HELPER = """// loon-change: Spotify nested protobuf allocation-light rewrite v2
+// Only materialize byte views when a matching ad field is found. Rebuild each
+// ancestor directly into one output buffer; no per-field objects or map/reduce arrays.
+function wrap(no, payload) {
+  const key = writeVarint(no * 8 + 2);
+  const size = writeVarint(payload.length);
+  const out = new Uint8Array(key.length + size.length + payload.length);
+  let offset = 0;
+  for (let i = 0; i < key.length; i++) out[offset++] = key[i];
+  for (let i = 0; i < size.length; i++) out[offset++] = size[i];
+  out.set(payload, offset);
+  return out;
+}
+
+function replaceRange(buf, start, end, fieldStart, fieldEnd, replacement) {
+  const prefixLength = fieldStart - start;
+  const suffixLength = end - fieldEnd;
+  const out = new Uint8Array(prefixLength + replacement.length + suffixLength);
+  out.set(buf.subarray(start, fieldStart), 0);
+  out.set(replacement, prefixLength);
+  out.set(buf.subarray(fieldEnd, end), prefixLength + replacement.length);
+  return out;
+}
+
+// Return the first depth-first matching field with all parent lengths rebuilt.
+function renameField(buf, depth, start, end, kind) {
   let pos = start;
-  while (pos < end) {{
+  while (pos < end) {
+    const fieldStart = pos;
     const key = readVarint(buf, pos);
     const no = Math.floor(key.value / 8);
     const wire = key.value % 8;
     pos = key.pos;
     let payloadStart = -1;
     let payloadEnd = -1;
+
     if (wire === 0) pos = readVarint(buf, pos).pos;
     else if (wire === 1) pos += 8;
     else if (wire === 5) pos += 4;
-    else if (wire === 2) {{
+    else if (wire === 2) {
       const len = readVarint(buf, pos);
       payloadStart = len.pos;
       payloadEnd = len.pos + len.value;
       pos = payloadEnd;
-    }} else throw new Error("unsupported wire type " + wire);
+    } else throw new Error("unsupported wire type " + wire);
+
     if (pos > end) throw new Error("truncated field");
-    if (wire === 2) {{
-      if ({predicate}) return true;
-      if (depth < MAX_DEPTH) {{
-        try {{
-          if (hasTargetField(buf, depth + 1, payloadStart, payloadEnd)) return true;
-        }} catch (e) {{
-          // Non-message strings/bytes are expected; match the original parser's behavior.
-        }}
-      }}
-    }}
-  }}
-  return false;
-}}
+    if (wire !== 2) continue;
+
+    const isTarget = no === AD_FIELD &&
+      (kind === "scroll" || payloadEnd - payloadStart > MIN_AD_SIZE);
+    if (isTarget) {
+      const replacement = wrap(UNKNOWN_FIELD, buf.subarray(payloadStart, payloadEnd));
+      return replaceRange(buf, start, end, fieldStart, pos, replacement);
+    }
+
+    if (depth < MAX_DEPTH) {
+      let inner = null;
+      try {
+        inner = renameField(buf, depth + 1, payloadStart, payloadEnd, kind);
+      } catch (e) {
+        // Non-message strings/bytes are expected; preserve the original payload.
+      }
+      if (inner) {
+        return replaceRange(buf, start, end, fieldStart, pos, wrap(no, inner));
+      }
+    }
+  }
+  return null;
+}
 """
-    anchor = "// Parses one protobuf message into its fields (raw bytes of each field are kept)."
-    if source.count(anchor) != 1 or source.count("function renameField(buf, depth, matches)") != 1:
-        raise ValueError("Spotify nested protobuf parser anchors changed; refusing optimization")
-    source = source.replace(anchor, helper + "\n" + anchor)
-    call = "const out = renameField(bytes, 0,"
-    if source.count(call) != 1:
+
+
+def _spotify_nested_call(kind):
+    if kind == "search":
+        return 'const out = hasTargetField(bytes, 0) ? renameField(bytes, 0, 0, bytes.length, "search") : null;'
+    if kind == "scroll":
+        return 'const out = hasTargetField(bytes, 0) ? renameField(bytes, 0, 0, bytes.length, "scroll") : null;'
+    raise ValueError("unknown Spotify nested protobuf optimizer")
+
+
+def optimize_spotify_nested_script(source, kind):
+    if kind == "search":
+        marker = SEARCH_FAST_PATH_MARKER
+        predicate = "no === AD_FIELD && payloadEnd - payloadStart > MIN_AD_SIZE"
+        old_calls = (
+            "const out = renameField(bytes, 0, (f, payload) => f.no === AD_FIELD && payload.length > MIN_AD_SIZE);",
+            "const out = hasTargetField(bytes, 0) ? renameField(bytes, 0, (f, payload) => f.no === AD_FIELD && payload.length > MIN_AD_SIZE) : null;",
+        )
+    elif kind == "scroll":
+        marker = SCROLL_FAST_PATH_MARKER
+        predicate = "no === AD_FIELD"
+        old_calls = (
+            "const out = renameField(bytes, 0, (f) => f.no === AD_FIELD);",
+            "const out = hasTargetField(bytes, 0) ? renameField(bytes, 0, (f) => f.no === AD_FIELD) : null;",
+        )
+    else:
+        raise ValueError("unknown Spotify nested protobuf optimizer")
+
+    if NESTED_REWRITE_MARKER in source:
+        if (source.count(NESTED_REWRITE_MARKER) != 1
+                or source.count(marker) != 1
+                or _spotify_nested_call(kind) not in source
+                or "function hasTargetField(buf, depth, start, end)" not in source
+                or "function renameField(buf, depth, start, end, kind)" not in source
+                or "function replaceRange(buf, start, end, fieldStart, fieldEnd, replacement)" not in source
+                or "function parseFields(" in source
+                or "function concat(parts)" in source
+                or "fields.map(" in source
+                or "parts.reduce(" in source):
+            raise ValueError("Spotify nested protobuf allocation-light rewrite drift")
+        return source
+
+    # Remove the concat helper used only by the previous field-array rewrite.
+    concat_start = source.find("function concat(parts) {")
+    concat_end = source.find("\n}\n", concat_start)
+    if concat_start < 0 or concat_end < 0 or source.count("function concat(parts)") != 1:
+        raise ValueError("Spotify nested protobuf concat helper changed; refusing optimization")
+    concat_end += 3
+    if source.count("concat(") != 3:
+        raise ValueError("Spotify nested protobuf concat usage changed; refusing optimization")
+    source = source[:concat_start] + source[concat_end:]
+
+    # Newer upstream may already include the no-allocation preflight marker.
+    if marker not in source:
+        helper = f"""{marker}
+ // Scan wire ranges without materializing field arrays or subarray views.
+ // Enter the rewrite path only after a target field has been confirmed.
+ function hasTargetField(buf, depth, start, end) {{
+   start = start || 0;
+   end = end === undefined ? buf.length : end;
+   let pos = start;
+   while (pos < end) {{
+     const key = readVarint(buf, pos);
+     const no = Math.floor(key.value / 8);
+     const wire = key.value % 8;
+     pos = key.pos;
+     let payloadStart = -1;
+     let payloadEnd = -1;
+     if (wire === 0) pos = readVarint(buf, pos).pos;
+     else if (wire === 1) pos += 8;
+     else if (wire === 5) pos += 4;
+     else if (wire === 2) {{
+       const len = readVarint(buf, pos);
+       payloadStart = len.pos;
+       payloadEnd = len.pos + len.value;
+       pos = payloadEnd;
+     }} else throw new Error("unsupported wire type " + wire);
+     if (pos > end) throw new Error("truncated field");
+     if (wire === 2) {{
+       if ({predicate}) return true;
+       if (depth < MAX_DEPTH) {{
+         try {{
+           if (hasTargetField(buf, depth + 1, payloadStart, payloadEnd)) return true;
+         }} catch (e) {{
+           // Non-message strings/bytes are expected.
+         }}
+       }}
+     }}
+   }}
+   return false;
+ }}
+"""
+        anchor = "// Parses one protobuf message into its fields (raw bytes of each field are kept)."
+        if source.count(anchor) != 1:
+            raise ValueError("Spotify nested protobuf parser anchors changed; refusing optimization")
+        source = source.replace(anchor, helper + "\n" + anchor, 1)
+
+    call_count = sum(source.count(call) for call in old_calls)
+    if call_count != 1:
         raise ValueError("Spotify nested protobuf rewrite call changed; refusing optimization")
-    source = source.replace(call, "const out = hasTargetField(bytes, 0) ? renameField(bytes, 0,", 1)
-    ending = "payload.length > MIN_AD_SIZE);" if kind == "search" else "f.no === AD_FIELD);"
-    if source.count(ending) != 1:
-        raise ValueError("Spotify nested protobuf ad predicate changed; refusing optimization")
-    source = source.replace(ending, ending[:-1] + " : null;", 1)
-    return source
+    for call in old_calls:
+        if call in source:
+            source = source.replace(call, _spotify_nested_call(kind), 1)
+            break
+
+    start = source.find("// Parses one protobuf message into its fields")
+    end = source.find("\ntry {", start)
+    if start < 0 or end < 0 or source.count("function renameField(buf, depth") != 1:
+        raise ValueError("Spotify nested protobuf rewrite block changed; refusing optimization")
+    optimized = source[:start] + NESTED_REWRITE_HELPER + source[end:]
+    if any(token in optimized for token in ("function parseFields(", "function concat(parts)", "fields.map(", "parts.reduce(")):
+        raise ValueError("Spotify nested protobuf rewrite retained allocation-heavy helpers")
+    return optimized
 
 
 def integrate(plugin_path, source_path, scripts_source, scripts_dest, upstream_commit, metadata_path):
