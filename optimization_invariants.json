@@ -238,7 +238,6 @@
         "(replyCommentsLength = replyComments.length) > 0",
         "const __loonLength30 = commentDatasLength;",
         "const __loonLength29 = rootCommentsLength;",
-        "const __loonLength28 = replyCommentsLength;",
         "// loon-change: Weibo profile/me nested array cache v1",
         "const profileMeItems = obj?.items;",
         "const profileMeItemsLength = profileMeItems?.length || 0;",
@@ -321,7 +320,10 @@
         "if (obj?.cards?.length > 0) {\n      const __loonSource32 = obj.cards;",
         "if (card?.card_group?.length > 0) {\n          const __loonSource31 = card.card_group;",
         "const __loonLength32 = __loonSource32.length;",
-        "const __loonLength31 = __loonSource31.length;"
+        "const __loonLength31 = __loonSource31.length;",
+        "const __loonLength28 = replyCommentsLength;",
+        "let __loonWrite28 = 0;",
+        "const __loonSource28 = replyComments;"
       ]
     },
     {
