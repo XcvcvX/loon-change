@@ -332,7 +332,6 @@ if (url.includes("/x/resource/show/tab/")) {
 } else if (url.includes("/splash")) {
   // 开屏广告
   if (obj?.data) {
-    const item = ["account", "event_list", "preload", "show"];
     deleteTracked(obj.data, "account");
     deleteTracked(obj.data, "event_list");
     deleteTracked(obj.data, "preload");
