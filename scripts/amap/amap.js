@@ -496,6 +496,9 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
     // 公交出行 底部卡路里数值
     setIfDifferent(obj.data.common_data.bus_plan_bottom_event, "data", []);
   }
+  if (obj?.data?.common_data?.bus_plan_bottom_tips?.data?.length > 0) {
+    setIfDifferent(obj.data.common_data.bus_plan_bottom_tips, "data", []);
+  }
   if (obj?.data?.common_data?.bus_plan_segment_event?.data?.length > 0) {
     // 公交出行 中转站 卡路里数值
     setIfDifferent(obj.data.common_data.bus_plan_segment_event, "data", []);
