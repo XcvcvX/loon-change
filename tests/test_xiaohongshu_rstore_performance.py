@@ -83,6 +83,37 @@ class RStoreXiaohongshuOptimizerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "single-traversal image helper drifted"):
             optimize_imagefeed_single_traversal(missing_helper)
 
+    def test_imagefeed_optimizer_upgrades_previous_array_length_frame_helper(self):
+        from optimize_xiaohongshu_rstore import IMAGE_FEED_MARKER, IMAGE_ARRAY_LENGTH_MARKER
+        source = SCRIPT.read_text(encoding="utf-8")
+        legacy = source.replace("  // " + IMAGE_ARRAY_CLASSIFICATION_MARKER + "\n", "", 1)
+        legacy = legacy.replace(
+            "  const imagesIsArray = Array.isArray(images);\n"
+            "  const stack = [{value: images, index: 0, keys: null, length: imagesIsArray ? images.length : 0, root: true, isArray: imagesIsArray}];",
+            "  const stack = [{value: images, index: 0, keys: null, length: Array.isArray(images) ? images.length : 0, root: true}];",
+            1,
+        )
+        legacy = legacy.replace("if (frame.isArray)", "if (Array.isArray(value))", 1)
+        old_push = (
+            "        const childIsArray = Array.isArray(child);\n"
+            "        stack.push({value: child, index: 0, keys: null, length: childIsArray ? child.length : 0, root: false, isArray: childIsArray});"
+        )
+        new_push = "        stack.push({value: child, index: 0, keys: null, length: Array.isArray(child) ? child.length : 0, root: false});"
+        self.assertEqual(legacy.count(old_push), 2)
+        legacy = legacy.replace(old_push, new_push)
+        upgraded = optimize_imagefeed_single_traversal(legacy)
+        helper_start = upgraded.index("function imageEnhance(images, livePhotoCache) {")
+        helper_end = upgraded.index("function replaceUrlContent(", helper_start)
+        helper = upgraded[helper_start:helper_end]
+        self.assertIn(IMAGE_FEED_MARKER, upgraded)
+        self.assertIn(IMAGE_ARRAY_LENGTH_MARKER, upgraded)
+        self.assertIn(IMAGE_ARRAY_CLASSIFICATION_MARKER, helper)
+        self.assertIn("if (frame.isArray)", helper)
+        self.assertNotIn("if (Array.isArray(value))", helper)
+        self.assertEqual(upgraded.count(IMAGE_FEED_MARKER), 1)
+        self.assertEqual(upgraded.count(IMAGE_ARRAY_LENGTH_MARKER), 1)
+        self.assertEqual(optimize_imagefeed_single_traversal(upgraded), upgraded)
+
     def test_imagefeed_array_classification_is_cached_per_traversal_frame(self):
         source = SCRIPT.read_text(encoding="utf-8")
         start = source.index("function imageEnhance(images, livePhotoCache) {")
