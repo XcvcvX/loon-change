@@ -523,23 +523,52 @@ if (isIQY) {
         delete obj.data[i];
       }
     }
-    } else if (url.includes("columbus.home.query/")) {
-    // 优酷首页菜单与信息流：四层节点直接遍历，不创建逐项回调。
-    if (obj?.data?.["2019061000"]?.data) {
-      const objData = obj.data["2019061000"].data;
-      const homeData = objData?.data;
-      const indexPositionResult = homeData?.indexPositionResult;
-      if (indexPositionResult?.length > 0) homeData.indexPositionResult = [];
-
-      const rootNodes = objData?.nodes;
-      const rootNodesLength = rootNodes?.length || 0;
-      if (rootNodesLength > 0) {
-        compactCntvYoukuHomeQuery(rootNodes, "root", rootNodesLength);
+  } else if (url.includes("columbus.gateway.new.execute")) {
+    // 优酷 播放详情页组件
+    if (obj?.data?.["2019030100"]?.data) {
+      let objData = obj.data["2019030100"].data;
+      if (objData?.data?.global) {
+        let config = objData.data.global;
+        if (config?.PHONE_DETAIL_TOP_TAB?.pageTabs?.length > 0) {
+          // detail视频 list热门 planet讨论
+          compactInPlace(config.PHONE_DETAIL_TOP_TAB.pageTabs, (i) =>
+              CNTV_STATIC_FILTER_17.includes(i?.code)
+          );
+        }
       }
-    }
-  // loon-change: CNTV Youku home.query callback-free route v1
-  // loon-change: CNTV Youku home.query nested in-place compaction v1
-       // 播放页推荐信息流
+      if (objData?.nodes?.length > 0) {
+        if (objData?.nodes?.length === 1) {
+          let node0 = objData.nodes[0];
+          if (node0?.nodes?.length > 0) {
+            if (node0?.typeName === "NORMAL") {
+              compactInPlace(node0.nodes, 
+                  (i) =>
+                      ![
+                        "PHONE_CHD_AGE_DETAIL_2",
+                        "PHONE_CHILD_SERIES_A",
+                        "PHONE_CHILD_STAR_A",
+                        "PHONE_DEFALT_SCROLL_C",
+                        "Phone运营banner",
+                        "播放页触达组件", // 新版
+                        "播放页广告组件",
+                        "播放页会员引导组件",
+                        "播放页活动组件",
+                        "播放页全屏播后推荐组件",
+                        "播放页少儿品牌专区组件",
+                        "播放页推荐组件",
+                        "播放页用户触达组件", // 旧版
+                        "播放页有料不能停组件",
+                        "球区自动化组件",
+                        "优酷购"
+                      ]?.includes(i?.typeName)
+              );
+            } else if (node0?.typeName === "FEED_CHILD_DRAWER_PAGINATION") {
+              // 播放页推荐信息流
+              if (node0?.nodes) {
+                node0.nodes = [];
+              }
+            } else if (node0?.typeName === "FEED_DRAWER_PAGINATION") {
+              // 播放页推荐信息流
               if (node0?.nodes) {
                 node0.nodes = [];
               }
@@ -573,43 +602,20 @@ if (isIQY) {
       }
     }
   } else if (url.includes("columbus.home.query/")) {
-    // CNTV Youku home.query nested-list compaction: reuse all four response arrays.
+    // 优酷首页菜单与信息流：四层节点直接遍历，不创建逐项回调。
     if (obj?.data?.["2019061000"]?.data) {
-      let objData = obj.data["2019061000"].data;
-      if (objData?.data?.indexPositionResult?.length > 0) objData.data.indexPositionResult = [];
-      if (objData?.nodes?.length > 0) {
-        compactInPlace(objData.nodes, item => {
-          if (CNTV_STATIC_FILTER_18.includes(item?.data?.nodeKey)) return false;
-          if (item?.data?.indexPositionResult?.length > 0) item.data.indexPositionResult = [];
-          if (item?.data?.refreshImg) delete item.data.refreshImg;
-          if (item?.nodes?.length > 0) {
-            compactInPlace(item.nodes, i => {
-              if (i?.data?.crmSale) delete i.data.crmSale;
-              if (CNTV_STATIC_FILTER_19.includes(i?.typeName)) return false;
-              if (i?.id === 31476) {
-                if (i?.data?.keywords?.length > 0) delete i.data.keywords;
-                return true;
-              }
-              if (i?.id === 35505 || i?.id === 37335) return false;
-              if (i?.nodes?.length > 0) {
-                compactInPlace(i.nodes, ii => {
-                  if (CNTV_STATIC_FILTER_20.includes(ii?.typeName)) return false;
-                  if (ii?.nodes?.length > 0) {
-                    compactInPlace(ii.nodes, iii =>
-                      iii?.typeName !== "PHONE_FEED_CARD_S_AD" &&
-                      !iii?.data?.hasOwnProperty("ad")
-                    );
-                  }
-                  return true;
-                });
-              }
-              return true;
-            });
-          }
-          return true;
-        });
+      const objData = obj.data["2019061000"].data;
+      const homeData = objData?.data;
+      const indexPositionResult = homeData?.indexPositionResult;
+      if (indexPositionResult?.length > 0) homeData.indexPositionResult = [];
+
+      const rootNodes = objData?.nodes;
+      const rootNodesLength = rootNodes?.length || 0;
+      if (rootNodesLength > 0) {
+        compactCntvYoukuHomeQuery(rootNodes, "root", rootNodesLength);
       }
     }
+  // loon-change: CNTV Youku home.query callback-free route v1
   // loon-change: CNTV Youku home.query nested in-place compaction v1
   } else if (url.includes("columbus.uc.query/")) {
     // loon-change: CNTV Youku user-center nested in-place compaction v1
