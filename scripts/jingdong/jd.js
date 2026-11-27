@@ -46,13 +46,13 @@ https://raw.githubusercontent.com/zirawell/R-Store/main/Rule/Surge/Adblock/App/J
 
   let modified = false;
 
-  function compactInPlace(items, keep) {
+  function compactJdServiceList(items) {
     const length = items.length;
     let write = 0;
     for (let read = 0; read < length; read++) {
-      const item = items[read];
-      if (keep(item, read)) {
-        if (write !== read) items[write] = item;
+      const card = items[read];
+      if (!(card && card.serviceTitle === "精选特惠")) {
+        if (write !== read) items[write] = card;
         write++;
       }
     }
@@ -60,9 +60,78 @@ https://raw.githubusercontent.com/zirawell/R-Store/main/Rule/Surge/Adblock/App/J
       items.length = write;
       modified = true;
     }
-    return items;
   }
 
+  // Dispatch once per array, then walk by index without per-item predicate callbacks.
+  function compactJdInPlace(items, mode, welcomeExtraEnabled) {
+    if (!Array.isArray(items)) return items;
+    const length = items.length;
+    let write = 0;
+    if (mode === "welcome") {
+      for (let read = 0; read < length; read++) {
+        const item = items[read];
+        const type = item && item.type;
+        const included = type === "topTab" || type === "searchC" || type === "dynamicIcon" ||
+          type === "locPermission" || type === "login" || type === "hybrid" || type === "recommend";
+        const extraExcluded = type === "bottomXview" || type === "float" || type === "photoCeiling" ||
+          type === "ruleFloat" || type === "searchIcon" || type === "topRotate" || type === "tabBarAtmosphere";
+        if (included && (!welcomeExtraEnabled || !extraExcluded)) {
+          if (write !== read) items[write] = item;
+          write++;
+        }
+      }
+    } else if (mode === "custom") {
+      for (let read = 0; read < length; read++) {
+        const item = items[read];
+        const name = item && item.functionId;
+        if (name === "index" || name === "messagenew" || name === "cart" || name === "home") {
+          if (write !== read) items[write] = item;
+          write++;
+        }
+      }
+    } else if (mode === "delivery") {
+      for (let read = 0; read < length; read++) {
+        const item = items[read];
+        const id = item && item.mId;
+        if (id !== "banner" && id !== "jdDeliveryBanner") {
+          if (write !== read) items[write] = item;
+          write++;
+        }
+      }
+    } else if (mode === "order") {
+      for (let read = 0; read < length; read++) {
+        const floor = items[read];
+        const id = floor && floor.mId;
+        if (id === "bannerFloor" || id === "bpDynamicFloor" || id === "plusFloor") continue;
+        if (id === "virtualServiceCenter") {
+          const data = floor.data;
+          const centers = data && data.virtualServiceCenters;
+          if (Array.isArray(centers)) {
+            const centerLength = centers.length;
+            for (let centerIndex = 0; centerIndex < centerLength; centerIndex++) {
+              const center = centers[centerIndex];
+              const serviceList = center && center.serviceList;
+              if (Array.isArray(serviceList) && serviceList.length > 0) compactJdServiceList(serviceList);
+            }
+          }
+        } else if (id === "customerServiceFloor") {
+          const data = floor.data;
+          if (data && data.moreText) {
+            deleteIfPresent(data, "moreIcon");
+            deleteIfPresent(data, "moreIcon_dark");
+            if (data.moreText !== " ") { data.moreText = " "; modified = true; }
+          }
+        }
+        if (write !== read) items[write] = floor;
+        write++;
+      }
+    } else return items;
+    if (write !== length) {
+      items.length = write;
+      modified = true;
+    }
+    return items;
+  }
   function deleteIfPresent(target, key) {
     if (target && Object.prototype.hasOwnProperty.call(target, key)) {
       delete target[key];
@@ -77,51 +146,16 @@ https://raw.githubusercontent.com/zirawell/R-Store/main/Rule/Surge/Adblock/App/J
     }
   }
 
-  function isPersonInfoBusinessExcluded(id) {
-    return id === "bigSaleFloor" || id === "buyOften" ||
-      id === "newAttentionCard" || id === "newBigSaleFloor" ||
-      id === "newStyleAttentionCard" || id === "newsFloor" ||
-      id === "noticeFloor" || id === "recommendfloor";
-  }
-
-  function isWelcomeHomeType(type) {
-    return type === "topTab" || type === "searchC" ||
-      type === "dynamicIcon" || type === "locPermission" ||
-      type === "login" || type === "hybrid" || type === "recommend";
-  }
-
-  function isWelcomeExtraExcluded(type) {
-    return type === "bottomXview" || type === "float" ||
-      type === "photoCeiling" || type === "ruleFloat" ||
-      type === "searchIcon" || type === "topRotate" ||
-      type === "tabBarAtmosphere";
-  }
-
-  function isCustomSurfaceName(name) {
-    return name === "index" || name === "messagenew" ||
-      name === "cart" || name === "home";
-  }
 
 
 
 
-function isPersonInfoBusinessExcluded(id) {
-  return id === "bigSaleFloor" || id === "buyOften" ||
-    id === "newAttentionCard" || id === "newBigSaleFloor" ||
-    id === "newStyleAttentionCard" || id === "newsFloor" ||
-    id === "noticeFloor" || id === "recommendfloor";
-}
 
-function isWelcomeHomeType(type) {
-  return type === "topTab" || type === "searchC" ||
-    type === "dynamicIcon" || type === "locPermission" ||
-    type === "login" || type === "hybrid" || type === "recommend";
-}
 
-function isCustomSurfaceName(name) {
-  return name === "index" || name === "messagenew" ||
-    name === "cart" || name === "home";
-}
+
+
+
+
 
 
 // 开屏广告
@@ -138,10 +172,7 @@ if (url.includes("functionId=start")) {
   // 首页配置
   if (obj?.floorList?.length > 0) {
     // 首页 图层列表
-    compactInPlace(obj.floorList, item =>
-      isWelcomeHomeType(item && item.type) &&
-      (!welcomeExtraEnabled || !isWelcomeExtraExcluded(item && item.type))
-    );
+    compactJdInPlace(obj.floorList, "welcome", welcomeExtraEnabled);
   }
   // 首页 下拉二楼
   if (obj?.webViewFloorList?.length > 0) {
@@ -155,15 +186,11 @@ if (url.includes("functionId=start")) {
   const modeMap = obj.result && obj.result.modeMap;
   const darkNavigation = modeMap && modeMap.dark && modeMap.dark.navigationAll;
   if (Array.isArray(darkNavigation) && darkNavigation.length > 0) {
-    compactInPlace(darkNavigation, item =>
-      isCustomSurfaceName(item && item.functionId)
-    );
+    compactJdInPlace(darkNavigation, "custom");
   }
   const normalNavigation = modeMap && modeMap.normal && modeMap.normal.navigationAll;
   if (Array.isArray(normalNavigation) && normalNavigation.length > 0) {
-    compactInPlace(normalNavigation, item =>
-      isCustomSurfaceName(item && item.functionId)
-    );
+    compactJdInPlace(normalNavigation, "custom");
   }
 } else if (url.includes("functionId=deliverLayer") || url.includes("functionId=orderTrackBusiness")) {
   // 物流页面
@@ -173,10 +200,7 @@ if (url.includes("functionId=start")) {
   }
   if (obj?.floors?.length > 0) {
     // 运费八折
-    compactInPlace(obj.floors, item => {
-      const id = item && item.mId;
-      return id !== "banner" && id !== "jdDeliveryBanner";
-    });
+    compactJdInPlace(obj.floors, "delivery");
   }
 } else if (url.includes("functionId=getTabHomeInfo")) {
   // 新品页面
@@ -190,35 +214,7 @@ if (url.includes("functionId=start")) {
   }
 } else if (url.includes("functionId=myOrderInfo")) {
   if (Array.isArray(obj.floors) && obj.floors.length > 0) {
-    compactInPlace(obj.floors, floor => {
-      const id = floor && floor.mId;
-      if (id === "bannerFloor" || id === "bpDynamicFloor" || id === "plusFloor") {
-        return false;
-      }
-      if (id === "virtualServiceCenter") {
-        const centers = floor.data && floor.data.virtualServiceCenters;
-        if (Array.isArray(centers) && centers.length > 0) {
-          for (let index = 0; index < centers.length; index++) {
-            const item = centers[index];
-            const serviceList = item && item.serviceList;
-            if (Array.isArray(serviceList) && serviceList.length > 0) {
-              compactInPlace(serviceList, card =>
-                !(card && card.serviceTitle === "精选特惠")
-              );
-            }
-          }
-        }
-      }
-      if (id === "customerServiceFloor" && floor.data && floor.data.moreText) {
-        deleteIfPresent(floor.data, "moreIcon");
-        deleteIfPresent(floor.data, "moreIcon_dark");
-        if (floor.data.moreText !== " ") {
-          floor.data.moreText = " ";
-          modified = true;
-        }
-      }
-      return true;
-    });
+    compactJdInPlace(obj.floors, "order");
   }
 } else if (url.includes("functionId=personinfoBusiness")) {
   if (obj?.floors?.length > 0) {
@@ -258,10 +254,24 @@ function cleanFloorData(floor) {
 
 function processFloors(floors) {
   if (!Array.isArray(floors) || floors.length === 0) return floors;
-  return compactInPlace(floors, floor => {
-    if (isPersonInfoBusinessExcluded(floor && floor.mId)) return false;
+  const length = floors.length;
+  let write = 0;
+  for (let read = 0; read < length; read++) {
+    const floor = floors[read];
+    const id = floor && floor.mId;
+    if (
+      id === "bigSaleFloor" || id === "buyOften" || id === "newAttentionCard" ||
+      id === "newBigSaleFloor" || id === "newStyleAttentionCard" ||
+      id === "newsFloor" || id === "noticeFloor" || id === "recommendfloor"
+    ) continue;
     cleanFloorData(floor);
-    return true;
-  });
+    if (write !== read) floors[write] = floor;
+    write++;
+  }
+  if (write !== length) {
+    floors.length = write;
+    modified = true;
+  }
+  return floors;
 }
 })();

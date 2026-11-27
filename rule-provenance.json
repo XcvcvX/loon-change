@@ -51773,21 +51773,15 @@
       "trace_status": "mapped"
     },
     {
-      "canonical_key": "('guarded', '^https?://youtubei\\\\.googleapis\\\\.com/(youtubei/v\\\\d/(browse|next|player|search|reel/reel_watch_sequence|guide|account/get_setting|get_watch))(\\\\?(.*))?$', ('^https?:\\\\/\\\\/youtubei\\\\.googleapis\\\\.com\\\\/', '^https?:\\\\/\\\\/youtubei\\\\.googleapis\\\\.com\\\\/(youtubei\\\\/v\\\\d\\\\/(browse|next|player|search|reel\\\\/reel_watch_sequence|guide|account\\\\/get_setting|get_watch))(\\\\?(.*))?$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/youtube.js,tag=YOUTUBE,requires-body=true,binary-body-mode=true'))",
-      "output_entry_index": 230,
-      "output_line": "http-response ^https?:\\/\\/youtubei\\.googleapis\\.com\\/(youtubei\\/v\\d\\/(browse|next|player|search|reel\\/reel_watch_sequence|guide|account\\/get_setting|get_watch))(\\?(.*))?$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/youtube.js,tag=YOUTUBE,requires-body=true,binary-body-mode=true",
-      "section": "Script",
+      "output_line": "http-response ^https?:\\/\\/youtubei\\.googleapis\\.com\\/(youtubei\\/v\\d\\/(browse|next|player|search|reel\\/reel_watch_sequence|get_watch))(\\?(.*))?$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/youtube.js,tag=YOUTUBE,requires-body=true,binary-body-mode=true",
+      "provenance_kind": "post_merge_transform",
       "sources": [
         {
-          "disposition": "selected",
-          "input_line": "http-response ^https?:\\/\\/youtubei\\.googleapis\\.com\\/(youtubei\\/v\\d\\/(browse|next|player|search|reel\\/reel_watch_sequence|guide|account\\/get_setting|get_watch))(\\?(.*))?$ script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/youtube.js,tag=YOUTUBE,requires-body=true,binary-body-mode=true",
-          "input_section": "Script",
-          "priority": 4,
-          "source": "base",
-          "source_entry_index": 229
+          "source": "local_overrides",
+          "source_file": "apply_local_overrides.py",
+          "transform_stage": "local_overrides"
         }
-      ],
-      "trace_status": "mapped"
+      ]
     },
     {
       "canonical_key": "('guarded', '^https?://\\\\w+\\\\.ys7\\\\.com/v\\\\d/valueadded/operation/config/master/station', ('^https?:\\\\/\\\\/\\\\w+\\\\.ys7\\\\.com\\\\/v\\\\d\\\\/valueadded\\\\/operation\\\\/config\\\\/master\\\\/station', '^https?:\\\\/\\\\/\\\\w+\\\\.ys7\\\\.com\\\\/v\\\\d\\\\/valueadded\\\\/operation\\\\/config\\\\/master\\\\/station script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/ys7.js,tag=YS7,requires-body=true'))",

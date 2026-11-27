@@ -33,42 +33,42 @@ function writeVarint(value) {
 
 
 // loon-change: Spotify Scroll protobuf no-ad allocation preflight v1
-// Scan wire ranges without materializing field arrays or subarray views.
-// The existing allocating rewrite is entered only after a target field is found.
-function hasTargetField(buf, depth, start, end) {
-  start = start || 0;
-  end = end === undefined ? buf.length : end;
-  let pos = start;
-  while (pos < end) {
-    const key = readVarint(buf, pos);
-    const no = Math.floor(key.value / 8);
-    const wire = key.value % 8;
-    pos = key.pos;
-    let payloadStart = -1;
-    let payloadEnd = -1;
-    if (wire === 0) pos = readVarint(buf, pos).pos;
-    else if (wire === 1) pos += 8;
-    else if (wire === 5) pos += 4;
-    else if (wire === 2) {
-      const len = readVarint(buf, pos);
-      payloadStart = len.pos;
-      payloadEnd = len.pos + len.value;
-      pos = payloadEnd;
-    } else throw new Error("unsupported wire type " + wire);
-    if (pos > end) throw new Error("truncated field");
-    if (wire === 2) {
-      if (no === AD_FIELD) return true;
-      if (depth < MAX_DEPTH) {
-        try {
-          if (hasTargetField(buf, depth + 1, payloadStart, payloadEnd)) return true;
-        } catch (e) {
-          // Non-message strings/bytes are expected; match the original parser's behavior.
-        }
-      }
-    }
-  }
-  return false;
-}
+ // Scan wire ranges without materializing field arrays or subarray views.
+ // Enter the rewrite path only after a target field has been confirmed.
+ function hasTargetField(buf, depth, start, end) {
+   start = start || 0;
+   end = end === undefined ? buf.length : end;
+   let pos = start;
+   while (pos < end) {
+     const key = readVarint(buf, pos);
+     const no = Math.floor(key.value / 8);
+     const wire = key.value % 8;
+     pos = key.pos;
+     let payloadStart = -1;
+     let payloadEnd = -1;
+     if (wire === 0) pos = readVarint(buf, pos).pos;
+     else if (wire === 1) pos += 8;
+     else if (wire === 5) pos += 4;
+     else if (wire === 2) {
+       const len = readVarint(buf, pos);
+       payloadStart = len.pos;
+       payloadEnd = len.pos + len.value;
+       pos = payloadEnd;
+     } else throw new Error("unsupported wire type " + wire);
+     if (pos > end) throw new Error("truncated field");
+     if (wire === 2) {
+       if (no === AD_FIELD) return true;
+       if (depth < MAX_DEPTH) {
+         try {
+           if (hasTargetField(buf, depth + 1, payloadStart, payloadEnd)) return true;
+         } catch (e) {
+           // Non-message strings/bytes are expected.
+         }
+       }
+     }
+   }
+   return false;
+ }
 
 // loon-change: Spotify nested protobuf allocation-light rewrite v2
 // Only materialize byte views when a matching ad field is found. Rebuild each
