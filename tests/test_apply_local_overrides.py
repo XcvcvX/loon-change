@@ -1776,7 +1776,7 @@ class ZhihuResponseScriptConsolidationTests(unittest.TestCase):
             "[MITM]", "hostname = api.zhihu.com",
         ]
         result, removed = consolidate_zhihu_response_scripts(fixture)
-        self.assertEqual(removed, 7)
+        self.assertEqual(removed, 2)
         self.assertEqual(sum(line in ZHIHU_RESPONSE_CANONICAL_TRIGGERS for line in result), 5)
         self.assertTrue(any("example.invalid/keep.js" in line for line in result))
         self.assertFalse(any("Scripts/zhihu/zhihu.js" in line and line not in ZHIHU_RESPONSE_CANONICAL_TRIGGERS for line in result))
@@ -5642,13 +5642,25 @@ class ShadowedIshowshuAmapResponseTriggerTests(unittest.TestCase):
         )
         plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
         result = apply(plugin)
-        response_lines = [line for line in result.splitlines() if line.lower().startswith("response if ")]
-        for _, old_matcher, _, _ in SHADOWED_ISHOWSHU_AMAP_TRIGGERS:
-            self.assertFalse(any(ISHOWSHU_AMAP_SCRIPT_MARKER in line and old_matcher in line for line in response_lines))
-        for local_matcher in set(pair[3] for pair in SHADOWED_ISHOWSHU_AMAP_TRIGGERS):
-            self.assertEqual(sum(RUCU6_AMAP_SCRIPT_MARKER in line and local_matcher in line for line in response_lines), 1)
-        ishowshu_lines = [line for line in response_lines if ISHOWSHU_AMAP_SCRIPT_MARKER in line]
-        self.assertEqual(len(ishowshu_lines), 5)
+        response_lines = [
+            line for line in result.splitlines()
+            if line.lower().startswith(("response if ", "http-response "))
+        ]
+        # The three Amap sources are now owned by one canonical local handler;
+        # the legacy per-source triggers must not reappear in the checked-in build.
+        canonical = [
+            line for line in response_lines
+            if "AMAP-CONSOLIDATED" in line and "scripts/amap/amap.js" in line
+        ]
+        self.assertEqual(len(canonical), 1)
+        self.assertFalse(any(
+            "ishowshu_amap.js" in line.lower() or "rucu6_amap.js" in line.lower()
+            for line in response_lines
+        ))
+        self.assertFalse(any(
+            ISHOWSHU_AMAP_SCRIPT_MARKER in line or RUCU6_AMAP_SCRIPT_MARKER in line
+            for line in response_lines
+        ))
         amap_source = Path(__file__).with_name("sources").joinpath("amap", "rucu6_amap.js").read_text(encoding="utf-8")
         for marker in ("contentPoster", "CouponPush", "activityRecommendation", "tips_operation_location"):
             self.assertIn(marker, amap_source)
