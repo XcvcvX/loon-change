@@ -335,8 +335,11 @@ def add_lazy_serialization_guard(source):
         index = match.group(2)
         return match.group(0) + '\n' + match.group(1) + 'if (__loonWrite' + index + ' !== __loonLength' + index + ') modified = true;'
     source, loop_count = loop_pattern.subn(mark_loop, source)
-    if loop_count != EXPECTED:
-        raise ValueError('Weibo compact-loop inventory drift: expected %d, got %d' % (EXPECTED, loop_count))
+    allowed_loop_counts = {EXPECTED}
+    if REPLY_COMMENT_NOOP_COMPACTION_MARKER in source:
+        allowed_loop_counts.add(EXPECTED - 1)
+    if loop_count not in allowed_loop_counts:
+        raise ValueError('Weibo compact-loop inventory drift: expected one of %s, got %d' % (sorted(allowed_loop_counts), loop_count))
 
     for target in delete_targets:
         pattern = re.compile(r'(?m)^([ \t]*)delete ' + re.escape(target) + r';$')
@@ -965,7 +968,7 @@ def optimize_source(source, commit="unknown"):
         if "__loonSource32" not in source or not any(signature in source for signature in ("compactWeiboInPlace(items, mode)", "compactWeiboInPlace(items, mode, knownLength")):
             raise ValueError("marked Weibo script is incomplete")
         optimized = optimize_comment_status_page_info_cache(optimize_vote_info_nested_reference_cache(optimize_shared_feed_cleanup_cache(optimize_is_ad_property_cache(optimize_profile_timeline_property_cache(optimize_search_timeline_nested_reference_cache(optimize_flowlist_asyn_nested_reference_cache(optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(source))))))))))))))))) ))))
-        return optimize_cardlist_mblog_reference_cache(optimize_page_route_array_reference_cache(optimize_cardlist_array_reference_length_cache(optimize_callback_free_compaction(optimize_profile_statuses_tab_array_cache(optimize_profile_me_array_cache(optimize_comment_array_length_cache(optimized)))))))
+        return optimize_cardlist_mblog_reference_cache(optimize_page_route_array_reference_cache(optimize_cardlist_array_reference_length_cache(optimize_callback_free_compaction(optimize_profile_statuses_tab_array_cache(optimize_profile_me_array_cache(optimize_reply_comment_noop_compaction(optimize_comment_array_length_cache(optimized))))))))
     source = source.replace("const url = $request.url;", "const url = $request.url;\n" + GUARD_DECLARATION + "\n\n" + HELPER, 1)
     if source.count(HELPER) != 1:
         raise ValueError("Weibo helper insertion failed")
@@ -978,7 +981,7 @@ def optimize_source(source, commit="unknown"):
     if sorted(remaining) != ["newActions", "newII"]:
         raise ValueError("unexpected remaining Weibo temporary arrays: " + repr(remaining))
     optimized = optimize_comment_status_page_info_cache(optimize_vote_info_nested_reference_cache(optimize_shared_feed_cleanup_cache(optimize_is_ad_property_cache(optimize_profile_timeline_property_cache(optimize_search_timeline_nested_reference_cache(optimize_flowlist_asyn_nested_reference_cache(optimize_hot_timeline_data_cache(optimize_following_timeline_data_cache(optimize_comment_array_reference_cache(optimize_profile_timeline_data_cache(optimize_comment_decoration_single_read(optimize_remove_avatar_property_cache(optimize_comment_user_reference_cache(optimize_comment_data_reference_cache(optimize_root_comment_user_cache(optimize_topic_group_nested_data_cache(optimize_topic_group_in_place(optimize_page_filter_cached_itemid(optimize_scalar_membership(add_lazy_serialization_guard(MARKER + commit + "\n" + source))))))))))))))))) ))))
-    return optimize_cardlist_mblog_reference_cache(optimize_page_route_array_reference_cache(optimize_cardlist_array_reference_length_cache(optimize_callback_free_compaction(optimize_profile_statuses_tab_array_cache(optimize_profile_me_array_cache(optimize_comment_array_length_cache(optimized)))))))
+    return optimize_cardlist_mblog_reference_cache(optimize_page_route_array_reference_cache(optimize_cardlist_array_reference_length_cache(optimize_callback_free_compaction(optimize_profile_statuses_tab_array_cache(optimize_profile_me_array_cache(optimize_reply_comment_noop_compaction(optimize_comment_array_length_cache(optimized))))))))
 
 SCALAR_MEMBERSHIP_MARKER = "// loon-change: Weibo hot-loop scalar membership v1"
 SCALAR_MEMBERSHIP_REWRITES = [
@@ -1717,11 +1720,19 @@ def optimize_comment_array_reference_cache(source):
         "let replyComments;",
         "const __loonSource30 = commentDatas;",
         "const __loonSource29 = rootComments;",
-        "const __loonSource28 = replyComments;",
     )
     if COMMENT_ARRAY_REFERENCE_CACHE_MARKER in block:
         if block.count(COMMENT_ARRAY_REFERENCE_CACHE_MARKER) != 1 or any(token not in block for token in required):
             raise ValueError("Weibo comment-array reference cache structure drift")
+        reply_compaction_removed = REPLY_COMMENT_NOOP_COMPACTION_MARKER in block
+        if reply_compaction_removed:
+            if ("for (let __loonRead28 = 0; __loonRead28 < replyCommentsLength; __loonRead28++) {" not in block
+                    or "const item = replyComments[__loonRead28];" not in block
+                    or "const __loonSource28 = replyComments;" in block
+                    or "__loonSource28[__loonWrite28++] = item;" in block):
+                raise ValueError("Weibo reply-comment read-only traversal structure drift")
+        elif "const __loonSource28 = replyComments;" not in block:
+            raise ValueError("Weibo reply-comment array reference cache is missing")
         branch_shapes = (
             ("if (commentDatas?.length > 0)", "if (commentDatasLength > 0)"),
             ("(rootComments = obj?.root_comments)?.length > 0",
@@ -2041,11 +2052,16 @@ def optimize_comment_array_length_cache(source):
         "(replyCommentsLength = replyComments.length) > 0",
         "const __loonLength30 = commentDatasLength;",
         "const __loonLength29 = rootCommentsLength;",
-        "const __loonLength28 = replyCommentsLength;",
     )
     if COMMENT_ARRAY_LENGTH_CACHE_MARKER in block:
         if block.count(COMMENT_ARRAY_LENGTH_CACHE_MARKER) != 1 or any(token not in block for token in required):
             raise ValueError("Weibo comment-array length-cache marker/structure drift")
+        if REPLY_COMMENT_NOOP_COMPACTION_MARKER in block:
+            if ("for (let __loonRead28 = 0; __loonRead28 < replyCommentsLength; __loonRead28++) {" not in block
+                    or "const item = replyComments[__loonRead28];" not in block):
+                raise ValueError("Weibo reply-comment length snapshot compatibility structure drift")
+        elif "const __loonLength28 = replyCommentsLength;" not in block:
+            raise ValueError("Weibo reply-comment length snapshot is missing")
         repeated = (
             "if (commentDatas?.length > 0)",
             "(rootComments = obj?.root_comments)?.length > 0",
@@ -2102,6 +2118,74 @@ def optimize_comment_array_length_cache(source):
     if any(token in block for token in repeated):
         raise ValueError("Weibo repeated top-level comment-array length reads remain")
     return source[:left] + block + source[right:]
+
+
+
+
+REPLY_COMMENT_NOOP_COMPACTION_MARKER = "// loon-change: Weibo reply-comment no-op array compaction removed v1"
+
+def optimize_reply_comment_noop_compaction(source):
+    """Remove same-index writes from the reply-comment cleanup-only traversal."""
+    start = '} else if (url.includes("/2/comments/build_comments")) {'
+    end = '} else if (url.includes("/2/container/asyn")) {'
+    if source.count(start) != 1 or source.count(end) != 1:
+        raise ValueError("Weibo reply-comment no-op compaction route boundary drift")
+    left = source.index(start)
+    right = source.index(end, left + len(start))
+    block = source[left:right]
+
+    required = (
+        REPLY_COMMENT_NOOP_COMPACTION_MARKER,
+        "for (let __loonRead28 = 0; __loonRead28 < replyCommentsLength; __loonRead28++) {",
+        "const item = replyComments[__loonRead28];",
+        "const replyUser = item?.user;",
+        "const replyUserIcons = replyUser?.icons;",
+        "const replyComment = item?.reply_comment;",
+        "const replyCommentBadge = replyComment?.comment_badge;",
+    )
+    forbidden = (
+        "const __loonSource28 = replyComments;",
+        "let __loonWrite28 = 0;",
+        "const __loonLength28 = replyCommentsLength;",
+        "__loonSource28[__loonWrite28++] = item;",
+        "__loonSource28.length = __loonWrite28;",
+        "if (__loonWrite28 !== __loonLength28) modified = true;",
+    )
+
+    if REPLY_COMMENT_NOOP_COMPACTION_MARKER in block:
+        if block.count(REPLY_COMMENT_NOOP_COMPACTION_MARKER) != 1 or any(token not in block for token in required):
+            raise ValueError("Weibo reply-comment no-op compaction marker/structure drift")
+        if any(token in block for token in forbidden):
+            raise ValueError("Weibo redundant reply-comment array writes remain")
+        return source
+
+    old_prefix = """      const __loonSource28 = replyComments;
+      let __loonWrite28 = 0;
+      const __loonLength28 = replyCommentsLength;
+      for (let __loonRead28 = 0; __loonRead28 < __loonLength28; __loonRead28++) {
+        let item = __loonSource28[__loonRead28];
+"""
+    old_suffix = """        __loonSource28[__loonWrite28++] = item;
+      }
+      __loonSource28.length = __loonWrite28;
+      if (__loonWrite28 !== __loonLength28) modified = true;"""
+    if block.count(old_prefix) != 1 or block.count(old_suffix) != 1:
+        raise ValueError("Weibo reply-comment no-op compaction anchor drift")
+    body_start = block.index(old_prefix) + len(old_prefix)
+    body_end = block.index(old_suffix, body_start)
+    body = block[body_start:body_end]
+    if any(token in body for token in ("__loonSource28", "__loonWrite28", "__loonLength28")):
+        raise ValueError("Weibo reply-comment loop body depends on compaction state")
+    new_prefix = """      // loon-change: Weibo reply-comment no-op array compaction removed v1
+      for (let __loonRead28 = 0; __loonRead28 < replyCommentsLength; __loonRead28++) {
+        const item = replyComments[__loonRead28];
+"""
+    new_block = block.replace(old_prefix + body + old_suffix, new_prefix + body + "      }", 1)
+    if new_block.count(REPLY_COMMENT_NOOP_COMPACTION_MARKER) != 1:
+        raise ValueError("Weibo reply-comment no-op compaction postcondition failed")
+    if any(token in new_block for token in forbidden) or any(token not in new_block for token in required):
+        raise ValueError("Weibo reply-comment no-op compaction postcondition failed")
+    return source[:left] + new_block + source[right:]
 
 
 FOLLOWING_TIMELINE_DATA_CACHE_MARKER = "// loon-change: Weibo following timeline nested reference cache v1"

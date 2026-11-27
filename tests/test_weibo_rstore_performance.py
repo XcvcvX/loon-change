@@ -51,7 +51,7 @@ class RStoreWeiboOptimizerTests(unittest.TestCase):
         self.assertIn('let modified = !url.includes("/2/cardlist") && !url.includes("/2/comments/build_comments");', source)
         self.assertIn('$done(modified ? {body: JSON.stringify(obj)} : {});', source)
         self.assertEqual(optimize_source(source), source)
-        self.assertEqual(len(re.findall(r"const __loonSource\d+ =", source)), 32)
+        self.assertEqual(len(re.findall(r"const __loonSource\d+ =", source)), 31)
         self.assertEqual(len(re.findall(r"(?m)^\s*const __loonLength\d+ = __loonSource\d+\.length;$", source)), 15)
         for cached_length in ("timelineItemsLength", "hotItemsLength", "hotStatusesLength", "asynItemsLength", "flowItemsLength", "searchItemsLength", "groupItemsLength"):
             self.assertIn(cached_length, source)
@@ -1852,7 +1852,8 @@ class WeiboCommentArrayLengthCacheTests(unittest.TestCase):
             "(replyCommentsLength = replyComments.length) > 0",
             "const __loonLength30 = commentDatasLength;",
             "const __loonLength29 = rootCommentsLength;",
-            "const __loonLength28 = replyCommentsLength;",
+            "for (let __loonRead28 = 0; __loonRead28 < replyCommentsLength; __loonRead28++) {",
+            "const item = replyComments[__loonRead28];",
         ):
             self.assertIn(token, source)
         damaged = source.replace(
@@ -1984,3 +1985,83 @@ process.stdout.write(stringify(results));
         self.assertEqual(output[2]["cards"][1]["itemid"], "normal_card")
         self.assertEqual([x["title"] for x in output[3]["channelInfo"]["channel_list"]], ["推荐", "关注"])
 
+
+
+class WeiboReplyCommentNoopCompactionTests(unittest.TestCase):
+    def test_optimizer_is_idempotent_and_fails_closed(self):
+        from optimize_weibo_rstore import (
+            REPLY_COMMENT_NOOP_COMPACTION_MARKER,
+            optimize_reply_comment_noop_compaction,
+        )
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(REPLY_COMMENT_NOOP_COMPACTION_MARKER, source)
+        self.assertEqual(optimize_reply_comment_noop_compaction(source), source)
+        self.assertIn("for (let __loonRead28 = 0; __loonRead28 < replyCommentsLength; __loonRead28++) {", source)
+        self.assertIn("const item = replyComments[__loonRead28];", source)
+        for stale in (
+            "const __loonSource28 = replyComments;",
+            "let __loonWrite28 = 0;",
+            "__loonSource28[__loonWrite28++] = item;",
+            "__loonSource28.length = __loonWrite28;",
+        ):
+            self.assertNotIn(stale, source)
+        damaged = source.replace(
+            "const item = replyComments[__loonRead28];",
+            "const item = replyComments[0];",
+            1,
+        )
+        with self.assertRaisesRegex(ValueError, "marker/structure drift"):
+            optimize_reply_comment_noop_compaction(damaged)
+
+    @unittest.skipUnless(NODE, "Node.js is required for Weibo reply-comment write-count tests")
+    def test_reply_cleanup_keeps_items_without_rewriting_comment_array(self):
+        runner = r"""
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync(process.argv[1],"utf8");
+const payload=JSON.parse(fs.readFileSync(0,"utf8"));
+const nativeParse=JSON.parse.bind(JSON),nativeStringify=JSON.stringify.bind(JSON);
+let tracking=false,doneResult;
+const counts={indexWrites:0,lengthWrites:0};
+const trackedJSON={
+  parse(raw){
+    const parsed=nativeParse(raw);
+    parsed.comments=new Proxy(parsed.comments,{
+      set(target,key,value,receiver){
+        if(tracking){
+          if(key==="length") counts.lengthWrites++;
+          else if(/^(0|[1-9]\d*)$/.test(String(key))) counts.indexWrites++;
+        }
+        return Reflect.set(target,key,value,receiver);
+      }
+    });
+    tracking=true;
+    return parsed;
+  },
+  stringify(value){tracking=false;return nativeStringify(value);}
+};
+const context={
+  JSON:trackedJSON,
+  $request:{url:"https://api.weibo.cn/2/comments/build_comments?fixture=noop-array-write"},
+  $response:{body:nativeStringify(payload.body)},
+  $done(value){doneResult=value;},
+  console:{log(){},warn(){},error(){}}
+};
+vm.runInNewContext(source,context,{timeout:5000});
+const output=doneResult&&doneResult.body?nativeParse(doneResult.body):payload.body;
+process.stdout.write(nativeStringify({doneResult,output,counts}));
+"""
+        body = {"comments": [
+            {"id": 1, "user": {"icons": [{"type": "vip"}]}, "reply_comment": {"comment_badge": {"id": 1}}},
+            {"id": 2, "user": {"icons": []}, "reply_comment": {}},
+            {"id": 3, "user": {}, "reply_comment": {"comment_badge": None}},
+        ]}
+        completed = subprocess.run(
+            [NODE, "-e", runner, str(SCRIPT)],
+            input=json.dumps({"body": body}),
+            capture_output=True, text=True, check=False, timeout=10,
+        )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        result = json.loads(completed.stdout)
+        self.assertEqual(result["counts"], {"indexWrites": 0, "lengthWrites": 0})
+        self.assertEqual([item["id"] for item in result["output"]["comments"]], [1, 2, 3])
+        self.assertNotIn("icons", result["output"]["comments"][0]["user"])
+        self.assertNotIn("comment_badge", result["output"]["comments"][0]["reply_comment"])
