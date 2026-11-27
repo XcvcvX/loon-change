@@ -344,35 +344,7 @@ def optimize_source(source: str, upstream_commit: str = "unknown") -> str:
     end = source.index(person_start, start)
     my_order = """} else if (url.includes("functionId=myOrderInfo")) {
   if (Array.isArray(obj.floors) && obj.floors.length > 0) {
-    compactInPlace(obj.floors, floor => {
-      const id = floor && floor.mId;
-      if (id === "bannerFloor" || id === "bpDynamicFloor" || id === "plusFloor") {
-        return false;
-      }
-      if (id === "virtualServiceCenter") {
-        const centers = floor.data && floor.data.virtualServiceCenters;
-        if (Array.isArray(centers) && centers.length > 0) {
-          for (let index = 0; index < centers.length; index++) {
-            const item = centers[index];
-            const serviceList = item && item.serviceList;
-            if (Array.isArray(serviceList) && serviceList.length > 0) {
-              compactInPlace(serviceList, card =>
-                !(card && card.serviceTitle === "精选特惠")
-              );
-            }
-          }
-        }
-      }
-      if (id === "customerServiceFloor" && floor.data && floor.data.moreText) {
-        deleteIfPresent(floor.data, "moreIcon");
-        deleteIfPresent(floor.data, "moreIcon_dark");
-        if (floor.data.moreText !== " ") {
-          floor.data.moreText = " ";
-          modified = true;
-        }
-      }
-      return true;
-    });
+    compactJdInPlace(obj.floors, "order");
   }
 """
     source = source[:start] + my_order + source[end:]
@@ -420,13 +392,26 @@ def optimize_source(source: str, upstream_commit: str = "unknown") -> str:
     start = source.index(process_start)
     process_helper = """function processFloors(floors) {
   if (!Array.isArray(floors) || floors.length === 0) return floors;
-  return compactInPlace(floors, floor => {
-    if (isPersonInfoBusinessExcluded(floor && floor.mId)) return false;
+  const length = floors.length;
+  let write = 0;
+  for (let read = 0; read < length; read++) {
+    const floor = floors[read];
+    const id = floor && floor.mId;
+    if (
+      id === "bigSaleFloor" || id === "buyOften" || id === "newAttentionCard" ||
+      id === "newBigSaleFloor" || id === "newStyleAttentionCard" ||
+      id === "newsFloor" || id === "noticeFloor" || id === "recommendfloor"
+    ) continue;
     cleanFloorData(floor);
-    return true;
-  });
-}
-"""
+    if (write !== read) floors[write] = floor;
+    write++;
+  }
+  if (write !== length) {
+    floors.length = write;
+    modified = true;
+  }
+  return floors;
+}"""
     source = source[:start] + process_helper
 
     source = source.rstrip() + "\n})();\n"
