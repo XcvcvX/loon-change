@@ -77,7 +77,7 @@ class RStoreXiaohongshuOptimizerTests(unittest.TestCase):
         self.assertIn(IMAGE_ARRAY_CLASSIFICATION_MARKER, source)
         self.assertEqual(optimize_imagefeed_single_traversal(source), source)
         damaged = source.replace("if (frame.isArray)", "if (Array.isArray(value))", 1)
-        with self.assertRaisesRegex(ValueError, "classification is not cached"):
+        with self.assertRaisesRegex(ValueError, "single-traversal image helper drifted"):
             optimize_imagefeed_single_traversal(damaged)
         missing_helper = source.replace("function imageEnhance(images, livePhotoCache)", "function imageEnhance(images)")
         with self.assertRaisesRegex(ValueError, "single-traversal image helper drifted"):
