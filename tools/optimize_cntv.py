@@ -405,7 +405,7 @@ def optimize_youku_home_query_callback_free(source):
 
     if source.count(YOUKU_HOME_QUERY_CALLBACK_FREE_HELPER_MARKER) != 0:
         raise ValueError("CNTV Youku home.query partial helper marker exists without route marker")
-    helper_anchor = ROUTE_GUARD_MARKER
+    helper_anchor = 'const isIQY = url.includes("iqiyi.com/");'
     if source.count(helper_anchor) != 1:
         raise ValueError("CNTV Youku home.query helper insertion anchor drift")
     source = source.replace(helper_anchor, YOUKU_HOME_QUERY_CALLBACK_FREE_HELPER + "\\n\\n" + helper_anchor, 1)
