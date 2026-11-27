@@ -79,6 +79,25 @@ class CrossAppTriggerTests(unittest.TestCase):
         self.assertEqual(result.count(SCRIPT), 0)
         self.assertEqual(result.count("MEITUAN-CONSOLIDATED"), 1)
 
+    def test_meituan_upstream_removed_legacy_triggers_keeps_canonical_handler(self):
+        source = "\\n".join(
+            line for line in fixture().splitlines()
+            if SCRIPT not in line
+        ) + "\\n"
+        result, _, _ = optimize(source)
+        self.assertEqual(result.count(MEITUAN_MARKER), 1)
+        self.assertEqual(result.count("MEITUAN-CONSOLIDATED"), 1)
+        self.assertEqual(result.count(SCRIPT), 0)
+        self.assertEqual(optimize(result)[0], result)
+
+    def test_meituan_partial_legacy_inventory_still_fails_closed(self):
+        lines = fixture().splitlines()
+        legacy = [line for line in lines if SCRIPT in line]
+        self.assertEqual(len(legacy), 8)
+        source = "\\n".join(line for line in lines if line != legacy[0]) + "\\n"
+        with self.assertRaisesRegex(ValueError, "either 8 legacy Meituan triggers or none"):
+            optimize(source)
+
     def test_pinduoduo_mrk_rules_merge_to_one_matcher(self):
         result, _, _ = optimize(fixture())
         self.assertEqual(result.count(PDD_MARKER), 1)
@@ -91,7 +110,7 @@ class CrossAppTriggerTests(unittest.TestCase):
 
     def test_meituan_drift_fails_closed(self):
         source = fixture().replace('tag="MT"', 'tag="OTHER"', 1)
-        with self.assertRaisesRegex(ValueError, "exactly 8"):
+        with self.assertRaisesRegex(ValueError, "either 8 legacy Meituan triggers or none"):
             optimize(source)
 
     def test_missing_canonical_meituan_handler_fails_closed(self):
