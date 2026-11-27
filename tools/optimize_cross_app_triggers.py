@@ -114,7 +114,7 @@ def consolidate_amap_youtube_ownership(text):
                "scripts/amap/amap.js" in line and "AMAP-CONSOLIDATED" not in line for line in lines):
             raise ValueError("Amap duplicate local script handler remains")
         for path in AMAP_NATIVE_JQ_PATHS:
-            if any(line.startswith("response if ") and path in line and "response.json" in line for line in lines):
+            if any(line.startswith("response if ") and path in line.replace(r"\\/", "/") and "response.json" in line for line in lines):
                 raise ValueError("Amap native rule shadowed by canonical script remains: " + path)
         rstore = [line for line in lines if YOUTUBE_RSTORE in line and "tag=YOUTUBE" in line]
         if len(rstore) != 1 or "v[2-9]" not in rstore[0]:
@@ -133,8 +133,9 @@ def consolidate_amap_youtube_ownership(text):
             if matched_owner:
                 amap_seen[matched_owner] += 1
                 continue
+            normalized_line = line.replace(r"\\/", "/")
             matched_native = next((path for path in AMAP_NATIVE_JQ_PATHS
-                                   if path in line and "response.json" in line), None)
+                                   if path in normalized_line and "response.json" in line), None)
             if matched_native:
                 native_seen[matched_native] += 1
                 continue
