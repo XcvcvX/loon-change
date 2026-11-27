@@ -62,10 +62,20 @@ def consolidate_pinduoduo_mrk(text):
 
 
 
-AMAP_YOUTUBE_MARKER = "# loon-change: Amap/YouTube processor ownership split v1"
-AMAP_DUPLICATE_PATHS = (
-    ("beforeNavi", r'response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/aos\/perception\/publicTravel\/beforeNavi\?/i then response.json.jq('),
-    ("busPlan", r'response if ${url} ~= /^https:\/\/m5\.amap\.com\/ws\/bus\/plan\/integrate\?/i then response.json.jq('),
+
+AMAP_YOUTUBE_MARKER = "# loon-change: Amap/YouTube processor ownership split v2"
+AMAP_CANONICAL_RULE = r'http-response ^https?:\/\/(?:(?:m[0-46-9]\.amap\.com\/ws\/(?:aos\/perception\/publicTravel\/beforeNavi|bus\/plan\/integrate))|(?:m\d\.amap\.com\/ws\/(?:c3frontend\/(?:af-(?:hotel|launch)\/page\/main|af-nearby\/nearby)|perception\/drive\/(?:routeInfo|routePlan)|shield\/(?:search\/(?:common\/coupon\/info|poi\/detail|nearbyrec_smart)|search_poi\/(?:homepage|mps|search\/sp|sug|tips_operation_location)|search_bff\/hotword|search_business\/process\/marketingOperationStructured|dsp\/profile\/index\/nodefaasv3|frogserver\/aocs\/updatable\/1)|faas\/amap-navigation\/(?:card-service-plan-home|main-page)|valueadded\/alimama\/splash_screen))|(?:m\d-zb\.amap\.com\/ws\/(?:boss\/(?:car\/order\/content_info|order_web\/friendly_information)|promotion-web\/resource(?:\/home)?|sharedtrip\/taxi\/order_detail_car_tips))|(?:info\.amap\.com\/ws\/shield\/search\/(?:common\/coupon\/info|poi\/detail))) script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/amap/amap.js,tag=AMAP-CONSOLIDATED,requires-body=true'
+AMAP_SCRIPT_COUNTS = {
+    "scripts/amap/amap.js": 7,
+    "ishowshu_amap.js": 5,
+    "rucu6_amap.js": 10,
+}
+AMAP_NATIVE_JQ_PATHS = (
+    "search_poi/homepage",
+    "dsp/profile/index/nodefaasv3",
+    "search_bff/hotword",
+    "search_business/process/marketingOperationStructured",
+    "sharedtrip/taxi/order_detail_car_tips",
 )
 YOUTUBE_RSTORE = "https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/youtube.js"
 YOUTUBE_ENHANCED = "https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js"
@@ -73,26 +83,35 @@ YOUTUBE_ENHANCED = "https://raw.githubusercontent.com/devchristian1337/loon-plug
 def consolidate_amap_youtube_ownership(text):
     lines = text.splitlines()
     if AMAP_YOUTUBE_MARKER in text:
-        if text.count(AMAP_YOUTUBE_MARKER) != 1:
-            raise ValueError("Amap/YouTube ownership marker duplicated")
-        if any(r"m\d\.amap\.com" in line and "scripts/amap/amap.js" in line and
-               any(path in line for path in ("beforeNavi", r"bus\/plan\/integrate")) for line in lines):
-            raise ValueError("Amap ownership split drifted; legacy broad matcher remains")
+        if text.count(AMAP_YOUTUBE_MARKER) != 1 or text.count(AMAP_CANONICAL_RULE) != 1:
+            raise ValueError("Amap/YouTube ownership marker/canonical handler drift")
+        if any(name in line for line in lines for name in ("ishowshu_amap.js", "rucu6_amap.js")):
+            raise ValueError("Amap legacy script owner remains after consolidation")
+        if any(line.startswith(("response if ", "http-response ")) and
+               "scripts/amap/amap.js" in line and "AMAP-CONSOLIDATED" not in line for line in lines):
+            raise ValueError("Amap duplicate local script handler remains")
+        for path in AMAP_NATIVE_JQ_PATHS:
+            if any(line.startswith("response if ") and path in line and "response.json" in line for line in lines):
+                raise ValueError("Amap native rule shadowed by canonical script remains: " + path)
         rstore = [line for line in lines if YOUTUBE_RSTORE in line and "tag=YOUTUBE" in line]
         if len(rstore) != 1 or "v[2-9]" not in rstore[0]:
             raise ValueError("YouTube version ownership split drifted")
         return text
 
     output = []
-    amap_seen = {"beforeNavi": 0, "busPlan": 0}
+    amap_seen = {name: 0 for name in AMAP_SCRIPT_COUNTS}
+    native_seen = {path: 0 for path in AMAP_NATIVE_JQ_PATHS}
     for line in lines:
-        if line.startswith("http-response ") and "scripts/amap/amap.js" in line:
-            if "beforeNavi" in line or r"bus\/plan\/integrate" in line:
-                key = "beforeNavi" if "beforeNavi" in line else "busPlan"
-                if r"m\d\.amap\.com" not in line:
-                    raise ValueError("Amap broad matcher changed unexpectedly: " + key)
-                amap_seen[key] += 1
-                line = line.replace(r"m\d\.amap\.com", r"m[0-46-9]\.amap\.com", 1)
+        if line.startswith(("http-response ", "response if ")):
+            matched_owner = next((name for name in AMAP_SCRIPT_COUNTS if name in line), None)
+            if matched_owner:
+                amap_seen[matched_owner] += 1
+                continue
+            matched_native = next((path for path in AMAP_NATIVE_JQ_PATHS
+                                   if path in line and "response.json" in line), None)
+            if matched_native:
+                native_seen[matched_native] += 1
+                continue
         if YOUTUBE_RSTORE in line and "tag=YOUTUBE" in line:
             if r"youtubei\/v\d\/" not in line:
                 raise ValueError("R-Store YouTube matcher changed unexpectedly")
@@ -101,11 +120,10 @@ def consolidate_amap_youtube_ownership(text):
             line = line.replace(r"youtubei\/v\d\/", r"youtubei\/v[2-9]\/", 1)
         output.append(line)
 
-    if amap_seen != {"beforeNavi": 1, "busPlan": 1}:
-        raise ValueError("Amap duplicate processor inventory changed: " + repr(amap_seen))
-    for _key, matcher in AMAP_DUPLICATE_PATHS:
-        if sum(matcher in line for line in lines) != 1:
-            raise ValueError("Amap native JSON owner missing or duplicated")
+    if amap_seen != AMAP_SCRIPT_COUNTS:
+        raise ValueError("Amap three-source script inventory changed: " + repr(amap_seen))
+    if any(count != 1 for count in native_seen.values()):
+        raise ValueError("Amap duplicate native JSON owner inventory changed: " + repr(native_seen))
     rstore = [line for line in output if YOUTUBE_RSTORE in line and "tag=YOUTUBE" in line]
     if len(rstore) != 1 or "v[2-9]" not in rstore[0]:
         raise ValueError("R-Store YouTube owner missing or duplicated")
@@ -113,10 +131,10 @@ def consolidate_amap_youtube_ownership(text):
     enhanced_player = [line for line in output if YOUTUBE_ENHANCED in line and r"youtubei\/v1\/(player|get_watch)" in line]
     if len(enhanced_feed) != 1 or len(enhanced_player) != 1:
         raise ValueError("YouTube v1 enhanced response owners missing or duplicated")
-    marker_index = next((i for i, line in enumerate(output) if line.strip() == "[Script]"), None)
-    if marker_index is None:
+    script_index = next((i for i, line in enumerate(output) if line.strip() == "[Script]"), None)
+    if script_index is None:
         raise ValueError("missing [Script] section for ownership marker")
-    output.insert(marker_index + 1, AMAP_YOUTUBE_MARKER)
+    output[script_index + 1:script_index + 1] = [AMAP_YOUTUBE_MARKER, AMAP_CANONICAL_RULE]
     return "\n".join(output) + ("\n" if text.endswith("\n") else "")
 
 def validate_amap_ownership(text):
@@ -124,6 +142,8 @@ def validate_amap_ownership(text):
     amap = [x for x in lines if x.startswith(("response if ", "http-response ")) and "amap" in x.lower() and "com" in x.lower() and ("script(" in x or "script-path=" in x)]
     if not amap:
         raise ValueError("Amap response handler inventory unexpectedly empty")
+    if AMAP_YOUTUBE_MARKER in text and (len(amap) != 1 or AMAP_CANONICAL_RULE not in amap[0]):
+        raise ValueError("Amap handlers must resolve to the single canonical processor")
     # Every handler must have one explicit processor. This catches accidental
     # multiple processor declarations on a single matcher, not legitimate
     # independent matchers handled by different scripts.
@@ -160,7 +180,7 @@ def main():
     original = path.read_text(encoding="utf-8-sig")
     updated, amap_count, youtube_count = optimize(original)
     path.write_text(updated, encoding="utf-8")
-    print("[cross-app-trigger-optimizer] PASS: Meituan triggers consolidated; Pinduoduo mrk merged; Amap/YouTube ownership split applied; Amap=%d YouTube=%d handlers checked" % (amap_count, youtube_count))
+    print("[cross-app-trigger-optimizer] PASS: Meituan triggers consolidated; Pinduoduo mrk merged; Amap three-source ownership consolidated and YouTube version split applied; Amap=%d YouTube=%d handlers checked" % (amap_count, youtube_count))
 
 if __name__ == "__main__":
     main()
