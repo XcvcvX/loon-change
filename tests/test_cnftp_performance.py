@@ -3,7 +3,7 @@ import subprocess
 import unittest
 from pathlib import Path
 
-from optimize_cnftp import FILTER_MARKER, LOCAL_URL, REMOTE_URL, SOURCE_MARKER, YOUKU_HOME_QUERY_HELPER_MARKER, YOUKU_HOME_QUERY_BRANCH_MARKER, HOME_QUERY_BRANCH, ensure_youku_home_query_callback_free, optimize_source, rewrite_plugin
+from optimize_cnftp import FILTER_MARKER, LOCAL_URL, REMOTE_URL, SOURCE_MARKER, YOUKU_HOME_QUERY_HELPER_MARKER, YOUKU_HOME_QUERY_BRANCH_MARKER, YOUKU_HOME_FEED_HELPER_MARKER, YOUKU_HOME_FEED_BRANCH_MARKER, HOME_QUERY_BRANCH, ensure_youku_home_query_callback_free, ensure_youku_home_feed_callback_free, optimize_source, rewrite_plugin
 
 ROOT = Path(__file__).parent
 SOURCE_PATH = ROOT / "scripts" / "cnftp" / "cnftp.js"
@@ -27,6 +27,15 @@ class CnftpPerformanceTests(unittest.TestCase):
         self.assertNotIn("newNode3", branch)
         self.assertNotIn("newNode4", branch)
         self.assertNotIn('console.log("移除首页的轮播广告")', branch)
+
+        feed_start = source.index('  } else if (url.includes("columbus.home.feed/")) {')
+        feed_end = source.index('  } else if (url.includes("columbus.home.query/")) {', feed_start)
+        feed = source[feed_start:feed_end]
+        self.assertIn(YOUKU_HOME_FEED_BRANCH_MARKER, feed)
+        self.assertIn('compactYoukuHomeFeed(rootNodes, rootNodesLength);', feed)
+        self.assertNotIn("compactInPlace(", feed)
+        self.assertNotIn("=>", feed)
+        self.assertIn(YOUKU_HOME_FEED_HELPER_MARKER, source)
 
     def test_terminal_empty_body_guard_is_added_idempotently(self):
         source = SOURCE_PATH.read_text(encoding="utf-8")
@@ -138,10 +147,11 @@ if (isYK) {
   } else if (url.includes("columbus.uc.query/")) {}
 """
         optimized = optimize_source(fixture, "a" * 40)
-        self.assertIn("Youku home.feed in-place compaction v1", optimized)
-        self.assertIn("compactInPlace(objData.nodes", optimized)
-        self.assertIn("compactInPlace(node1.nodes", optimized)
+        self.assertIn(YOUKU_HOME_FEED_BRANCH_MARKER, optimized)
+        self.assertIn('compactYoukuHomeFeed(rootNodes, rootNodesLength);', optimized)
+        self.assertNotIn("compactInPlace(objData.nodes", optimized)
         self.assertNotIn("let newNodes1 = [];", optimized)
+        self.assertIn(YOUKU_HOME_FEED_HELPER_MARKER, optimized)
         self.assertEqual(optimize_source(optimized), optimized)
 
     def test_node_runtime_compacts_youku_home_feed_without_filter_allocations(self):
@@ -209,6 +219,163 @@ if (children.length !== 2 || children[0].id !== "keep-1" || children[1].id !== "
         fixture = "[Script]\n" + 'response if ${url} ~= /^https:\\/\\/example/ then script("%s")' % REMOTE_URL + "\n[MITM]\n"
         with self.assertRaisesRegex(ValueError, "trigger inventory changed"):
             rewrite_plugin(fixture)
+
+    def test_youku_home_feed_callback_free_optimizer_is_idempotent_and_fails_closed(self):
+        source = SOURCE_PATH.read_text(encoding="utf-8")
+        self.assertEqual(source.count(YOUKU_HOME_FEED_HELPER_MARKER), 1)
+        self.assertEqual(source.count(YOUKU_HOME_FEED_BRANCH_MARKER), 1)
+        self.assertEqual(optimize_source(source), source)
+
+        feed_start = source.index('  } else if (url.includes("columbus.home.feed/")) {')
+        feed_end = source.index('  } else if (url.includes("columbus.home.query/")) {', feed_start)
+        feed = source[feed_start:feed_end]
+        self.assertEqual(feed.count("compactYoukuHomeFeed("), 1)
+        self.assertNotIn("compactInPlace(", feed)
+        self.assertNotIn("=>", feed)
+        self.assertIn("const rootNodesLength = rootNodes?.length || 0;", feed)
+
+        helper_start = source.index(YOUKU_HOME_FEED_HELPER_MARKER)
+        helper_end = source.index(YOUKU_HOME_QUERY_HELPER_MARKER, helper_start)
+        helper = source[helper_start:helper_end]
+        self.assertNotIn("=>", helper)
+        self.assertNotIn("compactInPlace(", helper)
+        self.assertNotIn(".forEach(", helper)
+        self.assertIn("const groupNodesLength = groupNodes?.length || 0;", helper)
+        self.assertIn("if (write !== groupNodesLength)", helper)
+
+        legacy = """  } else if (url.includes("columbus.home.feed/")) {
+    if (obj?.data?.["2019061000"]?.data) {
+      const objData = obj.data["2019061000"].data;
+      compactInPlace(objData.nodes, (node1) => {
+        if (node1?.typeName === "PHONE_FEED_CARD_GROUP" && node1?.nodes?.length > 0) {
+          compactInPlace(node1.nodes, (node2) =>
+            node2?.typeName !== "PHONE_FEED_CARD_S_AD" &&
+            node2?.typeName !== "PHONE_H_UC_AD"
+          );
+        }
+        return true;
+      });
+    }
+"""
+        legacy_source = source[:feed_start] + legacy + source[feed_end:]
+        migrated = ensure_youku_home_feed_callback_free(legacy_source)
+        self.assertIn(YOUKU_HOME_FEED_BRANCH_MARKER, migrated)
+        self.assertNotIn("compactInPlace(objData.nodes", migrated)
+        self.assertEqual(ensure_youku_home_feed_callback_free(migrated), migrated)
+
+        damaged = source.replace(
+            "compactYoukuHomeFeed(rootNodes, rootNodesLength);",
+            "compactInPlace(rootNodes, node => true);",
+            1,
+        )
+        with self.assertRaisesRegex(ValueError, "callback-free route marker/structure drift"):
+            optimize_source(damaged)
+
+    def test_node_runtime_youku_home_feed_walks_arrays_once_without_callbacks(self):
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node.js is required for CNFTP runtime tests")
+        harness = r"""
+const fs = require("fs"), vm = require("vm");
+const source = fs.readFileSync(process.argv[1], "utf8");
+const body = { data: { "2019061000": { data: { nodes: [
+  { typeName: "PHONE_FEED_CARD_GROUP", id: "group-a", nodes: [
+    { typeName: "PHONE_FEED_CARD_S_AD", id: "small-ad" },
+    { typeName: "NORMAL", id: "keep-1" },
+    { typeName: "PHONE_H_UC_AD", id: "wide-ad" },
+    { typeName: "NORMAL", id: "keep-2" }
+  ]},
+  { typeName: "NORMAL", id: "outside-group", nodes: [
+    { typeName: "PHONE_FEED_CARD_S_AD", id: "must-remain-untouched" }
+  ]},
+  { typeName: "PHONE_FEED_CARD_GROUP", id: "group-b", nodes: [
+    { typeName: "NORMAL", id: "keep-3" },
+    { typeName: "NORMAL", id: "keep-4" }
+  ]}
+]}}}};
+let parseCalls = 0, stringifyCalls = 0, doneResult, tracking = false;
+const reads = { root: 0, first: 0, normal: 0, second: 0 };
+const numericWrites = { root: 0, first: 0, normal: 0, second: 0 };
+const lengthWrites = { root: 0, first: 0, normal: 0, second: 0 };
+const nativeJSON = JSON;
+function trackedArray(array, name) {
+  return new Proxy(array, {
+    get(target, key, receiver) {
+      if (tracking && key === "length") reads[name]++;
+      return Reflect.get(target, key, receiver);
+    },
+    set(target, key, value, receiver) {
+      if (tracking && /^(0|[1-9][0-9]*)$/.test(String(key))) numericWrites[name]++;
+      if (tracking && key === "length") lengthWrites[name]++;
+      return Reflect.set(target, key, value, receiver);
+    }
+  });
+}
+const trackedJSON = {
+  parse(raw) {
+    parseCalls++;
+    const parsed = nativeJSON.parse(raw);
+    const data = parsed.data["2019061000"].data;
+    data.nodes[0].nodes = trackedArray(data.nodes[0].nodes, "first");
+    data.nodes[1].nodes = trackedArray(data.nodes[1].nodes, "normal");
+    data.nodes[2].nodes = trackedArray(data.nodes[2].nodes, "second");
+    data.nodes = trackedArray(data.nodes, "root");
+    tracking = true;
+    return parsed;
+  },
+  stringify(value) {
+    tracking = false;
+    stringifyCalls++;
+    return nativeJSON.stringify(value);
+  }
+};
+const context = {
+  JSON: trackedJSON,
+  $request: { url: "https://acs.youku.com/gw/mtop.youku.columbus.home.feed/" },
+  $response: { body: nativeJSON.stringify(body) },
+  $done(value) { doneResult = value; },
+  console: { log() {}, warn() {}, error() {} }
+};
+vm.createContext(context);
+vm.runInContext(
+  'Array.prototype.filter = Array.prototype.map = Array.prototype.forEach = function() { throw new Error("array callback method invoked"); };',
+  context
+);
+vm.runInContext(source, context, { timeout: 5000 });
+if (parseCalls !== 1 || stringifyCalls !== 1) throw new Error("unexpected JSON round trips");
+if (!doneResult || typeof doneResult.body !== "string") throw new Error("missing rewritten body");
+if (reads.root !== 1 || reads.first !== 1 || reads.second !== 1 || reads.normal !== 0) {
+  throw new Error("unexpected array length reads: " + JSON.stringify(reads));
+}
+if (numericWrites.root !== 0 || lengthWrites.root !== 0) {
+  throw new Error("home.feed rewrote the unchanged root list");
+}
+if (numericWrites.first !== 2 || lengthWrites.first !== 1) {
+  throw new Error("filtered group should shift two retained entries and shrink once");
+}
+if (numericWrites.second !== 0 || lengthWrites.second !== 0 ||
+    numericWrites.normal !== 0 || lengthWrites.normal !== 0) {
+  throw new Error("unchanged or non-group child arrays were rewritten");
+}
+const output = nativeJSON.parse(doneResult.body);
+const nodes = output.data["2019061000"].data.nodes;
+if (nodes.length !== 3 || nodes[1].nodes[0].id !== "must-remain-untouched") {
+  throw new Error("root order or non-group children changed");
+}
+const first = nodes[0].nodes;
+const second = nodes[2].nodes;
+if (first.length !== 2 || first[0].id !== "keep-1" || first[1].id !== "keep-2") {
+  throw new Error("home.feed ad filtering/order mismatch");
+}
+if (second.length !== 2 || second[0].id !== "keep-3" || second[1].id !== "keep-4") {
+  throw new Error("unchanged group order mismatch");
+}
+"""
+        result = subprocess.run(
+            [node, "-e", harness, str(SOURCE_PATH)],
+            capture_output=True, text=True, check=False, timeout=10,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
 
     def test_node_runtime_preserves_nested_youku_home_query_results(self):
         node = shutil.which("node")

@@ -24,6 +24,34 @@ function compactInPlace(items, keep) {
   return items;
 }
 
+// loon-change: Youku home.feed callback-free nested compaction v1
+function compactYoukuHomeFeed(rootNodes, knownLength) {
+  const rootLength = knownLength === undefined ? rootNodes.length : knownLength;
+  for (let read = 0; read < rootLength; read++) {
+    const node = rootNodes[read];
+    if (node?.typeName !== "PHONE_FEED_CARD_GROUP") continue;
+
+    const groupNodes = node?.nodes;
+    const groupNodesLength = groupNodes?.length || 0;
+    if (groupNodesLength === 0) continue;
+
+    let write = 0;
+    for (let groupRead = 0; groupRead < groupNodesLength; groupRead++) {
+      const child = groupNodes[groupRead];
+      const childTypeName = child?.typeName;
+      if (childTypeName === "PHONE_FEED_CARD_S_AD" || childTypeName === "PHONE_H_UC_AD") continue;
+      if (write !== groupRead) groupNodes[write] = child;
+      write++;
+    }
+
+    if (write !== groupNodesLength) {
+      groupNodes.length = write;
+      modified = true;
+    }
+  }
+  return rootNodes;
+}
+
 // loon-change: Youku home.query callback-free nested compaction v1
 function compactYoukuHomeQuery(items, mode, knownLength) {
   const length = knownLength === undefined ? items.length : knownLength;
@@ -623,19 +651,12 @@ if (isIQY) {
   } else if (url.includes("columbus.home.feed/")) {
     // 优酷 首页信息流
     if (obj?.data?.["2019061000"]?.data) {
-      let objData = obj.data["2019061000"].data;
-      if (objData?.nodes?.length > 0) {
-        // Reuse response arrays and compact only the nested ad-card groups.
-        compactInPlace(objData.nodes, (node1) => {
-          if (node1?.typeName === "PHONE_FEED_CARD_GROUP" &&
-              node1?.nodes?.length > 0) {
-            compactInPlace(node1.nodes, (node2) =>
-              node2?.typeName !== "PHONE_FEED_CARD_S_AD" &&
-              node2?.typeName !== "PHONE_H_UC_AD"
-            );
-          }
-          return true;
-        });
+      const objData = obj.data["2019061000"].data;
+      const rootNodes = objData?.nodes;
+      const rootNodesLength = rootNodes?.length || 0;
+      if (rootNodesLength > 0) {
+        // loon-change: Youku home.feed callback-free route v1
+        compactYoukuHomeFeed(rootNodes, rootNodesLength);
       }
     }
   } else if (url.includes("columbus.home.query/")) {

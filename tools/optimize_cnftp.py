@@ -85,19 +85,12 @@ HELPER = """function compactInPlace(items, keep) {
 HOME_FEED_BRANCH = """  } else if (url.includes("columbus.home.feed/")) {
     // 优酷 首页信息流
     if (obj?.data?.["2019061000"]?.data) {
-      let objData = obj.data["2019061000"].data;
-      if (objData?.nodes?.length > 0) {
-        // Reuse response arrays and compact only the nested ad-card groups.
-        compactInPlace(objData.nodes, (node1) => {
-          if (node1?.typeName === "PHONE_FEED_CARD_GROUP" &&
-              node1?.nodes?.length > 0) {
-            compactInPlace(node1.nodes, (node2) =>
-              node2?.typeName !== "PHONE_FEED_CARD_S_AD" &&
-              node2?.typeName !== "PHONE_H_UC_AD"
-            );
-          }
-          return true;
-        });
+      const objData = obj.data["2019061000"].data;
+      const rootNodes = objData?.nodes;
+      const rootNodesLength = rootNodes?.length || 0;
+      if (rootNodesLength > 0) {
+        // loon-change: Youku home.feed callback-free route v1
+        compactYoukuHomeFeed(rootNodes, rootNodesLength);
       }
     }
 """
@@ -174,6 +167,37 @@ HOME_QUERY_BRANCH = """  } else if (url.includes("columbus.home.query/")) {
       }
     }
 """
+
+YOUKU_HOME_FEED_HELPER_MARKER = "// loon-change: Youku home.feed callback-free nested compaction v1"
+YOUKU_HOME_FEED_BRANCH_MARKER = "// loon-change: Youku home.feed callback-free route v1"
+
+YOUKU_HOME_FEED_HELPER = """// loon-change: Youku home.feed callback-free nested compaction v1
+function compactYoukuHomeFeed(rootNodes, knownLength) {
+  const rootLength = knownLength === undefined ? rootNodes.length : knownLength;
+  for (let read = 0; read < rootLength; read++) {
+    const node = rootNodes[read];
+    if (node?.typeName !== "PHONE_FEED_CARD_GROUP") continue;
+
+    const groupNodes = node?.nodes;
+    const groupNodesLength = groupNodes?.length || 0;
+    if (groupNodesLength === 0) continue;
+
+    let write = 0;
+    for (let groupRead = 0; groupRead < groupNodesLength; groupRead++) {
+      const child = groupNodes[groupRead];
+      const childTypeName = child?.typeName;
+      if (childTypeName === "PHONE_FEED_CARD_S_AD" || childTypeName === "PHONE_H_UC_AD") continue;
+      if (write !== groupRead) groupNodes[write] = child;
+      write++;
+    }
+
+    if (write !== groupNodesLength) {
+      groupNodes.length = write;
+      modified = true;
+    }
+  }
+  return rootNodes;
+}"""
 
 YOUKU_HOME_QUERY_HELPER_MARKER = "// loon-change: Youku home.query callback-free nested compaction v1"
 YOUKU_HOME_QUERY_BRANCH_MARKER = "// loon-change: Youku home.query callback-free route v1"
@@ -374,8 +398,78 @@ def ensure_youku_home_query_callback_free(source: str) -> str:
     return source[:left] + YOUKU_HOME_QUERY_BRANCH + source[right:]
 
 
+def ensure_youku_home_feed_helper(source: str) -> str:
+    """Insert a callback-free feed walker next to the home.query helper."""
+    required = (
+        "function compactYoukuHomeFeed(rootNodes, knownLength) {",
+        "const rootLength = knownLength === undefined ? rootNodes.length : knownLength;",
+        'node?.typeName !== "PHONE_FEED_CARD_GROUP"',
+        "const groupNodesLength = groupNodes?.length || 0;",
+        'childTypeName === "PHONE_FEED_CARD_S_AD" || childTypeName === "PHONE_H_UC_AD"',
+        "if (write !== groupNodesLength) {",
+        "groupNodes.length = write;",
+        "modified = true;",
+    )
+    if YOUKU_HOME_FEED_HELPER_MARKER in source:
+        if source.count(YOUKU_HOME_FEED_HELPER_MARKER) != 1 or any(token not in source for token in required):
+            raise ValueError("Youku home.feed callback-free helper marker/structure drift")
+        helper_start = source.index(YOUKU_HOME_FEED_HELPER_MARKER)
+        helper_end = source.index("\n}\n\n", helper_start)
+        if helper_end < 0:
+            raise ValueError("Youku home.feed helper closing boundary drift")
+        helper = source[helper_start:helper_end + 2]
+        if "=>" in helper or "compactInPlace(" in helper or ".forEach(" in helper:
+            raise ValueError("Youku home.feed helper unexpectedly retains per-item callbacks")
+        return source
+
+    anchor = YOUKU_HOME_QUERY_HELPER_MARKER
+    if source.count(anchor) != 1:
+        raise ValueError("Youku home.feed helper insertion anchor drift")
+    source = source.replace(anchor, YOUKU_HOME_FEED_HELPER + "\n\n" + anchor, 1)
+    if source.count(YOUKU_HOME_FEED_HELPER_MARKER) != 1 or any(token not in source for token in required):
+        raise ValueError("Youku home.feed helper insertion postcondition failed")
+    return source
+
+
+def ensure_youku_home_feed_callback_free(source: str) -> str:
+    """Remove the no-op root compaction and filter feed-group children without callbacks."""
+    start = '  } else if (url.includes("columbus.home.feed/")) {'
+    end = '  } else if (url.includes("columbus.home.query/")) {'
+    if source.count(start) != 1 or source.count(end) != 1:
+        raise ValueError("Youku home.feed route boundary drift")
+    left = source.index(start)
+    right = source.index(end, left + len(start))
+    block = source[left:right]
+    required = (
+        YOUKU_HOME_FEED_BRANCH_MARKER,
+        "const rootNodes = objData?.nodes;",
+        "const rootNodesLength = rootNodes?.length || 0;",
+        "compactYoukuHomeFeed(rootNodes, rootNodesLength);",
+    )
+    if YOUKU_HOME_FEED_BRANCH_MARKER in block:
+        if block.count(YOUKU_HOME_FEED_BRANCH_MARKER) != 1 or any(token not in block for token in required):
+            raise ValueError("Youku home.feed callback-free route marker/structure drift")
+        if "compactInPlace(" in block or "=>" in block:
+            raise ValueError("Youku home.feed route still contains per-item callbacks")
+        return source
+
+    legacy_required = (
+        "compactInPlace(objData.nodes, (node1) =>",
+        'node1?.typeName === "PHONE_FEED_CARD_GROUP"',
+        "compactInPlace(node1.nodes, (node2) =>",
+        'node2?.typeName !== "PHONE_FEED_CARD_S_AD"',
+        'node2?.typeName !== "PHONE_H_UC_AD"',
+    )
+    if block.count("compactInPlace(") != 2 or block.count("=>") != 2 or any(token not in block for token in legacy_required):
+        raise ValueError("Youku home.feed callback branch drift; refusing an unreviewed rewrite")
+    return source[:left] + HOME_FEED_BRANCH + source[right:]
+
+
 def finalize_youku_home_query_optimization(source: str) -> str:
-    return ensure_youku_home_query_callback_free(ensure_youku_home_query_helper(source))
+    source = ensure_youku_home_query_helper(source)
+    source = ensure_youku_home_query_callback_free(source)
+    source = ensure_youku_home_feed_helper(source)
+    return ensure_youku_home_feed_callback_free(source)
 
 
 MANGO_VRSLIST_OLD = """      let newItems = [];

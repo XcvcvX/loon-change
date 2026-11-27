@@ -33,13 +33,23 @@
         "compactYoukuHomeQuery(rootNodes, \"root\", rootNodesLength);",
         "compactYoukuHomeQuery(node1Nodes, \"level2\", node1NodesLength);",
         "compactYoukuHomeQuery(node2Nodes, \"level3\", node2NodesLength);",
-        "compactYoukuHomeQuery(node3Nodes, \"level4\", node3NodesLength);"
+        "compactYoukuHomeQuery(node3Nodes, \"level4\", node3NodesLength);",
+        "// loon-change: Youku home.feed callback-free nested compaction v1",
+        "// loon-change: Youku home.feed callback-free route v1",
+        "function compactYoukuHomeFeed(rootNodes, knownLength)",
+        "const rootLength = knownLength === undefined ? rootNodes.length : knownLength;",
+        "const groupNodesLength = groupNodes?.length || 0;",
+        "compactYoukuHomeFeed(rootNodes, rootNodesLength);",
+        "if (write !== groupNodesLength)",
+        "groupNodes.length = write;"
       ],
       "forbidden": [
         "// Stable in-place compaction avoids four generations of nested filtered-copy arrays.\n        compactInPlace(objData.nodes, (node1) =>",
         "if (node1?.data?.refreshImg) {\n            // 电影 综艺 纪录片 下拉刷新的背景图片\n            deleteIfPresent(node1.data, \"refreshImg\");\n          }\n          if (node1?.nodes?.length > 0) {\n            compactInPlace(node1.nodes, (node2) =>",
         "if (node2?.nodes?.length > 0) {\n                compactInPlace(node2.nodes, (node3) =>",
-        "if (node3?.nodes?.length > 0) {\n                    compactInPlace(node3.nodes, (node4) =>"
+        "if (node3?.nodes?.length > 0) {\n                    compactInPlace(node3.nodes, (node4) =>",
+        "compactInPlace(objData.nodes, (node1) =>",
+        "compactInPlace(node1.nodes, (node2) =>"
       ]
     },
     {
