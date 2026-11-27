@@ -1,10 +1,13 @@
 import json
 import shutil
 import subprocess
+import sys
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT.parent))
+from tools.optimize_bilibili import optimize_source
 NODE = shutil.which("node")
 SOURCE = ROOT / "scripts" / "bilibili" / "bilibili-json.js"
 
@@ -366,6 +369,18 @@ process.stdout.write(NativeJSON.stringify({
         self.assertEqual(modules[0]["items"], [{"link": "bilibili://play/1"}])
         self.assertEqual(modules[1]["items"], [{"blink": "bilibili://home"}])
         self.assertEqual(modules[2]["items"], [])
+
+
+    def test_optimizer_is_idempotent_and_fails_closed_on_route_drift(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        self.assertEqual(optimize_source(source), source)
+        damaged = source.replace(
+            'compactBilibiliList(obj.data.bottom, "bottomTab");',
+            'compactBilibiliList(obj.data.bottom, "unknownMode");',
+            1,
+        )
+        with self.assertRaises(ValueError):
+            optimize_source(damaged)
 
 if __name__ == "__main__":
     unittest.main()
