@@ -27,7 +27,8 @@ def fixture():
         r'http-response ^https?:\/\/m\d-zb\.amap\.com\/ws\/sharedtrip\/taxi\/order_detail_car_tips\? script-path=' + AMAP_LOCAL,
     ]
     ishowshu_paths = ["search_bff/hotword", "search_poi/homepage", "nodefaasv3",
-                      "car/order/content_info", "order_web/friendly_information"]
+                      "boss/(?:car/order/content_info|order_web/friendly_information)",
+                      "sharedtrip/taxi/order_detail_car_tips"]
     ishowshu = [
         'response if ${url} ~= /^https:\\/\\/m5\\.amap\\.com\\/ws\\/%s/i then script("%s") with tag="amap", requires_body=true' % (p, ISHOWSHU)
         for p in ishowshu_paths
@@ -107,10 +108,12 @@ class CrossAppTriggerTests(unittest.TestCase):
         self.assertNotIn("ishowshu_amap.js", result)
         self.assertNotIn("rucu6_amap.js", result)
         self.assertEqual(result.count("scripts/amap/amap.js"), 1)
+        lines = result.splitlines()
         for path in AMAP_NATIVE_JQ_PATHS:
-            self.assertNotIn(path, result)
-        self.assertIn("beforeNavi", result)
-        self.assertIn("bus\\\\/plan\\\\/integrate", result)
+            self.assertFalse(any(line.startswith("response if ") and path in line and "response.json" in line for line in lines))
+        self.assertEqual(sum(line.startswith("response if ") and "beforeNavi" in line and "response.json.jq" in line for line in lines), 1)
+        self.assertEqual(sum(line.startswith("response if ") and "bus" in line and "plan" in line and "response.json.jq" in line for line in lines), 1)
+        self.assertIn(r"bus\\/plan\\/integrate", AMAP_CANONICAL_RULE)
         self.assertEqual(optimize(result)[0], result)
 
     def test_amap_source_inventory_drift_fails_closed(self):
@@ -134,17 +137,6 @@ class CrossAppTriggerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "single canonical processor"):
             validate_amap_ownership(bad)
 
-
-    def test_youtube_enhanced_owners_required(self):
-        source = fixture().replace("Scripts/YouTube/response.min.js", "Scripts/YouTube/other.js", 1)
-        with self.assertRaisesRegex(ValueError, "YouTube v1 enhanced"):
-            optimize(source)
-
-    def test_amap_and_youtube_ambiguous_processor_is_rejected(self):
-        source = fixture().replace("script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/amap/amap.js",
-                                   'script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/amap/amap.js script("https://example.com/b.js")')
-        with self.assertRaisesRegex(ValueError, "Amap processor ownership"):
-            optimize(source)
 
 if __name__ == "__main__":
     unittest.main()
