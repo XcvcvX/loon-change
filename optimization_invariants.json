@@ -372,13 +372,22 @@
         "compactCntvYoukuHomeQuery(childNodes, \"level2\", childLength);",
         "compactCntvYoukuHomeQuery(childNodes, \"level3\", childLength);",
         "compactCntvYoukuHomeQuery(childNodes, \"level4\", childLength);",
-        "if (write !== length) items.length = write;"
+        "if (write !== length) items.length = write;",
+        "// loon-change: CNTV iQIYI home-feed callback-free compaction v1",
+        "// loon-change: CNTV iQIYI home-feed callback-free route v1",
+        "function compactCntvIqiyiHomeCards(cards, knownLength)",
+        "const homeCards = obj?.cards;",
+        "const homeCardsLength = homeCards?.length || 0;",
+        "compactCntvIqiyiHomeCards(homeCards, homeCardsLength);",
+        "const blocksLength = blocks?.length || 0;"
       ],
       "forbidden": [
         "compactInPlace(objData.nodes, item => {",
         "compactInPlace(item.nodes, i => {",
         "compactInPlace(i.nodes, ii => {",
-        "compactInPlace(ii.nodes, iii =>"
+        "compactInPlace(ii.nodes, iii =>",
+        "compactInPlace(obj.cards, card => {",
+        "CNTV_STATIC_FILTER_06.includes(card?.alias_name)"
       ]
     },
     {
