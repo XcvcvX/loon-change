@@ -335,8 +335,11 @@ def add_lazy_serialization_guard(source):
         index = match.group(2)
         return match.group(0) + '\n' + match.group(1) + 'if (__loonWrite' + index + ' !== __loonLength' + index + ') modified = true;'
     source, loop_count = loop_pattern.subn(mark_loop, source)
-    if loop_count != EXPECTED:
-        raise ValueError('Weibo compact-loop inventory drift: expected %d, got %d' % (EXPECTED, loop_count))
+    allowed_loop_counts = {EXPECTED}
+    if REPLY_COMMENT_NOOP_COMPACTION_MARKER in source:
+        allowed_loop_counts.add(EXPECTED - 1)
+    if loop_count not in allowed_loop_counts:
+        raise ValueError('Weibo compact-loop inventory drift: expected one of %s, got %d' % (sorted(allowed_loop_counts), loop_count))
 
     for target in delete_targets:
         pattern = re.compile(r'(?m)^([ \t]*)delete ' + re.escape(target) + r';$')
@@ -1717,11 +1720,19 @@ def optimize_comment_array_reference_cache(source):
         "let replyComments;",
         "const __loonSource30 = commentDatas;",
         "const __loonSource29 = rootComments;",
-        "const __loonSource28 = replyComments;",
     )
     if COMMENT_ARRAY_REFERENCE_CACHE_MARKER in block:
         if block.count(COMMENT_ARRAY_REFERENCE_CACHE_MARKER) != 1 or any(token not in block for token in required):
             raise ValueError("Weibo comment-array reference cache structure drift")
+        reply_compaction_removed = REPLY_COMMENT_NOOP_COMPACTION_MARKER in block
+        if reply_compaction_removed:
+            if ("for (let __loonRead28 = 0; __loonRead28 < replyCommentsLength; __loonRead28++) {" not in block
+                    or "const item = replyComments[__loonRead28];" not in block
+                    or "const __loonSource28 = replyComments;" in block
+                    or "__loonSource28[__loonWrite28++] = item;" in block):
+                raise ValueError("Weibo reply-comment read-only traversal structure drift")
+        elif "const __loonSource28 = replyComments;" not in block:
+            raise ValueError("Weibo reply-comment array reference cache is missing")
         branch_shapes = (
             ("if (commentDatas?.length > 0)", "if (commentDatasLength > 0)"),
             ("(rootComments = obj?.root_comments)?.length > 0",
@@ -2041,11 +2052,16 @@ def optimize_comment_array_length_cache(source):
         "(replyCommentsLength = replyComments.length) > 0",
         "const __loonLength30 = commentDatasLength;",
         "const __loonLength29 = rootCommentsLength;",
-        "const __loonLength28 = replyCommentsLength;",
     )
     if COMMENT_ARRAY_LENGTH_CACHE_MARKER in block:
         if block.count(COMMENT_ARRAY_LENGTH_CACHE_MARKER) != 1 or any(token not in block for token in required):
             raise ValueError("Weibo comment-array length-cache marker/structure drift")
+        if REPLY_COMMENT_NOOP_COMPACTION_MARKER in block:
+            if ("for (let __loonRead28 = 0; __loonRead28 < replyCommentsLength; __loonRead28++) {" not in block
+                    or "const item = replyComments[__loonRead28];" not in block):
+                raise ValueError("Weibo reply-comment length snapshot compatibility structure drift")
+        elif "const __loonLength28 = replyCommentsLength;" not in block:
+            raise ValueError("Weibo reply-comment length snapshot is missing")
         repeated = (
             "if (commentDatas?.length > 0)",
             "(rootComments = obj?.root_comments)?.length > 0",
