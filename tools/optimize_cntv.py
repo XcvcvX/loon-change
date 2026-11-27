@@ -409,6 +409,9 @@ def optimize_youku_home_query_callback_free(source):
     if source.count(helper_anchor) != 1:
         raise ValueError("CNTV Youku home.query helper insertion anchor drift")
     source = source.replace(helper_anchor, YOUKU_HOME_QUERY_CALLBACK_FREE_HELPER + "\n\n" + helper_anchor, 1)
+    # Inserting the helper changes all offsets below the insertion point.
+    begin = source.index(start)
+    finish = source.index(end, begin + len(start))
     source = source[:begin] + YOUKU_HOME_QUERY_CALLBACK_FREE_BRANCH + source[finish:]
     return source
 
