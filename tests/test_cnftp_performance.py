@@ -3,7 +3,7 @@ import subprocess
 import unittest
 from pathlib import Path
 
-from optimize_cnftp import FILTER_MARKER, LOCAL_URL, REMOTE_URL, SOURCE_MARKER, optimize_source, rewrite_plugin
+from optimize_cnftp import FILTER_MARKER, LOCAL_URL, REMOTE_URL, SOURCE_MARKER, YOUKU_HOME_QUERY_HELPER_MARKER, YOUKU_HOME_QUERY_BRANCH_MARKER, HOME_QUERY_BRANCH, ensure_youku_home_query_callback_free, optimize_source, rewrite_plugin
 
 ROOT = Path(__file__).parent
 SOURCE_PATH = ROOT / "scripts" / "cnftp" / "cnftp.js"
@@ -17,7 +17,11 @@ class CnftpPerformanceTests(unittest.TestCase):
         start = source.index('  } else if (url.includes("columbus.home.query/")) {')
         end = source.index('  } else if (url.includes("columbus.uc.query/")) {', start)
         branch = source[start:end]
-        self.assertIn("compactInPlace(objData.nodes", branch)
+        self.assertIn(YOUKU_HOME_QUERY_BRANCH_MARKER, branch)
+        self.assertIn('compactYoukuHomeQuery(rootNodes, "root", rootNodesLength);', branch)
+        self.assertNotIn("compactInPlace(", branch)
+        self.assertNotIn("=>", branch)
+        self.assertIn(YOUKU_HOME_QUERY_HELPER_MARKER, source)
         self.assertNotIn("newNodes1", branch)
         self.assertNotIn("newNode2", branch)
         self.assertNotIn("newNode3", branch)
@@ -569,3 +573,107 @@ if(!result||Object.keys(result).length!==0)throw Error("Mango no-op response mus
 
 if __name__ == "__main__":
     unittest.main()
+
+
+    def test_youku_home_query_optimizer_is_callback_free_idempotent_and_fails_closed(self):
+        source = SOURCE_PATH.read_text(encoding="utf-8")
+        self.assertEqual(source.count(YOUKU_HOME_QUERY_HELPER_MARKER), 1)
+        self.assertEqual(source.count(YOUKU_HOME_QUERY_BRANCH_MARKER), 1)
+        self.assertEqual(optimize_source(source), source)
+
+        start = source.index('  } else if (url.includes("columbus.home.query/")) {')
+        end = source.index('  } else if (url.includes("columbus.uc.query/")) {', start)
+        branch = source[start:end]
+        self.assertEqual(branch.count("compactYoukuHomeQuery("), 1)
+        self.assertNotIn("compactInPlace(", branch)
+        self.assertNotIn("=>", branch)
+
+        legacy = source[:start] + HOME_QUERY_BRANCH + source[end:]
+        migrated = ensure_youku_home_query_callback_free(legacy)
+        self.assertIn(YOUKU_HOME_QUERY_BRANCH_MARKER, migrated)
+        self.assertNotIn("compactInPlace(", migrated[start:migrated.index('  } else if (url.includes("columbus.uc.query/"))', start)])
+        self.assertEqual(ensure_youku_home_query_callback_free(migrated), migrated)
+
+        damaged = source.replace(
+            'compactYoukuHomeQuery(rootNodes, "root", rootNodesLength);',
+            'compactYoukuHomeQuery(rootNodes, "unknown", rootNodesLength);',
+            1,
+        )
+        with self.assertRaisesRegex(ValueError, "callback-free route marker/structure drift"):
+            optimize_source(damaged)
+
+    def test_node_runtime_youku_home_query_walks_deep_arrays_without_item_callbacks(self):
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node.js is required for CNFTP runtime tests")
+        harness = r'''
+const fs=require("fs"),vm=require("vm"),source=fs.readFileSync(process.argv[1],"utf8");
+const body={data:{"2019061000":{data:{
+  data:{indexPositionResult:[{id:1}]},
+  nodes:[
+    {data:{nodeKey:"CHILD"},nodes:[{id:999}]},
+    {data:{nodeKey:"KEEP",indexPositionResult:[{id:2}],refreshImg:"bg"},nodes:[
+      {typeName:"UC广告抽屉",data:{crmSale:true}},
+      {id:31476,typeName:"NORMAL",data:{crmSale:true,keywords:["hot"]},nodes:[
+        {typeName:"PHONE_FEED_CARD_B_AD",id:1,nodes:[]},
+        {typeName:"KEEP",id:2,nodes:[
+          {typeName:"PHONE_FEED_CARD_S_AD",data:{}},
+          {typeName:"KEEP",data:{}},
+          {typeName:"KEEP",data:{ad:true}}
+        ]},
+        {typeName:"KEEP",id:272768,nodes:[]}
+      ]},
+      {id:35505,data:{}},{id:37335,data:{}},
+      {id:50000,nodes:[{id:272768},{id:3,data:{}}]}
+    ]}
+  ]
+}}}};
+let tracking=false,parseCalls=0,stringifyCalls=0,doneResult;
+const lengthReads={};
+function wrap(value,path){
+  if(Array.isArray(value)){
+    const items=[];
+    for(let i=0;i<value.length;i++) items.push(wrap(value[i],path+"["+i+"]"));
+    return new Proxy(items,{get(target,key,receiver){
+      if(tracking&&key==="length") lengthReads[path]=(lengthReads[path]||0)+1;
+      return Reflect.get(target,key,receiver);
+    }});
+  }
+  if(value&&typeof value==="object"){
+    for(const key of Object.keys(value)) value[key]=wrap(value[key],path+"."+key);
+  }
+  return value;
+}
+const nativeParse=JSON.parse.bind(JSON),nativeStringify=JSON.stringify.bind(JSON);
+const trackedJSON={
+  parse(raw){parseCalls++;const parsed=wrap(nativeParse(raw),"root");tracking=true;return parsed;},
+  stringify(value){tracking=false;stringifyCalls++;return nativeStringify(value);}
+};
+const context={JSON:trackedJSON,$request:{url:"https://acs.youku.com/gw/mtop.youku.columbus.home.query/"},
+  $response:{body:nativeStringify(body)},$done(value){doneResult=value;},
+  console:{log(){throw new Error("home.query should not emit logs");},warn(){},error(){}}};
+vm.createContext(context);
+vm.runInContext('for(const name of ["filter","map","forEach"]) Array.prototype[name]=function(){throw new Error("per-item array callback method used: "+name);};',context);
+vm.runInContext(source,context,{timeout:5000});
+if(parseCalls!==1||stringifyCalls!==1) throw new Error("unexpected JSON roundtrip "+parseCalls+"/"+stringifyCalls);
+if(!doneResult||typeof doneResult.body!=="string") throw new Error("response body missing");
+const output=nativeParse(doneResult.body),root=output.data["2019061000"].data;
+if(root.nodes.length!==1||root.nodes[0].data.nodeKey!=="KEEP") throw new Error("root filtering/order changed");
+if(root.data.indexPositionResult.length!==0) throw new Error("home index position card not cleared");
+const node1=root.nodes[0];
+if(node1.data.indexPositionResult.length!==0||"refreshImg" in node1.data) throw new Error("root node data cleanup changed");
+if(node1.nodes.length!==2||node1.nodes[0].id!==31476||node1.nodes[1].id!==50000) throw new Error("level2 filtering/order changed");
+const node2=node1.nodes[0];
+if("crmSale" in node2.data||"keywords" in node2.data) throw new Error("level2 promo cleanup changed");
+if(node2.nodes.length!==1||node2.nodes[0].id!==2) throw new Error("level3 filtering/order changed");
+if(node2.nodes[0].nodes.length!==1||node2.nodes[0].nodes[0].data.ad) throw new Error("level4 filtering changed");
+if(node1.nodes[1].nodes.length!==1||node1.nodes[1].nodes[0].id!==3) throw new Error("nested level3 id filter changed");
+const nodeArrayReads=Object.entries(lengthReads).filter(([path])=>path.endsWith(".nodes"));
+if(nodeArrayReads.length<4||nodeArrayReads.some(([,count])=>count!==1)) throw new Error("nested node-array lengths were not snapshotted once: "+nativeStringify(lengthReads));
+if(Object.values(lengthReads).some(count=>count!==1)) throw new Error("array length was reread: "+nativeStringify(lengthReads));
+'''
+        result = subprocess.run(
+            [node, "-e", harness, str(SOURCE_PATH)],
+            capture_output=True, text=True, check=False, timeout=10,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
