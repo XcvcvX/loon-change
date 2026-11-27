@@ -209,8 +209,10 @@ process.stdout.write(JSON.stringify({
             self.assertIn("function renameField(buf, depth, start, end, kind)", optimized)
             self.assertIn('renameField(bytes, 0, 0, bytes.length, "' + kind + '")', optimized)
             self.assertNotIn("function parseFields(", optimized)
+            self.assertNotIn("function concat(parts)", optimized)
             self.assertNotIn("fields.map(", optimized)
             self.assertNotIn("parts.reduce(", optimized)
+            self.assertIn("function replaceRange(buf, start, end, fieldStart, fieldEnd, replacement)", optimized)
             self.assertEqual(optimize_spotify_nested_script(optimized, kind), optimized)
 
     @unittest.skipUnless(shutil.which("node"), "Node.js is required for Spotify binary runtime tests")
