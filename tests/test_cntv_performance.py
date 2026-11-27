@@ -22,7 +22,7 @@ class CNTVOptimizerTests(unittest.TestCase):
         source = SOURCE.read_text(encoding="utf-8")
         self.assertIn(MARKER, source)
         self.assertEqual(optimize_source(source), source)
-        self.assertEqual(source.count("compactInPlace(") - 1, 33)
+        self.assertEqual(source.count("compactInPlace(") - 1, 29)
         self.assertNotIn(".filter(", source)
         self.assertIn("if (!$response.body) {", source)
         self.assertTrue(source.rstrip().endswith("}"))
@@ -404,6 +404,8 @@ process.stdout.write(nativeJSON.stringify({
         self.assertEqual(source.count(YOUKU_HOME_QUERY_CALLBACK_FREE_HELPER_MARKER), 1)
         self.assertEqual(source.count(YOUKU_HOME_QUERY_CALLBACK_FREE_ROUTE_MARKER), 1)
         self.assertEqual(optimize_source(source), source)
+        self.assertIn('url.includes("columbus.gateway.new.execute")', source)
+        self.assertEqual(source.count('  } else if (url.includes("columbus.home.query/")) {'), 1)
 
         start = '  } else if (url.includes("columbus.home.query/")) {'
         end = '  } else if (url.includes("columbus.uc.query/")) {'
