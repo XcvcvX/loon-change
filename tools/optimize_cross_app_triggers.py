@@ -169,7 +169,7 @@ def validate_amap_ownership(text):
     amap = [x for x in lines if x.startswith(("response if ", "http-response ")) and "amap" in x.lower() and "com" in x.lower() and ("script(" in x or "script-path=" in x)]
     if not amap:
         raise ValueError("Amap response handler inventory unexpectedly empty")
-    if AMAP_YOUTUBE_MARKER in text and (len(amap) != 1 or AMAP_CANONICAL_RULE not in amap[0]):
+    if AMAP_YOUTUBE_MARKER in text and (len(amap) != 1 or amap[0] != AMAP_CANONICAL_RULE):
         raise ValueError("Amap handlers must resolve to the single canonical processor")
     # Every handler must have one explicit processor. This catches accidental
     # multiple processor declarations on a single matcher, not legitimate
