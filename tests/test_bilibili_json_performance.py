@@ -300,7 +300,9 @@ process.stdout.write(NativeJSON.stringify({
     def test_compaction_loops_cache_array_lengths_and_guard_same_index_writes(self):
         source = SOURCE.read_text(encoding="utf-8")
         self.assertIn("if (write !== read) items[write] = item;", source)
-        self.assertIn("let read = 0, length = items.length", source)
+        self.assertIn("function compactBilibiliList(items, mode)", source)
+        self.assertIn("const length = items.length;", source)
+        self.assertIn("for (let read = 0; read < length; read++)", source)
         self.assertNotIn("items[write++]", source)
         self.assertNotIn("sections[sectionWrite++]", source)
         self.assertNotIn("items[itemWrite++]", source)
