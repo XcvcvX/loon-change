@@ -66,7 +66,7 @@ def consolidate_pinduoduo_mrk(text):
 AMAP_YOUTUBE_MARKER = "# loon-change: Amap/YouTube processor ownership split v2"
 AMAP_CANONICAL_RULE = r'http-response ^https?:\/\/(?:(?:m[0-46-9]\.amap\.com\/ws\/(?:aos\/perception\/publicTravel\/beforeNavi|bus\/plan\/integrate))|(?:m\d\.amap\.com\/ws\/(?:c3frontend\/(?:af-(?:hotel|launch)\/page\/main|af-nearby\/nearby)|perception\/drive\/(?:routeInfo|routePlan)|shield\/(?:search\/(?:common\/coupon\/info|poi\/detail|nearbyrec_smart)|search_poi\/(?:homepage|mps|search\/sp|sug|tips_operation_location)|search_bff\/hotword|search_business\/process\/marketingOperationStructured|dsp\/profile\/index\/nodefaasv3|frogserver\/aocs\/updatable\/1)|faas\/amap-navigation\/(?:card-service-plan-home|main-page)|valueadded\/alimama\/splash_screen))|(?:m\d-zb\.amap\.com\/ws\/(?:boss\/(?:car\/order\/content_info|order_web\/friendly_information)|promotion-web\/resource(?:\/home)?|sharedtrip\/taxi\/order_detail_car_tips))|(?:info\.amap\.com\/ws\/shield\/search\/(?:common\/coupon\/info|poi\/detail))) script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/amap/amap.js,tag=AMAP-CONSOLIDATED,requires-body=true'
 AMAP_SCRIPT_COUNTS = {
-    "scripts/amap/amap.js": 7,
+    "scripts/amap/amap.js": (7, 14),
     "ishowshu_amap.js": 5,
     "rucu6_amap.js": 10,
 }
@@ -147,7 +147,9 @@ def consolidate_amap_youtube_ownership(text):
             line = line.replace(r"youtubei\/v\d\/", r"youtubei\/v[2-9]\/", 1)
         output.append(line)
 
-    if amap_seen != AMAP_SCRIPT_COUNTS:
+    if (amap_seen["scripts/amap/amap.js"] not in AMAP_SCRIPT_COUNTS["scripts/amap/amap.js"] or
+            amap_seen["ishowshu_amap.js"] != AMAP_SCRIPT_COUNTS["ishowshu_amap.js"] or
+            amap_seen["rucu6_amap.js"] != AMAP_SCRIPT_COUNTS["rucu6_amap.js"]):
         raise ValueError("Amap three-source script inventory changed: " + repr(amap_seen))
     if any(count != 1 for count in native_seen.values()):
         raise ValueError("Amap duplicate native JSON owner inventory changed: " + repr(native_seen))
