@@ -86,7 +86,7 @@ class RStoreXiaohongshuOptimizerTests(unittest.TestCase):
     def test_imagefeed_optimizer_upgrades_previous_array_length_frame_helper(self):
         from optimize_xiaohongshu_rstore import IMAGE_FEED_MARKER, IMAGE_ARRAY_LENGTH_MARKER
         source = SCRIPT.read_text(encoding="utf-8")
-        legacy = source.replace("  // " + IMAGE_ARRAY_CLASSIFICATION_MARKER + "\n", "", 1)
+        legacy = source.replace("  " + IMAGE_ARRAY_CLASSIFICATION_MARKER + "\n", "", 1)
         legacy = legacy.replace(
             "  const imagesIsArray = Array.isArray(images);\n"
             "  const stack = [{value: images, index: 0, keys: null, length: imagesIsArray ? images.length : 0, root: true, isArray: imagesIsArray}];",
