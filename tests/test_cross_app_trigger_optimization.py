@@ -125,7 +125,7 @@ class CrossAppTriggerTests(unittest.TestCase):
     def test_amap_native_rule_inventory_required(self):
         source = "\n".join(
             line for line in fixture().splitlines()
-            if not ("search_poi/homepage" in line and "response.json" in line)
+            if not ("search_poi" in line and "homepage" in line and "response.json" in line)
         ) + "\n"
         with self.assertRaisesRegex(ValueError, "native JSON owner inventory changed"):
             optimize(source)
