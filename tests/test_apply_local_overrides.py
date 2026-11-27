@@ -3525,6 +3525,71 @@ class MaaseaYoutubeShadowedTriggerTests(unittest.TestCase):
         self.assertIn(MAASEA_YOUTUBE_RESPONSE_NARROW_ENDPOINTS, response_lines[0])
 
 
+
+class RStoreYoutubeShadowedTriggerTests(unittest.TestCase):
+    def test_narrows_rstore_when_maasea_owns_guide_and_settings(self):
+        from apply_local_overrides import (
+            optimize_rstore_youtube_shadowed_triggers,
+            RSTORE_YOUTUBE_RESPONSE_BROAD_ENDPOINTS,
+            RSTORE_YOUTUBE_RESPONSE_NARROW_ENDPOINTS,
+            MAASEA_YOUTUBE_RESPONSE_NARROW_ENDPOINTS,
+        )
+        broad = (
+            r"http-response ^https:\\/\\/youtubei\\.googleapis\\.com\\/(youtubei\\/v\\d\\/(browse|next|player|search|reel\\/reel_watch_sequence|guide|account\\/get_setting|get_watch))(\\?(.*))?$ "
+            r"script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/youtube.js,tag=YOUTUBE,requires-body=true,binary-body-mode=true"
+        )
+        maasea = (
+            r"http-response ^https:\\/\\/youtubei\\.googleapis\\.com\\/(youtubei\\/v1\\/(guide|account\\/get_setting))(\\?(.*))?$ "
+            r"script-path=https://raw.githubusercontent.com/ifflagged/Romeo/abc/Modules/JavaScript/Maasea/YouTube.Enhance/Maasea_youtube.response.js,requires-body=true"
+        )
+        result, changed = optimize_rstore_youtube_shadowed_triggers(["[Script]", broad, maasea, "[MITM]"])
+        self.assertEqual(changed, 1)
+        narrowed = next(line for line in result if "Res/Scripts/AntiAd/youtube.js" in line)
+        self.assertIn(RSTORE_YOUTUBE_RESPONSE_NARROW_ENDPOINTS, narrowed)
+        self.assertNotIn(RSTORE_YOUTUBE_RESPONSE_BROAD_ENDPOINTS, narrowed)
+        self.assertIn(maasea, result)
+        again, changed_again = optimize_rstore_youtube_shadowed_triggers(result)
+        self.assertEqual(changed_again, 0)
+        self.assertEqual(again, result)
+
+    def test_preserves_rstore_guide_coverage_without_maasea_fallback(self):
+        from apply_local_overrides import optimize_rstore_youtube_shadowed_triggers, RSTORE_YOUTUBE_RESPONSE_BROAD_ENDPOINTS
+        broad = (
+            r"http-response ^https:\\/\\/youtubei\\.googleapis\\.com\\/(youtubei\\/v\\d\\/(browse|next|player|search|reel\\/reel_watch_sequence|guide|account\\/get_setting|get_watch))(\\?(.*))?$ "
+            r"script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/youtube.js"
+        )
+        result, changed = optimize_rstore_youtube_shadowed_triggers(["[Script]", broad, "[MITM]"])
+        self.assertEqual(changed, 0)
+        self.assertIn(broad, result)
+        self.assertIn(RSTORE_YOUTUBE_RESPONSE_BROAD_ENDPOINTS, result[1])
+
+    def test_fails_closed_on_duplicate_rstore_response_handlers(self):
+        from apply_local_overrides import optimize_rstore_youtube_shadowed_triggers
+        broad = (
+            r"http-response ^https:\\/\\/youtubei\\.googleapis\\.com\\/(youtubei\\/v\\d\\/(browse|next|player|search|reel\\/reel_watch_sequence|guide|account\\/get_setting|get_watch))(\\?(.*))?$ "
+            r"script-path=https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Scripts/AntiAd/youtube.js"
+        )
+        maasea = r"http-response ^https:\\/\\/youtubei\\.googleapis\\.com script-path=Maasea_youtube.response.js " + MAASEA_YOUTUBE_RESPONSE_NARROW_ENDPOINTS
+        with self.assertRaisesRegex(ValueError, "duplicate R-Store YouTube"):
+            optimize_rstore_youtube_shadowed_triggers(["[Script]", broad, broad, maasea, "[MITM]"])
+
+    def test_checked_in_plugin_does_not_overlap_guide_or_settings(self):
+        from pathlib import Path
+        from apply_local_overrides import (
+            apply,
+            RSTORE_YOUTUBE_RESPONSE_NARROW_ENDPOINTS,
+            MAASEA_YOUTUBE_RESPONSE_NARROW_ENDPOINTS,
+        )
+        plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
+        result = apply(plugin)
+        rstore = [line for line in result.splitlines() if "Res/Scripts/AntiAd/youtube.js" in line]
+        maasea = [line for line in result.splitlines() if "Maasea_youtube.response.js" in line]
+        self.assertEqual(len(rstore), 1)
+        self.assertEqual(len(maasea), 1)
+        self.assertIn(RSTORE_YOUTUBE_RESPONSE_NARROW_ENDPOINTS, rstore[0])
+        self.assertIn(MAASEA_YOUTUBE_RESPONSE_NARROW_ENDPOINTS, maasea[0])
+
+
 class HeaderOnlyResponseBodyReadTests(unittest.TestCase):
     def test_removes_only_verified_header_only_response_body_reads(self):
         from apply_local_overrides import remove_unneeded_header_only_response_body_reads
