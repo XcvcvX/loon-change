@@ -38,31 +38,12 @@ const CNTV_STATIC_FILTER_14 = ["领取芒果卡权益", "签到赢积分"];
 const CNTV_STATIC_FILTER_15 = ["功能实验室", "芒果壁纸", "我的音乐"];
 const CNTV_STATIC_FILTER_16 = [2, 8, 9, 14, 17];
 const CNTV_STATIC_FILTER_17 = ["detail", "planet"];
-const CNTV_STATIC_FILTER_18 = ["CHILD", "COMIC2", "20230929GREATWORKMFK"];
-const CNTV_STATIC_FILTER_19 = ["UC广告抽屉", "橱窗广告"];
-const CNTV_STATIC_FILTER_20 = ["PHONE_FEED_CARD_B_AD", "PHONE_FEED_CARD_S_AD", "PHONE_H_UC_AD", "PHONE_IMG_A", "PHONE_YK_AD_BANNER"];
-const CNTV_STATIC_FILTER_21 = [683367, 683368, 683372, 683502];
-const CNTV_STATIC_FILTER_22 = ["HOME", "NEW_UCENTER", "VIP_MEMBER"];
+const CNTV_STATIC_FILTER_18 = [683367, 683368, 683372, 683502];
+const CNTV_STATIC_FILTER_19 = ["HOME", "NEW_UCENTER", "VIP_MEMBER"];
 const url = $request.url;
 if (!$response.body) {
   $done({});
 } else {
-const isIQY = url.includes("iqiyi.com/");
-const isMG = url.includes("mgtv.com/");
-const isYK = url.includes("youku.com/");
-function compactInPlace(items, keep) {
-  let write = 0;
-  for (let read = 0, length = items.length; read < length; read++) {
-    const item = items[read];
-    if (keep(item, read)) {
-      if (write !== read) items[write] = item;
-      write++;
-    }
-  }
-  items.length = write;
-  return items;
-}
-
 // loon-change: CNTV Youku home.query callback-free nested compaction v1
 function compactCntvYoukuHomeQuery(items, mode, knownLength) {
   const length = knownLength === undefined ? items.length : knownLength;
@@ -140,6 +121,22 @@ function compactCntvYoukuHomeQuery(items, mode, knownLength) {
   }
 
   if (write !== length) items.length = write;
+  return items;
+}
+
+const isIQY = url.includes("iqiyi.com/");
+const isMG = url.includes("mgtv.com/");
+const isYK = url.includes("youku.com/");
+function compactInPlace(items, keep) {
+  let write = 0;
+  for (let read = 0, length = items.length; read < length; read++) {
+    const item = items[read];
+    if (keep(item, read)) {
+      if (write !== read) items[write] = item;
+      write++;
+    }
+  }
+  items.length = write;
   return items;
 }
 
@@ -658,7 +655,7 @@ if (isIQY) {
                 let settingWrite = 0;
                 for (let settingRead = 0; settingRead < settingLength; settingRead++) {
                   const settingItem = settingNodes[settingRead];
-                  if (!CNTV_STATIC_FILTER_21.includes(settingItem?.id)) continue;
+                  if (!CNTV_STATIC_FILTER_18.includes(settingItem?.id)) continue;
                   if (settingWrite !== settingRead) settingNodes[settingWrite] = settingItem;
                   settingWrite++;
                 }
@@ -714,7 +711,7 @@ if (isIQY) {
       if (bottom?.data?.bottomTabList?.length > 0) {
         // HOME首页 DONGTAI短视频 SEARCH淘好片 VIP_MEMBER会员 NEW_UCENTER我的
         compactInPlace(bottom.data.bottomTabList, (i) =>
-            CNTV_STATIC_FILTER_22.includes(i?.type)
+            CNTV_STATIC_FILTER_19.includes(i?.type)
         );
         // 修复位置
         for (let i = 0; i < bottom.data.bottomTabList.length; i++) {
