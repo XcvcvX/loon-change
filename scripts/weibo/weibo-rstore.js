@@ -312,7 +312,6 @@ if (url.includes("/interface/sdk/sdkad.php")) {
           delete replyComment.comment_badge;
         }
       }
-
     }
     // loon-change: Weibo rootComment bubble single-read cache v1
     const rootComment = obj?.rootComment;
