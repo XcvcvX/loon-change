@@ -17,6 +17,7 @@ ROUTE_PLAN_MARKER = "// loon-change: Amap routePlan cached nested references v1"
 COMPACTION_MARKER = "// loon-change: Amap specialized in-place compaction v1"
 AF_NEARBY_MARKER = "// loon-change: Amap af-nearby promotion cleanup v1"
 HOTWORD_MARKER = "// loon-change: Amap hotWordWithIcon cleanup v1"
+BEFORENAVI_MARKER = "// loon-change: Amap beforeNavi bottom-tip cleanup v1"
 NODEFAAS_MARKER = "// loon-change: Amap nodefaasv3 merged profile cleanup v1"
 DYNAMIC_MATCHER_LITERAL = "/ads-\\d+/.test(i?.dynamic_id_s)"
 DYNAMIC_MATCHER_CALL = "AMAP_AD_DYNAMIC_ID.test(i?.dynamic_id_s)"
@@ -417,6 +418,31 @@ def optimize_compaction_modes(source):
         raise ValueError("Amap repeated suggestion scalar property reads remain")
     return source
 
+
+
+
+def optimize_before_navi_tips(source):
+    if source.count(BEFORENAVI_MARKER) > 1:
+        raise ValueError("Amap beforeNavi tip marker is duplicated")
+    if BEFORENAVI_MARKER in source:
+        required = (
+            'bus_plan_bottom_tips',
+            'setIfDifferent(obj.data.common_data.bus_plan_bottom_tips, "data", [])',
+        )
+        if any(token not in source for token in required):
+            raise ValueError("Amap beforeNavi bottom-tip cleanup drift")
+        return source
+    anchor = '''if (obj?.data?.common_data?.bus_plan_bottom_event?.data?.length > 0) {
+    setIfDifferent(obj.data.common_data.bus_plan_bottom_event, "data", []);
+  }'''
+    if source.count(anchor) != 1:
+        raise ValueError("Amap beforeNavi bottom-tip insertion anchor changed")
+    replacement = anchor + '''
+  // loon-change: Amap beforeNavi bottom-tip cleanup v1
+  if (obj?.data?.common_data?.bus_plan_bottom_tips?.data?.length > 0) {
+    setIfDifferent(obj.data.common_data.bus_plan_bottom_tips, "data", []);
+  }'''
+    return source.replace(anchor, replacement, 1)
 
 
 def optimize_nodefaasv3_profile_cleanup(source):
@@ -843,6 +869,7 @@ def optimize_source(source, commit="unknown"):
         source = optimize_compaction_modes(source)
         source = optimize_af_nearby(source)
         source = optimize_hotword(source)
+        source = optimize_before_navi_tips(source)
         source = instrument_mutations(source)
         if ".filter(" in source or "function compactInPlace(items, mode)" not in source:
             raise ValueError("Amap optimized runtime has drifted")
@@ -882,6 +909,7 @@ def optimize_source(source, commit="unknown"):
     source = optimize_compaction_modes(source)
     source = optimize_af_nearby(source)
     source = optimize_hotword(source)
+    source = optimize_before_navi_tips(source)
     source = instrument_mutations(source)
     return MARKER + commit + "\n" + source
 
