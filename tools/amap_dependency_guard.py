@@ -5,7 +5,16 @@ import argparse
 import hashlib
 import json
 import re
+import subprocess
 from pathlib import Path
+
+PLUGIN_UPSTREAM_PATH = "Modules/Loon/sooyaaabo/Amap.lpx"
+ASSET_UPSTREAM_PATHS = {
+    "rucu6_amap.js": "Modules/JavaScript/sooyaaabo/Amap/rucu6_amap.js",
+    "loon_Amap.recommend.jq": "Modules/JavaScript/sooyaaabo/Amap/loon_Amap.recommend.jq",
+    "updatable.jq": "Modules/JavaScript/Kelee/Amap_remove_ads/kelee_updatable.jq",
+    "search_poi_detail.jq": "Modules/JavaScript/Kelee/Amap_remove_ads/kelee_search_poi_detail.jq",
+}
 
 ASSETS = {
     "rucu6_amap.js": {
@@ -25,6 +34,29 @@ ASSETS = {
         "markers": ("def ", "baseInfo"),
     },
 }
+
+
+def git_blob_sha1(content):
+    header = ("blob %d\\0" % len(content)).encode("ascii")
+    return hashlib.sha1(header + content).hexdigest()
+
+
+def _expected_blob(romeo_repo, commit, upstream_path):
+    result = subprocess.run(
+        ["git", "-C", str(romeo_repo), "rev-parse", "%s:%s" % (commit, upstream_path)],
+        check=True, capture_output=True, text=True,
+    )
+    return result.stdout.strip()
+
+
+def _assert_upstream_blob(name, content, expected, upstream_path):
+    actual = git_blob_sha1(content)
+    if actual != expected:
+        raise ValueError(
+            "%s: upstream drift detected at %s (expected %s, got %s)" %
+            (name, upstream_path, expected, actual)
+        )
+    return actual
 
 
 def validate_asset(name, content):
@@ -57,25 +89,44 @@ def validate_asset(name, content):
     return {
         "bytes": len(content),
         "sha256": hashlib.sha256(content).hexdigest(),
+        "git_blob_sha1": git_blob_sha1(content),
     }
 
 
-def build_provenance(asset_dir, plugin_path, commit):
+def build_provenance(asset_dir, plugin_path, commit, romeo_repo=None):
     if not re.fullmatch(r"[0-9a-f]{40}", commit or ""):
         raise ValueError("Romeo 上游 commit 必须是完整 40 位 SHA")
     root = Path(asset_dir)
-    plugin = Path(plugin_path).read_text(encoding="utf-8-sig")
+    plugin_path = Path(plugin_path)
+    plugin_bytes = plugin_path.read_bytes()
+    plugin = plugin_bytes.decode("utf-8-sig")
     assets_report = {}
+    if romeo_repo is not None:
+        expected_plugin = _expected_blob(romeo_repo, commit, PLUGIN_UPSTREAM_PATH)
+        _assert_upstream_blob("Amap.lpx", plugin_bytes, expected_plugin, PLUGIN_UPSTREAM_PATH)
     for name in ASSETS:
         if name not in plugin:
             raise ValueError("Amap.lpx 未引用依赖: " + name)
         path = root / name
         if not path.is_file():
             raise ValueError("缺少高德依赖文件: " + str(path))
-        assets_report[name] = validate_asset(name, path.read_bytes())
+        content = path.read_bytes()
+        stats = validate_asset(name, content)
+        if romeo_repo is not None:
+            upstream_path = ASSET_UPSTREAM_PATHS[name]
+            expected = _expected_blob(romeo_repo, commit, upstream_path)
+            stats["upstream_path"] = upstream_path
+            _assert_upstream_blob(name, content, expected, upstream_path)
+        assets_report[name] = stats
+    plugin_report = {
+        "bytes": len(plugin_bytes),
+        "sha256": hashlib.sha256(plugin_bytes).hexdigest(),
+        "git_blob_sha1": git_blob_sha1(plugin_bytes),
+    }
     return {
         "upstream_repository": "https://github.com/ifflagged/Romeo",
         "upstream_commit": commit,
+        "plugin": plugin_report,
         "assets": assets_report,
     }
 
@@ -85,13 +136,14 @@ def main():
     parser.add_argument("--assets", required=True)
     parser.add_argument("--plugin", required=True)
     parser.add_argument("--commit", required=True)
+    parser.add_argument("--romeo-repo", required=True)
     parser.add_argument("--report", required=True)
     args = parser.parse_args()
     report_path = Path(args.report)
     report = json.loads(report_path.read_text(encoding="utf-8"))
     if "Amap" not in report:
         raise SystemExit("source-report.json 缺少 Amap 来源记录")
-    report["Amap"].update(build_provenance(args.assets, args.plugin, args.commit))
+    report["Amap"].update(build_provenance(args.assets, args.plugin, args.commit, args.romeo_repo))
     report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n",
                            encoding="utf-8")
     print("[amap-dependency-guard] PASS: " +
