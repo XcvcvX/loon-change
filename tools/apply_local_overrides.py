@@ -4386,8 +4386,8 @@ MGW_ECNY_RESPONSE_HOST = "mgs.wallet.pbcdci.cn"
 MAASEA_YOUTUBE_RESPONSE_BROAD_ENDPOINTS = r"youtubei\/v1\/(browse|next|player|search|reel\/reel_watch_sequence|guide|account\/get_setting|get_watch|log_event|config)"
 MAASEA_YOUTUBE_RESPONSE_NARROW_ENDPOINTS = r"youtubei\/v1\/(guide|account\/get_setting)"
 
-RSTORE_YOUTUBE_RESPONSE_BROAD_ENDPOINTS = r"youtubei\\/v\\d\\/(browse|next|player|search|reel\\/reel_watch_sequence|guide|account\\/get_setting|get_watch)"
-RSTORE_YOUTUBE_RESPONSE_NARROW_ENDPOINTS = r"youtubei\\/v\\d\\/(browse|next|player|search|reel\\/reel_watch_sequence|get_watch)"
+RSTORE_YOUTUBE_RESPONSE_BROAD_ENDPOINTS = r"youtubei\/v\d\/(browse|next|player|search|reel\/reel_watch_sequence|guide|account\/get_setting|get_watch)"
+RSTORE_YOUTUBE_RESPONSE_NARROW_ENDPOINTS = r"youtubei\/v\d\/(browse|next|player|search|reel\/reel_watch_sequence|get_watch)"
 
 
 def optimize_rstore_youtube_shadowed_triggers(lines):
