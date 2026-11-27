@@ -26,6 +26,34 @@ class AmapCanonicalScriptTests(unittest.TestCase):
         self.assertIn('setIfDifferent(obj.data, "headerHotWord", [])', SCRIPT)
         self.assertIn('setIfDifferent(obj.data, "hotWordWithIcon", [])', SCRIPT)
 
+
+    def test_script_guard_covers_all_canonical_routes(self):
+        for route in (
+            "/aos/perception/publicTravel/beforeNavi",
+            "/bus/plan/integrate",
+            "/c3frontend/af-hotel/page/main",
+            "/c3frontend/af-launch/page/main",
+            "/c3frontend/af-nearby/nearby",
+            "/perception/drive/routeInfo",
+            "/perception/drive/routePlan",
+            "/shield/search/common/coupon/info",
+            "/shield/search/poi/detail",
+            "/shield/search_business/process/marketingOperationStructured",
+            "/shield/search_poi/",
+            "/faas/amap-navigation/card-service-plan-home",
+            "/faas/amap-navigation/main-page",
+            "/shield/frogserver/aocs/updatable/1",
+            "/shield/dsp/profile/index/nodefaasv",
+            "/shield/search/nearbyrec_smart",
+            "/boss/car/order/content_info",
+            "/boss/order_web/friendly_information",
+            "/promotion-web/resource",
+            "/sharedtrip/taxi/order_detail_car_tips",
+            "/shield/search_bff/hotword",
+            "/valueadded/alimama/splash_screen",
+        ):
+            self.assertIn(route, SCRIPT)
+
     def test_profile_cleanup_merges_native_json_allowlists(self):
         for key in ("MyOrderCard", "MineNewFootprintCard", "MineNewBEntranceCardV4"):
             self.assertIn(key, SCRIPT)
