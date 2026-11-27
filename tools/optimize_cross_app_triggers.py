@@ -62,7 +62,7 @@ def consolidate_pinduoduo_mrk(text):
 
 def validate_amap_ownership(text):
     lines = text.splitlines()
-    amap = [x for x in lines if x.startswith(("response if ", "http-response ")) and ".amap.com" in x and ("script(" in x or "script-path=" in x)]
+    amap = [x for x in lines if x.startswith(("response if ", "http-response ")) and "amap" in x.lower() and "com" in x.lower() and ("script(" in x or "script-path=" in x)]
     if not amap:
         raise ValueError("Amap response handler inventory unexpectedly empty")
     # Every handler must have one explicit processor. This catches accidental
