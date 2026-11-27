@@ -72,6 +72,8 @@ def optimize_source(source: str) -> str:
          '    compactBilibiliList(obj.data.items, "feedAv");', "feed index"),
         ('    item.forEach((i) => {\n      deleteTracked(obj.data, i);\n    });',
          '    deleteTracked(obj.data, "account");\n    deleteTracked(obj.data, "event_list");\n    deleteTracked(obj.data, "preload");\n    deleteTracked(obj.data, "show");', "splash fields"),
+        ('    const item = ["account", "event_list", "preload", "show"];\\n    deleteTracked(obj.data, "account");',
+         '    deleteTracked(obj.data, "account");', "splash temporary array"),
         ('      for (let i of obj.data.list) {\n        if (i.duration !== 0 || i.enable_pre_download !== false ||\n            i.begin_time !== 3818332800 || i.end_time !== 3818419199) modified = true;\n        i.duration = 0;\n        i.enable_pre_download = false;\n        i.begin_time = 3818332800; // Unix 时间戳 2090-12-31 00:00:00\n        i.end_time = 3818419199; // Unix 时间戳 2090-12-31 23:59:59\n      }',
          '      const splashList = obj.data.list;\n      const splashListLength = splashList.length;\n      for (let splashIndex = 0; splashIndex < splashListLength; splashIndex++) {\n        const i = splashList[splashIndex];\n        if (i.duration !== 0 || i.enable_pre_download !== false ||\n            i.begin_time !== 3818332800 || i.end_time !== 3818419199) modified = true;\n        i.duration = 0;\n        i.enable_pre_download = false;\n        i.begin_time = 3818332800; // Unix 时间戳 2090-12-31 00:00:00\n        i.end_time = 3818419199; // Unix 时间戳 2090-12-31 23:59:59\n      }', "splash list"),
         ('          filterTracked(i.items, (ii) => ii?.link?.includes("play"));',
