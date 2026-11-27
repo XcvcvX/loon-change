@@ -25,7 +25,21 @@
         "$done(modified ? {body: JSON.stringify(obj)} : {});",
         "function setIfDifferent(",
         "function deleteIfPresent(",
-        "function sameValue("
+        "function sameValue(",
+        "// loon-change: Youku home.query callback-free nested compaction v1",
+        "// loon-change: Youku home.query callback-free route v1",
+        "function compactYoukuHomeQuery(items, mode, knownLength)",
+        "const length = knownLength === undefined ? items.length : knownLength;",
+        "compactYoukuHomeQuery(rootNodes, \"root\", rootNodesLength);",
+        "compactYoukuHomeQuery(node1Nodes, \"level2\", node1NodesLength);",
+        "compactYoukuHomeQuery(node2Nodes, \"level3\", node2NodesLength);",
+        "compactYoukuHomeQuery(node3Nodes, \"level4\", node3NodesLength);"
+      ],
+      "forbidden": [
+        "// Stable in-place compaction avoids four generations of nested filtered-copy arrays.\n        compactInPlace(objData.nodes, (node1) =>",
+        "if (node1?.data?.refreshImg) {\n            // 电影 综艺 纪录片 下拉刷新的背景图片\n            deleteIfPresent(node1.data, \"refreshImg\");\n          }\n          if (node1?.nodes?.length > 0) {\n            compactInPlace(node1.nodes, (node2) =>",
+        "if (node2?.nodes?.length > 0) {\n                compactInPlace(node2.nodes, (node3) =>",
+        "if (node3?.nodes?.length > 0) {\n                    compactInPlace(node3.nodes, (node4) =>"
       ]
     },
     {
