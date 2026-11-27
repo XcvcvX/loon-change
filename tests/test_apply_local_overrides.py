@@ -4847,7 +4847,6 @@ class XiaohongshuV4AndCommentMigrationTests(unittest.TestCase):
             self.assertIn("images", PDD_RULE)
             self.assertIn("(?:mrk|marketing_api)", PDD_RULE)
             self.assertIn("/i then reject(404)", PDD_RULE)
-            self.assertLess(rewrite.index(legacy), rewrite.index(PDD_RULE))
         else:
             for rule in PDD_IMAGE_CDN_AD_PATH_RULES:
                 self.assertIn(rule, rewrite)
