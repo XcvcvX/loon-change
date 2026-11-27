@@ -295,11 +295,9 @@ if (url.includes("/interface/sdk/sdkad.php")) {
       __loonSource29.length = __loonWrite29;
       if (__loonWrite29 !== __loonLength29) modified = true;
     } else if ((replyComments = obj?.comments) && (replyCommentsLength = replyComments.length) > 0) {
-      const __loonSource28 = replyComments;
-      let __loonWrite28 = 0;
-      const __loonLength28 = replyCommentsLength;
-      for (let __loonRead28 = 0; __loonRead28 < __loonLength28; __loonRead28++) {
-        let item = __loonSource28[__loonRead28];
+      // loon-change: Weibo reply-comment no-op array compaction removed v1
+      for (let __loonRead28 = 0; __loonRead28 < replyCommentsLength; __loonRead28++) {
+        const item = replyComments[__loonRead28];
         // loon-change: Weibo reply-comment decoration single-read cache v1
         const replyUser = item?.user;
         const replyUserIcons = replyUser?.icons;
@@ -313,10 +311,8 @@ if (url.includes("/interface/sdk/sdkad.php")) {
           modified = true;
           delete replyComment.comment_badge;
         }
-        __loonSource28[__loonWrite28++] = item;
       }
-      __loonSource28.length = __loonWrite28;
-      if (__loonWrite28 !== __loonLength28) modified = true;
+
     }
     // loon-change: Weibo rootComment bubble single-read cache v1
     const rootComment = obj?.rootComment;
