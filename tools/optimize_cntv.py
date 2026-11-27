@@ -567,6 +567,83 @@ def optimize_iqiyi_feed_arrays(source):
 
 
 
+IQIYI_HOME_FEED_CALLBACK_FREE_HELPER = "// loon-change: CNTV iQIYI home-feed callback-free compaction v1\nfunction compactCntvIqiyiHomeCards(cards, knownLength) {\n  const length = knownLength === undefined ? cards.length : knownLength;\n  let write = 0;\n\n  for (let read = 0; read < length; read++) {\n    const card = cards[read];\n    const aliasName = card?.alias_name;\n    if (aliasName === \"ad_mobile_flow\" ||\n        aliasName === \"ad_trueview\" ||\n        aliasName === \"focus\" ||\n        aliasName === \"qy_home_vip_opr_banner\") continue;\n\n    const topBanner = card?.top_banner;\n    const blocks = topBanner?.l_blocks;\n    const blocksLength = blocks?.length || 0;\n    for (let blockIndex = 0; blockIndex < blocksLength; blockIndex++) {\n      const block = blocks[blockIndex];\n      const buttons = block?.buttons;\n      if (buttons?.length > 0) delete block.buttons;\n    }\n\n    if (write !== read) cards[write] = card;\n    write++;\n  }\n\n  if (write !== length) cards.length = write;\n  return cards;\n}"
+IQIYI_HOME_FEED_CALLBACK_FREE_HELPER_MARKER = "// loon-change: CNTV iQIYI home-feed callback-free compaction v1"
+IQIYI_HOME_FEED_CALLBACK_FREE_ROUTE_MARKER = "// loon-change: CNTV iQIYI home-feed callback-free route v1"
+
+def optimize_iqiyi_home_feed_callback_free(source):
+    """Remove per-card predicate callbacks from the active iQIYI home-feed route."""
+    start = '  } else if (url.includes("/views_home/")) {'
+    end = '  } else if (url.includes("/views_plt/")) {'
+    if source.count(start) != 1 or source.count(end) != 1:
+        raise ValueError("CNTV iQIYI home-feed route anchors changed")
+    begin = source.index(start)
+    finish = source.index(end, begin + len(start))
+    branch = source[begin:finish]
+
+    if IQIYI_HOME_FEED_CALLBACK_FREE_HELPER_MARKER in source or IQIYI_HOME_FEED_CALLBACK_FREE_ROUTE_MARKER in source:
+        required = (
+            IQIYI_HOME_FEED_CALLBACK_FREE_HELPER_MARKER,
+            IQIYI_HOME_FEED_CALLBACK_FREE_ROUTE_MARKER,
+            "function compactCntvIqiyiHomeCards(cards, knownLength)",
+            "const homeCards = obj?.cards;",
+            "const homeCardsLength = homeCards?.length || 0;",
+            "compactCntvIqiyiHomeCards(homeCards, homeCardsLength);",
+            "if (write !== length) cards.length = write;",
+        )
+        helper_start = source.find(IQIYI_HOME_FEED_CALLBACK_FREE_HELPER_MARKER)
+        helper_end = source.find("\n}\n", helper_start)
+        helper_block = source[helper_start:helper_end + 2] if helper_start >= 0 and helper_end >= 0 else ""
+        if (source.count(IQIYI_HOME_FEED_CALLBACK_FREE_HELPER_MARKER) != 1 or
+                source.count(IQIYI_HOME_FEED_CALLBACK_FREE_ROUTE_MARKER) != 1 or
+                any(token not in source for token in required) or
+                not helper_block or "=>" in helper_block or ".includes(" in helper_block or
+                "compactInPlace(obj.cards, card =>" in branch or
+                "CNTV_STATIC_FILTER_06.includes(card?.alias_name)" in branch):
+            raise ValueError("CNTV iQIYI home-feed callback-free marker/structure drift")
+        stale_filter = 'const CNTV_STATIC_FILTER_06 = ["ad_mobile_flow", "ad_trueview", "focus", "qy_home_vip_opr_banner"];\n'
+        if source.count(stale_filter) == 1 and source.count("CNTV_STATIC_FILTER_06") == 1:
+            source = source.replace(stale_filter, "", 1)
+        return source
+
+    old_block = """    // 爱奇艺首页信息流：原地移除广告卡片。
+    if (obj?.base?.statistics?.ad_str) delete obj.base.statistics.ad_str;
+    if (obj?.cards?.length > 0) {
+      compactInPlace(obj.cards, card => {
+        if (CNTV_STATIC_FILTER_06.includes(card?.alias_name)) return false;
+        if (card?.top_banner?.l_blocks?.length > 0) {
+          for (let i = 0, blocks = card.top_banner.l_blocks; i < blocks.length; i++) {
+            if (blocks[i]?.buttons?.length > 0) delete blocks[i].buttons;
+          }
+        }
+        return true;
+      });
+    }"""
+    if branch.count(old_block) != 1:
+        raise ValueError("CNTV iQIYI home-feed predicate block changed; refusing rewrite")
+    replacement = """    // 爱奇艺首页信息流：回调-free 稳定原地压缩广告卡片。
+    if (obj?.base?.statistics?.ad_str) delete obj.base.statistics.ad_str;
+    const homeCards = obj?.cards;
+    const homeCardsLength = homeCards?.length || 0;
+    if (homeCardsLength > 0) {
+      compactCntvIqiyiHomeCards(homeCards, homeCardsLength);
+    }
+    // loon-change: CNTV iQIYI home-feed callback-free route v1"""
+    branch = branch.replace(old_block, replacement, 1)
+    source = source[:begin] + branch + source[finish:]
+
+    helper_anchor = 'const isIQY = url.includes("iqiyi.com/");'
+    if source.count(helper_anchor) != 1:
+        raise ValueError("CNTV iQIYI home-feed helper insertion anchor changed")
+    source = source.replace(helper_anchor, IQIYI_HOME_FEED_CALLBACK_FREE_HELPER + "\n\n" + helper_anchor, 1)
+    if source.count(IQIYI_HOME_FEED_CALLBACK_FREE_HELPER_MARKER) != 1 or source.count(IQIYI_HOME_FEED_CALLBACK_FREE_ROUTE_MARKER) != 1:
+        raise ValueError("CNTV iQIYI home-feed callback-free insertion failed")
+    stale_filter = 'const CNTV_STATIC_FILTER_06 = ["ad_mobile_flow", "ad_trueview", "focus", "qy_home_vip_opr_banner"];\n'
+    if source.count(stale_filter) == 1 and source.count("CNTV_STATIC_FILTER_06") == 1:
+        source = source.replace(stale_filter, "", 1)
+    return source
+
+
 MGTV_ARRAY_MARKER = "// loon-change: CNTV MangoTV response array compaction v1"
 
 
@@ -831,12 +908,27 @@ def optimize_static_filter_arrays(source):
 
 
 def optimize_source(source, commit="unknown"):
+    def apply_optimizers(result):
+        for optimizer in (
+            optimize_get_my_menus,
+            optimize_youku_home_feed,
+            optimize_youku_home_query,
+            optimize_youku_profile_comment_arrays,
+            optimize_iqiyi_feed_arrays,
+            optimize_mgtv_arrays,
+            optimize_pre_parse_route_guard,
+            optimize_static_filter_arrays,
+            optimize_iqiyi_home_feed_callback_free,
+        ):
+            result = optimizer(result)
+        return result
+
     if MARKER in source:
-        return optimize_static_filter_arrays(optimize_pre_parse_route_guard(optimize_mgtv_arrays(optimize_iqiyi_feed_arrays(optimize_youku_profile_comment_arrays(optimize_youku_home_query(optimize_youku_home_feed(optimize_get_my_menus(source))))))))
+        return apply_optimizers(source)
     for legacy_marker in LEGACY_MARKERS:
         if legacy_marker in source:
             source = source.replace(legacy_marker, MARKER, 1)
-            return optimize_static_filter_arrays(optimize_pre_parse_route_guard(optimize_mgtv_arrays(optimize_iqiyi_feed_arrays(optimize_youku_profile_comment_arrays(optimize_youku_home_query(optimize_youku_home_feed(optimize_get_my_menus(source))))))))
+            return apply_optimizers(source)
     body_guard = "if (!$response.body) $done({});"
     if source.count(body_guard) != 1:
         raise ValueError("CNTV response body guard changed; refusing optimization")
@@ -860,10 +952,7 @@ def optimize_source(source, commit="unknown"):
     if source.count("compactInPlace(") != 12:
         raise ValueError("expected 11 CNTV filters to use compactInPlace")
     source = source.rstrip() + "\n}\n"
-    return optimize_static_filter_arrays(optimize_pre_parse_route_guard(
-        optimize_mgtv_arrays(optimize_iqiyi_feed_arrays(optimize_youku_profile_comment_arrays(optimize_youku_home_query(optimize_youku_home_feed(optimize_get_my_menus(MARKER + commit + "\n" + source))))))
-    ))
-
+    return apply_optimizers(MARKER + commit + "\n" + source)
 def rewrite_plugin(plugin):
     local_count = plugin.count(LOCAL)
     remote_count = plugin.count(REMOTE)

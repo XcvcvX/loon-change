@@ -10,7 +10,7 @@ from apply_local_overrides import (
     CNTV_REMOTE_SCRIPT_URL,
     migrate_cntv_script_to_local,
 )
-from optimize_cntv import MARKER, MENUS_MARKER, STATIC_FILTER_MARKER, STATIC_FILTER_PATTERN, YOUKU_HOME_FEED_MARKER, YOUKU_PROFILE_MARKER, YOUKU_COMMENT_MARKER, YOUKU_QUERY_MARKER, YOUKU_HOME_QUERY_BRANCH, YOUKU_HOME_QUERY_CALLBACK_FREE_HELPER_MARKER, YOUKU_HOME_QUERY_CALLBACK_FREE_ROUTE_MARKER, optimize_source, optimize_youku_profile_comment_arrays, optimize_youku_home_query_callback_free, rewrite_plugin
+from optimize_cntv import MARKER, MENUS_MARKER, STATIC_FILTER_MARKER, STATIC_FILTER_PATTERN, YOUKU_HOME_FEED_MARKER, YOUKU_PROFILE_MARKER, YOUKU_COMMENT_MARKER, YOUKU_QUERY_MARKER, YOUKU_HOME_QUERY_BRANCH, YOUKU_HOME_QUERY_CALLBACK_FREE_HELPER_MARKER, YOUKU_HOME_QUERY_CALLBACK_FREE_ROUTE_MARKER, optimize_source, optimize_youku_profile_comment_arrays, optimize_youku_home_query_callback_free, IQIYI_HOME_FEED_CALLBACK_FREE_HELPER_MARKER, IQIYI_HOME_FEED_CALLBACK_FREE_ROUTE_MARKER, optimize_iqiyi_home_feed_callback_free, rewrite_plugin
 
 ROOT = Path(__file__).resolve().parent
 SOURCE = ROOT.parent / "scripts" / "cntv" / "cntv.js"
@@ -22,7 +22,7 @@ class CNTVOptimizerTests(unittest.TestCase):
         source = SOURCE.read_text(encoding="utf-8")
         self.assertIn(MARKER, source)
         self.assertEqual(optimize_source(source), source)
-        self.assertEqual(source.count("compactInPlace(") - 1, 29)
+        self.assertEqual(source.count("compactInPlace(") - 1, 28)
         self.assertNotIn(".filter(", source)
         self.assertIn("if (!$response.body) {", source)
         self.assertTrue(source.rstrip().endswith("}"))
@@ -49,10 +49,43 @@ class CNTVOptimizerTests(unittest.TestCase):
         ]
         for start, end in branches:
             block = source.split(start, 1)[1].split(end, 1)[0]
-            self.assertIn("compactInPlace(", block)
+            if "/views_home/" in start:
+                self.assertIn("compactCntvIqiyiHomeCards(homeCards, homeCardsLength);", block)
+                self.assertNotIn("compactInPlace(", block)
+            else:
+                self.assertIn("compactInPlace(", block)
             for allocation in ("newCards", "newItems", "newBlocks"):
                 self.assertNotIn(allocation, block)
         self.assertEqual(optimize_source(source), source)
+
+    def test_iqiyi_home_feed_callback_free_optimizer_is_idempotent_and_fails_closed(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        self.assertEqual(source.count(IQIYI_HOME_FEED_CALLBACK_FREE_HELPER_MARKER), 1)
+        self.assertEqual(source.count(IQIYI_HOME_FEED_CALLBACK_FREE_ROUTE_MARKER), 1)
+        self.assertEqual(optimize_iqiyi_home_feed_callback_free(source), source)
+        branch = source.split('  } else if (url.includes("/views_home/")) {', 1)[1].split(
+            '  } else if (url.includes("/views_plt/")) {', 1
+        )[0]
+        self.assertIn("compactCntvIqiyiHomeCards(homeCards, homeCardsLength);", branch)
+        self.assertNotIn("compactInPlace(", branch)
+        self.assertNotIn("=>", branch)
+        self.assertNotIn("CNTV_STATIC_FILTER_06.includes", branch)
+
+        helper_start = source.index(IQIYI_HOME_FEED_CALLBACK_FREE_HELPER_MARKER)
+        helper_end = source.index("\n}\n", helper_start)
+        helper = source[helper_start:helper_end + 2]
+        self.assertNotIn("=>", helper)
+        self.assertNotIn(".includes(", helper)
+        self.assertIn("const blocksLength = blocks?.length || 0;", helper)
+        self.assertIn("if (write !== length) cards.length = write;", helper)
+
+        damaged = source.replace(
+            "compactCntvIqiyiHomeCards(homeCards, homeCardsLength);",
+            "compactCntvIqiyiHomeCards(homeCards, 0);",
+            1,
+        )
+        with self.assertRaisesRegex(ValueError, "callback-free marker/structure drift"):
+            optimize_iqiyi_home_feed_callback_free(damaged)
 
     def test_all_26_response_triggers_are_migrated_and_idempotent(self):
         fixture = "[Script]\n" + "\n".join(
@@ -112,7 +145,7 @@ class CNTVOptimizerTests(unittest.TestCase):
 
 @unittest.skipUnless(NODE, "Node.js is required for CNTV response runtime tests")
 class CNTVRuntimeTests(unittest.TestCase):
-    def run_script(self, url, body, disable_push=False):
+    def run_script(self, url, body, disable_push=False, disable_callbacks=False):
         runner = r"""
 const fs = require("fs");
 const vm = require("vm");
@@ -132,6 +165,10 @@ vm.runInContext(
   context
 );
 if (payload.disablePush) vm.runInContext("Array.prototype.push = function() { throw new Error('temporary push allocation remains'); };", context);
+if (payload.disableCallbacks) vm.runInContext(
+  "Array.prototype.map = function() { throw new Error('Array.map callback remains'); }; Array.prototype.forEach = function() { throw new Error('Array.forEach callback remains'); }; Array.prototype.sort = function() { throw new Error('Array.sort callback remains'); };",
+  context
+);
 vm.runInContext(source, context, { timeout: 5000 });
 if (context.__parseCount > 1) throw new Error("response parsed more than once");
 if (payload.body === null) {
@@ -144,7 +181,7 @@ if (payload.body === null) {
 """
         completed = subprocess.run(
             [NODE, "-e", runner, str(SOURCE)],
-            input=json.dumps({"url": url, "body": body, "disablePush": disable_push}),
+            input=json.dumps({"url": url, "body": body, "disablePush": disable_push, "disableCallbacks": disable_callbacks}),
             capture_output=True,
             text=True,
             check=True,
@@ -264,6 +301,33 @@ if (payload.body === null) {
         result = self.run_script("https://iface2.iqiyi.com/views/3.0/waterfall/list", waterfall, disable_push=True)
         self.assertEqual(len(result["output"]["cards"]), 2)
         self.assertEqual(result["output"]["cards"][0]["blocks"], [{"id": "keep"}])
+
+    def test_iqiyi_home_feed_uses_callback_free_stable_compaction_and_caches_nested_arrays(self):
+        body = {"cards": [
+            {"alias_name": "ad_mobile_flow", "id": "ad-1"},
+            {"alias_name": "normal", "id": "keep-1", "top_banner": {"l_blocks": [
+                {"buttons": [{"id": "remove"}], "label": "clean"},
+                {"buttons": [], "label": "empty"},
+                None
+            ]}},
+            {"alias_name": "focus", "id": "ad-2"},
+            None,
+            {"alias_name": "normal", "id": "keep-2", "top_banner": {"l_blocks": []}},
+        ]}
+        result = self.run_script(
+            "https://iface2.iqiyi.com/views/3.0/views_home/list",
+            body,
+            disable_push=True,
+            disable_callbacks=True,
+        )
+        cards = result["output"]["cards"]
+        self.assertEqual([item.get("id") if item else None for item in cards],
+                         ["keep-1", None, "keep-2"])
+        blocks = cards[0]["top_banner"]["l_blocks"]
+        self.assertNotIn("buttons", blocks[0])
+        self.assertEqual(blocks[1]["buttons"], [])
+        self.assertIsNone(blocks[2])
+        self.assertEqual(result["parseCount"], 1)
 
     def test_empty_body_does_not_attempt_json_parse(self):
         result = self.run_script("https://iface2.iqiyi.com/views/3.0/bottom_theme?version=1", None)
