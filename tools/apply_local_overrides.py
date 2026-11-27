@@ -1836,11 +1836,19 @@ def optimize_amap_response_script_overlaps(lines):
             script_entries,
             AMAP_VERSIONED_RSTORE_SCRIPT_MARKERS[2],
             "sources/amap/rucu6_amap.js",
+        ) or matches(
+            script_entries,
+            AMAP_VERSIONED_RSTORE_SCRIPT_MARKERS[2],
+            "scripts/amap/amap.js",
         )),
         AMAP_VERSIONED_RSTORE_SCRIPT_MARKERS[3]: bool(matches(
             script_entries,
             AMAP_VERSIONED_RSTORE_SCRIPT_MARKERS[3],
             "sources/amap/rucu6_amap.js",
+        ) or matches(
+            script_entries,
+            AMAP_VERSIONED_RSTORE_SCRIPT_MARKERS[3],
+            "scripts/amap/amap.js",
         )),
     }
 
@@ -1890,7 +1898,10 @@ def optimize_amap_response_script_overlaps(lines):
             output[targets[0]] = None
 
     for marker in AMAP_ISHOWSHU_REDUNDANT_SCRIPT_MARKERS[1:]:
-        canonical = matches(script_entries, marker, "sources/amap/rucu6_amap.js")
+        canonical = (
+            matches(script_entries, marker, "sources/amap/rucu6_amap.js")
+            or matches(script_entries, marker, "scripts/amap/amap.js")
+        )
         if len(canonical) > 1:
             raise ValueError("duplicate canonical local Amap trigger: " + marker)
         if not canonical:
