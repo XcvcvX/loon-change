@@ -304,11 +304,11 @@ def replace_image_enhance_helper(source, signature, label):
     left = source.index(signature)
     prefix = source[:left]
     for marker in (IMAGE_ARRAY_LENGTH_MARKER, IMAGE_FEED_MARKER):
-        marker_line = marker + "\\n"
+        marker_line = marker + "\n"
         if prefix.endswith(marker_line):
             prefix = prefix[:-len(marker_line)]
     right = source.index(end_marker, left + len(signature))
-    return prefix + IMAGE + "\\n\\n" + source[right:]
+    return prefix + IMAGE + "\n\n" + source[right:]
 
 
 def optimize_imagefeed_single_traversal(source):
