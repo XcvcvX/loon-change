@@ -1736,9 +1736,13 @@ hostname = creditcard.bankcomm.cn, creditcard.bankcomm.com, creditcardapp.bankco
             "functionId=readCustomSurfaceList", "functionId=deliverLayer",
             "functionId=orderTrackBusiness", "functionId=getTabHomeInfo",
             "functionId=myOrderInfo", "functionId=personinfoBusiness",
-            "function isPersonInfoBusinessExcluded(id)", "function isWelcomeHomeType(type)",
-            "function isCustomSurfaceName(name)", "welcomeExtraEnabled",
-            "function isWelcomeExtraExcluded(type)", "$argument", "jkds_enable", "JSON.parse(body)",
+            "function compactJdInPlace(items, mode, welcomeExtraEnabled)",
+            "function compactJdServiceList(items)", "function processFloors(floors)",
+            'compactJdInPlace(obj.floorList, "welcome", welcomeExtraEnabled);',
+            'compactJdInPlace(darkNavigation, "custom");',
+            'compactJdInPlace(obj.floors, "delivery");',
+            'compactJdInPlace(obj.floors, "order");',
+            "welcomeExtraEnabled", "$argument", "jkds_enable", "JSON.parse(body)",
             "let modified = false;", "$done(modified ? { body: JSON.stringify(obj) } : {})",
         ):
             self.assertIn(marker, base_script)
