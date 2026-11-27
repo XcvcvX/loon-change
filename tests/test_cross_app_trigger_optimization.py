@@ -80,10 +80,10 @@ class CrossAppTriggerTests(unittest.TestCase):
         self.assertEqual(result.count("MEITUAN-CONSOLIDATED"), 1)
 
     def test_meituan_upstream_removed_legacy_triggers_keeps_canonical_handler(self):
-        source = "\\n".join(
+        source = "\n".join(
             line for line in fixture().splitlines()
             if SCRIPT not in line
-        ) + "\\n"
+        ) + "\n"
         result, _, _ = optimize(source)
         self.assertEqual(result.count(MEITUAN_MARKER), 1)
         self.assertEqual(result.count("MEITUAN-CONSOLIDATED"), 1)
@@ -94,7 +94,7 @@ class CrossAppTriggerTests(unittest.TestCase):
         lines = fixture().splitlines()
         legacy = [line for line in lines if SCRIPT in line]
         self.assertEqual(len(legacy), 8)
-        source = "\\n".join(line for line in lines if line != legacy[0]) + "\\n"
+        source = "\n".join(line for line in lines if line != legacy[0]) + "\n"
         with self.assertRaisesRegex(ValueError, "either 8 legacy Meituan triggers or none"):
             optimize(source)
 
