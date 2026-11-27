@@ -113,6 +113,7 @@
 - [phase11 batch19 Youku home.feed callback-free compaction](phase11-batch19-youku-home-feed-callback-free-compaction.md)
 - [phase11 batch20 CNTV Youku home.query callback-free nested compaction](phase11-batch20-cntv-youku-home-query-callback-free-nested-compaction.md)
 - [phase11 batch21 Bilibili callback-free response list compaction](phase11-batch21-bilibili-callback-free-response-list-compaction.md)
+- [phase11 batch22 CNTV iQIYI home-feed callback-free compaction](phase11-batch22-cntv-iqiyi-home-feed-callback-free-compaction.md)
 
 ## 其他专项审计
 
