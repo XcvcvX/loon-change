@@ -70,6 +70,30 @@ AMAP_SCRIPT_COUNTS = {
     "ishowshu_amap.js": 5,
     "rucu6_amap.js": 10,
 }
+AMAP_REQUIRED_PATHS = (
+    r"beforeNavi",
+    r"bus\\/plan\\/integrate",
+    r"af-hotel",
+    r"af-launch",
+    r"af-nearby\\/nearby",
+    r"routeInfo",
+    r"routePlan",
+    r"search_poi\\/(?:homepage|mps|search\\/sp|sug|tips_operation_location)",
+    r"card-service-plan-home",
+    r"main-page",
+    r"updatable\\/1",
+    r"nearbyrec_smart",
+    r"alimama\\/splash_screen",
+    r"car\\/order\\/content_info",
+    r"order_web\\/friendly_information",
+    r"promotion-web\\/resource",
+    r"common\\/coupon\\/info",
+    r"poi\\/detail",
+    r"search_bff\\/hotword",
+    r"marketingOperationStructured",
+    r"nodefaasv3",
+    r"sharedtrip\\/taxi\\/order_detail_car_tips",
+)
 AMAP_NATIVE_JQ_PATHS = (
     "search_poi/homepage",
     "dsp/profile/index/nodefaasv3",
@@ -98,6 +122,9 @@ def consolidate_amap_youtube_ownership(text):
             raise ValueError("YouTube version ownership split drifted")
         return text
 
+    missing_paths = [path for path in AMAP_REQUIRED_PATHS if path not in AMAP_CANONICAL_RULE]
+    if missing_paths:
+        raise ValueError("Amap canonical matcher does not cover all source routes: " + repr(missing_paths))
     output = []
     amap_seen = {name: 0 for name in AMAP_SCRIPT_COUNTS}
     native_seen = {path: 0 for path in AMAP_NATIVE_JQ_PATHS}
