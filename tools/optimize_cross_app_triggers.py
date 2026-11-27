@@ -16,15 +16,20 @@ def _meituan_legacy(line):
 def consolidate_meituan(text):
     lines = text.splitlines()
     legacy = [line for line in lines if _meituan_legacy(line)]
+    canonical = [line for line in lines if "scripts/meituan/meituan.js" in line and "MEITUAN-CONSOLIDATED" in line]
+    if len(canonical) != 1:
+        raise ValueError("canonical consolidated Meituan handler missing or duplicated")
     if MEITUAN_MARKER in text:
         if text.count(MEITUAN_MARKER) != 1 or legacy:
             raise ValueError("Meituan consolidation marker/inventory drift")
         return text
-    if len(legacy) != 8:
-        raise ValueError("expected exactly 8 legacy Meituan upstream triggers; refusing cleanup (found %d)" % len(legacy))
-    canonical = [line for line in lines if "scripts/meituan/meituan.js" in line and "MEITUAN-CONSOLIDATED" in line]
-    if len(canonical) != 1:
-        raise ValueError("canonical consolidated Meituan handler missing or duplicated")
+
+    # Romeo removed the former eight per-endpoint triggers upstream. Accept
+    # that state only when the single local consolidated handler is present.
+    # Any partial inventory remains a hard failure to catch upstream drift.
+    if len(legacy) not in (0, 8):
+        raise ValueError("expected either 8 legacy Meituan triggers or none after upstream removal; refusing cleanup (found %d)" % len(legacy))
+
     output = []
     inserted = False
     for line in lines:
@@ -33,7 +38,12 @@ def consolidate_meituan(text):
                 output.append(MEITUAN_MARKER)
                 inserted = True
             continue
+        if not legacy and not inserted and line == canonical[0]:
+            output.append(MEITUAN_MARKER)
+            inserted = True
         output.append(line)
+    if not inserted:
+        raise ValueError("unable to anchor Meituan consolidation marker")
     return "\n".join(output) + ("\n" if text.endswith("\n") else "")
 
 def consolidate_pinduoduo_mrk(text):

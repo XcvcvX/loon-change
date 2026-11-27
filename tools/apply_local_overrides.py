@@ -1817,6 +1817,24 @@ def optimize_amap_response_script_overlaps(lines):
             if marker in normalized(line) and token in normalized(line)
         ]
 
+    canonical_route_tokens = {
+        "/ws/shield/search/nearbyrec_smart": ("nearbyrec_smart",),
+        "/ws/promotion-web/resource": ("promotion-web/resource",),
+        "card-service-plan-home|main-page": ("card-service-plan-home", "main-page"),
+        "/ws/valueadded/alimama/splash_screen": ("alimama/splash_screen",),
+        "/ws/perception/drive/": ("perception/drive/",),
+    }
+
+    def canonical_local_matches(marker):
+        tokens = canonical_route_tokens.get(marker, ())
+        if not tokens:
+            return []
+        return [
+            index for index, line in script_entries
+            if "scripts/amap/amap.js" in normalized(line)
+            and all(token in normalized(line) for token in tokens)
+        ]
+
     rstore_cover = {
         AMAP_VERSIONED_RSTORE_SCRIPT_MARKERS[0]: bool(matches(
             rewrite_entries,
@@ -1836,12 +1854,12 @@ def optimize_amap_response_script_overlaps(lines):
             script_entries,
             AMAP_VERSIONED_RSTORE_SCRIPT_MARKERS[2],
             "sources/amap/rucu6_amap.js",
-        )),
+        ) or canonical_local_matches(AMAP_VERSIONED_RSTORE_SCRIPT_MARKERS[2]) or canonical_local_matches(AMAP_ISHOWSHU_REDUNDANT_SCRIPT_MARKERS[1])),
         AMAP_VERSIONED_RSTORE_SCRIPT_MARKERS[3]: bool(matches(
             script_entries,
             AMAP_VERSIONED_RSTORE_SCRIPT_MARKERS[3],
             "sources/amap/rucu6_amap.js",
-        )),
+        ) or canonical_local_matches(AMAP_VERSIONED_RSTORE_SCRIPT_MARKERS[3]) or canonical_local_matches(AMAP_ISHOWSHU_REDUNDANT_SCRIPT_MARKERS[2])),
     }
 
     for marker in AMAP_VERSIONED_RSTORE_SCRIPT_MARKERS:
@@ -1890,7 +1908,10 @@ def optimize_amap_response_script_overlaps(lines):
             output[targets[0]] = None
 
     for marker in AMAP_ISHOWSHU_REDUNDANT_SCRIPT_MARKERS[1:]:
-        canonical = matches(script_entries, marker, "sources/amap/rucu6_amap.js")
+        canonical = (
+            matches(script_entries, marker, "sources/amap/rucu6_amap.js")
+            or canonical_local_matches(marker)
+        )
         if len(canonical) > 1:
             raise ValueError("duplicate canonical local Amap trigger: " + marker)
         if not canonical:
