@@ -638,6 +638,9 @@ def optimize_iqiyi_home_feed_callback_free(source):
     source = source.replace(helper_anchor, IQIYI_HOME_FEED_CALLBACK_FREE_HELPER + "\n\n" + helper_anchor, 1)
     if source.count(IQIYI_HOME_FEED_CALLBACK_FREE_HELPER_MARKER) != 1 or source.count(IQIYI_HOME_FEED_CALLBACK_FREE_ROUTE_MARKER) != 1:
         raise ValueError("CNTV iQIYI home-feed callback-free insertion failed")
+    stale_filter = 'const CNTV_STATIC_FILTER_06 = ["ad_mobile_flow", "ad_trueview", "focus", "qy_home_vip_opr_banner"];\n'
+    if source.count(stale_filter) == 1 and source.count("CNTV_STATIC_FILTER_06") == 1:
+        source = source.replace(stale_filter, "", 1)
     return source
 
 
