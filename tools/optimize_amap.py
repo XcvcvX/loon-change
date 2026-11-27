@@ -433,6 +433,7 @@ def optimize_before_navi_tips(source):
             raise ValueError("Amap beforeNavi bottom-tip cleanup drift")
         return source
     anchor = '''if (obj?.data?.common_data?.bus_plan_bottom_event?.data?.length > 0) {
+    // 公交出行 底部卡路里数值
     setIfDifferent(obj.data.common_data.bus_plan_bottom_event, "data", []);
   }'''
     if source.count(anchor) != 1:
