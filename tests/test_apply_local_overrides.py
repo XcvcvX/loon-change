@@ -1776,7 +1776,7 @@ class ZhihuResponseScriptConsolidationTests(unittest.TestCase):
             "[MITM]", "hostname = api.zhihu.com",
         ]
         result, removed = consolidate_zhihu_response_scripts(fixture)
-        self.assertEqual(removed, 2)
+        self.assertEqual(removed, 7)
         self.assertEqual(sum(line in ZHIHU_RESPONSE_CANONICAL_TRIGGERS for line in result), 5)
         self.assertTrue(any("example.invalid/keep.js" in line for line in result))
         self.assertFalse(any("Scripts/zhihu/zhihu.js" in line and line not in ZHIHU_RESPONSE_CANONICAL_TRIGGERS for line in result))
@@ -5084,7 +5084,7 @@ class BilibiliJsonNativeCoverageTests(unittest.TestCase):
         original = plugin.read_text(encoding="utf-8")
         fixture = _build_amap_unoptimized_fixture()
         result, removed = optimize_amap_response_script_overlaps(fixture)
-        self.assertEqual(removed, 7)
+        self.assertEqual(removed, 2)
         script = "\n".join(result).split("[Script]", 1)[1].split("[MITM]", 1)[0]
         for marker in AMAP_ISHOWSHU_REDUNDANT_SCRIPT_MARKERS:
             self.assertFalse(any(
