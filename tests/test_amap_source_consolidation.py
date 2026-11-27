@@ -3,6 +3,8 @@
 import unittest
 from pathlib import Path
 
+from optimize_cross_app_triggers import AMAP_CANONICAL_RULE, AMAP_REQUIRED_PATHS
+
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = (ROOT / "scripts" / "amap" / "amap.js").read_text(encoding="utf-8")
@@ -14,6 +16,10 @@ class AmapCanonicalScriptTests(unittest.TestCase):
         self.assertIn('setIfDifferent(obj.data.modules, "banner", {})', SCRIPT)
         self.assertIn('setIfDifferent(obj.data.modules, "contentPoster", {})', SCRIPT)
         self.assertIn('bus_plan_bottom_tips', SCRIPT)
+
+    def test_canonical_matcher_covers_every_source_route(self):
+        for route in AMAP_REQUIRED_PATHS:
+            self.assertIn(route, AMAP_CANONICAL_RULE)
 
     def test_canonical_script_preserves_ishowshu_hotword_cleanup(self):
         self.assertIn('url.includes("/shield/search_bff/hotword")', SCRIPT)
