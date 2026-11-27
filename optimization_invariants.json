@@ -792,11 +792,26 @@
         "i?.module_id === 241",
         "i?.module_id === 1283",
         "i?.module_id === 1284",
-        "i?.module_id === 1441"
+        "i?.module_id === 1441",
+        "// loon-change: Bilibili callback-free response list compaction v1",
+        "function bilibiliTabRank(name, mode)",
+        "function compactBilibiliList(items, mode)",
+        "compactBilibiliList(obj.data.bottom, \"bottomTab\");",
+        "compactBilibiliList(obj.data.tab, \"homeTab\");",
+        "compactBilibiliList(obj.data.items, \"feedAv\");",
+        "compactBilibiliList(obj.data.new_tab_info.outer_list, \"liveOuterList\");"
       ],
       "forbidden": [
         "[\"vertical_ad_av\", \"vertical_live\", \"vertical_pgc\"]?.includes(item?.card_goto)",
-        "[241, 1283, 1284, 1441]?.includes(i?.module_id)"
+        "[241, 1283, 1284, 1441]?.includes(i?.module_id)",
+        "function filterInPlace(",
+        "filterTracked(",
+        "filterAndSortAllowed(",
+        ".forEach(",
+        ".sort(",
+        "for (let i of del)",
+        "for (let i of obj.data.list)",
+        "const item = [\"account\", \"event_list\", \"preload\", \"show\"];"
       ]
     },
     {

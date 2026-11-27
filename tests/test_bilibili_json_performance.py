@@ -1,17 +1,20 @@
 import json
 import shutil
 import subprocess
+import sys
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT.parent))
+from tools.optimize_bilibili import optimize_source
 NODE = shutil.which("node")
 SOURCE = ROOT / "scripts" / "bilibili" / "bilibili-json.js"
 
 
 @unittest.skipUnless(NODE, "Node.js is required for Bilibili response runtime tests")
 class BilibiliResponseCompactionTests(unittest.TestCase):
-    def run_body(self, url, body, guard_object_keys=False):
+    def run_body(self, url, body, guard_object_keys=False, guard_array_callbacks=False):
         runner = r"""
 const fs = require("fs");
 const vm = require("vm");
@@ -48,6 +51,9 @@ const context = {
   console: { log() {}, warn() {}, error() {} }
 };
 vm.createContext(context);
+if (payload.guardArrayCallbacks) {
+  vm.runInContext("Array.prototype.filter = function() { throw new Error('Array.filter callback path remains'); }; Array.prototype.forEach = function() { throw new Error('Array.forEach callback path remains'); }; Array.prototype.sort = function() { throw new Error('Array.sort callback path remains'); };", context);
+}
 if (payload.guardObjectKeys) {
   vm.runInContext("Object.keys = function() { throw new Error('Object.keys temporary allocation remains'); };", context);
 }
@@ -61,13 +67,13 @@ process.stdout.write(NativeJSON.stringify({
 """
         completed = subprocess.run(
             [NODE, "-e", runner, str(SOURCE)],
-            input=json.dumps({"url": url, "body": body, "guardObjectKeys": guard_object_keys}),
+            input=json.dumps({"url": url, "body": body, "guardObjectKeys": guard_object_keys, "guardArrayCallbacks": guard_array_callbacks}),
             capture_output=True, text=True, check=True, timeout=10,
         )
         return json.loads(completed.stdout)
 
-    def run_script(self, url, items):
-        return self.run_body(url, {"data": {"items": items}})
+    def run_script(self, url, items, guard_array_callbacks=False):
+        return self.run_body(url, {"data": {"items": items}}, guard_array_callbacks=guard_array_callbacks)
 
     def test_feed_kept_items_are_not_written_back_to_the_same_indices(self):
         items = [{"id": "a", "card_goto": "av"}, {"id": "b", "card_goto": "av"}]
@@ -136,6 +142,7 @@ process.stdout.write(NativeJSON.stringify({
         result = self.run_body(
             "https://api.bilibili.com/pgc/page/bangumi?build=1",
             {"result": {"modules": modules}},
+            guard_array_callbacks=True,
         )
         remaining = result["output"]["result"]["modules"]
         self.assertEqual([item["module_id"] for item in remaining], [241, 1283, 1284, 1441, 100])
@@ -219,6 +226,7 @@ process.stdout.write(NativeJSON.stringify({
                 "tab": [{"name": "热门"}, {"name": "推荐"}],
                 "top": [{"name": "活动"}, {"name": "消息", "pos": 5}]
             }},
+            guard_array_callbacks=True,
         )
         self.assertEqual(result["parseCalls"], 1)
         self.assertEqual(result["stringifyCalls"], 1)
@@ -292,13 +300,89 @@ process.stdout.write(NativeJSON.stringify({
     def test_compaction_loops_cache_array_lengths_and_guard_same_index_writes(self):
         source = SOURCE.read_text(encoding="utf-8")
         self.assertIn("if (write !== read) items[write] = item;", source)
-        self.assertIn("let read = 0, length = items.length", source)
+        self.assertIn("function compactBilibiliList(items, mode)", source)
+        self.assertIn("const length = items.length;", source)
+        self.assertIn("for (let read = 0; read < length; read++)", source)
         self.assertNotIn("items[write++]", source)
         self.assertNotIn("sections[sectionWrite++]", source)
         self.assertNotIn("items[itemWrite++]", source)
         self.assertNotIn("Object.keys(", source)
         self.assertIn("function countOwnEnumerableKeys(target, limit)", source)
 
+
+
+    def test_callback_free_list_modes_and_routes(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        self.assertIn("// loon-change: Bilibili callback-free response list compaction v1", source)
+        self.assertIn("function compactBilibiliList(items, mode)", source)
+        self.assertNotIn("function filterInPlace(", source)
+        self.assertNotIn("filterTracked(", source)
+        self.assertNotIn("filterAndSortAllowed(", source)
+        self.assertNotIn(".forEach(", source)
+        self.assertNotIn(".sort(", source)
+
+        ipad = self.run_body(
+            "https://app.bilibili.com/x/v2/account/mine/ipad?build=1",
+            {"data": {
+                "ipad_recommend_sections": [{"id": 789}, {"id": 791}, {"id": 790}],
+                "ipad_more_sections": [{"id": 799}, {"id": 797}, {"id": 798}],
+            }},
+            guard_array_callbacks=True,
+        )
+        self.assertEqual([item["id"] for item in ipad["output"]["data"]["ipad_recommend_sections"]], [789, 790])
+        self.assertEqual([item["id"] for item in ipad["output"]["data"]["ipad_more_sections"]], [797, 798])
+
+        feed = self.run_body(
+            "https://app.bilibili.com/x/v2/feed/index?build=1",
+            {"data": {"items": [
+                {"id": "ad", "card_goto": "banner"},
+                {"id": "keep", "card_goto": "av"},
+            ]}},
+            guard_array_callbacks=True,
+        )
+        self.assertEqual([item["id"] for item in feed["output"]["data"]["items"]], ["keep"])
+
+        live = self.run_body(
+            "https://api.live.bilibili.com/xlive/app-room/v1/index/getInfoByRoom?build=1",
+            {"data": {"new_tab_info": {"outer_list": [{"biz_id": 33}, {"biz_id": 1}]}}},
+            guard_array_callbacks=True,
+        )
+        self.assertEqual(live["output"]["data"]["new_tab_info"]["outer_list"], [{"biz_id": 1}])
+
+        splash = self.run_body(
+            "https://app.bilibili.com/x/v2/splash/list?build=1",
+            {"data": {"list": [
+                {"duration": 2, "enable_pre_download": True, "begin_time": 1, "end_time": 2}
+            ]}},
+            guard_array_callbacks=True,
+        )
+        self.assertEqual(splash["output"]["data"]["list"][0]["duration"], 0)
+
+        pgc = self.run_body(
+            "https://api.bilibili.com/pgc/page/bangumi?build=1",
+            {"result": {"modules": [
+                {"style": "banner", "items": [{"link": "https://example.com"}, {"link": "bilibili://play/1"}]},
+                {"style": "function", "items": [{"blink": "other://home"}, {"blink": "bilibili://home"}]},
+                {"style": "tip", "items": [{"id": 1}]},
+            ]}},
+            guard_array_callbacks=True,
+        )
+        modules = pgc["output"]["result"]["modules"]
+        self.assertEqual(modules[0]["items"], [{"link": "bilibili://play/1"}])
+        self.assertEqual(modules[1]["items"], [{"blink": "bilibili://home"}])
+        self.assertEqual(modules[2]["items"], [])
+
+
+    def test_optimizer_is_idempotent_and_fails_closed_on_route_drift(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        self.assertEqual(optimize_source(source), source)
+        damaged = source.replace(
+            'compactBilibiliList(obj.data.bottom, "bottomTab");',
+            'compactBilibiliList(obj.data.bottom, "unknownMode");',
+            1,
+        )
+        with self.assertRaises(ValueError):
+            optimize_source(damaged)
 
 if __name__ == "__main__":
     unittest.main()
