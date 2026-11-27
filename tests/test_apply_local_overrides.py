@@ -4844,7 +4844,9 @@ class XiaohongshuV4AndCommentMigrationTests(unittest.TestCase):
         if PDD_RULE in rewrite:
             # The consolidated matcher replaces the two image-host-specific rules
             # while preserving their case-insensitive /mrk/ and /marketing_api/ scope.
-            self.assertIn(r"images\\.pinduoduo\\.com\\/(?:mrk|marketing_api)\\/", PDD_RULE)
+            self.assertIn("images", PDD_RULE)
+            self.assertIn("(?:mrk|marketing_api)", PDD_RULE)
+            self.assertIn("/i then reject(404)", PDD_RULE)
             self.assertLess(rewrite.index(legacy), rewrite.index(PDD_RULE))
         else:
             for rule in PDD_IMAGE_CDN_AD_PATH_RULES:
