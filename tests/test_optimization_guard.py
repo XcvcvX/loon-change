@@ -123,8 +123,8 @@ class OptimizationGuardTests(unittest.TestCase):
         # reviewed R-Store matcher to the expected v2-v9 partition before testing
         # the final-output manifest; the production build validates its own output.
         fixture = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
-        old_matcher = r"youtubei\\/v\\d\\/(browse|next|player|search|reel\\/reel_watch_sequence|get_watch)"
-        new_matcher = r"youtubei\\/v[2-9]\\/(browse|next|player|search|reel\\/reel_watch_sequence|get_watch)"
+        old_matcher = "youtubei\\/v\\d\\/(browse|next|player|search|reel\\/reel_watch_sequence|get_watch)"
+        new_matcher = "youtubei\\/v[2-9]\\/(browse|next|player|search|reel\\/reel_watch_sequence|get_watch)"
         self.assertIn(old_matcher, fixture)
         fixture = fixture.replace(old_matcher, new_matcher, 1)
         with tempfile.TemporaryDirectory() as temp:
