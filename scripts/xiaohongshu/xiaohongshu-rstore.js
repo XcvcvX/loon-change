@@ -383,10 +383,8 @@ $done({body: JSON.stringify(obj)});
 // 小红书画质增强：加载2K分辨率的图片
 // loon-change: Xiaohongshu imagefeed single traversal live-photo extraction v1
 // loon-change: Xiaohongshu image traversal array-frame length cache v1
-// loon-change: Xiaohongshu imagefeed single traversal live-photo extraction v1
-// loon-change: Xiaohongshu image traversal array-frame length cache v1
-// loon-change: Xiaohongshu image traversal array classification cache v1
 function imageEnhance(images, livePhotoCache) {
+  // loon-change: Xiaohongshu image traversal array classification cache v1
   if (!images || typeof images !== "object") return images;
   const livePhotoTarget = Array.isArray(livePhotoCache) ? livePhotoCache : null;
   const quality = $.getdata("xiaohongshu.imageQuality");
