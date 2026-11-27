@@ -10,7 +10,7 @@ from apply_local_overrides import (
     CNTV_REMOTE_SCRIPT_URL,
     migrate_cntv_script_to_local,
 )
-from optimize_cntv import MARKER, MENUS_MARKER, STATIC_FILTER_MARKER, STATIC_FILTER_PATTERN, YOUKU_HOME_FEED_MARKER, YOUKU_PROFILE_MARKER, YOUKU_COMMENT_MARKER, optimize_source, optimize_youku_profile_comment_arrays, rewrite_plugin
+from optimize_cntv import MARKER, MENUS_MARKER, STATIC_FILTER_MARKER, STATIC_FILTER_PATTERN, YOUKU_HOME_FEED_MARKER, YOUKU_PROFILE_MARKER, YOUKU_COMMENT_MARKER, YOUKU_QUERY_MARKER, YOUKU_HOME_QUERY_BRANCH, YOUKU_HOME_QUERY_CALLBACK_FREE_HELPER_MARKER, YOUKU_HOME_QUERY_CALLBACK_FREE_ROUTE_MARKER, optimize_source, optimize_youku_profile_comment_arrays, optimize_youku_home_query_callback_free, rewrite_plugin
 
 ROOT = Path(__file__).resolve().parent
 SOURCE = ROOT.parent / "scripts" / "cntv" / "cntv.js"
@@ -398,6 +398,59 @@ process.stdout.write(nativeJSON.stringify({
         self.assertEqual(nodes[2]["nodes"], [])
         self.assertEqual(result["parseCount"], 1)
         self.assertEqual(optimize_source(source), source)
+
+    def test_youku_home_query_is_callback_free_idempotent_and_migrates_fail_closed(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        self.assertEqual(source.count(YOUKU_HOME_QUERY_CALLBACK_FREE_HELPER_MARKER), 1)
+        self.assertEqual(source.count(YOUKU_HOME_QUERY_CALLBACK_FREE_ROUTE_MARKER), 1)
+        self.assertEqual(optimize_source(source), source)
+
+        start = '  } else if (url.includes("columbus.home.query/")) {'
+        end = '  } else if (url.includes("columbus.uc.query/")) {'
+        begin, finish = source.index(start), source.index(end, source.index(start))
+        branch = source[begin:finish]
+        self.assertIn(YOUKU_QUERY_MARKER, branch)
+        self.assertIn('compactCntvYoukuHomeQuery(rootNodes, "root", rootNodesLength);', branch)
+        self.assertNotIn("compactInPlace(", branch)
+        self.assertNotIn("=>", branch)
+
+        helper_start = source.index(YOUKU_HOME_QUERY_CALLBACK_FREE_HELPER_MARKER)
+        helper_end = source.index("\\n}\\n\\n", helper_start)
+        helper = source[helper_start:helper_end + 2]
+        for token in (
+            'if (mode === "root")', 'if (mode === "level2")',
+            'if (mode === "level3")', 'if (mode === "level4")',
+            'compactCntvYoukuHomeQuery(childNodes, "level2", childLength);',
+            'compactCntvYoukuHomeQuery(childNodes, "level3", childLength);',
+            'compactCntvYoukuHomeQuery(childNodes, "level4", childLength);',
+            "if (write !== length) items.length = write;",
+        ):
+            self.assertIn(token, helper)
+        self.assertNotIn("=>", helper)
+        self.assertNotIn("compactInPlace(", helper)
+        self.assertNotIn(".filter(", helper)
+        self.assertNotIn(".map(", helper)
+        self.assertNotIn(".forEach(", helper)
+
+        legacy = source[:begin] + YOUKU_HOME_QUERY_BRANCH + "  " + YOUKU_QUERY_MARKER + "\\n" + source[finish:]
+        legacy_helper_start = legacy.index(YOUKU_HOME_QUERY_CALLBACK_FREE_HELPER_MARKER)
+        legacy_helper_end = legacy.index("\\n}\\n\\n", legacy_helper_start)
+        legacy = legacy[:legacy_helper_start] + legacy[legacy_helper_end + 4:]
+        migrated = optimize_youku_home_query_callback_free(legacy)
+        self.assertIn(YOUKU_HOME_QUERY_CALLBACK_FREE_HELPER_MARKER, migrated)
+        self.assertIn(YOUKU_HOME_QUERY_CALLBACK_FREE_ROUTE_MARKER, migrated)
+        migrated_start = migrated.index(start)
+        migrated_end = migrated.index(end, migrated_start)
+        self.assertNotIn("compactInPlace(", migrated[migrated_start:migrated_end])
+        self.assertEqual(optimize_youku_home_query_callback_free(migrated), migrated)
+
+        damaged = source.replace(
+            'compactCntvYoukuHomeQuery(rootNodes, "root", rootNodesLength);',
+            'compactCntvYoukuHomeQuery(rootNodes, "unknown", rootNodesLength);',
+            1,
+        )
+        with self.assertRaisesRegex(ValueError, "callback-free route structure drift"):
+            optimize_youku_home_query_callback_free(damaged)
 
     def test_youku_home_query_compacts_nested_arrays_without_reordering(self):
         source = SOURCE.read_text(encoding="utf-8")
