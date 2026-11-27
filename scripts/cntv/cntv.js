@@ -21,7 +21,6 @@ const CNTV_STATIC_FILTER_02 = ["wd_liebiao_2", "wd_liebiao_3", "wd_liebiao_4"];
 const CNTV_STATIC_FILTER_03 = ["1017", "8196", "4525518866820370"];
 const CNTV_STATIC_FILTER_04 = ["block_321", "block_415", "block_416"];
 const CNTV_STATIC_FILTER_05 = ["comment_resource_card", "comment_resource_convention_card"];
-const CNTV_STATIC_FILTER_06 = ["ad_mobile_flow", "ad_trueview", "focus", "qy_home_vip_opr_banner"];
 const CNTV_STATIC_FILTER_07 = [
           "ad_mobile_flow", "hot_query_bottom", "hot_query_search_top_ad",
           "search_com_related_query", "search_intent_detail_onesearch",
@@ -122,6 +121,36 @@ function compactCntvYoukuHomeQuery(items, mode, knownLength) {
 
   if (write !== length) items.length = write;
   return items;
+}
+
+// loon-change: CNTV iQIYI home-feed callback-free compaction v1
+function compactCntvIqiyiHomeCards(cards, knownLength) {
+  const length = knownLength === undefined ? cards.length : knownLength;
+  let write = 0;
+
+  for (let read = 0; read < length; read++) {
+    const card = cards[read];
+    const aliasName = card?.alias_name;
+    if (aliasName === "ad_mobile_flow" ||
+        aliasName === "ad_trueview" ||
+        aliasName === "focus" ||
+        aliasName === "qy_home_vip_opr_banner") continue;
+
+    const topBanner = card?.top_banner;
+    const blocks = topBanner?.l_blocks;
+    const blocksLength = blocks?.length || 0;
+    for (let blockIndex = 0; blockIndex < blocksLength; blockIndex++) {
+      const block = blocks[blockIndex];
+      const buttons = block?.buttons;
+      if (buttons?.length > 0) delete block.buttons;
+    }
+
+    if (write !== read) cards[write] = card;
+    write++;
+  }
+
+  if (write !== length) cards.length = write;
+  return cards;
 }
 
 const isIQY = url.includes("iqiyi.com/");
@@ -298,19 +327,14 @@ if (isIQY) {
       );
     }
   } else if (url.includes("/views_home/")) { 
-    // 爱奇艺首页信息流：原地移除广告卡片。
+    // 爱奇艺首页信息流：回调-free 稳定原地压缩广告卡片。
     if (obj?.base?.statistics?.ad_str) delete obj.base.statistics.ad_str;
-    if (obj?.cards?.length > 0) {
-      compactInPlace(obj.cards, card => {
-        if (CNTV_STATIC_FILTER_06.includes(card?.alias_name)) return false;
-        if (card?.top_banner?.l_blocks?.length > 0) {
-          for (let i = 0, blocks = card.top_banner.l_blocks; i < blocks.length; i++) {
-            if (blocks[i]?.buttons?.length > 0) delete blocks[i].buttons;
-          }
-        }
-        return true;
-      });
+    const homeCards = obj?.cards;
+    const homeCardsLength = homeCards?.length || 0;
+    if (homeCardsLength > 0) {
+      compactCntvIqiyiHomeCards(homeCards, homeCardsLength);
     }
+    // loon-change: CNTV iQIYI home-feed callback-free route v1
   } else if (url.includes("/views_plt/")) {
     // 爱奇艺 播放详情页组件
     if (obj?.kv_pair) {
