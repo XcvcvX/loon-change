@@ -30,8 +30,10 @@ class OptimizationGuardTests(unittest.TestCase):
         artifacts = {item["path"]: item for item in manifest["artifacts"]}
         expected = {
             "scripts/jingdong/jd.js": [
-                "function compactInPlace(items, keep)",
-                "function isWelcomeExtraExcluded(type)",
+                "function compactJdInPlace(items, mode, welcomeExtraEnabled)",
+                "function compactJdServiceList(items)",
+                'compactJdInPlace(obj.floorList, "welcome", welcomeExtraEnabled);',
+                'compactJdInPlace(obj.floors, "order");',
                 "$done(modified ? { body: JSON.stringify(obj) } : {});",
             ],
             "scripts/taobao/taobao.js": [
