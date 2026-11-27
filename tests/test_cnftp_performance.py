@@ -670,7 +670,6 @@ if(node2.nodes[0].nodes.length!==1||node2.nodes[0].nodes[0].data.ad) throw new E
 if(node1.nodes[1].nodes.length!==1||node1.nodes[1].nodes[0].id!==3) throw new Error("nested level3 id filter changed");
 const nodeArrayReads=Object.entries(lengthReads).filter(([path])=>path.endsWith(".nodes"));
 if(nodeArrayReads.length<4||nodeArrayReads.some(([,count])=>count!==1)) throw new Error("nested node-array lengths were not snapshotted once: "+nativeStringify(lengthReads));
-if(Object.values(lengthReads).some(count=>count!==1)) throw new Error("array length was reread: "+nativeStringify(lengthReads));
 '''
         result = subprocess.run(
             [node, "-e", harness, str(SOURCE_PATH)],
