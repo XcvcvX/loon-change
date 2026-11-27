@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 
 from optimization_guard import validate
+from optimize_cross_app_triggers import consolidate_amap_youtube_ownership
 
 
 class OptimizationGuardTests(unittest.TestCase):
@@ -119,14 +120,11 @@ class OptimizationGuardTests(unittest.TestCase):
             self.assertIn(token, required)
         self.assertIn("pdd-homepage.js", forbidden)
         self.assertIn("ishowshu_pdd.js", forbidden)
-        # The checked-in fixture predates the version split. Transform only the
-        # reviewed R-Store matcher to the expected v2-v9 partition before testing
-        # the final-output manifest; the production build validates its own output.
+        # The checked-in fixture is the unoptimized three-source input. Apply the
+        # same deterministic transform as the production build before checking
+        # final-output invariants.
         fixture = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
-        old_matcher = "youtubei\\/v\\d\\/(browse|next|player|search|reel\\/reel_watch_sequence|get_watch)"
-        new_matcher = "youtubei\\/v[2-9]\\/(browse|next|player|search|reel\\/reel_watch_sequence|get_watch)"
-        self.assertIn(old_matcher, fixture)
-        fixture = fixture.replace(old_matcher, new_matcher, 1)
+        fixture = consolidate_amap_youtube_ownership(fixture)
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             (root / "allAdRewrite.plugin").write_text(fixture, encoding="utf-8")

@@ -368,7 +368,26 @@ function compactInPlace(items, mode) {
   } else if (mode === "myOrder") {
     for (let read = 0; read < length; read++) {
       const item = items[read];
-      if (item?.dataKey === "MyOrderCard") {
+      const key = item?.dataKey;
+      if (key === "MyOrderCard" || key === "MineNewFootprintCard" || key === "MineNewBEntranceCardV4") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "myOrderEntrance1") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      const id = item?.id;
+      if (id === 7 || id === 8 || id === 10 || id === 17) {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "myOrderEntrance2") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      const id = item?.id;
+      if (id === 1 || id === 32 || id === 9 || id === 14) {
         if (write !== read) items[write] = item;
         write++;
       }
@@ -449,6 +468,7 @@ const shouldProcess =
   url.includes("/bus/plan/integrate") ||
   url.includes("/c3frontend/af-hotel/page/main") ||
   url.includes("/c3frontend/af-launch/page/main") ||
+  url.includes("/c3frontend/af-nearby/nearby") ||
   url.includes("/perception/drive/routeInfo") ||
   url.includes("/perception/drive/routePlan") ||
   url.includes("/shield/search/common/coupon/info") ||
@@ -475,6 +495,9 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
   if (obj?.data?.common_data?.bus_plan_bottom_event?.data?.length > 0) {
     // 公交出行 底部卡路里数值
     setIfDifferent(obj.data.common_data.bus_plan_bottom_event, "data", []);
+  }
+  if (obj?.data?.common_data?.bus_plan_bottom_tips?.data?.length > 0) {
+    setIfDifferent(obj.data.common_data.bus_plan_bottom_tips, "data", []);
   }
   if (obj?.data?.common_data?.bus_plan_segment_event?.data?.length > 0) {
     // 公交出行 中转站 卡路里数值
@@ -541,6 +564,14 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
   // 步行导航结束推广卡片
   if (obj?.data?.modules?.C1EndNaviEngine?.data) {
     setIfDifferent(obj.data.modules.C1EndNaviEngine, "data", {});
+  }
+} else if (url.includes("/c3frontend/af-nearby/nearby")) {
+  // 附近页面横版推广图片与笔记推广
+  if (obj?.data?.modules?.banner) {
+    setIfDifferent(obj.data.modules, "banner", {});
+  }
+  if (obj?.data?.modules?.contentPoster) {
+    setIfDifferent(obj.data.modules, "contentPoster", {});
   }
 } else if (url.includes("/faas/amap-navigation/card-service-plan-home")) {
   // 路线规划页
@@ -619,6 +650,21 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
   // 我的页面
   if (obj?.data?.cardList?.length > 0) {
     compactInPlace(obj.data.cardList, "myOrder");
+    for (let i = 0; i < obj.data.cardList.length; i++) {
+      const card = obj.data.cardList[i];
+      if (card?.dataKey === "MineNewBEntranceCardV4") {
+        const content = card.content;
+        if (Array.isArray(content?.entranceList_1)) {
+          compactInPlace(content.entranceList_1, "myOrderEntrance1");
+        }
+        if (Array.isArray(content?.entranceList_2)) {
+          compactInPlace(content.entranceList_2, "myOrderEntrance2");
+        }
+      }
+    }
+  }
+  if (obj?.data?.wallet) {
+    deleteIfPresent(obj.data, "wallet");
   }
   if (obj?.data?.tipData) {
     deleteIfPresent(obj.data, "tipData");
@@ -663,9 +709,12 @@ if (url.includes("/aos/perception/publicTravel/beforeNavi")) {
     }
   }
 } else if (url.includes("/shield/search_bff/hotword")) {
-  // 搜索框 热榜logo
+  // 搜索框热词与菜单推广
   if (obj?.data?.headerHotWord?.length > 0) {
     setIfDifferent(obj.data, "headerHotWord", []);
+  }
+  if (obj?.data?.hotWordWithIcon?.length > 0) {
+    setIfDifferent(obj.data, "hotWordWithIcon", []);
   }
 } else if (url.includes("/shield/search_business/process/marketingOperationStructured")) {
   // 详情页 顶部优惠横幅

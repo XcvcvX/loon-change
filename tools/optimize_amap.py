@@ -15,6 +15,10 @@ DYNAMIC_MATCHER_MARKER = "// loon-change: Amap shared dynamic ad matcher v1"
 ROUTE_INFO_MARKER = "// loon-change: Amap routeInfo cached nested references v1"
 ROUTE_PLAN_MARKER = "// loon-change: Amap routePlan cached nested references v1"
 COMPACTION_MARKER = "// loon-change: Amap specialized in-place compaction v1"
+AF_NEARBY_MARKER = "// loon-change: Amap af-nearby promotion cleanup v1"
+HOTWORD_MARKER = "// loon-change: Amap hotWordWithIcon cleanup v1"
+BEFORENAVI_MARKER = "// loon-change: Amap beforeNavi bottom-tip cleanup v1"
+NODEFAAS_MARKER = "// loon-change: Amap nodefaasv3 merged profile cleanup v1"
 DYNAMIC_MATCHER_LITERAL = "/ads-\\d+/.test(i?.dynamic_id_s)"
 DYNAMIC_MATCHER_CALL = "AMAP_AD_DYNAMIC_ID.test(i?.dynamic_id_s)"
 DYNAMIC_MATCHER_ITEM_LITERAL = "/ads-\\d+/.test(item?.dynamic_id_s)"
@@ -97,7 +101,26 @@ HELPER = """function compactInPlace(items, mode) {
   } else if (mode === "myOrder") {
     for (let read = 0; read < length; read++) {
       const item = items[read];
-      if (item?.dataKey === "MyOrderCard") {
+      const key = item?.dataKey;
+      if (key === "MyOrderCard" || key === "MineNewFootprintCard" || key === "MineNewBEntranceCardV4") {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "myOrderEntrance1") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      const id = item?.id;
+      if (id === 7 || id === 8 || id === 10 || id === 17) {
+        if (write !== read) items[write] = item;
+        write++;
+      }
+    }
+  } else if (mode === "myOrderEntrance2") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      const id = item?.id;
+      if (id === 1 || id === 32 || id === 9 || id === 14) {
         if (write !== read) items[write] = item;
         write++;
       }
@@ -176,6 +199,7 @@ const shouldProcess =
   url.includes("/bus/plan/integrate") ||
   url.includes("/c3frontend/af-hotel/page/main") ||
   url.includes("/c3frontend/af-launch/page/main") ||
+  url.includes("/c3frontend/af-nearby/nearby") ||
   url.includes("/perception/drive/routeInfo") ||
   url.includes("/perception/drive/routePlan") ||
   url.includes("/shield/search/common/coupon/info") ||
@@ -299,6 +323,8 @@ def optimize_compaction_modes(source):
         "dynamicAds": 4,
         "nonMusic": 1,
         "myOrder": 1,
+        "myOrderEntrance1": 1 if NODEFAAS_MARKER in source else 0,
+        "myOrderEntrance2": 1 if NODEFAAS_MARKER in source else 0,
         "nearbyModules": 1,
         "searchContent": 1,
         "suggestions": 1,
@@ -365,7 +391,8 @@ def optimize_compaction_modes(source):
                 "Amap specialized mode %s expected %d call(s), found %d"
                 % (name, count, actual_count)
             )
-    if source.count("compactInPlace(") != 14:
+    expected_calls = 16 if NODEFAAS_MARKER in source else 14
+    if source.count("compactInPlace(") != expected_calls:
         raise ValueError("Amap specialized compaction call inventory drift")
     if re.search(
         r'compactInPlace\([^,\n]+,\s*(?:\([^)]*\)|[A-Za-z_$][\w$]*)\s*=>',
@@ -390,6 +417,123 @@ def optimize_compaction_modes(source):
     if "tip?.result_type !==" in source or "tip?.task_tag !==" in source or "tip?.datatype_spec !==" in source:
         raise ValueError("Amap repeated suggestion scalar property reads remain")
     return source
+
+
+
+
+def optimize_before_navi_tips(source):
+    if source.count(BEFORENAVI_MARKER) > 1:
+        raise ValueError("Amap beforeNavi tip marker is duplicated")
+    if BEFORENAVI_MARKER in source:
+        required = (
+            'bus_plan_bottom_tips',
+            'setIfDifferent(obj.data.common_data.bus_plan_bottom_tips, "data", [])',
+        )
+        if any(token not in source for token in required):
+            raise ValueError("Amap beforeNavi bottom-tip cleanup drift")
+        return source
+    anchor = '''if (obj?.data?.common_data?.bus_plan_bottom_event?.data?.length > 0) {
+    // 公交出行 底部卡路里数值
+    setIfDifferent(obj.data.common_data.bus_plan_bottom_event, "data", []);
+  }'''
+    if source.count(anchor) != 1:
+        raise ValueError("Amap beforeNavi bottom-tip insertion anchor changed")
+    replacement = anchor + '''
+  // loon-change: Amap beforeNavi bottom-tip cleanup v1
+  if (obj?.data?.common_data?.bus_plan_bottom_tips?.data?.length > 0) {
+    setIfDifferent(obj.data.common_data.bus_plan_bottom_tips, "data", []);
+  }'''
+    return source.replace(anchor, replacement, 1)
+
+
+def optimize_nodefaasv3_profile_cleanup(source):
+    anchor = '''if (obj?.data?.cardList?.length > 0) {
+    compactInPlace(obj.data.cardList, "myOrder");
+  }'''
+    if source.count(NODEFAAS_MARKER) > 1:
+        raise ValueError("Amap nodefaasv3 merge marker is duplicated")
+    if NODEFAAS_MARKER in source:
+        required = (
+            'compactInPlace(content.entranceList_1, "myOrderEntrance1")',
+            'compactInPlace(content.entranceList_2, "myOrderEntrance2")',
+            'deleteIfPresent(obj.data, "wallet")',
+            "MineNewFootprintCard",
+            "MineNewBEntranceCardV4",
+        )
+        if any(token not in source for token in required):
+            raise ValueError("Amap nodefaasv3 merged profile cleanup drift")
+        return source
+    if source.count(anchor) != 1:
+        raise ValueError("Amap nodefaasv3 profile insertion anchor changed")
+    replacement = anchor + '''
+  // loon-change: Amap nodefaasv3 merged profile cleanup v1
+  for (let i = 0; i < obj.data.cardList.length; i++) {
+    const card = obj.data.cardList[i];
+    if (card?.dataKey === "MineNewBEntranceCardV4") {
+      const content = card.content;
+      if (Array.isArray(content?.entranceList_1)) {
+        compactInPlace(content.entranceList_1, "myOrderEntrance1");
+      }
+      if (Array.isArray(content?.entranceList_2)) {
+        compactInPlace(content.entranceList_2, "myOrderEntrance2");
+      }
+    }
+  }
+  if (obj?.data?.wallet) {
+    deleteIfPresent(obj.data, "wallet");
+  }'''
+    return source.replace(anchor, replacement, 1)
+
+
+def optimize_af_nearby(source):
+    if source.count(AF_NEARBY_MARKER) > 1:
+        raise ValueError("Amap af-nearby marker is duplicated")
+    if AF_NEARBY_MARKER in source:
+        required = (
+            'url.includes("/c3frontend/af-nearby/nearby")',
+            'setIfDifferent(obj.data.modules, "banner", {})',
+            'setIfDifferent(obj.data.modules, "contentPoster", {})',
+        )
+        if any(token not in source for token in required):
+            raise ValueError("Amap af-nearby cleanup drift")
+        return source
+    anchor = '} else if (url.includes("/faas/amap-navigation/card-service-plan-home")) {'
+    if source.count(anchor) != 1:
+        raise ValueError("Amap af-nearby branch insertion anchor changed")
+    branch = '''} else if (url.includes("/c3frontend/af-nearby/nearby")) {
+  // loon-change: Amap af-nearby promotion cleanup v1
+  if (obj?.data?.modules?.banner) {
+    setIfDifferent(obj.data.modules, "banner", {});
+  }
+  if (obj?.data?.modules?.contentPoster) {
+    setIfDifferent(obj.data.modules, "contentPoster", {});
+  }
+''' + anchor
+    return source.replace(anchor, branch, 1)
+
+
+def optimize_hotword(source):
+    if source.count(HOTWORD_MARKER) > 1:
+        raise ValueError("Amap hotWordWithIcon marker is duplicated")
+    if HOTWORD_MARKER in source:
+        required = (
+            'setIfDifferent(obj.data, "headerHotWord", [])',
+            'setIfDifferent(obj.data, "hotWordWithIcon", [])',
+        )
+        if any(token not in source for token in required):
+            raise ValueError("Amap hotWordWithIcon cleanup drift")
+        return source
+    anchor = '''if (obj?.data?.headerHotWord?.length > 0) {
+    setIfDifferent(obj.data, "headerHotWord", []);
+  }'''
+    if source.count(anchor) != 1:
+        raise ValueError("Amap hotword cleanup insertion anchor changed")
+    replacement = anchor + '''
+  // loon-change: Amap hotWordWithIcon cleanup v1
+  if (obj?.data?.hotWordWithIcon?.length > 0) {
+    setIfDifferent(obj.data, "hotWordWithIcon", []);
+  }'''
+    return source.replace(anchor, replacement, 1)
 
 
 def optimize_scalar_membership(source):
@@ -722,6 +866,12 @@ def optimize_source(source, commit="unknown"):
         source = instrument_mutations(source)
         source = compact_search_suggestions_in_place(hoist_static_arrays(source))
         source = optimize_compaction_modes(source)
+        source = optimize_nodefaasv3_profile_cleanup(source)
+        source = optimize_compaction_modes(source)
+        source = optimize_af_nearby(source)
+        source = optimize_hotword(source)
+        source = optimize_before_navi_tips(source)
+        source = instrument_mutations(source)
         if ".filter(" in source or "function compactInPlace(items, mode)" not in source:
             raise ValueError("Amap optimized runtime has drifted")
         return source
@@ -756,6 +906,12 @@ def optimize_source(source, commit="unknown"):
     source = optimize_route_plan_cached_references(source)
     source = instrument_mutations(source)
     source = optimize_compaction_modes(source)
+    source = optimize_nodefaasv3_profile_cleanup(source)
+    source = optimize_compaction_modes(source)
+    source = optimize_af_nearby(source)
+    source = optimize_hotword(source)
+    source = optimize_before_navi_tips(source)
+    source = instrument_mutations(source)
     return MARKER + commit + "\n" + source
 
 def rewrite_plugin(plugin):

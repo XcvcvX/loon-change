@@ -4387,7 +4387,8 @@ MAASEA_YOUTUBE_RESPONSE_BROAD_ENDPOINTS = r"youtubei\/v1\/(browse|next|player|se
 MAASEA_YOUTUBE_RESPONSE_NARROW_ENDPOINTS = r"youtubei\/v1\/(guide|account\/get_setting)"
 
 RSTORE_YOUTUBE_RESPONSE_BROAD_ENDPOINTS = r"youtubei\/v\d\/(browse|next|player|search|reel\/reel_watch_sequence|guide|account\/get_setting|get_watch)"
-RSTORE_YOUTUBE_RESPONSE_NARROW_ENDPOINTS = r"youtubei\/v\d\/(browse|next|player|search|reel\/reel_watch_sequence|get_watch)"
+RSTORE_YOUTUBE_RESPONSE_PREVIOUS_NARROW_ENDPOINTS = r"youtubei\/v\d\/(browse|next|player|search|reel\/reel_watch_sequence|get_watch)"
+RSTORE_YOUTUBE_RESPONSE_NARROW_ENDPOINTS = r"youtubei\/v[2-9]\/(browse|next|player|search|reel\/reel_watch_sequence|get_watch)"
 
 
 def optimize_rstore_youtube_shadowed_triggers(lines):
@@ -4418,15 +4419,23 @@ def optimize_rstore_youtube_shadowed_triggers(lines):
     index = rstore_candidates[0]
     line = updated[index]
     broad_count = line.count(RSTORE_YOUTUBE_RESPONSE_BROAD_ENDPOINTS)
+    previous_narrow_count = line.count(RSTORE_YOUTUBE_RESPONSE_PREVIOUS_NARROW_ENDPOINTS)
     narrow_count = line.count(RSTORE_YOUTUBE_RESPONSE_NARROW_ENDPOINTS)
-    if broad_count == 1 and narrow_count == 0:
+    if broad_count == 1 and previous_narrow_count == 0 and narrow_count == 0:
         updated[index] = line.replace(
             RSTORE_YOUTUBE_RESPONSE_BROAD_ENDPOINTS,
             RSTORE_YOUTUBE_RESPONSE_NARROW_ENDPOINTS,
             1,
         )
         return updated, 1
-    if broad_count == 0 and narrow_count == 1:
+    if broad_count == 0 and previous_narrow_count == 1 and narrow_count == 0:
+        updated[index] = line.replace(
+            RSTORE_YOUTUBE_RESPONSE_PREVIOUS_NARROW_ENDPOINTS,
+            RSTORE_YOUTUBE_RESPONSE_NARROW_ENDPOINTS,
+            1,
+        )
+        return updated, 1
+    if broad_count == 0 and previous_narrow_count == 0 and narrow_count == 1:
         return updated, 0
     raise ValueError("R-Store YouTube response endpoint matcher changed; refusing unreviewed narrowing")
 
