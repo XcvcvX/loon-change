@@ -597,7 +597,7 @@ jobs:
           })
           report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
           PY
-          python3 tools/amap_dependency_guard.py --assets /tmp/amap --plugin /tmp/amap/Amap.lpx --commit "$ROMEO_SHA" --report source-report.json
+          python3 tools/amap_dependency_guard.py --assets /tmp/amap --plugin /tmp/amap/Amap.lpx --commit "$ROMEO_SHA" --romeo-repo /tmp/romeo --report source-report.json
           python3 tools/apply_amap_local_overrides.py --plugin /tmp/amap/Amap.lpx
           cp /tmp/amap/* sources/amap/
           # Reapply the reviewed in-place compaction after upstream assets are copied.
