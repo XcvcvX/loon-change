@@ -60,9 +60,9 @@
 | [Argument] | 18 |
 | [Rule] | 719 |
 | [Rewrite] | 2306 |
-| [Script] | 315 |
+| [Script] | 323 |
 | [MITM] hostname 条目 | 1204 |
-| 唯一远程脚本 URL | 134 |
+| 唯一远程脚本 URL | 135 |
 <!-- AUTO_PLUGIN_STATS:END -->
 
 ## 自动更新
