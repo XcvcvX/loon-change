@@ -323,23 +323,17 @@ def optimize_spotify_nested_script(source, kind):
             raise ValueError("Spotify nested protobuf allocation-light rewrite drift")
         return source
 
-    start = source.find("// Parses one protobuf message into its fields")
-    end = source.find("\ntry {", start)
-    if start < 0 or end < 0:
-        raise ValueError("Spotify nested protobuf parser anchors changed; refusing optimization")
-
-    # The old concat helper only supported the allocating field-array rewrite.
-    # It is no longer referenced after the direct range writer is installed.
+    # Remove the concat helper used only by the previous field-array rewrite.
     concat_start = source.find("function concat(parts) {")
     concat_end = source.find("\n}\n", concat_start)
     if concat_start < 0 or concat_end < 0 or source.count("function concat(parts)") != 1:
         raise ValueError("Spotify nested protobuf concat helper changed; refusing optimization")
     concat_end += 3
-    concat_block = source[concat_start:concat_end]
-    if "parts.reduce(" not in concat_block or source.count("concat(") != 1:
+    if source.count("concat(") != 2:
         raise ValueError("Spotify nested protobuf concat usage changed; refusing optimization")
     source = source[:concat_start] + source[concat_end:]
 
+    # Newer upstream may already include the no-allocation preflight marker.
     if marker not in source:
         helper = f"""{marker}
  // Scan wire ranges without materializing field arrays or subarray views.
@@ -379,13 +373,10 @@ def optimize_spotify_nested_script(source, kind):
    return false;
  }}
 """
-        source = source.replace(
-            "// Parses one protobuf message into its fields (raw bytes of each field are kept).",
-            helper + "\n// Parses one protobuf message into its fields (raw bytes of each field are kept).",
-            1,
-        )
-        start = source.find("// Parses one protobuf message into its fields")
-        end = source.find("\ntry {", start)
+        anchor = "// Parses one protobuf message into its fields (raw bytes of each field are kept)."
+        if source.count(anchor) != 1:
+            raise ValueError("Spotify nested protobuf parser anchors changed; refusing optimization")
+        source = source.replace(anchor, helper + "\n" + anchor, 1)
 
     call_count = sum(source.count(call) for call in old_calls)
     if call_count != 1:
@@ -395,6 +386,10 @@ def optimize_spotify_nested_script(source, kind):
             source = source.replace(call, _spotify_nested_call(kind), 1)
             break
 
+    start = source.find("// Parses one protobuf message into its fields")
+    end = source.find("\ntry {", start)
+    if start < 0 or end < 0 or source.count("function renameField(buf, depth") != 1:
+        raise ValueError("Spotify nested protobuf rewrite block changed; refusing optimization")
     optimized = source[:start] + NESTED_REWRITE_HELPER + source[end:]
     if any(token in optimized for token in ("function parseFields(", "function concat(parts)", "fields.map(", "parts.reduce(")):
         raise ValueError("Spotify nested protobuf rewrite retained allocation-heavy helpers")
