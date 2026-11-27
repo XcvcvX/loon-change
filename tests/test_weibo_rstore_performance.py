@@ -1852,7 +1852,8 @@ class WeiboCommentArrayLengthCacheTests(unittest.TestCase):
             "(replyCommentsLength = replyComments.length) > 0",
             "const __loonLength30 = commentDatasLength;",
             "const __loonLength29 = rootCommentsLength;",
-            "const __loonLength28 = replyCommentsLength;",
+            "for (let __loonRead28 = 0; __loonRead28 < replyCommentsLength; __loonRead28++) {",
+            "const item = replyComments[__loonRead28];",
         ):
             self.assertIn(token, source)
         damaged = source.replace(
