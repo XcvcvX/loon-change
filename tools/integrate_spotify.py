@@ -317,6 +317,7 @@ def optimize_spotify_nested_script(source, kind):
                 or "function renameField(buf, depth, start, end, kind)" not in source
                 or "function replaceRange(buf, start, end, fieldStart, fieldEnd, replacement)" not in source
                 or "function parseFields(" in source
+                or "function concat(parts)" in source
                 or "fields.map(" in source
                 or "parts.reduce(" in source):
             raise ValueError("Spotify nested protobuf allocation-light rewrite drift")
@@ -326,10 +327,23 @@ def optimize_spotify_nested_script(source, kind):
     end = source.find("\ntry {", start)
     if start < 0 or end < 0:
         raise ValueError("Spotify nested protobuf parser anchors changed; refusing optimization")
+
+    # The old concat helper only supported the allocating field-array rewrite.
+    # It is no longer referenced after the direct range writer is installed.
+    concat_start = source.find("function concat(parts) {")
+    concat_end = source.find("\n}\n", concat_start)
+    if concat_start < 0 or concat_end < 0 or source.count("function concat(parts)") != 1:
+        raise ValueError("Spotify nested protobuf concat helper changed; refusing optimization")
+    concat_end += 3
+    concat_block = source[concat_start:concat_end]
+    if "parts.reduce(" not in concat_block or source.count("concat(") != 1:
+        raise ValueError("Spotify nested protobuf concat usage changed; refusing optimization")
+    source = source[:concat_start] + source[concat_end:]
+
     if marker not in source:
         helper = f"""{marker}
  // Scan wire ranges without materializing field arrays or subarray views.
- // The allocation-heavy rewrite is entered only after a target field is found.
+ // Enter the rewrite path only after a target field has been confirmed.
  function hasTargetField(buf, depth, start, end) {{
    start = start || 0;
    end = end === undefined ? buf.length : end;
@@ -381,7 +395,10 @@ def optimize_spotify_nested_script(source, kind):
             source = source.replace(call, _spotify_nested_call(kind), 1)
             break
 
-    return source[:start] + NESTED_REWRITE_HELPER + source[end:]
+    optimized = source[:start] + NESTED_REWRITE_HELPER + source[end:]
+    if any(token in optimized for token in ("function parseFields(", "function concat(parts)", "fields.map(", "parts.reduce(")):
+        raise ValueError("Spotify nested protobuf rewrite retained allocation-heavy helpers")
+    return optimized
 
 
 def integrate(plugin_path, source_path, scripts_source, scripts_dest, upstream_commit, metadata_path):
