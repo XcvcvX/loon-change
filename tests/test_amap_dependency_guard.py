@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
 
-from amap_dependency_guard import ASSETS, build_provenance, validate_asset
+from amap_dependency_guard import (ASSETS, ASSET_UPSTREAM_PATHS, PLUGIN_UPSTREAM_PATH, build_provenance, validate_asset)
 
 
 class AmapDependencyGuardTests(unittest.TestCase):
@@ -52,6 +53,45 @@ class AmapDependencyGuardTests(unittest.TestCase):
             result = build_provenance(root, plugin, "a" * 40)
             self.assertEqual(result["upstream_commit"], "a" * 40)
             self.assertEqual(set(result["assets"]), set(ASSETS))
+
+
+    def test_detects_asset_drift_against_pinned_romeo_commit(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            repo = root / "romeo"
+            assets_dir = root / "assets"
+            repo.mkdir()
+            assets_dir.mkdir()
+            subprocess.run(["git", "-C", str(repo), "init"], check=True, capture_output=True)
+            subprocess.run(["git", "-C", str(repo), "config", "user.name", "Test"], check=True)
+            subprocess.run(["git", "-C", str(repo), "config", "user.email", "test@example.com"], check=True)
+
+            plugin_bytes = ("\n".join(ASSETS) + "\n").encode()
+            plugin_repo_path = repo / PLUGIN_UPSTREAM_PATH
+            plugin_repo_path.parent.mkdir(parents=True, exist_ok=True)
+            plugin_repo_path.write_bytes(plugin_bytes)
+            plugin_path = assets_dir / "Amap.lpx"
+            plugin_path.write_bytes(plugin_bytes)
+
+            for name, upstream_path in ASSET_UPSTREAM_PATHS.items():
+                content = self.fixture(name)
+                repo_path = repo / upstream_path
+                repo_path.parent.mkdir(parents=True, exist_ok=True)
+                repo_path.write_bytes(content)
+                (assets_dir / name).write_bytes(content)
+
+            subprocess.run(["git", "-C", str(repo), "add", "."], check=True, capture_output=True)
+            subprocess.run(["git", "-C", str(repo), "commit", "-m", "fixture"], check=True, capture_output=True)
+            commit = subprocess.check_output(["git", "-C", str(repo), "rev-parse", "HEAD"], text=True).strip()
+            report = build_provenance(assets_dir, plugin_path, commit, repo)
+            self.assertEqual(report["upstream_commit"], commit)
+            self.assertEqual(report["assets"]["rucu6_amap.js"]["upstream_path"],
+                             ASSET_UPSTREAM_PATHS["rucu6_amap.js"])
+            self.assertEqual(len(report["assets"]["rucu6_amap.js"]["git_blob_sha1"]), 40)
+
+            (assets_dir / "rucu6_amap.js").write_bytes(self.fixture("rucu6_amap.js") + b"tampered")
+            with self.assertRaisesRegex(ValueError, "upstream drift detected"):
+                build_provenance(assets_dir, plugin_path, commit, repo)
 
     def test_rejects_short_commit_and_missing_asset(self):
         with tempfile.TemporaryDirectory() as tmp:
