@@ -61,13 +61,13 @@ HEADER = """{marker}
 
   let modified = false;
 
-  function compactInPlace(items, keep) {{
+  function compactJdServiceList(items) {{
     const length = items.length;
     let write = 0;
     for (let read = 0; read < length; read++) {{
-      const item = items[read];
-      if (keep(item, read)) {{
-        if (write !== read) items[write] = item;
+      const card = items[read];
+      if (!(card && card.serviceTitle === "精选特惠")) {{
+        if (write !== read) items[write] = card;
         write++;
       }}
     }}
@@ -75,9 +75,78 @@ HEADER = """{marker}
       items.length = write;
       modified = true;
     }}
-    return items;
   }}
 
+  // Dispatch once per array, then walk by index without per-item predicate callbacks.
+  function compactJdInPlace(items, mode, welcomeExtraEnabled) {{
+    if (!Array.isArray(items)) return items;
+    const length = items.length;
+    let write = 0;
+    if (mode === "welcome") {{
+      for (let read = 0; read < length; read++) {{
+        const item = items[read];
+        const type = item && item.type;
+        const included = type === "topTab" || type === "searchC" || type === "dynamicIcon" ||
+          type === "locPermission" || type === "login" || type === "hybrid" || type === "recommend";
+        const extraExcluded = type === "bottomXview" || type === "float" || type === "photoCeiling" ||
+          type === "ruleFloat" || type === "searchIcon" || type === "topRotate" || type === "tabBarAtmosphere";
+        if (included && (!welcomeExtraEnabled || !extraExcluded)) {{
+          if (write !== read) items[write] = item;
+          write++;
+        }}
+      }}
+    }} else if (mode === "custom") {{
+      for (let read = 0; read < length; read++) {{
+        const item = items[read];
+        const name = item && item.functionId;
+        if (name === "index" || name === "messagenew" || name === "cart" || name === "home") {{
+          if (write !== read) items[write] = item;
+          write++;
+        }}
+      }}
+    }} else if (mode === "delivery") {{
+      for (let read = 0; read < length; read++) {{
+        const item = items[read];
+        const id = item && item.mId;
+        if (id !== "banner" && id !== "jdDeliveryBanner") {{
+          if (write !== read) items[write] = item;
+          write++;
+        }}
+      }}
+    }} else if (mode === "order") {{
+      for (let read = 0; read < length; read++) {{
+        const floor = items[read];
+        const id = floor && floor.mId;
+        if (id === "bannerFloor" || id === "bpDynamicFloor" || id === "plusFloor") continue;
+        if (id === "virtualServiceCenter") {{
+          const data = floor.data;
+          const centers = data && data.virtualServiceCenters;
+          if (Array.isArray(centers)) {{
+            const centerLength = centers.length;
+            for (let centerIndex = 0; centerIndex < centerLength; centerIndex++) {{
+              const center = centers[centerIndex];
+              const serviceList = center && center.serviceList;
+              if (Array.isArray(serviceList) && serviceList.length > 0) compactJdServiceList(serviceList);
+            }}
+          }}
+        }} else if (id === "customerServiceFloor") {{
+          const data = floor.data;
+          if (data && data.moreText) {{
+            deleteIfPresent(data, "moreIcon");
+            deleteIfPresent(data, "moreIcon_dark");
+            if (data.moreText !== " ") {{ data.moreText = " "; modified = true; }}
+          }}
+        }}
+        if (write !== read) items[write] = floor;
+        write++;
+      }}
+    }} else return items;
+    if (write !== length) {{
+      items.length = write;
+      modified = true;
+    }}
+    return items;
+  }}
   function deleteIfPresent(target, key) {{
     if (target && Object.prototype.hasOwnProperty.call(target, key)) {{
       delete target[key];
@@ -92,30 +161,7 @@ HEADER = """{marker}
     }}
   }}
 
-  function isPersonInfoBusinessExcluded(id) {{
-    return id === "bigSaleFloor" || id === "buyOften" ||
-      id === "newAttentionCard" || id === "newBigSaleFloor" ||
-      id === "newStyleAttentionCard" || id === "newsFloor" ||
-      id === "noticeFloor" || id === "recommendfloor";
-  }}
 
-  function isWelcomeHomeType(type) {{
-    return type === "topTab" || type === "searchC" ||
-      type === "dynamicIcon" || type === "locPermission" ||
-      type === "login" || type === "hybrid" || type === "recommend";
-  }}
-
-  function isWelcomeExtraExcluded(type) {{
-    return type === "bottomXview" || type === "float" ||
-      type === "photoCeiling" || type === "ruleFloat" ||
-      type === "searchIcon" || type === "topRotate" ||
-      type === "tabBarAtmosphere";
-  }}
-
-  function isCustomSurfaceName(name) {{
-    return name === "index" || name === "messagenew" ||
-      name === "cart" || name === "home";
-  }}
 
 """
  
