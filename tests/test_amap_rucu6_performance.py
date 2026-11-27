@@ -32,7 +32,7 @@ class AmapRucu6OptimizerTests(unittest.TestCase):
     def test_optimizer_regenerates_the_known_patched_upstream_form(self):
         optimized = SCRIPT.read_text(encoding="utf-8")
         legacy = optimized.replace(HELPER, OLD_HELPER, 1)
-        legacy = legacy.replace(ROUTE_MARKER + "\n", "", 1)
+        legacy = legacy.replace("    " + ROUTE_MARKER + "\n", "", 1)
         for old, new, expected, _description in REWRITES:
             self.assertGreaterEqual(legacy.count(new), expected)
             legacy = legacy.replace(new, old, expected)
