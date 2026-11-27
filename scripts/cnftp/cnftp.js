@@ -25,6 +25,106 @@ function compactInPlace(items, keep) {
 }
 
 
+// loon-change: Youku home.query callback-free nested compaction v1
+function compactYoukuHomeQuery(items, mode, knownLength) {
+  const length = knownLength === undefined ? items.length : knownLength;
+  let write = 0;
+
+  if (mode === "root") {
+    for (let read = 0; read < length; read++) {
+      const node1 = items[read];
+      const node1Data = node1?.data;
+      const nodeKey = node1Data?.nodeKey;
+      if (nodeKey === "CHILD" || nodeKey === "COMIC2" || nodeKey === "20230929GREATWORKMFK") continue;
+
+      const indexPositionResult = node1Data?.indexPositionResult;
+      if (indexPositionResult?.length > 0) {
+        // 剧集 电影 二楼
+        setIfDifferent(node1Data, "indexPositionResult", []);
+      }
+      const refreshImg = node1Data?.refreshImg;
+      if (refreshImg) {
+        // 电影 综艺 纪录片 下拉刷新的背景图片
+        deleteIfPresent(node1Data, "refreshImg");
+      }
+
+      const node1Nodes = node1?.nodes;
+      const node1NodesLength = node1Nodes?.length || 0;
+      if (node1NodesLength > 0) {
+        compactYoukuHomeQuery(node1Nodes, "level2", node1NodesLength);
+      }
+      if (write !== read) items[write] = node1;
+      write++;
+    }
+  } else if (mode === "level2") {
+    for (let read = 0; read < length; read++) {
+      const node2 = items[read];
+      const node2Data = node2?.data;
+      const crmSale = node2Data?.crmSale;
+      if (crmSale) {
+        // 季卡会员横幅
+        deleteIfPresent(node2Data, "crmSale");
+      }
+      const node2TypeName = node2?.typeName;
+      if (node2TypeName === "UC广告抽屉" || node2TypeName === "橱窗广告") continue;
+
+      const node2Id = node2?.id;
+      const keywords = node2Data?.keywords;
+      if (node2Id === 31476 && keywords?.length > 0) {
+        // 正在热播滚动热词
+        deleteIfPresent(node2Data, "keywords");
+      }
+      if (node2Id === 35505 || node2Id === 37335) continue;
+
+      const node2Nodes = node2?.nodes;
+      const node2NodesLength = node2Nodes?.length || 0;
+      if (node2NodesLength > 0) {
+        compactYoukuHomeQuery(node2Nodes, "level3", node2NodesLength);
+      }
+      if (write !== read) items[write] = node2;
+      write++;
+    }
+  } else if (mode === "level3") {
+    for (let read = 0; read < length; read++) {
+      const node3 = items[read];
+      const node3TypeName = node3?.typeName;
+      if (node3TypeName === "PHONE_FEED_CARD_B_AD" ||
+          node3TypeName === "PHONE_FEED_CARD_S_AD" ||
+          node3TypeName === "PHONE_H_UC_AD" ||
+          node3TypeName === "PHONE_IMG_A" ||
+          node3TypeName === "PHONE_YK_AD_BANNER") continue;
+      const node3Id = node3?.id;
+      // 首页轮播广告
+      if (node3Id === 272768) continue;
+
+      const node3Nodes = node3?.nodes;
+      const node3NodesLength = node3Nodes?.length || 0;
+      if (node3NodesLength > 0) {
+        compactYoukuHomeQuery(node3Nodes, "level4", node3NodesLength);
+      }
+      if (write !== read) items[write] = node3;
+      write++;
+    }
+  } else if (mode === "level4") {
+    for (let read = 0; read < length; read++) {
+      const node4 = items[read];
+      const node4TypeName = node4?.typeName;
+      const node4Data = node4?.data;
+      if (node4TypeName === "PHONE_FEED_CARD_S_AD" || node4Data?.hasOwnProperty("ad")) continue;
+      if (write !== read) items[write] = node4;
+      write++;
+    }
+  } else {
+    return items;
+  }
+
+  if (write !== length) {
+    items.length = write;
+    modified = true;
+  }
+  return items;
+}
+
 // loon-change: CNFTP lazy response serialization v1
 function sameValue(current, value) {
   if (current === value) return true;
@@ -541,73 +641,18 @@ if (isIQY) {
   } else if (url.includes("columbus.home.query/")) {
     // 优酷 各菜单列表 剧集 电影 综艺 信息流
     if (obj?.data?.["2019061000"]?.data) {
-      let objData = obj.data["2019061000"].data;
-      if (objData?.data?.indexPositionResult?.length > 0) {
+      const objData = obj.data["2019061000"].data;
+      const homeData = objData?.data;
+      const indexPositionResult = homeData?.indexPositionResult;
+      if (indexPositionResult?.length > 0) {
         // 首页 第零层级 二楼
-        setIfDifferent(objData.data, "indexPositionResult", []);
+        setIfDifferent(homeData, "indexPositionResult", []);
       }
-      if (objData?.nodes?.length > 0) {
-        // Stable in-place compaction avoids four generations of nested filtered-copy arrays.
-        compactInPlace(objData.nodes, (node1) => {
-          if (node1?.data?.nodeKey === "CHILD" ||
-              node1?.data?.nodeKey === "COMIC2" ||
-              node1?.data?.nodeKey === "20230929GREATWORKMFK") {
-            return false;
-          }
-          if (node1?.data?.indexPositionResult?.length > 0) {
-            // 剧集 电影 二楼
-            setIfDifferent(node1.data, "indexPositionResult", []);
-          }
-          if (node1?.data?.refreshImg) {
-            // 电影 综艺 纪录片 下拉刷新的背景图片
-            deleteIfPresent(node1.data, "refreshImg");
-          }
-          if (node1?.nodes?.length > 0) {
-            compactInPlace(node1.nodes, (node2) => {
-              if (node2?.data?.crmSale) {
-                // 季卡会员横幅
-                deleteIfPresent(node2.data, "crmSale");
-              }
-              if (node2?.typeName === "UC广告抽屉" || node2?.typeName === "橱窗广告") {
-                // 横版独占广告
-                return false;
-              }
-              if (node2?.id === 31476 && node2?.data?.keywords?.length > 0) {
-                // 正在热播滚动热词
-                deleteIfPresent(node2.data, "keywords");
-              }
-              if (node2?.id === 35505 || node2?.id === 37335) {
-                // 优惠购会员横幅、首页二楼
-                return false;
-              }
-              if (node2?.nodes?.length > 0) {
-                compactInPlace(node2.nodes, (node3) => {
-                  if (
-                    node3?.typeName === "PHONE_FEED_CARD_B_AD" ||
-                    node3?.typeName === "PHONE_FEED_CARD_S_AD" ||
-                    node3?.typeName === "PHONE_H_UC_AD" ||
-                    node3?.typeName === "PHONE_IMG_A" ||
-                    node3?.typeName === "PHONE_YK_AD_BANNER"
-                  ) {
-                    return false;
-                  }
-                  // 首页轮播广告
-                  if (node3?.id === 272768) return false;
-                  if (node3?.nodes?.length > 0) {
-                    compactInPlace(node3.nodes, (node4) => {
-                      if (node4?.typeName === "PHONE_FEED_CARD_S_AD") return false;
-                      if (node4?.data?.hasOwnProperty("ad")) return false;
-                      return true;
-                    });
-                  }
-                  return true;
-                });
-              }
-              return true;
-            });
-          }
-          return true;
-        });
+      const rootNodes = objData?.nodes;
+      const rootNodesLength = rootNodes?.length || 0;
+      if (rootNodesLength > 0) {
+        // loon-change: Youku home.query callback-free route v1
+        compactYoukuHomeQuery(rootNodes, "root", rootNodesLength);
       }
     }
   } else if (url.includes("columbus.uc.query/")) {
