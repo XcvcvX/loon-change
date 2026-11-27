@@ -652,9 +652,14 @@ const trackedJSON={
 const context={JSON:trackedJSON,$request:{url:"https://acs.youku.com/gw/mtop.youku.columbus.home.query/"},
   $response:{body:nativeStringify(body)},$done(value){doneResult=value;},
   console:{log(){throw new Error("home.query should not emit logs");},warn(){},error(){}}};
-vm.createContext(context);
-vm.runInContext('for(const name of ["filter","map","forEach"]) Array.prototype[name]=function(){throw new Error("per-item array callback method used: "+name);};',context);
-vm.runInContext(source,context,{timeout:5000});
+const blockedMethods=["filter","map","forEach"];
+const originals=blockedMethods.map(name=>Array.prototype[name]);
+try{
+  for(const name of blockedMethods) Array.prototype[name]=function(){throw new Error("per-item array callback method used: "+name);};
+  vm.runInNewContext(source,context,{timeout:5000});
+}finally{
+  for(let i=0;i<blockedMethods.length;i++) Array.prototype[blockedMethods[i]]=originals[i];
+}
 if(parseCalls!==1||stringifyCalls!==1) throw new Error("unexpected JSON roundtrip "+parseCalls+"/"+stringifyCalls);
 if(!doneResult||typeof doneResult.body!=="string") throw new Error("response body missing");
 const output=nativeParse(doneResult.body),root=output.data["2019061000"].data;
