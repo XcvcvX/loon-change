@@ -137,11 +137,19 @@ REWRITES = (
     ),
     (
         """compactInPlace(obj.data.front_end.download, (item) =>
+        !amapAdsPattern.test(item?.dynamic_id_s)
+      );""",
+        'compactAmapRucu6(obj.data.front_end.download, "dynamicAds");',
+        1,
+        "routeInfo voice ads",
+    ),
+    (
+        """compactInPlace(obj.data.front_end.download, (item) =>
       !amapAdsPattern.test(item?.dynamic_id_s)
     );""",
         'compactAmapRucu6(obj.data.front_end.download, "dynamicAds");',
-        2,
-        "route voice ads",
+        1,
+        "routePlan voice ads",
     ),
     (
         """compactInPlace(obj.data.front_end.guide_tips, (item) =>
