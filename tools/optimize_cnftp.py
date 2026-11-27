@@ -358,7 +358,16 @@ def ensure_youku_home_query_callback_free(source: str) -> str:
         if "compactInPlace(" in block or "=>" in block or "return false;" in block:
             raise ValueError("Youku home.query route still contains per-item callbacks")
         return source
-    if block != HOME_QUERY_BRANCH:
+    legacy_required = (
+        "compactInPlace(objData.nodes, (node1) =>",
+        "compactInPlace(node1.nodes, (node2) =>",
+        "compactInPlace(node2.nodes, (node3) =>",
+        "compactInPlace(node3.nodes, (node4) =>",
+        "node3?.id === 272768",
+        'node2?.typeName === "UC广告抽屉"',
+        "node2?.id === 35505 || node2?.id === 37335",
+    )
+    if block.count("compactInPlace(") != 4 or block.count("=>") != 4 or any(token not in block for token in legacy_required):
         raise ValueError("Youku home.query callback branch drift; refusing an unreviewed rewrite")
     return source[:left] + YOUKU_HOME_QUERY_BRANCH + source[right:]
 
