@@ -42,6 +42,7 @@ function appendUniqueLivePhotos(existing, incoming) {
 IMAGE = r'''// loon-change: Xiaohongshu imagefeed single traversal live-photo extraction v1
 // loon-change: Xiaohongshu image traversal array-frame length cache v1
 function imageEnhance(images, livePhotoCache) {
+  // loon-change: Xiaohongshu image traversal array classification cache v1
   if (!images || typeof images !== "object") return images;
   const livePhotoTarget = Array.isArray(livePhotoCache) ? livePhotoCache : null;
   const quality = $.getdata("xiaohongshu.imageQuality");
@@ -49,11 +50,12 @@ function imageEnhance(images, livePhotoCache) {
   const widthPattern = /imageView2\/2\/w\/\d+\/format/g;
   const heightPattern = /imageView2\/2\/h\/\d+\/format/g;
   let originalDone = false;
-  const stack = [{value: images, index: 0, keys: null, length: Array.isArray(images) ? images.length : 0, root: true}];
+  const imagesIsArray = Array.isArray(images);
+  const stack = [{value: images, index: 0, keys: null, length: imagesIsArray ? images.length : 0, root: true, isArray: imagesIsArray}];
   while (stack.length) {
     const frame = stack[stack.length - 1];
     const value = frame.value;
-    if (Array.isArray(value)) {
+    if (frame.isArray) {
       if (frame.index >= frame.length) {
         stack.pop();
         continue;
@@ -82,7 +84,8 @@ function imageEnhance(images, livePhotoCache) {
             .replace(heightPattern, "imageView2/2/h/2160/format");
         }
       } else if (child && typeof child === "object") {
-        stack.push({value: child, index: 0, keys: null, length: Array.isArray(child) ? child.length : 0, root: false});
+        const childIsArray = Array.isArray(child);
+        stack.push({value: child, index: 0, keys: null, length: childIsArray ? child.length : 0, root: false, isArray: childIsArray});
       }
     } else {
       if (frame.keys === null) frame.keys = Object.keys(value);
@@ -106,7 +109,8 @@ function imageEnhance(images, livePhotoCache) {
             .replace(heightPattern, "imageView2/2/h/2160/format");
         }
       } else if (child && typeof child === "object") {
-        stack.push({value: child, index: 0, keys: null, length: Array.isArray(child) ? child.length : 0, root: false});
+        const childIsArray = Array.isArray(child);
+        stack.push({value: child, index: 0, keys: null, length: childIsArray ? child.length : 0, root: false, isArray: childIsArray});
       }
     }
   }
@@ -291,32 +295,65 @@ def apply_live_photo_cache_optimization(source):
 
 IMAGE_FEED_MARKER = "// loon-change: Xiaohongshu imagefeed single traversal live-photo extraction v1"
 IMAGE_ARRAY_LENGTH_MARKER = "// loon-change: Xiaohongshu image traversal array-frame length cache v1"
+IMAGE_ARRAY_CLASSIFICATION_MARKER = "// loon-change: Xiaohongshu image traversal array classification cache v1"
+
+def replace_image_enhance_helper(source, signature, label):
+    end_marker = "function replaceUrlContent("
+    if source.count(signature) != 1 or source.count(end_marker) != 1:
+        raise ValueError("%s function boundary drift" % label)
+    left = source.index(signature)
+    prefix = source[:left]
+    for marker in (IMAGE_ARRAY_LENGTH_MARKER, IMAGE_FEED_MARKER):
+        marker_line = marker + "\n"
+        if prefix.endswith(marker_line):
+            prefix = prefix[:-len(marker_line)]
+    right = source.index(end_marker, left + len(signature))
+    return prefix + IMAGE + "\n\n" + source[right:]
+
 
 def optimize_imagefeed_single_traversal(source):
     if IMAGE_FEED_MARKER in source:
-        if IMAGE_ARRAY_LENGTH_MARKER not in source:
-            source = between(source, "function imageEnhance(images, livePhotoCache) {",
-                             "function replaceUrlContent(", IMAGE, "image traversal array-length cache")
+        if source.count("function imageEnhance(images, livePhotoCache) {") != 1:
+            raise ValueError("Xiaohongshu single-traversal image helper drifted; refusing overwrite")
+        if IMAGE_ARRAY_LENGTH_MARKER not in source or IMAGE_ARRAY_CLASSIFICATION_MARKER not in source:
+            source = replace_image_enhance_helper(
+                source, "function imageEnhance(images, livePhotoCache) {",
+                "image traversal classification cache"
+            )
+        helper_start = source.index("function imageEnhance(images, livePhotoCache) {")
+        helper_end = source.index("function replaceUrlContent(", helper_start)
+        helper = source[helper_start:helper_end]
         required = (
-            IMAGE_FEED_MARKER,
-            IMAGE_ARRAY_LENGTH_MARKER,
+            IMAGE_ARRAY_CLASSIFICATION_MARKER,
             "function imageEnhance(images, livePhotoCache)",
             "const livePhotoTarget = Array.isArray(livePhotoCache) ? livePhotoCache : null;",
-            "length: Array.isArray(images) ? images.length : 0",
+            "const imagesIsArray = Array.isArray(images);",
+            "isArray: imagesIsArray",
+            "if (frame.isArray)",
+            "const childIsArray = Array.isArray(child);",
+            "isArray: childIsArray",
             "if (frame.index >= frame.length)",
-            "length: Array.isArray(child) ? child.length : 0",
             "frame.root && livePhotoTarget",
-            "imageEnhance(images_list, livePhotoCache);",
-            'JSON.stringify(livePhotoCache), "redBookLivePhoto"',
         )
-        if any(token not in source for token in required):
-            raise ValueError("Xiaohongshu single-traversal image helper drifted; refusing overwrite")
-        if "if (frame.index >= value.length)" in source or "for (const image of images_list)" in source:
+        missing = [token for token in required if token not in helper]
+        missing_source_markers = [
+            marker for marker in (IMAGE_FEED_MARKER, IMAGE_ARRAY_LENGTH_MARKER)
+            if marker not in source
+        ]
+        if missing or missing_source_markers:
+            raise ValueError(
+                "Xiaohongshu single-traversal image helper drifted; refusing overwrite; "
+                "missing helper invariants=%r source markers=%r" % (missing, missing_source_markers)
+            )
+        if helper.count("Array.isArray(") != 4 or "if (Array.isArray(value))" in helper:
+            raise ValueError("Xiaohongshu image array classification is not cached per traversal frame")
+        if "if (frame.index >= value.length)" in helper or "for (const image of images_list)" in source:
             raise ValueError("Repeated image-array traversal or live-photo image traversal remains")
         return source
 
-    source = between(source, "function imageEnhance(images) {",
-                     "function replaceUrlContent(", IMAGE, "single-traversal imageEnhance")
+    source = replace_image_enhance_helper(
+        source, "function imageEnhance(images) {", "single-traversal imageEnhance"
+    )
     old = '''      const images_list = obj.data[0].note_list[0].images_list;
       // Cache only fields consumed by the live-photo save endpoint.
       const livePhotoCache = [];
