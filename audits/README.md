@@ -107,6 +107,7 @@
 - [phase11 batch13 Weibo cardlist mblog reference cache](phase11-batch13-weibo-cardlist-mblog-reference-cache.md)
 - [phase11 batch14 BaiduMap protobuf segment rebuild without chunk arrays](phase11-batch14-baidumap-segment-rebuild-without-chunks.md)
 - [phase11 batch15 Xiaohongshu image traversal array classification cache](phase11-batch15-xiaohongshu-image-traversal-array-classification-cache.md)
+- [phase11 batch16 Weibo reply-comment no-op array compaction removal](phase11-batch16-weibo-reply-comment-noop-compaction-removal.md)
 
 ## 其他专项审计
 
