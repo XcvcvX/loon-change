@@ -73,8 +73,7 @@ AMAP_SCRIPT_COUNTS = {
 AMAP_REQUIRED_PATHS = (
     r"beforeNavi",
     r"bus\/plan\/integrate",
-    r"af-hotel",
-    r"af-launch",
+    r"af-(?:hotel|launch)",
     r"af-nearby\/nearby",
     r"routeInfo",
     r"routePlan",
