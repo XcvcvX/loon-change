@@ -70,7 +70,7 @@ class CrossAppTriggerTests(unittest.TestCase):
 
     def test_amap_and_youtube_ambiguous_processor_is_rejected(self):
         source = fixture().replace("script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/amap/amap.js",
-                                   'script-path=https://example.com/a.js script("https://example.com/b.js")')
+                                   'script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/amap/amap.js script("https://example.com/b.js")')
         with self.assertRaisesRegex(ValueError, "Amap processor ownership"):
             optimize(source)
 
