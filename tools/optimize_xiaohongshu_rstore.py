@@ -313,6 +313,8 @@ def replace_image_enhance_helper(source, signature, label):
 
 def optimize_imagefeed_single_traversal(source):
     if IMAGE_FEED_MARKER in source:
+        if source.count("function imageEnhance(images, livePhotoCache) {") != 1:
+            raise ValueError("Xiaohongshu single-traversal image helper drifted; refusing overwrite")
         if IMAGE_ARRAY_LENGTH_MARKER not in source or IMAGE_ARRAY_CLASSIFICATION_MARKER not in source:
             source = replace_image_enhance_helper(
                 source, "function imageEnhance(images, livePhotoCache) {",
