@@ -364,7 +364,22 @@
         "// loon-change: CNTV pre-parse supported-route guard v1",
         "function compactInPlace(",
         "// loon-change: CNTV hoisted static membership lists v1",
-        "const CNTV_STATIC_FILTER_22 = ["
+        "const CNTV_STATIC_FILTER_22 = [",
+        "// loon-change: CNTV Youku home.query callback-free nested compaction v1",
+        "// loon-change: CNTV Youku home.query callback-free route v1",
+        "function compactCntvYoukuHomeQuery(items, mode, knownLength)",
+        "const length = knownLength === undefined ? items.length : knownLength;",
+        "compactCntvYoukuHomeQuery(rootNodes, \"root\", rootNodesLength);",
+        "compactCntvYoukuHomeQuery(childNodes, \"level2\", childLength);",
+        "compactCntvYoukuHomeQuery(childNodes, \"level3\", childLength);",
+        "compactCntvYoukuHomeQuery(childNodes, \"level4\", childLength);",
+        "if (write !== length) items.length = write;"
+      ],
+      "forbidden": [
+        "compactInPlace(objData.nodes, item => {",
+        "compactInPlace(item.nodes, i => {",
+        "compactInPlace(i.nodes, ii => {",
+        "compactInPlace(ii.nodes, iii =>"
       ]
     },
     {
