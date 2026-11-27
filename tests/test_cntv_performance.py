@@ -488,6 +488,141 @@ process.stdout.write(nativeJSON.stringify({
 
 
 
+    def test_youku_home_query_callback_free_snapshots_nested_lengths_and_skips_noop_writes(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        branch = source.split('  } else if (url.includes("columbus.home.query/")) {', 1)[1].split('  } else if (url.includes("columbus.uc.query/")) {', 1)[0]
+        self.assertIn(YOUKU_HOME_QUERY_CALLBACK_FREE_ROUTE_MARKER, branch)
+        self.assertNotIn("compactInPlace(", branch)
+        self.assertNotIn("=>", branch)
+
+        runner = r"""
+const fs = require("fs"), vm = require("vm");
+const source = fs.readFileSync(process.argv[1], "utf8");
+const payload = JSON.parse(fs.readFileSync(0, "utf8"));
+const nativeJSON = JSON;
+let parseCount = 0, stringifyCount = 0, tracking = false, doneResult;
+const stats = {
+  root: { lengthReads: 0, lengthWrites: 0, indexWrites: 0 },
+  level2: { lengthReads: 0, lengthWrites: 0, indexWrites: 0 },
+  level3: { lengthReads: 0, lengthWrites: 0, indexWrites: 0 },
+  level4: { lengthReads: 0, lengthWrites: 0, indexWrites: 0 },
+  stable4: { lengthReads: 0, lengthWrites: 0, indexWrites: 0 }
+};
+function tracked(array, name) {
+  return new Proxy(array, {
+    get(target, key, receiver) {
+      if (tracking && key === "length") stats[name].lengthReads++;
+      return Reflect.get(target, key, receiver);
+    },
+    set(target, key, value, receiver) {
+      if (tracking && key === "length") stats[name].lengthWrites++;
+      if (tracking && /^(0|[1-9][0-9]*)$/.test(String(key))) stats[name].indexWrites++;
+      return Reflect.set(target, key, value, receiver);
+    }
+  });
+}
+const trackedJSON = {
+  parse(raw) {
+    parseCount++;
+    const parsed = nativeJSON.parse(raw);
+    const data = parsed.data["2019061000"].data;
+    const level4 = tracked([
+      { typeName: "KEEP", data: { title: "before" } },
+      { typeName: "PHONE_FEED_CARD_S_AD", data: {} },
+      { typeName: "KEEP_AD", data: { ad: {} } },
+      { typeName: "KEEP", data: { title: "after" } }
+    ], "level4");
+    const stable4 = tracked([{ typeName: "KEEP", id: "stable" }], "stable4");
+    const level3 = tracked([
+      { typeName: "PHONE_FEED_CARD_B_AD", id: "level3-ad" },
+      { typeName: "NORMAL", nodes: level4 },
+      { typeName: "NORMAL", nodes: stable4 }
+    ], "level3");
+    const level2 = tracked([
+      { typeName: "UC广告抽屉", data: {} },
+      { id: 31476, data: { crmSale: "remove", keywords: ["remove"] },
+        nodes: [{ typeName: "PHONE_FEED_CARD_B_AD", id: "must-not-be-walked" }] },
+      { id: 35505, data: {} },
+      { id: 8, data: { crmSale: "remove" }, nodes: level3 }
+    ], "level2");
+    data.nodes = tracked([
+      { data: { nodeKey: "CHILD" }, nodes: [] },
+      { data: { nodeKey: "NORMAL", indexPositionResult: [{ id: 1 }], refreshImg: "remove" },
+        nodes: level2 }
+    ], "root");
+    tracking = true;
+    return parsed;
+  },
+  stringify(value) {
+    tracking = false;
+    stringifyCount++;
+    return nativeJSON.stringify(value);
+  }
+};
+const context = {
+  JSON: trackedJSON,
+  $request: { url: payload.url },
+  $response: { body: nativeJSON.stringify(payload.body) },
+  $done(value) { doneResult = value; },
+  console: { log() {}, warn() {}, error() {} }
+};
+vm.createContext(context);
+const original = {
+  filter: Array.prototype.filter,
+  map: Array.prototype.map,
+  forEach: Array.prototype.forEach
+};
+try {
+  Array.prototype.filter = Array.prototype.map = Array.prototype.forEach = function() {
+    throw new Error("per-item array callback method invoked");
+  };
+  vm.runInContext(source, context, { timeout: 5000 });
+} finally {
+  Array.prototype.filter = original.filter;
+  Array.prototype.map = original.map;
+  Array.prototype.forEach = original.forEach;
+}
+if (parseCount !== 1 || stringifyCount !== 1) throw new Error("unexpected JSON round trips");
+if (!doneResult || typeof doneResult.body !== "string") throw new Error("response body missing");
+const output = nativeJSON.parse(doneResult.body);
+const root = output.data["2019061000"].data;
+const nodes = root.nodes;
+if (nodes.length !== 1 || nodes[0].data.refreshImg !== undefined ||
+    nodes[0].data.indexPositionResult.length !== 0) throw new Error("root cleanup/filter mismatch");
+const level2out = nodes[0].nodes;
+if (level2out.length !== 2 || level2out[0].id !== 31476 || level2out[1].id !== 8) throw new Error("level2 order/filter mismatch");
+if (level2out[0].data.keywords !== undefined || level2out[0].data.crmSale !== undefined ||
+    level2out[0].nodes[0].id !== "must-not-be-walked") throw new Error("31476 special handling changed");
+if (level2out[1].data.crmSale !== undefined) throw new Error("crmSale cleanup changed");
+const level3out = level2out[1].nodes;
+if (level3out.length !== 2 || level3out[0].typeName !== "NORMAL") throw new Error("level3 filter mismatch");
+if (level3out[0].nodes.length !== 2 || level3out[0].nodes[0].data.title !== "before" ||
+    level3out[0].nodes[1].data.title !== "after") throw new Error("level4 filter/order mismatch");
+if (level3out[1].nodes.length !== 1 || level3out[1].nodes[0].id !== "stable") throw new Error("stable nested list changed");
+const expectedReads = { root: 1, level2: 1, level3: 1, level4: 1, stable4: 1 };
+const expectedLengthWrites = { root: 1, level2: 1, level3: 1, level4: 1, stable4: 0 };
+for (const name of Object.keys(expectedReads)) {
+  if (stats[name].lengthReads !== expectedReads[name]) throw new Error(name + " length read count " + stats[name].lengthReads);
+  if (stats[name].lengthWrites !== expectedLengthWrites[name]) throw new Error(name + " length write count " + stats[name].lengthWrites);
+}
+if (stats.root.indexWrites !== 1 || stats.level2.indexWrites !== 2 ||
+    stats.level3.indexWrites !== 2 || stats.level4.indexWrites !== 1 ||
+    stats.stable4.indexWrites !== 0) throw new Error("unnecessary or missing array index writes: " + nativeJSON.stringify(stats));
+process.stdout.write(nativeJSON.stringify({ stats, output }));
+"""
+        result = subprocess.run(
+            [NODE, "-e", runner, str(SOURCE)],
+            input=json.dumps({
+                "url": "https://acs.youku.com/gw/mtop.youku.columbus.home.query/",
+                "body": {"data": {"2019061000": {"data": {"nodes": []}}}},
+            }),
+            capture_output=True, text=True, check=False, timeout=10,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
+
+
+
+
 class CNTVYoukuProfileCommentArrayCompactionTests(unittest.TestCase):
     def test_profile_and_comment_branches_are_idempotent_and_allocation_free(self):
         source = SOURCE.read_text(encoding="utf-8")
