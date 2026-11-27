@@ -24,7 +24,6 @@ function compactInPlace(items, keep) {
   return items;
 }
 
-
 // loon-change: Youku home.query callback-free nested compaction v1
 function compactYoukuHomeQuery(items, mode, knownLength) {
   const length = knownLength === undefined ? items.length : knownLength;
@@ -124,6 +123,7 @@ function compactYoukuHomeQuery(items, mode, knownLength) {
   }
   return items;
 }
+
 
 // loon-change: CNFTP lazy response serialization v1
 function sameValue(current, value) {
