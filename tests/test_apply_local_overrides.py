@@ -4836,13 +4836,21 @@ class XiaohongshuV4AndCommentMigrationTests(unittest.TestCase):
     def test_pdd_case_insensitive_specific_rules_remain_after_legacy_combined_matcher(self):
         from pathlib import Path
         from apply_local_overrides import PDD_IMAGE_CDN_AD_PATH_RULES, PDD_IMAGE_CDN_LEGACY_AD_PATH_RULES
+        from optimize_cross_app_triggers import PDD_RULE
         plugin = Path(__file__).with_name("allAdRewrite.plugin").read_text(encoding="utf-8")
         rewrite = plugin.split("[Rewrite]", 1)[1].split("[Script]", 1)[0]
         legacy = PDD_IMAGE_CDN_LEGACY_AD_PATH_RULES[0]
         self.assertIn(legacy, rewrite)
-        for rule in PDD_IMAGE_CDN_AD_PATH_RULES:
-            self.assertIn(rule, rewrite)
-            self.assertLess(rewrite.index(legacy), rewrite.index(rule))
+        if PDD_RULE in rewrite:
+            # The consolidated matcher replaces the two image-host-specific rules
+            # while preserving their case-insensitive /mrk/ and /marketing_api/ scope.
+            self.assertIn("images", PDD_RULE)
+            self.assertIn("(?:mrk|marketing_api)", PDD_RULE)
+            self.assertIn("/i then reject(404)", PDD_RULE)
+        else:
+            for rule in PDD_IMAGE_CDN_AD_PATH_RULES:
+                self.assertIn(rule, rewrite)
+                self.assertLess(rewrite.index(legacy), rewrite.index(rule))
 
     def test_preserves_earlier_specific_status_exceptions_before_broader_fallbacks(self):
         from pathlib import Path

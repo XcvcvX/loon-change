@@ -12,7 +12,9 @@
         "result.buffer_bottom_tabs?",
         "result.all_top_opts?",
         "script-path=https://raw.githubusercontent.com/XcvcvX/loon-change/main/scripts/jingdong/jd.js",
-        "youtubei\\/v\\d\\/(browse|next|player|search|reel\\/reel_watch_sequence|get_watch)"
+        "youtubei\\/v[2-9]\\/(browse|next|player|search|reel\\/reel_watch_sequence|get_watch)",
+        "youtubei\\/v1\\/(browse|next|search)",
+        "youtubei\\/v1\\/(player|get_watch)"
       ],
       "forbidden": [
         "pdd-homepage.js",
