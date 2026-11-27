@@ -364,7 +364,6 @@
         "// loon-change: CNTV pre-parse supported-route guard v1",
         "function compactInPlace(",
         "// loon-change: CNTV hoisted static membership lists v1",
-        "const CNTV_STATIC_FILTER_22 = [",
         "// loon-change: CNTV Youku home.query callback-free nested compaction v1",
         "// loon-change: CNTV Youku home.query callback-free route v1",
         "function compactCntvYoukuHomeQuery(items, mode, knownLength)",
