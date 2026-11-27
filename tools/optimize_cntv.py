@@ -408,7 +408,7 @@ def optimize_youku_home_query_callback_free(source):
     helper_anchor = 'const isIQY = url.includes("iqiyi.com/");'
     if source.count(helper_anchor) != 1:
         raise ValueError("CNTV Youku home.query helper insertion anchor drift")
-    source = source.replace(helper_anchor, YOUKU_HOME_QUERY_CALLBACK_FREE_HELPER + "\\n\\n" + helper_anchor, 1)
+    source = source.replace(helper_anchor, YOUKU_HOME_QUERY_CALLBACK_FREE_HELPER + "\n\n" + helper_anchor, 1)
     source = source[:begin] + YOUKU_HOME_QUERY_CALLBACK_FREE_BRANCH + source[finish:]
     return optimize_youku_home_query_callback_free(source)
 
