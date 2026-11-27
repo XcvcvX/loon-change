@@ -181,7 +181,7 @@ def _replace_array_constant(source: str, name: str, function: str) -> str:
 
 
 def _remove_array_constant(source: str, name: str) -> str:
-    pattern = re.compile(r"const " + re.escape(name) + r"\\s*=\\s*\\[[\\s\\S]*?\\];")
+    pattern = re.compile(r"const " + re.escape(name) + r"\s*=\s*\[[\s\S]*?\];")
     source, count = pattern.subn("", source, count=1)
     if count != 1:
         raise ValueError("%s upstream allowlist changed; refusing optimization" % name)
@@ -224,18 +224,20 @@ def _validate_upstream(source: str) -> None:
 def optimize_source(source: str, upstream_commit: str = "unknown") -> str:
     if MARKER_PREFIX in source:
         required = (
-            "function compactInPlace(items, keep)",
-            "function isPersonInfoBusinessExcluded(id)",
-            "function isWelcomeHomeType(type)",
-            "function isCustomSurfaceName(name)",
-            'compactInPlace(obj.floorList, item =>',
-            'compactInPlace(darkNavigation, item =>',
-            'compactInPlace(obj.floors, floor =>',
+            "function compactJdInPlace(items, mode, welcomeExtraEnabled)",
+            "function compactJdServiceList(items)",
+            "function processFloors(floors)",
+            'compactJdInPlace(obj.floorList, "welcome", welcomeExtraEnabled);',
+            'compactJdInPlace(darkNavigation, "custom");',
+            'compactJdInPlace(normalNavigation, "custom");',
+            'compactJdInPlace(obj.floors, "delivery");',
+            'compactJdInPlace(obj.floors, "order");',
+            "compactJdServiceList(serviceList);",
             '$done(modified ? { body: JSON.stringify(obj) } : {});',
         )
         if any(token not in source for token in required):
             raise ValueError("Jingdong optimization marker exists but required behavior is incomplete")
-        if ".filter(" in source or "newFloors = []" in source or "newItems = []" in source or "newCards = []" in source:
+        if any(token in source for token in ("compactInPlace(", ".filter(", ".map(", ".forEach(", "newFloors = []", "newItems = []", "newCards = []")):
             raise ValueError("Jingdong optimization marker exists but allocation regression remains")
         if "readCustomSurfaceList\").*forEach" in source:
             raise ValueError("Jingdong custom-surface callback traversal remains")
@@ -254,16 +256,7 @@ def optimize_source(source: str, upstream_commit: str = "unknown") -> str:
         "Jingdong response entry point",
     )
 
-    source = _replace_array_constant(
-        source,
-        "PERSON_INFO_BUSINESS_MID_EXCLUDE",
-        "function isPersonInfoBusinessExcluded(id) {\n"
-        "  return id === \"bigSaleFloor\" || id === \"buyOften\" ||\n"
-        "    id === \"newAttentionCard\" || id === \"newBigSaleFloor\" ||\n"
-        "    id === \"newStyleAttentionCard\" || id === \"newsFloor\" ||\n"
-        "    id === \"noticeFloor\" || id === \"recommendfloor\";\n"
-        "}",
-    )
+    source = _remove_array_constant(source, "PERSON_INFO_BUSINESS_MID_EXCLUDE")
     source = _remove_array_constant(source, "WELCOME_HOME_TYPE_INCLUDE")
     source = _remove_array_constant(source, "CUSTOM_SURFACE_NAME_INCLUDE")
 
@@ -417,20 +410,22 @@ def optimize_source(source: str, upstream_commit: str = "unknown") -> str:
     source = source.rstrip() + "\n})();\n"
     required = (
         MARKER_PREFIX + upstream_commit,
-        "function compactInPlace(items, keep)",
-        "function isPersonInfoBusinessExcluded(id)",
-        "function isWelcomeHomeType(type)",
-        "function isCustomSurfaceName(name)",
+        "function compactJdInPlace(items, mode, welcomeExtraEnabled)",
+        "function compactJdServiceList(items)",
+        "function processFloors(floors)",
         "const modeMap = obj.result && obj.result.modeMap;",
         "const shouldProcess =",
-        "compactInPlace(obj.floorList, item =>",
-        "compactInPlace(obj.floors, floor =>",
-        'compactInPlace(serviceList, card =>',
+        'compactJdInPlace(obj.floorList, "welcome", welcomeExtraEnabled);',
+        'compactJdInPlace(darkNavigation, "custom");',
+        'compactJdInPlace(normalNavigation, "custom");',
+        'compactJdInPlace(obj.floors, "delivery");',
+        'compactJdInPlace(obj.floors, "order");',
+        "compactJdServiceList(serviceList);",
         "$done(modified ? { body: JSON.stringify(obj) } : {});",
     )
     if any(token not in source for token in required):
         raise ValueError("Jingdong generated runtime is missing a required optimization marker")
-    if ".filter(" in source or "newFloors = []" in source or "newItems = []" in source or "newCards = []" in source:
+    if any(token in source for token in ("compactInPlace(", ".filter(", ".map(", ".forEach(", "newFloors = []", "newItems = []", "newCards = []")):
         raise ValueError("Jingdong generated runtime retains allocating array transforms")
     if ".forEach(" in source or ".map(" in source:
         raise ValueError("Jingdong generated runtime retains callback array traversals")
