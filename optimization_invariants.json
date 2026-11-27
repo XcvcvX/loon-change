@@ -879,7 +879,9 @@
         "# loon-change: Pinduoduo order response single-pass JSON cleanup v1",
         "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/order\\//i then response.json.delete([\"marketing_banner_vo\", \"shipping.banner_above_recommend\"])",
         "# loon-change: Pinduoduo redundant query matcher consolidation v1",
-        "youtubei\\/v\\d\\/(browse|next|player|search|reel\\/reel_watch_sequence|get_watch)"
+        "youtubei\\/v[2-9]\\/(browse|next|player|search|reel\\/reel_watch_sequence|get_watch)",
+        "youtubei\\/v1\\/(browse|next|search)",
+        "youtubei\\/v1\\/(player|get_watch)"
       ],
       "forbidden": [
         "response if ${url} ~= /^https:\\/\\/api\\.pinduoduo\\.com\\/order\\/\\d+-\\d+\\/shipping/i then response.json.jq(\"del(.shipping.banner_above_recommend)\")",
