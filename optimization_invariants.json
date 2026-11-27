@@ -386,7 +386,6 @@
         "compactInPlace(item.nodes, i => {",
         "compactInPlace(i.nodes, ii => {",
         "compactInPlace(ii.nodes, iii =>",
-        "compactInPlace(obj.cards, card => {",
         "CNTV_STATIC_FILTER_06.includes(card?.alias_name)"
       ]
     },
