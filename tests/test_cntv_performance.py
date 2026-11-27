@@ -10,7 +10,7 @@ from apply_local_overrides import (
     CNTV_REMOTE_SCRIPT_URL,
     migrate_cntv_script_to_local,
 )
-from optimize_cntv import MARKER, MENUS_MARKER, STATIC_FILTER_MARKER, STATIC_FILTER_PATTERN, YOUKU_HOME_FEED_MARKER, YOUKU_PROFILE_MARKER, YOUKU_COMMENT_MARKER, optimize_source, optimize_youku_profile_comment_arrays, rewrite_plugin
+from optimize_cntv import MARKER, MENUS_MARKER, STATIC_FILTER_MARKER, STATIC_FILTER_PATTERN, YOUKU_HOME_FEED_MARKER, YOUKU_PROFILE_MARKER, YOUKU_COMMENT_MARKER, YOUKU_QUERY_MARKER, YOUKU_HOME_QUERY_BRANCH, YOUKU_HOME_QUERY_CALLBACK_FREE_HELPER_MARKER, YOUKU_HOME_QUERY_CALLBACK_FREE_ROUTE_MARKER, optimize_source, optimize_youku_profile_comment_arrays, optimize_youku_home_query_callback_free, rewrite_plugin
 
 ROOT = Path(__file__).resolve().parent
 SOURCE = ROOT.parent / "scripts" / "cntv" / "cntv.js"
@@ -22,7 +22,7 @@ class CNTVOptimizerTests(unittest.TestCase):
         source = SOURCE.read_text(encoding="utf-8")
         self.assertIn(MARKER, source)
         self.assertEqual(optimize_source(source), source)
-        self.assertEqual(source.count("compactInPlace(") - 1, 33)
+        self.assertEqual(source.count("compactInPlace(") - 1, 29)
         self.assertNotIn(".filter(", source)
         self.assertIn("if (!$response.body) {", source)
         self.assertTrue(source.rstrip().endswith("}"))
@@ -98,8 +98,8 @@ class CNTVOptimizerTests(unittest.TestCase):
         ]
         lines, changed = migrate_cntv_script_to_local(fixture)
         self.assertEqual(changed, 1)
-        self.assertIn(CNTV_LOCAL_SCRIPT_URL, "\\n".join(lines))
-        self.assertNotIn(CNTV_REMOTE_SCRIPT_URL, "\\n".join(lines))
+        self.assertIn(CNTV_LOCAL_SCRIPT_URL, "\n".join(lines))
+        self.assertNotIn(CNTV_REMOTE_SCRIPT_URL, "\n".join(lines))
 
     def test_partial_trigger_inventory_fails_closed(self):
         fixture = ["[Script]"] + [
@@ -107,7 +107,7 @@ class CNTVOptimizerTests(unittest.TestCase):
             % CNTV_REMOTE_SCRIPT_URL
         ] + ["[MITM]", "hostname = cntv.example"]
         with self.assertRaisesRegex(ValueError, "expected 26"):
-            rewrite_plugin("\\n".join(fixture))
+            rewrite_plugin("\n".join(fixture))
 
 
 @unittest.skipUnless(NODE, "Node.js is required for CNTV response runtime tests")
@@ -399,6 +399,61 @@ process.stdout.write(nativeJSON.stringify({
         self.assertEqual(result["parseCount"], 1)
         self.assertEqual(optimize_source(source), source)
 
+    def test_youku_home_query_is_callback_free_idempotent_and_migrates_fail_closed(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        self.assertEqual(source.count(YOUKU_HOME_QUERY_CALLBACK_FREE_HELPER_MARKER), 1)
+        self.assertEqual(source.count(YOUKU_HOME_QUERY_CALLBACK_FREE_ROUTE_MARKER), 1)
+        self.assertEqual(optimize_source(source), source)
+        self.assertIn('url.includes("columbus.gateway.new.execute")', source)
+        self.assertEqual(source.count('  } else if (url.includes("columbus.home.query/")) {'), 1)
+
+        start = '  } else if (url.includes("columbus.home.query/")) {'
+        end = '  } else if (url.includes("columbus.uc.query/")) {'
+        begin, finish = source.index(start), source.index(end, source.index(start))
+        branch = source[begin:finish]
+        self.assertIn(YOUKU_QUERY_MARKER, branch)
+        self.assertIn('compactCntvYoukuHomeQuery(rootNodes, "root", rootNodesLength);', branch)
+        self.assertNotIn("compactInPlace(", branch)
+        self.assertNotIn("=>", branch)
+
+        helper_start = source.index(YOUKU_HOME_QUERY_CALLBACK_FREE_HELPER_MARKER)
+        helper_end = source.index("\n}\n\n", helper_start)
+        helper = source[helper_start:helper_end + 2]
+        for token in (
+            'if (mode === "root")', 'if (mode === "level2")',
+            'if (mode === "level3")', 'if (mode === "level4")',
+            'compactCntvYoukuHomeQuery(childNodes, "level2", childLength);',
+            'compactCntvYoukuHomeQuery(childNodes, "level3", childLength);',
+            'compactCntvYoukuHomeQuery(childNodes, "level4", childLength);',
+            "if (write !== length) items.length = write;",
+        ):
+            self.assertIn(token, helper)
+        self.assertNotIn("=>", helper)
+        self.assertNotIn("compactInPlace(", helper)
+        self.assertNotIn(".filter(", helper)
+        self.assertNotIn(".map(", helper)
+        self.assertNotIn(".forEach(", helper)
+
+        legacy = source[:begin] + YOUKU_HOME_QUERY_BRANCH + "  " + YOUKU_QUERY_MARKER + "\n" + source[finish:]
+        legacy_helper_start = legacy.index(YOUKU_HOME_QUERY_CALLBACK_FREE_HELPER_MARKER)
+        legacy_helper_end = legacy.index("\n}\n\n", legacy_helper_start)
+        legacy = legacy[:legacy_helper_start] + legacy[legacy_helper_end + 4:]
+        migrated = optimize_youku_home_query_callback_free(legacy)
+        self.assertIn(YOUKU_HOME_QUERY_CALLBACK_FREE_HELPER_MARKER, migrated)
+        self.assertIn(YOUKU_HOME_QUERY_CALLBACK_FREE_ROUTE_MARKER, migrated)
+        migrated_start = migrated.index(start)
+        migrated_end = migrated.index(end, migrated_start)
+        self.assertNotIn("compactInPlace(", migrated[migrated_start:migrated_end])
+        self.assertEqual(optimize_youku_home_query_callback_free(migrated), migrated)
+
+        damaged = source.replace(
+            'compactCntvYoukuHomeQuery(rootNodes, "root", rootNodesLength);',
+            'compactCntvYoukuHomeQuery(rootNodes, "unknown", rootNodesLength);',
+            1,
+        )
+        with self.assertRaisesRegex(ValueError, "callback-free route structure drift"):
+            optimize_youku_home_query_callback_free(damaged)
+
     def test_youku_home_query_compacts_nested_arrays_without_reordering(self):
         source = SOURCE.read_text(encoding="utf-8")
         branch = source.split('  } else if (url.includes("columbus.home.query/")) {', 1)[1].split('  } else if (url.includes("columbus.uc.query/")) {', 1)[0]
@@ -432,6 +487,141 @@ process.stdout.write(nativeJSON.stringify({
         self.assertEqual(len(level3), 1)
         self.assertEqual(level3[0]["nodes"], [{"typeName": "KEEP", "data": {"title": "ok"}}])
         self.assertEqual(result["parseCount"], 1)
+
+
+
+    def test_youku_home_query_callback_free_snapshots_nested_lengths_and_skips_noop_writes(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        branch = source.split('  } else if (url.includes("columbus.home.query/")) {', 1)[1].split('  } else if (url.includes("columbus.uc.query/")) {', 1)[0]
+        self.assertIn(YOUKU_HOME_QUERY_CALLBACK_FREE_ROUTE_MARKER, branch)
+        self.assertNotIn("compactInPlace(", branch)
+        self.assertNotIn("=>", branch)
+
+        runner = r"""
+const fs = require("fs"), vm = require("vm");
+const source = fs.readFileSync(process.argv[1], "utf8");
+const payload = JSON.parse(fs.readFileSync(0, "utf8"));
+const nativeJSON = JSON;
+let parseCount = 0, stringifyCount = 0, tracking = false, doneResult;
+const stats = {
+  root: { lengthReads: 0, lengthWrites: 0, indexWrites: 0 },
+  level2: { lengthReads: 0, lengthWrites: 0, indexWrites: 0 },
+  level3: { lengthReads: 0, lengthWrites: 0, indexWrites: 0 },
+  level4: { lengthReads: 0, lengthWrites: 0, indexWrites: 0 },
+  stable4: { lengthReads: 0, lengthWrites: 0, indexWrites: 0 }
+};
+function tracked(array, name) {
+  return new Proxy(array, {
+    get(target, key, receiver) {
+      if (tracking && key === "length") stats[name].lengthReads++;
+      return Reflect.get(target, key, receiver);
+    },
+    set(target, key, value, receiver) {
+      if (tracking && key === "length") stats[name].lengthWrites++;
+      if (tracking && /^(0|[1-9][0-9]*)$/.test(String(key))) stats[name].indexWrites++;
+      return Reflect.set(target, key, value, receiver);
+    }
+  });
+}
+const trackedJSON = {
+  parse(raw) {
+    parseCount++;
+    const parsed = nativeJSON.parse(raw);
+    const data = parsed.data["2019061000"].data;
+    const level4 = tracked([
+      { typeName: "KEEP", data: { title: "before" } },
+      { typeName: "PHONE_FEED_CARD_S_AD", data: {} },
+      { typeName: "KEEP_AD", data: { ad: {} } },
+      { typeName: "KEEP", data: { title: "after" } }
+    ], "level4");
+    const stable4 = tracked([{ typeName: "KEEP", id: "stable" }], "stable4");
+    const level3 = tracked([
+      { typeName: "PHONE_FEED_CARD_B_AD", id: "level3-ad" },
+      { typeName: "NORMAL", nodes: level4 },
+      { typeName: "NORMAL", nodes: stable4 }
+    ], "level3");
+    const level2 = tracked([
+      { typeName: "UC广告抽屉", data: {} },
+      { id: 31476, data: { crmSale: "remove", keywords: ["remove"] },
+        nodes: [{ typeName: "PHONE_FEED_CARD_B_AD", id: "must-not-be-walked" }] },
+      { id: 35505, data: {} },
+      { id: 8, data: { crmSale: "remove" }, nodes: level3 }
+    ], "level2");
+    data.nodes = tracked([
+      { data: { nodeKey: "CHILD" }, nodes: [] },
+      { data: { nodeKey: "NORMAL", indexPositionResult: [{ id: 1 }], refreshImg: "remove" },
+        nodes: level2 }
+    ], "root");
+    tracking = true;
+    return parsed;
+  },
+  stringify(value) {
+    tracking = false;
+    stringifyCount++;
+    return nativeJSON.stringify(value);
+  }
+};
+const context = {
+  JSON: trackedJSON,
+  $request: { url: payload.url },
+  $response: { body: nativeJSON.stringify(payload.body) },
+  $done(value) { doneResult = value; },
+  console: { log() {}, warn() {}, error() {} }
+};
+vm.createContext(context);
+const original = {
+  filter: Array.prototype.filter,
+  map: Array.prototype.map,
+  forEach: Array.prototype.forEach
+};
+try {
+  Array.prototype.filter = Array.prototype.map = Array.prototype.forEach = function() {
+    throw new Error("per-item array callback method invoked");
+  };
+  vm.runInContext(source, context, { timeout: 5000 });
+} finally {
+  Array.prototype.filter = original.filter;
+  Array.prototype.map = original.map;
+  Array.prototype.forEach = original.forEach;
+}
+if (parseCount !== 1 || stringifyCount !== 1) throw new Error("unexpected JSON round trips");
+if (!doneResult || typeof doneResult.body !== "string") throw new Error("response body missing");
+const output = nativeJSON.parse(doneResult.body);
+const root = output.data["2019061000"].data;
+const nodes = root.nodes;
+if (nodes.length !== 1 || nodes[0].data.refreshImg !== undefined ||
+    nodes[0].data.indexPositionResult.length !== 0) throw new Error("root cleanup/filter mismatch");
+const level2out = nodes[0].nodes;
+if (level2out.length !== 2 || level2out[0].id !== 31476 || level2out[1].id !== 8) throw new Error("level2 order/filter mismatch");
+if (level2out[0].data.keywords !== undefined || level2out[0].data.crmSale !== undefined ||
+    level2out[0].nodes[0].id !== "must-not-be-walked") throw new Error("31476 special handling changed");
+if (level2out[1].data.crmSale !== undefined) throw new Error("crmSale cleanup changed");
+const level3out = level2out[1].nodes;
+if (level3out.length !== 2 || level3out[0].typeName !== "NORMAL") throw new Error("level3 filter mismatch");
+if (level3out[0].nodes.length !== 2 || level3out[0].nodes[0].data.title !== "before" ||
+    level3out[0].nodes[1].data.title !== "after") throw new Error("level4 filter/order mismatch");
+if (level3out[1].nodes.length !== 1 || level3out[1].nodes[0].id !== "stable") throw new Error("stable nested list changed");
+const expectedReads = { root: 1, level2: 1, level3: 1, level4: 1, stable4: 1 };
+const expectedLengthWrites = { root: 1, level2: 1, level3: 1, level4: 1, stable4: 0 };
+for (const name of Object.keys(expectedReads)) {
+  if (stats[name].lengthReads !== expectedReads[name]) throw new Error(name + " length read count " + stats[name].lengthReads);
+  if (stats[name].lengthWrites !== expectedLengthWrites[name]) throw new Error(name + " length write count " + stats[name].lengthWrites);
+}
+if (stats.root.indexWrites !== 1 || stats.level2.indexWrites !== 2 ||
+    stats.level3.indexWrites !== 2 || stats.level4.indexWrites !== 1 ||
+    stats.stable4.indexWrites !== 0) throw new Error("unnecessary or missing array index writes: " + nativeJSON.stringify(stats));
+process.stdout.write(nativeJSON.stringify({ stats, output }));
+"""
+        result = subprocess.run(
+            [NODE, "-e", runner, str(SOURCE)],
+            input=json.dumps({
+                "url": "https://acs.youku.com/gw/mtop.youku.columbus.home.query/",
+                "body": {"data": {"2019061000": {"data": {"nodes": []}}}},
+            }),
+            capture_output=True, text=True, check=False, timeout=10,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
+
 
 
 

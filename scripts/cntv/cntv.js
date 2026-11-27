@@ -63,6 +63,86 @@ function compactInPlace(items, keep) {
   return items;
 }
 
+// loon-change: CNTV Youku home.query callback-free nested compaction v1
+function compactCntvYoukuHomeQuery(items, mode, knownLength) {
+  const length = knownLength === undefined ? items.length : knownLength;
+  let write = 0;
+
+  if (mode === "root") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      const itemData = item?.data;
+      const nodeKey = itemData?.nodeKey;
+      if (nodeKey === "CHILD" || nodeKey === "COMIC2" || nodeKey === "20230929GREATWORKMFK") continue;
+
+      const indexPositionResult = itemData?.indexPositionResult;
+      if (indexPositionResult?.length > 0) itemData.indexPositionResult = [];
+      if (itemData?.refreshImg) delete itemData.refreshImg;
+
+      const childNodes = item?.nodes;
+      const childLength = childNodes?.length || 0;
+      if (childLength > 0) compactCntvYoukuHomeQuery(childNodes, "level2", childLength);
+
+      if (write !== read) items[write] = item;
+      write++;
+    }
+  } else if (mode === "level2") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      const itemData = item?.data;
+      if (itemData?.crmSale) delete itemData.crmSale;
+
+      const itemTypeName = item?.typeName;
+      if (itemTypeName === "UC广告抽屉" || itemTypeName === "橱窗广告") continue;
+
+      const itemId = item?.id;
+      if (itemId === 31476) {
+        const keywords = itemData?.keywords;
+        if (keywords?.length > 0) delete itemData.keywords;
+      } else {
+        if (itemId === 35505 || itemId === 37335) continue;
+        const childNodes = item?.nodes;
+        const childLength = childNodes?.length || 0;
+        if (childLength > 0) compactCntvYoukuHomeQuery(childNodes, "level3", childLength);
+      }
+
+      if (write !== read) items[write] = item;
+      write++;
+    }
+  } else if (mode === "level3") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      const itemTypeName = item?.typeName;
+      if (itemTypeName === "PHONE_FEED_CARD_B_AD" ||
+          itemTypeName === "PHONE_FEED_CARD_S_AD" ||
+          itemTypeName === "PHONE_H_UC_AD" ||
+          itemTypeName === "PHONE_IMG_A" ||
+          itemTypeName === "PHONE_YK_AD_BANNER") continue;
+
+      const childNodes = item?.nodes;
+      const childLength = childNodes?.length || 0;
+      if (childLength > 0) compactCntvYoukuHomeQuery(childNodes, "level4", childLength);
+
+      if (write !== read) items[write] = item;
+      write++;
+    }
+  } else if (mode === "level4") {
+    for (let read = 0; read < length; read++) {
+      const item = items[read];
+      const itemTypeName = item?.typeName;
+      const itemData = item?.data;
+      if (itemTypeName === "PHONE_FEED_CARD_S_AD" || itemData?.hasOwnProperty("ad")) continue;
+      if (write !== read) items[write] = item;
+      write++;
+    }
+  } else {
+    return items;
+  }
+
+  if (write !== length) items.length = write;
+  return items;
+}
+
 // loon-change: CNTV pre-parse supported-route guard v1
 const shouldProcess =
   (isIQY && (
@@ -522,43 +602,20 @@ if (isIQY) {
       }
     }
   } else if (url.includes("columbus.home.query/")) {
-    // CNTV Youku home.query nested-list compaction: reuse all four response arrays.
+    // 优酷首页菜单与信息流：四层节点直接遍历，不创建逐项回调。
     if (obj?.data?.["2019061000"]?.data) {
-      let objData = obj.data["2019061000"].data;
-      if (objData?.data?.indexPositionResult?.length > 0) objData.data.indexPositionResult = [];
-      if (objData?.nodes?.length > 0) {
-        compactInPlace(objData.nodes, item => {
-          if (CNTV_STATIC_FILTER_18.includes(item?.data?.nodeKey)) return false;
-          if (item?.data?.indexPositionResult?.length > 0) item.data.indexPositionResult = [];
-          if (item?.data?.refreshImg) delete item.data.refreshImg;
-          if (item?.nodes?.length > 0) {
-            compactInPlace(item.nodes, i => {
-              if (i?.data?.crmSale) delete i.data.crmSale;
-              if (CNTV_STATIC_FILTER_19.includes(i?.typeName)) return false;
-              if (i?.id === 31476) {
-                if (i?.data?.keywords?.length > 0) delete i.data.keywords;
-                return true;
-              }
-              if (i?.id === 35505 || i?.id === 37335) return false;
-              if (i?.nodes?.length > 0) {
-                compactInPlace(i.nodes, ii => {
-                  if (CNTV_STATIC_FILTER_20.includes(ii?.typeName)) return false;
-                  if (ii?.nodes?.length > 0) {
-                    compactInPlace(ii.nodes, iii =>
-                      iii?.typeName !== "PHONE_FEED_CARD_S_AD" &&
-                      !iii?.data?.hasOwnProperty("ad")
-                    );
-                  }
-                  return true;
-                });
-              }
-              return true;
-            });
-          }
-          return true;
-        });
+      const objData = obj.data["2019061000"].data;
+      const homeData = objData?.data;
+      const indexPositionResult = homeData?.indexPositionResult;
+      if (indexPositionResult?.length > 0) homeData.indexPositionResult = [];
+
+      const rootNodes = objData?.nodes;
+      const rootNodesLength = rootNodes?.length || 0;
+      if (rootNodesLength > 0) {
+        compactCntvYoukuHomeQuery(rootNodes, "root", rootNodesLength);
       }
     }
+  // loon-change: CNTV Youku home.query callback-free route v1
   // loon-change: CNTV Youku home.query nested in-place compaction v1
   } else if (url.includes("columbus.uc.query/")) {
     // loon-change: CNTV Youku user-center nested in-place compaction v1
