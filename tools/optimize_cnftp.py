@@ -174,6 +174,194 @@ HOME_QUERY_BRANCH = """  } else if (url.includes("columbus.home.query/")) {
       }
     }
 """
+
+YOUKU_HOME_QUERY_HELPER_MARKER = "// loon-change: Youku home.query callback-free nested compaction v1"
+YOUKU_HOME_QUERY_BRANCH_MARKER = "// loon-change: Youku home.query callback-free route v1"
+
+YOUKU_HOME_QUERY_HELPER = """// loon-change: Youku home.query callback-free nested compaction v1
+function compactYoukuHomeQuery(items, mode, knownLength) {
+  const length = knownLength === undefined ? items.length : knownLength;
+  let write = 0;
+
+  if (mode === "root") {
+    for (let read = 0; read < length; read++) {
+      const node1 = items[read];
+      const node1Data = node1?.data;
+      const nodeKey = node1Data?.nodeKey;
+      if (nodeKey === "CHILD" || nodeKey === "COMIC2" || nodeKey === "20230929GREATWORKMFK") continue;
+
+      const indexPositionResult = node1Data?.indexPositionResult;
+      if (indexPositionResult?.length > 0) {
+        // 剧集 电影 二楼
+        setIfDifferent(node1Data, "indexPositionResult", []);
+      }
+      const refreshImg = node1Data?.refreshImg;
+      if (refreshImg) {
+        // 电影 综艺 纪录片 下拉刷新的背景图片
+        deleteIfPresent(node1Data, "refreshImg");
+      }
+
+      const node1Nodes = node1?.nodes;
+      const node1NodesLength = node1Nodes?.length || 0;
+      if (node1NodesLength > 0) {
+        compactYoukuHomeQuery(node1Nodes, "level2", node1NodesLength);
+      }
+      if (write !== read) items[write] = node1;
+      write++;
+    }
+  } else if (mode === "level2") {
+    for (let read = 0; read < length; read++) {
+      const node2 = items[read];
+      const node2Data = node2?.data;
+      const crmSale = node2Data?.crmSale;
+      if (crmSale) {
+        // 季卡会员横幅
+        deleteIfPresent(node2Data, "crmSale");
+      }
+      const node2TypeName = node2?.typeName;
+      if (node2TypeName === "UC广告抽屉" || node2TypeName === "橱窗广告") continue;
+
+      const node2Id = node2?.id;
+      const keywords = node2Data?.keywords;
+      if (node2Id === 31476 && keywords?.length > 0) {
+        // 正在热播滚动热词
+        deleteIfPresent(node2Data, "keywords");
+      }
+      if (node2Id === 35505 || node2Id === 37335) continue;
+
+      const node2Nodes = node2?.nodes;
+      const node2NodesLength = node2Nodes?.length || 0;
+      if (node2NodesLength > 0) {
+        compactYoukuHomeQuery(node2Nodes, "level3", node2NodesLength);
+      }
+      if (write !== read) items[write] = node2;
+      write++;
+    }
+  } else if (mode === "level3") {
+    for (let read = 0; read < length; read++) {
+      const node3 = items[read];
+      const node3TypeName = node3?.typeName;
+      if (node3TypeName === "PHONE_FEED_CARD_B_AD" ||
+          node3TypeName === "PHONE_FEED_CARD_S_AD" ||
+          node3TypeName === "PHONE_H_UC_AD" ||
+          node3TypeName === "PHONE_IMG_A" ||
+          node3TypeName === "PHONE_YK_AD_BANNER") continue;
+      const node3Id = node3?.id;
+      // 首页轮播广告
+      if (node3Id === 272768) continue;
+
+      const node3Nodes = node3?.nodes;
+      const node3NodesLength = node3Nodes?.length || 0;
+      if (node3NodesLength > 0) {
+        compactYoukuHomeQuery(node3Nodes, "level4", node3NodesLength);
+      }
+      if (write !== read) items[write] = node3;
+      write++;
+    }
+  } else if (mode === "level4") {
+    for (let read = 0; read < length; read++) {
+      const node4 = items[read];
+      const node4TypeName = node4?.typeName;
+      const node4Data = node4?.data;
+      if (node4TypeName === "PHONE_FEED_CARD_S_AD" || node4Data?.hasOwnProperty("ad")) continue;
+      if (write !== read) items[write] = node4;
+      write++;
+    }
+  } else {
+    return items;
+  }
+
+  if (write !== length) {
+    items.length = write;
+    modified = true;
+  }
+  return items;
+}"""
+
+YOUKU_HOME_QUERY_BRANCH = """  } else if (url.includes("columbus.home.query/")) {
+    // 优酷 各菜单列表 剧集 电影 综艺 信息流
+    if (obj?.data?.["2019061000"]?.data) {
+      const objData = obj.data["2019061000"].data;
+      const homeData = objData?.data;
+      const indexPositionResult = homeData?.indexPositionResult;
+      if (indexPositionResult?.length > 0) {
+        // 首页 第零层级 二楼
+        setIfDifferent(homeData, "indexPositionResult", []);
+      }
+      const rootNodes = objData?.nodes;
+      const rootNodesLength = rootNodes?.length || 0;
+      if (rootNodesLength > 0) {
+        // loon-change: Youku home.query callback-free route v1
+        compactYoukuHomeQuery(rootNodes, "root", rootNodesLength);
+      }
+    }
+"""
+
+def ensure_youku_home_query_helper(source: str) -> str:
+    """Insert the bounded, callback-free four-level Youku home.query walker once."""
+    required = (
+        "function compactYoukuHomeQuery(items, mode, knownLength) {",
+        'if (mode === "root")',
+        'if (mode === "level2")',
+        'if (mode === "level3")',
+        'if (mode === "level4")',
+        'const length = knownLength === undefined ? items.length : knownLength;',
+        'compactYoukuHomeQuery(node1Nodes, "level2", node1NodesLength);',
+        'compactYoukuHomeQuery(node2Nodes, "level3", node2NodesLength);',
+        'compactYoukuHomeQuery(node3Nodes, "level4", node3NodesLength);',
+        'deleteIfPresent(node2Data, "crmSale");',
+        'setIfDifferent(node1Data, "indexPositionResult", []);',
+    )
+    if YOUKU_HOME_QUERY_HELPER_MARKER in source:
+        if source.count(YOUKU_HOME_QUERY_HELPER_MARKER) != 1 or any(token not in source for token in required):
+            raise ValueError("Youku home.query callback-free helper marker/structure drift")
+        helper_start = source.index(YOUKU_HOME_QUERY_HELPER_MARKER)
+        helper_end = source.index("\n\n", helper_start)
+        helper = source[helper_start:helper_end]
+        if "=>" in helper or "keep(" in helper or "compactInPlace(" in helper:
+            raise ValueError("Youku home.query helper unexpectedly retains callback compaction")
+        return source
+
+    anchor = LAZY_SERIALIZATION_MARKER + "\nfunction sameValue("
+    if source.count(anchor) != 1:
+        raise ValueError("Youku home.query helper insertion anchor drift")
+    replacement = LAZY_SERIALIZATION_MARKER + "\n\n" + YOUKU_HOME_QUERY_HELPER + "\n\nfunction sameValue("
+    source = source.replace(anchor, replacement, 1)
+    if source.count(YOUKU_HOME_QUERY_HELPER_MARKER) != 1 or any(token not in source for token in required):
+        raise ValueError("Youku home.query helper insertion postcondition failed")
+    return source
+
+
+def ensure_youku_home_query_callback_free(source: str) -> str:
+    """Replace the four-level callback walker and fail closed on upstream shape drift."""
+    start = '  } else if (url.includes("columbus.home.query/")) {'
+    end = '  } else if (url.includes("columbus.uc.query/")) {'
+    if source.count(start) != 1 or source.count(end) != 1:
+        raise ValueError("Youku home.query route boundary drift")
+    left = source.index(start)
+    right = source.index(end, left + len(start))
+    block = source[left:right]
+    required = (
+        YOUKU_HOME_QUERY_BRANCH_MARKER,
+        "const rootNodes = objData?.nodes;",
+        "const rootNodesLength = rootNodes?.length || 0;",
+        'compactYoukuHomeQuery(rootNodes, "root", rootNodesLength);',
+    )
+    if YOUKU_HOME_QUERY_BRANCH_MARKER in block:
+        if block.count(YOUKU_HOME_QUERY_BRANCH_MARKER) != 1 or any(token not in block for token in required):
+            raise ValueError("Youku home.query callback-free route marker/structure drift")
+        if "compactInPlace(" in block or "=>" in block or "return false;" in block:
+            raise ValueError("Youku home.query route still contains per-item callbacks")
+        return source
+    if block != HOME_QUERY_BRANCH:
+        raise ValueError("Youku home.query callback branch drift; refusing an unreviewed rewrite")
+    return source[:left] + YOUKU_HOME_QUERY_BRANCH + source[right:]
+
+
+def finalize_youku_home_query_optimization(source: str) -> str:
+    return ensure_youku_home_query_callback_free(ensure_youku_home_query_helper(source))
+
+
 MANGO_VRSLIST_OLD = """      let newItems = [];
       for (let item of obj.data) {
         if (item?.vclassId > 100033 && item?.vclassId !== 100160) {
@@ -469,12 +657,12 @@ def optimize_source(source: str, upstream_commit: str | None = None) -> str:
     """Replace Youku home.query's nested filtered-copy arrays with stable in-place compaction."""
     if SOURCE_MARKER in source:
         if not upstream_commit:
-            return ensure_lazy_serialization(compact_response_filters(ensure_supported_route_guard(ensure_terminal_empty_body_guard(ensure_iqiyi_mango_compaction(source)))))
+            return finalize_youku_home_query_optimization(ensure_lazy_serialization(compact_response_filters(ensure_supported_route_guard(ensure_terminal_empty_body_guard(ensure_iqiyi_mango_compaction(source))))))
         if not re.fullmatch(r"[0-9a-f]{40}", upstream_commit):
             raise ValueError("invalid Wool Scripts upstream commit")
         source = re.sub(r"^// loon-change:.*\n", "", source, count=1)
         source = SOURCE_MARKER + "; upstream fmz200/wool_scripts@" + upstream_commit + "\n" + source
-        return ensure_lazy_serialization(compact_response_filters(ensure_supported_route_guard(ensure_terminal_empty_body_guard(ensure_iqiyi_mango_compaction(source)))))
+        return finalize_youku_home_query_optimization(ensure_lazy_serialization(compact_response_filters(ensure_supported_route_guard(ensure_terminal_empty_body_guard(ensure_iqiyi_mango_compaction(source))))))
 
     feed_start = '  } else if (url.includes("columbus.home.feed/")) {'
     feed_end = '  } else if (url.includes("columbus.home.query/")) {'
@@ -509,7 +697,7 @@ def optimize_source(source: str, upstream_commit: str | None = None) -> str:
     else:
         upstream_commit = "unrecorded"
     result = SOURCE_MARKER + "; upstream fmz200/wool_scripts@" + upstream_commit + "\n// loon-change: Youku home.feed in-place compaction v1\n" + source
-    return ensure_lazy_serialization(compact_response_filters(ensure_supported_route_guard(ensure_terminal_empty_body_guard(ensure_iqiyi_mango_compaction(result)))))
+    return finalize_youku_home_query_optimization(ensure_lazy_serialization(compact_response_filters(ensure_supported_route_guard(ensure_terminal_empty_body_guard(ensure_iqiyi_mango_compaction(result))))))
 
 
 def rewrite_plugin(plugin: str) -> str:
