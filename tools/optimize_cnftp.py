@@ -322,11 +322,16 @@ def ensure_youku_home_query_helper(source: str) -> str:
             raise ValueError("Youku home.query helper unexpectedly retains callback compaction")
         return source
 
-    anchor = LAZY_SERIALIZATION_MARKER + "\nfunction sameValue("
-    if source.count(anchor) != 1:
+    helper_signature = "function compactInPlace(items, keep) {"
+    if source.count(helper_signature) != 1:
         raise ValueError("Youku home.query helper insertion anchor drift")
-    replacement = LAZY_SERIALIZATION_MARKER + "\n\n" + YOUKU_HOME_QUERY_HELPER + "\n\nfunction sameValue("
-    source = source.replace(anchor, replacement, 1)
+    helper_start = source.index(helper_signature)
+    helper_end_marker = "  return items;\n}"
+    helper_end = source.find(helper_end_marker, helper_start)
+    if helper_end < 0:
+        raise ValueError("Youku home.query compaction helper end anchor drift")
+    helper_end += len(helper_end_marker)
+    source = source[:helper_end] + "\n\n" + YOUKU_HOME_QUERY_HELPER + source[helper_end:]
     if source.count(YOUKU_HOME_QUERY_HELPER_MARKER) != 1 or any(token not in source for token in required):
         raise ValueError("Youku home.query helper insertion postcondition failed")
     return source
