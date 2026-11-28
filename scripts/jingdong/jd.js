@@ -9,7 +9,7 @@ Surge module link:
 https://raw.githubusercontent.com/zirawell/R-Store/main/Rule/Surge/Adblock/App/J/京东/jd.sgmodule
 ********************************/
 
-// loon-change: Jingdong in-place response compaction and lazy serialization v1; upstream zirawell/R-Store@cfd273d27fdb73dd9dd3f21264e0ba01e8ffbadd
+// loon-change: Jingdong in-place response compaction and lazy serialization v1; upstream zirawell/R-Store@5bc9c10345dd037830a26f84d60414d71b24a291
 (function () {
   const url = ($request && $request.url) || "";
   const body = $response && $response.body;

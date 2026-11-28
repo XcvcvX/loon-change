@@ -1,4 +1,4 @@
-// loon-change: CNTV response compaction optimization v6; upstream zirawell/R-Store@cfd273d27fdb73dd9dd3f21264e0ba01e8ffbadd
+// loon-change: CNTV response compaction optimization v6; upstream zirawell/R-Store@5bc9c10345dd037830a26f84d60414d71b24a291
 /********************************
 CNTV Remove Ads - Version 1.0
 Checkout Source - https://raw.githubusercontent.com/RuCu6/QuanX/main/Scripts/cnftp.js

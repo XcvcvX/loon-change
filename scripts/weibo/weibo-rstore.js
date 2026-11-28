@@ -1,4 +1,4 @@
-// loon-change: R-Store Weibo in-place response compaction v1; upstream zirawell/R-Store@cfd273d27fdb73dd9dd3f21264e0ba01e8ffbadd
+// loon-change: R-Store Weibo in-place response compaction v1; upstream zirawell/R-Store@5bc9c10345dd037830a26f84d60414d71b24a291
 // loon-change: Weibo flowlist/asyn nested reference cache v1
 // loon-change: Weibo feed and comment lazy serialization v1
 // loon-change: Weibo hot-loop scalar membership v1
